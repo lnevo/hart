@@ -114,49 +114,7 @@
       "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)",
       "shared": true
     },
-    "crew/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
-    },
     "crew/industries/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
-    },
-    "crew/maps/barn/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
-    },
-    "crew/maps/east-end/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
-    },
-    "crew/maps/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
-    },
-    "crew/maps/shenango/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
-    },
-    "crew/maps/south-yard/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
-    },
-    "crew/maps/west-yard/index.html": {
       "image": "assets/share/operators-index.jpg",
       "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
       "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
@@ -166,24 +124,6 @@
       "image": "assets/share/crew-nvl.jpg",
       "alt": "The NVL Neville Island Local train sheet on a clipboard with a pencil, on the layout edge.",
       "from": "www/assets/behind/sts/crew-sheets.jpg (NVL clipboard)"
-    },
-    "crew/scale/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
-    },
-    "crew/tt23/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
-    },
-    "crew/yardmaster/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
     },
     "docs/index.html": {
       "image": "assets/share/docs-index.jpg",
@@ -199,12 +139,6 @@
       "image": "assets/share/guides-cats-ctc.jpg",
       "alt": "The CATS Digicon panel: Brick, Plane and Barn with signal lamps and track names.",
       "from": "media/screenshots/cats_dispatcher_20260826_184626.png (crop)"
-    },
-    "guides/index.html": {
-      "image": "assets/share/operators-index.jpg",
-      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
-      "shared": true
     },
     "guides/uss-ctc.html": {
       "image": "assets/share/guides-uss-ctc.jpg",

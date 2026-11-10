@@ -56,7 +56,7 @@ class Review(unittest.TestCase):
             root = _portal(tmp)
             pages = [p.relative_to(root) for p in sorted(root.rglob("*.html"))]
             missing, faults = share_cards.review(pages, {}, root)
-        self.assertEqual(missing, ["crew/ck1/index.html", "guides/a.html", "guides/index.html", "roster/index.html"])
+        self.assertEqual(missing, ["crew/ck1/index.html", "guides/a.html", "roster/index.html"])  # guides/index.html is exempt
         self.assertEqual(faults, [])
 
     def test_faults_a_missing_image_and_a_picture_used_twice(self):

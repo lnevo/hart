@@ -28,6 +28,20 @@ DEFAULT = {"image": "assets/icons/share-card.jpg", "alt": "Neville Island from a
 SECTIONS = ("operators", "behind", "ai")
 # Folders whose pages do not name a page id in their own HTML (a script mounts the header).
 FOLDER_SECTION = {"crew": "operators", "layout": "operators", "roster": "behind"}
+# Pages the owner has said keep the site card.
+NO_CARD_PAGES = {
+    "crew/index.html",
+    "crew/maps/barn/index.html",
+    "crew/maps/east-end/index.html",
+    "crew/maps/index.html",
+    "crew/maps/shenango/index.html",
+    "crew/maps/south-yard/index.html",
+    "crew/maps/west-yard/index.html",
+    "crew/scale/index.html",
+    "crew/tt23/index.html",
+    "crew/yardmaster/index.html",
+    "guides/index.html",
+}
 _PAGE_ID = re.compile(r'data-page="([^"]+)"|mountChrome\("([^"{]+)"\)')
 _TITLE = re.compile(r"<title>(.*?)</title>", re.S)
 
@@ -66,7 +80,7 @@ def expected_pages(pages: list[Path], portal: Path = PORTAL) -> list[Path]:
     site = json.loads((portal / "data" / "site.json").read_text(encoding="utf-8"))
     out = []
     for rel in pages:
-        if rel.suffix != ".html" or "files" in rel.parts or rel.parts[:2] == ("docs", "html"):
+        if rel.suffix != ".html" or "files" in rel.parts or rel.parts[:2] == ("docs", "html") or rel.as_posix() in NO_CARD_PAGES:
             continue
         text = (portal / rel).read_text(encoding="utf-8", errors="replace")
         if not _is_stub(text) and section_of(rel, text, site) in SECTIONS:
