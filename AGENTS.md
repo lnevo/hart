@@ -30,7 +30,7 @@ After any task that **changed files**, do not wait to be asked:
 
 1. **Wiki** — if a live decision or railroad state changed, update `wiki/STATUS.md` (and an ADR if it is a decision).
 2. **Commit** on the current branch; if that is `main`, create `agent/<agent-id>/<topic>` first. Conventional one- or two-sentence message (why, not a file list). Stage files by name, never `git add -A`, and confirm the branch first: another session may share this checkout and switch it. Never commit `.env.local`, credentials, or `tools/cats/src-repo/`.
-3. **Push** that branch (`git push -u origin HEAD`). Never push to `main`. Agents may merge their own PR once its required check passes, never with `--admin`.
+3. **Push** that branch (`git push -u origin HEAD`). Never push to `main`. Agents may merge their own PR once its required check passes, never with `--admin`. Before merging your own code change, run `/code-review medium` on the branch and fix what it confirms; skip it for docs-only PRs. Cursor has no `/code-review`, so a Cursor agent leaves the merge to the owner.
 4. **PanelPro test** when `tables.xml` or panels changed: `make panelpro-test`. Report the result, including `SKIPPED` when PanelPro or CATS is open. Do not start it while the owner is operating.
 5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CTC icons, CATS resources: run `sync_hart_package.sh` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
 6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
