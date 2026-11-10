@@ -26,6 +26,8 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 SCRIPTS = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPTS))
+import share_cards  # noqa: E402
 # Data fields that pages turn into links or image sources (provenance fields such as
 # layout-index "source" name workspace files and are only shown as text).
 LINK_KEYS = {"src", "thumb", "logo", "img", "rotated", "href", "html", "pdf", "page", "pages", "article", "more", "path", "previewSrc"}
@@ -146,6 +148,7 @@ def main() -> int:
         status = 1
     else:
         print("Links OK: every internal href/src and data path resolves.")
+    status = share_cards.report() or status  # gaps are a suggestion; a broken card fails
     print("Build: " + ", ".join(f"{k} {v}" for k, v in summary.items()))
     if args.manifest:
         Path(args.manifest).write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")

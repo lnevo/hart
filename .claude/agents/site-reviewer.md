@@ -20,6 +20,7 @@ You review the HART public website through the lens the brief names. Read `www/R
 - Security lens: treat anything exploitable as a finding, but do not exercise it.
 - Historian lens: cite a source for each correction, and say when you could not find one.
 - P&CV and P&OV are both correct and deliberate. Do not flag them.
+- Whatever the lens, run `python3 www/scripts/share_cards.py check` and name any page in Operations, Behind the Scenes or The Diverging Route that still shows the site share card, with a suggested picture of that page's subject.
 
 Report at most 15 findings, worst first. For each give severity, file and line or URL, the evidence, and a one-line fix. Say what you did not check. No praise and no summary of the site.
 
