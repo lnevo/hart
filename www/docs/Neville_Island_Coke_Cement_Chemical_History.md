@@ -309,7 +309,7 @@ Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley
    http://div11-mcr-nmra.info/PRRhist/p_ov.htm
 
 6. U.S. EPA, Shenango Incorporated, Neville Island (1962 Shenango Furnace purchase; ovens ~1930; second furnace ~1952).  
-   https://www.epa.gov/hwcorrectiveactioncleanups/hazardous-waste-cleanup-shenango-incorporated-neville-island
+   https://web.archive.org/web/20241022102918/https://www.epa.gov/hwcorrectiveactioncleanups/hazardous-waste-cleanup-shenango-incorporated-neville-island
 
 6a. *New York Times*, 6 July 1951: PC&C 140,243-share rights offering to finance doubling Neville Island pig-iron output from 300,000 to 600,000 net tons a year. Portal scan: [Pittsburgh Coke & Chemical doubles pig iron](../library/pcc-pig-iron-1951.html).
 
@@ -342,7 +342,7 @@ Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley
     https://www.calgoncarbon.com/about/history/
 
 17a. U.S. EPA, Calgon Carbon Corporation, Neville Island (reactivation, impregnation, pellet plants; Pittsburgh Activated Carbon; 2003 no-further-action).  
-    https://www.epa.gov/hwcorrectiveactioncleanups/hazardous-waste-cleanup-calgon-carbon-corporation-pittsburgh
+    https://web.archive.org/web/20220928180408/https://www.epa.gov/hwcorrectiveactioncleanups/hazardous-waste-cleanup-calgon-carbon-corporation-pittsburgh
 
 17b. University of Pittsburgh / Historic Pittsburgh, Guide to the Calgon Corporation Records (Hagan/Calgon water chemistry; 1965 purchase of Pittsburgh Activated Carbon).
 

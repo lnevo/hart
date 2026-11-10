@@ -110,7 +110,7 @@ Glass on this Washington County site started as **Hazel-Atlas in 1907**. **Brock
 12. James T. Herron / Canonsburg pottery histories (China 1900; Pottery 1909; production stopped January 1977; bankruptcy sale 1978). Fire commonly dated 1975.
 13. Heinz History Center, Guide to the Fort Pitt Bridge Works Records (1896; Spang 1963; Colonial Steel 1986–2006).
 14. Industry Today / PTT company history (founded 1929; Canonsburg 1946). U.S. EPA, Pennsylvania Transformer Technology, Canonsburg (DPC then Pennsylvania Transformer 1947; Cooper 1985; PTT 1996).  
-    https://www.epa.gov/hwcorrectiveactioncleanups/hazardous-waste-cleanup-pennsylvania-transformer-technology-formerly
+    https://web.archive.org/web/20241113173635/https://www.epa.gov/hwcorrectiveactioncleanups/hazardous-waste-cleanup-pennsylvania-transformer-technology-formerly
 15. *New York Times*, 12 Mar 1979 (Blount / WS-B tender for Washington Steel). UPI, 30 Mar 1992 (Lukens). Smithsonian / Bethlehem acquisition of Lukens; 1999 sheet-and-strip closure.
 16. *Observer-Reporter* (Hazel-Atlas 1907 on the Canton Township site; Brockway later; closed 1980s).
 17. Peter’s Model Railroading, Chartiers Branch stops (Kirwan industries; stations).  
