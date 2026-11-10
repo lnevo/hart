@@ -442,9 +442,13 @@ def main() -> int:
   <link rel="stylesheet" href="/css/ops.css">
 </head>
 <body>
+  <header class="site-header" data-ops-header></header>
   <main>
     <p>That page is not on the public portal. <a href="/">Back to HART</a>.</p>
   </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="/js/nav.js"></script>
+  <script>HARTOps.mountChrome("404").catch(function () {});</script>
 </body>
 </html>
 """,
