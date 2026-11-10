@@ -10,7 +10,7 @@ snapshots and composites; each function below is the whole recipe for one of the
 Needs Pillow and Google Chrome (headless). Pages are served from this checkout, so the
 site's own styles and fonts are used. Some cards read a picture captured or copied from
 elsewhere, kept in share-card-sources/:
-  station-map-full.png     a copy of ops/hart-ops/publications/assets/station_map_full_square.png
+  station-map-full.png     a copy of ops/hart-ops/publications/assets/station_map_full.png
   panel-frame.png          the HART Railroad panel from JMRI's web server
                            (GET http://<jmri host>:12080/frame/HART%20Railroad.png)
   track-scale-weighed.png  the owner's screenshot of the STS Track Scale after a weigh
@@ -472,8 +472,8 @@ def tt23():
 
 
 def station_maps():
-    """crew-maps: the full station map, two-tier version, whole, on white (used by the station maps index
-    and every map page). The source is a copy of ops/hart-ops/publications/assets/station_map_full_square.png;
+    """crew-maps: the full station map, whole, on white (used by the station maps index
+    and every map page). The source is a copy of ops/hart-ops/publications/assets/station_map_full.png;
     copy it again to refresh."""
     from PIL import Image
 
