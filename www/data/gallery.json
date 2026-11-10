@@ -25,7 +25,7 @@
     {
       "id": "progress",
       "label": "The build, month by month",
-      "count": 51
+      "count": 56
     }
   ],
   "items": [
@@ -368,6 +368,22 @@
     },
     {
       "album": "progress",
+      "src": "../media/photos-layout/IMG_6851.jpg",
+      "title": "Through the wall",
+      "caption": "Drywall knocked out at benchwork height, opening into the closet behind.",
+      "date": "2025-09-06",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_6853.jpg",
+      "title": "Tops along the wall",
+      "caption": "Plywood tops on the wall benchwork, in front of the patched hardboard backdrop.",
+      "date": "2025-09-06",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
       "src": "../media/photos-layout/IMG_6878.jpg",
       "title": "Photo backdrop",
       "caption": "The printed skyline backdrop goes up around the walls.",
@@ -496,6 +512,14 @@
     },
     {
       "album": "progress",
+      "src": "../media/photos-layout/IMG_8241.jpg",
+      "title": "The room in January",
+      "caption": "Valance, photo backdrop and track on the first oval, with the second oval's top still bare.",
+      "date": "2026-01-03",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
       "src": "../media/photos-layout/IMG_8307.jpg",
       "title": "On the rails",
       "caption": "A diesel on newly laid track.",
@@ -508,6 +532,22 @@
       "title": "Trackside electronics",
       "caption": "A small circuit board and LED fitted beside the track.",
       "date": "2026-02-11",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8414.jpg",
+      "title": "Fascia button",
+      "caption": "A lit pushbutton for the fascia, tried out on the benchwork.",
+      "date": "2026-02-11",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_8418.jpg",
+      "title": "Power switch",
+      "caption": "A lit power switch mounted on a benchwork leg.",
+      "date": "2026-02-13",
       "credit": "HART layout photos"
     },
     {
