@@ -21,20 +21,33 @@ def load_guard():
     return module
 
 
+def lexical_top(path):
+    """The checkout holding `path` as written, without following symlinks: a worktree's
+    mirror links (media/, ops/car-cards/) belong to the worktree, not to the main checkout."""
+    folder = os.path.dirname(path)
+    while folder and folder != os.path.dirname(folder):
+        if os.path.lexists(os.path.join(folder, ".git")):
+            return folder
+        folder = os.path.dirname(folder)
+    return None
+
+
 def main():
     data = json.load(sys.stdin)
     tool_input = data.get("tool_input", {})
     path = tool_input.get("file_path") or tool_input.get("notebook_path") or ""
     if not path:
         return 0
-    path = os.path.abspath(os.path.join(data.get("cwd") or os.getcwd(), os.path.expanduser(path)))
-    folder = os.path.dirname(path)
-    while folder and not os.path.isdir(folder):
-        folder = os.path.dirname(folder)
+    path = os.path.normpath(os.path.join(data.get("cwd") or os.getcwd(), os.path.expanduser(path)))
+    top = lexical_top(path)
+    if not top or not os.path.isdir(os.path.join(top, ".git")):
+        return 0  # outside a repo, or in a worktree (whose .git is a file)
     guard = load_guard()
-    if not folder or not guard.main_checkout(folder):
+    if not guard.main_checkout(top):
         return 0
-    ignored = subprocess.run(["git", "-C", folder, "check-ignore", "-q", path], capture_output=True).returncode == 0
+    rel = os.path.relpath(path, top)
+    ignored = subprocess.run(["git", "-C", top, "check-ignore", "-q", "--no-index", rel],
+                             capture_output=True).returncode == 0
     if ignored:
         return 0
     print(f"Blocked: {path} is in the main checkout, which stays on main. Edit in your own worktree: "

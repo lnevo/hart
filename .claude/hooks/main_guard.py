@@ -227,30 +227,32 @@ NEW_WORKTREE = "python3 tools/agent/worktrees.py new <topic> (make wt TOPIC=<top
 def main_checkout(target):
     """True when `target` is in the main checkout (not a worktree) of a repo using agent worktrees."""
     git_dir = git(target, "rev-parse", "--absolute-git-dir")
-    common = git(target, "rev-parse", "--path-format=absolute", "--git-common-dir")
-    if not git_dir or os.path.realpath(git_dir) != os.path.realpath(common):
+    common = git(target, "rev-parse", "--git-common-dir")  # relative to target on some gits
+    if not git_dir or not common:
+        return False
+    common = os.path.join(target, common) if not os.path.isabs(common) else common
+    if os.path.realpath(git_dir) != os.path.realpath(common):
         return False
     top = git(target, "rev-parse", "--show-toplevel")
     return bool(top) and os.path.exists(os.path.join(top, WORKTREE_TOOL))
 
 
 def switch_problem(target, sub, args):
-    """A git switch/checkout that would move the main checkout off main, or None."""
+    """A git switch/checkout that would move the main checkout off main, or None.
+
+    Allowed: main itself, and restoring files (after `--`, or names that are all existing
+    paths). Anything else is a branch, commit or revision expression and is blocked.
+    """
     if "--" in args:
-        return None  # restoring files
-    names = [a for a in args if not a.startswith("-")]
+        return None
     if any(a in ("-b", "-B", "-c", "-C", "--create", "--force-create", "--orphan", "--detach") for a in args):
         return "a new branch"
-    if not names or names[0] == "main":
+    names = [a for a in args if a == "-" or not a.startswith("-")]
+    if not names or names == ["main"]:
         return None
-    if sub == "switch":
-        return f"a switch to {names[0]}"
-    ref = names[0]
-    if ref == "-" or re.fullmatch(r"[0-9a-f]{7,40}", ref) or any(
-            git(target, "rev-parse", "--verify", "--quiet", r) for r in (f"refs/heads/{ref}", f"refs/remotes/{ref}",
-                                                                          f"refs/remotes/origin/{ref}", f"refs/tags/{ref}")):
-        return f"a checkout of {ref}"
-    return None  # a path
+    if sub == "checkout" and names[0] != "-" and all(os.path.exists(os.path.join(target, n)) for n in names):
+        return None  # a path
+    return f"a {sub} to {names[0]}"
 
 
 def in_project(target, project):

@@ -37,6 +37,7 @@ class ProcessPatterns(unittest.TestCase):
             # The pattern is the quoted part of the line; ps1 and Python use the same regex syntax.
             # Single quotes first: pull_ops.sh nests the pattern inside ssh "...".
             quoted = re.findall(r"'([^']*PanelPro[^']*)'", line) or re.findall(r'"([^"]*PanelPro[^"]*)"', line)
+            self.assertTrue(quoted, f"{name}: process check without a quoted pattern; add it to this test")
             pattern = quoted[0]
             pattern = pattern.replace("[a]", "a").replace("[c]", "c")
             for cls in MAIN_CLASSES:

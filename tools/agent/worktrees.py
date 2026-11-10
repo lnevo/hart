@@ -13,10 +13,12 @@ stays on main for pulls and deploys.
 (media/, ops/car-cards/, ops/hart-ops/.venv) from the main checkout.
 
 `sweep` removes a worktree only when GitHub lists a merged PR for its branch whose head
-is exactly the worktree's commit, and the worktree has no uncommitted or untracked
-changes. Its local branch goes with it. A fresh worktree with no PR yet, one with work
-after the merge, and the one holding DIR (the caller's own) are kept. The remote branch
-is left alone. Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py).
+is the worktree's commit or a descendant of it (so nothing local is lost), the merge is
+at least GRACE old, and the worktree has no uncommitted or untracked changes. Its local
+branch goes with it. A fresh worktree with no PR yet, one with work after the merge, a
+detached one, and the ones holding a --keep directory (the caller's) are kept. The grace
+period lets another session finish in a worktree it just merged. Remote branches are left
+alone. Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py).
 """
 from __future__ import annotations
 
@@ -24,14 +26,17 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MIRRORS = ("media", "ops/car-cards", "ops/hart-ops/.venv")
-TOPIC = re.compile(r"[a-z0-9][a-z0-9._-]*")
+TOPIC = re.compile(r"[a-z0-9]+([-_][a-z0-9]+)*")
+GRACE = timedelta(minutes=30)
 
 
 @dataclass
@@ -67,44 +72,54 @@ def worktrees(cwd: str | Path | None = None) -> list[Worktree]:
     return found
 
 
-def merged_heads() -> dict[str, set[str]] | None:
-    """Branch -> head commits of its merged PRs, or None when GitHub can't be asked."""
+def merged_prs(branch: str, main: str) -> list[dict] | None:
+    """Merged PRs for `branch` from GitHub, or None when GitHub can't be asked."""
     try:
-        done = subprocess.run(["gh", "pr", "list", "--state", "merged", "--limit", "300",
-                               "--json", "headRefName,headRefOid"],
-                              cwd=ROOT, capture_output=True, text=True, timeout=30)
+        done = subprocess.run(["gh", "pr", "list", "--state", "merged", "--head", branch, "--limit", "20",
+                               "--json", "headRefOid,mergedAt"], cwd=main, capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.SubprocessError):
         return None
-    if done.returncode != 0:
+    return json.loads(done.stdout or "[]") if done.returncode == 0 else None
+
+
+def merged_at(tree: Worktree, main: str, prs: list[dict] | None = None) -> datetime | None:
+    """When the worktree's work was merged: the latest merged PR for its branch whose head
+    is its commit or a descendant of it. None for open work, detached HEADs, or no answer."""
+    if not tree.branch:
         return None
-    heads: dict[str, set[str]] = {}
-    for pr in json.loads(done.stdout or "[]"):
-        heads.setdefault(pr["headRefName"], set()).add(pr["headRefOid"])
-    return heads
+    if prs is None:
+        prs = merged_prs(tree.branch, main) or []
+    times = [datetime.fromisoformat(pr["mergedAt"].replace("Z", "+00:00")) for pr in prs
+             if pr["headRefOid"] == tree.head or git_ok("merge-base", "--is-ancestor", tree.head, pr["headRefOid"], cwd=main)]
+    return max(times) if times else None
 
 
-def inside(path: str, keep: str | None) -> bool:
-    if not keep:
-        return False
-    path, keep = os.path.realpath(path), os.path.realpath(keep)
-    return keep == path or keep.startswith(path + os.sep)
+def inside(path: str, keep: list[str]) -> bool:
+    path = os.path.realpath(path)
+    for k in keep:
+        k = os.path.realpath(k)
+        if k == path or k.startswith(path + os.sep):
+            return True
+    return False
 
 
-def plan(trees: list[Worktree], heads: dict[str, set[str]], keep: str | None, dirty) -> tuple[list, list]:
-    """(to remove, kept with reason) for every worktree but the main checkout."""
+def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | None = None) -> tuple[list, list]:
+    """(to remove, kept with reason) for every worktree but the main checkout.
+
+    `merged(tree)` returns when its work was merged, or None while it is open work.
+    """
+    now = now or datetime.now(timezone.utc)
     remove, kept = [], []
-    all_heads = set().union(*heads.values()) if heads else set()
     for tree in trees[1:]:
-        if tree.branch:
-            merged = tree.head in heads.get(tree.branch, set())
-        else:
-            merged = tree.head in all_heads
-        if not merged:
-            continue  # open work: no merged PR at this commit
+        when = merged(tree)
+        if when is None:
+            continue  # open work, a fresh worktree, or detached
         if tree.locked:
             kept.append((tree, "locked"))
         elif inside(tree.path, keep):
-            kept.append((tree, "in use by this session; the next sweep removes it"))
+            kept.append((tree, "in use by this session; a later sweep removes it"))
+        elif now - when < GRACE:
+            kept.append((tree, f"merged under {int(GRACE.total_seconds() // 60)} minutes ago; a later sweep removes it"))
         elif dirty(tree.path):
             kept.append((tree, "merged, but has uncommitted or untracked changes"))
         else:
@@ -118,34 +133,35 @@ def is_dirty(path: str) -> bool:
     return bool(git("status", "--porcelain", cwd=path))
 
 
-def sweep(dry_run: bool = False, keep: str | None = None) -> list[str]:
+def sweep(dry_run: bool = False, keep: list[str] | None = None) -> list[str]:
     """Remove merged worktrees; return one line per action for the caller to show."""
-    heads = merged_heads()
-    if heads is None:
-        return ["worktree sweep skipped: gh could not list merged PRs"]
-    remove, kept = plan(worktrees(), heads, keep, is_dirty)
+    trees = worktrees()
+    if not trees:
+        return ["worktree sweep skipped: no git worktrees found"]
+    main = trees[0].path  # run from the main checkout, which is never removed
+    if not shutil.which("gh"):
+        return ["worktree sweep skipped: gh is not installed"]
+    git("fetch", "-q", "origin", "main", cwd=main)
+    remove, kept = plan(trees, lambda t: merged_at(t, main), keep or [], is_dirty)
     lines = []
     for tree in remove:
         label = tree.branch or tree.head[:8]
         if dry_run:
             lines.append(f"would remove {tree.path} ({label})")
             continue
-        if not os.path.isdir(tree.path):
-            git("worktree", "prune")
-        elif not git_ok("worktree", "remove", tree.path):
+        if os.path.isdir(tree.path) and not git_ok("worktree", "remove", tree.path, cwd=main):
             lines.append(f"kept {tree.path}: git worktree remove refused")
             continue
-        if tree.branch and git("rev-parse", f"refs/heads/{tree.branch}") == tree.head:
-            git("branch", "-D", tree.branch)
+        git("worktree", "prune", cwd=main)
+        if tree.branch and git("rev-parse", f"refs/heads/{tree.branch}", cwd=main) == tree.head:
+            git("branch", "-D", tree.branch, cwd=main)
         lines.append(f"removed {tree.path} ({label}, PR merged)")
     lines += [f"kept {tree.path} ({tree.branch or tree.head[:8]}): {why}" for tree, why in kept]
-    if not dry_run:
-        git("worktree", "prune")
     return lines
 
 
-def git_ok(*args: str) -> bool:
-    return subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, timeout=60).returncode == 0
+def git_ok(*args: str, cwd: str | Path | None = None) -> bool:
+    return subprocess.run(["git", "-C", str(cwd or ROOT), *args], capture_output=True, timeout=60).returncode == 0
 
 
 def exclude_mirrors(main: Path) -> None:
@@ -163,7 +179,7 @@ def exclude_mirrors(main: Path) -> None:
 
 def new(topic: str, agent: str) -> Path:
     if not TOPIC.fullmatch(topic):
-        raise SystemExit(f"topic must be lower-case words joined by - or _: {topic!r}")
+        raise SystemExit(f"topic must be lower-case letters and digits, words joined by - or _: {topic!r}")
     main = Path(worktrees()[0].path)
     path = main / ".claude" / "worktrees" / topic
     branch = f"agent/{agent}/{topic}"
@@ -188,7 +204,7 @@ def main(argv: list[str] | None = None) -> int:
     p_new.add_argument("--agent", default="claude")
     p_sweep = sub.add_parser("sweep", help="remove worktrees whose PR is merged")
     p_sweep.add_argument("--dry-run", action="store_true")
-    p_sweep.add_argument("--keep", help="never remove the worktree holding this directory")
+    p_sweep.add_argument("--keep", action="append", default=[], help="never remove the worktree holding this directory")
     args = parser.parse_args(argv)
     if args.cmd == "new":
         print(new(args.topic, args.agent))

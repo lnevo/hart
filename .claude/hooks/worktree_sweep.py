@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Remove agent worktrees whose PR is merged: at session start and after `gh pr merge`.
 
-Calls tools/agent/worktrees.py sweep, keeping the worktree the session is in. A merge done
+Calls tools/agent/worktrees.py sweep, keeping the session's working and project directories. A merge done
 on GitHub is caught at the next session start. Never blocks: any failure exits 0 quietly.
 """
 import json
@@ -28,7 +28,7 @@ def main() -> int:
     if not script.exists():
         return 0
     try:
-        done = subprocess.run([sys.executable, str(script), "sweep", "--keep", cwd],
+        done = subprocess.run([sys.executable, str(script), "sweep", "--keep", cwd, "--keep", project],
                               capture_output=True, text=True, timeout=45)
     except (OSError, subprocess.SubprocessError):
         return 0

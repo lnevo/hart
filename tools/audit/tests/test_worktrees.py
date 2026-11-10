@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -56,56 +57,91 @@ class Repo(unittest.TestCase):
         self.head = sh("git", "rev-parse", "HEAD", cwd=self.wt)
 
 
+LONG_AGO = datetime(2026, 1, 1, tzinfo=timezone.utc)
+
+
 class Plan(Repo):
     def trees(self):
         return WT.worktrees(self.main)
 
+    def merged(self, when=LONG_AGO):
+        return lambda tree: when if tree.branch == "agent/claude/x" else None
+
     def test_merged_clean_worktree_is_removed(self) -> None:
-        remove, kept = WT.plan(self.trees(), {"agent/claude/x": {self.head}}, None, WT.is_dirty)
+        remove, kept = WT.plan(self.trees(), self.merged(), [], WT.is_dirty)
         self.assertEqual([t.path for t in remove], [self.wt])
         self.assertEqual(kept, [])
 
-    def test_unmerged_or_moved_on_worktree_is_kept(self) -> None:
-        for heads in ({}, {"agent/claude/x": {"0" * 40}}, {"other": {self.head}}):
-            remove, _ = WT.plan(self.trees(), heads, None, WT.is_dirty)
-            self.assertEqual(remove, [], heads)
+    def test_open_work_is_not_planned(self) -> None:
+        remove, kept = WT.plan(self.trees(), lambda tree: None, [], WT.is_dirty)
+        self.assertEqual((remove, kept), ([], []))
 
-    def test_dirty_or_own_worktree_is_kept(self) -> None:
-        heads = {"agent/claude/x": {self.head}}
+    def test_dirty_kept_and_own_or_project_dir_kept(self) -> None:
         Path(self.wt, "new.txt").write_text("unsaved\n")
-        remove, kept = WT.plan(self.trees(), heads, None, WT.is_dirty)
+        remove, kept = WT.plan(self.trees(), self.merged(), [], WT.is_dirty)
         self.assertEqual((remove, len(kept)), ([], 1))
         os.remove(Path(self.wt, "new.txt"))
-        remove, kept = WT.plan(self.trees(), heads, self.wt + "/sub", WT.is_dirty)
+        for keep in ([self.wt + "/sub"], ["/elsewhere", self.wt]):
+            remove, kept = WT.plan(self.trees(), self.merged(), keep, WT.is_dirty)
+            self.assertEqual((remove, len(kept)), ([], 1), keep)
+
+    def test_recent_merge_waits_for_the_grace_period(self) -> None:
+        now = datetime.now(timezone.utc)
+        remove, kept = WT.plan(self.trees(), self.merged(now - timedelta(minutes=5)), [], WT.is_dirty, now)
         self.assertEqual((remove, len(kept)), ([], 1))
+        remove, _ = WT.plan(self.trees(), self.merged(now - WT.GRACE - timedelta(minutes=1)), [], WT.is_dirty, now)
+        self.assertEqual(len(remove), 1)
 
     def test_main_checkout_is_never_planned(self) -> None:
-        main_head = sh("git", "rev-parse", "HEAD", cwd=self.main)
-        remove, _ = WT.plan(self.trees(), {"main": {main_head}}, None, WT.is_dirty)
-        self.assertEqual(remove, [])
+        remove, _ = WT.plan(self.trees(), lambda tree: LONG_AGO, [], WT.is_dirty)
+        self.assertNotIn(self.main, [t.path for t in remove])
+
+
+class MergedAt(Repo):
+    def tree(self):
+        return next(t for t in WT.worktrees(self.main) if t.path == self.wt)
+
+    def pr(self, oid):
+        return [{"headRefOid": oid, "mergedAt": "2026-11-10T12:00:00Z"}]
+
+    def test_exact_head_and_descendant_head_count(self) -> None:
+        self.assertIsNotNone(WT.merged_at(self.tree(), self.main, self.pr(self.head)))
+        # GitHub "Update branch" adds a commit on top before the merge: local HEAD is its ancestor
+        sh("git", "commit", "-q", "--allow-empty", "-m", "update", cwd=self.wt)
+        later = sh("git", "rev-parse", "HEAD", cwd=self.wt)
+        sh("git", "reset", "-q", "--hard", "HEAD~1", cwd=self.wt)
+        self.assertIsNotNone(WT.merged_at(self.tree(), self.main, self.pr(later)))
+
+    def test_local_work_after_the_merge_counts_as_open(self) -> None:
+        merged = self.head
+        sh("git", "commit", "-q", "--allow-empty", "-m", "more", cwd=self.wt)
+        self.assertIsNone(WT.merged_at(self.tree(), self.main, self.pr(merged)))
+        self.assertIsNone(WT.merged_at(self.tree(), self.main, []))
 
 
 class Sweep(Repo):
-    def test_sweep_removes_worktree_and_branch(self) -> None:
-        saved = (WT.ROOT, WT.merged_heads)
-        WT.ROOT, WT.merged_heads = Path(self.main), lambda: {"agent/claude/x": {self.head}}
+    def sweep(self, merged):
+        saved = (WT.ROOT, WT.merged_at)
+        WT.ROOT, WT.merged_at = Path(self.wt), lambda tree, main, prs=None: merged(tree)
         try:
-            lines = WT.sweep()
+            return WT.sweep()
         finally:
-            WT.ROOT, WT.merged_heads = saved
-        self.assertTrue(lines[0].startswith("removed"), lines)
+            WT.ROOT, WT.merged_at = saved
+
+    def test_sweep_removes_worktree_and_branch(self) -> None:
+        lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertTrue(lines and lines[0].startswith("removed"), lines)
         self.assertFalse(os.path.exists(self.wt))
         self.assertEqual(sh("git", "branch", "--list", "agent/claude/x", cwd=self.main), "")
 
-    def test_sweep_does_nothing_without_github(self) -> None:
-        saved = (WT.ROOT, WT.merged_heads)
-        WT.ROOT, WT.merged_heads = Path(self.main), lambda: None
-        try:
-            lines = WT.sweep()
-        finally:
-            WT.ROOT, WT.merged_heads = saved
-        self.assertIn("skipped", lines[0])
+    def test_sweep_keeps_unmerged_worktree(self) -> None:
+        self.assertEqual(self.sweep(lambda t: None), [])
         self.assertTrue(os.path.exists(self.wt))
+
+    def test_topic_must_be_a_valid_branch_word(self) -> None:
+        for bad in ("fix..ids", "x.lock", "x.", "Bad", "a b", "-x"):
+            with self.assertRaises(SystemExit, msg=bad):
+                WT.new(bad, "claude")
 
 
 class New(Repo):
@@ -144,11 +180,14 @@ class MainCheckoutRules(Repo):
 
     def test_main_checkout_blocks_commits_and_branch_moves(self) -> None:
         for cmd in ("git commit -m x", "git switch -c agent/claude/y", "git checkout -b y",
-                    "git switch agent/claude/x", "git checkout agent/claude/x", f"git checkout {self.head[:8]}"):
+                    "git switch agent/claude/x", "git checkout agent/claude/x", f"git checkout {self.head[:8]}",
+                    "git checkout -", "git switch -", "git checkout HEAD~1", "git checkout @{-1}",
+                    "git checkout FETCH_HEAD", "git checkout main~1", f"git checkout {self.head[:8].upper()}"):
             self.assertEqual(self.bash(cmd, self.main), 2, cmd)
 
     def test_main_checkout_allows_staying_on_main(self) -> None:
-        for cmd in ("git checkout main", "git switch main", "git checkout -- f.txt", "git pull --ff-only",
+        for cmd in ("git checkout main", "git switch main", "git checkout -- f.txt", "git checkout .gitignore",
+                    "git pull --ff-only",
                     "git status", f"git worktree add ../wt2 -b agent/claude/z"):
             self.assertEqual(self.bash(cmd, self.main), 0, cmd)
 
@@ -161,6 +200,10 @@ class MainCheckoutRules(Repo):
         self.assertEqual(self.edit(self.main + "/new/dir/file.py", self.main), 2)
         self.assertEqual(self.edit(self.main + "/local.txt", self.main), 0)  # gitignored
         self.assertEqual(self.edit(self.wt + "/notes.md", self.main), 0)
+        os.makedirs(self.main + "/mirror")
+        Path(self.main, ".gitignore").write_text("local.txt\n/mirror\n")
+        os.symlink(self.main + "/mirror", self.wt + "/mirror")  # a make wt mirror link
+        self.assertEqual(self.edit(self.wt + "/mirror/new.png", self.wt), 0)
         with tempfile.TemporaryDirectory() as other:
             self.assertEqual(self.edit(other + "/x.md", other), 0)
 

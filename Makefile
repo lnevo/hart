@@ -7,7 +7,7 @@ help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
 
 wt:  ## Start a task in its own worktree: make wt TOPIC=short-topic
-	@python3 tools/agent/worktrees.py new $(TOPIC)
+	@python3 tools/agent/worktrees.py new $(TOPIC) --agent $(or $(AGENT),claude)
 
 wt-sweep:  ## Remove agent worktrees whose PR is merged
 	python3 tools/agent/worktrees.py sweep
