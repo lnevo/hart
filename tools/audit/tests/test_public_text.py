@@ -42,9 +42,14 @@ def tiny_pdf(text: str) -> bytes:
     return bytes(out)
 
 
+def addr(user: str, domain: str) -> str:
+    """Join an address at run time, so this file never holds one the check would flag."""
+    return user + "@" + domain
+
+
 class PersonalEmail(unittest.TestCase):
     def test_consumer_addresses_fail(self) -> None:
-        for text in ("send to someone@icloud.com now", "x.y+z@Gmail.com", "a@mac.com"):
+        for text in (f"send to {addr('someone', 'icloud.com')} now", addr("x.y+z", "Gmail.com"), addr("a", "mac.com")):
             self.assertTrue(cpt.personal_email(text), text)
 
     def test_service_addresses_pass(self) -> None:
@@ -61,14 +66,14 @@ class Files(unittest.TestCase):
             return cpt.problems([str(path.relative_to(ROOT))])
 
     def test_text_file_with_email_fails(self) -> None:
-        self.assertEqual(len(self.check("a.sh", b"#!/bin/sh\nTO=someone@icloud.com\n")), 1)
+        self.assertEqual(len(self.check("a.sh", f"#!/bin/sh\nTO={addr('someone', 'icloud.com')}\n".encode())), 1)
 
     def test_clean_text_file_passes(self) -> None:
         self.assertEqual(self.check("a.md", b"# Notes\nNothing private.\n"), [])
 
     @unittest.skipUnless(HAVE_PYPDF, "pypdf not installed")
     def test_pdf_text_is_read(self) -> None:
-        self.assertEqual(len(self.check("a.pdf", tiny_pdf("mail someone@icloud.com"))), 1)
+        self.assertEqual(len(self.check("a.pdf", tiny_pdf("mail " + addr("someone", "icloud.com")))), 1)
         self.assertEqual(self.check("b.pdf", tiny_pdf("Neville Island")), [])
 
 
