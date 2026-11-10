@@ -132,8 +132,8 @@
     },
     "library/opspro-showcase-guide.html": {
       "image": "assets/share/library-opspro-showcase-guide.jpg",
-      "alt": "A switch list for the Sawyer Switcher on the Juniper Falls & Northern, with three cars and where each is set out.",
-      "from": "drawn from docs/ops/opspro-showcase/railroad/operations/buildstatus/train (SAWYER SWITCHER).txt"
+      "alt": "A switch list for the Sawyer Switcher laid over the route map of the Juniper Falls & Northern.",
+      "from": "switch list drawn from docs/ops/opspro-showcase/railroad/operations/buildstatus/train (SAWYER SWITCHER).txt, over the route map used on the Operations Pro article card"
     },
     "library/stl-studio-article.html": {
       "image": "assets/share/library-stl-studio-article.jpg",
