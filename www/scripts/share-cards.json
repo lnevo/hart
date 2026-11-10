@@ -332,6 +332,46 @@
       "image": "assets/share/link-github-hart.jpg",
       "alt": "GitHub's preview card for the railroad's repository.",
       "from": "https://opengraph.githubassets.com/1/lnevo/hart, centre crop"
+    },
+    "photos/index.html#layout/session-night": {
+      "image": "assets/share/link-photos-session-night.jpg",
+      "alt": "The layout room set for a session: benchwork, the helix peninsula and the backdrop.",
+      "from": "media/hart-research/wiring-drafts/IMG_8953.png (gallery: The layout room), centre crop"
+    },
+    "crew/index.html#jobs-title": {
+      "image": "assets/share/link-crew-sheets.jpg",
+      "alt": "Crew sheets on clipboards along the layout fascia.",
+      "from": "media/hart-research/wiring-drafts/IMG_8950.png (gallery: Crew sheets), centre crop"
+    },
+    "crew/yardmaster/index.html": {
+      "image": "assets/share/link-crew-yardmaster.jpg",
+      "alt": "South Yard with its track label and a cut of cars.",
+      "from": "media/hart-research/wiring-drafts/IMG_8947.png (gallery: South Yard), centre crop"
+    },
+    "crew/dispatcher/index.html": {
+      "image": "assets/share/link-crew-dispatcher.jpg",
+      "alt": "The dispatcher's desk in the layout room.",
+      "from": "media/hart-research/wiring-drafts/IMG_8949.png (gallery: Dispatcher's desk), centre crop"
+    },
+    "crew/maps/index.html": {
+      "image": "assets/share/link-crew-maps.jpg",
+      "alt": "A framed track diagram on the fascia below the tracks.",
+      "from": "media/hart-research/wiring-drafts/IMG_8940.png (gallery: Fascia track diagram), centre crop"
+    },
+    "crew/colors/index.html": {
+      "image": "assets/share/link-crew-colors.jpg",
+      "alt": "Yard tracks marked with their destination colours.",
+      "from": "media/hart-research/wiring-drafts/IMG_8948.png (gallery: Yard tracks by color), centre crop"
+    },
+    "crew/industries/index.html": {
+      "image": "assets/share/link-crew-industries.jpg",
+      "alt": "Industry buildings along the track with spot markers.",
+      "from": "media/hart-research/wiring-drafts/IMG_8952.png (gallery: The scale; industry buildings along the track), centre crop"
+    },
+    "crew/scale/index.html": {
+      "image": "assets/share/link-crew-scale.jpg",
+      "alt": "The scale house beside the track with the scale operating instructions sheet.",
+      "from": "media/hart-research/wiring-drafts/IMG_8941.png (gallery: Scale house and instructions), centre crop"
     }
   }
 }
