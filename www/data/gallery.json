@@ -25,7 +25,7 @@
     {
       "id": "progress",
       "label": "The build, month by month",
-      "count": 37
+      "count": 39
     }
   ],
   "items": [
@@ -548,6 +548,14 @@
       "title": "Helix: complete",
       "caption": "The finished helix: every turn of roadbed up and tracked, from the oval to the top.",
       "date": "2026-10-22",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_0989.jpg",
+      "title": "After operating session 4",
+      "caption": "The room after Operating Session 4: a train of hoppers on the helix, structures set out on the oval, and the first main-level framing going up over it.",
+      "date": "2026-11-09",
       "credit": "HART layout photos"
     }
   ]
