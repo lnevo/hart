@@ -101,5 +101,53 @@ class Review(unittest.TestCase):
         self.assertEqual(faults, [])
 
 
+class CardThumbs(unittest.TestCase):
+    CARDS = {
+        "ai/research.html": {"image": "assets/share/ai-research.jpg", "alt": "R"},
+        "operators/sheet.html": {"image": "assets/share/ops.jpg", "alt": "S", "shared": True},
+        "operators/yard.html": {"image": "assets/share/ops.jpg", "alt": "Y", "shared": True},
+        "ai/construction.html": {"image": "assets/share/ai-construction.jpg", "alt": "C", "shared": True},
+        "guides/index.html": {"image": "assets/share/guides.jpg", "alt": "G"},
+    }
+    HUB = (
+        '<div class="card-grid" data-card-thumbs>\n'
+        '  <a class="card" href="research.html"><div><h3>R</h3></div></a>\n'
+        '  <a class="card" href="../operators/sheet.html"><h3>S</h3></a>\n'
+        '  <a class="card" href="nowhere.html"><h3>N</h3></a>\n'
+        '  <a class="card" href="../guides/"><h3>G</h3></a>\n'
+        '  <a class="card" href="../operators/yard.html"><h3>Y</h3></a>\n'
+        '  <a class="card" href="construction.html"><h3>C</h3></a>\n'
+        "</div>\n"
+        '<div class="card-grid"><a class="card" href="research.html"><h3>Unmarked</h3></a></div>'
+    )
+
+    def test_marked_grid_cards_get_their_own_picture(self):
+        out, thumbs = share_cards.add_card_thumbs(self.HUB, "ai/index.html", self.CARDS)
+        self.assertIn(
+            '<a class="card has-thumb" href="research.html"><img class="card-thumb" '
+            'src="../assets/share/thumbs/ai-research.jpg" alt="" loading="lazy">',
+            out,
+        )
+        self.assertIn('src="../assets/share/thumbs/guides.jpg"', out)  # folder link resolves to index.html
+        self.assertEqual(
+            thumbs,
+            {"assets/share/thumbs/ai-research.jpg": "assets/share/ai-research.jpg",
+             "assets/share/thumbs/guides.jpg": "assets/share/guides.jpg",
+             "assets/share/thumbs/ai-construction.jpg": "assets/share/ai-construction.jpg"},
+        )
+
+    def test_repeated_missing_and_unmarked_cards_stay_text_only(self):
+        out, _ = share_cards.add_card_thumbs(self.HUB, "ai/index.html", self.CARDS)
+        self.assertIn('<a class="card" href="../operators/sheet.html">', out)
+        self.assertIn('<a class="card" href="../operators/yard.html">', out)
+        self.assertIn('<a class="card" href="nowhere.html">', out)
+        self.assertIn('<div class="card-grid"><a class="card" href="research.html"><h3>Unmarked', out)
+        self.assertEqual(out.count('class="card-thumb"'), 3)  # a shared picture used once in the grid is shown
+
+    def test_page_without_a_marked_grid_is_unchanged(self):
+        text = '<div class="card-grid"><a class="card" href="research.html">R</a></div>'
+        self.assertEqual(share_cards.add_card_thumbs(text, "ai/index.html", self.CARDS), (text, {}))
+
+
 if __name__ == "__main__":
     unittest.main()
