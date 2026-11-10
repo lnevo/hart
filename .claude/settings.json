@@ -33,5 +33,22 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git submodule status)",
+      "Bash(git submodule status *)",
+      "Bash(git check-ignore *)",
+      "Bash(sips -g *)",
+      "Bash(javap *)",
+      "Bash(gh run watch *)",
+      "Bash(shellcheck *)",
+      "Bash(shasum *)",
+      "mcp__plugin_sts_sts-api__sts_list",
+      "mcp__plugin_sts_sts-api__sts_health",
+      "mcp__plugin_sts_sts-api__sts_session",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "mcp__claude-in-chrome__read_console_messages"
+    ]
   }
 }
