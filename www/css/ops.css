@@ -543,7 +543,6 @@ main:not(.full-bleed) .btn-ghost:hover {
 .card.no-thumb::before {
   content: "";
   display: block;
-  max-height: 170px;
   aspect-ratio: 2 / 1;
   margin: 0 -1.15rem 0.85rem;
   background: linear-gradient(135deg, var(--brand), var(--brand-2));
@@ -555,7 +554,6 @@ main:not(.full-bleed) .btn-ghost:hover {
   display: block;
   width: calc(100% + 2.3rem);
   max-width: none;
-  max-height: 170px;
   aspect-ratio: 2 / 1;
   margin: 0 -1.15rem 0.85rem;
   object-fit: cover;

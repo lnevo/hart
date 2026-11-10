@@ -123,7 +123,7 @@ class CardThumbs(unittest.TestCase):
     )
 
     def test_marked_grid_cards_get_their_own_picture(self):
-        out, thumbs = share_cards.add_card_thumbs(self.HUB, "ai/index.html", self.CARDS)
+        out, thumbs = share_cards.add_card_thumbs(self.HUB, "ai/index.html", self.CARDS, {})
         self.assertIn(
             '<a class="card has-thumb" href="research.html"><img class="card-thumb" '
             'src="../assets/share/thumbs/ai-research.jpg" alt="" loading="lazy">',
@@ -138,7 +138,7 @@ class CardThumbs(unittest.TestCase):
         )
 
     def test_repeated_missing_and_unmarked_cards_stay_text_only(self):
-        out, _ = share_cards.add_card_thumbs(self.HUB, "ai/index.html", self.CARDS)
+        out, _ = share_cards.add_card_thumbs(self.HUB, "ai/index.html", self.CARDS, {})
         self.assertIn('<a class="card no-thumb" href="../operators/sheet.html">', out)
         self.assertIn('<a class="card no-thumb" href="../operators/yard.html">', out)
         self.assertIn('<a class="card no-thumb" href="nowhere.html">', out)
@@ -152,9 +152,40 @@ class CardThumbs(unittest.TestCase):
         self.assertIsNone(share_cards.card_target("behind/index.html", "https://github.com/x/y"))
         self.assertIsNone(share_cards.card_target("behind/index.html", "#top"))
 
+    def test_a_link_entry_gives_a_section_or_off_site_card_its_own_picture(self):
+        links = {
+            "build/index.html#staging": {"image": "assets/share/staging.jpg", "alt": "S"},
+            "https://github.com/x/y": {"image": "assets/share/gh.jpg", "alt": "G"},
+        }
+        cards = {"build/index.html": {"image": "assets/share/build.jpg", "alt": "B"}}
+        hub = (
+            '<div class="card-grid" data-card-thumbs>'
+            '<a class="card" href="../build/index.html#staging">S</a>'
+            '<a class="card" href="../build/index.html#main-level">M</a>'
+            '<a class="card" href="https://github.com/x/y">G</a></div>'
+        )
+        out, thumbs = share_cards.add_card_thumbs(hub, "behind/index.html", cards, links)
+        self.assertIn('href="../build/index.html#staging"><img class="card-thumb" src="../assets/share/thumbs/staging.jpg"', out)
+        self.assertIn('href="../build/index.html#main-level"><img class="card-thumb" src="../assets/share/thumbs/build.jpg"', out)
+        self.assertIn('href="https://github.com/x/y"><img class="card-thumb" src="../assets/share/thumbs/gh.jpg"', out)
+        self.assertEqual(len(thumbs), 3)
+
+    def test_link_entries_are_checked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _portal(tmp)
+            (root / "assets" / "share").mkdir(parents=True)
+            (root / "assets" / "share" / "s.jpg").write_bytes(b"")
+            faults = share_cards.review_links({
+                "guides/a.html#top": {"image": "assets/share/s.jpg", "alt": "A"},
+                "guides/gone.html#x": {"image": "assets/share/s.jpg", "alt": "A"},
+                "https://github.com/x/y": {"image": "assets/share/none.jpg", "alt": ""},
+            }, root)
+        self.assertEqual(len(faults), 3)
+        self.assertIn("guides/gone.html#x: no such page", faults[0])
+
     def test_page_without_a_marked_grid_is_unchanged(self):
         text = '<div class="card-grid"><a class="card" href="research.html">R</a></div>'
-        self.assertEqual(share_cards.add_card_thumbs(text, "ai/index.html", self.CARDS), (text, {}))
+        self.assertEqual(share_cards.add_card_thumbs(text, "ai/index.html", self.CARDS, {}), (text, {}))
 
 
 if __name__ == "__main__":

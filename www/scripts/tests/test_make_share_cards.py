@@ -11,7 +11,8 @@ import share_cards  # noqa: E402
 
 class Recipes(unittest.TestCase):
     def test_every_recipe_builds_an_image_some_page_uses(self):
-        used = {Path(card["image"]).stem for card in share_cards.load().values()}
+        entries = [*share_cards.load().values(), *share_cards.load_links().values()]
+        used = {Path(card["image"]).stem for card in entries}
         self.assertEqual(sorted(set(gen.CARDS) - used), [])
 
     def test_every_recipe_says_which_card_it_makes(self):

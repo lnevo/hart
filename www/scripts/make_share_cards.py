@@ -417,6 +417,15 @@ def ai_construction():
     return card(im.crop((x0, y0, x1, y0 + round((x1 - x0) * H / W))))
 
 
+def link_build_main_level():
+    """link-build-main-level: the "Where the pieces go" drawings on the main level plywood cut plan (hub card for build/#main-level)."""
+    im = shot(_site + "build/files/main-level-plywood-cut-plan.html", (W, 2 * H))
+    w, h = im.size
+    ch = round(w * H / W)
+    top = round(h * 0.42)  # the drawings sit just below the middle of the first two screens
+    return card(im.crop((0, top, w, top + ch)))
+
+
 def ai_operations():
     """ai-operations: the weighed car on the STS Track Scale, from the owner's screenshot."""
     from PIL import Image
@@ -503,6 +512,7 @@ CARDS = {
     "library-coraopolis-record-opinion": coraopolis_record,
     "crew-maps": station_maps,
     "crew-tt23": tt23,
+    "link-build-main-level": link_build_main_level,
     "crew-nvl": crew_nvl,
     "crew-dispatcher": crew_dispatcher,
 }

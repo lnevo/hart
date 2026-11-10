@@ -393,12 +393,12 @@ def _card_thumbs(dest_root: Path) -> None:
     The pictures are small copies of the share cards (assets/share/thumbs/). A page is left as it
     is when a copy cannot be made (no Pillow), so no card points at a missing picture.
     """
-    cards = share_cards.load()
+    cards, links = share_cards.load(), share_cards.load_links()
     for page in dest_root.rglob("*.html"):
         text = page.read_text(encoding="utf-8")
         if "data-card-thumbs" not in text:
             continue
-        new, thumbs = share_cards.add_card_thumbs(text, page.relative_to(dest_root), cards)
+        new, thumbs = share_cards.add_card_thumbs(text, page.relative_to(dest_root), cards, links)
         made = all(
             (dest_root / thumb).is_file() or _web_jpeg(dest_root / image, dest_root / thumb, share_cards.THUMB_PX)
             for thumb, image in thumbs.items()
