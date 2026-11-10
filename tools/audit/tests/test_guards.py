@@ -195,5 +195,148 @@ class SubagentGuard(unittest.TestCase):
         self.assertEqual(run(SUBAGENT_GUARD, "make check", str(ROOT)).returncode, 0)
 
 
+class JmriOpenAndPrivateName(unittest.TestCase):
+    """Table writers stop while PanelPro or CATS is open; the private name stays out of publishing text.
+
+    Checked in this process with the command as data. The running-JMRI check is replaced, so
+    the result never depends on what is open, and the name check is replaced by a stand-in
+    for a marker word, so no test file holds the real name.
+    """
+    MARK = "zz-private-marker"
+
+    def guard(self, running: bool):
+        guard = load(MAIN_GUARD, "hart_main_guard_names_test")
+        guard.jmri_running = lambda: running
+        guard.contains_private_name = lambda text: self.MARK in text
+        return guard
+
+    def code(self, command: str, running: bool = True) -> int:
+        guard = self.guard(running)
+        saved = sys.stdin
+        sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
+        try:
+            with mock_env(CLAUDE_PROJECT_DIR=str(ROOT)), contextlib.redirect_stdout(io.StringIO()), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                return guard.main()
+        finally:
+            sys.stdin = saved
+
+    def test_writers_blocked_while_open(self) -> None:
+        for cmd in ("make tables-pull", "make deploy-all", "make -s deploy-layout", "make ops-pull",
+                    "./tools/ops/pull_tables.sh", "./cats/scripts/sync_hart_package.sh --pi",
+                    "cd x && ./cats/scripts/sync_hart_package.sh --all",
+                    "python3 jmri/layouts/hart/scripts/apply_nx_layer.py",
+                    "JMRI_LAYOUT=hart python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
+                    "python3 jmri/layouts/hart/scripts/apply_public_names.py --apply"):
+            self.assertEqual(self.code(cmd), 2, cmd)
+
+    def test_writers_pass_when_closed(self) -> None:
+        for cmd in ("make tables-pull", "./cats/scripts/sync_hart_package.sh --pi"):
+            self.assertEqual(self.code(cmd, running=False), 0, cmd)
+
+    def test_read_only_work_passes_while_open(self) -> None:
+        for cmd in ("make panelpro-test", "make deploy-site", "make check", "./tools/check.sh",
+                    "python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check",
+                    "python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py --dry-run",
+                    "python3 jmri/layouts/hart/scripts/apply_public_names.py",
+                    "./cats/scripts/sync_hart_package.sh --help", "cat tools/ops/pull_tables.sh"):
+            self.assertEqual(self.code(cmd), 0, cmd)
+
+    def test_process_check_can_be_forced(self) -> None:
+        guard = load(MAIN_GUARD, "hart_main_guard_force_test")
+        with mock_env(HART_GUARD_JMRI_RUNNING="1"):
+            self.assertTrue(guard.jmri_running())
+        with mock_env(HART_GUARD_JMRI_RUNNING="0"):
+            self.assertFalse(guard.jmri_running())
+
+    def test_private_name_blocked_in_publishing_text(self) -> None:
+        m = self.MARK
+        for cmd in (f'git commit -m "fix {m} text"', f"git -C . commit --message='{m}'",
+                    f'gh pr create --title "{m}" --body ok', f'gh pr edit 3 --body "see {m}"',
+                    f'gh issue create --title t --body "{m}"',
+                    f'git commit -m "$(cat <<EOF\nfirst line\nmore {m}\nEOF\n)"'):
+            self.assertEqual(self.code(cmd, running=False), 2, cmd)
+
+    def test_clean_publishing_text_passes(self) -> None:
+        for cmd in ('gh pr create --title t --body "clean"', f"echo {self.MARK}", "gh pr view 3"):
+            self.assertEqual(self.code(cmd, running=False), 0, cmd)
+
+    def test_private_name_in_body_file_blocked(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            bad, good = Path(tmp, "bad.md"), Path(tmp, "good.md")
+            bad.write_text(f"body {self.MARK}\n")
+            good.write_text("body\n")
+            self.assertEqual(self.code(f"gh pr create --title t --body-file {bad}", running=False), 2)
+            self.assertEqual(self.code(f"git commit -F {bad}", running=False), 2)
+            self.assertEqual(self.code(f"gh pr create --title t --body-file {good}", running=False), 0)
+
+    def test_wrapped_and_unlisted_writers_blocked_while_open(self) -> None:
+        nx = "jmri/layouts/hart/scripts/apply_nx_layer.py"
+        for cmd in (f"env JMRI_LAYOUT=hart python3 {nx}", f"python3 -u {nx}", f"uv run python {nx}",
+                    "zsh tools/ops/pull_tables.sh", "bash -c ./tools/ops/pull_tables.sh",
+                    "(./tools/ops/pull_tables.sh)", "cd jmri && python3 scripts/apply_blocks_to_panel.py",
+                    # no list entry: found by reading the script
+                    "python3 jmri/scripts/polish_hart_cp_labels.py",
+                    "python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py",
+                    # flags these scripts do not define do not make them safe
+                    "python3 jmri/layouts/hart/scripts/annotate_mqtt_sensors_and_dispatcher.py --check",
+                    "python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --dry-run"):
+            self.assertEqual(self.code(cmd), 2, cmd)
+
+    def test_readers_and_launchers_pass_while_open(self) -> None:
+        for cmd in ("python3 jmri/scripts/check_hart_phase02.py", "git grep pull_tables.sh",
+                    "python3 jmri/layouts/hart/scripts/export_track_lengths.py",
+                    "./cats/scripts/launch_cats.sh", "python3 -m unittest discover -s tools/audit/tests"):
+            self.assertEqual(self.code(cmd), 0, cmd)
+
+    def test_process_pattern_covers_jmri5_decoderpro(self) -> None:
+        guard = load(MAIN_GUARD, "hart_main_guard_process_test")
+        for line in ("java -cp x apps.gui3.dp3.DecoderPro3", "java -cp x apps.PanelPro.PanelPro",
+                     "java -jar cats.jar cats.apps.Crandic"):
+            self.assertRegex(line, guard.PROCESS)
+
+    def test_more_publishing_text_checked(self) -> None:
+        m = self.MARK
+        for cmd in (f'gh pr comment 3 --body "{m}"', f'gh issue comment 3 --body "{m}"',
+                    f'gh issue edit 3 --body "{m}"', f'gh pr review 3 --comment --body "{m}"',
+                    f'gh release create v1 --notes "{m}"', f'git tag -a v1 -m "{m}"'):
+            self.assertEqual(self.code(cmd, running=False), 2, cmd)
+
+    def test_attached_body_file_forms_read(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp, "bad.md")
+            bad.write_text(f"body {self.MARK}\n")
+            for cmd in (f"gh pr create --title t --body-file={bad}", f"git commit -F{bad}",
+                        f"git commit --file={bad}"):
+                self.assertEqual(self.code(cmd, running=False), 2, cmd)
+
+    def test_name_in_an_earlier_part_does_not_block_a_clean_commit(self) -> None:
+        cmd = f"git grep -n {self.MARK} ; git commit -m 'remove the leaked name'"
+        self.assertEqual(self.code(cmd, running=False), 0)
+
+    def test_publishing_blocked_when_name_check_cannot_load(self) -> None:
+        guard = load(MAIN_GUARD, "hart_main_guard_missing_check_test")
+        guard.jmri_running = lambda: False
+        guard.NAME_CHECK = str(ROOT / "no" / "such" / "private_name.py")
+        saved = sys.stdin
+        sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": "gh pr create --title t --body ok"},
+                                            "cwd": str(ROOT)}))
+        try:
+            with mock_env(CLAUDE_PROJECT_DIR=str(ROOT)), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(guard.main(), 2)
+        finally:
+            sys.stdin = saved
+
+    def test_after_edit_checks_match_check_sh(self) -> None:
+        after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_test")
+        check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
+        for name, argv in after.CHECKS:
+            self.assertIn(f"run {name} " + " ".join(argv), check_sh, name)
+
+    def test_real_name_check_loads_and_passes_clean_text(self) -> None:
+        guard = load(MAIN_GUARD, "hart_main_guard_real_name_test")
+        self.assertFalse(guard.contains_private_name("a clean commit message about masts"))
+
+
 if __name__ == "__main__":
     unittest.main()
