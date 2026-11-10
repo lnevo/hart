@@ -102,7 +102,7 @@ def review(pages: list[Path], cards: dict[str, dict], portal: Path = PORTAL) -> 
         elif (size := _image_size(path)) not in (None, SIZE):
             faults.append(f"{page}: {image} is {size[0]} x {size[1]}, not {SIZE[0]} x {SIZE[1]}")
         for seen, value, what in ((seen_image, image, "image"), (seen_from, card.get("from", ""), "source picture")):
-            if value and value in seen:
+            if value and value in seen and not card.get("shared"):  # "shared": the owner chose one picture for several pages
                 faults.append(f"{page}: same {what} as {seen[value]} ({value})")
             seen.setdefault(value, page)
     return missing, faults

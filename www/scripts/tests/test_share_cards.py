@@ -77,6 +77,19 @@ class Review(unittest.TestCase):
         self.assertIn("assets/share/gone.jpg is not a file", faults[0])
         self.assertIn("same source picture as guides/a.html", faults[1])
 
+    def test_pages_marked_shared_may_use_one_picture(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _portal(tmp)
+            (root / "assets" / "share").mkdir(parents=True)
+            (root / "assets" / "share" / "a.jpg").write_bytes(b"")
+            share_cards._image_size, orig = (lambda p: share_cards.SIZE), share_cards._image_size
+            try:
+                one = {"image": "assets/share/a.jpg", "alt": "A", "from": "photo.jpg", "shared": True}
+                missing, faults = share_cards.review([], {"guides/a.html": dict(one), "crew/ck1/index.html": dict(one)}, root)
+            finally:
+                share_cards._image_size = orig
+        self.assertEqual(faults, [])
+
 
 if __name__ == "__main__":
     unittest.main()
