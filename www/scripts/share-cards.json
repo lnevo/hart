@@ -1,0 +1,254 @@
+{
+  "cards": {
+    "ai/construction.html": {
+      "image": "assets/share/ai-construction.jpg",
+      "alt": "Wooden benchwork framing going up in the blue layout room.",
+      "from": "media/photos-layout/IMG_6653.jpg"
+    },
+    "ai/control.html": {
+      "image": "assets/share/ai-control.jpg",
+      "alt": "Part of the Layout Editor panel: the South Yard tracks with turnout numbers and signal markers.",
+      "from": "media/screenshots/ctc_dev/pi/render_My_Layout.png (crop)"
+    },
+    "ai/electronics.html": {
+      "image": "assets/share/ai-electronics.jpg",
+      "alt": "A blue Arduino Nano node board with a radio module and green terminal blocks.",
+      "from": "media/photos-layout/IMG_7471.jpg"
+    },
+    "ai/index.html": {
+      "image": "assets/share/ai-hub.jpg",
+      "alt": "The Diverging Route banner: a main line with a diverging route, marked with the words LLMs, Prompts, Agents, Skills, MCP, Vibe coding and Automation.",
+      "from": "screenshot of ai/index.html (hub banner drawing, 3x)"
+    },
+    "ai/locomotives.html": {
+      "image": "assets/share/ai-locomotives.jpg",
+      "alt": "A blue and yellow CSX diesel, number 2738, on a grey backdrop.",
+      "from": "jmri/resources/roster/2738.jpg"
+    },
+    "ai/operations.html": {
+      "image": "assets/share/ai-operations.jpg",
+      "alt": "A black coke hopper car photographed side-on, the kind of photo the car cards are made from.",
+      "from": "www/assets/behind/sts/coke-hopper-bo-133007.jpg"
+    },
+    "ai/research.html": {
+      "image": "assets/share/ai-research.jpg",
+      "alt": "A sepia postcard of a glass factory with two tall chimneys and a long works building.",
+      "from": "www/assets/media/higbee-glass-postcard.webp"
+    },
+    "ai/workshop.html": {
+      "image": "assets/share/ai-workshop.jpg",
+      "alt": "A 3D render of a printed router template with a lattice base and raised blocks.",
+      "from": "render of docs/benchwork/helix/stl/bracket_pocket_template_A.stl"
+    },
+    "behind/bridge.html": {
+      "image": "assets/share/behind-bridge.jpg",
+      "alt": "A small blue Arduino-based layout control node mounted on a wooden bracket with a network cable plugged in.",
+      "from": "media/photos-layout/IMG_7868.jpg"
+    },
+    "behind/index.html": {
+      "image": "assets/share/behind-index.jpg",
+      "alt": "The LCOS client node wiring diagram, the hub's own banner.",
+      "from": "www/assets/behind/lcos-client-node.jpg"
+    },
+    "behind/jmri-additions.html": {
+      "image": "assets/share/behind-jmri-additions.jpg",
+      "alt": "The railroad's JMRI Layout Editor panel, a dark track diagram with turnouts, labels and status marks.",
+      "from": "www/assets/layout/HART_le_schematic.png"
+    },
+    "behind/layout-docs.html": {
+      "image": "assets/share/behind-layout-docs.jpg",
+      "alt": "A bus wiring slide from the layout documentation, showing boosters, control nodes and the DCC control bus.",
+      "from": "www/assets/behind/layout-docs/slide-04.png"
+    },
+    "behind/panel-evolution.html": {
+      "image": "assets/share/behind-panel-evolution.jpg",
+      "alt": "An early version of the Layout Editor panel: a light blue track diagram of Neville Island with switch numbers and signals.",
+      "from": "www/assets/behind/panel-evolution/le-poster.jpg (crop, caption bar removed)"
+    },
+    "behind/signals.html": {
+      "image": "assets/share/behind-signals.jpg",
+      "alt": "A test signal head glowing green beside a touch-toggle translator board on the layout benchwork.",
+      "from": "media/photos-layout/IMG_8415.jpg"
+    },
+    "behind/tables-file.html": {
+      "image": "assets/share/behind-tables-file.jpg",
+      "alt": "The tables browser, listing sensors by system name, user name and comment.",
+      "from": "screenshot of behind/tables-file.html (Browse the tables figure)"
+    },
+    "behind/wiring.html": {
+      "image": "assets/share/behind-wiring.jpg",
+      "alt": "A terminal strip under the layout with red, yellow, orange and white wires screwed into each position.",
+      "from": "media/photos-layout/IMG_7226.jpg"
+    },
+    "briefing/index.html": {
+      "image": "assets/share/briefing.jpg",
+      "alt": "Diesel locomotives lined up outside the engine house, ready to be assigned to trains.",
+      "from": "media/photos-layout/IMG_9288.jpg"
+    },
+    "build/index.html": {
+      "image": "assets/share/build-index.jpg",
+      "alt": "Overview of the layout room with the helix, benchwork and painted backdrop, the hub's own banner.",
+      "from": "media/photos-layout/IMG_8954.jpg"
+    },
+    "crew/ck1/index.html": {
+      "image": "assets/share/crew-ck1.jpg",
+      "alt": "Strings of loaded black hoppers standing on the East Yard tracks of the layout.",
+      "from": "media/hart-research/wiring-drafts/IMG_8946.png (crop; gallery.json layout album)"
+    },
+    "crew/colors/index.html": {
+      "image": "assets/share/crew-colors.jpg",
+      "alt": "Five coloured car card bins, one per industry, each holding its car cards.",
+      "from": "media/photos-layout/IMG_9347.jpg"
+    },
+    "crew/d749/index.html": {
+      "image": "assets/share/crew-d749.jpg",
+      "alt": "CR 1993, the Conrail GE B23-7 that D749 runs with.",
+      "from": "external/hart-ops/publications/assets/CR_1993.png"
+    },
+    "crew/dispatcher/index.html": {
+      "image": "assets/share/crew-dispatcher.jpg",
+      "alt": "The dispatcher's panel diagram of Neville Island with its numbered switches.",
+      "from": "external/hart-ops/publications/assets/dispatcher_panel_neville_island.png"
+    },
+    "crew/index.html": {
+      "image": "assets/share/crew-index.jpg",
+      "alt": "Freight cars and locomotives standing in the South Yard on the layout.",
+      "from": "media/photos-layout/IMG_8904.jpg"
+    },
+    "crew/industries/index.html": {
+      "image": "assets/share/crew-industries.jpg",
+      "alt": "Model industry buildings and a tank on the layout, for the industry spot sheets.",
+      "from": "media/photos-layout/IMG_7535.jpg"
+    },
+    "crew/maps/barn/index.html": {
+      "image": "assets/share/crew-maps-barn.jpg",
+      "alt": "Barn station map with engine house tracks EH-1 to EH-3.",
+      "from": "ops/station_maps/maps/Neville_Island_Station_Map_Barn_0.png"
+    },
+    "crew/maps/east-end/index.html": {
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "East End station map with the industry tracks S-1 to S-5.",
+      "from": "external/hart-ops/publications/assets/station_map_east_end.png"
+    },
+    "crew/maps/index.html": {
+      "image": "assets/share/crew-maps-index.jpg",
+      "alt": "Subdivision diagram of the main line from West Yard and Brick through Plane, Scale and Barn to South Yard.",
+      "from": "external/hart-ops/publications/assets/station_map_subdivision_tt23_panel.png (West Yard to South Yard, on white)"
+    },
+    "crew/maps/shenango/index.html": {
+      "image": "assets/share/crew-maps-shenango.jpg",
+      "alt": "Shenango station map with Princess and the coke works loop.",
+      "from": "ops/station_maps/maps/Neville_Island_Station_Map_Shenango_0.png"
+    },
+    "crew/maps/south-yard/index.html": {
+      "image": "assets/share/crew-maps-south-yard.jpg",
+      "alt": "South Yard station map with the ladder to tracks S-1 to S-5.",
+      "from": "ops/station_maps/maps/src/south_yard_sheet.png"
+    },
+    "crew/maps/west-yard/index.html": {
+      "image": "assets/share/crew-maps-west-yard.jpg",
+      "alt": "West Yard station map with W-1, W-2, Brick and Plane.",
+      "from": "external/hart-ops/publications/assets/station_map_west_yard.png"
+    },
+    "crew/nvl/index.html": {
+      "image": "assets/share/crew-nvl.jpg",
+      "alt": "POHC 2091, the orange GP20 that NVL runs with.",
+      "from": "external/hart-ops/publications/assets/POHC_2091.png"
+    },
+    "crew/scale/index.html": {
+      "image": "assets/share/crew-scale.jpg",
+      "alt": "A blank track scale weigh ticket with gross, tare and net lines.",
+      "from": "media/hart-research/desktop/scale_ticket.jpg (crop)"
+    },
+    "crew/tt23/index.html": {
+      "image": "assets/share/crew-tt23.jpg",
+      "alt": "The Route 23 timetable with station times from Barn to McKees Rocks.",
+      "from": "screenshot of crew/tt23/index.html (timetable and instructions)"
+    },
+    "crew/yardmaster/index.html": {
+      "image": "assets/share/crew-yardmaster.jpg",
+      "alt": "South Yard ladder tracks with a string of cars and the South Yard label.",
+      "from": "media/photos-layout/IMG_8947.jpg"
+    },
+    "docs/index.html": {
+      "image": "assets/share/docs-index.jpg",
+      "alt": "The printed Scale Operating Instructions booklet lying on the scale track.",
+      "from": "www/assets/behind/sts/scale-instructions.jpg"
+    },
+    "guides/auto-dispatcher.html": {
+      "image": "assets/share/guides-auto-dispatcher.jpg",
+      "alt": "The Dispatcher System command menu in PanelPro, with Run Dispatch, Setup Route and Run Route.",
+      "from": "media/screenshots/ctc_dev/pi/ds16.png (crop of the menu)"
+    },
+    "guides/cats-ctc.html": {
+      "image": "assets/share/guides-cats-ctc.jpg",
+      "alt": "The CATS Digicon panel: Brick, Plane and Barn with signal lamps and track names.",
+      "from": "media/screenshots/cats_dispatcher_20260826_184626.png (crop)"
+    },
+    "guides/index.html": {
+      "image": "assets/share/guides-index.jpg",
+      "alt": "A framed track diagram with signal dots at the fascia, the kind of board a dispatcher works from.",
+      "from": "media/photos-layout/IMG_8940.jpg"
+    },
+    "guides/uss-ctc.html": {
+      "image": "assets/share/guides-uss-ctc.jpg",
+      "alt": "The USS CTC machine: track diagram above rows of switch and signal levers.",
+      "from": "media/screenshots/master4/uss_ctc_v77_preview.png (crop)"
+    },
+    "helix/index.html": {
+      "image": "assets/share/helix-index.jpg",
+      "alt": "The helix frame under construction on the layout, wooden uprights over a curved plywood and cork roadbed.",
+      "from": "media/photos-layout/IMG_0727.jpg"
+    },
+    "layout/index.html": {
+      "image": "assets/share/layout-index.jpg",
+      "alt": "The Digicon device map of the layout, with switches and blocks labelled.",
+      "from": "www/assets/layout/HART_cats_digicon.png (crop)"
+    },
+    "library/how-it-was-built-article.html": {
+      "image": "assets/share/library-how-it-was-built-article.jpg",
+      "alt": "Early benchwork in the layout room, wooden frames on a blue-walled room before track and scenery.",
+      "from": "media/photos-layout/IMG_6755.jpg"
+    },
+    "library/operations-pro-article.html": {
+      "image": "assets/share/library-operations-pro-article.jpg",
+      "alt": "The article's six-stage build timeline, from Plan to Check, each with a label.",
+      "from": "screenshot of library/operations-pro-article.html (build stages figure)"
+    },
+    "library/opspro-showcase-guide.html": {
+      "image": "assets/share/library-opspro-showcase-guide.jpg",
+      "alt": "The first group of cases in the Operations Pro walkthrough, shown as expandable cards.",
+      "from": "screenshot of library/opspro-showcase-guide.html (first goal group)"
+    },
+    "library/stl-studio-article.html": {
+      "image": "assets/share/library-stl-studio-article.jpg",
+      "alt": "The STL Studio editor with a column of coloured logic blocks on a dotted grid.",
+      "from": "www/assets/behind/stl-studio/stl-studio-editor.png"
+    },
+    "library/sts-operations-article.html": {
+      "image": "assets/share/library-sts-operations-article.jpg",
+      "alt": "Four printed switch-list sheets on clipboards laid on the layout.",
+      "from": "www/assets/behind/sts/crew-sheets.jpg"
+    },
+    "operators/cards/index.html": {
+      "image": "assets/share/operators-cards.jpg",
+      "alt": "A car card and two waybills, the paperwork that sends freight cars around the railroad.",
+      "from": "www/assets/cards/car-card-nw-32800.png, waybill-freight-ferrellgas.png, waybill-empty-dow.png (composited)"
+    },
+    "operators/glossary/index.html": {
+      "image": "assets/share/operators-glossary.jpg",
+      "alt": "The top of the Glossary page: its title and the first terms defined.",
+      "from": "screenshot of operators/glossary/index.html (title and first terms)"
+    },
+    "operators/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg"
+    },
+    "roster/index.html": {
+      "image": "assets/share/roster-index.jpg",
+      "alt": "An orange diesel switcher locomotive on the layout beside coal hoppers.",
+      "from": "media/photos-layout/IMG_8307.jpg"
+    }
+  }
+}

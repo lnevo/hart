@@ -23,6 +23,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import share_cards  # noqa: E402
+
 PORTAL = Path(__file__).resolve().parents[1]
 # Build scripts, the owner's review desk, and pages that only work at the layout (localhost tools,
 # workspace pointers) stay off the public site.
@@ -351,6 +354,8 @@ def _head_tags(rel: Path, title: str) -> str:
     url = SITE_URL + ("" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html"))
     title = html.escape(title, quote=True)
     desc = html.escape(SHARE_DESCRIPTION, quote=True)
+    card = share_cards.card_for(rel)  # the page's own thumbnail, or the site card
+    image, alt = card["image"], html.escape(card["alt"], quote=True)
     return f"""
   <link rel="icon" href="{up}favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="{up}assets/icons/favicon-32.png" sizes="32x32">
@@ -361,10 +366,10 @@ def _head_tags(rel: Path, title: str) -> str:
   <meta property="og:title" content="{title}">
   <meta property="og:description" content="{desc}">
   <meta property="og:url" content="{url}">
-  <meta property="og:image" content="{SITE_URL}assets/icons/share-card.jpg">
+  <meta property="og:image" content="{SITE_URL}{image}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Neville Island from above">
+  <meta property="og:image:alt" content="{alt}">
   <meta name="twitter:card" content="summary_large_image">"""
 
 
