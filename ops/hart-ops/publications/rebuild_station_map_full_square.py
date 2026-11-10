@@ -63,8 +63,6 @@ def main() -> None:
     x101 = 330
     xb = x101 + 150  # Brick
     s_leg, vert = 75, 60
-    barn_bot_x = xb + 340
-    barn_top_x = barn_bot_x + 120
     takeoff_x = xb + 640
     x103 = takeoff_x + 170
     turn_x = x103 - 120
@@ -131,29 +129,43 @@ def main() -> None:
     line((x110, S[0]), (x112, S[0]))  # S-1 links 110 to 112
     line(plane, me_corner)
     line(me_corner, (turn_x, me_hi))
-    lab((xb + 220, S[0] - 18), "West Lead", track_font)
-    lab((xb + 200, me_hi - 18), "Main East", track_font)
+    lab((xb + 150, S[0] - 18), "West Lead", track_font)
+    lab((xb + 205, me_hi - 18), "Main East", track_font)
 
-    line((barn_top_x, S[0]), (barn_bot_x, me_hi))
-    lab((barn_bot_x + 20, me_hi + 40), "Barn", cp_font)
+    # ── Barn (SM-06): switch 7 crossover, 13 / 11 / 9, EH-1 to EH-3 ─────
+    x7 = xb + 260
+    sw7_top = (x7, S[0])
+    sw7_bot = (x7 + (me_hi - S[0]) * 0.5, me_hi)
+    sw7_mid = ((sw7_top[0] + sw7_bot[0]) / 2, (sw7_top[1] + sw7_bot[1]) / 2)
+    line(sw7_top, sw7_bot)
+    for p in (sw7_top, sw7_mid, sw7_bot):
+        dot(p)
+    badge((sw7_mid[0] - 50, sw7_mid[1]), "7")
+    lab((sw7_mid[0] + 10, me_hi + 52), "Barn", cp_font)
 
-    # ── South Yard ───────────────────────────────────────────────────────
-    gap = 26
-    et = {3: S[0] - gap, 2: S[0] - 2 * gap, 1: S[0] - 3 * gap}
+    eh = {3: S[0] - 70, 2: S[0] - 112, 1: S[0] - 154}
+    x_eh = xb + 140
 
-    def et_x(y):
-        return takeoff_x - (S[0] - y) * K
+    def up_left(p, y):
+        return (p[0] + 0.5 * (y - p[1]), y)
 
-    line((takeoff_x, S[0]), (et_x(et[1]), et[1]))
-    stub_end = takeoff_x - 150
-    for n in (1, 2):
-        line((et_x(et[n]), et[n]), (stub_end, et[n]))
-        lab((stub_end - 4, et[n]), f"ET-{n}", et_font, "rm")
-    spur = (et_x(et[2]) - 12, et[2])
-    et3x = spur[0] - gap
-    line(spur, (et3x, et[3]))
-    line((et3x, et[3]), (stub_end, et[3]))
-    lab((stub_end - 4, et[3]), "ET-3", et_font, "rm")
+    sw13 = (takeoff_x, S[0])
+    sw11 = up_left(sw13, eh[3])
+    eh1_join = up_left(sw13, eh[1])
+    sw9 = (takeoff_x - 300, eh[3])
+    eh2_join = up_left(sw9, eh[2])
+    line((x_eh, eh[1]), eh1_join)
+    line((x_eh, eh[2]), eh2_join)
+    line((x_eh, eh[3]), sw11)
+    line(sw13, eh1_join)
+    line(eh2_join, sw9)
+    for p in (sw13, sw11, sw9):
+        dot(p)
+    badge((sw13[0] - 56, S[0] - 34), "13")
+    badge((sw11[0] + 56, sw11[1] - 30), "11")
+    badge((sw9[0] + 56, sw9[1] - 30), "9")
+    for n in (1, 2, 3):
+        lab((x_eh + 70, eh[n] - 14), f"EH-{n}", et_font, "lm")
 
     top = (x103, S[0])
     bot = (x103 + 4 * G * K, S[4])
