@@ -20,6 +20,7 @@ __pycache__/
 venv/
 
 # Nested / external checkouts (own repos or local-only)
+.claude/worktrees/
 NextTrainDispatcherApp/
 # Desktop LCOS tree (venv + ARCHIVE). Tracked copy: docs/wiring/
 Wiring Documentation
