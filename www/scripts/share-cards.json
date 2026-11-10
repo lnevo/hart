@@ -62,8 +62,8 @@
     },
     "behind/panel-evolution.html": {
       "image": "assets/share/behind-panel-evolution.jpg",
-      "alt": "An early version of the Layout Editor panel: a light blue track diagram of Neville Island with switch numbers and signals.",
-      "from": "www/assets/behind/panel-evolution/le-poster.jpg (crop, caption bar removed)"
+      "alt": "Three diagonal slices side by side: the light-blue Layout Editor panel, the black CATS dispatcher panel and the olive USS lever machine.",
+      "from": "www/assets/behind/panel-evolution/le-poster.jpg, cats-poster.jpg and uss-poster.jpg, sliced diagonally"
     },
     "behind/signals.html": {
       "image": "assets/share/behind-signals.jpg",
