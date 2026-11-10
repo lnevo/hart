@@ -67,6 +67,21 @@ def barn_crossover(sw9_x: float, row_top: float, row_bot: float):
     return (sw9_x - (row_bot - row_top), row_top), (sw9_x, row_bot)
 
 
+EH_RUN = 132  # EH-3 between switches 9 and 11 (half its first length)
+
+
+def engine_lead(sw9_x: float, lead_y: float, eh: dict[int, float]):
+    """The engine house ladder: switch 13 on the West Lead, its 45 degree line up through 11 to EH-1
+    (parallel with switch 7), and switch 9's 45 degree line up to EH-2. Returns the points
+    sw13, sw11, EH-1 join, EH-2 join."""
+
+    def up_left(p, y):
+        return (p[0] - (p[1] - y), y)
+
+    sw13 = (sw9_x + EH_RUN + (lead_y - eh[3]), lead_y)
+    return sw13, up_left(sw13, eh[3]), up_left(sw13, eh[1]), up_left((sw9_x, eh[3]), eh[2])
+
+
 def main() -> None:
     # ── x anchors ────────────────────────────────────────────────────────
     x_stub = 40
@@ -161,14 +176,8 @@ def main() -> None:
     eh = {3: W0 - 70, 2: W0 - 112, 1: W0 - 154}
     x_eh = xb + 140
 
-    def up_left(p, y):
-        return (p[0] + 0.5 * (y - p[1]), y)
-
-    sw13 = (takeoff_x, W0)
-    sw11 = up_left(sw13, eh[3])
-    eh1_join = up_left(sw13, eh[1])
     sw9 = (sw9_x, eh[3])
-    eh2_join = up_left(sw9, eh[2])
+    sw13, sw11, eh1_join, eh2_join = engine_lead(sw9_x, W0, eh)
     line((x_eh, eh[1]), eh1_join)
     line((x_eh, eh[2]), eh2_join)
     line((x_eh, eh[3]), sw11)
@@ -176,7 +185,7 @@ def main() -> None:
     line(eh2_join, sw9)
     for p in (sw13, sw11, sw9):
         dot(p)
-    badge((sw13[0] - 56, W0 - 34), "13")
+    badge((sw13[0] + 50, W0 - 34), "13")  # east of the dot, clear of the 45 degree line
     badge((sw11[0] + 56, sw11[1] - 30), "11")
     badge((sw9[0] + 56, sw9[1] - 30), "9")
     for n in (1, 2, 3):
