@@ -1,5 +1,5 @@
-# The checks a clean clone can run. Submodules stay out because hart-ops is
-# private, so tools/check.sh skips the portal build here (CI=true).
+# The checks a clean clone can run. Submodules stay out, and the portal build needs
+# the gitignored photo mirrors, so tools/check.sh skips it here (CI=true).
 name: check
 on:
   pull_request:
@@ -13,4 +13,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      - run: pip install -r ops/hart-ops/requirements-test.txt
       - run: ./tools/check.sh

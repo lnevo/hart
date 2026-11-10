@@ -1,0 +1,9 @@
+# What the hart-ops unit tests import; CI installs this (tools/check.sh runs the tests).
+# The full working set, with OCR and image tools, is requirements.txt.
+numpy==2.4.6
+pillow==12.2.0
+scipy==1.17.1
+python-docx==1.2.0
+python-pptx==1.0.2
+openpyxl==3.1.5
+pytesseract==0.3.13

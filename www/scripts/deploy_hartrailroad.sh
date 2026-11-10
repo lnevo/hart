@@ -30,17 +30,12 @@ for arg in "$@"; do
   esac
 done
 
-# Industry logos come from the hart-ops submodule; without it rsync --delete removes them live.
-SUB="external/hart-ops"
-SUB_STATUS="$(git -C "$REPO" submodule status -- "$SUB" 2>/dev/null || true)"
-if [[ -z "$SUB_STATUS" || "$SUB_STATUS" == -* || ! -d "$REPO/$SUB/operator_logos" ]]; then
-  echo "Refusing to deploy: $SUB is missing or not initialised (git submodule update --init $SUB)." >&2
+# Industry logos come from ops/hart-ops; without them rsync --delete removes them live.
+if [[ ! -d "$REPO/ops/hart-ops/operator_logos" ]]; then
+  echo "Refusing to deploy: ops/hart-ops/operator_logos is missing." >&2
   exit 1
 fi
-# Work-in-progress deploys are deliberate, so these only warn.
-if [[ "$SUB_STATUS" == +* ]]; then
-  echo "Warning: $SUB is not at the commit this branch records (${SUB_STATUS:1:12}…)." >&2
-fi
+# Work-in-progress deploys are deliberate, so this only warns.
 if [[ -n "$(git -C "$ROOT" status --porcelain -- .)" ]]; then
   echo "Warning: the portal has uncommitted changes; untracked files are not published." >&2
 fi

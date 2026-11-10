@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/xml/XSLT/operations-engines.xsl" type="text/xsl"?>
+<!DOCTYPE operations-config SYSTEM "/xml/DTD/operations-engines.dtd">
+<operations-config>
+  <!--Written by JMRI version 5.12+Rc5bd588235 on Tue Dec 09 21:41:44 EST 2025-->
+  <models>
+    <model name="E8" />
+    <model name="F3" />
+    <model name="F7" />
+    <model name="F9" />
+    <model name="FT" />
+    <model name="GG1" />
+    <model name="GP20" />
+    <model name="GP30" />
+    <model name="GP35" />
+    <model name="GP38" />
+    <model name="GP40" />
+    <model name="GTEL" />
+    <model name="RS1" />
+    <model name="RS11" />
+    <model name="RS18" />
+    <model name="RS2" />
+    <model name="RS27" />
+    <model name="RS3" />
+    <model name="RSD4" />
+    <model name="SD26" />
+    <model name="SD45" />
+    <model name="SW1200" />
+    <model name="SW1500" />
+    <model name="SW8" />
+    <model name="Shay" />
+    <model name="TRAINMASTER" />
+    <model name="U28B" />
+  </models>
+  <types>
+    <type name="Diesel" />
+    <type name="Electric" />
+    <type name="Engine" />
+    <type name="Gas Turbine" />
+    <type name="Steam" />
+    <type name="Steam-heavy" />
+    <type name="Steam-light" />
+    <type name="Steam-mixed" />
+    <type name="Steam-pass" />
+    <type name="Switcher" />
+  </types>
+  <lengths>
+    <length value="32" />
+    <length value="34" />
+    <length value="36" />
+    <length value="38" />
+    <length value="40" />
+    <length value="42" />
+    <length value="44" />
+    <length value="45" />
+    <length value="46" />
+    <length value="48" />
+    <length value="50" />
+    <length value="51" />
+    <length value="52" />
+    <length value="53" />
+    <length value="54" />
+    <length value="55" />
+    <length value="56" />
+    <length value="57" />
+    <length value="58" />
+    <length value="59" />
+    <length value="60" />
+    <length value="61" />
+    <length value="65" />
+    <length value="66" />
+    <length value="70" />
+    <length value="75" />
+    <length value="80" />
+    <length value="85" />
+    <length value="90" />
+  </lengths>
+  <newConsists />
+  <engines>
+    <engine id="BO2235" roadName="BO" roadNumber="2235" type="Engine" length="50" moves="0" date="" selected="false" model="AS-16" hp="2000" bUnit="false" />
+    <engine id="BO3545" roadName="BO" roadNumber="3545" type="Diesel" length="56" weightTons="130" moves="0" date="" selected="false" model="GP35" hp="2500" bUnit="false" />
+    <engine id="BO3840" roadName="BO" roadNumber="3840" type="Diesel" length="59" weightTons="125" locationId="2" secLocationId="2s3" moves="0" date="" selected="false" model="GP38" hp="2000" bUnit="false" />
+    <engine id="BO4536" roadName="BO" roadNumber="4536" type="Engine" length="50" moves="0" date="" selected="false" model="F7A" hp="2000" bUnit="false" />
+    <engine id="BO5300" roadName="BO" roadNumber="5300" type="Engine" length="50" moves="0" date="" selected="false" model="P-7" hp="2000" bUnit="false" />
+    <engine id="BO5496" roadName="BO" roadNumber="5496" type="Engine" length="50" moves="0" date="" selected="false" model="F7B" hp="2000" bUnit="false" />
+    <engine id="BO572" roadName="BO" roadNumber="572" type="Engine" length="50" moves="0" date="" selected="false" model="NW2 Phase V" hp="2000" bUnit="false" />
+    <engine id="BO6944" roadName="BO" roadNumber="6944" type="Diesel" length="56" weightTons="130" moves="0" date="" selected="false" model="GP30" hp="2250" bUnit="false" />
+    <engine id="BO9602" roadName="BO" roadNumber="9602" type="Diesel" length="45" weightTons="124" moves="0" date="" selected="false" model="SW1200" hp="1200" bUnit="false" />
+    <engine id="CO8216" roadName="CO" roadNumber="8216" type="Engine" length="50" moves="0" date="" selected="false" model="U30B" hp="2000" bUnit="false" />
+    <engine id="CSX1827" roadName="CSX" roadNumber="1827" type="Engine" length="50" moves="0" date="" selected="false" model="ES44AH" hp="2000" bUnit="false" />
+    <engine id="CWRY2091" roadName="CWRY" roadNumber="2091" type="Diesel" length="56" weightTons="120" moves="0" date="" selected="false" model="GP20" hp="2000" bUnit="false" />
+  </engines>
+</operations-config>

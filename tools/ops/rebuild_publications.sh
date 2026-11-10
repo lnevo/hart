@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-HOPS="$ROOT/external/hart-ops"
+HOPS="$ROOT/ops/hart-ops"
 cd "$HOPS"
 
 if [[ ! -d .venv ]]; then

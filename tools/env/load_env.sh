@@ -20,7 +20,7 @@ fi
 
 export HART_RUNTIME_ROOT="${HART_RUNTIME_ROOT:-${HART_REPO_ROOT}}"
 export HART_LIVE_ROOT="${HART_LIVE_ROOT:-${HART_REPO_ROOT}}"
-export HART_OPS_ROOT="${HART_OPS_ROOT:-${HART_REPO_ROOT}/external/hart-ops}"
+export HART_OPS_ROOT="${HART_OPS_ROOT:-${HART_REPO_ROOT}/ops/hart-ops}"
 export LCOS_BRIDGE_ROOT="${LCOS_BRIDGE_ROOT:-${HART_REPO_ROOT}/external/lcos-bridge}"
 export STS_DOCKER_ROOT="${STS_DOCKER_ROOT:-${HART_REPO_ROOT}/external/sts-docker}"
 export STS_HELPERS_ROOT="${STS_HELPERS_ROOT:-${HART_REPO_ROOT}/external/sts-helpers}"

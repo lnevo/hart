@@ -1,0 +1,3 @@
+roster_id,road_name,road_number,dcc_address,long_address,mfg,model,loco_type,length_ft,weight_tons,hp,decoder,sound,source_image,notes
+CSX 2121,CSX,2121,2121,yes,EMD,GP38,Diesel,59,,,,,loco_CSX_2121_left.jpg,
+CSX 2738,CSX,2738,2738,yes,EMD,GP38-2,Diesel,59,,,,,loco_CSX_2738_right.jpg,

@@ -2,12 +2,12 @@
 
 Rebuild official HART crew/dispatcher paperwork from Python content dicts.
 
-**Status:** Live. Sources are in `external/hart-ops/publications/`; outputs go to `docs/ops/`.
+**Status:** Live. Sources are in `ops/hart-ops/publications/`; outputs go to `docs/ops/`.
 
 ## Inputs
 
 - Content in each `rebuild_*.py`
-- Assets under `external/hart-ops/publications/assets/` (station map PNG, TT-23 trifold)
+- Assets under `ops/hart-ops/publications/assets/` (station map PNG, TT-23 trifold)
 
 ## Outputs (in `docs/ops/`)
 
@@ -28,6 +28,6 @@ Rebuild official HART crew/dispatcher paperwork from Python content dicts.
 make publications
 ```
 
-This runs `tools/ops/rebuild_publications.sh`, which creates the `external/hart-ops/.venv` if needed and runs each `rebuild_*.py` plus `update_tt23_station_map.py`.
+This runs `tools/ops/rebuild_publications.sh`, which creates the `ops/hart-ops/.venv` if needed and runs each `rebuild_*.py` plus `update_tt23_station_map.py`.
 
 Standards: `docs/ops/HART_Railroad_Publication_Standards_v1.0.docx`. Index: `docs/ops/README.md`.

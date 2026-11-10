@@ -14,7 +14,7 @@ ops/car-cards/
   CarImagesFinal/    → symlink to ../car-images/CarImagesFinal
   OcrZoom/           OCR debug bands
   data/              → symlink to ../../hart-ops/data
-external/hart-ops/card_pipeline/   scripts (SoR)
+ops/hart-ops/card_pipeline/   scripts (SoR)
 ```
 
 ## Pipeline steps
@@ -23,7 +23,7 @@ external/hart-ops/card_pipeline/   scripts (SoR)
 bash ops/packages/car-cards/run_process.sh
 
 # Or manually:
-cd external/hart-ops
+cd ops/hart-ops
 export HART_CAR_CARDS_ROOT="../desktop-data/car-cards"
 export HART_CAR_IMAGES_FINAL="../desktop-data/car-images/CarImagesFinal"
 .venv/bin/python card_pipeline/process_car_images.py
@@ -48,15 +48,15 @@ Car photos for STS use `CarImagesFinal/` via `HART_CAR_IMAGES_FINAL` in hart-ops
 
 | Location | Contents |
 |----------|----------|
-| `external/hart-ops/card_pipeline/assets/` | **Poker Size Sticker Sheet Template.docx** (git) |
-| `external/hart-ops/card_pipeline/output/` | Equipment template, spot waybills, card review (git) |
-| `external/hart-ops/docs/print/waybills/` | Session CC/WB label decks (git) |
+| `ops/hart-ops/card_pipeline/assets/` | **Poker Size Sticker Sheet Template.docx** (git) |
+| `ops/hart-ops/card_pipeline/output/` | Equipment template, spot waybills, card review (git) |
+| `ops/hart-ops/docs/print/waybills/` | Session CC/WB label decks (git) |
 | `ops/car-cards/print/` | Full `HART_All_Car_Cards.docx` mirror (~345 MB, not git) |
 
 Regenerate:
 
 ```bash
-cd external/hart-ops
+cd ops/hart-ops
 .venv/bin/python card_pipeline/generate_card_template.py
 .venv/bin/python card_pipeline/generate_waybill_cards.py
 .venv/bin/python card_pipeline/generate_all_cards.py   # full fleet → output/ + mirror

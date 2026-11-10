@@ -2,7 +2,7 @@
 
 Print filled car cards from roster XML + cropped car photos.
 
-**Status:** Live in the hart-ops submodule (`external/hart-ops/`). New cars go through `bin/cars` ([`car-workflow.md`](car-workflow.md)).
+**Status:** Live in `ops/hart-ops/`. New cars go through `bin/cars` ([`car-workflow.md`](car-workflow.md)).
 
 ## Inputs
 
@@ -16,10 +16,10 @@ Print filled car cards from roster XML + cropped car photos.
 
 ## Run
 
-From `external/hart-ops/` (set up its `.venv` as in its README):
+From `ops/hart-ops/` (set up its `.venv` as in its README):
 
 ```bash
 .venv/bin/python card_pipeline/generate_all_cards.py
 ```
 
-Related: `generate_single_card.py`, `generate_card_template.py`, `build_merged_car_roster.py`, image OCR/crop scripts in `card_pipeline/`. Agent notes: `external/hart-ops/AGENTS.md`.
+Related: `generate_single_card.py`, `generate_card_template.py`, `build_merged_car_roster.py`, image OCR/crop scripts in `card_pipeline/`. Agent notes: `ops/hart-ops/AGENTS.md`.

@@ -4,7 +4,7 @@
 
 - Public GitHub repo: **[lnevo/hart](https://github.com/lnevo/hart)** (local folder `hart`).  
 - Single remote: `origin` → `https://github.com/lnevo/hart.git`  
-- `main` is protected on GitHub: PRs and a passing `check` job are required, no force-push or deletion. The owner can bypass this. CI cannot see the private `hart-ops` submodule, so it skips the portal build.  
+- `main` is protected on GitHub: PRs and a passing `check` job are required, no force-push or deletion. The owner can bypass this.  
 - Secrets never commit: `.env.local`, credentials, private keys.
 
 ## Branch naming

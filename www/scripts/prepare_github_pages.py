@@ -40,8 +40,6 @@ SKIP_FILES = {
     Path("data/panels.json"),
     Path("library/updated-history.txt"),
     Path("assets/media/hart-logo.png"),  # favicon source; the built icons are in assets/icons/
-    Path("assets/media/loco-cr-1993.png"),  # crew sheets use the assets/crew/ thumbnails
-    Path("assets/media/loco-pohc-2091.png"),
     Path("assets/media/coal-types.png"),
     Path("assets/icons/icon-192.png"),
     Path("helix/build-status.html"),  # the helix build status is a working file, not published

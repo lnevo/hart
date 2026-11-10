@@ -14,7 +14,7 @@ Regenerate spot deck:
 ```bash
 bash ops/packages/car-cards/run_generate_print.sh
 # or:
-cd external/hart-ops
+cd ops/hart-ops
 .venv/bin/python card_pipeline/generate_waybill_cards.py
 ```
 

@@ -4,7 +4,7 @@ set -euo pipefail
 
 PKG="$(cd "$(dirname "$0")" && pwd)"
 CON="$(cd "$PKG/../.." && pwd)"
-HOPS="$CON/external/hart-ops"
+HOPS="$CON/ops/hart-ops"
 CAR="${HART_CAR_CARDS_ROOT:-$CON/ops/car-cards}"
 
 export HART_CAR_CARDS_ROOT="$CAR"

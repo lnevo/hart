@@ -209,7 +209,7 @@ The crew card gives NVL's engine as POHC 2091 and the repository as CWRY 2091; t
 
 ## 10. Keeping the cars and the Operations folder in step (deliverable 6)
 
-ADR-013 makes `external/hart-ops/data/image_metadata.csv` the one car repository and ADR-015 makes `jmri/layouts/hart/operations/` the master of the six files. Proposal:
+ADR-013 makes `ops/hart-ops/data/image_metadata.csv` the one car repository and ADR-015 makes `jmri/layouts/hart/operations/` the master of the six files. Proposal:
 
 1. `bin/cars publish` keeps adding cars to `OperationsCarRoster.xml` and never replaces it, as today. It should derive the Operations type the way `car_start_positions.csv` does: the STS car code first (HC/HP → Covered Hopper, HM/HT/HK → Hopper, the coke-fleet list → Coke Hopper, TA → Tank, FC → Coilcar), then the repository's `car_type` and `car_class` (LO → Covered Hopper). Record the coke fleet in the repository (a `pool` column) rather than in the seed config, so both tools read it.
 2. A new car gets no location; the owner places it in JMRI or with `place_car`. Publishing never moves a car.

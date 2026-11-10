@@ -34,7 +34,7 @@
           "from": 1917,
           "to": 1917,
           "made": "Rook Yard at Carnegie; met the Chartiers Branch near Bridgeville",
-          "logo": "../external/hart-ops/operator_logos/downloads/pittsburgh-west-virginia.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/pittsburgh-west-virginia.png",
           "maybe": [
             1918,
             1963
@@ -49,7 +49,7 @@
           "from": 1964,
           "to": 1981,
           "made": "Ran the P&WV",
-          "logo": "../external/hart-ops/operator_logos/downloads/norfolk-western-1958.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/norfolk-western-1958.png"
         },
         {
           "handoff": "1982 · N&W joins Norfolk Southern"
@@ -60,7 +60,7 @@
           "from": 1982,
           "to": 1989,
           "made": "Ran the P&WV through its N&W subsidiary",
-          "logo": "../external/hart-ops/operator_logos/downloads/norfolk-southern.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/norfolk-southern.png"
         },
         {
           "handoff": "1990 · lease passes to the new W&LE"
@@ -71,7 +71,7 @@
           "from": 1990,
           "to": null,
           "made": "Runs the old P&WV line",
-          "logo": "../external/hart-ops/operator_logos/downloads/wheeling-lake-erie.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/wheeling-lake-erie.png"
         }
       ],
       "end": {
@@ -128,7 +128,7 @@
           "from": 1921,
           "to": 1967,
           "made": "Panhandle main and Scully Yard",
-          "logo": "../external/hart-ops/operator_logos/downloads/prr-keystone.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/prr-keystone.png"
         },
         {
           "handoff": "1968 · Penn Central"
@@ -139,7 +139,7 @@
           "from": 1968,
           "to": 1975,
           "made": "Panhandle main",
-          "logo": "../external/hart-ops/operator_logos/downloads/penn-central-1968.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/penn-central-1968.png"
         },
         {
           "handoff": "1976 · Conrail"
@@ -150,7 +150,7 @@
           "from": 1976,
           "to": 1998,
           "made": "Cut the line back; west of Walkers Mill removed 1996",
-          "logo": "../external/hart-ops/operator_logos/downloads/conrail.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/conrail.png"
         },
         {
           "handoff": "1 Jun 1999 · Conrail split; NS takes the Pittsburgh lines"
@@ -161,7 +161,7 @@
           "from": 1999,
           "to": null,
           "made": "East from Duff Junction toward Pittsburgh",
-          "logo": "../external/hart-ops/operator_logos/downloads/norfolk-southern.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/norfolk-southern.png",
           "note": "The NS local meets the POHC at Duff Junction"
         }
       ],
@@ -209,7 +209,7 @@
           "from": 1871,
           "to": 1967,
           "made": "Pittsburgh–Washington passengers and coal",
-          "logo": "../external/hart-ops/operator_logos/downloads/prr-keystone.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/prr-keystone.png",
           "note": "Panhandle owned it from 1907. Last passenger train July 1952"
         },
         {
@@ -221,7 +221,7 @@
           "from": 1968,
           "to": 1975,
           "made": "Freight on the branch",
-          "logo": "../external/hart-ops/operator_logos/downloads/penn-central-1968.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/penn-central-1968.png"
         },
         {
           "handoff": "1976 · Conrail"
@@ -232,7 +232,7 @@
           "from": 1976,
           "to": 1996,
           "made": "Industrial track",
-          "logo": "../external/hart-ops/operator_logos/downloads/conrail.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/conrail.png",
           "note": "Cut back from Washington, 1982–84"
         },
         {
@@ -290,7 +290,7 @@
           "from": 1879,
           "to": 1992,
           "made": "Ohio River main through McKees Rocks",
-          "logo": "../external/hart-ops/operator_logos/downloads/pittsburgh-lake-erie.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/pittsburgh-lake-erie.png",
           "note": "A New York Central property. B&O trains ran over it from 1934"
         },
         {
@@ -302,7 +302,7 @@
           "from": 1992,
           "to": null,
           "made": "Pittsburgh Subdivision",
-          "logo": "../external/hart-ops/operator_logos/downloads/csxlogo_3.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/csxlogo_3.png",
           "note": "Local D749 from Demmler works the island's east end"
         }
       ],
@@ -326,7 +326,7 @@
           "from": 1871,
           "to": 1972,
           "made": "Into Pittsburgh from 1871; the Wheeling line met the Chartiers Branch at Washington",
-          "logo": "../external/hart-ops/operator_logos/downloads/baltimore-ohio.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/baltimore-ohio.png",
           "note": "Ran over the P&LE from 1934"
         },
         {
@@ -338,7 +338,7 @@
           "from": 1973,
           "to": 1986,
           "made": "B&O, C&O and Western Maryland under one name",
-          "logo": "../external/hart-ops/operator_logos/downloads/chessie-system.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/chessie-system.png",
           "note": "Part of CSX Corporation from 1980"
         },
         {
@@ -350,7 +350,7 @@
           "from": 1987,
           "to": null,
           "made": "The old B&O Pittsburgh lines",
-          "logo": "../external/hart-ops/operator_logos/downloads/csxlogo_3.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/csxlogo_3.png"
         }
       ],
       "end": {
@@ -451,7 +451,7 @@
         "from": 2000,
         "to": 2008,
         "made": "Neville Island south to Arden",
-        "logo": "../external/hart-ops/operator_logos/downloads/pohc-trim.png"
+        "logo": "../ops/hart-ops/operator_logos/downloads/pohc-trim.png"
       },
       {
         "handoff": "30 Dec 2008 · Genesee & Wyoming"
@@ -462,7 +462,7 @@
         "from": 2008,
         "to": null,
         "made": "Meets NS at Duff Junction and CSX at POV Junction",
-        "logo": "../external/hart-ops/operator_logos/downloads/genesee-wyoming.png",
+        "logo": "../ops/hart-ops/operator_logos/downloads/genesee-wyoming.png",
         "note": "Office and engines at McKees Rocks"
       }
     ],

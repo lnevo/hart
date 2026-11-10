@@ -1,5 +1,5 @@
 {
-  "_note": "Hand-maintained from external/hart-ops/publications/rebuild_*.py (crew dict, YM, DS, TT-23) and the published docx/pptx. The rebuild scripts and docx stay canonical; regenerate this file from them when they change.",
+  "_note": "Hand-maintained from ops/hart-ops/publications/rebuild_*.py (crew dict, YM, DS, TT-23) and the published docx/pptx. The rebuild scripts and docx stay canonical; regenerate this file from them when they change.",
   "colors": [
     {
       "id": "blue",
