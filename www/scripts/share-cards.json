@@ -91,19 +91,22 @@
       "from": "media/photos-layout/IMG_8954.jpg"
     },
     "crew/ck1/index.html": {
-      "image": "assets/share/crew-ck1.jpg",
-      "alt": "A South Yard train sheet on a clipboard with a pencil, on the layout edge.",
-      "from": "www/assets/behind/sts/crew-sheets.jpg (South Yard clipboard)"
+      "image": "assets/share/crew-dispatcher.jpg",
+      "alt": "Train sheets on three clipboards and a loose stack, lined up along the layout edge below the track.",
+      "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)",
+      "shared": true
     },
     "crew/d749/index.html": {
-      "image": "assets/share/crew-d749.jpg",
-      "alt": "Loose train sheets for a CSX train laid on the layout edge beside the clipboards.",
-      "from": "www/assets/behind/sts/crew-sheets.jpg (loose sheets)"
+      "image": "assets/share/crew-dispatcher.jpg",
+      "alt": "Train sheets on three clipboards and a loose stack, lined up along the layout edge below the track.",
+      "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)",
+      "shared": true
     },
     "crew/dispatcher/index.html": {
       "image": "assets/share/crew-dispatcher.jpg",
       "alt": "Train sheets on three clipboards and a loose stack, lined up along the layout edge below the track.",
-      "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)"
+      "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)",
+      "shared": true
     },
     "crew/nvl/index.html": {
       "image": "assets/share/crew-nvl.jpg",

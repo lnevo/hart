@@ -418,18 +418,8 @@ def crew_nvl():
     return _clipboard((605, 470, 1165, 764))
 
 
-def crew_ck1():
-    """crew-ck1: the South Yard clipboard, where the coke transfer is weighed."""
-    return _clipboard((910, 470, 1470, 764))
-
-
-def crew_d749():
-    """crew-d749: the loose CSX train sheets beside the clipboards."""
-    return _clipboard((0, 506, 560, 800))
-
-
 def crew_dispatcher():
-    """crew-dispatcher: all the crew clipboards laid out along the layout edge."""
+    """crew-dispatcher: all the crew clipboards laid out along the layout edge (also used by CK1 and D749)."""
     return _clipboard((60, 150, 1540, 927))
 
 
@@ -447,8 +437,6 @@ CARDS = {
     "behind-panel-evolution": panel_evolution,
     "roster-index": roster,
     "crew-nvl": crew_nvl,
-    "crew-ck1": crew_ck1,
-    "crew-d749": crew_d749,
     "crew-dispatcher": crew_dispatcher,
 }
 
