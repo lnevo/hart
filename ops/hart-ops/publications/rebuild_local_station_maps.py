@@ -39,6 +39,9 @@ from hart_pub_helpers import (  # noqa: E402
 )
 from rebuild_station_map import _paste_compass  # noqa: E402
 
+# Switch pills use the CTC numbers (ADR-005), not the old 100-series.
+SWNUM = {100: 1, 101: 3, 102: 5, 103: 15, 104: 17, 105: 19, 106: 21, 107: 25, 108: 27, 109: 29, 110: 31, 111: 23, 112: 33, 113: 35, 114: 37, 115: 39}
+
 # TT-23 palette (match SM-01)
 BG = (255, 255, 255)
 INK = (0x16, 0x16, 0x16)
@@ -330,7 +333,7 @@ def draw_west_yard(meta: dict) -> Image.Image:
     # Main West from east to Brick
     _line(draw, (brick[0], y_mw), (tip_x, y_mw), w=lw)
     _dot(draw, brick, r=DOT_R)
-    _sw_badge(draw, (brick[0] + 56, y_mw - 44), "100", sw_font)
+    _sw_badge(draw, (brick[0] + 56, y_mw - 44), "1", sw_font)
     _label(draw, (brick[0] + 28, y_mw + 56), "Brick", cp_font, anchor="mm")
     _label(
         draw,
@@ -352,7 +355,7 @@ def draw_west_yard(meta: dict) -> Image.Image:
     # Brick → turnout (3/4″) with spot; W-1 / W-2 stubs
     _line(draw, brick, turnout, w=lw)
     _dot(draw, turnout, r=DOT_R)
-    _sw_badge(draw, (turnout[0] - 56, y_mw - 44), "101", sw_font)
+    _sw_badge(draw, (turnout[0] - 56, y_mw - 44), "3", sw_font)
 
     _line(draw, (x_left, y_mw), turnout, w=lw)
     _line(draw, turnout, w2_corner, w=lw)
@@ -368,7 +371,7 @@ def draw_west_yard(meta: dict) -> Image.Image:
     _line(draw, p2, plane, w=lw)
     _dot(draw, plane, r=DOT_R)
     _label(draw, (plane[0] - 60, plane[1]), "Plane", cp_font, anchor="rm")
-    _sw_badge(draw, (plane[0] + 56, plane[1] - 44), "102", sw_font)
+    _sw_badge(draw, (plane[0] + 56, plane[1] - 44), "5", sw_font)
 
     # West Lead turns right at Plane → South Yard
     _line(draw, plane, (tip_x, y_wl), w=lw)
@@ -467,11 +470,11 @@ def draw_south_yard(meta: dict) -> Image.Image:
 
     names = [
         "Main West",
+        "Track S-R",
         "Track S-1",
         "Track S-2",
         "Track S-3",
         "Track S-4",
-        "Track S-5",
         "Main East",
     ]
     me_gap = track_gap * 0.72
@@ -515,7 +518,7 @@ def draw_south_yard(meta: dict) -> Image.Image:
     ]
     for num, y_t in ladder_sw:
         px = _ladder_x_at(y_t)
-        _sw_badge(draw, (px + 36, y_t - 28), str(num), sw_font)
+        _sw_badge(draw, (px + 36, y_t - 28), str(SWNUM.get(num, num)), sw_font)
         if num != 103:
             _dot(draw, (px, y_t), r=DOT_R)
     _dot(draw, top, r=DOT_R)
@@ -734,27 +737,27 @@ def draw_industries(meta: dict) -> Image.Image:
     # track name, industry, colors, spot line under the rail
     rows = [
         ("Main West", None, [], None),
-        ("Track S-1", None, [], None),
+        ("Track S-R", None, [], None),
         (
-            "Track S-2",
+            "Track S-1",
             "Aristech Plastics",
             [("YELLOW", "FFFF00")],
             "Pellets  ·  Chemicals  ·  Shipping",
         ),
         (
-            "Track S-3",
+            "Track S-2",
             "Ferrellgas  ·  A. Stucki Co.",
             [("RED", "FF0000"), ("GREEN", "008000")],
             "LPG  ·  Crane  ·  Team",
         ),
         (
-            "Track S-4",
+            "Track S-3",
             "Kosmos Cement",
             [("PINK", "FFC0CB")],
             "Cement  ·  Aggregate",
         ),
         (
-            "Track S-5",
+            "Track S-4",
             "Calgon Carbon",
             [("PURPLE", "800080")],
             "Coal  ·  Carbon  ·  Chemical",
@@ -803,7 +806,7 @@ def draw_industries(meta: dict) -> Image.Image:
     ]
     for num, y_t in ladder_sw:
         px = _ladder_x_at(y_t)
-        _sw_badge(draw, (px - 36, y_t - 28), str(num), sw_font)
+        _sw_badge(draw, (px - 36, y_t - 28), str(SWNUM.get(num, num)), sw_font)
 
     _dot(draw, top, r=DOT_R)
 
@@ -821,7 +824,7 @@ def draw_industries(meta: dict) -> Image.Image:
     _sw_badge(
         draw,
         (sw111_mid[0] - 78, sw111_mid[1] - 4),
-        "111",
+        "23",
         sw_font,
     )
 
@@ -844,7 +847,7 @@ def draw_industries(meta: dict) -> Image.Image:
 
     _line(draw, (x_left, ys[1]), (top[0], ys[1]), w=lw)
     _dot(draw, sw111_bot, r=DOT_R)
-    _track_label(ys[1], "Track S-1")
+    _track_label(ys[1], "Track S-R")
 
     for i in range(2, 6):
         y = ys[i]
@@ -949,7 +952,7 @@ def draw_industries(meta: dict) -> Image.Image:
 
     _line(draw, (top[0], ys[1]), (x_east, lead_y), w=lw)
     # Same clearance as 110 — offset left of the junction, not on the rail
-    _sw_badge(draw, (x_east - 36, lead_y - 28), "112", sw_font)
+    _sw_badge(draw, (x_east - 36, lead_y - 28), "33", sw_font)
     _dot(draw, (x_east, lead_y), r=DOT_R)
 
     _line(draw, (x_east, lead_y), (x_right, lead_y), w=lw)
@@ -1141,7 +1144,7 @@ def draw_shenango(meta: dict) -> Image.Image:
     dot(mid113, r=DOT_R)
     dot(t113, r=DOT_R)
     lab((mid113[0], y1 - 48), "Princess", cp_font, anchor="mm")
-    badge((mid113[0] + 44, mid113[1] + 4), "113", sw_font)
+    badge((mid113[0] + 44, mid113[1] + 4), "35", sw_font)
 
     line(t115, up115, w=lw)
     line(up115, (x_tr, y_top), w=lw)
@@ -1159,8 +1162,8 @@ def draw_shenango(meta: dict) -> Image.Image:
 
     # 114 / 115 outside the octagon angles, Princess side of each switch
     # 115 even with K-1 (above); 114 even with K-2 (below)
-    badge((t115[0] - 48, y1 - 28), "115", sw_font)
-    badge((t114[0] - 48, y2 + 28), "114", sw_font)
+    badge((t115[0] - 48, y1 - 28), "39", sw_font)
+    badge((t114[0] - 48, y2 + 28), "37", sw_font)
 
     # Compass: flipped cardinals when plan is rotated 180°
     if rot:

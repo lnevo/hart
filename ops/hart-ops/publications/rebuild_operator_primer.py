@@ -247,10 +247,20 @@ def _link_line(doc: Document, label: str, url: str) -> None:
     _set_run_font(r, size_pt=9.5, color=ACCENT, name="Calibri")
 
 
+def _station_map_banner(doc: Document) -> None:
+    """The whole railroad on one strip, full text width, under the masthead."""
+    pic = doc.add_paragraph()
+    pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    pic.paragraph_format.space_before = Pt(0)
+    pic.paragraph_format.space_after = Pt(10)
+    pic.add_run().add_picture(str(PUB / "assets" / "station_map_full.png"), width=Inches(6.5))
+
+
 def build() -> Path:
     doc = Document()
     _set_comfortable_page(doc)
     _light_masthead(doc)
+    _station_map_banner(doc)
 
     # —— Page 1: welcome + place + railroad ——
     _heading(doc, "Welcome", space_before=0)

@@ -141,7 +141,7 @@
       "printable": true,
       "html": "docs/html/Neville_Island_Station_Map_South_Yard.html",
       "source": "../docs/ops/Neville_Island_Station_Map_South_Yard.docx",
-      "blurb": "Tracks S-1 to S-5, the scale, and the engine house leads."
+      "blurb": "Tracks S-R to S-4, the scale, and the engine house leads."
     },
     {
       "id": "sm-ee",
@@ -153,7 +153,7 @@
       "printable": true,
       "html": "docs/html/Neville_Island_Station_Map_East_End.html",
       "source": "../docs/ops/Neville_Island_Station_Map_East_End.docx",
-      "blurb": "The island industries on S-2 to S-5."
+      "blurb": "The island industries on S-1 to S-4."
     },
     {
       "id": "sm-sh",

@@ -2,19 +2,21 @@
 
 Source maps (Car Cards docs → extracted under `ops/station_maps/maps/`):
 
+Switch numbers on every sheet are the CTC numbers (ADR-005); the old 100-series is gone from the maps. Yard tracks are S-R and S-1 to S-4.
+
 | Map | Digicon role |
 |-----|----------------|
-| West Yard | CP Brick 100 / 101, Plane 102, OS Barn 117, West Lead |
+| West Yard | CP Brick 1 / 3, Plane 5, OS Barn 7, West Lead |
 | **Barn** | Local sheet for **Switch 7 / 9 / 11 / 13** (LE: TO117 xover, TO10, TO11, TO1). Rebuild: `python3 ops/station_maps/scripts/render_barn_station_map.py`. SM-06 docx in hart-ops. South Yard still shows Barn in context. |
 | South Yard | **Scale** → **Barn** (between 7 and 13) → **EH-1 / EH-2 / EH-3** + **Switch 13** + ladder **15 / 17 / 19 / 21**; **Switch 7** Barn xover. Rebuild: `python3 ops/station_maps/scripts/render_south_yard_station_map.py`. |
-| East End | Ladder 107–110, 111 x-over, 112, mains → Princess |
-| Shenango (+ rotated) | Princess 113–115, Track McKees Rocks / Track McKeesport (mainline to the helix), K-1 / K-2 loop. Rebuild: `python3 ops/station_maps/scripts/render_shenango_station_map.py` |
+| East End | Ladder 25–31 (S-1 to S-4), 23 x-over, 33, mains → Princess |
+| Shenango (+ rotated) | Princess 35 / 37 / 39, Track McKees Rocks / Track McKeesport (mainline to the helix), K-1 / K-2 loop. Rebuild: `python3 ops/station_maps/scripts/render_shenango_station_map.py` |
 
 Visual SoR for yard body: CATS sample [cats.jpg](https://cats4ctc.wdfiles.com/local--files/home:home/cats.jpg) **FALL RIVER A/D 1–4** — parallel horizontal tracks fed by a diagonal ladder.
 
 **Labels (station-map language):**
-- On-track `STATION` shows map names (`OS W-1`, `West Lead`, `OS S-R`…`OS S-4`, `OS McKees Rocks`/`OS McKeesport`, CP `100`…`115`) while `NAME` stays the JMRI occupancy id.
-- Header/footer `SEC_NAME` callouts spell connections: e.g. `15→OS S-R`, `West Lead: Plane → OS Barn → 15 → OS S-R`, `112 → OS East Lead → Princess`.
+- On-track `STATION` shows map names (`OS W-1`, `West Lead`, `OS S-R`…`OS S-4`, `OS McKees Rocks`/`OS McKeesport`, CP switch numbers `1`…`39`) while `NAME` stays the JMRI occupancy id.
+- Header/footer `SEC_NAME` callouts spell connections: e.g. `15→OS S-R`, `West Lead: Plane → OS Barn → 15 → OS S-R`, `33 → OS East Lead → Princess`.
 
 Block / turnout names: `cats/data/occupancy_bindings.csv`, `turnout_bindings.csv`.
 
