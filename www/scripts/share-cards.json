@@ -301,5 +301,37 @@
       "alt": "The Brick control point on the panel beside its device roster rows: two switches, two signal masts and two occupancy detectors with their hardware addresses.",
       "from": "live image of the HART Railroad panel from JMRI's web server (2026-11-09, Brick) with six Brick rows from www/data/layout-index.json"
     }
+  },
+  "links": {
+    "build/index.html#staging": {
+      "image": "assets/share/link-build-staging.jpg",
+      "alt": "A camera-car view along the staging level tracks with a train of passenger cars beside the backdrop.",
+      "from": "YouTube thumbnail of the Staging level FPV video (K7ahrL7Bb34, maxresdefault), centre crop"
+    },
+    "build/index.html#main-level": {
+      "image": "assets/share/link-build-main-level.jpg",
+      "alt": "The main level plywood cut plan: the pieces of each deck laid out on the room plan.",
+      "from": "make_share_cards.py link-build-main-level (build/files/main-level-plywood-cut-plan.html)"
+    },
+    "photos/index.html#historical": {
+      "image": "assets/share/link-photos-historical.jpg",
+      "alt": "P&OV SW8 number 4 beside a plant building on Neville Island, 1978.",
+      "from": "media/hart-research/documents/tumblr_f057069e2ffd1f4dee7b86d26e4a48e3_870b1030_1280.jpg (archive: P&OV #4 at the Shenango foundry, 1978; photo Joe DeFranco), centre crop"
+    },
+    "https://github.com/lnevo/model-railroad-skills": {
+      "image": "assets/share/link-github-model-railroad-skills.jpg",
+      "alt": "GitHub's preview card for the model-railroad-skills repository.",
+      "from": "https://opengraph.githubassets.com/1/lnevo/model-railroad-skills, centre crop"
+    },
+    "https://github.com/lnevo/jmri-cs105-roster-sync": {
+      "image": "assets/share/link-github-jmri-cs105-roster-sync.jpg",
+      "alt": "GitHub's preview card for the jmri-cs105-roster-sync repository.",
+      "from": "https://opengraph.githubassets.com/1/lnevo/jmri-cs105-roster-sync, centre crop"
+    },
+    "https://github.com/lnevo/hart/blob/main/docs/ctc/HART_DIGICON_SYSTEM.md": {
+      "image": "assets/share/link-github-hart.jpg",
+      "alt": "GitHub's preview card for the railroad's repository.",
+      "from": "https://opengraph.githubassets.com/1/lnevo/hart, centre crop"
+    }
   }
 }

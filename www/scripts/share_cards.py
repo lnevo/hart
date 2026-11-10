@@ -46,6 +46,14 @@ def load(path: Path = CARDS) -> dict[str, dict]:
     return json.loads(path.read_text(encoding="utf-8")).get("cards") or {}
 
 
+def load_links(path: Path = CARDS) -> dict[str, dict]:
+    """Hub card pictures for links that are not a whole page: a section ("build/index.html#staging")
+    or an address off the site ("https://github.com/..."). Used only on hub cards, never as a share card."""
+    if not path.is_file():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8")).get("links") or {}
+
+
 def card_for(rel: Path | str, cards: dict[str, dict] | None = None) -> dict:
     """The card for a page: its own entry, or the site card."""
     cards = load() if cards is None else cards
@@ -101,15 +109,36 @@ def card_target(page: Path | str, href: str) -> str | None:
     return target
 
 
-def add_card_thumbs(text: str, page: Path | str, cards: dict[str, dict] | None = None) -> tuple[str, dict[str, str]]:
+def link_key(page: Path | str, href: str) -> str | None:
+    """How a card's link is named in the "links" table: the page and its #section, or the full address."""
+    if href.startswith(("http:", "https:")):
+        return href
+    target = card_target(page, href)
+    frag = href.split("#", 1)[1] if "#" in href else ""
+    return target + ("#" + frag if frag else "") if target else None
+
+
+def _picture(page: Path | str, href: str, cards: dict[str, dict], links: dict[str, dict]) -> str | None:
+    """The picture for a card: its link's own entry, else the linked page's share picture."""
+    own = links.get(link_key(page, href) or "")
+    return (own or cards.get(card_target(page, href) or "") or {}).get("image")
+
+
+def add_card_thumbs(
+    text: str, page: Path | str, cards: dict[str, dict] | None = None, links: dict[str, dict] | None = None
+) -> tuple[str, dict[str, str]]:
     """Put the linked page's share picture at the top of each card in a grid marked data-card-thumbs.
 
+    A link with its own entry in "links" (a page section, or an address off the site) uses that
+    picture instead.
+
     Returns (new text, {thumb path: share image path}) so the build can write the small copies.
-    Cards whose page has no picture of its own (or links off the site), and cards whose picture would
+    Cards with no picture, and cards whose picture would
     appear twice in the grid (pages marked "shared" in share-cards.json), get class no-thumb: the
     stylesheet gives them a plain band so the row still lines up.
     """
     cards = load() if cards is None else cards
+    links = load_links() if links is None else links
     thumbs: dict[str, str] = {}
     out, pos = [], 0
     for grid in _GRID.finditer(text):
@@ -123,7 +152,7 @@ def add_card_thumbs(text: str, page: Path | str, cards: dict[str, dict] | None =
                 break
 
         body = text[grid.end() : end]
-        images = {m.start(): (cards.get(card_target(page, m.group(2)) or "") or {}).get("image") for m in _CARD.finditer(body)}
+        images = {m.start(): _picture(page, m.group(2), cards, links) for m in _CARD.finditer(body)}
         repeated = {i for i in images.values() if i and list(images.values()).count(i) > 1}
 
         def add(m: re.Match) -> str:
@@ -183,10 +212,25 @@ def tracked_pages(portal: Path = PORTAL) -> list[Path]:
     return [p for p in pages if p not in build.SKIP_FILES and not any(d in p.parents for d in build.SKIP_DIRS)]
 
 
+def review_links(links: dict[str, dict], portal: Path = PORTAL) -> list[str]:
+    """Faults in the hub card pictures for links: a missing picture or alt text, or a page that is gone."""
+    faults = []
+    for key, entry in links.items():
+        image = entry.get("image", "")
+        if not image.startswith("assets/share/") or not (portal / image).is_file():
+            faults.append(f"link {key}: image {image or '(none)'} is not a file under assets/share/")
+        if not entry.get("alt", "").strip():
+            faults.append(f"link {key}: no alt text")
+        if not key.startswith(("http:", "https:")) and not (portal / key.split("#", 1)[0]).is_file():
+            faults.append(f"link {key}: no such page")
+    return faults
+
+
 def report(portal: Path = PORTAL) -> int:
     """Print gaps (a suggestion) and faults (an error). Returns 1 only for faults."""
     cards = load(portal / "scripts" / "share-cards.json")
     missing, faults = review(tracked_pages(portal), cards, portal)
+    faults += review_links(load_links(portal / "scripts" / "share-cards.json"), portal)
     if missing:
         print(f"Share thumbnails: {len(missing)} page(s) still show the site card. Suggest one for each:")
         print("\n".join("  " + m for m in missing))
