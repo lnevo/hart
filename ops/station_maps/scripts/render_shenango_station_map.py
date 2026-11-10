@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Shenango station map (SM-05), normal and rotated.
 
-Princess 113-115, Track McKees Rocks / Track McKeesport (mainline toward the
+Princess switches 35 / 37 / 39, Track McKees Rocks / Track McKeesport (mainline toward the
 helix), and the K-1 / K-2 loop that serves Shenango Coke Works. Same sheet
 language as the Barn / South Yard maps: 8 in x 5 in (1600x1000 at 200 dpi).
 
@@ -36,7 +36,7 @@ DOT_R = 19
 # Plan geometry (pixels, normal orientation).
 Y_W, Y_E = 405, 512          # Main West (upper), Main East (lower)
 X_ARROW = 222                # west end of the mains
-X_SW115 = 728                # switches 115 / 114
+X_SW115 = 728                # switches 39 / 37
 X_END = 1142                 # east end of the two straight tracks
 X_113 = [(578, Y_W), (525, 459), (472, Y_E)]
 LOOP_TOP, LOOP_BOT = 305, 611
@@ -128,9 +128,9 @@ def render(out: Path, rotated: bool) -> None:
     for p in X_113 + [(X_SW115, Y_W), (X_SW115, Y_E)]:
         barn._dot(d, T(p), DOT_R)
 
-    badge(680, 378, "115")
-    badge(570, 463, "113")
-    badge(680, 540, "114")
+    badge(680, 378, "39")
+    badge(570, 463, "35")
+    badge(680, 540, "37")
 
     # Labels.
     text(525, 358, "Princess", f_princess)

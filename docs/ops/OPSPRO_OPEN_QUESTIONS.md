@@ -42,7 +42,7 @@ Written 2026-11-02 during the unattended build ([`OPSPRO_BUILD_PROMPT.md`](OPSPR
 | # | Question | Default taken |
 |---|---|---|
 | Q1 | Where do offline cars physically sit: on the loop with the interchange block, or lifted off the layout? If on the loop, the 890 ft loop is shared and the 2000 ft offline spur overstates capacity | Virtual 2000 ft |
-| Q2 | Real lengths of the East End industry tracks (station map S-2 to S-5) and whether each STS spot is a separate physical spot | 60 ft per spot |
+| Q2 | Real lengths of the East End industry tracks (station map S-1 to S-4) and whether each STS spot is a separate physical spot | 60 ft per spot |
 | Q3 | Should the no-photo freight cars (BO 1604, BO 9151, BO 9300, CO 18729, GN 68560, MILW 61032, PRR 153958, PRR 727454, UTLX 35294, WP 56057) and HART 1776 enter service, and where | Unplaced |
 | Q4 | Should CK1 require an engine (which road) rather than "Yardmaster assigns" | 0 engines |
 | Q5 | Is the coke fleet list in the seed config still right (16 cars)? BO 11027 and BO 11137 were sitting empty at Aristech Chemical Unload in STS, which looks like a data slip; they start at K-2 | Seed config list |

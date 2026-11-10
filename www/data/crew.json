@@ -171,7 +171,7 @@
         "name": "Aristech Plastics",
         "color": "yellow",
         "map": "east-end",
-        "track": "S-2",
+        "track": "S-1",
         "served": "NVL",
         "history": [
           "Founded 1986 as Aristech Chemical, spun off from U.S. Steel's USS Chemicals division with headquarters in Pittsburgh.",
@@ -215,7 +215,7 @@
         "name": "A. Stucki Co.",
         "color": "green",
         "map": "east-end",
-        "track": "S-3",
+        "track": "S-2",
         "served": "NVL",
         "history": [
           "Founded 1911 by Swiss engineer Arnold Stucki in the Pittsburgh area.",
@@ -252,7 +252,7 @@
         "name": "Calgon Carbon",
         "color": "purple",
         "map": "east-end",
-        "track": "S-5",
+        "track": "S-4",
         "served": "NVL",
         "history": [
           "Traces to 1942, when Pittsburgh Coke & Chemical developed coal-based activated carbon for U.S. military gas masks during World War II.",
@@ -296,7 +296,7 @@
         "name": "Ferrellgas",
         "color": "red",
         "map": "east-end",
-        "track": "S-3",
+        "track": "S-2",
         "served": "NVL",
         "history": [
           "Founded 1939 as A.C. Ferrell Butane Gas Company in Atchison, Kansas.",
@@ -326,7 +326,7 @@
         "name": "Kosmos Cement",
         "color": "pink",
         "map": "east-end",
-        "track": "S-4",
+        "track": "S-3",
         "served": "NVL",
         "history": [
           "Portland cement plant at Kosmosdale, Kentucky, shipping from the same site since 1905; founded by Samuel Horner Jr. as Kosmos Portland Cement Company.",
@@ -665,7 +665,7 @@
       "revision": "A",
       "effective": "23 July 2026",
       "img": "assets/maps/station_map_west_yard.png",
-      "alt": "West Yard station map: W-1 and W-2 off switch 101, Brick at switch 100 on Main West, Plane at switch 102 to the West Lead and Main East.",
+      "alt": "West Yard station map: W-1 and W-2 off switch 3, Brick at switch 1 on Main West, Plane at switch 5 to the West Lead and Main East.",
       "what": "Where D749 ties down: yard tracks W-1 and W-2 off Brick, and the Plane junction to the West Lead and Main East.",
       "tracks": [
         {
@@ -691,15 +691,15 @@
       ],
       "switches": [
         {
-          "n": "100",
+          "n": "1",
           "what": "Brick: Main West or the connection down to Plane"
         },
         {
-          "n": "101",
+          "n": "3",
           "what": "West Yard: W-1 or W-2"
         },
         {
-          "n": "102",
+          "n": "5",
           "what": "Plane: West Lead or Main East"
         }
       ],
@@ -717,9 +717,13 @@
       "revision": "A",
       "effective": "23 July 2026",
       "img": "assets/maps/station_map_south_yard.png",
-      "alt": "South Yard station map: Scale and Barn tracks, engine house EH-1 to EH-3 off switch 13, yard ladder switches 15, 17, 19 and 21 to tracks S-1 to S-5, Switch 7 crossover to Main East.",
-      "what": "The yard where D749, NVL and CK1 meet: tracks S-1 to S-5 on the ladder, the Scale and Barn tracks, and the engine house leads.",
+      "alt": "South Yard station map: Scale and Barn tracks, engine house EH-1 to EH-3 off switch 13, yard ladder switches 15, 17, 19 and 21 to tracks S-R to S-4, Switch 7 crossover to Main East.",
+      "what": "The yard where D749, NVL and CK1 meet: tracks S-R to S-4 on the ladder, the Scale and Barn tracks, and the engine house leads.",
       "tracks": [
+        {
+          "track": "S-R",
+          "purpose": "South Yard track"
+        },
         {
           "track": "S-1",
           "purpose": "South Yard track"
@@ -734,10 +738,6 @@
         },
         {
           "track": "S-4",
-          "purpose": "South Yard track"
-        },
-        {
-          "track": "S-5",
           "purpose": "South Yard track"
         },
         {
@@ -773,19 +773,19 @@
         },
         {
           "n": "15",
-          "what": "Yard ladder: S-1 or the rest of the ladder"
+          "what": "Yard ladder: S-R or the rest of the ladder"
         },
         {
           "n": "17",
-          "what": "Yard ladder: S-2"
+          "what": "Yard ladder: S-1"
         },
         {
           "n": "19",
-          "what": "Yard ladder: S-3"
+          "what": "Yard ladder: S-2"
         },
         {
           "n": "21",
-          "what": "Yard ladder: S-4 or S-5"
+          "what": "Yard ladder: S-3 or S-4"
         }
       ],
       "connects": [
@@ -862,15 +862,15 @@
       "revision": "A",
       "effective": "23 July 2026",
       "img": "assets/maps/station_map_east_end.png",
-      "alt": "East End station map: Aristech Plastics on S-2, Ferrellgas and A. Stucki Co. on S-3, Kosmos Cement on S-4, Calgon Carbon on S-5, ladder switches 107 to 110, crossover 111, and switch 112 to Main East.",
-      "what": "The island industries: Aristech on S-2, Ferrellgas and A. Stucki on S-3, Kosmos on S-4, and Calgon Carbon on S-5.",
+      "alt": "East End station map: Aristech Plastics on S-1, Ferrellgas and A. Stucki Co. on S-2, Kosmos Cement on S-3, Calgon Carbon on S-4, ladder switches 25 to 31, crossover 23, and switch 33 to Main East.",
+      "what": "The island industries: Aristech on S-1, Ferrellgas and A. Stucki on S-2, Kosmos on S-3, and Calgon Carbon on S-4.",
       "tracks": [
         {
-          "track": "S-1",
+          "track": "S-R",
           "purpose": "Through track on the ladder; continues east as Main East to Princess"
         },
         {
-          "track": "S-2",
+          "track": "S-1",
           "purpose": "Aristech Plastics: pellets, chemicals, shipping",
           "colors": [
             "yellow"
@@ -880,7 +880,7 @@
           ]
         },
         {
-          "track": "S-3",
+          "track": "S-2",
           "purpose": "Ferrellgas (LPG) and A. Stucki Co. (crane, team track)",
           "colors": [
             "red",
@@ -892,7 +892,7 @@
           ]
         },
         {
-          "track": "S-4",
+          "track": "S-3",
           "purpose": "Kosmos Cement: cement, aggregate",
           "colors": [
             "pink"
@@ -902,7 +902,7 @@
           ]
         },
         {
-          "track": "S-5",
+          "track": "S-4",
           "purpose": "Calgon Carbon: coal, carbon, chemicals",
           "colors": [
             "purple"
@@ -922,28 +922,28 @@
       ],
       "switches": [
         {
-          "n": "107",
-          "what": "Ladder: S-4 or S-5"
+          "n": "25",
+          "what": "Ladder: S-3 or S-4"
         },
         {
-          "n": "108",
-          "what": "Ladder: S-3"
-        },
-        {
-          "n": "109",
+          "n": "27",
           "what": "Ladder: S-2"
         },
         {
-          "n": "110",
-          "what": "S-1 or the industry ladder"
+          "n": "29",
+          "what": "Ladder: S-1"
         },
         {
-          "n": "111",
-          "what": "Crossover between Main West and S-1"
+          "n": "31",
+          "what": "S-R or the industry ladder"
         },
         {
-          "n": "112",
-          "what": "Main East from the Barn joins S-1 / Main East to Princess"
+          "n": "23",
+          "what": "Crossover between Main West and S-R"
+        },
+        {
+          "n": "33",
+          "what": "Main East from the Barn joins S-R / Main East to Princess"
         }
       ],
       "connects": [
@@ -961,7 +961,7 @@
       "effective": "7 November 2026",
       "img": "assets/maps/station_map_shenango.png",
       "rotated": "assets/maps/station_map_shenango_rotated.png",
-      "alt": "Shenango station map: Princess crossover 113 between Main West and Main East; Track McKees Rocks off switch 115 and Track McKeesport off switch 114 run east toward the helix and the Scully and Demmler interchanges; Shenango Coke Works sits inside the Track K-1 / Track K-2 loop.",
+      "alt": "Shenango station map: Princess crossover 35 between Main West and Main East; Track McKees Rocks off switch 39 and Track McKeesport off switch 37 run east toward the helix and the Scully and Demmler interchanges; Shenango Coke Works sits inside the Track K-1 / Track K-2 loop.",
       "what": "Princess junction, Shenango Coke Works on K-1 and K-2, and the loops to McKees Rocks / Scully and McKeesport / Demmler.",
       "tracks": [
         {
@@ -1015,15 +1015,15 @@
       ],
       "switches": [
         {
-          "n": "113",
+          "n": "35",
           "what": "Princess crossover between Main West and Main East"
         },
         {
-          "n": "114",
+          "n": "37",
           "what": "Main East: Track McKeesport (mainline, toward the helix) or the K-2 loop"
         },
         {
-          "n": "115",
+          "n": "39",
           "what": "Main West: Track McKees Rocks (mainline, toward the helix) or the K-1 loop"
         }
       ],

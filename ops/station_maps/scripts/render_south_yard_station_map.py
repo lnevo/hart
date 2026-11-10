@@ -78,6 +78,15 @@ OLD_EH_STUB = (
     (318, 120, 340, 92),
     (618, 200, 24, 16),
 )
+# "Track S-1" .. "Track S-5" baked into the published sheet (right edge). The
+# tracks are now S-R, S-1 .. S-4 (S-1 became S-R, the rest renumbered).
+TRACK_NAMES = (
+    (225, "Track S-R"),
+    (371, "Track S-1"),
+    (516, "Track S-2"),
+    (662, "Track S-3"),
+    (808, "Track S-4"),
+)
 OLD_LABELS = (
     (201, 199, 108, 16),  # West Lead
     (350, 392, 88, 32),  # Barn (under Main East)
@@ -156,6 +165,11 @@ def render(out: Path) -> None:
         _cover(d, box, pad=2)
     for box in OLD_LABELS:
         _cover(d, box, pad=3)
+    f_name = _font(22, bold=True)
+    for y, _name in TRACK_NAMES:
+        d.rectangle([1452, y - 16, 1598, y + 16], fill=WHITE)
+    for y, name in TRACK_NAMES:
+        d.text((1456, y), name, font=f_name, fill=INK, anchor="lm")
 
     _line(d, (X_EH, Y_EH1), EH1_JOIN)
     _line(d, (X_EH, Y_EH2), EH2_JOIN)
