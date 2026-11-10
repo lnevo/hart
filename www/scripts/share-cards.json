@@ -96,6 +96,12 @@
       "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)",
       "shared": true
     },
+    "crew/colors/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
     "crew/d749/index.html": {
       "image": "assets/share/crew-dispatcher.jpg",
       "alt": "Train sheets on three clipboards and a loose stack, lined up along the layout edge below the track.",
@@ -108,10 +114,76 @@
       "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)",
       "shared": true
     },
+    "crew/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "crew/industries/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "crew/maps/barn/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "crew/maps/east-end/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "crew/maps/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "crew/maps/shenango/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "crew/maps/south-yard/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "crew/maps/west-yard/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
     "crew/nvl/index.html": {
       "image": "assets/share/crew-nvl.jpg",
       "alt": "The NVL Neville Island Local train sheet on a clipboard with a pencil, on the layout edge.",
       "from": "www/assets/behind/sts/crew-sheets.jpg (NVL clipboard)"
+    },
+    "crew/scale/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "crew/tt23/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "crew/yardmaster/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
     },
     "docs/index.html": {
       "image": "assets/share/docs-index.jpg",
@@ -128,6 +200,12 @@
       "alt": "The CATS Digicon panel: Brick, Plane and Barn with signal lamps and track names.",
       "from": "media/screenshots/cats_dispatcher_20260826_184626.png (crop)"
     },
+    "guides/index.html": {
+      "image": "assets/share/operators-index.jpg",
+      "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
     "guides/uss-ctc.html": {
       "image": "assets/share/guides-uss-ctc.jpg",
       "alt": "The USS CTC machine: track diagram above rows of switch and signal levers.",
@@ -142,6 +220,16 @@
       "image": "assets/share/layout-index.jpg",
       "alt": "The Digicon device map of the layout, with switches and blocks labelled.",
       "from": "www/assets/layout/HART_cats_digicon.png (crop)"
+    },
+    "library/coke-making-in-beehive-ovens.html": {
+      "image": "assets/share/library-coke-making-in-beehive-ovens.jpg",
+      "alt": "A bank of beehive coke ovens with arched doors, in a still from the film.",
+      "from": "www/assets/history/beehive-film/oven-row.jpg"
+    },
+    "library/coraopolis-record-opinion.html": {
+      "image": "assets/share/library-coraopolis-record-opinion.jpg",
+      "alt": "The Coraopolis Record column Bring Back The Trolleys, with a drawing of a Route 23 streetcar.",
+      "from": "www/assets/history/coraopolis-record_bring-back-the-trolleys.jpg (top of the column)"
     },
     "library/how-it-was-built-article.html": {
       "image": "assets/share/library-how-it-was-built-article.jpg",
@@ -181,7 +269,18 @@
     "operators/index.html": {
       "image": "assets/share/operators-index.jpg",
       "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
-      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg"
+      "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
+      "shared": true
+    },
+    "plants/index.html": {
+      "image": "assets/share/plants-index.jpg",
+      "alt": "Lineage chart of the Neville Island plant: American Steel & Wire, Davison Coke & Iron, Pittsburgh Coke & Iron and Pittsburgh Coke & Chemical, then the break-up into coke and iron, cement, activated carbon and chemicals.",
+      "from": "screenshot of www/plants/index.html (top of the lineage chart)"
+    },
+    "railroads/index.html": {
+      "image": "assets/share/railroads-index.jpg",
+      "alt": "Lineage chart of the Chartiers Valley railroads in seven columns, from the South Hills and Panhandle lines to the B&O and Neville Island.",
+      "from": "screenshot of www/railroads/index.html (top of the lineage chart)"
     },
     "roster/index.html": {
       "image": "assets/share/roster-index.jpg",

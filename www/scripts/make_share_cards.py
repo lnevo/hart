@@ -50,12 +50,12 @@ class _Quiet(http.server.SimpleHTTPRequestHandler):
 
 @contextlib.contextmanager
 def serving():
-    """Serve www/ on a free port and give drawings a scratch folder."""
+    """Serve the repo on a free port (pages reach logos in ../external/) and give drawings a scratch folder."""
     global _site, _tmp
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(_Quiet, directory=str(PORTAL)))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(_Quiet, directory=str(REPO)))
     threading.Thread(target=server.serve_forever, daemon=True).start()
     with tempfile.TemporaryDirectory() as tmp:
-        _site, _tmp = f"http://127.0.0.1:{server.server_address[1]}/", Path(tmp)
+        _site, _tmp = f"http://127.0.0.1:{server.server_address[1]}/www/", Path(tmp)
         try:
             yield
         finally:
@@ -249,6 +249,31 @@ def wiring_node():
     return out
 
 
+def _lineage(page: str):
+    """The top of a "who became who" chart: the first companies and what they became.
+    The box is the chart's place on a 1440 px wide page; move it if the page's text above it changes length."""
+    k = 2
+    return card(shot(f"{_site}{page}", (1440, 1400), k).crop((170 * k, 640 * k, 1270 * k, 1217 * k)))
+
+
+def plants():
+    """plants-index: the Neville Island plant lineage, from American Steel & Wire to the 1960s break-up."""
+    return _lineage("plants/index.html")
+
+
+def railroads():
+    """railroads-index: the Chartiers Valley railroads lineage, line by line."""
+    return _lineage("railroads/index.html")
+
+
+def coraopolis_record():
+    """library-coraopolis-record-opinion: the top of the Bring Back The Trolleys column, with its Route 23 car."""
+    from PIL import Image
+
+    im = Image.open(PORTAL / "assets/history/coraopolis-record_bring-back-the-trolleys.jpg").convert("RGB")
+    return card(im.crop((0, 0, im.width, round(im.width * H / W))))
+
+
 # ---- Editor view of the bridge code -----------------------------------------------------------
 
 _KEYWORDS = r"\b(static|bool|const|char|byte|if|return|true|false|NULL|void|uint16_t)\b"
@@ -436,6 +461,9 @@ CARDS = {
     "behind-jmri-additions": jmri_additions,
     "behind-panel-evolution": panel_evolution,
     "roster-index": roster,
+    "plants-index": plants,
+    "railroads-index": railroads,
+    "library-coraopolis-record-opinion": coraopolis_record,
     "crew-nvl": crew_nvl,
     "crew-dispatcher": crew_dispatcher,
 }
