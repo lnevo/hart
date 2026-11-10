@@ -28,7 +28,7 @@ if [[ "$want" == "$have" ]]; then
   exit 0
 fi
 if [[ "${HART_OVERWRITE_OPS:-0}" != "1" ]] \
-    && pgrep -f 'java .*(apps\.PanelPro\.PanelPro|apps\.DecoderPro|cats\.apps\.Crandic)' >/dev/null 2>&1; then
+    && pgrep -f 'java .*(apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|cats\.apps\.Crandic)' >/dev/null 2>&1; then
   echo "SKIP Operations files: JMRI is running and would overwrite them. Deploy again with it closed."
   exit 0
 fi

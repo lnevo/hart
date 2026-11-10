@@ -10,7 +10,7 @@ FILES=(Operations.xml OperationsCarRoster.xml OperationsEngineRoster.xml
        OperationsLocationRoster.xml OperationsRouteRoster.xml OperationsTrainRoster.xml)
 
 # The brackets stop the pattern matching this command's own shell.
-if ssh "$PI_HOST" "pgrep -f '[a]pps.PanelPro|[a]pps.DecoderPro|[c]ats.apps.Crandic'" >/dev/null; then
+if ssh "$PI_HOST" "pgrep -f '[a]pps.PanelPro|[a]pps.gui3.dp3.DecoderPro3|[a]pps.DecoderPro|[c]ats.apps.Crandic'" >/dev/null; then
   echo "Quit JMRI and CATS on the Pi first." >&2
   exit 1
 fi
