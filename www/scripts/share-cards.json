@@ -52,8 +52,8 @@
     },
     "behind/jmri-additions.html": {
       "image": "assets/share/behind-jmri-additions.jpg",
-      "alt": "The railroad's JMRI Layout Editor panel, a dark track diagram with turnouts, labels and status marks.",
-      "from": "www/assets/layout/HART_le_schematic.png"
+      "alt": "The Layout Editor panel from Brick to East End, with its four status lamps enlarged in front: LCOS, Turnouts, Signals and Track Power.",
+      "from": "live image of the HART Railroad panel from JMRI's web server (2026-11-09), with the four status lamps enlarged"
     },
     "behind/layout-docs.html": {
       "image": "assets/share/behind-layout-docs.jpg",
