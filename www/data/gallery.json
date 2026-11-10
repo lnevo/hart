@@ -25,7 +25,7 @@
     {
       "id": "progress",
       "label": "The build, month by month",
-      "count": 46
+      "count": 51
     }
   ],
   "items": [
@@ -592,10 +592,50 @@
     },
     {
       "album": "progress",
+      "src": "../media/photos-layout/IMG_0730.jpg",
+      "title": "Helix: printed brackets",
+      "caption": "3D-printed helix brackets fresh off the printer.",
+      "date": "2026-10-02",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_0746.jpg",
+      "title": "Helix: steel bracket",
+      "caption": "A steel angle bracket held against the edge of a plywood piece.",
+      "date": "2026-10-03",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_0747.jpg",
+      "title": "Helix: the joint",
+      "caption": "Two layers of plywood lapped at the end of a roadbed piece.",
+      "date": "2026-10-03",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/IMG_0753.jpg",
+      "title": "Helix: roadbed cut",
+      "caption": "A stack of curved plywood roadbed pieces, cut and ready for the helix.",
+      "date": "2026-10-05",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
       "src": "../media/photos-layout/IMG_0819.jpg",
       "title": "Helix: climbing",
       "caption": "Helix roadbed climbing above the track on the oval.",
       "date": "2026-10-15",
+      "credit": "HART layout photos"
+    },
+    {
+      "album": "progress",
+      "src": "../media/photos-layout/curved-track-in-the-workshop.jpg",
+      "title": "Helix: track and cork",
+      "caption": "Track laid on cork at the foot of the helix, with cork roadbed down on the turn beside it.",
+      "date": "2026-10-17",
       "credit": "HART layout photos"
     },
     {
