@@ -29,10 +29,7 @@ SECTIONS = ("operators", "behind", "ai")
 # Folders whose pages do not name a page id in their own HTML (a script mounts the header).
 FOLDER_SECTION = {"crew": "operators", "layout": "operators", "roster": "behind"}
 # Pages the owner has said keep the site card.
-NO_CARD_PAGES = {
-    "crew/index.html",
-    "crew/tt23/index.html",
-}
+NO_CARD_PAGES: set[str] = set()
 _PAGE_ID = re.compile(r'data-page="([^"]+)"|mountChrome\("([^"{]+)"\)')
 _TITLE = re.compile(r"<title>(.*?)</title>", re.S)
 

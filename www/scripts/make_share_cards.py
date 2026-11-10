@@ -449,6 +449,28 @@ def crew_dispatcher():
     return _clipboard((60, 150, 1540, 927))
 
 
+def tt23():
+    """crew-tt23: the timetable page of the Route 23 employee timetable (macOS: uses qlmanage, which
+    draws only a document's first page, so a scratch copy with the two pages swapped is rendered)."""
+    import zipfile
+    from PIL import Image
+
+    doc = REPO / "docs/ops/TT-23_Route23_NevilleQueen_RevisionA_v6.pptx"
+    copy = _tmp / "tt23-page2.pptx"
+    with zipfile.ZipFile(doc) as src, zipfile.ZipFile(copy, "w", zipfile.ZIP_DEFLATED) as out:
+        for item in src.infolist():
+            data = src.read(item.filename)
+            if item.filename == "ppt/presentation.xml":
+                text = data.decode("utf-8")
+                first, second = re.findall(r"<p:sldId [^>]*/>", text)[:2]
+                data = text.replace(first + second, second + first).encode("utf-8")
+            out.writestr(item, data)
+    subprocess.run(["qlmanage", "-t", "-s", "2400", "-o", str(_tmp), str(copy)], check=True, capture_output=True)
+    im = Image.open(_tmp / (copy.name + ".png")).convert("RGB")
+    top = round(im.width * 30 / 2400)
+    return card(im.crop((0, top, im.width, top + round(im.width * H / W))))
+
+
 def station_maps():
     """crew-maps: the full station map, whole, on white (used by the station maps index and every map page).
     The source is a copy of ops/hart-ops/publications/assets/station_map_full.png; copy it again to refresh."""
@@ -479,6 +501,7 @@ CARDS = {
     "railroads-index": railroads,
     "library-coraopolis-record-opinion": coraopolis_record,
     "crew-maps": station_maps,
+    "crew-tt23": tt23,
     "crew-nvl": crew_nvl,
     "crew-dispatcher": crew_dispatcher,
 }

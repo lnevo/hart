@@ -122,6 +122,12 @@
       "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)",
       "shared": true
     },
+    "crew/index.html": {
+      "image": "assets/share/crew-dispatcher.jpg",
+      "alt": "Train sheets on three clipboards and a loose stack, lined up along the layout edge below the track.",
+      "from": "www/assets/behind/sts/crew-sheets.jpg (all the clipboards)",
+      "shared": true
+    },
     "crew/industries/index.html": {
       "image": "assets/share/operators-index.jpg",
       "alt": "Colored boxes of car cards, one per customer, on the crew desk.",
@@ -174,6 +180,11 @@
       "alt": "The printed Scale Operating Instructions booklet lying on the scale track.",
       "from": "www/assets/behind/sts/scale-instructions.jpg",
       "shared": true
+    },
+    "crew/tt23/index.html": {
+      "image": "assets/share/crew-tt23.jpg",
+      "alt": "Route 23 Neville Queen employee timetable: eastbound and westbound times at each station from Barn to McKees Rocks.",
+      "from": "docs/ops/TT-23_Route23_NevilleQueen_RevisionA_v6.pptx (page 2, the timetable)"
     },
     "crew/yardmaster/index.html": {
       "image": "assets/share/crew-dispatcher.jpg",
