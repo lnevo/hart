@@ -3,7 +3,7 @@
     var scripts = document.getElementsByTagName("script");
     for (var i = 0; i < scripts.length; i++) {
       var attr = scripts[i].getAttribute("src") || "";
-      var m = attr.match(/^((?:\.\.\/)*)js\/nav\.js(?:\?.*)?$/);
+      var m = attr.match(/^((?:\.\.\/)*|\/)js\/nav\.js(?:\?.*)?$/);
       if (m) return m[1];
     }
     var p = (window.location.pathname || "").replace(/\\/g, "/");
@@ -61,14 +61,11 @@
         var cur = "";
         if (item.id === pageId) cur = ' aria-current="page"';
         else if (section && item.id === section.id) cur = ' aria-current="true"';
-        var label = item.short
-          ? '<span class="nav-full">' + esc(item.label) + '</span><span class="nav-short">' +
-            esc(item.short) + "</span>"
-          : esc(item.label);
-        var cls = ' class="nav-' + esc(item.id) + '"';
-        return '<a href="' + b + item.href + '"' + cls + cur + ">" + label + "</a>";
+        var label = esc(item.label);
+        return '<a href="' + b + item.href + '"' + cur + ">" + label + "</a>";
       })
       .join("");
+    // The engineering desk link rides at the end of the menu (empty on the public site).
     var eng = site.engDesk
       ? '<a class="eng-link" href="' + b + site.engDesk + '">Engineering desk</a>'
       : "";
@@ -79,11 +76,46 @@
       b +
       'index.html">HART<span>Railroad · Neville Island</span></a>' +
       '<nav class="nav" aria-label="Primary">' +
+      '<button type="button" class="nav-toggle" aria-expanded="false" aria-controls="site-menu" aria-label="Menu">' +
+        '<svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' +
+        '<path class="nav-icon-bars" d="M4 7h16M4 12h16M4 17h16"/>' +
+        '<path class="nav-icon-close" d="M8 8l8 8M16 8l-8 8"/>' +
+        '</svg></button>' +
+      '<div class="nav-panel" id="site-menu" hidden>' +
       links +
-      "</nav>" +
       eng +
-      "</div>"
+      "</div></nav></div>"
     );
+  }
+
+  // One drop-down menu at every width. Closes on Escape (focus back to the button), on a click
+  // outside, on choosing a link, and when focus Tabs out of the menu.
+  function mountMenu(header) {
+    var btn = header.querySelector(".nav-toggle");
+    var panel = header.querySelector(".nav-panel");
+    if (!btn || !panel) return;
+    function setOpen(open) {
+      panel.hidden = !open;
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    btn.addEventListener("click", function () {
+      setOpen(panel.hidden);
+    });
+    panel.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("a")) setOpen(false);
+    });
+    document.addEventListener("click", function (e) {
+      if (!panel.hidden && !btn.parentNode.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !panel.hidden) {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+    btn.parentNode.addEventListener("focusout", function (e) {
+      if (!panel.hidden && e.relatedTarget && !btn.parentNode.contains(e.relatedTarget)) setOpen(false);
+    });
   }
 
   // Small "Section ›" trail above a child page's title so visitors can get back to the hub.
@@ -250,7 +282,10 @@
     lastSite = site;
     var header = headerEl();
     var footer = footerEl();
-    if (header) header.innerHTML = headerHtml(site, pageId);
+    if (header) {
+      header.innerHTML = headerHtml(site, pageId);
+      mountMenu(header);
+    }
     mountSkipTarget();
     mountCrumb(site, pageId);
     if (site.public) {
@@ -262,7 +297,7 @@
       var eng = site.engDesk
         ? ' · <a href="' + base() + site.engDesk + '">Engineering desk</a>'
         : "";
-      // About is here too: the narrowest phones drop it from the header row.
+      // About is here too, as a quiet second route to it.
       var about = (site.nav || []).filter(function (n) {
         return n.id === "about";
       })[0];

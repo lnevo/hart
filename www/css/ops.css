@@ -133,76 +133,105 @@ a:hover {
   color: var(--muted);
 }
 
+/* One drop-down menu at every width: a Menu button, and a panel that floats over the page. */
+.site-header-inner {
+  position: relative;
+}
+
 .nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.85rem;
   margin-left: auto;
 }
 
-.nav a {
+.nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.nav-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: square;
+}
+
+.nav-icon-close,
+.nav-toggle[aria-expanded="true"] .nav-icon-bars {
+  display: none;
+}
+
+.nav-toggle[aria-expanded="true"] .nav-icon-close {
+  display: inline;
+}
+
+.nav-toggle:hover,
+.nav-toggle[aria-expanded="true"] {
+  background: var(--paper-2);
+}
+
+.nav-panel {
+  position: absolute;
+  top: 100%;
+  right: 1.25rem;
+  width: min(18rem, calc(100vw - 2rem));
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+}
+
+.nav-panel a {
   text-decoration: none;
   color: var(--ink-soft);
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: 600;
-  padding: 0.2rem 0;
-  border-bottom: 2px solid transparent;
+  padding: 0.7rem 0.8rem;
+  border-left: 3px solid transparent;
 }
 
-.nav a:hover,
-.nav a[aria-current] {
+.nav-panel a:hover,
+.nav-panel a:focus-visible {
+  background: var(--paper-2);
   color: var(--ink);
-  border-bottom-color: var(--accent);
 }
 
-.nav .nav-short {
-  display: none;
+.nav-panel a[aria-current] {
+  color: var(--ink);
+  border-left-color: var(--accent);
+}
+
+.nav-panel a[aria-current="page"] {
+  background: var(--paper);
+}
+
+.nav-panel .eng-link {
+  margin-top: 0.3rem;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  border-radius: 0.3rem;
+  font-size: 0.85rem;
 }
 
 [hidden] {
   display: none !important;
 }
 
-/* Phone: brand on its own line, the section links share the row below it. */
 @media (max-width: 640px) {
   .site-header-inner {
     padding: 0.6rem 1rem;
-    gap: 0.45rem 0.8rem;
   }
 
-  .nav {
-    order: 3;
-    width: 100%;
-    margin-left: 0;
-    gap: 0.25rem 1.1rem;
-  }
-
-  .nav .nav-home {
-    display: none;
-  }
-
-  /* Short labels (site.json "short") keep the section links on one row. */
-  .nav .nav-full {
-    display: none;
-  }
-
-  .nav .nav-short {
-    display: inline;
-  }
-
-  .eng-link {
-    margin-left: auto;
-  }
-}
-
-/* Narrowest phones: About lives in the footer (js/nav.js) so the row still fits. */
-@media (max-width: 400px) {
-  .nav {
-    gap: 0.25rem 0.9rem;
-  }
-
-  .nav .nav-about {
-    display: none;
+  .nav-panel {
+    right: 1rem;
   }
 }
 
@@ -1799,7 +1828,8 @@ table.roster th {
 .section-door {
   display: grid;
   gap: 0.6rem;
-  align-content: start;
+  /* The blurb row takes the spare height, so the links and button sit at the same height in every card of a row. */
+  grid-template-rows: auto auto 1fr auto auto;
   background: var(--card);
   border: 1px solid var(--rule);
   border-top: 4px solid var(--brand);
