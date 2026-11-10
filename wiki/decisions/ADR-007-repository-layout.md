@@ -15,7 +15,7 @@
 3. `consolidation/` is dissolved into the root. Until then it remains the live home of what it holds, so edit that content in place.
 4. Target root: `jmri/`, `cats/`, `docs/`, `www/`, `ops/`, `external/`, `media/`, `tools/`, `wiki/`, `archive/`.
    - `www/` is the public website, renamed from `ops-portal/`.
-   - `external/` holds only the four submodules and the STS data.
+   - `external/` holds only the submodules and the STS data. hart-ops left it for `ops/hart-ops/` on 2026-11-09 (ADR-019).
    - `media/` is gitignored photo, video and archive material.
    - `archive/` holds retired material; nothing in it runs.
 5. All created documents live in `docs/`. One file per purpose. Tools stay live; superseded outputs go to `archive/`.

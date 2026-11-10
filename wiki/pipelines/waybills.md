@@ -2,7 +2,7 @@
 
 Generate spot waybill cards and CC/waybill labels from the HART waybill matrix.
 
-**Status:** Live in the hart-ops submodule (`external/hart-ops/`), same tree as car cards. CSV also seeds STS (pipeline 14).
+**Status:** Live in `ops/hart-ops/`, same tree as car cards. CSV also seeds STS (pipeline 14).
 
 ## Inputs
 
@@ -17,7 +17,7 @@ Generate spot waybill cards and CC/waybill labels from the HART waybill matrix.
 
 ## Run
 
-From `external/hart-ops/`:
+From `ops/hart-ops/`:
 
 ```bash
 .venv/bin/python card_pipeline/generate_waybill_cards.py

@@ -2,7 +2,7 @@
 
 Add a car once, then feed the cards, STS and Operations Pro from it. Decision: [ADR-013](../decisions/ADR-013-car-repository.md).
 
-Run everything from `external/hart-ops`.
+Run everything from `ops/hart-ops`.
 
 For a batch of new photos (cars and locomotives) use the staged flow in [intake-stages.md](intake-stages.md). `bin/cars intake` below is the older one-step path.
 

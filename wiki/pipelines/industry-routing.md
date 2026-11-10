@@ -2,7 +2,7 @@
 
 Maintain the supplier/customer/commodity matrix that feeds waybills and STS seed.
 
-**Status:** Live in the hart-ops submodule, `external/hart-ops/industries/`.
+**Status:** Live in `ops/hart-ops/industries/`.
 
 ## Inputs
 
@@ -16,7 +16,7 @@ Maintain the supplier/customer/commodity matrix that feeds waybills and STS seed
 ## Run
 
 ```bash
-cd external/hart-ops/industries
+cd ops/hart-ops/industries
 python3 validate_and_update_matrix.py
 # also: update_railroads.py, update_railroad_timelines_era.py, fix_railroad_timelines.py
 ```

@@ -1,6 +1,6 @@
 # External repos
 
-Git submodules live here so nothing spreads to `~/hart-ops` or other home-directory clones.
+Git submodules live here so nothing spreads to home-directory clones.
 
 | Path | Repo |
 |------|------|

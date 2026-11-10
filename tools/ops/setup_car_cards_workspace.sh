@@ -27,7 +27,7 @@ link() {
 
 link "incoming" "$CAR/Images"
 link "car-images/CarImagesFinal" "$CAR/CarImagesFinal"
-link "../../external/hart-ops/data" "$CAR/data"
+link "../../ops/hart-ops/data" "$CAR/data"
 
 echo "Car cards workspace ready: $CAR"
 echo "  Drop raw photos in: $CAR/incoming/"

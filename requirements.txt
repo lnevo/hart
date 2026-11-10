@@ -1,6 +1,6 @@
 # Third-party Python packages used by this repo. Install: pip install -r requirements.txt
-# Tested together on Python 3.13. Submodules keep their own lists, such as
-# external/hart-ops/requirements.txt for car cards and publications.
+# Tested together on Python 3.13. Car cards and publications have their own list,
+# ops/hart-ops/requirements.txt (its .venv is ops/hart-ops/.venv).
 # Jython scripts run inside JMRI and need none of these.
 
 # Wiring docs and JMRI tools

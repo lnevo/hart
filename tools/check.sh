@@ -26,7 +26,17 @@ run unit-guards python3 -m unittest discover -q -s tools/audit/tests
 run unit-hosts python3 -m unittest discover -q -s tools/hosts/tests
 run unit-portal python3 -m unittest discover -q -s www/scripts/tests
 run desks python3 cats/scripts/validate_cats_panel.py
-# The portal build reads the private hart-ops submodule, which CI does not have.
+run public-text python3 tools/audit/check_public_text.py
+# Car cards, intake and publications. Uses ops/hart-ops/.venv when it exists; a checkout
+# without it (a worktree) skips, CI installs ops/hart-ops/requirements-test.txt.
+HOPS_PY=python3
+[[ -x ops/hart-ops/.venv/bin/python ]] && HOPS_PY=ops/hart-ops/.venv/bin/python
+if [[ -n "${CI:-}" ]] || "$HOPS_PY" -c "import numpy, scipy, docx, pytesseract" 2>/dev/null; then
+  run unit-hart-ops "$HOPS_PY" -m unittest discover -q -s ops/hart-ops/tests
+else
+  echo "--- unit-hart-ops skipped (no ops/hart-ops/.venv)"
+fi
+# The portal build needs the gitignored photo mirrors (media/), which CI does not have.
 if [[ -z "${CI:-}" ]]; then
   run portal python3 www/scripts/check_portal_build.py
 else

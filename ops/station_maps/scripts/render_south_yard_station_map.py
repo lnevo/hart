@@ -22,7 +22,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[3]
 SRC = ROOT / "ops/station_maps/maps/src/south_yard_sheet.png"
 OUT_CATS = ROOT / "ops/station_maps/maps/Neville_Island_Station_Map_South_Yard_0.png"
-HOPS = ROOT / "external/hart-ops"
+HOPS = ROOT / "ops/hart-ops"
 DOCX_NAME = "Neville_Island_Station_Map_South_Yard.docx"
 DOCX_TEMPLATE = ROOT / "docs/ops/Neville_Island_Station_Map_South_Yard.docx"
 

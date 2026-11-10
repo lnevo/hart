@@ -1,0 +1,34 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Regenerable outputs (whitelist committed print SoR below)
+card_pipeline/output/*
+!card_pipeline/output/README.md
+!card_pipeline/output/HART_Equipment_Card_Template.docx
+!card_pipeline/output/HART_Spot_Waybills.docx
+!card_pipeline/output/card_review.html
+*.log
+
+# Large local photo trees (not in git)
+CarImagesFinal/
+CarImagesCardFill/
+Images/
+OcrZoom/
+archive/
+
+# STS runtime copies
+sts-docker/
+
+# OS
+.DS_Store
+
+# Env
+.env
+.env.local
+
+# Apostrophe Games sticker template: their file, downloaded locally (operator_logos/SOURCES.md)
+card_pipeline/assets/Poker Size Sticker Sheet Template.docx

@@ -6,9 +6,9 @@ Each stage ends with a review sheet and an entry in the batch manifest (`ops/int
 
 ## 1. Photo intake, validation and adjustment
 
-Run from `external/hart-ops`.
+Run from `ops/hart-ops`.
 
-- Put photos in `ops/car-cards/incoming/` **in the hart repo root** (not inside `external/hart-ops`); phone names (IMG_1234) are fine. Every photo starts as a car, and you decide on the sheet which are locomotives. A file name starting `loco_` or `engine_` starts as a locomotive.
+- Put photos in `ops/car-cards/incoming/` **in the hart repo root** (not inside `ops/hart-ops`); phone names (IMG_1234) are fine. Every photo starts as a car, and you decide on the sheet which are locomotives. A file name starting `loco_` or `engine_` starts as a locomotive.
 - `bin/cars review` crops, straightens and reads each new photo, then writes `ops/intake/<date>/review.csv` and a contact sheet `review.html` (open it in a browser). `--batch NAME` names the batch. A batch that already exists is refused, so to redo one (after a crop or OCR fix) use a new name and delete the old batch folder, which is yours and gitignored. The crops are rebuilt every run.
 - **How a photo is read.** The crop ends at the track (the dark table strip below the backdrop is ignored). OCR then reads the *finished crop*: stencilled lettering such as gold on silver is picked out by colour (red minus blue), because brightness has almost no contrast. That window and the weights window were tuned on the CSX hoppers; other car types may read nothing, and the AI review and your edits cover them. A misread is common on a blurry photo and on digits like `O`/`0`.
 - Flags: `number-length` (road number has a different digit count from most of the batch), `crop-*` (crop fell back), `blurry`, `no-marks`, `no-number`, `road-not-in-fleet`, `duplicate-has-photo` (the repository car already has a photo), `same-id-as-<photo>` (twice in one batch), `private-name`, `maybe-loco`, `ai-says-loco`, `ai-says-car`, `ai-disagrees`, `process-failed` (one bad file does not stop the batch).
@@ -77,7 +77,7 @@ Per loco, once it is on the bench: program the decoder, then [speed matching](sp
 State on 2026-11-08: all stages ran once on a real batch (ten CSX hoppers, cars 81 to 90 in STS, merged and deployed). The fixes it needed are in the stages above; locos have still not been through stage 4.
 
 **Before a batch**
-- Run from `external/hart-ops` (`bin/cars ...`). It needs `.venv`, tesseract and the hart checkout on `main`. Other sessions share the checkouts: for repository changes use a worktree. `bin/cars` works from a worktree placed under `external/` (for example `external/hart-ops-wt`, with `.venv` symlinked) because it derives the hart root from its own path; the files it writes outside hart-ops (Operations roster, gallery, STS inputs) still land in the main checkout, so copy them into your worktree to commit and restore the main checkout afterwards.
+- Run from `ops/hart-ops` (`bin/cars ...`). It needs `.venv`, tesseract and the hart checkout on `main`. Other sessions share the checkouts: for repository changes use a worktree. `bin/cars` works from a worktree placed under `external/` (for example `ops/hart-ops-wt`, with `.venv` symlinked) because it derives the hart root from its own path; the files it writes outside hart-ops (Operations roster, gallery, STS inputs) still land in the main checkout, so copy them into your worktree to commit and restore the main checkout afterwards.
 - Photos go in `ops/car-cards/incoming/` in the hart root (gitignored). Phone names are fine.
 - `bin/cars compare` should show no drift first (HART1776 is a known exception).
 

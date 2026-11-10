@@ -1,6 +1,6 @@
 # ADR-013 — One car repository
 
-- **Status:** Accepted
+- **Status:** Accepted. Paths updated 2026-11-09: hart-ops is now `ops/hart-ops/` (ADR-019).
 - **Date:** 2026-10-31
 - **Deciders:** lnevo
 
@@ -10,7 +10,7 @@ Operations Pro, STS and hart-ops held different cars and fields, because not eve
 
 ## Decision
 
-1. `external/hart-ops/data/image_metadata.csv` is the one car repository, and holds the whole fleet. A car with no photo has a blank `source_image`.
+1. `ops/hart-ops/data/image_metadata.csv` is the one car repository, and holds the whole fleet. A car with no photo has a blank `source_image`.
 2. A car starts from a photo or from a set of questions, through `bin/cars`.
 3. STS, Operations Pro and any future inventory tool are fed from the repository.
 4. `data/car_queue.csv` tracks which new cars still need a card, STS or Operations Pro.

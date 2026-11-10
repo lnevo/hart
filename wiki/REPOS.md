@@ -11,7 +11,7 @@
 | **`LCOS_ESP32_MQTT_Client`** | Nano firmware + MQTT bridge → `external/lcos-bridge` |
 | **`sts-docker`** | STS PHP runtime → `external/sts-docker` |
 | **`sts-docker-helpers`** | Seed, warm-start, switch lists → `external/sts-helpers` |
-| **`hart-ops`** | Car inventory SoR, cards, waybills, publications → `external/hart-ops` |
+| **`hart-ops`** | Archived 2026-11-09: now the `ops/hart-ops/` folder of this repo ([ADR-019](decisions/ADR-019-hart-ops-in-hart.md)) |
 | **`model-railroad-skills`** | Public, generic agent skills and tools, packaged for Claude Code and the open Agent Plugins format → `external/model-railroad-skills` |
 
 ## Submodule layout
@@ -21,7 +21,6 @@ hart/external/
   lcos-bridge/            → LCOS_ESP32_MQTT_Client
   sts-docker/             → sts-docker
   sts-helpers/            → sts-docker-helpers
-  hart-ops/               → hart-ops
   model-railroad-skills/  → model-railroad-skills
 ```
 

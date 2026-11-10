@@ -10,7 +10,6 @@ LCOS_PIN=ae2d8da7b8821d2b14c889e05063ea359bab6afe
 STS_DOCKER_PIN=7f9de281a2c141ea9377723d32c27d14d794f444
 STS_HELPERS_PIN=8127b32bc6a394738cbc138e298f367d6aa99b0f
 STS_PLUGINS_PIN=ab8d4ccae903fcb9348bf8f8c8e260fa46e94346
-HART_OPS_PIN=0fecf5ecf6195b03048f0829fc4b00ee223bc521
 
 mkdir -p "$EXT"
 
@@ -30,7 +29,6 @@ add_submodule external/lcos-bridge git@github.com:lnevo/LCOS_ESP32_MQTT_Client.g
 add_submodule external/sts-docker git@github.com:lnevo/sts-docker.git "$STS_DOCKER_PIN"
 add_submodule external/sts-helpers git@github.com:lnevo/sts-docker-helpers.git "$STS_HELPERS_PIN"
 add_submodule external/sts-plugins git@github.com:lnevo/sts-plugins.git "$STS_PLUGINS_PIN"
-add_submodule external/hart-ops git@github.com:lnevo/hart-ops.git "$HART_OPS_PIN"
 
 echo ""
 echo "Submodules under external/ only."

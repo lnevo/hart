@@ -23,7 +23,7 @@ def hart_ops_root() -> Path:
     env = os.environ.get("HART_OPS_ROOT", "").strip()
     if env:
         return Path(env).expanduser().resolve()
-    return hart_repo_root() / "external/hart-ops"
+    return hart_repo_root() / "ops/hart-ops"
 
 
 def sts_docker_root() -> Path:

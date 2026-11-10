@@ -49,7 +49,7 @@
       "from": 1942,
       "to": 1965,
       "made": "Coke, pig iron, cement, carbon, chemicals",
-      "logo": "../external/hart-ops/operator_logos/downloads/pcc-emblem-1949.png",
+      "logo": "../ops/hart-ops/operator_logos/downloads/pcc-emblem-1949.png",
       "note": "Second blast furnace c. 1952"
     }
   ],
@@ -67,7 +67,7 @@
           "from": 1942,
           "to": 1961,
           "made": "Coke and pig iron",
-          "logo": "../external/hart-ops/operator_logos/downloads/pcc-emblem-1949.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/pcc-emblem-1949.png",
           "pcc": true
         },
         {
@@ -79,7 +79,7 @@
           "from": 1962,
           "to": 2007,
           "made": "Coke and pig iron, then coke only",
-          "logo": "../external/hart-ops/operator_logos/downloads/shenango-trim.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/shenango-trim.png",
           "note": "Iron off Dec 1990"
         },
         {
@@ -91,7 +91,7 @@
           "from": 2008,
           "to": 2016,
           "made": "Merchant coke, one 56-oven battery",
-          "logo": "../external/hart-ops/operator_logos/downloads/dte-energy.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/dte-energy.png"
         }
       ],
       "end": {
@@ -147,7 +147,7 @@
           "from": 1996,
           "to": 2019,
           "made": "Portland cement",
-          "logo": "../external/hart-ops/operator_logos/downloads/kosmos-trim.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/kosmos-trim.png",
           "note": "Southdown and Lone Star"
         },
         {
@@ -159,7 +159,7 @@
           "from": 2020,
           "to": null,
           "made": "Cement terminal, 200 Neville Road",
-          "logo": "../external/hart-ops/operator_logos/downloads/eagle-materials.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/eagle-materials.png"
         }
       ],
       "end": {
@@ -204,7 +204,7 @@
           "from": 1985,
           "to": 2017,
           "made": "Activated carbon, reactivation",
-          "logo": "../external/hart-ops/operator_logos/downloads/calgon-carbon-no-tagline.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/calgon-carbon-no-tagline.png"
         },
         {
           "handoff": "2018 · Kuraray buys Calgon Carbon"
@@ -215,7 +215,7 @@
           "from": 2018,
           "to": null,
           "made": "Carbon reactivation",
-          "logo": "../external/hart-ops/operator_logos/downloads/calgon-trim.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/calgon-trim.png"
         }
       ],
       "end": {
@@ -235,7 +235,7 @@
           "from": 1940,
           "to": 1965,
           "made": "Coal-tar chemicals, phthalic and maleic anhydride",
-          "logo": "../external/hart-ops/operator_logos/downloads/pcc-emblem-1949.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/pcc-emblem-1949.png",
           "note": "Pesticides 1949–55",
           "pcc": true
         },
@@ -248,7 +248,7 @@
           "from": 1966,
           "to": 1985,
           "made": "Resins, maleic anhydride, plasticizers",
-          "logo": "../external/hart-ops/operator_logos/downloads/uss-chemicals-neville-island.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/uss-chemicals-neville-island.png"
         },
         {
           "handoff": "1986 · U.S. Steel forms Aristech"
@@ -259,7 +259,7 @@
           "from": 1986,
           "to": 2000,
           "made": "Plasticizers for flexible PVC",
-          "logo": "../external/hart-ops/operator_logos/downloads/aristech-trim.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/aristech-trim.png",
           "note": "Mitsubishi buyout 1990. Resin and maleic units to Ashland 1995"
         },
         {
@@ -271,7 +271,7 @@
           "from": 2001,
           "to": 2007,
           "made": "Plasticizers, made for BASF from 2004",
-          "logo": "../external/hart-ops/operator_logos/downloads/sunoco-1999.png",
+          "logo": "../ops/hart-ops/operator_logos/downloads/sunoco-1999.png",
           "note": "Stopped by 31 Mar 2007"
         },
         {
@@ -283,7 +283,7 @@
           "from": 2007,
           "to": null,
           "made": "Terminal shipping BASF plasticizers",
-          "logo": "../external/hart-ops/operator_logos/downloads/ashland-wordmark.png"
+          "logo": "../ops/hart-ops/operator_logos/downloads/ashland-wordmark.png"
         }
       ],
       "end": {

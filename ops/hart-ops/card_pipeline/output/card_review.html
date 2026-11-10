@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HART Car Card Review</title>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --card: #fff;
+    --ink: #1a1a1a;
+    --muted: #666;
+    --line: #ccc;
+    --accent: #2c5282;
+    --changed: #fff8e1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: #2d3748; color: #fff;
+    padding: 12px 20px;
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  header h1 { margin: 0; font-size: 1.1rem; flex: 1; }
+  header label { font-size: .85rem; }
+  header input, header select, header button {
+    font: inherit; padding: 6px 10px; border-radius: 4px; border: 1px solid #718096;
+  }
+  header button { background: var(--accent); color: #fff; border-color: var(--accent); cursor: pointer; }
+  header button.secondary { background: #4a5568; border-color: #4a5568; }
+  .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 56px); }
+  aside {
+    background: #edf2f7; border-right: 1px solid var(--line);
+    padding: 16px; overflow: auto;
+  }
+  aside h2 { margin: 0 0 8px; font-size: .95rem; }
+  aside section { margin-bottom: 20px; }
+  aside input[type=text] { width: 100%; margin-bottom: 6px; padding: 6px; }
+  aside ul { list-style: none; padding: 0; margin: 0; max-height: 140px; overflow: auto; }
+  aside li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0; border-bottom: 1px solid #e2e8f0; font-size: .85rem;
+  }
+  aside li button { font-size: .75rem; padding: 2px 6px; }
+  main { padding: 16px; overflow: auto; }
+  .stats { color: var(--muted); font-size: .85rem; margin-bottom: 12px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--card);
+    border: 2px solid #333;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+  }
+  .card.changed { background: var(--changed); }
+  .card-head {
+    display: grid; grid-template-columns: 70px 1fr auto;
+    align-items: center; gap: 8px;
+    padding: 8px 10px; background: #d9d9d9;
+    border-bottom: 1px solid var(--line);
+    font-size: .8rem;
+  }
+  .card-head img.logo { width: 56px; height: auto; }
+  .card-head .title { font-weight: bold; font-size: .75rem; line-height: 1.2; }
+  .card-head .badge {
+    border: 1px solid #333; padding: 4px 8px; font-size: .65rem;
+    background: #fff; text-align: center;
+  }
+  .card-photo {
+    margin: 8px; border: 1.5px solid #333; background: #eee;
+    height: 160px; display: flex; align-items: center; justify-content: center;
+    cursor: zoom-in; overflow: hidden;
+  }
+  .card-photo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .card-photo .missing { color: var(--muted); font-size: .85rem; }
+  .card-fields { padding: 8px 10px 12px; display: grid; gap: 8px; }
+  .field { display: grid; grid-template-columns: 90px 1fr; gap: 6px; align-items: center; font-size: .85rem; }
+  .field label { color: var(--muted); }
+  .field input, .field select, .field textarea {
+    width: 100%; font: inherit; padding: 5px 6px; border: 1px solid var(--line); border-radius: 3px;
+  }
+  .field textarea { min-height: 52px; resize: vertical; }
+  .meta { font-size: .72rem; color: var(--muted); padding: 0 10px 8px; }
+  .export-panel {
+    margin-top: 24px; padding: 16px; background: #fff; border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .export-panel h2 { margin-top: 0; }
+  .export-panel textarea {
+    width: 100%; min-height: 180px; font-family: ui-monospace, monospace;
+    font-size: .8rem; padding: 10px;
+  }
+  .export-panel p { color: var(--muted); font-size: .85rem; }
+  #lightbox {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,.88); align-items: center; justify-content: center;
+    padding: 24px; cursor: zoom-out;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 95vw; max-height: 95vh; object-fit: contain; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { border-right: none; border-bottom: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>HART Car Card Review</h1>
+  <label>Filter <input type="search" id="filter" placeholder="road, number, type…"></label>
+  <label><input type="checkbox" id="changedOnly"> Changed only</label>
+  <button type="button" id="btnRebuildDesc">Rebuild descriptions</button>
+  <button type="button" id="btnExport" class="secondary">Update export</button>
+</header>
+<div class="layout">
+  <aside>
+    <section>
+      <h2>Car / engine types</h2>
+      <input type="text" id="newType" placeholder="Add type…">
+      <button type="button" id="addType">Add</button>
+      <ul id="typeList"></ul>
+    </section>
+    <section>
+      <h2>Road names</h2>
+      <input type="text" id="newRoad" placeholder="Add road name…">
+      <button type="button" id="addRoad">Add</button>
+      <ul id="roadList"></ul>
+    </section>
+    <section>
+      <h2>Help</h2>
+      <p style="font-size:.8rem;color:#4a5568;line-height:1.4">
+        Open this file from the <strong>Car Cards</strong> folder so photos load.
+        Edit fields, then copy the export JSON at the bottom and send it back to update the CSV.
+      </p>
+    </section>
+  </aside>
+  <main>
+    <div class="stats" id="stats"></div>
+    <div class="grid" id="grid"></div>
+    <div class="export-panel">
+      <h2>Export changes</h2>
+      <p>Copy this JSON and paste it in chat to apply updates to <code>image_metadata.csv</code>.</p>
+      <textarea id="exportBox" readonly></textarea>
+      <button type="button" id="btnCopy">Copy to clipboard</button>
+    </div>
+  </main>
+</div>
+<div id="lightbox" title="Click to close"><img alt=""></div>
+<script>
+const DATA = {
+  "carTypes": [
+    "Baggage",
+    "Boxcar",
+    "Caboose",
+    "Coach",
+    "Coil",
+    "Combine",
+    "Diesel",
+    "Dining",
+    "Electric",
+    "Engine",
+    "Flatcar",
+    "Gas Turbine",
+    "Gondola",
+    "Hopper",
+    "Locomotive",
+    "MOW",
+    "Observation",
+    "Reefer",
+    "Steam",
+    "Steam-heavy",
+    "Steam-light",
+    "Steam-mixed",
+    "Steam-pass",
+    "Streetcar",
+    "Switcher",
+    "Tank"
+  ],
+  "roadNames": [
+    "ATSF",
+    "B&O",
+    "BO",
+    "C&O",
+    "CB&Q",
+    "CBQ",
+    "CO",
+    "CR",
+    "CSX",
+    "CWRY",
+    "Conrail",
+    "EL",
+    "GATX",
+    "GN",
+    "KSMX",
+    "MILW",
+    "MOW",
+    "MSTL",
+    "N&W",
+    "NW",
+    "NYC",
+    "OC",
+    "Ohio Central",
+    "PRR",
+    "RDG",
+    "REX",
+    "RMLI",
+    "RMP",
+    "SHPX",
+    "TTC",
+    "URR",
+    "URTX",
+    "UTLX",
+    "Union",
+    "WLE",
+    "WM",
+    "WP"
+  ],
+  "rows": [
+    {
+      "source_image": "IMG_9106.png",
+      "image": "CarImagesCardFill/IMG_9106.png",
+      "car_type": "Flatcar",
+      "road_name": "N&W",
+      "road_number": "32800",
+      "description": "Black \u00b7 Flat Car \u00b7 52'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "NW32800",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "52",
+      "notes": "final_ref=CarImagesFinal/IMG_9106.png; N&W fish-belly flatcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9107.png",
+      "image": "CarImagesCardFill/IMG_9107.png",
+      "car_type": "Boxcar",
+      "road_name": "B&O",
+      "road_number": "467439",
+      "description": "Black \u00b7 Box Car \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO467439",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9107.png; B&O Time-Saver boxcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9108.png",
+      "image": "CarImagesCardFill/IMG_9108.png",
+      "car_type": "Boxcar",
+      "road_name": "B&O",
+      "road_number": "466063",
+      "description": "Gray \u00b7 Box Car \u00b7 40'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "B&O Sentinel silver/black boxcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9109.png",
+      "image": "CarImagesCardFill/IMG_9109.png",
+      "car_type": "Boxcar",
+      "road_name": "B&O",
+      "road_number": "467071",
+      "description": "Black \u00b7 Box Car \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO467071",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9109.png; B&O Time-Saver boxcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9110.png",
+      "image": "CarImagesCardFill/IMG_9110.png",
+      "car_type": "Hopper",
+      "road_name": "KSMX",
+      "road_number": "101",
+      "description": "Gray \u00b7 Cov Hopper \u00b7 34'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "KSMX101",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "34",
+      "notes": "Kosmos cement hopper; final_ref=CarImagesFinal/IMG_9110.png; Kosmos Portland cement hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9112.png",
+      "image": "CarImagesCardFill/IMG_9112.png",
+      "car_type": "Flatcar",
+      "road_name": "B&O",
+      "road_number": "8451",
+      "description": "Black \u00b7 Flat Car \u00b7 53'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO8451",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "53",
+      "notes": "final_ref=CarImagesFinal/IMG_9112.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9113.png",
+      "image": "CarImagesCardFill/IMG_9113.png",
+      "car_type": "Boxcar",
+      "road_name": "EL",
+      "road_number": "66410",
+      "description": "Gray \u00b7 Box Car \u00b7 50'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "EL66410",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9113.png; Erie Lackawanna boxcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9114.png",
+      "image": "CarImagesCardFill/IMG_9114.png",
+      "car_type": "Tank",
+      "road_name": "UTLX",
+      "road_number": "32642",
+      "description": "Black \u00b7 Tank Car \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "Atlantic Refining tank",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9115.png",
+      "image": "CarImagesCardFill/IMG_9115.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "600409",
+      "description": "Gray \u00b7 Cov Hopper \u00b7 40'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "BO600409",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9115.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9116.png",
+      "image": "CarImagesCardFill/IMG_9116.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "600401",
+      "description": "Gray \u00b7 Cov Hopper \u00b7 40'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "BO600401",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9116.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9117.png",
+      "image": "CarImagesCardFill/IMG_9117.png",
+      "car_type": "Hopper",
+      "road_name": "KSMX",
+      "road_number": "105",
+      "description": "Gray \u00b7 Cov Hopper \u00b7 34'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "KSMX105",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "34",
+      "notes": "final_ref=CarImagesFinal/IMG_9117.png; Kosmos Portland cement hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9118.png",
+      "image": "CarImagesCardFill/IMG_9118.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "631140",
+      "description": "Gray \u00b7 Cov Hopper \u00b7 34'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "BO631140",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "34",
+      "notes": "final_ref=CarImagesFinal/IMG_9118.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9119.png",
+      "image": "CarImagesCardFill/IMG_9119.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "600421",
+      "description": "Gray \u00b7 Cov Hopper \u00b7 40'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "BO600421",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9119.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9120.png",
+      "image": "CarImagesCardFill/IMG_9120.png",
+      "car_type": "Hopper",
+      "road_name": "CB&Q",
+      "road_number": "171856",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "CBQ171856",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9120.png; Burlington Route hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9121.png",
+      "image": "CarImagesCardFill/IMG_9121.png",
+      "car_type": "Tank",
+      "road_name": "UTLX",
+      "road_number": "39042",
+      "description": "Black \u00b7 Tank Car \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "Union Tank Car",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9122.png",
+      "image": "CarImagesCardFill/IMG_9122.png",
+      "car_type": "Hopper",
+      "road_name": "C&O",
+      "road_number": "2052",
+      "description": "Yellow \u00b7 Cov Hopper \u00b7 40'",
+      "color": "Yellow",
+      "manufacturer": "",
+      "roster_id": "CO2052",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9122.png; Chessie System covered hopper; Chessie System C&O 2052 covered hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9124.png",
+      "image": "CarImagesCardFill/IMG_9124.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "628038",
+      "description": "Yellow \u00b7 Cov Hopper \u00b7 40'",
+      "color": "Yellow",
+      "manufacturer": "",
+      "roster_id": "BO628038",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9124.png; Chessie System B&O hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9125.png",
+      "image": "CarImagesCardFill/IMG_9125.png",
+      "car_type": "Boxcar",
+      "road_name": "NYC",
+      "road_number": "47516",
+      "description": "Green \u00b7 Box Car \u00b7 50'",
+      "color": "Green",
+      "manufacturer": "",
+      "roster_id": "NYC47516",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9125.png; NYC jade green boxcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9126.png",
+      "image": "CarImagesCardFill/IMG_9126.png",
+      "car_type": "Boxcar",
+      "road_name": "RMLI",
+      "road_number": "2018",
+      "description": "Blue \u00b7 Box Car",
+      "color": "Blue",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9126.png; RMLI Steam Up promotional boxcar; not in car roster",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9127.png",
+      "image": "CarImagesCardFill/IMG_9127.png",
+      "car_type": "Gondola",
+      "road_name": "B&O",
+      "road_number": "371604",
+      "description": "Gray \u00b7 Gondola \u00b7 50'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "PRR371604",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9127.png; PRR gondola relettered B&O",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9128.png",
+      "image": "CarImagesCardFill/IMG_9128.png",
+      "car_type": "Boxcar",
+      "road_name": "B&O",
+      "road_number": "283057",
+      "description": "Brown \u00b7 Box Car \u00b7 50'",
+      "color": "Brown",
+      "manufacturer": "",
+      "roster_id": "BO283057",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9128.png; B&O Sentinel boxcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9129.png",
+      "image": "CarImagesCardFill/IMG_9129.png",
+      "car_type": "Hopper",
+      "road_name": "CR",
+      "road_number": "477935",
+      "description": "Brown \u00b7 Hopper",
+      "color": "Brown",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9129.png; Conrail hopper; not in car roster",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9130.png",
+      "image": "CarImagesCardFill/IMG_9130.png",
+      "car_type": "Boxcar",
+      "road_name": "RMP",
+      "road_number": "50",
+      "description": "Black \u00b7 Box Car",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9130.png; Railroad Museum of PA 50th anniversary boxcar; not in roster",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9131.png",
+      "image": "CarImagesCardFill/IMG_9131.png",
+      "car_type": "Flatcar",
+      "road_name": "B&O",
+      "road_number": "8417",
+      "description": "Black \u00b7 Flat Car \u00b7 53'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO8417",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "53",
+      "notes": "final_ref=CarImagesFinal/IMG_9131.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9132.png",
+      "image": "CarImagesCardFill/IMG_9132.png",
+      "car_type": "Coil",
+      "road_name": "B&O",
+      "road_number": "8300",
+      "description": "Gray \u00b7 Coil Car \u00b7 55'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "BO8300",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "55",
+      "notes": "final_ref=CarImagesFinal/IMG_9132.png; B&O cushion coil car",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9133.png",
+      "image": "CarImagesCardFill/IMG_9133.png",
+      "car_type": "Tank",
+      "road_name": "UTLX",
+      "road_number": "36299",
+      "description": "Black \u00b7 Tank Car",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9133.png; Eastman Chemical tank; not in car roster",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9134.png",
+      "image": "CarImagesCardFill/IMG_9134.png",
+      "car_type": "MOW",
+      "road_name": "MOW",
+      "road_number": "0017",
+      "description": "Black \u00b7 Tank Car \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "MOW0017",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9134.png; Maintenance of Way weed sprayer tank",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9135.png",
+      "image": "CarImagesCardFill/IMG_9135.png",
+      "car_type": "Hopper",
+      "road_name": "PRR",
+      "road_number": "728012",
+      "description": "Orange \u00b7 Hopper",
+      "color": "Orange",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9135.png; Pennsylvania Lines GLA hopper; not in car roster",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9136.png",
+      "image": "CarImagesCardFill/IMG_9136.png",
+      "car_type": "Hopper",
+      "road_name": "PRR",
+      "road_number": "702186",
+      "description": "Brown \u00b7 Hopper",
+      "color": "Brown",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9136.png; Pennsylvania GLA hopper; not in car roster",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9137.png",
+      "image": "CarImagesCardFill/IMG_9137.png",
+      "car_type": "MOW",
+      "road_name": "C&O",
+      "road_number": "ST1",
+      "description": "Blue \u00b7 MOW \u00b7 40'",
+      "color": "Blue",
+      "manufacturer": "",
+      "roster_id": "COST1",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9137.png; C&O Chessie scale test car",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9138.png",
+      "image": "CarImagesCardFill/IMG_9138.png",
+      "car_type": "MOW",
+      "road_name": "C&O",
+      "road_number": "377700",
+      "description": "Black \u00b7 MOW",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9138.png; C&O industrial crane car; side reads WC 2",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9139.png",
+      "image": "CarImagesCardFill/IMG_9139.png",
+      "car_type": "MOW",
+      "road_name": "C&O",
+      "road_number": "W86",
+      "description": "Green \u00b7 MOW",
+      "color": "Green",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9139.png; C&O MOW camp/flat car; not in car roster",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9140.png",
+      "image": "CarImagesCardFill/IMG_9140.png",
+      "car_type": "Coil",
+      "road_name": "C&O",
+      "road_number": "306607",
+      "description": "Blue \u00b7 Coil Car \u00b7 52'",
+      "color": "Blue",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "52",
+      "notes": "C&O/B&O coil car",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9141.png",
+      "image": "CarImagesCardFill/IMG_9141.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "73133",
+      "description": "Black \u00b7 Hopper \u00b7 45'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO73133",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "45",
+      "notes": "final_ref=CarImagesFinal/IMG_9141.png; Chessie System B&O coal hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9142.png",
+      "image": "CarImagesCardFill/IMG_9142.png",
+      "car_type": "Gondola",
+      "road_name": "B&O",
+      "road_number": "551470",
+      "description": "Black \u00b7 Gondola \u00b7 50'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO551470",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9142.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9143.png",
+      "image": "CarImagesCardFill/IMG_9143.png",
+      "car_type": "Boxcar",
+      "road_name": "B&O",
+      "road_number": "283069",
+      "description": "Brown \u00b7 Box Car \u00b7 50'",
+      "color": "Brown",
+      "manufacturer": "",
+      "roster_id": "BO283069",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9143.png; B&O Sentinel boxcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9144.png",
+      "image": "CarImagesCardFill/IMG_9144.png",
+      "car_type": "Flatcar",
+      "road_name": "PRR",
+      "road_number": "474563",
+      "description": "Brown \u00b7 Flat Car \u00b7 50'",
+      "color": "Brown",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "PRR flatcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9145.png",
+      "image": "CarImagesCardFill/IMG_9145.png",
+      "car_type": "Tank",
+      "road_name": "SHPX",
+      "road_number": "22329",
+      "description": "Black \u00b7 Tank Car \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "Shippers Car Line tank",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9146.png",
+      "image": "CarImagesCardFill/IMG_9146.png",
+      "car_type": "Tank",
+      "road_name": "GATX",
+      "road_number": "31090",
+      "description": "Black \u00b7 Tank Car \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "DuPont leased tank",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9147.png",
+      "image": "CarImagesCardFill/IMG_9147.png",
+      "car_type": "Flatcar",
+      "road_name": "EL",
+      "road_number": "8063",
+      "description": "Black \u00b7 Flat Car \u00b7 52'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "EL8063",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "52",
+      "notes": "final_ref=CarImagesFinal/IMG_9147.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9149.png",
+      "image": "CarImagesCardFill/IMG_9149.png",
+      "car_type": "Flatcar",
+      "road_name": "B&O",
+      "road_number": "8476",
+      "description": "Black \u00b7 Flat Car \u00b7 53'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO8476",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "53",
+      "notes": "final_ref=CarImagesFinal/IMG_9149.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9150.png",
+      "image": "CarImagesCardFill/IMG_9150.png",
+      "car_type": "Hopper",
+      "road_name": "C&O",
+      "road_number": "2063",
+      "description": "Yellow \u00b7 Cov Hopper \u00b7 40'",
+      "color": "Yellow",
+      "manufacturer": "",
+      "roster_id": "CO2063",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9150.png; Chessie System C&O 2063 covered hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9151.png",
+      "image": "CarImagesCardFill/IMG_9151.png",
+      "car_type": "Hopper",
+      "road_name": "KSMX",
+      "road_number": "110",
+      "description": "Gray \u00b7 Cov Hopper \u00b7 34'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "KSMX110",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "34",
+      "notes": "final_ref=CarImagesFinal/IMG_9151.png; Kosmos Portland cement hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9152.png",
+      "image": "CarImagesCardFill/IMG_9152.png",
+      "car_type": "Boxcar",
+      "road_name": "",
+      "road_number": "",
+      "description": "Red \u00b7 Box Car",
+      "color": "Red",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9152.png; United We Stand patriotic boxcar; no road number",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9153.png",
+      "image": "CarImagesCardFill/IMG_9153.png",
+      "car_type": "Tank",
+      "road_name": "PRR",
+      "road_number": "498647",
+      "description": "Black \u00b7 Tank Car \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "PRR498647",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9153.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9154.png",
+      "image": "CarImagesCardFill/IMG_9154.png",
+      "car_type": "Flatcar",
+      "road_name": "B&O",
+      "road_number": "8405",
+      "description": "Black \u00b7 Flat Car \u00b7 53'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO8405",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "53",
+      "notes": "final_ref=CarImagesFinal/IMG_9154.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9155.png",
+      "image": "CarImagesCardFill/IMG_9155.png",
+      "car_type": "Coil",
+      "road_name": "RDG",
+      "road_number": "99143",
+      "description": "Green \u00b7 Coil Car \u00b7 55'",
+      "color": "Green",
+      "manufacturer": "",
+      "roster_id": "RDG99143",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "55",
+      "notes": "final_ref=CarImagesFinal/IMG_9155.png; Reading coil car",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9156.png",
+      "image": "CarImagesCardFill/IMG_9156.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "11137",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO11137",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9156.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9157.png",
+      "image": "CarImagesCardFill/IMG_9157.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "11027",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO11027",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9157.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9158.png",
+      "image": "CarImagesCardFill/IMG_9158.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "10389",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO10389",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9158.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9159.png",
+      "image": "CarImagesCardFill/IMG_9159.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "31000",
+      "description": "Black \u00b7 Hopper \u00b7 34'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO31000",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "34",
+      "notes": "final_ref=CarImagesFinal/IMG_9159.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9160.png",
+      "image": "CarImagesCardFill/IMG_9160.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "30963",
+      "description": "Black \u00b7 Hopper \u00b7 34'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO30963",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "34",
+      "notes": "final_ref=CarImagesFinal/IMG_9160.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9161.png",
+      "image": "CarImagesCardFill/IMG_9161.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "30222",
+      "description": "Black \u00b7 Hopper \u00b7 34'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO30222",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "34",
+      "notes": "final_ref=CarImagesFinal/IMG_9161.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9162.png",
+      "image": "CarImagesCardFill/IMG_9162.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "133007",
+      "description": "Black \u00b7 Hopper \u00b7 50'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO133007",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9162.png; B&O coke hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9163.png",
+      "image": "CarImagesCardFill/IMG_9163.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "132315",
+      "description": "Black \u00b7 Hopper \u00b7 50'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO132315",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9163.png; B&O coke hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9164.png",
+      "image": "CarImagesCardFill/IMG_9164.png",
+      "car_type": "Hopper",
+      "road_name": "N&W",
+      "road_number": "12988",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "NW12988",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9164.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9165.png",
+      "image": "CarImagesCardFill/IMG_9165.png",
+      "car_type": "Hopper",
+      "road_name": "N&W",
+      "road_number": "12986",
+      "description": "Black \u00b7 Cov Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "NW12986",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9165.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9166.png",
+      "image": "CarImagesCardFill/IMG_9166.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "625509",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO625509",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9166.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9167.png",
+      "image": "CarImagesCardFill/IMG_9167.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "625943",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO625943",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9167.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9168.png",
+      "image": "CarImagesCardFill/IMG_9168.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "625238",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO625238",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9168.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9169.png",
+      "image": "CarImagesCardFill/IMG_9169.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "625082",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO625082",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9169.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9170.png",
+      "image": "CarImagesCardFill/IMG_9170.png",
+      "car_type": "Hopper",
+      "road_name": "C&O",
+      "road_number": "142374",
+      "description": "Black \u00b7 Hopper",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9170.png; Chessie System hopper; not in car roster",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9171.png",
+      "image": "CarImagesCardFill/IMG_9171.png",
+      "car_type": "Hopper",
+      "road_name": "WLE",
+      "road_number": "621",
+      "description": "Black \u00b7 Hopper \u00b7 40'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "WLE621",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9171.png; Wheeling & Lake Erie hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9172.png",
+      "image": "CarImagesCardFill/IMG_9172.png",
+      "car_type": "Hopper",
+      "road_name": "URR",
+      "road_number": "15003",
+      "description": "Black \u00b7 Hopper \u00b7 50'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "URR15003",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "Union hopper \u2014 check road number in OCR zoom; final_ref=CarImagesFinal/IMG_9172.png; Union Railroad coal hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9173.png",
+      "image": "CarImagesCardFill/IMG_9173.png",
+      "car_type": "Hopper",
+      "road_name": "B&O",
+      "road_number": "132392",
+      "description": "Black \u00b7 Hopper \u00b7 50'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "BO132392",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9173.png",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9174.png",
+      "image": "CarImagesCardFill/IMG_9174.png",
+      "car_type": "Hopper",
+      "road_name": "URR",
+      "road_number": "15044",
+      "description": "Black \u00b7 Hopper \u00b7 50'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "URR15044",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9174.png; Union Railroad coal hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9175.png",
+      "image": "CarImagesCardFill/IMG_9175.png",
+      "car_type": "Hopper",
+      "road_name": "URR",
+      "road_number": "15022",
+      "description": "Black \u00b7 Hopper \u00b7 50'",
+      "color": "Black",
+      "manufacturer": "",
+      "roster_id": "URR15022",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9175.png; Union Railroad coal hopper",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9176.png",
+      "image": "CarImagesCardFill/IMG_9176.png",
+      "car_type": "Boxcar",
+      "road_name": "RDG",
+      "road_number": "107333",
+      "description": "Green \u00b7 Box Car \u00b7 50'",
+      "color": "Green",
+      "manufacturer": "",
+      "roster_id": "RDG107333",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9176.png; Reading boxcar",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9177.png",
+      "image": "CarImagesCardFill/IMG_9177.png",
+      "car_type": "Boxcar",
+      "road_name": "MSTL",
+      "road_number": "52673",
+      "description": "Orange \u00b7 Box Car \u00b7 40'",
+      "color": "Orange",
+      "manufacturer": "",
+      "roster_id": "MSTL52673",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9177.png; Minneapolis & St Louis boxcar; side stencil reads 52673",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9178.png",
+      "image": "CarImagesCardFill/IMG_9178.png",
+      "car_type": "Reefer",
+      "road_name": "URTX",
+      "road_number": "63627",
+      "description": "Gray \u00b7 Reefer \u00b7 40'",
+      "color": "Gray",
+      "manufacturer": "",
+      "roster_id": "URTX63627",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "40",
+      "notes": "final_ref=CarImagesFinal/IMG_9178.png; Dubuque Packing Company reefer",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9179.png",
+      "image": "CarImagesCardFill/IMG_9179.png",
+      "car_type": "Reefer",
+      "road_name": "REX",
+      "road_number": "350",
+      "description": "Green \u00b7 Reefer \u00b7 50'",
+      "color": "Green",
+      "manufacturer": "",
+      "roster_id": "REX350",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9179.png; Railway Express Agency refrigerator",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9192.png",
+      "image": "CarImagesCardFill/IMG_9192.png",
+      "car_type": "Diesel",
+      "road_name": "Ohio Central",
+      "road_number": "2091",
+      "description": "EMD \u00b7 GP20 \u00b7 56'",
+      "color": "",
+      "manufacturer": "EMD",
+      "roster_id": "",
+      "engine_roster_id": "CWRY2091",
+      "engine_model": "GP20",
+      "length_ft": "56",
+      "notes": "Ohio Central GP20 locomotive; engine_roster_id=CWRY2091; replacement photo for IMG_9180; final_ref=CarImagesFinal/IMG_9192.png",
+      "is_engine": true
+    },
+    {
+      "source_image": "IMG_9181.png",
+      "image": "CarImagesCardFill/IMG_9181.png",
+      "car_type": "Diesel",
+      "road_name": "B&O",
+      "road_number": "9602",
+      "description": "EMD \u00b7 SW1200 \u00b7 45'",
+      "color": "",
+      "manufacturer": "EMD",
+      "roster_id": "",
+      "engine_roster_id": "BO9602",
+      "engine_model": "SW1200",
+      "length_ft": "45",
+      "notes": "final_ref=CarImagesFinal/IMG_9181.png; Chessie System B&O SW switcher; not in car roster",
+      "is_engine": true
+    },
+    {
+      "source_image": "IMG_9182.png",
+      "image": "CarImagesCardFill/IMG_9182.png",
+      "car_type": "Diesel",
+      "road_name": "B&O",
+      "road_number": "572",
+      "description": "EMD \u00b7 NW2 Phase V \u00b7 50'",
+      "color": "",
+      "manufacturer": "EMD",
+      "roster_id": "",
+      "engine_roster_id": "BO572",
+      "engine_model": "NW2 Phase V",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9182.png; B&O diesel switcher; not in car roster",
+      "is_engine": true
+    },
+    {
+      "source_image": "IMG_9183.png",
+      "image": "CarImagesCardFill/IMG_9183.png",
+      "car_type": "Diesel",
+      "road_name": "C&O",
+      "road_number": "8216",
+      "description": "GE \u00b7 U30B \u00b7 50'",
+      "color": "",
+      "manufacturer": "GE",
+      "roster_id": "",
+      "engine_roster_id": "CO8216",
+      "engine_model": "U30B",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9183.png; Chessie System C&O GP40-2 locomotive; not in car roster",
+      "is_engine": true
+    },
+    {
+      "source_image": "IMG_9184.png",
+      "image": "CarImagesCardFill/IMG_9184.png",
+      "car_type": "Diesel",
+      "road_name": "B&O",
+      "road_number": "3840",
+      "description": "EMD \u00b7 GP38 \u00b7 59'",
+      "color": "",
+      "manufacturer": "EMD",
+      "roster_id": "",
+      "engine_roster_id": "BO3840",
+      "engine_model": "GP38",
+      "length_ft": "59",
+      "notes": "final_ref=CarImagesFinal/IMG_9184.png; B&O GP-38 locomotive; not in car roster",
+      "is_engine": true
+    },
+    {
+      "source_image": "IMG_9185.png",
+      "image": "CarImagesCardFill/IMG_9185.png",
+      "car_type": "Diesel",
+      "road_name": "CSX",
+      "road_number": "1827",
+      "description": "GE \u00b7 ES44AH \u00b7 50'",
+      "color": "",
+      "manufacturer": "GE",
+      "roster_id": "",
+      "engine_roster_id": "CSX1827",
+      "engine_model": "ES44AH",
+      "length_ft": "50",
+      "notes": "final_ref=CarImagesFinal/IMG_9185.png; CSX heritage B&O ES44AH locomotive; not in car roster",
+      "is_engine": true
+    },
+    {
+      "source_image": "IMG_9186.png",
+      "image": "CarImagesCardFill/IMG_9186.png",
+      "car_type": "Streetcar",
+      "road_name": "TTC",
+      "road_number": "4678",
+      "description": "PCC \u00b7 Streetcar",
+      "color": "",
+      "manufacturer": "",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "",
+      "length_ft": "",
+      "notes": "final_ref=CarImagesFinal/IMG_9186.png; Toronto Transit Commission PCC streetcar; not in car roster",
+      "is_engine": false
+    },
+    {
+      "source_image": "IMG_9187.png",
+      "image": "CarImagesCardFill/IMG_9187.png",
+      "car_type": "Diesel",
+      "road_name": "Conrail",
+      "road_number": "1993",
+      "description": "GE \u00b7 B23-7 \u00b7 61'",
+      "color": "",
+      "manufacturer": "GE",
+      "roster_id": "",
+      "engine_roster_id": "",
+      "engine_model": "B23-7",
+      "length_ft": "61",
+      "notes": "final_ref=CarImagesFinal/IMG_9187.png; Conrail Quality B23-7 locomotive; not in car roster",
+      "is_engine": true
+    },
+    {
+      "source_image": "IMG_9193.png",
+      "image": "CarImagesCardFill/IMG_9193.png",
+      "car_type": "Diesel",
+      "road_name": "B&O",
+      "road_number": "3545",
+      "description": "EMD \u00b7 GP35 \u00b7 56'",
+      "color": "",
+      "manufacturer": "EMD",
+      "roster_id": "",
+      "engine_roster_id": "BO3545",
+      "engine_model": "GP35",
+      "length_ft": "56",
+      "notes": "Chessie System B&O GP35; engine_roster_id=BO3545; final_ref=CarImagesFinal/IMG_9193.png",
+      "is_engine": true
+    },
+    {
+      "source_image": "IMG_9194.png",
+      "image": "CarImagesCardFill/IMG_9194.png",
+      "car_type": "Diesel",
+      "road_name": "B&O",
+      "road_number": "2235",
+      "description": "ALCO \u00b7 AS-16 \u00b7 50'",
+      "color": "",
+      "manufacturer": "ALCO",
+      "roster_id": "",
+      "engine_roster_id": "BO2235",
+      "engine_model": "AS-16",
+      "length_ft": "50",
+      "notes": "B&O switcher; engine_roster_id=BO2235; final_ref=CarImagesFinal/IMG_9194.png",
+      "is_engine": true
+    },
+    {
+      "source_image": "IMG_9195.png",
+      "image": "CarImagesCardFill/IMG_9195.png",
+      "car_type": "Diesel",
+      "road_name": "B&O",
+      "road_number": "6944",
+      "description": "EMD \u00b7 GP30 \u00b7 56'",
+      "color": "",
+      "manufacturer": "EMD",
+      "roster_id": "",
+      "engine_roster_id": "BO6944",
+      "engine_model": "GP30",
+      "length_ft": "56",
+      "notes": "B&O GP30; engine_roster_id=BO6944; final_ref=CarImagesFinal/IMG_9195.png",
+      "is_engine": true
+    }
+  ]
+};
+
+let carTypes = [...DATA.carTypes];
+let roadNames = [...DATA.roadNames];
+const originals = new Map(DATA.rows.map(r => [r.source_image, JSON.parse(JSON.stringify(r))]));
+let rows = DATA.rows.map(r => ({ ...r }));
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+}
+
+function options(list, selected) {
+  return list.map(v => `<option value="${esc(v)}"${v===selected?' selected':''}>${esc(v)}</option>`).join('');
+}
+
+function isChanged(r) {
+  const o = originals.get(r.source_image);
+  if (!o) return true;
+  return ['car_type','road_name','road_number','description','color'].some(k => (r[k]||'') !== (o[k]||''));
+}
+
+function renderLookupList(id, items, kind) {
+  const ul = document.getElementById(id);
+  ul.innerHTML = items.map(v => `
+    <li><span>${esc(v)}</span>
+      <button type="button" data-kind="${kind}" data-value="${esc(v)}">×</button>
+    </li>`).join('');
+}
+
+function renderCards() {
+  const q = document.getElementById('filter').value.trim().toLowerCase();
+  const changedOnly = document.getElementById('changedOnly').checked;
+  const grid = document.getElementById('grid');
+  const visible = rows.filter(r => {
+    if (changedOnly && !isChanged(r)) return false;
+    if (!q) return true;
+    const hay = [r.source_image,r.road_name,r.road_number,r.car_type,r.description,r.engine_model,r.notes].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+  document.getElementById('stats').textContent =
+    `${visible.length} of ${rows.length} cards · ${rows.filter(isChanged).length} changed`;
+  grid.innerHTML = visible.map(r => {
+    const ch = isChanged(r) ? ' changed' : '';
+    const img = r.image
+      ? `<img src="${esc(r.image)}" alt="${esc(r.source_image)}" data-full="${esc(r.image)}">`
+      : `<span class="missing">No image</span>`;
+    const eng = r.engine_roster_id ? ` · engine ${esc(r.engine_roster_id)}` : '';
+    const roster = r.roster_id ? `car ${esc(r.roster_id)}` : '';
+    const meta = [roster, r.engine_roster_id ? `engine ${r.engine_roster_id}` : '', r.engine_model ? `model ${r.engine_model}` : ''].filter(Boolean).join(' · ');
+    return `
+    <article class="card${ch}" data-src="${esc(r.source_image)}">
+      <div class="card-head">
+        <div class="title">HART<br>Equipment Card</div>
+        <div class="badge">FORM 101-A<br>REV 2026</div>
+      </div>
+      <div class="card-photo">${img}</div>
+      <div class="card-fields">
+        <div class="field"><label>Type</label>
+          <select data-k="car_type">${options(carTypes, r.car_type)}</select></div>
+        <div class="field"><label>Road name</label>
+          <select data-k="road_name">${options(roadNames, r.road_name)}</select></div>
+        <div class="field"><label>Road #</label>
+          <input data-k="road_number" value="${esc(r.road_number)}"></div>
+        <div class="field"><label>Description</label>
+          <textarea data-k="description">${esc(r.description)}</textarea></div>
+      </div>
+      <div class="meta">${esc(r.source_image)}${meta ? ' · ' + esc(meta) : ''}</div>
+    </article>`;
+  }).join('');
+
+  grid.querySelectorAll('.card select, .card input, .card textarea').forEach(el => {
+    el.addEventListener('change', onFieldChange);
+    el.addEventListener('input', onFieldChange);
+  });
+  grid.querySelectorAll('.card-photo img').forEach(img => {
+    img.addEventListener('click', e => {
+      e.stopPropagation();
+      const lb = document.getElementById('lightbox');
+      lb.querySelector('img').src = img.dataset.full || img.src;
+      lb.classList.add('open');
+    });
+  });
+}
+
+function onFieldChange(e) {
+  const card = e.target.closest('.card');
+  const src = card.dataset.src;
+  const row = rows.find(r => r.source_image === src);
+  if (!row) return;
+  const k = e.target.dataset.k;
+  row[k] = e.target.value;
+  card.classList.toggle('changed', isChanged(row));
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('stats').textContent =
+    `${rows.length} cards · ${rows.filter(isChanged).length} changed`;
+}
+
+function addLookup(kind, value) {
+  value = value.trim();
+  if (!value) return;
+  const list = kind === 'type' ? carTypes : roadNames;
+  if (!list.includes(value)) {
+    list.push(value);
+    list.sort((a,b) => a.localeCompare(b));
+    renderLookupList(kind === 'type' ? 'typeList' : 'roadList', list, kind);
+    renderCards();
+  }
+}
+
+function rebuildDescriptions() {
+  rows.forEach(r => {
+    const parts = [];
+    if (r.is_engine || (r.car_type || '').toLowerCase() === 'locomotive') {
+      if (r.manufacturer) parts.push(r.manufacturer);
+      if (r.engine_model) parts.push(r.engine_model);
+      else if (r.car_type && r.car_type !== 'Locomotive') parts.push(r.car_type);
+    } else if ((r.car_type || '').toLowerCase() === 'streetcar') {
+      parts.push('PCC');
+      parts.push('Streetcar');
+    } else {
+      if (r.color) parts.push(r.color);
+      if (r.car_type) {
+        let t = r.car_type;
+        if (t.toLowerCase().endsWith('car') && !t.includes(' ')) t = t.slice(0,-3) + ' Car';
+        parts.push(t);
+      }
+    }
+    if (r.length_ft) parts.push(r.length_ft + "'");
+    r.description = parts.join(' · ');
+  });
+  renderCards();
+  buildExport();
+}
+
+function buildExport() {
+  const customCarTypes = carTypes.filter(t => !DATA.carTypes.includes(t));
+  const customRoadNames = roadNames.filter(r => !DATA.roadNames.includes(r));
+  const changes = rows.filter(isChanged).map(r => ({
+    source_image: r.source_image,
+    car_type: r.car_type,
+    reporting_marks: r.road_name,
+    road_name: r.road_name,
+    road_number: r.road_number,
+    description: r.description,
+    color: r.color,
+    roster_id: r.roster_id,
+    engine_roster_id: r.engine_roster_id,
+    engine_model: r.engine_model,
+  }));
+  const payload = {
+    version: 1,
+    generated_from: 'card_review.html',
+    customCarTypes,
+    customRoadNames,
+    changes,
+  };
+  document.getElementById('exportBox').value = JSON.stringify(payload, null, 2);
+}
+
+document.getElementById('filter').addEventListener('input', renderCards);
+document.getElementById('changedOnly').addEventListener('change', renderCards);
+document.getElementById('btnRebuildDesc').addEventListener('click', rebuildDescriptions);
+document.getElementById('btnExport').addEventListener('click', buildExport);
+document.getElementById('btnCopy').addEventListener('click', async () => {
+  buildExport();
+  const t = document.getElementById('exportBox');
+  t.select();
+  try { await navigator.clipboard.writeText(t.value); } catch (_) {}
+});
+document.getElementById('addType').addEventListener('click', () => addLookup('type', document.getElementById('newType').value));
+document.getElementById('addRoad').addEventListener('click', () => addLookup('road', document.getElementById('newRoad').value));
+document.getElementById('typeList').addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  const v = e.target.dataset.value;
+  carTypes = carTypes.filter(x => x !== v);
+  renderLookupList('typeList', carTypes, 'type');
+});
+document.getElementById('roadList').addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  const v = e.target.dataset.value;
+  roadNames = roadNames.filter(x => x !== v);
+  renderLookupList('roadList', roadNames, 'road');
+});
+document.getElementById('lightbox').addEventListener('click', () => {
+  document.getElementById('lightbox').classList.remove('open');
+});
+
+renderLookupList('typeList', carTypes, 'type');
+renderLookupList('roadList', roadNames, 'road');
+renderCards();
+buildExport();
+</script>
+</body>
+</html>
