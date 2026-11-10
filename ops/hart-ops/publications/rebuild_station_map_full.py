@@ -205,14 +205,14 @@ def main() -> None:
         dot((lad_e(y), y))
         badge((lad_e(y) - 36, y - 28), str(SWNUM[num]))
 
-    # 111: Main West ↔ S-R
+    # 23 (111): Main West ↔ S-R at 45 degrees, the mirror of 35
     x111 = x110 - 260
     sw111_top = (x111, Y0)
-    sw111_bot = (x111 + (S[0] - Y0) * K, S[0])
+    sw111_bot = (x111 + (S[0] - Y0), S[0])
     line(sw111_top, sw111_bot)
     dot(sw111_top)
     dot(sw111_bot)
-    mid111 = (x111 + (S[0] - Y0) * K * 0.5, (Y0 + S[0]) / 2)
+    mid111 = (x111 + (S[0] - Y0) * 0.5, (Y0 + S[0]) / 2)
     dot(mid111)
     badge((mid111[0] - 60, mid111[1]), "{}".format(SWNUM[111]))
 
