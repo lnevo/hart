@@ -63,7 +63,7 @@
       var grid = document.getElementById("archive-grid");
       var emptyEl = document.getElementById("archive-empty");
       var toast = document.getElementById("archive-toast");
-      // The page name stays in the HTML <h1> ("Historic photos") so it matches every link to it.
+      // The page name stays in the HTML <h1> ("Photos") so it matches every link to it.
       document.getElementById("archive-lede").textContent = data.lede || "";
       document.getElementById("archive-editbar").hidden = !canEdit;
 
