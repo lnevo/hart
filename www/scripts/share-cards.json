@@ -12,8 +12,8 @@
     },
     "ai/electronics.html": {
       "image": "assets/share/ai-electronics.jpg",
-      "alt": "A blue Arduino Nano node board with a radio module and green terminal blocks.",
-      "from": "media/photos-layout/IMG_7471.jpg"
+      "alt": "An editor view of the LCOS bridge code: the function that turns a signal colour name into Stop, Approach or Clear.",
+      "from": "external/lcos-bridge/lcos_mqtt_bridge.cpp lines 136-160 (appearanceToLcosAspect), drawn as an editor view"
     },
     "ai/index.html": {
       "image": "assets/share/ai-hub.jpg",
