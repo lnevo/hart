@@ -335,6 +335,11 @@ main.explorer-page {
   }
 }
 
+/* A drawing that must be seen whole (a route map): no crop, natural height at every width. */
+.hub-banner-photo.hub-banner-whole img {
+  height: auto;
+}
+
 /* —— Home hero —— */
 .hero-bleed {
   position: relative;
