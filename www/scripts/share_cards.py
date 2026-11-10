@@ -4,7 +4,7 @@
 A page named in share-cards.json gets its own picture in the Open Graph tags the build adds;
 every other page keeps the site card (assets/icons/share-card.jpg). Pages in Operations,
 Behind the Scenes and The Diverging Route are expected to have one, about the page's own
-subject rather than its section.
+subject rather than its section; session paperwork under crew/ is not.
 
   share_cards.py make SOURCE assets/share/NAME.jpg [--focus X,Y] [--zoom Z]   crop a picture to a card
   share_cards.py check                                                        list gaps and faults
@@ -26,7 +26,9 @@ DEFAULT = {"image": "assets/icons/share-card.jpg", "alt": "Neville Island from a
 # Sections whose pages should each carry their own card (site.json nav ids).
 SECTIONS = ("operators", "behind", "ai")
 # Folders whose pages do not name a page id in their own HTML (a script mounts the header).
-FOLDER_SECTION = {"crew": "operators", "layout": "operators", "roster": "behind"}
+FOLDER_SECTION = {"layout": "operators", "roster": "behind"}
+# Session paperwork (crew sheets, station maps) is working paper, not an article: it keeps the site card.
+NO_CARD_FOLDERS = {"crew"}
 _PAGE_ID = re.compile(r'data-page="([^"]+)"|mountChrome\("([^"{]+)"\)')
 _TITLE = re.compile(r"<title>(.*?)</title>", re.S)
 
@@ -65,7 +67,7 @@ def expected_pages(pages: list[Path], portal: Path = PORTAL) -> list[Path]:
     site = json.loads((portal / "data" / "site.json").read_text(encoding="utf-8"))
     out = []
     for rel in pages:
-        if rel.suffix != ".html" or "files" in rel.parts or rel.parts[:2] == ("docs", "html"):
+        if rel.suffix != ".html" or "files" in rel.parts or rel.parts[:2] == ("docs", "html") or rel.parts[0] in NO_CARD_FOLDERS:
             continue
         text = (portal / rel).read_text(encoding="utf-8", errors="replace")
         if not _is_stub(text) and section_of(rel, text, site) in SECTIONS:
