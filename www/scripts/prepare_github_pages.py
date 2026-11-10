@@ -350,7 +350,8 @@ def _vendor_json_logos(path: Path, dest_root: Path) -> None:
 
 
 def _head_tags(rel: Path, title: str) -> str:
-    up = "../" * (len(rel.parts) - 1)
+    # The 404 page is served for any missing path, so its links start at the site root.
+    up = "/" if rel == Path("404.html") else "../" * (len(rel.parts) - 1)
     url = SITE_URL + ("" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html"))
     title = html.escape(title, quote=True)
     desc = html.escape(SHARE_DESCRIPTION, quote=True)

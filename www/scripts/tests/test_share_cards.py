@@ -45,6 +45,12 @@ class HeadTags(unittest.TestCase):
         self.assertIn('og:image:alt" content="The &quot;A&quot; board"', own)
         self.assertIn("assets/icons/share-card.jpg", other)
 
+    def test_the_404_page_gets_site_root_icon_links(self):
+        tags = build._head_tags(Path("404.html"), "Page not found")
+        self.assertIn('href="/favicon.ico"', tags)
+        self.assertIn('href="/assets/icons/apple-touch-icon.png"', tags)
+        self.assertIn('href="../favicon.ico"', build._head_tags(Path("guides/a.html"), "A"))
+
     def test_every_card_in_the_repo_is_sound(self):
         missing, faults = share_cards.review(share_cards.tracked_pages(), share_cards.load())
         self.assertEqual(faults, [])
