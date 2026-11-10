@@ -17,6 +17,10 @@ release whose text or body file holds the railroad's private name (checked by fi
 never spelled out); if that check cannot load, publishing is blocked.
 HART_GUARD_JMRI_RUNNING=1 or 0 overrides the process check, for tests.
 
+In the main checkout of a repo that uses agent worktrees (it holds tools/agent/worktrees.py)
+it blocks any commit and any switch to a branch other than main: agents work in their own
+worktree under .claude/worktrees/, so no session switches the branch under another.
+
 This is a guardrail against mistakes, not a security boundary: it reads the command text,
 so a script that publishes is not seen.
 """
@@ -216,6 +220,39 @@ def git_call(part):
     return where, words[i], words[i + 1:]
 
 
+WORKTREE_TOOL = os.path.join("tools", "agent", "worktrees.py")
+NEW_WORKTREE = "python3 tools/agent/worktrees.py new <topic> (make wt TOPIC=<topic>)"
+
+
+def main_checkout(target):
+    """True when `target` is in the main checkout (not a worktree) of a repo using agent worktrees."""
+    git_dir = git(target, "rev-parse", "--absolute-git-dir")
+    common = git(target, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if not git_dir or os.path.realpath(git_dir) != os.path.realpath(common):
+        return False
+    top = git(target, "rev-parse", "--show-toplevel")
+    return bool(top) and os.path.exists(os.path.join(top, WORKTREE_TOOL))
+
+
+def switch_problem(target, sub, args):
+    """A git switch/checkout that would move the main checkout off main, or None."""
+    if "--" in args:
+        return None  # restoring files
+    names = [a for a in args if not a.startswith("-")]
+    if any(a in ("-b", "-B", "-c", "-C", "--create", "--force-create", "--orphan", "--detach") for a in args):
+        return "a new branch"
+    if not names or names[0] == "main":
+        return None
+    if sub == "switch":
+        return f"a switch to {names[0]}"
+    ref = names[0]
+    if ref == "-" or re.fullmatch(r"[0-9a-f]{7,40}", ref) or any(
+            git(target, "rev-parse", "--verify", "--quiet", r) for r in (f"refs/heads/{ref}", f"refs/remotes/{ref}",
+                                                                          f"refs/remotes/origin/{ref}", f"refs/tags/{ref}")):
+        return f"a checkout of {ref}"
+    return None  # a path
+
+
 def in_project(target, project):
     top = git(target, "rev-parse", "--show-toplevel")
     return not (top and project and os.path.realpath(top) != os.path.realpath(project))
@@ -259,6 +296,14 @@ def main():
         if BRANCHED.search(part):
             branched = True
         call = git_call(part)
+        if call and call[1] in ("commit", "switch", "checkout"):
+            target = os.path.join(cwd, call[0]) if call[0] else cwd
+            if main_checkout(target):
+                what = "a commit" if call[1] == "commit" else switch_problem(target, call[1], call[2])
+                if what:
+                    print(f"Blocked: {what} in the main checkout, which stays on main. Work in your own "
+                          f"worktree: {NEW_WORKTREE} (AGENTS.md).", file=sys.stderr)
+                    return 2
         if call and call[1] in ("push", "commit"):
             target = os.path.join(cwd, call[0]) if call[0] else cwd
             problem = None

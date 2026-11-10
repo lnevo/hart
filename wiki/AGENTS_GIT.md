@@ -23,7 +23,7 @@ Examples: `agent/composer/naming-csv`, `spike/duplicate-blocks`.
 1. One behavior per PR / branch when practical.  
 2. Agents do not push to `main`.  
 3. Do not amend pushed commits.  
-4. Use a `git worktree` for each parallel session on the same machine. A second session in the same checkout can switch the branch under the first, so its next commit lands on the wrong branch. `ListAgents` shows whether a peer session is running.  
+4. Every agent works in its own worktree, `.claude/worktrees/<topic>/` (`make wt TOPIC=<topic>`, or `isolation: "worktree"` for a subagent). Never edit, commit or switch branches in the main checkout; it stays on `main` for pulls and deploys, and hooks enforce it. A second session in a shared checkout can switch the branch under the first, so its next commit lands on the wrong branch. Merged, clean worktrees are removed after `gh pr merge` and at session start (`tools/agent/worktrees.py`).  
 5. **Close-out:** the definition of done in [`AGENTS.md`](../AGENTS.md).  
 6. Update `wiki/` when a decision changes; chat is not SoR.
 

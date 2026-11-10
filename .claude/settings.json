@@ -20,6 +20,15 @@
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/main_guard.py\""
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/edit_guard.py\""
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -29,6 +38,27 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/check_after_edit.py\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree_sweep.py\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree_sweep.py\"",
+            "timeout": 60
           }
         ]
       }
