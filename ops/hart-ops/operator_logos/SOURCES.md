@@ -50,7 +50,8 @@ Commons file pages.
 | General_Electric_logo.svg | https://commons.wikimedia.org/wiki/File:General_Electric_logo.svg | public domain | confirmed |
 | Calgon_Carbon_logo.svg.webp | https://commons.wikimedia.org/wiki/File:Calgon_Carbon_logo.svg (webp render, tagline version) | public domain | confirmed |
 | LTV_Corporation_logo.png | https://commons.wikimedia.org/wiki/File:LTV_Corporation_logo.png (2000 logo) | public domain | confirmed |
-| Bemis_Manufacturing_Company_logo.png | https://en.wikipedia.org/wiki/File:Bemis_Manufacturing_Company_logo.png. Note: that is Bemis Manufacturing (Sheboygan Falls, WI); the party map uses it for Bemis Company (Flemington, NJ) | non-free logo | confirmed |
+| bemis-company.png | https://commons.wikimedia.org/wiki/File:Bemis_Company_logo.svg (960 px render), 2026-11-09. Replaced a Bemis Manufacturing logo, which is a different company | public domain | confirmed |
+| wheeling-pittsburgh-steel.png | https://en.wikipedia.org/wiki/File:Wheeling-Pittsburgh_Steel_(logo).png, 2026-11-09. Replaced the pre-1968 Wheeling Steel seal, to fit the layout's 1980s-2000s era | non-free logo | confirmed |
 | republic steel.png | https://en.wikipedia.org/wiki/File:Republic_Steel_2010s_logo.png, padded | non-free logo | likely |
 | bethlehem.png | Raster of https://commons.wikimedia.org/wiki/File:Bethlehem_Steel_logo.svg | public domain | likely |
 | dow.png | Raster of https://commons.wikimedia.org/wiki/File:Dow_Chemical_Company_logo.svg | public domain | likely |
@@ -81,7 +82,6 @@ Commons file pages.
 | csxlogo_3.png | CSX Transportation logo | trademark | not recorded |
 | kosmos.png | Kosmos Cement oval | trademark | not recorded |
 | pohc.png | Pittsburgh & Ohio Central herald | trademark | not recorded |
-| wheeling-steel.jpeg | Wheeling Steel Corporation seal (the older mark, used for Wheeling-Pittsburgh) | trademark | not recorded |
 | weirton.png | Weirton Steel "Employee Owned" seal | trademark | not recorded |
 | sharonsteel.png | Sharon Steel diamond | trademark | not recorded |
 | medusa-logo-gif-Yle5jkO3JoUVyJL4.webp | Medusa Cement oval | trademark | not recorded |
@@ -116,9 +116,9 @@ Every file is a 320 px square made from a file above. Identical files share a li
 | aristech_plastics.png | downloads/Aristech logo.png (same as aristech.png) |
 | armco_steel.png | downloads/armco.jpeg |
 | basf.png | downloads/BASF-Logo-1986.png |
-| bemis_company.png | downloads/Bemis_Manufacturing_Company_logo.png |
+| bemis_company.png | downloads/bemis-company.png |
 | bethlehem_steel.png | downloads/bethlehem.png |
-| calgon_carbon.png, calgon_corp.png | downloads/Calgon_Carbon_logo.svg.webp (same as calgon.png) |
+| calgon_carbon.png, calgon_corp.png | downloads/calgon-carbon-no-tagline.png (the 1985-2018 logo, for the layout's era; 2026-11-09) |
 | carpenter_steel.png | downloads/carpentar.jpg |
 | caterpillar.png | downloads/cat.jpeg |
 | consol_energy.png | downloads/consol energy.jpeg |
@@ -161,7 +161,7 @@ Every file is a 320 px square made from a file above. Identical files share a li
 | universal_stainless_alloy.png | downloads/USAP-3b10bc1b.png |
 | us_aggregates.png | downloads/usaggregates.jpeg |
 | weirton_steel.png | downloads/weirton.png |
-| wheeling_pittsburgh_steel.png | downloads/wheeling-steel.jpeg |
+| wheeling_pittsburgh_steel.png | downloads/wheeling-pittsburgh-steel.png |
 | hillman_coal.png, metal_service_co.png, michigan_limestone.png, pittsburgh_forge.png, r_p_coal.png, washington_steel.png | Made here: the party's name as text, no third-party artwork |
 
 ## Templates
