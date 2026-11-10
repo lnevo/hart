@@ -2,8 +2,8 @@
   "cards": {
     "ai/construction.html": {
       "image": "assets/share/ai-construction.jpg",
-      "alt": "Wooden benchwork framing going up in the blue layout room.",
-      "from": "media/photos-layout/IMG_6653.jpg"
+      "alt": "Sheet 1 of the main level framing plan: joists and girders around the helix peninsula, with the legend and notes.",
+      "from": "docs/benchwork/main_level/main_level_joist_construction.pdf page 1 (top of the sheet)"
     },
     "ai/control.html": {
       "image": "assets/share/ai-control.jpg",
@@ -22,13 +22,13 @@
     },
     "ai/locomotives.html": {
       "image": "assets/share/ai-locomotives.jpg",
-      "alt": "A blue and yellow CSX diesel, number 2738, on a grey backdrop.",
-      "from": "jmri/resources/roster/2738.jpg"
+      "alt": "Speed-match chart: CSX 2738 running slow before, and level with 2121 after matching.",
+      "from": "the speed-match chart in www/ai/locomotives.html, rendered"
     },
     "ai/operations.html": {
       "image": "assets/share/ai-operations.jpg",
-      "alt": "A black coke hopper car photographed side-on, the kind of photo the car cards are made from.",
-      "from": "www/assets/behind/sts/coke-hopper-bo-133007.jpg"
+      "alt": "The virtual track scale screen: a green weight readout above the list of cars waiting to be weighed.",
+      "from": "screenshot of the STS Track Scale page (local simulator)"
     },
     "ai/research.html": {
       "image": "assets/share/ai-research.jpg",
@@ -105,11 +105,6 @@
       "alt": "The CATS Digicon panel: Brick, Plane and Barn with signal lamps and track names.",
       "from": "media/screenshots/cats_dispatcher_20260826_184626.png (crop)"
     },
-    "guides/index.html": {
-      "image": "assets/share/guides-index.jpg",
-      "alt": "A framed track diagram with signal dots at the fascia, the kind of board a dispatcher works from.",
-      "from": "media/photos-layout/IMG_8940.jpg"
-    },
     "guides/uss-ctc.html": {
       "image": "assets/share/guides-uss-ctc.jpg",
       "alt": "The USS CTC machine: track diagram above rows of switch and signal levers.",
@@ -127,18 +122,18 @@
     },
     "library/how-it-was-built-article.html": {
       "image": "assets/share/library-how-it-was-built-article.jpg",
-      "alt": "Early benchwork in the layout room, wooden frames on a blue-walled room before track and scenery.",
-      "from": "media/photos-layout/IMG_6755.jpg"
+      "alt": "Diagram: documents, fiction, control software, traffic simulation, car records, the bridge and the website brought into one repository, now organised as software, research and web design.",
+      "from": "the 'one place' figure in www/library/how-it-was-built-article.html, rendered"
     },
     "library/operations-pro-article.html": {
       "image": "assets/share/library-operations-pro-article.jpg",
-      "alt": "The article's six-stage build timeline, from Plan to Check, each with a label.",
-      "from": "screenshot of library/operations-pro-article.html (build stages figure)"
+      "alt": "Route map of the invented Juniper Falls & Northern: a main line from West Staging through Carrow and Ferris Junction to East Staging, with a branch to Oakhaven and a branch to Northwood.",
+      "from": "drawn from the Map paragraph of docs/ops/opspro-showcase/railroad/PLAN.md"
     },
     "library/opspro-showcase-guide.html": {
       "image": "assets/share/library-opspro-showcase-guide.jpg",
-      "alt": "The first group of cases in the Operations Pro walkthrough, shown as expandable cards.",
-      "from": "screenshot of library/opspro-showcase-guide.html (first goal group)"
+      "alt": "A switch list for the Sawyer Switcher on the Juniper Falls & Northern, with three cars and where each is set out.",
+      "from": "drawn from docs/ops/opspro-showcase/railroad/operations/buildstatus/train (SAWYER SWITCHER).txt"
     },
     "library/stl-studio-article.html": {
       "image": "assets/share/library-stl-studio-article.jpg",
