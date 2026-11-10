@@ -4001,6 +4001,30 @@ html.zoomer-open body {
   margin-bottom: 0.9rem;
 }
 
+/* Video and its cards side by side; stacked on a phone. */
+.level-row > .card-grid {
+  margin-top: 1rem;
+}
+
+@media (min-width: 760px) {
+  .level-row {
+    display: grid;
+    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+    gap: 1.1rem;
+    align-items: start;
+    margin-top: 1rem;
+  }
+
+  .level-row > .video-grid,
+  .level-row > .card-grid {
+    margin-top: 0;
+  }
+
+  .level-row > .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* The phone header is two rows (about 100px), so clear it by more than the default. */
 .level-tabs,
 .level-panel,
