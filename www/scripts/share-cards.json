@@ -77,8 +77,8 @@
     },
     "behind/wiring.html": {
       "image": "assets/share/behind-wiring.jpg",
-      "alt": "A terminal strip under the layout with red, yellow, orange and white wires screwed into each position.",
-      "from": "media/photos-layout/IMG_7226.jpg"
+      "alt": "Wiring viewer card for node C4 at Brick and Plane: rows of colour-coded output and input pins for switch motors, signal lamps, positions and pushbuttons.",
+      "from": "screenshot of www/behind/wiring.html (node C4 card)"
     },
     "briefing/index.html": {
       "image": "assets/share/briefing.jpg",
