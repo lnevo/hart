@@ -533,9 +533,22 @@ main:not(.full-bleed) .btn-ghost:hover {
 
 /* Hub cards with a picture (added by the build in grids marked data-card-thumbs): a 2:1 band on top,
    colour turned down to sit with the card, full colour when pointed at. */
-.card.has-thumb {
+.card.has-thumb,
+.card.no-thumb {
   padding-top: 0;
   overflow: hidden;
+}
+
+/* A card in such a grid whose page has no picture of its own: a plain band, so the row lines up. */
+.card.no-thumb::before {
+  content: "";
+  display: block;
+  max-height: 170px;
+  aspect-ratio: 2 / 1;
+  margin: 0 -1.15rem 0.85rem;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  opacity: 0.14;
+  border-bottom: 1px solid var(--rule);
 }
 
 .card .card-thumb {

@@ -116,7 +116,8 @@ class CardThumbs(unittest.TestCase):
         '  <a class="card" href="nowhere.html"><h3>N</h3></a>\n'
         '  <a class="card" href="../guides/"><h3>G</h3></a>\n'
         '  <a class="card" href="../operators/yard.html"><h3>Y</h3></a>\n'
-        '  <a class="card" href="construction.html"><h3>C</h3></a>\n'
+        '  <a class="card" href="construction.html#plans"><h3>C</h3></a>\n'
+        '  <a class="card" href="https://github.com/x/y" target="_blank"><h3>X</h3></a>\n'
         "</div>\n"
         '<div class="card-grid"><a class="card" href="research.html"><h3>Unmarked</h3></a></div>'
     )
@@ -138,11 +139,18 @@ class CardThumbs(unittest.TestCase):
 
     def test_repeated_missing_and_unmarked_cards_stay_text_only(self):
         out, _ = share_cards.add_card_thumbs(self.HUB, "ai/index.html", self.CARDS)
-        self.assertIn('<a class="card" href="../operators/sheet.html">', out)
-        self.assertIn('<a class="card" href="../operators/yard.html">', out)
-        self.assertIn('<a class="card" href="nowhere.html">', out)
+        self.assertIn('<a class="card no-thumb" href="../operators/sheet.html">', out)
+        self.assertIn('<a class="card no-thumb" href="../operators/yard.html">', out)
+        self.assertIn('<a class="card no-thumb" href="nowhere.html">', out)
+        self.assertIn('<a class="card no-thumb" href="https://github.com/x/y" target="_blank">', out)
         self.assertIn('<div class="card-grid"><a class="card" href="research.html"><h3>Unmarked', out)
         self.assertEqual(out.count('class="card-thumb"'), 3)  # a shared picture used once in the grid is shown
+
+    def test_card_target_drops_the_anchor_and_skips_off_site_links(self):
+        self.assertEqual(share_cards.card_target("behind/index.html", "../build/index.html#staging"), "build/index.html")
+        self.assertEqual(share_cards.card_target("operators/index.html", "../photos/#historical"), "photos/index.html")
+        self.assertIsNone(share_cards.card_target("behind/index.html", "https://github.com/x/y"))
+        self.assertIsNone(share_cards.card_target("behind/index.html", "#top"))
 
     def test_page_without_a_marked_grid_is_unchanged(self):
         text = '<div class="card-grid"><a class="card" href="research.html">R</a></div>'

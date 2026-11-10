@@ -85,12 +85,13 @@ THUMB_DIR = "assets/share/thumbs"
 THUMB_PX = 560  # long side; the card shows it at about 260 px wide, so this covers 2x screens
 _GRID = re.compile(r"<div\b[^>]*\bdata-card-thumbs\b[^>]*>")
 _DIV = re.compile(r"<(/?)div\b[^>]*>")
-_CARD = re.compile(r'<a class="card"( href="([^"#?]+)")>')
+_CARD = re.compile(r'<a class="card"( href="([^"]*)"[^>]*)>')
 
 
 def card_target(page: Path | str, href: str) -> str | None:
     """The site-relative page a card links to ("ai/research.html"), or None for links off the site."""
-    if href.startswith(("http:", "https:", "mailto:", "/")):
+    href = re.split(r"[#?]", href, maxsplit=1)[0]
+    if not href or href.startswith(("http:", "https:", "mailto:", "/")):
         return None
     target = posixpath.normpath(posixpath.join(posixpath.dirname(Path(page).as_posix()), href))
     if target.startswith("../"):
@@ -104,8 +105,9 @@ def add_card_thumbs(text: str, page: Path | str, cards: dict[str, dict] | None =
     """Put the linked page's share picture at the top of each card in a grid marked data-card-thumbs.
 
     Returns (new text, {thumb path: share image path}) so the build can write the small copies.
-    Cards whose page has no picture of its own stay text-only, and so do cards whose picture would
-    appear twice in the grid (pages marked "shared" in share-cards.json).
+    Cards whose page has no picture of its own (or links off the site), and cards whose picture would
+    appear twice in the grid (pages marked "shared" in share-cards.json), get class no-thumb: the
+    stylesheet gives them a plain band so the row still lines up.
     """
     cards = load() if cards is None else cards
     thumbs: dict[str, str] = {}
@@ -127,7 +129,7 @@ def add_card_thumbs(text: str, page: Path | str, cards: dict[str, dict] | None =
         def add(m: re.Match) -> str:
             image = images.get(m.start())
             if not image or image in repeated:
-                return m.group(0)
+                return f'<a class="card no-thumb"{m.group(1)}>'
             thumb = f"{THUMB_DIR}/{Path(image).stem}.jpg"
             thumbs[thumb] = image
             up = "../" * (len(Path(page).parts) - 1)
