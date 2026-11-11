@@ -19,7 +19,7 @@
       "systemName": "Mast 40LA",
       "publicName": "Mast 40LA",
       "cp": "Princess",
-      "hardware": "IH132 IH133",
+      "hardware": "IH1132 IH1135",
       "mqtt": "",
       "comment": "Princess | Switch 39",
       "block": ""
@@ -32,7 +32,7 @@
       "systemName": "Mast 24RA",
       "publicName": "Mast 24RA",
       "cp": "East End",
-      "hardware": "IH1232 IH1233",
+      "hardware": "IH232 IH238",
       "mqtt": "",
       "comment": "East End | Switch 23",
       "block": ""
@@ -58,7 +58,7 @@
       "systemName": "Mast 24L",
       "publicName": "Mast 24L",
       "cp": "East End",
-      "hardware": "IH1234 IH1235",
+      "hardware": "IH233 IH239",
       "mqtt": "",
       "comment": "East End | Switch 23",
       "block": ""
@@ -110,7 +110,7 @@
       "systemName": "Mast 40LB",
       "publicName": "Mast 40LB",
       "cp": "Princess",
-      "hardware": "IH142",
+      "hardware": "IH1136",
       "mqtt": "",
       "comment": "Princess | Switch 39",
       "block": ""
@@ -123,7 +123,7 @@
       "systemName": "Mast 2035",
       "publicName": "Mast 2035",
       "cp": "Princess",
-      "hardware": "IH141",
+      "hardware": "IH1134",
       "mqtt": "",
       "comment": "Princess",
       "block": ""
@@ -136,7 +136,7 @@
       "systemName": "Mast 2036",
       "publicName": "Mast 2036",
       "cp": "Princess",
-      "hardware": "IH134",
+      "hardware": "IH1133",
       "mqtt": "",
       "comment": "Princess",
       "block": ""
@@ -227,7 +227,7 @@
       "systemName": "Mast 24RB",
       "publicName": "Mast 24RB",
       "cp": "East End",
-      "hardware": "IH1236",
+      "hardware": "IH234",
       "mqtt": "",
       "comment": "East End | Switch 23",
       "block": ""
@@ -253,7 +253,7 @@
       "systemName": "Mast 32R",
       "publicName": "Mast 32R",
       "cp": "East End",
-      "hardware": "IH1239",
+      "hardware": "IH1234",
       "mqtt": "",
       "comment": "East End | Switch 31",
       "block": ""
@@ -292,7 +292,7 @@
       "systemName": "Mast 34L",
       "publicName": "Mast 34L",
       "cp": "East End",
-      "hardware": "IH1237 IH1238",
+      "hardware": "IH1232 IH1233",
       "mqtt": "",
       "comment": "East End | Switch 33",
       "block": ""
@@ -305,7 +305,7 @@
       "systemName": "Mast 36RB",
       "publicName": "Mast 36RB",
       "cp": "Princess",
-      "hardware": "IH137 IH138",
+      "hardware": "IH132 IH133",
       "mqtt": "",
       "comment": "Princess | Switch 35",
       "block": ""
@@ -500,7 +500,7 @@
       "systemName": "Mast 34R",
       "publicName": "Mast 34R",
       "cp": "East End",
-      "hardware": "IH1240 IH1241",
+      "hardware": "IH1235 IH1236",
       "mqtt": "",
       "comment": "East End | Switch 33",
       "block": ""

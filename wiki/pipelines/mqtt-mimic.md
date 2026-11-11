@@ -14,7 +14,7 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 
 - **Live roster:** non-empty `track/signalmast/<packed>` from LCOS — not static allow-lists.
 - **Topics:** `track/signalhead/<packed>` (SET), `track/signalmast/<packed>` (field status).
-- **Packed ID:** deploy `IH*` digits; wiring CSV may use other schemes — pipeline 8 crosswalk.
+- **Packed ID:** deploy `IH*` digits, the same as `system_name` in `signal_wiring.csv` (`check_wiring_crosswalk.py`).
 - **Bridge:** Windows serial bridge runs **foreground** only (do not `Start-Process` Hidden).
 
 ## Run

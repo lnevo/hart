@@ -1445,7 +1445,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             Next_Signal="111L",
             SW113="N",
             SW115="N",
-            ih="IH142",
+            ih="IH1136",
             Notes="McKees Rocks dwarf (one-low). SW115 Closed = McKees Rocks. Dest 111L when 113 Normal.",
         ),
         dict(
@@ -1458,7 +1458,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             Next_Signal="112L",
             SW113="R",
             SW115="N",
-            ih="IH142",
+            ih="IH1136",
             Notes="McKees Rocks dwarf. Dest 112L when 113 Reverse (East Lead).",
         ),
         # McKeesport dwarf, westbound. 114 Closed = McKeesport.
@@ -1488,7 +1488,7 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             ih="IH143",
             Notes="McKeesport dwarf. Dest 112L when 113 Reverse (East Lead).",
         ),
-        # Balloon A48: south-track 120R (IH134) protects K-1 / OS 115; dest 120L.
+        # Balloon A48: south-track 120R (IH1133) protects K-1 / OS 115; dest 120L.
         dict(
             Signal="120R",
             Signal_Block="K-1",
@@ -1498,13 +1498,13 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             Block2="OS 115",
             Next_Signal="120L",
             SW114="R",
-            ih="IH134",
+            ih="IH1133",
             Notes=(
-                "Balloon connector (one-low). A48 east ends join: 120R/IH134 on K-2 "
+                "Balloon connector (one-low). A48 east ends join: 120R/IH1133 on K-2 "
                 "track protects K-1 / OS 115. SW114 Thrown = K-2."
             ),
         ),
-        # North-track 120L (IH141) protects K-2 / OS 114; dest 120R.
+        # North-track 120L (IH1134) protects K-2 / OS 114; dest 120R.
         dict(
             Signal="120L",
             Signal_Block="K-2",
@@ -1514,9 +1514,9 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             Block2="OS 114",
             Next_Signal="120R",
             SW115="R",
-            ih="IH141",
+            ih="IH1134",
             Notes=(
-                "Balloon connector (one-low). 120L/IH141 on K-1 track protects K-2 / "
+                "Balloon connector (one-low). 120L/IH1134 on K-1 track protects K-2 / "
                 "OS 114. SML also Stop if K-1 occupied. SW115 Thrown = K-1."
             ),
         ),

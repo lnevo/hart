@@ -198,7 +198,7 @@ Refresh the wiring CSVs from the head plan (publisher roster is dynamic):
 python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 ```
 
-The full run (no flag) refuses to rewrite `tables.xml`: the wiring plan uses cabinet packed IDs (24RA is 232/238 in the plan, `IH1232`/`IH1233` live; see `docs/wiring/packed_id_crosswalk.csv`). Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
+Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `signal_wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
 
 LE `signalmasticon`s use the stock Basic `default` image set (no custom imagelinks). Digicon binds by userName either way.
 

@@ -4880,7 +4880,7 @@
     <signalmasticon signalmast="Mast 24RA" x="751" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 24RA</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH1236" x="751" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH234" x="751" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 24RB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
@@ -4919,7 +4919,7 @@
     <signalmasticon signalmast="Mast 24L" x="914" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 24L</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH1239" x="877" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1234" x="877" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 32R</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
@@ -4967,7 +4967,7 @@
     <signalmasticon signalmast="Mast 36RB" x="1066" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 36RB</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH134" x="1297" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1133" x="1297" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 2036</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
@@ -5006,7 +5006,7 @@
     <signalmasticon signalmast="Mast 40LB" x="1145" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 40LB</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH142" x="1154" y="72" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1132" x="1154" y="72" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 40LA</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
@@ -5045,7 +5045,7 @@
     <signalmasticon signalmast="Mast 38LB" x="1145" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="ctc-w" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 38LB</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH143" x="1154" y="135" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH139" x="1154" y="135" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 38LA</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
@@ -5081,7 +5081,7 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalheadicon signalhead="IH141" x="1297" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1134" x="1297" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 2035</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">

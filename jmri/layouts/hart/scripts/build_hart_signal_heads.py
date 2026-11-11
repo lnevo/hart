@@ -415,12 +415,28 @@ def _masts_xml(rows: list[dict]) -> str:
 def check_live_heads(rows: list[dict], tables_text: str) -> list[str]:
     """Planned IH beans missing from tables.xml.
 
-    Wiring packed IDs moved with cabinets (24RA is 232/238 in the plan,
-    IH1232/IH1233 live; docs/wiring/packed_id_crosswalk.csv maps them), so a
-    plan that does not match live beans must not replace the tables block.
+    IH numbers follow the wiring plan (tools/audit/check_wiring_crosswalk.py
+    enforces it), so a plan that does not match live beans means the plan or
+    tables.xml drifted and must not replace the tables block.
     """
     live = set(re.findall(r"<systemName>(IH\d+)</systemName>", tables_text))
     return sorted({r["system_name"] for r in rows} - live)
+
+
+BLOCK_RE = re.compile(
+    r"  <signalheads class=\"jmri\.managers\.configurexml\.AbstractSignalHeadManagerXml\">.*?"
+    r"  </signalmasts>",
+    re.S,
+)
+
+
+def lost_beans(block: str, tables_text: str) -> list[str]:
+    """Head and mast system names in the live block that `block` would drop."""
+    m = BLOCK_RE.search(tables_text)
+    if not m:
+        return []
+    names = re.compile(r"<systemName>([^<]+)</systemName>")
+    return sorted(set(names.findall(m.group(0))) - set(names.findall(block)))
 
 
 def patch_tables(rows: list[dict]) -> None:
@@ -430,29 +446,30 @@ def patch_tables(rows: list[dict]) -> None:
     if missing:
         raise SystemExit(
             "refusing to rewrite tables.xml: planned heads are not live beans "
-            f"({len(missing)}: {', '.join(missing[:8])}). The wiring plan uses "
-            "cabinet packed IDs; see docs/wiring/packed_id_crosswalk.csv. "
-            "Use --wiring-only."
+            f"({len(missing)}: {', '.join(missing[:8])}). Run "
+            "tools/audit/check_wiring_crosswalk.py. Use --wiring-only."
         )
     heads = _heads_xml(rows)
     masts = _masts_xml(rows)
     block = heads + "\n" + masts
+    lost = lost_beans(block, tables.read_text())
+    if lost:
+        raise SystemExit(
+            "refusing to rewrite tables.xml: the generated block would drop "
+            f"{len(lost)} live beans ({', '.join(lost[:8])}), such as virtual "
+            "masts and IH9990. Change heads and masts in tables.xml directly. "
+            "Use --wiring-only."
+        )
     files = [
         ROOT / "jmri/layouts/hart/output/tables.xml",
     ]
-    # Match from <signalheads ...> through </signalmasts>
-    pat = re.compile(
-        r"  <signalheads class=\"jmri\.managers\.configurexml\.AbstractSignalHeadManagerXml\">.*?"
-        r"  </signalmasts>",
-        re.S,
-    )
     for path in files:
         text = path.read_text()
-        if not pat.search(text):
+        if not BLOCK_RE.search(text):
             print(f"SKIP (no signalheads/masts block): {path}", file=sys.stderr)
             continue
         # Preserve Layout Editor signalmasticons (see add_digicon_le_signal_icons.py).
-        text2, n = pat.subn(block, text, count=1)
+        text2, n = BLOCK_RE.subn(block, text, count=1)
         path.write_text(text2)
         print(f"patched {path.relative_to(ROOT)} (masts block replaced, n={n})")
 
