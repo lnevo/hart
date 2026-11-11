@@ -3,16 +3,20 @@
 # deploy (or make ops-pull) can run. The counterpart of pi_start_panelpro.sh.
 #
 # It drops a Jython file for jmri_cmd_watcher.py (part of the Pi Start Up) that calls
-# Apps.handleQuit() and then clicks "No" only on JMRI's store-on-quit dialog
-# (StoreAndCompareDialog: "Table and/or panel changes have been made since the last
-# store"). Any other dialog is left alone and reported, and the script fails so a person
-# answers it. It never stores tables, never answers Yes, and publishes nothing.
+# Apps.handleQuit() and clicks "No" only on JMRI's store-on-quit request
+# (StoreAndCompareDialog: "...since the last store. Do you want to Store ALL tables and
+# panels?", buttons No / Yes / Cancel). Any other modal dialog is left alone and reported,
+# and the script exits 4 so a person looks at it. It never stores and publishes nothing.
+#
+# Exit: 0 quit (or not running) · 1 still running after the wait · 2 watcher not ready or a
+# command already pending · 3 the dropped Jython failed · 4 another dialog appeared.
 #
 # Usage: tools/hosts/pi_quit_panelpro.sh            (host from HART_PI_SSH, default "pi")
 #        tools/hosts/pi_quit_panelpro.sh --print    (print the Jython it would drop, no ssh)
 set -euo pipefail
 PI_HOST="${HART_PI_SSH:-pi}"
 PROFILE="TCS_MQTT.3f32a166"
+WAIT_S=120
 
 read -r -d '' JYTHON <<'PY' || true
 import time
@@ -21,7 +25,11 @@ from java.lang import Runnable
 from javax.swing import AbstractButton, JDialog, JLabel, SwingUtilities
 
 LOG = "/tmp/pi_quit_panelpro.log"
-STORE_PROMPT = "Table and/or panel changes have been made since the last store"
+WAIT_S = 115
+# JMRI 5.16 configurexml/swing Bundle.properties StoreAndCompareRequest. The permission-
+# denied variant ("...since the last store but") is not this text and is not answered.
+STORE_REQUEST = ("since the last store.<br>", "Store ALL tables and panels")
+STORE_BUTTONS = ["Cancel", "No", "Yes"]
 
 
 def note(text):
@@ -44,40 +52,47 @@ def walk(c, labels, buttons):
 
 class _Quit(Runnable):
     def run(self):
-        from apps import Apps
-        Apps.handleQuit()
+        try:
+            from apps import Apps
+            Apps.handleQuit()
+        except Exception, e:
+            note("QUIT FAILED %s" % e)
 
 
-class _Click(Runnable):
-    def __init__(self, button):
-        self.button = button
+class _Scan(Runnable):
+    """Runs on the EDT: answers the store request, reports other modal dialogs once."""
+    def __init__(self, seen):
+        self.seen = seen
 
     def run(self):
-        self.button.doClick()
+        for w in Window.getWindows():
+            if not (isinstance(w, JDialog) and w.isShowing()):
+                continue
+            labels, buttons = [], []
+            walk(w.getContentPane(), labels, buttons)
+            text = " ".join(labels)
+            names = sorted([unicode(b.getText()) for b in buttons])
+            key = id(w)
+            if all(s in text for s in STORE_REQUEST) and names == STORE_BUTTONS:
+                if key not in self.seen:
+                    self.seen.add(key)
+                    [b for b in buttons if unicode(b.getText()) == "No"][0].doClick()
+                    note("store prompt answered No")
+            elif w.isModal() and key not in self.seen:
+                self.seen.add(key)
+                note("OTHER DIALOG %s | %s | %s" % (w.getTitle(), text[:200], ", ".join(names)))
 
 
 open(LOG, "w").close()
 note("quit requested")
 SwingUtilities.invokeLater(_Quit())
-answered = False
-for _ in range(60):
+seen = set()
+for _ in range(WAIT_S * 2):
     time.sleep(0.5)
-    for w in Window.getWindows():
-        if not (isinstance(w, JDialog) and w.isShowing()):
-            continue
-        labels, buttons = [], []
-        walk(w.getContentPane(), labels, buttons)
-        text = " ".join(labels)
-        names = [unicode(b.getText()) for b in buttons]
-        if STORE_PROMPT in text and not answered:
-            no = [b for b in buttons if unicode(b.getText()) == "No"]
-            if len(no) == 1:
-                SwingUtilities.invokeLater(_Click(no[0]))
-                answered = True
-                note("store prompt answered No")
-                continue
-        if STORE_PROMPT not in text:
-            note("OTHER DIALOG %s | %s | %s" % (w.getTitle(), text[:200], ", ".join(names)))
+    try:
+        SwingUtilities.invokeAndWait(_Scan(seen))
+    except Exception, e:
+        note("scan error %s" % e)
 RESULT = "done"
 PY
 
@@ -86,32 +101,45 @@ if [[ "${1:-}" == "--print" ]]; then
   exit 0
 fi
 
-running() {
-  ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" "pgrep -f 'org.jmri.profile=$PROFILE' >/dev/null"
-}
-
-if ! running; then
+ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" bash -s -- \
+  "$PROFILE" "$WAIT_S" "$(printf '%s\n' "$JYTHON" | base64 | tr -d '\n')" <<'REMOTE'
+set -euo pipefail
+profile="$1"; wait_s="$2"; jython_b64="$3"
+CMD=/tmp/jmri_cmd.py OUT=/tmp/jmri_cmd.out READY=/tmp/jmri_watcher.ready LOG=/tmp/pi_quit_panelpro.log
+pid=$(pgrep -f "[o]rg.jmri.profile=$profile" | head -1 || true)
+if [[ -z "$pid" ]]; then
   echo "PanelPro is not running on the Pi; nothing to quit."
   exit 0
 fi
-
-ssh -o BatchMode=yes "$PI_HOST" 'test -f /tmp/jmri_watcher.ready && ! test -e /tmp/jmri_cmd.py' || {
-  echo "jmri_cmd_watcher is not ready on the Pi (or a command is pending); quit PanelPro by hand." >&2
+# The ready file outlives PanelPro, so it only counts when this JVM wrote it.
+started=$(( $(date +%s) - $(ps -o etimes= -p "$pid" | tr -d ' ') ))
+if [[ ! -f "$READY" ]] || (( $(stat -c %Y "$READY") < started )); then
+  echo "jmri_cmd_watcher is not running in this PanelPro; quit it by hand." >&2
   exit 2
-}
-
-printf '%s\n' "$JYTHON" | ssh -o BatchMode=yes "$PI_HOST" \
-  'cat > /tmp/jmri_cmd.tmp && mv /tmp/jmri_cmd.tmp /tmp/jmri_cmd.py'
-
-for _ in $(seq 1 90); do
+fi
+if [[ -e "$CMD" ]]; then
+  echo "A command is already waiting in $CMD; quit PanelPro by hand." >&2
+  exit 2
+fi
+rm -f "$OUT" "$LOG"
+printf '%s' "$jython_b64" | base64 -d > "$CMD.tmp"
+mv "$CMD.tmp" "$CMD"
+status=1
+for _ in $(seq 1 "$wait_s"); do
   sleep 1
-  if ! running; then
-    ssh -o BatchMode=yes "$PI_HOST" 'cat /tmp/pi_quit_panelpro.log 2>/dev/null' || true
-    echo "PanelPro quit on the Pi."
-    exit 0
-  fi
+  if [[ -f "$OUT" ]] && head -1 "$OUT" | grep -q '^error'; then status=3; break; fi
+  if grep -qs '^QUIT FAILED' "$LOG"; then status=3; break; fi
+  if grep -qs '^OTHER DIALOG' "$LOG"; then status=4; break; fi
+  if ! pgrep -f "[o]rg.jmri.profile=$profile" >/dev/null; then status=0; break; fi
 done
-
-ssh -o BatchMode=yes "$PI_HOST" 'cat /tmp/pi_quit_panelpro.log 2>/dev/null' || true
-echo "PanelPro is still running on the Pi after 90 s; a dialog may need a person (see above)." >&2
-exit 1
+# Never leave an unread quit behind: the next PanelPro start would run it.
+if [[ -e "$CMD" ]]; then rm -f "$CMD"; echo "removed the unread $CMD" >&2; fi
+cat "$LOG" 2>/dev/null || true
+case "$status" in
+  0) echo "PanelPro quit on the Pi." ;;
+  3) cat "$OUT" 2>/dev/null >&2 || true; echo "The quit command failed; see above." >&2 ;;
+  4) echo "PanelPro showed another dialog (above); a person needs to answer it." >&2 ;;
+  *) echo "PanelPro is still running on the Pi after ${wait_s} s." >&2 ;;
+esac
+exit "$status"
+REMOTE
