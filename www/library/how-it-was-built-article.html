@@ -36,28 +36,21 @@
     <article class="feature">
       <header class="feature-head">
         <h1>Bringing the Railroad Together</h1>
-        <p class="standfirst">How AI grew up alongside the railroad, from the first research to the way the software, research and website are organised today.</p>
+        <p class="standfirst">How AI grew up alongside the railroad, from the first research to a helix built with printed parts.</p>
         <p class="byline">How it was built · October 2026</p>
-        <p class="snapshot-note">A snapshot of the journey as it stood in October 2026. Each topic is followed up, job by job, in <a href="../ai/index.html">AI in Model Railroading</a>.</p>
+        <p class="snapshot-note">The journey as it stood in October 2026, in about a five-minute read.</p>
       </header>
 
       <nav class="feature-toc" aria-label="On this page">
         <h2>On this page</h2>
         <ol>
-          <li><a href="#research">An idea, and the first AI</a></li>
-          <li><a href="#code">Code enters</a></li>
-          <li><a href="#bridge">The bridge</a></li>
-          <li><a href="#wiring">The wiring</a></li>
-          <li><a href="#panels">From track plan to panels</a></li>
-          <li><a href="#cards">The car cards</a></li>
-          <li><a href="#operations">The traffic simulator</a></li>
-          <li><a href="#desks">The desks</a></li>
-          <li><a href="#scattered">Too many places</a></li>
+          <li><a href="#research">Research and stories</a></li>
+          <li><a href="#code">Code that runs</a></li>
+          <li><a href="#desks">Panels, desks and signals</a></li>
+          <li><a href="#cards">Cards and traffic</a></li>
           <li><a href="#gathering">One place</a></li>
           <li><a href="#helix">The helix</a></li>
-          <li><a href="#arrived">Where it arrived</a></li>
-          <li><a href="#reuse">Tools you can reuse</a></li>
-          <li><a href="#next">More ways to use it</a></li>
+          <li><a href="#next">Looking back</a></li>
           <li><a href="#references">References</a></li>
         </ol>
       </nav>
@@ -65,7 +58,7 @@
       <div class="feature-body">
         <section id="intro" aria-label="Introduction">
           <p class="lede">In January 2025 this railroad was only an idea, and AI came into it very shortly after. At first that meant ChatGPT, helping me research a place and write it down. Nothing about it looked like a way of building a railroad. It grew one job at a time, as the layout kept asking for something new.</p>
-          <p>Less than two years later, that help has drafted the documents and the stories, written the software that reaches the layout's electronics, planned a helix and produced the printed parts that built it, and helped pull the whole project into order. This page follows that journey as it happened: what I was trying to build, which tool I used, and what each step left behind.</p>
+          <p>This is the short version of that journey. Each chapter has a fuller page in <a href="../ai/index.html">AI in Model Railroading</a> for anyone who wants the details.</p>
           <figure>
             <svg class="trail-svg" viewBox="0 0 480 524" role="img" aria-labelledby="trail-t trail-d">
               <title id="trail-t">The journey, with the tool in use at each stage</title>
@@ -117,67 +110,34 @@
         </section>
 
         <section id="research" aria-labelledby="h-research">
-          <h2 id="h-research"><span class="num">01</span>An idea, and the first AI</h2>
-          <p>The current layout became an idea in January 2025, and AI came in very shortly after, through the research. ChatGPT was part writer and part research partner. First came the roster of equipment on hand, and the early questions about what to model and in which era. That ran from about March into April.</p>
-          <p>Then I had to choose which real corridor to interpret and write the fictional backstory that goes with it. That took the spring and ran into summer. The identity work followed, and the logo is AI-generated. So are the fictional short stories, which were drafted with AI. ChatGPT also generated just about all of the document files, which is a lot of paper for one hobbyist.</p>
-          <p>Meanwhile the building had begun. <a href="../build/index.html">The Build page</a> has progress photos from February 2025 on. The track plan was settled in July. The industry research ran on through the second half of the year, and it is the base of the <a href="../history/index.html">Prototype</a> pages. Later planning and benchwork conversations went through ChatGPT too.</p>
-          <p>For the first months AI was a tool that wrote documents. That was fine for documents, but a layout also needs software, and the first of that arrived in August.</p>
+          <h2 id="h-research"><span class="num">01</span>Research and stories</h2>
+          <p>For the first months AI was a research partner and a writer. ChatGPT helped me pick a real corridor to interpret, an era that suited the equipment I had, and a fictional backstory to sit on top of it. It drew the logo, drafted the short stories, and produced just about every document file, which is a lot of paper for one hobbyist. The track plan was settled in July 2025, and the industry research behind the <a href="../history/index.html">Prototype</a> pages ran on through the rest of the year.</p>
+          <p class="feature-more">More: <a href="../ai/research.html">Prototype research</a></p>
         </section>
 
         <section id="code" aria-labelledby="h-code">
-          <h2 id="h-code"><span class="num">02</span>Code enters</h2>
-          <p>The first code came in August 2025. <a href="https://github.com/lnevo/traincode">traincode</a> was an ESP32 client that connected to JMRI over MQTT, the first project where I started playing with those pieces together, and all of it was done with Cursor, an AI code editor. It became the foundation of the current client, though we later switched to a Nano bridge for LCOS compatibility.</p>
-          <p>What surprised me was how much went into it in about ten days: over-the-air firmware updates, configurable I/O so any pin could be set up as a sensor, turnout or light, mDNS so devices could find each other by name, first-time Wi-Fi setup through its own access point, a built-in web page with a device control panel, backup and restore of its settings, and automatic reconnection with its state synced again at boot. Every line of that code was written by AI, and the same goes for all of our own code the railroad uses today.</p>
-          <p>The difference from chat was plain. The AI was now working in the same files I was, so the result was something I could run, not only a document to read.</p>
-        </section>
-
-        <section id="bridge" aria-labelledby="h-bridge">
-          <h2 id="h-bridge"><span class="num">03</span>The bridge</h2>
-          <p>From about October 2025 the electronics took over. I chose LCOS hardware for the field bus, and Cursor helped me plan and build a bridge between LCOS and JMRI<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. It began as an ESP32 idea built on traincode, and by early 2026 it had become a Nano bridge running over a serial link.</p>
-          <p>That bridge turned out to be one of the most involved pieces of the whole project, and it grew in stages. It started read-only, simply listening to what the layout reported. Then it became bi-directional, so JMRI could send commands back as well as hear them. Signal support came next. After that it had to coordinate with JMRI running on multiple clients, and finally to handle signals that could either run natively on the layout or be controlled from JMRI. That work ran on well into 2026.</p>
-          <p><a href="../behind/bridge.html">Electronics &amp; the bridge</a> has the longer account.</p>
-        </section>
-
-        <section id="wiring" aria-labelledby="h-wiring">
-          <h2 id="h-wiring"><span class="num">04</span>The wiring</h2>
-          <p>A railroad that is going to be wired has to know what it is wiring. In November and December 2025 I had a hand-drawn ASCII sketch of the layout, made of plain typed characters. With Cursor it became a spreadsheet of switches, signals and locations, and then a versioned wiring inventory workbook.</p>
-          <p>That workbook later fed the wiring documents, and today it lives on as the <a href="../behind/wiring.html">wiring viewer</a>, the <a href="../behind/layout-docs.html">layout drawings</a> and the <a href="../roster/index.html">device roster</a>. Around the same time I tried some early experiments with JMRI Operations Pro, which did not become the car system.</p>
-        </section>
-
-        <section id="panels" aria-labelledby="h-panels">
-          <h2 id="h-panels"><span class="num">05</span>From track plan to panels</h2>
-          <p>With the list of what existed, the next job was getting the track into JMRI. The plan had been drawn in AnyRail. Between about January and June 2026, Cursor wrote a pipeline that turned AnyRail exports into JMRI Layout Editor panels, the schematic drawings JMRI uses to know where the track, turnouts and blocks are.</p>
-          <p>Each generation of that pipeline did the job better than the one before, and the first production panel went live in May 2026. Cursor helped with CATS, the dispatching software, along the way too.</p>
-          <p>In March 2026 I also made a side project for other modelers, <a href="stl-studio-article.html">STL Studio</a>, a block editor for writing RR-CirKits Tower LCC+Q logic. The railroad does not use it.</p>
-        </section>
-
-        <section id="cards" aria-labelledby="h-cards">
-          <h2 id="h-cards"><span class="num">06</span>The car cards</h2>
-          <p>By then the planning was giving way to paperwork. A railroad that runs needs car cards and waybills, and the first session had run on Post-it flags. The cards became one of the biggest workflows on the whole project, and one of the best uses of AI on it.</p>
-          <p>I had a roster and photographs of the fleet. With AI, each photo was cropped, its reporting marks were read by OCR and matched against the roster, and the stencils gave up details such as built dates and weights. Each photographed car got a printed card with its own picture, and waybills were worked out for the industries and moves on the layout.</p>
-          <p>What started as a one-time job has become a repeatable workflow. Adding a car now starts with a photo: a small tool crops it, reads what it can and asks about the rest, then queues a new card to print. From there the same record feeds the traffic simulator and JMRI Operations Pro, so the whole fleet lives in one list. A car with no photo can wait in that list until it gets one. <a href="../operators/cards/index.html">Car Cards &amp; Waybills</a> shows the cards themselves and how crews use them.</p>
-        </section>
-
-        <section id="operations" aria-labelledby="h-operations">
-          <h2 id="h-operations"><span class="num">07</span>The traffic simulator</h2>
-          <p>With the cards in hand, the traffic system, STS, came next, with Cursor helping to extend it and tune its simulation. <a href="sts-operations-article.html">The operations story</a> tells that part, and I wrote it up for <cite>The Cannon Ball</cite><sup><a href="#ref-2" aria-label="Reference 2">2</a></sup>. This page only places it in the order of things: by now the AI was helping with the operating side of the railroad as well as the writing about it.</p>
+          <h2 id="h-code"><span class="num">02</span>Code that runs</h2>
+          <p>In August 2025 the AI moved from chat into an editor, Cursor, working in the same files I was. In about ten days it wrote a small client that let a cheap board talk to JMRI. That was the turning point: the result was something I could run, not only something to read.</p>
+          <p>The client grew into the bridge between JMRI and the layout's LCOS electronics, one of the most involved pieces of the project. A hand-typed sketch of the layout became a wiring inventory that still feeds the wiring pages today.</p>
+          <p class="feature-more">More: <a href="../ai/electronics.html">Electronics</a></p>
         </section>
 
         <section id="desks" aria-labelledby="h-desks">
-          <h2 id="h-desks"><span class="num">08</span>The desks</h2>
-          <p>August 2026 was the busiest month. The CATS CTC desk was drawn in Designer as the dispatcher's desk, and the stock JMRI CTC machine was built beside it as an alternate. The Dispatcher System was set up to run trains automatically, and Signal Mast Logic ended up owning the aspects. Grok also helped for part of the conversion of route logic into native Signal Mast Logic. The <a href="../guides/index.html">dispatcher guides</a> show how each desk is used, and <a href="../behind/signals.html">How the signals work</a> follows a route from the dispatcher's click to the lamp in the aisle. <a href="../behind/panel-evolution.html">How the dispatcher panels grew</a> shows both panels being redrawn, step by step.</p>
+          <h2 id="h-desks"><span class="num">03</span>Panels, desks and signals</h2>
+          <p>Through the first half of 2026 a pipeline turned the AnyRail track plan into JMRI panels, and in August the dispatcher desks went up beside them. The signals took the most trial and error. Several designs were tried before I settled on JMRI as it comes, with the effort going into the railroad's own data instead. <a href="../behind/panel-evolution.html">How the dispatcher panels grew</a> shows the desks being redrawn step by step.</p>
+          <p class="feature-more">More: <a href="../ai/control.html">Control &amp; signals</a></p>
         </section>
 
-        <section id="scattered" aria-labelledby="h-scattered">
-          <h2 id="h-scattered"><span class="num">09</span>Too many places</h2>
-          <p>So by August 2026 the project was real and busy, but it was scattered: documents and research in their own folders, the fiction in its drafts, control software for the layout in one project, the traffic simulation in another, car records, the bridge to the electronics, and the website. Each worked on its own, and nothing made sure they agreed. A change to a car name in one place might never reach the cards, the website or the simulation.</p>
-          <p>That was the problem I set out to fix.</p>
+        <section id="cards" aria-labelledby="h-cards">
+          <h2 id="h-cards"><span class="num">04</span>Cards and traffic</h2>
+          <p>The first operating session ran on Post-it flags. Car cards came next, and they became one of the best uses of AI on the whole project: each photo of a car was cropped, its reporting marks read and matched to the roster, and a card printed with its own picture. The same records seeded the traffic simulator, which AI helped extend and tune. I wrote that part up for <cite>The Cannon Ball</cite><sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>.</p>
+          <p class="feature-more">More: <a href="../ai/operations.html">Operations</a> · <a href="sts-operations-article.html">The operations story</a></p>
         </section>
 
         <section id="gathering" aria-labelledby="h-gathering">
-          <h2 id="h-gathering"><span class="num">10</span>One place</h2>
-          <p>The place I chose is a <b>repository</b>, a folder where every change is recorded, so anyone can see what changed and go back. This one is public on GitHub at <a href="https://github.com/lnevo/hart">github.com/lnevo/hart</a>, and it began in August 2026. From the end of August the traffic software, the car data and the website were gathered in, with Cursor doing that work. I took stock of what lived where, and the operator portal, which had run only from a local server, moved to a domain of its own.</p>
-          <p>Claude took over the consolidation as I began testing outside Cursor. The folders were tidied, and the generic knowledge went into a public plugin for other modelers. One habit came with the move: important choices are written down as short decision records, each saying what we decided, why, and what it replaced. A tool that forgets everything between sessions can still read them. That is the quiet change in how I use AI. Early on I asked it for documents. Now I give it a place to work and a set of written rules to follow, and I ask the same of every tool that comes after.</p>
+          <h2 id="h-gathering"><span class="num">05</span>One place</h2>
+          <p>By August 2026 the project was real, busy and scattered. Each piece worked on its own and nothing made sure they agreed, so a car renamed in one place might never reach the cards or the website.</p>
+          <p>The fix was one <b>repository</b>, a folder where every change is recorded, public at <a href="https://github.com/lnevo/hart">github.com/lnevo/hart</a>. Cursor began the gathering and Claude took it over. A habit came with it: decisions are written down, and every tool reads the same rules. That is the quiet change in how I use AI. Early on I asked it for documents. Now I give it a place to work and rules to follow.</p>
           <figure>
             <svg class="who-svg" viewBox="0 0 480 296" role="img" aria-labelledby="one-t one-d">
               <title id="one-t">Before and after</title>
@@ -214,49 +174,28 @@
             </svg>
             <figcaption><strong>Before and after.</strong> The separate pieces on the left were gathered into one repository, which holds three subjects: software, research and web design.</figcaption>
           </figure>
+          <p class="feature-more">More: <a href="../ai/workshop.html">The workshop</a></p>
         </section>
 
         <section id="helix" aria-labelledby="h-helix">
-          <h2 id="h-helix"><span class="num">11</span>The helix</h2>
-          <p>While the files were coming together, the biggest physical job on the railroad was under way: the helix that climbs from staging to the main level. The planning for it was some of the most valuable AI work on the whole project. Radius, grade, clearance, how the roadbed would be cut and joined, and the order it would all go up were worked through in conversation with ChatGPT before any wood was cut. All of that became a construction plan and a written design record.</p>
-          <p>Then the work moved to Claude, to build the files and carry the effort on, and it left the screen. The plan became scripts, the scripts became STL files, and the STL files became printed parts: router templates, height spacers, shims and other fixtures, 47 files in all. These were not models of anything. They were tools, and they went on the bench and into the build. The frame went up, the roadbed followed, and in about a month the helix was finished and tracked.</p>
-          <p>That was a real milestone. Until then the AI's work had been documents and software. Now it was something I could pick up and use to build the railroad. The <a href="../helix/index.html">helix page</a> has the plan and every fixture, and <a href="../build/index.html#helix">The Build</a> has the photos.</p>
-        </section>
-
-        <section id="arrived" aria-labelledby="h-arrived">
-          <h2 id="h-arrived"><span class="num">12</span>Where it arrived</h2>
-          <p>On the software side, the layout data, the panels and the signals now sit together as plain files, with one naming rule so switches, signals and tracks are called the same thing everywhere. Several signal systems were tried through September before I settled on the stock behaviour of JMRI<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup>; <a href="../behind/signals.html">How the signals work</a> has the reasoning, and <a href="../behind/bridge.html">Electronics &amp; the bridge</a> covers the link to the electronics. Traffic and car records are kept the same way, so a car has one name from the card to the simulation. Some work stands on its own as pinned public projects inside this one: <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a><sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>, <a href="https://github.com/lnevo/sts-docker">sts-docker</a><sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>, <a href="https://github.com/lnevo/sts-docker-helpers">sts-docker-helpers</a><sup><a href="#ref-5" aria-label="Reference 5">5</a></sup> and <a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a><sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>.</p>
-          <p>The research is kept together, with a note of where each source came from. Every item in the <a href="../photos/index.html#historical">historic archive</a> carries its credit or source. A research helper looks things up and returns proposals with their sources. No source, no caption.</p>
-          <p>The website has sections for different readers, and its pages are drawn from one source, so a change is made once, in one place. A page-building helper makes the pages. A reviewer helper reads the site as a first-time reader, a historian or a designer would, and this article was shaped that way.</p>
-          <p>Behind all of it, every tool reads one set of written rules.</p>
-          <blockquote class="pull"><p>Chat is a scratchpad; decisions live in the wiki.</p></blockquote>
-          <p>The reason is plain. An agent knows only what is written down. A few helpers each have one job, and small automatic checks catch mistakes before they spread. One of those checks says of itself that it is "a guardrail against mistakes, not a security boundary", and I take that literally.</p>
-        </section>
-
-        <section id="reuse" aria-labelledby="h-reuse">
-          <h2 id="h-reuse"><span class="num">13</span>Tools you can reuse</h2>
-          <p>Some of what came out of this is not about this railroad at all. Along the way the AI learned how JMRI, CATS and STS really behave, and that knowledge is worth sharing, so I packaged it for anyone to use on their own layout.</p>
-          <p><a href="https://github.com/lnevo/model-railroad-skills">model-railroad-skills</a> is a public plugin for Claude Code. A <b>skill</b> is a written guide the AI loads when a topic comes up, so it works from the right notes instead of guessing. There are six: editing JMRI panel files safely, signal mast logic, the Dispatcher System, JMRI and MQTT, running CATS on JMRI, and running STS in Docker. An <b>MCP</b> is a plug-in tool the AI can call, and there are two, both read-only, so the AI can look at what JMRI and the layout are reporting. Every rule was checked against the software's own source, and nothing in the plugin is specific to this railroad.</p>
+          <h2 id="h-helix"><span class="num">06</span>The helix</h2>
+          <p>Meanwhile the biggest physical job was under way: the helix that climbs from staging to the main level. Its radius, grade, clearances and build order were worked out in conversation before any wood was cut. Claude then turned the plan into 47 printed jigs, templates and spacers, and in about a month the helix was built and tracked. For the first time the AI's work was something I could pick up and build with.</p>
+          <p class="feature-more">More: <a href="../ai/construction.html">Construction</a> · <a href="../helix/index.html">The helix page</a></p>
         </section>
 
         <section id="next" aria-labelledby="h-next">
-          <h2 id="h-next"><span class="num">14</span>More ways to use it</h2>
-          <p>Looking back along that timeline, what stands out is not any one tool. I still use all three: Claude is taking over from Cursor, and ChatGPT still has its own usefulness. What has really changed is how much I ask of them. It began with research and documents. Then came software that reaches the layout, car cards and traffic for operating sessions, a helix built with parts I could hold, and finally a project organised well enough for all of it to work together.</p>
-          <p>None of those steps was planned from the start. Each one came from asking what else this could help with, and each answer made the next question easier to see. That is why the value keeps growing: every new use leaves something behind for the next one to build on.</p>
-          <p>The main level comes next, with more track, more wiring and more signals to work out. I don't yet know every way AI will help with it, and that is the part I look forward to finding out.</p>
+          <h2 id="h-next"><span class="num">07</span>Looking back</h2>
+          <p>What stands out is not any one tool. I still use all three: Claude is taking over from Cursor, and ChatGPT still has its uses. What changed is how much I ask of them. It began with research and documents, then software that reaches the layout, then cards and traffic for operating sessions, a helix built with parts I could hold, and a project organised well enough for all of it to work together.</p>
+          <p>None of that was planned. Each step came from asking what else this could help with, and each left something behind for the next. Some of it was general enough to share, as <a href="https://github.com/lnevo/model-railroad-skills">public tools</a><sup><a href="#ref-2" aria-label="Reference 2">2</a></sup> other modelers can use. The main level comes next, and I look forward to finding out what AI will help with there.</p>
         </section>
 
         <section id="references" aria-labelledby="h-refs">
           <h2 id="h-refs"><span class="num">Notes</span>References</h2>
           <ol class="refs">
-            <li id="ref-1">LCOS_ESP32_MQTT_Client (GitHub). <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">github.com/lnevo/LCOS_ESP32_MQTT_Client</a></li>
-            <li id="ref-2">Lee Nevo, “Building Operations on the HART Railroad: How I used AI to turn a new layout into an operating railroad.” <cite>The Cannon Ball</cite> (Sunrise Trail Division, NMRA) 56, no. 2 (Summer 2026): 7–10. <a href="https://sunrisetraildiv.org/CannonBalls/5602Summer2026.pdf">sunrisetraildiv.org/CannonBalls/5602Summer2026.pdf</a>. Read the <a href="sts-operations-article.html">operations story</a> on this site.</li>
-            <li id="ref-3">JMRI, Java Model Railroad Interface. <a href="https://www.jmri.org/">jmri.org</a></li>
-            <li id="ref-4">sts-docker (GitHub). <a href="https://github.com/lnevo/sts-docker">github.com/lnevo/sts-docker</a></li>
-            <li id="ref-5">sts-docker-helpers (GitHub). <a href="https://github.com/lnevo/sts-docker-helpers">github.com/lnevo/sts-docker-helpers</a></li>
-            <li id="ref-6">model-railroad-skills, the public Claude Code plugin (GitHub). <a href="https://github.com/lnevo/model-railroad-skills">github.com/lnevo/model-railroad-skills</a></li>
+            <li id="ref-1">Lee Nevo, “Building Operations on the HART Railroad: How I used AI to turn a new layout into an operating railroad.” <cite>The Cannon Ball</cite> (Sunrise Trail Division, NMRA) 56, no. 2 (Summer 2026): 7–10. <a href="https://sunrisetraildiv.org/CannonBalls/5602Summer2026.pdf">sunrisetraildiv.org/CannonBalls/5602Summer2026.pdf</a>. Read the <a href="sts-operations-article.html">operations story</a> on this site.</li>
+            <li id="ref-2">model-railroad-skills, the public Claude Code plugin (GitHub). <a href="https://github.com/lnevo/model-railroad-skills">github.com/lnevo/model-railroad-skills</a>. The other shared projects are listed under <a href="../ai/workshop.html#shared">Tools shared with others</a>.</li>
           </ol>
-          <p class="feature-more">More: <a href="sts-operations-article.html">The operations story</a> · <a href="stl-studio-article.html">STL Studio</a> · <a href="../behind/signals.html">How the signals work</a> · <a href="../behind/bridge.html">Electronics &amp; the bridge</a> · <a href="../behind/index.html">Behind the Scenes</a></p>
+          <p class="feature-more">More: <a href="../ai/index.html">AI in Model Railroading</a> · <a href="sts-operations-article.html">The operations story</a> · <a href="stl-studio-article.html">STL Studio</a> · <a href="../behind/index.html">Behind the Scenes</a></p>
         </section>
       </div>
     </article>
