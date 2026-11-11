@@ -23,7 +23,7 @@ evolution video and [`HOW_WE_BUILT_CTC.md`](../HOW_WE_BUILT_CTC.md).
 | 15 | `Screenshot 2026-09-28 at 4.37.37 PM.png` | Public names: Track S-1, Track EH-1, Track K-1 |
 | 16 | `uss_ctc_20261111_panelpro.png` | Princess mains redrawn from the CATS desk; every signal icon in view |
 
-Frame 16 was painted by PanelPro on the Pi through `jmri_cmd_watcher` (the USS panel was hidden there, so the levers read ?). Frames 12 to 16 show a wider machine, so `make_ctc_evolution_video.py` crops them with fixed boxes (`EXPLICIT_CROPS`) instead of the fixed-width alignment.
+Frame 16 was painted by PanelPro on the Pi through `jmri_cmd_watcher`, with the USS CTC runtime turned on so the lever lamps report (the levers read ? while it is off). Frames 12 to 16 show a wider machine, so `make_ctc_evolution_video.py` crops them with fixed boxes (`EXPLICIT_CROPS`) instead of the fixed-width alignment.
 
 Stop-motion outputs (`CTC_Panel_Evolution.gif`, `.mp4`, `CTC_Evolution_crops/`) are
 generated locally and gitignored; the copies the site uses live in `www/assets/behind/panel-evolution/`. Regenerate:
