@@ -1,5 +1,5 @@
 /* Tables browser for behind/tables-file.html: tabs or a dropdown, a text filter, and rows
-   shown in pages of 100 so the 746 transits stay quick. Data: data/tables-browser.json. */
+   shown in pages of 100 so the 777 transits stay quick. Data: data/tables-browser.json. */
 (function () {
   var PAGE = 100;
   var esc = HARTOps.esc;

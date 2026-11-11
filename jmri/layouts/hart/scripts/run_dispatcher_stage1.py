@@ -142,7 +142,8 @@ def _finish():
             int(transits),
             store_path,
         )
-        if repo_tables:
+        # Since ADR-008 the store is the repo file itself; copy only if they differ.
+        if repo_tables and os.path.realpath(repo_tables) != os.path.realpath(store_path):
             _copy(store_path, repo_tables)
         traininfo_src = FileUtil.getExternalFilename(
             "preference:dispatcher/traininfo/"

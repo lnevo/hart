@@ -126,8 +126,8 @@ def load_boundaries(path: Path) -> list[Boundary]:
         )
         for row in rows
     ]
-    if len(boundaries) != 28 or len({item.mast for item in boundaries}) != 28:
-        raise ValueError(f"{path}: expected 28 unique boundary mast names")
+    if len(boundaries) != 30 or len({item.mast for item in boundaries}) != 30:
+        raise ValueError(f"{path}: expected 30 unique boundary mast names")
     return boundaries
 
 
@@ -177,7 +177,7 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
         )
 
 
-DISPATCHER_VIRTUALS = {"Mast 8LC", "Mast 13R", "Mast 11L", "Mast 9LA", "Mast 9LB"}
+DISPATCHER_VIRTUALS = {"Mast 8LC", "Mast 13R", "Mast 11L", "Mast 9LA", "Mast 9LB", "Mast 2R", "Mast 6R"}
 
 
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
@@ -308,9 +308,9 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:
     auto = sum(use_le == "yes" for _, _, use_le in destinations)
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
-    if (len(destinations), auto, manual, unknown) != (98, 96, 2, 0):
+    if (len(destinations), auto, manual, unknown) != (100, 98, 2, 0):
         message = (
-            "stored SML destinations expected total=98, useLayoutEditor=yes=96, "
+            "stored SML destinations expected total=100, useLayoutEditor=yes=98, "
             f"manual=2; found total={len(destinations)}, yes={auto}, "
             f"manual={manual}, unspecified/other={unknown}"
         )
@@ -589,9 +589,9 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         )
     sections = len(root.findall("./sections/section"))
     transits = len(root.findall("./transits/transit"))
-    if (sections, transits) != (103, 746):
+    if (sections, transits) != (105, 777):
         audit.error(
-            f"generated Dispatcher graph expected 103 sections / 746 transits, "
+            f"generated Dispatcher graph expected 105 sections / 777 transits, "
             f"found {sections} / {transits}"
         )
     files = sorted(TRAININFO.glob("*.xml"))
@@ -609,8 +609,8 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         ]
         if values != ["TRAINDETECTION_HEADANDTAIL"]:
             bad_detection.append(path.name)
-    if len(files) != 1548:
-        audit.error(f"expected 1548 generated traininfo files, found {len(files)}")
+    if len(files) != 1554:
+        audit.error(f"expected 1554 generated traininfo files, found {len(files)}")
     if bad_detection:
         audit.error(
             "traininfo not HEAD_AND_TAIL: "

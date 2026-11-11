@@ -165,7 +165,7 @@ Appearances for SHSM:
 
 No aspects are disabled; Basic has no Advanced Approach to disable.
 
-**Counts:** 45 masts, 23 real (12 `two-searchlight`, 11 `one-low`) and 22 virtual dispatcher masts.
+**Counts:** 47 masts, 23 real (12 `two-searchlight`, 11 `one-low`) and 24 virtual dispatcher masts.
 
 **Mast 6LB (interim):** a one-low dwarf on `IH432` (C4-OU2-1..3), the only head wired so far. `IH433` stays defined but unwired and on no mast. It returns to two-searchlight when the second head is wired (`FITTED_HEADS` in `build_hart_signal_heads.py`; the wiring docs still show that two-head plan).
 

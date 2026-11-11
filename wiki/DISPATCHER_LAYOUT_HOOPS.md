@@ -1,6 +1,6 @@
 # Layout Editor / Dispatcher System hoops
 
-SoR for workarounds used so Dispatcher System can start and stop at HART stations. As of **2026-09-01** the live graph is **103 sections / 746 transits / 1548 HEAD_AND_TAIL traininfo** (stock Stage 1; 45 masts). S-1…S-5 are arrival/departure stations (enter/leave via 103 or East Lead). Revisit the marked hacks; do not silently delete them.
+SoR for workarounds used so Dispatcher System can start and stop at HART stations. As of **2026-11-10** the live graph is **105 sections / 777 transits / 1554 HEAD_AND_TAIL traininfo** (stock Stage 1; 47 masts). S-1…S-5 are arrival/departure stations (enter/leave via 103 or East Lead). Revisit the marked hacks; do not silently delete them.
 
 Railroad English first, then the JMRI name. Operator desk: [`jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md). Live notes: [`STATUS.md`](STATUS.md) (Dispatcher System).
 
@@ -28,6 +28,8 @@ Icons are `hidden="yes"` on **HART Railroad**. System names are `IF$vsm:basic:on
 | EH-1 / Switch 11 | `Mast 11L` (`$1020`) | Hidden virtual on TO11 B. Bumper `12L` is arrival-only; without this, EH outbound `get_first` picks **32L** and EH→S-1/S-4/S-R never builds. |
 | EH-2 / Switch 9 | `Mast 9LA` (`$1021`) | Hidden virtual on TO10 C (EH-2). |
 | EH-3 / Switch 9 | `Mast 9LB` (`$1022`) | Hidden virtual on TO10 B (EH-3). |
+| Brick-Plane / Switch 1 | `Mast 2R` (`$1023`) | Hidden virtual on TOL3 C. Brick-Plane had no mast at either end, so it sat inside the 2L→8RA/8RB and 6LA/6LB→24RA sections: runs into it went past it and runs to East Main Ext / Main West reused its transits (added 2026-11-10). |
+| Brick-Plane / Switch 5 | `Mast 6R` (`$1024`) | Hidden virtual on TOL42 A. Same fix, east end. |
 
 Tables: `STUB_MASTS` and `YARD_BOUNDARY_MASTS` in `apply_le_cleanup.py`. Throat geometry: `apply_yard_throat_blocks.py`.
 

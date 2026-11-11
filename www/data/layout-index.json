@@ -858,6 +858,32 @@
       "block": ""
     },
     {
+      "id": "sig-45",
+      "kind": "signal",
+      "x": 330.6,
+      "y": 217.0,
+      "systemName": "Mast 2R",
+      "publicName": "Mast 2R",
+      "cp": "Brick",
+      "hardware": "virtual $1023",
+      "mqtt": "",
+      "comment": "Brick | Switch 1",
+      "block": ""
+    },
+    {
+      "id": "sig-46",
+      "kind": "signal",
+      "x": 331.6,
+      "y": 323.1,
+      "systemName": "Mast 6R",
+      "publicName": "Mast 6R",
+      "cp": "Plane",
+      "hardware": "virtual $1024",
+      "mqtt": "",
+      "comment": "Plane | Switch 5",
+      "block": ""
+    },
+    {
       "id": "dev-M2S100",
       "kind": "occupancy",
       "x": null,
@@ -3876,10 +3902,10 @@
   ],
   "counts": {
     "turnout": 46,
-    "signal": 121,
+    "signal": 123,
     "occupancy": 90,
     "sensor": 40,
-    "mapped": 65,
-    "total": 297
+    "mapped": 67,
+    "total": 299
   }
 }

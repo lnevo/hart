@@ -48,7 +48,7 @@ Stations, west → east around the plant, then the yard and house:
 
 You can only start and stop at those stations. Occupancy icons and MoveTo
 buttons are in place. **Stage 1 was re-run 2026-08-22** after hidden yard
-throats (graph is **103 sections / 746 transits / 1548 traininfo**). Every listed
+throats (graph is **105 sections / 777 transits / 1554 traininfo**). Every listed
 station is a valid **start and destination**, including **OS S-R…OS S-4**
 (enter/leave via 103 or OS East Lead). Manual Princess pairs (`Mast 36RA→Mast 40LA`,
 `Mast 36RB→Mast 38LA`) were re-added after Discover. After any future Stage 1:
