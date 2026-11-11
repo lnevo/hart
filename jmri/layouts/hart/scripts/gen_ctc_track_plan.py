@@ -708,6 +708,12 @@ def signal_xy(stem_x: int, bar_c: int, facing: str, kind: str) -> tuple[int, int
     return x, bar_c - 3
 
 
+def signal_pos(cx: int, cy: int, facing: str, kind: str) -> tuple[int, int]:
+    """Panel x, y of the signal icon for CATS cell (cx, cy)."""
+    stem_x = ux(cx, cy) + (8 if facing == "E" else 2)
+    return signal_xy(stem_x, bar_y(cy) + 2, facing, kind)
+
+
 def parse_cats(path: Path) -> dict:
     root = ET.parse(path).getroot()
     tp = root.find("TRACKPLAN")
@@ -937,8 +943,7 @@ def build_block(cells: dict) -> str:
     for x, y, text, size, col in texts:
         parts.append(TEXT.format(x=x, y=y, text=text, size=size, **col))
     for name, cx, cy, facing, kind, head in SIGNALS:
-        stem_x = ux(cx, cy) + (8 if facing == "E" else 2)
-        x, y = signal_xy(stem_x, bar_y(cy) + 2, facing, kind)
+        x, y = signal_pos(cx, cy, facing, kind)
         if kind == "h2":
             parts.append(MAST.format(
                 name=name, x=x, y=y,

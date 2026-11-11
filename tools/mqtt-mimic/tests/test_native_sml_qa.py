@@ -43,6 +43,21 @@ class NativeSmlQaTest(unittest.TestCase):
         self.assertEqual(self.qa.MAST_HEADS["Mast 6LB"], ("IH432",))
         self.assertEqual(self.qa.MAST_HEADS["Mast 40LA"], ("IH1132", "IH1135"))
 
+    def test_unreadable_head_mast_fails_loudly(self) -> None:
+        import tempfile
+        xml = (
+            "<layout-config><signalmasts>"
+            "<signalmast><systemName>IF$shsm:basic:one-low(IH1)</systemName><userName>Mast A</userName></signalmast>"
+            "<signalmast><systemName>IF$shsm:basic:one-low(Head B)</systemName><userName>Mast B</userName></signalmast>"
+            "</signalmasts></layout-config>"
+        )
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "tables.xml"
+            path.write_text(xml, encoding="utf-8")
+            with self.assertRaises(SystemExit) as ctx:
+                self.qa.load_mast_heads(path)
+        self.assertIn("Mast B", str(ctx.exception))
+
     def test_expected_mast_names_exist(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
         named = set(re.findall(r'"(Mast \w+)"', source))

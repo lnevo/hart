@@ -44,6 +44,9 @@ class PiTablesTest(unittest.TestCase):
         self.assertIn("foreach ($c in @(@('py', '-3'), @('python'), @('python3')))", source)
         self.assertIn("-notmatch '\\\\WindowsApps\\\\'", source)
         self.assertNotIn("& python @pyArgs", source)
+        finder = source[source.index("function Find-Python"):source.index("$python = Find-Python")]
+        self.assertIn("sys.version_info[0] == 3", finder, "each candidate must start a Python 3")
+        self.assertLess(finder.index("$LASTEXITCODE -eq 0"), finder.index("return [pscustomobject]"))
         block = source[source.index("if (Test-Path $patchPy)"):source.index("& $python.Exe @pyArgs")]
         self.assertIn("if (-not $python)", block)
         self.assertIn("Write-Warning", block)

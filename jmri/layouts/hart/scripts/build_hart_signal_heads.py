@@ -456,11 +456,11 @@ def patch_tables(rows: list[dict]) -> None:
             "tools/audit/check_wiring_crosswalk.py. Use --wiring-only."
         )
     lost = lost_beans(_heads_xml(rows) + "\n" + _masts_xml(rows), text)
+    dropped = f" ({len(lost)}: {', '.join(lost[:8])})" if lost else ""
     raise SystemExit(
         "refusing to rewrite tables.xml: the generated block would drop "
-        f"{len(lost)} live beans ({', '.join(lost[:8])}), such as virtual "
-        "masts and IH9990. Change heads and masts in tables.xml directly. "
-        "Use --wiring-only."
+        f"live beans{dropped}, such as virtual masts and IH9990. Change heads "
+        "and masts in tables.xml directly. Use --wiring-only."
     )
 
 
@@ -493,8 +493,8 @@ def main() -> int:
         print("wiring-only: skipped inventory xlsx, tables.xml, publisher")
     else:
         update_lcos_inventory(rows)
-        patch_tables(rows)
         write_publisher(rows)
+        patch_tables(rows)
     by: dict[int, list] = {}
     for r in rows:
         by.setdefault(r["mqtt_node"], []).append(r)

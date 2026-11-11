@@ -67,6 +67,21 @@ def signal_icons(path: Path) -> set[tuple[str, str, str, str]]:
     return out
 
 
+# Brick masts whose USS facing has differed from the CATS SIGORIENT since before
+# this test; left as drawn until someone checks them on the layout.
+FACING_EXCEPTIONS = {"Mast 4RA", "Mast 4RB", "Mast 2L"}
+
+
+def cats_facing() -> dict[str, str]:
+    """Mast -> E (SIGORIENT RIGHT) or W (LEFT); TOP/BOTTOM lamps on diagonals are left out."""
+    out = {}
+    for sig in ET.parse(CATS).getroot().iter("SECSIGNAL"):
+        orient = sig.find("PANELSIGNAL").get("SIGORIENT")
+        if orient in ("RIGHT", "LEFT"):
+            out[(sig.text or "").strip()] = "E" if orient == "RIGHT" else "W"
+    return out
+
+
 def cats_signals() -> dict[str, tuple[int, int, str]]:
     """Mast -> (x, y, kind) from the CATS desk; LAMP2 draws as h2, LAMP1 as d1."""
     out = {}
@@ -101,6 +116,14 @@ class CtcSignalHeadsTest(unittest.TestCase):
             with self.subTest(mast=mast):
                 self.assertEqual((x, y, kind), cats[mast])
 
+    def test_icons_face_as_on_the_cats_desk(self) -> None:
+        facing = cats_facing()
+        for mast, _x, _y, face, _kind, _head in gen.SIGNALS:
+            if mast in FACING_EXCEPTIONS or mast not in facing:
+                continue
+            with self.subTest(mast=mast):
+                self.assertEqual(face, facing[mast])
+
     def test_gui_objects_head_icons_match_tables(self) -> None:
         tables = head_icons(TABLES)
         gui = head_icons(GUI)
@@ -110,8 +133,7 @@ class CtcSignalHeadsTest(unittest.TestCase):
         """Both copies of the USS panel carry exactly the icons SIGNALS describes."""
         want = set()
         for mast, cx, cy, facing, kind, head in gen.SIGNALS:
-            stem_x = gen.ux(cx, cy) + (8 if facing == "E" else 2)
-            x, y = gen.signal_xy(stem_x, gen.bar_y(cy) + 2, facing, kind)
+            x, y = gen.signal_pos(cx, cy, facing, kind)
             want.add(("mast", mast, str(x), str(y)) if kind == "h2" else ("head", head, str(x), str(y)))
         self.assertEqual(signal_icons(GUI), want)
         self.assertEqual(signal_icons(TABLES), want)

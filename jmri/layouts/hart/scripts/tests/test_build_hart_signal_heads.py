@@ -112,6 +112,11 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
         self.assertIn("IH9990", str(ctx.exception))
         self.assertEqual(TABLES.read_bytes(), before)
 
+    def test_full_mode_checks_the_publisher_before_refusing(self) -> None:
+        import inspect
+        source = inspect.getsource(self.m.main)
+        self.assertLess(source.index("write_publisher(rows)"), source.index("patch_tables(rows)"))
+
 
 if __name__ == "__main__":
     unittest.main()
