@@ -55,8 +55,8 @@ if exist "%APPDATA%\JMRI\HART_sheet_West_Yard.jmri" rmdir /S /Q "%APPDATA%\JMRI\
 set IDFILE=%~dp0jmri_profile_id.txt
 set RESOLVER=%USERPROFILE%\Dropbox\HART_sync\resolve_jmri_profile.ps1
 if not exist "%RESOLVER%" set RESOLVER=%~dp0resolve_jmri_profile.ps1
-set PATCHMQTT=%USERPROFILE%\Dropbox\HART_sync\patch_windows_mqtt.ps1
-if not exist "%PATCHMQTT%" set PATCHMQTT=%~dp0patch_windows_mqtt.ps1
+set PATCHMQTT=%~dp0patch_windows_mqtt.ps1
+if not exist "%PATCHMQTT%" set PATCHMQTT=%USERPROFILE%\Dropbox\HART_sync\patch_windows_mqtt.ps1
 set KILLPS=%USERPROFILE%\Dropbox\HART_sync\kill_cats.ps1
 if not exist "%KILLPS%" set KILLPS=%~dp0kill_cats.ps1
 
