@@ -125,7 +125,9 @@
     if (!section || section.id === pageId || section.id === "home") return;
     var head = document.querySelector("main .page-head, main .feature-head");
     if (!head || head.querySelector(".crumb")) return;
-    var trail = [section].concat((site.parents || {})[pageId] || []);
+    // A section may name a shorter crumb than its menu label (site.json "crumb").
+    var top = { href: section.href, label: section.crumb || section.label };
+    var trail = [top].concat((site.parents || {})[pageId] || []);
     var nav = document.createElement("nav");
     nav.className = "crumb";
     nav.setAttribute("aria-label", "Breadcrumb");

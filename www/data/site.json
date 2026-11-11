@@ -89,6 +89,7 @@
       "href": "ai/index.html",
       "label": "The Diverging Route",
       "short": "AI",
+      "crumb": "AI",
       "pages": [
         "behind-ai",
         "behind-ai-research",
