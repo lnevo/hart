@@ -26,6 +26,16 @@ class PiTablesTest(unittest.TestCase):
         self.assertNotIn("$dests.Add((Join-Path $_.FullName 'tables.xml'))", source)
         self.assertNotIn("$roots.Add($_.FullName)", source)
 
+    def test_windows_apply_finds_user_python_and_checks_it(self) -> None:
+        source = (SCRIPT.parent.parent / "windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
+        path_merge = source.index("GetEnvironmentVariable('Path', 'User')")
+        call = source.index("& python @pyArgs")
+        self.assertLess(path_merge, call, "user PATH must be loaded before python runs")
+        self.assertIn("$env:Path = (@($first) + @($rest)) -join ';'", source, "user PATH goes first")
+        after = source[call:call + 300]
+        self.assertLess(after.index("$LASTEXITCODE"), after.index("Start Up retargeted"),
+                        "a failed retarget must not report success")
+
     def test_pi_drop_stays_in_tmp_and_is_removed(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn("/tmp/hart-deploy.*)", source)

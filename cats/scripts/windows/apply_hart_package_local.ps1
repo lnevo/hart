@@ -4,12 +4,14 @@ param([Parameter(Mandatory = $true)][string]$Hart, [string]$OverwriteOps = '1')
 $ErrorActionPreference = 'Stop'
 
 # Win32-OpenSSH 10.x starts ssh sessions with the machine PATH only. Python is installed
-# per user, so add the user PATH from the registry (expanded) before calling python.
+# per user, so put the user PATH first (GetEnvironmentVariable expands it) so that per-user
+# Python wins over any other python on the machine PATH.
 $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 if ($userPath) {
-  $have = $env:Path -split ';'
-  $add = [Environment]::ExpandEnvironmentVariables($userPath) -split ';' | Where-Object { $_ -and ($have -notcontains $_) }
-  if ($add) { $env:Path = ($env:Path.TrimEnd(';') + ';' + ($add -join ';')) }
+  $first = @($userPath -split ';' | Where-Object { $_ })
+  $norm = @($first | ForEach-Object { $_.TrimEnd('\') })
+  $rest = @($env:Path -split ';' | Where-Object { $_ -and ($norm -notcontains $_.TrimEnd('\')) })
+  $env:Path = (@($first) + @($rest)) -join ';'
 }
 
 $src = Join-Path $hart 'tables.xml'
@@ -245,6 +247,7 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
       $pyArgs += @('--script', $name)
     }
     & python @pyArgs
+    if ($LASTEXITCODE -ne 0) { throw ("Start Up retarget failed: python exited {0} ({1})" -f $LASTEXITCODE, $prof) }
     Write-Host ("Start Up retargeted -> preference:jython ({0})" -f $prof)
   }
 }
