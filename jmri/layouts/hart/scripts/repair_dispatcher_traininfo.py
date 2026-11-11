@@ -11,7 +11,6 @@
 #   HART_TRAININFO_MARKER=/path   write ok/fail report
 #   HART_TRAININFO_EXIT=1         exit PanelPro after completion
 
-from __future__ import print_function
 
 import os
 import re
@@ -186,7 +185,7 @@ def run():
     status = "fail" if errors or (repaired and not REPAIR) else "ok"
     _write_marker(status, lines)
     for line in lines:
-        print("repair_dispatcher_traininfo:", line)
+        print("repair_dispatcher_traininfo: %s" % (line,))
     return status
 
 

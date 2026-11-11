@@ -73,6 +73,17 @@ EH_EXIT_MASTS = [
     ("TO10", "signalBMast", "IF$vsm:basic:one-low($1022)", "Mast 9LB", 596, 280, 270),
 ]
 
+# Track Brick-Plane (Block 4-6) had no mast at either end, so it sat inside the
+# sections 2L→8RA/8RB and 6LA/6LB→24RA: runs into Brick-Plane went past it and
+# runs to East Main Ext / Main West reused Brick-Plane's transits (2026-11-10).
+# Hidden virtuals on the Brick-Plane legs of Switch 1 and Switch 5 make it a
+# station with a mast at each end. Name: signal = switch + 1, opposite letter.
+BRICK_PLANE_MASTS = [
+    # turnout, tag, sysname, uname, icon x, y, degrees, comment
+    ("TOL3", "signalCMast", "IF$vsm:basic:one-low($1023)", "Mast 2R", 294, 271, 90, "Brick | Switch 1"),
+    ("TOL42", "signalAMast", "IF$vsm:basic:one-low($1024)", "Mast 6R", 295, 374, 90, "Plane | Switch 5"),
+]
+
 
 def _le(root: ET.Element) -> ET.Element | None:
     for panel in root.findall("LayoutEditor"):
@@ -122,7 +133,7 @@ def _next_ilb(root: ET.Element) -> int:
 
 
 def _ensure_virtual_mast(
-    masts: ET.Element, existing: set[str], sysname: str, uname: str
+    masts: ET.Element, existing: set[str], sysname: str, uname: str, comment: str | None = None
 ) -> int:
     if sysname in existing:
         return 0
@@ -130,6 +141,8 @@ def _ensure_virtual_mast(
     el.set("class", "jmri.implementation.configurexml.VirtualSignalMastXml")
     ET.SubElement(el, "systemName").text = sysname
     ET.SubElement(el, "userName").text = uname
+    if comment:
+        ET.SubElement(el, "comment").text = comment
     unlit = ET.SubElement(el, "unlit")
     unlit.set("allowed", "yes")
     existing.add(sysname)
@@ -142,7 +155,13 @@ def _ensure_turnout_mast(to: ET.Element, tag: str, uname: str) -> int:
             return 0
     el = ET.Element(tag)
     el.text = uname
-    to.append(el)
+    # Mast slots come before the NX sensor slots, as JMRI stores them.
+    kids = list(to)
+    first_sensor = next((i for i, c in enumerate(kids) if c.tag.startswith("sensor")), None)
+    if first_sensor is None:
+        to.append(el)
+    else:
+        to.insert(first_sensor, el)
     return 1
 
 
@@ -384,9 +403,10 @@ def _ensure_eh_exits(
     turnouts: dict[str, ET.Element],
 ) -> int:
     n = 0
-    for ident, tag, sysname, uname, x, y, deg in EH_EXIT_MASTS:
+    rows = [row + (None,) for row in EH_EXIT_MASTS] + list(BRICK_PLANE_MASTS)
+    for ident, tag, sysname, uname, x, y, deg, comment in rows:
         if masts is not None:
-            n += _ensure_virtual_mast(masts, existing, sysname, uname)
+            n += _ensure_virtual_mast(masts, existing, sysname, uname, comment)
         n += _ensure_hidden_icon(le, uname, x, y, deg)
         to = turnouts.get(ident)
         if to is not None:

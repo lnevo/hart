@@ -19,7 +19,6 @@
 # turnouts, signals or MQTT. The logic below runs without JMRI so it can be
 # tested; only the bottom of the file needs Jython.
 
-from __future__ import print_function
 
 import json
 import sys

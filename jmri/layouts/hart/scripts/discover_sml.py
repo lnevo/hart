@@ -13,7 +13,6 @@
 #   HART_SML_DISCOVER_MARKER    write ok/fail status to this file
 #   HART_SML_DISCOVER_FILE      tables path to store (default: loaded user file)
 
-from __future__ import print_function
 
 import os
 import time
@@ -33,7 +32,7 @@ WAIT_S = int(os.environ.get("HART_SML_DISCOVER_WAIT", "180"))
 
 
 def _log(msg):
-    print("discover_sml:", msg)
+    print("discover_sml: %s" % (msg,))
     try:
         import sys
         sys.stdout.flush()

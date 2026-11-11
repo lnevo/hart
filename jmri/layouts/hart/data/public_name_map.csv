@@ -379,6 +379,8 @@ mast,Mast 10LB,Mast 10LB,Engine House,virtual $1007,Engine House | Switch 9,
 mast,Mast 11L,Mast 11L,Engine House,virtual $1020,Engine House | Switch 11,hidden EH-1 exit; Dispatcher Stage 1
 mast,Mast 12L,Mast 12L,Engine House,virtual $1005,Engine House | Switch 11,
 mast,Mast 13R,Mast 13R,Barn,virtual $1019,Barn | Switch 13,hidden Barn into Switch 13; Dispatcher Stage 1
+mast,Mast 2R,Mast 2R,Brick,virtual $1023,Brick | Switch 1,hidden Brick-Plane into Switch 1; Dispatcher Stage 1
+mast,Mast 6R,Mast 6R,Plane,virtual $1024,Plane | Switch 5,hidden Brick-Plane into Switch 5; Dispatcher Stage 1
 mast,Mast 16L,Mast 16L,South Yard,virtual $1016,South Yard | Switch 15,
 mast,Mast 18L,Mast 18L,South Yard,virtual $1008,South Yard | Switch 17,
 mast,Mast 18R,Mast 18R,South Yard,virtual $1012,South Yard | Switch 17,
