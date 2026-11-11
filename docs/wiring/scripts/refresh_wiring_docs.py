@@ -1642,6 +1642,40 @@ def append_princess_dwarf_logic(wb) -> int:
     return added
 
 
+# Heads removed from the layout that the imported v1 workbook still names, mapped to the
+# head their mast kept. Mast 6LA became a one-low dwarf on IH434 in August 2026.
+RETIRED_HEADS: dict[str, str] = {"IH435": "IH434"}
+_RETIRED_TOKEN = re.compile(r"\s*\b(%s)=\w+" % "|".join(RETIRED_HEADS))
+
+
+def drop_retired_heads(wb) -> int:
+    """Remove retired heads from aspect cells and mqtt_topics; untag their sibling's Top."""
+    n = 0
+    for ws in wb.worksheets:
+        if ws.title == "inventory":
+            continue
+        for row in ws.iter_rows():
+            for cell in row:
+                if isinstance(cell.value, str) and _RETIRED_TOKEN.search(cell.value):
+                    cell.value = _RETIRED_TOKEN.sub("", cell.value).strip()
+                    n += 1
+    if "mqtt_topics" in wb.sheetnames:
+        ws = wb["mqtt_topics"]
+        idx = header_index(ws)
+        jmri_col, name_col = idx.get("JMRI"), idx.get("Name")
+        for row in range(ws.max_row, 1, -1):
+            jmri = ws.cell(row, jmri_col).value if jmri_col else None
+            if jmri in RETIRED_HEADS:
+                ws.delete_rows(row)
+                n += 1
+            elif jmri in RETIRED_HEADS.values() and name_col:
+                name = ws.cell(row, name_col).value
+                if isinstance(name, str) and name.endswith(" Top"):
+                    ws.cell(row, name_col).value = name[: -len(" Top")]
+                    n += 1
+    return n
+
+
 def refresh_asbuilt() -> Path:
     src = IMPORTED / "signals_asbuilt_abs_v1.xlsx"
     dest = WIRING / "signals_asbuilt_abs_v2.xlsx"
@@ -1662,6 +1696,7 @@ def refresh_asbuilt() -> Path:
             continue
         n += walk_replace(wb[name], NAME_REPLACEMENTS)
         n += walk_remap_panel_ih(wb[name])
+    n += drop_retired_heads(wb)
     occ = occupancy_by_hw()
     mqtt = wb["mqtt_topics"]
     idx = header_index(mqtt)

@@ -223,5 +223,31 @@ class AsBuiltRemapTest(unittest.TestCase):
         self.assertEqual(remap(None), None)
 
 
+class RetiredHeadsTest(unittest.TestCase):
+    """Heads removed from the layout stay out of the as-built workbook."""
+
+    def retired(self) -> dict[str, str]:
+        tree = ast.parse(REFRESH.read_text(encoding="utf-8"))
+        for node in tree.body:
+            if isinstance(node, ast.AnnAssign) and getattr(node.target, "id", "") == "RETIRED_HEADS":
+                return ast.literal_eval(node.value)
+        raise AssertionError("RETIRED_HEADS not found")
+
+    def test_retired_heads_are_gone_from_tables_and_kept_siblings_live(self) -> None:
+        live = set(re.findall(r"<systemName>(IH\d+)</systemName>", TABLES.read_text(encoding="utf-8")))
+        for old, kept in self.retired().items():
+            with self.subTest(head=old):
+                self.assertNotIn(old, live)
+                self.assertIn(kept, live)
+
+    def test_asbuilt_workbook_names_no_retired_head(self) -> None:
+        import zipfile
+        book = ROOT / "docs/wiring/signals_asbuilt_abs_v2.xlsx"
+        with zipfile.ZipFile(book) as z:
+            text = " ".join(z.read(n).decode("utf-8", "replace") for n in z.namelist() if n.endswith(".xml"))
+        for old in self.retired():
+            self.assertIsNone(re.search(r"\b%s\b" % old, text), old)
+
+
 if __name__ == "__main__":
     unittest.main()
