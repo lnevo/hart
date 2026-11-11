@@ -130,13 +130,27 @@ class Coordinator(unittest.TestCase):
         mast = jf.FakeMast("IF$shsm:aar-1946:two-searchlight(IH440)(IH441)")
         self.assertEqual(self.sc["_head_names_on_mast"](mast), ["IH440", "IH441"])
 
-    def test_appearance_names_from_the_bridge(self) -> None:
-        # The LCOS bridge spells flashing aspects FlashRed / FlashYellow (serial_to_mqtt.py).
+    def test_appearance_names(self) -> None:
+        # JMRI's names are the standard; the LCOS firmware's FlashRed tokens are accepted too.
         f = self.sc["_appearance_constant"]
+        self.assertEqual(f("Flashing Red"), H.FLASHRED)
+        self.assertEqual(f("Flashing Lunar"), H.FLASHLUNAR)
         self.assertEqual(f("FlashRed"), H.FLASHRED)
         self.assertEqual(f("flashyellow"), H.FLASHYELLOW)
         self.assertEqual(f("off"), H.DARK)
         self.assertIsNone(f("Purple"))
+
+    def test_flashing_set_uses_the_jmri_name(self) -> None:
+        self.enroll()
+        self.own_by_sml()
+        self.head.appearance = H.FLASHRED
+        self.c._publish_head_set(self.head)
+        self.assertEqual(self.sent(), [("track/signalhead/432", "Flashing Red", True)])
+
+    def test_field_report_in_jmri_spelling_paints_the_head(self) -> None:
+        self.enroll()
+        self.c.notifyMqttMessage("track/signalmast/432", "Flashing Yellow")
+        self.assertEqual(self.head.appearance, H.FLASHYELLOW)
 
     def test_loading_without_mqtt_sends_nothing(self) -> None:
         self.assertIsNone(self.sc["controller"].mqtt)

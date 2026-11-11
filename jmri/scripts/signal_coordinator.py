@@ -165,7 +165,9 @@ def _appearance_constant(name):
     if name is None:
         return None
     key = str(name).strip()
-    upper = key.upper().replace(" ", "")
+    # JMRI's names are the standard ("Flashing Red"); the LCOS firmware's tokens
+    # ("FlashRed") are accepted too.
+    upper = key.upper().replace(" ", "").replace("FLASHING", "FLASH")
     table = {
         "RED": jmri.SignalHead.RED,
         "YELLOW": jmri.SignalHead.YELLOW,
