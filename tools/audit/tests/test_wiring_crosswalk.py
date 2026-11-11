@@ -14,8 +14,11 @@ SPEC.loader.exec_module(check)
 
 
 def row(port, node, sig, name, mast, role):
+    packed = name[2:]
     return {
         "port_id": port, "mqtt_node": node, "signal_index": sig,
+        "uid": str(int(packed) - int(node) * 100), "packed": packed,
+        "topic": f"track/signalhead/{packed}",
         "system_name": name, "mast_user_name": mast, "head_role": role,
     }
 
@@ -104,6 +107,41 @@ class WiringCrosswalkTest(unittest.TestCase):
         masts = dict(MASTS, **{"Mast 6LB": "IF$shsm:basic:one-low(IH433)"})
         found = check.problems(WIRING, tables(masts=masts))
         self.assertTrue(any(f.startswith("Mast 6LB: heads") for f in found), found)
+
+    def test_head_mast_named_by_user_name_fails(self):
+        masts = dict(MASTS, **{"Mast 99X": "IF$shsm:basic:one-low(Head 99X)"})
+        found = check.problems(WIRING, tables(masts=masts))
+        self.assertTrue(any(f.startswith("Mast 99X: head mast") for f in found), found)
+
+    def test_duplicate_mast_user_name_fails(self):
+        root = tables()
+        dup = ET.SubElement(root.find("signalmasts"), "signalmast")
+        ET.SubElement(dup, "systemName").text = "IF$shsm:basic:one-low(IH238)"
+        ET.SubElement(dup, "userName").text = "Mast 24RA"
+        found = check.problems(WIRING, root)
+        self.assertIn("Mast 24RA: two head masts share this userName", found)
+
+    def test_system_name_must_match_packed_and_topic(self):
+        bad = [dict(r) for r in WIRING]
+        bad[0]["system_name"] = "IH1232"
+        with self.assertRaisesRegex(check.WiringError, "system_name IH1232 but packed 232"):
+            check.problems(bad, tables())
+        bad = [dict(r) for r in WIRING]
+        bad[0]["topic"] = "track/signalhead/1241"
+        with self.assertRaisesRegex(check.WiringError, "topic track/signalhead/1241"):
+            check.problems(bad, tables())
+
+    def test_packed_must_be_node_times_100_plus_uid(self):
+        bad = [dict(r) for r in WIRING]
+        bad[0]["uid"] = "33"
+        with self.assertRaisesRegex(check.WiringError, "not node 2 x 100 \\+ uid 33"):
+            check.problems(bad, tables())
+
+    def test_bad_role_is_reported_not_a_traceback(self):
+        bad = [dict(r) for r in WIRING]
+        bad[0]["head_role"] = "M"
+        with self.assertRaisesRegex(check.WiringError, "head_role 'M'"):
+            check.problems(bad, tables())
 
     def test_repo_tables_follow_wiring_plan(self):
         with (ROOT / "docs/wiring/signals/signal_wiring.csv").open(newline="") as f:

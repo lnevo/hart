@@ -119,6 +119,42 @@ def walk_replace(ws: Worksheet, replacements: list[tuple[str, str]]) -> int:
     return n
 
 
+# The imported as-built v1 workbook uses the panel IH numbers from before the
+# 2026-11-10 renumber; tables.xml now follows signal_wiring.csv. One pass,
+# because the old and new sets overlap (IH1232 was 24RA, is now 34L).
+PANEL_TO_WIRING_IH: dict[str, str] = {
+    "IH1232": "IH232", "IH1233": "IH238",    # 24RA
+    "IH1234": "IH233", "IH1235": "IH239",    # 24L
+    "IH1236": "IH234",                       # 24RB
+    "IH1237": "IH1232", "IH1238": "IH1233",  # 34L
+    "IH1239": "IH1234",                      # 32R
+    "IH1240": "IH1235", "IH1241": "IH1236",  # 34R
+    "IH137": "IH132", "IH138": "IH133",      # 36RB
+    "IH132": "IH1132", "IH133": "IH1135",    # 40LA
+    "IH142": "IH1136",                       # 40LB
+    "IH134": "IH1133",                       # 2036
+    "IH141": "IH1134",                       # 2035
+}
+_IH_TOKEN = re.compile(r"\bIH\d+(?!\d)")
+
+
+def remap_panel_ih(value: object) -> object:
+    if not isinstance(value, str):
+        return value
+    return _IH_TOKEN.sub(lambda m: PANEL_TO_WIRING_IH.get(m.group(0), m.group(0)), value)
+
+
+def walk_remap_panel_ih(ws: Worksheet) -> int:
+    n = 0
+    for row in ws.iter_rows():
+        for cell in row:
+            new = remap_panel_ih(cell.value)
+            if new != cell.value:
+                cell.value = new
+                n += 1
+    return n
+
+
 NAME_REPLACEMENTS: list[tuple[str, str]] = [
     # Long JMRI mast userNames → Digicon (longest first)
     ("West Yard West East Main Ext", proposed("117RB") or "117RB"),
@@ -1580,7 +1616,8 @@ def append_princess_dwarf_logic(wb) -> int:
                 continue
             ws.append([spec.get(h) for h in PRINCESS_LOGIC_HEADERS])
             added += 1
-        # 114LB / 115LB were authored as triples; IH134/IH141 are now 120R/120L.
+        # 114LB / 115LB were authored as triples; IH1133/IH1134 (panel IH134/IH141,
+        # remapped above) are now 120R/120L.
         mqtt_col = idx.get("MQTT_Out")
         notes_col = idx.get("Notes")
         sig_col = idx.get("Signal")
@@ -1590,13 +1627,13 @@ def append_princess_dwarf_logic(wb) -> int:
                 mqtt = ws.cell(row, mqtt_col).value
                 if not isinstance(mqtt, str):
                     continue
-                if sig == "115LB" and "IH134" in mqtt:
-                    ws.cell(row, mqtt_col).value = mqtt.replace(" IH134=Red", "").replace(" IH134=Green", "").replace(
-                        " IH134=Yellow", ""
+                if sig == "115LB" and "IH1133" in mqtt:
+                    ws.cell(row, mqtt_col).value = mqtt.replace(" IH1133=Red", "").replace(" IH1133=Green", "").replace(
+                        " IH1133=Yellow", ""
                     )
-                if sig == "114LB" and "IH141" in mqtt:
-                    ws.cell(row, mqtt_col).value = mqtt.replace(" IH141=Red", "").replace(" IH141=Green", "").replace(
-                        " IH141=Yellow", ""
+                if sig == "114LB" and "IH1134" in mqtt:
+                    ws.cell(row, mqtt_col).value = mqtt.replace(" IH1134=Red", "").replace(" IH1134=Green", "").replace(
+                        " IH1134=Yellow", ""
                     )
                 if notes_col and sig in ("114LB", "115LB"):
                     notes = ws.cell(row, notes_col).value
@@ -1624,6 +1661,7 @@ def refresh_asbuilt() -> Path:
         if name == "inventory":
             continue
         n += walk_replace(wb[name], NAME_REPLACEMENTS)
+        n += walk_remap_panel_ih(wb[name])
     occ = occupancy_by_hw()
     mqtt = wb["mqtt_topics"]
     idx = header_index(mqtt)

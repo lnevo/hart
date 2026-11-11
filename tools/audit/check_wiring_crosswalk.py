@@ -11,7 +11,8 @@ number for every head as system_name. This check fails when:
 - a SignalHeadSignalMast in tables.xml is not in the wiring plan;
 - a wired mast is missing from tables.xml;
 - a wired head is not defined, or is on no mast;
-- a wired head's comment disagrees with its node, signal and port list.
+- a wired head's comment disagrees with its node, signal and port list;
+- a wiring row's system_name, packed (node x 100 + uid) and topic disagree.
 
 Hidden virtual masts (IF$vsm) carry no wiring and are not checked.
 Mast 6LB is an interim one-low dwarf on its top head (IH432) until the bottom
@@ -37,8 +38,40 @@ ROLE_ORDER = {"T": 0, "S": 0, "B": 1}
 SHSM_RE = re.compile(r"^IF\$shsm:[^:]+:[^(]+((?:\(IH\d+\))+)$")
 
 
+class WiringError(ValueError):
+    """signal_wiring.csv contradicts itself."""
+
+
+def row_problems(r: dict[str, str]) -> list[str]:
+    """A wiring row's IH number, packed number, node, UID and topic must agree."""
+    port = (r.get("port_id") or "?").strip()
+    name = (r.get("system_name") or "").strip()
+    packed = (r.get("packed") or "").strip()
+    node = (r.get("mqtt_node") or "").strip()
+    uid = (r.get("uid") or "").strip()
+    topic = (r.get("topic") or "").strip()
+    out: list[str] = []
+    if not (r.get("mast_user_name") or "").strip():
+        out.append(f"{port}: no mast_user_name")
+    if (r.get("head_role") or "").strip() not in ROLE_ORDER:
+        out.append(f"{port}: head_role {r.get('head_role')!r} is not T, B or S")
+    if name != f"IH{packed}":
+        out.append(f"{port}: system_name {name} but packed {packed}")
+    if node.isdigit() and uid.isdigit() and packed.isdigit():
+        if int(packed) != int(node) * 100 + int(uid):
+            out.append(f"{port}: packed {packed} is not node {node} x 100 + uid {uid}")
+    else:
+        out.append(f"{port}: node {node!r}, uid {uid!r}, packed {packed!r} must be numbers")
+    if "topic" in r and topic != f"track/signalhead/{packed}":
+        out.append(f"{port}: topic {topic} but packed {packed}")
+    return out
+
+
 def load_wiring(rows: list[dict[str, str]]) -> dict[str, dict]:
     """Wired head system name -> mast, role, comment parts."""
+    bad = [p for r in rows for p in row_problems(r)]
+    if bad:
+        raise WiringError("; ".join(bad))
     heads: dict[str, dict] = {}
     for r in rows:
         name = r["system_name"].strip()
@@ -53,7 +86,7 @@ def load_wiring(rows: list[dict[str, str]]) -> dict[str, dict]:
             },
         )
         if h["mast"] != r["mast_user_name"].strip():
-            raise ValueError(f"{name} is wired to two masts")
+            raise WiringError(f"{name} is wired to two masts")
         h["signals"].add(r["signal_index"].strip())
         h["ports"].append(r["port_id"].strip())
     return heads
@@ -80,29 +113,37 @@ def planned_masts(heads: dict[str, dict]) -> dict[str, list[str]]:
     return {m: [n for _o, n in sorted(v)] for m, v in masts.items()}
 
 
-def read_tables(root: ET.Element) -> tuple[dict[str, str], dict[str, list[str]]]:
-    """(head system name -> comment, physical mast userName -> head names)."""
+def read_tables(
+    root: ET.Element,
+) -> tuple[dict[str, str], dict[str, list[str]], list[str]]:
+    """(head system name -> comment, head mast userName -> head names, problems)."""
     head_comments: dict[str, str] = {}
     for el in root.iter("signalhead"):
         sn = (el.findtext("systemName") or "").strip()
         if sn:
             head_comments[sn] = (el.findtext("comment") or "").strip()
     masts: dict[str, list[str]] = {}
+    bad: list[str] = []
     for el in root.iter("signalmast"):
         sn = (el.findtext("systemName") or "").strip()
+        if not sn.startswith("IF$shsm:"):
+            continue
+        user = (el.findtext("userName") or "").strip() or sn
         m = SHSM_RE.match(sn)
         if not m:
+            bad.append(f"{user}: head mast {sn} does not name its heads by IH number")
             continue
-        user = (el.findtext("userName") or "").strip()
+        if user in masts:
+            bad.append(f"{user}: two head masts share this userName")
+            continue
         masts[user] = re.findall(r"IH\d+", m.group(1))
-    return head_comments, masts
+    return head_comments, masts, bad
 
 
 def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list[str]:
     heads = load_wiring(wiring_rows)
     plan = planned_masts(heads)
-    head_comments, masts = read_tables(tables_root)
-    out: list[str] = []
+    head_comments, masts, out = read_tables(tables_root)
 
     for mast, want in sorted(plan.items()):
         have = masts.get(mast)
@@ -141,7 +182,11 @@ def main() -> int:
             return 2
     with wiring.open(newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
-    found = problems(rows, ET.parse(tables).getroot())
+    try:
+        found = problems(rows, ET.parse(tables).getroot())
+    except WiringError as e:
+        print(f"FAIL: signal_wiring.csv: {e}")
+        return 1
     n_heads = len(load_wiring(rows))
     if found:
         print(f"FAIL: {len(found)} signal head(s) disagree with signal_wiring.csv")
