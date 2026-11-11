@@ -702,8 +702,15 @@ def sig_url(kind: str, aspect: str, facing: str) -> str:
     return "preference:ctc/icons/sig-%s-%s%s.gif" % (kind, aspect, suf)
 
 
+# Drawn sizes on the panel: a d1 head GIF (sig-d1-*.gif), and a Basic two-searchlight
+# mast (AAR-1946 SL-2-high-abs rule-*.gif, 12x40) at the MAST template's scale 0.5.
+HEAD_ICON = (12, 7)
+MAST_ICON = (6, 20)
+JEWEL = 21
+
+
 def signal_xy(stem_x: int, bar_c: int, facing: str, kind: str) -> tuple[int, int]:
-    width = 21 if kind == "h2" else 12
+    width = MAST_ICON[0] if kind == "h2" else HEAD_ICON[0]
     x = stem_x if facing == "E" else stem_x - width + 1
     return x, bar_c - 3
 
@@ -793,12 +800,6 @@ def _os_jewel_xy(pick: tuple[int, int], frog: tuple[int, int]) -> tuple[int, int
     return jx, jy
 
 
-# Drawn sizes on the panel: a d1 head GIF, and a Basic two-searchlight mast at scale 0.5.
-HEAD_ICON = (12, 7)
-MAST_ICON = (6, 20)
-JEWEL = 21
-
-
 def signal_rects() -> list[tuple[int, int, int, int]]:
     """(x, y, w, h) of every signal icon SIGNALS draws."""
     out = []
@@ -813,25 +814,56 @@ def _overlaps(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> boo
     return a[0] < b[0] + b[2] and b[0] < a[0] + a[2] and a[1] < b[1] + b[3] and b[1] < a[1] + a[3]
 
 
-def clear_signals(lamps: list) -> list:
-    """Slide any occupancy jewel that covers a signal icon along its row, by the
-    smallest step that clears every signal icon and every other jewel."""
-    sigs = signal_rects()
-    out = list(lamps)
-    for i, (sensor, jx, jy, tip) in enumerate(out):
-        if jy >= OS_Y - 5 or not any(_overlaps((jx, jy, JEWEL, JEWEL), s) for s in sigs):
-            continue
-        others = [(x, y, JEWEL, JEWEL) for k, (_s, x, y, _t) in enumerate(out) if k != i]
-        for step in range(1, 2 * CELL_W):
-            for nx in (jx - step, jx + step):
-                r = (nx, jy, JEWEL, JEWEL)
-                if not any(_overlaps(r, s) for s in sigs) and not any(_overlaps(r, o) for o in others):
-                    out[i] = (sensor, nx, jy, tip)
-                    break
-            else:
-                continue
-            break
-    return out
+POINTS_ICON = (9, 9)
+
+
+def points_rects() -> list[tuple[int, int, int, int]]:
+    """(x, y, w, h) of the turnout points indicators drawn at each plant."""
+    return [(ux(cx, cy) + 5, bar_y(cy) + 5) + POINTS_ICON for cx, cy in PLANTS]
+
+
+class JewelPlacer:
+    """Keeps occupancy jewels off the signal icons where the track allows it.
+
+    A jewel that covers a signal icon slides along its row to the nearest spot that
+    clears every signal icon, turnout points icon and jewel. It stays inside its own
+    block's stretch of that row and never passes another jewel. Where no such spot
+    exists it stays put; signal icons draw above the lamps, so they stay visible."""
+
+    def __init__(self) -> None:
+        self.sigs = signal_rects()
+        self.points = points_rects()
+        self.taken: list[tuple[int, int, int, int]] = []
+
+    def _hits_signal(self, x: int, y: int) -> bool:
+        r = (x, y, JEWEL, JEWEL)
+        return any(_overlaps(r, s) for s in self.sigs)
+
+    def _hits_other(self, x: int, y: int) -> bool:
+        r = (x, y, JEWEL, JEWEL)
+        return any(_overlaps(r, o) for o in self.taken + self.points)
+
+    def place(self, usual: tuple[int, int], row: int, block_cells: set[tuple[int, int]]) -> tuple[int, int]:
+        x, y = usual
+        if y < OS_Y - 5 and self._hits_signal(x, y):
+            on_row = [c[0] for c in block_cells if c[1] == row] or [(x - OX) // CELL_W + 1]
+            lo = min(ux(min(on_row), row), x)
+            hi = max(ux(max(on_row), row), x)
+            best = None
+            for step_dir in (-1, 1):
+                nx = x + step_dir
+                while lo <= nx <= hi:
+                    if any(_overlaps((nx, y, JEWEL, JEWEL), o) for o in self.taken):
+                        break  # never pass another jewel
+                    if not self._hits_signal(nx, y) and not self._hits_other(nx, y):
+                        if best is None or abs(nx - x) < abs(best - x):
+                            best = nx
+                        break
+                    nx += step_dir
+            if best is not None:
+                x = best
+        self.taken.append((x, y, JEWEL, JEWEL))
+        return x, y
 
 
 def build_geometry(cells: dict) -> tuple[list, list, list, list]:
@@ -882,6 +914,7 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
                 name_sensor[n] = sensor
 
     placed: set[str] = set()
+    placer = JewelPlacer()
     for sensor, hits in occ.items():
         os_hits = [(x, y, n) for x, y, n in hits if _is_switch_os(n)]
         if not os_hits:
@@ -892,7 +925,7 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         if frog is None:
             frog = min(os_cells)
         pick = _throat_cell(os_cells, frog)
-        jx, jy = _os_jewel_xy(pick, frog)
+        jx, jy = placer.place(_os_jewel_xy(pick, frog), pick[1], os_cells)
         lamps.append((sensor, jx, jy, os_name))
         placed.add(sensor)
 
@@ -908,7 +941,7 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         if not sensor or sensor in placed:
             continue
         cx, cy = CENTER_OCC.get(name, (x, y))
-        jx, jy = _jewel_xy(cx, cy)
+        jx, jy = placer.place(_jewel_xy(cx, cy), cy, {(h[0], h[1]) for h in occ[sensor]})
         lamps.append((sensor, jx, jy, tip))
         placed.add(sensor)
 
@@ -924,16 +957,16 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         hx, hy, bname = on_row[len(on_row) // 2]
         name = _norm_name(bname)
         cx, cy = CENTER_OCC.get(name, (hx, hy))
-        jx, jy = _jewel_xy(cx, cy)
+        jx, jy = placer.place(_jewel_xy(cx, cy), cy, {(h[0], h[1]) for h in occ[sensor]})
         lamps.append((sensor, jx, jy, bname or sensor))
         placed.add(sensor)
 
-    lamps = clear_signals(lamps)
     jewel_cells: set[tuple[int, int]] = set()
     for _sensor, jx, jy, _tip in lamps:
         if jy >= OS_Y - 5:
             continue
-        jewel_cells.add(((jx - OX) // CELL_W + 1, (jy - OY) // CELL_H + 5))
+        for edge_x in (jx, jx + JEWEL - 1):
+            jewel_cells.add(((edge_x - OX) // CELL_W + 1, (jy - OY) // CELL_H + 5))
 
     texts.append((480, 8, "HART RAILROAD - NEVILLE ISLAND", 16, dict(red=0, green=0, blue=0)))
     for (x, y), cell in cells.items():
