@@ -237,6 +237,8 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 ./cats/scripts/sync_hart_package.sh --pi --dry-run
 ```
 
+Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 2222, with `Subsystem sftp sftp-server.exe` in `C:\ProgramData\ssh\sshd_config`. Deploys copy over SFTP and fall back to legacy `scp -O` with a warning if that line is missing.
+
 ---
 
 ## 6. Source-of-truth scripts

@@ -10,6 +10,13 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PI_HOST="${HART_PI_SSH:-pi}"
 WIN_HOST="${HART_WIN_SSH:-lnevo@10.0.0.6}"
 WIN_PORT="${HART_WIN_SSH_PORT:-2222}"
+WIN_SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
+# Same as scp_win in cats/scripts/sync_hart_package.sh: SFTP first, legacy -O if it is off.
+scp_win() {
+  scp "${WIN_SSH_OPTS[@]}" -P "$WIN_PORT" "$@" 2>/dev/null && return 0
+  echo "scp over SFTP to Windows failed; retrying with the legacy protocol (-O). Check Subsystem sftp in sshd_config." >&2
+  scp -O "${WIN_SSH_OPTS[@]}" -P "$WIN_PORT" "$@"
+}
 # ADR-014: every host reads user files from JMRI_UserFiles, not the profile folder.
 MAC_USERFILES="${HART_MAC_USERFILES:-$HOME/JMRI_UserFiles}"
 WIN_USERFILES_REMOTE='C:/Users/lnevo/JMRI_UserFiles'
@@ -66,14 +73,14 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   echo "Push → Windows $WIN_HOST $WIN_USERFILES_REMOTE"
   ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
     "mkdir AppData\\Local\\Temp\\hart-roster-stage\\roster 2>nul & mkdir \"C:\\Users\\lnevo\\JMRI_UserFiles\\roster\" 2>nul & echo ok"
-  scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
+  scp_win \
     "$STAGE/roster.xml" "${WIN_HOST}:AppData/Local/Temp/hart-roster-stage/roster.xml"
-  # scp -r of a dir ending in /. can send "." which OpenSSH rejects, so stream a tar.
-  # pack_roster_stage.sh writes relative names and skips macOS AppleDouble (._*) files.
+  # Stream a tar so the copy skips macOS AppleDouble (._*) files; pack_roster_stage.sh
+  # writes relative names.
   "$ROOT/tools/hosts/pack_roster_stage.sh" "$STAGE/roster" | \
     ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
       "tar -xf - -C AppData/Local/Temp/hart-roster-stage/roster"
-  scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
+  scp_win \
     "$ROOT/tools/hosts/win_install_roster.ps1" "${WIN_HOST}:AppData/Local/Temp/hart-roster-stage/win_install_roster.ps1"
   ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
     "powershell -NoProfile -ExecutionPolicy Bypass -File AppData/Local/Temp/hart-roster-stage/win_install_roster.ps1"

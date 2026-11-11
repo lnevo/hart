@@ -49,7 +49,13 @@ fi
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 ssh_pi() { ssh "${SSH_OPTS[@]}" "$PI_HOST" "$@"; }
 ssh_win() { ssh "${SSH_OPTS[@]}" -p "$WIN_PORT" "$WIN_HOST" "$@"; }
-scp_win() { scp -O "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@"; }
+# SFTP needs "Subsystem sftp" in the Windows sshd_config (OpenSSH 10.4); fall back to
+# the legacy scp protocol if a reinstall or reset has removed it.
+scp_win() {
+  scp "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@" 2>/dev/null && return 0
+  echo "scp over SFTP to Windows failed; retrying with the legacy protocol (-O). Check Subsystem sftp in sshd_config." >&2
+  scp -O "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@"
+}
 
 TABLES=""
 POLISH="$ROOT/jmri/layouts/hart/scripts/polish_hart_layout_editor.py"
