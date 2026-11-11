@@ -97,7 +97,7 @@ All West Yard Digicon lamps use Virtual Signal Heads + SignalHeadSignalMasts. Tw
 
 Every disc, OU board (including 12V motors / relays / spares), and G/Y/R port: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and-ou-boards).
 
-Princess east exits are **2-head** (main vs OS McKees Rocks/OS McKeesport). Balloon intermediates **Mast 2035** / **Mast 2036** (was 115R / 114R) stay **one-low** (Clear / Approach / Stop — Approach is yellow). All other Digicon **LAMP1** masts use `one-low` on Layout Editor (T6, OS S-R, OS 31, OS W-1/OS W-2, OS McKees Rocks/OS McKeesport). Packed IDs: Mast 2036 `IH1133` / Mast 2035 `IH1134`; east Princess dwarfs `IH1136` (40LA) on C11; west Princess `IH143` (38LA) on C1.
+Princess east exits are **2-head** (main vs OS McKees Rocks/OS McKeesport). Balloon intermediates **Mast 2035** / **Mast 2036** (was 115R / 114R) stay **one-low** (Clear / Approach / Stop — Approach is yellow). All other Digicon **LAMP1** masts use `one-low` on Layout Editor (T6, OS S-R, OS 31, OS W-1/OS W-2, OS McKees Rocks/OS McKeesport). Packed IDs: Mast 2036 `IH1133` / Mast 2035 `IH1134`; Princess dwarfs `IH1136` (Mast 40LB, K-1) on C11 and `IH143` (Mast 38LB, K-2) on C1.
 
 - Packing: `displayNode*100 + UID` (`UID = 32 + signal_index`) — see `mqtt_serial.h`
 - Appearances: stock Basic `two-searchlight` / `one-low`)

@@ -2,8 +2,8 @@
 """Generate the USS CTC track diagram from the CATS Digicon (v77).
 
 20 packed columns. Occupancy jewels bind to BS userNames. Brick column 1 is N/R,
-101 is L/N, 102 is L/N, 117 is LNR. Mast 2035 is named L but faces east (into
-the Track K-1 wrap) under Mast 2036. Lever number plates: odd on SWITCH,
+101 is L/N, 102 is L/N, 117 is LNR. Signal icons sit in the CATS desk's
+SECSIGNAL cells (Masts 2035/2036 on Track K-1). Lever number plates: odd on SWITCH,
 even on SIGNAL (same seats as the first 15-column machine). Every plant has an
 N/R switch lever (yard ladders default Local).
 
@@ -210,17 +210,19 @@ OS_FROG = {
     "OS Switch 37": (55, 7),
 }
 
-# (mast, cats_x, cats_y, facing, kind, IH* or None)
+# (mast, cats_x, cats_y, facing, kind, IH* or None). kind "h2" draws a mast
+# icon (two-head masts); "d1" draws a head icon on the mast's only head.
+# Cells and kinds follow the SECSIGNALs in the CATS desk (LAMP2 = h2).
 SIGNALS = [
     ("Mast 4RA", 6, 10, "E", "d1", "IH436"),
     ("Mast 4RB", 6, 9, "E", "d1", "IH437"),
     ("Mast 2L", 3, 8, "W", "h2", None),
     ("Mast 6LA", 10, 7, "W", "d1", "IH434"),
-    ("Mast 6LB", 10, 8, "W", "h2", None),
-    ("Mast 8RA", 14, 7, "E", "d1", "IH1332"),
+    ("Mast 6LB", 10, 8, "W", "d1", "IH432"),
+    ("Mast 8RA", 14, 7, "E", "h2", None),
     ("Mast 8RB", 14, 8, "E", "h2", None),
     ("Mast 8LB", 16, 7, "W", "d1", "IH1334"),
-    ("Mast 8LA", 16, 8, "W", "d1", "IH1337"),
+    ("Mast 8LA", 16, 8, "W", "h2", None),
     ("Mast 24RA", 39, 6, "E", "h2", None),
     ("Mast 24RB", 39, 7, "E", "d1", "IH234"),
     ("Mast 24L", 45, 6, "W", "h2", None),
@@ -229,13 +231,15 @@ SIGNALS = [
     ("Mast 34L", 45, 7, "W", "h2", None),
     ("Mast 36RA", 51, 6, "E", "h2", None),
     ("Mast 36RB", 51, 7, "E", "h2", None),
-    ("Mast 2036", 62, 6, "E", "d1", "IH1133"),
-    ("Mast 40LB", 56, 6, "W", "h2", None),
-    ("Mast 40LA", 56, 5, "W", "d1", "IH1132"),
-    ("Mast 38LB", 56, 7, "W", "h2", None),
-    ("Mast 38LA", 56, 8, "W", "d1", "IH139"),
-    # Mast 2035 is named L but faces east into the Track K-1 wrap (exception).
-    ("Mast 2035", 62, 7, "E", "d1", "IH1134"),
+    # Princess (ADR-017 item 9): two-head homes on the McKees Rocks / McKeesport
+    # mains (centre rows), dwarfs on K-1 / K-2 (outer rows), as on the CATS desk.
+    ("Mast 40LB", 56, 5, "W", "d1", "IH1136"),
+    ("Mast 40LA", 56, 6, "W", "h2", None),
+    ("Mast 38LA", 56, 7, "W", "h2", None),
+    ("Mast 38LB", 56, 8, "W", "d1", "IH143"),
+    # Balloon intermediates on Track K-1, east of 40LB, as on the CATS desk.
+    ("Mast 2035", 61, 5, "W", "d1", "IH1134"),
+    ("Mast 2036", 62, 5, "E", "d1", "IH1133"),
 ]
 
 # Packed 20: device-map plate (odd) west→east. Beans remain Switch 1–119.
@@ -967,7 +971,7 @@ def build_block(cells: dict) -> str:
 
 STRIP = [
     re.compile(r"\s*<turnouticon\b[^>]*>.*?</turnouticon>", re.S),
-    re.compile(r"\s*<sensoricon\b[^>]*sensor=\"Block [^\"]*\".*?</sensoricon>", re.S),
+    re.compile(r"\s*<sensoricon\b[^>]*sensor=\"(?:Block|BS) [^\"]*\".*?</sensoricon>", re.S),
     re.compile(
         r"\s*<positionablelabel\b[^>]*>\s*<icon url=\"(?:[^\"]*USS/(?:track/block|background)/|preference:ctc/icons/)[^\"]*\".*?</positionablelabel>",
         re.S,
@@ -1171,10 +1175,11 @@ def _set_sidi_lists(block: str, direction: str, ltr: list[str], rtl: list[str], 
 
 
 def patch_brick_sidi(text: str) -> str:
-    """Column 1 (100) codes from R; 101 codes from L — match the 2-position levers."""
+    """Switch 1 (UID 13, Mast 2L) codes from R; Switch 3 (UID 14, Masts 4RA/4RB)
+    codes from L, to match the 2-position levers."""
     specs = (
-        (13, "LEFT", [], ["Mast 4RA", "Mast 4RB"]),
-        (14, "RIGHT", ["Mast 2L"], []),
+        (13, "RIGHT", ["Mast 2L"], []),
+        (14, "LEFT", [], ["Mast 4RA", "Mast 4RB"]),
     )
     for uid, direction, ltr, rtl in specs:
         m = _ctc_uid_block(text, uid)

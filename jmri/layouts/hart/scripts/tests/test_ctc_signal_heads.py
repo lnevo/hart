@@ -1,4 +1,5 @@
-"""USS CTC head icons and the as-built remap must follow the heads in tables.xml."""
+"""USS CTC signal icons, the generator that draws them, and the as-built remap
+must follow the masts and heads in tables.xml and the CATS desk."""
 from __future__ import annotations
 
 import ast
@@ -13,6 +14,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[3]
 TABLES = SCRIPTS.parent / "output" / "tables.xml"
 GUI = SCRIPTS.parent / "ctc" / "GUIObjects.xml"
+CATS = ROOT / "cats/panels/HART_CTC.xml"
 WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
 REFRESH = ROOT / "docs/wiring/scripts/refresh_wiring_docs.py"
 
@@ -54,20 +56,80 @@ def load_remap():
     return ns["PANEL_TO_WIRING_IH"], ns["remap_panel_ih"]
 
 
+def signal_icons(path: Path) -> set[tuple[str, str, str, str]]:
+    text = path.read_text(encoding="utf-8")
+    pe = re.search(r"<paneleditor\b.*?</paneleditor>", text, re.S).group(0)
+    out = set()
+    for kind, name, x, y in re.findall(
+        r'<signal(mast|head)icon signal(?:mast|head)="([^"]+)" x="(\d+)" y="(\d+)"', pe
+    ):
+        out.add((kind, name, x, y))
+    return out
+
+
+def cats_signals() -> dict[str, tuple[int, int, str]]:
+    """Mast -> (x, y, kind) from the CATS desk; LAMP2 draws as h2, LAMP1 as d1."""
+    out = {}
+    for sec in ET.parse(CATS).getroot().find("TRACKPLAN").findall("SECTION"):
+        for sig in sec.iter("SECSIGNAL"):
+            lamp = sig.find("PANELSIGNAL").get("SIGPANTYPE")
+            kind = "h2" if lamp == "LAMP2" else "d1"
+            out[(sig.text or "").strip()] = (int(sec.get("X")), int(sec.get("Y")), kind)
+    return out
+
+
 class CtcSignalHeadsTest(unittest.TestCase):
-    def test_track_plan_icons_show_the_mast_top_head(self) -> None:
+    def test_icon_kind_follows_mast_head_count(self) -> None:
+        """d1 (head icon) only for one-head masts, on that head; h2 (mast icon) only for two-head masts."""
         masts = mast_heads()
         for mast, _x, _y, _facing, kind, head in gen.SIGNALS:
-            if head is None:
-                continue
             with self.subTest(mast=mast):
                 self.assertIn(mast, masts)
-                self.assertEqual(head, masts[mast][0])
+                heads = masts[mast]
+                if kind == "d1":
+                    self.assertEqual(len(heads), 1, "d1 drawn for a two-head mast")
+                    self.assertEqual(head, heads[0])
+                else:
+                    self.assertEqual(kind, "h2")
+                    self.assertEqual(len(heads), 2, "h2 drawn for a one-head mast")
+                    self.assertIsNone(head)
+
+    def test_icons_sit_in_the_cats_desk_cells(self) -> None:
+        cats = cats_signals()
+        self.assertEqual({s[0] for s in gen.SIGNALS}, set(cats))
+        for mast, x, y, _facing, kind, _head in gen.SIGNALS:
+            with self.subTest(mast=mast):
+                self.assertEqual((x, y, kind), cats[mast])
 
     def test_gui_objects_head_icons_match_tables(self) -> None:
         tables = head_icons(TABLES)
         gui = head_icons(GUI)
         self.assertEqual(gui, {i for i in tables if i[0] != "IH9990"})
+
+    def test_uss_signal_icons_match_generator(self) -> None:
+        """Both copies of the USS panel carry exactly the icons SIGNALS describes."""
+        want = set()
+        for mast, cx, cy, facing, kind, head in gen.SIGNALS:
+            stem_x = gen.ux(cx, cy) + (8 if facing == "E" else 2)
+            x, y = gen.signal_xy(stem_x, gen.bar_y(cy) + 2, facing, kind)
+            want.add(("mast", mast, str(x), str(y)) if kind == "h2" else ("head", head, str(x), str(y)))
+        self.assertEqual(signal_icons(GUI), want)
+        self.assertEqual(signal_icons(TABLES), want)
+
+
+class GeneratorTest(unittest.TestCase):
+    def test_apply_is_idempotent(self) -> None:
+        """A second regen strips what the first drew (occupancy jewels are BS sensors)."""
+        cells = gen.parse_cats(CATS)
+        text = GUI.read_text(encoding="utf-8")
+        once = gen.apply(text, cells)
+        self.assertEqual(gen.apply(once, cells), once)
+        self.assertEqual(once.count('<sensoricon sensor="BS Barn"'), 1)
+
+    def test_brick_sidi_patch_keeps_tables(self) -> None:
+        """Switch 1 (Mast 2L) codes from R and Switch 3 (4RA/4RB) from L, as stored."""
+        text = TABLES.read_text(encoding="utf-8")
+        self.assertEqual(gen.patch_brick_sidi(text), text)
 
 
 class AsBuiltRemapTest(unittest.TestCase):
