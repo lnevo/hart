@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import time
+import xml.etree.ElementTree as ET
 import urllib.request
 from pathlib import Path
 
@@ -20,6 +22,9 @@ HOST = "minipc-e5h6x.local"
 PUB = "/opt/local/bin/mosquitto_pub"
 SUB = "/opt/local/bin/mosquitto_sub"
 OUT = Path(__file__).resolve().parent
+ROOT = OUT.parents[2]
+sys.path.insert(0, str(ROOT / "tools" / "audit"))
+from check_wiring_crosswalk import path_tables_xml, read_tables  # noqa: E402
 SETTLE = 4.5
 
 # switch -> (turnout MQTT addr, FB-normal sensor, FB-reverse sensor); None = DIRECT
@@ -136,6 +141,15 @@ MAST_HEADS = {
     "Mast 40LB": ("IH1136",),
     "Mast 38LB": ("IH143",),
 }
+
+
+
+def load_mast_heads(tables: Path | None = None) -> dict[str, tuple[str, ...]]:
+    """Mast userName -> head system names, from the IF$shsm mast system names in tables.xml."""
+    root = ET.parse(tables or path_tables_xml()).getroot()
+    _comments, masts, _bad = read_tables(root)
+    return {mast: tuple(heads) for mast, heads in masts.items()}
+
 
 STOP_HEAD = {"Red", "Dark", "Held", None, ""}
 

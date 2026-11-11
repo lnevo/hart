@@ -38,6 +38,10 @@ class NativeSmlQaTest(unittest.TestCase):
         for mast, heads in self.qa.MAST_HEADS.items():
             self.assertEqual(masts.get(mast), heads, mast)
 
+    def test_loaded_heads_equal_the_hand_table(self) -> None:
+        self.assertEqual(self.qa.load_mast_heads(TABLES), self.qa.MAST_HEADS)
+        self.assertEqual(self.qa.load_mast_heads(TABLES)["Mast 6LB"], ("IH432",))
+
     def test_expected_mast_names_exist(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
         named = set(re.findall(r'"(Mast \w+)"', source))
