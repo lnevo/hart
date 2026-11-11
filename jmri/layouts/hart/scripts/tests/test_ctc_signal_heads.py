@@ -139,6 +139,61 @@ class CtcSignalHeadsTest(unittest.TestCase):
         self.assertEqual(signal_icons(TABLES), want)
 
 
+def uss_panel(path: Path) -> str:
+    return re.search(r"<paneleditor\b.*?</paneleditor>", path.read_text(encoding="utf-8"), re.S).group(0)
+
+
+def track_lamps(pe: str) -> list[tuple[str, tuple[int, int, int, int], int]]:
+    """Every sensor icon on the track diagram (above the lever machine), any name."""
+    out = []
+    for name, x, y, level in re.findall(
+        r'<sensoricon sensor="([^"]+)" x="(-?\d+)" y="(-?\d+)" level="(\d+)"', pe
+    ):
+        if int(y) < gen.OS_Y - 5:
+            out.append((name, (int(x), int(y), gen.JEWEL, gen.JEWEL), int(level)))
+    return out
+
+
+class SignalVisibilityTest(unittest.TestCase):
+    def test_every_signal_icon_is_visible(self) -> None:
+        """No lamp drawn at or above a signal's level covers it, in either panel copy."""
+        for path in (GUI, TABLES):
+            pe = uss_panel(path)
+            levels = [int(v) for v in re.findall(r'<signal(?:mast|head)icon [^>]*level="(\d+)"', pe)]
+            self.assertEqual(len(levels), len(gen.SIGNALS), path.name)
+            for sensor, rect, level in track_lamps(pe):
+                for sig in gen.signal_rects():
+                    if gen._overlaps(rect, sig):
+                        with self.subTest(panel=path.name, sensor=sensor, signal=sig):
+                            self.assertLess(level, min(levels))
+
+    def test_jewels_clear_the_points(self) -> None:
+        # Neighbouring jewels may touch (the +-6 px OS nudge); points icons stay clear.
+        points = gen.points_rects()
+        for name, rect, _level in track_lamps(uss_panel(GUI)):
+            for pt in points:
+                with self.subTest(jewel=name, points=pt):
+                    self.assertFalse(gen._overlaps(rect, pt))
+
+    def test_only_the_tight_plants_keep_a_signal_over_a_jewel(self) -> None:
+        """Where an OS has room, the placer clears the signal; these three have none."""
+        covered = set()
+        for sensor, rect, _level in track_lamps(uss_panel(GUI)):
+            if any(gen._overlaps(rect, s) for s in gen.signal_rects()):
+                covered.add(sensor)
+        self.assertEqual(covered, {"BS Switch 7", "BS Switch 23a", "BS Switch 33"})
+
+    def test_icon_sizes_match_the_images(self) -> None:
+        raw = (SCRIPTS.parent / "ctc/icons/sig-d1-stop.gif").read_bytes()
+        head = (int.from_bytes(raw[6:8], "little"), int.from_bytes(raw[8:10], "little"))
+        self.assertEqual(head, gen.HEAD_ICON)
+        raw = (SCRIPTS.parent / "ctc/icons/pts-closed.gif").read_bytes()
+        self.assertEqual((raw[6], raw[8]), gen.POINTS_ICON)
+        # Basic two-searchlight images are 12x40 (JMRI AAR-1946 SL-2-high-abs) at the MAST scale.
+        scale = float(re.search(r'scale="([\d.]+)"', gen.MAST).group(1))
+        self.assertEqual(gen.MAST_ICON, (round(12 * scale), round(40 * scale)))
+
+
 class GeneratorTest(unittest.TestCase):
     def test_apply_is_idempotent(self) -> None:
         """A second regen strips what the first drew (occupancy jewels are BS sensors)."""
