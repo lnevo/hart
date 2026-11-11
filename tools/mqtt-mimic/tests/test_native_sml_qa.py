@@ -38,9 +38,10 @@ class NativeSmlQaTest(unittest.TestCase):
         for mast, heads in self.qa.MAST_HEADS.items():
             self.assertEqual(masts.get(mast), heads, mast)
 
-    def test_loaded_heads_equal_the_hand_table(self) -> None:
+    def test_heads_come_from_tables(self) -> None:
         self.assertEqual(self.qa.load_mast_heads(TABLES), self.qa.MAST_HEADS)
-        self.assertEqual(self.qa.load_mast_heads(TABLES)["Mast 6LB"], ("IH432",))
+        self.assertEqual(self.qa.MAST_HEADS["Mast 6LB"], ("IH432",))
+        self.assertEqual(self.qa.MAST_HEADS["Mast 40LA"], ("IH1132", "IH1135"))
 
     def test_expected_mast_names_exist(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")

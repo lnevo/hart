@@ -114,41 +114,17 @@ LIVE_MASTS = {
     "Mast 36RA", "Mast 36RB", "Mast 2036", "Mast 2035", "Mast 38LA", "Mast 38LB", "Mast 40LA", "Mast 40LB",
 }
 
-# Mast userName -> head system names (signal_wiring.csv). MQTT appearance must
-# match JMRI JSON for CATS ABS HOLD_ONLY paint.
-MAST_HEADS = {
-    "Mast 6LB": ("IH432",),  # interim one-low dwarf; IH433 not wired yet
-    "Mast 6LA": ("IH434",),
-    "Mast 4RA": ("IH436",),
-    "Mast 4RB": ("IH437",),
-    "Mast 2L": ("IH438", "IH439"),
-    "Mast 8RA": ("IH1332", "IH1333"),
-    "Mast 8LB": ("IH1334",),
-    "Mast 8RB": ("IH1335", "IH1336"),
-    "Mast 8LA": ("IH1337", "IH1338"),
-    "Mast 24RA": ("IH232", "IH238"),
-    "Mast 24L": ("IH233", "IH239"),
-    "Mast 24RB": ("IH234",),
-    "Mast 34L": ("IH1232", "IH1233"),
-    "Mast 32R": ("IH1234",),
-    "Mast 34R": ("IH1235", "IH1236"),
-    "Mast 40LA": ("IH1132", "IH1135"),
-    "Mast 2036": ("IH1133",),
-    "Mast 36RA": ("IH135", "IH136"),
-    "Mast 36RB": ("IH132", "IH133"),
-    "Mast 38LA": ("IH139", "IH140"),
-    "Mast 2035": ("IH1134",),
-    "Mast 40LB": ("IH1136",),
-    "Mast 38LB": ("IH143",),
-}
-
-
 
 def load_mast_heads(tables: Path | None = None) -> dict[str, tuple[str, ...]]:
     """Mast userName -> head system names, from the IF$shsm mast system names in tables.xml."""
     root = ET.parse(tables or path_tables_xml()).getroot()
     _comments, masts, _bad = read_tables(root)
     return {mast: tuple(heads) for mast, heads in masts.items()}
+
+
+# Mast userName -> head system names. MQTT appearance must match JMRI JSON for
+# CATS ABS HOLD_ONLY paint. Mast 6LB reads ("IH432",) while it is a one-low dwarf.
+MAST_HEADS = load_mast_heads()
 
 
 STOP_HEAD = {"Red", "Dark", "Held", None, ""}
