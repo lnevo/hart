@@ -85,7 +85,7 @@ if "%JMRI_PROFILE%"=="" (
   pause & exit /b 1
 )
 
-REM Ensure MQTT points at Pi 192.168.137.2 (avoids multi-minute hang)
+REM Ensure MQTT points at the Pi broker 10.0.0.150 (avoids multi-minute hang)
 if exist "%PATCHMQTT%" powershell -NoProfile -ExecutionPolicy Bypass -File "%PATCHMQTT%"
 
 cd /d "%JMRI_HOME%"

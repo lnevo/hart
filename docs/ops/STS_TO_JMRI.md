@@ -17,7 +17,7 @@ is refreshed from it (ADR-016).
 ## Settings
 
 **Send Cars to JMRI → Settings** holds everything that is particular to HART:
-the JMRI address (`http://minipc-e5h6x.local:12080` for the Pi) and which JMRI
+the JMRI address (`http://10.0.0.150:12080` for the Pi) and which JMRI
 location, track and load each STS location, station and commodity stands for.
 **Test connection and load JMRI names** offers JMRI's own names as you type, and
 **Check names against JMRI** marks any that JMRI does not have. Save when done.

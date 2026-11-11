@@ -11,7 +11,7 @@
 # Usage: ./cats/scripts/sync_hart_package.sh [--pi] [--win] [--all] [--dry-run]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-WIN_HOST="${HART_WIN_SSH:-lnevo@10.0.0.6}"
+WIN_HOST="${HART_WIN_SSH:-lnevo@minipc-e5h6x.local}"
 WIN_PORT="${HART_WIN_SSH_PORT:-2222}"
 PI_HOST="${HART_PI_SSH:-pi}"
 PI_USERFILES="${HART_PI_USERFILES:-/home/pi/JMRI_UserFiles}"

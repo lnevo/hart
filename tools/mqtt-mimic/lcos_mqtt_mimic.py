@@ -10,7 +10,7 @@ Never publishes track/cmd/turnout (that commands motors). TWOSENSOR plants
 also flip FB N/R sensors so JMRI KnownState follows feedback.
 
   python3 tools/mqtt-mimic/lcos_mqtt_mimic.py
-  python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --mqtt-host 192.168.137.2 --http-port 8765
+  python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --mqtt-host 10.0.0.150 --http-port 8765
   ./tools/mqtt-mimic/install_mimic_launchagent.sh   # stay-up LaunchAgent (survives Cursor quit)
 """
 
@@ -98,7 +98,7 @@ def _probe(host: str) -> bool:
 def pick_mqtt_host(explicit: str | None) -> str:
     env = (os.environ.get("MQTT_HOST") or os.environ.get("HART_MQTT_HOST") or "").strip()
     hosts = []
-    for h in (explicit, env, "192.168.137.2", "minipc-e5h6x.local", "127.0.0.1"):
+    for h in (explicit, env, "10.0.0.150", "127.0.0.1"):
         if h and h not in hosts:
             hosts.append(h)
     for h in hosts:

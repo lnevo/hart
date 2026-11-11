@@ -1,12 +1,13 @@
 # Live status
 
-Updated 2026-11-10. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
+Updated 2026-11-11. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Current state
 
 - **Layout:** `hart`. Masts are stock Basic (ADR-011). The repo's `jmri/layouts/hart/output/tables.xml` is the master (ADR-008). Every host loads `preference:tables.xml` from `JMRI_UserFiles` (ADR-014).
 - **JMRI:** production 5.16 on the Mac, Pi and Windows, the newest CATS 3.2 supports. Do not go past 5.16 until the CATS downloads page does.
 - **Stock distributions:** JMRI 5.16 and CATS 3.2 run unpatched on all three hosts since 2026-10-31, under monitoring. If something breaks, compensate around them rather than changing them. JMRI Simple Server (port 2048) starts with each profile so CATS finds its operations server. The Pi profile's ignored old 2-9-6 `<startup>` block was removed on 2026-11-10 (backup `profile.xml.bak_old_startup_20261110`).
+- **Network (2026-11-11):** the Pi (`RPi-JMRI`, 10.0.0.150) is on the home LAN directly; it no longer goes through the Windows mini PC's connection sharing (192.168.137.x is retired). Mosquitto runs on the Pi: the Pi profile uses `127.0.0.1`, while Windows, the Mac and the LCOS bridge use `10.0.0.150`. Windows (`MINIPC-E5H6X`) is at `minipc-e5h6x.local` (10.0.0.28), SSH port 2222; that name is the Windows box, not the broker.
 - **MQTT startup race:** Expect `ConcurrentModificationException` with `Can't subscribe` at startup: a JMRI race that drops the broker for a few seconds, then reconnects and resubscribes on its own (seen on the Mac 2026-10-31, on the Pi 2026-09-06). Retained messages alone trigger it, with no HART scripts running. Worry only if `Succeeded to reconnect` does not follow.
 - **CATS load risk:** a turnout report during panel load can raise `NullPointerException ... requestLockClear` and kill the CATS event thread, freezing occupancy and turnout control. Do not move turnouts while CATS starts. If that error appears or occupancy stops updating, restart CATS. After CATS starts, use Appearance → Refresh Screen. Never use Refresh Layout: it can move points to a stale route.
 - **Counts:** 47 masts (23 real, 24 virtual), 105 sections, 777 transits, 39 NX pairs, 40 SML sources with 100 destinations, 1,554 traininfo files.

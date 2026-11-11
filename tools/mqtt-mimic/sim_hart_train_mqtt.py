@@ -38,7 +38,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PANEL = ROOT / "cats" / "panels" / "HART_CTC.xml"
 HART_PROD = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 
-DEFAULT_HOST = "minipc-e5h6x.local"
+DEFAULT_HOST = "10.0.0.150"
 DEFAULT_PORT = 1883
 
 # CATS TRAINREPORTER / JMRI MQTT reporter (track/reporter/{addr}).

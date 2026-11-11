@@ -20,7 +20,7 @@ STS            (no MQTT — separate HTTP stack)
 
 
 ```bash
-HART_MQTT_BROKER=minipc-e5h6x.local   # or 192.168.x.x
+HART_MQTT_BROKER=10.0.0.150   # Mosquitto on the Pi; the Pi itself uses 127.0.0.1
 HART_MQTT_PORT=1883
 ```
 
@@ -44,4 +44,4 @@ Smoke test: [`wiki/pipelines/mqtt-mimic.md`](../../../../wiki/pipelines/mqtt-mim
 
 ## Not bundled
 
-We do not ship Mosquitto binaries in git. Install on the layout mini PC / Pi per OS docs; record hostnames in `hosts.env`.
+We do not ship Mosquitto binaries in git. Mosquitto runs on the Pi; install per OS docs; record hostnames in `hosts.env`.

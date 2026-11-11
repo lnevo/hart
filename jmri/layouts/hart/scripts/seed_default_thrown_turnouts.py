@@ -27,8 +27,8 @@ import sys
 import urllib.error
 import urllib.request
 
-JMRI_JSON = os.environ.get("JMRI_JSON", "http://minipc-e5h6x.local:12080/json")
-MQTT_HOST = os.environ.get("MQTT_HOST", "minipc-e5h6x.local")
+JMRI_JSON = os.environ.get("JMRI_JSON", "http://10.0.0.150:12080/json")
+MQTT_HOST = os.environ.get("MQTT_HOST", "10.0.0.150")
 
 # THROWN retain keeps Digicon throw-frog rest tips for inverted Switch 33/37/39 + Brick Switch 1.
 # Keys are CTC plant numbers (userName "Switch N"), values are MQTT packed addrs.
