@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
-"""Read-only wiring crosswalk: signal_wiring vs deploy IH beans.
+"""Signal heads in tables.xml must follow the wiring plan.
 
-Uses docs/wiring/packed_id_crosswalk.csv for mast-aware remap
-(node×100 packed IDs and stale helix rows → live IH). Falls back to naive
-packed↔IH compare only if crosswalk is missing.
+The IH number of a head is its MQTT topic (track/signalhead/<packed>), and the
+wiring rule is packed = cabinet radio address x 100 + slot
+(docs/wiring/README.md). docs/wiring/signals/signal_wiring.csv holds that
+number for every head as system_name. This check fails when:
+
+- a physical mast (a SignalHeadSignalMast named in signal_wiring.csv) carries
+  a head other than its planned head, in planned order (top, bottom);
+- a SignalHeadSignalMast in tables.xml is not in the wiring plan;
+- a wired mast is missing from tables.xml;
+- a wired head is not defined, or is on no mast;
+- a wired head's comment disagrees with its node, signal and port list;
+- a wiring row's system_name, packed (node x 100 + uid) and topic disagree.
+
+Hidden virtual masts (IF$vsm) carry no wiring and are not checked.
+Mast 6LB is an interim one-low dwarf on its top head (IH432) until the bottom
+head is wired; its bottom head IH433 stays defined and on no mast.
 """
 from __future__ import annotations
 
@@ -16,138 +29,172 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
 
-from hart_paths import hart_runtime_root, path_signal_wiring, path_tables_xml
+from hart_paths import path_signal_wiring, path_tables_xml  # noqa: E402
 
-WIRING = path_signal_wiring()
-TABLES = path_tables_xml()
-CROSSWALK = ROOT / "docs/wiring/packed_id_crosswalk.csv"
-HART_ROOT = hart_runtime_root()
+# Masts that may show only their first planned heads for now.
+INTERIM_PREFIX_MASTS = {"Mast 6LB"}
 
-
-def text(el: ET.Element | None, child: str) -> str:
-    if el is None:
-        return ""
-    v = el.findtext(child)
-    return v.strip() if v else ""
+ROLE_ORDER = {"T": 0, "S": 0, "B": 1}
+SHSM_RE = re.compile(r"^IF\$shsm:[^:]+:[^(]+((?:\(IH\d+\))+)$")
 
 
-def packed_ids_from_wiring() -> set[str]:
-    ids: set[str] = set()
-    if not WIRING.is_file():
-        return ids
-    with WIRING.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            packed = (row.get("packed") or "").strip()
-            if packed.isdigit():
-                ids.add(packed)
-    return ids
+class WiringError(ValueError):
+    """signal_wiring.csv contradicts itself."""
 
 
-def ih_packed_from_tables(tree: ET.ElementTree) -> set[str]:
-    ids: set[str] = set()
-    for head in tree.getroot().iter("signalhead"):
-        sn = text(head, "systemName") or (head.get("systemName") or "")
-        m = re.match(r"IH(\d+)", sn)
-        if m:
-            ids.add(m.group(1))
-    return ids
+def row_problems(r: dict[str, str]) -> list[str]:
+    """A wiring row's IH number, packed number, node, UID and topic must agree."""
+    port = (r.get("port_id") or "?").strip()
+    name = (r.get("system_name") or "").strip()
+    packed = (r.get("packed") or "").strip()
+    node = (r.get("mqtt_node") or "").strip()
+    uid = (r.get("uid") or "").strip()
+    topic = (r.get("topic") or "").strip()
+    out: list[str] = []
+    if not (r.get("mast_user_name") or "").strip():
+        out.append(f"{port}: no mast_user_name")
+    if (r.get("head_role") or "").strip() not in ROLE_ORDER:
+        out.append(f"{port}: head_role {r.get('head_role')!r} is not T, B or S")
+    if name != f"IH{packed}":
+        out.append(f"{port}: system_name {name} but packed {packed}")
+    if node.isdigit() and uid.isdigit() and packed.isdigit():
+        if int(packed) != int(node) * 100 + int(uid):
+            out.append(f"{port}: packed {packed} is not node {node} x 100 + uid {uid}")
+    else:
+        out.append(f"{port}: node {node!r}, uid {uid!r}, packed {packed!r} must be numbers")
+    if "topic" in r and topic != f"track/signalhead/{packed}":
+        out.append(f"{port}: topic {topic} but packed {packed}")
+    return out
 
 
-def load_crosswalk() -> list[dict[str, str]]:
-    if not CROSSWALK.is_file():
-        return []
-    with CROSSWALK.open(newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
-def validate_mast_aware(wiring_ids: set[str], bean_ids: set[str], rows: list[dict[str, str]]) -> int:
-    by_packed = {(r.get("wiring_packed") or "").strip(): r for r in rows}
-    missing_crosswalk = sorted(wiring_ids - set(by_packed))
-    if missing_crosswalk:
-        print(f"FAIL: {len(missing_crosswalk)} wiring packed IDs not in crosswalk")
-        for pid in missing_crosswalk[:8]:
-            print(f"  - {pid}")
-        return 1
-
-    unmapped = [r for r in rows if not (r.get("live_ih") or "").strip()]
-    if unmapped:
-        print(f"FAIL: {len(unmapped)} crosswalk rows without live_ih")
-        return 1
-
-    missing_beans: list[str] = []
-    resolved: set[str] = set()
+def load_wiring(rows: list[dict[str, str]]) -> dict[str, dict]:
+    """Wired head system name -> mast, role, comment parts."""
+    bad = [p for r in rows for p in row_problems(r)]
+    if bad:
+        raise WiringError("; ".join(bad))
+    heads: dict[str, dict] = {}
     for r in rows:
-        live = (r.get("live_ih") or "").strip()
-        packed = (r.get("wiring_packed") or "").strip()
-        status = (r.get("status") or "").strip()
-        resolved.add(live)
-        if live not in bean_ids:
-            missing_beans.append(f"{packed}→{live} ({status}, {r.get('wiring_mast')})")
-
-    collisions = [r for r in rows if (r.get("status") or "") == "collision"]
-    remaps = [r for r in rows if (r.get("status") or "") == "remap"]
-
-    print(f"Crosswalk rows: {len(rows)} (remap={len(remaps)}, collision={len(collisions)})")
-    print(f"Resolved live IH from wiring: {len(resolved)}")
-    print(f"Deploy IH beans: {len(bean_ids)}")
-
-    if missing_beans:
-        print(f"FAIL: {len(missing_beans)} resolved IH not in deploy tables:")
-        for item in missing_beans[:8]:
-            print(f"  - {item}")
-        return 1
-
-    extra_beans = sorted(bean_ids - resolved)
-    if extra_beans:
-        print(f"INFO: {len(extra_beans)} deploy IH not referenced by wiring crosswalk (OK if virtual/extra heads)")
-
-    covered = len(resolved & bean_ids)
-    ratio = covered / len(resolved) if resolved else 1.0
-    print(f"Mast-aware overlap: {covered}/{len(resolved)} ({ratio:.0%})")
-    if ratio < 0.95:
-        print("FAIL: mast-aware overlap below 95%")
-        return 1
-
-    print("OK: wiring crosswalk (mast-aware)")
-    return 0
+        name = r["system_name"].strip()
+        h = heads.setdefault(
+            name,
+            {
+                "mast": r["mast_user_name"].strip(),
+                "role": r["head_role"].strip(),
+                "node": r["mqtt_node"].strip(),
+                "signals": set(),
+                "ports": [],
+            },
+        )
+        if h["mast"] != r["mast_user_name"].strip():
+            raise WiringError(f"{name} is wired to two masts")
+        h["signals"].add(r["signal_index"].strip())
+        h["ports"].append(r["port_id"].strip())
+    return heads
 
 
-def validate_naive(wiring_ids: set[str], bean_ids: set[str]) -> int:
-    missing_beans = sorted(wiring_ids - bean_ids)
-    extra_beans = sorted(bean_ids - wiring_ids)
-    if missing_beans:
-        print(f"INFO: {len(missing_beans)} wiring IDs without IH (first 5): {missing_beans[:5]}")
-    if extra_beans:
-        print(f"INFO: {len(extra_beans)} IH not in wiring CSV (first 5): {extra_beans[:5]}")
-    overlap = wiring_ids & bean_ids
-    ratio = len(overlap) / len(wiring_ids) if wiring_ids else 1.0
-    print(f"Naive overlap: {len(overlap)}/{len(wiring_ids)} ({ratio:.0%})")
-    if ratio < 0.5:
-        print("FAIL: naive crosswalk overlap below 50%")
-        return 1
-    print("OK: wiring crosswalk (naive — regenerate crosswalk CSV)")
-    return 0
+def expected_comment(head: dict) -> str:
+    groups: list[tuple[str, list[str]]] = []
+    for port_id in head["ports"]:
+        _cab, ou, port = port_id.split("-")
+        ou = ou.removeprefix("OU")
+        if groups and groups[-1][0] == ou:
+            groups[-1][1].append(port)
+        else:
+            groups.append((ou, [port]))
+    signals = ",".join(sorted(head["signals"], key=int))
+    ous = " | ".join(f"OU: {ou} Ports: {','.join(p)}" for ou, p in groups)
+    return f"Node: {head['node']} Signal: {signals} | {ous}"
+
+
+def planned_masts(heads: dict[str, dict]) -> dict[str, list[str]]:
+    masts: dict[str, list[tuple[int, str]]] = {}
+    for name, h in heads.items():
+        masts.setdefault(h["mast"], []).append((ROLE_ORDER[h["role"]], name))
+    return {m: [n for _o, n in sorted(v)] for m, v in masts.items()}
+
+
+def read_tables(
+    root: ET.Element,
+) -> tuple[dict[str, str], dict[str, list[str]], list[str]]:
+    """(head system name -> comment, head mast userName -> head names, problems)."""
+    head_comments: dict[str, str] = {}
+    for el in root.iter("signalhead"):
+        sn = (el.findtext("systemName") or "").strip()
+        if sn:
+            head_comments[sn] = (el.findtext("comment") or "").strip()
+    masts: dict[str, list[str]] = {}
+    bad: list[str] = []
+    for el in root.iter("signalmast"):
+        sn = (el.findtext("systemName") or "").strip()
+        if not sn.startswith("IF$shsm:"):
+            continue
+        user = (el.findtext("userName") or "").strip() or sn
+        m = SHSM_RE.match(sn)
+        if not m:
+            bad.append(f"{user}: head mast {sn} does not name its heads by IH number")
+            continue
+        if user in masts:
+            bad.append(f"{user}: two head masts share this userName")
+            continue
+        masts[user] = re.findall(r"IH\d+", m.group(1))
+    return head_comments, masts, bad
+
+
+def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list[str]:
+    heads = load_wiring(wiring_rows)
+    plan = planned_masts(heads)
+    head_comments, masts, out = read_tables(tables_root)
+
+    for mast, want in sorted(plan.items()):
+        have = masts.get(mast)
+        if have is None:
+            out.append(f"{mast}: wired mast missing from tables.xml")
+            continue
+        ok = have == want or (
+            mast in INTERIM_PREFIX_MASTS and have and have == want[: len(have)]
+        )
+        if not ok:
+            out.append(f"{mast}: heads {' '.join(have)}, wiring plan {' '.join(want)}")
+
+    for mast in sorted(set(masts) - set(plan)):
+        out.append(f"{mast}: head mast {' '.join(masts[mast])} is not in signal_wiring.csv")
+
+    on_mast = {h for hs in masts.values() for h in hs}
+    for name, h in sorted(heads.items()):
+        if name not in head_comments:
+            out.append(f"{name} ({h['mast']} {h['role']}): wired head not defined in tables.xml")
+            continue
+        interim_off = h["mast"] in INTERIM_PREFIX_MASTS and h["role"] == "B"
+        if name not in on_mast and not interim_off:
+            out.append(f"{name} ({h['mast']} {h['role']}): wired head is on no mast")
+        want = expected_comment(h)
+        if head_comments[name] != want:
+            out.append(f"{name}: comment {head_comments[name]!r}, wiring {want!r}")
+    return out
 
 
 def main() -> int:
-    if not TABLES.is_file():
-        print(f"MISSING: {TABLES}", file=sys.stderr)
-        return 2
-
-    tree = ET.parse(TABLES)
-    wiring_ids = packed_ids_from_wiring()
-    bean_ids = ih_packed_from_tables(tree)
-
-    print(f"Packed IDs from signal_wiring.csv: {len(wiring_ids)}")
-    print(f"IH IDs from deploy tables: {len(bean_ids)}")
-    print()
-
-    crosswalk = load_crosswalk()
-    if crosswalk:
-        return validate_mast_aware(wiring_ids, bean_ids, crosswalk)
-
-    print(f"WARN: missing {CROSSWALK.relative_to(ROOT)} — run build_wiring_crosswalk.py")
-    return validate_naive(wiring_ids, bean_ids)
+    wiring = path_signal_wiring()
+    tables = path_tables_xml()
+    for p in (wiring, tables):
+        if not p.is_file():
+            print(f"MISSING: {p}", file=sys.stderr)
+            return 2
+    with wiring.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    try:
+        found = problems(rows, ET.parse(tables).getroot())
+    except WiringError as e:
+        print(f"FAIL: signal_wiring.csv: {e}")
+        return 1
+    n_heads = len(load_wiring(rows))
+    if found:
+        print(f"FAIL: {len(found)} signal head(s) disagree with signal_wiring.csv")
+        for line in found:
+            print(f"  - {line}")
+        return 1
+    print(f"OK: {n_heads} wired heads match tables.xml (IH number, mast, comment)")
+    return 0
 
 
 if __name__ == "__main__":

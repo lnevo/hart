@@ -3258,17 +3258,17 @@
   </memories>
   <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml">
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH132</systemName>
+      <systemName>IH1132</systemName>
       <userName>Head 40LA Top</userName>
       <comment>Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH133</systemName>
+      <systemName>IH1135</systemName>
       <userName>Head 40LA Bottom</userName>
       <comment>Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH134</systemName>
+      <systemName>IH1133</systemName>
       <userName>Head 2036</userName>
       <comment>Node: 11 Signal: 1 | OU: 3 Ports: 4,5,6</comment>
     </signalhead>
@@ -3283,12 +3283,12 @@
       <comment>Node: 1 Signal: 4 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH137</systemName>
+      <systemName>IH132</systemName>
       <userName>Head 36RB Top</userName>
       <comment>Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH138</systemName>
+      <systemName>IH133</systemName>
       <userName>Head 36RB Bottom</userName>
       <comment>Node: 1 Signal: 1 | OU: 3 Ports: 4,5,6</comment>
     </signalhead>
@@ -3303,12 +3303,12 @@
       <comment>Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH141</systemName>
+      <systemName>IH1134</systemName>
       <userName>Head 2035</userName>
       <comment>Node: 11 Signal: 2 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH142</systemName>
+      <systemName>IH1136</systemName>
       <userName>Head 40LB</userName>
       <comment>Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3</comment>
     </signalhead>
@@ -3353,52 +3353,52 @@
       <comment>Node: 4 Signal: 7 | OU: 3 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1232</systemName>
+      <systemName>IH232</systemName>
       <userName>Head 24RA Top</userName>
       <comment>Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1233</systemName>
+      <systemName>IH238</systemName>
       <userName>Head 24RA Bottom</userName>
       <comment>Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1234</systemName>
+      <systemName>IH233</systemName>
       <userName>Head 24L Top</userName>
       <comment>Node: 2 Signal: 1 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1235</systemName>
+      <systemName>IH239</systemName>
       <userName>Head 24L Bottom</userName>
       <comment>Node: 2 Signal: 7 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1236</systemName>
+      <systemName>IH234</systemName>
       <userName>Head 24RB</userName>
       <comment>Node: 2 Signal: 2 | OU: 3 Ports: 6,7,8</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1237</systemName>
+      <systemName>IH1232</systemName>
       <userName>Head 34L Top</userName>
       <comment>Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1238</systemName>
+      <systemName>IH1233</systemName>
       <userName>Head 34L Bottom</userName>
       <comment>Node: 12 Signal: 1 | OU: 2 Ports: 4,5,6</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1239</systemName>
+      <systemName>IH1234</systemName>
       <userName>Head 32R</userName>
       <comment>Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1240</systemName>
+      <systemName>IH1235</systemName>
       <userName>Head 34R Top</userName>
       <comment>Node: 12 Signal: 3 | OU: 3 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH1241</systemName>
+      <systemName>IH1236</systemName>
       <userName>Head 34R Bottom</userName>
       <comment>Node: 12 Signal: 4 | OU: 3 Ports: 4,5,6</comment>
     </signalhead>
@@ -3445,7 +3445,7 @@
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-low(IH134)</systemName>
+      <systemName>IF$shsm:basic:one-low(IH1133)</systemName>
       <userName>Mast 2036</userName>
       <comment>Princess</comment>
       <properties>
@@ -3457,7 +3457,7 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-low(IH141)</systemName>
+      <systemName>IF$shsm:basic:one-low(IH1134)</systemName>
       <userName>Mast 2035</userName>
       <comment>Princess</comment>
       <properties>
@@ -3469,7 +3469,7 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-low(IH142)</systemName>
+      <systemName>IF$shsm:basic:one-low(IH1136)</systemName>
       <userName>Mast 40LB</userName>
       <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
@@ -3505,13 +3505,13 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-low(IH1236)</systemName>
+      <systemName>IF$shsm:basic:one-low(IH234)</systemName>
       <userName>Mast 24RB</userName>
       <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-low(IH1239)</systemName>
+      <systemName>IF$shsm:basic:one-low(IH1234)</systemName>
       <userName>Mast 32R</userName>
       <comment>East End | Switch 31</comment>
       <unlit allowed="no" />
@@ -3523,7 +3523,7 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH132)(IH133)</systemName>
+      <systemName>IF$shsm:basic:two-searchlight(IH1132)(IH1135)</systemName>
       <userName>Mast 40LA</userName>
       <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
@@ -3535,7 +3535,7 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH137)(IH138)</systemName>
+      <systemName>IF$shsm:basic:two-searchlight(IH132)(IH133)</systemName>
       <userName>Mast 36RB</userName>
       <comment>Princess | Switch 35</comment>
       <unlit allowed="no" />
@@ -3553,25 +3553,25 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH1232)(IH1233)</systemName>
+      <systemName>IF$shsm:basic:two-searchlight(IH232)(IH238)</systemName>
       <userName>Mast 24RA</userName>
       <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH1234)(IH1235)</systemName>
+      <systemName>IF$shsm:basic:two-searchlight(IH233)(IH239)</systemName>
       <userName>Mast 24L</userName>
       <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH1237)(IH1238)</systemName>
+      <systemName>IF$shsm:basic:two-searchlight(IH1232)(IH1233)</systemName>
       <userName>Mast 34L</userName>
       <comment>East End | Switch 33</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH1240)(IH1241)</systemName>
+      <systemName>IF$shsm:basic:two-searchlight(IH1235)(IH1236)</systemName>
       <userName>Mast 34R</userName>
       <comment>East End | Switch 33</comment>
       <unlit allowed="no" />
@@ -24554,7 +24554,7 @@
     <signalmasticon signalmast="Mast 24RA" x="751" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 24RA</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH1236" x="751" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH234" x="751" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 24RB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" degrees="0" scale="1.0">
@@ -24587,7 +24587,7 @@
     <signalmasticon signalmast="Mast 24L" x="914" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 24L</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH1239" x="877" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1234" x="877" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 32R</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" degrees="0" scale="1.0">
@@ -24629,7 +24629,7 @@
     <signalmasticon signalmast="Mast 36RB" x="1066" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 36RB</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH134" x="1297" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1133" x="1297" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 2036</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" degrees="0" scale="1.0">
@@ -24662,7 +24662,7 @@
     <signalmasticon signalmast="Mast 40LB" x="1145" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 40LB</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH132" x="1154" y="72" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1132" x="1154" y="72" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 40LA</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" degrees="0" scale="1.0">
@@ -24725,7 +24725,7 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalheadicon signalhead="IH141" x="1297" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1134" x="1297" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 2035</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" degrees="0" scale="1.0">

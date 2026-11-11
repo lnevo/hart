@@ -59,7 +59,7 @@ SH_WRITES = re.compile(r"\b(rsync|cp|scp|mv|install|tee)\s|[^0-9&>]>\s*[^&\s]")
 # Read the tables but write somewhere else, or run inside JMRI. A new script that touches
 # the tables is blocked until it is listed here, so the list errs on the safe side.
 READS_TABLES = {
-    "build_wiring_crosswalk.py", "capture_public_name_baseline.py", "discover_nx.py", "discover_sml.py",
+    "capture_public_name_baseline.py", "discover_nx.py", "discover_sml.py",
     "export_hart_devices_for_cats.py", "export_track_lengths.py", "lcos_mqtt_mimic.py", "run_dispatcher_stage1.py",
 }
 LAUNCHER_PREFIXES = ("launch_", "run_")  # start PanelPro or CATS themselves and check what is open

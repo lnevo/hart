@@ -222,20 +222,20 @@ SIGNALS = [
     ("Mast 8LB", 16, 7, "W", "d1", "IH1334"),
     ("Mast 8LA", 16, 8, "W", "d1", "IH1337"),
     ("Mast 24RA", 39, 6, "E", "h2", None),
-    ("Mast 24RB", 39, 7, "E", "d1", "IH1236"),
+    ("Mast 24RB", 39, 7, "E", "d1", "IH234"),
     ("Mast 24L", 45, 6, "W", "h2", None),
-    ("Mast 32R", 42, 7, "E", "d1", "IH1239"),
+    ("Mast 32R", 42, 7, "E", "d1", "IH1234"),
     ("Mast 34R", 44, 8, "E", "h2", None),
     ("Mast 34L", 45, 7, "W", "h2", None),
     ("Mast 36RA", 51, 6, "E", "h2", None),
     ("Mast 36RB", 51, 7, "E", "h2", None),
-    ("Mast 2036", 62, 6, "E", "d1", "IH134"),
+    ("Mast 2036", 62, 6, "E", "d1", "IH1133"),
     ("Mast 40LB", 56, 6, "W", "h2", None),
-    ("Mast 40LA", 56, 5, "W", "d1", "IH142"),
+    ("Mast 40LA", 56, 5, "W", "d1", "IH1132"),
     ("Mast 38LB", 56, 7, "W", "h2", None),
-    ("Mast 38LA", 56, 8, "W", "d1", "IH143"),
+    ("Mast 38LA", 56, 8, "W", "d1", "IH139"),
     # Mast 2035 is named L but faces east into the Track K-1 wrap (exception).
-    ("Mast 2035", 62, 7, "E", "d1", "IH141"),
+    ("Mast 2035", 62, 7, "E", "d1", "IH1134"),
 ]
 
 # Packed 20: device-map plate (odd) west→east. Beans remain Switch 1–119.

@@ -76,7 +76,7 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
         for mast, row in self.head_plan().items():
             if row["mast_system_name"] in text:
                 continue
-            # Plan packed IDs may differ from live beans (crosswalk); the
+            # An interim mast (6LB) shows fewer heads than planned; the
             # appearance must still match, which is what CATS PHYSIGNAL needs.
             with self.subTest(mast=mast):
                 self.assertRegex(
@@ -85,11 +85,24 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
                     rf"<userName>{mast}</userName>",
                 )
 
-    def test_full_mode_refuses_plan_ids_that_are_not_live(self) -> None:
+    def test_plan_ids_are_live_beans(self) -> None:
         text = TABLES.read_text(encoding="utf-8")
         missing = self.m.check_live_heads(self.m.fitted_rows(self.rows), text)
-        self.assertIn("IH232", missing)  # 24RA plan ID; live bean is IH1232
-        self.assertNotIn("IH432", missing)
+        self.assertEqual(missing, [])
+
+    def test_full_mode_refuses_plan_ids_that_are_not_live(self) -> None:
+        text = TABLES.read_text(encoding="utf-8").replace(
+            "<systemName>IH232</systemName>", "<systemName>IH1232x</systemName>"
+        )
+        missing = self.m.check_live_heads(self.m.fitted_rows(self.rows), text)
+        self.assertEqual(missing, ["IH232"])
+
+    def test_full_mode_refuses_to_drop_live_beans(self) -> None:
+        rows = self.m.fitted_rows(self.rows)
+        block = self.m._heads_xml(rows) + "\n" + self.m._masts_xml(rows)
+        lost = self.m.lost_beans(block, TABLES.read_text(encoding="utf-8"))
+        self.assertIn("IH9990", lost)
+        self.assertIn("IF$vsm:basic:one-low($1001)", lost)
 
 
 if __name__ == "__main__":

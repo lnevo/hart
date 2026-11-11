@@ -49,7 +49,7 @@ Track Brick-Plane is Y=8 between Switch 1 and Switch 5 (`Block 4-6`). Track East
 
 ## Signals
 
-23 Designer lamps, named in place. **Mast 6LA** is 1-head (`LAMP1` / `IH434`). **Mast 2035** `(61,5)` RIGHT is `IH141` (was 115R). **Mast 2036** `(62,5)` LEFT is `IH134` (was 114R). **Mast 34R** is `(44,8)` LEFT on OS Switch 33. Occupancy cut Track Main East \| OS Switch 33 is `(43,8)` RIGHT \| `(44,8)` LEFT. **Mast 2L** is `(3,8)` LEFT. **Mast 32R** is `(42,7)` BOTTOM on OS Switch 31 at the OS Switch 31 \| OS Switch 29 cut. **Mast 4RA** is Track W-1 `(6,10)` RIGHT; **Mast 4RB** is Track W-2 `(6,9)` RIGHT. **Mast 8RA** is `LAMP1` on this board; field/JMRI still 2-head. Princess westbounds match LE: **Mast 40LA** / **Mast 38LA** (`LAMP2`, two-head) on Track McKees Rocks / Track McKeesport; **Mast 40LB** / **Mast 38LB** (`LAMP1`, dwarf) on Track K-1 / Track K-2 (types swapped 2026-11-07, ADR-017 item 9).
+23 Designer lamps, named in place. **Mast 6LA** is 1-head (`LAMP1` / `IH434`). **Mast 2035** `(61,5)` RIGHT is `IH1134` (was 115R). **Mast 2036** `(62,5)` LEFT is `IH1133` (was 114R). **Mast 34R** is `(44,8)` LEFT on OS Switch 33. Occupancy cut Track Main East \| OS Switch 33 is `(43,8)` RIGHT \| `(44,8)` LEFT. **Mast 2L** is `(3,8)` LEFT. **Mast 32R** is `(42,7)` BOTTOM on OS Switch 31 at the OS Switch 31 \| OS Switch 29 cut. **Mast 4RA** is Track W-1 `(6,10)` RIGHT; **Mast 4RB** is Track W-2 `(6,9)` RIGHT. **Mast 8RA** is `LAMP1` on this board; field/JMRI still 2-head. Princess westbounds match LE: **Mast 40LA** / **Mast 38LA** (`LAMP2`, two-head) on Track McKees Rocks / Track McKeesport; **Mast 40LB** / **Mast 38LB** (`LAMP1`, dwarf) on Track K-1 / Track K-2 (types swapped 2026-11-07, ADR-017 item 9).
 
 ## Remaining gaps
 
