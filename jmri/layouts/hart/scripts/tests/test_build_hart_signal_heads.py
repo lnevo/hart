@@ -104,6 +104,14 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
         self.assertIn("IH9990", lost)
         self.assertIn("IF$vsm:basic:one-low($1001)", lost)
 
+    def test_patch_tables_always_refuses_and_writes_nothing(self) -> None:
+        before = TABLES.read_bytes()
+        with self.assertRaises(SystemExit) as ctx:
+            self.m.patch_tables(self.rows)
+        self.assertIn("refusing to rewrite tables.xml", str(ctx.exception))
+        self.assertIn("IH9990", str(ctx.exception))
+        self.assertEqual(TABLES.read_bytes(), before)
+
 
 if __name__ == "__main__":
     unittest.main()
