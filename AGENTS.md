@@ -15,6 +15,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
 | Bring a PanelPro Store into the repo | `make tables-pull` |
 | Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed. Repo is the master (ADR-015) |
+| Quit / start PanelPro on the Pi (around a deploy) | `tools/hosts/pi_quit_panelpro.sh` (its own Quit, answers No to Store) · `tools/hosts/pi_start_panelpro.sh` |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
 | Deploy to layout hosts | `./cats/scripts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it |
 | Deploy operator portal (www.hartrailroad.com) | `./www/scripts/deploy_hartrailroad.sh` — after portal changes; notes in [`www/README.md`](www/README.md) |
