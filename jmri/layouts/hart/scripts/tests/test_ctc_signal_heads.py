@@ -139,6 +139,29 @@ class CtcSignalHeadsTest(unittest.TestCase):
         self.assertEqual(signal_icons(TABLES), want)
 
 
+class SignalVisibilityTest(unittest.TestCase):
+    def test_no_occupancy_jewel_covers_a_signal_icon(self) -> None:
+        sigs = gen.signal_rects()
+        text = GUI.read_text(encoding="utf-8")
+        for sensor, x, y in re.findall(r'<sensoricon sensor="(BS [^"]+)" x="(-?\d+)" y="(-?\d+)"', text):
+            jewel = (int(x), int(y), gen.JEWEL, gen.JEWEL)
+            for s in sigs:
+                with self.subTest(sensor=sensor, signal=s):
+                    self.assertFalse(gen._overlaps(jewel, s))
+
+    def test_signal_icons_draw_above_lamps(self) -> None:
+        text = GUI.read_text(encoding="utf-8")
+        pe = re.search(r"<paneleditor\b.*?</paneleditor>", text, re.S).group(0)
+        sig_levels = {int(v) for v in re.findall(r'<signal(?:mast|head)icon [^>]*level="(\d+)"', pe)}
+        lamp_levels = {int(v) for v in re.findall(r'<sensoricon sensor="BS [^"]+"[^>]*level="(\d+)"', pe)}
+        self.assertGreater(min(sig_levels), max(lamp_levels))
+
+    def test_icon_sizes_match_the_images(self) -> None:
+        raw = (SCRIPTS.parent / "ctc/icons/sig-d1-stop.gif").read_bytes()
+        head = (int.from_bytes(raw[6:8], "little"), int.from_bytes(raw[8:10], "little"))
+        self.assertEqual(head, gen.HEAD_ICON)
+
+
 class GeneratorTest(unittest.TestCase):
     def test_apply_is_idempotent(self) -> None:
         """A second regen strips what the first drew (occupancy jewels are BS sensors)."""

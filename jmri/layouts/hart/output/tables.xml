@@ -21096,7 +21096,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Switch 23a" x="737" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 23a" x="730" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS Switch 23a</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -21112,7 +21112,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Switch 35b" x="1052" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 35b" x="1045" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS Switch 35b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -21144,7 +21144,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Switch 7" x="275" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 7" x="239" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS Switch 7</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -21192,7 +21192,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Switch 23b" x="737" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 23b" x="730" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS Switch 23b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -21224,7 +21224,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Switch 33" x="911" y="142" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 33" x="925" y="142" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS Switch 33</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -21240,7 +21240,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Switch 35a" x="1052" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 35a" x="1072" y="115" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS Switch 35a</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -21288,7 +21288,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Switch 7b" x="275" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 7b" x="268" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS Switch 7b</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -21496,7 +21496,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS K-1" x="1247" y="73" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS K-1" x="1238" y="73" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>Track K-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -21512,7 +21512,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS K-2" x="1289" y="73" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS K-2" x="1276" y="73" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>Track K-2</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -21592,7 +21592,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Brick-Plane" x="113" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Brick-Plane" x="100" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>Track Brick-Plane</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -23211,7 +23211,7 @@
     <positionablelabel x="1206" y="67" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="K-1" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="240" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Scale" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="219" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Scale" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="450" y="109" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Barn" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
@@ -23265,7 +23265,7 @@
     <positionablelabel x="597" y="214" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="true" text="Main" fontname="Dialog.plain" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <signalheadicon signalhead="IH436" x="121" y="177" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH436" x="121" y="177" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 4RA</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
@@ -23301,7 +23301,7 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalheadicon signalhead="IH437" x="121" y="156" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH437" x="121" y="156" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 4RB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
@@ -23337,10 +23337,10 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="Mast 2L" x="32" y="135" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 2L" x="32" y="135" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 2L</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH434" x="188" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH434" x="188" y="114" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 6LA</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
@@ -23376,7 +23376,7 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalheadicon signalhead="IH432" x="188" y="135" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH432" x="188" y="135" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 6LB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
@@ -23412,13 +23412,13 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="Mast 8RA" x="289" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 8RA" x="289" y="114" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 8RA</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Mast 8RB" x="289" y="135" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 8RB" x="289" y="135" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 8RB</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH1334" x="314" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1334" x="314" y="114" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 8LB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
@@ -23454,13 +23454,13 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="Mast 8LA" x="305" y="135" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 8LA" x="305" y="135" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 8LA</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Mast 24RA" x="751" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 24RA" x="751" y="93" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 24RA</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH234" x="751" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH234" x="751" y="114" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 24RB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
@@ -23496,10 +23496,10 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="Mast 24L" x="914" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 24L" x="914" y="93" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 24L</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH1234" x="877" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1234" x="877" y="114" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 32R</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">
@@ -23535,19 +23535,19 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="Mast 34R" x="919" y="135" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 34R" x="919" y="135" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 34R</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Mast 34L" x="914" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 34L" x="914" y="114" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 34L</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Mast 36RA" x="1066" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 36RA" x="1066" y="93" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 36RA</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Mast 36RB" x="1066" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 36RB" x="1066" y="114" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 36RB</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH1136" x="1154" y="72" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1136" x="1154" y="72" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 40LB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
@@ -23583,13 +23583,13 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalmasticon signalmast="Mast 40LA" x="1145" y="93" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 40LA" x="1145" y="93" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 40LA</tooltip>
     </signalmasticon>
-    <signalmasticon signalmast="Mast 38LA" x="1145" y="114" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+    <signalmasticon signalmast="Mast 38LA" x="1145" y="114" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>Mast 38LA</tooltip>
     </signalmasticon>
-    <signalheadicon signalhead="IH143" x="1154" y="135" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH143" x="1154" y="135" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 38LB</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
@@ -23625,7 +23625,7 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalheadicon signalhead="IH1134" x="1259" y="72" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1134" x="1259" y="72" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 2035</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop-w.gif" scale="1.0">
@@ -23661,7 +23661,7 @@
       </icons>
       <iconmaps />
     </signalheadicon>
-    <signalheadicon signalhead="IH1133" x="1297" y="72" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+    <signalheadicon signalhead="IH1133" x="1297" y="72" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>Mast 2036</tooltip>
       <icons>
         <held url="preference:ctc/icons/sig-d1-stop.gif" scale="1.0">

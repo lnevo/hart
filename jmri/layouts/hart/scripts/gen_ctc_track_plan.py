@@ -633,11 +633,11 @@ GREEN_JEWEL = """<sensoricon sensor="IS{uid}:{kind}" x="{x}" y="454" level="10" 
       <iconmaps />
     </sensoricon>"""
 
-MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
+MAST = """<signalmasticon signalmast="{name}" x="{x}" y="{y}" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" degrees="0" clickmode="0" litmode="false" scale="0.5" imageset="{imageset}" class="jmri.jmrit.display.configurexml.SignalMastIconXml">
       <tooltip>{name}</tooltip>
     </signalmasticon>"""
 
-HEAD = """<signalheadicon signalhead="{head}" x="{x}" y="{y}" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
+HEAD = """<signalheadicon signalhead="{head}" x="{x}" y="{y}" level="11" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" clickmode="0" litmode="false" degrees="0" class="jmri.jmrit.display.configurexml.SignalHeadIconXml">
       <tooltip>{name}</tooltip>
       <icons>
         <held url="{stop}" scale="1.0">
@@ -793,6 +793,47 @@ def _os_jewel_xy(pick: tuple[int, int], frog: tuple[int, int]) -> tuple[int, int
     return jx, jy
 
 
+# Drawn sizes on the panel: a d1 head GIF, and a Basic two-searchlight mast at scale 0.5.
+HEAD_ICON = (12, 7)
+MAST_ICON = (6, 20)
+JEWEL = 21
+
+
+def signal_rects() -> list[tuple[int, int, int, int]]:
+    """(x, y, w, h) of every signal icon SIGNALS draws."""
+    out = []
+    for _mast, cx, cy, facing, kind, _head in SIGNALS:
+        x, y = signal_pos(cx, cy, facing, kind)
+        w, h = MAST_ICON if kind == "h2" else HEAD_ICON
+        out.append((x, y, w, h))
+    return out
+
+
+def _overlaps(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> bool:
+    return a[0] < b[0] + b[2] and b[0] < a[0] + a[2] and a[1] < b[1] + b[3] and b[1] < a[1] + a[3]
+
+
+def clear_signals(lamps: list) -> list:
+    """Slide any occupancy jewel that covers a signal icon along its row, by the
+    smallest step that clears every signal icon and every other jewel."""
+    sigs = signal_rects()
+    out = list(lamps)
+    for i, (sensor, jx, jy, tip) in enumerate(out):
+        if jy >= OS_Y - 5 or not any(_overlaps((jx, jy, JEWEL, JEWEL), s) for s in sigs):
+            continue
+        others = [(x, y, JEWEL, JEWEL) for k, (_s, x, y, _t) in enumerate(out) if k != i]
+        for step in range(1, 2 * CELL_W):
+            for nx in (jx - step, jx + step):
+                r = (nx, jy, JEWEL, JEWEL)
+                if not any(_overlaps(r, s) for s in sigs) and not any(_overlaps(r, o) for o in others):
+                    out[i] = (sensor, nx, jy, tip)
+                    break
+            else:
+                continue
+            break
+    return out
+
+
 def build_geometry(cells: dict) -> tuple[list, list, list, list]:
     turnouts = []
     tracks = []
@@ -887,6 +928,7 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
         lamps.append((sensor, jx, jy, bname or sensor))
         placed.add(sensor)
 
+    lamps = clear_signals(lamps)
     jewel_cells: set[tuple[int, int]] = set()
     for _sensor, jx, jy, _tip in lamps:
         if jy >= OS_Y - 5:
