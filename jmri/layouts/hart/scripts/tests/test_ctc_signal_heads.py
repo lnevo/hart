@@ -223,5 +223,65 @@ class AsBuiltRemapTest(unittest.TestCase):
         self.assertEqual(remap(None), None)
 
 
+def load_refresh():
+    """refresh_wiring_docs as a module (needs openpyxl, which CI installs)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("refresh_wiring_docs", REFRESH)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+class DeadHeadsTest(unittest.TestCase):
+    """The as-built workbook names only heads tables.xml defines."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.rw = load_refresh()
+
+    def test_asbuilt_workbook_names_only_live_heads(self) -> None:
+        import zipfile
+        live = self.rw.live_heads(TABLES)
+        book = ROOT / "docs/wiring/signals_asbuilt_abs_v2.xlsx"
+        with zipfile.ZipFile(book) as z:
+            text = " ".join(z.read(n).decode("utf-8", "replace") for n in z.namelist() if n.endswith(".xml"))
+        self.assertEqual(set(re.findall(r"\bIH\d+\b", text)) - live, set())
+
+    def test_strips_dead_tokens_with_their_separator(self) -> None:
+        live = {"IH434"}
+        f = self.rw.strip_dead_head_tokens
+        self.assertEqual(f("IH434=Green IH435=Red", live), "IH434=Green")
+        self.assertEqual(f("IH434=Green, IH435=Red", live), "IH434=Green")
+        self.assertEqual(f("IH435=Flash-Red IH434=Green", live), "IH434=Green")
+        self.assertEqual(f("IH434=Yellow", live), "IH434=Yellow")
+        self.assertEqual(f(None, live), None)
+
+    def test_mqtt_rows_go_and_the_survivor_loses_its_tag(self) -> None:
+        from openpyxl import Workbook
+        ws = Workbook().active
+        ws.title = "mqtt_topics"
+        ws.append(["Kind", "Name", "MQTT_Topic", "Payload_Examples", "Digicon_Block_or_Role", "JMRI"])
+        ws.append(["signalhead", "Head 6LA Top", "track/signalhead/IH434", "", "Head 6LA", "IH434"])
+        ws.append(["signalhead", "Head 6LA Bottom", "track/signalhead/IH435", "", "Head 6LA", "IH435"])
+        ws.append(["signalhead", "Mast 8RA Top", "track/signalhead/IH1332", "", "Mast 8RA", "IH1332"])
+        ws.append(["signalhead", "Mast 8RA Bottom", "track/signalhead/IH1333", "", "Mast 8RA", "IH1333"])
+        ws.append(["signalhead", "Mast 9X Top", "track/signalhead/IH900", "", "Mast 9X", "IH900"])
+        live = {"IH434", "IH1332", "IH1333", "IH900"}
+        self.rw.drop_dead_heads(ws, live)
+        names = [r[1] for r in ws.iter_rows(min_row=2, values_only=True)]
+        # 6LA lost its bottom head; 8RA keeps both tags; 9X never had a partner here.
+        self.assertEqual(names, ["Head 6LA", "Mast 8RA Top", "Mast 8RA Bottom", "Mast 9X Top"])
+
+    def test_kept_bottom_head_is_untagged_too(self) -> None:
+        from openpyxl import Workbook
+        ws = Workbook().active
+        ws.title = "mqtt_topics"
+        ws.append(["Kind", "Name", "MQTT_Topic", "Payload_Examples", "Digicon_Block_or_Role", "JMRI"])
+        ws.append(["signalhead", "Mast 6LB Top", "", "", "Mast 6LB", "IH432"])
+        ws.append(["signalhead", "Mast 6LB Bottom", "", "", "Mast 6LB", "IH433"])
+        self.rw.drop_dead_heads(ws, {"IH433"})
+        self.assertEqual([r[1] for r in ws.iter_rows(min_row=2, values_only=True)], ["Mast 6LB"])
+
+
 if __name__ == "__main__":
     unittest.main()
