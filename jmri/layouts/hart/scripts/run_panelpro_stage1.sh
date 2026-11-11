@@ -3,6 +3,11 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+# PanelPro loads the tables of the checkout this script lives in (main or a worktree).
+case "$ROOT" in
+  "$HOME"/*) TABLES_URI="home:${ROOT#"$HOME"/}/jmri/layouts/hart/output/tables.xml" ;;
+  *) TABLES_URI="$ROOT/jmri/layouts/hart/output/tables.xml" ;;
+esac
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
 PROFILE_ID="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 PROFILE_XML="${JMRI_PROFILE_XML:-$HOME/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml}"
@@ -32,7 +37,7 @@ restore() {
 }
 trap restore EXIT
 python3 "$ROOT/cats/scripts/patch_jmri_startup.py" load-tables --profile "$PROFILE_XML" \
-  --tables home:hart/jmri/layouts/hart/output/tables.xml   # automation works on the repo file
+  --tables "$TABLES_URI"   # automation works on this checkout's repo file (worktrees too)
 
 python3 - "$PROFILE_XML" <<'PY'
 import re
