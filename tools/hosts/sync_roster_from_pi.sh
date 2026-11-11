@@ -66,14 +66,14 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   echo "Push → Windows $WIN_HOST $WIN_USERFILES_REMOTE"
   ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
     "mkdir AppData\\Local\\Temp\\hart-roster-stage\\roster 2>nul & mkdir \"C:\\Users\\lnevo\\JMRI_UserFiles\\roster\" 2>nul & echo ok"
-  scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
+  scp -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
     "$STAGE/roster.xml" "${WIN_HOST}:AppData/Local/Temp/hart-roster-stage/roster.xml"
   # scp -r of a dir ending in /. can send "." which OpenSSH rejects, so stream a tar.
   # pack_roster_stage.sh writes relative names and skips macOS AppleDouble (._*) files.
   "$ROOT/tools/hosts/pack_roster_stage.sh" "$STAGE/roster" | \
     ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
       "tar -xf - -C AppData/Local/Temp/hart-roster-stage/roster"
-  scp -O -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
+  scp -o BatchMode=yes -o ConnectTimeout=15 -P "$WIN_PORT" \
     "$ROOT/tools/hosts/win_install_roster.ps1" "${WIN_HOST}:AppData/Local/Temp/hart-roster-stage/win_install_roster.ps1"
   ssh -o BatchMode=yes -o ConnectTimeout=15 -p "$WIN_PORT" "$WIN_HOST" \
     "powershell -NoProfile -ExecutionPolicy Bypass -File AppData/Local/Temp/hart-roster-stage/win_install_roster.ps1"
