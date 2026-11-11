@@ -29,7 +29,7 @@ TRACK_ANCHOR_Y = 20
 FULL_PANEL_MIN_W = 980
 PAD_COLOR = (180, 155, 95)  # tan panel background
 
-# Chronological evolution (Desktop captures, Aug 19 – Sep 28 2026)
+# Chronological evolution (Desktop captures, Aug 19 – Sep 28 2026; Nov 11 painted by PanelPro)
 FRAMES: list[tuple[str, str]] = [
     ("66e68918-4180-46f9-938b-cc55f4fa56a2.png", "Pilot — Brick + Plane (3 columns)"),
     ("Screenshot 2026-08-19 at 5.44.55\u202fPM.png", "Wireframe track + lever machine"),
@@ -46,6 +46,7 @@ FRAMES: list[tuple[str, str]] = [
     ("Screenshot 2026-08-23 at 8.52.10\u202fPM.png", "Redrawn by the generator; ? until JMRI reports"),
     ("Screenshot 2026-08-27 at 5.22.14\u202fPM.png", "Straight mains, OS track names, 20 columns"),
     ("Screenshot 2026-09-28 at 4.37.37\u202fPM.png", "Public names: Track S-1, Track EH-1, Track K-1"),
+    ("uss_ctc_20261111_panelpro.png", "Princess mains redrawn; every signal icon in view"),
 ]
 
 
@@ -199,6 +200,7 @@ EXPLICIT_CROPS: dict[str, tuple[int, int, int, int]] = {
     "Screenshot 2026-08-23 at 8.52.10\u202fPM.png": (2, 36, 1131, 754),
     "Screenshot 2026-08-27 at 5.22.14\u202fPM.png": (0, 0, 1324, 718),
     "Screenshot 2026-09-28 at 4.37.37\u202fPM.png": (15, 6, 1339, 721),
+    "uss_ctc_20261111_panelpro.png": (0, 0, 1324, 718),
 }
 
 
