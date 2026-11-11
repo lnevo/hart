@@ -49,6 +49,7 @@ text = path.read_text(encoding="utf-8")
 for name in (
     "panel_status.py",
     "signal_coordinator.py",
+    "sts_car_sync.py",
 ):
     pattern = re.compile(
         r'<perform\b(?=[^>]*\bname="[^"]*'

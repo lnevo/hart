@@ -4,7 +4,6 @@
 # writes every source->dest with JMRI's computed turnout settings and block
 # lists to HART_SML_DUMP_FILE. Marker/exit env identical to discover_sml.py.
 
-from __future__ import print_function
 
 import os
 import time
@@ -20,7 +19,7 @@ EXIT = os.environ.get("HART_SML_DISCOVER_EXIT", "") == "1"
 
 
 def _log(msg):
-    print("dump_sml_criteria:", msg)
+    print("dump_sml_criteria: %s" % (msg,))
 
 
 def _finish(status, detail=""):

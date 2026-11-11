@@ -11,7 +11,6 @@
 #   HART_NX_SMOKE=1            occupancy simulation of Brick pairs (default)
 #   HART_NX_THROW=1            actually set NX routes (commands MQTT turnouts)
 
-from __future__ import print_function
 
 import os
 import sys
