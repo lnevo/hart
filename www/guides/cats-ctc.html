@@ -18,9 +18,9 @@
 
 <p><strong>Publication:</strong> DS-CATS-DISP · Rev A · Eff 2026-08-19<br><strong>Railroad:</strong> HART Railroad · Pittsburgh &amp; Chartiers Valley Division · Neville Island Operations<br><strong>Scope:</strong> CATS Digicon panel (<code>HART_CTC.xml</code>), mouse dispatching in CTC mode</p>
 
-<p>Welcome to the desk. This guide is for <strong>being a dispatcher on the CATS panel</strong> — how you grant authority, line routes, and use fleeting, stacking, and call-on. It is <strong>not</strong> a software manual (menus, install, Designer, MQTT).<span data-local-only> For that, see the CATS PDF in <code>tools/cats/release3.2/catsManual.pdf</code> and <code>HART_DIGICON_SYSTEM.md</code>.</span></p>
+<p>This guide is for <strong>dispatching from the CATS panel</strong>: granting authority, lining routes, and using fleeting, stacking and call-on. It does not cover menus, install, Designer or MQTT.<span data-local-only> For that, see the CATS PDF in <code>tools/cats/release3.2/catsManual.pdf</code> and <code>HART_DIGICON_SYSTEM.md</code>.</span></p>
 
-<p><strong>Do not duplicate the USS machine guide.</strong> HART also has a stock JMRI CTC lever panel (code buttons, N/L/R levers, 15 columns). That machine is documented separately:</p>
+<p>HART also has a stock JMRI CTC lever panel (code buttons, N/L/R levers, 15 columns). That machine is documented separately:</p>
 
 <p>→ <code>jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md</code> (DS-DISP)</p>
 
@@ -40,7 +40,7 @@
 
 <div class="table-wrap"><table class="data-table"><thead><tr><th>What you see</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Track color</strong></td><td>Occupancy (from JMRI/MQTT detectors)</td></tr><tr><td><strong>Green arrows</strong></td><td>Active route through that block, direction of travel</td></tr><tr><td><strong>Signal icon color</strong></td><td>Rough mirror of field aspect: idle (white/grey), yellow (approach), green (clear path), red (stop / blocked)</td></tr><tr><td><strong>White vs grey signal</strong></td><td>White = engineer sees a mast at that CP; grey = panel-only CP</td></tr><tr><td><strong>Switch alignment</strong></td><td>Normal vs reverse on the schematic (field feedback)</td></tr></tbody></table></div>
 
-<p>On HART, <strong>CATS grants routes and throws turnouts</strong>; <strong>JMRI Signal Logic (SML)</strong> computes aspects once a mast is released from Hold. You request permission; the plant decides Clear vs Approach vs Stop from occupancy and points.</p>
+<p>On HART, <strong>CATS grants routes and throws turnouts</strong>; <strong>JMRI Signal Logic (SML)</strong> computes aspects once a mast is released from Hold. You ask; the plant decides Clear, Approach or Stop from occupancy and points.</p>
 
 <p>At session start, CTC homes are <strong>Held</strong> (Stop). A successful route <strong>Unholds</strong> the entrance mast; SML then shows the best aspect the conditions allow.</p>
 

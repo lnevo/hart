@@ -47,7 +47,6 @@
         them.
       </p>
       <p>
-        What follows is what we added, and each section starts with the problem it solves.
         The story of how the software came together is told in
         <a href="../library/how-it-was-built-article.html">Bringing the Railroad Together</a>, so I will
         not repeat it here.
@@ -144,7 +143,6 @@
         field, drop the holds, and announce that JMRI is out. Either way the whole thing takes about four
         seconds, and the masts are held while it happens.
       </p>
-      <p>Three short stories show why it is built this way.</p>
       <h3>Boot</h3>
       <p>
         Normally every pair is forced off when JMRI starts. The script then listens for a second. If
@@ -284,7 +282,7 @@
         scripts exist, but they run offline to build the tables, not inside JMRI.
       </p>
       <p>
-        <code>jmri_cmd_watcher.py</code> has nothing to do with running trains, and it is worth being open about. It
+        <code>jmri_cmd_watcher.py</code> has nothing to do with running trains. It
         is a remote-run hook: a small watcher that starts with JMRI and gives us, and the AI agents we
         work with, a live way to query a running session. Twice a second it looks for a command file in
         a fixed local place. When one appears, it runs that file as a script inside JMRI and writes back
