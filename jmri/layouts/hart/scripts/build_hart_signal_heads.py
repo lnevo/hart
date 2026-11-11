@@ -440,38 +440,28 @@ def lost_beans(block: str, tables_text: str) -> list[str]:
 
 
 def patch_tables(rows: list[dict]) -> None:
+    """Refuse: heads and masts are changed in tables.xml directly.
+
+    The generated block cannot replace the live one, because it has no virtual
+    masts or IH9990. The reason is reported so --wiring-only is used instead.
+    """
     rows = fitted_rows(rows)
     tables = ROOT / "jmri/layouts/hart/output/tables.xml"
-    missing = check_live_heads(rows, tables.read_text())
+    text = tables.read_text()
+    missing = check_live_heads(rows, text)
     if missing:
         raise SystemExit(
             "refusing to rewrite tables.xml: planned heads are not live beans "
             f"({len(missing)}: {', '.join(missing[:8])}). Run "
             "tools/audit/check_wiring_crosswalk.py. Use --wiring-only."
         )
-    heads = _heads_xml(rows)
-    masts = _masts_xml(rows)
-    block = heads + "\n" + masts
-    lost = lost_beans(block, tables.read_text())
-    if lost:
-        raise SystemExit(
-            "refusing to rewrite tables.xml: the generated block would drop "
-            f"{len(lost)} live beans ({', '.join(lost[:8])}), such as virtual "
-            "masts and IH9990. Change heads and masts in tables.xml directly. "
-            "Use --wiring-only."
-        )
-    files = [
-        ROOT / "jmri/layouts/hart/output/tables.xml",
-    ]
-    for path in files:
-        text = path.read_text()
-        if not BLOCK_RE.search(text):
-            print(f"SKIP (no signalheads/masts block): {path}", file=sys.stderr)
-            continue
-        # Preserve Layout Editor signalmasticons (see add_digicon_le_signal_icons.py).
-        text2, n = BLOCK_RE.subn(block, text, count=1)
-        path.write_text(text2)
-        print(f"patched {path.relative_to(ROOT)} (masts block replaced, n={n})")
+    lost = lost_beans(_heads_xml(rows) + "\n" + _masts_xml(rows), text)
+    dropped = f" ({len(lost)}: {', '.join(lost[:8])})" if lost else ""
+    raise SystemExit(
+        "refusing to rewrite tables.xml: the generated block would drop "
+        f"live beans{dropped}, such as virtual masts and IH9990. Change heads "
+        "and masts in tables.xml directly. Use --wiring-only."
+    )
 
 
 def write_publisher(rows: list[dict]) -> None:
@@ -503,8 +493,8 @@ def main() -> int:
         print("wiring-only: skipped inventory xlsx, tables.xml, publisher")
     else:
         update_lcos_inventory(rows)
-        patch_tables(rows)
         write_publisher(rows)
+        patch_tables(rows)
     by: dict[int, list] = {}
     for r in rows:
         by.setdefault(r["mqtt_node"], []).append(r)

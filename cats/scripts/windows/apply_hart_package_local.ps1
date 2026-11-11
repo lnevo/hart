@@ -14,6 +14,25 @@ if ($userPath) {
   $env:Path = (@($first) + @($rest)) -join ';'
 }
 
+# Pick a Python 3: the py launcher, then python, then python3. python.exe and python3.exe
+# under WindowsApps are Microsoft Store stubs that do not run scripts, so they are skipped,
+# and each candidate must start a Python 3 (py -3 with no runtime installed fails here).
+function Find-Python {
+  foreach ($c in @(@('py', '-3'), @('python'), @('python3'))) {
+    $cmd = Get-Command $c[0] -CommandType Application -ErrorAction SilentlyContinue |
+      Where-Object { $_.Source -notmatch '\\WindowsApps\\' } | Select-Object -First 1
+    if ($cmd) {
+      $pre = @($c | Select-Object -Skip 1)
+      & $cmd.Source @pre -c 'import sys; sys.exit(0 if sys.version_info[0] == 3 else 1)' 2>$null
+      if ($LASTEXITCODE -eq 0) {
+        return [pscustomobject]@{ Exe = $cmd.Source; Pre = $pre }
+      }
+    }
+  }
+  return $null
+}
+$python = Find-Python
+
 $src = Join-Path $hart 'tables.xml'
 if (Test-Path $src) {
   $dests = New-Object System.Collections.Generic.List[string]
@@ -242,13 +261,17 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
     Write-Host ("startup: removed MQTT retain scripts -> {0}" -f $prof)
   }
   if (Test-Path $patchPy) {
-    $pyArgs = @($patchPy, 'retarget-jython', '--profile', $prof)
-    foreach ($name in $retargetNames) {
-      $pyArgs += @('--script', $name)
+    if (-not $python) {
+      Write-Warning ("Start Up retarget skipped: no Python 3 found (py -3, python, python3); check the Start Up list by hand ({0})" -f $prof)
+    } else {
+      $pyArgs = @($python.Pre) + @($patchPy, 'retarget-jython', '--profile', $prof)
+      foreach ($name in $retargetNames) {
+        $pyArgs += @('--script', $name)
+      }
+      & $python.Exe @pyArgs
+      if ($LASTEXITCODE -ne 0) { throw ("Start Up retarget failed: {0} exited {1} ({2})" -f $python.Exe, $LASTEXITCODE, $prof) }
+      Write-Host ("Start Up retargeted -> preference:jython ({0})" -f $prof)
     }
-    & python @pyArgs
-    if ($LASTEXITCODE -ne 0) { throw ("Start Up retarget failed: python exited {0} ({1})" -f $LASTEXITCODE, $prof) }
-    Write-Host ("Start Up retargeted -> preference:jython ({0})" -f $prof)
   }
 }
 
