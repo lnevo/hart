@@ -1642,36 +1642,60 @@ def append_princess_dwarf_logic(wb) -> int:
     return added
 
 
-# Heads removed from the layout that the imported v1 workbook still names, mapped to the
-# head their mast kept. Mast 6LA became a one-low dwarf on IH434 in August 2026.
-RETIRED_HEADS: dict[str, str] = {"IH435": "IH434"}
-_RETIRED_TOKEN = re.compile(r"\s*\b(%s)=\w+" % "|".join(RETIRED_HEADS))
+TABLES_XML = ROOT / "jmri/layouts/hart/output/tables.xml"
+_HEAD_TOKEN = re.compile(r"(\s*,?\s*)\b(IH\d+)=[\w-]+")
 
 
-def drop_retired_heads(wb) -> int:
-    """Remove retired heads from aspect cells and mqtt_topics; untag their sibling's Top."""
+def live_heads(tables: Path = TABLES_XML) -> set[str]:
+    """IH heads tables.xml defines. The imported v1 workbook also names heads removed
+    since (IH435, the bottom head Mast 6LA lost in August 2026)."""
+    return set(re.findall(r"<systemName>(IH\d+)</systemName>", tables.read_text(encoding="utf-8")))
+
+
+def strip_dead_head_tokens(value: object, live: set[str]) -> object:
+    """Drop `IHn=Aspect` tokens for heads not in `live`, with their separator."""
+    if not isinstance(value, str):
+        return value
+
+    def repl(m: re.Match[str]) -> str:
+        return m.group(0) if m.group(2) in live else ""
+
+    out = _HEAD_TOKEN.sub(repl, value)
+    return out.lstrip(" ,") if out != value else value
+
+
+def drop_dead_heads(ws: Worksheet, live: set[str]) -> int:
+    """Remove heads tables.xml no longer defines from one as-built sheet.
+
+    Aspect cells lose the dead head's token. In mqtt_topics the dead head's row goes,
+    and when that leaves its mast one head, the survivor loses its Top/Bottom tag."""
     n = 0
-    for ws in wb.worksheets:
-        if ws.title == "inventory":
-            continue
-        for row in ws.iter_rows():
-            for cell in row:
-                if isinstance(cell.value, str) and _RETIRED_TOKEN.search(cell.value):
-                    cell.value = _RETIRED_TOKEN.sub("", cell.value).strip()
-                    n += 1
-    if "mqtt_topics" in wb.sheetnames:
-        ws = wb["mqtt_topics"]
-        idx = header_index(ws)
-        jmri_col, name_col = idx.get("JMRI"), idx.get("Name")
-        for row in range(ws.max_row, 1, -1):
-            jmri = ws.cell(row, jmri_col).value if jmri_col else None
-            if jmri in RETIRED_HEADS:
-                ws.delete_rows(row)
+    for row in ws.iter_rows():
+        for cell in row:
+            new = strip_dead_head_tokens(cell.value, live)
+            if new != cell.value:
+                cell.value = new
                 n += 1
-            elif jmri in RETIRED_HEADS.values() and name_col:
-                name = ws.cell(row, name_col).value
-                if isinstance(name, str) and name.endswith(" Top"):
-                    ws.cell(row, name_col).value = name[: -len(" Top")]
+    if ws.title != "mqtt_topics":
+        return n
+    idx = header_index(ws)
+    jmri_col, name_col, role_col = idx.get("JMRI"), idx.get("Name"), idx.get("Digicon_Block_or_Role")
+    if not (jmri_col and name_col and role_col):
+        return n
+    emptied: set[str] = set()
+    for row in range(ws.max_row, 1, -1):
+        head = ws.cell(row, jmri_col).value
+        if isinstance(head, str) and re.fullmatch(r"IH\d+", head) and head not in live:
+            emptied.add(ws.cell(row, role_col).value)
+            ws.delete_rows(row)
+            n += 1
+    for mast in emptied:
+        rows = [r for r in range(2, ws.max_row + 1) if ws.cell(r, role_col).value == mast]
+        if len(rows) == 1:
+            name = ws.cell(rows[0], name_col).value
+            for tag in (" Top", " Bottom"):
+                if isinstance(name, str) and name.endswith(tag):
+                    ws.cell(rows[0], name_col).value = name[: -len(tag)]
                     n += 1
     return n
 
@@ -1691,12 +1715,13 @@ def refresh_asbuilt() -> Path:
             )
     rebuild_asbuilt_inventory(wb["inventory"], wiring, masts)
     n = 0
+    live = live_heads()
     for name in wb.sheetnames:
         if name == "inventory":
             continue
         n += walk_replace(wb[name], NAME_REPLACEMENTS)
         n += walk_remap_panel_ih(wb[name])
-    n += drop_retired_heads(wb)
+        n += drop_dead_heads(wb[name], live)
     occ = occupancy_by_hw()
     mqtt = wb["mqtt_topics"]
     idx = header_index(mqtt)
