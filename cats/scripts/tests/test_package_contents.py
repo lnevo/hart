@@ -32,6 +32,23 @@ class PanelBackground(unittest.TestCase):
         self.assertIn("resources\\misc", WIN)
 
 
+class UssSensorIcons(unittest.TestCase):
+    """HART's yellow USS icons install into the profile only, never the JMRI install."""
+
+    def test_tables_use_the_profile_copy(self):
+        tables = (ROOT / "jmri/layouts/hart/output/tables.xml").read_text(encoding="utf-8")
+        self.assertIn("preference:resources/icons/USS/sensor/yellow-on.gif", tables)
+        self.assertNotIn("program:resources/icons/USS/sensor/yellow", tables)
+
+    def test_hosts_install_into_the_profile(self):
+        self.assertIn('"resources/icons/USS/sensor"', PI)
+        self.assertIn("'resources\\icons\\USS\\sensor'", WIN)
+
+    def test_windows_no_longer_copies_into_program_files(self):
+        self.assertNotIn("USS sensor icons (program)", WIN)
+        self.assertIn("resources\\icons\\USS\\sensor\\$g", WIN)
+
+
 class RetiredScripts(unittest.TestCase):
     def test_every_host_removes_them(self):
         for name in OLD:

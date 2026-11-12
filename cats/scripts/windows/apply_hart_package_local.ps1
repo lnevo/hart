@@ -152,19 +152,6 @@ if (Test-Path $ussSrc) {
     }
     Write-Host ("USS sensor icons -> {0}\resources\icons\USS\sensor" -f $r)
   }
-  foreach ($prog in @(
-    'C:\Program Files (x86)\JMRI\resources\icons\USS\sensor',
-    'C:\Program Files\JMRI\resources\icons\USS\sensor'
-  )) {
-    $parent = Split-Path $prog -Parent
-    if (Test-Path $parent) {
-      New-Item -ItemType Directory -Force -Path $prog | Out-Null
-      foreach ($g in $gifs) {
-        Copy-Item $g.FullName $prog -Force
-      }
-      Write-Host ("USS sensor icons (program) -> {0}" -f $prog)
-    }
-  }
 }
 
 $ctcSrc = Join-Path $hart 'ctc'
@@ -305,6 +292,13 @@ foreach ($root in $signalRoots) {
 }
 [void]$retired.Add('C:\Program Files\JMRI\xml\signals\cats-masts')
 [void]$retired.Add('C:\Program Files (x86)\JMRI\xml\signals\cats-masts')
+# HART's yellow USS sensor icons live in the profile (tables.xml uses preference:);
+# older deploys also copied them into the JMRI install, which stock JMRI does not ship.
+foreach ($prog in @('C:\Program Files\JMRI', 'C:\Program Files (x86)\JMRI')) {
+  foreach ($g in @('yellow-on.gif', 'yellow-off.gif')) {
+    [void]$retired.Add((Join-Path $prog "resources\icons\USS\sensor\$g"))
+  }
+}
 [void]$retired.Add((Join-Path $hart 'cats\scripts\windows\install_cats_masts.ps1'))
 [void]$retired.Add((Join-Path $hart 'tools\jmri\patches'))
 foreach ($path in $retired) {
