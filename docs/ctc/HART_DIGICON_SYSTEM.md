@@ -225,7 +225,7 @@ Same package carries the CATS desks, `tables.xml`, yard-ladder button icons, and
 | CTC / ABS desks | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` | host `JMRI_UserFiles/cats/panels/` |
 | Tables | `jmri/layouts/hart/output/tables.xml` | `preference:tables.xml` / `JMRI_UserFiles/tables.xml` |
 | Ladder icons | `jmri/resources/buttons/lamp_*.png` | `JMRI_UserFiles/resources/buttons/` |
-| Web home + STS | `jmri/resources/jmri-web/servlet/home/Home.html` | `JMRI_UserFiles/web/servlet/home/` (STS link in Home.html → `http://<page host>:8980/sts/`; STS is moving to the Pi) |
+| Web home + STS | `jmri/resources/jmri-web/servlet/home/Home.html` | `JMRI_UserFiles/web/servlet/home/` (STS link in Home.html → `http://<page host>:8980/sts/`; STS runs on the Pi, ADR-020) |
 | JMRI Start Up scripts | `panel_status.py`, `signal_coordinator.py`, `jmri_cmd_watcher.py` (Pi), `sts_car_sync.py` (Pi, Mac) | `preference:jython/`, which is `JMRI_UserFiles/jython/` on every host (ADR-014). `hide_cats_desk_windows.py` is called by LogixNG from the same folder. |
 
 Deploy via SSH (agent does this — no manual batch/Dropbox step):

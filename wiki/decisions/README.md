@@ -21,5 +21,6 @@
 | [017](ADR-017-princess-track-name-swap.md) | Princess track names swapped | Accepted |
 | [018](ADR-018-staged-intake-workflow.md) | Staged intake for cars and locomotives | Accepted |
 | [019](ADR-019-hart-ops-in-hart.md) | hart-ops moves into the hart repo | Accepted |
+| [020](ADR-020-live-sts-on-the-pi.md) | Live STS runs on the Pi | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.
