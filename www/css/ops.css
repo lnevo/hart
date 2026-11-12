@@ -3455,9 +3455,9 @@ html.zoomer-open body {
   background: #1a2229;
 }
 
-/* —— Behind the Scenes explainers —— */
+/* —— Behind the Scenes explainers: full width of main —— */
 .explainer {
-  max-width: 70ch;
+  max-width: none;
 }
 
 .explainer h2 {
