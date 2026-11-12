@@ -15,7 +15,13 @@ the same top speed (about 420 to 430 mm/s) but 2738 is 47 to 70% of 2121's speed
 to 64, because 2738's speed table was switched off (CV25 = 0, CV29 bit 4 clear) and it has no
 momentum (CV3/CV4 = 0/0). The owner chose to match 2738 to 2121, momentum included. Draft:
 [`CV_CHANGES_DRAFT.md`](../../docs/jmri/speedmatching/profile-2026-11-08/CV_CHANGES_DRAFT.md).
-The owner wants no programming on the main while other engines are on the track.
+The owner wanted no programming on the main while other engines were on the track; since
+2026-11-12 it is allowed behind guardrails that rule out broadcast commands (re-run plan, Part C).
+
+**Next (2026-11-12):** [`RERUN_PLAN.md`](../../docs/jmri/speedmatching/RERUN_PLAN.md):
+block lengths from the AnyRail plan as a source of record, better tools, programming on the
+main behind guardrails, and a re-run of 2121 and 2738. No fleet target curve until more locos
+are profiled.
 
 Open: consist testing; step 126 drift check; opposite-direction check; Anyrail
 loop length; a clean timing pass through Scale (the earlier 45 s was a hand block); the reverse profile of 2738 (2121's reverse matches its forward); the STRR scripts below are still unused.
