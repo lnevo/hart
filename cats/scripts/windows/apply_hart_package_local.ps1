@@ -144,7 +144,7 @@ if (Test-Path $ussSrc) {
   [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
   $gifs = @(Get-ChildItem $ussSrc -Filter 'yellow-*.gif' -ErrorAction SilentlyContinue)
   foreach ($r in ($roots | Select-Object -Unique)) {
-    if (-not (Test-Path $r)) { continue }
+    # tables.xml loads these through preference:, so the profile copy must exist.
     $dest = Join-Path $r 'resources\icons\USS\sensor'
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
     foreach ($g in $gifs) {
@@ -294,9 +294,11 @@ foreach ($root in $signalRoots) {
 [void]$retired.Add('C:\Program Files (x86)\JMRI\xml\signals\cats-masts')
 # HART's yellow USS sensor icons live in the profile (tables.xml uses preference:);
 # older deploys also copied them into the JMRI install, which stock JMRI does not ship.
+# Same yellow-*.gif pattern the install uses. Once no host has them, this block can go.
 foreach ($prog in @('C:\Program Files\JMRI', 'C:\Program Files (x86)\JMRI')) {
-  foreach ($g in @('yellow-on.gif', 'yellow-off.gif')) {
-    [void]$retired.Add((Join-Path $prog "resources\icons\USS\sensor\$g"))
+  $progUss = Join-Path $prog 'resources\icons\USS\sensor'
+  Get-ChildItem $progUss -Filter 'yellow-*.gif' -ErrorAction SilentlyContinue | ForEach-Object {
+    [void]$retired.Add($_.FullName)
   }
 }
 [void]$retired.Add((Join-Path $hart 'cats\scripts\windows\install_cats_masts.ps1'))
@@ -305,7 +307,7 @@ foreach ($path in $retired) {
   if (Test-Path -LiteralPath $path) {
     try {
       Remove-Item -LiteralPath $path -Recurse -Force
-      Write-Host ("retired signal set removed: {0}" -f $path)
+      Write-Host ("retired, removed: {0}" -f $path)
     } catch {
       Write-Host ("Skip (need Admin?): {0}" -f $path)
     }

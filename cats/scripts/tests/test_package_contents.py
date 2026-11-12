@@ -44,9 +44,19 @@ class UssSensorIcons(unittest.TestCase):
         self.assertIn('"resources/icons/USS/sensor"', PI)
         self.assertIn("'resources\\icons\\USS\\sensor'", WIN)
 
-    def test_windows_no_longer_copies_into_program_files(self):
-        self.assertNotIn("USS sensor icons (program)", WIN)
-        self.assertIn("resources\\icons\\USS\\sensor\\$g", WIN)
+    def test_windows_never_copies_into_program_files(self):
+        for line in WIN.splitlines():
+            if "Copy-Item" in line or "New-Item" in line:
+                self.assertNotIn("Program Files", line)
+        install = WIN[WIN.index("$ussSrc ="):WIN.index("$ctcSrc =")]
+        self.assertNotIn("Program Files", install)
+
+    def test_windows_retires_program_files_copies_from_both_roots(self):
+        retire = WIN[WIN.index("$progUss"):WIN.index("foreach ($path in $retired)")]
+        self.assertIn("'yellow-*.gif'", retire)
+        loop = WIN[WIN.index("$progUss") - 300:WIN.index("$progUss")]
+        self.assertIn("'C:\\Program Files\\JMRI'", loop)
+        self.assertIn("'C:\\Program Files (x86)\\JMRI'", loop)
 
 
 class RetiredScripts(unittest.TestCase):
