@@ -54,8 +54,14 @@ New `basis` values record where each length came from:
    (the Layout Editor panel is not to scale, so position alone will not do). The Power District
    Gaps layer may mark some block ends. A rendered picture of the decoded main level, with
    turnout numbers, goes to the owner to confirm the matching. If the owner can export a format
-   that names blocks or keeps the gaps, use it to shorten this. The reader is a small read-only
-   Python module kept in the repo with tests.
+   that names blocks or keeps the gaps, use it to shorten this.
+
+   **Where the reader lives (owner, 2026-11-12):** the generic `.any` reader (pieces, lengths,
+   layers, connections; no HART names) goes into the public `model-railroad-skills` plugin as
+   an AnyRail skill with a tool and tests. It is built during Part A. Before it is published,
+   check its lengths against what AnyRail itself shows for a few pieces, and label it in the
+   plugin README as reverse-engineered and checked against AnyRail output, since AnyRail is
+   closed source. The matching to HART's blocks stays in this repo.
 3. **Map AnyRail blocks to HART blocks.** The `old_source` column (Yard Lead W, East Bypass and
    so on) already holds the AnyRail names.
 4. **Infer the missing blocks.** The Switch 7 crossover and the engine terminal at Switch 13 may
