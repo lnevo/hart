@@ -79,6 +79,7 @@
         "behind-build",
         "behind-opspro",
         "behind-opspro-guide",
+        "behind-car-cards",
         "build",
         "helix",
         "helix-status"
@@ -166,6 +167,12 @@
       }
     ],
     "behind-opspro-guide": [
+      {
+        "label": "Operations",
+        "href": "behind/index.html#operations"
+      }
+    ],
+    "behind-car-cards": [
       {
         "label": "Operations",
         "href": "behind/index.html#operations"

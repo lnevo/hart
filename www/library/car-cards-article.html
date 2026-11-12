@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Car Cards Plugin — HART</title>
+  <meta name="description" content="A free plugin for AI coding agents that turns phone photos of model railroad cars and locomotives into printed car cards: what it does, what you need, how to start, and how far to trust it.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+  <style>
+    .feature-body .cta { border-top-color: var(--accent); }
+    .feature-body .cta h3 { margin: 0 0 0.35rem; }
+    .feature-body .cta .btn { margin-top: 0.3rem; }
+    .cc-card { max-width: 18rem; margin-left: auto; margin-right: auto; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>The Car Cards Plugin</h1>
+        <p class="standfirst">A free plugin for AI coding agents that turns phone photos of your cars and locomotives into printed car cards. It is the workflow behind this railroad's cards, with nothing in it that knows this railroad.</p>
+        <p class="byline">Operations · November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#what">What it is</a></li>
+          <li><a href="#how">From photo to printed card</a></li>
+          <li><a href="#need">What you need</a></li>
+          <li><a href="#start">Getting started</a></li>
+          <li><a href="#trust">How far to trust it</a></li>
+          <li><a href="#here">On this railroad</a></li>
+          <li><a href="#get">Get it</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">You give an AI coding agent a folder of phone photos. The plugin crops and levels each one, reads the reporting marks and number, and puts every photo on one review page that you check in your browser. Once you approve it, it prints poker-size cards, nine to a US Letter sheet, each with the photo, road name, number and a short description.</p>
+          <div class="aside-box cta">
+            <h3>Start here</h3>
+            <p>Install it in Claude Code, open the agent in an empty folder with your photos, and ask it to run a first batch. The steps are in <a href="#start">Getting started</a>.</p>
+            <p><a class="btn" href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/car-cards">Get the plugin on GitHub</a> <a class="btn btn-ghost" href="https://github.com/lnevo/hart/blob/main/docs/ops/CAR_CARDS_FROM_PHOTOS_PROMPT.md">Getting-started page</a></p>
+          </div>
+        </section>
+
+        <section id="what" aria-labelledby="h-what">
+          <h2 id="h-what"><span class="num">01</span>What it is</h2>
+          <p>A plugin for AI coding agents such as Claude Code, Cursor and Codex. It has three parts: a skill that tells the agent the order of the work and where to stop for you, a <code>cards</code> command that does the cropping, reading and printing, and a <code>photo-reader</code> agent that looks at every photo and marks where it disagrees with what the command read.</p>
+          <p>Everything about your railroad goes in one settings file, <code>cards.toml</code>, in your card folder: the railroad's name, logo and form number, your reporting marks and how they print (<code>NW</code> as <code>N&amp;W</code>), car types, description rules, card stock and the words that must never print. Every setting has a default.</p>
+          <p>It is version 0.1.0 and <b>in development</b>, under the MIT licence.</p>
+        </section>
+
+        <section id="how" aria-labelledby="h-how">
+          <h2 id="h-how"><span class="num">02</span>From photo to printed card</h2>
+          <p>The agent works in stages and stops after each one for you to check.</p>
+          <ol class="step-list">
+            <li><b>Review page.</b> Photos in <code>photos/incoming/</code> are cropped to the car, ending at the track, and levelled. Tesseract reads the reporting marks, the road number and the capacity stencils. Every photo goes on one page in your browser, with the ones that need a look flagged: blurry, unread, an odd number length, marks not in your fleet, duplicates, likely locomotives.</li>
+            <li><b>Photo check.</b> The agent looks at each photo itself and notes where it reads something different. It changes nothing.</li>
+            <li><b>Your corrections.</b> Every field on the page can be edited, and <i>Adjust crop</i> re-cuts a picture with a drag-and-zoom picker. You download the page's <code>review.csv</code> and the agent brings the edits back.</li>
+            <li><b>Approval and records.</b> Approved cars and locomotives go into two plain CSV files, <code>data/cars.csv</code> and <code>data/locos.csv</code>.</li>
+            <li><b>Locomotive details.</b> Locomotives get an even grey backdrop instead of the freight-car crop. You type in the model, builder and length.</li>
+            <li><b>Printing.</b> Cards not yet printed go into a Word file, nine to a sheet, with your logo and form number. A calibration page checks your stock first.</li>
+          </ol>
+          <figure>
+            <img src="../assets/behind/car-cards/review-page.png" width="1070" height="550" loading="lazy"
+                 alt="The review page with three photos from the plugin's tests: a black flatcar and a CSX locomotive, both with no marks or number read, and a silver CSX hopper read as TEOF 98 and marked ok. Each has an Adjust crop button and empty fields for car type, class, colour, length, weights, built date and description.">
+            <figcaption><strong>The review page, before any corrections.</strong> The plugin's three test photos as <code>cards review</code> first shows them. Two read nothing. The hopper read as TEOF 98 and is not flagged, because this folder has no fleet list; with CSX listed in <code>cards.toml</code> the mark would be flagged, and the photo check would note the real number.</figcaption>
+          </figure>
+          <figure class="cc-card">
+            <img src="../assets/cards/car-card-nw-32800.png" width="700" height="992" loading="lazy"
+                 alt="A printed car card, form HART-CC-001: flat car, photo of the model, road name N&amp;W, road number 32800, black flatcar 52 feet.">
+            <figcaption><strong>A printed card.</strong> One of this railroad's cards. The plugin prints the same layout with your own logo and form number.</figcaption>
+          </figure>
+        </section>
+
+        <section id="need" aria-labelledby="h-need">
+          <h2 id="h-need"><span class="num">03</span>What you need</h2>
+          <ul>
+            <li><b>An AI coding agent</b> that runs commands on your computer: Claude Code, Cursor or Codex. A chat window is not enough, because the agent has to run the tool and look at the photos.</li>
+            <li><b>Python 3.11 or newer</b>, and <a href="https://github.com/tesseract-ocr/tesseract">Tesseract</a> for reading text. The agent can install them.</li>
+            <li><b>Photos taken the same way each time:</b> side-on at about car height, the car on a short piece of track in front of a plain light backdrop. iPhone HEIC photos work on a Mac.</li>
+            <li><b>Card stock.</b> The default is poker-size sticker sheets, 2.5 × 3.5 in cards nine to a Letter page. Other stock works by changing the sheet settings.</li>
+          </ul>
+        </section>
+
+        <section id="start" aria-labelledby="h-start">
+          <h2 id="h-start"><span class="num">04</span>Getting started</h2>
+          <p>In Claude Code, add the repository as a plugin marketplace and install the plugin:</p>
+<pre>claude plugin marketplace add lnevo/model-railroad-skills
+claude plugin install car-cards@model-railroad-skills</pre>
+          <p>Cursor and Codex link the skill from a copy of the repository; the <a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/car-cards/README.md#cursor-and-codex">plugin README</a> has the steps. Neither runs the <code>photo-reader</code> agent, so the skill does the photo check itself.</p>
+          <p>Make an empty folder for your cards, put your photos in <code>photos/incoming/</code> inside it, open the agent there and say:</p>
+<pre>Use the car-cards skill. Set up a card folder here for my railroad, the
+[your railroad's name], then run a first batch from photos/incoming/ and
+stop at each stage for me to check.</pre>
+          <ol class="step-list">
+            <li><b>Start small.</b> Five to ten cars of one type. When those print well, do the rest of the fleet.</li>
+            <li><b>List your reporting marks</b> in <code>cards.toml</code>, so a misread mark is flagged.</li>
+            <li><b>Look at every crop</b> on the review page, and expect to correct some numbers.</li>
+            <li><b>Print the calibration page</b> first, then a test sheet, before a full run.</li>
+          </ol>
+          <p>If your agent can't install plugins, the <a href="https://github.com/lnevo/hart/blob/main/docs/ops/CAR_CARDS_FROM_PHOTOS_PROMPT.md">getting-started page</a> also has a longer prompt that has it build the same tool from scratch.</p>
+        </section>
+
+        <section id="trust" aria-labelledby="h-trust">
+          <h2 id="h-trust"><span class="num">05</span>How far to trust it</h2>
+          <p>Lettering on model cars is hard for a computer to read. The OCR settings were tuned on one batch of hoppers with stencilled lettering, and on other cars it may read nothing at all. The photo check and your corrections on the review page fill the gaps, so every number on a card has been seen by you before it prints.</p>
+          <div class="aside-box">
+            <h3>Know before you use it</h3>
+            <ul>
+              <li><b>Status:</b> version 0.1.0, in development. It has been run on Claude Code; Cursor and Codex have not been tried on a real agent yet.</li>
+              <li><b>It does not</b> read a locomotive's model, builder or DCC address from the photo, crop photos taken without a plain backdrop and a piece of track, or make waybills, switch lists or train cards.</li>
+              <li><b>It does not send cars anywhere.</b> The records are two CSV files for you to use as you like; nothing goes to an operations program.</li>
+              <li><b>If a whole batch crops badly,</b> check how the photos were taken before anything else.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="here" aria-labelledby="h-here">
+          <h2 id="h-here"><span class="num">06</span>On this railroad</h2>
+          <p>The plugin is this railroad's own card workflow, described in <a href="../ai/operations.html#cards">Car cards from photos</a>, made generic. Here the same records go on to JMRI Operations Pro, the STS traffic simulator and this website; the plugin leaves those steps out.</p>
+          <p>The railroad's own card printing will move to the plugin, with its settings in a <code>cards.toml</code>, and the later steps will take the plugin's CSV files. How crews use the cards in a session is on <a href="../operators/cards/index.html">Car Cards &amp; Waybills</a>.</p>
+        </section>
+
+        <section id="get" aria-labelledby="h-get">
+          <h2 id="h-get"><span class="num">07</span>Get it</h2>
+          <p>The plugin is public and free, under the MIT licence: <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/car-cards">github.com/lnevo/model-railroad-skills/plugins/car-cards</a>. It is a separate install from the read-only skills in the same repository. The README lists every <code>cards</code> command and the settings file has its own reference.</p>
+        </section>
+
+        <section id="references" aria-labelledby="h-refs">
+          <h2 id="h-refs"><span class="num">Notes</span>References</h2>
+          <ol class="refs">
+            <li id="ref-1">The car-cards plugin README (GitHub). <a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/car-cards/README.md">plugins/car-cards</a></li>
+            <li id="ref-2">The settings reference (GitHub). <a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/car-cards/skills/car-cards/references/settings.md">references/settings.md</a></li>
+            <li id="ref-3">Make your own car cards from photos, the getting-started page with the build-it-yourself prompt (GitHub). <a href="https://github.com/lnevo/hart/blob/main/docs/ops/CAR_CARDS_FROM_PHOTOS_PROMPT.md">docs/ops/CAR_CARDS_FROM_PHOTOS_PROMPT.md</a></li>
+            <li id="ref-4">Tesseract OCR. <a href="https://github.com/tesseract-ocr/tesseract">github.com/tesseract-ocr/tesseract</a></li>
+          </ol>
+          <p class="feature-more">More: <a href="../operators/cards/index.html">Car Cards &amp; Waybills</a> · <a href="operations-pro-article.html">The Operations Pro Plugin</a> · <a href="sts-operations-article.html">Setting up car movement</a> · <a href="../behind/index.html">Behind the Scenes</a></p>
+        </section>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-car-cards").catch(function (err) {
+        console.error(err);
+      });
+
+      // Mark the contents entry for the section being read.
+      var links = Array.prototype.slice.call(document.querySelectorAll(".feature-toc a"));
+      if (!("IntersectionObserver" in window) || !links.length) return;
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting || !byId[e.target.id]) return;
+          links.forEach(function (a) { a.removeAttribute("aria-current"); });
+          byId[e.target.id].setAttribute("aria-current", "true");
+        });
+      }, { rootMargin: "-20% 0px -70% 0px" });
+      Object.keys(byId).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    });
+  </script>
+</body>
+</html>

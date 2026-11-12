@@ -235,6 +235,11 @@
       "alt": "The Digicon device map of the layout, with switches and blocks labelled.",
       "from": "www/assets/layout/HART_cats_digicon.png (crop)"
     },
+    "library/car-cards-article.html": {
+      "image": "assets/share/library-car-cards-article.jpg",
+      "alt": "The car-cards review page with three photos from the plugin's tests: a flatcar, a CSX hopper and a CSX locomotive, each with fields to correct.",
+      "from": "screenshot of review.html from cards review on the plugin's test photos (www/assets/behind/car-cards/review-page.png)"
+    },
     "library/coke-making-in-beehive-ovens.html": {
       "image": "assets/share/library-coke-making-in-beehive-ovens.jpg",
       "alt": "A bank of beehive coke ovens with arched doors, in a still from the film.",
