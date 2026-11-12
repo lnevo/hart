@@ -1,24 +1,52 @@
 # Make your own car cards from photos
 
-This prompt has an AI coding agent build you a tool for car and locomotive cards. You give it a folder of phone photos of your cars. It crops and straightens each one, reads the reporting marks and number, and puts every photo on a review sheet that you check in your browser. Once you approve the sheet, it prints poker-size cards, nine to a sheet. Each card shows the photo, the road name, the number and a short description.
+You give an AI coding agent a folder of phone photos of your cars and locomotives. It crops and straightens each photo, reads the reporting marks and number, and puts every photo on a review page that you check in your browser. Once you approve the page, it prints poker-size cards, nine to a sheet. Each card shows the photo, the road name, the number and a short description.
 
-It is the same workflow we use for our fleet, described on [Car cards from photos](https://www.hartrailroad.com/ai/operations.html#cards). The prompt leaves out the steps that send our cars on to JMRI Operations Pro, our traffic simulator and our website.
+The work is done by **car-cards**, a free plugin in [model-railroad-skills](https://github.com/lnevo/model-railroad-skills/tree/main/plugins/car-cards). It is the same workflow we use for our fleet, described on [Car cards from photos](https://www.hartrailroad.com/ai/operations.html#cards), without the steps that send our cars on to JMRI Operations Pro, our traffic simulator and our website. It is version 0.1.0 and still in development.
 
 ## What you need
 
 - An AI coding agent that can read and write files and run commands on your computer, such as Claude Code, Cursor or Codex. A chat window is not enough, because the agent has to run the tool and look at the photos.
-- Python 3, and [Tesseract](https://github.com/tesseract-ocr/tesseract) for reading text. Ask the agent to install them if you don't have them.
-- Photos of your cars taken the same way every time: side-on at about car height, on a short piece of track, in front of a plain grey backdrop.
-- Card stock. We print on poker-size sticker sheets, nine to a US-letter page. Change the size and the 3×3 grid in the prompt if yours is different.
+- Python 3.11 or newer, and [Tesseract](https://github.com/tesseract-ocr/tesseract) for reading text. Ask the agent to install them if you don't have them.
+- Photos of your cars taken the same way every time: side-on at about car height, on a short piece of track, in front of a plain light backdrop.
+- Card stock. The default is poker-size sticker sheets, nine 2.5 × 3.5 in cards to a US-letter page. Other stock works: the plugin prints a calibration page to check it against.
 
-## How to use it
+## Install the plugin
 
-1. Make an empty folder and open the agent in it.
-2. Paste the prompt below. Change anything in it that doesn't fit your railroad first: card size, logo, form number, car types.
-3. The agent shows you its plan before it writes any code. After that it stops at the end of each stage and tells you what to check. Look at the crops and the review sheet carefully. Lettering on model cars is hard for a computer to read, so expect to correct some numbers.
-4. Start with a batch of five to ten cars of one type. When those print well, do the rest of the fleet.
+In Claude Code:
+
+```
+claude plugin marketplace add lnevo/model-railroad-skills
+claude plugin install car-cards@model-railroad-skills
+```
+
+Cursor and Codex install it by hand from a copy of the repository; the [plugin README](https://github.com/lnevo/model-railroad-skills/blob/main/plugins/car-cards/README.md#cursor-and-codex) has the steps.
 
 ## The prompt
+
+Make an empty folder for your cards, put your photos in `photos/incoming/` inside it, open the agent there and say:
+
+```text
+Use the car-cards skill. Set up a card folder here for my railroad, the
+[your railroad's name], then run a first batch from photos/incoming/ and
+stop at each stage for me to check.
+```
+
+The agent sets up the folder and its settings file, then stops after each stage: the review page, its own check of every photo, your corrections, approval, the records, locomotive details and printing. Look at the crops and the review page carefully. Lettering on model cars is hard for a computer to read, so expect to correct some numbers. Print the calibration page first, then a test sheet.
+
+Start with five to ten cars of one type. When those print well, do the rest of the fleet.
+
+## Notes from our runs
+
+- Our OCR settings were tuned on one batch of hoppers with stencilled lettering. On other cars the OCR may read nothing at all. The agent's own check of each photo and your corrections on the review page make up for it.
+- Use *Adjust crop* on the review page for a photo that came out wrong. If a whole batch crops badly, check how the photos were taken first.
+- Locomotives get their road and number from the photo, and that's all. You type in the model, length and builder.
+- List every reporting mark you use in the settings file, so a misread mark is flagged.
+- Description rules (for example, when a hopper counts as covered) go in the settings file.
+
+## No plugin? Build it yourself
+
+If your agent can't install plugins, this longer prompt has it build the same tool from scratch. Change anything in it that doesn't fit your railroad first: card size, logo, form number, car types. The agent shows you its plan before it writes any code, then stops at the end of each stage.
 
 ```text
 Build me a small Python tool that turns photos of my model railroad cars and
@@ -138,10 +166,3 @@ TESTS
 Before you write any code, show me your plan and the review.csv columns.
 After each stage, stop and tell me what to check.
 ```
-
-## Notes from our runs
-
-- Our OCR settings were tuned on one batch of hoppers with stencilled lettering. On other cars the OCR may read nothing at all. The AI check and your own corrections on the review sheet make up for it.
-- Use the crop picker on photos that came out wrong. If a whole batch crops badly, ask the agent to fix the crop code instead.
-- Locomotives get their road and number from the photo, and that's all. You type in the model, length and builder.
-- The agent decides how to word each description, such as when a hopper counts as covered. If your railroad has its own conventions, list them in the prompt.
