@@ -96,7 +96,12 @@
                     <!-- contributed / frames / file access -->
                     <div class="col-md-4">
                         <h2>Utilities</h2>
-                        <h4><a href="http://localhost:8980/sts/" target="sts">STS</a></h4>
+                        <h4><a id="sts-link" href="http://localhost:8980/sts/" target="sts">STS</a></h4>
+                        <script>
+                            // STS runs on the same host as this JMRI, on port 8980.
+                            document.getElementById("sts-link").href =
+                                location.protocol + "//" + location.hostname + ":8980/sts/";
+                        </script>
                         <p>Shipper-driven Traffic Simulator.</p>
 
                         <h4><a href="/web/mimic/" target="mimic">LCOS Mimic</a></h4>
