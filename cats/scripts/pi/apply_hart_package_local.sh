@@ -108,6 +108,7 @@ JYTHON=(
   "$HART/jmri/layouts/hart/scripts/panel_status.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$HART/jmri/layouts/hart/scripts/sts_car_sync.py"
+  "$HART/jmri/layouts/hart/scripts/mimic_relay.py"
   "$HART/jmri/scripts/signal_coordinator.py"
 )
 mkdir -p "$UF/jython"
@@ -147,6 +148,11 @@ if [[ -f "$PATCH" ]]; then
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
     --script preference:jython/sts_car_sync.py \
     --after jmri_cmd_watcher.py
+  # LCOS mimic page (/web/mimic/) publishes its feedback through this.
+  python3 "$PATCH" insert \
+    --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+    --script preference:jython/mimic_relay.py \
+    --after sts_car_sync.py
   python3 "$PATCH" remove \
     --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
     --script prepare_nx_sml_paths.py 2>/dev/null || true

@@ -101,6 +101,7 @@ HART_JYTHON_SCRIPTS=(
   jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py
   jmri/layouts/hart/scripts/jmri_cmd_watcher.py
   jmri/layouts/hart/scripts/sts_car_sync.py
+  jmri/layouts/hart/scripts/mimic_relay.py
 )
 
 LIVE_PANELS=(
@@ -283,6 +284,7 @@ stage_package() {
   cp -f "$ROOT/jmri/resources/misc/"* "$stage/cats/resources/misc/"
 
   rsync -a "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
+  python3 "$ROOT/tools/mqtt-mimic/build_mimic_web.py" --out "$stage/cats/resources/jmri-web/mimic"
   rsync -a "$ROOT/cats/scripts/pi/" "$stage/cats/scripts/pi/"
   rsync -a "$ROOT/cats/scripts/windows/" "$stage/cats/scripts/windows/"
   cp -f "$ROOT/cats/scripts/install_jmri_web_override.sh" \

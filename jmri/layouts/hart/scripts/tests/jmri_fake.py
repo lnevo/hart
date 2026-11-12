@@ -101,6 +101,46 @@ class FakeTurnout(Bean):
         pass
 
 
+class _ValueEvent:
+    def __init__(self, name, old, new):
+        self._name, self._old, self._new = name, old, new
+
+    def getPropertyName(self):
+        return self._name
+
+    def getOldValue(self):
+        return self._old
+
+    def getNewValue(self):
+        return self._new
+
+
+class FakeMemory(Bean):
+    """JMRI Memory: setValue fires a "value" change only when the value changes, like JMRI."""
+
+    def __init__(self, system_name, value=None):
+        super().__init__(system_name)
+        self.value = value
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, value):
+        old, self.value = self.value, value
+        if old != value:
+            for listener in list(self.listeners):
+                listener.propertyChange(_ValueEvent("value", old, value))
+
+    def setUserName(self, name):
+        self._user = name
+
+    def getPropertyChangeListeners(self):
+        return list(self.listeners)
+
+    def removePropertyChangeListener(self, listener):
+        self.listeners = [l for l in self.listeners if l is not listener]
+
+
 class FakeRoute(Bean):
     def __init__(self, system_name, user_name, enabled=True):
         super().__init__(system_name, user_name)
@@ -175,8 +215,8 @@ class Manager:
     def getNamedBeanSet(self):
         return list(self.beans.values())
 
-    getTurnout = getSensor = getSignalHead = getSignalMast = getBySystemName = _get
-    provideTurnout = provideSensor = _provide
+    getTurnout = getSensor = getSignalHead = getSignalMast = getMemory = getBySystemName = _get
+    provideTurnout = provideSensor = provideMemory = _provide
 
     def register(self, bean):
         self.add(bean)
@@ -309,6 +349,7 @@ class Layout:
         self.routes = Manager(lambda n: FakeRoute(n, n))
         self.heads = Manager(FakeHead)
         self.masts = Manager(FakeMast)
+        self.memories = Manager(FakeMemory)
         self.power = FakePower()
         self.adapter = RecordingAdapter()
         self.memo = FakeMemo(self.adapter) if mqtt else None
@@ -426,7 +467,8 @@ def load_script(path: Path, layout: Layout) -> dict:
     Thread.started.clear()
     source = Path(path).read_text(encoding="utf-8").replace(".await(", ".await_(")
     env = {"__name__": "hart_script_under_test", "turnouts": layout.turnouts, "sensors": layout.sensors,
-           "routes": layout.routes, "signals": layout.heads, "masts": layout.masts}
+           "routes": layout.routes, "signals": layout.heads, "masts": layout.masts,
+           "memories": layout.memories}
     with jmri_modules(layout), contextlib.redirect_stdout(_Quiet()):
         exec(compile(source, str(path), "exec"), env)
     return env
