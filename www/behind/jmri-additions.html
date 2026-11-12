@@ -6,6 +6,8 @@
   <title>What We Added to JMRI (and What We Left Alone) — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
   <style>
+    /* Use the full page width on desktop. */
+    .explainer.jm-wide { max-width: none; }
     /* Two figures: shapes use the site tokens. */
     .jm-svg { display: block; width: 100%; max-width: 38rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
     .jm-svg .box { fill: var(--card); stroke: var(--rule); stroke-width: 1.5; }
@@ -32,7 +34,7 @@
       <p class="section-note">Almost everything here is stock JMRI. This page covers the small part that is not: the six scripts and the files deployed into the JMRI profile, then how the signal hand-over and the status lamps work.</p>
     </div>
 
-    <article class="explainer prose">
+    <article class="explainer prose jm-wide">
       <h2>Stock first</h2>
       <p>
         If you run JMRI yourself, you will recognise most of what runs this railroad: Basic signal masts,
