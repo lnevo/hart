@@ -37,7 +37,7 @@ GROUPS = {
     "jmriversion": ("start", "JMRI version", "The version of JMRI that stored the file."),
     "sensors": ("objects", "Sensors", "Inputs: occupancy and switch feedback from the layout, plus internal flags and helpers."),
     "turnouts": ("objects", "Turnouts", "The switches, their DCC twins, and internal turnouts for the yard ladders."),
-    "memories": ("objects", "Memories", "Small stored values, such as the fast-clock time."),
+    "memories": ("objects", "Memories", "Small stored values, such as the fast-clock time and the mimic page's requests."),
     "signalheads": ("objects", "Signal heads", "Virtual heads that carry each lamp's colour."),
     "signalmasts": ("objects", "Signal masts", "The signals, real and virtual, all stock Basic."),
     "blocks": ("objects", "Blocks", "Stretches of track, each with an occupancy sensor and paths to its neighbours."),

@@ -47,7 +47,7 @@ Run this by hand after a bridge or firmware change.
 
 ### Mimic relay memory
 
-`jmri/layouts/hart/scripts/mimic_relay.py` creates the memory `IMHART_MIMIC` ("Mimic relay") when JMRI starts on the Pi. It is not in `jmri/layouts/hart/output/tables.xml`. After a PanelPro Store on the Pi, the next `make tables-pull` diff shows it holding a short "ack <n>" value. That is expected and fine to commit.
+The memory `IMHART_MIMIC` ("Mimic relay") is stored in `jmri/layouts/hart/output/tables.xml` (since 2026-11-12), so it loads with the tables. `jmri/layouts/hart/scripts/mimic_relay.py` creates it at Start Up only if it is missing, and logs when it does. After a PanelPro Store on the Pi, the next `make tables-pull` diff may show it holding a short "ack <n>" value. That is expected and fine to commit.
 
 ### Broker cleanup
 

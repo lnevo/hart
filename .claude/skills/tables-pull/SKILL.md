@@ -20,7 +20,7 @@ description: Use when a PanelPro Store has changed ~/JMRI_UserFiles/tables.xml a
    - stops if PanelPro or CATS is running, or if `~/JMRI_UserFiles/tables.xml` is missing;
    - exits with "already matches" if the files are identical;
    - otherwise copies the Store over the repo file and writes `~/JMRI_UserFiles/.tables_deployed.sha256`, which clears the deploy guard.
-3. Review `git diff jmri/layouts/hart/output/tables.xml`. Check that only the changes you expect are there. Expected extra: the memory `IMHART_MIMIC` with an "ack <n>" value after a Pi Store (see `wiki/pipelines/mqtt-mimic.md`).
+3. Review `git diff jmri/layouts/hart/output/tables.xml`. Check that only the changes you expect are there. Expected extra: the memory `IMHART_MIMIC` gaining an "ack <n>" value after a Pi Store (see `wiki/pipelines/mqtt-mimic.md`).
 4. Run `./tools/check.sh` before any commit that changes tables or signals.
 5. If tables or panels changed, run `make panelpro-test` when the owner is not operating (AGENTS.md close-out, step 4).
 6. Commit the file by name, then follow the close-out in AGENTS.md. A changed tables file needs a deploy.

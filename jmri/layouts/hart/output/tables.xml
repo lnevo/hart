@@ -3509,6 +3509,11 @@
       <userName>Current time</userName>
       <comment>JMRI fast-clock time</comment>
     </memory>
+    <memory>
+      <systemName>IMHART_MIMIC</systemName>
+      <userName>Mimic relay</userName>
+      <comment>Mimic page requests; mimic_relay.py publishes them as LCOS feedback</comment>
+    </memory>
     <memory value="0.2">
       <systemName>IMIS:ISMEM:versionNo</systemName>
       <userName>Dispatcher version</userName>

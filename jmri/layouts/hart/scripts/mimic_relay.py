@@ -122,9 +122,11 @@ class _Listener(PropertyChangeListener):
 
 
 def install():
-    memory = memories.provideMemory(MEMORY)  # noqa: F821 - JMRI Jython global
-    if memory.getUserName() is None:
-        memory.setUserName("Mimic relay")
+    # tables.xml stores the memory, so it is normally already there; create it only if missing.
+    memory = memories.getMemory(MEMORY)  # noqa: F821 - JMRI Jython global
+    if memory is None:
+        memory = memories.newMemory(MEMORY, "Mimic relay")  # noqa: F821
+        print("mimic_relay: created %s, missing from the tables file" % MEMORY)
     for old in list(memory.getPropertyChangeListeners()):
         if getattr(old, "hart_mimic_relay", False):
             memory.removePropertyChangeListener(old)

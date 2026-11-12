@@ -215,6 +215,14 @@ class Manager:
     def _provide(self, name):
         return self.beans.get(name) or self.add(self._make(name))
 
+    def newMemory(self, system_name, user_name=None):
+        """JMRI MemoryManager.newMemory: always creates; callers check getMemory first."""
+        if system_name in self.beans:
+            raise ValueError("%s already exists" % system_name)
+        bean = self.add(self._make(system_name))
+        bean.setUserName(user_name)
+        return bean
+
     def getNamedBeanSet(self):
         return list(self.beans.values())
 

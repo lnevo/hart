@@ -25,6 +25,21 @@ class MimicRelay(unittest.TestCase):
         self.assertEqual(self.memory.getUserName(), "Mimic relay")
         self.assertEqual(len(self.memory.listeners), 1)
 
+    def test_stored_memory_is_reused_not_recreated(self):
+        layout = Layout()
+        stored = layout.memories.newMemory("IMHART_MIMIC", "Mimic relay (stored)")
+        stored.setValue("ack 9")
+        load_script(SCRIPT, layout)
+        memory = layout.memories.getMemory("IMHART_MIMIC")
+        self.assertIs(memory, stored)
+        self.assertEqual(memory.getUserName(), "Mimic relay (stored)")
+        self.assertEqual(memory.getValue(), "ack 9")
+        self.assertEqual(len(memory.listeners), 1)
+
+    def test_rerun_keeps_one_listener(self):
+        load_script(SCRIPT, self.layout)
+        self.assertEqual(len(self.memory.listeners), 1)
+
     def test_publishes_lcos_feedback_retained(self):
         self.request(1, "track/sensor/470 INACTIVE", "track/sensor/471 ACTIVE", "track/turnout/408 THROWN")
         self.assertEqual(
