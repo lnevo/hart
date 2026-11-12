@@ -13,7 +13,10 @@ from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[1]
-PAGE = ROOT / "jmri/resources/jmri-web/mimic/index.html"
+WEB = ROOT / "jmri/resources/jmri-web/mimic"
+PAGE = WEB / "index.html"
+MAC_PAGE = SCRIPTS / "lcos_mqtt_mimic.html"
+SHARED = ("mimic.css", "mimic_view.js")
 INSTALL = ROOT / "cats/scripts/install_jmri_web_override.sh"
 RELAY = (ROOT / "jmri/layouts/hart/scripts/mimic_relay.py").read_text(encoding="utf-8")
 
@@ -63,6 +66,33 @@ class Page(unittest.TestCase):
         self.assertNotIn("/api/", self.script)
 
 
+class SharedView(unittest.TestCase):
+    """Both pages draw with the same style and render code; only the transport differs."""
+
+    view = (WEB / "mimic_view.js").read_text(encoding="utf-8")
+
+    def test_both_pages_load_the_shared_files(self):
+        jmri = PAGE.read_text(encoding="utf-8")
+        mac = MAC_PAGE.read_text(encoding="utf-8")
+        self.assertIn('href="mimic.css"', jmri)
+        self.assertIn('src="mimic_view.js"', jmri)
+        self.assertIn('href="/mimic.css"', mac)
+        self.assertIn('src="/mimic_view.js"', mac)
+        for text in (jmri, mac):
+            self.assertNotIn("<style>", text)
+            self.assertNotIn("function render(", text)
+            self.assertIn("mountMimic(", text)
+
+    def test_shared_view_sends_nothing(self):
+        for word in ("fetch(", "WebSocket", "EventSource", "track/", "method:", "send("):
+            self.assertNotIn(word, self.view)
+
+    def test_mac_server_serves_the_shared_files(self):
+        mimic = _load("lcos_mqtt_mimic")
+        self.assertEqual(mimic.SHARED_WEB, WEB)
+        self.assertEqual({name.lstrip("/") for name in mimic.SHARED_FILES}, set(SHARED))
+
+
 class Install(unittest.TestCase):
     def _run(self, with_layout):
         tmp = Path(tempfile.mkdtemp())
@@ -75,6 +105,8 @@ class Install(unittest.TestCase):
         (web / "servlet/home/Home.html").write_text("home", encoding="utf-8")
         (web / "mimic").mkdir()
         (web / "mimic/index.html").write_text("page", encoding="utf-8")
+        for name in SHARED:
+            (web / "mimic" / name).write_text(name, encoding="utf-8")
         if with_layout:
             (web / "mimic/mimic_layout.json").write_text("{}", encoding="utf-8")
         home = tmp / "home"
@@ -87,6 +119,8 @@ class Install(unittest.TestCase):
         web = self._run(with_layout=True)
         self.assertEqual((web / "mimic/index.html").read_text(encoding="utf-8"), "page")
         self.assertTrue((web / "mimic/mimic_layout.json").is_file())
+        for name in SHARED:
+            self.assertEqual((web / "mimic" / name).read_text(encoding="utf-8"), name)
         self.assertTrue((web / "servlet/home/Home.html").is_file())
 
     def test_skips_page_without_layout(self):

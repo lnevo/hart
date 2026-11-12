@@ -7,6 +7,7 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 | Path | Role |
 |------|------|
 | `jmri/resources/jmri-web/mimic/index.html` | Mimic page on the Pi, served by JMRI at `http://10.0.0.150:12080/web/mimic/`; reads state over the JMRI JSON WebSocket |
+| `jmri/resources/jmri-web/mimic/mimic.css`, `mimic_view.js` | Markup, style and `render()` shared by both mimic pages; each page keeps only its transport. The Mac server serves them at `/mimic.css` and `/mimic_view.js` |
 | `jmri/layouts/hart/scripts/mimic_relay.py` | Pi Start Up script: publishes the page's clicks (memory `IMHART_MIMIC`) as retained `track/sensor` / `track/turnout`, never `track/cmd` |
 | `tools/mqtt-mimic/build_mimic_web.py` | Deploy step: writes the page's `mimic_layout.json` from the same sources as the Mac mimic |
 | `tools/mqtt-mimic/lcos_mqtt_mimic.py` | Mac mimic (own web server on 127.0.0.1:8765); reads `public_name_map.csv`. Its launch agent `com.hart.mqtt-mimic` is disabled since 2026-11-11 |
@@ -19,6 +20,10 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 - **Topics:** `track/signalhead/<packed>` (SET), `track/signalmast/<packed>` (field status).
 - **Packed ID:** deploy `IH*` digits, the same as `system_name` in `signal_wiring.csv` (`check_wiring_crosswalk.py`).
 - **Bridge:** Windows serial bridge runs **foreground** only (do not `Start-Process` Hidden).
+
+## Broker setting
+
+The Mac tools (`tools/mqtt/`, `tools/mqtt-mimic/`, `seed_default_thrown_turnouts.py`) read the broker and JMRI address through `tools/ops/lib/hart_hosts.py`. Set `HART_MQTT_BROKER`, `HART_MQTT_PORT` and `HART_JMRI_JSON` in the environment or in `tools/env/hart.env`; the default is the Pi (`10.0.0.150`, `http://10.0.0.150:12080/json`). The older `MQTT_HOST` and `JMRI_JSON` still work, and the environment beats `hart.env`.
 
 ## Run
 

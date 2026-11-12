@@ -24,7 +24,8 @@ Usage: $(basename "$0") [install|uninstall|status|restart]
   restart    Bounce the running agent
 
 PORT=${PORT}  (override with PORT=8765)
-MQTT_HOST / HART_MQTT_HOST are passed through if set.
+HART_MQTT_BROKER / HART_MQTT_PORT (and the older MQTT_HOST) are passed through if set;
+without them the mimic reads tools/env/hart.env, then defaults to the Pi.
 EOF
 }
 
@@ -57,9 +58,6 @@ write_plist() {
     <string>--http-port</string>
     <string>${PORT}</string>
 EOF
-    if [[ -n "${MQTT_HOST:-}" ]]; then
-      printf '    <string>--mqtt-host</string>\n    <string>%s</string>\n' "$MQTT_HOST"
-    fi
     cat <<EOF
   </array>
   <key>WorkingDirectory</key>
@@ -69,12 +67,11 @@ EOF
     <key>PATH</key>
     <string>/opt/local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
 EOF
-    if [[ -n "${MQTT_HOST:-}" ]]; then
-      printf '    <key>MQTT_HOST</key>\n    <string>%s</string>\n' "$MQTT_HOST"
-    fi
-    if [[ -n "${HART_MQTT_HOST:-}" ]]; then
-      printf '    <key>HART_MQTT_HOST</key>\n    <string>%s</string>\n' "$HART_MQTT_HOST"
-    fi
+    for var in HART_MQTT_BROKER HART_MQTT_PORT MQTT_HOST HART_MQTT_HOST; do
+      if [[ -n "${!var:-}" ]]; then
+        printf '    <key>%s</key>\n    <string>%s</string>\n' "$var" "${!var}"
+      fi
+    done
     cat <<EOF
   </dict>
   <key>RunAtLoad</key>

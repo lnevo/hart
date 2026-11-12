@@ -10,7 +10,9 @@ Never publishes track/cmd/turnout (that commands motors). TWOSENSOR plants
 also flip FB N/R sensors so JMRI KnownState follows feedback.
 
   python3 tools/mqtt-mimic/lcos_mqtt_mimic.py
-  python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --mqtt-host 10.0.0.150 --http-port 8765
+  python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --mqtt-host <broker> --http-port 8765
+
+Without --mqtt-host the broker comes from HART_MQTT_BROKER (tools/ops/lib/hart_hosts.py).
   ./tools/mqtt-mimic/install_mimic_launchagent.sh   # stay-up LaunchAgent (survives Cursor quit)
 """
 
@@ -19,7 +21,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import os
 import queue
 import re
 import shutil
@@ -39,7 +40,17 @@ NAME_MAP = ROOT / "jmri" / "layouts" / "hart" / "data" / "public_name_map.csv"
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 HEAD_CSV = ROOT / "docs/wiring/signals/signal_head_plan.csv"
 HTML = Path(__file__).with_suffix(".html")
+# Style and render code shared with the JMRI-hosted page; served here at /<name>.
+SHARED_WEB = ROOT / "jmri" / "resources" / "jmri-web" / "mimic"
+SHARED_FILES = {
+    "/mimic.css": "text/css; charset=utf-8",
+    "/mimic_view.js": "text/javascript; charset=utf-8",
+}
 
+sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
+from hart_hosts import PI_HOST, mqtt_broker, mqtt_port  # noqa: E402
+
+# Set in main(): importers such as build_mimic_web.py never need the broker port.
 MQTT_PORT = 1883
 _MOSQUITTO = (
     "/opt/local/bin",
@@ -96,17 +107,16 @@ def _probe(host: str) -> bool:
 
 
 def pick_mqtt_host(explicit: str | None) -> str:
-    env = (os.environ.get("MQTT_HOST") or os.environ.get("HART_MQTT_HOST") or "").strip()
     hosts = []
-    for h in (explicit, env, "10.0.0.150", "127.0.0.1"):
+    for h in (explicit, mqtt_broker(), PI_HOST, "127.0.0.1"):
         if h and h not in hosts:
             hosts.append(h)
     for h in hosts:
         if _probe(h):
             return h
     raise SystemExit(
-        "No MQTT broker on port 1883. Tried: " + ", ".join(hosts)
-        + "\nPass --mqtt-host or set MQTT_HOST."
+        f"No MQTT broker on port {MQTT_PORT}. Tried: " + ", ".join(hosts)
+        + "\nPass --mqtt-host or set HART_MQTT_BROKER."
     )
 
 
@@ -364,7 +374,7 @@ class Bus:
 
     def publish(self, topic: str, payload: str) -> None:
         subprocess.check_call(
-            [self.pub_bin, "-h", self.host, "-r", "-t", topic, "-m", payload],
+            [self.pub_bin, "-h", self.host, "-p", str(MQTT_PORT), "-r", "-t", topic, "-m", payload],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -420,6 +430,8 @@ class Bus:
             self.sub_bin,
             "-h",
             self.host,
+            "-p",
+            str(MQTT_PORT),
             "-v",
             "-t",
             "track/sensor/#",
@@ -489,6 +501,15 @@ def make_handler(layout: dict, bus: Bus, html: bytes):
                 self.end_headers()
                 self.wfile.write(html)
                 return
+            if path in SHARED_FILES:
+                body = (SHARED_WEB / path.lstrip("/")).read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", SHARED_FILES[path])
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(body)
+                return
             if path == "/api/layout":
                 self._json(200, layout)
                 return
@@ -551,8 +572,12 @@ def main() -> int:
     ap.add_argument("--bind", default="127.0.0.1")
     args = ap.parse_args()
 
-    if not HTML.is_file():
-        raise SystemExit(f"missing UI {HTML}")
+    global MQTT_PORT
+    MQTT_PORT = mqtt_port()
+
+    for page in (HTML, *(SHARED_WEB / name.lstrip("/") for name in SHARED_FILES)):
+        if not page.is_file():
+            raise SystemExit(f"missing UI {page}")
 
     host = pick_mqtt_host(args.mqtt_host)
     layout = load_layout()
