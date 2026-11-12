@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 REM CATS Digicon fast launcher - accepts panel path as %1
-REM launcher_version=20261111_0100
+REM launcher_version=20261111_0200
 
 REM Prefer caller-supplied panel (CTC / ABS wrappers pass this).
 if not "%~1"=="" (
@@ -9,8 +9,6 @@ if not "%~1"=="" (
 ) else (
   set PANEL=%USERPROFILE%\JMRI_UserFiles\cats\panels\HART_CTC.xml
   if not exist "%PANEL%" set PANEL=%~dp0..\panels\HART_CTC.xml
-  if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\panels\HART_CTC.xml
-  if not exist "%PANEL%" set PANEL=%USERPROFILE%\Dropbox\HART_sync\HART_CTC.xml
 )
 
 REM Program Files JMRI first (not %%USERPROFILE%%\JMRI prefs folder)
@@ -20,27 +18,26 @@ if "%JMRI_HOME%"=="" if exist "C:\Program Files (x86)\JMRI\LaunchJMRI.exe" set J
 if "%JMRI_HOME%"=="" if exist "C:\JMRI\LaunchJMRI.exe" set JMRI_HOME=C:\JMRI
 if "%JMRI_HOME%"=="" if exist "%USERPROFILE%\JMRI\LaunchJMRI.exe" set JMRI_HOME=%USERPROFILE%\JMRI
 if "%JMRI_HOME%"=="" (
-  echo JMRI not found. Run RUN_INSTALL.bat as Administrator.
+  echo JMRI not found. Install JMRI and CATS 3.2, then deploy with sync_hart_package.sh --win.
   pause & exit /b 1
 )
 
 if not exist "%JMRI_HOME%\cats.jar" (
-  if exist "%USERPROFILE%\Dropbox\HART_sync\cats.jar" copy /Y "%USERPROFILE%\Dropbox\HART_sync\cats.jar" "%JMRI_HOME%\cats.jar" >nul
-  if not exist "%JMRI_HOME%\cats.jar" if exist "%USERPROFILE%\JMRI\cats.jar" copy /Y "%USERPROFILE%\JMRI\cats.jar" "%JMRI_HOME%\cats.jar" >nul
+  if exist "%USERPROFILE%\JMRI\cats.jar" copy /Y "%USERPROFILE%\JMRI\cats.jar" "%JMRI_HOME%\cats.jar" >nul
 )
 if not exist "%JMRI_HOME%\cats.jar" (
-  echo cats.jar missing in "%JMRI_HOME%". Run RUN_INSTALL.bat as Administrator.
+  echo cats.jar missing in "%JMRI_HOME%". Install JMRI and CATS 3.2, then deploy with sync_hart_package.sh --win.
   pause & exit /b 1
 )
 
-REM CATS requires crandic.gif next to JMRI (NPE in Apps.statusPanel if missing)
-if exist "%USERPROFILE%\Dropbox\HART_sync\crandic.gif" (
-  if not exist "%JMRI_HOME%\crandic.gif" copy /Y "%USERPROFILE%\Dropbox\HART_sync\crandic.gif" "%JMRI_HOME%\crandic.gif" >nul 2>&1
+REM CATS requires crandic.gif next to JMRI (NPE in Apps.statusPanel if missing).
+REM The stock CATS install puts it in JMRI_HOME; copy it to the settings folders from there.
+if exist "%JMRI_HOME%\crandic.gif" (
   if not exist "%USERPROFILE%\JMRI\crandic.gif" (
     mkdir "%USERPROFILE%\JMRI" 2>nul
-    copy /Y "%USERPROFILE%\Dropbox\HART_sync\crandic.gif" "%USERPROFILE%\JMRI\crandic.gif" >nul 2>&1
+    copy /Y "%JMRI_HOME%\crandic.gif" "%USERPROFILE%\JMRI\crandic.gif" >nul 2>&1
   )
-  if exist "%USERPROFILE%\JMRI\My_JMRI_Railroad.jmri\" copy /Y "%USERPROFILE%\Dropbox\HART_sync\crandic.gif" "%USERPROFILE%\JMRI\My_JMRI_Railroad.jmri\crandic.gif" >nul 2>&1
+  if exist "%USERPROFILE%\JMRI\My_JMRI_Railroad.jmri\" copy /Y "%JMRI_HOME%\crandic.gif" "%USERPROFILE%\JMRI\My_JMRI_Railroad.jmri\crandic.gif" >nul 2>&1
 )
 
 if not exist "%PANEL%" (
@@ -53,11 +50,9 @@ if exist "%USERPROFILE%\JMRI\HART_sheet_West_Yard.jmri" rmdir /S /Q "%USERPROFIL
 if exist "%APPDATA%\JMRI\HART_sheet_West_Yard.jmri" rmdir /S /Q "%APPDATA%\JMRI\HART_sheet_West_Yard.jmri" 2>nul
 
 set IDFILE=%~dp0jmri_profile_id.txt
-set RESOLVER=%USERPROFILE%\Dropbox\HART_sync\resolve_jmri_profile.ps1
-if not exist "%RESOLVER%" set RESOLVER=%~dp0resolve_jmri_profile.ps1
+set RESOLVER=%~dp0resolve_jmri_profile.ps1
 set PATCHMQTT=%~dp0patch_windows_mqtt.ps1
-set KILLPS=%USERPROFILE%\Dropbox\HART_sync\kill_cats.ps1
-if not exist "%KILLPS%" set KILLPS=%~dp0kill_cats.ps1
+set KILLPS=%~dp0kill_cats.ps1
 
 REM Quietly stop any prior Crandic (no pause)
 if exist "%KILLPS%" powershell -NoProfile -ExecutionPolicy Bypass -File "%KILLPS%" >nul 2>&1
