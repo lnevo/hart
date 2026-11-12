@@ -33,6 +33,7 @@ Commons file pages.
 | conrail.png | https://commons.wikimedia.org/wiki/File:Consolidated_Rail_Corporation_(Conrail)_Logo.svg (960 px render) | public domain | confirmed |
 | norfolk-western-1958.png | https://commons.wikimedia.org/wiki/File:Logo_of_the_Norfolk_and_Western_Railway.svg (960 px render, 1958 logo) | public domain | confirmed |
 | genesee-wyoming.png | https://commons.wikimedia.org/wiki/File:Genesee_%26_Wyoming_logo.svg (960 px render) | public domain | confirmed |
+| atlantic-great-lakes.png | Genesee & Wyoming press kit for the 11 Nov 2026 separation release, `A_and_GL_logo_rgb@lowres.png` (435 × 480), https://www.gwrr.com/about/news/Genesee--Wyoming-Announces-Plan-to-Separate-into-Three-Geographically-Focused-Companies (added 2026-11-12) | press-kit logo | confirmed |
 | wheeling-lake-erie.png | https://commons.wikimedia.org/wiki/File:Wheeling_and_Lake_Erie_Railway_logo.png | public domain | confirmed |
 | pittsburgh-west-virginia.png | https://en.wikipedia.org/wiki/File:P%26WV_logo.gif (converted to PNG, 100 px) | non-free logo | confirmed |
 | pittsburgh-lake-erie.png | https://en.wikipedia.org/wiki/File:Logo_of_the_Pittsburgh_and_Lake_Erie_Railroad.png | non-free logo | confirmed |
