@@ -458,12 +458,24 @@
       },
       {
         "name": "POHC, Genesee & Wyoming",
-        "years": "2008–",
+        "years": "2008–2026",
         "from": 2008,
-        "to": null,
+        "to": 2026,
         "made": "Meets NS at Duff Junction and CSX at POV Junction",
         "logo": "../ops/hart-ops/operator_logos/downloads/genesee-wyoming.png",
-        "note": "Office and engines at McKees Rocks. Moves to G&W's Atlantic & Great Lakes Transportation on 1 Jan 2027 (announced 11 Nov 2026)"
+        "note": "Office and engines at McKees Rocks"
+      },
+      {
+        "handoff": "1 Jan 2027 · G&W splits in three"
+      },
+      {
+        "name": "POHC, Atlantic & Great Lakes",
+        "years": "2027–",
+        "from": 2027,
+        "to": null,
+        "made": "G&W's company for New York, Ohio, Pennsylvania and New England, based in Rochester",
+        "wordmark": "Atlantic & Great Lakes",
+        "note": "Announced 11 Nov 2026, subject to regulatory approval. Still owned by Brookfield and GIC"
       }
     ],
     "end": {
