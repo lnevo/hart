@@ -1,6 +1,8 @@
 # Prompt: MQTT host tidy-ups
 
-Hand-off for the code tidy-ups left over from the 2026-11-11 network change (PRs #320–#325). Paste the block below into a new session.
+Hand-off for the code tidy-ups left over from the 2026-11-11 network change (PRs #320–#325).
+
+**Done 2026-11-11** on branch `agent/claude/mqtt-host-tidy`: `tools/ops/lib/hart_hosts.py` holds the broker and JMRI settings, and `jmri/resources/jmri-web/mimic/mimic.css` and `mimic_view.js` are shared by both mimic pages. Kept for the record; do not run it again.
 
 ```text
 Tidy the MQTT host settings in the HART repo. Read AGENTS.md and wiki/STATUS.md first,
