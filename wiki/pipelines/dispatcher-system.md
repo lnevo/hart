@@ -42,8 +42,6 @@ python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py
 
 Operator: [`jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md).
 
-Stock Dispatcher System stores facing direction swapped on purpose. If a through-station loco runs the wrong way, use **Modify Dispatcher System → Change Dir**. Do not add a HART overlay.
-
 ## Do not
 
 - Stage 1 or Store tables from CATS
