@@ -55,7 +55,7 @@ python3 cats/scripts/wire_digicon.py
          ▼                                                     ▼
 ┌─────────────────┐                                  ┌──────────────────┐
 │ JMRI Turnouts / │◄── live MQTT reports ───────────│ MQTT broker       │
-│ Sensors / Blocks│                                  │ Pi (minipc)       │
+│ Sensors / Blocks│                                  │ Pi (10.0.0.150)   │
 └────────┬────────┘                                  └────────┬─────────┘
          │                                                    │
          │  track/turnout/#  track/sensor/#                   │

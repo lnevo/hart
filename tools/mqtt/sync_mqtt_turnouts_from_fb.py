@@ -24,8 +24,8 @@ import sys
 import urllib.error
 import urllib.request
 
-JMRI_JSON = os.environ.get("JMRI_JSON", "http://minipc-e5h6x.local:12080/json")
-MQTT_HOST = os.environ.get("MQTT_HOST", "minipc-e5h6x.local")
+JMRI_JSON = os.environ.get("JMRI_JSON", "http://10.0.0.150:12080/json")
+MQTT_HOST = os.environ.get("MQTT_HOST", "10.0.0.150")
 
 # Yard / engine-house — Digicon not FB-SoR (DCC 116–119 → Switch 13/7/11/9).
 SKIP_SWITCH = {13, 7, 11, 9}

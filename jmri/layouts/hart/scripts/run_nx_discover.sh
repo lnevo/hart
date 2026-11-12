@@ -75,7 +75,7 @@ if [[ -z "${JAVA_HOME:-}" ]]; then
   done
 fi
 
-echo "Launching PanelPro for NX Discover (MQTT to minipc)..."
+echo "Launching PanelPro for NX Discover (MQTT to the Pi broker)..."
 "$STARTJMRI" -p "$PROFILE_ID" >/tmp/hart_nx_discover_panelpro.log 2>&1 &
 JPID=$!
 

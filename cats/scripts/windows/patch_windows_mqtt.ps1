@@ -1,6 +1,6 @@
-# Point Windows My JMRI Railroad MQTT at the Pi broker on ICS (192.168.137.2).
+# Point Windows My JMRI Railroad MQTT at the Pi broker (10.0.0.150 on the home LAN; no ICS since 2026-11-11).
 $ErrorActionPreference = 'Continue'
-$Broker = '192.168.137.2'
+$Broker = '10.0.0.150'
 $patched = 0
 
 $roots = @(

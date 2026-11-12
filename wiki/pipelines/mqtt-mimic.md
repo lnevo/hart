@@ -22,14 +22,14 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 ```bash
 # JMRI PanelPro with signal_coordinator active
 python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --help
-python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker minipc-e5h6x.local
+python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker 10.0.0.150
 ```
 
 ## Bridge smoke test
 
 Run this by hand after a bridge or firmware change.
 
-1. Subscribe to `track/signalmast/#` on broker `minipc-e5h6x.local`.
+1. Subscribe to `track/signalmast/#` on broker `10.0.0.150` (the Pi).
 2. After the bridge connects, confirm non-empty retained mast topics for live heads.
 3. A SET on `track/signalhead/<packed>` must be gated when the mast topic is absent.
 

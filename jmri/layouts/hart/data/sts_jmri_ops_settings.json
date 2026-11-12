@@ -1,7 +1,7 @@
 {
     "version": 1,
     "connection": {
-        "url": "http://minipc-e5h6x.local:12080",
+        "url": "http://10.0.0.150:12080",
         "timeout": 30,
         "save": true
     },

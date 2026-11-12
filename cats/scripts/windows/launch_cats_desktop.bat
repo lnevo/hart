@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 REM CATS Digicon fast launcher - accepts panel path as %1
-REM launcher_version=20260811_0045
+REM launcher_version=20261111_0000
 
 REM Prefer caller-supplied panel (CTC / ABS wrappers pass this).
 if not "%~1"=="" (
@@ -55,8 +55,7 @@ if exist "%APPDATA%\JMRI\HART_sheet_West_Yard.jmri" rmdir /S /Q "%APPDATA%\JMRI\
 set IDFILE=%~dp0jmri_profile_id.txt
 set RESOLVER=%USERPROFILE%\Dropbox\HART_sync\resolve_jmri_profile.ps1
 if not exist "%RESOLVER%" set RESOLVER=%~dp0resolve_jmri_profile.ps1
-set PATCHMQTT=%USERPROFILE%\Dropbox\HART_sync\patch_windows_mqtt.ps1
-if not exist "%PATCHMQTT%" set PATCHMQTT=%~dp0patch_windows_mqtt.ps1
+set PATCHMQTT=%~dp0patch_windows_mqtt.ps1
 set KILLPS=%USERPROFILE%\Dropbox\HART_sync\kill_cats.ps1
 if not exist "%KILLPS%" set KILLPS=%~dp0kill_cats.ps1
 
@@ -85,7 +84,7 @@ if "%JMRI_PROFILE%"=="" (
   pause & exit /b 1
 )
 
-REM Ensure MQTT points at Pi 192.168.137.2 (avoids multi-minute hang)
+REM Ensure MQTT points at the Pi broker 10.0.0.150 (avoids multi-minute hang)
 if exist "%PATCHMQTT%" powershell -NoProfile -ExecutionPolicy Bypass -File "%PATCHMQTT%"
 
 cd /d "%JMRI_HOME%"

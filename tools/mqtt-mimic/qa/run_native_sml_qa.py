@@ -18,7 +18,7 @@ import xml.etree.ElementTree as ET
 import urllib.request
 from pathlib import Path
 
-HOST = "minipc-e5h6x.local"
+HOST = "10.0.0.150"
 PUB = "/opt/local/bin/mosquitto_pub"
 SUB = "/opt/local/bin/mosquitto_sub"
 OUT = Path(__file__).resolve().parent

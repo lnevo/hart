@@ -21,7 +21,7 @@ From the repo:
 cd path\to\hart\external\lcos-bridge
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
-.venv\Scripts\python -u serial_to_mqtt.py --com COM3 --broker minipc-e5h6x.local --verbose
+.venv\Scripts\python -u serial_to_mqtt.py --com COM3 --broker 10.0.0.150 --verbose
 ```
 
 Or use the bridge's own launcher from that folder: `run_serial_mqtt.cmd verbose` (Windows) or `run_serial_mqtt.sh` (Mac/Linux).
