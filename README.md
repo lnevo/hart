@@ -33,3 +33,14 @@ python3 jmri/scripts/apply_blocks_to_panel.py \
   use-panel-layout
 ```
 
+
+## License
+
+The code and the documents written for this repository are under the [MIT License](LICENSE).
+
+Some material here belongs to others and keeps its own terms:
+
+- **Railroad and industry logos** (`ops/hart-ops/operator_logos/`, and their copies on the website) are trademarks of their owners, used for reference. Sources: [`SOURCES.md`](ops/hart-ops/operator_logos/SOURCES.md).
+- **Historical photos and archive items** belong to the sources credited beside them.
+- **Submodules** under `external/` carry their own licenses.
+- **Files from JMRI and CATS** keep their projects' licenses.
