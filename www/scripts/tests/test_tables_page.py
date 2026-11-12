@@ -49,7 +49,24 @@ class Facts(unittest.TestCase):
     def test_version_comes_from_the_file(self):
         raw, root = btb.load()
         jv = root.find("jmriversion")
-        self.assertEqual(self.f["version"], f"{jv.findtext('major')}.{jv.findtext('minor')}")
+        self.assertTrue(self.f["version"].startswith(f"{jv.findtext('major')}.{jv.findtext('minor')}"))
+
+    def test_test_release_and_modifier_are_kept(self):
+        raw, root = btb.load()
+        jv = root.find("jmriversion")
+        jv.find("test").text, jv.find("modifier").text = "3", "ish"
+        self.assertEqual(tables_page.facts(raw, root)["version"],
+                         f"{jv.findtext('major')}.{jv.findtext('minor')}.3ish")
+
+    def test_detector_named_by_system_name_counts_once(self):
+        raw, root = btb.load()
+        sensors = {e.findtext("userName"): e.findtext("systemName")
+                   for m in root.findall("sensors") for e in m if e.tag == "sensor"}
+        lb = next(lb for m in root.findall("layoutblocks") for lb in m
+                  if lb.tag == "layoutblock" and lb.get("occupancysensor") == "BS S-1")
+        lb.set("occupancysensor", sensors["BS S-1"])
+        f = tables_page.facts(raw, root)
+        self.assertEqual((f["detectors"], f["sharedCount"]), (self.f["detectors"], self.f["sharedCount"]))
 
     def test_size_and_lines_match_the_file(self):
         raw = btb.SRC.read_bytes()
@@ -118,6 +135,13 @@ class Drift(Copy):
         self.xml = re.sub(r'feedback="TWOSENSOR"([^>]*>\s*<systemName>M2T108<)', r'feedback="ONESENSOR"\1', self.xml)
         self.src.write_text(self.xml, encoding="utf-8")
         with self.assertRaisesRegex(SystemExit, "two sensors"):
+            btb.outputs(self.www, self.src)
+
+    def test_missing_conditionalng_action_gives_a_message(self):
+        self.xml = self.xml.replace("<systemName>IQDA:AUTO:0002</systemName>\n      </Socket>",
+                                    "<systemName>IQDA:GONE</systemName>\n      </Socket>", 1)
+        self.src.write_text(self.xml, encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "no connected action"):
             btb.outputs(self.www, self.src)
 
     def test_unknown_region_stops_the_build(self):

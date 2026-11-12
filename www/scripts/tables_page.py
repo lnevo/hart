@@ -145,6 +145,7 @@ def facts(raw: bytes, root) -> dict:
             continue
         rows.append({"group": group, "label": label, "note": note, "share": n / total, "tag": tag})
     f["rows"], f["share"] = rows, dict(share)
+    f["panels"] = sum(1 for r in rows if r["group"] == "panels")
     biggest = max(rows, key=lambda r: r["share"])
     f["largest"] = (biggest["label"], biggest["share"])
 
@@ -152,9 +153,13 @@ def facts(raw: bytes, root) -> dict:
     blocks = [b for b in _direct(root, "blocks", "block") if len(b) > 2]
     names = {b.findtext("systemName"): b.findtext("userName") or b.findtext("systemName") for b in blocks}
     lbs = _direct(root, "layoutblocks", "layoutblock")
+    # A layout block may name its sensor by system or user name; count each sensor once.
+    sensor_user = {e.findtext("systemName"): e.findtext("userName") or e.findtext("systemName")
+                   for e in _direct(root, "sensors", "sensor")}
     users = collections.defaultdict(list)
     for lb in lbs:
-        users[lb.get("occupancysensor") or ""].append(lb.findtext("userName") or lb.findtext("systemName"))
+        occ = lb.get("occupancysensor") or ""
+        users[sensor_user.get(occ, occ)].append(lb.findtext("userName") or lb.findtext("systemName"))
     users.pop("", None)
     f["blocks"], f["layoutBlocks"], f["detectors"] = len(blocks), len(lbs), len(users)
     f["paths"] = sum(len(b.findall("path")) for b in blocks)
@@ -217,12 +222,17 @@ def facts(raw: bytes, root) -> dict:
     cng = {c.findtext("systemName"): c for c in _direct(root, "LogixNGConditionalNGs", "ConditionalNG")}
     acts = {a.findtext("systemName"): a for m in root.findall("LogixNGDigitalActions") for a in m}
     rows = []
-    for sysname in [x.text for x in ng.find("ConditionalNGs").findall("systemName")]:
-        c = cng[sysname]
+    listed = ng.find("ConditionalNGs")
+    for sysname in [x.text for x in listed.findall("systemName")] if listed is not None else []:
+        c = cng.get(sysname)
+        if c is None:
+            raise PageError(f"tables.xml: LogixNG {ng_sys} lists ConditionalNG {sysname}, which does not exist")
         socks = c.findall("Socket")
         if len(socks) != 1:
             raise PageError(f"tables.xml: ConditionalNG {sysname} has {len(socks)} actions; the page says one each")
-        a = acts[socks[0].findtext("systemName")]
+        a = acts.get(socks[0].findtext("systemName") or "")
+        if a is None:
+            raise PageError(f"tables.xml: ConditionalNG {sysname} has no connected action; the page lists one")
         if a.tag == "DisplayActionWindowManagement" and a.findtext("hideOrShow/enum") == "Hide":
             what = ("Window Management", f"hides the {a.findtext('jmriJFrameTitle')} window", "")
         elif a.tag == "ActionScript" and a.findtext("operationType") == "RunScript":
@@ -296,8 +306,9 @@ def regions(f: dict) -> dict[str, str]:
         "sensor-pair": _xml([f"systemName  {sys_name}", f"userName    {user}"]),
         "sensor-user": e(user),
         "sensor-comment": e(comment),
-        "objects": pct(obj),
-        "panels": pct(pan),
+        "objects": f"{max(1, round(obj * 100))}%",  # prose says "about N%", so never "under 1%"
+        "panels": f"{max(1, round(pan * 100))}%",
+        "panel-count": word(f["panels"]),
         "bar": bar,
         "largest": e(f["largest"][0]),
         "largest-share": pct(f["largest"][1]),
