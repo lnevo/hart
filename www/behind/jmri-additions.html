@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>What We Added to JMRI (and What We Left Alone) — HART</title>
+  <title>What We Added to JMRI — HART</title>
   <link rel="stylesheet" href="../css/ops.css">
   <style>
     /* Use the full page width on desktop. */
@@ -30,8 +30,8 @@
   <header class="site-header" data-ops-header></header>
   <main>
     <div class="page-head">
-      <h1>What We Added to JMRI (and What We Left Alone)</h1>
-      <p class="section-note">Almost everything here is stock JMRI. This page covers the small part that is not: the six scripts and the files deployed into the JMRI profile, then how the signal hand-over and the status lamps work.</p>
+      <h1>What We Added to JMRI</h1>
+      <p class="section-note">Almost everything here is stock JMRI, and we left it alone. This page covers the small part we added: six scripts, the files deployed into the JMRI profile, and how the signal hand-over and the status lamps work.</p>
     </div>
 
     <article class="explainer prose jm-wide">
@@ -40,15 +40,10 @@
         If you run JMRI yourself, you will recognise most of what runs this railroad: Basic signal masts,
         Signal Mast Logic (SML) with its Discover tool, Entry/Exit, the Layout Editor, the Dispatcher
         System (run untouched), the CTC tool, the web server, the MQTT connection, Routes, LogixNG, and
-        the green and red lamp icons. CATS, the open-source CTC desk, is stock too. None of that is ours,
-        and we do not claim it. There are no custom signal drawings and no custom signal system either:
-        the masts are stock Basic masts.
+        the green and red lamp icons. CATS, the open-source CTC desk, is stock too. None of that is ours. The masts are stock Basic masts, with no custom signal drawings or signal system.
       </p>
       <p>
-        Where the railroad needed something different, the rule was to change data and add small scripts
-        before touching software. The scripts use public JMRI calls, and both JMRI and CATS run as stock
-        distributions, with nothing patched. If something breaks, we work around it rather than change
-        them.
+        Where the railroad needed something different, we changed data and added small scripts first. The scripts use public JMRI calls, and both JMRI and CATS run as stock distributions with nothing patched. If something breaks, we work around it.
       </p>
       <p>
         The story of how the software came together is told in
@@ -58,16 +53,16 @@
 
       <h2 id="scripts">The scripts</h2>
       <p>
-        Six Jython scripts run inside JMRI. The first four are the heart of what we added; the last two connect the traffic simulator and the LCOS mimic page. The first two are explained in more detail further down: the signal coordinator under <a href="#two-brains">Two brains, one lamp</a>, and the panel helper under <a href="#four-lamps">Four lamps</a>.
+        Six Jython scripts run inside JMRI. The first four handle the signals, the panel, the CATS desk windows and the remote-run hook; the last two connect the traffic simulator and the LCOS mimic page. The first two are explained further down: the signal coordinator under <a href="#two-brains">Who drives the mast lamps</a>, and the panel helper under <a href="#four-lamps">Four lamps</a>.
       </p>
       <div class="table-wrap">
         <table class="roster jm-lamps">
           <thead><tr><th>Script</th><th>How it starts</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td><code>signal_coordinator.py</code></td><td>Start Up</td><td>The signal coordination. It decides whether JMRI or the field electronics drive the mast lamps, hands over safely between them, and recovers if a JMRI session crashes. It owns the "SML Enabled" button. See <a href="#two-brains">Two brains, one lamp</a>.</td></tr>
-            <tr><td><code>panel_status.py</code></td><td>Start Up</td><td>The panel's helper. It makes the four status lamps clickable, lights the yard-ladder triangle lamps from switch feedback, and keeps Routes disabled while the panel is painted, so redrawing never throws a switch. See <a href="#four-lamps">Four lamps</a>.</td></tr>
-            <tr><td><code>hide_cats_desk_windows.py</code></td><td>When the tables load (see <a href="tables-file.html#logixng">The LogixNG</a>)</td><td>Tidies the screen under CATS. It hides the HART Railroad panel and adds Help and Quit buttons to the button strip at the bottom of the CTC Panel. In plain PanelPro it does nothing.</td></tr>
-            <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up, on the main layout host only</td><td>The remote-run hook, described below.</td></tr>
+            <tr><td><code>signal_coordinator.py</code></td><td>Start Up</td><td>Decides whether JMRI or the field electronics drive the mast lamps, hands control over between them, and recovers if a JMRI session crashes. It owns the "SML Enabled" button. See <a href="#two-brains">Who drives the mast lamps</a>.</td></tr>
+            <tr><td><code>panel_status.py</code></td><td>Start Up</td><td>Makes the four status lamps clickable, lights the yard-ladder triangle lamps from switch feedback, and keeps Routes disabled while the panel is painted, so redrawing never throws a switch. See <a href="#four-lamps">Four lamps</a>.</td></tr>
+            <tr><td><code>hide_cats_desk_windows.py</code></td><td>When the tables load (see <a href="tables-file.html#logixng">The LogixNG</a>)</td><td>Under CATS, hides the HART Railroad panel and adds Help and Quit buttons to the button strip at the bottom of the CTC Panel. In plain PanelPro it does nothing.</td></tr>
+            <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up, on the main layout host only</td><td>The remote-run hook, described under this table.</td></tr>
             <tr><td><code>sts_car_sync.py</code></td><td>Start Up, on the main layout host and the development Mac</td><td>Copies car positions, loads and final destinations from the traffic simulator (STS) into Operations Pro. The stock JSON server can move a car but cannot set its load or destination, so STS writes a batch into a Memory and this script applies it. It never touches turnouts, signals or MQTT.</td></tr>
             <tr><td><code>mimic_relay.py</code></td><td>Start Up, on the main layout host only</td><td>Publishes fake LCOS feedback for the mimic page, a test tool served by JMRI's web server. The page writes a request into the Memory <code>IMHART_MIMIC</code> and the script publishes it, retained, through JMRI's own MQTT connection. It only sends occupancy and switch position reports, never a switch command, so it cannot move a motor.</td></tr>
           </tbody>
@@ -86,17 +81,12 @@
         the result or the error.
       </p>
       <p>
-        That is very handy, and it needs care. Whatever is dropped there runs with JMRI's full access,
-        so it can do anything JMRI can do, including move a turnout. The watcher opens no network
-        service of its own; reaching it takes a login on that machine. The project's rules on commanding
-        the field apply to anything sent through it, and the helper agents are blocked from the remote
-        login that would reach it.
+        Whatever is dropped there runs with JMRI's full access, so it can do anything JMRI can do, including move a turnout. The watcher opens no network service of its own, so reaching it takes a login on that machine. The project's rules on commanding the field apply to anything sent through it, and the AI agents are blocked from the remote login that would reach it.
       </p>
 
       <h2>What goes into the profile</h2>
       <p>
-        A JMRI profile is the set of user files and settings that a JMRI install loads at startup. Here is
-        everything we bootstrap into one. It all lives in the project repository, and
+        A JMRI profile is the set of user files and settings that a JMRI install loads at startup. Here is everything we deploy into one. It all lives in the project repository, and
         deploying copies it into the JMRI user files and profiles. JMRI finds each piece through its own
         <code>preference:</code> paths, so none of it touches the JMRI program folder.
       </p>
@@ -108,7 +98,7 @@
             <tr><td><code>jython/</code></td><td>The six scripts above.</td></tr>
             <tr><td>Start Up entries</td><td>Kept in the profile, so JMRI loads the tables and runs the scripts at launch. Deploy repoints the script entries and adds the two for the traffic simulator and the mimic.</td></tr>
             <tr><td><code>resources/buttons/</code></td><td>The two 16-pixel triangle lamps for the yard ladders.</td></tr>
-            <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels: our yellow pair. The amber one is simply JMRI's own.</td></tr>
+            <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels: our yellow pair. The amber icon is JMRI's own.</td></tr>
             <tr><td><code>resources/misc/hart_panel_bg.jpg</code></td><td>The backdrop of the HART Railroad panel, 1900 by 600 pixels. It sits behind the track as a label on the panel, at the top left.</td></tr>
             <tr><td><code>ctc/icons/</code> and <code>ctc/GUIObjects.xml</code></td><td>The USS CTC machine: 70 generated track icons and the panel layout, as custom cells for the stock CTC tool.</td></tr>
             <tr><td><code>dispatcher/traininfo/</code> and <code>dispatcheroptions.xml</code></td><td>Dispatcher data, not code: the options and the traininfo files that stock Stage 1 writes.</td></tr>
@@ -118,19 +108,14 @@
         </table>
       </div>
 
-      <h2 id="two-brains">Two brains, one lamp</h2>
+      <h2 id="two-brains">Who drives the mast lamps</h2>
       <p>
         The railroad has 23 signal masts out on the layout. Their lamps are driven by small field
         electronics (the nodes described on <a href="bridge.html">LCOS and the Arduino bridge</a>, and
-        listed in the <a href="../roster/index.html">device roster</a>). Those electronics have a
-        signal logic of their own, and JMRI has Signal Mast Logic. Two brains deciding one lamp is a fight
-        waiting to happen. And if a JMRI session crashes while it owns the lamps, they could sit frozen
-        on whatever colour they last had.
+        listed in the <a href="../roster/index.html">device roster</a>). Those electronics have signal logic of their own, and JMRI has Signal Mast Logic (SML). If both drove one lamp, they could disagree. And if a JMRI session crashed while it drove the lamps, they could freeze on whatever colour they last showed.
       </p>
       <p>
-        So one switch decides who is in charge: JMRI's logic, or the field logic. Nothing exotic is
-        flipped to make it so. Each source-to-destination pair in SML has a stock Enabled checkbox, and
-        the switch ticks or unticks those boxes. On the 23 field masts that is 44 destinations, all moved
+        So one switch decides whether JMRI's logic or the field logic is in charge. It ticks or unticks the stock Enabled checkbox that each source-to-destination pair in SML already has. On the 23 field masts that is 44 destinations, all moved
         together. The other 15 sources, with 54 destinations, have no field heads at all. They stay
         enabled and are left alone. The set of field masts is not hard-coded: the script finds it from
         the signals the field electronics report.
@@ -197,35 +182,47 @@
           <rect class="pill" x="340" y="308" width="130" height="22" rx="11"/>
           <text x="405" y="324" text-anchor="middle" style="font-size:12px">one mast, field-driven</text>
         </svg>
-        <figcaption>Who owns the lamps. The dark box decides; the dashed arrows carry status or a Hold, never an aspect.</figcaption>
+        <figcaption>Who drives the lamps in each mode. The filled box decides. Dashed arrows carry status or a Hold, never a signal aspect.</figcaption>
       </figure>
 
-      <h2>Handing over safely</h2>
+      <h2>How the hand-over works</h2>
       <p>
-        Changing who is in charge while a train is approaching a signal would be rude. So the hand-over
-        is a short routine rather than a flip. To switch JMRI on: hold all 23 masts, wait about three
-        seconds, tick the pairs, release the holds, announce that JMRI is in control, and push the current
-        colours out. To switch it off: hold, wait about three seconds, untick, release the heads to the
-        field, drop the holds, and announce that JMRI is out. Either way the whole thing takes about four
-        seconds, and the masts are held while it happens.
+        The hand-over is a short routine that holds the masts while control changes, so no lamp changes
+        colour under an approaching train. Switching on or off takes about four seconds.
       </p>
+      <p><strong>Switching JMRI on:</strong></p>
+      <ol>
+        <li>Hold all 23 masts.</li>
+        <li>Wait about three seconds.</li>
+        <li>Tick the pairs.</li>
+        <li>Release the holds.</li>
+        <li>Announce that JMRI is in control.</li>
+        <li>Push the current colours out.</li>
+      </ol>
+      <p><strong>Switching it off:</strong></p>
+      <ol>
+        <li>Hold the masts.</li>
+        <li>Wait about three seconds.</li>
+        <li>Untick the pairs.</li>
+        <li>Release the heads to the field.</li>
+        <li>Drop the holds.</li>
+        <li>Announce that JMRI is out.</li>
+      </ol>
       <h3>Boot</h3>
       <p>
         Normally every pair is forced off when JMRI starts. The script then listens for a second. If
         nobody has control, this session takes it. If another session already has it, this one stays off
-        and disturbs nothing. If the pairs were somehow stored as enabled, a warning appears and the
-        script takes over safely rather than trusting them. Our deploy also ships the field pairs switched
+        and disturbs nothing. If the pairs were stored as enabled, a warning appears and the script takes over instead of trusting them. Deploy also ships the field pairs switched
         off, because Discover writes them on. If an operator turns signals on while another session owns
         them, the script probes first and then asks "Force override?" before doing anything.
       </p>
       <h3>Quit</h3>
       <p>
-        Closing JMRI runs the same careful steps in reverse: hold, wait, release, announce disabled. It is
-        hooked in through a stock shutdown task, so a normal exit never leaves lamps stranded.
+        Closing JMRI runs a short switch-off: hold, wait, release, announce that JMRI is out. It is hooked in through a stock shutdown task, so a normal exit never leaves the lamps frozen.
       </p>
       <h3>Crash</h3>
       <p>
-        A crash is the case that matters, because nothing gets to clean up. The bridge sees a status
+        After a crash nothing gets to clean up. The LCOS bridge program sees a status
         that still says "enabled" and challenges it. A live session answers and the challenge is
         cancelled. With no answer, the bridge sets the signals to red, waits about three seconds and
         releases them to the field logic, which carries on.
@@ -257,7 +254,7 @@
           <rect class="own" x="290" y="258" width="180" height="38" rx="3"/>
           <text class="t-w t-b" x="380" y="282" text-anchor="middle">Released to the field</text>
         </svg>
-        <figcaption>The crash path. A live session always wins; red-then-release is only for when nobody is there.</figcaption>
+        <figcaption>The crash path. If a live session answers, nothing changes. Red, then release, happens only when nobody answers.</figcaption>
       </figure>
       <p>
         The operator's handle on all of this is a button on the main JMRI window strip, "SML Enabled" or
@@ -267,10 +264,7 @@
 
       <h2>The topics behind the logic</h2>
       <p>
-        All of this runs over MQTT, a lightweight message system (see
-        <a href="bridge.html">LCOS and the Arduino bridge</a>), using ordinary topics that JMRI, the bridge and the scripts share.
-        The number at the end of a topic identifies one device. The signal coordination comes down to
-        these:
+        All of this runs over MQTT, a lightweight message system (see <a href="bridge.html">LCOS and the Arduino bridge</a>). JMRI, the bridge and the scripts share the topics below. The number at the end of a topic identifies one device.
       </p>
       <div class="table-wrap">
         <table class="roster jm-lamps">
@@ -289,16 +283,12 @@
         </table>
       </div>
       <p>
-        So the boot, quit and crash stories above are mostly conversations on
-        <code>track/bridge/sml_mode</code>: a session announces what it is doing, the others react, and
-        the bridge asks <code>query</code> when a session seems to have vanished.
+        Boot, quit and crash mostly work through <code>track/bridge/sml_mode</code>. A session announces what it is doing, the others react, and the bridge sends <code>query</code> when a session seems to have gone.
       </p>
 
       <h2 id="four-lamps">Four lamps</h2>
       <p>
-        An operator glancing at a screen wants four answers fast: is the bridge up, are the switches
-        using feedback, who owns the signals, is the track powered. Four lamps at the bottom left of the
-        HART Railroad panel say so. They are stock icons on a stock Layout Editor panel; the only thing
+        Four lamps at the bottom left of the HART Railroad panel show whether the bridge is up, whether the switches use feedback, who drives the signals, and whether the track is powered. They are stock icons on a stock Layout Editor panel; the only thing
         we added is a script that makes them clickable. Amber means a change is under way. Under CATS the
         lamps are hidden, but the signals button remains.
       </p>
@@ -314,25 +304,20 @@
         </table>
       </div>
 
-      <h2>Lamps that tell the truth</h2>
+      <h2>Yard ladder lamps</h2>
       <p>
-        The yards have ladders of tracks, and a dispatcher or yard crew wants to see which one is lined,
-        not which one was last asked for. Ten small triangle lamps sit on the Layout Editor panel, five
-        at each end of the yard, one for each of tracks S-R and S-1 to S-4. Clicking a triangle fires an ordinary JMRI
+        Ten small triangle lamps on the Layout Editor panel show which yard track is lined, not which one was last asked for. There are five at each end of the yard, one for each of tracks S-R and S-1 to S-4. Clicking a triangle fires an ordinary JMRI
         Route that lines that track. The one for Track S-1, for instance, sets five real switches.
       </p>
       <p>
-        The part that earns the name: the lit lamp comes from the feedback sensors, not from the
-        command. If a switch did not go over, the lamp does not claim it did. If the switches match no
+        The lit lamp comes from the feedback sensors, not from the command. If a switch did not go over, the lamp does not claim it did. If the switches match no
         track, no triangle lights. Routes are also disabled while the panel is being painted, so redrawing
         a screen can never throw a switch, and a test guards that rule.
       </p>
 
-      <h2>Why so small</h2>
+      <h2>Upgrading JMRI</h2>
       <p>
-        Every item in the scripts and profile tables is either a file JMRI already knows how to look up or a script written against public calls. Keeping the additions that small means that when a new stock JMRI arrives, there is
-        not much of ours in the way. If you run JMRI and want to try any of it, the pattern is the useful
-        part: one honest switch, a careful hand-over, and lamps that report what the layout is doing.
+        Every item in the scripts and profile tables is either a file JMRI already knows how to look up or a script written against public calls. When a new stock JMRI arrives, little of ours is in the way. The one thing to redo is the web home page copy, which is brought up to the new stock page.
       </p>
 
       <p class="explainer-more">
