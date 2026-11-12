@@ -6,7 +6,10 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 
 | Path | Role |
 |------|------|
-| `tools/mqtt-mimic/lcos_mqtt_mimic.py` | CATS-side mimic; reads `public_name_map.csv` |
+| `jmri/resources/jmri-web/mimic/index.html` | Mimic page on the Pi, served by JMRI at `http://10.0.0.150:12080/web/mimic/`; reads state over the JMRI JSON WebSocket |
+| `jmri/layouts/hart/scripts/mimic_relay.py` | Pi Start Up script: publishes the page's clicks (memory `IMHART_MIMIC`) as retained `track/sensor` / `track/turnout`, never `track/cmd` |
+| `tools/mqtt-mimic/build_mimic_web.py` | Deploy step: writes the page's `mimic_layout.json` from the same sources as the Mac mimic |
+| `tools/mqtt-mimic/lcos_mqtt_mimic.py` | Mac mimic (own web server on 127.0.0.1:8765); reads `public_name_map.csv` |
 | `jmri/scripts/signal_coordinator.py` | JMRI jython publisher |
 | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | Host serial ↔ MQTT bridge |
 

@@ -20,6 +20,13 @@ install_into() {
   cp -f "$HOME_HTML" "${dest_root}/web/servlet/home/Home.html"
   rm -f "${dest_root}/web/sts.html"
   echo "Installed JMRI web home override -> ${dest_root}/web"
+  # LCOS mimic page (served at /web/mimic/). Only with its generated layout, which the
+  # deploy builds into the staged copy; the Mac keeps the tools/mqtt-mimic server.
+  if [[ -f "${SRC}/mimic/index.html" && -f "${SRC}/mimic/mimic_layout.json" ]]; then
+    mkdir -p "${dest_root}/web/mimic"
+    cp -f "${SRC}/mimic/index.html" "${SRC}/mimic/mimic_layout.json" "${dest_root}/web/mimic/"
+    echo "Installed LCOS mimic page -> ${dest_root}/web/mimic"
+  fi
 }
 
 install_into "${HOME}/JMRI_UserFiles"

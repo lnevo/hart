@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HART LCOS mimic</title>
+  <style>
+    :root {
+      --bg: #12151c;
+      --panel: #1b2030;
+      --line: #2c3448;
+      --text: #e8edf7;
+      --muted: #8b95a8;
+      --closed: #3d7ea6;
+      --thrown: #c47a2c;
+      --occ: #c4453c;
+      --clear: #2f9e6b;
+      --red: #e23d32;
+      --yellow: #e6c035;
+      --green: #3cbe6e;
+      --lunar: #c9d7e8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #161a24;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    h1 { font-size: 16px; margin: 0; letter-spacing: .04em; }
+    .meta { color: var(--muted); font-size: 12px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: #666; }
+    .dot.ok { background: var(--green); }
+    .dot.bad { background: var(--red); }
+    input[type="search"] {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 6px;
+      min-width: 180px;
+    }
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 6px 10px;
+    }
+    button:hover { border-color: #4a5670; }
+    button.danger { border-color: #6a3030; }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: calc(100vh - 120px);
+    }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+    section { padding: 12px 16px 24px; }
+    section + section { border-left: 1px solid var(--line); }
+    h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 8px 0 10px; }
+    .plant { margin-bottom: 16px; }
+    .plant h3 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: #aeb8cc;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 4px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: minmax(140px, 1.3fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 4px;
+      border-radius: 6px;
+    }
+    .row:hover { background: #222838; }
+    .row.hidden { display: none; }
+    .name { font-weight: 600; }
+    .sub { color: var(--muted); font-size: 11px; font-weight: 400; }
+    .btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .sw {
+      min-width: 78px;
+      padding: 7px 10px;
+      font-weight: 650;
+    }
+    .sw.on-closed { background: var(--closed); border-color: #5aa0c8; color: #fff; }
+    .sw.on-thrown { background: var(--thrown); border-color: #e0a05a; color: #fff; }
+    .occ {
+      min-width: 92px;
+      padding: 7px 10px;
+      font-weight: 650;
+    }
+    .occ.inactive { background: #243044; }
+    .occ.active { background: var(--occ); border-color: #e07068; color: #fff; }
+    .fb { font-size: 11px; color: var(--muted); }
+    .fb .n.on, .fb .r.on { color: var(--text); font-weight: 650; }
+    .heads {
+      padding: 10px 16px 16px;
+      border-top: 1px solid var(--line);
+      background: #141824;
+    }
+    .lamps { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+    .mast { display: flex; align-items: center; gap: 6px; }
+    .mast span.lbl { font-size: 11px; color: var(--muted); max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lamp {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #333; box-shadow: inset 0 0 0 1px #0008;
+    }
+    .lamp.Red { background: var(--red); }
+    .lamp.Yellow, .lamp.FlashingYellow { background: var(--yellow); }
+    .lamp.Green { background: var(--green); }
+    .lamp.Lunar, .lamp.FlashingLunar { background: var(--lunar); }
+    .lamp.Dark, .lamp.Unheld, .lamp.Held { background: #222; }
+    footer {
+      padding: 8px 16px 16px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--line);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>HART LCOS mimic</h1>
+      <div class="meta"><span id="mqtt-dot" class="dot"></span><span id="mqtt-label">connecting…</span></div>
+    </div>
+    <input type="search" id="q" placeholder="Filter switches / blocks" />
+    <button class="danger" id="clear-occ">Clear all occupancy</button>
+  </header>
+  <div class="layout">
+    <section>
+      <h2>Turnouts</h2>
+      <div id="turnouts"></div>
+    </section>
+    <section>
+      <h2>Occupancy</h2>
+      <div id="blocks"></div>
+    </section>
+  </div>
+  <div class="heads">
+    <h2>Signal heads (live from JMRI)</h2>
+    <div id="heads"></div>
+  </div>
+  <footer>
+    Served by JMRI. State comes from the JMRI JSON WebSocket; clicks go to <code>mimic_relay.py</code>,
+    which publishes LCOS status <code>track/turnout/{addr}</code> (plus FB N/R sensors for TWOSENSOR plants)
+    and occupancy <code>track/sensor/{addr}</code>, retained. It never publishes <code>track/cmd</code> (motors stay put).
+  </footer>
+  <script>
+    const state = { sensors: {}, turnouts: {}, heads: {}, layout: null };
+
+    const $ = (id) => document.getElementById(id);
+
+    function plantGroups(items) {
+      const map = new Map();
+      for (const it of items) {
+        if (!map.has(it.plant)) map.set(it.plant, []);
+        map.get(it.plant).push(it);
+      }
+      return map;
+    }
+
+    function matches(q, ...parts) {
+      if (!q) return true;
+      const blob = parts.join(" ").toLowerCase();
+      return blob.includes(q);
+    }
+
+    function render() {
+      const q = $("q").value.trim().toLowerCase();
+      const layout = state.layout;
+      if (!layout) return;
+
+      const tRoot = $("turnouts");
+      tRoot.innerHTML = "";
+      for (const [plant, rows] of plantGroups(layout.turnouts)) {
+        const wrap = document.createElement("div");
+        wrap.className = "plant";
+        wrap.innerHTML = `<h3>${plant}</h3>`;
+        for (const t of rows) {
+          const st = (state.turnouts[t.addr] || "").toUpperCase();
+          const nOn = (state.sensors[t.n_addr] || "").toUpperCase() === "ACTIVE";
+          const rOn = (state.sensors[t.r_addr] || "").toUpperCase() === "ACTIVE";
+          const row = document.createElement("div");
+          row.className = "row" + (matches(q, t.label, t.plant, t.addr, t.tip) ? "" : " hidden");
+          const fb = t.n_addr
+            ? `<div class="fb">FB N <span class="n${nOn ? " on" : ""}">${t.n_addr}${nOn ? " ACTIVE" : ""}</span>
+               · R <span class="r${rOn ? " on" : ""}">${t.r_addr}${rOn ? " ACTIVE" : ""}</span></div>`
+            : `<div class="fb">DIRECT — turnout topic only</div>`;
+          row.innerHTML = `
+            <div>
+              <div class="name">${t.label} <span class="sub">M2T${t.addr}</span></div>
+              <div class="sub">${t.tip || t.feedback}</div>
+              ${fb}
+            </div>
+            <div class="btns">
+              <button class="sw ${st === "CLOSED" ? "on-closed" : ""}" data-to="${t.addr}" data-st="CLOSED">Closed</button>
+              <button class="sw ${st === "THROWN" ? "on-thrown" : ""}" data-to="${t.addr}" data-st="THROWN">Thrown</button>
+            </div>`;
+          wrap.appendChild(row);
+        }
+        tRoot.appendChild(wrap);
+      }
+
+      const bRoot = $("blocks");
+      bRoot.innerHTML = "";
+      for (const [plant, rows] of plantGroups(layout.blocks)) {
+        const wrap = document.createElement("div");
+        wrap.className = "plant";
+        wrap.innerHTML = `<h3>${plant}</h3>`;
+        for (const b of rows) {
+          const occ = (state.sensors[b.addr] || "").toUpperCase() === "ACTIVE";
+          const row = document.createElement("div");
+          row.className = "row" + (matches(q, b.label, b.userName, b.plant, b.addr) ? "" : " hidden");
+          row.innerHTML = `
+            <div>
+              <div class="name">${b.label}</div>
+              <div class="sub">${b.userName} · M2S${b.addr}</div>
+            </div>
+            <div class="btns">
+              <button class="occ ${occ ? "active" : "inactive"}" data-occ="${b.addr}" data-st="${occ ? "INACTIVE" : "ACTIVE"}">
+                ${occ ? "Occupied" : "Clear"}
+              </button>
+            </div>`;
+          wrap.appendChild(row);
+        }
+        bRoot.appendChild(wrap);
+      }
+
+      const hRoot = $("heads");
+      hRoot.innerHTML = "";
+      for (const [plant, rows] of plantGroups(layout.heads)) {
+        const wrap = document.createElement("div");
+        wrap.className = "plant";
+        wrap.innerHTML = `<h3>${plant}</h3>`;
+        const lamps = document.createElement("div");
+        lamps.className = "lamps";
+        const byMast = new Map();
+        for (const h of rows) {
+          if (!byMast.has(h.mast)) byMast.set(h.mast, []);
+          byMast.get(h.mast).push(h);
+        }
+        for (const [mast, heads] of byMast) {
+          const el = document.createElement("div");
+          el.className = "mast";
+          const lampHtml = heads.map(h => {
+            const packed = (h.id || "").replace(/^IH/i, "");
+            const aspect = (state.heads[packed] || state.heads[h.id] || "Dark").split(";")[0].trim();
+            const sys = h.systemName || h.id;
+            return `<i class="lamp ${aspect}" title="${sys} ${aspect}"></i>`;
+          }).join("");
+          el.innerHTML = `${lampHtml}<span class="lbl" title="${mast}">${mast}</span>`;
+          lamps.appendChild(el);
+        }
+        wrap.appendChild(lamps);
+        hRoot.appendChild(wrap);
+      }
+    }
+
+    // --- JMRI JSON WebSocket (state) and mimic_relay.py (LCOS feedback) ---------------
+    const MEMORY = "IMHART_MIMIC";
+    const SENSOR = { 2: "ACTIVE", 4: "INACTIVE", 8: "INCONSISTENT" };
+    const TURNOUT = { 2: "CLOSED", 4: "THROWN", 8: "INCONSISTENT" };
+    let ws = null;
+    let pingTimer = 0;
+    let seq = Date.now();
+    let relayReady = false;
+    let relayTimer = 0;
+
+    function status(ok, text) {
+      $("mqtt-dot").className = "dot " + (ok === true ? "ok" : ok === false ? "bad" : "");
+      $("mqtt-label").textContent = text;
+    }
+
+    function showStatus() {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      status(relayReady, relayReady
+        ? `JMRI ${location.host}`
+        : `JMRI ${location.host} · mimic relay not running (clicks do nothing)`);
+    }
+
+    function leaf(name, prefix) {
+      return name.startsWith(prefix) ? name.slice(prefix.length) : null;
+    }
+
+    function headAspect(d) {
+      if (!d.lit) return "Dark";
+      return String(d.appearanceName || "Dark").replace(/\s+/g, "");
+    }
+
+    function onData(msg) {
+      const d = msg.data || {};
+      if (msg.type === "hello") {
+        clearInterval(pingTimer);
+        const beat = Math.max(2000, (d.heartbeat || 13500) * 0.8);
+        pingTimer = setInterval(() => send({ type: "ping" }), beat);
+        return false;
+      }
+      if (msg.type === "sensor") {
+        const addr = leaf(d.name || "", "M2S");
+        if (addr) state.sensors[addr] = SENSOR[d.state] || "";
+        return true;
+      }
+      if (msg.type === "turnout") {
+        const addr = leaf(d.name || "", "M2T");
+        if (addr) state.turnouts[addr] = TURNOUT[d.state] || "";
+        return true;
+      }
+      if (msg.type === "signalHead") {
+        const packed = (d.name || "").replace(/^IH/i, "");
+        state.heads[packed] = headAspect(d);
+        return true;
+      }
+      if (msg.type === "memory" && d.name === MEMORY) {
+        // Only the relay writes "ack <n>"; the memory merely existing proves nothing.
+        if (String(d.value || "").startsWith("ack ")) {
+          relayReady = true;
+          showStatus();
+        }
+        return false;
+      }
+      if (msg.type === "error" && String(d.message || "").includes(`"${MEMORY}"`)) {
+        relayReady = false;
+        showStatus();
+      }
+      return false;
+    }
+
+    function send(obj) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(obj));
+        return true;
+      }
+      return false;
+    }
+
+    function subscribeAll() {
+      const L = state.layout;
+      const names = { sensor: new Set(), turnout: new Set(), signalHead: new Set() };
+      for (const b of L.blocks) names.sensor.add("M2S" + b.addr);
+      for (const t of L.turnouts) {
+        names.turnout.add("M2T" + t.addr);
+        if (t.n_addr) names.sensor.add("M2S" + t.n_addr);
+        if (t.r_addr) names.sensor.add("M2S" + t.r_addr);
+      }
+      for (const h of L.heads) names.signalHead.add(h.systemName || "IH" + h.id);
+      for (const [type, set] of Object.entries(names)) {
+        for (const name of set) send({ type, data: { name } });
+      }
+      send({ type: "memory", data: { name: MEMORY } });
+    }
+
+    // Ask until the relay answers: it may start after the page connects (Pi boot).
+    function pingRelay() {
+      clearInterval(relayTimer);
+      const ask = () => {
+        if (relayReady) { clearInterval(relayTimer); return; }
+        seq += 1;
+        send({ type: "memory", data: { name: MEMORY } });
+        send({ type: "memory", method: "post", data: { name: MEMORY, value: `${seq}\nping` } });
+      };
+      ask();
+      relayTimer = setInterval(ask, 5000);
+    }
+
+    function connect() {
+      status(null, "connecting…");
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      ws = new WebSocket(`${proto}://${location.host}/json/`);
+      let renderTimer = 0;
+      ws.onopen = () => {
+        subscribeAll();
+        status(true, `JMRI ${location.host} · waiting for mimic relay…`);
+        pingRelay();
+      };
+      ws.onmessage = (m) => {
+        let msgs;
+        try { msgs = JSON.parse(m.data); } catch (err) { return; }
+        let dirty = false;
+        for (const msg of Array.isArray(msgs) ? msgs : [msgs]) dirty = onData(msg) || dirty;
+        if (dirty) {
+          clearTimeout(renderTimer);
+          renderTimer = setTimeout(render, 150);
+        }
+      };
+      ws.onclose = () => {
+        clearInterval(pingTimer);
+        clearInterval(relayTimer);
+        relayReady = false;
+        status(false, "JMRI disconnected, retrying…");
+        setTimeout(connect, 2000);
+      };
+    }
+
+    // One request = one memory value; mimic_relay.py publishes each line, retained.
+    function relay(lines) {
+      if (!relayReady) {
+        alert("The mimic relay is not running in JMRI, so nothing was sent.");
+        return;
+      }
+      seq += 1;
+      send({ type: "memory", method: "post", data: { name: MEMORY, value: [String(seq), ...lines].join("\n") } });
+    }
+
+    document.addEventListener("click", (e) => {
+      const to = e.target.closest("[data-to]");
+      if (to) {
+        const t = state.layout.turnouts.find((x) => x.addr === to.dataset.to);
+        const thrown = to.dataset.st === "THROWN";
+        const lines = [];
+        if (t && t.n_addr && t.r_addr) {
+          lines.push(`track/sensor/${t.n_addr} ${thrown ? "INACTIVE" : "ACTIVE"}`);
+          lines.push(`track/sensor/${t.r_addr} ${thrown ? "ACTIVE" : "INACTIVE"}`);
+        }
+        lines.push(`track/turnout/${to.dataset.to} ${to.dataset.st}`);
+        relay(lines);
+        return;
+      }
+      const occ = e.target.closest("[data-occ]");
+      if (occ) relay([`track/sensor/${occ.dataset.occ} ${occ.dataset.st}`]);
+    });
+
+    $("clear-occ").addEventListener("click", () => {
+      if (!confirm("Set every occupancy sensor INACTIVE?")) return;
+      relay(state.layout.blocks.map((b) => `track/sensor/${b.addr} INACTIVE`));
+    });
+    $("q").addEventListener("input", render);
+
+    async function boot() {
+      try {
+        state.layout = await fetch("mimic_layout.json", { cache: "no-store" }).then((r) => {
+          if (!r.ok) throw new Error(r.status + " " + r.statusText);
+          return r.json();
+        });
+      } catch (err) {
+        status(false, "mimic_layout.json missing: " + err.message);
+        return;
+      }
+      render();
+      connect();
+    }
+    boot();
+  </script>
+</body>
+</html>
