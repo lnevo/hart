@@ -15,7 +15,7 @@ The live STS ran in Docker on the Mac (10.0.0.53:8980), so it was there only whe
 3. Content is prepared and tested on the Mac, whose stacks stay: 8980 is the Mac's working copy and 8981 the sandbox. Prepared data reaches the Pi as an STS backup restored there. The Pi's database is the master of a session.
 4. The Mac's `jmri_ops` setting points at the Mac's own JMRI (`host.docker.internal:12080`), so a Send Cars from the Mac never touches the layout's Operations roster. The Pi's points at `10.0.0.150:12080`, as in `jmri/layouts/hart/data/sts_jmri_ops_settings.json`.
 5. `lnevo/sts-plugins` is public, so the Pi pulls both repos over HTTPS without a key.
-6. The MT300 lets `RPi-JMRI` clients reach 10.0.0.150 on TCP 8980.
+6. The MT300 (10.0.0.60) lets `RPi-JMRI` clients reach 10.0.0.150 on TCP 8980, in its `Allow-JMRI-to-house` rule, with a `10.42.0.2:8980` forward like JMRI's.
 
 ## Consequences
 
