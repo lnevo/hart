@@ -1,4 +1,4 @@
-"""The JMRI home page's STS and mimic links: the Pi follows its own host, Windows and the Mac name the Pi."""
+"""The JMRI home page's STS and mimic links: the Pi and the Mac follow the page host, Windows names the Pi."""
 
 import json
 import os
@@ -15,6 +15,8 @@ HOME = HOME_PATH.read_text(encoding="utf-8")
 WIN = (ROOT / "cats/scripts/windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
 INSTALL = ROOT / "cats/scripts/install_jmri_web_override.sh"
 MARKER = 'var HART_APPS_HOST = "";'
+PORT_MARKER = 'var HART_MIMIC_PORT = "";'
+SYNC = (ROOT / "cats/scripts/sync_hart_package.sh").read_text(encoding="utf-8")
 NODE = shutil.which("node")
 
 
@@ -43,9 +45,15 @@ def _filled(host):
 class Source(unittest.TestCase):
     def test_home_has_one_empty_marker(self):
         self.assertEqual(HOME.count(MARKER), 1)
+        self.assertEqual(HOME.count(PORT_MARKER), 1)
+
+    def test_mac_deploy_sets_only_the_mimic_port(self):
+        mac = re.search(r'^\s*(.*)bash "\$ROOT/cats/scripts/install_jmri_web_override\.sh"', SYNC, re.M).group(1)
+        self.assertIn("HART_MIMIC_PORT=", mac)
+        self.assertNotIn("HART_APPS_HOST", mac)  # follow the page host: localhost on the Mac
 
     def test_sts_link_has_no_static_address(self):
-        # Only the script sets it, so the link never points at a Mac or localhost STS.
+        # Only the script sets it, from the page's host or the Windows deploy's Pi name.
         tag = re.search(r'<a id="sts-link"[^>]*>', HOME).group(0)
         self.assertNotIn("href", tag)
         self.assertNotIn("localhost:8980", HOME)
@@ -78,7 +86,7 @@ class Behaviour(unittest.TestCase):
 
 
 class Install(unittest.TestCase):
-    def _run(self, apps_host):
+    def _run(self, apps_host, mimic_port=None):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
         (tmp / "cats/scripts").mkdir(parents=True)
@@ -91,6 +99,8 @@ class Install(unittest.TestCase):
         env = {"HOME": str(home), "PATH": os.environ.get("PATH", "/usr/bin:/bin")}
         if apps_host:
             env["HART_APPS_HOST"] = apps_host
+        if mimic_port:
+            env["HART_MIMIC_PORT"] = mimic_port
         subprocess.run(["bash", str(tmp / "cats/scripts" / INSTALL.name)], env=env, check=True,
                        capture_output=True)
         return (home / "JMRI_UserFiles/web/servlet/home/Home.html").read_text(encoding="utf-8")
@@ -102,6 +112,21 @@ class Install(unittest.TestCase):
         installed = self._run("RPi-JMRI.local")
         self.assertIn('var HART_APPS_HOST = "RPi-JMRI.local";', installed)
         self.assertNotIn(MARKER, installed)
+
+
+    def test_rejects_a_mimic_port_that_is_not_a_number(self):
+        with self.assertRaises(subprocess.CalledProcessError):
+            self._run(None, "8765/x")
+
+    @unittest.skipUnless(NODE, "node not installed")
+    def test_mac_install_links_to_the_mac(self):
+        installed = self._run(None, "8765")
+        self.assertIn(MARKER, installed)
+        for host in ("localhost", "10.0.0.53"):
+            self.assertEqual(
+                _links(installed, host),
+                {"sts-link": "http://%s:8980/sts/" % host, "mimic-link": "http://%s:8765/" % host},
+            )
 
 
 if __name__ == "__main__":

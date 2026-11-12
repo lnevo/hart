@@ -349,7 +349,9 @@ push_tar_scp() {
 }
 
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
-  HART_APPS_HOST=RPi-JMRI.local bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
+  # Mac JMRI is for development: the links follow the page's host to the Mac's own STS and
+  # mimic server (PORT as in tools/mqtt-mimic/install_mimic_launchagent.sh).
+  HART_MIMIC_PORT="${MIMIC_PORT:-8765}" bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
   install_tables_local
   install_ops_local
   install_cats_panels_local
