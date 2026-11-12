@@ -4,7 +4,7 @@
   "tagline": "Neville Island — railroad, industries, and crew briefing",
   "engDesk": "../index.html",
   "tools": {
-    "sts": "http://localhost:8980/sts/",
+    "sts": "http://10.0.0.150:8980/sts/",
     "mimic": "http://localhost:8765/",
     "jmri": "http://localhost:12080/"
   },

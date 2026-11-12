@@ -80,5 +80,8 @@
       "mcp__claude-in-chrome__tabs_context_mcp",
       "mcp__claude-in-chrome__read_console_messages"
     ]
+  },
+  "env": {
+    "STS_API_URL": "http://10.0.0.150:8980/sts/api/v1"
   }
 }

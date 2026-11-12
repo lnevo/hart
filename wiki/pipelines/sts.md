@@ -2,7 +2,7 @@
 
 Shipit Transportation System: HART seed database, warm-start, operating sessions, and switch lists.
 
-**Status:** Live. Runtime: `external/sts-docker`. Data: `external/sts-docker-data`. Helpers: `external/sts-helpers`. The JMRI Home.html STS link uses the host the page was opened from, on port 8980 (the Pi once STS moves there).
+**Status:** Live on the Pi at `http://10.0.0.150:8980/sts/` (ADR-020); update it with `tools/hosts/pi_sts_update.sh`. The Mac's `external/sts-docker` (localhost:8980) and the sandbox (8981) are for preparing and testing, with data in `external/sts-docker-data` and helpers in `external/sts-helpers`; the steps below run against the Mac copy. Prepared data reaches the Pi as an STS backup restored there. The JMRI Home.html STS link uses the host the page was opened from, on port 8980.
 
 ## Inputs
 
