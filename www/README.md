@@ -52,7 +52,8 @@ JSON pages (Briefing, About, Photos, Layout, spot sheets) need **HTTP**, not `fi
 
 ```bash
 # from repo — includes the archive and gallery edit APIs; edits must come from a local page (JSON body, local Origin)
-# Login LaunchAgent (survives Cursor quit; starts at login):
+# Login LaunchAgent (survives Cursor quit; starts at login). Disabled since 2026-11-11:
+# start the preview on demand for pre-deployment testing (ADR-020 amendment).
 ./www/scripts/install_portal_launchagent.sh
 # Foreground only (dies when the terminal/Cursor session ends):
 ./www/scripts/serve_portal.sh [PORT]

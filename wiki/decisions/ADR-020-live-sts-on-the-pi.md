@@ -24,3 +24,10 @@ The live STS ran in Docker on the Mac (10.0.0.53:8980), so it was there only whe
 - Back up live sessions on the Pi; its backups folder is `~/sts/sts-docker-data/backups`. The Mac's backups folder no longer follows the live railroad.
 - The Pi's userland is 32-bit (`armhf`) on a 64-bit kernel, so apt's Docker is 32-bit, and MariaDB publishes no 32-bit ARM image. The Pi runs Docker's static 64-bit binaries instead (`tools/hosts/pi_docker_static.sh`, which also updates them; `apt upgrade` does not). They need no 64-bit libraries, so the 32-bit system is untouched, and the official images run as arm64 with Docker's normal seccomp filter. Debian multiarch was rejected: its 64-bit `libc6` must match Raspberry Pi's `+rpt` build exactly.
 - The Pi runs JMRI, Mosquitto, Apache/PHP and MariaDB. Watch its load during sessions; a rebuild loads it heavily for some minutes, so do not run one while the owner is operating.
+
+## Amendment 2026-11-11: production, development and test
+
+- **Production** is the Pi: STS, JMRI and the mimic inside JMRI. Operators use only the Pi.
+- **Development** is the owner's, on the Mac interfaces, started only for pre-deployment testing: the Mac STS (`docker start sts-docker-db-1 sts-docker-web-1`), the website preview (`./www/scripts/serve_portal.sh`, http://127.0.0.1:8760/www/) and the Mac mimic. None start at login: the `com.hart.ops-portal` and `com.hart.mqtt-mimic` launch agents are disabled and the Mac STS containers are stopped.
+- **Agents test in sandboxes**: the STS sandbox stack (8981, `bin/sandbox_baseline.sh` in sts-docker) and throwaway copies, never the Pi and not the owner's Mac interfaces unless asked.
+
