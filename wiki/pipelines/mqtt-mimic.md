@@ -6,7 +6,7 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 
 | Path | Role |
 |------|------|
-| `jmri/resources/jmri-web/mimic/index.html` | Mimic page on the Pi, served by JMRI at `http://10.0.0.150:12080/web/mimic/`; reads state over the JMRI JSON WebSocket |
+| `jmri/resources/jmri-web/mimic/index.html` | Mimic page on the Pi, served by JMRI at `http://RPi-JMRI.local:12080/web/mimic/`; reads state over the JMRI JSON WebSocket |
 | `jmri/resources/jmri-web/mimic/mimic.css`, `mimic_view.js` | Markup, style and `render()` shared by both mimic pages; each page keeps only its transport. The Mac server serves them at `/mimic.css` and `/mimic_view.js` |
 | `jmri/layouts/hart/scripts/mimic_relay.py` | Pi Start Up script: publishes the page's clicks (memory `IMHART_MIMIC`) as retained `track/sensor` / `track/turnout`, never `track/cmd` |
 | `tools/mqtt-mimic/build_mimic_web.py` | Deploy step: writes the page's `mimic_layout.json` from the same sources as the Mac mimic |

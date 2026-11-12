@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install HART JMRI web home override (STS link) into local preference:/profile web/.
+# Install HART JMRI web home override (STS and mimic links) into local preference:/profile web/.
 # SoR: jmri/resources/jmri-web/
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -18,9 +18,15 @@ install_into() {
   [[ -d "$dest_root" ]] || return 0
   mkdir -p "${dest_root}/web/servlet/home"
   cp -f "$HOME_HTML" "${dest_root}/web/servlet/home/Home.html"
-  # Off the Pi, point the STS and mimic links at it (empty on the Pi: follow the page host).
+  # Windows sets HART_APPS_HOST to name the Pi; empty (Pi, Mac) follows the page's own host.
   if [[ -n "${HART_APPS_HOST:-}" ]]; then
     sed -i.tmp "s/var HART_APPS_HOST = \"\";/var HART_APPS_HOST = \"${HART_APPS_HOST}\";/" \
+      "${dest_root}/web/servlet/home/Home.html" && rm -f "${dest_root}/web/servlet/home/Home.html.tmp"
+  fi
+  # The Mac sets HART_MIMIC_PORT so the mimic link opens its own mimic server.
+  if [[ -n "${HART_MIMIC_PORT:-}" ]]; then
+    [[ "$HART_MIMIC_PORT" =~ ^[0-9]+$ ]] || { echo "HART_MIMIC_PORT must be a number" >&2; exit 1; }
+    sed -i.tmp "s/var HART_MIMIC_PORT = \"\";/var HART_MIMIC_PORT = \"${HART_MIMIC_PORT}\";/" \
       "${dest_root}/web/servlet/home/Home.html" && rm -f "${dest_root}/web/servlet/home/Home.html.tmp"
   fi
   rm -f "${dest_root}/web/sts.html"
