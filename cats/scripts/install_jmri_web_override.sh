@@ -23,6 +23,11 @@ install_into() {
     sed -i.tmp "s/var HART_APPS_HOST = \"\";/var HART_APPS_HOST = \"${HART_APPS_HOST}\";/" \
       "${dest_root}/web/servlet/home/Home.html" && rm -f "${dest_root}/web/servlet/home/Home.html.tmp"
   fi
+  # The Mac points the mimic link at its own mimic server instead (e.g. http://localhost:8765/).
+  if [[ -n "${HART_MIMIC_URL:-}" ]]; then
+    sed -i.tmp "s|var HART_MIMIC_URL = \"\";|var HART_MIMIC_URL = \"${HART_MIMIC_URL}\";|" \
+      "${dest_root}/web/servlet/home/Home.html" && rm -f "${dest_root}/web/servlet/home/Home.html.tmp"
+  fi
   rm -f "${dest_root}/web/sts.html"
   echo "Installed JMRI web home override -> ${dest_root}/web"
   # LCOS mimic page (served at /web/mimic/). Only with its generated layout, which the
