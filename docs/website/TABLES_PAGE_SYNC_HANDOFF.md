@@ -1,6 +1,6 @@
 # Handoff: keep the tables file page in step with tables.xml
 
-Written 2026-11-12. Not started. Owner request: the public page
+Written 2026-11-12. Built 2026-11-12 on `agent/claude/tables-page-sync` (`www/scripts/tables_page.py`); awaiting the owner's review in the browser, then deploy. Owner request: the public page
 [`www/behind/tables-file.html`](../../www/behind/tables-file.html) ("The Tables File: One File That Is the
 Railroad") has out-of-date facts, and it should be tied to changes in
 `jmri/layouts/hart/output/tables.xml` so it cannot drift again. The owner calls the table browser
