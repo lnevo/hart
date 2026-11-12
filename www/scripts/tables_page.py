@@ -78,6 +78,11 @@ def word(n: int) -> str:
     return WORDS[n] if 0 <= n < len(WORDS) else f"{n:,}"
 
 
+def count(n: int, one: str, many: str) -> str:
+    """"one detector", "seven detectors"."""
+    return f"{word(n)} {one if n == 1 else many}"
+
+
 def pct(share: float) -> str:
     return "under 1%" if share < 0.005 else f"{round(share * 100)}%"
 
@@ -143,7 +148,7 @@ def facts(raw: bytes, root) -> dict:
         if rows and rows[-1]["group"] == group and rows[-1]["label"] == label:
             rows[-1]["share"] += n / total
             continue
-        rows.append({"group": group, "label": label, "note": note, "share": n / total, "tag": tag})
+        rows.append({"group": group, "label": label, "note": note, "share": n / total})
     f["rows"], f["share"] = rows, dict(share)
     f["panels"] = sum(1 for r in rows if r["group"] == "panels")
     biggest = max(rows, key=lambda r: r["share"])
@@ -161,7 +166,7 @@ def facts(raw: bytes, root) -> dict:
         occ = lb.get("occupancysensor") or ""
         users[sensor_user.get(occ, occ)].append(lb.findtext("userName") or lb.findtext("systemName"))
     users.pop("", None)
-    f["blocks"], f["layoutBlocks"], f["detectors"] = len(blocks), len(lbs), len(users)
+    f["layoutBlocks"], f["detectors"] = len(lbs), len(users)
     f["paths"] = sum(len(b.findall("path")) for b in blocks)
     shared = {d: u for d, u in users.items() if len(u) > 1}
     f["sharedCount"] = len(shared)
@@ -199,8 +204,8 @@ def facts(raw: bytes, root) -> dict:
              f"Signal Mast Logic destination {src!r} to {dst!r}")
     keys = ("enabled", "useLayoutEditor", "useLayoutEditorTurnouts", "useLayoutEditorBlocks", "associatedSection")
     f["sml"] = {"src": src, "dst": dst, **{k: (d.findtext(k) or "").strip() for k in keys}}
-    if f["sml"]["associatedSection"] not in {e.findtext("systemName") for e in _direct(root, "sections", "section")} | \
-            {e.findtext("userName") for e in _direct(root, "sections", "section")}:
+    section_names = {n for e in _direct(root, "sections", "section") for n in (e.findtext("systemName"), e.findtext("userName"))}
+    if f["sml"]["associatedSection"] not in section_names:
         raise PageError(f"tables.xml: section {f['sml']['associatedSection']!r} named by {src} to {dst} does not exist")
 
     t = _one([e for e in _direct(root, "turnouts", "turnout") if e.findtext("userName") == EXAMPLE_TURNOUT],
@@ -250,31 +255,39 @@ def _xml(lines: list[str]) -> str:
     return html.escape("\n".join(lines), quote=False)
 
 
-def regions(f: dict) -> dict[str, str]:
-    """Each region's HTML."""
-    e = lambda s: html.escape(str(s), quote=False)  # noqa: E731
-    obj, pan = f["share"].get("objects", 0), f["share"].get("panels", 0)
-    x, rects, texts = BAR_X, [], []
+def bar(obj: float, pan: float) -> str:
+    """The drawn-to-scale Objects / Panels / rest bar."""
+    x, rects, texts, done = BAR_X, [], [], 0.0
     for cls, label, share, tcls in (("own", "Objects", obj, "t-b t-w"), ("acc", "Panels", pan, "t-b t-d")):
-        w = round(BAR_W * share)
+        # Round the running edge, not each width, and leave 1px for the rest, so nothing runs past the bar.
+        w = min(round(BAR_W * (done + share)), BAR_W - 1) - min(round(BAR_W * done), BAR_W - 1)
+        done += share
         rects.append(f'<rect class="{cls}" x="{x}" y="14" width="{w}" height="34" rx="3"/>')
         texts.append(f'<text class="{tcls}" x="{x + w // 2}" y="36" text-anchor="middle">{label}</text>')
         x += w
     rects.append(f'<rect class="own" x="{x}" y="14" width="{max(1, BAR_X + BAR_W - x)}" height="34" rx="3" '
                  'style="fill:var(--muted);stroke:var(--muted)"/>')
-    bar = "\n          ".join(rects + texts)
+    return "\n          ".join(rects + texts)
+
+
+def regions(f: dict) -> dict[str, str]:
+    """Each region's HTML."""
+    e = lambda s: html.escape(str(s), quote=False)  # noqa: E731
+    obj, pan = f["share"].get("objects", 0), f["share"].get("panels", 0)
+    bar_svg = bar(obj, pan)
 
     body, group = [], None
     for r in f["rows"]:
         if r["group"] != group:
             group = r["group"]
             body.append(f'<tr><td colspan="3"><strong>{GROUP_HEADS[group]}</strong></td></tr>')
-        note = r["note"] if r["note"] is not None else f"{word(f['logix']).capitalize()} older-style logic items."
+        note = r["note"] if r["note"] is not None else f"{count(f['logix'], 'older-style logic item', 'older-style logic items').capitalize()}."
         body.append(f'<tr><td>{e(r["label"])}</td><td>{note}</td><td class="num">{pct(r["share"])}</td></tr>')
     sections = "\n            ".join(body)
 
     ex = [f'"{e(d)}" serves {e(and_list(u))}' for d, u in f["sharedExamples"]]
-    shared = f"{word(f['sharedCount']).capitalize()} detectors are shared. {', and '.join(ex)}."
+    n = f["sharedCount"]
+    shared = f"{count(n, 'detector', 'detectors').capitalize()} {'is' if n == 1 else 'are'} shared. {', and '.join(ex)}."
 
     blk = f["block"]
     bx = ["<block>", f"  <userName>{blk['name']}</userName>", f"  <occupancysensor>{blk['sensor']}</occupancysensor>"]
@@ -308,8 +321,8 @@ def regions(f: dict) -> dict[str, str]:
         "sensor-comment": e(comment),
         "objects": f"{max(1, round(obj * 100))}%",  # prose says "about N%", so never "under 1%"
         "panels": f"{max(1, round(pan * 100))}%",
-        "panel-count": word(f["panels"]),
-        "bar": bar,
+        "panel-count": count(f["panels"], "panel", "panels"),
+        "bar": bar_svg,
         "largest": e(f["largest"][0]),
         "largest-share": pct(f["largest"][1]),
         "sections": sections,
@@ -327,7 +340,7 @@ def regions(f: dict) -> dict[str, str]:
         "turnout-xml": _xml(tx),
         "ctc-columns": str(f["ctcColumns"]),
         "logixng-name": e(f["logixng"]["name"]),
-        "logixng-count": word(len(f["logixng"]["rows"])),
+        "logixng-count": count(len(f["logixng"]["rows"]), "ConditionalNG", "ConditionalNGs"),
         "logixng-rows": ng_rows,
     }
 

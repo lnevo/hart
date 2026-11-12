@@ -86,6 +86,31 @@ class Facts(unittest.TestCase):
         self.assertGreater(self.f["sharedCount"], 0)
 
 
+class OtherPages(unittest.TestCase):
+    """Counts other pages state by hand; update them when tables.xml changes."""
+
+    def test_control_page_counts_match_the_file(self):
+        meta = btb.build(btb.load()[1])["meta"]
+        text = (btb.WWW / "ai/control.html").read_text(encoding="utf-8")
+        m = re.search(r"(\d+) signal masts, (\d+) sections and ([\d,]+) transits", text)
+        self.assertIsNotNone(m, "ai/control.html no longer states the counts; drop this test")
+        self.assertEqual((int(m.group(1)), int(m.group(2)), int(m.group(3).replace(",", ""))),
+                         (meta["masts"], meta["sections"], meta["transits"]),
+                         "update the counts in www/ai/control.html")
+
+
+class Words(unittest.TestCase):
+    def test_counts_agree_in_number(self):
+        self.assertEqual(tables_page.count(1, "panel", "panels"), "one panel")
+        self.assertEqual(tables_page.count(3, "panel", "panels"), "three panels")
+        self.assertEqual(tables_page.count(40, "item", "items"), "40 items")
+
+    def test_bar_never_runs_past_its_width(self):
+        for obj, pan in ((0.7256, 0.2733), (0.5, 0.5), (0.999, 0.0005), (0.0, 1.0)):
+            rects = [(int(x), int(w)) for x, w in re.findall(r'<rect[^>]* x="(\d+)"[^>]* width="(\d+)"', tables_page.bar(obj, pan))]
+            self.assertLessEqual(rects[-1][0] + rects[-1][1], tables_page.BAR_X + tables_page.BAR_W, (obj, pan))
+
+
 class CommittedPage(unittest.TestCase):
     def test_committed_page_and_data_are_current(self):
         self.assertEqual(btb.stale(), [], "run python3 www/scripts/build_tables_browser.py")

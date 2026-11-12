@@ -215,14 +215,6 @@ class Manager:
     def _provide(self, name):
         return self.beans.get(name) or self.add(self._make(name))
 
-    def newMemory(self, system_name, user_name=None):
-        """JMRI MemoryManager.newMemory: always creates; callers check getMemory first."""
-        if system_name in self.beans:
-            raise ValueError("%s already exists" % system_name)
-        bean = self.add(self._make(system_name))
-        bean.setUserName(user_name)
-        return bean
-
     def getNamedBeanSet(self):
         return list(self.beans.values())
 
@@ -231,6 +223,16 @@ class Manager:
 
     def register(self, bean):
         self.add(bean)
+
+
+class MemoryManager(Manager):
+    def newMemory(self, system_name, user_name=None):
+        """JMRI MemoryManager.newMemory: always creates; callers check getMemory first."""
+        if system_name in self.beans:
+            raise ValueError("%s already exists" % system_name)
+        bean = self.add(self._make(system_name))
+        bean.setUserName(user_name)
+        return bean
 
 
 class FakePower:
@@ -360,7 +362,7 @@ class Layout:
         self.routes = Manager(lambda n: FakeRoute(n, n))
         self.heads = Manager(FakeHead)
         self.masts = Manager(FakeMast)
-        self.memories = Manager(FakeMemory)
+        self.memories = MemoryManager(FakeMemory)
         self.power = FakePower()
         self.adapter = RecordingAdapter()
         self.memo = FakeMemo(self.adapter) if mqtt else None

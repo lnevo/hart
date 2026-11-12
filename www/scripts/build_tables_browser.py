@@ -181,10 +181,6 @@ def build(r):
     return {"_note": NOTE, "meta": meta, "tables": tables}
 
 
-def render(src=SRC):
-    return json.dumps(build(load(src)[1]), ensure_ascii=False, separators=(",", ":")) + "\n"
-
-
 def outputs(www=WWW, src=SRC):
     """{path under www: text} for the browser data and the filled page, read from `www`."""
     raw, root = load(src)
