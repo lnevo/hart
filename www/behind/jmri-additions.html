@@ -31,24 +31,19 @@
   <main>
     <div class="page-head">
       <h1>What We Added to JMRI</h1>
-      <p class="section-note">Almost everything here is stock JMRI, and we left it alone. This page covers the small part we added: six scripts, the files deployed into the JMRI profile, and how the signal hand-over and the status lamps work.</p>
+      <p class="section-note">JMRI and CATS run here as stock installs. This page covers what we added on top: six scripts, the files deployed into the JMRI profile, and how the signal hand-over and the status lamps work.</p>
     </div>
 
     <article class="explainer prose jm-wide">
-      <h2>Stock first</h2>
+      <h2>The JMRI features we use</h2>
       <p>
-        If you run JMRI yourself, you will recognise most of what runs this railroad: Basic signal masts,
-        Signal Mast Logic (SML) with its Discover tool, Entry/Exit, the Layout Editor, the Dispatcher
-        System (run untouched), the CTC tool, the web server, the MQTT connection, Routes, LogixNG, and
-        the green and red lamp icons. CATS, the open-source CTC desk, is stock too. None of that is ours. The masts are stock Basic masts, with no custom signal drawings or signal system.
-      </p>
-      <p>
-        Where the railroad needed something different, we changed data and added small scripts first. The scripts use public JMRI calls, and both JMRI and CATS run as stock distributions with nothing patched. If something breaks, we work around it.
+        Basic signal masts, Signal Mast Logic (SML) with its Discover tool, Entry/Exit, the Layout
+        Editor, the Dispatcher System, the CTC tool, the web server, the MQTT connection, Routes,
+        LogixNG and the green and red lamp icons. CATS, the open-source CTC desk, runs alongside.
       </p>
       <p>
         The story of how the software came together is told in
-        <a href="../library/how-it-was-built-article.html">Bringing the Railroad Together</a>, so it is
-        not repeated here.
+        <a href="../library/how-it-was-built-article.html">Bringing the Railroad Together</a>.
       </p>
 
       <h2 id="scripts">The scripts</h2>
@@ -116,8 +111,7 @@
       </p>
       <p>
         So one switch decides whether JMRI's logic or the field logic is in charge. It ticks or unticks the stock Enabled checkbox that each source-to-destination pair in SML already has. On the 23 field masts that is 44 destinations, all moved
-        together. The other 15 sources, with 54 destinations, have no field heads at all. They stay
-        enabled and are left alone. The set of field masts is not hard-coded: the script finds it from
+        together. The other 15 sources, with 54 destinations, have no field heads at all. They stay enabled. The set of field masts is not hard-coded: the script finds it from
         the signals the field electronics report.
       </p>
       <p>
@@ -317,7 +311,8 @@
 
       <h2>Upgrading JMRI</h2>
       <p>
-        Every item in the scripts and profile tables is either a file JMRI already knows how to look up or a script written against public calls. When a new stock JMRI arrives, little of ours is in the way. The one thing to redo is the web home page copy, which is brought up to the new stock page.
+        The web home page copy is the one file to redo at a JMRI upgrade. It is brought up to the new
+        stock page.
       </p>
 
       <p class="explainer-more">
