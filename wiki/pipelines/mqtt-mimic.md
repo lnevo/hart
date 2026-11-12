@@ -45,6 +45,10 @@ Run this by hand after a bridge or firmware change.
 
 `python3 tools/mqtt-mimic/qa/run_native_sml_qa.py` drives retained MQTT states and checks mast aspects through JMRI JSON. It covers 100, 102, 110, 111, 114/115, McKees Rocks/McKeesport, the A48 balloon and 117/117b. It never publishes `track/cmd/*`, and it captures the retained baseline and restores it. Run it by hand with no operating session in progress. Its last recorded results are in `tools/mqtt-mimic/qa/`.
 
+### Mimic relay memory
+
+`jmri/layouts/hart/scripts/mimic_relay.py` creates the memory `IMHART_MIMIC` ("Mimic relay") when JMRI starts on the Pi. It is not in `jmri/layouts/hart/output/tables.xml`. After a PanelPro Store on the Pi, the next `make tables-pull` diff shows it holding a short "ack <n>" value. That is expected and fine to commit.
+
 ### Broker cleanup
 
 The one-shot retain clear for stale `track/signalhead/*` and `track/signalmast/*` (keeping 432 and 433) has been done by hand. Do not encode it in a permanent script.
