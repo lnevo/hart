@@ -24,3 +24,8 @@ ADR-013 gave cars one repository and one intake. Locomotives had none: the Decod
 - A loco has one entry point and one record, and Stage 4 works from it.
 - The repository stays the master (ADR-015); STS stays the master of car position (ADR-016).
 - Locos without a decoder programmed yet stop at Stage 4 and wait for Stage 6.
+
+## Amendment 2026-11-12
+
+At the next intake of new cars or locomotives, convert stage 1 (photo intake and review) and the card part of stage 5 to the public car-cards plugin (`external/model-railroad-skills/plugins/car-cards`, 0.1.0) instead of `ops/hart-ops/card_pipeline`. The owner decided this after approving the plugin. Hart's settings go in a `cards.toml` (road display names, known marks, logo, form number `HART-CC-001`, description rules). Stages 2 to 4 (repository, STS, Operations Pro, JMRI) stay in hart-ops and take their input from the plugin's `data/cars.csv` and `data/locos.csv`. Working out that hand-off is part of the conversion.
+
