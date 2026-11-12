@@ -103,8 +103,8 @@
                         <p>Fake LCOS occupancy and turnout feedback for testing, with live signal heads.</p>
                         <script>
                             // STS (port 8980, plain HTTP) and the mimic (JMRI on 12080) run on the Pi.
-                            // Empty = this page is on the Pi, so follow its own host. The Windows
-                            // deploy fills in the Pi's name (apply_hart_package_local.ps1).
+                            // Empty = this page is on the Pi, so follow its own host. The Windows and
+                            // Mac deploys fill in the Pi's name (RPi-JMRI.local).
                             var HART_APPS_HOST = "";
                             (function () {
                                 var host = HART_APPS_HOST || location.hostname;

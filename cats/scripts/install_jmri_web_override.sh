@@ -18,6 +18,11 @@ install_into() {
   [[ -d "$dest_root" ]] || return 0
   mkdir -p "${dest_root}/web/servlet/home"
   cp -f "$HOME_HTML" "${dest_root}/web/servlet/home/Home.html"
+  # Off the Pi, point the STS and mimic links at it (empty on the Pi: follow the page host).
+  if [[ -n "${HART_APPS_HOST:-}" ]]; then
+    sed -i.tmp "s/var HART_APPS_HOST = \"\";/var HART_APPS_HOST = \"${HART_APPS_HOST}\";/" \
+      "${dest_root}/web/servlet/home/Home.html" && rm -f "${dest_root}/web/servlet/home/Home.html.tmp"
+  fi
   rm -f "${dest_root}/web/sts.html"
   echo "Installed JMRI web home override -> ${dest_root}/web"
   # LCOS mimic page (served at /web/mimic/). Only with its generated layout, which the
