@@ -1,4 +1,5 @@
 """One broker setting for the Mac tools: hart_hosts lookup order and the scripts that use it."""
+import os
 import re
 import sys
 import tempfile
@@ -68,6 +69,34 @@ class EnvFileTest(unittest.TestCase):
         self.assertEqual(values["HART_MQTT_PORT"], "1883")
         self.assertEqual(values["X"], "q")
         self.assertNotIn("# HART_REPO_ROOT", values)
+
+    def test_reads_like_source(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "hart.env"
+            path.write_text(
+                "HART_MQTT_BROKER=b.example.invalid\n"
+                "HART_JMRI_JSON=http://${HART_MQTT_BROKER}:12080/json  # comment\n"
+                'QUOTED="a # b"\n'
+                "LITERAL='$HART_MQTT_BROKER'\n",
+                encoding="utf-8")
+            values = hart_hosts.read_env_file(path)
+        self.assertEqual(values["HART_JMRI_JSON"], "http://b.example.invalid:12080/json")
+        self.assertEqual(values["QUOTED"], "a # b")
+        self.assertEqual(values["LITERAL"], "$HART_MQTT_BROKER")
+
+    def test_path_follows_repo_root(self):
+        saved = {k: os.environ.pop(k, None) for k in ("HART_ENV_FILE", "HART_REPO_ROOT")}
+        try:
+            self.assertEqual(hart_hosts.env_file_path(), ROOT / "tools/env/hart.env")
+            os.environ["HART_REPO_ROOT"] = "/x"
+            self.assertEqual(hart_hosts.env_file_path(), Path("/x/tools/env/hart.env"))
+            os.environ["HART_ENV_FILE"] = "/y/h.env"
+            self.assertEqual(hart_hosts.env_file_path(), Path("/y/h.env"))
+        finally:
+            for k, v in saved.items():
+                os.environ.pop(k, None)
+                if v is not None:
+                    os.environ[k] = v
 
     def test_missing_file_is_empty(self):
         self.assertEqual(hart_hosts.read_env_file(Path("/nonexistent/hart.env")), {})

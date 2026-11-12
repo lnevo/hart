@@ -8,11 +8,14 @@ Lookup order, first set wins:
   port       HART_MQTT_PORT, tools/env/hart.env, 1883
   JMRI JSON  HART_JMRI_JSON, JMRI_JSON (older name), tools/env/hart.env
 
-The environment beats hart.env, so a one-off `MQTT_HOST=... python3 ...` still works.
+Any name set in the environment beats hart.env, old names included, so a one-off
+`MQTT_HOST=... python3 ...` still works; a stale exported MQTT_HOST also wins, so unset it.
+hart.env is found as load_env.sh finds it: HART_ENV_FILE, else HART_REPO_ROOT/tools/env/hart.env.
 """
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Mapping
 
@@ -25,16 +28,36 @@ BROKER_VARS = ("HART_MQTT_BROKER", "MQTT_HOST", "HART_MQTT_HOST")
 PORT_VARS = ("HART_MQTT_PORT",)
 JMRI_JSON_VARS = ("HART_JMRI_JSON", "JMRI_JSON")
 
-ENV_FILE = Path(__file__).resolve().parents[2] / "env" / "hart.env"
+_VAR = re.compile(r"\$(?:\{(\w+)\}|(\w+))")
+
+
+def env_file_path() -> Path:
+    """HART_ENV_FILE, else <HART_REPO_ROOT or this repo>/tools/env/hart.env, as load_env.sh finds it."""
+    override = os.environ.get("HART_ENV_FILE", "").strip()
+    if override:
+        return Path(override).expanduser()
+    root = os.environ.get("HART_REPO_ROOT", "").strip()
+    base = Path(root).expanduser() if root else Path(__file__).resolve().parents[3]
+    return base / "tools" / "env" / "hart.env"
+
+
+def _value(raw: str, known: Mapping[str, str]) -> str:
+    """One shell-style value: quotes kept whole, ' #' comments dropped, $VAR expanded."""
+    raw = raw.strip()
+    if raw[:1] in ("'", '"') and raw[0] in raw[1:]:
+        quote = raw[0]
+        value = raw[1:raw.index(quote, 1)]
+        if quote == "'":
+            return value
+    else:
+        value = re.split(r"\s#", raw, maxsplit=1)[0].strip()
+    return _VAR.sub(lambda m: known.get(m.group(1) or m.group(2), ""), value)
 
 
 def read_env_file(path: Path | None = None) -> dict[str, str]:
-    """KEY=VALUE lines from hart.env (HART_ENV_FILE overrides the path). Missing file: {}."""
-    if path is None:
-        override = os.environ.get("HART_ENV_FILE", "").strip()
-        path = Path(override).expanduser() if override else ENV_FILE
+    """KEY=VALUE lines from hart.env, read like `source` would. Missing file: {}."""
     try:
-        text = path.read_text(encoding="utf-8")
+        text = (path or env_file_path()).read_text(encoding="utf-8")
     except OSError:
         return {}
     values: dict[str, str] = {}
@@ -44,10 +67,13 @@ def read_env_file(path: Path | None = None) -> dict[str, str]:
             line = line[len("export "):].strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
-        key, _, value = line.partition("=")
-        value = value.split(" #", 1)[0].split("\t#", 1)[0].strip().strip("'\"")
-        if key.strip() and value:
-            values[key.strip()] = value
+        key, _, raw = line.partition("=")
+        key = key.strip()
+        if not key.isidentifier():
+            continue
+        value = _value(raw, {**os.environ, **values})
+        if value:
+            values[key] = value
     return values
 
 

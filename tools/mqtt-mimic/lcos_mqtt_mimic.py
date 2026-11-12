@@ -48,9 +48,10 @@ SHARED_FILES = {
 }
 
 sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
-from hart_hosts import mqtt_broker, mqtt_port  # noqa: E402
+from hart_hosts import PI_HOST, mqtt_broker, mqtt_port  # noqa: E402
 
-MQTT_PORT = mqtt_port()
+# Set in main(): importers such as build_mimic_web.py never need the broker port.
+MQTT_PORT = 1883
 _MOSQUITTO = (
     "/opt/local/bin",
     "/opt/homebrew/bin",
@@ -107,7 +108,7 @@ def _probe(host: str) -> bool:
 
 def pick_mqtt_host(explicit: str | None) -> str:
     hosts = []
-    for h in (explicit, mqtt_broker(), "127.0.0.1"):
+    for h in (explicit, mqtt_broker(), PI_HOST, "127.0.0.1"):
         if h and h not in hosts:
             hosts.append(h)
     for h in hosts:
@@ -373,7 +374,7 @@ class Bus:
 
     def publish(self, topic: str, payload: str) -> None:
         subprocess.check_call(
-            [self.pub_bin, "-h", self.host, "-r", "-t", topic, "-m", payload],
+            [self.pub_bin, "-h", self.host, "-p", str(MQTT_PORT), "-r", "-t", topic, "-m", payload],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -429,6 +430,8 @@ class Bus:
             self.sub_bin,
             "-h",
             self.host,
+            "-p",
+            str(MQTT_PORT),
             "-v",
             "-t",
             "track/sensor/#",
@@ -568,6 +571,9 @@ def main() -> int:
     ap.add_argument("--http-port", type=int, default=8765)
     ap.add_argument("--bind", default="127.0.0.1")
     args = ap.parse_args()
+
+    global MQTT_PORT
+    MQTT_PORT = mqtt_port()
 
     for page in (HTML, *(SHARED_WEB / name.lstrip("/") for name in SHARED_FILES)):
         if not page.is_file():
