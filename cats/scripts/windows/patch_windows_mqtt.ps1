@@ -13,7 +13,13 @@ foreach ($r in $roots) {
   Get-ChildItem $r -Directory -ErrorAction SilentlyContinue |
     Where-Object { $_.Name -like 'My_JMRI_Railroad*' } |
     ForEach-Object {
-      $pf = Join-Path $_.FullName 'profile\profile.xml'
+      # Shared profile.xml plus the per-computer profile\<node id>\profile.xml, which JMRI reads first.
+      $profileDir = Join-Path $_.FullName 'profile'
+      @(Join-Path $profileDir 'profile.xml') +
+      @(Get-ChildItem $profileDir -Directory -ErrorAction SilentlyContinue |
+          ForEach-Object { Join-Path $_.FullName 'profile.xml' }) |
+    ForEach-Object {
+      $pf = $_
       if (-not (Test-Path $pf)) { return }
       $raw = Get-Content -Raw $pf
       if ($raw -notmatch 'MqttConnectionConfigXml') {
@@ -43,6 +49,7 @@ foreach ($r in $roots) {
       } else {
         Write-Host ("MQTT present but address unchanged: {0}" -f $pf)
       }
+    }
     }
 }
 
