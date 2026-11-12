@@ -39,7 +39,7 @@ JMRI tables (routes, internal turnouts, etc.):
 JMRI web home (STS link):
   SoR: cats/resources/jmri-web/servlet/home/Home.html
   Live: /home/pi/JMRI_UserFiles/web/servlet/home/Home.html
-  STS = Shipper-driven Traffic Simulator → http://10.0.0.53:8980/sts/
+  STS = Shipper-driven Traffic Simulator → http://<this host>:8980/sts/ (link follows the page host)
   Install/refresh: run by sync_hart_package.sh --pi
   Full pack sync from Mac (SSH): ./cats/scripts/sync_hart_package.sh --pi
   Windows: ./cats/scripts/sync_hart_package.sh --win  (SSH :2222; do not use Dropbox)
