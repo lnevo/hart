@@ -67,6 +67,9 @@ if (Test-Path $opsSrc) {
 }
 
 $homeHtml = Join-Path $hart 'cats\resources\jmri-web\servlet\home\Home.html'
+# STS and the LCOS mimic run on the Pi. This is the name JMRI advertises for the Pi over
+# mDNS; Windows resolves it, but not RPi-JMRI.local.
+$PiHost = 'jmri-2ccf677e1aeb-3f32a166.local'
 if (Test-Path $homeHtml) {
   $roots = New-Object System.Collections.Generic.List[string]
   [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
@@ -74,7 +77,11 @@ if (Test-Path $homeHtml) {
     if (-not (Test-Path $r)) { continue }
     $hd = Join-Path $r 'web\servlet\home'
     New-Item -ItemType Directory -Force -Path $hd | Out-Null
-    Copy-Item $homeHtml (Join-Path $hd 'Home.html') -Force
+    $html = [System.IO.File]::ReadAllText($homeHtml)
+    $marker = 'var HART_APPS_HOST = "";'
+    if (-not $html.Contains($marker)) { throw "Home.html has no '$marker' line" }
+    $html = $html.Replace($marker, ('var HART_APPS_HOST = "' + $PiHost + '";'))
+    [System.IO.File]::WriteAllText((Join-Path $hd 'Home.html'), $html, (New-Object System.Text.UTF8Encoding($false)))
     $stale = Join-Path $r 'web\sts.html'
     if (Test-Path $stale) { Remove-Item $stale -Force }
     Write-Host ("web home -> {0}\web" -f $r)

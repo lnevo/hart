@@ -97,15 +97,23 @@
                     <div class="col-md-4">
                         <h2>Utilities</h2>
                         <h4><a id="sts-link" href="http://localhost:8980/sts/" target="sts">STS</a></h4>
-                        <script>
-                            // STS runs on the same host as this JMRI, on port 8980 (plain HTTP).
-                            document.getElementById("sts-link").href =
-                                "http://" + location.hostname + ":8980/sts/";
-                        </script>
                         <p>Shipper-driven Traffic Simulator.</p>
 
-                        <h4><a href="/web/mimic/" target="mimic">LCOS Mimic</a></h4>
-                        <p>Fake LCOS occupancy and turnout feedback for testing, with live signal heads. On the Pi only.</p>
+                        <h4><a id="mimic-link" href="/web/mimic/" target="mimic">LCOS Mimic</a></h4>
+                        <p>Fake LCOS occupancy and turnout feedback for testing, with live signal heads.</p>
+                        <script>
+                            // STS (port 8980, plain HTTP) and the mimic (JMRI on 12080) run on the Pi.
+                            // Empty = this page is on the Pi, so follow its own host. The Windows
+                            // deploy fills in the Pi's name (apply_hart_package_local.ps1).
+                            var HART_APPS_HOST = "";
+                            (function () {
+                                var host = HART_APPS_HOST || location.hostname;
+                                document.getElementById("sts-link").href = "http://" + host + ":8980/sts/";
+                                if (HART_APPS_HOST) {
+                                    document.getElementById("mimic-link").href = "http://" + host + ":12080/web/mimic/";
+                                }
+                            })();
+                        </script>
 
                         <h4><a href="/json">JSON Console</a></h4>
                         <p>A WebSocket console for directly issuing JSON commands to JMRI.</p>
