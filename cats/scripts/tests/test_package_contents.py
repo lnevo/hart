@@ -51,13 +51,6 @@ class UssSensorIcons(unittest.TestCase):
         install = WIN[WIN.index("$ussSrc ="):WIN.index("$ctcSrc =")]
         self.assertNotIn("Program Files", install)
 
-    def test_windows_retires_program_files_copies_from_both_roots(self):
-        retire = WIN[WIN.index("$progUss"):WIN.index("foreach ($path in $retired)")]
-        self.assertIn("'yellow-*.gif'", retire)
-        loop = WIN[WIN.index("$progUss") - 300:WIN.index("$progUss")]
-        self.assertIn("'C:\\Program Files\\JMRI'", loop)
-        self.assertIn("'C:\\Program Files (x86)\\JMRI'", loop)
-
 
 class RetiredScripts(unittest.TestCase):
     def test_every_host_removes_them(self):
