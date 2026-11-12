@@ -4330,12 +4330,12 @@
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB21">
-        <beansetting setting="4">
+        <beansetting setting="2">
           <turnout systemName="Switch 9" />
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB22">
-        <beansetting setting="2">
+        <beansetting setting="4">
           <turnout systemName="Switch 9" />
         </beansetting>
       </path>
@@ -4381,7 +4381,7 @@
       <permissive>no</permissive>
       <occupancysensor>BS EH-2</occupancysensor>
       <path todir="64" fromdir="128" block="IB18">
-        <beansetting setting="4">
+        <beansetting setting="2">
           <turnout systemName="Switch 9" />
         </beansetting>
       </path>
@@ -4393,7 +4393,7 @@
       <permissive>no</permissive>
       <occupancysensor>BS EH-3</occupancysensor>
       <path todir="64" fromdir="128" block="IB18">
-        <beansetting setting="2">
+        <beansetting setting="4">
           <turnout systemName="Switch 9" />
         </beansetting>
       </path>
@@ -28041,7 +28041,7 @@
     <layoutturnout ident="TO1" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="645.0" ycen="315.0" xa="652.0" ya="315.0" xb="638.0" yb="315.0" xc="640.0" yc="304.29998779296875" xd="652.0" yd="315.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 13" blockname="OS Switch 13" connectaname="T-I-TO1" connectbname="T6" connectcname="T-C-TO1">
       <signalBMast>Mast 13R</signalBMast>
     </layoutturnout>
-    <layoutturnout ident="TO10" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="2" xcen="610.9000244140625" ycen="289.0" xa="617.9000244140625" ya="289.0" xb="603.9000244140625" yb="289.0" xc="605.9000244140625" yc="278.29998779296875" xd="617.9000244140625" yd="289.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 9" blockname="OS Switch 9" connectaname="T-A-TO10" connectbname="T11" connectcname="T10">
+    <layoutturnout ident="TO10" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" showtooltip="yes" continuing="4" xcen="610.9000244140625" ycen="289.0" xa="617.9000244140625" ya="289.0" xb="603.9000244140625" yb="289.0" xc="605.9000244140625" yc="278.29998779296875" xd="617.9000244140625" yd="289.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 9" blockname="OS Switch 9" connectaname="T-A-TO10" connectbname="T11" connectcname="T10">
       <signalBMast>Mast 9LB</signalBMast>
       <signalCMast>Mast 9LA</signalCMast>
     </layoutturnout>
