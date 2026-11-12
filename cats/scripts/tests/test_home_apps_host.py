@@ -25,7 +25,7 @@ def _link_script(html):
 
 def _links(html, page_host):
     """Run the page's link script under Node with a fake DOM; return the two hrefs."""
-    links = {"sts-link": "http://localhost:8980/sts/", "mimic-link": "/web/mimic/"}
+    links = {"sts-link": None, "mimic-link": "/web/mimic/"}  # the page gives STS no static address
     js = (
         "const links = %s;\n"
         "const document = { getElementById: (id) => ({ set href(v) { links[id] = v; } }) };\n"
@@ -43,6 +43,12 @@ def _filled(host):
 class Source(unittest.TestCase):
     def test_home_has_one_empty_marker(self):
         self.assertEqual(HOME.count(MARKER), 1)
+
+    def test_sts_link_has_no_static_address(self):
+        # Only the script sets it, so the link never points at a Mac or localhost STS.
+        tag = re.search(r'<a id="sts-link"[^>]*>', HOME).group(0)
+        self.assertNotIn("href", tag)
+        self.assertNotIn("localhost:8980", HOME)
 
     def test_windows_fills_the_same_marker(self):
         self.assertIn("$marker = '" + MARKER + "'", WIN)
