@@ -3,7 +3,7 @@
   "lede": [
     "Two railroads came up Chartiers Creek. The Chartiers Valley Railroad was chartered in 1853 to run from Pittsburgh to Washington, ran out of money in the Panic of 1857, and was finished by the Pennsylvania Railroad's Chartiers Railway in 1871. As the PRR's Chartiers Branch it carried coal from the valley's mine branches and ran passenger trains to Washington until 1952, meeting the Montour, the P&WV and the B&O along the way. The Pittsburgh, Chartiers & Youghiogheny was chartered in 1881 to reach the Youghiogheny and never did. It ran from McKees Rocks up the valley, crossed the back channel onto Neville Island, and from 1892 was owned half by the P&LE and half by the Pennsylvania's Panhandle.",
     "The bigger roads ran around them. The P&LE, a New York Central property, held the Ohio River main through McKees Rocks; the B&O ran over it from 1934 and CSX bought it in 1991–92. The Panhandle ran west from Pittsburgh past Scully Yard, and the P&WV crossed the south hills to Rook Yard. On the island, American Steel & Wire's Pittsburgh & Ohio Valley switched the plants from 1899 until 1994.",
-    "In December 1996 the Chartiers Branch and the PC&Y were sold together to the Pittsburgh Industrial Railroad, which became today's Pittsburgh & Ohio Central. It still meets Norfolk Southern at Duff Junction and CSX at POV Junction. Use the buttons to compare a few lines side by side, or the slider to see who ran each one in a given year."
+    "In December 1996 the Chartiers Branch and the PC&Y were sold together to the Pittsburgh Industrial Railroad, which became today's Pittsburgh & Ohio Central. Genesee & Wyoming has owned it since 2008; on 1 January 2027, subject to regulatory approval, it moves to Atlantic & Great Lakes Transportation, one of three companies G&W is splitting into. It still meets Norfolk Southern at Duff Junction and CSX at POV Junction. Use the buttons to compare a few lines side by side, or the slider to see who ran each one in a given year."
   ],
   "article": "library/chartiers-valley-railroads.html",
   "trunkColor": "#b5651d",
@@ -463,7 +463,7 @@
         "to": null,
         "made": "Meets NS at Duff Junction and CSX at POV Junction",
         "logo": "../ops/hart-ops/operator_logos/downloads/genesee-wyoming.png",
-        "note": "Office and engines at McKees Rocks"
+        "note": "Office and engines at McKees Rocks. Moves to G&W's Atlantic & Great Lakes Transportation on 1 Jan 2027 (announced 11 Nov 2026)"
       }
     ],
     "end": {

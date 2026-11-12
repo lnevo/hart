@@ -84,6 +84,8 @@ Incorporated **5 December 1899**, owned by American Steel & Wire. Built February
 
 RailAmerica bought RailTex in February 2000 and sold PIR in **December 2000**. Ohio Central renamed it **Pittsburgh & Ohio Central Railroad (POHC, also styled P&OHC)**. Genesee & Wyoming announced purchase of the Ohio Central system on 4 August 2008; STB approved **30 December 2008**. POHC continues as a G&W short line: office at McKees Rocks, track from Neville Island south toward Arden. Commodities include chemicals, plastics, metals, minerals, and petroleum products.
 
+On **11 November 2026** G&W announced that it will split into three regional holding companies, all still owned by Brookfield and GIC. POHC goes to **Atlantic & Great Lakes Transportation Inc.**, based in Rochester, with G&W's other New York, Ohio, Pennsylvania and most New England lines, including Buffalo & Pittsburgh, Aliquippa & Ohio River, Ohio Central and Providence and Worcester. The split takes effect **1 January 2027**, subject to regulatory approval.
+
 Typical jobs: interchange with NS at Duff Junction, Neville Island work, and a south turn toward Carnegie or Arden.
 
 ---
@@ -148,6 +150,7 @@ The **Pittsburgh, Allegheny & McKees Rocks Railroad (PAM)** is the switching roa
 | Dec 1996 | PIR (RailTex) buys Conrail Chartiers track + PC&Y mileage |
 | Feb–Dec 2000 | RailAmerica buys RailTex, sells PIR to Ohio Central as POHC |
 | 30 Dec 2008 | G&W control of Ohio Central / POHC approved |
+| 1 Jan 2027 | POHC to Atlantic & Great Lakes Transportation in the G&W split (announced 11 Nov 2026) |
 
 ---
 
@@ -178,6 +181,8 @@ The **Pittsburgh, Allegheny & McKees Rocks Railroad (PAM)** is the switching roa
 13. RadioReference, CSX Pittsburgh Sub: McKees Rocks ~PLE 3.6; POHC crossing ~PLE 3.75; Neville (POHC connection) ~PLE 5.7; Demmler Yard ~PLY 13.0.  
     https://wiki.radioreference.com/index.php/PI-Pittsburgh_Sub
 14. Railroad.net / railfan notes: CSX D749 Demmler–Neville Island; POHC from McKees Rocks waits for the island bridge.
+15. Genesee & Wyoming, “Genesee & Wyoming Announces Plan to Separate into Three Geographically Focused Companies,” 11 Nov 2026 (Appendix A lists POHC under Atlantic & Great Lakes).  
+    https://www.gwrr.com/about/news/Genesee--Wyoming-Announces-Plan-to-Separate-into-Three-Geographically-Focused-Companies
 15. *Federal Register*, 17 Feb 2023, McKees Rocks Railroad LLC (PAM trackage; MRIE land).
 16. UW-Madison / Howard Shipyards: *Steel Queen* (Pressed Steel Car), burned Woods Run 16 Oct 1926.
 17. Wikipedia, Pittsburgh and West Virginia Railway (N&W lease and NKP merger, 16 Oct 1964); List of CSX Transportation predecessor railroads (P&LE: part sold to CSX 1991, remainder via Three Rivers Railway 1992).  
