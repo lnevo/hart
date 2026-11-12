@@ -32,6 +32,33 @@ class PanelBackground(unittest.TestCase):
         self.assertIn("resources\\misc", WIN)
 
 
+class UssSensorIcons(unittest.TestCase):
+    """HART's yellow USS icons install into the profile only, never the JMRI install."""
+
+    def test_tables_use_the_profile_copy(self):
+        tables = (ROOT / "jmri/layouts/hart/output/tables.xml").read_text(encoding="utf-8")
+        self.assertIn("preference:resources/icons/USS/sensor/yellow-on.gif", tables)
+        self.assertNotIn("program:resources/icons/USS/sensor/yellow", tables)
+
+    def test_hosts_install_into_the_profile(self):
+        self.assertIn('"resources/icons/USS/sensor"', PI)
+        self.assertIn("'resources\\icons\\USS\\sensor'", WIN)
+
+    def test_windows_never_copies_into_program_files(self):
+        for line in WIN.splitlines():
+            if "Copy-Item" in line or "New-Item" in line:
+                self.assertNotIn("Program Files", line)
+        install = WIN[WIN.index("$ussSrc ="):WIN.index("$ctcSrc =")]
+        self.assertNotIn("Program Files", install)
+
+    def test_windows_retires_program_files_copies_from_both_roots(self):
+        retire = WIN[WIN.index("$progUss"):WIN.index("foreach ($path in $retired)")]
+        self.assertIn("'yellow-*.gif'", retire)
+        loop = WIN[WIN.index("$progUss") - 300:WIN.index("$progUss")]
+        self.assertIn("'C:\\Program Files\\JMRI'", loop)
+        self.assertIn("'C:\\Program Files (x86)\\JMRI'", loop)
+
+
 class RetiredScripts(unittest.TestCase):
     def test_every_host_removes_them(self):
         for name in OLD:
