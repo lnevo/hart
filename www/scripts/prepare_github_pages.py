@@ -27,6 +27,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import build_tables_browser  # noqa: E402
 import share_cards  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
@@ -434,6 +435,13 @@ def _card_thumbs(dest_root: Path) -> None:
             page.write_text(new, encoding="utf-8")
 
 
+def _refresh_tables_page(dest_root: Path) -> None:
+    """Rebuild the tables browser data and fill the tables file page from tables.xml, so the
+    published copy always describes the current file even when the committed one is stale."""
+    if (dest_root / build_tables_browser.PAGE_REL).is_file():
+        build_tables_browser.write(dest_root)
+
+
 def _unsafe_dest(dest: Path) -> bool:
     """True when rmtree(dest) would delete the repo, the portal, or a folder holding either."""
     repo = Path(
@@ -475,6 +483,7 @@ def main() -> int:
     if dest.exists():
         shutil.rmtree(dest)
     _copy_published(dest)
+    _refresh_tables_page(dest)
 
     site_path = dest / "data" / "site.json"
     site = json.loads(site_path.read_text(encoding="utf-8"))
