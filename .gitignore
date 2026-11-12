@@ -107,3 +107,4 @@ jmri/layouts/hart/operations/backups/
 # STS Docker runtime state (local only)
 external/sts-docker-data/config/
 external/sts-docker-data/sandbox/
+external/sts-docker-data/pi/
