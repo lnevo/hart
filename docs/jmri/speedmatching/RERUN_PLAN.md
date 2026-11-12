@@ -35,16 +35,27 @@ New `basis` values record where each length came from:
 | `anyrail` | read from the AnyRail plan |
 | `inferred` | worked out from timed runs against `anyrail` blocks (method below) |
 
-1. **Pick the plan file.** The track plans are in `~/Documents/Layout` (ADR-007). The 5.3 Main
-   Level print master is the likely source; 5.3b is newer. Owner confirms which.
-2. **Read the `.any` file.** It is a binary Boost serialization archive, not XML. Try, in order:
-   - decode the archive far enough to list track pieces with their lengths and block
-     assignments (no AnyRail needed; a small read-only Python reader, kept in the repo with
-     tests);
-   - if that fails, check whether AnyRail's own JMRI export (`jmri/layouts/hart/anyrail/hart.xml`)
-     has a consistent scale by testing it against blocks whose lengths are known;
-   - last resort: the owner reads the block lengths from AnyRail's screen. That is still the
-     plan, not the real world.
+1. **Plan file: 5.3b** (owner, 2026-11-12), in `~/Documents/Layout` (ADR-007).
+2. **Read the `.any` file.** It is a binary Boost serialization archive, not XML. A first look
+   (2026-11-12) found:
+   - coordinates are doubles in **centimetres** (values such as 0.15875 = 1/16 in); the plan
+     spans about 5.6 m by 8.1 m;
+   - flex track (Peco code 83, `SL-8300`) is stored as cubic Bezier segments of four control
+     points, so each length can be computed (997 segments found across all levels);
+   - turnouts are Peco parts (`SL-8362`, `SL-8361`, `SL-8352`, `SL-8351`, `SL-8377`) placed by
+     coordinates;
+   - layers separate the levels and include `D.01` Mainline Track, `J.07.2` Power District Gaps
+     and `D.07` Track Call Outs;
+   - **there are no block names in the file**, and `jmri/layouts/hart/anyrail/hart.xml` is a
+     rearranged panel (1837 by 558 units), not plan geometry, so it cannot link the two.
+
+   The work left is to link pieces to HART blocks: build the track graph from piece endpoints,
+   identify the turnouts, and match them to the turnouts in `tables.xml` by how they connect
+   (the Layout Editor panel is not to scale, so position alone will not do). The Power District
+   Gaps layer may mark some block ends. A rendered picture of the decoded main level, with
+   turnout numbers, goes to the owner to confirm the matching. If the owner can export a format
+   that names blocks or keeps the gaps, use it to shorten this. The reader is a small read-only
+   Python module kept in the repo with tests.
 3. **Map AnyRail blocks to HART blocks.** The `old_source` column (Yard Lead W, East Bypass and
    so on) already holds the AnyRail names.
 4. **Infer the missing blocks.** The Switch 7 crossover and the engine terminal at Switch 13 may
@@ -146,7 +157,8 @@ the Pi, and the owner not operating. Only the test loco moves.
 
 ## Open questions for the owner
 
-- Which `.any` file is the record (Part A.1)?
-- Is ±3% the right tolerance for 2738 against 2121?
-- The stop test showed both locos holding full speed for about 6 s after the speed-0 command.
-  Look into it here, or leave it?
+- Is ±3% the right tolerance for 2738 against 2121? Undecided; revisit once the new profiles
+  show the spread between runs.
+
+The stop test, where both locos held full speed for about 6 s after the speed-0 command, is a
+separate investigation (owner, 2026-11-12) and is not part of this plan.
