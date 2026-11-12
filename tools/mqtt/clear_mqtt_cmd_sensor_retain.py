@@ -11,16 +11,21 @@
 Does not touch track/sensor/{addr}, track/turnout/{addr}, or packed
 track/signalhead/<digits> status/set retain.
 
-    MQTT_HOST=10.0.0.150 python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
+    python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
+
+Broker: HART_MQTT_BROKER (tools/ops/lib/hart_hosts.py), default the Pi.
 """
 
 from __future__ import annotations
 
-import os
 import subprocess
 import sys
+from pathlib import Path
 
-MQTT_HOST = os.environ.get("MQTT_HOST", "10.0.0.150")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "ops" / "lib"))
+from hart_hosts import mqtt_broker  # noqa: E402
+
+MQTT_HOST = mqtt_broker()
 
 
 def _sub(topic: str, wait: str = "1") -> list[tuple[str, str]]:

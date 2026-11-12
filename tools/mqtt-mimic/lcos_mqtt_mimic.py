@@ -10,7 +10,9 @@ Never publishes track/cmd/turnout (that commands motors). TWOSENSOR plants
 also flip FB N/R sensors so JMRI KnownState follows feedback.
 
   python3 tools/mqtt-mimic/lcos_mqtt_mimic.py
-  python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --mqtt-host 10.0.0.150 --http-port 8765
+  python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --mqtt-host <broker> --http-port 8765
+
+Without --mqtt-host the broker comes from HART_MQTT_BROKER (tools/ops/lib/hart_hosts.py).
   ./tools/mqtt-mimic/install_mimic_launchagent.sh   # stay-up LaunchAgent (survives Cursor quit)
 """
 
@@ -19,7 +21,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import os
 import queue
 import re
 import shutil
@@ -40,7 +41,10 @@ OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 HEAD_CSV = ROOT / "docs/wiring/signals/signal_head_plan.csv"
 HTML = Path(__file__).with_suffix(".html")
 
-MQTT_PORT = 1883
+sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
+from hart_hosts import mqtt_broker, mqtt_port  # noqa: E402
+
+MQTT_PORT = mqtt_port()
 _MOSQUITTO = (
     "/opt/local/bin",
     "/opt/homebrew/bin",
@@ -96,17 +100,16 @@ def _probe(host: str) -> bool:
 
 
 def pick_mqtt_host(explicit: str | None) -> str:
-    env = (os.environ.get("MQTT_HOST") or os.environ.get("HART_MQTT_HOST") or "").strip()
     hosts = []
-    for h in (explicit, env, "10.0.0.150", "127.0.0.1"):
+    for h in (explicit, mqtt_broker(), "127.0.0.1"):
         if h and h not in hosts:
             hosts.append(h)
     for h in hosts:
         if _probe(h):
             return h
     raise SystemExit(
-        "No MQTT broker on port 1883. Tried: " + ", ".join(hosts)
-        + "\nPass --mqtt-host or set MQTT_HOST."
+        f"No MQTT broker on port {MQTT_PORT}. Tried: " + ", ".join(hosts)
+        + "\nPass --mqtt-host or set HART_MQTT_BROKER."
     )
 
 

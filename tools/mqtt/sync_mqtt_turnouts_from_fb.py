@@ -23,9 +23,13 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 
-JMRI_JSON = os.environ.get("JMRI_JSON", "http://10.0.0.150:12080/json")
-MQTT_HOST = os.environ.get("MQTT_HOST", "10.0.0.150")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "ops" / "lib"))
+from hart_hosts import jmri_json_url, mqtt_broker  # noqa: E402
+
+JMRI_JSON = jmri_json_url()
+MQTT_HOST = mqtt_broker()
 
 # Yard / engine-house — Digicon not FB-SoR (DCC 116–119 → Switch 13/7/11/9).
 SKIP_SWITCH = {13, 7, 11, 9}

@@ -26,9 +26,13 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 
-JMRI_JSON = os.environ.get("JMRI_JSON", "http://10.0.0.150:12080/json")
-MQTT_HOST = os.environ.get("MQTT_HOST", "10.0.0.150")
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "tools" / "ops" / "lib"))
+from hart_hosts import jmri_json_url, mqtt_broker  # noqa: E402
+
+JMRI_JSON = jmri_json_url()
+MQTT_HOST = mqtt_broker()
 
 # THROWN retain keeps Digicon throw-frog rest tips for inverted Switch 33/37/39 + Brick Switch 1.
 # Keys are CTC plant numbers (userName "Switch N"), values are MQTT packed addrs.

@@ -18,13 +18,18 @@ import xml.etree.ElementTree as ET
 import urllib.request
 from pathlib import Path
 
-HOST = "10.0.0.150"
 PUB = "/opt/local/bin/mosquitto_pub"
 SUB = "/opt/local/bin/mosquitto_sub"
 OUT = Path(__file__).resolve().parent
 ROOT = OUT.parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "audit"))
+sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
 from check_wiring_crosswalk import read_tables  # noqa: E402
+from hart_hosts import jmri_json_url, mqtt_broker  # noqa: E402
+
+HOST = mqtt_broker()
+JMRI_JSON = jmri_json_url()
+LOCAL_JMRI_JSON = "http://127.0.0.1:12080/json"
 
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 SETTLE = 4.5
@@ -145,9 +150,9 @@ def _mast_table_from_json(data) -> dict:
 
 def jmri_snapshot() -> dict:
     """JMRI JSON from the Pi or this Mac; CATS alone has no web server, so fall back to MQTT heads."""
-    for host in (HOST, "127.0.0.1"):
+    for base in dict.fromkeys((JMRI_JSON, LOCAL_JMRI_JSON)):
         try:
-            with urllib.request.urlopen(f"http://{host}:12080/json/signalMast", timeout=2) as r:
+            with urllib.request.urlopen(f"{base}/signalMast", timeout=2) as r:
                 return _mast_table_from_json(json.load(r))
         except Exception:
             continue

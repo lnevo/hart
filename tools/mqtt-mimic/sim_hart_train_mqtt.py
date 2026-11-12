@@ -38,8 +38,11 @@ ROOT = Path(__file__).resolve().parents[2]
 PANEL = ROOT / "cats" / "panels" / "HART_CTC.xml"
 HART_PROD = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 
-DEFAULT_HOST = "10.0.0.150"
-DEFAULT_PORT = 1883
+sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
+from hart_hosts import mqtt_broker, mqtt_port  # noqa: E402
+
+DEFAULT_HOST = mqtt_broker()
+DEFAULT_PORT = mqtt_port()
 
 # CATS TRAINREPORTER / JMRI MQTT reporter (track/reporter/{addr}).
 # Payload "locoId text" → IdTag; CATS matches Train.TRANSPONDING to locoId.
