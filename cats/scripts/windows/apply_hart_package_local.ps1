@@ -67,14 +67,24 @@ if (Test-Path $opsSrc) {
 }
 
 $homeHtml = Join-Path $hart 'cats\resources\jmri-web\servlet\home\Home.html'
+# STS and the LCOS mimic run on the Pi: the home page links there by the Pi's own mDNS
+# name (its avahi, so it works while JMRI is down).
+$PiHost = 'RPi-JMRI.local'
 if (Test-Path $homeHtml) {
+  $html = [System.IO.File]::ReadAllText($homeHtml)
+  $marker = 'var HART_APPS_HOST = "";'
+  if ($html.Contains($marker)) {
+    $html = $html.Replace($marker, ('var HART_APPS_HOST = "' + $PiHost + '";'))
+  } else {
+    Write-Warning "Home.html has no '$marker' line; STS and mimic links follow this host"
+  }
   $roots = New-Object System.Collections.Generic.List[string]
   [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
   foreach ($r in ($roots | Select-Object -Unique)) {
     if (-not (Test-Path $r)) { continue }
     $hd = Join-Path $r 'web\servlet\home'
     New-Item -ItemType Directory -Force -Path $hd | Out-Null
-    Copy-Item $homeHtml (Join-Path $hd 'Home.html') -Force
+    [System.IO.File]::WriteAllText((Join-Path $hd 'Home.html'), $html, (New-Object System.Text.UTF8Encoding($false)))
     $stale = Join-Path $r 'web\sts.html'
     if (Test-Path $stale) { Remove-Item $stale -Force }
     Write-Host ("web home -> {0}\web" -f $r)

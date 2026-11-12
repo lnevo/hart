@@ -349,7 +349,7 @@ push_tar_scp() {
 }
 
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
-  bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
+  HART_APPS_HOST=RPi-JMRI.local bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
   install_tables_local
   install_ops_local
   install_cats_panels_local
