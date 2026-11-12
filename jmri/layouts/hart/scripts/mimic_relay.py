@@ -7,7 +7,10 @@
 # mosquitto_pub -r.
 #
 # A request is "<sequence>\n<topic> <payload>\n<topic> <payload>...". The sequence
-# makes every request a new memory value, so a repeated click still fires.
+# makes every request a new memory value, so a repeated click still fires. "<sequence>\nping"
+# asks whether the relay is listening. Every request is answered by replacing the value
+# with "ack <sequence>", so the page knows the relay heard it and a PanelPro Store only
+# ever saves that short value.
 #
 # Only these are ever published:
 #   track/sensor/<digits>   ACTIVE | INACTIVE
@@ -29,15 +32,28 @@ _ALLOWED = {
 }
 
 
+def _lines(value):
+    if value is None:
+        return []
+    try:
+        text = u"%s" % (value,)
+    except Exception:
+        return []
+    return [l.strip() for l in text.splitlines() if l.strip()]
+
+
+def is_request(value):
+    """A page request: first line a sequence number (acks start with "ack")."""
+    lines = _lines(value)
+    return bool(lines) and lines[0].isdigit()
+
+
 def parse_request(value):
     """Return ([(topic, payload)...], rejected_count) for one memory value."""
-    if value is None:
-        return [], 0
-    lines = [l.strip() for l in str(value).splitlines()]
-    lines = [l for l in lines if l]
+    lines = _lines(value)
     if not lines:
         return [], 0
-    body = lines[1:]  # first line is the sequence
+    body = [l for l in lines[1:] if l != "ping"]  # first line is the sequence
     good = []
     rejected = 0
     for line in body[:MAX_LINES]:
@@ -45,7 +61,7 @@ def parse_request(value):
         if m is None or m.group(3) not in _ALLOWED[m.group(1)]:
             rejected += 1
             continue
-        good.append(("track/%s/%s" % (m.group(1), m.group(2)), m.group(3)))
+        good.append(("track/%s/%s" % (m.group(1), m.group(2)), str(m.group(3))))
     rejected += max(0, len(body) - MAX_LINES)
     return good, rejected
 
@@ -64,6 +80,7 @@ def _publish(adapter, topic, payload):
     try:
         adapter.publish(topic, payload, True)
     except TypeError:
+        print("mimic_relay: retained publish unavailable, sent %s without retain" % topic)
         adapter.publish(topic, payload)
 
 
@@ -92,8 +109,16 @@ class _Listener(PropertyChangeListener):
     hart_mimic_relay = True  # marks our listener so a re-run can find and replace it
 
     def propertyChange(self, event):
-        if event.getPropertyName() == "value":
+        if event.getPropertyName() != "value" or not is_request(event.getNewValue()):
+            return
+        try:
             handle(event.getNewValue())
+        except Exception as exc:
+            print("mimic_relay: request failed: %s" % (exc,))
+        try:
+            event.getSource().setValue("ack " + _lines(event.getNewValue())[0])
+        except Exception as exc:
+            print("mimic_relay: ack failed: %s" % (exc,))
 
 
 def install():

@@ -58,11 +58,33 @@ class MimicRelay(unittest.TestCase):
         self.request(3)
         self.assertEqual(self.sent, [])
 
-    def test_repeated_click_needs_a_new_sequence(self):
-        self.request(1, "track/sensor/405 ACTIVE")
-        self.request(1, "track/sensor/405 ACTIVE")  # same value: JMRI fires no change
-        self.request(2, "track/sensor/405 ACTIVE")
-        self.assertEqual(len(self.sent), 2)
+    def test_every_request_is_acked(self):
+        self.request(41, "track/sensor/405 ACTIVE")
+        self.assertEqual(self.memory.getValue(), "ack 41")
+        self.request(42, "track/cmd/turnout/1 THROWN")  # refused lines are still answered
+        self.assertEqual(self.memory.getValue(), "ack 42")
+        self.assertEqual(len(self.sent), 1)
+
+    def test_ping_is_acked_and_publishes_nothing(self):
+        self.request(9, "ping")
+        self.assertEqual(self.memory.getValue(), "ack 9")
+        self.assertEqual(self.sent, [])
+
+    def test_a_stored_click_is_never_left_in_the_memory(self):
+        self.request(5, "track/sensor/405 ACTIVE", "track/turnout/408 THROWN")
+        self.assertNotIn("track/", self.memory.getValue())
+
+    def test_values_that_are_not_requests_are_ignored(self):
+        with running(self.layout):
+            self.memory.setValue("track/sensor/405 ACTIVE")  # no sequence line
+            self.memory.setValue("ack 3")
+        self.assertEqual(self.sent, [])
+        self.assertEqual(self.memory.getValue(), "ack 3")
+
+    def test_non_ascii_text_is_dropped_not_raised(self):
+        self.request(6, "track/sensor/405 ACTIVE —", "café", "track/sensor/406 ACTIVE")
+        self.assertEqual(self.sent, [("track/sensor/406", "ACTIVE", True)])
+        self.assertEqual(self.memory.getValue(), "ack 6")
 
     def test_reload_does_not_double_publish(self):
         load_script(SCRIPT, self.layout)

@@ -55,7 +55,8 @@ class Page(unittest.TestCase):
     def test_never_sets_jmri_turnouts_or_sensors_directly(self):
         # A JSON turnout post commands the motor; feedback goes only through the relay memory.
         posts = re.findall(r'type: "(\w+)", method: "post"', self.script)
-        self.assertEqual(posts, ["memory"])
+        self.assertTrue(posts)
+        self.assertEqual(set(posts), {"memory"})
         self.assertNotIn('method: "put"', self.script)
 
     def test_no_mac_mimic_endpoints(self):

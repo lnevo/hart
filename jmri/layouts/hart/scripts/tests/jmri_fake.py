@@ -102,8 +102,11 @@ class FakeTurnout(Bean):
 
 
 class _ValueEvent:
-    def __init__(self, name, old, new):
-        self._name, self._old, self._new = name, old, new
+    def __init__(self, name, old, new, source=None):
+        self._name, self._old, self._new, self._source = name, old, new, source
+
+    def getSource(self):
+        return self._source
 
     def getPropertyName(self):
         return self._name
@@ -129,7 +132,7 @@ class FakeMemory(Bean):
         old, self.value = self.value, value
         if old != value:
             for listener in list(self.listeners):
-                listener.propertyChange(_ValueEvent("value", old, value))
+                listener.propertyChange(_ValueEvent("value", old, value, self))
 
     def setUserName(self, name):
         self._user = name

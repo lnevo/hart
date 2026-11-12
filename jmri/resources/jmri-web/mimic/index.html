@@ -282,6 +282,7 @@
     let pingTimer = 0;
     let seq = Date.now();
     let relayReady = false;
+    let relayTimer = 0;
 
     function status(ok, text) {
       $("mqtt-dot").className = "dot " + (ok === true ? "ok" : ok === false ? "bad" : "");
@@ -328,8 +329,11 @@
         return true;
       }
       if (msg.type === "memory" && d.name === MEMORY) {
-        relayReady = true;
-        showStatus();
+        // Only the relay writes "ack <n>"; the memory merely existing proves nothing.
+        if (String(d.value || "").startsWith("ack ")) {
+          relayReady = true;
+          showStatus();
+        }
         return false;
       }
       if (msg.type === "error" && String(d.message || "").includes(`"${MEMORY}"`)) {
@@ -363,6 +367,19 @@
       send({ type: "memory", data: { name: MEMORY } });
     }
 
+    // Ask until the relay answers: it may start after the page connects (Pi boot).
+    function pingRelay() {
+      clearInterval(relayTimer);
+      const ask = () => {
+        if (relayReady) { clearInterval(relayTimer); return; }
+        seq += 1;
+        send({ type: "memory", data: { name: MEMORY } });
+        send({ type: "memory", method: "post", data: { name: MEMORY, value: `${seq}\nping` } });
+      };
+      ask();
+      relayTimer = setInterval(ask, 5000);
+    }
+
     function connect() {
       status(null, "connecting…");
       const proto = location.protocol === "https:" ? "wss" : "ws";
@@ -370,7 +387,8 @@
       let renderTimer = 0;
       ws.onopen = () => {
         subscribeAll();
-        status(true, `JMRI ${location.host}`);
+        status(true, `JMRI ${location.host} · waiting for mimic relay…`);
+        pingRelay();
       };
       ws.onmessage = (m) => {
         let msgs;
@@ -379,11 +397,12 @@
         for (const msg of Array.isArray(msgs) ? msgs : [msgs]) dirty = onData(msg) || dirty;
         if (dirty) {
           clearTimeout(renderTimer);
-          renderTimer = setTimeout(render, 40);
+          renderTimer = setTimeout(render, 150);
         }
       };
       ws.onclose = () => {
         clearInterval(pingTimer);
+        clearInterval(relayTimer);
         relayReady = false;
         status(false, "JMRI disconnected, retrying…");
         setTimeout(connect, 2000);
