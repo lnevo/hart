@@ -292,15 +292,6 @@ foreach ($root in $signalRoots) {
 }
 [void]$retired.Add('C:\Program Files\JMRI\xml\signals\cats-masts')
 [void]$retired.Add('C:\Program Files (x86)\JMRI\xml\signals\cats-masts')
-# HART's yellow USS sensor icons live in the profile (tables.xml uses preference:);
-# older deploys also copied them into the JMRI install, which stock JMRI does not ship.
-# Same yellow-*.gif pattern the install uses. Once no host has them, this block can go.
-foreach ($prog in @('C:\Program Files\JMRI', 'C:\Program Files (x86)\JMRI')) {
-  $progUss = Join-Path $prog 'resources\icons\USS\sensor'
-  Get-ChildItem $progUss -Filter 'yellow-*.gif' -ErrorAction SilentlyContinue | ForEach-Object {
-    [void]$retired.Add($_.FullName)
-  }
-}
 [void]$retired.Add((Join-Path $hart 'cats\scripts\windows\install_cats_masts.ps1'))
 [void]$retired.Add((Join-Path $hart 'tools\jmri\patches'))
 foreach ($path in $retired) {
