@@ -84,11 +84,8 @@ CATS.
    DecoderPro loco with a speed profile is listed (the full HART roster).
    Dispatcher System hides locos that have no profile; `ensure_dispatcher_roster_profiles.py`
    writes the same synthetic 10-step / 400 mm/s profile 2091 already had.
-4. A neighbor block highlights. Answer **which way the train is facing** —
-   toward that highlight, or the other way. That is polarity, not the route.
-   Stock Dispatcher System may invert that answer ([JMRI#15407](https://github.com/JMRI/JMRI/issues/15407)).
-   If the loco runs the wrong way, use **Modify Dispatcher System → Change Dir**.
-   Release WiThrottle before dispatch. Do not “fix facing” by editing mast slots.
+4. A neighbor block highlights. Answer **which way the train is facing**:
+   toward that highlight, or the other way.
 5. Accept length and speed factor if they look right.
 
 The station label on **HART Railroad** should show the train name. If you lift the

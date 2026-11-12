@@ -64,15 +64,6 @@ McKees Rocks is its own JMRI block but uses the same occupancy sensor as OS Swit
 
 This is the pattern the South Yard throats use. Stage 1 will ask **same sensor?** for each throat — answer **Yes**.
 
----
-
-## Facing direction is stock — overlay removed 2026-09-01
-
-Logix **IX:DSLX:1C1** (**Run Dispatcher**) runs stock `program:jython/DispatcherSystem/Startup.py`. The HART facing overlay (`hart_dispatcher_startup.py` / `patch_dispatcher_facing.py`) is gone; it did not fix polarity.
-
-Stock `MoveTrain.set_train_direction` stores the opposite of the facing button on purpose, and `set_direction` swaps it again on leaving. [JMRI#15407](https://github.com/JMRI/JMRI/issues/15407) was closed 2026-09-01 because it was working here, and nothing is pending. If a through-station loco runs the wrong way, use **Modify Dispatcher System → Change Dir** (PDF “Change the Direction of the Train”). Release WiThrottle before dispatch. Do not re-add an overlay, and do not change mast slots for this.
-
-
 ## CreateTransits / Jython landmines
 
 - Do **not** `from __future__ import print_function` in `preference:jython/` scripts. JMRI’s shared Jython engine keeps that compiler flag. Stock `DispatcherSystem/Startup.py` still has Python-2 `print "closed Option"` (line 41); clicking **Run Dispatcher System** then SyntaxErrors.
