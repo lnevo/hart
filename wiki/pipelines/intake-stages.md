@@ -1,5 +1,7 @@
 # Intake stages
 
+> **Next intake: convert to the car-cards plugin first.** Run stage 1 (photos, review, photo check) and the card printing in stage 5 with the public car-cards plugin (`external/model-railroad-skills/plugins/car-cards`) instead of `card_pipeline`, then feed its approved cars and locos into stages 2 to 4. Decision: [ADR-018 amendment 2026-11-12](../decisions/ADR-018-staged-intake-workflow.md#amendment-2026-11-12). The steps below describe the old pipeline until that conversion is done.
+
 Cars and locomotives go in through six stages. Nothing moves to the next stage until the owner approves the one before. Decision: [ADR-018](../decisions/ADR-018-staged-intake-workflow.md). Car commands: [car-workflow.md](car-workflow.md).
 
 Each stage ends with a review sheet and an entry in the batch manifest (`ops/intake/<date>/manifest.csv`, committed).
