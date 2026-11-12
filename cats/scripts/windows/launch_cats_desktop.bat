@@ -1,15 +1,13 @@
 @echo off
 setlocal EnableExtensions
 REM CATS Digicon fast launcher - accepts panel path as %1
-REM launcher_version=20261111_0200
+REM launcher_version=20261111_0300
 
 REM Prefer caller-supplied panel (CTC / ABS wrappers pass this).
-if not "%~1"=="" (
-  set PANEL=%~1
-) else (
-  set PANEL=%USERPROFILE%\JMRI_UserFiles\cats\panels\HART_CTC.xml
-  if not exist "%PANEL%" set PANEL=%~dp0..\panels\HART_CTC.xml
-)
+REM Kept outside a parenthesised block so %PANEL% is read after it is set.
+set PANEL=%~1
+if "%PANEL%"=="" set PANEL=%USERPROFILE%\JMRI_UserFiles\cats\panels\HART_CTC.xml
+if not exist "%PANEL%" if "%~1"=="" set PANEL=%~dp0..\panels\HART_CTC.xml
 
 REM Program Files JMRI first (not %%USERPROFILE%%\JMRI prefs folder)
 set JMRI_HOME=
@@ -18,20 +16,18 @@ if "%JMRI_HOME%"=="" if exist "C:\Program Files (x86)\JMRI\LaunchJMRI.exe" set J
 if "%JMRI_HOME%"=="" if exist "C:\JMRI\LaunchJMRI.exe" set JMRI_HOME=C:\JMRI
 if "%JMRI_HOME%"=="" if exist "%USERPROFILE%\JMRI\LaunchJMRI.exe" set JMRI_HOME=%USERPROFILE%\JMRI
 if "%JMRI_HOME%"=="" (
-  echo JMRI not found. Install JMRI and CATS 3.2, then deploy with sync_hart_package.sh --win.
+  echo JMRI not found. Install JMRI 5.16 first.
   pause & exit /b 1
 )
 
-if not exist "%JMRI_HOME%\cats.jar" (
-  if exist "%USERPROFILE%\JMRI\cats.jar" copy /Y "%USERPROFILE%\JMRI\cats.jar" "%JMRI_HOME%\cats.jar" >nul
-)
-if not exist "%JMRI_HOME%\cats.jar" (
-  echo cats.jar missing in "%JMRI_HOME%". Install JMRI and CATS 3.2, then deploy with sync_hart_package.sh --win.
+REM CATS needs cats.jar and crandic.gif in JMRI_HOME (crandic.gif missing = NPE in Apps.statusPanel).
+REM Both come from the CATS 3.2 zip; copying them into Program Files needs an administrator prompt.
+for %%F in (cats.jar crandic.gif) do if not exist "%JMRI_HOME%\%%F" (
+  echo %%F missing in "%JMRI_HOME%". Copy it there from the CATS 3.2 zip as administrator.
   pause & exit /b 1
 )
 
-REM CATS requires crandic.gif next to JMRI (NPE in Apps.statusPanel if missing).
-REM The stock CATS install puts it in JMRI_HOME; copy it to the settings folders from there.
+REM Also keep a copy in the settings folders, as earlier launchers did.
 if exist "%JMRI_HOME%\crandic.gif" (
   if not exist "%USERPROFILE%\JMRI\crandic.gif" (
     mkdir "%USERPROFILE%\JMRI" 2>nul
