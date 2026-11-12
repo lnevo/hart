@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 REM CATS Digicon fast launcher - accepts panel path as %1
-REM launcher_version=20261111_0000
+REM launcher_version=20261111_0100
 
 REM Prefer caller-supplied panel (CTC / ABS wrappers pass this).
 if not "%~1"=="" (
