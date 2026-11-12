@@ -29,9 +29,9 @@ What it does:
 - Operations files are overwritten on every host (`HART_OVERWRITE_OPS=1` is the default; `0` restores the guards).
 - Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES` and `HART_WIN_USERFILES`. The defaults are in the script.
 
-Windows bridge caveat:
+Hosts and failures:
 
-- The Pi reaches the network through the Windows machine. Windows has had repeated hard power-offs.
+- Since 2026-11-11 the Pi (`RPi-JMRI.local`, 10.0.0.150, ssh alias `pi`) is on the house network directly, no longer through Windows. Windows is `minipc-e5h6x.local` (ssh port 2222) and has had repeated hard power-offs.
 - With `--pi --win`, a Pi failure (for example "Connection refused") exits before the Windows step runs.
 - If the Pi step fails, run `--win` on its own. Run `--pi` again once the Pi accepts ssh on port 22.
 - Check afterwards with a sha256 of `tables.xml` on each host.
