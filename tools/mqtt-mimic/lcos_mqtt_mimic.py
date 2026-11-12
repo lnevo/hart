@@ -40,6 +40,12 @@ NAME_MAP = ROOT / "jmri" / "layouts" / "hart" / "data" / "public_name_map.csv"
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 HEAD_CSV = ROOT / "docs/wiring/signals/signal_head_plan.csv"
 HTML = Path(__file__).with_suffix(".html")
+# Style and render code shared with the JMRI-hosted page; served here at /<name>.
+SHARED_WEB = ROOT / "jmri" / "resources" / "jmri-web" / "mimic"
+SHARED_FILES = {
+    "/mimic.css": "text/css; charset=utf-8",
+    "/mimic_view.js": "text/javascript; charset=utf-8",
+}
 
 sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
 from hart_hosts import mqtt_broker, mqtt_port  # noqa: E402
@@ -492,6 +498,15 @@ def make_handler(layout: dict, bus: Bus, html: bytes):
                 self.end_headers()
                 self.wfile.write(html)
                 return
+            if path in SHARED_FILES:
+                body = (SHARED_WEB / path.lstrip("/")).read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", SHARED_FILES[path])
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(body)
+                return
             if path == "/api/layout":
                 self._json(200, layout)
                 return
@@ -554,8 +569,9 @@ def main() -> int:
     ap.add_argument("--bind", default="127.0.0.1")
     args = ap.parse_args()
 
-    if not HTML.is_file():
-        raise SystemExit(f"missing UI {HTML}")
+    for page in (HTML, *(SHARED_WEB / name.lstrip("/") for name in SHARED_FILES)):
+        if not page.is_file():
+            raise SystemExit(f"missing UI {page}")
 
     host = pick_mqtt_host(args.mqtt_host)
     layout = load_layout()
