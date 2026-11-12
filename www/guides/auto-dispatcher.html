@@ -59,7 +59,7 @@
 <li>Click <strong>Setup Train in Section</strong>.</li>
 <li>Choose <strong>1 train</strong> (or several if you are registering more than one).</li>
 <li>Pick the station block the engine is in, then the roster entry. Every DecoderPro loco with a speed profile is listed (the full HART roster). Dispatcher System hides locos that have no profile; <code>ensure_dispatcher_roster_profiles.py</code> writes the same synthetic 10-step / 400 mm/s profile 2091 already had.</li>
-<li>A neighbor block highlights. Answer <strong>which way the train is facing</strong> — toward that highlight, or the other way. That is polarity, not the route. Stock Dispatcher System used to invert that answer (see <code>DISPATCHER_LAYOUT_HOOPS.md</code>); HART’s overlay stores what you clicked and uses it on the <strong>first</strong> dispatch. If the loco still backs, release WiThrottle and re-register — do not “fix facing” by editing mast slots.</li>
+<li>A neighbor block highlights. Answer <strong>which way the train is facing</strong>: toward that highlight, or the other way.</li>
 <li>Accept length and speed factor if they look right.</li>
 </ol>
 
