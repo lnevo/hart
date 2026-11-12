@@ -8,7 +8,9 @@
 #   tools/hosts/pi_docker_static.sh --status   show what is installed
 #
 # Updating: change the versions, run again. Containers with restart policies
-# come back when dockerd restarts. Images and volumes are kept.
+# come back when dockerd restarts. Images and volumes are kept. Docker
+# publishes no checksum for the static tarball; it is downloaded and unpacked
+# before the running daemon is stopped.
 set -euo pipefail
 
 HOST="${PI_HOST:-pi}"
@@ -44,14 +46,17 @@ curl -fsSLo checksums.txt "https://github.com/docker/buildx/releases/download/${
 grep " \*\?buildx-${BUILDX_VERSION}.linux-arm64\$" checksums.txt | sed 's/ \*/  /' | sha256sum -c -
 tar -xzf docker.tgz
 
-# apt's 32-bit Docker, if present, goes first; its armhf images are no use.
-if dpkg -s docker-ce >/dev/null 2>&1 || dpkg -s containerd.io >/dev/null 2>&1; then
-  systemctl stop docker.socket docker containerd 2>/dev/null || true
-  DEBIAN_FRONTEND=noninteractive apt-get purge -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras >/dev/null || true
+systemctl stop docker.socket docker containerd 2>/dev/null || true
+# apt's 32-bit Docker (Docker's or Debian's packages), if present, goes first so
+# its binaries and units cannot shadow these. Images and volumes stay; armhf
+# images left by it can be removed with docker image prune -a.
+apt_pkgs=""
+for p in docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras docker.io docker-compose containerd runc; do
+  if dpkg -s "\$p" >/dev/null 2>&1; then apt_pkgs="\$apt_pkgs \$p"; fi
+done
+if [ -n "\$apt_pkgs" ]; then
+  DEBIAN_FRONTEND=noninteractive apt-get purge -y -qq \$apt_pkgs >/dev/null
   rm -f /etc/apt/sources.list.d/docker.list /etc/apt/keyrings/docker.asc
-  rm -rf /var/lib/docker /var/lib/containerd
-else
-  systemctl stop docker.socket docker containerd 2>/dev/null || true
 fi
 
 install -m 0755 docker/* /usr/local/bin/

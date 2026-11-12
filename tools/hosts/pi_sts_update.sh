@@ -28,6 +28,13 @@ fi
 echo "sts-docker  \$(git log --oneline -1)"
 echo "sts-plugins \$(git -C ../sts-plugins log --oneline -1)"
 docker ps --filter name=sts-docker --format '{{.Names}}  {{.Status}}'
+# The web container answers within a minute of a restart.
+code=000
+for _ in \$(seq 1 30); do
+  code=\$(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:8980/sts/ || true)
+  [ "\$code" = 200 ] && break
+  sleep 2
+done
+echo "STS http \$code"
+[ "\$code" = 200 ]
 EOF
-
-curl -s -m 10 -o /dev/null -w "STS http %{http_code}\n" "http://10.0.0.150:8980/sts/" || echo "STS not answering"

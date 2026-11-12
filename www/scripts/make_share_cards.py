@@ -37,7 +37,7 @@ REPO = PORTAL.parent
 SOURCES = Path(__file__).resolve().parent / "share-card-sources"
 W, H = 1200, 630
 MAC_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-STS_URL = "http://10.0.0.150:8980/sts/"
+STS_URL = "http://localhost:8980/sts/"  # the Mac working copy, never the live Pi
 PAPER = "linear-gradient(180deg,#edf2f5,var(--paper) 45%,var(--paper-2))"
 
 _site = ""  # http://127.0.0.1:<port>/ while serving()
