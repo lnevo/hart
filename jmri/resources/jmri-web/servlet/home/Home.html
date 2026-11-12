@@ -98,9 +98,9 @@
                         <h2>Utilities</h2>
                         <h4><a id="sts-link" href="http://localhost:8980/sts/" target="sts">STS</a></h4>
                         <script>
-                            // STS runs on the same host as this JMRI, on port 8980.
+                            // STS runs on the same host as this JMRI, on port 8980 (plain HTTP).
                             document.getElementById("sts-link").href =
-                                location.protocol + "//" + location.hostname + ":8980/sts/";
+                                "http://" + location.hostname + ":8980/sts/";
                         </script>
                         <p>Shipper-driven Traffic Simulator.</p>
 

@@ -2,7 +2,7 @@
 
 Shipit Transportation System: HART seed database, warm-start, operating sessions, and switch lists.
 
-**Status:** Live. Runtime: `external/sts-docker`. Data: `external/sts-docker-data`. Helpers: `external/sts-helpers`. JMRI Home.html links to `http://10.0.0.53:8980/sts/`.
+**Status:** Live. Runtime: `external/sts-docker`. Data: `external/sts-docker-data`. Helpers: `external/sts-helpers`. The JMRI Home.html STS link uses the host the page was opened from, on port 8980 (the Pi once STS moves there).
 
 ## Inputs
 
