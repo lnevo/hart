@@ -215,8 +215,8 @@
             <tr><td><code>track/state</code></td><td>JMRI to bridge</td><td>JMRI's own online status. An offline report sets off the crash check.</td></tr>
             <tr><td><code>track/bridge/status</code></td><td>Bridge to all</td><td>Whether the bridge program is <code>online</code> or <code>offline</code>. Retained.</td></tr>
             <tr><td><code>track/bridge/cmd</code></td><td>JMRI to bridge</td><td>Bridge requests. Clicking the LCOS lamp sends <code>RESUBSCRIBE</code> here.</td></tr>
-            <tr><td><code>track/sensor/&lt;n&gt;</code></td><td>Field to JMRI</td><td>Occupancy and feedback sensors. One reserved sensor reports the health of the LCOS link and drives the LCOS lamp.</td></tr>
-            <tr><td><code>track/turnout/&lt;n&gt;</code></td><td>Field to JMRI</td><td>The reported position of a switch.</td></tr>
+            <tr><td><code>track/sensor/&lt;n&gt;</code></td><td>Field to JMRI</td><td>Occupancy and feedback sensors. One reserved sensor reports the health of the LCOS link and drives the LCOS lamp. For testing, the LCOS mimic page can publish here too (see the scripts below).</td></tr>
+            <tr><td><code>track/turnout/&lt;n&gt;</code></td><td>Field to JMRI</td><td>The reported position of a switch. The LCOS mimic page can publish test values here too.</td></tr>
             <tr><td><code>track/cmd/turnout/&lt;n&gt;</code></td><td>JMRI to field</td><td>A command to move a switch. Keeping commands on their own topic is what lets the lamps and scripts read state without ever moving anything.</td></tr>
           </tbody>
         </table>
@@ -263,7 +263,7 @@
 
       <h2 id="scripts">The scripts</h2>
       <p>
-        Four Jython scripts do all of this inside JMRI. They are the heart of what we added:
+        Six Jython scripts run inside JMRI. The first four are the heart of what we added; the last two connect the traffic simulator and the LCOS mimic page:
       </p>
       <div class="table-wrap">
         <table class="roster jm-lamps">
@@ -273,12 +273,14 @@
             <tr><td><code>panel_status.py</code></td><td>Start Up</td><td>The panel's helper. It wires up the four lamps and their clicks, paints the yard ladder triangles from feedback, keeps Routes disabled while painting, and lifts block labels that the Dispatcher's Stage 1 Store buries.</td></tr>
             <tr><td><code>hide_cats_desk_windows.py</code></td><td>When the tables load (see <a href="tables-file.html#logixng">The LogixNG</a>)</td><td>Tidies the screen under CATS. It hides the HART Railroad panel and adds Help and Quit buttons to the button strip at the bottom of the CTC Panel. In plain PanelPro it does nothing.</td></tr>
             <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up, on the main layout host only</td><td>The remote-run hook, described below.</td></tr>
+            <tr><td><code>sts_car_sync.py</code></td><td>Start Up, on the main layout host and the development Mac</td><td>Copies car positions, loads and final destinations from the traffic simulator (STS) into Operations Pro. The stock JSON server can move a car but cannot set its load or destination, so STS writes a batch into a Memory and this script applies it. It never touches turnouts, signals or MQTT.</td></tr>
+            <tr><td><code>mimic_relay.py</code></td><td>Start Up, on the main layout host only</td><td>Publishes fake LCOS feedback for the mimic page, a test tool served by JMRI's web server. The page writes a request into the Memory <code>IMHART_MIMIC</code> and the script publishes it, retained, through JMRI's own MQTT connection. It only sends occupancy and switch position reports, never a switch command, so it cannot move a motor.</td></tr>
           </tbody>
         </table>
       </div>
       <p>
-        Deploying copies all four into the <code>jython</code> folder of the JMRI user files and points the profile's existing Start Up entries
-        at them, and JMRI finds them through its own <code>preference:jython/</code> path. Many other
+        Deploying copies all six into the <code>jython</code> folder of the JMRI user files and points the profile's Start Up entries
+        at them, adding the entries for the last two, and JMRI finds them through its own <code>preference:jython/</code> path. Many other
         scripts exist, but they run offline to build the tables, not inside JMRI.
       </p>
       <p>
@@ -307,14 +309,15 @@
           <thead><tr><th>In the profile</th><th>What it is</th></tr></thead>
           <tbody>
             <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the lamps. PanelPro loads it at startup. <a href="tables-file.html">More on the tables file</a>.</td></tr>
-            <tr><td><code>jython/</code></td><td>The four scripts above.</td></tr>
-            <tr><td>Start Up entries</td><td>Kept in the profile, so JMRI loads the tables and runs the scripts at launch. Deploy repoints the script entries; it does not add them.</td></tr>
+            <tr><td><code>jython/</code></td><td>The six scripts above.</td></tr>
+            <tr><td>Start Up entries</td><td>Kept in the profile, so JMRI loads the tables and runs the scripts at launch. Deploy repoints the script entries and adds the two for the traffic simulator and the mimic.</td></tr>
             <tr><td><code>resources/buttons/</code></td><td>The two 16-pixel triangle lamps for the yard ladders.</td></tr>
-            <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels. The amber one is simply JMRI's own.</td></tr>
+            <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels: our yellow pair. The amber one is simply JMRI's own.</td></tr>
             <tr><td><code>resources/misc/hart_panel_bg.jpg</code></td><td>The backdrop of the HART Railroad panel, 1900 by 600 pixels. It sits behind the track as a label on the panel, at the top left.</td></tr>
             <tr><td><code>ctc/icons/</code> and <code>ctc/GUIObjects.xml</code></td><td>The USS CTC machine: 70 generated track icons and the panel layout, as custom cells for the stock CTC tool.</td></tr>
             <tr><td><code>dispatcher/traininfo/</code> and <code>dispatcheroptions.xml</code></td><td>Dispatcher data, not code: the options and the traininfo files that stock Stage 1 writes.</td></tr>
-            <tr><td><code>web/servlet/home/Home.html</code></td><td>The web home page: a stock copy with one link added, to the traffic simulator. JMRI serves this copy before its own.</td></tr>
+            <tr><td><code>web/servlet/home/Home.html</code></td><td>The web home page: a copy of JMRI 5.16's stock page with two links added, to the traffic simulator and the LCOS mimic. JMRI serves this copy before its own, so it is brought up to the new stock page at each JMRI upgrade.</td></tr>
+            <tr><td><code>web/mimic/</code></td><td>The LCOS mimic page, on the main layout host only. It reads the layout through JMRI's stock JSON WebSocket and fakes field feedback through <code>mimic_relay.py</code>, for testing without the field electronics.</td></tr>
           </tbody>
         </table>
       </div>
