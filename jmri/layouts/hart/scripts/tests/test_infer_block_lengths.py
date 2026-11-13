@@ -52,5 +52,21 @@ class RecordedRuns(unittest.TestCase):
         self.assertTrue(all(v[1] < 50 for v in out.values()), out)
 
 
+    def test_pinned_puts_turnouts_on_the_plan_and_keeps_the_loop(self):
+        rows = list(csv.DictReader(open(m.EVENTS, newline="")))
+        out = m.pinned(m.infer(rows))
+        self.assertAlmostEqual(sum(v[0] for v in out.values()), m.PLAN_LOOP_MM, delta=1)
+        # the route starts where Switch 5's section starts, which is before Switch 5's points
+        start = m.PLAN_TURNOUT_MM["Switch 5"] - out["Switch 5"][0] / 2
+        pos = start
+        for s in m.ROUTE_FROM_SW5:
+            if s in m.PLAN_TURNOUT_MM:
+                self.assertAlmostEqual(pos + out[s][0] / 2, m.PLAN_TURNOUT_MM[s], delta=10, msg=s)
+            pos += out[s][0]
+        # the barn crossover: Switch 7b's section centre about 4.15 m from Switch 5's points
+        c7 = start + sum(out[s][0] for s in m.ROUTE_FROM_SW5[:2]) + out["Switch 7b"][0] / 2
+        self.assertAlmostEqual(c7, 4146, delta=30)
+
+
 if __name__ == "__main__":
     unittest.main()
