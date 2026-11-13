@@ -86,7 +86,7 @@ EH_EXIT_MASTS = [
 
 # Track Brick-Plane (Block 4-6) had no mast at either end, so it sat inside the
 # sections 2L→8RA/8RB and 6LA/6LB→24RA: runs into Brick-Plane went past it and
-# runs to East Main Ext / Main West reused Brick-Plane's transits (2026-11-10).
+# runs to East Ext / Main West reused Brick-Plane's transits (2026-11-10).
 # Hidden virtuals on the Brick-Plane legs of Switch 1 and Switch 5 make it a
 # station with a mast at each end. Name: signal = switch + 1, opposite letter.
 BRICK_PLANE_MASTS = [

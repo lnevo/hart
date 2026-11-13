@@ -64,7 +64,7 @@ _MOSQUITTO = (
 
 SWITCH_TIPS = {
     1: "THROWN = Switch 5 / Plane (BOTTOM); CLOSED = LEFT",
-    5: "THROWN = Track Scale (RIGHT); CLOSED = Track East Main Ext (BOTTOM)",
+    5: "THROWN = Track Scale (RIGHT); CLOSED = Track East Ext (BOTTOM)",
     33: "THROWN = Track Barn (BOTTOM); CLOSED = Track 31 / Track East Lead (LEFT)",
     37: "THROWN = Track K-2 (BOTTOM); CLOSED = Track McKeesport (RIGHT)",
     39: "THROWN = Track K-1 (TOP); CLOSED = Track McKees Rocks (RIGHT)",

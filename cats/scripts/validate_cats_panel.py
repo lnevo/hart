@@ -22,7 +22,7 @@ GATE1_BLOCKS = {
     "OS Switch 3",
     "Track Brick-Plane",
     "OS Switch 5",
-    "Track East Main Ext",
+    "Track East Ext",
 }
 GATE1_BLOCKS_TRACK = {
     "Track Main West",
@@ -30,7 +30,7 @@ GATE1_BLOCKS_TRACK = {
     "Track 3",
     "Track Brick-Plane",
     "Track 5",
-    "Track East Main Ext",
+    "Track East Ext",
 }
 GATE1_BLOCKS_LEGACY = {
     "Main West",
@@ -38,7 +38,7 @@ GATE1_BLOCKS_LEGACY = {
     "OS 101",
     "Brick-Plane",
     "OS 102",
-    "East Main Ext",
+    "East Ext",
 }
 
 # Gate 2 SoR.

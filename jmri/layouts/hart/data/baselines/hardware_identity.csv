@@ -42,8 +42,8 @@ block,IB:AUTO:0045,OS Switch 19|BS Switch 19
 block,IB:AUTO:0046,OS Switch 35a|BS Switch 35a
 block,IB:AUTO:0047,OS Switch 35b|BS Switch 35b
 block,IB:AUTO:0048,Track K-2|BS K-2
-block,IB:AUTO:0050,Track West Main Ext|BS West Main Ext
-block,IB:AUTO:0051,Track East Main Ext|BS East Main Ext
+block,IB:AUTO:0050,Track West Ext|BS West Ext
+block,IB:AUTO:0051,Track East Ext|BS East Ext
 block,IB:AUTO:0052,Track S-1 West|BS S-1
 block,IB:AUTO:0053,Track S-1 East|BS S-1
 block,IB:AUTO:0054,Track S-2 West|BS S-2

@@ -474,7 +474,7 @@ command turnouts):
 | 1 | thrown | | | |
 
 (Loop 1 is 5 closed, 7 closed, 33 thrown, 35 closed, 37 thrown, 39 thrown, 23 closed, 1 thrown.)
-The guard for loop 2 includes BS Main East, BS East Main Ext and BS Switch 7b, which loop 1 runs
+The guard for loop 2 includes BS Main East, BS East Ext and BS Switch 7b, which loop 1 runs
 over.
 
 The quick way is the pass job above (two passes at steps 24 and 48). The lap survey below

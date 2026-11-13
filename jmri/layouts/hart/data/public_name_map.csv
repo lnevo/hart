@@ -93,7 +93,7 @@ block,Track EH-1,Track EH-1,Engine House,Block 13-7,Engine House,
 block,Track EH-2,Track EH-2,Engine House,Block 13-6,Engine House,
 block,Track EH-3,Track EH-3,Engine House,Block 13-5,Engine House,
 block,Track East Lead,Track East Lead,East End,Block 1-7,East End,
-block,Track East Main Ext,Track East Main Ext,Plane,Block 4-7,Plane,
+block,Track East Ext,Track East Ext,Plane,Block 4-7,Plane,
 block,Track McKees Rocks,Track McKees Rocks,Princess,Block 1-4,Princess,
 block,Track McKeesport,Track McKeesport,Princess,Block 1-3,Princess,
 block,Track Main East,Track Main East,,Block 2-3,,
@@ -109,7 +109,7 @@ block,Track Scale,Track Scale,Plane,Block 4-8,Plane,
 block,Track Scale East,Track Scale East,Plane,Block 4-8,,hidden Scale east throat; same occupancy as Track Scale (Block 4-8)
 block,Track W-1,Track W-1,Brick,Block 4-4,Brick,
 block,Track W-2,Track W-2,Brick,Block 4-3,Brick,
-block,Track West Main Ext,Track West Main Ext,East End,Block 1-8,East End,
+block,Track West Ext,Track West Ext,East End,Block 1-8,East End,
 block,OS 1,OS Switch 1,Brick,Block 4-2,Brick,historical alias
 block,OS 100,OS Switch 1,Brick,Block 4-2,Brick,historical alias; CP in comment
 block,OS 100 (Brick),OS Switch 1,Brick,Block 4-2,Brick,historical alias; CP in comment
@@ -228,8 +228,8 @@ block,Yard T11,Track EH-3,Engine House,Block 13-5,Engine House,historical alias;
 block,East Lead,Track East Lead,East End,Block 1-7,East End,historical alias; east of 110/112 toward Princess
 block,OS East Lead,Track East Lead,East End,Block 1-7,East End,historical alias
 block,South Yard East,Track East Lead,East End,Block 1-7,East End,historical alias; was South Yard East; dest East Lead
-block,East Main Ext,Track East Main Ext,Plane,Block 4-7,Plane,historical alias; keep
-block,OS East Main Ext,Track East Main Ext,Plane,Block 4-7,Plane,historical alias
+block,East Main Ext,Track East Ext,Plane,Block 4-7,Plane,historical alias; keep
+block,OS East Main Ext,Track East Ext,Plane,Block 4-7,Plane,historical alias
 block,K-1,Track McKees Rocks,Princess,Block 1-4,Princess,historical alias; keep; same sensor as OS 115
 block,OS K-1,Track McKees Rocks,Princess,Block 1-4,Princess,historical alias
 block,K-2,Track McKeesport,Princess,Block 1-3,Princess,historical alias; keep; same sensor as OS 114
@@ -282,15 +282,15 @@ block,West Yard 1,Track W-1,Brick,Block 4-4,Brick,historical alias; yard body; a
 block,OS W-2,Track W-2,Brick,Block 4-3,Brick,historical alias
 block,W-2,Track W-2,Brick,Block 4-3,Brick,historical alias; yard body; access Switch 3 only; plate W-2
 block,West Yard 2,Track W-2,Brick,Block 4-3,Brick,historical alias; yard body; access Switch 3 only; plate W-2
-block,OS West Main Ext,Track West Main Ext,East End,Block 1-8,East End,historical alias
-block,West Main Ext,Track West Main Ext,East End,Block 1-8,East End,historical alias; keep
+block,OS West Main Ext,Track West Ext,East End,Block 1-8,East End,historical alias
+block,West Main Ext,Track West Ext,East End,Block 1-8,East End,historical alias; keep
 occupancy,BS Barn,BS Barn,Barn,M2S1300,Node: 13 Block: 1,
 occupancy,BS Brick-Plane,BS Brick-Plane,Brick,M2S405,Node: 4 Block: 6,
 occupancy,BS EH-1,BS EH-1,,M2S1306,Node: 13 Block: 7,
 occupancy,BS EH-2,BS EH-2,,M2S1305,Node: 13 Block: 6,
 occupancy,BS EH-3,BS EH-3,,M2S1304,Node: 13 Block: 5,
 occupancy,BS East Lead,BS East Lead,East End,M2S106,Node: 1 Block: 7,
-occupancy,BS East Main Ext,BS East Main Ext,Plane,M2S406,Node: 4 Block: 7,
+occupancy,BS East Ext,BS East Ext,Plane,M2S406,Node: 4 Block: 7,
 occupancy,BS Main East,BS Main East,,M2S202,Node: 2 Block: 3,
 occupancy,BS Main West,BS Main West,,M2S200,Node: 2 Block: 1,
 occupancy,BS K-1,BS K-1,Princess,M2S100,Node: 1 Block: 1,
@@ -326,7 +326,7 @@ occupancy,BS Switch 7b,BS Switch 7b,Barn,M2S1303,Node: 13 Block: 4,
 occupancy,BS Switch 9,BS Switch 9,,M2S1307,Node: 13 Block: 8,
 occupancy,BS W-1,BS W-1,Brick,M2S403,Node: 4 Block: 4,
 occupancy,BS W-2,BS W-2,Brick,M2S402,Node: 4 Block: 3,
-occupancy,BS West Main Ext,BS West Main Ext,East End,M2S107,Node: 1 Block: 8,
+occupancy,BS West Ext,BS West Ext,East End,M2S107,Node: 1 Block: 8,
 occupancy,unused Block 2-2,unused Block 2-2,,M2S201,Node: 2 Block: 2,
 occupancy,unused Block 3-8,unused Block 3-8,,M2S307,Node: 3 Block: 8,
 occupancy,Block 13-1,BS Barn,Barn,M2S1300,Node: 13 Block: 1,historical alias; canvas BS userName; comment stays Block 13-1
@@ -335,7 +335,7 @@ occupancy,Block 13-7,BS EH-1,,M2S1306,Node: 13 Block: 7,historical alias; canvas
 occupancy,Block 13-6,BS EH-2,,M2S1305,Node: 13 Block: 6,historical alias; canvas BS userName; comment stays Block 13-6
 occupancy,Block 13-5,BS EH-3,,M2S1304,Node: 13 Block: 5,historical alias; canvas BS userName; comment stays Block 13-5
 occupancy,Block 1-7,BS East Lead,East End,M2S106,Node: 1 Block: 7,historical alias; canvas BS userName; comment stays Block 1-7
-occupancy,Block 4-7,BS East Main Ext,Plane,M2S406,Node: 4 Block: 7,historical alias; canvas BS userName; comment stays Block 4-7
+occupancy,Block 4-7,BS East Ext,Plane,M2S406,Node: 4 Block: 7,historical alias; canvas BS userName; comment stays Block 4-7
 occupancy,Block 2-3,BS Main East,,M2S202,Node: 2 Block: 3,historical alias; canvas BS userName; comment stays Block 2-3
 occupancy,Block 2-1,BS Main West,,M2S200,Node: 2 Block: 1,historical alias; canvas BS userName; comment stays Block 2-1
 occupancy,Block 1-1,BS K-1,Princess,M2S100,Node: 1 Block: 1,historical alias; canvas BS userName; comment stays Block 1-1
@@ -371,7 +371,7 @@ occupancy,Block 13-4,BS Switch 7b,Barn,M2S1303,Node: 13 Block: 4,historical alia
 occupancy,Block 13-8,BS Switch 9,,M2S1307,Node: 13 Block: 8,historical alias; canvas BS userName; comment stays Block 13-8
 occupancy,Block 4-4,BS W-1,Brick,M2S403,Node: 4 Block: 4,historical alias; canvas BS userName; comment stays Block 4-4
 occupancy,Block 4-3,BS W-2,Brick,M2S402,Node: 4 Block: 3,historical alias; canvas BS userName; comment stays Block 4-3
-occupancy,Block 1-8,BS West Main Ext,East End,M2S107,Node: 1 Block: 8,historical alias; canvas BS userName; comment stays Block 1-8
+occupancy,Block 1-8,BS West Ext,East End,M2S107,Node: 1 Block: 8,historical alias; canvas BS userName; comment stays Block 1-8
 occupancy,Block 2-2,BS unused,,M2S201,,historical alias; canvas BS userName; comment stays Block 2-2
 occupancy,Block 3-8,BS unused,,M2S307,,historical alias; canvas BS userName; comment stays Block 3-8
 mast,Mast 10LA,Mast 10LA,Engine House,virtual $1006,Engine House | Switch 9,

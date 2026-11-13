@@ -149,7 +149,7 @@
     "dcc": "",
     "mqtt": "107",
     "systemName": "M2S107",
-    "userName": "BS West Main Ext",
+    "userName": "BS West Ext",
     "comment": "Node: 1 Block: 8"
   },
   {
@@ -158,7 +158,7 @@
     "dcc": "",
     "mqtt": "107",
     "systemName": "IB:AUTO:0050",
-    "userName": "Track West Main Ext",
+    "userName": "Track West Ext",
     "comment": "East End"
   },
   {
@@ -869,7 +869,7 @@
     "dcc": "",
     "mqtt": "406",
     "systemName": "M2S406",
-    "userName": "BS East Main Ext",
+    "userName": "BS East Ext",
     "comment": "Node: 4 Block: 7"
   },
   {
@@ -878,7 +878,7 @@
     "dcc": "",
     "mqtt": "406",
     "systemName": "IB:AUTO:0051",
-    "userName": "Track East Main Ext",
+    "userName": "Track East Ext",
     "comment": "Plane"
   },
   {

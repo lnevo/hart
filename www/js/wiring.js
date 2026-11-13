@@ -33,7 +33,7 @@
     return String(s || "").toLowerCase();
   }
 
-  // The search is one phrase ("Switch 3", "Yard T1", "West Main Ext"); "sw 35" and
+  // The search is one phrase ("Switch 3", "Yard T1", "West Ext"); "sw 35" and
   // "switch35" both mean Switch 35.
   function terms(q) {
     var t = norm(q)

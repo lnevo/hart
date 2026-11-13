@@ -32,15 +32,15 @@ MM_PER_INCH = 25.4
 
 # The test routes: (block sensor, block_lengths.csv user_name) in running order. The pairing is
 # explicit because the CSV names tracks and switches, not sensors. loop1 is the 2026-11-08 loop,
-# east from East Main Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5.
+# east from East Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5.
 # A job, its log (the CFG line) and the analysis all name the route.
 LOOP = [
-    ("BS East Main Ext", "Track East Main Ext"), ("BS Switch 7b", "OS Switch 7b"),
+    ("BS East Ext", "Track East Ext"), ("BS Switch 7b", "OS Switch 7b"),
     ("BS Main East", "Track Main East"), ("BS Switch 33", "OS Switch 33"),
     ("BS East Lead", "Track East Lead"), ("BS Switch 35a", "OS Switch 35a"),
     ("BS Switch 37 / BS McKeesport", "OS Switch 37"), ("BS K-2", "Track K-2"),
     ("BS K-1", "Track K-1"), ("BS Switch 39 / BS McKees Rocks", "OS Switch 39"),
-    ("BS Switch 35b", "OS Switch 35b"), ("BS West Main Ext", "Track West Main Ext"),
+    ("BS Switch 35b", "OS Switch 35b"), ("BS West Ext", "Track West Ext"),
     ("BS Switch 23a", "OS Switch 23a"), ("BS Main West", "Track Main West"),
     ("BS Switch 1", "OS Switch 1"), ("BS Brick-Plane", "Track Brick-Plane"),
     ("BS Switch 5", "OS Switch 5"),
@@ -53,7 +53,7 @@ LOOP2 = [
     ("BS Switch 35a", "OS Switch 35a"), ("BS Switch 37 / BS McKeesport", "OS Switch 37"),
     ("BS K-2", "Track K-2"), ("BS K-1", "Track K-1"),
     ("BS Switch 39 / BS McKees Rocks", "OS Switch 39"), ("BS Switch 35b", "OS Switch 35b"),
-    ("BS West Main Ext", "Track West Main Ext"), ("BS Switch 23a", "OS Switch 23a"),
+    ("BS West Ext", "Track West Ext"), ("BS Switch 23a", "OS Switch 23a"),
     ("BS Main West", "Track Main West"), ("BS Switch 1", "OS Switch 1"),
     ("BS Brick-Plane", "Track Brick-Plane"),
 ]

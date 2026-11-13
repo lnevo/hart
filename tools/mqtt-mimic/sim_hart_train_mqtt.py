@@ -116,7 +116,7 @@ ROUTES: dict[str, Route] = {
             Step("OS Switch 1", "R1 · Brick", "Blue OS Switch 1", ""),
             Step("Track Main West Brick–Plane", "R1 Brick→Plane", "Track Main West Brick–Plane", ""),
             Step("OS Switch 5", "R1 · Plane", "Blue OS Switch 5", ""),
-            Step("Track East Main Ext", "R1 east of Plane", "Track East Main Ext", ""),
+            Step("Track East Ext", "R1 east of Plane", "Track East Ext", ""),
             Step(
                 "OS Switch 7b (Track Barn)",
                 "R1 · Track Barn/117b",
@@ -144,20 +144,20 @@ ROUTES: dict[str, Route] = {
                 "Still on R1; next step transfers to R3 (Chubb decks are separate)",
             ),
             Step(
-                "Track West Main Ext",
+                "Track West Ext",
                 "R3 far left",
-                "Track West Main Ext",
+                "Track West Ext",
                 "CTC deck change R1→R3",
                 deck_transfer=True,
             ),
-            Step("OS Switch 35b", "R3 Princess", "Blue OS Switch 35b · Sw 113", "JMRI: Track East Lead↔113b↔Track West Main Ext"),
+            Step("OS Switch 35b", "R3 Princess", "Blue OS Switch 35b · Sw 113", "JMRI: Track East Lead↔113b↔Track West Ext"),
             Step("OS Switch 35a", "R3", "Blue OS Switch 35a", ""),
             Step("OS Switch 37", "R3 → port", "Blue OS Switch 37 · Sw 114 THROWN", "Into Track K-2 loop"),
             Step("Track K-2", "R3 Track K-2", "Track K-2", "Reverse here"),
             Step("OS Switch 37", "R3 ← port", "Blue OS Switch 37", "Backing out"),
             Step("OS Switch 35a", "R3", "Blue OS Switch 35a", ""),
             Step("OS Switch 35b", "R3", "Blue OS Switch 35b", ""),
-            Step("Track West Main Ext", "R3 far left", "Track West Main Ext", ""),
+            Step("Track West Ext", "R3 far left", "Track West Ext", ""),
             Step(
                 "Track East Lead",
                 "R1 Track East Lead",
@@ -182,7 +182,7 @@ ROUTES: dict[str, Route] = {
                 "Blue OS Switch 7b (bottom C/D)",
                 "",
             ),
-            Step("Track East Main Ext", "R1", "Track East Main Ext", ""),
+            Step("Track East Ext", "R1", "Track East Ext", ""),
             Step("OS Switch 5", "R1 · Plane", "Blue OS Switch 5", ""),
             Step("Track Main West Brick–Plane", "R1", "Track Main West Brick–Plane", ""),
             Step("OS Switch 1", "R1 · Brick", "Blue OS Switch 1", ""),
@@ -257,7 +257,7 @@ ROUTES: dict[str, Route] = {
             Step("OS Switch 23a", "R2 east", "Blue OS Switch 23a", "East end of yard deck"),
         ],
     ),
-    # Neville-style: top spine via Track West Main Ext / Princess, home via Track Main East·117·Plane·Brick
+    # Neville-style: top spine via Track West Ext / Princess, home via Track Main East·117·Plane·Brick
     "neville": Route(
         key="neville",
         title="Route Neville — Track Main West → W Main Ext → Princess → Track East Lead → Track Main East → 117 → Plane → Brick",
@@ -276,9 +276,9 @@ ROUTES: dict[str, Route] = {
                 deck_transfer=True,
             ),
             Step(
-                "Track West Main Ext",
+                "Track West Ext",
                 "R3 far left",
-                "Track West Main Ext (toward Princess)",
+                "Track West Ext (toward Princess)",
                 "Onto Princess approach",
                 deck_transfer=True,
             ),
@@ -304,7 +304,7 @@ ROUTES: dict[str, Route] = {
                 "Blue OS Switch 7b (bottom C/D) · Track Barn",
                 "Track Main East↔EME = 117 bottom (M2S1303), not top 1302",
             ),
-            Step("Track East Main Ext", "R1", "Track East Main Ext", ""),
+            Step("Track East Ext", "R1", "Track East Ext", ""),
             Step("OS Switch 5", "R1 · Plane", "Blue OS Switch 5", "Through Plane"),
             Step("Track Main West Brick–Plane", "R1 Brick↔Plane", "Track Main West Brick–Plane", ""),
             Step("OS Switch 1", "R1 · Brick", "Blue OS Switch 1", "Through Brick"),
@@ -403,7 +403,7 @@ def load_jmri_adjacency(hart_prod: Path) -> dict[str, set[str]]:
     """Block adjacency from Layout Editor, including xover C/D legs.
 
     TO117: A/B = OS Switch 7 (top, M2S1302); C/D = OS Switch 7b (bottom, M2S1303).
-    Track Main East / Track East Main Ext attach on C/D — not the top OS.
+    Track Main East / Track East Ext attach on C/D — not the top OS.
     """
     root = ET.parse(hart_prod).getroot()
 

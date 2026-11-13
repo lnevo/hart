@@ -46,7 +46,7 @@ ABS = paths.CATS_DIR / "panels/HART_ABS.xml"
 #
 # Untwisted 63×16 board (Designer 2026-08-26).
 # Y=5 Track K-1 (thrown leg of Switch 39) east to the panel edge; Y=8 Track K-2 likewise.
-# Y=6 Track Main West → Track West Main Ext → Track McKees Rocks (closed leg, stub).
+# Y=6 Track Main West → Track West Ext → Track McKees Rocks (closed leg, stub).
 # Y=7 Track Scale / Track Barn / Track S-R / Track East Lead → Track McKeesport (closed leg, stub).
 # Y=8 Brick 100 / Plane 102 / E Main Ext / EH / Track S-1.
 # Y=12 Track Main East under the south-yard ladders.
@@ -74,7 +74,7 @@ PLANT_CELLS: dict[tuple[int, int], str] = {
     (40, 7): "OS Switch 23b",  # Track S-R
     (42, 7): "OS Switch 31",
     (44, 7): "OS Switch 33",
-    (52, 6): "OS Switch 35b",  # Track West Main Ext
+    (52, 6): "OS Switch 35b",  # Track West Ext
     (52, 7): "OS Switch 35a",  # Track East Lead
     (55, 6): "OS Switch 39",
     (55, 7): "OS Switch 37",
@@ -106,13 +106,13 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (38, 6, "RIGHT", "Track Main West"),
     (39, 6, "LEFT", "OS Switch 23a"),  # Mast 24RA
     (40, 6, "RIGHT", "OS Switch 23a"),
-    (41, 6, "LEFT", "Track West Main Ext"),
+    (41, 6, "LEFT", "Track West Ext"),
     (40, 6, "BOTTOM", "OS Switch 23a"),
     (40, 7, "TOP", "OS Switch 23b"),
-    # Mast 24L sits mid Track West Main Ext (same name both faces — lamp gap only).
-    (45, 6, "RIGHT", "Track West Main Ext"),  # Mast 24L
-    (46, 6, "LEFT", "Track West Main Ext"),
-    (50, 6, "RIGHT", "Track West Main Ext"),
+    # Mast 24L sits mid Track West Ext (same name both faces — lamp gap only).
+    (45, 6, "RIGHT", "Track West Ext"),  # Mast 24L
+    (46, 6, "LEFT", "Track West Ext"),
+    (50, 6, "RIGHT", "Track West Ext"),
     (51, 6, "LEFT", "OS Switch 35b"),  # Mast 36RA
     (52, 6, "BOTTOM", "OS Switch 35b"),
     (52, 7, "TOP", "OS Switch 35a"),
@@ -165,8 +165,8 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (7, 8, "RIGHT", "Track Brick-Plane"),
     (8, 8, "LEFT", "OS Switch 5"),
     (10, 8, "RIGHT", "OS Switch 5"),  # Mast 6LB
-    (11, 8, "LEFT", "Track East Main Ext"),
-    (13, 8, "RIGHT", "Track East Main Ext"),
+    (11, 8, "LEFT", "Track East Ext"),
+    (13, 8, "RIGHT", "Track East Ext"),
     (14, 8, "LEFT", "OS Switch 7b"),  # Mast 8RB
     (16, 8, "RIGHT", "OS Switch 7b"),  # Mast 8LA
     (17, 8, "LEFT", "Track Main East"),
@@ -269,7 +269,7 @@ TRACK_ENDS = le.TRACK_ENDS
 _SWITCH_OS_RE = re.compile(r"^(?:OS Switch |(?:OS|Track) )\d")
 
 def station_plate(name: str) -> str:
-    """Desk plate for a block: `OS Switch 39` -> 39, `Track West Main Ext` -> West."""
+    """Desk plate for a block: `OS Switch 39` -> 39, `Track West Ext` -> West."""
     return name.removeprefix("OS Switch ").removeprefix("Track ").split()[0]
 
 

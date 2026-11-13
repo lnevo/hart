@@ -50,10 +50,10 @@ CTC_MASTS = {
     "Mast 4RA": "Brick Track W-1 dwarf eastbound; lever 2 Right",
     "Mast 4RB": "Brick Track W-2 dwarf eastbound; lever 2 Right",
     "Mast 6LA": "Plane, Track Scale westbound; lever 6 Left",
-    "Mast 6LB": "Plane, Track East Main Ext westbound; lever 6 Left",
+    "Mast 6LB": "Plane, Track East Ext westbound; lever 6 Left",
     "Mast 8RA": "Track Barn, yard eastbound; lever 8 Right",
-    "Mast 8RB": "Track Barn, Track East Main Ext eastbound; lever 8 Right",
-    "Mast 8LA": "Track Barn, Track East Main Ext westbound; lever 8 Left",
+    "Mast 8RB": "Track Barn, Track East Ext eastbound; lever 8 Right",
+    "Mast 8LA": "Track Barn, Track East Ext westbound; lever 8 Left",
     "Mast 8LB": "Track Barn, Track Barn dwarf westbound; lever 8 Left",
     "Mast 24RA": "East End, Track Main West eastbound; lever 18 Right",
     "Mast 24RB": "East End, Track S-R dwarf eastbound; lever 18 Right",
@@ -123,10 +123,10 @@ NX_ICON_POSITIONS: dict[str, tuple[int, int]] = {
     "Mast 4RA": (198, 242),   # Track W-1, even with 100 / 111 / 113
     "Mast 4RB": (198, 293),   # Track W-2, left+up off the rail
     "Mast 6LA": (374, 305),   # Track Scale into 102
-    "Mast 6LB": (378, 353),   # Track East Main Ext into 102
+    "Mast 6LB": (378, 353),   # Track East Ext into 102
     "Mast 8RA": (462, 305),   # Track Scale into 117
     "Mast 8LB": (548, 305),   # Track Barn into 117; same X as Mast 8LA
-    "Mast 8RB": (445, 353),   # Track East Main Ext into 117; same Y as NX Mast 6LB
+    "Mast 8RB": (445, 353),   # Track East Ext into 117; same Y as NX Mast 6LB
     "Mast 8LA": (548, 353),   # Track Main East into 117
     "Mast 24RA": (1095, 242),  # Track Main West into 111
     "Mast 24RB": (1095, 305),  # Track S-R into 111 (aligned with Mast 24RA)
@@ -134,7 +134,7 @@ NX_ICON_POSITIONS: dict[str, tuple[int, int]] = {
     "Mast 32R": (1248, 335),   # OS Switch 29 ladder, left of the diagonal
     "Mast 34R": (1312, 338),   # Track Main East, left of the diagonal
     "Mast 34L": (1397, 305),   # Track East Lead into 112; left of the East Lead lamp, 4 px clear (owner, 2026-11-13)
-    "Mast 36RA": (1465, 242),  # Track West Main Ext into 113
+    "Mast 36RA": (1465, 242),  # Track West Ext into 113
     "Mast 36RB": (1465, 305),  # Track East Lead into 113
     "Mast 38LA": (1675, 305),  # Track McKeesport stub toward the balloon
     "Mast 38LB": (1695, 367),  # Track K-2 bezier

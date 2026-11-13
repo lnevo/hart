@@ -34,7 +34,7 @@
 
 <p>Stations, west → east around the plant, then the yard and house:</p>
 
-<div class="table-wrap"><table class="data-table"><thead><tr><th>Station</th><th>Where it is</th></tr></thead><tbody><tr><td><strong>OS Brick-Plane</strong></td><td>Hairpin between Brick and Plane</td></tr><tr><td><strong>OS East Main Ext</strong></td><td>Main between Plane (102) and OS Barn (117)</td></tr><tr><td><strong>OS Main East</strong></td><td>Main south of the yard, approaching East End</td></tr><tr><td><strong>OS East Lead</strong></td><td>East End lead off 112; destination label <strong>E Lead</strong></td></tr><tr><td><strong>OS Main West</strong></td><td>OS Main West at East End (around-the-room from Brick)</td></tr><tr><td><strong>OS West Main Ext</strong></td><td>OS Main West between East End and Princess</td></tr><tr><td><strong>OS K-1</strong></td><td>Princess, north branch; destination label <strong>Track K-1</strong></td></tr><tr><td><strong>OS K-2</strong></td><td>Princess, south branch; destination label <strong>Track K-2</strong></td></tr><tr><td><strong>OS Scale</strong></td><td>Left of the engine house, Plane–117 lead; destination label <strong>OS Scale</strong></td></tr><tr><td><strong>OS Barn</strong></td><td>Immediately to the right of OS Scale (OS Barn lead); destination label <strong>OS Barn</strong></td></tr><tr><td><strong>OS EH-1 / OS EH-2 / OS EH-3</strong></td><td>Right of the 116 ladder</td></tr><tr><td><strong>OS S-R…OS S-4</strong></td><td>South Yard body; destination labels <strong>OS S-R…OS S-4</strong>, aligned with Main W / Main E</td></tr><tr><td><strong>OS W-1 / OS W-2</strong></td><td>Brick yard body</td></tr><tr><td><strong>OS McKees Rocks / OS McKeesport</strong></td><td>Princess stubs east of 115 / 114; destination labels <strong>McK Rks</strong> / <strong>McKport</strong></td></tr></tbody></table></div>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Station</th><th>Where it is</th></tr></thead><tbody><tr><td><strong>OS Brick-Plane</strong></td><td>Hairpin between Brick and Plane</td></tr><tr><td><strong>OS East Ext</strong></td><td>Main between Plane (102) and OS Barn (117)</td></tr><tr><td><strong>OS Main East</strong></td><td>Main south of the yard, approaching East End</td></tr><tr><td><strong>OS East Lead</strong></td><td>East End lead off 112; destination label <strong>E Lead</strong></td></tr><tr><td><strong>OS Main West</strong></td><td>OS Main West at East End (around-the-room from Brick)</td></tr><tr><td><strong>OS West Ext</strong></td><td>OS Main West between East End and Princess</td></tr><tr><td><strong>OS K-1</strong></td><td>Princess, north branch; destination label <strong>Track K-1</strong></td></tr><tr><td><strong>OS K-2</strong></td><td>Princess, south branch; destination label <strong>Track K-2</strong></td></tr><tr><td><strong>OS Scale</strong></td><td>Left of the engine house, Plane–117 lead; destination label <strong>OS Scale</strong></td></tr><tr><td><strong>OS Barn</strong></td><td>Immediately to the right of OS Scale (OS Barn lead); destination label <strong>OS Barn</strong></td></tr><tr><td><strong>OS EH-1 / OS EH-2 / OS EH-3</strong></td><td>Right of the 116 ladder</td></tr><tr><td><strong>OS S-R…OS S-4</strong></td><td>South Yard body; destination labels <strong>OS S-R…OS S-4</strong>, aligned with Main W / Main E</td></tr><tr><td><strong>OS W-1 / OS W-2</strong></td><td>Brick yard body</td></tr><tr><td><strong>OS McKees Rocks / OS McKeesport</strong></td><td>Princess stubs east of 115 / 114; destination labels <strong>McK Rks</strong> / <strong>McKport</strong></td></tr></tbody></table></div>
 
 <p>You can only start and stop at those stations. Occupancy icons and MoveTo buttons are in place. <strong>Stage 1 was re-run 2026-08-22</strong> after hidden yard throats (graph is <strong>91 sections / 688 transits / 1508 traininfo</strong>). Every listed station is a valid <strong>start and destination</strong>, including <strong>OS S-R…OS S-4</strong> (enter/leave via 103 or OS East Lead). Manual Princess pairs (<code>Mast 36RA→Mast 40LA</code>, <code>Mast 36RB→Mast 38LA</code>) were re-added after Discover. After any future Stage 1: <code>python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py</code> then <code>reconcile_dispatcher_stations.py</code>. Never run Stage 1 or store tables from CATS.</p>
 
@@ -77,7 +77,7 @@
 <li>Pick the train if asked, and Express vs stopping if asked.</li>
 </ol>
 
-<p>The system takes the <strong>shortest</strong> path (block lengths). It does <strong>not</strong> ask which plant to go through. From OS East Main Ext to OS Main East that is normally east through 117b, not around through Plane.</p>
+<p>The system takes the <strong>shortest</strong> path (block lengths). It does <strong>not</strong> ask which plant to go through. From OS East Ext to OS Main East that is normally east through 117b, not around through Plane.</p>
 
 <p><strong>To force a path that is not the shortest</strong>, do not use this mode. Build a route that lists the stations you want it to visit (section 5).</p>
 
@@ -114,9 +114,9 @@
 
 <h3>Example</h3>
 
-<p>Train on <strong>OS East Main Ext</strong>, facing east, want OS Barn then East End without going the long way around Plane:</p>
+<p>Train on <strong>OS East Ext</strong>, facing east, want OS Barn then East End without going the long way around Plane:</p>
 
-<p><strong>OS East Main Ext</strong> → <strong>OS Main East</strong> → <strong>OS East Lead</strong></p>
+<p><strong>OS East Ext</strong> → <strong>OS Main East</strong> → <strong>OS East Lead</strong></p>
 
 <p>To send it the long way on purpose, put <strong>OS Brick-Plane</strong> (and whatever else you need) in the list so shortest-path cannot skip it.</p>
 

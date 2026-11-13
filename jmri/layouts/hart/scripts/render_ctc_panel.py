@@ -65,7 +65,7 @@ UP2, UP, MAIN, YU, YL = 0, 1, 3, 5, 6
 RUNS = [
     (UP, 3, 13, SEC_C, 3, "Main West", 6),
     (MAIN, 1, 80, MAIN_C, 5, None, 0),
-    (UP, 54, 79, SEC_C, 3, "West Main Ext", 60),
+    (UP, 54, 79, SEC_C, 3, "West Ext", 60),
     (UP2, 74, 82, SEC_C, 3, "K-1", 77),
     (YL, 70, 82, YARD_C, 3, "K-2", 75),
 ]

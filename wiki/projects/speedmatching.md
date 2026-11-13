@@ -60,7 +60,7 @@ Steps 1 to 4 are the 40-minute procedure in the [`RUNBOOK`](../../docs/jmri/spee
 ## First measurements (2026-11-08)
 
 Method: a runner inside the Pi's JMRI (the `jmri_cmd_watcher` channel) steps one loco through
-the throttle steps around the full loop and times laps from the East Main Ext block sensor
+the throttle steps around the full loop and times laps from the East Ext block sensor
 (loop 31,292.8 mm from the block table; not yet checked against Anyrail). 2121 and 2738 reach
 the same top speed (about 420 to 430 mm/s) but 2738 is 47 to 70% of 2121's speed from step 12
 to 64, because 2738's speed table was switched off (CV25 = 0, CV29 bit 4 clear) and it has no
@@ -78,7 +78,7 @@ are profiled.
 built yet, so Part D cannot start; the tools are still the 2026-11-08 ones. 2121 and 2738 are
 still in the CS-105 consist, so driving either moves both (an unexpected move of the pair caused
 a short at Switch 9 earlier the same day); break it with `cs105_consist.py` only after asking the
-owner. 2121 stands in East Main Ext; 2738 was on Scale (not Barn, as JMRI had it) before the pair
+owner. 2121 stands in East Ext; 2738 was on Scale (not Barn, as JMRI had it) before the pair
 moved together, so confirm where it is now with the owner. K-1 and K-2 are clear. Other locos,
 as last reported: 1827 on W-2, 572 on W-1, 9602 on EH-1, 4678 on EH-2, 1993 on McKeesport.
 PanelPro on the Pi was quit normally at 21:25 with no Store, so the block values must be set again

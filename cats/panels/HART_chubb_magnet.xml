@@ -234,7 +234,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="East Main Ext" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="East Ext" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           a8R
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP1" />
@@ -1120,7 +1120,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="West Main Ext" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="West Ext" DISCIPLINE="CTC" VISIBLE="true" />
         <SECSIGNAL>
           f2R
           <PANELSIGNAL SIGLOCATION="LOWLEFT" SIGORIENT="RIGHT" SIGPANTYPE="LAMP2" />

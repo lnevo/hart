@@ -20,7 +20,7 @@ def through(t, leg):
 # the 2026-11-08 test route, from Switch 5's points; (name, mm, OS sensor whose centre it is)
 ROUTE = [
     ("Sw5 T106 A->B", through(106, "B"), "Switch 5"),
-    ("East Main Ext + Sw7 + Main East", run(106, "B"), None),
+    ("East Ext + Sw7 + Main East", run(106, "B"), None),
     ("Sw33 T77 C->A", through(77, "C"), "Switch 33"),
     ("East Lead", run(77, "A"), None),
     ("Sw35 T98 A->B", through(98, "B"), "Switch 35a"),
@@ -29,7 +29,7 @@ ROUTE = [
     ("K loop", run(129, "C"), None),
     ("Sw39 T56 C->A", through(56, "C"), None),
     ("Sw35 T55 A->B", through(55, "B"), "Switch 35b"),
-    ("West Main Ext", run(55, "B"), None),
+    ("West Ext", run(55, "B"), None),
     ("Sw23 T58 B->A", through(58, "B"), "Switch 23a"),
     ("Main West", run(58, "A"), None),
     ("T43 A->B (crossover not built)", through(43, "B"), None),

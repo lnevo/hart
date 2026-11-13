@@ -104,7 +104,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         xml = """<?xml version='1.0' encoding='UTF-8'?>
         <layout-config>
           <LayoutEditor name="HART Railroad">
-            <BlockContentsIcon blockcontents="Track West Main Ext" x="1394" y="232" level="0" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="12" red="51" green="51" blue="51" />
+            <BlockContentsIcon blockcontents="Track West Ext" x="1394" y="232" level="0" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="12" red="51" green="51" blue="51" />
             <tracksegment ident="T1" />
           </LayoutEditor>
         </layout-config>

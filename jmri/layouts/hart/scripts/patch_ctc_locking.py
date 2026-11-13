@@ -4,7 +4,7 @@
   * Switch 33 Closed = OS East Lead ↔ Switch 31, Thrown = OS Main East (icon + eastbound TRL)
   * Switch 37 / Switch 39 traffic direction BOTH (balloon). JMRI requires a
     unique mast in each SIDI list; Switch 35 stays RIGHT (its homes face east).
-  * Switch 23 eastbound OS Main West → OS West Main Ext TRL rule
+  * Switch 23 eastbound OS Main West → OS West Ext TRL rule
 
 Edits jmri/layouts/hart/output/tables.xml ctcdata in place.
 Safe to re-run.
@@ -154,7 +154,7 @@ def main():
         notes.append("Switch 33 eastbound TRL: Reverse → Normal (OS East Lead ↔ Switch 31)")
     text = text[:s] + col + text[e:]
 
-    # --- Switch 23: missing eastbound OS Main West → OS West Main Ext ---
+    # --- Switch 23: missing eastbound OS Main West → OS West Ext ---
     s, e, col = slice_column(text, "21")
     if "Mast 36RA" in col.split("<TRL_RightRules>")[-1]:
         notes.append("Switch 23 eastbound Switch 35b rule already present")

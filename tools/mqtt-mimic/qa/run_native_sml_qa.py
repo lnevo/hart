@@ -58,12 +58,12 @@ OCC = {
     "OS 113b": "104",
     "OS 113a": "105",
     "East Lead": "106",
-    "West Main Ext": "107",
+    "West Ext": "107",
     "Main West": "200",
     "Main East": "202",
     "OS 100": "401",
     "OS 102": "404",
-    "East Main Ext": "406",
+    "East Ext": "406",
     "OS 110": "1206",
     "OS 111a": "1203",
     "OS 111b": "1205",
@@ -328,13 +328,13 @@ def main() -> None:
             },
         )
 
-        set_occ("West Main Ext", "ACTIVE")
+        set_occ("West Ext", "ACTIVE")
         step(
             "qa02_115T_wme_occ",
-            "115 THROWN + West Main Ext occupied: Rocks-main path fouled.",
+            "115 THROWN + West Ext occupied: Rocks-main path fouled.",
             {"Mast 40LB": "stop"},
         )
-        set_occ("West Main Ext", "INACTIVE")
+        set_occ("West Ext", "INACTIVE")
         set_to("115", "CLOSED")
 
         # ---- Princess 114 / McKeesport / K-2 leg + A48 balloon ----
@@ -389,13 +389,13 @@ def main() -> None:
         set_to("112", "THROWN")
 
         # ---- 117 / 117b ----
-        set_occ("East Main Ext", "ACTIVE")
+        set_occ("East Ext", "ACTIVE")
         step(
             "qa08_eme_occ",
-            "East Main Ext occupied: 117b's route to Plane EME fouled.",
+            "East Ext occupied: 117b's route to Plane EME fouled.",
             {"Mast 8LA": "stop"},
         )
-        set_occ("East Main Ext", "INACTIVE")
+        set_occ("East Ext", "INACTIVE")
 
         set_to("117", "THROWN")
         step(

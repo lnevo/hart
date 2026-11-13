@@ -13,9 +13,9 @@ The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occ
 |--------|------|
 | 1 | Title |
 | 5 | CP names; Track K-1 east of Switch 39 (thrown leg), east to the edge with Mast 2035 / 2036 and the SHARED wrap |
-| **6** | **Track Main West** → OS Switch 23a → Track West Main Ext → OS Switch 35b → OS Switch 39 → Track McKees Rocks (closed leg, stub to x=59) |
+| **6** | **Track Main West** → OS Switch 23a → Track West Ext → OS Switch 35b → OS Switch 39 → Track McKees Rocks (closed leg, stub to x=59) |
 | **7** | Track Scale → OS Switch 7 → Track Barn → OS Switch 13 → OS Switch 15 → Track S-R → OS Switch 23b → OS Switch 31 → OS Switch 33 → Track East Lead → OS Switch 35a → OS Switch 37 → Track McKeesport (closed leg, stub to x=59) |
-| **8** | Switch 1 Brick / Switch 5 Plane / Track East Main Ext / OS Switch 7b / Track EH-1 / Track S-1 / Track K-2 (thrown leg of Switch 37, east to the edge) |
+| **8** | Switch 1 Brick / Switch 5 Plane / Track East Ext / OS Switch 7b / Track EH-1 / Track S-1 / Track K-2 (thrown leg of Switch 37, east to the edge) |
 | 9 | Track W-2 / Track EH-2 / Track S-2 |
 | 10 | Track W-1 / Track EH-3 / Track S-3 |
 | 11–12 | Track S-4; **Track Main East** under the south-yard ladders |
@@ -28,9 +28,9 @@ West rims: `(1,6)` LEFT SHARED to `(1,8)` LEFT (Track Main West). East rims: `(6
 
 | Cell | Identity | Notes |
 |------|----------|--------|
-| (4,8) H+LB | **Switch 1** Brick | NORMAL=RIGHT (Thrown = through Track East Main Ext). Closed BOTTOM = yard. Invert |
+| (4,8) H+LB | **Switch 1** Brick | NORMAL=RIGHT (Thrown = through Track East Ext). Closed BOTTOM = yard. Invert |
 | (5,9) H+LB | **Switch 3** West Yard | NORMAL=BOTTOM (Closed = Track W-1). Thrown RIGHT = Track W-2 |
-| (9,8) H+US | **Switch 5** Plane | NORMAL=RIGHT (Closed = Track East Main Ext). Thrown TOP = Track Scale |
+| (9,8) H+US | **Switch 5** Plane | NORMAL=RIGHT (Closed = Track East Ext). Thrown TOP = Track Scale |
 | (15,8) / (15,7) | **Switch 7b / Switch 7** | Crossover |
 | (24,8) H+LS | **Switch 9** | Closed LEFT = Track EH-1. Thrown BOTTOM = Track EH-2 |
 | (26,8) H+LS | **Switch 11** | Closed LEFT = from Switch 9. Thrown BOTTOM = Track EH-3 |
@@ -41,11 +41,11 @@ West rims: `(1,6)` LEFT SHARED to `(1,8)` LEFT (Track Main West). East rims: `(6
 | (40,6) / (40,7) | **Switch 23a / Switch 23b** | Crossover Track Main West / Track S-R |
 | (42,7) H+LS | **Switch 31** | Closed LEFT = Track S-R/Switch 23. Thrown BOTTOM geographic into Switch 29 `(42,8)` |
 | (44,7) H+LS | **Switch 33** | Closed LEFT = Switch 31. Thrown BOTTOM = Track Main East. **Not inverted** |
-| (52,6) / (52,7) | **Switch 35b / Switch 35a** | Crossover Track West Main Ext / Track East Lead |
+| (52,6) / (52,7) | **Switch 35b / Switch 35a** | Crossover Track West Ext / Track East Lead |
 | (55,6) H+US | **Switch 39** | Closed RIGHT = Track McKees Rocks. Thrown TOP = Track K-1. Not inverted (since 2026-11-07) |
 | (55,7) H+LB | **Switch 37** | Closed RIGHT = Track McKeesport. Thrown BOTTOM = Track K-2. Not inverted (since 2026-11-07) |
 
-Track Brick-Plane is Y=8 between Switch 1 and Switch 5 (`Block 4-6`). Track East Main Ext is Y=8 between Switch 5 and Switch 7b (`Block 4-7`).
+Track Brick-Plane is Y=8 between Switch 1 and Switch 5 (`Block 4-6`). Track East Ext is Y=8 between Switch 5 and Switch 7b (`Block 4-7`).
 
 ## Signals
 
