@@ -1073,7 +1073,10 @@ def draw_band(band, title, opts, top, left):
                     svg.append(f'<ellipse cx="{xe + 7 + 7 * k:.1f}" cy="{ye:.1f}" rx="6" ry="9" stroke-width="1.6"/>')
                 label(xe + 34, ye + 3, "HELIX", 7, anchor="start", weight="bold", extra='letter-spacing="1"')
             elif d.get("sub") == "helix" and style == "letters":    # a lettered connector, like the rise
-                tag = "H" + str(1 + sum(1 for t in text if ">H" in t))
+                tracks = sorted({strands[q]["name"] for q in strands for e_ in (strands[q]["src"][0], strands[q]["dst"][0])
+                                 if nodes[e_].get("sub") == "helix"})      # same letter for the same track on every level
+                mine = next(strands[q]["name"] for q in strands if n in (strands[q]["src"][0], strands[q]["dst"][0]))
+                tag = "H" + str(1 + tracks.index(mine))
                 svg.append(f'<circle cx="{xe + 9:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
                 label(xe + 9, ye + 3, tag, 8, weight="bold")
                 label(xe + 21, ye + 3, "HELIX TO " + d.get("to", "").upper(), 6.5, anchor="start")
