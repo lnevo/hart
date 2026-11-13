@@ -81,7 +81,7 @@ assert(labels("coke").length >= 3);
 
 // ---- stage 4: forgiving matching -------------------------------------------------------------------------
 const has = (q, title) => S.match(P, q).some((r) => r.title === title);
-// typos: one edit on a word of 5+ letters, whole words of title or snippet
+// typos: a typed word of 5+ letters may be one edit from a whole word of title or snippet (which may be shorter)
 assert(top("shenago", 3).some((t) => /Shenango/.test(t)), "shenago: " + top("shenago"));
 assert(has("shenago", "Shenango Furnace history"));
 {
@@ -171,5 +171,22 @@ if (idxPath && require("fs").existsSync(idxPath)) {
   for (const q of ["shenago", "wayblil", "ym01", "chessie", "b and o", "2738"]) {
     console.log(q + " ->", S.rank(real, q).groups.map((g) => g.label + ": " + g.items.slice(0, 3).map((r) => r.title).join(" / ")).join("  ||  "));
   }
+}
+// review fixes (PR #400)
+{
+  // a word that is an Object.prototype key does not throw
+  assert.doesNotThrow(() => S.rank(P, "constructor"));
+  assert.doesNotThrow(() => S.rank(P, "toString hasOwnProperty"));
+  // "3 and 4" stays separate words, so a record with both apart still matches
+  const extra = S.prepare([{ title: "Yard ladder", url: "y", kind: "page", snippet: "Tracks 3 and the run-around, then 4.", text: "" }]);
+  assert.strictEqual(S.rank(extra, "tracks 3 and 4").total, 1);
+  // B&O and C&O are different roads: chessie finds both, b&o never finds C&O
+  const roads = S.prepare([
+    { title: "B&O 572", url: "a", kind: "locomotive", snippet: "", text: "" },
+    { title: "C&O ST1", url: "b", kind: "car", snippet: "", text: "" },
+  ]);
+  assert.deepStrictEqual(S.match(roads, "b&o").map((r) => r.title), ["B&O 572"]);
+  assert.deepStrictEqual(S.match(roads, "c&o").map((r) => r.title), ["C&O ST1"]);
+  assert.strictEqual(S.match(roads, "chessie").length, 2);
 }
 console.log("search rank: all passed");

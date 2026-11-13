@@ -125,12 +125,6 @@
     btn.addEventListener("click", function () {
       setOpen(panel.hidden);
     });
-    // For links elsewhere on a page (the 404 page): open the panel as "/" does, optionally with words typed in.
-    openSearchFn = function (q) {
-      if (q) input.value = q;
-      setOpen(true);
-      if (q) input.dispatchEvent(new Event("input"));
-    };
     panel.addEventListener("click", function (e) {
       if (e.target.closest && e.target.closest("a")) setOpen(false);
     });
@@ -159,7 +153,15 @@
     var input = header.querySelector(".search-input");
     var menuBtn = header.querySelector(".nav-toggle");
     var menu = header.querySelector(".nav-panel");
-    if (!btn || !panel || !input) return;
+    if (!btn || !panel || !input) return; // no index on this host: openSearch stays null and links fall through
+    // For links elsewhere on a page (the 404 page): open the panel as "/" does, optionally with words typed in.
+    openSearchFn = function (q) {
+      setOpen(true);
+      if (q) {
+        input.value = q;
+        input.dispatchEvent(new Event("input"));
+      }
+    };
     function load() {
       if (searchLoad) return;
       searchLoad = new Promise(function (resolve, reject) {

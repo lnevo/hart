@@ -26,15 +26,15 @@
   // "B&O", "b and o" and "B & O" all fold to "b and o"; "YM-01" folds to "ym 01".
   function fold(s) {
     s = String(s || "").toLowerCase();
-    if (s.normalize) s = s.normalize("NFD").replace(/[̀-ͯ]/g, "");
-    return s.replace(/['’]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
+    if (s.normalize) s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return s.replace(/['\u2019]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
   }
   // Folded with the spaces and the word "and" taken out: "b and o" -> "bo", "ym 01" -> "ym01".
   function compact(s) {
     return fold(s).split(" ").filter(function (w) { return w && w !== "and"; }).join("");
   }
   function words(s) {
-    var seen = {};
+    var seen = Object.create(null);
     return s.split(" ").filter(function (w) { return w && !seen[w] && (seen[w] = 1); });
   }
 
@@ -49,7 +49,13 @@
         title: title,
         snippet: snippet,
         text: fold(r.text),
-        raw: String(r.title || ""), // for the whole-word exact check
+        // Space-padded copies, for whole-word synonym checks without building strings per keystroke.
+        pt: " " + title + " ",
+        ps: " " + snippet + " ",
+        px: " " + fold(r.text) + " ",
+        // Compact title and its compact words, for the exact check ("ym01" is exact for "YM-01").
+        ct: compact(r.title),
+        cw: String(r.title || "").toLowerCase().split(/[\s,;:()\u2014\u2013|/]+/).map(compact).filter(Boolean),
         tw: words(title), // whole words, for typo matching (title and snippet only)
         sw: words(snippet),
       };
@@ -68,8 +74,8 @@
     return 1;
   }
   // Whole words only (used for synonyms, so "cr" never reaches "crew").
-  function hasWhole(s, phrase) {
-    return (" " + s + " ").indexOf(" " + phrase + " ") !== -1;
+  function hasWhole(padded, phrase) {
+    return padded.indexOf(" " + phrase + " ") !== -1;
   }
 
   // Score of one term against one record: title beats snippet beats text; a hit at the start
@@ -90,7 +96,10 @@
   // Every name here appears in the site's own pages or data. Keep the rows apart: P&CV and P&OV are
   // different names on purpose and must never share a row.
   var SYNONYMS = [
-    ["chessie", "chessie system", "c&o", "b&o"], // the Chessie System roads on the roster
+    // B&O and C&O are different railroads; each was part of the Chessie System, so "chessie" finds both
+    // but "b&o" never finds C&O.
+    ["chessie", "chessie system", "b&o"],
+    ["chessie", "chessie system", "c&o"],
     ["p&le", "pittsburgh & lake erie"],
     ["conrail", "cr"],
     ["p&ov", "pittsburgh & ohio valley"],
@@ -104,11 +113,15 @@
   var SYN_FACTOR = 0.5;
   var SYN_MAX = 5; // longest name, in words
   // compact key ("b and o" -> "bo") -> the folded names of its row
-  var SYN_INDEX = {};
+  var SYN_INDEX = Object.create(null); // compact name -> every folded name in any row that holds it
   SYNONYMS.forEach(function (row) {
     var folded = row.map(fold);
     folded.forEach(function (name) {
-      SYN_INDEX[compact(name)] = folded;
+      var key = compact(name);
+      var have = SYN_INDEX[key] || (SYN_INDEX[key] = []);
+      folded.forEach(function (x) {
+        if (have.indexOf(x) === -1) have.push(x);
+      });
     });
   });
 
@@ -149,8 +162,9 @@
     var i;
     // "b and o" typed with spaces becomes one phrase.
     for (i = 0; i + 2 < pieces.length; i++) {
-      if (pieces[i].length === 1 && pieces[i + 1] === "and" && pieces[i + 2].length <= 2) {
-        pieces.splice(i, 3, pieces[i] + " and " + pieces[i + 2]);
+      var joined = pieces[i] + " and " + pieces[i + 2];
+      if (pieces[i].length === 1 && pieces[i + 1] === "and" && pieces[i + 2].length <= 2 && SYN_INDEX[compact(joined)]) {
+        pieces.splice(i, 3, joined);
       }
     }
     var units = [];
@@ -191,7 +205,7 @@
     for (i = 0; i < u.variants.length; i++) s = Math.max(s, termScore(p, u.variants[i]));
     for (i = 0; i < u.syns.length; i++) {
       var sy = u.syns[i];
-      var r = hasWhole(p.title, sy) ? 100 : hasWhole(p.snippet, sy) ? 25 : hasWhole(p.text, sy) ? 5 : 0;
+      var r = hasWhole(p.pt, sy) ? 100 : hasWhole(p.ps, sy) ? 25 : hasWhole(p.px, sy) ? 5 : 0;
       s = Math.max(s, r * SYN_FACTOR);
     }
     if (!s && fuzzy && fuzzyOk(u.text)) s = fuzzyScore(p, u.text);
@@ -223,13 +237,10 @@
 
   // The whole query equals the whole title, or one whole word of it ("2738", "NVL", "YM-01"). Compared
   // folded and compact, so "ym01" is exact for "YM-01" and "bo" for "B&O".
-  function isExact(p, q) {
-    var c = compact(q);
+  // c is the compact query, worked out once per search.
+  function isExact(p, c) {
     if (!c) return false;
-    if (compact(p.raw) === c) return true;
-    var ws = p.raw.toLowerCase().split(/[\s,;:()—–|/]+/);
-    for (var i = 0; i < ws.length; i++) if (ws[i] && compact(ws[i]) === c) return true;
-    return false;
+    return p.ct === c || p.cw.indexOf(c) !== -1;
   }
 
   // Scored matches (flat): every unit must hit somewhere. Best first; ties go to the shorter title.
@@ -273,8 +284,9 @@
     // rest of those join their own groups so pages and articles are not pushed out.
     // Rolling stock leads only for a number ("2738"), never for a road name ("b&o").
     var numeric = /[0-9]/.test(raw);
+    var wholeKey = compact(whole);
     hits.forEach(function (h) {
-      var lead = isExact(h.p, whole) && (numeric || STOCK.indexOf(h.p.rec.kind) === -1);
+      var lead = isExact(h.p, wholeKey) && (numeric || STOCK.indexOf(h.p.rec.kind) === -1);
       (lead && exact.length < GROUP_CAP ? exact : rest).push(h);
     });
     var buckets = GROUPS.map(function (g) {

@@ -268,10 +268,12 @@
       // "Search the site" opens the header search (as "/" does), with words from the missing path typed in.
       var find = document.querySelector("[data-lost-search]");
       if (find) {
-        var words = path.replace(/\.(html?|php)$/i, "").split(/[^A-Za-z0-9]+/).filter(function (w) {
-          return w && !/^(index|html|htm|www|ops|operators)$/i.test(w);
+        // The last named part of the path ("photos/rolling-stock/csx-2738.html" -> "csx 2738"): every word
+        // has to match, so earlier folders would only turn a good guess into "No match".
+        var parts = path.replace(/\.(html?|php)$/i, "").split("/").filter(function (s) {
+          return s && !/^(index|www)$/i.test(s);
         });
-        var guess = words.slice(-3).join(" ");
+        var guess = (parts.pop() || "").split(/[^A-Za-z0-9]+/).filter(Boolean).slice(0, 3).join(" ");
         find.addEventListener("click", function (e) {
           if (window.HARTOps && window.HARTOps.openSearch(guess)) e.preventDefault(); // no search on this host: the link goes home
         });
