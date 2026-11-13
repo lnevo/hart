@@ -14,16 +14,20 @@ import subprocess
 import sys
 from pathlib import Path
 
-PORTAL = Path(__file__).resolve().parents[1]
-ROOT = PORTAL.parent
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
 
-PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
-NAMES = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
+PORTAL = Path(__file__).resolve().parents[1]
+ROOT = paths.REPO_ROOT
+
+PANEL = paths.TABLES_XML
+NAMES = paths.PUBLIC_NAME_MAP
 DEVICES = PORTAL / "review-data/hart_devices_review.json"
-CPS = ROOT / "jmri/layouts/hart/data/control_points.csv"
+CPS = paths.LAYOUT_DATA / "control_points.csv"
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
-RENDER = ROOT / "jmri/layouts/hart/scripts/render_le_layout.py"
+RENDER = paths.LAYOUT_SCRIPTS / "render_le_layout.py"
 
 PAD = 34
 TOP = 78

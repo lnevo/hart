@@ -8,18 +8,21 @@ from __future__ import annotations
 
 import argparse
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-TRAININFO = ROOT / "jmri/layouts/hart/dispatcher/traininfo"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+TABLES = paths.TABLES_XML
+TRAININFO = paths.LAYOUT_DIR / "dispatcher/traininfo"
 STATUS = ROOT / "wiki/STATUS.md"
 START, END = "<!-- counts:start -->", "<!-- counts:end -->"
 
 
-def counts(tables: Path = TABLES, traininfo: Path = TRAININFO) -> dict:
-    root = ET.parse(tables).getroot()
+def counts(tables_path: Path = TABLES, traininfo: Path = TRAININFO) -> dict:
+    root = tables.read(tables_path)
     sml = root.findall("signalmastlogics/signalmastlogic")
     real = len(root.findall("signalmasts/signalmast"))
     virtual = len(root.findall("signalmasts/virtualsignalmast"))

@@ -203,12 +203,15 @@ class JmriOpenAndPrivateName(unittest.TestCase):
     for a marker word, so no test file holds the real name.
     """
     MARK = "zz-private-marker"
+    off_main = False  # a test sets it to leave the commit-on-main rule out of what it checks
 
     def guard(self, running: bool):
         guard = load(MAIN_GUARD, "hart_main_guard_names_test")
         guard.jmri_running = lambda: running
         guard.contains_private_name = lambda text: self.MARK in text
         guard.main_checkout = lambda target: False  # CI's clone is a main checkout; tested in test_worktrees
+        if self.off_main:
+            guard.on_main = lambda target, branched: False
         return guard
 
     def code(self, command: str, running: bool = True) -> int:
@@ -341,6 +344,10 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                 self.assertEqual(self.code(cmd, running=False), 2, cmd)
 
     def test_name_in_an_earlier_part_does_not_block_a_clean_commit(self) -> None:
+        # The name check is what this test is about. The checkout may sit on main (check.sh run from
+        # the main checkout), where the commit-on-main rule would also block, so that rule is
+        # left out here and tested in MainGuard.
+        self.off_main = True
         cmd = f"git grep -n {self.MARK} ; git commit -m 'remove the leaked name'"
         self.assertEqual(self.code(cmd, running=False), 0)
 

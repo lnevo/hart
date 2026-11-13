@@ -1,4 +1,4 @@
-"""Shell scripts read host settings from load_env.sh in the same order as hart_hosts.py.
+"""Shell scripts read host settings from load_env.sh in the same order as hartlib/hosts.py.
 
 Order: the environment, then hart.env, then the default. Older names follow the new one.
 No ssh, no MQTT: the shell only prints what it resolved.
@@ -27,12 +27,12 @@ DEFAULTS = {
     "HART_WIN_SSH_PORT": "2222",
     "HART_WIN_USERFILES": "C:/Users/lnevo/JMRI_UserFiles",
 }
-# Every name load_env.sh or hart_hosts.py reads, so the caller's environment cannot leak in.
+# Every name load_env.sh or hartlib/hosts.py reads, so the caller's environment cannot leak in.
 CLEAR = NAMES + ("MQTT_HOST", "HART_MQTT_HOST", "JMRI_JSON", "PI_HOST", "HART_ENV_FILE", "HART_REPO_ROOT")
 
 
 def load_hart_hosts():
-    path = ROOT / "tools/ops/lib/hart_hosts.py"
+    path = ROOT / "tools/hartlib/src/hartlib/hosts.py"
     spec = importlib.util.spec_from_file_location("hart_hosts_for_shell_test", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

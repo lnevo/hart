@@ -2,13 +2,18 @@ from __future__ import annotations
 
 import importlib.util
 import re
+import sys
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 SCRIPT = ROOT / "tools/mqtt-mimic/qa/run_native_sml_qa.py"
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+TABLES = paths.TABLES_XML
 
 
 def load_module():

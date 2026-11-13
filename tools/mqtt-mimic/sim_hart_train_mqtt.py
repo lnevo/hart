@@ -34,12 +34,14 @@ except ImportError as e:  # pragma: no cover
         f"(import error: {e})"
     ) from e
 
-ROOT = Path(__file__).resolve().parents[2]
-PANEL = ROOT / "cats" / "panels" / "HART_CTC.xml"
-HART_PROD = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+from hartlib.hosts import mqtt_broker, mqtt_port  # noqa: E402
 
-sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
-from hart_hosts import mqtt_broker, mqtt_port  # noqa: E402
+ROOT = paths.REPO_ROOT
+PANEL = paths.CATS_DIR / "panels" / "HART_CTC.xml"
+HART_PROD = paths.TABLES_XML
 
 DEFAULT_HOST = mqtt_broker()
 DEFAULT_PORT = mqtt_port()

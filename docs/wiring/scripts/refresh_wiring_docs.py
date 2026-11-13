@@ -20,6 +20,7 @@ from __future__ import annotations
 import csv
 import re
 import shutil
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -28,12 +29,16 @@ from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 
-ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 WIRING = ROOT / "docs/wiring"
 IMPORTED = WIRING / "imported"
 CATS = ROOT / "cats/data"
 SIGNALS = ROOT / "docs/wiring/signals"
-PUBLIC_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
+PUBLIC_MAP = paths.PUBLIC_NAME_MAP
 
 BLOCK_IN_NOTES = re.compile(r"Block\s+(\d+-\d+)")
 
@@ -1642,7 +1647,7 @@ def append_princess_dwarf_logic(wb) -> int:
     return added
 
 
-TABLES_XML = ROOT / "jmri/layouts/hart/output/tables.xml"
+TABLES_XML = paths.TABLES_XML
 _HEAD_TOKEN = re.compile(r"(\s*,?\s*)\b(IH\d+)=[\w-]+")
 
 
