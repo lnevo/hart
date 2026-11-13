@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import shutil
+import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -72,6 +74,28 @@ class EnsureVirtualMastTest(unittest.TestCase):
             throat._ensure_turnout_mast(to, "signalCMast", "Mast 10RA")
         self.assertEqual(1, len(to))
         self.assertEqual(0, throat._ensure_turnout_mast(to, "signalCMast", "Mast 9LA"))
+
+
+class CurrentTablesTest(unittest.TestCase):
+    """The script describes tables.xml as it is; a run on it changes nothing."""
+
+    def run_on_copy(self, fn) -> tuple[int, bytes, bytes]:
+        with tempfile.TemporaryDirectory() as temporary:
+            copy = Path(temporary) / "tables.xml"
+            shutil.copyfile(throat.DEFAULT, copy)
+            before = copy.read_bytes()
+            edits = fn(copy)
+            return edits, before, copy.read_bytes()
+
+    def test_default_run_is_a_no_op(self):
+        edits, before, after = self.run_on_copy(throat.apply)
+        self.assertEqual(0, edits)
+        self.assertEqual(before, after)
+
+    def test_scale_east_run_is_a_no_op(self):
+        edits, before, after = self.run_on_copy(throat.apply_scale_east)
+        self.assertEqual(0, edits)
+        self.assertEqual(before, after)
 
 
 if __name__ == "__main__":
