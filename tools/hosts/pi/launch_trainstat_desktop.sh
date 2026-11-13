@@ -15,8 +15,8 @@ if pgrep -f "trainStat\.TrainStat" >/dev/null 2>&1; then
   exit 1
 fi
 
-if [[ ! -x /home/pi/JMRI_UserFiles/cats/launch/launch_trainstat.sh ]]; then
-  alert "Missing /home/pi/JMRI_UserFiles/cats/launch/launch_trainstat.sh"
+if [[ ! -x "$HOME/JMRI_UserFiles/cats/launch/launch_trainstat.sh" ]]; then
+  alert "Missing $HOME/JMRI_UserFiles/cats/launch/launch_trainstat.sh"
   exit 1
 fi
 
@@ -31,7 +31,7 @@ if ! DISPLAY="${DISPLAY}" xdpyinfo >/dev/null 2>&1; then
   fi
 fi
 
-mkdir -p /home/pi/JMRI_UserFiles/cats/logs
-nohup /home/pi/JMRI_UserFiles/cats/launch/launch_trainstat.sh \
-  >/home/pi/JMRI_UserFiles/cats/logs/trainstat_desktop_nohup.log 2>&1 &
+mkdir -p "$HOME/JMRI_UserFiles/cats/logs"
+nohup "$HOME/JMRI_UserFiles/cats/launch/launch_trainstat.sh" \
+  >"$HOME/JMRI_UserFiles/cats/logs/trainstat_desktop_nohup.log" 2>&1 &
 exit 0

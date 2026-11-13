@@ -13,10 +13,10 @@ set -euo pipefail
 # labwc/Xwayland: without this, Swing frames (tables, console, clock) paint blank;
 # Layout Editor still works because it repaints on a timer.
 export _JAVA_AWT_WM_NONREPARENTING="${_JAVA_AWT_WM_NONREPARENTING:-1}"
-JMRI_HOME="${JMRI_HOME:-/home/pi/JMRI}"
-PANEL="${1:-/home/pi/JMRI_UserFiles/cats/panels/HART_CTC.xml}"
+JMRI_HOME="${JMRI_HOME:-$HOME/JMRI}"
+PANEL="${1:-$HOME/JMRI_UserFiles/cats/panels/HART_CTC.xml}"
 JMRI_PROFILE="${JMRI_PROFILE:-TCS_MQTT.3f32a166}"
-LOG="${CATS_LAUNCH_LOG:-/home/pi/JMRI_UserFiles/cats/logs/cats_launch.log}"
+LOG="${CATS_LAUNCH_LOG:-$HOME/JMRI_UserFiles/cats/logs/cats_launch.log}"
 
 alert() {
   echo "$1" >&2
@@ -59,4 +59,4 @@ echo "Panel=$PANEL"
 echo "Log=$LOG"
 cd "$JMRI_HOME"
 export ARCH=aarch64
-./cats.csh -Dcats.folder=/home/pi/JMRI_UserFiles/cats/panels --profile="$JMRI_PROFILE" "$PANEL" 2>&1 | tee -a "$LOG"
+./cats.csh -Dcats.folder="$HOME/JMRI_UserFiles/cats/panels" --profile="$JMRI_PROFILE" "$PANEL" 2>&1 | tee -a "$LOG"

@@ -7,9 +7,11 @@
 # Usage: ./tools/hosts/sync_roster_from_pi.sh [--mac] [--win] [--all]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-PI_HOST="${HART_PI_SSH:-pi}"
-WIN_HOST="${HART_WIN_SSH:-lnevo@minipc-e5h6x.local}"
-WIN_PORT="${HART_WIN_SSH_PORT:-2222}"
+source "$ROOT/tools/env/load_env.sh"  # hosts: environment, hart.env, default
+PI_HOST="$HART_PI_SSH"
+PI_USERFILES="$HART_PI_USERFILES"
+WIN_HOST="$HART_WIN_SSH"
+WIN_PORT="$HART_WIN_SSH_PORT"
 WIN_SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 # Same as scp_win in tools/hosts/sync_hart_package.sh: SFTP first, legacy -O if it is off.
 scp_win() {
@@ -19,7 +21,7 @@ scp_win() {
 }
 # ADR-014: every host reads user files from JMRI_UserFiles, not the profile folder.
 MAC_USERFILES="${HART_MAC_USERFILES:-$HOME/JMRI_UserFiles}"
-WIN_USERFILES_REMOTE='C:/Users/lnevo/JMRI_UserFiles'
+WIN_USERFILES_REMOTE="$HART_WIN_USERFILES"
 STAGE="${HART_ROSTER_STAGE:-$ROOT/jmri/host-copies/pi-roster-ops}"
 
 DO_MAC=0
@@ -35,7 +37,7 @@ else
       --all) DO_MAC=1; DO_WIN=1 ;;
       -h|--help)
         echo "Usage: $0 [--mac] [--win] [--all]"
-        echo "  Source: $PI_HOST:/home/pi/JMRI_UserFiles/{roster.xml,roster/}"
+        echo "  Source: $PI_HOST:$PI_USERFILES/{roster.xml,roster/}"
         exit 0
         ;;
       *) echo "Unknown option: $a" >&2; exit 1 ;;
@@ -46,9 +48,9 @@ fi
 mkdir -p "$STAGE/roster"
 echo "Pull ← Pi ($PI_HOST)…"
 scp -o BatchMode=yes -o ConnectTimeout=15 \
-  "$PI_HOST:/home/pi/JMRI_UserFiles/roster.xml" "$STAGE/roster.xml"
+  "$PI_HOST:$PI_USERFILES/roster.xml" "$STAGE/roster.xml"
 scp -o BatchMode=yes -o ConnectTimeout=15 -r \
-  "$PI_HOST:/home/pi/JMRI_UserFiles/roster/." "$STAGE/roster/"
+  "$PI_HOST:$PI_USERFILES/roster/." "$STAGE/roster/"
 
 stamp=$(date +%Y%m%d_%H%M%S)
 backup_if_exists() {

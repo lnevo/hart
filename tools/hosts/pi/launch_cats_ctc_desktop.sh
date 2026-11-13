@@ -6,4 +6,4 @@ export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
 export WIRINGPI_GPIOMEM=1
 export _JAVA_AWT_WM_NONREPARENTING="${_JAVA_AWT_WM_NONREPARENTING:-1}"
-exec /home/pi/JMRI_UserFiles/cats/launch/launch_cats.sh /home/pi/JMRI_UserFiles/cats/panels/HART_CTC.xml
+exec "$HOME/JMRI_UserFiles/cats/launch/launch_cats.sh" "$HOME/JMRI_UserFiles/cats/panels/HART_CTC.xml"

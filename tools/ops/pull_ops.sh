@@ -3,8 +3,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-PI_HOST="${HART_PI_SSH:-pi}"
-PI_DIR="${HART_PI_USERFILES:-/home/pi/JMRI_UserFiles}/operations"
+source "$ROOT/tools/env/load_env.sh"  # hosts: environment, hart.env, default
+PI_HOST="$HART_PI_SSH"
+PI_DIR="$HART_PI_USERFILES/operations"
 DEST="$ROOT/jmri/layouts/hart/operations"
 FILES=(Operations.xml OperationsCarRoster.xml OperationsEngineRoster.xml
        OperationsLocationRoster.xml OperationsRouteRoster.xml OperationsTrainRoster.xml)
