@@ -9,12 +9,15 @@ content cannot be lost through a whole-file copy.
 from __future__ import annotations
 
 import argparse
-import xml.etree.ElementTree as ET
+import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-HART = ROOT / "jmri/layouts/hart"
-SRC = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+HART = paths.LAYOUT_DIR
+SRC = paths.TABLES_XML
 OUTPUTS: list[Path] = []
 
 # text -> (size, style)  style 1=bold
@@ -31,10 +34,10 @@ HIERARCHY = {
 
 
 def apply(path: Path) -> int:
-    tree = ET.parse(path)
-    root = tree.getroot()
+    doc = tables.load(path)
+    root = doc.root
     editors = [
-        le for le in root.findall("LayoutEditor")
+        le for le in tables.layout_editors(root)
         if len(le.findall("tracksegment")) >= 90
     ]
     if len(editors) != 1:
@@ -50,8 +53,8 @@ def apply(path: Path) -> int:
         el.set("style", style)
         n += 1
 
-    tree.write(path, encoding="UTF-8", xml_declaration=True)
-    print(f"Updated {n} labels → {path}")
+    changed = doc.save()
+    print(f"Updated {n} labels → {path}" if changed else f"Unchanged ({n} labels already set) → {path}")
     return n
 
 

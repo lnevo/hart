@@ -7,6 +7,10 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths as hart_paths  # noqa: E402
+
 FORBIDDEN = {
     "ROUTEFEEDBACK",  # not a CATS 3 element; use SELECTEDREPORT
 }
@@ -144,7 +148,7 @@ def check(path: Path) -> list[str]:
 def main() -> int:
     paths = [Path(a) for a in sys.argv[1:]]
     if not paths:
-        root = Path(__file__).resolve().parents[1] / "panels"
+        root = hart_paths.CATS_DIR / "panels"
         paths = sorted(root.glob("HART*.xml"))
     failed = 0
     for p in paths:

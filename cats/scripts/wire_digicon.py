@@ -19,7 +19,11 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import aar_aspect_bridge as bridge  # noqa: E402
@@ -28,12 +32,12 @@ import digicon_header as header  # noqa: E402
 import digicon_lib as le  # noqa: E402
 import digicon_trace as trace  # noqa: E402
 
-sys.path.append(str(ROOT / "jmri/layouts/hart/scripts"))
+sys.path.append(str(paths.LAYOUT_SCRIPTS))
 import layout_facts as facts  # noqa: E402
 
-SRC = ROOT / "cats/panels/HART_Digicon.xml"
-CTC = ROOT / "cats/panels/HART_CTC.xml"
-ABS = ROOT / "cats/panels/HART_ABS.xml"
+SRC = paths.CATS_DIR / "panels/HART_Digicon.xml"
+CTC = paths.CATS_DIR / "panels/HART_CTC.xml"
+ABS = paths.CATS_DIR / "panels/HART_ABS.xml"
 
 # Plant cell (x, y) -> its OS block. Which leg is closed and which thrown, the
 # Layout Editor turnout and whether CATS NORMAL differs from JMRI Closed are
@@ -463,7 +467,7 @@ def name_signals(tp: ET.Element) -> int:
 
 def mast_templates() -> dict[str, str]:
     """CATS signal template per mast userName, from signal_head_plan.csv."""
-    path = ROOT / "docs/wiring/signals/signal_head_plan.csv"
+    path = paths.SIGNAL_HEAD_PLAN
     with path.open(newline="") as f:
         return {
             row["mast_user_name"].strip(): row["physignal"].strip()
@@ -978,7 +982,7 @@ def move_signals(tp: ET.Element) -> int:
 
 def _expected_blocks() -> set[str]:
     names: set[str] = set()
-    with (ROOT / "cats/data/occupancy_bindings.csv").open(encoding="utf-8") as fh:
+    with (paths.CATS_DIR / "data/occupancy_bindings.csv").open(encoding="utf-8") as fh:
         next(fh)
         for line in fh:
             name = line.split(",", 1)[0].strip()
@@ -989,7 +993,7 @@ def _expected_blocks() -> set[str]:
 
 def _expected_idents() -> set[str]:
     idents: set[str] = set()
-    with (ROOT / "cats/data/turnout_bindings.csv").open(encoding="utf-8") as fh:
+    with (paths.CATS_DIR / "data/turnout_bindings.csv").open(encoding="utf-8") as fh:
         next(fh)
         for line in fh:
             ident = line.split(",", 1)[0].strip()

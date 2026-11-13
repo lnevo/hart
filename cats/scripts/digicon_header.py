@@ -10,12 +10,17 @@ Adds SEC_NAME header cells on row Y=1 (track plan starts at Y=2). Does not move 
 
 from __future__ import annotations
 
+import sys
 import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-PANELS_DIR = ROOT / "cats/panels"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+PANELS_DIR = paths.CATS_DIR / "panels"
 
 # Digicon Java RGB ints (opaque ARGB without alpha in CATS COLOR/FONTCOLOR).
 WHITE = "-1"

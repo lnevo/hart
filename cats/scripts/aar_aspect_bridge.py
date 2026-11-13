@@ -27,8 +27,6 @@ import argparse
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-
 # CATS IndicationNames order + ICON class (cats.layout.items.AspectMap).
 # First AppearanceKey value equal to JMRI getAspect() wins.
 _INDICATION_ORDER = (

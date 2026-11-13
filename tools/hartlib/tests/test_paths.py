@@ -20,6 +20,7 @@ class CheckoutTest(unittest.TestCase):
         self.assertTrue(paths.TABLES_XML.is_file())
         self.assertTrue(paths.PUBLIC_NAME_MAP.is_file())
         self.assertTrue(paths.SIGNAL_WIRING.is_file())
+        self.assertTrue(paths.SIGNAL_HEAD_PLAN.is_file())
         self.assertEqual(paths.TABLES_XML, CHECKOUT / "jmri/layouts/hart/output/tables.xml")
 
     def test_env_roots_do_not_move_paths(self):
