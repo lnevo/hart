@@ -53,8 +53,8 @@ UNKNOWN, CLOSED, THROWN = 1, 2, 4
 MAST_TAGS = ("signalmast", "virtualsignalmast")
 
 # Same pattern as .claude/hooks/main_guard.py: PanelPro, DecoderPro, DispatcherPro or CATS.
-_JMRI_PROCESS = (r"java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3"
-                 r"|apps\.DecoderPro|apps\.DispatcherPro)")
+# One line, so tools/audit/tests/test_jmri_process_patterns.py can read it.
+_JMRI_PROCESS = r"java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)"  # noqa: E501
 
 _PROLOG_SKIP = re.compile(rb"\s+|<\?.*?\?>|<!--.*?-->|<!DOCTYPE[^\[>]*(\[.*?\])?\s*>", re.S)
 
