@@ -26,7 +26,7 @@ class TL(jmri.ThrottleListener):
     def notifyFailedThrottleRequest(self, a, r): self.err = "fail %s" % r; self.ev.set()
     def notifyDecisionRequired(self, a, d): self.err = "decision %s" % d; self.ev.set()
     def notifyStealThrottleRequired(self, a): self.err = "steal"; self.ev.set()
-reg = []; why = [""]; ab = threading.Event()
+reg = []; why = [""]; ab = threading.Event(); own = [False]   # own: this run made /tmp/speedrun.active
 NAMES = {1: "UNKNOWN", 2: "ACTIVE", 4: "INACTIVE", 8: "INCONSISTENT"}
 class SL(java.beans.PropertyChangeListener):
     def __init__(self, n): self.n = n
@@ -37,6 +37,8 @@ class SL(java.beans.PropertyChangeListener):
 def run():
     t = None
     try:
+        if os.path.exists("/tmp/speedrun.active"): why[0] = "another runner is active"; return
+        a = open("/tmp/speedrun.active", "w"); a.write(LOGF); a.close(); own[0] = True
         sm = jmri.InstanceManager.sensorManagerInstance()
         until = []
         for n in list(UNTIL) + list(GUARD):
@@ -67,6 +69,9 @@ def run():
         L("STOP " + why[0])
         if t is not None: t.setSpeedSetting(0.0); L("speed 0")
         for s, l in reg: s.removePropertyChangeListener(l)
+        if own[0]:
+            try: os.remove("/tmp/speedrun.active")
+            except Exception, e: pass
         L("END")
 th = threading.Thread(target=run); th.setDaemon(True); th.start()
 RESULT = "started"

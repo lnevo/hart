@@ -26,7 +26,7 @@ sys.path.insert(0, str(HERE))
 import liverule as lr  # noqa: E402
 
 DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
-DEFAULT_TRUSTED = ("anyrail", "inferred")
+DEFAULT_TRUSTED = ("anyrail", "inferred", "assigned")
 MM_PER_INCH = 25.4
 
 # The loop in the east direction, starting at East Main Ext: (block sensor, block_lengths.csv
@@ -59,8 +59,8 @@ def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
             ok = (row["basis"] or "").strip() in trusted
         else:
             # block_lengths.csv keeps the basis in its "flag" column (anyrail, inferred, ...);
-            # "assigned" counted before the AnyRail work and still does
-            ok = (row.get("flag") or "").strip() in tuple(trusted) + ("assigned",)
+            # "assigned" is the pre-AnyRail value and is trusted only if it is in the set
+            ok = (row.get("flag") or "").strip() in trusted
         try:
             mm = float(row["inches"]) * MM_PER_INCH if ok else None
         except ValueError:
@@ -69,8 +69,11 @@ def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
             # a hidden throat stub shares this track's detector, so the sensor covers both
             for r in rows.values():
                 if (r.get("flag") or "").strip() == "stub" and \
-                        (r.get("old_source") or "").startswith("hidden throat of %s;" % name):
-                    mm += float(r["inches"]) * MM_PER_INCH
+                        (r.get("occupancy_sensor") or "").strip() == sensor:
+                    try:
+                        mm += float(r["inches"]) * MM_PER_INCH
+                    except ValueError:
+                        pass
         out[sensor] = mm
     return out
 
@@ -279,7 +282,7 @@ def main(argv=None):
     ap.add_argument("logs", nargs="+")
     ap.add_argument("--lengths", default=str(DEFAULT_LENGTHS))
     ap.add_argument("--trusted", default=",".join(DEFAULT_TRUSTED),
-                    help="basis values that count as trusted (needs a basis column)")
+                    help="values that count as trusted: the basis column, or the flag column when there is no basis column")
     ap.add_argument("--out", default=".")
     ap.add_argument("--pair", default="CSX 2121,CSX 2738",
                     help="the consist pair: leader,follower (follower runs reversed)")

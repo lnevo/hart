@@ -36,17 +36,15 @@ RAISED_NOTE = "raised to keep the table rising"
 
 
 def interp(x, pts):
-    """Linear interpolation over (step, speed) points. Below the first point the speed is
-    scaled towards zero at step 0; above the last it stays flat."""
+    """Linear interpolation over (step, speed) points. None outside the measured range:
+    nothing is extrapolated, above or below."""
     pts = sorted(pts)
-    if not pts:
+    if not pts or x < pts[0][0] or x > pts[-1][0]:
         return None
-    if x <= pts[0][0]:
-        return pts[0][1] * x / pts[0][0] if pts[0][0] else pts[0][1]
     for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
         if x0 <= x <= x1:
-            return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
-    return pts[-1][1]
+            return y0 if x1 == x0 else y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+    return pts[0][1]  # a single point
 
 
 def propose(table, measured, target, tol=TOLERANCE, gain=1.0, max_ratio=1.5):
@@ -73,7 +71,7 @@ def propose(table, measured, target, tol=TOLERANCE, gain=1.0, max_ratio=1.5):
                "measured": m, "target": t, "error": None, "within": None, "note": ""}
         val = int(old)
         if not m or not t or m <= 0 or t <= 0:
-            row["note"] = "no usable measurement"
+            row["note"] = "no usable measurement (outside the measured steps or none)"
         else:
             row["error"] = m / t - 1.0
             row["within"] = abs(row["error"]) <= tol
@@ -87,7 +85,8 @@ def propose(table, measured, target, tol=TOLERANCE, gain=1.0, max_ratio=1.5):
                 if val >= 255 and ratio > 1:
                     row["note"] = "reaches 255: this loco may not be able to reach the target here"
         anchors.append(row)
-        raw.append(max(1, min(255, val)))
+        # only an entry that is changed is clamped; one left alone keeps its value (even 0)
+        raw.append(max(1, min(255, val)) if val != old else int(old))
     new = list(raw)
     for i in range(1, N):  # monotonic non-decreasing, before anything is judged
         if new[i] < new[i - 1]:

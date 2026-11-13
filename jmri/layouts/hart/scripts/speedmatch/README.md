@@ -105,7 +105,10 @@ jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/sm/steps_2121_fwd.py
 
 The job prints `started`. Watch the log on the Pi (`ssh pi tail -f /tmp/steprun_...log`);
 lines are `WARMUP_LAP`, `STEP n`, `READ ...`, `STEPDONE n reason=settled|max|time|stalled`.
-To stop early: `drop_job.sh --kill` (the runner sets its own throttle to 0 and ends). It also
+To stop early: `drop_job.sh --kill` (the runner sets its own throttle to 0 and ends; afterwards
+remove the flag yourself: `ssh pi rm /tmp/speedrun.kill`). A runner holds `/tmp/speedrun.active`
+while it runs and `drop_job.sh` refuses a new runner job until it is gone (`--force` only after
+the log shows END). It also
 ends on its own if a guard sensor lights, or no sensor changes for 120 s (shown as `STOP`).
 A guard sensor can be any sensor (user or system name); the job refuses to start if one is
 not found or is already lit. The no-event limit follows a settled step's pace but never goes
@@ -138,7 +141,12 @@ Writes in `/tmp/sm/out`:
 Block lengths currently trusted are printed on the first line. If few blocks are trusted the
 readings are few and slow to settle; that is the data telling you Part A is not finished.
 
-### 4. Correct 2738's table (only if an anchor is out of tolerance)
+### 4. Correct a table (only after the profiles are in)
+
+Profile both locos in both directions first (step 2). Then the owner chooses which pairing
+to correct against (which loco's profile is the target, in which direction) and the tolerance
+(`--tol`, default 0.03 is only a placeholder). Nothing here assumes either choice: `--direction`
+and `--target-direction` have no default. The example below is only the shape of the command.
 
 ```bash
 python3 jmri/layouts/hart/scripts/speedmatch/correct.py \
@@ -149,7 +157,7 @@ python3 jmri/layouts/hart/scripts/speedmatch/correct.py \
 ```
 
 (Use `--table v1,...,v28` instead of `--roster-xml` after the first round, taking the values
-you actually wrote.) It prints each table entry whose speed is outside +-3% and the new value,
+you actually wrote.) It prints each table entry whose speed is outside the tolerance and the new value,
 and writes `proposal.json` and `proposal.csv` in the output folder. Exit status: 0 all within
 tolerance, 2 proposal written, 3 out of rounds (default 5). Each entry is scaled by target
 speed over measured speed, at most 1.5 times per round, limited to 1 to 255 and never
@@ -157,10 +165,11 @@ decreasing from one entry to the next. Entry k is taken to act at step 126 x k /
 those (fractional) steps are interpolated from the measured steps.
 
 The proposal is **not applied**. It goes to the write guard (dry run first, then `--apply`),
-then re-run steps 2 and 3 for 2738 in the paired direction, and `correct.py` with
+then re-run steps 2 and 3 for the corrected loco in the chosen direction, and `correct.py` with
 `--round 2` and the table you wrote. Repeat until it exits 0 or reaches the round limit.
 The speed table is the same in both directions, so after it is within tolerance in one
-pairing, check the other pairing in `compare.csv`.
+pairing, check the other pairing in `compare.csv`. Anchors outside the measured steps are left
+unchanged and reported as having no usable measurement; entries left alone keep their value.
 
 ## Known limits
 

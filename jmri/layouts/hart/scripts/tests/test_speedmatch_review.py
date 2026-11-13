@@ -214,5 +214,78 @@ class MoveAndDrop(unittest.TestCase):
             self.assertIn("drop_job.sh JOBFILE", r.stdout + r.stderr)
 
 
+class SecondReview(unittest.TestCase):
+    flat = {s: 100.0 for s in range(0, 127, 6)}
+
+    def test_entries_left_alone_keep_their_value_and_writes_are_empty(self):
+        table = [0] + [50] * 27
+        rep = correct.propose(table, self.flat, {s: 101.0 for s in self.flat})
+        self.assertEqual(rep["values"], table)
+        self.assertTrue(rep["all_within"])
+        self.assertEqual(correct.proposal("X", rep, 1, 5, 0.03)["writes"], [])
+
+    def test_unmeasured_entries_keep_their_value_too(self):
+        rep = correct.propose([0] * 28, {}, {10: 5.0})
+        self.assertEqual(rep["values"], [0] * 28)
+
+    def test_a_changed_entry_is_clamped(self):
+        rep = correct.propose([0] * 28, self.flat, {s: 200.0 for s in self.flat})
+        self.assertEqual(rep["values"][0], 1)  # 0 x anything stays 0 -> the changed entry is raised to 1
+        self.assertTrue(all(1 <= v <= 255 for v in rep["values"]))
+
+    def test_nothing_is_extrapolated_outside_the_measured_steps(self):
+        self.assertIsNone(correct.interp(130.0, [(8, 1.0), (126, 5.0)]))
+        self.assertIsNone(correct.interp(4.0, [(8, 1.0), (126, 5.0)]))
+        self.assertEqual(correct.interp(126.0, [(8, 1.0), (126, 5.0)]), 5.0)
+        part = {s: 100.0 for s in range(30, 101, 10)}
+        rep = correct.propose([100] * 28, part, {s: 200.0 for s in part})
+        inside = [a for a in rep["anchors"] if 30 <= a["step"] <= 100]
+        outside = [a for a in rep["anchors"] if not 30 <= a["step"] <= 100]
+        self.assertTrue(all(a["new"] > a["old"] for a in inside))
+        self.assertTrue(all("no usable" in a["note"] for a in outside))
+        self.assertTrue(all(a["new"] == a["old"] for a in outside if a["step"] < 30))
+        # above the range an entry moves only because the table must keep rising, and says so
+        self.assertTrue(all(a.get("raised") for a in outside if a["step"] > 100 and a["new"] != a["old"]))
+
+    def test_drop_job_guards_a_running_runner_and_leaves_the_kill_flag(self):
+        src = (SM / "drop_job.sh").read_text()
+        self.assertIn("/tmp/speedrun.active", src)
+        self.assertIn("--force", src)
+        self.assertNotIn("rm -f /tmp/speedrun.kill", src)
+        self.assertNotIn("rm /tmp/speedrun.kill'", src)
+        for name in ("step_runner.py", "move_to.py"):
+            j = (SM / "jython" / name).read_text()
+            self.assertIn("/tmp/speedrun.active", j)
+            self.assertIn("own[0]", j)
+
+    def write_csv(self, header, rows):
+        p = Path(tempfile.mkdtemp()) / "bl.csv"
+        p.write_text(",".join(header) + "\n" + "\n".join(",".join(r) for r in rows) + "\n")
+        return p
+
+    def test_without_basis_the_trusted_set_is_exact(self):
+        p = self.write_csv(["user_name", "occupancy_sensor", "inches", "flag", "old_source"],
+                           [["Track Main West", "x", "220", "assigned", ""],
+                            ["Track East Lead", "x", "172", "anyrail", ""]])
+        both = analyze.load_lengths(p)
+        self.assertIsNotNone(both["BS Main West"])
+        self.assertIsNotNone(both["BS East Lead"])
+        only = analyze.load_lengths(p, trusted=("anyrail",))
+        self.assertIsNone(only["BS Main West"])
+        self.assertIsNotNone(only["BS East Lead"])
+
+    def test_stubs_match_by_flag_and_shared_detector(self):
+        p = self.write_csv(["user_name", "occupancy_sensor", "inches", "flag", "old_source"],
+                           [["Track East Lead", "Block 1-7", "172", "anyrail", ""],
+                            ["Track East Lead East", "BS East Lead", "10", "stub", "unrelated text"],
+                            ["Track K-1 West", "BS K-1", "10", "stub", ""],
+                            ["Track Main West", "Block 2-1", "220", "anyrail", ""],
+                            ["Track Main West Stub", "BS Main West", "bad", "stub", ""]])
+        got = analyze.load_lengths(p)
+        self.assertAlmostEqual(got["BS East Lead"], 182 * 25.4)
+        self.assertAlmostEqual(got["BS Main West"], 220 * 25.4)  # a bad stub length is ignored
+        self.assertIsNone(got["BS K-1"])  # a stub does not make an untrusted track trusted
+
+
 if __name__ == "__main__":
     unittest.main()

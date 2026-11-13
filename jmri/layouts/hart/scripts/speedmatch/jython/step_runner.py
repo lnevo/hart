@@ -39,7 +39,7 @@ class TL(jmri.ThrottleListener):
     def notifyDecisionRequired(self, a, d): self.err = "decision %s" % d; self.ev.set()
     def notifyStealThrottleRequired(self, a): self.err = "steal"; self.ev.set()
 reg = []; last = [time.time()]; mid = [False]; ref = [0]; ab = threading.Event(); why = [""]
-state = {}
+state = {}; own = [False]   # own: this run created /tmp/speedrun.active
 reader = SpanReader(ORDER, LENGTHS, SETTLE_EVENTS)
 readings = []        # speeds of the current step
 phase = ["idle"]     # idle, warmup or measure
@@ -73,6 +73,8 @@ def wait(cond, stall):
 def run():
     t = None
     try:
+        if os.path.exists("/tmp/speedrun.active"): why[0] = "another runner is active"; return
+        a = open("/tmp/speedrun.active", "w"); a.write(LOGF); a.close(); own[0] = True
         sm = jmri.InstanceManager.sensorManagerInstance()
         found = {}
         for s in sm.getNamedBeanSet():
@@ -140,6 +142,9 @@ def run():
         L("STOP " + why[0])
         if t is not None: t.setSpeedSetting(0.0); L("speed 0")
         for s, l in reg: s.removePropertyChangeListener(l)
+        if own[0]:
+            try: os.remove("/tmp/speedrun.active")
+            except Exception, e: pass
         L("END")
 th = threading.Thread(target=run); th.setDaemon(True); th.start()
 RESULT = "started"
