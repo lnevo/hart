@@ -798,10 +798,48 @@ def apply_edits(g, edits):
             raise SystemExit(f"unknown edit {op}")
 
 
+def mark_main(g, routes):
+    """Main track is what lies on the given routes (shortest way between each pair); everything else is secondary."""
+    import heapq
+    N = g["nodes"]
+
+    def node(ref):
+        for e in g["edges"]:
+            for n in (e["u"], e["v"]):
+                if N[n]["kind"] == "end" and (ref in e["names"] or N[n].get("label") == ref):
+                    return n
+        return by_label(g, ref)
+
+    adj = collections.defaultdict(list)
+    for e in g["edges"]:
+        adj[e["u"]].append((e["v"], e))
+        adj[e["v"]].append((e["u"], e))
+        e["main"] = False
+    for a, b in routes:
+        a, b = node(a), node(b)
+        dist, prev, heap = {a: 0.0}, {}, [(0.0, a)]
+        while heap:
+            d, n = heapq.heappop(heap)
+            if n == b:
+                break
+            if d > dist[n]:
+                continue
+            for m, e in adj[n]:
+                nd = d + e["cm"] + 1
+                if nd < dist.get(m, 1e18):
+                    dist[m], prev[m] = nd, (n, e)
+                    heapq.heappush(heap, (nd, m))
+        while b in prev:
+            b, e = prev[b]
+            e["main"] = True
+
+
 def split_levels(g, spec):
     """Cut every run that joins two levels; each cut end becomes a lettered connector."""
     N = g["nodes"]
     z = {n: d.get("z") for n, d in N.items() if d["kind"] != "end"}
+    for ref, to in spec.get("assign", {}).items():      # owner's choice of band for a junction
+        z[by_label(g, ref)] = to
     for lo, hi, to in spec.get("treat", []):
         for n, v in z.items():
             if v is not None and lo <= v < hi:
@@ -1025,7 +1063,7 @@ def draw_band(band, title, opts, top, left):
         return left + (c - x0) * cell
 
     def Y(r):
-        return top + (r - y0) * rowh
+        return top + 30 + (r - y0) * rowh
 
     def label(xp, yp, s, size, anchor="middle", weight="normal", extra=""):
         text.append(f'<text x="{xp:.1f}" y="{yp:.1f}" font-size="{size}" text-anchor="{anchor}" '
@@ -1033,7 +1071,7 @@ def draw_band(band, title, opts, top, left):
 
     helix = []
     if title:
-        label(left, top - 26, title.upper(), 12, anchor="start", weight="bold", extra='letter-spacing="1.5"')
+        label(left, top + 4, title.upper(), 12, anchor="start", weight="bold", extra='letter-spacing="1.5"')
     for k, pts in paths(band).items():
         s = strands.get(k)
         wd = opts["main_w"] if (s is None or s["main"]) else opts["side_w"]
@@ -1117,23 +1155,32 @@ def draw_band(band, title, opts, top, left):
         svg.append(f'<path d="M{a:.1f},{yb - 6} L{a:.1f},{yb} L{b:.1f},{yb} L{b:.1f},{yb - 6}" stroke-width="1.4"/>')
         label((a + b) / 2, yb + 14, name.upper(), 12, weight="bold", extra='letter-spacing="1"')
     bottom += 34 + len(lanes) * 30 if lanes else 0
-    return svg + text, X(max(x.values())) + 110, bottom
+    return svg + text, X(max(x.values())) + 110, bottom - top + 14
 
 
 def draw_page(bands, opts, out):
     pw, ph, m = 1056, 816, 48
-    body, y, width = [], 120, 0
-    for title, band, *own in bands:
-        part, w, bottom = draw_band(band, title, own[0] if own else opts, y, m)
+    top, foot = 96, 100                       # clear of the direction legend and the title block
+    sized = []
+    for title, band, *own in bands:           # measure first, so every band can be centred
+        _, w, bottom = draw_band(band, title, own[0] if own else opts, 0, 0)
+        sized.append((title, band, own[0] if own else opts, w - 110, bottom))
+    gap = 78
+    total_h = sum(h for *_, h in sized) + gap * (len(sized) - 1) + 30
+    total_w = max(w for *_, w, _ in sized) + 120
+    scale = min(1.0, (pw - 2 * m) / total_w, (ph - top - foot) / total_h)
+    body, y = [], 30
+    for title, band, o, w, h in sized:
+        part, _, _ = draw_band(band, title, o, y, (total_w - w) / 2 - 20)
         body += part
-        width = max(width, w)
-        y = bottom + 80
-    scale = min(1.0, (pw - 2 * m) / max(width - m, 1), (ph - 120 - 110) / max(y - 80 - 120, 1))
+        y += h + gap
+    ox = (pw - total_w * scale) / 2
+    oy = top + ((ph - top - foot) - total_h * scale) / 2
     svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {pw} {ph}" width="{pw}" height="{ph}" '
            f'font-family="\'Helvetica Neue\',Helvetica,Arial,sans-serif">',
            f'<rect width="{pw}" height="{ph}" fill="#fff"/>',
            f'<rect x="24" y="24" width="{pw - 48}" height="{ph - 48}" fill="none" stroke="#000" stroke-width="1.5"/>',
-           f'<g transform="translate({m * (1 - scale):.1f},{120 * (1 - scale):.1f}) scale({scale:.4f})" fill="none" '
+           f'<g transform="translate({ox:.1f},{oy:.1f}) scale({scale:.4f})" fill="none" '
            f'stroke="#000" stroke-linecap="round" stroke-linejoin="round">'] + body + ["</g>"]
     cx = pw / 2
     svg.append(f'<text x="{cx - 20}" y="62" font-size="15" text-anchor="end" font-weight="bold" letter-spacing="2">'

@@ -8,7 +8,7 @@ import sys
 import schem
 
 
-def main(built, built_opts, main_graph, main_opts, out, helix_style="box"):
+def main(built, built_opts, main_graph, main_opts, out, helix_style="letters"):
     bo = dict(schem.DEFAULTS, **json.load(open(built_opts)), helix_style=helix_style)
     mo = dict(schem.DEFAULTS, **json.load(open(main_opts)), helix_style=helix_style)
     bands = []
@@ -22,6 +22,11 @@ def main(built, built_opts, main_graph, main_opts, out, helix_style="box"):
             if name and N[b]["kind"] == "end" and e["cm"] > 300:
                 e["names"], e["main"] = [name], True
                 N[b].update(sub="helix", to="Staging")
+    if mo.get("main_route"):
+        keep = {e["id"] for e in g["edges"] if e["names"]}
+        schem.mark_main(g, mo["main_route"])
+        for e in g["edges"]:
+            e["main"] = e["main"] or e["id"] in keep
     for title, sub in schem.split_levels(g, mo["levels"]):
         w = []
         band = schem.layout(sub, mo, w)

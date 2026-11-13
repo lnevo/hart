@@ -18,7 +18,8 @@
     "T237"
    ],
    "cm_from_first": 292,
-   "z": 10.8
+   "z": 10.8,
+   "hand": "L"
   }
  ],
  "levels": {
@@ -38,7 +39,13 @@
     "name": "Upper level, 4.25 in",
     "below": 99
    }
-  ]
+  ],
+  "assign": {
+   "T285": 10.8,
+   "T251": 10.8,
+   "T175": 10.8,
+   "T199": 10.8
+  }
  },
  "helix": {
   "T175": "McKees Rocks",
@@ -48,5 +55,23 @@
   "System schematic",
   "Staging, main and upper level",
   "Stage 0 proof, as built"
+ ],
+ "main_route": [
+  [
+   "McKeesport",
+   "T262"
+  ],
+  [
+   "T262",
+   "T237"
+  ],
+  [
+   "T237",
+   "23"
+  ],
+  [
+   "McKees Rocks",
+   "T199"
+  ]
  ]
 }
