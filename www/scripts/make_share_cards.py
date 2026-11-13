@@ -221,6 +221,14 @@ def ai_locomotives():
     return card(draw("speed", f"<div class=w>{_svg(page, 'speed-svg')}</div>", style, ("css/ops.css", "css/ai.css")))
 
 
+def repo_guide():
+    """library-repository-guide: the overview figure from the page, the repository between its submodules and the places it deploys to."""
+    page = "library/repository-guide.html"
+    style = (_page_style(page) + f"body{{background:{PAPER}}}.w{{display:flex;align-items:center;justify-content:center;"
+             f"width:{W}px;height:{H}px}}.repo-svg{{max-width:none!important;width:auto!important;height:600px!important}}")
+    return card(draw("repo", f"<div class=w>{_svg(page, 'repo-svg')}</div>", style, ("css/ops.css", "css/article.css")))
+
+
 def build_story():
     """library-how-it-was-built-article: the homepage's island photo with the Diverging Route drawing over it."""
     island = _published("assets/media/birdseye-neville-island.jpg").as_uri()
@@ -498,6 +506,7 @@ CARDS = {
     "library-operations-pro-article": opspro_article,
     "library-opspro-showcase-guide": opspro_walkthrough,
     "library-how-it-was-built-article": build_story,
+    "library-repository-guide": repo_guide,
     "library-sts-operations-article": sts_home,
     "ai-locomotives": ai_locomotives,
     "ai-electronics": ai_electronics,

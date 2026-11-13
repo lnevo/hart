@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inside the Repository — HART</title>
+  <meta name="description" content="A guide to the HART repository: the top-level folders, where each fact is kept, the shared code, the submodules, how files reach the layout computers and the website, and how changes are made.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+  <style>
+    /* Overview figure: shapes use the site tokens, so it follows the light and dark themes. */
+    .repo-svg { display: block; width: 100%; max-width: 34rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
+    .repo-svg .box { fill: var(--card); stroke: var(--rule); stroke-width: 1.5; }
+    .repo-svg .sub { fill: var(--card); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .repo-svg .core { fill: var(--brand); stroke: var(--brand); }
+    .repo-svg .line { fill: none; stroke: var(--ink-soft); stroke-width: 1.6; }
+    .repo-svg .back { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-dasharray: 5 4; }
+    .repo-svg .head { fill: var(--ink-soft); }
+    .repo-svg .head-b { fill: var(--accent); }
+    .repo-svg text { fill: var(--ink); font-size: 15px; }
+    .repo-svg .t-b { font-weight: 700; }
+    .repo-svg .t-s { fill: var(--muted); font-size: 13px; }
+    .repo-svg .t-w { fill: #fff; }
+    .repo-svg .t-l { fill: var(--ink-soft); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>Inside the Repository</h1>
+        <p class="standfirst">Everything that runs this railroad, from the JMRI tables to this website, is kept in one public git repository. This guide shows how it is laid out, where each fact lives, how the separate projects attach to it, and how a change reaches the layout.</p>
+        <p class="byline">Behind the Scenes · November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#overview">The overview</a></li>
+          <li><a href="#folders">The top-level folders</a></li>
+          <li><a href="#owners">Where each fact lives</a></li>
+          <li><a href="#layout">The layout tree</a></li>
+          <li><a href="#hartlib">Shared code</a></li>
+          <li><a href="#submodules">Submodules</a></li>
+          <li><a href="#outside">What stays out of git</a></li>
+          <li><a href="#hosts">From the repository to the railroad</a></li>
+          <li><a href="#changes">Making a change</a></li>
+          <li><a href="#records">Decisions and documents</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">The repository is <a href="https://github.com/lnevo/hart">github.com/lnevo/hart</a>. It holds the JMRI tables and panels, the CATS dispatcher desks, the car records, the wiring documents, the scripts that build and check all of them, the decision records, and the source of this website. Six smaller projects with their own repositories are attached as submodules. The computers on the layout are installed from it, and none of them is a git checkout.</p>
+        </section>
+
+        <section id="overview" aria-labelledby="h-overview">
+          <h2 id="h-overview"><span class="num">01</span>The overview</h2>
+          <p>The Mac holds the master copy. A change is made there, checked, merged into <code>main</code> and then deployed. Two deploys leave the repository: one installs the JMRI and CATS files on the layout computers, the other publishes the website. A few things are made on the layout itself during a session, such as a PanelPro Store or the positions of cars, and those come back into the repository by a pull command before the next deploy.</p>
+          <figure>
+            <svg class="repo-svg" viewBox="0 0 480 410" role="img" aria-labelledby="repo-o-t repo-o-d">
+              <title id="repo-o-t">How the repository connects to everything else</title>
+              <desc id="repo-o-d">At the top, six submodules, each its own repository, pinned by commit. An arrow leads down to the hart repository on the Mac, which holds the facts, the tools, the wiki and the website source. From it, deploy arrows lead down to the layout Pi, which runs JMRI, CATS, the MQTT broker and the live STS; to the Windows PC, which runs JMRI, CATS and the LCOS bridge; and a site deploy arrow leads to the website. A dashed arrow leads from the Pi back up to the repository, labelled pulls: Stores, sessions, STS backups.</desc>
+              <defs>
+                <marker id="repo-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0,0 L10,5 L0,10 z"/></marker>
+                <marker id="repo-arr-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-b" d="M0,0 L10,5 L0,10 z"/></marker>
+              </defs>
+              <rect class="sub" x="90" y="10" width="300" height="56" rx="6"/>
+              <text class="t-b" x="240" y="34" text-anchor="middle">Six submodules · external/</text>
+              <text class="t-s" x="240" y="54" text-anchor="middle">their own repositories, pinned by commit</text>
+              <path class="line" d="M240,66 L240,100" marker-end="url(#repo-arr)"/>
+              <rect class="core" x="40" y="104" width="400" height="104" rx="8"/>
+              <text class="t-b t-w" x="240" y="136" text-anchor="middle" style="font-size:17px">The hart repository</text>
+              <text class="t-w" x="240" y="162" text-anchor="middle">facts · tools · wiki · website source</text>
+              <text class="t-w" x="240" y="186" text-anchor="middle" style="font-size:13px">master copy on the Mac, where changes are made</text>
+              <path class="line" d="M110,208 L86,300" marker-end="url(#repo-arr)"/>
+              <path class="line" d="M240,208 L240,300" marker-end="url(#repo-arr)"/>
+              <path class="line" d="M370,208 L394,300" marker-end="url(#repo-arr)"/>
+              <path class="back" d="M40,300 C20,270 20,240 52,212" marker-end="url(#repo-arr-b)"/>
+              <text class="t-l" x="130" y="262" text-anchor="middle">deploy</text>
+              <text class="t-l" x="276" y="262" text-anchor="middle">deploy</text>
+              <text class="t-l" x="420" y="262" text-anchor="middle">site</text>
+              <text class="t-l" x="420" y="278" text-anchor="middle">deploy</text>
+              <rect class="box" x="8" y="304" width="148" height="78" rx="6"/>
+              <text class="t-b" x="82" y="330" text-anchor="middle">Layout Pi</text>
+              <text class="t-s" x="82" y="350" text-anchor="middle">JMRI, CATS, broker</text>
+              <text class="t-s" x="82" y="368" text-anchor="middle">live STS</text>
+              <rect class="box" x="166" y="304" width="148" height="78" rx="6"/>
+              <text class="t-b" x="240" y="330" text-anchor="middle">Windows PC</text>
+              <text class="t-s" x="240" y="350" text-anchor="middle">JMRI, CATS</text>
+              <text class="t-s" x="240" y="368" text-anchor="middle">LCOS bridge</text>
+              <rect class="box" x="324" y="304" width="148" height="78" rx="6"/>
+              <text class="t-b" x="398" y="330" text-anchor="middle">Website</text>
+              <text class="t-s" x="398" y="350" text-anchor="middle">hartrailroad.com</text>
+              <text class="t-l" x="8" y="402">dashed: pulls back from the Pi (Stores, sessions, STS backups)</text>
+            </svg>
+            <figcaption class="section-note">The repository in the middle. Solid arrows are deploys; the dashed one is what comes back from the layout.</figcaption>
+          </figure>
+          <p>Inside the repository, files fall into three kinds:</p>
+          <ul>
+            <li><b>Sources of record.</b> The one file that owns a fact, such as the tables file, the name map or the car repository. A change starts here.</li>
+            <li><b>Tools.</b> Scripts that build copies from the sources, check that everything agrees, and deploy.</li>
+            <li><b>Generated files.</b> Copies made by the tools, such as the two CATS desks, the crew documents and the website's data. Nobody edits these by hand; a fix goes into the source or the script that made them.</li>
+          </ul>
+        </section>
+
+        <section id="folders" aria-labelledby="h-folders">
+          <h2 id="h-folders"><span class="num">02</span>The top-level folders</h2>
+          <p>There are ten folders at the top. Each has one purpose, and a file that does not fit any of them is a sign it is in the wrong place.</p>
+          <div class="table-wrap">
+            <table class="roster">
+              <thead><tr><th>Folder</th><th>What it holds</th></tr></thead>
+              <tbody>
+                <tr><td><code>jmri/</code></td><td>The layout's JMRI files: the tables file, the Operations Pro files, the layout data, and the scripts that build and check them. Also the icons and web pages JMRI uses.</td></tr>
+                <tr><td><code>cats/</code></td><td>The CATS dispatcher desks only: the one drawn panel, the two desks made from it, and their scripts.</td></tr>
+                <tr><td><code>ops/</code></td><td>Operations: the car repository and its tools (<code>ops/hart-ops/</code>), station maps, car-card intake batches, and runbooks for the parts that run outside JMRI.</td></tr>
+                <tr><td><code>docs/</code></td><td>Every document written for the railroad: wiring, CTC, benchwork, JMRI notes and the crew publications. <code>docs/INDEX.md</code> lists them, newest first.</td></tr>
+                <tr><td><code>www/</code></td><td>The source of this website and the scripts that build and publish it.</td></tr>
+                <tr><td><code>tools/</code></td><td>Repository-wide tools: the checks, the shared library, host and deploy scripts, MQTT helpers and the LCOS mimic.</td></tr>
+                <tr><td><code>external/</code></td><td>The six submodules, and the STS data folder.</td></tr>
+                <tr><td><code>wiki/</code></td><td>Decision records, the live status of the railroad, and one page per pipeline.</td></tr>
+                <tr><td><code>media/</code></td><td>Photos, video and research material. Kept on the Mac, not in git.</td></tr>
+                <tr><td><code>archive/</code></td><td>Retired files, kept for reference. Nothing in it runs.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Three files sit at the top as well: <code>README.md</code> for people, <code>AGENTS.md</code> with the working rules for every AI tool, and a <code>Makefile</code> whose short commands (<code>make</code> lists them) run the real scripts.</p>
+        </section>
+
+        <section id="owners" aria-labelledby="h-owners">
+          <h2 id="h-owners"><span class="num">03</span>Where each fact lives</h2>
+          <p>Each kind of fact has one file that owns it. Everything else that shows the same fact is built from that file or checked against it.</p>
+          <div class="table-wrap">
+            <table class="roster">
+              <thead><tr><th>Fact</th><th>Owned by</th><th>Used by</th></tr></thead>
+              <tbody>
+                <tr><td>JMRI setup: sensors, turnouts, blocks, masts, panels</td><td><code>jmri/layouts/hart/output/tables.xml</code></td><td>Every JMRI computer, the CATS desks, the tables browser on this site</td></tr>
+                <tr><td>Public names and hardware addresses</td><td><code>jmri/layouts/hart/data/public_name_map.csv</code></td><td>The tables, both desks, the wiring documents, the device roster</td></tr>
+                <tr><td>Switches: number, level, legs, CTC lever</td><td><code>switches.csv</code> and <code>switch_legs.csv</code> in the same folder</td><td>The desk generators, and a check against the Layout Editor, both desks and the USS board</td></tr>
+                <tr><td>Signal wiring</td><td><code>docs/wiring/signals/signal_wiring.csv</code></td><td>The wiring workbook and slides, comments in the tables, the wiring viewer</td></tr>
+                <tr><td>The CATS panel</td><td><code>cats/panels/HART_Digicon.xml</code></td><td>The CTC and ABS desks, made from it by <code>wire_digicon.py</code></td></tr>
+                <tr><td>The fleet</td><td><code>ops/hart-ops/data/image_metadata.csv</code></td><td>Car cards, STS, the Operations Pro roster, the photo pages</td></tr>
+                <tr><td>Operations Pro setup</td><td><code>jmri/layouts/hart/operations/</code> (six files)</td><td>Every JMRI computer</td></tr>
+                <tr><td>Where each car is and what it carries</td><td>The live STS database on the Pi</td><td>JMRI Operations Pro, refreshed one way after each step</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The switch files show how this works in practice. Moving a switch's legs is a change to one row of <code>switch_legs.csv</code>, then a run of the generators. If the Layout Editor, a CATS desk and the USS board then disagree, the check fails and names the switch and both files.</p>
+        </section>
+
+        <section id="layout" aria-labelledby="h-layout">
+          <h2 id="h-layout"><span class="num">04</span>The layout tree</h2>
+          <p>Most of the railroad's control lives under <code>jmri/layouts/hart/</code>. There is one layout, <code>hart</code>; when the upper levels are added, the unit is the level, recorded in the <code>level</code> column of the switch files, not a second layout folder.</p>
+          <div class="table-wrap">
+            <table class="roster">
+              <thead><tr><th>Folder</th><th>What it holds</th></tr></thead>
+              <tbody>
+                <tr><td><code>output/</code></td><td><code>tables.xml</code>, the one tables file, with all three panels in it</td></tr>
+                <tr><td><code>data/</code></td><td>The name map, switch files, block lengths, control points, and HART's settings for the STS-to-JMRI refresh</td></tr>
+                <tr><td><code>operations/</code></td><td>The six Operations Pro files</td></tr>
+                <tr><td><code>scripts/</code></td><td>About sixty scripts that build, repair and check the tables, plus the ones that run inside JMRI</td></tr>
+                <tr><td><code>ctc/</code>, <code>dispatcher/</code></td><td>The USS CTC machine's icons and guide; the Dispatcher System's options and train files</td></tr>
+                <tr><td><code>anyrail/</code></td><td>The AnyRail track plan export the first panels were built from</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Two kinds of Python script live side by side here. Most run on the Mac in ordinary Python and read or write the files. About twenty run inside JMRI itself, from the Start Up list on each computer, such as the panel status and the STS car refresh. Those use JMRI's built-in Jython, which is Python 2, so they import nothing from the repository's shared code and run on any computer with JMRI installed.</p>
+          <p><code>cats/</code> works the same way on a smaller scale. One panel is drawn in the CATS Designer, <code>HART_Digicon.xml</code>. A script writes the two desks the dispatchers use from it, CTC and ABS, and another validates them. <code>make desks</code> runs both.</p>
+        </section>
+
+        <section id="hartlib" aria-labelledby="h-hartlib">
+          <h2 id="h-hartlib"><span class="num">05</span>Shared code</h2>
+          <p>The Mac-side scripts share one small library, <code>hartlib</code>, in <code>tools/hartlib/</code>. It has three parts:</p>
+          <ul>
+            <li><b><code>paths</code></b> names every file the tools use: the tables file, the name map, the wiring table, the layout folders. A path always points into the checkout the script sits in.</li>
+            <li><b><code>tables</code></b> loads and saves <code>tables.xml</code>. A load followed by a save with no edit writes the same bytes JMRI wrote, so a script that changes one sensor changes one sensor in the diff. It also knows the file's traps: sensors and turnouts split over several sections, every block written twice, two kinds of mast. A save refuses while PanelPro or CATS is open.</li>
+            <li><b><code>hosts</code></b> holds the MQTT broker and the address of each layout computer, read from the environment, then a local settings file, then the defaults. The shell scripts read the same settings in the same order.</li>
+          </ul>
+          <p>The library is not installed. Each script finds it with two lines that walk up from the script's own folder, so a script always uses the copy beside it, and moving a script needs no edit. That matters because every change is made in a separate working copy (see <a href="#changes">Making a change</a>); an installed library would point every copy at one of them. The scripts that run inside JMRI never import it.</p>
+        </section>
+
+        <section id="submodules" aria-labelledby="h-submodules">
+          <h2 id="h-submodules"><span class="num">06</span>Submodules</h2>
+          <p>A submodule is another git repository checked out inside this one. The hart repository records which commit of each one it uses, so a fresh clone with <code>git clone --recurse-submodules</code>, or <code>make submodules</code> after a pull, puts every one at the right version. All six live under <code>external/</code> and all six are public.</p>
+          <div class="table-wrap">
+            <table class="roster">
+              <thead><tr><th>Folder</th><th>What it is</th><th>How it connects</th></tr></thead>
+              <tbody>
+                <tr><td><code>lcos-bridge/</code></td><td>Firmware for the Arduino that listens to the LCOS radio nodes, and the bridge that turns their messages into MQTT</td><td>The bridge runs on the Windows PC and publishes to the broker on the Pi</td></tr>
+                <tr><td><code>sts-docker/</code></td><td>The STS traffic simulator packaged to run in Docker</td><td>The Pi runs its release build as the live STS; the Mac runs a copy for testing</td></tr>
+                <tr><td><code>sts-plugins/</code></td><td>Addons for STS: the track scale, coke orders, the JMRI refresh and HART's own settings</td><td>Built into the STS image</td></tr>
+                <tr><td><code>sts-helpers/</code></td><td>Seeding, warm starts and switch lists for STS</td><td>Run on the Mac, fed from the car repository</td></tr>
+                <tr><td><code>model-railroad-skills/</code></td><td>Skills and plugins for AI coding agents: JMRI panels, signals, MQTT, CATS, STS, Operations Pro and car cards</td><td>Installed into the AI tools; nothing on the layout uses it</td></tr>
+                <tr><td><code>jmri-cs105-roster-sync/</code></td><td>Copies the JMRI roster into the TCS CS-105 command station</td><td>Run from <code>tools/ops/</code> after a roster change</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The rule for what becomes a submodule: a project another modeler could use on their own layout. Those projects carry nothing specific to this railroad. HART's values live in the hart repository and are loaded as settings, such as the STS-to-JMRI names in <code>jmri/layouts/hart/data/sts_jmri_ops_settings.json</code>, or kept in one clearly named place, such as the <code>hart_layout</code> plugin in sts-plugins. A test in sts-plugins fails if a HART name appears anywhere else.</p>
+          <p>The rule also works the other way. The car tools, <code>hart-ops</code>, were a separate repository until November 2026. Nearly everything they read and write is in hart, so every change needed two pull requests, one in each repository. They now live in <code>ops/hart-ops/</code>, and their tests run with the rest.</p>
+          <p>Two folders look like submodules and are not. The STS data folder in <code>external/</code> holds the simulator's database, backups and photos, outside git. The research scans are a private repository of their own, cloned separately into <code>media/</code>.</p>
+        </section>
+
+        <section id="outside" aria-labelledby="h-outside">
+          <h2 id="h-outside"><span class="num">07</span>What stays out of git</h2>
+          <p>Some files are too large, too private or too changeable to track. They stay on the Mac, beside the repository, and the tools know where to find them:</p>
+          <ul>
+            <li><b>Photos and video</b> in <code>media/</code>, and the car photos in their own folder under <code>ops/</code>. The website build resizes them into the published site.</li>
+            <li><b>The STS database and backups</b> in the STS data folder under <code>external/</code>, with copies of the live Pi data pulled there after each session.</li>
+            <li><b>CATS itself</b>: the release and its source are downloaded by scripts in <code>tools/cats/</code>.</li>
+            <li><b>Local settings</b> such as <code>tools/env/hart.env</code>, and any credentials.</li>
+          </ul>
+          <p>A check, also run as a git hook before each commit, stops a private or ignored file from being added by mistake. Another reads every tracked file, Office documents included, for text that must not be published.</p>
+        </section>
+
+        <section id="hosts" aria-labelledby="h-hosts">
+          <h2 id="h-hosts"><span class="num">08</span>From the repository to the railroad</h2>
+          <p>Three computers run the layout. The <b>Pi</b> is production: it runs JMRI, the MQTT broker every client talks to, the CATS desks and the live STS. The <b>Windows PC</b> runs JMRI, CATS and the LCOS bridge. The <b>Mac</b> holds the repository and is where changes are tested and accepted before they reach the Pi.</p>
+          <h3>The layout deploy</h3>
+          <p><code>tools/hosts/sync_hart_package.sh</code> builds a package from the repository for each computer and sends it: by rsync to the Pi, as one archive to Windows. The package is a subset, with the tables, panels, Operations files, JMRI scripts, CATS desks and launchers, and none of the documents or the website. On each computer it installs into <code>JMRI_UserFiles</code>, and every computer's JMRI loads its tables from there, so an install looks the same everywhere. Each install leaves a stamp naming the commit it shipped; <code>make deploy-status</code> reads them back.</p>
+          <h3>What comes back</h3>
+          <p>The repository is the master, so anything made on the layout has to be brought back before the next deploy replaces it:</p>
+          <div class="table-wrap">
+            <table class="roster">
+              <thead><tr><th>Command</th><th>Brings back</th></tr></thead>
+              <tbody>
+                <tr><td><code>make tables-pull</code></td><td>A PanelPro Store, into <code>tables.xml</code></td></tr>
+                <tr><td><code>make ops-pull</code></td><td>The Pi's Operations Pro state after a session</td></tr>
+                <tr><td><code>make sts-pull</code></td><td>The live STS backups and a database dump</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The deploy stops if a Store has not been pulled. Pulled files are committed like any other change.</p>
+          <h3>STS on the Pi</h3>
+          <p>STS is the one exception to the package deploy. The Pi has its own clones of <code>sts-docker</code> and <code>sts-plugins</code>, and <code>tools/hosts/pi_sts_update.sh</code> updates it by a git pull and a rebuild there. A change is tried in a sandbox first, then on the Mac's copy, where it is accepted, and only then on the Pi.</p>
+          <h3>The website</h3>
+          <p><code>www/scripts/deploy_hartrailroad.sh</code> builds the site from tracked files only, copies in the documents and pictures listed in <code>www/scripts/published-files.json</code> so the site holds no copies of its own, resizes the photos, checks every link, and publishes. It stops if the build has far fewer pages or photos than the last one.</p>
+        </section>
+
+        <section id="changes" aria-labelledby="h-changes">
+          <h2 id="h-changes"><span class="num">09</span>Making a change</h2>
+          <p>The main checkout on the Mac stays on <code>main</code>, for pulls and deploys only. Each task gets its own working copy, a git worktree, made by <code>make wt TOPIC=&lt;topic&gt;</code>. It sits in <code>.claude/worktrees/&lt;topic&gt;/</code> on its own branch, with links to the photo folders the website build needs. Several tasks can run at once without one switching the branch under another.</p>
+          <ol class="step-list">
+            <li><b>Edit</b> in the worktree. Scripts change the tables file only while PanelPro and CATS are closed.</li>
+            <li><b>Check</b> with <code>./tools/check.sh</code>: about thirty checks and test suites, from the tables and signal logic to the car tools and the website links.</li>
+            <li><b>Load it for real</b> with <code>make panelpro-test</code> when the tables or panels changed. It opens the tables in PanelPro on the Mac and reports any error.</li>
+            <li><b>Open a pull request.</b> GitHub runs the same checks on a clean copy. <code>main</code> accepts a change only through a pull request whose checks pass.</li>
+            <li><b>Merge and deploy.</b> The worktree is removed automatically once the merge is half an hour old.</li>
+          </ol>
+          <p>Hooks in <code>.claude/hooks/</code> back these rules up for the AI tools. They stop a commit or push to <code>main</code>, an edit in the main checkout, and any command that writes the tables or deploys while PanelPro or CATS is open. Cursor runs the same checks through its own hook file.</p>
+        </section>
+
+        <section id="records" aria-labelledby="h-records">
+          <h2 id="h-records"><span class="num">10</span>Decisions and documents</h2>
+          <p>Decisions are written down in <code>wiki/decisions/</code> as short records, ADR-001 onward. Each says what was decided, why, and what it replaced, and a later change is added as a dated amendment. The layout of the folders above is ADR-007; the one tables file is ADR-008; the shared library and switch files are ADR-021.</p>
+          <p>The rest of <code>wiki/</code> is the railroad's current state: <code>STATUS.md</code> for what is live, one page per pipeline in <code>wiki/pipelines/</code> for how each thing is built, and a list of what is waiting on a person. Documents written for the railroad go in <code>docs/</code>. The working rules for AI tools are in one file, <code>AGENTS.md</code>; the Claude and Cursor settings point to it, and a check fails if it names a path that no longer exists.</p>
+          <p>A good place to start reading is <code>wiki/home.md</code>.</p>
+        </section>
+
+        <section id="references" aria-labelledby="h-refs">
+          <h2 id="h-refs"><span class="num">Notes</span>References</h2>
+          <ol class="refs">
+            <li id="ref-1">The hart repository (GitHub). <a href="https://github.com/lnevo/hart">github.com/lnevo/hart</a></li>
+            <li id="ref-2">ADR-007, Repository layout. <a href="https://github.com/lnevo/hart/blob/main/wiki/decisions/ADR-007-repository-layout.md">wiki/decisions/ADR-007-repository-layout.md</a></li>
+            <li id="ref-3">ADR-021, Shared library and switch facts. <a href="https://github.com/lnevo/hart/blob/main/wiki/decisions/ADR-021-shared-library-and-switch-facts.md">wiki/decisions/ADR-021-shared-library-and-switch-facts.md</a></li>
+            <li id="ref-4">The hartlib README. <a href="https://github.com/lnevo/hart/blob/main/tools/hartlib/README.md">tools/hartlib/README.md</a></li>
+            <li id="ref-5">Sibling repositories and submodules. <a href="https://github.com/lnevo/hart/blob/main/wiki/REPOS.md">wiki/REPOS.md</a></li>
+            <li id="ref-6">Git and worktree conventions. <a href="https://github.com/lnevo/hart/blob/main/wiki/AGENTS_GIT.md">wiki/AGENTS_GIT.md</a></li>
+          </ol>
+          <p class="feature-more">More: <a href="../behind/tables-file.html">The tables file</a> · <a href="../ai/workshop.html">The workshop</a> · <a href="how-it-was-built-article.html">Bringing the Railroad Together</a> · <a href="../behind/index.html">Behind the Scenes</a></p>
+        </section>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-repo").catch(function (err) {
+        console.error(err);
+      });
+
+      // Mark the contents entry for the section being read.
+      var links = Array.prototype.slice.call(document.querySelectorAll(".feature-toc a"));
+      if (!("IntersectionObserver" in window) || !links.length) return;
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting || !byId[e.target.id]) return;
+          links.forEach(function (a) { a.removeAttribute("aria-current"); });
+          byId[e.target.id].setAttribute("aria-current", "true");
+        });
+      }, { rootMargin: "-20% 0px -70% 0px" });
+      Object.keys(byId).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    });
+  </script>
+</body>
+</html>
