@@ -165,6 +165,40 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         self.assertEqual([("10", str(x), str(y)), ("12", "943", "354")], lamps)
         self.assertEqual((0, []), polish.place_stage1_lamps(le, check=True))
 
+    def test_switch_lamps_centre_on_circles_and_track_lamps_sit_on_track(self):
+        import math
+        root = ET.parse(ROOT / "jmri/layouts/hart/output/tables.xml").getroot()
+        le = polish.find_layout_editor(root)
+        targets = polish.stage1_lamp_targets(root, le)
+        half = polish.LAMP_SIZE / 2
+        circles = {t.get("blockname"): t for t in le.findall("layoutturnout")}
+        blocks = {}
+        for b in root.iter("block"):
+            if b.findtext("occupancysensor"):
+                blocks.setdefault(b.findtext("occupancysensor"), []).append(b.findtext("userName"))
+        segments = polish._segment_ends(le)
+
+        def on_segment(px, py, a, b):
+            (ax, ay), (bx, by) = a, b
+            length = math.hypot(bx - ax, by - ay) or 1
+            return abs((bx - ax) * (ay - py) - (ax - px) * (by - ay)) / length
+
+        for sensor, (x, y) in targets.items():
+            if sensor in polish.STAGE1_LAMP_PLACEMENTS:
+                continue
+            cx, cy = x + half, y + half
+            os_turnouts = [circles[n] for n in blocks.get(sensor, []) if n in circles]
+            if os_turnouts:
+                t = os_turnouts[0]
+                self.assertLessEqual(math.hypot(cx - float(t.get("xcen")), cy - float(t.get("ycen"))), 1, sensor)
+            else:
+                mine = [seg for seg in segments if seg[0] in blocks[sensor]]
+                self.assertLessEqual(min(on_segment(cx, cy, s[1], s[2]) for s in mine), 1, sensor)
+
+        # every Stage 1 lamp on the panel is at its target
+        _, errors = polish.place_stage1_lamps(le, check=True, root=root)
+        self.assertEqual([], errors)
+
     def test_shared_occupancy_dedupe_keeps_body_dot(self):
         xml = """<?xml version='1.0' encoding='UTF-8'?>
         <layout-config>
@@ -197,14 +231,13 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             <sensoricon sensor="BS EH-2" x="604" y="287" level="10" />
             <sensoricon sensor="BS EH-3" x="603" y="299" level="10" />
             <sensoricon sensor="BS Switch 9" x="600" y="299" level="10" />
-            <sensoricon sensor="BS Switch 35a" x="1523" y="325" />
         </LayoutEditor></layout-config>"""
         le = ET.fromstring(xml).find("LayoutEditor")
         assert le is not None
         _, errors = polish.place_stage1_lamps(le, check=True)
-        self.assertEqual(4, len(errors))
+        self.assertEqual(3, len(errors))
         changes, errors = polish.place_stage1_lamps(le, check=False)
-        self.assertEqual((4, []), (changes, errors))
+        self.assertEqual((3, []), (changes, errors))
         placed = [
             (i.get("sensor"), i.get("x"), i.get("y"), i.get("level"))
             for i in le.findall("sensoricon")
@@ -216,7 +249,6 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
                 ("BS EH-2", "576", "272", "10"),
                 ("BS EH-3", "576", "284", "10"),
                 ("BS Switch 9", "600", "299", "10"),
-                ("BS Switch 35a", "1499", "287", None),
             ],
             placed,
         )

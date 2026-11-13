@@ -103,8 +103,10 @@ OS_OCCUPANCY_ICONS = {
 # Engine house: one lamp just east of each bumper (x=573), centred vertically
 # on its spur (y 266 / 277 / 289), clear of the Switch 9 and 11 circles.
 CLUSTER_LAMP_LEVEL = "12"
+# Fixed spots that win over the computed ones (owner-approved 2026-11-12/13).
+# Every other Stage 1 lamp is placed by stage1_lamp_targets(): a switch's OS
+# lamp centred in its turnout circle, a track's lamp centred on the track.
 STAGE1_LAMP_PLACEMENTS = {
-    "BS Switch 35a": (1499, 287),
     "BS EH-1": (576, 261),
     "BS EH-2": (576, 272),
     "BS EH-3": (576, 284),
@@ -379,18 +381,107 @@ def ensure_os_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list
     return changes, errors
 
 
-def place_stage1_lamps(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
+LAMP_SIZE = 10  # circuit-*.gif is 10x10; x/y is its top-left corner
+
+
+def _segment_ends(le: ET.Element) -> list[tuple[str, tuple[float, float], tuple[float, float], bool, str]]:
+    """(block, end1, end2, curved, ident) for each track segment."""
+    points = {
+        pt.get("ident"): (float(pt.get("x")), float(pt.get("y")))
+        for pt in le.findall("positionablepoint")
+    }
+    turnouts = {to.get("ident"): to for to in le.findall("layoutturnout")}
+
+    def end(name: str | None, kind: str | None) -> tuple[float, float] | None:
+        if name in points:
+            return points[name]
+        to = turnouts.get(name or "")
+        if to is None:
+            return None
+        leg = {"TURNOUT_A": "a", "TURNOUT_B": "b", "TURNOUT_C": "c", "TURNOUT_D": "d"}.get(kind or "")
+        if leg and to.get(f"x{leg}") is not None:
+            return float(to.get(f"x{leg}")), float(to.get(f"y{leg}"))
+        return float(to.get("xcen")), float(to.get("ycen"))
+
+    out = []
+    for ts in le.findall("tracksegment"):
+        a = end(ts.get("connect1name"), ts.get("type1"))
+        b = end(ts.get("connect2name"), ts.get("type2"))
+        if a is None or b is None:
+            continue
+        curved = "yes" in (ts.get("arc"), ts.get("bezier"), ts.get("circle"))
+        out.append((ts.get("blockname") or "", a, b, curved, ts.get("ident") or ""))
+    return out
+
+
+def stage1_lamp_targets(root: ET.Element, le: ET.Element) -> dict[str, tuple[int, int]]:
+    """Where each Stage 1 occupancy lamp belongs, from the panel geometry.
+
+    A sensor whose block is a switch's OS block goes in the centre of that
+    turnout circle. Otherwise it goes in the middle of the longest straight
+    segment of its track, leaving out hidden throat blocks that share it.
+    """
+    blocks_by_sensor: dict[str, list[str]] = {}
+    throats: set[str] = set()
+    for blocks in root.findall("blocks"):
+        for block in blocks.findall("block"):
+            sensor = (block.findtext("occupancysensor") or "").strip()
+            name = (block.findtext("userName") or "").strip()
+            if not sensor or not name:
+                continue
+            blocks_by_sensor.setdefault(sensor, []).append(name)
+            if "throat" in (block.findtext("comment") or "").lower():
+                throats.add(name)
+    turnout_by_block: dict[str, ET.Element] = {}
+    for to in le.findall("layoutturnout"):
+        for attr in ("blockname", "blocknameb", "blocknamec", "blocknamed"):
+            if to.get(attr):
+                turnout_by_block.setdefault(to.get(attr), to)
+    segments = _segment_ends(le)
+    half = LAMP_SIZE / 2
+    targets: dict[str, tuple[int, int]] = {}
+    for sensor, names in blocks_by_sensor.items():
+        os_blocks = [n for n in names if n in turnout_by_block]
+        if os_blocks:
+            to = turnout_by_block[os_blocks[0]]
+            cx, cy = float(to.get("xcen")), float(to.get("ycen"))
+        else:
+            mains = [n for n in names if n not in throats] or names
+            pieces = [seg for seg in segments if seg[0] in mains]
+            if not pieces:
+                continue
+            straight = [seg for seg in pieces if not seg[3]] or pieces
+            _b, a, b, _c, _i = max(
+                straight, key=lambda seg: ((seg[1][0] - seg[2][0]) ** 2 + (seg[1][1] - seg[2][1]) ** 2, seg[4])
+            )
+            cx, cy = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+        targets[sensor] = (round(cx - half), round(cy - half))
+    targets.update(STAGE1_LAMP_PLACEMENTS)
+    return targets
+
+
+def _is_circuit_lamp(icon: ET.Element) -> bool:
+    active = icon.find("active")
+    return active is not None and "circuit-" in (active.get("url") or "")
+
+
+def place_stage1_lamps(
+    le: ET.Element, *, check: bool, root: ET.Element | None = None
+) -> tuple[int, list[str]]:
     """Move Stage 1 occupancy lamps off turnout circles and other icons.
 
     One lamp per sensor: extra Stage 1 copies are removed, so they never end
     up stacked on the placed spot.
     """
+    targets = STAGE1_LAMP_PLACEMENTS if root is None else stage1_lamp_targets(root, le)
     changes = 0
     errors: list[str] = []
     placed: set[str] = set()
     for icon in le.findall("sensoricon"):
         name = (icon.get("sensor") or "").strip()
-        if name not in STAGE1_LAMP_PLACEMENTS or icon.get("level") == CLUSTER_LAMP_LEVEL:
+        if name not in targets or icon.get("level") == CLUSTER_LAMP_LEVEL:
+            continue
+        if root is not None and not _is_circuit_lamp(icon):
             continue
         if name in placed:
             if check:
@@ -400,7 +491,7 @@ def place_stage1_lamps(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
                 changes += 1
             continue
         placed.add(name)
-        x, y = STAGE1_LAMP_PLACEMENTS[name]
+        x, y = targets[name]
         if _same_number(icon.get("x"), x) and _same_number(icon.get("y"), y):
             continue
         if check:
@@ -413,8 +504,17 @@ def place_stage1_lamps(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
     return changes, errors
 
 
-def dedupe_shared_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
-    """Keep one circuit-occupied.gif per shared occupancy sensor."""
+def dedupe_shared_occupancy_icons(
+    le: ET.Element, *, check: bool, keep: dict[str, tuple[int, int]] | None = None
+) -> tuple[int, list[str]]:
+    """Keep one circuit-occupied.gif per shared occupancy sensor.
+
+    keep gives the spot to keep (the computed lamp target); it defaults to
+    SHARED_OCCUPANCY_KEEP.
+    """
+    keep_spots = dict(SHARED_OCCUPANCY_KEEP)
+    if keep:
+        keep_spots.update({name: keep[name] for name in keep_spots if name in keep})
     changes = 0
     errors: list[str] = []
     by_name: dict[str, list[ET.Element]] = {}
@@ -423,10 +523,10 @@ def dedupe_shared_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, 
         # The level-12 lamp in the Dispatcher station cluster shares the sensor
         # and belongs to reconcile_dispatcher_stations.py; only Stage 1 copies
         # are deduplicated here.
-        if name in SHARED_OCCUPANCY_KEEP and icon.get("level") != CLUSTER_LAMP_LEVEL:
+        if name in keep_spots and icon.get("level") != CLUSTER_LAMP_LEVEL:
             by_name.setdefault(name, []).append(icon)
     for name, icons in by_name.items():
-        keep_x, keep_y = SHARED_OCCUPANCY_KEEP[name]
+        keep_x, keep_y = keep_spots[name]
         keepers = [
             icon
             for icon in icons
@@ -692,11 +792,13 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
                 icon.set(attr, value)
                 changes += 1
 
-    lamp_n, lamp_errors = place_stage1_lamps(le, check=check)
+    lamp_n, lamp_errors = place_stage1_lamps(le, check=check, root=doc.root)
     changes += lamp_n
     errors.extend(f"{path.name}: {e}" for e in lamp_errors)
 
-    shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check)
+    shared_n, shared_errors = dedupe_shared_occupancy_icons(
+        le, check=check, keep=stage1_lamp_targets(doc.root, le)
+    )
     changes += shared_n
     errors.extend(shared_errors)
 
@@ -714,7 +816,7 @@ def apply_block_labels_only(path: Path, *, check: bool) -> tuple[int, list[str]]
     doc = tables.load(path)
     le = find_layout_editor(doc.root)
     changes, errors = ensure_block_contents_visible(le, check=check)
-    lamp_n, lamp_errors = place_stage1_lamps(le, check=check)
+    lamp_n, lamp_errors = place_stage1_lamps(le, check=check, root=doc.root)
     changes += lamp_n
     errors.extend(f"{path.name}: {e}" for e in lamp_errors)
     if check or not changes:
