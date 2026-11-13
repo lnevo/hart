@@ -637,10 +637,37 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
     def cost(xs):
         return sum(w * (xs[v] - xs[u]) for u, v, w in weight)
 
+    # switches joined by short links (a yard ladder, a crossover) also move as one block, and so does
+    # each part of such a group either side of any one of its links
+    links = [(s["src"][0], s["dst"][0]) for s in strands.values()
+             if s["cm"] < 60 and nodes[s["src"][0]]["kind"] in JUNCTION and nodes[s["dst"][0]]["kind"] in JUNCTION]
+
+    def groups(pairs):
+        root = {n: n for n in nodes}
+
+        def top(n):
+            while root[n] != n:
+                root[n] = root[root[n]]
+                n = root[n]
+            return n
+
+        for u, v in pairs:
+            root[top(u)] = top(v)
+        out = collections.defaultdict(list)
+        for n in nodes:
+            out[top(n)].append(n)
+        return {tuple(sorted(g)) for g in out.values() if len(g) > 1}
+
+    blocks = groups(links)
+    for i in range(len(links)):
+        blocks |= groups(links[:i] + links[i + 1:])
+    blocks = sorted(blocks)
+
     def push(xs, n, step):
         new = dict(xs)
-        new[n] += step
-        todo = [n]
+        todo = list(n) if isinstance(n, tuple) else [n]
+        for m in todo:
+            new[m] += step
         while todo:
             k = todo.pop()
             if step > 0:
@@ -655,7 +682,7 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
                         todo.append(u)
         return new
 
-    x, _ = descend(x, sorted(nodes), push, cost)
+    x, _ = descend(x, sorted(nodes) + blocks, push, cost)
     return x, need
 
 
