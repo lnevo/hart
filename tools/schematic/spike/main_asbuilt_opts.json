@@ -200,5 +200,11 @@
   "Main",
   "Upper"
  ],
- "equal_width": true
+ "equal_width": true,
+ "band_width": {
+  "Main": 0.86
+ },
+ "band_align": {
+  "Main": "right"
+ }
 }

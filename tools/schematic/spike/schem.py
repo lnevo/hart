@@ -1216,7 +1216,8 @@ def draw_page(bands, opts, out):
             title, band, o, w, _ = item
             key = (title or " ").split()[0]
             cell = o.get("band_cell", {}).get(key, o["cell"])
-            factor = min(2.5, widest / max(w, 1))
+            share = opts.get("band_width", {}).get(key, 1.0)        # owner's hint: this band a little narrower
+            factor = min(2.5, widest * share / max(w, 1))
             item[2] = dict(o, band_cell=dict(o.get("band_cell", {}), **{key: cell * factor}))
             _, w2, bottom = draw_band(band, title, item[2], 0, 0)
             item[3], item[4] = w2 - 110, bottom
@@ -1226,7 +1227,10 @@ def draw_page(bands, opts, out):
     scale = min(1.0, (pw - 2 * m) / total_w, (ph - top - foot) / total_h)
     body, y = [], 30
     for title, band, o, w, h in sized:
-        part, _, _ = draw_band(band, title, o, y, (total_w - w) / 2 - 20)
+        side = opts.get("band_align", {}).get((title or " ").split()[0], "centre")
+        room = total_w - 120 - w
+        left = 40 + {"left": 0, "right": room}.get(side, room / 2)
+        part, _, _ = draw_band(band, title, o, y, left)
         body += part
         y += h + gap
     ox = (pw - total_w * scale) / 2
