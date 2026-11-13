@@ -6,6 +6,7 @@
 - Single remote: `origin` → `https://github.com/lnevo/hart.git`  
 - `main` is protected on GitHub: PRs and a passing `check` job are required, no force-push or deletion. The owner can bypass this.  
 - Secrets never commit: `.env.local`, credentials, private keys.
+- `archive/` stays in the tree but `.ignore` hides it from ripgrep (and tools that honour it); search it with `rg --no-ignore <term> archive`.
 
 ## Branch naming
 
