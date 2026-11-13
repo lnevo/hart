@@ -54,6 +54,8 @@ sharing the detector of its track (the track's own row carries the real length).
 | Track S-4 East | BS S-4 | 15.748 | 400.0 | stub | hidden throat of Track S-4; same detector; not a station |
 | Track S-R West | BS S-R | 15.748 | 400.0 | stub | hidden throat of Track S-R; same detector; not a station |
 | Track S-R East | BS S-R | 15.748 | 400.0 | stub | hidden throat of Track S-R; same detector; not a station |
+| Track East Lead East | BS East Lead | 15.748 | 400.0 | stub | hidden throat of Track East Lead; same detector; not a station; Dispatcher rear mast 36L |
+| Track K-1 West | BS K-1 | 15.748 | 400.0 | stub | hidden throat of Track K-1; same detector; not a station; Dispatcher rear mast 40RB |
 
 ## Switch (OS) blocks
 

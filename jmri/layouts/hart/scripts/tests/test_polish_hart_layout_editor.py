@@ -139,6 +139,14 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         self.assertEqual(("600", "269"), spots["OS Switch 9"])
         self.assertEqual((0, []), polish.ensure_block_contents_visible(le, check=True))
 
+    def test_south_yard_track_names_are_labelled_once(self):
+        le = ET.fromstring('<LayoutEditor name="HART Railroad"><positionablelabel text="Track S-1" x="1" y="1" /></LayoutEditor>')
+        self.assertEqual(len(polish.TRACK_NAME_LABELS), len(polish.ensure_track_name_labels(le, check=True)[1]))
+        polish.ensure_track_name_labels(le, check=False)
+        spots = sorted((l.get("text"), l.get("x"), l.get("y")) for l in le.findall("positionablelabel"))
+        self.assertEqual(sorted((t, str(x), str(y)) for t, (x, y) in polish.TRACK_NAME_LABELS.items()), spots)
+        self.assertEqual((0, []), polish.ensure_track_name_labels(le, check=True))
+
     def test_shared_occupancy_dedupe_keeps_body_dot(self):
         xml = """<?xml version='1.0' encoding='UTF-8'?>
         <layout-config>
