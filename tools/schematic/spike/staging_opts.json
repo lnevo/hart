@@ -1,0 +1,245 @@
+{
+ "title": [
+  "Staging level",
+  "Schematic diagram",
+  "From the AnyRail plan, as built"
+ ],
+ "left_end": "W-1",
+ "stations": {
+  "Brick": [
+   "1",
+   "3"
+  ],
+  "Plane": [
+   "5"
+  ],
+  "Barn": [
+   "7"
+  ],
+  "South Yard": [
+   "15",
+   "17",
+   "19",
+   "21"
+  ],
+  "East End": [
+   "25",
+   "27",
+   "29",
+   "31",
+   "23",
+   "33"
+  ],
+  "Princess": [
+   "35",
+   "37",
+   "39"
+  ]
+ },
+ "edits": [
+  {
+   "op": "relabel",
+   "map": {
+    "T46": "3",
+    "T116": "1",
+    "T106": "5",
+    "T52": "15",
+    "T133": "17",
+    "T73": "19",
+    "T123": "21",
+    "T68": "25",
+    "T95": "27",
+    "T94": "29",
+    "T59": "31",
+    "T77": "33",
+    "T58": "23",
+    "T118": "23",
+    "T55": "35",
+    "T98": "35",
+    "T56": "39",
+    "T129": "37"
+   }
+  },
+  {
+   "op": "remove",
+   "switches": [
+    "T41",
+    "T43"
+   ]
+  },
+  {
+   "op": "crossover",
+   "label": "7",
+   "hand": "L",
+   "sides": [
+    {
+     "on": [
+      "T106",
+      "T52"
+     ],
+     "port": "C",
+     "cm_from_first": 86,
+     "points_toward": "T52",
+     "names": [
+      "Scale",
+      null
+     ]
+    },
+    {
+     "on": [
+      "T106",
+      "T77"
+     ],
+     "port": "B",
+     "cm_from_first": 357,
+     "points_toward": "T106",
+     "names": [
+      "East Main Ext",
+      "Main East"
+     ]
+    }
+   ]
+  },
+  {
+   "op": "switch",
+   "label": "13",
+   "hand": "R",
+   "on": [
+    "7a",
+    "T52"
+   ],
+   "cm_from_first": 61,
+   "points_toward": "T52",
+   "names": [
+    "Barn",
+    null
+   ],
+   "c": {
+    "switch": "11",
+    "hand": "L",
+    "b": {
+     "end": "EH-1"
+    },
+    "c": {
+     "switch": "9",
+     "hand": "L",
+     "b": {
+      "end": "EH-2"
+     },
+     "c": {
+      "end": "EH-3"
+     }
+    }
+   }
+  },
+  {
+   "op": "name",
+   "tracks": [
+    [
+     "T116",
+     "T58",
+     "Main West",
+     "main"
+    ],
+    [
+     "T58",
+     "T55",
+     "West Main Ext",
+     "main"
+    ],
+    [
+     "T52",
+     "T118",
+     "S-R"
+    ],
+    [
+     "T133",
+     "T94",
+     "S-1"
+    ],
+    [
+     "T73",
+     "T95",
+     "S-2"
+    ],
+    [
+     "T123",
+     "T68",
+     "S-4",
+     "B"
+    ],
+    [
+     "T123",
+     "T68",
+     "S-3",
+     "C"
+    ],
+    [
+     "T77",
+     "T98",
+     "East Lead",
+     "main"
+    ],
+    [
+     "T116",
+     "T106",
+     "Brick-Plane",
+     "main"
+    ],
+    [
+     "T56",
+     "T129",
+     [
+      "K-1",
+      "K-2"
+     ]
+    ],
+    [
+     "T106",
+     "7b",
+     "East Main Ext",
+     "main"
+    ],
+    [
+     "7b",
+     "T77",
+     "Main East",
+     "main"
+    ]
+   ]
+  },
+  {
+   "op": "end",
+   "ends": [
+    [
+     "T46",
+     "B",
+     "W-1",
+     "bumper",
+     ""
+    ],
+    [
+     "T46",
+     "C",
+     "W-2",
+     "bumper",
+     ""
+    ],
+    [
+     "T56",
+     "B",
+     "McKees Rocks",
+     "helix",
+     "Main level"
+    ],
+    [
+     "T129",
+     "B",
+     "McKeesport",
+     "helix",
+     "Main level"
+    ]
+   ]
+  }
+ ]
+}

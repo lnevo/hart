@@ -122,9 +122,11 @@ def main(path, out, skip=None, parts_file=None):
                 del nodes[a], nodes[b]
                 joined += 1
     print("joined", joined, "pairs of track ends that met")
+    only = bool(skip) and skip.startswith("+")       # "+Staging" keeps only those blocks; "Staging" leaves them out
     if skip:
-        drop = {n for n, d in nodes.items() if skip in d.get("district", "")}
-        edges = [e for e in edges if e["u"] not in drop and e["v"] not in drop and skip not in e["district"]]
+        text = skip.lstrip("+")
+        drop = {n for n, d in nodes.items() if d["kind"] != "end" and (text in d.get("district", "")) != only}
+        edges = [e for e in edges if e["u"] not in drop and e["v"] not in drop and (text in e["district"]) == only]
     parent = {n: n for n in nodes}
 
     def find(x):
@@ -146,7 +148,7 @@ def main(path, out, skip=None, parts_file=None):
         plan = []
         for i, p in enumerate(json.load(open(parts_file))):
             e = [q for q in p["eps"] if abs(q["x"]) < 5000]
-            if len(e) >= 3 and max(q["z"] for q in e) > -30:      # not the staging level
+            if len(e) >= 3 and (max(q["z"] for q in e) > -30) != only:      # the same levels as were kept
                 plan.append((i, sum(q["x"] for q in e) / len(e), sum(q["y"] for q in e) / len(e), max(q["z"] for q in e)))
         mine = [(n, nodes[n]["xy"][0] / PX_PER_CM, nodes[n]["xy"][1] / PX_PER_CM) for n in order]
         best = (-1, 0, 0)

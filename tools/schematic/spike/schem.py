@@ -498,6 +498,24 @@ class Rows:
         return dict(srow=srow, nrow=nrow, diag=diag, cost=c)
 
     def optimise(self):
+        """Best of several starts, since the step-by-step search can stop at a poor arrangement."""
+        import random
+        rng = random.Random(7)
+        keys = sorted(self.flat)
+        starts = [dict(self.flat), {n: "B" for n in keys}, {n: "C" for n in keys}]
+        starts += [{n: rng.choice("BC") for n in keys} for _ in range(5)]
+        best = None
+        for start in starts:
+            self.flat = dict(start)
+            r = self.optimise_from_here()
+            sc = (self.dropped, r["cost"])
+            if best is None or sc < best[0]:
+                best = (sc, r, dict(self.flat))
+        self.flat = best[2]
+        self.dropped = best[0][0]
+        return best[1]
+
+    def optimise_from_here(self):
         """Choose each switch's level leg: first so that no above/below rule is broken, then for short slopes."""
         self.tolerant = True
 
@@ -626,10 +644,12 @@ def overlaps(nodes, strands, R, x, need, order):
 
 
 # ---------------------------------------------------------------- edits, levels
-def by_label(g, label):
-    hits = [n for n, d in g["nodes"].items() if d.get("label") == label]
+def by_label(g, ref):
+    """A junction by its plan part number (kept as alias) or its label."""
+    hits = [n for n, d in g["nodes"].items() if d.get("alias") == ref]
+    hits = hits or [n for n, d in g["nodes"].items() if d.get("label") == ref and d["kind"] != "end"]
     if len(hits) != 1:
-        raise SystemExit(f"{len(hits)} junctions are labelled {label}")
+        raise SystemExit(f"{len(hits)} junctions answer to {ref}")
     return hits[0]
 
 
@@ -641,36 +661,128 @@ def far(e, n, port):
     return (e["v"], e["vp"]) if (e["u"], e["up"]) == (n, port) else (e["u"], e["up"])
 
 
+def edge_between(g, a, b, port=None):
+    n0, n1 = by_label(g, a), by_label(g, b)
+    hits = [e for e in g["edges"] if {e["u"], e["v"]} == {n0, n1}
+            and (port is None or (e["u"], e["up"]) == (n0, port) or (e["v"], e["vp"]) == (n0, port))]
+    if not hits:
+        raise SystemExit(f"no track between {a} and {b}")
+    return max(hits, key=lambda e: e["cm"]), n0, n1
+
+
+def lift(g, x, p1, p2):
+    """Take switch x out of the run through ports p1 and p2, leaving plain track there."""
+    e1, e2 = edge_at(g, x, p1), edge_at(g, x, p2)
+    a, b = far(e1, x, p1), far(e2, x, p2)
+    g["edges"] = [e for e in g["edges"] if e is not e1 and e is not e2]
+    g["edges"].append(dict(e1, id=e1["id"] + "+" + e2["id"], u=a[0], up=a[1], v=b[0], vp=b[1],
+                           cm=round(e1["cm"] + e2["cm"], 1), names=e1["names"] or e2["names"]))
+
+
+def set_in(g, x, t, n0, cm_from_first, points_toward_first, names=(None, None)):
+    """Set switch x into track t (between n0 and its other end): A toward one end, B toward the other."""
+    end0 = (t["u"], t["up"]) if t["u"] == n0 else (t["v"], t["vp"])
+    end1 = (t["v"], t["vp"]) if t["u"] == n0 else (t["u"], t["up"])
+    at = max(5.0, min(cm_from_first, t["cm"] - 5))
+    g["edges"].remove(t)
+    p0, p1 = ("A", "B") if points_toward_first else ("B", "A")
+    g["edges"].append(dict(t, id=t["id"] + "a", u=end0[0], up=end0[1], v=x, vp=p0, cm=round(at, 1),
+                           names=[names[0]] if names[0] else t["names"]))
+    g["edges"].append(dict(t, id=t["id"] + "b", u=x, up=p1, v=end1[0], vp=end1[1], cm=round(t["cm"] - at, 1),
+                           names=[names[1]] if names[1] else t["names"]))
+
+
+def new_switch(g, label, alias, hand):
+    nid = "NEW:" + alias
+    g["nodes"][nid] = dict(kind="switch", label=label, alias=alias, hand=1 if hand == "R" else -1,
+                           dirs={"A": [-1.0, 0.0], "B": [1.0, 0.0], "C": [1.0, 0.0]})
+    return nid
+
+
+def grow(g, n, port, spec, template, count=[0]):
+    """Build what hangs off a new switch's leg: a track end, or another switch with its own legs."""
+    count[0] += 1
+    if "end" in spec:
+        end = f"END:new{count[0]}"
+        g["nodes"][end] = dict(kind="end", sub=spec.get("sub", "bumper"), label="")
+        g["edges"].append(dict(template, id=f"n{count[0]}", u=n, up=port, v=end, vp="E", names=[spec["end"]],
+                               cm=spec.get("cm", 60.0), link=False, main=False))
+        return
+    x = new_switch(g, spec["switch"], spec.get("alias", spec["switch"]), spec["hand"])
+    g["edges"].append(dict(template, id=f"n{count[0]}", u=n, up=port, v=x, vp="A", names=[], cm=25.0,
+                           link=False, main=False))
+    grow(g, x, "B", spec["b"], template)
+    grow(g, x, "C", spec["c"], template)
+
+
 def apply_edits(g, edits):
-    """As-built changes on top of the plan. Only "move" exists: lift a switch out of one run and set it into another."""
+    """As-built changes and names on top of the plan."""
+    N = g["nodes"]
     for ed in edits:
-        if ed["op"] != "move":
-            raise SystemExit(f"unknown edit {ed['op']}")
-        x = by_label(g, ed["switch"])
-        p1, p2 = ed["through"]
-        leg = next(p for p in "ABC" if p not in (p1, p2))
-        e1, e2, e3 = edge_at(g, x, p1), edge_at(g, x, p2), edge_at(g, x, leg)
-        a, b = far(e1, x, p1), far(e2, x, p2)
-        g["edges"] = [e for e in g["edges"] if e is not e1 and e is not e2]
-        g["edges"].append(dict(e1, id=e1["id"] + "+" + e2["id"], u=a[0], up=a[1], v=b[0], vp=b[1],
-                               cm=round(e1["cm"] + e2["cm"], 1)))
-        if (e3["u"], e3["up"]) == (x, leg):
-            e3["up"] = "C"
+        op = ed["op"]
+        if op == "relabel":         # plan part number -> the railroad's switch number
+            for old, new in ed["map"].items():
+                n = by_label(g, old)
+                N[n]["alias"], N[n]["label"] = old, new
+        elif op == "remove":        # switches that were not built: their straight route stays as track
+            gone = [by_label(g, r) for r in ed["switches"]]
+            for x in gone:
+                c = next((e for e in g["edges"] if (e["u"], e["up"]) == (x, "C") or (e["v"], e["vp"]) == (x, "C")), None)
+                if c is not None:
+                    g["edges"].remove(c)
+                    o = far(c, x, "C")[0]
+                    if N[o]["kind"] == "end":
+                        del N[o]
+            for x in gone:
+                lift(g, x, "A", "B")
+                del N[x]
+        elif op == "move":          # lift a switch out of one run and set it into another
+            x = by_label(g, ed["switch"])
+            p1, p2 = ed["through"]
+            leg = next(p for p in "ABC" if p not in (p1, p2))
+            e3 = edge_at(g, x, leg)
+            lift(g, x, p1, p2)
+            if (e3["u"], e3["up"]) == (x, leg):
+                e3["up"] = "C"
+            else:
+                e3["vp"] = "C"
+            t, n0, _ = edge_between(g, *ed["onto"])
+            set_in(g, x, t, n0, ed["cm_from_first"], False)
+            d = N[x]
+            d["hand"] = {"R": 1, "L": -1}.get(ed.get("hand"), d["hand"])
+            d["z"] = ed.get("z", d.get("z"))
+            d["dirs"] = {"A": [-1.0, 0.0], "B": [1.0, 0.0], "C": [1.0, 0.0]}
+            d["label"] += "*"
+        elif op == "switch":        # a switch that is not in the plan, with whatever hangs off its diverging leg
+            x = new_switch(g, ed["label"], ed.get("alias", ed["label"]), ed["hand"])
+            t, n0, _ = edge_between(g, *ed["on"], ed.get("port"))
+            set_in(g, x, t, n0, ed["cm_from_first"], ed["points_toward"] == ed["on"][0], ed.get("names", (None, None)))
+            grow(g, x, "C", ed["c"], t)
+        elif op == "crossover":     # two new switches joined by their diverging legs
+            ids = []
+            for k, side in enumerate(ed["sides"]):
+                x = new_switch(g, ed["label"], ed["label"] + "ab"[k], ed["hand"])
+                t, n0, _ = edge_between(g, *side["on"], side.get("port"))
+                set_in(g, x, t, n0, side["cm_from_first"], side["points_toward"] == side["on"][0],
+                       side.get("names", (None, None)))
+                ids.append(x)
+            g["edges"].append(dict(id="x" + ed["label"], u=ids[0], up="C", v=ids[1], vp="C", names=[], cm=0.0,
+                                   main=False, link=True))
+        elif op == "name":          # track names, and which tracks are main
+            for a, b, name, *rest in ed["tracks"]:
+                t, n0, _ = edge_between(g, a, b, rest[0] if rest and rest[0] in "ABC" else None)
+                names = name if isinstance(name, list) else [name]
+                t["names"] = names if t["u"] == n0 else names[::-1]
+                t["main"] = "main" in rest
+        elif op == "end":           # what a track end is: found from the switch and port it hangs off
+            for ref, port, name, sub, to in ed["ends"]:
+                n = by_label(g, ref)
+                t = edge_at(g, n, port)
+                e = far(t, n, port)[0]
+                t["names"], t["main"] = [name], sub == "helix"
+                N[e].update(sub=sub, to=to)
         else:
-            e3["vp"] = "C"
-        n0, n1 = by_label(g, ed["onto"][0]), by_label(g, ed["onto"][1])
-        t = max((e for e in g["edges"] if {e["u"], e["v"]} == {n0, n1}), key=lambda e: e["cm"])
-        end0 = (t["u"], t["up"]) if t["u"] == n0 else (t["v"], t["vp"])
-        end1 = (t["v"], t["vp"]) if t["u"] == n0 else (t["u"], t["up"])
-        at = min(ed["cm_from_first"], t["cm"] - 10)
-        g["edges"].remove(t)
-        g["edges"].append(dict(t, id=t["id"] + "a", u=end0[0], up=end0[1], v=x, vp="B", cm=round(at, 1)))
-        g["edges"].append(dict(t, id=t["id"] + "b", u=x, up="A", v=end1[0], vp=end1[1], cm=round(t["cm"] - at, 1)))
-        d = g["nodes"][x]
-        d["hand"] = ed.get("hand", d["hand"])
-        d["z"] = ed.get("z", d.get("z"))
-        d["dirs"] = {"A": [-1.0, 0.0], "B": [1.0, 0.0], "C": [1.0, 0.0]}
-        d["label"] += "*"
+            raise SystemExit(f"unknown edit {op}")
 
 
 def split_levels(g, spec):

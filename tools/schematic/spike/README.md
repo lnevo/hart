@@ -21,6 +21,12 @@ How `schem.py` works:
 `export_reader.py` reads AnyRail's "export to JMRI" XML, which is the better input: it holds the double
 crossover and every turnout, and only track. It has no heights; those still come from the `.any` reader.
 
+Staging is now drawn from the AnyRail export too, not from the Layout Editor panel (owner's choice,
+2026-11-13): `export_reader.py plan.xml staging.json +Staging parts.json`, then the as-built edits in
+`staging_opts.json` (relabel plan parts to switch numbers, drop the unbuilt crossover T41/T43, add the
+Switch 7 crossover, Switch 13 and the engine terminal, name the tracks). Sample: `staging_sample.svg`.
+`le_reader.py` and `built_opts.json` remain as a cross-check against the panel.
+
 `system.py` puts staging, the main level and the upper level on one sheet in route order from the bottom up
 (sample in `system_sample.svg`). Each band's helix tracks end in a HELIX box and carry the same track names on
 both levels; the pairing of the main level's two helix tracks with McKees Rocks and McKeesport is inferred

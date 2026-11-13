@@ -1,4 +1,4 @@
-"""system.py <built.json> <built_opts.json> <main.json> <main_opts.json> <out.svg>
+"""system.py <staging.json> <staging_opts.json> <main.json> <main_opts.json> <out.svg>
 
 Stage 0 spike: staging, main and upper level as three bands on one sheet, in route order from the bottom up.
 """
@@ -28,12 +28,8 @@ def main(built, built_opts, main_graph, main_opts, out):
         bands.append((title, band, mo))
         print(title, len(schem.faults(band)), "drawing faults", w)
 
-    g = json.load(open(built))
-    for e in g["edges"]:
-        for n in (e["u"], e["v"]):
-            for nm in e["names"]:
-                if nm in bo["ends"] and g["nodes"][n]["kind"] == "end":
-                    g["nodes"][n].update(sub="helix", to="Main level")
+    g = json.load(open(built))              # staging: the plan's own track with the as-built edits
+    schem.apply_edits(g, bo["edits"])
     w = []
     band = schem.layout(g, bo, w)
     bands.append(("Staging level", band, bo))
