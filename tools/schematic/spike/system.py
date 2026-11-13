@@ -12,10 +12,22 @@ import layers
 import schem
 
 
-def main(built, main_graph, out, preferences=True, hints=True, data=layers.DATA):
+def options(preferences=True, hints=True, data=layers.DATA):
+    """(staging options, main and upper options) with the layers asked for."""
     bo = dict(schem.DEFAULTS, **layers.load("staging", preferences, hints, data))
     mo = dict(schem.DEFAULTS, **layers.load("main_upper", preferences, hints, data))
     bo["helix_style"] = mo["helix_style"] = mo.get("helix_style", "box")
+    return bo, mo
+
+
+def main(built, main_graph, out, preferences=True, hints=True, data=layers.DATA):
+    bo, mo = options(preferences, hints, data)
+    bands = build_bands(built, main_graph, bo, mo)
+    schem.draw_page(bands, dict(mo, title=mo.get("system_title", mo["title"])), out)
+
+
+def build_bands(built, main_graph, bo, mo):
+    """The three drawn bands, top to bottom: [(title, band, options)]."""
     bands = []
     tracks = sorted(set(mo.get("helix", {}).values()))      # H1, H2 ... mean the same track on every band
     bo["helix_tracks"] = mo["helix_tracks"] = tracks
@@ -49,7 +61,7 @@ def main(built, main_graph, out, preferences=True, hints=True, data=layers.DATA)
 
     rank = {w: i for i, w in enumerate(mo.get("band_order", ["Upper", "Main", "Staging"]))}   # top to bottom
     bands.sort(key=lambda b: rank.get(b[0].split()[0], 9))
-    schem.draw_page(bands, dict(mo, title=mo.get("system_title", mo["title"])), out)
+    return bands
 
 
 if __name__ == "__main__":
