@@ -1,7 +1,7 @@
 # Schematic maps from a track plan
 
 - **Owner:** lnevo
-- **Status:** Plan (2026-11-13). Nothing built yet. Stage 0 is next.
+- **Status:** Stage 0 in progress (2026-11-13). The spike in [`tools/schematic/spike/`](../../tools/schematic/spike/README.md) draws the built staging level from the Layout Editor panel with no hand placement; the AnyRail groups do not draw cleanly yet.
 - **Goal:** turn an AnyRail plan into a logical (not physical) view of the railroad and draw professional maps from it. First output: the one-page system schematic. The same logical view later feeds station map pages, deck track maps, the CATS panel and the Layout Editor import for the main levels.
 
 The generic tool and its skill go in the public `model-railroad-skills` plugin. HART's names, numbers and finished maps stay in this repo.
@@ -90,10 +90,14 @@ Stages 1 and 3 can start at once and run beside stage 0. Stages 2 and 4 wait for
 - CATS Designer's grid limits, so step 4's output can seed a panel.
 - The "Drawing with SAT" paper in full, for its list of what makes a schematic readable.
 
+## Answers from the owner (2026-11-13)
+
+- Plan 5.3b is the full plan. The staging level and the helix are built; the helix is done to its top turn, and the McKees Rocks and McKeesport stubs are its two tracks today.
+- Exports of the owner's track plan may be public. The custom objects and buildings in the plan may not: their author holds the copyright.
+- Capacity: not yet. The drawing leaves a place for it.
+- Page: Letter landscape.
+
 ## Open questions for the owner
 
-1. **Plan file.** Is 5.3b the plan for the main levels, or the "Full Size Print Master" files per level? And which level is the 12-turnout group at height 2.5?
-2. **Direction.** Which way is timetable east on each main level, and where do the levels join (helix top and bottom, any ramp)?
-3. **Public example.** The plugin needs a plan it can publish. Either the owner draws a small made-up plan in AnyRail, or the tests use a hand-written track graph and AnyRail's XML export of the built level.
-4. **Capacity.** Show car capacity on the track (NYAMR, in 50-foot cars) or leave it for the station pages? Which car length?
-5. **Page.** Letter landscape for the paperwork, or a larger sheet for the wall as well?
+1. **Direction.** Which way is timetable east on each main level?
+2. **The 12-turnout group** at height 2.5 in the plan: which part of the railroad is it?
