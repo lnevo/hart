@@ -8,10 +8,16 @@
 # panels?", buttons No / Yes / Cancel). Any other modal dialog is left alone and reported,
 # and the script exits 4 so a person looks at it. It never stores and publishes nothing.
 #
+# With --for-deploy, a successful quit leaves ~/.hart_panelpro_quit_for_deploy on the Pi
+# and the next Pi deploy within 2 h starts PanelPro again (sync_hart_package.sh,
+# pi/panelpro_restart_due.sh). A plain quit (end of a session, before ops-pull) leaves no
+# marker, so PanelPro stays closed. Not running → no marker.
+#
 # Exit: 0 quit (or not running) · 1 still running after the wait · 2 watcher not ready or a
 # command already pending · 3 the dropped Jython failed · 4 another dialog appeared.
 #
 # Usage: tools/hosts/pi_quit_panelpro.sh            (host from HART_PI_SSH, default "pi")
+#        tools/hosts/pi_quit_panelpro.sh --for-deploy  (quit before a Pi deploy, which restarts it)
 #        tools/hosts/pi_quit_panelpro.sh --print    (print the Jython it would drop, no ssh)
 set -euo pipefail
 source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
@@ -97,15 +103,19 @@ for _ in range(WAIT_S * 2):
 RESULT = "done"
 PY
 
+FOR_DEPLOY=0
+if [[ "${1:-}" == "--for-deploy" ]]; then
+  FOR_DEPLOY=1
+fi
 if [[ "${1:-}" == "--print" ]]; then
   printf '%s\n' "$JYTHON"
   exit 0
 fi
 
 ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" bash -s -- \
-  "$PROFILE" "$WAIT_S" "$(printf '%s\n' "$JYTHON" | base64 | tr -d '\n')" <<'REMOTE'
+  "$PROFILE" "$WAIT_S" "$(printf '%s\n' "$JYTHON" | base64 | tr -d '\n')" "$FOR_DEPLOY" <<'REMOTE'
 set -euo pipefail
-profile="$1"; wait_s="$2"; jython_b64="$3"
+profile="$1"; wait_s="$2"; jython_b64="$3"; for_deploy="$4"
 CMD=/tmp/jmri_cmd.py OUT=/tmp/jmri_cmd.out READY=/tmp/jmri_watcher.ready LOG=/tmp/pi_quit_panelpro.log
 pid=$(pgrep -f "[o]rg.jmri.profile=$profile" | head -1 || true)
 if [[ -z "$pid" ]]; then
@@ -137,7 +147,12 @@ done
 if [[ -e "$CMD" ]]; then rm -f "$CMD"; echo "removed the unread $CMD" >&2; fi
 cat "$LOG" 2>/dev/null || true
 case "$status" in
-  0) echo "PanelPro quit on the Pi." ;;
+  0) if [[ "$for_deploy" == 1 ]]; then
+       date -Is > "$HOME/.hart_panelpro_quit_for_deploy"
+       echo "PanelPro quit on the Pi (the Pi deploy starts it again)."
+     else
+       echo "PanelPro quit on the Pi."
+     fi ;;
   3) cat "$OUT" 2>/dev/null >&2 || true; echo "The quit command failed; see above." >&2 ;;
   4) echo "PanelPro showed another dialog (above); a person needs to answer it." >&2 ;;
   *) echo "PanelPro is still running on the Pi after ${wait_s} s." >&2 ;;

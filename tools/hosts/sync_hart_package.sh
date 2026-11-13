@@ -55,6 +55,9 @@ if [[ $# -gt 0 ]]; then
         echo "  --stage-only DIR: build the host packages into DIR/pi and DIR/win and stop."
         echo "                    No ssh, no Mac install, and the repo's tables.xml is only checked."
         echo "  What a host last got: tools/hosts/deploy_status.sh [--pi] [--win] [--mac]"
+        echo "  Pi PanelPro: quit it first with tools/hosts/pi_quit_panelpro.sh --for-deploy;"
+        echo "               the Pi deploy starts it again (also if the deploy fails). A plain"
+        echo "               quit or one closed by hand stays closed. HART_PI_RESTART=0 skips."
         exit 0
         ;;
       *) echo "Unknown option: $1" >&2; exit 1 ;;
@@ -456,10 +459,30 @@ if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   echo "deploy stamp -> ${HOME}/JMRI_UserFiles/cats/deploy_stamp.txt"
 fi
 
+# PanelPro quit for this deploy (pi_quit_panelpro.sh --for-deploy leaves a marker) comes
+# back up, also when the Pi step fails. panelpro_restart_due.sh drops a stale marker and
+# never starts PanelPro next to CATS. One closed by hand stays closed. HART_PI_RESTART=0
+# skips it.
+pi_restart_if_due() {
+  [[ "$DRY_RUN" -eq 0 && "${HART_PI_RESTART:-1}" != "0" ]] || return 0
+  local due
+  due="$(ssh_pi "bash -s" < "$ROOT/tools/hosts/pi/panelpro_restart_due.sh")" || due="unknown"
+  case "$due" in
+    yes)
+      echo "Starting PanelPro on the Pi again (it was quit for this deploy)..."
+      bash "$ROOT/tools/hosts/pi_start_panelpro.sh" \
+        || echo "PanelPro did not start on the Pi; run tools/hosts/pi_start_panelpro.sh" >&2 ;;
+    running) echo "Note: JMRI was running on the Pi during the deploy; restart it to load the new files." >&2 ;;
+    stale) echo "The PanelPro quit-for-deploy marker on the Pi was over 2 h old; leaving PanelPro closed." ;;
+    no) ;;
+    *) echo "Could not check whether to start PanelPro on the Pi; run tools/hosts/pi_start_panelpro.sh if it should be up." >&2 ;;
+  esac
+}
+
 if [[ "$DO_PI" -eq 1 ]]; then
   echo "Deploy → Pi ($PI_HOST) via rsync..."
   STAGE=$(mktemp -d)
-  trap 'rm -rf "$STAGE"' EXIT
+  trap 'rm -rf "$STAGE"; pi_restart_if_due' EXIT
   stage_package "$STAGE" "$PI_USERFILES" pi
   PI_DROP="/tmp/hart-deploy.dry-run"
   if [[ "$DRY_RUN" -eq 0 ]]; then
@@ -467,12 +490,14 @@ if [[ "$DO_PI" -eq 1 ]]; then
   fi
   push_rsync "$STAGE" "${PI_HOST}:${PI_DROP}/"
   rm -rf "$STAGE"
-  trap - EXIT
+  trap pi_restart_if_due EXIT
   if [[ "$DRY_RUN" -eq 0 ]]; then
     # JMRI_USERFILES: the apply installs where the panel paths and the stamp say (HART_PI_USERFILES).
     ssh_pi "HART=${PI_DROP} JMRI_USERFILES='${PI_USERFILES}' HART_OVERWRITE_OPS=${HART_OVERWRITE_OPS} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
   fi
   echo "Pi deploy done."
+  trap - EXIT
+  pi_restart_if_due
 fi
 
 if [[ "$DO_WIN" -eq 1 ]]; then
