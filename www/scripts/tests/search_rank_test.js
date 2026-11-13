@@ -48,10 +48,17 @@ assert.strictEqual(labels("2738")[0], "Best match");
 assert(["NVL", "NVL local"].includes(top("NVL", 1)[0]), "NVL " + top("NVL"));
 assert.strictEqual(top("yM-01", 1)[0], "YM-01");
 assert.strictEqual(top("TT-23", 1)[0], "TT-23");
-// b&o: rolling stock may lead, the Pages group still appears
+// b&o: rolling stock is the lowest priority: it never leads for a road name and its group comes last
 {
   const l = labels("b&o");
   assert(l.includes("Rolling stock") && l.includes("Pages & articles"), l.join());
+  assert.strictEqual(l[l.length - 1], "Rolling stock", l.join());
+  assert(!S.rank(P, "b&o").groups.some((g) => g.id === "best" && g.items.some((r) => ["car", "locomotive", "mow"].includes(r.kind))));
+}
+// rolling stock is last in every grouped result
+for (const q of ["coke", "hopper", "b&o"]) {
+  const l = labels(q);
+  if (l.includes("Rolling stock")) assert.strictEqual(l[l.length - 1], "Rolling stock", q + ": " + l.join());
 }
 // several groups are headed
 assert(labels("coke").length >= 3);

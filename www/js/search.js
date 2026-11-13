@@ -59,11 +59,12 @@
     return s;
   }
 
-  // Kind weights: articles and pages outrank the long tail of rolling stock and photos.
+  // Kind weights: articles and pages outrank photos, and rolling stock is the lowest of all (owner's call).
   var WEIGHT = {
     article: 1.2, page: 1.0, term: 0.9, industry: 0.9, crew: 0.9,
-    car: 0.6, locomotive: 0.6, mow: 0.6, photo: 0.5, archive: 0.5,
+    photo: 0.5, archive: 0.5, car: 0.3, locomotive: 0.3, mow: 0.3,
   };
+  var STOCK = ["car", "locomotive", "mow"];
   // Result groups, in tie-break order. Groups are then ordered by their best weighted score.
   var GROUPS = [
     { id: "pages", label: "Pages & articles", kinds: ["article", "page"] },
@@ -128,8 +129,11 @@
     var rest = [];
     // Only the best few exact hits lead; a query like "b&o" is a whole word of dozens of cars, and the
     // rest of those join their own groups so pages and articles are not pushed out.
+    // Rolling stock leads only for a number ("2738"), never for a road name ("b&o").
+    var numeric = /[0-9]/.test(raw);
     hits.forEach(function (h) {
-      (isExact(h.p, raw) && exact.length < GROUP_CAP ? exact : rest).push(h);
+      var lead = isExact(h.p, raw) && (numeric || STOCK.indexOf(h.p.rec.kind) === -1);
+      (lead && exact.length < GROUP_CAP ? exact : rest).push(h);
     });
     var buckets = GROUPS.map(function (g) {
       return { id: g.id, label: g.label, items: [], best: 0, order: 0 };
@@ -141,7 +145,10 @@
     });
     buckets = buckets.filter(function (b) { return b.items.length; });
     buckets.forEach(function (b, i) { b.order = i; });
-    buckets.sort(function (a, b) { return b.best - a.best || a.order - b.order; });
+    // Rolling stock is always the last group, whatever its score.
+    buckets.sort(function (a, b) {
+      return (a.id === "stock") - (b.id === "stock") || b.best - a.best || a.order - b.order;
+    });
     var groups = [];
     if (exact.length) groups.push({ id: BEST.id, label: BEST.label, items: exact });
     groups = groups.concat(buckets);
