@@ -235,6 +235,8 @@ Deploy via SSH (agent does this — no manual batch/Dropbox step):
 ./tools/hosts/sync_hart_package.sh --win   # Windows SSH :2222 (one tarball + apply)
 ./tools/hosts/sync_hart_package.sh --all   # Mac web + Pi + Windows
 ./tools/hosts/sync_hart_package.sh --pi --dry-run
+./tools/hosts/sync_hart_package.sh --stage-only /tmp/pkg   # build the packages only, no ssh
+./tools/hosts/deploy_status.sh --pi --win                # commit each host last got (cats/deploy_stamp.txt)
 ```
 
 Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 2222, with `Subsystem sftp sftp-server.exe` in `C:\ProgramData\ssh\sshd_config`. Deploys copy over SFTP and fall back to legacy `scp -O` with a warning if that line is missing. Its ssh sessions get only the machine PATH; Python 3.12 is a per-user install, so `apply_hart_package_local.ps1` puts the user PATH first, then runs the Start Up retarget with `py -3`, `python` or `python3`, whichever it finds first (Store stubs skipped). With none it warns and skips the retarget rather than failing the deploy.

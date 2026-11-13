@@ -311,3 +311,12 @@ $desk = Join-Path $hart 'cats\scripts\windows\create_cats_desktop.ps1'
 if (Test-Path $desk) {
   & $desk
 }
+
+# Last, so the stamp names a deploy only once everything above has been installed.
+$stamp = Join-Path $hart 'cats\deploy_stamp.txt'
+if (Test-Path $stamp) {
+  $catsHome = Join-Path $env:USERPROFILE 'JMRI_UserFiles\cats'
+  New-Item -ItemType Directory -Force -Path $catsHome | Out-Null
+  Copy-Item $stamp (Join-Path $catsHome 'deploy_stamp.txt') -Force
+  Write-Host ("deploy stamp -> {0}\deploy_stamp.txt" -f $catsHome)
+}

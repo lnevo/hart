@@ -14,11 +14,14 @@
 # Usage: ./tools/hosts/sync_hart_package.sh [--pi] [--win] [--all] [--dry-run] [--stage-only DIR]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-WIN_HOST="${HART_WIN_SSH:-lnevo@minipc-e5h6x.local}"
-WIN_PORT="${HART_WIN_SSH_PORT:-2222}"
-PI_HOST="${HART_PI_SSH:-pi}"
-PI_USERFILES="${HART_PI_USERFILES:-/home/pi/JMRI_UserFiles}"
-WIN_USERFILES="${HART_WIN_USERFILES:-C:/Users/lnevo/JMRI_UserFiles}"
+# Hosts: environment first, then tools/env/hart.env, then the defaults in load_env.sh
+# (the same order the Python tools use through hart_hosts.py).
+source "$ROOT/tools/env/load_env.sh"
+WIN_HOST="$HART_WIN_SSH"
+WIN_PORT="$HART_WIN_SSH_PORT"
+PI_HOST="$HART_PI_SSH"
+PI_USERFILES="$HART_PI_USERFILES"
+WIN_USERFILES="$HART_WIN_USERFILES"
 REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
 DRY_RUN=0
 # The repo is the master of the Operations Pro files (ADR-015). 0 restores the guards.
@@ -49,6 +52,7 @@ if [[ $# -gt 0 ]]; then
         echo "  Transfer:    rsync (Pi) / tar+scp (Windows). Not git pull."
         echo "  --stage-only DIR: build the host packages into DIR/pi and DIR/win and stop."
         echo "                    No ssh, no Mac install, and the repo's tables.xml is only checked."
+        echo "  What a host last got: tools/hosts/deploy_status.sh [--pi] [--win] [--mac]"
         exit 0
         ;;
       *) echo "Unknown option: $1" >&2; exit 1 ;;
@@ -66,6 +70,41 @@ if [[ -n "$STAGE_ONLY" ]]; then
   DO_MAC_WEB=0
   DRY_RUN=1
 fi
+
+# What is being shipped: recorded in cats/deploy_stamp.txt on every host this run installs
+# (tools/hosts/deploy_status.sh reads it back). Taken before the gates below touch tables.xml.
+DEPLOY_COMMIT="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo unknown)"
+DEPLOY_BRANCH="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
+DEPLOY_CHANGES="$(git -C "$ROOT" status --porcelain 2>/dev/null || true)"
+DEPLOY_DIRTY=no
+DEPLOY_DIRTY_PATHS=0
+if [[ -n "$DEPLOY_CHANGES" ]]; then
+  DEPLOY_DIRTY=yes
+  DEPLOY_DIRTY_PATHS="$(printf '%s\n' "$DEPLOY_CHANGES" | wc -l | tr -d ' ')"
+  {
+    echo "WARNING: this checkout has $DEPLOY_DIRTY_PATHS uncommitted or untracked path(s)."
+    echo "  The hosts get files that are not in commit ${DEPLOY_COMMIT:0:12} ($DEPLOY_BRANCH); the stamp says dirty=yes."
+    printf '%s\n' "$DEPLOY_CHANGES" | head -10 | sed 's/^/    /'
+    [[ "$DEPLOY_DIRTY_PATHS" -le 10 ]] || echo "    ..."
+  } >&2
+fi
+DEPLOY_DATE="$(date +%Y-%m-%dT%H:%M:%S%z)"
+DEPLOY_FROM="$(hostname -s 2>/dev/null || hostname)"
+
+# write_deploy_stamp FILE TARGET: key=value lines, one per fact.
+write_deploy_stamp() {
+  mkdir -p "$(dirname "$1")"
+  cat >"$1" <<STAMP
+# Layout deploy stamp, written by tools/hosts/sync_hart_package.sh. Read it with tools/hosts/deploy_status.sh.
+commit=$DEPLOY_COMMIT
+branch=$DEPLOY_BRANCH
+dirty=$DEPLOY_DIRTY
+dirty_paths=$DEPLOY_DIRTY_PATHS
+date=$DEPLOY_DATE
+deployed_from=$DEPLOY_FROM
+target=$2
+STAMP
+}
 
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 ssh_pi() { ssh "${SSH_OPTS[@]}" "$PI_HOST" "$@"; }
@@ -270,6 +309,7 @@ install_ctc_icons_local() {
 stage_package() {
   local stage="$1"
   local user_files="$2"
+  local target="$3"
   rm -rf "$stage"
   mkdir -p \
     "$stage/cats/panels" \
@@ -340,6 +380,8 @@ stage_package() {
   mkdir -p "$stage/operations"
   cp -f "$ROOT/jmri/layouts/hart/operations/"*.xml "$stage/operations/"
   chmod +x "$stage/cats/scripts/pi/"*.sh "$stage/cats/scripts/"*.sh 2>/dev/null || true
+  # The host apply scripts install this last, so it only changes once a deploy has finished.
+  write_deploy_stamp "$stage/cats/deploy_stamp.txt" "$target"
 }
 
 push_rsync() {
@@ -373,11 +415,11 @@ push_tar_scp() {
 if [[ -n "$STAGE_ONLY" ]]; then
   mkdir -p "$STAGE_ONLY"
   if [[ "$DO_PI" -eq 1 ]]; then
-    stage_package "$STAGE_ONLY/pi" "$PI_USERFILES"
+    stage_package "$STAGE_ONLY/pi" "$PI_USERFILES" pi
     echo "Pi package -> $STAGE_ONLY/pi"
   fi
   if [[ "$DO_WIN" -eq 1 ]]; then
-    stage_package "$STAGE_ONLY/win" "$WIN_USERFILES"
+    stage_package "$STAGE_ONLY/win" "$WIN_USERFILES" win
     echo "Windows package -> $STAGE_ONLY/win"
   fi
   echo "DONE (stage only)"
@@ -393,13 +435,15 @@ if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   install_cats_panels_local
   install_ctc_icons_local
   install_jython_scripts
+  write_deploy_stamp "${HOME}/JMRI_UserFiles/cats/deploy_stamp.txt" mac
+  echo "deploy stamp -> ${HOME}/JMRI_UserFiles/cats/deploy_stamp.txt"
 fi
 
 if [[ "$DO_PI" -eq 1 ]]; then
   echo "Deploy → Pi ($PI_HOST) via rsync..."
   STAGE=$(mktemp -d)
   trap 'rm -rf "$STAGE"' EXIT
-  stage_package "$STAGE" "$PI_USERFILES"
+  stage_package "$STAGE" "$PI_USERFILES" pi
   PI_DROP="/tmp/hart-deploy.dry-run"
   if [[ "$DRY_RUN" -eq 0 ]]; then
     PI_DROP="$(ssh_pi "mktemp -d /tmp/hart-deploy.XXXXXX")"
@@ -417,7 +461,7 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   echo "Deploy → Windows ($WIN_HOST:$WIN_PORT) via tar..."
   STAGE=$(mktemp -d)
   trap 'rm -rf "$STAGE"' EXIT
-  stage_package "$STAGE" "$WIN_USERFILES"
+  stage_package "$STAGE" "$WIN_USERFILES" win
   push_tar_scp "$STAGE"
   rm -rf "$STAGE"
   trap - EXIT

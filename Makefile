@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help wt wt-sweep check portal-check desks panelpro-test docs-index publications waybills submodules tables-pull ops-pull sts-pull shot deploy-layout deploy-all deploy-site
+.PHONY: help wt wt-sweep check portal-check desks panelpro-test docs-index publications waybills submodules tables-pull ops-pull sts-pull shot deploy-layout deploy-all deploy-status deploy-site
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -54,6 +54,9 @@ deploy-layout:  ## Deploy to the Pi
 
 deploy-all:  ## Deploy to every layout host
 	./tools/hosts/sync_hart_package.sh --all
+
+deploy-status:  ## Show which commit each layout host last got: make deploy-status HOSTS="--pi --win"
+	./tools/hosts/deploy_status.sh $(HOSTS)
 
 deploy-site:  ## Deploy www.hartrailroad.com
 	./www/scripts/deploy_hartrailroad.sh
