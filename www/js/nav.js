@@ -145,6 +145,7 @@
   // Search drop-down. Closes like the menu: Escape (focus back to the button) and a click outside.
   // js/search.js is fetched on first open, and "/" opens the panel when no field has focus.
   var searchLoad = null;
+  var openSearchFn = null;
   function mountSearch(header) {
     var btn = header.querySelector(".search-toggle");
     var wrap = header.querySelector(".site-search");
@@ -152,7 +153,15 @@
     var input = header.querySelector(".search-input");
     var menuBtn = header.querySelector(".nav-toggle");
     var menu = header.querySelector(".nav-panel");
-    if (!btn || !panel || !input) return;
+    if (!btn || !panel || !input) return; // no index on this host: openSearch stays null and links fall through
+    // For links elsewhere on a page (the 404 page): open the panel as "/" does, optionally with words typed in.
+    openSearchFn = function (q) {
+      setOpen(true);
+      if (q) {
+        input.value = q;
+        input.dispatchEvent(new Event("input"));
+      }
+    };
     function load() {
       if (searchLoad) return;
       searchLoad = new Promise(function (resolve, reject) {
@@ -434,6 +443,10 @@
     renderError: renderError,
     isLocal: isLocal,
     trapTab: trapTab,
+    openSearch: function (q) {
+      if (openSearchFn) openSearchFn(q);
+      return !!openSearchFn;
+    },
   };
   window.HARTOps = api;
 })();
