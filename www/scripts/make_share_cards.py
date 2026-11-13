@@ -145,7 +145,7 @@ _JFN_STYLE = (
 
 
 def _jfn_svg() -> str:
-    """Route map from the Map paragraph of docs/ops/opspro-showcase/railroad/PLAN.md."""
+    """Route map from the Map paragraph of external/model-railroad-skills/plugins/operations-pro/examples/showcase/PLAN.md."""
     y = 330
     s = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">',
          f'<path class="ln" d="M110 {y} H1090"/>',
@@ -177,7 +177,7 @@ def _jfn_svg() -> str:
 
 def _switch_list(box: str) -> tuple[str, str]:
     """A switch list for SAWYER SWITCHER; the three moves are from its build report
-    (docs/ops/opspro-showcase/railroad/operations/buildstatus/train (SAWYER SWITCHER).txt)."""
+    (external/model-railroad-skills/plugins/operations-pro/examples/showcase/operations/buildstatus/train (SAWYER SWITCHER).txt)."""
     rows = [("SWYX 2", "Hopper", "E", "Sawyer Yard 1", "Sawyer Yard 2"),
             ("SWYX 1", "Reefer", "E", "Sawyer Team", "Sawyer Warehouse"),
             ("JFN 401", "Boxcar", "Semolina", "Sawyer Yard", "Sawyer Pasta Plant")]

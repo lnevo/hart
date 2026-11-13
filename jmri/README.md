@@ -42,5 +42,3 @@ Defaults resolve via [`layout_paths.py`](layout_paths.py) when arguments are omi
 
 ## Documentation
 
-- [`docs/jmri/PROJECT_OVERVIEW.md`](../docs/jmri/PROJECT_OVERVIEW.md) — full handoff / script behavior
-- [`docs/jmri/SENSOR_NUMBERING.md`](../docs/jmri/SENSOR_NUMBERING.md) — ISIS block vs NX numbering

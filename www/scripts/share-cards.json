@@ -263,12 +263,12 @@
     "library/operations-pro-article.html": {
       "image": "assets/share/library-operations-pro-article.jpg",
       "alt": "Route map of the invented Juniper Falls & Northern: a main line from West Staging through Carrow and Ferris Junction to East Staging, with a branch to Oakhaven and a branch to Northwood.",
-      "from": "drawn from the Map paragraph of docs/ops/opspro-showcase/railroad/PLAN.md"
+      "from": "drawn from the Map paragraph of external/model-railroad-skills/plugins/operations-pro/examples/showcase/PLAN.md"
     },
     "library/opspro-showcase-guide.html": {
       "image": "assets/share/library-opspro-showcase-guide.jpg",
       "alt": "A switch list for the Sawyer Switcher laid over the route map of the Juniper Falls & Northern.",
-      "from": "switch list drawn from docs/ops/opspro-showcase/railroad/operations/buildstatus/train (SAWYER SWITCHER).txt, over the route map used on the Operations Pro article card"
+      "from": "switch list drawn from external/model-railroad-skills/plugins/operations-pro/examples/showcase/operations/buildstatus/train (SAWYER SWITCHER).txt, over the route map used on the Operations Pro article card"
     },
     "library/stl-studio-article.html": {
       "image": "assets/share/library-stl-studio-article.jpg",

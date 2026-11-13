@@ -1,6 +1,6 @@
 # HART Operations Pro: dry-run report
 
-Deliverable 4 of [`OPSPRO_BUILD_PROMPT.md`](OPSPRO_BUILD_PROMPT.md), written 2026-11-02 against the folder as shipped on branch `agent/claude/opspro-build` after the owner's review. Two kinds of test were run on copies; the shipped files were not built in.
+Deliverable 4 of [`OPSPRO_BUILD_PROMPT.md`](../../archive/docs/ops/OPSPRO_BUILD_PROMPT.md), written 2026-11-02 against the folder as shipped on branch `agent/claude/opspro-build` after the owner's review. Two kinds of test were run on copies; the shipped files were not built in.
 
 - **`ops_dry_run`**: the plugin's one-pass test. Every train is built from the same start state and then terminated. It shows gates and routing, not hand-offs, and it cannot build D749 Return (its engine is still on D749 at West Yard in that state).
 - **Ordered session**: nine chained jobs through the plugin's JMRI worker (a script since replaced by `ops_dry_run` with `order`; see [`OPSPRO_FOLLOWUP.md`](OPSPRO_FOLLOWUP.md)), each building and terminating its trains and saving for the next, in the order of the `Session` automation's groups, without its overlap (see [`OPSPRO_FOLLOWUP.md`](OPSPRO_FOLLOWUP.md)): D749; NVL and CK1; STG-DEMMLER; D749 Return; STG-SCULLY; then session 2 the same way up to D749 Return. This is the test that counts. Per-train rows: [`opspro-build/ordered_session.csv`](opspro-build/ordered_session.csv).

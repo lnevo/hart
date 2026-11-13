@@ -703,7 +703,7 @@ def _hollow(draw: ImageDraw.ImageDraw, p, *, r: int = 6, w: int = 2, fill=INK) -
 def draw_industries(meta: dict) -> Image.Image:
     """c2 East End — 8×5 landscape printable schematic.
 
-    Layout scale matches docs/Toggle_Dimensions.png (true print inches):
+    Layout scale matches docs/benchwork/station_maps_3d/Toggle_Dimensions.png (true print inches):
       - LED / map dots: Ø 3/16″
       - 111 (2-LED): mid point 3/8″ from each track along the diagonal
       - Yard ladder (1-LED): 3/4″ (3/8″×2) between adjacent points
