@@ -58,6 +58,15 @@ Facts about the railroad. They override the plan, and every output uses them (sc
 
 **Levels.** `heights` corrects heights the plan holds wrongly. `bands` names which heights make which level; it is a fact about the railroad, so it sits here and not in the code.
 
+**Signals** are layer 1, generated from the Layout Editor panel, never typed by hand: `staging.signals.json`, one entry per mast.
+
+```json
+{"mast": "24RA", "at": {"switch": "23", "leg": "A"}, "dir": "east", "kind": "field", "heads": 2, "source": "le_panel"}
+{"mast": "2035", "at": {"run": ["37", "end:K-1"], "cm_from_first": 120}, "dir": "west", "kind": "field", "heads": 1, "source": "le_panel"}
+```
+
+`kind` is `field` (a signal on the railroad), `planned` (placeholder masts with no hardware, such as Princess) or `virtual` (masts that exist only for Dispatcher; not drawn). Direction comes from the binding (anchor slot, or the leg a turnout mast stands on), checked against the name's L or R.
+
 Not in layer 1: `flip`, `assign`, band order, widths, nudges, lengths for looks. Those are layer 3.
 
 ## Layer 2: generation rules
@@ -77,9 +86,12 @@ Each rule has an id used in code, tests and fault messages. "Replaces" names the
 | R9 Clearance | After placing, test every pair of drawn lines for crossing or lying on top of each other; add clearance and redraw until none do. | — | Zero faults on all golden drawings |
 | R10 No trial | Hands and legs of added or moved switches come from layer 1. A missing hand stops the run with an error naming the switch. | Trial of T300's hand | A test file with a missing hand fails with that message |
 
+| R12 Labels | Every label is laid out, not dropped on at drawing time. A label (switch number, track name, connector, helix text, station name, mast name, capacity) has a measured box from the style's font metrics, an anchor (the thing it names) and an ordered list of allowed positions. A switch number may sit above or below, before the points or past the frog, never over track; the open side (away from the diverging leg) comes first, then the position that lines up with neighbours (a ladder's numbers in one line). Labels with the fewest free positions are placed first. When none is free, the label claims grid room and R9 widens the gap, as it does for lines. A crossover or double crossover prints its number once, between its halves. | Hand nudges; the crossover number printed twice | Zero label faults (check 5) on both goldens |
+| R13 Signals | Each mast is a layer 1 fact at a switch leg or on a run, with its direction. It is drawn on the leg or run it governs, before the points for a facing move and at the fouling end for a trailing one, on the right-hand side of the track for its direction of travel (east is to the right on every band, ADR-022). The symbol and its name are one label item under R12, so masts claim room and never sit on track or on a switch number. | — | Every field mast in the source is drawn once, on the correct leg and side; zero label faults |
+
 Numbers the rules use (cell size, `ladder_link_max_cm`, `long_track_cm`, label widths) sit in a settings block with defaults. They are tuning, not hints: one value for the whole sheet, never per switch.
 
-Rule gaps carried from the spike, in order of need: label collisions are not checked; a crossover's number prints on both halves; three junctions (12, 50, 51) match no plan part; no page folding; no capacity text.
+Rule gaps carried from the spike, in order of need: three junctions (12, 50, 51) match no plan part; no page folding; no capacity text.
 
 ## Layer 3: preferences
 
@@ -118,7 +130,8 @@ The made-up example railroad in the plugin has its own baseline golden and must 
 2. No two drawn lines cross or overlap unless they cross on the layout.
 3. R5: the main is level through every switch on it. R6: yard tracks level in every ladder.
 4. Every added or moved switch has a `source`.
-5. For HART staging, the railroad graph agrees with `switch_legs.csv` (hands and legs).
+5. No label overlaps a drawn line, a symbol or another label; each fault names both items.
+6. For HART staging, the railroad graph agrees with `switch_legs.csv` (hands and legs).
 
 ## For the owner to decide
 
