@@ -136,3 +136,7 @@ tr.click:hover td { background: var(--surface-2); }
   .stat .v { font-size: 1.8rem; }
   #chart { height: 300px; }
 }
+.flagnote { margin: 0 0 6px; font-size: .85rem; color: var(--warn); }
+.flagnote:empty { display: none; }
+.flagline { color: var(--warn); font-weight: 600; margin: 8px 0 0; }
+.okline { color: var(--ok); font-weight: 600; margin: 8px 0 0; }

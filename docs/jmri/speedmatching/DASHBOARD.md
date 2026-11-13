@@ -35,10 +35,13 @@ python3 jmri/layouts/hart/scripts/speedmatch/dashboard/server.py --demo
 python3 jmri/layouts/hart/scripts/speedmatch/dashboard/server.py --replay /tmp/sm/steprun_*.log --rate 20
 ```
 
-`--demo` makes up distance-mode runs for CSX 2121 and CSX 2738, both directions, one after
-the other. Speeds are the 2026-11-08 result scaled by 1.122 (the loop was 12% longer than
-first thought), block lengths come from `data/block_lengths.csv` along the loop1 route, with
-a little noise. `--replay` plays real logs back with their own timestamps sped up by `--rate`
+`--demo` makes up logs in the shape the distance-mode runner writes: CSX 2121 and CSX 2738,
+both directions, on loop1 with the default steps 8, 16, 24, 32, 48, 64, 96 and 126, a 60 s
+warm-up at step 48 before each loco's first run only, the momentum settle time, and at the end
+two Switch 13 passes (steps 24 and 48) on loop2. Speeds are the 2026-11-08 result scaled by
+1.122 (the loop was 12% longer than first thought), block lengths come from
+`data/block_lengths.csv`, with a little noise. The step end rule is the runner's own, so the
+slowest steps end as `max` and show as not valid. `--replay` plays real logs back with their own timestamps sped up by `--rate`
 (default 20). Gaps longer than two minutes of log time are shortened so logs recorded days
 apart play straight through. Add `?theme=dark` or `?theme=light` to the address to force a theme;
 the Theme button does the same.
@@ -53,6 +56,15 @@ the Theme button does the same.
   in mm/s and in HO scale mph (mm/s x 3.6 x 87 / 1609.34), elapsed time and a rough time left.
   The time left is the mean time of the steps done so far times the steps remaining, so it runs
   long early on, because the slow steps take the longest.
+- **Step results.** A step that ends `settled` or `timed` is a measurement and goes on the
+  curve. One that ends `max` (time ran out) or `stalled` is flagged and left off the curve, and
+  a step with no reading (`n=0`) is a gap, never 0 mm/s. The flagged steps are listed above the
+  chart. `EXTRA` (one more reading because the blocks spread too much) shows in the current-step
+  panel.
+- **Pass jobs.** A `pass_*` log shows a pass view in place of the step panel: the stretch from
+  the first to the last sensor of the pass (Switch 5 to Switch 15 for Switch 13) with the time
+  each sensor lit after the pass started, the time across each block and the speed. The pass
+  ends `passed`, or is flagged with its reason (`max`, `stalled`, `killed`, a guard).
 - **Track.** The route's blocks in running order (reversed for a reverse run), width in
   proportion to length, with the name and length in inches. The block the loco last entered is
   outlined. Blocks crossed during the current step are tinted and show the measured mm/s.
@@ -73,7 +85,7 @@ the Theme button does the same.
 ## Log lines it reads
 
 Each line is `<epoch seconds> <message>`. It reads `RUN`, `CFG`, `LENGTHS`, `WARMUP`,
-`WARMUP_DONE`, `WARMUP_LAP`, `STEP`, `SETTLE`, `MEASURE`, `SENS`, `BLOCK`, `READ`, `STEPDONE`,
+`WARMUP_DONE`, `WARMUP_LAP`, `STEP`, `SETTLE`, `MEASURE`, `SENS`, `BLOCK`, `EXTRA`, `READ`, `STEPDONE`,
 `PASS`, `PASSDONE`, `STOP`, `END`, `ERROR`, `ABORTED` and `NO GUARD`. Lines it does not know are
 skipped. Logs from before distance mode (`READ`, `median=`, `WARMUP ... laps=`) still show.
 

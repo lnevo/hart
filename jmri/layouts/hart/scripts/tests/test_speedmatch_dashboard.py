@@ -185,16 +185,128 @@ class ReplayTests(unittest.TestCase):
 class DemoTests(unittest.TestCase):
     def test_demo_logs_parse_and_finish(self):
         logs = src.demo_logs()
-        self.assertEqual(len(logs), 4)
+        self.assertEqual(len(logs), 6)
         store = st.Store()
         for rid, lines in logs:
             for ln in lines:
                 store.feed(rid, ln)
+        self.assertEqual(src.DEMO_STEPS, [8, 16, 24, 32, 48, 64, 96, 126])
+        self.assertEqual(len(store.runs), 6)  # four step runs, two passes
         for run in store.runs.values():
             self.assertEqual(run.status, "done", run.id)
-            self.assertEqual(sorted(run.done), src.DEMO_STEPS)
-        top = store.runs["steprun_2121_forward_demo.log"].done[126]["mm_s"]
-        self.assertAlmostEqual(top, 429.8 * 1.122, delta=429.8 * 1.122 * 0.03)
+            if run.kind == "steprun":
+                self.assertEqual(sorted(run.done), src.DEMO_STEPS)
+        top = store.runs["steprun_CSX_2121_forward_demo.log"].done[126]["mm_s"]
+        self.assertAlmostEqual(top, 429.8 * 1.122, delta=429.8 * 1.122 * 0.05)
+
+    def test_warmup_only_before_a_locos_first_run(self):
+        logs = dict(src.demo_logs())
+        has = {n: any(" WARMUP " in x for x in ls) for n, ls in logs.items()}
+        self.assertTrue(has["steprun_CSX_2121_forward_demo.log"])
+        self.assertFalse(has["steprun_CSX_2121_reverse_demo.log"])
+        self.assertTrue(has["steprun_CSX_2738_forward_demo.log"])
+        self.assertFalse(has["steprun_CSX_2738_reverse_demo.log"])
+        self.assertIn("WARMUP 48 secs=60", [x.split(" ", 1)[1] for x in logs["steprun_CSX_2121_forward_demo.log"]])
+
+    def test_settle_is_momentum_time_and_passes_use_loop2(self):
+        logs = dict(src.demo_logs())
+        ls = [x.split(" ", 1)[1] for x in logs["steprun_CSX_2121_reverse_demo.log"]]
+        self.assertIn("SETTLE 8 secs=%.1f" % (0.896 * 26 * 8 / 126 + 2), ls)  # no warm-up: from step 0
+        self.assertIn("SETTLE 16 secs=%.1f" % (0.896 * 26 * 8 / 126 + 2), ls)
+        for n in (24, 48):
+            p = [x.split(" ", 1)[1] for x in logs["pass_CSX_2121_forward_step%d_demo.log" % n]]
+            self.assertIn("CFG route=loop2 mode=pass step=%d max_s=300" % n, p)
+            self.assertIn("PASS step=%d from=BS Switch 5 to=BS Switch 15" % n, p)
+        r = st.Run("p")
+        for x in logs["pass_CSX_2121_forward_step24_demo.log"]:
+            r.feed_line(x)
+        rows = r.to_dict(r.t_last)["pass"]["rows"]
+        self.assertEqual([x["sensor"] for x in rows], ["BS Switch 5", "BS Scale", "BS Switch 7", "BS Barn",
+                                                       "BS Switch 13", "BS Switch 15", "BS S-R"])
+        self.assertTrue(all(x["t_rel"] is not None for x in rows))
+
+
+class RunnerContractTests(unittest.TestCase):
+    def test_extra_gap_and_reasons(self):
+        r = feed(st.Run("a"), [
+            L(0, "RUN loco=2121 direction=forward"),
+            L(1, "STEP 16"), L(2, "SETTLE 16 secs=3.0"), L(5, "MEASURE 16 from=BS Switch 35a"),
+            L(9, "EXTRA 16 relsd=0.0412"),
+            L(10, "STEPDONE 16 reason=settled n=4 mm=6100.0 s=40.00 mm_s=152.5 relsd=0.0200"),
+            L(11, "STEP 8"), L(70, "STEPDONE 8 reason=max n=0 mm=0.0 s=0.00 mm_s=0.0 relsd=0.0000"),
+            L(71, "STEP 24"), L(130, "STEPDONE 24 reason=max n=2 mm=3810.0 s=60.00 mm_s=63.5 relsd=0.0100"),
+            L(131, "STEP 32"), L(140, "STEPDONE 32 reason=timed n=3 mm=4000.0 s=30.00 mm_s=133.3 relsd=0.0100"),
+            L(141, "STEP 48"), L(150, "STEPDONE 48 reason=stalled n=1 mm=500.0 s=5.00 mm_s=100.0 relsd=0.0")])
+        self.assertEqual(r.measure_from, "BS Switch 35a")  # spaces kept
+        d = r.to_dict(T + 151)
+        self.assertEqual([c["step"] for c in d["curve"]], [16, 32])  # settled and timed
+        self.assertEqual({f["step"]: f["reason"] for f in d["flagged"]}, {8: "max", 24: "max", 48: "stalled"})
+        self.assertIsNone(r.done[8]["mm_s"])  # a gap, not 0 mm/s
+        self.assertEqual(r.speed, 100.0)  # live speed follows the latest reading
+        r2 = feed(st.Run("b"), [L(0, "STEP 16"), L(5, "EXTRA 16 relsd=0.0412")])
+        self.assertAlmostEqual(r2.to_dict(T + 6)["extra"], 0.0412)
+        r2.feed(T + 7, "STEP", "24")
+        self.assertIsNone(r2.to_dict(T + 8)["extra"])
+
+    def test_run_complete_stop_is_not_a_stop(self):
+        r = feed(st.Run("a"), [L(0, "RUN loco=2121 direction=forward"), L(1, "STOP all steps complete"), L(2, "END")])
+        self.assertEqual((r.status, r.banner), ("done", None))
+
+    def test_loco_logged_as_road_name(self):
+        r = feed(st.Run("a"), [L(0, "RUN loco=CSX_2121 direction=forward")])
+        self.assertEqual((r.loco, r.road()), ("2121", "CSX 2121"))
+
+    def test_pass_job(self):
+        r = feed(st.Run("pass_CSX_2121_forward_step24_x.log"), [
+            L(0, "RUN loco=2121 direction=forward"),
+            L(0.1, "CFG route=loop2 mode=pass step=24 max_s=300"),
+            L(1, "PASS step=24 from=BS Switch 5 to=BS Switch 15"),
+            L(5, "SENS BS Switch 5 ACTIVE"), L(9, "SENS BS Scale ACTIVE"), L(11, "SENS BS Switch 7 ACTIVE")])
+        self.assertEqual(r.kind, "pass")
+        d = r.to_dict(T + 12)
+        self.assertEqual((d["pass"]["from"], d["pass"]["to"]), ("BS Switch 5", "BS Switch 15"))
+        rows = {x["sensor"]: x for x in d["pass"]["rows"]}
+        self.assertAlmostEqual(rows["BS Scale"]["t_rel"], 8.0)
+        self.assertAlmostEqual(rows["BS Scale"]["dt"], 2.0)
+        self.assertIsNone(rows["BS Barn"]["t_rel"])
+        feed(r, [L(20, "PASSDONE reason=max"), L(21, "STOP max"), L(22, "END")])
+        self.assertEqual(r.status, "stopped")
+        self.assertIn("max", r.banner[1])
+        ok = feed(st.Run("q"), [L(0, "PASS step=24 from=BS Switch 5 to=BS Switch 15"), L(9, "PASSDONE reason=passed"),
+                                L(10, "STOP passed"), L(11, "END")])
+        self.assertEqual((ok.status, ok.banner), ("done", None))
+
+    def test_runner_simulation_matches_analyze(self):
+        # the Jython runner of PR 422 on its virtual clock (test_speedmatch_distance's harness)
+        import io
+        import tempfile
+        from contextlib import redirect_stdout
+        import test_speedmatch_distance as td
+        tmp = Path(tempfile.mkdtemp())
+        csvp, out, log = tmp / "bl.csv", tmp / "job.py", tmp / "run.log"
+        td.loop_csv(csvp, td.analyze.LOOP)
+        with redirect_stdout(io.StringIO()):
+            td.make_job.main(["steps", "--loco", "CSX 2121", "--direction", "forward", "--mode", "distance",
+                              "--guard", "none", "--steps", "8,24,48", "--warm-s", "5", "--warm-step", "24",
+                              "--out", str(out), "--log", str(log), "--lengths", str(csvp)])
+        td.FakeLayout(td.ORDER1, td.LEN1, 2).run(out.read_text(), tmp)
+        lines = log.read_text().splitlines()
+        run = st.Run("steprun_CSX_2121_forward_sim.log")
+        feed(run, lines)
+        self.assertEqual(run.status, "done")
+        self.assertEqual(run.loco, "2121")
+        runs = td.analyze.parse_log(lines, source="sim")
+        rows = td.analyze.summarize_runs(runs, td.LEN1)[0]["rows"]
+        self.assertEqual([r["step"] for r in rows], [8, 24, 48])
+        for row in rows:
+            got = run.done[row["step"]]
+            if row["median"] is None:
+                self.assertIsNone(got["mm_s"], row)
+            else:
+                self.assertAlmostEqual(got["mm_s"], row["median"], places=0)
+            self.assertEqual(got["valid"], row["settled"])
+        self.assertEqual({c["step"] for c in run.to_dict(run.t_last)["curve"]}, {24, 48})
+        self.assertEqual(run.done[8]["reason"], "max")  # too slow for 6000 mm: flagged, off the curve
 
 
 class SshPollerTests(unittest.TestCase):

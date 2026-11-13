@@ -99,9 +99,9 @@ function renderHero(run) {
       stat("Speed", fmt(run.speed, 1), "mm/s"),
       stat("Scale speed", fmt(run.speed_mph, 1), "mph HO"),
       stat("Elapsed", dur(run.elapsed), ""),
-      stat(finished(run) ? "Steps done" : "Time left (rough)", finished(run) ? `${run.done_steps}` : (eta != null ? dur(eta) : "-"), finished(run) ? ` / ${(run.steps || []).length || "?"}` : "")),
+      run.pass ? stat("Pass step", String(run.pass.step), "") : stat(finished(run) ? "Steps done" : "Time left (rough)", finished(run) ? `${run.done_steps}` : (eta != null ? dur(eta) : "-"), finished(run) ? ` / ${(run.steps || []).length || "?"}` : "")),
     gauge,
-    el("div", { class: "gauge-l" }, el("span", { text: "0" }), el("span", { text: `${run.done_steps} of ${(run.steps || []).length || "?"} steps measured` }), el("span", { text: String(MAX_STEP) })));
+    el("div", { class: "gauge-l" }, el("span", { text: "0" }), el("span", { text: run.pass ? "pass job" : `${run.done_steps} of ${(run.steps || []).length || "?"} steps measured` }), el("span", { text: String(MAX_STEP) })));
   h.append(photo, info);
 }
 function stat(k, v, unit) {
@@ -134,9 +134,22 @@ function renderStep(run) {
   const card = $("stepcard");
   card.hidden = !run;
   if (!run) return;
-  $("stepsub").textContent = run.step != null ? `step ${run.step}` : "";
   const p = $("steppanel");
   p.replaceChildren();
+  if (run.pass) {
+    const ps = run.pass;
+    $("stepsub").textContent = `pass at step ${ps.step}: ${ps.from} to ${ps.to}`;
+    const t = el("table", {});
+    t.append(el("tr", {}, ...["Sensor", "Block mm", "Lit at s", "Across s", "mm/s"].map((x) => el("th", { text: x }))));
+    for (const r of ps.rows) {
+      t.append(el("tr", {}, el("td", { text: r.sensor.replace(/^BS /, "") }), el("td", { text: fmt(r.mm) }),
+        el("td", { text: fmt(r.t_rel, 1) }), el("td", { text: fmt(r.dt, 1) }), el("td", { text: fmt(r.dt && r.mm ? r.mm / r.dt : null, 1) })));
+    }
+    p.append(t);
+    p.append(el("p", { class: "sub", text: ps.reason ? `Pass ended: ${ps.reason}` : "Waiting for the loco to cross the stretch. Times are seconds after the pass started." }));
+    return;
+  }
+  $("stepsub").textContent = run.step != null ? `step ${run.step}` : "";
   const rows = run.step_rows || [];
   if (run.status === "settling" && run.settle_left != null)
     p.append(el("p", {}, "Settling, measuring starts in ", el("span", { class: "countdown tnum", text: Math.ceil(run.settle_left) + " s" })));
@@ -145,7 +158,7 @@ function renderStep(run) {
     const t = el("table", {});
     t.append(el("tr", {}, ...["Block", "mm", "Time s", "mm/s"].map((x) => el("th", { text: x }))));
     for (const r of rows) {
-      t.append(el("tr", {}, el("td", { text: (r.block || (r.i != null ? "reading " + r.i : "")).replace(/^(Track|OS) /, "") }),
+      t.append(el("tr", {}, el("td", { text: (r.block || (r.i != null ? "reading " + r.i : "")).replace(/^(Track|OS|BS) /, "") }),
         el("td", { text: fmt(r.mm) }), el("td", { text: fmt(r.dt, 1) }), el("td", { text: fmt(r.mm_s, 1) })));
     }
     p.append(t);
@@ -155,6 +168,14 @@ function renderStep(run) {
       el("span", {}, "Spread ", el("b", { text: run.step_spread != null ? fmt(run.step_spread * 100, 1) + "%" : "-" }))));
   } else if (run.status !== "settling" && run.status !== "warming") {
     p.append(el("p", { class: "empty", text: "No readings yet for this step." }));
+  }
+  if (run.extra != null)
+    p.append(el("p", { class: "sub", text: `Readings spread ${fmt(run.extra * 100, 1)}%, so one more reading is being taken.` }));
+  const ld = run.last_done;
+  if (ld) {
+    const bad = !ld.valid;
+    const why = ld.reason === "max" ? "time ran out before the distance was reached" : ld.reason === "stalled" ? "the loco stalled" : ld.reason === "timed" ? "time limit reached with good data" : "";
+    p.append(el("p", { class: bad ? "flagline" : "okline", text: (bad ? "▲ Not valid: " : "✓ Measured: ") + (ld.mm_s ? fmt(ld.mm_s, 1) + " mm/s" : "no reading") + ` (${ld.reason || "done"}${why ? ", " + why : ""})` }));
   }
 }
 
@@ -174,7 +195,7 @@ function lineKey(color, dash, dots) {
 let chartSig = "";
 function renderChart(force) {
   const ser = series();
-  const sig = JSON.stringify([ser, S.reference, showTable, document.documentElement.dataset.theme, $("chart").clientWidth]);
+  const sig = JSON.stringify([ser, S.runs.map((r) => r.flagged), S.reference, showTable, document.documentElement.dataset.theme, $("chart").clientWidth]);
   if (sig === chartSig && !force) return;
   chartSig = sig;
   const ref = S.reference || {};
@@ -182,6 +203,9 @@ function renderChart(force) {
   lg.replaceChildren();
   for (const s of ser) lg.append(el("span", {}, lineKey(locoVar(s.loco), s.dir === "reverse"), `${s.road} ${s.dir}`));
   if (Object.keys(ref).length) lg.append(el("span", {}, lineKey("var(--ink-3)", false, true), "2026-11-08 result ×1.122"));
+  const fl = [];
+  for (const r of S.runs) for (const f of r.flagged || []) fl.push(`${r.loco} ${r.direction === "reverse" ? "rev" : "fwd"} step ${f.step} (${f.reason})`);
+  $("flagnote").textContent = fl.length ? "▲ Not on the curve, not valid or no reading: " + fl.join(", ") : "";
   $("chart").parentNode.hidden = showTable;
   $("datatable").hidden = !showTable;
   if (showTable) return renderDataTable(ser);
@@ -287,7 +311,7 @@ function renderRuns(run) {
   for (const r of [...S.runs].reverse()) {
     const tr = el("tr", { class: "click" + (run && r.id === run.id ? " sel" : ""), tabindex: 0, onclick: () => { manual = r.id; render(); }, onkeydown: (e) => { if (e.key === "Enter") { manual = r.id; render(); } } },
       el("td", { text: r.road || "?" }), el("td", { text: r.direction || "-" }), el("td", { text: r.kind }),
-      el("td", { text: `${r.done_steps}${r.steps.length ? " / " + r.steps.length : ""}` }),
+      el("td", { text: r.pass ? "pass " + r.pass.step : `${r.done_steps}${r.steps.length ? " / " + r.steps.length : ""}` }),
       el("td", { text: (ICON[r.status] || "") + " " + (STATUS[r.status] || r.status) }));
     t.append(tr);
   }

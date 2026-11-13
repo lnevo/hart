@@ -14,12 +14,13 @@ import time
 from pathlib import Path
 
 import dashstate as state
+import liverule as lr
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[5]
 PATTERNS = ("steprun", "stoptest", "pass", "preflight")
 MAX_FILES = 12
-DEMO_STEPS = [8, 12, 16, 24, 32, 48, 64, 80, 96, 112, 126]
+DEMO_STEPS = list(lr.DIST_STEPS)  # the distance-mode default
 LOOP_FACTOR = 1.122  # the loop is 12% longer than the first lengths said
 REF_CSV = REPO / "docs/jmri/speedmatching/profile-2026-11-08/speed_by_step.csv"
 
@@ -168,71 +169,144 @@ def read_logs(paths):
 
 
 def demo_logs(seed=7, t0=1794300000.0):
-    """Synthetic distance-mode logs for CSX 2121 and 2738, both directions, in time order."""
+    """Synthetic logs in the shape the distance-mode runner writes, in time order: CSX 2121 and
+    CSX 2738 both directions on loop1 (the 60 s warm-up only before a loco's first run), then
+    two Switch 13 passes on loop2. Block lengths from block_lengths.csv; speeds are the
+    2026-11-08 result x1.122, with a little noise. The end rule is the runner's own
+    (liverule.DistanceStep), so slow steps end as "max" and show as not valid."""
+    import json
     rng = random.Random(seed)
     ref = {k: {r["step"]: r["mm_s"] for r in v} for k, v in reference_curves().items()}
     bias = {("2121", "forward"): 1.0, ("2121", "reverse"): 0.97,
             ("2738", "forward"): 1.0, ("2738", "reverse"): 1.04}
-    base = state.route_blocks("loop1")
-    for b in base:
-        if b["mm"] is None:
-            b["mm"] = 150.0
-        b["mm"] = float(b["mm"])
-    logs, t = [], t0
+
+    def lens(route):
+        bl = state.route_blocks(route)
+        for b in bl:
+            b["mm"] = float(b["mm"] if b["mm"] is not None else 150.0)
+        return bl
+
+    logs, clock = [], [t0]
+
+    def new_log(name):
+        lines = []
+
+        def L(dt, msg):
+            clock[0] += dt
+            lines.append("%.3f %s" % (clock[0], msg))
+        return lines, L
+
     for loco in ("2121", "2738"):
+        warm = True
         for direction in ("forward", "reverse"):
+            base = lens("loop1")
             blocks = base if direction == "forward" else list(reversed(base))
-            lens = {b["sensor"]: b["mm"] for b in base}
-            lines = []
-
-            def L(dt, msg):
-                nonlocal t
-                t += dt
-                lines.append("%.3f %s" % (t, msg))
-
+            n = len(blocks)
+            lines, L = new_log("")
             L(0, "RUN loco=%s direction=%s" % (loco, direction))
-            L(0.1, "CFG route=loop1 mode=distance steps=%s target_mm=6000 min_blocks=6 max_s=900 rel=0.03 "
-                   "warm_s=40 warm_step=64 cv3=0 cv4=0 mid=BS_Switch_23a" % ",".join(map(str, DEMO_STEPS)))
-            L(0.1, "LENGTHS " + __import__("json").dumps(lens))
-            L(0.5, "WARMUP 64 secs=40")
-            for _ in range(4):
-                L(10, "SENS %s ACTIVE" % blocks[rng.randrange(len(blocks))]["sensor"])
-            L(0.5, "WARMUP_DONE")
-            pos = 0
+            L(0.1, "CFG route=loop1 mode=distance steps=%s target_mm=%g min_blocks=%d max_s=%g rel=%g warm_s=%g "
+                   "warm_step=%d cv3=%d cv4=%d mid=BS_Switch_23a" % (
+                       ",".join(map(str, DEMO_STEPS)), lr.DIST_TARGET_MM, lr.DIST_MIN_BLOCKS, lr.DIST_MAX_S,
+                       lr.DIST_REL, lr.DIST_WARM_S if warm else 0, lr.DIST_WARM_STEP, lr.DIST_CV3, lr.DIST_CV4))
+            L(0.1, "LENGTHS " + json.dumps({b["sensor"]: b["mm"] for b in base}))
+            L(1.0, "")
+            lines.pop()
+            k = [rng.randrange(n)]  # index of the block the loco enters next
+            v = [ref[loco][DEMO_STEPS[0]]]
+            nxt = [clock[0] + 20.0]
+            spike = [None]
+
+            def vn(step):
+                x = v[0] * (1 + rng.gauss(0, 0.012))
+                if spike[0] == step and rng.random() < 0.25:
+                    x *= 0.93
+                return x
+
+            def enter(step):
+                """The loco enters the next block: SENS line at its time; returns (block, time)."""
+                b = blocks[k[0] % n]
+                clock[0] = nxt[0]
+                lines.append("%.3f SENS %s ACTIVE" % (clock[0], b["sensor"]))
+                nxt[0] = clock[0] + b["mm"] / vn(step)
+                k[0] += 1
+                return b, clock[0]
+
+            def advance(until, step):
+                while nxt[0] <= until:
+                    enter(step)
+                clock[0] = max(clock[0], until)
+
+            def set_speed(step):
+                left = max(nxt[0] - clock[0], 0) * v[0]
+                v[0] = ref[loco][step] * bias[(loco, direction)]
+                nxt[0] = clock[0] + left / v[0]
+
+            prev = 0
+            if warm:
+                set_speed(lr.DIST_WARM_STEP)
+                L(0, "WARMUP %d secs=%g" % (lr.DIST_WARM_STEP, lr.DIST_WARM_S))
+                advance(clock[0] + lr.DIST_WARM_S, lr.DIST_WARM_STEP)
+                L(0, "WARMUP_DONE")
+                prev = lr.DIST_WARM_STEP
             for step in DEMO_STEPS:
-                v0 = ref[loco][step] * bias[(loco, direction)]
-                L(1, "STEP %d" % step)
-                L(0.2, "SETTLE %d secs=%d" % (step, 8))
-                for _ in range(4):
-                    b = blocks[pos % len(blocks)]
-                    L(2, "SENS %s ACTIVE" % b["sensor"])
-                    pos += 1
-                b = blocks[pos % len(blocks)]
-                L(0.5, "MEASURE %d from=%s" % (step, b["sensor"].replace(" ", "_")))
-                tot_mm = tot_s = 0.0
-                rows = []
-                k = 0
+                secs = lr.settle_time(lr.DIST_CV3, lr.DIST_CV4, prev, step)
+                spike[0] = 64 if (loco, direction) == ("2738", "reverse") else None
+                L(0.05, "STEP %d" % step)
+                set_speed(step)
+                L(0.01, "SETTLE %d secs=%.1f" % (step, secs))
+                advance(clock[0] + secs, step)
+                b0, mstart = enter(step)
+                L(0, "MEASURE %d from=%s" % (step, b0["sensor"]))
+                cur = (b0, mstart)
+                ds = lr.DistanceStep(lr.DIST_TARGET_MM, lr.DIST_MIN_BLOCKS, lr.DIST_MAX_S, lr.DIST_REL)
+                reason = ""
                 while True:
-                    b = blocks[pos % len(blocks)]
-                    v = v0 * (1 + rng.gauss(0, 0.012))
-                    dt = b["mm"] / v
-                    L(dt, "SENS %s ACTIVE" % b["sensor"])
-                    pos += 1
-                    k += 1
-                    tot_mm += b["mm"]
-                    tot_s += dt
-                    L(0, "BLOCK %d block=%s mm=%d dt=%.2f mm_s=%.1f" % (
-                        step, b["sensor"].replace(" ", "_"), round(b["mm"]), dt, b["mm"] / dt))
-                    rows.append(b["mm"] / dt)
-                    if tot_mm >= 6000 and k >= 6:
+                    if nxt[0] - mstart >= lr.DIST_MAX_S:
+                        clock[0] = mstart + lr.DIST_MAX_S
+                        reason = "max"
                         break
-                    if tot_s >= 900:
+                    b2, t2 = enter(step)
+                    dt = t2 - cur[1]
+                    lines.append("%.3f BLOCK %d block=%s mm=%d dt=%.2f mm_s=%.1f" % (
+                        t2, step, cur[0]["sensor"].replace(" ", "_"), round(cur[0]["mm"]), dt, cur[0]["mm"] / dt))
+                    ds.add(cur[0]["mm"], dt)
+                    cur = (b2, t2)
+                    done, why = ds.check(t2 - mstart)
+                    if ds.extra_new:
+                        ds.extra_new = False
+                        L(0.1, "EXTRA %d relsd=%.4f" % (step, ds.relsd))
+                    if done:
+                        reason = why
+                        clock[0] = t2 + 0.1
                         break
-                m = sum(rows) / len(rows)
-                sd = (sum((x - m) ** 2 for x in rows) / max(len(rows) - 1, 1)) ** 0.5
-                L(0.2, "STEPDONE %d reason=target n=%d mm=%d s=%.1f mm_s=%.1f relsd=%.3f" % (
-                    step, k, round(tot_mm), tot_s, tot_mm / tot_s, sd / m))
-            L(1, "END")
-            logs.append(("steprun_%s_%s_demo.log" % (loco, direction), lines))
-            t += 30
+                cnt, mm, secs_m, speed, rsd = lr.aggregate(ds.blocks)
+                L(0.1, "STEPDONE %d reason=%s n=%d mm=%.1f s=%.2f mm_s=%.1f relsd=%.4f" % (
+                    step, reason, cnt, mm, secs_m, speed, rsd))
+                prev = step
+            L(0.5, "speed 0")
+            L(0.1, "STOP all steps complete")
+            L(0.1, "END")
+            logs.append(("steprun_CSX_%s_%s_demo.log" % (loco, direction), lines))
+            clock[0] += 30
+            warm = False
+
+    # two Switch 13 passes on loop2: Switch 5 to Switch 15, the loco stops once S-R lights
+    for step in (24, 48):
+        bl = lens("loop2")
+        names = [b["sensor"] for b in bl]
+        i0, i1 = names.index("BS Switch 5"), names.index("BS Switch 15")
+        lines, L = new_log("")
+        v = ref["2121"][step]
+        L(0, "RUN loco=2121 direction=forward")
+        L(0.1, "CFG route=loop2 mode=pass step=%d max_s=300" % step)
+        L(1.0, "PASS step=%d from=BS Switch 5 to=BS Switch 15" % step)
+        L(8.0, "SENS BS Switch 5 ACTIVE")
+        for idx in range(i0, i1 + 2):
+            L(bl[idx]["mm"] / (v * (1 + rng.gauss(0, 0.01))), "SENS %s ACTIVE" % bl[idx + 1]["sensor"])
+        L(0.2, "PASSDONE reason=passed")
+        L(0.1, "speed 0")
+        L(0.1, "STOP passed")
+        L(0.1, "END")
+        logs.append(("pass_CSX_2121_forward_step%d_demo.log" % step, lines))
+        clock[0] += 20
     return logs
