@@ -1,5 +1,12 @@
 # Baseline faults: layer 1 and the generation rules only
 
+**Update 2026-11-13 (review of PR #430):** the helix side moved from preferences to layer 1 (it is a fact:
+ADR-022 puts the helix at the east end of every level), so the baseline now draws the helix at the east end.
+Totals are unchanged (main not level: Upper 6, Main 4, Staging 2; ladder: Upper 2, Staging 1; crossings 0),
+but on the main band the four are now T155, T160, T187 and T196 (T165 is level, T160 is not). T285/T251 on
+the upper band stays a preference: both are at height 0, and drawing them on the upper band is the owner's
+choice (hand-off, layer 3). The tables below are from the first run.
+
 Work list for stream B2. Drawn by
 
     python3 system.py staging.json main.json baseline_sample.svg --no-preferences --no-hints
