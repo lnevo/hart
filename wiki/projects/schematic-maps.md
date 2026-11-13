@@ -97,7 +97,20 @@ Stages 1 and 3 can start at once and run beside stage 0. Stages 2 and 4 wait for
 - Capacity: not yet. The drawing leaves a place for it.
 - Page: Letter landscape.
 
+## As built, compared with plan 5.3b (owner, 2026-11-13)
+
+Part numbers (T…) are the plan's, as drawn in the spike's overlay picture.
+
+- **Helix.** One turn more than planned. Its two tracks still leave the height-0 main (at T175 and T300), now run level to the peninsula near T226 and enter the helix there, and come out on the staging level as the McKees Rocks and McKeesport stubs. The plan file does not join every helix turn; the helix details are held separately.
+- **Peninsula top.** Raised from 1 in to 4.25 in, level with the branch line, so the 0.9% grades either side of the double crossover are gone.
+- **Beyond the double crossover.** In the plan the lower track climbed to the branch line (T237) and the upper one dropped to the height-0 main (T300). As built both stay at 4.25 in and join inside the closet on the north side, making a passing siding on that leg.
+- **Rise.** The 2.1% grade from T285 (height 0, north side) to T262 (4.25 in, west wall), 521 cm, is as planned. It is now the only track between the height-0 main and the 4.25 in level.
+- **Main levels.** Not final; plan 5.3b is a draft. As-built changes go in an overrides file applied on top of the export.
+
+For the schematic this gives three bands: staging, the height-0 main, and the 4.25 in level (branch line, peninsula, double crossover), joined by the helix (two tracks) and the rise.
+
 ## Open questions for the owner
 
 1. **Direction.** Which way is timetable east on each main level?
-2. **The 12-turnout group** at height 2.5 in the plan: which part of the railroad is it?
+2. **T300.** With the upper neck track no longer reaching it, does T300 stay (as what) or go?
+3. **Closet switch.** Where along the leg do the two tracks join?
