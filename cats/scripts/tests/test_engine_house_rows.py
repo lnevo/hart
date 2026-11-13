@@ -1,9 +1,8 @@
 """Engine house on the CATS desks follows the Layout Editor after the Switch 9 rewiring (2026-11-12).
 
 JMRI: Switch 11 closed -> Track EH-1, thrown -> Switch 9; Switch 9 closed -> Track EH-2, thrown -> Track EH-3.
-CATS keeps its drawing: the drawn-through legs (LEFT) are the thrown ones, so both plants are inverted.
+CATS keeps its drawing; NORMAL is each plant's closed BOTTOM leg, as on the Princess plants.
 """
-import re
 import sys
 import unittest
 import xml.etree.ElementTree as ET
@@ -29,20 +28,24 @@ def _cells(path):
 
 def _jmri_paths():
     """{(OS block user name, turnout, setting): destination user name} from tables.xml."""
-    text = (ROOT / "jmri/layouts/hart/output/tables.xml").read_text()
-    names = dict(re.findall(r'<block systemName="(IB[^"]+)" length=[^>]*>\s*<systemName>[^<]*</systemName>\s*<userName>([^<]+)</userName>', text))
+    root = ET.parse(ROOT / "jmri/layouts/hart/output/tables.xml").getroot()
+    blocks = [b for b in root.iter("block") if b.find("path") is not None or b.find("userName") is not None]
+    names = {b.get("systemName"): (b.findtext("userName") or "").strip() for b in blocks}
     out = {}
-    for sysname, body in re.findall(r'<block systemName="(IB[^"]+)" length=[^>]*>(.*?)</block>', text, re.S):
-        for dest, path in re.findall(r'<path [^>]*block="([^"]+)"[^>]*>(.*?)</path>', body, re.S):
-            for setting, turnout in re.findall(r'<beansetting setting="(\d)">\s*<turnout systemName="([^"]+)"', path):
-                out[(names.get(sysname), turnout, setting)] = names.get(dest, dest)
+    for b in blocks:
+        for path in b.findall("path"):
+            for bs in path.findall("beansetting"):
+                t = bs.find("turnout")
+                if t is not None:
+                    dest = path.get("block")
+                    out[(names.get(b.get("systemName")), t.get("systemName"), bs.get("setting"))] = names.get(dest, dest)
     return out
 
 
 class EngineHouse(unittest.TestCase):
-    def test_both_plants_inverted(self):
-        self.assertIn("TO10", wire.INVERT_VS_JMRI)
-        self.assertIn("TO11", wire.INVERT_VS_JMRI)
+    def test_plants_not_inverted(self):
+        self.assertNotIn("TO10", wire.INVERT_VS_JMRI)
+        self.assertNotIn("TO11", wire.INVERT_VS_JMRI)
 
     def test_expectations_match_jmri(self):
         paths = _jmri_paths()
@@ -65,6 +68,8 @@ class EngineHouse(unittest.TestCase):
                     route = [r for r in cells[xy].iter("ROUTEINFO") if r.get("ROUTEID") == edge][0]
                     self.assertEqual(cmd, route.find("ROUTECOMMAND/IOSPEC").text.strip(), (desk, xy, edge))
                     self.assertEqual(cmd, route.find("SELECTEDREPORT/IOSPEC").text.strip(), (desk, xy, edge))
+                    # NORMAL is the closed leg
+                    self.assertEqual(cmd == "close", route.get("NORMAL") == "true", (desk, xy, edge))
 
 
 if __name__ == "__main__":

@@ -32,8 +32,9 @@ CTC = ROOT / "cats/panels/HART_CTC.xml"
 ABS = ROOT / "cats/panels/HART_ABS.xml"
 
 # (x, y) → (OS name, NORMAL route among non-points legs, layout_ident)
-# NORMAL is the drawn through / main. invert_vs_jmri plants put throw on
-# that NORMAL route (JMRI Thrown = mainline): 100, 114, 115.
+# NORMAL is usually the drawn through / main. invert_vs_jmri plants put throw on
+# that NORMAL route (JMRI Thrown = mainline): 100 only. Switches 9 and 11 take
+# their closed BOTTOM leg as NORMAL instead.
 #
 # Untwisted 63×16 board (Designer 2026-08-26).
 # Y=5 Track K-1 (thrown leg of Switch 39) east to the panel edge; Y=8 Track K-2 likewise.
@@ -48,8 +49,8 @@ PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
     (9, 8): ("OS Switch 5", "RIGHT", "TOL42"),  # Closed = through E Main Ext; Thrown TOP = Track Scale
     (15, 8): ("OS Switch 7b", "RIGHT", "TO117"),
     (15, 7): ("OS Switch 7", "LEFT", "TO117"),
-    (24, 8): ("OS Switch 9", "LEFT", "TO10"),  # Thrown LEFT = Track EH-3; Closed BOTTOM = Track EH-2
-    (26, 8): ("OS Switch 11", "LEFT", "TO11"),  # Thrown LEFT = to Switch 9; Closed BOTTOM = Track EH-1
+    (24, 8): ("OS Switch 9", "BOTTOM", "TO10"),  # Closed BOTTOM = Track EH-2; Thrown LEFT = Track EH-3
+    (26, 8): ("OS Switch 11", "BOTTOM", "TO11"),  # Closed BOTTOM = Track EH-1; Thrown LEFT = to Switch 9
     (27, 7): ("OS Switch 13", "LEFT", "TO1"),  # Thrown BOTTOM is a stub; does not join 118
     (30, 7): ("OS Switch 15", "RIGHT", "TOR14"),  # Thrown BOTTOM geographic into 104 approach
     (31, 8): ("OS Switch 17", "BOTTOM", "TOL15"),
@@ -73,11 +74,10 @@ PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
 # 112 is no longer inverted: LEFT is the 110/Track S-R closed leg, BOTTOM is Track Main East.
 # 114/115 are no longer inverted since the Princess redraw: the straight
 # leg is the closed main (Track McKees Rocks / Track McKeesport).
-# Switches 9 and 11 (2026-11-12, after the Switch 9 rewiring): the drawn
-# through legs lead to Switch 9 and Track EH-3, which are JMRI Thrown, so
-# both are inverted. The row-8 stub is Track EH-3 and the bottom row EH-1,
-# matching the Layout Editor topology without moving any CATS track.
-INVERT_VS_JMRI = {"TOL3", "TO10", "TO11"}  # 100, Switch 9, Switch 11
+# Switches 9 and 11 are not inverted either (2026-11-12, after the Switch 9
+# rewiring): NORMAL is their closed BOTTOM leg. The row-8 stub is Track EH-3
+# and the bottom row EH-1, matching the Layout Editor without moving any track.
+INVERT_VS_JMRI = {"TOL3"}  # 100
 
 # Do not add rails. Designer already drew every frog.
 EXTRA_TRACKS: dict[tuple[int, int], str] = {}
