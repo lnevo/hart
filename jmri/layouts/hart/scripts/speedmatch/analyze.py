@@ -262,7 +262,7 @@ def parse_pass_log(lines, source=""):
 def replay_distance(events, order, lengths, target_mm, min_blocks, max_s, rel):
     """Distance mode, replayed as the runner took it: events are the ACTIVE events from the
     MEASURE one on. Returns (blocks [(sensor, mm, s)], reason, relsd, extra); reason is
-    'settled', 'max' or '' (the data ended first)."""
+    'settled', 'timed', 'max' or '' (the data ended first)."""
     reader = lr.BlockReader(order, lengths)
     step = lr.DistanceStep(target_mm, min_blocks, max_s, rel)
     blocks, t0 = [], None
@@ -270,7 +270,7 @@ def replay_distance(events, order, lengths, target_mm, min_blocks, max_s, rel):
         if t0 is None:
             t0 = t
         done, why = step.check(t - t0)  # the clock may run out between two events
-        if done and why == "max":
+        if done and why in ("max", "timed"):
             return blocks, why, step.relsd, step.extra
         b = reader.feed(t, sensor)
         if b is not None:
@@ -364,7 +364,7 @@ def distance_row(run, s, n, order, lengths, cfg, rel):
             "n": cnt, "blocks": 1, "run": n, "used": cnt,
             "reason": reason,
             "median": v if cnt else None, "rel_sd": rsd if cnt > 1 else None,
-            "settled": reason == "settled" and cnt > 0}
+            "settled": lr.is_valid_reason(reason) and cnt > 0}
 
 
 EVENT_FIELDS = ["loco", "log", "step", "lap_index", "block", "block_len_mm", "entry_epoch",

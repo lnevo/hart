@@ -256,7 +256,8 @@ class BlockReader(object):
 class DistanceStep(object):
     """The end rule of one distance-mode step. add() each block reading, then ask check()
     with the seconds measured so far: (done, reason). reason is 'settled' (enough distance and
-    blocks) or 'max' (the time ran out). When the distance is reached but the single-block
+    blocks), 'timed' (the time ran out with at least min_blocks blocks spreading within rel:
+    still valid) or 'max' (the time ran out and the data is not good enough). When the distance is reached but the single-block
     speeds spread more than rel and a second reading of target_mm still fits in the time left,
     the step goes on for one more target_mm (extra_new is True once, for the log)."""
 
@@ -287,8 +288,17 @@ class DistanceStep(object):
                     return False, ""
             return True, "settled"
         if elapsed >= self.max_s:
+            if n >= self.min_blocks and rsd <= self.rel:
+                self.relsd = rsd
+                return True, "timed"
             return True, "max"
         return False, ""
+
+
+def is_valid_reason(reason):
+    """A distance step's reading is used when it ended 'settled' (distance reached) or
+    'timed' (time limit, but at least min_blocks blocks with a spread within rel)."""
+    return reason in ("settled", "timed")
 
 
 def next_after(order, frm, to):

@@ -222,7 +222,7 @@ def read_profile(path, loco, direction, run=None, route=analyze.DEFAULT_ROUTE):
     """({step: median mm/s}, [skipped]) for one loco and direction from analyze.py's
     profile.csv. One run only: `run` if given, else the latest complete run (the latest run
     if none completed). Only the first measurement of a step, and only if the stop rule
-    settled (reason "settled"); every other step is listed in skipped as (step, reason).
+    settled (reason "settled", or "timed" in distance mode); every other step is listed in skipped as (step, reason).
     Only runs of `route` count (a profile.csv without a route column is loop1)."""
     with open(path, newline="") as fh:
         rows = [r for r in csv.DictReader(fh) if r["loco"] == loco and r["direction"] == direction
@@ -237,7 +237,7 @@ def read_profile(path, loco, direction, run=None, route=analyze.DEFAULT_ROUTE):
     for r in rows:
         if int(r.get("run") or 1) != run or "#" in r["step"]:
             continue
-        if r["median_mm_s"] and r["reason"] == "settled":
+        if r["median_mm_s"] and r["reason"] in ("settled", "timed"):
             out[int(r["step"])] = float(r["median_mm_s"])
         else:
             skipped.append((int(r["step"]), r["reason"] or "no readings"))

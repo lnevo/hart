@@ -149,6 +149,24 @@ class EndRule(unittest.TestCase):
         self.assertEqual(st.check(59.0), (False, ""))
         self.assertEqual(st.check(60.0), (True, "max"))
 
+    def test_time_limit_with_enough_steady_blocks_is_timed_and_valid(self):
+        st = lr.DistanceStep()  # step 8 at 56 mm/s: 2 blocks of 1500 mm in 53.6 s, none more by 60 s
+        st.add(1500.0, 26.8)
+        st.add(1500.0, 26.8)
+        self.assertEqual(st.check(60.0), (True, "timed"))
+        self.assertTrue(lr.is_valid_reason("timed"))
+
+    def test_time_limit_with_one_block_or_high_spread_is_max_and_not_valid(self):
+        one = lr.DistanceStep()
+        one.add(1500.0, 26.8)
+        self.assertEqual(one.check(60.0), (True, "max"))
+        wide = lr.DistanceStep()
+        wide.add(1500.0, 20.0)
+        wide.add(1500.0, 30.0)
+        self.assertEqual(wide.check(60.0), (True, "max"))
+        self.assertFalse(lr.is_valid_reason("max"))
+        self.assertFalse(lr.is_valid_reason("stalled"))
+
     def test_spread_earns_one_more_reading_when_time_allows(self):
         blocks = [(1500.0, 5.0), (1500.0, 7.5), (1500.0, 6.0), (1500.0, 6.0)]
         st, why, t = self.run_rule(blocks + [(1500.0, 6.0)] * 6)
@@ -324,6 +342,20 @@ class AnalyzeDistance(unittest.TestCase):
         rows = list(csv.DictReader(open(d / "profile.csv")))
         self.assertEqual([(r["step"], r["median_mm_s"], r["settled"]) for r in rows],
                          [("8", "250.0", "True"), ("16", "500.0", "True")])
+
+    def test_timed_step_is_used_and_max_step_is_not(self):
+        ev = steady(ORDER1, ORDER1[0], 56.0, LEN1, 5)  # 26.8 s a block: 2 blocks fit in 60 s
+        lines = distance_log([(8, ev)])
+        sm = analyze.summarize_runs(analyze.parse_log([x.replace("reason=settled", "reason=timed") for x in lines]), LEN1)
+        row = sm[0]["rows"][0]
+        self.assertEqual((row["reason"], row["settled"], row["n"]), ("timed", True, 2))
+        self.assertAlmostEqual(row["median"], 56.0, delta=0.01)
+        d = Path(tempfile.mkdtemp())
+        analyze.write_outputs(analyze.latest_runs(sm), None, d, sm)
+        self.assertEqual(list(csv.DictReader(open(d / "profile.csv")))[0]["settled"], "True")
+        import correct as corr
+        got, skipped = corr.read_profile(d / "profile.csv", "CSX 2121", "forward")
+        self.assertIn(8, got)
 
     def test_max_time_step_is_not_settled(self):
         ev = steady(ORDER1, ORDER1[0], 15.0, LEN1, 5)  # 100 s a block: the 60 s run out first
@@ -684,7 +716,7 @@ class SimulatedRuns(unittest.TestCase):
         self.assertIn("reason=settled", done[48])  # 10 mm/s per step: 480 mm/s
         self.assertAlmostEqual(float(re.search(r"mm_s=([\d.]+)", done[48]).group(1)), 480.0, places=0)
         self.assertIn("reason=settled", done[24])
-        self.assertIn("reason=max", done[8])  # 80 mm/s: 1500 mm takes 18.75 s, 6000 mm would take 75 s
+        self.assertIn("reason=timed", done[8])  # 80 mm/s: 6000 mm would take 75 s, but 3 steady blocks fit in 60 s
         blocks = [m for m in msgs if m.startswith("BLOCK 48 ")]
         self.assertGreaterEqual(len(blocks), 2)
         self.assertRegex(blocks[0], r"^BLOCK 48 block=BS_[A-Za-z0-9_-]+ mm=1500\.0 dt=\d+\.\d\d mm_s=\d+\.\d$")

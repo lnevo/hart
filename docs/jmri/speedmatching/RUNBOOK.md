@@ -366,8 +366,10 @@ kill flag, stall limit and active marker (all from `jobkit.py`). No laps are cou
 - **Measuring.** A block is read when it was crossed whole: entry of block k to entry of block
   k+1, both on the route, in travel order, with a trusted length. A missed sensor restarts the
   chain. A step ends when the crossed blocks add up to `--target-mm` (6000) over at least
-  `--min-blocks` (2) blocks, or after `--max-s` (60) seconds of measuring. The speed is
-  sum(mm) / sum(seconds).
+  `--min-blocks` (2) blocks (reason `settled`), or after `--max-s` (60) seconds of measuring. The
+  speed is sum(mm) / sum(seconds). A step that ran out of time still counts when it has at least
+  `--min-blocks` blocks whose speeds spread no more than `--rel` (reason `timed`, used like
+  `settled`); with fewer blocks or more spread it is `max` and not used. `stalled` is not used.
 - **Spread.** If the single-block speeds at that point spread more than `--rel` (0.03) and another
   `--target-mm` still fits in the time left, the step takes one more reading of that length once
   (logged as `EXTRA`) and the speed is over all the blocks.
@@ -378,8 +380,8 @@ kill flag, stall limit and active marker (all from `jobkit.py`). No laps are cou
 `analyze.py` replays a distance log the same way (it reads `CFG mode=distance`, the logged
 distance settings, and the sensor events from `MEASURE` on, through the same `liverule.py`
 classes) into `profile.csv`: one row per step, speed in `median_mm_s`, `readings` = blocks, `settled`
-when the distance was reached. `profile_to_roster.py` and `correct.py` take those rows as before;
-a step that ended on time (`max`) is not `settled` and is left out of the roster profile.
+when the step ended `settled` or `timed`. `profile_to_roster.py` and `correct.py` take those rows
+(both reasons); a `max` or `stalled` step is left out of the roster profile.
 
 ## The pass job
 
@@ -417,7 +419,7 @@ SETTLE <n> secs=<s>
 MEASURE <n> from=<sensor user name>
 SENS <sensor user name> <ACTIVE|INACTIVE|UNKNOWN|INCONSISTENT>
 BLOCK <step> block=<sensor_user_name_with_underscores> mm=<len> dt=<s> mm_s=<v>
-STEPDONE <n> reason=<settled|max|stalled|...> n=<blocks> mm=<sum> s=<sum> mm_s=<v> relsd=<r>
+STEPDONE <n> reason=<settled|timed|max|stalled> n=<blocks> mm=<sum> s=<sum> mm_s=<v> relsd=<r>
 PASS step=<n> from=<sensor> to=<sensor>
 PASSDONE reason=<..>
 STOP <why>
