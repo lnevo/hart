@@ -1,0 +1,2685 @@
+{
+ "nodes": {
+  "TOL30431": {
+   "kind": "switch",
+   "label": "T15",
+   "xy": [
+    737.7,
+    719.09
+   ],
+   "district": "Industry 2",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.999996019753557,
+     -0.002821431736504856
+    ],
+    "B": [
+     0.999996019753557,
+     0.002821431736504856
+    ],
+    "C": [
+     0.9724690090349464,
+     -0.23303224340547693
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR30399": {
+   "kind": "switch",
+   "label": "T6",
+   "xy": [
+    1296.04,
+    704.26
+   ],
+   "district": "Industry 2",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     -0.9798765487080169,
+     -0.19960448214422788
+    ],
+    "B": [
+     0.9798765487080169,
+     0.19960448214422788
+    ],
+    "C": [
+     0.9051292618340072,
+     0.4251364714674866
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR30396": {
+   "kind": "switch",
+   "label": "T1",
+   "xy": [
+    836.0,
+    697.52
+   ],
+   "district": "Industry 2",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.9807817159133712,
+     -0.19510824106127167
+    ],
+    "B": [
+     -0.9807817159133712,
+     0.19510824106127167
+    ],
+    "C": [
+     -0.9991208071207596,
+     -0.041923892690947026
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR33649": {
+   "kind": "switch",
+   "label": "12",
+   "xy": [
+    215.45,
+    1056.07
+   ],
+   "district": "Industry 2",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     -0.23626159687740364,
+     0.9716894863282917
+    ]
+   }
+  },
+  "TOL30400": {
+   "kind": "switch",
+   "label": "T14",
+   "xy": [
+    1198.83,
+    684.45
+   ],
+   "district": "Industry 2",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.9798926051134024,
+     0.19952564357512947
+    ],
+    "B": [
+     -0.9798926051134024,
+     -0.19952564357512947
+    ],
+    "C": [
+     -0.9993073005195172,
+     0.03721450158735686
+    ]
+   },
+   "z": 0.0
+  },
+  "TOL30310": {
+   "kind": "switch",
+   "label": "T141",
+   "xy": [
+    215.31,
+    1713.27
+   ],
+   "district": "Industry 1",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     0.23580181432881447,
+     0.9718011650328678
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR30311": {
+   "kind": "switch",
+   "label": "T143",
+   "xy": [
+    217.3,
+    1453.92
+   ],
+   "district": "Industry 1",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     -0.19789854111342764,
+     -0.9802225091402345
+    ],
+    "B": [
+     0.19789854111342764,
+     0.9802225091402345
+    ],
+    "C": [
+     -0.039170229403218036,
+     0.9992325520760916
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR33646": {
+   "kind": "switch",
+   "label": "T153",
+   "xy": [
+    185.31,
+    1185.13
+   ],
+   "district": "Branchline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.0,
+     1.0
+    ],
+    "B": [
+     0.0,
+     -1.0
+    ],
+    "C": [
+     0.2358916059235873,
+     -0.9717793732400328
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR29162": {
+   "kind": "switch",
+   "label": "T155",
+   "xy": [
+    185.31,
+    1558.5
+   ],
+   "district": "Branchline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     -0.23580181432881447,
+     0.9718011650328678
+    ]
+   },
+   "z": 0.0
+  },
+  "TOL29163": {
+   "kind": "switch",
+   "label": "T162",
+   "xy": [
+    153.29,
+    1707.0
+   ],
+   "district": "Branchline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.19789854111342764,
+     -0.9802225091402345
+    ],
+    "B": [
+     -0.19789854111342764,
+     0.9802225091402345
+    ],
+    "C": [
+     0.039170229403218036,
+     0.9992325520760916
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR29169": {
+   "kind": "switch",
+   "label": "T160",
+   "xy": [
+    185.31,
+    1394.66
+   ],
+   "district": "Branchline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     -0.23589160592358932,
+     0.9717793732400323
+    ]
+   },
+   "z": 0.0
+  },
+  "TO_3W33789-1": {
+   "kind": "switch",
+   "label": "51",
+   "xy": [
+    126.84,
+    3500.98
+   ],
+   "district": "Branchline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.0006199626830887793,
+     0.9999998078231173
+    ],
+    "B": [
+     0.0006199626830887793,
+     -0.9999998078231173
+    ],
+    "C": [
+     -0.15125538238456723,
+     -0.988494718903292
+    ]
+   }
+  },
+  "TO_3W33789-2": {
+   "kind": "switch",
+   "label": "50",
+   "xy": [
+    126.87,
+    3452.58
+   ],
+   "district": "Branchline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     -0.0006199626830887793,
+     0.9999998078231173
+    ],
+    "B": [
+     0.0006199626830887793,
+     -0.9999998078231173
+    ],
+    "C": [
+     0.20633963135055153,
+     -0.9784804323716026
+    ]
+   }
+  },
+  "TOL30287": {
+   "kind": "switch",
+   "label": "T165",
+   "xy": [
+    185.31,
+    1289.9
+   ],
+   "district": "Branchline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     0.2136651765992248,
+     0.9769069517148611
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR32045": {
+   "kind": "switch",
+   "label": "T184",
+   "xy": [
+    1100.63,
+    662.42
+   ],
+   "district": "Branchline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     -0.99999869927413,
+     -0.00161290112786462
+    ],
+    "B": [
+     0.99999869927413,
+     0.00161290112786462
+    ],
+    "C": [
+     0.9713969979094796,
+     0.23746130727436518
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR34053": {
+   "kind": "switch",
+   "label": "T183",
+   "xy": [
+    164.72,
+    3265.09
+   ],
+   "district": "Branchline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.0010877440990640895,
+     -0.9999994084062125
+    ],
+    "B": [
+     -0.0010877440990640895,
+     0.9999994084062125
+    ],
+    "C": [
+     -0.21467931193092912,
+     0.9766845923986223
+    ]
+   },
+   "z": 0.0
+  },
+  "TOL32046": {
+   "kind": "switch",
+   "label": "T187",
+   "xy": [
+    1001.4199999999998,
+    662.25
+   ],
+   "district": "Branchline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.9999979676180585,
+     0.0020161249347119977
+    ],
+    "B": [
+     -0.9999979676180585,
+     -0.002016124934712007
+    ],
+    "C": [
+     -0.9721592036878927,
+     0.23432132358136457
+    ]
+   },
+   "z": 0.0
+  },
+  "TOL33790": {
+   "kind": "switch",
+   "label": "T194",
+   "xy": [
+    95.49,
+    3319.82
+   ],
+   "district": "Branchline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     0.2136651765992265,
+     0.9769069517148609
+    ]
+   },
+   "z": 0.0
+  },
+  "TOL29248": {
+   "kind": "switch",
+   "label": "T196",
+   "xy": [
+    185.45,
+    2082.84
+   ],
+   "district": "Branchline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     0.2135912404774442,
+     0.9769231197956708
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR29141": {
+   "kind": "switch",
+   "label": "T175",
+   "xy": [
+    1966.5,
+    664.46
+   ],
+   "district": "Branchline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     1.0,
+     0.0
+    ],
+    "B": [
+     -1.0,
+     0.0
+    ],
+    "C": [
+     -0.9769231197956701,
+     -0.2135912404774471
+    ]
+   },
+   "z": 0.0
+  },
+  "TOL29346": {
+   "kind": "switch",
+   "label": "T199",
+   "xy": [
+    1563.39,
+    664.12
+   ],
+   "district": "Branchline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.9999989482784369,
+     -0.001450324798081987
+    ],
+    "B": [
+     0.9999989482784369,
+     0.001450324798081987
+    ],
+    "C": [
+     0.9772338693590334,
+     -0.21216494662778676
+    ]
+   },
+   "z": 0.0
+  },
+  "TOR31410": {
+   "kind": "switch",
+   "label": "T210",
+   "xy": [
+    1627.86,
+    1591.42
+   ],
+   "district": "8",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.9181623426521495,
+     -0.39620438227702254
+    ],
+    "B": [
+     -0.9181623426521495,
+     0.39620438227702254
+    ],
+    "C": [
+     -0.9857078773835516,
+     0.16846358794710856
+    ]
+   },
+   "z": 2.5
+  },
+  "TOL31925": {
+   "kind": "switch",
+   "label": "T211",
+   "xy": [
+    1072.09,
+    1831.27
+   ],
+   "district": "8",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.9180990365705963,
+     0.39635105531352227
+    ],
+    "B": [
+     0.9180990365705963,
+     -0.39635105531352227
+    ],
+    "C": [
+     0.7985871345375846,
+     -0.601879214254031
+    ]
+   },
+   "z": 2.5
+  },
+  "TOL31392": {
+   "kind": "switch",
+   "label": "T212",
+   "xy": [
+    1523.99,
+    1432.85
+   ],
+   "district": "7",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.9553157180817733,
+     0.2955873454427739
+    ],
+    "B": [
+     -0.9553157180817733,
+     -0.2955873454427739
+    ],
+    "C": [
+     -0.9981055813948737,
+     -0.061524372312127464
+    ]
+   },
+   "z": 2.5
+  },
+  "TOL31515": {
+   "kind": "switch",
+   "label": "T214",
+   "xy": [
+    1142.17,
+    1372.09
+   ],
+   "district": "7",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.9949489901075763,
+     0.10038180653840631
+    ],
+    "B": [
+     -0.9949489901075763,
+     -0.10038180653840631
+    ],
+    "C": [
+     -0.990558869816078,
+     0.13708802073373974
+    ]
+   },
+   "z": 2.5
+  },
+  "TOR31401": {
+   "kind": "switch",
+   "label": "T217",
+   "xy": [
+    1750.04,
+    1504.82
+   ],
+   "district": "7",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.9949489901075763,
+     0.10038180653840631
+    ],
+    "B": [
+     -0.9949489901075763,
+     -0.10038180653840631
+    ],
+    "C": [
+     -0.9431782700666028,
+     -0.33228715123244
+    ]
+   },
+   "z": 2.5
+  },
+  "TOR31406": {
+   "kind": "switch",
+   "label": "T220",
+   "xy": [
+    1244.72,
+    1730.52
+   ],
+   "district": "8",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.9180990365705963,
+     -0.39635105531352227
+    ],
+    "B": [
+     -0.9180990365705963,
+     0.39635105531352227
+    ],
+    "C": [
+     -0.9857078773835519,
+     0.16846358794710709
+    ]
+   },
+   "z": 2.5
+  },
+  "TOL31514": {
+   "kind": "switch",
+   "label": "T224",
+   "xy": [
+    1041.04,
+    1386.1
+   ],
+   "district": "7",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.9949449254213009,
+     -0.1004220861085951
+    ],
+    "B": [
+     0.9949449254213009,
+     0.1004220861085951
+    ],
+    "C": [
+     0.99049820429321,
+     -0.13752566048533077
+    ]
+   },
+   "z": 2.5
+  },
+  "TOL33601": {
+   "kind": "switch",
+   "label": "T226",
+   "xy": [
+    1408.08,
+    1397.01
+   ],
+   "district": "7",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.9553509310496571,
+     0.2954735158056528
+    ],
+    "B": [
+     -0.9553509310496571,
+     -0.2954735158056528
+    ],
+    "C": [
+     -0.9981070638691978,
+     -0.06150031751470078
+    ]
+   },
+   "z": 2.5
+  },
+  "TOL31924": {
+   "kind": "switch",
+   "label": "T227",
+   "xy": [
+    1153.63,
+    1769.83
+   ],
+   "district": "8",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.9180990365705944,
+     -0.3963510553135267
+    ],
+    "B": [
+     -0.9180990365705944,
+     0.3963510553135267
+    ],
+    "C": [
+     -0.7985871345375803,
+     0.6018792142540368
+    ]
+   },
+   "z": 2.5
+  },
+  "TOL31211": {
+   "kind": "switch",
+   "label": "T231",
+   "xy": [
+    264.95,
+    3004.65
+   ],
+   "district": "Mainline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.7071067811865476,
+     -0.7071067811865476
+    ],
+    "B": [
+     0.7071067811865476,
+     0.7071067811865476
+    ],
+    "C": [
+     0.8417305342154827,
+     0.5398978679058829
+    ]
+   },
+   "z": 10.8
+  },
+  "TOL28717": {
+   "kind": "switch",
+   "label": "T233",
+   "xy": [
+    95.77,
+    2192.32
+   ],
+   "district": "Mainline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     0.2135912404774442,
+     0.9769231197956708
+    ]
+   },
+   "z": 10.8
+  },
+  "TOL30902": {
+   "kind": "switch",
+   "label": "T239",
+   "xy": [
+    1899.38,
+    1535.89
+   ],
+   "district": "Mainline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.999998356686516,
+     -0.0018129049251007995
+    ],
+    "B": [
+     -0.999998356686516,
+     0.0018129049251007995
+    ],
+    "C": [
+     -0.9765358246028062,
+     0.21535501681483335
+    ]
+   },
+   "z": 2.5
+  },
+  "TOR30947": {
+   "kind": "switch",
+   "label": "T241",
+   "xy": [
+    1538.46,
+    1735.82
+   ],
+   "district": "Mainline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.7110842749932673,
+     -0.7031067869515265
+    ],
+    "B": [
+     -0.7110842749932673,
+     0.7031067869515265
+    ],
+    "C": [
+     -0.84489913174918,
+     0.5349256557405727
+    ]
+   },
+   "z": 2.5
+  },
+  "TOR31151": {
+   "kind": "switch",
+   "label": "T253",
+   "xy": [
+    1899.34,
+    1511.89
+   ],
+   "district": "Mainline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.999998356686516,
+     -0.0018129049251008145
+    ],
+    "B": [
+     -0.999998356686516,
+     0.0018129049251008145
+    ],
+    "C": [
+     -0.9773072540048858,
+     -0.21182665382200988
+    ]
+   },
+   "z": 2.5
+  },
+  "TOR29140": {
+   "kind": "switch",
+   "label": "T251",
+   "xy": [
+    1820.13,
+    634.32
+   ],
+   "district": "Mainline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     -0.9999997370692981,
+     -0.0007251629710430684
+    ],
+    "B": [
+     0.9999997370692981,
+     0.0007251629710430684
+    ],
+    "C": [
+     0.9767588178984464,
+     0.21434134378982844
+    ]
+   },
+   "z": 0.0
+  },
+  "TOL29367": {
+   "kind": "switch",
+   "label": "T256",
+   "xy": [
+    95.77,
+    2302.64
+   ],
+   "district": "Mainline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     0.2135912404774442,
+     0.9769231197956708
+    ]
+   },
+   "z": 10.8
+  },
+  "TOR28724": {
+   "kind": "switch",
+   "label": "T237",
+   "xy": [
+    95.97,
+    1917.53
+   ],
+   "district": "Mainline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.0,
+     1.0
+    ],
+    "B": [
+     0.0,
+     -1.0
+    ],
+    "C": [
+     0.2135912404774442,
+     -0.9769231197956708
+    ]
+   },
+   "z": 10.8
+  },
+  "TOR34046": {
+   "kind": "switch",
+   "label": "T260",
+   "xy": [
+    691.5,
+    3143.72
+   ],
+   "district": "Mainline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     -0.9999994084062125,
+     -0.0010877440990712988
+    ],
+    "B": [
+     0.9999994084062125,
+     0.0010877440990712988
+    ],
+    "C": [
+     0.9766845923986198,
+     0.21467931193094003
+    ]
+   },
+   "z": 10.8
+  },
+  "TOR28723": {
+   "kind": "switch",
+   "label": "T262",
+   "xy": [
+    126.12,
+    1771.16
+   ],
+   "district": "Mainline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     0.0010877440990640895,
+     -0.9999994084062125
+    ],
+    "B": [
+     -0.0010877440990640895,
+     0.9999994084062125
+    ],
+    "C": [
+     -0.2146793119309274,
+     0.9766845923986226
+    ]
+   },
+   "z": 10.8
+  },
+  "TOL34042": {
+   "kind": "switch",
+   "label": "T268",
+   "xy": [
+    691.5,
+    2460.01
+   ],
+   "district": "Mainline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.9999994084062125,
+     0.0010877440990712988
+    ],
+    "B": [
+     0.9999994084062125,
+     -0.0010877440990712988
+    ],
+    "C": [
+     0.9766845923986198,
+     -0.21467931193094003
+    ]
+   },
+   "z": 10.8
+  },
+  "TOL28839": {
+   "kind": "switch",
+   "label": "T274",
+   "xy": [
+    95.97,
+    2027.84
+   ],
+   "district": "Mainline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.0,
+     -1.0
+    ],
+    "B": [
+     0.0,
+     1.0
+    ],
+    "C": [
+     0.21359124047744255,
+     0.9769231197956713
+    ]
+   },
+   "z": 10.8
+  },
+  "TOR34047": {
+   "kind": "switch",
+   "label": "T273",
+   "xy": [
+    837.87,
+    3173.86
+   ],
+   "district": "Mainline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     1.0,
+     0.0
+    ],
+    "B": [
+     -1.0,
+     0.0
+    ],
+    "C": [
+     -0.9769969780331146,
+     -0.21325314748946061
+    ]
+   },
+   "z": 10.8
+  },
+  "TOL29345": {
+   "kind": "switch",
+   "label": "T285",
+   "xy": [
+    1709.81,
+    634.23
+   ],
+   "district": "Mainline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.9999994084062125,
+     0.001087744099063059
+    ],
+    "B": [
+     -0.9999994084062125,
+     -0.001087744099063059
+    ],
+    "C": [
+     -0.977144376809753,
+     0.212576731720759
+    ]
+   },
+   "z": 0.0
+  },
+  "TOL34043": {
+   "kind": "switch",
+   "label": "T275",
+   "xy": [
+    837.87,
+    2429.86
+   ],
+   "district": "Mainline",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     1.0,
+     0.0
+    ],
+    "B": [
+     -1.0,
+     0.0
+    ],
+    "C": [
+     -0.9769231197956728,
+     0.21359124047743472
+    ]
+   },
+   "z": 10.8
+  },
+  "TO_CO30681": {
+   "kind": "dx",
+   "label": "23",
+   "xy": [
+    2067.11,
+    1523.61
+   ],
+   "district": "Mainline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     -0.9783983794876088,
+     -0.20672835077952226
+    ],
+    "B": [
+     0.9776521511811314,
+     -0.21022909239899776
+    ],
+    "C": [
+     0.9783983794876088,
+     0.20672835077952226
+    ],
+    "D": [
+     -0.9776521511811314,
+     0.21022909239899776
+    ]
+   }
+  },
+  "TOR34141": {
+   "kind": "switch",
+   "label": "T300",
+   "xy": [
+    2077.9,
+    633.7
+   ],
+   "district": "Mainline",
+   "hand": 1,
+   "dirs": {
+    "A": [
+     -0.9999905346253918,
+     0.00435093778662262
+    ],
+    "B": [
+     0.9999905346253918,
+     -0.00435093778662262
+    ],
+    "C": [
+     0.9778490359435842,
+     0.20931140175394874
+    ]
+   },
+   "z": 0.0
+  },
+  "TOL30483": {
+   "kind": "switch",
+   "label": "T329",
+   "xy": [
+    781.95,
+    3041.9
+   ],
+   "district": "Industry 3",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.9208807112825402,
+     0.38984447615396955
+    ],
+    "B": [
+     0.9208807112825402,
+     -0.38984447615396955
+    ],
+    "C": [
+     0.8357570766721348,
+     -0.5490993614933891
+    ]
+   },
+   "z": 10.8
+  },
+  "TOL29364": {
+   "kind": "switch",
+   "label": "T340",
+   "xy": [
+    191.41,
+    2432.19
+   ],
+   "district": "Industry 3",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.5136654151045512,
+     -0.8579905834713275
+    ],
+    "B": [
+     0.5136654151045512,
+     0.8579905834713275
+    ],
+    "C": [
+     0.7017970660704967,
+     0.7123769213378849
+    ]
+   },
+   "z": 10.8
+  },
+  "TOL29356": {
+   "kind": "switch",
+   "label": "T345",
+   "xy": [
+    655.07,
+    3083.59
+   ],
+   "district": "Industry 3",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.9726522444268073,
+     0.23226625112464006
+    ],
+    "B": [
+     0.9726522444268073,
+     -0.23226625112464006
+    ],
+    "C": [
+     0.9149441076198759,
+     -0.403580574274418
+    ]
+   },
+   "z": 10.8
+  },
+  "TOL30474": {
+   "kind": "switch",
+   "label": "T343",
+   "xy": [
+    138.01,
+    2346.89
+   ],
+   "district": "Industry 3",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.3338322154058229,
+     -0.9426325116169293
+    ],
+    "B": [
+     0.3338322154058229,
+     0.9426325116169293
+    ],
+    "C": [
+     0.5469009916967482,
+     0.837197291730637
+    ]
+   },
+   "z": 10.8
+  },
+  "END:EB382": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    254.45,
+    1006.46
+   ]
+  },
+  "END:EB384": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    1646.3,
+    727.15
+   ]
+  },
+  "END:EB381": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    1646.45,
+    751.17
+   ]
+  },
+  "END:EB383": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    256.86,
+    1497.69
+   ]
+  },
+  "END:EB392": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    215.32,
+    1998.0
+   ]
+  },
+  "END:EB393": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    274.87,
+    2242.33
+   ]
+  },
+  "END:EB391": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    270.57,
+    1834.83
+   ]
+  },
+  "END:EB398": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    126.66,
+    3815.44
+   ]
+  },
+  "END:EB397": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    164.08,
+    3817.5
+   ]
+  },
+  "END:EB395": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    95.49,
+    3815.04
+   ]
+  },
+  "END:EB409": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    1443.65,
+    1430.46
+   ]
+  },
+  "END:EB399": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    895.79,
+    1907.35
+   ]
+  },
+  "END:EB404": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    862.07,
+    1343.22
+   ]
+  },
+  "END:EB400": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    986.27,
+    1427.72
+   ]
+  },
+  "END:EB405": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    812.45,
+    1819.79
+   ]
+  },
+  "END:EB401": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    860.21,
+    1367.84
+   ]
+  },
+  "END:EB402": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    865.09,
+    1313.37
+   ]
+  },
+  "END:EB406": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    884.53,
+    1879.9
+   ]
+  },
+  "END:EB403": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    1104.33,
+    1954.16
+   ]
+  },
+  "END:EB408": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    1498.17,
+    1422.85
+   ]
+  },
+  "END:EB413": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    1194.24,
+    2825.43
+   ]
+  },
+  "END:EB412": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    1189.53,
+    2764.59
+   ]
+  },
+  "END:EB415": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    955.81,
+    2710.03
+   ]
+  },
+  "END:EB414": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    985.31,
+    2570.41
+   ]
+  },
+  "END:EB416": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    1155.75,
+    2620.09
+   ]
+  },
+  "END:EB411": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    286.44,
+    2766.05
+   ]
+  }
+ },
+ "edges": [
+  {
+   "u": "TOL30431",
+   "up": "A",
+   "v": "END:EB382",
+   "vp": "E",
+   "names": [],
+   "cm": 122.3,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e0"
+  },
+  {
+   "u": "TOL30431",
+   "up": "B",
+   "v": "TOL30400",
+   "vp": "C",
+   "names": [],
+   "cm": 87.5,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e1"
+  },
+  {
+   "u": "TOL30431",
+   "up": "C",
+   "v": "TOR30396",
+   "vp": "B",
+   "names": [],
+   "cm": 10.7,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e2"
+  },
+  {
+   "u": "TOR30399",
+   "up": "A",
+   "v": "TOL30400",
+   "vp": "A",
+   "names": [],
+   "cm": 10.5,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e3"
+  },
+  {
+   "u": "TOR30399",
+   "up": "B",
+   "v": "END:EB384",
+   "vp": "E",
+   "names": [],
+   "cm": 69.3,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e4"
+  },
+  {
+   "u": "TOR30399",
+   "up": "C",
+   "v": "END:EB381",
+   "vp": "E",
+   "names": [],
+   "cm": 70.5,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e5"
+  },
+  {
+   "u": "TOR30396",
+   "up": "A",
+   "v": "TOL32046",
+   "vp": "C",
+   "names": [],
+   "cm": 25.2,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e6"
+  },
+  {
+   "u": "TOR30396",
+   "up": "C",
+   "v": "TOR33649",
+   "vp": "A",
+   "names": [],
+   "cm": 158.6,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e7"
+  },
+  {
+   "u": "TOR33649",
+   "up": "B",
+   "v": "END:EB383",
+   "vp": "E",
+   "names": [],
+   "cm": 89.0,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e8"
+  },
+  {
+   "u": "TOR33649",
+   "up": "C",
+   "v": "TOR33646",
+   "vp": "C",
+   "names": [],
+   "cm": 17.3,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e9"
+  },
+  {
+   "u": "TOL30400",
+   "up": "B",
+   "v": "TOR32045",
+   "vp": "C",
+   "names": [],
+   "cm": 10.7,
+   "link": false,
+   "main": false,
+   "district": "Industry 2",
+   "hidden": false,
+   "id": "e10"
+  },
+  {
+   "u": "TOL30310",
+   "up": "A",
+   "v": "TOR30311",
+   "vp": "C",
+   "names": [],
+   "cm": 44.2,
+   "link": false,
+   "main": false,
+   "district": "Industry 1",
+   "hidden": false,
+   "id": "e11"
+  },
+  {
+   "u": "TOL30310",
+   "up": "B",
+   "v": "END:EB392",
+   "vp": "E",
+   "names": [],
+   "cm": 55.0,
+   "link": false,
+   "main": false,
+   "district": "Industry 1",
+   "hidden": false,
+   "id": "e12"
+  },
+  {
+   "u": "TOL30310",
+   "up": "C",
+   "v": "END:EB393",
+   "vp": "E",
+   "names": [],
+   "cm": 108.2,
+   "link": false,
+   "main": false,
+   "district": "Industry 1",
+   "hidden": false,
+   "id": "e13"
+  },
+  {
+   "u": "TOR30311",
+   "up": "A",
+   "v": "TOL30287",
+   "vp": "C",
+   "names": [],
+   "cm": 24.2,
+   "link": false,
+   "main": false,
+   "district": "Industry 1",
+   "hidden": false,
+   "id": "e14"
+  },
+  {
+   "u": "TOR30311",
+   "up": "B",
+   "v": "END:EB391",
+   "vp": "E",
+   "names": [],
+   "cm": 76.5,
+   "link": false,
+   "main": false,
+   "district": "Industry 1",
+   "hidden": false,
+   "id": "e15"
+  },
+  {
+   "u": "TOR33646",
+   "up": "A",
+   "v": "TOL30287",
+   "vp": "A",
+   "names": [],
+   "cm": 11.1,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e16"
+  },
+  {
+   "u": "TOR33646",
+   "up": "B",
+   "v": "TOL32046",
+   "vp": "B",
+   "names": [],
+   "cm": 230.0,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e17"
+  },
+  {
+   "u": "TOR29162",
+   "up": "A",
+   "v": "TOR29169",
+   "vp": "B",
+   "names": [],
+   "cm": 24.2,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e18"
+  },
+  {
+   "u": "TOR29162",
+   "up": "B",
+   "v": "TOL29248",
+   "vp": "A",
+   "names": [],
+   "cm": 99.9,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e19"
+  },
+  {
+   "u": "TOR29162",
+   "up": "C",
+   "v": "TOL29163",
+   "vp": "A",
+   "names": [],
+   "cm": 21.5,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e20"
+  },
+  {
+   "u": "TOL29163",
+   "up": "B",
+   "v": "TO_3W33789-2",
+   "vp": "B",
+   "names": [],
+   "cm": 361.3,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": true,
+   "id": "e21"
+  },
+  {
+   "u": "TOL29163",
+   "up": "C",
+   "v": "TOR34053",
+   "vp": "A",
+   "names": [],
+   "cm": 318.6,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": true,
+   "id": "e22"
+  },
+  {
+   "u": "TOR29169",
+   "up": "A",
+   "v": "TOL30287",
+   "vp": "B",
+   "names": [],
+   "cm": 11.1,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e23"
+  },
+  {
+   "u": "TOR29169",
+   "up": "C",
+   "v": "TOL33790",
+   "vp": "A",
+   "names": [],
+   "cm": 398.1,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": true,
+   "id": "e24"
+  },
+  {
+   "u": "TO_3W33789-1",
+   "up": "A",
+   "v": "END:EB398",
+   "vp": "E",
+   "names": [],
+   "cm": 63.1,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e25"
+  },
+  {
+   "u": "TO_3W33789-1",
+   "up": "C",
+   "v": "TOL33790",
+   "vp": "C",
+   "names": [],
+   "cm": 19.5,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e26"
+  },
+  {
+   "u": "TO_3W33789-2",
+   "up": "C",
+   "v": "TOR34053",
+   "vp": "C",
+   "names": [],
+   "cm": 25.8,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e27"
+  },
+  {
+   "u": "TO_3W33789-1",
+   "up": "B",
+   "v": "TO_3W33789-2",
+   "vp": "A",
+   "names": [],
+   "cm": 3.4,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e28"
+  },
+  {
+   "u": "TOR32045",
+   "up": "A",
+   "v": "TOL32046",
+   "vp": "A",
+   "names": [],
+   "cm": 10.5,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e29"
+  },
+  {
+   "u": "TOR32045",
+   "up": "B",
+   "v": "TOL29346",
+   "vp": "A",
+   "names": [],
+   "cm": 86.9,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e30"
+  },
+  {
+   "u": "TOR34053",
+   "up": "B",
+   "v": "END:EB397",
+   "vp": "E",
+   "names": [],
+   "cm": 111.1,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e31"
+  },
+  {
+   "u": "TOL33790",
+   "up": "B",
+   "v": "END:EB395",
+   "vp": "E",
+   "names": [],
+   "cm": 99.0,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e32"
+  },
+  {
+   "u": "TOL29248",
+   "up": "B",
+   "v": "TOL29248",
+   "vp": "C",
+   "names": [],
+   "cm": 777.0,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": true,
+   "id": "e33"
+  },
+  {
+   "u": "TOR29141",
+   "up": "A",
+   "v": "END:EB409",
+   "vp": "E",
+   "names": [],
+   "cm": 849.6,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e34"
+  },
+  {
+   "u": "TOR29141",
+   "up": "B",
+   "v": "TOL29346",
+   "vp": "B",
+   "names": [],
+   "cm": 73.6,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e35"
+  },
+  {
+   "u": "TOR29141",
+   "up": "C",
+   "v": "TOR29140",
+   "vp": "C",
+   "names": [],
+   "cm": 19.7,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e36"
+  },
+  {
+   "u": "TOL29346",
+   "up": "C",
+   "v": "TOL29345",
+   "vp": "C",
+   "names": [],
+   "cm": 19.7,
+   "link": false,
+   "main": false,
+   "district": "Branchline",
+   "hidden": false,
+   "id": "e37"
+  },
+  {
+   "u": "TOR31410",
+   "up": "A",
+   "v": "TOL30902",
+   "vp": "B",
+   "names": [],
+   "cm": 48.3,
+   "link": false,
+   "main": false,
+   "district": "8",
+   "hidden": false,
+   "id": "e38"
+  },
+  {
+   "u": "TOR31410",
+   "up": "B",
+   "v": "TOL31925",
+   "vp": "B",
+   "names": [],
+   "cm": 117.6,
+   "link": false,
+   "main": false,
+   "district": "8",
+   "hidden": false,
+   "id": "e39"
+  },
+  {
+   "u": "TOR31410",
+   "up": "C",
+   "v": "TOR31406",
+   "vp": "A",
+   "names": [],
+   "cm": 75.9,
+   "link": false,
+   "main": false,
+   "district": "8",
+   "hidden": false,
+   "id": "e40"
+  },
+  {
+   "u": "TOL31925",
+   "up": "A",
+   "v": "END:EB399",
+   "vp": "E",
+   "names": [],
+   "cm": 35.4,
+   "link": false,
+   "main": false,
+   "district": "8",
+   "hidden": false,
+   "id": "e41"
+  },
+  {
+   "u": "TOL31925",
+   "up": "C",
+   "v": "TOL31924",
+   "vp": "C",
+   "names": [],
+   "cm": 10.8,
+   "link": false,
+   "main": false,
+   "district": "8",
+   "hidden": false,
+   "id": "e42"
+  },
+  {
+   "u": "TOL31392",
+   "up": "A",
+   "v": "TOR31401",
+   "vp": "C",
+   "names": [],
+   "cm": 39.6,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e43"
+  },
+  {
+   "u": "TOL31392",
+   "up": "B",
+   "v": "TOL33601",
+   "vp": "A",
+   "names": [],
+   "cm": 15.2,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e44"
+  },
+  {
+   "u": "TOL31392",
+   "up": "C",
+   "v": "TOL31514",
+   "vp": "B",
+   "names": [],
+   "cm": 92.1,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e45"
+  },
+  {
+   "u": "TOL31515",
+   "up": "A",
+   "v": "TOL33601",
+   "vp": "C",
+   "names": [],
+   "cm": 45.9,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e46"
+  },
+  {
+   "u": "TOL31515",
+   "up": "B",
+   "v": "END:EB404",
+   "vp": "E",
+   "names": [],
+   "cm": 54.4,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e47"
+  },
+  {
+   "u": "TOL31515",
+   "up": "C",
+   "v": "TOL31514",
+   "vp": "C",
+   "names": [],
+   "cm": 10.8,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e48"
+  },
+  {
+   "u": "TOR31401",
+   "up": "A",
+   "v": "TOR31151",
+   "vp": "B",
+   "names": [],
+   "cm": 20.6,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e49"
+  },
+  {
+   "u": "TOR31401",
+   "up": "B",
+   "v": "END:EB400",
+   "vp": "E",
+   "names": [],
+   "cm": 157.2,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e50"
+  },
+  {
+   "u": "TOR31406",
+   "up": "B",
+   "v": "TOL31924",
+   "vp": "A",
+   "names": [],
+   "cm": 10.5,
+   "link": false,
+   "main": false,
+   "district": "8",
+   "hidden": false,
+   "id": "e51"
+  },
+  {
+   "u": "TOR31406",
+   "up": "C",
+   "v": "END:EB405",
+   "vp": "E",
+   "names": [],
+   "cm": 88.0,
+   "link": false,
+   "main": false,
+   "district": "8",
+   "hidden": false,
+   "id": "e52"
+  },
+  {
+   "u": "TOL31514",
+   "up": "A",
+   "v": "END:EB401",
+   "vp": "E",
+   "names": [],
+   "cm": 33.2,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e53"
+  },
+  {
+   "u": "TOL33601",
+   "up": "B",
+   "v": "END:EB402",
+   "vp": "E",
+   "names": [],
+   "cm": 111.3,
+   "link": false,
+   "main": false,
+   "district": "7",
+   "hidden": false,
+   "id": "e54"
+  },
+  {
+   "u": "TOL31924",
+   "up": "B",
+   "v": "END:EB406",
+   "vp": "E",
+   "names": [],
+   "cm": 56.3,
+   "link": false,
+   "main": false,
+   "district": "8",
+   "hidden": false,
+   "id": "e55"
+  },
+  {
+   "u": "TOL31211",
+   "up": "A",
+   "v": "TOL29367",
+   "vp": "C",
+   "names": [],
+   "cm": 145.0,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e56"
+  },
+  {
+   "u": "TOL31211",
+   "up": "B",
+   "v": "TOR34046",
+   "vp": "A",
+   "names": [],
+   "cm": 86.2,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e57"
+  },
+  {
+   "u": "TOL31211",
+   "up": "C",
+   "v": "TOL29356",
+   "vp": "A",
+   "names": [],
+   "cm": 73.3,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e58"
+  },
+  {
+   "u": "TOL28717",
+   "up": "A",
+   "v": "TOL28839",
+   "vp": "B",
+   "names": [],
+   "cm": 23.1,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e59"
+  },
+  {
+   "u": "TOL28717",
+   "up": "B",
+   "v": "TOL29367",
+   "vp": "A",
+   "names": [],
+   "cm": 11.7,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e60"
+  },
+  {
+   "u": "TOL28717",
+   "up": "C",
+   "v": "TOL30474",
+   "vp": "A",
+   "names": [],
+   "cm": 22.7,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e61"
+  },
+  {
+   "u": "TOL30902",
+   "up": "A",
+   "v": "TO_CO30681",
+   "vp": "D",
+   "names": [],
+   "cm": 17.8,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e62"
+  },
+  {
+   "u": "TOL30902",
+   "up": "C",
+   "v": "TOR30947",
+   "vp": "A",
+   "names": [],
+   "cm": 77.6,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e63"
+  },
+  {
+   "u": "TOR30947",
+   "up": "B",
+   "v": "TOR31151",
+   "vp": "C",
+   "names": [],
+   "cm": 518.6,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e64"
+  },
+  {
+   "u": "TOR30947",
+   "up": "C",
+   "v": "END:EB403",
+   "vp": "E",
+   "names": [],
+   "cm": 97.1,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e65"
+  },
+  {
+   "u": "TOR31151",
+   "up": "A",
+   "v": "TO_CO30681",
+   "vp": "A",
+   "names": [],
+   "cm": 17.8,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e66"
+  },
+  {
+   "u": "TOR29140",
+   "up": "A",
+   "v": "TOL29345",
+   "vp": "A",
+   "names": [],
+   "cm": 11.7,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e67"
+  },
+  {
+   "u": "TOR29140",
+   "up": "B",
+   "v": "TOR34141",
+   "vp": "A",
+   "names": [],
+   "cm": 42.9,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e68"
+  },
+  {
+   "u": "TOL29367",
+   "up": "B",
+   "v": "TOR34047",
+   "vp": "B",
+   "names": [],
+   "cm": 283.2,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e69"
+  },
+  {
+   "u": "TOR28724",
+   "up": "A",
+   "v": "TOL28839",
+   "vp": "A",
+   "names": [],
+   "cm": 11.7,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e70"
+  },
+  {
+   "u": "TOR28724",
+   "up": "B",
+   "v": "TO_CO30681",
+   "vp": "C",
+   "names": [],
+   "cm": 951.6,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e71"
+  },
+  {
+   "u": "TOR28724",
+   "up": "C",
+   "v": "TOR28723",
+   "vp": "C",
+   "names": [],
+   "cm": 19.7,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e72"
+  },
+  {
+   "u": "TOR34046",
+   "up": "B",
+   "v": "TOL34042",
+   "vp": "B",
+   "names": [],
+   "cm": 278.4,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e73"
+  },
+  {
+   "u": "TOR34046",
+   "up": "C",
+   "v": "TOR34047",
+   "vp": "C",
+   "names": [],
+   "cm": 19.7,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e74"
+  },
+  {
+   "u": "TOR28723",
+   "up": "A",
+   "v": "TOL29345",
+   "vp": "B",
+   "names": [],
+   "cm": 521.9,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e75"
+  },
+  {
+   "u": "TOR28723",
+   "up": "B",
+   "v": "TOL34043",
+   "vp": "B",
+   "names": [],
+   "cm": 238.2,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e76"
+  },
+  {
+   "u": "TOL34042",
+   "up": "A",
+   "v": "TOL28839",
+   "vp": "C",
+   "names": [],
+   "cm": 163.2,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e77"
+  },
+  {
+   "u": "TOL34042",
+   "up": "C",
+   "v": "TOL34043",
+   "vp": "C",
+   "names": [],
+   "cm": 19.7,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e78"
+  },
+  {
+   "u": "TOR34047",
+   "up": "A",
+   "v": "TOL34043",
+   "vp": "A",
+   "names": [],
+   "cm": 234.4,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e79"
+  },
+  {
+   "u": "TO_CO30681",
+   "up": "B",
+   "v": "TOR34141",
+   "vp": "B",
+   "names": [],
+   "cm": 292.1,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e80"
+  },
+  {
+   "u": "TOR34141",
+   "up": "C",
+   "v": "END:EB408",
+   "vp": "E",
+   "names": [],
+   "cm": 384.2,
+   "link": false,
+   "main": true,
+   "district": "Mainline",
+   "hidden": false,
+   "id": "e81"
+  },
+  {
+   "u": "TOL30483",
+   "up": "A",
+   "v": "TOL29356",
+   "vp": "B",
+   "names": [],
+   "cm": 14.2,
+   "link": false,
+   "main": false,
+   "district": "Industry 3",
+   "hidden": false,
+   "id": "e82"
+  },
+  {
+   "u": "TOL30483",
+   "up": "B",
+   "v": "END:EB413",
+   "vp": "E",
+   "names": [],
+   "cm": 91.5,
+   "link": false,
+   "main": false,
+   "district": "Industry 3",
+   "hidden": false,
+   "id": "e83"
+  },
+  {
+   "u": "TOL30483",
+   "up": "C",
+   "v": "END:EB412",
+   "vp": "E",
+   "names": [],
+   "cm": 97.9,
+   "link": false,
+   "main": false,
+   "district": "Industry 3",
+   "hidden": false,
+   "id": "e84"
+  },
+  {
+   "u": "TOL29364",
+   "up": "A",
+   "v": "TOL30474",
+   "vp": "C",
+   "names": [],
+   "cm": 10.7,
+   "link": false,
+   "main": false,
+   "district": "Industry 3",
+   "hidden": false,
+   "id": "e85"
+  },
+  {
+   "u": "TOL29364",
+   "up": "B",
+   "v": "END:EB415",
+   "vp": "E",
+   "names": [],
+   "cm": 180.4,
+   "link": false,
+   "main": false,
+   "district": "Industry 3",
+   "hidden": false,
+   "id": "e86"
+  },
+  {
+   "u": "TOL29364",
+   "up": "C",
+   "v": "END:EB414",
+   "vp": "E",
+   "names": [],
+   "cm": 170.4,
+   "link": false,
+   "main": false,
+   "district": "Industry 3",
+   "hidden": false,
+   "id": "e87"
+  },
+  {
+   "u": "TOL29356",
+   "up": "C",
+   "v": "END:EB416",
+   "vp": "E",
+   "names": [],
+   "cm": 139.0,
+   "link": false,
+   "main": false,
+   "district": "Industry 3",
+   "hidden": false,
+   "id": "e88"
+  },
+  {
+   "u": "TOL30474",
+   "up": "B",
+   "v": "END:EB411",
+   "vp": "E",
+   "names": [],
+   "cm": 88.9,
+   "link": false,
+   "main": false,
+   "district": "Industry 3",
+   "hidden": false,
+   "id": "e89"
+  }
+ ]
+}

@@ -32,6 +32,21 @@ Switch 7 crossover, Switch 13 and the engine terminal, name the tracks). Sample:
 both levels: the main level's helix track from T175 is McKees Rocks and the one from T251 is McKeesport
 (owner confirmed, 2026-11-13).
 
+To redraw the three-band sheet:
+
+    python3 system.py staging.json staging_opts.json main.json main_asbuilt_opts.json system.svg
+
+`staging.json` and `main.json` are the two input files: the logical graph of the staging level and of the
+main and upper levels (switches, track ends, the runs between them with lengths, and the plan part numbers
+and heights). They hold track only. They were made from the owner's AnyRail 5.3b files, which are not in
+the repo, and are kept here so the sheet can be redrawn without them:
+
+    python3 export_reader.py <5.3b JMRI export .xml> staging.json +Staging <parts.json>
+    python3 export_reader.py <5.3b JMRI export .xml> main.json Staging <parts.json>
+
+`parts.json` comes from the `.any` plan through `tools/anyrail/prototype/parse1.py` and `parse2.py`; it
+supplies the part numbers (T…) and the heights.
+
 `evolution.py` keeps a folder of every committed version of the sample drawings and an animated GIF of them
 (owner's request, 2026-11-13). Run it after each commit that changes a sample:
 `.venv/bin/python tools/schematic/spike/evolution.py`. It writes to `~/Documents/Layout/schematic-evolution/`,
