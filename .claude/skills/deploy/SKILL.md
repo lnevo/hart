@@ -38,6 +38,7 @@ Hosts and failures:
 - Since 2026-11-11 the Pi (`RPi-JMRI.local`, 10.0.0.150, ssh alias `pi`) is on the house network directly, no longer through Windows. Windows is `minipc-e5h6x.local` (ssh port 2222) and has had repeated hard power-offs.
 - With `--pi --win`, a Pi failure (for example "Connection refused") exits before the Windows step runs.
 - If the Pi step fails, run `--win` on its own. Run `--pi` again once the Pi accepts ssh on port 22.
+- A `--pi` deploy quits a running PanelPro on the Pi (its own Quit, No to Store) and starts it again afterwards, as it does for one quit by `pi_quit_panelpro.sh` in the last 2 h. One the owner closed by hand stays closed. `HART_PI_RESTART=0` does neither.
 - Check afterwards with `make deploy-status HOSTS="--pi --win"` (or `tools/hosts/deploy_status.sh`), which reads the stamp back and compares its commit with this checkout, and with a sha256 of `tables.xml` on each host.
 - Do not leave the LCOS bridge (`serial_to_mqtt`) running, and do not publish `track/cmd` from a deploy.
 
