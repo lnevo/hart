@@ -1,7 +1,7 @@
 # Schematic maps from a track plan
 
 - **Owner:** lnevo
-- **Status:** Plan (2026-11-13). Nothing built yet. Stage 0 is next.
+- **Status:** Stage 0 in progress (2026-11-13). The spike (`tools/schematic/spike/`, in draft PR #423 until reviewed) draws the built staging level from the Layout Editor panel with no hand placement; the AnyRail groups do not draw cleanly yet.
 - **Goal:** turn an AnyRail plan into a logical (not physical) view of the railroad and draw professional maps from it. First output: the one-page system schematic. The same logical view later feeds station map pages, deck track maps, the CATS panel and the Layout Editor import for the main levels.
 
 The generic tool and its skill go in the public `model-railroad-skills` plugin. HART's names, numbers and finished maps stay in this repo.
@@ -90,10 +90,29 @@ Stages 1 and 3 can start at once and run beside stage 0. Stages 2 and 4 wait for
 - CATS Designer's grid limits, so step 4's output can seed a panel.
 - The "Drawing with SAT" paper in full, for its list of what makes a schematic readable.
 
+## Answers from the owner (2026-11-13)
+
+- Plan 5.3b is the full plan. The staging level and the helix are built; the helix is done to its top turn, and the McKees Rocks and McKeesport stubs are its two tracks today.
+- Exports of the owner's track plan may be public. The custom objects and buildings in the plan may not: their author holds the copyright.
+- Capacity: not yet. The drawing leaves a place for it.
+- Page: Letter landscape.
+
+## As built, compared with plan 5.3b (owner, 2026-11-13)
+
+Part numbers (T…) are the plan's, as drawn in the spike's overlay picture.
+
+- **Helix.** One turn more than planned. Its two tracks still leave the height-0 main (at T175 and T300), now run level to the peninsula near T226 and enter the helix there, and come out on the staging level as the McKees Rocks and McKeesport stubs. The plan file does not join every helix turn; the helix details are held separately.
+- **Peninsula top.** Raised from 1 in to 4.25 in, level with the branch line, so the 0.9% grades either side of the double crossover are gone.
+- **Beyond the double crossover.** In the plan the lower track climbed to the branch line (T237) and the upper one dropped to the height-0 main (T300). As built both stay at 4.25 in and join inside the closet on the north side, making a passing siding on that leg.
+- **T300.** The turnout moves from where it is up to the 4.25 in track (drawn blue in the overlay), adjusted for smooth transitions. There it joins the upper neck track to that track: the closet end of the passing siding.
+- **T300's old place.** No turnout is left there. From T251 the track stays at height 0, alongside the other track going to the helix.
+- **Rise.** The 2.1% grade from T285 (height 0, north side) to T262 (4.25 in, west wall), 521 cm, is as planned. It is now the only track between the height-0 main and the 4.25 in level.
+- **Main levels.** Not final; plan 5.3b is a draft. As-built changes go in an overrides file applied on top of the export.
+
+- **Timetable direction** follows the route, not the room ([ADR-022](../decisions/ADR-022-timetable-direction-follows-route.md)): eastward from staging stays eastward on every level, so every band has east on the right.
+
+For the schematic this gives three bands: staging, the height-0 main, and the 4.25 in level (branch line, peninsula, double crossover), joined by the helix (two tracks) and the rise.
+
 ## Open questions for the owner
 
-1. **Plan file.** Is 5.3b the plan for the main levels, or the "Full Size Print Master" files per level? And which level is the 12-turnout group at height 2.5?
-2. **Direction.** Which way is timetable east on each main level, and where do the levels join (helix top and bottom, any ramp)?
-3. **Public example.** The plugin needs a plan it can publish. Either the owner draws a small made-up plan in AnyRail, or the tests use a hand-written track graph and AnyRail's XML export of the built level.
-4. **Capacity.** Show car capacity on the track (NYAMR, in 50-foot cars) or leave it for the station pages? Which car length?
-5. **Page.** Letter landscape for the paperwork, or a larger sheet for the wall as well?
+None block the level bands. Station, track and switch names for the main levels, and what the export's unnamed sections (B_7, B_8) and its dashed track are, come up when the draft names file is made.
