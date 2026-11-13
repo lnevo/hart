@@ -6,8 +6,9 @@ Rules (SoR):
     (DCC 116–119; yard / engine-house, not FB-driven Digicon SoR).
   - Digicon SEL+CMD share one polarity. Switch 33/37/39: inverted motors — Digicon
     throw frog = rest tip (Barn / McKeesport / Rocks); keep MQTT THROWN.
-  - Wrong Digicon direction → flip **that one plant only** in
-    `wire_digicon.py` PLANTS. Do not command MQTT/JMRI.
+  - Wrong Digicon direction → fix **that one switch only** in
+    `jmri/layouts/hart/data/switch_legs.csv` / `switches.csv`, then rebuild
+    the desks. Do not command MQTT/JMRI.
   - This script must not throw field points.
 
     python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py
@@ -148,7 +149,7 @@ def diagnose(by_name: dict) -> int:
         print(f"{sw_s:>4} {name:8} {mqtt:8} {jmri:12} {fb:8} {mode_s:12}  {note}")
     print()
     print("Digicon paints MQTT retain. Live SoR = FB (except Switch 13/7/11/9).")
-    print("Wrong Digicon frog → flip that one PLANTS entry only — do not command points.")
+    print("Wrong Digicon frog → fix that one switch in data/switch_legs.csv only — do not command points.")
     print("mqtt≠fb → Digicon disagrees with field until broker retain matches FB.")
     return 0
 

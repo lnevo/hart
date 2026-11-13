@@ -10,9 +10,10 @@
    - **112** THROWN = OS Barn (BOTTOM); CLOSED = through OS110 (LEFT)
    - **114** THROWN = OS K-2 (BOTTOM, default); CLOSED = OS McKeesport (RIGHT)
    - **115** THROWN = K-1 (TOP); CLOSED = OS McKees Rocks (RIGHT) — confirmed good
-4. If Digicon shows the **wrong direction**, flip **that one switch only** in
-   `cats/scripts/wire_digicon.py` `PLANTS` (NORMAL leg), rewire,
-   reload. Do **not** publish MQTT or command JMRI turnouts to “fix” paint.
+4. If Digicon shows the **wrong direction**, fix **that one switch only** in
+   `jmri/layouts/hart/data/switch_legs.csv` (closed and thrown legs) or
+   `switches.csv` (`cats_inverted`), rewire, reload. See
+   [`wiki/pipelines/switch-facts.md`](../../wiki/pipelines/switch-facts.md). Do **not** publish MQTT or command JMRI turnouts to “fix” paint.
 5. Agents / `launch_cats.sh` must **not** throw field points.
 6. **Appearance → Refresh Screen** = JMRI → Digicon (safe). **Refresh Layout** =
    Digicon → JMRI — do not use it to fix boot paint.

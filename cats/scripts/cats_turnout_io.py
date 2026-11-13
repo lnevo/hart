@@ -1,7 +1,8 @@
 """Digicon turnout IO: CSV → SWITCHPOINTS SELECTEDREPORT / ROUTECOMMAND.
 
-Live SoR for plant cells and invert polarity is ``wire_digicon.py``
-``PLANTS`` / ``INVERT_VS_JMRI``. This module only binds JMRI M2T addresses.
+Plant cells are ``wire_digicon.PLANT_CELLS``; closed and thrown legs and the
+invert polarity are switch facts in jmri/layouts/hart/data/ (switches.csv,
+switch_legs.csv). This module only binds JMRI M2T addresses.
 """
 from __future__ import annotations
 

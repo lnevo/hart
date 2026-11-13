@@ -6,7 +6,8 @@ Generate the USS track diagram and CTC table data from a Python plan (Quaker Val
 
 ## Inputs
 
-- `jmri/layouts/hart/scripts/gen_ctc_track_plan.py` (`SIGNALS`, plant columns)
+- `jmri/layouts/hart/scripts/gen_ctc_track_plan.py` (`SIGNALS`, drawing)
+- Switch facts (lever columns, points dots): [switch-facts.md](switch-facts.md)
 - Icons in `jmri/layouts/hart/ctc/icons/` (copied into JMRI user-files on regen/deploy)
 
 ## Outputs
