@@ -10,6 +10,8 @@
 #   CONSISTS_BROKEN = False                        True (exactly), required for apply: the operator
 #                                                  confirms every consist with this loco is broken,
 #                                                  including leads that are not in the roster
+#   ROSTER_OLD_OK = False                          True (exactly) lets an apply use roster values as old
+#                                                  values (they may be defaults); seed-ledger is better
 #   LOGF = "/tmp/pom_write.log"                    result lines, ends with END
 #   ROLLBACK = "/home/pi/speedmatch/rollback_<id>_<time>.json"   must not exist yet
 #   LEDGER_DIR = "/home/pi/speedmatch/ledger"      per-loco ledger (default ~/speedmatch/ledger)
@@ -34,6 +36,13 @@
 # Never touches track power, emergency stop, throttles, turnouts or MQTT.
 import os, threading, time
 import jmri
+
+try:
+    from java.lang import Throwable as _Throwable  # Jython: Java exceptions are not Exceptions
+except ImportError:  # CPython tests
+    _Throwable = Exception
+_ANY = (Exception, _Throwable)
+_EXC = "EXC"  # _op status for an exception raised while starting the operation
 
 
 def _load_guard(path):
@@ -77,7 +86,10 @@ class _Reply(jmri.ProgListener):
 
 def _op(prog, start):
     r = _Reply()
-    start(r)
+    try:
+        start(r)
+    except _ANY as e:
+        return None, _EXC, "exception %s" % (e,)
     r.ev.wait(_TIMEOUT)
     if not r.ev.is_set():
         return None, None, "timeout after %.0fs" % _TIMEOUT
@@ -89,7 +101,7 @@ def _op(prog, start):
     return r.value, r.status, text
 
 
-def _consist_query(nodes):
+def _consist_query(nodes, refuse):
     path = _G["CONSIST_SCRIPT"]
     qlog = _LOGF + ".consist"
     if os.path.exists(qlog):
@@ -105,19 +117,24 @@ def _consist_query(nodes):
                 text = qf.read()
             finally:
                 qf.close()
-            if "\nEND" in "\n" + text:
+            if any(line.strip() == "END" for line in text.splitlines()):
                 break
         time.sleep(0.5)
     for line in text.splitlines():
         L("CONSIST %s" % line)
+    if not any(line.strip() == "END" for line in text.splitlines()):
+        raise refuse("consist query did not finish in %.0fs; its thread may still be running in "
+                     "JMRI. Wait until %s ends with a line END, then run again" % (_CONSIST_TIMEOUT, qlog))
     return text
 
 
 def _run():
+    held = []  # the lock file, once this run holds it
+    guard = None
     try:
         try:
             guard = _load_guard(_G["GUARD_PATH"])
-        except Exception as e:
+        except _ANY as e:
             L("REFUSED guard module could not be loaded: %s" % e)
             return
         R = guard.GuardRefusal
@@ -131,7 +148,7 @@ def _run():
 
             # Consist: query every roster loco's train node now, then run every guard check once.
             nodes = guard.query_nodes(roster, proposal.get("roster_id") if isinstance(proposal, dict) else None)
-            state = guard.parse_consist_log(_consist_query([n for _, n in nodes]))
+            state = guard.parse_consist_log(_consist_query([n for _, n in nodes], R))
             ctx = guard.prepare(proposal, roster, state, absent_ok)
             rid, address, is_long = ctx["roster_id"], ctx["address"], ctx["long"]
 
@@ -143,7 +160,9 @@ def _run():
                 raise R("JMRI roster entry %r (%s%s) disagrees with roster file (%d%s)" % (
                     rid, je.getDccAddress(), "L" if je.isLongAddress() else "S",
                     address, "L" if is_long else "S"))
-            ledger_file = guard.ledger_path(_G.get("LEDGER_DIR") or os.path.expanduser("~/speedmatch/ledger"), rid)
+            ledger_dir = _G.get("LEDGER_DIR") or guard.DEFAULT_LEDGER_DIR
+            ledger_file = guard.ledger_path(ledger_dir, rid)
+            held.append(guard.acquire_lock(guard.lock_path(ledger_dir, rid), "pom_write.py %s" % _LOGF))
             ledger = guard.load_ledger(ledger_file, rid)
 
             # Programmer: the CS-105 connection's addressed programmer for the roster address.
@@ -166,9 +185,11 @@ def _run():
             if _READ_FIRST:
                 for cv, _ in ctx["writes"]:
                     value, status, text = _op(prog, lambda r, c=cv: prog.readCV(str(c), r))
-                    if status is None:
-                        L("ABORTED: read of CV%d timed out (%s) and may still be in flight. Nothing "
-                          "was written and the ledger is unchanged; wait, then run again" % (cv, text))
+                    if status is None or status == _EXC:
+                        L("ABORTED: read of CV%d %s (%s)%s. Nothing was written and the ledger is "
+                          "unchanged; wait, then run again" % (
+                              cv, "timed out" if status is None else "raised an exception", text,
+                              " and may still be in flight" if status is None else ""))
                         return
                     if status == jmri.ProgListener.OK:
                         reads[cv] = value
@@ -188,17 +209,25 @@ def _run():
                 _, status, text = _op(prog, lambda r: prog.writeCV(str(cv), value, r))
                 if status is None:
                     return "timeout", text
+                if status == _EXC:
+                    return "exception", text
                 time.sleep(0.2)
                 return ("ok" if status == jmri.ProgListener.OK else "failed"), text
 
             guard.execute(plan, write_cv, apply=_APPLY,
                           consists_broken=_G.get("CONSISTS_BROKEN", False) is True,
+                          roster_old_ok=_G.get("ROSTER_OLD_OK", False) is True,
                           rollback_path=_G.get("ROLLBACK"), ledger=ledger, ledger_file=ledger_file, log=L)
         except R as e:
             L("REFUSED %s" % e)
-    except Exception as e:
-        L("ERROR %s" % e)
+    except _ANY as e:
+        L("ERROR %s" % (e,))
     finally:
+        if held:
+            try:
+                guard.release_lock(held[0])
+            except _ANY as e:
+                L("ERROR lock %s not removed: %s" % (held[0], e))
         L("END")
         _log.close()
 

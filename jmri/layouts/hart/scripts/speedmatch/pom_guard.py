@@ -11,12 +11,14 @@ What it refuses (each raises GuardRefusal with the reason):
   typed input. Refused: address 0, a short address outside 1-127, a long address outside
   1-10239 (the NMRA long range; JMRI's ops-mode pane uses 0-10239), a long/short flag that
   disagrees between roster.xml, the entry file and the decoder CVs it records (CV17/CV18,
-  CV29 bit 5), another roster entry with the same address number (either flag), a roster
-  entry whose recorded CV19 holds an advanced-consist address, a target address that
-  another entry records as its CV19 consist address, and a roster.xml entry with no id.
+  CV29 bit 5), another roster entry with the same address number (either flag), and a
+  roster.xml entry with no id. CV19 (advanced consist) is refused when a read or the
+  ledger says it is not 0; a roster-only CV19 is a WARNING, because roster CVvalues can be
+  decoder-definition defaults (BO 3545 and BO 6944 record 127).
 * Consist: the caller supplies the cs105_consist.py ACTION=query log for the train node of
   every roster entry (query_nodes() gives the list). Refused unless the log is complete
-  (END, no ERROR or decode error), covers every node, the target answered with 0
+  (a line that is exactly END, no ERROR or decode error), covers every node, lists each
+  node's listener indices exactly 0..count-1 once each, the target answered with 0
   listeners, and the target is no rostered node's listener. A node that did not answer is
   allowed only when its roster id is in the operator's explicit absent_ok list; a node whose
   listener count does not match the listeners it listed is refused (state unknown).
@@ -31,14 +33,18 @@ What it refuses (each raises GuardRefusal with the reason):
   ledger entry ("ledger": the last value read or sent), then the roster ("roster"). A CV
   the ledger marks "unknown" (a write that timed out or failed) is refused until a read in
   this run succeeds or the operator clears it (clear-ledger). A CV with no old value at
-  all is refused (no rollback possible).
+  all is refused (no rollback possible). Roster values are tagged "roster (may be a
+  default)", and an apply that relies on any of them needs roster_old_ok=True
+  (ROSTER_OLD_OK); seed-ledger records a programming-track preflight read instead.
 * Skips: a CV is skipped as "already holds the value" only when its old value came from a
   read in this run. Ledger and roster values are never trusted for a skip.
 * Apply: execute() writes only when apply is exactly True, consists_broken is True, and it
   has a ledger file and a rollback path that does not already exist. The rollback file
   (same precedence) is written before the first write. The ledger records each OK write; a
-  write that times out or fails marks the CV "unknown" and stops the run, and the log names
-  the exact recovery steps.
+  write that is not OK marks the CV "unknown", writes <rollback>.partial.json (the CVs
+  this run touched), stops the run, and the log names the exact recovery steps. One run
+  per loco at a time: pom_write.py holds <ledger dir>/<roster id>.lock, as do the ledger
+  subcommands.
 
 Proposal file (JSON), the input format shared with the speed-table tools:
 
@@ -69,16 +75,20 @@ Roster input: the JMRI user files directory that holds roster.xml and roster/<fi
 (on the Pi, Roster.getDefault().getRosterLocation()). roster.xml is the index of record;
 stray files in roster/ that the index does not list are ignored.
 
-Mac dry run (never writes):
+Mac dry run (never writes; warns when it finds no ledger, since the Pi's may differ):
 
     python3 pom_guard.py proposal.json --roster-dir <JMRI user files dir> \
         --consist-log consist.log [--absent-ok "NWR 06" ...] [--reads reads.json] \
-        [--ledger <roster id>.json]
+        [--ledger-dir DIR]            # default ~/speedmatch/ledger, as on the Pi
 
-Ledger upkeep (on the Pi, where the ledger lives):
+Ledger upkeep (on the Pi, where the ledger lives; each takes --ledger-dir DIR):
 
-    python3 pom_guard.py clear-ledger <ledger file> CV68 [CV69 ...]   accept an unknown CV
-    python3 pom_guard.py archive-ledger "CSX 2738" [--ledger-dir DIR]   after the read-back
+    python3 pom_guard.py seed-ledger "CSX 2738" preflight.log   programming-track read -> "read"
+    python3 pom_guard.py clear-ledger "CSX 2738" CV68 [CV69 ...]   accept an unknown CV
+    python3 pom_guard.py archive-ledger "CSX 2738"                 after the read-back
+
+A preflight log is JSON ({"roster_id": .., "cvs": {cv: value}} or a bare {cv: value}) or
+text with one "CV<n> = <value>" per line.
 """
 
 import json
@@ -238,7 +248,13 @@ def load_roster(roster_dir):
 
 
 def check_roster_target(roster, roster_id):
-    """Every address check for one roster entry. Returns the entry."""
+    """Every address check for one roster entry. Returns (entry, warnings).
+
+    Roster CVvalues can be decoder-definition defaults rather than what the decoder holds
+    (BO 3545 and BO 6944 record CV19 = 127), so a roster-only CV19 is a warning here; a CV19
+    from a read or the ledger is refused in plan_rows().
+    """
+    warnings = []
     if roster_id not in roster:
         raise GuardRefusal("roster id %r is not in the roster" % (roster_id,))
     e = roster[roster_id]
@@ -257,8 +273,9 @@ def check_roster_target(roster, roster_id):
             roster_id, cvs[29], "long" if cvs[29] & CV29_LONG_BIT else "short",
             "long" if is_long else "short"))
     if cvs.get(19, 0) & 0x7F:
-        raise GuardRefusal("%r: roster CV19 = %d, the decoder is in an advanced consist" % (
-            roster_id, cvs[19]))
+        warnings.append("WARNING %r: roster CV19 = %d (may be a default); read CV19 on the "
+                        "programming track (seed-ledger) to be sure it is not in an advanced consist"
+                        % (roster_id, cvs[19]))
     for oid, o in sorted(roster.items()):
         if oid == roster_id:
             continue
@@ -267,8 +284,9 @@ def check_roster_target(roster, roster_id):
         # A CV19 consist address is a 7-bit short address: a short-address write to it
         # would reach every decoder in that consist.
         if not is_long and (o["cvs"].get(19, 0) & 0x7F) == number:
-            raise GuardRefusal("address %d is the CV19 consist address of %r" % (number, oid))
-    return e
+            warnings.append("WARNING short address %d is the roster CV19 of %r (may be a default)"
+                            % (number, oid))
+    return e, warnings
 
 
 
@@ -324,11 +342,12 @@ def parse_consist_log(text):
             current = m.group(1).upper()
             c = m.group(2)
             count = int(c) if c.isdigit() else None
-            state["nodes"][current] = {"count": count, "listeners": []}
+            state["nodes"][current] = {"count": count, "listeners": [], "indices": []}
             continue
         m = _LISTENER.match(line)
         if m and current is not None:
             state["nodes"][current]["listeners"].append(m.group(3).upper())
+            state["nodes"][current]["indices"].append(int(m.group(1)))
     return state
 
 
@@ -363,9 +382,9 @@ def check_no_consist(state, nodes, absent_ok=()):
                                    "ABSENT_OK only if that loco has no train node on the CS-105" % (rid, n))
             notes.append("ABSENT_OK %r train node %s did not answer" % (rid, n))
             continue
-        if info["count"] != len(info["listeners"]):
-            raise GuardRefusal("%r (train node %s) reports %d listener(s) but listed %d: state unknown" % (
-                rid, n, info["count"], len(info["listeners"])))
+        if sorted(info.get("indices", [])) != list(range(info["count"])):
+            raise GuardRefusal("%r (train node %s) reports %d listener(s) but listed indices %s: "
+                               "state unknown" % (rid, n, info["count"], sorted(info.get("indices", []))))
     t = seen[target]
     if t["count"] or t["listeners"]:
         raise GuardRefusal("the target %r has listener(s) %s: break the consist first" % (
@@ -421,6 +440,10 @@ def validate_reads(raw, what="reads"):
 
 # ---------------------------------------------------------------- files
 
+DEFAULT_LEDGER_DIR = os.path.expanduser("~/speedmatch/ledger")
+ROSTER_TAG = "roster (may be a default)"
+
+
 def _stamp():
     return time.strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -433,6 +456,17 @@ def _read_json(path, what):
         finally:
             f.close()
     except (IOError, OSError, ValueError) as e:
+        raise GuardRefusal("%s %s cannot be read: %s" % (what, path, e))
+
+
+def _read_text(path, what):
+    try:
+        f = open(path, "r")
+        try:
+            return f.read()
+        finally:
+            f.close()
+    except (IOError, OSError) as e:
         raise GuardRefusal("%s %s cannot be read: %s" % (what, path, e))
 
 
@@ -453,15 +487,62 @@ def _write_json(path, doc):
 
 
 def load_proposal(path):
-    return _read_json(path, "proposal")
+    doc = _read_json(path, "proposal")
+    if not isinstance(doc, dict):
+        raise GuardRefusal("proposal %s is not a JSON object" % path)
+    return doc
 
 
 def safe_name(roster_id):
+    if not isinstance(roster_id, (type(u""), type(""))) or not roster_id:
+        raise GuardRefusal("roster id %r is not a name" % (roster_id,))
     return re.sub(r"[^A-Za-z0-9_-]+", "_", roster_id).strip("_") or "loco"
 
 
 def ledger_path(ledger_dir, roster_id):
     return os.path.join(ledger_dir, safe_name(roster_id) + ".json")
+
+
+def lock_path(ledger_dir, roster_id):
+    return os.path.join(ledger_dir, safe_name(roster_id) + ".lock")
+
+
+def acquire_lock(path, owner):
+    """Create the lock exclusively; a lock that is already there is refused."""
+    d = os.path.dirname(path)
+    if d and not os.path.isdir(d):
+        os.makedirs(d)
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except OSError:
+        raise GuardRefusal("lock %s exists: another run may be going. If none is (its log ends with "
+                           "END), remove the lock by hand and run again" % path)
+    try:
+        os.write(fd, ("%s %s\n" % (_stamp(), owner)).encode("utf-8"))
+    finally:
+        os.close(fd)
+    return path
+
+
+def release_lock(path):
+    if path and os.path.exists(path):
+        os.remove(path)
+
+
+class Locked(object):
+    """with Locked(ledger_dir, roster_id, owner): ... for the CLI subcommands."""
+
+    def __init__(self, ledger_dir, roster_id, owner):
+        self.path = lock_path(ledger_dir, roster_id)
+        self.owner = owner
+
+    def __enter__(self):
+        acquire_lock(self.path, self.owner)
+        return self
+
+    def __exit__(self, *exc):
+        release_lock(self.path)
+        return False
 
 
 def load_ledger(path, roster_id):
@@ -500,14 +581,15 @@ def ledger_note_reads(ledger, reads):
         ledger_mark(ledger, cv, v, "read")
 
 
-def clear_ledger(path, cvs):
-    """Forget the named CVs (e.g. an unknown one the operator has accepted)."""
+def clear_ledger(ledger_dir, roster_id, cvs):
+    """Forget the named CVs (an unknown one the operator has accepted). Validated like any load."""
+    path = ledger_path(ledger_dir, roster_id)
     if not os.path.exists(path):
         raise GuardRefusal("no ledger at %s" % path)
-    doc = _read_json(path, "ledger")
+    doc = load_ledger(path, roster_id)
     keys = [str(_cv_key(cv, "clear-ledger")) for cv in cvs]
     for k in keys:
-        doc.get("cvs", {}).pop(k, None)
+        doc["cvs"].pop(k, None)
     _write_json(path, doc)
     return keys
 
@@ -517,12 +599,57 @@ def archive_ledger(ledger_dir, roster_id):
     path = ledger_path(ledger_dir, roster_id)
     if not os.path.exists(path):
         raise GuardRefusal("no ledger at %s" % path)
+    load_ledger(path, roster_id)
     dest = os.path.join(ledger_dir, "%s.%s.json" % (
         safe_name(roster_id), time.strftime("%Y%m%dT%H%M%S")))
     if os.path.exists(dest):
         raise GuardRefusal("%s already exists" % dest)
     os.rename(path, dest)
     return dest
+
+
+_PREFLIGHT_LINE = re.compile(r"\bCV\s*(\d+)\s*[=:]\s*(\d+)\b", re.I)
+
+
+def parse_preflight(text, roster_id):
+    """{cv: value} from a programming-track preflight log.
+
+    Either JSON ({"roster_id": .., "cvs" or "reads": {cv: value}} or a bare {cv: value}),
+    or text with one "CV<n> = <value>" (or "CV<n>: <value>") per line. A JSON log naming
+    another roster id is refused; the same CV with two different values is refused.
+    """
+    try:
+        doc = json.loads(text)
+    except ValueError:
+        doc = None
+    if isinstance(doc, dict):
+        if "roster_id" in doc and doc["roster_id"] != roster_id:
+            raise GuardRefusal("preflight log is for %r, not %r" % (doc["roster_id"], roster_id))
+        raw = doc.get("cvs", doc.get("reads", doc))
+        raw = dict((k, v) for k, v in raw.items() if k != "roster_id")
+        out = validate_reads(raw, "preflight")
+    else:
+        out = {}
+        for m in _PREFLIGHT_LINE.finditer(text):
+            cv, v = int(m.group(1)), int(m.group(2))
+            if v > 255:
+                raise GuardRefusal("preflight CV%d value %d is not 0-255" % (cv, v))
+            if cv in out and out[cv] != v:
+                raise GuardRefusal("preflight gives CV%d twice (%d and %d)" % (cv, out[cv], v))
+            out[cv] = v
+    if not out:
+        raise GuardRefusal("preflight log has no CV values")
+    return out
+
+
+def seed_ledger(ledger_dir, roster_id, preflight_text):
+    """Record a programming-track read as state "read" in the ledger. Returns the CVs seeded."""
+    reads = parse_preflight(preflight_text, roster_id)
+    path = ledger_path(ledger_dir, roster_id)
+    led = load_ledger(path, roster_id)
+    ledger_note_reads(led, reads)
+    _write_json(path, led)
+    return sorted(reads)
 
 
 def old_value(cv, reads, ledger, roster_cvs):
@@ -537,7 +664,7 @@ def old_value(cv, reads, ledger, roster_cvs):
                                                             le.get("note", "write not confirmed")))
         return le["value"], "ledger"
     if cv in roster_cvs:
-        return roster_cvs[cv], "roster"
+        return roster_cvs[cv], ROSTER_TAG
     raise GuardRefusal("CV%d has no read, ledger or roster value; no rollback possible" % cv)
 
 
@@ -576,17 +703,25 @@ def prepare(proposal, roster, consist_state, absent_ok=()):
     query and before it reads; build_plan() is prepare() + plan_rows().
     """
     rid, writes = validate_proposal(proposal)
-    entry = check_roster_target(roster, rid)
+    entry, warnings = check_roster_target(roster, rid)
     nodes = query_nodes(roster, rid)
     notes = check_no_consist(consist_state, nodes, absent_ok)
     return {"roster_id": rid, "address": entry["address"], "long": entry["long"],
             "train_node": nodes[0][1], "checked_nodes": [n for _, n in nodes],
-            "notes": notes, "writes": writes, "roster_cvs": entry["cvs"]}
+            "notes": warnings + notes, "writes": writes, "roster_cvs": entry["cvs"]}
 
 
 def plan_rows(ctx, reads=None, ledger=None):
-    """The plan: one row per CV with its old value and where that came from."""
+    """The plan: one row per CV with its old value and where that came from.
+
+    Refuses if CV19 read this run or recorded in the ledger is not 0 (advanced consist).
+    """
     reads = validate_reads(reads)
+    for src, val in (("read", reads.get(19)),
+                     ("ledger", ((ledger or {}).get("cvs", {}).get("19") or {}).get("value"))):
+        if val is not None and val & 0x7F:
+            raise GuardRefusal("%r: CV19 = %d (%s): the decoder is in an advanced consist" % (
+                ctx["roster_id"], val, src))
     rows = []
     for cv, new in ctx["writes"]:
         old, src = old_value(cv, reads, ledger, ctx["roster_cvs"])
@@ -622,41 +757,50 @@ def plan_lines(plan):
     return lines
 
 
-def rollback_doc(plan):
-    srcs = sorted(set(r["old_source"] for r in plan["rows"]))
+def rollback_doc(plan, rows=None):
+    rows = plan["rows"] if rows is None else rows
+    srcs = sorted(set(r["old_source"] for r in rows))
     return {
         "roster_id": plan["roster_id"],
         "address": plan["address"],
         "long": plan["long"],
         "made": _stamp(),
         "old_values_from": srcs[0] if len(srcs) == 1 else "mixed",
-        "note": "Rollback written by pom_guard before the first write. old_source: 'read' from "
-                "the decoder this run, 'ledger' the value last read or sent, 'roster' the "
-                "roster's recorded value.",
-        "writes": [{"cv": r["cv"], "value": r["old"], "old_source": r["old_source"]}
-                   for r in plan["rows"]],
+        "note": "Rollback written by pom_guard. old_source: 'read' from the decoder this run, "
+                "'ledger' the value last read or sent, 'roster' the roster's recorded value, "
+                "which may be a decoder-definition default.",
+        "writes": [{"cv": r["cv"], "value": r["old"],
+                    "old_source": "roster" if r["old_source"] == ROSTER_TAG else r["old_source"]}
+                   for r in rows],
     }
 
 
-def execute(plan, write_cv, apply=False, consists_broken=False, rollback_path=None, ledger=None,
-            ledger_file=None, log=None):
-    """Dry run unless apply is True. write_cv(cv, value) -> (state, text), state one of
-    "ok", "failed", "timeout".
+def execute(plan, write_cv, apply=False, consists_broken=False, roster_old_ok=False,
+            rollback_path=None, ledger=None, ledger_file=None, log=None):
+    """Dry run unless apply is True. write_cv(cv, value) -> (state, text); state "ok" or
+    anything else ("failed", "timeout", "exception").
 
     Dry run: prints the plan; with a rollback_path it saves the would-be rollback as
-    <rollback_path>.dryrun. Apply (needs consists_broken=True, a ledger and a new rollback
-    path): writes the rollback file first, then each CV in order; an OK write is recorded in
-    the ledger; a failed or timed-out write marks the CV unknown, stops, and logs the exact
-    recovery steps. Returns {"applied", "written", "failed", "timed_out"}.
+    <rollback_path>.dryrun. Apply needs consists_broken=True, roster_old_ok=True when any old
+    value comes from the roster, a ledger and a new rollback path. It writes the full
+    rollback file first, then each CV in order; an OK write is recorded in the ledger. A
+    write that is not OK marks the CV unknown, writes <rollback>.partial.json (the CVs
+    written so far plus that one), stops, and logs the exact recovery steps.
+    Returns {"applied", "written", "failed", "timed_out", "partial"}.
     """
     log = log or (lambda m: None)
     for line in plan_lines(plan):
         log(line)
-    result = {"applied": False, "written": [], "failed": None, "timed_out": False}
+    result = {"applied": False, "written": [], "failed": None, "timed_out": False, "partial": None}
+    roster_rows = [r["cv"] for r in plan["rows"] if r["old_source"] == ROSTER_TAG]
     if apply is not True:
         if rollback_path:
             _write_json(rollback_path + ".dryrun", rollback_doc(plan))
             log("DRY RUN would-be rollback saved %s.dryrun" % rollback_path)
+        if roster_rows:
+            log("NOTE old values for CV %s come from the roster and may be defaults; apply needs "
+                "ROSTER_OLD_OK = True, or seed the ledger from a programming-track read first"
+                % ", ".join(str(c) for c in roster_rows))
         log("DRY RUN: nothing written (set APPLY = True to write)")
         return result
     if consists_broken is not True:
@@ -664,6 +808,13 @@ def execute(plan, write_cv, apply=False, consists_broken=False, rollback_path=No
                            "%r is broken (cs105_consist.py detach), including leads not in the roster"
                            % plan["roster_id"])
     log("CONSISTS_BROKEN confirmed by the operator")
+    if roster_rows:
+        if roster_old_ok is not True:
+            raise GuardRefusal("old values for CV %s would come from the roster, which may hold "
+                               "defaults: seed the ledger from a programming-track read "
+                               "(seed-ledger), or set ROSTER_OLD_OK = True" %
+                               ", ".join(str(c) for c in roster_rows))
+        log("ROSTER_OLD_OK confirmed by the operator for CV %s" % ", ".join(str(c) for c in roster_rows))
     if not rollback_path:
         raise GuardRefusal("apply needs a rollback file path")
     if ledger is None or not ledger_file:
@@ -673,6 +824,7 @@ def execute(plan, write_cv, apply=False, consists_broken=False, rollback_path=No
     _write_json(rollback_path, rollback_doc(plan))
     log("ROLLBACK written %s" % rollback_path)
     result["applied"] = True
+    done = []
     for r in plan["rows"]:
         recheck_row(plan, r)
         if r["skip"]:
@@ -684,17 +836,21 @@ def execute(plan, write_cv, apply=False, consists_broken=False, rollback_path=No
             _write_json(ledger_file, ledger)
             log("WRITE CV%d=%d OK %s" % (r["cv"], r["new"], text))
             result["written"].append(r["cv"])
+            done.append(r)
             continue
         ledger_mark(ledger, r["cv"], None, "unknown", note="%s: %s" % (state, text))
         _write_json(ledger_file, ledger)
-        result["failed"] = r["cv"]
-        result["timed_out"] = state == "timeout"
+        partial = rollback_path + ".partial.json"
+        _write_json(partial, rollback_doc(plan, done + [r]))
+        result.update(failed=r["cv"], timed_out=(state == "timeout"), partial=partial)
         log("WRITE CV%d=%d %s %s%s" % (r["cv"], r["new"], state.upper(), text,
-                                      ": the CV may have been written" if state == "timeout" else ""))
+                                      "" if state == "failed" else ": the CV may have been written"))
         log("STOPPED at CV%d (%s): it may hold %d (new) or %d (old) and is marked unknown in the "
-            "ledger. Writes before it stand. To roll back: 1) python3 pom_guard.py clear-ledger %s "
-            "CV%d  2) apply %s as the proposal (APPLY = True, a new ROLLBACK name)" % (
-                r["cv"], state, r["new"], r["old"], ledger_file, r["cv"], rollback_path))
+            "ledger. Writes before it stand. To roll back: 1) python3 pom_guard.py clear-ledger "
+            "\"%s\" CV%d --ledger-dir %s  2) apply %s as the proposal (APPLY = True, a new ROLLBACK "
+            "name; it holds only the CVs this run touched)" % (
+                r["cv"], state, r["new"], r["old"], plan["roster_id"], r["cv"],
+                os.path.dirname(ledger_file), partial))
         return result
     log("DONE %d write(s)" % len(result["written"]))
     return result
@@ -703,41 +859,48 @@ def execute(plan, write_cv, apply=False, consists_broken=False, rollback_path=No
 # ---------------------------------------------------------------- CLI
 
 def _main(argv):
+    import argparse
     try:
-        if argv[:1] == ["clear-ledger"]:
-            if len(argv) < 3:
-                sys.stdout.write("usage: pom_guard.py clear-ledger <ledger file> CV [CV ...]\n")
-                return 2
-            keys = clear_ledger(argv[1], argv[2:])
-            sys.stdout.write("cleared CV %s in %s\n" % (", ".join(keys), argv[1]))
-            return 0
-        if argv[:1] == ["archive-ledger"]:
-            import argparse
-            ap = argparse.ArgumentParser(prog="pom_guard.py archive-ledger")
+        if argv[:1] in (["clear-ledger"], ["archive-ledger"], ["seed-ledger"]):
+            cmd = argv[0]
+            ap = argparse.ArgumentParser(prog="pom_guard.py " + cmd)
             ap.add_argument("roster_id")
-            ap.add_argument("--ledger-dir", default=os.path.expanduser("~/speedmatch/ledger"))
+            if cmd == "clear-ledger":
+                ap.add_argument("cvs", nargs="+", help="CV68 or 68")
+            if cmd == "seed-ledger":
+                ap.add_argument("preflight_log")
+            ap.add_argument("--ledger-dir", default=DEFAULT_LEDGER_DIR)
             a = ap.parse_args(argv[1:])
-            sys.stdout.write("archived to %s\n" % archive_ledger(a.ledger_dir, a.roster_id))
+            with Locked(a.ledger_dir, a.roster_id, "pom_guard.py " + cmd):
+                if cmd == "clear-ledger":
+                    keys = clear_ledger(a.ledger_dir, a.roster_id, a.cvs)
+                    sys.stdout.write("cleared CV %s for %r; their old values now come from the roster "
+                                     "(may be defaults) until read\n" % (", ".join(keys), a.roster_id))
+                elif cmd == "archive-ledger":
+                    sys.stdout.write("archived to %s\n" % archive_ledger(a.ledger_dir, a.roster_id))
+                else:
+                    cvs = seed_ledger(a.ledger_dir, a.roster_id, _read_text(a.preflight_log, "preflight log"))
+                    sys.stdout.write("seeded %d CV(s) as read for %r\n" % (len(cvs), a.roster_id))
             return 0
-        import argparse
         ap = argparse.ArgumentParser(description="Dry-run a POM proposal against a roster and consist log.")
         ap.add_argument("proposal")
         ap.add_argument("--roster-dir", required=True, help="folder holding roster.xml and roster/")
         ap.add_argument("--consist-log", required=True, help="cs105_consist.py query log over every roster node")
         ap.add_argument("--absent-ok", action="append", default=[], help="roster id allowed not to answer")
         ap.add_argument("--reads", help="JSON {cv: value} read from the decoder")
-        ap.add_argument("--ledger", help="the loco's ledger file")
+        ap.add_argument("--ledger-dir", default=DEFAULT_LEDGER_DIR,
+                        help="ledger folder (default %s, the same as on the Pi)" % DEFAULT_LEDGER_DIR)
         a = ap.parse_args(argv)
-        f = open(a.consist_log)
-        try:
-            state = parse_consist_log(f.read())
-        finally:
-            f.close()
+        state = parse_consist_log(_read_text(a.consist_log, "consist log"))
         proposal = load_proposal(a.proposal)
+        rid, _ = validate_proposal(proposal)
+        lpath = ledger_path(a.ledger_dir, rid)
+        if not os.path.exists(lpath):
+            sys.stdout.write("WARNING no ledger at %s: old values come from the roster here; the Pi's "
+                             "ledger may differ, so the Pi's plan may differ\n" % lpath)
         reads = validate_reads(_read_json(a.reads, "reads")) if a.reads else {}
-        ledger = load_ledger(a.ledger, proposal.get("roster_id")) if a.ledger else None
         plan = build_plan(proposal, load_roster(a.roster_dir), state, absent_ok=a.absent_ok,
-                          reads=reads, ledger=ledger)
+                          reads=reads, ledger=load_ledger(lpath, rid))
     except GuardRefusal as e:
         sys.stdout.write("REFUSED %s\n" % e)
         return 2
