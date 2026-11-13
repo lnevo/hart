@@ -162,8 +162,17 @@ def _ensure_virtual_mast(
 
 def _ensure_turnout_mast(to: ET.Element, tag: str, uname: str) -> int:
     for child in to:
-        if child.tag == tag and (child.text or "").strip() == uname:
+        if child.tag != tag:
+            continue
+        found = (child.text or "").strip()
+        if found == uname:
             return 0
+        # One mast per slot. A different name here is usually a tables.xml
+        # from before a rename; adding a second slot would break Discover.
+        raise ValueError(
+            f"{to.get('ident')} {tag} holds {found!r}, expected {uname!r}; "
+            "rename it in tables.xml before running this script"
+        )
     el = ET.Element(tag)
     el.text = uname
     # Mast slots come before the NX sensor slots, as JMRI stores them.
@@ -179,7 +188,11 @@ def _ensure_turnout_mast(to: ET.Element, tag: str, uname: str) -> int:
 def _ensure_hidden_icon(le: ET.Element, uname: str, x: int, y: int, deg: int) -> int:
     for ic in le.findall("signalmasticon"):
         if ic.get("signalmast") == uname and ic.get("hidden") == "yes":
-            return 0
+            # Position may be nudged by other scripts; the direction is ours.
+            if ic.get("degrees") == str(deg):
+                return 0
+            ic.set("degrees", str(deg))
+            return 1
     ic = ET.Element("signalmasticon")
     ic.set("signalmast", uname)
     ic.set("x", str(x))
@@ -525,7 +538,11 @@ def main() -> int:
         if not path.is_file():
             print(f"missing {path}")
             continue
-        n = fn(path)
+        try:
+            n = fn(path)
+        except ValueError as exc:
+            print(f"{path}: not changed: {exc}")
+            return 1
         print(f"{path}: {n} edits")
     return 0
 
