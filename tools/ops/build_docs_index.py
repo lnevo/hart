@@ -34,6 +34,11 @@ def last_changed() -> dict[str, str]:
     return dates
 
 
+def doc_link(path: str) -> str:
+    """Link from docs/INDEX.md to a docs/ file, with every space and non-ASCII character encoded."""
+    return quote(path.removeprefix("docs/"))
+
+
 def main() -> int:
     dates = last_changed()
     groups: dict[str, list[tuple[str, str]]] = defaultdict(list)
@@ -45,7 +50,7 @@ def main() -> int:
         lines += [f"## {area}", "", "| Changed | Document | Type |", "|---|---|---|"]
         for changed, path in sorted(groups[area], key=lambda r: (r[0], r[1]), reverse=True):
             name = Path(path).name
-            link = quote(path[len("docs/"):])
+            link = doc_link(path)
             lines.append(f"| {changed} | [{name}]({link}) | {Path(path).suffix.lstrip('.')} |")
         lines.append("")
     (ROOT / "docs/INDEX.md").write_text("\n".join(lines), encoding="utf-8")
