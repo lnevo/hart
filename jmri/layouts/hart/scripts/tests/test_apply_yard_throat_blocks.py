@@ -76,6 +76,49 @@ class EnsureVirtualMastTest(unittest.TestCase):
         self.assertEqual(0, throat._ensure_turnout_mast(to, "signalCMast", "Mast 9LA"))
 
 
+class RearMastsTest(unittest.TestCase):
+    def test_each_rear_mast_protects_its_station(self):
+        root = ET.parse(throat.DEFAULT).getroot()
+        le = throat._le(root)
+        segs = {ts.get("ident"): ts for ts in le.findall("tracksegment")}
+        points = {pt.get("ident"): pt for pt in le.findall("positionablepoint")}
+        for row in throat.REAR_MASTS:
+            pt = points[row["anchor"]]
+            _sys, uname, direction, *_ = row["virtual"]
+            self.assertEqual(uname, pt.get(f"{direction}signalmast"), row["anchor"])
+            # An anchor's eastbound slot protects its connect1 side (as A45 8RA).
+            side = "connect1name" if direction == "eastbound" else "connect2name"
+            self.assertEqual(row["station"], segs[pt.get(side)].get("blockname"), row["anchor"])
+            other = "connect2name" if side == "connect1name" else "connect1name"
+            self.assertEqual(row["throat"], segs[pt.get(other)].get("blockname"), row["anchor"])
+
+    def test_switch_leg_masts_stay_on_their_turnouts(self):
+        le = throat._le(ET.parse(throat.DEFAULT).getroot())
+        slots = {
+            (to.get("ident"), c.tag): (c.text or "").strip()
+            for to in le.findall("layoutturnout")
+            for c in to
+        }
+        self.assertEqual("Mast 36RB", slots[("TO113", "signalDMast")])
+        self.assertEqual("Mast 40LB", slots[("TOL29", "signalCMast")])
+
+
+class TidyXmlTest(unittest.TestCase):
+    def parent(self) -> ET.Element:
+        return ET.fromstring("<p>\n  <a />\n  <b />\n</p>")
+
+    def test_append_keeps_one_element_per_line(self):
+        p = self.parent()
+        throat._insert_tidy(p, len(p), ET.Element("c"))
+        self.assertEqual("<p>\n  <a />\n  <b />\n  <c />\n</p>", ET.tostring(p, encoding="unicode"))
+
+    def test_insert_at_start_and_remove_last(self):
+        p = self.parent()
+        throat._insert_tidy(p, 0, ET.Element("z"))
+        throat._remove_tidy(p, p.find("b"))
+        self.assertEqual("<p>\n  <z />\n  <a />\n</p>", ET.tostring(p, encoding="unicode"))
+
+
 class CurrentTablesTest(unittest.TestCase):
     """The script describes tables.xml as it is; a run on it changes nothing."""
 

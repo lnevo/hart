@@ -1,8 +1,8 @@
-block_sensors.csv=55
+block_sensors.csv=57
 cats_bindings.csv=68
 ctc_sidi.csv=20
 ctc_trl.csv=40
-hardware_identity.csv=159
-le_mast_bindings.csv=47
-sml_pairs.csv=100
-sml_sections.csv=98
+hardware_identity.csv=163
+le_mast_bindings.csv=49
+sml_pairs.csv=102
+sml_sections.csv=100

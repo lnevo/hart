@@ -54,6 +54,8 @@ block,IB:AUTO:0058,Track S-4 West|BS S-4
 block,IB:AUTO:0059,Track S-4 East|BS S-4
 block,IB:AUTO:0060,Track S-R East|BS S-R
 block,IB:AUTO:0061,Track S-R West|BS S-R
+block,IB:AUTO:0062,Track East Lead East|BS East Lead
+block,IB:AUTO:0063,Track K-1 West|BS K-1
 signalhead,IH1132,Head 40LA Top
 signalhead,IH1133,Head 2036
 signalhead,IH1134,Head 2035
@@ -138,6 +140,8 @@ signalmast,IF$vsm:basic:one-low($1021),Mast 10RA
 signalmast,IF$vsm:basic:one-low($1022),Mast 10RB
 signalmast,IF$vsm:basic:one-low($1023),Mast 2R
 signalmast,IF$vsm:basic:one-low($1024),Mast 6R
+signalmast,IF$vsm:basic:one-low($1025),Mast 36L
+signalmast,IF$vsm:basic:one-low($1026),Mast 40RB
 turnout,M2T108,Switch 35
 turnout,M2T109,Switch 37
 turnout,M2T110,Switch 39
