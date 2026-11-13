@@ -18,6 +18,8 @@ Defaults:
 
 Optional flags: `--tables PATH`, `--out PATH`.
 
+`./tools/check.sh` runs it with `--check`, which fails when these files no longer match `tables.xml` (the sha256 line is ignored, so moving an icon does not count). After a change to names or bindings, recapture and commit the result with it.
+
 ## Sources
 
 | File | Primary source |

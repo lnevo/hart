@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Split South Yard S-1…S-5 into station body + hidden throat blocks.
+"""Split South Yard Track S-R and S-1…S-4 into station body + hidden throat blocks.
 
 Dispatcher System needs a signal mast *beyond* each stopping block. The yard
 body tracks were one block from frog to frog, so Discover could not see a
@@ -10,7 +10,13 @@ anchors become real block boundaries; virtual masts move there.
 Throat block comments must not contain the substring "stop" — CreateGraph
 uses ``if "stop" in comment.lower()``. Use "not a station".
 
-S-1 is only two segments, so F46-S-0 is split at a new A81 just east of TOR14.
+Track S-R is only two segments, so F46-S-0 is split at a new A81 just east of
+TOR14 (Track S-R West).
+
+The default run also places the Switch 7, Mast 14R, engine-house exit and
+Brick-Plane masts (--scale-east-only does just that part). It parses once and
+writes only when something changed, so a run that stops on an old mast name
+leaves the file untouched.
 
 Writable source is jmri/layouts/hart/output/tables.xml. --sync-output has had no
 effect since ADR-008. Idempotent.
@@ -27,22 +33,24 @@ DEFAULT = ROOT / "jmri/layouts/hart/output/tables.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 
 # Turnout-leg segments that become throats (already short).
+# Public names (ADR-005). Before 2026-08-21 these were S-2 West … S-1 East on
+# occupancy Block 2-n; public_name_map.csv keeps those as historical aliases.
+S_R_WEST = "Track S-R West"
 THROAT_SEGMENTS = [
-    # ident, new block userName, occupancy sensor, station plate
-    ("T-EL-TOL15", "S-2 West", "Block 2-7", "S-2"),
-    ("T-ER-TOR7", "S-2 East", "Block 2-7", "S-2"),
-    ("T-EL-TOL17", "S-3 West", "Block 2-6", "S-3"),
-    ("T-ER-TOR9", "S-3 East", "Block 2-6", "S-3"),
-    ("T-EL-TOL19", "S-4 West", "Block 2-5", "S-4"),
-    ("T-ER-TOR11", "S-4 East", "Block 2-5", "S-4"),
-    ("T-ER-TOL19", "S-5 West", "Block 2-4", "S-5"),
-    ("T-EL-TOR11", "S-5 East", "Block 2-4", "S-5"),
-    ("T-EL-TOR32", "S-1 East", "Block 2-8", "S-1"),
-    # T3 is the west throat of Switch 7, not a Scale station block. Putting
-    # it in OS Switch 7 makes A45 a real Scale|Switch 7 boundary so 26L can
-    # Discover 8LC. A extra "Scale East" block hid 8LC behind Switch 7.
-    ("T3", "OS Switch 7", "BS Scale", "Track Scale"),
+    # ident, block userName, occupancy sensor, station, hardware block
+    ("T-EL-TOL15", "Track S-1 West", "BS S-1", "Track S-1", "Block 2-7"),
+    ("T-ER-TOR7", "Track S-1 East", "BS S-1", "Track S-1", "Block 2-7"),
+    ("T-EL-TOL17", "Track S-2 West", "BS S-2", "Track S-2", "Block 2-6"),
+    ("T-ER-TOR9", "Track S-2 East", "BS S-2", "Track S-2", "Block 2-6"),
+    ("T-EL-TOL19", "Track S-3 West", "BS S-3", "Track S-3", "Block 2-5"),
+    ("T-ER-TOR11", "Track S-3 East", "BS S-3", "Track S-3", "Block 2-5"),
+    ("T-ER-TOL19", "Track S-4 West", "BS S-4", "Track S-4", "Block 2-4"),
+    ("T-EL-TOR11", "Track S-4 East", "BS S-4", "Track S-4", "Block 2-4"),
+    ("T-EL-TOR32", "Track S-R East", "BS S-R", "Track S-R", "Block 2-8"),
+    # Made by _split_s1_west.
+    ("F46-W-0", S_R_WEST, "BS S-R", "Track S-R", "Block 2-8"),
 ]
+# T3 (west throat of Switch 7, in OS Switch 7) is set by _scale_east_edits.
 
 # After throats exist, bind virtuals on the new boundaries (not turnout legs).
 BOUNDARY_MASTS = [
@@ -224,6 +232,7 @@ def _add_block_beans(
     uname: str,
     sensor: str,
     station: str,
+    hardware: str,
 ) -> None:
     blocks = root.find("blocks")
     lbs = root.find("layoutblocks")
@@ -231,7 +240,7 @@ def _add_block_beans(
         raise SystemExit("missing blocks/layoutblocks")
     comment = (
         f"Hidden {station} throat (same detector as {station}); "
-        f"occupancy {sensor}; not a station"
+        f"occupancy {hardware}; not a station"
     )
     stub = ET.Element("block")
     stub.set("systemName", ib)
@@ -273,13 +282,13 @@ def _add_block_beans(
 
 
 def _split_s1_west(le: ET.Element) -> int:
-    """Insert A81 and a short S-1 West segment east of TOR14."""
+    """Insert A81 and a short Track S-R West segment east of TOR14."""
     n = 0
     if any(pt.get("ident") == "A81" for pt in le.findall("positionablepoint")):
         # Still force the west-throat blockname if a previous run created A81.
         for ts in le.findall("tracksegment"):
-            if ts.get("ident") == "F46-W-0" and ts.get("blockname") != "S-1 West":
-                ts.set("blockname", "S-1 West")
+            if ts.get("ident") == "F46-W-0" and ts.get("blockname") != S_R_WEST:
+                ts.set("blockname", S_R_WEST)
                 n += 1
         return n
     f46 = None
@@ -306,7 +315,7 @@ def _split_s1_west(le: ET.Element) -> int:
     le.insert(list(le).index(f46), a81)
     west = ET.Element("tracksegment")
     west.set("ident", "F46-W-0")
-    west.set("blockname", "S-1 West")
+    west.set("blockname", S_R_WEST)
     west.set("connect1name", "TOR14")
     west.set("type1", "TURNOUT_B")
     west.set("connect2name", "A81")
@@ -363,6 +372,13 @@ def apply_scale_east(path: Path) -> int:
     if le is None:
         print(f"{path}: no Layout Editor")
         return 0
+    n = _scale_east_edits(root, le)
+    if n:
+        tree.write(path, encoding="UTF-8", xml_declaration=True)
+    return n
+
+
+def _scale_east_edits(root: ET.Element, le: ET.Element) -> int:
     n = _remove_orphan_scale_east(root)
     segs = {ts.get("ident"): ts for ts in le.findall("tracksegment")}
     t3 = segs.get("T3")
@@ -416,7 +432,6 @@ def apply_scale_east(path: Path) -> int:
     if to1 is not None:
         n += _ensure_turnout_mast(to1, "signalBMast", "Mast 14R")
     n += _ensure_eh_exits(le, masts, existing, turnouts)
-    tree.write(path, encoding="UTF-8", xml_declaration=True)
     return n
 
 
@@ -450,9 +465,7 @@ def apply(path: Path) -> int:
     ib_n = _next_ib_auto(root)
     ilb_n = _next_ilb(root)
 
-    wanted = [(seg, uname, sensor, station) for seg, uname, sensor, station in THROAT_SEGMENTS]
-    wanted.append(("F46-W-0", "S-1 West", "Block 2-8", "S-1"))
-    for _seg, uname, sensor, station in wanted:
+    for _seg, uname, sensor, station, hardware in THROAT_SEGMENTS:
         if uname in names:
             continue
         ib = f"IB:AUTO:{ib_n:04d}"
@@ -464,6 +477,7 @@ def apply(path: Path) -> int:
             uname,
             sensor,
             station,
+            hardware,
         )
         names.add(uname)
         ib_n += 1
@@ -473,17 +487,13 @@ def apply(path: Path) -> int:
     n += _split_s1_west(le)
 
     segs = {ts.get("ident"): ts for ts in le.findall("tracksegment")}
-    for ident, uname, _sensor, _station in THROAT_SEGMENTS:
+    for ident, uname, _sensor, _station, _hardware in THROAT_SEGMENTS:
         ts = segs.get(ident)
         if ts is None:
             continue
         if ts.get("blockname") != uname:
             ts.set("blockname", uname)
             n += 1
-    west = segs.get("F46-W-0")
-    if west is not None and west.get("blockname") != "S-1 West":
-        west.set("blockname", "S-1 West")
-        n += 1
 
     n += _clear_turnout_virtuals(le)
 
@@ -518,7 +528,10 @@ def apply(path: Path) -> int:
             del pt.attrib[other]
             n += 1
 
-    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    # Scale/Switch 7, Mast 14R, the engine-house exits and Brick-Plane ends.
+    n += _scale_east_edits(root, le)
+    if n:
+        tree.write(path, encoding="UTF-8", xml_declaration=True)
     return n
 
 
@@ -529,7 +542,7 @@ def main() -> int:
     ap.add_argument(
         "--scale-east-only",
         action="store_true",
-        help="Only fix Scale/Switch 7 (T3=OS Switch 7, 8LC/8RA on A45). Do not rewrite yard throats.",
+        help="Only the Scale/Switch 7, Mast 14R, engine-house exit and Brick-Plane masts; skip the South Yard throats.",
     )
     args = ap.parse_args()
     paths = [args.panel.resolve()]
