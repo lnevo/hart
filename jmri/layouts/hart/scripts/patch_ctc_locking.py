@@ -11,9 +11,14 @@ Safe to re-run.
 """
 import pathlib
 import sys
+from pathlib import Path
 
-ROOT = pathlib.Path(__file__).resolve().parents[4]
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+TABLES = paths.TABLES_XML
 
 RULE_111_EAST_WME = """        <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:2</UserRuleNumber>

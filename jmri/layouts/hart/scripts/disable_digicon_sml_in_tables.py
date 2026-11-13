@@ -23,9 +23,13 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
-NEW_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+WIRING = paths.SIGNAL_WIRING
+NEW_TABLES = paths.TABLES_XML
 
 _LOGIC_RE = re.compile(
     r'<signalmastlogic source="([^"]+)">.*?</signalmastlogic>',

@@ -15,16 +15,19 @@ import csv
 import json
 import re
 import sys
-import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from refresh_bean_comments import public_comment
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
 
-CSV_PATH = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+ROOT = paths.REPO_ROOT
+sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
+from refresh_bean_comments import public_comment  # noqa: E402
+
+CSV_PATH = paths.PUBLIC_NAME_MAP
+TABLES = paths.TABLES_XML
 DEFAULT_CANVAS = Path.home() / ".cursor/projects/Users-lnevo-hart/canvases/hart-device-map.canvas.tsx"
 
 KIND_LAYER = {
@@ -128,7 +131,7 @@ def load_csv(path: Path) -> list[dict[str, str]]:
 
 
 def live_usernames_by_system(path: Path) -> dict[str, str]:
-    root = ET.parse(path).getroot()
+    root = tables.read(path)
     out: dict[str, str] = {}
 
     def take(tag: str) -> None:

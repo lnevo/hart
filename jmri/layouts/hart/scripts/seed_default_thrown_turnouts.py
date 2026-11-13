@@ -28,8 +28,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "tools" / "ops" / "lib"))
-from hart_hosts import jmri_json_url, mqtt_broker  # noqa: E402
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
 JMRI_JSON = jmri_json_url()
 MQTT_HOST = mqtt_broker()
