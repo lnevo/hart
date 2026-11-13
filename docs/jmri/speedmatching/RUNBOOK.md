@@ -438,7 +438,8 @@ END
   fed; the `RUN` and `LENGTHS` lines are as in laps mode (laps mode's `CFG`, `WARMUP n laps=`,
   `WARMUP_LAP`, `READ` and `STEPDONE ... median=` lines are unchanged).
 - Also logged, outside the dashboard's contract: `EXTRA <n> relsd=<r>` when a step takes its one
-  extra reading, `NO GUARD`, and the end of run lines `speed 0`, `F<n> off`, `throttle released`,
+  extra reading, `NO GUARD`, `DIR <forward|reverse> held` (or `lost, try n`) before the loco is
+  sent off, and the end of run lines `speed 0`, `F0 left on`, `F<n> off`, `throttle released`,
   `ERROR <..>`.
 - The pass job logs `RUN`, `CFG route=<r> mode=pass step=<n> max_s=<n>`, `PATH`, `PASS`, `SENS`,
   `PASSDONE reason=<passed|max|stalled|killed|guard_<name>|..>`, then `STOP` and `END`. In `PASS`,
@@ -531,6 +532,19 @@ settings in the job, and each is logged:
   the query shows as absent goes in. The target loco itself can never be in it.
 
 ## Known limits
+
+- **Direction on the CS-105 (found 2026-11-13).** JMRI's OpenLCB throttle takes the speed and
+  direction the train node reports a moment after the throttle is handed over, and that report
+  overwrites a direction set straight away; the loco then runs the way it last ran. Every job
+  now waits 3 s, sets the direction, checks it and retries (`set_direction()` in `jobkit.py`,
+  log line `DIR ... held`); a job whose direction never holds ends before any speed is sent.
+  Logs from before the fix carry the asked direction, not the real one: check `travel` in
+  `profile.csv` against what was asked.
+- **Lights stay on at the end of a job.** A loco with little draw at rest (CSX 2738, no sound)
+  reads free with its lights off, so the block it stands in goes dark. Jobs now leave F0 on and
+  log `F0 left on`; other functions (the mute) still go off.
+- **Momentum carries far.** With CV4 = 24, a loco stopped from step 126 rolls about 8 to 9 m
+  (one long block or more). A guard that trips at high speed stops the throttle, not the loco.
 
 - The back-EMF CV lists in `make_job.py` come from the CVs present in the 2121 and 2738 roster
   entries. A different decoder needs its own list from the manual.

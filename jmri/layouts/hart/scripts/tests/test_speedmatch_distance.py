@@ -643,9 +643,17 @@ class FakeLayout(object):
         self.sensors = {n: self.Sensor(n) for n in list(order) + list(extra_sensors)}
         outer = self
 
+        self.ignore_dir = 0             # direction sets the "train node" overwrites (the 2026-11-13 race)
+
         class Throttle(object):
             def setIsForward(t, f):
+                if outer.ignore_dir > 0:
+                    outer.ignore_dir -= 1
+                    return
                 outer.forward = f
+
+            def getIsForward(t):
+                return outer.forward
 
             def setSpeedSetting(t, x):
                 outer.speeds.append(x)
@@ -861,6 +869,31 @@ class SimulatedRuns(unittest.TestCase):
         self.assertIn("STOP killed", msgs)
         self.assertEqual(sim.speeds[-1], 0.0)
         self.assertIn("RUN loco=CSX 2121 direction=reverse", msgs)
+
+    def test_direction_is_set_again_when_the_train_node_overwrites_it(self):
+        text, log = self.job("steps", "--loco", "CSX 2121", "--direction", "reverse", "--mode", "distance",
+                             "--guard", "none", "--steps", "8", "--warm-s", "0")
+        sim = FakeLayout(ORDER1, self.len, 6)
+        sim.ignore_dir = 1
+        sim.after.append((sim.now + 40.0, lambda: (self.tmp / "speedrun.kill").write_text("")))
+        sim.run(text, self.tmp)
+        msgs = self.msgs(log)
+        self.assertIn("DIR reverse lost, try 1", msgs)
+        self.assertIn("DIR reverse held", msgs)
+        self.assertFalse(sim.forward)
+        # no speed is sent before the direction holds
+        self.assertLess(msgs.index("DIR reverse held"), msgs.index("STEP 8"))
+
+    def test_a_direction_that_never_holds_ends_the_run_before_any_speed(self):
+        text, log = self.job("steps", "--loco", "CSX 2121", "--direction", "reverse", "--mode", "distance",
+                             "--guard", "none", "--steps", "8", "--warm-s", "0")
+        sim = FakeLayout(ORDER1, self.len, 6)
+        sim.ignore_dir = 99
+        sim.run(text, self.tmp)
+        msgs = self.msgs(log)
+        self.assertIn("STOP direction reverse did not hold", msgs)
+        self.assertEqual([x for x in sim.speeds if x > 0], [])
+        self.assertIn("F0 left on", msgs)
 
     def test_a_stalled_loco_ends_the_run(self):
         text, log = self.dist("--guard", "none", "--steps", "48", "--warm-s", "0", "--stall", "20")
