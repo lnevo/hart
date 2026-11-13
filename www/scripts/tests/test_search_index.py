@@ -283,9 +283,13 @@ class ExtraKinds(unittest.TestCase):
     def test_site_without_the_data_still_builds(self):
         self.assertEqual([r["kind"] for r in _index(_site({"a/index.html": _page()}))["records"]], ["page"])
 
+# The Photos page's own album-hash map, which the check reads for the chip names.
+PHOTOS_CATS = '<script>var CATS = { "rolling-stock": { chips: "#album-bar", attr: "data-album", subs: { locomotives: "locos", freight: "freight", mow: "mow" } } };</script>'
+
+
 def _fleet_site(items: list[dict]) -> Path:
     """A built tree holding data/fleet-gallery.json (as the build leaves it) and the Photos page."""
-    root = _site({"photos/index.html": _page(title="Photos — HART", body=f"<h1>Photos</h1><p>{INTRO}</p>")})
+    root = _site({"photos/index.html": _page(title="Photos — HART", body=f"<h1>Photos</h1><p>{INTRO}</p>" + PHOTOS_CATS)})
     (root / "data").mkdir(exist_ok=True)
     (root / "data" / "fleet-gallery.json").write_text(json.dumps({"albums": [], "items": items}), encoding="utf-8")
     return root
@@ -339,8 +343,8 @@ class FleetRecords(unittest.TestCase):
         (root / "data" / "fleet-gallery.json").write_text(json.dumps({"items": []}))
         self.assertEqual(_fleet(_index(root)), [])
 
-    def test_item_without_id_or_private_is_skipped(self):
-        items = [_car("", "A 1"), _car("a-2", "A 2", public=False)]
+    def test_item_without_id_is_skipped(self):
+        items = [_car("", "A 1")]
         self.assertEqual(_fleet(_index(_fleet_site(items))), [])
 
     def test_no_data_file_no_records(self):
@@ -377,8 +381,34 @@ class FleetRecords(unittest.TestCase):
 
 class FleetIdGuards(unittest.TestCase):
     def test_album_name_as_an_item_id_is_refused(self):
-        root = _site({"index.html": _page()})
+        root = _site({"index.html": _page(), "photos/index.html": _page(body=PHOTOS_CATS)})
         (root / "data").mkdir()
         items = [{"id": "freight", "title": "Freight"}, {"id": "csx-2738", "title": "CSX 2738"}]
         (root / "data" / "fleet-gallery.json").write_text(json.dumps({"items": items}), encoding="utf-8")
         self.assertEqual(len(check.fleet_id_problems(root)), 1)
+
+
+class ReviewFixesStage2(unittest.TestCase):
+    """Behaviour changed after the PR #392 review."""
+
+    def test_album_slugs_come_from_the_photos_page(self):
+        root = _site({"photos/index.html": _page(body=PHOTOS_CATS)})
+        self.assertEqual(check.fleet_album_slugs(root), {"locomotives", "freight", "mow"})
+
+    def test_offline_sheet_with_only_about_gets_a_record(self):
+        root = _site({"crew/industries/index.html": _page()})
+        (root / "data").mkdir()
+        sheet = {"spotsheet": {"offline": [{"id": "demmler", "name": "Demmler Yard", "about": ["Where D749 goes."]}]}}
+        (root / "data" / "crew.json").write_text(json.dumps(sheet), encoding="utf-8")
+        (root / "data" / "industries.json").write_text('{"industries": []}', encoding="utf-8")
+        self.assertEqual([r["title"] for r in build._industry_records(root)], ["Demmler Yard"])
+
+    def test_crew_link_labels_are_indexed_but_not_their_paths(self):
+        root = _site({"crew/ck1/index.html": _page()})
+        (root / "data").mkdir()
+        job = {"id": "ck1", "code": "CK1", "name": "Coke Transfer", "summary": "Coke.",
+               "links": [{"label": "Scale Operating Instructions (EQ-01)", "href": "crew/scale/index.html"}]}
+        (root / "data" / "crew.json").write_text(json.dumps({"jobs": [job]}), encoding="utf-8")
+        (rec,) = build._crew_records(root)
+        self.assertIn("EQ-01", rec["text"])
+        self.assertNotIn("index.html", rec["text"])

@@ -370,7 +370,7 @@ def _industry_records(dest_root: Path) -> list[dict]:
             seen.add(sid)
             records.append(_industry(card, sheets[sid], sid))
     for sid, s in sheets.items():
-        if sid not in seen and s.get("history"):  # a sheet with no card still deserves a record
+        if sid not in seen and (s.get("history") or s.get("about")):  # a sheet with no card still deserves a record
             records.append(_industry({}, s, sid))
     return records
 
@@ -411,7 +411,7 @@ def _crew_records(dest_root: Path) -> list[dict]:
     for j in crew.get("jobs") or []:
         add(f"{j['code']} {j['name']}", f"crew/{j['id']}/index.html", j.get("summary", ""), j.get("title"), j.get("pub"),
             (j.get("engine") or {}).get("label"), j.get("summary"), j.get("steps"), j.get("sequence"), j.get("priority"),
-            j.get("lineup"), j.get("talk"), j.get("links"))
+            j.get("lineup"), j.get("talk"), [link.get("label") for link in j.get("links") or [] if isinstance(link, dict)])
     tt = crew.get("timetable")
     if tt:
         add(f"{tt['pub']} {tt['title']}", "crew/tt23/index.html", tt.get("summary", ""), tt.get("name"), tt.get("subtitle"),
@@ -448,18 +448,12 @@ def _fleet_records(dest_root: Path) -> list[dict]:
     records = []
     for item in json.loads(path.read_text(encoding="utf-8")).get("items") or []:
         fid, title = str(item.get("id") or ""), str(item.get("title") or "").strip()
-        if not fid or not title or item.get("public") is False:
+        if not fid or not title:
             continue
         caption = str(item.get("caption") or "")
         kind = FLEET_KINDS.get(item.get("album"), "locomotive" if item.get("type") == "Locomotive" else "car")
         words = [str(item.get(k) or "") for k in ("road", "number", "type")] + [caption]
-        records.append({
-            "title": title,
-            "url": f"{FLEET_PAGE}#rolling-stock/{fid}",
-            "kind": kind,
-            "snippet": _clip(caption or title, SNIPPET_MAX),
-            "text": _clip(" ".join(w for w in words if w), TEXT_MAX),
-        })
+        records.append(_record(title, f"{FLEET_PAGE}#rolling-stock/{fid}", kind, caption, " ".join(w for w in words if w)))
     return records
 
 
@@ -473,7 +467,8 @@ def build_search_index(dest_root: Path) -> dict:
     # Record kinds built from data or a few pages' markup, one call each (add new kinds here).
     extra = _glossary_records(dest_root) + _industry_records(dest_root) + _crew_records(dest_root)
     # A crew page is drawn by script, so its own page record is a bare title; the sheet record replaces it.
-    records = [r for r in records if r["url"] not in {e["url"] for e in extra}] + extra
+    extra_urls = {e["url"] for e in extra}
+    records = [r for r in records if r["url"] not in extra_urls] + extra
     records += _fleet_records(dest_root)
     index = {
         "version": INDEX_VERSION,

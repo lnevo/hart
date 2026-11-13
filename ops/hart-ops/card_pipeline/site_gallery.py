@@ -60,6 +60,7 @@ def missing_entries(candidates: list[tuple[dict, str]], data: dict) -> list[dict
     known = {}
     for item in data["items"]:
         known.setdefault(item.get("type", ""), item["album"])
+    taken = {i.get("id") for i in data["items"]}
     out = []
     for record, source_image in candidates:
         if not source_image or Path(source_image).stem in have:
@@ -68,6 +69,10 @@ def missing_entries(candidates: list[tuple[dict, str]], data: dict) -> list[dict
         if contains_private_name(json.dumps(entry)):
             print(f"  skipped {entry['title']}: contains the private name")
             continue
+        base, n = entry["id"], 2
+        while entry["id"] in taken:  # a second photo of the same car gets csx-2738-2, and so on
+            entry["id"], n = f"{base}-{n}", n + 1
+        taken.add(entry["id"])
         out.append(entry)
     return out
 

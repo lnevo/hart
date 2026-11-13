@@ -29,6 +29,11 @@ class Caption(unittest.TestCase):
         self.assertEqual(entry["id"], "csx-379702")
         self.assertEqual(site_gallery.fleet_id("B&O 467439"), "b-o-467439")
 
+    def test_second_photo_of_the_same_car_gets_its_own_id(self):
+        data = {"items": [{"id": "csx-379702", "src": "x/old.png", "album": "freight", "type": "Hopper"}], "albums": []}
+        (entry,) = site_gallery.missing_entries([(self.record("Hopper"), "new.jpg")], data)
+        self.assertEqual(entry["id"], "csx-379702-2")
+
 
 if __name__ == "__main__":
     unittest.main()

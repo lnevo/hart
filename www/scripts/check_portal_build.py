@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -120,7 +121,15 @@ def _drawn_ids(root: Path, page: str) -> set:
     path = root / "data" / "crew.json"
     sheet = json.loads(path.read_text(encoding="utf-8")).get("spotsheet") or {} if path.is_file() else {}
     return {e["id"] for k in ("industries", "offline", "desk") for e in sheet.get(k) or [] if e.get("id")}
-FLEET_ALBUM_SLUGS = {"locomotives", "freight", "mow"}  # photos/#rolling-stock/<album> picks a chip, not a car
+
+
+def fleet_album_slugs(root: Path) -> set[str]:
+    """Album hashes the Photos page reads as chips (#rolling-stock/freight), from the page's own CATS map,
+    so a new album slug is covered without a second list here."""
+    page = root / "photos" / "index.html"
+    text = page.read_text(encoding="utf-8") if page.is_file() else ""
+    m = re.search(r'"rolling-stock":\s*\{[^{}]*subs:\s*\{([^}]*)\}', text)
+    return set(re.findall(r'"?([\w-]+)"?\s*:', m.group(1))) if m else set()
 
 
 def _fleet_ids(root: Path) -> set[str]:
@@ -133,7 +142,8 @@ def fleet_id_problems(root: Path) -> list[str]:
     ids = [str(i.get("id") or "") for i in _items(root, "fleet-gallery.json")]
     bad = [f"data/fleet-gallery.json: item {n} has no id" for n, i in enumerate(ids) if not i]
     bad += [f"data/fleet-gallery.json: id {i} is used twice" for i in sorted({i for i in ids if i and ids.count(i) > 1})]
-    bad += [f"data/fleet-gallery.json: id {i} is an album name, so its link would open the album" for i in ids if i in FLEET_ALBUM_SLUGS]
+    slugs = fleet_album_slugs(root)
+    bad += [f"data/fleet-gallery.json: id {i} is an album name, so its link would open the album" for i in ids if i in slugs]
     return bad
 
 
@@ -149,7 +159,8 @@ def index_problems(root: Path) -> list[str]:
     if not isinstance(index, dict) or index.get("version") != 1 or not isinstance(index.get("records"), list) or not index.get("generated"):
         return ["search-index.json: expected version 1, generated and a records list"]
     bad = fleet_id_problems(root)
-    fleet_ids = _fleet_ids(root)
+    fleet_ids, slugs = _fleet_ids(root), fleet_album_slugs(root)
+    drawn: dict[str, set] = {}  # ids a page's script draws, read once per page
     page_ids: dict[Path, set] = {}  # each anchored page is parsed once
     for n, rec in enumerate(index["records"]):
         where = f"search-index.json record {n}"
@@ -171,7 +182,7 @@ def index_problems(root: Path) -> list[str]:
         elif page == "photos/index.html" and anchor.startswith("rolling-stock/"):
             # Cars are drawn by js/fleet.js, so no static id exists: check the id against the data file.
             # An album chip (#rolling-stock/freight) is also a valid sub-hash.
-            if anchor.split("/", 1)[1] not in FLEET_ALBUM_SLUGS and unquote(anchor.split("/", 1)[1]) not in fleet_ids:
+            if anchor.split("/", 1)[1] not in slugs and unquote(anchor.split("/", 1)[1]) not in fleet_ids:
                 bad.append(f"{where}: #{anchor} is not an item id in data/fleet-gallery.json")
         elif anchor:
             file = target.resolve()
@@ -180,7 +191,9 @@ def index_problems(root: Path) -> list[str]:
                 ids = _Ids()
                 ids.feed(file.read_text(encoding="utf-8", errors="replace"))
                 page_ids[file] = ids.ids
-            if unquote(anchor) not in page_ids[file] | _drawn_ids(root, page):
+            if page not in drawn:
+                drawn[page] = _drawn_ids(root, page)
+            if unquote(anchor) not in page_ids[file] and unquote(anchor) not in drawn[page]:
                 bad.append(f"{where}: anchor #{anchor} is not in {page}")
     return bad
 
