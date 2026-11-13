@@ -107,7 +107,7 @@ def main() -> None:
     if scale is None:
         scale = (
             1.0
-            if os.environ.get("JMRI_LAYOUT") in ("linear3", "linear4")
+            if paths.LAYOUT in ("linear3", "linear4")
             else DRAW_SCALE
         )
     prepare(source, output, reference_path=ref, draw_scale=scale)
