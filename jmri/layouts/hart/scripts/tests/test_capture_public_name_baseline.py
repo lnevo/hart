@@ -21,9 +21,12 @@ class DisplayPathTest(unittest.TestCase):
             capture.display_path(capture.DEFAULT_TABLES),
         )
 
-    def test_outside_file_keeps_its_path(self):
-        outside = Path("/example.invalid/tables.xml")
-        self.assertEqual(str(outside), capture.display_path(outside))
+    def test_outside_file_is_reduced_to_its_name(self):
+        self.assertEqual("tables.xml", capture.display_path(Path("/example.invalid/tables.xml")))
+
+    def test_home_file_is_home_relative(self):
+        user_files = Path.home() / "JMRI_UserFiles" / "tables.xml"
+        self.assertEqual("~/JMRI_UserFiles/tables.xml", capture.display_path(user_files))
 
 
 class StaleFilesTest(unittest.TestCase):

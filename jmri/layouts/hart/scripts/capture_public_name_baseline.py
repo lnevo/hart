@@ -309,11 +309,18 @@ def sha256_file(path: Path) -> str:
 
 
 def display_path(path: Path) -> str:
-    """Repo-relative when inside the checkout, so worktree paths stay out of git."""
+    """A path for counts.txt that never names a user folder.
+
+    Repo-relative inside this checkout, home-relative (~/...) under the home
+    folder, otherwise just the file name.
+    """
     resolved = path.resolve()
     if resolved.is_relative_to(REPO_ROOT):
         return resolved.relative_to(REPO_ROOT).as_posix()
-    return str(path)
+    home = Path.home().resolve()
+    if resolved.is_relative_to(home):
+        return "~/" + resolved.relative_to(home).as_posix()
+    return resolved.name
 
 
 def write_counts(path: Path, tables_path: Path, counts: dict[str, int]) -> None:
