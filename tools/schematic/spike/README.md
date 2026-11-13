@@ -71,6 +71,12 @@ Known gaps (end of the 2026-11-13 session):
   band this stops the helix tracks sitting directly under T300: the peninsula's lower spurs claim those rows
   although they lie further east. The fix is to take the above/below rules only from tracks that really
   overlap along the band. Hints `keep_close`, `level_leg` and `band_cell` (stretch) exist meanwhile.
+- **Band direction (owner, 2026-11-13).** The main and upper bands are turned 180 degrees and the sheet reads
+  main, upper, staging from the top (`rotate_bands`, `band_order`). A train that leaves staging eastward at
+  the right comes out of the helix at the left of the bands above and keeps running east, as ADR-022 says.
+  The bands are laid out first and the finished drawing is rotated with the lettering kept upright; asking
+  the layout itself for the other end gave a different, worse arrangement, because the search is not the
+  same when run from the other end.
 - A band has no rule for which end is which except `left_end` (staging) and `side` on helix ends (upper).
 - Main weight on the upper band follows `main_route`, as the owner gave it (2026-11-13): H2 McKeesport up
   the rise to T262, diverging there onto the outer track round the west balloon loop (T275, T273, T256, T233)

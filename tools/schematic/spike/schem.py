@@ -1092,13 +1092,21 @@ def draw_band(band, title, opts, top, left):
     def Y(r):
         return top + 30 + (r - y0) * rowh
 
-    def label(xp, yp, s, size, anchor="middle", weight="normal", extra=""):
+    # a band can be turned end for end (180 degrees): the line work is rotated, the lettering stays upright
+    turned = (title or " ").split()[0] in opts.get("rotate_bands", ())
+    cx = (X(x0) + X(max(x.values()))) / 2
+    cy = (Y(y0) + Y(max(srow.values()))) / 2
+
+    def label(xp, yp, s, size, anchor="middle", weight="normal", extra="", fixed=False):
+        if turned and not fixed:
+            xp, yp = 2 * cx - xp, 2 * cy - yp + size * 0.7
+            anchor = {"start": "end", "end": "start"}.get(anchor, anchor)
         text.append(f'<text x="{xp:.1f}" y="{yp:.1f}" font-size="{size}" text-anchor="{anchor}" '
                     f'font-weight="{weight}" fill="#000" stroke="none" {extra}>{s}</text>')
 
     helix = []
     if title:
-        label(left, top + 4, title.upper(), 12, anchor="start", weight="bold", extra='letter-spacing="1.5"')
+        label(left, top + 4, title.upper(), 12, anchor="start", weight="bold", extra='letter-spacing="1.5"', fixed=True)
     for k, pts in paths(band).items():
         s = strands.get(k)
         wd = opts["main_w"] if (s is None or s["main"]) else opts["side_w"]
@@ -1183,6 +1191,8 @@ def draw_band(band, title, opts, top, left):
         svg.append(f'<path d="M{a:.1f},{yb - 6} L{a:.1f},{yb} L{b:.1f},{yb} L{b:.1f},{yb - 6}" stroke-width="1.4"/>')
         label((a + b) / 2, yb + 14, name.upper(), 12, weight="bold", extra='letter-spacing="1"')
     bottom += 34 + len(lanes) * 30 if lanes else 0
+    if turned:
+        svg = [f'<g transform="rotate(180 {cx:.1f} {cy:.1f})">'] + svg + ["</g>"]
     return svg + text, X(max(x.values())) + 110, bottom - top + 14
 
 

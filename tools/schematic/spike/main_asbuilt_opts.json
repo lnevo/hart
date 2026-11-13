@@ -193,5 +193,14 @@
    "T262",
    "T285"
   ]
+ ],
+ "band_order": [
+  "Main",
+  "Upper",
+  "Staging"
+ ],
+ "rotate_bands": [
+  "Main",
+  "Upper"
  ]
 }

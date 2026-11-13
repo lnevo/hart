@@ -42,7 +42,7 @@ def main(built, built_opts, main_graph, main_opts, out, helix_style="letters"):
     bands.append(("Staging level", band, bo))
     print("Staging level", len(schem.faults(band)), "drawing faults", w)
 
-    rank = {"Upper": 0, "Main": 1, "Staging": 2}       # route order from the bottom up: staging, main, upper
+    rank = {w: i for i, w in enumerate(mo.get("band_order", ["Upper", "Main", "Staging"]))}   # top to bottom
     bands.sort(key=lambda b: rank.get(b[0].split()[0], 9))
     schem.draw_page(bands, dict(mo, title=mo.get("system_title", mo["title"])), out)
 
