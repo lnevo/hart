@@ -36,7 +36,7 @@ def run():
         until = [found[n] for n in UNTIL]
         t, tl = request_throttle(P_ID)
         if t is None: return
-        t.setIsForward(P_FWD)
+        if not set_direction(t, P_FWD): return
         for fn in FUNCS: getattr(t, "setF%d" % fn)(True)
         time.sleep(1.0)
         t.setSpeedSetting(P_STEP / 126.0); L("GO %s step %d until %s" % (P_ID, P_STEP, ",".join(UNTIL))); t0 = time.time()

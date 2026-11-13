@@ -72,7 +72,7 @@ def run():
         if trig.getKnownState() == 2: why[0] = "trigger already ACTIVE: " + tname; return
         t, tl = request_throttle(P_ID)
         if t is None: return
-        t.setIsForward(P_FWD)
+        if not set_direction(t, P_FWD): return
         for fn in FUNCS: getattr(t, "setF%d" % fn)(True)
         L("STOPTEST loco=%s direction=%s step=%d trigger=%s" % (P_ID, "forward" if P_FWD else "reverse", P_STEP, tname))
         time.sleep(1.0)

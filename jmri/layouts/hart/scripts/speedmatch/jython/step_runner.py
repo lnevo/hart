@@ -59,7 +59,7 @@ def run():
         if not check_guards(GUARD, found): return
         t, tl = request_throttle(P_ID)
         if t is None: return
-        t.setIsForward(P_FWD)
+        if not set_direction(t, P_FWD): return
         for fn in FUNCS: getattr(t, "setF%d" % fn)(True)
         L("RUN loco=%s direction=%s" % (P_ID, "forward" if P_FWD else "reverse"))
         L("CFG route=%s mid=%s k=%d rel=%.4f max=%d settle=%d low_max=%d high_span=%d warm=%d@%d" % (
