@@ -60,6 +60,11 @@ Known gaps (end of the 2026-11-13 session):
   draws with no faults or warnings and the peninsula loop runs round the outside of its spurs at the east,
   as the owner prefers. H1, H2 and A sit below the band's middle, pointing east (`helix_side`), not at an end;
   the run from T262 up to T237 is one long slope. The moved T300's hand was found by trial.
+- **Rows are stricter than they need to be.** Two tracks are kept on separate rows whenever the working
+  order had them open together, even if they end up nowhere near each other along the band. On the upper
+  band this stops the helix tracks sitting directly under T300: the peninsula's lower spurs claim those rows
+  although they lie further east. The fix is to take the above/below rules only from tracks that really
+  overlap along the band. Hints `keep_close`, `level_leg` and `band_cell` (stretch) exist meanwhile.
 - A band has no rule for which end is which except `left_end` (staging) and `side` on helix ends (upper).
 - Main weight on the upper band follows `main_route`: the owner's route round the peninsula loop from the
   double crossover to T241 and back to T300, plus the agent's choice from the helix to T237.

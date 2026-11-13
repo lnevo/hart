@@ -92,5 +92,21 @@
    "T199"
   ]
  ],
- "helix_side": "east"
+ "helix_side": "east",
+ "level_leg": {
+  "T262": "C"
+ },
+ "band_cell": {
+  "Upper": 40
+ },
+ "keep_close": [
+  [
+   "T237",
+   "T262"
+  ],
+  [
+   "T300*",
+   "T262"
+  ]
+ ]
 }

@@ -369,9 +369,13 @@ def find_cycle(classes, above):
 
 
 class Rows:
-    def __init__(self, nodes, strands, snaps, free=(), pins=None):
+    def __init__(self, nodes, strands, snaps, free=(), pins=None, close=()):
         self.nodes, self.strands, self.snaps, self.free = nodes, strands, snaps, set(free)
         # owner's hints: which leg of a switch runs level, by switch label or plan part number
+        find_ref = lambda ref: [n for n, d in nodes.items() if d["kind"] == "switch"
+                                and ref in (d.get("alias"), d.get("label"))]
+        # owner's hints: pairs of switches to keep on neighbouring rows
+        self.close = [(a[0], b[0]) for a, b in ((find_ref(p), find_ref(q)) for p, q in close) if a and b]
         self.pins = {n: port for n, d in nodes.items() if d["kind"] == "switch"
                      for ref, port in (pins or {}).items() if ref in (d.get("alias"), d.get("label"))}
         self.extra = set()
@@ -461,10 +465,12 @@ class Rows:
                 terms.append((me, find(self.a_strand(o)), 0.5))
             else:
                 terms.append((me, find(s), 1.0))
+        for a, b in self.close:
+            terms.append((find(self.a_strand(a)), find(self.a_strand(b)), 5.0))
         for n, d in self.nodes.items():     # a double crossover wants its two tracks on neighbouring rows
             if d["kind"] == "dx":
                 (a, _), (b, _) = dx_tracks(self.nodes, n)
-                terms.append((find(a), find(b), 3.0))
+                terms.append((find(a), find(b), 9.0))
         bias = 0.0
         for n, f in self.flat.items():      # a long track should run level and the short link slope
             level = st[self.frog(n)[f]]["cm"]
@@ -924,7 +930,7 @@ def layout_one(g, sig, T, opts, warnings):
         nodes, strands = build(g, sig, T)
         col = columns(nodes, strands)
     order, snaps, enclosed, free, ev = sweep(nodes, strands, col, warnings.append)
-    rows = Rows(nodes, strands, snaps, free, opts.get("level_leg"))
+    rows = Rows(nodes, strands, snaps, free, opts.get("level_leg"), opts.get("keep_close", ()))
     xcons, refused = set(), set()
     for _ in range(12):
         R = rows.optimise()
@@ -1065,6 +1071,7 @@ def check(band):
 # ---------------------------------------------------------------- draw
 def draw_band(band, title, opts, top, left):
     cell, rowh = opts["cell"], opts["rowh"]
+    cell = opts.get("band_cell", {}).get((title or " ").split()[0], cell)      # a band can be stretched along its length
     nodes, strands, R, x = band["nodes"], band["strands"], band["R"], band["x"]
     srow, nrow, diag = R["srow"], R["nrow"], R["diag"]
     x0, y0 = min(x.values()), min(srow.values())
