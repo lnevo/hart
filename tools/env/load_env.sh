@@ -12,7 +12,7 @@ _hart_env_loaded=1
 _env_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 export HART_REPO_ROOT="${HART_REPO_ROOT:-$(cd "${_env_dir}/../.." && pwd)}"
 
-# Host settings, read in the same order as tools/ops/lib/hart_hosts.py: the environment
+# Host settings, read in the same order as tools/hartlib/src/hartlib/hosts.py: the environment
 # first, then hart.env, then the default. Older names follow the new one in each list.
 _hart_host_names="HART_MQTT_BROKER MQTT_HOST HART_MQTT_HOST HART_MQTT_PORT HART_JMRI_JSON JMRI_JSON
   HART_PI_SSH HART_PI_USERFILES HART_WIN_SSH HART_WIN_SSH_PORT HART_WIN_USERFILES"
