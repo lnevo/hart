@@ -1180,24 +1180,30 @@ def draw_band(band, title, opts, top, left):
             xe, ye = X(x[n]), Y(nrow[n])
             dirx = 1 if d["ins"] else -1
             style = opts.get("helix_style", "box")
-            if d.get("sub") == "helix" and style == "box":
-                helix.append((xe, ye, d.get("to", "")))
-            elif d.get("sub") == "helix" and style == "coil":       # three turns of a coil on the track itself
-                for k in range(3):
-                    svg.append(f'<ellipse cx="{xe + 7 + 7 * k:.1f}" cy="{ye:.1f}" rx="6" ry="9" stroke-width="1.6"/>')
-                label(xe + 34, ye + 3, "HELIX", 7, anchor="start", weight="bold", extra='letter-spacing="1"')
-            elif d.get("sub") == "helix" and style == "letters":    # a lettered connector, like the rise
+            tag = ""
+            if d.get("sub") == "helix":         # the same letter for the same track on every level
                 tracks = opts.get("helix_tracks") or sorted(
                     {strands[q]["name"] for q in strands for e_ in (strands[q]["src"][0], strands[q]["dst"][0])
-                     if nodes[e_].get("sub") == "helix"})                  # same letter for the same track on every level
+                     if nodes[e_].get("sub") == "helix"})
                 mine = next(strands[q]["name"] for q in strands if n in (strands[q]["src"][0], strands[q]["dst"][0]))
                 tag = "H" + str(1 + tracks.index(mine))
-                svg.append(f'<circle cx="{xe + 9:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
-                label(xe + 9, ye + 3, tag, 8, weight="bold")
-                label(xe + 21, ye + 3, "HELIX TO " + d.get("to", "").upper(), 6.5, anchor="start")
+            if d.get("sub") == "helix" and style == "box":
+                helix.append((xe, ye, d.get("to", "")))
+            elif d.get("sub") == "helix" and style == "coil":       # three turns of a coil on the track, then its letter
+                for k in range(3):
+                    svg.append(f'<ellipse cx="{xe + (7 + 7 * k) * dirx:.1f}" cy="{ye:.1f}" rx="6" ry="9" stroke-width="1.6"/>')
+                label(xe + 34 * dirx, ye + 3.5, tag, 10, anchor="start" if dirx == 1 else "end", weight="bold")
+                label(xe + 50 * dirx, ye + 3, "HELIX TO " + d.get("to", "").upper(), 6.5,
+                      anchor="start" if dirx == 1 else "end")
+            elif d.get("sub") == "helix" and style == "letters":    # a lettered connector, like the rise
+                svg.append(f'<circle cx="{xe + 9 * dirx:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
+                label(xe + 9 * dirx, ye + 3, tag, 8, weight="bold")
+                label(xe + 21 * dirx, ye + 3, "HELIX TO " + d.get("to", "").upper(), 6.5,
+                      anchor="start" if dirx == 1 else "end")
             elif d.get("sub") == "helix":                           # arrow: plain arrowhead and words
-                svg.append(f'<path d="M{xe - 6:.1f},{ye - 5:.1f} L{xe:.1f},{ye:.1f} L{xe - 6:.1f},{ye + 5:.1f}" stroke-width="1.8"/>')
-                label(xe + 6, ye + 3, "HELIX TO " + d.get("to", "").upper(), 6.5, anchor="start", weight="bold")
+                svg.append(f'<path d="M{xe - 6 * dirx:.1f},{ye - 5:.1f} L{xe:.1f},{ye:.1f} L{xe - 6 * dirx:.1f},{ye + 5:.1f}" stroke-width="1.8"/>')
+                label(xe + 6 * dirx, ye + 3, tag + " HELIX TO " + d.get("to", "").upper(), 6.5,
+                      anchor="start" if dirx == 1 else "end", weight="bold")
             elif d.get("sub") == "link":
                 svg.append(f'<circle cx="{xe + 9 * dirx:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
                 label(xe + 9 * dirx, ye + 3.5, d["label"], 10, weight="bold")

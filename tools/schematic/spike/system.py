@@ -8,7 +8,7 @@ import sys
 import schem
 
 
-def main(built, built_opts, main_graph, main_opts, out, helix_style="letters"):
+def main(built, built_opts, main_graph, main_opts, out, helix_style="coil"):
     bo = dict(schem.DEFAULTS, **json.load(open(built_opts)), helix_style=helix_style)
     mo = dict(schem.DEFAULTS, **json.load(open(main_opts)), helix_style=helix_style)
     bands = []

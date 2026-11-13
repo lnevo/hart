@@ -196,10 +196,7 @@
   "Upper",
   "Staging"
  ],
- "rotate_bands": [
-  "Main",
-  "Upper"
- ],
+ "rotate_bands": [],
  "equal_width": true,
  "band_width": {
   "Main": 0.86
