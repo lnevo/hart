@@ -32,6 +32,11 @@ Switch 7 crossover, Switch 13 and the engine terminal, name the tracks). Sample:
 both levels: the main level's helix track from T175 is McKees Rocks and the one from T251 is McKeesport
 (owner confirmed, 2026-11-13).
 
+`evolution.py` keeps a folder of every committed version of the sample drawings and an animated GIF of them
+(owner's request, 2026-11-13). Run it after each commit that changes a sample:
+`.venv/bin/python tools/schematic/spike/evolution.py`. It writes to `~/Documents/Layout/schematic-evolution/`,
+outside the repo.
+
 The spike checks its own drawing: every pair of drawn lines is tested for crossing or lying on top of
 each other, and each fault is printed with the switches either side.
 
