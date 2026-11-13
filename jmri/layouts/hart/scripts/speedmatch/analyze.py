@@ -59,6 +59,9 @@ LOOP2 = [
 ]
 ROUTES = {"loop1": LOOP, "loop2": LOOP2}
 DEFAULT_ROUTE = "loop1"
+# The warm-up lap counter counts REF (the route's first sensor) lit again after MID, a sensor
+# about half way round the route.
+ROUTE_MID = {"loop1": "BS Switch 23a", "loop2": "BS K-2"}
 ORDER = [s for s, _ in LOOP]  # loop1 aliases: LOOP and ORDER
 
 # Switch positions the owner sets by hand before a run (nothing here is ever sent to JMRI):
@@ -77,6 +80,12 @@ def route_loop(route):
     if route not in ROUTES:
         raise ValueError("unknown route %r: give one of %s" % (route, ", ".join(sorted(ROUTES))))
     return ROUTES[route]
+
+
+def route_mid(route):
+    mid = ROUTE_MID[route]
+    assert mid in route_order(route), (route, mid)
+    return mid
 
 
 def route_order(route):
@@ -224,11 +233,15 @@ def summarize_runs(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_REA
         rows = []
         p = {"k": k, "rel": rel, "max_n": max_n}
         p.update(kw)
-        run_lengths = lengths
         if use_logged:
             p.update(run.get("cfg") or {})
         route = p.pop("route", DEFAULT_ROUTE)
-        order = route_order(route)
+        try:
+            order = route_order(route)
+        except ValueError as e:
+            print("warning: run of %s %s in %s skipped: %s" % (
+                run["loco"], run["direction"], run.get("log") or "log", e), file=sys.stderr)
+            continue
         run_lengths = (route_lengths or {}).get(route, lengths)
         if use_logged and not csv_lengths:
             run_lengths = run.get("lengths") or run_lengths
@@ -257,19 +270,29 @@ EVENT_FIELDS = ["loco", "log", "step", "lap_index", "block", "block_len_mm", "en
                 "next_entry_epoch", "transit_s", "mm_per_s"]
 
 
-def block_events(runs, route=DEFAULT_ROUTE, settle=lr.SETTLE_EVENTS):
+def block_events(runs, route=DEFAULT_ROUTE):
     """Rows in the shape of docs/jmri/speedmatching/profile-2026-11-08/block_events.csv, for
     infer_block_lengths.py. A block's transit is the time from its sensor lighting to the next
-    sensor of the route lighting. A lap is one pass of the route's sensors, counted from its first
-    sensor; per step, the first `settle` events after the step change and everything before the
-    first sensor are dropped, and a block whose next sensor is not the route's next one (a missed
-    or doubled event) gets no row. A run's own CFG route wins over the route argument."""
+    sensor of the route lighting (the next one in the direction the loco ran, found from the
+    order the sensors lit). A lap is one pass of the route's sensors, counted from its first
+    sensor; per step, the run's own logged settle count of events after the step change and
+    everything before the first sensor are dropped, and a block whose next sensor is not the
+    expected one (a missed or doubled event) gets no row. A run's own CFG route wins over the
+    route argument; a run with no rows is reported on stderr."""
     rows = []
     for run in runs:
-        order = route_order((run.get("cfg") or {}).get("route", route))
+        cfg = run.get("cfg") or {}
+        try:
+            order = route_order(cfg.get("route", route))
+        except ValueError as e:
+            print("warning: events of a run in %s skipped: %s" % (run.get("log") or "log", e), file=sys.stderr)
+            continue
+        settle = cfg.get("settle", lr.SETTLE_EVENTS)
         first = order[0]
+        before = len(rows)
         for s in run["steps"]:
             ev = [(t, n) for t, n in s["events"][settle:] if n in order]
+            step = 1 if travel(ev, order) != "west" else -1
             lap, started = -1, False
             for (t, n), (t2, n2) in zip(ev, ev[1:]):
                 if n == first:
@@ -277,7 +300,7 @@ def block_events(runs, route=DEFAULT_ROUTE, settle=lr.SETTLE_EVENTS):
                     started = True
                 if not started:
                     continue
-                if n2 != order[(order.index(n) + 1) % len(order)]:
+                if n2 != order[(order.index(n) + step) % len(order)]:
                     continue
                 dt = t2 - t
                 mm = (run.get("lengths") or {}).get(n)
@@ -286,6 +309,9 @@ def block_events(runs, route=DEFAULT_ROUTE, settle=lr.SETTLE_EVENTS):
                              "entry_epoch": "%.3f" % t, "next_entry_epoch": "%.3f" % t2,
                              "transit_s": round(dt, 2),
                              "mm_per_s": "" if mm is None or dt <= 0 else round(mm / dt, 1)})
+        if len(rows) == before:
+            print("warning: no block events from the run of %s %s in %s (no complete pass of %s)" % (
+                run["loco"], run["direction"], run.get("log") or "log", order[0]), file=sys.stderr)
     return rows
 
 

@@ -62,6 +62,11 @@ class Routes(unittest.TestCase):
     def test_trusted_default_leaves_untrusted_rows_none(self):
         got = analyze.load_lengths(analyze.DEFAULT_LENGTHS, analyze.DEFAULT_TRUSTED, analyze.route_loop("loop2"))
         self.assertEqual(set(got), set(analyze.route_order("loop2")))
+        # Scale, Barn, S-R and the OS 7, 13, 15, 23b, 31 rows are estimates or assigned: no length
+        for s in ("BS Scale", "BS Barn", "BS S-R", "BS Switch 7", "BS Switch 13", "BS Switch 15",
+                  "BS Switch 23b", "BS Switch 31"):
+            self.assertIsNone(got[s], s)
+        self.assertIsNotNone(got["BS East Lead"])
 
 
 class Guards(unittest.TestCase):
@@ -239,10 +244,68 @@ class RunsAndLocate(unittest.TestCase):
                          ibl.PLAN_LOOP2_MM, pins, ibl.route_from_sw5("loop2"))
         for n in names:
             self.assertAlmostEqual(res[n][0], lengths[n], delta=3, msg=n)
-        loc = ibl.locate(res, ibl.PLAN_LOOP2_MM, pins, ibl.route_from_sw5("loop2"))
+        loc = ibl.locate(res, pins, ibl.route_from_sw5("loop2"))
         self.assertAlmostEqual(loc["Switch 13"][0], centre["Switch 13"], delta=3)
         self.assertAlmostEqual(loc["Switch 7"][0], centre["Switch 7"], delta=3)
         self.assertAlmostEqual(loc["Switch 13"][1], centre["Switch 15"] - centre["Switch 13"], delta=3)
+
+    def test_events_of_a_westward_run(self):
+        lengths, _ = planted()
+        order = analyze.route_order("loop2")
+        t, out = 1000.0, ["1000.000 RUN loco=L direction=reverse", "1000.000 " + CFG, "1001.000 STEP 32"]
+        t = 1001.0
+        for lap in range(4):
+            for s in reversed(order[1:] + order[:1]):  # Switch 5, then Brick-Plane back round
+                out.append("%.3f SENS %s ACTIVE" % (t, s))
+                out.append("%.3f SENS %s INACTIVE" % (t + 0.1, s))
+                t += lengths[s[3:]] / 100.0
+        out.append("%.3f SENS %s ACTIVE" % (t, order[0]))
+        runs = analyze.parse_log(out)
+        rows = analyze.block_events(runs, "loop2")
+        self.assertTrue(rows)
+        self.assertGreaterEqual(len(rows), 18)
+        for r in rows:  # a block's transit is its own length at 100 mm/s, entry to the next (westward) entry
+            self.assertAlmostEqual(float(r["transit_s"]), lengths[r["block"]] / 100.0, delta=0.011, msg=r["block"])
+
+    def test_run_without_events_warns(self):
+        import contextlib
+        err = io.StringIO()
+        runs = analyze.parse_log(["1.0 RUN loco=L direction=forward", "1.0 " + CFG, "2.0 STEP 32"])
+        with contextlib.redirect_stderr(err):
+            self.assertEqual(analyze.block_events(runs, "loop2"), [])
+        self.assertIn("no block events", err.getvalue())
+
+    def test_logged_settle_count_is_used(self):
+        lengths, _ = planted()
+        log = [l.replace("settle=2", "settle=0") for l in synthetic_log(lengths)]
+        rows = analyze.block_events(analyze.parse_log(log), "loop2")
+        self.assertEqual({r["lap_index"] for r in rows if r["step"] == 32}, {0, 1, 2, 3})
+
+    def test_unknown_logged_route_skips_only_that_run(self):
+        lengths, _ = planted()
+        bad = [l.replace("route=loop2", "route=loop9") for l in synthetic_log(lengths)]
+        good = synthetic_log(lengths, t0=5000.0)
+        import contextlib
+        err = io.StringIO()
+        mm = {"BS " + n: v for n, v in lengths.items()}
+        with contextlib.redirect_stderr(err):
+            res = analyze.summarize_runs(analyze.parse_log(bad) + analyze.parse_log(good), mm)
+        self.assertEqual(len(res), 1)
+        self.assertIn("loop9", err.getvalue())
+
+    def test_import_reads_no_tables(self):
+        import subprocess
+        code = ("import sys; sys.path.insert(0, %r); import make_job; "
+                "print('make_job' in sys.modules)" % str(SM))
+        # tables.xml is only read on first use of a guard
+        self.assertEqual(make_job._GUARD_CACHE is not None, True)
+        r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+        self.assertEqual(r.stdout.strip(), "True", r.stderr)
+
+    def test_route_mid_is_on_the_route(self):
+        for route in analyze.ROUTES:
+            self.assertIn(analyze.route_mid(route), analyze.route_order(route))
+        self.assertEqual(analyze.route_mid("loop1"), "BS Switch 23a")
 
     def test_events_skip_a_missed_sensor(self):
         lengths, _ = planted()

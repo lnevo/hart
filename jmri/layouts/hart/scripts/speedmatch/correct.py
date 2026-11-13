@@ -28,6 +28,8 @@ import json
 import sys
 from pathlib import Path
 
+import analyze
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
@@ -216,7 +218,7 @@ def proposal(loco, report, round_no, max_rounds, tol):
             "note": "A proposal only. Writing goes through the write guard, dry run first."}
 
 
-def read_profile(path, loco, direction, run=None, route="loop1"):
+def read_profile(path, loco, direction, run=None, route=analyze.DEFAULT_ROUTE):
     """({step: median mm/s}, [skipped]) for one loco and direction from analyze.py's
     profile.csv. One run only: `run` if given, else the latest complete run (the latest run
     if none completed). Only the first measurement of a step, and only if the stop rule
@@ -224,7 +226,7 @@ def read_profile(path, loco, direction, run=None, route="loop1"):
     Only runs of `route` count (a profile.csv without a route column is loop1)."""
     with open(path, newline="") as fh:
         rows = [r for r in csv.DictReader(fh) if r["loco"] == loco and r["direction"] == direction
-                and (r.get("route") or "loop1") == route]
+                and (r.get("route") or analyze.DEFAULT_ROUTE) == route]
     runs = {}
     for r in rows:
         runs.setdefault(int(r.get("run") or 1), (r.get("run_complete") or "True") == "True")
@@ -254,7 +256,8 @@ def main(argv=None):
     ap.add_argument("--target-profile", help="profile.csv of the target (default: --profile)")
     ap.add_argument("--target-loco", required=True)
     ap.add_argument("--target-direction", required=True)
-    ap.add_argument("--route", default="loop1", help="use only runs of this route in the profiles (default loop1)")
+    ap.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE,
+                    help="use only runs of this route in the profiles")
     ap.add_argument("--round", type=int, default=1)
     ap.add_argument("--max-rounds", type=int, default=MAX_ROUNDS)
     ap.add_argument("--tol", type=float, default=TOLERANCE)

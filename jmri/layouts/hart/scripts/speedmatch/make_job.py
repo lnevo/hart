@@ -13,8 +13,8 @@ Nothing is sent: use drop_job.sh to copy a job to the Pi.
 """
 import argparse
 import json
-import re
 import sys
+import xml.etree.ElementTree as ET
 import time
 from pathlib import Path
 
@@ -44,14 +44,25 @@ def guard_for(route=analyze.DEFAULT_ROUTE, tables=TABLES):
     new block sensor is guarded at once. McKees Rocks and McKeesport share the Switch 37 and 39
     sensors (their own detector sections are not on a node yet, wiki/STATUS.md)."""
     on_route = set(analyze.route_order(route))
-    out = []
-    for n in re.findall(r"<userName>(BS [^<]*)</userName>", Path(tables).read_text()):
-        if n not in on_route and n not in out:
-            out.append(n)
-    return out
+    key = (route, str(tables))
+    if key not in _GUARD_CACHE:
+        out = []
+        for el in ET.parse(str(tables)).getroot().iter("userName"):  # ElementTree unescapes entities
+            n = (el.text or "").strip()
+            if n.startswith("BS ") and n not in on_route and n not in out:
+                out.append(n)
+        _GUARD_CACHE[key] = out
+    return list(_GUARD_CACHE[key])
 
 
-DEFAULT_GUARD = guard_for(analyze.DEFAULT_ROUTE)  # loop1
+_GUARD_CACHE = {}
+
+
+def __getattr__(name):
+    """DEFAULT_GUARD (loop1's guard) is computed on first use: importing this module reads nothing."""
+    if name == "DEFAULT_GUARD":
+        return guard_for(analyze.DEFAULT_ROUTE)
+    raise AttributeError(name)
 
 
 RUNNER_MARK = "# ---- runner ----\n"
@@ -112,7 +123,7 @@ def build_steps(a, lengths):
     s = {
         "LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward",
         "FUNCS": [0] + ([8] if a.mute_sound else []),
-        "GUARD": guards(a.guard, a.route), "REF": order[0], "MID": "BS Switch 23a",
+        "GUARD": guards(a.guard, a.route), "REF": order[0], "MID": analyze.route_mid(a.route),
         "ROUTE": a.route, "ORDER": order, "LENGTHS": lengths,
         "STEPS_LIST": a.steps, "WARM_STEP": a.warm_step, "WARM_LAPS": a.warm_laps,
         "STOP_K": a.k, "STOP_REL": a.rel, "MAX_READINGS": a.max_n,

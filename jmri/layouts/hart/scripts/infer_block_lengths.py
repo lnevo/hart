@@ -177,7 +177,7 @@ def pinned(result, loop_mm=PLAN_LOOP_MM, turnouts=PLAN_TURNOUT_MM, route=ROUTE_F
     return out
 
 
-def locate(result, loop_mm, turnouts, route, targets=("Switch 7", "Switch 13"), anchor="Switch 15"):
+def locate(result, turnouts, route, targets=("Switch 7", "Switch 13"), anchor="Switch 15"):
     """Where the target sections' centres fall along the route, in mm from Switch 5's points
     (the plan frame the pins use), and their distance from the anchor's centre (positive =
     before the anchor along the route). result is the pinned() output. Returns
@@ -245,7 +245,7 @@ def apply_tables(lengths_mm):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--route", choices=sorted(PLAN), default=DEFAULT_ROUTE)
+    ap.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE)
     ap.add_argument("--events", type=Path, help="block_events-style CSV (analyze.py --events-out for "
                     "a new run); required for loop2, default for loop1 is the 2026-11-08 file")
     ap.add_argument("--apply", action="store_true", help="write the lengths into block_lengths.csv")
@@ -280,7 +280,7 @@ def main():
                 print(f"  {s:34} loop1 {old:7.0f} mm   {route} {result[s][0]:7.0f} mm   {result[s][0] - old:+6.0f}")
         only = set(names) if a.overwrite else set(names) - owned
     if a.locate:
-        for t, (pos, before) in locate(result, loop_mm, pins, route_from_sw5(route)).items():
+        for t, (pos, before) in locate(result, pins, route_from_sw5(route)).items():
             print(f"locate: OS {t} centre {pos:.0f} mm from Switch 5's points, "
                   f"{before:.0f} mm before OS Switch 15's centre")
     if a.apply:

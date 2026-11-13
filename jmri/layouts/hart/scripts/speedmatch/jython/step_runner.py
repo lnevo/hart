@@ -85,8 +85,8 @@ def run():
         t.setIsForward(P_FWD)
         for fn in FUNCS: getattr(t, "setF%d" % fn)(True)
         L("RUN loco=%s direction=%s" % (P_ID, "forward" if P_FWD else "reverse"))
-        L("CFG route=%s k=%d rel=%.4f max=%d settle=%d low_max=%d high_span=%d warm=%d@%d" % (
-            ROUTE, STOP_K, STOP_REL, MAX_READINGS, SETTLE_EVENTS, LOW_MAX, HIGH_SPAN, WARM_LAPS, WARM_STEP))
+        L("CFG route=%s mid=%s k=%d rel=%.4f max=%d settle=%d low_max=%d high_span=%d warm=%d@%d" % (
+            ROUTE, MID.replace(" ", "_"), STOP_K, STOP_REL, MAX_READINGS, SETTLE_EVENTS, LOW_MAX, HIGH_SPAN, WARM_LAPS, WARM_STEP))
         L("LENGTHS " + json.dumps(LENGTHS))
         time.sleep(1.0)
         stall = min(STALL0, STALL_CAP)
