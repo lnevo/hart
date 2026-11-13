@@ -95,18 +95,12 @@ UID_SLOT = _COLUMNS["uid_slot"]
 CREAM = dict(red=220, green=220, blue=180)
 WHITE = dict(red=255, green=255, blue=255)
 
-# Known difference, reported 2026-11-12 and left for the owner: the points dots
-# on Switches 37 and 39 still show Normal when the switch is thrown, as they did
-# before the Princess redraw made the closed leg the main (CATS NORMAL).
-# check_layout_facts.py lists them until this set is emptied and the panel rebuilt.
-USS_DOT_SWAPPED = {37, 39}
-
-# CATS frog cell -> (JMRI turnout, dot shows Normal when Thrown), on each switch's
-# first OS block. Rails come from CATS track pieces; the turnouticon is only a points dot.
-
 
 def uss_plants(switches: dict, plant_cells: dict) -> dict:
-    """CATS frog cell -> (turnout, dot swapped) on each switch's first OS block."""
+    """CATS frog cell -> (JMRI turnout, dot shows Normal when Thrown) on each switch's
+    first OS block. The dot follows switches.csv cats_inverted alone; there are no
+    per-switch overrides. Rails come from CATS track pieces; the turnouticon is only
+    a points dot."""
     owner = {os_name: sw for sw in switches.values() for os_name in sw.os_blocks}
     missing = [f"{os_name} at {xy}" for xy, os_name in plant_cells.items() if os_name not in owner]
     if missing:
@@ -117,8 +111,7 @@ def uss_plants(switches: dict, plant_cells: dict) -> dict:
         raise SystemExit("switch_legs.csv OS blocks with no cell in wire_digicon.PLANT_CELLS: "
                          + ", ".join(undrawn))
     return {
-        xy: (owner[os_name].turnout,
-             owner[os_name].cats_inverted or owner[os_name].number in USS_DOT_SWAPPED)
+        xy: (owner[os_name].turnout, owner[os_name].cats_inverted)
         for xy, os_name in plant_cells.items()
         if os_name == owner[os_name].os_blocks[0]
     }
@@ -205,10 +198,19 @@ SIGNALS = [
 ]
 
 STATION_NAMES = facts.station_names()  # control point plates: BRICK, EAST END, ...
+# Desk titles are not drawn on the USS board. Each desk's dated revision header
+# ("DS-CTC  Rev A  Eff <date>", "DS-ABS ...") changes with every Designer save, so
+# it is skipped by its "DS-" prefix.
 SKIP_LABELS = {
     "HART RAILROAD", "NEVILLE ISLAND OPERATIONS", "P&CV DIVISION",
-    "CTC DIGICON", "DS-CTC  Rev A  Eff 2026-08-11",
+    "CTC DIGICON", "ABS DIGICON",
 }
+SKIP_PREFIXES = ("DS-",)
+
+
+def _skip_label(raw: str) -> bool:
+    return raw in SKIP_LABELS or raw.startswith(SKIP_PREFIXES)
+
 
 SLASH = {"UPPERSLASH", "LOWERSLASH"}
 BACKSLASH = {"UPPERBACKSLASH", "LOWERBACKSLASH"}
@@ -861,7 +863,7 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
 
     for (x, y), cell in cells.items():
         raw = cell["name"]
-        if not raw or raw in SKIP_LABELS or raw in STATION_NAMES:
+        if not raw or _skip_label(raw) or raw in STATION_NAMES:
             continue
         name = _norm_name(raw)
         sensor = name_sensor.get(name)
@@ -901,7 +903,7 @@ def build_geometry(cells: dict) -> tuple[list, list, list, list]:
     texts.append((480, 8, "HART RAILROAD - NEVILLE ISLAND", 16, dict(red=0, green=0, blue=0)))
     for (x, y), cell in cells.items():
         name = cell["name"]
-        if not name or name in SKIP_LABELS:
+        if not name or _skip_label(name):
             continue
         if name.endswith(", PA"):
             name = name[:-4]

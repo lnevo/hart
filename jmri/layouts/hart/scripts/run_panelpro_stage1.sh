@@ -127,6 +127,8 @@ repair python3 "$SCRIPTS/fix_traininfo_detection.py" "$REPO_TRAININFO"
 repair python3 "$SCRIPTS/restore_manual_sml_pairs.py" --panel "$REPO_OUTPUT" \
   --reference "$BEFORE_TABLES"
 repair python3 "$SCRIPTS/reconcile_dispatcher_stations.py" --panel "$REPO_OUTPUT" --no-sync
+# Stage 1 drops generated bean comments (SML section notes, Dispatcher sensors).
+repair python3 "$SCRIPTS/refresh_bean_comments.py"
 # Stage 1 Store writes BlockContentsIcons at level 0 (behind the track), moves
 # train-name labels and puts its occupancy lamps back on the turnouts. Run the
 # full visual standard and the overlap pass, the same two check.sh checks.

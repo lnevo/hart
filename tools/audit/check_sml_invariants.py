@@ -10,7 +10,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths, tables  # noqa: E402
 
 TABLES = paths.TABLES_XML
-EXPECTED_DESTS = 100
+EXPECTED_DESTS = 102
 
 
 def main() -> int:

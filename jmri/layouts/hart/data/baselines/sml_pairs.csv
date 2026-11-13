@@ -71,20 +71,22 @@ Mast 34L,Mast 26L,Mast 34L:Mast 26L
 Mast 34L,Mast 2L,Mast 34L:Mast 2L
 Mast 34L,Mast 8LA,Mast 34L:Mast 8LA
 Mast 34R,Mast 36RB,Mast 34R:Mast 36RB
-Mast 36RA,Mast 2036,Mast 36RA:Mast 2036
+Mast 36L,Mast 34L,Mast 36L:Mast 34L
 Mast 36RA,Mast 40LA,
 Mast 36RA,Mast 40RA,Mast 36RA:Mast 40RA
+Mast 36RA,Mast 40RB,Mast 36RA:Mast 40RB
 Mast 36RB,Mast 2035,Mast 36RB:Mast 2035
-Mast 36RB,Mast 2036,Mast 36RB:Mast 2036
 Mast 36RB,Mast 38LA,
 Mast 36RB,Mast 38RA,Mast 36RB:Mast 38RA
 Mast 36RB,Mast 40RA,Mast 36RB:Mast 40RA
-Mast 38LA,Mast 34L,Mast 38LA:Mast 34L
-Mast 38LB,Mast 34L,Mast 38LB:Mast 34L
+Mast 36RB,Mast 40RB,Mast 36RB:Mast 40RB
+Mast 38LA,Mast 36L,Mast 38LA:Mast 36L
+Mast 38LB,Mast 36L,Mast 38LB:Mast 36L
 Mast 40LA,Mast 24L,Mast 40LA:Mast 24L
-Mast 40LA,Mast 34L,Mast 40LA:Mast 34L
+Mast 40LA,Mast 36L,Mast 40LA:Mast 36L
 Mast 40LB,Mast 24L,Mast 40LB:Mast 24L
-Mast 40LB,Mast 34L,Mast 40LB:Mast 34L
+Mast 40LB,Mast 36L,Mast 40LB:Mast 36L
+Mast 40RB,Mast 2036,Mast 40RB:Mast 2036
 Mast 4RA,Mast 24RA,Mast 4RA:Mast 24RA
 Mast 4RB,Mast 24RA,Mast 4RB:Mast 24RA
 Mast 6LA,Mast 2R,Mast 6LA:Mast 2R

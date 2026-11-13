@@ -25,37 +25,36 @@ Two windows:
 | Window | What it is |
 |--------|------------|
 | **Dispatcher System** | Command panel: start/stop, register trains, Run Dispatch vs Setup Route vs Run Route |
-| **HART Railroad** | The stations. The **loco + short name** is the destination. The **circuit to its left** is progress. The **circuit below-left of the loco** is occupancy, except Engine House **OS EH-1…OS EH-3** where occupancy sits further left on the same row |
+| **HART Railroad** | The stations. The **loco + short name** is the destination. The **circuit to its left** is progress. The **circuit below-left of the loco** is occupancy, except Engine House **EH-1…EH-3** where occupancy sits further left on the same row |
 
-Stations, west → east around the plant, then the yard and house:
+Stations are the places trains start and end. Since 2026-11-12 there are 12;
+the mains, Brick-Plane and South Yard are through track that trains run over
+but cannot be sent to.
 
 | Station | Where it is |
 |---------|-------------|
-| **OS Brick-Plane** | Hairpin between Brick and Plane |
-| **OS East Main Ext** | Main between Plane (102) and OS Barn (117) |
-| **OS Main East** | Main south of the yard, approaching East End |
-| **OS East Lead** | East End lead off 112; destination label **E Lead** |
-| **OS Main West** | OS Main West at East End (around-the-room from Brick) |
-| **OS West Main Ext** | OS Main West between East End and Princess |
-| **OS K-1** | Princess, north branch |
-| **OS K-2** | Princess, south branch |
-| **OS Scale** | Left of the engine house, Plane–117 lead; destination label **OS Scale** |
-| **OS Barn** | Immediately to the right of OS Scale (OS Barn lead); destination label **OS Barn** |
-| **OS EH-1 / OS EH-2 / OS EH-3** | Right of the 116 ladder |
-| **OS S-R…OS S-4** | South Yard body; destination labels **OS S-R…OS S-4**, aligned with Main W / Main E |
-| **OS W-1 / OS W-2** | Brick yard body |
-| **OS McKees Rocks / OS McKeesport** | Princess stubs east of 115 / 114; destination labels **OS McKees Rocks** / **OS McKeesport** |
+| **Track East Lead** | East End lead off 112; button label **East End** |
+| **Track K-1** | Princess, north branch |
+| **Track K-2** | Princess, south branch |
+| **Track McKees Rocks / Track McKeesport** | Princess stubs east of Switches 39 / 37 |
+| **Track Scale** | Left of the engine house, Plane–117 lead |
+| **Track Barn** | Right of Track Scale (Barn lead) |
+| **Track EH-1 / EH-2 / EH-3** | Right of the engine-house ladder |
+| **Track W-1 / Track W-2** | Brick yard body |
 
-You can only start and stop at those stations. Occupancy icons and MoveTo
-buttons are in place. **Stage 1 was re-run 2026-08-22** after hidden yard
-throats (graph is **105 sections / 777 transits / 1554 traininfo**). Every listed
-station is a valid **start and destination**, including **OS S-R…OS S-4**
-(enter/leave via 103 or OS East Lead). Manual Princess pairs (`Mast 36RA→Mast 40LA`,
-`Mast 36RB→Mast 38LA`) were re-added after Discover. After any future Stage 1:
-`python3 jmri/layouts/hart/scripts/retarget_dispatcher_traininfo_transits.py`
-(rewrites `via Track N` → `via OS Switch N`; do this before assuming Stage 1
-is required), then `fix_traininfo_detection.py` and
-`reconcile_dispatcher_stations.py`. Never run Stage 1 or store tables from
+Every station is a start and a destination: **107 sections / 187 transits /
+374 traininfo** (stock Stage 1, 2026-11-12). The South Yard tracks keep plain
+name labels where their buttons were.
+
+Each traininfo file is a route, not an engine. Stage 1 writes one `_fwd` and
+one `_rvs` file per route with the first speed-profiled roster entry as a
+placeholder; Dispatcher System swaps in the train registered at the station
+(Setup Train in Section) when it dispatches. Adding engines adds no files.
+
+Run Stage 1 with `jmri/layouts/hart/scripts/run_panelpro_stage1.sh`. It does
+the repairs after every run (manual Princess SML pairs, HEAD_AND_TAIL
+detection, station icons, Digicon SML disabled, labels and lamps; see
+`wiki/DISPATCHER_LAYOUT_HOOPS.md`). Never run Stage 1 or store tables from
 CATS.
 
 ---
@@ -95,15 +94,15 @@ train to another station by hand, register it again there.
 
 ## 4. Send it to one station (no saved route)
 
-Use this when you just want “go to OS Main East.”
+Use this when you just want “go to Track K-1.”
 
 1. Click **Run Dispatch** so it is selected (**Setup Route** must be off).
 2. On **HART Railroad**, click the **wide label** of the destination station.
 3. Pick the train if asked, and Express vs stopping if asked.
 
 The system takes the **shortest** path (block lengths). It does **not** ask
-which plant to go through. From OS East Main Ext to OS Main East that is normally
-east through 117b, not around through Plane.
+which plant to go through. From Track Barn to Track East Lead that is normally
+east through Switch 13, not around through Plane.
 
 **To force a path that is not the shortest**, do not use this mode. Build a
 route that lists the stations you want it to visit (section 5).
@@ -146,13 +145,14 @@ is in place.
 
 ### Example
 
-Train on **OS East Main Ext**, facing east, want OS Barn then East End without
-going the long way around Plane:
+Train on **Track Scale**, want Track Barn, then East End, then into the
+Princess balloon:
 
-**OS East Main Ext** → **OS Main East** → **OS East Lead**
+**Track Scale** → **Track Barn** → **Track East Lead** (button **East End**) → **Track K-1**
 
-To send it the long way on purpose, put **OS Brick-Plane** (and
-whatever else you need) in the list so shortest-path cannot skip it.
+Only stations can go in a route. The mains, Brick-Plane and South Yard are
+through track since 2026-11-12, so a route cannot force a train over one of
+them; it takes the shortest path between the stations you list.
 
 ---
 

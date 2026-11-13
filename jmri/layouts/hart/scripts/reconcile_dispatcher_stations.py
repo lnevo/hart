@@ -29,23 +29,16 @@ DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
 READ_ONLY_PANEL = ROOT / "tables" / "tables.xml"
 SYNC_PANEL = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
 
+# Dispatcher stations: where trains start and end. Through tracks (mains,
+# Brick-Plane, South Yard) stopped being stations on 2026-11-12 to cut the
+# route count; trains still run over them.
 STATIONS = (
-    "Track Main West",
-    "Track West Main Ext",
     "Track K-1",
     "Track K-2",
     "Track East Lead",
-    "Track Main East",
-    "Track East Main Ext",
-    "Track Brick-Plane",
     "Track EH-1",
     "Track EH-2",
     "Track EH-3",
-    "Track S-R",
-    "Track S-1",
-    "Track S-2",
-    "Track S-3",
-    "Track S-4",
     "Track Scale",
     "Track Barn",
     "Track W-1",
@@ -53,6 +46,22 @@ STATIONS = (
     "Track McKees Rocks",
     "Track McKeesport",
 )
+
+# Former stations. reconcile removes their buttons, progress sensors and
+# cluster lamps; the Stage 1 lamp on the track stays as an occupancy light.
+RETIRED_STATION_OCCUPANCY = {
+    "Track Main West": "BS Main West",
+    "Track West Main Ext": "BS West Main Ext",
+    "Track Main East": "BS Main East",
+    "Track East Main Ext": "BS East Main Ext",
+    "Track Brick-Plane": "BS Brick-Plane",
+    "Track S-R": "BS S-R",
+    "Track S-1": "BS S-1",
+    "Track S-2": "BS S-2",
+    "Track S-3": "BS S-3",
+    "Track S-4": "BS S-4",
+}
+RETIRED_STATIONS = tuple(RETIRED_STATION_OCCUPANCY)
 
 # Station cluster icons sit on level 12. The Stage 1 (CreateIcons) occupancy
 # lamps on the track share the sensor at level 10 and are left alone.
@@ -67,14 +76,8 @@ CIRCUIT_ICON_SIZE = 10
 EH_ROW_STATIONS = frozenset({"Track EH-1", "Track EH-2", "Track EH-3"})
 
 # Progress icon position; the clickable MoveTo icon sits PAIR_DX to its right.
-# Track Main West / Track Main East / Track Brick-Plane keep the progress lamp and pull MoveTo in.
 # The other original five pull progress right to meet the existing MoveTo.
 STATION_ICON_POSITIONS = {
-    "Track Brick-Plane": (240, 293),
-    "Track East Main Ext": (376, 390),
-    "Track Main West": (943, 230),
-    "Track Main East": (943, 520),
-    "Track West Main Ext": (1416, 210),
     "Track East Lead": (1416, 345),
     "Track K-1": (1706, 185),
     "Track K-2": (1706, 345),
@@ -82,12 +85,6 @@ STATION_ICON_POSITIONS = {
     "Track EH-1": (668, 256),
     "Track EH-2": (668, 270),
     "Track EH-3": (668, 284),
-    # South Yard body: replace the old Track 1–5 text labels.
-    "Track S-R": (943, 293),
-    "Track S-1": (943, 344),
-    "Track S-2": (943, 391),
-    "Track S-3": (943, 438),
-    "Track S-4": (943, 480),
     # Track Scale (old T1) / Track Barn (old T6) left of the shortened house stubs.
     "Track Scale": (410, 266),
     "Track Barn": (490, 266),
@@ -102,22 +99,12 @@ STATION_ICON_POSITIONS = {
 # Occupancy sensor of each station block (public BS names, ADR-005). validate()
 # fails if a block in tables.xml binds a different sensor.
 STATION_OCCUPANCY = {
-    "Track Brick-Plane": "BS Brick-Plane",
-    "Track East Main Ext": "BS East Main Ext",
-    "Track Main West": "BS Main West",
-    "Track Main East": "BS Main East",
-    "Track West Main Ext": "BS West Main Ext",
     "Track East Lead": "BS East Lead",
     "Track K-1": "BS K-1",
     "Track K-2": "BS K-2",
     "Track EH-1": "BS EH-1",
     "Track EH-2": "BS EH-2",
     "Track EH-3": "BS EH-3",
-    "Track S-R": "BS S-R",
-    "Track S-1": "BS S-1",
-    "Track S-2": "BS S-2",
-    "Track S-3": "BS S-3",
-    "Track S-4": "BS S-4",
     "Track Scale": "BS Scale",
     "Track Barn": "BS Barn",
     "Track W-1": "BS W-1",
@@ -128,22 +115,12 @@ STATION_OCCUPANCY = {
 
 # Loco marker is ~60px; size-10 bold fits about 8 characters.
 STATION_DISPLAY_NAMES = {
-    "Track Brick-Plane": "Brk-Pln",
-    "Track East Main Ext": "E Main",
-    "Track Main West": "Main W",
-    "Track Main East": "Main E",
-    "Track West Main Ext": "W Main",
-    "Track East Lead": "E Lead",
+    "Track East Lead": "East End",
     "Track K-1": "Track K-1",
     "Track K-2": "Track K-2",
     "Track EH-1": "Track EH-1",
     "Track EH-2": "Track EH-2",
     "Track EH-3": "Track EH-3",
-    "Track S-R": "Track S-R",
-    "Track S-1": "Track S-1",
-    "Track S-2": "Track S-2",
-    "Track S-3": "Track S-3",
-    "Track S-4": "Track S-4",
     "Track Scale": "Scale",
     "Track Barn": "Barn",
     "Track W-1": "Track W-1",
@@ -159,6 +136,7 @@ class Changes:
     sensors_created: int = 0
     icons_created: int = 0
     icons_repositioned: int = 0
+    retired: int = 0
     details: list[str] = field(default_factory=list)
 
     @property
@@ -168,6 +146,7 @@ class Changes:
             + self.sensors_created
             + self.icons_created
             + self.icons_repositioned
+            + self.retired
         )
 
 
@@ -440,6 +419,25 @@ def icon_element(
     return icon
 
 
+def retire_stations(root: ET.Element, changes: Changes) -> None:
+    """Drop a former station's MoveTo button, progress sensor and cluster lamp."""
+    names = {name for station in RETIRED_STATIONS for name in sensor_names(station)}
+    lamps = set(RETIRED_STATION_OCCUPANCY.values())
+    internal = internal_sensor_manager(root)
+    for sensor in list(internal.findall("sensor")):
+        if bean_user_name(sensor) in names:
+            internal.remove(sensor)
+            changes.retired += 1
+            changes.details.append(f"removed sensor {bean_user_name(sensor)}")
+    editor = main_layout_editor(root)
+    for icon in list(editor.findall("sensoricon")):
+        name = icon.get("sensor") or ""
+        if name in names or (name in lamps and icon.get("level") == CLUSTER_LEVEL):
+            editor.remove(icon)
+            changes.retired += 1
+            changes.details.append(f"removed icon {name}")
+
+
 def is_stage1_lamp(icon: ET.Element) -> bool:
     """A station occupancy icon that is not the cluster one: Stage 1's track lamp."""
     occupancy_names = set(STATION_OCCUPANCY.values())
@@ -568,6 +566,7 @@ def reconcile(tree: ET.ElementTree) -> Changes:
     root = tree.getroot()
     reconcile_block_comments(root, changes)
     reconcile_sensors(root, changes)
+    retire_stations(root, changes)
     reconcile_icons(root, changes)
     validate(root)
     return changes
