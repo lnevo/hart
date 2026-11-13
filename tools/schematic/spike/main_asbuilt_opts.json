@@ -1,3 +1,52 @@
-{"title": ["Main levels, as built", "Schematic diagram", "Stage 0 proof, unnamed"], "num_px": 6.5,
- "edits": [{"op": "move", "switch": "T300", "through": ["A", "C"], "onto": ["23", "T237"], "cm_from_first": 292, "z": 10.8}],
- "levels": {"treat": [[1.5, 5, 10.8]], "bands": [{"name": "Main level", "below": 5}, {"name": "Upper level, 4.25 in", "below": 99}]}}
+{
+ "title": [
+  "Main levels, as built",
+  "Schematic diagram",
+  "Stage 0 proof, unnamed"
+ ],
+ "num_px": 6.5,
+ "edits": [
+  {
+   "op": "move",
+   "switch": "T300",
+   "through": [
+    "A",
+    "C"
+   ],
+   "onto": [
+    "23",
+    "T237"
+   ],
+   "cm_from_first": 292,
+   "z": 10.8
+  }
+ ],
+ "levels": {
+  "treat": [
+   [
+    1.5,
+    5,
+    10.8
+   ]
+  ],
+  "bands": [
+   {
+    "name": "Main level",
+    "below": 5
+   },
+   {
+    "name": "Upper level, 4.25 in",
+    "below": 99
+   }
+  ]
+ },
+ "helix": {
+  "T175": "McKees Rocks",
+  "T251": "McKeesport"
+ },
+ "system_title": [
+  "System schematic",
+  "Staging, main and upper level",
+  "Stage 0 proof, as built"
+ ]
+}

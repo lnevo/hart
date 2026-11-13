@@ -567,7 +567,8 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
         weight.append((u, v, 100.0 / (cm + 25.0)))     # long tracks take up the slack
     for t, inside in enclosed.items():
         for sid in inside:
-            cons.append((strands[sid]["dst"][0], t, 1))
+            n = strands[sid]["dst"][0]
+            cons.append((n, t, 4 if nodes[n].get("sub") == "helix" else 1))     # room for the helix box
     cons += list(extra)
     fwd, back = collections.defaultdict(list), collections.defaultdict(list)
     for u, v, w in cons:
@@ -905,6 +906,7 @@ def draw_band(band, title, opts, top, left):
         text.append(f'<text x="{xp:.1f}" y="{yp:.1f}" font-size="{size}" text-anchor="{anchor}" '
                     f'font-weight="{weight}" fill="#000" stroke="none" {extra}>{s}</text>')
 
+    helix = []
     if title:
         label(left, top - 26, title.upper(), 12, anchor="start", weight="bold", extra='letter-spacing="1.5"')
     for k, pts in paths(band).items():
@@ -938,7 +940,9 @@ def draw_band(band, title, opts, top, left):
         elif d["kind"] == "end":
             xe, ye = X(x[n]), Y(nrow[n])
             dirx = 1 if d["ins"] else -1
-            if d.get("sub") == "link":
+            if d.get("sub") == "helix":
+                helix.append((xe, ye, d.get("to", "")))
+            elif d.get("sub") == "link":
                 svg.append(f'<circle cx="{xe + 9 * dirx:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
                 label(xe + 9 * dirx, ye + 3.5, d["label"], 10, weight="bold")
                 label(xe + 21 * dirx, ye + 3, "TO " + d["to"].upper(), 7, anchor="start" if dirx == 1 else "end")
@@ -949,6 +953,14 @@ def draw_band(band, title, opts, top, left):
                           anchor="start" if dirx == 1 else "end", weight="bold")
             else:
                 svg.append(f'<path d="M{xe:.1f},{ye - 5:.1f} L{xe:.1f},{ye + 5:.1f}" stroke-width="2.4"/>')
+    if helix:          # one box where this band's helix tracks end
+        bx = max(h[0] for h in helix) + 6
+        y1, y2 = min(h[1] for h in helix) - 12, max(h[1] for h in helix) + 12
+        for xe, ye, _ in helix:
+            svg.append(f'<path d="M{xe:.1f},{ye:.1f} L{bx:.1f},{ye:.1f}" stroke-width="{opts["main_w"]}"/>')
+        svg.append(f'<rect x="{bx:.1f}" y="{y1:.1f}" width="58" height="{y2 - y1:.1f}" rx="5" fill="#fff" stroke-width="1.8"/>')
+        label(bx + 29, (y1 + y2) / 2 + 1, "HELIX", 10, weight="bold", extra='letter-spacing="1.5"')
+        label(bx + 29, (y1 + y2) / 2 + 11, "TO " + helix[0][2].upper(), 5.5)
     bottom = Y(max(srow.values()))
     lanes = []
     for name, members in opts.get("stations", {}).items():
@@ -970,8 +982,8 @@ def draw_band(band, title, opts, top, left):
 def draw_page(bands, opts, out):
     pw, ph, m = 1056, 816, 48
     body, y, width = [], 120, 0
-    for title, band in bands:
-        part, w, bottom = draw_band(band, title, opts, y, m)
+    for title, band, *own in bands:
+        part, w, bottom = draw_band(band, title, own[0] if own else opts, y, m)
         body += part
         width = max(width, w)
         y = bottom + 80
