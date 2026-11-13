@@ -8,6 +8,7 @@ Designer save → `wire_digicon.py` → the CATS CTC and CATS ABS desks.
 
 - `cats/panels/HART_Digicon.xml` (Designer save; the only panel to edit)
 - Device CSVs from `python3 jmri/scripts/export_hart_devices_for_cats.py`
+- Switch facts (closed and thrown legs, inversion): [switch-facts.md](switch-facts.md)
 
 ## Outputs
 
