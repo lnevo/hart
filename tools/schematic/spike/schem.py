@@ -9,6 +9,8 @@ import collections
 import itertools
 import json
 import math
+
+import labels
 import sys
 
 TAU = {"A": -1, "B": 1, "C": 1, "D": -1}
@@ -1144,7 +1146,11 @@ def draw_band(band, title, opts, top, left):
     cx = (X(x0) + X(max(x.values()))) / 2
     cy = (Y(y0) + Y(max(srow.values()))) / 2
 
+    P = labels.Placer()
+
     def label(xp, yp, s, size, anchor="middle", weight="normal", extra="", fixed=False):
+        sp = float(extra.split('letter-spacing="')[1].split('"')[0]) if "letter-spacing" in extra else 0.0
+        P.box(labels.text_box(xp, yp, anchor, str(s), size, weight, sp))
         if turned and not fixed:
             xp, yp = 2 * cx - xp, 2 * cy - yp + size * 0.7
             anchor = {"start": "end", "end": "start"}.get(anchor, anchor)
@@ -1154,7 +1160,8 @@ def draw_band(band, title, opts, top, left):
     helix = []
     if title:
         label(left, top + 4, title.upper(), 12, anchor="start", weight="bold", extra='letter-spacing="1.5"', fixed=True)
-    for k, pts in paths(band).items():
+    drawn = paths(band)
+    for k, pts in drawn.items():
         s = strands.get(k)
         wd = opts["main_w"] if (s is None or s["main"]) else opts["side_w"]
         if s is None:
@@ -1163,10 +1170,18 @@ def draw_band(band, title, opts, top, left):
         d = "M" + " L".join(f"{X(px):.1f},{Y(py):.1f}" for px, py in pts)
         dash = ' stroke-dasharray="7 5"' if s and s["hidden"] else ""
         svg.append(f'<path d="{d}" stroke-width="{wd}"{dash}/>')
+        for (c1, r1), (c2, r2) in zip(pts, pts[1:]):
+            P.line((X(c1), Y(r1)), (X(c2), Y(r2)), wd)
         if s and s["name"] and k not in diag:
             su, sv, _ = band["need"][k]
-            label((X(x[s["src"][0]] + su) + X(x[s["dst"][0]] - sv)) / 2, Y(srow[k]) - 5, s["name"].upper(),
-                  opts["name_px"], extra='letter-spacing="0.4"')
+            xa, xb, yr = X(x[s["src"][0]] + su), X(x[s["dst"][0]] - sv), Y(srow[k])
+            mid, q = (xa + xb) / 2, (xb - xa) / 4
+            cands = [(xx, yr + dy, "middle") for dy in (-5, 5 + 0.72 * opts["name_px"] + 1)
+                     for xx in (mid, mid - q, mid + q, xa + 0.6 * q, xb - 0.6 * q)]
+            P.ask("track", s["name"].upper(), opts["name_px"], cands, spacing=0.4,
+                  emit=lambda xy, t=s["name"].upper(): label(xy[0], xy[1], t, opts["name_px"], anchor=xy[2],
+                                                               extra='letter-spacing="0.4"'))
+    switch_numbers = {}
     for n, d in nodes.items():
         if d["kind"] == "switch":
             up, lo = legs(nodes, n)
@@ -1174,7 +1189,10 @@ def draw_band(band, title, opts, top, left):
             low = lo in diag and nrow[other_end(strands, lo, n)] > a_row or lo not in diag and srow[lo] > a_row
             high = up in diag and nrow[other_end(strands, up, n)] < a_row or up not in diag and srow[up] < a_row
             dy = -7 if low and not high else 13
-            label(X(x[n]) - 7 * d["sig"], Y(a_row) + dy, d["label"], opts["num_px"], weight="bold")
+            xs, ys, sg_ = X(x[n]), Y(a_row), d["sig"] or 1
+            mine = [(xs + ddx * sg_, ys + ddy, "middle") for ddy in (dy, 20 - dy)
+                    for ddx in (-7, 0, -13, 7, 13, -19)]
+            switch_numbers.setdefault(d["label"], []).append((xs, ys, mine))
         elif d["kind"] == "dx":
             (iu_, _), (il_, _) = dx_tracks(nodes, n)
             r1, r2 = sorted((srow[iu_], srow[il_]))
@@ -1198,6 +1216,7 @@ def draw_band(band, title, opts, top, left):
             elif d.get("sub") == "helix" and style == "coil":       # three turns of a coil on the track, then its letter
                 for k in range(3):
                     svg.append(f'<ellipse cx="{xe + (7 + 7 * k) * dirx:.1f}" cy="{ye:.1f}" rx="6" ry="9" stroke-width="1.6"/>')
+                P.box((min(xe + dirx, xe + 27 * dirx), ye - 10, max(xe + dirx, xe + 27 * dirx), ye + 10))
                 label(xe + 34 * dirx, ye + 3.5, tag, 10, anchor="start" if dirx == 1 else "end", weight="bold")
                 label(xe + 50 * dirx, ye + 3, "HELIX TO " + d.get("to", "").upper(), 6.5,
                       anchor="start" if dirx == 1 else "end")
@@ -1212,6 +1231,7 @@ def draw_band(band, title, opts, top, left):
                       anchor="start" if dirx == 1 else "end", weight="bold")
             elif d.get("sub") == "link":
                 svg.append(f'<circle cx="{xe + 9 * dirx:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
+                P.box((xe + 9 * dirx - 9, ye - 9, xe + 9 * dirx + 9, ye + 9))
                 label(xe + 9 * dirx, ye + 3.5, d["label"], 10, weight="bold")
                 label(xe + 9 * dirx, ye + 19, "TO " + d["to"].upper(), 6)      # under the circle, clear of the track
             elif d.get("sub") == "open":
@@ -1221,6 +1241,22 @@ def draw_band(band, title, opts, top, left):
                           anchor="start" if dirx == 1 else "end", weight="bold")
             else:
                 svg.append(f'<path d="M{xe:.1f},{ye - 5:.1f} L{xe:.1f},{ye + 5:.1f}" stroke-width="2.4"/>')
+                P.line((xe, ye - 5), (xe, ye + 5), 2.4)
+    if opts.get("signals"):
+        draw_signals(band, drawn, opts, X, Y, svg, label, P)
+    for num, spots in switch_numbers.items():      # a crossover's two halves share one number, printed once
+        cands = []
+        if len(spots) == 2:
+            (x1, y1, _), (x2, y2, _) = spots
+            mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+            cands += [(mx + 6, my + 3, "start"), (mx - 6, my + 3, "end")]
+        for _, _, mine in spots:
+            cands += mine
+        P.ask("switch", num, opts["num_px"], cands, weight="bold",
+              emit=lambda xy, t=num: label(xy[0], xy[1], t, opts["num_px"], anchor=xy[2], weight="bold"))
+    for a, xy in P.solve():
+        a["emit"](xy)
+    band.setdefault("label_faults", []).extend(P.unplaced)
     if helix:          # one box where this band's helix tracks end
         bx = max(h[0] for h in helix) + 6
         y1, y2 = min(h[1] for h in helix) - 12, max(h[1] for h in helix) + 12
@@ -1247,6 +1283,96 @@ def draw_band(band, title, opts, top, left):
     if turned:
         svg = [f'<g transform="rotate(180 {cx:.1f} {cy:.1f})">'] + svg + ["</g>"]
     return svg + text, X(max(x.values())) + 110, bottom - top + 14
+
+
+def _along(pts, dist):
+    """The point at a distance along a polyline, and the unit direction of the segment it falls on."""
+    for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+        L = math.hypot(x2 - x1, y2 - y1)
+        if L and dist <= L:
+            t = dist / L
+            return (x1 + t * (x2 - x1), y1 + t * (y2 - y1)), ((x2 - x1) / L, (y2 - y1) / L)
+        dist -= L
+    (x1, y1), (x2, y2) = pts[-2], pts[-1]
+    L = math.hypot(x2 - x1, y2 - y1) or 1
+    return (x2, y2), ((x2 - x1) / L, (y2 - y1) / L)
+
+
+def signal_spot(pts, cm, edge_cm, cell, slide=0.0):
+    """Where on a drawn run (screen polyline starting at the switch or end the move is heading for) a mast goes.
+
+    A mast at the switch (cm 0) stands just outside the points, on the first level stretch. A mast out on the
+    run goes at its share of the run's real length, moved onto the nearest level stretch. Returns the point and
+    the direction of the governed move (back toward the start of the polyline)."""
+    segs, d0 = [], 0.0
+    for a, b in zip(pts, pts[1:]):
+        L = math.hypot(b[0] - a[0], b[1] - a[1])
+        if L and abs(b[1] - a[1]) < 0.01:
+            segs.append((d0, d0 + L))
+        d0 += L
+    total = d0
+    if not segs:
+        segs = [(0.0, total)]
+    if cm <= 0.5:
+        want = segs[0][0] + min((0.7 + slide) * cell, (segs[0][1] - segs[0][0]) * 0.8)
+    else:
+        want = total * min(max(cm / max(edge_cm, 1), 0.0), 1.0)
+        a, b = min(segs, key=lambda sg: 0 if sg[0] <= want <= sg[1] else min(abs(want - sg[0]), abs(want - sg[1])))
+        margin = min(0.7 * cell, (b - a) / 2)
+        want = min(max(want + slide * cell, a + margin), b - margin)
+    p, u = _along(pts, want)
+    return p, (-u[0], -u[1])
+
+
+def draw_signals(band, drawn, opts, X, Y, svg, label, P):
+    """Masts in the style of the NYAMR Physical Characteristics Book: a stem across the mast's foot, a short arm,
+    one open circle per head pointing the way the mast governs, the name beyond the stem. Each sits on the
+    right-hand side of the track for its direction of travel. Virtual masts are not drawn; planned ones are
+    dashed."""
+    nodes, strands = band["nodes"], band["strands"]
+    r, arm, stem, gap = 3.6, 4.0, 8.0, 2.0
+    for sg in opts["signals"]:
+        if sg["kind"] == "virtual":
+            continue
+        tn = sg["_toward_node"]
+        pieces = [k for k, st in strands.items() if st["edge"] == sg["_edge"]]
+        if not pieces:
+            continue
+        k = next((k for k in pieces if tn in (strands[k]["src"][0], strands[k]["dst"][0])), pieces[0])
+        pts = [(X(c), Y(rw)) for c, rw in drawn[k]]
+        if strands[k]["dst"][0] == tn:
+            pts = pts[::-1]
+        half = (opts["main_w"] if strands[k]["main"] else opts["side_w"]) / 2
+        heads = sg.get("heads", 1)
+        best = None
+        for slide in (0.0, 0.5, 1.0, -0.4, 1.5, 2.0):      # slide along the level stretch until the symbol is clear
+            cm = sg["cm_from_toward"]
+            (px, py), (tx, ty) = signal_spot(pts, cm, sg["edge_cm"], opts["cell"], slide)
+            tx = 1.0 if tx >= 0 else -1.0
+            side = 1 if tx > 0 else -1             # right-hand side: below for a move to the right, above to the left
+            cy = py + side * (half + gap + r)
+            xs = (px, px + tx * (arm + 2 * r * heads))
+            sym = (min(xs), cy - max(r, stem / 2), max(xs), cy + max(r, stem / 2))
+            if P.clear(sym, 0.8):
+                best = (px, py, tx, cy, sym)
+                break
+            best = best or (px, py, tx, cy, sym)
+        px, py, tx, cy, sym = best
+        P.box(sym)
+        dash = ' stroke-dasharray="1.6 1.2"' if sg["kind"] == "planned" else ""
+        svg.append(f'<path d="M{px:.1f},{cy - stem / 2:.1f} L{px:.1f},{cy + stem / 2:.1f} '
+                   f'M{px:.1f},{cy:.1f} L{px + tx * arm:.1f},{cy:.1f}" stroke-width="0.9"/>')
+        for h in range(sg.get("heads", 1)):
+            cx = px + tx * (arm + r + 2 * r * h)
+            svg.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" stroke-width="0.9" fill="#fff"{dash}/>')
+        far = px + tx * (arm + 2 * r * heads)
+        yb = cy + opts["num_px"] * 0.36
+        near_an, far_an = ("end", "start") if tx > 0 else ("start", "end")
+        out_y = cy + (1 if cy > py else -1) * (r + 1 + 0.72 * opts["num_px"])     # outside the symbol, away from the track
+        cands = [(px - tx * 2.5, yb, near_an), (far + tx * 2, yb, far_an),
+                 ((px + far) / 2, out_y + (0.72 * opts["num_px"] if cy > py else 0), "middle")]
+        P.ask("mast", sg["mast"], opts["num_px"], cands,
+              emit=lambda xy, t=sg["mast"]: label(xy[0], xy[1], t, opts["num_px"], anchor=xy[2]))
 
 
 def draw_page(bands, opts, out):

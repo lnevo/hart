@@ -250,5 +250,14 @@
     ]
    ]
   }
- ]
+ ],
+ "signals_planned": [
+  "38LA",
+  "38LB",
+  "40LA",
+  "40LB",
+  "2035",
+  "2036"
+ ],
+ "_signals_planned": "Princess masts with no field hardware (placeholders in JMRI, CATS and wiring records, as of 2026-11-07)."
 }

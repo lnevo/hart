@@ -1,0 +1,943 @@
+{
+ "schema": "schematic.signals/1",
+ "source": "tables.xml",
+ "signals": [
+  {
+   "mast": "2L",
+   "toward": "1",
+   "run": [
+    "1",
+    "23"
+   ],
+   "names": [
+    "Main West"
+   ],
+   "edge_cm": 570.4,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e9+e10",
+   "_toward_node": "TOL34067"
+  },
+  {
+   "mast": "2R",
+   "toward": "1",
+   "run": [
+    "1",
+    "5"
+   ],
+   "names": [
+    "Brick-Plane"
+   ],
+   "edge_cm": 195.5,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e31",
+   "_toward_node": "TOL34067"
+  },
+  {
+   "mast": "4LA",
+   "toward": "3",
+   "run": [
+    "3",
+    ""
+   ],
+   "names": [
+    "W-1"
+   ],
+   "edge_cm": 273.2,
+   "cm_from_toward": 266.7,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e4",
+   "_toward_node": "TOL33902"
+  },
+  {
+   "mast": "4LB",
+   "toward": "3",
+   "run": [
+    "3",
+    ""
+   ],
+   "names": [
+    "W-2"
+   ],
+   "edge_cm": 273.8,
+   "cm_from_toward": 236.2,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e5",
+   "_toward_node": "TOL33902"
+  },
+  {
+   "mast": "4RA",
+   "toward": "3",
+   "run": [
+    "3",
+    ""
+   ],
+   "names": [
+    "W-1"
+   ],
+   "edge_cm": 273.2,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "field",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e4",
+   "_toward_node": "TOL33902"
+  },
+  {
+   "mast": "4RB",
+   "toward": "3",
+   "run": [
+    "3",
+    ""
+   ],
+   "names": [
+    "W-2"
+   ],
+   "edge_cm": 273.8,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "field",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e5",
+   "_toward_node": "TOL33902"
+  },
+  {
+   "mast": "6LA",
+   "toward": "5",
+   "run": [
+    "5",
+    "7"
+   ],
+   "names": [
+    "Scale"
+   ],
+   "edge_cm": 86,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "field",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e6a",
+   "_toward_node": "TOL34057"
+  },
+  {
+   "mast": "6LB",
+   "toward": "5",
+   "run": [
+    "5",
+    "7"
+   ],
+   "names": [
+    "East Ext"
+   ],
+   "edge_cm": 357,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "field",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e30a",
+   "_toward_node": "TOL34057"
+  },
+  {
+   "mast": "6R",
+   "toward": "5",
+   "run": [
+    "5",
+    "1"
+   ],
+   "names": [
+    "Brick-Plane"
+   ],
+   "edge_cm": 195.5,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e31",
+   "_toward_node": "TOL34057"
+  },
+  {
+   "mast": "8LA",
+   "toward": "7",
+   "run": [
+    "7",
+    "33"
+   ],
+   "names": [
+    "Main East"
+   ],
+   "edge_cm": 811.4,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e30b",
+   "_toward_node": "NEW:7b"
+  },
+  {
+   "mast": "8LB",
+   "toward": "7",
+   "run": [
+    "7",
+    "13"
+   ],
+   "names": [
+    "Barn"
+   ],
+   "edge_cm": 61,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "field",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e6ba",
+   "_toward_node": "NEW:7a"
+  },
+  {
+   "mast": "8LC",
+   "toward": "5",
+   "run": [
+    "5",
+    "7"
+   ],
+   "names": [
+    "Scale"
+   ],
+   "edge_cm": 86,
+   "cm_from_toward": 61.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e6a",
+   "_toward_node": "TOL34057"
+  },
+  {
+   "mast": "8RA",
+   "toward": "7",
+   "run": [
+    "7",
+    "5"
+   ],
+   "names": [
+    "Scale"
+   ],
+   "edge_cm": 86,
+   "cm_from_toward": 25.4,
+   "dir": "east",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e6a",
+   "_toward_node": "NEW:7a"
+  },
+  {
+   "mast": "8RB",
+   "toward": "7",
+   "run": [
+    "7",
+    "5"
+   ],
+   "names": [
+    "East Ext"
+   ],
+   "edge_cm": 357,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e30a",
+   "_toward_node": "NEW:7b"
+  },
+  {
+   "mast": "10LA",
+   "toward": "9",
+   "run": [
+    "9",
+    ""
+   ],
+   "names": [
+    "EH-2"
+   ],
+   "edge_cm": 60.0,
+   "cm_from_toward": 60.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "n5",
+   "_toward_node": "NEW:9"
+  },
+  {
+   "mast": "10LB",
+   "toward": "9",
+   "run": [
+    "9",
+    ""
+   ],
+   "names": [
+    "EH-3"
+   ],
+   "edge_cm": 60.0,
+   "cm_from_toward": 60.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "n4",
+   "_toward_node": "NEW:9"
+  },
+  {
+   "mast": "10RA",
+   "toward": "9",
+   "run": [
+    "9",
+    ""
+   ],
+   "names": [
+    "EH-2"
+   ],
+   "edge_cm": 60.0,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "n5",
+   "_toward_node": "NEW:9"
+  },
+  {
+   "mast": "10RB",
+   "toward": "9",
+   "run": [
+    "9",
+    ""
+   ],
+   "names": [
+    "EH-3"
+   ],
+   "edge_cm": 60.0,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "n4",
+   "_toward_node": "NEW:9"
+  },
+  {
+   "mast": "12L",
+   "toward": "11",
+   "run": [
+    "11",
+    ""
+   ],
+   "names": [
+    "EH-1"
+   ],
+   "edge_cm": 60.0,
+   "cm_from_toward": 60.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "n2",
+   "_toward_node": "NEW:11"
+  },
+  {
+   "mast": "12R",
+   "toward": "11",
+   "run": [
+    "11",
+    ""
+   ],
+   "names": [
+    "EH-1"
+   ],
+   "edge_cm": 60.0,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "n2",
+   "_toward_node": "NEW:11"
+  },
+  {
+   "mast": "14R",
+   "toward": "13",
+   "run": [
+    "13",
+    "7"
+   ],
+   "names": [
+    "Barn"
+   ],
+   "edge_cm": 61,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e6ba",
+   "_toward_node": "NEW:13"
+  },
+  {
+   "mast": "16L",
+   "toward": "15",
+   "run": [
+    "15",
+    "23"
+   ],
+   "names": [
+    "S-R"
+   ],
+   "edge_cm": 570.5,
+   "cm_from_toward": 40.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e7+e17",
+   "_toward_node": "TOR28939"
+  },
+  {
+   "mast": "18L",
+   "toward": "17",
+   "run": [
+    "17",
+    "29"
+   ],
+   "names": [
+    "S-1"
+   ],
+   "edge_cm": 535.5,
+   "cm_from_toward": 40.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e23",
+   "_toward_node": "TOL28940"
+  },
+  {
+   "mast": "18R",
+   "toward": "29",
+   "run": [
+    "29",
+    "17"
+   ],
+   "names": [
+    "S-1"
+   ],
+   "edge_cm": 535.5,
+   "cm_from_toward": 40.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e23",
+   "_toward_node": "TOR28903"
+  },
+  {
+   "mast": "20L",
+   "toward": "19",
+   "run": [
+    "19",
+    "27"
+   ],
+   "names": [
+    "S-2"
+   ],
+   "edge_cm": 451.1,
+   "cm_from_toward": 40.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e29",
+   "_toward_node": "TOL28942"
+  },
+  {
+   "mast": "20R",
+   "toward": "27",
+   "run": [
+    "27",
+    "19"
+   ],
+   "names": [
+    "S-2"
+   ],
+   "edge_cm": 451.1,
+   "cm_from_toward": 40.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e29",
+   "_toward_node": "TOR28906"
+  },
+  {
+   "mast": "22L",
+   "toward": "21",
+   "run": [
+    "21",
+    "25"
+   ],
+   "names": [
+    "S-3"
+   ],
+   "edge_cm": 366.8,
+   "cm_from_toward": 40.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e21",
+   "_toward_node": "TOL28944"
+  },
+  {
+   "mast": "22R",
+   "toward": "25",
+   "run": [
+    "25",
+    "21"
+   ],
+   "names": [
+    "S-3"
+   ],
+   "edge_cm": 366.8,
+   "cm_from_toward": 40.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e21",
+   "_toward_node": "TOR28908"
+  },
+  {
+   "mast": "24L",
+   "toward": "23",
+   "run": [
+    "23",
+    "35"
+   ],
+   "names": [
+    "West Ext"
+   ],
+   "edge_cm": 416.7,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e13",
+   "_toward_node": "TOR29391"
+  },
+  {
+   "mast": "24RA",
+   "toward": "23",
+   "run": [
+    "23",
+    "1"
+   ],
+   "names": [
+    "Main West"
+   ],
+   "edge_cm": 570.4,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e9+e10",
+   "_toward_node": "TOR29391"
+  },
+  {
+   "mast": "24RB",
+   "toward": "23",
+   "run": [
+    "23",
+    "15"
+   ],
+   "names": [
+    "S-R"
+   ],
+   "edge_cm": 570.5,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "field",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e7+e17",
+   "_toward_node": "TOR29392"
+  },
+  {
+   "mast": "26L",
+   "toward": "21",
+   "run": [
+    "21",
+    "25"
+   ],
+   "names": [
+    "S-4"
+   ],
+   "edge_cm": 359.0,
+   "cm_from_toward": 40.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e20",
+   "_toward_node": "TOL28944"
+  },
+  {
+   "mast": "26R",
+   "toward": "25",
+   "run": [
+    "25",
+    "21"
+   ],
+   "names": [
+    "S-4"
+   ],
+   "edge_cm": 359.0,
+   "cm_from_toward": 40.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e20",
+   "_toward_node": "TOR28908"
+  },
+  {
+   "mast": "32L",
+   "toward": "23",
+   "run": [
+    "23",
+    "15"
+   ],
+   "names": [
+    "S-R"
+   ],
+   "edge_cm": 570.5,
+   "cm_from_toward": 40.0,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e7+e17",
+   "_toward_node": "TOR29392"
+  },
+  {
+   "mast": "32R",
+   "toward": "31",
+   "run": [
+    "31",
+    "29"
+   ],
+   "names": [],
+   "edge_cm": 26.7,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "field",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e2",
+   "_toward_node": "TOL28902"
+  },
+  {
+   "mast": "34L",
+   "toward": "33",
+   "run": [
+    "33",
+    "35"
+   ],
+   "names": [
+    "East Lead"
+   ],
+   "edge_cm": 263.1,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e28",
+   "_toward_node": "TOL29277"
+  },
+  {
+   "mast": "34R",
+   "toward": "33",
+   "run": [
+    "33",
+    "7"
+   ],
+   "names": [
+    "Main East"
+   ],
+   "edge_cm": 811.4,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e30b",
+   "_toward_node": "TOL29277"
+  },
+  {
+   "mast": "36L",
+   "toward": "33",
+   "run": [
+    "33",
+    "35"
+   ],
+   "names": [
+    "East Lead"
+   ],
+   "edge_cm": 263.1,
+   "cm_from_toward": 223.3,
+   "dir": "west",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e28",
+   "_toward_node": "TOL29277"
+  },
+  {
+   "mast": "36RA",
+   "toward": "35",
+   "run": [
+    "35",
+    "23"
+   ],
+   "names": [
+    "West Ext"
+   ],
+   "edge_cm": 416.7,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e13",
+   "_toward_node": "TOL29967"
+  },
+  {
+   "mast": "36RB",
+   "toward": "35",
+   "run": [
+    "35",
+    "33"
+   ],
+   "names": [
+    "East Lead"
+   ],
+   "edge_cm": 263.1,
+   "cm_from_toward": 0.0,
+   "dir": "east",
+   "kind": "field",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e28",
+   "_toward_node": "TOL29970"
+  },
+  {
+   "mast": "38LA",
+   "toward": "37",
+   "run": [
+    "37",
+    ""
+   ],
+   "names": [
+    "McKeesport"
+   ],
+   "edge_cm": 886.4,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "planned",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e26",
+   "_toward_node": "TOR29969"
+  },
+  {
+   "mast": "38LB",
+   "toward": "37",
+   "run": [
+    "37",
+    "39"
+   ],
+   "names": [
+    "K-1",
+    "K-2"
+   ],
+   "edge_cm": 607.4,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "planned",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e16",
+   "_toward_node": "TOR29969"
+  },
+  {
+   "mast": "38RA",
+   "toward": "37",
+   "run": [
+    "37",
+    ""
+   ],
+   "names": [
+    "McKeesport"
+   ],
+   "edge_cm": 886.4,
+   "cm_from_toward": 61.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e26",
+   "_toward_node": "TOR29969"
+  },
+  {
+   "mast": "40LA",
+   "toward": "39",
+   "run": [
+    "39",
+    ""
+   ],
+   "names": [
+    "McKees Rocks"
+   ],
+   "edge_cm": 937.8,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "planned",
+   "heads": 2,
+   "source": "le_panel",
+   "_edge": "e15",
+   "_toward_node": "TOL29312"
+  },
+  {
+   "mast": "40LB",
+   "toward": "39",
+   "run": [
+    "39",
+    "37"
+   ],
+   "names": [
+    "K-1",
+    "K-2"
+   ],
+   "edge_cm": 607.4,
+   "cm_from_toward": 0.0,
+   "dir": "west",
+   "kind": "planned",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e16",
+   "_toward_node": "TOL29312"
+  },
+  {
+   "mast": "40RA",
+   "toward": "39",
+   "run": [
+    "39",
+    ""
+   ],
+   "names": [
+    "McKees Rocks"
+   ],
+   "edge_cm": 937.8,
+   "cm_from_toward": 61.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e15",
+   "_toward_node": "TOL29312"
+  },
+  {
+   "mast": "40RB",
+   "toward": "37",
+   "run": [
+    "37",
+    "39"
+   ],
+   "names": [
+    "K-1",
+    "K-2"
+   ],
+   "edge_cm": 607.4,
+   "cm_from_toward": 562.9,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e16",
+   "_toward_node": "TOR29969"
+  },
+  {
+   "mast": "2035",
+   "toward": "39",
+   "run": [
+    "39",
+    "37"
+   ],
+   "names": [
+    "K-1",
+    "K-2"
+   ],
+   "edge_cm": 607.4,
+   "cm_from_toward": 314.3,
+   "dir": "west",
+   "kind": "planned",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e16",
+   "_toward_node": "TOL29312"
+  },
+  {
+   "mast": "2036",
+   "toward": "37",
+   "run": [
+    "37",
+    "39"
+   ],
+   "names": [
+    "K-1",
+    "K-2"
+   ],
+   "edge_cm": 607.4,
+   "cm_from_toward": 288.6,
+   "dir": "east",
+   "kind": "planned",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e16",
+   "_toward_node": "TOR29969"
+  }
+ ],
+ "unplaced": [
+  "32L: name says west, binding says east"
+ ]
+}

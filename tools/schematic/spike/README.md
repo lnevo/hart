@@ -109,3 +109,26 @@ Known gaps (end of the 2026-11-13 session):
 - Labels are not checked for collisions (the connector text can overlap a track); switch numbers collide in
   places; a crossover's number is printed on both halves; no page folding; no capacity.
 - Switch labels on the main and upper bands are plan part numbers, three junctions unmatched; no names there.
+
+Signals and labels (2026-11-13, rules R12 and R13 in `docs/ops/SCHEMATIC_SPEC.md`):
+
+    python3 signal_reader.py ../../../jmri/layouts/hart/output/tables.xml ../../../jmri/layouts/hart/data/switches.csv \
+        ../../../jmri/layouts/hart/data/block_lengths.csv staging.json \
+        ../../../jmri/layouts/hart/data/schematic/staging.plan_overrides.json \
+        ../../../jmri/layouts/hart/data/schematic/staging.signals.json
+    python3 label_check.py out.svg --list
+
+- `signal_reader.py` writes the masts as layer 1 (`staging.signals.json`), never by hand: each mast bound on the
+  Layout Editor panel (turnout leg, anchor or bumper), the run it stands on, the switch or end its move is heading
+  for, its direction and head count. Anchor east/west follows JMRI's own rule (`isAtWestEndOfAnchor`). Virtual
+  masts are kept in the file and not drawn; `signals_planned` in the overrides marks the Princess placeholders
+  (drawn dashed).
+- Masts are drawn in the NYAMR Physical Characteristics Book style: stem, short arm, one open circle per head
+  pointing the way the mast governs, on the right-hand side of the track for that direction, name beside the stem.
+- `labels.py` places switch numbers, track names and mast names: each has a list of allowed positions, and the
+  ones with the fewest free positions are placed first, clear of every line, symbol and label. A crossover's
+  number prints once. `label_check.py` is the independent check on the finished SVG.
+- `signals_sample.svg`: approved look plus signals. Label faults: approved sheet 17 before the placer; 2 with
+  signals and the placer (34L at East Lead and 32R on the 29-31 link, where the layout needs room: the grid-room
+  half of R12, still to do in the layout).
+- 32L is named westward but bound eastward on the panel (virtual, so not drawn); reported by the reader.
