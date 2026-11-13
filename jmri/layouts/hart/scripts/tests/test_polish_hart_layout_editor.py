@@ -152,7 +152,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         <layout-config>
           <LayoutEditor name="HART Railroad">
             <sensoricon sensor="BS S-1" x="762" y="376" />
-            <sensoricon sensor="BS S-1" x="1010" y="376" />
+            <sensoricon sensor="BS S-1" x="985" y="361" />
             <sensoricon sensor="BS S-1" x="1204" y="376" />
             <sensoricon sensor="BS S-1" x="943" y="354" level="12" />
             <tracksegment ident="T1" />
@@ -170,7 +170,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             for icon in le.findall("sensoricon")
             if icon.get("sensor") == "BS S-1"
         ]
-        self.assertEqual([("1010", "376"), ("943", "354")], kept)
+        self.assertEqual([("985", "361"), ("943", "354")], kept)
 
     def test_stage1_lamps_move_off_switch_9_but_cluster_lamps_stay(self):
         xml = """<layout-config><LayoutEditor name="HART Railroad">

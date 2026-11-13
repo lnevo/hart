@@ -57,11 +57,11 @@ REDUNDANT_OCCUPANCY_SENSOR = re.compile(r"Block \d+-\d+")
 # Shared occupancy (body + hidden throats, or OS + stub) gets one circuit dot.
 # Keep the body / points icon; drop the extras CreateIcons stacks on the same sensor.
 SHARED_OCCUPANCY_KEEP = {
-    "BS S-1": (1010, 376),
-    "BS S-2": (1011, 423),
-    "BS S-3": (1005, 470),
-    "BS S-4": (1013, 513),
-    "BS S-R": (947, 325),
+    "BS S-1": (985, 361),
+    "BS S-2": (985, 408),
+    "BS S-3": (985, 455),
+    "BS S-4": (985, 497),
+    "BS S-R": (985, 310),
     "BS Switch 37 / BS McKeesport": (1592, 325),
     "BS Switch 39 / BS McKees Rocks": (1592, 262),
 }
@@ -98,6 +98,13 @@ STAGE1_LAMP_PLACEMENTS = {
     "BS EH-1": (576, 261),
     "BS EH-2": (576, 272),
     "BS EH-3": (576, 284),
+    # South Yard: one column mid-yard, centred on each track (y 315 / 366 /
+    # 413 / 460 / 502), below the track-name labels at x 953.
+    "BS S-R": (985, 310),
+    "BS S-1": (985, 361),
+    "BS S-2": (985, 408),
+    "BS S-3": (985, 455),
+    "BS S-4": (985, 497),
 }
 REMOVED_LABELS = {
     "OS East Lead",
