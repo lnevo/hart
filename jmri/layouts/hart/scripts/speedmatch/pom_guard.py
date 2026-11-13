@@ -608,7 +608,26 @@ def archive_ledger(ledger_dir, roster_id):
     return dest
 
 
-_PREFLIGHT_LINE = re.compile(r"\bCV\s*(\d+)\s*[=:]\s*(\d+)\b", re.I)
+# "CV 67 12" is what jython/preflight.py logs; "CV67 = 12" and "CV67: 12" are also accepted.
+# "CV 67 FAIL ..." lines do not match and are skipped.
+_PREFLIGHT_LINE = re.compile(r"^\s*CV\s*(\d+)\s*[=:]?\s+(\d+)\s*$|^\s*CV\s*(\d+)\s*[=:]\s*(\d+)\s*$",
+                             re.I | re.M)
+_PREFLIGHT_ID = re.compile(r"^PREFLIGHT (.+?) cvs=\d+\s*$", re.M)
+_LOG_STAMP = re.compile(r"^\d+\.\d+ ", re.M)  # preflight.py starts each line with time.time()
+
+
+def _check_preflight_text(text, roster_id):
+    """A preflight.py log must be for this loco, finished, and not aborted."""
+    m = _PREFLIGHT_ID.search(text)
+    if m and m.group(1) != roster_id:
+        raise GuardRefusal("preflight log is for %r, not %r" % (m.group(1), roster_id))
+    lines = [ln.strip() for ln in text.splitlines()]
+    if m:  # a preflight.py log: it has to have finished cleanly
+        if "END" not in lines:
+            raise GuardRefusal("preflight log has no END line; it is incomplete")
+        bad = [ln for ln in lines if ln.startswith("ABORTED") or ln.startswith("ERROR")]
+        if bad:
+            raise GuardRefusal("preflight log did not finish cleanly: %s" % bad[0])
 
 
 def parse_preflight(text, roster_id):
@@ -629,9 +648,12 @@ def parse_preflight(text, roster_id):
         raw = dict((k, v) for k, v in raw.items() if k != "roster_id")
         out = validate_reads(raw, "preflight")
     else:
+        text = _LOG_STAMP.sub("", text)
+        _check_preflight_text(text, roster_id)
         out = {}
         for m in _PREFLIGHT_LINE.finditer(text):
-            cv, v = int(m.group(1)), int(m.group(2))
+            g = m.groups()
+            cv, v = (int(g[0]), int(g[1])) if g[0] is not None else (int(g[2]), int(g[3]))
             if v > 255:
                 raise GuardRefusal("preflight CV%d value %d is not 0-255" % (cv, v))
             if cv in out and out[cv] != v:

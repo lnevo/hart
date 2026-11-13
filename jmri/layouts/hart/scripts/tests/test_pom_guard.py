@@ -543,6 +543,17 @@ class Ledger(GuardCase):
         Path(pf).write_text("CV67 = 9\nCV67 = 10\n")
         self.refused("twice", g.parse_preflight, Path(pf).read_text(), "CSX 2738")
 
+    def test_parse_the_log_preflight_py_writes(self):
+        # the exact line shapes of jython/preflight.py
+        log = ("1794549064.101 PREFLIGHT CSX 2738 cvs=3\n1794549064.102 CVS 3,29,67\n"
+               "1794549064.103 PROGRAMMER x\n1794549065.200 CV 3 26\n1794549066.300 CV 29 50\n"
+               "1794549067.400 CV 67 FAIL status 4\n1794549067.500 END\n")
+        self.assertEqual(g.parse_preflight(log, "CSX 2738"), {3: 26, 29: 50})
+        self.refused("is for", g.parse_preflight, log, "CSX 2121")
+        self.refused("no END", g.parse_preflight, log.replace("END", ""), "CSX 2738")
+        self.refused("did not finish", g.parse_preflight,
+                     log.replace("END", "ABORTED after a read timeout\nEND"), "CSX 2738")
+
     def test_lock_is_exclusive(self):
         ldir = os.path.join(self.dir, "ledger")
         lock = g.acquire_lock(g.lock_path(ldir, "CSX 2738"), "test")
