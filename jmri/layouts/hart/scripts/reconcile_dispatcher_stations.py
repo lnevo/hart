@@ -440,6 +440,12 @@ def icon_element(
     return icon
 
 
+def is_stage1_lamp(icon: ET.Element) -> bool:
+    """A station occupancy icon that is not the cluster one: Stage 1's track lamp."""
+    occupancy_names = set(STATION_OCCUPANCY.values())
+    return (icon.get("sensor") or "") in occupancy_names and icon.get("level") != CLUSTER_LEVEL
+
+
 def xy(element: ET.Element) -> tuple[int, int] | None:
     try:
         return int(float(element.get("x", ""))), int(float(element.get("y", "")))
@@ -455,10 +461,9 @@ def reconcile_icons(root: ET.Element, changes: Changes) -> None:
         for sensor_name in (*sensor_names(station), STATION_OCCUPANCY[station])
     }
     existing: dict[str, list[ET.Element]] = {name: [] for name in expected_names}
-    occupancy_names = {STATION_OCCUPANCY[station] for station in STATIONS}
     for element in editor.findall("sensoricon"):
         name = element.get("sensor") or ""
-        if name in occupancy_names and element.get("level") != CLUSTER_LEVEL:
+        if is_stage1_lamp(element):
             continue
         if name in existing:
             existing[name].append(element)
@@ -600,25 +605,29 @@ def validate(root: ET.Element) -> None:
     if bad_sensors:
         raise ValueError(f"missing or duplicate internal sensors: {bad_sensors}")
 
-    wrong_sensor = [
-        f"{bean_user_name(block)}: {block.findtext('occupancysensor')}"
-        for block in full_blocks
-        if bean_user_name(block) in STATION_OCCUPANCY
-        and block.findtext("occupancysensor")
-        and block.findtext("occupancysensor") != STATION_OCCUPANCY[bean_user_name(block)]
-    ]
+    # A block may store its sensor by system name (a GUI edit); accept either.
+    user_by_system = {
+        (sensor.findtext("systemName") or "").strip(): bean_user_name(sensor)
+        for sensor in root.iter("sensor")
+    }
+    wrong_sensor = []
+    for block in full_blocks:
+        station = bean_user_name(block)
+        bound = (block.findtext("occupancysensor") or "").strip()
+        if station not in STATION_OCCUPANCY or not bound:
+            continue
+        if user_by_system.get(bound, bound) != STATION_OCCUPANCY[station]:
+            wrong_sensor.append(f"{station}: {bound}")
     if wrong_sensor:
         raise ValueError(
             f"station blocks bind other occupancy sensors than STATION_OCCUPANCY: {wrong_sensor}"
         )
 
     editor = main_layout_editor(root)
-    occupancy_names = {STATION_OCCUPANCY[station] for station in STATIONS}
     icon_names = [
         icon.get("sensor") or ""
         for icon in editor.findall("sensoricon")
-        if (icon.get("sensor") or "") not in occupancy_names
-        or icon.get("level") == CLUSTER_LEVEL
+        if not is_stage1_lamp(icon)
     ]
     bad_icons = [name for name in expected_icons if icon_names.count(name) != 1]
     if bad_icons:

@@ -114,17 +114,28 @@ if [[ "$status" != "ok" ]]; then
 fi
 
 # The manual steps after every Stage 1 (wiki/DISPATCHER_LAYOUT_HOOPS.md).
+# Each runs even if an earlier one failed; the wrapper fails at the end.
 SCRIPTS="$ROOT/jmri/layouts/hart/scripts"
-python3 "$SCRIPTS/restore_manual_sml_pairs.py" --panel "$REPO_OUTPUT" \
-  --reference "$BEFORE_TABLES"
+repair_failed=0
+repair() {
+  "$@" || { echo "REPAIR FAILED: $*" >&2; repair_failed=1; }
+}
+# Safety first: Digicon SML stays stored disabled until the coordinator enables it.
+repair python3 "$SCRIPTS/disable_digicon_sml_in_tables.py" --panel "$REPO_OUTPUT"
 # Stage 1 writes Entire Train detection; HART cars detect head and tail only.
-python3 "$SCRIPTS/fix_traininfo_detection.py" "$REPO_TRAININFO" | tail -1
-python3 "$SCRIPTS/reconcile_dispatcher_stations.py" --panel "$REPO_OUTPUT" --no-sync
-python3 "$SCRIPTS/disable_digicon_sml_in_tables.py" --panel "$REPO_OUTPUT"
-# Stage 1 Store writes BlockContentsIcons at level 0 (behind the track) and
-# puts its occupancy lamps back on the turnouts.
-python3 "$SCRIPTS/polish_hart_layout_editor.py" --block-labels-only --sync-output
-python3 "$SCRIPTS/polish_hart_layout_editor.py" --overlap-cleanup --panel "$REPO_OUTPUT"
+repair python3 "$SCRIPTS/fix_traininfo_detection.py" "$REPO_TRAININFO"
+repair python3 "$SCRIPTS/restore_manual_sml_pairs.py" --panel "$REPO_OUTPUT" \
+  --reference "$BEFORE_TABLES"
+repair python3 "$SCRIPTS/reconcile_dispatcher_stations.py" --panel "$REPO_OUTPUT" --no-sync
+# Stage 1 Store writes BlockContentsIcons at level 0 (behind the track), moves
+# train-name labels and puts its occupancy lamps back on the turnouts. Run the
+# full visual standard and the overlap pass, the same two check.sh checks.
+repair python3 "$SCRIPTS/polish_hart_layout_editor.py" --panel "$REPO_OUTPUT"
+repair python3 "$SCRIPTS/polish_hart_layout_editor.py" --overlap-cleanup --panel "$REPO_OUTPUT"
+if (( repair_failed )); then
+  echo "Stage 1 stored, but a repair failed (see above); fix it before committing." >&2
+  exit 1
+fi
 
 echo "Stage 1 store is $REPO_OUTPUT"
 echo "log: $LOG"

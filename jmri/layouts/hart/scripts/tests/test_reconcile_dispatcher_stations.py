@@ -253,6 +253,16 @@ class StageOneLampsAndSensorsTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Track EH-1: Block 13-7"):
             reconciler.reconcile(tree)
 
+    def test_block_storing_the_sensor_system_name_is_accepted(self) -> None:
+        tree = fixture_tree()
+        root = tree.getroot()
+        sensors = ET.SubElement(root, "sensors", {"class": "x.MqttSensorManagerXml"})
+        add_sensor(sensors, "MS:bs-eh-1", reconciler.STATION_OCCUPANCY["Track EH-1"])
+        for block in root.find("blocks").findall("block"):
+            if reconciler.is_full_block(block) and block.findtext("userName") == "Track EH-1":
+                ET.SubElement(block, "occupancysensor").text = "MS:bs-eh-1"
+        reconciler.reconcile(tree)
+
     def test_current_tables_need_no_reconciliation(self) -> None:
         tables = SCRIPT.parents[1] / "output" / "tables.xml"
         tree = reconciler.parse_xml(tables)

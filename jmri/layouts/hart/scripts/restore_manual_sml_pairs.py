@@ -54,6 +54,30 @@ def missing_pairs(root: ET.Element) -> list[tuple[str, str]]:
     ]
 
 
+def _user_names(root: ET.Element, tag: str) -> set[str]:
+    return {
+        (bean.findtext("userName") or "").strip()
+        for bean in root.iter(tag)
+    } | {(bean.findtext("systemName") or "").strip() for bean in root.iter(tag)}
+
+
+def _stale_references(root: ET.Element, pair: ET.Element) -> list[str]:
+    """Blocks or turnouts the copied pair names that this tables.xml lacks."""
+    blocks = _user_names(root, "block")
+    turnouts = _user_names(root, "turnout")
+    stale = [
+        f"block {name}"
+        for name in (b.findtext("blockName") or "" for b in pair.iter("block"))
+        if name and name not in blocks
+    ]
+    stale += [
+        f"turnout {name}"
+        for name in (t.findtext("turnoutName") or "" for t in pair.iter("turnout"))
+        if name and name not in turnouts
+    ]
+    return stale
+
+
 def restore(root: ET.Element, reference: ET.Element) -> list[tuple[str, str]]:
     """Copy missing pairs from reference; return the pairs added."""
     added = []
@@ -66,7 +90,18 @@ def restore(root: ET.Element, reference: ET.Element) -> list[tuple[str, str]]:
             raise ValueError(
                 f"{source} has no Signal Mast Logic after Stage 1; check Discover"
             )
-        sml.append(copy.deepcopy(wanted))
+        pair = copy.deepcopy(wanted)
+        stale = _stale_references(root, pair)
+        if stale:
+            raise ValueError(f"{source} -> {dest} names beans no longer in tables: {stale}")
+        # Keep JMRI's indentation: the new pair takes the closing tail, and the
+        # old last child gets the tail its siblings use between them.
+        children = list(sml)
+        if children:
+            pair.tail = children[-1].tail
+            if len(children) > 1:
+                children[-1].tail = children[-2].tail
+        sml.append(pair)
         added.append((source, dest))
     return added
 

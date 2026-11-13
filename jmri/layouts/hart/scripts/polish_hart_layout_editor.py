@@ -332,7 +332,7 @@ def place_stage1_lamps(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
         if name not in STAGE1_LAMP_PLACEMENTS or icon.get("level") == CLUSTER_LAMP_LEVEL:
             continue
         x, y = STAGE1_LAMP_PLACEMENTS[name]
-        if icon.get("x") == str(x) and icon.get("y") == str(y):
+        if _same_number(icon.get("x"), x) and _same_number(icon.get("y"), y):
             continue
         if check:
             errors.append(
@@ -361,7 +361,7 @@ def dedupe_shared_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, 
         keepers = [
             icon
             for icon in icons
-            if icon.get("x") == str(keep_x) and icon.get("y") == str(keep_y)
+            if _same_number(icon.get("x"), keep_x) and _same_number(icon.get("y"), keep_y)
         ]
         extras = [icon for icon in icons if icon not in keepers]
         if not keepers:

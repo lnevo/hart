@@ -31,6 +31,15 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         self.assertEqual(polish.SIGNAL_PLACEMENTS, generated)
         self.assertEqual(23, len(generated))
 
+    def test_nx_layer_mast_positions_agree_with_placements(self):
+        nx = load_module("apply_nx_layer", SCRIPTS / "apply_nx_layer.py")
+        differ = {
+            name: (xy, polish.SIGNAL_PLACEMENTS[name][:2])
+            for name, xy in nx.MAST_ALIGN.items()
+            if name in polish.SIGNAL_PLACEMENTS and xy != polish.SIGNAL_PLACEMENTS[name][:2]
+        }
+        self.assertEqual({}, differ)
+
     def test_visual_polish_is_idempotent_and_preserves_topology(self):
         source = ROOT / "jmri/layouts/hart/output/tables.xml"
         before_root = ET.parse(source).getroot()

@@ -40,6 +40,14 @@ class RestoreManualPairsTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "reference has no"):
             pairs.restore(logic(("Mast 36RA", []), ("Mast 36RB", [])), logic())
 
+    def test_pair_naming_a_missing_block_stops(self):
+        reference = logic(("Mast 36RA", ["Mast 40LA"]), ("Mast 36RB", ["Mast 38LA"]))
+        dest = reference.find(".//destinationMast")
+        blocks = ET.SubElement(dest, "blocks")
+        ET.SubElement(ET.SubElement(blocks, "block"), "blockName").text = "OS Gone"
+        with self.assertRaisesRegex(ValueError, "block OS Gone"):
+            pairs.restore(logic(("Mast 36RA", []), ("Mast 36RB", ["Mast 38LA"])), reference)
+
     def test_current_tables_have_both_pairs(self):
         self.assertEqual(0, pairs.main(["--check"]))
 
