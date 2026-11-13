@@ -181,17 +181,18 @@ def add_station_map_page(
 
 # TT-23 page 2 schedule (AM | STATION | PM) for YM/DS companion column.
 # Each trip is a round trip: Barn to McKees Rocks, 10-minute wait, back to Barn.
+# AM reads down, PM reads up (descending), like the old East/West columns.
 TT23_SCHEDULE_ROWS: list[tuple[str, str, str]] = [
-    ("9:00", "Barn", "4:00"),
-    ("9:06", "Scale", "4:06"),
-    ("9:12", "Brick", "4:12"),
-    ("9:18", "East End", "4:18"),
-    ("9:25", "McKees Rocks (arr.)", "4:25"),
-    ("9:35", "McKees Rocks (dep.)", "4:35"),
-    ("9:42", "East End", "4:42"),
-    ("9:48", "Brick", "4:48"),
-    ("9:54", "Scale", "4:54"),
-    ("10:00", "Barn", "5:00"),
+    ("9:00", "Barn", "5:00"),
+    ("9:06", "Scale", "4:54"),
+    ("9:12", "Brick", "4:48"),
+    ("9:18", "East End", "4:42"),
+    ("9:25", "McKees Rocks", "4:35"),
+    ("9:35", "McKees Rocks", "4:25"),
+    ("9:42", "East End", "4:18"),
+    ("9:48", "Brick", "4:12"),
+    ("9:54", "Scale", "4:06"),
+    ("10:00", "Barn", "4:00"),
 ]
 
 
@@ -331,7 +332,7 @@ def add_diagram_and_timetable_page(
     note.paragraph_format.space_before = Pt(6)
     note.paragraph_format.space_after = Pt(0)
     r = note.add_run(
-        "Barn→McKees Rocks, 10 min wait, return to Barn. Station time."
+        "Barn→McKees Rocks, 10 min wait, return to Barn. AM reads down, PM reads up. Station time."
     )
     _set_run_font(r, size_pt=5.5, color=MUTED, name="Calibri")
 
