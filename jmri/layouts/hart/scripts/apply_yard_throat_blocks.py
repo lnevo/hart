@@ -68,9 +68,9 @@ YARD_VIRTUALS = {row[3] for row in BOUNDARY_MASTS}
 # 32L (S-1 East) and Stage 1 never builds EH→S-1/S-4/S-R.
 EH_EXIT_MASTS = [
     # turnout, tag, sysname, uname, icon x, y, degrees
-    ("TO11", "signalBMast", "IF$vsm:basic:one-low($1020)", "Mast 11L", 620, 270, 270),
-    ("TO10", "signalCMast", "IF$vsm:basic:one-low($1021)", "Mast 9LA", 598, 268, 270),
-    ("TO10", "signalBMast", "IF$vsm:basic:one-low($1022)", "Mast 9LB", 596, 280, 270),
+    ("TO11", "signalBMast", "IF$vsm:basic:one-low($1020)", "Mast 12R", 620, 270, 270),
+    ("TO10", "signalCMast", "IF$vsm:basic:one-low($1021)", "Mast 10RA", 598, 268, 270),
+    ("TO10", "signalBMast", "IF$vsm:basic:one-low($1022)", "Mast 10RB", 596, 280, 270),
 ]
 
 # Track Brick-Plane (Block 4-6) had no mast at either end, so it sat inside the
@@ -384,13 +384,13 @@ def apply_scale_east(path: Path) -> int:
             masts,
             existing,
             "IF$vsm:basic:one-low($1019)",
-            "Mast 13R",
+            "Mast 14R",
         )
-    n += _ensure_hidden_icon(le, "Mast 13R", 620, 305, 90)
+    n += _ensure_hidden_icon(le, "Mast 14R", 620, 305, 90)
     turnouts = {to.get("ident"): to for to in le.findall("layoutturnout")}
     to1 = turnouts.get("TO1")
     if to1 is not None:
-        n += _ensure_turnout_mast(to1, "signalBMast", "Mast 13R")
+        n += _ensure_turnout_mast(to1, "signalBMast", "Mast 14R")
     n += _ensure_eh_exits(le, masts, existing, turnouts)
     tree.write(path, encoding="UTF-8", xml_declaration=True)
     return n

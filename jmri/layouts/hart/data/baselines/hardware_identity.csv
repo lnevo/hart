@@ -132,10 +132,10 @@ signalmast,IF$vsm:basic:one-low($1015),Mast 26R
 signalmast,IF$vsm:basic:one-low($1016),Mast 16L
 signalmast,IF$vsm:basic:one-low($1017),Mast 32L
 signalmast,IF$vsm:basic:one-low($1018),Mast 8LC
-signalmast,IF$vsm:basic:one-low($1019),Mast 13R
-signalmast,IF$vsm:basic:one-low($1020),Mast 11L
-signalmast,IF$vsm:basic:one-low($1021),Mast 9LA
-signalmast,IF$vsm:basic:one-low($1022),Mast 9LB
+signalmast,IF$vsm:basic:one-low($1019),Mast 14R
+signalmast,IF$vsm:basic:one-low($1020),Mast 12R
+signalmast,IF$vsm:basic:one-low($1021),Mast 10RA
+signalmast,IF$vsm:basic:one-low($1022),Mast 10RB
 turnout,M2T108,Switch 35
 turnout,M2T109,Switch 37
 turnout,M2T110,Switch 39

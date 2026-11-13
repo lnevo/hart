@@ -177,7 +177,7 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
         )
 
 
-DISPATCHER_VIRTUALS = {"Mast 8LC", "Mast 13R", "Mast 11L", "Mast 9LA", "Mast 9LB", "Mast 2R", "Mast 6R"}
+DISPATCHER_VIRTUALS = {"Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB", "Mast 2R", "Mast 6R"}
 
 
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:

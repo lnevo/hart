@@ -20,10 +20,10 @@ point,EB70,west,Mast 4LA
 point,EB71,east,Mast 40RA
 point,EB72,east,Mast 38RA
 point,EB73,west,Mast 4LB
-turnout,TO1,B,Mast 13R
-turnout,TO10,B,Mast 9LB
-turnout,TO10,C,Mast 9LA
-turnout,TO11,B,Mast 11L
+turnout,TO1,B,Mast 14R
+turnout,TO10,B,Mast 10RB
+turnout,TO10,C,Mast 10RA
+turnout,TO11,B,Mast 12R
 turnout,TO111,A,Mast 24RA
 turnout,TO111,B,Mast 24L
 turnout,TO111,D,Mast 24RB
