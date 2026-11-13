@@ -22,10 +22,15 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-DATA = Path(__file__).resolve().parents[1] / "data"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+DATA = paths.LAYOUT_DATA
 YES = {"yes": True, "no": False}
 
 

@@ -38,10 +38,13 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_XML = ROOT / "jmri/layouts/hart/output/tables.xml"
-DEFAULT_CSV = ROOT / "jmri/layouts/hart/data/le_signal_boundaries.csv"
-ORACLE = ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+DEFAULT_XML = paths.TABLES_XML
+DEFAULT_CSV = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
+ORACLE = paths.LAYOUT_SCRIPTS / "apply_sml_cats_pairs.py"
 
 PORTS = "ABCD"
 XOVER_TYPES = {"RH_XOVER", "LH_XOVER", "DOUBLE_XOVER"}
@@ -90,8 +93,7 @@ class Model:
 
 
 def parse(xml_path: Path) -> Model:
-    tree = ET.parse(xml_path)
-    root = tree.getroot()
+    root = tables.read(xml_path)
     m = Model()
 
     lbs = root.find("layoutblocks")
@@ -409,7 +411,7 @@ def load_oracle() -> list[tuple[str, str, list[str], list[tuple[str, str]]]]:
 
 def load_stored_sml(xml_path: Path) -> list[tuple[str, str, str]]:
     """(source, dest, useLayoutEditor) triples from <signalmastlogics>."""
-    root = ET.parse(xml_path).getroot()
+    root = tables.read(xml_path)
     smls = root.find("signalmastlogics")
     out = []
     if smls is None:

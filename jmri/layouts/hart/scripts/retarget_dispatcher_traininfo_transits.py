@@ -16,23 +16,27 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables as hart_tables  # noqa: E402
+
 DEFAULT_DIRS = [
     Path("/home/pi/JMRI_UserFiles/dispatcher/traininfo"),
-    Path(__file__).resolve().parents[1] / "dispatcher" / "traininfo",
+    paths.LAYOUT_DIR / "dispatcher" / "traininfo",
 ]
 DEFAULT_TABLES = [
     Path("/home/pi/JMRI_UserFiles/tables.xml"),
-    ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml",
+    paths.TABLES_XML,
 ]
 VIA_TRACK = re.compile(r"\bvia Track ([0-9]+[a-z]?)\b")
 
 
 def live_transit_names(tables: Path) -> set[str]:
-    root = ET.parse(tables).getroot()
+    root = hart_tables.read(tables)
     return {
         (el.get("userName") or "").strip()
         for el in root.findall("./transits/transit")
