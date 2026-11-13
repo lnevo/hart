@@ -28,14 +28,20 @@
    4
   ],
   [
-   "T123",
-   "T68",
-   6
-  ],
-  [
    "T116",
    "T106",
    9
+  ],
+  [
+   "T123",
+   "T68",
+   4
+  ],
+  [
+   "T77",
+   "T98",
+   4
   ]
- ]
+ ],
+ "_min_cells_east_lead": "Owner, 2026-11-13: East Lead (33-35) longer so its name and Mast 34L fit; South Yard tracks shorter (6 to 4 cells) to give the length back."
 }

@@ -128,9 +128,10 @@ Signals and labels (2026-11-13, rules R12 and R13 in `docs/ops/SCHEMATIC_SPEC.md
 - `labels.py` places switch numbers, track names and mast names: each has a list of allowed positions, and the
   ones with the fewest free positions are placed first, clear of every line, symbol and label. A crossover's
   number prints once. `label_check.py` is the independent check on the finished SVG.
-- A mast on a run with no level stretch (32R on the 29-31 ladder link) is drawn along the slope, its name level
-  beside it; right-hand side first, the outer side when the right-hand side is blocked (the Book does both).
-- `signals_sample.svg`: approved look plus signals. Label faults: approved sheet 17 before the placer; 1 with
-  signals and the placer (the East Lead name against 34L's stem on a very short run, where the layout needs room:
-  the grid-room half of R12, still to do in the layout).
+- A mast on a run with no level stretch (32R on the 29-31 ladder link) is drawn along the slope on the right-hand
+  side of its move, its name level, in line behind the stem or centred in the gap beside it; the other side of
+  the track only when the right-hand side has no room at all.
+- `signals_sample.svg`: approved look plus signals. Label faults: approved sheet 17 before the placer; 0 with
+  signals, the placer and the owner's length change (East Lead 4 cells, South Yard tracks 6 to 4). The grid-room
+  half of R12 (labels claiming room during layout, so no preference is needed) is still to do.
 - 32L is named westward but bound eastward on the panel (virtual, so not drawn); reported by the reader.

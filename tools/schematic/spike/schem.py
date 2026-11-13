@@ -1328,10 +1328,27 @@ def signal_spot(pts, cm, edge_cm, cell, slide=0.0):
 
 def draw_sloped_signal(sg, pts, half, heads, r, arm, stem, gap, dash, opts, svg, label, P):
     """A mast on a run that is all slope (a ladder link): the symbol is drawn along the slope, on the right-hand
-    side of the move, a third of the way from the switch it governs into; its name stays level beside it."""
+    side of the move; its name stays level, in line behind the stem (as the Book has it) or beside the symbol.
+    The other side of the track is used only when the right-hand side has no room at all."""
     L = sum(math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(pts, pts[1:]))
     length = arm + 2 * r * heads
     size = opts["num_px"]
+    w = labels.text_width(sg["mast"], size, "normal", 0.0)
+
+    def name_cands(t):
+        """Where the name may go: in line behind the stem, in line beyond the circles, then level beside."""
+        cx, cy, deg, box = t
+        c, sn = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+        reach = (w * abs(c) + 0.72 * size * abs(sn)) / 2       # half the name's extent along the slope
+        out = []
+        for d in (-(reach + 2.5), length + reach + 2.5, -(reach + 5)):
+            for k in (0, 1.5, -1.5, 3, -3, 4.5, -4.5):      # also shifted across the slope, toward the middle of a gap
+                mx, my = cx + c * d - sn * k, cy + sn * d + c * k
+                out.append((mx, my + 0.36 * size, "middle"))
+        mx, my = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+        out += [(box[2] + 2, my + 0.36 * size, "start"), (box[0] - 2, my + 0.36 * size, "end"),
+                (mx, box[3] + 0.72 * size + 1.5, "middle"), (mx, box[1] - 1.5, "middle")]
+        return out
 
     def fits(t):
         """The symbol's own shape (stem, circles) clear of every line, and room for the name on one side."""
@@ -1345,11 +1362,8 @@ def draw_sloped_signal(sg, pts, half, heads, r, arm, stem, gap, dash, opts, svg,
                 return False
         if any(labels.boxes_overlap(box, o, 0.6) for o in P.boxes):
             return False
-        w = labels.text_width(sg["mast"], size, "normal", 0.0)
-        my = (box[1] + box[3]) / 2
-        sides = [(box[2] + 2, my - 0.4 * size, box[2] + 2 + w, my + 0.4 * size),
-                 (box[0] - 2 - w, my - 0.4 * size, box[0] - 2, my + 0.4 * size)]
-        return any(P.clear(sd, 0.6) for sd in sides)
+        return any(P.clear(labels.text_box(x, y, an, sg["mast"], size, "normal"), 0.6)
+                   for x, y, an in name_cands(t))
 
     tries = []
     for hand in (1, -1):                        # right-hand side first; the other side only when it is blocked
@@ -1375,10 +1389,7 @@ def draw_sloped_signal(sg, pts, half, heads, r, arm, stem, gap, dash, opts, svg,
               for h in range(heads)]
     svg.append(f'<g transform="translate({cx:.1f},{cy:.1f}) rotate({deg:.1f})">' + "".join(parts) + "</g>")
     P.box(box)
-    mx, my = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
-    cands = [(box[2] + 2, my + 0.36 * size, "start"), (box[0] - 2, my + 0.36 * size, "end"),
-             (mx, box[3] + 0.72 * size + 1.5, "middle"), (mx, box[1] - 1.5, "middle")]
-    P.ask("mast", sg["mast"], size, cands,
+    P.ask("mast", sg["mast"], size, name_cands((cx, cy, deg, box)),
           emit=lambda q, t=sg["mast"]: label(q[0], q[1], t, size, anchor=q[2]))
 
 
