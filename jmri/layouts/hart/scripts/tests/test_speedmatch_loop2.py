@@ -274,3 +274,23 @@ class RunsAndLocate(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LineupWalk(unittest.TestCase):
+    """Each switch on a route, set as the lineup says, joins the blocks either side of it."""
+
+    def test_every_route_switch_joins_its_neighbours(self):
+        import csv as _csv
+        legs_csv = Path(__file__).resolve().parents[1].parent / "data" / "switch_legs.csv"
+        legs = {r["os_block"]: r for r in _csv.DictReader(open(legs_csv, newline=""))}
+        for route, pairs in analyze.ROUTES.items():
+            rows = [row for _, row in pairs]
+            lineup = {str(k): v for k, v in dict(analyze.ROUTE_LINEUP[route]).items()}
+            for i, block in enumerate(rows):
+                if block not in legs:
+                    continue
+                leg = legs[block]
+                state = lineup[leg["switch"]]
+                want = leg["closed_leg"] if state == "closed" else leg["thrown_leg"]
+                self.assertIn(want, (rows[i - 1], rows[(i + 1) % len(rows)]),
+                              "%s %s: switch %s %s leads to %s" % (route, block, leg["switch"], state, want))
