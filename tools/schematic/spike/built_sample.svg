@@ -3,7 +3,7 @@
 <rect x="24" y="24" width="1008" height="768" fill="none" stroke="#000" stroke-width="1.5"/>
 <g transform="translate(4.934579439252337,0) scale(0.897196261682243)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
 <path d="M552.0,138.0 L580.0,166.0" stroke-width="1.4"/>
-<path d="M832.0,166.0 L860.0,138.0" stroke-width="3.2"/>
+<path d="M832.0,166.0 L860.0,138.0" stroke-width="1.4"/>
 <path d="M160.0,306.0 L188.0,278.0" stroke-width="1.4"/>
 <path d="M188.0,278.0 L244.0,278.0 L328.0,194.0" stroke-width="1.4"/>
 <path d="M76.0,306.0 L160.0,306.0" stroke-width="3.2"/>
@@ -31,7 +31,7 @@
 <path d="M412.0,222.0 L552.0,222.0" stroke-width="1.4"/>
 <path d="M580.0,166.0 L608.0,166.0" stroke-width="1.4"/>
 <path d="M888.0,138.0 L1000.0,138.0" stroke-width="3.2"/>
-<path d="M888.0,138.0 L916.0,110.0 L1028.0,110.0" stroke-width="3.2"/>
+<path d="M888.0,138.0 L916.0,110.0 L1028.0,110.0" stroke-width="1.4"/>
 <path d="M860.0,166.0 L888.0,194.0 L1028.0,194.0" stroke-width="1.4"/>
 <path d="M832.0,166.0 L860.0,166.0" stroke-width="3.2"/>
 <path d="M860.0,166.0 L972.0,166.0" stroke-width="3.2"/>
@@ -43,7 +43,7 @@
 <path d="M300.0,194.0 L328.0,194.0" stroke-width="1.4"/>
 <path d="M216.0,194.0 L300.0,194.0" stroke-width="1.4"/>
 <path d="M48.0,166.0 L34.0,180.0 L34.0,292.0 L48.0,306.0" stroke-width="3.2"/>
-<path d="M1028.0,110.0 L1042.0,124.0 L1042.0,180.0 L1028.0,194.0" stroke-width="3.2"/>
+<path d="M1028.0,110.0 L1042.0,124.0 L1042.0,180.0 L1028.0,194.0" stroke-width="1.4"/>
 <path d="M48.0,105.0 L48.0,115.0" stroke-width="2.4"/>
 <path d="M76.0,133.0 L76.0,143.0" stroke-width="2.4"/>
 <path d="M1000.0,138.0 m-6,-5 l6,5 l-6,5" stroke-width="1.6"/>

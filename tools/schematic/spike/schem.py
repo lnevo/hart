@@ -11,7 +11,8 @@ import json
 import math
 import sys
 
-TAU = {"A": -1, "B": 1, "C": 1}
+TAU = {"A": -1, "B": 1, "C": 1, "D": -1}
+JUNCTION = ("switch", "dx")
 
 
 # ---------------------------------------------------------------- orient
@@ -22,7 +23,7 @@ def colour(g, sw_edges, T):
         r = (1 if e["id"] in T else -1) * TAU[e["up"]] * TAU[e["vp"]]
         adj[e["u"]].append((e["v"], r))
         adj[e["v"]].append((e["u"], r))
-    for start in (n for n, d in g["nodes"].items() if d["kind"] == "switch"):
+    for start in (n for n, d in g["nodes"].items() if d["kind"] in JUNCTION):
         if start in sig:
             continue
         sig[start] = 1
@@ -44,11 +45,11 @@ def build(g, sig, T):
     strands = {}
 
     def side(n, p):
-        return sig[n] * TAU[p] if nodes[n]["kind"] == "switch" else None
+        return sig[n] * TAU[p] if nodes[n]["kind"] in JUNCTION else None
 
     def add(sid, src, dst, e, name):
         strands[sid] = dict(src=src, dst=dst, edge=e["id"], name=name, cm=e["cm"],
-                            main=e["main"], link=e["link"])
+                            main=e["main"], link=e["link"], hidden=e.get("hidden", False))
         nodes[src[0]]["outs"][src[1]] = sid
         nodes[dst[0]]["ins"][dst[1]] = sid
 
@@ -118,8 +119,11 @@ def udot(g, e):
 
 
 def orient(g, max_turnbacks=3):
-    sw = [e for e in g["edges"] if all(g["nodes"][n]["kind"] == "switch" for n in (e["u"], e["v"]))]
+    sw = [e for e in g["edges"] if all(g["nodes"][n]["kind"] in JUNCTION for n in (e["u"], e["v"]))]
     cand = [e for e in sw if not e["link"]]
+    if len(cand) > 40:      # big plan: only runs that bend back on the layout may be turnbacks
+        cand = [e for e in cand if udot(g, e) > -0.5]
+        max_turnbacks = 5
     best = None
     for k in range(max_turnbacks + 1):
         for T in itertools.combinations(cand, k):
@@ -154,8 +158,18 @@ def legs(nodes, n):
     return (b, c) if c_low else (c, b)
 
 
+def dx_tracks(nodes, n):
+    """Double crossover: ((upper in, upper out), (lower in, lower out))."""
+    d = nodes[n]
+    if d["sig"] == 1:
+        ab, dc = (d["ins"]["A"], d["outs"]["B"]), (d["ins"]["D"], d["outs"]["C"])
+    else:
+        ab, dc = (d["ins"]["B"], d["outs"]["A"]), (d["ins"]["C"], d["outs"]["D"])
+    return (ab, dc) if (d["hand"] == 1) == (d["sig"] == 1) else (dc, ab)
+
+
 def sweep(nodes, strands, col, warn):
-    L, alive, done, snaps, enclosed = [], set(), set(), [], {}
+    L, alive, done, snaps, enclosed, free = [], set(), set(), [], {}, set()
 
     def snap():
         snaps.append([s for s in L if s in alive])
@@ -179,14 +193,26 @@ def sweep(nodes, strands, col, warn):
         elif k == "switch":
             up, lo = legs(nodes, n)
             iu, il = L.index(up), L.index(lo)
-            if iu > il:
-                warn(f"switch {d['label']}: legs arrive in the opposite order")
-                iu, il = il, iu
-            if any(s in alive for s in L[iu + 1:il]):
-                warn(f"switch {d['label']}: a track lies between its two legs")
+            if iu > il or any(s in alive for s in L[min(iu, il) + 1:max(iu, il)]):
+                # the layout is not flat here (one track passes over another): let the shorter leg cross
+                f = min((up, lo), key=lambda s: strands[s]["cm"])
+                free.add(f)
+                warn(f"switch {d['label']}: one leg has to cross other track to reach it")
+                iu, il = min(iu, il), max(iu, il)
             alive.difference_update((up, lo))
             L.insert(il, d["outs"]["A"])
             alive.add(d["outs"]["A"])
+        elif k == "dx":
+            (iu_, ou), (il_, ol) = dx_tracks(nodes, n)
+            if L.index(iu_) > L.index(il_):
+                warn(f"double crossover {d['label']}: tracks arrive in the opposite order")
+                (iu_, ou), (il_, ol) = (il_, ol), (iu_, ou)
+            if any(s in alive for s in L[L.index(iu_) + 1:L.index(il_)]):
+                warn(f"double crossover {d['label']}: a track lies between its two tracks")
+            alive.difference_update((iu_, il_))
+            L.insert(L.index(il_), ol)
+            L.insert(L.index(iu_) + 1, ou)
+            alive.update((ou, ol))
         elif k == "end" and d["outs"]:
             s = d["outs"]["E"]
             L.insert(where(hint), s)
@@ -220,12 +246,12 @@ def sweep(nodes, strands, col, warn):
             process(p, hint)
         elif d["kind"] == "turnL":
             process(p, (hint[0], hint[1], s))
-        elif d["sig"] == 1:
+        elif d["kind"] == "switch" and d["sig"] == 1:
             if d["ins"]["A"] not in alive:
                 demand(d["ins"]["A"], hint)
             process(p)
         else:
-            up, lo = legs(nodes, p)
+            up, lo = legs(nodes, p) if d["kind"] == "switch" else [t[0] for t in dx_tracks(nodes, p)]
             have = [x for x in (up, lo) if x in alive]
             if not have:
                 demand(up, hint)
@@ -243,7 +269,7 @@ def sweep(nodes, strands, col, warn):
         if d["kind"] == "turnR":
             i0, i1 = sorted((L.index(d["ins"][0]), L.index(d["ins"][1])))
             return (1 if not any(s in alive for s in L[i0 + 1:i1]) else 9, col[n])
-        return (2 if d["sig"] == -1 else 3, col[n])
+        return (2 if d["sig"] == -1 or d["kind"] == "dx" else 3, col[n])
 
     while len(done) < len(nodes):
         ready = [n for n, d in nodes.items() if n not in done and d["ins"]
@@ -261,7 +287,7 @@ def sweep(nodes, strands, col, warn):
                 miss = next(s for s in d["ins"].values() if s not in alive)
                 demand(miss, (have, "below"))
             else:
-                up, lo = legs(nodes, n)
+                up, lo = legs(nodes, n) if d["kind"] == "switch" else [t[0] for t in dx_tracks(nodes, n)]
                 if up in alive:
                     demand(lo, (up, "below"))
                 else:
@@ -269,7 +295,7 @@ def sweep(nodes, strands, col, warn):
             continue
         src = [n for n, d in nodes.items() if n not in done and not d["ins"]]
         process(min(src, key=lambda n: -sum(strands[s]["cm"] for s in nodes[n]["outs"].values())))
-    return L, snaps, enclosed
+    return L, snaps, enclosed, free
 
 
 # ---------------------------------------------------------------- rows
@@ -302,11 +328,41 @@ def descend(start, items, push, cost):
     return cur, best
 
 
+def find_cycle(classes, above):
+    """One directed cycle as a list of (from, to), or None."""
+    state, stack = {}, []
+
+    def visit(c):
+        state[c] = 1
+        stack.append(c)
+        for d in sorted(above[c]):
+            if state.get(d) == 1:
+                i = stack.index(d)
+                path = stack[i:] + [d]
+                return list(zip(path, path[1:]))
+            if d not in state:
+                r = visit(d)
+                if r:
+                    return r
+        stack.pop()
+        state[c] = 2
+        return None
+
+    for c in classes:
+        if c not in state:
+            r = visit(c)
+            if r:
+                return r
+    return None
+
+
 class Rows:
-    def __init__(self, nodes, strands, snaps):
-        self.nodes, self.strands, self.snaps = nodes, strands, snaps
+    def __init__(self, nodes, strands, snaps, free=()):
+        self.nodes, self.strands, self.snaps, self.free = nodes, strands, snaps, set(free)
         self.extra = set()
         self.flat = {n: "B" for n, d in nodes.items() if d["kind"] == "switch"}
+        self.tolerant = bool(free)
+        self.dropped = 0
 
     def frog(self, n):
         d = self.nodes[n]
@@ -332,19 +388,36 @@ class Rows:
 
         for n, f in self.flat.items():
             parent[find(self.a_strand(n))] = find(self.frog(n)[f])
+        for n, d in self.nodes.items():
+            if d["kind"] == "dx":
+                for a, b in dx_tracks(self.nodes, n):
+                    parent[find(a)] = find(b)
         diag = {s for s, d in st.items() if self.sloped(s, "src") and self.sloped(s, "dst")
                 and (d["link"] or (not d["name"] and d["cm"] < 40))}
         above = collections.defaultdict(set)
         pairs = set(self.extra)
         for snap in self.snaps:
-            row = [s for s in snap if s not in diag]
+            row = [s for s in snap if s not in diag and s not in self.free]
             pairs.update(zip(row, row[1:]))
+        self.dropped = 0
         for a, b in pairs:
+            if a in diag or b in diag:
+                continue
             ca, cb = find(a), find(b)
             if ca == cb:
-                return None
+                if not self.tolerant:
+                    return None
+                self.dropped += 1
+                continue
             above[ca].add(cb)
         classes = sorted({find(s) for s in st if s not in diag})
+        while self.tolerant:            # break "A over B over ... over A" loops, one rule at a time
+            cyc = find_cycle(classes, above)
+            if not cyc:
+                break
+            a, b = cyc[0]
+            above[a].discard(b)
+            self.dropped += 1
         below = collections.defaultdict(set)
         indeg = {c: 0 for c in classes}
         for c in classes:
@@ -452,7 +525,7 @@ def place(nodes, strands, R, enclosed, opts):
         h = name_cells(s["name"], opts)
         if nodes[u]["kind"] == "end" or nodes[v]["kind"] == "end":
             h = max(h, 1) + 1
-        w = max(1, su + sv + h)
+        w = max(1, su + sv + h) + sum(nodes[t]["kind"] == "dx" for t in (u, v))
         need[sid] = (su, sv, w)
         cons.append((u, v, w))
         cm = s["cm"] / (2 if "." in sid else 1)
@@ -532,7 +605,7 @@ def draw(nodes, strands, R, x, need, spine, opts, out):
     def Y(r):
         return top + (r - y0) * rowh
 
-    scale = min(1.0, (pw - 2 * m) / max(W, 1))
+    scale = min(1.0, (pw - 2 * m) / max(W, 1), (ph - top - 150) / max(H + 80, 1))
     svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {pw} {ph}" width="{pw}" height="{ph}" '
            f'font-family="\'Helvetica Neue\',Helvetica,Arial,sans-serif">',
            f'<rect width="{pw}" height="{ph}" fill="#fff"/>',
@@ -548,7 +621,7 @@ def draw(nodes, strands, R, x, need, spine, opts, out):
     turn_rows = collections.defaultdict(list)
     for sid, s in strands.items():
         (u, _), (v, _) = s["src"], s["dst"]
-        heavy = sid in spine or s["main"]
+        heavy = s["main"]
         wd = opts["main_w"] if heavy else opts["side_w"]
         if sid in diag:
             pts = [(X(x[u]), Y(nrow[u])), (X(x[v]), Y(nrow[v]))]
@@ -567,7 +640,8 @@ def draw(nodes, strands, R, x, need, spine, opts, out):
             if s["name"]:
                 label((X(x[u] + su) + X(x[v] - sv)) / 2, Y(r) - 5, s["name"].upper(), opts["name_px"], extra='letter-spacing="0.4"')
         d = "M" + " L".join(f"{px:.1f},{py:.1f}" for px, py in dedupe(pts))
-        svg.append(f'<path d="{d}" stroke-width="{wd}"/>')
+        dash = ' stroke-dasharray="7 5"' if s["hidden"] else ""
+        svg.append(f'<path d="{d}" stroke-width="{wd}"{dash}/>')
     for t, rs in turn_rows.items():
         (r1, w1), (r2, w2) = sorted(rs)
         xt = X(x[t])
@@ -583,6 +657,13 @@ def draw(nodes, strands, R, x, need, spine, opts, out):
             high = up in diag and nrow[other_end(strands, up, n)] < a_row or up not in diag and srow[up] < a_row
             dy = -7 if low and not high else 13     # the side away from the sloped leg
             label(X(x[n]) - 7 * d["sig"], Y(a_row) + dy, d["label"], opts["num_px"], weight="bold")
+        elif d["kind"] == "dx":
+            (iu_, _), (il_, _) = dx_tracks(nodes, n)
+            r1, r2 = sorted((srow[iu_], srow[il_]))
+            h = (Y(r2) - Y(r1)) / 2
+            svg.append(f'<path d="M{X(x[n]) - h:.1f},{Y(r1):.1f} L{X(x[n]) + h:.1f},{Y(r2):.1f} '
+                       f'M{X(x[n]) - h:.1f},{Y(r2):.1f} L{X(x[n]) + h:.1f},{Y(r1):.1f}" stroke-width="{opts["side_w"]}"/>')
+            label(X(x[n]), Y(r1) - 6, d["label"], opts["num_px"], weight="bold")
         elif d["kind"] == "end":
             xe, ye = X(x[n]), Y(nrow[n])
             if d.get("sub") == "open":
@@ -663,9 +744,9 @@ def main(graph, out, optfile=None):
             sig = {n: -s for n, s in sig.items()}
             nodes, strands = build(g, sig, T)
             col = columns(nodes, strands)
-    order, snaps, enclosed = sweep(nodes, strands, col, warnings.append)
+    order, snaps, enclosed, free = sweep(nodes, strands, col, warnings.append)
     spine = spine_path(nodes, strands, col)
-    rows = Rows(nodes, strands, snaps)
+    rows = Rows(nodes, strands, snaps, free)
     for _ in range(6):
         R = rows.optimise()
         x, need = place(nodes, strands, R, enclosed, opts)
@@ -675,6 +756,8 @@ def main(graph, out, optfile=None):
         rows.extra |= clash
     else:
         warnings.append("tracks still overlap after 6 passes")
+    if rows.dropped:
+        warnings.append(f"{rows.dropped} above/below rules dropped where the layout is not flat")
     draw(nodes, strands, R, x, need, set(spine), opts, out)
     print("turnbacks:", sorted(T), "| spine:", [strands[s]["name"] or s for s in spine])
     print("size:", max(x.values()) - min(x.values()), "cells x", max(R["srow"].values()) - min(R["srow"].values()) + 1, "rows")
