@@ -63,7 +63,7 @@ class DisableDigiconSmlTest(unittest.TestCase):
         self.assertEqual(pairs, [])
 
     def test_deploy_fixes_shipped_tables_instead_of_refusing(self) -> None:
-        text = (ROOT / "cats/scripts/sync_hart_package.sh").read_text(encoding="utf-8")
+        text = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
         self.assertIn('--panel "$TABLES"', text)
         self.assertNotIn('--check --panel "$TABLES"', text)
 

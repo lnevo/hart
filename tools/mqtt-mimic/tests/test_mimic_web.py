@@ -129,8 +129,8 @@ class Install(unittest.TestCase):
 
 
 class Deploy(unittest.TestCase):
-    sync = (ROOT / "cats/scripts/sync_hart_package.sh").read_text(encoding="utf-8")
-    pi = (ROOT / "cats/scripts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
+    sync = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
+    pi = (ROOT / "tools/hosts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
 
     def test_stage_builds_layout_and_carries_relay(self):
         self.assertIn('build_mimic_web.py" --out "$stage/cats/resources/jmri-web/mimic"', self.sync)

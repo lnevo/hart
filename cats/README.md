@@ -22,6 +22,8 @@ HART runs JMRI **5.16**, the newest version 3.2 supports.
 
 Do **not** unzip or decompile `cats.jar` into `cats/` — that folder is HART panels/scripts. See [`AGENTS.md`](AGENTS.md).
 
+The layout deploy and the Pi and Windows host scripts live in [`tools/hosts/`](../tools/hosts/) (ADR-007 amendment 2026-11-12). `cats/scripts/sync_hart_package.sh` is a wrapper that runs `tools/hosts/sync_hart_package.sh`. The deploy still installs the host scripts at `cats/scripts/pi/` and `cats/scripts/windows/` inside the package, as the hosts expect.
+
 ## Bindings from hart panel
 
 ```bash

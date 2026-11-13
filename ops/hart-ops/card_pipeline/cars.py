@@ -50,7 +50,7 @@ OPS_MERGED = HART_ROOT / "jmri/layouts/hart/operations/OperationsCarRoster.xml"
 STS_HELPERS = HART_ROOT / "external/sts-helpers"
 PRINT_DIR = ROOT / "print"
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".heic", ".tif", ".tiff"}
-DEPLOY_NOTE = "Commit it in the hart repo, then deploy with cats/scripts/sync_hart_package.sh."
+DEPLOY_NOTE = "Commit it in the hart repo, then deploy with tools/hosts/sync_hart_package.sh."
 QUEUE_COLUMNS = [
     "roster_id",
     "reason",

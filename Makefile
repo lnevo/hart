@@ -50,10 +50,10 @@ shot:  ## Screenshot a page: make shot PAGE=www/index.html
 	python3 tools/ops/screenshot.py $(PAGE)
 
 deploy-layout:  ## Deploy to the Pi
-	./cats/scripts/sync_hart_package.sh --pi
+	./tools/hosts/sync_hart_package.sh --pi
 
 deploy-all:  ## Deploy to every layout host
-	./cats/scripts/sync_hart_package.sh --all
+	./tools/hosts/sync_hart_package.sh --all
 
 deploy-site:  ## Deploy www.hartrailroad.com
 	./www/scripts/deploy_hartrailroad.sh

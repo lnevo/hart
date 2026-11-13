@@ -11,7 +11,7 @@ PI_HOST="${HART_PI_SSH:-pi}"
 WIN_HOST="${HART_WIN_SSH:-lnevo@minipc-e5h6x.local}"
 WIN_PORT="${HART_WIN_SSH_PORT:-2222}"
 WIN_SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
-# Same as scp_win in cats/scripts/sync_hart_package.sh: SFTP first, legacy -O if it is off.
+# Same as scp_win in tools/hosts/sync_hart_package.sh: SFTP first, legacy -O if it is off.
 scp_win() {
   scp "${WIN_SSH_OPTS[@]}" -P "$WIN_PORT" "$@" 2>/dev/null && return 0
   echo "scp over SFTP to Windows failed; retrying with the legacy protocol (-O). Check Subsystem sftp in sshd_config." >&2

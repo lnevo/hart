@@ -226,6 +226,8 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         for cmd in ("make tables-pull", "make deploy-all", "make -s deploy-layout", "make ops-pull",
                     "./tools/ops/pull_tables.sh", "./cats/scripts/sync_hart_package.sh --pi",
                     "cd x && ./cats/scripts/sync_hart_package.sh --all",
+                    "./tools/hosts/sync_hart_package.sh --pi",
+                    "./cats/scripts/sync_hart_package.sh --stage-only /tmp/x",
                     "python3 jmri/layouts/hart/scripts/apply_nx_layer.py",
                     "JMRI_LAYOUT=hart python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
                     "python3 jmri/layouts/hart/scripts/apply_public_names.py --apply"):
@@ -240,7 +242,8 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check",
                     "python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py --dry-run",
                     "python3 jmri/layouts/hart/scripts/apply_public_names.py",
-                    "./cats/scripts/sync_hart_package.sh --help", "cat tools/ops/pull_tables.sh"):
+                    "./cats/scripts/sync_hart_package.sh --help", "./tools/hosts/sync_hart_package.sh --dry-run --pi",
+                    "./cats/scripts/sync_hart_package.sh --dry-run --pi", "cat tools/ops/pull_tables.sh"):
             self.assertEqual(self.code(cmd), 0, cmd)
 
     def test_process_check_can_be_forced(self) -> None:

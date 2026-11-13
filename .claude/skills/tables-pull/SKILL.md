@@ -33,4 +33,4 @@ description: Use when a PanelPro Store has changed ~/JMRI_UserFiles/tables.xml a
 
 - `tools/ops/pull_tables.sh`, the `tables-pull` target in `Makefile`
 - `wiki/decisions/ADR-008-tables-ownership.md`, `wiki/decisions/ADR-014-jmri-user-files.md`
-- `cats/scripts/sync_hart_package.sh` (`install_tables_local`)
+- `tools/hosts/sync_hart_package.sh` (`install_tables_local`)

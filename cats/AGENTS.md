@@ -1,6 +1,6 @@
 # CATS in this repo
 
-`cats/` is **HART** panels, bindings, launchers, and docs. It is not the CATS application source.
+`cats/` is **HART** panels, bindings, launchers, and docs. It is not the CATS application source. The deploy and the Pi and Windows host scripts are in `tools/hosts/`; edit them there, not under `cats/scripts/`.
 
 **Upstream (open source):** [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/)
 

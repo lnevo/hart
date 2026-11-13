@@ -64,6 +64,8 @@ READS_TABLES = {
 }
 LAUNCHER_PREFIXES = ("launch_", "run_")  # start PanelPro or CATS themselves and check what is open
 SAFE_FLAGS = ("--check", "--dry-run", "--help")  # honoured only when the script defines it
+# A wrapper names the script it runs, relative to itself; the guard judges that script.
+FOLLOWS = re.compile(r"^# main_guard follows: (\S+)$", re.M)
 LAUNCHERS = {"env", "time", "nohup", "exec", "sudo", "command"}
 SHELLS = {"bash", "sh", "zsh"}
 
@@ -141,9 +143,14 @@ def table_writer(part, cwd="."):
         return f"make {hit[0]}" if hit else None
     if not name.endswith((".py", ".sh")) or name.startswith(("test_",) + LAUNCHER_PREFIXES) or name in READS_TABLES:
         return None
+    path = os.path.join(cwd, os.path.expanduser(words[0]))
     try:
-        with open(os.path.join(cwd, os.path.expanduser(words[0])), encoding="utf-8", errors="ignore") as f:
+        with open(path, encoding="utf-8", errors="ignore") as f:
             source = f.read()
+        follow = FOLLOWS.search(source)
+        if follow:
+            with open(os.path.join(os.path.dirname(path), follow.group(1)), encoding="utf-8", errors="ignore") as f:
+                source = f.read()
     except OSError:
         return name if name in WRITERS else None
     writes = (SH_WRITES if name.endswith(".sh") else PY_WRITES).search(source)

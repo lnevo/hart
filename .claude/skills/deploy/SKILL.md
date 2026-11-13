@@ -9,7 +9,7 @@ Two separate deploys. Pick by what changed (AGENTS.md, close-out step 5).
 
 | Changed | Run |
 |---|---|
-| Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CTC icons, CATS resources | `./cats/scripts/sync_hart_package.sh --pi`, add `--win` (or use `--all`) when Windows needs it |
+| Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CTC icons, CATS resources | `./tools/hosts/sync_hart_package.sh --pi`, add `--win` (or use `--all`) when Windows needs it |
 | Website (`www/`) | `./www/scripts/deploy_hartrailroad.sh` |
 | Docs, AGENTS, wiki only | No deploy. Say so in the report. |
 
@@ -59,7 +59,7 @@ Name the hosts and sites deployed, or say which were skipped and why.
 
 ## Sources
 
-- `cats/scripts/sync_hart_package.sh`, `www/scripts/deploy_hartrailroad.sh`
+- `tools/hosts/sync_hart_package.sh`, `www/scripts/deploy_hartrailroad.sh`
 - `www/README.md` (Deploy safety, server notes)
 - `AGENTS.md` (close-out step 5), `wiki/STATUS.md`
 - `wiki/decisions/ADR-014-jmri-user-files.md`, `wiki/decisions/ADR-015-operations-files-in-repo.md`
