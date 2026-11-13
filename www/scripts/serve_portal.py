@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from datetime import datetime, timezone
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -200,6 +201,16 @@ def _write_json_atomic(path: Path, data: dict) -> None:
     os.replace(tmp, path)
 
 
+def _gallery_id(album: str, title: str, taken: set) -> str:
+    """Stable id for a gallery item (photos/#layout/<id> and site search): album and title as a slug,
+    numbered when another item already has it. Existing ids never change, so a title edit keeps the link."""
+    base = re.sub(r"[^a-z0-9]+", "-", f"{album} {title}".lower()).strip("-") or "photo"
+    new, n = base, 2
+    while new in taken:
+        new, n = f"{base}-{n}", n + 1
+    return new
+
+
 def _move_archive_item_to_layout(body: dict) -> tuple[int, dict]:
     """Move an archive item into the Layout photos gallery (data/gallery.json, album "layout")."""
     item_id = str(body.get("id") or "")
@@ -215,6 +226,7 @@ def _move_archive_item_to_layout(body: dict) -> tuple[int, dict]:
     if not any(g.get("src") == item.get("src") for g in g_items):
         g_items.append(
             {
+                "id": _gallery_id("layout", item.get("title") or "", {g.get("id") for g in g_items}),
                 "album": "layout",
                 "src": item.get("src"),
                 "title": item.get("title") or "",

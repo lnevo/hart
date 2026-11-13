@@ -144,6 +144,8 @@ every write goes through:
 
 ## Part D: re-run 2121 and 2738
 
+Step-by-step commands for the tools: [`RUNBOOK.md`](RUNBOOK.md).
+
 Before starting: Part A at least for the loop blocks, Parts B and C merged, PanelPro running on
 the Pi, and the owner not operating. Only the test loco moves.
 

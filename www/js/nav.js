@@ -145,6 +145,7 @@
   // Search drop-down. Closes like the menu: Escape (focus back to the button) and a click outside.
   // js/search.js is fetched on first open, and "/" opens the panel when no field has focus.
   var searchLoad = null;
+  var openSearchFn = null;
   function mountSearch(header) {
     var btn = header.querySelector(".search-toggle");
     var wrap = header.querySelector(".site-search");
@@ -152,7 +153,15 @@
     var input = header.querySelector(".search-input");
     var menuBtn = header.querySelector(".nav-toggle");
     var menu = header.querySelector(".nav-panel");
-    if (!btn || !panel || !input) return;
+    if (!btn || !panel || !input) return; // no index on this host: openSearch stays null and links fall through
+    // For links elsewhere on a page (the 404 page): open the panel as "/" does, optionally with words typed in.
+    openSearchFn = function (q) {
+      setOpen(true);
+      if (q) {
+        input.value = q;
+        input.dispatchEvent(new Event("input"));
+      }
+    };
     function load() {
       if (searchLoad) return;
       searchLoad = new Promise(function (resolve, reject) {
@@ -404,8 +413,29 @@
     return site;
   }
 
+  // Deep links into a photo grid (photos/#<tab>/<item id>): the part every grid shares once it has
+  // reset its filters and found the item's index. Gallery view moves the stage to it; otherwise the old
+  // highlight is cleared, the card is highlighted and centred, and its lightbox opens.
+  function revealItem(o) {
+    if (o.index < 0) return false;
+    if (o.galleryView) {
+      o.setStage(o.index);
+      return true;
+    }
+    var old = o.grid.querySelectorAll(".is-target");
+    for (var k = 0; k < old.length; k++) old[k].classList.remove("is-target");
+    var el = o.grid.querySelector('[data-idx="' + o.index + '"]');
+    if (el) {
+      el.classList.add("is-target");
+      if (el.scrollIntoView) el.scrollIntoView({ block: "center" });
+    }
+    o.openLightbox(o.index);
+    return true;
+  }
+
   var api = {
     base: base,
+    revealItem: revealItem,
     esc: esc,
     loadSite: loadSite,
     loadJson: loadJson,
@@ -413,6 +443,10 @@
     renderError: renderError,
     isLocal: isLocal,
     trapTab: trapTab,
+    openSearch: function (q) {
+      if (openSearchFn) openSearchFn(q);
+      return !!openSearchFn;
+    },
   };
   window.HARTOps = api;
 })();

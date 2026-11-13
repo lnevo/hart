@@ -31,6 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_tables_browser  # noqa: E402
 import share_cards  # noqa: E402
+from photo_tabs import tab_subs  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
 # The private-name check works by fingerprint, so the name itself is never written in this script.
@@ -335,8 +336,19 @@ def _read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
 
 
-def _record(title: str, url: str, kind: str, snippet: str, text: str) -> dict:
-    return {"title": title, "url": url, "kind": kind, "snippet": _clip(snippet or title, SNIPPET_MAX), "text": _clip(text, TEXT_MAX)}
+def _record(title: str, url: str, kind: str, snippet: str, text: str, thumb: str = "") -> dict:
+    rec = {"title": title, "url": url, "kind": kind, "snippet": _clip(snippet or title, SNIPPET_MAX), "text": _clip(text, TEXT_MAX)}
+    if thumb:
+        rec["thumb"] = thumb  # the one optional field: a small built image, for photo-like kinds only
+    return rec
+
+
+def _thumb(dest_root: Path, item: dict) -> str:
+    """The item's built grid thumbnail as a site-root-relative path, or "" when it is not in the build."""
+    rel = str(item.get("thumb") or "")
+    if not rel or rel.startswith(("/", "http:", "https:")) or ".." in rel.split("/"):
+        return ""
+    return rel if (dest_root / rel).is_file() else ""
 
 
 def _glossary_records(dest_root: Path) -> list[dict]:
@@ -453,8 +465,92 @@ def _fleet_records(dest_root: Path) -> list[dict]:
         caption = str(item.get("caption") or "")
         kind = FLEET_KINDS.get(item.get("album"), "locomotive" if item.get("type") == "Locomotive" else "car")
         words = [str(item.get(k) or "") for k in ("road", "number", "type")] + [caption]
-        records.append(_record(title, f"{FLEET_PAGE}#rolling-stock/{fid}", kind, caption, " ".join(w for w in words if w)))
+        records.append(_record(title, f"{FLEET_PAGE}#rolling-stock/{fid}", kind, caption, " ".join(w for w in words if w), _thumb(dest_root, item)))
     return records
+
+
+# A published credit is a source line; one carrying an address or phone number is left out.
+_CONTACT = re.compile(r"@|https?://|www\.|\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}", re.I)
+
+
+def _archive_records(dest_root: Path) -> list[dict]:
+    """One "archive" record per item the public Curated tab shows, from the built data/archive.json.
+
+    js/archive.js shows a public visitor only bucket "curated" (the build also drops "public": false and
+    items whose original is missing). Read: title, caption, date, kind label, tags and a credit with no contact
+    details. Never read: reason, origin, rights, credit_confidence, src, pdf or source_url. Opens at
+    photos/#historical/<id> (HARTArchive.openItem).
+    """
+    data = _read_json(dest_root / "data" / "archive.json")
+    labels = {k.get("id"): str(k.get("label") or "") for k in data.get("kinds") or []}
+    records = []
+    for item in data.get("items") or []:
+        aid, title = str(item.get("id") or ""), str(item.get("title") or "").strip()
+        if not aid or not title or item.get("bucket") != "curated" or item.get("public") is False:
+            continue
+        credit = str(item.get("credit") or "").strip()
+        credit = "" if _CONTACT.search(credit) else credit
+        tags = [str(t).replace("-", " ") for t in item.get("tags") or []]
+        words = [str(item.get("date") or ""), labels.get(item.get("kind"), ""), *tags, credit]
+        caption = str(item.get("caption") or "")
+        records.append(_record(title, f"{FLEET_PAGE}#historical/{aid}", "archive", caption, " ".join(w for w in [caption, *words] if w), _thumb(dest_root, item)))
+    return records
+
+
+def _photo_records(dest_root: Path) -> list[dict]:
+    """One "photo" record per layout-room photo that survived the build, from the built data/gallery.json.
+
+    Read: title, caption, date, credit and the album's label. Opens at photos/#layout/<id> (HARTGallery.openItem);
+    an item without an id has no link, so it is skipped.
+    """
+    data = _read_json(dest_root / "data" / "gallery.json")
+    labels = {a.get("id"): str(a.get("label") or "") for a in data.get("albums") or []}
+    shown = set(tab_subs(dest_root, "layout").values())  # the albums the Layout tab has chips for and mounts
+    records = []
+    for item in data.get("items") or []:
+        pid, title = str(item.get("id") or ""), str(item.get("title") or "").strip()
+        if not pid or not title or item.get("album") not in shown:
+            continue
+        caption = str(item.get("caption") or "")
+        words = [caption, labels.get(item.get("album"), ""), str(item.get("date") or ""), str(item.get("credit") or "")]
+        records.append(_record(title, f"{FLEET_PAGE}#layout/{pid}", "photo", caption, " ".join(w for w in words if w), _thumb(dest_root, item)))
+    return records
+
+
+def _mark_articles(records: list[dict], dest_root: Path) -> None:
+    """Page records for the articles listed in data/articles.json (the ones under library/) become kind "article"."""
+    hrefs = {str(a.get("href") or "") for a in _read_json(dest_root / "data" / "articles.json").get("items") or []}
+    for rec in records:
+        if rec["kind"] == "page" and rec["url"] in hrefs and rec["url"].startswith("library/"):
+            rec["kind"] = "article"
+
+
+SEARCH_THUMB_PX = 80  # shown at 40 px; 2x for sharp screens
+
+
+def _search_thumbs(records: list[dict], dest_root: Path) -> None:
+    """Point each record's thumb at a small square copy (assets/search/), so a results list does not pull
+    640 px grid thumbnails. Without Pillow, or if a copy cannot be made, the record keeps the grid thumb."""
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        return
+    out_dir = dest_root / "assets" / "search"
+    for rec in records:
+        src = rec.get("thumb")
+        if not src:
+            continue
+        name = re.sub(r"[^a-z0-9]+", "-", Path(src).with_suffix("").as_posix().lower()).strip("-") + ".jpg"
+        dest = out_dir / name
+        try:
+            if not dest.is_file():
+                out_dir.mkdir(parents=True, exist_ok=True)
+                with Image.open(dest_root / src) as im:
+                    small = ImageOps.fit(im.convert("RGB"), (SEARCH_THUMB_PX, SEARCH_THUMB_PX))
+                    small.save(dest, "JPEG", quality=78, optimize=True)
+            rec["thumb"] = dest.relative_to(dest_root).as_posix()
+        except OSError:
+            continue
 
 
 def build_search_index(dest_root: Path) -> dict:
@@ -469,7 +565,9 @@ def build_search_index(dest_root: Path) -> dict:
     # A crew page is drawn by script, so its own page record is a bare title; the sheet record replaces it.
     extra_urls = {e["url"] for e in extra}
     records = [r for r in records if r["url"] not in extra_urls] + extra
-    records += _fleet_records(dest_root)
+    records += _fleet_records(dest_root) + _archive_records(dest_root) + _photo_records(dest_root)
+    _mark_articles(records, dest_root)
+    _search_thumbs(records, dest_root)
     index = {
         "version": INDEX_VERSION,
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),

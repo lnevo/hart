@@ -2,9 +2,11 @@
 // you type. js/nav.js draws the button and panel and loads this file on demand.
 // Matching is a pure function (HARTSearch.match) so it can be tested with node.
 (function () {
-  var CAP = 8;
-  // Chip labels by record kind. Stage 1 sends only "page"; the rest are ready for later stages.
+  var CAP = 8; // a flat list (one group) shows this many before "Show all"
+  var GROUP_CAP = 3; // each group of a grouped list shows this many before its own "Show all"
+  // Chip labels by record kind.
   var KINDS = {
+    article: "Article",
     page: "Page",
     car: "Car",
     locomotive: "Locomotive",
@@ -20,25 +22,50 @@
     return KINDS[kind] || (kind ? String(kind).charAt(0).toUpperCase() + String(kind).slice(1) : "Page");
   }
 
-  // Lowercased copies of the searchable fields, made once per record.
+  // Folding: lower case, accents off, apostrophes dropped, "&" read as "and", every other mark a space.
+  // "B&O", "b and o" and "B & O" all fold to "b and o"; "YM-01" folds to "ym 01".
+  function fold(s) {
+    s = String(s || "").toLowerCase();
+    if (s.normalize) s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return s.replace(/['\u2019]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
+  }
+  // Folded with the spaces and the word "and" taken out: "b and o" -> "bo", "ym 01" -> "ym01".
+  function compact(s) {
+    return fold(s).split(" ").filter(function (w) { return w && w !== "and"; }).join("");
+  }
+  function words(s) {
+    var seen = Object.create(null);
+    return s.split(" ").filter(function (w) { return w && !seen[w] && (seen[w] = 1); });
+  }
+
+  // Folded copies of the searchable fields, made once per record.
   function prepare(records) {
     return (records || []).map(function (r, i) {
+      var title = fold(r.title);
+      var snippet = fold(r.snippet);
       return {
         rec: r,
         i: i,
-        title: String(r.title || "").toLowerCase(),
-        snippet: String(r.snippet || "").toLowerCase(),
-        text: String(r.text || "").toLowerCase(),
+        title: title,
+        snippet: snippet,
+        text: fold(r.text),
+        // Space-padded copies, for whole-word synonym checks without building strings per keystroke.
+        pt: " " + title + " ",
+        ps: " " + snippet + " ",
+        px: " " + fold(r.text) + " ",
+        // Compact title and its compact words, for the exact check ("ym01" is exact for "YM-01").
+        ct: compact(r.title),
+        cw: String(r.title || "").toLowerCase().split(/[\s,;:()\u2014\u2013|/]+/).map(compact).filter(Boolean),
+        tw: words(title), // whole words, for typo matching (title and snippet only)
+        sw: words(snippet),
       };
     });
   }
 
   function atWordStart(s, at) {
-    return at === 0 || /[^a-z0-9]/.test(s.charAt(at - 1));
+    return at === 0 || s.charAt(at - 1) === " ";
   }
 
-  // Score of one term against one record: title beats snippet beats text; a hit at the start
-  // of a word beats a hit inside one. 0 means no match.
   // 0 = no hit, 1 = hit inside a word, 2 = hit at the start of a word (any occurrence counts).
   function hitKind(s, term) {
     var at = s.indexOf(term);
@@ -46,7 +73,13 @@
     for (; at !== -1; at = s.indexOf(term, at + 1)) if (atWordStart(s, at)) return 2;
     return 1;
   }
+  // Whole words only (used for synonyms, so "cr" never reaches "crew").
+  function hasWhole(padded, phrase) {
+    return padded.indexOf(" " + phrase + " ") !== -1;
+  }
 
+  // Score of one term against one record: title beats snippet beats text; a hit at the start
+  // of a word beats a hit inside one. 0 means no match.
   function termScore(p, term) {
     var s = 0;
     var t = hitKind(p.title, term);
@@ -57,33 +90,247 @@
     return s;
   }
 
-  // Every term must hit somewhere. Best score first; ties go to the shorter title, then index order.
-  function match(prepared, query) {
-    var terms = String(query || "").toLowerCase().split(/\s+/).filter(Boolean);
-    if (!terms.length) return [];
+  // ---- Synonyms ------------------------------------------------------------------------------------------
+  // Railroad names the site spells more than one way. Each row is one set of names that stand for the same
+  // thing, and a search for any of them also finds the others (both ways, at half score, whole words only).
+  // Every name here appears in the site's own pages or data. Keep the rows apart: P&CV and P&OV are
+  // different names on purpose and must never share a row.
+  var SYNONYMS = [
+    // B&O and C&O are different railroads; each was part of the Chessie System, so "chessie" finds both
+    // but "b&o" never finds C&O.
+    ["chessie", "chessie system", "b&o"],
+    ["chessie", "chessie system", "c&o"],
+    ["p&le", "pittsburgh & lake erie"],
+    ["conrail", "cr"],
+    ["p&ov", "pittsburgh & ohio valley"],
+    ["p&cv", "pittsburgh & chartiers valley"],
+    ["pohc", "pittsburgh & ohio central"],
+    ["wle", "w&le", "wheeling & lake erie"],
+    ["nyc", "new york central"],
+    ["prr", "pennsylvania railroad"],
+    ["n&w", "norfolk & western"],
+  ];
+  var SYN_FACTOR = 0.5;
+  var SYN_MAX = 5; // longest name, in words
+  // compact key ("b and o" -> "bo") -> the folded names of its row
+  var SYN_INDEX = Object.create(null); // compact name -> every folded name in any row that holds it
+  SYNONYMS.forEach(function (row) {
+    var folded = row.map(fold);
+    folded.forEach(function (name) {
+      var key = compact(name);
+      var have = SYN_INDEX[key] || (SYN_INDEX[key] = []);
+      folded.forEach(function (x) {
+        if (have.indexOf(x) === -1) have.push(x);
+      });
+    });
+  });
+
+  // ---- Typos ---------------------------------------------------------------------------------------------
+  var FUZZY_MIN = 5; // shortest term that may be a typo; shorter terms and numbers stay exact
+  var FUZZY_TITLE = 15; // well below exact (100/60 title, 25/20 snippet)
+  var FUZZY_SNIPPET = 8;
+
+  // True when a and b differ by exactly one insert, delete, substitute or swap of neighbours.
+  function oneEdit(a, b) {
+    if (a === b) return false;
+    var la = a.length;
+    var lb = b.length;
+    if (Math.abs(la - lb) > 1) return false;
+    var i = 0;
+    while (i < la && i < lb && a.charAt(i) === b.charAt(i)) i++;
+    if (la === lb) {
+      if (a.slice(i + 1) === b.slice(i + 1)) return true; // substitute
+      return a.charAt(i) === b.charAt(i + 1) && a.charAt(i + 1) === b.charAt(i) && a.slice(i + 2) === b.slice(i + 2); // swap
+    }
+    return la > lb ? a.slice(i + 1) === b.slice(i) : b.slice(i + 1) === a.slice(i);
+  }
+  function fuzzyOk(term) {
+    return term.length >= FUZZY_MIN && /^[a-z]+$/.test(term);
+  }
+  function fuzzyScore(p, term) {
+    var i;
+    for (i = 0; i < p.tw.length; i++) if (oneEdit(p.tw[i], term)) return FUZZY_TITLE;
+    for (i = 0; i < p.sw.length; i++) if (oneEdit(p.sw[i], term)) return FUZZY_SNIPPET;
+    return 0;
+  }
+
+  // ---- Query ---------------------------------------------------------------------------------------------
+  // The query as units. A unit is one typed word or a phrase ("b and o", "ym 01"), with the other spellings
+  // that count as the same thing: variants ("ym01" -> "ym 01") and synonyms.
+  function parse(query) {
+    var pieces = String(query || "").split(/\s+/).map(fold).filter(Boolean);
+    var i;
+    // "b and o" typed with spaces becomes one phrase.
+    for (i = 0; i + 2 < pieces.length; i++) {
+      var joined = pieces[i] + " and " + pieces[i + 2];
+      if (pieces[i].length === 1 && pieces[i + 1] === "and" && pieces[i + 2].length <= 2 && SYN_INDEX[compact(joined)]) {
+        pieces.splice(i, 3, joined);
+      }
+    }
+    var units = [];
+    for (i = 0; i < pieces.length; ) {
+      var done = false;
+      for (var n = Math.min(SYN_MAX, pieces.length - i); n >= 1 && !done; n--) {
+        var span = pieces.slice(i, i + n).join(" ");
+        var row = SYN_INDEX[compact(span)];
+        if (row) {
+          // "bo" is the same name as "b&o" (a variant); the rest of the row are synonyms.
+          var key = compact(span);
+          units.push({
+            text: span,
+            variants: row.filter(function (x) { return compact(x) === key && x !== span; }),
+            syns: row.filter(function (x) { return compact(x) !== key; }),
+          });
+          i += n;
+          done = true;
+        }
+      }
+      if (!done) {
+        units.push({ text: pieces[i], variants: [], syns: [] });
+        i++;
+      }
+    }
+    // A lone "and" between other words only gets in the way.
+    if (units.length > 1) units = units.filter(function (u) { return u.text !== "and"; });
+    units.forEach(function (u) {
+      var m = /^([a-z]{2,})([0-9]+)$/.exec(u.text); // "ym01" also reads as "ym 01"
+      if (m) u.variants.push(m[1] + " " + m[2]);
+    });
+    return units;
+  }
+
+  function unitScore(p, u, fuzzy) {
+    var s = termScore(p, u.text);
+    var i;
+    for (i = 0; i < u.variants.length; i++) s = Math.max(s, termScore(p, u.variants[i]));
+    for (i = 0; i < u.syns.length; i++) {
+      var sy = u.syns[i];
+      var r = hasWhole(p.pt, sy) ? 100 : hasWhole(p.ps, sy) ? 25 : hasWhole(p.px, sy) ? 5 : 0;
+      s = Math.max(s, r * SYN_FACTOR);
+    }
+    if (!s && fuzzy && fuzzyOk(u.text)) s = fuzzyScore(p, u.text);
+    return s;
+  }
+
+  // Kind weights: articles and pages outrank photos, and rolling stock is the lowest of all (owner's call).
+  var WEIGHT = {
+    article: 1.2, page: 1.0, term: 0.9, industry: 0.9, crew: 0.9,
+    photo: 0.5, archive: 0.5, car: 0.3, locomotive: 0.3, mow: 0.3,
+  };
+  var STOCK = ["car", "locomotive", "mow"];
+  // Result groups, in tie-break order. Groups are then ordered by their best weighted score.
+  var GROUPS = [
+    { id: "pages", label: "Pages & articles", kinds: ["article", "page"] },
+    { id: "railroad", label: "Railroad", kinds: ["term", "industry", "crew"] },
+    { id: "stock", label: "Rolling stock", kinds: ["car", "locomotive", "mow"] },
+    { id: "photos", label: "Photos & archive", kinds: ["photo", "archive"] },
+  ];
+  var BEST = { id: "best", label: "Best match" };
+
+  function weight(kind) {
+    return WEIGHT[kind] || 0.5;
+  }
+  function groupOf(kind) {
+    for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i].kinds.indexOf(kind) !== -1) return i;
+    return GROUPS.length - 1;
+  }
+
+  // The whole query equals the whole title, or one whole word of it ("2738", "NVL", "YM-01"). Compared
+  // folded and compact, so "ym01" is exact for "YM-01" and "bo" for "B&O".
+  // c is the compact query, worked out once per search.
+  function isExact(p, c) {
+    if (!c) return false;
+    return p.ct === c || p.cw.indexOf(c) !== -1;
+  }
+
+  // Scored matches (flat): every unit must hit somewhere. Best first; ties go to the shorter title.
+  function scored(prepared, units, fuzzy) {
     var out = [];
     for (var i = 0; i < prepared.length; i++) {
       var p = prepared[i];
       var total = 0;
-      for (var j = 0; j < terms.length; j++) {
-        var s = termScore(p, terms[j]);
+      for (var j = 0; j < units.length; j++) {
+        var s = unitScore(p, units[j], fuzzy);
         if (!s) {
           total = 0;
           break;
         }
         total += s;
       }
-      if (total) out.push({ p: p, score: total });
+      if (total) out.push({ p: p, score: total, w: total * weight(p.rec.kind) });
     }
-    out.sort(function (a, b) {
-      return b.score - a.score || a.p.title.length - b.p.title.length || a.p.i - b.p.i;
-    });
-    return out.map(function (x) {
-      return x.p.rec;
-    });
+    return out;
+  }
+  function byScore(a, b) {
+    return b.w - a.w || a.p.title.length - b.p.title.length || a.p.i - b.p.i;
   }
 
-  var api = { match: match, prepare: prepare, kindLabel: kindLabel, KINDS: KINDS, CAP: CAP };
+  // Ranked, grouped results: { total, flat, groups: [{id, label, items: [record]}] }.
+  // Exact hits form a leading "Best match" group; the rest go into kind groups ordered by their best
+  // weighted score. When only one group has results, flat is true and the heading is not drawn.
+  function rank(prepared, query) {
+    var raw = String(query || "").toLowerCase().trim();
+    var units = parse(raw);
+    var res = { total: 0, flat: true, groups: [] };
+    if (!units.length) return res;
+    var hits = scored(prepared, units, false);
+    // Typos are tried only when nothing matches as typed, so a real word never drags in near-misses.
+    if (!hits.length && units.some(function (u) { return fuzzyOk(u.text); })) hits = scored(prepared, units, true);
+    hits.sort(byScore);
+    var whole = units.map(function (u) { return u.text; }).join(" ");
+    var exact = [];
+    var rest = [];
+    // Only the best few exact hits lead; a query like "b&o" is a whole word of dozens of cars, and the
+    // rest of those join their own groups so pages and articles are not pushed out.
+    // Rolling stock leads only for a number ("2738"), never for a road name ("b&o").
+    var numeric = /[0-9]/.test(raw);
+    var wholeKey = compact(whole);
+    hits.forEach(function (h) {
+      var lead = isExact(h.p, wholeKey) && (numeric || STOCK.indexOf(h.p.rec.kind) === -1);
+      (lead && exact.length < GROUP_CAP ? exact : rest).push(h);
+    });
+    var buckets = GROUPS.map(function (g) {
+      return { id: g.id, label: g.label, items: [], best: 0, order: 0 };
+    });
+    rest.forEach(function (h) {
+      var b = buckets[groupOf(h.p.rec.kind)];
+      b.items.push(h);
+      if (h.w > b.best) b.best = h.w;
+    });
+    buckets = buckets.filter(function (b) { return b.items.length; });
+    buckets.forEach(function (b, i) { b.order = i; });
+    // Rolling stock is always the last group, whatever its score.
+    buckets.sort(function (a, b) {
+      return (a.id === "stock") - (b.id === "stock") || b.best - a.best || a.order - b.order;
+    });
+    var groups = [];
+    if (exact.length) groups.push({ id: BEST.id, label: BEST.label, items: exact });
+    groups = groups.concat(buckets);
+    groups.forEach(function (g) {
+      g.items = g.items.map(function (h) { return h.p.rec; });
+    });
+    res.groups = groups;
+    res.flat = groups.length < 2;
+    res.total = hits.length;
+    return res;
+  }
+
+  // Flat list in display order (kept for callers and tests that want only the order).
+  function match(prepared, query) {
+    var out = [];
+    rank(prepared, query).groups.forEach(function (g) {
+      out = out.concat(g.items);
+    });
+    return out;
+  }
+
+  // Searches offered when the box is empty (each is tested against the real index, so each finds something).
+  var EXAMPLES = ["YM-01", "Shenango", "Conrail", "waybill", "hopper", "2738"];
+
+  var api = {
+    EXAMPLES: EXAMPLES, SYNONYMS: SYNONYMS, fold: fold, match: match, rank: rank, prepare: prepare, kindLabel: kindLabel, KINDS: KINDS, CAP: CAP,
+    GROUP_CAP: GROUP_CAP, GROUPS: GROUPS, WEIGHT: WEIGHT,
+  };
 
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window === "undefined") return;
@@ -123,14 +370,39 @@
     var more = root.querySelector(".search-more");
     var empty = root.querySelector(".search-empty");
     var hint = root.querySelector(".search-hint");
+    // "Try:" row under the hint while the box is empty; each button fills the box and runs the search.
+    var tryRow = document.createElement("p");
+    tryRow.className = "search-try small";
+    tryRow.hidden = true;
+    tryRow.appendChild(document.createTextNode("Try: "));
+    EXAMPLES.forEach(function (q) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "search-try-btn";
+      b.textContent = q;
+      tryRow.appendChild(b);
+    });
+    hint.parentNode.insertBefore(tryRow, hint.nextSibling);
+    tryRow.addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest(".search-try-btn");
+      if (!b) return;
+      input.value = b.textContent;
+      input.dispatchEvent(new Event("input"));
+      input.focus();
+    });
     var prepared = null;
     var unavailable = false;
     var shown = [];
     var active = -1;
     var showAll = false;
+    var openGroups = {}; // group ids whose "Show all" was used
+
+    function options() {
+      return list.querySelectorAll(".search-item");
+    }
 
     function setActive(n, fromMouse) {
-      var items = list.children;
+      var items = options();
       if (active >= 0 && items[active]) items[active].removeAttribute("aria-selected");
       active = n;
       if (n >= 0 && items[n]) {
@@ -162,6 +434,7 @@
       more.hidden = true;
       empty.hidden = true;
       hint.hidden = true;
+      tryRow.hidden = true;
       if (unavailable) {
         input.setAttribute("aria-expanded", "false");
         empty.hidden = false;
@@ -172,6 +445,7 @@
       if (!q.trim()) {
         input.setAttribute("aria-expanded", "false");
         hint.hidden = false;
+        tryRow.hidden = false;
         status.textContent = "";
         return;
       }
@@ -179,9 +453,8 @@
         status.textContent = "Loading search";
         return;
       }
-      var all = match(prepared, q);
-      shown = showAll ? all : all.slice(0, CAP);
-      if (!all.length) {
+      var res = rank(prepared, q);
+      if (!res.total) {
         input.setAttribute("aria-expanded", "false");
         empty.hidden = false;
         empty.innerHTML = "No match. Try " + fallbackLinks() + ".";
@@ -189,23 +462,49 @@
         return;
       }
       input.setAttribute("aria-expanded", "true");
-      list.innerHTML = shown
-        .map(function (r, i) {
-          return (
-            '<li role="option" id="search-opt-' + i + '" class="search-item">' +
-            '<a tabindex="-1" href="' + esc(base + (r.url || "")) + '">' +
-            '<span class="search-kind">' + esc(kindLabel(r.kind)) + "</span>" +
-            '<span class="search-title">' + esc(r.title) + "</span>" +
-            (r.snippet ? '<span class="search-snippet">' + esc(r.snippet) + "</span>" : "") +
-            "</a></li>"
-          );
-        })
-        .join("");
-      if (all.length > shown.length) {
-        more.hidden = false;
-        more.textContent = "Show all " + all.length;
+      var n = 0;
+      function item(r) {
+        var thumb = r.thumb
+          ? '<img class="search-thumb" src="' + esc(base + r.thumb) + '" alt="" width="40" height="40" loading="lazy" decoding="async">'
+          : "";
+        return (
+          '<li role="option" id="search-opt-' + n++ + '" class="search-item' + (thumb ? " has-thumb" : "") + '">' +
+          '<a tabindex="-1" href="' + esc(base + (r.url || "")) + '">' +
+          '<span class="search-kind">' + esc(kindLabel(r.kind)) + "</span>" +
+          thumb +
+          '<span class="search-title">' + esc(r.title) + "</span>" +
+          (r.snippet ? '<span class="search-snippet">' + esc(r.snippet) + "</span>" : "") +
+          "</a></li>"
+        );
       }
-      status.textContent = all.length + (all.length === 1 ? " result" : " results");
+      // "Show all N" is an option too, so the arrow keys reach it and Enter opens the rest.
+      function moreOption(groupId, count) {
+        return (
+          '<li role="option" id="search-opt-' + n++ + '" class="search-item search-group-more" data-group="' + groupId + '">' +
+          '<span class="search-more search-group-btn">Show all ' + count + "</span></li>"
+        );
+      }
+      var html = "";
+      if (res.flat) {
+        var items = res.groups[0].items;
+        var cut = showAll ? items : items.slice(0, CAP);
+        html = cut.map(item).join("");
+        if (items.length > cut.length) html += moreOption("", items.length);
+      } else {
+        res.groups.forEach(function (g) {
+          var cut = openGroups[g.id] ? g.items : g.items.slice(0, GROUP_CAP);
+          html +=
+            '<li role="group" class="search-grp" aria-labelledby="search-grp-' + g.id + '">' +
+            '<div class="search-group" id="search-grp-' + g.id + '">' + esc(g.label) + "</div>" +
+            '<ul role="none" class="search-grp-items">' +
+            cut.map(item).join("") +
+            (g.items.length > cut.length ? moreOption(g.id, g.items.length) : "") +
+            "</ul></li>";
+        });
+      }
+      list.innerHTML = html;
+      shown = options();
+      status.textContent = res.total + (res.total === 1 ? " result" : " results");
     }
 
     var loading = false;
@@ -223,6 +522,7 @@
 
     input.addEventListener("input", function () {
       showAll = false;
+      openGroups = {};
       if (unavailable) load();
       render();
     });
@@ -236,7 +536,9 @@
         setActive(active <= 0 ? n - 1 : active - 1);
       } else if (e.key === "Enter" && n) {
         e.preventDefault();
-        go(list.children[active >= 0 ? active : 0].querySelector("a"), e);
+        var opt = shown[active >= 0 ? active : 0];
+        if (opt.hasAttribute("data-group")) expand(opt);
+        else go(opt.querySelector("a"), e);
       }
     });
     // Following a result that is the page and hash already shown changes nothing, so no hashchange
@@ -258,11 +560,26 @@
       render();
       input.focus();
     });
+    // Open the rest of a group ("" = the single flat list) and keep the highlight on the first new row.
+    function expand(opt) {
+      var g = opt.getAttribute("data-group");
+      var at = Array.prototype.indexOf.call(options(), opt);
+      if (g) openGroups[g] = true;
+      else showAll = true;
+      render();
+      input.focus();
+      if (at >= 0) setActive(at);
+    }
+    list.addEventListener("click", function (e) {
+      var opt = e.target.closest && e.target.closest(".search-group-more");
+      if (opt) expand(opt);
+    });
     // Mouse hover follows the keyboard highlight so the two never disagree.
     list.addEventListener("mousemove", function (e) {
-      var li = e.target.closest && e.target.closest("li");
+      var li = e.target.closest && e.target.closest(".search-item");
       if (!li) return;
-      var idx = Array.prototype.indexOf.call(list.children, li);
+      var idx = Array.prototype.indexOf.call(options(), li);
+      if (idx < 0) return;
       if (idx !== active) setActive(idx, true);
     });
     render();
