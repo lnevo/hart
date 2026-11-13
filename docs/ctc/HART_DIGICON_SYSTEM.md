@@ -85,7 +85,7 @@ SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/h
 
 ### JMRI prefixes in Designer
 
-Enable these connection prefixes in Designer so the devices in `cats/data/jmri_devices.csv` resolve. Bind by **user name** from the occupancy and turnout CSVs wherever Designer allows.
+Enable these connection prefixes in Designer. `cats/data/jmri_devices.csv` lists the M2S/M2T devices CATS binds, plus `ISCLOCKRUNNING` and three IT entries; the other rows below are what `tables.xml` also holds. Bind by **user name** from the occupancy and turnout CSVs wherever Designer allows.
 
 | Prefix | Type | Use |
 |--------|------|-----|

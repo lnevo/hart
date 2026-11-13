@@ -1,6 +1,6 @@
 # docs/ops
 
-The published Word and PowerPoint files for crews and the dispatcher; this folder is their source of record (ADR-010). They are generated: run the rebuild scripts below from `ops/hart-ops/` with that folder's `.venv`, and they write the files here. Pipeline notes: [`wiki/pipelines/ops-publications.md`](../../wiki/pipelines/ops-publications.md).
+The published Word and PowerPoint files for crews and the dispatcher; this folder is their source of record (ADR-010). They are generated: run the rebuild scripts below from the repo root (each command changes into `ops/hart-ops/` and uses that folder's `.venv`), and they write the files here. Pipeline notes: [`wiki/pipelines/ops-publications.md`](../../wiki/pipelines/ops-publications.md).
 
 Also kept here: the STS to JMRI notes ([`STS_TO_JMRI.md`](STS_TO_JMRI.md)), the Operations Pro build record (`OPSPRO_*.md`, `opspro-build/`), the car-card prompt the site links to, and the STRR speed-match SOP the site publishes.
 
@@ -12,7 +12,7 @@ Body content and layout are defined in
 `publications/rebuild_scale_operating_instructions.py`:
 
 ```bash
-.venv/bin/python publications/rebuild_scale_operating_instructions.py
+cd ops/hart-ops && .venv/bin/python publications/rebuild_scale_operating_instructions.py
 ```
 
 ## Dispatcher Train List (DS-01)
@@ -20,7 +20,7 @@ Body content and layout are defined in
 Canonical file: `Neville_Island_Dispatcher_Train_List.docx` (Revision D).
 
 ```bash
-.venv/bin/python publications/rebuild_dispatcher_train_list.py
+cd ops/hart-ops && .venv/bin/python publications/rebuild_dispatcher_train_list.py
 ```
 
 ## Yardmaster Sequence (YM-01)
@@ -28,7 +28,7 @@ Canonical file: `Neville_Island_Dispatcher_Train_List.docx` (Revision D).
 Canonical file: `Neville_Island_Yardmaster_Sequence.docx` (Revision D).
 
 ```bash
-.venv/bin/python publications/rebuild_yardmaster_sequence.py
+cd ops/hart-ops && .venv/bin/python publications/rebuild_yardmaster_sequence.py
 ```
 
 ## Crew Instructions (CI-D749 / CI-NVL / CI-CK1)
@@ -42,7 +42,7 @@ One 5×8 sheet per job:
 | CI-CK1 | `Neville_Island_Crew_CK1.docx` |
 
 ```bash
-.venv/bin/python publications/rebuild_crew_instructions.py
+cd ops/hart-ops && .venv/bin/python publications/rebuild_crew_instructions.py
 ```
 
 ## Station Map (SM-01)
@@ -54,7 +54,7 @@ Scale–Barn runaround / South Yard lead, East End industries, Princess →
 Shenango / McKeesport–McKees Rocks). Asset: `publications/assets/station_map_subdivision.png`.
 
 ```bash
-.venv/bin/python publications/rebuild_station_map.py
+cd ops/hart-ops && .venv/bin/python publications/rebuild_station_map.py
 ```
 
 ## Local Station Maps (SM-02 … SM-06)
@@ -72,7 +72,7 @@ Detail schematics with track numbers, switch numbers, and spur names:
 Sources: dispatcher panel labels, SM-01 topology, seed industry spot names.
 
 ```bash
-.venv/bin/python publications/rebuild_local_station_maps.py
+cd ops/hart-ops && .venv/bin/python publications/rebuild_local_station_maps.py
 ```
 
 ## New Operator Primer (HB-01)
@@ -82,7 +82,7 @@ Canonical file: `Neville_Island_New_Operator_Primer.docx` (Revision A).
 Pre-session briefing for new crew.
 
 ```bash
-.venv/bin/python publications/rebuild_operator_primer.py
+cd ops/hart-ops && .venv/bin/python publications/rebuild_operator_primer.py
 ```
 
 ## Related live files

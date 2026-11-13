@@ -2,7 +2,7 @@
 
 Chronological screenshots captured while building the **Panel** USS machine
 (`jmri/layouts/hart/ctc/GUIObjects.xml`, 15 columns). Used for the stop-motion
-evolution video and [`HOW_WE_BUILT_CTC.md`](HOW_WE_BUILT_CTC.md).
+evolution video and [`HOW_WE_BUILT_CTC.md`](../HOW_WE_BUILT_CTC.md).
 
 | Order | File | Stage |
 |------:|------|-------|

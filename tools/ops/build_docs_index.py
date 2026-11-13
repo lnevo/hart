@@ -5,6 +5,7 @@ from __future__ import annotations
 import subprocess
 from collections import defaultdict
 from pathlib import Path
+from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOLING = (".py", ".sh", ".scad", ".stl", ".3mf", ".gitignore")
@@ -44,7 +45,7 @@ def main() -> int:
         lines += [f"## {area}", "", "| Changed | Document | Type |", "|---|---|---|"]
         for changed, path in sorted(groups[area], key=lambda r: (r[0], r[1]), reverse=True):
             name = Path(path).name
-            link = path[len("docs/"):].replace(" ", "%20")
+            link = quote(path[len("docs/"):])
             lines.append(f"| {changed} | [{name}]({link}) | {Path(path).suffix.lstrip('.')} |")
         lines.append("")
     (ROOT / "docs/INDEX.md").write_text("\n".join(lines), encoding="utf-8")
