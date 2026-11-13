@@ -342,6 +342,44 @@ a:hover {
   white-space: nowrap;
 }
 
+.search-group {
+  padding: 0.5rem 0.6rem 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--rule);
+}
+
+.search-group-more {
+  padding: 0.25rem 0.6rem;
+}
+
+.search-group-more .search-more {
+  min-height: 2.25rem;
+  margin-top: 0;
+}
+
+/* A thumbnail sits between the kind chip and the text; records without one keep the two-column row. */
+.search-item.has-thumb a {
+  grid-template-columns: auto auto 1fr;
+}
+
+.search-thumb {
+  grid-row: 1 / span 2;
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: cover;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+}
+
+.search-item.has-thumb .search-title,
+.search-item.has-thumb .search-snippet {
+  grid-column: 3;
+}
+
 .search-more {
   display: block;
   width: 100%;
