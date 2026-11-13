@@ -55,11 +55,12 @@ T162 and T160 show as three.
 
 Known gaps (end of the 2026-11-13 session):
 
-- **Upper band after the helix-top move.** The helix-top switches (T285, T251, T175, T199) are drawn on the
-  upper band with H1/H2 there and connector A at T199 (`levels.assign`). With the moved T300 right-hand it
-  draws with no faults or warnings and the peninsula loop runs round the outside of its spurs at the east,
-  as the owner prefers. H1, H2 and A sit below the band's middle, pointing east (`helix_side`), not at an end;
-  the run from T262 up to T237 is one long slope. The moved T300's hand was found by trial.
+- **Helix-top switches (owner's layout of the bands, 2026-11-13).** T285 and T251 are drawn on the upper band
+  with H2 McKeesport; T199 and T175 on the main level with H1 McKees Rocks. The two crossovers between the
+  pairs are the links between the bands: connector B from T199 and connector A from T175. The owner said
+  drawing T175 on the main level is optional; it is drawn. The moved T300 is right-hand, found by trial.
+- The main level's main route diverges at T187 onto the long track to T153 (not the track through T1 and 12),
+  then runs through T160 and T155 round the balloon loop at T196.
 - **Rows are stricter than they need to be.** Two tracks are kept on separate rows whenever the working
   order had them open together, even if they end up nowhere near each other along the band. On the upper
   band this stops the helix tracks sitting directly under T300: the peninsula's lower spurs claim those rows

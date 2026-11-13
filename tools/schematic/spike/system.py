@@ -12,6 +12,8 @@ def main(built, built_opts, main_graph, main_opts, out, helix_style="letters"):
     bo = dict(schem.DEFAULTS, **json.load(open(built_opts)), helix_style=helix_style)
     mo = dict(schem.DEFAULTS, **json.load(open(main_opts)), helix_style=helix_style)
     bands = []
+    tracks = sorted(set(mo.get("helix", {}).values()))      # H1, H2 ... mean the same track on every band
+    bo["helix_tracks"] = mo["helix_tracks"] = tracks
 
     g = json.load(open(main_graph))
     schem.apply_edits(g, mo["edits"])

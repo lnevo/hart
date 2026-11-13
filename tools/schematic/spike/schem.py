@@ -658,7 +658,9 @@ def overlaps(nodes, strands, R, x, need, order):
         if sid in R["diag"]:
             continue
         su, sv, _ = need[sid]
-        spans.append((R["srow"][sid], x[s["src"][0]] + su, x[s["dst"][0]] - sv, sid))
+        room = lambda n: 1 if nodes[n].get("sub") in ("link", "helix") else 0     # a connector's circle needs a cell
+        spans.append((R["srow"][sid], x[s["src"][0]] + su - room(s["src"][0]),
+                      x[s["dst"][0]] - sv + room(s["dst"][0]), sid))
     found = set()
     for (r1, a1, b1, s1), (r2, a2, b2, s2) in itertools.combinations(spans, 2):
         if r1 == r2 and a1 < b2 and a2 < b1:
@@ -877,7 +879,7 @@ def split_levels(g, spec):
             for k, (n, p) in enumerate(((e["u"], e["up"]), (e["v"], e["vp"]))):
                 end = f"LINK:{L}{k}"
                 other = e["v"] if k == 0 else e["u"]
-                N[end] = dict(kind="end", sub="link", label=L, to=names[level[other]]["name"])
+                N[end] = dict(kind="end", sub="link", label=L, to=names[level[other]]["name"].split(",")[0])
                 g["edges"].append(dict(e, id=f"{e['id']}{'xy'[k]}", u=n, up=p, v=end, vp="E", cm=round(e["cm"] / 2, 1)))
     parent = {n: n for n in N}
 
@@ -955,10 +957,11 @@ def layout_one(g, sig, T, opts, warnings):
         for a, b in overlaps(nodes, strands, R, x, need, order) - rows.extra:
             (sa, da), (sb, db) = ((strands[k]["src"][0], strands[k]["dst"][0]) for k in (a, b))
             stub = lambda p, q: nodes[p]["kind"] == "end" or nodes[q]["kind"] == "end"
+            gap = lambda p, q: 1 + sum(nodes[t].get("sub") in ("link", "helix") for t in (p, q))    # room for the circles
             if ev[da] < ev[sb] and stub(da, sb):    # a ends before b starts and one is a stub: slide it along the row
-                apart.add((da, sb, 1))
+                apart.add((da, sb, gap(da, sb)))
             elif ev[db] < ev[sa] and stub(db, sa):
-                apart.add((db, sa, 1))
+                apart.add((db, sa, gap(db, sa)))
             else:
                 clash.add((a, b))
         more = (slope_rules(band, ev) | apart) - xcons - refused
@@ -1133,8 +1136,9 @@ def draw_band(band, title, opts, top, left):
                     svg.append(f'<ellipse cx="{xe + 7 + 7 * k:.1f}" cy="{ye:.1f}" rx="6" ry="9" stroke-width="1.6"/>')
                 label(xe + 34, ye + 3, "HELIX", 7, anchor="start", weight="bold", extra='letter-spacing="1"')
             elif d.get("sub") == "helix" and style == "letters":    # a lettered connector, like the rise
-                tracks = sorted({strands[q]["name"] for q in strands for e_ in (strands[q]["src"][0], strands[q]["dst"][0])
-                                 if nodes[e_].get("sub") == "helix"})      # same letter for the same track on every level
+                tracks = opts.get("helix_tracks") or sorted(
+                    {strands[q]["name"] for q in strands for e_ in (strands[q]["src"][0], strands[q]["dst"][0])
+                     if nodes[e_].get("sub") == "helix"})                  # same letter for the same track on every level
                 mine = next(strands[q]["name"] for q in strands if n in (strands[q]["src"][0], strands[q]["dst"][0]))
                 tag = "H" + str(1 + tracks.index(mine))
                 svg.append(f'<circle cx="{xe + 9:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
@@ -1146,7 +1150,7 @@ def draw_band(band, title, opts, top, left):
             elif d.get("sub") == "link":
                 svg.append(f'<circle cx="{xe + 9 * dirx:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
                 label(xe + 9 * dirx, ye + 3.5, d["label"], 10, weight="bold")
-                label(xe + 21 * dirx, ye + 3, "TO " + d["to"].upper(), 7, anchor="start" if dirx == 1 else "end")
+                label(xe + 9 * dirx, ye + 19, "TO " + d["to"].upper(), 6)      # under the circle, clear of the track
             elif d.get("sub") == "open":
                 svg.append(f'<path d="M{xe:.1f},{ye:.1f} m{-6 * dirx},-5 l{6 * dirx},5 l{-6 * dirx},5" stroke-width="1.6"/>')
                 if d.get("label"):
