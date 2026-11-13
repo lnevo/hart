@@ -1305,6 +1305,8 @@ def signal_spot(pts, cm, edge_cm, cell, slide=0.0):
     run goes at its share of the run's real length, moved onto the nearest level stretch. Returns the point and
     the direction of the governed move (back toward the start of the polyline)."""
     segs, d0 = [], 0.0
+    if not any(abs(b[1] - a[1]) < 0.01 and b != a for a, b in zip(pts, pts[1:])):
+        return None                 # no level stretch on this run: the caller draws the mast along the slope
     for a, b in zip(pts, pts[1:]):
         L = math.hypot(b[0] - a[0], b[1] - a[1])
         if L and abs(b[1] - a[1]) < 0.01:
@@ -1322,6 +1324,62 @@ def signal_spot(pts, cm, edge_cm, cell, slide=0.0):
         want = min(max(want + slide * cell, a + margin), b - margin)
     p, u = _along(pts, want)
     return p, (-u[0], -u[1])
+
+
+def draw_sloped_signal(sg, pts, half, heads, r, arm, stem, gap, dash, opts, svg, label, P):
+    """A mast on a run that is all slope (a ladder link): the symbol is drawn along the slope, on the right-hand
+    side of the move, a third of the way from the switch it governs into; its name stays level beside it."""
+    L = sum(math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(pts, pts[1:]))
+    length = arm + 2 * r * heads
+    size = opts["num_px"]
+
+    def fits(t):
+        """The symbol's own shape (stem, circles) clear of every line, and room for the name on one side."""
+        cx, cy, deg, box = t
+        c, sn = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+        at = lambda a, b: (cx + a * c - b * sn, cy + a * sn + b * c)
+        spots = [(at(0, -stem / 2), 0.5), (at(0, stem / 2), 0.5), (at(0, 0), 0.5)]
+        spots += [(at(arm + r + 2 * r * h, 0), r) for h in range(heads)]
+        for a, b, w in P.lines:
+            if any(labels.seg_point(a, b, q) < rad + w / 2 + 0.6 for q, rad in spots):
+                return False
+        if any(labels.boxes_overlap(box, o, 0.6) for o in P.boxes):
+            return False
+        w = labels.text_width(sg["mast"], size, "normal", 0.0)
+        my = (box[1] + box[3]) / 2
+        sides = [(box[2] + 2, my - 0.4 * size, box[2] + 2 + w, my + 0.4 * size),
+                 (box[0] - 2 - w, my - 0.4 * size, box[0] - 2, my + 0.4 * size)]
+        return any(P.clear(sd, 0.6) for sd in sides)
+
+    tries = []
+    for hand in (1, -1):                        # right-hand side first; the other side only when it is blocked
+        for f in (1 / 3, 1 / 2, 2 / 3):
+            (px, py), u = _along(pts, L * f)
+            tx, ty = -u[0], -u[1]               # the governed move runs back toward the start of pts
+            nx, ny = -ty * hand, tx * hand      # hand 1: right-hand side of that move (screen y points down)
+            off = half + gap + r
+            cx, cy = px + nx * off, py + ny * off
+            deg = math.degrees(math.atan2(ty, tx))
+            c, sn = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+            xy = [(cx + a * c - b * sn, cy + a * sn + b * c) for a, b in ((0, -stem / 2), (0, stem / 2), (length, -r), (length, r))]
+            box = (min(p[0] for p in xy), min(p[1] for p in xy), max(p[0] for p in xy), max(p[1] for p in xy))
+            tries.append((cx, cy, deg, box))
+            if fits(tries[-1]):
+                break
+        else:
+            continue
+        break
+    cx, cy, deg, box = tries[-1] if fits(tries[-1]) else tries[0]
+    parts = [f'<path d="M0,{-stem / 2} L0,{stem / 2} M0,0 L{arm},0" stroke-width="0.9"/>']
+    parts += [f'<circle cx="{arm + r + 2 * r * h:.1f}" cy="0" r="{r}" stroke-width="0.9" fill="#fff"{dash}/>'
+              for h in range(heads)]
+    svg.append(f'<g transform="translate({cx:.1f},{cy:.1f}) rotate({deg:.1f})">' + "".join(parts) + "</g>")
+    P.box(box)
+    mx, my = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+    cands = [(box[2] + 2, my + 0.36 * size, "start"), (box[0] - 2, my + 0.36 * size, "end"),
+             (mx, box[3] + 0.72 * size + 1.5, "middle"), (mx, box[1] - 1.5, "middle")]
+    P.ask("mast", sg["mast"], size, cands,
+          emit=lambda q, t=sg["mast"]: label(q[0], q[1], t, size, anchor=q[2]))
 
 
 def draw_signals(band, drawn, opts, X, Y, svg, label, P):
@@ -1344,6 +1402,10 @@ def draw_signals(band, drawn, opts, X, Y, svg, label, P):
             pts = pts[::-1]
         half = (opts["main_w"] if strands[k]["main"] else opts["side_w"]) / 2
         heads = sg.get("heads", 1)
+        dash = ' stroke-dasharray="1.6 1.2"' if sg["kind"] == "planned" else ""
+        if signal_spot(pts, sg["cm_from_toward"], sg["edge_cm"], opts["cell"]) is None:
+            draw_sloped_signal(sg, pts, half, heads, r, arm, stem, gap, dash, opts, svg, label, P)
+            continue
         best = None
         for slide in (0.0, 0.5, 1.0, -0.4, 1.5, 2.0):      # slide along the level stretch until the symbol is clear
             cm = sg["cm_from_toward"]
@@ -1359,7 +1421,6 @@ def draw_signals(band, drawn, opts, X, Y, svg, label, P):
             best = best or (px, py, tx, cy, sym)
         px, py, tx, cy, sym = best
         P.box(sym)
-        dash = ' stroke-dasharray="1.6 1.2"' if sg["kind"] == "planned" else ""
         svg.append(f'<path d="M{px:.1f},{cy - stem / 2:.1f} L{px:.1f},{cy + stem / 2:.1f} '
                    f'M{px:.1f},{cy:.1f} L{px + tx * arm:.1f},{cy:.1f}" stroke-width="0.9"/>')
         for h in range(sg.get("heads", 1)):

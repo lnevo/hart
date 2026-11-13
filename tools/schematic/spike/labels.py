@@ -9,7 +9,7 @@ Positions are SVG text anchors: (x, baseline y, text-anchor).
 """
 import math
 
-from label_check import BELOW, CAP, boxes_overlap, seg_box_gap, text_width
+from label_check import BELOW, CAP, _pt_seg, boxes_overlap, seg_box_gap, text_width
 
 PAD = 1.2
 
@@ -74,3 +74,7 @@ def around(x, y, size, dxs, dys, anchor="middle"):
 
 def dist(p, q):
     return math.hypot(p[0] - q[0], p[1] - q[1])
+
+
+def seg_point(a, b, p):
+    return _pt_seg(p, a, b)
