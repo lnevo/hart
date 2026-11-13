@@ -28,7 +28,7 @@ Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../j
 3. If Dispatcher asks to rebuild because traininfo names are stale, try
    `python3 jmri/layouts/hart/scripts/retarget_dispatcher_traininfo_transits.py`
    first.
-4. After Stage 1, re-add manual Princess SML pairs only if Discover still missed them (pipeline 4).
+4. After Stage 1, `run_panelpro_stage1.sh` re-adds the manual Princess SML pairs and runs the other repairs itself (see `wiki/DISPATCHER_LAYOUT_HOOPS.md`).
 5. Stage 1 Store writes BlockContentsIcons at level 0. The launcher runs
    `polish_hart_layout_editor.py --block-labels-only --sync-output` so labels
    stay on level 4 (above the rail).
