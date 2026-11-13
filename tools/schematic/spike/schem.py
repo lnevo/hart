@@ -815,8 +815,13 @@ def mark_main(g, routes):
         adj[e["u"]].append((e["v"], e))
         adj[e["v"]].append((e["u"], e))
         e["main"] = False
-    for a, b in routes:
+    for a, b, *how in routes:
         a, b = node(a), node(b)
+        if how:                 # "direct": every track that runs straight between the two, however long
+            for e in g["edges"]:
+                if {e["u"], e["v"]} == {a, b}:
+                    e["main"] = True
+            continue
         dist, prev, heap = {a: 0.0}, {}, [(0.0, a)]
         while heap:
             d, n = heapq.heappop(heap)

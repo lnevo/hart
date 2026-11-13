@@ -55,14 +55,14 @@ T162 and T160 show as three.
 
 Known gaps (end of the 2026-11-13 session):
 
-- **Upper band after the helix-top move.** The owner asked for the helix-top switches (T285, T251, T175, T199)
-  to be drawn on the upper band, with H1/H2 there and connector A at T199 (`levels.assign` in
-  `main_asbuilt_opts.json`). It draws without crossings, but H1 and H2 sit mid-band instead of at the west
-  end, the double crossover spans three rows and is reported with its two tracks in swapped order (not
-  verified to connect the right tracks), and the moved T300 is set left-hand by trial. This band needs its
-  rows and ends worked out next.
+- **Upper band after the helix-top move.** The helix-top switches (T285, T251, T175, T199) are drawn on the
+  upper band with H1/H2 there and connector A at T199 (`levels.assign`). With the moved T300 right-hand it
+  draws with no faults or warnings and the peninsula loop runs round the outside of its spurs at the east,
+  as the owner prefers. H1, H2 and A sit below the band's middle, pointing east (`helix_side`), not at an end;
+  the run from T262 up to T237 is one long slope. The moved T300's hand was found by trial.
 - A band has no rule for which end is which except `left_end` (staging) and `side` on helix ends (upper).
-- Main weight on the upper band follows `main_route`, chosen by the agent, not the owner.
+- Main weight on the upper band follows `main_route`: the owner's route round the peninsula loop from the
+  double crossover to T241 and back to T300, plus the agent's choice from the helix to T237.
 - AnyRail's section names (Mainline, Branchline) are layer placeholders (owner, 2026-11-13); band titles are
   the spike's own.
 - Labels are not checked for collisions (the connector text can overlap a track); switch numbers collide in
