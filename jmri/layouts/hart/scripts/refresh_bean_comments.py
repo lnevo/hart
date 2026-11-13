@@ -77,9 +77,6 @@ MAST_SWITCH_OVERRIDE = {
     "Mast 26L": "Switch 21",
     "Mast 26R": "Switch 21",
     "Mast 8LC": "Switch 7",
-    "Mast 12R": "Switch 11",
-    "Mast 10RA": "Switch 9",
-    "Mast 10RB": "Switch 9",
 }
 
 

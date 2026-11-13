@@ -685,3 +685,7 @@ fb,Switch 13-1 FB N,FB Switch 7 N,,M2S1367,Node: 13 Sensor: 0 | IN: 1 Ports: 1,h
 fb,Switch 13-1 FB R,FB Switch 7 R,,M2S1368,Node: 13 Sensor: 1 | IN: 1 Ports: 2,historical alias; canvas FB Switch N N/R
 fb,Switch 13-3 FB N,FB Switch 9 N,,M2S1371,Node: 13 Sensor: 4 | IN: 1 Ports: 5,historical alias; canvas FB Switch N N/R
 fb,Switch 13-3 FB R,FB Switch 9 R,,M2S1372,Node: 13 Sensor: 5 | IN: 1 Ports: 6,historical alias; canvas FB Switch N N/R
+mast,Mast 9LA,Mast 10RA,Engine House,virtual $1021,Engine House | Switch 9,historical alias; even signal number (was 9LA) 2026-11-12
+mast,Mast 9LB,Mast 10RB,Engine House,virtual $1022,Engine House | Switch 9,historical alias; even signal number (was 9LB) 2026-11-12
+mast,Mast 11L,Mast 12R,Engine House,virtual $1020,Engine House | Switch 11,historical alias; even signal number (was 11L) 2026-11-12
+mast,Mast 13R,Mast 14R,Barn,virtual $1019,Barn | Switch 13,historical alias; even signal number (was 13R) 2026-11-12
