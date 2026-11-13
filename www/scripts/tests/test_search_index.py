@@ -412,3 +412,184 @@ class ReviewFixesStage2(unittest.TestCase):
         (rec,) = build._crew_records(root)
         self.assertIn("EQ-01", rec["text"])
         self.assertNotIn("index.html", rec["text"])
+
+
+# All three tabs' chip maps, as photos/index.html writes them.
+ALL_CATS = (
+    '<script>var CATS = {'
+    ' historical: { chips: "#archive-kinds", attr: "data-kind", subs: { photos: "photo", ads: "ad", maps: "map" } },'
+    ' layout: { chips: "#layout-albums", attr: "data-album", subs: { "session-night": "layout", panels: "panels", build: "progress" } },'
+    ' "rolling-stock": { chips: "#album-bar", attr: "data-album", subs: { locomotives: "locos", freight: "freight" } } };</script>'
+)
+
+
+def _photos_site(archive=None, gallery=None, fleet=None, files=()) -> Path:
+    """A built tree with the Photos page, any of the three data files, and small files at the given paths."""
+    root = _site({"photos/index.html": _page(title="Photos — HART", body=f"<h1>Photos</h1><p>{INTRO}</p>" + ALL_CATS)})
+    (root / "data").mkdir(exist_ok=True)
+    for name, items, extra in (("archive.json", archive, {"kinds": [{"id": "ad", "label": "Advertisement"}]}),
+                               ("gallery.json", gallery, {"albums": [{"id": "layout", "label": "Session night"}]}),
+                               ("fleet-gallery.json", fleet, {})):
+        if items is not None:
+            (root / "data" / name).write_text(json.dumps({**extra, "items": items}), encoding="utf-8")
+    for rel in files:
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (root / rel).write_bytes(b"x")
+    return root
+
+
+def _arch(aid="ad-1", **extra):
+    return {"id": aid, "bucket": "curated", "kind": "ad", "title": "Isle of Chemicals", "caption": "A 1949 advertisement.",
+            "date": "1949-05", "tags": ["neville-island", "chemicals"], "credit": "Chemical Society journal",
+            "src": f"assets/archive/{aid}.jpg", "thumb": f"assets/archive/thumbs/{aid}.jpg",
+            "source_url": "https://doi.org/10.1/x", "credit_confidence": "verified", "rights": "Trade advertisement",
+            "reason": "kept for the plant view", "origin": "Desktop/private folder", **extra}
+
+
+def _pic(pid="layout-crew-lounge", **extra):
+    return {"id": pid, "album": "layout", "src": f"assets/gallery/layout/{pid}.jpg", "thumb": f"assets/gallery/thumbs/layout/{pid}.jpg",
+            "title": "Crew lounge", "caption": "Where operators gather.", "credit": "Layout photos", **extra}
+
+
+def _kind(index, kind):
+    return [r for r in index["records"] if r["kind"] == kind]
+
+
+class ArchiveRecords(unittest.TestCase):
+    def test_curated_item_record_and_thumb(self):
+        root = _photos_site(archive=[_arch()], files=["assets/archive/thumbs/ad-1.jpg"])
+        (rec,) = _kind(_index(root), "archive")
+        self.assertEqual(rec["url"], "photos/index.html#historical/ad-1")
+        self.assertEqual(rec["thumb"], "assets/archive/thumbs/ad-1.jpg")
+        self.assertEqual(rec["title"], "Isle of Chemicals")
+        for word in ("1949-05", "Advertisement", "neville island", "Chemical Society journal", "A 1949 advertisement."):
+            self.assertIn(word, rec["text"])
+        self.assertEqual(check.index_problems(root), [])
+
+    def test_hidden_buckets_and_private_items_are_left_out(self):
+        items = [_arch("a"), _arch("b", bucket="discard"), _arch("c", bucket="review"), _arch("d", public=False), _arch("e", bucket=None)]
+        (rec,) = _kind(_index(_photos_site(archive=items)), "archive")
+        self.assertTrue(rec["url"].endswith("/a"))
+
+    def test_internal_fields_never_appear(self):
+        (rec,) = _kind(_index(_photos_site(archive=[_arch()])), "archive")
+        blob = json.dumps(rec)
+        for leak in ("kept for the plant view", "Desktop", "Trade advertisement", "verified", "doi.org", "assets/archive/ad-1", ".jpg"):
+            self.assertNotIn(leak, blob)
+
+    def test_credit_with_contact_details_is_dropped(self):
+        for credit in ("Jo Smith jo@example.com", "Call 412-555-0100", "see https://example.com/me"):
+            (rec,) = _kind(_index(_photos_site(archive=[_arch(credit=credit)])), "archive")
+            self.assertNotIn(credit, rec["text"])
+        (rec,) = _kind(_index(_photos_site(archive=[_arch(credit="Smith collection, 1921-1935")])), "archive")
+        self.assertIn("1921-1935", rec["text"])
+
+    def test_missing_thumb_file_means_no_thumb_field(self):
+        (rec,) = _kind(_index(_photos_site(archive=[_arch()])), "archive")
+        self.assertNotIn("thumb", rec)
+
+    def test_item_without_id_is_skipped(self):
+        self.assertEqual(_kind(_index(_photos_site(archive=[_arch("")])), "archive"), [])
+
+
+class PhotoRecords(unittest.TestCase):
+    def test_record_url_text_and_thumb(self):
+        root = _photos_site(gallery=[_pic()], files=["assets/gallery/thumbs/layout/layout-crew-lounge.jpg"])
+        (rec,) = _kind(_index(root), "photo")
+        self.assertEqual(rec["url"], "photos/index.html#layout/layout-crew-lounge")
+        self.assertEqual(rec["thumb"], "assets/gallery/thumbs/layout/layout-crew-lounge.jpg")
+        for word in ("Where operators gather.", "Session night", "Layout photos"):
+            self.assertIn(word, rec["text"])
+        self.assertEqual(check.index_problems(root), [])
+
+    def test_no_thumb_without_the_file_and_no_id_no_record(self):
+        index = _index(_photos_site(gallery=[_pic(), _pic("")]))
+        (rec,) = _kind(index, "photo")
+        self.assertNotIn("thumb", rec)
+
+
+class FleetThumbs(unittest.TestCase):
+    def test_existing_thumb_is_carried_and_a_missing_one_is_not(self):
+        fleet = [_car("a-1", "A 1", thumb="assets/fleet/thumbs/a-1.jpg"), _car("a-2", "A 2", thumb="assets/fleet/thumbs/gone.jpg")]
+        recs = {r["title"]: r for r in _fleet(_index(_photos_site(fleet=fleet, files=["assets/fleet/thumbs/a-1.jpg"])))}
+        self.assertEqual(recs["A 1"]["thumb"], "assets/fleet/thumbs/a-1.jpg")
+        self.assertNotIn("thumb", recs["A 2"])
+
+    def test_thumb_outside_the_build_is_refused(self):
+        root = _photos_site(fleet=[_car("a-1", "A 1", thumb="../secret.jpg")], files=["../secret.jpg"])
+        (rec,) = _fleet(_index(root))
+        self.assertNotIn("thumb", rec)
+
+
+class ArticleKind(unittest.TestCase):
+    def test_only_listed_library_pages_are_articles(self):
+        body = f"<h1>History</h1><p>{INTRO}</p>"
+        root = _site({"library/a.html": _page(body=body), "library/b.html": _page(body=body), "plants/index.html": _page(body=body)})
+        (root / "data").mkdir()
+        listed = [{"id": "a", "href": "library/a.html"}, {"id": "p", "href": "plants/index.html"}]
+        (root / "data" / "articles.json").write_text(json.dumps({"items": listed}), encoding="utf-8")
+        kinds = {r["url"]: r["kind"] for r in _index(root)["records"]}
+        self.assertEqual(kinds, {"library/a.html": "article", "library/b.html": "page", "plants/index.html": "page"})
+
+
+class PhotoCheck(unittest.TestCase):
+    def _with(self, root, rec_fields):
+        index = _index(root)
+        index["records"].append({"title": "t", "snippet": "s", "text": "", "kind": "photo", **rec_fields})
+        (root / "search-index.json").write_text(json.dumps(index), encoding="utf-8")
+        return check.index_problems(root)
+
+    def test_thumb_must_be_a_built_string_path(self):
+        root = _photos_site(archive=[_arch()], files=["assets/ok.jpg"])
+        self.assertEqual(self._with(root, {"url": "photos/index.html", "thumb": "assets/ok.jpg"}), [])
+        self.assertIn("thumb", " ".join(self._with(root, {"url": "photos/index.html", "thumb": "assets/gone.jpg"})))
+        self.assertIn("thumb", " ".join(self._with(root, {"url": "photos/index.html", "thumb": "/assets/ok.jpg"})))
+        self.assertIn("string", " ".join(self._with(root, {"url": "photos/index.html", "thumb": 5})))
+
+    def test_other_extra_fields_are_still_refused(self):
+        root = _photos_site()
+        self.assertIn("exactly", " ".join(self._with(root, {"url": "photos/index.html", "extra": "x"})))
+
+    def test_anchors_for_all_three_tabs_are_checked_against_the_data(self):
+        root = _photos_site(archive=[_arch()], gallery=[_pic()], fleet=[_car("a-1", "A 1")])
+        good = ["historical/ad-1", "layout/layout-crew-lounge", "rolling-stock/a-1", "historical/ads", "layout/session-night"]
+        for anchor in good:
+            self.assertEqual(self._with(root, {"url": f"photos/index.html#{anchor}"}), [], anchor)
+        for anchor in ("historical/gone", "layout/ad-1", "historical/a-1"):
+            self.assertIn("not an item id", " ".join(self._with(root, {"url": f"photos/index.html#{anchor}"})), anchor)
+
+    def test_a_hidden_bucket_id_is_not_a_public_anchor(self):
+        root = _photos_site(archive=[_arch(), _arch("hid", bucket="discard")])
+        self.assertIn("not an item id", " ".join(self._with(root, {"url": "photos/index.html#historical/hid"})))
+
+    def test_id_guards_for_every_tab(self):
+        root = _photos_site(archive=[_arch("ads"), _arch("x"), _arch("x")], gallery=[_pic("panels"), _pic("")])
+        joined = " ".join(check.tab_id_problems(root, "historical") + check.tab_id_problems(root, "layout"))
+        self.assertIn("id ads is a chip name", joined)
+        self.assertIn("id x is used twice", joined)
+        self.assertIn("id panels is a chip name", joined)
+        self.assertIn("has no id", joined)
+
+    def test_slugs_are_read_for_each_tab(self):
+        root = _photos_site()
+        self.assertEqual(check.tab_slugs(root, "layout"), {"session-night", "panels", "build"})
+        self.assertEqual(check.tab_slugs(root, "historical"), {"photos", "ads", "maps"})
+
+
+class SourceDataIds(unittest.TestCase):
+    def test_source_gallery_and_archive_ids_are_unique_and_not_chip_names(self):
+        page = (SCRIPTS.parent / "photos" / "index.html").read_text(encoding="utf-8")
+        root = _site({"photos/index.html": page})
+        for name, tab in (("gallery.json", "layout"), ("archive.json", "historical")):
+            items = json.loads((SCRIPTS.parent / "data" / name).read_text())["items"]
+            ids = [i.get("id") for i in items]
+            self.assertTrue(all(ids), name)
+            self.assertEqual(len(ids), len(set(ids)), name)
+            self.assertTrue(check.tab_slugs(root, tab), name)  # the page's real CATS map was found
+            self.assertFalse(set(ids) & check.tab_slugs(root, tab), name)
+
+    def test_new_layout_items_get_a_numbered_slug(self):
+        import serve_portal
+        self.assertEqual(serve_portal._gallery_id("layout", "Dispatcher's desk", set()), "layout-dispatcher-s-desk")
+        self.assertEqual(serve_portal._gallery_id("layout", "Crew lounge", {"layout-crew-lounge"}), "layout-crew-lounge-2")
+        self.assertEqual(serve_portal._gallery_id("layout", "", set()), "layout")

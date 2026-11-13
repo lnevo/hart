@@ -42,6 +42,7 @@
       <p class="archive-editbar" id="archive-editbar" hidden>
         Editing on: moves and edits save to <code>data/archive.json</code> (local server only).
       </p>
+      <p class="small muted" id="historical-missing" role="status" hidden>That photo is not on the site any more.</p>
       <div id="archive-grid"><p class="muted">Loading…</p></div>
       <p class="muted" id="archive-empty" hidden>Nothing here with these filters.</p>
       <div class="archive-toast" id="archive-toast" role="status" aria-live="polite"></div>
@@ -57,6 +58,7 @@
       <p class="archive-editbar" id="gallery-editbar" hidden>
         Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
       </p>
+      <p class="small muted" id="layout-missing" role="status" hidden>That photo is not on the site any more.</p>
       <div class="layout-controls">
         <div class="album-bar" id="layout-albums" aria-label="Filter by album"></div>
         <div class="album-bar fleet-viewbar" id="layout-view-bar" aria-label="View"></div>
@@ -91,12 +93,15 @@
   <script src="../js/fleet.js"></script>
   <script>
     // Deep links: #historical, #layout/session-night, #rolling-stock/freight. The part after the slash
-    // is a sub-chip (on Rolling stock, any other value is a car's id, as in #rolling-stock/csx-2738); SUBS maps its slug to the chip's data-kind / data-album value.
+    // is a sub-chip (any other value is an item's id, as in #rolling-stock/csx-2738); SUBS maps its slug to the chip's data-kind / data-album value.
     var CATS = {
       historical: { chips: "#archive-kinds", attr: "data-kind", subs: { photos: "photo", ads: "ad", clippings: "clipping", maps: "map", documents: "document", graphics: "graphic" } },
       layout: { chips: "#layout-albums", attr: "data-album", subs: { "session-night": "layout", panels: "panels", build: "progress", "track-plans": "plans", wiring: "build" } },
       "rolling-stock": { chips: "#album-bar", attr: "data-album", subs: { locomotives: "locos", freight: "freight", mow: "mow" } },
     };
+    // Per tab: the note shown for an id that is not in its data, and the module whose openItem opens an id.
+    var NOTES = { historical: "historical-missing", layout: "layout-missing", "rolling-stock": "fleet-missing" };
+    var OPENERS = { historical: "HARTArchive", layout: "HARTGallery", "rolling-stock": "HARTFleet" };
     var site = null;
     var mounted = {};
 
@@ -148,20 +153,25 @@
         document.getElementById("cat-" + c).hidden = c !== cat;
       });
       await mountCat(cat);
-      var note = document.getElementById("fleet-missing");
-      if (note) note.hidden = true;
-      var value = sub && CATS[cat].subs[sub];
+      Object.keys(NOTES).forEach(function (c) {
+        var n = document.getElementById(NOTES[c]);
+        if (n) n.hidden = true;
+      });
+      var value = sub && Object.prototype.hasOwnProperty.call(CATS[cat].subs, sub) && CATS[cat].subs[sub];
+      var mod = window[OPENERS[cat]];
       if (value) {
         var btn = document.querySelector(CATS[cat].chips + " [" + CATS[cat].attr + '="' + value + '"]');
         if (btn) btn.click();
-      } else if (cat === "rolling-stock" && sub && window.HARTFleet && HARTFleet.openItem) {
+      } else if (sub && mod && mod.openItem) {
+        // Any other value is an item's id: #historical/<id>, #layout/<id>, #rolling-stock/<id>.
         var id;
         try {
           id = decodeURIComponent(sub);
         } catch (e) {
           id = sub; // a malformed escape in a typed link: look it up as written
         }
-        if (note) note.hidden = HARTFleet.openItem(id);
+        var note = document.getElementById(NOTES[cat]);
+        if (note) note.hidden = mod.openItem(id);
       }
     }
 

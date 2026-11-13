@@ -612,6 +612,33 @@
         renderGrid();
       });
 
+      // Deep link: photos/#historical/<item id> (ids are in data/archive.json; the search index links them).
+      // Clears the filters, scrolls to the item, highlights it and opens its lightbox. Returns false when
+      // no item has that id, or it is outside the buckets this visitor sees.
+      window.HARTArchive.openItem = function (id) {
+        var item = items.filter(function (it) { return it.id === id; })[0];
+        if (!item || (!canEdit && item.bucket !== "curated")) return false;
+        state.bucket = item.bucket;
+        state.kind = "all";
+        state.tag = state.q = "";
+        searchEl.value = "";
+        renderAll();
+        var i = visible.indexOf(item);
+        if (i < 0) return false;
+        if (view === "gallery") {
+          stageIndex = i;
+          renderGrid();
+          return true;
+        }
+        var el = grid.querySelector('[data-idx="' + i + '"]');
+        if (el) {
+          el.classList.add("is-target");
+          if (el.scrollIntoView) el.scrollIntoView({ block: "center" });
+        }
+        openLightbox(i);
+        return true;
+      };
+
       renderViews();
       renderAll();
       return data;

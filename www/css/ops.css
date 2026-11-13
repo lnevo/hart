@@ -3461,7 +3461,9 @@ html.zoomer-open body {
   padding: 2rem 0;
 }
 
-.fleet-view .is-target {
+.fleet-view .is-target,
+.archive-view .is-target,
+#layout-grid .is-target {
   outline: 3px solid var(--accent, currentColor);
   outline-offset: 2px;
 }

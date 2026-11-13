@@ -466,6 +466,32 @@
         }
       });
 
+      // Deep link: photos/#layout/<item id> (ids are in data/gallery.json; the search index links them).
+      // Shows the item's album, scrolls to the item, highlights it and opens its lightbox.
+      // Returns false when no item has that id.
+      window.HARTGallery.openItem = function (id) {
+        var item = items.filter(function (it) { return it.id === id; })[0];
+        if (!item) return false;
+        currentAlbum = item.album;
+        stageIndex = 0;
+        renderAlbums();
+        renderGrid();
+        var i = visible.indexOf(item);
+        if (i < 0) return false;
+        if (viewBar && view === "gallery") {
+          stageIndex = i;
+          renderGrid();
+          return true;
+        }
+        var el = grid.querySelector('[data-idx="' + i + '"]');
+        if (el) {
+          el.classList.add("is-target");
+          if (el.scrollIntoView) el.scrollIntoView({ block: "center" });
+        }
+        openLightbox(i);
+        return true;
+      };
+
       renderViews();
       renderAlbums();
       renderGrid();
