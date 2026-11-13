@@ -30,7 +30,11 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 DATA = ROOT / "docs/wiring/signals"
 
 SKIP_HEAD: set[str] = set()
@@ -446,7 +450,7 @@ def patch_tables(rows: list[dict]) -> None:
     masts or IH9990. The reason is reported so --wiring-only is used instead.
     """
     rows = fitted_rows(rows)
-    tables = ROOT / "jmri/layouts/hart/output/tables.xml"
+    tables = paths.TABLES_XML
     text = tables.read_text()
     missing = check_live_heads(rows, text)
     if missing:

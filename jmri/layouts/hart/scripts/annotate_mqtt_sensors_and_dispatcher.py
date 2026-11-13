@@ -8,15 +8,19 @@ from __future__ import annotations
 import csv
 import re
 import shutil
+import sys
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-ROOT = Path(__file__).resolve().parents[4]
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-OUTPUT_TABLES = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
-OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
-TRAININFO_DIR = ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
-MAC_PROFILE = Path.home() / "JMRI_UserFiles"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+TABLES = paths.TABLES_XML
+OUTPUT_TABLES = paths.TABLES_XML
+OCC_CSV = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
+TRAININFO_DIR = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
+MAC_PROFILE = paths.JMRI_USER_FILES
 
 FORWARD = 4  # jmri.Section.FORWARD / EntryPoint.FORWARD (JMRI 5.x)
 REVERSE = 8  # jmri.Section.REVERSE / EntryPoint.REVERSE

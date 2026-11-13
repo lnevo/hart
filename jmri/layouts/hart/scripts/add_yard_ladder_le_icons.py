@@ -14,11 +14,15 @@ and shift every row down.
 from __future__ import annotations
 
 import argparse
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]  # repo root (…/hart)
-DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+DEFAULT_PANEL = paths.TABLES_XML
 SYNC_COPIES: list[Path] = []
 MARKER = "hart-yard-ladder-le"
 
@@ -63,7 +67,7 @@ STALE_ICON_FILES = (
 
 def install_preference_icons() -> list[Path]:
     """Copy triangle PNGs into JMRI user-files / profile resources/buttons dirs."""
-    src = ROOT / "jmri/resources/buttons"
+    src = paths.JMRI_DIR / "resources" / "buttons"
     missing = [n for n in ICON_FILES if not (src / n).is_file()]
     if missing:
         raise SystemExit(f"Missing yard-ladder triangles: {missing}")
@@ -225,8 +229,8 @@ def find_layout_editor(root: ET.Element) -> ET.Element | None:
 
 
 def apply(panel: Path) -> None:
-    tree = ET.parse(panel)
-    root = tree.getroot()
+    doc = tables.load(panel)
+    root = doc.root
     le = find_layout_editor(root)
     if le is None:
         raise SystemExit(f"No LayoutEditor in {panel}")
@@ -238,7 +242,7 @@ def apply(panel: Path) -> None:
     ]
     if existing:
         changed = restyle_existing(le)
-        tree.write(panel, encoding="UTF-8", xml_declaration=True)
+        doc.save()
         print(f"Restyled {changed} yard-ladder icon faces → {panel}")
         return
 
@@ -277,7 +281,7 @@ def apply(panel: Path) -> None:
         for i, el in enumerate(extras):
             le.insert(idx + i, el)
 
-    tree.write(panel, encoding="UTF-8", xml_declaration=True)
+    doc.save()
     print(f"Wrote {len(extras)} yard-ladder TurnoutIcons → {panel}")
     for n in ("1", "2", "3", "4", "5"):
         lx, ly = labels[n]

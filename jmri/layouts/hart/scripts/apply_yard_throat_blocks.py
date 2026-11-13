@@ -25,12 +25,16 @@ effect since ADR-008. Idempotent.
 from __future__ import annotations
 
 import argparse
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-DEFAULT = ROOT / "jmri/layouts/hart/output/tables.xml"
-OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+DEFAULT = paths.TABLES_XML
+OUTPUT_TABLES = paths.TABLES_XML
 
 # Turnout-leg segments that become throats (already short).
 # Public names (ADR-005). Before 2026-08-21 these were S-2 West … S-1 East on
@@ -366,15 +370,15 @@ def _remove_orphan_scale_east(root: ET.Element) -> int:
 
 def apply_scale_east(path: Path) -> int:
     """T3 in OS Switch 7; 8LC west / 8RA east on A45; no Scale East block."""
-    tree = ET.parse(path)
-    root = tree.getroot()
+    doc = tables.load(path)
+    root = doc.root
     le = _le(root)
     if le is None:
         print(f"{path}: no Layout Editor")
         return 0
     n = _scale_east_edits(root, le)
     if n:
-        tree.write(path, encoding="UTF-8", xml_declaration=True)
+        doc.save()
     return n
 
 
@@ -454,8 +458,8 @@ def _ensure_eh_exits(
 
 
 def apply(path: Path) -> int:
-    tree = ET.parse(path)
-    root = tree.getroot()
+    doc = tables.load(path)
+    root = doc.root
     le = _le(root)
     if le is None:
         print(f"{path}: no Layout Editor")
@@ -531,7 +535,7 @@ def apply(path: Path) -> int:
     # Scale/Switch 7, Mast 14R, the engine-house exits and Brick-Plane ends.
     n += _scale_east_edits(root, le)
     if n:
-        tree.write(path, encoding="UTF-8", xml_declaration=True)
+        doc.save()
     return n
 
 
