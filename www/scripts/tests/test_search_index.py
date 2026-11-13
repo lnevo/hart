@@ -41,7 +41,7 @@ class Shape(unittest.TestCase):
         self.assertEqual(set(rec), {"title", "url", "kind", "snippet", "text"})
         self.assertEqual((rec["title"], rec["url"], rec["kind"]), ("Session paperwork", "crew/index.html", "page"))
         self.assertLessEqual(len(rec["snippet"]), 160)
-        self.assertLessEqual(len(rec["text"]), 300)
+        self.assertLessEqual(len(rec["text"]), 8000)
         self.assertTrue(rec["snippet"].endswith("…"))
         self.assertEqual(json.loads((root / "search-index.json").read_text())["records"], index["records"])
 
@@ -142,3 +142,39 @@ class LinkCheck(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReviewFixes(unittest.TestCase):
+    """Behaviour changed after the PR #388 review."""
+
+    def test_publication_header_is_not_the_snippet(self):
+        body = f"<h1>East End</h1><p>Publication SM-02 · Revision A · Effective 23 July 2026</p><p>{INTRO}</p>"
+        (rec,) = _index(_site({"crew/maps/east-end/index.html": _page(body=body)}))["records"]
+        self.assertEqual(rec["snippet"], INTRO)
+        self.assertNotIn("Revision A", rec["text"])
+
+    def test_list_items_and_definitions_are_searchable(self):
+        body = f"<h1>Glossary</h1><p>{INTRO}</p><dl><dt>Waybill</dt><dd>Goes with the car card.</dd></dl><ul><li>Short item</li></ul>"
+        (rec,) = _index(_site({"operators/glossary/index.html": _page(body=body)}))["records"]
+        for word in ("Waybill", "Goes with the car card.", "Short item"):
+            self.assertIn(word, rec["text"])
+
+    def test_reading_location_is_not_a_redirect(self):
+        body = f"<h1>Roster</h1><p>{INTRO}</p><script>var h = window.location.hash;</script>"
+        self.assertEqual(len(_index(_site({"roster/index.html": _page(body=body)}))["records"]), 1)
+        stub = "<h1>Roster</h1><p>Short.</p><script>location.href = 'new/';</script>"
+        self.assertEqual(_index(_site({"old/index.html": _page(body=stub)}))["records"], [])
+
+    def test_quoted_tags_are_dropped_from_text(self):
+        body = f"<h1>Standards</h1><p>{INTRO}</p><p>Use &lt;title&gt; on every page.</p>"
+        (rec,) = _index(_site({"docs/std.html": _page(body=body)}))["records"]
+        self.assertNotIn("<", rec["text"])
+
+    def test_non_object_index_is_reported_not_crashed(self):
+        for bad in ("[]", '{"version": 1, "generated": "x", "records": [3]}'):
+            root = _site({"index.html": _page()})
+            (root / "search-index.json").write_text(bad, encoding="utf-8")
+            self.assertTrue(check.index_problems(root))
+
+    def test_built_pages_carry_the_search_marker(self):
+        self.assertIn('name="hart-search"', build._head_tags(Path("crew/index.html"), "Crew"))

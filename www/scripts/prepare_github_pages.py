@@ -179,13 +179,17 @@ def _check_leaks(dest_root: Path) -> list[str]:
 # strip removed. Stage 1 has one "page" record per page; the search box (js/search.js) reads it.
 INDEX_NAME = "search-index.json"
 INDEX_VERSION = 1
-SNIPPET_MAX, TEXT_MAX = 160, 300
+SNIPPET_MAX, TEXT_MAX = 160, 8000  # about 85 KB gzipped for the whole index, fetched on first open
 # Pages that are never found: the 404 page and the document viewer shell.
 INDEX_SKIP_PAGES = {"404.html", "docs/view.html"}
 # Pages whose content is rows drawn by script: only the title and the intro paragraph are indexed.
 INDEX_TITLE_ONLY = {"behind/tables-file.html", "behind/wiring.html"}
 _INDEX_SKIP_TAGS = {"script", "style", "template", "noscript", "svg", "header", "nav", "footer", "button", "select", "option"}
-_REDIRECT = re.compile(r'http-equiv=["\']?refresh|location\.(?:replace|href\s*=)|window\.location', re.I)
+_REDIRECT = re.compile(r'http-equiv=["\']?refresh|location\.replace\(|(?<![\w-])location(?:\.href)?\s*=[^=]', re.I)
+# Publication headers ("SM-02 · Revision A · Effective 23 July 2026") say nothing about the page.
+_BOILERPLATE = re.compile(r"\bRevision [A-Z]\b|\bEffective \d", re.I)
+# List, table and definition text is searchable too (glossary terms, spot-sheet rows).
+_INDEX_TEXT_TAGS = ("h1", "h2", "h3", "p", "li", "dt", "dd", "td", "th")
 
 
 class _PageText(HTMLParser):
@@ -197,6 +201,7 @@ class _PageText(HTMLParser):
         self.h1: list[str] = []
         self.h2: list[str] = []
         self.paras: list[str] = []
+        self.other: list[str] = []  # h3, list items, table cells, definitions
         self.noindex = False
         self._skip = 0
         self._cur: str | None = None  # tag being collected
@@ -217,7 +222,7 @@ class _PageText(HTMLParser):
                 self.description = content  # the page's own, not the share-tag default
         if tag in _INDEX_SKIP_TAGS:
             self._skip += 1
-        elif not self._skip and self._cur is None and tag in ("h1", "h2", "p"):
+        elif not self._skip and self._cur is None and tag in _INDEX_TEXT_TAGS:
             self._cur, self._buf = tag, []
 
     def handle_endtag(self, tag):
@@ -228,7 +233,7 @@ class _PageText(HTMLParser):
         elif tag == self._cur:
             text = re.sub(r"\s+", " ", "".join(self._buf)).strip()
             if text and not text.startswith("Loading"):  # placeholders the page script replaces
-                {"h1": self.h1, "h2": self.h2}.get(tag, self.paras).append(text)
+                {"h1": self.h1, "h2": self.h2, "p": self.paras}.get(tag, self.other).append(text)
             self._cur = None
 
     def handle_data(self, data):
@@ -239,6 +244,7 @@ class _PageText(HTMLParser):
 
 
 def _clip(text: str, limit: int) -> str:
+    text = re.sub(r"<[^<>]{0,60}>", " ", text)  # tags quoted as page text (code samples) are noise
     text = re.sub(r"\s+", " ", text).strip()
     if len(text) <= limit:
         return text
@@ -256,17 +262,19 @@ def _index_record(rel: Path, text: str) -> dict | None:
         return None
     title = re.sub(r"\s+", " ", page.title).strip()
     title = re.sub(r"\s+[—-]\s+HART$", "", title) or (page.h1[0] if page.h1 else "")
-    paras = [p for p in page.paras if len(p) >= 40]
+    paras = [p for p in page.paras if len(p) >= 40 and not _BOILERPLATE.search(p)]
     # Redirect stubs: a refresh or script jump with little to read, or a "Moved" notice.
     if page.h1[:1] == ["Moved"] or (_REDIRECT.search(text) and len(" ".join(paras)) < 200):
         return None
     if not title or not (page.h1 or paras or page.description):
         return None
-    intro = paras[0] if paras else page.description or (page.paras[0] if page.paras else "")
+    intro = page.description or (paras[0] if paras else "")
     if name in INDEX_TITLE_ONLY:
         body = [intro]
     else:
-        body = [h for h in page.h1[:1] + page.h2 if h.lower() != title.lower()] + paras[1:]
+        heads = [h for h in page.h1[:1] + page.h2 if h.lower() != title.lower()]
+        rest = [p for p in page.paras + page.other if p != intro and not _BOILERPLATE.search(p)]
+        body = heads + rest
     return {
         "title": title,
         "url": name,
@@ -534,7 +542,8 @@ def _head_tags(rel: Path, title: str) -> str:
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="{alt}">
-  <meta name="twitter:card" content="summary_large_image">"""
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="hart-search" content="{INDEX_NAME}">"""
 
 
 def _add_head_tags(dest_root: Path) -> None:

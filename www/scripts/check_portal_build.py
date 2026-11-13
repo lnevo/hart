@@ -121,17 +121,18 @@ def index_problems(root: Path) -> list[str]:
         index = json.loads(path.read_text(encoding="utf-8"))
     except ValueError as err:
         return [f"search-index.json is not valid JSON: {err}"]
-    if index.get("version") != 1 or not isinstance(index.get("records"), list) or not index.get("generated"):
+    if not isinstance(index, dict) or index.get("version") != 1 or not isinstance(index.get("records"), list) or not index.get("generated"):
         return ["search-index.json: expected version 1, generated and a records list"]
     bad = []
+    page_ids: dict[Path, set] = {}  # each anchored page is parsed once
     for n, rec in enumerate(index["records"]):
         where = f"search-index.json record {n}"
         fields = ("title", "url", "kind", "snippet", "text")
-        if set(rec) != set(fields) or not all(isinstance(rec[f], str) for f in fields):
+        if not isinstance(rec, dict) or set(rec) != set(fields) or not all(isinstance(rec[f], str) for f in fields):
             bad.append(f"{where}: needs exactly the string fields {', '.join(fields)}")
             continue
-        if len(rec["snippet"]) > 160 or len(rec["text"]) > 300:
-            bad.append(f"{where} ({rec['url']}): snippet over 160 or text over 300 characters")
+        if len(rec["snippet"]) > 160 or len(rec["text"]) > 8000:
+            bad.append(f"{where} ({rec['url']}): snippet over 160 or text over 8000 characters")
         if "<" in rec["title"] + rec["snippet"] + rec["text"]:
             bad.append(f"{where} ({rec['url']}): markup in a text field")
         page, _, anchor = rec["url"].partition("#")
@@ -144,9 +145,11 @@ def index_problems(root: Path) -> list[str]:
         elif anchor:
             file = target.resolve()
             file = file if file.is_file() else file / "index.html"
-            ids = _Ids()
-            ids.feed(file.read_text(encoding="utf-8", errors="replace"))
-            if unquote(anchor) not in ids.ids:
+            if file not in page_ids:
+                ids = _Ids()
+                ids.feed(file.read_text(encoding="utf-8", errors="replace"))
+                page_ids[file] = ids.ids
+            if unquote(anchor) not in page_ids[file]:
                 bad.append(f"{where}: anchor #{anchor} is not in {page}")
     return bad
 

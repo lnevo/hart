@@ -54,7 +54,10 @@
   }
 
   // Search button and its panel; js/search.js fills the results when the panel first opens.
+  // The build marks every page with <meta name="hart-search"> when it writes search-index.json, so
+  // pages served from the source tree (no index) show no search button.
   function searchHtml() {
+    if (!document.querySelector('meta[name="hart-search"]')) return "";
     return (
       '<div class="site-search">' +
       '<button type="button" class="search-toggle" aria-expanded="false" aria-controls="site-search-panel" aria-label="Search">' +
@@ -185,11 +188,6 @@
     btn.addEventListener("click", function () {
       setOpen(panel.hidden);
     });
-    if (menuBtn) {
-      menuBtn.addEventListener("click", function () {
-        if (!panel.hidden) setOpen(false);
-      });
-    }
     document.addEventListener("click", function (e) {
       if (!panel.hidden && !wrap.contains(e.target)) setOpen(false);
     });

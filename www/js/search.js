@@ -39,12 +39,20 @@
 
   // Score of one term against one record: title beats snippet beats text; a hit at the start
   // of a word beats a hit inside one. 0 means no match.
+  // 0 = no hit, 1 = hit inside a word, 2 = hit at the start of a word (any occurrence counts).
+  function hitKind(s, term) {
+    var at = s.indexOf(term);
+    if (at === -1) return 0;
+    for (; at !== -1; at = s.indexOf(term, at + 1)) if (atWordStart(s, at)) return 2;
+    return 1;
+  }
+
   function termScore(p, term) {
     var s = 0;
-    var t = p.title.indexOf(term);
-    if (t !== -1) s = atWordStart(p.title, t) ? 100 : 60;
-    var n = p.snippet.indexOf(term);
-    if (n !== -1) s = Math.max(s, atWordStart(p.snippet, n) ? 25 : 20);
+    var t = hitKind(p.title, term);
+    if (t) s = t === 2 ? 100 : 60;
+    var n = hitKind(p.snippet, term);
+    if (n) s = Math.max(s, n === 2 ? 25 : 20);
     if (p.text.indexOf(term) !== -1) s = Math.max(s, 5);
     return s;
   }
@@ -99,6 +107,7 @@
             warned = true;
             console.warn("Search unavailable: " + err.message);
           }
+          indexPromise = null; // a later open or keystroke tries again
           return null;
         });
     }
@@ -120,14 +129,14 @@
     var active = -1;
     var showAll = false;
 
-    function setActive(n) {
+    function setActive(n, fromMouse) {
       var items = list.children;
       if (active >= 0 && items[active]) items[active].removeAttribute("aria-selected");
       active = n;
       if (n >= 0 && items[n]) {
         items[n].setAttribute("aria-selected", "true");
         input.setAttribute("aria-activedescendant", items[n].id);
-        items[n].scrollIntoView({ block: "nearest" });
+        if (!fromMouse) items[n].scrollIntoView({ block: "nearest" });
       } else {
         input.removeAttribute("aria-activedescendant");
       }
@@ -199,14 +208,22 @@
       status.textContent = all.length + (all.length === 1 ? " result" : " results");
     }
 
-    loadIndex(base).then(function (p) {
-      if (p) prepared = p;
-      else unavailable = true;
-      render();
-    });
+    var loading = false;
+    function load() {
+      if (loading || prepared) return;
+      loading = true;
+      loadIndex(base).then(function (p) {
+        loading = false;
+        unavailable = !p;
+        if (p) prepared = p;
+        render();
+      });
+    }
+    load();
 
     input.addEventListener("input", function () {
       showAll = false;
+      if (unavailable) load();
       render();
     });
     input.addEventListener("keydown", function (e) {
@@ -232,7 +249,7 @@
       var li = e.target.closest && e.target.closest("li");
       if (!li) return;
       var idx = Array.prototype.indexOf.call(list.children, li);
-      if (idx !== active) setActive(idx);
+      if (idx !== active) setActive(idx, true);
     });
     render();
   }
