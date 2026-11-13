@@ -24,13 +24,15 @@ USS CTC (CTC code buttons in tables.xml, ctc/GUIObjects.xml and the copy in tabl
 Track names are the CATS occupancy names; a Layout Editor throat block such as
 Track S-R West (same occupancy sensor as Track S-R) counts as Track S-R.
 A failure names the switch or track and the two sources that disagree.
-KNOWN lists differences already reported to the owner; they print but do not
-fail, and a KNOWN entry that no longer happens fails so the list stays honest.
+KNOWN lists differences already reported to the owner, each by its exact message;
+they print but do not fail, any other message fails, and a KNOWN message that no
+longer happens fails so the list stays honest.
 """
 from __future__ import annotations
 
 import argparse
 import csv
+import functools
 import re
 import sys
 import xml.etree.ElementTree as ET  # TODO: move to hartlib.tables once the shared package lands
@@ -54,12 +56,36 @@ OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
 CLOSED, THROWN = "2", "4"
 PLAIN_TURNOUTS = {"RH_TURNOUT", "LH_TURNOUT", "WYE_TURNOUT"}
 
-# Reported 2026-11-12; see the PR that added this check. Remove an entry once fixed.
+# Reported to the owner 2026-11-12 (PR #381) as decisions; matched message by
+# message, so any other difference on these switches or tracks still fails.
+# Rebuilding the USS panel clears _STALE_EH: drop those entries in the same commit.
+_DOTS = "USS points dot shows Normal when thrown (gen_ctc_track_plan.USS_DOT_SWAPPED)"
+_STALE_EH = "USS CTC panel not rebuilt since the CATS engine house swapped EH-1 and EH-3"
 KNOWN = {
-    "uss-dot:Switch 37": "USS points dot shows Normal when thrown (gen_ctc_track_plan.USS_DOT_SWAPPED)",
-    "uss-dot:Switch 39": "USS points dot shows Normal when thrown (gen_ctc_track_plan.USS_DOT_SWAPPED)",
-    "uss-diagram:EH-1": "USS CTC panel not rebuilt since the CATS engine house swapped EH-1 and EH-3",
-    "uss-diagram:EH-3": "USS CTC panel not rebuilt since the CATS engine house swapped EH-1 and EH-3",
+    **dict.fromkeys([
+        'Switch 37: GUIObjects.xml points dot shows Normal when thrown; switches.csv cats_inverted=no (Normal is the closed leg)',
+        'Switch 37: tables.xml USS panel points dot shows Normal when thrown; switches.csv cats_inverted=no (Normal is the closed leg)',
+        'Switch 39: GUIObjects.xml points dot shows Normal when thrown; switches.csv cats_inverted=no (Normal is the closed leg)',
+        'Switch 39: tables.xml USS panel points dot shows Normal when thrown; switches.csv cats_inverted=no (Normal is the closed leg)',
+    ], _DOTS),
+    **dict.fromkeys([
+        'EH-3: the CATS desk puts jewel BS EH-3 (Track EH-3) at (470,136); GUIObjects.xml does not',
+        'EH-3: GUIObjects.xml draws jewel BS EH-3 (Track EH-3) at (428,178); the CATS desk does not',
+        "EH-3: the CATS desk labels (450,130) 'EH-3'; GUIObjects.xml does not",
+        "EH-3: GUIObjects.xml labels (450,172) 'EH-3'; the CATS desk does not",
+        'EH-3: the CATS desk puts jewel BS EH-3 (Track EH-3) at (470,136); tables.xml USS panel does not',
+        'EH-3: tables.xml USS panel draws jewel BS EH-3 (Track EH-3) at (428,178); the CATS desk does not',
+        "EH-3: the CATS desk labels (450,130) 'EH-3'; tables.xml USS panel does not",
+        "EH-3: tables.xml USS panel labels (450,172) 'EH-3'; the CATS desk does not",
+        'EH-1: the CATS desk puts jewel BS EH-1 (Track EH-1) at (428,178); GUIObjects.xml does not',
+        'EH-1: GUIObjects.xml draws jewel BS EH-1 (Track EH-1) at (470,136); the CATS desk does not',
+        "EH-1: the CATS desk labels (450,172) 'EH-1'; GUIObjects.xml does not",
+        "EH-1: GUIObjects.xml labels (450,130) 'EH-1'; the CATS desk does not",
+        'EH-1: the CATS desk puts jewel BS EH-1 (Track EH-1) at (428,178); tables.xml USS panel does not',
+        'EH-1: tables.xml USS panel draws jewel BS EH-1 (Track EH-1) at (470,136); the CATS desk does not',
+        "EH-1: the CATS desk labels (450,172) 'EH-1'; tables.xml USS panel does not",
+        "EH-1: tables.xml USS panel labels (450,130) 'EH-1'; the CATS desk does not",
+    ], _STALE_EH),
 }
 
 
@@ -70,15 +96,31 @@ class Report:
     def add(self, key: str, message: str) -> None:
         self.found.setdefault(key, []).append(message)
 
+    def messages(self) -> list[str]:
+        return [m for msgs in self.found.values() for m in msgs]
+
     def failures(self, known: dict[str, str]) -> list[str]:
-        out = [m for k, msgs in self.found.items() if k not in known for m in msgs]
-        out += [f"KNOWN entry {k!r} no longer happens; remove it from KNOWN" for k in known if k not in self.found]
+        """Every message not in ``known`` (matched exactly), and every ``known`` message that did not happen."""
+        seen = self.messages()
+        out = [m for m in seen if m not in known]
+        out += [f"KNOWN entry no longer happens; remove it from KNOWN: {m}" for m in known if m not in seen]
         return out
 
     def known(self, known: dict[str, str]) -> list[str]:
-        """One line per KNOWN key that happened: its reason, count and first message."""
-        return [f"{k}: {known[k]} ({len(msgs)} difference(s), e.g. {msgs[0]})"
-                for k, msgs in self.found.items() if k in known]
+        """One line per KNOWN reason that happened, with its count."""
+        hits = Counter(known[m] for m in self.messages() if m in known)
+        return [f"{reason} ({count} difference(s))" for reason, count in hits.items()]
+
+
+@functools.lru_cache(maxsize=None)
+def _parse(path: str, _stamp: tuple[int, int]) -> ET.ElementTree:
+    return ET.parse(path)
+
+
+def parse(path: Path) -> ET.ElementTree:
+    """ET.parse, once per file version: a desk or tables.xml is read by several checks."""
+    st = Path(path).stat()
+    return _parse(str(Path(path).resolve()), (st.st_mtime_ns, st.st_size))
 
 
 # ---------------------------------------------------------------- tables.xml
@@ -86,7 +128,7 @@ class Report:
 class Tables:
     def __init__(self, path: Path) -> None:
         self.path = path
-        self.root = ET.parse(path).getroot()
+        self.root = parse(path).getroot()
         self.block_user: dict[str, str] = {}
         self.block_sensor: dict[str, str] = {}
         self.paths: dict[str, list[tuple[str, list[tuple[str, str]]]]] = {}
@@ -215,25 +257,25 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
 
 # ---------------------------------------------------------------- CATS desks
 
-def desk_plants(path: Path) -> tuple[dict, dict[str, tuple[int, int]]]:
-    cells = trace.track_cells(ET.parse(path).getroot().find("TRACKPLAN"))
-    plants = {
-        trace.plant_os(cells, xy): xy
-        for xy, sec in cells.items()
-        if sec.find("SEC_EDGE/SWITCHPOINTS/ROUTEINFO") is not None
-    }
+def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]]:
+    cells = trace.track_cells(parse(path).getroot().find("TRACKPLAN"))
+    try:
+        plants = trace.desk_plants(cells)
+    except trace.PlantError as err:
+        r.add(f"cats:{path.name}", f"{path.name}: {err}")
+        plants = {}
     return cells, plants
 
 
 def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Report) -> None:
     desk = path.name
-    cells, plants = desk_plants(path)
+    cells, plants = desk_plants(path, r)
     by_os = facts.legs_by_os(switches)
     for os_name, xy in plants.items():
         if os_name not in by_os:
             r.add(f"cats:{os_name}", f"{desk}: plant at {xy} is in {os_name}, which switch_legs.csv does not list")
     jmri_blocks = t.block_names()
-    names = {b.get("NAME") for b in ET.parse(path).getroot().iter("BLOCK") if b.get("NAME")}
+    names = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
     for name in sorted(names - jmri_blocks):
         r.add(f"cats-track:{name}", f"{desk}: block {name} is not a Layout Editor block in tables.xml")
     for sw in switches.values():

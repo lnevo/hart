@@ -88,9 +88,15 @@ class LayoutFactsTest(unittest.TestCase):
 
     def test_stale_known_entry_fails(self) -> None:
         report = check.run()
-        known = dict(check.KNOWN, **{"uss-dot:Switch 1": "made up"})
-        self.assertIn("KNOWN entry 'uss-dot:Switch 1' no longer happens; remove it from KNOWN",
+        known = dict(check.KNOWN, **{"Switch 1: made up": "made up"})
+        self.assertIn("KNOWN entry no longer happens; remove it from KNOWN: Switch 1: made up",
                       report.failures(known))
+
+    def test_a_new_difference_on_a_known_track_still_fails(self) -> None:
+        report = check.run()
+        report.add("uss-diagram:EH-1", "EH-1: GUIObjects.xml labels (1,1) 'EH-1'; the CATS desk does not")
+        self.assertEqual(report.failures(check.KNOWN),
+                         ["EH-1: GUIObjects.xml labels (1,1) 'EH-1'; the CATS desk does not"])
 
     def test_throat_blocks_count_as_their_track(self) -> None:
         t = check.Tables(check.TABLES)

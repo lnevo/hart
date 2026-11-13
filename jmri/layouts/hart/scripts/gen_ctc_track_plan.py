@@ -52,17 +52,45 @@ PANEL_W, PANEL_H = 1400, 800
 
 # Switch facts (jmri/layouts/hart/data/switches.csv). Plate N is lever column
 # (N - 1) / 2; its N/R lever and lock are the CTC sensors IS<ctc_is>:* and
-# IS<ctc_is + 1>:*. Columns without signal levers are switch-only.
+# IS<ctc_is + 1>:*. Columns without signal levers are switch-only; a column
+# whose plate number no switch uses is drawn blank.
+#
+# The board is one row of columns for one level. How a second level's switches
+# sit on the machine (a wider board, a second panel) is not designed yet, so
+# the generator stops rather than guess.
+USS_LEVELS = {"1"}
+
+
+def uss_columns(switches: dict) -> dict:
+    """Lever-column tables for the USS board from the switch facts."""
+    other = sorted({sw.level for sw in switches.values()} - USS_LEVELS)
+    if other:
+        raise SystemExit(f"switches.csv has level(s) {other}: the USS CTC board is only designed "
+                         f"for level(s) {sorted(USS_LEVELS)}; decide its layout first")
+    levers = {sw.uss_slot: sw for sw in switches.values()}
+    n_slots = max(levers) + 1
+    sw_num = {slot: sw.ctc_is for slot, sw in levers.items()}
+    lock_uid = {slot: sw.ctc_is + 1 for slot, sw in levers.items()}
+    return dict(
+        n_slots=n_slots,
+        blank=set(range(n_slots)) - set(levers),
+        switch_only={slot for slot, sw in levers.items() if not sw.ctc_signals},
+        sw_num=sw_num,
+        lock_uid=lock_uid,
+        uid_slot={**{v: k for k, v in sw_num.items()}, **{v: k for k, v in lock_uid.items()}},
+    )
+
+
 SWITCHES = facts.load_switches()
-_LEVERS = {sw.uss_slot: sw for sw in SWITCHES.values()}
-N_SLOTS = max(_LEVERS) + 1
-BLANK_SLOTS: set[int] = set(range(N_SLOTS)) - set(_LEVERS)
-SWITCH_ONLY_SLOTS = {slot for slot, sw in _LEVERS.items() if not sw.ctc_signals}
+_COLUMNS = uss_columns(SWITCHES)
+N_SLOTS = _COLUMNS["n_slots"]
+BLANK_SLOTS: set[int] = _COLUMNS["blank"]
+SWITCH_ONLY_SLOTS = _COLUMNS["switch_only"]
 # Odd IS# that owns the N/R switch lever on each packed slot; even IS# its LOCKTOGGLE.
-SLOT_SW_NUM = {slot: sw.ctc_is for slot, sw in _LEVERS.items()}
-SLOT_LOCK_UID = {slot: sw.ctc_is + 1 for slot, sw in _LEVERS.items()}
+SLOT_SW_NUM = _COLUMNS["sw_num"]
+SLOT_LOCK_UID = _COLUMNS["lock_uid"]
 # IS# prefix (SwitchNumber / SignalEtcNumber) -> 20-col slot.
-UID_SLOT = {**{v: k for k, v in SLOT_SW_NUM.items()}, **{v: k for k, v in SLOT_LOCK_UID.items()}}
+UID_SLOT = _COLUMNS["uid_slot"]
 
 CREAM = dict(red=220, green=220, blue=180)
 WHITE = dict(red=255, green=255, blue=255)
@@ -75,13 +103,28 @@ USS_DOT_SWAPPED = {37, 39}
 
 # CATS frog cell -> (JMRI turnout, dot shows Normal when Thrown), on each switch's
 # first OS block. Rails come from CATS track pieces; the turnouticon is only a points dot.
-_OWNER = {os_name: sw for sw in SWITCHES.values() for os_name in sw.os_blocks}
-PLANTS = {
-    xy: (_OWNER[os_name].turnout,
-         _OWNER[os_name].cats_inverted or _OWNER[os_name].number in USS_DOT_SWAPPED)
-    for xy, os_name in PLANT_CELLS.items()
-    if os_name == _OWNER[os_name].os_blocks[0]
-}
+
+
+def uss_plants(switches: dict, plant_cells: dict) -> dict:
+    """CATS frog cell -> (turnout, dot swapped) on each switch's first OS block."""
+    owner = {os_name: sw for sw in switches.values() for os_name in sw.os_blocks}
+    missing = [f"{os_name} at {xy}" for xy, os_name in plant_cells.items() if os_name not in owner]
+    if missing:
+        raise SystemExit("wire_digicon.PLANT_CELLS names OS blocks with no row in "
+                         "switch_legs.csv: " + ", ".join(missing))
+    undrawn = sorted(set(owner) - set(plant_cells.values()))
+    if undrawn:
+        raise SystemExit("switch_legs.csv OS blocks with no cell in wire_digicon.PLANT_CELLS: "
+                         + ", ".join(undrawn))
+    return {
+        xy: (owner[os_name].turnout,
+             owner[os_name].cats_inverted or owner[os_name].number in USS_DOT_SWAPPED)
+        for xy, os_name in plant_cells.items()
+        if os_name == owner[os_name].os_blocks[0]
+    }
+
+
+PLANTS = uss_plants(SWITCHES, PLANT_CELLS)
 
 # Stock USS tiles (transparent copies in ctc/icons/). Offsets center the
 # native GIF on the CATS cell. Slashes stay half-cell custom tiles
@@ -918,6 +961,8 @@ def build_block(cells: dict) -> str:
                 clr=sig_url("d1", "slow-clear", facing),
                 unk=sig_url("d1", "unknown", facing)))
     for slot in range(N_SLOTS):
+        if slot in BLANK_SLOTS:
+            continue  # no switch uses this plate number: blank plate, no levers
         origin = 12 + 65 * slot
         parts.append(LOCK_TOGGLE.format(
             uid=SLOT_LOCK_UID[slot], x=origin + 21, u=U))
@@ -948,7 +993,8 @@ STRIP = [
         re.S,
     ),
     re.compile(
-        r"\s*<positionablelabel\b[^>]*text=\"(?:BRICK|PLANE|BARN|EAST END|PRINCESS|\d+|HART RAILROAD[^\"]*)\".*?</positionablelabel>",
+        r"\s*<positionablelabel\b[^>]*text=\"(?:%s|\d+|HART RAILROAD[^\"]*)\".*?</positionablelabel>"
+        % "|".join(re.escape(n) for n in sorted(STATION_NAMES)),
         re.S,
     ),
     re.compile(r"\s*<sensoricon\b[^>]*sensor=\"IS\d+:UNLOCKEDINDICATOR\".*?</sensoricon>", re.S),

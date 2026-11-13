@@ -10,6 +10,10 @@ Hardware, DCC address and control point come from the canonical turnout row
 of public_name_map.csv (current == proposed); control_points.csv lists which
 switches each control point holds. Nothing here is copied from those files.
 
+Switch numbers are the plate numbers and are unique across the whole railroad,
+every level included: a number is never reused on another level. The loader
+refuses a second row for a number, an OS block or a USS lever.
+
 Track names are the occupancy names the CATS desks use (Track S-R, not the
 Layout Editor's hidden Track S-R West throat). check_layout_facts.py proves
 tables.xml, the CATS desks and the USS CTC agree with these files.
@@ -81,21 +85,38 @@ def _name_map_turnouts(data: Path) -> dict[str, dict[str, str]]:
 
 
 def load_switches(data: Path = DATA) -> dict[int, Switch]:
-    """Switch number -> Switch, in switches.csv order."""
+    """Switch number -> Switch, in switches.csv order. Line numbers in errors count the header as 1."""
     legs: dict[int, list[Leg]] = {}
-    for row in _rows(data / "switch_legs.csv"):
+    os_line: dict[str, int] = {}
+    for line, row in enumerate(_rows(data / "switch_legs.csv"), start=2):
+        os_name = row["os_block"]
+        if os_name in os_line:
+            raise ValueError(f"switch_legs.csv lines {os_line[os_name]} and {line}: "
+                             f"both list {os_name}; an OS block belongs to one switch")
+        os_line[os_name] = line
         legs.setdefault(int(row["switch"]), []).append(
-            Leg(row["os_block"], row["closed_leg"], row["thrown_leg"])
+            Leg(os_name, row["closed_leg"], row["thrown_leg"])
         )
     names = _name_map_turnouts(data)
     out: dict[int, Switch] = {}
-    for row in _rows(data / "switches.csv"):
+    seen: dict[int, tuple[int, str]] = {}
+    lever: dict[int, tuple[int, int]] = {}
+    for line, row in enumerate(_rows(data / "switches.csv"), start=2):
         n = int(row["switch"])
-        where = f"switches.csv Switch {n}"
-        if n in out:
-            raise ValueError(f"{where}: listed twice")
+        where = f"switches.csv line {line} (Switch {n})"
+        if n in seen:
+            first, level = seen[n]
+            raise ValueError(f"switches.csv lines {first} (level {level}) and {line} (level {row['level']}) "
+                             f"both use Switch {n}; switch numbers are unique railroad-wide")
+        seen[n] = (line, row["level"])
         if n not in legs:
             raise ValueError(f"{where}: no rows in switch_legs.csv")
+        ctc_is = int(row["ctc_is"])
+        if ctc_is in lever:
+            first, other = lever[ctc_is]
+            raise ValueError(f"switches.csv lines {first} (Switch {other}) and {line} (Switch {n}) "
+                             f"both use USS lever IS{ctc_is}")
+        lever[ctc_is] = (line, n)
         nm = names.get(f"Switch {n}", {})
         dcc = re.search(r"DCC:\s*(\d+)", nm.get("comment", ""))
         out[n] = Switch(
@@ -103,7 +124,7 @@ def load_switches(data: Path = DATA) -> dict[int, Switch]:
             level=row["level"],
             le_ident=row["le_ident"],
             cats_inverted=_yes(row["cats_inverted"], where),
-            ctc_is=int(row["ctc_is"]),
+            ctc_is=ctc_is,
             ctc_signals=_yes(row["ctc_signals"], where),
             legs=tuple(legs.pop(n)),
             hardware=nm.get("hardware", ""),

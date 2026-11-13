@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
-from digicon_lib import TRACK_ENDS, points_edge
+from digicon_lib import TRACK_ENDS, cell_edges, points_edge
 
 OPPOSITE = {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"}
 STEP = {"LEFT": (-1, 0), "RIGHT": (1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
@@ -45,25 +45,56 @@ def block_name(sec: ET.Element, edge: str) -> str | None:
     return (blk.get("NAME") or None) if blk is not None else None
 
 
+class PlantError(ValueError):
+    """The desk does not say clearly which OS block a plant is in."""
+
+
 def plant_edges(sec: ET.Element) -> tuple[str | None, list[str]]:
     """(points edge, leg edges) of a cell; points is None when the cell is not a plant."""
     kinds = tracks(sec)
     pts = points_edge(kinds)
     if pts is None:
         return None, []
-    used = set().union(*(TRACK_ENDS[k] for k in kinds))
-    return pts, [e for e in ("LEFT", "RIGHT", "TOP", "BOTTOM") if e in used and e != pts]
+    return pts, [e for e in cell_edges(kinds) if e != pts]
 
 
-def plant_os(cells: dict[tuple[int, int], ET.Element], xy: tuple[int, int]) -> str | None:
-    """The OS block of a plant: a name on the cell's own edges, else the first one past its points."""
+def plant_os(cells: dict[tuple[int, int], ET.Element], xy: tuple[int, int]) -> str:
+    """The OS block of the plant at ``xy``.
+
+    A name on the frog cell's own edges wins (it names that cell's side). With
+    none there, the OS is the first name past the points that is also the
+    first name along at least one leg: an OS spans the frog, so its name shows
+    on both sides. A leg's neighbouring block is never taken. Raises PlantError
+    when the cell has two names or no name passes that test.
+    """
     sec = cells[xy]
-    for e in sec.findall("SEC_EDGE"):
-        blk = e.find("BLOCK")
-        if blk is not None and blk.get("NAME"):
-            return blk.get("NAME")
-    pts, _legs = plant_edges(sec)
-    return trace_leg(cells, xy, pts, own="") if pts else None
+    own = {b.get("NAME") for b in sec.iter("BLOCK") if b.get("NAME")}
+    if len(own) > 1:
+        raise PlantError(f"plant at {xy} carries several block names: {sorted(own)}")
+    if own:
+        return own.pop()
+    pts, legs = plant_edges(sec)
+    if pts is None:
+        raise PlantError(f"cell {xy} is not a plant")
+    behind = trace_leg(cells, xy, pts, own="")
+    ahead = {trace_leg(cells, xy, leg, own="") for leg in legs}
+    if behind is None or behind not in ahead:
+        raise PlantError(f"plant at {xy}: no block name on the frog cell, and the first name past "
+                         f"the points ({behind}) is not on either leg ({sorted(map(str, ahead))})")
+    return behind
+
+
+def desk_plants(cells: dict[tuple[int, int], ET.Element]) -> dict[str, tuple[int, int]]:
+    """OS block -> its plant cell, for every wired plant (SWITCHPOINTS with ROUTEINFO)."""
+    out: dict[str, tuple[int, int]] = {}
+    for xy, sec in cells.items():
+        if sec.find("SEC_EDGE/SWITCHPOINTS/ROUTEINFO") is None:
+            continue
+        os_name = plant_os(cells, xy)
+        if os_name in out:
+            raise PlantError(f"plants at {out[os_name]} and {xy} are both in {os_name}")
+        out[os_name] = xy
+    return out
 
 
 def _shared(sec: ET.Element, edge: str) -> tuple[tuple[int, int], str] | None:

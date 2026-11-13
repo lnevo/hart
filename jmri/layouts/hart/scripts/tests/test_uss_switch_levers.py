@@ -7,8 +7,10 @@ of that switch's OS block.
 """
 from __future__ import annotations
 
+import dataclasses
 import sys
 import unittest
+from unittest import mock
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -44,12 +46,7 @@ def code_buttons() -> dict[str, dict[str, str]]:
 
 def cats_frogs() -> dict[str, tuple[int, int]]:
     """OS block -> the CATS cell holding its SWITCHPOINTS."""
-    cells = trace.track_cells(ET.parse(CATS).getroot().find("TRACKPLAN"))
-    return {
-        trace.plant_os(cells, xy): xy
-        for xy, sec in cells.items()
-        if sec.find("SEC_EDGE/SWITCHPOINTS/ROUTEINFO") is not None
-    }
+    return trace.desk_plants(trace.track_cells(ET.parse(CATS).getroot().find("TRACKPLAN")))
 
 
 class LeverColumnsTest(unittest.TestCase):
@@ -85,6 +82,39 @@ class PointsTest(unittest.TestCase):
 
     def test_os_frog_is_the_cats_desk(self) -> None:
         self.assertEqual(gen.OS_FROG, cats_frogs())
+
+
+class GapsAndLevelsTest(unittest.TestCase):
+    def test_a_plate_gap_draws_a_blank_column(self) -> None:
+        switches = {n: sw for n, sw in gen.SWITCHES.items() if n != 5}
+        cols = gen.uss_columns(switches)
+        self.assertEqual(cols["blank"], {2})
+        self.assertNotIn(2, cols["sw_num"])
+        patch = {"N_SLOTS": cols["n_slots"], "BLANK_SLOTS": cols["blank"],
+                 "SWITCH_ONLY_SLOTS": cols["switch_only"], "SLOT_SW_NUM": cols["sw_num"],
+                 "SLOT_LOCK_UID": cols["lock_uid"], "UID_SLOT": cols["uid_slot"]}
+        with mock.patch.multiple(gen, **patch):
+            block = gen.build_block(gen.parse_cats(CATS))
+        self.assertIn('x="142" y="0"', block)  # slot 2 background
+        self.assertIn("Panel-blank-7.gif", block)
+        self.assertNotIn("IS5:LEVER", block)
+
+    def test_a_second_level_stops_the_generator(self) -> None:
+        switches = dict(gen.SWITCHES)
+        switches[41] = dataclasses.replace(switches[39], number=41, level="2", ctc_is=41)
+        with self.assertRaisesRegex(SystemExit, r"level\(s\) \['2'\]"):
+            gen.uss_columns(switches)
+
+    def test_a_plant_cell_without_a_row_is_named(self) -> None:
+        cells = dict(gen.PLANT_CELLS)
+        cells[(60, 12)] = "OS Switch 99"
+        with self.assertRaisesRegex(SystemExit, r"OS Switch 99 at \(60, 12\)"):
+            gen.uss_plants(gen.SWITCHES, cells)
+
+    def test_an_undrawn_os_block_is_named(self) -> None:
+        cells = {xy: os for xy, os in gen.PLANT_CELLS.items() if os != "OS Switch 7b"}
+        with self.assertRaisesRegex(SystemExit, "OS Switch 7b"):
+            gen.uss_plants(gen.SWITCHES, cells)
 
 
 if __name__ == "__main__":

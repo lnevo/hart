@@ -296,11 +296,7 @@ def _ensure_edge(sec: ET.Element, edge: str) -> ET.Element:
 
 def add_extra_tracks(tp: ET.Element) -> int:
     """Add the omitted 100 / ladder frogs so SWITCHPOINTS have three legs."""
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for xy, kind in EXTRA_TRACKS.items():
         sec = secs.get(xy)
@@ -375,11 +371,7 @@ def strip_designer_blocks(tp: ET.Element) -> int:
 
 def name_blocks(tp: ET.Element) -> int:
     disc = le.load_disciplines()
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for x, y, edge, name in ANCHORS:
         sec = secs.get((x, y))
@@ -409,11 +401,7 @@ def add_shared_jumps(tp: ET.Element) -> int:
     west-edge Track Main West wrap and Princess Track K-2 wrap.
     """
     keep_blk = {(x, y, e) for x, y, e, _ in ANCHORS}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     for sec in secs.values():
         for e in sec.findall("SEC_EDGE"):
             for old in list(e.findall("SHARED")):
@@ -447,11 +435,7 @@ def add_shared_jumps(tp: ET.Element) -> int:
 
 
 def name_signals(tp: ET.Element) -> int:
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y, edge), name in SIGNAL_NAMES.items():
         sec = secs.get((x, y))
@@ -508,11 +492,7 @@ def align_physignal_to_heads(tp: ET.Element) -> int:
 
 
 def add_missing_plants(tp: ET.Element) -> int:
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for xy in PLANT_CELLS:
         sec = secs.get(xy)
@@ -582,11 +562,7 @@ def finish_empty_spurs(tp: ET.Element) -> int:
 def drop_110_crossing(tp: ET.Element) -> None:
     """No-op: 110 Thrown is geographic into (42,8) toward 109."""
     drop: dict[tuple[int, int], str] = {}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     for xy, kind in drop.items():
         sec = secs.get(xy)
         if sec is None:
@@ -610,11 +586,7 @@ def clear_points_facing_blocks(tp: ET.Element) -> int:
     """R3: the cell facing SWITCHPOINTS must be a plain SecEdge, not BlkEdge."""
     opp = {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"}
     step = {"LEFT": (-1, 0), "RIGHT": (1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in secs.items():
         for e in sec.findall("SEC_EDGE"):
@@ -655,11 +627,7 @@ def heal_blk_plain_seams(tp: ET.Element) -> int:
     """
     opp = {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"}
     step = {"LEFT": (-1, 0), "RIGHT": (1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in list(secs.items()):
         for e in list(sec.findall("SEC_EDGE")):
@@ -721,11 +689,7 @@ def _other_end(sec: ET.Element, edge: str) -> str | None:
 
 def break_dual_named_tracks(tp: ET.Element) -> int:
     """One CATS Track may carry only one Block. Drop the extra name."""
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for sec in secs.values():
         for kind in tio.section_tracks(sec):
@@ -803,11 +767,7 @@ def _shared_edge(sec: ET.Element, edge: str) -> bool:
 
 def fill_same_track_names(tp: ET.Element) -> int:
     """If one end of a Track is named, name the other (unless it faces SWITCHPOINTS)."""
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in secs.items():
         for kind in tio.section_tracks(sec):
@@ -839,11 +799,7 @@ def name_signal_seams(tp: ET.Element) -> int:
     """SECSIGNAL on a bare SecEdge ClassCasts; both sides of the joint need a Block."""
     opp = {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"}
     step = {"LEFT": (-1, 0), "RIGHT": (1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in secs.items():
         for e in list(sec.findall("SEC_EDGE")):
@@ -890,11 +846,7 @@ def strip_blk_facing_plain(tp: ET.Element) -> int:
     """A named BLOCK facing a bare SecEdge ClassCasts. Drop the name."""
     opp = {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"}
     step = {"LEFT": (-1, 0), "RIGHT": (1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in list(secs.items()):
         for e in list(sec.findall("SEC_EDGE")):
@@ -985,11 +937,7 @@ def fix_labels(tp: ET.Element) -> int:
 
 def move_signals(tp: ET.Element) -> int:
     """Relocate a Designer SECSIGNAL onto the occupancy-cut cell/edge."""
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (fx, fy, fedge), (tx, ty, tedge) in SIGNAL_MOVES:
         src_sec = secs.get((fx, fy))
@@ -1062,12 +1010,19 @@ def plant_routes(tp: ET.Element) -> dict[tuple[int, int], tuple[str, str, str]]:
     CATS-inverted. Stops if the drawing and switch_legs.csv disagree.
     """
     cells = trace.track_cells(tp)
+    undrawn = sorted(set(LEGS_BY_OS) - set(PLANT_CELLS.values()))
+    if undrawn:
+        raise SystemExit("switch_legs.csv OS blocks with no cell in PLANT_CELLS: " + ", ".join(undrawn))
     out: dict[tuple[int, int], tuple[str, str, str]] = {}
     for xy, os_name in PLANT_CELLS.items():
         if os_name not in LEGS_BY_OS:
-            raise SystemExit(f"{os_name} at {xy} is not in switch_legs.csv")
+            raise SystemExit(f"PLANT_CELLS {xy} {os_name}: no row in switch_legs.csv")
+        if xy not in cells:
+            raise SystemExit(f"PLANT_CELLS {xy} {os_name}: the desk has no track in that cell")
         sw, leg = LEGS_BY_OS[os_name]
-        _pts, legs = trace.plant_edges(cells[xy])
+        pts, legs = trace.plant_edges(cells[xy])
+        if pts is None:
+            raise SystemExit(f"PLANT_CELLS {xy} {os_name}: that cell is not a plant (no points)")
         dest = {e: trace.trace_leg(cells, xy, e, own=os_name) for e in legs}
         closed = [e for e, d in dest.items() if d == leg.closed]
         thrown = [e for e, d in dest.items() if d == leg.thrown]
