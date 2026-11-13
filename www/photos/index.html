@@ -68,6 +68,7 @@
     <!-- Rolling stock: js/fleet.js, data/fleet-gallery.json (default element ids). -->
     <section class="photo-cat" id="cat-rolling-stock" role="tabpanel" aria-labelledby="tab-rolling-stock" hidden>
       <p class="muted">Every car and locomotive on the HART roster, photographed side-on. Filter by road, car type, or number.</p>
+      <p class="small muted" id="fleet-missing" role="status" hidden>That car is not on the site any more.</p>
       <div class="album-bar" id="album-bar" aria-label="Filter by album"></div>
       <div class="fleet-controls" id="fleet-controls">
         <button type="button" class="btn btn-ghost fleet-filter-toggle" id="fleet-filter-toggle" aria-expanded="false" aria-controls="fleet-filters">Filter</button>
@@ -90,7 +91,7 @@
   <script src="../js/fleet.js"></script>
   <script>
     // Deep links: #historical, #layout/session-night, #rolling-stock/freight. The part after the slash
-    // is a sub-chip; SUBS maps its slug to the chip's data-kind / data-album value.
+    // is a sub-chip (on Rolling stock, any other value is a car's id, as in #rolling-stock/csx-2738); SUBS maps its slug to the chip's data-kind / data-album value.
     var CATS = {
       historical: { chips: "#archive-kinds", attr: "data-kind", subs: { photos: "photo", ads: "ad", clippings: "clipping", maps: "map", documents: "document", graphics: "graphic" } },
       layout: { chips: "#layout-albums", attr: "data-album", subs: { "session-night": "layout", panels: "panels", build: "progress", "track-plans": "plans", wiring: "build" } },
@@ -147,10 +148,20 @@
         document.getElementById("cat-" + c).hidden = c !== cat;
       });
       await mountCat(cat);
+      var note = document.getElementById("fleet-missing");
+      if (note) note.hidden = true;
       var value = sub && CATS[cat].subs[sub];
       if (value) {
         var btn = document.querySelector(CATS[cat].chips + " [" + CATS[cat].attr + '="' + value + '"]');
         if (btn) btn.click();
+      } else if (cat === "rolling-stock" && sub && window.HARTFleet && HARTFleet.openItem) {
+        var id;
+        try {
+          id = decodeURIComponent(sub);
+        } catch (e) {
+          id = sub; // a malformed escape in a typed link: look it up as written
+        }
+        if (note) note.hidden = HARTFleet.openItem(id);
       }
     }
 

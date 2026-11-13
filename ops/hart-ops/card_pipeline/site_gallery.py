@@ -13,6 +13,7 @@ from __future__ import annotations
 from private_name import contains_private_name
 
 import json
+import re
 from pathlib import Path
 
 HART_ROOT = Path(__file__).resolve().parents[3]
@@ -28,16 +29,23 @@ def album_for(type_name: str, known: dict[str, str]) -> str:
     return known.get(type_name, DEFAULT_ALBUM)
 
 
+def fleet_id(title: str) -> str:
+    """Stable id for the photos page link (photos/#rolling-stock/<id>) and site search: the title as a slug."""
+    return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+
+
 def entry_for(record: dict, source_image: str, known: dict[str, str]) -> dict:
     kind = record["Type"]
     road, number = record["RoadName"], record["RoadNumber"]
     desc = record.get("Description", "")
     if desc.strip().lower().startswith(kind.strip().lower()):
         desc = desc.strip()[len(kind.strip()):].strip(" ·,-")  # drop a repeated type, keep the rest (e.g. 40')
+    title = f"{road} {number}".strip()
     return {
+        "id": fleet_id(title),
         "album": album_for(kind, known),
         "src": f"{IMAGE_DIR}/{Path(source_image).stem}.png",
-        "title": f"{road} {number}".strip(),
+        "title": title,
         "caption": " · ".join(x for x in (road, kind, desc) if x),
         "credit": "HART car roster",
         "road": road,
@@ -52,6 +60,7 @@ def missing_entries(candidates: list[tuple[dict, str]], data: dict) -> list[dict
     known = {}
     for item in data["items"]:
         known.setdefault(item.get("type", ""), item["album"])
+    taken = {i.get("id") for i in data["items"]}
     out = []
     for record, source_image in candidates:
         if not source_image or Path(source_image).stem in have:
@@ -60,6 +69,10 @@ def missing_entries(candidates: list[tuple[dict, str]], data: dict) -> list[dict
         if contains_private_name(json.dumps(entry)):
             print(f"  skipped {entry['title']}: contains the private name")
             continue
+        base, n = entry["id"], 2
+        while entry["id"] in taken:  # a second photo of the same car gets csx-2738-2, and so on
+            entry["id"], n = f"{base}-{n}", n + 1
+        taken.add(entry["id"])
         out.append(entry)
     return out
 
