@@ -95,4 +95,4 @@ Pre-session briefing for new crew.
 | File | Notes |
 |------|-------|
 | `HART_Railroad_Publication_Standards_v1.0.docx` | Visual / numbering standards |
-| `TT-23_Route23_NevilleQueen_RevisionA_v6.pptx` | Route 23 employee timetable (trifold) |
+| `TT-23_Route23_NevilleQueen_RevisionB.pptx` | Route 23 employee timetable (trifold) |

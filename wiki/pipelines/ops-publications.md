@@ -20,7 +20,7 @@ Rebuild official HART crew/dispatcher paperwork from Python content dicts.
 | SM-01 | `Neville_Island_Station_Map.docx` |
 | SM-02…05 | West Yard / South Yard / East End / Shenango maps |
 | HB-01 | `Neville_Island_New_Operator_Primer.docx` |
-| TT-23 | `TT-23_Route23_NevilleQueen_RevisionA_v6.pptx` (map swap script) |
+| TT-23 | `TT-23_Route23_NevilleQueen_RevisionB.pptx` (map swap script) |
 
 ## Run
 
