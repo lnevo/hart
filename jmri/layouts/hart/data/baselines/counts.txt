@@ -1,6 +1,3 @@
-tables.xml sha256=90bc003c500852b40d064cc5b07e73a9981bf687c8f2d219cd0b853a8d5dd3a2
-tables.xml path=jmri/layouts/hart/output/tables.xml
-
 block_sensors.csv=55
 cats_bindings.csv=68
 ctc_sidi.csv=20

@@ -40,12 +40,12 @@ SIGNAL_PLACEMENTS: dict[str, tuple[int, int, int]] = {
     "Mast 34L": (1392, 289, 270),
     "Mast 32R": (1265, 349, 60),
     "Mast 34R": (1320, 348, 60),
-    "Mast 40LB": (1602, 161, 225),
+    "Mast 40LB": (1640, 170, 225),
     "Mast 36RA": (1465, 264, 90),
     "Mast 36RB": (1465, 325, 90),
-    "Mast 38LB": (1645, 311, 310),
+    "Mast 38LB": (1654, 340, 310),
     "Mast 2035": (1848, 245, 0),
-    "Mast 2036": (1804, 291, 180),
+    "Mast 2036": (1816, 291, 180),
     "Mast 40LA": (1665, 222, 270),
     "Mast 38LA": (1665, 285, 270),
 }
@@ -182,6 +182,14 @@ def find_layout_editor(root: ET.Element) -> ET.Element:
 BCI_LEVEL = "4"
 BCI_COLOR = ("0", "0", "0")
 BCI_DROP_FONT_ATTRS = ("fontFamily", "fontname")
+# Stage 1 (CreateIcons) puts the engine-house train names on Switch 9 and 11,
+# where they overlap the OS Switch 9 / 11 labels. Each sits on its spur's
+# Dispatcher button row instead, east of the BS Main West lamp (x 780-790).
+BCI_PLACEMENTS = {
+    "Track EH-1": (794, 256),
+    "Track EH-2": (794, 270),
+    "Track EH-3": (794, 284),
+}
 
 
 def ensure_block_contents_visible(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
@@ -218,7 +226,26 @@ def ensure_block_contents_visible(le: ET.Element, *, check: bool) -> tuple[int, 
             else:
                 del icon.attrib[attr]
                 changes += 1
+        if name in BCI_PLACEMENTS:
+            x, y = BCI_PLACEMENTS[name]
+            if not (_same_number(icon.get("x"), x) and _same_number(icon.get("y"), y)):
+                if check:
+                    errors.append(
+                        f"BlockContentsIcon {name!r} at ({icon.get('x')}, {icon.get('y')}), "
+                        f"expected ({x}, {y})"
+                    )
+                else:
+                    icon.set("x", str(x))
+                    icon.set("y", str(y))
+                    changes += 1
     return changes, errors
+
+
+def _same_number(stored: str | None, wanted: int) -> bool:
+    try:
+        return float(stored or "") == float(wanted)
+    except ValueError:
+        return False
 
 
 def _set_xy(el: ET.Element, x: int, y: int) -> bool:
@@ -305,7 +332,7 @@ def place_stage1_lamps(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
         if name not in STAGE1_LAMP_PLACEMENTS or icon.get("level") == CLUSTER_LAMP_LEVEL:
             continue
         x, y = STAGE1_LAMP_PLACEMENTS[name]
-        if icon.get("x") == str(x) and icon.get("y") == str(y):
+        if _same_number(icon.get("x"), x) and _same_number(icon.get("y"), y):
             continue
         if check:
             errors.append(
@@ -324,14 +351,17 @@ def dedupe_shared_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, 
     by_name: dict[str, list[ET.Element]] = {}
     for icon in le.findall("sensoricon"):
         name = (icon.get("sensor") or "").strip()
-        if name in SHARED_OCCUPANCY_KEEP:
+        # The level-12 lamp in the Dispatcher station cluster shares the sensor
+        # and belongs to reconcile_dispatcher_stations.py; only Stage 1 copies
+        # are deduplicated here.
+        if name in SHARED_OCCUPANCY_KEEP and icon.get("level") != CLUSTER_LAMP_LEVEL:
             by_name.setdefault(name, []).append(icon)
     for name, icons in by_name.items():
         keep_x, keep_y = SHARED_OCCUPANCY_KEEP[name]
         keepers = [
             icon
             for icon in icons
-            if icon.get("x") == str(keep_x) and icon.get("y") == str(keep_y)
+            if _same_number(icon.get("x"), keep_x) and _same_number(icon.get("y"), keep_y)
         ]
         extras = [icon for icon in icons if icon not in keepers]
         if not keepers:
@@ -401,7 +431,8 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
             )
             continue
         point = rows[0]
-        if point.get("x") == str(x) and point.get("y") == str(y):
+        # JMRI stores anchors as floats ("1639.0"); compare the numbers.
+        if _same_number(point.get("x"), x) and _same_number(point.get("y"), y):
             continue
         if check:
             errors.append(

@@ -54,6 +54,9 @@ STATIONS = (
     "Track McKeesport",
 )
 
+# Station cluster icons sit on level 12. The Stage 1 (CreateIcons) occupancy
+# lamps on the track share the sensor at level 10 and are left alone.
+CLUSTER_LEVEL = "12"
 INTERNAL_SENSOR_CLASS = "jmri.jmrix.internal.configurexml.InternalSensorManagerXml"
 STOP_TOKEN = "stop"
 # Progress is x-10 from MoveTo. Occupancy is MoveTo + (-10, +10) unless
@@ -96,29 +99,31 @@ STATION_ICON_POSITIONS = {
     "Track McKeesport": (1730, 293),
 }
 
+# Occupancy sensor of each station block (public BS names, ADR-005). validate()
+# fails if a block in tables.xml binds a different sensor.
 STATION_OCCUPANCY = {
-    "Track Brick-Plane": "Block 4-6",
-    "Track East Main Ext": "Block 4-7",
-    "Track Main West": "Block 2-1",
-    "Track Main East": "Block 2-3",
-    "Track West Main Ext": "Block 1-8",
-    "Track East Lead": "Block 1-7",
-    "Track K-1": "Block 1-1",
-    "Track K-2": "Block 1-2",
-    "Track EH-1": "Block 13-7",
-    "Track EH-2": "Block 13-6",
-    "Track EH-3": "Block 13-5",
-    "Track S-R": "Block 2-8",
-    "Track S-1": "Block 2-7",
-    "Track S-2": "Block 2-6",
-    "Track S-3": "Block 2-5",
-    "Track S-4": "Block 2-4",
-    "Track Scale": "Block 4-8",
-    "Track Barn": "Block 13-1",
-    "Track W-1": "Block 4-4",
-    "Track W-2": "Block 4-3",
-    "Track McKees Rocks": "Block 1-4",
-    "Track McKeesport": "Block 1-3",
+    "Track Brick-Plane": "BS Brick-Plane",
+    "Track East Main Ext": "BS East Main Ext",
+    "Track Main West": "BS Main West",
+    "Track Main East": "BS Main East",
+    "Track West Main Ext": "BS West Main Ext",
+    "Track East Lead": "BS East Lead",
+    "Track K-1": "BS K-1",
+    "Track K-2": "BS K-2",
+    "Track EH-1": "BS EH-1",
+    "Track EH-2": "BS EH-2",
+    "Track EH-3": "BS EH-3",
+    "Track S-R": "BS S-R",
+    "Track S-1": "BS S-1",
+    "Track S-2": "BS S-2",
+    "Track S-3": "BS S-3",
+    "Track S-4": "BS S-4",
+    "Track Scale": "BS Scale",
+    "Track Barn": "BS Barn",
+    "Track W-1": "BS W-1",
+    "Track W-2": "BS W-2",
+    "Track McKees Rocks": "BS Switch 39 / BS McKees Rocks",
+    "Track McKeesport": "BS Switch 37 / BS McKeesport",
 }
 
 # Loco marker is ~60px; size-10 bold fits about 8 characters.
@@ -368,12 +373,13 @@ def icon_element(
         "sensor": sensor_name,
         "x": str(x),
         "y": str(y),
-        "level": "12",
+        "level": CLUSTER_LEVEL,
         "forcecontroloff": "false",
         "hidden": "no",
         "positionable": "true",
         "showtooltip": "true",
-        "editable": "true",
+        # Occupancy lamps are display only; the MoveTo button is clicked.
+        "editable": "false" if kind == "occupancy" else "true",
         "momentary": "false",
         "icon": "yes",
         "class": "jmri.jmrit.display.configurexml.SensorIconXml",
@@ -434,6 +440,12 @@ def icon_element(
     return icon
 
 
+def is_stage1_lamp(icon: ET.Element) -> bool:
+    """A station occupancy icon that is not the cluster one: Stage 1's track lamp."""
+    occupancy_names = set(STATION_OCCUPANCY.values())
+    return (icon.get("sensor") or "") in occupancy_names and icon.get("level") != CLUSTER_LEVEL
+
+
 def xy(element: ET.Element) -> tuple[int, int] | None:
     try:
         return int(float(element.get("x", ""))), int(float(element.get("y", "")))
@@ -451,6 +463,8 @@ def reconcile_icons(root: ET.Element, changes: Changes) -> None:
     existing: dict[str, list[ET.Element]] = {name: [] for name in expected_names}
     for element in editor.findall("sensoricon"):
         name = element.get("sensor") or ""
+        if is_stage1_lamp(element):
+            continue
         if name in existing:
             existing[name].append(element)
 
@@ -591,9 +605,29 @@ def validate(root: ET.Element) -> None:
     if bad_sensors:
         raise ValueError(f"missing or duplicate internal sensors: {bad_sensors}")
 
+    # A block may store its sensor by system name (a GUI edit); accept either.
+    user_by_system = {
+        (sensor.findtext("systemName") or "").strip(): bean_user_name(sensor)
+        for sensor in root.iter("sensor")
+    }
+    wrong_sensor = []
+    for block in full_blocks:
+        station = bean_user_name(block)
+        bound = (block.findtext("occupancysensor") or "").strip()
+        if station not in STATION_OCCUPANCY or not bound:
+            continue
+        if user_by_system.get(bound, bound) != STATION_OCCUPANCY[station]:
+            wrong_sensor.append(f"{station}: {bound}")
+    if wrong_sensor:
+        raise ValueError(
+            f"station blocks bind other occupancy sensors than STATION_OCCUPANCY: {wrong_sensor}"
+        )
+
     editor = main_layout_editor(root)
     icon_names = [
-        icon.get("sensor") or "" for icon in editor.findall("sensoricon")
+        icon.get("sensor") or ""
+        for icon in editor.findall("sensoricon")
+        if not is_stage1_lamp(icon)
     ]
     bad_icons = [name for name in expected_icons if icon_names.count(name) != 1]
     if bad_icons:
