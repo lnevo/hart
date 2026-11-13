@@ -96,12 +96,11 @@ CREAM = dict(red=220, green=220, blue=180)
 WHITE = dict(red=255, green=255, blue=255)
 
 
-# CATS frog cell -> (JMRI turnout, dot shows Normal when Thrown), on each switch's
-# first OS block. Rails come from CATS track pieces; the turnouticon is only a points dot.
-
-
 def uss_plants(switches: dict, plant_cells: dict) -> dict:
-    """CATS frog cell -> (turnout, dot swapped) on each switch's first OS block."""
+    """CATS frog cell -> (JMRI turnout, dot shows Normal when Thrown) on each switch's
+    first OS block. The dot follows switches.csv cats_inverted alone; there are no
+    per-switch overrides. Rails come from CATS track pieces; the turnouticon is only
+    a points dot."""
     owner = {os_name: sw for sw in switches.values() for os_name in sw.os_blocks}
     missing = [f"{os_name} at {xy}" for xy, os_name in plant_cells.items() if os_name not in owner]
     if missing:
@@ -112,8 +111,7 @@ def uss_plants(switches: dict, plant_cells: dict) -> dict:
         raise SystemExit("switch_legs.csv OS blocks with no cell in wire_digicon.PLANT_CELLS: "
                          + ", ".join(undrawn))
     return {
-        xy: (owner[os_name].turnout,
-             owner[os_name].cats_inverted)
+        xy: (owner[os_name].turnout, owner[os_name].cats_inverted)
         for xy, os_name in plant_cells.items()
         if os_name == owner[os_name].os_blocks[0]
     }
@@ -200,17 +198,19 @@ SIGNALS = [
 ]
 
 STATION_NAMES = facts.station_names()  # control point plates: BRICK, EAST END, ...
+# Desk titles are not drawn on the USS board. Each desk's dated revision header
+# ("DS-CTC  Rev A  Eff <date>", "DS-ABS ...") changes with every Designer save, so
+# it is skipped by its "DS-" prefix.
 SKIP_LABELS = {
     "HART RAILROAD", "NEVILLE ISLAND OPERATIONS", "P&CV DIVISION",
-    "CTC DIGICON",
+    "CTC DIGICON", "ABS DIGICON",
 }
-# The desk's dated revision header ("DS-CTC  Rev A  Eff <date>") changes with each
-# Designer save, so it is skipped by prefix rather than drawn off-panel.
-SKIP_PREFIXES = ("DS-CTC",)
+SKIP_PREFIXES = ("DS-",)
 
 
 def _skip_label(raw: str) -> bool:
     return raw in SKIP_LABELS or raw.startswith(SKIP_PREFIXES)
+
 
 SLASH = {"UPPERSLASH", "LOWERSLASH"}
 BACKSLASH = {"UPPERBACKSLASH", "LOWERBACKSLASH"}
