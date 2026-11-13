@@ -112,6 +112,16 @@ class _Ids(HTMLParser):
                 self.ids.add(value)
 
 
+def _drawn_ids(root: Path, page: str) -> set:
+    """Anchors a page's script draws from data (js/crew.js gives each spot sheet id=<id> and scrolls to
+    the hash on load); verified against the built data, not skipped."""
+    if page.rstrip("/") != "crew/industries/index.html":
+        return set()
+    path = root / "data" / "crew.json"
+    sheet = json.loads(path.read_text(encoding="utf-8")).get("spotsheet") or {} if path.is_file() else {}
+    return {e["id"] for k in ("industries", "offline", "desk") for e in sheet.get(k) or [] if e.get("id")}
+
+
 def index_problems(root: Path) -> list[str]:
     """search-index.json: the agreed shape, and every record's url (and #anchor) is a built page."""
     path = root / "search-index.json"
@@ -149,7 +159,7 @@ def index_problems(root: Path) -> list[str]:
                 ids = _Ids()
                 ids.feed(file.read_text(encoding="utf-8", errors="replace"))
                 page_ids[file] = ids.ids
-            if unquote(anchor) not in page_ids[file]:
+            if unquote(anchor) not in page_ids[file] | _drawn_ids(root, page):
                 bad.append(f"{where}: anchor #{anchor} is not in {page}")
     return bad
 
