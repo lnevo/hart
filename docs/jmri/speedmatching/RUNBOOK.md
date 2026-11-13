@@ -419,7 +419,9 @@ SETTLE <n> secs=<s>
 MEASURE <n> from=<sensor user name>
 SENS <sensor user name> <ACTIVE|INACTIVE|UNKNOWN|INCONSISTENT>
 BLOCK <step> block=<sensor_user_name_with_underscores> mm=<len> dt=<s> mm_s=<v>
+FREEZE <n>
 STEPDONE <n> reason=<settled|timed|max|stalled> n=<blocks> mm=<sum> s=<sum> mm_s=<v> relsd=<r>
+PATH <sensor>,<sensor>,...
 PASS step=<n> from=<sensor> to=<sensor>
 PASSDONE reason=<..>
 STOP <why>
@@ -427,15 +429,24 @@ END
 ```
 
 - Distance mode logs, per step: `STEP`, `SETTLE`, `MEASURE`, then `SENS` and `BLOCK` lines, then
-  `STEPDONE`. `SENS` lines are logged for every block sensor and guard, in the order events were
+  `FREEZE`, then `STEPDONE`. `FREEZE <n>` is the moment the runner stops taking blocks (before
+  the totals are worked out); a `SENS` line between `FREEZE` and `STEPDONE`, or between `STEP`
+  and `MEASURE`, is not measured, and the analysis counts events only from `MEASURE` to
+  `FREEZE`. `SENS` lines are logged for every block sensor and guard, in the order events were
   fed; the `RUN` and `LENGTHS` lines are as in laps mode (laps mode's `CFG`, `WARMUP n laps=`,
   `WARMUP_LAP`, `READ` and `STEPDONE ... median=` lines are unchanged).
 - Also logged, outside the dashboard's contract: `EXTRA <n> relsd=<r>` when a step takes its one
   extra reading, `NO GUARD`, and the end of run lines `speed 0`, `F<n> off`, `throttle released`,
   `ERROR <..>`.
-- The pass job logs `RUN`, `CFG route=<r> mode=pass step=<n> max_s=<n>`, `PASS`, `SENS`,
+- The pass job logs `RUN`, `CFG route=<r> mode=pass step=<n> max_s=<n>`, `PATH`, `PASS`, `SENS`,
   `PASSDONE reason=<passed|max|stalled|killed|guard_<name>|..>`, then `STOP` and `END`. In `PASS`,
-  `from=` and `to=` are the sensor user names as they are (spaces kept).
+  `from=` and `to=` are the sensor user names as they are (spaces kept). `PATH` is the sensors
+  expected from `from` to `to`, the shorter way round the route, user names as they are,
+  comma separated, logged just before `PASS`. A route sensor that is not on it lighting after
+  `from` and before `to` stops the pass at once (`PASSDONE reason=wrong_way`, `STOP wrong way`).
+  `infer_block_lengths.py` refuses a pass whose sensors did not light in the `PATH` order, and a
+  pass whose `from` and `to` are not both pins of the route's plan (it names the pins). `analyze.py`
+  skips a log whose `CFG` says `mode=pass`.
 - `MEASURE ... from=` is the user name as it is (spaces kept); only `BLOCK ... block=` and `mid=`
   use underscores.
 - `STEPDONE ... n=0` (and `mm=0.0 s=0.00 mm_s=0.0 relsd=0.0000`) when a step took no readings.

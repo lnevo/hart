@@ -431,7 +431,7 @@ class Round3(unittest.TestCase):
         self.assertEqual([s for _, s in steps[1]["events"]], ["BS Brick-Plane"])
 
     def test_stall_timer_only_follows_loop_sensors_lighting(self):
-        src = (SM / "jython" / "step_runner.py").read_text()
+        src = (SM / "jython" / "jobkit.py").read_text()
         body = src.split("def propertyChange")[1].split("def wait")[0]
         self.assertEqual(body.count("last[0] = now"), 1)
         self.assertIn("if st == 2 and self.n in ORDER: last[0] = now", body)

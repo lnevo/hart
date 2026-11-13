@@ -191,13 +191,20 @@ def locate(result, turnouts, route, targets=("Switch 7", "Switch 13"), anchor="S
     return {t: (centre[t], centre[anchor] - centre[t]) for t in targets}
 
 
-def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Switch 5", to="Switch 15"):
+def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Switch 5", to="Switch 15",
+                 path=None):
     """Place the targets' centres from one timed pass (pass_runner.py), the loco at one speed
     between the two pins. events: [(epoch, "BS ...")] ACTIVE events, the first of each sensor
     counts. A section's centre time is halfway between its entry and the entry of the next
     section in the direction of travel; the pins' centres sit at pins[frm] and pins[to] (mm
     from Switch 5's points), so a target's position is a straight-line interpolation on those
-    times. Returns {"speed": mm/s, target: (centre mm, mm before OS `to`'s centre), ...}."""
+    times. frm and to must be pins of the route (BS prefix allowed); path, when the log has one,
+    is the sensors expected from frm to to in order, and the order the sensors lit must match it.
+    Returns {"speed": mm/s, target: (centre mm, mm before OS Switch 15's centre), ...}."""
+    frm, to = (n[3:] if n.startswith("BS ") else n for n in (frm, to))
+    for n in (frm, to):
+        if n not in pins:
+            raise ValueError(f"{n} is not a pin on the {route} plan; the pins are {', '.join(sorted(pins))}")
     seq = route_from_sw5(route)
     first = {}
     for t, name in events:
@@ -205,7 +212,16 @@ def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Sw
     for need in (frm, to):
         if need not in first:
             raise ValueError(f"the pass never lit BS {need}")
-    sign = 1 if first[to] > first[frm] else -1  # +1: the route's own order
+    if path:
+        want = [n[3:] if n.startswith("BS ") else n for n in path]
+        lit = sorted((first[n], n) for n in want if n in first)
+        got = [n for _, n in lit]
+        if got != want:
+            raise ValueError("the sensors lit in the order " + ",".join(got) + " but the logged PATH is "
+                             + ",".join(want) + " (the loco went the wrong way, or a sensor was missed)")
+        sign = 1 if len(want) > 1 and seq[(seq.index(want[0]) + 1) % len(seq)] == want[1] else -1
+    else:
+        sign = 1 if first[to] > first[frm] else -1  # +1: the route's own order
 
     def centre(s):
         nxt = seq[(seq.index(s) + sign) % len(seq)]
@@ -220,7 +236,7 @@ def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Sw
     out = {"speed": abs(per_s)}
     for tg in targets:
         pos = pins[frm] + (centre(tg) - t0) * per_s
-        out[tg] = (pos, pins[to] - pos)
+        out[tg] = (pos, pins["Switch 15"] - pos)
     return out
 
 
@@ -283,7 +299,7 @@ def report_passes(logs, route, pins):
     for p in logs:
         for ps in analyze.parse_pass_log(Path(p).read_text().splitlines(), Path(p).name):
             try:
-                res = pass_centres(ps["events"], route, pins)
+                res = pass_centres(ps["events"], route, pins, frm=ps["frm"], to=ps["to"], path=ps["path"])
             except ValueError as e:
                 print(f"pass at step {ps['step']} in {ps['log']} skipped: {e}")
                 continue

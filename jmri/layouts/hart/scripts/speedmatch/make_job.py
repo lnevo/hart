@@ -168,12 +168,12 @@ def build_pass(a):
     after = lr.next_after(order, a.frm, a.to)
     if after == a.frm:
         raise SystemExit("no sensor between --to and --from to end the pass on")
-    for n in (a.frm, a.to, after):
+    for n in lr.path_between(order, a.frm, a.to) + [after]:
         if n in g:
             raise SystemExit("%r is also a guard: the run would end before the pass is done" % n)
     s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
          "FUNCS": [0] + ([8] if a.mute_sound else []), "GUARD": g, "ROUTE": a.route, "ORDER": order,
-         "FROM_S": a.frm, "TO_S": a.to, "AFTER_S": after, "MAX_S": a.max_s, "STALL": a.stall}
+         "FROM_S": a.frm, "TO_S": a.to, "AFTER_S": after, "PATH": lr.path_between(order, a.frm, a.to), "MAX_S": a.max_s, "STALL": a.stall}
     return ((HERE / "liverule.py").read_text() + "\n" + settings_text(s)
             + runner_text("pass_runner.py"))
 
@@ -329,7 +329,7 @@ def main(argv=None):
             a.warm_step = lr.DIST_WARM_STEP if dist else DEFAULT_WARM_STEP
         if a.rel is None:
             a.rel = lr.DIST_REL if dist else lr.STOP_REL
-        if not 1 <= a.warm_step <= 126:
+        if (a.warm_s > 0 if dist else a.warm_laps > 0) and not 1 <= a.warm_step <= 126:
             sys.exit("--warm-step %d is outside 1..126" % a.warm_step)
         if dist and (a.target_mm <= 0 or a.min_blocks < 1 or a.max_s <= 0 or a.warm_s < 0):
             sys.exit("distance mode needs --target-mm and --max-s above 0, --min-blocks 1 or more, --warm-s 0 or more")

@@ -29,6 +29,7 @@ import sys
 from pathlib import Path
 
 import analyze
+import liverule as lr
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -222,7 +223,7 @@ def read_profile(path, loco, direction, run=None, route=analyze.DEFAULT_ROUTE):
     """({step: median mm/s}, [skipped]) for one loco and direction from analyze.py's
     profile.csv. One run only: `run` if given, else the latest complete run (the latest run
     if none completed). Only the first measurement of a step, and only if the stop rule
-    settled (reason "settled", or "timed" in distance mode); every other step is listed in skipped as (step, reason).
+    settled (the `settled` column; a file without it, by reason); every other step is listed in skipped as (step, reason).
     Only runs of `route` count (a profile.csv without a route column is loop1)."""
     with open(path, newline="") as fh:
         rows = [r for r in csv.DictReader(fh) if r["loco"] == loco and r["direction"] == direction
@@ -237,7 +238,8 @@ def read_profile(path, loco, direction, run=None, route=analyze.DEFAULT_ROUTE):
     for r in rows:
         if int(r.get("run") or 1) != run or "#" in r["step"]:
             continue
-        if r["median_mm_s"] and r["reason"] in ("settled", "timed"):
+        flag = (r.get("settled") or "").strip()  # analyze.py's own verdict; old files only have the reason
+        if r["median_mm_s"] and (flag == "True" if flag else lr.is_valid_reason(r["reason"])):
             out[int(r["step"])] = float(r["median_mm_s"])
         else:
             skipped.append((int(r["step"]), r["reason"] or "no readings"))

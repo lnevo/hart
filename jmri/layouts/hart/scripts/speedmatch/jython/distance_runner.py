@@ -26,46 +26,23 @@
 #   TARGET_MM, MIN_BLOCKS, MAX_S, REL   the end rule
 #   CV3, CV4        the loco's momentum CVs, for the settle time
 #   STALL0, STALL_CAP, STALL_SKIP_BELOW   as in step_runner.py
-# Needs liverule.py and jobkit.py in front of it (make_job.py pastes them).
+# Needs liverule.py and jobkit.py in front of it (make_job.py pastes them); the route listener
+# SL and the waits (pause) come from jobkit.py.
 import json
-last = [time.time()]
-state = {}; lock = threading.Lock()
-reader = BlockReader(ORDER, LENGTHS)
+reader = SpanReader(ORDER, LENGTHS, 0, True)   # whole blocks, one steady direction
 phase = ["idle"]     # idle, warmup, settle or measure
 cur = [0]; mstart = [None]; trk = [None]
-class SL(java.beans.PropertyChangeListener):
-    # n: the name the route and the log use (the user name when there is one); isg: this bean
-    # is a guard, whichever name the guard was given by
-    def __init__(self, n, isg): self.n = n; self.isg = isg
-    def propertyChange(self, e):
-        if e.getPropertyName() != "KnownState": return
-        st = e.getNewValue(); now = time.time()
-        lock.acquire()   # the log order is the order events were fed
-        try:
-            L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st)))
-            if st == 2 and self.n in ORDER: last[0] = now
-            if self.isg and st == 2: guard_hit(self.n)
-            if st == 2 and state.get(self.n) != 2 and phase[0] == "measure" and self.n in ORDER:
-                b = reader.feed(now, self.n)
-                if mstart[0] is None:
-                    mstart[0] = now
-                    L("MEASURE %d from=%s" % (cur[0], self.n))
-                if b is not None:
-                    L("BLOCK %d block=%s mm=%.1f dt=%.2f mm_s=%.1f" % (
-                        cur[0], b[0].replace(" ", "_"), b[1], b[2], b[1] / b[2]))
-                    trk[0].add(b[1], b[2])
-            state[self.n] = st   # every state counts, so UNKNOWN between two ACTIVEs is a new ACTIVE
-        finally:
-            lock.release()
-def pause(secs, stall):
-    """Wait secs seconds. Returns "ok", "abort" or "stall" (no route sensor event for stall s)."""
-    t1 = time.time() + secs
-    while time.time() < t1:
-        if ab.is_set(): return "abort"
-        if os.path.exists("/tmp/speedrun.kill"): why[0] = "killed"; return "abort"
-        if time.time() - last[0] > stall: return "stall"
-        time.sleep(0.1)
-    return "ok"
+def on_active(n, now):
+    # called by jobkit's SL under its lock, once per sensor lighting
+    if phase[0] != "measure" or n not in ORDER: return
+    b = reader.feed(now, n)
+    if mstart[0] is None:
+        mstart[0] = now
+        L("MEASURE %d from=%s" % (cur[0], n))
+    if b is not None:
+        L("BLOCK %d block=%s mm=%.1f dt=%.2f mm_s=%.1f" % (cur[0], b[4].replace(" ", "_"), b[2], b[1], b[0]))
+        trk[0].add(b[2], b[1])
+HOOK[0] = on_active
 def run():
     t = None; tl = None
     try:
@@ -99,7 +76,7 @@ def run():
             lock.acquire()   # STEP line, reader restart and phase change happen between two events
             try:
                 L("STEP %d" % st)
-                reader.restart(); trk[0] = DistanceStep(TARGET_MM, MIN_BLOCKS, MAX_S, REL)
+                reader.restart(1); trk[0] = DistanceStep(TARGET_MM, MIN_BLOCKS, MAX_S, REL)
                 cur[0] = st; mstart[0] = None; phase[0] = "settle"; last[0] = time.time()
             finally:
                 lock.release()
@@ -135,6 +112,7 @@ def run():
             lock.acquire()
             try:
                 phase[0] = "idle"; blocks = list(trk[0].blocks)
+                L("FREEZE %d" % st)   # no block counts after this line, whatever the log shows next
                 el = (time.time() - mstart[0]) if mstart[0] is not None else 0.0
             finally:
                 lock.release()

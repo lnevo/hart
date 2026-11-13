@@ -48,6 +48,7 @@ def distance_log(step_events, loco="CSX 2121", direction="forward", extra_cfg=""
         lines.append("%.3f STEP %d" % (t_first - 9, st))
         lines.append("%.3f SETTLE %d secs=5.0" % (t_first - 9, st))
         lines.append("%.3f SENS %s ACTIVE" % (t_first - 4, ORDER1[3]))  # in the settle: ignored
+        lines.append("%.3f SENS %s INACTIVE" % (t_first - 3.5, ORDER1[3]))
         for k, (t, s) in enumerate(ev):
             lines.append("%.3f SENS %s ACTIVE" % (t, s))
             if k == 0:
@@ -84,43 +85,55 @@ class Aggregate(unittest.TestCase):
 
 
 class Blocks(unittest.TestCase):
+    """SpanReader in steady mode, one block at a time: what the distance runner reads."""
+
+    def reader(self, lengths=LEN1):
+        r = lr.SpanReader(ORDER1, lengths, 0, True)
+        r.restart(1)
+        return r
+
     def feed(self, reader, events):
         return [reader.feed(t, s) for t, s in events]
 
     def test_each_block_is_entry_to_entry_in_travel_order(self):
-        r = lr.BlockReader(ORDER1, LEN1)
-        got = self.feed(r, steady(ORDER1, ORDER1[2], 250.0, LEN1, 4))
+        got = self.feed(self.reader(), steady(ORDER1, ORDER1[2], 250.0, LEN1, 4))
         self.assertIsNone(got[0])
-        self.assertEqual([g[0] for g in got[1:]], ORDER1[2:5])
+        self.assertEqual([g[4] for g in got[1:]], ORDER1[2:5])
         for g in got[1:]:
-            self.assertAlmostEqual(g[1] / g[2], 250.0)
+            self.assertAlmostEqual(g[0], 250.0)
+            self.assertEqual((g[2], g[3]), (1500.0, 1))
 
     def test_the_other_way_round_counts_too(self):
-        r = lr.BlockReader(ORDER1, LEN1)
-        got = self.feed(r, steady(ORDER1, ORDER1[5], 250.0, LEN1, 3, step=-1))
-        self.assertEqual([g[0] for g in got[1:]], [ORDER1[5], ORDER1[4]])
+        got = self.feed(self.reader(), steady(ORDER1, ORDER1[5], 250.0, LEN1, 3, step=-1))
+        self.assertEqual([g[4] for g in got[1:]], [ORDER1[5], ORDER1[4]])
 
     def test_a_missed_sensor_restarts_the_chain(self):
-        r = lr.BlockReader(ORDER1, LEN1)
         ev = steady(ORDER1, ORDER1[0], 250.0, LEN1, 5)
         del ev[2]  # block 2 never lit: the 1 -> 3 gap is not a block
-        got = self.feed(r, ev)
-        self.assertEqual([g and g[0] for g in got], [None, ORDER1[0], None, ORDER1[3]])
+        got = self.feed(self.reader(), ev)
+        self.assertEqual([g and g[4] for g in got], [None, ORDER1[0], None, ORDER1[3]])
+
+    def test_a_turn_back_restarts_the_chain(self):
+        r = self.reader()
+        got = self.feed(r, [(0.0, ORDER1[3]), (6.0, ORDER1[4]), (12.0, ORDER1[3]), (18.0, ORDER1[2])])
+        self.assertEqual([g and g[4] for g in got], [None, ORDER1[3], None, ORDER1[3]])
 
     def test_untrusted_length_and_off_route_events_are_skipped(self):
         lens = dict(LEN1)
         lens[ORDER1[1]] = None
-        r = lr.BlockReader(ORDER1, lens)
         ev = steady(ORDER1, ORDER1[0], 250.0, LEN1, 4)
         ev.insert(2, (ev[1][0] + 0.5, "BS Somewhere Else"))
-        got = self.feed(r, ev)
-        self.assertEqual([g and g[0] for g in got if g], [ORDER1[0], ORDER1[2]])
+        got = self.feed(self.reader(lens), ev)
+        self.assertEqual([g[4] for g in got if g], [ORDER1[0], ORDER1[2]])
 
     def test_a_retrigger_is_ignored(self):
-        r = lr.BlockReader(ORDER1, LEN1)
+        r = self.reader()
         self.assertIsNone(r.feed(1.0, ORDER1[0]))
         self.assertIsNone(r.feed(1.5, ORDER1[0]))
-        self.assertEqual(r.feed(7.0, ORDER1[1])[2], 6.0)
+        self.assertEqual(r.feed(7.0, ORDER1[1])[1], 6.0)
+
+    def test_there_is_one_reader_class(self):
+        self.assertFalse(hasattr(lr, "BlockReader"))
 
 
 class EndRule(unittest.TestCase):
@@ -224,6 +237,19 @@ class Jobs(unittest.TestCase):
         self.assertNotIn("WARM_LAPS", t)
         self.assertLess(t.index("P_FWD = True"), t.index("class SL("))
 
+    def test_warm_step_is_checked_only_when_a_warm_up_runs(self):
+        base = ["steps", "--loco", "CSX 2121", "--direction", "forward", "--mode", "distance", "--guard", "none",
+                "--warm-step", "0"]
+        self.build(*base, "--warm-s", "0")
+        with self.assertRaises(SystemExit):
+            self.build(*base, "--warm-s", "30")
+
+    def test_path_between_takes_the_shorter_way(self):
+        o = analyze.route_order("loop2")
+        self.assertEqual(lr.path_between(o, "BS Switch 5", "BS Barn"), ["BS Switch 5", "BS Scale", "BS Switch 7", "BS Barn"])
+        self.assertEqual(lr.path_between(o, "BS Switch 15", "BS Switch 7"),
+                         ["BS Switch 15", "BS Switch 13", "BS Barn", "BS Switch 7"])
+
     def test_distance_overrides_and_validation(self):
         t = self.build("steps", "--loco", "CSX 2738", "--direction", "reverse", "--mode", "distance",
                        "--guard", "none", "--steps", "24,48", "--warm-s", "0", "--target-mm", "4000",
@@ -255,6 +281,8 @@ class Jobs(unittest.TestCase):
         self.assertEqual(self.setting(t, "FROM_S"), "'BS Switch 5'")
         self.assertEqual(self.setting(t, "TO_S"), "'BS Switch 15'")
         self.assertEqual(self.setting(t, "AFTER_S"), "'BS S-R'")  # one more block
+        self.assertEqual(eval(self.setting(t, "PATH")), ["BS Switch 5", "BS Scale", "BS Switch 7", "BS Barn",
+                                                       "BS Switch 13", "BS Switch 15"])
         self.assertEqual(self.setting(t, "P_STEP"), "24")
         self.assertNotIn("'BS Switch 5'", self.setting(t, "GUARD"))
         self.assertLess(t.index("P_FWD = True"), t.index("class SL("))
@@ -276,19 +304,19 @@ class RunnerSource(unittest.TestCase):
     def test_distance_runner_emits_every_tag(self):
         src = mover("distance_runner.py")
         want = {"RUN", "CFG", "LENGTHS", "WARMUP", "WARMUP_DONE", "STEP", "SETTLE", "MEASURE", "SENS",
-                "BLOCK", "STEPDONE", "EXTRA", "STOP", "END"}
+                "BLOCK", "FREEZE", "STEPDONE", "EXTRA", "STOP", "END"}
         self.assertEqual(want - self.tags(src), set())
 
     def test_pass_runner_emits_every_tag(self):
         src = mover("pass_runner.py")
-        want = {"RUN", "CFG", "PASS", "SENS", "PASSDONE", "STOP", "END"}
+        want = {"RUN", "CFG", "PATH", "PASS", "SENS", "PASSDONE", "STOP", "END"}
         self.assertEqual(want - self.tags(src), set())
 
     def test_the_runbook_states_the_contract(self):
         text = RUNBOOK.read_text()
         self.assertIn("## Log lines", text)
         for tag in ("RUN loco=", "CFG route=", "mode=distance", "LENGTHS ", "WARMUP ", "WARMUP_DONE", "STEP ",
-                    "SETTLE ", "MEASURE ", "SENS ", "BLOCK ", "STEPDONE ", "PASS step=", "PASSDONE reason=",
+                    "SETTLE ", "MEASURE ", "SENS ", "BLOCK ", "FREEZE ", "STEPDONE ", "PATH ", "PASS step=", "PASSDONE reason=",
                     "STOP ", "END"):
             self.assertIn(tag, text, tag)
 
@@ -298,6 +326,13 @@ class RunnerSource(unittest.TestCase):
         keys = re.findall(r"(\w+)=", cfg)
         self.assertEqual(keys, ["route", "mode", "steps", "target_mm", "min_blocks", "max_s", "rel", "warm_s",
                                 "warm_step", "cv3", "cv4", "mid"])
+
+    def test_no_runner_keeps_its_own_listener_or_waits(self):
+        kit = (SM / "jython" / "jobkit.py").read_text()
+        for name in ("class SL(", "def wait(", "def pause("):
+            self.assertEqual(kit.count(name), 1, name)
+            for runner in ("step_runner.py", "distance_runner.py", "pass_runner.py"):
+                self.assertNotIn(name, (SM / "jython" / runner).read_text(), (runner, name))
 
     def test_both_stop_with_their_own_throttle_only(self):
         for name in ("distance_runner.py", "pass_runner.py"):
@@ -329,6 +364,51 @@ class AnalyzeDistance(unittest.TestCase):
         self.assertAlmostEqual(r16["median"], 500.0)
         self.assertEqual(r8["travel"], "east")
         self.assertTrue(sm[0]["complete"])
+
+    def test_a_sensor_between_step_and_settle_is_not_measured(self):
+        lines = distance_log([(8, steady(ORDER1, ORDER1[0], 250.0, LEN1, 6, t0=100.0))])
+        i = next(k for k, ln in enumerate(lines) if " STEP 8" in ln)
+        lines.insert(i + 1, "%.3f SENS %s ACTIVE" % (91.0, ORDER1[9]))  # after STEP, before SETTLE
+        run = analyze.parse_log(lines)[0]
+        self.assertNotIn(ORDER1[9], [n for _, n in run["steps"][0]["events"]])
+        self.assertEqual(run["steps"][0]["events"][0][1], ORDER1[0])
+
+    def test_a_sensor_between_freeze_and_stepdone_is_not_counted(self):
+        ev = steady(ORDER1, ORDER1[0], 250.0, LEN1, 6, t0=100.0)
+        lines = distance_log([(8, ev)])
+        lines = [ln.replace("STEPDONE 8", "FREEZE 8\n%.3f SENS %s ACTIVE\n%.3f STEPDONE 8" % (
+            ev[-1][0] + 0.005, ORDER1[8], ev[-1][0] + 0.01)) if "STEPDONE 8" in ln else ln for ln in lines]
+        lines = [x for ln in lines for x in ln.split("\n")]
+        # the line before STEPDONE carries the FREEZE time stamp of the STEPDONE line it replaced
+        run = analyze.parse_log(lines)[0]
+        self.assertNotIn(ORDER1[8], [n for _, n in run["steps"][0]["events"]])
+        self.assertEqual(len(run["steps"][0]["events"]), 6)
+
+    def test_pass_logs_are_not_runs(self):
+        lines = ["1.000 RUN loco=CSX 2121 direction=forward", "1.001 CFG route=loop2 mode=pass step=24 max_s=240",
+                 "2.000 PATH BS Switch 5,BS Scale", "2.001 PASS step=24 from=BS Switch 5 to=BS Scale",
+                 "3.000 SENS BS Switch 5 ACTIVE", "9.0 PASSDONE reason=passed", "9.1 STOP passed", "9.2 END"]
+        self.assertEqual(analyze.parse_log(lines, source="p.log"), [])
+
+    def test_distance_mode_comes_from_the_log_even_without_its_settings(self):
+        runs = analyze.parse_log(distance_log([(8, steady(ORDER1, ORDER1[0], 250.0, LEN1, 12))]))
+        sm = analyze.summarize_runs(runs, LEN1, use_logged=False)
+        self.assertAlmostEqual(sm[0]["rows"][0]["median"], 250.0, delta=0.1)
+        self.assertEqual(sm[0]["rows"][0]["reason"], "settled")
+
+    def test_correct_reads_the_settled_column_and_old_files_by_reason(self):
+        import correct as corr
+        d = Path(tempfile.mkdtemp())
+        head = "loco,direction,step,median_mm_s,reason,run,run_complete,route"
+        (d / "a.csv").write_text(head + ",settled\nL,forward,8,50,timed,1,True,loop1,True\n"
+                                 "L,forward,16,90,settled,1,True,loop1,False\n"
+                                 "L,forward,24,120,max,1,True,loop1,False\n")
+        got, skipped = corr.read_profile(d / "a.csv", "L", "forward")
+        self.assertEqual(got, {8: 50.0})
+        self.assertEqual(sorted(s[0] for s in skipped), [16, 24])
+        (d / "b.csv").write_text(head + "\nL,forward,8,50,timed,1,True,loop1\nL,forward,16,90,max,1,True,loop1\n")
+        got, _ = corr.read_profile(d / "b.csv", "L", "forward")
+        self.assertEqual(got, {8: 50.0})
 
     def test_settle_events_are_not_measured(self):
         sm = self.profile([(8, steady(ORDER1, ORDER1[0], 250.0, LEN1, 12))])
@@ -459,9 +539,25 @@ class Locate(unittest.TestCase):
         for s in list(reversed(order)) + ["BS Brick-Plane"]:  # S-R first, Switch 5 last, then the block behind it
             ev.append((t, s))
             t += lens.get(s, 1000.0) / v
-        got = ibl.pass_centres(ev, "loop2", self.PINS)
+        path = lr.path_between(self.ORDER2, "BS Switch 15", "BS Switch 5")
+        got = ibl.pass_centres(ev, "loop2", self.PINS, frm="BS Switch 15", to="BS Switch 5", path=path)
         self.assertGreater(got["speed"], 0)
         self.assertTrue(0 < got["Switch 13"][0] < self.PINS["Switch 15"])
+        fwd = ibl.pass_centres(self.events(100.0, lens), "loop2", self.PINS)
+        self.assertGreater(fwd["Switch 13"][0], fwd["Switch 7"][0])
+
+    def test_pass_that_does_not_follow_its_logged_path_is_refused(self):
+        ev = self.events(100.0, self.lens())
+        path = lr.path_between(self.ORDER2, "BS Switch 5", "BS Switch 15")
+        swapped = [ev[0], ev[2], ev[1]] + ev[3:]  # Switch 7 lit before Scale
+        swapped = [(ev[k][0], s) for k, (_, s) in enumerate(swapped)]
+        with self.assertRaisesRegex(ValueError, "logged PATH"):
+            ibl.pass_centres(swapped, "loop2", self.PINS, path=path)
+        ibl.pass_centres(ev, "loop2", self.PINS, path=path)  # the real order is fine
+
+    def test_pins_must_be_pins_of_the_route(self):
+        with self.assertRaisesRegex(ValueError, "pins are"):
+            ibl.pass_centres(self.events(100.0, self.lens()), "loop2", self.PINS, frm="BS Scale", to="BS Switch 15")
 
     def test_pass_that_misses_a_pin_is_refused(self):
         ev = [(1.0, "BS Scale"), (2.0, "BS Switch 7")]
@@ -801,7 +897,7 @@ class SimulatedRuns(unittest.TestCase):
         msgs = self.msgs(log)
         self.assertIn("PASS step=24 from=BS Switch 5 to=BS Switch 15", msgs)
         self.assertIn("PASSDONE reason=passed", msgs)
-        lit = [m for m in msgs if m.startswith("SENS") and m.endswith("ACTIVE")]
+        lit = [m for m in msgs if m.startswith("SENS") and m.endswith(" ACTIVE")]
         self.assertEqual(lit[-1], "SENS BS S-R ACTIVE")
         self.assertIn("SENS BS Switch 15 ACTIVE", lit)
         self.assertEqual(sim.speeds[-1], 0.0)
@@ -811,6 +907,22 @@ class SimulatedRuns(unittest.TestCase):
         self.assertEqual(got[0]["reason"], "passed")
         res = ibl.pass_centres(got[0]["events"], "loop2", ibl.PLAN_LOOP2_TURNOUT_MM)
         self.assertGreater(res["speed"], 0)
+
+    def test_pass_job_stops_at_once_when_the_loco_goes_the_wrong_way(self):
+        order = analyze.route_order("loop2")
+        text, log = self.pass_job()
+        text = text.replace("P_FWD = True", "P_FWD = False")  # runs against the route order
+        i = order.index("BS Switch 5")
+        sim = FakeLayout(order, {s: 1500.0 for s in order}, i)
+        sim.sensors["BS Switch 5"].state = 2  # starts inside FROM
+        sim.run(text, self.tmp)
+        msgs = self.msgs(log)
+        self.assertTrue(any(m.startswith("PATH BS Switch 5,BS Scale,") for m in msgs))
+        self.assertIn("PASSDONE reason=wrong_way", msgs)
+        self.assertIn("STOP wrong way", msgs)
+        lit = [m for m in msgs if m.startswith("SENS") and m.endswith(" ACTIVE")]
+        self.assertEqual(lit, ["SENS BS Brick-Plane ACTIVE"])  # stopped at the first wrong sensor
+        self.assertEqual(sim.speeds[-1], 0.0)
 
     def test_pass_job_is_cut_off_by_the_time_limit(self):
         order = analyze.route_order("loop2")

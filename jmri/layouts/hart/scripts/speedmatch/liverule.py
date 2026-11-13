@@ -121,28 +121,36 @@ def span_speed(hist, order, lengths, n):
 class SpanReader(object):
     """Turns a stream of sensor activations into span speeds for one step.
 
-    The live runner and the analysis both use this class, so they cannot disagree.
+    The live runners and the analysis all use this class, so they cannot disagree.
     Call restart(n) at every step change. feed() takes each ACTIVE event and returns a
-    reading (mm_per_s, seconds, mm, blocks) or None. The first `settle` events after a
-    restart are thrown away (the loco is still changing speed). Spans do not overlap:
+    reading (mm_per_s, seconds, mm, blocks, first_sensor) or None. The first `settle` events
+    after a restart are thrown away (the loco is still changing speed). Spans do not overlap:
     the event that ends a span starts the next one. If a span of n blocks is not possible
     (a block with no trusted length in it), shorter spans are tried, down to one block.
-    """
 
-    def __init__(self, order, lengths, settle=SETTLE_EVENTS):
+    steady=True (distance mode): events of sensors that are not on the route are ignored, and a
+    reading whose direction round the ring differs from the one before it is dropped and the
+    chain starts again from that event (a loco that turned back is not a steady pass)."""
+
+    def __init__(self, order, lengths, settle=SETTLE_EVENTS, steady=False):
         self.order = order
         self.lengths = lengths
         self.settle = settle
+        self.steady = steady
         self.n = 1
         self.skip = settle
         self.hist = []
+        self.dir = None
 
     def restart(self, n):
         self.n = n
         self.skip = self.settle
         self.hist = []
+        self.dir = None
 
     def feed(self, t, sensor):
+        if self.steady and sensor not in self.order:
+            return None
         if self.skip > 0:
             self.skip -= 1
             return None
@@ -152,11 +160,20 @@ class SpanReader(object):
         self.hist = self.hist[-(self.n + 1):]
         if len(self.hist) < self.n + 1:
             return None  # wait until a whole span has been seen
+        if self.steady and sensor in self.order and self.hist[-2][1] in self.order:
+            size = len(self.order)
+            d = (self.order.index(sensor) - self.order.index(self.hist[-2][1])) % size
+            if self.dir is not None and d != self.dir:
+                self.dir = None
+                self.hist = [self.hist[-1]]
+                return None
+            self.dir = d if d in (1, size - 1) else None
         for m in range(self.n, 0, -1):
             r = span_speed(self.hist, self.order, self.lengths, m)
             if r is not None:
+                first = self.hist[-(m + 1)][1]
                 self.hist = [self.hist[-1]]
-                return (r[0], r[1], r[2], m)
+                return (r[0], r[1], r[2], m, first)
         return None
 
 
@@ -211,46 +228,6 @@ def aggregate(blocks):
     s = sum(b[1] for b in blocks)
     speeds = [b[0] / b[1] for b in blocks]
     return n, mm, s, (mm / s if s > 0 else 0.0), (rel_stdev(speeds) if n > 1 else 0.0)
-
-
-class BlockReader(object):
-    """Turns route sensor ACTIVE events into whole-block readings (distance mode).
-
-    The first event only starts the chain. Each next event that is the neighbour of the last
-    one on the ring, in one steady direction, completes the block of the last sensor
-    (entry to entry); a block with no trusted length is skipped. An event that is not that
-    neighbour (a missed sensor) starts the chain again. feed() returns
-    (sensor, mm, seconds) or None. The live runner and the analysis both use it."""
-
-    def __init__(self, order, lengths):
-        self.order = order
-        self.lengths = lengths
-        self.restart()
-
-    def restart(self):
-        self.last = None
-        self.dir = None
-
-    def feed(self, t, sensor):
-        if sensor not in self.order:
-            return None
-        if self.last is not None and self.last[1] == sensor:
-            return None  # a retrigger of the same block
-        prev = self.last
-        self.last = (t, sensor)
-        if prev is None:
-            return None
-        size = len(self.order)
-        d = (self.order.index(sensor) - self.order.index(prev[1])) % size
-        if size < 3 or d not in (1, size - 1) or (self.dir is not None and d != self.dir):
-            self.dir = None
-            return None
-        self.dir = d
-        mm = self.lengths.get(prev[1])
-        dt = t - prev[0]
-        if mm is None or dt <= 0:
-            return None
-        return (prev[1], mm, dt)
 
 
 class DistanceStep(object):
@@ -308,3 +285,16 @@ def next_after(order, frm, to):
     i, j = order.index(frm), order.index(to)
     step = 1 if (j - i) % size <= size // 2 else -1
     return order[(j + step) % size]
+
+
+def path_between(order, frm, to):
+    """The sensors from `frm` to `to` inclusive, going the shorter way round the ring: the path
+    a pass is expected to take. The pass job logs it as PATH and stops if the loco leaves it."""
+    size = len(order)
+    i, j = order.index(frm), order.index(to)
+    step = 1 if (j - i) % size <= size // 2 else -1
+    out = [order[i]]
+    while i != j:
+        i = (i + step) % size
+        out.append(order[i])
+    return out
