@@ -114,6 +114,9 @@ scripts").
 
 ## Part C: programming on the main, with guardrails
 
+Built: `jmri/layouts/hart/scripts/speedmatch/pom_guard.py` and `pom_write.py`; what it refuses
+and how to run, apply and roll back are in [`POM_GUARD.md`](POM_GUARD.md).
+
 Over LCC, JMRI sends an addressed CV write to the CS-105's train node for one DCC address
 (`OlcbProgrammer`, JMRI 5.16). A DCC broadcast is address 0. The guard is one small module that
 every write goes through:

@@ -6,20 +6,23 @@
 #   PROPOSAL = "/tmp/speedmatch/proposal.json"     the proposal (schema in pom_guard.py)
 #   GUARD_PATH = "/tmp/speedmatch/pom_guard.py"    the guard; no guard, no write
 #   CONSIST_SCRIPT = "/tmp/speedmatch/cs105_consist.py"   run with ACTION = "query" first
-#   PARTNERS = ["CSX 2121"]                        roster ids whose consists must be empty too
+#   ABSENT_OK = []                                 roster ids whose train node may not answer
 #   LOGF = "/tmp/pom_write.log"                    result lines, ends with END
 #   ROLLBACK = "/home/pi/speedmatch/rollback_<id>_<time>.json"   must not exist yet
+#   LEDGER_DIR = "/home/pi/speedmatch/ledger"      per-loco ledger and saved reads (default ~/speedmatch/ledger)
 #   APPLY = False                                  True (exactly) to write; anything else is a dry run
 #   READ_FIRST = True                              try a POM read of each CV for the old values
 #   OP_TIMEOUT = 10.0                              seconds to wait for each ProgListener reply
 #
-# Steps: load the guard (refuse if it will not load), check the proposal, the roster file
-# and JMRI's own roster entry, run the consist query and check it, get the addressed
-# programmer for the roster address from the CS-105 connection's AddressedProgrammerManager
-# (an OlcbProgrammer: an addressed memory-config write to the loco's train node, space 0xF8),
-# read the old values where the decoder answers, build the plan through the guard, then write
-# one CV at a time, waiting for each reply, stopping at the first failure. The guard re-checks
-# every row before its write, and the programmer's address is checked again each time.
+# Steps: load the guard (refuse if it will not load); check the proposal, the roster files
+# and JMRI's own roster entry; query the consist state of EVERY roster loco's train node and
+# check it; get the addressed programmer for the roster address from the CS-105 connection's
+# AddressedProgrammerManager (an OlcbProgrammer: an addressed memory-config write to the
+# loco's train node, space 0xF8); read the old values where the decoder answers (a read that
+# times out aborts the run, since it may still be in flight); build the plan through the
+# guard (old values: read > saved reads file > ledger > roster); then write one CV at a time,
+# waiting for each reply. The guard re-checks every row before its write, records each OK
+# write in the ledger, and on a failed or timed-out write marks that CV unknown and stops.
 #
 # Without RailCom a POM write cannot be confirmed: JMRI 5.16 OlcbProgrammer reports OK when
 # the CS-105 answers "no RailCom", so OK means "sent", and the check is the re-measure.
@@ -45,7 +48,7 @@ _LOGF = _G.get("LOGF", "/tmp/pom_write.log")
 _APPLY = _G.get("APPLY", False) is True
 _READ_FIRST = _G.get("READ_FIRST", True) is True
 _TIMEOUT = float(_G.get("OP_TIMEOUT", 10.0))
-_CONSIST_TIMEOUT = float(_G.get("CONSIST_TIMEOUT", 60.0))
+_CONSIST_TIMEOUT = float(_G.get("CONSIST_TIMEOUT", 120.0))  # every roster node, about 1.5 s each
 _INLINE = _G.get("RUN_INLINE", False) is True   # tests only: run in the caller's thread
 
 _log = open(_LOGF, "w")
@@ -129,19 +132,19 @@ def _run():
                 raise R("JMRI roster entry %r (%s%s) disagrees with roster file (%d%s)" % (
                     rid, je.getDccAddress(), "L" if je.isLongAddress() else "S",
                     entry["number"], "L" if entry["long"] else "S"))
-            if not isinstance(_G.get("PARTNERS"), list):
-                raise R("PARTNERS is not set: name the locos that consist with %r ([] for none)" % rid)
-            partners = list(_G["PARTNERS"])
-            nodes = [guard.train_node(entry["number"], entry["long"])]
-            for p in partners:
-                if p != rid:
-                    if p not in roster:
-                        raise R("consist partner %r is not in the roster" % (p,))
-                    nodes.append(guard.train_node(roster[p]["number"], roster[p]["long"]))
+            absent_ok = _G.get("ABSENT_OK", [])
+            if not isinstance(absent_ok, list):
+                raise R("ABSENT_OK must be a list of roster ids")
+            ledger_dir = _G.get("LEDGER_DIR") or os.path.expanduser("~/speedmatch/ledger")
+            ledger_file = guard.ledger_path(ledger_dir, rid)
+            reads_file = guard.reads_path(ledger_dir, rid)
+            ledger = guard.load_ledger(ledger_file, rid)
+            saved = guard.load_reads_file(reads_file, rid, entry["number"], entry["long"])
 
-            # Consist: query now, fail closed on anything but "no listeners".
-            state = guard.parse_consist_log(_consist_query(nodes))
-            guard.check_no_consist(state, nodes)
+            # Consist: query every roster loco's train node now; the guard fails closed.
+            nodes = guard.query_nodes(roster, rid)
+            state = guard.parse_consist_log(_consist_query([n for _, n in nodes]))
+            guard.check_no_consist(state, nodes, absent_ok)
 
             # Programmer: the CS-105 connection's addressed programmer for the roster address.
             memo = jmri.InstanceManager.getNullableDefault(jmri.jmrix.can.CanSystemConnectionMemo)
@@ -153,36 +156,47 @@ def _run():
             prog = apm.getAddressedProgrammer(entry["long"], entry["number"])
             if prog is None:
                 raise R("no addressed programmer for %d" % entry["number"])
-
-            def same_address():
-                return (prog.getAddressNumber() == entry["number"]
-                        and bool(prog.getLongAddress()) == entry["long"])
-            if not same_address():
+            if prog.getAddressNumber() != entry["number"] or bool(prog.getLongAddress()) != entry["long"]:
                 raise R("programmer address %s does not match the roster" % prog.getAddress())
             L("PROGRAMMER %s for %r" % (prog.getAddress(), rid))
 
-            # Old values: a POM read where the decoder answers, else the roster's values.
+            # Old values: a POM read where the decoder answers. A failed read stops reading;
+            # a read that times out aborts, since it may still be in flight.
             reads = {}
             if _READ_FIRST:
                 for cv, _ in writes:
                     value, status, text = _op(prog, lambda r, c=cv: prog.readCV(str(c), r))
+                    if status is None:
+                        L("ABORTED: read of CV%d timed out (%s) and may still be in flight; nothing "
+                          "written" % (cv, text))
+                        return
                     if status == jmri.ProgListener.OK:
                         reads[cv] = value
                         L("READ CV%d=%d" % (cv, value))
                     else:
-                        L("READ CV%d failed: %s; using roster values from here on" % (cv, text))
+                        L("READ CV%d failed: %s; no more reads, using reads file, ledger or roster"
+                          % (cv, text))
                         break
+            reads = guard.validate_reads(reads)
+            if reads:
+                guard.ledger_note_reads(ledger, reads)
+                guard._write_json(ledger_file, ledger)
+                if len(reads) == len(writes):
+                    guard.save_reads(reads_file, entry, rid, reads)
+                    L("READS saved %s" % reads_file)
 
-            plan = guard.build_plan(proposal, roster, state, partners=partners, reads=reads)
+            plan = guard.build_plan(proposal, roster, state, absent_ok=absent_ok, reads=reads,
+                                    reads_file=saved, ledger=ledger)
 
             def write_cv(cv, value):
-                if not same_address():
-                    return False, "programmer address changed to %s" % prog.getAddress()
                 _, status, text = _op(prog, lambda r: prog.writeCV(str(cv), value, r))
+                if status is None:
+                    return "timeout", text
                 time.sleep(0.2)
-                return status == jmri.ProgListener.OK, text
+                return ("ok" if status == jmri.ProgListener.OK else "failed"), text
 
-            guard.execute(plan, write_cv, apply=_APPLY, rollback_path=_G.get("ROLLBACK"), log=L)
+            guard.execute(plan, write_cv, apply=_APPLY, rollback_path=_G.get("ROLLBACK"),
+                          ledger=ledger, ledger_file=ledger_file, log=L)
         except R as e:
             L("REFUSED %s" % e)
     except Exception as e:
