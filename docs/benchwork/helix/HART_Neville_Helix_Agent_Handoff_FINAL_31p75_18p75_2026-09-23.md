@@ -2,11 +2,11 @@
 
 **Purpose:** Give a new agent enough context to continue helix engineering, sourcing, troubleshooting, or documentation without reconstructing the full prior conversation.
 
-**Primary fabrication source of truth:** `helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf` (supersedes `..._ENTRY_FLIPPED_CLEAN_2026-09-23.pdf` and `helix_plan_final.pdf`, both archived under `superseded/`; footer revision tags are now unified to "Locked Flat-Frame Rev. 2026-09-23" on every page, and page 1 carries an added DATUM CAUTION note distinguishing the Benchwork datum from the Structural datum.)
+**Primary fabrication source of truth:** `helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf` (supersedes `..._ENTRY_FLIPPED_CLEAN_2026-09-23.pdf` and `helix_plan_final.pdf`, both archived under `archive/docs/benchwork/helix/history/superseded/`; footer revision tags are now unified to "Locked Flat-Frame Rev. 2026-09-23" on every page, and page 1 carries an added DATUM CAUTION note distinguishing the Benchwork datum from the Structural datum.)
 
 Use this handoff for **design rationale, alternatives, calculations, historical decisions, commercial references, and failure modes**. Use the PDF for the current build sequence, dimensions, cut sheets, support elevations, and construction details.
 
-> **Read `HART_Neville_Helix_BUILD_STATUS.md` before trusting anything below.** It is the single living status file: as-built facts (5-3/8 in entry straight, bracket grid from the entry butt joint, 0.72 in plywood, height stack, 0.26/0.46 laps), every fixture STL and script, and open items. It overrides this file where they conflict. The old dated addenda are archived in `history/`.
+> **Read `HART_Neville_Helix_BUILD_STATUS.md` before trusting anything below.** It is the single living status file: as-built facts (5-3/8 in entry straight, bracket grid from the entry butt joint, 0.72 in plywood, height stack, 0.26/0.46 laps), every fixture STL and script, and open items. It overrides this file where they conflict. The old dated addenda are archived in `archive/docs/benchwork/helix/history/`.
 
 ---
 

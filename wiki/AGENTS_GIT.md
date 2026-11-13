@@ -44,7 +44,7 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 | Claude Code | `.claude/commands/done.md`, `.claude/settings.json`, `.claude/hooks/main_guard.py` | Pointer and guard hook; Claude Code reads `AGENTS.md` |
 | Subagents | `.claude/agents/` | Five project agents; see below |
 | Facts and decisions | `wiki/`, ADRs | Never in chat or tool memory |
-| Build handoffs | `docs/benchwork/helix/` | Update `HART_Neville_Helix_BUILD_STATUS.md` in place; old handoffs stay in `docs/benchwork/helix/history/` |
+| Build handoffs | `docs/benchwork/helix/` | Update `HART_Neville_Helix_BUILD_STATUS.md` in place; old handoffs go to `archive/docs/benchwork/helix/history/` |
 | Tool memory | Per-machine, outside git | Preferences only. Anything every agent needs goes in `AGENTS.md` or an ADR |
 | Submodules | Their own repos | `external/*` rules travel with each repo |
 

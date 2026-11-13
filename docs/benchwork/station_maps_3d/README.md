@@ -73,7 +73,7 @@ lettering did not stick), so none of that is proven yet.
 
 ## Touch Toggle measurements (calipers, 2026-11-07)
 
-The spec drawing (`docs/ops/Toggle_Dimensions.png`) gives a 3/4 in (19.05 mm) square;
+The spec drawing (`Toggle_Dimensions.png`) gives a 3/4 in (19.05 mm) square;
 the real bodies are smaller. Use these sizes for pockets and the drawing for LED
 size and pitch.
 

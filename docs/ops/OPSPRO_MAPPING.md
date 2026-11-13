@@ -1,6 +1,6 @@
 # HART Operations Pro: mapping and build plan
 
-Stage 1 output of [`OPSPRO_BUILD_PROMPT.md`](OPSPRO_BUILD_PROMPT.md), written 2026-11-02 from the STS session 3 end state (`hart_session_post3_locked`), the seed config, the crew documents, the station maps and the car repository. Stages 2 to 5 build from this file and the three CSVs in [`opspro-build/`](opspro-build/) alone. Decisions the owner may want to reverse are numbered D1 to D30 and listed again in [`OPSPRO_OPEN_QUESTIONS.md`](OPSPRO_OPEN_QUESTIONS.md).
+Stage 1 output of [`OPSPRO_BUILD_PROMPT.md`](../../archive/docs/ops/OPSPRO_BUILD_PROMPT.md), written 2026-11-02 from the STS session 3 end state (`hart_session_post3_locked`), the seed config, the crew documents, the station maps and the car repository. Stages 2 to 5 build from this file and the three CSVs in [`opspro-build/`](opspro-build/) alone. Decisions the owner may want to reverse are numbered D1 to D30 and listed again in [`OPSPRO_OPEN_QUESTIONS.md`](OPSPRO_OPEN_QUESTIONS.md).
 
 The railroad is the same one STS runs: D749 brings the CSX block from Demmler to South Yard and takes the CSX-bound block away; NVL brings the POHC block from Scully, swaps at South Yard, works the island industries and returns to Scully; CK1 pulls coke from Shenango and sorts it at South Yard; the interchange yards swap with the offline world between sessions. Here that is expressed the Operations Pro way: custom loads and schedules carry the shipments, the router carries a car across trains, and two virtual trains do the offline swap.
 

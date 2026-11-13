@@ -81,7 +81,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 |--------|-----------------|
 | `gen_ctc_track_plan.py` | `SIGNALS` mast keys; lamp labels Track Scale / T6 / Track S-R / Track East Lead |
 | `polish_hart_layout_editor.py` | Mast xy keys; `REMOVED_LABELS` includes `Track East Lead` |
-| `cats/scripts/add_digicon_le_signal_icons.py` | Same mast keys as polish |
+| `jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py` | Same mast keys as polish |
 | `reconcile_dispatcher_stations.py` | Station `Track East Lead` + icon xy |
 | `audit_panel_contracts.py` | `Track East Lead` stop contract |
 | `annotate_mqtt_sensors_and_dispatcher.py` | Section graph / transit comments (`Track East Lead`, `OS Switch 7b`) |
@@ -100,17 +100,17 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | File |
 |------|
 | `cats/data/occupancy_bindings.csv` |
-| `cats/data/signal_mast_plan.csv` |
-| `cats/data/signal_head_plan.csv` |
-| `cats/data/signal_wiring.csv` |
-| `cats/data/le_signal_boundaries.csv` |
+| `docs/wiring/signals/signal_mast_plan.csv` |
+| `docs/wiring/signals/signal_head_plan.csv` |
+| `docs/wiring/signals/signal_wiring.csv` |
+| `jmri/layouts/hart/data/le_signal_boundaries.csv` |
 | `cats/data/turnout_bindings.csv` |
 | `cats/data/jmri_devices.csv` |
 | `cats/data/plants_from_hart.csv` |
 | `jmri/layouts/hart/data/block_lengths.csv` |
 | `jmri/layouts/hart/README.md` |
 
-**Guides after convert:** `jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`, `cats/docs/DISPATCHER_GUIDE_CTC.md`, `jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`. Other `cats/docs/*` as needed.
+**Guides after convert:** `jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`, `docs/ctc/DISPATCHER_GUIDE_CTC.md`, `jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`. Other `docs/ctc/*` as needed.
 
 **One-shot — do not re-run; leave or comment-only**
 
