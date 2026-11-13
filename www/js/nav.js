@@ -404,8 +404,29 @@
     return site;
   }
 
+  // Deep links into a photo grid (photos/#<tab>/<item id>): the part every grid shares once it has
+  // reset its filters and found the item's index. Gallery view moves the stage to it; otherwise the old
+  // highlight is cleared, the card is highlighted and centred, and its lightbox opens.
+  function revealItem(o) {
+    if (o.index < 0) return false;
+    if (o.galleryView) {
+      o.setStage(o.index);
+      return true;
+    }
+    var old = o.grid.querySelectorAll(".is-target");
+    for (var k = 0; k < old.length; k++) old[k].classList.remove("is-target");
+    var el = o.grid.querySelector('[data-idx="' + o.index + '"]');
+    if (el) {
+      el.classList.add("is-target");
+      if (el.scrollIntoView) el.scrollIntoView({ block: "center" });
+    }
+    o.openLightbox(o.index);
+    return true;
+  }
+
   var api = {
     base: base,
+    revealItem: revealItem,
     esc: esc,
     loadSite: loadSite,
     loadJson: loadJson,

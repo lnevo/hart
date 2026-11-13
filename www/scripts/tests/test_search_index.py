@@ -593,3 +593,33 @@ class SourceDataIds(unittest.TestCase):
         self.assertEqual(serve_portal._gallery_id("layout", "Dispatcher's desk", set()), "layout-dispatcher-s-desk")
         self.assertEqual(serve_portal._gallery_id("layout", "Crew lounge", {"layout-crew-lounge"}), "layout-crew-lounge-2")
         self.assertEqual(serve_portal._gallery_id("layout", "", set()), "layout")
+
+
+class ReviewFixesStage3(unittest.TestCase):
+    """Behaviour changed after the PR #396 review."""
+
+    def test_photo_outside_the_layout_tab_albums_gets_no_record_or_id(self):
+        root = _photos_site(gallery=[_pic(), _pic("events-picnic", album="events")])
+        self.assertEqual([r["url"] for r in build._photo_records(root)], ["photos/index.html#layout/layout-crew-lounge"])
+        self.assertEqual(check.tab_ids(root, "layout"), {"layout-crew-lounge"})
+
+    def test_search_thumb_is_a_small_square_copy(self):
+        try:
+            from PIL import Image
+        except ImportError:
+            self.skipTest("Pillow not installed")
+        root = _photos_site(gallery=[_pic()])
+        big = root / "assets/gallery/thumbs/layout/layout-crew-lounge.jpg"
+        big.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (640, 480), (90, 120, 150)).save(big)
+        (rec,) = build._photo_records(root)
+        build._search_thumbs([rec], root)
+        self.assertTrue(rec["thumb"].startswith("assets/search/"))
+        with Image.open(root / rec["thumb"]) as im:
+            self.assertEqual(im.size, (build.SEARCH_THUMB_PX, build.SEARCH_THUMB_PX))
+
+    def test_a_thumb_that_is_not_an_image_is_kept(self):
+        root = _photos_site(gallery=[_pic()], files=["assets/gallery/thumbs/layout/layout-crew-lounge.jpg"])
+        (rec,) = build._photo_records(root)
+        build._search_thumbs([rec], root)
+        self.assertEqual(rec["thumb"], "assets/gallery/thumbs/layout/layout-crew-lounge.jpg")

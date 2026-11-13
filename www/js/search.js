@@ -132,7 +132,7 @@
     // Rolling stock leads only for a number ("2738"), never for a road name ("b&o").
     var numeric = /[0-9]/.test(raw);
     hits.forEach(function (h) {
-      var lead = isExact(h.p, raw) && (numeric || STOCK.indexOf(h.p.rec.kind) === -1);
+      var lead = isExact(h.p, terms.join(" ")) && (numeric || STOCK.indexOf(h.p.rec.kind) === -1);
       (lead && exact.length < GROUP_CAP ? exact : rest).push(h);
     });
     var buckets = GROUPS.map(function (g) {
@@ -298,26 +298,29 @@
           "</a></li>"
         );
       }
+      // "Show all N" is an option too, so the arrow keys reach it and Enter opens the rest.
+      function moreOption(groupId, count) {
+        return (
+          '<li role="option" id="search-opt-' + n++ + '" class="search-item search-group-more" data-group="' + groupId + '">' +
+          '<span class="search-more search-group-btn">Show all ' + count + "</span></li>"
+        );
+      }
       var html = "";
       if (res.flat) {
         var items = res.groups[0].items;
         var cut = showAll ? items : items.slice(0, CAP);
         html = cut.map(item).join("");
-        if (items.length > cut.length) {
-          more.hidden = false;
-          more.textContent = "Show all " + items.length;
-        }
+        if (items.length > cut.length) html += moreOption("", items.length);
       } else {
         res.groups.forEach(function (g) {
           var cut = openGroups[g.id] ? g.items : g.items.slice(0, GROUP_CAP);
           html +=
-            '<li role="presentation" class="search-group" id="search-grp-' + g.id + '">' + esc(g.label) + "</li>" +
-            cut.map(item).join("");
-          if (g.items.length > cut.length) {
-            html +=
-              '<li role="presentation" class="search-group-more"><button type="button" class="search-more search-group-btn" data-group="' +
-              g.id + '">Show all ' + g.items.length + "</button></li>";
-          }
+            '<li role="group" class="search-grp" aria-labelledby="search-grp-' + g.id + '">' +
+            '<div class="search-group" id="search-grp-' + g.id + '">' + esc(g.label) + "</div>" +
+            '<ul role="none" class="search-grp-items">' +
+            cut.map(item).join("") +
+            (g.items.length > cut.length ? moreOption(g.id, g.items.length) : "") +
+            "</ul></li>";
         });
       }
       list.innerHTML = html;
@@ -354,7 +357,9 @@
         setActive(active <= 0 ? n - 1 : active - 1);
       } else if (e.key === "Enter" && n) {
         e.preventDefault();
-        go(shown[active >= 0 ? active : 0].querySelector("a"), e);
+        var opt = shown[active >= 0 ? active : 0];
+        if (opt.hasAttribute("data-group")) expand(opt);
+        else go(opt.querySelector("a"), e);
       }
     });
     // Following a result that is the page and hash already shown changes nothing, so no hashchange
@@ -376,12 +381,19 @@
       render();
       input.focus();
     });
-    list.addEventListener("click", function (e) {
-      var b = e.target.closest && e.target.closest(".search-group-btn");
-      if (!b) return;
-      openGroups[b.getAttribute("data-group")] = true;
+    // Open the rest of a group ("" = the single flat list) and keep the highlight on the first new row.
+    function expand(opt) {
+      var g = opt.getAttribute("data-group");
+      var at = Array.prototype.indexOf.call(options(), opt);
+      if (g) openGroups[g] = true;
+      else showAll = true;
       render();
       input.focus();
+      if (at >= 0) setActive(at);
+    }
+    list.addEventListener("click", function (e) {
+      var opt = e.target.closest && e.target.closest(".search-group-more");
+      if (opt) expand(opt);
     });
     // Mouse hover follows the keyboard highlight so the two never disagree.
     list.addEventListener("mousemove", function (e) {

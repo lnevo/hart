@@ -623,20 +623,13 @@
         state.tag = state.q = "";
         searchEl.value = "";
         renderAll();
-        var i = visible.indexOf(item);
-        if (i < 0) return false;
-        if (view === "gallery") {
-          stageIndex = i;
-          renderGrid();
-          return true;
-        }
-        var el = grid.querySelector('[data-idx="' + i + '"]');
-        if (el) {
-          el.classList.add("is-target");
-          if (el.scrollIntoView) el.scrollIntoView({ block: "center" });
-        }
-        openLightbox(i);
-        return true;
+        return HARTOps.revealItem({
+          index: visible.indexOf(item),
+          galleryView: view === "gallery",
+          setStage: function (i) { stageIndex = i; renderGrid(); },
+          grid: grid,
+          openLightbox: openLightbox,
+        });
       };
 
       renderViews();

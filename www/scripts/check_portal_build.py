@@ -30,6 +30,7 @@ from urllib.parse import unquote, urlsplit
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 import share_cards  # noqa: E402
+from photo_tabs import tab_subs  # noqa: E402
 # Data fields that pages turn into links or image sources (provenance fields such as
 # layout-index "source" name workspace files and are only shown as text).
 LINK_KEYS = {"src", "thumb", "logo", "img", "rotated", "href", "html", "pdf", "page", "pages", "article", "more", "path", "previewSrc"}
@@ -128,40 +129,43 @@ PHOTO_TABS = {"rolling-stock": "fleet-gallery.json", "historical": "archive.json
 
 
 def tab_slugs(root: Path, tab: str) -> set[str]:
-    """Sub-chip hashes a Photos tab reads as chips (#rolling-stock/freight), from the page's own CATS map,
-    so a new slug is covered without a second list here."""
-    page = root / "photos" / "index.html"
-    text = page.read_text(encoding="utf-8") if page.is_file() else ""
-    m = re.search(r'"?' + re.escape(tab) + r'"?:\s*\{[^{}]*subs:\s*\{([^}]*)\}', text)
-    return set(re.findall(r'"?([\w-]+)"?\s*:', m.group(1))) if m else set()
+    """Sub-chip hashes a Photos tab reads as chips (#rolling-stock/freight), from the page's own CATS map."""
+    return set(tab_subs(root, tab))
 
 
 def fleet_album_slugs(root: Path) -> set[str]:
     return tab_slugs(root, "rolling-stock")
 
 
-def tab_ids(root: Path, tab: str) -> set[str]:
-    """Item ids in a tab's built data file: the anchors its script opens as photos/#<tab>/<id>.
-    The public Historical tab shows only the curated bucket, so only those count."""
+def _tab_items(root: Path, tab: str, subs: dict[str, str]) -> list:
+    """The items a tab shows: Historical shows only the curated bucket, and Layout only the albums it
+    has chips for (the albums the page mounts), so an item outside them has no working link."""
     items = _items(root, PHOTO_TABS[tab])
-    return {str(i["id"]) for i in items if i.get("id") and (tab != "historical" or i.get("bucket") == "curated")}
+    if tab == "historical":
+        return [i for i in items if i.get("bucket") == "curated"]
+    if tab == "layout":
+        return [i for i in items if i.get("album") in set(subs.values())]
+    return items
 
 
-def _fleet_ids(root: Path) -> set[str]:
-    return tab_ids(root, "rolling-stock")
+def tab_info(root: Path, tab: str) -> tuple[list[str], set[str]]:
+    """(ids of the items the tab shows, in order, with "" for a missing id; its chip slugs), read once."""
+    subs = tab_subs(root, tab)
+    return [str(i.get("id") or "") for i in _tab_items(root, tab, subs)], set(subs)
 
 
-def tab_id_problems(root: Path, tab: str) -> list[str]:
+def tab_ids(root: Path, tab: str) -> set[str]:
+    """Item ids the tab's script opens as photos/#<tab>/<id>."""
+    return {i for i in tab_info(root, tab)[0] if i}
+
+
+def tab_id_problems(root: Path, tab: str, info: tuple[list[str], set[str]] | None = None) -> list[str]:
     """Every item a tab opens by id needs a unique id that is not a chip name, or it has no deep link
     and no search record (the chip would open instead)."""
     name = PHOTO_TABS[tab]
-    items = _items(root, name)
-    if tab == "historical":
-        items = [i for i in items if i.get("bucket") == "curated"]
-    ids = [str(i.get("id") or "") for i in items]
+    ids, slugs = info or tab_info(root, tab)
     bad = [f"data/{name}: item {n} has no id" for n, i in enumerate(ids) if not i]
     bad += [f"data/{name}: id {i} is used twice" for i in sorted({i for i in ids if i and ids.count(i) > 1})]
-    slugs = tab_slugs(root, tab)
     bad += [f"data/{name}: id {i} is a chip name, so its link would open the chip" for i in ids if i in slugs]
     return bad
 
@@ -181,8 +185,9 @@ def index_problems(root: Path) -> list[str]:
         return [f"search-index.json is not valid JSON: {err}"]
     if not isinstance(index, dict) or index.get("version") != 1 or not isinstance(index.get("records"), list) or not index.get("generated"):
         return ["search-index.json: expected version 1, generated and a records list"]
-    bad = [p for tab in PHOTO_TABS for p in tab_id_problems(root, tab)]
-    tab_data = {tab: (tab_ids(root, tab), tab_slugs(root, tab)) for tab in PHOTO_TABS}
+    infos = {tab: tab_info(root, tab) for tab in PHOTO_TABS}
+    bad = [p for tab in PHOTO_TABS for p in tab_id_problems(root, tab, infos[tab])]
+    tab_data = {tab: ({i for i in ids if i}, slugs) for tab, (ids, slugs) in infos.items()}
     drawn: dict[str, set] = {}  # ids a page's script draws, read once per page
     page_ids: dict[Path, set] = {}  # each anchored page is parsed once
     for n, rec in enumerate(index["records"]):

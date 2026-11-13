@@ -101,7 +101,11 @@
     };
     // Per tab: the note shown for an id that is not in its data, and the module whose openItem opens an id.
     var NOTES = { historical: "historical-missing", layout: "layout-missing", "rolling-stock": "fleet-missing" };
-    var OPENERS = { historical: "HARTArchive", layout: "HARTGallery", "rolling-stock": "HARTFleet" };
+    var OPENERS = {
+      historical: function () { return window.HARTArchive && HARTArchive.openItem; },
+      layout: function () { return window.HARTGallery && HARTGallery.openers && HARTGallery.openers["#layout-grid"]; },
+      "rolling-stock": function () { return window.HARTFleet && HARTFleet.openItem; },
+    };
     var site = null;
     var mounted = {};
 
@@ -158,11 +162,11 @@
         if (n) n.hidden = true;
       });
       var value = sub && Object.prototype.hasOwnProperty.call(CATS[cat].subs, sub) && CATS[cat].subs[sub];
-      var mod = window[OPENERS[cat]];
+      var open = OPENERS[cat]();
       if (value) {
         var btn = document.querySelector(CATS[cat].chips + " [" + CATS[cat].attr + '="' + value + '"]');
         if (btn) btn.click();
-      } else if (sub && mod && mod.openItem) {
+      } else if (sub && open) {
         // Any other value is an item's id: #historical/<id>, #layout/<id>, #rolling-stock/<id>.
         var id;
         try {
@@ -171,7 +175,7 @@
           id = sub; // a malformed escape in a typed link: look it up as written
         }
         var note = document.getElementById(NOTES[cat]);
-        if (note) note.hidden = mod.openItem(id);
+        if (note) note.hidden = open(id);
       }
     }
 

@@ -352,11 +352,27 @@ a:hover {
   border-bottom: 1px solid var(--rule);
 }
 
+.search-grp,
+.search-grp-items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .search-group-more {
   padding: 0.25rem 0.6rem;
+  cursor: pointer;
+}
+
+.search-group-more[aria-selected="true"] .search-more {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .search-group-more .search-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 2.25rem;
   margin-top: 0;
 }

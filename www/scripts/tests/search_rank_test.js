@@ -44,6 +44,8 @@ const labels = (q) => S.rank(P, q).groups.map((g) => g.label);
 }
 // exact hits lead
 assert.strictEqual(top("2738", 1)[0], "CSX 2738");
+assert.strictEqual(top("csx  2738", 1)[0], "CSX 2738"); // extra spaces keep the exact lead
+assert.strictEqual(labels("csx  2738")[0], "Best match");
 assert.strictEqual(labels("2738")[0], "Best match");
 assert(["NVL", "NVL local"].includes(top("NVL", 1)[0]), "NVL " + top("NVL"));
 assert.strictEqual(top("yM-01", 1)[0], "YM-01");
