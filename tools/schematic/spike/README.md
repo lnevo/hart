@@ -66,8 +66,12 @@ Known gaps (end of the 2026-11-13 session):
   although they lie further east. The fix is to take the above/below rules only from tracks that really
   overlap along the band. Hints `keep_close`, `level_leg` and `band_cell` (stretch) exist meanwhile.
 - A band has no rule for which end is which except `left_end` (staging) and `side` on helix ends (upper).
-- Main weight on the upper band follows `main_route`: the owner's route round the peninsula loop from the
-  double crossover to T241 and back to T300, plus the agent's choice from the helix to T237.
+- Main weight on the upper band follows `main_route`, as the owner gave it (2026-11-13): H2 McKeesport up
+  the rise to T262, diverging there onto the outer track round the west balloon loop (T275, T273, T256, T233)
+  back to T274 and T237, then T300, the double crossover, round the peninsula loop past T241 and back; and
+  H1 McKees Rocks through T175 and T199 to connector A. The T237 to T262 crossover is not main. Routes are
+  spelled hop by hop, because the shortest way between two points can cut across a crossover.
+- `shorten` draws a named run short (T237 to T300).
 - AnyRail's section names (Mainline, Branchline) are layer placeholders (owner, 2026-11-13); band titles are
   the spike's own.
 - Labels are not checked for collisions (the connector text can overlap a track); switch numbers collide in

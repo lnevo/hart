@@ -595,13 +595,17 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
         su = abs(srow[sid] - nrow[u]) if u in nrow else 0
         sv = abs(srow[sid] - nrow[v]) if v in nrow else 0
         h = max(name_cells(s["name"], opts), min(4, int(s["cm"] // 120)))   # a long track shows as a level run
+        ends_ = {r for t in (u, v) for r in (nodes[t].get("alias"), nodes[t].get("label")) if r}
+        tight = any(a in ends_ and b in ends_ for a, b in opts.get("shorten", ()))     # owner's hint: draw this run short
+        if tight:
+            h = 0
         if nodes[u]["kind"] == "end" or nodes[v]["kind"] == "end":
             h = max(h, 1) + 1
         w = max(1, su + sv + h) + sum(nodes[t]["kind"] == "dx" for t in (u, v))
         need[sid] = (su, sv, w)
         cons.append((u, v, w))
         cm = s["cm"] / (2 if "." in sid else 1)
-        weight.append((u, v, 100.0 / (cm + 25.0)))     # long tracks take up the slack
+        weight.append((u, v, 20.0 if tight else 100.0 / (cm + 25.0)))     # long tracks take up the slack
     for t, inside in enclosed.items():
         for sid in inside:
             n = strands[sid]["dst"][0]
