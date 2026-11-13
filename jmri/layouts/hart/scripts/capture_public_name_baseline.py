@@ -329,19 +329,39 @@ def write_counts(path: Path, tables_path: Path, counts: dict[str, int]) -> None:
 
 
 def comparable(path: Path) -> list[str]:
-    """File lines minus the sha256, which changes with any edit, even a moved icon."""
+    """File lines minus the tables sha256 and path, which say nothing about bindings."""
     if not path.is_file():
         return []
     return [
         line
         for line in path.read_text(encoding="utf-8").splitlines()
-        if not line.startswith("tables.xml sha256=")
+        if not line.startswith(("tables.xml sha256=", "tables.xml path="))
     ]
 
 
+# Every file a capture writes. Other files in the baselines folder (README,
+# audit and validate reports) are not captures and are not compared.
+CAPTURED_FILES = (
+    "block_sensors.csv",
+    "cats_bindings.csv",
+    "counts.txt",
+    "ctc_sidi.csv",
+    "ctc_trl.csv",
+    "hardware_identity.csv",
+    "le_mast_bindings.csv",
+    "sml_pairs.csv",
+    "sml_sections.csv",
+)
+
+
 def stale_files(committed: Path, fresh: Path) -> list[str]:
-    names = sorted(p.name for p in fresh.iterdir())
-    return [name for name in names if comparable(committed / name) != comparable(fresh / name)]
+    """Captured files whose content differs, including one missing on either side."""
+    return [
+        name
+        for name in CAPTURED_FILES
+        if (committed / name).is_file() != (fresh / name).is_file()
+        or comparable(committed / name) != comparable(fresh / name)
+    ]
 
 
 def main(argv: list[str] | None = None) -> int:

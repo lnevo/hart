@@ -92,6 +92,21 @@ class CurrentTablesTest(unittest.TestCase):
         self.assertEqual(0, edits)
         self.assertEqual(before, after)
 
+    def test_stop_on_old_name_leaves_file_untouched(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            copy = Path(temporary) / "tables.xml"
+            text = throat.DEFAULT.read_text(encoding="utf-8")
+            # Old slot name, plus a pending throat edit that runs first.
+            text = text.replace(
+                "<signalCMast>Mast 10RA</signalCMast>", "<signalCMast>Mast 9LA</signalCMast>", 1
+            )
+            text = text.replace('blockname="Track S-2 West"', 'blockname="Track S-2"', 1)
+            copy.write_text(text, encoding="utf-8")
+            before = copy.read_bytes()
+            with self.assertRaisesRegex(ValueError, "Mast 9LA"):
+                throat.apply(copy)
+            self.assertEqual(before, copy.read_bytes())
+
     def test_scale_east_run_is_a_no_op(self):
         edits, before, after = self.run_on_copy(throat.apply_scale_east)
         self.assertEqual(0, edits)

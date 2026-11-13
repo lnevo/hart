@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Split South Yard S-1…S-5 into station body + hidden throat blocks.
+"""Split South Yard Track S-R and S-1…S-4 into station body + hidden throat blocks.
 
 Dispatcher System needs a signal mast *beyond* each stopping block. The yard
 body tracks were one block from frog to frog, so Discover could not see a
@@ -10,7 +10,13 @@ anchors become real block boundaries; virtual masts move there.
 Throat block comments must not contain the substring "stop" — CreateGraph
 uses ``if "stop" in comment.lower()``. Use "not a station".
 
-S-1 is only two segments, so F46-S-0 is split at a new A81 just east of TOR14.
+Track S-R is only two segments, so F46-S-0 is split at a new A81 just east of
+TOR14 (Track S-R West).
+
+The default run also places the Switch 7, Mast 14R, engine-house exit and
+Brick-Plane masts (--scale-east-only does just that part). It parses once and
+writes only when something changed, so a run that stops on an old mast name
+leaves the file untouched.
 
 Writable source is jmri/layouts/hart/output/tables.xml. --sync-output has had no
 effect since ADR-008. Idempotent.
@@ -41,11 +47,10 @@ THROAT_SEGMENTS = [
     ("T-ER-TOL19", "Track S-4 West", "BS S-4", "Track S-4", "Block 2-4"),
     ("T-EL-TOR11", "Track S-4 East", "BS S-4", "Track S-4", "Block 2-4"),
     ("T-EL-TOR32", "Track S-R East", "BS S-R", "Track S-R", "Block 2-8"),
-    # T3 is the west throat of Switch 7, not a Scale station block. Putting
-    # it in OS Switch 7 makes A45 a real Scale|Switch 7 boundary so 26L can
-    # Discover 8LC. A extra "Scale East" block hid 8LC behind Switch 7.
-    ("T3", "OS Switch 7", "BS Switch 7", "Track Scale", None),
+    # Made by _split_s1_west.
+    ("F46-W-0", S_R_WEST, "BS S-R", "Track S-R", "Block 2-8"),
 ]
+# T3 (west throat of Switch 7, in OS Switch 7) is set by _scale_east_edits.
 
 # After throats exist, bind virtuals on the new boundaries (not turnout legs).
 BOUNDARY_MASTS = [
@@ -277,7 +282,7 @@ def _add_block_beans(
 
 
 def _split_s1_west(le: ET.Element) -> int:
-    """Insert A81 and a short S-1 West segment east of TOR14."""
+    """Insert A81 and a short Track S-R West segment east of TOR14."""
     n = 0
     if any(pt.get("ident") == "A81" for pt in le.findall("positionablepoint")):
         # Still force the west-throat blockname if a previous run created A81.
@@ -367,6 +372,13 @@ def apply_scale_east(path: Path) -> int:
     if le is None:
         print(f"{path}: no Layout Editor")
         return 0
+    n = _scale_east_edits(root, le)
+    if n:
+        tree.write(path, encoding="UTF-8", xml_declaration=True)
+    return n
+
+
+def _scale_east_edits(root: ET.Element, le: ET.Element) -> int:
     n = _remove_orphan_scale_east(root)
     segs = {ts.get("ident"): ts for ts in le.findall("tracksegment")}
     t3 = segs.get("T3")
@@ -420,7 +432,6 @@ def apply_scale_east(path: Path) -> int:
     if to1 is not None:
         n += _ensure_turnout_mast(to1, "signalBMast", "Mast 14R")
     n += _ensure_eh_exits(le, masts, existing, turnouts)
-    tree.write(path, encoding="UTF-8", xml_declaration=True)
     return n
 
 
@@ -454,9 +465,7 @@ def apply(path: Path) -> int:
     ib_n = _next_ib_auto(root)
     ilb_n = _next_ilb(root)
 
-    wanted = [row for row in THROAT_SEGMENTS if row[4] is not None]
-    wanted.append(("F46-W-0", S_R_WEST, "BS S-R", "Track S-R", "Block 2-8"))
-    for _seg, uname, sensor, station, hardware in wanted:
+    for _seg, uname, sensor, station, hardware in THROAT_SEGMENTS:
         if uname in names:
             continue
         ib = f"IB:AUTO:{ib_n:04d}"
@@ -485,10 +494,6 @@ def apply(path: Path) -> int:
         if ts.get("blockname") != uname:
             ts.set("blockname", uname)
             n += 1
-    west = segs.get("F46-W-0")
-    if west is not None and west.get("blockname") != S_R_WEST:
-        west.set("blockname", S_R_WEST)
-        n += 1
 
     n += _clear_turnout_virtuals(le)
 
@@ -523,9 +528,11 @@ def apply(path: Path) -> int:
             del pt.attrib[other]
             n += 1
 
-    tree.write(path, encoding="UTF-8", xml_declaration=True)
     # Scale/Switch 7, Mast 14R, the engine-house exits and Brick-Plane ends.
-    return n + apply_scale_east(path)
+    n += _scale_east_edits(root, le)
+    if n:
+        tree.write(path, encoding="UTF-8", xml_declaration=True)
+    return n
 
 
 def main() -> int:

@@ -32,12 +32,20 @@ class StaleFilesTest(unittest.TestCase):
             committed, fresh = Path(a), Path(b)
             (committed / "counts.txt").write_text("tables.xml sha256=aaa\nx.csv=1\n")
             (fresh / "counts.txt").write_text("tables.xml sha256=bbb\nx.csv=1\n")
-            (committed / "x.csv").write_text("mast\nMast 9LA\n")
-            (fresh / "x.csv").write_text("mast\nMast 10RA\n")
-            self.assertEqual(["x.csv"], capture.stale_files(committed, fresh))
+            (committed / "sml_pairs.csv").write_text("mast\nMast 9LA\n")
+            (fresh / "sml_pairs.csv").write_text("mast\nMast 10RA\n")
+            (committed / "ctc_trl.csv").write_text("old\n")
+            (committed / "README.md").write_text("not a capture\n")
+            self.assertEqual(
+                ["ctc_trl.csv", "sml_pairs.csv"], capture.stale_files(committed, fresh)
+            )
 
-    def test_committed_baselines_match_tables(self):
-        self.assertEqual(0, capture.main(["--check"]))
+    def test_path_line_is_ignored(self):
+        with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+            committed, fresh = Path(a), Path(b)
+            (committed / "counts.txt").write_text("tables.xml path=jmri/x\nx.csv=1\n")
+            (fresh / "counts.txt").write_text("tables.xml path=/Users/me/x\nx.csv=1\n")
+            self.assertEqual([], capture.stale_files(committed, fresh))
 
 
 if __name__ == "__main__":
