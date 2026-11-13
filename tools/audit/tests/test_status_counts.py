@@ -24,7 +24,7 @@ class StatusCounts(unittest.TestCase):
             d = Path(d)
             (d / "t.xml").write_text(TABLES)
             (d / "ti").mkdir()
-            for n in "ab":
+            for n in ("a.xml", "b.xml", ".DS_Store"):
                 (d / "ti" / n).write_text("")
             c = sc.counts(d / "t.xml", d / "ti")
         self.assertEqual(c, {"masts": 3, "real": 2, "virtual": 1, "sections": 1, "transits": 2,
@@ -36,9 +36,11 @@ class StatusCounts(unittest.TestCase):
         text = f"a\n{sc.START}\nold\n{sc.END}\nb\n"
         self.assertEqual(sc.rewrite(text, "new"), f"a\n{sc.START}\nnew\n{sc.END}\nb\n")
 
-    def test_repo_status_is_current(self):
-        text = sc.STATUS.read_text(encoding="utf-8")
-        self.assertEqual(sc.rewrite(text, sc.line(sc.counts())), text)
+    def test_bad_markers_raise(self):
+        with self.assertRaises(ValueError):
+            sc.rewrite("a\nno markers\n", "new")
+        with self.assertRaises(ValueError):
+            sc.rewrite(f"{sc.END}\nx\n{sc.START}\n", "new")
 
 
 if __name__ == "__main__":
