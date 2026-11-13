@@ -44,40 +44,34 @@ MM_PER_IN = 25.4
 # the 2026-11-08 runs (Switch 5 -> Switch 33 -> East Lead -> Switch 35 -> 37 -> K loop
 # -> 39 -> 35 -> West Main Ext -> 23 -> Main West -> 1 -> Brick-Plane -> 5): flex arc
 # lengths plus turnout route lengths. See docs/jmri/speedmatching/ANYRAIL_LENGTHS.md.
+# Both PLAN_ constants are printed by tools/anyrail/prototype/loop_route.py (steps in its README).
 PLAN_LOOP_MM = 35108.2
 MIN_STEP = 24
 REF_BLOCK = "East Main Ext"
 
-# sensor name in block_events.csv -> (block_lengths.csv row, stub rows on the same detector)
-SENSOR_ROWS = {
-    "East Main Ext": ("Track East Main Ext", []),
-    "Switch 7b": ("OS Switch 7b", []),
-    "Main East": ("Track Main East", []),
-    "Switch 33": ("OS Switch 33", []),
-    "East Lead": ("Track East Lead", ["Track East Lead East"]),
-    "Switch 35a": ("OS Switch 35a", []),
-    "Switch 37 / BS McKeesport": ("OS Switch 37", []),
-    "K-2": ("Track K-2", []),
-    "K-1": ("Track K-1", ["Track K-1 West"]),
-    "Switch 39 / BS McKees Rocks": ("OS Switch 39", []),
-    "Switch 35b": ("OS Switch 35b", []),
-    "West Main Ext": ("Track West Main Ext", []),
-    "Switch 23a": ("OS Switch 23a", []),
-    "Main West": ("Track Main West", []),
-    "Switch 1": ("OS Switch 1", []),
-    "Brick-Plane": ("Track Brick-Plane", []),
-    "Switch 5": ("OS Switch 5", []),
-}
+# The loop's sensors and their block_lengths.csv rows come from the speed-match analysis
+# (speedmatch/analyze.py LOOP), so there is one list to keep. block_events.csv names the
+# sensors without the "BS " prefix.
+sys.path.insert(0, str(Path(__file__).resolve().parent / "speedmatch"))
+import analyze  # noqa: E402
+
+SENSOR_ROWS = {sensor[3:]: row for sensor, row in analyze.LOOP}
 
 
 def lap_shares(rows, min_step=MIN_STEP, ref=REF_BLOCK, blocks=None):
     """Return {block: [share of lap time, one per lap]} from block_events rows."""
     blocks = set(blocks or SENSOR_ROWS)
     laps = defaultdict(dict)
+    doubled = set()
     for r in rows:
         if int(r["step"]) < min_step or r["block"] not in blocks:
             continue
-        laps[(r["loco"], r["log"], r["step"], r["lap_index"])][r["block"]] = float(r["transit_s"])
+        key = (r["loco"], r["log"], r["step"], r["lap_index"])
+        if r["block"] in laps[key]:
+            doubled.add(key)  # a block seen twice in one lap (bounce, re-entry): lap unusable
+        laps[key][r["block"]] = float(r["transit_s"])
+    for key in doubled:
+        del laps[key]
     full = [lap for lap in laps.values() if len(lap) == len(blocks)]
     if not full:
         raise ValueError("no complete laps")
@@ -112,13 +106,11 @@ def infer(rows, loop_mm=PLAN_LOOP_MM, **kw):
 # pinning both ends of such a short stretch would turn a few cm of gap placement into a large
 # error in the OS lengths between them.
 PLAN_TURNOUT_MM = {
-    "Switch 5": 142, "Switch 33": 12427, "Switch 35a": 15403,
-    "Switch 35b": 22541, "Switch 23a": 27071, "Switch 1": 33171,
+    "Switch 5": 142, "Switch 33": 12427, "Switch 35a": 15402,
+    "Switch 35b": 22541, "Switch 23a": 27071, "Switch 1": 33172,
 }
-ROUTE_FROM_SW5 = ["Switch 5", "East Main Ext", "Switch 7b", "Main East", "Switch 33", "East Lead",
-                  "Switch 35a", "Switch 37 / BS McKeesport", "K-2", "K-1",
-                  "Switch 39 / BS McKees Rocks", "Switch 35b", "West Main Ext", "Switch 23a",
-                  "Main West", "Switch 1", "Brick-Plane"]
+_ORDER = list(SENSOR_ROWS)
+ROUTE_FROM_SW5 = _ORDER[_ORDER.index("Switch 5"):] + _ORDER[:_ORDER.index("Switch 5")]
 
 
 def pinned(result, loop_mm=PLAN_LOOP_MM, turnouts=PLAN_TURNOUT_MM, route=ROUTE_FROM_SW5):
@@ -144,15 +136,27 @@ def pinned(result, loop_mm=PLAN_LOOP_MM, turnouts=PLAN_TURNOUT_MM, route=ROUTE_F
                 return ys[k] + (x - xs[k]) / (xs[k + 1] - xs[k]) * (ys[k + 1] - ys[k])
         raise ValueError(x)
 
-    return {s: (to_plan(edges[k + 1]) - to_plan(edges[k]),) + tuple(result[s][1:])
-            for k, s in enumerate(route)}
+    out = {}
+    for k, s in enumerate(route):
+        mm = to_plan(edges[k + 1]) - to_plan(edges[k])
+        # the lap spread scales with the block: the same factor pinning applied to it
+        out[s] = (mm, result[s][1] * mm / result[s][0], result[s][2])
+    return out
 
 
-def apply(result, csv_path=CSV):
+def stubs_of(rows, sensor):
+    """Hidden throat stub rows that share this sensor's detector."""
+    return [r["user_name"] for r in rows
+            if r["flag"] == "stub" and r["occupancy_sensor"] == "BS " + sensor]
+
+
+def plan_rows(result, csv_path=CSV):
+    """The CSV rows with the new lengths, not yet written. Returns (fields, rows, mm by row)."""
     rows = list(csv.DictReader(open(csv_path, newline="")))
     fields = list(rows[0].keys())
     by_name = {r["user_name"]: r for r in rows}
-    for sensor, (name, stubs) in SENSOR_ROWS.items():
+    for sensor, name in SENSOR_ROWS.items():
+        stubs = stubs_of(rows, sensor)
         mm, spread, n = result[sensor]
         stub_mm = sum(float(by_name[s]["inches"]) * MM_PER_IN for s in stubs)
         r = by_name[name]
@@ -163,11 +167,14 @@ def apply(result, csv_path=CSV):
         if stubs:
             note += "; detector length minus " + ", ".join(stubs)
         r["old_source"] = note
+    return fields, rows, {n: float(by_name[n]["inches"]) * MM_PER_IN for n in SENSOR_ROWS.values()}
+
+
+def write_csv(fields, rows, csv_path=CSV):
     with open(csv_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
-    return {SENSOR_ROWS[s][0]: float(by_name[SENSOR_ROWS[s][0]]["inches"]) * MM_PER_IN for s in SENSOR_ROWS}
 
 
 def apply_tables(lengths_mm):
@@ -195,12 +202,14 @@ def main():
     a = ap.parse_args()
     result = pinned(infer(list(csv.DictReader(open(a.events, newline="")))))
     print(f"{'sensor':30} {'mm':>8} {'+-mm':>6} {'in':>7} {'laps':>5}")
-    for sensor in SENSOR_ROWS:
+    for sensor in ROUTE_FROM_SW5:
         mm, spread, n = result[sensor]
         print(f"{sensor:30} {mm:8.0f} {spread:6.0f} {mm / MM_PER_IN:7.1f} {n:5d}")
     print(f"{'total':30} {sum(v[0] for v in result.values()):8.0f}   (plan loop {PLAN_LOOP_MM:.0f})")
     if a.apply:
-        apply_tables(apply(result))
+        fields, rows, mm = plan_rows(result)
+        apply_tables(mm)          # tables first: it refuses while PanelPro or CATS is open
+        write_csv(fields, rows)   # so the CSV only changes once tables.xml has
         print(f"updated {CSV.relative_to(REPO)} and tables.xml; now run export_track_lengths.py")
 
 

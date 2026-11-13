@@ -36,9 +36,31 @@ class Shares(unittest.TestCase):
                 + lap(2, {"A": 5}))
         self.assertEqual(len(m.lap_shares(rows, ref="R", blocks=BLOCKS)["A"]), 1)
 
+    def test_lap_with_a_block_twice_is_dropped(self):
+        rows = (lap(0, {"R": 10, "A": 30, "B": 60}) + lap(1, {"R": 10, "A": 30, "B": 60})
+                + lap(1, {"A": 2}))
+        self.assertEqual(len(m.lap_shares(rows, ref="R", blocks=BLOCKS)["A"]), 1)
+
     def test_no_full_lap_raises(self):
         with self.assertRaises(ValueError):
             m.lap_shares(lap(0, {"A": 1, "B": 1}), ref="R", blocks=BLOCKS)
+
+
+class Apply(unittest.TestCase):
+    def test_stub_on_the_same_detector_comes_off_the_track_row(self):
+        import tempfile, os
+        d = tempfile.mkdtemp()
+        p = os.path.join(d, "bl.csv")
+        rows = list(csv.DictReader(open(m.CSV, newline="")))
+        with open(p, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
+            w.writeheader(); w.writerows(rows)
+        result = {s: (1000.0, 10.0, 5) for s in m.SENSOR_ROWS}
+        fields, new, mm = m.plan_rows(result, p)
+        self.assertAlmostEqual(mm["Track East Lead"], 1000.0 - 15.748 * 25.4, delta=3)
+        self.assertAlmostEqual(mm["Track K-2"], 1000.0, delta=3)
+        # nothing written yet
+        self.assertEqual(list(csv.DictReader(open(p, newline=""))), rows)
 
 
 class RecordedRuns(unittest.TestCase):
@@ -63,6 +85,10 @@ class RecordedRuns(unittest.TestCase):
             if s in m.PLAN_TURNOUT_MM:
                 self.assertAlmostEqual(pos + out[s][0] / 2, m.PLAN_TURNOUT_MM[s], delta=10, msg=s)
             pos += out[s][0]
+        # pinning only nudges blocks: a wrong plan turnout position would move them by metres
+        raw = m.infer(rows)
+        for b in raw:
+            self.assertLess(abs(out[b][0] - raw[b][0]), 150, b)
         # the barn crossover: Switch 7b's section centre about 4.15 m from Switch 5's points
         c7 = start + sum(out[s][0] for s in m.ROUTE_FROM_SW5[:2]) + out["Switch 7b"][0] / 2
         self.assertAlmostEqual(c7, 4146, delta=30)

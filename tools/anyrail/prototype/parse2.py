@@ -8,7 +8,6 @@ bez=[]
 for m in re.finditer(rb'([\x02-\x40])\x00{7}4\x00',d):
     n=m.group(1)[0]; o=m.end()-2; pts=[]
     for k in range(n):
-        if d[o:o+2]!=b'4\x00' and k>0 and False: break
         if d[o:o+2]==b'4\x00': o+=2
         pid=struct.unpack('<I',d[o:o+4])[0]; x,y=struct.unpack('<2d',d[o+4:o+20]); o+=20
         pts.append((x,y))

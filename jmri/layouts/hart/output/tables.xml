@@ -4391,7 +4391,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0003" length="5516.9" curve="0">
+    <block systemName="IB:AUTO:0003" length="5519.4" curve="0">
       <systemName>IB:AUTO:0003</systemName>
       <userName>Track Main West</userName>
       <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200</comment>
@@ -4431,7 +4431,7 @@
       <path todir="128" fromdir="64" block="IB:AUTO:0056" />
       <path todir="64" fromdir="128" block="IB:AUTO:0057" />
     </block>
-    <block systemName="IB:AUTO:0010" length="2740.7" curve="0">
+    <block systemName="IB:AUTO:0010" length="2743.2" curve="0">
       <systemName>IB:AUTO:0010</systemName>
       <userName>Track K-1</userName>
       <comment>Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop</comment>
@@ -4518,7 +4518,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0031" length="627.4" curve="0">
+    <block systemName="IB:AUTO:0031" length="624.8" curve="0">
       <systemName>IB:AUTO:0031</systemName>
       <userName>OS Switch 5</userName>
       <comment>Plane CP, Switch 5; occupancy Block 4-5 / M2S404</comment>

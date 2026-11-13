@@ -23,8 +23,8 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | Track W-1 | Block 4-4 | 105 | 2667.0 | assigned | Spur 1 |
 | Track W-2 | Block 4-3 | 93 | 2362.2 | assigned | Spur 2 |
 | Track Brick-Plane | Block 4-6 | 58.1 | 1475.7 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
-| Track East Lead | Block 1-7 | 87.9 | 2232.7 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.5 in over 33 laps; detector length minus Track East Lead East |
-| Track Main West | Block 2-1 | 217.2 | 5516.9 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
+| Track East Lead | Block 1-7 | 87.9 | 2232.7 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.4 in over 33 laps; detector length minus Track East Lead East |
+| Track Main West | Block 2-1 | 217.3 | 5519.4 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
 | Track West Main Ext | Block 1-8 | 156.1 | 3964.9 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
 | Track Main East | Block 2-3 | 315.1 | 8003.5 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
 | Track East Main Ext | Block 4-7 | 140.8 | 3576.3 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 16 laps |
@@ -33,7 +33,7 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | Track S-2 | Block 2-6 | 178 | 4521.2 | assigned | Yard 3 |
 | Track S-3 | Block 2-5 | 142 | 3606.8 | assigned | Yard 2 (reversed) |
 | Track S-4 | Block 2-4 | 100 | 2540.0 | assigned | Yard 1 (reversed) |
-| Track K-1 | Block 1-1 | 107.9 | 2740.7 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps; detector length minus Track K-1 West |
+| Track K-1 | Block 1-1 | 108 | 2743.2 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps; detector length minus Track K-1 West |
 | Track K-2 | Block 1-2 | 113.6 | 2885.4 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
 | Track Scale | Block 4-8 | 24 | 609.6 | estimate | new with 116/117 |
 | Track Barn | Block 13-1 | 24 | 609.6 | estimate | new with 116/117 |
@@ -66,7 +66,7 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 |---|---|---|---|---|---|
 | OS Switch 1 | Block 4-2 | 22.6 | 574.0 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
 | OS Switch 3 | Block 4-1 | 10 | 254.0 | estimate | switch |
-| OS Switch 5 | Block 4-5 | 24.7 | 627.4 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
+| OS Switch 5 | Block 4-5 | 24.6 | 624.8 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
 | OS Switch 15 | Block 3-2 | 10 | 254.0 | estimate | switch |
 | OS Switch 17 | Block 3-3 | 10 | 254.0 | estimate | switch |
 | OS Switch 19 | Block 3-5 | 10 | 254.0 | estimate | switch |
