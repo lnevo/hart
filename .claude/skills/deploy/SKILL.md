@@ -31,7 +31,7 @@ What it does:
 - Operations files are overwritten on every host (`HART_OVERWRITE_OPS=1` is the default; `0` restores the guards).
 - Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES` and `HART_WIN_USERFILES`, read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `load_env.sh`.
 - Inside the package the host scripts still sit at cats/scripts/pi and cats/scripts/windows, where the hosts expect them; their repo source is `tools/hosts/pi/` and `tools/hosts/windows/`.
-- Each host it installs ends with `JMRI_UserFiles/cats/deploy_stamp.txt` (commit, branch, dirty, date, deploying machine, target), written last by the apply step.
+- Each host it installs ends with `JMRI_UserFiles/cats/deploy_stamp.txt` (commit, branch, dirty, sha256 of the shipped `tables.xml` and `tables_modified_by_deploy`, date, deploying machine, target), written last by the apply step. Both apply steps install into the configured `HART_PI_USERFILES` / `HART_WIN_USERFILES`, so the stamp and `deploy_status.sh` agree.
 
 Hosts and failures:
 

@@ -7,6 +7,7 @@ cats/scripts/pi and cats/scripts/windows inside it.
 from __future__ import annotations
 
 import filecmp
+import hashlib
 import os
 import shutil
 import subprocess
@@ -19,7 +20,8 @@ SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
 WRAPPER = ROOT / "cats/scripts/sync_hart_package.sh"
 PI_SRC = ROOT / "tools/hosts/pi"
 WIN_SRC = ROOT / "tools/hosts/windows"
-STAMP_KEYS = ("commit", "branch", "dirty", "dirty_paths", "date", "deployed_from", "target")
+STAMP_KEYS = ("commit", "branch", "dirty", "dirty_paths", "tables_sha256", "tables_modified_by_deploy",
+              "date", "deployed_from", "target")
 
 
 def fake_bin(tmp: Path) -> Path:
@@ -124,6 +126,12 @@ class StageOnly(unittest.TestCase):
             self.assertEqual(stamp["dirty"], "yes" if dirty else "no")
             self.assertEqual(stamp["target"], host)
             self.assertRegex(stamp["date"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4}$")
+            shipped = hashlib.sha256((self.out / host / "tables.xml").read_bytes()).hexdigest()
+            self.assertEqual(stamp["tables_sha256"], shipped)
+            committed = subprocess.run(["git", "-C", str(ROOT), "show", "HEAD:jmri/layouts/hart/output/tables.xml"],
+                                       capture_output=True, check=True).stdout
+            want = "no" if hashlib.sha256(committed).hexdigest() == shipped else "yes"
+            self.assertEqual(stamp["tables_modified_by_deploy"], want)
         if dirty:
             self.assertIn("WARNING: this checkout has", self.done.stderr)
 
@@ -150,6 +158,27 @@ class StageOnlyRefusals(unittest.TestCase):
         done = subprocess.run(["bash", str(SYNC), "--stage-only"], cwd=ROOT, capture_output=True, text=True)
         self.assertNotEqual(done.returncode, 0)
         self.assertIn("--stage-only needs a folder", done.stderr)
+
+    def test_empty_equals_form_never_deploys(self) -> None:
+        """--stage-only= (an unset variable) must stop, not fall through to a real deploy."""
+        with tempfile.TemporaryDirectory() as tmp:
+            env = stage_env(Path(tmp))
+            for flags in (["--stage-only="], ["--pi", "--stage-only="], ["--stage-only", ""]):
+                done = subprocess.run(["bash", str(SYNC), *flags], cwd=ROOT, env=env,
+                                      capture_output=True, text=True, timeout=60)
+                self.assertNotEqual(done.returncode, 0, flags)
+                self.assertIn("--stage-only needs a folder", done.stderr, flags)
+            self.assertFalse((Path(tmp) / "network.log").exists())
+
+    def test_apply_steps_get_the_configured_user_files(self) -> None:
+        source = SYNC.read_text(encoding="utf-8")
+        self.assertIn("JMRI_USERFILES='${PI_USERFILES}'", source)
+        self.assertIn('-UserFiles \\"${WIN_USERFILES}\\"', source)
+        win = (WIN_SRC / "apply_hart_package_local.ps1").read_text(encoding="utf-8")
+        self.assertIn("[string]$UserFiles = ''", win)
+        # Only the default when the deploy passes nothing; every install path uses $UserFiles.
+        self.assertEqual(win.count("Join-Path $env:USERPROFILE 'JMRI_UserFiles"), 1)
+        self.assertIn("& $desk -UserFiles $UserFiles", win)
 
     def test_refuses_a_folder_with_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

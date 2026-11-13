@@ -44,7 +44,9 @@ if [[ $# -gt 0 ]]; then
       --stage-only)
         [[ $# -ge 2 && -n "$2" ]] || { echo "--stage-only needs a folder" >&2; exit 1; }
         STAGE_ONLY="$2"; shift ;;
-      --stage-only=*) STAGE_ONLY="${1#*=}" ;;
+      --stage-only=*)
+        STAGE_ONLY="${1#*=}"
+        [[ -n "$STAGE_ONLY" ]] || { echo "--stage-only needs a folder" >&2; exit 1; } ;;
       -h|--help)
         echo "Usage: $0 [--pi] [--win] [--all] [--dry-run] [--stage-only DIR]"
         echo "  Windows SSH: ${WIN_HOST} -p ${WIN_PORT} → %TEMP% drop + JMRI_UserFiles"
@@ -100,6 +102,8 @@ commit=$DEPLOY_COMMIT
 branch=$DEPLOY_BRANCH
 dirty=$DEPLOY_DIRTY
 dirty_paths=$DEPLOY_DIRTY_PATHS
+tables_sha256=$DEPLOY_TABLES_SHA
+tables_modified_by_deploy=$DEPLOY_TABLES_MODIFIED
 date=$DEPLOY_DATE
 deployed_from=$DEPLOY_FROM
 target=$2
@@ -142,6 +146,19 @@ if [[ -n "$TABLES" && -f "$SML_GATE" ]]; then
   else
     # Flip Digicon MQTT dests to Enabled=no in the file we ship.
     python3 "$SML_GATE" --panel "$TABLES"
+  fi
+fi
+
+# The gates above may rewrite tables.xml, so the stamp also names the tables actually
+# shipped and whether they differ from the committed file.
+DEPLOY_TABLES_SHA=none
+DEPLOY_TABLES_MODIFIED=no
+if [[ -n "$TABLES" ]]; then
+  DEPLOY_TABLES_SHA="$(shasum -a 256 "$TABLES" | cut -d' ' -f1)"
+  committed_sha="$(git -C "$ROOT" show "HEAD:jmri/layouts/hart/output/tables.xml" 2>/dev/null | shasum -a 256 | cut -d' ' -f1)"
+  if [[ "$DEPLOY_TABLES_SHA" != "$committed_sha" ]]; then
+    DEPLOY_TABLES_MODIFIED=yes
+    echo "WARNING: the tables.xml being shipped differs from commit ${DEPLOY_COMMIT:0:12} (uncommitted, or rewritten by the gates above). Commit it after the deploy; the stamp says tables_modified_by_deploy=yes." >&2
   fi
 fi
 
@@ -452,7 +469,8 @@ if [[ "$DO_PI" -eq 1 ]]; then
   rm -rf "$STAGE"
   trap - EXIT
   if [[ "$DRY_RUN" -eq 0 ]]; then
-    ssh_pi "HART=${PI_DROP} HART_OVERWRITE_OPS=${HART_OVERWRITE_OPS} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
+    # JMRI_USERFILES: the apply installs where the panel paths and the stamp say (HART_PI_USERFILES).
+    ssh_pi "HART=${PI_DROP} JMRI_USERFILES='${PI_USERFILES}' HART_OVERWRITE_OPS=${HART_OVERWRITE_OPS} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
   fi
   echo "Pi deploy done."
 fi
@@ -467,7 +485,7 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   trap - EXIT
   if [[ "$DRY_RUN" -eq 0 ]]; then
     rc=0
-    ssh_win "powershell -NoProfile -ExecutionPolicy Bypass -File \"${WIN_DROP}\\cats\\scripts\\windows\\apply_hart_package_local.ps1\" -Hart \"${WIN_DROP}\" -OverwriteOps ${HART_OVERWRITE_OPS}" || rc=$?
+    ssh_win "powershell -NoProfile -ExecutionPolicy Bypass -File \"${WIN_DROP}\\cats\\scripts\\windows\\apply_hart_package_local.ps1\" -Hart \"${WIN_DROP}\" -OverwriteOps ${HART_OVERWRITE_OPS} -UserFiles \"${WIN_USERFILES}\"" || rc=$?
     ssh_win "powershell -NoProfile -Command \"Remove-Item -LiteralPath '${WIN_DROP}' -Recurse -Force\""
     [[ "$rc" -eq 0 ]] || exit "$rc"
   fi

@@ -8,7 +8,7 @@
 set -euo pipefail
 
 source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
-HOST="$HART_PI_SSH"
+HOST="${PI_HOST:-$HART_PI_SSH}"  # PI_HOST first, as before
 MODE="${1:-update}"
 
 case "$MODE" in

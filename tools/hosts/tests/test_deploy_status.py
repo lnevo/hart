@@ -64,6 +64,16 @@ class DeployStatus(unittest.TestCase):
         self.assertIn("WARNING: shipped from a checkout with uncommitted changes.", done.stdout)
         self.assertIn("not in this checkout", done.stdout)
 
+    def test_tables_modified_warns(self) -> None:
+        self.fake_ssh(self.stamp(head()) + "tables_modified_by_deploy=yes\n")
+        done = self.run_status("--pi")
+        self.assertIn("tables_modified_by_deploy=yes", done.stdout)
+        self.assertIn("WARNING: the tables.xml shipped is not the committed one", done.stdout)
+
+    def test_help_lists_all(self) -> None:
+        done = self.run_status("--help")
+        self.assertIn("--all", done.stdout)
+
     def test_windows_path_and_port(self) -> None:
         self.fake_ssh(self.stamp(head(), target="win"))
         done = self.run_status("--win")

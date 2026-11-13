@@ -76,10 +76,32 @@ class Order(unittest.TestCase):
         self.assertEqual(got["HART_WIN_SSH_PORT"], "22")
         self.assertEqual(got["HART_WIN_SSH"], "me@filewin")
 
-    def test_older_names(self) -> None:
-        self.assertEqual(resolve({"PI_HOST": "oldpi"}, None)["HART_PI_SSH"], "oldpi")
-        self.assertEqual(resolve({}, "PI_HOST=fileoldpi\n")["HART_PI_SSH"], "fileoldpi")
-        self.assertEqual(resolve({"PI_HOST": "oldpi"}, "HART_PI_SSH=filepi\n")["HART_PI_SSH"], "oldpi")
+    def test_stale_pi_host_never_moves_the_deploy(self) -> None:
+        """Deploy and pi_quit/pi_start never read PI_HOST; an exported one must not change their target."""
+        self.assertEqual(resolve({"PI_HOST": "oldpi"}, None)["HART_PI_SSH"], "pi")
+        self.assertEqual(resolve({"PI_HOST": "oldpi"}, "HART_PI_SSH=filepi\n")["HART_PI_SSH"], "filepi")
+
+    def test_sts_helpers_still_put_pi_host_first(self) -> None:
+        for name in ("pi_docker_static.sh", "pi_sts_update.sh", "pi_sts_pull_backups.sh"):
+            text = (ROOT / "tools/hosts" / name).read_text(encoding="utf-8")
+            self.assertIn('HOST="${PI_HOST:-$HART_PI_SSH}"', text, name)
+        for name in ("sync_hart_package.sh", "pi_quit_panelpro.sh", "pi_start_panelpro.sh"):
+            self.assertNotIn("PI_HOST:-", (ROOT / "tools/hosts" / name).read_text(encoding="utf-8"), name)
+
+    def test_hart_env_with_forward_reference_under_set_u(self) -> None:
+        """A hart.env line naming a variable set only later must not abort a set -u caller."""
+        got = resolve({}, "STS_BACKUPS_DIR=$STS_DATA_ROOT/backups\nHART_PI_SSH=filepi\n")
+        self.assertEqual(got["HART_PI_SSH"], "filepi")
+
+    def test_nounset_is_restored(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            env_file = Path(tmp) / "hart.env"
+            env_file.write_text("X=$UNSET_LATER\n", encoding="utf-8")
+            env = {k: v for k, v in os.environ.items() if k not in CLEAR}
+            env["HART_ENV_FILE"] = str(env_file)
+            done = subprocess.run(["bash", "-c", f'set -u; source "{LOAD_ENV}"; echo "[$-]"'],
+                                  env=env, capture_output=True, text=True, check=True)
+            self.assertIn("u", done.stdout.strip().strip("[]"))
 
     def test_same_answers_as_hart_hosts(self) -> None:
         hosts = load_hart_hosts()

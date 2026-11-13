@@ -15,7 +15,7 @@
 set -euo pipefail
 
 source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
-HOST="$HART_PI_SSH"
+HOST="${PI_HOST:-$HART_PI_SSH}"  # PI_HOST first, as before
 KEEP="${STS_PI_KEEP_DUMPS:-30}"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=10)
 MAIN="$(dirname "$(git -C "$(dirname "$0")" rev-parse --path-format=absolute --git-common-dir)")"

@@ -3,7 +3,7 @@
 # sync_hart_package.sh leaves in JMRI_UserFiles/cats/deploy_stamp.txt, and how that
 # commit compares with this checkout. It only reads, on the hosts and here.
 #
-# Usage: tools/hosts/deploy_status.sh [--pi] [--win] [--mac]   (default --pi)
+# Usage: tools/hosts/deploy_status.sh [--pi] [--win] [--mac] [--all]   (default --pi)
 # Hosts come from load_env.sh (HART_PI_SSH, HART_PI_USERFILES, HART_WIN_SSH,
 # HART_WIN_SSH_PORT, HART_WIN_USERFILES): environment, then hart.env, then the default.
 set -euo pipefail
@@ -61,6 +61,8 @@ for t in "${TARGETS[@]}"; do
   fi
   printf '%s\n' "$out" | grep -v '^#' | sed 's/^/  /'
   printf '%s\n' "$out" | grep -q '^dirty=yes' && echo "  WARNING: shipped from a checkout with uncommitted changes."
+  printf '%s\n' "$out" | grep -q '^tables_modified_by_deploy=yes' &&
+    echo "  WARNING: the tables.xml shipped is not the committed one (uncommitted, or rewritten by the deploy gates)."
   compare "$(printf '%s\n' "$out" | sed -n 's/^commit=//p' | head -1)"
 done
 exit "$rc"

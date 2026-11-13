@@ -54,7 +54,7 @@ Consolidation decisions:
 - The exception in decision 2 is retired. `sync_hart_package.sh` and the `pi/` and `windows/` host scripts moved from `cats/scripts/` to `tools/hosts/`, beside the other Pi and Windows helpers (`pi_quit_panelpro.sh`, `sync_roster_from_pi.sh`, `win_install_roster.ps1`) and their tests in `tools/hosts/tests/`. One folder holds everything that talks to a layout host, so a separate `tools/deploy/` was not added.
 - Only the repo paths moved. The package the deploy sends still carries the host scripts at `cats/scripts/pi/` and `cats/scripts/windows/`, so the hosts, their launchers and shortcuts see the same files at the same paths. A staged package built with `--stage-only` before and after the move was byte-identical.
 - `cats/scripts/sync_hart_package.sh` stays as a thin wrapper that runs the new script, so the old command keeps working.
-- The deploy now leaves `JMRI_UserFiles/cats/deploy_stamp.txt` on each host it installs, naming the commit it shipped; `sync_hart_package.sh --status` reads it back.
+- The deploy now leaves `JMRI_UserFiles/cats/deploy_stamp.txt` on each host it installs, naming the commit it shipped; `tools/hosts/deploy_status.sh` (`make deploy-status`) reads it back.
 - Shell scripts on the Mac take host settings from `tools/env/load_env.sh` and `hart.env`, in the same order as the Python tools: environment first, then `hart.env`, then the default.
 
 Records under `consolidation/` that say otherwise, including `AGENTS.md`, `OBJECTIVE.md` and `DECISIONS_RECORDED.md`, are superseded by this ADR.
