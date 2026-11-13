@@ -1,10 +1,53 @@
 # Speed matching
 
 - **Owner:** lnevo
-- **Status:** Parked — CSX 2121 and CSX 2738 measured on the full loop 2026-11-08 ([results](../../docs/jmri/speedmatching/profile-2026-11-08/README.md)); 2738 was programmed to match 2121 (speed table, CV25/CV29, momentum) and a four-step re-measure shows it within 1.2% of 2121 from step 24 up (5.3% fast at step 12); its roster entry was updated by hand on the Pi and Mac, then synced to Windows from the Pi on 2026-11-08. Every other roster loco still has the same synthesized 10-step / 400 mm/s profile.
+- **Status:** Re-run ready to start on the layout (2026-11-13). Everything that can be done off the layout is merged; the handoff is below. 2738 was matched to 2121 on 2026-11-08 (PR #187).
 - **Saved:** 2026-08-21 from [jmriusers #254859](https://groups.io/g/jmriusers/message/254859)
 
 HART auto-dispatcher needs **measured** roster speed profiles for station stops. Apart from 2121 and 2738, every live DecoderPro loco still has the same synthetic 10-step / 400 mm/s profile. This thread is a working club procedure for a detected track circle plus JMRI POM scripts.
+
+## Handoff: the re-run (2026-11-13)
+
+Done and merged: loop block lengths from the AnyRail 5.3b staging level, pinned to the plan
+turnouts (#399, deployed to the Pi and Windows; loop is 35.1 m, so the 2026-11-08 speeds were
+about 12% low; the barn crossover is 163 in from Switch 5's points, confirmed by the owner);
+measuring tools (#397); write guard for programming on the main (#398); roster speed-profile
+writer, stop test, default guards (#407); loop 2 through S-R, Scale and Barn (#410).
+Runbook: [`RUNBOOK.md`](../../docs/jmri/speedmatching/RUNBOOK.md). Guard:
+[`POM_GUARD.md`](../../docs/jmri/speedmatching/POM_GUARD.md). Lengths method:
+[`ANYRAIL_LENGTHS.md`](../../docs/jmri/speedmatching/ANYRAIL_LENGTHS.md).
+
+Owner decisions: profile both locos in both directions first, then the owner picks the
+correction pairing and the tolerance (the locos run facing away from each other, both
+directions). The decoder read on the programming track is skipped for 2121 and 2738: the
+roster holds every CV from a full DecoderPro read (Pi and Mac copies identical, 2026-11-13),
+so the first write needs `ROSTER_OLD_OK = True`. 2738 is a TCS motor-only decoder (no sound);
+`--mute-sound` is for 2121 only. The McKees stub detectors are not on a node yet, so they
+cannot be guarded.
+
+None of the Jython in `speedmatch/jython/` has run in JMRI yet; the shakedown is its first run.
+
+Steps left, in order (PanelPro running on the Pi, owner not operating, only the test loco moves):
+
+1. **Break the 2121/2738 LCC consist** (`cs105_consist.py` detach). While it stands, commands
+   to 2121 also move 2738.
+2. **Shakedown on loop 1** with 2121: one step, no warm-up, `--guard default`; switches lined
+   by hand (`make_job.py lineup --route loop1`). Check the log, sensor order and the stop.
+3. **Profiles on loop 1**: 2121 forward and reverse, 2738 forward and reverse.
+4. **Loop 2 survey** (`--route loop2`, steps 32, 48, 64, three laps each), then
+   `infer_block_lengths.py --route loop2 --locate`: places Switch 13 and the Scale-side half
+   of Switch 7 between Switches 5 and 15, and gives Scale, Barn, S-R, OS 23b and OS 31.
+5. **Analyse** (`analyze.py`), and the owner picks the pairing and tolerance.
+6. **Correct 2738's table**: `correct.py` proposal, guard dry run, then apply with
+   `ROSTER_OLD_OK`, `CONSISTS_BROKEN` and an `ABSENT_OK` list built from a consist query.
+   Re-measure and repeat until within tolerance.
+7. **Remake the consist** and run the stop test at steps 32 and 96.
+8. **Write the measured profiles** into both roster entries on the Pi (`make_job.py profile`),
+   then sync the roster to the Mac and Windows.
+9. **Read back** both decoders on the programming track, update the roster, archive the guard
+   ledger (`pom_guard.py archive-ledger`).
+10. **Record** the results in a dated folder next to `profile-2026-11-08/`, and update this
+    page and `wiki/STATUS.md`.
 
 ## First measurements (2026-11-08)
 
