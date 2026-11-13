@@ -56,37 +56,9 @@ OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
 CLOSED, THROWN = "2", "4"
 PLAIN_TURNOUTS = {"RH_TURNOUT", "LH_TURNOUT", "WYE_TURNOUT"}
 
-# Reported to the owner 2026-11-12 (PR #381) as decisions; matched message by
-# message, so any other difference on these switches or tracks still fails.
-# Rebuilding the USS panel clears _STALE_EH: drop those entries in the same commit.
-_DOTS = "USS points dot shows Normal when thrown (gen_ctc_track_plan.USS_DOT_SWAPPED)"
-_STALE_EH = "USS CTC panel not rebuilt since the CATS engine house swapped EH-1 and EH-3"
-KNOWN = {
-    **dict.fromkeys([
-        'Switch 37: GUIObjects.xml points dot shows Normal when thrown; switches.csv cats_inverted=no (Normal is the closed leg)',
-        'Switch 37: tables.xml USS panel points dot shows Normal when thrown; switches.csv cats_inverted=no (Normal is the closed leg)',
-        'Switch 39: GUIObjects.xml points dot shows Normal when thrown; switches.csv cats_inverted=no (Normal is the closed leg)',
-        'Switch 39: tables.xml USS panel points dot shows Normal when thrown; switches.csv cats_inverted=no (Normal is the closed leg)',
-    ], _DOTS),
-    **dict.fromkeys([
-        'EH-3: the CATS desk puts jewel BS EH-3 (Track EH-3) at (470,136); GUIObjects.xml does not',
-        'EH-3: GUIObjects.xml draws jewel BS EH-3 (Track EH-3) at (428,178); the CATS desk does not',
-        "EH-3: the CATS desk labels (450,130) 'EH-3'; GUIObjects.xml does not",
-        "EH-3: GUIObjects.xml labels (450,172) 'EH-3'; the CATS desk does not",
-        'EH-3: the CATS desk puts jewel BS EH-3 (Track EH-3) at (470,136); tables.xml USS panel does not',
-        'EH-3: tables.xml USS panel draws jewel BS EH-3 (Track EH-3) at (428,178); the CATS desk does not',
-        "EH-3: the CATS desk labels (450,130) 'EH-3'; tables.xml USS panel does not",
-        "EH-3: tables.xml USS panel labels (450,172) 'EH-3'; the CATS desk does not",
-        'EH-1: the CATS desk puts jewel BS EH-1 (Track EH-1) at (428,178); GUIObjects.xml does not',
-        'EH-1: GUIObjects.xml draws jewel BS EH-1 (Track EH-1) at (470,136); the CATS desk does not',
-        "EH-1: the CATS desk labels (450,172) 'EH-1'; GUIObjects.xml does not",
-        "EH-1: GUIObjects.xml labels (450,130) 'EH-1'; the CATS desk does not",
-        'EH-1: the CATS desk puts jewel BS EH-1 (Track EH-1) at (428,178); tables.xml USS panel does not',
-        'EH-1: tables.xml USS panel draws jewel BS EH-1 (Track EH-1) at (470,136); the CATS desk does not',
-        "EH-1: the CATS desk labels (450,172) 'EH-1'; tables.xml USS panel does not",
-        "EH-1: tables.xml USS panel labels (450,130) 'EH-1'; the CATS desk does not",
-    ], _STALE_EH),
-}
+# Differences already reported to the owner and accepted, each by its exact message.
+# Empty since the 2026-11-12 USS rebuild (EH-1/EH-3 swap, Switch 37/39 dots).
+KNOWN: dict[str, str] = {}
 
 
 class Report:
