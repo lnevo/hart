@@ -557,7 +557,7 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
             continue
         su = abs(srow[sid] - nrow[u]) if u in nrow else 0
         sv = abs(srow[sid] - nrow[v]) if v in nrow else 0
-        h = name_cells(s["name"], opts)
+        h = max(name_cells(s["name"], opts), min(4, int(s["cm"] // 120)))   # a long track shows as a level run
         if nodes[u]["kind"] == "end" or nodes[v]["kind"] == "end":
             h = max(h, 1) + 1
         w = max(1, su + sv + h) + sum(nodes[t]["kind"] == "dx" for t in (u, v))
@@ -766,8 +766,16 @@ def layout_one(g, sig, T, opts, warnings):
             xcons = kept
             x, need = place(nodes, strands, R, enclosed, opts, xcons)
         band = dict(nodes=nodes, strands=strands, R=R, x=x, need=need, turnbacks=T)
-        clash = overlaps(nodes, strands, R, x, need, order) - rows.extra
-        more = slope_rules(band, ev) - xcons - refused
+        clash, apart = set(), set()
+        for a, b in overlaps(nodes, strands, R, x, need, order) - rows.extra:
+            (sa, da), (sb, db) = ((strands[k]["src"][0], strands[k]["dst"][0]) for k in (a, b))
+            if ev[da] < ev[sb]:         # a is finished before b starts: keep them apart along the row instead
+                apart.add((da, sb, 1))
+            elif ev[db] < ev[sa]:
+                apart.add((db, sa, 1))
+            else:
+                clash.add((a, b))
+        more = (slope_rules(band, ev) | apart) - xcons - refused
         if not clash and not more:
             break
         rows.extra |= clash

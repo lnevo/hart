@@ -37,12 +37,15 @@ What fixed it: level bands with lettered connectors; choosing each switch's leve
 is broken; keeping other track clear of the columns a sloped leg passes through; a double crossover's two
 tracks on neighbouring rows; joining track ends the export leaves on the same spot (two pairs in 5.3b, one
 of them the main level's balloon loop at T196); stacking a loop's two tracks by which way the loop bends on
-the layout; trying the cheapest few fold-back choices and keeping the one that draws with the fewest faults.
+the layout; trying the cheapest few fold-back choices and keeping the one that draws with the fewest faults. Two
+tracks that never run side by side are kept apart along the row, not stacked on separate rows (this is what
+had pushed T155 to the bottom). A long track always gets a level run, so the three parallel tracks west of
+T162 and T160 show as three.
 
 Known gaps:
 
-- T155 and T196 on the main level sit on the bottom row with long slopes up to T160 and T162. No fault, but
-  a better row choice exists; the row search stops at a local best.
+- T196's balloon loop on the main level is drawn as a long tail under the band ending in a loop at the east.
+  It would read better folded at the west end beside T155; the fold-back choice treats both as equal.
 - Switch labels are the plan's part numbers (T…), three junctions unmatched; no track or station names.
 - The helix tracks on the main level end as plain stubs; they should be connectors to staging.
 - Switch numbers collide in places; a crossover's number is printed on both halves; no page folding; no capacity.
