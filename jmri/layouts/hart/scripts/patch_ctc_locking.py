@@ -160,7 +160,7 @@ def main():
         notes.append("Switch 23 eastbound Switch 35b rule already present")
     else:
         col = col.replace("</TRL_RightRules>", RULE_111_EAST_WME + "      </TRL_RightRules>", 1)
-        notes.append("Switch 23 added RIGHT dest Mast 36RA (OS Main West → WME)")
+        notes.append("Switch 23 added RIGHT dest Mast 36RA (OS Main West → West Ext)")
         text = text[:s] + col + text[e:]
 
     # --- Balloon: Switch 37 / Switch 39 BOTH (Switch 35 stays RIGHT — no unused westbound mast) ---

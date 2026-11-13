@@ -59,21 +59,6 @@ def nominal_lengths() -> dict[str, float | None]:
     return out
 
 
-class LogsFromBeforeTheRename(unittest.TestCase):
-    """Logs recorded before 2026-11-13 call the extension tracks BS East Main Ext / BS West Main Ext."""
-
-    def test_old_sensor_names_read_as_the_new_ones(self):
-        lines = [
-            "1000.000 RUN loco=2121 direction=forward",
-            "1000.100 STEP 8",
-            "1001.000 SENS BS East Main Ext ACTIVE",
-            "1002.000 SENS BS West Main Ext ACTIVE",
-        ]
-        runs = analyze.parse_log(lines)
-        self.assertEqual([n for _, n in runs[0]["steps"][0]["events"]], ["BS East Ext", "BS West Ext"])
-        self.assertEqual(lr.current_names("BLOCK 8 block=BS_East_Main_Ext mm=1"), "BLOCK 8 block=BS_East_Ext mm=1")
-
-
 class StopRule(unittest.TestCase):
     def test_median_and_stdev(self):
         self.assertEqual(lr.median([3, 1, 2]), 2)

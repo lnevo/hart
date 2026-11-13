@@ -14,9 +14,6 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import liverule as lr  # noqa: E402
-
 _LINE = re.compile(r"^(\d+\.\d+) (.*)$")
 _HEAD = re.compile(r"^STOPTEST loco=(.+) direction=(\w+) step=(\d+) trigger=(.+)$")
 
@@ -32,7 +29,7 @@ def parse_stoptest(lines, source=""):
     last_lit = None
     seen = set()
     for line in lines:
-        m = _LINE.match(lr.current_names(line.strip()))
+        m = _LINE.match(line.strip())
         if not m:
             continue
         t, msg = float(m.group(1)), m.group(2)

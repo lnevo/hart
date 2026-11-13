@@ -61,8 +61,8 @@ UNUSED_OCC = {
 }
 
 # 2091 circuit. Tuple: (block, enter-from along lap, enter-from opposite).
-# FORWARD = lap direction (WME west → Brick → Plane → Track Barn → Track Main East →
-# 112 → Track East Lead → 113a → 114 → Track K-2 → Rocks → 115 → 113b → WME).
+# FORWARD = lap direction (West Ext west → Brick → Plane → Track Barn → Track Main East →
+# 112 → Track East Lead → 113a → 114 → Track K-2 → Rocks → 115 → 113b → West Ext).
 LAP_SECTIONS = [
     ("Track West Ext", "OS Switch 35b", "OS Switch 23a"),
     ("OS Switch 23a", "Track West Ext", "Track Main West"),
@@ -277,7 +277,7 @@ def build_transits_xml() -> str:
         '    <transit systemName="IZ:HART:2091" userName="2091 Track West Ext lap">',
         "      <systemName>IZ:HART:2091</systemName>",
         "      <userName>2091 Track West Ext lap</userName>",
-        "      <comment>WME → 111 → Brick → Plane → Track Barn 117 → Track Main East → 112 → Track East Lead → 113a → 114 → Track K-2 → Rocks → 115 → 113b → WME. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
+        "      <comment>West Ext → 111 → Brick → Plane → Track Barn 117 → Track Main East → 112 → Track East Lead → 113a → 114 → Track K-2 → Rocks → 115 → 113b → West Ext. Line CATS: 111 N, 100 R, 102 N, 117 N, 112 R, 113 N, 114 R, 115 R. Auto Turnouts off.</comment>",
     ]
     for seq, (name, direction) in enumerate(TRANSIT_SEQ, start=1):
         iy = sys_by_user[name]

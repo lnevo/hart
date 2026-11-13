@@ -19,22 +19,6 @@ MAX_READINGS = 12   # move on after this many readings whatever the spread
 SETTLE_EVENTS = 2   # sensor events after a step change that are thrown away
 
 
-# Logs recorded before 2026-11-13 name the two extension tracks "BS East Main Ext" and
-# "BS West Main Ext" (BS_East_Main_Ext inside a BLOCK or MEASURE line). Every reader of a
-# log line passes it through current_names, so the old logs still read.
-OLD_NAMES = (
-    ("BS East Main Ext", "BS East Ext"), ("BS West Main Ext", "BS West Ext"),
-    ("BS_East_Main_Ext", "BS_East_Ext"), ("BS_West_Main_Ext", "BS_West_Ext"),
-)
-
-
-def current_names(line):
-    for old, new in OLD_NAMES:
-        if old in line:
-            line = line.replace(old, new)
-    return line
-
-
 def mean(v):
     return sum(v) / float(len(v))
 

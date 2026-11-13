@@ -392,7 +392,7 @@ def main() -> None:
         set_occ("East Ext", "ACTIVE")
         step(
             "qa08_eme_occ",
-            "East Ext occupied: 117b's route to Plane EME fouled.",
+            "East Ext occupied: 117b's route to Plane East Ext fouled.",
             {"Mast 8LA": "stop"},
         )
         set_occ("East Ext", "INACTIVE")
@@ -400,7 +400,7 @@ def main() -> None:
         set_to("117", "THROWN")
         step(
             "qa09_117_thrown",
-            "117 THROWN: T6 mast routes to Plane EME; 117b cut off.",
+            "117 THROWN: T6 mast routes to Plane East Ext; 117b cut off.",
             {
                 "Mast 8LB": "nonstop",
                 "Mast 8LA": "stop",
@@ -412,7 +412,7 @@ def main() -> None:
         set_to("100", "THROWN")
         step(
             "qa10_100_thrown",
-            "100 THROWN + 102 CLOSED: Plane EME lined to EE West Main West.",
+            "100 THROWN + 102 CLOSED: Plane East Ext lined to EE West Main West.",
             {
                 "Mast 6LB": "nonstop",
                 "Mast 2L": "nonstop",   # dest Mast 8RB via 100T+102C
@@ -422,7 +422,7 @@ def main() -> None:
         set_occ("Main West", "ACTIVE")
         step(
             "qa11_100T_main_west_occ",
-            "100 THROWN + Main West occupied: Plane EME route fouled.",
+            "100 THROWN + Main West occupied: Plane East Ext route fouled.",
             {"Mast 6LB": "stop"},
         )
         set_occ("Main West", "INACTIVE")

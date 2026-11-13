@@ -103,13 +103,13 @@ def _merge(base: dict[str, str], override: dict[str, str]) -> dict[str, str]:
 
 
 # Digicon spines after Armstrong primary remap (archive/cats-scripts/jmri_to_cats_digicon.py).
-# main = Armstrong spine MW→100→Track Main West Brick–Plane→102→EME→… (JMRI-adjacent).
+# main = Armstrong spine MW→100→Track Main West Brick–Plane→102→East Ext→… (JMRI-adjacent).
 # princess / south_yard / yard may need deck_transfer where Armstrong ≠ Neville.
 ROUTES: dict[str, Route] = {
     "main": Route(
         key="main",
         title="Route 1 — Track Main West → Track East Lead (R1 contiguous)",
-        summary="Digicon R1 spine + JMRI: MW→100→Block→102→EME→117→Track Main East→112→Track East Lead",
+        summary="Digicon R1 spine + JMRI: MW→100→Block→102→East Ext→117→Track Main East→112→Track East Lead",
         turnouts=_merge(BASE_TURNOUTS, {}),
         steps=[
             Step("Track Main West", "R1 far left", "Track Main West (top spine west)", "Start"),
@@ -121,7 +121,7 @@ ROUTES: dict[str, Route] = {
                 "OS Switch 7b (Track Barn)",
                 "R1 · Track Barn/117b",
                 "Blue OS Switch 7b (bottom C/D)",
-                "Track Main East↔EME uses 117 bottom — not 117 top (M2S1302)",
+                "Track Main East↔East Ext uses 117 bottom — not 117 top (M2S1302)",
             ),
             Step("Track Main East", "R1 mid-east", "Track Main East (bottom spine)", ""),
             Step("OS Switch 33", "R1 · East End", "Blue OS Switch 33", ""),
@@ -302,7 +302,7 @@ ROUTES: dict[str, Route] = {
                 "OS Switch 7b (Track Barn)",
                 "R1 · Track Barn/117b",
                 "Blue OS Switch 7b (bottom C/D) · Track Barn",
-                "Track Main East↔EME = 117 bottom (M2S1303), not top 1302",
+                "Track Main East↔East Ext = 117 bottom (M2S1303), not top 1302",
             ),
             Step("Track East Ext", "R1", "Track East Ext", ""),
             Step("OS Switch 5", "R1 · Plane", "Blue OS Switch 5", "Through Plane"),

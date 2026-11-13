@@ -10,7 +10,7 @@ correction, decoder preflight) are in
 [`jmri/layouts/hart/scripts/speedmatch/`](../../../../jmri/layouts/hart/scripts/speedmatch/README.md).
 This folder stays as the record of the 2026-11-08 run.
 
-The two extension tracks are named East Ext and West Ext here and in the CSVs. The raw logs of that date (`steprun_*.log`) still use the old names "BS East Main Ext" and "BS West Main Ext"; `block_speeds.py` and the speed-match readers map them on read.
+The two extension tracks are named East Ext and West Ext here and in the CSVs. The raw logs of that date (`steprun_*.log`) still use the old names "BS East Main Ext" and "BS West Main Ext"; convert them with `jmri/layouts/hart/scripts/speedmatch/rename_extension_tracks.py` before running `block_speeds.py` on them (the raw logs are not in the repo).
 
 ## Method
 

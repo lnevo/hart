@@ -10,7 +10,7 @@ startup Jython twin was removed from the Mac and Pi profiles.
 PAIRS below is the CATS-derived list this workaround used to apply. It is
 imported by validate_le_signalling.py as a historical comparison oracle.
 Known defects in PAIRS (why it is only historical):
-- opposing-face pairs (Plane EME <-> Track Barn D, the OS Switch 7 plant pairs) that
+- opposing-face pairs (Plane East Ext <-> Track Barn D, the OS Switch 7 plant pairs) that
   SML never models; replaced by true next-mast-down-the-line pairs
 - Mast 38LB / Track McKeesport -> 111a rows are geometrically impossible
   (LH crossover 113 cannot route bottom-east to top-west)
@@ -33,7 +33,7 @@ JYTHON = ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py"
 # source, dest, blocks (must be unoccupied), turnouts [(userName, closed|thrown)]
 # Turnout polarity: TURNOUT_STATE_SOURCES.md / SIGNAL_FACING.md.
 PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
-    # South line: Plane EME ↔ Track Barn D across Track East Ext (not East End Track Main West).
+    # South line: Plane East Ext ↔ Track Barn D across Track East Ext (not East End Track Main West).
     (
         "Mast 6LB",
         "Mast 8RB",
