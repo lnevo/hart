@@ -369,8 +369,11 @@ def find_cycle(classes, above):
 
 
 class Rows:
-    def __init__(self, nodes, strands, snaps, free=()):
+    def __init__(self, nodes, strands, snaps, free=(), pins=None):
         self.nodes, self.strands, self.snaps, self.free = nodes, strands, snaps, set(free)
+        # owner's hints: which leg of a switch runs level, by switch label or plan part number
+        self.pins = {n: port for n, d in nodes.items() if d["kind"] == "switch"
+                     for ref, port in (pins or {}).items() if ref in (d.get("alias"), d.get("label"))}
         self.extra = set()
         self.flat = {n: "B" for n, d in nodes.items() if d["kind"] == "switch"}
         self.tolerant = bool(free)
@@ -462,7 +465,11 @@ class Rows:
             if d["kind"] == "dx":
                 (a, _), (b, _) = dx_tracks(self.nodes, n)
                 terms.append((find(a), find(b), 3.0))
-        bias = 0.05 * sum(f == "C" for f in self.flat.values())
+        bias = 0.0
+        for n, f in self.flat.items():      # a long track should run level and the short link slope
+            level = st[self.frog(n)[f]]["cm"]
+            other = st[self.frog(n)["C" if f == "B" else "B"]]["cm"]
+            bias += (0.2 if other > 2 * level + 20 else 0.0) + (0.01 if f == "C" else 0.0)
 
         def cost(r):
             return (sum(w * abs(r[a] - r[b]) for a, b, w in terms) + bias
@@ -504,6 +511,8 @@ class Rows:
         keys = sorted(self.flat)
         starts = [dict(self.flat), {n: "B" for n in keys}, {n: "C" for n in keys}]
         starts += [{n: rng.choice("BC") for n in keys} for _ in range(5)]
+        for st_ in starts:
+            st_.update(self.pins)
         best = None
         for start in starts:
             self.flat = dict(start)
@@ -528,6 +537,8 @@ class Rows:
         while improved:
             improved = False
             for n in self.flat:
+                if n in self.pins:
+                    continue
                 self.flat[n] = "C" if self.flat[n] == "B" else "B"
                 r = self.solve()
                 sc = score(r)
@@ -541,6 +552,8 @@ class Rows:
             pairs = {tuple(sorted((d["src"][0], d["dst"][0]))) for d in self.strands.values()
                      if d["src"][0] in self.flat and d["dst"][0] in self.flat}
             for a, b in sorted(pairs):
+                if a in self.pins or b in self.pins:
+                    continue
                 for n in (a, b):
                     self.flat[n] = "C" if self.flat[n] == "B" else "B"
                 r = self.solve()
@@ -862,7 +875,7 @@ def layout_one(g, sig, T, opts, warnings):
             nodes, strands = build(g, sig, T)
             col = columns(nodes, strands)
     order, snaps, enclosed, free, ev = sweep(nodes, strands, col, warnings.append)
-    rows = Rows(nodes, strands, snaps, free)
+    rows = Rows(nodes, strands, snaps, free, opts.get("level_leg"))
     xcons, refused = set(), set()
     for _ in range(12):
         R = rows.optimise()
@@ -1052,8 +1065,21 @@ def draw_band(band, title, opts, top, left):
         elif d["kind"] == "end":
             xe, ye = X(x[n]), Y(nrow[n])
             dirx = 1 if d["ins"] else -1
-            if d.get("sub") == "helix":
+            style = opts.get("helix_style", "box")
+            if d.get("sub") == "helix" and style == "box":
                 helix.append((xe, ye, d.get("to", "")))
+            elif d.get("sub") == "helix" and style == "coil":       # three turns of a coil on the track itself
+                for k in range(3):
+                    svg.append(f'<ellipse cx="{xe + 7 + 7 * k:.1f}" cy="{ye:.1f}" rx="6" ry="9" stroke-width="1.6"/>')
+                label(xe + 34, ye + 3, "HELIX", 7, anchor="start", weight="bold", extra='letter-spacing="1"')
+            elif d.get("sub") == "helix" and style == "letters":    # a lettered connector, like the rise
+                tag = "H" + str(1 + sum(1 for t in text if ">H" in t))
+                svg.append(f'<circle cx="{xe + 9:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
+                label(xe + 9, ye + 3, tag, 8, weight="bold")
+                label(xe + 21, ye + 3, "HELIX TO " + d.get("to", "").upper(), 6.5, anchor="start")
+            elif d.get("sub") == "helix":                           # arrow: plain arrowhead and words
+                svg.append(f'<path d="M{xe - 6:.1f},{ye - 5:.1f} L{xe:.1f},{ye:.1f} L{xe - 6:.1f},{ye + 5:.1f}" stroke-width="1.8"/>')
+                label(xe + 6, ye + 3, "HELIX TO " + d.get("to", "").upper(), 6.5, anchor="start", weight="bold")
             elif d.get("sub") == "link":
                 svg.append(f'<circle cx="{xe + 9 * dirx:.1f}" cy="{ye:.1f}" r="8" stroke-width="1.4" fill="#fff"/>')
                 label(xe + 9 * dirx, ye + 3.5, d["label"], 10, weight="bold")

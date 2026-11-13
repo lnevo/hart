@@ -8,9 +8,9 @@ import sys
 import schem
 
 
-def main(built, built_opts, main_graph, main_opts, out):
-    bo = dict(schem.DEFAULTS, **json.load(open(built_opts)))
-    mo = dict(schem.DEFAULTS, **json.load(open(main_opts)))
+def main(built, built_opts, main_graph, main_opts, out, helix_style="box"):
+    bo = dict(schem.DEFAULTS, **json.load(open(built_opts)), helix_style=helix_style)
+    mo = dict(schem.DEFAULTS, **json.load(open(main_opts)), helix_style=helix_style)
     bands = []
 
     g = json.load(open(main_graph))
@@ -41,4 +41,4 @@ def main(built, built_opts, main_graph, main_opts, out):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:6])
+    main(*sys.argv[1:7])
