@@ -48,8 +48,8 @@ PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
     (9, 8): ("OS Switch 5", "RIGHT", "TOL42"),  # Closed = through E Main Ext; Thrown TOP = Track Scale
     (15, 8): ("OS Switch 7b", "RIGHT", "TO117"),
     (15, 7): ("OS Switch 7", "LEFT", "TO117"),
-    (24, 8): ("OS Switch 9", "LEFT", "TO10"),  # Closed LEFT = Track EH-1; Thrown BOTTOM = Track EH-2
-    (26, 8): ("OS Switch 11", "LEFT", "TO11"),  # Closed LEFT = from 119; Thrown BOTTOM = Track EH-3
+    (24, 8): ("OS Switch 9", "LEFT", "TO10"),  # Thrown LEFT = Track EH-3; Closed BOTTOM = Track EH-2
+    (26, 8): ("OS Switch 11", "LEFT", "TO11"),  # Thrown LEFT = to Switch 9; Closed BOTTOM = Track EH-1
     (27, 7): ("OS Switch 13", "LEFT", "TO1"),  # Thrown BOTTOM is a stub; does not join 118
     (30, 7): ("OS Switch 15", "RIGHT", "TOR14"),  # Thrown BOTTOM geographic into 104 approach
     (31, 8): ("OS Switch 17", "BOTTOM", "TOL15"),
@@ -73,7 +73,11 @@ PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
 # 112 is no longer inverted: LEFT is the 110/Track S-R closed leg, BOTTOM is Track Main East.
 # 114/115 are no longer inverted since the Princess redraw: the straight
 # leg is the closed main (Track McKees Rocks / Track McKeesport).
-INVERT_VS_JMRI = {"TOL3"}  # 100
+# Switches 9 and 11 (2026-11-12, after the Switch 9 rewiring): the drawn
+# through legs lead to Switch 9 and Track EH-3, which are JMRI Thrown, so
+# both are inverted. The row-8 stub is Track EH-3 and the bottom row EH-1,
+# matching the Layout Editor topology without moving any CATS track.
+INVERT_VS_JMRI = {"TOL3", "TO10", "TO11"}  # 100, Switch 9, Switch 11
 
 # Do not add rails. Designer already drew every frog.
 EXTRA_TRACKS: dict[tuple[int, int], str] = {}
@@ -160,17 +164,17 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (16, 8, "RIGHT", "OS Switch 7b"),  # Mast 8LA
     (17, 8, "LEFT", "Track Main East"),
     # Engine House
-    (21, 8, "LEFT", "Track EH-1"),
-    (23, 8, "RIGHT", "Track EH-1"),
+    (21, 8, "LEFT", "Track EH-3"),
+    (23, 8, "RIGHT", "Track EH-3"),
     (24, 8, "LEFT", "OS Switch 9"),
     (24, 8, "BOTTOM", "OS Switch 9"),
     (24, 9, "TOP", "Track EH-2"),
     (25, 8, "RIGHT", "OS Switch 9"),
     (26, 8, "LEFT", "OS Switch 11"),
     (26, 8, "BOTTOM", "OS Switch 11"),
-    (26, 9, "TOP", "Track EH-3"),
+    (26, 9, "TOP", "Track EH-1"),
     (21, 9, "LEFT", "Track EH-2"),
-    (21, 10, "LEFT", "Track EH-3"),
+    (21, 10, "LEFT", "Track EH-1"),
     # South yard ladders
     (31, 8, "RIGHT", "OS Switch 17"),
     (32, 8, "LEFT", "Track S-1"),
