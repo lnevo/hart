@@ -14054,10 +14054,10 @@
     </turnouticon>
     <turnouticon turnout="Switch 39" x="1147" y="99" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
-        <closed url="preference:ctc/icons/pts-thrown.gif" degrees="0" scale="1.0">
+        <closed url="preference:ctc/icons/pts-closed.gif" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:ctc/icons/pts-closed.gif" degrees="0" scale="1.0">
+        <thrown url="preference:ctc/icons/pts-thrown.gif" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </thrown>
         <unknown url="preference:ctc/icons/pts-unknown.gif" degrees="0" scale="1.0">
@@ -14071,10 +14071,10 @@
     </turnouticon>
     <turnouticon turnout="Switch 37" x="1147" y="120" level="7" forcecontroloff="true" hidden="no" positionable="true" showtooltip="false" editable="false" tristate="false" momentary="false" directControl="false" class="jmri.jmrit.display.configurexml.TurnoutIconXml">
       <icons>
-        <closed url="preference:ctc/icons/pts-thrown.gif" degrees="0" scale="1.0">
+        <closed url="preference:ctc/icons/pts-closed.gif" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </closed>
-        <thrown url="preference:ctc/icons/pts-closed.gif" degrees="0" scale="1.0">
+        <thrown url="preference:ctc/icons/pts-thrown.gif" degrees="0" scale="1.0">
           <rotation>0</rotation>
         </thrown>
         <unknown url="preference:ctc/icons/pts-unknown.gif" degrees="0" scale="1.0">
@@ -14630,8 +14630,8 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS EH-1" x="470" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>Track EH-1</tooltip>
+    <sensoricon sensor="BS EH-3" x="470" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>Track EH-3</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -14694,8 +14694,8 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS EH-3" x="428" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>Track EH-3</tooltip>
+    <sensoricon sensor="BS EH-1" x="428" y="178" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>Track EH-1</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -16187,9 +16187,6 @@
     <positionablelabel x="480" y="8" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="HART RAILROAD - NEVILLE ISLAND" fontFamily="Dialog" fontname="Dialog" size="16" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="786" y="-17" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="DS-CTC  Rev A  Eff 2026-11-07" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
-      <tooltip>Text Label</tooltip>
-    </positionablelabel>
     <positionablelabel x="71" y="51" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="BRICK" fontFamily="Dialog" fontname="Dialog" size="12" style="1" red="255" green="255" blue="255" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
@@ -16232,7 +16229,7 @@
     <positionablelabel x="1206" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="K-2" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="450" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="EH-1" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="450" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="EH-3" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="744" y="130" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="S-1" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
@@ -16253,7 +16250,7 @@
     <positionablelabel x="177" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="W-1" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="450" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="EH-3" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="450" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="EH-1" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="744" y="172" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="S-3" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
