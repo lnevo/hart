@@ -13,7 +13,7 @@ then pinned(): the loop turnouts are on the plan too, so the timed positions are
 re-fitted piecewise so each turnout's OS centre lands on the plan's turnout centre. Each
 block then rests on the plan distance between the turnouts either side of it.
 
-Only steps from MIN_STEP up are used (steady speed, no momentum effects). East Main
+Only steps from MIN_STEP up are used (steady speed, no momentum effects). East
 Ext is the lap reference block and is missing from some laps; for those laps the
 other blocks' shares are scaled by (1 - the median East Ext share).
 

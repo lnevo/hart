@@ -48,7 +48,7 @@ ABS = paths.CATS_DIR / "panels/HART_ABS.xml"
 # Y=5 Track K-1 (thrown leg of Switch 39) east to the panel edge; Y=8 Track K-2 likewise.
 # Y=6 Track Main West → Track West Ext → Track McKees Rocks (closed leg, stub).
 # Y=7 Track Scale / Track Barn / Track S-R / Track East Lead → Track McKeesport (closed leg, stub).
-# Y=8 Brick 100 / Plane 102 / E Main Ext / EH / Track S-1.
+# Y=8 Brick 100 / Plane 102 / East Ext / EH / Track S-1.
 # Y=12 Track Main East under the south-yard ladders.
 # SHARED: (1,6) LEFT ↔ (1,8) LEFT Track Main West; (63,5) RIGHT ↔ (63,8) RIGHT Track K-2 (the K loop, not drawn).
 #
@@ -157,7 +157,7 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (54, 7, "LEFT", "OS Switch 37"),
     (56, 7, "RIGHT", "OS Switch 37"),  # Mast 38LA (Track McKeesport 2-head)
     (57, 7, "LEFT", "Track McKeesport"),
-    # Brick / Plane / E Main Ext / 117b
+    # Brick / Plane / East Ext / 117b
     (4, 8, "RIGHT", "OS Switch 1"),
     (5, 8, "LEFT", "Track Brick-Plane"),
     (4, 8, "BOTTOM", "OS Switch 1"),

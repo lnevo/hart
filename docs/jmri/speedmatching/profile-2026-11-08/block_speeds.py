@@ -38,8 +38,10 @@ EXTRA_LAPS = [("steprun_2121_b.log", 8), ("steprun_2121_c.log", 8)]  # step 8 fi
 
 
 def read(path):
+    # The raw logs of 2026-11-08 name the two extension tracks "BS East Main Ext" / "BS West Main Ext".
     seen, ev = set(), []
     for line in open(path):
+        line = line.replace("BS East Main Ext", "BS East Ext").replace("BS West Main Ext", "BS West Ext")
         p = line.rstrip("\n").split(" ", 1)
         if len(p) < 2 or line in seen and p[1].startswith("SENS"):
             continue

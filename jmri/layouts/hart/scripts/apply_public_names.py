@@ -126,7 +126,12 @@ DISPATCHER_SENSOR_RENAMES = (
     ("MoveInProgressEngine_House_2", "MoveInProgressEH-2"),
     ("MoveToEngine_House_3_stored", "MoveToEH-3_stored"),
     ("MoveInProgressEngine_House_3", "MoveInProgressEH-3"),
-) + _dispatcher_os_sensor_renames()
+) + _dispatcher_os_sensor_renames() + (
+    # 2026-11-13: the extension tracks lost "Main"; a Store made before that still has BS userNames
+    # and sensor references under the old names (the occupancy rows in the map only cover userName).
+    ("BS East Main Ext", "BS East Ext"),
+    ("BS West Main Ext", "BS West Ext"),
+)
 
 PUBLIC_NAME_ATTRS = frozenset(
     {

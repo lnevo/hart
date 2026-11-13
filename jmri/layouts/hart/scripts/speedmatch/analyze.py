@@ -148,7 +148,7 @@ def parse_log(lines, loco=None, direction=None, source=""):
     runs, run, cur, seen, active = [], None, None, {}, {}
     last_active = None
     for line in lines:
-        m = _LINE.match(line.strip())
+        m = _LINE.match(lr.current_names(line.strip()))
         if not m:
             continue
         t, msg = float(m.group(1)), m.group(2)
@@ -243,7 +243,7 @@ def parse_pass_log(lines, source=""):
     '' if the log has none), log}. Every PASS line starts a pass."""
     passes, loco, direction, cur, active, path = [], "", "", None, {}, []
     for line in lines:
-        m = _LINE.match(line.strip())
+        m = _LINE.match(lr.current_names(line.strip()))
         if not m:
             continue
         t, msg = float(m.group(1)), m.group(2)

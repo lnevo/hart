@@ -147,7 +147,7 @@ SHIFT_WEST = 3
 SHIFT_CELLS = {(x, y) for x in range(38, 41) for y in (6, 7)}
 
 HIDE_TRACK_LABELS = {
-    "E Main Ext", "Track East Ext", "Track West Ext", "Track East Lead",
+    "East Ext", "Track East Ext", "Track West Ext", "Track East Lead",
     "Track Main West", "Track Main East",
 }
 LABEL_LEFT = {"Track EH-1", "Track EH-2", "Track EH-3", "Track Barn"}
@@ -684,7 +684,7 @@ def _norm_name(name: str | None) -> str:
     s = name or ""
     if s.endswith(", PA"):
         s = s[:-4]
-    return {"E Main Ext": "Track East Ext"}.get(s, s)
+    return {"East Ext": "Track East Ext"}.get(s, s)
 
 
 def _is_switch_os(name: str) -> bool:

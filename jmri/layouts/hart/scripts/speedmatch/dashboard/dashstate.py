@@ -61,7 +61,7 @@ def parse_line(line):
 
     kind is the first word of the message (RUN, STEP, SENS, ...); a message starting with
     "NO GUARD" has kind "NO_GUARD"."""
-    line = line.strip()
+    line = lr.current_names(line.strip())
     if not line:
         return None
     head, _, msg = line.partition(" ")

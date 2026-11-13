@@ -124,6 +124,23 @@ def walk_replace(ws: Worksheet, replacements: list[tuple[str, str]]) -> int:
     return n
 
 
+# 2026-11-13: East Main Ext / West Main Ext became East Ext / West Ext. The imported
+# workbooks are historical and keep the old names, so the outputs get the new ones here.
+_EXT_TRACK_OLD = re.compile(r"(East|West)([ _-])Main\2Ext", re.I)
+
+
+def rename_extension_tracks(wb) -> int:
+    n = 0
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for cell in row:
+                v = cell.value
+                if isinstance(v, str) and _EXT_TRACK_OLD.search(v):
+                    cell.value = _EXT_TRACK_OLD.sub(lambda m: m.group(1) + m.group(2) + "Ext", v)
+                    n += 1
+    return n
+
+
 # The imported as-built v1 workbook uses the panel IH numbers from before the
 # 2026-11-10 renumber; tables.xml now follows signal_wiring.csv. One pass,
 # because the old and new sets overlap (IH1232 was 24RA, is now 34L).
@@ -1399,6 +1416,7 @@ def refresh_inventory() -> Path:
             mismatches.append(f"{nid} address {addr} (expected {expect})")
     if mismatches:
         raise SystemExit("Node ID != C/D{Address}: " + "; ".join(mismatches))
+    rename_extension_tracks(wb)
     wb.save(dest)
 
     print(f"wrote {dest}")
@@ -1480,9 +1498,9 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             Signal="115LA",
             Signal_Block="McKees Rocks",
             Route_From="McKees Rocks",
-            Route_To="West Ext",
+            Route_To="Track West Ext",
             Block1="OS 115",
-            Block2="West Ext",
+            Block2="Track West Ext",
             Next_Signal="111L",
             SW113="N",
             SW115="N",
@@ -1507,9 +1525,9 @@ def _princess_dwarf_rows() -> list[dict[str, object]]:
             Signal="114LA",
             Signal_Block="McKeesport",
             Route_From="McKeesport",
-            Route_To="West Ext",
+            Route_To="Track West Ext",
             Block1="OS 114",
-            Block2="West Ext",
+            Block2="Track West Ext",
             Next_Signal="111L",
             SW113="N",
             SW114="N",
@@ -1756,6 +1774,7 @@ def refresh_asbuilt() -> Path:
         "100L is IH438/IH439 searchlights (not MQTT mast 464). "
         "Princess dwarfs 114LA / 115LA / 120R / 120L have ABS rows on Princess + all_logic."
     )
+    rename_extension_tracks(wb)
     wb.save(dest)
     print(f"wrote {dest} ({n} cell replacements on logic/mqtt sheets, +{dwarf_n} Princess dwarf rows)")
     return dest

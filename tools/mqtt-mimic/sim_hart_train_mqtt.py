@@ -131,7 +131,7 @@ ROUTES: dict[str, Route] = {
     "princess": Route(
         key="princess",
         title="Route 2 — Princess reverse via Track K-2 (R3 contiguous)",
-        summary="Deck transfer to R3, then Digicon f-spine: W Main Ext→113b→113a→114→Track K-2→reverse",
+        summary="Deck transfer to R3, then Digicon f-spine: West Ext→113b→113a→114→Track K-2→reverse",
         turnouts=_merge(
             BASE_TURNOUTS,
             {"108": "CLOSED", "109": "THROWN", "110": "CLOSED"},
@@ -260,7 +260,7 @@ ROUTES: dict[str, Route] = {
     # Neville-style: top spine via Track West Ext / Princess, home via Track Main East·117·Plane·Brick
     "neville": Route(
         key="neville",
-        title="Route Neville — Track Main West → W Main Ext → Princess → Track East Lead → Track Main East → 117 → Plane → Brick",
+        title="Route Neville — Track Main West → West Ext → Princess → Track East Lead → Track Main East → 117 → Plane → Brick",
         summary="JMRI-true top path around Princess, then bottom home through 117b/Plane/Brick (Track Barn = 117 bottom)",
         turnouts=_merge(
             BASE_TURNOUTS,

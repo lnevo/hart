@@ -10,13 +10,15 @@ correction, decoder preflight) are in
 [`jmri/layouts/hart/scripts/speedmatch/`](../../../../jmri/layouts/hart/scripts/speedmatch/README.md).
 This folder stays as the record of the 2026-11-08 run.
 
+The two extension tracks are named East Ext and West Ext here and in the CSVs. The raw logs of that date (`steprun_*.log`) still use the old names "BS East Main Ext" and "BS West Main Ext"; `block_speeds.py` and the speed-match readers map them on read.
+
 ## Method
 
-- The loop: East Main Ext, OS7b, Main East, OS33, East Lead, OS35a, OS37, K-2, K-1,
-  OS39, OS35b, West Main Ext, OS23a, Main West, OS1, Brick-Plane, OS5, East Main Ext.
+- The loop: East Ext, OS7b, Main East, OS33, East Lead, OS35a, OS37, K-2, K-1,
+  OS39, OS35b, West Ext, OS23a, Main West, OS1, Brick-Plane, OS5, East Ext.
   The block lengths in `tables.xml` add up to **31,292.8 mm**, but see
   [Loop length](#loop-length-not-reliable) below: that figure is not reliable.
-- Speed = loop length / lap time, one lap = two consecutive arrivals in East Main Ext
+- Speed = loop length / lap time, one lap = two consecutive arrivals in East Ext
   (counted only after Switch 23a lit in between, so a sensor retrigger cannot count).
 - Per step: one transition lap (discarded, the speed change disturbs it), then two timed
   laps (one at steps 8 to 16, where a lap takes 4 to 14 minutes).
@@ -85,7 +87,7 @@ Steps 8, 16, 32, 64, 80, 96 and 112 were not re-run.
 
 ## Momentum test (2121 against 2738 after programming)
 
-Each loco starts from rest in East Main Ext, runs east (2738 forward, 2121 in reverse) at
+Each loco starts from rest in East Ext, runs east (2738 forward, 2121 in reverse) at
 one throttle step, and gets a speed-0 command the instant Switch 33 lights. Every sensor
 event afterwards is logged ([`momentum_test.csv`](momentum_test.csv)). No block length is
 needed: both locos see the same track, so the crossing times compare directly.
@@ -109,7 +111,7 @@ At step 32 both enter East Lead 0.8 to 1.0 s after the command and stop inside i
 
 **Correction (same day):** a first reading of this test said 2121 in reverse was about
 10% slower than 2738 forward at step 32. That was a start-position artifact: 2121 had been
-parked farther back in East Main Ext and was still accelerating through Main East. A
+parked farther back in East Ext and was still accelerating through Main East. A
 whole-lap reverse run of 2121 afterwards ([`reverse_2121_laps.csv`](reverse_2121_laps.csv))
 shows no reverse deficit: 134 s at step 24 (forward 139 s), 82.0 s at step 48 (forward
 82.3 s) and 72.1 s at step 64 (forward 74 to 75 s), i.e. equal or 2 to 3% quicker, inside
@@ -124,7 +126,7 @@ and the Layout Editor panel is not drawn to physical scale (panel-to-inch ratios
 0.5 to 5), so the plan could not be re-measured. The owner notes that the **Switch 7
 crossover and the engine terminal at Switch 13 may not be in the Anyrail files at all**.
 Two of the lengths are also marked "cut" in that CSV (worked out by subtracting from the
-older plan, not measured): Main East ("East Bypass 195 minus OS Switch 7") and East Main
+older plan, not measured): Main East ("East Bypass 195 minus OS Switch 7") and East
 Ext ("Yard Lead 108 minus OS Switch 13 and OS Switch 7b").
 
 The runs back that up. If the lengths were right, every block would show the same
@@ -136,11 +138,11 @@ out by each block's time (constant speed assumed) gives:
 | Block | Nominal mm | Implied mm | Difference |
 |---|---:|---:|---:|
 | Main East | 4,699 | 7,122 | +52% |
-| East Main Ext | 2,235 | 3,180 | +42% |
+| East Ext | 2,235 | 3,180 | +42% |
 | East Lead | 4,369 | 2,440 | -44% |
 | Brick-Plane | 1,829 | 1,303 | -29% |
 | K-2 | 3,112 | 2,595 | -17% |
-| West Main Ext | 4,064 | 3,452 | -15% |
+| West Ext | 4,064 | 3,452 | -15% |
 | Main West | 5,588 | 4,904 | -12% |
 | K-1 | 3,112 | 2,813 | -10% |
 
@@ -154,7 +156,7 @@ by that error, and so are station-stop distances built from these block lengths.
 comparison between the two locos, and the table that matches 2738 to 2121, are **not**
 affected, because both were timed over the same loop.
 
-**To fix.** Measure the real length of at least Main East, East Main Ext, East Lead and
+**To fix.** Measure the real length of at least Main East, East Ext, East Lead and
 the loop total with a tape (or time a loco over a measured distance), correct
 `block_lengths.csv`, and re-run `block_speeds.py`; every figure here recomputes.
 
@@ -178,7 +180,7 @@ the loop total with a tape (or time a loco over a measured distance), correct
   loco rolled over a sheet of paper in Main East and was rerailed (the block dropped out
   for part of the crossing, the lap ran 5 s long). Step 64 has three other clean laps.
 - 2121 step 8 and the first 2121 suite's second step-8 "lap" (71 s) were retrigger
-  artefacts of the lap counter (East Main Ext flickers as a loco enters Switch 5). Fixed
+  artefacts of the lap counter (East Ext flickers as a loco enters Switch 5). Fixed
   in the later runs; the artefact rows are not in `results.csv`.
 - 2738 step 24 first attempt (`steprun_2738_a.log`, stalled after the dead spot beyond
   Switch 1) is not included; the second run repeated it.
