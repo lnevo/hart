@@ -14,8 +14,8 @@ PROFILE="TCS_MQTT.3f32a166"
 ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" bash -s -- "$PROFILE" <<'REMOTE'
 set -euo pipefail
 profile="$1"
-rm -f "$HOME/.hart_panelpro_quit_for_deploy"
 if pgrep -f "org.jmri.profile=$profile" >/dev/null; then
+  rm -f "$HOME/.hart_panelpro_quit_for_deploy"
   echo "PanelPro is already running on the Pi; nothing started." >&2
   exit 3
 fi
@@ -37,5 +37,7 @@ if ! pgrep -f "org.jmri.profile=$profile" >/dev/null; then
   echo "PanelPro did not start; see /tmp/panelpro_start.out on the Pi." >&2
   exit 1
 fi
+# Cleared only once PanelPro is up, so a failed start keeps the restart intent.
+rm -f "$HOME/.hart_panelpro_quit_for_deploy"
 echo "PanelPro started on the Pi (profile $profile)."
 REMOTE

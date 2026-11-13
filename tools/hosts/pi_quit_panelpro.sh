@@ -8,8 +8,10 @@
 # panels?", buttons No / Yes / Cancel). Any other modal dialog is left alone and reported,
 # and the script exits 4 so a person looks at it. It never stores and publishes nothing.
 #
-# When it quits PanelPro it leaves ~/.hart_panelpro_quit_for_deploy on the Pi, so the next
-# Pi deploy starts PanelPro again (sync_hart_package.sh). Not running → no marker.
+# When it quits PanelPro it leaves ~/.hart_panelpro_quit_for_deploy on the Pi. A Pi deploy
+# within 2 h starts PanelPro again (sync_hart_package.sh, pi/panelpro_restart_due.sh);
+# after that, or once PanelPro has been started meanwhile, the marker is ignored and
+# removed. Not running → no marker.
 #
 # Exit: 0 quit (or not running) · 1 still running after the wait · 2 watcher not ready or a
 # command already pending · 3 the dropped Jython failed · 4 another dialog appeared.

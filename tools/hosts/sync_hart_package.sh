@@ -55,6 +55,9 @@ if [[ $# -gt 0 ]]; then
         echo "  --stage-only DIR: build the host packages into DIR/pi and DIR/win and stop."
         echo "                    No ssh, no Mac install, and the repo's tables.xml is only checked."
         echo "  What a host last got: tools/hosts/deploy_status.sh [--pi] [--win] [--mac]"
+        echo "  Pi PanelPro: a --pi deploy quits a running PanelPro first and starts it again"
+        echo "               after, as it does when pi_quit_panelpro.sh stopped it in the last"
+        echo "               2 h. One closed by hand stays closed. HART_PI_RESTART=0: neither."
         exit 0
         ;;
       *) echo "Unknown option: $1" >&2; exit 1 ;;
@@ -456,6 +459,17 @@ if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   echo "deploy stamp -> ${HOME}/JMRI_UserFiles/cats/deploy_stamp.txt"
 fi
 
+PI_PROFILE="TCS_MQTT.3f32a166"
+if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 && "${HART_PI_RESTART:-1}" != "0" ]]; then
+  # Quit a running PanelPro (its own Quit, No to Store); pi_quit_panelpro.sh leaves the
+  # marker that brings it back after the deploy.
+  if ssh_pi "pgrep -f '[o]rg.jmri.profile=$PI_PROFILE'" >/dev/null; then
+    echo "PanelPro is running on the Pi; quitting it for the deploy..."
+    bash "$ROOT/tools/hosts/pi_quit_panelpro.sh"
+    echo "If this deploy stops early, start it again: tools/hosts/pi_start_panelpro.sh"
+  fi
+fi
+
 if [[ "$DO_PI" -eq 1 ]]; then
   echo "Deploy → Pi ($PI_HOST) via rsync..."
   STAGE=$(mktemp -d)
@@ -473,12 +487,21 @@ if [[ "$DO_PI" -eq 1 ]]; then
     ssh_pi "HART=${PI_DROP} JMRI_USERFILES='${PI_USERFILES}' HART_OVERWRITE_OPS=${HART_OVERWRITE_OPS} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
   fi
   echo "Pi deploy done."
-  # PanelPro stopped for this deploy by pi_quit_panelpro.sh (it leaves a marker) comes
-  # back up. One the owner closed has no marker and stays closed. HART_PI_RESTART=0 skips.
-  if [[ "$DRY_RUN" -eq 0 && "${HART_PI_RESTART:-1}" != "0" ]] \
-     && ssh_pi 'test -f "$HOME/.hart_panelpro_quit_for_deploy"'; then
-    echo "Starting PanelPro on the Pi again (it was quit for this deploy)..."
-    bash "$ROOT/tools/hosts/pi_start_panelpro.sh" || echo "PanelPro did not start on the Pi; run tools/hosts/pi_start_panelpro.sh" >&2
+  # PanelPro quit for this deploy (fresh marker) comes back up; panelpro_restart_due.sh
+  # drops a stale marker. One the owner closed stays closed. HART_PI_RESTART=0 skips.
+  if [[ "$DRY_RUN" -eq 0 && "${HART_PI_RESTART:-1}" != "0" ]]; then
+    due="$(ssh_pi "bash -s -- '$PI_PROFILE'" < "$ROOT/tools/hosts/pi/panelpro_restart_due.sh")" \
+      || due="unknown"
+    case "$due" in
+      yes)
+        echo "Starting PanelPro on the Pi again (it was quit for this deploy)..."
+        bash "$ROOT/tools/hosts/pi_start_panelpro.sh" \
+          || echo "PanelPro did not start on the Pi; run tools/hosts/pi_start_panelpro.sh" >&2 ;;
+      running) echo "Note: PanelPro was running on the Pi during the deploy; restart it to load the new files." >&2 ;;
+      stale) echo "PanelPro on the Pi was closed by hand since its last quit; leaving it closed." ;;
+      no) ;;
+      *) echo "Could not check whether to start PanelPro on the Pi; run tools/hosts/pi_start_panelpro.sh if it should be up." >&2 ;;
+    esac
   fi
 fi
 
