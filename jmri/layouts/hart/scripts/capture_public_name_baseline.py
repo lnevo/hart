@@ -307,11 +307,19 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def display_path(path: Path) -> str:
+    """Repo-relative when inside the checkout, so worktree paths stay out of git."""
+    resolved = path.resolve()
+    if resolved.is_relative_to(REPO_ROOT):
+        return resolved.relative_to(REPO_ROOT).as_posix()
+    return str(path)
+
+
 def write_counts(path: Path, tables_path: Path, counts: dict[str, int]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         f"tables.xml sha256={sha256_file(tables_path)}",
-        f"tables.xml path={tables_path}",
+        f"tables.xml path={display_path(tables_path)}",
         "",
     ]
     for name in sorted(counts):

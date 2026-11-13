@@ -67,10 +67,10 @@ YARD_VIRTUALS = {row[3] for row in BOUNDARY_MASTS}
 # mast at EH-n | Switch 9/11, getBeansInPath(EH→yard) is empty or picks
 # 32L (S-1 East) and Stage 1 never builds EH→S-1/S-4/S-R.
 EH_EXIT_MASTS = [
-    # turnout, tag, sysname, uname, icon x, y, degrees
-    ("TO11", "signalBMast", "IF$vsm:basic:one-low($1020)", "Mast 12R", 620, 270, 270),
-    ("TO10", "signalCMast", "IF$vsm:basic:one-low($1021)", "Mast 10RA", 598, 268, 270),
-    ("TO10", "signalBMast", "IF$vsm:basic:one-low($1022)", "Mast 10RB", 596, 280, 270),
+    # turnout, tag, sysname, uname, icon x, y, degrees (90: R is eastbound, ADR-005)
+    ("TO11", "signalBMast", "IF$vsm:basic:one-low($1020)", "Mast 12R", 620, 270, 90),
+    ("TO10", "signalCMast", "IF$vsm:basic:one-low($1021)", "Mast 10RA", 598, 268, 90),
+    ("TO10", "signalBMast", "IF$vsm:basic:one-low($1022)", "Mast 10RB", 596, 280, 90),
 ]
 
 # Track Brick-Plane (Block 4-6) had no mast at either end, so it sat inside the
@@ -136,6 +136,17 @@ def _ensure_virtual_mast(
     masts: ET.Element, existing: set[str], sysname: str, uname: str, comment: str | None = None
 ) -> int:
     if sysname in existing:
+        for mast in masts:
+            if (mast.findtext("systemName") or "").strip() != sysname:
+                continue
+            found = (mast.findtext("userName") or "").strip()
+            if found != uname:
+                # A tables.xml from before a rename: adding the new name beside
+                # the old one would give a turnout two masts in one slot.
+                raise ValueError(
+                    f"{sysname} is named {found!r}, expected {uname!r}; "
+                    "rename it in tables.xml before running this script"
+                )
         return 0
     el = ET.SubElement(masts, "virtualsignalmast")
     el.set("class", "jmri.implementation.configurexml.VirtualSignalMastXml")
@@ -151,8 +162,17 @@ def _ensure_virtual_mast(
 
 def _ensure_turnout_mast(to: ET.Element, tag: str, uname: str) -> int:
     for child in to:
-        if child.tag == tag and (child.text or "").strip() == uname:
+        if child.tag != tag:
+            continue
+        found = (child.text or "").strip()
+        if found == uname:
             return 0
+        # One mast per slot. A different name here is usually a tables.xml
+        # from before a rename; adding a second slot would break Discover.
+        raise ValueError(
+            f"{to.get('ident')} {tag} holds {found!r}, expected {uname!r}; "
+            "rename it in tables.xml before running this script"
+        )
     el = ET.Element(tag)
     el.text = uname
     # Mast slots come before the NX sensor slots, as JMRI stores them.
@@ -168,7 +188,11 @@ def _ensure_turnout_mast(to: ET.Element, tag: str, uname: str) -> int:
 def _ensure_hidden_icon(le: ET.Element, uname: str, x: int, y: int, deg: int) -> int:
     for ic in le.findall("signalmasticon"):
         if ic.get("signalmast") == uname and ic.get("hidden") == "yes":
-            return 0
+            # Position may be nudged by other scripts; the direction is ours.
+            if ic.get("degrees") == str(deg):
+                return 0
+            ic.set("degrees", str(deg))
+            return 1
     ic = ET.Element("signalmasticon")
     ic.set("signalmast", uname)
     ic.set("x", str(x))
@@ -514,7 +538,11 @@ def main() -> int:
         if not path.is_file():
             print(f"missing {path}")
             continue
-        n = fn(path)
+        try:
+            n = fn(path)
+        except ValueError as exc:
+            print(f"{path}: not changed: {exc}")
+            return 1
         print(f"{path}: {n} edits")
     return 0
 
