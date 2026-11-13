@@ -101,6 +101,56 @@ def broken_links(root: Path) -> list[str]:
     return bad
 
 
+class _Ids(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.ids: set[str] = set()
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        for name, value in attrs:
+            if name in ("id", "name") and value:
+                self.ids.add(value)
+
+
+def index_problems(root: Path) -> list[str]:
+    """search-index.json: the agreed shape, and every record's url (and #anchor) is a built page."""
+    path = root / "search-index.json"
+    if not path.is_file():
+        return ["search-index.json is missing from the build"]
+    try:
+        index = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as err:
+        return [f"search-index.json is not valid JSON: {err}"]
+    if index.get("version") != 1 or not isinstance(index.get("records"), list) or not index.get("generated"):
+        return ["search-index.json: expected version 1, generated and a records list"]
+    bad = []
+    for n, rec in enumerate(index["records"]):
+        where = f"search-index.json record {n}"
+        fields = ("title", "url", "kind", "snippet", "text")
+        if set(rec) != set(fields) or not all(isinstance(rec[f], str) for f in fields):
+            bad.append(f"{where}: needs exactly the string fields {', '.join(fields)}")
+            continue
+        if len(rec["snippet"]) > 160 or len(rec["text"]) > 300:
+            bad.append(f"{where} ({rec['url']}): snippet over 160 or text over 300 characters")
+        if "<" in rec["title"] + rec["snippet"] + rec["text"]:
+            bad.append(f"{where} ({rec['url']}): markup in a text field")
+        page, _, anchor = rec["url"].partition("#")
+        if rec["url"].startswith("/") or not page:
+            bad.append(f"{where}: url {rec['url']!r} must be site-root-relative with no leading slash")
+            continue
+        target = _target(page, root, root)
+        if target is None or not _resolves(target, root):
+            bad.append(f"{where}: url {rec['url']} does not resolve to a built file")
+        elif anchor:
+            file = target.resolve()
+            file = file if file.is_file() else file / "index.html"
+            ids = _Ids()
+            ids.feed(file.read_text(encoding="utf-8", errors="replace"))
+            if unquote(anchor) not in ids.ids:
+                bad.append(f"{where}: anchor #{anchor} is not in {page}")
+    return bad
+
+
 def _items(root: Path, name: str, key: str = "items") -> list:
     path = root / "data" / name
     if not path.is_file():
@@ -140,6 +190,7 @@ def main() -> int:
         if not args.dist:
             subprocess.run([sys.executable, str(SCRIPTS / "prepare_github_pages.py"), str(root)], check=True)
         bad = broken_links(root)
+        index_bad = index_problems(root)
         summary = manifest(root)
 
     status = 0
@@ -149,6 +200,12 @@ def main() -> int:
         status = 1
     else:
         print("Links OK: every internal href/src and data path resolves.")
+    if index_bad:
+        print(f"{len(index_bad)} problem(s) in the search index:", file=sys.stderr)
+        print("\n".join("  " + b for b in index_bad), file=sys.stderr)
+        status = 1
+    else:
+        print("Search index OK: every record's url resolves.")
     status = share_cards.report() or status  # gaps are a suggestion; a broken card fails
     print("Build: " + ", ".join(f"{k} {v}" for k, v in summary.items()))
     if args.manifest:

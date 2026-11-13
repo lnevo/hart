@@ -24,6 +24,8 @@ import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
+from html.parser import HTMLParser
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -31,6 +33,9 @@ import build_tables_browser  # noqa: E402
 import share_cards  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
+# The private-name check works by fingerprint, so the name itself is never written in this script.
+sys.path.insert(0, str(PORTAL.parent / "ops/hart-ops/card_pipeline"))
+from private_name import contains_private_name  # noqa: E402
 # Build scripts, the owner's review desk, and pages that only work at the layout (localhost tools,
 # workspace pointers) stay off the public site.
 SKIP_DIRS = {Path("scripts"), Path("review"), Path("review-data"), Path("tools"), Path("reference")}
@@ -167,6 +172,136 @@ def _check_leaks(dest_root: Path) -> list[str]:
             if m := LEAK_PATTERNS.search(line) or (path.suffix == ".json" and DATA_LEAK.search(line)):
                 hits.append(f"{path.relative_to(dest_root)}:{n}: {m.group(0)}")
     return hits
+
+
+# ---- Search index (search-index.json) -------------------------------------------------------
+# Written last, from the built HTML, so it never holds text the leak checks or the data-local-only
+# strip removed. Stage 1 has one "page" record per page; the search box (js/search.js) reads it.
+INDEX_NAME = "search-index.json"
+INDEX_VERSION = 1
+SNIPPET_MAX, TEXT_MAX = 160, 300
+# Pages that are never found: the 404 page and the document viewer shell.
+INDEX_SKIP_PAGES = {"404.html", "docs/view.html"}
+# Pages whose content is rows drawn by script: only the title and the intro paragraph are indexed.
+INDEX_TITLE_ONLY = {"behind/tables-file.html", "behind/wiring.html"}
+_INDEX_SKIP_TAGS = {"script", "style", "template", "noscript", "svg", "header", "nav", "footer", "button", "select", "option"}
+_REDIRECT = re.compile(r'http-equiv=["\']?refresh|location\.(?:replace|href\s*=)|window\.location', re.I)
+
+
+class _PageText(HTMLParser):
+    """Title, headings and paragraphs of a built page, outside chrome, scripts and templates."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.title, self.description = "", ""
+        self.h1: list[str] = []
+        self.h2: list[str] = []
+        self.paras: list[str] = []
+        self.noindex = False
+        self._skip = 0
+        self._cur: str | None = None  # tag being collected
+        self._buf: list[str] = []
+        self._in_title = False
+        self._title_done = False  # inline SVGs carry their own <title>; only the page's counts
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "title" and not self._title_done:
+            self._in_title = True
+        elif tag == "meta":
+            name = (a.get("name") or "").lower()
+            content = a.get("content") or ""
+            if name == "robots" and "noindex" in content.lower():
+                self.noindex = True
+            elif name == "description" and content and content != SHARE_DESCRIPTION:
+                self.description = content  # the page's own, not the share-tag default
+        if tag in _INDEX_SKIP_TAGS:
+            self._skip += 1
+        elif not self._skip and self._cur is None and tag in ("h1", "h2", "p"):
+            self._cur, self._buf = tag, []
+
+    def handle_endtag(self, tag):
+        if tag == "title" and self._in_title:
+            self._in_title, self._title_done = False, True
+        if tag in _INDEX_SKIP_TAGS:
+            self._skip = max(0, self._skip - 1)
+        elif tag == self._cur:
+            text = re.sub(r"\s+", " ", "".join(self._buf)).strip()
+            if text and not text.startswith("Loading"):  # placeholders the page script replaces
+                {"h1": self.h1, "h2": self.h2}.get(tag, self.paras).append(text)
+            self._cur = None
+
+    def handle_data(self, data):
+        if self._in_title:
+            self.title += data
+        elif self._cur is not None and not self._skip:
+            self._buf.append(data)
+
+
+def _clip(text: str, limit: int) -> str:
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rsplit(" ", 1)[0].rstrip(" ,;:-—") + "…"
+
+
+def _index_record(rel: Path, text: str) -> dict | None:
+    """One search record for a built page, or None when the page should not be found."""
+    name = rel.as_posix()
+    if name in INDEX_SKIP_PAGES:
+        return None
+    page = _PageText()
+    page.feed(text)
+    if page.noindex:
+        return None
+    title = re.sub(r"\s+", " ", page.title).strip()
+    title = re.sub(r"\s+[—-]\s+HART$", "", title) or (page.h1[0] if page.h1 else "")
+    paras = [p for p in page.paras if len(p) >= 40]
+    # Redirect stubs: a refresh or script jump with little to read, or a "Moved" notice.
+    if page.h1[:1] == ["Moved"] or (_REDIRECT.search(text) and len(" ".join(paras)) < 200):
+        return None
+    if not title or not (page.h1 or paras or page.description):
+        return None
+    intro = paras[0] if paras else page.description or (page.paras[0] if page.paras else "")
+    if name in INDEX_TITLE_ONLY:
+        body = [intro]
+    else:
+        body = [h for h in page.h1[:1] + page.h2 if h.lower() != title.lower()] + paras[1:]
+    return {
+        "title": title,
+        "url": name,
+        "kind": "page",
+        "snippet": _clip(intro or title, SNIPPET_MAX),
+        "text": _clip(" ".join(b for b in body if b), TEXT_MAX),
+    }
+
+
+def _check_index(index: dict) -> list[str]:
+    """Leak patterns (hosts, workspace paths) and the private name, per record field."""
+    bad = []
+    for rec in index["records"]:
+        for field, value in rec.items():
+            if LEAK_PATTERNS.search(value) or contains_private_name(value):
+                bad.append(f"{rec['url']} ({field})")  # never echo the matched text
+    return bad
+
+
+def build_search_index(dest_root: Path) -> dict:
+    """Write dest_root/search-index.json from the built pages; fail if it holds a leak or the private name."""
+    records = []
+    for page in sorted(dest_root.rglob("*.html")):
+        rec = _index_record(page.relative_to(dest_root), page.read_text(encoding="utf-8", errors="replace"))
+        if rec:
+            records.append(rec)
+    index = {
+        "version": INDEX_VERSION,
+        "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "records": records,
+    }
+    if bad := _check_index(index):
+        raise SystemExit("search index holds text that must not publish:\n" + "\n".join("  " + b for b in bad))
+    (dest_root / INDEX_NAME).write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+    return index
 
 
 def _keep_src(src: str, dest_root: Path) -> bool:
@@ -514,6 +649,8 @@ def main() -> int:
         print("Local hosts or paths in the public tree; fix the source or skip the file:", file=sys.stderr)
         print("\n".join("  " + h for h in leaks), file=sys.stderr)
         return 1
+    index = build_search_index(dest)
+    print(f"Search index: {len(index['records'])} pages")
     print(f"Prepared public portal tree → {dest}", flush=True)
     return 0
 
