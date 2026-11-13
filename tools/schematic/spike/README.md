@@ -44,8 +44,6 @@ T162 and T160 show as three.
 
 Known gaps:
 
-- T196's balloon loop on the main level is drawn as a long tail under the band ending in a loop at the east.
-  It would read better folded at the west end beside T155; the fold-back choice treats both as equal.
 - Switch labels are the plan's part numbers (T…), three junctions unmatched; no track or station names.
 - The helix tracks on the main level end as plain stubs; they should be connectors to staging.
 - Switch numbers collide in places; a crossover's number is printed on both halves; no page folding; no capacity.

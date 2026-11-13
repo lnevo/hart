@@ -769,9 +769,10 @@ def layout_one(g, sig, T, opts, warnings):
         clash, apart = set(), set()
         for a, b in overlaps(nodes, strands, R, x, need, order) - rows.extra:
             (sa, da), (sb, db) = ((strands[k]["src"][0], strands[k]["dst"][0]) for k in (a, b))
-            if ev[da] < ev[sb]:         # a is finished before b starts: keep them apart along the row instead
+            stub = lambda p, q: nodes[p]["kind"] == "end" or nodes[q]["kind"] == "end"
+            if ev[da] < ev[sb] and stub(da, sb):    # a ends before b starts and one is a stub: slide it along the row
                 apart.add((da, sb, 1))
-            elif ev[db] < ev[sa]:
+            elif ev[db] < ev[sa] and stub(db, sa):
                 apart.add((db, sa, 1))
             else:
                 clash.add((a, b))
