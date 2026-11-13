@@ -91,6 +91,8 @@ The three layers above are the contract between the streams. Keep the spike's ed
 | B3 | Skill text and style reference from `tools/schematic/spike/research/` | Agent (Sonnet) | Marketplace install works on the example |
 | C1 | CATS panel for the main and upper levels from the same grid (CATS cell rules are in `research/survey_2.md`); settle east and west by following the main; carry facing and trailing per switch | Main session designs; agent builds | Owner approves the panel in CATS Designer |
 | C2 | Station pages and deck track maps | Agents | After B2 |
+| D1 | Signals: masts from the Layout Editor panel as layer 1 (`signal_reader.py`), drawn in the NYAMR Physical Characteristics Book style (stem, arm, one circle per head, right-hand side for the direction); labels placed by R12. First cut in draft PR #431, 2 label faults left where the layout needs room. Same placements to seed CATS signal icons in C1 | Main session | Owner approves the look on staging; label check clean |
+| C2a | One generated station page (South Yard) from the same grid, compared with the hand-drawn `www/crew/maps/south-yard/` page: what is missing (capacity, spots, west/east arrows) | Agent | Side-by-side for the owner |
 | C3 | Layout Editor import of the main levels; switch facts for the new levels | Main session | After the owner's names |
 
 ## Other open items
