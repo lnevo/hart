@@ -35,7 +35,7 @@ class RestartDueTest(unittest.TestCase):
     def due(self, max_age: str = "7200") -> str:
         env = {"HOME": str(self.home), "PATH": f"{self.bin}:/usr/bin:/bin"}
         out = subprocess.run(
-            ["bash", str(DUE), "TCS_MQTT.test", max_age],
+            ["bash", str(DUE), max_age],
             check=True, capture_output=True, text=True, env=env,
         )
         return out.stdout.strip()
@@ -44,18 +44,16 @@ class RestartDueTest(unittest.TestCase):
         self.assertEqual("no", self.due())
 
     def test_fresh_marker_restarts_and_is_kept_until_start_succeeds(self) -> None:
-        self.log.write_text("old session")
-        os.utime(self.log, (time.time() - 60, time.time() - 60))
         self.marker.write_text("quit")
         self.assertEqual("yes", self.due())
         self.assertTrue(self.marker.exists())
 
-    def test_started_by_hand_since_the_quit_is_stale(self) -> None:
+    def test_age_is_measured_in_seconds(self) -> None:
         self.marker.write_text("quit")
-        os.utime(self.marker, (time.time() - 120, time.time() - 120))
-        self.log.write_text("PanelPro started from the desktop")
-        self.assertEqual("stale", self.due())
-        self.assertFalse(self.marker.exists())
+        os.utime(self.marker, (time.time() - 5, time.time() - 5))
+        self.assertEqual("yes", self.due("30"))
+        os.utime(self.marker, (time.time() - 45, time.time() - 45))
+        self.assertEqual("stale", self.due("30"))
 
     def test_old_marker_is_stale(self) -> None:
         self.marker.write_text("quit for an ops-pull last week")
@@ -64,7 +62,7 @@ class RestartDueTest(unittest.TestCase):
         self.assertEqual("stale", self.due())
         self.assertFalse(self.marker.exists())
 
-    def test_running_panelpro_clears_the_marker(self) -> None:
+    def test_running_jmri_or_cats_clears_the_marker_and_starts_nothing(self) -> None:
         self.marker.write_text("quit")
         self.running(True)
         self.assertEqual("running", self.due())
@@ -72,13 +70,23 @@ class RestartDueTest(unittest.TestCase):
 
 
 class ScriptsAgreeTest(unittest.TestCase):
-    def test_deploy_quits_before_and_checks_after_the_pi_apply(self) -> None:
+    def test_deploy_never_quits_panelpro_itself(self) -> None:
         src = (HOSTS / "sync_hart_package.sh").read_text(encoding="utf-8")
-        quit_at = src.index('bash "$ROOT/tools/hosts/pi_quit_panelpro.sh"')
+        self.assertNotIn('bash "$ROOT/tools/hosts/pi_quit_panelpro.sh"', src)
+
+    def test_restart_check_runs_on_exit_through_the_pi_apply_and_after_it(self) -> None:
+        src = (HOSTS / "sync_hart_package.sh").read_text(encoding="utf-8")
+        trap_at = src.index("trap 'rm -rf \"$STAGE\"; pi_restart_if_due' EXIT")
         apply_at = src.index("bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh")
-        due_at = src.index("pi/panelpro_restart_due.sh")
-        self.assertLess(quit_at, apply_at)
-        self.assertLess(apply_at, due_at)
+        done_at = src.index('echo "Pi deploy done."')
+        self.assertLess(trap_at, apply_at)
+        self.assertIn("pi_restart_if_due", src[done_at: done_at + 80])
+
+    def test_only_a_for_deploy_quit_leaves_the_marker(self) -> None:
+        src = (HOSTS / "pi_quit_panelpro.sh").read_text(encoding="utf-8")
+        write = src.index('date -Is > "$HOME/.hart_panelpro_quit_for_deploy"')
+        guard = src.rindex('if [[ "$for_deploy" == 1 ]]; then', 0, write)
+        self.assertLess(write - guard, 80)
 
     def test_start_clears_the_marker_only_after_panelpro_is_up(self) -> None:
         src = (HOSTS / "pi_start_panelpro.sh").read_text(encoding="utf-8")
@@ -87,7 +95,6 @@ class ScriptsAgreeTest(unittest.TestCase):
         clear = src.rindex('rm -f "$HOME/.hart_panelpro_quit_for_deploy"')
         self.assertLess(did_not_start, clear)
         self.assertLess(clear, started)
-
 
 if __name__ == "__main__":
     unittest.main()
