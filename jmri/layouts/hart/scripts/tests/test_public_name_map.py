@@ -330,9 +330,9 @@ class PublicNameMapContractTest(unittest.TestCase):
                 if key not in BARN_TURNOUT_BLOCK:
                     violations.append(f"unexpected Barn cp on {row['layer']} {row['current']!r}")
             elif row["layer"] in {"mast", "head"}:
-                if not re.search(r"\b(?:8[LR]|13R)", row["proposed"]):
+                if not re.search(r"\b(?:8[LR]|14R)", row["proposed"]):
                     violations.append(
-                        f"Barn signal {row['current']!r} proposed {row['proposed']!r} is not 8* or 13R"
+                        f"Barn signal {row['current']!r} proposed {row['proposed']!r} is not 8* or 14R"
                     )
             elif row["layer"] in {"occupancy", "fb", "fb_comment"}:
                 continue

@@ -27,6 +27,7 @@ Public names grew as geographic sentences (`West Yard West East Main Ext`) becau
 
 **L** = westbound (USS signal lever Left). **R** = eastbound (Right).  
 **A/B** only when that lever lists two masts.  
+**Numbering:** switches are odd, signals even; a signal at Switch *n* is Mast *n*+1. Hidden Dispatcher virtual masts follow the same rule (2026-11-12: 9LA/9LB → 10RA/10RB, 11L → 12R, 13R → 14R). The four-digit Princess field signals (2035 / 2036, absolute permissive block) are outside it by owner choice.  
 Princess balloon intermediates: field **2035** (was 120L) and **2036** (was 120R).
 
 ## Live inventory (2026-08-27)
