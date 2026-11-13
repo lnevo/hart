@@ -1,4 +1,4 @@
-# jobkit.py - what the three movers (step_runner.py, move_to.py, stop_test.py) share, run
+# jobkit.py - what the movers (step_runner.py, distance_runner.py, pass_runner.py, move_to.py, stop_test.py) share, run
 # inside the Pi's JMRI (Jython 2.7). make_job.py pastes it in front of the runner, after the
 # settings, the way it pastes liverule.py; nothing is imported. Needs LOGF (log file path) from
 # the settings.
@@ -12,7 +12,8 @@
 #     made it
 #
 # Names the runner may use: L, NAMES, reg, why, ab, own, hit, claim, scan, check_guards,
-# request_throttle, guard_hit, end_job, TL.
+# request_throttle, guard_hit, end_job, TL, and for route runners last, state, lock, HOOK, SL,
+# wait, pause.
 import time, threading, os, java, jmri
 f = open(LOGF, "a")
 def L(m): f.write("%.3f %s\n" % (time.time(), m)); f.flush()
@@ -81,6 +82,41 @@ def request_throttle(rid):
     if tl.t is None:
         L("NO THROTTLE %s" % tl.err); why[0] = why[0] or "no throttle"; return None, tl
     return tl.t, tl
+# Route sensor listener, shared by the three runners that measure along a route (step_runner,
+# distance_runner, pass_runner); each sets HOOK[0] = fn(name, epoch) for a sensor that just
+# went ACTIVE (it runs under `lock`, so it must not take it). Needs ORDER (the route's sensors).
+last = [time.time()]      # epoch of the last route sensor lighting (the stall timer)
+state = {}; lock = threading.Lock(); HOOK = [None]
+class SL(java.beans.PropertyChangeListener):
+    # n: the name the route and the log use (the user name when there is one); isg: this bean
+    # is a guard, whichever name the guard was given by
+    def __init__(self, n, isg): self.n = n; self.isg = isg
+    def propertyChange(self, e):
+        if e.getPropertyName() != "KnownState": return
+        st = e.getNewValue(); now = time.time()
+        lock.acquire()   # the log order is the order events were fed; a STEP line cannot interleave
+        try:
+            L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st)))
+            # only a route sensor lighting counts as progress for the stall timer
+            if st == 2 and self.n in ORDER: last[0] = now
+            if self.isg and st == 2: guard_hit(self.n)
+            if st == 2 and state.get(self.n) != 2 and HOOK[0] is not None: HOOK[0](self.n, now)
+            state[self.n] = st   # every state counts, so UNKNOWN between two ACTIVEs is a new ACTIVE
+        finally:
+            lock.release()
+def wait(cond, stall):
+    """Poll until cond() is true. Returns "ok", "abort" (guard, kill flag) or "stall" (no route
+    sensor lit for stall seconds)."""
+    while not cond():
+        if ab.is_set(): return "abort"
+        if os.path.exists("/tmp/speedrun.kill"): why[0] = "killed"; return "abort"
+        if time.time() - last[0] > stall: return "stall"
+        time.sleep(0.1)
+    return "ok"
+def pause(secs, stall):
+    """wait() for secs seconds."""
+    t1 = time.time() + secs
+    return wait(lambda: time.time() >= t1, stall)
 def end_job(t, tl, funcs):
     """The end of every run: STOP line, 1. speed 0 on the loco's own throttle, 2. every
     function off, 3. throttle released, then listeners removed, marker removed, END."""

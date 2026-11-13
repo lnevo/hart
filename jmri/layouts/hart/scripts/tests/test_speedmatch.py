@@ -443,6 +443,7 @@ class Correction(unittest.TestCase):
         for rows in res.values():
             for r in rows:
                 r["reason"] = "settled"  # the old data is noisy; this test is about the record
+                r["settled"] = True
         analyze.write_outputs(res, None, d)
         code = correct.main(["--table", ",".join(map(str, self.table)), "--profile", str(d / "profile.csv"),
                              "--loco", "CSX 2738", "--direction", "reverse", "--target-loco", "CSX 2121",

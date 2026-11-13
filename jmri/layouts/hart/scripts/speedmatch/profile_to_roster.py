@@ -4,7 +4,7 @@
     profile_to_roster.py profile.csv --loco "CSX 2121" --out /tmp/sm/payload_2121.json
 
 Per direction it takes the latest complete run of the loco, and from it only the steps that
-ended with reason `settled`; the repeat of the top step (`126#2`) is skipped. A point needs a
+ended with reason `settled` (or `timed`, distance mode); the repeat of the top step (`126#2`) is skipped. A point needs a
 speed in both directions, so only steps present in both are written; the others are listed
 as skipped. It refuses if either direction has no complete run or no settled step.
 

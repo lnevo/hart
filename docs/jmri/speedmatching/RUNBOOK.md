@@ -21,7 +21,9 @@ module (`pom_guard.py`, built elsewhere).
 | `drop_job.sh` | copies a job to the Pi's `jmri_cmd_watcher`, fetches logs, sets the kill flag | Mac |
 | `jython/preflight.py` | reads CVs on the programming track | Pi, inside JMRI |
 | `jython/jobkit.py` | what the three movers share (throttle, sensors, guards, the active marker, the end of a run); pasted in front of each | Pi, inside JMRI |
-| `jython/step_runner.py` | warm-up, then the step profile | Pi, inside JMRI |
+| `jython/step_runner.py` | warm-up, then the step profile (laps mode, the default) | Pi, inside JMRI |
+| `jython/distance_runner.py` | distance mode: warm-up in seconds, then one continuous pass through the steps, each measured over a distance | Pi, inside JMRI |
+| `jython/pass_runner.py` | one timed pass through a stretch of loop 2, for placing Switch 7 and Switch 13 | Pi, inside JMRI |
 | `jython/move_to.py` | runs a loco until a named sensor lights, then stops it (positioning) | Pi, inside JMRI |
 | `jython/stop_test.py` | starts a loco from rest, sends speed 0 when a sensor lights, logs every sensor event | Pi, inside JMRI |
 | `stoptest_compare.py` | two stop-test logs into one table (seconds after the command, resting block) | Mac |
@@ -30,13 +32,16 @@ module (`pom_guard.py`, built elsewhere).
 | `preflight_compare.py` | compares a preflight log with the roster entry | Mac |
 | `analyze.py` | turns step logs into speeds, drift and the 2121/2738 comparison | Mac |
 | `correct.py` | proposes a corrected table (CV67 to CV94) | Mac |
-| `liverule.py` | the stop rule and span arithmetic, used by both the runner and the analysis | both |
+| `liverule.py` | the stop rule, span arithmetic, settle time, block readings and the distance end rule, used by the runners and the analysis | both |
 
 `liverule.py` is written so it also runs under Jython 2.7. `make_job.py` pastes it in front of
 `step_runner.py`, so the runner on the Pi runs the same code the tests check (there is no second
 copy to drift).
 
-Tests: `jmri/layouts/hart/scripts/tests/test_speedmatch.py` (run by `./tools/check.sh`).
+Tests: `jmri/layouts/hart/scripts/tests/test_speedmatch*.py` (run by `./tools/check.sh`). The distance and
+pass runners are also run for real, as Python 3 on a virtual clock with a fake loco
+(`test_speedmatch_distance.py`), which checks the log order, the stop, the guard and the kill
+flag. They have still not run in JMRI.
 
 ## How a measurement works
 
@@ -59,8 +64,69 @@ Tests: `jmri/layouts/hart/scripts/tests/test_speedmatch.py` (run by `./tools/che
   loco and direction. The analysis also reads which way round the loop the loco went (`east` or
   `west`) from the order the sensors lit, and the comparison flags a pair that did not travel
   the same way.
-- **Steps:** 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 80, 96, 112, 126, then 126 again. The analysis
+- **Steps (laps mode):** 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 80, 96, 112, 126, then 126 again. The analysis
   reports how far the second 126 differs from the first (top-step drift).
+
+## The 40-minute layout procedure
+
+The whole layout job in one sitting: both locos in both directions, then Switch 13. It uses
+**distance mode** (below) for the profiles and the **pass job** for Switch 13. PanelPro is
+running on the Pi, the owner is not operating, only the test loco moves. Times are estimates
+from the 2026-11-08 speeds (corrected for the longer loop); the first real run replaces them.
+
+| Part | What | Minutes |
+|---|---|---|
+| 1 | Break the 2121/2738 consist (`cs105_consist.py` detach), line up loop 1 (`make_job.py lineup --route loop1`), build the four jobs | 5 |
+| 2 | **2121 forward**: warm 60 s, then the distance pass. Its first two steps (8 and 16) are the shakedown: watch the log live (`ssh pi tail -f`), check `STEP`, `SETTLE`, `MEASURE`, `BLOCK` and the sensor order, and `drop_job.sh --kill` if anything looks wrong | 6 |
+| 3 | **2121 reverse**: `--warm-s 0` (already warm), same job | 5 |
+| 4 | Swap to 2738 (no `--mute-sound`), then **2738 forward** with its 60 s warm-up | 9 |
+| 5 | **2738 reverse**, `--warm-s 0` | 6 |
+| 6 | Loop 2: line up (`make_job.py lineup --route loop2`), position a loco (`move`), then **two passes through Switch 5 to Switch 15** at steps 24 and 48 | 8 |
+| 7 | Fetch the logs, `analyze.py`, `infer_block_lengths.py --locate --pass-log` | 1 |
+| | Total | about 40 |
+
+Steps per pass: 8, 16, 24, 32, 48, 64, 96, 126. A pass is about 4.5 minutes for 2121 and 6 for
+2738 (their low steps take the full 60 s of measuring, the high ones about 13 s). One log per
+pass; every command below runs from the repo root, with `/tmp/sm` as the scratch folder.
+
+```bash
+MJ=jmri/layouts/hart/scripts/speedmatch/make_job.py
+DJ=jmri/layouts/hart/scripts/speedmatch/drop_job.sh
+# part 2 and 3: 2121 (a fresh job each time: the log name carries the time)
+python3 $MJ steps --loco "CSX 2121" --direction forward --mode distance --mute-sound --guard default --out /tmp/sm/d_2121_f.py
+python3 $MJ steps --loco "CSX 2121" --direction reverse --mode distance --mute-sound --warm-s 0 --guard default --out /tmp/sm/d_2121_r.py
+# part 4 and 5: 2738
+python3 $MJ steps --loco "CSX 2738" --direction forward --mode distance --guard default --out /tmp/sm/d_2738_f.py
+python3 $MJ steps --loco "CSX 2738" --direction reverse --mode distance --warm-s 0 --guard default --out /tmp/sm/d_2738_r.py
+$DJ /tmp/sm/d_2121_f.py        # wait for END in the log, fetch it, then the next
+```
+
+Each pass sets the loco's own throttle to 0 at the end. Between passes drop the next job only
+after the log shows `END` (the runner holds `/tmp/speedrun.active`). After reversing, the loco
+simply runs the other way round the loop from where it stopped.
+
+Part 6, Switch 13. Line up loop 2, then put a loco two blocks behind Switch 5 on the route, so it
+is at speed when it reaches the first pin (`BS Switch 1`, then Brick-Plane, then Switch 5; pick
+the throttle direction that runs it that way):
+
+```bash
+python3 $MJ lineup --route loop2
+python3 $MJ move --loco "CSX 2121" --direction forward --step 24 --until "BS Switch 1" --route loop2 --guard default --out /tmp/sm/m.py
+python3 $MJ pass --loco "CSX 2121" --direction forward --step 24 --from "BS Switch 5" --to "BS Switch 15" \
+    --route loop2 --guard default --out /tmp/sm/pass24.py       # then again with --step 48
+```
+
+Do the step 24 pass, bring the loco back round to Switch 1 with `move`, and do step 48. Then:
+
+```bash
+python3 jmri/layouts/hart/scripts/infer_block_lengths.py --route loop2 --locate \
+    --pass-log /tmp/sm/pass_*_step24_*.log /tmp/sm/pass_*_step48_*.log
+```
+
+It reports each pass (speed between the pins, then OS Switch 7 and OS Switch 13 centres in mm
+from Switch 5's points and in mm before OS Switch 15's centre), then the mean of the passes and how far
+they differ. A large difference between step 24 and step 48 means the loco was still speeding up at
+Switch 5: repeat with the loco further back. Use the mean as the placement.
 
 ## Running it (Part D), step by step
 
@@ -284,6 +350,108 @@ or CV, and holds `/tmp/speedrun.active` like the other jobs.
 to the Mac and Windows with `tools/hosts/sync_roster_from_pi.sh`; do not edit the roster on
 another host in between.
 
+## Distance mode
+
+`make_job.py steps --mode distance` is the quick form of the step profile. Laps mode (the default,
+above) is unchanged. Distance mode makes one continuous pass: warm-up for a time, then every
+step in order without stopping, then speed 0 with the loco's own throttle. It has the same guards,
+kill flag, stall limit and active marker (all from `jobkit.py`). No laps are counted.
+
+- **Steps** default to `8,16,24,32,48,64,96,126` (`--steps`, still whole numbers 1 to 126).
+- **Warm-up** `--warm-s 60 --warm-step 48`, in seconds (0 = none).
+- **Settle** after each step change, momentum plus a margin:
+  `settle_s = 0.896 x CV3 x |step change| / 126 + 2` going up, with CV4 in place of CV3 going down.
+  `--cv3` and `--cv4` default to 26 and 24 (the roster values of both locos) and are logged. The
+  runner logs `SETTLE`, waits, and measuring starts at the next `ACTIVE` of a route sensor.
+- **Measuring.** A block is read when it was crossed whole: entry of block k to entry of block
+  k+1, both on the route, in travel order, with a trusted length. A missed sensor restarts the
+  chain. A step ends when the crossed blocks add up to `--target-mm` (6000) over at least
+  `--min-blocks` (2) blocks (reason `settled`), or after `--max-s` (60) seconds of measuring. The
+  speed is sum(mm) / sum(seconds). A step that ran out of time still counts when it has at least
+  `--min-blocks` blocks whose speeds spread no more than `--rel` (reason `timed`, used like
+  `settled`); with fewer blocks or more spread it is `max` and not used. `stalled` is not used.
+- **Spread.** If the single-block speeds at that point spread more than `--rel` (0.03) and another
+  `--target-mm` still fits in the time left, the step takes one more reading of that length once
+  (logged as `EXTRA`) and the speed is over all the blocks.
+- **Stall.** No route sensor event for `--stall` seconds (120, following the pace of settled
+  steps up to `--stall-cap`) ends the run; a stall at or below `--stall-skip-below` (6) only skips
+  that step. A stalled step logs `STEPDONE ... reason=stalled`.
+
+`analyze.py` replays a distance log the same way (it reads `CFG mode=distance`, the logged
+distance settings, and the sensor events from `MEASURE` on, through the same `liverule.py`
+classes) into `profile.csv`: one row per step, speed in `median_mm_s`, `readings` = blocks, `settled`
+when the step ended `settled` or `timed`. `profile_to_roster.py` and `correct.py` take those rows
+(both reasons); a `max` or `stalled` step is left out of the roster profile.
+
+## The pass job
+
+`make_job.py pass` runs one timed pass through a stretch of a route and logs every sensor event,
+to place OS Switch 7 and OS Switch 13 from times:
+
+```bash
+python3 $MJ pass --loco "CSX 2121" --direction forward --step 24 --from "BS Switch 5" --to "BS Switch 15" \
+    --route loop2 --guard default --out /tmp/sm/pass24.py
+```
+
+The loco starts from rest at `--step` (position it a couple of blocks behind `--from` so it is at
+speed there), and is stopped with its own throttle once `--to` has lit and then the sensor one
+block further on (BS S-R for Switch 15) has lit, or after `--max-s` (240 s), a stall (`--stall`,
+120 s), the kill flag or a guard. `--from`, `--to` and that last sensor are refused if they are
+not on the route or are also guards. `infer_block_lengths.py --route loop2 --locate --pass-log LOG
+[LOG ...]` places the two centres between the Switch 5 and Switch 15 pins: speed is taken as
+constant between them, the centre of a section is halfway between its entry and the entry of the
+next section in travel, and the pins' centres sit at their plan positions (140 and 5909 mm from
+Switch 5's points). Each pass is reported, then the mean and the spread.
+
+## Log lines
+
+Every line is `<epoch seconds with 3 decimals> <message>`. The live dashboard reads exactly these;
+key=value pairs have no spaces in their values (spaces in names become underscores, as in `mid=`).
+
+```
+RUN loco=<roster id> direction=<forward|reverse>
+CFG route=<r> mode=distance steps=<a,b,..> target_mm=<n> min_blocks=<n> max_s=<n> rel=<r> warm_s=<n> warm_step=<n> cv3=<n> cv4=<n> mid=<...>
+LENGTHS <json {sensor user name: mm}>
+WARMUP <step> secs=<n>
+WARMUP_DONE
+STEP <n>
+SETTLE <n> secs=<s>
+MEASURE <n> from=<sensor user name>
+SENS <sensor user name> <ACTIVE|INACTIVE|UNKNOWN|INCONSISTENT>
+BLOCK <step> block=<sensor_user_name_with_underscores> mm=<len> dt=<s> mm_s=<v>
+FREEZE <n>
+STEPDONE <n> reason=<settled|timed|max|stalled> n=<blocks> mm=<sum> s=<sum> mm_s=<v> relsd=<r>
+PATH <sensor>,<sensor>,...
+PASS step=<n> from=<sensor> to=<sensor>
+PASSDONE reason=<..>
+STOP <why>
+END
+```
+
+- Distance mode logs, per step: `STEP`, `SETTLE`, `MEASURE`, then `SENS` and `BLOCK` lines, then
+  `FREEZE`, then `STEPDONE`. `FREEZE <n>` is the moment the runner stops taking blocks (before
+  the totals are worked out); a `SENS` line between `FREEZE` and `STEPDONE`, or between `STEP`
+  and `MEASURE`, is not measured, and the analysis counts events only from `MEASURE` to
+  `FREEZE`. `SENS` lines are logged for every block sensor and guard, in the order events were
+  fed; the `RUN` and `LENGTHS` lines are as in laps mode (laps mode's `CFG`, `WARMUP n laps=`,
+  `WARMUP_LAP`, `READ` and `STEPDONE ... median=` lines are unchanged).
+- Also logged, outside the dashboard's contract: `EXTRA <n> relsd=<r>` when a step takes its one
+  extra reading, `NO GUARD`, and the end of run lines `speed 0`, `F<n> off`, `throttle released`,
+  `ERROR <..>`.
+- The pass job logs `RUN`, `CFG route=<r> mode=pass step=<n> max_s=<n>`, `PATH`, `PASS`, `SENS`,
+  `PASSDONE reason=<passed|max|stalled|killed|guard_<name>|..>`, then `STOP` and `END`. In `PASS`,
+  `from=` and `to=` are the sensor user names as they are (spaces kept). `PATH` is the sensors
+  expected from `from` to `to`, the shorter way round the route, user names as they are,
+  comma separated, logged just before `PASS`. A route sensor that is not on it lighting after
+  `from` and before `to` stops the pass at once (`PASSDONE reason=wrong_way`, `STOP wrong way`).
+  `infer_block_lengths.py` refuses a pass whose sensors did not light in the `PATH` order, and a
+  pass whose `from` and `to` are not both pins of the route's plan (it names the pins). `analyze.py`
+  skips a log whose `CFG` says `mode=pass`.
+- `MEASURE ... from=` is the user name as it is (spaces kept); only `BLOCK ... block=` and `mid=`
+  use underscores.
+- `STEPDONE ... n=0` (and `mm=0.0 s=0.00 mm_s=0.0 relsd=0.0000`) when a step took no readings.
+- A run is complete when it ends `STOP all steps complete`.
+
 ## Loop 2 (S-R, Scale, Barn): placing Switch 13
 
 Loop 1 placed Switch 7b on the AnyRail plan. A second timed loop does the same for OS Switch 13
@@ -306,6 +474,9 @@ command turnouts):
 (Loop 1 is 5 closed, 7 closed, 33 thrown, 35 closed, 37 thrown, 39 thrown, 23 closed, 1 thrown.)
 The guard for loop 2 includes BS Main East, BS East Main Ext and BS Switch 7b, which loop 1 runs
 over.
+
+The quick way is the pass job above (two passes at steps 24 and 48). The lap survey below
+gives the same placement plus the lengths of Scale, Barn, S-R, OS 23b and OS 31.
 
 Survey run, one loco and direction, at least 3 laps per step (the first lap of each step is
 dropped, so allow one more):
@@ -363,6 +534,9 @@ settings in the job, and each is logged:
   entries. A different decoder needs its own list from the manual.
 - The service-mode read uses JMRI's global programmer. If the Pi's JMRI has none set, the log
   says `NO PROGRAMMER` and nothing is read.
-- The Jython runner and preflight have only been checked as text and for syntax shape in tests;
-  the first real run on the Pi is their first run in JMRI. Try `--steps 24 --warm-laps 0`
-  first.
+- The Jython runners and preflight have only been checked as text and for syntax shape in tests
+  (the distance and pass runners also run in a simulation, as Python 3); the first real run on the
+  Pi is their first run in JMRI. Use the first two steps of the first pass as the shakedown, or
+  try `--mode distance --steps 24 --warm-s 0` first.
+- Distance mode needs at least two trusted blocks in a row on the route; a route with few trusted
+  lengths gives steps that end on time with few or no blocks.

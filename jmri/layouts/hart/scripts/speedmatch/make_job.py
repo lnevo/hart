@@ -2,6 +2,9 @@
 """Build a job file for the Pi's jmri_cmd_watcher: settings, then the shared logic, then the runner.
 
     make_job.py steps     --loco "CSX 2738" --direction reverse --out /tmp/job_steps.py
+    make_job.py steps     --loco "CSX 2121" --direction forward --mode distance --guard default --out job.py
+    make_job.py pass      --loco "CSX 2121" --direction forward --step 24 --from "BS Switch 5" --to "BS Switch 15" \\
+                          --route loop2 --guard default --out job.py
     make_job.py lineup    --route loop2        # the switch positions to set by hand
     make_job.py preflight --loco "CSX 2738" --out /tmp/job_preflight.py
     make_job.py stoptest  --loco "CSX 2121" --direction reverse --step 96 --trigger "BS Switch 33" --out job.py
@@ -137,6 +140,44 @@ def build_steps(a, lengths):
             + runner_text("step_runner.py"))
 
 
+def build_distance(a, lengths):
+    """steps --mode distance: one continuous pass, each step measured over a distance."""
+    order = analyze.route_order(a.route)
+    s = {
+        "LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward",
+        "FUNCS": [0] + ([8] if a.mute_sound else []),
+        "GUARD": guards(a.guard, a.route), "MID": analyze.route_mid(a.route),
+        "ROUTE": a.route, "ORDER": order, "LENGTHS": lengths,
+        "STEPS_LIST": a.steps, "WARM_S": a.warm_s, "WARM_STEP": a.warm_step,
+        "TARGET_MM": a.target_mm, "MIN_BLOCKS": a.min_blocks, "MAX_S": a.max_s, "REL": a.rel,
+        "CV3": a.cv3, "CV4": a.cv4,
+        "STALL0": a.stall, "STALL_CAP": a.stall_cap, "STALL_SKIP_BELOW": a.stall_skip_below,
+    }
+    return ((HERE / "liverule.py").read_text() + "\n" + settings_text(s)
+            + runner_text("distance_runner.py"))
+
+
+def build_pass(a):
+    order = analyze.route_order(a.route)
+    g = guards(a.guard, a.route)
+    for n in (a.frm, a.to):
+        if n not in order:
+            raise SystemExit("%r is not a %s sensor user name; give one of: %s" % (n, a.route, ", ".join(order)))
+    if a.frm == a.to:
+        raise SystemExit("--from and --to are the same sensor")
+    after = lr.next_after(order, a.frm, a.to)
+    if after == a.frm:
+        raise SystemExit("no sensor between --to and --from to end the pass on")
+    for n in lr.path_between(order, a.frm, a.to) + [after]:
+        if n in g:
+            raise SystemExit("%r is also a guard: the run would end before the pass is done" % n)
+    s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
+         "FUNCS": [0] + ([8] if a.mute_sound else []), "GUARD": g, "ROUTE": a.route, "ORDER": order,
+         "FROM_S": a.frm, "TO_S": a.to, "AFTER_S": after, "PATH": lr.path_between(order, a.frm, a.to), "MAX_S": a.max_s, "STALL": a.stall}
+    return ((HERE / "liverule.py").read_text() + "\n" + settings_text(s)
+            + runner_text("pass_runner.py"))
+
+
 def build_move(a):
     s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
          "UNTIL": list(a.until), "GUARD": guards(a.guard, a.route), "FUNCS": [0] + ([8] if a.mute_sound else []),
@@ -190,11 +231,24 @@ def main(argv=None):
     st = sub.add_parser("steps", help="warm-up and step profile of one loco in one direction")
     st.add_argument("--loco", required=True, help='roster id, e.g. "CSX 2738"')
     st.add_argument("--direction", required=True, choices=["forward", "reverse"])
-    st.add_argument("--steps", type=step_list, default=DEFAULT_STEPS, help="whole steps 1..126, comma separated")
-    st.add_argument("--warm-laps", type=int, default=DEFAULT_WARM_LAPS)
-    st.add_argument("--warm-step", type=int, default=DEFAULT_WARM_STEP)
+    st.add_argument("--mode", choices=["laps", "distance"], default="laps",
+                    help="laps (default): readings per step, warm-up in laps; distance: one continuous pass, "
+                         "each step measured over --target-mm of whole blocks")
+    st.add_argument("--steps", type=step_list, default=None,
+                    help="whole steps 1..126, comma separated (default: laps %s, distance %s)" % (
+                        ",".join(map(str, DEFAULT_STEPS)), ",".join(map(str, lr.DIST_STEPS))))
+    st.add_argument("--warm-laps", type=int, default=DEFAULT_WARM_LAPS, help="laps mode: laps before measuring")
+    st.add_argument("--warm-step", type=int, default=None,
+                    help="step of the warm-up (default 64 laps, 48 distance)")
+    st.add_argument("--warm-s", type=float, default=lr.DIST_WARM_S, help="distance mode: warm-up seconds (0 = none)")
+    st.add_argument("--target-mm", type=float, default=lr.DIST_TARGET_MM, help="distance mode: distance per step")
+    st.add_argument("--min-blocks", type=int, default=lr.DIST_MIN_BLOCKS, help="distance mode: fewest blocks per step")
+    st.add_argument("--max-s", type=float, default=lr.DIST_MAX_S, help="distance mode: seconds of measuring per step")
+    st.add_argument("--cv3", type=int, default=lr.DIST_CV3, help="distance mode: acceleration CV (settle time)")
+    st.add_argument("--cv4", type=int, default=lr.DIST_CV4, help="distance mode: deceleration CV (settle time)")
     st.add_argument("--k", type=int, default=lr.STOP_K)
-    st.add_argument("--rel", type=float, default=lr.STOP_REL)
+    st.add_argument("--rel", type=float, default=None,
+                    help="spread that settles a step (default laps %g, distance %g)" % (lr.STOP_REL, lr.DIST_REL))
     st.add_argument("--max", type=int, default=lr.MAX_READINGS, dest="max_n")
     st.add_argument("--settle", type=int, default=lr.SETTLE_EVENTS)
     st.add_argument("--low-max", type=int, default=lr.LOW_MAX)
@@ -224,6 +278,17 @@ def main(argv=None):
     mv.add_argument("--max-s", type=float, default=90.0)
     mv.add_argument("--mute-sound", action="store_true")
     mv.add_argument("--log")
+    ps = sub.add_parser("pass", help="one timed pass through a stretch, to place a switch (infer_block_lengths.py --pass-log)")
+    ps.add_argument("--loco", required=True)
+    ps.add_argument("--direction", required=True, choices=["forward", "reverse"])
+    ps.add_argument("--step", type=step_value, required=True)
+    ps.add_argument("--from", dest="frm", required=True, help="sensor user name the pass starts at")
+    ps.add_argument("--to", required=True, help="sensor user name the pass goes through; it ends one block later")
+    ps.add_argument("--guard", action="append", required=True, help="as for steps: sensor names, default, or none")
+    ps.add_argument("--max-s", type=float, default=240.0, help="seconds allowed before the pass is cut off")
+    ps.add_argument("--stall", type=float, default=120.0, help="seconds without a route sensor event")
+    ps.add_argument("--mute-sound", action="store_true")
+    ps.add_argument("--log")
     pf = sub.add_parser("preflight", help="read the decoder's CVs on the programming track")
     pf.add_argument("--loco", required=True)
     pf.add_argument("--backemf", choices=sorted(BACKEMF), default="none")
@@ -244,12 +309,12 @@ def main(argv=None):
     pr.add_argument("--payload", required=True, help="JSON from profile_to_roster.py")
     pr.add_argument("--apply", action="store_true", help="write (the job is a dry run without it)")
     pr.add_argument("--log")
-    for p in (st, mv, sp):
+    for p in (st, mv, sp, ps):
         p.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE,
                        help="test route (default loop1); --guard default is every block sensor off it")
     li = sub.add_parser("lineup", help="print the switch positions to set by hand for a route")
     li.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE)
-    for p in (st, pf, mv, sp, pr):
+    for p in (st, pf, mv, sp, pr, ps):
         p.add_argument("--out", required=True, help="job file to write")
     a = ap.parse_args(argv)
     if a.job == "lineup":
@@ -257,11 +322,25 @@ def main(argv=None):
         return
     tag = a.loco.replace(" ", "_") if getattr(a, "loco", None) else "profile"
     if a.job == "steps":
+        dist = a.mode == "distance"
+        if a.steps is None:
+            a.steps = list(lr.DIST_STEPS if dist else DEFAULT_STEPS)
+        if a.warm_step is None:
+            a.warm_step = lr.DIST_WARM_STEP if dist else DEFAULT_WARM_STEP
+        if a.rel is None:
+            a.rel = lr.DIST_REL if dist else lr.STOP_REL
+        if (a.warm_s > 0 if dist else a.warm_laps > 0) and not 1 <= a.warm_step <= 126:
+            sys.exit("--warm-step %d is outside 1..126" % a.warm_step)
+        if dist and (a.target_mm <= 0 or a.min_blocks < 1 or a.max_s <= 0 or a.warm_s < 0):
+            sys.exit("distance mode needs --target-mm and --max-s above 0, --min-blocks 1 or more, --warm-s 0 or more")
         a.log = a.log or "/tmp/steprun_%s_%s_%s.log" % (tag, a.direction, stamp)
         lengths = analyze.load_lengths(a.lengths, tuple(a.trusted.split(",")), analyze.route_loop(a.route))
         if sum(v is not None for v in lengths.values()) == 0:
             sys.exit("no trusted block lengths: nothing to measure over (see --trusted)")
-        text = build_steps(a, lengths)
+        text = build_distance(a, lengths) if dist else build_steps(a, lengths)
+    elif a.job == "pass":
+        a.log = a.log or "/tmp/pass_%s_%s_step%d_%s.log" % (tag, a.direction, a.step, stamp)
+        text = build_pass(a)
     elif a.job == "move":
         a.log = a.log or "/tmp/moveto_%s_%s.log" % (tag, stamp)
         text = build_move(a)
