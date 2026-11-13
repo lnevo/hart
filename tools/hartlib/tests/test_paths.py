@@ -65,7 +65,7 @@ class LayoutPathsTest(unittest.TestCase):
         self.assertTrue(Path(got["style_defaults"]).is_file())
         self.assertFalse(any(k.startswith("dispatcher") for k in got))
 
-    def test_jmri_layout_is_read(self):
+    def test_layout_is_pinned_to_hart(self):
         self.assertEqual(paths.LAYOUT, "hart")
         self.assertTrue(paths.layout_paths("other")["layout_dir"].endswith("layouts/other"))
 
@@ -131,10 +131,6 @@ class BootstrapTest(unittest.TestCase):
         self.assertNotIn("StopIteration", done.stderr)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class PinnedLayout(unittest.TestCase):
     def test_stale_jmri_layout_does_not_move_paths(self) -> None:
         import subprocess
@@ -146,3 +142,7 @@ class PinnedLayout(unittest.TestCase):
             env={**os.environ, "JMRI_LAYOUT": "linear5"}, capture_output=True, text=True, check=True)
         self.assertTrue(out.stdout.startswith("hart "), out.stdout)
         self.assertIn("jmri/layouts/hart/output/tables.xml", out.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()

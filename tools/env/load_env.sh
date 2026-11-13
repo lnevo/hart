@@ -80,4 +80,8 @@ export HART_CAR_IMAGES_FINAL="${HART_CAR_IMAGES_FINAL:-${HART_CAR_CARDS_ROOT}/ca
 export HART_STS_HELPERS="${HART_STS_HELPERS:-${STS_HELPERS_ROOT}}"
 export STS_DOCKER="${STS_DOCKER:-${STS_DOCKER_ROOT}}"
 export COMPOSE_PROFILES="${COMPOSE_PROFILES:-build}"
-export JMRI_LAYOUT="${JMRI_LAYOUT:-hart}"
+# One layout (hartlib.paths pins it); a stale value from an old archive README is replaced.
+if [[ -n "${JMRI_LAYOUT:-}" && "$JMRI_LAYOUT" != hart ]]; then
+  echo "load_env.sh: JMRI_LAYOUT=$JMRI_LAYOUT replaced by hart (the only layout)" >&2
+fi
+export JMRI_LAYOUT=hart

@@ -113,10 +113,7 @@ def loads(data: bytes, path: Path | None = None) -> Tables:
     """Parse tables bytes, keeping everything outside the root element verbatim."""
     if isinstance(data, str):
         raise TypeError("loads takes bytes; read the file with read_bytes()")
-    _check_encoding(data)
-    parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True, insert_pis=True))
-    parser.feed(data)
-    root = parser.close()
+    root = _parse(data)
     start = _root_start(data)
     end = _root_end(data, root, start)
     escapes = "elementtree" if _ET_ESCAPES.search(data) and not _JDOM_ESCAPES.search(data) else "jdom"
@@ -138,11 +135,19 @@ def read(path: Path | str | None = None) -> ET.Element:
     a save needs.
     """
     p = Path(path) if path is not None else paths.TABLES_XML
-    data = p.read_bytes()
+    return _parse(p.read_bytes())
+
+
+def _parse(data: bytes) -> ET.Element:
+    """The one parse both load() and read() use: encoding check, comments and PIs kept,
+    and a plain (un-namespaced) root element."""
     _check_encoding(data)
     parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True, insert_pis=True))
     parser.feed(data)
-    return parser.close()
+    root = parser.close()
+    if not isinstance(root.tag, str) or "}" in root.tag:
+        raise ValueError("tables root must be a plain element")
+    return root
 
 
 def jmri_running() -> bool:

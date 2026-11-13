@@ -205,10 +205,6 @@ class HostApplyInstallsStampLast(unittest.TestCase):
         self.assertIn("Join-Path $catsHome 'deploy_stamp.txt'", source)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class DirtyListUnderPipefail(unittest.TestCase):
     """A long dirty-path list must warn, not kill the deploy with SIGPIPE (exit 141)."""
 
@@ -222,3 +218,7 @@ class DirtyListUnderPipefail(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertEqual(done.stdout.splitlines()[-1], "done")
         self.assertEqual(len(done.stdout.splitlines()), 11)
+
+
+if __name__ == "__main__":
+    unittest.main()
