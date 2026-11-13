@@ -38,6 +38,8 @@ copy to drift).
 
 Tests: `jmri/layouts/hart/scripts/tests/test_speedmatch.py` (run by `./tools/check.sh`).
 
+To watch a run from the Mac while it happens, start the live page: [`DASHBOARD.md`](DASHBOARD.md).
+
 ## How a measurement works
 
 - **Warm-up first.** The loco runs 3 laps (setting) at step 64 (setting) before any

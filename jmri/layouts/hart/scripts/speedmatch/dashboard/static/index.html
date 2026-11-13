@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speed-match live</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="dot" id="livedot"></span><h1>Speed-match live</h1><span class="mode" id="mode"></span></div>
+  <div class="top-right">
+    <span class="conn" id="conn">Connecting</span>
+    <button class="btn" id="follow" hidden>Follow live run</button>
+    <button class="btn" id="theme" aria-label="Switch light and dark theme">Theme</button>
+  </div>
+</header>
+<main>
+  <div id="banner" class="banner" role="alert" hidden></div>
+  <section class="card hero" id="hero"><p class="empty">Waiting for a run. Start one with drop_job.sh, or run this server with --demo.</p></section>
+  <section class="card" id="stripcard" hidden>
+    <div class="card-h"><h2>Track</h2><span class="sub" id="stripsub"></span></div>
+    <div id="strip"></div>
+  </section>
+  <div class="two">
+    <section class="card" id="stepcard" hidden>
+      <div class="card-h"><h2>Current step</h2><span class="sub" id="stepsub"></span></div>
+      <div id="steppanel"></div>
+    </section>
+    <section class="card" id="chartcard">
+      <div class="card-h"><h2>Speed curve</h2>
+        <span class="sub">mm/s by throttle step</span>
+        <button class="btn small" id="tbl">Table</button></div>
+      <div class="legend" id="legend"></div>
+      <div class="chartwrap" id="chartwrap"><svg id="chart" role="img" aria-label="Speed in mm/s against throttle step for each run"></svg><div class="tip" id="tip" hidden></div></div>
+      <div class="datatable" id="datatable" hidden></div>
+    </section>
+  </div>
+  <div class="two">
+    <section class="card"><div class="card-h"><h2>2738 against 2121</h2><span class="sub">outside 3% is flagged</span></div><div id="compare"></div></section>
+    <section class="card"><div class="card-h"><h2>Runs</h2><span class="sub">click to focus</span></div><div id="runs"></div></section>
+  </div>
+  <section class="card"><div class="card-h"><h2>Events</h2></div><ul class="feed" id="feed"></ul></section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
