@@ -1,0 +1,140 @@
+{
+ "_layer": 1,
+ "_note": "Facts about the railroad that the AnyRail plan 5.3b does not hold or holds wrongly. T300 is right-hand (owner confirmed). Heights: peninsula top 1 in to 4.25 in (10.8 cm). Band names and the 5 cm cut are generation (layer 2) defaults kept here until B2.",
+ "edits": [
+  {
+   "op": "move",
+   "switch": "T300",
+   "through": [
+    "A",
+    "C"
+   ],
+   "onto": [
+    "23",
+    "T237"
+   ],
+   "cm_from_first": 292,
+   "z": 10.8,
+   "hand": "R"
+  }
+ ],
+ "levels": {
+  "treat": [
+   [
+    1.5,
+    5,
+    10.8
+   ]
+  ],
+  "bands": [
+   {
+    "name": "Main level",
+    "below": 5
+   },
+   {
+    "name": "Upper level, 4.25 in",
+    "below": 99
+   }
+  ]
+ },
+ "helix": {
+  "T175": "McKees Rocks",
+  "T251": "McKeesport"
+ },
+ "main_route": [
+  [
+   "McKeesport",
+   "T251"
+  ],
+  [
+   "T251",
+   "T285",
+   "direct"
+  ],
+  [
+   "T285",
+   "T262",
+   "direct"
+  ],
+  [
+   "T262",
+   "T275",
+   "direct"
+  ],
+  [
+   "T275",
+   "T273",
+   "direct"
+  ],
+  [
+   "T273",
+   "T256",
+   "direct"
+  ],
+  [
+   "T256",
+   "T233"
+  ],
+  [
+   "T233",
+   "T274"
+  ],
+  [
+   "T274",
+   "T237"
+  ],
+  [
+   "T237",
+   "T300*"
+  ],
+  [
+   "T300*",
+   "23",
+   "direct"
+  ],
+  [
+   "23",
+   "T241"
+  ],
+  [
+   "T241",
+   "T253",
+   "direct"
+  ],
+  [
+   "T253",
+   "23"
+  ],
+  [
+   "McKees Rocks",
+   "T175"
+  ],
+  [
+   "T175",
+   "T199",
+   "direct"
+  ],
+  [
+   "T199",
+   "T184"
+  ],
+  [
+   "T184",
+   "T187"
+  ],
+  [
+   "T187",
+   "T153",
+   "direct"
+  ],
+  [
+   "T153",
+   "T196"
+  ],
+  [
+   "T196",
+   "T196",
+   "direct"
+  ]
+ ]
+}

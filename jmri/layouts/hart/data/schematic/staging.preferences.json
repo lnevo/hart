@@ -1,0 +1,41 @@
+{
+ "_layer": 3,
+ "_note": "The owner's look for this sheet. Optional; never needed for a correct drawing.",
+ "title": [
+  "Staging level",
+  "Schematic diagram",
+  "From the AnyRail plan, as built"
+ ],
+ "min_cells": [
+  [
+   "T106",
+   "7a",
+   5
+  ],
+  [
+   "T106",
+   "7b",
+   5
+  ],
+  [
+   "7a",
+   "13",
+   4
+  ],
+  [
+   "13",
+   "T52",
+   4
+  ],
+  [
+   "T123",
+   "T68",
+   6
+  ],
+  [
+   "T116",
+   "T106",
+   9
+  ]
+ ]
+}

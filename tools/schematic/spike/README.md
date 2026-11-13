@@ -23,9 +23,22 @@ crossover and every turnout, and only track. It has no heights; those still come
 
 Staging is now drawn from the AnyRail export too, not from the Layout Editor panel (owner's choice,
 2026-11-13): `export_reader.py plan.xml staging.json +Staging parts.json`, then the as-built edits in
-`staging_opts.json` (relabel plan parts to switch numbers, drop the unbuilt crossover T41/T43, add the
+`staging.plan_overrides.json` (relabel plan parts to switch numbers, drop the unbuilt crossover T41/T43, add the
 Switch 7 crossover, Switch 13 and the engine terminal, name the tracks). Sample: `staging_sample.svg`.
 `le_reader.py` and `built_opts.json` remain as a cross-check against the panel.
+
+Inputs are split by kind (stream A1, 2026-11-13) into `jmri/layouts/hart/data/schematic/`:
+`<level>.plan_overrides.json` (layer 1, facts about the railroad), `<level>.hints.json` (layer 2, temporary hand
+hints that stand in for generation rules not written yet: `level_leg`, `keep_close`) and `<level>.preferences.json`
+(layer 3, the owner's look), for `staging` and `main_upper`. `layers.py` merges them; `system.py` reads all three by
+default, with `--no-preferences` and `--no-hints`:
+
+    python3 export_reader.py plan53b.xml main.json -Staging parts.json
+    python3 export_reader.py plan53b.xml staging.json +Staging parts.json
+    python3 system.py staging.json main.json out.svg [--no-preferences] [--no-hints]
+
+(`parts.json` comes from the AnyRail prototype reader over the plan's `.any` file; neither the `.any` file nor its
+custom objects are in the repo.) `system_sample.svg` redraws byte-identical from the split files.
 
 `system.py` puts staging, the main level and the upper level on one sheet in route order from the bottom up
 (sample in `system_sample.svg`). Each band's helix tracks end in a HELIX box and carry the same track names on
@@ -40,7 +53,7 @@ outside the repo.
 The spike checks its own drawing: every pair of drawn lines is tested for crossing or lying on top of
 each other, and each fault is printed with the switches either side.
 
-Main levels (2026-11-13), from the 5.3b export with the owner's as-built change (`main_asbuilt_opts.json`,
+Main levels (2026-11-13), from the 5.3b export with the owner's as-built change (`main_upper.plan_overrides.json`,
 sample in `main_asbuilt_sample.svg`):
 
 | Drawing | Faults |

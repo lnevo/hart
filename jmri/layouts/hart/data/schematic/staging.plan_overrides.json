@@ -1,9 +1,6 @@
 {
- "title": [
-  "Staging level",
-  "Schematic diagram",
-  "From the AnyRail plan, as built"
- ],
+ "_layer": 1,
+ "_note": "Facts about the railroad that the AnyRail plan 5.3b does not hold or holds wrongly. Every output uses them. Hands and legs of added switches come from the Layout Editor panel in tables.xml (Switch 9: hand R, straight EH-3, diverging EH-2).",
  "left_end": "W-1",
  "stations": {
   "Brick": [
@@ -253,43 +250,5 @@
     ]
    ]
   }
- ],
- "level_leg": {
-  "13": "C",
-  "T52": "B",
-  "T133": "C",
-  "T73": "C"
- },
- "min_cells": [
-  [
-   "T106",
-   "7a",
-   5
-  ],
-  [
-   "T106",
-   "7b",
-   5
-  ],
-  [
-   "7a",
-   "13",
-   4
-  ],
-  [
-   "13",
-   "T52",
-   4
-  ],
-  [
-   "T123",
-   "T68",
-   6
-  ],
-  [
-   "T116",
-   "T106",
-   9
-  ]
  ]
 }
