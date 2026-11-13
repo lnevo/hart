@@ -94,8 +94,11 @@ class LayoutFactsTest(unittest.TestCase):
 
     def test_a_new_difference_on_a_known_track_still_fails(self) -> None:
         report = check.run()
+        accepted = "EH-1: GUIObjects.xml labels (2,2) 'EH-1'; the CATS desk does not"
+        report.add("uss-diagram:EH-1", accepted)
         report.add("uss-diagram:EH-1", "EH-1: GUIObjects.xml labels (1,1) 'EH-1'; the CATS desk does not")
-        self.assertEqual(report.failures(check.KNOWN),
+        known = {accepted: "accepted for this test"}
+        self.assertEqual(report.failures(known),
                          ["EH-1: GUIObjects.xml labels (1,1) 'EH-1'; the CATS desk does not"])
 
     def test_throat_blocks_count_as_their_track(self) -> None:
