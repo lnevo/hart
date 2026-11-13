@@ -117,15 +117,48 @@ def pause(secs, stall):
     """wait() for secs seconds."""
     t1 = time.time() + secs
     return wait(lambda: time.time() >= t1, stall)
+def _hold(secs):
+    """Sleep secs, but False at once on a guard abort or the kill flag (why says which)."""
+    t1 = time.time() + secs
+    while time.time() < t1:
+        if ab.is_set(): return False
+        if os.path.exists("/tmp/speedrun.kill"): why[0] = "killed"; return False
+        time.sleep(0.1)
+    return True
+def set_direction(t, fwd):
+    """Set the direction and check that it holds. On the CS-105 (JMRI OlcbThrottle) the train
+    node reports its current speed and direction a moment after the throttle is handed over,
+    and that report overwrites the throttle's direction; a direction set straight away is lost
+    and the loco runs the way it last ran (seen 2026-11-13 on CSX 2121 and CSX 2738). So wait
+    for that report, then set it and require two reads 1 s apart to agree, up to 3 tries.
+    False (why says so) if it never holds, or on a guard abort or the kill flag."""
+    if not _hold(DIR_SETTLE_S): return False
+    want = "forward" if fwd else "reverse"
+    for i in range(3):
+        t.setIsForward(fwd)
+        if not _hold(1.0): return False
+        ok = bool(t.getIsForward()) == bool(fwd)
+        if ok:
+            if not _hold(1.0): return False
+            ok = bool(t.getIsForward()) == bool(fwd)
+        if ok:
+            L("DIR %s held" % want); return True
+        L("DIR %s lost, try %d" % (want, i + 1))
+    why[0] = why[0] or "direction %s did not hold" % want
+    return False
+DIR_SETTLE_S = 3.0
 def end_job(t, tl, funcs):
     """The end of every run: STOP line, 1. speed 0 on the loco's own throttle, 2. every
-    function off, 3. throttle released, then listeners removed, marker removed, END."""
+    function off except F0 (left as it is), 3. throttle released, then listeners removed, marker removed, END.
+    F0 (lights) stays on: a loco with little draw at rest (CSX 2738, no sound) reads free with
+    its lights off, and the block it stands in goes dark."""
     L("STOP " + why[0])
     if t is not None:
         try: t.setSpeedSetting(0.0); L("speed 0")
         except java.lang.Throwable, e: L("speed 0 failed %s" % e)
         except Exception, e: L("speed 0 failed %s" % e)
         for fn in funcs:
+            if fn == 0: L("F0 not switched off"); continue
             try: getattr(t, "setF%d" % fn)(False); L("F%d off" % fn)
             except java.lang.Throwable, e: L("F%d off failed %s" % (fn, e))
             except Exception, e: L("F%d off failed %s" % (fn, e))
