@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
 from hart_paths import path_tables_xml
 
 TABLES = path_tables_xml()
-EXPECTED_DESTS = 100
+EXPECTED_DESTS = 102
 
 
 def text(el: ET.Element | None, child: str) -> str:

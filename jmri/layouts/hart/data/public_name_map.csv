@@ -380,6 +380,8 @@ mast,Mast 12R,Mast 12R,Engine House,virtual $1020,Engine House | Switch 11,hidde
 mast,Mast 12L,Mast 12L,Engine House,virtual $1005,Engine House | Switch 11,
 mast,Mast 14R,Mast 14R,Barn,virtual $1019,Barn | Switch 13,hidden Barn into Switch 13; Dispatcher Stage 1
 mast,Mast 2R,Mast 2R,Brick,virtual $1023,Brick | Switch 1,hidden Brick-Plane into Switch 1; Dispatcher Stage 1
+mast,Mast 36L,Mast 36L,Princess,virtual $1025,Princess | Switch 35,hidden East Lead rear (westbound) at A56, throat Track East Lead East; Dispatcher Stage 1
+mast,Mast 40RB,Mast 40RB,Princess,virtual $1026,Princess | Switch 39,hidden K-1 rear (eastbound) at A1, throat Track K-1 West; Dispatcher Stage 1
 mast,Mast 6R,Mast 6R,Plane,virtual $1024,Plane | Switch 5,hidden Brick-Plane into Switch 5; Dispatcher Stage 1
 mast,Mast 16L,Mast 16L,South Yard,virtual $1016,South Yard | Switch 15,
 mast,Mast 18L,Mast 18L,South Yard,virtual $1008,South Yard | Switch 17,
@@ -689,3 +691,5 @@ mast,Mast 9LA,Mast 10RA,Engine House,virtual $1021,Engine House | Switch 9,histo
 mast,Mast 9LB,Mast 10RB,Engine House,virtual $1022,Engine House | Switch 9,historical alias; even signal number (was 9LB) 2026-11-12
 mast,Mast 11L,Mast 12R,Engine House,virtual $1020,Engine House | Switch 11,historical alias; even signal number (was 11L) 2026-11-12
 mast,Mast 13R,Mast 14R,Barn,virtual $1019,Barn | Switch 13,historical alias; even signal number (was 13R) 2026-11-12
+block,Track East Lead East,Track East Lead East,East End,Block 1-7,,hidden East Lead throat at A56; same occupancy as East Lead; Dispatcher rear mast 36L (2026-11-12)
+block,Track K-1 West,Track K-1 West,Princess,Block 1-1,,hidden K-1 throat at A1; same occupancy as K-1; Dispatcher rear mast 40RB (2026-11-12)

@@ -11,23 +11,14 @@ import java.lang
 import jmri
 
 
+# Matches reconcile_dispatcher_stations.STATIONS (Jython 2 cannot import it).
 STATIONS = (
-    u"Track Main West",
-    u"Track West Main Ext",
     u"Track K-1",
     u"Track K-2",
     u"Track East Lead",
-    u"Track Main East",
-    u"Track East Main Ext",
-    u"Track Brick-Plane",
     u"Track EH-1",
     u"Track EH-2",
     u"Track EH-3",
-    u"Track S-R",
-    u"Track S-1",
-    u"Track S-2",
-    u"Track S-3",
-    u"Track S-4",
     u"Track Scale",
     u"Track Barn",
     u"Track W-1",
