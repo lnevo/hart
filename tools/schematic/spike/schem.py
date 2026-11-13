@@ -49,7 +49,7 @@ def build(g, sig, T):
         return sig[n] * TAU[p] if nodes[n]["kind"] in JUNCTION else None
 
     def add(sid, src, dst, e, name):
-        strands[sid] = dict(src=src, dst=dst, edge=e["id"], name=name, cm=e["cm"],
+        strands[sid] = dict(src=src, dst=dst, edge=e["id"], ends=(e["u"], e["v"]), name=name, cm=e["cm"],
                             main=e["main"], link=e["link"], hidden=e.get("hidden", False))
         nodes[src[0]]["outs"][src[1]] = sid
         nodes[dst[0]]["ins"][dst[1]] = sid
@@ -599,6 +599,12 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
         tight = any(a in ends_ and b in ends_ for a, b in opts.get("shorten", ()))     # owner's hint: draw this run short
         if tight:
             h = 0
+        refs = lambda n: {nodes[n].get("alias"), nodes[n].get("label")} - {None}
+        for a, b, cells in opts.get("min_cells", ()):       # owner's hint: give this run at least so many cells
+            e0, e1 = s["ends"]
+            if (a in refs(e0) and b in refs(e1)) or (a in refs(e1) and b in refs(e0)):
+                if "." not in sid or b in refs(u) | refs(v):  # of a folded run, the half that reaches b
+                    h = max(h, cells)
         if nodes[u]["kind"] == "end" or nodes[v]["kind"] == "end":
             h = max(h, 1) + 1
         if nodes[u].get("sub") == "link" or nodes[v].get("sub") == "link":
@@ -1201,8 +1207,19 @@ def draw_page(bands, opts, out):
     top, foot = 96, 100                       # clear of the direction legend and the title block
     sized = []
     for title, band, *own in bands:           # measure first, so every band can be centred
-        _, w, bottom = draw_band(band, title, own[0] if own else opts, 0, 0)
-        sized.append((title, band, own[0] if own else opts, w - 110, bottom))
+        o = own[0] if own else opts
+        _, w, bottom = draw_band(band, title, o, 0, 0)
+        sized.append([title, band, o, w - 110, bottom])
+    if opts.get("equal_width"):               # stretch the narrower bands along their length to match the widest
+        widest = max(w for *_, w, _ in sized)
+        for item in sized:
+            title, band, o, w, _ = item
+            key = (title or " ").split()[0]
+            cell = o.get("band_cell", {}).get(key, o["cell"])
+            factor = min(2.5, widest / max(w, 1))
+            item[2] = dict(o, band_cell=dict(o.get("band_cell", {}), **{key: cell * factor}))
+            _, w2, bottom = draw_band(band, title, item[2], 0, 0)
+            item[3], item[4] = w2 - 110, bottom
     gap = 78
     total_h = sum(h for *_, h in sized) + gap * (len(sized) - 1) + 30
     total_w = max(w for *_, w, _ in sized) + 120
