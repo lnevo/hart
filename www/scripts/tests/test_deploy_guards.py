@@ -60,6 +60,7 @@ class PreviousManifestTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             dist = Path(tmp) / "dist"
             dist.mkdir()
+            (dist / "search-index.json").write_text('{"version": 1, "generated": "2026-01-01T00:00:00Z", "records": []}')
             argv = ["check_portal_build.py", "--dist", str(dist), "--previous", str(Path(tmp) / "absent.json"), *extra]
             with mock.patch.object(sys, "argv", argv), mock.patch.object(check.share_cards, "report", return_value=0):
                 with redirect_stdout(io.TextIOWrapper(io.BytesIO())), redirect_stderr(io.StringIO()):
