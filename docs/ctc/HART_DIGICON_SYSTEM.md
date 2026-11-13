@@ -107,7 +107,7 @@ Lamps beside OS S-R…OS S-4 on the Layout Editor panel and JMRI web, not on the
 
 - Triggers: internal turnouts `IT:HART:YL:L1…R5`
 - JMRI routes `IO:AUTO:0201–0210` fire on throw and line M2T peels
-- Layout Editor / JMRI web: USS lamp `turnouticon`s on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py` → `tables/new_tables.xml`, synced to `jmri/layouts/hart/output/tables.xml`). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red.
+- Layout Editor / JMRI web: USS lamp `turnouticon`s on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py`, run on the Mac against `jmri/layouts/hart/output/tables.xml`; it is not shipped to the hosts). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red.
 
 ### Turnout SoR (summary)
 

@@ -26,7 +26,8 @@ from uss_switch_only_columns import ensure_columns  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.append(str(ROOT / "cats/scripts"))
-from wire_digicon import PLANT_CELLS  # noqa: E402
+from wire_digicon import PLANT_CELLS  # noqa: E402  (also puts hartlib on sys.path)
+from hartlib import tables as hl_tables  # noqa: E402
 
 CATS_XML = ROOT / "cats/panels/HART_CTC.xml"
 CATS_DESIGNER = ROOT / "cats/panels/HART_Digicon.xml"
@@ -1207,6 +1208,24 @@ def patch_brick_sidi(text: str) -> str:
     return text
 
 
+def store_format(panel: str) -> str:
+    """The USS panel as a PanelPro Store writes it into tables.xml, so a rebuild changes
+    only what it means to: items locked (editable="false"), fonts as family plus name,
+    and degrees="0" on every icon. GUIObjects.xml keeps the generator's own form."""
+    panel = panel.replace('editable="true"', 'editable="false"')
+    panel = re.sub(r'fontname="([A-Za-z]+)\.(?:plain|bold|italic|bolditalic)"',
+                   r'fontFamily="\1" fontname="\1"', panel)
+    panel = re.sub(r'(<[a-zA-Z]+ url="[^"]*") scale="', r'\1 degrees="0" scale="', panel)
+    # Mast icons: the Store writes degrees after litmode.
+    panel = re.sub(r'(<signalmasticon [^>]*?) degrees="0"( clickmode="\d+" litmode="\w+")',
+                   r'\1\2 degrees="0"', panel)
+    # Head icons: no degrees on the tag, and no lunar icons (these heads have none).
+    panel = re.sub(r'(<signalheadicon [^>]*?) degrees="0"', r"\1", panel)
+    panel = re.sub(r'\n\s*<(flash)?lunar [^>]*>\s*<rotation>0</rotation>\s*</(flash)?lunar>', "", panel)
+    # The background plate sits at the panel's own indent.
+    return re.sub(r'\n[ \t]+(<positionablelabel x="-?\d+" y="0" level="1" )', r"\n    \1", panel)
+
+
 def apply(text: str, cells: dict, close_tag: str = "</paneleditor>") -> str:
     text = reposition_levers(text)
     text = fix_brick_signal_levers(text)
@@ -1346,27 +1365,35 @@ def main() -> None:
     ap.add_argument("--tables", type=Path, default=None,
                     help="Optional. output/tables.xml or jmri/layouts/hart/output/tables.xml — never tables/tables.xml")
     ap.add_argument("--preview", type=Path, default=None)
+    ap.add_argument("--xml-only", action="store_true",
+                    help="write only --gui and --tables; no icon GIFs and no profile copy (tests)")
     args = ap.parse_args()
+    if not args.xml_only and hl_tables.jmri_running():
+        sys.exit("PanelPro or CATS is open: quit it first; the rebuild installs icons and "
+                 "GUIObjects.xml into JMRI_UserFiles")
     if args.tables and args.tables.resolve() == SOURCE_TABLES.resolve():
         sys.exit("refusing to write tables/tables.xml")
 
-    write_cell_icons()
+    if not args.xml_only:
+        write_cell_icons()
     cells = parse_cats(args.cats)
     txt = args.gui.read_text()
     new = apply(txt, cells)
     args.gui.write_text(new)
     print("%s: Digicon track plan regenerated" % args.gui)
-    install_preference_icons()
+    if not args.xml_only:
+        install_preference_icons()
 
     pe = re.search(r"<paneleditor\b.*?</paneleditor>", new, re.S)
     assert pe, "no paneleditor in regenerated GUI"
+    panel = store_format(pe.group(0))
 
     def embed(path: Path, replace_panel: bool) -> None:
         tables = path.read_text()
         if replace_panel:
             m = re.search(r"<paneleditor\b.*?</paneleditor>", tables, re.S)
             assert m, "no paneleditor in %s" % path
-            tables = tables[: m.start()] + pe.group(0) + tables[m.end() :]
+            tables = tables[: m.start()] + panel + tables[m.end() :]
         patched = patch_brick_sidi(tables)
         patched = ensure_columns(patched)
         if patched != tables or replace_panel:
