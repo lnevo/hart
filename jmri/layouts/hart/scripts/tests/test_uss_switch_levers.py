@@ -119,3 +119,26 @@ class GapsAndLevelsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DotsAndLabelsTest(unittest.TestCase):
+    """The points dot follows cats_inverted alone; desk titles and dated headers are not drawn."""
+
+    def test_dot_follows_cats_inverted_only(self) -> None:
+        switches = gen.facts.load_switches()
+        cells = {xy: os for xy, os in gen.PLANT_CELLS.items()}
+        plants = gen.uss_plants(switches, cells)
+        owner = {os: sw for sw in switches.values() for os in sw.os_blocks}
+        for xy, (turnout, swapped) in plants.items():
+            sw = owner[cells[xy]]
+            self.assertEqual(swapped, sw.cats_inverted, f"Switch {sw.number} at {xy}")
+        by_turnout = {t: s for t, s in plants.values()}
+        for n in (37, 39):  # closed leg is the main since the Princess redraw
+            self.assertFalse(by_turnout[switches[n].turnout], f"Switch {n}")
+
+    def test_dated_headers_and_titles_skipped(self) -> None:
+        for raw in ("DS-CTC  Rev A  Eff 2026-11-12", "DS-ABS  Rev A  Eff 2030-01-01",
+                    "CTC DIGICON", "ABS DIGICON"):
+            self.assertTrue(gen._skip_label(raw), raw)
+        for raw in ("EH-1", "BRICK", "Track Main East"):
+            self.assertFalse(gen._skip_label(raw), raw)
