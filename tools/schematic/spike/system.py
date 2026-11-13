@@ -21,7 +21,7 @@ def main(built, built_opts, main_graph, main_opts, out, helix_style="letters"):
             name = mo.get("helix", {}).get(N[a].get("label"))
             if name and N[b]["kind"] == "end" and e["cm"] > 300:
                 e["names"], e["main"] = [name], True
-                N[b].update(sub="helix", to="Staging")
+                N[b].update(sub="helix", to="Staging", side="west")   # ADR-022: out of the helix, still eastward
     if mo.get("main_route"):
         keep = {e["id"] for e in g["edges"] if e["names"]}
         schem.mark_main(g, mo["main_route"])

@@ -912,6 +912,12 @@ def layout_one(g, sig, T, opts, warnings):
             sig = {n: -s for n, s in sig.items()}
             nodes, strands = build(g, sig, T)
             col = columns(nodes, strands)
+    sided = [(d["side"], bool(d["outs"])) for d in nodes.values() if d["kind"] == "end" and d.get("side")]
+    wrong = sum((side == "west") != starts for side, starts in sided)     # an end marked west should be a left-hand start
+    if sided and wrong * 2 > len(sided):
+        sig = {n: -s for n, s in sig.items()}
+        nodes, strands = build(g, sig, T)
+        col = columns(nodes, strands)
     order, snaps, enclosed, free, ev = sweep(nodes, strands, col, warnings.append)
     rows = Rows(nodes, strands, snaps, free, opts.get("level_leg"))
     xcons, refused = set(), set()

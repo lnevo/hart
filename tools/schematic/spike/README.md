@@ -53,8 +53,18 @@ tracks that never run side by side are kept apart along the row, not stacked on 
 had pushed T155 to the bottom). A long track always gets a level run, so the three parallel tracks west of
 T162 and T160 show as three.
 
-Known gaps:
+Known gaps (end of the 2026-11-13 session):
 
-- Switch labels are the plan's part numbers (T…), three junctions unmatched; no track or station names.
-- The helix tracks on the main level end as plain stubs; they should be connectors to staging.
-- Switch numbers collide in places; a crossover's number is printed on both halves; no page folding; no capacity.
+- **Upper band after the helix-top move.** The owner asked for the helix-top switches (T285, T251, T175, T199)
+  to be drawn on the upper band, with H1/H2 there and connector A at T199 (`levels.assign` in
+  `main_asbuilt_opts.json`). It draws without crossings, but H1 and H2 sit mid-band instead of at the west
+  end, the double crossover spans three rows and is reported with its two tracks in swapped order (not
+  verified to connect the right tracks), and the moved T300 is set left-hand by trial. This band needs its
+  rows and ends worked out next.
+- A band has no rule for which end is which except `left_end` (staging) and `side` on helix ends (upper).
+- Main weight on the upper band follows `main_route`, chosen by the agent, not the owner.
+- AnyRail's section names (Mainline, Branchline) are layer placeholders (owner, 2026-11-13); band titles are
+  the spike's own.
+- Labels are not checked for collisions (the connector text can overlap a track); switch numbers collide in
+  places; a crossover's number is printed on both halves; no page folding; no capacity.
+- Switch labels on the main and upper bands are plan part numbers, three junctions unmatched; no names there.
