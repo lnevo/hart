@@ -601,6 +601,8 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
             h = 0
         if nodes[u]["kind"] == "end" or nodes[v]["kind"] == "end":
             h = max(h, 1) + 1
+        if nodes[u].get("sub") == "link" or nodes[v].get("sub") == "link":
+            h, tight = 1, True          # a connector gets one short level cell, never more
         w = max(1, su + sv + h) + sum(nodes[t]["kind"] == "dx" for t in (u, v))
         need[sid] = (su, sv, w)
         cons.append((u, v, w))
@@ -658,7 +660,7 @@ def overlaps(nodes, strands, R, x, need, order):
         if sid in R["diag"]:
             continue
         su, sv, _ = need[sid]
-        room = lambda n: 1 if nodes[n].get("sub") in ("link", "helix") else 0     # a connector's circle needs a cell
+        room = lambda n: 1 if nodes[n].get("sub") in ("link", "helix") else 0     # a connector circle needs a cell
         spans.append((R["srow"][sid], x[s["src"][0]] + su - room(s["src"][0]),
                       x[s["dst"][0]] - sv + room(s["dst"][0]), sid))
     found = set()
