@@ -30,6 +30,7 @@ from urllib.parse import unquote, urlsplit
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 import share_cards  # noqa: E402
+from photo_tabs import tab_subs  # noqa: E402
 # Data fields that pages turn into links or image sources (provenance fields such as
 # layout-index "source" name workspace files and are only shown as text).
 LINK_KEYS = {"src", "thumb", "logo", "img", "rotated", "href", "html", "pdf", "page", "pages", "article", "more", "path", "previewSrc"}
@@ -123,28 +124,54 @@ def _drawn_ids(root: Path, page: str) -> set:
     return {e["id"] for k in ("industries", "offline", "desk") for e in sheet.get(k) or [] if e.get("id")}
 
 
+# The Photos tabs whose items js/*.js open from #<tab>/<item id>: the built data file behind each.
+PHOTO_TABS = {"rolling-stock": "fleet-gallery.json", "historical": "archive.json", "layout": "gallery.json"}
+
+
+def tab_slugs(root: Path, tab: str) -> set[str]:
+    """Sub-chip hashes a Photos tab reads as chips (#rolling-stock/freight), from the page's own CATS map."""
+    return set(tab_subs(root, tab))
+
+
 def fleet_album_slugs(root: Path) -> set[str]:
-    """Album hashes the Photos page reads as chips (#rolling-stock/freight), from the page's own CATS map,
-    so a new album slug is covered without a second list here."""
-    page = root / "photos" / "index.html"
-    text = page.read_text(encoding="utf-8") if page.is_file() else ""
-    m = re.search(r'"rolling-stock":\s*\{[^{}]*subs:\s*\{([^}]*)\}', text)
-    return set(re.findall(r'"?([\w-]+)"?\s*:', m.group(1))) if m else set()
+    return tab_slugs(root, "rolling-stock")
 
 
-def _fleet_ids(root: Path) -> set[str]:
-    """Item ids in the built fleet-gallery.json: the anchors js/fleet.js opens as photos/#rolling-stock/<id>."""
-    return {str(i["id"]) for i in _items(root, "fleet-gallery.json") if i.get("id")}
+def _tab_items(root: Path, tab: str, subs: dict[str, str]) -> list:
+    """The items a tab shows: Historical shows only the curated bucket, and Layout only the albums it
+    has chips for (the albums the page mounts), so an item outside them has no working link."""
+    items = _items(root, PHOTO_TABS[tab])
+    if tab == "historical":
+        return [i for i in items if i.get("bucket") == "curated"]
+    if tab == "layout":
+        return [i for i in items if i.get("album") in set(subs.values())]
+    return items
+
+
+def tab_info(root: Path, tab: str) -> tuple[list[str], set[str]]:
+    """(ids of the items the tab shows, in order, with "" for a missing id; its chip slugs), read once."""
+    subs = tab_subs(root, tab)
+    return [str(i.get("id") or "") for i in _tab_items(root, tab, subs)], set(subs)
+
+
+def tab_ids(root: Path, tab: str) -> set[str]:
+    """Item ids the tab's script opens as photos/#<tab>/<id>."""
+    return {i for i in tab_info(root, tab)[0] if i}
+
+
+def tab_id_problems(root: Path, tab: str, info: tuple[list[str], set[str]] | None = None) -> list[str]:
+    """Every item a tab opens by id needs a unique id that is not a chip name, or it has no deep link
+    and no search record (the chip would open instead)."""
+    name = PHOTO_TABS[tab]
+    ids, slugs = info or tab_info(root, tab)
+    bad = [f"data/{name}: item {n} has no id" for n, i in enumerate(ids) if not i]
+    bad += [f"data/{name}: id {i} is used twice" for i in sorted({i for i in ids if i and ids.count(i) > 1})]
+    bad += [f"data/{name}: id {i} is a chip name, so its link would open the chip" for i in ids if i in slugs]
+    return bad
 
 
 def fleet_id_problems(root: Path) -> list[str]:
-    """Every rolling-stock item needs a unique id, or it has no deep link and no search record."""
-    ids = [str(i.get("id") or "") for i in _items(root, "fleet-gallery.json")]
-    bad = [f"data/fleet-gallery.json: item {n} has no id" for n, i in enumerate(ids) if not i]
-    bad += [f"data/fleet-gallery.json: id {i} is used twice" for i in sorted({i for i in ids if i and ids.count(i) > 1})]
-    slugs = fleet_album_slugs(root)
-    bad += [f"data/fleet-gallery.json: id {i} is an album name, so its link would open the album" for i in ids if i in slugs]
-    return bad
+    return tab_id_problems(root, "rolling-stock")
 
 
 def index_problems(root: Path) -> list[str]:
@@ -158,16 +185,21 @@ def index_problems(root: Path) -> list[str]:
         return [f"search-index.json is not valid JSON: {err}"]
     if not isinstance(index, dict) or index.get("version") != 1 or not isinstance(index.get("records"), list) or not index.get("generated"):
         return ["search-index.json: expected version 1, generated and a records list"]
-    bad = fleet_id_problems(root)
-    fleet_ids, slugs = _fleet_ids(root), fleet_album_slugs(root)
+    infos = {tab: tab_info(root, tab) for tab in PHOTO_TABS}
+    bad = [p for tab in PHOTO_TABS for p in tab_id_problems(root, tab, infos[tab])]
+    tab_data = {tab: ({i for i in ids if i}, slugs) for tab, (ids, slugs) in infos.items()}
     drawn: dict[str, set] = {}  # ids a page's script draws, read once per page
     page_ids: dict[Path, set] = {}  # each anchored page is parsed once
     for n, rec in enumerate(index["records"]):
         where = f"search-index.json record {n}"
         fields = ("title", "url", "kind", "snippet", "text")
-        if not isinstance(rec, dict) or set(rec) != set(fields) or not all(isinstance(rec[f], str) for f in fields):
-            bad.append(f"{where}: needs exactly the string fields {', '.join(fields)}")
+        if not isinstance(rec, dict) or not set(fields) <= set(rec) <= {*fields, "thumb"} or not all(isinstance(v, str) for v in rec.values()):
+            bad.append(f"{where}: needs exactly the string fields {', '.join(fields)}, and optionally thumb")
             continue
+        if "thumb" in rec:
+            thumb = _target(rec["thumb"], root, root)
+            if rec["thumb"].startswith("/") or thumb is None or not thumb.is_file() or not _resolves(thumb, root):
+                bad.append(f"{where} ({rec['url']}): thumb {rec['thumb']!r} must be a built file, site-root-relative with no leading slash")
         if len(rec["snippet"]) > 160 or len(rec["text"]) > 8000:
             bad.append(f"{where} ({rec['url']}): snippet over 160 or text over 8000 characters")
         if "<" in rec["title"] + rec["snippet"] + rec["text"]:
@@ -179,11 +211,13 @@ def index_problems(root: Path) -> list[str]:
         target = _target(page, root, root)
         if target is None or not _resolves(target, root):
             bad.append(f"{where}: url {rec['url']} does not resolve to a built file")
-        elif page == "photos/index.html" and anchor.startswith("rolling-stock/"):
-            # Cars are drawn by js/fleet.js, so no static id exists: check the id against the data file.
-            # An album chip (#rolling-stock/freight) is also a valid sub-hash.
-            if anchor.split("/", 1)[1] not in slugs and unquote(anchor.split("/", 1)[1]) not in fleet_ids:
-                bad.append(f"{where}: #{anchor} is not an item id in data/fleet-gallery.json")
+        elif page == "photos/index.html" and anchor.partition("/")[0] in PHOTO_TABS and "/" in anchor:
+            # Items are drawn by js/fleet.js, archive.js and gallery.js, so no static id exists: check the id
+            # against the data file. A chip name (#rolling-stock/freight) is also a valid sub-hash.
+            tab, _, sub = anchor.partition("/")
+            ids, slugs = tab_data[tab]
+            if sub not in slugs and unquote(sub) not in ids:
+                bad.append(f"{where}: #{anchor} is not an item id in data/{PHOTO_TABS[tab]}")
         elif anchor:
             file = target.resolve()
             file = file if file.is_file() else file / "index.html"

@@ -466,6 +466,26 @@
         }
       });
 
+      // Deep link: photos/#layout/<item id> (ids are in data/gallery.json; the search index links them).
+      // Shows the item's album, scrolls to the item, highlights it and opens its lightbox.
+      // Returns false when no item has that id. Kept per grid, so a page with two galleries opens the right one.
+      window.HARTGallery.openers = window.HARTGallery.openers || {};
+      window.HARTGallery.openers[opts.grid || "#gallery-grid"] = function (id) {
+        var item = items.filter(function (it) { return it.id === id; })[0];
+        if (!item) return false;
+        currentAlbum = item.album;
+        stageIndex = 0;
+        renderAlbums();
+        renderGrid();
+        return HARTOps.revealItem({
+          index: visible.indexOf(item),
+          galleryView: !!viewBar && view === "gallery",
+          setStage: function (i) { stageIndex = i; renderGrid(); },
+          grid: grid,
+          openLightbox: openLightbox,
+        });
+      };
+
       renderViews();
       renderAlbums();
       renderGrid();

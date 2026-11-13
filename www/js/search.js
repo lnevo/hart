@@ -2,9 +2,11 @@
 // you type. js/nav.js draws the button and panel and loads this file on demand.
 // Matching is a pure function (HARTSearch.match) so it can be tested with node.
 (function () {
-  var CAP = 8;
-  // Chip labels by record kind. Stage 1 sends only "page"; the rest are ready for later stages.
+  var CAP = 8; // a flat list (one group) shows this many before "Show all"
+  var GROUP_CAP = 3; // each group of a grouped list shows this many before its own "Show all"
+  // Chip labels by record kind.
   var KINDS = {
+    article: "Article",
     page: "Page",
     car: "Car",
     locomotive: "Locomotive",
@@ -57,10 +59,43 @@
     return s;
   }
 
-  // Every term must hit somewhere. Best score first; ties go to the shorter title, then index order.
-  function match(prepared, query) {
-    var terms = String(query || "").toLowerCase().split(/\s+/).filter(Boolean);
-    if (!terms.length) return [];
+  // Kind weights: articles and pages outrank photos, and rolling stock is the lowest of all (owner's call).
+  var WEIGHT = {
+    article: 1.2, page: 1.0, term: 0.9, industry: 0.9, crew: 0.9,
+    photo: 0.5, archive: 0.5, car: 0.3, locomotive: 0.3, mow: 0.3,
+  };
+  var STOCK = ["car", "locomotive", "mow"];
+  // Result groups, in tie-break order. Groups are then ordered by their best weighted score.
+  var GROUPS = [
+    { id: "pages", label: "Pages & articles", kinds: ["article", "page"] },
+    { id: "railroad", label: "Railroad", kinds: ["term", "industry", "crew"] },
+    { id: "stock", label: "Rolling stock", kinds: ["car", "locomotive", "mow"] },
+    { id: "photos", label: "Photos & archive", kinds: ["photo", "archive"] },
+  ];
+  var BEST = { id: "best", label: "Best match" };
+
+  function weight(kind) {
+    return WEIGHT[kind] || 0.5;
+  }
+  function groupOf(kind) {
+    for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i].kinds.indexOf(kind) !== -1) return i;
+    return GROUPS.length - 1;
+  }
+
+  // The whole query equals the whole title, or one whole word of it ("2738", "NVL", "YM-01").
+  function isExact(p, q) {
+    if (!q) return false;
+    if (p.title === q) return true;
+    var words = p.title.split(/[\s,;:()\u2014\u2013|/]+/);
+    for (var i = 0; i < words.length; i++) {
+      var w = words[i].replace(/^[^a-z0-9&]+|[^a-z0-9&]+$/g, "");
+      if (w && w === q) return true;
+    }
+    return false;
+  }
+
+  // Scored matches (flat): every term must hit somewhere. Best first; ties go to the shorter title.
+  function scored(prepared, terms) {
     var out = [];
     for (var i = 0; i < prepared.length; i++) {
       var p = prepared[i];
@@ -73,17 +108,72 @@
         }
         total += s;
       }
-      if (total) out.push({ p: p, score: total });
+      if (total) out.push({ p: p, score: total, w: total * weight(p.rec.kind) });
     }
-    out.sort(function (a, b) {
-      return b.score - a.score || a.p.title.length - b.p.title.length || a.p.i - b.p.i;
-    });
-    return out.map(function (x) {
-      return x.p.rec;
-    });
+    return out;
+  }
+  function byScore(a, b) {
+    return b.w - a.w || a.p.title.length - b.p.title.length || a.p.i - b.p.i;
   }
 
-  var api = { match: match, prepare: prepare, kindLabel: kindLabel, KINDS: KINDS, CAP: CAP };
+  // Ranked, grouped results: { total, flat, groups: [{id, label, items: [record]}] }.
+  // Exact hits form a leading "Best match" group; the rest go into kind groups ordered by their best
+  // weighted score. When only one group has results, flat is true and the heading is not drawn.
+  function rank(prepared, query) {
+    var raw = String(query || "").toLowerCase().trim();
+    var terms = raw.split(/\s+/).filter(Boolean);
+    var res = { total: 0, flat: true, groups: [] };
+    if (!terms.length) return res;
+    var hits = scored(prepared, terms).sort(byScore);
+    var exact = [];
+    var rest = [];
+    // Only the best few exact hits lead; a query like "b&o" is a whole word of dozens of cars, and the
+    // rest of those join their own groups so pages and articles are not pushed out.
+    // Rolling stock leads only for a number ("2738"), never for a road name ("b&o").
+    var numeric = /[0-9]/.test(raw);
+    hits.forEach(function (h) {
+      var lead = isExact(h.p, terms.join(" ")) && (numeric || STOCK.indexOf(h.p.rec.kind) === -1);
+      (lead && exact.length < GROUP_CAP ? exact : rest).push(h);
+    });
+    var buckets = GROUPS.map(function (g) {
+      return { id: g.id, label: g.label, items: [], best: 0, order: 0 };
+    });
+    rest.forEach(function (h) {
+      var b = buckets[groupOf(h.p.rec.kind)];
+      b.items.push(h);
+      if (h.w > b.best) b.best = h.w;
+    });
+    buckets = buckets.filter(function (b) { return b.items.length; });
+    buckets.forEach(function (b, i) { b.order = i; });
+    // Rolling stock is always the last group, whatever its score.
+    buckets.sort(function (a, b) {
+      return (a.id === "stock") - (b.id === "stock") || b.best - a.best || a.order - b.order;
+    });
+    var groups = [];
+    if (exact.length) groups.push({ id: BEST.id, label: BEST.label, items: exact });
+    groups = groups.concat(buckets);
+    groups.forEach(function (g) {
+      g.items = g.items.map(function (h) { return h.p.rec; });
+    });
+    res.groups = groups;
+    res.flat = groups.length < 2;
+    res.total = hits.length;
+    return res;
+  }
+
+  // Flat list in display order (kept for callers and tests that want only the order).
+  function match(prepared, query) {
+    var out = [];
+    rank(prepared, query).groups.forEach(function (g) {
+      out = out.concat(g.items);
+    });
+    return out;
+  }
+
+  var api = {
+    match: match, rank: rank, prepare: prepare, kindLabel: kindLabel, KINDS: KINDS, CAP: CAP,
+    GROUP_CAP: GROUP_CAP, GROUPS: GROUPS, WEIGHT: WEIGHT,
+  };
 
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window === "undefined") return;
@@ -128,9 +218,14 @@
     var shown = [];
     var active = -1;
     var showAll = false;
+    var openGroups = {}; // group ids whose "Show all" was used
+
+    function options() {
+      return list.querySelectorAll(".search-item");
+    }
 
     function setActive(n, fromMouse) {
-      var items = list.children;
+      var items = options();
       if (active >= 0 && items[active]) items[active].removeAttribute("aria-selected");
       active = n;
       if (n >= 0 && items[n]) {
@@ -179,9 +274,8 @@
         status.textContent = "Loading search";
         return;
       }
-      var all = match(prepared, q);
-      shown = showAll ? all : all.slice(0, CAP);
-      if (!all.length) {
+      var res = rank(prepared, q);
+      if (!res.total) {
         input.setAttribute("aria-expanded", "false");
         empty.hidden = false;
         empty.innerHTML = "No match. Try " + fallbackLinks() + ".";
@@ -189,23 +283,49 @@
         return;
       }
       input.setAttribute("aria-expanded", "true");
-      list.innerHTML = shown
-        .map(function (r, i) {
-          return (
-            '<li role="option" id="search-opt-' + i + '" class="search-item">' +
-            '<a tabindex="-1" href="' + esc(base + (r.url || "")) + '">' +
-            '<span class="search-kind">' + esc(kindLabel(r.kind)) + "</span>" +
-            '<span class="search-title">' + esc(r.title) + "</span>" +
-            (r.snippet ? '<span class="search-snippet">' + esc(r.snippet) + "</span>" : "") +
-            "</a></li>"
-          );
-        })
-        .join("");
-      if (all.length > shown.length) {
-        more.hidden = false;
-        more.textContent = "Show all " + all.length;
+      var n = 0;
+      function item(r) {
+        var thumb = r.thumb
+          ? '<img class="search-thumb" src="' + esc(base + r.thumb) + '" alt="" width="40" height="40" loading="lazy" decoding="async">'
+          : "";
+        return (
+          '<li role="option" id="search-opt-' + n++ + '" class="search-item' + (thumb ? " has-thumb" : "") + '">' +
+          '<a tabindex="-1" href="' + esc(base + (r.url || "")) + '">' +
+          '<span class="search-kind">' + esc(kindLabel(r.kind)) + "</span>" +
+          thumb +
+          '<span class="search-title">' + esc(r.title) + "</span>" +
+          (r.snippet ? '<span class="search-snippet">' + esc(r.snippet) + "</span>" : "") +
+          "</a></li>"
+        );
       }
-      status.textContent = all.length + (all.length === 1 ? " result" : " results");
+      // "Show all N" is an option too, so the arrow keys reach it and Enter opens the rest.
+      function moreOption(groupId, count) {
+        return (
+          '<li role="option" id="search-opt-' + n++ + '" class="search-item search-group-more" data-group="' + groupId + '">' +
+          '<span class="search-more search-group-btn">Show all ' + count + "</span></li>"
+        );
+      }
+      var html = "";
+      if (res.flat) {
+        var items = res.groups[0].items;
+        var cut = showAll ? items : items.slice(0, CAP);
+        html = cut.map(item).join("");
+        if (items.length > cut.length) html += moreOption("", items.length);
+      } else {
+        res.groups.forEach(function (g) {
+          var cut = openGroups[g.id] ? g.items : g.items.slice(0, GROUP_CAP);
+          html +=
+            '<li role="group" class="search-grp" aria-labelledby="search-grp-' + g.id + '">' +
+            '<div class="search-group" id="search-grp-' + g.id + '">' + esc(g.label) + "</div>" +
+            '<ul role="none" class="search-grp-items">' +
+            cut.map(item).join("") +
+            (g.items.length > cut.length ? moreOption(g.id, g.items.length) : "") +
+            "</ul></li>";
+        });
+      }
+      list.innerHTML = html;
+      shown = options();
+      status.textContent = res.total + (res.total === 1 ? " result" : " results");
     }
 
     var loading = false;
@@ -223,6 +343,7 @@
 
     input.addEventListener("input", function () {
       showAll = false;
+      openGroups = {};
       if (unavailable) load();
       render();
     });
@@ -236,7 +357,9 @@
         setActive(active <= 0 ? n - 1 : active - 1);
       } else if (e.key === "Enter" && n) {
         e.preventDefault();
-        go(list.children[active >= 0 ? active : 0].querySelector("a"), e);
+        var opt = shown[active >= 0 ? active : 0];
+        if (opt.hasAttribute("data-group")) expand(opt);
+        else go(opt.querySelector("a"), e);
       }
     });
     // Following a result that is the page and hash already shown changes nothing, so no hashchange
@@ -258,11 +381,26 @@
       render();
       input.focus();
     });
+    // Open the rest of a group ("" = the single flat list) and keep the highlight on the first new row.
+    function expand(opt) {
+      var g = opt.getAttribute("data-group");
+      var at = Array.prototype.indexOf.call(options(), opt);
+      if (g) openGroups[g] = true;
+      else showAll = true;
+      render();
+      input.focus();
+      if (at >= 0) setActive(at);
+    }
+    list.addEventListener("click", function (e) {
+      var opt = e.target.closest && e.target.closest(".search-group-more");
+      if (opt) expand(opt);
+    });
     // Mouse hover follows the keyboard highlight so the two never disagree.
     list.addEventListener("mousemove", function (e) {
-      var li = e.target.closest && e.target.closest("li");
+      var li = e.target.closest && e.target.closest(".search-item");
       if (!li) return;
-      var idx = Array.prototype.indexOf.call(list.children, li);
+      var idx = Array.prototype.indexOf.call(options(), li);
+      if (idx < 0) return;
       if (idx !== active) setActive(idx, true);
     });
     render();
