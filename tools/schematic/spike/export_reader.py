@@ -102,12 +102,26 @@ def main(path, out, skip=None, parts_file=None):
             (v, vp), cm, blocks, dashed = follow(s, n)
             seen.update((start, (v, vp)))
             if v.startswith("END:"):
-                nodes[v] = dict(kind="end", sub="bumper", label="")
+                ex, ey = float(pps[v[4:]].get("x")), float(pps[v[4:]].get("y"))
+                nodes[v] = dict(kind="end", sub="bumper", label="", xy=[ex, ey])
             district = collections.Counter(b for b in blocks if b).most_common(1)
             district = district[0][0].split("_", 2)[-1] if district else ""
             edges.append(dict(u=start[0], up=start[1], v=v, vp=vp, names=[], cm=round(cm, 1), link=False,
                               main="Mainline" in district, district=district, hidden=dashed))
 
+    # two track ends on the same spot are one track drawn in two pieces: join them
+    ends = [n for n, d in nodes.items() if d["kind"] == "end"]
+    joined = 0
+    for i, a in enumerate(ends):
+        for b in ends[i + 1:]:
+            if a in nodes and b in nodes and math.dist(nodes[a]["xy"], nodes[b]["xy"]) < 1.5 * PX_PER_CM:
+                ea = next(e for e in edges if e["v"] == a)
+                eb = next(e for e in edges if e["v"] == b)
+                edges.remove(eb)
+                ea.update(v=eb["u"], vp=eb["up"], cm=round(ea["cm"] + eb["cm"], 1), hidden=ea["hidden"] or eb["hidden"])
+                del nodes[a], nodes[b]
+                joined += 1
+    print("joined", joined, "pairs of track ends that met")
     if skip:
         drop = {n for n, d in nodes.items() if skip in d.get("district", "")}
         edges = [e for e in edges if e["u"] not in drop and e["v"] not in drop and skip not in e["district"]]

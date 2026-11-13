@@ -30,16 +30,19 @@ sample in `main_asbuilt_sample.svg`):
 | Drawing | Faults |
 |---------|--------|
 | One flat band | 52 crossings or overlaps, 2 switches whose leg must cross other track, 36 ordering rules dropped |
-| Two bands, cut at the rise | Main level 0. Upper level 3 crossings, all at the west end of the branch line (switches T262 and T268) |
+| Two bands, cut at the rise | 3 crossings on the upper level |
+| Two bands, coincident track ends joined, loops ordered by their bend | 0 on both bands |
 
 What fixed it: level bands with lettered connectors; choosing each switch's level leg so no above/below rule
 is broken; keeping other track clear of the columns a sloped leg passes through; a double crossover's two
-tracks on neighbouring rows.
+tracks on neighbouring rows; joining track ends the export leaves on the same spot (two pairs in 5.3b, one
+of them the main level's balloon loop at T196); stacking a loop's two tracks by which way the loop bends on
+the layout; trying the cheapest few fold-back choices and keeping the one that draws with the fewest faults.
 
 Known gaps:
 
-- The three crossings left on the upper level. The branch line's loops at the west end are not flat as the
-  spike orients them; the turnback choice there needs work, or the owner's word on what crosses what.
+- T155 and T196 on the main level sit on the bottom row with long slopes up to T160 and T162. No fault, but
+  a better row choice exists; the row search stops at a local best.
 - Switch labels are the plan's part numbers (T…), three junctions unmatched; no track or station names.
 - The helix tracks on the main level end as plain stubs; they should be connectors to staging.
 - Switch numbers collide in places; a crossover's number is printed on both halves; no page folding; no capacity.

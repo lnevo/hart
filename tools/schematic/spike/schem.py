@@ -13,6 +13,7 @@ import sys
 
 TAU = {"A": -1, "B": 1, "C": 1, "D": -1}
 JUNCTION = ("switch", "dx")
+TURN_SIGN = 1
 
 
 # ---------------------------------------------------------------- orient
@@ -118,13 +119,14 @@ def udot(g, e):
     return du[0] * dv[0] + du[1] * dv[1] if du and dv else 0.0
 
 
-def orient(g, max_turnbacks=3):
+def orient(g, max_turnbacks=3, keep=10):
+    """The cheapest ways to face every switch, best first: (facing, turnback edges)."""
     sw = [e for e in g["edges"] if all(g["nodes"][n]["kind"] in JUNCTION for n in (e["u"], e["v"]))]
     cand = [e for e in sw if not e["link"]]
     if len(cand) > 40:      # big plan: only runs that bend back on the layout may be turnbacks
         cand = [e for e in cand if udot(g, e) > -0.5]
         max_turnbacks = 5
-    best = None
+    best, found = None, []
     for k in range(max_turnbacks + 1):
         for T in itertools.combinations(cand, k):
             ids = {e["id"] for e in T}
@@ -139,13 +141,15 @@ def orient(g, max_turnbacks=3):
             cost = 10 * k + 0.2 * width
             for e in T:
                 cost += 6 * (1 - udot(g, e))   # a turnback should be a U-turn on the layout too
+            found.append((cost, sorted(ids), sig, ids))
             if best is None or cost < best[0] - 1e-9:
                 best = (cost, sig, ids)
         if best is not None and k > len(best[2]):
             break
     if best is None:
         raise SystemExit("no orientation found; raise max_turnbacks")
-    return best[1], best[2]
+    found.sort(key=lambda f: (f[0], f[1]))
+    return [(sig, ids) for _, _, sig, ids in found[:keep]]
 
 
 # ---------------------------------------------------------------- sweep
@@ -223,6 +227,13 @@ def sweep(nodes, strands, col, warn):
             s0, s1 = d["outs"][0], d["outs"][1]
             want = hint[2] if hint and len(hint) > 2 else s0
             other = s1 if want == s0 else s0
+            if hint is None:        # nothing to sit beside: take the order from which way the loop bends on the layout
+                (u, pu), (v, _) = strands[s0]["dst"], strands[s1]["dst"]
+                du = nodes[u].get("dirs", {}).get(pu)
+                if du and "xy" in nodes[u] and "xy" in nodes[v]:
+                    px, py = TURN_SIGN * -du[1], TURN_SIGN * du[0]
+                    if nodes[v]["xy"][0] * px + nodes[v]["xy"][1] * py > nodes[u]["xy"][0] * px + nodes[u]["xy"][1] * py:
+                        want, other = s1, s0
             pair = [want, other] if (hint is None or hint[1] == "below") else [other, want]
             i = where(hint)
             L[i:i] = pair
@@ -506,6 +517,21 @@ class Rows:
                     best, best_score, improved = r, sc, True
                 else:
                     self.flat[n] = "C" if self.flat[n] == "B" else "B"
+            if improved:
+                continue
+            # stuck on single changes: try two neighbouring switches together
+            pairs = {tuple(sorted((d["src"][0], d["dst"][0]))) for d in self.strands.values()
+                     if d["src"][0] in self.flat and d["dst"][0] in self.flat}
+            for a, b in sorted(pairs):
+                for n in (a, b):
+                    self.flat[n] = "C" if self.flat[n] == "B" else "B"
+                r = self.solve()
+                sc = score(r)
+                if sc[0] < best_score[0] or (sc[0] == best_score[0] and sc[1] < best_score[1] - 1e-9):
+                    best, best_score, improved = r, sc, True
+                    break
+                for n in (a, b):
+                    self.flat[n] = "C" if self.flat[n] == "B" else "B"
         self.dropped = best_score[0]
         return best
 
@@ -699,7 +725,21 @@ def split_levels(g, spec):
 
 # ---------------------------------------------------------------- lay out one band
 def layout(g, opts, warnings):
-    sig, T = orient(g)
+    """Try the cheapest few orientations and keep the drawing with the fewest faults."""
+    best = None
+    for sig, T in orient(g):
+        w = []
+        band = layout_one(g, sig, T, opts, w)
+        score = (len(faults(band)) + 3 * len(w), len(T))
+        if best is None or score < best[0]:
+            best = (score, band, w)
+        if score[0] == 0:
+            break
+    warnings.extend(best[2])
+    return best[1]
+
+
+def layout_one(g, sig, T, opts, warnings):
     nodes, strands = build(g, sig, T)
     col = columns(nodes, strands)
     if opts["left_end"]:
