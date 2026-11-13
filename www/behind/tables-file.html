@@ -72,7 +72,7 @@
         reads that file back, and the railroad is there again.
       </p>
       <p>
-        Ours is called <code>tables.xml</code>. It is about <!--tf:size-->2.2 MB<!--/tf--> and <!--tf:lines-->28,758<!--/tf--> lines long, and it has
+        Ours is called <code>tables.xml</code>. It is about <!--tf:size-->1.4 MB<!--/tf--> and <!--tf:lines-->21,242<!--/tf--> lines long, and it has
         <!--tf:top-->27<!--/tf--> top-level sections. It is in the ordinary JMRI format, stored by PanelPro
         <!--tf:version-->5.16<!--/tf-->, the main JMRI program. It holds no connection settings: how JMRI reaches the layout lives in the profile, a
         separate set of preferences. Everything else is in here, including the <!--tf:panel-count-->three panels<!--/tf--> you see on
@@ -96,19 +96,19 @@ userName    BS K-1<!--/tf--></code></pre>
       </p>
       <p>
         Mind the order. The panels are what you see first on screen, but in the file they come last:
-        about <!--tf:objects-->72%<!--/tf--> of the file is objects, then about <!--tf:panels-->28%<!--/tf--> is panels.
+        about <!--tf:objects-->56%<!--/tf--> of the file is objects, then about <!--tf:panels-->44%<!--/tf--> is panels.
         A short record of loads and stores closes the file. The largest single section is
-        <!--tf:largest-->Transits<!--/tf-->, at about <!--tf:largest-share-->51%<!--/tf--> of the file.
+        <!--tf:largest-->USS CTC<!--/tf-->, at about <!--tf:largest-share-->26%<!--/tf--> of the file.
       </p>
       <figure>
         <svg class="jm-svg" viewBox="0 0 360 58" role="img" aria-labelledby="tf-o-t tf-o-d">
           <title id="tf-o-t">The file from top to bottom</title>
-          <desc id="tf-o-d">A bar for the whole file. About <!--tf:objects-->72%<!--/tf--> is objects, then about <!--tf:panels-->28%<!--/tf--> panels, then a thin sliver of file history.</desc>
-          <!--tf:bar--><rect class="own" x="8" y="14" width="248" height="34" rx="3"/>
-          <rect class="acc" x="256" y="14" width="95" height="34" rx="3"/>
+          <desc id="tf-o-d">A bar for the whole file. About <!--tf:objects-->56%<!--/tf--> is objects, then about <!--tf:panels-->44%<!--/tf--> panels, then a thin sliver of file history.</desc>
+          <!--tf:bar--><rect class="own" x="8" y="14" width="193" height="34" rx="3"/>
+          <rect class="acc" x="201" y="14" width="150" height="34" rx="3"/>
           <rect class="own" x="351" y="14" width="1" height="34" rx="3" style="fill:var(--muted);stroke:var(--muted)"/>
-          <text class="t-b t-w" x="132" y="36" text-anchor="middle">Objects</text>
-          <text class="t-b t-d" x="303" y="36" text-anchor="middle">Panels</text><!--/tf-->
+          <text class="t-b t-w" x="104" y="36" text-anchor="middle">Objects</text>
+          <text class="t-b t-d" x="276" y="36" text-anchor="middle">Panels</text><!--/tf-->
         </svg>
         <figcaption class="section-note">The file from top to bottom, left to right, drawn to scale.</figcaption>
       </figure>
@@ -119,27 +119,27 @@ userName    BS K-1<!--/tf--></code></pre>
             <!--tf:sections--><tr><td colspan="3"><strong>At the start</strong></td></tr>
             <tr><td>JMRI version</td><td>The version of JMRI that stored the file.</td><td class="num">under 1%</td></tr>
             <tr><td colspan="3"><strong>Objects</strong></td></tr>
-            <tr><td>Sensors</td><td>Inputs: occupancy and switch feedback from the layout, plus internal flags and helpers.</td><td class="num">6%</td></tr>
+            <tr><td>Sensors</td><td>Inputs: occupancy and switch feedback from the layout, plus internal flags and helpers.</td><td class="num">9%</td></tr>
             <tr><td>Turnouts</td><td>The switches, their DCC twins, and internal turnouts for the yard ladders.</td><td class="num">1%</td></tr>
             <tr><td>Memories</td><td>Small stored values, such as the fast-clock time and the mimic page's requests.</td><td class="num">under 1%</td></tr>
-            <tr><td>Signal heads</td><td>Virtual heads that carry each lamp's colour.</td><td class="num">under 1%</td></tr>
+            <tr><td>Signal heads</td><td>Virtual heads that carry each lamp's colour.</td><td class="num">1%</td></tr>
             <tr><td>Signal masts</td><td>The signals, real and virtual, all stock Basic.</td><td class="num">1%</td></tr>
-            <tr><td>Blocks</td><td>Stretches of track, each with an occupancy sensor and paths to its neighbours.</td><td class="num">2%</td></tr>
+            <tr><td>Blocks</td><td>Stretches of track, each with an occupancy sensor and paths to its neighbours.</td><td class="num">3%</td></tr>
             <tr><td>Layout blocks</td><td>The Layout Editor's view of each block.</td><td class="num">1%</td></tr>
-            <tr><td>Sections</td><td>Dispatcher track pieces, mostly made from pairs of masts.</td><td class="num">3%</td></tr>
-            <tr><td>Transits</td><td>Whole moves that the Dispatcher builds from sections.</td><td class="num">51%</td></tr>
-            <tr><td>Routes</td><td>Sets of switches thrown together, used by the yard ladders.</td><td class="num">under 1%</td></tr>
-            <tr><td>Signal Mast Logic</td><td>The rules that set a mast from the track ahead.</td><td class="num">3%</td></tr>
+            <tr><td>Sections</td><td>Dispatcher track pieces, mostly made from pairs of masts.</td><td class="num">4%</td></tr>
+            <tr><td>Transits</td><td>Whole moves that the Dispatcher builds from sections.</td><td class="num">22%</td></tr>
+            <tr><td>Routes</td><td>Sets of switches thrown together, used by the yard ladders.</td><td class="num">1%</td></tr>
+            <tr><td>Signal Mast Logic</td><td>The rules that set a mast from the track ahead.</td><td class="num">4%</td></tr>
             <tr><td>Logix</td><td>Two older-style logic items.</td><td class="num">under 1%</td></tr>
             <tr><td>Conditionals</td><td>The conditions and actions inside those Logix.</td><td class="num">under 1%</td></tr>
             <tr><td>Fast clock</td><td>The settings of JMRI's fast clock.</td><td class="num">under 1%</td></tr>
-            <tr><td>LogixNG</td><td>Newer logic that <a href="#logixng">hides windows at startup</a>: the LogixNG, its ConditionalNGs and their actions.</td><td class="num">under 1%</td></tr>
-            <tr><td>CTC data</td><td>The USS CTC machine's code buttons and settings.</td><td class="num">5%</td></tr>
+            <tr><td>LogixNG</td><td>Newer logic that <a href="#logixng">hides windows at startup</a>: the LogixNG, its ConditionalNGs and their actions.</td><td class="num">1%</td></tr>
+            <tr><td>CTC data</td><td>The USS CTC machine's code buttons and settings.</td><td class="num">7%</td></tr>
             <tr><td>Entry/Exit</td><td>Pairs that line a route from a click on the panel.</td><td class="num">under 1%</td></tr>
             <tr><td colspan="3"><strong>Panels</strong></td></tr>
-            <tr><td>USS CTC</td><td>The lever machine, a Panel Editor screen.</td><td class="num">16%</td></tr>
-            <tr><td>HART Railroad</td><td>The track diagram, a Layout Editor panel.</td><td class="num">11%</td></tr>
-            <tr><td>Dispatcher System</td><td>A Layout Editor panel drawn by the Dispatcher System package.</td><td class="num">1%</td></tr>
+            <tr><td>USS CTC</td><td>The lever machine, a Panel Editor screen.</td><td class="num">26%</td></tr>
+            <tr><td>HART Railroad</td><td>The track diagram, a Layout Editor panel.</td><td class="num">15%</td></tr>
+            <tr><td>Dispatcher System</td><td>A Layout Editor panel drawn by the Dispatcher System package.</td><td class="num">2%</td></tr>
             <tr><td colspan="3"><strong>At the end</strong></td></tr>
             <tr><td>File history</td><td>A short record of loads and stores.</td><td class="num">under 1%</td></tr><!--/tf-->
           </tbody>
@@ -189,7 +189,7 @@ userName    BS K-1<!--/tf--></code></pre>
           <text class="t-w" x="501" y="98" text-anchor="middle" style="font-size:13px">paths name turnouts</text>
           <path class="line" d="M174 83H223" marker-end="url(#tf-ar)"/>
           <path class="line" d="M375 83H424" marker-end="url(#tf-ar)"/>
-          <text class="t-s" x="300" y="146" text-anchor="middle"><!--tf:layout-blocks-->55<!--/tf--> layout blocks share <!--tf:detectors-->43<!--/tf--> detectors</text>
+          <text class="t-s" x="300" y="146" text-anchor="middle"><!--tf:layout-blocks-->57<!--/tf--> layout blocks share <!--tf:detectors-->43<!--/tf--> detectors</text>
 
           <rect class="band" x="10" y="180" width="580" height="210" rx="8"/>
           <text class="t-s" x="24" y="202">Signals and the Dispatcher</text>
@@ -219,8 +219,8 @@ userName    BS K-1<!--/tf--></code></pre>
         Start at the top. An occupancy sensor reports a train on the track. A layout block (the Layout
         Editor's view of a block) names that sensor, and a block of the same name carries the paths.
         Several blocks can share one detector: the yard tracks are split into West and East halves
-        that share their track's detector. <!--tf:shared-->Seven detectors are shared. "BS S-1" serves Track S-1, Track S-1 West and Track S-1 East, and "BS Switch 37 / BS McKeesport" serves OS Switch 37 and Track McKeesport.<!--/tf--> That is how
-        <!--tf:layout-blocks-->55<!--/tf--> layout blocks get by on <!--tf:detectors-->43<!--/tf--> detectors.
+        that share their track's detector. <!--tf:shared-->Nine detectors are shared. "BS S-1" serves Track S-1, Track S-1 West and Track S-1 East, and "BS Switch 37 / BS McKeesport" serves OS Switch 37 and Track McKeesport.<!--/tf--> That is how
+        <!--tf:layout-blocks-->57<!--/tf--> layout blocks get by on <!--tf:detectors-->43<!--/tf--> detectors.
       </p>
       <p>
         Here is the block for <!--tf:block-name-->OS Switch 13<!--/tf-->, trimmed to the parts that matter:
@@ -242,7 +242,7 @@ userName    BS K-1<!--/tf--></code></pre>
 &lt;/block&gt;<!--/tf--></code></pre>
       <p>
         Read it as a sentence: <!--tf:block-sentence-->from OS Switch 13 you can go to Track Barn when Switch 13 is closed, and to OS Switch 11 when it is thrown<!--/tf-->. (In the file the settings are numbers, and the blocks are
-        named by short codes. I spelled them out.) Add <!--tf:paths-->126<!--/tf--> of those paths and you have the map.
+        named by short codes. I spelled them out.) Add <!--tf:paths-->130<!--/tf--> of those paths and you have the map.
       </p>
       <p>
         Masts sit at block boundaries. Signal Mast Logic takes two masts and works out what lies between

@@ -1,4 +1,5 @@
 kind,ident,slot,mast
+point,A1,east,Mast 40RB
 point,A12,east,Mast 26R
 point,A15,west,Mast 26L
 point,A36,east,Mast 20R
@@ -11,6 +12,7 @@ point,A46,west,Mast 20L
 point,A48,east,Mast 2036
 point,A48,west,Mast 2035
 point,A53,west,Mast 18L
+point,A56,west,Mast 36L
 point,A61,east,Mast 18R
 point,A81,west,Mast 16L
 point,EB1,west,Mast 12L
