@@ -88,26 +88,25 @@ class Report:
         return [f"{reason} ({count} difference(s))" for reason, count in hits.items()]
 
 
+def _cached(load, path: Path):
+    """``load(path)`` once per file version: a desk or tables.xml is read by several checks."""
+    st = Path(path).stat()
+    return _load_cached(load, str(Path(path).resolve()), (st.st_mtime_ns, st.st_size))
+
+
 @functools.lru_cache(maxsize=None)
-def _parse(path: str, _stamp: tuple[int, int]) -> ET.ElementTree:
-    return ET.parse(path)
+def _load_cached(load, path: str, _stamp: tuple[int, int]):
+    return load(path)
 
 
 def parse(path: Path) -> ET.ElementTree:
-    """ET.parse, once per file version: a desk or GUIObjects.xml is read by several checks."""
-    st = Path(path).stat()
-    return _parse(str(Path(path).resolve()), (st.st_mtime_ns, st.st_size))
-
-
-@functools.lru_cache(maxsize=None)
-def _read_tables(path: str, _stamp: tuple[int, int]) -> ET.Element:
-    return hart_tables.read(path)
+    """ET.parse, once per file version (a desk or GUIObjects.xml)."""
+    return _cached(ET.parse, path)
 
 
 def parse_tables(path: Path) -> ET.Element:
     """Root of tables.xml via hartlib, once per file version."""
-    st = Path(path).stat()
-    return _read_tables(str(Path(path).resolve()), (st.st_mtime_ns, st.st_size))
+    return _cached(hart_tables.read, path)
 
 
 # ---------------------------------------------------------------- tables.xml
@@ -224,12 +223,12 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
                              f"and throws to {thrown}; switch_legs.csv says closed {primary.closed}, "
                              f"thrown {primary.thrown}")
     for leg in sw.legs:
-        paths = t.paths.get(leg.os_block)
-        if not paths:
+        leg_paths = t.paths.get(leg.os_block)
+        if not leg_paths:
             r.add(f"le:{n}", f"{n}: {leg.os_block} has no block paths in tables.xml")
             continue
         seen: dict[str, set[str]] = {}
-        for dest_sys, settings in paths:
+        for dest_sys, settings in leg_paths:
             dest = t.track_name(t.block_user.get(dest_sys, dest_sys))
             mine = {s for tn, s in settings if tn in (sw.turnout, system)}
             seen.setdefault(dest, set()).update(mine or {"none"})

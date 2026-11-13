@@ -105,6 +105,18 @@ if [[ ! -f "$MARKER" ]]; then
   exit 1
 fi
 
+# JMRI writes the marker just before it exits. The repairs below save tables.xml
+# through hartlib, which refuses while PanelPro runs, so wait for it to be gone.
+JMRI_PROC='java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)'
+exit_deadline=$((SECONDS + ${HART_STAGE1_EXIT_WAIT:-180}))
+while kill -0 "$JPID" 2>/dev/null || pgrep -u "$(id -u)" -f "$JMRI_PROC" >/dev/null 2>&1; do
+  if (( SECONDS >= exit_deadline )); then
+    echo "PanelPro is still running ${HART_STAGE1_EXIT_WAIT:-180}s after the Stage 1 marker; not running the repairs. Quit it, then run the repairs listed in wiki/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
+    exit 1
+  fi
+  sleep 2
+done
+
 status="$(awk 'NR==1 {print; exit}' "$MARKER")"
 detail="$(awk 'NR>1 {print}' "$MARKER")"
 echo "Stage 1: $status"

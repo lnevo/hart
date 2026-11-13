@@ -212,8 +212,6 @@ def ensure_columns(text: str) -> str:
 
 
 def main() -> int:
-    import sys
-
     write = "--apply" in sys.argv
     for path in [paths.TABLES_XML]:
         if not path.is_file():

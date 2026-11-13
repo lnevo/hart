@@ -326,10 +326,10 @@ def apply_comments_to_text(text: str, by_sys: dict[str, str], by_user: dict[tupl
     return BEAN_RE.sub(repl, text), changed
 
 
-def apply_comments(paths: list[Path], rows: list[dict[str, str]], write: bool) -> dict[str, int]:
+def apply_comments(targets: list[Path], rows: list[dict[str, str]], write: bool) -> dict[str, int]:
     by_sys, by_user = comment_index(rows)
     counts: dict[str, int] = {}
-    for path in paths:
+    for path in targets:
         if not path.is_file():
             continue
         text = path.read_text(encoding="utf-8")

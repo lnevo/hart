@@ -129,11 +129,11 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("--reference is required unless --check")
     try:
         added = restore(root, tables.read(args.reference))
-    except ValueError as exc:
+        if added:
+            doc.save(args.panel)
+    except (ValueError, RuntimeError) as exc:
         print(f"{args.panel}: not changed: {exc}", file=sys.stderr)
         return 1
-    if added:
-        doc.save(args.panel)
     for source, dest in added:
         print(f"restored {source} -> {dest}")
     print(f"{len(added)} manual pair(s) restored")

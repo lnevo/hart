@@ -23,7 +23,6 @@ from hartlib import paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DEFAULT_PANEL = paths.TABLES_XML
-OUTPUT_TABLES = paths.TABLES_XML
 
 # Keep this list in sync with jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py.
 # Horizontal masts follow the North American right-hand placement convention:
@@ -726,8 +725,6 @@ def main() -> int:
     args = ap.parse_args()
 
     panels = [args.panel.resolve()]
-    if args.sync_output and args.panel.resolve() == DEFAULT_PANEL.resolve():
-        pass
 
     if args.overlap_cleanup:
         apply_fn = apply_overlap_cleanup
@@ -740,7 +737,11 @@ def main() -> int:
         if not path.is_file():
             all_errors.append(f"missing {path}")
             continue
-        changes, errors = apply_fn(path, check=args.check)
+        try:
+            changes, errors = apply_fn(path, check=args.check)
+        except RuntimeError as exc:  # hartlib save refuses while PanelPro or CATS is open
+            all_errors.append(f"{path}: not changed: {exc}")
+            continue
         all_errors.extend(errors)
         verb = "checked" if args.check else "updated"
         print(f"{verb} {path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}: {changes} changes")

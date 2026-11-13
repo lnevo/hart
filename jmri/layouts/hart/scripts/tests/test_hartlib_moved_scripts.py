@@ -10,6 +10,7 @@ import importlib.util
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -141,6 +142,26 @@ class RestoreWritesThroughSaveTest(unittest.TestCase):
             before = panel.read_bytes()
             self.assertEqual(0, mod.main(["--panel", str(panel), "--reference", str(ref)]))
             self.assertEqual(before, panel.read_bytes())
+
+
+    def test_jmri_open_is_a_clean_failure_not_a_traceback(self):
+        restore = load("restore_manual_sml_pairs")
+        polish = load("polish_hart_layout_editor")
+        with tempfile.TemporaryDirectory() as tmp:
+            panel = Path(tmp) / "tables.xml"
+            panel.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
+            ref = Path(tmp) / "ref.xml"
+            ref.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
+            boom = mock.patch.object(restore.tables.Tables, "save",
+                                     side_effect=RuntimeError("PanelPro or CATS is open"))
+            with boom, mock.patch.object(restore, "restore", return_value=[("a", "b")]):
+                self.assertEqual(1, restore.main(["--panel", str(panel), "--reference", str(ref)]))
+            with mock.patch.object(polish.tables.Tables, "save",
+                                   side_effect=RuntimeError("PanelPro or CATS is open")), \
+                    mock.patch.object(polish, "apply_visual_standard",
+                                      side_effect=RuntimeError("PanelPro or CATS is open")), \
+                    mock.patch("sys.argv", ["polish", "--panel", str(panel)]):
+                self.assertEqual(1, polish.main())
 
 
 if __name__ == "__main__":

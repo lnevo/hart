@@ -9,7 +9,6 @@
 Edits jmri/layouts/hart/output/tables.xml ctcdata in place.
 Safe to re-run.
 """
-import pathlib
 import sys
 from pathlib import Path
 
@@ -121,7 +120,7 @@ def slice_column(text, uid):
 
 
 def main():
-    path = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else TABLES
+    path = Path(sys.argv[1]) if len(sys.argv) > 1 else TABLES
     text = path.read_text()
     notes = []
 
