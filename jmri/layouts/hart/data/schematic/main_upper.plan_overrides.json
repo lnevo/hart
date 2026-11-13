@@ -136,5 +136,7 @@
    "T196",
    "direct"
   ]
- ]
+ ],
+ "helix_side": "east",
+ "_helix_side": "Fact, not a preference: the helix is at the east end of every level (ADR-022: timetable east runs toward Princess and the helix)."
 }

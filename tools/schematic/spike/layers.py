@@ -4,13 +4,17 @@
     <level>.hints.json            layer 2  TEMPORARY hand hints that stand in for generation rules not written yet
     <level>.preferences.json      layer 3  the owner's look for this sheet
 
-Merged in that order: a dict merges key by key, a list is added to (edits keep their order), anything else is
-replaced. Keys that start with "_" are notes and are dropped.
+Merged in that order: a dict merges key by key, a list named in APPEND is added to (edits keep their order),
+anything else is replaced. Keys that start with "_" are notes and are dropped.
 """
 import json
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parents[3] / "jmri" / "layouts" / "hart" / "data" / "schematic"
+
+
+# Lists that collect entries across layers; any other list (a title, band_order) is one value and is replaced.
+APPEND = {"edits", "min_cells", "keep_close", "shorten", "main_route", "signals_planned"}
 
 
 def merge(a, b):
@@ -20,7 +24,7 @@ def merge(a, b):
             continue
         if isinstance(v, dict) and isinstance(out.get(k), dict):
             out[k] = merge(out[k], v)
-        elif isinstance(v, list) and isinstance(out.get(k), list):
+        elif k in APPEND and isinstance(v, list) and isinstance(out.get(k), list):
             out[k] = out[k] + v
         else:
             out[k] = v
