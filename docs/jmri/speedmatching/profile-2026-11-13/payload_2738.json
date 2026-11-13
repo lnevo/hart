@@ -1,0 +1,88 @@
+{
+  "roster_id": "CSX 2738",
+  "points": [
+    {
+      "step": 8,
+      "forward_mm_s": 60.3,
+      "reverse_mm_s": 61.4
+    },
+    {
+      "step": 16,
+      "forward_mm_s": 171.8,
+      "reverse_mm_s": 159.6
+    },
+    {
+      "step": 24,
+      "forward_mm_s": 270.0,
+      "reverse_mm_s": 253.2
+    },
+    {
+      "step": 32,
+      "forward_mm_s": 354.1,
+      "reverse_mm_s": 341.9
+    },
+    {
+      "step": 48,
+      "forward_mm_s": 447.6,
+      "reverse_mm_s": 419.4
+    },
+    {
+      "step": 64,
+      "forward_mm_s": 484.5,
+      "reverse_mm_s": 472.0
+    },
+    {
+      "step": 96,
+      "forward_mm_s": 479.3,
+      "reverse_mm_s": 466.1
+    },
+    {
+      "step": 126,
+      "forward_mm_s": 490.3,
+      "reverse_mm_s": 466.3
+    }
+  ],
+  "skipped_steps": [],
+  "sources": [
+    {
+      "step": 8,
+      "forward_run": 6,
+      "reverse_run": 2
+    },
+    {
+      "step": 16,
+      "forward_run": 6,
+      "reverse_run": 7
+    },
+    {
+      "step": 24,
+      "forward_run": 6,
+      "reverse_run": 7
+    },
+    {
+      "step": 32,
+      "forward_run": 5,
+      "reverse_run": 1
+    },
+    {
+      "step": 48,
+      "forward_run": 5,
+      "reverse_run": 1
+    },
+    {
+      "step": 64,
+      "forward_run": 5,
+      "reverse_run": 1
+    },
+    {
+      "step": 96,
+      "forward_run": 5,
+      "reverse_run": 1
+    },
+    {
+      "step": 126,
+      "forward_run": 5,
+      "reverse_run": 1
+    }
+  ]
+}

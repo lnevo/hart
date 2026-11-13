@@ -339,7 +339,10 @@ jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/sm/profile_2121.py
 ```
 
 `profile_to_roster.py` takes the latest complete run per loco and direction and only the steps
-that ended `settled` (the repeat `126#2` is skipped). A step needs a speed in both directions to
+that ended `settled` (the repeat `126#2` is skipped). With `--merge` it combines a direction's
+complete runs instead: per step, the latest complete run that settled it, so a short re-run (for
+example steps 8,16,24 after a CV change) tops up the full run; `sources` in the payload names
+the run of each speed. Pass the logs to `analyze.py` in time order, since run numbers follow it. A step needs a speed in both directions to
 become a point; the others are listed as left out. It refuses if either direction has no complete
 run or no settled step. The job is a **dry run**: it logs the old and the new profile
 (`OLD`/`NEW` lines) and changes nothing. Read the log, then build it again with `--apply` and
@@ -438,7 +441,8 @@ END
   fed; the `RUN` and `LENGTHS` lines are as in laps mode (laps mode's `CFG`, `WARMUP n laps=`,
   `WARMUP_LAP`, `READ` and `STEPDONE ... median=` lines are unchanged).
 - Also logged, outside the dashboard's contract: `EXTRA <n> relsd=<r>` when a step takes its one
-  extra reading, `NO GUARD`, and the end of run lines `speed 0`, `F<n> off`, `throttle released`,
+  extra reading, `NO GUARD`, `DIR <forward|reverse> held` (or `lost, try n`) before the loco is
+  sent off, and the end of run lines `speed 0`, `F0 not switched off`, `F<n> off`, `throttle released`,
   `ERROR <..>`.
 - The pass job logs `RUN`, `CFG route=<r> mode=pass step=<n> max_s=<n>`, `PATH`, `PASS`, `SENS`,
   `PASSDONE reason=<passed|max|stalled|killed|guard_<name>|..>`, then `STOP` and `END`. In `PASS`,
@@ -531,6 +535,19 @@ settings in the job, and each is logged:
   the query shows as absent goes in. The target loco itself can never be in it.
 
 ## Known limits
+
+- **Direction on the CS-105 (found 2026-11-13).** JMRI's OpenLCB throttle takes the speed and
+  direction the train node reports a moment after the throttle is handed over, and that report
+  overwrites a direction set straight away; the loco then runs the way it last ran. Every job
+  now waits 3 s, sets the direction, checks it and retries (`set_direction()` in `jobkit.py`,
+  log line `DIR ... held`); a job whose direction never holds ends before any speed is sent.
+  Logs from before the fix carry the asked direction, not the real one: check `travel` in
+  `profile.csv` against what was asked.
+- **Lights stay on at the end of a job.** A loco with little draw at rest (CSX 2738, no sound)
+  reads free with its lights off, so the block it stands in goes dark. Jobs now leave F0 on and
+  log `F0 not switched off`; other functions (the mute) still go off.
+- **Momentum carries far.** With CV4 = 24, a loco stopped from step 126 rolls about 8 to 9 m
+  (one long block or more). A guard that trips at high speed stops the throttle, not the loco.
 
 - The back-EMF CV lists in `make_job.py` come from the CVs present in the 2121 and 2738 roster
   entries. A different decoder needs its own list from the manual.

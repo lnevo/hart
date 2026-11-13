@@ -39,7 +39,7 @@ def run():
         if FROM_S not in found: why[0] = "sensor not found: " + FROM_S; return
         t, tl = request_throttle(P_ID)
         if t is None: return
-        t.setIsForward(P_FWD)
+        if not set_direction(t, P_FWD): return
         for fn in FUNCS: getattr(t, "setF%d" % fn)(True)
         L("RUN loco=%s direction=%s" % (P_ID, "forward" if P_FWD else "reverse"))
         L("CFG route=%s mode=pass step=%d max_s=%g" % (ROUTE, P_STEP, MAX_S))

@@ -1,61 +1,39 @@
 # Speed matching
 
 - **Owner:** lnevo
-- **Status:** Re-run ready to start on the layout (2026-11-13). Everything that can be done off the layout is merged; the handoff is below. 2738 was matched to 2121 on 2026-11-08 (PR #187).
+- **Status:** Re-run done on the layout 2026-11-13: both locos profiled both ways, 2738 matched to 2121 within 4% from step 24 up (CV66, CV69, CV70 on 2738), momentum matched, roster profiles written. Left: programming-track read-back, loop 2 lengths into the tables. Record: [`profile-2026-11-13/`](../../docs/jmri/speedmatching/profile-2026-11-13/README.md).
 - **Saved:** 2026-08-21 from [jmriusers #254859](https://groups.io/g/jmriusers/message/254859)
 
 HART auto-dispatcher needs **measured** roster speed profiles for station stops. Apart from 2121 and 2738, every live DecoderPro loco still has the same synthetic 10-step / 400 mm/s profile. This thread is a working club procedure for a detected track circle plus JMRI POM scripts.
 
-## Handoff: the re-run (2026-11-13)
+## Handoff after the re-run (2026-11-13, evening)
 
-Done and merged: loop block lengths from the AnyRail 5.3b staging level, pinned to the plan
-turnouts (#399, deployed to the Pi and Windows; loop is 35.1 m, so the 2026-11-08 speeds were
-about 12% low; the barn crossover is 163 in from Switch 5's points, confirmed by the owner);
-measuring tools (#397); write guard for programming on the main (#398); roster speed-profile
-writer, stop test, default guards (#407); loop 2 through S-R, Scale and Barn (#410).
-Runbook: [`RUNBOOK.md`](../../docs/jmri/speedmatching/RUNBOOK.md). Guard:
-[`POM_GUARD.md`](../../docs/jmri/speedmatching/POM_GUARD.md). Lengths method:
-[`ANYRAIL_LENGTHS.md`](../../docs/jmri/speedmatching/ANYRAIL_LENGTHS.md).
+Done on the layout, results in [`profile-2026-11-13/`](../../docs/jmri/speedmatching/profile-2026-11-13/README.md):
+both locos in both directions, Switch 13 and Switch 7 placed on loop 2, 2738 adjusted on the main
+(CV66 128 to 135, CV69 50 to 51, CV70 73 to 74; 2121 unchanged), solo stop tests matched within
+0.2 s, consist remade (flags 0x0A both ways: follower reversed, functions linked except F0),
+measured profiles written into both roster entries on the Pi and synced to the Mac and Windows.
+The pair is parked on EH-3 (Switches 13, 11 and 9 thrown), track power off.
 
-Owner decisions: profile both locos in both directions first, then the owner picks the
-correction pairing and the tolerance (the locos run facing away from each other, both
-directions). The decoder read on the programming track is skipped for 2121 and 2738: the
-roster holds every CV from a full DecoderPro read (Pi and Mac copies identical, 2026-11-13),
-so the first write needs `ROSTER_OLD_OK = True`. 2738 is a TCS motor-only decoder (no sound);
-`--mute-sound` is for 2121 only. The McKees stub detectors are not on a node yet, so they
-cannot be guarded.
+Owner decisions: tolerance 5% (run-to-run repeat is about ±2%, more at slow steps); change only
+2738, never 2121; the consist does not link F0, so the trailing headlight stays off.
 
-None of the Jython in `speedmatch/jython/` has run in JMRI yet; the first pass is its first run.
-Distance mode and the pass job (2026-11-13) were added so the whole layout procedure takes about
-40 minutes; the runners also run in a simulation in the tests.
+Left, in order:
 
-Steps left, in order (PanelPro running on the Pi, owner not operating, only the test loco moves).
-Steps 1 to 4 are the 40-minute procedure in the [`RUNBOOK`](../../docs/jmri/speedmatching/RUNBOOK.md):
+1. **Read back** both decoders on the programming track, update the roster (Pi first, then
+   `tools/hosts/sync_roster_from_pi.sh --all`), then `pom_guard.py archive-ledger "CSX 2738"` on
+   the Pi. Until then the roster holds 2738's old CV66, CV69 and CV70.
+2. **Loop 2 lengths:** apply the Switch 13 and Switch 7 placement and the Scale (about 3645 mm),
+   Barn (about 770 mm) and S-R lengths to `block_lengths.csv`, PanelPro closed. A proper survey needs
+   a higher `--max` so each step gets 3 or more laps; the 2026-11-13 survey got one.
+3. **Pair stop test:** the coupled run was spoiled (Switch 33 closed under it); repeat it from East
+   Lead at steps 32 and 96 when convenient.
+4. **Runner:** a block lighting again behind the loco is taken as the next block (2121, step 8).
 
-1. **Break the 2121/2738 LCC consist** (`cs105_consist.py` detach), line up loop 1 and build the
-   jobs (5 min). While the consist stands, commands to 2121 also move 2738.
-2. **Profiles on loop 1, distance mode** (`make_job.py steps --mode distance --guard default`;
-   steps 8, 16, 24, 32, 48, 64, 96, 126): 2121 forward with a 60 s warm-up (about 6 min; its first
-   two steps are the shakedown, watch the log live), 2121 reverse (5), 2738 forward with a 60 s
-   warm-up after the swap (9), 2738 reverse (6).
-3. **Switch 13 on loop 2** (8 min): line up loop 2, then two passes from Switch 5 to Switch 15 at
-   steps 24 and 48 (`make_job.py pass`), then
-   `infer_block_lengths.py --route loop2 --locate --pass-log <logs>`: places Switch 13 and the
-   Scale-side half of Switch 7 between Switches 5 and 15, reports both passes and their
-   difference.
-4. **Fetch and analyse** (1 min, `analyze.py`); the owner picks the pairing and tolerance. The lap
-   survey on loop 2 (`--route loop2`, steps 32, 48, 64) stays available for the lengths of Scale,
-   Barn, S-R, OS 23b and OS 31.
-5. **Correct 2738's table**: `correct.py` proposal, guard dry run, then apply with
-   `ROSTER_OLD_OK`, `CONSISTS_BROKEN` and an `ABSENT_OK` list built from a consist query.
-   Re-measure and repeat until within tolerance.
-6. **Remake the consist** and run the stop test at steps 32 and 96.
-7. **Write the measured profiles** into both roster entries on the Pi (`make_job.py profile`),
-   then sync the roster to the Mac and Windows.
-8. **Read back** both decoders on the programming track, update the roster, archive the guard
-   ledger (`pom_guard.py archive-ledger`).
-9. **Record** the results in a dated folder next to `profile-2026-11-08/`, and update this
-    page and `wiki/STATUS.md`.
+Lessons from the run (also in the RUNBOOK's known limits): on the CS-105 a direction set at once
+is lost (fixed: `DIR ... held`); a standing 2738 reads free with its lights off (jobs now leave F0
+on); with CV4 = 24 a loco stopped from top speed rolls about 8 to 9 m; the pair test needs Switch
+33 checked before it starts.
 
 ## First measurements (2026-11-08)
 
