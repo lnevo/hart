@@ -23,6 +23,18 @@ block lengths from the AnyRail plan as a source of record, better tools, program
 main behind guardrails, and a re-run of 2121 and 2738. No fleet target curve until more locos
 are profiled.
 
+**Handoff for the test agent (2026-11-12, evening):** Parts A to C of the re-run plan are not
+built yet, so Part D cannot start; the tools are still the 2026-11-08 ones. 2121 and 2738 are
+still in the CS-105 consist, so driving either moves both (an unexpected move of the pair caused
+a short at Switch 9 earlier the same day); break it with `cs105_consist.py` only after asking the
+owner. 2121 stands in East Main Ext; 2738 was on Scale (not Barn, as JMRI had it) before the pair
+moved together, so confirm where it is now with the owner. K-1 and K-2 are clear. Other locos,
+as last reported: 1827 on W-2, 572 on W-1, 9602 on EH-1, 4678 on EH-2, 1993 on McKeesport.
+PanelPro on the Pi was quit normally at 21:25 with no Store, so the block values must be set again
+when it is restarted. Switch 9 was rewired (normal EH-2, thrown EH-3) and the Layout Editor and CATS
+follow it (PRs #369, #370). Over the CS-105 LCC throttle, F0 reads back False after it is set,
+so check lights by eye. Detection is current-based, so a standing loco can read free.
+
 Open: consist testing; step 126 drift check; opposite-direction check; Anyrail
 loop length; a clean timing pass through Scale (the earlier 45 s was a hand block); the reverse profile of 2738 (2121's reverse matches its forward); the STRR scripts below are still unused.
 
