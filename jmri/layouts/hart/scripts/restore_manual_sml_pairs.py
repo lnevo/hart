@@ -20,8 +20,11 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+DEFAULT_PANEL = paths.TABLES_XML
 
 # source mast, destination mast
 MANUAL_PAIRS = (
@@ -113,8 +116,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--check", action="store_true", help="Report missing pairs; write nothing")
     args = ap.parse_args(argv)
 
-    tree = ET.parse(args.panel)
-    root = tree.getroot()
+    doc = tables.load(args.panel)
+    root = doc.root
     if args.check:
         missing = missing_pairs(root)
         for source, dest in missing:
@@ -125,12 +128,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.reference is None:
         ap.error("--reference is required unless --check")
     try:
-        added = restore(root, ET.parse(args.reference).getroot())
-    except ValueError as exc:
+        added = restore(root, tables.read(args.reference))
+        if added:
+            doc.save(args.panel)
+    except (ValueError, RuntimeError) as exc:
         print(f"{args.panel}: not changed: {exc}", file=sys.stderr)
         return 1
-    if added:
-        tree.write(args.panel, encoding="UTF-8", xml_declaration=True)
     for source, dest in added:
         print(f"restored {source} -> {dest}")
     print(f"{len(added)} manual pair(s) restored")

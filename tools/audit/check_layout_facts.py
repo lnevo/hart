@@ -35,19 +35,23 @@ import csv
 import functools
 import re
 import sys
-import xml.etree.ElementTree as ET  # TODO: move to hartlib.tables once the shared package lands
+import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-HART = ROOT / "jmri/layouts/hart"
-sys.path.insert(0, str(HART / "scripts"))
-sys.path.append(str(ROOT / "cats/scripts"))
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables as hart_tables  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+HART = paths.LAYOUT_DIR
+sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
+sys.path.append(str(paths.CATS_DIR / "scripts"))
 
 import layout_facts as facts  # noqa: E402
 import digicon_trace as trace  # noqa: E402
 
-TABLES = HART / "output/tables.xml"
+TABLES = paths.TABLES_XML
 GUI = HART / "ctc/GUIObjects.xml"
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
 TURNOUT_BINDINGS = ROOT / "cats/data/turnout_bindings.csv"
@@ -84,15 +88,25 @@ class Report:
         return [f"{reason} ({count} difference(s))" for reason, count in hits.items()]
 
 
+def _cached(load, path: Path):
+    """``load(path)`` once per file version: a desk or tables.xml is read by several checks."""
+    st = Path(path).stat()
+    return _load_cached(load, str(Path(path).resolve()), (st.st_mtime_ns, st.st_size))
+
+
 @functools.lru_cache(maxsize=None)
-def _parse(path: str, _stamp: tuple[int, int]) -> ET.ElementTree:
-    return ET.parse(path)
+def _load_cached(load, path: str, _stamp: tuple[int, int]):
+    return load(path)
 
 
 def parse(path: Path) -> ET.ElementTree:
-    """ET.parse, once per file version: a desk or tables.xml is read by several checks."""
-    st = Path(path).stat()
-    return _parse(str(Path(path).resolve()), (st.st_mtime_ns, st.st_size))
+    """ET.parse, once per file version (a desk or GUIObjects.xml)."""
+    return _cached(ET.parse, path)
+
+
+def parse_tables(path: Path) -> ET.Element:
+    """Root of tables.xml via hartlib, once per file version."""
+    return _cached(hart_tables.read, path)
 
 
 # ---------------------------------------------------------------- tables.xml
@@ -100,7 +114,7 @@ def parse(path: Path) -> ET.ElementTree:
 class Tables:
     def __init__(self, path: Path) -> None:
         self.path = path
-        self.root = parse(path).getroot()
+        self.root = parse_tables(path)
         self.block_user: dict[str, str] = {}
         self.block_sensor: dict[str, str] = {}
         self.paths: dict[str, list[tuple[str, list[tuple[str, str]]]]] = {}
@@ -117,7 +131,7 @@ class Tables:
                             for bs in p.findall("beansetting") if bs.find("turnout") is not None]
                 self.paths.setdefault(user, []).append((p.get("block"), settings))
         self.turnouts: dict[str, tuple[str, str]] = {}
-        for t in self.root.iter("turnout"):
+        for t in hart_tables.turnouts(self.root):
             user = (t.findtext("userName") or "").strip()
             if user:
                 self.turnouts[user] = ((t.findtext("systemName") or "").strip(),
@@ -209,12 +223,12 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
                              f"and throws to {thrown}; switch_legs.csv says closed {primary.closed}, "
                              f"thrown {primary.thrown}")
     for leg in sw.legs:
-        paths = t.paths.get(leg.os_block)
-        if not paths:
+        leg_paths = t.paths.get(leg.os_block)
+        if not leg_paths:
             r.add(f"le:{n}", f"{n}: {leg.os_block} has no block paths in tables.xml")
             continue
         seen: dict[str, set[str]] = {}
-        for dest_sys, settings in paths:
+        for dest_sys, settings in leg_paths:
             dest = t.track_name(t.block_user.get(dest_sys, dest_sys))
             mine = {s for tn, s in settings if tn in (sw.turnout, system)}
             seen.setdefault(dest, set()).update(mine or {"none"})

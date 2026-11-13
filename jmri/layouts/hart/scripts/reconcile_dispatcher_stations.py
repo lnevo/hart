@@ -24,10 +24,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+DEFAULT_PANEL = paths.TABLES_XML
 READ_ONLY_PANEL = ROOT / "tables" / "tables.xml"
-SYNC_PANEL = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
+SYNC_PANEL = paths.TABLES_XML
 
 # Dispatcher stations: where trains start and end. Through tracks (mains,
 # Brick-Plane, South Yard) stopped being stations on 2026-11-12 to cut the

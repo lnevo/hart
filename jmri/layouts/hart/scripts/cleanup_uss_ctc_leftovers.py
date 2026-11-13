@@ -11,13 +11,15 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from refresh_bean_comments import refresh_comments
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
 
-TABLES = [
-    ROOT / "jmri/layouts/hart/output/tables.xml",
-]
+sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
+from refresh_bean_comments import refresh_comments  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+TABLES = [paths.TABLES_XML]
 
 # Unreferenced after the 20-col pack. OpenLCB leftover sensors only.
 # MTT* LCC aliases of MQTT plants are required (device map DCC Switch N).

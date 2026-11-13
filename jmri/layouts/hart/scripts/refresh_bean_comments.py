@@ -14,13 +14,17 @@ import sys
 from collections import OrderedDict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from apply_public_names import RenameEntry, apply_renames_to_text
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
 
-SIGNAL_WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
+ROOT = paths.REPO_ROOT
+sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
+from apply_public_names import RenameEntry, apply_renames_to_text  # noqa: E402
+
+SIGNAL_WIRING = paths.SIGNAL_WIRING
 SIGNAL_HEAD_PLAN = ROOT / "docs/wiring/signals/signal_head_plan.csv"
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+TABLES = paths.TABLES_XML
 
 _SECTION_RE = re.compile(r'<section systemName="(IY:AUTO:\d+)" userName="([^"]*)"')
 _SECTION_NAMES: dict[str, str] | None = None
@@ -51,7 +55,7 @@ def section_direction_comment(system_name: str, names: dict[str, str] | None = N
     name = (names if names is not None else section_names()).get(section)
     where = f"{name} ({section})" if name else section
     return f"SML section {direction} direction: {where}"
-PUBLIC_NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
+PUBLIC_NAME_MAP = paths.PUBLIC_NAME_MAP
 
 # Slash: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
 # Mid:   "Node: 4 | OU-1: Port: 1,2 | DCC: 100"
@@ -805,7 +809,7 @@ def ctc_comment(system_name: str) -> str | None:
 
 def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], str]]:
     """Identity-row comments from public_name_map.csv (HART Device map)."""
-    path = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
+    path = paths.PUBLIC_NAME_MAP
     by_sys: dict[str, str] = {}
     by_user: dict[tuple[str, str], str] = {}
     if not path.is_file():
@@ -986,7 +990,7 @@ def refresh_comments(text: str) -> tuple[str, int]:
 
 
 TARGETS = [
-    ROOT / "jmri/layouts/hart/output/tables.xml",
+    paths.TABLES_XML,
     ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml",
     ROOT / "cats/panels/HART_CTC.xml",
     ROOT / "cats/panels/HART_ABS.xml",
@@ -1016,8 +1020,8 @@ def main() -> int:
         DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_comments()
     files = 0
     for raw in TARGETS:
-        paths = list(raw.rglob("*")) if raw.is_dir() else [raw]
-        for path in paths:
+        targets = list(raw.rglob("*")) if raw.is_dir() else [raw]
+        for path in targets:
             if not path.is_file() or should_skip(path):
                 continue
             try:

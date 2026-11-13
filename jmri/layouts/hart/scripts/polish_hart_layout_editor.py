@@ -13,12 +13,16 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
-OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+DEFAULT_PANEL = paths.TABLES_XML
 
 # Keep this list in sync with jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py.
 # Horizontal masts follow the North American right-hand placement convention:
@@ -445,8 +449,8 @@ def dedupe_shared_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, 
 
 
 def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list[str]]:
-    tree = ET.parse(path)
-    root = tree.getroot()
+    doc = tables.load(path)
+    root = doc.root
     le = find_layout_editor(root)
     changes = 0
     errors: list[str] = []
@@ -651,7 +655,7 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
 
     if check:
         return changes, errors
-    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    doc.save(path)
     return changes, errors
 
 
@@ -660,8 +664,8 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
 
     Does not add OS Block n-n icons or restripe station occupancy.
     """
-    tree = ET.parse(path)
-    le = find_layout_editor(tree.getroot())
+    doc = tables.load(path)
+    le = find_layout_editor(doc.root)
     changes = 0
     errors: list[str] = []
 
@@ -698,7 +702,7 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
 
     if check:
         return changes, errors
-    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    doc.save(path)
     return changes, errors
 
 
@@ -707,15 +711,15 @@ def apply_block_labels_only(path: Path, *, check: bool) -> tuple[int, list[str]]
 
     A Stage 1 Store resets both, so the deploy and Stage 1 wrapper run this.
     """
-    tree = ET.parse(path)
-    le = find_layout_editor(tree.getroot())
+    doc = tables.load(path)
+    le = find_layout_editor(doc.root)
     changes, errors = ensure_block_contents_visible(le, check=check)
     lamp_n, lamp_errors = place_stage1_lamps(le, check=check)
     changes += lamp_n
     errors.extend(f"{path.name}: {e}" for e in lamp_errors)
     if check or not changes:
         return changes, errors
-    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    doc.save(path)
     return changes, errors
 
 
@@ -740,9 +744,7 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    paths = [args.panel.resolve()]
-    if args.sync_output and args.panel.resolve() == DEFAULT_PANEL.resolve():
-        pass
+    panels = [args.panel.resolve()]
 
     if args.overlap_cleanup:
         apply_fn = apply_overlap_cleanup
@@ -751,11 +753,15 @@ def main() -> int:
     else:
         apply_fn = apply_visual_standard
     all_errors: list[str] = []
-    for path in paths:
+    for path in panels:
         if not path.is_file():
             all_errors.append(f"missing {path}")
             continue
-        changes, errors = apply_fn(path, check=args.check)
+        try:
+            changes, errors = apply_fn(path, check=args.check)
+        except RuntimeError as exc:  # hartlib save refuses while PanelPro or CATS is open
+            all_errors.append(f"{path}: not changed: {exc}")
+            continue
         all_errors.extend(errors)
         verb = "checked" if args.check else "updated"
         print(f"{verb} {path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}: {changes} changes")
