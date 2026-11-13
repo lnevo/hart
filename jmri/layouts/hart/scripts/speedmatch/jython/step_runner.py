@@ -46,7 +46,9 @@ phase = ["idle"]     # idle, warmup or measure
 # JMRI sensor states: UNKNOWN 1, ACTIVE 2, INACTIVE 4, INCONSISTENT 8
 NAMES = {1: "UNKNOWN", 2: "ACTIVE", 4: "INACTIVE", 8: "INCONSISTENT"}
 class SL(java.beans.PropertyChangeListener):
-    def __init__(self, n): self.n = n
+    # n: the name the loop and the log use (the user name when there is one); isg: this bean
+    # is a guard, whichever name the guard was given by
+    def __init__(self, n, isg): self.n = n; self.isg = isg
     def propertyChange(self, e):
         if e.getPropertyName() != "KnownState": return
         st = e.getNewValue(); now = time.time()
@@ -54,8 +56,8 @@ class SL(java.beans.PropertyChangeListener):
         try:
             L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st)))
             # only a loop sensor lighting counts as progress for the stall timer
-            if st == 2 and self.n in ORDER and self.n not in GUARD: last[0] = now
-            if self.n in GUARD and st == 2: why[0] = "guard " + self.n; ab.set()
+            if st == 2 and self.n in ORDER: last[0] = now
+            if self.isg and st == 2: why[0] = "guard " + self.n; ab.set()
             if st == 2 and state.get(self.n) != 2:
                 if phase[0] == "warmup":
                     if self.n == MID: mid[0] = True
@@ -85,10 +87,13 @@ def run():
         found = {}
         for s in sm.getNamedBeanSet():
             un = s.getUserName() or ""; sn = s.getSystemName()
-            g = un if un in GUARD else (sn if sn in GUARD else None)
-            if g is not None: found[g] = s
-            if g is not None or (un.startswith("BS ") and un not in ("BS W-1", "BS W-2")):
-                l = SL(g or un); s.addPropertyChangeListener(l); reg.append((s, l))
+            isg = (un in GUARD) or (sn in GUARD)
+            if un in GUARD: found[un] = s
+            if sn in GUARD: found[sn] = s
+            if isg or (un.startswith("BS ") and un not in ("BS W-1", "BS W-2")):
+                # one listener per bean, loop name first, so a guard that is also a loop
+                # sensor still feeds the reader under its loop name
+                l = SL(un or sn, isg); s.addPropertyChangeListener(l); reg.append((s, l))
         for g in GUARD:
             if g not in found: why[0] = "guard sensor not found: " + g; return
             if found[g].getKnownState() == 2: why[0] = "guard already ACTIVE: " + g; return
@@ -97,6 +102,7 @@ def run():
         if tl.t is None: L("NO THROTTLE %s" % tl.err); return
         t = tl.t; t.setIsForward(P_FWD)
         for fn in FUNCS: getattr(t, "setF%d" % fn)(True)
+        if not GUARD: L("NO GUARD")
         L("RUN loco=%s direction=%s" % (P_ID, "forward" if P_FWD else "reverse"))
         L("CFG k=%d rel=%.4f max=%d settle=%d low_max=%d high_span=%d warm=%d@%d" % (
             STOP_K, STOP_REL, MAX_READINGS, SETTLE_EVENTS, LOW_MAX, HIGH_SPAN, WARM_LAPS, WARM_STEP))

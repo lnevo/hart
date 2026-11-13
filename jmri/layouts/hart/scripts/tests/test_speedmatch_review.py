@@ -14,6 +14,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_speedmatch import FORBIDDEN_EVERYWHERE, SM, analyze, correct, lr, make_job  # noqa: E402
+from test_speedmatch import pc  # noqa: E402
+
+pc_problems = pc.log_problems
+pc_main = pc.main
 
 
 def effective_settings(job_text: str) -> dict:
@@ -35,7 +39,7 @@ class Settings(unittest.TestCase):
     def test_owner_settings_beat_the_liverule_defaults(self):
         d, p = self.lengths_csv()
         make_job.main(["steps", "--loco", "CSX 2121", "--direction", "forward", "--out", str(d / "j.py"),
-                       "--lengths", str(p), "--k", "7", "--rel", "0.05", "--max", "20", "--settle", "4",
+                       "--lengths", str(p), "--guard", "none", "--k", "7", "--rel", "0.05", "--max", "20", "--settle", "4",
                        "--low-max", "30", "--high-span", "2", "--stall-cap", "200",
                        "--stall-skip-below", "4"])
         ns = effective_settings((d / "j.py").read_text())
@@ -124,7 +128,8 @@ class Guards(unittest.TestCase):
             self.assertIn("not found", src)
         src = (SM / "jython" / "step_runner.py").read_text()
         self.assertIn("getSystemName", src)
-        self.assertIn("g is not None or", src)  # listened to whatever its name starts with
+        self.assertIn("isg or (un.startswith", src)  # listened to whatever its name starts with
+        self.assertIn("SL(un or sn, isg)", src)      # one listener per bean, both roles
 
 
 def profile_csv(rows):
@@ -358,13 +363,16 @@ class Round3(unittest.TestCase):
         meas[22.5] = 130.0  # entry 5 runs fast: wants 77, below entry 4
         rep = correct.propose([100] * 28, meas, self.flat)
         a4, a5 = rep["anchors"][3], rep["anchors"][4]
-        self.assertEqual(a4["new"], 125)
-        self.assertEqual(a5["new"], 125)          # left at the predecessor's value
+        self.assertEqual(a4["new"], 100)          # its raise is capped at the blocked entry's old value
+        self.assertEqual(a5["new"], 100)          # the blocked entry keeps its old value
         self.assertIn(correct.BLOCKED_NOTE, a5["note"])
+        self.assertIn(correct.CAPPED_NOTE, a4["note"])
         self.assertEqual(rep["blocked"], [a5["cv"]])
         self.assertEqual(rep["values"], sorted(rep["values"]))
         self.assertEqual(correct.status(rep, 1, 5), "blocked")
-        self.assertEqual(correct.proposal("X", rep, 1, 5, 0.03)["status"], "blocked")
+        prop = correct.proposal("X", rep, 1, 5, 0.03)
+        self.assertEqual(prop["status"], "blocked")
+        self.assertEqual(prop["writes"], [])       # nothing is written for a blocked proposal
 
     def test_an_entry_not_cut_is_still_raised_to_its_predecessor(self):
         rep = correct.propose([50, 40] + [100] * 26, self.flat, self.flat)
@@ -426,7 +434,7 @@ class Round3(unittest.TestCase):
         src = (SM / "jython" / "step_runner.py").read_text()
         body = src.split("def propertyChange")[1].split("def wait")[0]
         self.assertEqual(body.count("last[0] = now"), 1)
-        self.assertIn("if st == 2 and self.n in ORDER and self.n not in GUARD: last[0] = now", body)
+        self.assertIn("if st == 2 and self.n in ORDER: last[0] = now", body)
 
     def test_finally_stops_then_turns_functions_off_then_releases(self):
         for name in ("step_runner.py", "move_to.py"):
@@ -441,6 +449,146 @@ class Round3(unittest.TestCase):
         i = src.index("FAIL timeout")
         self.assertIn("ABORTED", src[i:i + 200])
         self.assertIn("return", src[i:i + 200])
+
+
+class Round4(unittest.TestCase):
+    flat = {s: 100.0 for s in range(0, 127, 6)}
+
+    def test_writes_only_come_with_status_continue(self):
+        slow = {s: 80.0 for s in self.flat}
+        rep = correct.propose([100] * 28, slow, self.flat)
+        cont = correct.proposal("X", rep, 1, 5, 0.03)
+        self.assertEqual(cont["status"], "continue")
+        self.assertTrue(cont["writes"])
+        last = correct.proposal("X", rep, 5, 5, 0.03)
+        self.assertEqual(last["status"], "max_rounds")
+        self.assertEqual(last["writes"], [])
+        self.assertTrue(last["changes"])      # the details stay in changes
+
+    def test_stuck_when_nothing_can_change(self):
+        slow = {s: 50.0 for s in self.flat}
+        rep = correct.propose([255] * 28, slow, self.flat)
+        self.assertEqual(correct.status(rep, 1, 5), "stuck")
+        prop = correct.proposal("X", rep, 1, 5, 0.03)
+        self.assertEqual((prop["status"], prop["writes"]), ("stuck", []))
+        self.assertIn("no entry can change", prop["reason"])
+        fast = {s: 200.0 for s in self.flat}
+        rep = correct.propose([1] * 28, fast, self.flat)   # all at the floor
+        self.assertEqual(correct.status(rep, 1, 5), "stuck")
+
+    def test_stuck_exits_3(self):
+        rows = [["B", "reverse", str(s), "", 1, 5, 5, 50.0, 1.0, True, "settled"] for s in (24, 64, 126)]
+        rows += [["A", "forward", str(s), "", 1, 5, 5, 100.0, 1.0, True, "settled"] for s in (24, 64, 126)]
+        p = profile_csv(rows)
+        code = correct.main(["--table", ",".join(["255"] * 28), "--profile", str(p), "--loco", "B",
+                             "--direction", "reverse", "--target-loco", "A", "--target-direction",
+                             "forward", "--out", str(p.parent / "o")])
+        self.assertEqual(code, 3)
+
+    def test_a_zero_entry_that_runs_slow_starts_from_its_neighbour_and_converges(self):
+        def speed_of(table, step):
+            pts = [(0.0, 0.0)] + [(126.0 * (k + 1) / 28, v) for k, v in enumerate(table)]
+            return 430.0 * (0.08 + 0.92 * correct.interp(float(step), pts) / 255.0)  # the decoder's start voltage
+        target_table = [round(255 * k / 28) for k in range(1, 29)]
+        steps = range(2, 127, 2)
+        target = {s: speed_of(target_table, s) for s in steps}
+        table = [0, 0] + target_table[2:]
+        first = correct.propose(table, {s: speed_of(table, s) for s in steps}, target)
+        self.assertGreater(first["values"][0], 3)     # not a creep of +1
+        st = ""
+        for rnd in range(1, 6):
+            rep = correct.propose(table, {s: speed_of(table, s) for s in steps}, target)
+            st = correct.status(rep, rnd, 5)
+            if st == "done":
+                break
+            table = rep["values"]
+        self.assertEqual(st, "done", (rnd, table[:6]))
+
+    def test_preflight_log_must_be_complete(self):
+        good = ["1.0 PREFLIGHT X cvs=3", "1.1 CVS 2,25", "2.0 CV 2 0", "3.0 CV 25 FAIL timeout", "4.0 END"]
+        self.assertEqual(pc_problems(good, {2, 25}), ([], []))
+        self.assertIn("no END line", pc_problems(good[:-1], {2, 25})[0][0])
+        aborted = good[:3] + ["3.5 ABORTED after a read timeout", "4.0 END"]
+        probs, missing = pc_problems(aborted, {2, 25})
+        self.assertTrue(any("ABORTED" in p for p in probs))
+        self.assertEqual(missing, [25])
+        self.assertTrue(any("ERROR" in p for p in pc_problems(good + ["5.0 ERROR boom"], {2, 25})[0]))
+
+    def test_preflight_cli_fails_on_a_short_log_and_lists_the_missing(self):
+        d = Path(tempfile.mkdtemp())
+        ros = d / "r.xml"
+        ros.write_text('<locomotive-config><locomotive id="L"><values><CVvalue name="2" value="0"/>'
+                       '<CVvalue name="3" value="0"/></values></locomotive></locomotive-config>')
+        log = d / "p.log"
+        log.write_text("1.0 CV 2 0\n2.0 END\n")
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = pc_main(["--log", str(log), "--roster-xml", str(ros)])
+        self.assertEqual(code, 1)
+        self.assertIn("missing CVs: 3,4,5,6,25", buf.getvalue())
+
+    def test_every_job_kind_carries_the_active_marker(self):
+        d = Path(tempfile.mkdtemp())
+        csvp = d / "bl.csv"
+        csvp.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        make_job.main(["steps", "--loco", "L", "--direction", "forward", "--guard", "none",
+                       "--lengths", str(csvp), "--out", str(d / "s.py")])
+        make_job.main(["move", "--loco", "L", "--direction", "forward", "--guard", "none",
+                       "--until", "BS Switch 33", "--out", str(d / "m.py")])
+        make_job.main(["preflight", "--loco", "L", "--out", str(d / "p.py")])
+        for name in ("s.py", "m.py", "p.py"):
+            self.assertIn("/tmp/speedrun.active", (d / name).read_text(), name)
+        pre = (SM / "jython" / "preflight.py").read_text()
+        self.assertIn("os.remove", pre)
+        self.assertIn('L("CVS "', pre)
+
+    def test_guard_is_required_and_none_is_explicit(self):
+        d = Path(tempfile.mkdtemp())
+        csvp = d / "bl.csv"
+        csvp.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        base = ["steps", "--loco", "L", "--direction", "forward", "--lengths", str(csvp), "--out", str(d / "s.py")]
+        with self.assertRaises(SystemExit):
+            make_job.main(base)
+        make_job.main(base + ["--guard", "none"])
+        self.assertEqual(effective_settings((d / "s.py").read_text())["GUARD"], [])
+        with self.assertRaises(SystemExit):
+            make_job.main(base + ["--guard", "none", "--guard", "BS W-1"])
+        with self.assertRaises(SystemExit):
+            make_job.main(["move", "--loco", "L", "--direction", "forward", "--until", "BS X",
+                           "--out", str(d / "m.py")])
+        for name in ("step_runner.py", "move_to.py"):
+            self.assertIn('L("NO GUARD")', (SM / "jython" / name).read_text())
+
+    def test_steps_must_be_whole_numbers_1_to_126(self):
+        d = Path(tempfile.mkdtemp())
+        csvp = d / "bl.csv"
+        csvp.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        base = ["steps", "--loco", "L", "--direction", "forward", "--lengths", str(csvp), "--guard", "none",
+                "--out", str(d / "s.py")]
+        for bad in ("0", "127", "2.5", "abc", "24,,48", "24,200"):
+            with self.assertRaises(SystemExit, msg=bad):
+                make_job.main(base + ["--steps", bad])
+        make_job.main(base + ["--steps", "2,126"])
+        for bad in ("0", "127", "x"):
+            with self.assertRaises(SystemExit, msg=bad):
+                make_job.main(["move", "--loco", "L", "--direction", "forward", "--guard", "none",
+                               "--until", "BS X", "--step", bad, "--out", str(d / "m.py")])
+
+    def test_one_listener_per_bean_carries_both_roles(self):
+        src = (SM / "jython" / "step_runner.py").read_text()
+        self.assertIn("def __init__(self, n, isg)", src)
+        self.assertIn("if un in GUARD: found[un] = s", src)
+        self.assertIn("if sn in GUARD: found[sn] = s", src)
+        self.assertIn("if self.isg and st == 2", src)
+        self.assertEqual(src.count("addPropertyChangeListener"), 1)
+
+    def test_analyze_docstring_matches_the_code(self):
+        doc = analyze.__doc__
+        self.assertIn("anyrail,inferred", doc)
+        self.assertIn("assigned", doc)
+        self.assertEqual(analyze.DEFAULT_TRUSTED, ("anyrail", "inferred"))
 
 
 if __name__ == "__main__":

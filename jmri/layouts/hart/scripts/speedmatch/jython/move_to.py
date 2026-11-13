@@ -48,6 +48,7 @@ def run():
             if n in GUARD:
                 if s.getKnownState() == 2: why[0] = "guard already ACTIVE: " + n; return
             else: until.append(s)
+        if not GUARD: L("NO GUARD")
         re = jmri.jmrit.roster.Roster.getDefault().getEntryForId(P_ID)
         tl = TL(); jmri.InstanceManager.throttleManagerInstance().requestThrottle(re, tl, False); tl.ev.wait(10)
         if tl.t is None: L("NO THROTTLE %s" % tl.err); return

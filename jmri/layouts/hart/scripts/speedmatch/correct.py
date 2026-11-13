@@ -18,7 +18,9 @@ from the roster there, not from here.
         --target-loco "CSX 2121" --target-direction forward --round 1 --out proposal/
 
 Exit status: 0 every anchor within tolerance (done), 2 a proposal was written (apply it,
-measure again, run this again with --round N+1), 3 out of rounds and still outside, or a cut blocked by the rising table (status\nblocked; the entries are named in proposal.json).
+measure again, run this again with --round N+1), 3 out of rounds and still outside, a cut blocked by the rising table (status
+blocked), or no entry able to change (status stuck); proposal.json gives the reason. Only
+status continue carries writes.
 """
 import argparse
 import csv
@@ -36,7 +38,8 @@ TOLERANCE = 0.03
 MAX_ROUNDS = 5
 RAISED_NOTE = "raised to keep the table rising"
 LOWERED_NOTE = "lowered to follow a cut"
-BLOCKED_NOTE = "cut blocked by the rising table"
+BLOCKED_NOTE = "cut blocked by the rising table; kept at its old value"
+CAPPED_NOTE = "raise capped at the blocked entry's old value"
 
 
 def interp(x, pts):
@@ -98,6 +101,14 @@ def propose(table, measured, target, tol=TOLERANCE, gain=1.0, max_ratio=1.5):
             row["kind"] = "keep" if row["within"] is not False else row["kind"]
         anchors.append(row)
         raw.append(val)
+    # an entry at 0..2 that must rise would creep up by 1 a round: start it from its neighbour
+    for i in range(N - 2, -1, -1):
+        if anchors[i]["kind"] == "raise" and anchors[i]["old"] <= 2:
+            guess = int(round(raw[i + 1] * ANCHOR_STEPS[i] / ANCHOR_STEPS[i + 1]))
+            if guess > raw[i]:
+                raw[i] = min(255, guess)
+                anchors[i]["note"] = (anchors[i]["note"] + "; " if anchors[i]["note"] else "") + \
+                    "started from the next entry's value"
     new, blocked = _rising(raw, anchors)
     for row, v, r in zip(anchors, new, raw):
         row["new"] = v
@@ -106,6 +117,8 @@ def propose(table, measured, target, tol=TOLERANCE, gain=1.0, max_ratio=1.5):
             row["note"] = (row["note"] + "; " if row["note"] else "") + RAISED_NOTE
         elif v != r and row.get("pass") == "lowered":
             row["note"] = (row["note"] + "; " if row["note"] else "") + LOWERED_NOTE
+        elif row.get("pass") == "capped":
+            row["note"] = (row["note"] + "; " if row["note"] else "") + CAPPED_NOTE
         if row.get("blocked"):
             row["note"] = (row["note"] + "; " if row["note"] else "") + BLOCKED_NOTE
     measured_any = any(r["within"] is not None for r in anchors)
@@ -140,9 +153,16 @@ def _rising(raw, anchors):
                     new[c] = new[i]
                     anchors[c]["pass"] = "lowered"
                 continue
-            new[i] = new[i - 1]
+            # keep the old value, never past it; the predecessors' raises stop there too
+            new[i] = anchors[i]["old"]
             anchors[i]["blocked"] = True
             blocked.append(anchors[i]["cv"])
+            for c in chain:
+                if anchors[c]["kind"] == "raise" and new[c] > new[i]:
+                    new[c] = max(new[i], anchors[c]["old"])
+                    anchors[c]["pass"] = "capped"
+            if new[i] < new[i - 1]:   # only if the table was not rising to begin with
+                new[i] = new[i - 1]
         else:
             new[i] = new[i - 1]
             anchors[i]["pass"] = "raised"
@@ -150,11 +170,16 @@ def _rising(raw, anchors):
 
 
 def status(report, round_no, max_rounds):
-    """done / blocked / continue / max_rounds."""
+    """done / blocked / stuck / continue / max_rounds.
+
+    blocked: a cut cannot be made because of the rising table. stuck: some anchor is out of
+    tolerance but no entry can change (all at 255 or the floor, or nothing measured)."""
     if report["all_within"]:
         return "done"
     if report.get("blocked"):
         return "blocked"
+    if report.get("anchors") and all(r["new"] == r["old"] for r in report["anchors"]):
+        return "stuck"
     return "max_rounds" if round_no >= max_rounds else "continue"
 
 
@@ -173,12 +198,19 @@ def proposal(loco, report, round_no, max_rounds, tol):
             if r.get("blocked"):
                 c["note"] = BLOCKED_NOTE
             changes.append(c)
-    return {"schema": 1, "kind": "speed_table_proposal", "loco": loco,
+    st = status(report, round_no, max_rounds)
+    # only a proposal that is meant to be applied carries writes; blocked, stuck, done and
+    # out-of-rounds keep the details in changes and proposal.csv
+    writes = [{"cv": c["cv"], "value": c["new"]} for c in changes] if st == "continue" else []
+    reason = {"blocked": "a cut is blocked by the rising table (see blocked_cvs); nothing is written",
+              "stuck": "no entry can change: they are at 255 or the floor, or not measured",
+              "max_rounds": "out of rounds; nothing further is written"}.get(st, "")
+    return {"schema": 1, "kind": "speed_table_proposal", "loco": loco, "reason": reason,
             # roster_id and writes are what pom_guard.py reads (POM_GUARD.md); the rest is ignored
-            "roster_id": loco, "writes": [{"cv": c["cv"], "value": c["new"]} for c in changes],
+            "roster_id": loco, "writes": writes,
             "round": round_no,
             "max_rounds": max_rounds, "tolerance_pct": round(100 * tol, 2),
-            "status": status(report, round_no, max_rounds), "cv_start": CV_START,
+            "status": st, "cv_start": CV_START,
             "old": [r["old"] for r in report["anchors"]], "new": report["values"],
             "changes": changes, "blocked_cvs": report.get("blocked", []), "applied": False,
             "note": "A proposal only. Writing goes through the write guard, dry run first."}
@@ -262,7 +294,7 @@ def main(argv=None):
         if r["new"] != r["old"] or r["within"] is False:
             err = "n/a" if r["error"] is None else "%+.1f%%" % (100 * r["error"])
             print("  CV%d step %.1f: %s  %d -> %d %s" % (r["cv"], r["step"], err, r["old"], r["new"], r["note"]))
-    return {"done": 0, "continue": 2, "max_rounds": 3, "blocked": 3}[prop["status"]]
+    return {"done": 0, "continue": 2, "max_rounds": 3, "blocked": 3, "stuck": 3}[prop["status"]]
 
 
 if __name__ == "__main__":

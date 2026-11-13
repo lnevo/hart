@@ -55,6 +55,35 @@ def parse_preflight(lines):
     return values, fails
 
 
+# The CVs every preflight must have read (CV2 to 6, 25, 29, 66, the 28 table entries, 95).
+# make_job.py builds the job from this list; a back-EMF family adds its own.
+BASE_CVS = [2, 3, 4, 5, 6, 25, 29, 66] + list(range(67, 95)) + [95]
+
+
+def log_problems(lines, expected=None):
+    """What makes a preflight log unusable: no END line, an ERROR or ABORTED line, or an
+    expected CV that is neither read nor reported as failed. Returns (problems, missing).
+
+    expected defaults to BASE_CVS plus the CVs the job logged as requested (its CVS line)."""
+    lines = [l.strip() for l in lines]
+    problems = []
+    if not any(l.endswith(" END") for l in lines):
+        problems.append("no END line: the preflight did not finish")
+    for l in lines:
+        if " ERROR " in l or " ABORTED" in l or " NO PROGRAMMER" in l:
+            problems.append(l.split(" ", 1)[1])
+    if expected is None:
+        expected = set(BASE_CVS)
+        for l in lines:
+            if " CVS " in l:
+                expected |= {int(x) for x in l.split(" CVS ", 1)[1].split(",") if x.strip().isdigit()}
+    values, fails = parse_preflight(lines)
+    missing = sorted(set(expected) - set(values) - set(fails))
+    if missing:
+        problems.append("%d expected CVs missing" % len(missing))
+    return problems, missing
+
+
 def compare(read, fails, roster):
     """List of {cv, read, roster, result}; result is ok, DIFFERENT, FAILED or not in roster."""
     rows = []
@@ -80,9 +109,18 @@ def main(argv=None):
     ap.add_argument("--log", required=True)
     ap.add_argument("--roster-xml", required=True)
     ap.add_argument("--loco-id", help="roster id when the file holds several locomotives")
+    ap.add_argument("--expect", help="CVs that must be present, comma separated (default: the "
+                    "standard list plus what the job requested)")
     ap.add_argument("--save", help="write the CVs read to this JSON file (a rollback record)")
     a = ap.parse_args(argv)
-    read, fails = parse_preflight(Path(a.log).read_text().splitlines())
+    lines = Path(a.log).read_text().splitlines()
+    expected = {int(x) for x in a.expect.split(",")} if a.expect else None
+    problems, missing = log_problems(lines, expected)
+    for p in problems:
+        print("LOG PROBLEM: " + p)
+    if missing:
+        print("missing CVs: " + ",".join(str(c) for c in missing))
+    read, fails = parse_preflight(lines)
     rows = compare(read, fails, roster_cvs(a.roster_xml, a.loco_id))
     for r in rows:
         if r["result"] != "ok":
@@ -92,7 +130,7 @@ def main(argv=None):
         len(rows), sum(r["result"] == "ok" for r in rows), len(bad)))
     if a.save:
         Path(a.save).write_text(json.dumps({"read": read, "failed": fails}, indent=2) + "\n")
-    return 1 if bad or not rows else 0
+    return 1 if bad or not rows or problems else 0
 
 
 if __name__ == "__main__":

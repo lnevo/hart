@@ -11,8 +11,9 @@ reverse, and the other way round), and reports the drift of the repeated top ste
                [--pair "CSX 2121,CSX 2738"]
 
 Lengths come from jmri/layouts/hart/data/block_lengths.csv (inches). Only trusted rows are
-used: with a `basis` column, basis in --trusted (default anyrail, inferred); without one,
-flag == "assigned".
+used: the value in the `basis` column (or the `flag` column when there is no basis column)
+must be in --trusted, which defaults to anyrail,inferred. "assigned" counts only if you
+pass it.
 """
 import argparse
 import csv

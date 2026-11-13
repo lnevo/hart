@@ -17,20 +17,45 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import analyze  # noqa: E402
 import liverule as lr  # noqa: E402
+import preflight_compare as pc  # noqa: E402
 
 # Creep steps, the 2026-11-08 steps, and a repeat of 126 at the end to measure drift.
 DEFAULT_STEPS = [2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 80, 96, 112, 126, 126]
 DEFAULT_WARM_STEP = 64
 DEFAULT_WARM_LAPS = 3
-GUARD = []  # sensors that abort the run if lit; set with --guard "BS W-1" (repeatable)
 # Decoder families differ in their back-EMF CVs; the lists below are the CVs that exist in
 # the roster entries of CSX 2121 (Tsunami 2) and CSX 2738 (TCS MC). Check the manual for
 # any other decoder before trusting them.
 BACKEMF = {"tsunami2": [209, 210, 211, 212, 213], "tcs": [49, 56, 57], "none": []}
-BASE_CVS = [2, 3, 4, 5, 6, 25, 29, 66] + list(range(67, 95)) + [95]
+BASE_CVS = pc.BASE_CVS
 
 
 RUNNER_MARK = "# ---- runner ----\n"
+
+
+def step_value(text):
+    """One throttle step: an integer 1..126 (argparse type)."""
+    try:
+        n = int(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError("%r is not a whole number" % text)
+    if not 1 <= n <= 126:
+        raise argparse.ArgumentTypeError("step %d is outside 1..126" % n)
+    return n
+
+
+def step_list(text):
+    return [step_value(x) for x in text.split(",")]
+
+
+def guards(values):
+    """--guard values: sensor names, or the single word none to run without a guard on purpose
+    (the runner then logs NO GUARD)."""
+    if "none" in values:
+        if len(values) > 1:
+            raise SystemExit("--guard none cannot be combined with sensor names")
+        return []
+    return list(values)
 
 
 def settings_text(d):
@@ -41,7 +66,7 @@ def build_steps(a, lengths):
     s = {
         "LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward",
         "FUNCS": [0] + ([8] if a.mute_sound else []),
-        "GUARD": list(a.guard), "REF": analyze.ORDER[0], "MID": "BS Switch 23a",
+        "GUARD": guards(a.guard), "REF": analyze.ORDER[0], "MID": "BS Switch 23a",
         "ORDER": analyze.ORDER, "LENGTHS": lengths,
         "STEPS_LIST": a.steps, "WARM_STEP": a.warm_step, "WARM_LAPS": a.warm_laps,
         "STOP_K": a.k, "STOP_REL": a.rel, "MAX_READINGS": a.max_n,
@@ -57,7 +82,7 @@ def build_steps(a, lengths):
 
 def build_move(a):
     s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
-         "UNTIL": list(a.until), "GUARD": list(a.guard), "FUNCS": [0] + ([8] if a.mute_sound else []),
+         "UNTIL": list(a.until), "GUARD": guards(a.guard), "FUNCS": [0] + ([8] if a.mute_sound else []),
          "MAX_S": a.max_s}
     return settings_text(s) + (HERE / "jython" / "move_to.py").read_text()
 
@@ -75,7 +100,7 @@ def main(argv=None):
     st = sub.add_parser("steps", help="warm-up and step profile of one loco in one direction")
     st.add_argument("--loco", required=True, help='roster id, e.g. "CSX 2738"')
     st.add_argument("--direction", required=True, choices=["forward", "reverse"])
-    st.add_argument("--steps", type=lambda x: [int(i) for i in x.split(",")], default=DEFAULT_STEPS)
+    st.add_argument("--steps", type=step_list, default=DEFAULT_STEPS, help="whole steps 1..126, comma separated")
     st.add_argument("--warm-laps", type=int, default=DEFAULT_WARM_LAPS)
     st.add_argument("--warm-step", type=int, default=DEFAULT_WARM_STEP)
     st.add_argument("--k", type=int, default=lr.STOP_K)
@@ -90,8 +115,9 @@ def main(argv=None):
     st.add_argument("--stall-skip-below", type=int, default=6,
                     help="a stall at or below this step skips the step instead of ending the run")
     st.add_argument("--step-max", type=float, default=900.0, help="seconds allowed for one step")
-    st.add_argument("--guard", action="append", default=list(GUARD),
-                    help="sensor (user or system name) that aborts the run; repeatable")
+    st.add_argument("--guard", action="append", required=True,
+                    help="sensor (user or system name) that aborts the run; repeatable. Required: "
+                         "pass --guard none to run without one (logged as NO GUARD)")
     st.add_argument("--mute-sound", action="store_true", help="also switch F8 on (2121's mute)")
     st.add_argument("--lengths", default=str(analyze.DEFAULT_LENGTHS))
     st.add_argument("--trusted", default=",".join(analyze.DEFAULT_TRUSTED))
@@ -99,10 +125,11 @@ def main(argv=None):
     mv = sub.add_parser("move", help="run a loco until a sensor lights, then stop it")
     mv.add_argument("--loco", required=True)
     mv.add_argument("--direction", required=True, choices=["forward", "reverse"])
-    mv.add_argument("--step", type=int, default=24)
+    mv.add_argument("--step", type=step_value, default=24)
     mv.add_argument("--until", action="append", required=True,
                     help="sensor to stop at (user or system name); repeatable, any one counts")
-    mv.add_argument("--guard", action="append", default=list(GUARD))
+    mv.add_argument("--guard", action="append", required=True,
+                    help="as for steps: sensor names, or none")
     mv.add_argument("--max-s", type=float, default=90.0)
     mv.add_argument("--mute-sound", action="store_true")
     mv.add_argument("--log")

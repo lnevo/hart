@@ -341,11 +341,12 @@ class Preflight(unittest.TestCase):
     def test_cli_exit_status(self):
         d = Path(tempfile.mkdtemp())
         log = d / "p.log"
-        log.write_text("1.0 CV 2 0\n2.0 CV 25 16\n")
+        log.write_text("1.0 CV 2 0\n2.0 CV 25 16\n3.0 END\n")
         ros = str(self.roster())
-        self.assertEqual(pc.main(["--log", str(log), "--roster-xml", ros]), 0)
-        log.write_text("1.0 CV 2 0\n2.0 CV 25 15\n")
-        self.assertEqual(pc.main(["--log", str(log), "--roster-xml", ros, "--save", str(d / "o.json")]), 1)
+        self.assertEqual(pc.main(["--log", str(log), "--roster-xml", ros, "--expect", "2,25"]), 0)
+        log.write_text("1.0 CV 2 0\n2.0 CV 25 15\n3.0 END\n")
+        self.assertEqual(pc.main(["--log", str(log), "--roster-xml", ros, "--expect", "2,25",
+                                  "--save", str(d / "o.json")]), 1)
         self.assertEqual(json.loads((d / "o.json").read_text())["read"]["25"], 15)
 
     def test_job_reads_the_cvs_the_plan_lists(self):
@@ -533,7 +534,7 @@ class JythonFiles(unittest.TestCase):
         lengths = d / "bl.csv"
         lengths.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
         make_job.main(["steps", "--loco", "CSX 2121", "--direction", "forward", "--out", str(d / "j.py"),
-                       "--lengths", str(lengths)])
+                       "--lengths", str(lengths), "--guard", "none"])
         self.assertIn("P_FWD = True", (d / "j.py").read_text())
 
     def test_a_job_with_no_trusted_lengths_is_refused(self):
@@ -542,7 +543,7 @@ class JythonFiles(unittest.TestCase):
         lengths.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,estimate,\n")
         with self.assertRaises(SystemExit):
             make_job.main(["steps", "--loco", "CSX 2121", "--direction", "forward", "--out", str(d / "j.py"),
-                           "--lengths", str(lengths)])
+                           "--lengths", str(lengths), "--guard", "none"])
 
     def test_preflight_job_lists_the_cvs(self):
         d = Path(tempfile.mkdtemp())

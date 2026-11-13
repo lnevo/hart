@@ -89,7 +89,9 @@ python3 jmri/layouts/hart/scripts/speedmatch/preflight_compare.py \
     --roster-xml ~/JMRI_UserFiles/roster/2738.xml --save /tmp/sm/cvs_2738.json
 ```
 
-It lists every CV that differs from the roster and exits 1 if any differ or any read failed.
+It lists every CV that differs from the roster and exits 1 if any differ or any read failed,
+if the log has no END line or has an ERROR or ABORTED line, or if an expected CV is missing
+(it names them).
 **Stop if it says DIFFERENT**; sort out which is right before measuring. `--save` keeps what
 was read, which is also the rollback record. CV list: CV2 to CV6, CV25, CV29, CV66, CV67 to
 CV94, CV95, plus the back-EMF CVs of the decoder family (`--backemf`: `tsunami2` = 209 to 213,
@@ -113,11 +115,16 @@ remove the flag yourself: `ssh pi rm /tmp/speedrun.kill`). A runner holds `/tmp/
 while it runs and `drop_job.sh` refuses a new runner job until it is gone (`--force` only after
 the log shows END). It also
 ends on its own if a guard sensor lights, or no sensor changes for 120 s (shown as `STOP`).
+`--guard` is required for `steps` and `move`: name the sensors that must abort a run (for
+example `--guard "BS W-1" --guard "BS W-2"`), or pass `--guard none` to run without one on
+purpose (the log then says `NO GUARD`). Steps are whole numbers 1 to 126; anything else is
+refused. Every job (steps, move and preflight) holds `/tmp/speedrun.active`, so none starts
+while another is running.
 A guard sensor can be any sensor (user or system name); the job refuses to start if one is
 not found or is already lit. The no-event limit follows a settled step's pace but never goes
 above `--stall-cap` (300 s), and a step that stalled never raises it. To position a loco
 first: `make_job.py move --loco "CSX 2738" --direction reverse --step 24 --until "BS Switch 33"
---guard "BS W-1" --out /tmp/sm/move.py`, then `drop_job.sh` it (it stops at speed 0 when the
+--guard "BS W-1" --guard "BS W-2" --out /tmp/sm/move.py`, then `drop_job.sh` it (it stops at speed 0 when the
 sensor has been lit for 0.8 s, after 90 s, or on the kill flag).
 Flags worth knowing: `--steps 24,48,126`, `--warm-laps 3`, `--warm-step 64`, `--rel 0.02`,
 `--max 12`, `--stall 120`. Run all four combinations: 2121 forward, 2121 reverse, 2738
@@ -168,7 +175,9 @@ python3 jmri/layouts/hart/scripts/speedmatch/correct.py \
 (Use `--table v1,...,v28` instead of `--roster-xml` after the first round, taking the values
 you actually wrote.) It prints each table entry whose speed is outside the tolerance and the new value,
 and writes `proposal.json` and `proposal.csv` in the output folder. Exit status: 0 all within
-tolerance, 2 proposal written, 3 out of rounds (default 5). Each entry is scaled by target
+tolerance, 2 proposal written, 3 for out of rounds (default 5), blocked (a cut cannot be made
+because of the rising table) or stuck (no entry can change). Only a proposal with status
+`continue` has `writes`; the others keep the details in `changes` and `proposal.csv`. Each entry is scaled by target
 speed over measured speed, at most 1.5 times per round, limited to 1 to 255 and never
 decreasing from one entry to the next. Entry k is taken to act at step 126 x k / 28; speeds at
 those (fractional) steps are interpolated from the measured steps.
