@@ -234,6 +234,8 @@ def sweep(nodes, strands, col, warn):
                     px, py = TURN_SIGN * -du[1], TURN_SIGN * du[0]
                     if nodes[v]["xy"][0] * px + nodes[v]["xy"][1] * py > nodes[u]["xy"][0] * px + nodes[u]["xy"][1] * py:
                         want, other = s1, s0
+                if nodes[strands[s0]["dst"][0]].get("flipped"):     # a loop off a flipped switch is flipped with it
+                    want, other = other, want
             pair = [want, other] if (hint is None or hint[1] == "below") else [other, want]
             i = where(hint)
             L[i:i] = pair
@@ -842,6 +844,10 @@ def apply_edits(g, edits):
                 names = name if isinstance(name, list) else ([name] if name else [])
                 t["names"] = names if t["u"] == n0 else names[::-1]
                 t["main"] = "main" in rest
+        elif op == "flip":          # draw these switches' diverging side the other way up (schematic licence)
+            for ref in ed["switches"]:
+                N[by_label(g, ref)]["hand"] *= -1
+                N[by_label(g, ref)]["flipped"] = True
         elif op == "end":           # what a track end is: found from the switch and port it hangs off
             for ref, port, name, sub, to in ed["ends"]:
                 n = by_label(g, ref)
