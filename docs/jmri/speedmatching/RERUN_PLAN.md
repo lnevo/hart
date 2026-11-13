@@ -128,8 +128,10 @@ every write goes through:
 2. **No consist in the path.** 2121 leads an LCC consist with 2738. Refuse to write while either
    loco is in an active consist; the consist is broken first and made again afterwards with
    `cs105_consist.py`. Never write to a consist address.
-3. **Allowed CVs only:** 3, 4, 25, 29, 66, 67 to 94, 95. CV29 changes only bit 4 (speed table)
-   and keeps the bits it read. Never CV1, CV17 to 19 (addresses and consist) or CV8 (reset).
+3. **Allowed CVs only:** 3, 4, 25, 66, 67 to 94, 95. Never CV1, CV17 to 19 (addresses and
+   consist) or CV8 (reset). CV29 is set on the programming track only (decided 2026-11-13):
+   without RailCom its real value cannot be read on the main, so a whole-byte write could flip
+   the direction or address-type bits.
 4. **Dry run by default.** It prints every write (address, CV, old value, new value). Writing
    needs an explicit `--apply`. Each run saves a rollback file of the values it read.
 5. **No power or stop-all.** The tools stop a loco with its own throttle at speed 0, never with

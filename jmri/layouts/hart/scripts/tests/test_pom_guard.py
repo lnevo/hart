@@ -117,13 +117,13 @@ class GuardCase(unittest.TestCase):
         return g.load_roster(make_roster(sub, entries, file_overrides))
 
     def plan(self, writes, roster=None, log=CLEAR, rid="CSX 2738", reads=None, absent_ok=(),
-             reads_file=None, ledger=None):
+             ledger=None):
         roster = roster if roster is not None else self.roster()
         if log == "auto":
             log = qlog(dict((n, []) for _, n in g.query_nodes(roster, rid)))
         state = g.parse_consist_log(log) if log is not None else None
         return g.build_plan(proposal(writes, rid), roster, state, absent_ok=absent_ok, reads=reads,
-                            reads_file=reads_file, ledger=ledger)
+                            ledger=ledger)
 
     def refused(self, fragment, fn, *a, **k):
         with self.assertRaises(g.GuardRefusal) as cm:
@@ -254,35 +254,26 @@ class ConsistRefusals(GuardCase):
 class CvRefusals(GuardCase):
     def test_named_cvs(self):
         for cv, word in ((1, "short address"), (17, "long address"), (18, "long address"),
-                         (19, "consist"), (8, "reset")):
+                         (19, "consist"), (8, "reset"), (29, "programming track only")):
             self.refused(word, self.plan, [(cv, 3)])
+
+    def test_cv29_is_never_written_on_the_main(self):
+        for v in (50, 34, 16):
+            self.refused("CV29 is set on the programming track only", self.plan, [(29, v)])
+        self.assertNotIn(29, g.ALLOWED_CVS)
 
     def test_cv_not_in_list(self):
         for cv in (2, 5, 6, 7, 30, 96, 0, 1024):
             self.refused("not in the allowed list", self.plan, [(cv, 3)])
 
     def test_every_allowed_cv_passes(self):
-        writes = [(cv, 10) for cv in sorted(g.ALLOWED_CVS) if cv != 29]
+        writes = [(cv, 10) for cv in sorted(g.ALLOWED_CVS)]
+        self.assertEqual(sorted(g.ALLOWED_CVS), [3, 4, 25, 66] + list(range(67, 95)) + [95])
         self.assertEqual(len(self.plan(writes)["rows"]), 33)
 
     def test_value_out_of_range(self):
         for v in (256, -1, "12", True, 12.0, None):
             self.refused("not an integer 0-255", self.plan, [(67, v)])
-
-    def test_cv29_other_bit_change(self):
-        self.refused("only bit 4", self.plan, [(29, 51)])
-        self.refused("only bit 4", self.plan, [(29, 18)])  # would drop the long-address bit
-
-    def test_cv29_bit4_change_is_allowed(self):
-        row = self.plan([(29, 34)])["rows"][0]
-        self.assertEqual((row["old"], row["new"], row["old_source"]), (50, 34, "roster"))
-
-    def test_cv29_checked_against_the_read_value(self):
-        self.refused("only bit 4", self.plan, [(29, 50)], reads={29: 34 | 1})
-
-    def test_cv29_checked_against_the_ledger(self):
-        led = {"roster_id": "CSX 2738", "cvs": {"29": {"value": 51, "state": "sent", "t": 1.0}}}
-        self.refused("only bit 4", self.plan, [(29, 34)], ledger=led)
 
     def test_duplicate_cv(self):
         self.refused("twice", self.plan, [(67, 1), (67, 2)])
@@ -308,7 +299,7 @@ class CvRefusals(GuardCase):
     def test_bad_reads_values(self):
         for bad in ({67: 256}, {67: -1}, {67: "12"}, {67: True}, {67: 1.5}, {"x": 1}, {True: 1}, [1]):
             self.refused("", g.validate_reads, bad)
-        self.assertEqual(g.validate_reads({"67": 12, 68: 0}), {67: 12, 68: 0})
+        self.assertEqual(g.validate_reads({"67": 12, 68: 0, "CV69": 3}), {67: 12, 68: 0, 69: 3})
         self.refused("not an integer 0-255", self.plan, [(67, 1)], reads={67: 300})
 
     def test_cli_bad_reads_file_is_a_refusal_not_a_traceback(self):
@@ -317,57 +308,76 @@ class CvRefusals(GuardCase):
         Path(prop).write_text(json.dumps(proposal([(67, 14)])))
         Path(rd).write_text(json.dumps({"67": 999}))
         Path(cl).write_text(CLEAR)
-        out = io.StringIO()
-        with redirect_stdout(out):
-            rc = g._main([prop, "--roster-dir", d, "--consist-log", cl, "--reads", rd])
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", cl, "--reads", rd])
         self.assertEqual(rc, 2)
-        self.assertIn("REFUSED reads CV67 value 999", out.getvalue())
+        self.assertIn("REFUSED reads CV67 value 999", out)
+        Path(rd).write_text("{not json")
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", cl, "--reads", rd])
+        self.assertEqual(rc, 2)
+        self.assertIn("REFUSED reads", out)
         Path(rd).write_text(json.dumps({"67": 12}))
-        out = io.StringIO()
-        with redirect_stdout(out):
-            rc = g._main([prop, "--roster-dir", d, "--consist-log", cl, "--reads", rd])
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", cl, "--reads", rd])
         self.assertEqual(rc, 0)
-        self.assertIn("PLAN 2738L CV67 old=12 (read) new=14", out.getvalue())
+        self.assertIn("PLAN 2738L CV67 old=12 (read) new=14", out)
 
 
-class OldValues(GuardCase):
-    def test_precedence_read_then_reads_file_then_ledger_then_roster(self):
-        led = {"roster_id": "CSX 2738", "cvs": {"67": {"value": 20, "state": "sent", "t": 100.0}}}
+def cli(argv):
+    out = io.StringIO()
+    with redirect_stdout(out):
+        rc = g._main(argv)
+    return rc, out.getvalue()
+
+
+class Ledger(GuardCase):
+    def lf(self):
+        return os.path.join(self.dir, "ledger", "CSX_2738.json")
+
+    def apply(self, plan, prog, rb, led, lf, **k):
+        return g.execute(plan, prog.write, apply=True, consists_broken=True, rollback_path=rb,
+                         ledger=led, ledger_file=lf, **k)
+
+    def test_precedence_read_then_ledger_then_roster(self):
+        led = g.load_ledger(None, "CSX 2738")
         row = lambda **k: self.plan([(67, 30)], **k)["rows"][0]
         self.assertEqual((row()["old"], row()["old_source"]), (12, "roster"))
+        g.ledger_mark(led, 67, 20, "sent")
         r = row(ledger=led)
         self.assertEqual((r["old"], r["old_source"]), (20, "ledger"))
-        r = row(ledger=led, reads_file=(50.0, {67: 15}))  # older than the ledger entry
-        self.assertEqual((r["old"], r["old_source"]), (20, "ledger"))
-        r = row(ledger=led, reads_file=(200.0, {67: 15}))  # newer
-        self.assertEqual((r["old"], r["old_source"]), (15, "reads_file"))
-        r = row(ledger=led, reads_file=(200.0, {67: 15}), reads={67: 17})
+        r = row(ledger=led, reads={67: 17})
         self.assertEqual((r["old"], r["old_source"]), (17, "read"))
 
+    def test_seq_is_a_monotonic_counter(self):
+        led = g.load_ledger(None, "CSX 2738")
+        g.ledger_mark(led, 67, 1, "read")
+        g.ledger_mark(led, 68, 2, "sent")
+        g.ledger_mark(led, 67, 3, "sent")
+        self.assertEqual((led["cvs"]["68"]["seq"], led["cvs"]["67"]["seq"], led["next_seq"]), (2, 3, 4))
+        g._write_json(self.lf(), led)
+        self.assertEqual(g.load_ledger(self.lf(), "CSX 2738")["next_seq"], 4)
+
     def test_no_skip_unless_read_this_run(self):
-        led = {"roster_id": "CSX 2738", "cvs": {"68": {"value": 40, "state": "sent", "t": 1.0}}}
-        plan = self.plan([(3, 26), (68, 40), (69, 50)], ledger=led, reads_file=(9e9, {69: 50}))
+        lf = self.lf()
+        led = g.load_ledger(lf, "CSX 2738")
+        g.ledger_mark(led, 68, 40, "sent")
+        g.ledger_mark(led, 69, 50, "read")  # a read from an earlier run
+        plan = self.plan([(3, 26), (68, 40), (69, 50)], ledger=led)
         self.assertEqual([r["skip"] for r in plan["rows"]], [False, False, False])
         prog = FakeProgrammer()
-        g.execute(plan, prog.write, apply=True, rollback_path=os.path.join(self.dir, "rb.json"),
-                  ledger=led, ledger_file=os.path.join(self.dir, "led.json"))
+        self.apply(plan, prog, os.path.join(self.dir, "rb.json"), led, lf)
         self.assertEqual(prog.calls, [(3, 26), (68, 40), (69, 50)])
-        plan = self.plan([(3, 26)], reads={3: 26})
-        self.assertTrue(plan["rows"][0]["skip"])
+        self.assertTrue(self.plan([(3, 26)], reads={3: 26})["rows"][0]["skip"])
 
     def test_ledger_precedence_across_two_rounds(self):
-        lf = os.path.join(self.dir, "ledger", "CSX_2738.json")
+        lf = self.lf()
         led = g.load_ledger(lf, "CSX 2738")
         prog = FakeProgrammer()
-        g.execute(self.plan([(67, 14), (68, 30)], ledger=led), prog.write, apply=True,
-                  rollback_path=os.path.join(self.dir, "rb1.json"), ledger=led, ledger_file=lf)
+        self.apply(self.plan([(67, 14), (68, 30)], ledger=led), prog, os.path.join(self.dir, "rb1.json"), led, lf)
         led2 = g.load_ledger(lf, "CSX 2738")
-        self.assertEqual(led2["cvs"]["67"]["value"], 14)
-        self.assertEqual(led2["cvs"]["67"]["state"], "sent")
+        self.assertEqual((led2["cvs"]["67"]["value"], led2["cvs"]["67"]["state"]), (14, "sent"))
         plan2 = self.plan([(67, 16), (68, 30)], ledger=led2)
         self.assertEqual([(r["old"], r["old_source"]) for r in plan2["rows"]], [(14, "ledger"), (30, "ledger")])
         rb2 = os.path.join(self.dir, "rb2.json")
-        g.execute(plan2, prog.write, apply=True, rollback_path=rb2, ledger=led2, ledger_file=lf)
+        self.apply(plan2, prog, rb2, led2, lf)
         doc = json.loads(Path(rb2).read_text())
         self.assertEqual([(w["cv"], w["value"], w["old_source"]) for w in doc["writes"]],
                          [(67, 14, "ledger"), (68, 30, "ledger")])
@@ -375,47 +385,86 @@ class OldValues(GuardCase):
         self.assertEqual(prog.calls, [(67, 14), (68, 30), (67, 16), (68, 30)])
 
     def test_timeout_marks_unknown_and_next_run_refuses(self):
-        lf = os.path.join(self.dir, "led.json")
+        lf = self.lf()
         led = g.load_ledger(lf, "CSX 2738")
         prog, lines = FakeProgrammer(timeout_cv=68), []
-        res = g.execute(self.plan([(67, 14), (68, 30), (69, 51)], ledger=led), prog.write, apply=True,
-                        rollback_path=os.path.join(self.dir, "rb.json"), ledger=led, ledger_file=lf,
-                        log=lines.append)
+        res = self.apply(self.plan([(67, 14), (68, 30), (69, 51)], ledger=led), prog,
+                         os.path.join(self.dir, "rb.json"), led, lf, log=lines.append)
         self.assertTrue(res["timed_out"])
         self.assertEqual(prog.calls, [(67, 14), (68, 30)])
         self.assertTrue(any("may have been written" in line for line in lines))
-        self.assertTrue(lines[-1].startswith("STOPPED: CV68 timed out"))
+        self.assertTrue(lines[-1].startswith("STOPPED at CV68 (timeout): it may hold 30 (new) or 27 (old)"))
+        self.assertIn("clear-ledger %s CV68" % lf, lines[-1])
         led2 = g.load_ledger(lf, "CSX 2738")
         self.assertEqual(led2["cvs"]["68"]["state"], "unknown")
         self.refused("CV68 is unknown in the ledger", self.plan, [(68, 31)], ledger=led2)
         self.plan([(67, 15)], ledger=led2)  # other CVs still plan
         self.assertEqual(self.plan([(68, 31)], ledger=led2, reads={68: 30})["rows"][0]["old_source"], "read")
-        newer = led2["cvs"]["68"]["t"] + 1
-        self.assertEqual(self.plan([(68, 31)], ledger=led2, reads_file=(newer, {68: 30}))["rows"][0]
-                         ["old_source"], "reads_file")
-        g.clear_ledger(lf, ["68"])
-        self.assertEqual(self.plan([(68, 31)], ledger=g.load_ledger(lf, "CSX 2738"))["rows"][0]["old_source"],
-                         "roster")
 
     def test_failed_write_also_marks_unknown(self):
-        lf = os.path.join(self.dir, "led.json")
+        lf = self.lf()
         led = g.load_ledger(lf, "CSX 2738")
-        res = g.execute(self.plan([(67, 14), (68, 30)]), FakeProgrammer(fail_cv=67).write, apply=True,
-                        rollback_path=os.path.join(self.dir, "rb.json"), ledger=led, ledger_file=lf)
+        res = self.apply(self.plan([(67, 14), (68, 30)]), FakeProgrammer(fail_cv=67),
+                         os.path.join(self.dir, "rb.json"), led, lf)
         self.assertEqual(res["failed"], 67)
         self.assertEqual(g.load_ledger(lf, "CSX 2738")["cvs"]["67"]["state"], "unknown")
 
-    def test_reads_file_for_another_loco_is_refused(self):
-        p = os.path.join(self.dir, "r.json")
-        g.save_reads(p, {"number": 2121, "long": True}, "CSX 2121", {67: 1})
-        self.refused("not this loco", g.load_reads_file, p, "CSX 2738", 2738, True)
-        t, reads = g.load_reads_file(p, "CSX 2121", 2121, True)
-        self.assertEqual(reads, {67: 1})
+    def test_documented_rollback_after_a_timeout(self):
+        """STOPPED -> rollback refused while unknown -> clear-ledger -> apply the rollback file."""
+        lf = self.lf()
+        rb = os.path.join(self.dir, "rb.json")
+        led = g.load_ledger(lf, "CSX 2738")
+        lines = []
+        self.apply(self.plan([(67, 14), (68, 30), (69, 51)], ledger=led), FakeProgrammer(timeout_cv=68),
+                   rb, led, lf, log=lines.append)
+        rollback = json.loads(Path(rb).read_text())
+        self.assertEqual([(w["cv"], w["value"]) for w in rollback["writes"]], [(67, 12), (68, 27), (69, 50)])
+        self.refused("CV68 is unknown", g.build_plan, rollback, self.roster(), g.parse_consist_log(CLEAR),
+                     ledger=g.load_ledger(lf, "CSX 2738"))
+        rc, out = cli(["clear-ledger", lf, "CV68"])
+        self.assertEqual((rc, out.strip()), (0, "cleared CV 68 in %s" % lf))
+        led = g.load_ledger(lf, "CSX 2738")
+        plan = g.build_plan(rollback, self.roster(), g.parse_consist_log(CLEAR), ledger=led)
+        self.assertEqual([(r["cv"], r["old_source"], r["new"]) for r in plan["rows"]],
+                         [(67, "ledger", 12), (68, "roster", 27), (69, "roster", 50)])
+        prog = FakeProgrammer()
+        res = self.apply(plan, prog, os.path.join(self.dir, "rb_after.json"), led, lf)
+        self.assertEqual(prog.calls, [(67, 12), (68, 27), (69, 50)])
+        self.assertEqual(res["written"], [67, 68, 69])
 
-    def test_ledger_for_another_loco_is_refused(self):
-        lf = os.path.join(self.dir, "led.json")
-        Path(lf).write_text(json.dumps({"roster_id": "CSX 2121", "cvs": {}}))
+    def test_corrupt_ledger_is_refused_not_empty(self):
+        lf = self.lf()
+        os.makedirs(os.path.dirname(lf))
+        Path(lf).write_text('{"roster_id": "CSX 2738", "cvs": {"67": ')
+        self.refused("cannot be read", g.load_ledger, lf, "CSX 2738")
+        Path(lf).write_text(json.dumps({"roster_id": "CSX 2738", "next_seq": 2,
+                                        "cvs": {"67": {"value": 1, "state": "sent", "seq": 5}}}))
+        self.refused("bad seq", g.load_ledger, lf, "CSX 2738")
+        Path(lf).write_text(json.dumps({"roster_id": "CSX 2121", "next_seq": 1, "cvs": {}}))
         self.refused("not 'CSX 2738'", g.load_ledger, lf, "CSX 2738")
+
+    def test_write_json_replaces_without_a_gap(self):
+        p = os.path.join(self.dir, "x.json")
+        g._write_json(p, {"a": 1})
+        with mock.patch.object(g.os, "remove", side_effect=AssertionError("no remove")):
+            g._write_json(p, {"a": 2})
+        self.assertEqual(json.loads(Path(p).read_text()), {"a": 2})
+        self.assertFalse(os.path.exists(p + ".tmp"))
+
+    def test_archive_ledger_starts_the_next_run_from_the_roster(self):
+        ldir = os.path.join(self.dir, "ledger")
+        led = g.load_ledger(self.lf(), "CSX 2738")
+        g.ledger_mark(led, 67, 14, "sent")
+        g._write_json(self.lf(), led)
+        rc, out = cli(["archive-ledger", "CSX 2738", "--ledger-dir", ldir])
+        self.assertEqual(rc, 0)
+        self.assertFalse(os.path.exists(self.lf()))
+        archived = [n for n in os.listdir(ldir) if n.startswith("CSX_2738.") and n != "CSX_2738.json"]
+        self.assertEqual(len(archived), 1)
+        row = self.plan([(67, 20)], ledger=g.load_ledger(self.lf(), "CSX 2738"))["rows"][0]
+        self.assertEqual(row["old_source"], "roster")
+        rc, out = cli(["archive-ledger", "CSX 2738", "--ledger-dir", ldir])
+        self.assertEqual(rc, 2)
 
 
 class FakeProgrammer:
@@ -434,12 +483,12 @@ class FakeProgrammer:
 
 
 class DryRunAndApply(GuardCase):
-    def ledger(self):
+    def ok(self):
         lf = os.path.join(self.dir, "led.json")
-        return {"ledger": g.load_ledger(lf, "CSX 2738"), "ledger_file": lf}
+        return {"ledger": g.load_ledger(lf, "CSX 2738"), "ledger_file": lf, "consists_broken": True}
 
     def test_dry_run_prints_the_plan_and_writes_nothing(self):
-        plan = self.plan([(67, 14), (29, 34), (3, 26)])
+        plan = self.plan([(67, 14), (25, 16), (3, 26)])
         lines, prog = [], FakeProgrammer()
         rb = os.path.join(self.dir, "rb.json")
         res = g.execute(plan, prog.write, rollback_path=rb, log=lines.append)
@@ -450,25 +499,33 @@ class DryRunAndApply(GuardCase):
         self.assertIn("PLAN 2738L CV3 old=26 (roster) new=26", lines)
         self.assertTrue(lines[-1].startswith("DRY RUN"))
         self.assertFalse(os.path.exists(rb))
-        self.assertEqual(json.loads(Path(rb + ".dryrun").read_text())["writes"][0], {"cv": 67, "value": 12, "old_source": "roster"})
+        self.assertEqual(json.loads(Path(rb + ".dryrun").read_text())["writes"][0],
+                         {"cv": 67, "value": 12, "old_source": "roster"})
 
     def test_apply_flag_must_be_exactly_true(self):
         plan = self.plan([(67, 14)])
         prog = FakeProgrammer()
         rb = os.path.join(self.dir, "rb.json")
         for flag in (False, None, "yes", 1, "True"):
-            self.assertFalse(g.execute(plan, prog.write, apply=flag, rollback_path=rb, **self.ledger())["applied"])
+            self.assertFalse(g.execute(plan, prog.write, apply=flag, rollback_path=rb, **self.ok())["applied"])
         self.assertEqual(prog.calls, [])
         self.assertFalse(os.path.exists(rb))
 
+    def test_apply_needs_consists_broken(self):
+        k = self.ok()
+        for flag in (False, None, "yes", 1):
+            k["consists_broken"] = flag
+            self.refused("CONSISTS_BROKEN", g.execute, self.plan([(67, 14)]), FakeProgrammer().write,
+                         apply=True, rollback_path=os.path.join(self.dir, "rb.json"), **k)
+
     def test_apply_needs_a_rollback_path_and_a_ledger(self):
         self.refused("rollback file path", g.execute, self.plan([(67, 14)]), FakeProgrammer().write,
-                     apply=True, **self.ledger())
+                     apply=True, **self.ok())
         self.refused("ledger", g.execute, self.plan([(67, 14)]), FakeProgrammer().write,
-                     apply=True, rollback_path=os.path.join(self.dir, "rb.json"))
+                     apply=True, consists_broken=True, rollback_path=os.path.join(self.dir, "rb.json"))
 
     def test_apply_writes_in_order_and_saves_rollback_first(self):
-        plan = self.plan([(25, 16), (67, 14), (68, 27), (29, 34)], reads={67: 9, 25: 16})
+        plan = self.plan([(25, 16), (67, 14), (68, 27), (3, 20)], reads={67: 9, 25: 16})
         rb = os.path.join(self.dir, "rb.json")
         seen = []
         prog = FakeProgrammer()
@@ -476,24 +533,24 @@ class DryRunAndApply(GuardCase):
         def write(cv, value):
             seen.append(os.path.exists(rb))
             return prog.write(cv, value)
-        res = g.execute(plan, write, apply=True, rollback_path=rb, **self.ledger())
+        res = g.execute(plan, write, apply=True, rollback_path=rb, **self.ok())
         self.assertTrue(all(seen))
-        self.assertEqual(prog.calls, [(67, 14), (68, 27), (29, 34)])  # only 25 was read equal
-        self.assertEqual(res["written"], [67, 68, 29])
+        self.assertEqual(prog.calls, [(67, 14), (68, 27), (3, 20)])  # only 25 was read equal
+        self.assertEqual(res["written"], [67, 68, 3])
         doc = json.loads(Path(rb).read_text())
         self.assertEqual(doc["roster_id"], "CSX 2738")
         self.assertEqual(doc["old_values_from"], "mixed")
         self.assertEqual([(w["cv"], w["value"], w["old_source"]) for w in doc["writes"]],
-                         [(25, 16, "read"), (67, 9, "read"), (68, 27, "roster"), (29, 50, "roster")])
+                         [(25, 16, "read"), (67, 9, "read"), (68, 27, "roster"), (3, 26, "roster")])
         back = g.build_plan(doc, self.roster(), g.parse_consist_log(CLEAR))
-        self.assertEqual([r["new"] for r in back["rows"]], [16, 9, 27, 50])
+        self.assertEqual([r["new"] for r in back["rows"]], [16, 9, 27, 26])
 
     def test_apply_will_not_overwrite_a_rollback(self):
         rb = os.path.join(self.dir, "rb.json")
         Path(rb).write_text("{}")
         prog = FakeProgrammer()
         self.refused("already exists", g.execute, self.plan([(67, 14)]), prog.write,
-                     apply=True, rollback_path=rb, **self.ledger())
+                     apply=True, rollback_path=rb, **self.ok())
         self.assertEqual(prog.calls, [])
 
     def test_tampered_plan_is_caught_before_the_write(self):
@@ -501,14 +558,14 @@ class DryRunAndApply(GuardCase):
         plan["rows"][1]["cv"] = 17
         prog = FakeProgrammer()
         self.refused("CV17", g.execute, plan, prog.write, apply=True,
-                     rollback_path=os.path.join(self.dir, "r.json"), **self.ledger())
+                     rollback_path=os.path.join(self.dir, "r.json"), **self.ok())
         self.assertEqual(prog.calls, [(67, 14)])
 
     def test_tampered_skip_without_read_is_caught(self):
         plan = self.plan([(67, 12)])
         plan["rows"][0]["skip"] = True
         self.refused("skip without a read", g.execute, plan, FakeProgrammer().write, apply=True,
-                     rollback_path=os.path.join(self.dir, "r.json"), **self.ledger())
+                     rollback_path=os.path.join(self.dir, "r.json"), **self.ok())
 
 
 # ---------------------------------------------------------------- pom_write.py with a fake jmri
@@ -602,7 +659,8 @@ def fake_jmri(roster_dir, calls, roster_number=2738, mode=None):
 
 class PomWriteScript(GuardCase):
     def run_writer(self, apply, consist_log=CLEAR, guard_path=None, roster_number=2738,
-                   absent_ok=None, mode=None, writes=((67, 14), (29, 34)), rollback="rollback.json"):
+                   absent_ok=None, mode=None, writes=((67, 14), (68, 30)), rollback="rollback.json",
+                   consists_broken=True):
         roster_dir = make_roster(os.path.join(self.dir, "u"))
         prop = os.path.join(self.dir, "proposal.json")
         Path(prop).write_text(json.dumps(proposal(list(writes))))
@@ -615,6 +673,7 @@ class PomWriteScript(GuardCase):
         calls = []
         env = {"__name__": "pom_write_test", "PROPOSAL": prop, "GUARD_PATH": guard_path or str(GUARD_PATH),
                "CONSIST_SCRIPT": fake_query, "LOGF": logf, "ROLLBACK": rb, "APPLY": apply,
+               "CONSISTS_BROKEN": consists_broken,
                "LEDGER_DIR": os.path.join(self.dir, "ledger"), "RUN_INLINE": True,
                "OP_TIMEOUT": 0.05, "CONSIST_TIMEOUT": 2.0,
                "execfile": lambda path, e: exec(Path(path).read_text(), e)}
@@ -625,6 +684,9 @@ class PomWriteScript(GuardCase):
         self.queried = json.loads(Path(logf + ".consist.nodes").read_text()) \
             if os.path.exists(logf + ".consist.nodes") else None
         return Path(logf).read_text().splitlines(), calls, rb
+
+    def ledger(self):
+        return g.load_ledger(os.path.join(self.dir, "ledger", "CSX_2738.json"), "CSX 2738")
 
     def test_dry_run_reads_but_does_not_write(self):
         lines, calls, rb = self.run_writer(apply=False)
@@ -642,21 +704,28 @@ class PomWriteScript(GuardCase):
 
     def test_apply_writes_through_the_addressed_programmer_and_records_the_ledger(self):
         lines, calls, rb = self.run_writer(apply=True)
-        self.assertEqual([c for c in calls if c[0] == "write"], [("write", "67", 14), ("write", "29", 34)])
+        self.assertEqual([c for c in calls if c[0] == "write"], [("write", "67", 14), ("write", "68", 30)])
         self.assertTrue(os.path.exists(rb))
+        self.assertIn("CONSISTS_BROKEN confirmed by the operator", lines)
         self.assertIn("DONE 2 write(s)", lines)
-        led = g.load_ledger(os.path.join(self.dir, "ledger", "CSX_2738.json"), "CSX 2738")
-        self.assertEqual((led["cvs"]["67"]["value"], led["cvs"]["29"]["value"]), (14, 34))
+        led = self.ledger()
+        self.assertEqual((led["cvs"]["67"]["value"], led["cvs"]["68"]["value"]), (14, 30))
 
-    def test_dry_run_reads_are_saved_and_used_by_the_apply(self):
-        mode = {"read": "ok", "values": {67: 9, 29: 50}}
-        lines, _, _ = self.run_writer(apply=False, mode=mode)
+    def test_apply_without_consists_broken_refuses(self):
+        lines, calls, rb = self.run_writer(apply=True, consists_broken=None)
+        self.assertFalse([c for c in calls if c[0] == "write"])
+        self.assertTrue(any(line.startswith("REFUSED apply needs CONSISTS_BROKEN") for line in lines))
+        self.assertFalse(os.path.exists(rb))
+
+    def test_dry_run_read_lands_in_the_ledger_and_is_used_by_the_apply(self):
+        lines, _, _ = self.run_writer(apply=False, mode={"read": "ok", "values": {67: 9, 68: 25}})
         self.assertIn("PLAN 2738L CV67 old=9 (read) new=14", lines)
-        self.assertTrue(os.path.exists(os.path.join(self.dir, "ledger", "CSX_2738.reads.json")))
+        led = self.ledger()
+        self.assertEqual((led["cvs"]["67"]["value"], led["cvs"]["67"]["state"]), (9, "read"))
         lines, calls, rb = self.run_writer(apply=True, rollback="rb2.json")  # reads fail this time
-        self.assertIn("PLAN 2738L CV67 old=9 (reads_file) new=14", lines)
-        doc = json.loads(Path(rb).read_text())
-        self.assertEqual(doc["writes"][0]["value"], 9)
+        self.assertIn("PLAN 2738L CV67 old=9 (ledger) new=14", lines)
+        self.assertEqual(json.loads(Path(rb).read_text())["writes"][0]["value"], 9)
+        self.assertEqual(len([c for c in calls if c[0] == "write"]), 2)  # ledger values never skip
 
     def test_read_timeout_aborts_before_any_write(self):
         lines, calls, rb = self.run_writer(apply=True, mode={"read": "timeout"})
@@ -667,12 +736,17 @@ class PomWriteScript(GuardCase):
     def test_write_timeout_marks_unknown_and_says_so(self):
         lines, calls, rb = self.run_writer(apply=True, mode={"write_timeout": 67})
         self.assertEqual([c for c in calls if c[0] == "write"], [("write", "67", 14)])
-        self.assertTrue(lines[-2].startswith("STOPPED: CV67 timed out"))
-        led = g.load_ledger(os.path.join(self.dir, "ledger", "CSX_2738.json"), "CSX 2738")
-        self.assertEqual(led["cvs"]["67"]["state"], "unknown")
+        self.assertTrue(lines[-2].startswith("STOPPED at CV67 (timeout)"))
+        self.assertIn("clear-ledger", lines[-2])
+        self.assertEqual(self.ledger()["cvs"]["67"]["state"], "unknown")
         lines, calls, _ = self.run_writer(apply=True, rollback="rb2.json")
         self.assertTrue(any("CV67 is unknown in the ledger" in line for line in lines))
         self.assertFalse([c for c in calls if c[0] == "write"])
+
+    def test_cv29_refused_before_anything_is_sent(self):
+        lines, calls, _ = self.run_writer(apply=True, writes=((67, 14), (29, 34)))
+        self.assertFalse([c for c in calls if c[0] in ("read", "write")])
+        self.assertTrue(any("programming track only" in line for line in lines))
 
     def test_consist_present_refuses_before_any_programmer(self):
         lines, calls, _ = self.run_writer(apply=True, consist_log=CONSISTED)
