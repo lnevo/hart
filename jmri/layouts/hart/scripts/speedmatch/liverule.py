@@ -121,28 +121,36 @@ def span_speed(hist, order, lengths, n):
 class SpanReader(object):
     """Turns a stream of sensor activations into span speeds for one step.
 
-    The live runner and the analysis both use this class, so they cannot disagree.
+    The live runners and the analysis all use this class, so they cannot disagree.
     Call restart(n) at every step change. feed() takes each ACTIVE event and returns a
-    reading (mm_per_s, seconds, mm, blocks) or None. The first `settle` events after a
-    restart are thrown away (the loco is still changing speed). Spans do not overlap:
+    reading (mm_per_s, seconds, mm, blocks, first_sensor) or None. The first `settle` events
+    after a restart are thrown away (the loco is still changing speed). Spans do not overlap:
     the event that ends a span starts the next one. If a span of n blocks is not possible
     (a block with no trusted length in it), shorter spans are tried, down to one block.
-    """
 
-    def __init__(self, order, lengths, settle=SETTLE_EVENTS):
+    steady=True (distance mode): events of sensors that are not on the route are ignored, and a
+    reading whose direction round the ring differs from the one before it is dropped and the
+    chain starts again from that event (a loco that turned back is not a steady pass)."""
+
+    def __init__(self, order, lengths, settle=SETTLE_EVENTS, steady=False):
         self.order = order
         self.lengths = lengths
         self.settle = settle
+        self.steady = steady
         self.n = 1
         self.skip = settle
         self.hist = []
+        self.dir = None
 
     def restart(self, n):
         self.n = n
         self.skip = self.settle
         self.hist = []
+        self.dir = None
 
     def feed(self, t, sensor):
+        if self.steady and sensor not in self.order:
+            return None
         if self.skip > 0:
             self.skip -= 1
             return None
@@ -152,11 +160,20 @@ class SpanReader(object):
         self.hist = self.hist[-(self.n + 1):]
         if len(self.hist) < self.n + 1:
             return None  # wait until a whole span has been seen
+        if self.steady and sensor in self.order and self.hist[-2][1] in self.order:
+            size = len(self.order)
+            d = (self.order.index(sensor) - self.order.index(self.hist[-2][1])) % size
+            if self.dir is not None and d != self.dir:
+                self.dir = None
+                self.hist = [self.hist[-1]]
+                return None
+            self.dir = d if d in (1, size - 1) else None
         for m in range(self.n, 0, -1):
             r = span_speed(self.hist, self.order, self.lengths, m)
             if r is not None:
+                first = self.hist[-(m + 1)][1]
                 self.hist = [self.hist[-1]]
-                return (r[0], r[1], r[2], m)
+                return (r[0], r[1], r[2], m, first)
         return None
 
 
@@ -176,3 +193,108 @@ def next_stall(stall0, cap, settled_interval):
 def stall_action(step, skip_below):
     """What a stall at this step does: 'skip' the step (creep steps may not move) or 'end'."""
     return "skip" if step <= skip_below else "end"
+
+
+# ---- distance mode (one continuous pass, measured over a distance, not a reading count) ----
+DIST_STEPS = [8, 16, 24, 32, 48, 64, 96, 126]
+DIST_TARGET_MM = 6000.0   # a step is done once the crossed blocks add up to this many mm ...
+DIST_MIN_BLOCKS = 2       # ... and at least this many blocks were crossed
+DIST_MAX_S = 60.0         # seconds of measuring after which a step ends whatever it has
+DIST_REL = 0.03           # block readings that spread more than this earn one more reading
+DIST_WARM_S = 60.0
+DIST_WARM_STEP = 48
+DIST_CV3 = 26             # momentum CVs of CSX 2121 and CSX 2738 (roster values)
+DIST_CV4 = 24
+MOMENTUM_K = 0.896        # seconds per CV3/CV4 unit for a change of the whole 126 steps
+SETTLE_BASE_S = 2.0
+
+
+def settle_time(cv3, cv4, prev_step, step):
+    """Seconds to wait after a step change before measuring: momentum (CV3 going up, CV4
+    going down) scaled by the size of the change, plus a fixed margin."""
+    d = step - prev_step
+    cv = cv3 if d >= 0 else cv4
+    return MOMENTUM_K * cv * abs(d) / 126.0 + SETTLE_BASE_S
+
+
+def aggregate(blocks):
+    """blocks: list of (mm, seconds). Returns (n, mm, seconds, mm_per_s, relsd) with
+    mm_per_s = sum(mm) / sum(seconds) and relsd the relative standard deviation of the
+    single-block speeds (0.0 for fewer than two blocks)."""
+    n = len(blocks)
+    if n == 0:
+        return 0, 0.0, 0.0, 0.0, 0.0
+    mm = sum(b[0] for b in blocks)
+    s = sum(b[1] for b in blocks)
+    speeds = [b[0] / b[1] for b in blocks]
+    return n, mm, s, (mm / s if s > 0 else 0.0), (rel_stdev(speeds) if n > 1 else 0.0)
+
+
+class DistanceStep(object):
+    """The end rule of one distance-mode step. add() each block reading, then ask check()
+    with the seconds measured so far: (done, reason). reason is 'settled' (enough distance and
+    blocks), 'timed' (the time ran out with at least min_blocks blocks spreading within rel:
+    still valid) or 'max' (the time ran out and the data is not good enough). When the distance is reached but the single-block
+    speeds spread more than rel and a second reading of target_mm still fits in the time left,
+    the step goes on for one more target_mm (extra_new is True once, for the log)."""
+
+    def __init__(self, target_mm=DIST_TARGET_MM, min_blocks=DIST_MIN_BLOCKS,
+                 max_s=DIST_MAX_S, rel=DIST_REL):
+        self.target_mm = target_mm
+        self.min_blocks = min_blocks
+        self.max_s = max_s
+        self.rel = rel
+        self.blocks = []
+        self.goal = target_mm
+        self.extra = False
+        self.extra_new = False
+        self.relsd = 0.0
+
+    def add(self, mm, dt):
+        self.blocks.append((mm, dt))
+
+    def check(self, elapsed):
+        n, mm, s, v, rsd = aggregate(self.blocks)
+        if mm >= self.goal and n >= self.min_blocks:
+            if not self.extra:
+                self.relsd = rsd
+                if rsd > self.rel and v > 0 and elapsed + self.target_mm / v <= self.max_s:
+                    self.extra = True
+                    self.extra_new = True
+                    self.goal = mm + self.target_mm
+                    return False, ""
+            return True, "settled"
+        if elapsed >= self.max_s:
+            if n >= self.min_blocks and rsd <= self.rel:
+                self.relsd = rsd
+                return True, "timed"
+            return True, "max"
+        return False, ""
+
+
+def is_valid_reason(reason):
+    """A distance step's reading is used when it ended 'settled' (distance reached) or
+    'timed' (time limit, but at least min_blocks blocks with a spread within rel)."""
+    return reason in ("settled", "timed")
+
+
+def next_after(order, frm, to):
+    """The sensor after `to`, going the way round the ring that leads from `frm` to `to`
+    (the shorter way). The pass job ends when this one lights."""
+    size = len(order)
+    i, j = order.index(frm), order.index(to)
+    step = 1 if (j - i) % size <= size // 2 else -1
+    return order[(j + step) % size]
+
+
+def path_between(order, frm, to):
+    """The sensors from `frm` to `to` inclusive, going the shorter way round the ring: the path
+    a pass is expected to take. The pass job logs it as PATH and stops if the loco leaves it."""
+    size = len(order)
+    i, j = order.index(frm), order.index(to)
+    step = 1 if (j - i) % size <= size // 2 else -1
+    out = [order[i]]
+    while i != j:
+        i = (i + step) % size
+        out.append(order[i])
+    return out

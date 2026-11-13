@@ -30,47 +30,24 @@
 #       follows a settled step's reading interval, never above STALL_CAP, and a step that
 #       stalled or had no readings never raises it); creep step limit; wall-clock limit
 #       for one step
-# Needs jobkit.py in front of it (make_job.py pastes it): L, NAMES, reg, why, ab, own, claim,
-# scan, check_guards, request_throttle, guard_hit, end_job.
+# Needs jobkit.py in front of it (make_job.py pastes it): L, why, ab, claim, scan, check_guards,
+# request_throttle, end_job, and the shared route listener SL, last, lock, HOOK, wait.
 import json
-last = [time.time()]; mid = [False]; ref = [0]
-state = {}; lock = threading.Lock()
+mid = [False]; ref = [0]
 reader = SpanReader(ORDER, LENGTHS, SETTLE_EVENTS)
 readings = []        # speeds of the current step
 phase = ["idle"]     # idle, warmup or measure
-class SL(java.beans.PropertyChangeListener):
-    # n: the name the loop and the log use (the user name when there is one); isg: this bean
-    # is a guard, whichever name the guard was given by
-    def __init__(self, n, isg): self.n = n; self.isg = isg
-    def propertyChange(self, e):
-        if e.getPropertyName() != "KnownState": return
-        st = e.getNewValue(); now = time.time()
-        lock.acquire()   # the log order is the order events were fed; a STEP line cannot interleave
-        try:
-            L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st)))
-            # only a loop sensor lighting counts as progress for the stall timer
-            if st == 2 and self.n in ORDER: last[0] = now
-            if self.isg and st == 2: guard_hit(self.n)
-            if st == 2 and state.get(self.n) != 2:
-                if phase[0] == "warmup":
-                    if self.n == MID: mid[0] = True
-                    if self.n == REF and mid[0]: ref[0] += 1; mid[0] = False; L("WARMUP_LAP %d" % ref[0])
-                elif phase[0] == "measure":
-                    r = reader.feed(now, self.n)
-                    if r is not None:
-                        readings.append(r[0])
-                        L("READ %d %.1f dt=%.2f mm=%.1f blocks=%d" % (len(readings), r[0], r[1], r[2], r[3]))
-            state[self.n] = st   # every state counts, so UNKNOWN between two ACTIVEs is a new ACTIVE
-        finally:
-            lock.release()
-def wait(cond, stall):
-    """Poll until cond() is true. Returns "ok", "abort" or "stall"."""
-    while not cond():
-        if ab.is_set(): return "abort"
-        if os.path.exists("/tmp/speedrun.kill"): why[0] = "killed"; return "abort"
-        if time.time() - last[0] > stall: return "stall"
-        time.sleep(0.1)
-    return "ok"
+def on_active(n, now):
+    # called by jobkit's SL under its lock, once per sensor lighting
+    if phase[0] == "warmup":
+        if n == MID: mid[0] = True
+        if n == REF and mid[0]: ref[0] += 1; mid[0] = False; L("WARMUP_LAP %d" % ref[0])
+    elif phase[0] == "measure":
+        r = reader.feed(now, n)
+        if r is not None:
+            readings.append(r[0])
+            L("READ %d %.1f dt=%.2f mm=%.1f blocks=%d" % (len(readings), r[0], r[1], r[2], r[3]))
+HOOK[0] = on_active
 def run():
     t = None; tl = None
     try:
