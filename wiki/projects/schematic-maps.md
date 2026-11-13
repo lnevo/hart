@@ -2,6 +2,7 @@
 
 - **Owner:** lnevo
 - **Status:** Stage 0 done (2026-11-13). The spike in `tools/schematic/spike/` (draft PR #423) draws staging, the main level and the upper level on one sheet from the AnyRail export plus as-built edits and owner hints, with no crossings or overlaps; the owner approved the look. Next: the phases under "After the proof" below.
+- **Hand-off:** [`schematic-maps-handoff.md`](schematic-maps-handoff.md) separates plan overrides, generation rules and the owner's preferences, and lists the parallel work.
 - **Goal:** turn an AnyRail plan into a logical (not physical) view of the railroad and draw professional maps from it. First output: the one-page system schematic. The same logical view later feeds station map pages, deck track maps, the CATS panel and the Layout Editor import for the main levels.
 
 The generic tool and its skill go in the public `model-railroad-skills` plugin. HART's names, numbers and finished maps stay in this repo.
