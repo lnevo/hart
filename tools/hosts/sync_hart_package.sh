@@ -473,6 +473,13 @@ if [[ "$DO_PI" -eq 1 ]]; then
     ssh_pi "HART=${PI_DROP} JMRI_USERFILES='${PI_USERFILES}' HART_OVERWRITE_OPS=${HART_OVERWRITE_OPS} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
   fi
   echo "Pi deploy done."
+  # PanelPro stopped for this deploy by pi_quit_panelpro.sh (it leaves a marker) comes
+  # back up. One the owner closed has no marker and stays closed. HART_PI_RESTART=0 skips.
+  if [[ "$DRY_RUN" -eq 0 && "${HART_PI_RESTART:-1}" != "0" ]] \
+     && ssh_pi 'test -f "$HOME/.hart_panelpro_quit_for_deploy"'; then
+    echo "Starting PanelPro on the Pi again (it was quit for this deploy)..."
+    bash "$ROOT/tools/hosts/pi_start_panelpro.sh" || echo "PanelPro did not start on the Pi; run tools/hosts/pi_start_panelpro.sh" >&2
+  fi
 fi
 
 if [[ "$DO_WIN" -eq 1 ]]; then

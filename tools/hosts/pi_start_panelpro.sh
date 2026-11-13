@@ -2,7 +2,8 @@
 # Start PanelPro on the Pi's desktop, the way its PanelPro.desktop icon does, and wait
 # until JMRI is up. Start only: it refuses when PanelPro is already running, and it
 # never stops, restarts or edits anything. Quitting stays a deliberate, separate step
-# (PanelPro's own Quit, answering its Store prompt).
+# (PanelPro's own Quit, answering its Store prompt). It clears the quit-for-deploy marker
+# that pi_quit_panelpro.sh leaves.
 #
 # Usage: tools/hosts/pi_start_panelpro.sh            (host from HART_PI_SSH, default "pi")
 set -euo pipefail
@@ -13,6 +14,7 @@ PROFILE="TCS_MQTT.3f32a166"
 ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" bash -s -- "$PROFILE" <<'REMOTE'
 set -euo pipefail
 profile="$1"
+rm -f "$HOME/.hart_panelpro_quit_for_deploy"
 if pgrep -f "org.jmri.profile=$profile" >/dev/null; then
   echo "PanelPro is already running on the Pi; nothing started." >&2
   exit 3

@@ -8,6 +8,9 @@
 # panels?", buttons No / Yes / Cancel). Any other modal dialog is left alone and reported,
 # and the script exits 4 so a person looks at it. It never stores and publishes nothing.
 #
+# When it quits PanelPro it leaves ~/.hart_panelpro_quit_for_deploy on the Pi, so the next
+# Pi deploy starts PanelPro again (sync_hart_package.sh). Not running → no marker.
+#
 # Exit: 0 quit (or not running) · 1 still running after the wait · 2 watcher not ready or a
 # command already pending · 3 the dropped Jython failed · 4 another dialog appeared.
 #
@@ -137,7 +140,8 @@ done
 if [[ -e "$CMD" ]]; then rm -f "$CMD"; echo "removed the unread $CMD" >&2; fi
 cat "$LOG" 2>/dev/null || true
 case "$status" in
-  0) echo "PanelPro quit on the Pi." ;;
+  0) date -Is > "$HOME/.hart_panelpro_quit_for_deploy"
+     echo "PanelPro quit on the Pi (it starts again after the next Pi deploy)." ;;
   3) cat "$OUT" 2>/dev/null >&2 || true; echo "The quit command failed; see above." >&2 ;;
   4) echo "PanelPro showed another dialog (above); a person needs to answer it." >&2 ;;
   *) echo "PanelPro is still running on the Pi after ${wait_s} s." >&2 ;;
