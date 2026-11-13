@@ -29,8 +29,8 @@ Switch 7 crossover, Switch 13 and the engine terminal, name the tracks). Sample:
 
 `system.py` puts staging, the main level and the upper level on one sheet in route order from the bottom up
 (sample in `system_sample.svg`). Each band's helix tracks end in a HELIX box and carry the same track names on
-both levels; the pairing of the main level's two helix tracks with McKees Rocks and McKeesport is inferred
-from run lengths and needs the owner's confirmation.
+both levels: the main level's helix track from T175 is McKees Rocks and the one from T251 is McKeesport
+(owner confirmed, 2026-11-13).
 
 The spike checks its own drawing: every pair of drawn lines is tested for crossing or lying on top of
 each other, and each fault is printed with the switches either side.

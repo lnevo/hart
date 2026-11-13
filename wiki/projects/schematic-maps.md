@@ -102,6 +102,7 @@ Stages 1 and 3 can start at once and run beside stage 0. Stages 2 and 4 wait for
 Part numbers (T…) are the plan's, as drawn in the spike's overlay picture.
 
 - **Helix.** One turn more than planned. Its two tracks still leave the height-0 main (at T175 and T300), now run level to the peninsula near T226 and enter the helix there, and come out on the staging level as the McKees Rocks and McKeesport stubs. The plan file does not join every helix turn; the helix details are held separately.
+- **Helix track names.** Each helix track keeps its name on both levels. On the main level the track from T175 is McKees Rocks and the one from T251 is McKeesport (owner confirmed).
 - **Peninsula top.** Raised from 1 in to 4.25 in, level with the branch line, so the 0.9% grades either side of the double crossover are gone.
 - **Beyond the double crossover.** In the plan the lower track climbed to the branch line (T237) and the upper one dropped to the height-0 main (T300). As built both stay at 4.25 in and join inside the closet on the north side, making a passing siding on that leg.
 - **T300.** The turnout moves from where it is up to the 4.25 in track (drawn blue in the overlay), adjusted for smooth transitions. There it joins the upper neck track to that track: the closet end of the passing siding.
