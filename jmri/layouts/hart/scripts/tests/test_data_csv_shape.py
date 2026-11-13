@@ -14,7 +14,8 @@ class DataCsvShapeTest(unittest.TestCase):
     def test_every_row_has_the_header_column_count(self):
         ragged = {}
         for path in sorted(DATA.rglob("*.csv")):
-            rows = list(csv.reader(path.open(encoding="utf-8", newline="")))
+            with path.open(encoding="utf-8", newline="") as fh:
+                rows = list(csv.reader(fh))
             if not rows:
                 continue
             width = len(rows[0])

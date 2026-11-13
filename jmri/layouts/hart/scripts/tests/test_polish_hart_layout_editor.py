@@ -147,6 +147,24 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         self.assertEqual(sorted((t, str(x), str(y)) for t, (x, y) in polish.TRACK_NAME_LABELS.items()), spots)
         self.assertEqual((0, []), polish.ensure_track_name_labels(le, check=True))
 
+    def test_stage1_copies_of_a_south_yard_lamp_end_up_as_one(self):
+        le = ET.fromstring(
+            '<LayoutEditor name="HART Railroad">'
+            '<sensoricon sensor="BS S-1" x="762" y="376" level="10" />'
+            '<sensoricon sensor="BS S-1" x="1010" y="376" level="10" />'
+            '<sensoricon sensor="BS S-1" x="1204" y="376" level="10" />'
+            '<sensoricon sensor="BS S-1" x="943" y="354" level="12" />'
+            "</LayoutEditor>"
+        )
+        # one lamp off its spot plus two extra copies
+        self.assertEqual(3, len(polish.place_stage1_lamps(le, check=True)[1]))
+        polish.place_stage1_lamps(le, check=False)
+        polish.dedupe_shared_occupancy_icons(le, check=False)
+        lamps = sorted((i.get("level"), i.get("x"), i.get("y")) for i in le.findall("sensoricon"))
+        x, y = polish.SOUTH_YARD_LAMPS["BS S-1"]
+        self.assertEqual([("10", str(x), str(y)), ("12", "943", "354")], lamps)
+        self.assertEqual((0, []), polish.place_stage1_lamps(le, check=True))
+
     def test_shared_occupancy_dedupe_keeps_body_dot(self):
         xml = """<?xml version='1.0' encoding='UTF-8'?>
         <layout-config>
