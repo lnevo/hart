@@ -227,5 +227,37 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             )
 
 
+class StageOneLampsAndSensorsTest(unittest.TestCase):
+    def test_stage1_track_lamp_on_same_sensor_is_left_alone(self) -> None:
+        tree = fixture_tree()
+        editor = tree.getroot().find("LayoutEditor")
+        sensor = reconciler.STATION_OCCUPANCY["Track EH-1"]
+        ET.SubElement(
+            editor, "sensoricon", {"sensor": sensor, "x": "576", "y": "261", "level": "10"}
+        )
+        reconciler.reconcile(tree)
+        lamps = [
+            (icon.get("level"), icon.get("x"), icon.get("y"))
+            for icon in editor.findall("sensoricon")
+            if icon.get("sensor") == sensor
+        ]
+        self.assertIn(("10", "576", "261"), lamps)
+        self.assertEqual(1, sum(1 for lamp in lamps if lamp[0] == "12"))
+        self.assertEqual(0, reconciler.reconcile(tree).total)
+
+    def test_block_bound_to_another_sensor_stops(self) -> None:
+        tree = fixture_tree()
+        for block in tree.getroot().find("blocks").findall("block"):
+            if reconciler.is_full_block(block) and block.findtext("userName") == "Track EH-1":
+                ET.SubElement(block, "occupancysensor").text = "Block 13-7"
+        with self.assertRaisesRegex(ValueError, "Track EH-1: Block 13-7"):
+            reconciler.reconcile(tree)
+
+    def test_current_tables_need_no_reconciliation(self) -> None:
+        tables = SCRIPT.parents[1] / "output" / "tables.xml"
+        tree = reconciler.parse_xml(tables)
+        self.assertEqual([], reconciler.reconcile(tree).details)
+
+
 if __name__ == "__main__":
     unittest.main()

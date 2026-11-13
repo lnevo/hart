@@ -54,6 +54,9 @@ STATIONS = (
     "Track McKeesport",
 )
 
+# Station cluster icons sit on level 12. The Stage 1 (CreateIcons) occupancy
+# lamps on the track share the sensor at level 10 and are left alone.
+CLUSTER_LEVEL = "12"
 INTERNAL_SENSOR_CLASS = "jmri.jmrix.internal.configurexml.InternalSensorManagerXml"
 STOP_TOKEN = "stop"
 # Progress is x-10 from MoveTo. Occupancy is MoveTo + (-10, +10) unless
@@ -96,29 +99,31 @@ STATION_ICON_POSITIONS = {
     "Track McKeesport": (1730, 293),
 }
 
+# Occupancy sensor of each station block (public BS names, ADR-005). validate()
+# fails if a block in tables.xml binds a different sensor.
 STATION_OCCUPANCY = {
-    "Track Brick-Plane": "Block 4-6",
-    "Track East Main Ext": "Block 4-7",
-    "Track Main West": "Block 2-1",
-    "Track Main East": "Block 2-3",
-    "Track West Main Ext": "Block 1-8",
-    "Track East Lead": "Block 1-7",
-    "Track K-1": "Block 1-1",
-    "Track K-2": "Block 1-2",
-    "Track EH-1": "Block 13-7",
-    "Track EH-2": "Block 13-6",
-    "Track EH-3": "Block 13-5",
-    "Track S-R": "Block 2-8",
-    "Track S-1": "Block 2-7",
-    "Track S-2": "Block 2-6",
-    "Track S-3": "Block 2-5",
-    "Track S-4": "Block 2-4",
-    "Track Scale": "Block 4-8",
-    "Track Barn": "Block 13-1",
-    "Track W-1": "Block 4-4",
-    "Track W-2": "Block 4-3",
-    "Track McKees Rocks": "Block 1-4",
-    "Track McKeesport": "Block 1-3",
+    "Track Brick-Plane": "BS Brick-Plane",
+    "Track East Main Ext": "BS East Main Ext",
+    "Track Main West": "BS Main West",
+    "Track Main East": "BS Main East",
+    "Track West Main Ext": "BS West Main Ext",
+    "Track East Lead": "BS East Lead",
+    "Track K-1": "BS K-1",
+    "Track K-2": "BS K-2",
+    "Track EH-1": "BS EH-1",
+    "Track EH-2": "BS EH-2",
+    "Track EH-3": "BS EH-3",
+    "Track S-R": "BS S-R",
+    "Track S-1": "BS S-1",
+    "Track S-2": "BS S-2",
+    "Track S-3": "BS S-3",
+    "Track S-4": "BS S-4",
+    "Track Scale": "BS Scale",
+    "Track Barn": "BS Barn",
+    "Track W-1": "BS W-1",
+    "Track W-2": "BS W-2",
+    "Track McKees Rocks": "BS Switch 39 / BS McKees Rocks",
+    "Track McKeesport": "BS Switch 37 / BS McKeesport",
 }
 
 # Loco marker is ~60px; size-10 bold fits about 8 characters.
@@ -368,12 +373,13 @@ def icon_element(
         "sensor": sensor_name,
         "x": str(x),
         "y": str(y),
-        "level": "12",
+        "level": CLUSTER_LEVEL,
         "forcecontroloff": "false",
         "hidden": "no",
         "positionable": "true",
         "showtooltip": "true",
-        "editable": "true",
+        # Occupancy lamps are display only; the MoveTo button is clicked.
+        "editable": "false" if kind == "occupancy" else "true",
         "momentary": "false",
         "icon": "yes",
         "class": "jmri.jmrit.display.configurexml.SensorIconXml",
@@ -449,8 +455,11 @@ def reconcile_icons(root: ET.Element, changes: Changes) -> None:
         for sensor_name in (*sensor_names(station), STATION_OCCUPANCY[station])
     }
     existing: dict[str, list[ET.Element]] = {name: [] for name in expected_names}
+    occupancy_names = {STATION_OCCUPANCY[station] for station in STATIONS}
     for element in editor.findall("sensoricon"):
         name = element.get("sensor") or ""
+        if name in occupancy_names and element.get("level") != CLUSTER_LEVEL:
+            continue
         if name in existing:
             existing[name].append(element)
 
@@ -591,9 +600,25 @@ def validate(root: ET.Element) -> None:
     if bad_sensors:
         raise ValueError(f"missing or duplicate internal sensors: {bad_sensors}")
 
+    wrong_sensor = [
+        f"{bean_user_name(block)}: {block.findtext('occupancysensor')}"
+        for block in full_blocks
+        if bean_user_name(block) in STATION_OCCUPANCY
+        and block.findtext("occupancysensor")
+        and block.findtext("occupancysensor") != STATION_OCCUPANCY[bean_user_name(block)]
+    ]
+    if wrong_sensor:
+        raise ValueError(
+            f"station blocks bind other occupancy sensors than STATION_OCCUPANCY: {wrong_sensor}"
+        )
+
     editor = main_layout_editor(root)
+    occupancy_names = {STATION_OCCUPANCY[station] for station in STATIONS}
     icon_names = [
-        icon.get("sensor") or "" for icon in editor.findall("sensoricon")
+        icon.get("sensor") or ""
+        for icon in editor.findall("sensoricon")
+        if (icon.get("sensor") or "") not in occupancy_names
+        or icon.get("level") == CLUSTER_LEVEL
     ]
     bad_icons = [name for name in expected_icons if icon_names.count(name) != 1]
     if bad_icons:
