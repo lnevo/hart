@@ -30,7 +30,7 @@ sys.path.insert(0, str(PUB))
 
 from rebuild_station_map import draw_subdivision_map  # noqa: E402
 
-PPTX = ROOT.parents[1] / "docs/ops" / "TT-23_Route23_NevilleQueen_RevisionA_v6.pptx"
+PPTX = ROOT.parents[1] / "docs/ops" / "TT-23_Route23_NevilleQueen_RevisionB.pptx"
 ORIG_MAP = ASSETS / "station_map_subdivision_tt23_original.png"
 BACKUP_PPTX = ASSETS / "TT-23_Route23_NevilleQueen_RevisionA_v6_pre_map_replace.pptx"
 BODY_PNG = ASSETS / "station_map_subdivision_tt23_panel.png"

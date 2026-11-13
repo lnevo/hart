@@ -472,7 +472,7 @@ def tt23():
     import zipfile
     from PIL import Image
 
-    doc = REPO / "docs/ops/TT-23_Route23_NevilleQueen_RevisionA_v6.pptx"
+    doc = REPO / "docs/ops/TT-23_Route23_NevilleQueen_RevisionB.pptx"
     copy = _tmp / "tt23-page2.pptx"
     with zipfile.ZipFile(doc) as src, zipfile.ZipFile(copy, "w", zipfile.ZIP_DEFLATED) as out:
         for item in src.infolist():
