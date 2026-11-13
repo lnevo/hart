@@ -50,7 +50,10 @@ distances and train length checks. JMRI stores them in millimetres in the block
 **Basis:** `assigned` = measured or carried over from the old layout;
 `estimate` = placeholder to refine; `cut` = remainder after OS blocks were cut
 from it; `split` = one long block divided evenly; `stub` = hidden throat block
-sharing the detector of its track (the track's own row carries the real length).
+sharing the detector of its track (the track's own row carries the real length);
+`inferred` = the block's timed share of the test loop, whose total length comes from
+the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
+`docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`).
 
 ## Tracks and spurs
 
