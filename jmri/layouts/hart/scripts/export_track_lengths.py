@@ -6,24 +6,27 @@ The CSV is the record (inches, as measured/estimated on the railroad);
 tables.xml carries the same values in mm for Dispatcher. Run with --check to
 fail on drift between the two or a stale document.
 """
-import csv, re, sys
+import csv, sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-CSV = ROOT / "jmri/layouts/hart/data/block_lengths.csv"
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+CSV = paths.LAYOUT_DATA / "block_lengths.csv"
+TABLES = paths.TABLES_XML
 DOC = ROOT / "docs/jmri/TRACK_LENGTHS.md"
 MM = 25.4
 
 
 def table_lengths():
-    t = TABLES.read_text(encoding="utf-8")
-    out = {}
-    for m in re.finditer(r'<block ([^>]*length="[^"]*"[^>]*)>(.*?)</block>', t, re.S):
-        u = re.search(r"<userName>(.*?)</userName>", m.group(2))
-        if u:
-            out[u.group(1)] = float(re.search(r'length="([\d.]+)"', m.group(1)).group(1))
-    return out
+    """Block userName -> length in mm, for blocks that have both."""
+    return {
+        tables.user_name(b): float(b.get("length"))
+        for b in tables.blocks(tables.read(TABLES))
+        if b.get("length") and tables.user_name(b)
+    }
 
 
 def render(rows):

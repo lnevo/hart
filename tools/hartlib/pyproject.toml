@@ -1,0 +1,16 @@
+# hartlib is not installed anywhere: scripts put tools/hartlib/src on sys.path themselves
+# (see README.md), so every checkout and worktree uses its own copy. This file only makes
+# the package buildable for editors and linters; `pip install -e tools/hartlib` is optional.
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hartlib"
+version = "0.1.0"
+description = "Shared tables.xml, path and host helpers for the CPython tools in this repo"
+requires-python = ">=3.9"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -28,6 +28,7 @@ run agent-docs python3 tools/audit/check_agent_docs.py
 run unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
 run unit-cats python3 -m unittest discover -q -s cats/scripts/tests
 run unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
+run unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
 run unit-guards python3 -m unittest discover -q -s tools/audit/tests
 run unit-hosts python3 -m unittest discover -q -s tools/hosts/tests
 run unit-portal python3 -m unittest discover -q -s www/scripts/tests
