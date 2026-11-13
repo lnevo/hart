@@ -67,10 +67,10 @@ YARD_VIRTUALS = {row[3] for row in BOUNDARY_MASTS}
 # mast at EH-n | Switch 9/11, getBeansInPath(EH→yard) is empty or picks
 # 32L (S-1 East) and Stage 1 never builds EH→S-1/S-4/S-R.
 EH_EXIT_MASTS = [
-    # turnout, tag, sysname, uname, icon x, y, degrees
-    ("TO11", "signalBMast", "IF$vsm:basic:one-low($1020)", "Mast 12R", 620, 270, 270),
-    ("TO10", "signalCMast", "IF$vsm:basic:one-low($1021)", "Mast 10RA", 598, 268, 270),
-    ("TO10", "signalBMast", "IF$vsm:basic:one-low($1022)", "Mast 10RB", 596, 280, 270),
+    # turnout, tag, sysname, uname, icon x, y, degrees (90: R is eastbound, ADR-005)
+    ("TO11", "signalBMast", "IF$vsm:basic:one-low($1020)", "Mast 12R", 620, 270, 90),
+    ("TO10", "signalCMast", "IF$vsm:basic:one-low($1021)", "Mast 10RA", 598, 268, 90),
+    ("TO10", "signalBMast", "IF$vsm:basic:one-low($1022)", "Mast 10RB", 596, 280, 90),
 ]
 
 # Track Brick-Plane (Block 4-6) had no mast at either end, so it sat inside the
@@ -136,6 +136,17 @@ def _ensure_virtual_mast(
     masts: ET.Element, existing: set[str], sysname: str, uname: str, comment: str | None = None
 ) -> int:
     if sysname in existing:
+        for mast in masts:
+            if (mast.findtext("systemName") or "").strip() != sysname:
+                continue
+            found = (mast.findtext("userName") or "").strip()
+            if found != uname:
+                # A tables.xml from before a rename: adding the new name beside
+                # the old one would give a turnout two masts in one slot.
+                raise ValueError(
+                    f"{sysname} is named {found!r}, expected {uname!r}; "
+                    "rename it in tables.xml before running this script"
+                )
         return 0
     el = ET.SubElement(masts, "virtualsignalmast")
     el.set("class", "jmri.implementation.configurexml.VirtualSignalMastXml")
