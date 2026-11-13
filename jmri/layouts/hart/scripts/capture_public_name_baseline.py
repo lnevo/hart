@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import hashlib
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
@@ -300,50 +299,21 @@ def capture_cats_bindings(cats_path: Path) -> list[dict[str, str]]:
     return rows
 
 
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def display_path(path: Path) -> str:
-    """A path for counts.txt that never names a user folder.
-
-    Repo-relative inside this checkout, home-relative (~/...) under the home
-    folder, otherwise just the file name.
-    """
-    resolved = path.resolve()
-    if resolved.is_relative_to(REPO_ROOT):
-        return resolved.relative_to(REPO_ROOT).as_posix()
-    home = Path.home().resolve()
-    if resolved.is_relative_to(home):
-        return "~/" + resolved.relative_to(home).as_posix()
-    return resolved.name
-
-
-def write_counts(path: Path, tables_path: Path, counts: dict[str, int]) -> None:
+def write_counts(path: Path, counts: dict[str, int]) -> None:
+    """Row counts only. A tables.xml fingerprint went stale with every edit,
+    even a moved label, and a path named local folders; neither says anything
+    about bindings, which is what --check compares."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    lines = [
-        f"tables.xml sha256={sha256_file(tables_path)}",
-        f"tables.xml path={display_path(tables_path)}",
-        "",
-    ]
+    lines = []
     for name in sorted(counts):
         lines.append(f"{name}={counts[name]}")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def comparable(path: Path) -> list[str]:
-    """File lines minus the tables sha256 and path, which say nothing about bindings."""
     if not path.is_file():
         return []
-    return [
-        line
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if not line.startswith(("tables.xml sha256=", "tables.xml path="))
-    ]
+    return path.read_text(encoding="utf-8").splitlines()
 
 
 # Every file a capture writes. Other files in the baselines folder (README,
@@ -436,7 +406,7 @@ def main(argv: list[str] | None = None) -> int:
         counts["cats_bindings.csv"] = 0
 
     counts_path = args.out / "counts.txt"
-    write_counts(counts_path, args.tables, counts)
+    write_counts(counts_path, counts)
     written.append((str(counts_path), None))
 
     if args.quiet:
