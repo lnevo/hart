@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import paths, tables as hl_tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
@@ -21,8 +21,8 @@ STATUS = ROOT / "wiki/STATUS.md"
 START, END = "<!-- counts:start -->", "<!-- counts:end -->"
 
 
-def counts(tables_path: Path = TABLES, traininfo: Path = TRAININFO) -> dict:
-    root = tables.read(tables_path)
+def counts(tables: Path = TABLES, traininfo: Path = TRAININFO) -> dict:
+    root = hl_tables.read(tables)
     sml = root.findall("signalmastlogics/signalmastlogic")
     real = len(root.findall("signalmasts/signalmast"))
     virtual = len(root.findall("signalmasts/virtualsignalmast"))

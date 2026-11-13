@@ -149,7 +149,7 @@ class WiringCrosswalkTest(unittest.TestCase):
             check.problems(bad, tables())
 
     def test_repo_tables_follow_wiring_plan(self):
-        with (ROOT / "docs/wiring/signals/signal_wiring.csv").open(newline="") as f:
+        with (paths.SIGNAL_WIRING).open(newline="") as f:
             rows = list(csv.DictReader(f))
         root = ET.parse(paths.TABLES_XML).getroot()
         self.assertEqual(check.problems(rows, root), [])

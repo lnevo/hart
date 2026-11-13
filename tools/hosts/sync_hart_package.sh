@@ -15,7 +15,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 # Hosts: environment first, then tools/env/hart.env, then the defaults in load_env.sh
-# (the same order the Python tools use through hart_hosts.py).
+# (the same order the Python tools use through tools/hartlib/src/hartlib/hosts.py).
 source "$ROOT/tools/env/load_env.sh"
 WIN_HOST="$HART_WIN_SSH"
 WIN_PORT="$HART_WIN_SSH_PORT"
