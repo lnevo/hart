@@ -7,7 +7,7 @@ the same stop rule the runner used live (liverule.py). Warm-up laps are discarde
 compares the two locos in the consist pairing (first loco forward against the second in
 reverse, and the other way round), and reports the drift of the repeated top step.
 
-    analyze.py LOG [LOG ...] [--lengths CSV] [--trusted anyrail,inferred] [--out DIR]
+    analyze.py LOG [LOG ...] [--route loop1|loop2] [--events-out CSV] [--lengths CSV] [--trusted anyrail,inferred] [--out DIR]
                [--pair "CSX 2121,CSX 2738"]
 
 Lengths come from jmri/layouts/hart/data/block_lengths.csv (inches). Only trusted rows are
@@ -30,8 +30,10 @@ DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
 DEFAULT_TRUSTED = ("anyrail", "inferred")  # "assigned" counts only when passed explicitly
 MM_PER_INCH = 25.4
 
-# The loop in the east direction, starting at East Main Ext: (block sensor, block_lengths.csv
-# user_name). The pairing is explicit because the CSV names tracks and switches, not sensors.
+# The test routes: (block sensor, block_lengths.csv user_name) in running order. The pairing is
+# explicit because the CSV names tracks and switches, not sensors. loop1 is the 2026-11-08 loop,
+# east from East Main Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5.
+# A job, its log (the CFG line) and the analysis all name the route.
 LOOP = [
     ("BS East Main Ext", "Track East Main Ext"), ("BS Switch 7b", "OS Switch 7b"),
     ("BS Main East", "Track Main East"), ("BS Switch 33", "OS Switch 33"),
@@ -43,7 +45,51 @@ LOOP = [
     ("BS Switch 1", "OS Switch 1"), ("BS Brick-Plane", "Track Brick-Plane"),
     ("BS Switch 5", "OS Switch 5"),
 ]
-ORDER = [s for s, _ in LOOP]
+LOOP2 = [
+    ("BS Switch 5", "OS Switch 5"), ("BS Scale", "Track Scale"), ("BS Switch 7", "OS Switch 7"),
+    ("BS Barn", "Track Barn"), ("BS Switch 13", "OS Switch 13"), ("BS Switch 15", "OS Switch 15"),
+    ("BS S-R", "Track S-R"), ("BS Switch 23b", "OS Switch 23b"), ("BS Switch 31", "OS Switch 31"),
+    ("BS Switch 33", "OS Switch 33"), ("BS East Lead", "Track East Lead"),
+    ("BS Switch 35a", "OS Switch 35a"), ("BS Switch 37 / BS McKeesport", "OS Switch 37"),
+    ("BS K-2", "Track K-2"), ("BS K-1", "Track K-1"),
+    ("BS Switch 39 / BS McKees Rocks", "OS Switch 39"), ("BS Switch 35b", "OS Switch 35b"),
+    ("BS West Main Ext", "Track West Main Ext"), ("BS Switch 23a", "OS Switch 23a"),
+    ("BS Main West", "Track Main West"), ("BS Switch 1", "OS Switch 1"),
+    ("BS Brick-Plane", "Track Brick-Plane"),
+]
+ROUTES = {"loop1": LOOP, "loop2": LOOP2}
+DEFAULT_ROUTE = "loop1"
+# The warm-up lap counter counts REF (the route's first sensor) lit again after MID, a sensor
+# about half way round the route.
+ROUTE_MID = {"loop1": "BS Switch 23a", "loop2": "BS K-2"}
+ORDER = [s for s, _ in LOOP]  # loop1 aliases: LOOP and ORDER
+
+# Switch positions the owner sets by hand before a run (nothing here is ever sent to JMRI):
+# (switch number, "closed" or "thrown"), checked against data/switch_legs.csv by the tests.
+ROUTE_LINEUP = {
+    "loop1": [(5, "closed"), (7, "closed"), (33, "thrown"), (35, "closed"), (37, "thrown"),
+              (39, "thrown"), (23, "closed"), (1, "thrown")],
+    "loop2": [(5, "thrown"), (7, "closed"), (13, "closed"), (15, "closed"), (23, "closed"),
+              (31, "closed"), (33, "closed"), (35, "closed"), (37, "thrown"), (39, "thrown"),
+              (1, "thrown")],
+}
+
+
+def route_loop(route):
+    """The (sensor, csv row) list of a route; SystemExit-friendly ValueError for an unknown one."""
+    if route not in ROUTES:
+        raise ValueError("unknown route %r: give one of %s" % (route, ", ".join(sorted(ROUTES))))
+    return ROUTES[route]
+
+
+def route_mid(route):
+    mid = ROUTE_MID[route]
+    assert mid in route_order(route), (route, mid)
+    return mid
+
+
+def route_order(route):
+    return [s for s, _ in route_loop(route)]
 
 
 def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
@@ -85,7 +131,7 @@ _CFG = re.compile(r"(\w+)=([^\s@]+)")
 STATES = ("ACTIVE", "INACTIVE", "UNKNOWN", "INCONSISTENT")
 # CFG names the runner logs -> the keyword names used here
 CFG_KEYS = {"k": ("k", int), "rel": ("rel", float), "max": ("max_n", int),
-            "settle": ("settle", int), "low_max": ("low_max", int), "high_span": ("high_span", int)}
+            "settle": ("settle", int), "route": ("route", str), "low_max": ("low_max", int), "high_span": ("high_span", int)}
 
 
 def parse_log(lines, loco=None, direction=None, source=""):
@@ -170,7 +216,7 @@ def travel(events, order=ORDER):
 
 
 def summarize_runs(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_READINGS,
-                   use_logged=True, csv_lengths=False, **kw):
+                   use_logged=True, csv_lengths=False, route_lengths=None, **kw):
     """One entry per run, oldest first by the time in the log (the RUN line, else the first
     STEP line; equal or missing times keep input order), so the highest run number is the
     latest run whatever order the logs were given in: {run, loco, direction, log, complete, rows}.
@@ -178,24 +224,33 @@ def summarize_runs(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_REA
     A run's own CFG line (stop rule settings) and LENGTHS line (the lengths the job was built
     with) are replayed as the runner had them; the arguments are used only for logs that lack
     them. use_logged=False ignores both; csv_lengths=True swaps only the lengths for the ones
-    given (the logged stop-rule settings still apply)."""
+    given (the logged stop-rule settings still apply). Each run is replayed over the route its
+    CFG line names (loop1 for logs that do not); route_lengths (route -> lengths) gives
+    csv_lengths a set per route."""
     out = []
     runs = sorted(runs, key=lambda r: r.get("t0") or 0.0)  # stable
     for n, run in enumerate(runs, start=1):
         rows = []
         p = {"k": k, "rel": rel, "max_n": max_n}
         p.update(kw)
-        run_lengths = lengths
         if use_logged:
             p.update(run.get("cfg") or {})
-            if not csv_lengths:
-                run_lengths = run.get("lengths") or lengths
+        route = p.pop("route", DEFAULT_ROUTE)
+        try:
+            order = route_order(route)
+        except ValueError as e:
+            print("warning: run of %s %s in %s skipped: %s" % (
+                run["loco"], run["direction"], run.get("log") or "log", e), file=sys.stderr)
+            continue
+        run_lengths = (route_lengths or {}).get(route, lengths)
+        if use_logged and not csv_lengths:
+            run_lengths = run.get("lengths") or run_lengths
         k_, rel_, max_ = p.pop("k"), p.pop("rel"), p.pop("max_n")
         for s in run["steps"]:
-            rd = step_readings(s["events"], s["step"], run_lengths, **p)
+            rd = step_readings(s["events"], s["step"], run_lengths, order=order, **p)
             speeds = [r[0] for r in rd]
             row = {"loco": run["loco"], "direction": run["direction"], "step": s["step"],
-                   "occurrence": s["occurrence"], "travel": travel(s["events"]),
+                   "occurrence": s["occurrence"], "travel": travel(s["events"], order),
                    "n": len(speeds), "blocks": rd[-1][3] if rd else 0, "run": n}
             if speeds:
                 used, why, win = lr.replay(speeds, k_, rel_, max_)
@@ -206,9 +261,65 @@ def summarize_runs(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_REA
                 row.update(used=0, reason="no readings", median=None, rel_sd=None,
                            settled=False)
             rows.append(row)
-        out.append({"run": n, "loco": run["loco"], "direction": run["direction"],
+        out.append({"run": n, "loco": run["loco"], "direction": run["direction"], "route": route,
                     "log": run.get("log", ""), "complete": bool(run.get("complete")), "rows": rows})
     return out
+
+
+EVENT_FIELDS = ["loco", "log", "step", "lap_index", "block", "block_len_mm", "entry_epoch",
+                "next_entry_epoch", "transit_s", "mm_per_s"]
+
+
+def block_events(runs, route=DEFAULT_ROUTE):
+    """Rows in the shape of docs/jmri/speedmatching/profile-2026-11-08/block_events.csv, for
+    infer_block_lengths.py. A block's transit is the time from its sensor lighting to the next
+    sensor of the route lighting (the next one in the direction the loco ran, found from the
+    order the sensors lit). A lap is one pass of the route's sensors, counted from its first
+    sensor; per step, the run's own logged settle count of events after the step change and
+    everything before the first sensor are dropped, and a block whose next sensor is not the
+    expected one (a missed or doubled event) gets no row. A run's own CFG route wins over the
+    route argument; a run with no rows is reported on stderr."""
+    rows = []
+    for run in runs:
+        cfg = run.get("cfg") or {}
+        try:
+            order = route_order(cfg.get("route", route))
+        except ValueError as e:
+            print("warning: events of a run in %s skipped: %s" % (run.get("log") or "log", e), file=sys.stderr)
+            continue
+        settle = cfg.get("settle", lr.SETTLE_EVENTS)
+        first = order[0]
+        before = len(rows)
+        for s in run["steps"]:
+            ev = [(t, n) for t, n in s["events"][settle:] if n in order]
+            step = 1 if travel(ev, order) != "west" else -1
+            lap, started = -1, False
+            for (t, n), (t2, n2) in zip(ev, ev[1:]):
+                if n == first:
+                    lap += 1
+                    started = True
+                if not started:
+                    continue
+                if n2 != order[(order.index(n) + step) % len(order)]:
+                    continue
+                dt = t2 - t
+                mm = (run.get("lengths") or {}).get(n)
+                rows.append({"loco": run["loco"], "log": run.get("log", ""), "step": s["step"],
+                             "lap_index": lap, "block": n[3:], "block_len_mm": "" if mm is None else round(mm, 1),
+                             "entry_epoch": "%.3f" % t, "next_entry_epoch": "%.3f" % t2,
+                             "transit_s": round(dt, 2),
+                             "mm_per_s": "" if mm is None or dt <= 0 else round(mm / dt, 1)})
+        if len(rows) == before:
+            print("warning: no block events from the run of %s %s in %s (no complete pass of %s)" % (
+                run["loco"], run["direction"], run.get("log") or "log", order[0]), file=sys.stderr)
+    return rows
+
+
+def write_events(rows, path):
+    with open(path, "w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=EVENT_FIELDS)
+        w.writeheader()
+        w.writerows(rows)
 
 
 def latest_runs(summaries):
@@ -287,13 +398,14 @@ def write_outputs(result, pair, out_dir, summaries=None):
         w = csv.writer(fh)
         w.writerow(["loco", "direction", "step", "travel", "blocks_per_reading", "readings",
                     "readings_used", "median_mm_s", "rel_sd_pct", "settled", "reason",
-                    "run", "run_complete", "log"])
+                    "run", "run_complete", "log", "route"])
         for sm in summaries:
             for r in sm["rows"]:
                 w.writerow([r["loco"], r["direction"], step_label(r), r["travel"], r["blocks"],
                             r["n"], r["used"], fmt(r["median"]),
                             fmt(None if r["rel_sd"] is None else 100 * r["rel_sd"], 2),
-                            r["settled"], r["reason"], sm["run"], sm["complete"], sm["log"]])
+                            r["settled"], r["reason"], sm["run"], sm["complete"], sm["log"],
+                            sm.get("route", DEFAULT_ROUTE)])
     with open(out_dir / "drift.csv", "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["loco", "direction", "run", "top_step", "first_mm_s", "last_mm_s", "drift_pct"])
@@ -323,22 +435,33 @@ def main(argv=None):
                     help="the consist pair: leader,follower (follower runs reversed)")
     ap.add_argument("--loco", help="for logs without a RUN line")
     ap.add_argument("--direction", help="for logs without a RUN line")
+    ap.add_argument("--route", default=DEFAULT_ROUTE, choices=sorted(ROUTES),
+                    help="route for logs whose CFG line does not name one (a logged route wins)")
+    ap.add_argument("--events-out", help="also write block_events-style rows (for infer_block_lengths.py "
+                    "--events) to this CSV")
     ap.add_argument("--csv-lengths", action="store_true",
                     help="use the lengths from --lengths, not the ones logged by the runner (the logged\n                         stop-rule settings still apply)")
     ap.add_argument("--k", type=int, default=lr.STOP_K)
     ap.add_argument("--rel", type=float, default=lr.STOP_REL)
     ap.add_argument("--max", type=int, default=lr.MAX_READINGS, dest="max_n")
     a = ap.parse_args(argv)
-    lengths = load_lengths(a.lengths, tuple(a.trusted.split(",")))
+    trusted = tuple(a.trusted.split(","))
+    route_lengths = {r: load_lengths(a.lengths, trusted, loop) for r, loop in ROUTES.items()}
+    lengths = route_lengths[a.route]
     n_ok = sum(v is not None for v in lengths.values())
-    print("trusted block lengths: %d of %d loop blocks" % (n_ok, len(lengths)))
+    print("trusted block lengths: %d of %d %s blocks" % (n_ok, len(lengths), a.route))
     runs = []
     for p in a.logs:
         runs += parse_log(Path(p).read_text().splitlines(), a.loco, a.direction, Path(p).name)
-    summaries = summarize_runs(runs, lengths, a.k, a.rel, a.max_n, csv_lengths=a.csv_lengths)
+    summaries = summarize_runs(runs, lengths, a.k, a.rel, a.max_n, csv_lengths=a.csv_lengths,
+                               route_lengths=route_lengths, route=a.route)
     result = latest_runs(summaries)
     pair = tuple(a.pair.split(",")) if a.pair else None
     write_outputs(result, pair, a.out, summaries)
+    if a.events_out:
+        rows = block_events(runs, a.route)
+        write_events(rows, a.events_out)
+        print("wrote %d block events to %s" % (len(rows), a.events_out))
     for key, rows in sorted(result.items()):
         d = top_drift(rows)
         print("%s %s: %d steps%s" % (key[0], key[1], len(rows),

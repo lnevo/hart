@@ -9,7 +9,7 @@ the repo as `plan.any` and run the scripts there, in order:
     python3 parse2.py               # parts, Bezier curves, flex lengths -> parts.json
     python3 graph.py                # joins and connected levels -> graph.json
     python3 anygraph.py 1           # turnout-to-turnout runs of the staging level -> any_c1.json
-    python3 loop_route.py           # PLAN_LOOP_MM and PLAN_TURNOUT_MM for infer_block_lengths.py
+    python3 loop_route.py           # the plan constants of loop 1 and loop 2 for infer_block_lengths.py
     python3 draw.py                 # optional: PNG of each level (needs matplotlib)
     python3 hartgraph.py <tables.xml>   # HART's turnout-to-turnout graph -> hart.json
 

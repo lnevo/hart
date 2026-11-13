@@ -128,10 +128,11 @@ the log shows END). It also
 ends on its own if a guard sensor lights, or no sensor changes for 120 s (shown as `STOP`).
 `--guard` is required for `steps`, `move` and `stoptest`: name the sensors that must abort a
 run, or pass `--guard none` to run without one on purpose (the log then says `NO GUARD`).
-`--guard default` stands for every block sensor that is not on the test loop (it can be
-combined with more names): all 26 of them, BS S-R, BS S-1, BS S-2, BS S-3, BS S-4, BS Switch 23b, BS Switch 13, BS Switch 15, BS Scale, BS Barn, BS Switch 11, BS Switch 9, BS EH-1, BS EH-2, BS EH-3, BS Switch 3, BS W-1, BS W-2, BS Switch 7, BS Switch 17, BS Switch 19, BS Switch 21, BS Switch 25, BS Switch 27, BS Switch 29, BS Switch 31. A loco leaving the
-loop for any of them ends the run. The list is `DEFAULT_GUARD` in `make_job.py`; the tests check
-every name against `tables.xml` and that none is a loop sensor. **Not covered yet:** the McKees
+`--guard default` stands for every block sensor in `tables.xml` that is not on the job's route
+(`--route loop1`, the default, or `loop2`; it can be combined with more names). The list is
+computed from `tables.xml` for the route (`guard_for()` in `make_job.py`), so a new block sensor is
+guarded at once; the tests check it per route. A loco leaving the route for any of them ends the
+run. **Not covered yet:** the McKees
 Rocks and McKeesport stubs. Their detector sections are not on a node yet
 (`wiki/STATUS.md`, 2026-11-13) and the tables still give them only the combined
 `BS Switch 39 / BS McKees Rocks` and `BS Switch 37 / BS McKeesport` sensors, which are loop
@@ -148,6 +149,11 @@ sensor has been lit for 0.8 s, after 90 s, or on the kill flag).
 Sound: `--mute-sound` switches F8 on, which is 2121's mute (Tsunami2 diesel, sound). CSX 2738
 needs no mute: its roster entry (`~/JMRI_UserFiles/roster/2738.xml`) has decoder family "MC Motor
 Decoders", model MC2H104P9, a TCS motor decoder without sound, so leave `--mute-sound` off for it.
+Every job (`steps`, `move`, `stoptest`) takes `--route loop1|loop2` (default loop1); a steps
+job logs it in the CFG line, and `analyze.py` replays each run over the route it logged
+(`--route` there is only the fallback for logs without one). `correct.py --route` reads only
+that route's runs from `profile.csv`. `make_job.py lineup --route loop2` prints the switch
+positions to set by hand; nothing is ever sent.
 Flags worth knowing: `--steps 24,48,126`, `--warm-laps 3`, `--warm-step 64`, `--rel 0.02`,
 `--max 12`, `--stall 120`. Run all four combinations: 2121 forward, 2121 reverse, 2738
 forward, 2738 reverse, each from a fresh `make_job.py` (the log name carries the time).
@@ -277,6 +283,64 @@ or CV, and holds `/tmp/speedrun.active` like the other jobs.
 **The Pi is the roster master.** The write happens in the Pi's JMRI. Afterwards sync the roster
 to the Mac and Windows with `tools/hosts/sync_roster_from_pi.sh`; do not edit the roster on
 another host in between.
+
+## Loop 2 (S-R, Scale, Barn): placing Switch 13
+
+Loop 1 placed Switch 7b on the AnyRail plan. A second timed loop does the same for OS Switch 13
+and the Scale side of OS Switch 7, which sit between Switch 5 and Switch 15. Loop 2 runs
+Switch 5 (thrown) into Track Scale, Switch 7, Track Barn, Switch 13, Switch 15 and Track S-R,
+then Switch 23b, 31 and 33, and on as loop 1 from East Lead to Brick-Plane and back to Switch 5.
+
+Line the switches up by hand (`make_job.py lineup --route loop2` prints this; the tools never
+command turnouts):
+
+| Switch | Position | | Switch | Position |
+|---|---|---|---|---|
+| 5 | thrown | | 31 | closed |
+| 7 | closed | | 33 | closed |
+| 13 | closed | | 35 | closed |
+| 15 | closed | | 37 | thrown |
+| 23 | closed | | 39 | thrown |
+| 1 | thrown | | | |
+
+(Loop 1 is 5 closed, 7 closed, 33 thrown, 35 closed, 37 thrown, 39 thrown, 23 closed, 1 thrown.)
+The guard for loop 2 includes BS Main East, BS East Main Ext and BS Switch 7b, which loop 1 runs
+over.
+
+Survey run, one loco and direction, at least 3 laps per step (the first lap of each step is
+dropped, so allow one more):
+
+```bash
+python3 jmri/layouts/hart/scripts/speedmatch/make_job.py steps --loco "CSX 2121" \
+    --direction forward --mute-sound --route loop2 --steps 32,48,64 --warm-laps 1 \
+    --guard default --out /tmp/sm/steps_loop2.py
+jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/sm/steps_loop2.py
+```
+
+Fetch the log, then turn it into lap events and place the switches (steps from 24 up are used):
+
+```bash
+python3 jmri/layouts/hart/scripts/speedmatch/analyze.py /tmp/sm/steprun_*.log --out /tmp/sm/out \
+    --route loop2 --events-out /tmp/sm/loop2_events.csv
+python3 jmri/layouts/hart/scripts/infer_block_lengths.py --route loop2 \
+    --events /tmp/sm/loop2_events.csv --locate
+```
+
+A lap is one pass of all 22 sensors counted from BS Switch 5; a block's transit is its entry to
+the next sensor's entry, and a block whose next sensor was missed gets no row (that lap is not
+used). The report lists every block's length pinned to the plan turnouts (Switch 5, 15, 33, 35a,
+35b, 23a, 1; 23b and 31 are left unpinned on purpose, too close to 33), then
+`locate:` lines giving the centre of OS Switch 7 and OS Switch 13 in mm along the route from
+Switch 5's points, and how far each is before OS Switch 15's centre. That distance is where the
+switch goes on the plan. It also prints loop 1's value beside loop 2's for the 14 rows both routes
+cover, as a consistency check; a large gap means a bad run or a wrong pin.
+
+`--apply` writes only rows loop 1 did not set (Scale, Barn, S-R, OS 7, 13, 15, 23b, 31); add
+`--overwrite` to rewrite the 17 loop 1 rows as well. Like loop 1, apply with PanelPro and CATS
+closed, then run `export_track_lengths.py`.
+
+Not yet checked on the layout: the lineup, the loop 2 plan constants against a real run, and the
+sensor order on a physical pass (the first run is the check).
 
 ## Apply settings (writing CVs, `pom_write.py`)
 

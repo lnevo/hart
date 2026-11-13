@@ -97,8 +97,10 @@ East Main Ext 88 → 141 in, Brick-Plane 72 → 58 in, and each OS block on the 
 
 ## Not done yet
 
-- The yard tracks, spurs, Scale, Barn and EH tracks: plan runs are known (above), but the gap
-  positions are not; they need a timed pass through them, or the owner's tape.
+- The yard tracks, spurs and EH tracks: plan runs are known (above), but the gap positions are
+  not; they need a timed pass through them, or the owner's tape.
+- Scale, Barn, Switch 7 and Switch 13: loop 2 is built for them (`infer_block_lengths.py --route
+  loop2 --locate`); the survey run is described in RUNBOOK.md, "Loop 2 (S-R, Scale, Barn)".
 - The generic reader for the public `model-railroad-skills` plugin, checked against AnyRail's
   own figures (owner).
 - Piece-to-layer links in the file (the Power District Gaps layer) are not decoded.
