@@ -73,6 +73,9 @@ SH_WRITES = re.compile(r"\b(rsync|cp|scp|mv|install|tee)\s|[^0-9&>]>\s*[^&\s]")
 READS_TABLES = {
     "capture_public_name_baseline.py", "discover_nx.py", "discover_sml.py",
     "export_hart_devices_for_cats.py", "export_track_lengths.py", "lcos_mqtt_mimic.py", "run_dispatcher_stage1.py",
+    # The website build reads the repo's tables.xml for the tables page and writes only its build folder;
+    # the owner lets it run while PanelPro or CATS is open (2026-11-13).
+    "prepare_github_pages.py",
 }
 LAUNCHER_PREFIXES = ("launch_", "run_")  # start PanelPro or CATS themselves and check what is open
 SAFE_FLAGS = ("--check", "--dry-run", "--stage-only", "--help")  # honoured only when the script defines it

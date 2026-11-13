@@ -317,7 +317,9 @@ class JmriOpenAndPrivateName(unittest.TestCase):
     def test_readers_and_launchers_pass_while_open(self) -> None:
         for cmd in ("python3 jmri/scripts/check_hart_phase02.py", "git grep pull_tables.sh",
                     "python3 jmri/layouts/hart/scripts/export_track_lengths.py",
-                    "./cats/scripts/launch_cats.sh", "python3 -m unittest discover -s tools/audit/tests"):
+                    "./cats/scripts/launch_cats.sh", "python3 -m unittest discover -s tools/audit/tests",
+                    "python3 www/scripts/prepare_github_pages.py /tmp/dist",
+                    "python3 www/scripts/check_portal_build.py"):
             self.assertEqual(self.code(cmd), 0, cmd)
 
     def test_process_pattern_covers_jmri5_decoderpro(self) -> None:
