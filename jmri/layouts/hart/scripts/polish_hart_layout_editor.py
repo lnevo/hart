@@ -86,6 +86,17 @@ OS_OCCUPANCY_ICONS = {
     "BS Switch 35b": (1568, 262),
     "BS Switch 35a": (1523, 325),
 }
+# Stage 1 (CreateIcons) occupancy lamps that land on a turnout circle or
+# another lamp. Only the level-10 Stage 1 copy moves; the level-12 lamps in the
+# Dispatcher station clusters belong to reconcile_dispatcher_stations.py.
+# Engine house: one lamp at the bumper (west) end of each spur, centred on it.
+STAGE1_LAMP_LEVEL = "10"
+STAGE1_LAMP_PLACEMENTS = {
+    "BS Switch 35a": (1499, 287),
+    "BS EH-1": (576, 261),
+    "BS EH-2": (576, 272),
+    "BS EH-3": (576, 284),
+}
 REMOVED_LABELS = {
     "OS East Lead",
     "OS Main East",
@@ -280,6 +291,27 @@ def ensure_os_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list
         x, y = OS_OCCUPANCY_ICONS[name]
         le.insert(_os_icon_insert_index(le, x, y), _circuit_occupancy_icon(name, x, y))
         changes += 1
+    return changes, errors
+
+
+def place_stage1_lamps(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
+    """Move Stage 1 occupancy lamps (level 10) off turnout circles and other icons."""
+    changes = 0
+    errors: list[str] = []
+    for icon in le.findall("sensoricon"):
+        name = (icon.get("sensor") or "").strip()
+        if name not in STAGE1_LAMP_PLACEMENTS or icon.get("level") != STAGE1_LAMP_LEVEL:
+            continue
+        x, y = STAGE1_LAMP_PLACEMENTS[name]
+        if icon.get("x") == str(x) and icon.get("y") == str(y):
+            continue
+        if check:
+            errors.append(
+                f"{name} at ({icon.get('x')}, {icon.get('y')}), expected ({x}, {y})"
+            )
+        else:
+            _set_xy(icon, x, y)
+            changes += 1
     return changes, errors
 
 
@@ -554,19 +586,9 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
                 icon.set(attr, value)
                 changes += 1
 
-    for icon in le.findall("sensoricon"):
-        if (icon.get("sensor") or "").strip() != "BS Switch 35a":
-            continue
-        if icon.get("x") == "1499" and icon.get("y") == "287":
-            continue
-        if check:
-            errors.append(
-                f"{path.name}: BS Switch 35a at ({icon.get('x')}, {icon.get('y')}), "
-                "expected (1499, 287)"
-            )
-        else:
-            _set_xy(icon, 1499, 287)
-            changes += 1
+    lamp_n, lamp_errors = place_stage1_lamps(le, check=check)
+    changes += lamp_n
+    errors.extend(f"{path.name}: {e}" for e in lamp_errors)
 
     shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check)
     changes += shared_n
