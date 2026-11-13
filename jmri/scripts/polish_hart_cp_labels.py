@@ -53,8 +53,8 @@ def apply(path: Path) -> int:
         el.set("style", style)
         n += 1
 
-    doc.save()
-    print(f"Updated {n} labels → {path}")
+    changed = doc.save()
+    print(f"Updated {n} labels → {path}" if changed else f"Unchanged ({n} labels already set) → {path}")
     return n
 
 

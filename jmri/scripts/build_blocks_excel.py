@@ -8,7 +8,6 @@ from collections import defaultdict, deque
 import openpyxl
 from openpyxl.styles import Font, Alignment, Border, Side
 import re
-import os
 import sys
 from pathlib import Path
 

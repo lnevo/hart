@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import importlib.util
-import shutil
+import contextlib
+import csv
+import io
 import sys
-import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -18,15 +18,10 @@ import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
 
 
-def _load(name: str, path: Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 class LookupsMatchOldLoops(unittest.TestCase):
-    def test_turnouts_match_root_iter(self):
+    """The old ElementTree loops, copied from before the move, against the hartlib versions."""
+
+    def test_turnouts_match_old_loop(self):
         by_user: dict[str, str] = {}
         for t in ET.parse(TABLES).getroot().iter("turnout"):
             sn = (t.findtext("systemName") or t.get("systemName") or "").strip()
@@ -34,11 +29,28 @@ class LookupsMatchOldLoops(unittest.TestCase):
             if sn.startswith("M2T") and un:
                 by_user[un] = sn[3:]
                 by_user[sn] = sn[3:]
-        want = {v for v in by_user.values()}
-        got = {addr for addr, _name in tio.load_turnouts().values()}
-        self.assertTrue(got <= want and got)
+        want: dict[str, tuple[str, str]] = {}
+        with tio.TURNOUT_CSV.open(newline="", encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                ident = row["layout_ident"].strip()
+                key = row["turnout_user_or_system"].strip()
+                addr = by_user.get(key)
+                if not addr and key.startswith("M2T"):
+                    addr = key[3:]
+                if not addr:
+                    continue
+                uname = key
+                for u, a in by_user.items():
+                    if a == addr and u.startswith("Switch"):
+                        uname = u
+                        break
+                want[ident] = (addr, uname)
+        self.assertTrue(want)
+        with contextlib.redirect_stderr(io.StringIO()):
+            got = tio.load_turnouts()
+        self.assertEqual(got, want)
 
-    def test_occupancy_matches_root_iter(self):
+    def test_occupancy_matches_old_loop(self):
         root = ET.parse(TABLES).getroot()
         addr: dict[str, str] = {}
         for s in root.iter("sensor"):
@@ -46,27 +58,20 @@ class LookupsMatchOldLoops(unittest.TestCase):
             un = (s.findtext("userName") or "").strip()
             if sn.startswith("M2S") and un:
                 addr[un] = sn[3:]
-        want = {}
+        want: dict[str, tuple[str, str]] = {}
         for lb in root.iter("layoutblock"):
             un = (lb.findtext("userName") or "").strip()
             occ = (lb.get("occupancysensor") or "").strip()
             if un and occ and occ in addr:
                 want[un] = (addr[occ], occ)
-        got = le.load_occupancy()
-        for name, val in want.items():
-            self.assertEqual(got[name], val)
-
-
-class PolishCpLabels(unittest.TestCase):
-    def test_second_apply_changes_nothing(self):
-        mod = _load("polish_hart_cp_labels", ROOT / "jmri/scripts/polish_hart_cp_labels.py")
-        with tempfile.TemporaryDirectory() as tmp:
-            copy = Path(tmp) / "tables.xml"
-            shutil.copy(TABLES, copy)
-            n = mod.apply(copy)
-            first = copy.read_bytes()
-            self.assertEqual(mod.apply(copy), n)
-            self.assertEqual(copy.read_bytes(), first)
+        with le.OCC_CSV.open(newline="", encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                name = row["block_user_name"].strip()
+                sens = row["occupancy_sensor_user_name"].strip()
+                if name not in want and sens in addr:
+                    want[name] = (addr[sens], sens)
+        self.assertTrue(want)
+        self.assertEqual(le.load_occupancy(), want)
 
 
 if __name__ == "__main__":

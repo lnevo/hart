@@ -467,7 +467,7 @@ def name_signals(tp: ET.Element) -> int:
 
 def mast_templates() -> dict[str, str]:
     """CATS signal template per mast userName, from signal_head_plan.csv."""
-    path = paths.SIGNAL_WIRING.parent / "signal_head_plan.csv"
+    path = paths.SIGNAL_HEAD_PLAN
     with path.open(newline="") as f:
         return {
             row["mast_user_name"].strip(): row["physignal"].strip()
