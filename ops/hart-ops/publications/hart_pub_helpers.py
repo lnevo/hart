@@ -179,19 +179,19 @@ def add_station_map_page(
     pic.add_run().add_picture(str(map_path), height=Inches(7.0))
 
 
-# TT-23 page 2 schedule (EAST | STATION | WEST) for YM/DS companion column.
+# TT-23 page 2 schedule (AM | STATION | PM) for YM/DS companion column.
+# Each trip is a round trip: Barn to McKees Rocks, 10-minute wait, back to Barn.
 TT23_SCHEDULE_ROWS: list[tuple[str, str, str]] = [
-    ("9:00", "Barn", "5:00 PM"),
-    ("9:06", "Scale", "4:54 PM"),
-    ("9:12", "Brick", "4:48 PM"),
-    ("9:18", "East End", "4:42 PM"),
-    ("9:24", "Aristech", "4:36 PM"),
-    ("9:30", "Calgon Carbon", "4:30 PM"),
-    ("9:36", "Kosmos Cement", "4:24 PM"),
-    ("9:42", "Ferrel Gas", "4:18 PM"),
-    ("9:48", "A. Stucki Co.", "4:12 PM"),
-    ("9:54", "Princess", "4:06 PM"),
-    ("10:00", "McKees Rocks", "4:00 PM"),
+    ("9:00", "Barn", "4:00"),
+    ("9:06", "Scale", "4:06"),
+    ("9:12", "Brick", "4:12"),
+    ("9:18", "East End", "4:18"),
+    ("9:25", "McKees Rocks (arr.)", "4:25"),
+    ("9:35", "McKees Rocks (dep.)", "4:35"),
+    ("9:42", "East End", "4:42"),
+    ("9:48", "Brick", "4:48"),
+    ("9:54", "Scale", "4:54"),
+    ("10:00", "Barn", "5:00"),
 ]
 
 
@@ -294,7 +294,7 @@ def add_diagram_and_timetable_page(
     sched.autofit = False
     style_table(sched)
     col_w = (0.52, 0.92, 0.58)
-    for cell, text, w in zip(sched.rows[0].cells, ("EAST", "STATION", "WEST"), col_w):
+    for cell, text, w in zip(sched.rows[0].cells, ("AM", "STATION", "PM"), col_w):
         cell.text = ""
         _set_col_width(cell, w)
         p = cell.paragraphs[0]
@@ -305,11 +305,11 @@ def add_diagram_and_timetable_page(
         _set_run_font(run, size_pt=6, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF), name="Arial")
         set_cell_shading(cell, "0F4761")
 
-    for i, (east, station, west) in enumerate(TT23_SCHEDULE_ROWS, start=1):
+    for i, (am, station, pm) in enumerate(TT23_SCHEDULE_ROWS, start=1):
         row = sched.rows[i]
         for cell, text, align, w in zip(
             row.cells,
-            (east, station, west),
+            (am, station, pm),
             (WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.CENTER),
             col_w,
         ):
@@ -331,7 +331,7 @@ def add_diagram_and_timetable_page(
     note.paragraph_format.space_before = Pt(6)
     note.paragraph_format.space_after = Pt(0)
     r = note.add_run(
-        "Eastbound Barn→McKees Rocks. Westbound McKees Rocks→Barn. Station time."
+        "Barn→McKees Rocks, 10 min wait, return to Barn. Station time."
     )
     _set_run_font(r, size_pt=5.5, color=MUTED, name="Calibri")
 
