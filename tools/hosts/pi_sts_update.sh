@@ -7,7 +7,8 @@
 #   tools/hosts/pi_sts_update.sh --status   show commits and containers only
 set -euo pipefail
 
-HOST="${PI_HOST:-pi}"
+source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
+HOST="${PI_HOST:-$HART_PI_SSH}"  # PI_HOST first, as before
 MODE="${1:-update}"
 
 case "$MODE" in

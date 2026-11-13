@@ -1,0 +1,24 @@
+switch,os_block,closed_leg,thrown_leg
+1,OS Switch 1,OS Switch 3,Track Brick-Plane
+3,OS Switch 3,Track W-1,Track W-2
+5,OS Switch 5,Track East Main Ext,Track Scale
+7,OS Switch 7,Track Scale,OS Switch 7b
+7,OS Switch 7b,Track Main East,OS Switch 7
+9,OS Switch 9,Track EH-2,Track EH-3
+11,OS Switch 11,Track EH-1,OS Switch 9
+13,OS Switch 13,Track Barn,OS Switch 11
+15,OS Switch 15,Track S-R,OS Switch 17
+17,OS Switch 17,OS Switch 19,Track S-1
+19,OS Switch 19,OS Switch 21,Track S-2
+21,OS Switch 21,Track S-4,Track S-3
+23,OS Switch 23a,Track West Main Ext,OS Switch 23b
+23,OS Switch 23b,Track S-R,OS Switch 23a
+25,OS Switch 25,Track S-4,Track S-3
+27,OS Switch 27,OS Switch 25,Track S-2
+29,OS Switch 29,OS Switch 27,Track S-1
+31,OS Switch 31,OS Switch 23b,OS Switch 29
+33,OS Switch 33,OS Switch 31,Track Main East
+35,OS Switch 35b,Track West Main Ext,OS Switch 35a
+35,OS Switch 35a,OS Switch 37,OS Switch 35b
+37,OS Switch 37,Track McKeesport,Track K-2
+39,OS Switch 39,Track McKees Rocks,Track K-1

@@ -19,12 +19,15 @@ import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
-import csv
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from uss_switch_only_columns import ensure_columns
+import layout_facts as facts  # noqa: E402
+from uss_switch_only_columns import ensure_columns  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[4]
+sys.path.append(str(ROOT / "cats/scripts"))
+from wire_digicon import PLANT_CELLS  # noqa: E402
+
 CATS_XML = ROOT / "cats/panels/HART_CTC.xml"
 CATS_DESIGNER = ROOT / "cats/panels/HART_Digicon.xml"
 if not CATS_XML.is_file():
@@ -34,27 +37,6 @@ OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 SOURCE_TABLES = ROOT / "tables/tables.xml"
 THIN_DIR = ROOT / "jmri/layouts/hart/ctc/icons"
 JMRI_RES = Path("/Applications/JMRI/resources")
-NAME_MAP = ROOT / "jmri/layouts/hart/data/public_name_map.csv"
-
-
-def _occupancy_user_names() -> dict[str, str]:
-    out: dict[str, str] = {}
-    with NAME_MAP.open(newline="", encoding="utf-8") as handle:
-        for row in csv.DictReader(handle):
-            if (row.get("layer") or "").strip() != "occupancy":
-                continue
-            current = (row.get("current") or "").strip()
-            proposed = (row.get("proposed") or "").strip()
-            if current and proposed:
-                out[current] = proposed
-    return out
-
-
-OCC_USER = _occupancy_user_names()
-
-
-def _bs(block_nn: str) -> str:
-    return OCC_USER.get(block_nn, block_nn)
 
 U = "program:resources/icons/USS/"
 THIN = "preference:ctc/icons/"
@@ -68,38 +50,82 @@ OS_Y = 228
 STATION_Y = 51
 PANEL_W, PANEL_H = 1400, 800
 
-N_SLOTS = 20
-BLANK_SLOTS: set[int] = set()
-# 119, 118, 116, 103, 104, 105, 106, 107, 108, 109 — switch-only (no signal lever).
-SWITCH_ONLY_SLOTS = {4, 5, 6, 7, 8, 9, 10, 12, 13, 14}
+# Switch facts (jmri/layouts/hart/data/switches.csv). Plate N is lever column
+# (N - 1) / 2; its N/R lever and lock are the CTC sensors IS<ctc_is>:* and
+# IS<ctc_is + 1>:*. Columns without signal levers are switch-only; a column
+# whose plate number no switch uses is drawn blank.
+#
+# The board is one row of columns for one level. How a second level's switches
+# sit on the machine (a wider board, a second panel) is not designed yet, so
+# the generator stops rather than guess.
+USS_LEVELS = {"1"}
+
+
+def uss_columns(switches: dict) -> dict:
+    """Lever-column tables for the USS board from the switch facts."""
+    other = sorted({sw.level for sw in switches.values()} - USS_LEVELS)
+    if other:
+        raise SystemExit(f"switches.csv has level(s) {other}: the USS CTC board is only designed "
+                         f"for level(s) {sorted(USS_LEVELS)}; decide its layout first")
+    levers = {sw.uss_slot: sw for sw in switches.values()}
+    n_slots = max(levers) + 1
+    sw_num = {slot: sw.ctc_is for slot, sw in levers.items()}
+    lock_uid = {slot: sw.ctc_is + 1 for slot, sw in levers.items()}
+    return dict(
+        n_slots=n_slots,
+        blank=set(range(n_slots)) - set(levers),
+        switch_only={slot for slot, sw in levers.items() if not sw.ctc_signals},
+        sw_num=sw_num,
+        lock_uid=lock_uid,
+        uid_slot={**{v: k for k, v in sw_num.items()}, **{v: k for k, v in lock_uid.items()}},
+    )
+
+
+SWITCHES = facts.load_switches()
+_COLUMNS = uss_columns(SWITCHES)
+N_SLOTS = _COLUMNS["n_slots"]
+BLANK_SLOTS: set[int] = _COLUMNS["blank"]
+SWITCH_ONLY_SLOTS = _COLUMNS["switch_only"]
+# Odd IS# that owns the N/R switch lever on each packed slot; even IS# its LOCKTOGGLE.
+SLOT_SW_NUM = _COLUMNS["sw_num"]
+SLOT_LOCK_UID = _COLUMNS["lock_uid"]
+# IS# prefix (SwitchNumber / SignalEtcNumber) -> 20-col slot.
+UID_SLOT = _COLUMNS["uid_slot"]
 
 CREAM = dict(red=220, green=220, blue=180)
 WHITE = dict(red=255, green=255, blue=255)
 
-# CATS frog cell → (JMRI turnout, invert vs JMRI). Rails come from CATS
-# track pieces; the turnouticon is only a points dot.
-PLANTS = {
-    (4, 8): ("Switch 1", True),
-    (5, 9): ("Switch 3", False),
-    (9, 8): ("Switch 5", False),
-    (15, 7): ("Switch 7", False),
-    (24, 8): ("Switch 9", False),
-    (26, 8): ("Switch 11", False),
-    (27, 7): ("Switch 13", False),
-    (30, 7): ("Switch 15", False),
-    (31, 8): ("Switch 17", False),
-    (32, 9): ("Switch 19", False),
-    (33, 10): ("Switch 21", False),
-    (39, 10): ("Switch 25", False),
-    (40, 9): ("Switch 27", False),
-    (41, 8): ("Switch 29", False),
-    (40, 6): ("Switch 23", False),
-    (42, 7): ("Switch 31", False),
-    (44, 7): ("Switch 33", False),
-    (52, 6): ("Switch 35", False),
-    (55, 6): ("Switch 39", True),
-    (55, 7): ("Switch 37", True),
-}
+# Known difference, reported 2026-11-12 and left for the owner: the points dots
+# on Switches 37 and 39 still show Normal when the switch is thrown, as they did
+# before the Princess redraw made the closed leg the main (CATS NORMAL).
+# check_layout_facts.py lists them until this set is emptied and the panel rebuilt.
+USS_DOT_SWAPPED = {37, 39}
+
+# CATS frog cell -> (JMRI turnout, dot shows Normal when Thrown), on each switch's
+# first OS block. Rails come from CATS track pieces; the turnouticon is only a points dot.
+
+
+def uss_plants(switches: dict, plant_cells: dict) -> dict:
+    """CATS frog cell -> (turnout, dot swapped) on each switch's first OS block."""
+    owner = {os_name: sw for sw in switches.values() for os_name in sw.os_blocks}
+    missing = [f"{os_name} at {xy}" for xy, os_name in plant_cells.items() if os_name not in owner]
+    if missing:
+        raise SystemExit("wire_digicon.PLANT_CELLS names OS blocks with no row in "
+                         "switch_legs.csv: " + ", ".join(missing))
+    undrawn = sorted(set(owner) - set(plant_cells.values()))
+    if undrawn:
+        raise SystemExit("switch_legs.csv OS blocks with no cell in wire_digicon.PLANT_CELLS: "
+                         + ", ".join(undrawn))
+    return {
+        xy: (owner[os_name].turnout,
+             owner[os_name].cats_inverted or owner[os_name].number in USS_DOT_SWAPPED)
+        for xy, os_name in plant_cells.items()
+        if os_name == owner[os_name].os_blocks[0]
+    }
+
+
+PLANTS = uss_plants(SWITCHES, PLANT_CELLS)
+
 # Stock USS tiles (transparent copies in ctc/icons/). Offsets center the
 # native GIF on the CATS cell. Slashes stay half-cell custom tiles
 # at stock bar weight so frogs still meet.
@@ -140,75 +166,11 @@ LABEL_AT = {
     "Track EH-3": (21, 10),
 }
 
-# IS# prefix (SwitchNumber / SignalEtcNumber) → 20-col slot.
-UID_SLOT = {
-    1: 1, 2: 1,       # 101
-    3: 0, 4: 0,       # 100
-    5: 2, 6: 2,       # 102
-    7: 3, 8: 3,       # 117
-    9: 6, 10: 6,      # 116 switch-only
-    11: 7, 12: 7,     # 103 switch-only
-    17: 11, 18: 11,   # 111
-    13: 12, 14: 12,   # 107 switch-only
-    15: 13, 16: 13,   # 108 switch-only
-    19: 14, 20: 14,   # 109 switch-only
-    21: 15, 22: 15,   # 110
-    23: 16, 24: 16,   # 112
-    25: 17, 26: 17,   # 113
-    27: 18, 28: 18,   # 114
-    29: 19, 30: 19,   # 115
-    31: 4, 32: 4,     # 119 switch-only
-    33: 5, 34: 5,     # 118 switch-only
-    35: 8, 36: 8,     # 104 switch-only
-    37: 9, 38: 9,     # 105 switch-only
-    39: 10, 40: 10,   # 106 switch-only
-}
-
-# Odd IS# that owns the N/R switch lever on each packed slot.
-SLOT_SW_NUM = {
-    0: 3, 1: 1, 2: 5, 3: 7, 4: 31, 5: 33, 6: 9, 7: 11,
-    8: 35, 9: 37, 10: 39, 11: 17, 12: 13, 13: 15, 14: 19,
-    15: 21, 16: 23, 17: 25, 18: 27, 19: 29,
-}
-
-# Even IS# that owns LOCKTOGGLE on each packed slot.
-SLOT_LOCK_UID = {
-    0: 4, 1: 2, 2: 6, 3: 8,
-    4: 32, 5: 34, 6: 10, 7: 12,
-    8: 36, 9: 38, 10: 40,
-    11: 18, 12: 14, 13: 16, 14: 20,
-    15: 22, 16: 24, 17: 26, 18: 28, 19: 30,
-}
-
 # CATS has no occupancy edge on Track Main East; JMRI sensor is BS Main East.
 FALLBACK_LABEL_SENSORS = {"Track Main East": ("BS Main East", "Track Main East")}
 
 # OS occupancy-cut sits at the frog; lamp goes left/right of the points.
-OS_FROG = {
-    "OS Switch 1": (4, 8),
-    "OS Switch 3": (5, 9),
-    "OS Switch 5": (9, 8),
-    "OS Switch 7": (15, 7),
-    "OS Switch 7b": (15, 8),
-    "OS Switch 9": (24, 8),
-    "OS Switch 11": (26, 8),
-    "OS Switch 13": (27, 7),
-    "OS Switch 15": (30, 7),
-    "OS Switch 17": (31, 8),
-    "OS Switch 19": (32, 9),
-    "OS Switch 21": (33, 10),
-    "OS Switch 23a": (40, 6),
-    "OS Switch 23b": (40, 7),
-    "OS Switch 31": (42, 7),
-    "OS Switch 33": (44, 7),
-    "OS Switch 29": (41, 8),
-    "OS Switch 27": (40, 9),
-    "OS Switch 25": (39, 10),
-    "OS Switch 35b": (52, 6),
-    "OS Switch 35a": (52, 7),
-    "OS Switch 39": (55, 6),
-    "OS Switch 37": (55, 7),
-}
+OS_FROG = {os_name: xy for xy, os_name in PLANT_CELLS.items()}
 
 # (mast, cats_x, cats_y, facing, kind, IH* or None). kind "h2" draws a mast
 # icon (two-head masts); "d1" draws a head icon on the mast's only head.
@@ -242,39 +204,7 @@ SIGNALS = [
     ("Mast 2036", 62, 5, "E", "d1", "IH1133"),
 ]
 
-# Packed 20: device-map plate (odd) west→east. Beans remain Switch 1–119.
-# (slot, plate, [(sensor, tip), ...])
-COLUMNS = [
-    (0, "1", [("Block 4-2", "OS Switch 1")]),
-    (1, "3", [("Block 4-1", "OS Switch 3")]),
-    (2, "5", [("Block 4-5", "OS Switch 5")]),
-    (3, "7", [("Block 13-3", "OS Switch 7 (yard side)"),
-              ("Block 13-4", "OS Switch 7b (main side)")]),
-    (4, "9", [("Block 13-8", "OS Switch 9")]),
-    (5, "11", [("Block 13-2", "OS Switch 11")]),
-    (6, "13", [("Block 3-1", "OS Switch 13")]),
-    (7, "15", [("Block 3-2", "OS Switch 15")]),
-    (8, "17", [("Block 3-3", "OS Switch 17")]),
-    (9, "19", [("Block 3-5", "OS Switch 19")]),
-    (10, "21", [("Block 3-7", "OS Switch 21")]),
-    (11, "23", [("Block 12-4", "OS Switch 23a (Track Main West side)"),
-                ("Block 12-6", "OS Switch 23b (yard side)")]),
-    (12, "25", [("Block 12-1", "OS Switch 25")]),
-    (13, "27", [("Block 12-3", "OS Switch 27")]),
-    (14, "29", [("Block 12-5", "OS Switch 29")]),
-    (15, "31", [("Block 12-7", "OS Switch 31")]),
-    (16, "33", [("Block 12-8", "OS Switch 33")]),
-    (17, "35", [("Block 1-5", "OS Switch 35b (Track Main West side)"),
-                ("Block 1-6", "OS Switch 35a (Track East Lead side)")]),
-    (18, "37", [("Block 1-3", "OS Switch 37")]),
-    (19, "39", [("Block 1-4", "OS Switch 39")]),
-]
-COLUMNS = [
-    (slot, plate, [(_bs(sensor), tip) for sensor, tip in sensors])
-    for slot, plate, sensors in COLUMNS
-]
-
-STATION_NAMES = {"BRICK", "PLANE", "BARN", "EAST END", "PRINCESS"}
+STATION_NAMES = facts.station_names()  # control point plates: BRICK, EAST END, ...
 SKIP_LABELS = {
     "HART RAILROAD", "NEVILLE ISLAND OPERATIONS", "P&CV DIVISION",
     "CTC DIGICON", "DS-CTC  Rev A  Eff 2026-08-11",
@@ -1031,6 +961,8 @@ def build_block(cells: dict) -> str:
                 clr=sig_url("d1", "slow-clear", facing),
                 unk=sig_url("d1", "unknown", facing)))
     for slot in range(N_SLOTS):
+        if slot in BLANK_SLOTS:
+            continue  # no switch uses this plate number: blank plate, no levers
         origin = 12 + 65 * slot
         parts.append(LOCK_TOGGLE.format(
             uid=SLOT_LOCK_UID[slot], x=origin + 21, u=U))
@@ -1061,7 +993,8 @@ STRIP = [
         re.S,
     ),
     re.compile(
-        r"\s*<positionablelabel\b[^>]*text=\"(?:BRICK|PLANE|BARN|EAST END|PRINCESS|\d+|HART RAILROAD[^\"]*)\".*?</positionablelabel>",
+        r"\s*<positionablelabel\b[^>]*text=\"(?:%s|\d+|HART RAILROAD[^\"]*)\".*?</positionablelabel>"
+        % "|".join(re.escape(n) for n in sorted(STATION_NAMES)),
         re.S,
     ),
     re.compile(r"\s*<sensoricon\b[^>]*sensor=\"IS\d+:UNLOCKEDINDICATOR\".*?</sensoricon>", re.S),

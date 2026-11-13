@@ -14,7 +14,8 @@
 # Usage: tools/hosts/pi_quit_panelpro.sh            (host from HART_PI_SSH, default "pi")
 #        tools/hosts/pi_quit_panelpro.sh --print    (print the Jython it would drop, no ssh)
 set -euo pipefail
-PI_HOST="${HART_PI_SSH:-pi}"
+source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
+PI_HOST="$HART_PI_SSH"
 PROFILE="TCS_MQTT.3f32a166"
 WAIT_S=120
 

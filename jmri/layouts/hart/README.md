@@ -25,6 +25,8 @@ contains the Layout Editor, native SML, Dispatcher System, and USS CTC data.
 | `output/tables.xml` | The one tables file: LE + SML + Dispatcher + CTC. JMRI loads it and deploy ships it |
 | `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `comment` from Device map) |
 | `data/control_points.csv` | CP → switches |
+| `data/switches.csv` | Per switch: level, Layout Editor turnout, CATS inversion, USS CTC lever (`scripts/layout_facts.py` reads it) |
+| `data/switch_legs.csv` | Per OS block at the points: the block the closed and thrown legs lead to |
 | `data/sensor_purge_report.txt` | Removed unused ISIS\* |
 
 ## Maintenance scripts

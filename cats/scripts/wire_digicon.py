@@ -26,15 +26,19 @@ import aar_aspect_bridge as bridge  # noqa: E402
 import cats_turnout_io as tio  # noqa: E402
 import digicon_header as header  # noqa: E402
 import digicon_lib as le  # noqa: E402
+import digicon_trace as trace  # noqa: E402
+
+sys.path.append(str(ROOT / "jmri/layouts/hart/scripts"))
+import layout_facts as facts  # noqa: E402
 
 SRC = ROOT / "cats/panels/HART_Digicon.xml"
 CTC = ROOT / "cats/panels/HART_CTC.xml"
 ABS = ROOT / "cats/panels/HART_ABS.xml"
 
-# (x, y) → (OS name, NORMAL route among non-points legs, layout_ident)
-# NORMAL is usually the drawn through / main. invert_vs_jmri plants put throw on
-# that NORMAL route (JMRI Thrown = mainline): 100 only. Switches 9 and 11 take
-# their closed BOTTOM leg as NORMAL instead.
+# Plant cell (x, y) -> its OS block. Which leg is closed and which thrown, the
+# Layout Editor turnout and whether CATS NORMAL differs from JMRI Closed are
+# railroad facts in jmri/layouts/hart/data/switches.csv and switch_legs.csv;
+# plant_routes() finds each NORMAL edge by tracing the legs on the wired desk.
 #
 # Untwisted 63×16 board (Designer 2026-08-26).
 # Y=5 Track K-1 (thrown leg of Switch 39) east to the panel edge; Y=8 Track K-2 likewise.
@@ -43,41 +47,40 @@ ABS = ROOT / "cats/panels/HART_ABS.xml"
 # Y=8 Brick 100 / Plane 102 / E Main Ext / EH / Track S-1.
 # Y=12 Track Main East under the south-yard ladders.
 # SHARED: (1,6) LEFT ↔ (1,8) LEFT Track Main West; (63,5) RIGHT ↔ (63,8) RIGHT Track K-2 (the K loop, not drawn).
-PLANTS: dict[tuple[int, int], tuple[str, str, str]] = {
-    (4, 8): ("OS Switch 1", "RIGHT", "TOL3"),  # Brick. Thrown = through E Main Ext; Closed BOTTOM = yard
-    (5, 9): ("OS Switch 3", "BOTTOM", "TOL38"),  # Closed = Track W-1 (BOTTOM); Thrown RIGHT = Track W-2
-    (9, 8): ("OS Switch 5", "RIGHT", "TOL42"),  # Closed = through E Main Ext; Thrown TOP = Track Scale
-    (15, 8): ("OS Switch 7b", "RIGHT", "TO117"),
-    (15, 7): ("OS Switch 7", "LEFT", "TO117"),
-    (24, 8): ("OS Switch 9", "BOTTOM", "TO10"),  # Closed BOTTOM = Track EH-2; Thrown LEFT = Track EH-3
-    (26, 8): ("OS Switch 11", "BOTTOM", "TO11"),  # Closed BOTTOM = Track EH-1; Thrown LEFT = to Switch 9
-    (27, 7): ("OS Switch 13", "LEFT", "TO1"),  # Thrown BOTTOM is a stub; does not join 118
-    (30, 7): ("OS Switch 15", "RIGHT", "TOR14"),  # Thrown BOTTOM geographic into 104 approach
-    (31, 8): ("OS Switch 17", "BOTTOM", "TOL15"),
-    (32, 9): ("OS Switch 19", "BOTTOM", "TOL17"),
-    (33, 10): ("OS Switch 21", "BOTTOM", "TOL19"),
-    (40, 6): ("OS Switch 23a", "RIGHT", "TO111"),  # Track Main West
-    (40, 7): ("OS Switch 23b", "LEFT", "TO111"),  # Track S-R
-    (42, 7): ("OS Switch 31", "LEFT", "TOL6"),  # Closed LEFT = Track S-R/111; Thrown BOTTOM = 109
-    (44, 7): ("OS Switch 33", "LEFT", "TOL23"),  # Closed LEFT = 110; Thrown BOTTOM = Track Main East
-    (41, 8): ("OS Switch 29", "BOTTOM", "TOR7"),
-    (40, 9): ("OS Switch 27", "BOTTOM", "TOR9"),
-    (39, 10): ("OS Switch 25", "BOTTOM", "TOR11"),
-    (52, 6): ("OS Switch 35b", "LEFT", "TO113"),  # Track West Main Ext
-    (52, 7): ("OS Switch 35a", "RIGHT", "TO113"),  # Track East Lead
-    (55, 6): ("OS Switch 39", "RIGHT", "TOL29"),  # Closed = Track McKees Rocks; Thrown TOP = Track K-1
-    (55, 7): ("OS Switch 37", "RIGHT", "TOR36"),  # Closed = Track McKeesport; Thrown BOTTOM = Track K-2
+#
+# Order: the USS CTC draws a points dot on each switch's first OS cell in this
+# order, so a reorder moves those lines in GUIObjects.xml (no other effect).
+PLANT_CELLS: dict[tuple[int, int], str] = {
+    (4, 8): "OS Switch 1",  # Brick
+    (5, 9): "OS Switch 3",
+    (9, 8): "OS Switch 5",
+    (15, 7): "OS Switch 7",
+    (15, 8): "OS Switch 7b",
+    (24, 8): "OS Switch 9",
+    (26, 8): "OS Switch 11",
+    (27, 7): "OS Switch 13",  # thrown BOTTOM is a stub; does not join Switch 11
+    (30, 7): "OS Switch 15",  # thrown BOTTOM geographic into the Switch 17 approach
+    (31, 8): "OS Switch 17",
+    (32, 9): "OS Switch 19",
+    (33, 10): "OS Switch 21",
+    (39, 10): "OS Switch 25",
+    (40, 9): "OS Switch 27",
+    (41, 8): "OS Switch 29",
+    (40, 6): "OS Switch 23a",  # Track Main West
+    (40, 7): "OS Switch 23b",  # Track S-R
+    (42, 7): "OS Switch 31",
+    (44, 7): "OS Switch 33",
+    (52, 6): "OS Switch 35b",  # Track West Main Ext
+    (52, 7): "OS Switch 35a",  # Track East Lead
+    (55, 6): "OS Switch 39",
+    (55, 7): "OS Switch 37",
 }
 
-# CATS NORMAL = drawn through. Brick is JMRI Thrown when lined for its
-# through route (Designer “differs from JMRI settings”).
-# 112 is no longer inverted: LEFT is the 110/Track S-R closed leg, BOTTOM is Track Main East.
-# 114/115 are no longer inverted since the Princess redraw: the straight
-# leg is the closed main (Track McKees Rocks / Track McKeesport).
-# Switches 9 and 11 are not inverted either (2026-11-12, after the Switch 9
-# rewiring): NORMAL is their closed BOTTOM leg. The row-8 stub is Track EH-3
-# and the bottom row EH-1, matching the Layout Editor without moving any track.
-INVERT_VS_JMRI = {"TOL3"}  # 100
+SWITCHES = facts.load_switches()
+LEGS_BY_OS = facts.legs_by_os(SWITCHES)
+# layout_idents whose CATS NORMAL is JMRI Thrown (Designer "differs from JMRI
+# settings"): Switch 1 only, whose through route is its thrown leg.
+INVERT_VS_JMRI = {sw.le_ident for sw in SWITCHES.values() if sw.cats_inverted}
 
 # Do not add rails. Designer already drew every frog.
 EXTRA_TRACKS: dict[tuple[int, int], str] = {}
@@ -257,14 +260,7 @@ SHARED_LINKS: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = [
     ((63, 5, "RIGHT"), (63, 8, "RIGHT")),
 ]
 
-TRACK_ENDS = {
-    "HORIZONTAL": frozenset({"LEFT", "RIGHT"}),
-    "VERTICAL": frozenset({"TOP", "BOTTOM"}),
-    "UPPERSLASH": frozenset({"LEFT", "TOP"}),
-    "LOWERSLASH": frozenset({"RIGHT", "BOTTOM"}),
-    "UPPERBACKSLASH": frozenset({"RIGHT", "TOP"}),
-    "LOWERBACKSLASH": frozenset({"LEFT", "BOTTOM"}),
-}
+TRACK_ENDS = le.TRACK_ENDS
 
 _SWITCH_OS_RE = re.compile(r"^(?:OS Switch |(?:OS|Track) )\d")
 
@@ -300,11 +296,7 @@ def _ensure_edge(sec: ET.Element, edge: str) -> ET.Element:
 
 def add_extra_tracks(tp: ET.Element) -> int:
     """Add the omitted 100 / ladder frogs so SWITCHPOINTS have three legs."""
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for xy, kind in EXTRA_TRACKS.items():
         sec = secs.get(xy)
@@ -379,11 +371,7 @@ def strip_designer_blocks(tp: ET.Element) -> int:
 
 def name_blocks(tp: ET.Element) -> int:
     disc = le.load_disciplines()
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for x, y, edge, name in ANCHORS:
         sec = secs.get((x, y))
@@ -413,11 +401,7 @@ def add_shared_jumps(tp: ET.Element) -> int:
     west-edge Track Main West wrap and Princess Track K-2 wrap.
     """
     keep_blk = {(x, y, e) for x, y, e, _ in ANCHORS}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     for sec in secs.values():
         for e in sec.findall("SEC_EDGE"):
             for old in list(e.findall("SHARED")):
@@ -451,11 +435,7 @@ def add_shared_jumps(tp: ET.Element) -> int:
 
 
 def name_signals(tp: ET.Element) -> int:
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y, edge), name in SIGNAL_NAMES.items():
         sec = secs.get((x, y))
@@ -512,13 +492,9 @@ def align_physignal_to_heads(tp: ET.Element) -> int:
 
 
 def add_missing_plants(tp: ET.Element) -> int:
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
-    for xy, (_os, _normal, _ident) in PLANTS.items():
+    for xy in PLANT_CELLS:
         sec = secs.get(xy)
         if sec is None:
             print(f"PLANT SKIP missing cell {xy}", file=sys.stderr)
@@ -548,10 +524,10 @@ def strip_foreign_points(tp: ET.Element) -> int:
 def finish_empty_spurs(tp: ET.Element) -> int:
     """CATS 3.1 PtsVitalLogic.setPoints AIOOBs if SPUR has getNormal()==-1.
 
-    Empty SWITCHPOINTS SPUR (not in PLANTS) gets a through NORMAL so CATS
+    Empty SWITCHPOINTS SPUR (not in PLANT_CELLS) gets a through NORMAL so CATS
     3.1 PtsVitalLogic.setPoints does not AIOOB.
     """
-    plant_cells = set(PLANTS)
+    plant_cells = set(PLANT_CELLS)
     prefer = ("RIGHT", "LEFT", "BOTTOM", "TOP")
     n = 0
     for sec in tp.findall("SECTION"):
@@ -586,11 +562,7 @@ def finish_empty_spurs(tp: ET.Element) -> int:
 def drop_110_crossing(tp: ET.Element) -> None:
     """No-op: 110 Thrown is geographic into (42,8) toward 109."""
     drop: dict[tuple[int, int], str] = {}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     for xy, kind in drop.items():
         sec = secs.get(xy)
         if sec is None:
@@ -614,11 +586,7 @@ def clear_points_facing_blocks(tp: ET.Element) -> int:
     """R3: the cell facing SWITCHPOINTS must be a plain SecEdge, not BlkEdge."""
     opp = {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"}
     step = {"LEFT": (-1, 0), "RIGHT": (1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in secs.items():
         for e in sec.findall("SEC_EDGE"):
@@ -659,11 +627,7 @@ def heal_blk_plain_seams(tp: ET.Element) -> int:
     """
     opp = {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"}
     step = {"LEFT": (-1, 0), "RIGHT": (1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in list(secs.items()):
         for e in list(sec.findall("SEC_EDGE")):
@@ -725,11 +689,7 @@ def _other_end(sec: ET.Element, edge: str) -> str | None:
 
 def break_dual_named_tracks(tp: ET.Element) -> int:
     """One CATS Track may carry only one Block. Drop the extra name."""
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for sec in secs.values():
         for kind in tio.section_tracks(sec):
@@ -807,11 +767,7 @@ def _shared_edge(sec: ET.Element, edge: str) -> bool:
 
 def fill_same_track_names(tp: ET.Element) -> int:
     """If one end of a Track is named, name the other (unless it faces SWITCHPOINTS)."""
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in secs.items():
         for kind in tio.section_tracks(sec):
@@ -843,11 +799,7 @@ def name_signal_seams(tp: ET.Element) -> int:
     """SECSIGNAL on a bare SecEdge ClassCasts; both sides of the joint need a Block."""
     opp = {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"}
     step = {"LEFT": (-1, 0), "RIGHT": (1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in secs.items():
         for e in list(sec.findall("SEC_EDGE")):
@@ -894,11 +846,7 @@ def strip_blk_facing_plain(tp: ET.Element) -> int:
     """A named BLOCK facing a bare SecEdge ClassCasts. Drop the name."""
     opp = {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"}
     step = {"LEFT": (-1, 0), "RIGHT": (1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (x, y), sec in list(secs.items()):
         for e in list(sec.findall("SEC_EDGE")):
@@ -989,11 +937,7 @@ def fix_labels(tp: ET.Element) -> int:
 
 def move_signals(tp: ET.Element) -> int:
     """Relocate a Designer SECSIGNAL onto the occupancy-cut cell/edge."""
-    secs = {
-        (int(s.get("X")), int(s.get("Y"))): s
-        for s in tp.findall("SECTION")
-        if s.find("TRACKGROUP") is not None
-    }
+    secs = trace.track_cells(tp)
     n = 0
     for (fx, fy, fedge), (tx, ty, tedge) in SIGNAL_MOVES:
         src_sec = secs.get((fx, fy))
@@ -1058,18 +1002,52 @@ OMITTED_BLOCKS: set[str] = set()
 OMITTED_IDENTS: set[str] = set()
 
 
-def audit_coverage(tp: ET.Element) -> None:
+def plant_routes(tp: ET.Element) -> dict[tuple[int, int], tuple[str, str, str]]:
+    """Plant cell -> (OS block, NORMAL edge, layout_ident) from the switch facts.
+
+    Each leg is traced on the named desk to the block it leads to. NORMAL is the
+    leg to the closed-leg block, or to the thrown-leg block when the switch is
+    CATS-inverted. Stops if the drawing and switch_legs.csv disagree.
+    """
+    cells = trace.track_cells(tp)
+    undrawn = sorted(set(LEGS_BY_OS) - set(PLANT_CELLS.values()))
+    if undrawn:
+        raise SystemExit("switch_legs.csv OS blocks with no cell in PLANT_CELLS: " + ", ".join(undrawn))
+    out: dict[tuple[int, int], tuple[str, str, str]] = {}
+    for xy, os_name in PLANT_CELLS.items():
+        if os_name not in LEGS_BY_OS:
+            raise SystemExit(f"PLANT_CELLS {xy} {os_name}: no row in switch_legs.csv")
+        if xy not in cells:
+            raise SystemExit(f"PLANT_CELLS {xy} {os_name}: the desk has no track in that cell")
+        sw, leg = LEGS_BY_OS[os_name]
+        pts, legs = trace.plant_edges(cells[xy])
+        if pts is None:
+            raise SystemExit(f"PLANT_CELLS {xy} {os_name}: that cell is not a plant (no points)")
+        dest = {e: trace.trace_leg(cells, xy, e, own=os_name) for e in legs}
+        closed = [e for e, d in dest.items() if d == leg.closed]
+        thrown = [e for e, d in dest.items() if d == leg.thrown]
+        if len(closed) != 1 or len(thrown) != 1:
+            raise SystemExit(
+                f"{os_name} at {xy}: the desk legs lead to {dest}, but switch_legs.csv "
+                f"says closed {leg.closed}, thrown {leg.thrown}"
+            )
+        normal = thrown[0] if sw.cats_inverted else closed[0]
+        out[xy] = (os_name, normal, sw.le_ident)
+    return out
+
+
+def audit_coverage(tp: ET.Element, plants: dict[tuple[int, int], tuple[str, str, str]]) -> None:
     named = {b.get("NAME") for b in tp.iter("BLOCK") if b.get("NAME")}
     expected = _expected_blocks() - OMITTED_BLOCKS
     missing_blk = sorted(expected - named)
     extra_blk = sorted(named - _expected_blocks())
-    have_ident = {ident for _os, _n, ident in PLANTS.values()}
+    have_ident = {ident for _os, _n, ident in plants.values()}
     missing_to = sorted((_expected_idents() - OMITTED_IDENTS) - have_ident)
     extra_to = sorted(have_ident - _expected_idents())
     print(
         f"coverage blocks={len(named)} missing={missing_blk or '-'} "
         f"extra={extra_blk or '-'} omitted={sorted(OMITTED_BLOCKS)}  "
-        f"plants={len(PLANTS)} "
+        f"plants={len(plants)} "
         f"idents_missing={missing_to or '-'} extra={extra_to or '-'}"
     )
 
@@ -1119,9 +1097,10 @@ def main() -> None:
     drop_110_crossing(tp)
     n_share = add_shared_jumps(tp)
 
+    plants = plant_routes(tp)
     to_map = tio.load_turnouts()
     n_to = tio.wire_turnouts(
-        tp, to_map, plants=PLANTS, invert_vs_jmri=INVERT_VS_JMRI
+        tp, to_map, plants=plants, invert_vs_jmri=INVERT_VS_JMRI
     )
 
     for ops in root.iter("OPERATIONS"):
@@ -1150,7 +1129,7 @@ def main() -> None:
         f"r4_healed={n_heal} dual={n_dual} anon={n_anon} "
         f"sig_seams={n_sig_seams} blk_plain={n_plain} shared={n_share} turnout_io={n_to}"
     )
-    audit_coverage(tp)
+    audit_coverage(tp, plants)
     write_desk(tree, CTC, "CTC", "ctc")
     write_desk(tree, ABS, "ABS", "abs")
 

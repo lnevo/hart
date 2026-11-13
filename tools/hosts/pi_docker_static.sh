@@ -13,7 +13,8 @@
 # before the running daemon is stopped.
 set -euo pipefail
 
-HOST="${PI_HOST:-pi}"
+source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
+HOST="${PI_HOST:-$HART_PI_SSH}"  # PI_HOST first, as before
 DOCKER_VERSION="${DOCKER_VERSION:-29.9.3}"
 COMPOSE_VERSION="${COMPOSE_VERSION:-v5.7.1}"
 BUILDX_VERSION="${BUILDX_VERSION:-v0.39.0}"

@@ -380,8 +380,8 @@ mast,Mast 12R,Mast 12R,Engine House,virtual $1020,Engine House | Switch 11,hidde
 mast,Mast 12L,Mast 12L,Engine House,virtual $1005,Engine House | Switch 11,
 mast,Mast 14R,Mast 14R,Barn,virtual $1019,Barn | Switch 13,hidden Barn into Switch 13; Dispatcher Stage 1
 mast,Mast 2R,Mast 2R,Brick,virtual $1023,Brick | Switch 1,hidden Brick-Plane into Switch 1; Dispatcher Stage 1
-mast,Mast 36L,Mast 36L,Princess,virtual $1025,Princess | Switch 35,hidden East Lead rear (westbound) at A56, throat Track East Lead East; Dispatcher Stage 1
-mast,Mast 40RB,Mast 40RB,Princess,virtual $1026,Princess | Switch 39,hidden K-1 rear (eastbound) at A1, throat Track K-1 West; Dispatcher Stage 1
+mast,Mast 36L,Mast 36L,Princess,virtual $1025,Princess | Switch 35,hidden East Lead rear (westbound) at A56; throat Track East Lead East; Dispatcher Stage 1
+mast,Mast 40RB,Mast 40RB,Princess,virtual $1026,Princess | Switch 39,hidden K-1 rear (eastbound) at A1; throat Track K-1 West; Dispatcher Stage 1
 mast,Mast 6R,Mast 6R,Plane,virtual $1024,Plane | Switch 5,hidden Brick-Plane into Switch 5; Dispatcher Stage 1
 mast,Mast 16L,Mast 16L,South Yard,virtual $1016,South Yard | Switch 15,
 mast,Mast 18L,Mast 18L,South Yard,virtual $1008,South Yard | Switch 17,

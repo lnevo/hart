@@ -56,7 +56,7 @@ Run from `ops/hart-ops`.
 ## 4. Locomotives into JMRI
 
 1. `bin/cars locos publish` (refuses a loco with missing fields). It adds the engine to `jmri/layouts/hart/operations/OperationsEngineRoster.xml`, keeping session state, writes the photo to `jmri/resources/roster/<number>.jpg`, and adds the loco to `jmri/layouts/hart/data/new_locos.json`.
-2. Commit and deploy: `./cats/scripts/sync_hart_package.sh --all` (installs the photo and engine roster).
+2. Commit and deploy: `./tools/hosts/sync_hart_package.sh --all` (installs the photo and engine roster).
 3. With JMRI up on the Pi: `tools/ops/loco_roster_import.sh` shows the plan, `--apply` creates the DecoderPro entries (ID is road plus number, so the rename script is not needed). An entry that already exists is kept as built, and only gets the photo and icon if it has none. Stop PanelPro on the Pi first for `make ops-pull` and the deploy, and start it again before the import.
 4. `ensure_dispatcher_roster_profiles.py` for the speed profile, then `tools/ops/cs105_roster_sync.sh --apply`. `cs105_reboot.sh` only when nothing is moving.
 5. Dispatcher traininfo needs nothing per loco. The 374 files in `jmri/layouts/hart/dispatcher/traininfo` (and on the Pi) are transit templates: every one has `trainname="NWR 06"` and a blank `rosterid`, and you pick the loco from the roster in the Dispatcher dialog. What Dispatcher needs is a speed profile in the roster file, which step 4 adds (`ensure_dispatcher_roster_profiles.py` edits roster files, so it needs JMRI closed; copy the script into a path at least five folders deep on the Pi, because it finds its root with `parents[4]`).

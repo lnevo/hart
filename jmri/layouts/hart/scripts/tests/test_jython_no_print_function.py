@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
-SYNC = ROOT / "cats/scripts/sync_hart_package.sh"
+SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
 FUTURE = re.compile(r"^\s*from\s+__future__\s+import\s+[^#\n]*\bprint_function\b", re.M)
 
 # Run inside PanelPro by the automation launchers rather than installed by the deploy.

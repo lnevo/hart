@@ -13,7 +13,7 @@ Related detail docs (do not duplicate here):
 | Signal facing / mast bind | [`SIGNAL_FACING.md`](SIGNAL_FACING.md) |
 | Turnout SoR | [`TURNOUT_STATE_SOURCES.md`](TURNOUT_STATE_SOURCES.md) |
 | Sensor status-only MQTT | [`MQTT_SENSOR_STATUS_ONLY.md`](MQTT_SENSOR_STATUS_ONLY.md) |
-| Pi install notes | [`cats/scripts/pi/README_CATS.txt`](../../cats/scripts/pi/README_CATS.txt) |
+| Pi install notes | [`tools/hosts/pi/README_CATS.txt`](../../tools/hosts/pi/README_CATS.txt) |
 | Neville trackplan (reference) | [`station_maps/Neville_Island_Trackplan_Clean.png`](../../ops/station_maps/maps/Neville_Island_Trackplan_Clean.png) |
 
 ---
@@ -231,10 +231,12 @@ Same package carries the CATS desks, `tables.xml`, yard-ladder button icons, and
 Deploy via SSH (agent does this — no manual batch/Dropbox step):
 
 ```bash
-./cats/scripts/sync_hart_package.sh --pi    # Pi (rsync + local apply)
-./cats/scripts/sync_hart_package.sh --win   # Windows SSH :2222 (one tarball + apply)
-./cats/scripts/sync_hart_package.sh --all   # Mac web + Pi + Windows
-./cats/scripts/sync_hart_package.sh --pi --dry-run
+./tools/hosts/sync_hart_package.sh --pi    # Pi (rsync + local apply)
+./tools/hosts/sync_hart_package.sh --win   # Windows SSH :2222 (one tarball + apply)
+./tools/hosts/sync_hart_package.sh --all   # Mac web + Pi + Windows
+./tools/hosts/sync_hart_package.sh --pi --dry-run
+./tools/hosts/sync_hart_package.sh --stage-only /tmp/pkg   # build the packages only, no ssh
+./tools/hosts/deploy_status.sh --pi --win                # commit each host last got (cats/deploy_stamp.txt)
 ```
 
 Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 2222, with `Subsystem sftp sftp-server.exe` in `C:\ProgramData\ssh\sshd_config`. Deploys copy over SFTP and fall back to legacy `scp -O` with a warning if that line is missing. Its ssh sessions get only the machine PATH; Python 3.12 is a per-user install, so `apply_hart_package_local.ps1` puts the user PATH first, then runs the Start Up retarget with `py -3`, `python` or `python3`, whichever it finds first (Store stubs skipped). With none it warns and skips the retarget rather than failing the deploy.
@@ -254,9 +256,9 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 | `jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py` | Digicon SML dests → Enabled=no. Deploy runs this on the tables file being shipped (`--no-sync`). `--check` reports without writing |
 | `cats/scripts/digicon_header.py` | Publication title row |
 | `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | Wiring CSVs and head plan (`--wiring-only`); full run updates the LCOS inventory, checks the publisher, then always refuses to rewrite `tables.xml` (heads and masts are edited there directly) |
-| `cats/scripts/sync_hart_package.sh` | Stage the package to a temporary folder on the host; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into `JMRI_UserFiles`. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
+| `tools/hosts/sync_hart_package.sh` | Stage the package to a temporary folder on the host; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into `JMRI_UserFiles`. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
-| `cats/scripts/windows/apply_hart_package_local.ps1` | Windows host apply step, run over SSH by `sync_hart_package.sh --win` (Pi equivalent: `cats/scripts/pi/apply_hart_package_local.sh`) |
+| `tools/hosts/windows/apply_hart_package_local.ps1` | Windows host apply step, run over SSH by `sync_hart_package.sh --win` (Pi equivalent: `tools/hosts/pi/apply_hart_package_local.sh`) |
 | `jmri/layouts/hart/scripts/jmri_cmd_watcher.py` | Remote-run hook: runs a dropped command file inside JMRI ([`wiki/AGENTS_GIT.md`](../../wiki/AGENTS_GIT.md)) |
 | `jmri/scripts/signal_coordinator.py` | Digicon SML MQTT: SET when Enabled, mast→IH when Disabled, sml_mode guard ACK |
 

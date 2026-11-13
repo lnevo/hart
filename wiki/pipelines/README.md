@@ -12,6 +12,7 @@ NextTrain / Google Sheets is **not** on this list (abandoned for hart).
 | 4 | Native SML + NX | Live | [native-sml.md](native-sml.md) |
 | 5 | CATS Digicon panels | Live | [cats-panels.md](cats-panels.md) |
 | 6 | USS CTC machine | Live (not with CATS) | [uss-ctc.md](uss-ctc.md) |
+| — | Switch facts (feeds 5 and 6) | Live | [switch-facts.md](switch-facts.md) |
 | 7 | Dispatcher System graph | Live | [dispatcher-system.md](dispatcher-system.md) |
 | — | Car workflow | Live | [car-workflow.md](car-workflow.md) |
 | — | Intake stages (cars and locos) | Built, untested on a real batch | [intake-stages.md](intake-stages.md) |

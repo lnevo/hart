@@ -11,7 +11,7 @@ Two more rules. While PanelPro, DecoderPro, DispatcherPro or CATS runs on this m
 blocks the commands that write the JMRI tables or deploy: make tables-pull, ops-pull,
 deploy-layout and deploy-all, and any repo script whose source writes tables.xml or
 JMRI_UserFiles (READS_TABLES and the launch_/run_ launchers excepted). The script is read
-when the command runs, and --check, --dry-run or a missing --apply only count when the
+when the command runs, and --check, --dry-run, --stage-only or a missing --apply only count when the
 script defines that flag. And it blocks a commit, tag, PR, issue, comment, review or
 release whose text or body file holds the railroad's private name (checked by fingerprint,
 never spelled out); if that check cannot load, publishing is blocked.
@@ -55,6 +55,18 @@ WRITERS = {"pull_tables.sh", "pull_ops.sh", "sync_hart_package.sh"}  # when the 
 TOUCHES = re.compile(r"tables\.xml|JMRI_UserFiles|HART_PI_USERFILES|HART_WIN_USERFILES")
 PY_WRITES = re.compile(r"\.write\(|write_text\(|write_bytes\(|shutil\.(copy|move)|os\.replace\("
                        r"|open\([^)]*['\"][wa]b?\+?['\"]")
+# A script on hartlib (tools/hartlib) may name neither tables.xml nor a write call: it imports
+# hartlib.tables in any form and saves with .save(. That pair counts as a table writer too.
+HARTLIB_TABLES = re.compile(r"\bhartlib\.tables\b")
+HARTLIB_FROM = re.compile(r"\bfrom\s+hartlib\s+import\s+(\([^)]*\)|[^\n]*)")
+PY_SAVES = re.compile(r"\.save\(")
+
+
+def hartlib_writer(source):
+    """True when Python source imports hartlib.tables and calls .save(."""
+    imports = HARTLIB_TABLES.search(source) or any(
+        re.search(r"\btables\b", m.group(1)) for m in HARTLIB_FROM.finditer(source))
+    return bool(imports and PY_SAVES.search(source))
 SH_WRITES = re.compile(r"\b(rsync|cp|scp|mv|install|tee)\s|[^0-9&>]>\s*[^&\s]")
 # Read the tables but write somewhere else, or run inside JMRI. A new script that touches
 # the tables is blocked until it is listed here, so the list errs on the safe side.
@@ -63,7 +75,9 @@ READS_TABLES = {
     "export_hart_devices_for_cats.py", "export_track_lengths.py", "lcos_mqtt_mimic.py", "run_dispatcher_stage1.py",
 }
 LAUNCHER_PREFIXES = ("launch_", "run_")  # start PanelPro or CATS themselves and check what is open
-SAFE_FLAGS = ("--check", "--dry-run", "--help")  # honoured only when the script defines it
+SAFE_FLAGS = ("--check", "--dry-run", "--stage-only", "--help")  # honoured only when the script defines it
+# A wrapper names the script it runs, relative to itself; the guard judges that script.
+FOLLOWS = re.compile(r"^# main_guard follows: (\S+)$", re.M)
 LAUNCHERS = {"env", "time", "nohup", "exec", "sudo", "command"}
 SHELLS = {"bash", "sh", "zsh"}
 
@@ -141,18 +155,24 @@ def table_writer(part, cwd="."):
         return f"make {hit[0]}" if hit else None
     if not name.endswith((".py", ".sh")) or name.startswith(("test_",) + LAUNCHER_PREFIXES) or name in READS_TABLES:
         return None
+    path = os.path.join(cwd, os.path.expanduser(words[0]))
     try:
-        with open(os.path.join(cwd, os.path.expanduser(words[0])), encoding="utf-8", errors="ignore") as f:
+        with open(path, encoding="utf-8", errors="ignore") as f:
             source = f.read()
+        follow = FOLLOWS.search(source)
+        if follow:
+            with open(os.path.join(os.path.dirname(path), follow.group(1)), encoding="utf-8", errors="ignore") as f:
+                source = f.read()
     except OSError:
         return name if name in WRITERS else None
     writes = (SH_WRITES if name.endswith(".sh") else PY_WRITES).search(source)
-    if not (TOUCHES.search(source) and writes):
+    if not (TOUCHES.search(source) and writes) and not (name.endswith(".py") and hartlib_writer(source)):
         return None
     args = words[1:]
     if '"--apply"' in source or "'--apply'" in source:
         return name if "--apply" in args else None
-    if any(a in SAFE_FLAGS and (f'"{a}"' in source or f"'{a}'" in source or f"{a})" in source) for a in args):
+    flags = {a.split("=", 1)[0] for a in args}  # --stage-only=DIR counts as --stage-only
+    if any(a in SAFE_FLAGS and (f'"{a}"' in source or f"'{a}'" in source or f"{a})" in source) for a in flags):
         return None
     return name
 
