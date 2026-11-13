@@ -771,7 +771,7 @@ def apply_edits(g, edits):
         elif op == "name":          # track names, and which tracks are main
             for a, b, name, *rest in ed["tracks"]:
                 t, n0, _ = edge_between(g, a, b, rest[0] if rest and rest[0] in "ABC" else None)
-                names = name if isinstance(name, list) else [name]
+                names = name if isinstance(name, list) else ([name] if name else [])
                 t["names"] = names if t["u"] == n0 else names[::-1]
                 t["main"] = "main" in rest
         elif op == "end":           # what a track end is: found from the switch and port it hangs off
