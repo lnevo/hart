@@ -22,7 +22,7 @@ REPO = Path(subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=HERE, ca
                            text=True, check=True).stdout.strip())
 SPIKE = HERE.relative_to(REPO).as_posix()
 # the drawing that best shows the state at a commit, most complete first
-PRIORITY = ["system_sample.svg", "main_asbuilt_sample.svg", "staging_sample.svg", "built_sample.svg"]
+PRIORITY = ["signals_sample.svg", "system_sample.svg", "main_asbuilt_sample.svg", "staging_sample.svg", "built_sample.svg"]
 WIDTH = 1400
 
 

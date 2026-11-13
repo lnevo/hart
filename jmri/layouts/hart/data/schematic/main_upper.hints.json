@@ -1,0 +1,34 @@
+{
+ "_layer": 2,
+ "_note": "TEMPORARY. Hand hints that stand in for generation rules not written yet (stream B2). Switch off with --no-hints.",
+ "level_leg": {
+  "T262": "B",
+  "T155": "B",
+  "T160": "B",
+  "T165": "B",
+  "T153": "B",
+  "T187": "B",
+  "T184": "B",
+  "T199": "B",
+  "T175": "B",
+  "T251": "B",
+  "T285": "B",
+  "T275": "B",
+  "T273": "B",
+  "T256": "B",
+  "T233": "B",
+  "T274": "B",
+  "T237": "B",
+  "T300*": "B"
+ },
+ "keep_close": [
+  [
+   "T237",
+   "T262"
+  ],
+  [
+   "T300*",
+   "T262"
+  ]
+ ]
+}

@@ -1,0 +1,95 @@
+{
+ "_layer": 3,
+ "_note": "The owner's look for this sheet. Optional; never needed for a correct drawing.",
+ "title": [
+  "Main levels, as built",
+  "Schematic diagram",
+  "Stage 0 proof, unnamed"
+ ],
+ "system_title": [
+  "System schematic",
+  "Staging, main and upper level",
+  "Stage 0 proof, as built"
+ ],
+ "num_px": 6.5,
+ "helix_style": "coil",
+ "band_order": [
+  "Main",
+  "Upper",
+  "Staging"
+ ],
+ "rotate_bands": [],
+ "equal_width": true,
+ "band_width": {
+  "Main": 0.95
+ },
+ "band_align": {},
+ "band_shift": {
+  "Main": -40,
+  "Upper": 10
+ },
+ "edits": [
+  {
+   "op": "flip",
+   "switches": [
+    "T196",
+    "T155",
+    "T160",
+    "T162",
+    "T194",
+    "T183",
+    "50",
+    "51"
+   ]
+  }
+ ],
+ "levels": {
+  "assign": {
+   "T285": 10.8,
+   "T251": 10.8
+  }
+ },
+ "shorten": [
+  [
+   "T237",
+   "T300*"
+  ]
+ ],
+ "min_cells": [
+  [
+   "T160",
+   "T194",
+   6
+  ],
+  [
+   "T162",
+   "50",
+   6
+  ],
+  [
+   "T162",
+   "T183",
+   6
+  ],
+  [
+   "T196",
+   "T196",
+   7
+  ],
+  [
+   "T1",
+   "12",
+   9
+  ],
+  [
+   "T160",
+   "T165",
+   6
+  ],
+  [
+   "T262",
+   "T285",
+   5
+  ]
+ ]
+}
