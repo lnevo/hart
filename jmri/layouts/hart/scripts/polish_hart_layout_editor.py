@@ -110,6 +110,9 @@ CLUSTER_LAMP_LEVEL = "12"
 # Every other Stage 1 lamp is placed by stage1_lamp_targets(): a switch's OS
 # lamp centred in its turnout circle, a track's lamp centred on the track.
 STAGE1_LAMP_PLACEMENTS = {
+    # K-1 on its short leg off Switch 39, directly north of the K-2 lamp on
+    # the matching leg off Switch 37 (the loop's long side is empty panel).
+    "BS K-1": (1613, 232),
     "BS EH-1": (576, 261),
     "BS EH-2": (576, 272),
     "BS EH-3": (576, 284),

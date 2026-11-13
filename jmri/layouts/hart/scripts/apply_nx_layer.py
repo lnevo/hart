@@ -133,7 +133,7 @@ NX_ICON_POSITIONS: dict[str, tuple[int, int]] = {
     "Mast 24L": (1248, 242),   # same X as NX Mast 32R
     "Mast 32R": (1248, 335),   # OS Switch 29 ladder, left of the diagonal
     "Mast 34R": (1312, 338),   # Track Main East, left of the diagonal
-    "Mast 34L": (1407, 305),   # Track East Lead into 112
+    "Mast 34L": (1438, 305),   # Track East Lead into 112; right of the East Lead lamp, left of 36RB
     "Mast 36RA": (1465, 242),  # Track West Main Ext into 113
     "Mast 36RB": (1465, 305),  # Track East Lead into 113
     "Mast 38LA": (1675, 305),  # Track McKeesport stub toward the balloon
