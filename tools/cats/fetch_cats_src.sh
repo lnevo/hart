@@ -14,5 +14,5 @@ else
   git clone "$URL" "$DEST"
 fi
 echo "CATS source → $DEST"
-echo "Read e.g. $DEST/cats/layout/items/TrackGroup.java"
+echo "Read e.g. $DEST/cats/src/cats/layout/items/TrackGroup.java"
 echo "Do not copy or jar-xf classes into hart cats/ (that folder is HART panels/scripts)."

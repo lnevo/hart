@@ -61,7 +61,7 @@ python card_pipeline/generate_all_cards.py   # optional; large output
 
 ## STS session scripts
 
-Wrappers in `bin/` delegate to `sts-docker-helpers` (submodule `hart/external/sts-helpers`):
+Wrappers in `bin/` delegate to `sts-docker-helpers` (submodule `external/sts-helpers`):
 
 ```bash
 export HART_STS_HELPERS=../hart/external/sts-helpers   # if needed
@@ -83,4 +83,4 @@ Published documents live in the hart repo at `docs/ops/`.
 
 ## Meta-repo
 
-See `hart/wiki/REPOS.md`.
+See `wiki/REPOS.md`.

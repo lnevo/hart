@@ -87,12 +87,12 @@ cats/panels/*.png
 cats/panels/sheets/*.pre_*
 
 # Generated CTC evolution video (regenerate with make_ctc_evolution_video.py)
-jmri/layouts/hart/ctc/history/CTC_Evolution_crops/
-jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.gif
-jmri/layouts/hart/ctc/history/CTC_Panel_Evolution.mp4
-jmri/layouts/hart/ctc/history/CATS_Panel_Evolution.mp4
-jmri/layouts/hart/ctc/history/LE_Panel_Evolution.mp4
-jmri/layouts/hart/ctc/history/le-poster.jpg
+docs/ctc/history/CTC_Evolution_crops/
+docs/ctc/history/CTC_Panel_Evolution.gif
+docs/ctc/history/CTC_Panel_Evolution.mp4
+docs/ctc/history/CATS_Panel_Evolution.mp4
+docs/ctc/history/LE_Panel_Evolution.mp4
+docs/ctc/history/le-poster.jpg
 
 # Runtime logs and one-off XML backups (not sources)
 cats/logs/
@@ -108,3 +108,5 @@ jmri/layouts/hart/operations/backups/
 external/sts-docker-data/config/
 external/sts-docker-data/sandbox/
 external/sts-docker-data/pi/
+tools/mqtt-mimic/qa/native_sml_qa_notes.md
+tools/mqtt-mimic/qa/native_sml_qa_baseline.json

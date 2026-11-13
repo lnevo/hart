@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Native-SML mimic QA: drive retained MQTT states, assert mast aspects via JMRI JSON.
 
-Covers 100, 102, 110, 111, 114/115, McKees Rocks/McKeesport, K-1/K-2 A48 balloon, 117/117b.
+Covers the masts in LIVE_MASTS. Writes native_sml_qa_notes.md and the baseline here (gitignored run output).
 Never publishes track/cmd/*. Captures retained baseline and restores it.
 
 Live CATS ABS is HOLD_ONLY on the same JMRI masts (ADR-005 names).

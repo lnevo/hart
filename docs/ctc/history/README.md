@@ -29,7 +29,7 @@ Stop-motion outputs (`CTC_Panel_Evolution.gif`, `.mp4`, `CTC_Evolution_crops/`) 
 generated locally and gitignored; the copies the site uses live in `www/assets/behind/panel-evolution/`. Regenerate:
 
 ```bash
-python3 jmri/layouts/hart/ctc/history/make_ctc_evolution_video.py
+python3 docs/ctc/history/make_ctc_evolution_video.py
 ```
 
 The CATS panel film comes from dated screenshots in `media/screenshots/` (gitignored,

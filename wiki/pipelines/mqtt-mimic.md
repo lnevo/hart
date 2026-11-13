@@ -43,7 +43,7 @@ Run this by hand after a bridge or firmware change.
 
 ### Native SML QA
 
-`python3 tools/mqtt-mimic/qa/run_native_sml_qa.py` drives retained MQTT states and checks mast aspects through JMRI JSON. It covers 100, 102, 110, 111, 114/115, McKees Rocks/McKeesport, the A48 balloon and 117/117b. It never publishes `track/cmd/*`, and it captures the retained baseline and restores it. Run it by hand with no operating session in progress. Its last recorded results are in `tools/mqtt-mimic/qa/`.
+`python3 tools/mqtt-mimic/qa/run_native_sml_qa.py` drives retained MQTT states and checks mast aspects through JMRI JSON. It covers the masts in its `LIVE_MASTS` list. It never publishes `track/cmd/*`, and it captures the retained baseline and restores it. Run it by hand with no operating session in progress. Each run writes `native_sml_qa_notes.md` and the baseline next to the script; both are gitignored run output.
 
 ### Mimic relay memory
 

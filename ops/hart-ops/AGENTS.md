@@ -12,7 +12,7 @@ Car inventory, cards, waybills, publications and industries for HART. Part of th
 
 ## STS
 
-Session/seed scripts live in **`external/sts-helpers`** (sibling submodule). Use `bin/apply_hart_seed.sh` etc.
+Session/seed scripts live in **`external/sts-helpers`** (a submodule of the hart repo). Use `bin/apply_hart_seed.sh` etc.
 
 Do not duplicate `sts-docker-helpers/` in this repo.
 
