@@ -5,22 +5,30 @@ otherwise ignored, so a runner that adds lines does not break the page.
 """
 from __future__ import annotations
 
+import functools
 import json
+import math
 import re
 import sys
 import threading
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SM = HERE.parent
 sys.path.insert(0, str(SM))
+import analyze  # noqa: E402
+import liverule as lr  # noqa: E402
 
 MM_S_TO_MPH_HO = 3.6 * 87 / 1609.34
 MAX_STEP = 126
 LOCO_ROAD = {"2121": "CSX 2121", "2738": "CSX 2738"}
 EVENT_KEEP = 40
 WRONG_WAY = "Pass went the wrong way, loco stopped"
-INVALID_REASONS = ("max", "stalled")  # settled and timed count as measured
+STALE_S = 300.0  # an unfinished run with no new line for this long is stale
+DEFAULT_ROUTE = analyze.DEFAULT_ROUTE
+LENGTH_FLAGS = ("anyrail", "inferred", "assigned", "estimate")
+clock = time.monotonic  # Mac wall clock for "time since a line arrived" (tests swap it)
 
 
 def mph_ho(mm_s):
@@ -41,8 +49,10 @@ def kv(tokens):
 def num(v, default=None):
     try:
         f = float(v)
+        if not math.isfinite(f):
+            return default
         return int(f) if f == int(f) else f
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return default
 
 
@@ -78,24 +88,44 @@ def norm(name):
     return re.sub(r"\s+", " ", name.replace("_", " ")).strip().lower()
 
 
-def route_blocks(route, lengths_json=None):
-    """[{sensor, name, mm}] in route order; mm from the log's LENGTHS line, else the CSV."""
-    import analyze  # noqa: E402  (speedmatch/analyze.py)
-    loop = analyze.ROUTES.get(route) or analyze.ROUTES[analyze.DEFAULT_ROUTE]
-    csv_len = analyze.load_lengths(loop=loop, trusted=("anyrail", "inferred", "assigned", "estimate"))
+@functools.lru_cache(maxsize=None)
+def csv_lengths(route):
+    """sensor -> mm from block_lengths.csv for a route (read once per route, then cached)."""
+    try:
+        return analyze.load_lengths(loop=analyze.ROUTES[route], trusted=LENGTH_FLAGS)
+    except (OSError, KeyError, ValueError):
+        return {}
+
+
+@functools.lru_cache(maxsize=64)
+def _blocks(route, lengths_key):
+    lengths = json.loads(lengths_key) if lengths_key else {}
+    csv_len = csv_lengths(route)
     out = []
-    for sensor, name in loop:
-        mm = (lengths_json or {}).get(sensor)
-        if mm is None:
-            mm = csv_len.get(sensor)
-        out.append({"sensor": sensor, "name": name, "mm": mm})
-    return out
+    for sensor, name in analyze.ROUTES[route]:
+        mm = lengths.get(sensor)
+        out.append((sensor, name, mm if mm is not None else csv_len.get(sensor)))
+    return tuple(out)
+
+
+def route_blocks(route, lengths_json=None):
+    """[{sensor, name, mm}] in route order; mm from the log's LENGTHS line, else the CSV.
+    An unknown or missing route is DEFAULT_ROUTE. Cached per (route, lengths)."""
+    route = route if route in analyze.ROUTES else DEFAULT_ROUTE
+    key = json.dumps(lengths_json, sort_keys=True) if lengths_json else ""
+    return [{"sensor": a, "name": b, "mm": c} for a, b, c in _blocks(route, key)]
+
+
+def warm_caches():
+    """Read the length CSV for every route now (the poller and web threads then never do)."""
+    for r in analyze.ROUTES:
+        route_blocks(r)
 
 
 class Run:
-    def __init__(self, rid, source_name=None):
+    def __init__(self, rid):
         self.id = rid
-        self.kind = kind_of_log(source_name or rid)
+        self.kind = kind_of_log(rid)
         self.loco = None
         self.loco_raw = None
         self.direction = None
@@ -130,6 +160,7 @@ class Run:
         self.pass_events = []  # (t, sensor) ACTIVE after the PASS line
         self.pass_path = None  # PATH line: sensors expected from `from` to `to`
         self.frozen = False  # FREEZE seen for the current step: no more blocks count
+        self.arrived = clock()  # Mac time the latest line arrived
 
     # -- helpers
     def event(self, t, text, level="info"):
@@ -157,6 +188,7 @@ class Run:
         return True
 
     def feed(self, t, kind, rest):
+        self.arrived = clock()
         self.lines += 1
         if self.t0 is None:
             self.t0 = t
@@ -278,7 +310,7 @@ class Run:
             if self.status == "computing":
                 self.status = "measuring"
             has = mm_s is not None and mm_s > 0 and nb != 0
-            valid = has and reason not in INVALID_REASONS
+            valid = has and (reason is None or lr.is_valid_reason(reason))
             self.done[n] = {"mm_s": mm_s if has else None, "n": nb, "mm": num(d.get("mm")),
                             "s": num(d.get("s")), "relsd": num(d.get("relsd")), "valid": valid,
                             "reason": reason, "blocks": list(self.blocks) or list(self.reads)}
@@ -306,7 +338,9 @@ class Run:
             self.reason = d.get("reason")
             if self.pass_info is not None:
                 self.pass_info["reason"] = self.reason
-            if self.reason == "passed":
+            if self.failed():
+                self.event(t, "Pass ended: %s" % self.reason, "warn")
+            elif self.reason == "passed":
                 self.status = "done"
                 self.event(t, "Pass done")
             elif (self.reason or "").replace("_", " ") == "wrong way":
@@ -318,25 +352,31 @@ class Run:
                 self.banner = ("stop", "Pass ended: %s" % self.reason)
                 self.event(t, "Pass ended: %s" % self.reason, "warn")
             self.t_end = t
-        elif kind == "STOP" and rest in ("all steps complete", "passed"):
-            if self.status not in ("stopped", "error", "aborted"):
-                self.status = "done"
-            self.t_end = t
-            self.event(t, "Run complete" if rest != "passed" else "Pass complete")
-        elif kind == "STOP" and rest.replace("_", " ") == "wrong way":
-            self.status = "stopped"
-            self.reason = "wrong way"
-            self.t_end = t
-            self.banner = ("error", WRONG_WAY)
-            self.event(t, WRONG_WAY, "error")
         elif kind == "STOP":
-            self.status = "stopped"
-            self.reason = rest or "stop"
             self.t_end = t
-            self.banner = ("stop", "Stopped: " + self.reason)
-            self.event(t, "STOP " + rest, "warn")
+            why = rest.replace("_", " ").strip()
+            if self.failed():  # an error stays the story; STOP after it only closes the run
+                self.event(t, ("STOP " + rest).strip(), "warn")
+            elif why in ("all steps complete", "passed"):
+                if self.status != "stopped":
+                    self.status = "done"
+                self.event(t, "Run complete" if why != "passed" else "Pass complete")
+            elif why == "wrong way":
+                self.status = "stopped"
+                self.reason = "wrong way"
+                self.banner = ("error", WRONG_WAY)
+                self.event(t, WRONG_WAY, "error")
+            elif not why:  # a bare STOP is the end of the run, not a stop reason
+                if self.status != "stopped":
+                    self.status = "done"
+                self.event(t, "STOP")
+            else:
+                self.status = "stopped"
+                self.reason = why
+                self.banner = ("stop", "Stopped: " + why)
+                self.event(t, "STOP " + why, "warn")
         elif kind == "END":
-            if self.status not in ("stopped", "error", "aborted"):
+            if not self.failed() and self.status != "stopped":
                 self.status = "done"
             self.t_end = t
             self.event(t, "Run ended")
@@ -354,12 +394,16 @@ class Run:
             self.event(t, "ABORTED " + rest, "error")
         elif kind == "NO_GUARD":
             self.guard = rest or "no guard"
-            self.banner = ("error", "Guard tripped: NO GUARD " + rest)
-            self.event(t, "NO GUARD " + rest, "error")
+            if self.banner is None:
+                self.banner = ("notice", "No guard sensors on this run")
+            self.event(t, "No guard sensors on this run", "warn")
         else:
             self.event(t, (kind + " " + rest).strip(), "debug")
 
     # -- derived
+    def failed(self):
+        return self.status in ("error", "aborted")
+
     def finished(self):
         return self.status in ("done", "stopped", "error", "aborted")
 
@@ -373,76 +417,99 @@ class Run:
         cur = max(mean - into, 0) if self.step is not None and self.step not in self.done else 0
         return cur + mean * len(left)
 
+    def resolved_route(self):
+        """The route this run is on: its CFG route, else (a pass log without CFG) the first
+        route holding every PATH sensor, else DEFAULT_ROUTE."""
+        if self.route in analyze.ROUTES:
+            return self.route
+        if self.pass_path:
+            for name, loop in analyze.ROUTES.items():
+                have = {x for x, _ in loop}
+                if all(p in have for p in self.pass_path):
+                    return name
+        return DEFAULT_ROUTE
+
+    def ordered_blocks(self):
+        rb = route_blocks(self.resolved_route(), self.lengths)
+        return list(reversed(rb)) if (self.direction or "forward") == "reverse" else rb
+
     def blocks_view(self):
         """Route blocks in running order with crossing data from the current step."""
-        route = self.route or "loop1"
-        try:
-            rb = route_blocks(route, self.lengths)
-        except Exception:  # pragma: no cover - missing CSV etc.
-            return []
-        if (self.direction or "forward") == "reverse":
-            rb = list(reversed(rb))
+        rb = self.ordered_blocks()
         look = {}
         for b in rb:
             look[norm(b["sensor"])] = b
             look[norm(b["name"])] = b
-        for b in rb:
             b["mm_s"] = None
             b["current"] = b["sensor"] == self.active
         for row in self.blocks:
             hit = look.get(norm(row["block"]))
             if hit is not None:
                 hit["mm_s"] = row["mm_s"]
-        pv = self.pass_view() if self.pass_info else None
-        for row in (pv or {}).get("rows", []):
-            if row["mm_s"] is not None:
-                look[norm(row["sensor"])]["mm_s"] = row["mm_s"]
+        for row in (self.pass_view() or {}).get("rows", []):
+            hit = look.get(norm(row["sensor"]))
+            if hit is not None and row["mm_s"] is not None:
+                hit["mm_s"] = row["mm_s"]
         return rb
 
     def pass_view(self):
-        """The stretch of a pass job: route sensors from `from` through `to` and the one after,
+        """The stretch of a pass job: the PATH sensors (else from through to) and the one after,
         with the time each lit (seconds after the PASS line) and the speed across each block."""
         pi = self.pass_info
         if pi is None:
             return None
-        try:
-            rb = route_blocks(self.route or "loop2", self.lengths)
-        except Exception:  # pragma: no cover
-            return None
-        if (self.direction or "forward") == "reverse":
-            rb = list(reversed(rb))
+        rb = self.ordered_blocks()
+        by_sensor = {b["sensor"]: b for b in rb}
         names = [b["sensor"] for b in rb]
+        n = len(names)
         first = {}
         for t, sn in self.pass_events:
             first.setdefault(sn, t)
-        rows = []
-        span = None
-        n = len(names)
-        if self.pass_path and all(x in names for x in self.pass_path):
-            span = [names.index(x) for x in self.pass_path]
-            k = span[-1] + (1 if len(span) < 2 or (span[-1] - span[-2]) % n == 1 else -1)
-            span.append(k % n)  # the sensor after the last one ends the pass
-        elif pi["from"] in names and pi["to"] in names:
+        seq = None  # [(sensor, name, mm)]
+        if self.pass_path and all(x in by_sensor for x in self.pass_path):
+            idx = [names.index(x) for x in self.pass_path]
+            step = 1 if len(idx) < 2 or (idx[-1] - idx[-2]) % n == 1 else -1
+            idx.append((idx[-1] + step) % n)  # the sensor after the last one ends the pass
+            seq = [(names[i], rb[i]["name"], rb[i]["mm"]) for i in idx]
+        elif self.pass_path:  # sensors this route does not know: use the log's own names
+            seq = [(p, p, by_sensor.get(p, {}).get("mm")) for p in self.pass_path]
+        elif pi["from"] in by_sensor and pi["to"] in by_sensor:
             i, j = names.index(pi["from"]), names.index(pi["to"])
-            span = [(i + k) % n for k in range(((j - i) % n) + 2)]  # from .. to, and the sensor after
-        if span:
-            for pos, idx in enumerate(span):
-                b = rb[idx]
-                t_in = first.get(b["sensor"])
-                nxt = first.get(rb[span[pos + 1]]["sensor"]) if pos + 1 < len(span) else None
-                dt = (nxt - t_in) if (t_in is not None and nxt is not None) else None
-                rows.append({"sensor": b["sensor"], "name": b["name"], "mm": b["mm"],
-                             "t_rel": (t_in - pi["t"]) if t_in is not None else None, "dt": dt,
-                             "mm_s": (b["mm"] / dt) if (dt and b["mm"]) else None})
+            idx = [(i + k) % n for k in range(((j - i) % n) + 2)]
+            seq = [(names[x], rb[x]["name"], rb[x]["mm"]) for x in idx]
+        rows = []
+        for pos, (sensor, name, mm) in enumerate(seq or []):
+            t_in = first.get(sensor)
+            nxt = first.get(seq[pos + 1][0]) if pos + 1 < len(seq) else None
+            dt = (nxt - t_in) if (t_in is not None and nxt is not None) else None
+            rows.append({"sensor": sensor, "name": name, "mm": mm,
+                         "t_rel": (t_in - pi["t"]) if t_in is not None else None, "dt": dt,
+                         "mm_s": (mm / dt) if (dt and mm) else None})
         return {"step": pi["step"], "from": pi["from"], "to": pi["to"], "reason": pi["reason"], "rows": rows}
 
-    def to_dict(self, now):
+    def est_now(self):
+        """The Pi's clock now: the latest log timestamp plus the Mac time since that line
+        arrived, so a Pi/Mac clock difference never skews a countdown."""
+        return (self.t_last or 0.0) + (clock() - self.arrived)
+
+    def stale(self, now, pi_now=None):
+        """Unfinished, and no new line for STALE_S (by the log's own clock, or the Pi's clock
+        when the poller knows it, which also catches an old log read for the first time)."""
+        if self.finished() or self.t_last is None:
+            return False
+        gap = now - self.t_last
+        if pi_now is not None:
+            gap = max(gap, pi_now - self.t_last)
+        return gap > STALE_S
+
+    def to_dict(self, now, full=True, pi_now=None):
+        """full=False leaves out what only the focused run's panels need."""
         d = self.done
         curve = [{"step": s, "mm_s": d[s]["mm_s"]} for s in sorted(d) if d[s]["valid"]]
         flagged = [{"step": s, "reason": d[s]["reason"] or "no reading", "mm_s": d[s]["mm_s"]}
                    for s in sorted(d) if not d[s]["valid"]]
         last = d.get(self.step)
-        pv = self.pass_view()
+        pv = self.pass_view() if full or self.pass_info else None
         speed = self.speed
         if speed is None and pv:
             seen = [r["mm_s"] for r in pv["rows"] if r["mm_s"] is not None]
@@ -457,22 +524,29 @@ class Run:
             sd = (sum((v - m) ** 2 for v in vals) / (len(vals) - 1)) ** 0.5
             spread = sd / m if m else None
         end = self.t_end or now
-        return {
+        stale = self.stale(now, pi_now)
+        out = {
             "id": self.id, "kind": self.kind, "loco": self.loco, "road": self.road(),
             "direction": self.direction, "route": self.route, "status": self.status,
             "reason": self.reason, "banner": self.banner, "cfg": self.cfg, "steps": self.steps,
             "step": self.step, "max_step": MAX_STEP, "done_steps": len(d), "flagged": flagged,
             "last_done": ({k: last[k] for k in ("mm_s", "n", "mm", "s", "relsd", "reason", "valid")} if last else None),
-            "extra": self.extra, "pass": pv,
+            "extra": self.extra, "pass": pv, "stale": stale,
             "settle_left": max(self.settle_until - now, 0) if self.settle_until else None,
             "settle_secs": self.settle_secs, "warm": self.warm,
             "speed": speed, "speed_mph": mph_ho(speed),
             "t0": self.t0, "t_last": self.t_last, "t_end": self.t_end,
             "elapsed": (end - self.t0) if self.t0 else None, "eta": self.eta(now),
-            "blocks": self.blocks_view(), "step_rows": step_rows, "step_sum_mm": total_mm,
-            "step_sum_s": total_s, "step_spread": spread, "curve": curve,
-            "events": self.events[-15:], "lines": self.lines,
+            "step_sum_mm": total_mm,
+            "step_sum_s": total_s, "step_spread": spread, "curve": curve, "lines": self.lines,
         }
+        if full:
+            out.update({"blocks": self.blocks_view(), "step_rows": step_rows, "events": self.events[-15:]})
+        else:
+            out["pass"] = {"step": pv["step"]} if pv else None
+            for k in ("last_done", "banner"):
+                out[k] = None
+        return out
 
 
 class Store:
@@ -482,6 +556,8 @@ class Store:
         self.runs = {}
         self.order = []
         self.lock = threading.RLock()  # the poller feeds while the web threads snapshot
+        self.pi_clock = None  # (Pi epoch, Mac clock when it was read), set by the ssh poller
+        self.bad_lines = 0
 
     def ensure(self, rid):
         with self.lock:
@@ -498,18 +574,39 @@ class Store:
                 self.order.remove(rid)
 
     def feed(self, rid, line):
+        """One bad line must never stop the poller: it is counted, reported and skipped."""
         with self.lock:
-            return self.ensure(rid).feed_line(line)
+            try:
+                return self.ensure(rid).feed_line(line)
+            except Exception as e:  # noqa: BLE001
+                self.bad_lines += 1
+                print("dashboard: could not read a line of %s (%s: %s): %r" % (
+                    rid, e.__class__.__name__, e, line[:120]), file=sys.stderr)
+                return False
 
-    def snapshot(self, now, reachable=True, message=None, mode="live"):
+    def pi_now(self):
+        if self.pi_clock is None:
+            return None
+        return self.pi_clock[0] + (clock() - self.pi_clock[1])
+
+    def snapshot(self, now=None, reachable=True, message=None, mode="live", focus=None):
+        """now=None (live): every run's time-based fields use its own est_now(). Replay passes
+        the replay clock. Only the focused run (focus id, else the newest live run) carries the
+        full detail."""
         with self.lock:
-            return self._snapshot(now, reachable, message, mode)
+            ids = list(self.order)
+            pi_now = self.pi_now()
+            nows = {r: (now if now is not None else self.runs[r].est_now()) for r in ids}
+            stale = {r: self.runs[r].stale(nows[r], pi_now) for r in ids}
+            fid = focus if focus in self.runs else self.default_focus(ids, stale)
+            runs = [self.runs[r].to_dict(nows[r], full=(r == fid), pi_now=pi_now) for r in ids]
+        return {"now": now if now is not None else max(nows.values(), default=0.0), "reachable": reachable,
+                "message": message, "mode": mode, "runs": runs, "focus": fid}
 
-    def _snapshot(self, now, reachable, message, mode):
-        runs = [self.runs[r].to_dict(now) for r in self.order]
-        focus = None
-        if runs:
-            focus = max(runs, key=lambda r: (not (r["status"] in ("done", "stopped", "error", "aborted")),
-                                             r["t_last"] or 0))["id"]
-        return {"now": now, "reachable": reachable, "message": message, "mode": mode,
-                "runs": runs, "focus": focus}
+    def default_focus(self, ids, stale):
+        """The newest RUN (by start time) that is not stale; if all are, the newest of them."""
+        if not ids:
+            return None
+        key = lambda r: (self.runs[r].t0 or 0.0, self.order.index(r))  # noqa: E731
+        live = [r for r in ids if not stale[r]]
+        return max(live or ids, key=key)

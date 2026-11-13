@@ -14,8 +14,10 @@ import argparse
 import json
 import os
 import re
+import sys
 import threading
-import time
+import traceback
+from urllib.parse import parse_qs, urlsplit
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -53,15 +55,25 @@ class Hub:
         self.reference = sources.reference_curves()
         self._info = {}
         self.stop = threading.Event()
+        state.warm_caches()  # the length CSV is read here, never under the store lock
+
+    def poll_once(self):
+        """One poll that cannot kill the loop: any failure is printed and shown on the page."""
+        try:
+            self.ok, self.message = self.source.poll(self.store)
+        except Exception as e:  # noqa: BLE001
+            print("dashboard: poll failed (%s: %s)" % (e.__class__.__name__, e), file=sys.stderr)
+            traceback.print_exc()
+            self.ok, self.message = False, "dashboard parse error, retrying"
 
     def run(self):
         while not self.stop.is_set():
-            self.ok, self.message = self.source.poll(self.store)
+            self.poll_once()
             self.stop.wait(self.interval)
 
-    def snapshot(self):
-        now = time.time() if self.source.mode == "live" else self.source.now
-        snap = self.store.snapshot(now, self.ok, self.message, self.source.mode)
+    def snapshot(self, focus=None):
+        now = self.source.now if self.source.mode != "live" else None  # live: each log's own clock
+        snap = self.store.snapshot(now, self.ok, self.message, self.source.mode, focus=focus)
         for r in snap["runs"]:
             if r["loco"] is not None:
                 if r["loco"] not in self._info:
@@ -85,9 +97,11 @@ def make_handler(hub):
             self.wfile.write(body)
 
         def do_GET(self):
-            path = self.path.split("?", 1)[0]
+            u = urlsplit(self.path)
+            path = u.path
             if path == "/api/state":
-                return self.send(200, json.dumps(hub.snapshot()).encode(), "application/json")
+                focus = (parse_qs(u.query).get("run") or [None])[0]
+                return self.send(200, json.dumps(hub.snapshot(focus)).encode(), "application/json")
             if path == "/":
                 path = "/index.html"
             m = re.fullmatch(r"/roster/(\w+)\.jpg", path)

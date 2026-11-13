@@ -57,7 +57,8 @@ def ssh_fetcher(host=None, timeout=12):
 
 def list_cmd():
     pats = " ".join("/tmp/%s_*.log" % p for p in PATTERNS)
-    return ("for f in $(ls -t %s 2>/dev/null | head -%d); do echo \"@@FILE $f $(stat -c %%s $f)\"; done; true"
+    return ("echo \"@@NOW $(date +%%s)\"; "
+            "for f in $(ls -t %s 2>/dev/null | head -%d); do echo \"@@FILE $f $(stat -c %%s $f)\"; done; true"
             % (pats, MAX_FILES))
 
 
@@ -72,7 +73,6 @@ class SshSource:
         self.fetch = fetch
         self.offsets = {}  # path -> bytes consumed
         self.carry = {}  # path -> partial last line
-        self.now = None
 
     def poll(self, store):
         try:
@@ -80,6 +80,8 @@ class SshSource:
             files = []
             for ln in listing.splitlines():
                 parts = ln.split()
+                if len(parts) == 2 and parts[0] == "@@NOW" and parts[1].isdigit():
+                    store.pi_clock = (float(parts[1]), state.clock())
                 if len(parts) == 3 and parts[0] == "@@FILE" and parts[2].isdigit():
                     files.append((parts[1], int(parts[2])))
             for path, size in reversed(files):  # oldest first, so the newest run is last
@@ -102,7 +104,6 @@ class SshSource:
                 self.carry[path] = rest
                 for ln in body.decode("utf-8", "replace").splitlines():
                     store.feed(path, ln)
-            self.now = time.time()
             return True, None
         except (OSError, subprocess.SubprocessError) as e:
             return False, "Pi not reachable, retrying (%s)" % (str(e) or e.__class__.__name__)
@@ -138,7 +139,7 @@ def replay_schedule(logs, rate=20.0, max_gap=120.0):
 class ReplaySource:
     mode = "replay"
 
-    def __init__(self, logs, rate=20.0, clock=time.monotonic, max_gap=120.0, loop=False):
+    def __init__(self, logs, rate=20.0, clock=time.monotonic, max_gap=120.0):
         self.items = replay_schedule(logs, rate, max_gap)
         self.clock = clock
         self.start = None
@@ -168,6 +169,12 @@ def read_logs(paths):
     return out
 
 
+def pass_sequence(names, frm, to):
+    """The sensors a pass lights, in order: the path from `frm` to `to` (the shorter way round,
+    modulo the ring) and then the sensor after `to`, whose lighting ends the pass."""
+    return lr.path_between(names, frm, to) + [lr.next_after(names, frm, to)]
+
+
 def demo_logs(seed=7, t0=1794300000.0):
     """Synthetic logs in the shape the distance-mode runner writes, in time order: CSX 2121 and
     CSX 2738 both directions on loop1 (the 60 s warm-up only before a loco's first run), then
@@ -188,7 +195,7 @@ def demo_logs(seed=7, t0=1794300000.0):
 
     logs, clock = [], [t0]
 
-    def new_log(name):
+    def new_log():
         lines = []
 
         def L(dt, msg):
@@ -202,15 +209,14 @@ def demo_logs(seed=7, t0=1794300000.0):
             base = lens("loop1")
             blocks = base if direction == "forward" else list(reversed(base))
             n = len(blocks)
-            lines, L = new_log("")
+            lines, L = new_log()
             L(0, "RUN loco=%s direction=%s" % (loco, direction))
             L(0.1, "CFG route=loop1 mode=distance steps=%s target_mm=%g min_blocks=%d max_s=%g rel=%g warm_s=%g "
                    "warm_step=%d cv3=%d cv4=%d mid=BS_Switch_23a" % (
                        ",".join(map(str, DEMO_STEPS)), lr.DIST_TARGET_MM, lr.DIST_MIN_BLOCKS, lr.DIST_MAX_S,
                        lr.DIST_REL, lr.DIST_WARM_S if warm else 0, lr.DIST_WARM_STEP, lr.DIST_CV3, lr.DIST_CV4))
             L(0.1, "LENGTHS " + json.dumps({b["sensor"]: b["mm"] for b in base}))
-            L(1.0, "")
-            lines.pop()
+            clock[0] += 1.0
             k = [rng.randrange(n)]  # index of the block the loco enters next
             v = [ref[loco][DEMO_STEPS[0]]]
             nxt = [clock[0] + 20.0]
@@ -291,20 +297,20 @@ def demo_logs(seed=7, t0=1794300000.0):
             clock[0] += 30
             warm = False
 
-    # two Switch 13 passes on loop2: Switch 5 to Switch 15, the loco stops once S-R lights
+    # two Switch 13 passes on loop2: Switch 5 to Switch 15, the loco stops once the sensor after lights
     for step in (24, 48):
-        bl = lens("loop2")
-        names = [b["sensor"] for b in bl]
-        i0, i1 = names.index("BS Switch 5"), names.index("BS Switch 15")
-        lines, L = new_log("")
+        names = [b["sensor"] for b in lens("loop2")]
+        mm = {b["sensor"]: b["mm"] for b in lens("loop2")}
+        seq = pass_sequence(names, "BS Switch 5", "BS Switch 15")
+        lines, L = new_log()
         v = ref["2121"][step]
         L(0, "RUN loco=2121 direction=forward")
         L(0.1, "CFG route=loop2 mode=pass step=%d max_s=300" % step)
-        L(0.5, "PATH " + ",".join(lr.path_between(names, "BS Switch 5", "BS Switch 15")))
+        L(0.5, "PATH " + ",".join(seq[:-1]))
         L(0.5, "PASS step=%d from=BS Switch 5 to=BS Switch 15" % step)
-        L(8.0, "SENS BS Switch 5 ACTIVE")
-        for idx in range(i0, i1 + 2):
-            L(bl[idx]["mm"] / (v * (1 + rng.gauss(0, 0.01))), "SENS %s ACTIVE" % bl[idx + 1]["sensor"])
+        L(8.0, "SENS %s ACTIVE" % seq[0])
+        for prev, sensor in zip(seq, seq[1:]):
+            L(mm[prev] / (v * (1 + rng.gauss(0, 0.01))), "SENS %s ACTIVE" % sensor)
         L(0.2, "PASSDONE reason=passed")
         L(0.1, "speed 0")
         L(0.1, "STOP passed")

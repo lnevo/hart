@@ -50,6 +50,7 @@ the Theme button does the same.
 
 - **Top bar.** Live, replay or demo mode, and whether the Pi answers. A red or amber banner
   appears for `STOP`, `ERROR`, `ABORTED` and `NO GUARD`; it stays until the run is replaced.
+- **Which run is shown.** The newest `RUN` by start time. An unfinished run with no new line for five minutes shows "No updates (stale)" and does not take focus; click a run in the list to look at another. `NO GUARD` is an amber notice ("No guard sensors on this run"); an error or abort keeps its red banner even if a `STOP` follows.
 - **Hero.** The loco on the run (photo from `jmri/resources/roster`, model from the roster file),
   direction, route and status: warming up, settling, measuring, done, stopped or error with
   its reason. Throttle step out of 126 with a bar (ticks mark the steps of the run), live speed

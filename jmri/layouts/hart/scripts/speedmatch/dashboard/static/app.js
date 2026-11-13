@@ -35,7 +35,7 @@ const finished = (r) => ["done", "stopped", "error", "aborted"].includes(r.statu
 
 function focusRun() {
   if (!S || !S.runs.length) return null;
-  return S.runs.find((r) => r.id === manual) || S.runs.find((r) => r.id === S.focus) || S.runs[S.runs.length - 1];
+  return S.runs.find((r) => r.id === S.focus) || null;  // the server sends full detail for this one
 }
 
 // ---------------------------------------------------------------- theme
@@ -52,7 +52,7 @@ $("theme").addEventListener("click", () => {
     : matchMedia("(prefers-color-scheme: dark)").matches;
   setTheme(dark ? "light" : "dark");
 });
-$("follow").addEventListener("click", () => { manual = null; render(); });
+$("follow").addEventListener("click", () => { manual = null; tick(); });
 $("tbl").addEventListener("click", () => { showTable = !showTable; $("tbl").textContent = showTable ? "Chart" : "Table"; renderChart(); });
 
 // ---------------------------------------------------------------- banner and header
@@ -92,7 +92,7 @@ function renderHero(run) {
     el("h2", { text: run.road || "Unknown loco" }),
     el("p", { class: "model", text: (run.model || "") + (run.kind !== "steprun" ? "  ·  " + run.kind : "") }),
     el("div", { class: "chips" },
-      el("span", { class: "chip st-" + run.status, text: (ICON[run.status] || "") + " " + status }),
+      run.stale ? el("span", { class: "chip st-stopped", text: "⚠ No updates (stale)" }) : el("span", { class: "chip st-" + run.status, text: (ICON[run.status] || "") + " " + status }),
       el("span", { class: "chip", text: (run.direction === "reverse" ? "◀ " : "▶ ") + (run.direction || "direction ?") }),
       el("span", { class: "chip", text: "Route " + (run.route || "?") })),
     el("div", { class: "stats" },
@@ -310,10 +310,10 @@ function renderRuns(run) {
   const t = el("table", {});
   t.append(el("tr", {}, ...["Loco", "Dir", "Kind", "Steps", "Status"].map((x) => el("th", { text: x }))));
   for (const r of [...S.runs].reverse()) {
-    const tr = el("tr", { class: "click" + (run && r.id === run.id ? " sel" : ""), tabindex: 0, onclick: () => { manual = r.id; render(); }, onkeydown: (e) => { if (e.key === "Enter") { manual = r.id; render(); } } },
+    const tr = el("tr", { class: "click" + (run && r.id === run.id ? " sel" : ""), tabindex: 0, onclick: () => { manual = r.id; tick(); }, onkeydown: (e) => { if (e.key === "Enter") { manual = r.id; tick(); } } },
       el("td", { text: r.road || "?" }), el("td", { text: r.direction || "-" }), el("td", { text: r.kind }),
       el("td", { text: r.pass ? "pass " + r.pass.step : `${r.done_steps}${r.steps.length ? " / " + r.steps.length : ""}` }),
-      el("td", { text: (ICON[r.status] || "") + " " + (STATUS[r.status] || r.status) }));
+      el("td", { text: r.stale ? "⚠ No updates (stale)" : (ICON[r.status] || "") + " " + (STATUS[r.status] || r.status) }));
     t.append(tr);
   }
   host.append(t);
@@ -333,7 +333,7 @@ function render() {
 }
 async function tick() {
   try {
-    const r = await fetch("/api/state", { cache: "no-store" });
+    const r = await fetch("/api/state" + (manual ? "?run=" + encodeURIComponent(manual) : ""), { cache: "no-store" });
     S = await r.json();
   } catch (e) {
     S = S ? { ...S, reachable: false, message: "Dashboard server not responding, retrying" } : { runs: [], mode: "", reachable: false, message: "Dashboard server not responding, retrying", reference: {} };

@@ -3,6 +3,7 @@
 No network and no ssh: the poller gets a fake fetcher."""
 from __future__ import annotations
 
+import math
 import sys
 import unittest
 from pathlib import Path
@@ -90,7 +91,7 @@ class StateMachineTests(unittest.TestCase):
         self.assertEqual(r.active, "BS East Main Ext")
         feed(r, [L(60, "BLOCK 8 block=BS_East_Main_Ext mm=1000 dt=20 mm_s=50"),
                  L(64, "BLOCK 8 block=BS_Switch_7b mm=200 dt=4 mm_s=50"),
-                 L(65, "STEPDONE 8 reason=target n=2 mm=1200 s=24 mm_s=50 relsd=0.0")])
+                 L(65, "STEPDONE 8 reason=settled n=2 mm=1200 s=24 mm_s=50 relsd=0.0")])
         self.assertEqual(r.done[8]["mm_s"], 50)
         d = r.to_dict(T + 66)
         self.assertEqual(d["curve"], [{"step": 8, "mm_s": 50}])
@@ -122,7 +123,7 @@ class StateMachineTests(unittest.TestCase):
         a = feed(st.Run("c"), [L(0, "ABORTED kill flag")])
         self.assertEqual(a.status, "aborted")
         g = feed(st.Run("d"), [L(0, "NO GUARD")])
-        self.assertIn("Guard", g.banner[1])
+        self.assertEqual(g.banner, ("notice", "No guard sensors on this run"))
 
     def test_end_means_done(self):
         r = feed(st.Run("a"), [L(0, "RUN loco=2121 direction=forward"), L(9, "END")])
@@ -352,6 +353,141 @@ class FinalContractTests(unittest.TestCase):
         self.assertEqual(pr.pass_path[-1], "BS Switch 15")
 
 
+class ReviewFixTests(unittest.TestCase):
+    def test_stop_after_error_keeps_the_error(self):
+        for first, level in (("ERROR boom", "error"), ("ABORTED kill flag", "error")):
+            r = feed(st.Run("a"), [L(0, "RUN loco=2121 direction=forward"), L(1, first), L(2, "STOP boom"),
+                                   L(3, "PASSDONE reason=max"), L(4, "END")])
+            self.assertIn(r.status, ("error", "aborted"))
+            self.assertEqual(r.banner[0], level)
+            self.assertTrue(r.banner[1].startswith(("Error", "Aborted")))
+        r = feed(st.Run("b"), [L(0, "RUN loco=2121 direction=forward"), L(1, "STOP"), L(2, "END")])
+        self.assertEqual((r.status, r.banner), ("done", None))  # an empty STOP is never "stop"
+        r = feed(st.Run("c"), [L(0, "STOP sensor lit"), L(1, "STOP")])
+        self.assertEqual((r.status, r.banner[1]), ("stopped", "Stopped: sensor lit"))
+
+    def test_no_guard_is_a_notice_not_a_trip(self):
+        r = feed(st.Run("a"), [L(0, "NO GUARD")])
+        self.assertEqual(r.banner, ("notice", "No guard sensors on this run"))
+        r = feed(st.Run("b"), [L(0, "ERROR x"), L(1, "NO GUARD")])
+        self.assertEqual(r.banner[0], "error")  # a notice never hides an error
+
+    def test_num_rejects_inf_and_nan(self):
+        for bad in ("inf", "-inf", "nan", "1e999"):
+            self.assertIsNone(st.num(bad))
+        self.assertEqual(st.num("12.0"), 12)
+        r = feed(st.Run("a"), [L(0, "STEP 8"), L(1, "STEPDONE 8 reason=settled n=2 mm=inf s=nan mm_s=inf relsd=nan")])
+        self.assertIsNone(r.done[8]["mm_s"])
+        self.assertEqual(r.to_dict(T + 2)["curve"], [])
+
+    def test_a_bad_line_does_not_stop_the_feed(self):
+        s = st.Store()
+        orig = st.Run.feed
+
+        def boom(self, t, kind, rest):
+            if kind == "BAD":
+                raise ValueError("boom")
+            return orig(self, t, kind, rest)
+
+        st.Run.feed = boom
+        try:
+            s.feed("a", L(0, "BAD x"))
+            s.feed("a", L(1, "RUN loco=2121 direction=forward"))
+        finally:
+            st.Run.feed = orig
+        self.assertEqual(s.bad_lines, 1)
+        self.assertEqual(s.runs["a"].loco, "2121")
+
+    def test_hub_poll_survives_any_exception(self):
+        import server
+
+        class Boom:
+            mode = "live"
+
+            def poll(self, store):
+                raise RuntimeError("bad parse")
+
+        hub = server.Hub(Boom(), 1.5)
+        hub.poll_once()
+        self.assertEqual((hub.ok, hub.message), (False, "dashboard parse error, retrying"))
+        hub.source = src.ReplaySource([("a.log", [L(0, "RUN loco=2121 direction=forward")])], clock=lambda: 0.0)
+        hub.poll_once()
+        self.assertTrue(hub.ok)
+
+    def test_live_clock_ignores_pi_mac_offset(self):
+        t = [1000.0]
+        old = st.clock
+        st.clock = lambda: t[0]
+        try:
+            r = feed(st.Run("a"), [L(0, "RUN loco=2121 direction=forward"), L(1, "SETTLE 8 secs=10")])
+            # the Pi's clock is years away from this Mac's: only the log time and elapsed Mac time count
+            t[0] += 4.0
+            self.assertAlmostEqual(r.est_now(), T + 1 + 4.0)
+            self.assertAlmostEqual(r.to_dict(r.est_now())["settle_left"], 6.0)
+        finally:
+            st.clock = old
+
+    def test_newest_run_wins_focus_and_stale_runs_do_not(self):
+        t = [0.0]
+        old = st.clock
+        st.clock = lambda: t[0]
+        try:
+            s = st.Store()
+            s.feed("old", L(0, "RUN loco=2121 direction=forward"))
+            s.feed("old", L(1, "STEP 8"))
+            s.feed("new", L(100, "RUN loco=2738 direction=forward"))
+            self.assertEqual(s.snapshot()["focus"], "new")  # newest RUN, though "old" is unfinished too
+            self.assertEqual(s.snapshot(focus="old")["focus"], "old")  # a manual choice
+            t[0] += 400.0  # no new line for more than five minutes, on both
+            snap = s.snapshot()
+            self.assertTrue(all(r["stale"] for r in snap["runs"]))
+            s.feed("old", L(500, "STEP 12"))  # the older log moves again; "new" is stale
+            snap = s.snapshot()
+            self.assertEqual(snap["focus"], "old")
+            self.assertEqual({r["id"]: r["stale"] for r in snap["runs"]}, {"old": False, "new": True})
+            only = [r for r in snap["runs"] if r["id"] == "old"][0]
+            self.assertIn("events", only)  # full detail only for the focused run
+            self.assertNotIn("events", [r for r in snap["runs"] if r["id"] == "new"][0])
+            s.pi_clock = (T + 10000.0, t[0])  # first read of an old unfinished log: the Pi clock shows it
+            s2 = st.Store()
+            s2.pi_clock = s.pi_clock
+            s2.feed("z", L(0, "RUN loco=2121 direction=forward"))
+            self.assertTrue(s2.snapshot()["runs"][0]["stale"])
+        finally:
+            st.clock = old
+
+    def test_route_default_and_pass_without_cfg(self):
+        r = feed(st.Run("a"), [L(0, "RUN loco=2121 direction=forward"), L(1, "CFG route=nowhere mode=distance")])
+        self.assertTrue(r.to_dict(T + 2)["blocks"])  # an unknown route falls back to the default
+        self.assertEqual(r.resolved_route(), st.DEFAULT_ROUTE)
+        p = feed(st.Run("pass_x.log"), [
+            L(0, "RUN loco=2121 direction=forward"),
+            L(1, "PATH BS Switch 5,BS Scale,BS Switch 7"), L(2, "PASS step=24 from=BS Switch 5 to=BS Switch 7"),
+            L(3, "SENS BS Switch 5 ACTIVE")])
+        self.assertEqual(p.resolved_route(), "loop2")  # no CFG: found from the PATH names
+        rows = p.to_dict(T + 4)["pass"]["rows"]
+        self.assertEqual([x["sensor"] for x in rows][:3], ["BS Switch 5", "BS Scale", "BS Switch 7"])
+        q = feed(st.Run("pass_y.log"), [L(0, "PATH Nowhere A,Nowhere B"), L(1, "PASS step=8 from=Nowhere A to=Nowhere B")])
+        self.assertEqual([x["sensor"] for x in q.to_dict(T + 2)["pass"]["rows"]], ["Nowhere A", "Nowhere B"])
+        self.assertTrue(q.to_dict(T + 2)["blocks"] is not None)  # no KeyError
+
+    def test_demo_pass_stops_at_the_sensor_after_to_with_wrap(self):
+        names = ["A", "B", "C", "D"]
+        self.assertEqual(src.pass_sequence(names, "C", "A"), ["C", "D", "A", "B"])  # wraps the ring
+        self.assertEqual(src.pass_sequence(names, "B", "D"), ["B", "C", "D", "A"])
+        self.assertEqual(src.pass_sequence(names, "D", "B"), ["D", "A", "B", "C"])
+        logs = dict(src.demo_logs())
+        last = [x for x in logs["pass_CSX_2121_forward_step24_demo.log"] if " SENS " in x][-1]
+        self.assertTrue(last.endswith("SENS BS S-R ACTIVE"))
+
+    def test_invalid_reason_follows_liverule(self):
+        for reason, ok in (("settled", True), ("timed", True), ("max", False), ("stalled", False)):
+            r = feed(st.Run("a"), [L(0, "STEP 8"), L(1, "STEPDONE 8 reason=%s n=2 mm=100 s=2 mm_s=50 relsd=0" % reason)])
+            self.assertEqual(r.done[8]["valid"], ok, reason)
+        r = feed(st.Run("o"), [L(0, "STEP 8"), L(1, "STEPDONE 8 n=2 median=71.2")])  # an older log: no reason
+        self.assertTrue(r.done[8]["valid"])
+
+
 class SshPollerTests(unittest.TestCase):
     def test_incremental_tail_and_partial_line(self):
         path = "/tmp/steprun_2121_forward_x.log"
@@ -360,8 +496,8 @@ class SshPollerTests(unittest.TestCase):
 
         def fetch(cmd):
             calls.append(cmd)
-            if cmd.startswith("for f"):
-                return ("@@FILE %s %d\n" % (path, len(content))).encode()
+            if "@@FILE" in cmd:
+                return ("@@NOW 1794300100\n@@FILE %s %d\n" % (path, len(content))).encode()
             off = int(cmd.split()[2].lstrip("+")) - 1
             return content[off:]
 
