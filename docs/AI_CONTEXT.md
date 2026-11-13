@@ -6,6 +6,7 @@ Read [`../AGENTS.md`](../AGENTS.md) and [`../wiki/home.md`](../wiki/home.md) fir
 - **Signals:** stock Basic. Homes are `two-searchlight`, dwarfs and virtuals `one-low` (ADR-011).
 - **CATS** owns routes; **JMRI SML** owns aspects (`HOLD_ONLY`).
 - **Only one desk:** CATS CTC or USS, never both.
+- **Python tools:** CPython scripts read and write tables.xml, repo paths and host settings through `hartlib` ([`tools/hartlib/README.md`](../tools/hartlib/README.md)). Jython scripts that run inside JMRI never import it.
 - **Layout:** the repo structure is in ADR-007. `cats/` is the CTC overlay only.
 - **Gitignored data:** `media/`, `ops/car-cards/`, `docs/wiring/bench/`, and the STS database and backups. Git does not protect these.
 - **Never:** command field turnouts from scripts, Store from a CATS session, or patch Dispatcher System.

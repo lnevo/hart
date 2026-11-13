@@ -52,9 +52,11 @@ NAME_CHECK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 # read when the command runs, so new scripts are covered without a list to keep up.
 MAKE_TARGETS = {"tables-pull", "ops-pull", "deploy-layout", "deploy-all"}  # not deploy-site
 WRITERS = {"pull_tables.sh", "pull_ops.sh", "sync_hart_package.sh"}  # when the file can't be read
-TOUCHES = re.compile(r"tables\.xml|JMRI_UserFiles|HART_PI_USERFILES|HART_WIN_USERFILES")
+# TABLES_XML / tables.load( and .save( cover scripts moved onto hartlib (tools/hartlib).
+TOUCHES = re.compile(r"tables\.xml|JMRI_UserFiles|HART_PI_USERFILES|HART_WIN_USERFILES"
+                     r"|TABLES_XML|tables\.load\(")
 PY_WRITES = re.compile(r"\.write\(|write_text\(|write_bytes\(|shutil\.(copy|move)|os\.replace\("
-                       r"|open\([^)]*['\"][wa]b?\+?['\"]")
+                       r"|\.save\(|open\([^)]*['\"][wa]b?\+?['\"]")
 SH_WRITES = re.compile(r"\b(rsync|cp|scp|mv|install|tee)\s|[^0-9&>]>\s*[^&\s]")
 # Read the tables but write somewhere else, or run inside JMRI. A new script that touches
 # the tables is blocked until it is listed here, so the list errs on the safe side.

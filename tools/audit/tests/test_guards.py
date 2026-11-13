@@ -284,6 +284,16 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --dry-run"):
             self.assertEqual(self.code(cmd), 2, cmd)
 
+    def test_hartlib_writer_blocked_reader_passes_while_open(self) -> None:
+        # A script moved onto hartlib may name neither tables.xml nor a write call.
+        with tempfile.TemporaryDirectory() as tmp:
+            writer, reader = Path(tmp, "writer.py"), Path(tmp, "reader.py")
+            writer.write_text("from hartlib import tables\ndoc = tables.load()\ndoc.save()\n")
+            reader.write_text("from hartlib import paths, tables\nroot = tables.read(paths.TABLES_XML)\n")
+            self.assertEqual(self.code(f"python3 {writer}"), 2)
+            self.assertEqual(self.code(f"python3 {writer}", running=False), 0)
+            self.assertEqual(self.code(f"python3 {reader}"), 0)
+
     def test_readers_and_launchers_pass_while_open(self) -> None:
         for cmd in ("python3 jmri/scripts/check_hart_phase02.py", "git grep pull_tables.sh",
                     "python3 jmri/layouts/hart/scripts/export_track_lengths.py",
