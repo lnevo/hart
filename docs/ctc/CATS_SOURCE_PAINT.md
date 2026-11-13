@@ -4,7 +4,7 @@ Upstream (open source): [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/mast
 
 ## Paint gate
 
-`TrackGroup.isVisible()` (`tools/cats/src-repo/cats/layout/items/TrackGroup.java`): first track with a non-null `Block` returns `block.getVisible()`; if every track has `getBlock() == null`, returns **false** → `Section.showSec()` skips `GridTile` → **blank cell**.
+`TrackGroup.isVisible()` (`tools/cats/src-repo/cats/src/cats/layout/items/TrackGroup.java`): first track with a non-null `Block` returns `block.getVisible()`; if every track has `getBlock() == null`, returns **false** → `Section.showSec()` skips `GridTile` → **blank cell**.
 
 So: no resolved VISIBLE block ⇒ no rails. Designer red track ≠ CATS paint.
 

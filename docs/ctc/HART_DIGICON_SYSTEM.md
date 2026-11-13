@@ -82,6 +82,21 @@ SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/h
 - **CATS** — separate JMRI app (`cats.apps.Crandic`). Profile Start Up loads `preference:tables.xml` first (HART equivalent of Designer “Include”), then the Digicon XML. Refers to JMRI beans by user name; does not redefine them. LogixNG hides **USS CTC** on every host (IQC:AUTO:0002) and, under CATS only, **HART Railroad** (IQC:AUTO:0004 / `hide_cats_desk_windows.py`) so the Digicon stays up.
 - Do **not** run both at once (MQTT client-id + profile lock). Only **one** Digicon should be signal authority (**CATS CTC** or **CATS ABS**).
 
+
+### JMRI prefixes in Designer
+
+Enable these connection prefixes in Designer so the devices in `cats/data/jmri_devices.csv` resolve. Bind by **user name** from the occupancy and turnout CSVs wherever Designer allows.
+
+| Prefix | Type | Use |
+|--------|------|-----|
+| M2S | Sensor | MQTT occupancy and switch feedback (`Block 4-2`, Switch FB) |
+| M2T | Turnout | MQTT field switches (`M2T408` = Switch 1) |
+| IS | Sensor | Internal: USS CTC lever and panel sensors (`IS3:LEVER`, `IS:RELOADCTC`), Dispatcher and status sensors |
+| IT | Turnout | Internal: yard ladder lamps (`IT:HART:YL:L1`…) |
+| IF$shsm / IF$vsm | Signal mast | Basic signal-head masts and virtual masts; CATS refers to them by user name |
+
+Blank Digicon cells come from CATS source behaviour, not the tables: see [`CATS_SOURCE_PAINT.md`](CATS_SOURCE_PAINT.md).
+
 ---
 
 ## 3. Digicon geometry and ops features

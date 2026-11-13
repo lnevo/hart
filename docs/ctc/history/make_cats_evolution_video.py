@@ -17,7 +17,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = Path(__file__).resolve().parent
-SRC = Path(os.environ.get("HART_SCREENSHOTS", str(Path(__file__).resolve().parents[5] / "media" / "screenshots")))
+SRC = Path(os.environ.get("HART_SCREENSHOTS", str(Path(__file__).resolve().parents[3] / "media" / "screenshots")))
 OUT_MP4 = HERE / "CATS_Panel_Evolution.mp4"
 CANVAS = (1280, 380)
 BG = (0, 0, 0)

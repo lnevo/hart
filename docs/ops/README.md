@@ -1,13 +1,8 @@
-# Docs
+# docs/ops
 
-Project write-ups and notes live here.
+The published Word and PowerPoint files for crews and the dispatcher; this folder is their source of record (ADR-010). They are generated: run the rebuild scripts below from `ops/hart-ops/` with that folder's `.venv`, and they write the files here. Pipeline notes: [`wiki/pipelines/ops-publications.md`](../../wiki/pipelines/ops-publications.md).
 
-| Location | Contents |
-|----------|----------|
-| **This folder** | Live HART publications (canonical outputs) |
-| `external/sts-helpers/docs/` | STS + HART seed operational requirements |
-| `external/sts-docker/AGENTS.md` | STS runtime / Docker agent instructions |
-| `publications/` | Rebuild scripts for official HART publications |
+Also kept here: the STS to JMRI notes ([`STS_TO_JMRI.md`](STS_TO_JMRI.md)), the Operations Pro build record (`OPSPRO_*.md`, `opspro-build/`), the car-card prompt the site links to, and the STRR speed-match SOP the site publishes.
 
 ## Scale Operating Instructions
 
@@ -62,7 +57,7 @@ Shenango / McKeesport–McKees Rocks). Asset: `publications/assets/station_map_s
 .venv/bin/python publications/rebuild_station_map.py
 ```
 
-## Local Station Maps (SM-02 … SM-05)
+## Local Station Maps (SM-02 … SM-06)
 
 Detail schematics with track numbers, switch numbers, and spur names:
 
