@@ -893,7 +893,7 @@ class SimulatedRuns(unittest.TestCase):
         msgs = self.msgs(log)
         self.assertIn("STOP direction reverse did not hold", msgs)
         self.assertEqual([x for x in sim.speeds if x > 0], [])
-        self.assertIn("F0 left on", msgs)
+        self.assertIn("F0 not switched off", msgs)
 
     def test_a_stalled_loco_ends_the_run(self):
         text, log = self.dist("--guard", "none", "--steps", "48", "--warm-s", "0", "--stall", "20")

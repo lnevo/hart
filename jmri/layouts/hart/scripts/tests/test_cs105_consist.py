@@ -7,13 +7,13 @@ SRC = pathlib.Path(__file__).resolve().parents[1] / "cs105_consist.py"
 
 
 def payload_builder():
-    """Run the script's detach_or_attach() under Python 3 (it is plain Python)."""
+    """Run the script's listener_payload() under Python 3 (it is plain Python)."""
     text = SRC.read_text()
-    m = re.search(r"^def detach_or_attach\(.*?(?=^def )", text, re.S | re.M)
-    assert m, "detach_or_attach() not found"
+    m = re.search(r"^def listener_payload\(.*?(?=^def )", text, re.S | re.M)
+    assert m, "listener_payload() not found"
     ns = {}
     exec(m.group(0), ns)
-    return ns["detach_or_attach"]
+    return ns["listener_payload"]
 
 
 class PayloadTest(unittest.TestCase):
@@ -24,6 +24,10 @@ class PayloadTest(unittest.TestCase):
     def test_attach_carries_flags(self):
         p = payload_builder()(0x01, 6, "06.01.00.00.C8.49")
         self.assertEqual(p, [0x30, 0x01, 0x06, 0x06, 0x01, 0x00, 0x00, 0xC8, 0x49])
+
+    def test_a_node_id_that_is_not_6_bytes_is_refused(self):
+        with self.assertRaises(ValueError):
+            payload_builder()(0x02, 0, "06.01.00.00.CA")
 
     def test_every_send_uses_the_builder(self):
         text = SRC.read_text()

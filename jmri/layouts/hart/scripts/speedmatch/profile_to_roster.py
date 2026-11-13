@@ -18,6 +18,7 @@ to a roster here: make_job.py profile builds the Jython job from it.
 import argparse
 import csv
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -33,11 +34,18 @@ class ProfileRefusal(Exception):
 
 def merged_steps(path, loco, direction, route=analyze.DEFAULT_ROUTE):
     """(dict step -> mm/s, dict step -> run): per step, the latest complete run of (loco,
-    direction) that settled it."""
+    direction) that settled it; latest by the time in the log name."""
     with open(path, newline="") as fh:
         mine = [r for r in csv.DictReader(fh) if r["loco"] == loco and r["direction"] == direction
                 and (r.get("route") or analyze.DEFAULT_ROUTE) == route]
-    done = sorted({int(r.get("run") or 1) for r in mine if (r.get("run_complete") or "True") == "True"})
+    stamp = {}
+    for r in mine:
+        m = re.search(r"_(\d{8}_\d{6})\.log$", r.get("log") or "")
+        stamp.setdefault(int(r.get("run") or 1), m.group(1) if m else "")
+    # oldest first by the time in the log name (run number when a name has none), so a later
+    # run always wins whatever order the logs were given to analyze.py in
+    done = sorted({int(r.get("run") or 1) for r in mine if (r.get("run_complete") or "True") == "True"},
+                  key=lambda n: (stamp.get(n, ""), n))
     if not done:
         raise ProfileRefusal("%s %s: no complete run in profile.csv" % (loco, direction))
     out, src = {}, {}

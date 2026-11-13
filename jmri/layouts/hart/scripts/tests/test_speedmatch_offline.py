@@ -124,6 +124,20 @@ class ProfileToRoster(unittest.TestCase):
         with self.assertRaises(p2r.ProfileRefusal):
             p2r.build_payload(as_csv(rows), "A")
 
+    def test_merge_orders_runs_by_log_time_not_run_number(self):
+        rows = rows_for("A", "forward", 1, [16]) + rows_for("A", "forward", 2, [16]) + rows_for("A", "reverse", 3, [16])
+        rows[0]["median_mm_s"] = "170"; rows[1]["median_mm_s"] = "150"
+        rows[0]["log"] = "steprun_A_forward_20261113_171458.log"   # run 1 is the newer one
+        rows[1]["log"] = "steprun_A_forward_20261113_125138.log"
+        rows[2]["log"] = "steprun_A_reverse_20261113_120000.log"
+        d = Path(tempfile.mkdtemp()) / "profile.csv"
+        with open(d, "w", newline="") as fh:
+            w = csv.DictWriter(fh, ["loco", "direction", "step", "reason", "median_mm_s", "run", "run_complete", "log"])
+            w.writeheader(); w.writerows(rows)
+        pl = p2r.build_payload(d, "A", merge=True)
+        self.assertEqual(pl["points"][0]["forward_mm_s"], 170.0)
+        self.assertEqual(pl["sources"][0]["forward_run"], 1)
+
     def test_the_csv_is_read_by_correct_read_profile(self):
         self.assertIn("correct.read_profile", (SM / "profile_to_roster.py").read_text())
 

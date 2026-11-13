@@ -12,7 +12,9 @@
 # 0x03) straight to the lead train node. It does NOT assign a controller, so it does not
 # take a loco away from a throttle. FLAGS: 0x02 reverse, 0x04 link F0, 0x08 link other
 # functions. 6 = follower runs in reverse and its headlight follows the lead's F0.
-# detach removes the listener on both nodes (each lists the other) and queries both.
+# A consist is made with one attach per side (LEAD lists FOLLOW, then FOLLOW lists LEAD), as on
+# 2026-11-13; detach removes the listener on both nodes and queries both. A detach of a listener
+# a node does not hold is harmless; the query afterwards shows the real state.
 # Train node of a long DCC address: 06.01.00.00.(C0|hi).lo (CSX 2121 = C8.49,
 # CSX 2738 = CA.B2). Bytes above 127 must be sent as signed values (Jython).
 # Never touches track power, turnouts or throttles.
@@ -34,11 +36,14 @@ class H(MessageDecoder):
 h=H(); iface.registerMessageListener(h)
 def send(dst, data):
     iface.getOutputConnection().put(Req(iface.getNodeId(), NodeID(dst), jarray.array([(x if x<128 else x-256) for x in data],'b')), None)
-def detach_or_attach(sub, flags, node):
+def listener_payload(sub, flags, node):
     # Listener attach (0x01) and detach (0x02) are 9 bytes: 0x30, sub, flags, then the
     # 6-byte node id (OpenLCB TractionControlRequestMessage.createConsistAttach/Detach).
     # Without the flags byte the CS-105 reads the wrong node and changes nothing.
-    return [0x30, sub, flags] + [int(x,16) for x in node.split(".")]
+    b = [int(x,16) for x in node.split(".")]
+    if len(b) != 6 or [x for x in b if x < 0 or x > 255]:
+        raise ValueError("node id %r is not 6 bytes" % (node,))
+    return [0x30, sub, flags] + b
 def query(node):
     del replies[:]
     send(node,[0x30,0x03]); time.sleep(1.5)
@@ -66,12 +71,12 @@ def run():
             for n in NODES: query(n)
         elif ACTION in ("attach","detach"):
             if ACTION=="attach":
-                send(LEAD,detach_or_attach(0x01,FLAGS,FOLLOW))
+                send(LEAD,listener_payload(0x01,FLAGS,FOLLOW))
                 L("attach %s on %s flags 0x%02X"%(FOLLOW,LEAD,FLAGS)); time.sleep(2)
             else:
                 # each side lists the other, so drop the listener on both
                 for a,b in ((LEAD,FOLLOW),(FOLLOW,LEAD)):
-                    send(a,detach_or_attach(0x02,0,b))
+                    send(a,listener_payload(0x02,0,b))
                     L("detach %s on %s"%(b,a)); time.sleep(2)
             for n in (LEAD,FOLLOW): query(n)
     except Exception, e: L("ERROR %s"%e)

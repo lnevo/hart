@@ -442,7 +442,7 @@ END
   `WARMUP_LAP`, `READ` and `STEPDONE ... median=` lines are unchanged).
 - Also logged, outside the dashboard's contract: `EXTRA <n> relsd=<r>` when a step takes its one
   extra reading, `NO GUARD`, `DIR <forward|reverse> held` (or `lost, try n`) before the loco is
-  sent off, and the end of run lines `speed 0`, `F0 left on`, `F<n> off`, `throttle released`,
+  sent off, and the end of run lines `speed 0`, `F0 not switched off`, `F<n> off`, `throttle released`,
   `ERROR <..>`.
 - The pass job logs `RUN`, `CFG route=<r> mode=pass step=<n> max_s=<n>`, `PATH`, `PASS`, `SENS`,
   `PASSDONE reason=<passed|max|stalled|killed|guard_<name>|..>`, then `STOP` and `END`. In `PASS`,
@@ -545,7 +545,7 @@ settings in the job, and each is logged:
   `profile.csv` against what was asked.
 - **Lights stay on at the end of a job.** A loco with little draw at rest (CSX 2738, no sound)
   reads free with its lights off, so the block it stands in goes dark. Jobs now leave F0 on and
-  log `F0 left on`; other functions (the mute) still go off.
+  log `F0 not switched off`; other functions (the mute) still go off.
 - **Momentum carries far.** With CV4 = 24, a loco stopped from step 126 rolls about 8 to 9 m
   (one long block or more). A guard that trips at high speed stops the throttle, not the loco.
 

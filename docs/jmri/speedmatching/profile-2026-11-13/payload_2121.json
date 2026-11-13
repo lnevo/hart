@@ -46,7 +46,7 @@
   "sources": [
     {
       "step": 8,
-      "forward_run": 8,
+      "forward_run": "manual (see note)",
       "reverse_run": 9
     },
     {
