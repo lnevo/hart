@@ -127,6 +127,83 @@ class RoundTripTest(unittest.TestCase):
             tables.loads(STORE).save()
 
 
+class EscapeTest(unittest.TestCase):
+    """JDOM's character escapes survive an unchanged save, and new text gets them too."""
+
+    # Every character JDOM2 escapes: & < > and CR in text; & < > " CR LF tab in attributes.
+    # Quotes and apostrophes stay literal in text, apostrophes in attributes.
+    JDOM = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<layout-config>\n'
+        '  <memory value="a&#xA;b&#x9;c&#xD;d &quot;q&quot; &lt;x&gt; &amp; \'s\'">\n'
+        '    <comment>line one&#xD;\nline two &lt;3&gt; &amp; "q" \'s\'</comment>\n'
+        '  </memory>\n'
+        '</layout-config>\n'
+    ).encode("utf-8")
+    ELEMENTTREE = (
+        "<?xml version='1.0' encoding='UTF-8'?>\n"
+        '<layout-config>\n  <memory value="a&#10;b&#09;c&#13;d" />\n</layout-config>'
+    ).encode("utf-8")
+
+    def test_jdom_store_is_byte_identical(self):
+        doc = tables.loads(self.JDOM)
+        self.assertEqual(doc.escapes, "jdom")
+        mem = doc.root.find("memory")
+        self.assertEqual(mem.get("value"), "a\nb\tc\rd \"q\" <x> & 's'")
+        self.assertEqual(mem.findtext("comment"), "line one\r\nline two <3> & \"q\" 's'")
+        self.assertEqual(doc.tobytes(), self.JDOM)
+
+    def test_elementtree_file_is_byte_identical(self):
+        doc = tables.loads(self.ELEMENTTREE)
+        self.assertEqual(doc.escapes, "elementtree")
+        self.assertEqual(doc.tobytes(), self.ELEMENTTREE)
+
+    def test_new_values_get_jdom_escapes(self):
+        doc = tables.loads(STORE)
+        sw = tables.by_user_name(tables.turnouts(doc.root))["Switch 1"]
+        sw.set("note", "x\ny\tz\r\"")
+        sw.find("comment").text = "a\rb"
+        out = doc.tobytes()
+        self.assertIn(b'note="x&#xA;y&#x9;z&#xD;&quot;"', out)
+        self.assertIn(b"<comment>a&#xD;b</comment>", out)
+
+    def test_elementtree_escapes_are_restored(self):
+        tables.loads(self.JDOM).tobytes()
+        self.assertEqual(ET.tostring(ET.fromstring('<a b="&#10;">\r</a>')), b'<a b="&#10;">\n</a>')
+        self.assertTrue(callable(ET._serialize_xml))
+        self.assertIs(ET._serialize_xml.__globals__, vars(ET))
+
+
+class LinkTest(unittest.TestCase):
+    def test_symlink_stays_a_link_and_its_target_is_written(self):
+        doc = tables.loads(STORE)
+        doc.root.find("jmriversion/major").text = "6"
+        with tempfile.TemporaryDirectory() as d, no_jmri():
+            real, link = Path(d) / "real.xml", Path(d) / "tables.xml"
+            real.write_bytes(STORE)
+            link.symlink_to(real)
+            self.assertTrue(doc.save(link))
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(real.read_bytes(), doc.tobytes())
+
+    def test_hard_link_is_written_in_place(self):
+        doc = tables.loads(STORE)
+        doc.root.find("jmriversion/major").text = "6"
+        with tempfile.TemporaryDirectory() as d, no_jmri():
+            a, b = Path(d) / "tables.xml", Path(d) / "other.xml"
+            a.write_bytes(STORE + b"\n" * 50)  # longer than the new bytes: tail must go
+            os.link(a, b)
+            self.assertTrue(doc.save(a))
+            self.assertEqual(b.read_bytes(), doc.tobytes())
+            self.assertEqual(a.stat().st_ino, b.stat().st_ino)
+
+    def test_guard_follows_a_symlink(self):
+        with tempfile.TemporaryDirectory() as d:
+            link = Path(d) / "x.xml"
+            link.symlink_to(paths.TABLES_XML)
+            self.assertTrue(tables._guarded(link))
+
+
 class JmriGuardTest(unittest.TestCase):
     def test_live_tables_are_guarded_temp_copies_are_not(self):
         self.assertTrue(tables._guarded(paths.TABLES_XML))

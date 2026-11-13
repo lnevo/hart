@@ -19,8 +19,6 @@ import re
 from pathlib import Path
 from typing import Mapping
 
-from .paths import REPO_ROOT
-
 PI_HOST = "10.0.0.150"
 DEFAULT_BROKER = PI_HOST
 DEFAULT_PORT = 1883
@@ -39,7 +37,9 @@ def env_file_path() -> Path:
     if override:
         return Path(override).expanduser()
     root = os.environ.get("HART_REPO_ROOT", "").strip()
-    base = Path(root).expanduser() if root else REPO_ROOT
+    # Not hartlib.paths: hosts must import even where there is no full checkout around it.
+    up = Path(__file__).resolve().parents  # src/hartlib/hosts.py -> repo is up[4]
+    base = Path(root).expanduser() if root else up[min(4, len(up) - 1)]
     return base / "tools" / "env" / "hart.env"
 
 

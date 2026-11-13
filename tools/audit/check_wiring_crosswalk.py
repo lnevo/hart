@@ -26,10 +26,8 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-_HARTLIB = next(p / "tools/hartlib/src" for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir())
-sys.path.insert(0, str(_HARTLIB))
-
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables  # noqa: E402
 
 # Masts that may show only their first planned heads for now.

@@ -52,11 +52,21 @@ NAME_CHECK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 # read when the command runs, so new scripts are covered without a list to keep up.
 MAKE_TARGETS = {"tables-pull", "ops-pull", "deploy-layout", "deploy-all"}  # not deploy-site
 WRITERS = {"pull_tables.sh", "pull_ops.sh", "sync_hart_package.sh"}  # when the file can't be read
-# TABLES_XML / tables.load( and .save( cover scripts moved onto hartlib (tools/hartlib).
-TOUCHES = re.compile(r"tables\.xml|JMRI_UserFiles|HART_PI_USERFILES|HART_WIN_USERFILES"
-                     r"|TABLES_XML|tables\.load\(")
+TOUCHES = re.compile(r"tables\.xml|JMRI_UserFiles|HART_PI_USERFILES|HART_WIN_USERFILES")
 PY_WRITES = re.compile(r"\.write\(|write_text\(|write_bytes\(|shutil\.(copy|move)|os\.replace\("
-                       r"|\.save\(|open\([^)]*['\"][wa]b?\+?['\"]")
+                       r"|open\([^)]*['\"][wa]b?\+?['\"]")
+# A script on hartlib (tools/hartlib) may name neither tables.xml nor a write call: it imports
+# hartlib.tables in any form and saves with .save(. That pair counts as a table writer too.
+HARTLIB_TABLES = re.compile(r"\bhartlib\.tables\b")
+HARTLIB_FROM = re.compile(r"\bfrom\s+hartlib\s+import\s+(\([^)]*\)|[^\n]*)")
+PY_SAVES = re.compile(r"\.save\(")
+
+
+def hartlib_writer(source):
+    """True when Python source imports hartlib.tables and calls .save(."""
+    imports = HARTLIB_TABLES.search(source) or any(
+        re.search(r"\btables\b", m.group(1)) for m in HARTLIB_FROM.finditer(source))
+    return bool(imports and PY_SAVES.search(source))
 SH_WRITES = re.compile(r"\b(rsync|cp|scp|mv|install|tee)\s|[^0-9&>]>\s*[^&\s]")
 # Read the tables but write somewhere else, or run inside JMRI. A new script that touches
 # the tables is blocked until it is listed here, so the list errs on the safe side.
@@ -149,7 +159,7 @@ def table_writer(part, cwd="."):
     except OSError:
         return name if name in WRITERS else None
     writes = (SH_WRITES if name.endswith(".sh") else PY_WRITES).search(source)
-    if not (TOUCHES.search(source) and writes):
+    if not (TOUCHES.search(source) and writes) and not (name.endswith(".py") and hartlib_writer(source)):
         return None
     args = words[1:]
     if '"--apply"' in source or "'--apply'" in source:

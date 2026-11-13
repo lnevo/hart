@@ -22,15 +22,15 @@ class CheckoutTest(unittest.TestCase):
         self.assertTrue(paths.SIGNAL_WIRING.is_file())
         self.assertEqual(paths.TABLES_XML, CHECKOUT / "jmri/layouts/hart/output/tables.xml")
 
-    def test_env_roots_move_only_the_functions(self):
-        env = {"HART_REPO_ROOT": "/x/repo", "HART_RUNTIME_ROOT": ""}
+    def test_env_roots_do_not_move_paths(self):
+        # One answer for where files live: this checkout, so a worktree never reads main's.
+        env = {"HART_REPO_ROOT": "/x/repo", "HART_RUNTIME_ROOT": "/y", "HART_CAR_IMAGES_FINAL": ""}
         with mock.patch.dict(os.environ, env):
-            self.assertEqual(paths.configured_repo_root(), Path("/x/repo").resolve())
-            self.assertEqual(paths.runtime_root(), Path("/x/repo").resolve())
-            self.assertEqual(paths.REPO_ROOT, CHECKOUT)
-        with mock.patch.dict(os.environ, {"HART_REPO_ROOT": "", "HART_RUNTIME_ROOT": "/y"}):
-            self.assertEqual(paths.runtime_root(), Path("/y").resolve())
-            self.assertEqual(paths.configured_repo_root(), CHECKOUT)
+            fresh = importlib.reload(paths)
+            self.assertEqual(fresh.REPO_ROOT, CHECKOUT)
+            self.assertEqual(fresh.TABLES_XML, CHECKOUT / "jmri/layouts/hart/output/tables.xml")
+            self.assertTrue(str(fresh.car_images_final()).startswith(str(CHECKOUT)))
+            self.assertFalse(hasattr(fresh, "runtime_root"))
 
     def test_rel(self):
         self.assertEqual(paths.rel(paths.TABLES_XML), "jmri/layouts/hart/output/tables.xml")
@@ -41,7 +41,7 @@ class CarImagesTest(unittest.TestCase):
     """Moved from tools/audit/tests/test_hart_paths.py: no retired ~/Desktop/HART (ADR-007)."""
 
     def test_defaults_to_repo_copy(self):
-        with mock.patch.dict(os.environ, {"HART_CAR_IMAGES_FINAL": "", "HART_REPO_ROOT": ""}):
+        with mock.patch.dict(os.environ, {"HART_CAR_IMAGES_FINAL": ""}):
             self.assertEqual(paths.car_images_final(),
                              CHECKOUT / "ops/car-cards/car-images/CarImagesFinal")
             self.assertNotIn("Desktop/HART", str(paths.car_images_final()))
@@ -85,14 +85,49 @@ class ShimTest(unittest.TestCase):
         self.assertEqual(old.JMRI_ROOT, str(CHECKOUT / "jmri"))
         self.assertEqual(old.ACTIVE_LAYOUT, paths.LAYOUT)
 
-    def test_hart_paths(self):
-        old = self._import(CHECKOUT / "tools/ops/lib", "hart_paths")
-        with mock.patch.dict(os.environ, {"HART_REPO_ROOT": "", "HART_RUNTIME_ROOT": ""}):
-            self.assertEqual(old.path_tables_xml(), paths.TABLES_XML)
-            self.assertEqual(old.path_signal_wiring(), paths.SIGNAL_WIRING)
-            self.assertEqual(old.hart_runtime_root(), CHECKOUT)
-            self.assertEqual(old.hart_repo_root(), CHECKOUT)
-        self.assertFalse(hasattr(old, "mirror_desktop_hart"))
+    def test_hart_paths_is_gone(self):
+        # Its last callers moved onto hartlib; nothing may come back to it.
+        self.assertFalse((CHECKOUT / "tools/ops/lib/hart_paths.py").exists())
+
+
+class BootstrapTest(unittest.TestCase):
+    """The two lines from README.md that scripts copy."""
+
+    SNIPPET = (
+        "import sys\n"
+        "from pathlib import Path\n"
+        'sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents\n'
+        '                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")\n'
+        "from hartlib import paths  # noqa: E402\n"
+        "print(paths.REPO_ROOT)\n"
+    )
+
+    def run_script(self, where):
+        import subprocess
+        script = Path(where) / "probe.py"
+        script.write_text(self.SNIPPET, encoding="utf-8")
+        try:
+            return subprocess.run([sys.executable, "-I", str(script)], capture_output=True, text=True, timeout=30)
+        finally:
+            script.unlink()
+
+    def test_readme_holds_the_snippet(self):
+        readme = (CHECKOUT / "tools/hartlib/README.md").read_text(encoding="utf-8")
+        for line in self.SNIPPET.splitlines()[2:4]:
+            self.assertIn(line, readme)
+
+    def test_finds_this_checkout(self):
+        done = self.run_script(CHECKOUT / "tools/hartlib/tests")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(done.stdout.strip(), str(CHECKOUT))
+
+    def test_clear_message_outside_a_checkout(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            done = self.run_script(d)
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("no tools/hartlib/src above", done.stderr)
+        self.assertNotIn("StopIteration", done.stderr)
 
 
 if __name__ == "__main__":

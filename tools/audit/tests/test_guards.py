@@ -284,15 +284,30 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --dry-run"):
             self.assertEqual(self.code(cmd), 2, cmd)
 
-    def test_hartlib_writer_blocked_reader_passes_while_open(self) -> None:
-        # A script moved onto hartlib may name neither tables.xml nor a write call.
+    def test_hartlib_writers_blocked_readers_pass_while_open(self) -> None:
+        # A script on hartlib may name neither tables.xml nor a write call.
+        writers = {
+            "w1.py": "from hartlib import tables\ndoc = tables.load()\ndoc.save()\n",
+            "w2.py": "from hartlib.tables import load\ndoc = load()\ndoc.save()\n",
+            "w3.py": "from hartlib import (\n    paths,\n    tables,\n)\ntables.load().save()\n",
+            "w4.py": "import hartlib.tables as t\nt.load().save()\n",
+        }
+        readers = {
+            "r1.py": "from hartlib import paths, tables\nroot = tables.read(paths.TABLES_XML)\n",
+            "r2.py": "from hartlib import paths\nimport openpyxl\nwb = openpyxl.Workbook()\nwb.save(paths.REPO_ROOT / 'x.xlsx')\n",
+        }
         with tempfile.TemporaryDirectory() as tmp:
-            writer, reader = Path(tmp, "writer.py"), Path(tmp, "reader.py")
-            writer.write_text("from hartlib import tables\ndoc = tables.load()\ndoc.save()\n")
-            reader.write_text("from hartlib import paths, tables\nroot = tables.read(paths.TABLES_XML)\n")
-            self.assertEqual(self.code(f"python3 {writer}"), 2)
-            self.assertEqual(self.code(f"python3 {writer}", running=False), 0)
-            self.assertEqual(self.code(f"python3 {reader}"), 0)
+            for name, text in {**writers, **readers}.items():
+                Path(tmp, name).write_text(text)
+            for name in writers:
+                self.assertEqual(self.code(f"python3 {Path(tmp, name)}"), 2, name)
+                self.assertEqual(self.code(f"python3 {Path(tmp, name)}", running=False), 0, name)
+            for name in readers:
+                self.assertEqual(self.code(f"python3 {Path(tmp, name)}"), 0, name)
+
+    def test_openpyxl_save_beside_a_tables_mention_passes_while_open(self) -> None:
+        # Reads tables.xml, saves a workbook: not a table writer (as before hartlib).
+        self.assertEqual(self.code("python3 docs/wiring/lcos/build_lcos_signal_manager_plan.py"), 0)
 
     def test_readers_and_launchers_pass_while_open(self) -> None:
         for cmd in ("python3 jmri/scripts/check_hart_phase02.py", "git grep pull_tables.sh",

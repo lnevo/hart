@@ -5,10 +5,9 @@ still read (the shell sets ``JMRI_LAYOUT=hart``), but it is a single-layout sett
 other value points every layout path at a directory this repo does not have. When the
 railroad is split later, the unit will be the level or district, not the layout name.
 
-Constants (``REPO_ROOT``, ``TABLES_XML`` ...) always name files in *this* checkout, so a
-script in a worktree reads that worktree's tables.xml. ``HART_REPO_ROOT`` and
-``HART_RUNTIME_ROOT`` (exported by tools/env/load_env.sh) only move the functions that say
-so: ``configured_repo_root()`` and ``runtime_root()``.
+Every path names a file in *this* checkout, the one hartlib sits in, so a script in a
+worktree reads that worktree's tables.xml. ``HART_REPO_ROOT`` and ``HART_RUNTIME_ROOT``
+(exported by tools/env/load_env.sh) do not move them.
 """
 from __future__ import annotations
 
@@ -45,35 +44,21 @@ CATS_DIR = REPO_ROOT / "cats"
 JMRI_USER_FILES = Path.home() / "JMRI_UserFiles"
 
 
-def _env_path(name: str) -> Path | None:
-    value = os.environ.get(name, "").strip()
-    return Path(value).expanduser().resolve() if value else None
-
-
-def configured_repo_root() -> Path:
-    """HART_REPO_ROOT when set, else this checkout."""
-    return _env_path("HART_REPO_ROOT") or REPO_ROOT
-
-
-def runtime_root() -> Path:
-    """HART_RUNTIME_ROOT, else HART_REPO_ROOT, else this checkout (as load_env.sh sets them)."""
-    return _env_path("HART_RUNTIME_ROOT") or configured_repo_root()
-
-
 def lcos_bridge() -> Path:
     """The LCOS bridge source: the external/lcos-bridge submodule, else a sibling clone."""
-    sub = configured_repo_root() / "external" / "lcos-bridge"
+    sub = REPO_ROOT / "external" / "lcos-bridge"
     if (sub / "serial_to_mqtt.py").is_file():
         return sub
-    sibling = configured_repo_root().parent / "LCOS_ESP32_MQTT_Client"
+    sibling = REPO_ROOT.parent / "LCOS_ESP32_MQTT_Client"
     return sibling if sibling.is_dir() else sub
 
 
 def car_images_final() -> Path:
     """HART_CAR_IMAGES_FINAL, else the repo copy (~/Desktop/HART was retired 2026-11-09, ADR-007)."""
-    return _env_path("HART_CAR_IMAGES_FINAL") or (
-        configured_repo_root() / "ops" / "car-cards" / "car-images" / "CarImagesFinal"
-    )
+    value = os.environ.get("HART_CAR_IMAGES_FINAL", "").strip()
+    if value:
+        return Path(value).expanduser().resolve()
+    return REPO_ROOT / "ops" / "car-cards" / "car-images" / "CarImagesFinal"
 
 
 def rel(path: Path | str, root: Path | None = None) -> str:

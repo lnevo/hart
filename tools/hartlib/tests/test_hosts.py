@@ -92,6 +92,24 @@ class EnvFileTest(unittest.TestCase):
         self.assertEqual(hosts.read_env_file(Path("/nonexistent/hart.env")), {})
 
 
+class StandaloneTest(unittest.TestCase):
+    def test_imports_without_a_checkout(self):
+        import shutil
+        import subprocess
+        src = Path(hosts.__file__).parent
+        with tempfile.TemporaryDirectory() as d:
+            pkg = Path(d) / "hartlib"
+            pkg.mkdir()
+            for name in ("__init__.py", "hosts.py"):
+                shutil.copy(src / name, pkg / name)
+            env = {k: v for k, v in os.environ.items() if k not in ("HART_ENV_FILE", "HART_REPO_ROOT")}
+            done = subprocess.run(
+                [sys.executable, "-c", "from hartlib import hosts; print(hosts.mqtt_broker({}, {}))"],
+                cwd=d, capture_output=True, text=True, timeout=30, env=env)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(done.stdout.strip(), "10.0.0.150")
+
+
 class ShimTest(unittest.TestCase):
     def test_old_module_reexports_hosts(self):
         sys.path.insert(0, str(ROOT / "tools/ops/lib"))

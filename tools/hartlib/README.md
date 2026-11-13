@@ -13,18 +13,16 @@ alone too.
 ## How a script finds it
 
 hartlib is not installed. Each script puts this checkout's `tools/hartlib/src` first on
-`sys.path`:
+`sys.path` with the same two lines (after `import sys` and `from pathlib import Path`):
 
 ```python
-import sys
-from pathlib import Path
-
-_HARTLIB = next(p / "tools/hartlib/src" for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir())
-sys.path.insert(0, str(_HARTLIB))
-
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables  # noqa: E402
 ```
+
+They walk up from the script, so moving a script to another folder needs no edit. Outside
+a checkout the script stops with `no tools/hartlib/src above <script>`.
 
 Why not `pip install -e`:
 
@@ -33,10 +31,10 @@ Why not `pip install -e`:
   The lines above work in all of them with no install step, and in a fresh clone.
 - Agents work in worktrees. An editable install points at one checkout, so a worktree's
   script would import the main checkout's hartlib and read the main checkout's tables.xml.
-  The lines above always load the copy next to the script, and `insert(0, ...)` beats any
-  installed copy.
-- hartlib finds the repo from its own file. A copied (non-editable) install has no repo
-  around it, so its import fails with a message saying so.
+  The lines above always load the copy next to the script, ahead of any installed copy.
+- `hartlib.paths` finds the repo from its own file. A copied (non-editable) install has no
+  repo around it, so its import fails with a message saying so. `hartlib.hosts` does not
+  need the repo and imports anywhere.
 
 `pyproject.toml` exists for editors and linters only.
 
@@ -44,7 +42,9 @@ Why not `pip install -e`:
 
 ### `hartlib.paths`
 
-Constants name files in **this** checkout:
+Every path names a file in **this** checkout, the one hartlib sits in. `HART_REPO_ROOT`
+and `HART_RUNTIME_ROOT` (exported by `tools/env/load_env.sh`) do not move them, so a
+worktree never reads the main checkout's tables.xml.
 
 | Name | Path |
 |------|------|
@@ -58,10 +58,9 @@ Constants name files in **this** checkout:
 | `CATS_DIR` | `cats/` |
 | `JMRI_USER_FILES` | `~/JMRI_UserFiles` (ADR-014) |
 
-Functions that honour the environment (`tools/env/load_env.sh` exports these):
-`configured_repo_root()` (`HART_REPO_ROOT`), `runtime_root()` (`HART_RUNTIME_ROOT`, then
-`HART_REPO_ROOT`), `lcos_bridge()`, `car_images_final()`. `rel(path)` gives a
-repo-relative string for messages. `layout_paths()` is the old `jmri/layout_paths.py`
+Functions: `lcos_bridge()` (the submodule, else a sibling clone), `car_images_final()`
+(`HART_CAR_IMAGES_FINAL`, else the repo copy), `rel(path)` (a repo-relative string for
+messages). `layout_paths()` is the old `jmri/layout_paths.py`
 dict for the AnyRail-era scripts.
 
 ### `hartlib.tables`
@@ -75,9 +74,12 @@ root = tables.read(path)       # read-only scripts: just the root
 ```
 
 A load followed by a save with no edit is byte-identical, for the repo file and for a raw
-PanelPro Store (the bytes outside the root element are kept verbatim, and comments inside
-it are kept). `save` writes through a temp file and `os.replace`, keeps the file mode, and
-refuses to write any `tables.xml` outside the temp directory while PanelPro, DecoderPro,
+PanelPro Store. The bytes outside the root element are kept verbatim, comments inside it
+are kept, and characters are escaped as JDOM (JMRI) escapes them: `&#xD;` for CR in text,
+`&#xD;` / `&#xA;` / `&#x9;` in attributes. A file ElementTree wrote with its own forms
+(`&#13;` / `&#10;` / `&#09;`) keeps those. `save` replaces the file through a temp file and
+`os.replace`, keeping its mode; a symlink is followed and its target written, and a
+hard-linked file is rewritten in place. It refuses to write any `tables.xml` outside the temp directory while PanelPro, DecoderPro,
 DispatcherPro or CATS is open (`HART_GUARD_JMRI_RUNNING=0/1` overrides, as for the hook).
 
 Lookups (all take the root element unless noted):
@@ -123,8 +125,9 @@ The broker and JMRI JSON settings, moved from `tools/ops/lib/hart_hosts.py`:
 
 ## Shims at the old paths
 
-`jmri/layout_paths.py`, `tools/ops/lib/hart_paths.py` and `tools/ops/lib/hart_hosts.py`
-re-export from hartlib so their callers keep working. Remove a shim once nothing imports it.
+`jmri/layout_paths.py` and `tools/ops/lib/hart_hosts.py` re-export from hartlib so their
+callers keep working. Remove a shim once nothing imports it (`tools/ops/lib/hart_paths.py`
+is already gone).
 
 ## Moving a script onto hartlib
 
@@ -140,8 +143,8 @@ re-export from hartlib so their callers keep working. Remove a shim once nothing
 5. Compare against step 2: identical output and exit code; a writer still writes nothing on
    current tables.xml when it should change nothing.
 6. Run its tests and `./tools/check.sh`.
-7. The repo hook (`.claude/hooks/main_guard.py`) spots a table writer by finding
-   `tables.xml` and a write call in its source. A writer that now gets the path from
-   `paths.TABLES_XML` and writes with `doc.save()` would slip past it, so the hook also
-   treats `TABLES_XML` / `tables.load(` with `.save(` as a writer. Give a writer a `--check`,
-   `--dry-run` or `--apply` flag as before, and `save` itself refuses while JMRI is open.
+7. The repo hook (`.claude/hooks/main_guard.py`) blocks table writers while PanelPro or
+   CATS is open. It finds them by reading their source: `tables.xml` plus a write call, or
+   any import of `hartlib.tables` plus a `.save(` call. Keep a writer's `.save(` call
+   spelled that way, and give it a `--check`, `--dry-run` or `--apply` flag as before.
+   `save` itself also refuses while JMRI is open.

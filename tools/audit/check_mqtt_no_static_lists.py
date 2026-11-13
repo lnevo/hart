@@ -5,13 +5,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
 
-from hart_paths import hart_runtime_root, path_lcos_bridge
-
-HART_ROOT = hart_runtime_root()
-LCOS = path_lcos_bridge()
+HART_ROOT = paths.REPO_ROOT
+LCOS = paths.lcos_bridge()
 
 TARGETS_STRICT = [
     HART_ROOT / "jmri/scripts/signal_coordinator.py",

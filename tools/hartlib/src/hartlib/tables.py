@@ -5,6 +5,11 @@ Format facts this module relies on (checked against the repo file and a raw Pane
 - JMRI (JDOM) and ElementTree write elements the same way: two-space indent kept as text,
   ``<x />`` for empty elements, double-quoted attributes in stored order, ``&amp;`` /
   ``&lt;`` / ``&gt;`` escapes, UTF-8, LF line ends.
+- Except for a few character escapes. JDOM writes CR in text as ``&#xD;`` and CR, LF and
+  tab in attributes as ``&#xD;`` / ``&#xA;`` / ``&#x9;``; ElementTree writes a raw CR in
+  text and ``&#13;`` / ``&#10;`` / ``&#09;`` in attributes. ``save`` writes JDOM's forms,
+  unless the loaded file already used ElementTree's (then it keeps those), so either kind
+  of file comes back byte-identical.
 - They differ only outside the root element: a PanelPro Store starts with
   ``<?xml version="1.0" encoding="UTF-8"?>`` and an ``<?xml-stylesheet ...?>`` line and
   ends with a newline; the repo file, last written by ElementTree, starts with
@@ -36,6 +41,7 @@ import os
 import re
 import subprocess
 import tempfile
+import threading
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -71,15 +77,11 @@ class Tables:
     prolog: bytes = b""
     epilog: bytes = b""
     original: bytes = field(default=b"", repr=False)
+    escapes: str = "jdom"  # "jdom" or "elementtree": whose character escapes to write
 
     def tobytes(self) -> bytes:
         """The file as it would be saved now."""
-        tail, self.root.tail = self.root.tail, None
-        try:
-            body = ET.tostring(self.root, encoding="unicode").encode("utf-8")
-        finally:
-            self.root.tail = tail
-        return self.prolog + body + self.epilog
+        return self.prolog + _serialize(self.root, self.escapes) + self.epilog
 
     def changed(self) -> bool:
         return self.tobytes() != self.original
@@ -117,7 +119,9 @@ def loads(data: bytes, path: Path | None = None) -> Tables:
     root = parser.close()
     start = _root_start(data)
     end = _root_end(data, root, start)
-    return Tables(root=root, path=path, prolog=data[:start], epilog=data[end:], original=data)
+    escapes = "elementtree" if _ET_ESCAPES.search(data) and not _JDOM_ESCAPES.search(data) else "jdom"
+    return Tables(root=root, path=path, prolog=data[:start], epilog=data[end:], original=data,
+                  escapes=escapes)
 
 
 def load(path: Path | str | None = None) -> Tables:
@@ -148,17 +152,31 @@ def jmri_running() -> bool:
 
 
 def _guarded(target: Path) -> bool:
-    if target.name != "tables.xml":
+    """A tables.xml (by its own name or a symlink's target) outside the temp directory."""
+    real = Path(os.path.realpath(target))
+    if "tables.xml" not in (target.name, real.name):
         return False
     tmp = Path(tempfile.gettempdir()).resolve()
     try:
-        target.resolve().relative_to(tmp)
+        real.relative_to(tmp)
         return False
     except ValueError:
         return True
 
 
 def _atomic_write(target: Path, data: bytes) -> None:
+    """Replace the file the path names. A symlink stays a symlink (its target is written);
+    a hard-linked file is rewritten in place so every link sees the new bytes."""
+    target = Path(os.path.realpath(target))
+    try:
+        hard_linked = target.stat().st_nlink > 1
+    except OSError:
+        hard_linked = False
+    if hard_linked:
+        with open(target, "r+b") as handle:
+            handle.write(data)
+            handle.truncate()
+        return
     fd, tmp = tempfile.mkstemp(prefix=f".{target.name}.", dir=str(target.parent))
     try:
         with os.fdopen(fd, "wb") as handle:
@@ -174,6 +192,52 @@ def _atomic_write(target: Path, data: bytes) -> None:
         except OSError:
             pass
         raise
+
+
+# Character escapes, as JDOM (JMRI) and ElementTree write them.
+_ET_ESCAPES = re.compile(rb"&#(?:13|10|09);")
+_JDOM_ESCAPES = re.compile(rb"&#x[DA9];")
+_SERIALIZE_LOCK = threading.Lock()
+
+
+def _jdom_cdata(text: str) -> str:
+    """JDOM2 Format.escapeText: & < > and CR (LF stays the line separator)."""
+    try:
+        return (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                .replace("\r", "&#xD;"))
+    except (TypeError, AttributeError):
+        raise TypeError(f"cannot serialize {text!r} (type {type(text).__name__})") from None
+
+
+def _jdom_attrib(text: str) -> str:
+    """JDOM2 Format.escapeAttribute: & < > " and CR, tab, LF."""
+    try:
+        return (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                .replace('"', "&quot;").replace("\r", "&#xD;").replace("\t", "&#x9;")
+                .replace("\n", "&#xA;"))
+    except (TypeError, AttributeError):
+        raise TypeError(f"cannot serialize {text!r} (type {type(text).__name__})") from None
+
+
+def _serialize(root: ET.Element, escapes: str) -> bytes:
+    """``root`` without its tail, with JDOM's or ElementTree's character escapes.
+
+    ElementTree's serializer looks its escape helpers up as module globals, so JDOM's are
+    swapped in for the call (under a lock). tests/test_tables.py fails if that stops working.
+    """
+    tail, root.tail = root.tail, None
+    try:
+        if escapes == "elementtree":
+            return ET.tostring(root, encoding="unicode").encode("utf-8")
+        with _SERIALIZE_LOCK:
+            saved = ET._escape_cdata, ET._escape_attrib
+            ET._escape_cdata, ET._escape_attrib = _jdom_cdata, _jdom_attrib
+            try:
+                return ET.tostring(root, encoding="unicode").encode("utf-8")
+            finally:
+                ET._escape_cdata, ET._escape_attrib = saved
+    finally:
+        root.tail = tail
 
 
 def _check_encoding(data: bytes) -> None:
