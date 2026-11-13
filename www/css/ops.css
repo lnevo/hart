@@ -3461,6 +3461,11 @@ html.zoomer-open body {
   padding: 2rem 0;
 }
 
+.fleet-view .is-target {
+  outline: 3px solid var(--accent, currentColor);
+  outline-offset: 2px;
+}
+
 .fleet-list-wrap {
   overflow-x: auto;
 }

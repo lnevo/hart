@@ -70,41 +70,46 @@ SOUTH_YARD_LAMPS = {
     "BS S-3": (985, 455),
     "BS S-4": (985, 497),
 }
-SHARED_OCCUPANCY_KEEP = {
-    **SOUTH_YARD_LAMPS,
-    "BS Switch 37 / BS McKeesport": (1592, 325),
-    "BS Switch 39 / BS McKees Rocks": (1592, 262),
-}
-OS_OCCUPANCY_ICONS = {
-    "BS Switch 3": (245, 262),
-    "BS Switch 1": (338, 262),
-    "BS Switch 5": (332, 373),
-    "BS Switch 13": (635, 325),
-    "BS Switch 15": (669, 325),
-    "BS Switch 17": (738, 376),
-    "BS Switch 19": (809, 422),
-    "BS Switch 21": (881, 470),
-    "BS Switch 25": (1078, 469),
-    "BS Switch 27": (1148, 424),
-    "BS Switch 23a": (1185, 293),
-    "BS Switch 29": (1220, 376),
-    "BS Switch 31": (1291, 325),
-    "BS Switch 33": (1361, 325),
-    "BS Switch 11": (622, 299),
-    "BS Switch 7": (495, 349),
-    "BS Switch 9": (600, 299),
-    "BS Switch 35b": (1568, 262),
-    "BS Switch 35a": (1499, 287),
-}
-# Stage 1 (CreateIcons) occupancy lamps that land on a turnout circle or
-# another lamp. Positions are the top-left of the 10x10 circuit GIF. The
-# level-12 lamps in the Dispatcher station clusters belong to
+# Sensors that can get more than one Stage 1 lamp; one is kept, at its target.
+SHARED_OCCUPANCY_KEEP = (
+    *SOUTH_YARD_LAMPS,
+    "BS Switch 37 / BS McKeesport",
+    "BS Switch 39 / BS McKees Rocks",
+)
+# Switch OS lamps that must exist. Where they go comes from stage1_lamp_targets().
+OS_OCCUPANCY_ICONS = (
+    "BS Switch 3",
+    "BS Switch 1",
+    "BS Switch 5",
+    "BS Switch 13",
+    "BS Switch 15",
+    "BS Switch 17",
+    "BS Switch 19",
+    "BS Switch 21",
+    "BS Switch 25",
+    "BS Switch 27",
+    "BS Switch 23a",
+    "BS Switch 29",
+    "BS Switch 31",
+    "BS Switch 33",
+    "BS Switch 11",
+    "BS Switch 7",
+    "BS Switch 9",
+    "BS Switch 35b",
+    "BS Switch 35a",
+)
+# Stage 1 (CreateIcons) occupancy lamps go where they belong: a switch's OS
+# lamp centred in its turnout circle, a track's lamp centred on the track
+# (owner, 2026-11-13). Positions are the top-left of the 10x10 circuit GIF.
+# The level-12 lamps in the Dispatcher station clusters belong to
 # reconcile_dispatcher_stations.py and are left alone.
 # Engine house: one lamp just east of each bumper (x=573), centred vertically
 # on its spur (y 266 / 277 / 289), clear of the Switch 9 and 11 circles.
 CLUSTER_LAMP_LEVEL = "12"
+# Fixed spots that win over the computed ones (owner-approved 2026-11-12/13).
+# Every other Stage 1 lamp is placed by stage1_lamp_targets(): a switch's OS
+# lamp centred in its turnout circle, a track's lamp centred on the track.
 STAGE1_LAMP_PLACEMENTS = {
-    "BS Switch 35a": (1499, 287),
     "BS EH-1": (576, 261),
     "BS EH-2": (576, 272),
     "BS EH-3": (576, 284),
@@ -358,8 +363,10 @@ def _os_icon_insert_index(le: ET.Element, x: int, y: int) -> int:
     return len(children)
 
 
-def ensure_os_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
-    """Keep Dispatcher System OS occupancy dots on HART Railroad."""
+def ensure_os_occupancy_icons(
+    le: ET.Element, *, check: bool, targets: dict[str, tuple[int, int]]
+) -> tuple[int, list[str]]:
+    """Keep Dispatcher System OS occupancy dots on HART Railroad, at their targets."""
     changes = 0
     errors: list[str] = []
     existing = {
@@ -373,68 +380,161 @@ def ensure_os_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list
             errors.append(f"missing OS occupancy icon {name!r}")
         return 0, errors
     for name in missing:
-        x, y = OS_OCCUPANCY_ICONS[name]
+        if name not in targets:
+            errors.append(f"no target for missing OS occupancy icon {name!r}")
+            continue
+        x, y = targets[name]
         le.insert(_os_icon_insert_index(le, x, y), _circuit_occupancy_icon(name, x, y))
         changes += 1
     return changes, errors
 
 
-def place_stage1_lamps(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
-    """Move Stage 1 occupancy lamps off turnout circles and other icons.
+LAMP_SIZE = 10  # circuit-*.gif is 10x10; x/y is its top-left corner
 
-    One lamp per sensor: extra Stage 1 copies are removed, so they never end
-    up stacked on the placed spot.
+
+def _segment_ends(le: ET.Element) -> list[tuple[str, tuple[float, float], tuple[float, float], bool, str]]:
+    """(block, end1, end2, curved, ident) for each track segment."""
+    points = {
+        pt.get("ident"): (float(pt.get("x")), float(pt.get("y")))
+        for pt in le.findall("positionablepoint")
+    }
+    turnouts = {to.get("ident"): to for to in le.findall("layoutturnout")}
+
+    def end(name: str | None, kind: str | None) -> tuple[float, float] | None:
+        if name in points:
+            return points[name]
+        to = turnouts.get(name or "")
+        if to is None:
+            return None
+        leg = {"TURNOUT_A": "a", "TURNOUT_B": "b", "TURNOUT_C": "c", "TURNOUT_D": "d"}.get(kind or "")
+        if leg and to.get(f"x{leg}") is not None:
+            return float(to.get(f"x{leg}")), float(to.get(f"y{leg}"))
+        return float(to.get("xcen")), float(to.get("ycen"))
+
+    out = []
+    for ts in le.findall("tracksegment"):
+        a = end(ts.get("connect1name"), ts.get("type1"))
+        b = end(ts.get("connect2name"), ts.get("type2"))
+        if a is None or b is None:
+            continue
+        if ts.get("hidden") == "yes":
+            continue
+        curved = "yes" in (ts.get("arc"), ts.get("bezier"), ts.get("circle"))
+        out.append((ts.get("blockname") or "", a, b, curved, ts.get("ident") or ""))
+    return out
+
+
+def stage1_lamp_targets(root: ET.Element, le: ET.Element) -> dict[str, tuple[int, int]]:
+    """Where each Stage 1 occupancy lamp belongs, from the panel geometry.
+
+    A sensor whose block is a switch's OS block goes in the centre of that
+    turnout circle. Otherwise it goes in the middle of the longest straight
+    segment of its track, leaving out hidden throat blocks that share it.
+    """
+    blocks_by_sensor: dict[str, list[str]] = {}
+    throats: set[str] = set()
+    for blocks in root.findall("blocks"):
+        for block in blocks.findall("block"):
+            sensor = (block.findtext("occupancysensor") or "").strip()
+            name = (block.findtext("userName") or "").strip()
+            if not sensor or not name:
+                continue
+            blocks_by_sensor.setdefault(sensor, []).append(name)
+    # A hidden throat shares its station's detector and is named after it
+    # ("Track S-1 West", "Track East Lead East"); no reliance on comments,
+    # which Stage 1 drops.
+    for names in blocks_by_sensor.values():
+        for name in names:
+            if any(name != other and name.startswith(other + " ") for other in names):
+                throats.add(name)
+    turnout_by_block: dict[str, ET.Element] = {}
+    # Only a turnout's own block makes an OS block; per-leg blocks are track.
+    for to in le.findall("layoutturnout"):
+        if to.get("blockname"):
+            turnout_by_block.setdefault(to.get("blockname"), to)
+    segments = _segment_ends(le)
+    half = LAMP_SIZE / 2
+    targets: dict[str, tuple[int, int]] = {}
+    for sensor, names in blocks_by_sensor.items():
+        os_blocks = [n for n in names if n in turnout_by_block]
+        if os_blocks:
+            to = turnout_by_block[os_blocks[0]]
+            cx, cy = float(to.get("xcen")), float(to.get("ycen"))
+        else:
+            mains = [n for n in names if n not in throats] or names
+            pieces = [seg for seg in segments if seg[0] in mains]
+            if not pieces:
+                continue
+            straight = [seg for seg in pieces if not seg[3]] or pieces
+            _b, a, b, _c, _i = max(
+                straight, key=lambda seg: ((seg[1][0] - seg[2][0]) ** 2 + (seg[1][1] - seg[2][1]) ** 2, seg[4])
+            )
+            cx, cy = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+        targets[sensor] = (round(cx - half), round(cy - half))
+    targets.update(STAGE1_LAMP_PLACEMENTS)
+    return targets
+
+
+def _is_circuit_lamp(icon: ET.Element) -> bool:
+    active = icon.find("active")
+    # A bare test icon has no state children; treat it as a lamp.
+    return active is None or "circuit-" in (active.get("url") or "")
+
+
+def place_stage1_lamps(
+    le: ET.Element, *, check: bool, targets: dict[str, tuple[int, int]]
+) -> tuple[int, list[str]]:
+    """Put each Stage 1 occupancy lamp on its target, one lamp per sensor.
+
+    A copy already on the target is the one kept; any other Stage 1 copy of
+    the same sensor is removed, so copies never stack on one spot.
     """
     changes = 0
     errors: list[str] = []
-    placed: set[str] = set()
+    by_sensor: dict[str, list[ET.Element]] = {}
     for icon in le.findall("sensoricon"):
         name = (icon.get("sensor") or "").strip()
-        if name not in STAGE1_LAMP_PLACEMENTS or icon.get("level") == CLUSTER_LAMP_LEVEL:
-            continue
-        if name in placed:
+        if name in targets and icon.get("level") != CLUSTER_LAMP_LEVEL and _is_circuit_lamp(icon):
+            by_sensor.setdefault(name, []).append(icon)
+    for name, icons in by_sensor.items():
+        x, y = targets[name]
+        on_spot = [i for i in icons if _same_number(i.get("x"), x) and _same_number(i.get("y"), y)]
+        keep = on_spot[0] if on_spot else icons[0]
+        for extra in icons:
+            if extra is keep:
+                continue
             if check:
                 errors.append(f"{name}: more than one Stage 1 lamp")
             else:
-                le.remove(icon)
+                le.remove(extra)
                 changes += 1
-            continue
-        placed.add(name)
-        x, y = STAGE1_LAMP_PLACEMENTS[name]
-        if _same_number(icon.get("x"), x) and _same_number(icon.get("y"), y):
+        if keep in on_spot:
             continue
         if check:
-            errors.append(
-                f"{name} at ({icon.get('x')}, {icon.get('y')}), expected ({x}, {y})"
-            )
+            errors.append(f"{name} at ({keep.get('x')}, {keep.get('y')}), expected ({x}, {y})")
         else:
-            _set_xy(icon, x, y)
+            _set_xy(keep, x, y)
             changes += 1
     return changes, errors
 
 
-def dedupe_shared_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
-    """Keep one circuit-occupied.gif per shared occupancy sensor."""
+def dedupe_shared_occupancy_icons(
+    le: ET.Element, *, check: bool, targets: dict[str, tuple[int, int]]
+) -> tuple[int, list[str]]:
+    """Keep one Stage 1 lamp per shared occupancy sensor, the one at its target."""
     changes = 0
     errors: list[str] = []
     by_name: dict[str, list[ET.Element]] = {}
     for icon in le.findall("sensoricon"):
         name = (icon.get("sensor") or "").strip()
-        # The level-12 lamp in the Dispatcher station cluster shares the sensor
-        # and belongs to reconcile_dispatcher_stations.py; only Stage 1 copies
-        # are deduplicated here.
-        if name in SHARED_OCCUPANCY_KEEP and icon.get("level") != CLUSTER_LAMP_LEVEL:
+        # The level-12 cluster lamp shares the sensor and belongs to
+        # reconcile_dispatcher_stations.py; only Stage 1 copies count here.
+        if name in SHARED_OCCUPANCY_KEEP and name in targets and icon.get("level") != CLUSTER_LAMP_LEVEL:
             by_name.setdefault(name, []).append(icon)
     for name, icons in by_name.items():
-        keep_x, keep_y = SHARED_OCCUPANCY_KEEP[name]
-        keepers = [
-            icon
-            for icon in icons
-            if _same_number(icon.get("x"), keep_x) and _same_number(icon.get("y"), keep_y)
-        ]
-        extras = [icon for icon in icons if icon not in keepers]
-        if not keepers:
-            extras = icons[1:]
+        keep_x, keep_y = targets[name]
+        keepers = [i for i in icons if _same_number(i.get("x"), keep_x) and _same_number(i.get("y"), keep_y)]
+        extras = [i for i in icons if i not in keepers[:1]] if keepers else icons[1:]
         if check:
             if extras:
                 errors.append(
@@ -446,7 +546,6 @@ def dedupe_shared_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, 
             le.remove(icon)
             changes += 1
     return changes, errors
-
 
 def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list[str]]:
     doc = tables.load(path)
@@ -556,11 +655,12 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
     changes += bci_changes
     errors.extend(bci_errors)
 
-    os_added, os_errors = ensure_os_occupancy_icons(le, check=check)
+    targets = stage1_lamp_targets(root, le)
+    os_added, os_errors = ensure_os_occupancy_icons(le, check=check, targets=targets)
     changes += os_added
     errors.extend(os_errors)
 
-    shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check)
+    shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check, targets=targets)
     changes += shared_n
     errors.extend(shared_errors)
 
@@ -660,7 +760,7 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
 
 
 def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list[str]]:
-    """Shrink-LE companion: keep Pi mast nudges, hide virtuals, drop shared occupancy dups.
+    """Shrink-LE companion: keep Pi mast nudges, hide virtuals, put Stage 1 lamps on their targets.
 
     Does not add OS Block n-n icons or restripe station occupancy.
     """
@@ -692,13 +792,12 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
                 icon.set(attr, value)
                 changes += 1
 
-    lamp_n, lamp_errors = place_stage1_lamps(le, check=check)
+    # Placing also removes extra copies, so no separate dedupe pass is needed.
+    lamp_n, lamp_errors = place_stage1_lamps(
+        le, check=check, targets=stage1_lamp_targets(doc.root, le)
+    )
     changes += lamp_n
     errors.extend(f"{path.name}: {e}" for e in lamp_errors)
-
-    shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check)
-    changes += shared_n
-    errors.extend(shared_errors)
 
     if check:
         return changes, errors
@@ -707,14 +806,16 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
 
 
 def apply_block_labels_only(path: Path, *, check: bool) -> tuple[int, list[str]]:
-    """Lift BlockContentsIcons to level 4 and move Stage 1 lamps off turnouts.
+    """Lift BlockContentsIcons to level 4 and put Stage 1 lamps on their targets.
 
     A Stage 1 Store resets both, so the deploy and Stage 1 wrapper run this.
     """
     doc = tables.load(path)
     le = find_layout_editor(doc.root)
     changes, errors = ensure_block_contents_visible(le, check=check)
-    lamp_n, lamp_errors = place_stage1_lamps(le, check=check)
+    lamp_n, lamp_errors = place_stage1_lamps(
+        le, check=check, targets=stage1_lamp_targets(doc.root, le)
+    )
     changes += lamp_n
     errors.extend(f"{path.name}: {e}" for e in lamp_errors)
     if check or not changes:

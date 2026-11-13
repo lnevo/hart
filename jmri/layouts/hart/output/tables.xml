@@ -19758,7 +19758,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Main East" x="738" y="452" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Main East" x="1196" y="424" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19774,7 +19774,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track Main East" x="738" y="422" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS East Lead" x="1404" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS East Lead" x="1422" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19822,7 +19822,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track S-4 West" x="918" y="465" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 35a" x="1499" y="287" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 35a" x="1538" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19839,7 +19839,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 35a" x="1523" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track McKees Rocks" x="1643" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 5" x="332" y="373" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 5" x="338" y="358" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19855,7 +19855,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 5" x="332" y="343" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 7" x="495" y="349" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 7" x="500" y="334" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19871,7 +19871,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 7" x="495" y="319" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 35b" x="1568" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 35b" x="1520" y="278" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19887,7 +19887,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 35b" x="1568" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 1" x="338" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 1" x="344" y="247" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19903,7 +19903,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 1" x="338" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 23a" x="1185" y="293" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 23a" x="1190" y="278" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19919,7 +19919,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 23a" x="1185" y="263" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 3" x="245" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 3" x="250" y="247" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19952,7 +19952,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="Track S-1" x="985" y="346" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-2" x="986" y="393" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Brick-Plane" x="281" y="352" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Brick-Plane" x="320" y="358" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19968,7 +19968,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track Brick-Plane" x="281" y="322" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS W-1" x="140" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS W-1" x="120" y="247" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19984,7 +19984,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track W-1" x="140" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 9" x="600" y="299" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 9" x="606" y="284" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20000,7 +20000,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 9" x="600" y="269" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS W-2" x="142" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS W-2" x="122" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20051,7 +20051,7 @@
     <BlockContentsIcon blockcontents="Track S-R West" x="697" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-1 East" x="1204" y="346" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-4 East" x="1059" y="451" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Scale" x="420" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Scale" x="400" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20068,7 +20068,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="Track Scale" x="420" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-3 West" x="904" y="440" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS East Main Ext" x="407" y="373" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS East Main Ext" x="413" y="358" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20085,7 +20085,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="Track East Main Ext" x="407" y="343" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track McKeesport" x="1644" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 15" x="669" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 15" x="674" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20101,7 +20101,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 15" x="669" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 17" x="738" y="376" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 17" x="744" y="361" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20117,7 +20117,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 17" x="738" y="346" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS West Main Ext" x="1369" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS West Main Ext" x="1374" y="247" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20133,7 +20133,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track West Main Ext" x="1369" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 11" x="622" y="299" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 11" x="628" y="284" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20149,7 +20149,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 11" x="622" y="269" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 13" x="635" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 13" x="640" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20214,7 +20214,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track EH-1" x="794" y="256" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 19" x="809" y="422" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 19" x="814" y="407" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20230,7 +20230,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 19" x="809" y="392" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 21" x="881" y="470" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 21" x="886" y="456" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20247,7 +20247,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 21" x="881" y="440" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-1 West" x="762" y="346" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 27" x="1148" y="424" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 27" x="1154" y="409" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20264,7 +20264,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 27" x="1148" y="394" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-R East" x="1146" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 29" x="1220" y="376" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 29" x="1226" y="361" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20281,7 +20281,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 29" x="1220" y="346" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-2 West" x="836" y="393" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 25" x="1078" y="469" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 25" x="1084" y="454" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20297,7 +20297,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 25" x="1078" y="439" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Barn" x="600" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Barn" x="580" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20313,7 +20313,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track Barn" x="600" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Main West" x="755" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Main West" x="760" y="247" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20329,23 +20329,8 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track Main West" x="755" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS East Lead" x="1457" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Track East Lead East" x="1457" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS K-1" x="1756" y="248" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS K-1" x="1781" y="218" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20361,7 +20346,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track K-1" x="1756" y="218" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS K-2" x="1632" y="338" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS K-2" x="1613" y="323" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20377,7 +20362,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="Track K-2" x="1632" y="308" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 31" x="1291" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 31" x="1296" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20393,23 +20378,8 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 31" x="1291" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS K-1" x="1606" y="248" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </active>
-      <inactive url="program:resources/icons/smallschematics/tracksegments/circuit-empty.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inactive>
-      <unknown url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </unknown>
-      <inconsistent url="program:resources/icons/smallschematics/tracksegments/circuit-error.gif" degrees="0" scale="1.0">
-        <rotation>0</rotation>
-      </inconsistent>
-      <iconmaps />
-    </sensoricon>
     <BlockContentsIcon blockcontents="Track K-1 West" x="1606" y="218" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 37 / BS McKeesport" x="1592" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 37 / BS McKeesport" x="1598" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20425,7 +20395,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 37" x="1592" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 39 / BS McKees Rocks" x="1592" y="262" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 39 / BS McKees Rocks" x="1598" y="247" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20441,7 +20411,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 39" x="1592" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS Switch 33" x="1361" y="325" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 33" x="1366" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>

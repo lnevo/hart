@@ -179,7 +179,7 @@ def _check_leaks(dest_root: Path) -> list[str]:
 # strip removed. Stage 1 has one "page" record per page; the search box (js/search.js) reads it.
 INDEX_NAME = "search-index.json"
 INDEX_VERSION = 1
-SNIPPET_MAX, TEXT_MAX = 160, 8000  # about 85 KB gzipped for the whole index, fetched on first open
+SNIPPET_MAX, TEXT_MAX = 160, 8000  # about 95 KB gzipped for the whole index, fetched on first open
 # Pages that are never found: the 404 page and the document viewer shell.
 INDEX_SKIP_PAGES = {"404.html", "docs/view.html"}
 # Pages whose content is rows drawn by script: only the title and the intro paragraph are indexed.
@@ -294,6 +294,169 @@ def _check_index(index: dict) -> list[str]:
     return bad
 
 
+# ---- Term, industry and crew-sheet records --------------------------------------------------
+# Read from the built copies (after the local-only and external-path strips), public fields only.
+GLOSSARY_PAGE = "operators/glossary/index.html"
+SPOT_SHEETS = "crew/industries/index.html"  # spot sheets are drawn by js/crew.js with id=<industry id>
+
+
+class _Terms(HTMLParser):
+    """The glossary's <dt id> / <dd> pairs."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.terms: list[dict] = []
+        self._tag: str | None = None
+        self._buf: list[str] = []
+        self._id = ""
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("dt", "dd"):
+            self._tag, self._buf = tag, []
+            if tag == "dt":
+                self._id = dict(attrs).get("id") or ""
+
+    def handle_endtag(self, tag):
+        if tag != self._tag:
+            return
+        text = re.sub(r"\s+", " ", "".join(self._buf)).strip()
+        if tag == "dt":
+            self.terms.append({"id": self._id, "term": text, "defn": ""})
+        elif self.terms and not self.terms[-1]["defn"]:
+            self.terms[-1]["defn"] = text
+        self._tag = None
+
+    def handle_data(self, data):
+        if self._tag:
+            self._buf.append(data)
+
+
+def _read_json(path: Path):
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def _record(title: str, url: str, kind: str, snippet: str, text: str) -> dict:
+    return {"title": title, "url": url, "kind": kind, "snippet": _clip(snippet or title, SNIPPET_MAX), "text": _clip(text, TEXT_MAX)}
+
+
+def _glossary_records(dest_root: Path) -> list[dict]:
+    """One "term" record per glossary entry, linked to its #id on the glossary page."""
+    page = dest_root / GLOSSARY_PAGE
+    if not page.is_file():
+        return []
+    parsed = _Terms()
+    parsed.feed(page.read_text(encoding="utf-8", errors="replace"))
+    return [
+        _record(t["term"], f"{GLOSSARY_PAGE}#{t['id']}", "term", t["defn"], t["defn"])
+        for t in parsed.terms
+        if t["id"] and t["term"] and t["defn"]
+    ]
+
+
+def _industry_records(dest_root: Path) -> list[dict]:
+    """One "industry" record per company: blurb and commodities (industries.json) merged with the
+    spot sheet's history, traffic and spots (crew.json). Links to the spot sheet, where the history,
+    traffic and every spot are; the Primer placard shows only the blurb and links there anyway."""
+    cards = _read_json(dest_root / "data" / "industries.json").get("industries") or []
+    sheet = _read_json(dest_root / "data" / "crew.json").get("spotsheet") or {}
+    sheets = {i["id"]: i for i in (sheet.get("industries") or []) if i.get("id")}
+    for o in sheet.get("offline") or []:
+        if o.get("id"):
+            sheets.setdefault(o["id"], o)
+    records, seen = [], set()
+    for card in cards:
+        sid = card.get("spot") or ""
+        if sid in sheets:
+            seen.add(sid)
+            records.append(_industry(card, sheets[sid], sid))
+    for sid, s in sheets.items():
+        if sid not in seen and (s.get("history") or s.get("about")):  # a sheet with no card still deserves a record
+            records.append(_industry({}, s, sid))
+    return records
+
+
+def _industry(card: dict, s: dict, sid: str) -> dict:
+    name = s.get("name") or card.get("name") or sid
+    blurb = card.get("blurb") or (s.get("about") or [""])[0]
+    parts = [blurb, ", ".join(card.get("commodities") or []), s.get("traffic", ""), *(s.get("history") or []), *(s.get("about") or [])]
+    parts += [s.get("inLabel", ""), *(s.get("inbound") or []), s.get("outLabel", ""), *(s.get("outbound") or [])]
+    parts += [" ".join(r[1:3]) for r in s.get("spots") or []]  # spot name and car type
+    return _record(name, f"{SPOT_SHEETS}#{sid}", "industry", blurb, " ".join(p for p in parts if p))
+
+
+def _flat(*items) -> list[str]:
+    """Strings from nested lists and dicts of display values, in order."""
+    out: list[str] = []
+    for it in items:
+        if isinstance(it, str):
+            out.append(it)
+        elif isinstance(it, list):
+            out += _flat(*it)
+        elif isinstance(it, dict):
+            out += _flat(*it.values())
+    return out
+
+
+def _crew_records(dest_root: Path) -> list[dict]:
+    """One "crew" record per job or publication in crew.json: jobs, TT-23, EQ-01, colors, station maps.
+    Each links to its own crew page (a single sheet, so no anchor). Fields are listed, not walked,
+    so source paths, image paths and engine photos never reach the index."""
+    crew = _read_json(dest_root / "data" / "crew.json")
+    out: list[dict] = []
+
+    def add(title, url, snippet, *parts):
+        if (dest_root / url).is_file():
+            out.append(_record(title, url, "crew", snippet, " ".join(_flat(*parts))))
+
+    for j in crew.get("jobs") or []:
+        add(f"{j['code']} {j['name']}", f"crew/{j['id']}/index.html", j.get("summary", ""), j.get("title"), j.get("pub"),
+            (j.get("engine") or {}).get("label"), j.get("summary"), j.get("steps"), j.get("sequence"), j.get("priority"),
+            j.get("lineup"), j.get("talk"), [link.get("label") for link in j.get("links") or [] if isinstance(link, dict)])
+    tt = crew.get("timetable")
+    if tt:
+        add(f"{tt['pub']} {tt['title']}", "crew/tt23/index.html", tt.get("summary", ""), tt.get("name"), tt.get("subtitle"),
+            tt.get("summary"), tt.get("columns"), tt.get("rows"), tt.get("note"), tt.get("instructions"), tt.get("bulletin"))
+    sc = crew.get("scale")
+    if sc:
+        add(f"{sc['pub']} {sc['title']}", "crew/scale/index.html", sc.get("summary", ""), sc.get("summary"), sc.get("sections"))
+    colors = crew.get("colors") or []
+    if colors:
+        rows = [f"{c['label']} {c.get('dest', '')} {c.get('train', '')}" for c in colors]
+        add("Color board", "crew/colors/index.html", "Which color goes to which destination and train.", "Colors", rows)
+    ov = crew.get("overview")
+    if ov:
+        add(f"{ov['pub']} {ov['title']}", "crew/maps/index.html", ov.get("what", ""), ov.get("what"), ov.get("alt"))
+    for m in crew.get("maps") or []:
+        add(f"{m['pub']} {m['title']} station map", f"crew/maps/{m['id']}/index.html", m.get("what", ""), m.get("what"),
+            m.get("alt"), m.get("tracks"), m.get("switches"), m.get("connects"))
+    return out
+
+
+FLEET_PAGE = "photos/index.html"
+FLEET_KINDS = {"locos": "locomotive", "mow": "mow"}  # every other album is freight cars
+
+
+def _fleet_records(dest_root: Path) -> list[dict]:
+    """One record per rolling-stock photo that survived the build, from the built data/fleet-gallery.json.
+
+    Only the public display fields are read (id, title, caption, road, number, type). The url opens the
+    item on the Photos page (js/fleet.js: #rolling-stock/<id>); an item without an id has no link, so it is skipped.
+    """
+    path = dest_root / "data" / "fleet-gallery.json"
+    if not path.is_file():
+        return []
+    records = []
+    for item in json.loads(path.read_text(encoding="utf-8")).get("items") or []:
+        fid, title = str(item.get("id") or ""), str(item.get("title") or "").strip()
+        if not fid or not title:
+            continue
+        caption = str(item.get("caption") or "")
+        kind = FLEET_KINDS.get(item.get("album"), "locomotive" if item.get("type") == "Locomotive" else "car")
+        words = [str(item.get(k) or "") for k in ("road", "number", "type")] + [caption]
+        records.append(_record(title, f"{FLEET_PAGE}#rolling-stock/{fid}", kind, caption, " ".join(w for w in words if w)))
+    return records
+
+
 def build_search_index(dest_root: Path) -> dict:
     """Write dest_root/search-index.json from the built pages; fail if it holds a leak or the private name."""
     records = []
@@ -301,6 +464,12 @@ def build_search_index(dest_root: Path) -> dict:
         rec = _index_record(page.relative_to(dest_root), page.read_text(encoding="utf-8", errors="replace"))
         if rec:
             records.append(rec)
+    # Record kinds built from data or a few pages' markup, one call each (add new kinds here).
+    extra = _glossary_records(dest_root) + _industry_records(dest_root) + _crew_records(dest_root)
+    # A crew page is drawn by script, so its own page record is a bare title; the sheet record replaces it.
+    extra_urls = {e["url"] for e in extra}
+    records = [r for r in records if r["url"] not in extra_urls] + extra
+    records += _fleet_records(dest_root)
     index = {
         "version": INDEX_VERSION,
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -659,7 +828,7 @@ def main() -> int:
         print("\n".join("  " + h for h in leaks), file=sys.stderr)
         return 1
     index = build_search_index(dest)
-    print(f"Search index: {len(index['records'])} pages")
+    print(f"Search index: {len(index['records'])} records")
     print(f"Prepared public portal tree → {dest}", flush=True)
     return 0
 

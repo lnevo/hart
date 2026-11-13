@@ -236,8 +236,22 @@
         setActive(active <= 0 ? n - 1 : active - 1);
       } else if (e.key === "Enter" && n) {
         e.preventDefault();
-        window.location.href = list.children[active >= 0 ? active : 0].querySelector("a").href;
+        go(list.children[active >= 0 ? active : 0].querySelector("a"), e);
       }
+    });
+    // Following a result that is the page and hash already shown changes nothing, so no hashchange
+    // fires; send one, so the page opens the item again (a closed photo, a scrolled-away term).
+    function go(a, e) {
+      if (a.href === window.location.href) {
+        if (e) e.preventDefault();
+        window.dispatchEvent(new HashChangeEvent("hashchange"));
+      } else if (e && e.type === "keydown") {
+        window.location.href = a.href;
+      }
+    }
+    list.addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest("a");
+      if (a) go(a, e);
     });
     more.addEventListener("click", function () {
       showAll = true;
