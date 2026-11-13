@@ -282,3 +282,103 @@ class ExtraKinds(unittest.TestCase):
 
     def test_site_without_the_data_still_builds(self):
         self.assertEqual([r["kind"] for r in _index(_site({"a/index.html": _page()}))["records"]], ["page"])
+
+def _fleet_site(items: list[dict]) -> Path:
+    """A built tree holding data/fleet-gallery.json (as the build leaves it) and the Photos page."""
+    root = _site({"photos/index.html": _page(title="Photos — HART", body=f"<h1>Photos</h1><p>{INTRO}</p>")})
+    (root / "data").mkdir(exist_ok=True)
+    (root / "data" / "fleet-gallery.json").write_text(json.dumps({"albums": [], "items": items}), encoding="utf-8")
+    return root
+
+
+def _car(fid, title, album="freight", type_="Boxcar", **extra):
+    road, _, number = title.rpartition(" ")
+    return {"id": fid, "album": album, "src": f"assets/fleet/{album}/{fid}.jpg", "thumb": "t.jpg", "title": title,
+            "caption": f"{road} · {type_} · 40' steel", "credit": "Car roster", "road": road, "number": number,
+            "type": type_, **extra}
+
+
+def _fleet(index):
+    return [r for r in index["records"] if r["kind"] != "page"]
+
+
+class FleetRecords(unittest.TestCase):
+    def test_kinds_urls_and_text(self):
+        root = _fleet_site([
+            _car("csx-2738", "CSX 2738", "locos", "Locomotive"),
+            _car("c-o-w86", "C&O W86", "mow", "MOW"),
+            _car("ttc-4678", "TTC 4678", "mow", "Streetcar"),
+            _car("b-o-4674", "B&O 4674", "freight", "Hopper"),
+        ])
+        recs = {r["title"]: r for r in _fleet(_index(root))}
+        self.assertEqual({t: r["kind"] for t, r in recs.items()},
+                         {"CSX 2738": "locomotive", "C&O W86": "mow", "TTC 4678": "mow", "B&O 4674": "car"})
+        self.assertEqual(recs["B&O 4674"]["url"], "photos/index.html#rolling-stock/b-o-4674")
+        self.assertEqual(set(recs["B&O 4674"]), {"title", "url", "kind", "snippet", "text"})
+        for word in ("B&O", "4674", "Hopper", "40' steel"):
+            self.assertIn(word, recs["B&O 4674"]["text"])
+
+    def test_only_public_display_fields_are_used(self):
+        item = _car("csx-2738", "CSX 2738", rights="all rights reserved", internal="ops/car-cards/secret")
+        item["src"] = "../ops/car-cards/car-images/IMG_1.png"
+        (rec,) = _fleet(_index(_fleet_site([item])))
+        blob = json.dumps(rec)
+        for leak in ("ops/car-cards", "assets/fleet", "t.jpg", "rights", "secret", "Car roster", ".png", ".jpg"):
+            self.assertNotIn(leak, blob)
+
+    def test_long_captions_are_clipped(self):
+        item = _car("a-1", "A 1")
+        item["caption"] = "A · Boxcar · " + "long note " * 40
+        (rec,) = _fleet(_index(_fleet_site([item])))
+        self.assertLessEqual(len(rec["snippet"]), 160)
+
+    def test_dropped_items_have_no_record(self):
+        # The build's filter has already removed items whose photo is missing; the index reads what is left.
+        root = _fleet_site([_car("a-1", "A 1")])
+        self.assertEqual(len(_fleet(_index(root))), 1)
+        (root / "data" / "fleet-gallery.json").write_text(json.dumps({"items": []}))
+        self.assertEqual(_fleet(_index(root)), [])
+
+    def test_item_without_id_or_private_is_skipped(self):
+        items = [_car("", "A 1"), _car("a-2", "A 2", public=False)]
+        self.assertEqual(_fleet(_index(_fleet_site(items))), [])
+
+    def test_no_data_file_no_records(self):
+        self.assertEqual(_fleet(_index(_site({"photos/index.html": _page()}))), [])
+
+    def test_check_accepts_known_ids_and_album_chips(self):
+        root = _fleet_site([_car("a-1", "A 1")])
+        index = _index(root)
+        index["records"].append(dict(index["records"][-1], url="photos/index.html#rolling-stock/freight"))
+        (root / "search-index.json").write_text(json.dumps(index), encoding="utf-8")
+        self.assertEqual(check.index_problems(root), [])
+
+    def test_check_rejects_an_id_not_in_the_data(self):
+        root = _fleet_site([_car("a-1", "A 1")])
+        index = _index(root)
+        index["records"][-1]["url"] = "photos/index.html#rolling-stock/gone"
+        (root / "search-index.json").write_text(json.dumps(index), encoding="utf-8")
+        (problem,) = check.index_problems(root)
+        self.assertIn("not an item id", problem)
+
+    def test_check_flags_missing_and_duplicate_ids(self):
+        root = _fleet_site([_car("a-1", "A 1"), _car("a-1", "A 2"), _car("", "A 3")])
+        _index(root)
+        joined = " ".join(check.index_problems(root))
+        self.assertIn("used twice", joined)
+        self.assertIn("has no id", joined)
+
+    def test_source_data_has_unique_ids(self):
+        items = json.loads((SCRIPTS.parent / "data" / "fleet-gallery.json").read_text())["items"]
+        ids = [i.get("id") for i in items]
+        self.assertTrue(all(ids))
+        self.assertEqual(len(ids), len(set(ids)))
+
+
+class FleetIdGuards(unittest.TestCase):
+    def test_album_name_as_an_item_id_is_refused(self):
+        root = _site({"index.html": _page()})
+        (root / "data").mkdir()
+        items = [{"id": "freight", "title": "Freight"}, {"id": "csx-2738", "title": "CSX 2738"}]
+        (root / "data" / "fleet-gallery.json").write_text(json.dumps({"items": items}), encoding="utf-8")
+        self.assertEqual(len(check.fleet_id_problems(root)), 1)

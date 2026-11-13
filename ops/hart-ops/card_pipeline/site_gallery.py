@@ -13,6 +13,7 @@ from __future__ import annotations
 from private_name import contains_private_name
 
 import json
+import re
 from pathlib import Path
 
 HART_ROOT = Path(__file__).resolve().parents[3]
@@ -28,16 +29,23 @@ def album_for(type_name: str, known: dict[str, str]) -> str:
     return known.get(type_name, DEFAULT_ALBUM)
 
 
+def fleet_id(title: str) -> str:
+    """Stable id for the photos page link (photos/#rolling-stock/<id>) and site search: the title as a slug."""
+    return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+
+
 def entry_for(record: dict, source_image: str, known: dict[str, str]) -> dict:
     kind = record["Type"]
     road, number = record["RoadName"], record["RoadNumber"]
     desc = record.get("Description", "")
     if desc.strip().lower().startswith(kind.strip().lower()):
         desc = desc.strip()[len(kind.strip()):].strip(" ·,-")  # drop a repeated type, keep the rest (e.g. 40')
+    title = f"{road} {number}".strip()
     return {
+        "id": fleet_id(title),
         "album": album_for(kind, known),
         "src": f"{IMAGE_DIR}/{Path(source_image).stem}.png",
-        "title": f"{road} {number}".strip(),
+        "title": title,
         "caption": " · ".join(x for x in (road, kind, desc) if x),
         "credit": "HART car roster",
         "road": road,

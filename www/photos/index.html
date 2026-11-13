@@ -90,7 +90,7 @@
   <script src="../js/fleet.js"></script>
   <script>
     // Deep links: #historical, #layout/session-night, #rolling-stock/freight. The part after the slash
-    // is a sub-chip; SUBS maps its slug to the chip's data-kind / data-album value.
+    // is a sub-chip (on Rolling stock, any other value is a car's id, as in #rolling-stock/csx-2738); SUBS maps its slug to the chip's data-kind / data-album value.
     var CATS = {
       historical: { chips: "#archive-kinds", attr: "data-kind", subs: { photos: "photo", ads: "ad", clippings: "clipping", maps: "map", documents: "document", graphics: "graphic" } },
       layout: { chips: "#layout-albums", attr: "data-album", subs: { "session-night": "layout", panels: "panels", build: "progress", "track-plans": "plans", wiring: "build" } },
@@ -151,6 +151,8 @@
       if (value) {
         var btn = document.querySelector(CATS[cat].chips + " [" + CATS[cat].attr + '="' + value + '"]');
         if (btn) btn.click();
+      } else if (cat === "rolling-stock" && sub && window.HARTFleet && HARTFleet.openItem) {
+        HARTFleet.openItem(decodeURIComponent(sub));
       }
     }
 

@@ -24,6 +24,11 @@ class Caption(unittest.TestCase):
         entry = site_gallery.entry_for(self.record("coke hopper"), "a.jpg", {})
         self.assertEqual(entry["caption"], "CSX · Hopper · coke hopper")
 
+    def test_entry_gets_the_fleet_id_the_photos_page_links_to(self):
+        entry = site_gallery.entry_for(self.record("Hopper"), "a.jpg", {})
+        self.assertEqual(entry["id"], "csx-379702")
+        self.assertEqual(site_gallery.fleet_id("B&O 467439"), "b-o-467439")
+
 
 if __name__ == "__main__":
     unittest.main()

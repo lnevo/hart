@@ -179,7 +179,7 @@ def _check_leaks(dest_root: Path) -> list[str]:
 # strip removed. Stage 1 has one "page" record per page; the search box (js/search.js) reads it.
 INDEX_NAME = "search-index.json"
 INDEX_VERSION = 1
-SNIPPET_MAX, TEXT_MAX = 160, 8000  # about 85 KB gzipped for the whole index, fetched on first open
+SNIPPET_MAX, TEXT_MAX = 160, 8000  # about 95 KB gzipped for the whole index, fetched on first open
 # Pages that are never found: the 404 page and the document viewer shell.
 INDEX_SKIP_PAGES = {"404.html", "docs/view.html"}
 # Pages whose content is rows drawn by script: only the title and the intro paragraph are indexed.
@@ -432,6 +432,37 @@ def _crew_records(dest_root: Path) -> list[dict]:
     return out
 
 
+FLEET_PAGE = "photos/index.html"
+FLEET_KINDS = {"locos": "locomotive", "mow": "mow"}  # every other album is freight cars
+
+
+def _fleet_records(dest_root: Path) -> list[dict]:
+    """One record per rolling-stock photo that survived the build, from the built data/fleet-gallery.json.
+
+    Only the public display fields are read (id, title, caption, road, number, type). The url opens the
+    item on the Photos page (js/fleet.js: #rolling-stock/<id>); an item without an id has no link, so it is skipped.
+    """
+    path = dest_root / "data" / "fleet-gallery.json"
+    if not path.is_file():
+        return []
+    records = []
+    for item in json.loads(path.read_text(encoding="utf-8")).get("items") or []:
+        fid, title = str(item.get("id") or ""), str(item.get("title") or "").strip()
+        if not fid or not title or item.get("public") is False:
+            continue
+        caption = str(item.get("caption") or "")
+        kind = FLEET_KINDS.get(item.get("album"), "locomotive" if item.get("type") == "Locomotive" else "car")
+        words = [str(item.get(k) or "") for k in ("road", "number", "type")] + [caption]
+        records.append({
+            "title": title,
+            "url": f"{FLEET_PAGE}#rolling-stock/{fid}",
+            "kind": kind,
+            "snippet": _clip(caption or title, SNIPPET_MAX),
+            "text": _clip(" ".join(w for w in words if w), TEXT_MAX),
+        })
+    return records
+
+
 def build_search_index(dest_root: Path) -> dict:
     """Write dest_root/search-index.json from the built pages; fail if it holds a leak or the private name."""
     records = []
@@ -443,6 +474,7 @@ def build_search_index(dest_root: Path) -> dict:
     extra = _glossary_records(dest_root) + _industry_records(dest_root) + _crew_records(dest_root)
     # A crew page is drawn by script, so its own page record is a bare title; the sheet record replaces it.
     records = [r for r in records if r["url"] not in {e["url"] for e in extra}] + extra
+    records += _fleet_records(dest_root)
     index = {
         "version": INDEX_VERSION,
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -801,7 +833,7 @@ def main() -> int:
         print("\n".join("  " + h for h in leaks), file=sys.stderr)
         return 1
     index = build_search_index(dest)
-    print(f"Search index: {len(index['records'])} pages")
+    print(f"Search index: {len(index['records'])} records")
     print(f"Prepared public portal tree → {dest}", flush=True)
     return 0
 
