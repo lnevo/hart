@@ -66,6 +66,11 @@ Known gaps (end of the 2026-11-13 session):
   drawing T175 on the main level is optional; it is drawn. The moved T300 is right-hand, found by trial.
 - The main level's main route diverges at T187 onto the long track to T153 (not the track through T1 and 12),
   then runs through T160 and T155 round the balloon loop at T196.
+- **Spare length (2026-11-13).** Spare length along a band is shared between tracks in proportion to their real
+  length (squared stretch), not given whole to the longest. Switches joined by short links move as a block,
+  each part of such a group either side of one link can move on its own, and track ends and fold-backs
+  travel with the switch they hang off. Hints: `min_cells` (a run at least so long), `shorten`,
+  `equal_width`, `band_width`, `band_align`.
 - **Rows are stricter than they need to be.** Two tracks are kept on separate rows whenever the working
   order had them open together, even if they end up nowhere near each other along the band. On the upper
   band this stops the helix tracks sitting directly under T300: the peninsula's lower spurs claim those rows

@@ -613,7 +613,7 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
         need[sid] = (su, sv, w)
         cons.append((u, v, w))
         cm = s["cm"] / (2 if "." in sid else 1)
-        weight.append((u, v, 20.0 if tight else 100.0 / (cm + 25.0)))     # long tracks take up the slack
+        weight.append((u, v, 20.0 if tight else 100.0 / (cm + 25.0), w))  # long tracks take up the slack
     for t, inside in enclosed.items():
         for sid in inside:
             n = strands[sid]["dst"][0]
@@ -635,7 +635,9 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
         raise Unsettled("columns: constraints do not settle")
 
     def cost(xs):
-        return sum(w * (xs[v] - xs[u]) for u, v, w in weight)
+        # spare length is shared in proportion to the real length of each track (squared stretch), and a
+        # small plain term keeps the whole band compact
+        return sum(w * (xs[v] - xs[u] - least) ** 2 + 0.02 * (xs[v] - xs[u]) for u, v, w, least in weight)
 
     # switches joined by short links (a yard ladder, a crossover) also move as one block, and so does
     # each part of such a group either side of any one of its links
@@ -661,7 +663,13 @@ def place(nodes, strands, R, enclosed, opts, extra=()):
     blocks = groups(links)
     for i in range(len(links)):
         blocks |= groups(links[:i] + links[i + 1:])
-    blocks = sorted(blocks)
+    hangers = collections.defaultdict(set)          # track ends and fold-backs travel with the switch they hang off
+    for s in strands.values():
+        u, v = s["src"][0], s["dst"][0]
+        for a, b in ((u, v), (v, u)):
+            if nodes[a]["kind"] not in JUNCTION and nodes[b]["kind"] in JUNCTION:
+                hangers[b].add(a)
+    blocks = sorted({tuple(sorted(set(b) | {h for n in b for h in hangers[n]})) for b in blocks})
 
     def push(xs, n, step):
         new = dict(xs)
