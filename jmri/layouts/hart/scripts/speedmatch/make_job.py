@@ -40,6 +40,8 @@ DEFAULT_GUARD = [
     "BS S-R", "BS S-1", "BS S-2", "BS S-3", "BS S-4", "BS Switch 23b", "BS Switch 13",
     "BS Switch 15", "BS Scale", "BS Barn", "BS Switch 11", "BS Switch 9", "BS EH-1", "BS EH-2",
     "BS EH-3", "BS Switch 3", "BS W-1", "BS W-2", "BS Switch 7",
+    "BS Switch 17", "BS Switch 19", "BS Switch 21", "BS Switch 25", "BS Switch 27",
+    "BS Switch 29", "BS Switch 31",
 ]
 
 

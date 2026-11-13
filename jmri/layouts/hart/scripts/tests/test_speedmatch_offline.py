@@ -34,7 +34,11 @@ class DefaultGuard(unittest.TestCase):
             self.assertNotIn(n, loop, n)
             self.assertNotIn(n.split(" / ")[0], loop)
         self.assertEqual(len(set(make_job.DEFAULT_GUARD)), len(make_job.DEFAULT_GUARD))
-        self.assertEqual(len(make_job.DEFAULT_GUARD), 19)
+
+    def test_every_block_sensor_off_the_loop_is_in_it(self):
+        names = set(re.findall(r"<userName>(BS [^<]*)</userName>", TABLES.read_text()))
+        off_loop = names - set(analyze.ORDER)
+        self.assertEqual(off_loop - set(make_job.DEFAULT_GUARD), set())
 
     def test_default_expands_and_combines(self):
         self.assertEqual(make_job.guards(["default"]), make_job.DEFAULT_GUARD)
