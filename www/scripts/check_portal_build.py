@@ -112,6 +112,22 @@ class _Ids(HTMLParser):
                 self.ids.add(value)
 
 
+FLEET_ALBUM_SLUGS = {"locomotives", "freight", "mow"}  # photos/#rolling-stock/<album> picks a chip, not a car
+
+
+def _fleet_ids(root: Path) -> set[str]:
+    """Item ids in the built fleet-gallery.json: the anchors js/fleet.js opens as photos/#rolling-stock/<id>."""
+    return {str(i["id"]) for i in _items(root, "fleet-gallery.json") if i.get("id")}
+
+
+def fleet_id_problems(root: Path) -> list[str]:
+    """Every rolling-stock item needs a unique id, or it has no deep link and no search record."""
+    ids = [str(i.get("id") or "") for i in _items(root, "fleet-gallery.json")]
+    bad = [f"data/fleet-gallery.json: item {n} has no id" for n, i in enumerate(ids) if not i]
+    bad += [f"data/fleet-gallery.json: id {i} is used twice" for i in sorted({i for i in ids if i and ids.count(i) > 1})]
+    return bad
+
+
 def index_problems(root: Path) -> list[str]:
     """search-index.json: the agreed shape, and every record's url (and #anchor) is a built page."""
     path = root / "search-index.json"
@@ -123,7 +139,8 @@ def index_problems(root: Path) -> list[str]:
         return [f"search-index.json is not valid JSON: {err}"]
     if not isinstance(index, dict) or index.get("version") != 1 or not isinstance(index.get("records"), list) or not index.get("generated"):
         return ["search-index.json: expected version 1, generated and a records list"]
-    bad = []
+    bad = fleet_id_problems(root)
+    fleet_ids = _fleet_ids(root)
     page_ids: dict[Path, set] = {}  # each anchored page is parsed once
     for n, rec in enumerate(index["records"]):
         where = f"search-index.json record {n}"
@@ -142,6 +159,11 @@ def index_problems(root: Path) -> list[str]:
         target = _target(page, root, root)
         if target is None or not _resolves(target, root):
             bad.append(f"{where}: url {rec['url']} does not resolve to a built file")
+        elif page == "photos/index.html" and anchor.startswith("rolling-stock/"):
+            # Cars are drawn by js/fleet.js, so no static id exists: check the id against the data file.
+            # An album chip (#rolling-stock/freight) is also a valid sub-hash.
+            if anchor.split("/", 1)[1] not in FLEET_ALBUM_SLUGS and unquote(anchor.split("/", 1)[1]) not in fleet_ids:
+                bad.append(f"{where}: #{anchor} is not an item id in data/fleet-gallery.json")
         elif anchor:
             file = target.resolve()
             file = file if file.is_file() else file / "index.html"

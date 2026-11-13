@@ -329,6 +329,32 @@
         }
       });
 
+      // Deep link: photos/#rolling-stock/<item id> (ids are in data/fleet-gallery.json; the search
+      // index links them). Clears the filters, scrolls to the item, highlights it and opens its lightbox.
+      // Returns false when no item has that id.
+      window.HARTFleet.openItem = function (id) {
+        var item = items.filter(function (it) { return it.id === id; })[0];
+        if (!item) return false;
+        state.album = "all";
+        state.road = state.type = state.q = "";
+        numInput.value = "";
+        renderAll();
+        var i = visible.indexOf(item);
+        if (i < 0) return false;
+        if (view === "gallery") {
+          galleryIndex = i;
+          renderItems();
+          return true;
+        }
+        var el = out.querySelector('[data-idx="' + i + '"]');
+        if (el) {
+          el.classList.add("is-target");
+          if (el.scrollIntoView) el.scrollIntoView({ block: "center" });
+        }
+        openLightbox(i);
+        return true;
+      };
+
       renderViews();
       renderAll();
     },

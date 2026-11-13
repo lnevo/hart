@@ -294,6 +294,37 @@ def _check_index(index: dict) -> list[str]:
     return bad
 
 
+FLEET_PAGE = "photos/index.html"
+FLEET_KINDS = {"locos": "locomotive", "mow": "mow"}  # every other album is freight cars
+
+
+def _fleet_records(dest_root: Path) -> list[dict]:
+    """One record per rolling-stock photo that survived the build, from the built data/fleet-gallery.json.
+
+    Only the public display fields are read (id, title, caption, road, number, type). The url opens the
+    item on the Photos page (js/fleet.js: #rolling-stock/<id>); an item without an id has no link, so it is skipped.
+    """
+    path = dest_root / "data" / "fleet-gallery.json"
+    if not path.is_file():
+        return []
+    records = []
+    for item in json.loads(path.read_text(encoding="utf-8")).get("items") or []:
+        fid, title = str(item.get("id") or ""), str(item.get("title") or "").strip()
+        if not fid or not title or item.get("public") is False:
+            continue
+        caption = str(item.get("caption") or "")
+        kind = FLEET_KINDS.get(item.get("album"), "locomotive" if item.get("type") == "Locomotive" else "car")
+        words = [str(item.get(k) or "") for k in ("road", "number", "type")] + [caption]
+        records.append({
+            "title": title,
+            "url": f"{FLEET_PAGE}#rolling-stock/{fid}",
+            "kind": kind,
+            "snippet": _clip(caption or title, SNIPPET_MAX),
+            "text": _clip(" ".join(w for w in words if w), TEXT_MAX),
+        })
+    return records
+
+
 def build_search_index(dest_root: Path) -> dict:
     """Write dest_root/search-index.json from the built pages; fail if it holds a leak or the private name."""
     records = []
@@ -301,6 +332,7 @@ def build_search_index(dest_root: Path) -> dict:
         rec = _index_record(page.relative_to(dest_root), page.read_text(encoding="utf-8", errors="replace"))
         if rec:
             records.append(rec)
+    records += _fleet_records(dest_root)
     index = {
         "version": INDEX_VERSION,
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
