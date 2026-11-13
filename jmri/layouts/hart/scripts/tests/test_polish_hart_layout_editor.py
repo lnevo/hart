@@ -31,6 +31,15 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         self.assertEqual(polish.SIGNAL_PLACEMENTS, generated)
         self.assertEqual(23, len(generated))
 
+    def test_nx_layer_mast_positions_agree_with_placements(self):
+        nx = load_module("apply_nx_layer", SCRIPTS / "apply_nx_layer.py")
+        differ = {
+            name: (xy, polish.SIGNAL_PLACEMENTS[name][:2])
+            for name, xy in nx.MAST_ALIGN.items()
+            if name in polish.SIGNAL_PLACEMENTS and xy != polish.SIGNAL_PLACEMENTS[name][:2]
+        }
+        self.assertEqual({}, differ)
+
     def test_visual_polish_is_idempotent_and_preserves_topology(self):
         source = ROOT / "jmri/layouts/hart/output/tables.xml"
         before_root = ET.parse(source).getroot()
@@ -115,6 +124,21 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         _, leftover = polish.ensure_block_contents_visible(le, check=True)
         self.assertEqual([], leftover)
 
+    def test_engine_house_train_names_move_off_switch_9(self):
+        le = ET.fromstring(
+            '<LayoutEditor name="HART Railroad">'
+            '<BlockContentsIcon blockcontents="Track EH-3" x="603" y="269" level="4" red="0" green="0" blue="0" />'
+            '<BlockContentsIcon blockcontents="OS Switch 9" x="600" y="269" level="4" red="0" green="0" blue="0" />'
+            "</LayoutEditor>"
+        )
+        _, errors = polish.ensure_block_contents_visible(le, check=True)
+        self.assertEqual(1, len(errors))
+        self.assertEqual((1, []), polish.ensure_block_contents_visible(le, check=False))
+        spots = {i.get("blockcontents"): (i.get("x"), i.get("y")) for i in le}
+        self.assertEqual(("794", "284"), spots["Track EH-3"])
+        self.assertEqual(("600", "269"), spots["OS Switch 9"])
+        self.assertEqual((0, []), polish.ensure_block_contents_visible(le, check=True))
+
     def test_shared_occupancy_dedupe_keeps_body_dot(self):
         xml = """<?xml version='1.0' encoding='UTF-8'?>
         <layout-config>
@@ -122,6 +146,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             <sensoricon sensor="BS S-1" x="762" y="376" />
             <sensoricon sensor="BS S-1" x="1010" y="376" />
             <sensoricon sensor="BS S-1" x="1204" y="376" />
+            <sensoricon sensor="BS S-1" x="943" y="354" level="12" />
             <tracksegment ident="T1" />
           </LayoutEditor>
         </layout-config>
@@ -137,7 +162,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             for icon in le.findall("sensoricon")
             if icon.get("sensor") == "BS S-1"
         ]
-        self.assertEqual([("1010", "376")], kept)
+        self.assertEqual([("1010", "376"), ("943", "354")], kept)
 
     def test_stage1_lamps_move_off_switch_9_but_cluster_lamps_stay(self):
         xml = """<layout-config><LayoutEditor name="HART Railroad">

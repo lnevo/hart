@@ -30,7 +30,7 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 python3 jmri/layouts/hart/scripts/validate_le_signalling.py
 ```
 
-After Discover, re-add manual Princess pairs (`Mast 36RA→Mast 40LA`, `Mast 36RB→Mast 38LA`). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.
+After Discover, re-add manual Princess pairs (`Mast 36RA→Mast 40LA`, `Mast 36RB→Mast 38LA`): `restore_manual_sml_pairs.py --reference <tables before Discover>` (the Stage 1 wrapper does this itself). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.
 
 ## Do not
 
