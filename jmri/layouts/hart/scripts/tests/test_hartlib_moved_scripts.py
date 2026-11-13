@@ -107,9 +107,11 @@ class WritersOnACopyTest(unittest.TestCase):
         pref = self.home / "JMRI_UserFiles" / "tables.xml"
         pref.parent.mkdir(parents=True, exist_ok=True)
         pref.write_bytes(b"profile copy held by the running JMRI")
+        before = panel.read_bytes()
         result = run("apply_le_sml_facing.py", "--panel", str(panel), home=self.home, jmri_running="1")
         self.assertEqual(1, result.returncode, result.stdout)
-        self.assertIn("not synced", result.stderr)
+        self.assertIn("not changed", result.stderr)
+        self.assertEqual(before, panel.read_bytes(), "panel must stay untouched when the sync is refused")
         self.assertEqual(b"profile copy held by the running JMRI", pref.read_bytes())
         result = run("apply_le_sml_facing.py", "--panel", str(panel), home=self.home)
         self.assertEqual(0, result.returncode, result.stderr)

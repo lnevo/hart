@@ -217,16 +217,18 @@ def main() -> None:
     ap.add_argument("--no-pref", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
+    syncing = not (args.dry_run or args.no_sync or args.no_pref) and PREF_TABLES.is_file()
+    # The running JMRI holds the profile copy and would overwrite it on Store; refuse
+    # before touching anything, so the repo panel and the profile never part ways.
+    if syncing and tables.jmri_running():
+        print(f"{PREF_TABLES}: not changed: PanelPro or CATS is open; quit it and rerun, "
+              "or use --no-pref and deploy", file=sys.stderr)
+        sys.exit(1)
     turnouts, anchors = load_assignments(args.csv)
     patch_file(args.panel, turnouts, anchors, dry_run=args.dry_run)
     if args.dry_run or args.no_sync:
         return
-    if not args.no_pref and PREF_TABLES.is_file():
-        # The running JMRI holds the profile copy and would overwrite it on Store.
-        if tables.jmri_running():
-            print(f"{PREF_TABLES}: not synced: PanelPro or CATS is open; quit it and rerun, "
-                  "or deploy, which installs tables.xml", file=sys.stderr)
-            sys.exit(1)
+    if syncing:
         shutil.copy2(args.panel, PREF_TABLES)
         print(f"synced preference {PREF_TABLES}")
 

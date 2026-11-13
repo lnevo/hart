@@ -26,7 +26,8 @@ from uss_switch_only_columns import ensure_columns  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.append(str(ROOT / "cats/scripts"))
-from wire_digicon import PLANT_CELLS  # noqa: E402
+from wire_digicon import PLANT_CELLS  # noqa: E402  (also puts hartlib on sys.path)
+from hartlib import tables as hl_tables  # noqa: E402
 
 CATS_XML = ROOT / "cats/panels/HART_CTC.xml"
 CATS_DESIGNER = ROOT / "cats/panels/HART_Digicon.xml"
@@ -1212,7 +1213,8 @@ def store_format(panel: str) -> str:
     only what it means to: items locked (editable="false"), fonts as family plus name,
     and degrees="0" on every icon. GUIObjects.xml keeps the generator's own form."""
     panel = panel.replace('editable="true"', 'editable="false"')
-    panel = panel.replace('fontname="Dialog.plain"', 'fontFamily="Dialog" fontname="Dialog"')
+    panel = re.sub(r'fontname="([A-Za-z]+)\.(?:plain|bold|italic|bolditalic)"',
+                   r'fontFamily="\1" fontname="\1"', panel)
     panel = re.sub(r'(<[a-zA-Z]+ url="[^"]*") scale="', r'\1 degrees="0" scale="', panel)
     # Mast icons: the Store writes degrees after litmode.
     panel = re.sub(r'(<signalmasticon [^>]*?) degrees="0"( clickmode="\d+" litmode="\w+")',
@@ -1363,17 +1365,24 @@ def main() -> None:
     ap.add_argument("--tables", type=Path, default=None,
                     help="Optional. output/tables.xml or jmri/layouts/hart/output/tables.xml — never tables/tables.xml")
     ap.add_argument("--preview", type=Path, default=None)
+    ap.add_argument("--xml-only", action="store_true",
+                    help="write only --gui and --tables; no icon GIFs and no profile copy (tests)")
     args = ap.parse_args()
+    if not args.xml_only and hl_tables.jmri_running():
+        sys.exit("PanelPro or CATS is open: quit it first; the rebuild installs icons and "
+                 "GUIObjects.xml into JMRI_UserFiles")
     if args.tables and args.tables.resolve() == SOURCE_TABLES.resolve():
         sys.exit("refusing to write tables/tables.xml")
 
-    write_cell_icons()
+    if not args.xml_only:
+        write_cell_icons()
     cells = parse_cats(args.cats)
     txt = args.gui.read_text()
     new = apply(txt, cells)
     args.gui.write_text(new)
     print("%s: Digicon track plan regenerated" % args.gui)
-    install_preference_icons()
+    if not args.xml_only:
+        install_preference_icons()
 
     pe = re.search(r"<paneleditor\b.*?</paneleditor>", new, re.S)
     assert pe, "no paneleditor in regenerated GUI"
