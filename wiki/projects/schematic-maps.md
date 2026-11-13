@@ -1,7 +1,7 @@
 # Schematic maps from a track plan
 
 - **Owner:** lnevo
-- **Status:** Stage 0 in progress (2026-11-13). The spike in [`tools/schematic/spike/`](../../tools/schematic/spike/README.md) draws the built staging level from the Layout Editor panel with no hand placement; the AnyRail groups do not draw cleanly yet.
+- **Status:** Stage 0 in progress (2026-11-13). The spike (`tools/schematic/spike/`, in draft PR #423 until reviewed) draws the built staging level from the Layout Editor panel with no hand placement; the AnyRail groups do not draw cleanly yet.
 - **Goal:** turn an AnyRail plan into a logical (not physical) view of the railroad and draw professional maps from it. First output: the one-page system schematic. The same logical view later feeds station map pages, deck track maps, the CATS panel and the Layout Editor import for the main levels.
 
 The generic tool and its skill go in the public `model-railroad-skills` plugin. HART's names, numbers and finished maps stay in this repo.
