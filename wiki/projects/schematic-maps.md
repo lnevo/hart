@@ -104,7 +104,7 @@ Part numbers (T…) are the plan's, as drawn in the spike's overlay picture.
 - **Helix.** One turn more than planned. Its two tracks still leave the height-0 main (at T175 and T300), now run level to the peninsula near T226 and enter the helix there, and come out on the staging level as the McKees Rocks and McKeesport stubs. The plan file does not join every helix turn; the helix details are held separately.
 - **Peninsula top.** Raised from 1 in to 4.25 in, level with the branch line, so the 0.9% grades either side of the double crossover are gone.
 - **Beyond the double crossover.** In the plan the lower track climbed to the branch line (T237) and the upper one dropped to the height-0 main (T300). As built both stay at 4.25 in and join inside the closet on the north side, making a passing siding on that leg.
-- **T300.** The turnout moves: it becomes the switch where the upper neck track joins the 4.25 in track (drawn blue in the overlay), which is the closet end of that passing siding. To confirm: the height-0 track that reached T300 then runs straight on to the helix with no turnout there.
+- **T300.** The turnout moves from where it is up to the 4.25 in track (drawn blue in the overlay), adjusted for smooth transitions. There it joins the upper neck track to that track: the closet end of the passing siding.
 - **Rise.** The 2.1% grade from T285 (height 0, north side) to T262 (4.25 in, west wall), 521 cm, is as planned. It is now the only track between the height-0 main and the 4.25 in level.
 - **Main levels.** Not final; plan 5.3b is a draft. As-built changes go in an overrides file applied on top of the export.
 
@@ -112,6 +112,5 @@ For the schematic this gives three bands: staging, the height-0 main, and the 4.
 
 ## Open questions for the owner
 
-1. **Direction.** Which way is timetable east on each main level?
+1. **Timetable direction.** Not decided; the owner wants a recommendation. Room directions swap between the lower and upper level. Proposed: direction follows the route, not the room. A train that leaves staging eastward (toward Princess and the helix) is eastward all the way up, so every band of the schematic has east on the right.
 2. **T300's old place.** With the turnout moved, does the height-0 track there simply continue to the helix?
-3. **Closet switch.** Roughly where along the leg does the moved T300 sit?
