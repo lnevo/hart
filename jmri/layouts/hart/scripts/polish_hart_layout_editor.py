@@ -110,9 +110,6 @@ CLUSTER_LAMP_LEVEL = "12"
 # Every other Stage 1 lamp is placed by stage1_lamp_targets(): a switch's OS
 # lamp centred in its turnout circle, a track's lamp centred on the track.
 STAGE1_LAMP_PLACEMENTS = {
-    # K-1 on its short leg off Switch 39, directly north of the K-2 lamp on
-    # the matching leg off Switch 37 (the loop's long side is empty panel).
-    "BS K-1": (1613, 232),
     "BS EH-1": (576, 261),
     "BS EH-2": (576, 272),
     "BS EH-3": (576, 284),
@@ -464,11 +461,20 @@ def stage1_lamp_targets(root: ET.Element, le: ET.Element) -> dict[str, tuple[int
             to = turnout_by_block[os_blocks[0]]
             cx, cy = float(to.get("xcen")), float(to.get("ycen"))
         else:
+            # Straight track of the block itself first; a track drawn only as
+            # curves (K-1's loop) falls back to its straight throat stub, since
+            # a curve's chord midpoint can sit off the drawn track.
             mains = [n for n in names if n not in throats] or names
-            pieces = [seg for seg in segments if seg[0] in mains]
-            if not pieces:
+            main_pieces = [seg for seg in segments if seg[0] in mains]
+            all_pieces = [seg for seg in segments if seg[0] in names]
+            if not all_pieces:
                 continue
-            straight = [seg for seg in pieces if not seg[3]] or pieces
+            straight = (
+                [seg for seg in main_pieces if not seg[3]]
+                or [seg for seg in all_pieces if not seg[3]]
+                or main_pieces
+                or all_pieces
+            )
             _b, a, b, _c, _i = max(
                 straight, key=lambda seg: ((seg[1][0] - seg[2][0]) ** 2 + (seg[1][1] - seg[2][1]) ** 2, seg[4])
             )

@@ -224,6 +224,19 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         self.assertEqual((245, 247), targets["BS Switch 3"])  # circle centre minus half a lamp
         self.assertEqual((195, 195), targets["BS T-1"])  # middle of S1, not the throat
 
+    def test_curve_only_track_uses_its_straight_throat_and_fixed_spots_win(self):
+        root = self.lamp_fixture()
+        le = root.find("LayoutEditor")
+        s1 = [t for t in le.findall("tracksegment") if t.get("ident") == "S1"][0]
+        s1.set("arc", "yes")  # the station track is now only a curve
+        targets = polish.stage1_lamp_targets(root, le)
+        self.assertEqual((305, 195), targets["BS T-1"])  # middle of throat S2
+        try:
+            polish.STAGE1_LAMP_PLACEMENTS["BS T-1"] = (1, 2)
+            self.assertEqual((1, 2), polish.stage1_lamp_targets(root, le)["BS T-1"])
+        finally:
+            del polish.STAGE1_LAMP_PLACEMENTS["BS T-1"]
+
     def test_missing_switch_lamp_is_created_on_its_circle(self):
         root = self.lamp_fixture()
         le = root.find("LayoutEditor")
