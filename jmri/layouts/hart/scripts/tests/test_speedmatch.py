@@ -467,6 +467,11 @@ FORBIDDEN_EVERYWHERE = ["emergencyStop", "setPower", "PowerManager", "setCommand
                         "TurnoutManager", "sendMessage", "publish"]
 
 
+def mover(name):
+    """A mover as the Pi runs it: the shared jobkit.py, then the runner."""
+    return (SM / "jython" / "jobkit.py").read_text() + "\n" + (SM / "jython" / name).read_text()
+
+
 class JythonFiles(unittest.TestCase):
     """The scripts that run inside the Pi's JMRI are read as text, never run."""
 
@@ -474,7 +479,7 @@ class JythonFiles(unittest.TestCase):
         return (SM / "jython" / name).read_text()
 
     def test_runner_never_stops_with_anything_but_its_own_throttle(self):
-        src = self.text("step_runner.py")
+        src = mover("step_runner.py")
         for bad in FORBIDDEN_EVERYWHERE + ["readCV", "writeCV", "Programmer"]:
             self.assertNotIn(bad, src, bad)
         self.assertIn("setSpeedSetting(0.0)", src)

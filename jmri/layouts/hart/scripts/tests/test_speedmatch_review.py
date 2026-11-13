@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from test_speedmatch import FORBIDDEN_EVERYWHERE, SM, analyze, correct, lr, make_job  # noqa: E402
+from test_speedmatch import FORBIDDEN_EVERYWHERE, SM, analyze, correct, lr, make_job, mover  # noqa: E402
 from test_speedmatch import pc  # noqa: E402
 
 pc_problems = pc.log_problems
@@ -113,7 +113,7 @@ class Logs(unittest.TestCase):
         self.assertEqual([t for t, _ in ev], [3.0, 5.0, 7.0])
 
     def test_runner_logs_real_state_names_and_keeps_every_state(self):
-        src = (SM / "jython" / "step_runner.py").read_text()
+        src = mover("step_runner.py")
         for name in ("UNKNOWN", "INCONSISTENT"):
             self.assertIn('"%s"' % name, src)
         self.assertIn("state[self.n] = st", src)
@@ -122,14 +122,14 @@ class Logs(unittest.TestCase):
 
 class Guards(unittest.TestCase):
     def test_guard_sensors_are_found_by_any_name_and_checked_at_start(self):
-        for name in ("step_runner.py", "move_to.py"):
-            src = (SM / "jython" / name).read_text()
+        for name in ("step_runner.py", "move_to.py", "stop_test.py"):
+            src = mover(name)
             self.assertIn("guard already ACTIVE", src)
             self.assertIn("not found", src)
-        src = (SM / "jython" / "step_runner.py").read_text()
+        src = mover("step_runner.py")
         self.assertIn("getSystemName", src)
-        self.assertIn("isg or (un.startswith", src)  # listened to whatever its name starts with
-        self.assertIn("SL(un or sn, isg)", src)      # one listener per bean, both roles
+        self.assertIn("isg or isx or want(un)", src)  # listened to whatever its name starts with
+        self.assertIn("factory(un or sn, isg, s)", src)  # one listener per bean, both roles
 
 
 def profile_csv(rows):
@@ -201,12 +201,12 @@ class MoveAndDrop(unittest.TestCase):
                        "--out", str(d / "m.py")])
         text = (d / "m.py").read_text()
         ns: dict = {}
-        exec(compile(text.split("# move_to.py")[0], "job", "exec"), ns)
+        exec(compile(text.split(make_job.RUNNER_MARK)[0], "job", "exec"), ns)
         self.assertEqual((ns["P_ID"], ns["P_FWD"], ns["P_STEP"]), ("CSX 2738", False, 32))
         self.assertEqual(ns["UNTIL"], ["BS Switch 33", "BS East Lead"])
         self.assertEqual(ns["GUARD"], ["BS W-1"])
         self.assertEqual(ns["FUNCS"], [0])  # no hard-coded 2121 sound mute
-        src = (SM / "jython" / "move_to.py").read_text()
+        src = mover("move_to.py")
         for bad in FORBIDDEN_EVERYWHERE + ["eval(", "readCV", "writeCV", "F8"]:
             self.assertNotIn(bad, src, bad)
         self.assertIn("setSpeedSetting(0.0)", src)
@@ -258,8 +258,8 @@ class SecondReview(unittest.TestCase):
         self.assertIn("--force", src)
         self.assertNotIn("rm -f /tmp/speedrun.kill", src)
         self.assertNotIn("rm /tmp/speedrun.kill'", src)
-        for name in ("step_runner.py", "move_to.py"):
-            j = (SM / "jython" / name).read_text()
+        for name in ("step_runner.py", "move_to.py", "stop_test.py"):
+            j = mover(name)
             self.assertIn("/tmp/speedrun.active", j)
             self.assertIn("own[0]", j)
 
@@ -437,11 +437,13 @@ class Round3(unittest.TestCase):
         self.assertIn("if st == 2 and self.n in ORDER: last[0] = now", body)
 
     def test_finally_stops_then_turns_functions_off_then_releases(self):
-        for name in ("step_runner.py", "move_to.py"):
+        kit = (SM / "jython" / "jobkit.py").read_text()
+        fin = kit.split("def end_job")[1]
+        i0, i1, i2 = fin.index("setSpeedSetting(0.0)"), fin.index("(False)"), fin.index("t.release(tl)")
+        self.assertTrue(i0 < i1 < i2)
+        for name in ("step_runner.py", "move_to.py", "stop_test.py"):
             src = (SM / "jython" / name).read_text()
-            fin = src.split("finally:")[-1]
-            i0, i1, i2 = fin.index("setSpeedSetting(0.0)"), fin.index("(False)"), fin.index("t.release(tl)")
-            self.assertTrue(i0 < i1 < i2, name)
+            self.assertIn("end_job(t, tl, FUNCS)", src.split("finally:")[-1], name)
             self.assertIn("tl = None", src)
 
     def test_preflight_aborts_after_a_timeout(self):
@@ -558,8 +560,8 @@ class Round4(unittest.TestCase):
         with self.assertRaises(SystemExit):
             make_job.main(["move", "--loco", "L", "--direction", "forward", "--until", "BS X",
                            "--out", str(d / "m.py")])
-        for name in ("step_runner.py", "move_to.py"):
-            self.assertIn('L("NO GUARD")', (SM / "jython" / name).read_text())
+        for name in ("step_runner.py", "move_to.py", "stop_test.py"):
+            self.assertIn('L("NO GUARD")', mover(name))
 
     def test_steps_must_be_whole_numbers_1_to_126(self):
         d = Path(tempfile.mkdtemp())
@@ -577,10 +579,10 @@ class Round4(unittest.TestCase):
                                "--until", "BS X", "--step", bad, "--out", str(d / "m.py")])
 
     def test_one_listener_per_bean_carries_both_roles(self):
-        src = (SM / "jython" / "step_runner.py").read_text()
+        src = mover("step_runner.py")
         self.assertIn("def __init__(self, n, isg)", src)
-        self.assertIn("if un in GUARD: found[un] = s", src)
-        self.assertIn("if sn in GUARD: found[sn] = s", src)
+        self.assertIn("if n == un or n == sn: found[n] = s", src)
+        self.assertIn("isg = (un in guard) or (sn in guard)", src)
         self.assertIn("if self.isg and st == 2", src)
         self.assertEqual(src.count("addPropertyChangeListener"), 1)
 
