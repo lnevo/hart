@@ -1,16 +1,33 @@
-"""system.py <staging.json> <staging_opts.json> <main.json> <main_opts.json> <out.svg>
+"""system.py <staging.json> <main.json> <out.svg> [--no-preferences] [--no-hints] [--data DIR]
 
 Stage 0 spike: staging, main and upper level as three bands on one sheet, in route order from the bottom up.
+Inputs are the graphs from export_reader.py and the layered option files in
+jmri/layouts/hart/data/schematic/ (see layers.py). All layers are on by default; --no-preferences draws
+without the owner's look, --no-hints without the temporary hand hints. Layer 1 is always read.
 """
+import argparse
 import json
-import sys
 
+import layers
 import schem
 
 
-def main(built, built_opts, main_graph, main_opts, out, helix_style="coil"):
-    bo = dict(schem.DEFAULTS, **json.load(open(built_opts)), helix_style=helix_style)
-    mo = dict(schem.DEFAULTS, **json.load(open(main_opts)), helix_style=helix_style)
+def options(preferences=True, hints=True, data=layers.DATA):
+    """(staging options, main and upper options) with the layers asked for."""
+    bo = dict(schem.DEFAULTS, **layers.load("staging", preferences, hints, data))
+    mo = dict(schem.DEFAULTS, **layers.load("main_upper", preferences, hints, data))
+    bo["helix_style"] = mo["helix_style"] = mo.get("helix_style", "box")
+    return bo, mo
+
+
+def main(built, main_graph, out, preferences=True, hints=True, data=layers.DATA):
+    bo, mo = options(preferences, hints, data)
+    bands = build_bands(built, main_graph, bo, mo)
+    schem.draw_page(bands, dict(mo, title=mo.get("system_title", mo["title"])), out)
+
+
+def build_bands(built, main_graph, bo, mo):
+    """The three drawn bands, top to bottom: [(title, band, options)]."""
     bands = []
     tracks = sorted(set(mo.get("helix", {}).values()))      # H1, H2 ... mean the same track on every band
     bo["helix_tracks"] = mo["helix_tracks"] = tracks
@@ -44,8 +61,16 @@ def main(built, built_opts, main_graph, main_opts, out, helix_style="coil"):
 
     rank = {w: i for i, w in enumerate(mo.get("band_order", ["Upper", "Main", "Staging"]))}   # top to bottom
     bands.sort(key=lambda b: rank.get(b[0].split()[0], 9))
-    schem.draw_page(bands, dict(mo, title=mo.get("system_title", mo["title"])), out)
+    return bands
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:7])
+    ap = argparse.ArgumentParser()
+    ap.add_argument("staging_graph")
+    ap.add_argument("main_graph")
+    ap.add_argument("out")
+    ap.add_argument("--no-preferences", action="store_true")
+    ap.add_argument("--no-hints", action="store_true")
+    ap.add_argument("--data", default=layers.DATA)
+    a = ap.parse_args()
+    main(a.staging_graph, a.main_graph, a.out, not a.no_preferences, not a.no_hints, a.data)

@@ -23,9 +23,22 @@ crossover and every turnout, and only track. It has no heights; those still come
 
 Staging is now drawn from the AnyRail export too, not from the Layout Editor panel (owner's choice,
 2026-11-13): `export_reader.py plan.xml staging.json +Staging parts.json`, then the as-built edits in
-`staging_opts.json` (relabel plan parts to switch numbers, drop the unbuilt crossover T41/T43, add the
+`staging.plan_overrides.json` (relabel plan parts to switch numbers, drop the unbuilt crossover T41/T43, add the
 Switch 7 crossover, Switch 13 and the engine terminal, name the tracks). Sample: `staging_sample.svg`.
 `le_reader.py` and `built_opts.json` remain as a cross-check against the panel.
+
+Inputs are split by kind (stream A1, 2026-11-13) into `jmri/layouts/hart/data/schematic/`:
+`<level>.plan_overrides.json` (layer 1, facts about the railroad), `<level>.hints.json` (layer 2, temporary hand
+hints that stand in for generation rules not written yet: `level_leg`, `keep_close`) and `<level>.preferences.json`
+(layer 3, the owner's look), for `staging` and `main_upper`. `layers.py` merges them; `system.py` reads all three by
+default, with `--no-preferences` and `--no-hints`:
+
+    python3 export_reader.py plan53b.xml main.json -Staging parts.json
+    python3 export_reader.py plan53b.xml staging.json +Staging parts.json
+    python3 system.py staging.json main.json out.svg [--no-preferences] [--no-hints]
+
+(`parts.json` comes from the AnyRail prototype reader over the plan's `.any` file; neither the `.any` file nor its
+custom objects are in the repo.) `system_sample.svg` redraws byte-identical from the split files.
 
 `system.py` puts staging, the main level and the upper level on one sheet in route order from the bottom up
 (sample in `system_sample.svg`). Each band's helix tracks end in a HELIX box and carry the same track names on
@@ -55,7 +68,7 @@ outside the repo.
 The spike checks its own drawing: every pair of drawn lines is tested for crossing or lying on top of
 each other, and each fault is printed with the switches either side.
 
-Main levels (2026-11-13), from the 5.3b export with the owner's as-built change (`main_asbuilt_opts.json`,
+Main levels (2026-11-13), from the 5.3b export with the owner's as-built change (`main_upper.plan_overrides.json`,
 sample in `main_asbuilt_sample.svg`):
 
 | Drawing | Faults |
@@ -111,3 +124,29 @@ Known gaps (end of the 2026-11-13 session):
 - Labels are not checked for collisions (the connector text can overlap a track); switch numbers collide in
   places; a crossover's number is printed on both halves; no page folding; no capacity.
 - Switch labels on the main and upper bands are plan part numbers, three junctions unmatched; no names there.
+
+Signals and labels (2026-11-13, rules R12 and R13 in `docs/ops/SCHEMATIC_SPEC.md`):
+
+    python3 signal_reader.py ../../../jmri/layouts/hart/output/tables.xml ../../../jmri/layouts/hart/data/switches.csv \
+        ../../../jmri/layouts/hart/data/block_lengths.csv staging.json \
+        ../../../jmri/layouts/hart/data/schematic/staging.plan_overrides.json \
+        ../../../jmri/layouts/hart/data/schematic/staging.signals.json
+    python3 label_check.py out.svg --list
+
+- `signal_reader.py` writes the masts as layer 1 (`staging.signals.json`), never by hand: each mast bound on the
+  Layout Editor panel (turnout leg, anchor or bumper), the run it stands on, the switch or end its move is heading
+  for, its direction and head count. Anchor east/west follows JMRI's own rule (`isAtWestEndOfAnchor`). Virtual
+  masts are kept in the file and not drawn; `signals_planned` in the overrides marks the Princess placeholders
+  (drawn dashed).
+- Masts are drawn in the NYAMR Physical Characteristics Book style: stem, short arm, one open circle per head
+  pointing the way the mast governs, on the right-hand side of the track for that direction, name beside the stem.
+- `labels.py` places switch numbers, track names and mast names: each has a list of allowed positions, and the
+  ones with the fewest free positions are placed first, clear of every line, symbol and label. A crossover's
+  number prints once. `label_check.py` is the independent check on the finished SVG.
+- A mast on a run with no level stretch (32R on the 29-31 ladder link) is drawn along the slope on the right-hand
+  side of its move, its name level, in line behind the stem or centred in the gap beside it; the other side of
+  the track only when the right-hand side has no room at all.
+- `signals_sample.svg`: approved look plus signals. Label faults: approved sheet 17 before the placer; 0 with
+  signals, the placer and the owner's length change (East Lead 4 cells, South Yard tracks 6 to 4). The grid-room
+  half of R12 (labels claiming room during layout, so no preference is needed) is still to do.
+- 32L is named westward but bound eastward on the panel (virtual, so not drawn); reported by the reader.
