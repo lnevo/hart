@@ -8,6 +8,10 @@ ended with reason `settled` (or `timed`, distance mode); the repeat of the top s
 speed in both directions, so only steps present in both are written; the others are listed
 as skipped. It refuses if either direction has no complete run or no settled step.
 
+With --merge, a direction's complete runs are combined: per step, the latest complete run that
+settled it. Use it when a short re-run (say steps 8,16,24 after a CV change) follows a full run;
+the payload lists which run each speed came from (`sources`).
+
 The payload is {roster_id, points: [{step, forward_mm_s, reverse_mm_s}]}. Nothing is written
 to a roster here: make_job.py profile builds the Jython job from it.
 """
@@ -25,6 +29,26 @@ import correct  # noqa: E402
 
 class ProfileRefusal(Exception):
     """The data cannot make a complete profile."""
+
+
+def merged_steps(path, loco, direction, route=analyze.DEFAULT_ROUTE):
+    """(dict step -> mm/s, dict step -> run): per step, the latest complete run of (loco,
+    direction) that settled it."""
+    with open(path, newline="") as fh:
+        mine = [r for r in csv.DictReader(fh) if r["loco"] == loco and r["direction"] == direction
+                and (r.get("route") or analyze.DEFAULT_ROUTE) == route]
+    done = sorted({int(r.get("run") or 1) for r in mine if (r.get("run_complete") or "True") == "True"})
+    if not done:
+        raise ProfileRefusal("%s %s: no complete run in profile.csv" % (loco, direction))
+    out, src = {}, {}
+    for n in done:
+        got, _skipped = correct.read_profile(path, loco, direction, run=n, route=route)
+        for step, v in got.items():
+            out[step] = v
+            src[step] = n
+    if not out:
+        raise ProfileRefusal("%s %s: no complete run has a settled step" % (loco, direction))
+    return out, src
 
 
 def settled_steps(path, loco, direction, route=analyze.DEFAULT_ROUTE):
@@ -49,17 +73,24 @@ def throttle_key(step):
     return int(round(step / 126.0 * 1000))
 
 
-def build_payload(path, loco, route=analyze.DEFAULT_ROUTE):
-    fwd = settled_steps(path, loco, "forward", route)
-    rev = settled_steps(path, loco, "reverse", route)
+def build_payload(path, loco, route=analyze.DEFAULT_ROUTE, merge=False):
+    if merge:
+        fwd, fsrc = merged_steps(path, loco, "forward", route)
+        rev, rsrc = merged_steps(path, loco, "reverse", route)
+    else:
+        fwd = settled_steps(path, loco, "forward", route)
+        rev = settled_steps(path, loco, "reverse", route)
     both = sorted(set(fwd) & set(rev))
     if not both:
         raise ProfileRefusal("%s: no step settled in both directions" % loco)
-    return {
+    payload = {
         "roster_id": loco,
         "points": [{"step": s, "forward_mm_s": fwd[s], "reverse_mm_s": rev[s]} for s in both],
         "skipped_steps": sorted(set(fwd) ^ set(rev)),
     }
+    if merge:
+        payload["sources"] = [{"step": s, "forward_run": fsrc[s], "reverse_run": rsrc[s]} for s in both]
+    return payload
 
 
 def main(argv=None):
@@ -69,9 +100,11 @@ def main(argv=None):
     ap.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE,
                     help="route of the runs to take the speeds from")
     ap.add_argument("--out", required=True, help="payload JSON to write")
+    ap.add_argument("--merge", action="store_true",
+                    help="combine complete runs: per step, the latest complete run that settled it")
     a = ap.parse_args(argv)
     try:
-        payload = build_payload(a.profile_csv, a.loco, a.route)
+        payload = build_payload(a.profile_csv, a.loco, a.route, merge=a.merge)
     except ProfileRefusal as e:
         sys.exit("refused: %s" % e)
     Path(a.out).write_text(json.dumps(payload, indent=2) + "\n")

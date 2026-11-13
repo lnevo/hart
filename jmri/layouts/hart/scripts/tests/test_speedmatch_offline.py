@@ -104,6 +104,26 @@ class ProfileToRoster(unittest.TestCase):
         with self.assertRaises(p2r.ProfileRefusal):  # another loco's rows do not count
             p2r.build_payload(as_csv(rows_for("B", "forward", 1, [2]) + rows_for("B", "reverse", 2, [2])), "A")
 
+    def test_merge_takes_each_step_from_the_latest_complete_run_that_settled_it(self):
+        rows = (rows_for("A", "forward", 1, [8, 16, 24, 48]) + rows_for("A", "forward", 4, [8, 16, 24])
+                + rows_for("A", "forward", 6, [16], complete=False)
+                + rows_for("A", "reverse", 2, [8, 16, 24, 48]) + rows_for("A", "reverse", 5, [8], reason="max"))
+        for r in rows:
+            if r["run"] == "4":
+                r["median_mm_s"] = str(float(r["median_mm_s"]) + 1)   # the re-run after a CV change
+            if r["run"] == "6":
+                r["median_mm_s"] = "999"                              # incomplete: never used
+        pl = p2r.build_payload(as_csv(rows), "A", merge=True)
+        fwd = {p["step"]: p["forward_mm_s"] for p in pl["points"]}
+        self.assertEqual(fwd, {8: 81.0, 16: 161.0, 24: 241.0, 48: 480.0})
+        src = {s["step"]: (s["forward_run"], s["reverse_run"]) for s in pl["sources"]}
+        self.assertEqual(src[16], (4, 2))
+        self.assertEqual(src[48], (1, 2))
+        self.assertEqual(src[8], (4, 2))   # run 5 did not settle step 8
+        # without merge only the latest complete run counts: reverse run 5 settled nothing
+        with self.assertRaises(p2r.ProfileRefusal):
+            p2r.build_payload(as_csv(rows), "A")
+
     def test_the_csv_is_read_by_correct_read_profile(self):
         self.assertIn("correct.read_profile", (SM / "profile_to_roster.py").read_text())
 

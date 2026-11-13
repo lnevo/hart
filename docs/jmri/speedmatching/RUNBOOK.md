@@ -339,7 +339,10 @@ jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/sm/profile_2121.py
 ```
 
 `profile_to_roster.py` takes the latest complete run per loco and direction and only the steps
-that ended `settled` (the repeat `126#2` is skipped). A step needs a speed in both directions to
+that ended `settled` (the repeat `126#2` is skipped). With `--merge` it combines a direction's
+complete runs instead: per step, the latest complete run that settled it, so a short re-run (for
+example steps 8,16,24 after a CV change) tops up the full run; `sources` in the payload names
+the run of each speed. Pass the logs to `analyze.py` in time order, since run numbers follow it. A step needs a speed in both directions to
 become a point; the others are listed as left out. It refuses if either direction has no complete
 run or no settled step. The job is a **dry run**: it logs the old and the new profile
 (`OLD`/`NEW` lines) and changes nothing. Read the log, then build it again with `--apply` and
