@@ -7,13 +7,17 @@ CATS Designer does not import Layout Editor geometry. Bind by userName.
 from __future__ import annotations
 
 import csv
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-JMRI_ROOT = Path(__file__).resolve().parents[1]
-PANEL = JMRI_ROOT / "layouts" / "hart" / "output" / "tables.xml"
-OUT = JMRI_ROOT.parent / "cats" / "data" / "jmri_devices.csv"
-CP_CSV = JMRI_ROOT / "layouts" / "hart" / "data" / "control_points.csv"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+PANEL = paths.TABLES_XML
+OUT = paths.CATS_DIR / "data" / "jmri_devices.csv"
+CP_CSV = paths.LAYOUT_DATA / "control_points.csv"
 
 
 def text(el: ET.Element | None, tag: str) -> str:
@@ -24,10 +28,10 @@ def text(el: ET.Element | None, tag: str) -> str:
 
 
 def main() -> int:
-    root = ET.parse(PANEL).getroot()
+    root = tables.read(PANEL)
     rows: list[dict[str, str]] = []
 
-    for s in root.iter("sensor"):
+    for s in tables.sensors(root):
         sn = s.get("systemName") or text(s, "systemName")
         un = text(s, "userName")
         if not sn:
@@ -42,6 +46,7 @@ def main() -> int:
             }
         )
 
+    # root.iter, not tables.turnouts: it also lists the <beansetting> turnouts, which this CSV has always held.
     for t in root.iter("turnout"):
         sn = t.get("systemName") or text(t, "systemName")
         un = text(t, "userName")
@@ -78,7 +83,7 @@ def main() -> int:
         w.writerows(rows)
 
     # Also write CP plant checklist
-    plants = JMRI_ROOT.parent / "cats" / "data" / "plants_from_hart.csv"
+    plants = paths.CATS_DIR / "data" / "plants_from_hart.csv"
     if CP_CSV.is_file():
         plants.write_text(CP_CSV.read_text(encoding="utf-8"), encoding="utf-8")
 

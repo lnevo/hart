@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import csv
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-HART = ROOT / "jmri/layouts/hart/output/tables.xml"
-OCC_CSV = ROOT / "cats/data/occupancy_bindings.csv"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+HART = paths.TABLES_XML
+OCC_CSV = paths.CATS_DIR / "data/occupancy_bindings.csv"
 
 TRACK_ENDS = {
     "HORIZONTAL": frozenset({"LEFT", "RIGHT"}),
@@ -46,15 +51,15 @@ def load_disciplines() -> dict[str, str]:
 
 
 def load_occupancy() -> dict[str, tuple[str, str]]:
-    root = ET.parse(HART).getroot()
+    root = tables.read(HART)
     sensor_addr: dict[str, str] = {}
-    for s in root.iter("sensor"):
+    for s in tables.sensors(root):
         sn = s.get("systemName") or s.findtext("systemName") or ""
         un = (s.findtext("userName") or "").strip()
         if sn.startswith("M2S") and un:
             sensor_addr[un] = sn[3:]
     out: dict[str, tuple[str, str]] = {}
-    for lb in root.iter("layoutblock"):
+    for lb in tables.layout_blocks(root):
         un = (lb.findtext("userName") or "").strip()
         occ = (lb.get("occupancysensor") or "").strip()
         if un and occ and occ in sensor_addr:
