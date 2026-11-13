@@ -289,6 +289,21 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --dry-run"):
             self.assertEqual(self.code(cmd), 2, cmd)
 
+    def test_website_build_passes_while_open_unless_it_targets_the_profile(self) -> None:
+        # Owner's call (2026-11-13): the website build may run with PanelPro or CATS open. It deletes its
+        # output folder first, so a folder that is, holds or sits in the JMRI profile is still blocked.
+        build = "python3 www/scripts/prepare_github_pages.py"
+        for cmd in (build, f"{build} /tmp/dist", f"{build} /tmp/dist --site-url https://example.invalid/",
+                    "cd www && python3 scripts/prepare_github_pages.py /tmp/dist", "make deploy-site"):
+            self.assertEqual(self.code(cmd), 0, cmd)
+        for cmd in (f"{build} ~/JMRI_UserFiles", f"{build} ~/JMRI_UserFiles/site", f"{build} ~",
+                    f"{build} $HART_PI_USERFILES"):
+            self.assertEqual(self.code(cmd), 2, cmd)
+        # Only the repo's own build script is exempt: a copy with the same name elsewhere is judged as usual.
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "prepare_github_pages.py").write_text("open('tables.xml', 'w').write('x')\n")
+            self.assertEqual(self.code(f"python3 {Path(tmp, 'prepare_github_pages.py')}"), 2)
+
     def test_hartlib_writers_blocked_readers_pass_while_open(self) -> None:
         # A script on hartlib may name neither tables.xml nor a write call.
         writers = {
@@ -318,8 +333,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         for cmd in ("python3 jmri/scripts/check_hart_phase02.py", "git grep pull_tables.sh",
                     "python3 jmri/layouts/hart/scripts/export_track_lengths.py",
                     "./cats/scripts/launch_cats.sh", "python3 -m unittest discover -s tools/audit/tests",
-                    "python3 www/scripts/prepare_github_pages.py /tmp/dist",
-                    "python3 www/scripts/check_portal_build.py"):
+                    "python3 www/scripts/check_portal_build.py"):  # baseline: never touched the tables
             self.assertEqual(self.code(cmd), 0, cmd)
 
     def test_process_pattern_covers_jmri5_decoderpro(self) -> None:

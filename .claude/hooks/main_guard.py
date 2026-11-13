@@ -73,10 +73,28 @@ SH_WRITES = re.compile(r"\b(rsync|cp|scp|mv|install|tee)\s|[^0-9&>]>\s*[^&\s]")
 READS_TABLES = {
     "capture_public_name_baseline.py", "discover_nx.py", "discover_sml.py",
     "export_hart_devices_for_cats.py", "export_track_lengths.py", "lcos_mqtt_mimic.py", "run_dispatcher_stage1.py",
-    # The website build reads the repo's tables.xml for the tables page and writes only its build folder;
-    # the owner lets it run while PanelPro or CATS is open (2026-11-13).
-    "prepare_github_pages.py",
 }
+# The website build reads the repo's tables.xml for the tables page and writes only its build folder, so the
+# owner lets it run while PanelPro or CATS is open (2026-11-13). It deletes that folder first, so it still
+# counts as a writer when the folder is the JMRI profile, inside it, or a folder that holds it.
+WEBSITE_BUILD = os.path.join("www", "scripts", "prepare_github_pages.py")
+JMRI_PROFILE = os.path.expanduser("~/JMRI_UserFiles")
+
+
+def website_build_unsafe(args, cwd):
+    """True when a website build argument names the JMRI profile, a folder inside it or one holding it."""
+    skip = False
+    for arg in args:
+        if skip or arg.startswith("-"):
+            skip = arg in ("--site-url",)  # the next word is a URL, not a folder
+            continue
+        if re.search(r"JMRI_UserFiles|USERFILES", arg):
+            return True
+        dest = os.path.realpath(os.path.join(cwd, os.path.expanduser(arg)))
+        profile = os.path.realpath(JMRI_PROFILE)
+        if dest == profile or dest.startswith(profile + os.sep) or profile.startswith(dest.rstrip(os.sep) + os.sep):
+            return True
+    return False
 LAUNCHER_PREFIXES = ("launch_", "run_")  # start PanelPro or CATS themselves and check what is open
 SAFE_FLAGS = ("--check", "--dry-run", "--stage-only", "--help")  # honoured only when the script defines it
 # A wrapper names the script it runs, relative to itself; the guard judges that script.
@@ -159,6 +177,8 @@ def table_writer(part, cwd="."):
     if not name.endswith((".py", ".sh")) or name.startswith(("test_",) + LAUNCHER_PREFIXES) or name in READS_TABLES:
         return None
     path = os.path.join(cwd, os.path.expanduser(words[0]))
+    if os.path.realpath(path).endswith(os.sep + WEBSITE_BUILD):
+        return name if website_build_unsafe(words[1:], cwd) else None
     try:
         with open(path, encoding="utf-8", errors="ignore") as f:
             source = f.read()
