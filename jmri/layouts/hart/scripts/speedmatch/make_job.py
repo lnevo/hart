@@ -2,6 +2,7 @@
 """Build a job file for the Pi's jmri_cmd_watcher: settings, then the shared logic, then the runner.
 
     make_job.py steps     --loco "CSX 2738" --direction reverse --out /tmp/job_steps.py
+    make_job.py lineup    --route loop2        # the switch positions to set by hand
     make_job.py preflight --loco "CSX 2738" --out /tmp/job_preflight.py
     make_job.py stoptest  --loco "CSX 2121" --direction reverse --step 96 --trigger "BS Switch 33" --out job.py
     make_job.py profile   --payload payload_2121.json --out /tmp/job_profile.py   # dry run unless --apply
@@ -12,6 +13,7 @@ Nothing is sent: use drop_job.sh to copy a job to the Pi.
 """
 import argparse
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -33,16 +35,23 @@ BACKEMF = {"tsunami2": [209, 210, 211, 212, 213], "tcs": [49, 56, 57], "none": [
 BASE_CVS = pc.BASE_CVS
 
 
-# Every block sensor that is not on the test loop (analyze.LOOP). Checked against the sensor
-# names in tables.xml by the tests. McKees Rocks and McKeesport are not here: their own
-# detector sections are not on a node yet (wiki/STATUS.md).
-DEFAULT_GUARD = [
-    "BS S-R", "BS S-1", "BS S-2", "BS S-3", "BS S-4", "BS Switch 23b", "BS Switch 13",
-    "BS Switch 15", "BS Scale", "BS Barn", "BS Switch 11", "BS Switch 9", "BS EH-1", "BS EH-2",
-    "BS EH-3", "BS Switch 3", "BS W-1", "BS W-2", "BS Switch 7",
-    "BS Switch 17", "BS Switch 19", "BS Switch 21", "BS Switch 25", "BS Switch 27",
-    "BS Switch 29", "BS Switch 31",
-]
+TABLES = HERE.parents[1] / "output" / "tables.xml"
+
+
+def guard_for(route=analyze.DEFAULT_ROUTE, tables=TABLES):
+    """Every block sensor ("BS ..." user name) in tables.xml that is not on the route, in the
+    order tables.xml lists them: what --guard default stands for. Computed, not hand-listed, so a
+    new block sensor is guarded at once. McKees Rocks and McKeesport share the Switch 37 and 39
+    sensors (their own detector sections are not on a node yet, wiki/STATUS.md)."""
+    on_route = set(analyze.route_order(route))
+    out = []
+    for n in re.findall(r"<userName>(BS [^<]*)</userName>", Path(tables).read_text()):
+        if n not in on_route and n not in out:
+            out.append(n)
+    return out
+
+
+DEFAULT_GUARD = guard_for(analyze.DEFAULT_ROUTE)  # loop1
 
 
 RUNNER_MARK = "# ---- runner ----\n"
@@ -59,21 +68,30 @@ def step_value(text):
     return n
 
 
+def lineup_text(route):
+    """The switch positions to set by hand for a route, as printed by the lineup job. Nothing
+    here is ever sent anywhere."""
+    lines = ["Line up for %s by hand (tools never command turnouts):" % route]
+    lines += ["  Switch %-3d %s" % (n, pos) for n, pos in analyze.ROUTE_LINEUP[route]]
+    lines.append("Route, in running order: " + ", ".join(s[3:] for s in analyze.route_order(route)))
+    return "\n".join(lines)
+
+
 def step_list(text):
     return [step_value(x) for x in text.split(",")]
 
 
-def guards(values):
+def guards(values, route=analyze.DEFAULT_ROUTE):
     """--guard values: sensor names, or the single word none to run without a guard on purpose
-    (the runner then logs NO GUARD). The word default stands for DEFAULT_GUARD and may be
-    combined with more names."""
+    (the runner then logs NO GUARD). The word default stands for guard_for(route), every block
+    sensor off that route, and may be combined with more names."""
     if "none" in values:
         if len(values) > 1:
             raise SystemExit("--guard none cannot be combined with sensor names")
         return []
     out = []
     for v in values:
-        for n in (DEFAULT_GUARD if v == "default" else [v]):
+        for n in (guard_for(route) if v == "default" else [v]):
             if n not in out:
                 out.append(n)
     return out
@@ -90,11 +108,12 @@ def settings_text(d):
 
 
 def build_steps(a, lengths):
+    order = analyze.route_order(a.route)
     s = {
         "LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward",
         "FUNCS": [0] + ([8] if a.mute_sound else []),
-        "GUARD": guards(a.guard), "REF": analyze.ORDER[0], "MID": "BS Switch 23a",
-        "ORDER": analyze.ORDER, "LENGTHS": lengths,
+        "GUARD": guards(a.guard, a.route), "REF": order[0], "MID": "BS Switch 23a",
+        "ROUTE": a.route, "ORDER": order, "LENGTHS": lengths,
         "STEPS_LIST": a.steps, "WARM_STEP": a.warm_step, "WARM_LAPS": a.warm_laps,
         "STOP_K": a.k, "STOP_REL": a.rel, "MAX_READINGS": a.max_n,
         "SETTLE_EVENTS": a.settle, "LOW_MAX": a.low_max, "HIGH_SPAN": a.high_span,
@@ -109,18 +128,19 @@ def build_steps(a, lengths):
 
 def build_move(a):
     s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
-         "UNTIL": list(a.until), "GUARD": guards(a.guard), "FUNCS": [0] + ([8] if a.mute_sound else []),
+         "UNTIL": list(a.until), "GUARD": guards(a.guard, a.route), "FUNCS": [0] + ([8] if a.mute_sound else []),
          "MAX_S": a.max_s}
     return settings_text(s) + runner_text("move_to.py")
 
 
 def build_stoptest(a):
-    g = guards(a.guard)
+    g = guards(a.guard, a.route)
+    order = analyze.route_order(a.route)
     if a.trigger in g:
         raise SystemExit("--trigger %r is also a guard: the run would end before it stops the loco" % a.trigger)
-    if a.trigger not in analyze.ORDER:
-        raise SystemExit("--trigger %r is not a loop sensor user name; give one of: %s (system names are refused so "
-                         "the off-loop check is reliable)" % (a.trigger, ", ".join(analyze.ORDER)))
+    if a.trigger not in order:
+        raise SystemExit("--trigger %r is not a %s sensor user name; give one of: %s (system names are refused so "
+                         "the off-loop check is reliable)" % (a.trigger, a.route, ", ".join(order)))
     s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
          "TRIGGER": a.trigger, "GUARD": g, "FUNCS": [0] + ([8] if a.mute_sound else []),
          "MAX_S": a.max_s, "SETTLE_S": a.settle_s, "QUIET_S": a.quiet_s}
@@ -213,13 +233,21 @@ def main(argv=None):
     pr.add_argument("--payload", required=True, help="JSON from profile_to_roster.py")
     pr.add_argument("--apply", action="store_true", help="write (the job is a dry run without it)")
     pr.add_argument("--log")
+    for p in (st, mv, sp):
+        p.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE,
+                       help="test route (default loop1); --guard default is every block sensor off it")
+    li = sub.add_parser("lineup", help="print the switch positions to set by hand for a route")
+    li.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE)
     for p in (st, pf, mv, sp, pr):
         p.add_argument("--out", required=True, help="job file to write")
     a = ap.parse_args(argv)
+    if a.job == "lineup":
+        print(lineup_text(a.route))
+        return
     tag = a.loco.replace(" ", "_") if getattr(a, "loco", None) else "profile"
     if a.job == "steps":
         a.log = a.log or "/tmp/steprun_%s_%s_%s.log" % (tag, a.direction, stamp)
-        lengths = analyze.load_lengths(a.lengths, tuple(a.trusted.split(",")))
+        lengths = analyze.load_lengths(a.lengths, tuple(a.trusted.split(",")), analyze.route_loop(a.route))
         if sum(v is not None for v in lengths.values()) == 0:
             sys.exit("no trusted block lengths: nothing to measure over (see --trusted)")
         text = build_steps(a, lengths)

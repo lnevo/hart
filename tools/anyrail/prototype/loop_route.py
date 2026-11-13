@@ -1,4 +1,5 @@
-"""Print PLAN_LOOP_MM and PLAN_TURNOUT_MM for infer_block_lengths.py from the decoded plan.
+"""Print the plan constants of both test routes for infer_block_lengths.py from the decoded plan:
+PLAN_LOOP_MM and PLAN_TURNOUT_MM (loop 1), PLAN_LOOP2_MM and PLAN_LOOP2_TURNOUT_MM (loop 2).
 
 Run in the scratch folder after parse1, parse2, graph and `anygraph.py 1` (staging level).
 Plan turnout ids (Txx) are mapped to HART switches in docs/jmri/speedmatching/ANYRAIL_LENGTHS.md.
@@ -37,11 +38,37 @@ ROUTE = [
     ("Brick-Plane", run(116, "C"), None),
 ]
 
-if __name__ == "__main__":
+# loop 2: Switch 5 thrown into Scale and Barn, then Switch 15 (T52) and Track S-R (the plan's T41
+# crossover is not built: counted as track), Switch 23b (T118) and 31 (T59), Switch 33 (T77), and
+# on as loop 1 from East Lead. Switches 23b, 31 and the unbuilt T41 carry no pin; 7 and 13 are not
+# on the plan as turnouts yet: they are what the run is for.
+LOOP1_FROM_EAST_LEAD = ROUTE[3:]  # East Lead on; the same stretch as loop 1
+ROUTE2 = [
+    ("Sw5 T106 A->C", through(106, "C"), "Switch 5"),
+    ("Scale, Switch 7, Barn, Switch 13 (T106C run)", run(106, "C"), None),
+    ("Sw15 T52 A->B", through(52, "B"), "Switch 15"),
+    ("T52 run to T41", run(52, "B"), None),
+    ("T41 A->B (crossover not built)", through(41, "B"), None),
+    ("Track S-R run T41B", run(41, "B"), None),
+    ("Sw23b T118 B->A", through(118, "B"), None),
+    ("T118 run to T59", run(118, "A"), None),
+    ("Sw31 T59 B->A", through(59, "B"), None),
+    ("T59 run to T77", run(59, "A"), None),
+    ("Sw33 T77 B->A", through(77, "B"), "Switch 33"),
+] + LOOP1_FROM_EAST_LEAD
+
+
+def walk(route):
     pos, pins = 0.0, {}
-    for name, mm, sensor in ROUTE:
+    for name, mm, sensor in route:
         if sensor:
             pins[sensor] = round(pos + mm / 2)
         pos += mm
-    print("PLAN_LOOP_MM = %.1f" % pos)
-    print("PLAN_TURNOUT_MM =", pins)
+    return pos, pins
+
+
+if __name__ == "__main__":
+    for tag, route in (("", ROUTE), ("2", ROUTE2)):
+        total, pins = walk(route)
+        print("PLAN_LOOP%s_MM = %.1f" % (tag, total))
+        print("PLAN_LOOP%s_TURNOUT_MM =" % tag if tag else "PLAN_TURNOUT_MM =", pins)

@@ -23,7 +23,9 @@ block_lengths.csv sharing the sensor), the stub's length is taken off the track 
 Usage:
     python3 jmri/layouts/hart/scripts/infer_block_lengths.py            # report
     python3 jmri/layouts/hart/scripts/infer_block_lengths.py --apply    # update CSV
-Then regenerate with export_track_lengths.py, as for any CSV change.
+    python3 jmri/layouts/hart/scripts/infer_block_lengths.py --route loop2 --events EV.csv --locate
+Then regenerate with export_track_lengths.py, as for any CSV change. Loop 2 (S-R, Scale, Barn)
+places OS Switch 7 and 13; see docs/jmri/speedmatching/RUNBOOK.md.
 """
 
 from __future__ import annotations
@@ -48,6 +50,7 @@ MM_PER_IN = 25.4
 PLAN_LOOP_MM = 35108.2
 MIN_STEP = 24
 REF_BLOCK = "East Main Ext"
+DEFAULT_ROUTE = "loop1"
 
 # The loop's sensors and their block_lengths.csv rows come from the speed-match analysis
 # (speedmatch/analyze.py LOOP), so there is one list to keep. block_events.csv names the
@@ -55,7 +58,17 @@ REF_BLOCK = "East Main Ext"
 sys.path.insert(0, str(Path(__file__).resolve().parent / "speedmatch"))
 import analyze  # noqa: E402
 
-SENSOR_ROWS = {sensor[3:]: row for sensor, row in analyze.LOOP}
+SENSOR_ROWS = {sensor[3:]: row for sensor, row in analyze.LOOP}  # loop1
+
+
+def route_rows(route):
+    """{sensor without "BS ": csv row} for a route, in running order."""
+    return {sensor[3:]: row for sensor, row in analyze.route_loop(route)}
+
+
+def route_ref(route):
+    """The lap reference block: loop1 keeps East Main Ext, every other route its first sensor."""
+    return REF_BLOCK if route == DEFAULT_ROUTE else next(iter(route_rows(route)))
 
 
 def lap_shares(rows, min_step=MIN_STEP, ref=REF_BLOCK, blocks=None):
@@ -112,6 +125,26 @@ PLAN_TURNOUT_MM = {
 _ORDER = list(SENSOR_ROWS)
 ROUTE_FROM_SW5 = _ORDER[_ORDER.index("Switch 5"):] + _ORDER[:_ORDER.index("Switch 5")]
 
+# Loop 2 (Switch 5 thrown into Scale, Barn, Switch 13, 15, Track S-R, 23b, 31, 33, then as loop 1
+# from East Lead): the plan route is T106 A->C, run T106C, T52 A->B, run T52B, T41 A->B (not
+# built, counted as track), S-R run T41B, T118 B->A, run T118A, T59 B->A, run T59A, T77 B->A, then
+# East Lead onward as loop 1. tools/anyrail/prototype/loop_route.py prints both constants.
+# Switches 23b (12000 mm) and 31 (12382) are not pinned: too close to Switch 33 (12748) for a
+# pinned stretch of a few cm to stay meaningful. Switches 7 and 13 are the ones to find.
+PLAN_LOOP2_MM = 35428.7
+PLAN_LOOP2_TURNOUT_MM = {
+    "Switch 5": 140, "Switch 15": 5909, "Switch 33": 12748, "Switch 35a": 15723,
+    "Switch 35b": 22861, "Switch 23a": 27392, "Switch 1": 33492,
+}
+# route -> (plan loop length mm, plan turnout centres by OS sensor)
+PLAN = {"loop1": (PLAN_LOOP_MM, PLAN_TURNOUT_MM), "loop2": (PLAN_LOOP2_MM, PLAN_LOOP2_TURNOUT_MM)}
+
+
+def route_from_sw5(route):
+    names = list(route_rows(route))
+    i = names.index("Switch 5")
+    return names[i:] + names[:i]
+
 
 def pinned(result, loop_mm=PLAN_LOOP_MM, turnouts=PLAN_TURNOUT_MM, route=ROUTE_FROM_SW5):
     """Re-fit the timed lengths so each turnout's OS centre lands on the plan's turnout centre.
@@ -144,30 +177,45 @@ def pinned(result, loop_mm=PLAN_LOOP_MM, turnouts=PLAN_TURNOUT_MM, route=ROUTE_F
     return out
 
 
+def locate(result, loop_mm, turnouts, route, targets=("Switch 7", "Switch 13"), anchor="Switch 15"):
+    """Where the target sections' centres fall along the route, in mm from Switch 5's points
+    (the plan frame the pins use), and their distance from the anchor's centre (positive =
+    before the anchor along the route). result is the pinned() output. Returns
+    {sensor: (centre mm, mm before the anchor's centre)}."""
+    start = turnouts["Switch 5"] - result["Switch 5"][0] / 2
+    centre, pos = {}, start
+    for s in route:
+        centre[s] = pos + result[s][0] / 2
+        pos += result[s][0]
+    return {t: (centre[t], centre[anchor] - centre[t]) for t in targets}
+
+
 def stubs_of(rows, sensor):
     """Hidden throat stub rows that share this sensor's detector."""
     return [r["user_name"] for r in rows
             if r["flag"] == "stub" and r["occupancy_sensor"] == "BS " + sensor]
 
 
-def plan_rows(result, csv_path=CSV):
-    """The CSV rows with the new lengths, not yet written. Returns (fields, rows, mm by row)."""
+def plan_rows(result, csv_path=CSV, route=DEFAULT_ROUTE, only=None):
+    """The CSV rows with the new lengths, not yet written. Returns (fields, rows, mm by row).
+    only: the sensors to write (default all of the route's)."""
     rows = list(csv.DictReader(open(csv_path, newline="")))
     fields = list(rows[0].keys())
     by_name = {r["user_name"]: r for r in rows}
-    for sensor, name in SENSOR_ROWS.items():
+    sensor_rows = {s: n for s, n in route_rows(route).items() if only is None or s in only}
+    for sensor, name in sensor_rows.items():
         stubs = stubs_of(rows, sensor)
         mm, spread, n = result[sensor]
         stub_mm = sum(float(by_name[s]["inches"]) * MM_PER_IN for s in stubs)
         r = by_name[name]
         r["inches"] = f"{(mm - stub_mm) / MM_PER_IN:.1f}"
         r["flag"] = "inferred"
-        note = (f"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; "
+        note = (f"timed share of the AnyRail 5.3b {route} loop, pinned to the plan turnouts either side; "
                 f"+-{spread / MM_PER_IN:.1f} in over {n} laps")
         if stubs:
             note += "; detector length minus " + ", ".join(stubs)
         r["old_source"] = note
-    return fields, rows, {n: float(by_name[n]["inches"]) * MM_PER_IN for n in SENSOR_ROWS.values()}
+    return fields, rows, {n: float(by_name[n]["inches"]) * MM_PER_IN for n in sensor_rows.values()}
 
 
 def write_csv(fields, rows, csv_path=CSV):
@@ -197,20 +245,49 @@ def apply_tables(lengths_mm):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--events", type=Path, default=EVENTS)
+    ap.add_argument("--route", choices=sorted(PLAN), default=DEFAULT_ROUTE)
+    ap.add_argument("--events", type=Path, help="block_events-style CSV (analyze.py --events-out for "
+                    "a new run); required for loop2, default for loop1 is the 2026-11-08 file")
     ap.add_argument("--apply", action="store_true", help="write the lengths into block_lengths.csv")
+    ap.add_argument("--overwrite", action="store_true",
+                    help="loop2: also rewrite the rows loop 1 already set (loop 1 owns them otherwise)")
+    ap.add_argument("--locate", action="store_true",
+                    help="print where the OS Switch 7 and 13 section centres fall along the route")
     a = ap.parse_args()
-    result = pinned(infer(list(csv.DictReader(open(a.events, newline="")))))
-    print(f"{'sensor':30} {'mm':>8} {'+-mm':>6} {'in':>7} {'laps':>5}")
-    for sensor in ROUTE_FROM_SW5:
+    route = a.route
+    loop_mm, pins = PLAN[route]
+    if a.events is None:
+        if route != DEFAULT_ROUTE:
+            ap.error("--events is required for %s" % route)
+        a.events = EVENTS
+    names = route_rows(route)
+    result = pinned(infer(list(csv.DictReader(open(a.events, newline=""))), loop_mm=loop_mm,
+                          ref=route_ref(route), blocks=list(names)),
+                    loop_mm, pins, route_from_sw5(route))
+    print(f"{route}: {'sensor':30} {'mm':>8} {'+-mm':>6} {'in':>7} {'laps':>5}")
+    for sensor in route_from_sw5(route):
         mm, spread, n = result[sensor]
-        print(f"{sensor:30} {mm:8.0f} {spread:6.0f} {mm / MM_PER_IN:7.1f} {n:5d}")
-    print(f"{'total':30} {sum(v[0] for v in result.values()):8.0f}   (plan loop {PLAN_LOOP_MM:.0f})")
+        print(f"{sensor:36} {mm:8.0f} {spread:6.0f} {mm / MM_PER_IN:7.1f} {n:5d}")
+    print(f"{'total':36} {sum(v[0] for v in result.values()):8.0f}   (plan loop {loop_mm:.0f})")
+    only = None
+    if route != DEFAULT_ROUTE:
+        owned = set(SENSOR_ROWS)  # loop 1 owns its 17 rows
+        csv_rows = {r["user_name"]: r for r in csv.DictReader(open(CSV, newline=""))}
+        print("rows on both routes (loop 1 value from block_lengths.csv, this run beside it):")
+        for s in names:
+            if s in owned:
+                old = float(csv_rows[names[s]]["inches"]) * MM_PER_IN
+                print(f"  {s:34} loop1 {old:7.0f} mm   {route} {result[s][0]:7.0f} mm   {result[s][0] - old:+6.0f}")
+        only = set(names) if a.overwrite else set(names) - owned
+    if a.locate:
+        for t, (pos, before) in locate(result, loop_mm, pins, route_from_sw5(route)).items():
+            print(f"locate: OS {t} centre {pos:.0f} mm from Switch 5's points, "
+                  f"{before:.0f} mm before OS Switch 15's centre")
     if a.apply:
-        fields, rows, mm = plan_rows(result)
+        fields, rows, mm = plan_rows(result, CSV, route, only)
         apply_tables(mm)          # tables first: it refuses while PanelPro or CATS is open
         write_csv(fields, rows)   # so the CSV only changes once tables.xml has
-        print(f"updated {CSV.relative_to(REPO)} and tables.xml; now run export_track_lengths.py")
+        print(f"updated {len(mm)} rows in {CSV.relative_to(REPO)} and tables.xml; now run export_track_lengths.py")
 
 
 if __name__ == "__main__":

@@ -20,7 +20,8 @@
 #   FUNCS           function numbers to switch on (0 = lights, needed for detection)
 #   GUARD           sensors that abort the run
 #   REF, MID        lap counter for the warm-up: REF lit again after MID was lit in between
-#   ORDER           block sensor names around the loop in one direction
+#   ROUTE           the route's name (loop1, loop2), logged in the CFG line
+#   ORDER           block sensor names around the route in one direction
 #   LENGTHS         dict sensor -> length in mm, None when the length is not trusted
 #   STEPS_LIST      steps to measure, in order (a repeated step is measured again)
 #   WARM_STEP, WARM_LAPS   middle step and number of laps before measuring (0 = none)
@@ -84,8 +85,8 @@ def run():
         t.setIsForward(P_FWD)
         for fn in FUNCS: getattr(t, "setF%d" % fn)(True)
         L("RUN loco=%s direction=%s" % (P_ID, "forward" if P_FWD else "reverse"))
-        L("CFG k=%d rel=%.4f max=%d settle=%d low_max=%d high_span=%d warm=%d@%d" % (
-            STOP_K, STOP_REL, MAX_READINGS, SETTLE_EVENTS, LOW_MAX, HIGH_SPAN, WARM_LAPS, WARM_STEP))
+        L("CFG route=%s k=%d rel=%.4f max=%d settle=%d low_max=%d high_span=%d warm=%d@%d" % (
+            ROUTE, STOP_K, STOP_REL, MAX_READINGS, SETTLE_EVENTS, LOW_MAX, HIGH_SPAN, WARM_LAPS, WARM_STEP))
         L("LENGTHS " + json.dumps(LENGTHS))
         time.sleep(1.0)
         stall = min(STALL0, STALL_CAP)

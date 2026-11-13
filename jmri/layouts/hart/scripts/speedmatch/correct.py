@@ -216,13 +216,15 @@ def proposal(loco, report, round_no, max_rounds, tol):
             "note": "A proposal only. Writing goes through the write guard, dry run first."}
 
 
-def read_profile(path, loco, direction, run=None):
+def read_profile(path, loco, direction, run=None, route="loop1"):
     """({step: median mm/s}, [skipped]) for one loco and direction from analyze.py's
     profile.csv. One run only: `run` if given, else the latest complete run (the latest run
     if none completed). Only the first measurement of a step, and only if the stop rule
-    settled (reason "settled"); every other step is listed in skipped as (step, reason)."""
+    settled (reason "settled"); every other step is listed in skipped as (step, reason).
+    Only runs of `route` count (a profile.csv without a route column is loop1)."""
     with open(path, newline="") as fh:
-        rows = [r for r in csv.DictReader(fh) if r["loco"] == loco and r["direction"] == direction]
+        rows = [r for r in csv.DictReader(fh) if r["loco"] == loco and r["direction"] == direction
+                and (r.get("route") or "loop1") == route]
     runs = {}
     for r in rows:
         runs.setdefault(int(r.get("run") or 1), (r.get("run_complete") or "True") == "True")
@@ -252,6 +254,7 @@ def main(argv=None):
     ap.add_argument("--target-profile", help="profile.csv of the target (default: --profile)")
     ap.add_argument("--target-loco", required=True)
     ap.add_argument("--target-direction", required=True)
+    ap.add_argument("--route", default="loop1", help="use only runs of this route in the profiles (default loop1)")
     ap.add_argument("--round", type=int, default=1)
     ap.add_argument("--max-rounds", type=int, default=MAX_ROUNDS)
     ap.add_argument("--tol", type=float, default=TOLERANCE)
@@ -266,8 +269,8 @@ def main(argv=None):
         table = [cvs[CV_START + i] for i in range(N)]
     else:
         ap.error("give --table or --roster-xml")
-    measured, skip_m = read_profile(a.profile, a.loco, a.direction, a.run)
-    target, skip_t = read_profile(a.target_profile or a.profile, a.target_loco, a.target_direction, a.target_run)
+    measured, skip_m = read_profile(a.profile, a.loco, a.direction, a.run, a.route)
+    target, skip_t = read_profile(a.target_profile or a.profile, a.target_loco, a.target_direction, a.target_run, a.route)
     skipped = ["%s %s step %d: %s" % (a.loco, a.direction, st, why) for st, why in skip_m] + \
               ["%s %s step %d: %s" % (a.target_loco, a.target_direction, st, why) for st, why in skip_t]
     if not measured or not target:
