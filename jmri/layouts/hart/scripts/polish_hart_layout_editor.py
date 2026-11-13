@@ -63,12 +63,13 @@ REDUNDANT_OCCUPANCY_SENSOR = re.compile(r"Block \d+-\d+")
 # South Yard: one column mid-yard, centred on each track (y 315 / 366 / 413 /
 # 460 / 502), below the track-name labels at x 953. Used for both the Stage 1
 # lamp placement and the dedupe keep spot.
+LAMP_COLUMN_X = 985  # mid-yard column shared by the South Yard and the mains
 SOUTH_YARD_LAMPS = {
-    "BS S-R": (985, 310),
-    "BS S-1": (985, 361),
-    "BS S-2": (985, 408),
-    "BS S-3": (985, 455),
-    "BS S-4": (985, 497),
+    "BS S-R": (LAMP_COLUMN_X, 310),
+    "BS S-1": (LAMP_COLUMN_X, 361),
+    "BS S-2": (LAMP_COLUMN_X, 408),
+    "BS S-3": (LAMP_COLUMN_X, 455),
+    "BS S-4": (LAMP_COLUMN_X, 497),
 }
 # Sensors that can get more than one Stage 1 lamp; one is kept, at its target.
 SHARED_OCCUPANCY_KEEP = (
@@ -113,8 +114,8 @@ STAGE1_LAMP_PLACEMENTS = {
     # Mains in the South Yard lamp column (x 985), on their own track (owner,
     # 2026-11-13): Main West along the top (y 252), Main East along the
     # bottom (y 550).
-    "BS Main West": (985, 247),
-    "BS Main East": (985, 545),
+    "BS Main West": (LAMP_COLUMN_X, 247),
+    "BS Main East": (LAMP_COLUMN_X, 545),
     # West Yard: at the bumper end of each spur (x 55), like the engine house.
     "BS W-1": (58, 247),
     "BS W-2": (58, 310),
@@ -253,7 +254,7 @@ BCI_COLOR = ("0", "0", "0")
 BCI_DROP_FONT_ATTRS = ("fontFamily", "fontname")
 # Stage 1 (CreateIcons) puts the engine-house train names on Switch 9 and 11,
 # where they overlap the OS Switch 9 / 11 labels. Each sits on its spur's
-# Dispatcher button row instead, east of the BS Main West lamp (x 780-790).
+# Dispatcher button row instead, at x 794 clear of the station buttons.
 BCI_PLACEMENTS = {
     "Track EH-1": (794, 256),
     "Track EH-2": (794, 270),

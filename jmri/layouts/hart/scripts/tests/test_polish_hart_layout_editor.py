@@ -186,8 +186,6 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 
         for sensor, (x, y) in targets.items():
-            if sensor in polish.STAGE1_LAMP_PLACEMENTS:
-                continue
             cx, cy = x + half, y + half
             os_turnouts = [circles[n] for n in blocks.get(sensor, []) if n in circles]
             if os_turnouts:
@@ -196,6 +194,20 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             else:
                 mine = [seg for seg in segments if seg[0] in blocks[sensor]]
                 self.assertLessEqual(min(on_segment(cx, cy, s[1], s[2]) for s in mine), 1, sensor)
+
+        # no NX icon (21x21) covers a Stage 1 occupancy lamp
+        lamps = [
+            (float(i.get("x")), float(i.get("y")))
+            for i in le.findall("sensoricon")
+            if (i.get("sensor") or "").startswith("BS ") and i.get("level") != polish.CLUSTER_LAMP_LEVEL
+        ]
+        for nx in le.findall("sensoricon"):
+            if not (nx.get("sensor") or "").startswith("NX "):
+                continue
+            nx_x, nx_y = float(nx.get("x")), float(nx.get("y"))
+            for lx, ly in lamps:
+                overlap = lx < nx_x + 21 and nx_x < lx + 10 and ly < nx_y + 21 and nx_y < ly + 10
+                self.assertFalse(overlap, f"{nx.get('sensor')} covers the lamp at {lx},{ly}")
 
         # every Stage 1 lamp on the panel is at its target
         _, errors = polish.place_stage1_lamps(le, check=True, targets=targets)
