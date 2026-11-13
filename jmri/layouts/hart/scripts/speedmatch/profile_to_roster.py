@@ -17,31 +17,26 @@ import json
 import sys
 from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import correct  # noqa: E402
+
 
 class ProfileRefusal(Exception):
     """The data cannot make a complete profile."""
 
 
-def _is_true(text):
-    return str(text).strip().lower() == "true"
-
-
-def settled_steps(rows, loco, direction):
-    """dict step -> mm/s for the latest complete run of (loco, direction) in the profile.csv rows."""
-    mine = [r for r in rows if r["loco"] == loco and r["direction"] == direction
-            and _is_true(r.get("run_complete", ""))]
-    if not mine:
+def settled_steps(path, loco, direction):
+    """dict step -> mm/s for the latest complete run of (loco, direction) in profile.csv. The
+    reading of the file is correct.read_profile's (settled steps only, repeats skipped); this
+    adds the refusals a roster write needs."""
+    with open(path, newline="") as fh:
+        mine = [r for r in csv.DictReader(fh) if r["loco"] == loco and r["direction"] == direction]
+    if not any((r.get("run_complete") or "True") == "True" for r in mine):
         raise ProfileRefusal("%s %s: no complete run in profile.csv" % (loco, direction))
-    run = max(int(r["run"]) for r in mine)
-    out = {}
-    for r in mine:
-        if int(r["run"]) != run or "#" in r["step"] or r["reason"] != "settled":
-            continue
-        if r["median_mm_s"] in ("", None):
-            continue
-        out[int(r["step"])] = float(r["median_mm_s"])
+    out, _skipped = correct.read_profile(path, loco, direction)
     if not out:
-        raise ProfileRefusal("%s %s: the latest complete run (%d) has no settled step" % (loco, direction, run))
+        raise ProfileRefusal("%s %s: the latest complete run has no settled step" % (loco, direction))
     return out
 
 
@@ -50,9 +45,9 @@ def throttle_key(step):
     return int(round(step / 126.0 * 1000))
 
 
-def build_payload(rows, loco):
-    fwd = settled_steps(rows, loco, "forward")
-    rev = settled_steps(rows, loco, "reverse")
+def build_payload(path, loco):
+    fwd = settled_steps(path, loco, "forward")
+    rev = settled_steps(path, loco, "reverse")
     both = sorted(set(fwd) & set(rev))
     if not both:
         raise ProfileRefusal("%s: no step settled in both directions" % loco)
@@ -69,10 +64,8 @@ def main(argv=None):
     ap.add_argument("--loco", required=True, help='roster id, e.g. "CSX 2121"')
     ap.add_argument("--out", required=True, help="payload JSON to write")
     a = ap.parse_args(argv)
-    with open(a.profile_csv, newline="") as fh:
-        rows = list(csv.DictReader(fh))
     try:
-        payload = build_payload(rows, a.loco)
+        payload = build_payload(a.profile_csv, a.loco)
     except ProfileRefusal as e:
         sys.exit("refused: %s" % e)
     Path(a.out).write_text(json.dumps(payload, indent=2) + "\n")

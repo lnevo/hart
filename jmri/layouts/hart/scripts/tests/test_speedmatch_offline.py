@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from test_speedmatch import FORBIDDEN_EVERYWHERE, SM, analyze, make_job  # noqa: E402
+from test_speedmatch import FORBIDDEN_EVERYWHERE, SM, analyze, make_job, mover  # noqa: E402
 
 sys.path.insert(0, str(SM))
 import profile_to_roster as p2r  # noqa: E402
@@ -54,7 +54,7 @@ class DefaultGuard(unittest.TestCase):
         make_job.main(["move", "--loco", "L", "--direction", "forward", "--guard", "default",
                        "--until", "BS Switch 33", "--out", str(d / "m.py")])
         ns: dict = {}
-        exec(compile((d / "m.py").read_text().split("# move_to.py")[0], "job", "exec"), ns)
+        exec(compile((d / "m.py").read_text().split(make_job.RUNNER_MARK)[0], "job", "exec"), ns)
         self.assertEqual(ns["GUARD"], make_job.DEFAULT_GUARD)
 
 
@@ -62,6 +62,16 @@ def rows_for(loco, direction, run, steps, complete=True, reason="settled"):
     return [{"loco": loco, "direction": direction, "step": str(s), "reason": reason,
              "median_mm_s": str(10.0 * int(str(s).split("#")[0])), "run": str(run), "run_complete": str(complete)}
             for s in steps]
+
+
+def as_csv(rows):
+    d = Path(tempfile.mkdtemp())
+    p = d / "profile.csv"
+    with open(p, "w", newline="") as fh:
+        w = csv.DictWriter(fh, ["loco", "direction", "step", "reason", "median_mm_s", "run", "run_complete"])
+        w.writeheader()
+        w.writerows(rows)
+    return p
 
 
 class ProfileToRoster(unittest.TestCase):
@@ -72,27 +82,30 @@ class ProfileToRoster(unittest.TestCase):
                 + rows_for("A", "forward", 3, [64], reason="max")
                 + rows_for("A", "reverse", 2, [2, 4, 126]))
         rows[0]["median_mm_s"] = "999"  # run 1 is not the latest
-        pl = p2r.build_payload(rows, "A")
+        pl = p2r.build_payload(as_csv(rows), "A")
         self.assertEqual([p["step"] for p in pl["points"]], [2, 4, 126])
         self.assertEqual(pl["points"][0], {"step": 2, "forward_mm_s": 20.0, "reverse_mm_s": 20.0})
 
     def test_steps_in_one_direction_only_are_left_out_and_named(self):
         rows = rows_for("A", "forward", 1, [2, 4, 8]) + rows_for("A", "reverse", 2, [2, 4])
-        pl = p2r.build_payload(rows, "A")
+        pl = p2r.build_payload(as_csv(rows), "A")
         self.assertEqual([p["step"] for p in pl["points"]], [2, 4])
         self.assertEqual(pl["skipped_steps"], [8])
 
     def test_refuses_a_missing_direction_or_no_complete_run(self):
         with self.assertRaises(p2r.ProfileRefusal):
-            p2r.build_payload(rows_for("A", "forward", 1, [2]), "A")
+            p2r.build_payload(as_csv(rows_for("A", "forward", 1, [2])), "A")
         with self.assertRaises(p2r.ProfileRefusal):
-            p2r.build_payload(rows_for("A", "forward", 1, [2]) + rows_for("A", "reverse", 2, [2], complete=False), "A")
+            p2r.build_payload(as_csv(rows_for("A", "forward", 1, [2]) + rows_for("A", "reverse", 2, [2], complete=False)), "A")
         with self.assertRaises(p2r.ProfileRefusal):
-            p2r.build_payload(rows_for("A", "forward", 1, [2], reason="max") + rows_for("A", "reverse", 2, [2]), "A")
+            p2r.build_payload(as_csv(rows_for("A", "forward", 1, [2], reason="max") + rows_for("A", "reverse", 2, [2])), "A")
         with self.assertRaises(p2r.ProfileRefusal):  # nothing in common
-            p2r.build_payload(rows_for("A", "forward", 1, [2]) + rows_for("A", "reverse", 2, [4]), "A")
+            p2r.build_payload(as_csv(rows_for("A", "forward", 1, [2]) + rows_for("A", "reverse", 2, [4])), "A")
         with self.assertRaises(p2r.ProfileRefusal):  # another loco's rows do not count
-            p2r.build_payload(rows_for("B", "forward", 1, [2]) + rows_for("B", "reverse", 2, [2]), "A")
+            p2r.build_payload(as_csv(rows_for("B", "forward", 1, [2]) + rows_for("B", "reverse", 2, [2])), "A")
+
+    def test_the_csv_is_read_by_correct_read_profile(self):
+        self.assertIn("correct.read_profile", (SM / "profile_to_roster.py").read_text())
 
     def test_cli_reads_the_analysis_csv_and_refuses_with_a_message(self):
         d = Path(tempfile.mkdtemp())
@@ -170,7 +183,7 @@ class StopTestJob(unittest.TestCase):
                        "--trigger", "BS Switch 33", "--out", str(d / "s.py"), *extra])
         text = (d / "s.py").read_text()
         ns: dict = {}
-        exec(compile(text.split("# stop_test.py")[0], "job", "exec"), ns)
+        exec(compile(text.split(make_job.RUNNER_MARK)[0], "job", "exec"), ns)
         return text, ns
 
     def test_settings(self):
@@ -193,17 +206,66 @@ class StopTestJob(unittest.TestCase):
         with self.assertRaises(SystemExit):
             make_job.main(base + ["--trigger", "BS W-1", "--guard", "none"])
 
-    def test_script_stops_with_its_own_throttle_in_the_right_order(self):
+    def test_script_stops_with_its_own_throttle_and_arms_after_go(self):
         src = (SM / "jython" / "stop_test.py").read_text()
+        kit = mover("stop_test.py")
         for bad in FORBIDDEN_EVERYWHERE + ["readCV", "writeCV", "Programmer", "emergency", "OpsMode"]:
-            self.assertNotIn(bad, src, bad)
-        for need in ["/tmp/speedrun.active", "/tmp/speedrun.kill", "guard already ACTIVE", "trigger already ACTIVE",
-                     "STOPCMD", "SETTLE_S", "QUIET_S", "java.lang.Throwable", "own[0]", 'L("END")']:
+            self.assertNotIn(bad, kit, bad)
+        for need in ["/tmp/speedrun.kill", "trigger already ACTIVE", "STOPCMD", "SETTLE_S", "QUIET_S",
+                     "settled, then guard", "trigger ACTIVE when armed", "lit before arming, ignored"]:
             self.assertIn(need, src, need)
-        fin = src.split("finally:")[-1]
-        i0, i1, i2 = fin.index("setSpeedSetting(0.0)"), fin.index("(False)"), fin.index("t.release(tl)")
-        self.assertTrue(i0 < i1 < i2)
-        self.assertNotRegex(src, r"\bf[\"']")
+        # the throttle is given to the stop only after the loco was sent off
+        self.assertLess(src.index("t.setSpeedSetting(P_STEP / 126.0)"), src.index('box["t"] = t; box["armed"] = True'))
+        self.assertLess(src.index('box["armed"] = True'), src.index("trigger ACTIVE when armed"))
+        # the trigger and the guards are compared as beans, and the log uses the resolved name
+        self.assertIn("found[g] == trig", src)
+        self.assertIn("trig.getUserName() or trig.getSystemName()", src)
+        self.assertNotRegex(kit, r"\bf[\"']")
+
+    def test_trigger_must_be_a_loop_sensor_by_user_name(self):
+        d = Path(tempfile.mkdtemp())
+        base = ["stoptest", "--loco", "L", "--direction", "forward", "--step", "32", "--guard", "none",
+                "--out", str(d / "s.py")]
+        with self.assertRaises(SystemExit) as cm:
+            make_job.main(base + ["--trigger", "M2S1302"])
+        self.assertIn("system names are refused", str(cm.exception))
+        with self.assertRaises(SystemExit):
+            make_job.main(base + ["--trigger", "BS Switch 7"])  # off the loop (Switch 7b is on it)
+        make_job.main(base + ["--trigger", "BS Switch 33"])
+
+
+class Jobkit(unittest.TestCase):
+    MOVERS = ("step_runner.py", "move_to.py", "stop_test.py")
+
+    def test_each_job_has_the_kit_once_and_the_runners_keep_no_copy(self):
+        d = Path(tempfile.mkdtemp())
+        csvp = d / "bl.csv"
+        csvp.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        make_job.main(["steps", "--loco", "L", "--direction", "forward", "--guard", "none",
+                       "--lengths", str(csvp), "--out", str(d / "a.py")])
+        make_job.main(["move", "--loco", "L", "--direction", "forward", "--guard", "none",
+                       "--until", "BS Switch 33", "--out", str(d / "b.py")])
+        make_job.main(["stoptest", "--loco", "L", "--direction", "forward", "--step", "32", "--guard", "none",
+                       "--trigger", "BS Switch 33", "--out", str(d / "c.py")])
+        for name in ("a.py", "b.py", "c.py"):
+            text = (d / name).read_text()
+            self.assertEqual(text.count("# jobkit.py - "), 1, name)
+            self.assertEqual(text.count("def end_job("), 1, name)
+            self.assertEqual(text.count("class TL("), 1, name)
+        for name in self.MOVERS:
+            src = (SM / "jython" / name).read_text()
+            for dup in ("class TL(", "def L(", "requestThrottle", "/tmp/speedrun.active\", \"w\"", "getNamedBeanSet",
+                        "removePropertyChangeListener", "throttle released", "NAMES = "):
+                self.assertNotIn(dup, src, "%s keeps its own copy of %s" % (name, dup))
+
+    def test_throttle_timeout_is_a_reason_and_a_late_throttle_is_released(self):
+        kit = (SM / "jython" / "jobkit.py").read_text()
+        self.assertIn('why[0] or "no throttle"', kit)
+        self.assertIn("gave_up", kit)
+        late = kit.split("def notifyThrottleFound")[1].split("def notifyFailed")[0]
+        self.assertIn("t.release(self)", late)
+        self.assertIn("late = self.gave_up", late)
+        self.assertNotRegex(kit, r"\bf[\"']")
 
 
 def stop_log(shift, enters, rest_active, never_stopped=False):
@@ -217,6 +279,26 @@ def stop_log(shift, enters, rest_active, never_stopped=False):
             lines.append("%.2f SENS %s INACTIVE" % (110.0 + dt + shift + 0.5, sensor))
     lines += ["140.0 STOP settle time", "140.0 speed 0", "140.1 END"]
     return lines
+
+
+class RunOrder(unittest.TestCase):
+    def test_latest_means_latest_by_log_time_not_command_line_order(self):
+        def log(t, speed_scale):
+            ev = ["%.1f RUN loco=A direction=forward" % t, "%.1f STEP 24" % (t + 1)]
+            for i, n in enumerate(analyze.ORDER[:6]):
+                ev.append("%.1f SENS %s ACTIVE" % (t + 2 + i * speed_scale, n))
+                ev.append("%.1f SENS %s INACTIVE" % (t + 2.1 + i * speed_scale, n))
+            ev.append("%.1f STOP all steps complete" % (t + 100))
+            return ev
+        lengths = {n: 1000.0 for n in analyze.ORDER}
+        old, new = log(1000.0, 10.0), log(5000.0, 5.0)
+        runs = []
+        for lines, name in ((new, "new.log"), (old, "old.log")):  # newest first on the command line
+            runs += analyze.parse_log(lines, source=name)
+        summaries = analyze.summarize_runs(runs, lengths)
+        self.assertEqual([r["log"] for r in summaries], ["old.log", "new.log"])
+        self.assertEqual([r["run"] for r in summaries], [1, 2])
+        self.assertEqual(analyze.latest_runs(summaries)[("A", "forward")], summaries[1]["rows"])
 
 
 class StopCompare(unittest.TestCase):
@@ -238,6 +320,12 @@ class StopCompare(unittest.TestCase):
         self.assertIn("| enters East Lead | 0.72 | 0.74 | +0.02 |", t)
         self.assertIn("| enters K-2 | 8.22 | 8.13 | -0.09 |", t)
         self.assertIn("| comes to rest | in K-2 | in K-2 | same block |", t)
+
+    def test_the_trigger_is_left_out_whatever_its_name(self):
+        lines = stop_log(0, self.A, "BS K-2")
+        lines.insert(4, "110.02 SENS BS Switch 33 ACTIVE")
+        r = stc.parse_stoptest(lines)
+        self.assertNotIn("BS Switch 33", dict(r["enters"]))
 
     def test_a_log_without_a_stop_command_is_refused(self):
         d = Path(tempfile.mkdtemp())

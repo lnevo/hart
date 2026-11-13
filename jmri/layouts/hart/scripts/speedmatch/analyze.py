@@ -107,7 +107,7 @@ def parse_log(lines, loco=None, direction=None, source=""):
             if not mm:
                 continue
             run = {"loco": mm.group(1), "direction": mm.group(2), "steps": [], "cfg": {},
-                   "lengths": None, "log": source, "complete": False}
+                   "lengths": None, "log": source, "complete": False, "t0": t}
             runs.append(run)
             seen.clear()
             active.clear()
@@ -117,7 +117,7 @@ def parse_log(lines, loco=None, direction=None, source=""):
                 if loco is None or direction is None:
                     raise ValueError("log has no RUN line: give loco and direction")
                 run = {"loco": loco, "direction": direction, "steps": [], "cfg": {},
-                       "lengths": None, "log": source, "complete": False}
+                       "lengths": None, "log": source, "complete": False, "t0": t}
                 runs.append(run)
             n = int(msg.split()[1])
             seen[n] = seen.get(n, 0) + 1
@@ -171,13 +171,16 @@ def travel(events, order=ORDER):
 
 def summarize_runs(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_READINGS,
                    use_logged=True, csv_lengths=False, **kw):
-    """One entry per run, in input order: {run, loco, direction, log, complete, rows}.
+    """One entry per run, oldest first by the time in the log (the RUN line, else the first
+    STEP line; equal or missing times keep input order), so the highest run number is the
+    latest run whatever order the logs were given in: {run, loco, direction, log, complete, rows}.
 
     A run's own CFG line (stop rule settings) and LENGTHS line (the lengths the job was built
     with) are replayed as the runner had them; the arguments are used only for logs that lack
     them. use_logged=False ignores both; csv_lengths=True swaps only the lengths for the ones
     given (the logged stop-rule settings still apply)."""
     out = []
+    runs = sorted(runs, key=lambda r: r.get("t0") or 0.0)  # stable
     for n, run in enumerate(runs, start=1):
         rows = []
         p = {"k": k, "rel": rel, "max_n": max_n}

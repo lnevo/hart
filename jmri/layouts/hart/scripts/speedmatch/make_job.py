@@ -79,6 +79,12 @@ def guards(values):
     return out
 
 
+def runner_text(name):
+    """The runner part of a job: the mark, the shared jobkit.py, then the runner itself. The
+    three movers (steps, move, stoptest) share jobkit.py, so none keeps its own copy."""
+    return RUNNER_MARK + (HERE / "jython" / "jobkit.py").read_text() + "\n" + (HERE / "jython" / name).read_text()
+
+
 def settings_text(d):
     return "".join("%s = %r\n" % (k, v) for k, v in d.items())
 
@@ -97,27 +103,28 @@ def build_steps(a, lengths):
     }
     # liverule.py first (its defaults), then the settings (they override those defaults),
     # then the runner. The marker line lets a test run everything before the runner.
-    return ((HERE / "liverule.py").read_text() + "\n" + settings_text(s) + RUNNER_MARK
-            + (HERE / "jython" / "step_runner.py").read_text())
+    return ((HERE / "liverule.py").read_text() + "\n" + settings_text(s)
+            + runner_text("step_runner.py"))
 
 
 def build_move(a):
     s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
          "UNTIL": list(a.until), "GUARD": guards(a.guard), "FUNCS": [0] + ([8] if a.mute_sound else []),
          "MAX_S": a.max_s}
-    return settings_text(s) + (HERE / "jython" / "move_to.py").read_text()
+    return settings_text(s) + runner_text("move_to.py")
 
 
 def build_stoptest(a):
     g = guards(a.guard)
     if a.trigger in g:
         raise SystemExit("--trigger %r is also a guard: the run would end before it stops the loco" % a.trigger)
-    if a.trigger in DEFAULT_GUARD:
-        raise SystemExit("--trigger %r is off the test loop; pick a loop sensor" % a.trigger)
+    if a.trigger not in analyze.ORDER:
+        raise SystemExit("--trigger %r is not a loop sensor user name; give one of: %s (system names are refused so "
+                         "the off-loop check is reliable)" % (a.trigger, ", ".join(analyze.ORDER)))
     s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
          "TRIGGER": a.trigger, "GUARD": g, "FUNCS": [0] + ([8] if a.mute_sound else []),
          "MAX_S": a.max_s, "SETTLE_S": a.settle_s, "QUIET_S": a.quiet_s}
-    return settings_text(s) + (HERE / "jython" / "stop_test.py").read_text()
+    return settings_text(s) + runner_text("stop_test.py")
 
 
 def build_profile(a):

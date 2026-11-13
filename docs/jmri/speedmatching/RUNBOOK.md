@@ -20,6 +20,7 @@ module (`pom_guard.py`, built elsewhere).
 | `make_job.py` | builds a job file (settings, then the runner) | Mac |
 | `drop_job.sh` | copies a job to the Pi's `jmri_cmd_watcher`, fetches logs, sets the kill flag | Mac |
 | `jython/preflight.py` | reads CVs on the programming track | Pi, inside JMRI |
+| `jython/jobkit.py` | what the three movers share (throttle, sensors, guards, the active marker, the end of a run); pasted in front of each | Pi, inside JMRI |
 | `jython/step_runner.py` | warm-up, then the step profile | Pi, inside JMRI |
 | `jython/move_to.py` | runs a loco until a named sensor lights, then stops it (positioning) | Pi, inside JMRI |
 | `jython/stop_test.py` | starts a loco from rest, sends speed 0 when a sensor lights, logs every sensor event | Pi, inside JMRI |
@@ -128,8 +129,7 @@ ends on its own if a guard sensor lights, or no sensor changes for 120 s (shown 
 `--guard` is required for `steps`, `move` and `stoptest`: name the sensors that must abort a
 run, or pass `--guard none` to run without one on purpose (the log then says `NO GUARD`).
 `--guard default` stands for every block sensor that is not on the test loop (it can be
-combined with more names): BS S-R, S-1, S-2, S-3, S-4, Switch 23b, Switch 13, Switch 15, Scale,
-Barn, Switch 11, Switch 9, EH-1, EH-2, EH-3, Switch 3, W-1, W-2 and Switch 7. A loco leaving the
+combined with more names): all 26 of them, BS S-R, BS S-1, BS S-2, BS S-3, BS S-4, BS Switch 23b, BS Switch 13, BS Switch 15, BS Scale, BS Barn, BS Switch 11, BS Switch 9, BS EH-1, BS EH-2, BS EH-3, BS Switch 3, BS W-1, BS W-2, BS Switch 7, BS Switch 17, BS Switch 19, BS Switch 21, BS Switch 25, BS Switch 27, BS Switch 29, BS Switch 31. A loco leaving the
 loop for any of them ends the run. The list is `DEFAULT_GUARD` in `make_job.py`; the tests check
 every name against `tables.xml` and that none is a loop sensor. **Not covered yet:** the McKees
 Rocks and McKeesport stubs. Their detector sections are not on a node yet
@@ -242,7 +242,7 @@ python3 jmri/layouts/hart/scripts/speedmatch/stoptest_compare.py /tmp/sm/stoptes
 It lists the seconds after the stop command at which each sensor lit and the block each loco
 came to rest in (the trigger's own lighting is left out). The 2026-11-08 result at step 96 was
 both within 0.1 s at every sensor, both at rest in K-2. Options: `--settle-s 30`, `--quiet-s 10`,
-`--max-s 180` (longest run before the trigger), `--mute-sound`. The job holds
+`--max-s 180` (longest run before the trigger), `--mute-sound`. The trigger is a loop sensor given by its user name (system names are refused). It only acts once the loco has been sent off; if it is already lit then, the run ends with speed 0 and no measurement. The job holds
 `/tmp/speedrun.active`, honours the kill flag, and refuses to start if the trigger or a guard
 is lit or missing, or if the trigger is also a guard.
 
