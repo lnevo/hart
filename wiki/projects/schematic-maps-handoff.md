@@ -34,7 +34,16 @@ Source of track: AnyRail's JMRI export of plan 5.3b (`export_reader.py`; the own
 
 Also a reader rule, not an override: two track ends on the same spot in the export are one track and are joined (two pairs in 5.3b, one of them the main level's loop at T196).
 
-Guesses still inside layer 1, to confirm with the owner: Switch 9's hand; where Switch 7 and Switch 13 sit along their runs (taken from `block_lengths.csv`).
+Hands and legs of the added staging switches are taken from the Layout Editor panel in `tables.xml`, which is the source for them (owner, 2026-11-13):
+
+| Switch | Hand | Straight leg | Diverging leg |
+|--------|------|--------------|---------------|
+| 7 | Left-hand crossover | Scale to Barn; East Ext to Main East | The crossover |
+| 13 | Right | Barn | Switch 11 |
+| 11 | Left | EH-1 | Switch 9 |
+| 9 | Right | EH-3 | EH-2 (its normal route: the panel's continuing sense is thrown) |
+
+Where they sit along their runs comes from `block_lengths.csv`, since the panel is not to scale: East Ext is measured (140.8 in, from the timed loop); Scale, Barn and EH-1 to EH-3 are 24 in estimates.
 
 ## Layer 2: generation rules
 
