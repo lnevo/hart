@@ -108,9 +108,10 @@ Part numbers (T…) are the plan's, as drawn in the spike's overlay picture.
 - **Rise.** The 2.1% grade from T285 (height 0, north side) to T262 (4.25 in, west wall), 521 cm, is as planned. It is now the only track between the height-0 main and the 4.25 in level.
 - **Main levels.** Not final; plan 5.3b is a draft. As-built changes go in an overrides file applied on top of the export.
 
+- **Timetable direction** follows the route, not the room ([ADR-022](../decisions/ADR-022-timetable-direction-follows-route.md)): eastward from staging stays eastward on every level, so every band has east on the right.
+
 For the schematic this gives three bands: staging, the height-0 main, and the 4.25 in level (branch line, peninsula, double crossover), joined by the helix (two tracks) and the rise.
 
 ## Open questions for the owner
 
-1. **Timetable direction.** Not decided; the owner wants a recommendation. Room directions swap between the lower and upper level. Proposed: direction follows the route, not the room. A train that leaves staging eastward (toward Princess and the helix) is eastward all the way up, so every band of the schematic has east on the right.
-2. **T300's old place.** With the turnout moved, does the height-0 track there simply continue to the helix?
+1. **T300's old place.** With the turnout moved, does the height-0 track there simply continue to the helix?
