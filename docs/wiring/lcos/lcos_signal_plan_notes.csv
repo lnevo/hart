@@ -13,8 +13,8 @@ Mast 34L,B,Switch 33,Switch 33,east_lead,BS East Lead | BS Switch 33,BS Switch 3
 Mast 34L,T,Switch 33,Switch 33,east_lead,BS East Lead | BS Switch 33,BS Switch 33 | BS Main East,BS Switch 33 | BS Switch 31,A=Track East Lead east of 112
 Mast 34R,B,Switch 33,Switch 33,main_east,BS Main East | BS Switch 33,BS Switch 33 | BS East Lead,,C=Track Main East diverge
 Mast 34R,T,Switch 33,Switch 33,main_east,BS Main East | BS Switch 33,BS Switch 33 | BS East Lead,,C=Track Main East diverge
-Mast 36RA,B,Switch 35,Switch 35,west_Ext,BS West Ext | BS Switch 35a,BS Switch 35a | BS Switch 35b,BS Switch 35a | BS East Lead,A=Track West Ext west upper
-Mast 36RA,T,Switch 35,Switch 35,west_Ext,BS West Ext | BS Switch 35a,BS Switch 35a | BS Switch 35b,BS Switch 35a | BS East Lead,A=Track West Ext west upper
+Mast 36RA,B,Switch 35,Switch 35,west_ext,BS West Ext | BS Switch 35a,BS Switch 35a | BS Switch 35b,BS Switch 35a | BS East Lead,A=Track West Ext west upper
+Mast 36RA,T,Switch 35,Switch 35,west_ext,BS West Ext | BS Switch 35a,BS Switch 35a | BS Switch 35b,BS Switch 35a | BS East Lead,A=Track West Ext west upper
 Mast 36RB,B,Switch 35,Switch 35,east_lead,BS East Lead | BS Switch 35b,BS Switch 35b | BS Switch 35a,BS Switch 35b | BS West Ext,D=Track East Lead west lower
 Mast 36RB,T,Switch 35,Switch 35,east_lead,BS East Lead | BS Switch 35b,BS Switch 35b | BS Switch 35a,BS Switch 35b | BS West Ext,D=Track East Lead west lower
 Mast 38LA,T,Switch 37,Switch 37,mckeesport,BS Switch 37 / BS McKeesport,,BS Switch 37 / BS McKeesport | BS K-2,B=Track McKeesport stub block (detector Block 1-3 shared with Track 37)
