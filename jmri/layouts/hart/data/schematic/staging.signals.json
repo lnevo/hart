@@ -12,7 +12,7 @@
    "names": [
     "Main West"
    ],
-   "edge_cm": 570.4,
+   "edge_cm": 551.9,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -31,7 +31,7 @@
    "names": [
     "Brick-Plane"
    ],
-   "edge_cm": 195.5,
+   "edge_cm": 147.6,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -50,7 +50,7 @@
    "names": [
     "W-1"
    ],
-   "edge_cm": 273.2,
+   "edge_cm": 266.7,
    "cm_from_toward": 266.7,
    "dir": "west",
    "kind": "virtual",
@@ -69,7 +69,7 @@
    "names": [
     "W-2"
    ],
-   "edge_cm": 273.8,
+   "edge_cm": 236.2,
    "cm_from_toward": 236.2,
    "dir": "west",
    "kind": "virtual",
@@ -88,7 +88,7 @@
    "names": [
     "W-1"
    ],
-   "edge_cm": 273.2,
+   "edge_cm": 266.7,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "field",
@@ -107,7 +107,7 @@
    "names": [
     "W-2"
    ],
-   "edge_cm": 273.8,
+   "edge_cm": 236.2,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "field",
@@ -126,7 +126,7 @@
    "names": [
     "Scale"
    ],
-   "edge_cm": 86,
+   "edge_cm": 86.4,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -145,7 +145,7 @@
    "names": [
     "East Ext"
    ],
-   "edge_cm": 357,
+   "edge_cm": 357.6,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -164,7 +164,7 @@
    "names": [
     "Brick-Plane"
    ],
-   "edge_cm": 195.5,
+   "edge_cm": 147.6,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -183,7 +183,7 @@
    "names": [
     "Main East"
    ],
-   "edge_cm": 811.4,
+   "edge_cm": 800.4,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -202,7 +202,7 @@
    "names": [
     "Barn"
    ],
-   "edge_cm": 61,
+   "edge_cm": 61.0,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -221,7 +221,7 @@
    "names": [
     "Scale"
    ],
-   "edge_cm": 86,
+   "edge_cm": 86.4,
    "cm_from_toward": 61.0,
    "dir": "west",
    "kind": "virtual",
@@ -240,7 +240,7 @@
    "names": [
     "Scale"
    ],
-   "edge_cm": 86,
+   "edge_cm": 86.4,
    "cm_from_toward": 25.4,
    "dir": "east",
    "kind": "field",
@@ -259,7 +259,7 @@
    "names": [
     "East Ext"
    ],
-   "edge_cm": 357,
+   "edge_cm": 357.6,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "field",
@@ -278,8 +278,8 @@
    "names": [
     "EH-2"
    ],
-   "edge_cm": 60.0,
-   "cm_from_toward": 60.0,
+   "edge_cm": 61.0,
+   "cm_from_toward": 61.0,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -297,8 +297,8 @@
    "names": [
     "EH-3"
    ],
-   "edge_cm": 60.0,
-   "cm_from_toward": 60.0,
+   "edge_cm": 61.0,
+   "cm_from_toward": 61.0,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -316,7 +316,7 @@
    "names": [
     "EH-2"
    ],
-   "edge_cm": 60.0,
+   "edge_cm": 61.0,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -335,7 +335,7 @@
    "names": [
     "EH-3"
    ],
-   "edge_cm": 60.0,
+   "edge_cm": 61.0,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -354,8 +354,8 @@
    "names": [
     "EH-1"
    ],
-   "edge_cm": 60.0,
-   "cm_from_toward": 60.0,
+   "edge_cm": 61.0,
+   "cm_from_toward": 61.0,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -373,7 +373,7 @@
    "names": [
     "EH-1"
    ],
-   "edge_cm": 60.0,
+   "edge_cm": 61.0,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -392,7 +392,7 @@
    "names": [
     "Barn"
    ],
-   "edge_cm": 61,
+   "edge_cm": 61.0,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -411,7 +411,7 @@
    "names": [
     "S-R"
    ],
-   "edge_cm": 570.5,
+   "edge_cm": 633.7,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -430,7 +430,7 @@
    "names": [
     "S-1"
    ],
-   "edge_cm": 535.5,
+   "edge_cm": 618.5,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -449,7 +449,7 @@
    "names": [
     "S-1"
    ],
-   "edge_cm": 535.5,
+   "edge_cm": 618.5,
    "cm_from_toward": 40.0,
    "dir": "east",
    "kind": "virtual",
@@ -468,7 +468,7 @@
    "names": [
     "S-2"
    ],
-   "edge_cm": 451.1,
+   "edge_cm": 532.1,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -487,7 +487,7 @@
    "names": [
     "S-2"
    ],
-   "edge_cm": 451.1,
+   "edge_cm": 532.1,
    "cm_from_toward": 40.0,
    "dir": "east",
    "kind": "virtual",
@@ -506,7 +506,7 @@
    "names": [
     "S-3"
    ],
-   "edge_cm": 366.8,
+   "edge_cm": 440.7,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -525,7 +525,7 @@
    "names": [
     "S-3"
    ],
-   "edge_cm": 366.8,
+   "edge_cm": 440.7,
    "cm_from_toward": 40.0,
    "dir": "east",
    "kind": "virtual",
@@ -544,7 +544,7 @@
    "names": [
     "West Ext"
    ],
-   "edge_cm": 416.7,
+   "edge_cm": 396.5,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -563,7 +563,7 @@
    "names": [
     "Main West"
    ],
-   "edge_cm": 570.4,
+   "edge_cm": 551.9,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "field",
@@ -582,7 +582,7 @@
    "names": [
     "S-R"
    ],
-   "edge_cm": 570.5,
+   "edge_cm": 633.7,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "field",
@@ -601,7 +601,7 @@
    "names": [
     "S-4"
    ],
-   "edge_cm": 359.0,
+   "edge_cm": 334.0,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -620,7 +620,7 @@
    "names": [
     "S-4"
    ],
-   "edge_cm": 359.0,
+   "edge_cm": 334.0,
    "cm_from_toward": 40.0,
    "dir": "east",
    "kind": "virtual",
@@ -639,7 +639,7 @@
    "names": [
     "S-R"
    ],
-   "edge_cm": 570.5,
+   "edge_cm": 633.7,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -656,7 +656,7 @@
     "29"
    ],
    "names": [],
-   "edge_cm": 26.7,
+   "edge_cm": 25.4,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "field",
@@ -675,7 +675,7 @@
    "names": [
     "East Lead"
    ],
-   "edge_cm": 263.1,
+   "edge_cm": 263.3,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -694,7 +694,7 @@
    "names": [
     "Main East"
    ],
-   "edge_cm": 811.4,
+   "edge_cm": 800.4,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "field",
@@ -713,7 +713,7 @@
    "names": [
     "East Lead"
    ],
-   "edge_cm": 263.1,
+   "edge_cm": 263.3,
    "cm_from_toward": 223.3,
    "dir": "west",
    "kind": "virtual",
@@ -732,7 +732,7 @@
    "names": [
     "West Ext"
    ],
-   "edge_cm": 416.7,
+   "edge_cm": 396.5,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "field",
@@ -751,7 +751,7 @@
    "names": [
     "East Lead"
    ],
-   "edge_cm": 263.1,
+   "edge_cm": 263.3,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "field",
@@ -770,7 +770,7 @@
    "names": [
     "McKeesport"
    ],
-   "edge_cm": 886.4,
+   "edge_cm": 61.0,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -790,7 +790,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 607.4,
+   "edge_cm": 602.9,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -809,7 +809,7 @@
    "names": [
     "McKeesport"
    ],
-   "edge_cm": 886.4,
+   "edge_cm": 61.0,
    "cm_from_toward": 61.0,
    "dir": "east",
    "kind": "virtual",
@@ -828,7 +828,7 @@
    "names": [
     "McKees Rocks"
    ],
-   "edge_cm": 937.8,
+   "edge_cm": 61.0,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -848,7 +848,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 607.4,
+   "edge_cm": 602.9,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -867,7 +867,7 @@
    "names": [
     "McKees Rocks"
    ],
-   "edge_cm": 937.8,
+   "edge_cm": 61.0,
    "cm_from_toward": 61.0,
    "dir": "east",
    "kind": "virtual",
@@ -887,7 +887,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 607.4,
+   "edge_cm": 602.9,
    "cm_from_toward": 562.9,
    "dir": "east",
    "kind": "virtual",
@@ -907,7 +907,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 607.4,
+   "edge_cm": 602.9,
    "cm_from_toward": 314.3,
    "dir": "west",
    "kind": "planned",
@@ -927,7 +927,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 607.4,
+   "edge_cm": 602.9,
    "cm_from_toward": 288.6,
    "dir": "east",
    "kind": "planned",

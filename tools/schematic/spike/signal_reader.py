@@ -10,6 +10,9 @@ the track names. Writes one entry per mast:
   {"mast": "24RA", "toward": "23", "run": ["23", "1"], "names": ["Main West"], "cm_from_toward": 0,
    "dir": "east", "kind": "field", "heads": 1, "source": "le_panel"}
 
+cm_from_toward and edge_cm are both the panel's lengths (block_lengths.csv), so their ratio is the mast's share
+of the run; the drawing applies that share to the run as drawn.
+
 kind: field (a mast with signal heads), virtual (exists for Dispatcher only; not drawn) or planned (named in
 the overrides' "signals_planned": placeholders with no hardware). dir comes from the name's L or R; a mast
 with neither takes the anchor's east or west binding. Masts that cannot be placed are listed and left out.
@@ -167,7 +170,7 @@ def main(tables, switches_csv, lengths_csv, graph, overrides, out):
             continue
         far = s["v"] if tn == s["u"] else s["u"]
         rows.append(dict(mast=short, toward=lab(SN, tn) or SN[tn].get("label", ""), run=[lab(SN, tn), lab(SN, far)],
-                         names=s["names"], edge_cm=s["cm"], cm_from_toward=round(min(cm, s["cm"]), 1), dir=d,
+                         names=s["names"], edge_cm=e["cm"], cm_from_toward=round(min(cm, e["cm"]), 1), dir=d,
                          kind=kind, heads=info["heads"], source="le_panel", _edge=s["id"], _toward_node=tn))
     rows.sort(key=lambda r: (int(re.match(r"\d+", r["mast"]).group()), r["mast"]))
     json.dump(dict(schema="schematic.signals/1", source=tables.split("/")[-1], signals=rows, unplaced=problems),

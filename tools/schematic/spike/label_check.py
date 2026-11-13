@@ -33,30 +33,35 @@ def text_width(s, size, weight, spacing):
 
 
 def parse_transform(t):
-    """translate(x,y) scale(s) only, which is all the drawing uses. Returns (tx, ty, s)."""
-    tx = ty = 0.0
-    s = 1.0
-    if t:
-        m = re.search(r"translate\(([-\d.]+)[ ,]+([-\d.]+)\)", t)
-        if m:
-            tx, ty = float(m.group(1)), float(m.group(2))
-        m = re.search(r"scale\(([-\d.]+)\)", t)
-        if m:
-            s = float(m.group(1))
-    return tx, ty, s
+    """An SVG transform list (translate, scale, rotate with or without a centre) as a matrix (a, b, c, d, e, f)."""
+    m = (1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+    for name, args in re.findall(r"(translate|scale|rotate)\(([^)]*)\)", t or ""):
+        v = [float(x) for x in re.split(r"[ ,]+", args.strip()) if x]
+        if name == "translate":
+            step = (1, 0, 0, 1, v[0], v[1] if len(v) > 1 else 0.0)
+        elif name == "scale":
+            step = (v[0], 0, 0, v[1] if len(v) > 1 else v[0], 0, 0)
+        else:
+            r = math.radians(v[0])
+            c, s_ = math.cos(r), math.sin(r)
+            cx, cy = (v[1], v[2]) if len(v) == 3 else (0.0, 0.0)
+            step = (c, s_, -s_, c, cx - c * cx + s_ * cy, cy - s_ * cx - c * cy)
+        m = compose(m, step)
+    return m
 
 
 def compose(outer, inner):
-    ox, oy, os_ = outer
-    ix, iy, is_ = inner
-    return ox + os_ * ix, oy + os_ * iy, os_ * is_
+    a, b, c, d, e, f = outer
+    A, B, C, D, E, F = inner
+    return (a * A + c * B, b * A + d * B, a * C + c * D, b * C + d * D, a * E + c * F + e, b * E + d * F + f)
 
 
 def walk(el, tf, out):
     tf = compose(tf, parse_transform(el.get("transform")))
     tag = el.tag.replace(NS, "")
-    tx, ty, s = tf
-    P = lambda x, y: (tx + s * x, ty + s * y)
+    a_, b_, c_, d_, e_, f_ = tf
+    s = math.sqrt(abs(a_ * d_ - b_ * c_))
+    P = lambda x, y: (a_ * x + c_ * y + e_, b_ * x + d_ * y + f_)
     if tag == "path":
         w = float(el.get("stroke-width", 1)) * s
         pts, cur = [], None
@@ -113,7 +118,7 @@ def boxes_overlap(p, q, pad=0.0):
 
 def check(svg):
     out = {"lines": [], "shapes": [], "texts": []}
-    walk(ET.parse(svg).getroot(), (0.0, 0.0, 1.0), out)
+    walk(ET.parse(svg).getroot(), (1.0, 0.0, 0.0, 1.0, 0.0, 0.0), out)
     lines = [l for l in out["lines"] if not _frame(l)]
     faults = []
     T = out["texts"]
