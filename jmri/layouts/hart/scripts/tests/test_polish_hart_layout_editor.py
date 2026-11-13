@@ -205,16 +205,16 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         return ET.fromstring(
             "<layout-config><blocks>"
             '<block systemName="IB1" length="1"><userName>OS Switch 3</userName><occupancysensor>BS Switch 3</occupancysensor></block>'
-            '<block systemName="IB2" length="1"><userName>Track K-1</userName><occupancysensor>BS K-1</occupancysensor></block>'
-            '<block systemName="IB3" length="1"><userName>Track K-1 West</userName><occupancysensor>BS K-1</occupancysensor></block>'
+            '<block systemName="IB2" length="1"><userName>Track T-1</userName><occupancysensor>BS T-1</occupancysensor></block>'
+            '<block systemName="IB3" length="1"><userName>Track T-1 West</userName><occupancysensor>BS T-1</occupancysensor></block>'
             "</blocks>"
             '<LayoutEditor name="HART Railroad">'
-            '<layoutturnout ident="T3" blockname="OS Switch 3" blocknameb="Track K-1" xcen="250" ycen="252" xa="240" ya="252" xb="260" yb="252" />'
+            '<layoutturnout ident="T3" blockname="OS Switch 3" blocknameb="Track T-1" xcen="250" ycen="252" xa="240" ya="252" xb="260" yb="252" />'
             '<positionablepoint ident="P1" x="100" y="200" /><positionablepoint ident="P2" x="300" y="200" />'
             '<positionablepoint ident="P3" x="300" y="200" /><positionablepoint ident="P4" x="320" y="200" />'
-            '<tracksegment ident="S1" blockname="Track K-1" connect1name="P1" type1="POS_POINT" connect2name="P2" type2="POS_POINT" />'
-            '<tracksegment ident="S2" blockname="Track K-1 West" connect1name="P3" type1="POS_POINT" connect2name="P4" type2="POS_POINT" />'
-            '<tracksegment ident="S3" blockname="Track K-1 West" connect1name="P1" type1="POS_POINT" connect2name="P4" type2="POS_POINT" hidden="yes" />'
+            '<tracksegment ident="S1" blockname="Track T-1" connect1name="P1" type1="POS_POINT" connect2name="P2" type2="POS_POINT" />'
+            '<tracksegment ident="S2" blockname="Track T-1 West" connect1name="P3" type1="POS_POINT" connect2name="P4" type2="POS_POINT" />'
+            '<tracksegment ident="S3" blockname="Track T-1 West" connect1name="P1" type1="POS_POINT" connect2name="P4" type2="POS_POINT" hidden="yes" />'
             "</LayoutEditor></layout-config>"
         )
 
@@ -222,7 +222,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         root = self.lamp_fixture()
         targets = polish.stage1_lamp_targets(root, root.find("LayoutEditor"))
         self.assertEqual((245, 247), targets["BS Switch 3"])  # circle centre minus half a lamp
-        self.assertEqual((195, 195), targets["BS K-1"])  # middle of S1, not the throat
+        self.assertEqual((195, 195), targets["BS T-1"])  # middle of S1, not the throat
 
     def test_missing_switch_lamp_is_created_on_its_circle(self):
         root = self.lamp_fixture()
