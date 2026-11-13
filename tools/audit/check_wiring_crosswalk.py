@@ -26,10 +26,11 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
+_HARTLIB = next(p / "tools/hartlib/src" for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir())
+sys.path.insert(0, str(_HARTLIB))
 
-from hart_paths import path_signal_wiring, path_tables_xml  # noqa: E402
+from hartlib import paths, tables  # noqa: E402
 
 # Masts that may show only their first planned heads for now.
 INTERIM_PREFIX_MASTS = {"Mast 6LB"}
@@ -118,17 +119,17 @@ def read_tables(
 ) -> tuple[dict[str, str], dict[str, list[str]], list[str]]:
     """(head system name -> comment, head mast userName -> head names, problems)."""
     head_comments: dict[str, str] = {}
-    for el in root.iter("signalhead"):
-        sn = (el.findtext("systemName") or "").strip()
+    for el in tables.signal_heads(root):
+        sn = tables.text(el, "systemName")
         if sn:
-            head_comments[sn] = (el.findtext("comment") or "").strip()
+            head_comments[sn] = tables.text(el, "comment")
     masts: dict[str, list[str]] = {}
     bad: list[str] = []
-    for el in root.iter("signalmast"):
-        sn = (el.findtext("systemName") or "").strip()
+    for el in tables.masts(root, tags=("signalmast",)):
+        sn = tables.text(el, "systemName")
         if not sn.startswith("IF$shsm:"):
             continue
-        user = (el.findtext("userName") or "").strip() or sn
+        user = tables.user_name(el) or sn
         m = SHSM_RE.match(sn)
         if not m:
             bad.append(f"{user}: head mast {sn} does not name its heads by IH number")
@@ -174,16 +175,16 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
 
 
 def main() -> int:
-    wiring = path_signal_wiring()
-    tables = path_tables_xml()
-    for p in (wiring, tables):
+    wiring = paths.SIGNAL_WIRING
+    tables_xml = paths.TABLES_XML
+    for p in (wiring, tables_xml):
         if not p.is_file():
             print(f"MISSING: {p}", file=sys.stderr)
             return 2
     with wiring.open(newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     try:
-        found = problems(rows, ET.parse(tables).getroot())
+        found = problems(rows, tables.read(tables_xml))
     except WiringError as e:
         print(f"FAIL: signal_wiring.csv: {e}")
         return 1
