@@ -11,7 +11,10 @@ distances and train length checks. JMRI stores them in millimetres in the block
 **Basis:** `assigned` = measured or carried over from the old layout;
 `estimate` = placeholder to refine; `cut` = remainder after OS blocks were cut
 from it; `split` = one long block divided evenly; `stub` = hidden throat block
-sharing the detector of its track (the track's own row carries the real length).
+sharing the detector of its track (the track's own row carries the real length);
+`inferred` = the block's timed share of the test loop, whose total length comes from
+the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
+`docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`).
 
 ## Tracks and spurs
 
@@ -19,19 +22,19 @@ sharing the detector of its track (the track's own row carries the real length).
 |---|---|---|---|---|---|
 | Track W-1 | Block 4-4 | 105 | 2667.0 | assigned | Spur 1 |
 | Track W-2 | Block 4-3 | 93 | 2362.2 | assigned | Spur 2 |
-| Track Brick-Plane | Block 4-6 | 72 | 1828.8 | assigned | West Loop |
-| Track East Lead | Block 1-7 | 172 | 4368.8 | assigned | Yard Lead W |
-| Track Main West | Block 2-1 | 220 | 5588.0 | assigned | West Bypass |
-| Track West Main Ext | Block 1-8 | 160 | 4064.0 | assigned | Outer Passing |
-| Track Main East | Block 2-3 | 185 | 4699.0 | cut | East Bypass 195 minus OS Switch 7 |
-| Track East Main Ext | Block 4-7 | 88 | 2235.2 | cut | Yard Lead 108 minus OS Switch 13 and OS Switch 7b |
+| Track Brick-Plane | Block 4-6 | 57.6 | 1463.0 | inferred | timed share of the AnyRail 5.3b loop; +-0.5 in over 33 laps |
+| Track East Lead | Block 1-7 | 92 | 2336.8 | inferred | timed share of the AnyRail 5.3b loop; +-1.5 in over 33 laps; detector length minus Track East Lead East |
+| Track Main West | Block 2-1 | 216.5 | 5499.1 | inferred | timed share of the AnyRail 5.3b loop; +-1.1 in over 33 laps |
+| Track West Main Ext | Block 1-8 | 152.4 | 3871.0 | inferred | timed share of the AnyRail 5.3b loop; +-0.6 in over 33 laps |
+| Track Main East | Block 2-3 | 314.2 | 7980.7 | inferred | timed share of the AnyRail 5.3b loop; +-0.8 in over 33 laps |
+| Track East Main Ext | Block 4-7 | 140.4 | 3566.2 | inferred | timed share of the AnyRail 5.3b loop; +-0.5 in over 16 laps |
 | Track S-R | Block 2-8 | 218 | 5537.2 | assigned | Yard 5 (reversed) |
 | Track S-1 | Block 2-7 | 212 | 5384.8 | assigned | Yard 4 (reversed) |
 | Track S-2 | Block 2-6 | 178 | 4521.2 | assigned | Yard 3 |
 | Track S-3 | Block 2-5 | 142 | 3606.8 | assigned | Yard 2 (reversed) |
 | Track S-4 | Block 2-4 | 100 | 2540.0 | assigned | Yard 1 (reversed) |
-| Track K-1 | Block 1-1 | 122.5 | 3111.5 | split | East Loop / 2 |
-| Track K-2 | Block 1-2 | 122.5 | 3111.5 | split | East Loop / 2 |
+| Track K-1 | Block 1-1 | 109 | 2768.6 | inferred | timed share of the AnyRail 5.3b loop; +-1.1 in over 33 laps; detector length minus Track K-1 West |
+| Track K-2 | Block 1-2 | 114.5 | 2908.3 | inferred | timed share of the AnyRail 5.3b loop; +-0.8 in over 33 laps |
 | Track Scale | Block 4-8 | 24 | 609.6 | estimate | new with 116/117 |
 | Track Barn | Block 13-1 | 24 | 609.6 | estimate | new with 116/117 |
 | Track EH-1 | Block 13-7 | 24 | 609.6 | estimate |  |
@@ -61,9 +64,9 @@ sharing the detector of its track (the track's own row carries the real length).
 
 | Block | Occupancy sensor | Inches | mm | Basis | Note |
 |---|---|---|---|---|---|
-| OS Switch 1 | Block 4-2 | 10 | 254.0 | estimate | switch |
+| OS Switch 1 | Block 4-2 | 22.5 | 571.5 | inferred | timed share of the AnyRail 5.3b loop; +-0.6 in over 33 laps |
 | OS Switch 3 | Block 4-1 | 10 | 254.0 | estimate | switch |
-| OS Switch 5 | Block 4-5 | 10 | 254.0 | estimate | switch |
+| OS Switch 5 | Block 4-5 | 24.5 | 622.3 | inferred | timed share of the AnyRail 5.3b loop; +-0.5 in over 33 laps |
 | OS Switch 15 | Block 3-2 | 10 | 254.0 | estimate | switch |
 | OS Switch 17 | Block 3-3 | 10 | 254.0 | estimate | switch |
 | OS Switch 19 | Block 3-5 | 10 | 254.0 | estimate | switch |
@@ -72,15 +75,15 @@ sharing the detector of its track (the track's own row carries the real length).
 | OS Switch 27 | Block 12-3 | 10 | 254.0 | estimate | switch |
 | OS Switch 29 | Block 12-5 | 10 | 254.0 | estimate | switch |
 | OS Switch 31 | Block 12-7 | 10 | 254.0 | estimate | switch |
-| OS Switch 23a | Block 12-4 | 10 | 254.0 | estimate | switch |
+| OS Switch 23a | Block 12-4 | 23.2 | 589.3 | inferred | timed share of the AnyRail 5.3b loop; +-0.9 in over 33 laps |
 | OS Switch 23b | Block 12-6 | 10 | 254.0 | estimate | switch |
-| OS Switch 33 | Block 12-8 | 10 | 254.0 | estimate | switch |
-| OS Switch 35a | Block 1-6 | 10 | 254.0 | estimate | switch |
-| OS Switch 35b | Block 1-5 | 10 | 254.0 | estimate | switch |
-| OS Switch 37 | Block 1-3 | 10 | 254.0 | estimate | switch |
-| OS Switch 39 | Block 1-4 | 10 | 254.0 | estimate | switch |
+| OS Switch 33 | Block 12-8 | 12.7 | 322.6 | inferred | timed share of the AnyRail 5.3b loop; +-1.1 in over 33 laps |
+| OS Switch 35a | Block 1-6 | 15.3 | 388.6 | inferred | timed share of the AnyRail 5.3b loop; +-0.8 in over 33 laps |
+| OS Switch 35b | Block 1-5 | 20.3 | 515.6 | inferred | timed share of the AnyRail 5.3b loop; +-1.1 in over 33 laps |
+| OS Switch 37 | Block 1-3 | 16.6 | 421.6 | inferred | timed share of the AnyRail 5.3b loop; +-0.4 in over 33 laps |
+| OS Switch 39 | Block 1-4 | 9.7 | 246.4 | inferred | timed share of the AnyRail 5.3b loop; +-0.6 in over 33 laps |
 | OS Switch 13 | Block 3-1 | 10 | 254.0 | estimate | cut from West Lead |
 | OS Switch 7 | Block 13-3 | 10 | 254.0 | estimate | cut from Track Main East |
-| OS Switch 7b | Block 13-4 | 10 | 254.0 | estimate | cut from West Lead |
+| OS Switch 7b | Block 13-4 | 9.1 | 231.1 | inferred | timed share of the AnyRail 5.3b loop; +-0.5 in over 33 laps |
 | OS Switch 11 | Block 13-2 | 10 | 254.0 | estimate | switch |
 | OS Switch 9 | Block 13-8 | 10 | 254.0 | estimate | switch |

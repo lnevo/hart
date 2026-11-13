@@ -4225,7 +4225,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB6" length="254.0" curve="0">
+    <block systemName="IB6" length="231.1" curve="0">
       <systemName>IB6</systemName>
       <userName>OS Switch 7b</userName>
       <comment>Track Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
@@ -4374,7 +4374,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0001" length="4699.0" curve="0">
+    <block systemName="IB:AUTO:0001" length="7980.7" curve="0">
       <systemName>IB:AUTO:0001</systemName>
       <userName>Track Main East</userName>
       <comment>Main east of East End; occupancy Block 2-3 / M2S202</comment>
@@ -4391,7 +4391,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0003" length="5588.0" curve="0">
+    <block systemName="IB:AUTO:0003" length="5499.1" curve="0">
       <systemName>IB:AUTO:0003</systemName>
       <userName>Track Main West</userName>
       <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200</comment>
@@ -4400,7 +4400,7 @@
       <path todir="128" fromdir="64" block="IB:AUTO:0033" />
       <path todir="128" fromdir="64" block="IB:AUTO:0034" />
     </block>
-    <block systemName="IB:AUTO:0005" length="1828.8" curve="0">
+    <block systemName="IB:AUTO:0005" length="1463.0" curve="0">
       <systemName>IB:AUTO:0005</systemName>
       <userName>Track Brick-Plane</userName>
       <comment>Track Main West between Brick and Plane; occupancy Block 4-6 / M2S405</comment>
@@ -4431,7 +4431,7 @@
       <path todir="128" fromdir="64" block="IB:AUTO:0056" />
       <path todir="64" fromdir="128" block="IB:AUTO:0057" />
     </block>
-    <block systemName="IB:AUTO:0010" length="3111.5" curve="0">
+    <block systemName="IB:AUTO:0010" length="2768.6" curve="0">
       <systemName>IB:AUTO:0010</systemName>
       <userName>Track K-1</userName>
       <comment>Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop</comment>
@@ -4458,7 +4458,7 @@
       <path todir="128" fromdir="64" block="IB:AUTO:0052" />
       <path todir="64" fromdir="128" block="IB:AUTO:0053" />
     </block>
-    <block systemName="IB:AUTO:0017" length="4368.8" curve="0">
+    <block systemName="IB:AUTO:0017" length="2336.8" curve="0">
       <systemName>IB:AUTO:0017</systemName>
       <userName>Track East Lead</userName>
       <comment>South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
@@ -4500,7 +4500,7 @@
       <path todir="128" fromdir="64" block="IB:AUTO:0054" />
       <path todir="64" fromdir="128" block="IB:AUTO:0055" />
     </block>
-    <block systemName="IB:AUTO:0030" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0030" length="322.6" curve="0">
       <systemName>IB:AUTO:0030</systemName>
       <userName>OS Switch 33</userName>
       <comment>East End, Switch 33; occupancy Block 12-8 / M2S1207</comment>
@@ -4518,7 +4518,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0031" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0031" length="622.3" curve="0">
       <systemName>IB:AUTO:0031</systemName>
       <userName>OS Switch 5</userName>
       <comment>Plane CP, Switch 5; occupancy Block 4-5 / M2S404</comment>
@@ -4536,7 +4536,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0032" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0032" length="421.6" curve="0">
       <systemName>IB:AUTO:0032</systemName>
       <userName>OS Switch 37</userName>
       <comment>Princess, Switch 37 (same detector as Track McKeesport); occupancy Block 1-3 / M2S102</comment>
@@ -4554,7 +4554,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0033" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0033" length="571.5" curve="0">
       <systemName>IB:AUTO:0033</systemName>
       <userName>OS Switch 1</userName>
       <comment>Brick CP, Switch 1; occupancy Block 4-2 / M2S401</comment>
@@ -4572,7 +4572,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0034" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0034" length="589.3" curve="0">
       <systemName>IB:AUTO:0034</systemName>
       <userName>OS Switch 23a</userName>
       <comment>East End crossover Switch 23 north/west leg; occupancy Block 12-4 / M2S1203</comment>
@@ -4688,7 +4688,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0040" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0040" length="246.4" curve="0">
       <systemName>IB:AUTO:0040</systemName>
       <userName>OS Switch 39</userName>
       <comment>Princess, Switch 39 (same detector as Track McKees Rocks); occupancy Block 1-4 / M2S103</comment>
@@ -4804,7 +4804,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0046" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0046" length="388.6" curve="0">
       <systemName>IB:AUTO:0046</systemName>
       <userName>OS Switch 35a</userName>
       <comment>Princess crossover Switch 35 south/yard leg; occupancy Block 1-6 / M2S105</comment>
@@ -4818,7 +4818,7 @@
       </path>
       <path todir="128" fromdir="64" block="IB:AUTO:0062" />
     </block>
-    <block systemName="IB:AUTO:0047" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0047" length="515.6" curve="0">
       <systemName>IB:AUTO:0047</systemName>
       <userName>OS Switch 35b</userName>
       <comment>Princess crossover Switch 35 north/main leg; occupancy Block 1-5 / M2S104</comment>
@@ -4836,7 +4836,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0048" length="3111.5" curve="0">
+    <block systemName="IB:AUTO:0048" length="2908.3" curve="0">
       <systemName>IB:AUTO:0048</systemName>
       <userName>Track K-2</userName>
       <comment>Princess balloon, Track K-2; occupancy Block 1-2 / M2S101; stop</comment>
@@ -4849,7 +4849,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0050" length="4064.0" curve="0">
+    <block systemName="IB:AUTO:0050" length="3871.0" curve="0">
       <systemName>IB:AUTO:0050</systemName>
       <userName>Track West Main Ext</userName>
       <comment>Track Main West stub west of Switch 23; occupancy Block 1-8 / M2S107</comment>
@@ -4866,7 +4866,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0051" length="2235.2" curve="0">
+    <block systemName="IB:AUTO:0051" length="3566.2" curve="0">
       <systemName>IB:AUTO:0051</systemName>
       <userName>Track East Main Ext</userName>
       <comment>Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406</comment>
