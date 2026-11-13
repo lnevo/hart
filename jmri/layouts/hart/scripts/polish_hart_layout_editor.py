@@ -56,12 +56,18 @@ REDUNDANT_OCCUPANCY_SENSOR = re.compile(r"Block \d+-\d+")
 # Same circuit-occupied.gif set as CreateIcons.addOccupancyIconsAndLabels.
 # Shared occupancy (body + hidden throats, or OS + stub) gets one circuit dot.
 # Keep the body / points icon; drop the extras CreateIcons stacks on the same sensor.
+# South Yard: one column mid-yard, centred on each track (y 315 / 366 / 413 /
+# 460 / 502), below the track-name labels at x 953. Used for both the Stage 1
+# lamp placement and the dedupe keep spot.
+SOUTH_YARD_LAMPS = {
+    "BS S-R": (985, 310),
+    "BS S-1": (985, 361),
+    "BS S-2": (985, 408),
+    "BS S-3": (985, 455),
+    "BS S-4": (985, 497),
+}
 SHARED_OCCUPANCY_KEEP = {
-    "BS S-1": (1010, 376),
-    "BS S-2": (1011, 423),
-    "BS S-3": (1005, 470),
-    "BS S-4": (1013, 513),
-    "BS S-R": (947, 325),
+    **SOUTH_YARD_LAMPS,
     "BS Switch 37 / BS McKeesport": (1592, 325),
     "BS Switch 39 / BS McKees Rocks": (1592, 262),
 }
@@ -98,6 +104,7 @@ STAGE1_LAMP_PLACEMENTS = {
     "BS EH-1": (576, 261),
     "BS EH-2": (576, 272),
     "BS EH-3": (576, 284),
+    **SOUTH_YARD_LAMPS,
 }
 REMOVED_LABELS = {
     "OS East Lead",
@@ -369,13 +376,26 @@ def ensure_os_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list
 
 
 def place_stage1_lamps(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
-    """Move Stage 1 occupancy lamps off turnout circles and other icons."""
+    """Move Stage 1 occupancy lamps off turnout circles and other icons.
+
+    One lamp per sensor: extra Stage 1 copies are removed, so they never end
+    up stacked on the placed spot.
+    """
     changes = 0
     errors: list[str] = []
+    placed: set[str] = set()
     for icon in le.findall("sensoricon"):
         name = (icon.get("sensor") or "").strip()
         if name not in STAGE1_LAMP_PLACEMENTS or icon.get("level") == CLUSTER_LAMP_LEVEL:
             continue
+        if name in placed:
+            if check:
+                errors.append(f"{name}: more than one Stage 1 lamp")
+            else:
+                le.remove(icon)
+                changes += 1
+            continue
+        placed.add(name)
         x, y = STAGE1_LAMP_PLACEMENTS[name]
         if _same_number(icon.get("x"), x) and _same_number(icon.get("y"), y):
             continue
