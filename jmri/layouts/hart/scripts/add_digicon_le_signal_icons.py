@@ -14,12 +14,15 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
-OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-PREF_TABLES = Path.home() / "JMRI_UserFiles/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+DEFAULT_PANEL = paths.TABLES_XML
+PREF_TABLES = paths.JMRI_USER_FILES / "tables.xml"
 
 # Digicon PANELSIGNAL SIGORIENT → LE SignalMastIcon degrees:
 #   RIGHT → 90  (horizontal, heads east / post west)
@@ -150,12 +153,6 @@ def main() -> None:
     patch_file(args.panel, dry_run=args.dry_run)
     if args.dry_run:
         return
-    if args.sync_output:
-        for dest in ():
-            if not dest.is_file():
-                print(f"SKIP sync missing {dest}")
-                continue
-            patch_file(dest)
     if args.sync_pref and PREF_TABLES.is_file():
         patch_file(PREF_TABLES)
 

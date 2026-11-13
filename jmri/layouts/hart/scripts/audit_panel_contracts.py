@@ -12,20 +12,21 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_SOURCES = (
-    ("deployment", REPO_ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"),
-)
-BOUNDARIES = REPO_ROOT / "jmri/layouts/hart/data/le_signal_boundaries.csv"
-OCCUPANCY_BINDINGS = REPO_ROOT / "cats" / "data" / "occupancy_bindings.csv"
-TRAININFO = REPO_ROOT / "jmri" / "layouts" / "hart" / "dispatcher" / "traininfo"
+REPO_ROOT = paths.REPO_ROOT
+DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
+BOUNDARIES = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
+OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
+TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
 # Packed MQTT 467–469 are not JMRI beans. Do not create them in tables.xml.
 FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
 MQTT_SENSOR_SYSNAME = re.compile(r"^M2S\d+$")
-sys.path.insert(0, str(REPO_ROOT / "jmri" / "layouts" / "hart" / "scripts"))
+sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 from lcc_turnout_contract import contract_violations
 from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
 from polish_hart_layout_editor import ensure_block_contents_visible
@@ -415,7 +416,7 @@ def audit_lcc_mqtt_turnout_aliases(
 ) -> None:
     """Every MQTT DCC turnout has MTT{dcc} named and wired from the device map."""
     problem = audit.error if required else audit.warn
-    csv_path = REPO_ROOT / "jmri" / "layouts" / "hart" / "data" / "public_name_map.csv"
+    csv_path = paths.PUBLIC_NAME_MAP
     issues = contract_violations(root, csv_path)
     if issues:
         problem(
@@ -609,8 +610,8 @@ def audit_source(
 ) -> Audit:
     audit = Audit(label=label, path=path)
     try:
-        root = ET.parse(path).getroot()
-    except (OSError, ET.ParseError) as exc:
+        root = tables.read(path)
+    except (OSError, ET.ParseError, ValueError, TypeError) as exc:
         audit.error(f"cannot parse source: {exc}")
         return audit
     panel = select_panel(root, audit)

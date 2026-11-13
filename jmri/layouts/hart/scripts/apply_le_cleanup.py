@@ -21,12 +21,13 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lcc_turnout_contract import DCC_RE, child_text
 
-DEFAULT = ROOT / "jmri/layouts/hart/output/tables.xml"
-OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+DEFAULT = paths.TABLES_XML
 
 STUB_MASTS = [
     # systemName, userName, bumper ident, bound attr, icon x,y, degrees
@@ -293,7 +294,8 @@ def patch_yard_turnout_masts(root: ET.Element, le: ET.Element) -> int:
     for to in le.findall("layoutturnout"):
         for child in list(to):
             if (
-                "Mast" in child.tag
+                isinstance(child.tag, str)
+                and "Mast" in child.tag
                 and (child.text or "").strip() in YARD_VIRTUAL_UNAMES
             ):
                 to.remove(child)
@@ -302,8 +304,8 @@ def patch_yard_turnout_masts(root: ET.Element, le: ET.Element) -> int:
 
 
 def apply(path: Path) -> int:
-    tree = ET.parse(path)
-    root = tree.getroot()
+    doc = tables.load(path)
+    root = doc.root
     n = patch_mtt(root)
     le = _le(root)
     if le is not None:
@@ -311,21 +313,25 @@ def apply(path: Path) -> int:
         n += patch_zero_length_k2(le)
         n += patch_stub_masts(root, le)
         n += patch_yard_turnout_masts(root, le)
-    tree.write(path, encoding="UTF-8", xml_declaration=True)
+    doc.save()
     return n
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--panel", type=Path, default=DEFAULT)
-    ap.add_argument("--sync-output", action="store_true")
+    ap.add_argument("--sync-output", action="store_true", help="No effect since ADR-008; kept for existing callers")
     args = ap.parse_args()
-    paths = [args.panel.resolve()]
-    for path in paths:
+    targets = [args.panel.resolve()]
+    for path in targets:
         if not path.is_file():
             print(f"missing {path}")
             continue
-        n = apply(path)
+        try:
+            n = apply(path)
+        except RuntimeError as exc:
+            print(f"{path}: not changed: {exc}")
+            return 1
         print(f"{path}: {n} edits")
     return 0
 

@@ -38,10 +38,11 @@ from nx_contract import (
     nx_user_name,
 )
 
-ROOT = Path(__file__).resolve().parents[4]
-DEFAULTS = [
-    ROOT / "jmri/layouts/hart/output/tables.xml",
-]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+DEFAULTS = [paths.TABLES_XML]
 
 # CTC plant only (100–115 / 117). Not 116/118/119 or yard stubs.
 CTC_MASTS = {

@@ -24,8 +24,12 @@ from dataclasses import dataclass
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-DEFAULT_MAP = Path(__file__).resolve().parents[1] / "data" / "public_name_map.csv"
-DEFAULT_TABLES = Path(__file__).resolve().parents[1] / "output" / "tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+DEFAULT_MAP = paths.PUBLIC_NAME_MAP
+DEFAULT_TABLES = paths.TABLES_XML
 
 RENAME_LAYERS = frozenset({"block", "mast", "head", "turnout"})
 OPTIONAL_MISSING = frozenset(

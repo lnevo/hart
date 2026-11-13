@@ -15,10 +15,13 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_TABLES = REPO_ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
-DEFAULT_OUT = REPO_ROOT / "jmri" / "layouts" / "hart" / "data" / "baselines"
+REPO_ROOT = paths.REPO_ROOT
+DEFAULT_TABLES = paths.TABLES_XML
+DEFAULT_OUT = paths.LAYOUT_DATA / "baselines"
 CATS_MASTER_CANDIDATES = (
     REPO_ROOT / "cats" / "panels" / "HART_CTC.xml",
     REPO_ROOT / "cats" / "panels" / "HART_ABS.xml",
@@ -371,7 +374,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"tables.xml not found: {args.tables}", file=sys.stderr)
         return 1
 
-    root = ET.parse(args.tables).getroot()
+    root = tables.read(args.tables)
     counts: dict[str, int] = {}
 
     captures = (
