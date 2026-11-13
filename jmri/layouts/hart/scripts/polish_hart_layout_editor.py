@@ -110,6 +110,14 @@ CLUSTER_LAMP_LEVEL = "12"
 # Every other Stage 1 lamp is placed by stage1_lamp_targets(): a switch's OS
 # lamp centred in its turnout circle, a track's lamp centred on the track.
 STAGE1_LAMP_PLACEMENTS = {
+    # Mains in the South Yard lamp column (x 985), on their own track (owner,
+    # 2026-11-13): Main West along the top (y 252), Main East along the
+    # bottom (y 550).
+    "BS Main West": (985, 247),
+    "BS Main East": (985, 545),
+    # West Yard: at the bumper end of each spur (x 55), like the engine house.
+    "BS W-1": (58, 247),
+    "BS W-2": (58, 310),
     "BS EH-1": (576, 261),
     "BS EH-2": (576, 272),
     "BS EH-3": (576, 284),
