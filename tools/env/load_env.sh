@@ -12,7 +12,7 @@ _hart_env_loaded=1
 _env_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 export HART_REPO_ROOT="${HART_REPO_ROOT:-$(cd "${_env_dir}/../.." && pwd)}"
 
-# Host settings, read in the same order as tools/ops/lib/hart_hosts.py: the environment
+# Host settings, read in the same order as tools/hartlib/src/hartlib/hosts.py: the environment
 # first, then hart.env, then the default. Older names follow the new one in each list.
 _hart_host_names="HART_MQTT_BROKER MQTT_HOST HART_MQTT_HOST HART_MQTT_PORT HART_JMRI_JSON JMRI_JSON
   HART_PI_SSH HART_PI_USERFILES HART_WIN_SSH HART_WIN_SSH_PORT HART_WIN_USERFILES"
@@ -80,4 +80,8 @@ export HART_CAR_IMAGES_FINAL="${HART_CAR_IMAGES_FINAL:-${HART_CAR_CARDS_ROOT}/ca
 export HART_STS_HELPERS="${HART_STS_HELPERS:-${STS_HELPERS_ROOT}}"
 export STS_DOCKER="${STS_DOCKER:-${STS_DOCKER_ROOT}}"
 export COMPOSE_PROFILES="${COMPOSE_PROFILES:-build}"
-export JMRI_LAYOUT="${JMRI_LAYOUT:-hart}"
+# One layout (hartlib.paths pins it); a stale value from an old archive README is replaced.
+if [[ -n "${JMRI_LAYOUT:-}" && "$JMRI_LAYOUT" != hart ]]; then
+  echo "load_env.sh: JMRI_LAYOUT=$JMRI_LAYOUT replaced by hart (the only layout)" >&2
+fi
+export JMRI_LAYOUT=hart

@@ -27,6 +27,7 @@ run layout-facts python3 tools/audit/check_layout_facts.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
 run unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
+run unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
 run unit-cats python3 -m unittest discover -q -s cats/scripts/tests
 run unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
 run unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests

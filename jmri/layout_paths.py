@@ -1,7 +1,8 @@
-"""Shim: these paths moved to ``hartlib.paths`` (tools/hartlib). Kept so the AnyRail-era
-scripts in jmri/scripts keep working; new code imports hartlib (tools/hartlib/README.md).
+"""Shim: these paths moved to ``hartlib.paths`` (tools/hartlib). Kept only for
+jmri/scripts/check_hart_phase02.py and the scripts under archive/; new code imports hartlib
+(tools/hartlib/README.md).
 
-``JMRI_LAYOUT`` is a single-layout setting; this repo has only ``hart``.
+``JMRI_LAYOUT`` is ignored: ``ACTIVE_LAYOUT`` is always ``hart`` (hartlib.paths.LAYOUT).
 """
 from __future__ import annotations
 

@@ -15,7 +15,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 # Hosts: environment first, then tools/env/hart.env, then the defaults in load_env.sh
-# (the same order the Python tools use through hart_hosts.py).
+# (the same order the Python tools use through tools/hartlib/src/hartlib/hosts.py).
 source "$ROOT/tools/env/load_env.sh"
 WIN_HOST="$HART_WIN_SSH"
 WIN_PORT="$HART_WIN_SSH_PORT"
@@ -86,7 +86,8 @@ if [[ -n "$DEPLOY_CHANGES" ]]; then
   {
     echo "WARNING: this checkout has $DEPLOY_DIRTY_PATHS uncommitted or untracked path(s)."
     echo "  The hosts get files that are not in commit ${DEPLOY_COMMIT:0:12} ($DEPLOY_BRANCH); the stamp says dirty=yes."
-    printf '%s\n' "$DEPLOY_CHANGES" | head -10 | sed 's/^/    /'
+    # sed reads all its input, so a long list cannot SIGPIPE printf under pipefail.
+    printf '%s\n' "$DEPLOY_CHANGES" | sed -n '1,10s/^/    /p'
     [[ "$DEPLOY_DIRTY_PATHS" -le 10 ]] || echo "    ..."
   } >&2
 fi

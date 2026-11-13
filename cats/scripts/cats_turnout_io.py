@@ -11,13 +11,17 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import digicon_lib as le  # noqa: E402
 
-TURNOUT_CSV = ROOT / "cats/data/turnout_bindings.csv"
-HART_PANEL = ROOT / "jmri/layouts/hart/output/tables.xml"
+ROOT = paths.REPO_ROOT
+TURNOUT_CSV = paths.CATS_DIR / "data/turnout_bindings.csv"
+HART_PANEL = paths.TABLES_XML
 
 
 def section_tracks(sec: ET.Element) -> list[str]:
@@ -39,8 +43,8 @@ def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
 def load_turnouts() -> dict[str, tuple[str, str]]:
     """layout_ident → (DECADDR, USER_NAME) for M2T."""
     by_user: dict[str, str] = {}
-    root = ET.parse(HART_PANEL).getroot()
-    for t in root.iter("turnout"):
+    root = tables.read(HART_PANEL)
+    for t in tables.turnouts(root):
         sn = (t.findtext("systemName") or t.get("systemName") or "").strip()
         un = (t.findtext("userName") or "").strip()
         if sn.startswith("M2T") and un:

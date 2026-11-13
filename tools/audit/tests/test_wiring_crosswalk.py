@@ -1,11 +1,16 @@
 """check_wiring_crosswalk: heads in tables.xml must follow signal_wiring.csv."""
 import csv
 import importlib.util
+import sys
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 SPEC = importlib.util.spec_from_file_location(
     "check_wiring_crosswalk", ROOT / "tools/audit/check_wiring_crosswalk.py"
 )
@@ -144,9 +149,9 @@ class WiringCrosswalkTest(unittest.TestCase):
             check.problems(bad, tables())
 
     def test_repo_tables_follow_wiring_plan(self):
-        with (ROOT / "docs/wiring/signals/signal_wiring.csv").open(newline="") as f:
+        with (paths.SIGNAL_WIRING).open(newline="") as f:
             rows = list(csv.DictReader(f))
-        root = ET.parse(ROOT / "jmri/layouts/hart/output/tables.xml").getroot()
+        root = ET.parse(paths.TABLES_XML).getroot()
         self.assertEqual(check.problems(rows, root), [])
 
 

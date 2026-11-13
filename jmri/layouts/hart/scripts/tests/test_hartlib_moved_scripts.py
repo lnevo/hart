@@ -1,167 +1,144 @@
-"""The CPython scripts moved onto hartlib: paths, tables.xml reads and the one writer that saves.
+"""Scripts moved onto hartlib: they find this checkout's files and edit a copy the same way.
 
-Proves what the move relied on: each script finds this checkout's files through
-hartlib.paths, reads tables.xml through hartlib.tables (comments inside the file do not
-break it), and restore_manual_sml_pairs writes only through ``doc.save``.
+Each writer runs on a copy of tables.xml in a temp folder with a throwaway HOME, so the repo
+file and ~/JMRI_UserFiles stay untouched.
 """
 from __future__ import annotations
 
 import importlib.util
+import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
-from unittest import mock
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
-REPO = SCRIPTS.parents[3]
-TABLES = REPO / "jmri/layouts/hart/output/tables.xml"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+TABLES = paths.TABLES_XML
 
 
 def load(name: str):
     spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
-    mod = importlib.util.module_from_spec(spec)
+    module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
-    sys.modules[name] = mod  # dataclasses look their module up here
-    spec.loader.exec_module(mod)
-    return mod
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
-MINI = """<?xml version="1.0" encoding="UTF-8"?>
-<layout-config>
-  <!-- a comment the old ElementTree parse would have dropped -->
-  <transits>
-    <transit systemName="IZ:AUTO:0001" userName="Run via OS Switch 7"/>
-    <!-- another -->
-    <transit systemName="IZ:AUTO:0002" userName="Run via OS Switch 9"/>
-  </transits>
-  <layoutblocks blockrouting="yes"/>
-  <LayoutEditor name="HART Railroad"/>
-</layout-config>
-"""
+def run(script: str, *args: str, home: Path) -> subprocess.CompletedProcess:
+    env = dict(os.environ, HOME=str(home), HART_GUARD_JMRI_RUNNING="0")
+    return subprocess.run(
+        [sys.executable, str(SCRIPTS / script), *args],
+        capture_output=True, text=True, env=env, cwd=home,
+    )
 
 
-class PathsTest(unittest.TestCase):
-    def test_every_moved_script_points_at_this_checkout(self):
-        for name, attrs in {
-            "cleanup_uss_ctc_leftovers": {"ROOT": REPO, "TABLES": [TABLES]},
-            "disable_digicon_sml_in_tables": {
-                "ROOT": REPO, "NEW_TABLES": TABLES,
-                "WIRING": REPO / "docs/wiring/signals/signal_wiring.csv"},
-            "patch_ctc_locking": {"ROOT": REPO, "TABLES": TABLES},
-            "polish_hart_layout_editor": {"ROOT": REPO, "DEFAULT_PANEL": TABLES},
-            "reconcile_dispatcher_stations": {
-                "ROOT": REPO, "DEFAULT_PANEL": TABLES, "SYNC_PANEL": TABLES},
-            "refresh_bean_comments": {
-                "ROOT": REPO, "TABLES": TABLES,
-                "PUBLIC_NAME_MAP": REPO / "jmri/layouts/hart/data/public_name_map.csv"},
-            "restore_manual_sml_pairs": {"DEFAULT_PANEL": TABLES},
-            "sync_public_name_map": {
-                "ROOT": REPO, "TABLES": TABLES,
-                "CSV_PATH": REPO / "jmri/layouts/hart/data/public_name_map.csv"},
-            "validate_le_signalling": {
-                "DEFAULT_XML": TABLES,
-                "DEFAULT_CSV": REPO / "jmri/layouts/hart/data/le_signal_boundaries.csv",
-                "ORACLE": SCRIPTS / "apply_sml_cats_pairs.py"},
-            "layout_facts": {"DATA": REPO / "jmri/layouts/hart/data"},
-        }.items():
-            mod = load(name)
-            for attr, want in attrs.items():
-                with self.subTest(script=name, attr=attr):
-                    self.assertEqual(want, getattr(mod, attr))
+class DefaultPathsTest(unittest.TestCase):
+    def test_default_tables_are_this_checkouts_file(self):
+        for name, attr in (
+            ("add_digicon_le_signal_icons", "DEFAULT_PANEL"),
+            ("add_yard_ladder_le_icons", "DEFAULT_PANEL"),
+            ("annotate_mqtt_sensors_and_dispatcher", "TABLES"),
+            ("apply_le_cleanup", "DEFAULT"),
+            ("apply_le_sml_facing", "DEFAULT_PANEL"),
+            ("apply_public_names", "DEFAULT_TABLES"),
+            ("apply_yard_throat_blocks", "DEFAULT"),
+            ("capture_public_name_baseline", "DEFAULT_TABLES"),
+        ):
+            with self.subTest(name):
+                self.assertEqual(TABLES, getattr(load(name), attr))
+        self.assertEqual([TABLES], load("apply_nx_layer").DEFAULTS)
+        self.assertEqual(TABLES, load("audit_panel_contracts").DEFAULT_SOURCES[0][1])
 
-    def test_retarget_default_dirs_and_tables(self):
-        mod = load("retarget_dispatcher_traininfo_transits")
-        self.assertEqual(SCRIPTS.parent / "dispatcher/traininfo", mod.DEFAULT_DIRS[1])
-        self.assertEqual(TABLES, mod.DEFAULT_TABLES[1])
+    def test_other_inputs_are_in_this_checkout(self):
+        audit = load("audit_panel_contracts")
+        self.assertEqual(paths.LAYOUT_DATA / "le_signal_boundaries.csv", audit.BOUNDARIES)
+        self.assertEqual(paths.LAYOUT_DIR / "dispatcher" / "traininfo", audit.TRAININFO)
+        self.assertEqual(paths.CATS_DIR / "data" / "occupancy_bindings.csv",
+                         load("annotate_mqtt_sensors_and_dispatcher").OCC_CSV)
+        self.assertEqual(paths.PUBLIC_NAME_MAP, load("apply_public_names").DEFAULT_MAP)
+        self.assertEqual(paths.JMRI_USER_FILES / "tables.xml", load("apply_le_sml_facing").PREF_TABLES)
 
 
-class ReadsThroughHartlibTest(unittest.TestCase):
+class WritersOnACopyTest(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.tmp.cleanup)
-        self.mini = Path(self.tmp.name) / "tables.xml"
-        self.mini.write_text(MINI, encoding="utf-8")
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.home = Path(self._tmp.name)
 
-    def test_retarget_reads_transit_names_past_comments(self):
-        mod = load("retarget_dispatcher_traininfo_transits")
-        self.assertEqual({"Run via OS Switch 7", "Run via OS Switch 9"},
-                         mod.live_transit_names(self.mini))
-        self.assertEqual("Run via OS Switch 7", mod.rewrite_name("Run via Track 7"))
+    def copy(self, name: str) -> Path:
+        path = self.home / name
+        shutil.copy(TABLES, path)
+        return path
 
-    def test_validate_parse_reads_past_comments(self):
-        mod = load("validate_le_signalling")
-        model = mod.parse(self.mini)
-        self.assertEqual("yes", model.blockrouting)
-        self.assertEqual([], model.masts)
-        self.assertEqual([], mod.load_stored_sml(self.mini))
+    def test_le_cleanup_edits_then_is_idempotent(self):
+        panel = self.copy("cleanup.xml")
+        first = run("apply_le_cleanup.py", "--panel", str(panel), home=self.home)
+        self.assertEqual(0, first.returncode, first.stderr)
+        self.assertRegex(first.stdout, r"cleanup\.xml: \d+ edits")
+        after_first = panel.read_bytes()
+        second = run("apply_le_cleanup.py", "--panel", str(panel), home=self.home)
+        self.assertIn(": 0 edits", second.stdout)
+        self.assertEqual(after_first, panel.read_bytes())
 
-    def test_sync_public_name_map_live_names_come_from_the_beans(self):
-        mod = load("sync_public_name_map")
-        path = Path(self.tmp.name) / "beans.xml"
-        path.write_text(
-            "<layout-config><!-- c --><turnouts><turnout><systemName>MT1</systemName>"
-            "<userName>Switch 1</userName></turnout></turnouts></layout-config>",
-            encoding="utf-8")
-        self.assertEqual({"MT1": "Switch 1"}, mod.live_usernames_by_system(path))
+    def test_digicon_icons_dry_run_writes_nothing(self):
+        panel = self.copy("digicon.xml")
+        before = panel.read_bytes()
+        result = run("add_digicon_le_signal_icons.py", "--dry-run", "--panel", str(panel), home=self.home)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("DRY", result.stdout)
+        self.assertEqual(before, panel.read_bytes())
 
-    def test_cleanup_drops_only_the_listed_leftovers(self):
-        mod = load("cleanup_uss_ctc_leftovers")
-        gone = sorted(mod.DELETE_SYSTEM_NAMES)[0]
-        text = (f"  <sensors>\n    <sensor><systemName>{gone}</systemName></sensor>\n"
-                "    <sensor><systemName>MTT1</systemName></sensor>\n  </sensors>\n")
-        out, n = mod.delete_orphans(text)
-        self.assertEqual(1, n)
-        self.assertNotIn(gone, out)
-        self.assertIn("MTT1", out)
+    def test_sml_facing_dry_run_writes_nothing(self):
+        panel = self.copy("facing.xml")
+        before = panel.read_bytes()
+        result = run("apply_le_sml_facing.py", "--dry-run", "--panel", str(panel), home=self.home)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(before, panel.read_bytes())
 
 
-class RestoreWritesThroughSaveTest(unittest.TestCase):
-    def test_only_the_restored_pair_changes_and_comments_stay(self):
-        mod = load("restore_manual_sml_pairs")
-
-        def sml(source, dest):
-            return (f'<signalmastlogic source="{source}"><sourceSignalMast>{source}</sourceSignalMast>'
-                    f'<destinationMast destination="{dest}"><destinationSignalMast>{dest}'
-                    f'</destinationSignalMast></destinationMast></signalmastlogic>')
-
-        def doc(pairs):
-            return ('<?xml version="1.0" encoding="UTF-8"?>\n<layout-config>\n<!-- keep me -->\n'
-                    '<signalmastlogics>' + "".join(sml(s, d) for s, d in pairs) +
-                    '</signalmastlogics>\n</layout-config>\n')
-
+class AnnotateWritePathTest(unittest.TestCase):
+    def test_write_path_completes_on_a_temp_copy(self):
         with tempfile.TemporaryDirectory() as tmp:
-            ref = Path(tmp) / "ref.xml"
-            panel = Path(tmp) / "tables.xml"
-            ref.write_text(doc([("Mast 36RA", "Mast 40LA"), ("Mast 36RB", "Mast 38LA")]), encoding="utf-8")
-            panel.write_text(doc([("Mast 36RA", "Mast 2036"), ("Mast 36RB", "Mast 38LA")]), encoding="utf-8")
-            self.assertEqual(0, mod.main(["--panel", str(panel), "--reference", str(ref)]))
-            written = panel.read_text(encoding="utf-8")
-            self.assertIn("<!-- keep me -->", written)
-            self.assertIn("Mast 40LA", written)
-            before = panel.read_bytes()
-            self.assertEqual(0, mod.main(["--panel", str(panel), "--reference", str(ref)]))
-            self.assertEqual(before, panel.read_bytes())
+            tmp = Path(tmp)
+            module = load("annotate_mqtt_sensors_and_dispatcher")
+            module.TABLES = tmp / "tables.xml"
+            shutil.copy(TABLES, module.TABLES)
+            module.TRAININFO_DIR = tmp / "traininfo"
+            home = tmp / "JMRI_UserFiles"
+            home.mkdir()
+            (home / "tables.xml").write_text("old")
+            module.MAC_PROFILE = home
+            module.main()
+            self.assertEqual(module.TABLES.read_bytes(), (home / "tables.xml").read_bytes())
+            self.assertTrue(any((home / "dispatcher" / "traininfo").glob("*.xml")))
+            self.assertTrue(any(module.TRAININFO_DIR.glob("*.xml")))
 
 
-    def test_jmri_open_is_a_clean_failure_not_a_traceback(self):
-        restore = load("restore_manual_sml_pairs")
-        polish = load("polish_hart_layout_editor")
+class CommentNodeTest(unittest.TestCase):
+    def test_mast_slot_insert_skips_a_comment_inside_a_layoutturnout(self):
+        import xml.etree.ElementTree as ET
+        throat = load("apply_yard_throat_blocks")
+        to = ET.fromstring("<layoutturnout ident='T1'><!--note--><sensorA>x</sensorA></layoutturnout>")
+        # ET.fromstring drops comments; build the node by hand as hartlib's loader keeps it.
+        to.insert(0, ET.Comment("note"))
+        self.assertEqual(1, throat._ensure_turnout_mast(to, "signalAMast", "Mast 1"))
+        tags = [c.tag for c in to if isinstance(c.tag, str)]
+        self.assertEqual(["signalAMast", "sensorA"], tags)
+
+
+class AuditTest(unittest.TestCase):
+    def test_panel_contract_audit_passes_on_the_repo_tables(self):
         with tempfile.TemporaryDirectory() as tmp:
-            panel = Path(tmp) / "tables.xml"
-            panel.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
-            ref = Path(tmp) / "ref.xml"
-            ref.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
-            boom = mock.patch.object(restore.tables.Tables, "save",
-                                     side_effect=RuntimeError("PanelPro or CATS is open"))
-            with boom, mock.patch.object(restore, "restore", return_value=[("a", "b")]):
-                self.assertEqual(1, restore.main(["--panel", str(panel), "--reference", str(ref)]))
-            with mock.patch.object(polish.tables.Tables, "save",
-                                   side_effect=RuntimeError("PanelPro or CATS is open")), \
-                    mock.patch.object(polish, "apply_visual_standard",
-                                      side_effect=RuntimeError("PanelPro or CATS is open")), \
-                    mock.patch("sys.argv", ["polish", "--panel", str(panel)]):
-                self.assertEqual(1, polish.main())
+            result = run("audit_panel_contracts.py", home=Path(tmp))
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("RESULT: PASS", result.stdout)
 
 
 if __name__ == "__main__":

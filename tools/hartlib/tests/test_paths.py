@@ -20,6 +20,7 @@ class CheckoutTest(unittest.TestCase):
         self.assertTrue(paths.TABLES_XML.is_file())
         self.assertTrue(paths.PUBLIC_NAME_MAP.is_file())
         self.assertTrue(paths.SIGNAL_WIRING.is_file())
+        self.assertTrue(paths.SIGNAL_HEAD_PLAN.is_file())
         self.assertEqual(paths.TABLES_XML, CHECKOUT / "jmri/layouts/hart/output/tables.xml")
 
     def test_env_roots_do_not_move_paths(self):
@@ -64,8 +65,8 @@ class LayoutPathsTest(unittest.TestCase):
         self.assertTrue(Path(got["style_defaults"]).is_file())
         self.assertFalse(any(k.startswith("dispatcher") for k in got))
 
-    def test_jmri_layout_is_read(self):
-        self.assertEqual(paths.LAYOUT, (os.environ.get("JMRI_LAYOUT") or "").strip() or "hart")
+    def test_layout_is_pinned_to_hart(self):
+        self.assertEqual(paths.LAYOUT, "hart")
         self.assertTrue(paths.layout_paths("other")["layout_dir"].endswith("layouts/other"))
 
 
@@ -128,6 +129,19 @@ class BootstrapTest(unittest.TestCase):
         self.assertEqual(done.returncode, 1)
         self.assertIn("no tools/hartlib/src above", done.stderr)
         self.assertNotIn("StopIteration", done.stderr)
+
+
+class PinnedLayout(unittest.TestCase):
+    def test_stale_jmri_layout_does_not_move_paths(self) -> None:
+        import subprocess
+        import sys as _sys
+        src = str(Path(paths.__file__).resolve().parents[1])
+        out = subprocess.run(
+            [_sys.executable, "-c", "import sys; sys.path.insert(0, sys.argv[1]); "
+             "from hartlib import paths; print(paths.LAYOUT, paths.TABLES_XML)", src],
+            env={**os.environ, "JMRI_LAYOUT": "linear5"}, capture_output=True, text=True, check=True)
+        self.assertTrue(out.stdout.startswith("hart "), out.stdout)
+        self.assertIn("jmri/layouts/hart/output/tables.xml", out.stdout)
 
 
 if __name__ == "__main__":

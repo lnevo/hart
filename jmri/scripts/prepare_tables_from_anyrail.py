@@ -10,10 +10,14 @@ from __future__ import annotations
 import importlib.util
 import os
 import sys
+from pathlib import Path
 import xml.etree.ElementTree as ET
 
-JMRI_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, JMRI_ROOT)
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+JMRI_ROOT = str(paths.JMRI_DIR)
 
 _spec = importlib.util.spec_from_file_location(
     "sync_linear_panel",
@@ -83,8 +87,6 @@ def prepare(
 
 def main() -> None:
     import argparse
-    from layout_paths import layout_paths
-
     ap = argparse.ArgumentParser(description="Prepare AnyRail export for JMRI / tables.")
     ap.add_argument("source", nargs="?", help="AnyRail layout XML")
     ap.add_argument("output", nargs="?", help="Output path")
@@ -97,15 +99,15 @@ def main() -> None:
     )
     args = ap.parse_args()
 
-    paths = layout_paths()
-    source = args.source or paths["anyrail"]
-    output = args.output or os.path.join(paths["working"], "tables_linear3.xml")
-    ref = args.reference or paths.get("style_defaults") or paths["authoritative"]
+    layout = paths.layout_paths()
+    source = args.source or layout["anyrail"]
+    output = args.output or os.path.join(layout["working"], "tables_linear3.xml")
+    ref = args.reference or layout.get("style_defaults") or layout["authoritative"]
     scale = args.scale
     if scale is None:
         scale = (
             1.0
-            if os.environ.get("JMRI_LAYOUT") in ("linear3", "linear4")
+            if paths.LAYOUT in ("linear3", "linear4")
             else DRAW_SCALE
         )
     prepare(source, output, reference_path=ref, draw_scale=scale)
