@@ -18,7 +18,7 @@ Defaults:
 
 Optional flags: `--tables PATH`, `--out PATH`.
 
-`./tools/check.sh` runs it with `--check`, which fails when these files no longer match `tables.xml` (the sha256 line is ignored, so moving an icon does not count). After a change to names or bindings, recapture and commit the result with it.
+`./tools/check.sh` runs it with `--check`, which fails when these files no longer match `tables.xml`. They hold names and bindings only, so moving an icon does not count; `counts.txt` holds the row count of each file. After a change to names or bindings, recapture and commit the result with it.
 
 ## Sources
 
