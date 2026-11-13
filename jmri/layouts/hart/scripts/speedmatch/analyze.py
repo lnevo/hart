@@ -57,11 +57,20 @@ def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
         if "basis" in row:
             ok = (row["basis"] or "").strip() in trusted
         else:
-            ok = (row.get("flag") or "").strip() == "assigned"
+            # block_lengths.csv keeps the basis in its "flag" column (anyrail, inferred, ...);
+            # "assigned" counted before the AnyRail work and still does
+            ok = (row.get("flag") or "").strip() in tuple(trusted) + ("assigned",)
         try:
-            out[sensor] = float(row["inches"]) * MM_PER_INCH if ok else None
+            mm = float(row["inches"]) * MM_PER_INCH if ok else None
         except ValueError:
-            out[sensor] = None
+            mm = None
+        if mm is not None:
+            # a hidden throat stub shares this track's detector, so the sensor covers both
+            for r in rows.values():
+                if (r.get("flag") or "").strip() == "stub" and \
+                        (r.get("old_source") or "").startswith("hidden throat of %s;" % name):
+                    mm += float(r["inches"]) * MM_PER_INCH
+        out[sensor] = mm
     return out
 
 

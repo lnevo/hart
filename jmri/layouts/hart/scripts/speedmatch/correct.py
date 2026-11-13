@@ -110,7 +110,10 @@ def proposal(loco, report, round_no, max_rounds, tol):
     changes = [{"cv": r["cv"], "old": r["old"], "new": r["new"], "anchor_step": r["step"],
                 "error_pct": None if r["error"] is None else round(100 * r["error"], 2)}
                for r in report["anchors"] if r["new"] != r["old"]]
-    return {"schema": 1, "kind": "speed_table_proposal", "loco": loco, "round": round_no,
+    return {"schema": 1, "kind": "speed_table_proposal", "loco": loco,
+            # roster_id and writes are what pom_guard.py reads (POM_GUARD.md); the rest is ignored
+            "roster_id": loco, "writes": [{"cv": c["cv"], "value": c["new"]} for c in changes],
+            "round": round_no,
             "max_rounds": max_rounds, "tolerance_pct": round(100 * tol, 2),
             "status": status(report, round_no, max_rounds), "cv_start": CV_START,
             "old": [r["old"] for r in report["anchors"]], "new": report["values"],

@@ -166,6 +166,18 @@ class Lengths(unittest.TestCase):
         self.assertIsNone(got["BS Switch 1"])
         self.assertIsNone(got["BS K-2"])  # no row at all
 
+    def test_flag_column_carries_the_basis_and_stubs_are_added(self):
+        p = self.write(["user_name", "occupancy_sensor", "inches", "flag", "old_source"],
+                       [["Track East Lead", "x", "92", "inferred", "timed share"],
+                        ["Track East Lead East", "BS East Lead", "15.748", "stub",
+                         "hidden throat of Track East Lead; same detector"],
+                        ["Track K-2", "x", "114.5", "anyrail", ""],
+                        ["Track K-1", "x", "122.5", "split", ""]])
+        got = analyze.load_lengths(p)
+        self.assertAlmostEqual(got["BS East Lead"], 92 * 25.4 + 400.0, places=1)
+        self.assertAlmostEqual(got["BS K-2"], 114.5 * 25.4)
+        self.assertIsNone(got["BS K-1"])
+
     def test_the_repo_csv_loads(self):
         got = analyze.load_lengths()
         self.assertEqual(set(got), set(analyze.ORDER))
@@ -436,6 +448,10 @@ class Correction(unittest.TestCase):
         self.assertFalse(prop["applied"])
         self.assertEqual(len(prop["new"]), 28)
         self.assertEqual(prop["cv_start"], 67)
+        # the fields pom_guard.py reads: roster_id and writes of {cv, value} only
+        self.assertEqual(prop["roster_id"], "CSX 2738")
+        self.assertEqual(prop["writes"], [{"cv": c["cv"], "value": c["new"]} for c in prop["changes"]])
+        self.assertTrue(prop["writes"])
         self.assertNotIn("address", prop)
         self.assertTrue(all(67 <= c["cv"] <= 94 for c in prop["changes"]))
         rows = list(csv.DictReader(open(d / "p" / "proposal.csv")))
