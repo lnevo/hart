@@ -61,18 +61,7 @@ RETIRED_STATION_OCCUPANCY = {
     "Track S-3": "BS S-3",
     "Track S-4": "BS S-4",
 }
-RETIRED_STATIONS = (
-    "Track Main West",
-    "Track West Main Ext",
-    "Track Main East",
-    "Track East Main Ext",
-    "Track Brick-Plane",
-    "Track S-R",
-    "Track S-1",
-    "Track S-2",
-    "Track S-3",
-    "Track S-4",
-)
+RETIRED_STATIONS = tuple(RETIRED_STATION_OCCUPANCY)
 
 # Station cluster icons sit on level 12. The Stage 1 (CreateIcons) occupancy
 # lamps on the track share the sensor at level 10 and are left alone.

@@ -567,6 +567,8 @@ BLOCK_COMMENTS = {
     "Track Barn": "Lead 117 to 116; occupancy Block 13-1 / M2S1300; stop",
     "Track S-R": "Run-through east of 103; occupancy Block 2-8 / M2S207",
     "Track S-R West": "Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8 / M2S207; not a station",
+    "Track East Lead East": "Hidden Track East Lead throat (same detector as Track East Lead); occupancy Block 1-7 / M2S106; not a station",
+    "Track K-1 West": "Hidden Track K-1 throat (same detector as Track K-1); occupancy Block 1-1 / M2S100; not a station",
     "Track S-R East": "Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8 / M2S207; not a station",
     "Track S-1": "South Yard body; occupancy Block 2-7 / M2S206",
     "Track S-1 West": "Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7 / M2S206; not a station",
@@ -622,13 +624,13 @@ TURNOUT_COMMENTS = {
 }
 
 OCC_SENSOR = {
-    "Block 1-1": "Occupancy Track K-1; MQTT M2S100",
+    "Block 1-1": "Occupancy Track K-1 (and hidden Track K-1 West throat); MQTT M2S100",
     "Block 1-2": "Occupancy Track K-2; MQTT M2S101",
     "Block 1-3": "Occupancy OS Switch 37 / Track McKeesport; MQTT M2S102",
     "Block 1-4": "Occupancy OS Switch 39 / Track McKees Rocks; MQTT M2S103",
     "Block 1-5": "Occupancy OS Switch 35b; MQTT M2S104",
     "Block 1-6": "Occupancy OS Switch 35a; MQTT M2S105",
-    "Block 1-7": "Occupancy Track East Lead; MQTT M2S106",
+    "Block 1-7": "Occupancy Track East Lead (and hidden Track East Lead East throat); MQTT M2S106",
     "Block 1-8": "Occupancy Track West Main Ext; MQTT M2S107",
     "Block 2-1": "Occupancy Track Main West; MQTT M2S200",
     "Block 2-3": "Occupancy Track Main East; MQTT M2S202",
@@ -843,6 +845,10 @@ WIRING_HEAD_COMMENTS = load_wiring_head_comments()
 def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> str | None:
     if existing and re.search(r"(?:\bstop\b|not a station)", existing, re.I):
         return existing
+    # A block's own description beats the device-map area name ("South
+    # Yard"), so a block that stops being a station keeps its prose.
+    if kind == "block" and user_name in BLOCK_COMMENTS:
+        return BLOCK_COMMENTS[user_name]
     if kind == "signalhead":
         wired = WIRING_HEAD_COMMENTS.get(user_name)
         if wired:

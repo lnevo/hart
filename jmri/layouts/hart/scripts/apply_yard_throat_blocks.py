@@ -108,7 +108,7 @@ REAR_MASTS = [
         "throat": "Track East Lead East",
         "sensor": "BS East Lead",
         "station": "Track East Lead",
-        "hardware": "Block 1-7",
+        "hardware": "Block 1-7 / M2S106",
         "virtual": ("IF$vsm:basic:one-low($1025)", "Mast 36L", "westbound", 1449, 300, 270, "Princess | Switch 35"),
     },
     {
@@ -117,7 +117,7 @@ REAR_MASTS = [
         "throat": "Track K-1 West",
         "sensor": "BS K-1",
         "station": "Track K-1",
-        "hardware": "Block 1-1",
+        "hardware": "Block 1-1 / M2S100",
         "virtual": ("IF$vsm:basic:one-low($1026)", "Mast 40RB", "eastbound", 1627, 236, 90, "Princess | Switch 39"),
     },
 ]
@@ -641,7 +641,7 @@ def main() -> int:
     ap.add_argument(
         "--scale-east-only",
         action="store_true",
-        help="Only the Scale/Switch 7, Mast 14R, engine-house exit and Brick-Plane masts; skip the South Yard throats.",
+        help="Only the Scale/Switch 7, Mast 14R, engine-house exit, Brick-Plane and East Lead / K-1 rear masts; skip the South Yard throats.",
     )
     args = ap.parse_args()
     paths = [args.panel.resolve()]

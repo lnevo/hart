@@ -94,15 +94,15 @@ train to another station by hand, register it again there.
 
 ## 4. Send it to one station (no saved route)
 
-Use this when you just want “go to OS Main East.”
+Use this when you just want “go to Track K-1.”
 
 1. Click **Run Dispatch** so it is selected (**Setup Route** must be off).
 2. On **HART Railroad**, click the **wide label** of the destination station.
 3. Pick the train if asked, and Express vs stopping if asked.
 
 The system takes the **shortest** path (block lengths). It does **not** ask
-which plant to go through. From OS East Main Ext to OS Main East that is normally
-east through 117b, not around through Plane.
+which plant to go through. From Track Barn to Track East Lead that is normally
+east through Switch 13, not around through Plane.
 
 **To force a path that is not the shortest**, do not use this mode. Build a
 route that lists the stations you want it to visit (section 5).
@@ -145,13 +145,14 @@ is in place.
 
 ### Example
 
-Train on **OS East Main Ext**, facing east, want OS Barn then East End without
-going the long way around Plane:
+Train on **Track Scale**, want Track Barn, then East End, then into the
+Princess balloon:
 
-**OS East Main Ext** → **OS Main East** → **OS East Lead**
+**Track Scale** → **Track Barn** → **Track East Lead** (button **East End**) → **Track K-1**
 
-To send it the long way on purpose, put **OS Brick-Plane** (and
-whatever else you need) in the list so shortest-path cannot skip it.
+Only stations can go in a route. The mains, Brick-Plane and South Yard are
+through track since 2026-11-12, so a route cannot force a train over one of
+them; it takes the shortest path between the stations you list.
 
 ---
 

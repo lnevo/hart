@@ -1753,98 +1753,122 @@
     <sensor inverted="false">
       <systemName>IS:DSCT:1</systemName>
       <userName>startDispatcherSensor</userName>
+      <comment>Dispatcher System startDispatcherSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:2</systemName>
       <userName>stopMasterSensor</userName>
+      <comment>Dispatcher System stopMasterSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:3</systemName>
       <userName>modifyMasterSensor</userName>
+      <comment>Dispatcher System modifyMasterSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:4</systemName>
       <userName>Express</userName>
+      <comment>Dispatcher System Express</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:5</systemName>
       <userName>newTrainSensor</userName>
+      <comment>Dispatcher System newTrainSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:6</systemName>
       <userName>soundSensor</userName>
+      <comment>Dispatcher System soundSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:7</systemName>
       <userName>simulateSensor</userName>
+      <comment>Dispatcher System simulateSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:8</systemName>
       <userName>checkRouteSensor</userName>
+      <comment>Dispatcher System checkRouteSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:9</systemName>
       <userName>stopAtStopSensor</userName>
+      <comment>Dispatcher System stopAtStopSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:10</systemName>
       <userName>setDispatchSensor</userName>
+      <comment>Dispatcher System setDispatchSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:11</systemName>
       <userName>setRouteSensor</userName>
+      <comment>Dispatcher System setRouteSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:12</systemName>
       <userName>setStoppingDistanceSensor</userName>
+      <comment>Dispatcher System setStoppingDistanceSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:13</systemName>
       <userName>setStopSensor</userName>
+      <comment>Dispatcher System setStopSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:14</systemName>
       <userName>setStationWaitTimeSensor</userName>
+      <comment>Dispatcher System setStationWaitTimeSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:15</systemName>
       <userName>setStationDirectionSensor</userName>
+      <comment>Dispatcher System setStationDirectionSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:16</systemName>
       <userName>setTransitBlockRestrictionSensor</userName>
+      <comment>Dispatcher System setTransitBlockRestrictionSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:17</systemName>
       <userName>runRouteSensor</userName>
+      <comment>Dispatcher System runRouteSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:18</systemName>
       <userName>editRoutesSensor</userName>
+      <comment>Dispatcher System editRoutesSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:19</systemName>
       <userName>viewScheduledSensor</userName>
+      <comment>Dispatcher System viewScheduledSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:20</systemName>
       <userName>showClockSensor</userName>
+      <comment>Dispatcher System showClockSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:21</systemName>
       <userName>startSchedulerSensor</userName>
+      <comment>Dispatcher System startSchedulerSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:22</systemName>
       <userName>timetableSensor</userName>
+      <comment>Dispatcher System timetableSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:23</systemName>
       <userName>departureTimeSensor</userName>
+      <comment>Dispatcher System departureTimeSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCT:24</systemName>
       <userName>helpSensor</userName>
+      <comment>Dispatcher System helpSensor</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSCTA:0</systemName>
@@ -1859,98 +1883,122 @@
     <sensor inverted="false">
       <systemName>IS:DSMP:1</systemName>
       <userName>MoveInProgressTrack_Barn</userName>
+      <comment>Dispatcher System move-in-progress for Track Barn</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:2</systemName>
       <userName>MoveInProgressTrack_EH-1</userName>
+      <comment>Dispatcher System move-in-progress for Track EH-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:3</systemName>
       <userName>MoveInProgressTrack_EH-2</userName>
+      <comment>Dispatcher System move-in-progress for Track EH-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:4</systemName>
       <userName>MoveInProgressTrack_EH-3</userName>
+      <comment>Dispatcher System move-in-progress for Track EH-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:5</systemName>
       <userName>MoveInProgressTrack_East_Lead</userName>
+      <comment>Dispatcher System move-in-progress for Track East Lead</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:6</systemName>
       <userName>MoveInProgressTrack_K-1</userName>
+      <comment>Dispatcher System move-in-progress for Track K-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:7</systemName>
       <userName>MoveInProgressTrack_K-2</userName>
+      <comment>Dispatcher System move-in-progress for Track K-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:8</systemName>
       <userName>MoveInProgressTrack_McKees_Rocks</userName>
+      <comment>Dispatcher System move-in-progress for Track McKees Rocks</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:9</systemName>
       <userName>MoveInProgressTrack_McKeesport</userName>
+      <comment>Dispatcher System move-in-progress for Track McKeesport</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:10</systemName>
       <userName>MoveInProgressTrack_Scale</userName>
+      <comment>Dispatcher System move-in-progress for Track Scale</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:11</systemName>
       <userName>MoveInProgressTrack_W-1</userName>
+      <comment>Dispatcher System move-in-progress for Track W-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMP:12</systemName>
       <userName>MoveInProgressTrack_W-2</userName>
+      <comment>Dispatcher System move-in-progress for Track W-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:1</systemName>
       <userName>MoveToTrack_Barn_stored</userName>
+      <comment>Dispatcher System MoveTo for Track Barn</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:2</systemName>
       <userName>MoveToTrack_EH-1_stored</userName>
+      <comment>Dispatcher System MoveTo for Track EH-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:3</systemName>
       <userName>MoveToTrack_EH-2_stored</userName>
+      <comment>Dispatcher System MoveTo for Track EH-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:4</systemName>
       <userName>MoveToTrack_EH-3_stored</userName>
+      <comment>Dispatcher System MoveTo for Track EH-3</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:5</systemName>
       <userName>MoveToTrack_East_Lead_stored</userName>
+      <comment>Dispatcher System MoveTo for Track East Lead</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:6</systemName>
       <userName>MoveToTrack_K-1_stored</userName>
+      <comment>Dispatcher System MoveTo for Track K-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:7</systemName>
       <userName>MoveToTrack_K-2_stored</userName>
+      <comment>Dispatcher System MoveTo for Track K-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:8</systemName>
       <userName>MoveToTrack_McKees_Rocks_stored</userName>
+      <comment>Dispatcher System MoveTo for Track McKees Rocks</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:9</systemName>
       <userName>MoveToTrack_McKeesport_stored</userName>
+      <comment>Dispatcher System MoveTo for Track McKeesport</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:10</systemName>
       <userName>MoveToTrack_Scale_stored</userName>
+      <comment>Dispatcher System MoveTo for Track Scale</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:11</systemName>
       <userName>MoveToTrack_W-1_stored</userName>
+      <comment>Dispatcher System MoveTo for Track W-1</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:DSMT:12</systemName>
       <userName>MoveToTrack_W-2_stored</userName>
+      <comment>Dispatcher System MoveTo for Track W-2</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:FLEETING</systemName>
@@ -1960,802 +2008,1002 @@
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0669:forward</systemName>
       <userName>IY:AUTO:0669:forward</userName>
+      <comment>SML section forward direction: Mast 38LB:Mast 36L (IY:AUTO:0669)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0669:reverse</systemName>
       <userName>IY:AUTO:0669:reverse</userName>
+      <comment>SML section reverse direction: Mast 38LB:Mast 36L (IY:AUTO:0669)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0670:forward</systemName>
       <userName>IY:AUTO:0670:forward</userName>
+      <comment>SML section forward direction: Mast 24RB:Mast 36RB (IY:AUTO:0670)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0670:reverse</systemName>
       <userName>IY:AUTO:0670:reverse</userName>
+      <comment>SML section reverse direction: Mast 24RB:Mast 36RB (IY:AUTO:0670)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0671:forward</systemName>
       <userName>IY:AUTO:0671:forward</userName>
+      <comment>SML section forward direction: Mast 6LB:Mast 2R (IY:AUTO:0671)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0671:reverse</systemName>
       <userName>IY:AUTO:0671:reverse</userName>
+      <comment>SML section reverse direction: Mast 6LB:Mast 2R (IY:AUTO:0671)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0672:forward</systemName>
       <userName>IY:AUTO:0672:forward</userName>
+      <comment>SML section forward direction: Mast 6LA:Mast 2R (IY:AUTO:0672)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0672:reverse</systemName>
       <userName>IY:AUTO:0672:reverse</userName>
+      <comment>SML section reverse direction: Mast 6LA:Mast 2R (IY:AUTO:0672)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0673:forward</systemName>
       <userName>IY:AUTO:0673:forward</userName>
+      <comment>SML section forward direction: Mast 4RA:Mast 24RA (IY:AUTO:0673)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0673:reverse</systemName>
       <userName>IY:AUTO:0673:reverse</userName>
+      <comment>SML section reverse direction: Mast 4RA:Mast 24RA (IY:AUTO:0673)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0674:forward</systemName>
       <userName>IY:AUTO:0674:forward</userName>
+      <comment>SML section forward direction: Mast 4RB:Mast 24RA (IY:AUTO:0674)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0674:reverse</systemName>
       <userName>IY:AUTO:0674:reverse</userName>
+      <comment>SML section reverse direction: Mast 4RB:Mast 24RA (IY:AUTO:0674)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0675:forward</systemName>
       <userName>IY:AUTO:0675:forward</userName>
+      <comment>SML section forward direction: Mast 2036:Mast 38LB (IY:AUTO:0675)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0675:reverse</systemName>
       <userName>IY:AUTO:0675:reverse</userName>
+      <comment>SML section reverse direction: Mast 2036:Mast 38LB (IY:AUTO:0675)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0676:forward</systemName>
       <userName>IY:AUTO:0676:forward</userName>
+      <comment>SML section forward direction: Mast 2035:Mast 40LB (IY:AUTO:0676)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0676:reverse</systemName>
       <userName>IY:AUTO:0676:reverse</userName>
+      <comment>SML section reverse direction: Mast 2035:Mast 40LB (IY:AUTO:0676)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0677:forward</systemName>
       <userName>IY:AUTO:0677:forward</userName>
+      <comment>SML section forward direction: Mast 40LB:Mast 36L (IY:AUTO:0677)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0677:reverse</systemName>
       <userName>IY:AUTO:0677:reverse</userName>
+      <comment>SML section reverse direction: Mast 40LB:Mast 36L (IY:AUTO:0677)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0678:forward</systemName>
       <userName>IY:AUTO:0678:forward</userName>
+      <comment>SML section forward direction: Mast 40LB:Mast 24L (IY:AUTO:0678)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0678:reverse</systemName>
       <userName>IY:AUTO:0678:reverse</userName>
+      <comment>SML section reverse direction: Mast 40LB:Mast 24L (IY:AUTO:0678)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0679:forward</systemName>
       <userName>IY:AUTO:0679:forward</userName>
+      <comment>SML section forward direction: Mast 32R:Mast 36RB (IY:AUTO:0679)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0679:reverse</systemName>
       <userName>IY:AUTO:0679:reverse</userName>
+      <comment>SML section reverse direction: Mast 32R:Mast 36RB (IY:AUTO:0679)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0680:forward</systemName>
       <userName>IY:AUTO:0680:forward</userName>
+      <comment>SML section forward direction: Mast 8LB:Mast 8LC (IY:AUTO:0680)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0680:reverse</systemName>
       <userName>IY:AUTO:0680:reverse</userName>
+      <comment>SML section reverse direction: Mast 8LB:Mast 8LC (IY:AUTO:0680)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0681:forward</systemName>
       <userName>IY:AUTO:0681:forward</userName>
+      <comment>SML section forward direction: Mast 8LB:Mast 6LB (IY:AUTO:0681)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0681:reverse</systemName>
       <userName>IY:AUTO:0681:reverse</userName>
+      <comment>SML section reverse direction: Mast 8LB:Mast 6LB (IY:AUTO:0681)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0682:forward</systemName>
       <userName>IY:AUTO:0682:forward</userName>
+      <comment>SML section forward direction: Mast 36RB:Mast 40RB (IY:AUTO:0682)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0682:reverse</systemName>
       <userName>IY:AUTO:0682:reverse</userName>
+      <comment>SML section reverse direction: Mast 36RB:Mast 40RB (IY:AUTO:0682)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0683:forward</systemName>
       <userName>IY:AUTO:0683:forward</userName>
+      <comment>SML section forward direction: Mast 36RB:Mast 2035 (IY:AUTO:0683)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0683:reverse</systemName>
       <userName>IY:AUTO:0683:reverse</userName>
+      <comment>SML section reverse direction: Mast 36RB:Mast 2035 (IY:AUTO:0683)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0684:forward</systemName>
       <userName>IY:AUTO:0684:forward</userName>
+      <comment>SML section forward direction: Mast 36RB:Mast 40RA (IY:AUTO:0684)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0684:reverse</systemName>
       <userName>IY:AUTO:0684:reverse</userName>
+      <comment>SML section reverse direction: Mast 36RB:Mast 40RA (IY:AUTO:0684)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0685:forward</systemName>
       <userName>IY:AUTO:0685:forward</userName>
+      <comment>SML section forward direction: Mast 36RB:Mast 38RA (IY:AUTO:0685)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0685:reverse</systemName>
       <userName>IY:AUTO:0685:reverse</userName>
+      <comment>SML section reverse direction: Mast 36RB:Mast 38RA (IY:AUTO:0685)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0686:forward</systemName>
       <userName>IY:AUTO:0686:forward</userName>
+      <comment>SML section forward direction: Mast 36RA:Mast 40RB (IY:AUTO:0686)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0686:reverse</systemName>
       <userName>IY:AUTO:0686:reverse</userName>
+      <comment>SML section reverse direction: Mast 36RA:Mast 40RB (IY:AUTO:0686)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0687:forward</systemName>
       <userName>IY:AUTO:0687:forward</userName>
+      <comment>SML section forward direction: Mast 36RA:Mast 40RA (IY:AUTO:0687)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0687:reverse</systemName>
       <userName>IY:AUTO:0687:reverse</userName>
+      <comment>SML section reverse direction: Mast 36RA:Mast 40RA (IY:AUTO:0687)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0688:forward</systemName>
       <userName>IY:AUTO:0688:forward</userName>
+      <comment>SML section forward direction: Mast 38LA:Mast 36L (IY:AUTO:0688)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0688:reverse</systemName>
       <userName>IY:AUTO:0688:reverse</userName>
+      <comment>SML section reverse direction: Mast 38LA:Mast 36L (IY:AUTO:0688)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0689:forward</systemName>
       <userName>IY:AUTO:0689:forward</userName>
+      <comment>SML section forward direction: Mast 24RA:Mast 36RB (IY:AUTO:0689)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0689:reverse</systemName>
       <userName>IY:AUTO:0689:reverse</userName>
+      <comment>SML section reverse direction: Mast 24RA:Mast 36RB (IY:AUTO:0689)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0690:forward</systemName>
       <userName>IY:AUTO:0690:forward</userName>
+      <comment>SML section forward direction: Mast 24RA:Mast 36RA (IY:AUTO:0690)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0690:reverse</systemName>
       <userName>IY:AUTO:0690:reverse</userName>
+      <comment>SML section reverse direction: Mast 24RA:Mast 36RA (IY:AUTO:0690)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0691:forward</systemName>
       <userName>IY:AUTO:0691:forward</userName>
+      <comment>SML section forward direction: Mast 24L:Mast 2L (IY:AUTO:0691)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0691:reverse</systemName>
       <userName>IY:AUTO:0691:reverse</userName>
+      <comment>SML section reverse direction: Mast 24L:Mast 2L (IY:AUTO:0691)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0692:forward</systemName>
       <userName>IY:AUTO:0692:forward</userName>
+      <comment>SML section forward direction: Mast 2L:Mast 4LA (IY:AUTO:0692)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0692:reverse</systemName>
       <userName>IY:AUTO:0692:reverse</userName>
+      <comment>SML section reverse direction: Mast 2L:Mast 4LA (IY:AUTO:0692)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0693:forward</systemName>
       <userName>IY:AUTO:0693:forward</userName>
+      <comment>SML section forward direction: Mast 2L:Mast 4LB (IY:AUTO:0693)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0693:reverse</systemName>
       <userName>IY:AUTO:0693:reverse</userName>
+      <comment>SML section reverse direction: Mast 2L:Mast 4LB (IY:AUTO:0693)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0694:forward</systemName>
       <userName>IY:AUTO:0694:forward</userName>
+      <comment>SML section forward direction: Mast 2L:Mast 6R (IY:AUTO:0694)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0694:reverse</systemName>
       <userName>IY:AUTO:0694:reverse</userName>
+      <comment>SML section reverse direction: Mast 2L:Mast 6R (IY:AUTO:0694)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0695:forward</systemName>
       <userName>IY:AUTO:0695:forward</userName>
+      <comment>SML section forward direction: Mast 40LA:Mast 36L (IY:AUTO:0695)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0695:reverse</systemName>
       <userName>IY:AUTO:0695:reverse</userName>
+      <comment>SML section reverse direction: Mast 40LA:Mast 36L (IY:AUTO:0695)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0696:forward</systemName>
       <userName>IY:AUTO:0696:forward</userName>
+      <comment>SML section forward direction: Mast 40LA:Mast 24L (IY:AUTO:0696)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0696:reverse</systemName>
       <userName>IY:AUTO:0696:reverse</userName>
+      <comment>SML section reverse direction: Mast 40LA:Mast 24L (IY:AUTO:0696)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0697:forward</systemName>
       <userName>IY:AUTO:0697:forward</userName>
+      <comment>SML section forward direction: Mast 34L:Mast 2L (IY:AUTO:0697)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0697:reverse</systemName>
       <userName>IY:AUTO:0697:reverse</userName>
+      <comment>SML section reverse direction: Mast 34L:Mast 2L (IY:AUTO:0697)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0698:forward</systemName>
       <userName>IY:AUTO:0698:forward</userName>
+      <comment>SML section forward direction: Mast 34L:Mast 8LA (IY:AUTO:0698)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0698:reverse</systemName>
       <userName>IY:AUTO:0698:reverse</userName>
+      <comment>SML section reverse direction: Mast 34L:Mast 8LA (IY:AUTO:0698)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0699:forward</systemName>
       <userName>IY:AUTO:0699:forward</userName>
+      <comment>SML section forward direction: Mast 34L:Mast 18L (IY:AUTO:0699)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0699:reverse</systemName>
       <userName>IY:AUTO:0699:reverse</userName>
+      <comment>SML section reverse direction: Mast 34L:Mast 18L (IY:AUTO:0699)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0700:forward</systemName>
       <userName>IY:AUTO:0700:forward</userName>
+      <comment>SML section forward direction: Mast 34L:Mast 20L (IY:AUTO:0700)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0700:reverse</systemName>
       <userName>IY:AUTO:0700:reverse</userName>
+      <comment>SML section reverse direction: Mast 34L:Mast 20L (IY:AUTO:0700)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0701:forward</systemName>
       <userName>IY:AUTO:0701:forward</userName>
+      <comment>SML section forward direction: Mast 34L:Mast 22L (IY:AUTO:0701)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0701:reverse</systemName>
       <userName>IY:AUTO:0701:reverse</userName>
+      <comment>SML section reverse direction: Mast 34L:Mast 22L (IY:AUTO:0701)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0702:forward</systemName>
       <userName>IY:AUTO:0702:forward</userName>
+      <comment>SML section forward direction: Mast 34L:Mast 16L (IY:AUTO:0702)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0702:reverse</systemName>
       <userName>IY:AUTO:0702:reverse</userName>
+      <comment>SML section reverse direction: Mast 34L:Mast 16L (IY:AUTO:0702)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0703:forward</systemName>
       <userName>IY:AUTO:0703:forward</userName>
+      <comment>SML section forward direction: Mast 34L:Mast 26L (IY:AUTO:0703)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0703:reverse</systemName>
       <userName>IY:AUTO:0703:reverse</userName>
+      <comment>SML section reverse direction: Mast 34L:Mast 26L (IY:AUTO:0703)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0704:forward</systemName>
       <userName>IY:AUTO:0704:forward</userName>
+      <comment>SML section forward direction: Mast 34R:Mast 36RB (IY:AUTO:0704)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0704:reverse</systemName>
       <userName>IY:AUTO:0704:reverse</userName>
+      <comment>SML section reverse direction: Mast 34R:Mast 36RB (IY:AUTO:0704)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0705:forward</systemName>
       <userName>IY:AUTO:0705:forward</userName>
+      <comment>SML section forward direction: Mast 8RA:Mast 14R (IY:AUTO:0705)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0705:reverse</systemName>
       <userName>IY:AUTO:0705:reverse</userName>
+      <comment>SML section reverse direction: Mast 8RA:Mast 14R (IY:AUTO:0705)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0706:forward</systemName>
       <userName>IY:AUTO:0706:forward</userName>
+      <comment>SML section forward direction: Mast 8RB:Mast 8LC (IY:AUTO:0706)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0706:reverse</systemName>
       <userName>IY:AUTO:0706:reverse</userName>
+      <comment>SML section reverse direction: Mast 8RB:Mast 8LC (IY:AUTO:0706)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0707:forward</systemName>
       <userName>IY:AUTO:0707:forward</userName>
+      <comment>SML section forward direction: Mast 8RB:Mast 14R (IY:AUTO:0707)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0707:reverse</systemName>
       <userName>IY:AUTO:0707:reverse</userName>
+      <comment>SML section reverse direction: Mast 8RB:Mast 14R (IY:AUTO:0707)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0708:forward</systemName>
       <userName>IY:AUTO:0708:forward</userName>
+      <comment>SML section forward direction: Mast 8RB:Mast 34R (IY:AUTO:0708)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0708:reverse</systemName>
       <userName>IY:AUTO:0708:reverse</userName>
+      <comment>SML section reverse direction: Mast 8RB:Mast 34R (IY:AUTO:0708)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0709:forward</systemName>
       <userName>IY:AUTO:0709:forward</userName>
+      <comment>SML section forward direction: Mast 8LA:Mast 6LB (IY:AUTO:0709)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0709:reverse</systemName>
       <userName>IY:AUTO:0709:reverse</userName>
+      <comment>SML section reverse direction: Mast 8LA:Mast 6LB (IY:AUTO:0709)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0710:forward</systemName>
       <userName>IY:AUTO:0710:forward</userName>
+      <comment>SML section forward direction: Mast 18L:Mast 10LA (IY:AUTO:0710)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0710:reverse</systemName>
       <userName>IY:AUTO:0710:reverse</userName>
+      <comment>SML section reverse direction: Mast 18L:Mast 10LA (IY:AUTO:0710)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0711:forward</systemName>
       <userName>IY:AUTO:0711:forward</userName>
+      <comment>SML section forward direction: Mast 18L:Mast 10LB (IY:AUTO:0711)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0711:reverse</systemName>
       <userName>IY:AUTO:0711:reverse</userName>
+      <comment>SML section reverse direction: Mast 18L:Mast 10LB (IY:AUTO:0711)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0712:forward</systemName>
       <userName>IY:AUTO:0712:forward</userName>
+      <comment>SML section forward direction: Mast 18L:Mast 12L (IY:AUTO:0712)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0712:reverse</systemName>
       <userName>IY:AUTO:0712:reverse</userName>
+      <comment>SML section reverse direction: Mast 18L:Mast 12L (IY:AUTO:0712)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0713:forward</systemName>
       <userName>IY:AUTO:0713:forward</userName>
+      <comment>SML section forward direction: Mast 18L:Mast 8LB (IY:AUTO:0713)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0713:reverse</systemName>
       <userName>IY:AUTO:0713:reverse</userName>
+      <comment>SML section reverse direction: Mast 18L:Mast 8LB (IY:AUTO:0713)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0714:forward</systemName>
       <userName>IY:AUTO:0714:forward</userName>
+      <comment>SML section forward direction: Mast 20L:Mast 10LA (IY:AUTO:0714)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0714:reverse</systemName>
       <userName>IY:AUTO:0714:reverse</userName>
+      <comment>SML section reverse direction: Mast 20L:Mast 10LA (IY:AUTO:0714)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0715:forward</systemName>
       <userName>IY:AUTO:0715:forward</userName>
+      <comment>SML section forward direction: Mast 20L:Mast 10LB (IY:AUTO:0715)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0715:reverse</systemName>
       <userName>IY:AUTO:0715:reverse</userName>
+      <comment>SML section reverse direction: Mast 20L:Mast 10LB (IY:AUTO:0715)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0716:forward</systemName>
       <userName>IY:AUTO:0716:forward</userName>
+      <comment>SML section forward direction: Mast 20L:Mast 12L (IY:AUTO:0716)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0716:reverse</systemName>
       <userName>IY:AUTO:0716:reverse</userName>
+      <comment>SML section reverse direction: Mast 20L:Mast 12L (IY:AUTO:0716)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0717:forward</systemName>
       <userName>IY:AUTO:0717:forward</userName>
+      <comment>SML section forward direction: Mast 20L:Mast 8LB (IY:AUTO:0717)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0717:reverse</systemName>
       <userName>IY:AUTO:0717:reverse</userName>
+      <comment>SML section reverse direction: Mast 20L:Mast 8LB (IY:AUTO:0717)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0718:forward</systemName>
       <userName>IY:AUTO:0718:forward</userName>
+      <comment>SML section forward direction: Mast 22L:Mast 10LA (IY:AUTO:0718)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0718:reverse</systemName>
       <userName>IY:AUTO:0718:reverse</userName>
+      <comment>SML section reverse direction: Mast 22L:Mast 10LA (IY:AUTO:0718)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0719:forward</systemName>
       <userName>IY:AUTO:0719:forward</userName>
+      <comment>SML section forward direction: Mast 22L:Mast 10LB (IY:AUTO:0719)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0719:reverse</systemName>
       <userName>IY:AUTO:0719:reverse</userName>
+      <comment>SML section reverse direction: Mast 22L:Mast 10LB (IY:AUTO:0719)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0720:forward</systemName>
       <userName>IY:AUTO:0720:forward</userName>
+      <comment>SML section forward direction: Mast 22L:Mast 12L (IY:AUTO:0720)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0720:reverse</systemName>
       <userName>IY:AUTO:0720:reverse</userName>
+      <comment>SML section reverse direction: Mast 22L:Mast 12L (IY:AUTO:0720)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0721:forward</systemName>
       <userName>IY:AUTO:0721:forward</userName>
+      <comment>SML section forward direction: Mast 22L:Mast 8LB (IY:AUTO:0721)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0721:reverse</systemName>
       <userName>IY:AUTO:0721:reverse</userName>
+      <comment>SML section reverse direction: Mast 22L:Mast 8LB (IY:AUTO:0721)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0722:forward</systemName>
       <userName>IY:AUTO:0722:forward</userName>
+      <comment>SML section forward direction: Mast 26L:Mast 10LA (IY:AUTO:0722)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0722:reverse</systemName>
       <userName>IY:AUTO:0722:reverse</userName>
+      <comment>SML section reverse direction: Mast 26L:Mast 10LA (IY:AUTO:0722)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0723:forward</systemName>
       <userName>IY:AUTO:0723:forward</userName>
+      <comment>SML section forward direction: Mast 26L:Mast 10LB (IY:AUTO:0723)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0723:reverse</systemName>
       <userName>IY:AUTO:0723:reverse</userName>
+      <comment>SML section reverse direction: Mast 26L:Mast 10LB (IY:AUTO:0723)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0724:forward</systemName>
       <userName>IY:AUTO:0724:forward</userName>
+      <comment>SML section forward direction: Mast 26L:Mast 12L (IY:AUTO:0724)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0724:reverse</systemName>
       <userName>IY:AUTO:0724:reverse</userName>
+      <comment>SML section reverse direction: Mast 26L:Mast 12L (IY:AUTO:0724)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0725:forward</systemName>
       <userName>IY:AUTO:0725:forward</userName>
+      <comment>SML section forward direction: Mast 26L:Mast 8LB (IY:AUTO:0725)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0725:reverse</systemName>
       <userName>IY:AUTO:0725:reverse</userName>
+      <comment>SML section reverse direction: Mast 26L:Mast 8LB (IY:AUTO:0725)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0726:forward</systemName>
       <userName>IY:AUTO:0726:forward</userName>
+      <comment>SML section forward direction: Mast 18R:Mast 32R (IY:AUTO:0726)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0726:reverse</systemName>
       <userName>IY:AUTO:0726:reverse</userName>
+      <comment>SML section reverse direction: Mast 18R:Mast 32R (IY:AUTO:0726)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0727:forward</systemName>
       <userName>IY:AUTO:0727:forward</userName>
+      <comment>SML section forward direction: Mast 20R:Mast 32R (IY:AUTO:0727)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0727:reverse</systemName>
       <userName>IY:AUTO:0727:reverse</userName>
+      <comment>SML section reverse direction: Mast 20R:Mast 32R (IY:AUTO:0727)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0728:forward</systemName>
       <userName>IY:AUTO:0728:forward</userName>
+      <comment>SML section forward direction: Mast 22R:Mast 32R (IY:AUTO:0728)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0728:reverse</systemName>
       <userName>IY:AUTO:0728:reverse</userName>
+      <comment>SML section reverse direction: Mast 22R:Mast 32R (IY:AUTO:0728)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0729:forward</systemName>
       <userName>IY:AUTO:0729:forward</userName>
+      <comment>SML section forward direction: Mast 26R:Mast 32R (IY:AUTO:0729)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0729:reverse</systemName>
       <userName>IY:AUTO:0729:reverse</userName>
+      <comment>SML section reverse direction: Mast 26R:Mast 32R (IY:AUTO:0729)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0730:forward</systemName>
       <userName>IY:AUTO:0730:forward</userName>
+      <comment>SML section forward direction: Mast 16L:Mast 10LA (IY:AUTO:0730)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0730:reverse</systemName>
       <userName>IY:AUTO:0730:reverse</userName>
+      <comment>SML section reverse direction: Mast 16L:Mast 10LA (IY:AUTO:0730)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0731:forward</systemName>
       <userName>IY:AUTO:0731:forward</userName>
+      <comment>SML section forward direction: Mast 16L:Mast 10LB (IY:AUTO:0731)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0731:reverse</systemName>
       <userName>IY:AUTO:0731:reverse</userName>
+      <comment>SML section reverse direction: Mast 16L:Mast 10LB (IY:AUTO:0731)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0732:forward</systemName>
       <userName>IY:AUTO:0732:forward</userName>
+      <comment>SML section forward direction: Mast 16L:Mast 12L (IY:AUTO:0732)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0732:reverse</systemName>
       <userName>IY:AUTO:0732:reverse</userName>
+      <comment>SML section reverse direction: Mast 16L:Mast 12L (IY:AUTO:0732)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0733:forward</systemName>
       <userName>IY:AUTO:0733:forward</userName>
+      <comment>SML section forward direction: Mast 16L:Mast 8LB (IY:AUTO:0733)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0733:reverse</systemName>
       <userName>IY:AUTO:0733:reverse</userName>
+      <comment>SML section reverse direction: Mast 16L:Mast 8LB (IY:AUTO:0733)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0734:forward</systemName>
       <userName>IY:AUTO:0734:forward</userName>
+      <comment>SML section forward direction: Mast 32L:Mast 24RB (IY:AUTO:0734)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0734:reverse</systemName>
       <userName>IY:AUTO:0734:reverse</userName>
+      <comment>SML section reverse direction: Mast 32L:Mast 24RB (IY:AUTO:0734)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0735:forward</systemName>
       <userName>IY:AUTO:0735:forward</userName>
+      <comment>SML section forward direction: Mast 8LC:Mast 6LA (IY:AUTO:0735)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0735:reverse</systemName>
       <userName>IY:AUTO:0735:reverse</userName>
+      <comment>SML section reverse direction: Mast 8LC:Mast 6LA (IY:AUTO:0735)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0736:forward</systemName>
       <userName>IY:AUTO:0736:forward</userName>
+      <comment>SML section forward direction: Mast 14R:Mast 20R (IY:AUTO:0736)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0736:reverse</systemName>
       <userName>IY:AUTO:0736:reverse</userName>
+      <comment>SML section reverse direction: Mast 14R:Mast 20R (IY:AUTO:0736)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0737:forward</systemName>
       <userName>IY:AUTO:0737:forward</userName>
+      <comment>SML section forward direction: Mast 14R:Mast 22R (IY:AUTO:0737)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0737:reverse</systemName>
       <userName>IY:AUTO:0737:reverse</userName>
+      <comment>SML section reverse direction: Mast 14R:Mast 22R (IY:AUTO:0737)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0738:forward</systemName>
       <userName>IY:AUTO:0738:forward</userName>
+      <comment>SML section forward direction: Mast 14R:Mast 26R (IY:AUTO:0738)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0738:reverse</systemName>
       <userName>IY:AUTO:0738:reverse</userName>
+      <comment>SML section reverse direction: Mast 14R:Mast 26R (IY:AUTO:0738)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0739:forward</systemName>
       <userName>IY:AUTO:0739:forward</userName>
+      <comment>SML section forward direction: Mast 14R:Mast 22L (IY:AUTO:0739)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0739:reverse</systemName>
       <userName>IY:AUTO:0739:reverse</userName>
+      <comment>SML section reverse direction: Mast 14R:Mast 22L (IY:AUTO:0739)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0740:forward</systemName>
       <userName>IY:AUTO:0740:forward</userName>
+      <comment>SML section forward direction: Mast 14R:Mast 26L (IY:AUTO:0740)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0740:reverse</systemName>
       <userName>IY:AUTO:0740:reverse</userName>
+      <comment>SML section reverse direction: Mast 14R:Mast 26L (IY:AUTO:0740)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0741:forward</systemName>
       <userName>IY:AUTO:0741:forward</userName>
+      <comment>SML section forward direction: Mast 14R:Mast 32L (IY:AUTO:0741)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0741:reverse</systemName>
       <userName>IY:AUTO:0741:reverse</userName>
+      <comment>SML section reverse direction: Mast 14R:Mast 32L (IY:AUTO:0741)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0742:forward</systemName>
       <userName>IY:AUTO:0742:forward</userName>
+      <comment>SML section forward direction: Mast 14R:Mast 18R (IY:AUTO:0742)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0742:reverse</systemName>
       <userName>IY:AUTO:0742:reverse</userName>
+      <comment>SML section reverse direction: Mast 14R:Mast 18R (IY:AUTO:0742)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0743:forward</systemName>
       <userName>IY:AUTO:0743:forward</userName>
+      <comment>SML section forward direction: Mast 12R:Mast 20R (IY:AUTO:0743)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0743:reverse</systemName>
       <userName>IY:AUTO:0743:reverse</userName>
+      <comment>SML section reverse direction: Mast 12R:Mast 20R (IY:AUTO:0743)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0744:forward</systemName>
       <userName>IY:AUTO:0744:forward</userName>
+      <comment>SML section forward direction: Mast 12R:Mast 22R (IY:AUTO:0744)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0744:reverse</systemName>
       <userName>IY:AUTO:0744:reverse</userName>
+      <comment>SML section reverse direction: Mast 12R:Mast 22R (IY:AUTO:0744)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0745:forward</systemName>
       <userName>IY:AUTO:0745:forward</userName>
+      <comment>SML section forward direction: Mast 12R:Mast 26R (IY:AUTO:0745)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0745:reverse</systemName>
       <userName>IY:AUTO:0745:reverse</userName>
+      <comment>SML section reverse direction: Mast 12R:Mast 26R (IY:AUTO:0745)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0746:forward</systemName>
       <userName>IY:AUTO:0746:forward</userName>
+      <comment>SML section forward direction: Mast 12R:Mast 22L (IY:AUTO:0746)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0746:reverse</systemName>
       <userName>IY:AUTO:0746:reverse</userName>
+      <comment>SML section reverse direction: Mast 12R:Mast 22L (IY:AUTO:0746)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0747:forward</systemName>
       <userName>IY:AUTO:0747:forward</userName>
+      <comment>SML section forward direction: Mast 12R:Mast 26L (IY:AUTO:0747)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0747:reverse</systemName>
       <userName>IY:AUTO:0747:reverse</userName>
+      <comment>SML section reverse direction: Mast 12R:Mast 26L (IY:AUTO:0747)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0748:forward</systemName>
       <userName>IY:AUTO:0748:forward</userName>
+      <comment>SML section forward direction: Mast 12R:Mast 32L (IY:AUTO:0748)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0748:reverse</systemName>
       <userName>IY:AUTO:0748:reverse</userName>
+      <comment>SML section reverse direction: Mast 12R:Mast 32L (IY:AUTO:0748)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0749:forward</systemName>
       <userName>IY:AUTO:0749:forward</userName>
+      <comment>SML section forward direction: Mast 12R:Mast 18R (IY:AUTO:0749)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0749:reverse</systemName>
       <userName>IY:AUTO:0749:reverse</userName>
+      <comment>SML section reverse direction: Mast 12R:Mast 18R (IY:AUTO:0749)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0750:forward</systemName>
       <userName>IY:AUTO:0750:forward</userName>
+      <comment>SML section forward direction: Mast 10RA:Mast 20R (IY:AUTO:0750)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0750:reverse</systemName>
       <userName>IY:AUTO:0750:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RA:Mast 20R (IY:AUTO:0750)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0751:forward</systemName>
       <userName>IY:AUTO:0751:forward</userName>
+      <comment>SML section forward direction: Mast 10RA:Mast 22R (IY:AUTO:0751)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0751:reverse</systemName>
       <userName>IY:AUTO:0751:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RA:Mast 22R (IY:AUTO:0751)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0752:forward</systemName>
       <userName>IY:AUTO:0752:forward</userName>
+      <comment>SML section forward direction: Mast 10RA:Mast 26R (IY:AUTO:0752)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0752:reverse</systemName>
       <userName>IY:AUTO:0752:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RA:Mast 26R (IY:AUTO:0752)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0753:forward</systemName>
       <userName>IY:AUTO:0753:forward</userName>
+      <comment>SML section forward direction: Mast 10RA:Mast 22L (IY:AUTO:0753)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0753:reverse</systemName>
       <userName>IY:AUTO:0753:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RA:Mast 22L (IY:AUTO:0753)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0754:forward</systemName>
       <userName>IY:AUTO:0754:forward</userName>
+      <comment>SML section forward direction: Mast 10RA:Mast 26L (IY:AUTO:0754)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0754:reverse</systemName>
       <userName>IY:AUTO:0754:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RA:Mast 26L (IY:AUTO:0754)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0755:forward</systemName>
       <userName>IY:AUTO:0755:forward</userName>
+      <comment>SML section forward direction: Mast 10RA:Mast 32L (IY:AUTO:0755)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0755:reverse</systemName>
       <userName>IY:AUTO:0755:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RA:Mast 32L (IY:AUTO:0755)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0756:forward</systemName>
       <userName>IY:AUTO:0756:forward</userName>
+      <comment>SML section forward direction: Mast 10RA:Mast 18R (IY:AUTO:0756)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0756:reverse</systemName>
       <userName>IY:AUTO:0756:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RA:Mast 18R (IY:AUTO:0756)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0757:forward</systemName>
       <userName>IY:AUTO:0757:forward</userName>
+      <comment>SML section forward direction: Mast 10RB:Mast 20R (IY:AUTO:0757)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0757:reverse</systemName>
       <userName>IY:AUTO:0757:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RB:Mast 20R (IY:AUTO:0757)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0758:forward</systemName>
       <userName>IY:AUTO:0758:forward</userName>
+      <comment>SML section forward direction: Mast 10RB:Mast 22R (IY:AUTO:0758)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0758:reverse</systemName>
       <userName>IY:AUTO:0758:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RB:Mast 22R (IY:AUTO:0758)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0759:forward</systemName>
       <userName>IY:AUTO:0759:forward</userName>
+      <comment>SML section forward direction: Mast 10RB:Mast 26R (IY:AUTO:0759)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0759:reverse</systemName>
       <userName>IY:AUTO:0759:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RB:Mast 26R (IY:AUTO:0759)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0760:forward</systemName>
       <userName>IY:AUTO:0760:forward</userName>
+      <comment>SML section forward direction: Mast 10RB:Mast 22L (IY:AUTO:0760)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0760:reverse</systemName>
       <userName>IY:AUTO:0760:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RB:Mast 22L (IY:AUTO:0760)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0761:forward</systemName>
       <userName>IY:AUTO:0761:forward</userName>
+      <comment>SML section forward direction: Mast 10RB:Mast 26L (IY:AUTO:0761)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0761:reverse</systemName>
       <userName>IY:AUTO:0761:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RB:Mast 26L (IY:AUTO:0761)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0762:forward</systemName>
       <userName>IY:AUTO:0762:forward</userName>
+      <comment>SML section forward direction: Mast 10RB:Mast 32L (IY:AUTO:0762)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0762:reverse</systemName>
       <userName>IY:AUTO:0762:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RB:Mast 32L (IY:AUTO:0762)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0763:forward</systemName>
       <userName>IY:AUTO:0763:forward</userName>
+      <comment>SML section forward direction: Mast 10RB:Mast 18R (IY:AUTO:0763)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0763:reverse</systemName>
       <userName>IY:AUTO:0763:reverse</userName>
+      <comment>SML section reverse direction: Mast 10RB:Mast 18R (IY:AUTO:0763)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0764:forward</systemName>
       <userName>IY:AUTO:0764:forward</userName>
+      <comment>SML section forward direction: Mast 2R:Mast 24RA (IY:AUTO:0764)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0764:reverse</systemName>
       <userName>IY:AUTO:0764:reverse</userName>
+      <comment>SML section reverse direction: Mast 2R:Mast 24RA (IY:AUTO:0764)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0765:forward</systemName>
       <userName>IY:AUTO:0765:forward</userName>
+      <comment>SML section forward direction: Mast 6R:Mast 8RB (IY:AUTO:0765)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0765:reverse</systemName>
       <userName>IY:AUTO:0765:reverse</userName>
+      <comment>SML section reverse direction: Mast 6R:Mast 8RB (IY:AUTO:0765)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0766:forward</systemName>
       <userName>IY:AUTO:0766:forward</userName>
+      <comment>SML section forward direction: Mast 6R:Mast 8RA (IY:AUTO:0766)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0766:reverse</systemName>
       <userName>IY:AUTO:0766:reverse</userName>
+      <comment>SML section reverse direction: Mast 6R:Mast 8RA (IY:AUTO:0766)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0767:forward</systemName>
       <userName>IY:AUTO:0767:forward</userName>
+      <comment>SML section forward direction: Mast 36L:Mast 34L (IY:AUTO:0767)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0767:reverse</systemName>
       <userName>IY:AUTO:0767:reverse</userName>
+      <comment>SML section reverse direction: Mast 36L:Mast 34L (IY:AUTO:0767)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0768:forward</systemName>
       <userName>IY:AUTO:0768:forward</userName>
+      <comment>SML section forward direction: Mast 40RB:Mast 2036 (IY:AUTO:0768)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0768:reverse</systemName>
       <userName>IY:AUTO:0768:reverse</userName>
+      <comment>SML section reverse direction: Mast 40RB:Mast 2036 (IY:AUTO:0768)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:PRECONDITIONING_ENABLED</systemName>
@@ -3949,7 +4197,7 @@
     <block systemName="IB1" length="254.0" curve="0">
       <systemName>IB1</systemName>
       <userName>OS Switch 13</userName>
-      <comment>Engine House</comment>
+      <comment>Hand-throw west of South Yard Switch 15; occupancy Block 3-1 / M2S300</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 13</occupancysensor>
       <path todir="128" fromdir="64" block="IB15">
@@ -3980,7 +4228,7 @@
     <block systemName="IB6" length="254.0" curve="0">
       <systemName>IB6</systemName>
       <userName>OS Switch 7b</userName>
-      <comment>Barn</comment>
+      <comment>Track Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7b</occupancysensor>
       <path todir="80" fromdir="160" block="IB8">
@@ -3998,7 +4246,7 @@
     <block systemName="IB8" length="254.0" curve="0">
       <systemName>IB8</systemName>
       <userName>OS Switch 7</userName>
-      <comment>Barn</comment>
+      <comment>Track Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7</occupancysensor>
       <path todir="128" fromdir="64" block="IB3" />
@@ -4025,7 +4273,7 @@
     <block systemName="IB18" length="254.0" curve="0">
       <systemName>IB18</systemName>
       <userName>OS Switch 9</userName>
-      <comment>Engine House</comment>
+      <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 9</occupancysensor>
       <path todir="64" fromdir="128" block="IB19">
@@ -4047,7 +4295,7 @@
     <block systemName="IB19" length="254.0" curve="0">
       <systemName>IB19</systemName>
       <userName>OS Switch 11</userName>
-      <comment>Engine House</comment>
+      <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 11</occupancysensor>
       <path todir="96" fromdir="144" block="IB1">
@@ -4255,7 +4503,7 @@
     <block systemName="IB:AUTO:0030" length="254.0" curve="0">
       <systemName>IB:AUTO:0030</systemName>
       <userName>OS Switch 33</userName>
-      <comment>East End</comment>
+      <comment>East End, Switch 33; occupancy Block 12-8 / M2S1207</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 33</occupancysensor>
       <path todir="160" fromdir="80" block="IB:AUTO:0001">
@@ -4273,7 +4521,7 @@
     <block systemName="IB:AUTO:0031" length="254.0" curve="0">
       <systemName>IB:AUTO:0031</systemName>
       <userName>OS Switch 5</userName>
-      <comment>Plane</comment>
+      <comment>Plane CP, Switch 5; occupancy Block 4-5 / M2S404</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 5</occupancysensor>
       <path todir="64" fromdir="128" block="IB3">
@@ -4291,7 +4539,7 @@
     <block systemName="IB:AUTO:0032" length="254.0" curve="0">
       <systemName>IB:AUTO:0032</systemName>
       <userName>OS Switch 37</userName>
-      <comment>Princess</comment>
+      <comment>Princess, Switch 37 (same detector as Track McKeesport); occupancy Block 1-3 / M2S102</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 37 / BS McKeesport</occupancysensor>
       <path todir="64" fromdir="128" block="IB24">
@@ -4309,7 +4557,7 @@
     <block systemName="IB:AUTO:0033" length="254.0" curve="0">
       <systemName>IB:AUTO:0033</systemName>
       <userName>OS Switch 1</userName>
-      <comment>Brick</comment>
+      <comment>Brick CP, Switch 1; occupancy Block 4-2 / M2S401</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 1</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0003" />
@@ -4327,7 +4575,7 @@
     <block systemName="IB:AUTO:0034" length="254.0" curve="0">
       <systemName>IB:AUTO:0034</systemName>
       <userName>OS Switch 23a</userName>
-      <comment>East End</comment>
+      <comment>East End crossover Switch 23 north/west leg; occupancy Block 12-4 / M2S1203</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23a</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0003" />
@@ -4345,7 +4593,7 @@
     <block systemName="IB:AUTO:0035" length="254.0" curve="0">
       <systemName>IB:AUTO:0035</systemName>
       <userName>OS Switch 3</userName>
-      <comment>Brick</comment>
+      <comment>Brick CP, Switch 3; occupancy Block 4-1 / M2S400</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 3</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0020">
@@ -4363,7 +4611,7 @@
     <block systemName="IB:AUTO:0036" length="254.0" curve="0">
       <systemName>IB:AUTO:0036</systemName>
       <userName>OS Switch 25</userName>
-      <comment>East End</comment>
+      <comment>East End, Switch 25; occupancy Block 12-1 / M2S1200</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 25</occupancysensor>
       <path todir="80" fromdir="160" block="IB:AUTO:0037">
@@ -4385,7 +4633,7 @@
     <block systemName="IB:AUTO:0037" length="254.0" curve="0">
       <systemName>IB:AUTO:0037</systemName>
       <userName>OS Switch 27</userName>
-      <comment>East End</comment>
+      <comment>East End, Switch 27; occupancy Block 12-3 / M2S1202</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 27</occupancysensor>
       <path todir="160" fromdir="80" block="IB:AUTO:0036">
@@ -4407,7 +4655,7 @@
     <block systemName="IB:AUTO:0038" length="254.0" curve="0">
       <systemName>IB:AUTO:0038</systemName>
       <userName>OS Switch 21</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard, Switch 21; occupancy Block 3-7 / M2S306</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 21</occupancysensor>
       <path todir="144" fromdir="96" block="IB:AUTO:0045" />
@@ -4425,7 +4673,7 @@
     <block systemName="IB:AUTO:0039" length="254.0" curve="0">
       <systemName>IB:AUTO:0039</systemName>
       <userName>OS Switch 23b</userName>
-      <comment>East End</comment>
+      <comment>East End crossover Switch 23 south/east leg; occupancy Block 12-6 / M2S1205</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23b</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0034">
@@ -4443,7 +4691,7 @@
     <block systemName="IB:AUTO:0040" length="254.0" curve="0">
       <systemName>IB:AUTO:0040</systemName>
       <userName>OS Switch 39</userName>
-      <comment>Princess</comment>
+      <comment>Princess, Switch 39 (same detector as Track McKees Rocks); occupancy Block 1-4 / M2S103</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 39 / BS McKees Rocks</occupancysensor>
       <path todir="64" fromdir="128" block="IB23">
@@ -4461,7 +4709,7 @@
     <block systemName="IB:AUTO:0041" length="254.0" curve="0">
       <systemName>IB:AUTO:0041</systemName>
       <userName>OS Switch 15</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard, Switch 15; occupancy Block 3-2 / M2S301</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 15</occupancysensor>
       <path todir="128" fromdir="64" block="IB1" />
@@ -4479,7 +4727,7 @@
     <block systemName="IB:AUTO:0042" length="254.0" curve="0">
       <systemName>IB:AUTO:0042</systemName>
       <userName>OS Switch 31</userName>
-      <comment>East End</comment>
+      <comment>East End, Switch 31; occupancy Block 12-7 / M2S1206</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 31</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0030">
@@ -4501,7 +4749,7 @@
     <block systemName="IB:AUTO:0043" length="254.0" curve="0">
       <systemName>IB:AUTO:0043</systemName>
       <userName>OS Switch 29</userName>
-      <comment>East End</comment>
+      <comment>East End, Switch 29; occupancy Block 12-5 / M2S1204</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 29</occupancysensor>
       <path todir="160" fromdir="80" block="IB:AUTO:0037">
@@ -4523,7 +4771,7 @@
     <block systemName="IB:AUTO:0044" length="254.0" curve="0">
       <systemName>IB:AUTO:0044</systemName>
       <userName>OS Switch 17</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard, Switch 17; occupancy Block 3-3 / M2S302</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 17</occupancysensor>
       <path todir="144" fromdir="96" block="IB:AUTO:0041" />
@@ -4541,7 +4789,7 @@
     <block systemName="IB:AUTO:0045" length="254.0" curve="0">
       <systemName>IB:AUTO:0045</systemName>
       <userName>OS Switch 19</userName>
-      <comment>South Yard</comment>
+      <comment>South Yard, Switch 19; occupancy Block 3-5 / M2S304</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 19</occupancysensor>
       <path todir="96" fromdir="144" block="IB:AUTO:0038">
@@ -4559,7 +4807,7 @@
     <block systemName="IB:AUTO:0046" length="254.0" curve="0">
       <systemName>IB:AUTO:0046</systemName>
       <userName>OS Switch 35a</userName>
-      <comment>Princess</comment>
+      <comment>Princess crossover Switch 35 south/yard leg; occupancy Block 1-6 / M2S105</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35a</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0032" />
@@ -4573,7 +4821,7 @@
     <block systemName="IB:AUTO:0047" length="254.0" curve="0">
       <systemName>IB:AUTO:0047</systemName>
       <userName>OS Switch 35b</userName>
-      <comment>Princess</comment>
+      <comment>Princess crossover Switch 35 north/main leg; occupancy Block 1-5 / M2S104</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35b</occupancysensor>
       <path todir="64" fromdir="128" block="IB:AUTO:0040" />
@@ -4764,7 +5012,7 @@
     <block systemName="IB:AUTO:0062" length="400.0" curve="0">
       <systemName>IB:AUTO:0062</systemName>
       <userName>Track East Lead East</userName>
-      <comment>Hidden Track East Lead throat (same detector as Track East Lead); occupancy Block 1-7; not a station</comment>
+      <comment>Hidden Track East Lead throat (same detector as Track East Lead); occupancy Block 1-7 / M2S106; not a station</comment>
       <permissive>no</permissive>
       <occupancysensor>BS East Lead</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0017" />
@@ -4773,7 +5021,7 @@
     <block systemName="IB:AUTO:0063" length="400.0" curve="0">
       <systemName>IB:AUTO:0063</systemName>
       <userName>Track K-1 West</userName>
-      <comment>Hidden Track K-1 throat (same detector as Track K-1); occupancy Block 1-1; not a station</comment>
+      <comment>Hidden Track K-1 throat (same detector as Track K-1); occupancy Block 1-1 / M2S100; not a station</comment>
       <permissive>no</permissive>
       <occupancysensor>BS K-1</occupancysensor>
       <path todir="80" fromdir="160" block="IB:AUTO:0010" />

@@ -52,9 +52,9 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
             while time.time() < deadline:
                 transits = list(transit_manager.getNamedBeanSet())
                 if (
-                    bean_count(mast_manager) == 47
-                    and bean_count(section_manager) == 105
-                    and len(transits) == 777
+                    bean_count(mast_manager) == 49
+                    and bean_count(section_manager) == 107
+                    and len(transits) == 187
                     and all(
                         len(transit.getInternalBlocksList()) > 0
                         for transit in transits
@@ -72,17 +72,17 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                     if sensor_manager.getByUserName(user_name) is None:
                         errors.append("missing sensor %s" % user_name)
 
-            if bean_count(mast_manager) != 47:
+            if bean_count(mast_manager) != 49:
                 errors.append(
-                    "signal masts=%s expected=47" % bean_count(mast_manager)
+                    "signal masts=%s expected=49" % bean_count(mast_manager)
                 )
-            if bean_count(section_manager) != 105:
+            if bean_count(section_manager) != 107:
                 errors.append(
-                    "sections=%s expected=105" % bean_count(section_manager)
+                    "sections=%s expected=107" % bean_count(section_manager)
                 )
-            if bean_count(transit_manager) != 777:
+            if bean_count(transit_manager) != 187:
                 errors.append(
-                    "transits=%s expected=777" % bean_count(transit_manager)
+                    "transits=%s expected=187" % bean_count(transit_manager)
                 )
 
             traininfo_dir = jmri.util.FileUtil.getExternalFilename(
@@ -91,9 +91,9 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
             traininfo_files = sorted(
                 name for name in os.listdir(traininfo_dir) if name.endswith(".xml")
             )
-            if len(traininfo_files) != 1554:
+            if len(traininfo_files) != 374:
                 errors.append(
-                    "runtime TrainInfo files=%s expected=1554"
+                    "runtime TrainInfo files=%s expected=374"
                     % len(traininfo_files)
                 )
             for name in traininfo_files:
@@ -160,8 +160,8 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
             else:
                 handle.write("ok\n")
                 handle.write(
-                    "47 masts; 44 station sensors; 105 sections; 777 transits; "
-                    "1554 ordered TrainInfo routes\n"
+                    "49 masts; 24 station sensors; 107 sections; 187 transits; "
+                    "374 ordered TrainInfo routes\n"
                 )
         finally:
             handle.close()
