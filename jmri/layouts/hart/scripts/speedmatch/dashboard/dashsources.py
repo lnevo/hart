@@ -263,7 +263,7 @@ def demo_logs(seed=7, t0=1794300000.0):
                 while True:
                     if nxt[0] - mstart >= lr.DIST_MAX_S:
                         clock[0] = mstart + lr.DIST_MAX_S
-                        reason = "max"
+                        done, reason = ds.check(lr.DIST_MAX_S)  # the runner's own time-out: timed or max
                         break
                     b2, t2 = enter(step)
                     dt = t2 - cur[1]
@@ -279,8 +279,9 @@ def demo_logs(seed=7, t0=1794300000.0):
                         reason = why
                         clock[0] = t2 + 0.1
                         break
+                L(0.0, "FREEZE %d" % step)
                 cnt, mm, secs_m, speed, rsd = lr.aggregate(ds.blocks)
-                L(0.1, "STEPDONE %d reason=%s n=%d mm=%.1f s=%.2f mm_s=%.1f relsd=%.4f" % (
+                L(0.0, "STEPDONE %d reason=%s n=%d mm=%.1f s=%.2f mm_s=%.1f relsd=%.4f" % (
                     step, reason, cnt, mm, secs_m, speed, rsd))
                 prev = step
             L(0.5, "speed 0")
@@ -299,7 +300,8 @@ def demo_logs(seed=7, t0=1794300000.0):
         v = ref["2121"][step]
         L(0, "RUN loco=2121 direction=forward")
         L(0.1, "CFG route=loop2 mode=pass step=%d max_s=300" % step)
-        L(1.0, "PASS step=%d from=BS Switch 5 to=BS Switch 15" % step)
+        L(0.5, "PATH " + ",".join(lr.path_between(names, "BS Switch 5", "BS Switch 15")))
+        L(0.5, "PASS step=%d from=BS Switch 5 to=BS Switch 15" % step)
         L(8.0, "SENS BS Switch 5 ACTIVE")
         for idx in range(i0, i1 + 2):
             L(bl[idx]["mm"] / (v * (1 + rng.gauss(0, 0.01))), "SENS %s ACTIVE" % bl[idx + 1]["sensor"])

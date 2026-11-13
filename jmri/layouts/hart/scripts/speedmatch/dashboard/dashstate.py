@@ -19,6 +19,7 @@ MM_S_TO_MPH_HO = 3.6 * 87 / 1609.34
 MAX_STEP = 126
 LOCO_ROAD = {"2121": "CSX 2121", "2738": "CSX 2738"}
 EVENT_KEEP = 40
+WRONG_WAY = "Pass went the wrong way, loco stopped"
 INVALID_REASONS = ("max", "stalled")  # settled and timed count as measured
 
 
@@ -127,6 +128,8 @@ class Run:
         self.extra = None  # relsd of the extra reading in the current step
         self.pass_info = None  # {step, from, to, t, reason}
         self.pass_events = []  # (t, sensor) ACTIVE after the PASS line
+        self.pass_path = None  # PATH line: sensors expected from `from` to `to`
+        self.frozen = False  # FREEZE seen for the current step: no more blocks count
 
     # -- helpers
     def event(self, t, text, level="info"):
@@ -207,6 +210,7 @@ class Run:
             self.blocks = []
             self.reads = []
             self.extra = None
+            self.frozen = False
             self.settle_until = None
             self.status = "settling"
             self.warm = None
@@ -222,6 +226,13 @@ class Run:
             self.measure_from = m.group(1).strip() if m else None
             self.status = "measuring"
             self.settle_until = None
+        elif kind == "FREEZE":
+            self.frozen = True
+            self.status = "computing"
+            self.settle_until = None
+            self.event(t, "Step %s done, computing" % (toks[0] if toks else self.step))
+        elif kind == "PATH":
+            self.pass_path = [x.strip() for x in rest.split(",") if x.strip()]
         elif kind == "EXTRA":
             d = kv(toks[1:])
             self.extra = num(d.get("relsd"), 0)
@@ -231,11 +242,13 @@ class Run:
                 state = toks[-1]
                 sensor = " ".join(toks[:-1])
                 self.sens[sensor] = state
-                if state == "ACTIVE":
+                if state == "ACTIVE" and not self.frozen:
                     self.active = sensor
-                    if self.pass_info is not None and self.pass_info.get("reason") is None:
-                        self.pass_events.append((t, sensor))
+                if state == "ACTIVE" and self.pass_info is not None and self.pass_info.get("reason") is None:
+                    self.pass_events.append((t, sensor))
         elif kind == "BLOCK":
+            if self.frozen:  # a block after FREEZE belongs to no step
+                return
             n = num(toks[0]) if toks else self.step
             d = kv(toks[1:])
             row = {"step": n, "block": d.get("block", ""), "mm": num(d.get("mm")),
@@ -261,6 +274,9 @@ class Run:
             nb = num(d.get("n"))
             reason = d.get("reason")
             # no reading (n=0 or a zero speed) is a gap, never 0 mm/s; max and stalled steps are not valid
+            self.frozen = True
+            if self.status == "computing":
+                self.status = "measuring"
             has = mm_s is not None and mm_s > 0 and nb != 0
             valid = has and reason not in INVALID_REASONS
             self.done[n] = {"mm_s": mm_s if has else None, "n": nb, "mm": num(d.get("mm")),
@@ -293,6 +309,10 @@ class Run:
             if self.reason == "passed":
                 self.status = "done"
                 self.event(t, "Pass done")
+            elif (self.reason or "").replace("_", " ") == "wrong way":
+                self.status = "stopped"
+                self.banner = ("error", WRONG_WAY)
+                self.event(t, WRONG_WAY, "error")
             else:
                 self.status = "stopped"
                 self.banner = ("stop", "Pass ended: %s" % self.reason)
@@ -303,6 +323,12 @@ class Run:
                 self.status = "done"
             self.t_end = t
             self.event(t, "Run complete" if rest != "passed" else "Pass complete")
+        elif kind == "STOP" and rest.replace("_", " ") == "wrong way":
+            self.status = "stopped"
+            self.reason = "wrong way"
+            self.t_end = t
+            self.banner = ("error", WRONG_WAY)
+            self.event(t, WRONG_WAY, "error")
         elif kind == "STOP":
             self.status = "stopped"
             self.reason = rest or "stop"
@@ -390,9 +416,16 @@ class Run:
         for t, sn in self.pass_events:
             first.setdefault(sn, t)
         rows = []
-        if pi["from"] in names and pi["to"] in names:
-            i, j, n = names.index(pi["from"]), names.index(pi["to"]), len(names)
+        span = None
+        n = len(names)
+        if self.pass_path and all(x in names for x in self.pass_path):
+            span = [names.index(x) for x in self.pass_path]
+            k = span[-1] + (1 if len(span) < 2 or (span[-1] - span[-2]) % n == 1 else -1)
+            span.append(k % n)  # the sensor after the last one ends the pass
+        elif pi["from"] in names and pi["to"] in names:
+            i, j = names.index(pi["from"]), names.index(pi["to"])
             span = [(i + k) % n for k in range(((j - i) % n) + 2)]  # from .. to, and the sensor after
+        if span:
             for pos, idx in enumerate(span):
                 b = rb[idx]
                 t_in = first.get(b["sensor"])

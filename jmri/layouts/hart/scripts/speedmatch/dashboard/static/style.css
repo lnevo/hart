@@ -67,7 +67,7 @@ main { max-width: 1500px; margin: 0 auto; padding: 20px 24px 40px; display: grid
 .hero .model { color: var(--ink-2); margin: 0 0 8px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; padding: 3px 11px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
-.chip.st-measuring, .chip.st-starting { background: var(--info-bg); color: var(--info); border-color: transparent; font-weight: 600; }
+.chip.st-measuring, .chip.st-computing, .chip.st-starting { background: var(--info-bg); color: var(--info); border-color: transparent; font-weight: 600; }
 .chip.st-settling, .chip.st-warming { background: var(--warn-bg); color: var(--warn); border-color: transparent; font-weight: 600; }
 .chip.st-done { background: var(--ok-bg); color: var(--ok); border-color: transparent; font-weight: 600; }
 .chip.st-stopped, .chip.st-error, .chip.st-aborted { background: var(--bad-bg); color: var(--bad); border-color: transparent; font-weight: 600; }

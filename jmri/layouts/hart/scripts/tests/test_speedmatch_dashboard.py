@@ -305,8 +305,51 @@ class RunnerContractTests(unittest.TestCase):
             else:
                 self.assertAlmostEqual(got["mm_s"], row["median"], places=0)
             self.assertEqual(got["valid"], row["settled"])
-        self.assertEqual({c["step"] for c in run.to_dict(run.t_last)["curve"]}, {24, 48})
-        self.assertEqual(run.done[8]["reason"], "max")  # too slow for 6000 mm: flagged, off the curve
+        self.assertIn(run.done[8]["reason"], ("timed", "max"))  # too slow for 6000 mm
+        on_curve = {c["step"] for c in run.to_dict(run.t_last)["curve"]}
+        self.assertEqual(on_curve, {st_ for st_, v in run.done.items() if v["reason"] in ("settled", "timed")})
+        self.assertIn("FREEZE 8", [x.split(" ", 1)[1] for x in lines])
+
+
+class FinalContractTests(unittest.TestCase):
+    def test_freeze_ignores_late_blocks_until_stepdone(self):
+        r = feed(st.Run("a"), [L(0, "RUN loco=2121 direction=forward"), L(1, "STEP 24"), L(2, "SETTLE 24 secs=3.0"),
+                               L(5, "MEASURE 24 from=BS A"),
+                               L(9, "BLOCK 24 block=BS_A mm=1000 dt=4 mm_s=250"), L(10, "FREEZE 24")])
+        self.assertEqual(r.status, "computing")
+        feed(r, [L(10.2, "SENS BS B ACTIVE"), L(10.3, "BLOCK 24 block=BS_B mm=900 dt=3.6 mm_s=250")])
+        self.assertEqual(len(r.blocks), 1)  # the late block did not count
+        self.assertNotEqual(r.active, "BS B")
+        feed(r, [L(10.5, "STEPDONE 24 reason=settled n=1 mm=1000.0 s=4.00 mm_s=250.0 relsd=0.0")])
+        self.assertEqual(r.status, "measuring")
+        self.assertEqual(r.done[24]["mm_s"], 250.0)
+        feed(r, [L(11, "STEP 32")])
+        self.assertFalse(r.frozen)
+
+    def test_path_drives_the_pass_rows(self):
+        r = feed(st.Run("p"), [
+            L(0, "RUN loco=2121 direction=forward"), L(0.1, "CFG route=loop2 mode=pass step=24 max_s=300"),
+            L(0.5, "PATH BS Switch 5,BS Scale,BS Switch 7,BS Barn"),
+            L(1, "PASS step=24 from=BS Switch 5 to=BS Barn"), L(3, "SENS BS Switch 5 ACTIVE")])
+        rows = r.to_dict(T + 4)["pass"]["rows"]
+        self.assertEqual([x["sensor"] for x in rows], ["BS Switch 5", "BS Scale", "BS Switch 7", "BS Barn", "BS Switch 13"])
+
+    def test_wrong_way(self):
+        for lines in ([L(0, "PASSDONE reason=wrong_way")], [L(0, "STOP wrong way")]):
+            r = feed(st.Run("p"), [L(-1, "PASS step=24 from=BS Switch 5 to=BS Switch 15")] + lines + [L(1, "END")])
+            self.assertEqual((r.status, r.banner), ("stopped", ("error", "Pass went the wrong way, loco stopped")))
+
+    def test_demo_step_8_ends_timed_and_is_on_the_curve(self):
+        store = st.Store()
+        for rid, lines in src.demo_logs():
+            for ln in lines:
+                store.feed(rid, ln)
+        r = store.runs["steprun_CSX_2121_forward_demo.log"]
+        self.assertEqual(r.done[8]["reason"], "timed")
+        self.assertIn(8, [c["step"] for c in r.to_dict(r.t_last)["curve"]])
+        pr = store.runs["pass_CSX_2121_forward_step24_demo.log"]
+        self.assertEqual(pr.pass_path[0], "BS Switch 5")
+        self.assertEqual(pr.pass_path[-1], "BS Switch 15")
 
 
 class SshPollerTests(unittest.TestCase):

@@ -29,8 +29,8 @@ function dur(s) {
 }
 const clock = (t) => new Date(t * 1000).toLocaleTimeString([], { hour12: false });
 const locoVar = (loco) => (loco === "2738" ? "var(--c2738)" : "var(--c2121)");
-const STATUS = { waiting: "Waiting", starting: "Starting", warming: "Warming up", settling: "Settling", measuring: "Measuring", done: "Done", stopped: "Stopped", error: "Error", aborted: "Aborted" };
-const ICON = { waiting: "…", starting: "▸", warming: "♨", settling: "◔", measuring: "●", done: "✓", stopped: "■", error: "✕", aborted: "✕" };
+const STATUS = { waiting: "Waiting", starting: "Starting", warming: "Warming up", settling: "Settling", measuring: "Measuring", computing: "Computing", done: "Done", stopped: "Stopped", error: "Error", aborted: "Aborted" };
+const ICON = { waiting: "…", starting: "▸", warming: "♨", settling: "◔", measuring: "●", computing: "…", done: "✓", stopped: "■", error: "✕", aborted: "✕" };
 const finished = (r) => ["done", "stopped", "error", "aborted"].includes(r.status);
 
 function focusRun() {
@@ -84,6 +84,7 @@ function renderHero(run) {
   for (const s of run.steps || []) gauge.append(el("b", { style: `left:${(100 * s) / MAX_STEP}%` }));
   let status = STATUS[run.status] || run.status;
   if (run.status === "warming") status += run.warm && run.warm.secs ? ` (${run.warm.secs} s)` : "";
+  if (run.status === "computing") status = `Step ${run.step} done, computing`;
   if (run.status === "settling" && run.settle_left != null) status += ` (${Math.ceil(run.settle_left)} s)`;
   if (finished(run) && run.reason) status += ": " + run.reason;
   const eta = run.eta;

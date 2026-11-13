@@ -61,10 +61,11 @@ the Theme button does the same.
   a step with no reading (`n=0`) is a gap, never 0 mm/s. The flagged steps are listed above the
   chart. `EXTRA` (one more reading because the blocks spread too much) shows in the current-step
   panel.
-- **Pass jobs.** A `pass_*` log shows a pass view in place of the step panel: the stretch from
-  the first to the last sensor of the pass (Switch 5 to Switch 15 for Switch 13) with the time
+- **Freeze.** After `FREEZE` the step takes no more blocks (late `BLOCK` and `SENS` lines are ignored) and the page says "step n done, computing" until `STEPDONE`.
+- **Pass jobs.** A `pass_*` log shows a pass view in place of the step panel: the stretch
+  from the `PATH` line (the sensors from the first to the last of the pass) (Switch 5 to Switch 15 for Switch 13) with the time
   each sensor lit after the pass started, the time across each block and the speed. The pass
-  ends `passed`, or is flagged with its reason (`max`, `stalled`, `killed`, a guard).
+  ends `passed`, or is flagged with its reason (`max`, `stalled`, `killed`, a guard). `wrong_way` gives a red banner, "pass went the wrong way, loco stopped".
 - **Track.** The route's blocks in running order (reversed for a reverse run), width in
   proportion to length, with the name and length in inches. The block the loco last entered is
   outlined. Blocks crossed during the current step are tinted and show the measured mm/s.
@@ -85,7 +86,7 @@ the Theme button does the same.
 ## Log lines it reads
 
 Each line is `<epoch seconds> <message>`. It reads `RUN`, `CFG`, `LENGTHS`, `WARMUP`,
-`WARMUP_DONE`, `WARMUP_LAP`, `STEP`, `SETTLE`, `MEASURE`, `SENS`, `BLOCK`, `EXTRA`, `READ`, `STEPDONE`,
+`WARMUP_DONE`, `WARMUP_LAP`, `STEP`, `SETTLE`, `MEASURE`, `SENS`, `BLOCK`, `EXTRA`, `FREEZE`, `READ`, `STEPDONE`, `PATH`,
 `PASS`, `PASSDONE`, `STOP`, `END`, `ERROR`, `ABORTED` and `NO GUARD`. Lines it does not know are
 skipped. Logs from before distance mode (`READ`, `median=`, `WARMUP ... laps=`) still show.
 
