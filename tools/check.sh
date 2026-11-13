@@ -18,6 +18,7 @@ run baselines python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py 
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
+run layout-facts python3 tools/audit/check_layout_facts.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
 run unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
