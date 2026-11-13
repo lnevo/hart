@@ -31,34 +31,10 @@ from lcc_turnout_contract import contract_violations
 from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
 from polish_hart_layout_editor import ensure_block_contents_visible
 from refresh_bean_comments import BLOCK_COMMENTS
+from reconcile_dispatcher_stations import STATIONS as DISPATCHER_STATIONS
 
-STATION_COMMENTS = {
-    name: BLOCK_COMMENTS[name]
-    for name in (
-        "Track East Lead",
-        "Track East Main Ext",
-        "Track Main East",
-        "Track Main West",
-        "Track Brick-Plane",
-        "Track K-1",
-        "Track K-2",
-        "Track West Main Ext",
-        "Track EH-1",
-        "Track EH-2",
-        "Track EH-3",
-        "Track S-R",
-        "Track S-1",
-        "Track S-2",
-        "Track S-3",
-        "Track S-4",
-        "Track Scale",
-        "Track Barn",
-        "Track W-1",
-        "Track W-2",
-        "Track McKees Rocks",
-        "Track McKeesport",
-    )
-}
+# The Dispatcher stations come from reconcile_dispatcher_stations.STATIONS.
+STATION_COMMENTS = {name: BLOCK_COMMENTS[name] for name in DISPATCHER_STATIONS}
 
 def text(element: ET.Element | None, child: str) -> str:
     if element is None:
@@ -127,8 +103,8 @@ def load_boundaries(path: Path) -> list[Boundary]:
         )
         for row in rows
     ]
-    if len(boundaries) != 30 or len({item.mast for item in boundaries}) != 30:
-        raise ValueError(f"{path}: expected 30 unique boundary mast names")
+    if len(boundaries) != 32 or len({item.mast for item in boundaries}) != 32:
+        raise ValueError(f"{path}: expected 32 unique boundary mast names")
     return boundaries
 
 
@@ -178,7 +154,10 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
         )
 
 
-DISPATCHER_VIRTUALS = {"Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB", "Mast 2R", "Mast 6R"}
+DISPATCHER_VIRTUALS = {
+    "Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB", "Mast 2R", "Mast 6R",
+    "Mast 36L", "Mast 40RB",
+}
 
 
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
@@ -309,9 +288,9 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:
     auto = sum(use_le == "yes" for _, _, use_le in destinations)
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
-    if (len(destinations), auto, manual, unknown) != (100, 98, 2, 0):
+    if (len(destinations), auto, manual, unknown) != (102, 100, 2, 0):
         message = (
-            "stored SML destinations expected total=100, useLayoutEditor=yes=98, "
+            "stored SML destinations expected total=102, useLayoutEditor=yes=100, "
             f"manual=2; found total={len(destinations)}, yes={auto}, "
             f"manual={manual}, unspecified/other={unknown}"
         )
@@ -590,9 +569,9 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         )
     sections = len(root.findall("./sections/section"))
     transits = len(root.findall("./transits/transit"))
-    if (sections, transits) != (105, 777):
+    if (sections, transits) != (107, 187):
         audit.error(
-            f"generated Dispatcher graph expected 105 sections / 777 transits, "
+            f"generated Dispatcher graph expected 107 sections / 187 transits, "
             f"found {sections} / {transits}"
         )
     files = sorted(TRAININFO.glob("*.xml"))
@@ -610,8 +589,8 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
         ]
         if values != ["TRAINDETECTION_HEADANDTAIL"]:
             bad_detection.append(path.name)
-    if len(files) != 1554:
-        audit.error(f"expected 1554 generated traininfo files, found {len(files)}")
+    if len(files) != 374:
+        audit.error(f"expected 374 generated traininfo files, found {len(files)}")
     if bad_detection:
         audit.error(
             "traininfo not HEAD_AND_TAIL: "

@@ -96,6 +96,80 @@ BRICK_PLANE_MASTS = [
     ("TOL42", "signalAMast", "IF$vsm:basic:one-low($1024)", "Mast 6R", 295, 374, 90, "Plane | Switch 5"),
 ]
 
+# Rear masts for start blocks that sat inside a through section (2026-11-12).
+# A train starting in Track East Lead (westbound) or Track K-1 (eastbound) had
+# no mast behind it, so Stage 1 picked the first section holding the block by
+# system-name sort and flipped whenever mast names changed. The short stub
+# between each anchor and its switch becomes a hidden throat block sharing the
+# station's detector (the South Yard pattern), so the anchor is a real
+# boundary and takes a hidden virtual for the station's leaving direction.
+# The switch-leg masts (36RB, 40LB) stay where they are.
+# An anchor's eastbound slot protects the block on its connect1 side (as A45).
+REAR_MASTS = [
+    {
+        "anchor": "A56",
+        "segment": "T-I-TOL2",
+        "throat": "Track East Lead East",
+        "sensor": "BS East Lead",
+        "station": "Track East Lead",
+        "hardware": "Block 1-7 / M2S106",
+        "virtual": ("IF$vsm:basic:one-low($1025)", "Mast 36L", "westbound", 1449, 300, 270, "Princess | Switch 35"),
+    },
+    {
+        "anchor": "A1",
+        "segment": "T-EL-TOL29",
+        "throat": "Track K-1 West",
+        "sensor": "BS K-1",
+        "station": "Track K-1",
+        "hardware": "Block 1-1 / M2S100",
+        "virtual": ("IF$vsm:basic:one-low($1026)", "Mast 40RB", "eastbound", 1627, 236, 90, "Princess | Switch 39"),
+    },
+]
+
+
+def _set_point_attr(pt: ET.Element, attr: str, value: str) -> int:
+    if pt.get(attr) == value:
+        return 0
+    cls = pt.attrib.pop("class", None)
+    pt.set(attr, value)
+    if cls is not None:
+        pt.set("class", cls)  # JMRI writes class last
+    return 1
+
+
+def _ensure_rear_masts(
+    root: ET.Element, le: ET.Element, masts: ET.Element | None, existing: set[str]
+) -> int:
+    n = 0
+    names = _user_names(root)
+    segs = {ts.get("ident"): ts for ts in le.findall("tracksegment")}
+    points = {pt.get("ident"): pt for pt in le.findall("positionablepoint")}
+    for row in REAR_MASTS:
+        seg, pt = segs.get(row["segment"]), points.get(row["anchor"])
+        if seg is None or pt is None:
+            raise ValueError(f"rear mast at {row['anchor']}: panel element missing")
+        if row["throat"] not in names:
+            _add_block_beans(
+                root,
+                f"IB:AUTO:{_next_ib_auto(root):04d}",
+                f"ILB{_next_ilb(root)}",
+                row["throat"],
+                row["sensor"],
+                row["station"],
+                row["hardware"],
+            )
+            names.add(row["throat"])
+            n += 1
+        if seg.get("blockname") != row["throat"]:
+            seg.set("blockname", row["throat"])
+            n += 1
+        sysname, uname, vdir, x, y, deg, comment = row["virtual"]
+        n += _set_point_attr(pt, f"{vdir}signalmast", uname)
+        if masts is not None:
+            n += _ensure_virtual_mast(masts, existing, sysname, uname, comment)
+        n += _ensure_hidden_icon(le, uname, x, y, deg)
+    return n
+
 
 def _le(root: ET.Element) -> ET.Element | None:
     for panel in root.findall("LayoutEditor"):
@@ -144,6 +218,29 @@ def _next_ilb(root: ET.Element) -> int:
     return n + 1
 
 
+def _insert_tidy(parent: ET.Element, index: int, el: ET.Element) -> None:
+    """Insert keeping JMRI's one-element-per-line indentation."""
+    kids = list(parent)
+    if index >= len(kids):
+        if kids:
+            el.tail = kids[-1].tail
+            kids[-1].tail = kids[-2].tail if len(kids) > 1 else parent.text
+        else:
+            el.tail = parent.tail
+        parent.append(el)
+        return
+    el.tail = kids[index - 1].tail if index > 0 else parent.text
+    parent.insert(index, el)
+
+
+def _remove_tidy(parent: ET.Element, el: ET.Element) -> None:
+    kids = list(parent)
+    i = kids.index(el)
+    if i == len(kids) - 1 and i > 0:
+        kids[i - 1].tail = el.tail
+    parent.remove(el)
+
+
 def _ensure_virtual_mast(
     masts: ET.Element, existing: set[str], sysname: str, uname: str, comment: str | None = None
 ) -> int:
@@ -160,14 +257,19 @@ def _ensure_virtual_mast(
                     "rename it in tables.xml before running this script"
                 )
         return 0
-    el = ET.SubElement(masts, "virtualsignalmast")
+    el = ET.Element("virtualsignalmast")
     el.set("class", "jmri.implementation.configurexml.VirtualSignalMastXml")
-    ET.SubElement(el, "systemName").text = sysname
-    ET.SubElement(el, "userName").text = uname
-    if comment:
-        ET.SubElement(el, "comment").text = comment
-    unlit = ET.SubElement(el, "unlit")
-    unlit.set("allowed", "yes")
+    inner = (list(masts)[-1].text if len(masts) else None) or "\n      "
+    for tag, text in (("systemName", sysname), ("userName", uname), ("comment", comment)):
+        if text:
+            ET.SubElement(el, tag).text = text
+    ET.SubElement(el, "unlit").set("allowed", "yes")
+    el.text = inner
+    kids = list(el)
+    for kid in kids[:-1]:
+        kid.tail = inner
+    kids[-1].tail = inner[:-2] if inner.endswith("  ") else inner
+    _insert_tidy(masts, len(masts), el)
     existing.add(sysname)
     return 1
 
@@ -222,10 +324,7 @@ def _ensure_hidden_icon(le: ET.Element, uname: str, x: int, y: int, deg: int) ->
     ic.set("imageset", "default")
     ic.set("class", "jmri.jmrit.display.configurexml.SignalMastIconXml")
     first_to = next((c for c in list(le) if c.tag == "layoutturnout"), None)
-    if first_to is not None:
-        le.insert(list(le).index(first_to), ic)
-    else:
-        le.append(ic)
+    _insert_tidy(le, list(le).index(first_to) if first_to is not None else len(le), ic)
     return 1
 
 
@@ -266,15 +365,12 @@ def _add_block_beans(
         if b.tag == "block" and b.get("length") is None and b.find("occupancysensor") is None
     ]
     # tables.xml keeps JMRI's stub+full pair.
-    if stubs:
-        last_stub = stubs[-1]
-        idx = list(blocks).index(last_stub)
-        blocks.insert(idx + 1, stub)
-    else:
-        blocks.append(stub)
-    blocks.append(full)
+    for el in (stub, full):
+        ET.indent(el, space="  ", level=2)
+    _insert_tidy(blocks, list(blocks).index(stubs[-1]) + 1 if stubs else len(blocks), stub)
+    _insert_tidy(blocks, len(blocks), full)
 
-    lb = ET.SubElement(lbs, "layoutblock")
+    lb = ET.Element("layoutblock")
     lb.set("systemName", ilb)
     lb.set("occupancysensor", sensor)
     lb.set("occupiedsense", "2")
@@ -283,6 +379,8 @@ def _add_block_beans(
     lb.set("extracolor", "white")
     ET.SubElement(lb, "systemName").text = ilb
     ET.SubElement(lb, "userName").text = uname
+    ET.indent(lb, space="  ", level=2)
+    _insert_tidy(lbs, len(lbs), lb)
 
 
 def _split_s1_west(le: ET.Element) -> int:
@@ -436,6 +534,7 @@ def _scale_east_edits(root: ET.Element, le: ET.Element) -> int:
     if to1 is not None:
         n += _ensure_turnout_mast(to1, "signalBMast", "Mast 14R")
     n += _ensure_eh_exits(le, masts, existing, turnouts)
+    n += _ensure_rear_masts(root, le, masts, existing)
     return n
 
 
@@ -546,7 +645,7 @@ def main() -> int:
     ap.add_argument(
         "--scale-east-only",
         action="store_true",
-        help="Only the Scale/Switch 7, Mast 14R, engine-house exit and Brick-Plane masts; skip the South Yard throats.",
+        help="Only the Scale/Switch 7, Mast 14R, engine-house exit, Brick-Plane and East Lead / K-1 rear masts; skip the South Yard throats.",
     )
     args = ap.parse_args()
     paths = [args.panel.resolve()]

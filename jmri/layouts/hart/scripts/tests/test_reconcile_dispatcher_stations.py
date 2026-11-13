@@ -30,7 +30,7 @@ def fixture_tree() -> ET.ElementTree:
     existing = (
         ("Track K-1", 1),
         ("Track K-2", 2),
-        ("Track West Main Ext", 3),
+        ("Track W-1", 3),
     )
     for station, number in existing:
         move_to, progress = reconciler.sensor_names(station)
@@ -84,10 +84,10 @@ def fixture_tree() -> ET.ElementTree:
                 {"blockcontents": station, "x": str(x), "y": str(y)},
             )
 
-    # Force Main West away from its first candidate without affecting others.
+    # Force East Lead away from its first candidate without affecting others.
     ET.SubElement(editor, "sensoricon", {"sensor": "Obstacle", "x": "100", "y": "120"})
 
-    for station in ("Track K-1", "Track K-2", "Track West Main Ext"):
+    for station in ("Track K-1", "Track K-2", "Track W-1"):
         anchor = next(
             icon
             for icon in editor.findall("BlockContentsIcon")
@@ -144,7 +144,7 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             systems_by_user["MoveToTrack_K-1_stored"], "IS:DSMT:1"
         )
         self.assertEqual(
-            systems_by_user["MoveInProgressTrack_West_Main_Ext"], "IS:DSMP:3"
+            systems_by_user["MoveInProgressTrack_W-1"], "IS:DSMP:3"
         )
         self.assertEqual(ET.tostring(root.find("transits")), transit_before)
 
@@ -169,21 +169,21 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
         progress = next(
             icon
             for icon in managed
-            if icon.get("sensor") == "MoveInProgressTrack_Main_West"
+            if icon.get("sensor") == "MoveInProgressTrack_East_Lead"
         )
         move_to = next(
             icon
             for icon in managed
-            if icon.get("sensor") == "MoveToTrack_Main_West_stored"
+            if icon.get("sensor") == "MoveToTrack_East_Lead_stored"
         )
-        self.assertEqual(move_to.get("text"), reconciler.STATION_DISPLAY_NAMES["Track Main West"])
+        self.assertEqual(move_to.get("text"), reconciler.STATION_DISPLAY_NAMES["Track East Lead"])
         px, py = reconciler.xy(progress)
         mx, my = reconciler.xy(move_to)
         self.assertEqual((mx - px, my - py), (reconciler.PAIR_DX, 0))
         occ = next(
             icon
             for icon in occupancy
-            if icon.get("sensor") == reconciler.STATION_OCCUPANCY["Track Main West"]
+            if icon.get("sensor") == reconciler.STATION_OCCUPANCY["Track East Lead"]
         )
         ox, oy = reconciler.xy(occ)
         self.assertEqual(
@@ -262,6 +262,33 @@ class StageOneLampsAndSensorsTest(unittest.TestCase):
             if reconciler.is_full_block(block) and block.findtext("userName") == "Track EH-1":
                 ET.SubElement(block, "occupancysensor").text = "MS:bs-eh-1"
         reconciler.reconcile(tree)
+
+    def test_retired_station_loses_button_sensors_lamp_and_stop(self) -> None:
+        tree = fixture_tree()
+        root = tree.getroot()
+        retired = "Track S-1"
+        blocks = root.find("blocks")
+        full = ET.SubElement(blocks, "block", {"systemName": "IB:77", "length": "1.0", "curve": "0"})
+        ET.SubElement(full, "systemName").text = "IB:77"
+        ET.SubElement(full, "userName").text = retired
+        ET.SubElement(full, "comment").text = "South Yard body; stop"
+        internal = root.find("sensors")
+        move_to, progress = reconciler.sensor_names(retired)
+        add_sensor(internal, "IS:DSMT:77", move_to)
+        add_sensor(internal, "IS:DSMP:77", progress)
+        editor = root.find("LayoutEditor")
+        lamp = reconciler.RETIRED_STATION_OCCUPANCY[retired]
+        ET.SubElement(editor, "sensoricon", {"sensor": move_to, "level": "12"})
+        ET.SubElement(editor, "sensoricon", {"sensor": lamp, "level": "12", "x": "943", "y": "354"})
+        ET.SubElement(editor, "sensoricon", {"sensor": lamp, "level": "10", "x": "1010", "y": "376"})
+        reconciler.reconcile(tree)
+        self.assertEqual("South Yard body", full.findtext("comment"))
+        names = [reconciler.bean_user_name(x) for x in internal.findall("sensor")]
+        self.assertNotIn(move_to, names)
+        self.assertNotIn(progress, names)
+        left = [(i.get("sensor"), i.get("level")) for i in editor.findall("sensoricon")
+                if i.get("sensor") in (move_to, lamp)]
+        self.assertEqual([(lamp, "10")], left)
 
     def test_current_tables_need_no_reconciliation(self) -> None:
         tables = SCRIPT.parents[1] / "output" / "tables.xml"

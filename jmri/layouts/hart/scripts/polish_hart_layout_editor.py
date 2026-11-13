@@ -121,6 +121,51 @@ LABEL_STYLE: dict[str, tuple[str, str]] = {
     "Industries": ("16", "0"),
 }
 
+# South Yard track names. The Dispatcher station buttons carried them until
+# South Yard stopped being stations (2026-11-12); plain labels sit in the same
+# spots, in the buttons' size-10 bold grey text.
+TRACK_NAME_LABELS: dict[str, tuple[int, int]] = {
+    "Track S-R": (953, 293),
+    "Track S-1": (953, 344),
+    "Track S-2": (953, 391),
+    "Track S-3": (953, 438),
+    "Track S-4": (953, 480),
+}
+
+
+def _track_name_label(text: str, x: int, y: int) -> ET.Element:
+    label = ET.Element("positionablelabel")
+    for attr, value in (
+        ("x", str(x)), ("y", str(y)), ("level", "4"), ("forcecontroloff", "false"),
+        ("hidden", "no"), ("positionable", "true"), ("showtooltip", "true"),
+        ("editable", "false"), ("text", text), ("size", "10"), ("style", "1"),
+        ("red", "51"), ("green", "51"), ("blue", "51"), ("hasBackground", "no"),
+        ("justification", "left"),
+        ("class", "jmri.jmrit.display.configurexml.PositionableLabelXml"),
+    ):
+        label.set(attr, value)
+    return label
+
+
+def ensure_track_name_labels(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
+    changes = 0
+    errors: list[str] = []
+    labels = [l for l in le.findall("positionablelabel")]
+    for text, (x, y) in TRACK_NAME_LABELS.items():
+        found = [l for l in labels if (l.get("text") or "").strip() == text]
+        if len(found) == 1 and _same_number(found[0].get("x"), x) and _same_number(found[0].get("y"), y):
+            continue
+        if check:
+            errors.append(f"track name label {text!r}: {len(found)} found, expected one at ({x}, {y})")
+            continue
+        for extra in found:
+            le.remove(extra)
+        first = next((i for i, c in enumerate(le) if c.tag == "positionablelabel"), len(le))
+        le.insert(first, _track_name_label(text, x, y))
+        changes += 1
+    return changes, errors
+
+
 LABEL_PLACEMENTS: dict[str, tuple[tuple[int, int], ...]] = {
     "116": ((572, 270),),
     "Barn": ((464, 430),),
@@ -385,6 +430,10 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
     le = find_layout_editor(root)
     changes = 0
     errors: list[str] = []
+
+    track_n, track_errors = ensure_track_name_labels(le, check=check)
+    changes += track_n
+    errors.extend(f"{path.name}: {e}" for e in track_errors)
 
     for attr, expected in EXPECTED_TURNOUT_DEFAULTS.items():
         actual = le.get(attr)

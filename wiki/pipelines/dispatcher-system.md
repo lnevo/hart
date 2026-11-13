@@ -4,7 +4,7 @@ CreateTransits (Stage 1) in PanelPro builds sections, transits, and traininfo so
 
 Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf) (same as [JMRI help Stage 1](https://www.jmri.org/help/en/html/scripthelp/DispatcherSystem/DispatcherSystem.shtml#_Toc194074958)).
 
-**Status:** 2026-11-10 — stock Stage 1. **47 / 105 / 777 / 1554**. No CreateTransits overlay. EH exits are 12R/10RA/10RB (were 11L/9LA/9LB); Barn at Switch 13 is 14R (was 13R); Brick-Plane ends are 2R/6R.
+**Status:** 2026-11-12 — stock Stage 1, 12 stations. **49 / 107 / 187 / 374**. East Lead and K-1 rear masts 36L / 40RB on hidden throats. No CreateTransits overlay. EH exits are 12R/10RA/10RB (were 11L/9LA/9LB); Barn at Switch 13 is 14R (was 13R); Brick-Plane ends are 2R/6R.
 
 ## Inputs
 
