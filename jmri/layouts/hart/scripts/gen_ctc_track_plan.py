@@ -1207,6 +1207,23 @@ def patch_brick_sidi(text: str) -> str:
     return text
 
 
+def store_format(panel: str) -> str:
+    """The USS panel as a PanelPro Store writes it into tables.xml, so a rebuild changes
+    only what it means to: items locked (editable="false"), fonts as family plus name,
+    and degrees="0" on every icon. GUIObjects.xml keeps the generator's own form."""
+    panel = panel.replace('editable="true"', 'editable="false"')
+    panel = panel.replace('fontname="Dialog.plain"', 'fontFamily="Dialog" fontname="Dialog"')
+    panel = re.sub(r'(<[a-zA-Z]+ url="[^"]*") scale="', r'\1 degrees="0" scale="', panel)
+    # Mast icons: the Store writes degrees after litmode.
+    panel = re.sub(r'(<signalmasticon [^>]*?) degrees="0"( clickmode="\d+" litmode="\w+")',
+                   r'\1\2 degrees="0"', panel)
+    # Head icons: no degrees on the tag, and no lunar icons (these heads have none).
+    panel = re.sub(r'(<signalheadicon [^>]*?) degrees="0"', r"\1", panel)
+    panel = re.sub(r'\n\s*<(flash)?lunar [^>]*>\s*<rotation>0</rotation>\s*</(flash)?lunar>', "", panel)
+    # The background plate sits at the panel's own indent.
+    return re.sub(r'\n[ \t]+(<positionablelabel x="-?\d+" y="0" level="1" )', r"\n    \1", panel)
+
+
 def apply(text: str, cells: dict, close_tag: str = "</paneleditor>") -> str:
     text = reposition_levers(text)
     text = fix_brick_signal_levers(text)
@@ -1360,13 +1377,14 @@ def main() -> None:
 
     pe = re.search(r"<paneleditor\b.*?</paneleditor>", new, re.S)
     assert pe, "no paneleditor in regenerated GUI"
+    panel = store_format(pe.group(0))
 
     def embed(path: Path, replace_panel: bool) -> None:
         tables = path.read_text()
         if replace_panel:
             m = re.search(r"<paneleditor\b.*?</paneleditor>", tables, re.S)
             assert m, "no paneleditor in %s" % path
-            tables = tables[: m.start()] + pe.group(0) + tables[m.end() :]
+            tables = tables[: m.start()] + panel + tables[m.end() :]
         patched = patch_brick_sidi(tables)
         patched = ensure_columns(patched)
         if patched != tables or replace_panel:

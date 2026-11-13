@@ -142,3 +142,26 @@ class DotsAndLabelsTest(unittest.TestCase):
             self.assertTrue(gen._skip_label(raw), raw)
         for raw in ("EH-1", "BRICK", "Track Main East"):
             self.assertFalse(gen._skip_label(raw), raw)
+
+
+class RebuildMatchesStoreTest(unittest.TestCase):
+    """A rebuild writes the USS panel into tables.xml exactly as a PanelPro Store does,
+    so it changes nothing when nothing changed (no flip to editable icons, no attribute churn)."""
+
+    def test_rebuild_of_committed_files_is_byte_identical(self) -> None:
+        import os
+        import shutil
+        import subprocess
+        import tempfile
+        gui = SCRIPTS.parent / "ctc" / "GUIObjects.xml"
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            t, g = tmp / "tables.xml", tmp / "GUIObjects.xml"
+            shutil.copy(TABLES, t)
+            shutil.copy(gui, g)
+            done = subprocess.run(
+                [sys.executable, str(SCRIPTS / "gen_ctc_track_plan.py"), "--gui", str(g), "--tables", str(t)],
+                capture_output=True, text=True, env=dict(os.environ, HOME=str(tmp)))
+            self.assertEqual(done.returncode, 0, done.stderr)
+            self.assertEqual(t.read_bytes(), TABLES.read_bytes(), "tables.xml USS panel differs from a rebuild")
+            self.assertEqual(g.read_bytes(), gui.read_bytes(), "GUIObjects.xml differs from a rebuild")

@@ -25,7 +25,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables  # noqa: E402
 
 DEFAULT_PANEL = paths.TABLES_XML
 CSV_PATH = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
@@ -222,6 +222,11 @@ def main() -> None:
     if args.dry_run or args.no_sync:
         return
     if not args.no_pref and PREF_TABLES.is_file():
+        # The running JMRI holds the profile copy and would overwrite it on Store.
+        if tables.jmri_running():
+            print(f"{PREF_TABLES}: not synced: PanelPro or CATS is open; quit it and rerun, "
+                  "or deploy, which installs tables.xml", file=sys.stderr)
+            sys.exit(1)
         shutil.copy2(args.panel, PREF_TABLES)
         print(f"synced preference {PREF_TABLES}")
 

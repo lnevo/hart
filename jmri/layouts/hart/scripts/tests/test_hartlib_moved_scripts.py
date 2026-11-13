@@ -31,8 +31,8 @@ def load(name: str):
     return module
 
 
-def run(script: str, *args: str, home: Path) -> subprocess.CompletedProcess:
-    env = dict(os.environ, HOME=str(home), HART_GUARD_JMRI_RUNNING="0")
+def run(script: str, *args: str, home: Path, jmri_running: str = "0") -> subprocess.CompletedProcess:
+    env = dict(os.environ, HOME=str(home), HART_GUARD_JMRI_RUNNING=jmri_running)
     return subprocess.run(
         [sys.executable, str(SCRIPTS / script), *args],
         capture_output=True, text=True, env=env, cwd=home,
@@ -101,6 +101,19 @@ class WritersOnACopyTest(unittest.TestCase):
         result = run("apply_le_sml_facing.py", "--dry-run", "--panel", str(panel), home=self.home)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(before, panel.read_bytes())
+
+    def test_sml_facing_leaves_the_profile_copy_alone_while_jmri_runs(self):
+        panel = self.copy("facing.xml")
+        pref = self.home / "JMRI_UserFiles" / "tables.xml"
+        pref.parent.mkdir(parents=True, exist_ok=True)
+        pref.write_bytes(b"profile copy held by the running JMRI")
+        result = run("apply_le_sml_facing.py", "--panel", str(panel), home=self.home, jmri_running="1")
+        self.assertEqual(1, result.returncode, result.stdout)
+        self.assertIn("not synced", result.stderr)
+        self.assertEqual(b"profile copy held by the running JMRI", pref.read_bytes())
+        result = run("apply_le_sml_facing.py", "--panel", str(panel), home=self.home)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(panel.read_bytes(), pref.read_bytes())
 
 
 class AnnotateWritePathTest(unittest.TestCase):
