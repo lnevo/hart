@@ -611,7 +611,7 @@ def audit_source(
     audit = Audit(label=label, path=path)
     try:
         root = tables.read(path)
-    except (OSError, ET.ParseError) as exc:
+    except (OSError, ET.ParseError, ValueError, TypeError) as exc:
         audit.error(f"cannot parse source: {exc}")
         return audit
     panel = select_panel(root, audit)

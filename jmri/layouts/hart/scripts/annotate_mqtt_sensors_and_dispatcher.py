@@ -17,7 +17,6 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 
 TABLES = paths.TABLES_XML
-OUTPUT_TABLES = paths.TABLES_XML
 OCC_CSV = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO_DIR = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 MAC_PROFILE = paths.JMRI_USER_FILES
@@ -417,7 +416,6 @@ def main() -> None:
     text2 = text2.replace(marker, insert + marker, 1)
 
     TABLES.write_text(text2, encoding="utf-8")
-    shutil.copy2(TABLES, OUTPUT_TABLES)
     traininfo = write_traininfo()
 
     mac_tables = MAC_PROFILE / "tables.xml"
@@ -431,7 +429,6 @@ def main() -> None:
     print(f"occupancy comments: {occ_n}")
     print(f"unnamed MQTT sensors: {len(unnamed)} -> {', '.join(unnamed)}")
     print(f"wrote {TABLES}")
-    print(f"copied {OUTPUT_TABLES}")
     print(f"traininfo {traininfo}")
     if mac_tables.exists():
         print(f"copied Mac profile tables + traininfo")

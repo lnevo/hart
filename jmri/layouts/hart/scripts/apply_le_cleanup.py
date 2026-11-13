@@ -28,7 +28,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lcc_turnout_contract import DCC_RE, child_text
 
 DEFAULT = paths.TABLES_XML
-OUTPUT_TABLES = paths.TABLES_XML
 
 STUB_MASTS = [
     # systemName, userName, bumper ident, bound attr, icon x,y, degrees
@@ -295,7 +294,8 @@ def patch_yard_turnout_masts(root: ET.Element, le: ET.Element) -> int:
     for to in le.findall("layoutturnout"):
         for child in list(to):
             if (
-                "Mast" in child.tag
+                isinstance(child.tag, str)
+                and "Mast" in child.tag
                 and (child.text or "").strip() in YARD_VIRTUAL_UNAMES
             ):
                 to.remove(child)
@@ -320,14 +320,18 @@ def apply(path: Path) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--panel", type=Path, default=DEFAULT)
-    ap.add_argument("--sync-output", action="store_true")
+    ap.add_argument("--sync-output", action="store_true", help="No effect since ADR-008; kept for existing callers")
     args = ap.parse_args()
-    paths = [args.panel.resolve()]
-    for path in paths:
+    targets = [args.panel.resolve()]
+    for path in targets:
         if not path.is_file():
             print(f"missing {path}")
             continue
-        n = apply(path)
+        try:
+            n = apply(path)
+        except RuntimeError as exc:
+            print(f"{path}: not changed: {exc}")
+            return 1
         print(f"{path}: {n} edits")
     return 0
 

@@ -74,12 +74,12 @@ def install_preference_icons() -> list[Path]:
 
     dests: list[Path] = []
     candidates = [
-        Path.home() / "JMRI_UserFiles",
+        paths.JMRI_USER_FILES,
     ]
     for base in candidates:
         if not base.is_dir():
             continue
-        if base.name == "JMRI_UserFiles":
+        if base == paths.JMRI_USER_FILES:
             dests.append(base / "resources/buttons")
         dests.extend(p / "resources/buttons" for p in base.glob("*.jmri") if p.is_dir())
 
@@ -291,7 +291,7 @@ def apply(panel: Path) -> None:
         )
 
 
-def main() -> None:
+def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--panel", type=Path, default=DEFAULT_PANEL)
     ap.add_argument(
@@ -305,11 +305,16 @@ def main() -> None:
         roots = sorted({p.parent for p in installed})
         print(f"Installed {len(ICON_FILES)} triangles → {len(roots)} preference dirs")
     panel = args.panel.resolve()
-    apply(panel)
-    if not args.no_sync and panel == DEFAULT_PANEL.resolve():
-        for dest in SYNC_COPIES:
-            apply(dest)
+    try:
+        apply(panel)
+        if not args.no_sync and panel == DEFAULT_PANEL.resolve():
+            for dest in SYNC_COPIES:
+                apply(dest)
+    except RuntimeError as exc:
+        print(f"{panel}: not changed: {exc}")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

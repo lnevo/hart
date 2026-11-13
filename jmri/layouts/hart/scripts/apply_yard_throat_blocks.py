@@ -34,7 +34,6 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths, tables  # noqa: E402
 
 DEFAULT = paths.TABLES_XML
-OUTPUT_TABLES = paths.TABLES_XML
 
 # Turnout-leg segments that become throats (already short).
 # Public names (ADR-005). Before 2026-08-21 these were S-2 West … S-1 East on
@@ -291,7 +290,7 @@ def _ensure_turnout_mast(to: ET.Element, tag: str, uname: str) -> int:
     el.text = uname
     # Mast slots come before the NX sensor slots, as JMRI stores them.
     kids = list(to)
-    first_sensor = next((i for i, c in enumerate(kids) if c.tag.startswith("sensor")), None)
+    first_sensor = next((i for i, c in enumerate(kids) if isinstance(c.tag, str) and c.tag.startswith("sensor")), None)
     if first_sensor is None:
         to.append(el)
     else:
@@ -641,22 +640,22 @@ def apply(path: Path) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--panel", type=Path, default=DEFAULT)
-    ap.add_argument("--sync-output", action="store_true")
+    ap.add_argument("--sync-output", action="store_true", help="No effect since ADR-008; kept for existing callers")
     ap.add_argument(
         "--scale-east-only",
         action="store_true",
         help="Only the Scale/Switch 7, Mast 14R, engine-house exit, Brick-Plane and East Lead / K-1 rear masts; skip the South Yard throats.",
     )
     args = ap.parse_args()
-    paths = [args.panel.resolve()]
+    targets = [args.panel.resolve()]
     fn = apply_scale_east if args.scale_east_only else apply
-    for path in paths:
+    for path in targets:
         if not path.is_file():
             print(f"missing {path}")
             continue
         try:
             n = fn(path)
-        except ValueError as exc:
+        except (ValueError, RuntimeError) as exc:
             print(f"{path}: not changed: {exc}")
             return 1
         print(f"{path}: {n} edits")

@@ -22,7 +22,6 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 
 DEFAULT_PANEL = paths.TABLES_XML
-OUTPUT_TABLES = paths.TABLES_XML
 PREF_TABLES = paths.JMRI_USER_FILES / "tables.xml"
 
 # Digicon PANELSIGNAL SIGORIENT → LE SignalMastIcon degrees:
@@ -154,12 +153,6 @@ def main() -> None:
     patch_file(args.panel, dry_run=args.dry_run)
     if args.dry_run:
         return
-    if args.sync_output:
-        for dest in ():
-            if not dest.is_file():
-                print(f"SKIP sync missing {dest}")
-                continue
-            patch_file(dest)
     if args.sync_pref and PREF_TABLES.is_file():
         patch_file(PREF_TABLES)
 
