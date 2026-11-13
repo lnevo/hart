@@ -207,3 +207,18 @@ class HostApplyInstallsStampLast(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DirtyListUnderPipefail(unittest.TestCase):
+    """A long dirty-path list must warn, not kill the deploy with SIGPIPE (exit 141)."""
+
+    def test_long_list_prints_ten_and_exits_zero(self) -> None:
+        line = next(l for l in SYNC.read_text(encoding="utf-8").splitlines()
+                    if 'printf \'%s\\n\' "$DEPLOY_CHANGES" |' in l and "wc -l" not in l)
+        script = ("set -euo pipefail\n"
+                  "DEPLOY_CHANGES=\"$(seq 1 20000 | sed 's/^/ M file/')\"\n"
+                  + line.strip() + "\necho done\n")
+        done = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(done.stdout.splitlines()[-1], "done")
+        self.assertEqual(len(done.stdout.splitlines()), 11)

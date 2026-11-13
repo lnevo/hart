@@ -131,8 +131,18 @@ def load(path: Path | str | None = None) -> Tables:
 
 
 def read(path: Path | str | None = None) -> ET.Element:
-    """Root element of tables.xml for read-only scripts."""
-    return load(path).root
+    """Root element of tables.xml for read-only scripts.
+
+    Parsed the same way as load() (comments and processing instructions kept), but
+    without keeping the original bytes or working out the escaping style, which only
+    a save needs.
+    """
+    p = Path(path) if path is not None else paths.TABLES_XML
+    data = p.read_bytes()
+    _check_encoding(data)
+    parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True, insert_pis=True))
+    parser.feed(data)
+    return parser.close()
 
 
 def jmri_running() -> bool:

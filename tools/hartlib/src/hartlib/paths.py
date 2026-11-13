@@ -1,8 +1,8 @@
 """Paths the CPython tools use, resolved from the checkout hartlib sits in.
 
 There is one railroad and one layout directory, ``jmri/layouts/hart``. ``JMRI_LAYOUT`` is
-still read (the shell sets ``JMRI_LAYOUT=hart``), but it is a single-layout setting: any
-other value points every layout path at a directory this repo does not have. When the
+ignored here: a stale value left in a shell (old archive READMEs export linear4/linear5)
+would otherwise point every path at a directory this repo does not have. When the
 railroad is split later, the unit will be the level or district, not the layout name.
 
 Every path names a file in *this* checkout, the one hartlib sits in, so a script in a
@@ -29,7 +29,7 @@ def _find_repo_root() -> Path:
 REPO_ROOT = _find_repo_root()
 JMRI_DIR = REPO_ROOT / "jmri"
 
-LAYOUT = os.environ.get("JMRI_LAYOUT", "").strip() or "hart"
+LAYOUT = "hart"  # pinned; see the module docstring
 LAYOUT_DIR = JMRI_DIR / "layouts" / LAYOUT
 LAYOUT_DATA = LAYOUT_DIR / "data"
 LAYOUT_OUTPUT = LAYOUT_DIR / "output"
