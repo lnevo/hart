@@ -12,6 +12,7 @@ import argparse
 import csv
 import hashlib
 import sys
+import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -327,11 +328,47 @@ def write_counts(path: Path, tables_path: Path, counts: dict[str, int]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def main() -> int:
+def comparable(path: Path) -> list[str]:
+    """File lines minus the sha256, which changes with any edit, even a moved icon."""
+    if not path.is_file():
+        return []
+    return [
+        line
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if not line.startswith("tables.xml sha256=")
+    ]
+
+
+def stale_files(committed: Path, fresh: Path) -> list[str]:
+    names = sorted(p.name for p in fresh.iterdir())
+    return [name for name in names if comparable(committed / name) != comparable(fresh / name)]
+
+
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tables", type=Path, default=DEFAULT_TABLES, help="JMRI tables.xml path")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help="Output directory for baselines")
-    args = parser.parse_args()
+    parser.add_argument("--quiet", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Capture to a temporary folder and fail if --out differs; write nothing",
+    )
+    args = parser.parse_args(argv)
+
+    if args.check:
+        with tempfile.TemporaryDirectory() as temporary:
+            fresh = Path(temporary)
+            status = main(["--tables", str(args.tables), "--out", str(fresh), "--quiet"])
+            if status:
+                return status
+            stale = stale_files(args.out, fresh)
+        if stale:
+            print("Baselines are stale against tables.xml: " + ", ".join(stale))
+            print("Recapture: python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py")
+            return 1
+        print("Baselines match tables.xml")
+        return 0
 
     if not args.tables.is_file():
         print(f"tables.xml not found: {args.tables}", file=sys.stderr)
@@ -375,6 +412,8 @@ def main() -> int:
     write_counts(counts_path, args.tables, counts)
     written.append((str(counts_path), None))
 
+    if args.quiet:
+        return 0
     print(f"Wrote baselines to {args.out}")
     if cats_master is not None:
         print(f"CATS source: {cats_master}")
