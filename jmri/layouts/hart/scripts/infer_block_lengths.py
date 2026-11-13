@@ -24,6 +24,7 @@ Usage:
     python3 jmri/layouts/hart/scripts/infer_block_lengths.py            # report
     python3 jmri/layouts/hart/scripts/infer_block_lengths.py --apply    # update CSV
     python3 jmri/layouts/hart/scripts/infer_block_lengths.py --route loop2 --events EV.csv --locate
+    python3 jmri/layouts/hart/scripts/infer_block_lengths.py --route loop2 --locate --pass-log P1.log P2.log
 Then regenerate with export_track_lengths.py, as for any CSV change. Loop 2 (S-R, Scale, Barn)
 places OS Switch 7 and 13; see docs/jmri/speedmatching/RUNBOOK.md.
 """
@@ -190,6 +191,39 @@ def locate(result, turnouts, route, targets=("Switch 7", "Switch 13"), anchor="S
     return {t: (centre[t], centre[anchor] - centre[t]) for t in targets}
 
 
+def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Switch 5", to="Switch 15"):
+    """Place the targets' centres from one timed pass (pass_runner.py), the loco at one speed
+    between the two pins. events: [(epoch, "BS ...")] ACTIVE events, the first of each sensor
+    counts. A section's centre time is halfway between its entry and the entry of the next
+    section in the direction of travel; the pins' centres sit at pins[frm] and pins[to] (mm
+    from Switch 5's points), so a target's position is a straight-line interpolation on those
+    times. Returns {"speed": mm/s, target: (centre mm, mm before OS `to`'s centre), ...}."""
+    seq = route_from_sw5(route)
+    first = {}
+    for t, name in events:
+        first.setdefault(name[3:] if name.startswith("BS ") else name, t)
+    for need in (frm, to):
+        if need not in first:
+            raise ValueError(f"the pass never lit BS {need}")
+    sign = 1 if first[to] > first[frm] else -1  # +1: the route's own order
+
+    def centre(s):
+        nxt = seq[(seq.index(s) + sign) % len(seq)]
+        if s not in first or nxt not in first:
+            raise ValueError(f"no entry time for BS {s if s not in first else nxt}")
+        return (first[s] + first[nxt]) / 2
+
+    t0, t1 = centre(frm), centre(to)
+    if t0 == t1:
+        raise ValueError("the pass has no time between the pins")
+    per_s = (pins[to] - pins[frm]) / (t1 - t0)
+    out = {"speed": abs(per_s)}
+    for tg in targets:
+        pos = pins[frm] + (centre(tg) - t0) * per_s
+        out[tg] = (pos, pins[to] - pos)
+    return out
+
+
 def stubs_of(rows, sensor):
     """Hidden throat stub rows that share this sensor's detector."""
     return [r["user_name"] for r in rows
@@ -243,6 +277,33 @@ def apply_tables(lengths_mm):
     t.save()
 
 
+def report_passes(logs, route, pins):
+    """Print each pass's placement, then the mean and the difference of the passes."""
+    found = []
+    for p in logs:
+        for ps in analyze.parse_pass_log(Path(p).read_text().splitlines(), Path(p).name):
+            try:
+                res = pass_centres(ps["events"], route, pins)
+            except ValueError as e:
+                print(f"pass at step {ps['step']} in {ps['log']} skipped: {e}")
+                continue
+            found.append((ps, res))
+            print(f"pass {len(found)}: {ps['loco']} {ps['direction']} step {ps['step']} ({ps['log']}, "
+                  f"ended {ps['reason'] or 'unknown'}): {res['speed']:.1f} mm/s between the pins")
+            for t in ("Switch 7", "Switch 13"):
+                pos, before = res[t]
+                print(f"  OS {t} centre {pos:.0f} mm from Switch 5's points, {before:.0f} mm before OS Switch 15's centre")
+    if not found:
+        raise SystemExit("no usable pass in the logs")
+    for t in ("Switch 7", "Switch 13"):
+        pos = [r[t][0] for _, r in found]
+        before = [r[t][1] for _, r in found]
+        print(f"locate: OS {t} centre {statistics.mean(pos):.0f} mm from Switch 5's points, "
+              f"{statistics.mean(before):.0f} mm before OS Switch 15's centre (mean of {len(found)} passes)")
+        if len(found) > 1:
+            print(f"  passes differ by {max(pos) - min(pos):.0f} mm (last minus first {pos[-1] - pos[0]:+.0f} mm)")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE)
@@ -251,11 +312,18 @@ def main():
     ap.add_argument("--apply", action="store_true", help="write the lengths into block_lengths.csv")
     ap.add_argument("--overwrite", action="store_true",
                     help="loop2: also rewrite the rows loop 1 already set (loop 1 owns them otherwise)")
+    ap.add_argument("--pass-log", nargs="+", type=Path, metavar="LOG",
+                    help="with --locate: place OS Switch 7 and 13 from pass-job logs "
+                         "(make_job.py pass), no laps needed")
     ap.add_argument("--locate", action="store_true",
                     help="print where the OS Switch 7 and 13 section centres fall along the route")
     a = ap.parse_args()
     route = a.route
     loop_mm, pins = PLAN[route]
+    if a.pass_log:
+        if not a.locate or route != "loop2":
+            ap.error("--pass-log goes with --locate and --route loop2")
+        return report_passes(a.pass_log, route, pins)
     if a.events is None:
         if route != DEFAULT_ROUTE:
             ap.error("--events is required for %s" % route)
