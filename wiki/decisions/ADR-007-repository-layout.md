@@ -1,6 +1,6 @@
 # ADR-007 — Repository layout
 
-- **Status:** Accepted. Amended 2026-10-31: the dissolve in decision 3 is complete. The leftover `archive/consolidation/` folder was removed the same day and remains in git history.
+- **Status:** Accepted. Amended 2026-10-31: the dissolve in decision 3 is complete. The leftover `archive/consolidation/` folder was removed the same day and remains in git history. Amended 2026-11-12: the deploy exception in decision 2 is retired (see the amendment below).
 - **Date:** 2026-10-31
 - **Deciders:** lnevo
 
@@ -11,7 +11,7 @@
 ## Decision
 
 1. The end state is one home in this repo. `~/sts`, `~/Desktop/HART`, duplicates in `~/Documents` and the repo's `archive/` are retired by a final, undated epic. The `.any` track plans stay in `~/Documents`.
-2. `cats/` is only the CTC overlay for JMRI. Its `scripts/pi`, `scripts/windows` and `sync_hart_package.sh` stay as a documented exception because host paths depend on them.
+2. `cats/` is only the CTC overlay for JMRI. ~~Its `scripts/pi`, `scripts/windows` and `sync_hart_package.sh` stay as a documented exception because host paths depend on them.~~ Superseded 2026-11-12: they live in `tools/hosts/` (see the amendment below).
 3. `consolidation/` is dissolved into the root. Until then it remains the live home of what it holds, so edit that content in place.
 4. Target root: `jmri/`, `cats/`, `docs/`, `www/`, `ops/`, `external/`, `media/`, `tools/`, `wiki/`, `archive/`.
    - `www/` is the public website, renamed from `ops-portal/`.
@@ -48,5 +48,13 @@ Consolidation decisions:
 - Files in `~/Documents` that were byte-identical copies of repo content (seven research images and `ThisIsShenango.pdf`, all in `media/hart-research`) were moved to the Trash. Kept: the `.any` track plans, the Arduino IDE sketchbook (`~/Documents/Arduino`, `LCOS_Client_Bare`), and two images that belong to other sets (a saved web page and `Layout/For James`).
 - `~/Desktop/HART` is retired. Its 1,038 files that were byte-identical to repo content went to the Trash first; the owner then judged the rest (old STS seed and session material in `Car Cards/archive`, a Python environment, older pipeline and wiring copies, and three wiring decks the repo has newer versions of) not worth keeping, and the whole folder went to the Trash. `tools/ops/sync_desktop_data.py` is removed, the car cards, waybills and industry routing run from the hart-ops submodule, and `docs/wiring/` is the only wiring copy.
 - With that, the final cleanup epic in decision 1 is complete: this repo is the one home, apart from the `.any` track plans in `~/Documents`, the car photo originals in the Photos library and the repo's own `archive/`.
+
+## Amendment 2026-11-12 (deploy leaves `cats/`)
+
+- The exception in decision 2 is retired. `sync_hart_package.sh` and the `pi/` and `windows/` host scripts moved from `cats/scripts/` to `tools/hosts/`, beside the other Pi and Windows helpers (`pi_quit_panelpro.sh`, `sync_roster_from_pi.sh`, `win_install_roster.ps1`) and their tests in `tools/hosts/tests/`. One folder holds everything that talks to a layout host, so a separate `tools/deploy/` was not added.
+- Only the repo paths moved. The package the deploy sends still carries the host scripts at `cats/scripts/pi/` and `cats/scripts/windows/`, so the hosts, their launchers and shortcuts see the same files at the same paths. A staged package built with `--stage-only` before and after the move was byte-identical.
+- `cats/scripts/sync_hart_package.sh` stays as a thin wrapper that runs the new script, so the old command keeps working.
+- The deploy now leaves `JMRI_UserFiles/cats/deploy_stamp.txt` on each host it installs, naming the commit it shipped; `tools/hosts/deploy_status.sh` (`make deploy-status`) reads it back.
+- Shell scripts on the Mac take host settings from `tools/env/load_env.sh` and `hart.env`, in the same order as the Python tools: environment first, then `hart.env`, then the default.
 
 Records under `consolidation/` that say otherwise, including `AGENTS.md`, `OBJECTIVE.md` and `DECISIONS_RECORDED.md`, are superseded by this ADR.

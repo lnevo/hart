@@ -1,9 +1,11 @@
+param([string]$UserFiles = '')
 $ErrorActionPreference = 'Stop'
 # Desktop shortcuts: CATS CTC + CATS ABS (HOLD_ONLY; JMRI SML owns aspects)
 $Work = $PSScriptRoot
 $Desktop = [Environment]::GetFolderPath('Desktop')
 # CATS has no JMRI home: it opens real paths, so its files live in JMRI_UserFiles\cats.
-$CatsHome = Join-Path $env:USERPROFILE 'JMRI_UserFiles\cats'
+if (-not $UserFiles) { $UserFiles = Join-Path $env:USERPROFILE 'JMRI_UserFiles' }
+$CatsHome = Join-Path $UserFiles 'cats'
 $PanelDir = Join-Path $CatsHome 'panels'
 $Launch = Join-Path $CatsHome 'launch'
 New-Item -ItemType Directory -Force -Path $PanelDir | Out-Null

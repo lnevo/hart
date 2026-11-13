@@ -12,11 +12,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 HOME_PATH = ROOT / "jmri/resources/jmri-web/servlet/home/Home.html"
 HOME = HOME_PATH.read_text(encoding="utf-8")
-WIN = (ROOT / "cats/scripts/windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
+WIN = (ROOT / "tools/hosts/windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
 INSTALL = ROOT / "cats/scripts/install_jmri_web_override.sh"
 MARKER = 'var HART_APPS_HOST = "";'
 PORT_MARKER = 'var HART_MIMIC_PORT = "";'
-SYNC = (ROOT / "cats/scripts/sync_hart_package.sh").read_text(encoding="utf-8")
+SYNC = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
 NODE = shutil.which("node")
 
 

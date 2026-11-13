@@ -3,7 +3,7 @@
 # Called by sync_hart_package.sh --pi with HART set to a /tmp folder.
 set -euo pipefail
 HART="${HART:?HART must name the deploy drop}"
-UF="${JMRI_USERFILES:-/home/pi/JMRI_UserFiles}"
+UF="${JMRI_USERFILES:-$HOME/JMRI_UserFiles}"
 
 case "$HART" in
   /tmp/hart-deploy.*) ;;
@@ -64,7 +64,7 @@ fi
 if [[ -d "$HART/cats/resources/misc" ]]; then
   fanout "$HART/cats/resources/misc" "resources/misc"
   rm -f "$HART/cats/resources/misc/linear5_panel_bg.jpg" "$UF/resources/misc/linear5_panel_bg.jpg" \
-    /home/pi/.jmri/*.jmri/resources/misc/linear5_panel_bg.jpg
+    "$HOME"/.jmri/*.jmri/resources/misc/linear5_panel_bg.jpg
   echo "Pi panel background updated"
 fi
 
@@ -91,11 +91,11 @@ fi
 # xml/signals/C&O-1980 is stock and stays.
 for sys in cats-masts hart-aar "C&O-1980"; do
   rm -rf "$HART/cats/resources/signals/$sys" "$UF/resources/signals/$sys"
-  for d in /home/pi/.jmri/*.jmri; do
+  for d in "$HOME"/.jmri/*.jmri; do
     rm -rf "$d/resources/signals/$sys"
   done
 done
-rm -rf "${JMRI_HOME:-/home/pi/JMRI}/xml/signals/cats-masts"
+rm -rf "${JMRI_HOME:-$HOME/JMRI}/xml/signals/cats-masts"
 rm -f "$HART/cats/scripts/windows/install_cats_masts.ps1"
 rm -rf "$HART/tools/jmri/patches"
 echo "Pi retired signal sets removed"
@@ -116,7 +116,7 @@ for f in "${JYTHON[@]}"; do
   [[ -f "$f" ]] && cp -f "$f" "$UF/jython/"
 done
 rm -f "$UF/jython/hart_dispatcher_startup.py" "$UF/jython/patch_dispatcher_facing.py"
-for d in "$UF/jython" /home/pi/.jmri/*.jmri/jython; do
+for d in "$UF/jython" "$HOME"/.jmri/*.jmri/jython; do
   [[ -d "$d" ]] || continue
   (cd "$d" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py sync_layout_button.py mqtt_signalhead_publisher.py)
 done
@@ -139,29 +139,29 @@ fi
 PATCH="$HART/cats/scripts/patch_jmri_startup.py"
 if [[ -f "$PATCH" ]]; then
   python3 "$PATCH" retarget-jython \
-    --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+    --profile "$HOME/.jmri/TCS_MQTT.jmri/profile/profile.xml" \
     --script panel_status.py \
     --script signal_coordinator.py \
     --script jmri_cmd_watcher.py
   # STS sends car positions here (sts-plugins jmri_ops).
   python3 "$PATCH" insert \
-    --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+    --profile "$HOME/.jmri/TCS_MQTT.jmri/profile/profile.xml" \
     --script preference:jython/sts_car_sync.py \
     --after jmri_cmd_watcher.py
   # LCOS mimic page (/web/mimic/) publishes its feedback through this.
   python3 "$PATCH" insert \
-    --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+    --profile "$HOME/.jmri/TCS_MQTT.jmri/profile/profile.xml" \
     --script preference:jython/mimic_relay.py \
     --after sts_car_sync.py
   python3 "$PATCH" remove \
-    --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+    --profile "$HOME/.jmri/TCS_MQTT.jmri/profile/profile.xml" \
     --script prepare_nx_sml_paths.py 2>/dev/null || true
   rm -f "$UF/jython/prepare_nx_sml_paths.py"
   echo "Pi Dispatcher compatibility scripts + preference:jython Start Up updated"
   for s in apply_sml_cats_pairs.py unhold_signal_masts.py \
            apply_maintain_mqtt.py apply_mqtt_retain_at_startup.py; do
     python3 "$PATCH" remove \
-      --profile /home/pi/.jmri/TCS_MQTT.jmri/profile/profile.xml \
+      --profile "$HOME/.jmri/TCS_MQTT.jmri/profile/profile.xml" \
       --script "$HART/jmri/layouts/hart/scripts/$s" \
       2>/dev/null || true
     rm -f "$HART/jmri/layouts/hart/scripts/$s"
@@ -173,6 +173,12 @@ if [[ -x "$HART/cats/scripts/install_jmri_web_override.sh" ]]; then
 fi
 if [[ -x "$HART/cats/scripts/pi/install_desktop_icons.sh" ]]; then
   bash "$HART/cats/scripts/pi/install_desktop_icons.sh"
+fi
+
+# Last, so the stamp names a deploy only once everything above has been installed.
+if [[ -f "$HART/cats/deploy_stamp.txt" ]]; then
+  cp -f "$HART/cats/deploy_stamp.txt" "$CATS_HOME/deploy_stamp.txt"
+  echo "deploy stamp -> $CATS_HOME/deploy_stamp.txt"
 fi
 
 echo "Pi apply_hart_package_local done"

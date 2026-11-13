@@ -1,7 +1,7 @@
 #! /bin/bash
 # Start CATS Digicon — same style as /home/pi/JMRI/PanelPro desktop launcher.
 set -euo pipefail
-cd /home/pi/JMRI
+cd "$HOME/JMRI"
 
 export WIRINGPI_GPIOMEM="${WIRINGPI_GPIOMEM:-1}"
 export _JAVA_AWT_WM_NONREPARENTING="${_JAVA_AWT_WM_NONREPARENTING:-1}"
@@ -20,5 +20,5 @@ if [[ -z "${DISPLAY:-}" ]]; then
   export DISPLAY="${DISPLAY:-:0}"
 fi
 
-PANEL="${1:-/home/pi/JMRI_UserFiles/cats/panels/HART_CTC.xml}"
-exec /home/pi/JMRI_UserFiles/cats/launch/launch_cats.sh "$PANEL"
+PANEL="${1:-$HOME/JMRI_UserFiles/cats/panels/HART_CTC.xml}"
+exec "$HOME/JMRI_UserFiles/cats/launch/launch_cats.sh" "$PANEL"

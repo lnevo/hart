@@ -1,7 +1,10 @@
 # Apply the HART package in a temporary drop folder into JMRI_UserFiles, the profile's user files.
 # Called by sync_hart_package.sh --win over SSH, which removes the drop afterwards.
-param([Parameter(Mandatory = $true)][string]$Hart, [string]$OverwriteOps = '1')
+param([Parameter(Mandatory = $true)][string]$Hart, [string]$OverwriteOps = '1', [string]$UserFiles = '')
 $ErrorActionPreference = 'Stop'
+# The deploy passes HART_WIN_USERFILES here, so install, panel paths, stamp and deploy_status agree.
+if (-not $UserFiles) { $UserFiles = Join-Path $env:USERPROFILE 'JMRI_UserFiles' }
+$UserFiles = $UserFiles -replace '/', '\'
 
 # Win32-OpenSSH 10.x starts ssh sessions with the machine PATH only. Python is installed
 # per user, so put the user PATH first (GetEnvironmentVariable expands it) so that per-user
@@ -36,7 +39,7 @@ $python = Find-Python
 $src = Join-Path $hart 'tables.xml'
 if (Test-Path $src) {
   $dests = New-Object System.Collections.Generic.List[string]
-  [void]$dests.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles\tables.xml'))
+  [void]$dests.Add((Join-Path $UserFiles 'tables.xml'))
   foreach ($d in ($dests | Select-Object -Unique)) {
     $dir = Split-Path $d -Parent
     if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
@@ -50,7 +53,7 @@ if (Test-Path $src) {
 # Operations Pro files (ADR-015). The repo wins; OverwriteOps 0 skips them while JMRI runs.
 $opsSrc = Join-Path $hart 'operations'
 if (Test-Path $opsSrc) {
-  $opsDest = Join-Path $env:USERPROFILE 'JMRI_UserFiles\operations'
+  $opsDest = Join-Path $UserFiles 'operations'
   if ($OverwriteOps -ne '1' -and (Get-Process java -ErrorAction SilentlyContinue)) {
     Write-Host 'SKIP Operations files: JMRI is running and would overwrite them. Deploy again with it closed.'
   } else {
@@ -79,7 +82,7 @@ if (Test-Path $homeHtml) {
     Write-Warning "Home.html has no '$marker' line; STS and mimic links follow this host"
   }
   $roots = New-Object System.Collections.Generic.List[string]
-  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  [void]$roots.Add($UserFiles)
   foreach ($r in ($roots | Select-Object -Unique)) {
     if (-not (Test-Path $r)) { continue }
     $hd = Join-Path $r 'web\servlet\home'
@@ -96,7 +99,7 @@ if (Test-Path $homeHtml) {
 $btnSrc = Join-Path $hart 'cats\resources\buttons'
 if (Test-Path $btnSrc) {
   $roots = New-Object System.Collections.Generic.List[string]
-  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  [void]$roots.Add($UserFiles)
   $pngs = @()
   $pngs += Get-ChildItem $btnSrc -Filter 'triangle_*.png' -ErrorAction SilentlyContinue
   $pngs += Get-ChildItem $btnSrc -Filter 'lamp_*.png' -ErrorAction SilentlyContinue
@@ -114,7 +117,7 @@ if (Test-Path $btnSrc) {
 $miscSrc = Join-Path $hart 'cats\resources\misc'
 if (Test-Path $miscSrc) {
   $roots = New-Object System.Collections.Generic.List[string]
-  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  [void]$roots.Add($UserFiles)
   foreach ($r in ($roots | Select-Object -Unique)) {
     if (-not (Test-Path $r)) { continue }
     $dest = Join-Path $r 'resources\misc'
@@ -128,7 +131,7 @@ if (Test-Path $miscSrc) {
 $rosterSrc = Join-Path $hart 'cats\resources\roster'
 if (Test-Path $rosterSrc) {
   $roots = New-Object System.Collections.Generic.List[string]
-  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  [void]$roots.Add($UserFiles)
   foreach ($r in ($roots | Select-Object -Unique)) {
     if (-not (Test-Path $r)) { continue }
     $dest = Join-Path $r 'resources\roster'
@@ -141,7 +144,7 @@ if (Test-Path $rosterSrc) {
 $ussSrc = Join-Path $hart 'cats\resources\icons\USS\sensor'
 if (Test-Path $ussSrc) {
   $roots = New-Object System.Collections.Generic.List[string]
-  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  [void]$roots.Add($UserFiles)
   $gifs = @(Get-ChildItem $ussSrc -Filter 'yellow-*.gif' -ErrorAction SilentlyContinue)
   foreach ($r in ($roots | Select-Object -Unique)) {
     # tables.xml loads these through preference:, so the profile copy must exist.
@@ -157,7 +160,7 @@ if (Test-Path $ussSrc) {
 $ctcSrc = Join-Path $hart 'ctc'
 if (Test-Path (Join-Path $ctcSrc 'icons')) {
   $roots = New-Object System.Collections.Generic.List[string]
-  [void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+  [void]$roots.Add($UserFiles)
   foreach ($r in ($roots | Select-Object -Unique)) {
     $dest = Join-Path $r 'ctc\icons'
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
@@ -181,7 +184,7 @@ $jythonSrc = @(
 )
 $trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
 $roots = New-Object System.Collections.Generic.List[string]
-[void]$roots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles'))
+[void]$roots.Add($UserFiles)
 foreach ($r in ($roots | Select-Object -Unique)) {
   if (-not (Test-Path $r)) { continue }
   $dest = Join-Path $r 'jython'
@@ -214,7 +217,7 @@ $retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepa
 # Old scripts no Start Up uses; copies are kept in archive/jmri-scripts or the repo.
 $retiredJython = @('sync_turnout_buttons.py', 'sync_yard_ladder_buttons.py', 'apply_dispatcher_roster_profiles.py', 'SetBlockPreviewValues.py', 'sync_layout_button.py', 'mqtt_signalhead_publisher.py')
 $jythonDirs = New-Object System.Collections.Generic.List[string]
-[void]$jythonDirs.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles\jython'))
+[void]$jythonDirs.Add((Join-Path $UserFiles 'jython'))
 Get-ChildItem (Join-Path $env:USERPROFILE 'JMRI') -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
   [void]$jythonDirs.Add((Join-Path $_.FullName 'jython'))
 }
@@ -278,7 +281,7 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
 $retired = New-Object System.Collections.Generic.List[string]
 $signalRoots = New-Object System.Collections.Generic.List[string]
 [void]$signalRoots.Add((Join-Path $hart 'cats\resources\signals'))
-[void]$signalRoots.Add((Join-Path $env:USERPROFILE 'JMRI_UserFiles\resources\signals'))
+[void]$signalRoots.Add((Join-Path $UserFiles 'resources\signals'))
 $jmri = Join-Path $env:USERPROFILE 'JMRI'
 if (Test-Path $jmri) {
   Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
@@ -309,5 +312,14 @@ Write-Host 'apply_hart_package_local done'
 
 $desk = Join-Path $hart 'cats\scripts\windows\create_cats_desktop.ps1'
 if (Test-Path $desk) {
-  & $desk
+  & $desk -UserFiles $UserFiles
+}
+
+# Last, so the stamp names a deploy only once everything above has been installed.
+$stamp = Join-Path $hart 'cats\deploy_stamp.txt'
+if (Test-Path $stamp) {
+  $catsHome = Join-Path $UserFiles 'cats'
+  New-Item -ItemType Directory -Force -Path $catsHome | Out-Null
+  Copy-Item $stamp (Join-Path $catsHome 'deploy_stamp.txt') -Force
+  Write-Host ("deploy stamp -> {0}\deploy_stamp.txt" -f $catsHome)
 }

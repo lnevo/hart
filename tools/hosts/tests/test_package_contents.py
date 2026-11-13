@@ -4,9 +4,9 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-SYNC = (ROOT / "cats/scripts/sync_hart_package.sh").read_text(encoding="utf-8")
-PI = (ROOT / "cats/scripts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
-WIN = (ROOT / "cats/scripts/windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
+SYNC = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
+PI = (ROOT / "tools/hosts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
+WIN = (ROOT / "tools/hosts/windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
 OLD = (
     "sync_turnout_buttons.py",
     "sync_yard_ladder_buttons.py",

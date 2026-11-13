@@ -41,8 +41,8 @@ JMRI web home (STS link):
   Live: /home/pi/JMRI_UserFiles/web/servlet/home/Home.html
   STS = Shipper-driven Traffic Simulator → http://<this host>:8980/sts/ (link follows the page host)
   Install/refresh: run by sync_hart_package.sh --pi
-  Full pack sync from Mac (SSH): ./cats/scripts/sync_hart_package.sh --pi
-  Windows: ./cats/scripts/sync_hart_package.sh --win  (SSH :2222; do not use Dropbox)
+  Full pack sync from Mac (SSH): ./tools/hosts/sync_hart_package.sh --pi
+  Windows: ./tools/hosts/sync_hart_package.sh --win  (SSH :2222; do not use Dropbox)
 
 JMRI Start Up scripts (profile PerformScript):
   preference:jython/panel_status.py

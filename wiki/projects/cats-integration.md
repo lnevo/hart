@@ -37,4 +37,4 @@ Node 13 occupancy walk-down is done (1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 13
 ## Related
 
 - Dispatcher guide: [`../../docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../docs/ctc/DISPATCHER_GUIDE_CTC.md)
-- Deploy: `./cats/scripts/sync_hart_package.sh --pi` (add `--win` / `--all`)
+- Deploy: `./tools/hosts/sync_hart_package.sh --pi` (add `--win` / `--all`)

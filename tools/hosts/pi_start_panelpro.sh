@@ -6,7 +6,8 @@
 #
 # Usage: tools/hosts/pi_start_panelpro.sh            (host from HART_PI_SSH, default "pi")
 set -euo pipefail
-PI_HOST="${HART_PI_SSH:-pi}"
+source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
+PI_HOST="$HART_PI_SSH"
 PROFILE="TCS_MQTT.3f32a166"
 
 ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" bash -s -- "$PROFILE" <<'REMOTE'
@@ -18,7 +19,7 @@ if pgrep -f "org.jmri.profile=$profile" >/dev/null; then
 fi
 export DISPLAY=:0 XDG_RUNTIME_DIR="/run/user/$(id -u)" WAYLAND_DISPLAY=wayland-0
 export WIRINGPI_GPIOMEM=1 _JAVA_AWT_WM_NONREPARENTING=1
-cd /home/pi/JMRI
+cd "$HOME/JMRI"
 marker=$(mktemp)
 setsid nohup ./PanelPro -p "$profile" >/tmp/panelpro_start.out 2>&1 </dev/null &
 for i in $(seq 1 90); do

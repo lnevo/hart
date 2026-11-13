@@ -2,9 +2,9 @@
 # Launch TrainStat (yard/trainmaster client) against CATS on this Pi.
 # CATS must be running with Start TrainStat Server enabled (panel has <TRAINSTATLABEL />).
 set -euo pipefail
-TS_HOME="${TS_HOME:-/home/pi/JMRI_UserFiles/cats/trainstat}"
+TS_HOME="${TS_HOME:-$HOME/JMRI_UserFiles/cats/trainstat}"
 CONFIG="${1:-$TS_HOME/hart_trainstat.xml}"
-LOG="${TRAINSTAT_LAUNCH_LOG:-/home/pi/JMRI_UserFiles/cats/logs/trainstat_launch.log}"
+LOG="${TRAINSTAT_LAUNCH_LOG:-$HOME/JMRI_UserFiles/cats/logs/trainstat_launch.log}"
 
 if [[ ! -f "$TS_HOME/TrainStat.jar" ]]; then
   echo "TrainStat not installed in $TS_HOME" >&2
