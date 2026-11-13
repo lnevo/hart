@@ -5,6 +5,11 @@ detection sensors, one loco at a time on the full loop. The measuring changed no
 roster entry; afterwards 2738 was programmed to match 2121, see
 [`CV_CHANGES_DRAFT.md`](CV_CHANGES_DRAFT.md) (programmed 2026-11-08, not yet re-measured).
 
+The tools for the re-run (warm-up, speeds over block lengths, both directions, measured table
+correction, decoder preflight) are in
+[`jmri/layouts/hart/scripts/speedmatch/`](../../../../jmri/layouts/hart/scripts/speedmatch/README.md).
+This folder stays as the record of the 2026-11-08 run.
+
 ## Method
 
 - The loop: East Main Ext, OS7b, Main East, OS33, East Lead, OS35a, OS37, K-2, K-1,

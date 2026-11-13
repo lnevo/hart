@@ -23,4 +23,4 @@ An architecture review on 2026-11-12, before the two remaining levels are import
 - A rewiring is a data change plus the generators, and a disagreement fails `check.sh` with the switch and both sources named.
 - `tables.xml` knowledge (duplicate sections, doubled blocks, virtual masts, JDOM escapes) is in one module; a writer's `save()` refuses while PanelPro or CATS is open, and the repo hook spots hartlib writers by import.
 - Adding a level needs a USS board design decision; the data and checks already carry `level`.
-- Left for later: which levels the Dispatcher System covers (owner: decide at import), and one stale shipping entry, `add_yard_ladder_le_icons.py` in the deploy's Jython list (CPython only, nothing on the hosts runs it).
+- Dispatcher stations for the new levels are defined in PanelPro once the upper level is done. The stale `add_yard_ladder_le_icons.py` ship entry was removed 2026-11-13 (PR #394); a copy already on the hosts is inert.

@@ -114,6 +114,9 @@ scripts").
 
 ## Part C: programming on the main, with guardrails
 
+Built: `jmri/layouts/hart/scripts/speedmatch/pom_guard.py` and `pom_write.py`; what it refuses
+and how to run, apply and roll back are in [`POM_GUARD.md`](POM_GUARD.md).
+
 Over LCC, JMRI sends an addressed CV write to the CS-105's train node for one DCC address
 (`OlcbProgrammer`, JMRI 5.16). A DCC broadcast is address 0. The guard is one small module that
 every write goes through:
@@ -125,8 +128,10 @@ every write goes through:
 2. **No consist in the path.** 2121 leads an LCC consist with 2738. Refuse to write while either
    loco is in an active consist; the consist is broken first and made again afterwards with
    `cs105_consist.py`. Never write to a consist address.
-3. **Allowed CVs only:** 3, 4, 25, 29, 66, 67 to 94, 95. CV29 changes only bit 4 (speed table)
-   and keeps the bits it read. Never CV1, CV17 to 19 (addresses and consist) or CV8 (reset).
+3. **Allowed CVs only:** 3, 4, 25, 66, 67 to 94, 95. Never CV1, CV17 to 19 (addresses and
+   consist) or CV8 (reset). CV29 is set on the programming track only (decided 2026-11-13):
+   without RailCom its real value cannot be read on the main, so a whole-byte write could flip
+   the direction or address-type bits.
 4. **Dry run by default.** It prints every write (address, CV, old value, new value). Writing
    needs an explicit `--apply`. Each run saves a rollback file of the values it read.
 5. **No power or stop-all.** The tools stop a loco with its own throttle at speed 0, never with
@@ -138,6 +143,8 @@ every write goes through:
    list) are tested in-process with a fake programmer.
 
 ## Part D: re-run 2121 and 2738
+
+Step-by-step commands for the tools: [`RUNBOOK.md`](RUNBOOK.md).
 
 Before starting: Part A at least for the loop blocks, Parts B and C merged, PanelPro running on
 the Pi, and the owner not operating. Only the test loco moves.

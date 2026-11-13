@@ -255,6 +255,11 @@
       "alt": "Neville Island from above, with the Diverging Route track drawing laid across it: a siding that leaves the main line past LLMs, Prompts, Agents, Skills, MCP, Vibe coding and Automation, and rejoins it.",
       "from": "www/assets/media/birdseye-neville-island.jpg (homepage backdrop) with the Diverging Route banner drawing from www/ai/index.html over it"
     },
+    "library/repository-guide.html": {
+      "image": "assets/share/library-repository-guide.jpg",
+      "alt": "Diagram: six submodules feed into the hart repository, which deploys to the layout Pi, the Windows PC and the website; a dashed arrow brings Stores, sessions and STS backups back from the Pi.",
+      "from": "drawn from the overview figure in www/library/repository-guide.html (make_share_cards.py repo_guide)"
+    },
     "library/operations-pro-article.html": {
       "image": "assets/share/library-operations-pro-article.jpg",
       "alt": "Route map of the invented Juniper Falls & Northern: a main line from West Staging through Carrow and Ferris Junction to East Staging, with a branch to Oakhaven and a branch to Northwood.",

@@ -339,20 +339,13 @@
         state.road = state.type = state.q = "";
         numInput.value = "";
         renderAll();
-        var i = visible.indexOf(item);
-        if (i < 0) return false;
-        if (view === "gallery") {
-          galleryIndex = i;
-          renderItems();
-          return true;
-        }
-        var el = out.querySelector('[data-idx="' + i + '"]');
-        if (el) {
-          el.classList.add("is-target");
-          if (el.scrollIntoView) el.scrollIntoView({ block: "center" });
-        }
-        openLightbox(i);
-        return true;
+        return HARTOps.revealItem({
+          index: visible.indexOf(item),
+          galleryView: view === "gallery",
+          setStage: function (i) { galleryIndex = i; renderItems(); },
+          grid: out,
+          openLightbox: openLightbox,
+        });
       };
 
       renderViews();

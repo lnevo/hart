@@ -80,6 +80,7 @@
         "behind-opspro",
         "behind-opspro-guide",
         "behind-car-cards",
+        "behind-repo",
         "build",
         "helix",
         "helix-status"
@@ -176,6 +177,12 @@
       {
         "label": "Operations",
         "href": "behind/index.html#operations"
+      }
+    ],
+    "behind-repo": [
+      {
+        "label": "Artificial Intelligence",
+        "href": "behind/index.html#ai"
       }
     ],
     "behind-ai-research": [

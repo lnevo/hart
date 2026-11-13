@@ -173,7 +173,6 @@ JYTHON_STARTUP_SCRIPTS=(
 
 HART_JYTHON_SCRIPTS=(
   jmri/layouts/hart/scripts/panel_status.py
-  jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py
   jmri/layouts/hart/scripts/discover_sml.py
   jmri/layouts/hart/scripts/hide_cats_desk_windows.py
   jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py

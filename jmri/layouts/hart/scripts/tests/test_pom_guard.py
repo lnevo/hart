@@ -1,0 +1,977 @@
+"""Tests for the programming-on-the-main guard (speedmatch/pom_guard.py) and its Jython writer.
+
+In-process only: a fake roster in a temp folder, consist query logs as text, a fake
+programmer that records calls, and a stand-in `jmri` module for pom_write.py. No hardware,
+no MQTT, no network.
+"""
+from __future__ import annotations
+
+import importlib.util
+import io
+import json
+import os
+import sys
+import tempfile
+import time
+import types
+import unittest
+from contextlib import redirect_stdout
+from pathlib import Path
+from unittest import mock
+
+HERE = Path(__file__).resolve().parent
+SPEEDMATCH = HERE.parent / "speedmatch"
+GUARD_PATH = SPEEDMATCH / "pom_guard.py"
+WRITER_PATH = SPEEDMATCH / "pom_write.py"
+
+spec = importlib.util.spec_from_file_location("pom_guard", GUARD_PATH)
+g = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(g)
+
+N2121 = "06.01.00.00.C8.49"
+N2738 = "06.01.00.00.CA.B2"
+N06 = "06.01.00.00.C0.06"
+N572 = "06.01.00.00.C2.3C"
+TABLE_2738 = [12, 27, 50, 73, 94, 115, 135, 146, 155, 165, 174, 179, 184, 190] + [191] * 14
+
+
+def long_cvs(addr, extra=None):
+    cvs = {1: 3, 17: 0xC0 | (addr >> 8), 18: addr & 0xFF, 19: 0, 29: 50, 3: 26, 4: 24,
+           25: 16, 66: 128, 95: 128}
+    for k, v in enumerate(TABLE_2738, start=67):
+        cvs[k] = v
+    cvs.update(extra or {})
+    return cvs
+
+
+def loco_xml(rid, fname, number, long_flag, cvs, attr_number=None, protocol=None):
+    proto = protocol or ("dcc_long" if long_flag == "yes" else "dcc_short")
+    vals = "".join('<CVvalue name="%d" value="%d" />' % (k, v) for k, v in sorted(cvs.items()))
+    rid_attr = 'id="%s" ' % rid if rid is not None else ""
+    return ('<locomotive %sfileName="%s" dccAddress="%s">'
+            '<locoaddress><dcclocoaddress number="%s" longaddress="%s" />'
+            '<number>%s</number><protocol>%s</protocol></locoaddress>'
+            '<values><decoderDef>%s</decoderDef></values></locomotive>') % (
+        rid_attr, fname, attr_number or number, number, long_flag, number, proto, vals)
+
+
+DEFAULT = [
+    ("CSX 2121", "2121.xml", 2121, "yes", long_cvs(2121)),
+    ("CSX 2738", "2738.xml", 2738, "yes", long_cvs(2738)),
+    ("NWR 06", "060.xml", 6, "yes", long_cvs(6)),
+]
+
+
+def make_roster(root, entries=DEFAULT, file_overrides=None):
+    """Write roster.xml and roster/<file> like JMRI does. file_overrides: {fname: xml body}."""
+    os.makedirs(os.path.join(root, "roster"), exist_ok=True)
+    index = []
+    for rid, fname, number, flag, cvs in entries:
+        index.append(loco_xml(rid, fname, number, flag, {}))
+        fbody = (file_overrides or {}).get(fname) or loco_xml(rid, fname, number, flag, cvs)
+        with open(os.path.join(root, "roster", fname), "w") as f:
+            f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+                    '<!DOCTYPE locomotive-config SYSTEM "/xml/DTD/locomotive-config.dtd">\n'
+                    "<locomotive-config>%s</locomotive-config>" % fbody)
+    with open(os.path.join(root, "roster.xml"), "w") as f:
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<!DOCTYPE roster-config SYSTEM "/xml/DTD/roster-config.dtd">\n'
+                "<roster-config><roster>%s</roster></roster-config>" % "".join(index))
+    return root
+
+
+def qlog(answers, end=True):
+    """A cs105_consist query log. answers: {node: None | [listener nodes]}."""
+    out = []
+    for node, lst in answers.items():
+        if lst is None:
+            out.append("%s listeners: None" % node)
+            continue
+        out.append("%s listeners: %d" % (node, len(lst)))
+        for i, ln in enumerate(lst):
+            out.append("  raw payload: 30 03 %02X %02X 06 .." % (len(lst), i))
+            out.append("  [%d] flags 0x06 node %s" % (i, ln))
+    if end:
+        out.append("END")
+    return "\n".join(out) + "\n"
+
+
+CLEAR = qlog({N2738: [], N2121: [], N06: []})
+CONSISTED = qlog({N2738: [], N2121: [N2738], N06: []})
+
+
+def proposal(writes, rid="CSX 2738"):
+    return {"roster_id": rid, "writes": [{"cv": c, "value": v} for c, v in writes]}
+
+
+class GuardCase(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = self.tmp.name
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def roster(self, entries=DEFAULT, file_overrides=None):
+        sub = tempfile.mkdtemp(dir=self.dir)
+        return g.load_roster(make_roster(sub, entries, file_overrides))
+
+    def plan(self, writes, roster=None, log=CLEAR, rid="CSX 2738", reads=None, absent_ok=(),
+             ledger=None):
+        roster = roster if roster is not None else self.roster()
+        if log == "auto":
+            log = qlog(dict((n, []) for _, n in g.query_nodes(roster, rid)))
+        state = g.parse_consist_log(log) if log is not None else None
+        return g.build_plan(proposal(writes, rid), roster, state, absent_ok=absent_ok, reads=reads,
+                            ledger=ledger)
+
+    def refused(self, fragment, fn, *a, **k):
+        with self.assertRaises(g.GuardRefusal) as cm:
+            fn(*a, **k)
+        self.assertIn(fragment, str(cm.exception))
+
+
+class AddressRefusals(GuardCase):
+    def test_address_zero(self):
+        self.refused("broadcast", g.check_address, 0, False)
+        self.refused("broadcast", g.check_address, 0, True)
+        r = self.roster(DEFAULT + [("ZERO", "0.xml", 0, "no", {})])
+        self.refused("broadcast", self.plan, [(67, 1)], roster=r, rid="ZERO")
+
+    def test_short_out_of_range(self):
+        self.refused("outside 1-127", g.check_address, 128, False)
+        r = self.roster(DEFAULT + [("BIG", "b.xml", 200, "no", {})])
+        self.refused("short address 200", self.plan, [(67, 1)], roster=r, rid="BIG")
+
+    def test_long_out_of_range(self):
+        self.refused("outside 1-10239", g.check_address, 10240, True)
+        g.check_address(10239, True)
+        g.check_address(127, False)
+
+    def test_flag_mismatch_between_index_and_file(self):
+        bad = loco_xml("CSX 2738", "2738.xml", 2738, "no", long_cvs(2738))
+        self.refused("roster.xml says 2738L", self.roster, file_overrides={"2738.xml": bad})
+
+    def test_flag_mismatch_with_protocol(self):
+        bad = loco_xml("CSX 2738", "2738.xml", 2738, "yes", long_cvs(2738), protocol="dcc_short")
+        self.refused("protocol dcc_short", self.roster, file_overrides={"2738.xml": bad})
+
+    def test_flag_mismatch_with_cv29(self):
+        r = self.roster(DEFAULT[:1] + [("CSX 2738", "2738.xml", 2738, "yes", long_cvs(2738, {29: 18}))])
+        self.refused("says short address", self.plan, [(67, 1)], roster=r)
+
+    def test_cv17_cv18_must_encode_the_address(self):
+        r = self.roster(DEFAULT[:1] + [("CSX 2738", "2738.xml", 2738, "yes", long_cvs(2738, {18: 1}))])
+        self.refused("do not encode long address 2738", self.plan, [(67, 1)], roster=r)
+
+    def test_shared_address(self):
+        r = self.roster(DEFAULT + [("COPY 2738", "c.xml", 2738, "yes", long_cvs(2738))])
+        self.refused("shares address 2738", self.plan, [(67, 1)], roster=r)
+
+    def test_shared_number_across_flags_is_refused(self):
+        r = self.roster(DEFAULT + [("SHORT 6", "s6.xml", 6, "no", {1: 6, 29: 2})])
+        self.refused("shares address 6", self.plan, [(67, 1)], roster=r, rid="NWR 06")
+
+    def test_unknown_roster_id(self):
+        self.refused("not in the roster", self.plan, [(67, 1)], rid="CSX 9999")
+
+    def test_roster_entry_without_id(self):
+        self.refused("locomotive with no id", self.roster, DEFAULT + [(None, "x.xml", 99, "yes", {})])
+
+    def test_roster_only_cv19_is_a_warning(self):
+        r = self.roster(DEFAULT[:1] + [("CSX 2738", "2738.xml", 2738, "yes", long_cvs(2738, {19: 20}))] + DEFAULT[2:])
+        plan = self.plan([(67, 1)], roster=r)
+        self.assertTrue(any(n.startswith("WARNING 'CSX 2738': roster CV19 = 20") for n in plan["notes"]))
+
+    def test_cv19_from_ledger_or_read_is_refused(self):
+        led = g.load_ledger(None, "CSX 2738")
+        g.ledger_mark(led, 19, 20, "read")
+        self.refused("CV19 = 20 (ledger)", self.plan, [(67, 1)], ledger=led)
+        self.refused("CV19 = 20 (read)", self.plan, [(67, 1)], reads={19: 20})
+        led = g.load_ledger(None, "CSX 2738")
+        g.ledger_mark(led, 19, 0, "read")
+        self.plan([(67, 1)], ledger=led)
+
+    def test_bo3545_shape_does_not_block_short_127(self):
+        # BO 3545 and BO 6944 record CV19 = 127 in the roster (likely a definition default)
+        r = self.roster(DEFAULT + [("BO 3545", "35450.xml", 3545, "yes", long_cvs(3545, {19: 127})),
+                                   ("S127", "s127.xml", 127, "no", {1: 127, 29: 2, 67: 5})])
+        plan = self.plan([(67, 1)], roster=r, rid="S127", log="auto")
+        self.assertIn("WARNING short address 127 is the roster CV19 of 'BO 3545' (may be a default)",
+                      plan["notes"])
+        plan = self.plan([(67, 1)], roster=r, rid="BO 3545", log="auto")
+        self.assertTrue(any("roster CV19 = 127" in n for n in plan["notes"]))
+
+    def test_train_node_matches_cs105(self):
+        self.assertEqual(g.train_node(2121, True), N2121)
+        self.assertEqual(g.train_node(2738, True), N2738)
+        self.assertEqual(g.train_node(572, True), N572)
+        self.assertEqual(g.train_node(20, False), "06.01.00.00.00.14")
+
+
+class ConsistRefusals(GuardCase):
+    def test_query_nodes_is_every_roster_entry_target_first(self):
+        nodes = g.query_nodes(self.roster(), "CSX 2738")
+        self.assertEqual(nodes, [("CSX 2738", N2738), ("CSX 2121", N2121), ("NWR 06", N06)])
+
+    def test_consist_active(self):
+        self.refused("is a listener of", self.plan, [(67, 1)], log=CONSISTED)
+
+    def test_target_with_listeners(self):
+        self.refused("has listener(s)", self.plan, [(67, 1)], rid="CSX 2121", log=CONSISTED)
+
+    def test_follower_of_a_lead_nobody_named_is_caught(self):
+        r = self.roster(DEFAULT + [("BO 572", "5720.xml", 572, "yes", long_cvs(572))])
+        log = qlog({N2738: [], N2121: [], N06: [], N572: [N2738]})
+        self.refused("listener of train node %s" % N572, self.plan, [(67, 1)], roster=r, log=log)
+
+    def test_other_consists_do_not_block(self):
+        r = self.roster(DEFAULT + [("BO 572", "5720.xml", 572, "yes", long_cvs(572))])
+        log = qlog({N2738: [], N2121: [N06], N06: [], N572: []})
+        self.assertEqual(len(self.plan([(67, 1)], roster=r, log=log)["rows"]), 1)
+
+    def test_every_roster_node_must_be_queried(self):
+        self.refused("did not cover 'NWR 06'", self.plan, [(67, 1)], log=qlog({N2738: [], N2121: []}))
+
+    def test_query_missing(self):
+        self.refused("no consist query result", self.plan, [(67, 1)], log=None)
+
+    def test_query_failed(self):
+        self.refused("consist query failed", self.plan, [(67, 1)], log="ERROR no memo\nEND\n")
+
+    def test_query_incomplete(self):
+        self.refused("incomplete", self.plan, [(67, 1)], log=qlog({N2738: [], N2121: [], N06: []}, end=False))
+
+    def test_decode_error(self):
+        self.refused("consist query failed", self.plan, [(67, 1)],
+                     log=CLEAR.replace("END", "  [0] decode error boom\nEND"))
+
+    def test_absent_node_refused(self):
+        log = qlog({N2738: [], N2121: [], N06: None})
+        self.refused("'NWR 06' (train node %s) did not answer" % N06, self.plan, [(67, 1)], log=log)
+
+    def test_absent_ok_allows_and_logs(self):
+        log = qlog({N2738: [], N2121: [], N06: None})
+        plan = self.plan([(67, 1)], log=log, absent_ok=["NWR 06"])
+        self.assertEqual(plan["notes"], ["ABSENT_OK 'NWR 06' train node %s did not answer" % N06])
+        self.assertIn(plan["notes"][0], g.plan_lines(plan))
+
+    def test_target_must_answer_even_if_absent_ok(self):
+        log = qlog({N2738: None, N2121: [], N06: []})
+        self.refused("did not answer", self.plan, [(67, 1)], log=log)
+        self.refused("cannot be in ABSENT_OK", self.plan, [(67, 1)], log=log, absent_ok=["CSX 2738"])
+
+    def test_listener_indices_must_be_exactly_0_to_count(self):
+        dup = CLEAR.replace("%s listeners: 0" % N2121, "%s listeners: 2\n  [0] flags 0x06 node %s\n"
+                            "  [0] flags 0x06 node %s" % (N2121, N06, N06))
+        self.refused("listed indices [0, 0]", self.plan, [(67, 1)], log=dup)
+        gap = CLEAR.replace("%s listeners: 0" % N2121, "%s listeners: 2\n  [0] flags 0x06 node %s\n"
+                            "  [2] flags 0x06 node %s" % (N2121, N06, N06))
+        self.refused("listed indices [0, 2]", self.plan, [(67, 1)], log=gap)
+        ok = CLEAR.replace("%s listeners: 0" % N2121, "%s listeners: 2\n  [1] flags 0x06 node %s\n"
+                           "  [0] flags 0x06 node %s" % (N2121, N06, "06.01.00.00.C0.07"))
+        self.plan([(67, 1)], log=ok)
+
+    def test_end_must_be_a_line_of_its_own(self):
+        self.refused("incomplete", self.plan, [(67, 1)], log=CLEAR.replace("END", "ENDING"))
+        self.refused("incomplete", self.plan, [(67, 1)], log=CLEAR.replace("END", "  [0] x END"))
+
+    def test_listener_count_mismatch_is_unknown(self):
+        log = CLEAR.replace("%s listeners: 0" % N2121, "%s listeners: 1" % N2121)
+        self.refused("state unknown", self.plan, [(67, 1)], log=log)
+
+
+class CvRefusals(GuardCase):
+    def test_named_cvs(self):
+        for cv, word in ((1, "short address"), (17, "long address"), (18, "long address"),
+                         (19, "consist"), (8, "reset"), (29, "programming track only")):
+            self.refused(word, self.plan, [(cv, 3)])
+
+    def test_cv29_is_never_written_on_the_main(self):
+        for v in (50, 34, 16):
+            self.refused("CV29 is set on the programming track only", self.plan, [(29, v)])
+        self.assertNotIn(29, g.ALLOWED_CVS)
+
+    def test_cv_not_in_list(self):
+        for cv in (2, 5, 6, 7, 30, 96, 0, 1024):
+            self.refused("not in the allowed list", self.plan, [(cv, 3)])
+
+    def test_every_allowed_cv_passes(self):
+        writes = [(cv, 10) for cv in sorted(g.ALLOWED_CVS)]
+        self.assertEqual(sorted(g.ALLOWED_CVS), [3, 4, 25, 66] + list(range(67, 95)) + [95])
+        self.assertEqual(len(self.plan(writes)["rows"]), 33)
+
+    def test_value_out_of_range(self):
+        for v in (256, -1, "12", True, 12.0, None):
+            self.refused("not an integer 0-255", self.plan, [(67, v)])
+
+    def test_duplicate_cv(self):
+        self.refused("twice", self.plan, [(67, 1), (67, 2)])
+
+    def test_unknown_key_in_write(self):
+        p = {"roster_id": "CSX 2738", "writes": [{"cv": 67, "value": 1, "vale": 2}]}
+        self.refused("unknown keys", g.validate_proposal, p)
+
+    def test_extra_top_level_keys_are_ignored(self):
+        p = proposal([(67, 1)])
+        p.update({"round": 2, "source": "propose_table", "anchors": [1, 2]})
+        self.assertEqual(g.validate_proposal(p), ("CSX 2738", [(67, 1)]))
+
+    def test_empty_writes(self):
+        self.refused("no writes", g.validate_proposal, {"roster_id": "CSX 2738", "writes": []})
+
+    def test_no_old_value_no_write(self):
+        cvs = long_cvs(2738)
+        del cvs[94]
+        r = self.roster(DEFAULT[:1] + [("CSX 2738", "2738.xml", 2738, "yes", cvs)] + DEFAULT[2:])
+        self.refused("no rollback possible", self.plan, [(94, 1)], roster=r)
+
+    def test_bad_reads_values(self):
+        for bad in ({67: 256}, {67: -1}, {67: "12"}, {67: True}, {67: 1.5}, {"x": 1}, {True: 1}, [1]):
+            self.refused("", g.validate_reads, bad)
+        self.assertEqual(g.validate_reads({"67": 12, 68: 0, "CV69": 3}), {67: 12, 68: 0, 69: 3})
+        self.refused("not an integer 0-255", self.plan, [(67, 1)], reads={67: 300})
+
+    def test_cli_refuses_bad_inputs_without_a_traceback(self):
+        d = make_roster(os.path.join(self.dir, "u"))
+        prop, cl = os.path.join(self.dir, "p.json"), os.path.join(self.dir, "c.log")
+        Path(cl).write_text(CLEAR)
+        Path(prop).write_text("[1, 2]")
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", cl, "--ledger-dir", self.dir])
+        self.assertEqual((rc, out.startswith("REFUSED proposal")), (2, True), out)
+        Path(prop).write_text(json.dumps(proposal([(67, 14)])))
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", os.path.join(self.dir, "nope.log"),
+                       "--ledger-dir", self.dir])
+        self.assertEqual((rc, out.startswith("REFUSED consist log")), (2, True), out)
+
+    def test_cli_warns_when_no_ledger_and_defaults_to_the_pi_dir(self):
+        self.assertEqual(g.DEFAULT_LEDGER_DIR, os.path.expanduser("~/speedmatch/ledger"))
+        d = make_roster(os.path.join(self.dir, "u"))
+        prop, cl = os.path.join(self.dir, "p.json"), os.path.join(self.dir, "c.log")
+        Path(cl).write_text(CLEAR)
+        Path(prop).write_text(json.dumps(proposal([(67, 14)])))
+        ldir = os.path.join(self.dir, "ledger")
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", cl, "--ledger-dir", ldir])
+        self.assertEqual(rc, 0)
+        self.assertTrue(out.startswith("WARNING no ledger at %s" % os.path.join(ldir, "CSX_2738.json")))
+        led = g.load_ledger(None, "CSX 2738")
+        g.ledger_mark(led, 67, 20, "sent")
+        g._write_json(os.path.join(ldir, "CSX_2738.json"), led)
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", cl, "--ledger-dir", ldir])
+        self.assertNotIn("WARNING", out)
+        self.assertIn("CV67 old=20 (ledger)", out)
+
+    def test_cli_bad_reads_file_is_a_refusal_not_a_traceback(self):
+        d = make_roster(os.path.join(self.dir, "u"))
+        prop, rd, cl = (os.path.join(self.dir, n) for n in ("p.json", "r.json", "c.log"))
+        Path(prop).write_text(json.dumps(proposal([(67, 14)])))
+        Path(rd).write_text(json.dumps({"67": 999}))
+        Path(cl).write_text(CLEAR)
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", cl, "--reads", rd, "--ledger-dir", self.dir])
+        self.assertEqual(rc, 2)
+        self.assertIn("REFUSED reads CV67 value 999", out)
+        Path(rd).write_text("{not json")
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", cl, "--reads", rd, "--ledger-dir", self.dir])
+        self.assertEqual(rc, 2)
+        self.assertIn("REFUSED reads", out)
+        Path(rd).write_text(json.dumps({"67": 12}))
+        rc, out = cli([prop, "--roster-dir", d, "--consist-log", cl, "--reads", rd, "--ledger-dir", self.dir])
+        self.assertEqual(rc, 0)
+        self.assertIn("PLAN 2738L CV67 old=12 (read) new=14", out)
+
+
+def cli(argv):
+    out = io.StringIO()
+    with redirect_stdout(out):
+        rc = g._main(argv)
+    return rc, out.getvalue()
+
+
+class Ledger(GuardCase):
+    def lf(self):
+        return os.path.join(self.dir, "ledger", "CSX_2738.json")
+
+    def apply(self, plan, prog, rb, led, lf, **k):
+        return g.execute(plan, prog.write, apply=True, consists_broken=True, roster_old_ok=True, rollback_path=rb,
+                         ledger=led, ledger_file=lf, **k)
+
+    def test_precedence_read_then_ledger_then_roster(self):
+        led = g.load_ledger(None, "CSX 2738")
+        row = lambda **k: self.plan([(67, 30)], **k)["rows"][0]
+        self.assertEqual((row()["old"], row()["old_source"]), (12, g.ROSTER_TAG))
+        g.ledger_mark(led, 67, 20, "sent")
+        r = row(ledger=led)
+        self.assertEqual((r["old"], r["old_source"]), (20, "ledger"))
+        r = row(ledger=led, reads={67: 17})
+        self.assertEqual((r["old"], r["old_source"]), (17, "read"))
+
+    def test_seq_is_a_monotonic_counter(self):
+        led = g.load_ledger(None, "CSX 2738")
+        g.ledger_mark(led, 67, 1, "read")
+        g.ledger_mark(led, 68, 2, "sent")
+        g.ledger_mark(led, 67, 3, "sent")
+        self.assertEqual((led["cvs"]["68"]["seq"], led["cvs"]["67"]["seq"], led["next_seq"]), (2, 3, 4))
+        g._write_json(self.lf(), led)
+        self.assertEqual(g.load_ledger(self.lf(), "CSX 2738")["next_seq"], 4)
+
+    def test_no_skip_unless_read_this_run(self):
+        lf = self.lf()
+        led = g.load_ledger(lf, "CSX 2738")
+        g.ledger_mark(led, 68, 40, "sent")
+        g.ledger_mark(led, 69, 50, "read")  # a read from an earlier run
+        plan = self.plan([(3, 26), (68, 40), (69, 50)], ledger=led)
+        self.assertEqual([r["skip"] for r in plan["rows"]], [False, False, False])
+        prog = FakeProgrammer()
+        self.apply(plan, prog, os.path.join(self.dir, "rb.json"), led, lf)
+        self.assertEqual(prog.calls, [(3, 26), (68, 40), (69, 50)])
+        self.assertTrue(self.plan([(3, 26)], reads={3: 26})["rows"][0]["skip"])
+
+    def test_ledger_precedence_across_two_rounds(self):
+        lf = self.lf()
+        led = g.load_ledger(lf, "CSX 2738")
+        prog = FakeProgrammer()
+        self.apply(self.plan([(67, 14), (68, 30)], ledger=led), prog, os.path.join(self.dir, "rb1.json"), led, lf)
+        led2 = g.load_ledger(lf, "CSX 2738")
+        self.assertEqual((led2["cvs"]["67"]["value"], led2["cvs"]["67"]["state"]), (14, "sent"))
+        plan2 = self.plan([(67, 16), (68, 30)], ledger=led2)
+        self.assertEqual([(r["old"], r["old_source"]) for r in plan2["rows"]], [(14, "ledger"), (30, "ledger")])
+        rb2 = os.path.join(self.dir, "rb2.json")
+        self.apply(plan2, prog, rb2, led2, lf)
+        doc = json.loads(Path(rb2).read_text())
+        self.assertEqual([(w["cv"], w["value"], w["old_source"]) for w in doc["writes"]],
+                         [(67, 14, "ledger"), (68, 30, "ledger")])
+        # round 2 wrote 68 again: the ledger value was not trusted for a skip
+        self.assertEqual(prog.calls, [(67, 14), (68, 30), (67, 16), (68, 30)])
+
+    def test_timeout_marks_unknown_and_next_run_refuses(self):
+        lf = self.lf()
+        led = g.load_ledger(lf, "CSX 2738")
+        prog, lines = FakeProgrammer(timeout_cv=68), []
+        res = self.apply(self.plan([(67, 14), (68, 30), (69, 51)], ledger=led), prog,
+                         os.path.join(self.dir, "rb.json"), led, lf, log=lines.append)
+        self.assertTrue(res["timed_out"])
+        self.assertEqual(prog.calls, [(67, 14), (68, 30)])
+        self.assertTrue(any("may have been written" in line for line in lines))
+        self.assertTrue(lines[-1].startswith("STOPPED at CV68 (timeout): it may hold 30 (new) or 27 (old)"))
+        self.assertIn('clear-ledger "CSX 2738" CV68 --ledger-dir %s' % os.path.dirname(lf), lines[-1])
+        led2 = g.load_ledger(lf, "CSX 2738")
+        self.assertEqual(led2["cvs"]["68"]["state"], "unknown")
+        self.refused("CV68 is unknown in the ledger", self.plan, [(68, 31)], ledger=led2)
+        self.plan([(67, 15)], ledger=led2)  # other CVs still plan
+        self.assertEqual(self.plan([(68, 31)], ledger=led2, reads={68: 30})["rows"][0]["old_source"], "read")
+
+    def test_failed_write_also_marks_unknown(self):
+        lf = self.lf()
+        led = g.load_ledger(lf, "CSX 2738")
+        res = self.apply(self.plan([(67, 14), (68, 30)]), FakeProgrammer(fail_cv=67),
+                         os.path.join(self.dir, "rb.json"), led, lf)
+        self.assertEqual(res["failed"], 67)
+        self.assertEqual(g.load_ledger(lf, "CSX 2738")["cvs"]["67"]["state"], "unknown")
+
+    def test_documented_rollback_after_a_timeout(self):
+        """STOPPED -> partial rollback refused while unknown -> clear-ledger -> apply it."""
+        lf = self.lf()
+        ldir = os.path.dirname(lf)
+        rb = os.path.join(self.dir, "rb.json")
+        led = g.load_ledger(lf, "CSX 2738")
+        lines = []
+        res = self.apply(self.plan([(67, 14), (68, 30), (69, 51)], ledger=led), FakeProgrammer(timeout_cv=68),
+                         rb, led, lf, log=lines.append)
+        partial = rb + ".partial.json"
+        self.assertEqual(res["partial"], partial)
+        self.assertIn('clear-ledger "CSX 2738" CV68 --ledger-dir %s' % ldir, lines[-1])
+        self.assertIn("apply %s as the proposal" % partial, lines[-1])
+        full = json.loads(Path(rb).read_text())
+        self.assertEqual([w["cv"] for w in full["writes"]], [67, 68, 69])
+        rollback = json.loads(Path(partial).read_text())
+        self.assertEqual([(w["cv"], w["value"]) for w in rollback["writes"]], [(67, 12), (68, 27)])
+        self.refused("CV68 is unknown", g.build_plan, rollback, self.roster(), g.parse_consist_log(CLEAR),
+                     ledger=g.load_ledger(lf, "CSX 2738"))
+        rc, out = cli(["clear-ledger", "CSX 2738", "CV68", "--ledger-dir", ldir])
+        self.assertEqual(rc, 0, out)
+        self.assertIn("cleared CV 68", out)
+        self.assertFalse(os.path.exists(g.lock_path(ldir, "CSX 2738")))
+        led = g.load_ledger(lf, "CSX 2738")
+        plan = g.build_plan(rollback, self.roster(), g.parse_consist_log(CLEAR), ledger=led)
+        self.assertEqual([(r["cv"], r["old_source"], r["new"]) for r in plan["rows"]],
+                         [(67, "ledger", 12), (68, g.ROSTER_TAG, 27)])
+        prog = FakeProgrammer()
+        self.refused("ROSTER_OLD_OK", g.execute, plan, prog.write, apply=True, consists_broken=True,
+                     rollback_path=os.path.join(self.dir, "rb_after.json"), ledger=led, ledger_file=lf)
+        res = self.apply(plan, prog, os.path.join(self.dir, "rb_after2.json"), led, lf)
+        self.assertEqual(prog.calls, [(67, 12), (68, 27)])
+        self.assertEqual(res["written"], [67, 68])
+
+    def test_exception_during_write_marks_unknown(self):
+        lf = self.lf()
+        led = g.load_ledger(lf, "CSX 2738")
+        lines = []
+        prog = FakeProgrammer()
+        prog.write = lambda cv, v: ("exception", "boom")
+        res = self.apply(self.plan([(67, 14)]), prog, os.path.join(self.dir, "rb.json"), led, lf, log=lines.append)
+        self.assertEqual(res["failed"], 67)
+        self.assertTrue(lines[-1].startswith("STOPPED at CV67 (exception)"))
+        self.assertEqual(g.load_ledger(lf, "CSX 2738")["cvs"]["67"]["state"], "unknown")
+
+    def test_clear_ledger_validates_the_ledger(self):
+        lf = self.lf()
+        os.makedirs(os.path.dirname(lf))
+        Path(lf).write_text(json.dumps({"roster_id": "CSX 2121", "next_seq": 1, "cvs": {}}))
+        self.refused("not 'CSX 2738'", g.clear_ledger, os.path.dirname(lf), "CSX 2738", ["CV67"])
+        Path(lf).write_text("{broken")
+        rc, out = cli(["clear-ledger", "CSX 2738", "67", "--ledger-dir", os.path.dirname(lf)])
+        self.assertEqual(rc, 2)
+        self.assertIn("REFUSED ledger", out)
+
+    def test_seed_ledger_from_a_preflight_log(self):
+        ldir = os.path.join(self.dir, "ledger")
+        pf = os.path.join(self.dir, "preflight.log")
+        Path(pf).write_text("preflight CSX 2738\nCV3 = 26\nCV19 = 0\nCV67: 9\n")
+        rc, out = cli(["seed-ledger", "CSX 2738", pf, "--ledger-dir", ldir])
+        self.assertEqual(rc, 0, out)
+        led = g.load_ledger(self.lf(), "CSX 2738")
+        self.assertEqual(dict((k, (e["value"], e["state"])) for k, e in led["cvs"].items()),
+                         {"3": (26, "read"), "19": (0, "read"), "67": (9, "read")})
+        plan = self.plan([(67, 14), (68, 30)], ledger=led)
+        self.assertEqual([r["old_source"] for r in plan["rows"]], ["ledger", g.ROSTER_TAG])
+        Path(pf).write_text(json.dumps({"roster_id": "CSX 2121", "cvs": {"67": 1}}))
+        rc, out = cli(["seed-ledger", "CSX 2738", pf, "--ledger-dir", ldir])
+        self.assertEqual(rc, 2)
+        self.assertIn("is for 'CSX 2121'", out)
+        Path(pf).write_text(json.dumps({"roster_id": "CSX 2738", "cvs": {"67": 300}}))
+        self.assertEqual(cli(["seed-ledger", "CSX 2738", pf, "--ledger-dir", ldir])[0], 2)
+        Path(pf).write_text("CV67 = 9\nCV67 = 10\n")
+        self.refused("twice", g.parse_preflight, Path(pf).read_text(), "CSX 2738")
+
+    def test_parse_the_log_preflight_py_writes(self):
+        # the exact line shapes of jython/preflight.py
+        log = ("1794549064.101 PREFLIGHT CSX 2738 cvs=3\n1794549064.102 CVS 3,29,67\n"
+               "1794549064.103 PROGRAMMER x\n1794549065.200 CV 3 26\n1794549066.300 CV 29 50\n"
+               "1794549067.400 CV 67 FAIL status 4\n1794549067.500 END\n")
+        self.assertEqual(g.parse_preflight(log, "CSX 2738"), {3: 26, 29: 50})
+        self.refused("is for", g.parse_preflight, log, "CSX 2121")
+        self.refused("no END", g.parse_preflight, log.replace("END", ""), "CSX 2738")
+        self.refused("did not finish", g.parse_preflight,
+                     log.replace("END", "ABORTED after a read timeout\nEND"), "CSX 2738")
+
+    def test_lock_is_exclusive(self):
+        ldir = os.path.join(self.dir, "ledger")
+        lock = g.acquire_lock(g.lock_path(ldir, "CSX 2738"), "test")
+        self.refused("remove the lock by hand", g.acquire_lock, lock, "second")
+        rc, out = cli(["archive-ledger", "CSX 2738", "--ledger-dir", ldir])
+        self.assertEqual(rc, 2)
+        self.assertIn("exists", out)
+        g.release_lock(lock)
+        self.assertFalse(os.path.exists(lock))
+
+    def test_corrupt_ledger_is_refused_not_empty(self):
+        lf = self.lf()
+        os.makedirs(os.path.dirname(lf))
+        Path(lf).write_text('{"roster_id": "CSX 2738", "cvs": {"67": ')
+        self.refused("cannot be read", g.load_ledger, lf, "CSX 2738")
+        Path(lf).write_text(json.dumps({"roster_id": "CSX 2738", "next_seq": 2,
+                                        "cvs": {"67": {"value": 1, "state": "sent", "seq": 5}}}))
+        self.refused("bad seq", g.load_ledger, lf, "CSX 2738")
+        Path(lf).write_text(json.dumps({"roster_id": "CSX 2121", "next_seq": 1, "cvs": {}}))
+        self.refused("not 'CSX 2738'", g.load_ledger, lf, "CSX 2738")
+
+    def test_write_json_replaces_without_a_gap(self):
+        p = os.path.join(self.dir, "x.json")
+        g._write_json(p, {"a": 1})
+        with mock.patch.object(g.os, "remove", side_effect=AssertionError("no remove")):
+            g._write_json(p, {"a": 2})
+        self.assertEqual(json.loads(Path(p).read_text()), {"a": 2})
+        self.assertFalse(os.path.exists(p + ".tmp"))
+
+    def test_archive_ledger_starts_the_next_run_from_the_roster(self):
+        ldir = os.path.join(self.dir, "ledger")
+        led = g.load_ledger(self.lf(), "CSX 2738")
+        g.ledger_mark(led, 67, 14, "sent")
+        g._write_json(self.lf(), led)
+        rc, out = cli(["archive-ledger", "CSX 2738", "--ledger-dir", ldir])
+        self.assertEqual(rc, 0, out)
+        self.assertFalse(os.path.exists(self.lf()))
+        archived = [n for n in os.listdir(ldir) if n.startswith("CSX_2738.") and n != "CSX_2738.json"]
+        self.assertEqual(len(archived), 1)
+        row = self.plan([(67, 20)], ledger=g.load_ledger(self.lf(), "CSX 2738"))["rows"][0]
+        self.assertEqual(row["old_source"], g.ROSTER_TAG)
+        rc, out = cli(["archive-ledger", "CSX 2738", "--ledger-dir", ldir])
+        self.assertEqual(rc, 2)
+
+
+class FakeProgrammer:
+    def __init__(self, fail_cv=None, timeout_cv=None):
+        self.calls = []
+        self.fail_cv = fail_cv
+        self.timeout_cv = timeout_cv
+
+    def write(self, cv, value):
+        self.calls.append((cv, value))
+        if cv == self.fail_cv:
+            return "failed", "status 32 (No acknowledge)"
+        if cv == self.timeout_cv:
+            return "timeout", "timeout after 10s"
+        return "ok", "status 0 (OK)"
+
+
+class DryRunAndApply(GuardCase):
+    def ok(self):
+        lf = os.path.join(self.dir, "led.json")
+        return {"ledger": g.load_ledger(lf, "CSX 2738"), "ledger_file": lf, "consists_broken": True,
+                "roster_old_ok": True}
+
+    def test_dry_run_prints_the_plan_and_writes_nothing(self):
+        plan = self.plan([(67, 14), (25, 16), (3, 26)])
+        lines, prog = [], FakeProgrammer()
+        rb = os.path.join(self.dir, "rb.json")
+        res = g.execute(plan, prog.write, rollback_path=rb, log=lines.append)
+        self.assertFalse(res["applied"])
+        self.assertEqual(prog.calls, [])
+        self.assertEqual(lines[0], "PLAN CSX 2738 address 2738L (long) train node %s" % N2738)
+        self.assertIn("PLAN 2738L CV67 old=12 (roster (may be a default)) new=14", lines)
+        self.assertIn("PLAN 2738L CV3 old=26 (roster (may be a default)) new=26", lines)
+        self.assertTrue(lines[-1].startswith("DRY RUN"))
+        self.assertFalse(os.path.exists(rb))
+        self.assertEqual(json.loads(Path(rb + ".dryrun").read_text())["writes"][0],
+                         {"cv": 67, "value": 12, "old_source": "roster"})
+
+    def test_apply_flag_must_be_exactly_true(self):
+        plan = self.plan([(67, 14)])
+        prog = FakeProgrammer()
+        rb = os.path.join(self.dir, "rb.json")
+        for flag in (False, None, "yes", 1, "True"):
+            self.assertFalse(g.execute(plan, prog.write, apply=flag, rollback_path=rb, **self.ok())["applied"])
+        self.assertEqual(prog.calls, [])
+        self.assertFalse(os.path.exists(rb))
+
+    def test_apply_needs_consists_broken(self):
+        k = self.ok()
+        for flag in (False, None, "yes", 1):
+            k["consists_broken"] = flag
+            self.refused("CONSISTS_BROKEN", g.execute, self.plan([(67, 14)]), FakeProgrammer().write,
+                         apply=True, rollback_path=os.path.join(self.dir, "rb.json"), **k)
+
+    def test_apply_with_roster_old_values_needs_roster_old_ok(self):
+        plan = self.plan([(67, 14), (68, 30)], reads={67: 12})
+        k = self.ok()
+        k["roster_old_ok"] = False
+        self.refused("CV 68 would come from the roster", g.execute, plan, FakeProgrammer().write,
+                     apply=True, rollback_path=os.path.join(self.dir, "rb.json"), **k)
+        lines = []
+        g.execute(plan, None, log=lines.append)
+        self.assertTrue(any(l.startswith("NOTE old values for CV 68 come from the roster") for l in lines))
+        plan = self.plan([(67, 14)], reads={67: 12})
+        k["roster_old_ok"] = False
+        res = g.execute(plan, FakeProgrammer().write, apply=True,
+                        rollback_path=os.path.join(self.dir, "rb2.json"), **k)
+        self.assertEqual(res["written"], [67])  # all old values read: no confirmation needed
+
+    def test_apply_needs_a_rollback_path_and_a_ledger(self):
+        self.refused("rollback file path", g.execute, self.plan([(67, 14)]), FakeProgrammer().write,
+                     apply=True, **self.ok())
+        self.refused("ledger", g.execute, self.plan([(67, 14)]), FakeProgrammer().write,
+                     apply=True, consists_broken=True, roster_old_ok=True,
+                     rollback_path=os.path.join(self.dir, "rb.json"))
+
+    def test_apply_writes_in_order_and_saves_rollback_first(self):
+        plan = self.plan([(25, 16), (67, 14), (68, 27), (3, 20)], reads={67: 9, 25: 16})
+        rb = os.path.join(self.dir, "rb.json")
+        seen = []
+        prog = FakeProgrammer()
+
+        def write(cv, value):
+            seen.append(os.path.exists(rb))
+            return prog.write(cv, value)
+        res = g.execute(plan, write, apply=True, rollback_path=rb, **self.ok())
+        self.assertTrue(all(seen))
+        self.assertEqual(prog.calls, [(67, 14), (68, 27), (3, 20)])  # only 25 was read equal
+        self.assertEqual(res["written"], [67, 68, 3])
+        doc = json.loads(Path(rb).read_text())
+        self.assertEqual(doc["roster_id"], "CSX 2738")
+        self.assertEqual(doc["old_values_from"], "mixed")
+        self.assertEqual([(w["cv"], w["value"], w["old_source"]) for w in doc["writes"]],
+                         [(25, 16, "read"), (67, 9, "read"), (68, 27, "roster"), (3, 26, "roster")])
+        back = g.build_plan(doc, self.roster(), g.parse_consist_log(CLEAR))
+        self.assertEqual([r["new"] for r in back["rows"]], [16, 9, 27, 26])
+
+    def test_apply_will_not_overwrite_a_rollback(self):
+        rb = os.path.join(self.dir, "rb.json")
+        Path(rb).write_text("{}")
+        prog = FakeProgrammer()
+        self.refused("already exists", g.execute, self.plan([(67, 14)]), prog.write,
+                     apply=True, rollback_path=rb, **self.ok())
+        self.assertEqual(prog.calls, [])
+
+    def test_tampered_plan_is_caught_before_the_write(self):
+        plan = self.plan([(67, 14), (68, 30)])
+        plan["rows"][1]["cv"] = 17
+        prog = FakeProgrammer()
+        self.refused("CV17", g.execute, plan, prog.write, apply=True,
+                     rollback_path=os.path.join(self.dir, "r.json"), **self.ok())
+        self.assertEqual(prog.calls, [(67, 14)])
+
+    def test_tampered_skip_without_read_is_caught(self):
+        plan = self.plan([(67, 12)])
+        plan["rows"][0]["skip"] = True
+        self.refused("skip without a read", g.execute, plan, FakeProgrammer().write, apply=True,
+                     rollback_path=os.path.join(self.dir, "r.json"), **self.ok())
+
+
+# ---------------------------------------------------------------- pom_write.py with a fake jmri
+
+class _Listener:
+    OK, NoAck = 0, 0x20
+
+    def programmingOpReply(self, value, status):  # overridden by the script's subclass
+        pass
+
+
+class _Prog:
+    def __init__(self, number, is_long, log, mode):
+        self.number, self.is_long, self.log, self.mode = number, is_long, log, mode
+
+    def getAddressNumber(self):
+        return self.number
+
+    def getLongAddress(self):
+        return self.is_long
+
+    def getAddress(self):
+        return "%d%s" % (self.number, "L" if self.is_long else "S")
+
+    def decodeErrorCode(self, s):
+        return "OK" if s == 0 else "No acknowledge"
+
+    def readCV(self, cv, listener):
+        self.log.append(("read", cv))
+        if self.mode.get("read") == "timeout":
+            return  # never answers
+        if self.mode.get("read") == "raise":
+            raise RuntimeError("java side blew up")
+        if self.mode.get("read") == "ok":
+            listener.programmingOpReply(self.mode["values"][int(cv)], _Listener.OK)
+        else:
+            listener.programmingOpReply(0, _Listener.NoAck)  # no RailCom: reads fail
+
+    def writeCV(self, cv, value, listener):
+        self.log.append(("write", cv, value))
+        if self.mode.get("write_timeout") == int(cv):
+            return
+        if self.mode.get("write_raise") == int(cv):
+            raise RuntimeError("java side blew up")
+        listener.programmingOpReply(value, _Listener.OK)
+
+
+def fake_jmri(roster_dir, calls, roster_number=2738, mode=None):
+    jmri = types.ModuleType("jmri")
+    jmri.ProgListener = _Listener
+    mode = mode or {}
+
+    class AddressedProgrammerManager:
+        pass
+
+    class OlcbProgrammerManager(AddressedProgrammerManager):
+        def getAddressedProgrammer(self, is_long, number):
+            calls.append(("programmer", is_long, number))
+            return _Prog(number, is_long, calls, mode)
+
+    class Memo:
+        def get(self, cls):
+            return OlcbProgrammerManager() if cls is AddressedProgrammerManager else None
+
+    class Entry:
+        def getDccAddress(self):
+            return str(roster_number)
+
+        def isLongAddress(self):
+            return True
+
+    class Roster:
+        @staticmethod
+        def getDefault():
+            return Roster()
+
+        def getEntryForId(self, rid):
+            return Entry() if rid == "CSX 2738" else None
+
+        def getRosterLocation(self):
+            return roster_dir + os.sep
+
+    class InstanceManager:
+        @staticmethod
+        def getNullableDefault(cls):
+            return Memo()
+
+    jmri.AddressedProgrammerManager = AddressedProgrammerManager
+    jmri.InstanceManager = InstanceManager
+    jmri.jmrix = types.SimpleNamespace(can=types.SimpleNamespace(CanSystemConnectionMemo=object),
+                                       openlcb=types.SimpleNamespace(OlcbProgrammerManager=OlcbProgrammerManager))
+    jmri.jmrit = types.SimpleNamespace(roster=types.SimpleNamespace(Roster=Roster))
+    return jmri
+
+
+class PomWriteScript(GuardCase):
+    def run_writer(self, apply, consist_log=CLEAR, guard_path=None, roster_number=2738,
+                   absent_ok=None, mode=None, writes=((67, 14), (68, 30)), rollback="rollback.json",
+                   consists_broken=True, roster_old_ok=True, ledger_dir=None):
+        roster_dir = make_roster(os.path.join(self.dir, "u"))
+        prop = os.path.join(self.dir, "proposal.json")
+        Path(prop).write_text(json.dumps(proposal(list(writes))))
+        fake_query = os.path.join(self.dir, "fake_consist.py")
+        with open(fake_query, "w") as f:
+            f.write("import json\nwith open(LOGF + '.nodes', 'w') as q:\n    json.dump(NODES, q)\n"
+                    "with open(LOGF, 'w') as q:\n    q.write(%r)\nRESULT = 'started'\n" % consist_log)
+        logf = os.path.join(self.dir, "pom.log")
+        rb = os.path.join(self.dir, rollback)
+        calls = []
+        env = {"__name__": "pom_write_test", "PROPOSAL": prop, "GUARD_PATH": guard_path or str(GUARD_PATH),
+               "CONSIST_SCRIPT": fake_query, "LOGF": logf, "ROLLBACK": rb, "APPLY": apply,
+               "CONSISTS_BROKEN": consists_broken, "ROSTER_OLD_OK": roster_old_ok,
+               "LEDGER_DIR": ledger_dir or os.path.join(self.dir, "ledger"), "RUN_INLINE": True,
+               "OP_TIMEOUT": 0.05, "CONSIST_TIMEOUT": 2.0,
+               "execfile": lambda path, e: exec(Path(path).read_text(), e)}
+        if absent_ok is not None:
+            env["ABSENT_OK"] = absent_ok
+        with mock.patch.dict(sys.modules, {"jmri": fake_jmri(roster_dir, calls, roster_number, mode)}):
+            exec(compile(WRITER_PATH.read_text(), str(WRITER_PATH), "exec"), env)
+        self.queried = json.loads(Path(logf + ".consist.nodes").read_text()) \
+            if os.path.exists(logf + ".consist.nodes") else None
+        return Path(logf).read_text().splitlines(), calls, rb
+
+    def ledger(self):
+        return g.load_ledger(os.path.join(self.dir, "ledger", "CSX_2738.json"), "CSX 2738")
+
+    def test_dry_run_reads_but_does_not_write(self):
+        lines, calls, rb = self.run_writer(apply=False)
+        self.assertIn(("programmer", True, 2738), calls)
+        self.assertFalse([c for c in calls if c[0] == "write"])
+        self.assertIn("PLAN 2738L CV67 old=12 (roster (may be a default)) new=14", lines)
+        self.assertTrue(any(line.startswith("DRY RUN") for line in lines))
+        self.assertFalse(os.path.exists(rb))
+        self.assertTrue(os.path.exists(rb + ".dryrun"))
+        self.assertEqual(lines[-1], "END")
+
+    def test_queries_every_roster_node(self):
+        self.run_writer(apply=False)
+        self.assertEqual(self.queried, [N2738, N2121, N06])
+
+    def test_apply_writes_through_the_addressed_programmer_and_records_the_ledger(self):
+        lines, calls, rb = self.run_writer(apply=True)
+        self.assertEqual([c for c in calls if c[0] == "write"], [("write", "67", 14), ("write", "68", 30)])
+        self.assertTrue(os.path.exists(rb))
+        self.assertIn("CONSISTS_BROKEN confirmed by the operator", lines)
+        self.assertIn("DONE 2 write(s)", lines)
+        led = self.ledger()
+        self.assertEqual((led["cvs"]["67"]["value"], led["cvs"]["68"]["value"]), (14, 30))
+
+    def test_apply_without_consists_broken_refuses(self):
+        lines, calls, rb = self.run_writer(apply=True, consists_broken=None)
+        self.assertFalse([c for c in calls if c[0] == "write"])
+        self.assertTrue(any(line.startswith("REFUSED apply needs CONSISTS_BROKEN") for line in lines))
+        self.assertFalse(os.path.exists(rb))
+
+    def test_dry_run_read_lands_in_the_ledger_and_is_used_by_the_apply(self):
+        lines, _, _ = self.run_writer(apply=False, mode={"read": "ok", "values": {67: 9, 68: 25}})
+        self.assertIn("PLAN 2738L CV67 old=9 (read) new=14", lines)
+        led = self.ledger()
+        self.assertEqual((led["cvs"]["67"]["value"], led["cvs"]["67"]["state"]), (9, "read"))
+        lines, calls, rb = self.run_writer(apply=True, rollback="rb2.json")  # reads fail this time
+        self.assertIn("PLAN 2738L CV67 old=9 (ledger) new=14", lines)
+        self.assertEqual(json.loads(Path(rb).read_text())["writes"][0]["value"], 9)
+        self.assertEqual(len([c for c in calls if c[0] == "write"]), 2)  # ledger values never skip
+
+    def test_read_timeout_aborts_before_any_write(self):
+        lines, calls, rb = self.run_writer(apply=True, mode={"read": "timeout"})
+        self.assertFalse([c for c in calls if c[0] == "write"])
+        self.assertTrue(any(line.startswith("ABORTED: read of CV67 timed out") for line in lines))
+        self.assertFalse(os.path.exists(rb))
+
+    def test_write_timeout_marks_unknown_and_says_so(self):
+        lines, calls, rb = self.run_writer(apply=True, mode={"write_timeout": 67})
+        self.assertEqual([c for c in calls if c[0] == "write"], [("write", "67", 14)])
+        self.assertTrue(lines[-2].startswith("STOPPED at CV67 (timeout)"))
+        self.assertIn("clear-ledger", lines[-2])
+        self.assertEqual(self.ledger()["cvs"]["67"]["state"], "unknown")
+        lines, calls, _ = self.run_writer(apply=True, rollback="rb2.json")
+        self.assertTrue(any("CV67 is unknown in the ledger" in line for line in lines))
+        self.assertFalse([c for c in calls if c[0] == "write"])
+
+    def test_cv29_refused_before_anything_is_sent(self):
+        lines, calls, _ = self.run_writer(apply=True, writes=((67, 14), (29, 34)))
+        self.assertFalse([c for c in calls if c[0] in ("read", "write")])
+        self.assertTrue(any("programming track only" in line for line in lines))
+
+    def test_apply_with_roster_old_values_needs_roster_old_ok(self):
+        lines, calls, rb = self.run_writer(apply=True, roster_old_ok=False)
+        self.assertFalse([c for c in calls if c[0] == "write"])
+        self.assertTrue(any(l.startswith("REFUSED old values for CV 67, 68 would come from the roster")
+                            for l in lines))
+
+    def test_lock_held_during_run_and_stale_lock_refuses(self):
+        ldir = os.path.join(self.dir, "ledger")
+        lock = g.lock_path(ldir, "CSX 2738")
+        self.run_writer(apply=True)
+        self.assertFalse(os.path.exists(lock))
+        g.acquire_lock(lock, "a crashed run")
+        lines, calls, _ = self.run_writer(apply=True, rollback="rb2.json")
+        self.assertFalse([c for c in calls if c[0] in ("read", "write")])
+        self.assertTrue(any("remove the lock by hand" in l for l in lines))
+        self.assertTrue(os.path.exists(lock))  # never removes a lock it did not take
+
+    def test_exception_during_read_aborts(self):
+        lines, calls, rb = self.run_writer(apply=True, mode={"read": "raise"})
+        self.assertFalse([c for c in calls if c[0] == "write"])
+        self.assertTrue(any(l.startswith("ABORTED: read of CV67 raised an exception") for l in lines))
+
+    def test_exception_during_write_marks_unknown_and_stops(self):
+        lines, calls, rb = self.run_writer(apply=True, mode={"write_raise": 67})
+        self.assertTrue(lines[-2].startswith("STOPPED at CV67 (exception)"))
+        self.assertEqual(self.ledger()["cvs"]["67"]["state"], "unknown")
+
+    def test_consist_query_without_end_refuses(self):
+        lines, calls, _ = self.run_writer(apply=True, consist_log=CLEAR.replace("END", "ENDX"))
+        self.assertEqual(calls, [])
+        self.assertTrue(any("consist query did not finish" in l and "thread may still be running" in l
+                            for l in lines))
+
+    def test_consist_present_refuses_before_any_programmer(self):
+        lines, calls, _ = self.run_writer(apply=True, consist_log=CONSISTED)
+        self.assertEqual(calls, [])
+        self.assertTrue(any(line.startswith("REFUSED") and "consist" in line for line in lines))
+
+    def test_absent_node_needs_absent_ok(self):
+        log = qlog({N2738: [], N2121: [], N06: None})
+        lines, calls, _ = self.run_writer(apply=False, consist_log=log)
+        self.assertEqual(calls, [])
+        self.assertTrue(any("'NWR 06'" in line and line.startswith("REFUSED") for line in lines))
+        lines, calls, _ = self.run_writer(apply=False, consist_log=log, absent_ok=["NWR 06"])
+        self.assertIn("ABSENT_OK 'NWR 06' train node %s did not answer" % N06, lines)
+
+    def test_missing_guard_refuses(self):
+        lines, calls, _ = self.run_writer(apply=True, guard_path=os.path.join(self.dir, "nope.py"))
+        self.assertEqual(calls, [])
+        self.assertTrue(lines[0].startswith("REFUSED guard module could not be loaded"))
+
+    def test_jmri_roster_disagreeing_with_file_refuses(self):
+        lines, calls, _ = self.run_writer(apply=True, roster_number=2739)
+        self.assertEqual(calls, [])
+        self.assertTrue(any("disagrees with roster file" in line for line in lines))
+
+
+class Jython27Syntax(unittest.TestCase):
+    """The guard and writer run in Jython 2.7: keep Python-3-only syntax out."""
+
+    def test_no_py3_only_syntax(self):
+        import re
+        for path in (GUARD_PATH, WRITER_PATH):
+            src = path.read_text()
+            self.assertNotRegex(src, r"(?m)^\s*from __future__ import [^\n]*print_function", path.name)
+            self.assertIsNone(re.search(r"""\bf["']""", src), "%s has an f-string" % path.name)
+            self.assertIsNone(re.search(r"(?m)^\s*(nonlocal|async |await )", src), path.name)
+            self.assertIsNone(re.search(r"(?m)def \w+\([^)]*:\s*\w", src), "%s has type hints" % path.name)
+            self.assertIsNone(re.search(r"(?m)^\s*def .*\)\s*->", src), "%s has a return annotation" % path.name)
+            self.assertNotIn("print(", src, path.name)
+
+
+if __name__ == "__main__":
+    unittest.main()

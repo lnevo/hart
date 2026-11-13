@@ -30,6 +30,7 @@
   ],
   "items": [
     {
+      "id": "layout-crew-lounge",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8944.png",
       "title": "Crew lounge",
@@ -37,6 +38,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-the-layout-room",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8953.png",
       "title": "The layout room",
@@ -44,6 +46,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-dispatcher-s-desk",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8949.png",
       "title": "Dispatcher's desk",
@@ -51,6 +54,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-west-yard",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8945.png",
       "title": "West Yard",
@@ -58,6 +62,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-south-yard",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8947.png",
       "title": "South Yard",
@@ -65,6 +70,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-east-yard",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8946.png",
       "title": "East Yard",
@@ -72,6 +78,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-yard-tracks-by-color",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8948.png",
       "title": "Yard tracks by color",
@@ -79,6 +86,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-fascia-track-diagram",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8940.png",
       "title": "Fascia track diagram",
@@ -86,6 +94,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-fascia-track-diagram-2",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8975.png",
       "title": "Fascia track diagram",
@@ -93,6 +102,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-fascia-track-diagram-3",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8976.png",
       "title": "Fascia track diagram",
@@ -100,6 +110,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-the-scale",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8952.png",
       "title": "The scale",
@@ -107,6 +118,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-scale-house-and-instructions",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8941.png",
       "title": "Scale house and instructions",
@@ -114,6 +126,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-crew-sheets",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8950.png",
       "title": "Crew sheets",
@@ -121,6 +134,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-the-hart-binder",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8958.png",
       "title": "The HART binder",
@@ -128,6 +142,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-railroad-reading",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8942.png",
       "title": "Railroad reading",
@@ -135,6 +150,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-planning-board",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8957.png",
       "title": "Planning board",
@@ -142,6 +158,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "layout-track-plan-mockup",
       "album": "layout",
       "src": "../media/hart-research/wiring-drafts/IMG_8951.png",
       "title": "Track plan mockup",
@@ -149,6 +166,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "panels-digicon-ctc",
       "album": "panels",
       "src": "assets/panels/digicon-ctc.png",
       "title": "Digicon CTC",
@@ -156,6 +174,7 @@
       "credit": "Live panels · Aug 2026"
     },
     {
+      "id": "panels-classic-ctc-machine",
       "album": "panels",
       "src": "assets/panels/classic-ctc.png",
       "title": "Classic CTC machine",
@@ -163,6 +182,7 @@
       "credit": "Live panels · Aug 2026"
     },
     {
+      "id": "panels-neville-island-le-panel",
       "album": "panels",
       "src": "assets/panels/neville-island-le.png",
       "title": "Neville Island LE panel",
@@ -170,6 +190,7 @@
       "credit": "Live panels · Aug 2026"
     },
     {
+      "id": "plans-track-plan-july-2025-benchwork",
       "album": "plans",
       "src": "../media/hart-research/desktop/track-plan-2025-07-06-benchwork.png",
       "title": "Track plan, July 2025: benchwork",
@@ -177,6 +198,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "plans-track-plan-july-2025-prototype-maps",
       "album": "plans",
       "src": "../media/hart-research/desktop/track-plan-2025-07-06-maps.png",
       "title": "Track plan, July 2025: prototype maps",
@@ -184,6 +206,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "plans-track-plan-july-2025-main-line-and-yard",
       "album": "plans",
       "src": "../media/hart-research/desktop/track-plan-2025-07-06-main.png",
       "title": "Track plan, July 2025: main line and yard",
@@ -191,6 +214,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "plans-track-plan-july-2025-multi-track-level",
       "album": "plans",
       "src": "../media/hart-research/desktop/track-plan-2025-07-06-multitrack.png",
       "title": "Track plan, July 2025: multi-track level",
@@ -198,6 +222,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "plans-track-plan-july-2025-south-and-west-yard-maps",
       "album": "plans",
       "src": "../media/hart-research/desktop/track-plan-2025-07-06-multitrack-maps.png",
       "title": "Track plan, July 2025: South and West Yard maps",
@@ -205,6 +230,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "plans-track-plan-july-2025",
       "album": "plans",
       "src": "../media/hart-research/desktop/track-plan-2025-07-06.png",
       "title": "Track plan, July 2025",
@@ -212,6 +238,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "build-coke-oven-kit-typical-arrangement",
       "album": "build",
       "src": "../media/hart-research/screenshots/Screenshot 2025-06-20 at 12.08.15 AM.png",
       "title": "Coke oven kit: typical arrangement",
@@ -219,6 +246,7 @@
       "credit": "Credit unknown"
     },
     {
+      "id": "build-lcos-client-node-wiring",
       "album": "build",
       "src": "../media/hart-research/prototype/lcn-connection-diagram.webp",
       "title": "LCOS client node wiring",
@@ -226,6 +254,7 @@
       "credit": "Credit unknown"
     },
     {
+      "id": "build-psx-ar-reverse-loop-wiring",
       "album": "build",
       "src": "../media/hart-research/desktop/psx-ar-reverse-loop-wiring.png",
       "title": "PSX-AR reverse loop wiring",
@@ -233,6 +262,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "build-touch-toggle-dimensions",
       "album": "build",
       "src": "../media/hart-research/desktop/touch-toggle-dimensions.png",
       "title": "Touch toggle dimensions",
@@ -240,6 +270,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "build-power-districts-day-one",
       "album": "build",
       "src": "assets/f-root-previews/ba144a53d531cb34.jpg",
       "title": "Power districts, day one",
@@ -247,6 +278,7 @@
       "credit": "HART wiring schematic"
     },
     {
+      "id": "progress-before-hart",
       "album": "progress",
       "src": "../media/photos-layout/IMG_1774.jpg",
       "title": "Before HART",
@@ -255,6 +287,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-closet-framing",
       "album": "progress",
       "src": "../media/photos-layout/IMG_4031.jpg",
       "title": "Closet framing",
@@ -263,6 +296,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-the-empty-room",
       "album": "progress",
       "src": "../media/photos-layout/IMG_4038.jpg",
       "title": "The empty room",
@@ -271,6 +305,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-closet-doors",
       "album": "progress",
       "src": "../media/photos-layout/IMG_4052.jpg",
       "title": "Closet doors",
@@ -279,6 +314,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-paint-and-floor",
       "album": "progress",
       "src": "../media/photos-layout/IMG_4124.jpg",
       "title": "Paint and floor",
@@ -287,6 +323,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-room-ready",
       "album": "progress",
       "src": "../media/photos-layout/IMG_4151.jpg",
       "title": "Room ready",
@@ -295,6 +332,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-plywood-arrives",
       "album": "progress",
       "src": "../media/photos-layout/IMG_5280.jpg",
       "title": "Plywood arrives",
@@ -303,6 +341,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-backdrop-hardboard",
       "album": "progress",
       "src": "../media/photos-layout/IMG_5281.jpg",
       "title": "Backdrop hardboard",
@@ -311,6 +350,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-framing-lumber",
       "album": "progress",
       "src": "../media/photos-layout/IMG_5282.jpg",
       "title": "Framing lumber",
@@ -319,6 +359,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-first-brackets",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7806.jpg",
       "title": "First brackets",
@@ -327,6 +368,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-open-grid-framing",
       "album": "progress",
       "src": "../media/photos-layout/IMG_6653.jpg",
       "title": "Open-grid framing",
@@ -335,6 +377,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-behind-the-double-doors",
       "album": "progress",
       "src": "../media/photos-layout/IMG_6675.jpg",
       "title": "Behind the double doors",
@@ -343,6 +386,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-backdrop-boards",
       "album": "progress",
       "src": "../media/photos-layout/IMG_6755.jpg",
       "title": "Backdrop boards",
@@ -351,6 +395,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-a-round-end",
       "album": "progress",
       "src": "../media/photos-layout/IMG_6844.jpg",
       "title": "A round end",
@@ -359,6 +404,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-plywood-tops",
       "album": "progress",
       "src": "../media/photos-layout/IMG_6857.jpg",
       "title": "Plywood tops",
@@ -367,6 +413,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-through-the-wall",
       "album": "progress",
       "src": "../media/photos-layout/IMG_6851.jpg",
       "title": "Through the wall",
@@ -375,6 +422,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-tops-along-the-wall",
       "album": "progress",
       "src": "../media/photos-layout/IMG_6853.jpg",
       "title": "Tops along the wall",
@@ -383,6 +431,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-photo-backdrop",
       "album": "progress",
       "src": "../media/photos-layout/IMG_6878.jpg",
       "title": "Photo backdrop",
@@ -391,6 +440,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-through-the-doors",
       "album": "progress",
       "src": "../media/photos-layout/IMG_6880.jpg",
       "title": "Through the doors",
@@ -399,6 +449,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-bus-wiring",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7226.jpg",
       "title": "Bus wiring",
@@ -407,6 +458,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-a-node-on-the-bench",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7471.jpg",
       "title": "A node on the bench",
@@ -415,6 +467,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-valance-and-lights",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7514.jpg",
       "title": "Valance and lights",
@@ -423,6 +476,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-structure-mock-ups",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7535.jpg",
       "title": "Structure mock-ups",
@@ -431,6 +485,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-curved-view-block",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7620.jpg",
       "title": "Curved view block",
@@ -439,6 +494,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-power-board",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7813.jpg",
       "title": "Power board",
@@ -447,6 +503,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-node-in-place",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7868.jpg",
       "title": "Node in place",
@@ -455,6 +512,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-track-templates",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7904.jpg",
       "title": "Track templates",
@@ -463,6 +521,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-cork-down",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7915.jpg",
       "title": "Cork down",
@@ -471,6 +530,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-parallel-tracks",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7956.jpg",
       "title": "Parallel tracks",
@@ -479,6 +539,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-roadbed-on-the-curves",
       "album": "progress",
       "src": "../media/photos-layout/IMG_7986.jpg",
       "title": "Roadbed on the curves",
@@ -487,6 +548,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-yard-ladder",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8070.jpg",
       "title": "Yard ladder",
@@ -495,6 +557,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-around-the-corner",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8120.jpg",
       "title": "Around the corner",
@@ -503,6 +566,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-track-on-the-oval",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8143.jpg",
       "title": "Track on the oval",
@@ -511,6 +575,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-the-room-in-january",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8241.jpg",
       "title": "The room in January",
@@ -519,6 +584,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-on-the-rails",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8307.jpg",
       "title": "On the rails",
@@ -527,6 +593,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-trackside-electronics",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8415.jpg",
       "title": "Trackside electronics",
@@ -535,6 +602,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-fascia-button",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8414.jpg",
       "title": "Fascia button",
@@ -543,6 +611,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-power-switch",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8418.jpg",
       "title": "Power switch",
@@ -551,6 +620,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-trains-lined-up",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8904.jpg",
       "title": "Trains lined up",
@@ -559,6 +629,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-track-diagram",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8940.jpg",
       "title": "Track diagram",
@@ -567,6 +638,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-south-yard",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8947.jpg",
       "title": "South Yard",
@@ -575,6 +647,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-the-room-in-may",
       "album": "progress",
       "src": "../media/photos-layout/IMG_8954.jpg",
       "title": "The room in May",
@@ -583,6 +656,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-new-track",
       "album": "progress",
       "src": "../media/photos-layout/IMG_9231.jpg",
       "title": "New track",
@@ -591,6 +665,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-engines-on-hand",
       "album": "progress",
       "src": "../media/photos-layout/IMG_9288.jpg",
       "title": "Engines on hand",
@@ -599,6 +674,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-car-card-boxes",
       "album": "progress",
       "src": "../media/photos-layout/IMG_9347.jpg",
       "title": "Car card boxes",
@@ -607,6 +683,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-laying-out",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0679.jpg",
       "title": "Helix: laying out",
@@ -615,6 +692,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-the-frame",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0691.jpg",
       "title": "Helix: the frame",
@@ -623,6 +701,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-first-roadbed",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0727.jpg",
       "title": "Helix: first roadbed",
@@ -631,6 +710,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-printed-brackets",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0730.jpg",
       "title": "Helix: printed brackets",
@@ -639,6 +719,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-steel-bracket",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0746.jpg",
       "title": "Helix: steel bracket",
@@ -647,6 +728,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-the-joint",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0747.jpg",
       "title": "Helix: the joint",
@@ -655,6 +737,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-roadbed-cut",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0753.jpg",
       "title": "Helix: roadbed cut",
@@ -663,6 +746,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-climbing",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0819.jpg",
       "title": "Helix: climbing",
@@ -671,6 +755,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-track-and-cork",
       "album": "progress",
       "src": "../media/photos-layout/curved-track-in-the-workshop.jpg",
       "title": "Helix: track and cork",
@@ -679,6 +764,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-helix-complete",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0883.jpg",
       "title": "Helix: complete",
@@ -687,6 +773,7 @@
       "credit": "HART layout photos"
     },
     {
+      "id": "progress-after-operating-session-4",
       "album": "progress",
       "src": "../media/photos-layout/IMG_0989.jpg",
       "title": "After operating session 4",
