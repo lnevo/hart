@@ -21,13 +21,25 @@ How `schem.py` works:
 `export_reader.py` reads AnyRail's "export to JMRI" XML, which is the better input: it holds the double
 crossover and every turnout, and only track. It has no heights; those still come from the `.any` reader.
 
-Known gaps (2026-11-13):
+The spike checks its own drawing: every pair of drawn lines is tested for crossing or lying on top of
+each other, and each fault is printed with the switches either side.
 
-- The main levels (50 turnouts and a double crossover from the 5.3b export) draw, but the west end is a
-  tangle. Tracks pass over each other there (the 2.1% rise from the height-0 main to the 4.25 in branch
-  line), and the spike draws everything as one flat band. The fix is the plan's level bands: cut the
-  graph at the graded runs and draw each level as its own band with lettered connectors.
-- Where the layout is not flat the row step drops ordering rules (35 on the main levels), so tracks can
-  overlap. That fallback should go once level bands exist.
-- Switch numbers collide on yard ladders; a crossover's number is printed on both halves.
-- No page folding, no capacity, no as-built overrides file yet.
+Main levels (2026-11-13), from the 5.3b export with the owner's as-built change (`main_asbuilt_opts.json`,
+sample in `main_asbuilt_sample.svg`):
+
+| Drawing | Faults |
+|---------|--------|
+| One flat band | 52 crossings or overlaps, 2 switches whose leg must cross other track, 36 ordering rules dropped |
+| Two bands, cut at the rise | Main level 0. Upper level 3 crossings, all at the west end of the branch line (switches T262 and T268) |
+
+What fixed it: level bands with lettered connectors; choosing each switch's level leg so no above/below rule
+is broken; keeping other track clear of the columns a sloped leg passes through; a double crossover's two
+tracks on neighbouring rows.
+
+Known gaps:
+
+- The three crossings left on the upper level. The branch line's loops at the west end are not flat as the
+  spike orients them; the turnback choice there needs work, or the owner's word on what crosses what.
+- Switch labels are the plan's part numbers (T…), three junctions unmatched; no track or station names.
+- The helix tracks on the main level end as plain stubs; they should be connectors to staging.
+- Switch numbers collide in places; a crossover's number is printed on both halves; no page folding; no capacity.

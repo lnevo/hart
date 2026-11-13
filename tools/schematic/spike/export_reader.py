@@ -1,4 +1,4 @@
-"""export_reader.py <AnyRail JMRI export .xml> <out.json> [skip-block-substring]
+"""export_reader.py <AnyRail JMRI export .xml> <out.json> [skip-block-substring] [parts.json]
 
 AnyRail's "export to JMRI" file -> logical graph (stage 0 spike). Keeps the largest connected
 group of turnouts once blocks whose name contains the skip text are left out.
@@ -10,7 +10,7 @@ import math
 import sys
 import xml.etree.ElementTree as ET
 
-PX_PER_CM = 96 / 25.4   # AnyRail exports 1 px = 1/96 in at 1:10
+PX_PER_CM = 120 / 25.4   # AnyRail's export: 120 px per inch of plan (found by fitting the .any plan)
 
 
 def unit(dx, dy):
@@ -22,7 +22,7 @@ def cross(a, b):
     return a[0] * b[1] - a[1] * b[0]
 
 
-def main(path, out, skip=None):
+def main(path, out, skip=None, parts_file=None):
     panel = ET.parse(path).getroot().find("LayoutEditor")
     tos = {t.get("ident"): t for t in panel.iter("layoutturnout")}
     segs = {s.get("ident"): s for s in panel.iter("tracksegment")}
@@ -128,6 +128,55 @@ def main(path, out, skip=None):
     order = sorted((n for n, d in nodes.items() if d["kind"] != "end"), key=lambda n: (nodes[n]["xy"][1], nodes[n]["xy"][0]))
     for i, n in enumerate(order, 1):
         nodes[n]["label"] = str(i)
+    if parts_file:      # label junctions with the plan's part numbers and heights
+        plan = []
+        for i, p in enumerate(json.load(open(parts_file))):
+            e = [q for q in p["eps"] if abs(q["x"]) < 5000]
+            if len(e) >= 3 and max(q["z"] for q in e) > -30:      # not the staging level
+                plan.append((i, sum(q["x"] for q in e) / len(e), sum(q["y"] for q in e) / len(e), max(q["z"] for q in e)))
+        mine = [(n, nodes[n]["xy"][0] / PX_PER_CM, nodes[n]["xy"][1] / PX_PER_CM) for n in order]
+        best = (-1, 0, 0)
+        for _, x, y in mine[:6]:
+            for _, u, v, _ in plan:
+                ox, oy = x - u, y - v
+                hits = sum(min(math.hypot(a - ox - u2, b - oy - v2) for _, u2, v2, _ in plan) < 4 for _, a, b in mine)
+                if hits > best[0]:
+                    best = (hits, ox, oy)
+        hits, ox, oy = best
+        sx = sy = 1.0
+
+        def pairs(tol):
+            out = []
+            for n, x, y in mine:
+                i, dist, z, u, v = min(((i, math.hypot(x - (sx * u + ox), y - (sy * v + oy)), z, u, v)
+                                        for i, u, v, z in plan), key=lambda t: t[1])
+                if dist < tol:
+                    out.append((n, i, z, x, y, u, v))
+            return out
+
+        def fit(a, b):      # least squares b = s * a + o
+            ma, mb = sum(a) / len(a), sum(b) / len(b)
+            s_ = sum((p - ma) * (q - mb) for p, q in zip(a, b)) / sum((p - ma) ** 2 for p in a)
+            return s_, mb - s_ * ma
+
+        for tol in (4, 6, 6, 4):        # the export is not exactly to the plan's scale: refit and rematch
+            got = pairs(tol)
+            sx, ox = fit([g[5] for g in got], [g[3] for g in got])
+            sy, oy = fit([g[6] for g in got], [g[4] for g in got])
+        cand = sorted((math.hypot(x - (sx * u + ox), y - (sy * v + oy)), n, i, z)
+                      for n, x, y in mine for i, u, v, z in plan)
+        used_n, used_i, hits = set(), set(), 0
+        for dist, n, i, z in cand:          # nearest first, one plan part per junction
+            if dist > 10:
+                break
+            if n in used_n or i in used_i:
+                continue
+            used_n.add(n)
+            used_i.add(i)
+            hits += 1
+            nodes[n]["label"], nodes[n]["z"] = f"T{i}", round(z, 1)
+        print("scale correction", round(sx, 4), round(sy, 4))
+        print("matched", hits, "of", len(mine), "junctions to plan parts")
     for i, e in enumerate(edges):
         e["id"] = f"e{i}"
     json.dump(dict(nodes=nodes, edges=edges), open(out, "w"), indent=1)
@@ -137,4 +186,4 @@ def main(path, out, skip=None):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:4])
+    main(*sys.argv[1:5])
