@@ -199,7 +199,7 @@
  "rotate_bands": [],
  "equal_width": true,
  "band_width": {
-  "Main": 0.86
+  "Main": 0.95
  },
  "band_align": {},
  "min_cells": [
@@ -222,6 +222,11 @@
    "T196",
    "T196",
    7
+  ],
+  [
+   "T1",
+   "12",
+   9
   ]
  ]
 }

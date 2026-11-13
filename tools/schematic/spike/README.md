@@ -79,8 +79,9 @@ Known gaps (end of the 2026-11-13 session):
 - **Band direction (owner, 2026-11-13).** The sheet reads main, upper, staging from the top (`band_order`).
   The owner tried the main and upper bands turned 180 degrees (`rotate_bands`, which rotates the finished
   drawing and keeps the lettering upright) and then asked for it undone, so the helix is at the east end of
-  all three bands. That is not what ADR-022 implies for the bands above staging; the owner has not said
-  which should give way.
+  all three bands. The owner's note: each level's main is a loop, so the direction flips along it; east and
+  west will be worked out later by following the main line, perhaps better on the CATS diagram. ADR-022
+  stands until then.
 - **Helix marks (owner, 2026-11-13).** A three-turn coil on the track with its letter: H1 McKees Rocks,
   H2 McKeesport, the same on every band (`helix_style` coil; box, letters and arrow remain available).
 - A band has no rule for which end is which except `left_end` (staging) and `side` on helix ends (upper).
