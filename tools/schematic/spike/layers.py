@@ -3,6 +3,7 @@
     <level>.plan_overrides.json   layer 1  facts about the railroad (always read)
     <level>.hints.json            layer 2  TEMPORARY hand hints that stand in for generation rules not written yet
     <level>.preferences.json      layer 3  the owner's look for this sheet
+    <level>.signals.json          layer 1  masts, generated from the Layout Editor panel (signal_reader.py)
 
 Merged in that order: a dict merges key by key, a list named in APPEND is added to (edits keep their order),
 anything else is replaced. Keys that start with "_" are notes and are dropped.
@@ -38,4 +39,7 @@ def load(level, preferences=True, hints=True, data=DATA):
         path = Path(data) / f"{level}.{kind}.json"
         if on and path.exists():
             opts = merge(opts, json.load(open(path)))
+    sig = Path(data) / f"{level}.signals.json"      # layer 1 too, generated from the panel by signal_reader.py
+    if sig.exists():
+        opts["signals"] = json.load(open(sig))["signals"]
     return opts
