@@ -19,7 +19,7 @@ class DocLinkTest(unittest.TestCase):
         self.assertEqual(INDEX.doc_link("docs/ops/STRR Speed Match.pdf"), "ops/STRR%20Speed%20Match.pdf")
 
     def test_narrow_no_break_space(self) -> None:
-        link = INDEX.doc_link("docs/ctc/history/Screenshot 2026-08-19 at 5.44.55 PM.png")
+        link = INDEX.doc_link("docs/ctc/history/Screenshot 2026-08-19 at 5.44.55\u202fPM.png")
         self.assertEqual(link, "ctc/history/Screenshot%202026-08-19%20at%205.44.55%E2%80%AFPM.png")
         self.assertFalse(any(ch.isspace() for ch in link))
 

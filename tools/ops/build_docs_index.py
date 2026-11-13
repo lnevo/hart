@@ -36,7 +36,7 @@ def last_changed() -> dict[str, str]:
 
 def doc_link(path: str) -> str:
     """Link from docs/INDEX.md to a docs/ file, with every space and non-ASCII character encoded."""
-    return quote(path[len("docs/"):])
+    return quote(path.removeprefix("docs/"))
 
 
 def main() -> int:
