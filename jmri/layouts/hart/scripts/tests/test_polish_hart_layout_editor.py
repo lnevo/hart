@@ -157,13 +157,13 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             "</LayoutEditor>"
         )
         # one lamp off its spot plus two extra copies
-        self.assertEqual(3, len(polish.place_stage1_lamps(le, check=True)[1]))
-        polish.place_stage1_lamps(le, check=False)
-        polish.dedupe_shared_occupancy_icons(le, check=False)
+        self.assertEqual(3, len(polish.place_stage1_lamps(le, check=True, targets=polish.STAGE1_LAMP_PLACEMENTS)[1]))
+        polish.place_stage1_lamps(le, check=False, targets=polish.STAGE1_LAMP_PLACEMENTS)
+        polish.dedupe_shared_occupancy_icons(le, check=False, targets=polish.STAGE1_LAMP_PLACEMENTS)
         lamps = sorted((i.get("level"), i.get("x"), i.get("y")) for i in le.findall("sensoricon"))
         x, y = polish.SOUTH_YARD_LAMPS["BS S-1"]
         self.assertEqual([("10", str(x), str(y)), ("12", "943", "354")], lamps)
-        self.assertEqual((0, []), polish.place_stage1_lamps(le, check=True))
+        self.assertEqual((0, []), polish.place_stage1_lamps(le, check=True, targets=polish.STAGE1_LAMP_PLACEMENTS))
 
     def test_switch_lamps_centre_on_circles_and_track_lamps_sit_on_track(self):
         import math
@@ -179,9 +179,11 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         segments = polish._segment_ends(le)
 
         def on_segment(px, py, a, b):
+            """Distance to the segment itself, not the line through it."""
             (ax, ay), (bx, by) = a, b
-            length = math.hypot(bx - ax, by - ay) or 1
-            return abs((bx - ax) * (ay - py) - (ax - px) * (by - ay)) / length
+            dx, dy = bx - ax, by - ay
+            t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / ((dx * dx + dy * dy) or 1)))
+            return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 
         for sensor, (x, y) in targets.items():
             if sensor in polish.STAGE1_LAMP_PLACEMENTS:
@@ -196,8 +198,47 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
                 self.assertLessEqual(min(on_segment(cx, cy, s[1], s[2]) for s in mine), 1, sensor)
 
         # every Stage 1 lamp on the panel is at its target
-        _, errors = polish.place_stage1_lamps(le, check=True, root=root)
+        _, errors = polish.place_stage1_lamps(le, check=True, targets=targets)
         self.assertEqual([], errors)
+
+    def lamp_fixture(self) -> ET.Element:
+        return ET.fromstring(
+            "<layout-config><blocks>"
+            '<block systemName="IB1" length="1"><userName>OS Switch 3</userName><occupancysensor>BS Switch 3</occupancysensor></block>'
+            '<block systemName="IB2" length="1"><userName>Track K-1</userName><occupancysensor>BS K-1</occupancysensor></block>'
+            '<block systemName="IB3" length="1"><userName>Track K-1 West</userName><occupancysensor>BS K-1</occupancysensor></block>'
+            "</blocks>"
+            '<LayoutEditor name="HART Railroad">'
+            '<layoutturnout ident="T3" blockname="OS Switch 3" blocknameb="Track K-1" xcen="250" ycen="252" xa="240" ya="252" xb="260" yb="252" />'
+            '<positionablepoint ident="P1" x="100" y="200" /><positionablepoint ident="P2" x="300" y="200" />'
+            '<positionablepoint ident="P3" x="300" y="200" /><positionablepoint ident="P4" x="320" y="200" />'
+            '<tracksegment ident="S1" blockname="Track K-1" connect1name="P1" type1="POS_POINT" connect2name="P2" type2="POS_POINT" />'
+            '<tracksegment ident="S2" blockname="Track K-1 West" connect1name="P3" type1="POS_POINT" connect2name="P4" type2="POS_POINT" />'
+            '<tracksegment ident="S3" blockname="Track K-1 West" connect1name="P1" type1="POS_POINT" connect2name="P4" type2="POS_POINT" hidden="yes" />'
+            "</LayoutEditor></layout-config>"
+        )
+
+    def test_targets_use_turnout_block_and_skip_throats_without_comments(self):
+        root = self.lamp_fixture()
+        targets = polish.stage1_lamp_targets(root, root.find("LayoutEditor"))
+        self.assertEqual((245, 247), targets["BS Switch 3"])  # circle centre minus half a lamp
+        self.assertEqual((195, 195), targets["BS K-1"])  # middle of S1, not the throat
+
+    def test_missing_switch_lamp_is_created_on_its_circle(self):
+        root = self.lamp_fixture()
+        le = root.find("LayoutEditor")
+        targets = polish.stage1_lamp_targets(root, le)
+        polish.ensure_os_occupancy_icons(le, check=False, targets=targets)
+        lamp = [i for i in le.findall("sensoricon") if i.get("sensor") == "BS Switch 3"]
+        self.assertEqual([("245", "247")], [(i.get("x"), i.get("y")) for i in lamp])
+
+    def test_copy_already_on_target_is_the_one_kept(self):
+        le = ET.fromstring(
+            '<LayoutEditor><sensoricon sensor="BS K-1" x="1" y="1" level="10" />'
+            '<sensoricon sensor="BS K-1" x="195" y="195" level="10" /></LayoutEditor>'
+        )
+        polish.place_stage1_lamps(le, check=False, targets={"BS K-1": (195, 195)})
+        self.assertEqual([("195", "195")], [(i.get("x"), i.get("y")) for i in le.findall("sensoricon")])
 
     def test_shared_occupancy_dedupe_keeps_body_dot(self):
         xml = """<?xml version='1.0' encoding='UTF-8'?>
@@ -214,7 +255,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         root = ET.fromstring(xml)
         le = root.find("LayoutEditor")
         assert le is not None
-        changes, errors = polish.dedupe_shared_occupancy_icons(le, check=False)
+        changes, errors = polish.dedupe_shared_occupancy_icons(le, check=False, targets=polish.STAGE1_LAMP_PLACEMENTS)
         self.assertEqual([], errors)
         self.assertEqual(2, changes)
         kept = [
@@ -234,9 +275,9 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         </LayoutEditor></layout-config>"""
         le = ET.fromstring(xml).find("LayoutEditor")
         assert le is not None
-        _, errors = polish.place_stage1_lamps(le, check=True)
+        _, errors = polish.place_stage1_lamps(le, check=True, targets=polish.STAGE1_LAMP_PLACEMENTS)
         self.assertEqual(3, len(errors))
-        changes, errors = polish.place_stage1_lamps(le, check=False)
+        changes, errors = polish.place_stage1_lamps(le, check=False, targets=polish.STAGE1_LAMP_PLACEMENTS)
         self.assertEqual((3, []), (changes, errors))
         placed = [
             (i.get("sensor"), i.get("x"), i.get("y"), i.get("level"))
@@ -252,7 +293,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             ],
             placed,
         )
-        self.assertEqual((0, []), polish.place_stage1_lamps(le, check=True))
+        self.assertEqual((0, []), polish.place_stage1_lamps(le, check=True, targets=polish.STAGE1_LAMP_PLACEMENTS))
 
 
 if __name__ == "__main__":
