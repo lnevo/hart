@@ -20,13 +20,13 @@ from collections import defaultdict
 
 # loop order in the east direction (2738's forward): sensor name -> length mm
 EAST = [
-    ("BS Switch 7b", 254.0), ("BS East Main Ext", 2235.2), ("BS Switch 5", 254.0)]
-LOOP = [  # east order starting at East Main Ext
-    ("BS East Main Ext", 2235.2), ("BS Switch 7b", 254.0), ("BS Main East", 4699.0),
+    ("BS Switch 7b", 254.0), ("BS East Ext", 2235.2), ("BS Switch 5", 254.0)]
+LOOP = [  # east order starting at East Ext
+    ("BS East Ext", 2235.2), ("BS Switch 7b", 254.0), ("BS Main East", 4699.0),
     ("BS Switch 33", 254.0), ("BS East Lead", 4368.8), ("BS Switch 35a", 254.0),
     ("BS Switch 37 / BS McKeesport", 254.0), ("BS K-2", 3111.5), ("BS K-1", 3111.5),
     ("BS Switch 39 / BS McKees Rocks", 254.0), ("BS Switch 35b", 254.0),
-    ("BS West Main Ext", 4064.0), ("BS Switch 23a", 254.0), ("BS Main West", 5588.0),
+    ("BS West Ext", 4064.0), ("BS Switch 23a", 254.0), ("BS Main West", 5588.0),
     ("BS Switch 1", 254.0), ("BS Brick-Plane", 1828.8), ("BS Switch 5", 254.0)]
 LOOP_MM = sum(l for _, l in LOOP)
 # direction of each log (2738 ran east, 2121 ran west)

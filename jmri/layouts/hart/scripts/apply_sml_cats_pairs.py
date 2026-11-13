@@ -10,7 +10,7 @@ startup Jython twin was removed from the Mac and Pi profiles.
 PAIRS below is the CATS-derived list this workaround used to apply. It is
 imported by validate_le_signalling.py as a historical comparison oracle.
 Known defects in PAIRS (why it is only historical):
-- opposing-face pairs (Plane EME <-> Track Barn D, the OS Switch 7 plant pairs) that
+- opposing-face pairs (Plane East Ext <-> Track Barn D, the OS Switch 7 plant pairs) that
   SML never models; replaced by true next-mast-down-the-line pairs
 - Mast 38LB / Track McKeesport -> 111a rows are geometrically impossible
   (LH crossover 113 cannot route bottom-east to top-west)
@@ -33,17 +33,17 @@ JYTHON = ROOT / "jmri/layouts/hart/scripts/apply_sml_cats_pairs.py"
 # source, dest, blocks (must be unoccupied), turnouts [(userName, closed|thrown)]
 # Turnout polarity: TURNOUT_STATE_SOURCES.md / SIGNAL_FACING.md.
 PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
-    # South line: Plane EME ↔ Track Barn D across Track East Main Ext (not East End Track Main West).
+    # South line: Plane East Ext ↔ Track Barn D across Track East Ext (not East End Track Main West).
     (
         "Mast 6LB",
         "Mast 8RB",
-        ["Track East Main Ext"],
+        ["Track East Ext"],
         [],
     ),
     (
         "Mast 8RB",
         "Mast 6LB",
-        ["Track East Main Ext"],
+        ["Track East Ext"],
         [],
     ),
     (
@@ -61,7 +61,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "Mast 8LA",
         "Mast 6LB",
-        ["Track East Main Ext"],
+        ["Track East Ext"],
         [("Switch 7", "closed")],
     ),
     (
@@ -79,7 +79,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "Mast 2L",
         "Mast 8RB",
-        ["OS Switch 5", "Track East Main Ext"],
+        ["OS Switch 5", "Track East Ext"],
         [("Switch 1", "thrown"), ("Switch 5", "closed")],
     ),
     (
@@ -115,7 +115,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "Mast 24RA",
         "Mast 36RA",
-        ["Track West Main Ext"],
+        ["Track West Ext"],
         [("Switch 23", "closed")],
     ),
     (
@@ -140,7 +140,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "Mast 40LB",
         "Mast 24L",
-        ["OS Switch 39", "Track West Main Ext"],
+        ["OS Switch 39", "Track West Ext"],
         [("Switch 39", "thrown"), ("Switch 35", "closed")],
     ),
     (
@@ -152,7 +152,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "Mast 38LB",
         "Mast 24L",
-        ["OS Switch 37", "Track West Main Ext"],
+        ["OS Switch 37", "Track West Ext"],
         [("Switch 37", "thrown"), ("Switch 35", "closed")],
     ),
     (
@@ -164,7 +164,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "Mast 40LA",
         "Mast 24L",
-        ["OS Switch 39", "Track West Main Ext"],
+        ["OS Switch 39", "Track West Ext"],
         [("Switch 39", "closed"), ("Switch 35", "closed")],
     ),
     (
@@ -176,7 +176,7 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
     (
         "Mast 38LA",
         "Mast 24L",
-        ["OS Switch 37", "Track West Main Ext"],
+        ["OS Switch 37", "Track West Ext"],
         [("Switch 37", "closed"), ("Switch 35", "closed")],
     ),
     (

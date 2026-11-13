@@ -14,5 +14,5 @@ Step 96, trigger BS K-1
 |---|---:|---:|---:|
 | enters Switch 39 / McKees Rocks | 6.62 | 6.71 | +0.09 |
 | enters Switch 35b | 7.23 | 7.32 | +0.09 |
-| enters West Main Ext | 8.29 | 8.38 | +0.09 |
-| comes to rest | in West Main Ext | in West Main Ext | same block |
+| enters West Ext | 8.29 | 8.38 | +0.09 |
+| comes to rest | in West Ext | in West Ext | same block |

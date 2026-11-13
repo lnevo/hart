@@ -25,9 +25,9 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | Track Brick-Plane | Block 4-6 | 58.1 | 1475.7 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
 | Track East Lead | Block 1-7 | 87.9 | 2232.7 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.4 in over 33 laps; detector length minus Track East Lead East |
 | Track Main West | Block 2-1 | 217.3 | 5519.4 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
-| Track West Main Ext | Block 1-8 | 156.1 | 3964.9 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
+| Track West Ext | Block 1-8 | 156.1 | 3964.9 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
 | Track Main East | Block 2-3 | 315.1 | 8003.5 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
-| Track East Main Ext | Block 4-7 | 140.8 | 3576.3 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 16 laps |
+| Track East Ext | Block 4-7 | 140.8 | 3576.3 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 16 laps |
 | Track S-R | Block 2-8 | 218 | 5537.2 | assigned | Yard 5 (reversed) |
 | Track S-1 | Block 2-7 | 212 | 5384.8 | assigned | Yard 4 (reversed) |
 | Track S-2 | Block 2-6 | 178 | 4521.2 | assigned | Yard 3 |

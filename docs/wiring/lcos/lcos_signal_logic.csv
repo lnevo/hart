@@ -15,7 +15,7 @@ Mast 8LA,B,Diverged,Stop,Unused-head marker
 Mast 8LB,S,Diverged,Stop,Barn dwarf; Switch 7 Reverse
 Mast 24RA,T,Main,Stop,East End west Main West; Switch 23 Normal
 Mast 24RA,B,Diverged,Stop,Unused-head marker
-Mast 24L,T,Main,Stop,West Main Ext entrance; Switch 23
+Mast 24L,T,Main,Stop,West Ext entrance; Switch 23
 Mast 24L,B,Diverged,Stop,Unused-head marker
 Mast 24RB,S,Diverged,Stop,S-R siding dwarf; Switch 23 Reverse
 Mast 32R,S,Diverged,Stop,East End ladder dwarf; Switch 31 Reverse
@@ -23,7 +23,7 @@ Mast 34L,T,Main,Stop,East Lead home; Switch 33
 Mast 34L,B,Diverged,Stop,Unused-head marker
 Mast 34R,T,Main,Stop,Main East face; Switch 33
 Mast 34R,B,Diverged,Stop,Unused-head marker
-Mast 36RA,T,Main,Stop,West Main Ext into Switch 35
+Mast 36RA,T,Main,Stop,West Ext into Switch 35
 Mast 36RA,B,Diverged,Stop,Unused-head marker
 Mast 36RB,T,Main,Stop,East Lead into Switch 35
 Mast 36RB,B,Diverged,Stop,Unused-head marker

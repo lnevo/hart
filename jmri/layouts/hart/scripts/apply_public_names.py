@@ -105,6 +105,8 @@ def _dispatcher_os_sensor_renames() -> tuple[tuple[str, str], ...]:
         ("OS_S-2", "Track_S-2"),
         ("OS_S-3", "Track_S-3"),
         ("OS_S-4", "Track_S-4"),
+        ("Track_East_Main_Ext", "Track_East_Ext"),     # 2026-11-13 rename: end the old chains at the new names
+        ("Track_West_Main_Ext", "Track_West_Ext"),
     ):
         pairs.append((f"MoveTo{old}_stored", f"MoveTo{new}_stored"))
         pairs.append((f"MoveInProgress{old}", f"MoveInProgress{new}"))
@@ -126,7 +128,12 @@ DISPATCHER_SENSOR_RENAMES = (
     ("MoveInProgressEngine_House_2", "MoveInProgressEH-2"),
     ("MoveToEngine_House_3_stored", "MoveToEH-3_stored"),
     ("MoveInProgressEngine_House_3", "MoveInProgressEH-3"),
-) + _dispatcher_os_sensor_renames()
+) + _dispatcher_os_sensor_renames() + (
+    # 2026-11-13: the extension tracks lost "Main"; a Store made before that still has BS userNames
+    # and sensor references under the old names (the occupancy rows in the map only cover userName).
+    ("BS East Main Ext", "BS East Ext"),
+    ("BS West Main Ext", "BS West Ext"),
+)
 
 PUBLIC_NAME_ATTRS = frozenset(
     {

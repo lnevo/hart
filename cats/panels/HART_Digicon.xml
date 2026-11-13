@@ -563,9 +563,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track West Main Ext" STATION="Track Main West" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track West Ext" STATION="Track Main West" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="BS West Main Ext">close</IOSPEC>
+            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="BS West Ext">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="107" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -614,9 +614,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track West Main Ext" STATION="Track Main West" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track West Ext" STATION="Track Main West" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="BS West Main Ext">close</IOSPEC>
+            <IOSPEC DECADDR="107" JMRIPREFIX="M2S" USER_NAME="BS West Ext">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="107" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -638,7 +638,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="West Main Ext" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="West Ext" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="49" Y="6">
       <TRACKGROUP>
@@ -1773,9 +1773,9 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track East Main Ext" STATION="Track Main East" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track East Ext" STATION="Track Main East" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="406" JMRIPREFIX="M2S" USER_NAME="BS East Main Ext">close</IOSPEC>
+            <IOSPEC DECADDR="406" JMRIPREFIX="M2S" USER_NAME="BS East Ext">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
             <IOSPEC DECADDR="406" JMRIPREFIX="M2S">throw</IOSPEC>
@@ -1790,7 +1790,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="E Main Ext" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="East Ext" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="13" Y="8">
       <TRACKGROUP>

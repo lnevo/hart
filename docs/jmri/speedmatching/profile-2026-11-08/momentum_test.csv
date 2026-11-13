@@ -1,6 +1,6 @@
 loco,direction,step,event,state,s_since_go,s_since_stop_cmd
 CSX 2738,forward,32,BS Switch 7b,ACTIVE,9.45,
-CSX 2738,forward,32,BS East Main Ext,INACTIVE,9.65,
+CSX 2738,forward,32,BS East Ext,INACTIVE,9.65,
 CSX 2738,forward,32,BS Main East,ACTIVE,9.92,
 CSX 2738,forward,32,BS Switch 7b,INACTIVE,10.33,
 CSX 2738,forward,32,BS Switch 33,ACTIVE,33.06,
@@ -9,7 +9,7 @@ CSX 2738,forward,32,BS Main East,INACTIVE,33.43,0.37
 CSX 2738,forward,32,BS East Lead,ACTIVE,34.03,0.97
 CSX 2738,forward,32,BS Switch 33,INACTIVE,34.53,1.47
 CSX 2738,forward,96,BS Switch 7b,ACTIVE,10.62,
-CSX 2738,forward,96,BS East Main Ext,INACTIVE,11.0,
+CSX 2738,forward,96,BS East Ext,INACTIVE,11.0,
 CSX 2738,forward,96,BS Main East,ACTIVE,11.16,
 CSX 2738,forward,96,BS Switch 7b,INACTIVE,11.51,
 CSX 2738,forward,96,BS Switch 33,ACTIVE,28.01,
@@ -24,7 +24,7 @@ CSX 2738,forward,96,BS Switch 35a,INACTIVE,35.66,7.65
 CSX 2738,forward,96,BS K-2,ACTIVE,36.23,8.22
 CSX 2738,forward,96,BS Switch 37 / BS McKeesport,INACTIVE,36.55,8.55
 CSX 2121,reverse,32,BS Switch 7b,ACTIVE,13.57,
-CSX 2121,reverse,32,BS East Main Ext,INACTIVE,14.04,
+CSX 2121,reverse,32,BS East Ext,INACTIVE,14.04,
 CSX 2121,reverse,32,BS Main East,ACTIVE,14.37,
 CSX 2121,reverse,32,BS Switch 7b,INACTIVE,14.78,
 CSX 2121,reverse,32,BS Switch 33,ACTIVE,39.43,
@@ -33,7 +33,7 @@ CSX 2121,reverse,32,BS Main East,INACTIVE,39.77,0.34
 CSX 2121,reverse,32,BS East Lead,ACTIVE,40.24,0.81
 CSX 2121,reverse,32,BS Switch 33,INACTIVE,40.74,1.31
 CSX 2121,reverse,96,BS Switch 7b,ACTIVE,10.88,
-CSX 2121,reverse,96,BS East Main Ext,INACTIVE,11.21,
+CSX 2121,reverse,96,BS East Ext,INACTIVE,11.21,
 CSX 2121,reverse,96,BS Main East,ACTIVE,11.4,
 CSX 2121,reverse,96,BS Switch 7b,INACTIVE,11.75,
 CSX 2121,reverse,96,BS Switch 33,ACTIVE,28.66,

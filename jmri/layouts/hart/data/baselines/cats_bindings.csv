@@ -47,8 +47,8 @@ Track Brick-Plane,BS Brick-Plane,M2S405,
 Track EH-1,BS EH-1,M2S1306,
 Track EH-2,BS EH-2,M2S1305,
 Track EH-3,BS EH-3,M2S1304,
+Track East Ext,BS East Ext,M2S406,
 Track East Lead,BS East Lead,M2S106,
-Track East Main Ext,BS East Main Ext,M2S406,
 Track K-1,BS K-1,M2S100,
 Track K-2,BS K-2,M2S101,
 Track K-2,BS K-2,M2S101,Mast 2035
@@ -65,5 +65,5 @@ Track S-R,BS S-R,M2S207,
 Track Scale,BS Scale,M2S407,
 Track W-1,BS W-1,M2S403,
 Track W-2,BS W-2,M2S402,
-Track West Main Ext,BS West Main Ext,M2S107,
-Track West Main Ext,BS West Main Ext,M2S107,Mast 24L
+Track West Ext,BS West Ext,M2S107,
+Track West Ext,BS West Ext,M2S107,Mast 24L

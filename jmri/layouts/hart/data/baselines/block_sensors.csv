@@ -27,9 +27,9 @@ Track Brick-Plane,BS Brick-Plane
 Track EH-1,BS EH-1
 Track EH-2,BS EH-2
 Track EH-3,BS EH-3
+Track East Ext,BS East Ext
 Track East Lead,BS East Lead
 Track East Lead East,BS East Lead
-Track East Main Ext,BS East Main Ext
 Track K-1,BS K-1
 Track K-1 West,BS K-1
 Track K-2,BS K-2
@@ -55,4 +55,4 @@ Track S-R West,BS S-R
 Track Scale,BS Scale
 Track W-1,BS W-1
 Track W-2,BS W-2
-Track West Main Ext,BS West Main Ext
+Track West Ext,BS West Ext

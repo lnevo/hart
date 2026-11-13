@@ -65,7 +65,7 @@ New `basis` values record where each length came from:
 3. **Map AnyRail blocks to HART blocks.** The `old_source` column (Yard Lead W, East Bypass and
    so on) already holds the AnyRail names.
 4. **Infer the missing blocks.** The Switch 7 crossover and the engine terminal at Switch 13 may
-   not be in the plan, and Main East and East Main Ext were `cut` by subtraction.
+   not be in the plan, and Main East and East Ext were `cut` by subtraction.
    `block_events.csv` holds 637 timed block transits for both locos at 11 steps. At one step
    the loco runs at one speed, so a block's length is its transit time multiplied by the speed
    measured on neighbouring `anyrail` blocks in the same lap. Use every step from 24 up (steady

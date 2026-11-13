@@ -111,6 +111,23 @@ class ApplyPublicNamesTest(unittest.TestCase):
             self.assertEqual("Mast 34L", sml_source.text)
             self.assertEqual("Mast 34L", sidi_signal.text)
 
+    def test_names_from_before_the_extension_rename_convert(self):
+        renames = apply_public_names.load_rename_map(MAP)
+        xml = (
+            "<userName>Track East Main Ext</userName>"
+            '<tracksegment blockname="Track West Main Ext"/>'
+            '<layoutblock occupancysensor="BS West Main Ext"><userName>Track West Main Ext</userName></layoutblock>'
+            "<sensor>BS East Main Ext</sensor>"
+        )
+        updated, _ = apply_public_names.apply_renames_to_text(xml, renames)
+        self.assertNotIn("Main Ext", updated)
+        self.assertIn("<userName>Track East Ext</userName>", updated)
+        self.assertIn('blockname="Track West Ext"', updated)
+        self.assertIn('occupancysensor="BS West Ext"', updated)
+        self.assertIn("<sensor>BS East Ext</sensor>", updated)
+        mapping = apply_public_names.load_sensor_username_map(MAP)
+        self.assertEqual("BS East Ext", mapping["BS East Main Ext"])
+
     def test_alias_does_not_rewrite_south_yard_103_comment(self):
         renames = apply_public_names.load_rename_map(MAP)
         text = "Hand-throw west of South Yard 103; occupancy Block 3-1"

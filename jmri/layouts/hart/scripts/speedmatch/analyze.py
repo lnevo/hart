@@ -32,15 +32,15 @@ MM_PER_INCH = 25.4
 
 # The test routes: (block sensor, block_lengths.csv user_name) in running order. The pairing is
 # explicit because the CSV names tracks and switches, not sensors. loop1 is the 2026-11-08 loop,
-# east from East Main Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5.
+# east from East Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5.
 # A job, its log (the CFG line) and the analysis all name the route.
 LOOP = [
-    ("BS East Main Ext", "Track East Main Ext"), ("BS Switch 7b", "OS Switch 7b"),
+    ("BS East Ext", "Track East Ext"), ("BS Switch 7b", "OS Switch 7b"),
     ("BS Main East", "Track Main East"), ("BS Switch 33", "OS Switch 33"),
     ("BS East Lead", "Track East Lead"), ("BS Switch 35a", "OS Switch 35a"),
     ("BS Switch 37 / BS McKeesport", "OS Switch 37"), ("BS K-2", "Track K-2"),
     ("BS K-1", "Track K-1"), ("BS Switch 39 / BS McKees Rocks", "OS Switch 39"),
-    ("BS Switch 35b", "OS Switch 35b"), ("BS West Main Ext", "Track West Main Ext"),
+    ("BS Switch 35b", "OS Switch 35b"), ("BS West Ext", "Track West Ext"),
     ("BS Switch 23a", "OS Switch 23a"), ("BS Main West", "Track Main West"),
     ("BS Switch 1", "OS Switch 1"), ("BS Brick-Plane", "Track Brick-Plane"),
     ("BS Switch 5", "OS Switch 5"),
@@ -53,7 +53,7 @@ LOOP2 = [
     ("BS Switch 35a", "OS Switch 35a"), ("BS Switch 37 / BS McKeesport", "OS Switch 37"),
     ("BS K-2", "Track K-2"), ("BS K-1", "Track K-1"),
     ("BS Switch 39 / BS McKees Rocks", "OS Switch 39"), ("BS Switch 35b", "OS Switch 35b"),
-    ("BS West Main Ext", "Track West Main Ext"), ("BS Switch 23a", "OS Switch 23a"),
+    ("BS West Ext", "Track West Ext"), ("BS Switch 23a", "OS Switch 23a"),
     ("BS Main West", "Track Main West"), ("BS Switch 1", "OS Switch 1"),
     ("BS Brick-Plane", "Track Brick-Plane"),
 ]
@@ -137,6 +137,16 @@ CFG_KEYS = {"k": ("k", int), "rel": ("rel", float), "max": ("max_n", int),
             "max_s": ("max_s", float)}
 
 
+def check_names(lines, source=""):
+    """Stop on a log that still uses the extension-track names from before 2026-11-13: its East and
+    West extension blocks would not match and the laps would come out short or missing."""
+    import re
+    old = re.compile(r"(East|West)[ _-]Main[ _-]Ext", re.I)
+    if any(old.search(line) for line in lines):
+        raise SystemExit("%s uses the old names East/West Main Ext; convert it first with "
+                         "speedmatch/rename_extension_tracks.py --apply" % (source or "a log"))
+
+
 def parse_log(lines, loco=None, direction=None, source=""):
     """Split runner log lines into runs: list of dicts
     {loco, direction, log, complete, cfg, lengths, steps: [{step, occurrence, events}]}.
@@ -145,6 +155,7 @@ def parse_log(lines, loco=None, direction=None, source=""):
 
     Warm-up events (between WARMUP and the first STEP) are dropped. A log without a RUN
     line (older logs) needs loco and direction given."""
+    check_names(lines, source)
     runs, run, cur, seen, active = [], None, None, {}, {}
     last_active = None
     for line in lines:
@@ -241,6 +252,7 @@ def parse_pass_log(lines, source=""):
     step, frm, to, path (the PATH line before PASS: sensors expected from frm to to, [] in older
     logs), events [(epoch, sensor)] of every ACTIVE after the PASS line, reason (from PASSDONE,
     '' if the log has none), log}. Every PASS line starts a pass."""
+    check_names(lines, source)
     passes, loco, direction, cur, active, path = [], "", "", None, {}, []
     for line in lines:
         m = _LINE.match(line.strip())

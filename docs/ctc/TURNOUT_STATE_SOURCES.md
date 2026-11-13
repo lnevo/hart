@@ -38,7 +38,7 @@ python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py --diagnose
 | Switch | Digicon close (NORMAL) | Digicon throw | Notes |
 |--------|------------------------|---------------|-------|
 | 100 | LEFT | BOTTOM (100–102) | continuing = THROWN |
-| 102 | BOTTOM (OS East Main Ext) | RIGHT (OS Scale) | |
+| 102 | BOTTOM (Track East Ext) | RIGHT (OS Scale) | |
 | 112 | LEFT (OS110 ↔ OS East Lead) | BOTTOM (OS Barn) | THROWN = OS Barn |
 | 114 | RIGHT (OS McKeesport) | BOTTOM (OS K-2) | THROWN default = OS K-2 |
 | 115 | RIGHT (OS McKees Rocks) | TOP (OS K-1) | confirmed good |

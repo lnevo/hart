@@ -82,7 +82,7 @@ share out the plan distance between those turnouts by time. Each block then rest
 lengths either side of it rather than on one scale for the whole loop. Switches 37 and 39 are
 not pinned: they sit 0.4 m and 0.2 m from the Switch 35 crossover, and pinning such short
 stretches turns a few cm of gap placement into large OS errors. Pinned and whole-loop lengths
-agree within 3 cm for most blocks; East Lead (-10 cm) and West Main Ext (+9 cm) differ most,
+agree within 3 cm for most blocks; East Lead (-10 cm) and West Ext (+9 cm) differ most,
 which is about how far an OS section's centre can sit from its turnout's centre.
 
 **The barn crossover.** The centre of the Switch 7b section comes out 4.15 m (163 in) from
@@ -92,7 +92,7 @@ track spacing from about 0.5 m to 5.7 m out of Switch 5, so a crossover fits the
 
 The basis is `inferred` in `block_lengths.csv`. The biggest changes: Main East 185 → 315 in,
 East Lead 172 → 88 in (track row; the detector also covers the 400 mm East Lead East stub),
-East Main Ext 88 → 141 in, Brick-Plane 72 → 58 in, and each OS block on the loop 10 → 9 to
+East Ext 88 → 141 in, Brick-Plane 72 → 58 in, and each OS block on the loop 10 → 9 to
 25 in.
 
 ## Not done yet

@@ -55,9 +55,9 @@ STATIONS = (
 # cluster lamps; the Stage 1 lamp on the track stays as an occupancy light.
 RETIRED_STATION_OCCUPANCY = {
     "Track Main West": "BS Main West",
-    "Track West Main Ext": "BS West Main Ext",
+    "Track West Ext": "BS West Ext",
     "Track Main East": "BS Main East",
-    "Track East Main Ext": "BS East Main Ext",
+    "Track East Ext": "BS East Ext",
     "Track Brick-Plane": "BS Brick-Plane",
     "Track S-R": "BS S-R",
     "Track S-1": "BS S-1",

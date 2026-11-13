@@ -13,9 +13,9 @@ then pinned(): the loop turnouts are on the plan too, so the timed positions are
 re-fitted piecewise so each turnout's OS centre lands on the plan's turnout centre. Each
 block then rests on the plan distance between the turnouts either side of it.
 
-Only steps from MIN_STEP up are used (steady speed, no momentum effects). East Main
+Only steps from MIN_STEP up are used (steady speed, no momentum effects). East
 Ext is the lap reference block and is missing from some laps; for those laps the
-other blocks' shares are scaled by (1 - the median East Main Ext share).
+other blocks' shares are scaled by (1 - the median East Ext share).
 
 Where a detector also covers a hidden throat stub (a separate row in
 block_lengths.csv sharing the sensor), the stub's length is taken off the track row.
@@ -45,12 +45,12 @@ MM_PER_IN = 25.4
 
 # Length of the test loop on the AnyRail plan 5.3b, staging level, along the route of
 # the 2026-11-08 runs (Switch 5 -> Switch 33 -> East Lead -> Switch 35 -> 37 -> K loop
-# -> 39 -> 35 -> West Main Ext -> 23 -> Main West -> 1 -> Brick-Plane -> 5): flex arc
+# -> 39 -> 35 -> West Ext -> 23 -> Main West -> 1 -> Brick-Plane -> 5): flex arc
 # lengths plus turnout route lengths. See docs/jmri/speedmatching/ANYRAIL_LENGTHS.md.
 # Both PLAN_ constants are printed by tools/anyrail/prototype/loop_route.py (steps in its README).
 PLAN_LOOP_MM = 35108.2
 MIN_STEP = 24
-REF_BLOCK = "East Main Ext"
+REF_BLOCK = "East Ext"
 DEFAULT_ROUTE = "loop1"
 
 # The loop's sensors and their block_lengths.csv rows come from the speed-match analysis
@@ -68,7 +68,7 @@ def route_rows(route):
 
 
 def route_ref(route):
-    """The lap reference block: loop1 keeps East Main Ext, every other route its first sensor."""
+    """The lap reference block: loop1 keeps East Ext, every other route its first sensor."""
     return REF_BLOCK if route == DEFAULT_ROUTE else next(iter(route_rows(route)))
 
 

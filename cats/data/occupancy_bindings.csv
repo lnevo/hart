@@ -1,7 +1,7 @@
 block_user_name,occupancy_sensor_user_name,cats_discipline
 Track Brick-Plane,BS Brick-Plane,CTC
 Track East Lead,BS East Lead,CTC
-Track East Main Ext,BS East Main Ext,CTC
+Track East Ext,BS East Ext,CTC
 Track Main East,BS Main East,CTC
 Track Main West,BS Main West,CTC
 Track K-1,BS K-1,CTC
@@ -31,7 +31,7 @@ OS Switch 7,BS Switch 7,CTC
 OS Switch 7b,BS Switch 7b,CTC
 OS Switch 11,BS Switch 11,CTC
 OS Switch 9,BS Switch 9,CTC
-Track West Main Ext,BS West Main Ext,CTC
+Track West Ext,BS West Ext,CTC
 Track W-1,BS W-1,YARD
 Track W-2,BS W-2,YARD
 Track Scale,BS Scale,YARD

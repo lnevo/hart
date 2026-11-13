@@ -44,7 +44,7 @@
     </sensor>
     <sensor inverted="false">
       <systemName>M2S107</systemName>
-      <userName>BS West Main Ext</userName>
+      <userName>BS West Ext</userName>
       <comment>Node: 1 Block: 8</comment>
     </sensor>
     <sensor inverted="false">
@@ -219,7 +219,7 @@
     </sensor>
     <sensor inverted="false">
       <systemName>M2S406</systemName>
-      <userName>BS East Main Ext</userName>
+      <userName>BS East Ext</userName>
       <comment>Node: 4 Block: 7</comment>
     </sensor>
     <sensor inverted="false">
@@ -3053,7 +3053,7 @@
     <sensor inverted="false">
       <systemName>ISNX:102LB</systemName>
       <userName>NX Mast 6LB</userName>
-      <comment>Plane, Track East Main Ext westbound; lever 6 Left</comment>
+      <comment>Plane, Track East Ext westbound; lever 6 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:110R</systemName>
@@ -3118,7 +3118,7 @@
     <sensor inverted="false">
       <systemName>ISNX:117LA</systemName>
       <userName>NX Mast 8LA</userName>
-      <comment>Track Barn, Track East Main Ext westbound; lever 8 Left</comment>
+      <comment>Track Barn, Track East Ext westbound; lever 8 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117LB</systemName>
@@ -3133,7 +3133,7 @@
     <sensor inverted="false">
       <systemName>ISNX:117RB</systemName>
       <userName>NX Mast 8RB</userName>
-      <comment>Track Barn, Track East Main Ext eastbound; lever 8 Right</comment>
+      <comment>Track Barn, Track East Ext eastbound; lever 8 Right</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:120L</systemName>
@@ -4140,11 +4140,11 @@
     </block>
     <block systemName="IB:AUTO:0050">
       <systemName>IB:AUTO:0050</systemName>
-      <userName>Track West Main Ext</userName>
+      <userName>Track West Ext</userName>
     </block>
     <block systemName="IB:AUTO:0051">
       <systemName>IB:AUTO:0051</systemName>
-      <userName>Track East Main Ext</userName>
+      <userName>Track East Ext</userName>
     </block>
     <block systemName="IB:AUTO:0052">
       <systemName>IB:AUTO:0052</systemName>
@@ -4851,10 +4851,10 @@
     </block>
     <block systemName="IB:AUTO:0050" length="3964.9" curve="0">
       <systemName>IB:AUTO:0050</systemName>
-      <userName>Track West Main Ext</userName>
+      <userName>Track West Ext</userName>
       <comment>Track Main West stub west of Switch 23; occupancy Block 1-8 / M2S107</comment>
       <permissive>no</permissive>
-      <occupancysensor>BS West Main Ext</occupancysensor>
+      <occupancysensor>BS West Ext</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0034">
         <beansetting setting="2">
           <turnout systemName="Switch 23" />
@@ -4868,10 +4868,10 @@
     </block>
     <block systemName="IB:AUTO:0051" length="3576.3" curve="0">
       <systemName>IB:AUTO:0051</systemName>
-      <userName>Track East Main Ext</userName>
+      <userName>Track East Ext</userName>
       <comment>Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406</comment>
       <permissive>no</permissive>
-      <occupancysensor>BS East Main Ext</occupancysensor>
+      <occupancysensor>BS East Ext</occupancysensor>
       <path todir="64" fromdir="128" block="IB6" />
       <path todir="128" fromdir="64" block="IB:AUTO:0031">
         <beansetting setting="2">
@@ -5197,13 +5197,13 @@
       <systemName>ILB72</systemName>
       <userName>Track K-2</userName>
     </layoutblock>
-    <layoutblock systemName="ILB74" occupancysensor="BS West Main Ext" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB74" occupancysensor="BS West Ext" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB74</systemName>
-      <userName>Track West Main Ext</userName>
+      <userName>Track West Ext</userName>
     </layoutblock>
-    <layoutblock systemName="ILB75" occupancysensor="BS East Main Ext" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB75" occupancysensor="BS East Ext" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB75</systemName>
-      <userName>Track East Main Ext</userName>
+      <userName>Track East Ext</userName>
     </layoutblock>
     <layoutblock systemName="ILB76" occupancysensor="BS Switch 39 / BS McKees Rocks" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB76</systemName>
@@ -10890,7 +10890,7 @@
             <sensor>BS Switch 1</sensor>
             <sensor>BS Brick-Plane</sensor>
             <sensor>BS Switch 5</sensor>
-            <sensor>BS East Main Ext</sensor>
+            <sensor>BS East Ext</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -11201,7 +11201,7 @@
           </switches>
           <OccupancyExternalSensors>
             <sensor>BS Switch 7b</sensor>
-            <sensor>BS East Main Ext</sensor>
+            <sensor>BS East Ext</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -11547,7 +11547,7 @@
           </switches>
           <OccupancyExternalSensors>
             <sensor>BS Switch 23a</sensor>
-            <sensor>BS West Main Ext</sensor>
+            <sensor>BS West Ext</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -11642,7 +11642,7 @@
           </switches>
           <OccupancyExternalSensors>
             <sensor>BS Switch 23a</sensor>
-            <sensor>BS West Main Ext</sensor>
+            <sensor>BS West Ext</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -12022,7 +12022,7 @@
           </switches>
           <OccupancyExternalSensors>
             <sensor>BS Switch 35b</sensor>
-            <sensor>BS West Main Ext</sensor>
+            <sensor>BS West Ext</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -12358,7 +12358,7 @@
           <OccupancyExternalSensors>
             <sensor>BS Switch 39 / BS McKees Rocks</sensor>
             <sensor>BS Switch 35b</sensor>
-            <sensor>BS West Main Ext</sensor>
+            <sensor>BS West Ext</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -12405,7 +12405,7 @@
           <OccupancyExternalSensors>
             <sensor>BS Switch 39 / BS McKees Rocks</sensor>
             <sensor>BS Switch 35b</sensor>
-            <sensor>BS West Main Ext</sensor>
+            <sensor>BS West Ext</sensor>
           </OccupancyExternalSensors>
           <OptionalExternalSensors />
         </TRL_TrafficLockingRule>
@@ -14454,8 +14454,8 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS East Main Ext" x="239" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>Track East Main Ext</tooltip>
+    <sensoricon sensor="BS East Ext" x="239" y="136" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>Track East Ext</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -14486,8 +14486,8 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS West Main Ext" x="953" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
-      <tooltip>Track West Main Ext</tooltip>
+    <sensoricon sensor="BS West Ext" x="953" y="94" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+      <tooltip>Track West Ext</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -16208,7 +16208,7 @@
     <positionablelabel x="765" y="88" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="Main West" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
-    <positionablelabel x="996" y="88" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="West Main Ext" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
+    <positionablelabel x="996" y="88" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="West Ext" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
       <tooltip>Text Label</tooltip>
     </positionablelabel>
     <positionablelabel x="1206" y="67" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="K-1" fontFamily="Dialog" fontname="Dialog" size="8" style="1" red="220" green="220" blue="180" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml">
@@ -20068,7 +20068,7 @@
     </sensoricon>
     <BlockContentsIcon blockcontents="Track Scale" x="420" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-3 West" x="904" y="440" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS East Main Ext" x="413" y="358" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS East Ext" x="413" y="358" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20083,7 +20083,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <BlockContentsIcon blockcontents="Track East Main Ext" x="407" y="343" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track East Ext" x="407" y="343" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track McKeesport" x="1644" y="295" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <sensoricon sensor="BS Switch 15" x="674" y="310" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
@@ -20117,7 +20117,7 @@
       <iconmaps />
     </sensoricon>
     <BlockContentsIcon blockcontents="OS Switch 17" x="738" y="346" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <sensoricon sensor="BS West Main Ext" x="1374" y="247" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS West Ext" x="1374" y="247" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -20132,7 +20132,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <BlockContentsIcon blockcontents="Track West Main Ext" x="1369" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track West Ext" x="1369" y="232" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <sensoricon sensor="BS Switch 11" x="628" y="284" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
@@ -20509,7 +20509,7 @@
       <signalBMast>Mast 12R</signalBMast>
     </layoutturnout>
     <tracksegment ident="T6" blockname="Track Barn" connect1name="TO117" type1="TURNOUT_B" connect2name="TO1" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T8" blockname="Track East Main Ext" connect1name="TO117" type1="TURNOUT_D" connect2name="TOL42" type2="TURNOUT_B" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T8" blockname="Track East Ext" connect1name="TO117" type1="TURNOUT_D" connect2name="TOL42" type2="TURNOUT_B" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F25-S-0" blockname="Track Main East" connect1name="A13" type1="POS_POINT" connect2name="A69" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL3" blockname="Track Main West" connect1name="TOL3" type1="TURNOUT_A" connect2name="A59" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL3" blockname="OS Switch 1" connect1name="TOL3" type1="TURNOUT_B" connect2name="A29" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -20533,7 +20533,7 @@
     <tracksegment ident="T-EL-TOL15" blockname="Track S-1 West" connect1name="TOL15" type1="TURNOUT_C" connect2name="A53" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F56-S-0" blockname="Track K-1" connect1name="A48" type1="POS_POINT" connect2name="A58" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="90.0" hideConLines="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F22-S-0" blockname="Track East Lead" connect1name="A20" type1="POS_POINT" connect2name="A56" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="F41-S-0" blockname="Track West Main Ext" connect1name="A7" type1="POS_POINT" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="F41-S-0" blockname="Track West Ext" connect1name="A7" type1="POS_POINT" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL23" blockname="Track East Lead" connect1name="TOL23" type1="TURNOUT_A" connect2name="A20" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOL23" blockname="OS Switch 31" connect1name="TOL23" type1="TURNOUT_B" connect2name="A35" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOL23" blockname="Track Main East" connect1name="TOL23" type1="TURNOUT_C" connect2name="A47" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -20554,7 +20554,7 @@
     <tracksegment ident="F26-S-0" blockname="Track Main East" connect1name="A3" type1="POS_POINT" connect2name="A23" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F28-S-0" blockname="OS Switch 31" connect1name="A35" type1="POS_POINT" connect2name="A27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOL1" blockname="OS Switch 35b" connect1name="TO113" type1="TURNOUT_B" connect2name="A51" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-ER-TOL1" blockname="Track West Main Ext" connect1name="TO113" type1="TURNOUT_A" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-ER-TOL1" blockname="Track West Ext" connect1name="TO113" type1="TURNOUT_A" connect2name="A63" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-I-TOR9" blockname="OS Switch 27" connect1name="TOR9" type1="TURNOUT_A" connect2name="A43" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-EL-TOR9" blockname="OS Switch 25" connect1name="TOR9" type1="TURNOUT_B" connect2name="A5" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="T-ER-TOR9" blockname="Track S-2 East" connect1name="TOR9" type1="TURNOUT_C" connect2name="A36" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -20577,7 +20577,7 @@
       </controlpoints>
     </tracksegment>
     <tracksegment ident="T-I-TOR31" blockname="Track Main West" connect1name="TO111" type1="TURNOUT_A" connect2name="A34" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="T-EL-TOR31" blockname="Track West Main Ext" connect1name="TO111" type1="TURNOUT_B" connect2name="A7" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="T-EL-TOR31" blockname="Track West Ext" connect1name="TO111" type1="TURNOUT_B" connect2name="A7" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F57-S-0" blockname="Track McKeesport" connect1name="EB72" type1="POS_POINT" connect2name="A55" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F62-S-0" blockname="Track Brick-Plane" connect1name="A65" type1="POS_POINT" connect2name="A60" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="F40-S-0" blockname="OS Switch 1" connect1name="A29" type1="POS_POINT" connect2name="A33" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />

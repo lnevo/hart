@@ -76,7 +76,7 @@ class StateMachineTests(unittest.TestCase):
     def head(self):
         return [L(0, "RUN loco=2121 direction=forward"),
                 L(1, "CFG route=loop1 mode=distance steps=8,12 target_mm=600 min_blocks=2 warm_s=30"),
-                L(1, 'LENGTHS {"BS East Main Ext": 1000, "BS Switch 7b": 200}')]
+                L(1, 'LENGTHS {"BS East Ext": 1000, "BS Switch 7b": 200}')]
 
     def test_warmup_settle_measure_stepdone(self):
         r = feed(st.Run("steprun_a.log"), self.head() + [L(2, "WARMUP 64 secs=30")])
@@ -86,10 +86,10 @@ class StateMachineTests(unittest.TestCase):
         feed(r, [L(32, "WARMUP_DONE"), L(33, "STEP 8"), L(33, "SETTLE 8 secs=6")])
         self.assertEqual(r.status, "settling")
         self.assertAlmostEqual(r.to_dict(T + 35)["settle_left"], 4.0)
-        feed(r, [L(39, "MEASURE 8 from=BS_East_Main_Ext"), L(40, "SENS BS East Main Ext ACTIVE")])
+        feed(r, [L(39, "MEASURE 8 from=BS_East_Ext"), L(40, "SENS BS East Ext ACTIVE")])
         self.assertEqual(r.status, "measuring")
-        self.assertEqual(r.active, "BS East Main Ext")
-        feed(r, [L(60, "BLOCK 8 block=BS_East_Main_Ext mm=1000 dt=20 mm_s=50"),
+        self.assertEqual(r.active, "BS East Ext")
+        feed(r, [L(60, "BLOCK 8 block=BS_East_Ext mm=1000 dt=20 mm_s=50"),
                  L(64, "BLOCK 8 block=BS_Switch_7b mm=200 dt=4 mm_s=50"),
                  L(65, "STEPDONE 8 reason=settled n=2 mm=1200 s=24 mm_s=50 relsd=0.0")])
         self.assertEqual(r.done[8]["mm_s"], 50)
@@ -97,7 +97,7 @@ class StateMachineTests(unittest.TestCase):
         self.assertEqual(d["curve"], [{"step": 8, "mm_s": 50}])
         self.assertEqual(d["done_steps"], 1)
         crossed = {b["sensor"]: b["mm_s"] for b in d["blocks"] if b["mm_s"] is not None}
-        self.assertEqual(crossed, {"BS East Main Ext": 50, "BS Switch 7b": 50})
+        self.assertEqual(crossed, {"BS East Ext": 50, "BS Switch 7b": 50})
         self.assertAlmostEqual(d["speed_mph"], 50 * 3.6 * 87 / 1609.34)
 
     def test_old_mode_read_and_median(self):

@@ -79,7 +79,7 @@ class Guards(unittest.TestCase):
 
     def test_loop2_guards_loop1_only_sensors(self):
         g = make_job.guard_for("loop2")
-        for n in ("BS Main East", "BS East Main Ext", "BS Switch 7b", "BS S-1"):
+        for n in ("BS Main East", "BS East Ext", "BS Switch 7b", "BS S-1"):
             self.assertIn(n, g)
         for n in ("BS S-R", "BS Scale", "BS Barn", "BS Switch 13", "BS Switch 33"):
             self.assertNotIn(n, g)
@@ -148,7 +148,7 @@ class Lineup(unittest.TestCase):
 
     def test_loop1_legs(self):
         lu = dict(analyze.ROUTE_LINEUP["loop1"])
-        self.assertEqual(self.leg("loop1", 5, lu[5]), ["Track East Main Ext"])
+        self.assertEqual(self.leg("loop1", 5, lu[5]), ["Track East Ext"])
         self.assertIn("Track Brick-Plane", self.leg("loop1", 1, lu[1]))
         self.assertIn("Track Main East", self.leg("loop1", 33, lu[33]))
         self.assertIn("Track K-2", self.leg("loop1", 37, lu[37]))
