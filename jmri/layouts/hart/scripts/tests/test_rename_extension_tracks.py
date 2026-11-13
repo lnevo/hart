@@ -31,6 +31,17 @@ class RenameTest(unittest.TestCase):
         self.assertIn('"BS East Ext": 1000', new)
         self.assertIn("row,Track East Ext,Main East Bypass", new)
 
+    def test_case_style_is_kept(self):
+        self.assertEqual(ren.rename("west_main_ext,EAST MAIN EXT,East-Main-Ext"),
+                         ("west_ext,EAST EXT,East-Ext", 3))
+
+    def test_legacy_composite_names_are_left_alone(self):
+        text = "Plane East East Main Ext | West Yard West East Main Ext | Plane_East_East_Main_Ext"
+        self.assertEqual(ren.rename(text), (text, 0))
+
+    def test_names_inside_longer_ids_still_change(self):
+        self.assertEqual(ren.rename("MoveToTrack_East_Main_Ext_stored"), ("MoveToTrack_East_Ext_stored", 1))
+
     def test_other_names_are_left_alone(self):
         text = "BS Main East, Track Main West, East Lead, Track East Lead\n"
         self.assertEqual(ren.rename(text), (text, 0))

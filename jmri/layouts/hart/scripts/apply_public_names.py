@@ -105,6 +105,8 @@ def _dispatcher_os_sensor_renames() -> tuple[tuple[str, str], ...]:
         ("OS_S-2", "Track_S-2"),
         ("OS_S-3", "Track_S-3"),
         ("OS_S-4", "Track_S-4"),
+        ("Track_East_Main_Ext", "Track_East_Ext"),     # 2026-11-13 rename: end the old chains at the new names
+        ("Track_West_Main_Ext", "Track_West_Ext"),
     ):
         pairs.append((f"MoveTo{old}_stored", f"MoveTo{new}_stored"))
         pairs.append((f"MoveInProgress{old}", f"MoveInProgress{new}"))

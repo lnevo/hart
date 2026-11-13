@@ -293,7 +293,7 @@ def build_transits_xml() -> str:
 
 def write_traininfo() -> Path:
     TRAININFO_DIR.mkdir(parents=True, exist_ok=True)
-    path = TRAININFO_DIR / "2091_WME_to_Track McKeesport.xml"
+    path = TRAININFO_DIR / "2091_West_Ext_to_Track McKeesport.xml"
     blocks = {
         "Track West Ext": "IB:AUTO:0050",
         "Track K-2": "IB:AUTO:0048",

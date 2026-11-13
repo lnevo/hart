@@ -20,12 +20,17 @@ import re
 import sys
 from pathlib import Path
 
-OLD = re.compile(r"(East|West)([ _-])Main\2Ext", re.IGNORECASE)
+# "Main" is dropped and the rest is kept as written, so every case style survives
+# (west_main_ext -> west_ext, EAST MAIN EXT -> EAST EXT). The legacy composite names
+# "Plane East East Main Ext" and "West Yard West East Main Ext" are a different thing
+# and stay as they are: a name preceded by East or West is not touched.
+OLD = re.compile(r"(?<![A-Za-z])(?<!East[ _-])(?<!West[ _-])(East|West)([ _-])Main\2(Ext)(?![A-Za-z])",
+                 re.IGNORECASE)
 
 
 def rename(text: str) -> tuple[str, int]:
     """(text with the new names, how many names changed)."""
-    return OLD.subn(lambda m: m.group(1) + m.group(2) + "Ext", text)
+    return OLD.subn(lambda m: m.group(1) + m.group(2) + m.group(3), text)
 
 
 def convert_file(path: Path, apply: bool = False) -> int:

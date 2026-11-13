@@ -19,7 +19,7 @@ from hartlib import paths  # noqa: E402
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
 
-RULE_111_EAST_WME = """        <TRL_TrafficLockingRule>
+RULE_111_EAST_WEST_EXT = """        <TRL_TrafficLockingRule>
           <UserRuleNumber> Rule #:2</UserRuleNumber>
           <RuleEnabled>Enabled</RuleEnabled>
           <DestinationSignalOrComment>Mast 36RA</DestinationSignalOrComment>
@@ -159,7 +159,7 @@ def main():
     if "Mast 36RA" in col.split("<TRL_RightRules>")[-1]:
         notes.append("Switch 23 eastbound Switch 35b rule already present")
     else:
-        col = col.replace("</TRL_RightRules>", RULE_111_EAST_WME + "      </TRL_RightRules>", 1)
+        col = col.replace("</TRL_RightRules>", RULE_111_EAST_WEST_EXT + "      </TRL_RightRules>", 1)
         notes.append("Switch 23 added RIGHT dest Mast 36RA (OS Main West → West Ext)")
         text = text[:s] + col + text[e:]
 

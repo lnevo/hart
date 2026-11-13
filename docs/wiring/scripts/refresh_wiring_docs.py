@@ -125,8 +125,10 @@ def walk_replace(ws: Worksheet, replacements: list[tuple[str, str]]) -> int:
 
 
 # 2026-11-13: East Main Ext / West Main Ext became East Ext / West Ext. The imported
-# workbooks are historical and keep the old names, so the outputs get the new ones here.
-_EXT_TRACK_OLD = re.compile(r"(East|West)([ _-])Main\2Ext", re.I)
+# workbooks are historical and keep the old names, so the outputs get the new ones here,
+# by the same rule the speed-match logs use.
+sys.path.insert(0, str(ROOT / "jmri/layouts/hart/scripts/speedmatch"))
+from rename_extension_tracks import rename as _rename_ext  # noqa: E402
 
 
 def rename_extension_tracks(wb) -> int:
@@ -135,9 +137,11 @@ def rename_extension_tracks(wb) -> int:
         for row in ws.iter_rows():
             for cell in row:
                 v = cell.value
-                if isinstance(v, str) and _EXT_TRACK_OLD.search(v):
-                    cell.value = _EXT_TRACK_OLD.sub(lambda m: m.group(1) + m.group(2) + "Ext", v)
-                    n += 1
+                if isinstance(v, str):
+                    new, k = _rename_ext(v)
+                    if k:
+                        cell.value = new
+                        n += 1
     return n
 
 
