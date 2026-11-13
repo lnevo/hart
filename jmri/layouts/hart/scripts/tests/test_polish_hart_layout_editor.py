@@ -139,7 +139,6 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
         ]
         self.assertEqual([("1010", "376")], kept)
 
-
     def test_stage1_lamps_move_off_switch_9_but_cluster_lamps_stay(self):
         xml = """<layout-config><LayoutEditor name="HART Railroad">
             <sensoricon sensor="BS EH-1" x="658" y="256" level="12" />
@@ -147,13 +146,14 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             <sensoricon sensor="BS EH-2" x="604" y="287" level="10" />
             <sensoricon sensor="BS EH-3" x="603" y="299" level="10" />
             <sensoricon sensor="BS Switch 9" x="600" y="299" level="10" />
+            <sensoricon sensor="BS Switch 35a" x="1523" y="325" />
         </LayoutEditor></layout-config>"""
         le = ET.fromstring(xml).find("LayoutEditor")
         assert le is not None
         _, errors = polish.place_stage1_lamps(le, check=True)
-        self.assertEqual(3, len(errors))
+        self.assertEqual(4, len(errors))
         changes, errors = polish.place_stage1_lamps(le, check=False)
-        self.assertEqual((3, []), (changes, errors))
+        self.assertEqual((4, []), (changes, errors))
         placed = [
             (i.get("sensor"), i.get("x"), i.get("y"), i.get("level"))
             for i in le.findall("sensoricon")
@@ -165,6 +165,7 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
                 ("BS EH-2", "576", "272", "10"),
                 ("BS EH-3", "576", "284", "10"),
                 ("BS Switch 9", "600", "299", "10"),
+                ("BS Switch 35a", "1499", "287", None),
             ],
             placed,
         )

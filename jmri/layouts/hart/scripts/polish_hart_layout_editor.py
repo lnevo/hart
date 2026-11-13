@@ -84,13 +84,15 @@ OS_OCCUPANCY_ICONS = {
     "BS Switch 7": (495, 349),
     "BS Switch 9": (600, 299),
     "BS Switch 35b": (1568, 262),
-    "BS Switch 35a": (1523, 325),
+    "BS Switch 35a": (1499, 287),
 }
 # Stage 1 (CreateIcons) occupancy lamps that land on a turnout circle or
-# another lamp. Only the level-10 Stage 1 copy moves; the level-12 lamps in the
-# Dispatcher station clusters belong to reconcile_dispatcher_stations.py.
-# Engine house: one lamp at the bumper (west) end of each spur, centred on it.
-STAGE1_LAMP_LEVEL = "10"
+# another lamp. Positions are the top-left of the 10x10 circuit GIF. The
+# level-12 lamps in the Dispatcher station clusters belong to
+# reconcile_dispatcher_stations.py and are left alone.
+# Engine house: one lamp just east of each bumper (x=573), centred vertically
+# on its spur (y 266 / 277 / 289), clear of the Switch 9 and 11 circles.
+CLUSTER_LAMP_LEVEL = "12"
 STAGE1_LAMP_PLACEMENTS = {
     "BS Switch 35a": (1499, 287),
     "BS EH-1": (576, 261),
@@ -295,12 +297,12 @@ def ensure_os_occupancy_icons(le: ET.Element, *, check: bool) -> tuple[int, list
 
 
 def place_stage1_lamps(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
-    """Move Stage 1 occupancy lamps (level 10) off turnout circles and other icons."""
+    """Move Stage 1 occupancy lamps off turnout circles and other icons."""
     changes = 0
     errors: list[str] = []
     for icon in le.findall("sensoricon"):
         name = (icon.get("sensor") or "").strip()
-        if name not in STAGE1_LAMP_PLACEMENTS or icon.get("level") != STAGE1_LAMP_LEVEL:
+        if name not in STAGE1_LAMP_PLACEMENTS or icon.get("level") == CLUSTER_LAMP_LEVEL:
             continue
         x, y = STAGE1_LAMP_PLACEMENTS[name]
         if icon.get("x") == str(x) and icon.get("y") == str(y):
@@ -601,10 +603,16 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
 
 
 def apply_block_labels_only(path: Path, *, check: bool) -> tuple[int, list[str]]:
-    """Lift BlockContentsIcons to level 4. Stage 1 Store resets them to 0."""
+    """Lift BlockContentsIcons to level 4 and move Stage 1 lamps off turnouts.
+
+    A Stage 1 Store resets both, so the deploy and Stage 1 wrapper run this.
+    """
     tree = ET.parse(path)
     le = find_layout_editor(tree.getroot())
     changes, errors = ensure_block_contents_visible(le, check=check)
+    lamp_n, lamp_errors = place_stage1_lamps(le, check=check)
+    changes += lamp_n
+    errors.extend(f"{path.name}: {e}" for e in lamp_errors)
     if check or not changes:
         return changes, errors
     tree.write(path, encoding="UTF-8", xml_declaration=True)
@@ -623,7 +631,7 @@ def main() -> int:
     ap.add_argument(
         "--block-labels-only",
         action="store_true",
-        help="Only restore BlockContentsIcon level/color (safe after Stage 1 Store).",
+        help="Only restore BlockContentsIcon level/color and Stage 1 lamp spots (safe after Stage 1 Store).",
     )
     ap.add_argument(
         "--overlap-cleanup",
