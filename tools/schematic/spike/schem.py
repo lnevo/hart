@@ -1277,6 +1277,7 @@ def draw_page(bands, opts, out):
         side = opts.get("band_align", {}).get((title or " ").split()[0], "centre")
         room = total_w - 120 - w
         left = 40 + {"left": 0, "right": room}.get(side, room / 2)
+        left += opts.get("band_shift", {}).get((title or " ").split()[0], 0)      # owner's nudge, in drawing units
         part, _, _ = draw_band(band, title, o, y, left)
         body += part
         y += h + gap
