@@ -53,6 +53,26 @@
     return null;
   }
 
+  // Search button and its panel; js/search.js fills the results when the panel first opens.
+  function searchHtml() {
+    return (
+      '<div class="site-search">' +
+      '<button type="button" class="search-toggle" aria-expanded="false" aria-controls="site-search-panel" aria-label="Search">' +
+      '<svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' +
+      '<circle cx="10.5" cy="10.5" r="5.5"/><path d="M15 15l5 5"/></svg></button>' +
+      '<div class="search-panel" id="site-search-panel" hidden>' +
+      '<input type="text" class="search-input" role="combobox" aria-label="Search the site" ' +
+      'aria-expanded="false" aria-controls="site-search-results" aria-autocomplete="list" ' +
+      'autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Search the site">' +
+      '<p class="search-hint small muted">Type to search pages. Press / anywhere to start.</p>' +
+      '<p class="search-empty small" hidden></p>' +
+      '<ul class="search-results" id="site-search-results" role="listbox" aria-label="Search results"></ul>' +
+      '<button type="button" class="search-more" hidden></button>' +
+      '<div class="search-status" role="status" aria-live="polite"></div>' +
+      "</div></div>"
+    );
+  }
+
   function headerHtml(site, pageId) {
     var b = base();
     var section = sectionFor(site, pageId);
@@ -75,6 +95,7 @@
       '<a class="brand" href="' +
       b +
       'index.html">HART<span>Railroad · Neville Island</span></a>' +
+      searchHtml() +
       '<nav class="nav" aria-label="Primary">' +
       '<button type="button" class="nav-toggle" aria-expanded="false" aria-controls="site-menu" aria-label="Menu">' +
         '<svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' +
@@ -115,6 +136,78 @@
     });
     btn.parentNode.addEventListener("focusout", function (e) {
       if (!panel.hidden && e.relatedTarget && !btn.parentNode.contains(e.relatedTarget)) setOpen(false);
+    });
+  }
+
+  // Search drop-down. Closes like the menu: Escape (focus back to the button) and a click outside.
+  // js/search.js is fetched on first open, and "/" opens the panel when no field has focus.
+  var searchLoad = null;
+  function mountSearch(header) {
+    var btn = header.querySelector(".search-toggle");
+    var wrap = header.querySelector(".site-search");
+    var panel = header.querySelector(".search-panel");
+    var input = header.querySelector(".search-input");
+    var menuBtn = header.querySelector(".nav-toggle");
+    var menu = header.querySelector(".nav-panel");
+    if (!btn || !panel || !input) return;
+    function load() {
+      if (searchLoad) return;
+      searchLoad = new Promise(function (resolve, reject) {
+        if (window.HARTSearch && window.HARTSearch.attach) return resolve();
+        var s = document.createElement("script");
+        s.src = base() + "js/search.js";
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      }).then(
+        function () {
+          window.HARTSearch.attach(panel, base());
+        },
+        function () {
+          console.warn("Search unavailable: js/search.js did not load");
+          input.disabled = true;
+          panel.querySelector(".search-hint").textContent = "Search unavailable";
+        }
+      );
+    }
+    function setOpen(open) {
+      panel.hidden = !open;
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      if (!open) return;
+      // One drop-down at a time.
+      if (menu && !menu.hidden) {
+        menu.hidden = true;
+        menuBtn.setAttribute("aria-expanded", "false");
+      }
+      load();
+      input.focus();
+    }
+    btn.addEventListener("click", function () {
+      setOpen(panel.hidden);
+    });
+    if (menuBtn) {
+      menuBtn.addEventListener("click", function () {
+        if (!panel.hidden) setOpen(false);
+      });
+    }
+    document.addEventListener("click", function (e) {
+      if (!panel.hidden && !wrap.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !panel.hidden) {
+        setOpen(false);
+        btn.focus();
+        return;
+      }
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      var t = e.target;
+      var tag = t && t.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return;
+      e.preventDefault();
+      setOpen(true);
+    });
+    wrap.addEventListener("focusout", function (e) {
+      if (!panel.hidden && e.relatedTarget && !wrap.contains(e.relatedTarget)) setOpen(false);
     });
   }
 
@@ -287,6 +380,7 @@
     if (header) {
       header.innerHTML = headerHtml(site, pageId);
       mountMenu(header);
+      mountSearch(header);
     }
     mountSkipTarget();
     mountCrumb(site, pageId);
