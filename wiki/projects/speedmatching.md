@@ -25,36 +25,28 @@ so the first write needs `ROSTER_OLD_OK = True`. 2738 is a TCS motor-only decode
 `--mute-sound` is for 2121 only. The McKees stub detectors are not on a node yet, so they
 cannot be guarded.
 
-None of the Jython in `speedmatch/jython/` has run in JMRI yet; the first pass is its first run.
-Distance mode and the pass job (2026-11-13) were added so the whole layout procedure takes about
-40 minutes; the runners also run in a simulation in the tests.
+None of the Jython in `speedmatch/jython/` has run in JMRI yet; the shakedown is its first run.
 
-Steps left, in order (PanelPro running on the Pi, owner not operating, only the test loco moves).
-Steps 1 to 4 are the 40-minute procedure in the [`RUNBOOK`](../../docs/jmri/speedmatching/RUNBOOK.md):
+Steps left, in order (PanelPro running on the Pi, owner not operating, only the test loco moves):
 
-1. **Break the 2121/2738 LCC consist** (`cs105_consist.py` detach), line up loop 1 and build the
-   jobs (5 min). While the consist stands, commands to 2121 also move 2738.
-2. **Profiles on loop 1, distance mode** (`make_job.py steps --mode distance --guard default`;
-   steps 8, 16, 24, 32, 48, 64, 96, 126): 2121 forward with a 60 s warm-up (about 6 min; its first
-   two steps are the shakedown, watch the log live), 2121 reverse (5), 2738 forward with a 60 s
-   warm-up after the swap (9), 2738 reverse (6).
-3. **Switch 13 on loop 2** (8 min): line up loop 2, then two passes from Switch 5 to Switch 15 at
-   steps 24 and 48 (`make_job.py pass`), then
-   `infer_block_lengths.py --route loop2 --locate --pass-log <logs>`: places Switch 13 and the
-   Scale-side half of Switch 7 between Switches 5 and 15, reports both passes and their
-   difference.
-4. **Fetch and analyse** (1 min, `analyze.py`); the owner picks the pairing and tolerance. The lap
-   survey on loop 2 (`--route loop2`, steps 32, 48, 64) stays available for the lengths of Scale,
-   Barn, S-R, OS 23b and OS 31.
-5. **Correct 2738's table**: `correct.py` proposal, guard dry run, then apply with
+1. **Break the 2121/2738 LCC consist** (`cs105_consist.py` detach). While it stands, commands
+   to 2121 also move 2738.
+2. **Shakedown on loop 1** with 2121: one step, no warm-up, `--guard default`; switches lined
+   by hand (`make_job.py lineup --route loop1`). Check the log, sensor order and the stop.
+3. **Profiles on loop 1**: 2121 forward and reverse, 2738 forward and reverse.
+4. **Loop 2 survey** (`--route loop2`, steps 32, 48, 64, three laps each), then
+   `infer_block_lengths.py --route loop2 --locate`: places Switch 13 and the Scale-side half
+   of Switch 7 between Switches 5 and 15, and gives Scale, Barn, S-R, OS 23b and OS 31.
+5. **Analyse** (`analyze.py`), and the owner picks the pairing and tolerance.
+6. **Correct 2738's table**: `correct.py` proposal, guard dry run, then apply with
    `ROSTER_OLD_OK`, `CONSISTS_BROKEN` and an `ABSENT_OK` list built from a consist query.
    Re-measure and repeat until within tolerance.
-6. **Remake the consist** and run the stop test at steps 32 and 96.
-7. **Write the measured profiles** into both roster entries on the Pi (`make_job.py profile`),
+7. **Remake the consist** and run the stop test at steps 32 and 96.
+8. **Write the measured profiles** into both roster entries on the Pi (`make_job.py profile`),
    then sync the roster to the Mac and Windows.
-8. **Read back** both decoders on the programming track, update the roster, archive the guard
+9. **Read back** both decoders on the programming track, update the roster, archive the guard
    ledger (`pom_guard.py archive-ledger`).
-9. **Record** the results in a dated folder next to `profile-2026-11-08/`, and update this
+10. **Record** the results in a dated folder next to `profile-2026-11-08/`, and update this
     page and `wiki/STATUS.md`.
 
 ## First measurements (2026-11-08)
