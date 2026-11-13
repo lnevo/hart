@@ -35,7 +35,7 @@ class SL(java.beans.PropertyChangeListener):
         st = e.getNewValue(); L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st)))
         if self.n in GUARD and st == 2: why[0] = "guard " + self.n; ab.set()
 def run():
-    t = None
+    t = None; tl = None
     try:
         if os.path.exists("/tmp/speedrun.active"): why[0] = "another runner is active"; return
         a = open("/tmp/speedrun.active", "w"); a.write(LOGF); a.close(); own[0] = True
@@ -67,7 +67,13 @@ def run():
     except Exception, e: L("ERROR %s" % e)
     finally:
         L("STOP " + why[0])
-        if t is not None: t.setSpeedSetting(0.0); L("speed 0")
+        if t is not None:
+            t.setSpeedSetting(0.0); L("speed 0")           # 1. stop with its own throttle
+            for fn in FUNCS:                               # 2. every function off
+                try: getattr(t, "setF%d" % fn)(False); L("F%d off" % fn)
+                except Exception, e: L("F%d off failed %s" % (fn, e))
+            try: t.release(tl); L("throttle released")     # 3. give the throttle back
+            except Exception, e: L("release failed %s" % e)
         for s, l in reg: s.removePropertyChangeListener(l)
         if own[0]:
             try: os.remove("/tmp/speedrun.active")

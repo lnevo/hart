@@ -29,7 +29,7 @@ class Settings(unittest.TestCase):
     def lengths_csv(self):
         d = Path(tempfile.mkdtemp())
         p = d / "bl.csv"
-        p.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,assigned,\n")
+        p.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
         return d, p
 
     def test_owner_settings_beat_the_liverule_defaults(self):
@@ -70,7 +70,7 @@ class Stall(unittest.TestCase):
         src = (SM / "jython" / "step_runner.py").read_text()
         self.assertIn("stall_action(st, STALL_SKIP_BELOW)", src)
         self.assertIn("next_stall(STALL0, STALL_CAP, interval)", src)
-        self.assertIn('reason == "settled" and readings', src)
+        self.assertIn('reason == "settled" and frozen', src)
 
 
 class Logs(unittest.TestCase):
@@ -267,9 +267,11 @@ class SecondReview(unittest.TestCase):
         p = self.write_csv(["user_name", "occupancy_sensor", "inches", "flag", "old_source"],
                            [["Track Main West", "x", "220", "assigned", ""],
                             ["Track East Lead", "x", "172", "anyrail", ""]])
-        both = analyze.load_lengths(p)
+        default = analyze.load_lengths(p)
+        self.assertIsNone(default["BS Main West"])  # assigned only when passed
+        self.assertIsNotNone(default["BS East Lead"])
+        both = analyze.load_lengths(p, trusted=("anyrail", "assigned"))
         self.assertIsNotNone(both["BS Main West"])
-        self.assertIsNotNone(both["BS East Lead"])
         only = analyze.load_lengths(p, trusted=("anyrail",))
         self.assertIsNone(only["BS Main West"])
         self.assertIsNotNone(only["BS East Lead"])
@@ -285,6 +287,160 @@ class SecondReview(unittest.TestCase):
         self.assertAlmostEqual(got["BS East Lead"], 182 * 25.4)
         self.assertAlmostEqual(got["BS Main West"], 220 * 25.4)  # a bad stub length is ignored
         self.assertIsNone(got["BS K-1"])  # a stub does not make an untrusted track trusted
+
+
+def steady_log(run_header, cfg="", n=8, dt=10.0, t0=3.0, complete=True, sensors=None):
+    """A runner log with one step of steady one-block readings (1000 mm each)."""
+    sensors = sensors or analyze.ORDER
+    lines = [run_header] + ([cfg] if cfg else []) + ["%.1f STEP 24" % (t0 - 1)]
+    t = t0
+    for i in range(n):
+        lines.append("%.1f SENS %s ACTIVE" % (t, sensors[i % len(sensors)]))
+        t += dt
+    if complete:
+        lines.append("%.1f STOP all steps complete" % t)
+    return lines
+
+
+LENGTHS_1000 = {s: 1000.0 for s in analyze.ORDER}
+
+
+class Round3(unittest.TestCase):
+    def test_csv_lengths_swap_only_the_lengths(self):
+        lines = steady_log("1.0 RUN loco=L direction=forward",
+                           "1.1 CFG k=3 rel=0.2000 max=4 settle=0 low_max=48 high_span=3 warm=3@64")
+        run = analyze.parse_log(lines)[0]
+        run["lengths"] = dict(LENGTHS_1000)
+        csv_len = {s: 2000.0 for s in LENGTHS_1000}
+        row = analyze.summarize_runs([run], csv_len, k=5, rel=0.0001, csv_lengths=True)[0]["rows"][0]
+        self.assertEqual(row["reason"], "settled")        # k=3, 20% from the log's CFG
+        self.assertAlmostEqual(row["median"], 200.0)      # 2000 mm / 10 s from the CSV lengths
+        logged = analyze.summarize_runs([run], csv_len)[0]["rows"][0]
+        self.assertAlmostEqual(logged["median"], 100.0)
+
+    def test_default_trusted_set_is_anyrail_and_inferred_everywhere(self):
+        self.assertEqual(analyze.DEFAULT_TRUSTED, ("anyrail", "inferred"))
+        d = Path(tempfile.mkdtemp())
+        p = d / "bl.csv"
+        p.write_text("user_name,occupancy_sensor,inches,basis,flag\nTrack Main West,x,220,assigned,assigned\n")
+        self.assertIsNone(analyze.load_lengths(p)["BS Main West"])
+        self.assertIsNotNone(analyze.load_lengths(p, trusted=("assigned",))["BS Main West"])
+
+    # ---- correction ----
+    flat = {s: 100.0 for s in range(0, 127, 6)}
+
+    def test_a_cut_never_raises_an_entry(self):
+        table = [0, 1] + [100] * 26
+        meas = dict(self.flat)
+        meas[4.5] = 200.0   # entry 1 (old 0) and nearby run fast
+        meas[9.0] = 200.0   # entry 2 (old 1) runs fast
+        rep = correct.propose(table, meas, self.flat)
+        self.assertEqual(rep["values"][0], 0)
+        self.assertEqual(rep["values"][1], 1)
+        writes = {w["cv"] for w in correct.proposal("X", rep, 1, 5, 0.03)["writes"]}
+        self.assertFalse(writes & {67, 68})   # nothing to write for the two untouched entries
+
+    def test_a_cut_pulls_higher_entries_that_were_within_down_with_it(self):
+        meas = dict(self.flat)
+        meas[22.5] = 130.0  # entry 5 runs fast: cut to 77
+        rep = correct.propose([100] * 28, meas, self.flat)
+        self.assertEqual(rep["values"][:6], [77] * 5 + [100])
+        self.assertEqual(rep["values"], sorted(rep["values"]))
+        self.assertFalse(rep["blocked"])
+        self.assertEqual(correct.status(rep, 1, 5), "continue")
+        prop = correct.proposal("X", rep, 1, 5, 0.03)
+        self.assertTrue(any(c.get("note") == correct.LOWERED_NOTE for c in prop["changes"]))
+        self.assertTrue(all(set(w) == {"cv", "value"} for w in prop["writes"]))
+
+    def test_a_cut_blocked_by_a_predecessor_that_must_rise(self):
+        meas = dict(self.flat)
+        meas[18.0] = 80.0   # entry 4 runs slow: it must rise to 125
+        meas[22.5] = 130.0  # entry 5 runs fast: wants 77, below entry 4
+        rep = correct.propose([100] * 28, meas, self.flat)
+        a4, a5 = rep["anchors"][3], rep["anchors"][4]
+        self.assertEqual(a4["new"], 125)
+        self.assertEqual(a5["new"], 125)          # left at the predecessor's value
+        self.assertIn(correct.BLOCKED_NOTE, a5["note"])
+        self.assertEqual(rep["blocked"], [a5["cv"]])
+        self.assertEqual(rep["values"], sorted(rep["values"]))
+        self.assertEqual(correct.status(rep, 1, 5), "blocked")
+        self.assertEqual(correct.proposal("X", rep, 1, 5, 0.03)["status"], "blocked")
+
+    def test_an_entry_not_cut_is_still_raised_to_its_predecessor(self):
+        rep = correct.propose([50, 40] + [100] * 26, self.flat, self.flat)
+        self.assertEqual(rep["values"][:2], [50, 50])
+        self.assertTrue(rep["anchors"][1]["raised"])
+
+    # ---- runs ----
+    def two_runs(self):
+        a = steady_log("1.0 RUN loco=L direction=forward", complete=False)
+        b = steady_log("100.0 RUN loco=L direction=forward", dt=5.0, t0=103.0)
+        c = steady_log("200.0 RUN loco=L direction=forward", dt=20.0, t0=203.0, complete=False)
+        return analyze.parse_log(a + b + c, source="x.log")
+
+    def test_the_same_loco_and_direction_twice_are_two_runs(self):
+        runs = self.two_runs()
+        self.assertEqual(len(runs), 3)
+        self.assertEqual([r["complete"] for r in runs], [False, True, False])
+        sm = analyze.summarize_runs(runs, LENGTHS_1000)
+        self.assertEqual([s["run"] for s in sm], [1, 2, 3])
+        latest = analyze.latest_runs(sm)[("L", "forward")]
+        self.assertEqual(latest[0]["run"], 2)           # the latest complete one
+        self.assertAlmostEqual(latest[0]["median"], 200.0)
+
+    def test_profile_and_drift_carry_the_run_and_correct_reads_the_latest_complete(self):
+        d = Path(tempfile.mkdtemp())
+        sm = analyze.summarize_runs(self.two_runs(), LENGTHS_1000)
+        analyze.write_outputs(analyze.latest_runs(sm), None, d, sm)
+        rows = list(csv.DictReader(open(d / "profile.csv")))
+        self.assertEqual({r["run"] for r in rows}, {"1", "2", "3"})
+        got, _ = correct.read_profile(d / "profile.csv", "L", "forward")
+        self.assertAlmostEqual(got[24], 200.0)           # run 2
+        got3, _ = correct.read_profile(d / "profile.csv", "L", "forward", run=3)
+        self.assertAlmostEqual(got3[24], 50.0)
+        self.assertIn("run", open(d / "drift.csv").readline())
+
+    def test_drift_compares_within_a_run_only(self):
+        lines = ["1.0 RUN loco=L direction=forward", "2.0 STEP 126", "3.0 STEP 126",
+                 "10.0 RUN loco=L direction=forward", "11.0 STEP 126"]
+        runs = analyze.parse_log(lines)
+        self.assertEqual([[s["occurrence"] for s in r["steps"]] for r in runs], [[1, 2], [1]])
+
+    # ---- runner text ----
+    def test_step_line_and_reader_restart_happen_under_the_lock_in_that_order(self):
+        src = (SM / "jython" / "step_runner.py").read_text()
+        self.assertLess(src.index('L("STEP %d" % st)'), src.index("reader.restart("))
+        self.assertIn("frozen = list(readings)", src)
+        self.assertIn("lock.acquire()", src)
+        self.assertNotIn("readings[-STOP_K:]", src)
+
+    def test_events_after_the_decision_belong_to_the_step_whose_line_is_last(self):
+        lines = ["1.0 RUN loco=L direction=forward", "2.0 STEP 24", "3.0 SENS BS Main West ACTIVE",
+                 "4.0 STEPDONE 24 reason=settled n=5", "4.5 SENS BS Switch 1 ACTIVE",
+                 "5.0 STEP 32", "5.5 SENS BS Brick-Plane ACTIVE"]
+        steps = analyze.parse_log(lines)[0]["steps"]
+        self.assertEqual([s for _, s in steps[0]["events"]], ["BS Main West", "BS Switch 1"])
+        self.assertEqual([s for _, s in steps[1]["events"]], ["BS Brick-Plane"])
+
+    def test_stall_timer_only_follows_loop_sensors_lighting(self):
+        src = (SM / "jython" / "step_runner.py").read_text()
+        body = src.split("def propertyChange")[1].split("def wait")[0]
+        self.assertEqual(body.count("last[0] = now"), 1)
+        self.assertIn("if st == 2 and self.n in ORDER and self.n not in GUARD: last[0] = now", body)
+
+    def test_finally_stops_then_turns_functions_off_then_releases(self):
+        for name in ("step_runner.py", "move_to.py"):
+            src = (SM / "jython" / name).read_text()
+            fin = src.split("finally:")[-1]
+            i0, i1, i2 = fin.index("setSpeedSetting(0.0)"), fin.index("(False)"), fin.index("t.release(tl)")
+            self.assertTrue(i0 < i1 < i2, name)
+            self.assertIn("tl = None", src)
+
+    def test_preflight_aborts_after_a_timeout(self):
+        src = (SM / "jython" / "preflight.py").read_text()
+        i = src.index("FAIL timeout")
+        self.assertIn("ABORTED", src[i:i + 200])
+        self.assertIn("return", src[i:i + 200])
 
 
 if __name__ == "__main__":

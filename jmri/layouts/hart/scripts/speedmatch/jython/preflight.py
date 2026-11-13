@@ -34,7 +34,9 @@ def run():
                 prog.readCV(str(cv), pl)
             except Exception, e:
                 L("CV %d FAIL %s" % (cv, e)); continue
-            if not pl.ev.wait(CV_WAIT): L("CV %d FAIL timeout" % cv); continue
+            if not pl.ev.wait(CV_WAIT):
+                # a late reply could be taken for the next CV, so stop instead of sending more
+                L("CV %d FAIL timeout" % cv); L("ABORTED after a read timeout"); return
             if pl.status == 0 and pl.value is not None and pl.value >= 0: L("CV %d %d" % (cv, pl.value))
             else: L("CV %d FAIL status %s" % (cv, pl.status))
     except Exception, e: L("ERROR %s" % e)

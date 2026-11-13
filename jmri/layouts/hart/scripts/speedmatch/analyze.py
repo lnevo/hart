@@ -26,7 +26,7 @@ sys.path.insert(0, str(HERE))
 import liverule as lr  # noqa: E402
 
 DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
-DEFAULT_TRUSTED = ("anyrail", "inferred", "assigned")
+DEFAULT_TRUSTED = ("anyrail", "inferred")  # "assigned" counts only when passed explicitly
 MM_PER_INCH = 25.4
 
 # The loop in the east direction, starting at East Main Ext: (block sensor, block_lengths.csv
@@ -59,7 +59,7 @@ def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
             ok = (row["basis"] or "").strip() in trusted
         else:
             # block_lengths.csv keeps the basis in its "flag" column (anyrail, inferred, ...);
-            # "assigned" is the pre-AnyRail value and is trusted only if it is in the set
+            # the same set applies: "assigned" (the pre-AnyRail value) only if passed
             ok = (row.get("flag") or "").strip() in trusted
         try:
             mm = float(row["inches"]) * MM_PER_INCH if ok else None
@@ -87,9 +87,11 @@ CFG_KEYS = {"k": ("k", int), "rel": ("rel", float), "max": ("max_n", int),
             "settle": ("settle", int), "low_max": ("low_max", int), "high_span": ("high_span", int)}
 
 
-def parse_log(lines, loco=None, direction=None):
+def parse_log(lines, loco=None, direction=None, source=""):
     """Split runner log lines into runs: list of dicts
-    {loco, direction, steps: [{step, occurrence, events: [(t, sensor)]}]}.
+    {loco, direction, log, complete, cfg, lengths, steps: [{step, occurrence, events}]}.
+    Every RUN line starts a new run (the same loco and direction twice stay two runs);
+    complete is True when the runner logged "STOP all steps complete".
 
     Warm-up events (between WARMUP and the first STEP) are dropped. A log without a RUN
     line (older logs) needs loco and direction given."""
@@ -104,7 +106,7 @@ def parse_log(lines, loco=None, direction=None):
             if not mm:
                 continue
             run = {"loco": mm.group(1), "direction": mm.group(2), "steps": [], "cfg": {},
-                   "lengths": None}
+                   "lengths": None, "log": source, "complete": False}
             runs.append(run)
             seen.clear()
             active.clear()
@@ -114,7 +116,7 @@ def parse_log(lines, loco=None, direction=None):
                 if loco is None or direction is None:
                     raise ValueError("log has no RUN line: give loco and direction")
                 run = {"loco": loco, "direction": direction, "steps": [], "cfg": {},
-                       "lengths": None}
+                       "lengths": None, "log": source, "complete": False}
                 runs.append(run)
             n = int(msg.split()[1])
             seen[n] = seen.get(n, 0) + 1
@@ -127,6 +129,8 @@ def parse_log(lines, loco=None, direction=None):
                     run["cfg"][name] = conv(val)
         elif msg.startswith("LENGTHS ") and run is not None:
             run["lengths"] = json.loads(msg[8:])
+        elif msg.startswith("STOP ") and run is not None:
+            run["complete"] = msg.strip() == "STOP all steps complete"
         elif msg.startswith("WARMUP "):
             cur = None
         elif msg.startswith("SENS "):
@@ -164,29 +168,31 @@ def travel(events, order=ORDER):
     return "east" if up > down else "west" if down > up else ""
 
 
-def summarize(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_READINGS,
-              use_logged=True, **kw):
-    """dict (loco, direction) -> list of step rows, in run order.
+def summarize_runs(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_READINGS,
+                   use_logged=True, csv_lengths=False, **kw):
+    """One entry per run, in input order: {run, loco, direction, log, complete, rows}.
 
     A run's own CFG line (stop rule settings) and LENGTHS line (the lengths the job was built
-    with) are replayed as the runner had them; k, rel, max_n, kw and lengths are used only
-    for logs that lack them (or all of them when use_logged is False)."""
-    result = {}
-    for run in runs:
-        rows = result.setdefault((run["loco"], run["direction"]), [])
+    with) are replayed as the runner had them; the arguments are used only for logs that lack
+    them. use_logged=False ignores both; csv_lengths=True swaps only the lengths for the ones
+    given (the logged stop-rule settings still apply)."""
+    out = []
+    for n, run in enumerate(runs, start=1):
+        rows = []
         p = {"k": k, "rel": rel, "max_n": max_n}
         p.update(kw)
         run_lengths = lengths
         if use_logged:
             p.update(run.get("cfg") or {})
-            run_lengths = run.get("lengths") or lengths
+            if not csv_lengths:
+                run_lengths = run.get("lengths") or lengths
         k_, rel_, max_ = p.pop("k"), p.pop("rel"), p.pop("max_n")
         for s in run["steps"]:
             rd = step_readings(s["events"], s["step"], run_lengths, **p)
             speeds = [r[0] for r in rd]
             row = {"loco": run["loco"], "direction": run["direction"], "step": s["step"],
                    "occurrence": s["occurrence"], "travel": travel(s["events"]),
-                   "n": len(speeds), "blocks": rd[-1][3] if rd else 0}
+                   "n": len(speeds), "blocks": rd[-1][3] if rd else 0, "run": n}
             if speeds:
                 used, why, win = lr.replay(speeds, k_, rel_, max_)
                 row.update(used=used, reason=why or "open", median=lr.median(win),
@@ -196,7 +202,26 @@ def summarize(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_READINGS
                 row.update(used=0, reason="no readings", median=None, rel_sd=None,
                            settled=False)
             rows.append(row)
-    return result
+        out.append({"run": n, "loco": run["loco"], "direction": run["direction"],
+                    "log": run.get("log", ""), "complete": bool(run.get("complete")), "rows": rows})
+    return out
+
+
+def latest_runs(summaries):
+    """dict (loco, direction) -> rows of the latest complete run (else the latest run)."""
+    pick = {}
+    for r in summaries:
+        key = (r["loco"], r["direction"])
+        old = pick.get(key)
+        if old is None or (r["complete"] or not old["complete"]):
+            pick[key] = r
+    return {k: v["rows"] for k, v in pick.items()}
+
+
+def summarize(runs, lengths, *args, **kw):
+    """dict (loco, direction) -> rows of the latest complete run of that loco and direction.
+    Runs are never merged; summarize_runs keeps all of them."""
+    return latest_runs(summarize_runs(runs, lengths, *args, **kw))
 
 
 def step_label(row):
@@ -246,27 +271,33 @@ def fmt(x, nd=1):
     return "" if x is None else round(x, nd)
 
 
-def write_outputs(result, pair, out_dir):
+def write_outputs(result, pair, out_dir, summaries=None):
+    """profile.csv and drift.csv hold every run (one `run` number each); compare.csv uses the
+    latest complete run of each loco and direction. Without summaries, result is one run."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    if summaries is None:
+        summaries = [{"run": 1, "loco": k[0], "direction": k[1], "log": "", "complete": True,
+                      "rows": rows} for k, rows in sorted(result.items())]
     with open(out_dir / "profile.csv", "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["loco", "direction", "step", "travel", "blocks_per_reading", "readings",
-                    "readings_used", "median_mm_s", "rel_sd_pct", "settled", "reason"])
-        for key, rows in sorted(result.items()):
-            for r in rows:
+                    "readings_used", "median_mm_s", "rel_sd_pct", "settled", "reason",
+                    "run", "run_complete", "log"])
+        for sm in summaries:
+            for r in sm["rows"]:
                 w.writerow([r["loco"], r["direction"], step_label(r), r["travel"], r["blocks"],
                             r["n"], r["used"], fmt(r["median"]),
                             fmt(None if r["rel_sd"] is None else 100 * r["rel_sd"], 2),
-                            r["settled"], r["reason"]])
+                            r["settled"], r["reason"], sm["run"], sm["complete"], sm["log"]])
     with open(out_dir / "drift.csv", "w", newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(["loco", "direction", "top_step", "first_mm_s", "last_mm_s", "drift_pct"])
-        for key, rows in sorted(result.items()):
-            d = top_drift(rows)
+        w.writerow(["loco", "direction", "run", "top_step", "first_mm_s", "last_mm_s", "drift_pct"])
+        for sm in summaries:  # a run is compared with itself only
+            d = top_drift(sm["rows"])
             if d:
-                w.writerow([key[0], key[1], d["step"], fmt(d["first"]), fmt(d["last"]),
-                            fmt(d["drift_pct"], 2)])
+                w.writerow([sm["loco"], sm["direction"], sm["run"], d["step"], fmt(d["first"]),
+                            fmt(d["last"]), fmt(d["drift_pct"], 2)])
     if pair:
         with open(out_dir / "compare.csv", "w", newline="") as fh:
             w = csv.writer(fh)
@@ -282,14 +313,14 @@ def main(argv=None):
     ap.add_argument("logs", nargs="+")
     ap.add_argument("--lengths", default=str(DEFAULT_LENGTHS))
     ap.add_argument("--trusted", default=",".join(DEFAULT_TRUSTED),
-                    help="values that count as trusted: the basis column, or the flag column when there is no basis column")
+                    help="values that count as trusted in the basis column (or the flag column when there is\n                         no basis column); default anyrail,inferred, add assigned only on purpose")
     ap.add_argument("--out", default=".")
     ap.add_argument("--pair", default="CSX 2121,CSX 2738",
                     help="the consist pair: leader,follower (follower runs reversed)")
     ap.add_argument("--loco", help="for logs without a RUN line")
     ap.add_argument("--direction", help="for logs without a RUN line")
     ap.add_argument("--csv-lengths", action="store_true",
-                    help="use the lengths from --lengths, not the ones logged by the runner")
+                    help="use the lengths from --lengths, not the ones logged by the runner (the logged\n                         stop-rule settings still apply)")
     ap.add_argument("--k", type=int, default=lr.STOP_K)
     ap.add_argument("--rel", type=float, default=lr.STOP_REL)
     ap.add_argument("--max", type=int, default=lr.MAX_READINGS, dest="max_n")
@@ -299,10 +330,11 @@ def main(argv=None):
     print("trusted block lengths: %d of %d loop blocks" % (n_ok, len(lengths)))
     runs = []
     for p in a.logs:
-        runs += parse_log(Path(p).read_text().splitlines(), a.loco, a.direction)
-    result = summarize(runs, lengths, a.k, a.rel, a.max_n, use_logged=not a.csv_lengths)
+        runs += parse_log(Path(p).read_text().splitlines(), a.loco, a.direction, Path(p).name)
+    summaries = summarize_runs(runs, lengths, a.k, a.rel, a.max_n, csv_lengths=a.csv_lengths)
+    result = latest_runs(summaries)
     pair = tuple(a.pair.split(",")) if a.pair else None
-    write_outputs(result, pair, a.out)
+    write_outputs(result, pair, a.out, summaries)
     for key, rows in sorted(result.items()):
         d = top_drift(rows)
         print("%s %s: %d steps%s" % (key[0], key[1], len(rows),

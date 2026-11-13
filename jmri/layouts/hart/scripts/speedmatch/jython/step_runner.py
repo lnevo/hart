@@ -39,7 +39,7 @@ class TL(jmri.ThrottleListener):
     def notifyDecisionRequired(self, a, d): self.err = "decision %s" % d; self.ev.set()
     def notifyStealThrottleRequired(self, a): self.err = "steal"; self.ev.set()
 reg = []; last = [time.time()]; mid = [False]; ref = [0]; ab = threading.Event(); why = [""]
-state = {}; own = [False]   # own: this run created /tmp/speedrun.active
+state = {}; own = [False]; lock = threading.Lock()   # own: this run created /tmp/speedrun.active
 reader = SpanReader(ORDER, LENGTHS, SETTLE_EVENTS)
 readings = []        # speeds of the current step
 phase = ["idle"]     # idle, warmup or measure
@@ -50,18 +50,24 @@ class SL(java.beans.PropertyChangeListener):
     def propertyChange(self, e):
         if e.getPropertyName() != "KnownState": return
         st = e.getNewValue(); now = time.time()
-        L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st))); last[0] = now
-        if self.n in GUARD and st == 2: why[0] = "guard " + self.n; ab.set()
-        if st == 2 and state.get(self.n) != 2:
-            if phase[0] == "warmup":
-                if self.n == MID: mid[0] = True
-                if self.n == REF and mid[0]: ref[0] += 1; mid[0] = False; L("WARMUP_LAP %d" % ref[0])
-            elif phase[0] == "measure":
-                r = reader.feed(now, self.n)
-                if r is not None:
-                    readings.append(r[0])
-                    L("READ %d %.1f dt=%.2f mm=%.1f blocks=%d" % (len(readings), r[0], r[1], r[2], r[3]))
-        state[self.n] = st   # every state counts, so UNKNOWN between two ACTIVEs is a new ACTIVE
+        lock.acquire()   # the log order is the order events were fed; a STEP line cannot interleave
+        try:
+            L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st)))
+            # only a loop sensor lighting counts as progress for the stall timer
+            if st == 2 and self.n in ORDER and self.n not in GUARD: last[0] = now
+            if self.n in GUARD and st == 2: why[0] = "guard " + self.n; ab.set()
+            if st == 2 and state.get(self.n) != 2:
+                if phase[0] == "warmup":
+                    if self.n == MID: mid[0] = True
+                    if self.n == REF and mid[0]: ref[0] += 1; mid[0] = False; L("WARMUP_LAP %d" % ref[0])
+                elif phase[0] == "measure":
+                    r = reader.feed(now, self.n)
+                    if r is not None:
+                        readings.append(r[0])
+                        L("READ %d %.1f dt=%.2f mm=%.1f blocks=%d" % (len(readings), r[0], r[1], r[2], r[3]))
+            state[self.n] = st   # every state counts, so UNKNOWN between two ACTIVEs is a new ACTIVE
+        finally:
+            lock.release()
 def wait(cond, stall):
     """Poll until cond() is true. Returns "ok", "abort" or "stall"."""
     while not cond():
@@ -71,7 +77,7 @@ def wait(cond, stall):
         time.sleep(0.1)
     return "ok"
 def run():
-    t = None
+    t = None; tl = None
     try:
         if os.path.exists("/tmp/speedrun.active"): why[0] = "another runner is active"; return
         a = open("/tmp/speedrun.active", "w"); a.write(LOGF); a.close(); own[0] = True
@@ -107,11 +113,15 @@ def run():
                 return
             L("WARMUP_DONE")
         for st in STEPS_LIST:
-            reader.restart(span_for_step(st, LOW_MAX, HIGH_SPAN))
-            del readings[:]
-            phase[0] = "measure"; t0 = time.time(); last[0] = t0
+            lock.acquire()   # STEP line, reader restart and phase change happen between two events
+            try:
+                L("STEP %d" % st)
+                reader.restart(span_for_step(st, LOW_MAX, HIGH_SPAN))
+                del readings[:]
+                phase[0] = "measure"; t0 = time.time(); last[0] = t0
+            finally:
+                lock.release()
             t.setSpeedSetting(st / 126.0)
-            L("STEP %d" % st)
             reason = ""
             while True:
                 r = wait(lambda: len(readings) >= STOP_K or time.time() - t0 > STEP_MAX_S, stall)
@@ -126,21 +136,33 @@ def run():
                 if r == "stall":
                     if stall_action(st, STALL_SKIP_BELOW) == "skip": reason = "stalled"; break
                     why[0] = "stall %ds at step %d" % (stall, st); return
-            if readings:
-                w = readings[-STOP_K:]
-                L("STEPDONE %d reason=%s n=%d median=%.1f relsd=%.4f" % (st, reason, len(readings), median(w), rel_stdev(w)))
+            # freeze the readings at the decision: later events belong to the next step
+            lock.acquire()
+            try:
+                frozen = list(readings); phase[0] = "idle"
+            finally:
+                lock.release()
+            if frozen:
+                w = frozen[-STOP_K:]
+                L("STEPDONE %d reason=%s n=%d median=%.1f relsd=%.4f" % (st, reason, len(frozen), median(w), rel_stdev(w)))
             else:
                 L("STEPDONE %d reason=%s n=0" % (st, reason))
             # only a step that settled may set the limit; a stalled or empty one never raises it
             interval = None
-            if reason == "settled" and readings: interval = (time.time() - t0) / float(len(readings))
+            if reason == "settled" and frozen: interval = (time.time() - t0) / float(len(frozen))
             stall = next_stall(STALL0, STALL_CAP, interval)
         why[0] = "all steps complete"
     except Exception, e: L("ERROR %s" % e)
     finally:
         phase[0] = "idle"
         L("STOP " + why[0])
-        if t is not None: t.setSpeedSetting(0.0); L("speed 0")
+        if t is not None:
+            t.setSpeedSetting(0.0); L("speed 0")           # 1. stop with its own throttle
+            for fn in FUNCS:                               # 2. every function off
+                try: getattr(t, "setF%d" % fn)(False); L("F%d off" % fn)
+                except Exception, e: L("F%d off failed %s" % (fn, e))
+            try: t.release(tl); L("throttle released")     # 3. give the throttle back
+            except Exception, e: L("release failed %s" % e)
         for s, l in reg: s.removePropertyChangeListener(l)
         if own[0]:
             try: os.remove("/tmp/speedrun.active")

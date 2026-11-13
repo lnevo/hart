@@ -5,8 +5,10 @@ Table entry k (1..28) acts at throttle step 126*k/28 (126-step mode, interpolate
 assumption already used by the 2026-11-08 propose_table.py. For each entry the loco's
 measured speed there is compared with the target speed (2121's profile in the paired
 direction), and the entry is scaled by target / measured. Entries within the tolerance
-(default 3%) are left alone. The new table is clamped to 1..255 and kept monotonic
-non-decreasing.
+(default 3%) are left alone. An entry that is changed is clamped to 1..255 and never
+moved the wrong way by the clamp. The table is kept non-decreasing: an entry below its
+predecessor is raised, but a deliberate cut pulls the higher entries before it down instead
+(unless they are themselves out of tolerance, then the cut is blocked).
 
 This module does not touch a decoder. Its output (proposal.json and proposal.csv) is what
 the write guard (pom_guard.py) takes; address, long/short flag and the consist check come
@@ -16,7 +18,7 @@ from the roster there, not from here.
         --target-loco "CSX 2121" --target-direction forward --round 1 --out proposal/
 
 Exit status: 0 every anchor within tolerance (done), 2 a proposal was written (apply it,
-measure again, run this again with --round N+1), 3 out of rounds and still outside.
+measure again, run this again with --round N+1), 3 out of rounds and still outside, or a cut blocked by the rising table (status\nblocked; the entries are named in proposal.json).
 """
 import argparse
 import csv
@@ -33,6 +35,8 @@ ANCHOR_STEPS = [126.0 * k / N for k in range(1, N + 1)]
 TOLERANCE = 0.03
 MAX_ROUNDS = 5
 RAISED_NOTE = "raised to keep the table rising"
+LOWERED_NOTE = "lowered to follow a cut"
+BLOCKED_NOTE = "cut blocked by the rising table"
 
 
 def interp(x, pts):
@@ -66,10 +70,12 @@ def propose(table, measured, target, tol=TOLERANCE, gain=1.0, max_ratio=1.5):
     mp, tp = list(measured.items()), list(target.items())
     anchors, raw = [], []
     for k, (old, step) in enumerate(zip(table, ANCHOR_STEPS), start=1):
+        old = int(old)
         m, t = interp(step, mp), interp(step, tp)
-        row = {"k": k, "cv": CV_START + k - 1, "step": round(step, 2), "old": int(old),
-               "measured": m, "target": t, "error": None, "within": None, "note": ""}
-        val = int(old)
+        row = {"k": k, "cv": CV_START + k - 1, "step": round(step, 2), "old": old,
+               "measured": m, "target": t, "error": None, "within": None, "note": "",
+               "kind": "keep"}
+        val = old
         if not m or not t or m <= 0 or t <= 0:
             row["note"] = "no usable measurement (outside the measured steps or none)"
         else:
@@ -78,35 +84,77 @@ def propose(table, measured, target, tol=TOLERANCE, gain=1.0, max_ratio=1.5):
             if not row["within"]:
                 ratio = max(1.0 / max_ratio, min(max_ratio, (t / m) ** gain))
                 val = int(round(old * ratio))
-                if val == old:
-                    val = old + (1 if ratio > 1 else -1)  # a real error must move the entry
-                if old <= 1 and ratio < 1:
-                    row["note"] = "already at the floor"
-                if val >= 255 and ratio > 1:
-                    row["note"] = "reaches 255: this loco may not be able to reach the target here"
+                if ratio > 1:   # raised: never lowered by rounding or the clamp
+                    row["kind"] = "raise"
+                    val = max(old, min(255, max(val, old + 1)))
+                    if val >= 255:
+                        row["note"] = "reaches 255: this loco may not be able to reach the target here"
+                else:           # cut: never raised by rounding or the clamp
+                    row["kind"] = "cut"
+                    val = min(old, max(1, min(val, old - 1)))
+                    if val == old:
+                        row["note"] = "already at the floor"
+        if val == old:
+            row["kind"] = "keep" if row["within"] is not False else row["kind"]
         anchors.append(row)
-        # only an entry that is changed is clamped; one left alone keeps its value (even 0)
-        raw.append(max(1, min(255, val)) if val != old else int(old))
-    new = list(raw)
-    for i in range(1, N):  # monotonic non-decreasing, before anything is judged
-        if new[i] < new[i - 1]:
-            new[i] = new[i - 1]
+        raw.append(val)
+    new, blocked = _rising(raw, anchors)
     for row, v, r in zip(anchors, new, raw):
         row["new"] = v
-        if v != r and r == row["old"]:
+        if v != r and r == row["old"] and row.get("pass") == "raised":
             row["raised"] = True  # changed only to keep the table rising
             row["note"] = (row["note"] + "; " if row["note"] else "") + RAISED_NOTE
+        elif v != r and row.get("pass") == "lowered":
+            row["note"] = (row["note"] + "; " if row["note"] else "") + LOWERED_NOTE
+        if row.get("blocked"):
+            row["note"] = (row["note"] + "; " if row["note"] else "") + BLOCKED_NOTE
     measured_any = any(r["within"] is not None for r in anchors)
     # within the tolerance AND nothing to write: an entry the rising pass moves is a change
     done = measured_any and all(r["within"] is not False for r in anchors) \
         and all(r["new"] == r["old"] for r in anchors)
-    return {"values": new, "anchors": anchors, "all_within": done}
+    return {"values": new, "anchors": anchors, "all_within": done, "blocked": blocked}
+
+
+def _rising(raw, anchors):
+    """Make the table non-decreasing without undoing a deliberate cut.
+
+    In order: an entry below its predecessor that was NOT cut is raised to it. A cut entry
+    instead pulls the preceding entries that are higher down to it, provided each of them
+    was not measured outside the tolerance. If one of them was (it was measured too slow or
+    fast and is being corrected itself), the cut is blocked: the entry stays at its
+    predecessor's value and the result is reported as blocked. Returns (values, blocked cvs).
+    """
+    new = list(raw)
+    blocked = []
+    for i in range(1, N):
+        if new[i] >= new[i - 1]:
+            continue
+        if anchors[i]["kind"] == "cut" and new[i] < anchors[i]["old"]:
+            j = i - 1
+            chain = []
+            while j >= 0 and new[j] > new[i]:
+                chain.append(j)
+                j -= 1
+            if all(anchors[c]["within"] is not False for c in chain):
+                for c in chain:
+                    new[c] = new[i]
+                    anchors[c]["pass"] = "lowered"
+                continue
+            new[i] = new[i - 1]
+            anchors[i]["blocked"] = True
+            blocked.append(anchors[i]["cv"])
+        else:
+            new[i] = new[i - 1]
+            anchors[i]["pass"] = "raised"
+    return new, blocked
 
 
 def status(report, round_no, max_rounds):
-    """done / continue / max_rounds."""
+    """done / blocked / continue / max_rounds."""
     if report["all_within"]:
         return "done"
+    if report.get("blocked"):
+        return "blocked"
     return "max_rounds" if round_no >= max_rounds else "continue"
 
 
@@ -120,6 +168,10 @@ def proposal(loco, report, round_no, max_rounds, tol):
                  "error_pct": None if r["error"] is None else round(100 * r["error"], 2)}
             if r.get("raised"):
                 c["note"] = RAISED_NOTE
+            elif r.get("pass") == "lowered":
+                c["note"] = LOWERED_NOTE
+            if r.get("blocked"):
+                c["note"] = BLOCKED_NOTE
             changes.append(c)
     return {"schema": 1, "kind": "speed_table_proposal", "loco": loco,
             # roster_id and writes are what pom_guard.py reads (POM_GUARD.md); the rest is ignored
@@ -128,22 +180,31 @@ def proposal(loco, report, round_no, max_rounds, tol):
             "max_rounds": max_rounds, "tolerance_pct": round(100 * tol, 2),
             "status": status(report, round_no, max_rounds), "cv_start": CV_START,
             "old": [r["old"] for r in report["anchors"]], "new": report["values"],
-            "changes": changes, "applied": False,
+            "changes": changes, "blocked_cvs": report.get("blocked", []), "applied": False,
             "note": "A proposal only. Writing goes through the write guard, dry run first."}
 
 
-def read_profile(path, loco, direction):
+def read_profile(path, loco, direction, run=None):
     """({step: median mm/s}, [skipped]) for one loco and direction from analyze.py's
-    profile.csv. Only the first measurement of a step, and only if the stop rule settled
-    (reason "settled"); every other step is listed in skipped as (step, reason)."""
-    out, skipped = {}, []
+    profile.csv. One run only: `run` if given, else the latest complete run (the latest run
+    if none completed). Only the first measurement of a step, and only if the stop rule
+    settled (reason "settled"); every other step is listed in skipped as (step, reason)."""
     with open(path, newline="") as fh:
-        for r in csv.DictReader(fh):
-            if r["loco"] == loco and r["direction"] == direction and "#" not in r["step"]:
-                if r["median_mm_s"] and r["reason"] == "settled":
-                    out[int(r["step"])] = float(r["median_mm_s"])
-                else:
-                    skipped.append((int(r["step"]), r["reason"] or "no readings"))
+        rows = [r for r in csv.DictReader(fh) if r["loco"] == loco and r["direction"] == direction]
+    runs = {}
+    for r in rows:
+        runs.setdefault(int(r.get("run") or 1), (r.get("run_complete") or "True") == "True")
+    if run is None:
+        done = [n for n, c in runs.items() if c]
+        run = max(done) if done else (max(runs) if runs else 1)
+    out, skipped = {}, []
+    for r in rows:
+        if int(r.get("run") or 1) != run or "#" in r["step"]:
+            continue
+        if r["median_mm_s"] and r["reason"] == "settled":
+            out[int(r["step"])] = float(r["median_mm_s"])
+        else:
+            skipped.append((int(r["step"]), r["reason"] or "no readings"))
     return out, skipped
 
 
@@ -154,6 +215,8 @@ def main(argv=None):
     ap.add_argument("--profile", required=True, help="profile.csv of the loco being corrected")
     ap.add_argument("--loco", required=True)
     ap.add_argument("--direction", required=True)
+    ap.add_argument("--run", type=int, help="run number in profile.csv (default: the latest complete run)")
+    ap.add_argument("--target-run", type=int, help="run number for the target (default: the latest complete run)")
     ap.add_argument("--target-profile", help="profile.csv of the target (default: --profile)")
     ap.add_argument("--target-loco", required=True)
     ap.add_argument("--target-direction", required=True)
@@ -171,8 +234,8 @@ def main(argv=None):
         table = [cvs[CV_START + i] for i in range(N)]
     else:
         ap.error("give --table or --roster-xml")
-    measured, skip_m = read_profile(a.profile, a.loco, a.direction)
-    target, skip_t = read_profile(a.target_profile or a.profile, a.target_loco, a.target_direction)
+    measured, skip_m = read_profile(a.profile, a.loco, a.direction, a.run)
+    target, skip_t = read_profile(a.target_profile or a.profile, a.target_loco, a.target_direction, a.target_run)
     skipped = ["%s %s step %d: %s" % (a.loco, a.direction, st, why) for st, why in skip_m] + \
               ["%s %s step %d: %s" % (a.target_loco, a.target_direction, st, why) for st, why in skip_t]
     if not measured or not target:
@@ -196,10 +259,10 @@ def main(argv=None):
     print("round %d: %d of %d anchors within %.1f%%; status %s" % (
         a.round, inside, N, 100 * a.tol, prop["status"]))
     for r in rep["anchors"]:
-        if r["within"] is False:
-            print("  CV%d step %.1f: %+.1f%%  %d -> %d %s" % (
-                r["cv"], r["step"], 100 * r["error"], r["old"], r["new"], r["note"]))
-    return {"done": 0, "continue": 2, "max_rounds": 3}[prop["status"]]
+        if r["new"] != r["old"] or r["within"] is False:
+            err = "n/a" if r["error"] is None else "%+.1f%%" % (100 * r["error"])
+            print("  CV%d step %.1f: %s  %d -> %d %s" % (r["cv"], r["step"], err, r["old"], r["new"], r["note"]))
+    return {"done": 0, "continue": 2, "max_rounds": 3, "blocked": 3}[prop["status"]]
 
 
 if __name__ == "__main__":

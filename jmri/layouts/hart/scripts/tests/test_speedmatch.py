@@ -155,12 +155,13 @@ class Lengths(unittest.TestCase):
         only = analyze.load_lengths(p, trusted=("anyrail",))
         self.assertIsNone(only["BS East Lead"])
 
-    def test_without_basis_only_assigned_rows_count(self):
+    def test_without_basis_assigned_counts_only_when_passed(self):
         p = self.write(["user_name", "occupancy_sensor", "inches", "flag", "old_source"],
                        [["Track Main West", "x", "220", "assigned", ""],
                         ["Track Main East", "x", "185", "cut", ""],
                         ["OS Switch 1", "x", "10", "estimate", ""]])
-        got = analyze.load_lengths(p)
+        self.assertIsNone(analyze.load_lengths(p)["BS Main West"])
+        got = analyze.load_lengths(p, trusted=("anyrail", "inferred", "assigned"))
         self.assertIsNotNone(got["BS Main West"])
         self.assertIsNone(got["BS Main East"])
         self.assertIsNone(got["BS Switch 1"])
@@ -512,7 +513,7 @@ class JythonFiles(unittest.TestCase):
         out = d / "job.py"
         lengths = d / "bl.csv"
         lengths.write_text("user_name,occupancy_sensor,inches,flag,old_source\n"
-                           "Track Main West,x,220,assigned,\n")
+                           "Track Main West,x,220,anyrail,\n")
         make_job.main(["steps", "--loco", "CSX 2738", "--direction", "reverse", "--out", str(out),
                        "--lengths", str(lengths), "--guard", "BS W-1"])
         text = out.read_text()
@@ -530,7 +531,7 @@ class JythonFiles(unittest.TestCase):
     def test_forward_job_sets_the_throttle_direction(self):
         d = Path(tempfile.mkdtemp())
         lengths = d / "bl.csv"
-        lengths.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,assigned,\n")
+        lengths.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
         make_job.main(["steps", "--loco", "CSX 2121", "--direction", "forward", "--out", str(d / "j.py"),
                        "--lengths", str(lengths)])
         self.assertIn("P_FWD = True", (d / "j.py").read_text())
