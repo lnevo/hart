@@ -8,7 +8,7 @@
 # Hosts are not git clones. Panels are path-rewritten per user-files, and the
 # payload is a subset (no wiki, screenshots, linear layouts, or CATS src).
 #
-# Usage: ./cats/scripts/sync_hart_package.sh [--pi] [--win] [--all] [--dry-run]
+# Usage: ./cats/scripts/sync_hart_package.sh [--pi] [--win] [--all] [--dry-run] [--stage-only DIR]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WIN_HOST="${HART_WIN_SSH:-lnevo@minipc-e5h6x.local}"
@@ -25,25 +25,43 @@ export HART_OVERWRITE_OPS
 DO_PI=0
 DO_WIN=0
 DO_MAC_WEB=1
+STAGE_ONLY=""
 if [[ $# -gt 0 ]]; then
   DO_MAC_WEB=0
-  for a in "$@"; do
-    case "$a" in
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
       --pi) DO_PI=1; DO_MAC_WEB=1 ;;
       --win) DO_WIN=1; DO_MAC_WEB=1 ;;
       --all) DO_PI=1; DO_WIN=1; DO_MAC_WEB=1 ;;
       --mac-web-only) DO_MAC_WEB=1 ;;
       --dry-run) DRY_RUN=1 ;;
+      --stage-only)
+        [[ $# -ge 2 && -n "$2" ]] || { echo "--stage-only needs a folder" >&2; exit 1; }
+        STAGE_ONLY="$2"; shift ;;
+      --stage-only=*) STAGE_ONLY="${1#*=}" ;;
       -h|--help)
-        echo "Usage: $0 [--pi] [--win] [--all] [--dry-run]"
+        echo "Usage: $0 [--pi] [--win] [--all] [--dry-run] [--stage-only DIR]"
         echo "  Windows SSH: ${WIN_HOST} -p ${WIN_PORT} → %TEMP% drop + JMRI_UserFiles"
         echo "  Pi SSH:      ${PI_HOST} → /tmp drop + JMRI_UserFiles"
         echo "  Transfer:    rsync (Pi) / tar+scp (Windows). Not git pull."
+        echo "  --stage-only DIR: build the host packages into DIR/pi and DIR/win and stop."
+        echo "                    No ssh, no Mac install, and the repo's tables.xml is only checked."
         exit 0
         ;;
-      *) echo "Unknown option: $a" >&2; exit 1 ;;
+      *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
+    shift
   done
+fi
+if [[ -n "$STAGE_ONLY" ]]; then
+  if [[ -e "$STAGE_ONLY" && -n "$(ls -A "$STAGE_ONLY" 2>/dev/null)" ]]; then
+    echo "--stage-only: $STAGE_ONLY is not empty" >&2
+    exit 1
+  fi
+  # Nothing leaves this machine and nothing outside DIR is written.
+  [[ "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ]] || { DO_PI=1; DO_WIN=1; }
+  DO_MAC_WEB=0
+  DRY_RUN=1
 fi
 
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
@@ -347,6 +365,20 @@ push_tar_scp() {
   ssh_win "powershell -NoProfile -Command \"Set-Location '${WIN_DROP}'; tar -xzf _pkg.tgz; Remove-Item _pkg.tgz -Force\""
   rm -f "$tgz"
 }
+
+if [[ -n "$STAGE_ONLY" ]]; then
+  mkdir -p "$STAGE_ONLY"
+  if [[ "$DO_PI" -eq 1 ]]; then
+    stage_package "$STAGE_ONLY/pi" "$PI_USERFILES"
+    echo "Pi package -> $STAGE_ONLY/pi"
+  fi
+  if [[ "$DO_WIN" -eq 1 ]]; then
+    stage_package "$STAGE_ONLY/win" "$WIN_USERFILES"
+    echo "Windows package -> $STAGE_ONLY/win"
+  fi
+  echo "DONE (stage only)"
+  exit 0
+fi
 
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   # Mac JMRI is for development: the links follow the page's host to the Mac's own STS and
