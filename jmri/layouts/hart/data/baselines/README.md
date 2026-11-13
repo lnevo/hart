@@ -32,7 +32,7 @@ Optional flags: `--tables PATH`, `--out PATH`.
 | `le_mast_bindings.csv` | Layout Editor turnout/point mast bindings |
 | `block_sensors.csv` | Layout block → occupancy sensor map |
 | `cats_bindings.csv` | Live CATS CTC hold panel block/signal bindings |
-| `counts.txt` | Row counts per CSV + SHA-256 of `tables.xml` |
+| `counts.txt` | Row count of each captured file (`name=count` lines only) |
 | `validate_le_signalling.txt` | Mini-discovery dests vs stored SML (historical 2026-08-20; 36 dests then) |
 | `audit_panel_contracts.txt` | working / deployment / standalone (historical 2026-08-20) |
 | `check_hart_phase02.txt` | Phase 0–2 (historical 2026-08-20) |
@@ -47,7 +47,7 @@ Also consulted (not written): `cats/data/occupancy_bindings.csv`, `jmri/layouts/
    - **`hardware_identity.csv`**: `systemName` values must be **identical** (MQTT / internal ids are frozen).
    - **`userName` values** should match the `proposed` column in `jmri/layouts/hart/data/public_name_map.csv` where a rename applies; identity rows (`current` == `proposed`) should match `current`.
    - **SML / CTC / LE / block / CATS** CSVs: public names in mast, section, destination, and block columns should follow the map; hardware columns (`occupancySensor`, `mqttAddr`, `sensorUserName`) must not change.
-3. Compare `counts.txt` SHA-256 only when checking whether the Layout Editor agent touched `tables.xml` structure; user-name edits may not change the hash if element count is unchanged.
+3. Use `git diff` on `tables.xml` to see what else changed; a row count that moves in `counts.txt` means beans were added or removed.
 
 ## Column notes
 

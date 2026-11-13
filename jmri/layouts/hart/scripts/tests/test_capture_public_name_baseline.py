@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -28,6 +29,14 @@ class StaleFilesTest(unittest.TestCase):
                 ["ctc_trl.csv", "sml_pairs.csv"], capture.stale_files(committed, fresh)
             )
 
+    def test_counts_file_holds_only_name_count_lines(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "counts.txt"
+            capture.write_counts(path, {"b.csv": 2, "a.csv": 1})
+            lines = path.read_text().splitlines()
+        self.assertEqual(["a.csv=1", "b.csv=2"], lines)
+        committed = (capture.DEFAULT_OUT / "counts.txt").read_text().splitlines()
+        self.assertTrue(all(re.fullmatch(r"[\w.]+=\d+", line) for line in committed), committed)
 
 
 if __name__ == "__main__":
