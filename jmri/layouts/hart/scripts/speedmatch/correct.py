@@ -32,6 +32,7 @@ CV_START = 67
 ANCHOR_STEPS = [126.0 * k / N for k in range(1, N + 1)]
 TOLERANCE = 0.03
 MAX_ROUNDS = 5
+RAISED_NOTE = "raised to keep the table rising"
 
 
 def interp(x, pts):
@@ -65,7 +66,7 @@ def propose(table, measured, target, tol=TOLERANCE, gain=1.0, max_ratio=1.5):
     if len(table) != N:
         raise ValueError("a speed table has %d entries, got %d" % (N, len(table)))
     mp, tp = list(measured.items()), list(target.items())
-    anchors, new = [], []
+    anchors, raw = [], []
     for k, (old, step) in enumerate(zip(table, ANCHOR_STEPS), start=1):
         m, t = interp(step, mp), interp(step, tp)
         row = {"k": k, "cv": CV_START + k - 1, "step": round(step, 2), "old": int(old),
@@ -86,15 +87,21 @@ def propose(table, measured, target, tol=TOLERANCE, gain=1.0, max_ratio=1.5):
                 if val >= 255 and ratio > 1:
                     row["note"] = "reaches 255: this loco may not be able to reach the target here"
         anchors.append(row)
-        new.append(max(1, min(255, val)))
-    for i in range(1, N):  # monotonic non-decreasing
+        raw.append(max(1, min(255, val)))
+    new = list(raw)
+    for i in range(1, N):  # monotonic non-decreasing, before anything is judged
         if new[i] < new[i - 1]:
             new[i] = new[i - 1]
-    for row, v in zip(anchors, new):
+    for row, v, r in zip(anchors, new, raw):
         row["new"] = v
-    return {"values": new, "anchors": anchors,
-            "all_within": all(r["within"] for r in anchors if r["within"] is not None)
-            and any(r["within"] is not None for r in anchors)}
+        if v != r and r == row["old"]:
+            row["raised"] = True  # changed only to keep the table rising
+            row["note"] = (row["note"] + "; " if row["note"] else "") + RAISED_NOTE
+    measured_any = any(r["within"] is not None for r in anchors)
+    # within the tolerance AND nothing to write: an entry the rising pass moves is a change
+    done = measured_any and all(r["within"] is not False for r in anchors) \
+        and all(r["new"] == r["old"] for r in anchors)
+    return {"values": new, "anchors": anchors, "all_within": done}
 
 
 def status(report, round_no, max_rounds):
@@ -107,9 +114,14 @@ def status(report, round_no, max_rounds):
 def proposal(loco, report, round_no, max_rounds, tol):
     """The record the write guard takes. Nothing in it is an address: the guard looks the
     loco up in the roster."""
-    changes = [{"cv": r["cv"], "old": r["old"], "new": r["new"], "anchor_step": r["step"],
-                "error_pct": None if r["error"] is None else round(100 * r["error"], 2)}
-               for r in report["anchors"] if r["new"] != r["old"]]
+    changes = []
+    for r in report["anchors"]:
+        if r["new"] != r["old"]:
+            c = {"cv": r["cv"], "old": r["old"], "new": r["new"], "anchor_step": r["step"],
+                 "error_pct": None if r["error"] is None else round(100 * r["error"], 2)}
+            if r.get("raised"):
+                c["note"] = RAISED_NOTE
+            changes.append(c)
     return {"schema": 1, "kind": "speed_table_proposal", "loco": loco,
             # roster_id and writes are what pom_guard.py reads (POM_GUARD.md); the rest is ignored
             "roster_id": loco, "writes": [{"cv": c["cv"], "value": c["new"]} for c in changes],
@@ -122,15 +134,18 @@ def proposal(loco, report, round_no, max_rounds, tol):
 
 
 def read_profile(path, loco, direction):
-    """{step: median mm/s} for one loco and direction from analyze.py's profile.csv, first
-    measurement of each step only."""
-    out = {}
+    """({step: median mm/s}, [skipped]) for one loco and direction from analyze.py's
+    profile.csv. Only the first measurement of a step, and only if the stop rule settled
+    (reason "settled"); every other step is listed in skipped as (step, reason)."""
+    out, skipped = {}, []
     with open(path, newline="") as fh:
         for r in csv.DictReader(fh):
-            if r["loco"] == loco and r["direction"] == direction and r["median_mm_s"]:
-                if "#" not in r["step"]:
+            if r["loco"] == loco and r["direction"] == direction and "#" not in r["step"]:
+                if r["median_mm_s"] and r["reason"] == "settled":
                     out[int(r["step"])] = float(r["median_mm_s"])
-    return out
+                else:
+                    skipped.append((int(r["step"]), r["reason"] or "no readings"))
+    return out, skipped
 
 
 def main(argv=None):
@@ -157,12 +172,15 @@ def main(argv=None):
         table = [cvs[CV_START + i] for i in range(N)]
     else:
         ap.error("give --table or --roster-xml")
-    measured = read_profile(a.profile, a.loco, a.direction)
-    target = read_profile(a.target_profile or a.profile, a.target_loco, a.target_direction)
+    measured, skip_m = read_profile(a.profile, a.loco, a.direction)
+    target, skip_t = read_profile(a.target_profile or a.profile, a.target_loco, a.target_direction)
+    skipped = ["%s %s step %d: %s" % (a.loco, a.direction, st, why) for st, why in skip_m] + \
+              ["%s %s step %d: %s" % (a.target_loco, a.target_direction, st, why) for st, why in skip_t]
     if not measured or not target:
         sys.exit("no profile rows for %s %s or for the target" % (a.loco, a.direction))
     rep = propose(table, measured, target, a.tol, a.gain)
     prop = proposal(a.loco, rep, a.round, a.max_rounds, a.tol)
+    prop["skipped_steps"] = skipped
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "proposal.json").write_text(json.dumps(prop, indent=2) + "\n")
@@ -173,6 +191,8 @@ def main(argv=None):
             w.writerow([r["cv"], r["old"], r["new"], r["step"],
                         "" if r["error"] is None else round(100 * r["error"], 2),
                         r["within"], r["note"]])
+        for line in skipped:  # steps left out of the measurement, and why
+            w.writerow(["", "", "", "", "", "", "skipped " + line])
     inside = sum(1 for r in rep["anchors"] if r["within"])
     print("round %d: %d of %d anchors within %.1f%%; status %s" % (
         a.round, inside, N, 100 * a.tol, prop["status"]))

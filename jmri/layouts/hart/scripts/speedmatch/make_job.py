@@ -30,6 +30,9 @@ BACKEMF = {"tsunami2": [209, 210, 211, 212, 213], "tcs": [49, 56, 57], "none": [
 BASE_CVS = [2, 3, 4, 5, 6, 25, 29, 66] + list(range(67, 95)) + [95]
 
 
+RUNNER_MARK = "# ---- runner ----\n"
+
+
 def settings_text(d):
     return "".join("%s = %r\n" % (k, v) for k, v in d.items())
 
@@ -38,16 +41,25 @@ def build_steps(a, lengths):
     s = {
         "LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward",
         "FUNCS": [0] + ([8] if a.mute_sound else []),
-        "GUARD": [], "REF": analyze.ORDER[0], "MID": "BS Switch 23a",
+        "GUARD": list(a.guard), "REF": analyze.ORDER[0], "MID": "BS Switch 23a",
         "ORDER": analyze.ORDER, "LENGTHS": lengths,
         "STEPS_LIST": a.steps, "WARM_STEP": a.warm_step, "WARM_LAPS": a.warm_laps,
         "STOP_K": a.k, "STOP_REL": a.rel, "MAX_READINGS": a.max_n,
         "SETTLE_EVENTS": a.settle, "LOW_MAX": a.low_max, "HIGH_SPAN": a.high_span,
-        "STALL0": a.stall, "STALL_SKIP_BELOW": 6, "STEP_MAX_S": a.step_max,
+        "STALL0": a.stall, "STALL_CAP": a.stall_cap, "STALL_SKIP_BELOW": a.stall_skip_below,
+        "STEP_MAX_S": a.step_max,
     }
-    s["GUARD"] = [g for g in a.guard]
-    body = (HERE / "liverule.py").read_text() + "\n" + (HERE / "jython" / "step_runner.py").read_text()
-    return settings_text(s) + body
+    # liverule.py first (its defaults), then the settings (they override those defaults),
+    # then the runner. The marker line lets a test run everything before the runner.
+    return ((HERE / "liverule.py").read_text() + "\n" + settings_text(s) + RUNNER_MARK
+            + (HERE / "jython" / "step_runner.py").read_text())
+
+
+def build_move(a):
+    s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
+         "UNTIL": list(a.until), "GUARD": list(a.guard), "FUNCS": [0] + ([8] if a.mute_sound else []),
+         "MAX_S": a.max_s}
+    return settings_text(s) + (HERE / "jython" / "move_to.py").read_text()
 
 
 def build_preflight(a):
@@ -73,18 +85,33 @@ def main(argv=None):
     st.add_argument("--low-max", type=int, default=lr.LOW_MAX)
     st.add_argument("--high-span", type=int, default=lr.HIGH_SPAN)
     st.add_argument("--stall", type=float, default=120.0, help="seconds without a sensor event")
+    st.add_argument("--stall-cap", type=float, default=lr.STALL_CAP,
+                    help="the no-event limit never grows past this many seconds")
+    st.add_argument("--stall-skip-below", type=int, default=6,
+                    help="a stall at or below this step skips the step instead of ending the run")
     st.add_argument("--step-max", type=float, default=900.0, help="seconds allowed for one step")
-    st.add_argument("--guard", action="append", default=list(GUARD))
+    st.add_argument("--guard", action="append", default=list(GUARD),
+                    help="sensor (user or system name) that aborts the run; repeatable")
     st.add_argument("--mute-sound", action="store_true", help="also switch F8 on (2121's mute)")
     st.add_argument("--lengths", default=str(analyze.DEFAULT_LENGTHS))
     st.add_argument("--trusted", default=",".join(analyze.DEFAULT_TRUSTED))
     st.add_argument("--log", help="log path on the Pi")
+    mv = sub.add_parser("move", help="run a loco until a sensor lights, then stop it")
+    mv.add_argument("--loco", required=True)
+    mv.add_argument("--direction", required=True, choices=["forward", "reverse"])
+    mv.add_argument("--step", type=int, default=24)
+    mv.add_argument("--until", action="append", required=True,
+                    help="sensor to stop at (user or system name); repeatable, any one counts")
+    mv.add_argument("--guard", action="append", default=list(GUARD))
+    mv.add_argument("--max-s", type=float, default=90.0)
+    mv.add_argument("--mute-sound", action="store_true")
+    mv.add_argument("--log")
     pf = sub.add_parser("preflight", help="read the decoder's CVs on the programming track")
     pf.add_argument("--loco", required=True)
     pf.add_argument("--backemf", choices=sorted(BACKEMF), default="none")
     pf.add_argument("--cv-wait", type=float, default=20.0)
     pf.add_argument("--log", help="log path on the Pi")
-    for p in (st, pf):
+    for p in (st, pf, mv):
         p.add_argument("--out", required=True, help="job file to write")
     a = ap.parse_args(argv)
     tag = a.loco.replace(" ", "_")
@@ -94,6 +121,9 @@ def main(argv=None):
         if sum(v is not None for v in lengths.values()) == 0:
             sys.exit("no trusted block lengths: nothing to measure over (see --trusted)")
         text = build_steps(a, lengths)
+    elif a.job == "move":
+        a.log = a.log or "/tmp/moveto_%s_%s.log" % (tag, stamp)
+        text = build_move(a)
     else:
         a.log = a.log or "/tmp/preflight_%s_%s.log" % (tag, stamp)
         text = build_preflight(a)

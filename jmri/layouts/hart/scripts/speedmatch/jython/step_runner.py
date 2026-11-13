@@ -7,7 +7,8 @@
 # Safety, as in the 2026-11-08 runner and never to be loosened:
 #   * the loco is stopped only with its own throttle at speed 0 (in the finally block);
 #     no emergency stop, no track power, no turnouts, no CV or programmer calls
-#   * a guard sensor going ACTIVE ends the run
+#   * a guard sensor (any sensor, by user or system name) going ACTIVE ends the run; one that
+#     is not found, or is already ACTIVE at the start, stops the run before the loco moves
 #   * /tmp/speedrun.kill ends the run
 #   * no sensor event for STALL seconds ends the run (a stall below STALL_SKIP_BELOW only
 #     skips that creep step)
@@ -24,9 +25,11 @@
 #   STEPS_LIST      steps to measure, in order (a repeated step is measured again)
 #   WARM_STEP, WARM_LAPS   middle step and number of laps before measuring (0 = none)
 #   STOP_K, STOP_REL, MAX_READINGS, SETTLE_EVENTS, LOW_MAX, HIGH_SPAN   see liverule.py
-#   STALL0, STALL_SKIP_BELOW, STEP_MAX_S   seconds without an event; creep step limit;
-#                                         wall-clock limit for one step
-import time, threading, os, java, jmri
+#   STALL0, STALL_CAP, STALL_SKIP_BELOW, STEP_MAX_S   seconds without an event (the limit
+#       follows a settled step's reading interval, never above STALL_CAP, and a step that
+#       stalled or had no readings never raises it); creep step limit; wall-clock limit
+#       for one step
+import time, threading, os, java, jmri, json
 f = open(LOGF, "a")
 def L(m): f.write("%.3f %s\n" % (time.time(), m)); f.flush()
 class TL(jmri.ThrottleListener):
@@ -40,12 +43,14 @@ state = {}
 reader = SpanReader(ORDER, LENGTHS, SETTLE_EVENTS)
 readings = []        # speeds of the current step
 phase = ["idle"]     # idle, warmup or measure
+# JMRI sensor states: UNKNOWN 1, ACTIVE 2, INACTIVE 4, INCONSISTENT 8
+NAMES = {1: "UNKNOWN", 2: "ACTIVE", 4: "INACTIVE", 8: "INCONSISTENT"}
 class SL(java.beans.PropertyChangeListener):
     def __init__(self, n): self.n = n
     def propertyChange(self, e):
         if e.getPropertyName() != "KnownState": return
         st = e.getNewValue(); now = time.time()
-        L("SENS %s %s" % (self.n, "ACTIVE" if st == 2 else "INACTIVE")); last[0] = now
+        L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st))); last[0] = now
         if self.n in GUARD and st == 2: why[0] = "guard " + self.n; ab.set()
         if st == 2 and state.get(self.n) != 2:
             if phase[0] == "warmup":
@@ -56,7 +61,7 @@ class SL(java.beans.PropertyChangeListener):
                 if r is not None:
                     readings.append(r[0])
                     L("READ %d %.1f dt=%.2f mm=%.1f blocks=%d" % (len(readings), r[0], r[1], r[2], r[3]))
-        if st in (0, 2, 4): state[self.n] = st
+        state[self.n] = st   # every state counts, so UNKNOWN between two ACTIVEs is a new ACTIVE
 def wait(cond, stall):
     """Poll until cond() is true. Returns "ok", "abort" or "stall"."""
     while not cond():
@@ -69,20 +74,27 @@ def run():
     t = None
     try:
         sm = jmri.InstanceManager.sensorManagerInstance()
+        found = {}
         for s in sm.getNamedBeanSet():
-            un = s.getUserName() or ""
-            if un.startswith("BS ") and (un not in ("BS W-1", "BS W-2") or un in GUARD):
-                l = SL(un); s.addPropertyChangeListener(l); reg.append((s, l))
+            un = s.getUserName() or ""; sn = s.getSystemName()
+            g = un if un in GUARD else (sn if sn in GUARD else None)
+            if g is not None: found[g] = s
+            if g is not None or (un.startswith("BS ") and un not in ("BS W-1", "BS W-2")):
+                l = SL(g or un); s.addPropertyChangeListener(l); reg.append((s, l))
+        for g in GUARD:
+            if g not in found: why[0] = "guard sensor not found: " + g; return
+            if found[g].getKnownState() == 2: why[0] = "guard already ACTIVE: " + g; return
         re = jmri.jmrit.roster.Roster.getDefault().getEntryForId(P_ID)
         tl = TL(); jmri.InstanceManager.throttleManagerInstance().requestThrottle(re, tl, False); tl.ev.wait(10)
         if tl.t is None: L("NO THROTTLE %s" % tl.err); return
         t = tl.t; t.setIsForward(P_FWD)
         for fn in FUNCS: getattr(t, "setF%d" % fn)(True)
         L("RUN loco=%s direction=%s" % (P_ID, "forward" if P_FWD else "reverse"))
-        L("CFG k=%d rel=%.3f max=%d settle=%d low_max=%d high_span=%d warm=%d@%d" % (
+        L("CFG k=%d rel=%.4f max=%d settle=%d low_max=%d high_span=%d warm=%d@%d" % (
             STOP_K, STOP_REL, MAX_READINGS, SETTLE_EVENTS, LOW_MAX, HIGH_SPAN, WARM_LAPS, WARM_STEP))
+        L("LENGTHS " + json.dumps(LENGTHS))
         time.sleep(1.0)
-        stall = STALL0
+        stall = min(STALL0, STALL_CAP)
         if WARM_LAPS > 0:
             phase[0] = "warmup"; ref[0] = 0; mid[0] = False; last[0] = time.time()
             t.setSpeedSetting(WARM_STEP / 126.0); L("WARMUP %d laps=%d" % (WARM_STEP, WARM_LAPS))
@@ -101,27 +113,26 @@ def run():
             reason = ""
             while True:
                 r = wait(lambda: len(readings) >= STOP_K or time.time() - t0 > STEP_MAX_S, stall)
+                if r == "ok":
+                    move, reason = should_move_on(readings, STOP_K, STOP_REL, MAX_READINGS)
+                    if move: break
+                    if time.time() - t0 > STEP_MAX_S: reason = "time"; break
+                    # not settled yet: wait for one more reading
+                    n0 = len(readings)
+                    r = wait(lambda: len(readings) > n0 or time.time() - t0 > STEP_MAX_S, stall)
                 if r == "abort": return
                 if r == "stall":
-                    if st <= STALL_SKIP_BELOW:
-                        reason = "stalled"; break
-                    why[0] = "stall %ds at step %d" % (stall, st); return
-                move, reason = should_move_on(readings, STOP_K, STOP_REL, MAX_READINGS)
-                if move: break
-                if time.time() - t0 > STEP_MAX_S: reason = "time"; break
-                # not settled yet: wait for one more reading
-                n0 = len(readings)
-                r = wait(lambda: len(readings) > n0 or time.time() - t0 > STEP_MAX_S, stall)
-                if r == "abort": return
-                if r == "stall":
-                    if st <= STALL_SKIP_BELOW: reason = "stalled"; break
+                    if stall_action(st, STALL_SKIP_BELOW) == "skip": reason = "stalled"; break
                     why[0] = "stall %ds at step %d" % (stall, st); return
             if readings:
                 w = readings[-STOP_K:]
                 L("STEPDONE %d reason=%s n=%d median=%.1f relsd=%.4f" % (st, reason, len(readings), median(w), rel_stdev(w)))
             else:
                 L("STEPDONE %d reason=%s n=0" % (st, reason))
-            stall = max(STALL0, 4 * (time.time() - t0) / float(max(1, len(readings))))
+            # only a step that settled may set the limit; a stalled or empty one never raises it
+            interval = None
+            if reason == "settled" and readings: interval = (time.time() - t0) / float(len(readings))
+            stall = next_stall(STALL0, STALL_CAP, interval)
         why[0] = "all steps complete"
     except Exception, e: L("ERROR %s" % e)
     finally:

@@ -19,7 +19,7 @@ module (`pom_guard.py`, built elsewhere).
 | `drop_job.sh` | copies a job to the Pi's `jmri_cmd_watcher`, fetches logs, sets the kill flag | Mac |
 | `jython/preflight.py` | reads CVs on the programming track | Pi, inside JMRI |
 | `jython/step_runner.py` | warm-up, then the step profile | Pi, inside JMRI |
-| `jython/move_to.py` | moves a loco until a sensor condition (copied from 2026-11-08) | Pi, inside JMRI |
+| `jython/move_to.py` | runs a loco until a named sensor lights, then stops it (positioning) | Pi, inside JMRI |
 | `preflight_compare.py` | compares a preflight log with the roster entry | Mac |
 | `analyze.py` | turns step logs into speeds, drift and the 2121/2738 comparison | Mac |
 | `correct.py` | proposes a corrected table (CV67 to CV94) | Mac |
@@ -107,6 +107,12 @@ The job prints `started`. Watch the log on the Pi (`ssh pi tail -f /tmp/steprun_
 lines are `WARMUP_LAP`, `STEP n`, `READ ...`, `STEPDONE n reason=settled|max|time|stalled`.
 To stop early: `drop_job.sh --kill` (the runner sets its own throttle to 0 and ends). It also
 ends on its own if a guard sensor lights, or no sensor changes for 120 s (shown as `STOP`).
+A guard sensor can be any sensor (user or system name); the job refuses to start if one is
+not found or is already lit. The no-event limit follows a settled step's pace but never goes
+above `--stall-cap` (300 s), and a step that stalled never raises it. To position a loco
+first: `make_job.py move --loco "CSX 2738" --direction reverse --step 24 --until "BS Switch 33"
+--guard "BS W-1" --out /tmp/sm/move.py`, then `drop_job.sh` it (it stops at speed 0 when the
+sensor has been lit for 0.8 s, after 90 s, or on the kill flag).
 Flags worth knowing: `--steps 24,48,126`, `--warm-laps 3`, `--warm-step 64`, `--rel 0.02`,
 `--max 12`, `--stall 120`. Run all four combinations: 2121 forward, 2121 reverse, 2738
 forward, 2738 reverse, each from a fresh `make_job.py` (the log name carries the time).

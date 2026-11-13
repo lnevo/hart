@@ -158,3 +158,21 @@ class SpanReader(object):
                 self.hist = [self.hist[-1]]
                 return (r[0], r[1], r[2], m)
         return None
+
+
+STALL_CAP = 300.0   # a stall limit never grows past this many seconds
+
+
+def next_stall(stall0, cap, settled_interval):
+    """The no-sensor-event limit for the next step.
+
+    settled_interval is the mean seconds per reading of the last step that settled, or None.
+    The limit follows slow steps up to four intervals, never below stall0 and never above
+    cap. A step that stalled or gave no readings must not raise it: pass None."""
+    base = stall0 if settled_interval is None else max(stall0, 4.0 * settled_interval)
+    return min(base, cap)
+
+
+def stall_action(step, skip_below):
+    """What a stall at this step does: 'skip' the step (creep steps may not move) or 'end'."""
+    return "skip" if step <= skip_below else "end"

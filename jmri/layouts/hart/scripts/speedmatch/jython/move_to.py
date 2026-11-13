@@ -1,49 +1,72 @@
+# move_to.py - run one loco until a block sensor lights, then stop it (Jython 2.7, runs in
+# the Pi's JMRI through jmri_cmd_watcher). Positions a loco before a run. Built by
+# make_job.py move; the first version was the 2026-11-08 move_to.py (docs/jmri/speedmatching/).
+#
+# Safety as in step_runner.py: the loco is stopped only with its own throttle at speed 0
+# (no emergency stop, no power, no turnouts); a guard sensor lighting, /tmp/speedrun.kill
+# and MAX_S seconds all end the run; a guard that is not found or is already ACTIVE stops
+# it before it moves.
+#
+# Settings (globals set in front of this file):
+#   LOGF        log file path
+#   P_ID        roster id
+#   P_FWD       True = throttle forward
+#   P_STEP      throttle step (126-step scale)
+#   UNTIL       sensors (user or system names); the run ends when ANY of them is ACTIVE for
+#               8 checks in a row (0.8 s)
+#   GUARD       sensors that abort the run
+#   FUNCS       function numbers to switch on (0 = lights)
+#   MAX_S       longest the run may take, seconds
 import time, threading, os, java, jmri
-f=open(LOGF,"a")
-def L(m): f.write("%.3f %s\n"%(time.time(),m)); f.flush()
+f = open(LOGF, "a")
+def L(m): f.write("%.3f %s\n" % (time.time(), m)); f.flush()
 class TL(jmri.ThrottleListener):
-    def __init__(self): self.t=None; self.ev=threading.Event(); self.err=None
-    def notifyThrottleFound(self,t): self.t=t; self.ev.set()
-    def notifyFailedThrottleRequest(self,a,r): self.err="fail %s"%r; self.ev.set()
-    def notifyDecisionRequired(self,a,d): self.err="decision %s"%d; self.ev.set()
-    def notifyStealThrottleRequired(self,a): self.err="steal"; self.ev.set()
-reg=[]; why=[""]; ab=threading.Event()
+    def __init__(self): self.t = None; self.ev = threading.Event(); self.err = None
+    def notifyThrottleFound(self, t): self.t = t; self.ev.set()
+    def notifyFailedThrottleRequest(self, a, r): self.err = "fail %s" % r; self.ev.set()
+    def notifyDecisionRequired(self, a, d): self.err = "decision %s" % d; self.ev.set()
+    def notifyStealThrottleRequired(self, a): self.err = "steal"; self.ev.set()
+reg = []; why = [""]; ab = threading.Event()
+NAMES = {1: "UNKNOWN", 2: "ACTIVE", 4: "INACTIVE", 8: "INCONSISTENT"}
 class SL(java.beans.PropertyChangeListener):
-    def __init__(self,n): self.n=n
-    def propertyChange(self,e):
-        if e.getPropertyName()!="KnownState": return
-        st=e.getNewValue(); L("SENS %s %s"%(self.n,"ACTIVE" if st==2 else "INACTIVE"))
-        if self.n in GUARD and st==2: why[0]="guard "+self.n; ab.set()
-def occ(sm,n): return sm.getSensor(n).getKnownState()==2
+    def __init__(self, n): self.n = n
+    def propertyChange(self, e):
+        if e.getPropertyName() != "KnownState": return
+        st = e.getNewValue(); L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st)))
+        if self.n in GUARD and st == 2: why[0] = "guard " + self.n; ab.set()
 def run():
-    t=None
+    t = None
     try:
-        sm=jmri.InstanceManager.sensorManagerInstance()
-        for s in sm.getNamedBeanSet():
-            un=s.getUserName() or ""
-            if un.startswith("BS ") and un not in ("BS W-1","BS W-2"):
-                l=SL(un); s.addPropertyChangeListener(l); reg.append((s,l))
-        re=jmri.jmrit.roster.Roster.getDefault().getEntryForId(P_ID)
-        tl=TL(); jmri.InstanceManager.throttleManagerInstance().requestThrottle(re,tl,False); tl.ev.wait(10)
-        if tl.t is None: L("NO THROTTLE %s"%tl.err); return
-        t=tl.t; t.setIsForward(P_FWD); t.setF0(True)
-        if P_ID=="CSX 2121": t.setF8(True)
+        sm = jmri.InstanceManager.sensorManagerInstance()
+        until = []
+        for n in list(UNTIL) + list(GUARD):
+            s = sm.getSensor(n)
+            if s is None: why[0] = "sensor not found: " + n; return
+            l = SL(n); s.addPropertyChangeListener(l); reg.append((s, l))
+            if n in GUARD:
+                if s.getKnownState() == 2: why[0] = "guard already ACTIVE: " + n; return
+            else: until.append(s)
+        re = jmri.jmrit.roster.Roster.getDefault().getEntryForId(P_ID)
+        tl = TL(); jmri.InstanceManager.throttleManagerInstance().requestThrottle(re, tl, False); tl.ev.wait(10)
+        if tl.t is None: L("NO THROTTLE %s" % tl.err); return
+        t = tl.t; t.setIsForward(P_FWD)
+        for fn in FUNCS: getattr(t, "setF%d" % fn)(True)
         time.sleep(1.0)
-        t.setSpeedSetting(P_STEP/126.0); L("GO %s step %d"%(P_ID,P_STEP)); t0=time.time()
-        ok=0
-        while not ab.is_set() and time.time()-t0<90:
-            if os.path.exists("/tmp/speedrun.kill"): why[0]="killed"; break
-            if eval(P_COND):
-                ok+=1
-                if ok>=8: why[0]=P_WHY; break
-            else: ok=0
+        t.setSpeedSetting(P_STEP / 126.0); L("GO %s step %d until %s" % (P_ID, P_STEP, ",".join(UNTIL))); t0 = time.time()
+        ok = 0
+        while not ab.is_set() and time.time() - t0 < MAX_S:
+            if os.path.exists("/tmp/speedrun.kill"): why[0] = "killed"; break
+            if [s for s in until if s.getKnownState() == 2]:
+                ok += 1
+                if ok >= 8: why[0] = "reached"; break
+            else: ok = 0
             time.sleep(0.1)
-        if not why[0]: why[0]="time"
-    except Exception, e: L("ERROR %s"%e)
+        if not why[0]: why[0] = "time"
+    except Exception, e: L("ERROR %s" % e)
     finally:
-        L("STOP "+why[0])
+        L("STOP " + why[0])
         if t is not None: t.setSpeedSetting(0.0); L("speed 0")
-        for s,l in reg: s.removePropertyChangeListener(l)
+        for s, l in reg: s.removePropertyChangeListener(l)
         L("END")
-th=threading.Thread(target=run); th.setDaemon(True); th.start()
-RESULT="started"
+th = threading.Thread(target=run); th.setDaemon(True); th.start()
+RESULT = "started"

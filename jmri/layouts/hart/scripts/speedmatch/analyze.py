@@ -16,6 +16,7 @@ flag == "assigned".
 """
 import argparse
 import csv
+import json
 import re
 import sys
 from pathlib import Path
@@ -76,6 +77,11 @@ def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
 
 _LINE = re.compile(r"^([\d.]+) (.*)$")
 _RUN = re.compile(r"RUN loco=(.*) direction=(\w+)")
+_CFG = re.compile(r"(\w+)=([^\s@]+)")
+STATES = ("ACTIVE", "INACTIVE", "UNKNOWN", "INCONSISTENT")
+# CFG names the runner logs -> the keyword names used here
+CFG_KEYS = {"k": ("k", int), "rel": ("rel", float), "max": ("max_n", int),
+            "settle": ("settle", int), "low_max": ("low_max", int), "high_span": ("high_span", int)}
 
 
 def parse_log(lines, loco=None, direction=None):
@@ -94,7 +100,8 @@ def parse_log(lines, loco=None, direction=None):
             mm = _RUN.match(msg)
             if not mm:
                 continue
-            run = {"loco": mm.group(1), "direction": mm.group(2), "steps": []}
+            run = {"loco": mm.group(1), "direction": mm.group(2), "steps": [], "cfg": {},
+                   "lengths": None}
             runs.append(run)
             seen.clear()
             active.clear()
@@ -103,19 +110,27 @@ def parse_log(lines, loco=None, direction=None):
             if run is None:
                 if loco is None or direction is None:
                     raise ValueError("log has no RUN line: give loco and direction")
-                run = {"loco": loco, "direction": direction, "steps": []}
+                run = {"loco": loco, "direction": direction, "steps": [], "cfg": {},
+                       "lengths": None}
                 runs.append(run)
             n = int(msg.split()[1])
             seen[n] = seen.get(n, 0) + 1
             cur = {"step": n, "occurrence": seen[n], "events": []}
             run["steps"].append(cur)
+        elif msg.startswith("CFG ") and run is not None:
+            for key, val in _CFG.findall(msg[4:]):
+                if key in CFG_KEYS:
+                    name, conv = CFG_KEYS[key]
+                    run["cfg"][name] = conv(val)
+        elif msg.startswith("LENGTHS ") and run is not None:
+            run["lengths"] = json.loads(msg[8:])
         elif msg.startswith("WARMUP "):
             cur = None
         elif msg.startswith("SENS "):
             name, st = msg[5:].rsplit(" ", 1)
             if cur is not None and st == "ACTIVE" and active.get(name) != "ACTIVE":
                 cur["events"].append((t, name))
-            if st in ("ACTIVE", "INACTIVE"):
+            if st in STATES:  # any state counts: UNKNOWN between two ACTIVEs is a new ACTIVE
                 active[name] = st
     return runs
 
@@ -146,19 +161,31 @@ def travel(events, order=ORDER):
     return "east" if up > down else "west" if down > up else ""
 
 
-def summarize(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_READINGS, **kw):
-    """dict (loco, direction) -> list of step rows, in run order."""
+def summarize(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_READINGS,
+              use_logged=True, **kw):
+    """dict (loco, direction) -> list of step rows, in run order.
+
+    A run's own CFG line (stop rule settings) and LENGTHS line (the lengths the job was built
+    with) are replayed as the runner had them; k, rel, max_n, kw and lengths are used only
+    for logs that lack them (or all of them when use_logged is False)."""
     result = {}
     for run in runs:
         rows = result.setdefault((run["loco"], run["direction"]), [])
+        p = {"k": k, "rel": rel, "max_n": max_n}
+        p.update(kw)
+        run_lengths = lengths
+        if use_logged:
+            p.update(run.get("cfg") or {})
+            run_lengths = run.get("lengths") or lengths
+        k_, rel_, max_ = p.pop("k"), p.pop("rel"), p.pop("max_n")
         for s in run["steps"]:
-            rd = step_readings(s["events"], s["step"], lengths, **kw)
+            rd = step_readings(s["events"], s["step"], run_lengths, **p)
             speeds = [r[0] for r in rd]
             row = {"loco": run["loco"], "direction": run["direction"], "step": s["step"],
                    "occurrence": s["occurrence"], "travel": travel(s["events"]),
                    "n": len(speeds), "blocks": rd[-1][3] if rd else 0}
             if speeds:
-                used, why, win = lr.replay(speeds, k, rel, max_n)
+                used, why, win = lr.replay(speeds, k_, rel_, max_)
                 row.update(used=used, reason=why or "open", median=lr.median(win),
                            rel_sd=lr.rel_stdev(win) if len(win) > 1 else None,
                            settled=(why == "settled"))
@@ -258,6 +285,8 @@ def main(argv=None):
                     help="the consist pair: leader,follower (follower runs reversed)")
     ap.add_argument("--loco", help="for logs without a RUN line")
     ap.add_argument("--direction", help="for logs without a RUN line")
+    ap.add_argument("--csv-lengths", action="store_true",
+                    help="use the lengths from --lengths, not the ones logged by the runner")
     ap.add_argument("--k", type=int, default=lr.STOP_K)
     ap.add_argument("--rel", type=float, default=lr.STOP_REL)
     ap.add_argument("--max", type=int, default=lr.MAX_READINGS, dest="max_n")
@@ -268,7 +297,7 @@ def main(argv=None):
     runs = []
     for p in a.logs:
         runs += parse_log(Path(p).read_text().splitlines(), a.loco, a.direction)
-    result = summarize(runs, lengths, a.k, a.rel, a.max_n)
+    result = summarize(runs, lengths, a.k, a.rel, a.max_n, use_logged=not a.csv_lengths)
     pair = tuple(a.pair.split(",")) if a.pair else None
     write_outputs(result, pair, a.out)
     for key, rows in sorted(result.items()):

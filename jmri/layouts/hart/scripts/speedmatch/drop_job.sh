@@ -10,10 +10,12 @@ PI_HOST="${HART_PI_SSH:-pi}"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 ssh_pi() { ssh "${SSH_OPTS[@]}" "$PI_HOST" "$@"; }
 
+usage() { sed -n '2,8p' "$0"; }
 case "${1:-}" in
   --kill) ssh_pi 'touch /tmp/speedrun.kill'; echo "kill flag set; the runner stops its loco at speed 0 and ends"; exit 0 ;;
-  --fetch) scp -q "${SSH_OPTS[@]}" "$PI_HOST:$2" "${3:-.}/"; echo "copied $2"; exit 0 ;;
-  ""|-h|--help) sed -n '2,8p' "$0"; exit 0 ;;
+  --fetch) [[ -n "${2:-}" ]] || { usage; exit 2; }
+    scp -q "${SSH_OPTS[@]}" "$PI_HOST:$2" "${3:-.}/"; echo "copied $2"; exit 0 ;;
+  ""|-h|--help) usage; exit 0 ;;
 esac
 JOB="$1"
 [[ -f "$JOB" ]] || { echo "no such job file: $JOB" >&2; exit 1; }
