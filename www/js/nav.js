@@ -125,6 +125,12 @@
     btn.addEventListener("click", function () {
       setOpen(panel.hidden);
     });
+    // For links elsewhere on a page (the 404 page): open the panel as "/" does, optionally with words typed in.
+    openSearchFn = function (q) {
+      if (q) input.value = q;
+      setOpen(true);
+      if (q) input.dispatchEvent(new Event("input"));
+    };
     panel.addEventListener("click", function (e) {
       if (e.target.closest && e.target.closest("a")) setOpen(false);
     });
@@ -145,6 +151,7 @@
   // Search drop-down. Closes like the menu: Escape (focus back to the button) and a click outside.
   // js/search.js is fetched on first open, and "/" opens the panel when no field has focus.
   var searchLoad = null;
+  var openSearchFn = null;
   function mountSearch(header) {
     var btn = header.querySelector(".search-toggle");
     var wrap = header.querySelector(".site-search");
@@ -434,6 +441,10 @@
     renderError: renderError,
     isLocal: isLocal,
     trapTab: trapTab,
+    openSearch: function (q) {
+      if (openSearchFn) openSearchFn(q);
+      return !!openSearchFn;
+    },
   };
   window.HARTOps = api;
 })();

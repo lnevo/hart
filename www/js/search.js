@@ -22,25 +22,44 @@
     return KINDS[kind] || (kind ? String(kind).charAt(0).toUpperCase() + String(kind).slice(1) : "Page");
   }
 
-  // Lowercased copies of the searchable fields, made once per record.
+  // Folding: lower case, accents off, apostrophes dropped, "&" read as "and", every other mark a space.
+  // "B&O", "b and o" and "B & O" all fold to "b and o"; "YM-01" folds to "ym 01".
+  function fold(s) {
+    s = String(s || "").toLowerCase();
+    if (s.normalize) s = s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+    return s.replace(/['’]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
+  }
+  // Folded with the spaces and the word "and" taken out: "b and o" -> "bo", "ym 01" -> "ym01".
+  function compact(s) {
+    return fold(s).split(" ").filter(function (w) { return w && w !== "and"; }).join("");
+  }
+  function words(s) {
+    var seen = {};
+    return s.split(" ").filter(function (w) { return w && !seen[w] && (seen[w] = 1); });
+  }
+
+  // Folded copies of the searchable fields, made once per record.
   function prepare(records) {
     return (records || []).map(function (r, i) {
+      var title = fold(r.title);
+      var snippet = fold(r.snippet);
       return {
         rec: r,
         i: i,
-        title: String(r.title || "").toLowerCase(),
-        snippet: String(r.snippet || "").toLowerCase(),
-        text: String(r.text || "").toLowerCase(),
+        title: title,
+        snippet: snippet,
+        text: fold(r.text),
+        raw: String(r.title || ""), // for the whole-word exact check
+        tw: words(title), // whole words, for typo matching (title and snippet only)
+        sw: words(snippet),
       };
     });
   }
 
   function atWordStart(s, at) {
-    return at === 0 || /[^a-z0-9]/.test(s.charAt(at - 1));
+    return at === 0 || s.charAt(at - 1) === " ";
   }
 
-  // Score of one term against one record: title beats snippet beats text; a hit at the start
-  // of a word beats a hit inside one. 0 means no match.
   // 0 = no hit, 1 = hit inside a word, 2 = hit at the start of a word (any occurrence counts).
   function hitKind(s, term) {
     var at = s.indexOf(term);
@@ -48,7 +67,13 @@
     for (; at !== -1; at = s.indexOf(term, at + 1)) if (atWordStart(s, at)) return 2;
     return 1;
   }
+  // Whole words only (used for synonyms, so "cr" never reaches "crew").
+  function hasWhole(s, phrase) {
+    return (" " + s + " ").indexOf(" " + phrase + " ") !== -1;
+  }
 
+  // Score of one term against one record: title beats snippet beats text; a hit at the start
+  // of a word beats a hit inside one. 0 means no match.
   function termScore(p, term) {
     var s = 0;
     var t = hitKind(p.title, term);
@@ -56,6 +81,120 @@
     var n = hitKind(p.snippet, term);
     if (n) s = Math.max(s, n === 2 ? 25 : 20);
     if (p.text.indexOf(term) !== -1) s = Math.max(s, 5);
+    return s;
+  }
+
+  // ---- Synonyms ------------------------------------------------------------------------------------------
+  // Railroad names the site spells more than one way. Each row is one set of names that stand for the same
+  // thing, and a search for any of them also finds the others (both ways, at half score, whole words only).
+  // Every name here appears in the site's own pages or data. Keep the rows apart: P&CV and P&OV are
+  // different names on purpose and must never share a row.
+  var SYNONYMS = [
+    ["chessie", "chessie system", "c&o", "b&o"], // the Chessie System roads on the roster
+    ["p&le", "pittsburgh & lake erie"],
+    ["conrail", "cr"],
+    ["p&ov", "pittsburgh & ohio valley"],
+    ["p&cv", "pittsburgh & chartiers valley"],
+    ["pohc", "pittsburgh & ohio central"],
+    ["wle", "w&le", "wheeling & lake erie"],
+    ["nyc", "new york central"],
+    ["prr", "pennsylvania railroad"],
+    ["n&w", "norfolk & western"],
+  ];
+  var SYN_FACTOR = 0.5;
+  var SYN_MAX = 5; // longest name, in words
+  // compact key ("b and o" -> "bo") -> the folded names of its row
+  var SYN_INDEX = {};
+  SYNONYMS.forEach(function (row) {
+    var folded = row.map(fold);
+    folded.forEach(function (name) {
+      SYN_INDEX[compact(name)] = folded;
+    });
+  });
+
+  // ---- Typos ---------------------------------------------------------------------------------------------
+  var FUZZY_MIN = 5; // shortest term that may be a typo; shorter terms and numbers stay exact
+  var FUZZY_TITLE = 15; // well below exact (100/60 title, 25/20 snippet)
+  var FUZZY_SNIPPET = 8;
+
+  // True when a and b differ by exactly one insert, delete, substitute or swap of neighbours.
+  function oneEdit(a, b) {
+    if (a === b) return false;
+    var la = a.length;
+    var lb = b.length;
+    if (Math.abs(la - lb) > 1) return false;
+    var i = 0;
+    while (i < la && i < lb && a.charAt(i) === b.charAt(i)) i++;
+    if (la === lb) {
+      if (a.slice(i + 1) === b.slice(i + 1)) return true; // substitute
+      return a.charAt(i) === b.charAt(i + 1) && a.charAt(i + 1) === b.charAt(i) && a.slice(i + 2) === b.slice(i + 2); // swap
+    }
+    return la > lb ? a.slice(i + 1) === b.slice(i) : b.slice(i + 1) === a.slice(i);
+  }
+  function fuzzyOk(term) {
+    return term.length >= FUZZY_MIN && /^[a-z]+$/.test(term);
+  }
+  function fuzzyScore(p, term) {
+    var i;
+    for (i = 0; i < p.tw.length; i++) if (oneEdit(p.tw[i], term)) return FUZZY_TITLE;
+    for (i = 0; i < p.sw.length; i++) if (oneEdit(p.sw[i], term)) return FUZZY_SNIPPET;
+    return 0;
+  }
+
+  // ---- Query ---------------------------------------------------------------------------------------------
+  // The query as units. A unit is one typed word or a phrase ("b and o", "ym 01"), with the other spellings
+  // that count as the same thing: variants ("ym01" -> "ym 01") and synonyms.
+  function parse(query) {
+    var pieces = String(query || "").split(/\s+/).map(fold).filter(Boolean);
+    var i;
+    // "b and o" typed with spaces becomes one phrase.
+    for (i = 0; i + 2 < pieces.length; i++) {
+      if (pieces[i].length === 1 && pieces[i + 1] === "and" && pieces[i + 2].length <= 2) {
+        pieces.splice(i, 3, pieces[i] + " and " + pieces[i + 2]);
+      }
+    }
+    var units = [];
+    for (i = 0; i < pieces.length; ) {
+      var done = false;
+      for (var n = Math.min(SYN_MAX, pieces.length - i); n >= 1 && !done; n--) {
+        var span = pieces.slice(i, i + n).join(" ");
+        var row = SYN_INDEX[compact(span)];
+        if (row) {
+          // "bo" is the same name as "b&o" (a variant); the rest of the row are synonyms.
+          var key = compact(span);
+          units.push({
+            text: span,
+            variants: row.filter(function (x) { return compact(x) === key && x !== span; }),
+            syns: row.filter(function (x) { return compact(x) !== key; }),
+          });
+          i += n;
+          done = true;
+        }
+      }
+      if (!done) {
+        units.push({ text: pieces[i], variants: [], syns: [] });
+        i++;
+      }
+    }
+    // A lone "and" between other words only gets in the way.
+    if (units.length > 1) units = units.filter(function (u) { return u.text !== "and"; });
+    units.forEach(function (u) {
+      var m = /^([a-z]{2,})([0-9]+)$/.exec(u.text); // "ym01" also reads as "ym 01"
+      if (m) u.variants.push(m[1] + " " + m[2]);
+    });
+    return units;
+  }
+
+  function unitScore(p, u, fuzzy) {
+    var s = termScore(p, u.text);
+    var i;
+    for (i = 0; i < u.variants.length; i++) s = Math.max(s, termScore(p, u.variants[i]));
+    for (i = 0; i < u.syns.length; i++) {
+      var sy = u.syns[i];
+      var r = hasWhole(p.title, sy) ? 100 : hasWhole(p.snippet, sy) ? 25 : hasWhole(p.text, sy) ? 5 : 0;
+      s = Math.max(s, r * SYN_FACTOR);
+    }
+    if (!s && fuzzy && fuzzyOk(u.text)) s = fuzzyScore(p, u.text);
     return s;
   }
 
@@ -82,26 +221,25 @@
     return GROUPS.length - 1;
   }
 
-  // The whole query equals the whole title, or one whole word of it ("2738", "NVL", "YM-01").
+  // The whole query equals the whole title, or one whole word of it ("2738", "NVL", "YM-01"). Compared
+  // folded and compact, so "ym01" is exact for "YM-01" and "bo" for "B&O".
   function isExact(p, q) {
-    if (!q) return false;
-    if (p.title === q) return true;
-    var words = p.title.split(/[\s,;:()\u2014\u2013|/]+/);
-    for (var i = 0; i < words.length; i++) {
-      var w = words[i].replace(/^[^a-z0-9&]+|[^a-z0-9&]+$/g, "");
-      if (w && w === q) return true;
-    }
+    var c = compact(q);
+    if (!c) return false;
+    if (compact(p.raw) === c) return true;
+    var ws = p.raw.toLowerCase().split(/[\s,;:()—–|/]+/);
+    for (var i = 0; i < ws.length; i++) if (ws[i] && compact(ws[i]) === c) return true;
     return false;
   }
 
-  // Scored matches (flat): every term must hit somewhere. Best first; ties go to the shorter title.
-  function scored(prepared, terms) {
+  // Scored matches (flat): every unit must hit somewhere. Best first; ties go to the shorter title.
+  function scored(prepared, units, fuzzy) {
     var out = [];
     for (var i = 0; i < prepared.length; i++) {
       var p = prepared[i];
       var total = 0;
-      for (var j = 0; j < terms.length; j++) {
-        var s = termScore(p, terms[j]);
+      for (var j = 0; j < units.length; j++) {
+        var s = unitScore(p, units[j], fuzzy);
         if (!s) {
           total = 0;
           break;
@@ -121,10 +259,14 @@
   // weighted score. When only one group has results, flat is true and the heading is not drawn.
   function rank(prepared, query) {
     var raw = String(query || "").toLowerCase().trim();
-    var terms = raw.split(/\s+/).filter(Boolean);
+    var units = parse(raw);
     var res = { total: 0, flat: true, groups: [] };
-    if (!terms.length) return res;
-    var hits = scored(prepared, terms).sort(byScore);
+    if (!units.length) return res;
+    var hits = scored(prepared, units, false);
+    // Typos are tried only when nothing matches as typed, so a real word never drags in near-misses.
+    if (!hits.length && units.some(function (u) { return fuzzyOk(u.text); })) hits = scored(prepared, units, true);
+    hits.sort(byScore);
+    var whole = units.map(function (u) { return u.text; }).join(" ");
     var exact = [];
     var rest = [];
     // Only the best few exact hits lead; a query like "b&o" is a whole word of dozens of cars, and the
@@ -132,7 +274,7 @@
     // Rolling stock leads only for a number ("2738"), never for a road name ("b&o").
     var numeric = /[0-9]/.test(raw);
     hits.forEach(function (h) {
-      var lead = isExact(h.p, terms.join(" ")) && (numeric || STOCK.indexOf(h.p.rec.kind) === -1);
+      var lead = isExact(h.p, whole) && (numeric || STOCK.indexOf(h.p.rec.kind) === -1);
       (lead && exact.length < GROUP_CAP ? exact : rest).push(h);
     });
     var buckets = GROUPS.map(function (g) {
@@ -170,8 +312,11 @@
     return out;
   }
 
+  // Searches offered when the box is empty (each is tested against the real index, so each finds something).
+  var EXAMPLES = ["YM-01", "Shenango", "Conrail", "waybill", "hopper", "2738"];
+
   var api = {
-    match: match, rank: rank, prepare: prepare, kindLabel: kindLabel, KINDS: KINDS, CAP: CAP,
+    EXAMPLES: EXAMPLES, SYNONYMS: SYNONYMS, fold: fold, match: match, rank: rank, prepare: prepare, kindLabel: kindLabel, KINDS: KINDS, CAP: CAP,
     GROUP_CAP: GROUP_CAP, GROUPS: GROUPS, WEIGHT: WEIGHT,
   };
 
@@ -213,6 +358,26 @@
     var more = root.querySelector(".search-more");
     var empty = root.querySelector(".search-empty");
     var hint = root.querySelector(".search-hint");
+    // "Try:" row under the hint while the box is empty; each button fills the box and runs the search.
+    var tryRow = document.createElement("p");
+    tryRow.className = "search-try small";
+    tryRow.hidden = true;
+    tryRow.appendChild(document.createTextNode("Try: "));
+    EXAMPLES.forEach(function (q) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "search-try-btn";
+      b.textContent = q;
+      tryRow.appendChild(b);
+    });
+    hint.parentNode.insertBefore(tryRow, hint.nextSibling);
+    tryRow.addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest(".search-try-btn");
+      if (!b) return;
+      input.value = b.textContent;
+      input.dispatchEvent(new Event("input"));
+      input.focus();
+    });
     var prepared = null;
     var unavailable = false;
     var shown = [];
@@ -257,6 +422,7 @@
       more.hidden = true;
       empty.hidden = true;
       hint.hidden = true;
+      tryRow.hidden = true;
       if (unavailable) {
         input.setAttribute("aria-expanded", "false");
         empty.hidden = false;
@@ -267,6 +433,7 @@
       if (!q.trim()) {
         input.setAttribute("aria-expanded", "false");
         hint.hidden = false;
+        tryRow.hidden = false;
         status.textContent = "";
         return;
       }

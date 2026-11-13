@@ -78,4 +78,98 @@ assert(labels("coke").length >= 3);
   assert.strictEqual(r.groups.reduce((n, g) => n + g.items.length, 0), r.total);
   assert.strictEqual(S.match(P, "hopper").length, r.total);
 }
+
+// ---- stage 4: forgiving matching -------------------------------------------------------------------------
+const has = (q, title) => S.match(P, q).some((r) => r.title === title);
+// typos: one edit on a word of 5+ letters, whole words of title or snippet
+assert(top("shenago", 3).some((t) => /Shenango/.test(t)), "shenago: " + top("shenago"));
+assert(has("shenago", "Shenango Furnace history"));
+{
+  const W = S.prepare([R("article", "Waybill basics", "How a waybill moves.", ""), R("page", "Glossary", "Terms", "waybill")]);
+  assert.strictEqual(S.match(W, "wayblil")[0].title, "Waybill basics"); // swap
+  assert.strictEqual(S.match(W, "waybil")[0].title, "Waybill basics"); // delete
+  assert.strictEqual(S.match(W, "waybilll")[0].title, "Waybill basics"); // insert
+  assert.strictEqual(S.match(W, "waxbill")[0].title, "Waybill basics"); // substitute
+  assert.strictEqual(S.match(W, "wxybil").length, 0); // two edits
+  assert.strictEqual(S.match(W, "wayblil")[0].kind, "article");
+}
+// a typo hit never scores like a real one, and fuzzy runs only when nothing matches as typed
+assert.strictEqual(S.rank(P, "shenago").groups.some((g) => g.id === "best"), false);
+// short terms and numbers stay exact
+{
+  const N = S.prepare([R("locomotive", "CSX 2783", "", ""), R("crew", "NVL", "", ""), R("crew", "NVX", "", "")]);
+  assert.strictEqual(S.match(N, "2738").length, 0);
+  assert.strictEqual(S.match(N, "nvk").length, 0);
+  assert.strictEqual(S.match(N, "nvl")[0].title, "NVL");
+  assert.strictEqual(S.match(N, "csx2784").length, 0);
+}
+// folding
+assert.strictEqual(top("ym01", 1)[0], "YM-01");
+assert.strictEqual(top("tt23", 1)[0], "TT-23");
+assert.strictEqual(labels("ym01")[0], "Best match");
+assert.strictEqual(S.fold("B & O"), S.fold("b&o"));
+assert.strictEqual(S.fold("Caf\u00e9 O\u2019Brien"), "cafe obrien");
+{
+  const l = labels("b and o");
+  assert(l.includes("Pages & articles") && l[l.length - 1] === "Rolling stock", l.join());
+  assert.deepStrictEqual(top("b and o", 3), top("b&o", 3));
+  assert(has("bo", "B&O freight cars"));
+}
+// synonyms work both ways
+const SYN = S.prepare([
+  R("page", "Chessie notes", "", ""), R("page", "C&O history", "", ""), R("page", "Conrail 1993", "", ""),
+  R("page", "CR facts", "", ""), R("page", "P&LE District", "", ""), R("page", "Pittsburgh & Lake Erie map", "", ""),
+  R("page", "P&OV at a glance", "", ""), R("page", "Pittsburgh & Ohio Valley Railway", "", ""),
+  R("page", "P&CV Division", "", ""), R("page", "Pittsburgh & Chartiers Valley Division", "", ""),
+  R("page", "Crew sheets", "", ""),
+]);
+const sTitles = (q) => S.match(SYN, q).map((r) => r.title);
+for (const row of S.SYNONYMS) {
+  for (const a of row) for (const b of row) {
+    if (a === b) continue;
+    // each name finds a page titled with another name when one is in the fixture
+    const hit = (t) => S.match(S.prepare([R("page", t + " page", "", "")]), a).length === 1;
+    assert(hit(b), "synonym " + a + " -> " + b);
+  }
+}
+assert(sTitles("chessie").includes("C&O history"));
+assert(sTitles("c&o").includes("Chessie notes"));
+assert(sTitles("conrail").includes("CR facts") && sTitles("cr").includes("Conrail 1993"));
+assert(!sTitles("cr").includes("Crew sheets") || sTitles("cr").indexOf("CR facts") < sTitles("cr").indexOf("Crew sheets"));
+assert(sTitles("p&le").includes("Pittsburgh & Lake Erie map"));
+assert(sTitles("pittsburgh and lake erie").includes("P&LE District"));
+assert(sTitles("p&ov").includes("Pittsburgh & Ohio Valley Railway"));
+assert(sTitles("pittsburgh & ohio valley").includes("P&OV at a glance"));
+// P&CV and P&OV never reach each other
+for (const q of ["p&cv", "pcv", "p and cv", "pittsburgh & chartiers valley"]) {
+  const t = sTitles(q);
+  assert(!t.includes("P&OV at a glance") && !t.includes("Pittsburgh & Ohio Valley Railway"), q + ": " + t);
+  assert(t.includes("P&CV Division"), q);
+}
+for (const q of ["p&ov", "pov", "pittsburgh & ohio valley"]) {
+  const t = sTitles(q);
+  assert(!t.includes("P&CV Division") && !t.includes("Pittsburgh & Chartiers Valley Division"), q + ": " + t);
+}
+for (const row of S.SYNONYMS) {
+  const j = row.join("|").toLowerCase();
+  assert(!(/p&cv|chartiers valley/.test(j) && /p&ov|ohio valley/.test(j)), "P&CV and P&OV share a row");
+}
+// rolling stock stays last, and leads only for a number
+for (const q of ["b and o", "bo", "chessie", "hoper", "cokee"]) {
+  const l = labels(q);
+  if (l.includes("Rolling stock")) assert.strictEqual(l[l.length - 1], "Rolling stock", q + ": " + l.join());
+}
+assert.strictEqual(labels("2738")[0], "Best match");
+assert(!S.rank(P, "chessie").groups.some((g) => g.id === "best"));
+
+// every example search finds something in the real built index (set SEARCH_INDEX to its path)
+const idxPath = process.env.SEARCH_INDEX;
+if (idxPath && require("fs").existsSync(idxPath)) {
+  const real = S.prepare(JSON.parse(require("fs").readFileSync(idxPath, "utf8")).records);
+  assert(S.EXAMPLES.length >= 4 && S.EXAMPLES.length <= 6);
+  for (const q of S.EXAMPLES) assert(S.rank(real, q).total > 0, "example finds nothing: " + q);
+  for (const q of ["shenago", "wayblil", "ym01", "chessie", "b and o", "2738"]) {
+    console.log(q + " ->", S.rank(real, q).groups.map((g) => g.label + ": " + g.items.slice(0, 3).map((r) => r.title).join(" / ")).join("  ||  "));
+  }
+}
 console.log("search rank: all passed");

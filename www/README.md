@@ -94,6 +94,15 @@ The header has six links (`data/site.json` → `nav`): **Home · Prototype · Op
 
 Session invitation emails are **author reference** only (used to write the primer/story). They are not a portal topic.
 
+## Site search
+
+The magnifier in the header (or `/`) searches `search-index.json`, which `prepare_github_pages.py` writes into the build from the built pages and the public data files (pages, articles, glossary terms, industries, crew sheets, rolling stock, archive items, layout photos). It is never in the source tree, so a page served from `www/` shows no search button. `js/search.js` does the matching in the browser; nothing is sent anywhere.
+
+- **Order:** exact title hits first ("2738", "NVL", "YM-01"), then groups: Pages & articles, Railroad, Photos & archive, with **Rolling stock always last** (owner's rule). Rolling stock leads only for a number, never for a road name.
+- **Forgiving:** `&`/"and" and punctuation are folded ("ym01" finds YM-01), a one-letter typo in a word of five or more letters still matches, and road names in the `SYNONYMS` table find each other. P&CV and P&OV are different names and never share a row.
+- **Links:** items open on their page (`photos/#rolling-stock/<id>`, `#historical/<id>`, `#layout/<id>`, glossary and spot-sheet anchors). Every fleet and gallery item needs a unique `id`; `check_portal_build.py` fails the build otherwise, and checks every index link and thumbnail.
+- **Thumbnails:** the build makes 80 px copies in `assets/search/` (needs Pillow).
+
 ## Layout Explorer data
 
 `python3 www/scripts/build_layout_index.py` writes `data/layout-index.json` from live repo data, and `python3 www/scripts/build_cats_layout_index.py` writes `data/layout-index-cats.json` and `assets/layout/HART_cats_digicon.png` from `cats/panels/HART_CTC.xml`. Rerun them after the layout or the desks change, then deploy.

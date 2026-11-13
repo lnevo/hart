@@ -48,6 +48,10 @@
       color: var(--ink-soft);
     }
 
+    .lost-search {
+      margin: 0 0 1.1rem;
+    }
+
     .lost-actions {
       display: flex;
       flex-wrap: wrap;
@@ -218,6 +222,9 @@
           There's no page at this address. It may have moved, or the link that brought you
           here is wrong. The dispatcher has been told, and sent the order alongside.
         </p>
+        <p class="lost-search small">
+          Looking for something? <a href="/" data-lost-search>Search the site</a>.
+        </p>
         <div class="lost-actions">
           <a class="btn" href="/">Back to the yard office</a>
           <a class="btn btn-ghost" href="/history/index.html">Prototype</a>
@@ -256,6 +263,18 @@
       var slot = document.querySelector("[data-lost-path]");
       if (slot && path && path !== "/" && !/\/404\.html$/.test(path)) {
         slot.textContent = path.length > 60 ? path.slice(0, 57) + "…" : path;
+      }
+
+      // "Search the site" opens the header search (as "/" does), with words from the missing path typed in.
+      var find = document.querySelector("[data-lost-search]");
+      if (find) {
+        var words = path.replace(/\.(html?|php)$/i, "").split(/[^A-Za-z0-9]+/).filter(function (w) {
+          return w && !/^(index|html|htm|www|ops|operators)$/i.test(w);
+        });
+        var guess = words.slice(-3).join(" ");
+        find.addEventListener("click", function (e) {
+          if (window.HARTOps && window.HARTOps.openSearch(guess)) e.preventDefault(); // no search on this host: the link goes home
+        });
       }
 
       var excuses = [
