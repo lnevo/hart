@@ -105,6 +105,7 @@ Part numbers (T…) are the plan's, as drawn in the spike's overlay picture.
 - **Peninsula top.** Raised from 1 in to 4.25 in, level with the branch line, so the 0.9% grades either side of the double crossover are gone.
 - **Beyond the double crossover.** In the plan the lower track climbed to the branch line (T237) and the upper one dropped to the height-0 main (T300). As built both stay at 4.25 in and join inside the closet on the north side, making a passing siding on that leg.
 - **T300.** The turnout moves from where it is up to the 4.25 in track (drawn blue in the overlay), adjusted for smooth transitions. There it joins the upper neck track to that track: the closet end of the passing siding.
+- **T300's old place.** No turnout is left there. From T251 the track stays at height 0, alongside the other track going to the helix.
 - **Rise.** The 2.1% grade from T285 (height 0, north side) to T262 (4.25 in, west wall), 521 cm, is as planned. It is now the only track between the height-0 main and the 4.25 in level.
 - **Main levels.** Not final; plan 5.3b is a draft. As-built changes go in an overrides file applied on top of the export.
 
@@ -114,4 +115,4 @@ For the schematic this gives three bands: staging, the height-0 main, and the 4.
 
 ## Open questions for the owner
 
-1. **T300's old place.** With the turnout moved, does the height-0 track there simply continue to the helix?
+None block the level bands. Station, track and switch names for the main levels, and what the export's unnamed sections (B_7, B_8) and its dashed track are, come up when the draft names file is made.
