@@ -1,7 +1,8 @@
 # Schematic maps from a track plan
 
 - **Owner:** lnevo
-- **Status:** Stage 0 in progress (2026-11-13). The spike (`tools/schematic/spike/`, in draft PR #423 until reviewed) draws the built staging level from the Layout Editor panel with no hand placement; the AnyRail groups do not draw cleanly yet.
+- **Status:** Stage 0 done (2026-11-13). The spike in `tools/schematic/spike/` (draft PR #423) draws staging, the main level and the upper level on one sheet from the AnyRail export plus as-built edits and owner hints, with no crossings or overlaps; the owner approved the look. Next: the phases under "After the proof" below.
+- **Hand-off:** [`schematic-maps-handoff.md`](schematic-maps-handoff.md) separates plan overrides, generation rules and the owner's preferences, and lists the parallel work.
 - **Goal:** turn an AnyRail plan into a logical (not physical) view of the railroad and draw professional maps from it. First output: the one-page system schematic. The same logical view later feeds station map pages, deck track maps, the CATS panel and the Layout Editor import for the main levels.
 
 The generic tool and its skill go in the public `model-railroad-skills` plugin. HART's names, numbers and finished maps stay in this repo.
@@ -102,6 +103,7 @@ Stages 1 and 3 can start at once and run beside stage 0. Stages 2 and 4 wait for
 Part numbers (T…) are the plan's, as drawn in the spike's overlay picture.
 
 - **Helix.** One turn more than planned. Its two tracks still leave the height-0 main (at T175 and T300), now run level to the peninsula near T226 and enter the helix there, and come out on the staging level as the McKees Rocks and McKeesport stubs. The plan file does not join every helix turn; the helix details are held separately.
+- **Helix track names.** Each helix track keeps its name on both levels. On the main level the track from T175 is McKees Rocks and the one from T251 is McKeesport (owner confirmed).
 - **Peninsula top.** Raised from 1 in to 4.25 in, level with the branch line, so the 0.9% grades either side of the double crossover are gone.
 - **Beyond the double crossover.** In the plan the lower track climbed to the branch line (T237) and the upper one dropped to the height-0 main (T300). As built both stay at 4.25 in and join inside the closet on the north side, making a passing siding on that leg.
 - **T300.** The turnout moves from where it is up to the 4.25 in track (drawn blue in the overlay), adjusted for smooth transitions. There it joins the upper neck track to that track: the closet end of the passing siding.
@@ -113,6 +115,32 @@ Part numbers (T…) are the plan's, as drawn in the spike's overlay picture.
 
 For the schematic this gives three bands: staging, the height-0 main, and the 4.25 in level (branch line, peninsula, double crossover), joined by the helix (two tracks) and the rise.
 
+## After the proof (proposed 2026-11-13)
+
+What stage 0 settled, beyond the design above:
+
+- **Input.** AnyRail's JMRI export is the track source (it has every turnout and the double crossover, and only track); the `.any` file supplies heights. Staging is drawn from the export too, not from the Layout Editor panel.
+- **As-built edits** sit on top of the plan as a list: relabel, remove, move, add a switch or crossover, name tracks and ends, flip a diverging side.
+- **Owner hints** steer the drawing without touching the model: which leg of a switch runs level, a run at least so long or drawn short, two switches on neighbouring rows, band order, width, alignment and stretch, the main routes, helix marks (coil with H1/H2).
+- **Rules that had to be found:** level bands with lettered connectors; fold-backs chosen by how the track bends on the layout; a loop's tracks stacked by the loop's bend; spare length shared in proportion to real length; ladders moving as blocks; the drawing checked for crossings and overlaps after every change.
+
+Phases:
+
+| # | Work | Who | Depends on |
+|---|------|-----|------------|
+| A1 | Move the spike's inputs into data files: as-built edits and hints per level under `jmri/layouts/hart/data/`, in the plan's CSV or JSON form | Agent (Sonnet) | — |
+| A2 | Publish the sheet: Letter landscape PDF and SVG in `docs/ops/`, marked draft until the main and upper levels have names | Agent (Sonnet) | A1 |
+| B1 | Write the specification from the spike: file formats, every rule above, and the three bands as golden drawings for regression tests | Main session | — |
+| B2 | Rebuild as tested modules in `model-railroad-skills` (reader, edits, orient, order, rows, columns, draw, checker) with a made-up public example | Agents (Sonnet), main session reviews the layout rules | B1 |
+| B3 | Skill text and the style reference from the two research surveys (kept in `tools/schematic/spike/research/`) | Agent (Sonnet) | B2 |
+| C1 | CATS panel for the main and upper levels from the same grid; settle east and west there by following the main line, and carry facing and trailing for each switch | Main session designs, agent builds | B1 |
+| C2 | Station pages and deck track maps from the same model | Agents | B2 |
+| C3 | Layout Editor import of the main levels (physical picture) and the switch facts for the new levels | Main session | names |
+
+Known weak spots to fix in B2 are listed in the spike's README: rows stricter than needed, labels not checked for collisions, a crossover's number printed twice, three unmatched junctions, no page folding, no capacity placeholder.
+
 ## Open questions for the owner
 
-None block the level bands. Station, track and switch names for the main levels, and what the export's unnamed sections (B_7, B_8) and its dashed track are, come up when the draft names file is made.
+1. **Names** for the main and upper levels: stations, tracks, switch numbers, and what the two levels are called. Pending by the owner's choice.
+2. **Order of work:** the tool first (B), or the CATS panel first (C1)?
+3. **The spike:** keep as a draft reference, or review and merge it under `tools/schematic/spike/`?
