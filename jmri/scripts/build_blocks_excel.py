@@ -8,14 +8,14 @@ from collections import defaultdict, deque
 import openpyxl
 from openpyxl.styles import Font, Alignment, Border, Side
 import re
-import os
 import sys
+from pathlib import Path
 
-JMRI_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, JMRI_ROOT)
-from layout_paths import layout_paths
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
 
-_PATHS = layout_paths()
+_PATHS = paths.layout_paths()
 LAYOUT_FILE = _PATHS["authoritative"]
 EXCEL_FILE = _PATHS["excel"]
 

@@ -12,7 +12,7 @@ also flip FB N/R sensors so JMRI KnownState follows feedback.
   python3 tools/mqtt-mimic/lcos_mqtt_mimic.py
   python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --mqtt-host <broker> --http-port 8765
 
-Without --mqtt-host the broker comes from HART_MQTT_BROKER (tools/ops/lib/hart_hosts.py).
+Without --mqtt-host the broker comes from HART_MQTT_BROKER (hartlib.hosts).
   ./tools/mqtt-mimic/install_mimic_launchagent.sh   # stay-up LaunchAgent (survives Cursor quit)
 """
 
@@ -29,14 +29,18 @@ import subprocess
 import sys
 import threading
 import time
-import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-ROOT = Path(__file__).resolve().parents[2]
-TABLES = ROOT / "jmri" / "layouts" / "hart" / "output" / "tables.xml"
-NAME_MAP = ROOT / "jmri" / "layouts" / "hart" / "data" / "public_name_map.csv"
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+from hartlib.hosts import PI_HOST, mqtt_broker, mqtt_port  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+TABLES = paths.TABLES_XML
+NAME_MAP = paths.PUBLIC_NAME_MAP
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 HEAD_CSV = ROOT / "docs/wiring/signals/signal_head_plan.csv"
 HTML = Path(__file__).with_suffix(".html")
@@ -46,9 +50,6 @@ SHARED_FILES = {
     "/mimic.css": "text/css; charset=utf-8",
     "/mimic_view.js": "text/javascript; charset=utf-8",
 }
-
-sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
-from hart_hosts import PI_HOST, mqtt_broker, mqtt_port  # noqa: E402
 
 # Set in main(): importers such as build_mimic_web.py never need the broker port.
 MQTT_PORT = 1883
@@ -142,7 +143,7 @@ def _head_leaf(name: str) -> str:
 def load_layout() -> dict:
     if not TABLES.is_file():
         raise SystemExit(f"missing {TABLES}")
-    root = ET.parse(TABLES).getroot()
+    root = tables.read(TABLES)
     cps = load_cps()
 
     sensors: dict[str, dict] = {}

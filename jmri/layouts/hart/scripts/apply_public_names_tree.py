@@ -12,7 +12,11 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from apply_public_names import apply_renames_to_text, load_rename_map
 
@@ -56,7 +60,7 @@ def main() -> int:
     ap.add_argument("paths", nargs="+", type=Path)
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
-    renames = load_rename_map(ROOT / "jmri/layouts/hart/data/public_name_map.csv")
+    renames = load_rename_map(paths.PUBLIC_NAME_MAP)
     merged: Counter[tuple[str, str]] = Counter()
     files = 0
     for raw in args.paths:

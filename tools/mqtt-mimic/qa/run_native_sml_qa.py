@@ -14,24 +14,26 @@ import json
 import subprocess
 import sys
 import time
-import xml.etree.ElementTree as ET
 import urllib.request
 from pathlib import Path
 
 PUB = "/opt/local/bin/mosquitto_pub"
 SUB = "/opt/local/bin/mosquitto_sub"
 OUT = Path(__file__).resolve().parent
-ROOT = OUT.parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables as tables_mod  # noqa: E402
+from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(ROOT / "tools" / "audit"))
-sys.path.insert(0, str(ROOT / "tools" / "ops" / "lib"))
 from check_wiring_crosswalk import read_tables  # noqa: E402
-from hart_hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
 HOST = mqtt_broker()
 JMRI_JSON = jmri_json_url()
 LOCAL_JMRI_JSON = "http://127.0.0.1:12080/json"
 
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+TABLES = paths.TABLES_XML
 SETTLE = 4.5
 
 # switch -> (turnout MQTT addr, FB-normal sensor, FB-reverse sensor); None = DIRECT
@@ -124,7 +126,7 @@ LIVE_MASTS = {
 
 def load_mast_heads(tables: Path | None = None) -> dict[str, tuple[str, ...]]:
     """Mast userName -> head system names, from the IF$shsm mast system names in tables.xml."""
-    root = ET.parse(tables or TABLES).getroot()
+    root = tables_mod.read(tables or TABLES)
     _comments, masts, bad = read_tables(root)
     if bad:
         raise SystemExit("tables.xml head masts the QA cannot read: " + "; ".join(bad))

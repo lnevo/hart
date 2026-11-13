@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from datetime import date
@@ -21,13 +22,17 @@ from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 LCOS = ROOT / "docs/wiring/lcos"
 PLAN = LCOS / "lcos_signal_manager_config_plan.xlsx"
-WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
+WIRING = paths.SIGNAL_WIRING
 LOGIC = LCOS / "lcos_signal_logic.csv"
 NOTES = LCOS / "lcos_signal_plan_notes.csv"
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+TABLES = paths.TABLES_XML
 PORT_RE = re.compile(r"^C(\d+)-OU(\d+)-(\d+)$")
 BLOCK_RE = re.compile(r"Node: (\d+) Block: (\d+)")
 TURNOUT_RE = re.compile(r"Node: (\d+) Turnout: (\d+)")

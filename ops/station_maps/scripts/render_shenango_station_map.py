@@ -23,7 +23,11 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import render_barn_station_map as barn  # noqa: E402  (reuse docx writer, compass, fonts)
 
-ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 MAPS = ROOT / "ops/station_maps/maps"
 OUT = MAPS / "Neville_Island_Station_Map_Shenango_0.png"
 OUT_ROT = MAPS / "Neville_Island_Station_Map_Shenango_Rotated_0.png"

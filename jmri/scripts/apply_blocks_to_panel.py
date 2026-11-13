@@ -19,15 +19,15 @@ import copy
 import os
 import re
 import sys
+from pathlib import Path
 import xml.etree.ElementTree as ET
 import openpyxl
 
-JMRI_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if JMRI_ROOT not in sys.path:
-    sys.path.insert(0, JMRI_ROOT)
-from layout_paths import layout_paths  # noqa: E402
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
 
-_PATHS = layout_paths()
+_PATHS = paths.layout_paths()
 EXCEL_FILE = _PATHS["excel"]
 MERGE_FILE = _PATHS["merge"]
 # Authoritative panel (preferences, comments, defaults). Track refresh: upper_both4.xml.

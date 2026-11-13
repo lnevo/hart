@@ -1,9 +1,14 @@
 """The deploy carries the panel background and retires old host scripts."""
 
+import sys
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 SYNC = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
 PI = (ROOT / "tools/hosts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
 WIN = (ROOT / "tools/hosts/windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
@@ -22,7 +27,7 @@ class PanelBackground(unittest.TestCase):
         self.assertTrue((ROOT / "jmri/resources/misc/hart_panel_bg.jpg").is_file())
 
     def test_tables_path_matches_install_folder(self):
-        tables = (ROOT / "jmri/layouts/hart/output/tables.xml").read_text(encoding="utf-8")
+        tables = paths.TABLES_XML.read_text(encoding="utf-8")
         self.assertIn("preference:resources/misc/hart_panel_bg.jpg", tables)
 
     def test_every_host_installs_it(self):
@@ -36,7 +41,7 @@ class UssSensorIcons(unittest.TestCase):
     """HART's yellow USS icons install into the profile only, never the JMRI install."""
 
     def test_tables_use_the_profile_copy(self):
-        tables = (ROOT / "jmri/layouts/hart/output/tables.xml").read_text(encoding="utf-8")
+        tables = paths.TABLES_XML.read_text(encoding="utf-8")
         self.assertIn("preference:resources/icons/USS/sensor/yellow-on.gif", tables)
         self.assertNotIn("program:resources/icons/USS/sensor/yellow", tables)
 

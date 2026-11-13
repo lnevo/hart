@@ -209,6 +209,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         guard.jmri_running = lambda: running
         guard.contains_private_name = lambda text: self.MARK in text
         guard.main_checkout = lambda target: False  # CI's clone is a main checkout; tested in test_worktrees
+        guard.on_main = lambda target, branched: False  # the checkout's branch must not matter; MainGuard tests the rule
         return guard
 
     def code(self, command: str, running: bool = True) -> int:

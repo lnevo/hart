@@ -13,7 +13,7 @@ track/signalhead/<digits> status/set retain.
 
     python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
 
-Broker: HART_MQTT_BROKER (tools/ops/lib/hart_hosts.py), default the Pi.
+Broker: HART_MQTT_BROKER (hartlib.hosts), default the Pi.
 """
 
 from __future__ import annotations
@@ -22,8 +22,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "ops" / "lib"))
-from hart_hosts import mqtt_broker  # noqa: E402
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib.hosts import mqtt_broker  # noqa: E402
 
 MQTT_HOST = mqtt_broker()
 

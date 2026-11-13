@@ -8,12 +8,17 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 DEVICES = ROOT / "www/review-data/hart_devices_review.json"
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+TABLES = paths.TABLES_XML
 
 BEAN_RE = re.compile(
     r"<(?:signalmast|virtualsignalmast|signalhead) [^>]*>\s*"
