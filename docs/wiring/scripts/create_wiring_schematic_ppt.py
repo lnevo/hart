@@ -444,13 +444,13 @@ for node_id in sorted_nodes:
     summary = node_summaries[node_id]
     current_location = summary['location']
     
-    legacy = summary.get('legacy')
-    was = f" (was {legacy})" if legacy and str(legacy) != str(node_id) else ""
+    # Titles use the radio-address node ID only; the old sequential IDs stay in the
+    # inventory's Legacy Node ID column and are not printed (owner, 2026-11-14).
     # Add "(cont'd)" if same location as previous slide
     if prev_location and current_location == prev_location:
-        title_text = f"Node {node_id}{was} - {current_location} (cont'd)"
+        title_text = f"Node {node_id} - {current_location} (cont'd)"
     else:
-        title_text = f"Node {node_id}{was} - {current_location}"
+        title_text = f"Node {node_id} - {current_location}"
     
     title_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.2), Inches(9), Inches(0.6))
     title_frame = title_box.text_frame
