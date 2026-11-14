@@ -114,6 +114,8 @@ class Publish(unittest.TestCase):
         later = ["%.3f%s" % (float(l.split(" ", 1)[0]) + 50, " " + l.split(" ", 1)[1]) for l in STEPRUN]
         (self.logs / "steprun_CSX_2121_forward_20261113_120100.log").write_text(
             "\n".join(l.replace("CSX 2738", "CSX 2121") for l in later) + "\n")
+        (self.logs / "steprun_CSX_2738_reverse_20261113_120200.log").write_text("")  # just started, no line yet
+        (self.logs / "moveto_CSX_2738_20261113_115900.log").write_text("%.3f GO x\n" % (T - 5))
         self.pub().once()
         def held(rid):
             snap = json.loads((self.out / "runs" / (rid + ".json")).read_text())

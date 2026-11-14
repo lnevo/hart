@@ -105,13 +105,17 @@ def run_view(store, rid, lines, reference, note=None, now=None, mode="recorded")
                      t_end=stop["t_end"], elapsed=(stop["t_end"] - stop["t_first"]) if stop["t_end"] else None)
     elif focus["banner"] and focus["status"] == "done":
         focus["banner"] = None  # a step run that finished is not a stop
-    # Only this run and the ones before it, as the live page showed at the time. The export feeds
-    # the logs in order so later runs are not in the store yet; the Pi's store holds them all.
+    # Only published kinds, and only this run and the ones that began before it, as the live page
+    # showed at the time. The export feeds the logs in order so later runs are not in the store yet;
+    # the Pi's store holds them all. A run with no time yet is newer than everything; equal times
+    # go by the order the store met the logs.
+    order = {r: i for i, r in enumerate(store.order)}
     def began(r):
         t = r["t0"] if r["t0"] is not None else r["t_last"]
-        return t if t is not None else 0.0
+        return (t if t is not None else float("inf"), order.get(r["id"], 0))
     upto = began(focus)
-    snap["runs"] = [r for r in snap["runs"] if r is focus or began(r) <= upto]
+    snap["runs"] = [r for r in snap["runs"] if r is focus or (
+        began(r) <= upto and state.kind_of_log(Path(r["id"]).name) in PUBLISH)]
     for r in snap["runs"]:
         r["photo"] = r["model"] = None
     snap["reference"] = reference
