@@ -14,14 +14,12 @@ Feedback from operating session #4: the dispatcher's notes on DS-01 Rev D, the o
 | The dispatcher throws the Switch 7 crossover at Barn only with the yardmaster's permission | DS-01 Rev E, YM-01 Rev E |
 | Yard blocking list: NVL local (yellow, green, purple, red, pink), CSX (blue), P&OV (orange), CK1 (black), yard storage (no color) | YM-01 Rev E |
 | Work train parks on EH-1, the engine terminal back track, not in the yard | YM-01 Rev E |
+| S-R labelled as the run-around (long siding) | Owner, already done |
 
 ## Open: agent work
 
 | # | Item | Notes |
 |---|------|-------|
-| 1 | More labels on the dispatcher panel, for example Shenango | CATS / USS CTC panels |
-| 2 | Label S-R as the run-around (long siding) | Panel and station maps |
-| 3 | Show where the rail gap between East End and Princess is | Panel and station map |
 | 4 | Control point signs for every interlocking rail gap, sized for a stick in the benchwork | Printable |
 | 5 | Big crew board listing the jobs in sign-up order | Printable |
 | 6 | Mock signal design for the interlocking gaps, if wanted | Printable or STL |
@@ -33,6 +31,7 @@ Feedback from operating session #4: the dispatcher's notes on DS-01 Rev D, the o
 | 7 | Resistor wheels | Needed before standing cars between Princess and East End show, and before the train label "bounce" is looked at |
 | 8 | Put up mock signals at every interlocking rail gap so crews know where to stop | With the CP signs (item 4) beside them |
 | 9 | Print and mount the crew board (item 5) | |
+| 3 | Mark the rail gap between East End and Princess | On the layout |
 | 10 | Wire the drill signal on the Barn lead | The signal is already installed, not yet wired. See below |
 
 ### Drill signal
@@ -43,5 +42,6 @@ The signal is already on the layout; it needs wiring. The wiring plan has one dw
 
 ## Deferred
 
+- More labels on the dispatcher panel, for example Shenango (item 1): on hold, since the panels are mostly temporary.
 - Train labels "bounce" or are left behind on the panel: mostly cars without resistor wheels. Look again after item 7.
 - No indication of standing cars between Princess and East End: the same cause.
