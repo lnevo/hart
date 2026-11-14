@@ -126,7 +126,7 @@
    "names": [
     "Scale"
    ],
-   "edge_cm": 86.4,
+   "edge_cm": 392.4,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -202,7 +202,7 @@
    "names": [
     "Barn"
    ],
-   "edge_cm": 61.0,
+   "edge_cm": 85.6,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -221,8 +221,8 @@
    "names": [
     "Scale"
    ],
-   "edge_cm": 86.4,
-   "cm_from_toward": 61.0,
+   "edge_cm": 392.4,
+   "cm_from_toward": 367.0,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -240,7 +240,7 @@
    "names": [
     "Scale"
    ],
-   "edge_cm": 86.4,
+   "edge_cm": 392.4,
    "cm_from_toward": 25.4,
    "dir": "east",
    "kind": "field",
@@ -392,7 +392,7 @@
    "names": [
     "Barn"
    ],
-   "edge_cm": 61.0,
+   "edge_cm": 85.6,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
