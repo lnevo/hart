@@ -16,11 +16,9 @@ Items chosen: Requirement 2 turnout, crossover, other (two reversing sections on
 
 Facts from the owner (2026-11-14): block gaps are in both rails; switch machines are MTB MP4 with two SPDT contacts, one for the panel LED indication and one for the frog (stock rails to the throws, common to the frog); the mainline passing siding runs between East End and Princess, with Barn and Plane as more passing places.
 
-Still open (highlighted yellow in the description):
+Owner answers (2026-11-14, later): Main West is on the AR-10 (so K-1 / K-2 is on a PSX-AR); turnouts are Peco; every section has at least one feeder; two trains can be shown on loop 1 and loop 2; East Lead or West Ext can serve as the passing siding.
 
-- Turnout make; which auto-reverser (PSX-AR or AR-10) feeds each reversing section.
-- Feeder spacing on long sections, and the two routes to demonstrate.
-- Member details, then the witness (Region AP Manager or designee) signs.
+Still open: name, address and signature on the form, then the witness (Region AP Manager or designee) signs. The owner's NMRA number and other personal details go only on a private copy outside the repo (`~/Documents/NMRA AP/` on the Mac), never here.
 
 Rebuild: `python3 docs/ap/electrical/make_drawings.py`, then print `attachment.html` and each drawing to PDF and reassemble the package (form, description, track plan pages 1–2, D1–D5, wiring deck pages).
 

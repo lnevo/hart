@@ -7,7 +7,8 @@ and wiring decks (docs/wiring/). Facts:
 
 - Reversing sections: Track Main West and the K-1 / K-2 loop at Princess, each on an
   auto-reverser (owner, 2026-11-14).
-- Block gaps are in both rails (owner, 2026-11-14).
+- Block gaps are in both rails; every section has at least one feeder (owner, 2026-11-14).
+- Main West is on an AR-10; turnouts are Peco (owner, 2026-11-14).
 - Switch machines are MTB MP4 with two SPDT contacts: one feeds the panel LED
   indication, the other powers the frog (stock rails to the two throws, the common
   to the frog) (owner, 2026-11-14).
@@ -174,7 +175,7 @@ def d2() -> str:
     b.append(box(430, 240, 140, 34, "LCOS node Cn", "block input, channel c", size=9))
     b.append(wire("M480,144 L480,240", BLUE, 1.4, "4 3"))
     b.append(label(474, 172, "occupied / clear", 9, BLUE, "end"))
-    b.append(label(632, 120, "Feeder pair from the bus to the section;", 9.5, INK))
+    b.append(label(632, 120, "At least one feeder pair from the bus to each section;", 9.5, INK))
     b.append(label(632, 133, "one feeder passes through the detector", 9.5, INK))
     b.append(label(632, 146, "(one turn through the transformer).", 9.5, INK))
     # table
@@ -302,7 +303,7 @@ def d5() -> str:
     b.append(wire("M40,66 L700,66", RED, 2.2))
     b.append(wire("M40,80 L700,80", INK, 2.2))
     b.append(label(44, 58, "District bus from its circuit breaker", 9.5, INK))
-    b.append(box(300, 110, 160, 46, "Auto-reverser", "PSX-AR / AR-10", size=10))
+    b.append(box(260, 110, 240, 46, "Auto-reverser", "AR-10 (Main West), PSX-AR (K-1 / K-2)", size=10))
     b.append(wire("M360,80 L360,110", INK, 1.4))
     b.append(wire("M400,66 L400,110", RED, 1.4))
     y = 250
