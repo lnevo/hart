@@ -11,7 +11,8 @@
 # can leave the file behind). A kill flag (/tmp/speedrun.kill) is never removed here: the
 # operator removes it (ssh pi rm /tmp/speedrun.kill) once the runner has ended.
 set -euo pipefail
-PI_HOST="${HART_PI_SSH:-pi}"
+source "$(cd "$(dirname "$0")/../../../../../tools/env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
+PI_HOST="$HART_PI_SSH"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 ssh_pi() { ssh "${SSH_OPTS[@]}" "$PI_HOST" "$@"; }
 usage() { sed -n '2,13p' "$0"; }

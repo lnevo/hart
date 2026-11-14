@@ -15,7 +15,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SCRIPT="$ROOT/external/jmri-cs105-roster-sync/cs105_roster_sync.py"
 [[ -f "$SCRIPT" ]] || { echo "missing $SCRIPT: git submodule update --init external/jmri-cs105-roster-sync" >&2; exit 1; }
-PI_HOST="${HART_PI_SSH:-pi}"
+source "$ROOT/tools/env/load_env.sh"  # hosts: environment, hart.env, default
+PI_HOST="$HART_PI_SSH"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 TIMEOUT="${CS105_TIMEOUT:-900}"
 

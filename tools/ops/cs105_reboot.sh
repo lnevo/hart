@@ -6,7 +6,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SCRIPT="$ROOT/jmri/layouts/hart/scripts/cs105_reboot.py"
-PI_HOST="${HART_PI_SSH:-pi}"
+source "$ROOT/tools/env/load_env.sh"  # hosts: environment, hart.env, default
+PI_HOST="$HART_PI_SSH"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 TIMEOUT="${CS105_TIMEOUT:-180}"
 
