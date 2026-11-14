@@ -1,6 +1,6 @@
 # System schematic sheet (draft)
 
-This is the sheet drawn by the `schematic-maps` plugin (model-railroad-skills) from the layer files, with no hand edits. `tools/schematic/publish_draft.py` draws it, adds the DRAFT mark and prints the PDF; `--check` says whether the published copy is current. It stays a draft until the main and upper levels have names. Last drawn 2026-11-14 (Switch 13 to 15 shortened, East Lead and West Ext lengthened, owner's request).
+This is the sheet drawn by the `schematic-maps` plugin (model-railroad-skills) from the layer files, with no hand edits. `tools/schematic/publish_draft.py` draws it, adds the DRAFT mark and prints the PDF; `--check` says whether the published copy is current. It stays a draft until the main and upper levels have names. Last drawn 2026-11-14 (Switch 13 to 15 one cell, East Lead and West Ext lengthened, owner's request).
 
 - Drawing: [schematic-system-draft.svg](schematic-system-draft.svg)
 - Print copy, Letter landscape: [schematic-system-draft.pdf](schematic-system-draft.pdf)
