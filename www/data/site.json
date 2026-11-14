@@ -55,6 +55,7 @@
         "guides",
         "guide",
         "layout",
+        "layout-levels",
         "tools"
       ]
     },
@@ -118,6 +119,12 @@
       {
         "label": "Guides",
         "href": "guides/index.html"
+      }
+    ],
+    "layout-levels": [
+      {
+        "label": "Layout",
+        "href": "layout/index.html"
       }
     ],
     "helix-status": [
