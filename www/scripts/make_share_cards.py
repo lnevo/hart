@@ -31,11 +31,13 @@ import subprocess
 import tempfile
 import threading
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 PORTAL = Path(__file__).resolve().parents[1]
 REPO = PORTAL.parent
 SOURCES = Path(__file__).resolve().parent / "share-card-sources"
 W, H = 1200, 630
+PUBLISHED = json.loads((PORTAL / "scripts/published-files.json").read_text(encoding="utf-8"))
 MAC_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 STS_URL = "http://localhost:8980/sts/"  # the Mac working copy, never the live Pi
 PAPER = "linear-gradient(180deg,#edf2f5,var(--paper) 45%,var(--paper-2))"
@@ -47,6 +49,18 @@ _tmp = Path()
 class _Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args) -> None:
         pass
+
+    def translate_path(self, path: str) -> str:
+        """Serve published files from their one source, as serve_portal.py does, and the gitignored
+        car-card photos a page names as ../ops/car-cards/ from the checkout's mirror."""
+        rel = unquote(urlsplit(path).path).removeprefix("/www/")
+        if source := PUBLISHED.get(rel):
+            return str(REPO / source)
+        if rel.startswith("ops/car-cards/"):
+            target = (REPO / rel).resolve()
+            if target.is_relative_to((REPO / "ops/car-cards").resolve()):
+                return str(target)
+        return super().translate_path(path)
 
 
 @contextlib.contextmanager
@@ -105,7 +119,7 @@ def card(im):
 
 def _published(rel: str) -> Path:
     """A site file on disk: in www/, or where published-files.json says its one source is."""
-    source = json.loads((PORTAL / "scripts/published-files.json").read_text(encoding="utf-8")).get(rel)
+    source = PUBLISHED.get(rel)
     return REPO / source if source else PORTAL / rel
 
 
@@ -219,6 +233,18 @@ def ai_locomotives():
     style = (_page_style(page) + f"body{{background:var(--card)}}.w{{display:flex;align-items:center;justify-content:center;"
              f"width:{W}px;height:{H}px}}.speed-svg{{max-width:none!important;width:auto!important;height:600px!important}}")
     return card(draw("speed", f"<div class=w>{_svg(page, 'speed-svg')}</div>", style, ("css/ops.css", "css/ai.css")))
+
+
+def speed_runs():
+    """ai-speed-runs: the run viewer on the 8-step 2738 forward run, its loco, readings and track strip (needs the ops/car-cards mirror)."""
+    rid = "steprun_CSX_2738_forward_20261113_165713"  # the alt text in share-cards.json quotes this run
+    runs = json.loads((PORTAL / "data/speedmatch/index.json").read_text(encoding="utf-8"))["runs"]
+    if not any(r["id"] == rid for r in runs):  # the viewer would quietly show the newest run instead
+        raise SystemExit(f"ai-speed-runs: {rid} is no longer in data/speedmatch/index.json; pick a run and fix the alt text")
+    if not (REPO / "ops/car-cards/car-images/CarImagesFinal/loco_CSX_2738_right.png").is_file():
+        raise SystemExit("ai-speed-runs: the ops/car-cards mirror is missing, so the loco photo would be blank")
+    im = shot(f"{_site}ai/speed-runs.html#run={rid}", (1400, 1200))
+    return card(im.crop((150 * 2, 550 * 2, 1251 * 2, 1128 * 2)))  # the hero and Track cards (CSS px, x2), 1200:630
 
 
 def repo_guide():
@@ -509,6 +535,7 @@ CARDS = {
     "library-repository-guide": repo_guide,
     "library-sts-operations-article": sts_home,
     "ai-locomotives": ai_locomotives,
+    "ai-speed-runs": speed_runs,
     "ai-electronics": ai_electronics,
     "ai-construction": ai_construction,
     "ai-operations": ai_operations,
