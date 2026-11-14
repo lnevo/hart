@@ -47,7 +47,7 @@
    "T52"
   ]
  ],
- "facing_letters": true,
+ "facing_letters": false,
  "direction_arrows": true,
  "capacity": {
   "car_in": 7.4
