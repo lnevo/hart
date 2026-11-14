@@ -23,7 +23,7 @@
 </head>
 <body>
 <h1>Model Railroad Engineer – Electrical</h1>
-<p class="sub">Statement of Qualification attachment · HART Railroad, HO scale · draft of 14 November 2026<br>
+<p class="sub">Statement of Qualification attachment · HART Railroad, HO scale · draft of 14 November 2026, drawings D1 to D5 added<br>
 Highlighted text <span class="fill">like this</span> is still to be confirmed or completed by the member before submission.</p>
 
 <h2>Contents</h2>
@@ -33,7 +33,7 @@ Highlighted text <span class="fill">like this</span> is still to be confirmed or
   <li>Requirement 6a: track plan (attached after this description)</li>
   <li>Requirements 4 and 5: schematic drawings (attached after the track plan; index in section C)</li>
 </ol>
-<p>The layout is built in stages. Everything below is on the finished staging level and the helix, which run trains today; the main and upper levels are under construction. More detail and photos: hartrailroad.com/behind/ (wiring, LCOS nodes, signals, CTC panels).</p>
+<p>Drawings D1 to D5, and the CTC diagram C8 at the end of this description, were drawn for this application; C1 to C5 are pages of the railroad's wiring decks. The layout is built in stages. Everything below is on the finished staging level and the helix, which run trains today; the main and upper levels are under construction. More detail and photos: hartrailroad.com/behind/ (wiring, LCOS nodes, signals, CTC panels).</p>
 
 <h2>A. Requirement 1: the control system</h2>
 <table>
@@ -41,45 +41,44 @@ Highlighted text <span class="fill">like this</span> is still to be confirmed or
   <tr><td>Simultaneous and independent control of two mainline trains in both directions</td>
       <td>DCC command control (TCS CS-105 command station and two boosters). The staging main line and the two-track helix let two trains run at once in either direction, each under its own throttle and in its own detection blocks. <span class="fill">Confirm the two routes to demonstrate.</span></td></tr>
   <tr><td>Command control: gaps and switches for polarity and troubleshooting</td>
-      <td>The wiring plan has eleven power districts, each behind its own circuit breaker or auto-reverser, and into 57 detection blocks isolated by rail gaps. Each block's feeder passes through a current-transformer detector, so a fault shows on the panel as a block and a district can be isolated at its breaker. <span class="fill">Confirm: gaps in one rail or both at block ends; feeder spacing.</span></td></tr>
+      <td>The wiring plan has eleven power districts, each behind its own circuit breaker or auto-reverser. Within them, the staging level and helix are cut into 43 detected sections, each gapped in both rails at both ends and fed from its district bus through a current-transformer detector, so a fault shows on the panel as one section and a district can be isolated at its breaker (D2). <span class="fill">Confirm feeder spacing on long sections.</span></td></tr>
   <tr><td>One reversing loop, wye, turntable or transfer table</td>
       <td>Two reversing sections, each on an auto-reverser: Main West, and the K-1 / K-2 loop legs at Princess.</td></tr>
   <tr><td>One mainline passing siding</td>
-      <td><span class="fill">Name the passing siding shown on the track plan (for example K-1 / K-2 beside the main at Princess).</span></td></tr>
+      <td>West Ext beside East Lead, between East End (Switches 23 and 33) and Princess (Switch 35), drawing D1. Barn and Plane give further passing places.</td></tr>
   <tr><td>One yard of three or more tracks with a lead independent of the main</td>
       <td>South Yard: five tracks (S-R, S-1 to S-4) worked from their own lead, clear of the main.</td></tr>
   <tr><td>Storage for two unused motive power units</td>
       <td>Engine house tracks EH-1, EH-2 and EH-3, each its own detection block.</td></tr>
   <tr><td>One power supply with protective devices</td>
-      <td>Every district is protected: DCC Specialties PSX/PSXX-series circuit breakers on the through districts, PSX-AR auto-reversers and an AR-10 on the reversing sections. The boosters feed the breakers through a booster matrix (schematic C1).</td></tr>
+      <td>Every district is protected: DCC Specialties PSX/PSXX-series circuit breakers on the through districts, PSX-AR auto-reversers and an AR-10 on the reversing sections. The boosters feed the breakers through a booster matrix (C1).</td></tr>
 </table>
 
 <h2>B. Requirements 2 and 3: the six items</h2>
 
 <h3>Requirement 2a · Turnout</h3>
-<p>Twenty powered turnouts on the staging level, all with wired, powered frogs. Each is thrown by a slow-motion switch machine (the decks call them MP4) from a 12 V output on its LCOS node. The machine's auxiliary contacts report Normal and Reverse to the node's input board.
-<span class="fill">State the frog feed (machine contacts or a frog juicer) and the turnout make.</span></p>
-<p>Commercial components: turnouts <span class="fill">(make)</span>, MP4 switch machines, LCOS DNOU8 output and DNIN8 input boards. Schematics C3, C4.</p>
+<p>Twenty powered turnouts on the staging level, every one with a powered frog. Each is thrown by an MTB MP4 slow-motion switch machine driven from a 12 V output on its LCOS node. The MP4 has two SPDT contacts. The first powers the frog: the two stock rails go to the two throws and the common feeds the frog, so the frog always takes the polarity of the stock rail the points lie against. Both frog rails are gapped beyond the frog. The second contact feeds the panel LED indication (Requirement 3a). Drawing D3.</p>
+<p>Commercial components: turnouts <span class="fill">(make)</span>, MTB MP4 switch machines, LCOS DNOU8 output and DNIN8 input boards. Drawings D3, C3, C4.</p>
 
 <h3>Requirement 2c · Crossover</h3>
 <p>Crossovers at Switches 23 (23a/23b) and 35 (35a/35b) in staging, and the Switch 7 crossover. Each half is a powered-frog turnout on its own machine and both halves are worked together; the rail between the two frogs is gapped so that each frog takes its own polarity. Each half is a separate detection section (OS 23a, OS 23b, OS 35a, OS 35b).
-Commercial components as for turnouts. Schematic C6.</p>
+Commercial components as for turnouts. Drawing D4.</p>
 
 <h3>Requirement 2 · Other: reversing sections on auto-reversers</h3>
-<p>Main West, and the K-1 / K-2 loop legs, are each gapped in both rails at both ends and fed through an auto-reverser, which swaps the section's polarity when a train bridges a gap. The sections are long enough to hold a whole train between the gaps. <span class="fill">Confirm which auto-reverser (PSX-AR or AR-10) feeds each section.</span>
-Schematic C7.</p>
+<p>Main West (Switch 1 to Switch 23), and the K-1 / K-2 loop at Princess, are each gapped in both rails at both ends and fed from their district bus through an auto-reverser, which swaps the section's polarity when a train bridges a gap. The sections are long enough to hold a whole train between the gaps. <span class="fill">Confirm which auto-reverser (PSX-AR or AR-10) feeds each section.</span>
+Drawings D1, D5.</p>
 
 <h3>Requirement 3a · Electrical turnout position indication (4+ turnouts)</h3>
-<p>Every staging turnout shows its position in two places. On the fascia, a Touch Toggle button lights to show the route; a Universal Translator drives the lamp from the switch machine's own contact, so the indication follows the points even when the turnout is thrown from a DCC throttle or the computer. On the CTC desks, the same contacts, read by the LCOS input boards and passed to JMRI over MQTT, light the Normal and Reverse lamps for each switch.
-Commercial components: Touch Toggles and Universal Translators, LCOS DNIN8 input boards. Schematics C3, C4, C8.</p>
+<p>Every staging turnout shows its position in two places. On the fascia, a Touch Toggle button lights to show the route; the MP4's second SPDT contact drives the lamp through a Universal Translator, so the indication follows the points even when the turnout is thrown from a DCC throttle or the computer. On the CTC desks, the same contacts, read by the LCOS input boards and passed to JMRI over MQTT, light the Normal and Reverse lamps for each switch.
+Commercial components: Touch Toggles and Universal Translators, LCOS DNIN8 input boards. Drawings D3, C3, C4, C8.</p>
 
 <h3>Requirement 3b · Track occupancy indication (5+ blocks)</h3>
-<p>57 blocks are detected by current transformers on their feeders (DNCT2B two-channel detectors, read by the LCOS node in that area). Occupancy is shown on the CATS CTC desk, the USS CTC board and the JMRI Layout Editor panel, each block as a lamp on the track it shows.
-Commercial components: DNCT2B / DNCTA detectors, LCOS nodes. Schematics C2, C5.</p>
+<p>43 sections are detected by current transformers on their feeders (DNCT2B two-channel detectors, read by the LCOS node in that area). Occupancy is shown on the CATS CTC desk, the USS CTC board and the JMRI Layout Editor panel, each block as a lamp on the track it shows.
+Commercial components: DNCT2B / DNCTA detectors, LCOS nodes. Drawings D2, C2, C5.</p>
 
 <h3>Requirement 3r · CTC system</h3>
 <p>A centralized traffic control system designed and built for this railroad, not a commercial unit. A dispatcher's desk (CATS, laid out as a Union Switch &amp; Signal Digicon machine, with a second USS-style board as the alternate) lines routes and clears signals at each control point. Field state comes back from the layout: switch positions from the machine contacts, block occupancy from the detectors. The desk refuses a route through an occupied block or a switch locked by another route, and signal logic sets the aspects. The panels, interlocking tables and signal logic were drawn up and configured for HART; JMRI and CATS supply the software platform.
-Components: JMRI and CATS (free software), LCOS nodes, MQTT link. Schematic C8.</p>
+Components: JMRI and CATS (free software), LCOS nodes, MQTT link. Drawing C8.</p>
 <p>Also available if wanted: computerized block detection (3t), computerized operation (3u) and a computer-to-railroad interface (3v, the bridge that carries LCOS radio traffic to MQTT).</p>
 
 <h2 class="page">C. Schematic index (Requirements 4 and 5)</h2>
@@ -90,10 +89,12 @@ Components: JMRI and CATS (free software), LCOS nodes, MQTT link. Schematic C8.<
   <tr><td>C3</td><td>Turnout wiring (p. 6)</td><td>Switch machine, its auxiliary contacts to the input board, the 12 V output, Touch Toggle and Universal Translator.</td></tr>
   <tr><td>C4</td><td>Control node configuration (p. 5) and turnout summary (schematic deck p. 2)</td><td>One node's inputs, outputs and block sensors; each switch's button, feedback and output pins.</td></tr>
   <tr><td>C5</td><td>Node pages for the staging nodes (schematic deck)</td><td>Every pin of each staging node: switch outputs, feedback, buttons and detection blocks.</td></tr>
-  <tr class="todo"><td>C6</td><td>Crossover wiring</td><td><b>To draw:</b> one crossover with its gaps between the frogs, frog feeds and the detection sections either side.</td></tr>
-  <tr class="todo"><td>C7</td><td>Reversing sections</td><td><b>To draw:</b> Main West and K-1 / K-2 with their gaps and auto-reverser feeds.</td></tr>
   <tr><td>C8</td><td>CTC system diagram (next page)</td><td>How the desk, JMRI, MQTT and the LCOS nodes connect to switches, signals and detectors.</td></tr>
-  <tr class="todo"><td>—</td><td>Propulsion schematic, block by block</td><td><b>To draw:</b> Requirement 4 asks for gaps, blocks and feeders. C1 and C2 cover the supplies, protection and buses; mark the 57 block gaps and feeders on the staging track plan to complete it.</td></tr>
+  <tr><td>D1</td><td>Staging level: reversing sections and passing siding</td><td>The system schematic's staging level with Main West and K-1 / K-2 marked, their gaps in both rails, and the passing siding.</td></tr>
+  <tr><td>D2</td><td>Propulsion: typical detected section, and every section</td><td>District bus, breaker, feeder pair through the current transformer, gaps in both rails at both ends; table of all 43 sections and their detector channels. With C1 and C2 this is the Requirement 4 propulsion schematic: every section is wired like the one drawn in detail.</td></tr>
+  <tr><td>D3</td><td>Turnout: powered frog and panel indication</td><td>MTB MP4 with its two SPDT contacts: stock rails to the throws and common to the frog; the second contact to the panel LED.</td></tr>
+  <tr><td>D4</td><td>Crossover</td><td>Two powered-frog turnouts, gapped in both rails between the frogs, each half its own section.</td></tr>
+  <tr><td>D5</td><td>Reversing section</td><td>Section gapped in both rails at both ends, fed through the auto-reverser from the district bus.</td></tr>
 </table>
 
 <div style="break-inside: avoid">

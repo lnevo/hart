@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 581" width="920" height="581" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
+<rect width="920" height="581" fill="#fff"/>
+<text x="12" y="20" font-size="13" font-weight="bold" fill="#121a22">D2 · Propulsion: typical detected section, and every section on its detector</text>
+<rect x="20" y="50" width="120" height="46" fill="#e4ebf0" stroke="#121a22"/>
+<text x="80.0" y="70.3" font-size="10" text-anchor="middle" font-weight="bold" fill="#121a22">Command station</text>
+<text x="80.0" y="82.3" font-size="10" text-anchor="middle" fill="#121a22">CS-105 + boosters</text>
+<rect x="190" y="50" width="130" height="46" fill="#e4ebf0" stroke="#121a22"/>
+<text x="255.0" y="70.3" font-size="10" text-anchor="middle" font-weight="bold" fill="#121a22">Circuit breaker</text>
+<text x="255.0" y="82.3" font-size="10" text-anchor="middle" fill="#121a22">PSX / PSXX, per district</text>
+<path d="M140,73 L190,73" fill="none" stroke="#121a22" stroke-width="2"/>
+<text x="145" y="66" font-size="9.5" fill="#6b7a86" text-anchor="start" font-weight="normal">DCC</text>
+<path d="M320,66 L860,66" fill="none" stroke="#c0392b" stroke-width="2.2"/>
+<path d="M320,80 L860,80" fill="none" stroke="#121a22" stroke-width="2.2"/>
+<text x="330" y="60" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">District bus (two wires, one per rail)</text>
+<path d="M360,196 L820,196 M360,204 L820,204" stroke="#121a22" stroke-width="1.6"/>
+<path d="M377,191 L377,209 M383,191 L383,209" stroke="#121a22" stroke-width="2.4"/>
+<path d="M797,191 L797,209 M803,191 L803,209" stroke="#121a22" stroke-width="2.4"/>
+<text x="590" y="226" font-size="10" fill="#121a22" text-anchor="middle" font-weight="normal">Detected section (one block): both rails gapped at both ends</text>
+<path d="M300,196 L376,196 M300,204 L376,204" stroke="#6b7a86" stroke-width="1.6"/>
+<path d="M804,196 L880,196 M804,204 L880,204" stroke="#6b7a86" stroke-width="1.6"/>
+<text x="300" y="186" font-size="9" fill="#6b7a86" text-anchor="start" font-weight="normal">next section</text>
+<text x="820" y="186" font-size="9" fill="#6b7a86" text-anchor="start" font-weight="normal">next section</text>
+<path d="M560,66 L560,150 L560,196" fill="none" stroke="#c0392b" stroke-width="1.6"/>
+<path d="M620,80 L620,204" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<circle cx="560" cy="196" r="3" fill="#c0392b"/><circle cx="620" cy="204" r="3" fill="#121a22"/>
+<circle cx="560" cy="128" r="11" fill="none" stroke="#1f5fa8" stroke-width="2"/>
+<rect x="430" y="112" width="100" height="32" fill="#e4ebf0" stroke="#121a22"/>
+<text x="480.0" y="125.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">DNCT2B</text>
+<text x="480.0" y="136.5" font-size="9" text-anchor="middle" fill="#121a22">current transformer</text>
+<path d="M530,128 L549,128" fill="none" stroke="#1f5fa8" stroke-width="1.4"/>
+<rect x="430" y="240" width="140" height="34" fill="#e4ebf0" stroke="#121a22"/>
+<text x="500.0" y="254.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">LCOS node Cn</text>
+<text x="500.0" y="265.5" font-size="9" text-anchor="middle" fill="#121a22">block input, channel c</text>
+<path d="M480,144 L480,240" fill="none" stroke="#1f5fa8" stroke-width="1.4" stroke-dasharray="4 3"/>
+<text x="474" y="172" font-size="9" fill="#1f5fa8" text-anchor="end" font-weight="normal">occupied / clear</text>
+<text x="632" y="120" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">Feeder pair from the bus to the section;</text>
+<text x="632" y="133" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">one feeder passes through the detector</text>
+<text x="632" y="146" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">(one turn through the transformer).</text>
+<text x="20" y="306" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="bold">Detected sections on LCOS nodes: 43, each wired as above.</text>
+<text x="20" y="322" font-size="9.5" fill="#6b7a86" text-anchor="start" font-weight="normal">McKees Rocks and McKeesport: own sections, wired the same way but not yet on a node.</text>
+<text x="20" y="344.0" font-size="9.5" fill="#121a22">K-1</text>
+<text x="210" y="344.0" font-size="9.5" fill="#6b7a86">C1 · ch 1</text>
+<text x="20" y="358.5" font-size="9.5" fill="#121a22">K-2</text>
+<text x="210" y="358.5" font-size="9.5" fill="#6b7a86">C1 · ch 2</text>
+<text x="20" y="373.0" font-size="9.5" fill="#121a22">OS Switch 37</text>
+<text x="210" y="373.0" font-size="9.5" fill="#6b7a86">C1 · ch 3</text>
+<text x="20" y="387.5" font-size="9.5" fill="#121a22">OS Switch 39</text>
+<text x="210" y="387.5" font-size="9.5" fill="#6b7a86">C1 · ch 4</text>
+<text x="20" y="402.0" font-size="9.5" fill="#121a22">OS Switch 35b</text>
+<text x="210" y="402.0" font-size="9.5" fill="#6b7a86">C1 · ch 5</text>
+<text x="20" y="416.5" font-size="9.5" fill="#121a22">OS Switch 35a</text>
+<text x="210" y="416.5" font-size="9.5" fill="#6b7a86">C1 · ch 6</text>
+<text x="20" y="431.0" font-size="9.5" fill="#121a22">East Lead</text>
+<text x="210" y="431.0" font-size="9.5" fill="#6b7a86">C1 · ch 7</text>
+<text x="20" y="445.5" font-size="9.5" fill="#121a22">West Ext</text>
+<text x="210" y="445.5" font-size="9.5" fill="#6b7a86">C1 · ch 8</text>
+<text x="20" y="460.0" font-size="9.5" fill="#121a22">Main West</text>
+<text x="210" y="460.0" font-size="9.5" fill="#6b7a86">C2 · ch 1</text>
+<text x="20" y="474.5" font-size="9.5" fill="#121a22">Main East</text>
+<text x="210" y="474.5" font-size="9.5" fill="#6b7a86">C2 · ch 3</text>
+<text x="20" y="489.0" font-size="9.5" fill="#121a22">S-4</text>
+<text x="210" y="489.0" font-size="9.5" fill="#6b7a86">C2 · ch 4</text>
+<text x="20" y="503.5" font-size="9.5" fill="#121a22">S-3</text>
+<text x="210" y="503.5" font-size="9.5" fill="#6b7a86">C2 · ch 5</text>
+<text x="20" y="518.0" font-size="9.5" fill="#121a22">S-2</text>
+<text x="210" y="518.0" font-size="9.5" fill="#6b7a86">C2 · ch 6</text>
+<text x="20" y="532.5" font-size="9.5" fill="#121a22">S-1</text>
+<text x="210" y="532.5" font-size="9.5" fill="#6b7a86">C2 · ch 7</text>
+<text x="20" y="547.0" font-size="9.5" fill="#121a22">S-R</text>
+<text x="210" y="547.0" font-size="9.5" fill="#6b7a86">C2 · ch 8</text>
+<text x="320" y="344.0" font-size="9.5" fill="#121a22">OS Switch 13</text>
+<text x="510" y="344.0" font-size="9.5" fill="#6b7a86">C3 · ch 1</text>
+<text x="320" y="358.5" font-size="9.5" fill="#121a22">OS Switch 15</text>
+<text x="510" y="358.5" font-size="9.5" fill="#6b7a86">C3 · ch 2</text>
+<text x="320" y="373.0" font-size="9.5" fill="#121a22">OS Switch 17</text>
+<text x="510" y="373.0" font-size="9.5" fill="#6b7a86">C3 · ch 3</text>
+<text x="320" y="387.5" font-size="9.5" fill="#121a22">OS Switch 19</text>
+<text x="510" y="387.5" font-size="9.5" fill="#6b7a86">C3 · ch 5</text>
+<text x="320" y="402.0" font-size="9.5" fill="#121a22">OS Switch 21</text>
+<text x="510" y="402.0" font-size="9.5" fill="#6b7a86">C3 · ch 7</text>
+<text x="320" y="416.5" font-size="9.5" fill="#121a22">OS Switch 3</text>
+<text x="510" y="416.5" font-size="9.5" fill="#6b7a86">C4 · ch 1</text>
+<text x="320" y="431.0" font-size="9.5" fill="#121a22">OS Switch 1</text>
+<text x="510" y="431.0" font-size="9.5" fill="#6b7a86">C4 · ch 2</text>
+<text x="320" y="445.5" font-size="9.5" fill="#121a22">W-2</text>
+<text x="510" y="445.5" font-size="9.5" fill="#6b7a86">C4 · ch 3</text>
+<text x="320" y="460.0" font-size="9.5" fill="#121a22">W-1</text>
+<text x="510" y="460.0" font-size="9.5" fill="#6b7a86">C4 · ch 4</text>
+<text x="320" y="474.5" font-size="9.5" fill="#121a22">OS Switch 5</text>
+<text x="510" y="474.5" font-size="9.5" fill="#6b7a86">C4 · ch 5</text>
+<text x="320" y="489.0" font-size="9.5" fill="#121a22">Brick-Plane</text>
+<text x="510" y="489.0" font-size="9.5" fill="#6b7a86">C4 · ch 6</text>
+<text x="320" y="503.5" font-size="9.5" fill="#121a22">East Ext</text>
+<text x="510" y="503.5" font-size="9.5" fill="#6b7a86">C4 · ch 7</text>
+<text x="320" y="518.0" font-size="9.5" fill="#121a22">Scale</text>
+<text x="510" y="518.0" font-size="9.5" fill="#6b7a86">C4 · ch 8</text>
+<text x="320" y="532.5" font-size="9.5" fill="#121a22">OS Switch 25</text>
+<text x="510" y="532.5" font-size="9.5" fill="#6b7a86">C12 · ch 1</text>
+<text x="320" y="547.0" font-size="9.5" fill="#121a22">OS Switch 27</text>
+<text x="510" y="547.0" font-size="9.5" fill="#6b7a86">C12 · ch 3</text>
+<text x="620" y="344.0" font-size="9.5" fill="#121a22">OS Switch 23a</text>
+<text x="810" y="344.0" font-size="9.5" fill="#6b7a86">C12 · ch 4</text>
+<text x="620" y="358.5" font-size="9.5" fill="#121a22">OS Switch 29</text>
+<text x="810" y="358.5" font-size="9.5" fill="#6b7a86">C12 · ch 5</text>
+<text x="620" y="373.0" font-size="9.5" fill="#121a22">OS Switch 23b</text>
+<text x="810" y="373.0" font-size="9.5" fill="#6b7a86">C12 · ch 6</text>
+<text x="620" y="387.5" font-size="9.5" fill="#121a22">OS Switch 31</text>
+<text x="810" y="387.5" font-size="9.5" fill="#6b7a86">C12 · ch 7</text>
+<text x="620" y="402.0" font-size="9.5" fill="#121a22">OS Switch 33</text>
+<text x="810" y="402.0" font-size="9.5" fill="#6b7a86">C12 · ch 8</text>
+<text x="620" y="416.5" font-size="9.5" fill="#121a22">Barn</text>
+<text x="810" y="416.5" font-size="9.5" fill="#6b7a86">C13 · ch 1</text>
+<text x="620" y="431.0" font-size="9.5" fill="#121a22">OS Switch 11</text>
+<text x="810" y="431.0" font-size="9.5" fill="#6b7a86">C13 · ch 2</text>
+<text x="620" y="445.5" font-size="9.5" fill="#121a22">OS Switch 7</text>
+<text x="810" y="445.5" font-size="9.5" fill="#6b7a86">C13 · ch 3</text>
+<text x="620" y="460.0" font-size="9.5" fill="#121a22">OS Switch 7b</text>
+<text x="810" y="460.0" font-size="9.5" fill="#6b7a86">C13 · ch 4</text>
+<text x="620" y="474.5" font-size="9.5" fill="#121a22">EH-3</text>
+<text x="810" y="474.5" font-size="9.5" fill="#6b7a86">C13 · ch 5</text>
+<text x="620" y="489.0" font-size="9.5" fill="#121a22">EH-2</text>
+<text x="810" y="489.0" font-size="9.5" fill="#6b7a86">C13 · ch 6</text>
+<text x="620" y="503.5" font-size="9.5" fill="#121a22">EH-1</text>
+<text x="810" y="503.5" font-size="9.5" fill="#6b7a86">C13 · ch 7</text>
+<text x="620" y="518.0" font-size="9.5" fill="#121a22">OS Switch 9</text>
+<text x="810" y="518.0" font-size="9.5" fill="#6b7a86">C13 · ch 8</text>
+</svg>
