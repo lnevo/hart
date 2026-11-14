@@ -46,6 +46,19 @@ class LayoutIndexCheckTest(unittest.TestCase):
                 self.assertEqual(rc, 1)
                 self.assertIn("is stale", err)
 
+    def test_a_change_to_what_the_png_is_drawn_from_fails(self) -> None:
+        # The JSON records a hash of the render inputs; a renderer (or geometry) change must show up.
+        for mod in (le_index, cats_index):
+            with self.subTest(index=mod.OUT_JSON.name):
+                tmp = Path(tempfile.mkdtemp())
+                self.addCleanup(shutil.rmtree, tmp)
+                render = tmp / mod.RENDER.name
+                render.write_bytes(mod.RENDER.read_bytes() + b"\n# changed\n")
+                with mock.patch.object(mod, "RENDER", render):
+                    rc, err = self.check(mod)
+                self.assertEqual(rc, 1)
+                self.assertIn("is stale", err)
+
 
 if __name__ == "__main__":
     unittest.main()
