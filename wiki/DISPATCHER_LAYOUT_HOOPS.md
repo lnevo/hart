@@ -22,10 +22,10 @@ Icons are `hidden="yes"` on **HART Railroad**. System names are `IF$vsm:basic:on
 | EH-1…EH-3 | `Mast 12L` / `Mast 10LA` / `Mast 10LB` | Engine House buffers `EB1` / `EB2` / `EB3` |
 | S-1…S-4 west | `Mast 18L`, `20L`, `22L`, `26L` | Body/throat boundary anchors `A53`/`A46`/`A41`/`A15` |
 | S-1…S-4 east | `Mast 18R`, `20R`, `22R`, `26R` | Body/throat boundary anchors `A61`/`A36`/`A39`/`A12` |
-| S-R west / east | `Mast 16L` / `Mast 32L` | `A81` (new split east of TOR14) / `A37` |
+| S-R west / east | `Mast 16L` / `Mast 16R` | `A81` (new split east of TOR14) / `A37` |
 | Scale / Switch 7 | `Mast 8LC` (`$1018`) | `A45` westbound; `T3` is `OS Switch 7`. `Mast 8RA` stays eastbound on `A45`, not TO117 A. |
 | Barn / Switch 13 | `Mast 14R` (`$1019`) | Hidden virtual on TO1 B. Without it Discover jumps **8RA → 26L** through Barn and Stage 1 tries the reverse hop. |
-| EH-1 / Switch 11 | `Mast 12R` (`$1020`) | Hidden virtual on TO11 B. Bumper `12L` is arrival-only; without this, EH outbound `get_first` picks **32L** and EH→S-1/S-4/S-R never builds. |
+| EH-1 / Switch 11 | `Mast 12R` (`$1020`) | Hidden virtual on TO11 B. Bumper `12L` is arrival-only; without this, EH outbound `get_first` picks **16R** and EH→S-1/S-4/S-R never builds. |
 | EH-2 / Switch 9 | `Mast 10RA` (`$1021`) | Hidden virtual on TO10 C (EH-2). |
 | EH-3 / Switch 9 | `Mast 10RB` (`$1022`) | Hidden virtual on TO10 B (EH-3). |
 | Brick-Plane / Switch 1 | `Mast 2R` (`$1023`) | Hidden virtual on TOL3 C. Brick-Plane had no mast at either end, so it sat inside the 2L→8RA/8RB and 6LA/6LB→24RA sections: runs into it went past it and runs to East Ext / Main West reused its transits (added 2026-11-10). |

@@ -67,7 +67,7 @@ BOUNDARY_MASTS = [
     ("A15", "westboundsignalmast", "IF$vsm:basic:one-low($1011)", "Mast 26L", 910, 474, 270),
     ("A12", "eastboundsignalmast", "IF$vsm:basic:one-low($1015)", "Mast 26R", 1148, 474, 90),
     ("A81", "westboundsignalmast", "IF$vsm:basic:one-low($1016)", "Mast 16L", 720, 300, 270),
-    ("A37", "eastboundsignalmast", "IF$vsm:basic:one-low($1017)", "Mast 32L", 1145, 300, 90),
+    ("A37", "eastboundsignalmast", "IF$vsm:basic:one-low($1017)", "Mast 16R", 1145, 300, 90),
     ("A45", "westboundsignalmast", "IF$vsm:basic:one-low($1018)", "Mast 8LC", 382, 305, 270),
 ]
 
@@ -76,7 +76,7 @@ YARD_VIRTUALS = {row[3] for row in BOUNDARY_MASTS}
 
 # Engine House exits. Bumper 12L/10LA/10LB are arrival dests only; without a
 # mast at EH-n | Switch 9/11, getBeansInPath(EH→yard) is empty or picks
-# 32L (S-1 East) and Stage 1 never builds EH→S-1/S-4/S-R.
+# 16R (S-R East) and Stage 1 never builds EH→S-1/S-4/S-R.
 EH_EXIT_MASTS = [
     # turnout, tag, sysname, uname, icon x, y, degrees (90: R is eastbound, ADR-005)
     ("TO11", "signalBMast", "IF$vsm:basic:one-low($1020)", "Mast 12R", 620, 270, 90),

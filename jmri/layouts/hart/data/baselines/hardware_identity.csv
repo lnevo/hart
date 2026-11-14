@@ -132,7 +132,7 @@ signalmast,IF$vsm:basic:one-low($1013),Mast 20R
 signalmast,IF$vsm:basic:one-low($1014),Mast 22R
 signalmast,IF$vsm:basic:one-low($1015),Mast 26R
 signalmast,IF$vsm:basic:one-low($1016),Mast 16L
-signalmast,IF$vsm:basic:one-low($1017),Mast 32L
+signalmast,IF$vsm:basic:one-low($1017),Mast 16R
 signalmast,IF$vsm:basic:one-low($1018),Mast 8LC
 signalmast,IF$vsm:basic:one-low($1019),Mast 14R
 signalmast,IF$vsm:basic:one-low($1020),Mast 12R

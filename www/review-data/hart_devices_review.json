@@ -2210,7 +2210,7 @@
     "dcc": "",
     "mqtt": "",
     "systemName": "IF$vsm:basic:one-low($1017)",
-    "userName": "Mast 32L",
-    "comment": "East End | Switch 31"
+    "userName": "Mast 16R",
+    "comment": "South Yard | Switch 15"
   }
 ]

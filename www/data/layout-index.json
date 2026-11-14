@@ -784,12 +784,12 @@
       "kind": "signal",
       "x": 1207.0,
       "y": 246.9,
-      "systemName": "Mast 32L",
-      "publicName": "Mast 32L",
-      "cp": "East End",
+      "systemName": "Mast 16R",
+      "publicName": "Mast 16R",
+      "cp": "South Yard",
       "hardware": "virtual $1017",
       "mqtt": "",
-      "comment": "East End | Switch 31",
+      "comment": "South Yard | Switch 15",
       "block": ""
     },
     {
@@ -881,6 +881,32 @@
       "hardware": "virtual $1024",
       "mqtt": "",
       "comment": "Plane | Switch 5",
+      "block": ""
+    },
+    {
+      "id": "sig-47",
+      "kind": "signal",
+      "x": 1520.1,
+      "y": 246.9,
+      "systemName": "Mast 36L",
+      "publicName": "Mast 36L",
+      "cp": "Princess",
+      "hardware": "virtual $1025",
+      "mqtt": "",
+      "comment": "Princess | Switch 35",
+      "block": ""
+    },
+    {
+      "id": "sig-48",
+      "kind": "signal",
+      "x": 1703.4,
+      "y": 181.0,
+      "systemName": "Mast 40RB",
+      "publicName": "Mast 40RB",
+      "cp": "Princess",
+      "hardware": "virtual $1026",
+      "mqtt": "",
+      "comment": "Princess | Switch 39",
       "block": ""
     },
     {
@@ -3892,20 +3918,20 @@
       "x": null,
       "y": null,
       "systemName": "IF$vsm:basic:one-low($1017)",
-      "publicName": "Mast 32L",
-      "cp": "East End",
+      "publicName": "Mast 16R",
+      "cp": "South Yard",
       "hardware": "virtual $1017",
       "mqtt": "",
-      "comment": "East End | Switch 31",
+      "comment": "South Yard | Switch 15",
       "block": ""
     }
   ],
   "counts": {
     "turnout": 46,
-    "signal": 123,
+    "signal": 125,
     "occupancy": 90,
     "sensor": 40,
-    "mapped": 67,
-    "total": 299
+    "mapped": 69,
+    "total": 301
   }
 }
