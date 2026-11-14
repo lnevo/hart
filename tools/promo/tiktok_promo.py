@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """Render a promo video: vertical for TikTok, Reels and Shorts, or 16:9 for YouTube.
 
-    .venv/bin/python tools/promo/tiktok_promo.py --font-dir <dir> --out <dir>
-    .venv/bin/python tools/promo/tiktok_promo.py --format landscape ...   # YouTube
+    .venv/bin/python tools/promo/tiktok_promo.py                          # TikTok / Shorts
+    .venv/bin/python tools/promo/tiktok_promo.py --format landscape --music   # YouTube
+
+Videos go to media/promo/ and page captures are read from media/promo/shots/
+(both in the gitignored media mirror). The shot crops in site_cut are pixel
+offsets into those captures, so after the site changes, delete the old capture,
+let the script take a new one, and check the crops. See docs/website/promo-videos.md.
 
 Builds the cut from material already in the repo: layout photos from
 media/photos-layout (the gitignored mirror), the schematic and USS CTC
@@ -17,9 +22,9 @@ an original synthesised soundtrack from soundtrack.py (no rights holder, so
 nothing for Content ID to claim). On TikTok, add a sound from its library
 instead; do not bake in commercial music.
 
---font-dir must hold BarlowCondensed-ExtraBold.ttf and -SemiBold.ttf (the
-site's display face, OFL, from github.com/google/fonts ofl/barlowcondensed).
-Without them the script falls back to Avenir Next Condensed.
+Captions use Barlow Condensed, the site's display face, from tools/promo/fonts/
+(SIL OFL, licence beside it). Without it the script falls back to Avenir Next
+Condensed.
 """
 from __future__ import annotations
 
@@ -37,6 +42,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PHOTOS = ROOT / "media" / "photos-layout"
 EVOLUTION = ROOT / "www" / "assets" / "behind" / "panel-evolution"
 LOGO = ROOT / "www" / "assets" / "media" / "hart-logo.png"
+FONTS = Path(__file__).resolve().parent / "fonts"
+OUT = ROOT / "media" / "promo"
 SITE_URL = "https://www.hartrailroad.com/"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
@@ -557,15 +564,16 @@ def add_music(cut: str, video: Path, seconds: float, tmp: Path) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--out", type=Path, required=True, help="output directory")
-    ap.add_argument("--font-dir", type=Path, help="folder with Barlow Condensed .ttf files")
+    ap.add_argument("--out", type=Path, default=OUT, help="output directory (media/promo)")
+    ap.add_argument("--font-dir", type=Path, default=FONTS,
+                    help="folder with Barlow Condensed .ttf files (tools/promo/fonts)")
     ap.add_argument("--format", choices=("vertical", "landscape"), default="vertical",
                     help="vertical 1080x1920 (TikTok/Shorts) or landscape 1920x1080 (YouTube)")
     ap.add_argument("--cuts", default="build,site", help="comma list of: " + ", ".join(CUTS))
     ap.add_argument("--music", action="store_true",
                     help="mix in the cut's original soundtrack (soundtrack.py), -14 LUFS")
-    ap.add_argument("--shots", type=Path,
-                    help="folder for page captures; existing files are reused (default: temp)")
+    ap.add_argument("--shots", type=Path, default=OUT / "shots",
+                    help="folder for page captures; existing files are reused")
     args = ap.parse_args()
     if not shutil.which("ffmpeg"):
         raise SystemExit("ffmpeg not found")
