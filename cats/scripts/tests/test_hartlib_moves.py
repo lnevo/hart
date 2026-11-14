@@ -50,6 +50,21 @@ class LookupsMatchOldLoops(unittest.TestCase):
             got = tio.load_turnouts()
         self.assertEqual(got, want)
 
+    def test_each_plant_binds_its_switch(self):
+        """Layout Editor turnout -> (M2T address, public name) that wire_digicon.py writes on the desk."""
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            got = tio.load_turnouts()
+        self.assertEqual(err.getvalue(), "")
+        self.assertEqual(got, {
+            "TO1": ("411", "Switch 13"), "TO10": ("1310", "Switch 9"), "TO11": ("1309", "Switch 11"),
+            "TO111": ("1212", "Switch 23"), "TO113": ("108", "Switch 35"), "TO117": ("1308", "Switch 7"),
+            "TOL15": ("309", "Switch 17"), "TOL17": ("310", "Switch 19"), "TOL19": ("311", "Switch 21"),
+            "TOL23": ("1213", "Switch 33"), "TOL29": ("110", "Switch 39"), "TOL3": ("408", "Switch 1"),
+            "TOL38": ("409", "Switch 3"), "TOL42": ("410", "Switch 5"), "TOL6": ("1211", "Switch 31"),
+            "TOR11": ("1208", "Switch 25"), "TOR14": ("308", "Switch 15"), "TOR36": ("109", "Switch 37"),
+            "TOR7": ("1210", "Switch 29"), "TOR9": ("1209", "Switch 27"),
+        })
+
     def test_occupancy_matches_old_loop(self):
         root = ET.parse(TABLES).getroot()
         addr: dict[str, str] = {}
