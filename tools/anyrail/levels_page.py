@@ -66,6 +66,7 @@ def markers(staging):
     out.append('<text class="rl" x="%.1f" y="507">Sw 7b, loop 1 estimate</text>' % (OLD_7B[0] - 10))
     out.append('<circle class="m7dot" cx="%.1f" cy="%.1f" r="3.2"/>' % tuple(p13))
     out.append('<text class="m7t" x="%.1f" y="%.1f">Sw 13</text>' % (p13[0] + 14, p13[1] + 3))
+    out.append('<text class="rl" x="%.1f" y="%.1f">Sw 13 feeds Sw 11, Sw 9 and EH-1 to EH-3 (not drawn)</text>' % (p13[0] + 14, p13[1] + 10))
     return "\n".join(out), p7, p13
 
 
@@ -103,9 +104,10 @@ def sections(svg_dir, staging):
     t = {}
     t["intro"] = ('<p>The track plans of all three levels, read from the layout plan (version 5.3b) and drawn to scale in centimetres. '
                   'Staging is 38.1 cm (15 in) below the main level, and the upper level is 10.8 cm (4.25 in) above it. '
-                  'The helix joins them. Every drawing is track only.</p>')
+                  'The helix joins them. Every drawing is track only, with the changes made to the plan applied: the unbuilt crossover is left out, '
+                  'T300 is moved to the upper level, and the switches the plan lacks are added where the plan has room for them.</p>')
     t["stage_key"] = ('<div class="key"><span class="k-loop">test loop route</span><span class="k-sw7">run from Switch 5 to Switch 15</span>'
-                      '<span class="k-nb">plan crossover not built</span><span class="k-trk">other track</span></div>')
+                      '<span class="k-trk">other track</span></div>')
     l7, a7, b7, before7 = LOCATE["7"]
     l13, a13, b13, before13 = LOCATE["13"]
     t["locate"] = (
@@ -120,9 +122,9 @@ def sections(svg_dir, staging):
         % (a7, b7, l7, before7, a13, b13, l13, before13, p7[0], p13[0], p13[1]))
     t["diffs"] = (
         '<h3>Where the plan and the built layout differ</h3><ol>'
-        '<li><b>No crossover near Switch 1.</b> The plan has a crossover (T41/T43, red) between Main West and Track S-R, about 27 in from Switch 1. It was not built: Main West runs plain from Switch 1 to Switch 23.</li>'
+        '<li><b>No crossover near Switch 1.</b> The plan has a crossover (T41/T43) between Main West and Track S-R, about 27 in from Switch 1. It was not built, so both tracks are drawn plain: Main West runs from Switch 1 to Switch 23.</li>'
         '<li><b>The Switch 7 crossover is not in the plan.</b> It joins the two long parallel runs out of Switch 5.</li>'
-        '<li><b>Switch 13 and the engine terminal are not in the plan</b> (Switches 9 and 11, Barn, Scale, EH-1 to EH-3). They sit on the run from Switch 5 to the yard ladder.</li>'
+        '<li><b>Switch 13 and the engine terminal are not in the plan</b> (Switches 9 and 11, Barn, Scale, EH-1 to EH-3). They sit on the run from Switch 5 to the yard ladder. Switch 13 is marked; the terminal tracks are not drawn, because the plan has no room for them beside the loop.</li>'
         '<li><b>The two long dead ends past Switches 37 and 39 are the helix lines.</b> On the layout they are the McKeesport and McKees Rocks stubs.</li></ol>')
     t["loop"] = ('<h3>Test loop length</h3><div class="tw"><table><thead><tr><th>Source</th><th class="n">Test loop</th></tr></thead><tbody>'
                  '<tr><td>Plan 5.3b, along the test route</td><td class="n">35,108 mm (1382 in)</td></tr>'
@@ -132,18 +134,18 @@ def sections(svg_dir, staging):
                    '(Switches 5, 33, 35a, 35b, 23a and 1 sit at their plan positions). &plusmn; is the spread over 33 timed laps (16 for East Ext). '
                    '* The detector also covers a 15.7 in hidden stub with its own row (East Lead East, K-1 West).</p><div class="tw">' + block_table() + '</div>')
     t["main"] = (
-        '<div class="key"><span class="k-trk">track</span><span class="k-ramp">helix and ramps up to the upper level and down to staging</span><span class="k-flag">T300</span></div>'
+        '<div class="key"><span class="k-trk">track</span><span class="k-ramp">helix and ramps up to the upper level and down to staging</span></div>'
         + f_main +
-        '<p>%d turnouts and %.1f m of flex at the main level, with the helix and its ramps in dotted orange (%.1f m of flex). '
+        '<p>%d turnouts and %.1f m of flex at the main level (T300 left out), with the helix and its ramps in dotted orange (%.1f m of flex). '
         'Turnouts show their plan part number; the main level&rsquo;s own switch numbers and names are not assigned yet.</p>'
-        '<ul><li><b>T300</b> is drawn here, in the height-0 track, but it is built on the upper level: in the run between the double crossover and T237, about 292 cm from the crossover, right-hand.</li>'
+        '<ul><li><b>T300</b> is not drawn. The plan has it in the height-0 track at the east end, but it is built on the upper level, in the run between the double crossover and T237, about 292 cm from the crossover, right-hand.</li>'
         '<li>The two helix tracks start at T175 (McKees Rocks) and T251 (McKeesport).</li></ul>'
-        % (meta["main"]["turnouts"], meta["main"]["flex_m"], meta["ramp_m"]))
+        % (meta["main"]["turnouts"] - 1, meta["main"]["flex_m"], meta["ramp_m"]))
     t["upper"] = (
         '<div class="key"><span class="k-trk">track</span></div>' + f_upper +
-        '<p>%d turnouts and %.1f m of flex at 4.25 in (10.8 cm), including the peninsula loop with its yard tracks, which the plan holds at 1 in and is built at 4.25 in. '
+        '<p>%d turnouts (T300 included, not drawn) and %.1f m of flex at 4.25 in (10.8 cm), including the peninsula loop with its yard tracks, which the plan holds at 1 in and is built at 4.25 in. '
         'Turnouts show their plan part number; switch numbers and names for this level are not assigned yet.</p>'
-        % (meta["upper"]["turnouts"], meta["upper"]["flex_m"]))
+        % (meta["upper"]["turnouts"] + 1, meta["upper"]["flex_m"]))
     return t, f_stage
 
 

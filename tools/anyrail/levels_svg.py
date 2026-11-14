@@ -60,7 +60,14 @@ def build(parts, graph):
 
 
 NAMES = {161: "double crossover"}      # plan parts that read better by what they are
-FLAG = {300: "T300 is here in the plan; built on the upper level"}   # plan parts the owner moved
+MOVED = {300}     # plan parts the overlay (plan_overrides) moves to another level: drawn as plain track here
+NOTES = {         # words placed on a level: (x, y, anchor, text)
+    "main": [(405, 123, "start", "H1 McKees Rocks (T175)"), (392, 123, "end", "H2 McKeesport (T251)")],
+    "upper": [(45, 346, "start", "T300 is built in the run between the"),
+              (45, 352, "start", "double crossover and T237, 292 cm"),
+              (45, 358, "start", "from the crossover. The plan has no"),
+              (45, 364, "start", "geometry for it.")],
+}
 
 
 def flex_cm(pts):
@@ -77,6 +84,13 @@ def svg_for(level, cls, to, labels):
     for i, p in to[level]:
         e = [a for a in p["eps"] if abs(a["x"]) > 1e-3 and abs(a["y"]) > 1e-3]   # the reader misses one leg of T0
         toe = e[0]
+        if i in MOVED:       # keep the straight route only: the leg that points straight on from the toe
+            def off(a):
+                d = (a["a"] - toe["a"] - math.pi) % (2 * math.pi)
+                return min(d, 2 * math.pi - d)
+            leg = min(e[1:], key=off)
+            out.append('<line class="trk" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (toe["x"], toe["y"], leg["x"], leg["y"]))
+            continue
         for a in e[1:]:
             out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (toe["x"], toe["y"], a["x"], a["y"]))
         if len(e) == 3:
@@ -84,8 +98,8 @@ def svg_for(level, cls, to, labels):
         cx = sum(a["x"] for a in e) / len(e)
         cy = sum(a["y"] for a in e) / len(e)
         out.append('<text class="tl" x="%.1f" y="%.1f">%s</text>' % (cx + 3, cy - 3, NAMES.get(i, "T%d" % i)))
-        if i in FLAG:
-            out.append('<circle class="flag" cx="%.1f" cy="%.1f" r="9"/>' % (cx, cy))
+    for x, y, anchor, text in NOTES.get(level, []):
+        out.append('<text class="rl" x="%d" y="%d" text-anchor="%s">%s</text>' % (x, y, anchor, text))
     out.extend(labels)
     return "\n".join(out)
 
