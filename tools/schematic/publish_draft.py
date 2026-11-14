@@ -1,15 +1,17 @@
-"""publish_draft.py [--check]
+"""publish_draft.py [--check | --preview DIR]
 
 Draw the system schematic with the schematic-maps plugin and publish it as the marked draft in docs/ops:
 schematic-system-draft.svg (with a red DRAFT mark in the title block) and a Letter landscape PDF printed by
-Chrome. Inputs: the layer files in jmri/layouts/hart/data/schematic/ and the plan graphs beside the owner's
-AnyRail plan in ~/Documents/Layout/schematic/ (outside the repo). The plugin is this checkout's submodule
+Chrome. Inputs: the layer files in jmri/layouts/hart/data/schematic/ and the plan graphs in its inputs/ folder
+(track only, regenerated from the owner's AnyRail export as its README says). The plugin is this checkout's submodule
 external/model-railroad-skills at its pinned commit (`git submodule update --init external/model-railroad-skills`
 in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plugin code.
 
 --check draws and compares with the published SVG without writing anything (exit 1 if they differ). It also
 fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for car counts) no longer match
 jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
+--preview DIR draws the marked SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
+title block's date and revision are left alone.
 When the drawing itself (everything but the title block) differs from main's, publishing sets `date` to today and
 `revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
 from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
@@ -33,7 +35,7 @@ from hartlib import paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
 DATA = REPO / "jmri/layouts/hart/data/schematic"
-GRAPHS = Path.home() / "Documents/Layout/schematic"
+GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
 LENGTHS = REPO / "jmri/layouts/hart/data/block_lengths.csv"
 STAGING = DATA / "staging.plan_overrides.json"
@@ -167,6 +169,11 @@ def pdf(svg_path, pdf_path):
 
 def main(argv):
     target = OUT / "schematic-system-draft.svg"
+    if "--preview" in argv:
+        i = argv.index("--preview")
+        if i + 1 >= len(argv) or argv[i + 1].startswith("--"):
+            sys.exit("--preview needs a folder")
+        return preview(draw(), Path(argv[i + 1]).expanduser())
     check = "--check" in argv
     stale = stale_lengths()
     if stale and check:
@@ -191,6 +198,20 @@ def main(argv):
                 p.write_text(text)
                 print(f"put back {p.name}")
         raise
+    return 0
+
+
+def preview(sheet, folder):
+    """The drawing as it stands, into folder; nothing in the repo changes."""
+    folder.mkdir(parents=True, exist_ok=True)
+    svg, printed = folder / "schematic-system-draft.svg", folder / "schematic-system-draft.pdf"
+    svg.write_text(sheet)
+    printed.unlink(missing_ok=True)                           # never report an old PDF as this one
+    try:
+        pdf(svg, printed)
+    except (subprocess.SubprocessError, OSError) as e:
+        print(f"PDF not printed: {e}")
+    print(f"preview: {svg}" + (f" and {printed.name}" if printed.exists() else ""))
     return 0
 
 

@@ -16,7 +16,7 @@ The spike mixes three kinds of input in two options files (`staging_opts.json`, 
 
 ## Layer 1: plan overrides (feed these over the AnyRail plan)
 
-Source of track: AnyRail's JMRI export of plan 5.3b (`export_reader.py`; the owner keeps the file in `~/Documents/Layout/`). Heights come from the `.any` file, matched to the export by position (export scale is 120 px per inch of plan).
+Source of track: AnyRail's JMRI export of plan 5.3b, read by the plugin's `plan` command into the track graphs in `jmri/layouts/hart/data/schematic/inputs/` (since 2026-11-14; recipe in `docs/ops/schematic-system-draft.md`). The `.any` file and its XML export stay in `~/Documents/Layout/`, outside the repo. Heights come from the `.any` file, matched to the export by position (export scale is 120 px per inch of plan).
 
 | Override | Staging | Main and upper |
 |----------|---------|----------------|
