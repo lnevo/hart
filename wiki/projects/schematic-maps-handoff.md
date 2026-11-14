@@ -74,7 +74,7 @@ Known gaps: labels are not checked for collisions; a crossover's number prints o
 - Helix marks: three-turn coil with H1 or H2 and "Helix to …". Connectors between main and upper: circled A and B.
 - The helix-top switches T285 and T251 are drawn on the upper band (they are at height 0), T199 and T175 on the main band.
 - Main level: the loop at T196 above the main, the three yard tracks below it (drawn sides flipped for T196, T155, T160, T162, T194, T183, 50, 51).
-- Lengths: staging: Plane to the right of Brick, Switches 7 and 13 further east, Switch 13 to 15 as short as the rules allow (3 cells; owner, 2026-11-14, the cell given to East Lead and West Ext), long yard tracks. Main: yard throat level with the loop's edge, a long run between T1 and 12, room between T160 and T165. Upper: T237 to T300 short, T262 to T285 five cells.
+- Lengths: staging: Plane to the right of Brick, Switches 7 and 13 further east, Switch 13 to 15 one cell, drawn short like T274 to T237 (owner, 2026-11-14; the cells given to East Lead, now 7, and West Ext), long yard tracks. Main: yard throat level with the loop's edge, a long run between T1 and 12, room between T160 and T165. Upper: T237 to T300 short, T262 to T285 five cells.
 - NYAMR drafting style, Letter landscape, title block, station brackets under staging.
 
 ## Work to do, in parallel
