@@ -3,6 +3,7 @@
   {
    "direction": "forward",
    "file": "runs/stoptest_CSX_2738_forward_20261113_175331.json",
+   "frames": "runs/stoptest_CSX_2738_forward_20261113_175331.frames.json",
    "headline": "Used",
    "id": "stoptest_CSX_2738_forward_20261113_175331",
    "kind": "stoptest",
@@ -21,6 +22,7 @@
   {
    "direction": "forward",
    "file": "runs/stoptest_CSX_2738_forward_20261113_175212.json",
+   "frames": "runs/stoptest_CSX_2738_forward_20261113_175212.frames.json",
    "headline": "Used",
    "id": "stoptest_CSX_2738_forward_20261113_175212",
    "kind": "stoptest",
@@ -39,6 +41,7 @@
   {
    "direction": "reverse",
    "file": "runs/stoptest_CSX_2121_reverse_20261113_174927.json",
+   "frames": "runs/stoptest_CSX_2121_reverse_20261113_174927.frames.json",
    "headline": "Used",
    "id": "stoptest_CSX_2121_reverse_20261113_174927",
    "kind": "stoptest",
@@ -57,6 +60,7 @@
   {
    "direction": "reverse",
    "file": "runs/stoptest_CSX_2121_reverse_20261113_174751.json",
+   "frames": "runs/stoptest_CSX_2121_reverse_20261113_174751.frames.json",
    "headline": "Used",
    "id": "stoptest_CSX_2121_reverse_20261113_174751",
    "kind": "stoptest",
@@ -75,6 +79,7 @@
   {
    "direction": "reverse",
    "file": "runs/steprun_CSX_2121_reverse_20261113_172957.json",
+   "frames": "runs/steprun_CSX_2121_reverse_20261113_172957.frames.json",
    "headline": "Used",
    "id": "steprun_CSX_2121_reverse_20261113_172957",
    "kind": "steprun",
@@ -96,6 +101,7 @@
   {
    "direction": "forward",
    "file": "runs/steprun_CSX_2121_forward_20261113_172606.json",
+   "frames": "runs/steprun_CSX_2121_forward_20261113_172606.frames.json",
    "headline": "Used",
    "id": "steprun_CSX_2121_forward_20261113_172606",
    "kind": "steprun",
@@ -117,6 +123,7 @@
   {
    "direction": "reverse",
    "file": "runs/steprun_CSX_2738_reverse_20261113_171459.json",
+   "frames": "runs/steprun_CSX_2738_reverse_20261113_171459.frames.json",
    "headline": "Used",
    "id": "steprun_CSX_2738_reverse_20261113_171459",
    "kind": "steprun",
@@ -138,6 +145,7 @@
   {
    "direction": "forward",
    "file": "runs/steprun_CSX_2738_forward_20261113_171458.json",
+   "frames": "runs/steprun_CSX_2738_forward_20261113_171458.frames.json",
    "headline": "Used",
    "id": "steprun_CSX_2738_forward_20261113_171458",
    "kind": "steprun",
@@ -160,6 +168,7 @@
   {
    "direction": "forward",
    "file": "runs/steprun_CSX_2738_forward_20261113_165713.json",
+   "frames": "runs/steprun_CSX_2738_forward_20261113_165713.frames.json",
    "headline": "Used",
    "id": "steprun_CSX_2738_forward_20261113_165713",
    "kind": "steprun",
@@ -187,6 +196,7 @@
   {
    "direction": "reverse",
    "file": "runs/steprun_CSX_2121_reverse_20261113_163539.json",
+   "frames": "runs/steprun_CSX_2121_reverse_20261113_163539.frames.json",
    "headline": "Used",
    "id": "steprun_CSX_2121_reverse_20261113_163539",
    "kind": "steprun",
@@ -213,6 +223,7 @@
   {
    "direction": "forward",
    "file": "runs/steprun_CSX_2121_forward_20261113_162410.json",
+   "frames": "runs/steprun_CSX_2121_forward_20261113_162410.frames.json",
    "headline": "Used",
    "id": "steprun_CSX_2121_forward_20261113_162410",
    "kind": "steprun",
@@ -239,6 +250,7 @@
   {
    "direction": "reverse",
    "file": "runs/steprun_CSX_2121_reverse_20261113_161505.json",
+   "frames": "runs/steprun_CSX_2121_reverse_20261113_161505.frames.json",
    "headline": "Used for loop 2",
    "id": "steprun_CSX_2121_reverse_20261113_161505",
    "kind": "steprun",
@@ -257,6 +269,7 @@
   {
    "direction": "reverse",
    "file": "runs/pass_CSX_2121_reverse_step48_20261113_154720.json",
+   "frames": "runs/pass_CSX_2121_reverse_step48_20261113_154720.frames.json",
    "headline": "Used",
    "id": "pass_CSX_2121_reverse_step48_20261113_154720",
    "kind": "pass",
@@ -275,6 +288,7 @@
   {
    "direction": "reverse",
    "file": "runs/pass_CSX_2121_reverse_step24_20261113_154325.json",
+   "frames": "runs/pass_CSX_2121_reverse_step24_20261113_154325.frames.json",
    "headline": "Used",
    "id": "pass_CSX_2121_reverse_step24_20261113_154325",
    "kind": "pass",
@@ -293,6 +307,7 @@
   {
    "direction": "forward",
    "file": "runs/steprun_CSX_2738_forward_20261113_125138.json",
+   "frames": "runs/steprun_CSX_2738_forward_20261113_125138.frames.json",
    "headline": "Superseded",
    "id": "steprun_CSX_2738_forward_20261113_125138",
    "kind": "steprun",
@@ -320,6 +335,7 @@
   {
    "direction": "reverse",
    "file": "runs/steprun_CSX_2738_reverse_20261113_120156.json",
+   "frames": "runs/steprun_CSX_2738_reverse_20261113_120156.frames.json",
    "headline": "Used",
    "id": "steprun_CSX_2738_reverse_20261113_120156",
    "kind": "steprun",
@@ -341,6 +357,7 @@
   {
    "direction": "reverse",
    "file": "runs/steprun_CSX_2738_reverse_20261113_114309.json",
+   "frames": "runs/steprun_CSX_2738_reverse_20261113_114309.frames.json",
    "headline": "Used",
    "id": "steprun_CSX_2738_reverse_20261113_114309",
    "kind": "steprun",
@@ -366,6 +383,7 @@
   {
    "direction": "forward",
    "file": "runs/steprun_CSX_2738_forward_20261113_114309.json",
+   "frames": "runs/steprun_CSX_2738_forward_20261113_114309.frames.json",
    "headline": "Not used",
    "id": "steprun_CSX_2738_forward_20261113_114309",
    "kind": "steprun",

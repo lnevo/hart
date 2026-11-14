@@ -11,6 +11,7 @@ let INDEX = [];  // recorded: the published runs, newest first
 const SVGNS = "http://www.w3.org/2000/svg";
 const MAX_STEP = 126, TOL = 3;
 let S = null, manual = null, picked = false, showTable = false;
+let RP = null;  // recorded: the replay of the picked run while one is loaded (see replay below)
 
 function el(tag, attrs, ...kids) {
   const e = document.createElement(tag);
@@ -69,15 +70,15 @@ $("tbl").addEventListener("click", () => { showTable = !showTable; $("tbl").text
 // ---------------------------------------------------------------- banner and header
 function renderTop(run) {
   $("mode").textContent = S.mode;
-  $("livedot").className = "dot" + (S.reachable && run && !finished(run) && (!REC || POLL) ? " on" : "");
+  $("livedot").className = "dot" + (S.reachable && run && !finished(run) && (!REC || POLL || (RP && RP.timer)) ? " on" : "");
   const c = $("conn");
-  c.textContent = POLL ? (S.reachable ? "Live on the Pi" : (S.message || "Not updating, retrying")) : REC ? (run && run.t0 ? "Recorded " + when(run.t0) : "") : S.reachable ? (S.mode === "live" ? "Pi connected" : "Playing " + S.mode) : (S.message || "Pi not reachable, retrying");
+  c.textContent = POLL ? (S.reachable ? "Live on the Pi" : (S.message || "Not updating, retrying")) : REC ? (RP ? "Replay " + clock(RP.frames[RP.i][0]) : run && run.t0 ? "Recorded " + when(run.t0) : "") : S.reachable ? (S.mode === "live" ? "Pi connected" : "Playing " + S.mode) : (S.message || "Pi not reachable, retrying");
   c.className = "conn" + (S.reachable ? "" : " bad");
   $("follow").hidden = POLL ? !picked : (REC || !manual);
   const b = $("banner");
   let level = null, text = null, why = null;
   if (!S.reachable) { level = "net"; text = S.message || "Pi not reachable, retrying"; }
-  else if (REC && S.note) {  // recorded: what the record says about this run comes first
+  else if (REC && S.note && !(RP && RP.i < RP.frames.length - 1)) {  // recorded: what the record says about this run comes first
     level = S.note.level; text = S.note.headline; why = S.note.text;
     if (run && run.banner) why = (why ? why + " " : "") + "Run ended: " + run.banner[1] + ".";
   }
@@ -409,9 +410,12 @@ async function tickRecorded() {
     let cur = picked && INDEX.find((x) => x.id === manual);
     if (!cur) { picked = false; cur = INDEX[0]; }  // follow the newest unless a run still listed was picked
     manual = cur.id;
+    if (RP && RP.id !== cur.id) { clearTimeout(RP.timer); RP = null; }  // another run was picked
+    if (RP) { render(); return; }
     const r = await fetch(REC.base + cur.file, { cache: POLL ? "no-store" : "no-cache" });
-    S = await r.json();
+    S = BASE = await r.json();
     fillPicker(cur.id);
+    setReplayBar(cur);
   } catch (e) {
     if (POLL) {  // the Pi page keeps trying
       S = S ? { ...S, reachable: false, message: "Not updating, retrying" } : { runs: [], mode: "live", reachable: false, message: "Waiting for the publisher on the Pi", reference: {} };
@@ -425,6 +429,105 @@ async function tickRecorded() {
   }
   render();
 }
+// ---------------------------------------------------------------- replay (recorded mode)
+// runs/<id>.frames.json holds the run as the live page drew it, one frame per log line: the first
+// a full view of the run, later ones only what changed (diff_frame in export_site_runs.py, whose
+// apply_frame this repeats). Playing swaps the frames into the run's slot of the record in time
+// order, sped up; long waits between lines are cut short.
+const RATES = [10, 30, 100], MAX_GAP = 60;
+let BASE = null;  // the record of the picked run, as loaded
+function applyFrame(prev, d) {
+  const cur = { ...prev };
+  for (const k of d["-"] || []) delete cur[k];
+  for (const [k, v] of Object.entries(d)) {
+    if (k === "blocks~") {
+      const bl = cur.blocks.map((b) => ({ ...b }));
+      for (const [i, ch] of Object.entries(v)) bl[+i] = "=" in ch ? { ...ch["="] } : { ...bl[+i], ...ch };
+      cur.blocks = bl;
+    } else if (k === "events+") cur.events = [...cur.events, ...v].slice(-15);
+    else if (k !== "-") cur[k] = v;
+  }
+  return cur;
+}
+function replayBar() {
+  let bar = $("replaybar");
+  if (bar || !REC || POLL) return bar;
+  bar = el("div", { class: "replay", id: "replaybar" },
+    el("button", { class: "btn", id: "rp-play", type: "button", onclick: () => (RP && RP.timer ? pauseReplay() : playReplay()) }, "▶ Replay"),
+    el("label", { for: "rp-rate", class: "sr-only", text: "Replay speed" }),
+    el("select", { id: "rp-rate", onchange: (e) => { if (RP) RP.rate = +e.target.value; } }, ...RATES.map((r) => el("option", { value: r, text: "×" + r }))),
+    el("input", { type: "range", id: "rp-seek", min: 0, max: 0, value: 0, "aria-label": "Replay position", disabled: "",
+      oninput: (e) => RP && seekReplay(+e.target.value) }),
+    el("span", { class: "rp-t", id: "rp-t" }),
+    el("button", { class: "btn small", id: "rp-end", type: "button", hidden: "", onclick: () => endReplay() }, "Show the result"));
+  bar.querySelector("#rp-rate").value = "30";
+  const top = ROOT.querySelector(".top");
+  top.after(bar);
+  return bar;
+}
+function setReplayBar(entry) {
+  const bar = replayBar();
+  if (!bar) return;
+  bar.hidden = !entry || !entry.frames;
+  if (!RP) {
+    $("rp-play").textContent = "▶ Replay";
+    $("rp-seek").disabled = true; $("rp-seek").value = 0; $("rp-t").textContent = ""; $("rp-end").hidden = true;
+  }
+}
+function showFrame() {
+  const [t, run] = RP.frames[RP.i];
+  S = { ...BASE, now: t, runs: BASE.runs.map((r) => (r.id === BASE.focus ? run : r)) };
+  $("rp-seek").value = RP.i;
+  $("rp-t").textContent = dur(t - RP.frames[0][0]) + " / " + dur(RP.frames[RP.frames.length - 1][0] - RP.frames[0][0]);
+  render();
+}
+async function loadReplay() {
+  const entry = INDEX.find((x) => x.id === manual);
+  if (!entry || !entry.frames) return false;
+  const r = await fetch(REC.base + entry.frames, { cache: "no-cache" });
+  const raw = (await r.json()).frames;
+  if (!raw.length || manual !== entry.id) return false;
+  const frames = [];
+  let cur = null;
+  for (const [t, d] of raw) { cur = cur ? applyFrame(cur, d) : d; frames.push([t, cur]); }
+  RP = { id: entry.id, frames, i: 0, rate: +$("rp-rate").value, timer: null };
+  $("rp-seek").max = frames.length - 1; $("rp-seek").disabled = false; $("rp-end").hidden = false;
+  return true;
+}
+async function playReplay() {
+  try {
+    if (!RP && !(await loadReplay())) return;
+  } catch (e) { $("rp-t").textContent = "The replay could not be loaded."; return; }
+  if (RP.i >= RP.frames.length - 1) RP.i = 0;
+  $("rp-play").textContent = "❚❚ Pause";
+  showFrame();
+  const step = () => {
+    if (!RP) return;
+    if (RP.i >= RP.frames.length - 1) { pauseReplay(); return; }
+    const gap = Math.min(RP.frames[RP.i + 1][0] - RP.frames[RP.i][0], MAX_GAP);
+    RP.timer = setTimeout(() => { if (!RP) return; RP.i++; showFrame(); step(); }, Math.max(16, (1000 * gap) / RP.rate));
+  };
+  RP.timer = -1;  // playing; step() replaces it with the pending timeout
+  step();
+}
+function pauseReplay() {
+  if (!RP) return;
+  clearTimeout(RP.timer); RP.timer = null;
+  $("rp-play").textContent = RP.i >= RP.frames.length - 1 ? "↺ Replay" : "▶ Play";
+  render();
+}
+function seekReplay(i) {
+  RP.i = Math.max(0, Math.min(i, RP.frames.length - 1));
+  showFrame();
+}
+function endReplay() {  // back to the record as published
+  if (RP) clearTimeout(RP.timer);
+  RP = null;
+  if (BASE) S = BASE;
+  setReplayBar(INDEX.find((x) => x.id === manual));
+  render();
+}
+
 async function tick() {
   if (REC) return tickRecorded();
   try {

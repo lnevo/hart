@@ -169,3 +169,12 @@ body.smd { margin: 0; background: var(--bg); }
 .smd .card:hover, .smd .btn:hover { transform: none; }
 .smd .card, .smd .btn { transition: none; }
 .smd .card:hover { border-color: var(--line); }
+
+/* Replay of a recorded run (website): play, speed, position, back to the result. */
+.smd .replay { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.smd .replay[hidden] { display: none; }
+.smd .replay select { font: inherit; font-size: .85rem; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.smd .replay input[type=range] { flex: 1 1 10rem; min-width: 0; accent-color: var(--brand, var(--c2121)); }
+.smd .replay .rp-t { font-size: .85rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.smd .replay .btn.small { margin-left: 0; }
+.smd .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

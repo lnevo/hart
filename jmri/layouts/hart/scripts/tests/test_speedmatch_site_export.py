@@ -102,12 +102,44 @@ class Export(unittest.TestCase):
                 ex.load_labels(labels(d, {"a.log": {"level": "maybe", "headline": "", "text": ""}}))
 
 
+class Replay(unittest.TestCase):
+    def test_frames_rebuild_every_view_and_end_on_the_record(self):
+        with tempfile.TemporaryDirectory() as d:
+            logs = Path(d) / "logs"; logs.mkdir()
+            name = "steprun_CSX_2121_forward_20260101_000000.log"
+            (logs / name).write_text(STEPRUN)
+            out = Path(d) / "out"
+            idx = ex.export(logs, out, labels(d, {name: {"level": "used", "headline": "Used", "text": "x"}}))
+            self.assertEqual(idx[0]["frames"], "runs/%s.frames.json" % name[:-4])
+            frames = json.loads((out / idx[0]["frames"]).read_text())["frames"]
+            self.assertGreater(len(frames), 1)
+            self.assertEqual([t for t, _ in frames], sorted(t for t, _ in frames))
+            cur = frames[0][1]
+            for _, f in frames[1:]:
+                cur = ex.apply_frame(cur, f)
+            snap = json.loads((out / idx[0]["file"]).read_text())
+            self.assertEqual(cur, next(r for r in snap["runs"] if r["id"] == snap["focus"]))
+
+    def test_diff_carries_block_and_event_changes(self):
+        a = {"blocks": [{"name": "A", "current": True}, {"name": "B", "current": False}],
+             "events": [{"t": i, "text": str(i)} for i in range(15)], "speed": 1, "eta": 5}
+        b = {"blocks": [{"name": "A", "current": False}, {"name": "B", "current": True}],
+             "events": [{"t": i, "text": str(i)} for i in range(2, 17)], "speed": 2}
+        d = ex.diff_frame(a, b)
+        self.assertEqual(d["blocks~"], {"0": {"current": False}, "1": {"current": True}})
+        self.assertEqual(d["events+"], [{"t": 15, "text": "15"}, {"t": 16, "text": "16"}])
+        self.assertEqual(d["-"], ["eta"])
+        self.assertEqual(ex.apply_frame(a, d), b)
+        self.assertEqual(ex.encode(a, a), {})
+
+
 class SharedMarkup(unittest.TestCase):
     """The website page repeats the live page's panels; every id app.js looks up must be in both."""
     def test_every_id_app_js_uses_is_on_both_pages(self):
         app = (DASH / "static" / "app.js").read_text()
         ids = set(re.findall(r'\$\("([\w-]+)"\)', app))
         ids -= set(re.findall(r'if \(\$\("([\w-]+)"\)\)', app))  # guarded: only one page has it
+        ids -= set(re.findall(r'id: "([\w-]+)"', app))  # made by app.js itself (the replay bar)
         self.assertTrue(ids)
         repo = DASH.parents[5]
         for page in (DASH / "static" / "index.html", repo / "www" / "ai" / "speed-runs.html"):
