@@ -29,32 +29,32 @@
 <tr><td>Conductor &amp; engineer</td><td>18</td><td>60</td></tr>
 <tr><td>Yard crew</td><td>5</td><td>15</td></tr>
 <tr><td>Yardmaster</td><td>4</td><td>12</td></tr>
-          <tr><td>Dispatcher</td><td>0</td><td>0</td></tr>
+<tr><td>Dispatcher</td><td>0</td><td>0</td></tr>
           <tr><th>Total</th><th>27</th><th>87</th></tr>
         </tbody>
       </table>
     </div>
-    <p class="small muted">Yard crew is hump, trimmer and yard conductor or engineer work. Role names (RRE, RRW, KKE) are the host railroad's own job names.</p>
+    <p class="small muted">Sessions are in month order within each year; a few were logged without a month. Yard crew is hump, trimmer and yard conductor or engineer work. Role names (RRE, RRW, KKE) are the host railroad's own job names.</p>
 
     <h2 id="y2025">2025</h2>
 <div class="table-wrap"><table class="ap-path"><thead><tr><th>Month</th><th>Railroad</th><th>Event</th><th>Job</th><th>Type</th><th>Hours</th></tr></thead><tbody>
-<tr><td>March</td><td>Conrail Boston Line (CBL)</td><td>Shakedown session</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
-<tr><td>—</td><td>LIRR</td><td>Long Beach</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
-<tr><td>May</td><td>SH&amp;CC</td><td>Island Ops</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
-<tr><td>May</td><td>A&amp;W</td><td>Island Ops</td><td>RRE</td><td>Conductor &amp; engineer</td><td>3</td></tr>
 <tr><td>February</td><td>A&amp;W</td><td>Operations day</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
+<tr><td>March</td><td>Conrail Boston Line (CBL)</td><td>Shakedown session</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
 <tr><td>March</td><td>A&amp;W</td><td>Operations day</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
 <tr><td>April</td><td>A&amp;W</td><td>Operations day</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
+<tr><td>May</td><td>SH&amp;CC</td><td>Island Ops</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
+<tr><td>May</td><td>A&amp;W</td><td>Island Ops</td><td>RRE</td><td>Conductor &amp; engineer</td><td>3</td></tr>
 <tr><td>June</td><td>A&amp;W</td><td>Operations day</td><td>Hump yard conductor</td><td>Yard crew</td><td>3</td></tr>
 <tr><td>July</td><td>A&amp;W</td><td>Operations day</td><td>RRW</td><td>Conductor &amp; engineer</td><td>3</td></tr>
 <tr><td>August</td><td>A&amp;W</td><td>Operations day</td><td>Hump yard engineer</td><td>Yard crew</td><td>3</td></tr>
 <tr><td>September</td><td>A&amp;W</td><td>Operations day</td><td>Bethlehem Steel yardmaster</td><td>Yardmaster</td><td>3</td></tr>
-<tr><td>October</td><td>A&amp;W</td><td>Invitational</td><td>KKE and RRE</td><td>Conductor &amp; engineer</td><td>3</td></tr>
-<tr><td>—</td><td>NER (Valley Junction RR)</td><td></td><td>Essex yardmaster</td><td>Yardmaster</td><td>3</td></tr>
 <tr><td>September</td><td>SH&amp;CC</td><td></td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
 <tr><td>September</td><td>NER</td><td></td><td>Robinson Valley Junction yardmaster</td><td>Yardmaster</td><td>3</td></tr>
+<tr><td>October</td><td>A&amp;W</td><td>Invitational</td><td>KKE and RRE</td><td>Conductor &amp; engineer</td><td>3</td></tr>
 <tr><td>October</td><td>Rhythm Railroad</td><td></td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
-<tr><td>—</td><td>HoJack, M&amp;W and SVL</td><td>Ops Around the Clock, Rochester</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>9</td></tr>
+<tr><td>Not recorded</td><td>LIRR</td><td>Long Beach</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>3</td></tr>
+<tr><td>Not recorded</td><td>NER (Valley Junction RR)</td><td></td><td>Essex yardmaster</td><td>Yardmaster</td><td>3</td></tr>
+<tr><td>Not recorded</td><td>HoJack, M&amp;W and SVL</td><td>Ops Around the Clock, Rochester</td><td>C&amp;E</td><td>Conductor &amp; engineer</td><td>9</td></tr>
 <tr><th colspan="5">Total, 17 sessions</th><th>57</th></tr></tbody></table></div>
 
     <h2 id="y2026">2026</h2>
@@ -78,11 +78,10 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/achievements.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      HARTOps.mountChrome("ap-log").catch(function (err) {
-        console.error(err);
-      });
+      HARTAchievements.mount("ap-log");
     });
   </script>
 </body>

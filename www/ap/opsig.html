@@ -35,7 +35,7 @@
       <li><span class="ap-mark todo">To do</span><span>Send one application form per Achievement, with evidence, to OPSIG-AP. Past experience counts.
         <small>Some forms need someone else to confirm them, which can take 30 days or more.</small></span></li>
       <li><span class="ap-mark part">Partly</span><span>Ninja: eight Achievements, one of them Conductor &amp; Engineer with its exam.
-        <small>Host and Yardmaster are met, and C&amp;E needs only the exam: three of eight.</small></span></li>
+        <small>None applied for yet. Host and Yardmaster are met, and C&amp;E needs only the exam.</small></span></li>
     </ul>
 
     <h2 id="priority">What to do first</h2>
@@ -91,7 +91,7 @@
         <p>Required for Ninja.</p>
         <ul class="ap-list">
           <li><span class="ap-mark done">Done</span><span>Ten sessions as conductor or engineer, on three different layouts. Your own layout and home club do not count.
-            <small>More than 20 such sessions in 2025 and 2026, on eleven layouts, including Island Ops and Ops Around the Clock: <a href="log.html">operations log</a>.</small></span></li>
+            <small>18 conductor and engineer sessions in 2025 and 2026 on eleven layouts (Ops Around the Clock is one entry covering three), plus four as yard conductor or engineer. Ten of them are away from A&amp;W, if that counts as a home club: <a href="log.html">operations log</a>.</small></span></li>
           <li><span class="ap-mark todo">To do</span><span>Pass the exam: timetable and train order, DTC, track warrants, CTC and general rules.
             <small>Register by email with OPSIG-AP; study material is linked from their C&amp;E page.</small></span></li>
         </ul>
@@ -113,7 +113,7 @@
       <div class="ap-body">
         <ul class="ap-list">
           <li><span class="ap-mark todo">To do</span><span>Dispatch on three layouts using three different systems.
-            <small>None in the operations log yet. HART (CTC) may count as one; the others need, with systems such as timetable and train order or track warrants.</small></span></li>
+            <small>None in the operations log yet. HART (CTC) may count as one. The other two need different systems, such as timetable and train order or track warrants.</small></span></li>
         </ul>
       </div>
     </details>
@@ -186,20 +186,10 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/achievements.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      HARTOps.mountChrome("ap-opsig").catch(function (err) {
-        console.error(err);
-      });
-      document.querySelectorAll("[data-ap-toggle]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var open = btn.getAttribute("data-ap-toggle") === "open";
-          document.querySelectorAll(".ap-cert").forEach(function (d) { d.open = open; });
-        });
-      });
-      var hash = location.hash.slice(1);
-      var target = hash && document.getElementById(hash);
-      if (target && target.tagName === "DETAILS") target.open = true;
+      HARTAchievements.mount("ap-opsig");
     });
   </script>
 </body>

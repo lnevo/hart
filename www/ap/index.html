@@ -282,20 +282,10 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/achievements.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      HARTOps.mountChrome("ap").catch(function (err) {
-        console.error(err);
-      });
-      document.querySelectorAll("[data-ap-toggle]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var open = btn.getAttribute("data-ap-toggle") === "open";
-          document.querySelectorAll(".ap-cert").forEach(function (d) { d.open = open; });
-        });
-      });
-      var hash = location.hash.slice(1);
-      var target = hash && document.getElementById(hash);
-      if (target && target.tagName === "DETAILS") target.open = true;
+      HARTAchievements.mount("ap");
     });
   </script>
 </body>
