@@ -46,7 +46,7 @@ def build(parts, graph):
                 pts = []
                 for b in p["bez"]:
                     pts += bezier(b)
-                if ci == 2 or min(zs) >= UPPER_Z:
+                if ci == 2 or min(zs) >= UPPER_Z or i in UPPER_RAILS:
                     k = "upper"
                 elif max(zs) <= FLAT and min(zs) >= -FLAT:
                     k = "main"
@@ -60,13 +60,15 @@ def build(parts, graph):
 
 
 NAMES = {161: "double crossover"}      # plan parts that read better by what they are
+# The two tracks out of the east end of crossover 23: the plan runs one down to T300 (height 0) and the
+# other up to T237. The owner built both on the upper level, joined by T300 (plan_overrides: T300 moved).
+UPPER_RAILS = {254, 287, 259, 303, 296, 293, 261, 298, 304, 302}
+XOVER23 = (413.7, 320.0, 461.4, 325.1)      # west x, north y, east x, south y of the plan's double crossover
+T300_NEW = (428.1, 127.4, 451.5, 134.1)     # toe x and y, then the end of the straight (north) and the diverging leg
 MOVED = {300}     # plan parts the overlay (plan_overrides) moves to another level: drawn as plain track here
 NOTES = {         # words placed on a level: (x, y, anchor, text)
-    "main": [(405, 123, "start", "H1 McKees Rocks (T175)"), (392, 123, "end", "H2 McKeesport (T251)")],
-    "upper": [(45, 346, "start", "T300 is built in the run between the"),
-              (45, 352, "start", "double crossover and T237, 292 cm"),
-              (45, 358, "start", "from the crossover. The plan has no"),
-              (45, 364, "start", "geometry for it.")],
+    "main": [(405, 130, "start", "H1 McKees Rocks (T175)"), (392, 130, "end", "H2 McKeesport (T251)")],
+    "upper": [(402, 122, "end", "T300: where the two tracks out of crossover 23 meet")],
 }
 
 
@@ -84,11 +86,11 @@ def svg_for(level, cls, to, labels):
     for i, p in to[level]:
         e = [a for a in p["eps"] if abs(a["x"]) > 1e-3 and abs(a["y"]) > 1e-3]   # the reader misses one leg of T0
         toe = e[0]
-        if i in MOVED:       # keep the straight route only: the leg that points straight on from the toe
+        if i in MOVED:       # keep one route only: toe to the helix leg
             def off(a):
                 d = (a["a"] - toe["a"] - math.pi) % (2 * math.pi)
                 return min(d, 2 * math.pi - d)
-            leg = min(e[1:], key=off)
+            leg = max(e[1:], key=off)          # T251 runs on into the inner helix track, T300's diverging leg
             out.append('<line class="trk" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (toe["x"], toe["y"], leg["x"], leg["y"]))
             continue
         for a in e[1:]:
@@ -98,6 +100,18 @@ def svg_for(level, cls, to, labels):
         cx = sum(a["x"] for a in e) / len(e)
         cy = sum(a["y"] for a in e) / len(e)
         out.append('<text class="tl" x="%.1f" y="%.1f">%s</text>' % (cx + 3, cy - 3, NAMES.get(i, "T%d" % i)))
+    if level == "upper":
+        wx, ny, ex, sy = XOVER23
+        for y in (ny, sy):
+            out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (wx, y, ex, y))
+        mx0, mx1 = wx + (ex - wx) * 0.3, wx + (ex - wx) * 0.7
+        out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (mx0, ny, mx1, sy))
+        out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (mx0, sy, mx1, ny))
+        out.append('<text class="tl" x="%.1f" y="%.1f">crossover 23</text>' % (wx + 6, sy + 9))
+        tx, ty, lx, dy = T300_NEW
+        out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (tx, ty, lx, ty))
+        out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (tx, ty, lx, dy))
+        out.append('<text class="tl" x="%.1f" y="%.1f">T300</text>' % (tx, ty - 4))
     for x, y, anchor, text in NOTES.get(level, []):
         out.append('<text class="rl" x="%d" y="%d" text-anchor="%s">%s</text>' % (x, y, anchor, text))
     out.extend(labels)

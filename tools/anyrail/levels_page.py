@@ -136,16 +136,17 @@ def sections(svg_dir, staging):
     t["main"] = (
         '<div class="key"><span class="k-trk">track</span><span class="k-ramp">helix and ramps up to the upper level and down to staging</span></div>'
         + f_main +
-        '<p>%d turnouts and %.1f m of flex at the main level (T300 left out), with the helix and its ramps in dotted orange (%.1f m of flex). '
+        '<p>%d turnouts and %.1f m of flex at the main level (T300 moved up), with the helix and its ramps in dotted orange (%.1f m of flex). '
         'Turnouts show their plan part number; the main level&rsquo;s own switch numbers and names are not assigned yet.</p>'
-        '<ul><li><b>T300</b> is not drawn. The plan has it in the height-0 track at the east end, but it is built on the upper level, in the run between the double crossover and T237, about 292 cm from the crossover, right-hand.</li>'
+        '<ul><li><b>T251 runs on into the inner helix track</b> (McKeesport). The plan has T300 in that track at height 0; it is built on the upper level, so the main level has no T300.</li>'
         '<li>The two helix tracks start at T175 (McKees Rocks) and T251 (McKeesport).</li></ul>'
         % (meta["main"]["turnouts"] - 1, meta["main"]["flex_m"], meta["ramp_m"]))
     t["upper"] = (
         '<div class="key"><span class="k-trk">track</span></div>' + f_upper +
-        '<p>%d turnouts (T300 included, not drawn) and %.1f m of flex at 4.25 in (10.8 cm), including the peninsula loop with its yard tracks, which the plan holds at 1 in and is built at 4.25 in. '
+        '<p>%d turnouts and %.1f m of flex at 4.25 in (10.8 cm), including the peninsula loop with its yard tracks, which the plan holds at 1 in and is built at 4.25 in. '
         'Turnouts show their plan part number; switch numbers and names for this level are not assigned yet.</p>'
-        % (meta["upper"]["turnouts"] + 1, meta["upper"]["flex_m"]))
+        '<ul><li><b>Crossover 23</b> is the plan&rsquo;s double crossover at the east end of the peninsula. Its two tracks on the north side run round the east end together: one to T237 and the west, the other to <b>T300</b>, which joins it to the first (T300 is the turnout moved up from the main level; its plan run from the crossover is 292 cm).</li></ul>'
+        % (meta["upper"]["turnouts"] + 2, meta["upper"]["flex_m"]))
     return t, f_stage
 
 
