@@ -17,12 +17,14 @@ Nothing is sent: use drop_job.sh to copy a job to the Pi.
 import argparse
 import json
 import sys
-import xml.etree.ElementTree as ET
 import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables as tables_lib  # noqa: E402
 import analyze  # noqa: E402
 import liverule as lr  # noqa: E402
 import preflight_compare as pc  # noqa: E402
@@ -38,7 +40,7 @@ BACKEMF = {"tsunami2": [209, 210, 211, 212, 213], "tcs": [49, 56, 57], "none": [
 BASE_CVS = pc.BASE_CVS
 
 
-TABLES = HERE.parents[1] / "output" / "tables.xml"
+TABLES = paths.TABLES_XML
 
 
 def guard_for(route=analyze.DEFAULT_ROUTE, tables=TABLES):
@@ -50,7 +52,7 @@ def guard_for(route=analyze.DEFAULT_ROUTE, tables=TABLES):
     key = (route, str(tables))
     if key not in _GUARD_CACHE:
         out = []
-        for el in ET.parse(str(tables)).getroot().iter("userName"):  # ElementTree unescapes entities
+        for el in tables_lib.read(tables).iter("userName"):  # ElementTree unescapes entities
             n = (el.text or "").strip()
             if n.startswith("BS ") and n not in on_route and n not in out:
                 out.append(n)

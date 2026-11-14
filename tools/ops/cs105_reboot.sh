@@ -4,9 +4,10 @@
 # Track power drops for a few seconds; do not run it while trains are moving.
 set -euo pipefail
 
+source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default; first, so hart.env cannot move ROOT, SCRIPT or LIST
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SCRIPT="$ROOT/jmri/layouts/hart/scripts/cs105_reboot.py"
-PI_HOST="${HART_PI_SSH:-pi}"
+PI_HOST="$HART_PI_SSH"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 TIMEOUT="${CS105_TIMEOUT:-180}"
 
