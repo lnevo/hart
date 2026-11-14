@@ -102,13 +102,20 @@
 
                         <h4><a id="mimic-link" href="/web/mimic/" target="mimic">LCOS Mimic</a></h4>
                         <p>Fake LCOS occupancy and turnout feedback for testing, with live signal heads.</p>
+
+                        <h4><a id="speedmatch-link" href="/web/speedmatch/" target="speedmatch">Speed-match live</a></h4>
+                        <p>The speed-matching run as it happens, served by the Pi.</p>
                         <script>
-                            // STS (port 8980, plain HTTP) and the mimic (JMRI on 12080) run on the Pi.
-                            // Empty host = follow this page's own host (the Pi, or the Mac's development
-                            // copies). Windows fills in the Pi's name (RPi-JMRI.local). The Mac fills in
-                            // HART_MIMIC_PORT, the port of its own mimic server.
+                            // STS (port 8980, plain HTTP), the mimic and the speed-match live view (JMRI
+                            // on 12080) run on the Pi. Empty host = STS and the mimic follow this page's
+                            // own host (the Pi, or the Mac's development copies). Windows fills in the
+                            // Pi's name (RPi-JMRI.local). The Mac fills in HART_MIMIC_PORT, the port of
+                            // its own mimic server. Only the Pi serves the speed-match page, so every
+                            // other host names the Pi: Windows through HART_APPS_HOST, the Mac through
+                            // HART_PI_HOST.
                             var HART_APPS_HOST = "";
                             var HART_MIMIC_PORT = "";
+                            var HART_PI_HOST = "";
                             (function () {
                                 var host = HART_APPS_HOST || location.hostname;
                                 document.getElementById("sts-link").href = "http://" + host + ":8980/sts/";
@@ -116,6 +123,11 @@
                                     document.getElementById("mimic-link").href = "http://" + host + ":" + HART_MIMIC_PORT + "/";
                                 } else if (HART_APPS_HOST) {
                                     document.getElementById("mimic-link").href = "http://" + host + ":12080/web/mimic/";
+                                }
+                                var piHost = HART_PI_HOST || HART_APPS_HOST;
+                                if (piHost) {
+                                    document.getElementById("speedmatch-link").href =
+                                        "http://" + piHost + ":12080/web/speedmatch/";
                                 }
                             })();
                         </script>

@@ -1,4 +1,4 @@
-"""The JMRI home page's STS and mimic links: the Pi and the Mac follow the page host, Windows names the Pi."""
+"""The JMRI home page's STS, mimic and speed-match links: the Pi and the Mac follow the page host (the speed-match page is Pi-only), Windows names the Pi."""
 
 import json
 import os
@@ -16,6 +16,7 @@ WIN = (ROOT / "tools/hosts/windows/apply_hart_package_local.ps1").read_text(enco
 INSTALL = ROOT / "cats/scripts/install_jmri_web_override.sh"
 MARKER = 'var HART_APPS_HOST = "";'
 PORT_MARKER = 'var HART_MIMIC_PORT = "";'
+PI_MARKER = 'var HART_PI_HOST = "";'
 SYNC = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
 NODE = shutil.which("node")
 
@@ -26,8 +27,9 @@ def _link_script(html):
 
 
 def _links(html, page_host):
-    """Run the page's link script under Node with a fake DOM; return the two hrefs."""
-    links = {"sts-link": None, "mimic-link": "/web/mimic/"}  # the page gives STS no static address
+    """Run the page's link script under Node with a fake DOM; return the hrefs it sets."""
+    # The page gives STS no static address.
+    links = {"sts-link": None, "mimic-link": "/web/mimic/", "speedmatch-link": "/web/speedmatch/"}
     js = (
         "const links = %s;\n"
         "const document = { getElementById: (id) => ({ set href(v) { links[id] = v; } }) };\n"
@@ -46,10 +48,12 @@ class Source(unittest.TestCase):
     def test_home_has_one_empty_marker(self):
         self.assertEqual(HOME.count(MARKER), 1)
         self.assertEqual(HOME.count(PORT_MARKER), 1)
+        self.assertEqual(HOME.count(PI_MARKER), 1)
 
     def test_mac_deploy_sets_only_the_mimic_port(self):
         mac = re.search(r'^\s*(.*)bash "\$ROOT/cats/scripts/install_jmri_web_override\.sh"', SYNC, re.M).group(1)
         self.assertIn("HART_MIMIC_PORT=", mac)
+        self.assertIn("HART_PI_HOST=", mac)  # the speed-match page is on the Pi only
         self.assertNotIn("HART_APPS_HOST", mac)  # follow the page host: localhost on the Mac
 
     def test_sts_link_has_no_static_address(self):
@@ -69,24 +73,27 @@ class Behaviour(unittest.TestCase):
     def test_on_the_pi_links_follow_the_page_host(self):
         self.assertEqual(
             _links(HOME, "10.0.0.150"),
-            {"sts-link": "http://10.0.0.150:8980/sts/", "mimic-link": "/web/mimic/"},
+            {"sts-link": "http://10.0.0.150:8980/sts/", "mimic-link": "/web/mimic/",
+             "speedmatch-link": "/web/speedmatch/"},
         )
 
     def test_off_the_pi_links_name_the_pi(self):
         self.assertEqual(
             _links(_filled("RPi-JMRI.local"), "10.0.0.28"),
             {"sts-link": "http://RPi-JMRI.local:8980/sts/",
-             "mimic-link": "http://RPi-JMRI.local:12080/web/mimic/"},
+             "mimic-link": "http://RPi-JMRI.local:12080/web/mimic/",
+             "speedmatch-link": "http://RPi-JMRI.local:12080/web/speedmatch/"},
         )
 
     def test_windows_host_is_a_working_value(self):
         host = re.search(r"\$PiHost = '([^']+)'", WIN).group(1)
         links = _links(_filled(host), "10.0.0.28")
         self.assertEqual(links["sts-link"], "http://%s:8980/sts/" % host)
+        self.assertEqual(links["speedmatch-link"], "http://%s:12080/web/speedmatch/" % host)
 
 
 class Install(unittest.TestCase):
-    def _run(self, apps_host, mimic_port=None):
+    def _run(self, apps_host, mimic_port=None, pi_host=None):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
         (tmp / "cats/scripts").mkdir(parents=True)
@@ -101,12 +108,24 @@ class Install(unittest.TestCase):
             env["HART_APPS_HOST"] = apps_host
         if mimic_port:
             env["HART_MIMIC_PORT"] = mimic_port
+        if pi_host:
+            env["HART_PI_HOST"] = pi_host
         subprocess.run(["bash", str(tmp / "cats/scripts" / INSTALL.name)], env=env, check=True,
                        capture_output=True)
         return (home / "JMRI_UserFiles/web/servlet/home/Home.html").read_text(encoding="utf-8")
 
     def test_pi_install_keeps_the_marker_empty(self):
-        self.assertIn(MARKER, self._run(None))
+        installed = self._run(None)
+        self.assertIn(MARKER, installed)
+        self.assertIn(PI_MARKER, installed)
+
+    @unittest.skipUnless(NODE, "node not installed")
+    def test_pi_install_links_speedmatch_locally(self):
+        self.assertEqual(_links(self._run(None), "10.0.0.150")["speedmatch-link"], "/web/speedmatch/")
+
+    def test_rejects_a_pi_host_that_is_not_a_name(self):
+        with self.assertRaises(subprocess.CalledProcessError):
+            self._run(None, None, "pi/x")
 
     def test_mac_install_names_the_pi(self):
         installed = self._run("RPi-JMRI.local")
@@ -120,12 +139,13 @@ class Install(unittest.TestCase):
 
     @unittest.skipUnless(NODE, "node not installed")
     def test_mac_install_links_to_the_mac(self):
-        installed = self._run(None, "8765")
+        installed = self._run(None, "8765", "RPi-JMRI.local")
         self.assertIn(MARKER, installed)
         for host in ("localhost", "10.0.0.53"):
             self.assertEqual(
                 _links(installed, host),
-                {"sts-link": "http://%s:8980/sts/" % host, "mimic-link": "http://%s:8765/" % host},
+                {"sts-link": "http://%s:8980/sts/" % host, "mimic-link": "http://%s:8765/" % host,
+                 "speedmatch-link": "http://RPi-JMRI.local:12080/web/speedmatch/"},
             )
 
 

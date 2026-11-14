@@ -14,11 +14,11 @@
 
 ## Upgrading JMRI
 
-`jmri/resources/jmri-web/servlet/home/Home.html` is a full copy of stock JMRI 5.16's `web/servlet/home/Home.html` plus one HART block (STS and LCOS Mimic links under Utilities). The installer (`cats/scripts/install_jmri_web_override.sh`) puts it in `JMRI_UserFiles/web/servlet/home/`, where it shadows the stock page. After an upgrade the new stock home page stays hidden until the copy is rebased:
+`jmri/resources/jmri-web/servlet/home/Home.html` is a full copy of stock JMRI 5.16's `web/servlet/home/Home.html` plus one HART block (STS, LCOS Mimic and Speed-match live links under Utilities). The installer (`cats/scripts/install_jmri_web_override.sh`) puts it in `JMRI_UserFiles/web/servlet/home/`, where it shadows the stock page. After an upgrade the new stock home page stays hidden until the copy is rebased:
 
 1. Diff the new stock `web/servlet/home/Home.html` (from the JMRI tag, e.g. `~/dev/JMRI`) against our copy.
 2. Start from the new stock file and carry the HART block onto it.
-3. Keep the two `var HART_APPS_HOST = "";` and `var HART_MIMIC_PORT = "";` lines exactly as written; the installer fills them with sed.
+3. Keep the three `var HART_APPS_HOST = "";`, `var HART_MIMIC_PORT = "";` and `var HART_PI_HOST = "";` lines exactly as written; the installer fills them with sed.
 4. Update the "based on stock JMRI" comment at the top of the block to the new version.
 5. Run `python3 -m unittest discover -s cats/scripts/tests`, then deploy.
 
