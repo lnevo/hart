@@ -15,22 +15,13 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[1]
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(ROOT / "jmri/layouts/hart/scripts"))
+sys.path.insert(0, str(ROOT / "tools/audit"))
 
 import wire_digicon as wire  # noqa: E402
 import gen_ctc_track_plan as gen  # noqa: E402
+from check_layout_facts import desk_signals  # noqa: E402
 
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
-
-
-def desk_signals(path: Path) -> dict[tuple[int, int, str], str]:
-    """(x, y, edge) -> mast for every named SECSIGNAL on a desk."""
-    out = {}
-    for sec in ET.parse(path).getroot().find("TRACKPLAN").findall("SECTION"):
-        for edge in sec.findall("SEC_EDGE"):
-            sig = edge.find("SECSIGNAL")
-            if sig is not None and (sig.text or "").strip():
-                out[(int(sec.get("X")), int(sec.get("Y")), edge.get("EDGE"))] = sig.text.strip()
-    return out
 
 
 class MastCellsTest(unittest.TestCase):

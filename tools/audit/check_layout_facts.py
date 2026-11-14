@@ -49,6 +49,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables as hart_tables  # noqa: E402
+from hartlib.names import split_dcc  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 HART = paths.LAYOUT_DIR
@@ -204,9 +205,13 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
         return
     if sw.hardware and system != sw.hardware:
         r.add(f"le:{n}", f"{n}: tables.xml turnout is {system}, public_name_map.csv says {sw.hardware}")
-    dcc = re.search(r"DCC:\s*(\d+)", comment)
-    if sw.dcc and (dcc.group(1) if dcc else "") != sw.dcc:
-        r.add(f"le:{n}", f"{n}: tables.xml comment DCC {dcc.group(1) if dcc else '-'}, "
+    try:
+        dcc = split_dcc(comment)[1]
+    except ValueError as err:
+        dcc = "?"
+        r.add(f"le:{n}", f"{n}: tables.xml {err}")
+    if sw.dcc and dcc != sw.dcc:
+        r.add(f"le:{n}", f"{n}: tables.xml comment DCC {dcc or '-'}, "
                          f"public_name_map.csv says DCC {sw.dcc}")
     lt = t.layout_turnouts.get(sw.le_ident)
     if lt is None:
@@ -425,7 +430,7 @@ def desk_signals(path: Path) -> dict[tuple[int, int, str], str]:
     return out
 
 
-def check_mast_cells(data: Path, desks, t: Tables, r: Report) -> None:
+def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
     """mast_cells.csv against both desks, the name map and the masts' heads in tables.xml."""
     cells = facts.load_mast_cells(data)
     want = {(c.x, c.y, c.edge): c.mast for c in cells}
@@ -437,7 +442,7 @@ def check_mast_cells(data: Path, desks, t: Tables, r: Report) -> None:
                 mast = want.get(xy) or have.get(xy)
                 r.add(f"mast:{mast}", f"{mast}: {name} has {have.get(xy) or 'no signal'} at {xy}, "
                                       f"mast_cells.csv has {want.get(xy) or 'no mast'} there")
-    named = {row["proposed"] for row in facts.identity_rows(data) if row["layer"] == "mast"}
+    named = {row["proposed"] for row in rows if row["layer"] == "mast"}
     heads = {}
     for m in hart_tables.masts(t.root):
         heads[hart_tables.user_name(m)] = re.findall(r"\((IH\d+)\)", hart_tables.system_name(m))
@@ -453,8 +458,9 @@ def check_mast_cells(data: Path, desks, t: Tables, r: Report) -> None:
                                     f"{c.uss_head or ''}".rstrip() + f", tables.xml gives it heads {got}")
 
 
-def check_levels(switches: dict[int, facts.Switch], data: Path, t: Tables, r: Report) -> None:
-    """Each control point, mast and block has one level, and it agrees with its switches."""
+def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[str, str]], t: Tables,
+                 r: Report) -> None:
+    """Each control point, mast and block has one level, and every source for it agrees."""
     by_cp = facts.cp_levels(data)
     for cp in facts.load_control_points(data):
         for item in cp["switches"].split(","):
@@ -463,16 +469,19 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, t: Tables, r: Re
             if sw and sw.level != cp["level"]:
                 r.add(f"level:Switch {sw.number}", f"Switch {sw.number}: switches.csv level {sw.level}, "
                                                    f"control_points.csv puts {cp['cp_name']} on level {cp['level']}")
-    rows = facts.identity_rows(data)
     for cp in sorted({row["cp"] for row in rows if row["cp"]} - set(by_cp)):
         r.add(f"level:{cp}", f"{cp}: a cp in public_name_map.csv with no row (and no level) in control_points.csv")
-    for sw in switches.values():
-        for leg in sw.legs:
-            cp = next((row["cp"] for row in rows if row["layer"] == "block" and row["proposed"] == leg.os_block), "")
-            if cp in by_cp and by_cp[cp] != sw.level:
-                r.add(f"level:Switch {sw.number}", f"Switch {sw.number}: {leg.os_block} is in {cp} "
-                                                   f"(level {by_cp[cp]}), switches.csv says level {sw.level}")
-    levels = facts.name_map_levels(data, switches)
+    # A block's level from its switches (throat blocks through their track) against its control point's.
+    by_block = facts.switch_block_levels(switches)
+    block_cp = {row["proposed"]: row["cp"] for row in rows if row["layer"] == "block"}
+    for name, cp in block_cp.items():
+        from_switch = by_block.get(t.track_name(name), set())
+        if len(from_switch) > 1:
+            r.add(f"level:{name}", f"{name}: its switches in switch_legs.csv are on levels {sorted(from_switch)}")
+        elif from_switch and cp in by_cp and by_cp[cp] not in from_switch:
+            r.add(f"level:{name}", f"{name}: is in {cp} (level {by_cp[cp]}), its switches in switch_legs.csv "
+                                   f"say level {next(iter(from_switch))}")
+    levels = facts.name_map_levels(data, switches, rows, t.track_name)
     for row in rows:
         key = (row["layer"], row["proposed"])
         if row["layer"] not in ("mast", "block") or key in levels:
@@ -494,8 +503,9 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
     switches = facts.load_switches(data)
     t = Tables(tables)
     check_data(switches, data, r)
-    check_levels(switches, data, t, r)
-    check_mast_cells(data, desks, t, r)
+    rows = facts.identity_rows(data)  # public_name_map.csv, read once for the checks below
+    check_levels(switches, data, rows, t, r)
+    check_mast_cells(data, rows, desks, t, r)
     for sw in switches.values():
         check_tables(sw, t, r)
     for desk in desks:

@@ -99,7 +99,18 @@ class LayoutFactsTest(unittest.TestCase):
         cps.write_text(cps.read_text().replace("plane,Plane,1,", "plane,Plane,2,"))
         out = self.failures(data=data)
         self.assertIn("Switch 5: switches.csv level 1, control_points.csv puts Plane on level 2", out)
-        self.assertIn("Switch 5: OS Switch 5 is in Plane (level 2), switches.csv says level 1", out)
+        self.assertIn("OS Switch 5: is in Plane (level 2), its switches in switch_legs.csv say level 1", out)
+
+    def test_a_throat_block_is_held_to_its_tracks_switch(self) -> None:
+        # Track K-1 West shares Track K-1's occupancy sensor; Track K-1 is a leg of Switch 39.
+        data = self.data_copy()
+        names = data / "public_name_map.csv"
+        names.write_text(names.read_text().replace("block,Track K-1 West,Track K-1 West,Princess,",
+                                                   "block,Track K-1 West,Track K-1 West,Brick,"))
+        switches = data / "switches.csv"
+        switches.write_text(switches.read_text().replace("1,39,TOL29,", "2,39,TOL29,"))
+        out = self.failures(data=data)
+        self.assertIn("Track K-1 West: is in Brick (level 1), its switches in switch_legs.csv say level 2", out)
 
     def test_a_cp_with_no_control_point_row_fails(self) -> None:
         data = self.data_copy()

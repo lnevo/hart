@@ -38,6 +38,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -230,33 +231,45 @@ def cp_levels(data: Path = DATA) -> dict[str, str]:
     return out
 
 
-def name_map_levels(data: Path = DATA, switches: dict[int, Switch] | None = None) -> dict[tuple[str, str], str]:
+def switch_block_levels(switches: dict[int, Switch]) -> dict[str, set[str]]:
+    """Block name -> levels of the switches whose OS block it is or whose legs lead to it."""
+    out: dict[str, set[str]] = {}
+    for sw in switches.values():
+        for leg in sw.legs:
+            for name in (leg.os_block, leg.closed, leg.thrown):
+                out.setdefault(name, set()).add(sw.level)
+    return out
+
+
+def name_map_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
+                    rows: list[dict[str, str]] | None = None,
+                    track_name: Callable[[str], str] | None = None) -> dict[tuple[str, str], str]:
     """(layer, public name) -> level for the identity rows of public_name_map.csv.
 
     A turnout or feedback sensor of Switch N (``Switch N``, ``DCC Switch N``,
     ``FB Switch N R``) takes switches.csv; an OS block or a block a switch leg
     leads to takes its switch's level; any other row takes its control point's.
-    A row with none of these (a main between control points, Track Main West) is
-    left out: check_layout_facts.py gives it the level of the blocks it joins.
-    Where an OS block's switch and its control point disagree, the switch wins
-    here and the check reports it.
+    ``track_name`` maps a Layout Editor throat block to its track (Track S-R West
+    -> Track S-R, through their shared occupancy sensor in tables.xml); without it
+    a throat block is matched by its own name only. A row with none of these (a
+    main between control points, Track Main West) is left out: check_layout_facts.py
+    gives it the level of the blocks it joins, and reports any block whose switch
+    and control point give different levels (here the switch wins).
     """
     switches = load_switches(data) if switches is None else switches
+    rows = identity_rows(data) if rows is None else rows
     by_cp = cp_levels(data)
-    by_block: dict[str, set[str]] = {}
-    for sw in switches.values():
-        for leg in sw.legs:
-            for name in (leg.os_block, leg.closed, leg.thrown):
-                by_block.setdefault(name, set()).add(sw.level)
+    by_block = switch_block_levels(switches)
     out: dict[tuple[str, str], str] = {}
-    for row in identity_rows(data):
+    for row in rows:
         layer, name = row["layer"], row["proposed"]
         level = ""
         m = _SWITCH_NAME.fullmatch(name) if layer in ("turnout", "fb") else None
+        from_switch = by_block.get(track_name(name) if track_name else name, set()) if layer == "block" else set()
         if m and int(m.group(1)) in switches:
             level = switches[int(m.group(1))].level
-        elif layer == "block" and len(by_block.get(name, ())) == 1:
-            level = next(iter(by_block[name]))
+        elif len(from_switch) == 1:
+            level = next(iter(from_switch))
         elif row["cp"] in by_cp:
             level = by_cp[row["cp"]]
         if level:
