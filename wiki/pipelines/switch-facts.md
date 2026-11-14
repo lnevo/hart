@@ -8,7 +8,7 @@ All in `jmri/layouts/hart/data/`, read through `jmri/layouts/hart/scripts/layout
 
 | File | One row per | Holds |
 |------|-------------|-------|
-| `switches.csv` | switch | `level`, `switch` number, Layout Editor turnout (`le_ident`), `cats_inverted` (CATS Normal is the thrown leg: Switch 1 only), USS lever sensors (`ctc_is`), whether the USS column has signal levers (`ctc_signals`), `hand` (L or R; blank until someone records it, only Switch 9 so far) |
+| `switches.csv` | switch | `level`, `switch` number, Layout Editor turnout (`le_ident`), `cats_inverted` (CATS Normal is the thrown leg: Switch 1 only), USS lever sensors (`ctc_is`), whether the USS column has signal levers (`ctc_signals`), `hand` (L or R, seen from the points; blank where nobody has recorded it). The single turnouts in plan 5.3b come from its part geometry, checked against the Peco catalogue number. The owner gave the rest on 2026-11-14: Switch 5 is a curved left hand, crossovers 7 and 35 are left hand and 23 right hand, and the as-built Switches 9, 11 and 13 are left hand. Switch 13's normal route is its diverging leg (closed leg Track Barn) |
 | `switch_legs.csv` | OS block at the points | `closed_leg` and `thrown_leg`: the block each leg leads to. A crossover has two rows; the first is its main OS block |
 | `control_points.csv` | control point | its `level` and the switches it holds. Engine House (Switches 9, 11, 13) has a row though the desk has no plate for it |
 | `mast_cells.csv` | mast on the CATS desk | the desk cell (`x`, `y`) and `edge` of its lamp, how the USS board draws it (`uss_facing`, `uss_kind` h2 or d1, `uss_head` for d1), and a lamp placement the Designer save gets wrong (`sig_location`, `sig_orient`). Row order is the USS drawing order |

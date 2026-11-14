@@ -44,5 +44,7 @@
    "13",
    "T52"
   ]
- ]
+ ],
+ "facing_letters": true,
+ "direction_arrows": true
 }
