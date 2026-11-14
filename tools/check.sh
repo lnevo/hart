@@ -22,6 +22,8 @@ run le-overlap python3 jmri/layouts/hart/scripts/polish_hart_layout_editor.py --
 run digicon-disabled python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --check
 run dispatcher-stations python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-sync
 run status-counts python3 tools/ops/status_counts.py --check
+# Skips with a notice when the schematic-maps plugin submodule is not checked out.
+run schematic-signals python3 tools/schematic/build_signals.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py

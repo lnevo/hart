@@ -16,7 +16,7 @@ The spike mixes three kinds of input in two options files (`staging_opts.json`, 
 
 ## Layer 1: plan overrides (feed these over the AnyRail plan)
 
-Source of track: AnyRail's JMRI export of plan 5.3b (`export_reader.py`; the owner keeps the file in `~/Documents/Layout/`). Heights come from the `.any` file, matched to the export by position (export scale is 120 px per inch of plan).
+Source of track: AnyRail's JMRI export of plan 5.3b, read by the plugin's `plan` command into the track graphs in `jmri/layouts/hart/data/schematic/inputs/` (since 2026-11-14; recipe in `docs/ops/schematic-system-draft.md`). The `.any` file and its XML export stay in `~/Documents/Layout/`, outside the repo. Heights come from the `.any` file, matched to the export by position (export scale is 120 px per inch of plan).
 
 | Override | Staging | Main and upper |
 |----------|---------|----------------|
@@ -77,6 +77,7 @@ Known gaps: labels are not checked for collisions; the three bare export numbers
 - Lengths: staging: Plane to the right of Brick, Switches 7 and 13 further east, Switch 13 to 15 one cell, drawn short like T274 to T237 (owner, 2026-11-14; the cells given to East Lead, now 7, and West Ext), long yard tracks. Main: yard throat level with the loop's edge, a long run between T1 and 12, room between T160 and T165. Upper: T237 to T300 short, T262 to T285 five cells.
 - NYAMR drafting style, Letter landscape, title block, station brackets under staging.
 - Facing letters (owner, 2026-11-14, plugin 0.1.3): `facing_letters` in both preference files prints R or L after each switch number, R when the points meet an eastward train first (the sense of the mast names). East follows the main route in timetable order: on staging as drawn (west end W-1); on the main and upper levels outward from the helix, so the helix is their west end even though the sheet keeps it at the right, and those bands carry a small EAST arrow on each main run. On the main level the balloon at T196 and the three yard tracks are the east end (Neville Island), toward the helix is westward to West Yard. Crossover numbers shared by two halves and the double crossover 225 print no letter. To check: 121L (T15, a wye) and 227L (T253, where the upper main turns back round the peninsula loop).
+- Direction per band (owner, 2026-11-14, plugin 0.1.4): no page legend. Staging has `band_legend` `{"west": "left", "show": "west"}`, one arrow toward West Yard (W-1, W-2, drawn at the left), because Main East and Main West both run east to west. Main is `"reversed"` (`← EAST  WEST →`). Upper is `"none"` with `track_arrows` `{"Upper": "main"}`: an arrow on each upper main track, two-headed until the owner fills `track_directions` in `main_upper.plan_overrides.json` (the tracks are listed there). `direction_arrows` is off for main and upper. `band_gap` 40 spaces the bands to their lowest label.
 - Title block fields (owner, 2026-11-14): `date`, `revision` and `sheet` in `main_upper.preferences.json` print in a ruled column at the right of the title box (NOV 14, 2026 / REV 1 / SHEET 1 OF 1; plugin 0.1.2). `publish_draft.py` sets today's date and adds 1 to the revision whenever the drawing itself changes; `--check` never changes them.
 
 ## Work to do, in parallel
