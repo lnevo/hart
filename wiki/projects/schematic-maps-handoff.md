@@ -20,7 +20,7 @@ Source of track: AnyRail's JMRI export of plan 5.3b (`export_reader.py`; the own
 
 | Override | Staging | Main and upper |
 |----------|---------|----------------|
-| Switch numbers for plan parts | T46=3, T116=1, T106=5, T52=15, T133=17, T73=19, T123=21, T68=25, T95=27, T94=29, T59=31, T77=33, T58+T118=23, T55+T98=35, T56=39, T129=37 | None yet (owner's names pending) |
+| Switch numbers for plan parts | T46=3, T116=1, T106=5, T52=15, T133=17, T73=19, T123=21, T68=25, T95=27, T94=29, T59=31, T77=33, T58+T118=23, T55+T98=35, T56=39, T129=37 | Owner's numbers (2026-11-14), a `relabel` edit in `main_upper.plan_overrides.json`: main level 101 to 135, upper level 201 to 245, odd only, left to right as drawn on the approved sheet, the main line first at the same position, then top to bottom. A crossover is one number with A and B (A the left half): the three-way's halves pair with T183 and T194 as 101 and 103, the helix-top crossovers T199/T285 and T175/T251 are main level (129, 135), the double crossover is one part (225). The T-names stay as aliases, so the other layer files still use them |
 | Not built | Crossover T41/T43 between Main West and S-R | — |
 | Built but not in the plan | Switch 7 crossover (Scale / East Ext), Switch 13, Switches 11 and 9 with EH-1 to EH-3 | Closet junction: T300 moved onto the 4.25 in track |
 | Moved | — | T300: out of the height-0 main, into the run between the double crossover and T237, about 292 cm from the crossover, right-hand (owner confirmed right-hand; the distance is the plan's old run length) |
@@ -65,7 +65,7 @@ Must become rules (today they are hints):
 | `keep_close`, some `shorten` and `min_cells` | Rows should only be kept apart for tracks that really overlap along the band (the spike uses its working order, which is stricter) |
 | Trial of T300's hand | Hands of added or moved switches come from layer 1, never from trial |
 
-Known gaps: labels are not checked for collisions; a crossover's number prints on both halves; three junctions (12, 50, 51) match no plan part; no page folding; no capacity placeholder.
+Known gaps: labels are not checked for collisions; the three bare export numbers (12, 50, 51) and the upper double crossover's 23 are closed by the owner's numbering (2026-11-14), and a staging crossover already prints one number; no page folding; no capacity placeholder.
 
 ## Layer 3: the owner's preferences for this sheet
 
@@ -101,5 +101,6 @@ The three layers above are the contract between the streams. Keep the spike's ed
 - **Rename East Ext / West Ext, PR #425.** Merged and deployed 2026-11-13; the run's logs in `~/speedmatch-logs/2026-11-13/` are converted (originals in `2026-11-13-before-rename/`).
 - **Mast 32L renamed 16R, PR #441.** Hidden S-R east mast; merged and deployed 2026-11-13. `staging.signals.json` regenerated.
 - **Spike, PR #423.** Draft; the layer split and baseline (#430) and signals and labels (#431) are merged into its branch after review. Keep as the reference; do not merge as the product. Review findings left for B2 (tested modules): label text measured with a macOS font file (needs a fallback), helix boxes and station brackets drawn after the label placer, the placer's speed, `schem.py`'s single-band entry no longer reads the layered files, run matching by end switches can tie on two stubs off one switch.
-- **Owner's names** for the main and upper levels (stations, tracks, switch numbers, level names): pending by the owner's choice.
+- **Owner's names** for the main and upper levels (stations, tracks, level names): pending by the owner's choice. Switch numbers are set (2026-11-14, layer 1 above).
+- **Princess masts 2035 and 2036** drawn near the K-1/K-2 turnback rather than mid-run: accepted by the owner (2026-11-14); they are placeholders and the fold rule stands.
 - **Evolution record.** `~/Documents/Layout/schematic-evolution/` holds every committed drawing and `evolution.gif`; refresh it after each drawing commit with `tools/schematic/evolution.py` (spike samples, then every commit of `docs/ops/schematic-system-draft.svg`).

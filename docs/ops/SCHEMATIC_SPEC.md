@@ -93,7 +93,7 @@ Each rule has an id used in code, tests and fault messages. "Replaces" names the
 
 Numbers the rules use (cell size, `ladder_link_max_cm`, `long_track_cm`, label widths) sit in a settings block with defaults. They are tuning, not hints: one value for the whole sheet, never per switch.
 
-Rule gaps carried from the spike, in order of need: three junctions (12, 50, 51) match no plan part; no page folding; no capacity text.
+Rule gaps carried from the spike, in order of need: no page folding; no capacity text. (The bare export numbers 12, 50, 51 and 23 are now covered by the owner's switch numbers, a layer 1 `relabel`.)
 
 ## Layer 3: preferences
 
