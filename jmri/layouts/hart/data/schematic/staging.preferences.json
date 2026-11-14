@@ -48,5 +48,8 @@
   ]
  ],
  "facing_letters": true,
- "direction_arrows": true
+ "direction_arrows": true,
+ "capacity": {
+  "car_in": 7.4
+ }
 }
