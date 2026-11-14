@@ -24,5 +24,6 @@
 | [020](ADR-020-live-sts-on-the-pi.md) | Live STS runs on the Pi | Accepted |
 | [021](ADR-021-shared-library-and-switch-facts.md) | Shared library and switch facts | Accepted |
 | [022](ADR-022-timetable-direction-follows-route.md) | Timetable direction follows the route | Accepted |
+| [023](ADR-023-generated-outputs-side-by-side.md) | Generated panels and pages sit beside the ones they replace | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.
