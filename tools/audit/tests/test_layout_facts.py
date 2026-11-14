@@ -86,6 +86,38 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertTrue(any("HART_CTC.xml" in m and "(close) leads to Track EH-2" in m for m in out), out)
         self.assertTrue(any("HART_ABS.xml" in m for m in out), out)
 
+    def data_copy(self) -> Path:
+        data = self.tmp / "data"
+        data.mkdir(exist_ok=True)
+        for name in DATA_FILES:
+            shutil.copy(check.facts.DATA / name, data / name)
+        return data
+
+    def test_a_control_point_on_another_level_than_its_switches_fails(self) -> None:
+        data = self.data_copy()
+        cps = data / "control_points.csv"
+        cps.write_text(cps.read_text().replace("plane,Plane,1,", "plane,Plane,2,"))
+        out = self.failures(data=data)
+        self.assertIn("Switch 5: switches.csv level 1, control_points.csv puts Plane on level 2", out)
+        self.assertIn("Switch 5: OS Switch 5 is in Plane (level 2), switches.csv says level 1", out)
+
+    def test_a_cp_with_no_control_point_row_fails(self) -> None:
+        data = self.data_copy()
+        cps = data / "control_points.csv"
+        cps.write_text("".join(line for line in cps.read_text().splitlines(True)
+                               if not line.startswith("engine_house,")))
+        out = self.failures(data=data)
+        self.assertIn("Engine House: a cp in public_name_map.csv with no row (and no level) in "
+                      "control_points.csv", out)
+
+    def test_a_main_takes_the_level_of_the_blocks_it_joins(self) -> None:
+        data = self.data_copy()
+        switches = data / "switches.csv"
+        switches.write_text(switches.read_text().replace("1,1,TOL3,", "2,1,TOL3,"))
+        out = self.failures(data=data)
+        self.assertTrue(any(m.startswith("Track Main West: no control point") and "join levels ['1', '2']" in m
+                            for m in out), out)
+
     def test_stale_known_entry_fails(self) -> None:
         report = check.run()
         known = dict(check.KNOWN, **{"Switch 1: made up": "made up"})

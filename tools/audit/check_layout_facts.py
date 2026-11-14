@@ -16,6 +16,10 @@ CATS desks (HART_CTC.xml, HART_ABS.xml) and cats/data/turnout_bindings.csv
   - each plant's turnout, the leg each command (close/throw) leads to, and which
     leg is NORMAL (the closed one, unless the switch is CATS-inverted);
   - every block name on the desk is a Layout Editor block.
+Levels (control_points.csv, switches.csv, public_name_map.csv)
+  - each control point's switches are on its level, and every cp in the name map has a row;
+  - every mast and block has one level: its switch's, its control point's, or, for a
+    main between control points, the one level of the blocks its tables.xml paths join.
 USS CTC (CTC code buttons in tables.xml, ctc/GUIObjects.xml and the copy in tables.xml)
   - the code button's turnout, OS sensors, lever and signal levers;
   - the lever, the points dot and its polarity in the switch's column;
@@ -430,6 +434,39 @@ def check_data(switches: dict[int, facts.Switch], data: Path, r: Report) -> None
         r.add(f"data:Switch {num}", f"Switch {num}: in control_points.csv, not in switches.csv")
 
 
+def check_levels(switches: dict[int, facts.Switch], data: Path, t: Tables, r: Report) -> None:
+    """Each control point, mast and block has one level, and it agrees with its switches."""
+    by_cp = facts.cp_levels(data)
+    for cp in facts.load_control_points(data):
+        for item in cp["switches"].split(","):
+            num = re.match(r"\d+", item.strip())
+            sw = switches.get(int(num.group(0))) if num else None
+            if sw and sw.level != cp["level"]:
+                r.add(f"level:Switch {sw.number}", f"Switch {sw.number}: switches.csv level {sw.level}, "
+                                                   f"control_points.csv puts {cp['cp_name']} on level {cp['level']}")
+    rows = facts.identity_rows(data)
+    for cp in sorted({row["cp"] for row in rows if row["cp"]} - set(by_cp)):
+        r.add(f"level:{cp}", f"{cp}: a cp in public_name_map.csv with no row (and no level) in control_points.csv")
+    for sw in switches.values():
+        for leg in sw.legs:
+            cp = next((row["cp"] for row in rows if row["layer"] == "block" and row["proposed"] == leg.os_block), "")
+            if cp in by_cp and by_cp[cp] != sw.level:
+                r.add(f"level:Switch {sw.number}", f"Switch {sw.number}: {leg.os_block} is in {cp} "
+                                                   f"(level {by_cp[cp]}), switches.csv says level {sw.level}")
+    levels = facts.name_map_levels(data, switches)
+    for row in rows:
+        key = (row["layer"], row["proposed"])
+        if row["layer"] not in ("mast", "block") or key in levels:
+            continue
+        name = row["proposed"]
+        near = {levels.get(("block", t.track_name(t.block_user.get(dest, dest))))
+                for dest, _settings in t.paths.get(name, [])} - {None}
+        if len(near) != 1:
+            r.add(f"level:{name}", f"{name}: no control point and no switch in public_name_map.csv or "
+                                   f"switch_legs.csv, and its tables.xml paths join levels {sorted(near) or 'none'}; "
+                                   f"give it a cp")
+
+
 def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path = GUI,
         bindings: Path = TURNOUT_BINDINGS, occupancy: Path = OCCUPANCY) -> Report:
     import gen_ctc_track_plan as gen
@@ -438,6 +475,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
     switches = facts.load_switches(data)
     t = Tables(tables)
     check_data(switches, data, r)
+    check_levels(switches, data, t, r)
     for sw in switches.values():
         check_tables(sw, t, r)
     for desk in desks:

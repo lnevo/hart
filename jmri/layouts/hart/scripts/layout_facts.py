@@ -8,7 +8,16 @@
 
 Hardware, DCC address and control point come from the canonical turnout row
 of public_name_map.csv (current == proposed); control_points.csv lists which
-switches each control point holds. Nothing here is copied from those files.
+switches each control point holds and its level. Nothing here is copied from
+those files.
+
+Level is held once per switch (switches.csv) and once per control point
+(control_points.csv). A mast, head, block or occupancy sensor has no level of
+its own: it takes the level of its control point (the ``cp`` column of
+public_name_map.csv), and an OS block or a switch leg takes its switch's.
+name_map_levels() resolves them. No grouping above the control point exists
+yet, so there is no district column; when the new levels need one, it goes on
+control_points.csv beside ``level``.
 
 Switch numbers are the plate numbers and are unique across the whole railroad,
 every level included: a number is never reused on another level. The loader
@@ -32,6 +41,7 @@ from hartlib import paths  # noqa: E402
 
 DATA = paths.LAYOUT_DATA
 YES = {"yes": True, "no": False}
+_SWITCH_NAME = re.compile(r"(?:DCC |FB )?Switch (\d+)(?: [NR])?")
 
 
 @dataclass(frozen=True)
@@ -87,6 +97,11 @@ def _name_map_turnouts(data: Path) -> dict[str, dict[str, str]]:
         if row["layer"] == "turnout" and row["current"] == row["proposed"]:
             out[row["current"]] = row
     return out
+
+
+def identity_rows(data: Path = DATA) -> list[dict[str, str]]:
+    """public_name_map.csv rows whose current name is the live one (current == proposed)."""
+    return [row for row in _rows(data / "public_name_map.csv") if row["current"] == row["proposed"]]
 
 
 def load_switches(data: Path = DATA) -> dict[int, Switch]:
@@ -153,3 +168,47 @@ def load_control_points(data: Path = DATA) -> list[dict[str, str]]:
 def station_names(data: Path = DATA) -> set[str]:
     """Control point names as the desks print them, e.g. EAST END."""
     return {row["cp_name"].upper() for row in load_control_points(data)}
+
+
+def cp_levels(data: Path = DATA) -> dict[str, str]:
+    """Control point name -> level, from control_points.csv. Every row needs a level."""
+    out: dict[str, str] = {}
+    for line, row in enumerate(load_control_points(data), start=2):
+        if not row.get("level"):
+            raise ValueError(f"control_points.csv line {line} ({row['cp_name']}): no level")
+        out[row["cp_name"]] = row["level"]
+    return out
+
+
+def name_map_levels(data: Path = DATA, switches: dict[int, Switch] | None = None) -> dict[tuple[str, str], str]:
+    """(layer, public name) -> level for the identity rows of public_name_map.csv.
+
+    A turnout or feedback sensor of Switch N (``Switch N``, ``DCC Switch N``,
+    ``FB Switch N R``) takes switches.csv; an OS block or a block a switch leg
+    leads to takes its switch's level; any other row takes its control point's.
+    A row with none of these (a main between control points, Track Main West) is
+    left out: check_layout_facts.py gives it the level of the blocks it joins.
+    Where an OS block's switch and its control point disagree, the switch wins
+    here and the check reports it.
+    """
+    switches = load_switches(data) if switches is None else switches
+    by_cp = cp_levels(data)
+    by_block: dict[str, set[str]] = {}
+    for sw in switches.values():
+        for leg in sw.legs:
+            for name in (leg.os_block, leg.closed, leg.thrown):
+                by_block.setdefault(name, set()).add(sw.level)
+    out: dict[tuple[str, str], str] = {}
+    for row in identity_rows(data):
+        layer, name = row["layer"], row["proposed"]
+        level = ""
+        m = _SWITCH_NAME.fullmatch(name) if layer in ("turnout", "fb") else None
+        if m and int(m.group(1)) in switches:
+            level = switches[int(m.group(1))].level
+        elif layer == "block" and len(by_block.get(name, ())) == 1:
+            level = next(iter(by_block[name]))
+        elif row["cp"] in by_cp:
+            level = by_cp[row["cp"]]
+        if level:
+            out[(layer, name)] = level
+    return out

@@ -46,6 +46,27 @@ class LoaderTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, r"Switch 9\) and 7 \(Switch 11\) both use USS lever IS33"):
             facts.load_switches(self.data)
 
+    def test_levels_come_from_switches_and_control_points(self) -> None:
+        levels = facts.name_map_levels()
+        self.assertEqual(levels[("turnout", "Switch 9")], "1")       # switches.csv
+        self.assertEqual(levels[("fb", "FB Switch 9 N")], "1")       # its switch
+        self.assertEqual(levels[("block", "Track Main East")], "1")  # a leg of Switch 7 and 33
+        self.assertEqual(levels[("mast", "Mast 10LA")], "1")         # cp Engine House
+        self.assertNotIn(("block", "Track Main West"), levels)       # main between control points
+
+    def test_a_control_point_without_a_level_is_refused(self) -> None:
+        text = (self.data / "control_points.csv").read_text().replace("plane,Plane,1,", "plane,Plane,,")
+        (self.data / "control_points.csv").write_text(text)
+        with self.assertRaisesRegex(ValueError, r"control_points.csv line 3 \(Plane\): no level"):
+            facts.cp_levels(self.data)
+
+    def test_a_mast_follows_its_control_point_to_a_new_level(self) -> None:
+        text = (self.data / "control_points.csv").read_text().replace("plane,Plane,1,", "plane,Plane,2,")
+        (self.data / "control_points.csv").write_text(text)
+        levels = facts.name_map_levels(self.data)
+        self.assertEqual(levels[("mast", "Mast 6LA")], "2")
+        self.assertEqual(levels[("turnout", "Switch 5")], "1")       # switches.csv still says 1
+
 
 if __name__ == "__main__":
     unittest.main()
