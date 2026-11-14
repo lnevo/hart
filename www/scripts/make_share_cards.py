@@ -228,8 +228,8 @@ def _page_style(page: str) -> str:
 
 
 def ai_locomotives():
-    """ai-locomotives: the speed-match chart from the page."""
-    page = "ai/locomotives.html"
+    """ai-locomotives: the speed-match chart, which lives in the speed-matching article."""
+    page = "ai/speed-runs.html"
     style = (_page_style(page) + f"body{{background:var(--card)}}.w{{display:flex;align-items:center;justify-content:center;"
              f"width:{W}px;height:{H}px}}.speed-svg{{max-width:none!important;width:auto!important;height:600px!important}}")
     return card(draw("speed", f"<div class=w>{_svg(page, 'speed-svg')}</div>", style, ("css/ops.css", "css/ai.css")))

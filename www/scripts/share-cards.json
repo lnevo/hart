@@ -24,7 +24,7 @@
     "ai/locomotives.html": {
       "image": "assets/share/ai-locomotives.jpg",
       "alt": "Speed-match chart: CSX 2738 running slow before, and level with 2121 after matching.",
-      "from": "the speed-match chart in www/ai/locomotives.html, rendered"
+      "from": "the speed-match chart in www/ai/speed-runs.html, rendered"
     },
     "ai/speed-runs.html": {
       "image": "assets/share/ai-speed-runs.jpg",
