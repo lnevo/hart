@@ -108,6 +108,22 @@ class Publish(unittest.TestCase):
             p.once(); p.once(); p.once()
         self.assertEqual(err.getvalue().count("no tmp"), 1)
 
+    def test_each_run_shows_only_the_runs_up_to_it(self):
+        # the picker must change the chart: an earlier run's view does not hold later runs
+        (self.logs / "steprun_CSX_2738_forward_20261113_120000.log").write_text("\n".join(STEPRUN) + "\n")
+        later = ["%.3f%s" % (float(l.split(" ", 1)[0]) + 50, " " + l.split(" ", 1)[1]) for l in STEPRUN]
+        (self.logs / "steprun_CSX_2121_forward_20261113_120100.log").write_text(
+            "\n".join(l.replace("CSX 2738", "CSX 2121") for l in later) + "\n")
+        (self.logs / "steprun_CSX_2738_reverse_20261113_120200.log").write_text("")  # just started, no line yet
+        (self.logs / "moveto_CSX_2738_20261113_115900.log").write_text("%.3f GO x\n" % (T - 5))
+        self.pub().once()
+        def held(rid):
+            snap = json.loads((self.out / "runs" / (rid + ".json")).read_text())
+            return sorted(Path(r["id"]).name for r in snap["runs"])
+        self.assertEqual(held("steprun_CSX_2738_forward_20261113_120000"),
+                         ["steprun_CSX_2738_forward_20261113_120000.log"])
+        self.assertEqual(len(held("steprun_CSX_2121_forward_20261113_120100")), 2)
+
     def test_no_temporary_files_are_left(self):
         (self.logs / "steprun_CSX_2738_forward_20261113_120000.log").write_text("\n".join(STEPRUN) + "\n")
         self.pub().once()
