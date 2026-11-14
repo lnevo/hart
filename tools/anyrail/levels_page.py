@@ -137,7 +137,7 @@ def sections(svg_dir, staging):
         '<h3>Where Switch 7 and Switch 13 sit</h3>'
         '<p>Neither switch is in the plan. CSX 2121 ran Switch 5 to Switch 15 twice at different speeds, and the occupancy sensors timed each section. '
         'With the loco at constant speed between Switch 5 and Switch 15, each switch centre falls where its sensor lit, between the two. The two passes agree within 3 cm.</p>'
-        '<div class="tw"><table><thead><tr><th>Switch</th><th class="n">Pass at step 24</th><th class="n">Pass at step 48</th><th class="n">Mean, from Switch 5&rsquo;s points</th><th class="n">Before Switch 15&rsquo;s centre</th></tr></thead><tbody>'
+        '<div class="tw"><table class="nw"><thead><tr><th>Switch</th><th class="n">Pass at step 24</th><th class="n">Pass at step 48</th><th class="n">Mean, from Switch 5&rsquo;s points</th><th class="n">Before Switch 15&rsquo;s centre</th></tr></thead><tbody>'
         '<tr><td>Switch 7</td><td class="n">%d mm</td><td class="n">%d mm</td><td class="n"><b>%d mm</b></td><td class="n">%d mm</td></tr>'
         '<tr><td>Switch 13</td><td class="n">%d mm</td><td class="n">%d mm</td><td class="n"><b>%d mm</b></td><td class="n">%d mm</td></tr></tbody></table></div>'
         '<p>On the drawing, Switch 7 is at x %.0f cm on the straight where the run lies 6.4 cm beside the loop (orange dot), and Switch 13 on the curve into the yard ladder at x %.0f, y %.0f cm. '
@@ -228,6 +228,8 @@ polyline,line,circle{fill:none;stroke-linecap:round}
 .lv table{border-collapse:collapse;width:100%;font-size:.9rem;font-variant-numeric:tabular-nums}
 .lv td,.lv th{text-align:left;padding:4px 8px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
 .lv td.n,.lv th.n{text-align:right;padding-left:10px}
+.lv table.nw td.n{white-space:nowrap}
+@media (max-width:480px){.lv table{font-size:.84rem}.lv td,.lv th{padding-right:6px}.lv td.n,.lv th.n{padding-left:6px}}
 .lv th{font-weight:600;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
 .lv ol,.lv ul{padding-left:1.3em;display:flex;flex-direction:column;gap:8px}
 """
