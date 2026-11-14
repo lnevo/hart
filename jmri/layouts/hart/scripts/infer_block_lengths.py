@@ -47,7 +47,7 @@ MM_PER_IN = 25.4
 # the 2026-11-08 runs (Switch 5 -> Switch 33 -> East Lead -> Switch 35 -> 37 -> K loop
 # -> 39 -> 35 -> West Ext -> 23 -> Main West -> 1 -> Brick-Plane -> 5): flex arc
 # lengths plus turnout route lengths. See docs/jmri/speedmatching/ANYRAIL_LENGTHS.md.
-# Both PLAN_ constants are printed by tools/anyrail/prototype/loop_route.py (steps in its README).
+# Both PLAN_ constants are printed by archive/anyrail-prototype/loop_route.py (steps in its README).
 PLAN_LOOP_MM = 35108.2
 MIN_STEP = 24
 REF_BLOCK = "East Ext"
@@ -129,7 +129,7 @@ ROUTE_FROM_SW5 = _ORDER[_ORDER.index("Switch 5"):] + _ORDER[:_ORDER.index("Switc
 # Loop 2 (Switch 5 thrown into Scale, Barn, Switch 13, 15, Track S-R, 23b, 31, 33, then as loop 1
 # from East Lead): the plan route is T106 A->C, run T106C, T52 A->B, run T52B, T41 A->B (not
 # built, counted as track), S-R run T41B, T118 B->A, run T118A, T59 B->A, run T59A, T77 B->A, then
-# East Lead onward as loop 1. tools/anyrail/prototype/loop_route.py prints both constants.
+# East Lead onward as loop 1. archive/anyrail-prototype/loop_route.py prints both constants.
 # Switches 23b (12000 mm) and 31 (12382) are not pinned: too close to Switch 33 (12748) for a
 # pinned stretch of a few cm to stay meaningful. Switches 7 and 13 are the ones to find.
 PLAN_LOOP2_MM = 35428.7
