@@ -23,9 +23,10 @@ contains the Layout Editor, native SML, Dispatcher System, and USS CTC data.
 |------|------|
 | `anyrail/hart.xml` | Geometry source snapshot |
 | `output/tables.xml` | The one tables file: LE + SML + Dispatcher + CTC. JMRI loads it and deploy ships it |
-| `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `comment` from Device map) |
-| `data/control_points.csv` | CP → switches |
-| `data/switches.csv` | Per switch: level, Layout Editor turnout, CATS inversion, USS CTC lever (`scripts/layout_facts.py` reads it) |
+| `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `dcc` address, `comment` from Device map) |
+| `data/control_points.csv` | CP → level, switches |
+| `data/switches.csv` | Per switch: level, Layout Editor turnout, CATS inversion, USS CTC lever, hand (`scripts/layout_facts.py` reads it) |
+| `data/mast_cells.csv` | Per mast: its CATS desk cell and edge and its USS CTC icon (read by `wire_digicon.py` and `gen_ctc_track_plan.py`) |
 | `data/switch_legs.csv` | Per OS block at the points: the block the closed and thrown legs lead to |
 | `data/sensor_purge_report.txt` | Removed unused ISIS\* |
 

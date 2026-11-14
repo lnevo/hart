@@ -9,7 +9,8 @@
     "path": "assets/layout/HART_le_schematic.png",
     "width": 2000,
     "height": 573,
-    "scale": 1.0298507462686568
+    "scale": 1.0298507462686568,
+    "inputs_sha256": "4dfb99a5846df48a972c3dadfed60e24619d29fa22c4f489214ad4d18f3a682a"
   },
   "items": [
     {
@@ -240,7 +241,7 @@
       "y": 235.6,
       "systemName": "Switch 9",
       "publicName": "Switch 9",
-      "cp": "OS Switch 9",
+      "cp": "Engine House",
       "hardware": "Switch 9",
       "mqtt": "",
       "comment": "",
@@ -3191,7 +3192,7 @@
       "y": null,
       "systemName": "M2T1309",
       "publicName": "Switch 11",
-      "cp": "",
+      "cp": "Engine House",
       "hardware": "M2T1309",
       "mqtt": "1309",
       "comment": "Node: 13 Turnout: 1 | DCC: 118 | OU: 2 Ports: 3,4",
@@ -3217,7 +3218,7 @@
       "y": null,
       "systemName": "M2T1310",
       "publicName": "Switch 9",
-      "cp": "",
+      "cp": "Engine House",
       "hardware": "M2T1310",
       "mqtt": "1310",
       "comment": "Node: 13 Turnout: 2 | DCC: 119 | OU: 2 Ports: 5,6",

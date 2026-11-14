@@ -219,42 +219,19 @@ ANCHORS: list[tuple[int, int, str, str]] = [
     (57, 8, "LEFT", "Track K-2"),
     (63, 8, "RIGHT", "Track K-2"),  # SHARED wrap to (63,5)
 ]
-# Name existing lamps only (keep Designer PANELSIGNAL).
-SIGNAL_NAMES: dict[tuple[int, int, str], str] = {
-    (6, 10, "RIGHT"): "Mast 4RA",  # Track W-1
-    (6, 9, "RIGHT"): "Mast 4RB",  # Track W-2
-    (3, 8, "LEFT"): "Mast 2L",
-    (10, 8, "RIGHT"): "Mast 6LB",
-    (10, 7, "RIGHT"): "Mast 6LA",
-    (14, 8, "LEFT"): "Mast 8RB",
-    (16, 8, "RIGHT"): "Mast 8LA",
-    (14, 7, "LEFT"): "Mast 8RA",
-    (16, 7, "RIGHT"): "Mast 8LB",
-    (39, 6, "LEFT"): "Mast 24RA",
-    (45, 6, "RIGHT"): "Mast 24L",
-    (51, 6, "LEFT"): "Mast 36RA",
-    (51, 7, "LEFT"): "Mast 36RB",
-    (56, 6, "RIGHT"): "Mast 40LA",  # Track McKees Rocks (centre row)
-    (56, 5, "RIGHT"): "Mast 40LB",  # Track K-1 (top row)
-    # K-1 | K-2 pair sits on 61 RIGHT | 62 LEFT of the top row.
-    (61, 5, "RIGHT"): "Mast 2035",
-    (62, 5, "LEFT"): "Mast 2036",
-    (39, 7, "LEFT"): "Mast 24RB",
-    (42, 7, "BOTTOM"): "Mast 32R",
-    (45, 7, "RIGHT"): "Mast 34L",
-    (44, 8, "LEFT"): "Mast 34R",  # panel CP name; no JMRI mast yet
-    (56, 7, "RIGHT"): "Mast 38LA",  # Track McKeesport (centre row)
-    (56, 8, "RIGHT"): "Mast 38LB",  # Track K-2 (bottom row)
-}
+# Name existing lamps only (keep Designer PANELSIGNAL). The cell and edge of each
+# mast are in jmri/layouts/hart/data/mast_cells.csv, which the USS board reads too.
+MAST_CELLS = facts.load_mast_cells()
+SIGNAL_NAMES: dict[tuple[int, int, str], str] = {(c.x, c.y, c.edge): c.mast for c in MAST_CELLS}
 
 # Designer captions are in the right cells; do not relocate them.
 LABEL_FIXES: dict[tuple[int, int], str] = {}
 LABEL_ALIGN: dict[tuple[int, int], str] = {}
 
-# Mast 32R is on OS Switch 31 BOTTOM (110|109). A CP on OS Switch 29 would stop 109→110 N/X.
 SIGNAL_MOVES: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = []
+# Lamp placement the Designer save gets wrong (mast_cells.csv sig_location / sig_orient).
 SIGNAL_PANEL: dict[tuple[int, int, str], tuple[str, str]] = {
-    (42, 7, "BOTTOM"): ("LOWRIGHT", "TOP"),  # Mast 32R, SE of Switch 31
+    (c.x, c.y, c.edge): (c.sig_location, c.sig_orient) for c in MAST_CELLS if c.sig_location
 }
 
 # Panel-edge wraps. Paint stays gapped; N/X routes through. Same BLOCK
@@ -992,14 +969,7 @@ def _expected_blocks() -> set[str]:
 
 
 def _expected_idents() -> set[str]:
-    idents: set[str] = set()
-    with (paths.CATS_DIR / "data/turnout_bindings.csv").open(encoding="utf-8") as fh:
-        next(fh)
-        for line in fh:
-            ident = line.split(",", 1)[0].strip()
-            if ident:
-                idents.add(ident)
-    return idents
+    return {sw.le_ident for sw in SWITCHES.values()}
 
 
 OMITTED_BLOCKS: set[str] = set()

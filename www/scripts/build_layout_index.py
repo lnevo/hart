@@ -7,7 +7,9 @@ so hotspot pixels align with assets/layout/HART_le_schematic.png.
 
 from __future__ import annotations
 
+import argparse
 import csv
+import hashlib
 import importlib.util
 import json
 import subprocess
@@ -17,6 +19,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
+from hartlib.names import row_comment  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = paths.REPO_ROOT
@@ -56,7 +59,7 @@ def load_names(path: Path):
                 "proposed": proposed,
                 "cp": row.get("cp") or "",
                 "hardware": hw,
-                "comment": row.get("comment") or "",
+                "comment": row_comment(row),
                 "historical": hist,
             }
 
@@ -146,9 +149,21 @@ def refresh_schematic():
     subprocess.run(cmd, check=False)
 
 
+def render_inputs_sha256(geometry) -> str:
+    """What the schematic PNG is drawn from: the panel geometry the renderer reads, and the renderer.
+
+    Recorded in the JSON so --check finds a PNG that needs re-rendering without drawing it
+    (the renderer's fonts differ by machine, so its pixels cannot be compared in CI).
+    """
+    h = hashlib.sha256(repr(geometry).encode("utf-8"))
+    h.update(RENDER.read_bytes())
+    return h.hexdigest()
+
+
 def build():
     mod = load_render_mod()
-    _pp, _legs, turnouts, segs, signals, stations = mod.load_geometry(PANEL)
+    geometry = mod.load_geometry(PANEL)
+    _pp, _legs, turnouts, segs, signals, stations = geometry
     X, Y, width, height, scale = overview_xy(turnouts, segs, signals, stations)
 
     by_hw, by_name = load_names(NAMES)
@@ -256,6 +271,7 @@ def build():
             "width": width,
             "height": height,
             "scale": scale,
+            "inputs_sha256": render_inputs_sha256(geometry),
         },
         "items": items,
         "counts": {
@@ -269,11 +285,25 @@ def build():
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--check", action="store_true",
+                    help="build without rendering or writing; exit 1 if layout-index.json or the PNG "
+                         "(by its recorded render inputs) is stale")
+    args = ap.parse_args(argv)
     if not PANEL.is_file():
         raise SystemExit(f"missing panel: {PANEL}")
     if not NAMES.is_file():
         raise SystemExit(f"missing names: {NAMES}")
+    if args.check:
+        want = json.dumps(build(), indent=2) + "\n"
+        have = OUT_JSON.read_text(encoding="utf-8") if OUT_JSON.is_file() else ""
+        if want != have:
+            print(f"{OUT_JSON.relative_to(ROOT)} or {SCHEMATIC.relative_to(ROOT)} is stale: run "
+                  "python3 www/scripts/build_layout_index.py and commit both", file=sys.stderr)
+            return 1
+        print(f"{OUT_JSON.relative_to(ROOT)} is current")
+        return 0
     refresh_schematic()
     payload = build()
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)

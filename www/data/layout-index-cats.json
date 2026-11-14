@@ -8,7 +8,8 @@
     "path": "assets/layout/HART_cats_digicon.png",
     "width": 3900,
     "height": 855,
-    "scale": 1.0
+    "scale": 1.0,
+    "inputs_sha256": "ceeb301800805a3d55b23fe2e3e3544e307f9b15912f3879a9685e88223ed7ee"
   },
   "items": [
     {
@@ -447,7 +448,7 @@
       "y": 540.0,
       "systemName": "Switch 9",
       "publicName": "Switch 9",
-      "cp": "OS Switch 9",
+      "cp": "Engine House",
       "hardware": "Switch 9",
       "mqtt": "",
       "comment": "Digicon plant @ 24,8; OS OS Switch 9",

@@ -12,10 +12,17 @@ Layout Editor (tables.xml)
   - which leg the continuing sense closes to (plain turnouts);
   - the stored block paths: the closed leg needs Closed or no setting, the thrown
     leg Thrown, and neither may be reached with the other setting.
-CATS desks (HART_CTC.xml, HART_ABS.xml) and cats/data/turnout_bindings.csv
+CATS desks (HART_CTC.xml, HART_ABS.xml)
   - each plant's turnout, the leg each command (close/throw) leads to, and which
     leg is NORMAL (the closed one, unless the switch is CATS-inverted);
-  - every block name on the desk is a Layout Editor block.
+  - every block name on the desk is a Layout Editor block;
+  - each mast's lamp is in the cell and on the edge mast_cells.csv gives it, and no
+    other lamp is named; the mast is in the name map and tables.xml, with one head
+    (the one named) for a d1 icon and two for h2.
+Levels (control_points.csv, switches.csv, public_name_map.csv)
+  - each control point's switches are on its level, and every cp in the name map has a row;
+  - every mast and block has one level: its switch's, its control point's, or, for a
+    main between control points, the one level of the blocks its tables.xml paths join.
 USS CTC (CTC code buttons in tables.xml, ctc/GUIObjects.xml and the copy in tables.xml)
   - the code button's turnout, OS sensors, lever and signal levers;
   - the lever, the points dot and its polarity in the switch's column;
@@ -42,6 +49,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables as hart_tables  # noqa: E402
+from hartlib.names import split_dcc  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 HART = paths.LAYOUT_DIR
@@ -54,7 +62,6 @@ import digicon_trace as trace  # noqa: E402
 TABLES = paths.TABLES_XML
 GUI = HART / "ctc/GUIObjects.xml"
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
-TURNOUT_BINDINGS = ROOT / "cats/data/turnout_bindings.csv"
 OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
 
 CLOSED, THROWN = "2", "4"
@@ -198,9 +205,13 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
         return
     if sw.hardware and system != sw.hardware:
         r.add(f"le:{n}", f"{n}: tables.xml turnout is {system}, public_name_map.csv says {sw.hardware}")
-    dcc = re.search(r"DCC:\s*(\d+)", comment)
-    if sw.dcc and (dcc.group(1) if dcc else "") != sw.dcc:
-        r.add(f"le:{n}", f"{n}: tables.xml comment DCC {dcc.group(1) if dcc else '-'}, "
+    try:
+        dcc = split_dcc(comment)[1]
+    except ValueError as err:
+        dcc = "?"
+        r.add(f"le:{n}", f"{n}: tables.xml {err}")
+    if sw.dcc and dcc != sw.dcc:
+        r.add(f"le:{n}", f"{n}: tables.xml comment DCC {dcc or '-'}, "
                          f"public_name_map.csv says DCC {sw.dcc}")
     lt = t.layout_turnouts.get(sw.le_ident)
     if lt is None:
@@ -299,28 +310,6 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
                     r.add(f"cats:{n}", f"{n}: {desk} {leg.os_block} NORMAL is the {cmd} leg {edge} = {normal}; "
                                        f"switches.csv cats_inverted={'yes' if sw.cats_inverted else 'no'} "
                                        f"puts NORMAL on the {'thrown' if sw.cats_inverted else 'closed'} leg")
-
-
-def check_turnout_bindings(path: Path, switches: dict[int, facts.Switch], r: Report) -> None:
-    by_ident = {sw.le_ident: sw for sw in switches.values()}
-    seen = set()
-    with path.open(newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            ident = row["layout_ident"].strip()
-            sw = by_ident.get(ident)
-            if sw is None:
-                r.add(f"bindings:{ident}", f"{path.name}: {ident} is not a le_ident in switches.csv")
-                continue
-            seen.add(sw.number)
-            n = f"Switch {sw.number}"
-            if row["os_block"].strip() != sw.legs[0].os_block:
-                r.add(f"bindings:{n}", f"{n}: {path.name} puts {ident} in {row['os_block']}, "
-                                       f"switch_legs.csv in {sw.legs[0].os_block}")
-            if row["turnout_user_or_system"].strip() not in (sw.turnout, sw.hardware):
-                r.add(f"bindings:{n}", f"{n}: {path.name} binds {ident} to {row['turnout_user_or_system']}, "
-                                       f"switches.csv to {sw.turnout} ({sw.hardware})")
-    for n in sorted(set(switches) - seen):
-        r.add(f"bindings:Switch {n}", f"Switch {n}: not in {path.name}")
 
 
 # ---------------------------------------------------------------- USS CTC
@@ -430,19 +419,97 @@ def check_data(switches: dict[int, facts.Switch], data: Path, r: Report) -> None
         r.add(f"data:Switch {num}", f"Switch {num}: in control_points.csv, not in switches.csv")
 
 
+def desk_signals(path: Path) -> dict[tuple[int, int, str], str]:
+    """(x, y, edge) -> mast for every named SECSIGNAL on a CATS desk."""
+    out = {}
+    for sec in parse(path).getroot().find("TRACKPLAN").findall("SECTION"):
+        for edge in sec.findall("SEC_EDGE"):
+            sig = edge.find("SECSIGNAL")
+            if sig is not None and (sig.text or "").strip():
+                out[(int(sec.get("X")), int(sec.get("Y")), edge.get("EDGE"))] = sig.text.strip()
+    return out
+
+
+def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
+    """mast_cells.csv against both desks, the name map and the masts' heads in tables.xml."""
+    cells = facts.load_mast_cells(data)
+    want = {(c.x, c.y, c.edge): c.mast for c in cells}
+    for desk in desks:
+        have = desk_signals(Path(desk))
+        name = Path(desk).name
+        for xy in sorted(set(want) | set(have)):
+            if want.get(xy) != have.get(xy):
+                mast = want.get(xy) or have.get(xy)
+                r.add(f"mast:{mast}", f"{mast}: {name} has {have.get(xy) or 'no signal'} at {xy}, "
+                                      f"mast_cells.csv has {want.get(xy) or 'no mast'} there")
+    named = {row["proposed"] for row in rows if row["layer"] == "mast"}
+    heads = {}
+    for m in hart_tables.masts(t.root):
+        heads[hart_tables.user_name(m)] = re.findall(r"\((IH\d+)\)", hart_tables.system_name(m))
+    for c in cells:
+        if c.mast not in named:
+            r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a mast row in public_name_map.csv")
+        if c.mast not in heads:
+            r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a mast in tables.xml")
+            continue
+        got = heads[c.mast]
+        if (c.uss_kind == "d1" and got != [c.uss_head]) or (c.uss_kind == "h2" and len(got) != 2):
+            r.add(f"mast:{c.mast}", f"{c.mast}: mast_cells.csv draws it {c.uss_kind} "
+                                    f"{c.uss_head or ''}".rstrip() + f", tables.xml gives it heads {got}")
+
+
+def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[str, str]], t: Tables,
+                 r: Report) -> None:
+    """Each control point, mast and block has one level, and every source for it agrees."""
+    by_cp = facts.cp_levels(data)
+    for cp in facts.load_control_points(data):
+        for item in cp["switches"].split(","):
+            num = re.match(r"\d+", item.strip())
+            sw = switches.get(int(num.group(0))) if num else None
+            if sw and sw.level != cp["level"]:
+                r.add(f"level:Switch {sw.number}", f"Switch {sw.number}: switches.csv level {sw.level}, "
+                                                   f"control_points.csv puts {cp['cp_name']} on level {cp['level']}")
+    for cp in sorted({row["cp"] for row in rows if row["cp"]} - set(by_cp)):
+        r.add(f"level:{cp}", f"{cp}: a cp in public_name_map.csv with no row (and no level) in control_points.csv")
+    # A block's level from its switches (throat blocks through their track) against its control point's.
+    by_block = facts.switch_block_levels(switches)
+    block_cp = {row["proposed"]: row["cp"] for row in rows if row["layer"] == "block"}
+    for name, cp in block_cp.items():
+        from_switch = by_block.get(t.track_name(name), set())
+        if len(from_switch) > 1:
+            r.add(f"level:{name}", f"{name}: its switches in switch_legs.csv are on levels {sorted(from_switch)}")
+        elif from_switch and cp in by_cp and by_cp[cp] not in from_switch:
+            r.add(f"level:{name}", f"{name}: is in {cp} (level {by_cp[cp]}), its switches in switch_legs.csv "
+                                   f"say level {next(iter(from_switch))}")
+    levels = facts.name_map_levels(data, switches, rows, t.track_name)
+    for row in rows:
+        key = (row["layer"], row["proposed"])
+        if row["layer"] not in ("mast", "block") or key in levels:
+            continue
+        name = row["proposed"]
+        near = {levels.get(("block", t.track_name(t.block_user.get(dest, dest))))
+                for dest, _settings in t.paths.get(name, [])} - {None}
+        if len(near) != 1:
+            r.add(f"level:{name}", f"{name}: no control point and no switch in public_name_map.csv or "
+                                   f"switch_legs.csv, and its tables.xml paths join levels {sorted(near) or 'none'}; "
+                                   f"give it a cp")
+
+
 def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path = GUI,
-        bindings: Path = TURNOUT_BINDINGS, occupancy: Path = OCCUPANCY) -> Report:
+        occupancy: Path = OCCUPANCY) -> Report:
     import gen_ctc_track_plan as gen
 
     r = Report()
     switches = facts.load_switches(data)
     t = Tables(tables)
     check_data(switches, data, r)
+    rows = facts.identity_rows(data)  # public_name_map.csv, read once for the checks below
+    check_levels(switches, data, rows, t, r)
+    check_mast_cells(data, rows, desks, t, r)
     for sw in switches.values():
         check_tables(sw, t, r)
     for desk in desks:
         check_desk(Path(desk), switches, t, r)
-    check_turnout_bindings(bindings, switches, r)
     check_ctc_buttons(switches, t, occupancy_sensors(occupancy), r)
     cells = gen.parse_cats(Path(desks[0]))
     for label, path in (("GUIObjects.xml", gui), ("tables.xml USS panel", tables)):

@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
 
-DATA_FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv")
+DATA_FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv")
 
 
 class LayoutFactsTest(unittest.TestCase):
@@ -85,6 +85,65 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertTrue(any("block paths" in m for m in out), out)
         self.assertTrue(any("HART_CTC.xml" in m and "(close) leads to Track EH-2" in m for m in out), out)
         self.assertTrue(any("HART_ABS.xml" in m for m in out), out)
+
+    def data_copy(self) -> Path:
+        data = self.tmp / "data"
+        data.mkdir(exist_ok=True)
+        for name in DATA_FILES:
+            shutil.copy(check.facts.DATA / name, data / name)
+        return data
+
+    def test_a_control_point_on_another_level_than_its_switches_fails(self) -> None:
+        data = self.data_copy()
+        cps = data / "control_points.csv"
+        cps.write_text(cps.read_text().replace("plane,Plane,1,", "plane,Plane,2,"))
+        out = self.failures(data=data)
+        self.assertIn("Switch 5: switches.csv level 1, control_points.csv puts Plane on level 2", out)
+        self.assertIn("OS Switch 5: is in Plane (level 2), its switches in switch_legs.csv say level 1", out)
+
+    def test_a_throat_block_is_held_to_its_tracks_switch(self) -> None:
+        # Track K-1 West shares Track K-1's occupancy sensor; Track K-1 is a leg of Switch 39.
+        data = self.data_copy()
+        names = data / "public_name_map.csv"
+        names.write_text(names.read_text().replace("block,Track K-1 West,Track K-1 West,Princess,",
+                                                   "block,Track K-1 West,Track K-1 West,Brick,"))
+        switches = data / "switches.csv"
+        switches.write_text(switches.read_text().replace("1,39,TOL29,", "2,39,TOL29,"))
+        out = self.failures(data=data)
+        self.assertIn("Track K-1 West: is in Brick (level 1), its switches in switch_legs.csv say level 2", out)
+
+    def test_a_cp_with_no_control_point_row_fails(self) -> None:
+        data = self.data_copy()
+        cps = data / "control_points.csv"
+        cps.write_text("".join(line for line in cps.read_text().splitlines(True)
+                               if not line.startswith("engine_house,")))
+        out = self.failures(data=data)
+        self.assertIn("Engine House: a cp in public_name_map.csv with no row (and no level) in "
+                      "control_points.csv", out)
+
+    def test_a_main_takes_the_level_of_the_blocks_it_joins(self) -> None:
+        data = self.data_copy()
+        switches = data / "switches.csv"
+        switches.write_text(switches.read_text().replace("1,1,TOL3,", "2,1,TOL3,"))
+        out = self.failures(data=data)
+        self.assertTrue(any(m.startswith("Track Main West: no control point") and "join levels ['1', '2']" in m
+                            for m in out), out)
+
+    def test_a_mast_moved_on_one_desk_fails(self) -> None:
+        def move(text: str) -> str:
+            cell = re.search(r'<SECTION X="45" Y="6">.*?</SECTION>', text, re.S)
+            return text[:cell.start()] + cell.group(0).replace("Mast 24L", "Mast 24LX") + text[cell.end():]
+
+        out = self.failures(desks=(self.copy(check.DESKS[0], move), check.DESKS[1]))
+        self.assertIn("Mast 24L: HART_CTC.xml has Mast 24LX at (45, 6, 'RIGHT'), "
+                      "mast_cells.csv has Mast 24L there", out)
+
+    def test_a_mast_drawn_with_the_wrong_head_fails(self) -> None:
+        data = self.data_copy()
+        cells = data / "mast_cells.csv"
+        cells.write_text(cells.read_text().replace("Mast 4RA,6,10,RIGHT,E,d1,IH436", "Mast 4RA,6,10,RIGHT,E,d1,IH437"))
+        self.assertIn("Mast 4RA: mast_cells.csv draws it d1 IH437, tables.xml gives it heads ['IH436']",
+                      self.failures(data=data))
 
     def test_stale_known_entry_fails(self) -> None:
         report = check.run()

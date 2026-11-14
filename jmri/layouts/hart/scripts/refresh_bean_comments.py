@@ -17,6 +17,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
+from hartlib.names import jmri_comment, row_comment  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
@@ -108,10 +109,8 @@ def format_lcos_parts(
     if label is not None and index is not None and str(index) != "":
         head += f" {label}: {index}"
     parts = [head]
-    if dcc:
-        parts.append(f"DCC: {dcc}")
     parts.extend(f"{kind}: {num} Ports: {ports}" for kind, num, ports in units)
-    return " | ".join(parts)
+    return jmri_comment(" | ".join(parts), dcc or "")
 
 
 def format_lcos_comment(comment: str) -> str:
@@ -828,7 +827,7 @@ def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], st
             current = (row.get("current") or "").strip()
             proposed = (row.get("proposed") or "").strip()
             layer = (row.get("layer") or "").strip()
-            comment = public_comment(layer, proposed, (row.get("comment") or "").strip())
+            comment = public_comment(layer, proposed, row_comment(row))
             if not comment or current != proposed:
                 continue
             for token in (row.get("hardware") or "").split():

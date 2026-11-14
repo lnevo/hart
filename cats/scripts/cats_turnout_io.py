@@ -1,12 +1,12 @@
-"""Digicon turnout IO: CSV → SWITCHPOINTS SELECTEDREPORT / ROUTECOMMAND.
+"""Digicon turnout IO: switch facts → SWITCHPOINTS SELECTEDREPORT / ROUTECOMMAND.
 
-Plant cells are ``wire_digicon.PLANT_CELLS``; closed and thrown legs and the
-invert polarity are switch facts in jmri/layouts/hart/data/ (switches.csv,
-switch_legs.csv). This module only binds JMRI M2T addresses.
+Plant cells are ``wire_digicon.PLANT_CELLS``; the Layout Editor turnout, its
+hardware, the closed and thrown legs and the invert polarity are switch facts in
+jmri/layouts/hart/data/ (switches.csv, switch_legs.csv, public_name_map.csv).
+This module only binds JMRI M2T addresses.
 """
 from __future__ import annotations
 
-import csv
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -16,11 +16,12 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths, tables  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 
 import digicon_lib as le  # noqa: E402
+import layout_facts as facts  # noqa: E402
 
 ROOT = paths.REPO_ROOT
-TURNOUT_CSV = paths.CATS_DIR / "data/turnout_bindings.csv"
 HART_PANEL = paths.TABLES_XML
 
 
@@ -41,32 +42,20 @@ def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
 
 
 def load_turnouts() -> dict[str, tuple[str, str]]:
-    """layout_ident → (DECADDR, USER_NAME) for M2T."""
-    by_user: dict[str, str] = {}
-    root = tables.read(HART_PANEL)
-    for t in tables.turnouts(root):
-        sn = (t.findtext("systemName") or t.get("systemName") or "").strip()
-        un = (t.findtext("userName") or "").strip()
-        if sn.startswith("M2T") and un:
-            by_user[un] = sn[3:]
-            by_user[sn] = sn[3:]
+    """layout_ident → (DECADDR, USER_NAME) for M2T, one per switch in switches.csv.
+
+    The address is the switch's M2T hardware (public_name_map.csv); the user name is
+    its public name, Switch N. A switch whose hardware is not an M2T turnout in
+    tables.xml is skipped with a message.
+    """
+    m2t = {tables.system_name(t) for t in tables.turnouts(tables.read(HART_PANEL))
+           if tables.system_name(t).startswith("M2T")}
     out: dict[str, tuple[str, str]] = {}
-    with TURNOUT_CSV.open(newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            ident = row["layout_ident"].strip()
-            key = row["turnout_user_or_system"].strip()
-            addr = by_user.get(key)
-            if not addr and key.startswith("M2T"):
-                addr = key[3:]
-            if not addr:
-                print(f"TURNOUT SKIP: {ident} unresolved {key}", file=sys.stderr)
-                continue
-            uname = key
-            for u, a in by_user.items():
-                if a == addr and u.startswith("Switch"):
-                    uname = u
-                    break
-            out[ident] = (addr, uname)
+    for sw in facts.load_switches().values():
+        if sw.hardware not in m2t:
+            print(f"TURNOUT SKIP: {sw.le_ident} unresolved {sw.hardware or sw.turnout}", file=sys.stderr)
+            continue
+        out[sw.le_ident] = (sw.hardware[3:], sw.turnout)
     return out
 
 

@@ -1,7 +1,8 @@
-cp_id,cp_name,switches,notes
-brick,Brick,"1,3",Switch 3 is the only access to W-1/2
-plane,Plane,5,West diverge; west limit of Scale
-barn,Barn,"7,7b",Crossover only
-south_yard,South Yard,"15,17,19,21",South Yard ladder
-east_end,East End,"25,27,29,31,23a,23b,33",Includes 23 crossover legs
-princess,Princess,"35a,35b,37,39",East plant toward McKees Rocks / McKeesport
+cp_id,cp_name,level,switches,notes
+brick,Brick,1,"1,3",Switch 3 is the only access to W-1/2
+plane,Plane,1,5,West diverge; west limit of Scale
+barn,Barn,1,"7,7b",Crossover only
+south_yard,South Yard,1,"15,17,19,21",South Yard ladder
+east_end,East End,1,"25,27,29,31,23a,23b,33",Includes 23 crossover legs
+princess,Princess,1,"35a,35b,37,39",East plant toward McKees Rocks / McKeesport
+engine_house,Engine House,1,"9,11,13",No plate on the CATS desk; the engine terminal lead and EH-1 to EH-3

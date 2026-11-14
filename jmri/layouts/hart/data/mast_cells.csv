@@ -1,0 +1,24 @@
+mast,x,y,edge,uss_facing,uss_kind,uss_head,sig_location,sig_orient,notes
+Mast 4RA,6,10,RIGHT,E,d1,IH436,,,Track W-1
+Mast 4RB,6,9,RIGHT,E,d1,IH437,,,Track W-2
+Mast 2L,3,8,LEFT,W,h2,,,,
+Mast 6LA,10,7,RIGHT,W,d1,IH434,,,
+Mast 6LB,10,8,RIGHT,W,d1,IH432,,,
+Mast 8RA,14,7,LEFT,E,h2,,,,
+Mast 8RB,14,8,LEFT,E,h2,,,,
+Mast 8LB,16,7,RIGHT,W,d1,IH1334,,,
+Mast 8LA,16,8,RIGHT,W,h2,,,,
+Mast 24RA,39,6,LEFT,E,h2,,,,
+Mast 24RB,39,7,LEFT,E,d1,IH234,,,
+Mast 24L,45,6,RIGHT,W,h2,,,,mid Track West Ext; same block both faces (lamp gap only)
+Mast 32R,42,7,BOTTOM,E,d1,IH1234,LOWRIGHT,TOP,SE of Switch 31 on OS Switch 31; a lamp on OS Switch 29 would stop the 29 to 31 N/X route
+Mast 34R,44,8,LEFT,E,h2,,,,panel name; no field mast yet
+Mast 34L,45,7,RIGHT,W,h2,,,,
+Mast 36RA,51,6,LEFT,E,h2,,,,
+Mast 36RB,51,7,LEFT,E,h2,,,,
+Mast 40LB,56,5,RIGHT,W,d1,IH1136,,,Princess dwarf on Track K-1 (top row)
+Mast 40LA,56,6,RIGHT,W,h2,,,,Princess two-head home on Track McKees Rocks (centre row)
+Mast 38LA,56,7,RIGHT,W,h2,,,,Princess two-head home on Track McKeesport (centre row)
+Mast 38LB,56,8,RIGHT,W,d1,IH143,,,Princess dwarf on Track K-2 (bottom row)
+Mast 2035,61,5,RIGHT,W,d1,IH1134,,,"balloon intermediate on Track K-1, east of 40LB"
+Mast 2036,62,5,LEFT,E,d1,IH1133,,,"balloon intermediate, paired with 2035"
