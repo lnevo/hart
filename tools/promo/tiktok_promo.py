@@ -5,11 +5,11 @@
 
 Builds the cut from material already in the repo: layout photos from
 media/photos-layout (the gitignored mirror), the schematic and USS CTC
-evolution videos in www/assets/behind/panel-evolution, and a phone-width
-capture of the live home page (taken with headless Chrome). Every frame is
+evolution videos in www/assets/behind/panel-evolution, and phone-width
+captures of live site pages (taken with headless Chrome). Every frame is
 drawn with Pillow and piped to ffmpeg, so this ffmpeg build needs no
-drawtext. One video is written per opening caption in HOOKS, so the openings
-can be tested against each other.
+drawtext. Two cuts: "build" (empty room to railroad) and "site" (a tour of
+the website's Prototype, Operations, Behind the Scenes and AI sections).
 
 The output has a silent audio track. Add music from TikTok's own sound library
 when posting; do not bake in commercial music.
@@ -42,11 +42,17 @@ BRAND = (11, 52, 62)  # dark teal of the site footer band
 GOLD = (240, 192, 85)  # --accent-on-dark
 WHITE = (255, 255, 255)
 
-# Opening caption over the empty room; one video per entry.
-HOOKS = {
-    "a": "This room was empty.",
-    "b": "POV: a model railroader gets an empty room",
-    "c": "Watch an empty room become a railroad",
+# Site pages for the "site" cut, captured live at phone width (path -> file stem).
+PAGES = {
+    "": "home",
+    "plants/": "plants",
+    "photos/": "photos",
+    "operators/cards/": "cards",
+    "crew/": "crew",
+    "build/": "build",
+    "behind/signals.html": "signals",
+    "ai/": "ai",
+    "ai/control.html": "ai-control",
 }
 
 
@@ -200,34 +206,45 @@ def ctc_pan(n: int) -> Iterator[Image.Image]:
         yield canvas
 
 
-def site_scroll(shot: Path):
+def backdrop(name: str | None) -> Image.Image:
+    """Brand colour, or a layout photo blurred and tinted towards it."""
+    if not name:
+        return Image.new("RGB", (W, H), BRAND)
+    src = ImageOps.exif_transpose(Image.open(PHOTOS / name)).convert("RGB")
+    im = cover(src, W // 4, H // 4).filter(ImageFilter.GaussianBlur(6)).resize((W, H))
+    return Image.blend(im, Image.new("RGB", (W, H), BRAND), 0.62)
+
+
+def phone_scroll(shot: Path, travel: int = 3300, start: int = 0, top: int = 410,
+                 sh: int = 1500, bg: str | None = None, hold: float = 0.12):
+    """A page capture scrolling inside a rounded phone-sized card."""
     def gen(n: int) -> Iterator[Image.Image]:
         page = Image.open(shot).convert("RGB")
-        # Phone frame: page in a rounded card on the brand colour.
-        sw, sh = 900, 1500
+        sw = 900
         page = page.resize((sw, round(page.height * sw / page.width)), Image.LANCZOS)
-        travel = min(page.height - sh, 3300)
+        dist = max(0, min(page.height - sh - start, travel))
         mask = Image.new("L", (sw, sh), 0)
         ImageDraw.Draw(mask).rounded_rectangle((0, 0, sw, sh), radius=48, fill=255)
-        bg = Image.new("RGB", (W, H), BRAND)
+        base = backdrop(bg)
         shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         ImageDraw.Draw(shadow).rounded_rectangle(
-            ((W - sw) // 2 - 6, 420, (W + sw) // 2 + 6, 420 + sh + 18), radius=54,
-            fill=(0, 0, 0, 140))
+            ((W - sw) // 2 - 6, top + 10, (W + sw) // 2 + 6, top + sh + 18), radius=54,
+            fill=(0, 0, 0, 150))
         shadow = shadow.filter(ImageFilter.GaussianBlur(18))
-        bg.paste(shadow, (0, 0), shadow)
-        hold = int(n * 0.12)
+        base.paste(shadow, (0, 0), shadow)
+        wait = int(n * hold)
         for i in range(n):
-            t = max(0.0, (i - hold) / max(n - 1 - hold, 1))
+            t = max(0.0, (i - wait) / max(n - 1 - wait, 1))
             t = t * t * (3 - 2 * t)
-            y = int(travel * t)
-            frame = bg.copy()
-            frame.paste(page.crop((0, y, sw, y + sh)), ((W - sw) // 2, 410), mask)
+            y = start + int(dist * t)
+            frame = base.copy()
+            frame.paste(page.crop((0, y, sw, y + sh)), ((W - sw) // 2, top), mask)
             yield frame
     return gen
 
 
-def end_card(fonts: Fonts):
+def end_card(fonts: Fonts, lines=("Neville Island, Pittsburgh · HO scale",
+                                   "Follow along as it gets built")):
     def gen(n: int) -> Iterator[Image.Image]:
         card = Image.new("RGB", (W, H), BRAND)
         logo = Image.open(LOGO).convert("RGBA")
@@ -235,16 +252,17 @@ def end_card(fonts: Fonts):
         card.paste(logo, ((W - 560) // 2, 420), logo)
         d = ImageDraw.Draw(card)
         d.text((W // 2, 1060), "HARTRAILROAD.COM", font=fonts.get(118), fill=GOLD, anchor="mt")
-        d.text((W // 2, 1200), "Neville Island, Pittsburgh · HO scale",
-               font=fonts.get(54, heavy=False), fill=WHITE, anchor="mt")
-        d.text((W // 2, 1275), "Follow along as it gets built",
-               font=fonts.get(54, heavy=False), fill=WHITE, anchor="mt")
+        for k, line in enumerate(lines):
+            d.text((W // 2, 1200 + 75 * k), line,
+                   font=fonts.get(54, heavy=False), fill=WHITE, anchor="mt")
         for _ in range(n):
             yield card
     return gen
 
 
-def build(fonts: Fonts, hook: str, shot: Path) -> list[Segment]:
+def build_cut(fonts: Fonts, shots: dict[str, Path]) -> list[Segment]:
+    """Empty room to railroad, then the panels and the site."""
+    hook = "This room was empty."
     built = "…so I built a railroad in it"
     cuts = [  # photo, focus
         ("IMG_5280.jpg", (0.5, 0.5)),
@@ -264,26 +282,61 @@ def build(fonts: Fonts, hook: str, shot: Path) -> list[Segment]:
                 "Real industries. Real car forwarding."),
         Segment(schematic, 4.0, "Every track drawn and numbered", caption_y=300),
         Segment(ctc_pan, 5.0, "Signals run from a CTC panel", caption_y=300),
-        Segment(site_scroll(shot), 5.0, "The whole story is online", caption_y=150),
+        Segment(phone_scroll(shots["home"]), 5.0, "The whole story is online",
+                caption_y=150),
         Segment(end_card(fonts), 3.0),
     ]
     return segs
 
 
+def site_cut(fonts: Fonts, shots: dict[str, Path]) -> list[Segment]:
+    """A tour of the website's four sections, two pages each."""
+    kw = dict(top=520, sh=1400, travel=1900)
+    sections = [  # kicker, caption, backdrop photo, pages
+        ("Prototype", "Real Neville Island history", "IMG_9231.jpg",
+         ["plants", "photos"]),
+        ("Operations", "Car cards, waybills and crew sheets", "IMG_8904.jpg",
+         ["cards", "crew"]),
+        ("Behind the Scenes", "How it's built, wired and signalled", "IMG_7813.jpg",
+         ["build", "signals"]),
+        ("The Diverging Route", "How AI helps build and run it", "IMG_9288.jpg",
+         ["ai", "ai-control"]),
+    ]
+    segs = [Segment(phone_scroll(shots["home"], travel=500, bg="IMG_8904.jpg", **{
+        k: v for k, v in kw.items() if k != "travel"}), 2.8,
+        "My model railroad has its own website", caption_y=150)]
+    for kicker, caption, bg, pages in sections:
+        for page in pages:
+            segs.append(Segment(phone_scroll(shots[page], bg=bg, hold=0.15, **kw), 3.2,
+                                caption, kicker=kicker, caption_y=150))
+    segs.append(Segment(end_card(fonts, ("Prototype · Operations · Behind the Scenes",
+                                         "The Diverging Route: AI in model railroading")),
+                        3.5))
+    return segs
+
+
+CUTS = {"build": build_cut, "site": site_cut}
+
+
 # ---------------------------------------------------------------- render
 
-def capture_site(out: Path) -> Path:
-    """Phone-width capture of the live home page.
+def capture_pages(out: Path) -> dict[str, Path]:
+    """Phone-width captures of the live pages in PAGES, reusing files in out.
 
     Headless Chrome on macOS lays out no narrower than about 500 CSS px, so a
     390 px window clips the page; 500 px at 2.16x gives a clean 1080 px image.
     """
-    shot = out / "site-phone.png"
-    subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
-                    "--force-device-scale-factor=2.16", "--window-size=500,3000",
-                    f"--screenshot={shot}", SITE_URL],
-                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    return shot
+    out.mkdir(parents=True, exist_ok=True)
+    shots = {}
+    for path, stem in PAGES.items():
+        shot = out / f"{stem}.png"
+        if not shot.exists():
+            subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
+                            "--virtual-time-budget=6000", "--force-device-scale-factor=2.16",
+                            "--window-size=500,3600", f"--screenshot={shot}", SITE_URL + path],
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        shots[stem] = shot
+    return shots
 
 
 def render(segs: list[Segment], fonts: Fonts, out: Path) -> None:
@@ -325,18 +378,19 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out", type=Path, required=True, help="output directory")
     ap.add_argument("--font-dir", type=Path, help="folder with Barlow Condensed .ttf files")
-    ap.add_argument("--hooks", default="".join(HOOKS), help="which openings to render, e.g. ab")
-    ap.add_argument("--site-shot", type=Path, help="reuse a 1080 px wide home page capture")
+    ap.add_argument("--cuts", default="build,site", help="comma list of: " + ", ".join(CUTS))
+    ap.add_argument("--shots", type=Path,
+                    help="folder for page captures; existing files are reused (default: temp)")
     args = ap.parse_args()
     if not shutil.which("ffmpeg"):
         raise SystemExit("ffmpeg not found")
     args.out.mkdir(parents=True, exist_ok=True)
     fonts = Fonts(args.font_dir)
     with tempfile.TemporaryDirectory() as tmp:
-        shot = args.site_shot or capture_site(Path(tmp))
-        for h in args.hooks:
-            out = args.out / f"hart-promo-{h}.mp4"
-            render(build(fonts, HOOKS[h], shot), fonts, out)
+        shots = capture_pages(args.shots or Path(tmp))
+        for cut in args.cuts.split(","):
+            out = args.out / f"hart-promo-{cut}.mp4"
+            render(CUTS[cut](fonts, shots), fonts, out)
             print(out)
 
 
