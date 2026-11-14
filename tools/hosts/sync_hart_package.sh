@@ -366,6 +366,17 @@ stage_package() {
 
   rsync -a "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
   python3 "$ROOT/tools/mqtt-mimic/build_mimic_web.py" --out "$stage/cats/resources/jmri-web/mimic"
+  # Speed-match live view for the Pi (/web/speedmatch/): the page, and the publisher with the
+  # files it reads, laid out as in the repo (scripts/speedmatch, data/block_lengths.csv).
+  local sm="$ROOT/jmri/layouts/hart/scripts/speedmatch"
+  python3 "$sm/dashboard/publish_live.py" --build-page "$stage/cats/resources/speedmatch-web" >/dev/null
+  mkdir -p "$stage/cats/speedmatch-live/scripts/speedmatch/dashboard" "$stage/cats/speedmatch-live/data"
+  cp -f "$sm/analyze.py" "$sm/liverule.py" "$stage/cats/speedmatch-live/scripts/speedmatch/"
+  cp -f "$sm/dashboard/dashstate.py" "$sm/dashboard/dashsources.py" "$sm/dashboard/export_site_runs.py" \
+    "$sm/dashboard/publish_live.py" "$stage/cats/speedmatch-live/scripts/speedmatch/dashboard/"
+  cp -f "$ROOT/jmri/layouts/hart/data/block_lengths.csv" "$stage/cats/speedmatch-live/data/"
+  cp -f "$ROOT/docs/jmri/speedmatching/profile-2026-11-08/speed_by_step.csv" \
+    "$stage/cats/speedmatch-live/data/speed_by_step_2026-11-08.csv"
   # Host scripts live in tools/hosts/ but land where the hosts and their shortcuts expect them (ADR-007).
   rsync -a "$ROOT/tools/hosts/pi/" "$stage/cats/scripts/pi/"
   rsync -a "$ROOT/tools/hosts/windows/" "$stage/cats/scripts/windows/"

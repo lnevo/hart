@@ -73,6 +73,7 @@ class SshSource:
         self.fetch = fetch
         self.offsets = {}  # path -> bytes consumed
         self.carry = {}  # path -> partial last line
+        self.listed = []
 
     def poll(self, store):
         try:
@@ -84,6 +85,7 @@ class SshSource:
                     store.pi_clock = (float(parts[1]), state.clock())
                 if len(parts) == 3 and parts[0] == "@@FILE" and parts[2].isdigit():
                     files.append((parts[1], int(parts[2])))
+            self.listed = [p for p, _ in files]  # the newest MAX_FILES logs, as listed this poll
             for path, size in reversed(files):  # oldest first, so the newest run is last
                 off = self.offsets.get(path, 0)
                 if size < off:  # file replaced

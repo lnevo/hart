@@ -43,7 +43,7 @@ pass runners are also run for real, as Python 3 on a virtual clock with a fake l
 (`test_speedmatch_distance.py`), which checks the log order, the stop, the guard and the kill
 flag. They have still not run in JMRI.
 
-To watch a run from the Mac while it happens, start the live page: [`DASHBOARD.md`](DASHBOARD.md).
+To watch a run while it happens, open `http://RPi-JMRI.local:12080/web/speedmatch/` (the Pi serves it; house network or throttle Wi-Fi), or start the live page on the Mac: [`DASHBOARD.md`](DASHBOARD.md).
 
 ## How a measurement works
 
