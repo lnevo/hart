@@ -1,4 +1,4 @@
-"""hartlib.paths: one checkout, one layout, and the shims at the old paths."""
+"""hartlib.paths: one checkout, one layout, and a check that the old shims are gone."""
 import importlib
 import os
 import sys
