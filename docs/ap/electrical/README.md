@@ -12,7 +12,7 @@ Draft Statement of Qualification for the NMRA Achievement Program certificate, p
 
 These drawings are kept apart from the railroad's own schematics and wiring docs on purpose (owner, 2026-11-14): do not copy them into `docs/wiring/`, `docs/ops/` or the schematic tool until the owner says so.
 
-Items chosen: Requirement 2 turnout, crossover, other (two reversing sections on auto-reversers: Main West, K-1 / K-2); Requirement 3 (a) turnout position indication, (b) track occupancy, (r) CTC system.
+Items chosen: Requirement 2 turnout, crossover, other (two reversing sections on auto-reversers: Main West, K-1 / K-2); Requirement 3 (a) turnout position indication, (b) track occupancy, (r) CTC system, and (k) advanced computer control as a fourth in case (r) is not accepted.
 
 Facts from the owner (2026-11-14): block gaps are in both rails; switch machines are MTB MP4 with two SPDT contacts, one for the panel LED indication and one for the frog (stock rails to the throws, common to the frog); the mainline passing siding runs between East End and Princess, with Barn and Plane as more passing places.
 

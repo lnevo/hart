@@ -29,7 +29,7 @@ Member details are on the form.</p>
 <h2>Contents</h2>
 <ol>
   <li>Requirement 1: the layout's control system (this attachment, section A)</li>
-  <li>Requirements 2 and 3: the six items chosen, with construction, wiring and commercial components (section B)</li>
+  <li>Requirements 2 and 3: the items chosen (three trackwork, four control), with construction, wiring and commercial components (section B)</li>
   <li>Requirement 6a: track plan (attached after this description)</li>
   <li>Requirements 4 and 5: schematic drawings (attached after the track plan; index in section C)</li>
 </ol>
@@ -41,7 +41,7 @@ Member details are on the form.</p>
   <tr><td>Simultaneous and independent control of two mainline trains in both directions</td>
       <td>DCC command control (TCS CS-105 command station and two boosters). Two trains run at once in either direction, each under its own throttle, for example one on loop 1 (the main line) and one on loop 2 (S-R, Scale and Barn), with the two-track helix as a further route.</td></tr>
   <tr><td>Command control: gaps and switches for polarity and troubleshooting</td>
-      <td>The wiring plan has eleven power districts, each behind its own circuit breaker or auto-reverser. Within them, the staging level and helix are cut into 43 detected sections, each gapped in both rails at both ends and fed from its district bus through a current-transformer detector, so a fault shows on the panel as one section and a district can be isolated at its breaker (D2). Every section has at least one feeder pair.</td></tr>
+      <td>The staging level and helix are wired as six protected power districts: four on circuit breakers, and the two reversing sections, whose auto-reversers also act as their breakers. Further districts in the wiring plan come with the upper levels. Within the six, the staging level and helix are cut into 43 detected sections, each gapped in both rails at both ends and fed from its district bus through a current-transformer detector, so a fault shows on the panel as one section and a district can be isolated at its breaker (D2). Every section has at least one feeder pair.</td></tr>
   <tr><td>One reversing loop, wye, turntable or transfer table</td>
       <td>Two reversing sections, each on an auto-reverser: Main West, and the K-1 / K-2 loop legs at Princess.</td></tr>
   <tr><td>One mainline passing siding</td>
@@ -51,10 +51,10 @@ Member details are on the form.</p>
   <tr><td>Storage for two unused motive power units</td>
       <td>Engine house tracks EH-1, EH-2 and EH-3, each its own detection block.</td></tr>
   <tr><td>One power supply with protective devices</td>
-      <td>Every district is protected: DCC Specialties PSX/PSXX-series circuit breakers on the through districts, PSX-AR auto-reversers and an AR-10 on the reversing sections. The boosters feed the breakers through a booster matrix (C1).</td></tr>
+      <td>Every district is protected: four DCC Specialties PSX-series circuit breakers on the through districts, and on the two reversing sections the AR-10 (Main West) and PSX-AR (K-1 / K-2), which also cut power on a short. The boosters feed the breakers through a booster matrix (C1).</td></tr>
 </table>
 
-<h2>B. Requirements 2 and 3: the six items</h2>
+<h2>B. Requirements 2 and 3: the items chosen</h2>
 
 <h3>Requirement 2a · Turnout</h3>
 <p>Twenty Peco turnouts on the staging level, every one with a powered frog. Each is thrown by an MTB MP4 slow-motion switch machine driven from a 12 V output on its LCOS node. The MP4 has two SPDT contacts. The first powers the frog: the two stock rails go to the two throws and the common feeds the frog, so the frog always takes the polarity of the stock rail the points lie against. Both frog rails are gapped beyond the frog. The second contact feeds the panel LED indication (Requirement 3a). Drawing D3.</p>
@@ -79,12 +79,15 @@ Commercial components: DNCT2B / DNCTA detectors, LCOS nodes. Drawings D2, C2, C5
 <h3>Requirement 3r · CTC system</h3>
 <p>A centralized traffic control system designed and built for this railroad, not a commercial unit. A dispatcher's desk (CATS, laid out as a Union Switch &amp; Signal Digicon machine, with a second USS-style board as the alternate) lines routes and clears signals at each control point. Field state comes back from the layout: switch positions from the machine contacts, block occupancy from the detectors. The desk refuses a route through an occupied block or a switch locked by another route, and signal logic sets the aspects. The panels, interlocking tables and signal logic were drawn up and configured for HART; JMRI and CATS supply the software platform.
 Components: JMRI and CATS (free software), LCOS nodes, MQTT link. Drawing C8.</p>
-<p>Also available if wanted: computerized block detection (3t), computerized operation (3u) and a computer-to-railroad interface (3v, the bridge that carries LCOS radio traffic to MQTT).</p>
+<h3>Requirement 3k · Advanced electronic and computer control (fourth item)</h3>
+<p>JMRI on a Raspberry Pi runs the railroad's turnouts, sensors, signal logic and CTC desks, and talks to the LCOS radio nodes through an MQTT broker; the desks also run on a Mac and a Windows PC. Turnouts can be thrown from the fascia buttons, a DCC throttle or the computer, and every route reports back. Listed as a fourth item in case 3r is not accepted as non-commercial.
+Components: JMRI (free software), Raspberry Pi, LCOS nodes, MQTT broker. Drawing C8.</p>
+<p>Also in place: computerized block detection (3t), computerized operation (3u) and a computer-to-railroad interface (3v, the bridge that carries LCOS radio traffic to MQTT).</p>
 
 <h2 class="page">C. Schematic index (Requirements 4 and 5)</h2>
 <table>
   <tr><th style="width:9%">No.</th><th style="width:38%">Drawing</th><th>Shows</th></tr>
-  <tr><td>C1</td><td>Power districts (wiring deck p. 2) and track bus table (p. 1)</td><td>Command station, two boosters, booster matrix, breakers and auto-reversers; the eleven buses with their wire colours and protection.</td></tr>
+  <tr><td>C1</td><td>Power districts (wiring deck p. 2) and track bus table (p. 1)</td><td>Command station, two boosters, booster matrix, breakers and auto-reversers; the buses with their wire colours and protection (the full plan; six districts are wired today on staging and the helix).</td></tr>
   <tr><td>C2</td><td>Bus wiring (p. 4)</td><td>Power supply output, DCC bus, detector chain (DNCT2B, DNCTA), 12 V layout control bus.</td></tr>
   <tr><td>C3</td><td>Turnout wiring (p. 6)</td><td>Switch machine, its auxiliary contacts to the input board, the 12 V output, Touch Toggle and Universal Translator.</td></tr>
   <tr><td>C4</td><td>Control node configuration (p. 5) and turnout summary (schematic deck p. 2)</td><td>One node's inputs, outputs and block sensors; each switch's button, feedback and output pins.</td></tr>
