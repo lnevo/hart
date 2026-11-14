@@ -62,10 +62,12 @@ class Routes(unittest.TestCase):
     def test_trusted_default_leaves_untrusted_rows_none(self):
         got = analyze.load_lengths(analyze.DEFAULT_LENGTHS, analyze.DEFAULT_TRUSTED, analyze.route_loop("loop2"))
         self.assertEqual(set(got), set(analyze.route_order("loop2")))
-        # Scale, Barn, S-R and the OS 7, 13, 15, 23b, 31 rows are estimates or assigned: no length
-        for s in ("BS Scale", "BS Barn", "BS S-R", "BS Switch 7", "BS Switch 13", "BS Switch 15",
-                  "BS Switch 23b", "BS Switch 31"):
+        # S-R and the OS 7, 23b, 31 rows are estimates or assigned: no length. Scale, Barn and
+        # OS 13 and 15 were set from the timed passes of 2026-11-13 (inferred).
+        for s in ("BS S-R", "BS Switch 7", "BS Switch 23b", "BS Switch 31"):
             self.assertIsNone(got[s], s)
+        for s in ("BS Scale", "BS Barn", "BS Switch 13", "BS Switch 15"):
+            self.assertIsNotNone(got[s], s)
         self.assertIsNotNone(got["BS East Lead"])
 
 
