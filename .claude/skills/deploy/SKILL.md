@@ -36,10 +36,10 @@ What it does:
 Redeploy an older commit (rollback):
 
 - `tools/hosts/redeploy_commit.sh <commit> --pi [--win]` (`--all`, or `--mac` for the Mac only), or `make redeploy COMMIT=<sha> HOSTS="--pi"`. Quit PanelPro on the Pi first, as for any deploy.
-- It makes a temporary worktree at that commit on the branch `redeploy/<sha12>`, links the mirrors as `make wt` does, runs that commit's own `sync_hart_package.sh` with this checkout's host settings, then removes the worktree and the branch. `--dry-run` and `--stage-only DIR` pass through.
-- It refuses a commit without `tools/hosts/sync_hart_package.sh` or the deploy stamp (before the ADR-007 amendment 2026-11-12), and stops before building anything if `~/JMRI_UserFiles/tables.xml` holds a Store that is not pulled: run `make tables-pull` first.
+- It makes a temporary detached worktree at that commit, runs that commit's own `sync_hart_package.sh` there with a clean environment (`env -i`: PATH, HOME, ssh agent, the deploy switches, and the host settings this checkout resolves, named by `load_env.sh`'s `HART_HOST_NAMES`), then removes the worktree. `--dry-run` and `--stage-only DIR` pass through.
+- It refuses a commit that is not on `origin/main` (git fetch first; `--allow-unmerged` overrides), one without `tools/hosts/sync_hart_package.sh` or the deploy stamp (before the ADR-007 amendment 2026-11-12), and a real run while PanelPro, DecoderPro or CATS is open on the Mac. It stops before building anything if `~/JMRI_UserFiles/tables.xml` holds a Store that is not pulled (the same test as the deploy, `tools/hosts/profile_tables_guard.sh`): run `make tables-pull` first.
 - The Operations files keep their guards (`HART_OVERWRITE_OPS=0`): an unpulled Pi session stops the Pi step, so run `make ops-pull`; a running JMRI keeps its files. `HART_OVERWRITE_OPS=1` replaces them as a normal deploy does.
-- The stamp says `branch=redeploy/<sha12>` and, for commits from this change on, `source=redeploy` and `redeploy_from=<commit that ran it>`; `make deploy-status` prints a note for it. A normal deploy writes `source=deploy`.
+- For commits from this change on the stamp says `source=redeploy` and `redeploy_from=<commit that ran it>`; older commits' stamps say `branch=HEAD`. `make deploy-status` prints a note for either. A normal deploy writes `source=deploy`.
 - The stamp keeps no history. To find the commit to go back to, read the current one with `make deploy-status` and look at `git log --first-parent --oneline origin/main` for the merge before it.
 - After a rollback the Mac and the hosts hold the old commit's `tables.xml`. Go forward with a normal deploy from `main` before a PanelPro Store, or `make tables-pull` would bring the old tables back into the repo.
 

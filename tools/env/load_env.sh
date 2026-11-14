@@ -63,6 +63,8 @@ export HART_WIN_USERFILES="$(_hart_pick C:/Users/lnevo/JMRI_UserFiles HART_WIN_U
 for _n in $_hart_host_names; do
   unset "_hart_env_${_n}"
 done
+# Kept (not exported) so tools/hosts/redeploy_commit.sh passes exactly these to an old commit.
+HART_HOST_NAMES="$_hart_host_names"
 unset _n _hart_host_names
 
 export HART_RUNTIME_ROOT="${HART_RUNTIME_ROOT:-${HART_REPO_ROOT}}"

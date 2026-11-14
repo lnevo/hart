@@ -17,6 +17,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 # Hosts: environment first, then tools/env/hart.env, then the defaults in load_env.sh
 # (the same order the Python tools use through tools/hartlib/src/hartlib/hosts.py).
 source "$ROOT/tools/env/load_env.sh"
+source "$ROOT/tools/hosts/profile_tables_guard.sh"
 WIN_HOST="$HART_WIN_SSH"
 WIN_PORT="$HART_WIN_SSH_PORT"
 PI_HOST="$HART_PI_SSH"
@@ -55,7 +56,7 @@ if [[ $# -gt 0 ]]; then
         echo "  --stage-only DIR: build the host packages into DIR/pi and DIR/win and stop."
         echo "                    No ssh, no Mac install, and the repo's tables.xml is only checked."
         echo "  What a host last got: tools/hosts/deploy_status.sh [--pi] [--win] [--mac]"
-  echo "  Redeploy an older commit (rollback): tools/hosts/redeploy_commit.sh <commit> --pi"
+        echo "  Redeploy an older commit (rollback): tools/hosts/redeploy_commit.sh <commit> --pi"
         echo "  Pi PanelPro: quit it first with tools/hosts/pi_quit_panelpro.sh --for-deploy;"
         echo "               the Pi deploy starts it again (also if the deploy fails). A plain"
         echo "               quit or one closed by hand stays closed. HART_PI_RESTART=0 skips."
@@ -95,13 +96,13 @@ if [[ -n "$DEPLOY_CHANGES" ]]; then
     [[ "$DEPLOY_DIRTY_PATHS" -le 10 ]] || echo "    ..."
   } >&2
 fi
-# tools/hosts/redeploy_commit.sh runs an older commit's deploy from a worktree on the
-# branch redeploy/<sha12>; the branch, not the environment, marks the stamp as a redeploy.
+# tools/hosts/redeploy_commit.sh runs an older commit's deploy from a detached worktree, with
+# a clean environment that sets HART_REDEPLOY_FROM to the commit it was run from.
 DEPLOY_SOURCE=deploy
 DEPLOY_REDEPLOY_FROM=none
-if [[ "$DEPLOY_BRANCH" == redeploy/* ]]; then
+if [[ -n "${HART_REDEPLOY_FROM:-}" ]]; then
   DEPLOY_SOURCE=redeploy
-  DEPLOY_REDEPLOY_FROM="${HART_REDEPLOY_FROM:-unknown}"
+  DEPLOY_REDEPLOY_FROM="$HART_REDEPLOY_FROM"
 fi
 DEPLOY_DATE="$(date +%Y-%m-%dT%H:%M:%S%z)"
 DEPLOY_FROM="$(hostname -s 2>/dev/null || hostname)"
@@ -251,8 +252,7 @@ install_tables_local() {
   _copy_tables() {
     local dest="$1/tables.xml" stamp="$1/.tables_deployed.sha256"
     # A Store into this copy since the last deploy would be lost: stop instead.
-    if [[ -f "$dest" && -f "$stamp" && "$(shasum -a 256 "$dest" | cut -d' ' -f1)" != "$(cat "$stamp")" ]] \
-      && ! cmp -s "$src" "$dest" && [[ "${HART_OVERWRITE_PROFILE_TABLES:-0}" != "1" ]]; then
+    if profile_tables_unpulled "$src" "$1"; then
       echo "STOP: $dest changed since the last deploy. Run make tables-pull to bring the changes into the repo, or set HART_OVERWRITE_PROFILE_TABLES=1." >&2
       exit 1
     fi

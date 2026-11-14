@@ -9,7 +9,7 @@ pushes from external/ pass.
 
 Two more rules. While PanelPro, DecoderPro, DispatcherPro or CATS runs on this machine it
 blocks the commands that write the JMRI tables or deploy: make tables-pull, ops-pull,
-deploy-layout and deploy-all, and any repo script whose source writes tables.xml or
+deploy-layout, deploy-all and redeploy, and any repo script whose source writes tables.xml or
 JMRI_UserFiles (READS_TABLES and the launch_/run_ launchers excepted). The script is read
 when the command runs, and --check, --dry-run, --stage-only or a missing --apply only count when the
 script defines that flag. And it blocks a commit, tag, PR, issue, comment, review or
@@ -50,7 +50,7 @@ NAME_CHECK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 # While JMRI or CATS is open these may not run: the make targets below, and any shell or
 # Python script in the repo whose source writes tables.xml or JMRI_UserFiles. The script is
 # read when the command runs, so new scripts are covered without a list to keep up.
-MAKE_TARGETS = {"tables-pull", "ops-pull", "deploy-layout", "deploy-all"}  # not deploy-site
+MAKE_TARGETS = {"tables-pull", "ops-pull", "deploy-layout", "deploy-all", "redeploy"}  # not deploy-site
 WRITERS = {"pull_tables.sh", "pull_ops.sh", "sync_hart_package.sh"}  # when the file can't be read
 TOUCHES = re.compile(r"tables\.xml|JMRI_UserFiles|HART_PI_USERFILES|HART_WIN_USERFILES")
 PY_WRITES = re.compile(r"\.write\(|write_text\(|write_bytes\(|shutil\.(copy|move)|os\.replace\("

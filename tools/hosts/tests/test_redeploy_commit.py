@@ -1,8 +1,9 @@
 """redeploy_commit.sh in --stage-only mode, with fake hosts and no ssh.
 
 A redeploy of HEAD must stage the same package a normal --stage-only of HEAD does; only
-the stamp differs. The refusals (unknown or too old a commit, an unpulled PanelPro Store,
-no host named) must stop before any worktree is made or any host is reached.
+the stamp differs. The refusals (unknown, unmerged or too old a commit, JMRI open, an
+unpulled PanelPro Store, no host named) must stop before any worktree is made or any host
+is reached. HEAD is usually this branch's unmerged commit, hence --allow-unmerged.
 """
 from __future__ import annotations
 
@@ -60,7 +61,7 @@ class RedeployHead(unittest.TestCase):
         cls.network_log = cls.tmp / "network.log"
         # A root exported by the caller's shell must not point the old worktree's tools here.
         redeploy_env = dict(env, HART_REPO_ROOT=str(cls.tmp / "not-the-repo"))
-        cls.done = run(redeploy_env, "HEAD", "--stage-only", str(cls.tmp / "redeploy"))
+        cls.done = run(redeploy_env, "HEAD", "--allow-unmerged", "--stage-only", str(cls.tmp / "redeploy"))
         # The normal stage of HEAD: this checkout if it is clean, else a clean copy of HEAD.
         src = ROOT
         if git("status", "--porcelain").stdout.strip():
@@ -95,18 +96,17 @@ class RedeployHead(unittest.TestCase):
             got = read_stamp(self.tmp / "redeploy" / host / "cats/deploy_stamp.txt")
             want = read_stamp(self.tmp / "normal" / host / "cats/deploy_stamp.txt")
             self.assertEqual(got["commit"], self.head)
-            self.assertEqual(got["branch"], f"redeploy/{self.head[:12]}")
-            self.assertEqual(got["dirty"], "no", "the mirror links must not make the worktree dirty")
+            self.assertEqual(got["branch"], "HEAD", "a detached worktree, no branch of its own")
+            self.assertEqual(got["dirty"], "no")
             if marks:
                 self.assertEqual(got["source"], "redeploy")
                 self.assertEqual(got["redeploy_from"], self.head)
             self.assertEqual({k: v for k, v in got.items() if k not in STAMP_RUN_KEYS},
                              {k: v for k, v in want.items() if k not in STAMP_RUN_KEYS}, host)
 
-    def test_worktree_and_branch_are_removed(self) -> None:
+    def test_worktree_is_removed(self) -> None:
         self.assertEqual(redeploy_trees(), [])
-        self.assertNotEqual(git("rev-parse", "--verify", "--quiet", f"refs/heads/redeploy/{self.head[:12]}",
-                                check=False).returncode, 0)
+        self.assertEqual(git("branch", "--list", "redeploy/*").stdout.strip(), "")
 
 
 class Refusals(unittest.TestCase):
@@ -114,7 +114,7 @@ class Refusals(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.env = stage_env(self.tmp)
-        self.env["HOME"] = str(self.tmp / "home")
+        self.env.update(HOME=str(self.tmp / "home"), HART_GUARD_JMRI_RUNNING="0")
 
     def assert_refused(self, done: subprocess.CompletedProcess, text: str) -> None:
         self.assertNotEqual(done.returncode, 0)
@@ -124,6 +124,25 @@ class Refusals(unittest.TestCase):
 
     def test_unknown_commit(self) -> None:
         self.assert_refused(run(self.env, "0" * 40, "--stage-only", str(self.tmp / "s")), "is not a commit")
+
+    def test_unmerged_commit(self) -> None:
+        main = git("rev-parse", "--verify", "--quiet", "origin/main", check=False)
+        if main.returncode != 0:
+            done = run(self.env, "HEAD", "--stage-only", str(self.tmp / "s"))
+            self.assert_refused(done, "git fetch first")
+            return
+        if git("merge-base", "--is-ancestor", "HEAD", "origin/main", check=False).returncode == 0:
+            self.skipTest("HEAD is already on origin/main")
+        self.assert_refused(run(self.env, "HEAD", "--stage-only", str(self.tmp / "s")), "is not on origin/main")
+
+    def test_jmri_open_stops_a_real_redeploy(self) -> None:
+        self.env["HART_GUARD_JMRI_RUNNING"] = "1"
+        self.assert_refused(run(self.env, "HEAD", "--allow-unmerged", "--pi"), "PanelPro, DecoderPro or CATS")
+
+    def test_mac_dry_run_alone_is_refused(self) -> None:
+        done = run(self.env, "HEAD", "--allow-unmerged", "--mac", "--dry-run")
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("no dry run for the Mac", done.stderr)
 
     def test_needs_hosts(self) -> None:
         done = run(self.env, "HEAD")
@@ -141,14 +160,14 @@ class Refusals(unittest.TestCase):
         first = self.first_with_script()
         if not first or not has_commit(f"{first}^"):
             self.skipTest("history before the ADR-007 move is not in this clone")
-        self.assert_refused(run(self.env, f"{first}^", "--stage-only", str(self.tmp / "s")),
+        self.assert_refused(run(self.env, f"{first}^", "--allow-unmerged", "--stage-only", str(self.tmp / "s")),
                             "predates the deploy's move to tools/hosts/")
 
     def test_commit_before_the_stamp(self) -> None:
         first = self.first_with_script()
         if not first or "write_deploy_stamp" in git("show", f"{first}:{SYNC_REL}").stdout:
             self.skipTest("no commit with the script but without the stamp in this clone")
-        self.assert_refused(run(self.env, first, "--stage-only", str(self.tmp / "s")),
+        self.assert_refused(run(self.env, first, "--allow-unmerged", "--stage-only", str(self.tmp / "s")),
                             "predates the deploy stamp")
 
     def test_unpulled_store_stops_a_real_redeploy(self) -> None:
@@ -156,14 +175,14 @@ class Refusals(unittest.TestCase):
         uf.mkdir(parents=True)
         (uf / "tables.xml").write_text("<stored-by-panelpro/>\n", encoding="utf-8")
         (uf / ".tables_deployed.sha256").write_text("0" * 64 + "\n", encoding="utf-8")
-        self.assert_refused(run(self.env, "HEAD", "--pi"), "Run make tables-pull")
+        self.assert_refused(run(self.env, "HEAD", "--allow-unmerged", "--pi"), "Run make tables-pull")
         self.assertEqual((uf / "tables.xml").read_text(encoding="utf-8"), "<stored-by-panelpro/>\n")
 
     def test_full_stage_folder_is_refused_and_cleaned_up(self) -> None:
         out = self.tmp / "s"
         out.mkdir()
         (out / "keep.txt").write_text("x", encoding="utf-8")
-        self.assert_refused(run(self.env, "HEAD", "--stage-only", str(out)), "is not empty")
+        self.assert_refused(run(self.env, "HEAD", "--allow-unmerged", "--stage-only", str(out)), "is not empty")
         self.assertEqual(sorted(p.name for p in out.iterdir()), ["keep.txt"])
 
 
@@ -171,6 +190,16 @@ class Source(unittest.TestCase):
     def test_ops_guards_stay_on_unless_asked(self) -> None:
         source = REDEPLOY.read_text(encoding="utf-8")
         self.assertIn('HART_OVERWRITE_OPS="${HART_OVERWRITE_OPS:-0}"', source)
+
+    def test_store_test_is_shared_with_the_deploy(self) -> None:
+        for path in (REDEPLOY, ROOT / SYNC_REL):
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("profile_tables_guard.sh", text, path.name)
+            self.assertIn("profile_tables_unpulled", text, path.name)
+            self.assertNotIn(".tables_deployed.sha256)", text, path.name)
+
+    def test_old_commit_gets_a_clean_environment(self) -> None:
+        self.assertIn('env -i "${CHILD_ENV[@]}"', REDEPLOY.read_text(encoding="utf-8"))
 
     def test_make_target(self) -> None:
         text = (ROOT / "Makefile").read_text(encoding="utf-8")

@@ -228,6 +228,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "./tools/ops/pull_tables.sh", "./cats/scripts/sync_hart_package.sh --pi",
                     "cd x && ./cats/scripts/sync_hart_package.sh --all",
                     "./tools/hosts/sync_hart_package.sh --pi",
+                    "make redeploy COMMIT=abc123 HOSTS=--pi", "./tools/hosts/redeploy_commit.sh abc123 --pi",
                     "python3 jmri/layouts/hart/scripts/apply_nx_layer.py",
                     "JMRI_LAYOUT=hart python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
                     "python3 jmri/layouts/hart/scripts/apply_public_names.py --apply"):
@@ -243,6 +244,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py --dry-run",
                     "python3 jmri/layouts/hart/scripts/apply_public_names.py",
                     "./cats/scripts/sync_hart_package.sh --help", "./tools/hosts/sync_hart_package.sh --dry-run --pi",
+                    "./tools/hosts/redeploy_commit.sh abc123 --stage-only /tmp/x",
                     "./cats/scripts/sync_hart_package.sh --stage-only /tmp/x",
                     "./tools/hosts/sync_hart_package.sh --pi --stage-only=/tmp/x",
                     "./cats/scripts/sync_hart_package.sh --dry-run --pi", "cat tools/ops/pull_tables.sh"):
