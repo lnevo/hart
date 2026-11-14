@@ -7,13 +7,16 @@ AnyRail plan in ~/Documents/Layout/schematic/ (outside the repo). The plugin is 
 external/model-railroad-skills at its pinned commit (`git submodule update --init external/model-railroad-skills`
 in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plugin code.
 
---check draws and compares with the published SVG without writing anything (exit 1 if they differ).
+--check draws and compares with the published SVG without writing anything (exit 1 if they differ). It also
+fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for car counts) no longer match
+jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
 When the drawing itself (everything but the title block) differs from main's, publishing sets `date` to today and
 `revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
 from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
 whole number is left alone. If anything fails after that, the preferences file is put back.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 """
+import csv
 import datetime
 import json
 import os
@@ -32,6 +35,8 @@ REPO = paths.REPO_ROOT
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = Path.home() / "Documents/Layout/schematic"
 OUT = REPO / "docs/ops"
+LENGTHS = REPO / "jmri/layouts/hart/data/block_lengths.csv"
+STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
@@ -97,6 +102,37 @@ def draw():
         return mark(svg.read_text())
 
 
+def measured_lengths():
+    """{track name: inches} for every Track row of block_lengths.csv (measured, timed or estimated, as its
+    flag column says). Stops on a repeated name or a length that is not a number."""
+    out = {}
+    with open(LENGTHS, newline="") as f:
+        for r in csv.DictReader(f):
+            name, raw = r["user_name"], (r["inches"] or "").strip()
+            if not name.startswith("Track ") or not raw:
+                continue
+            try:
+                inches = float(raw)
+            except ValueError:
+                sys.exit(f"{LENGTHS.name}: {name} has length {raw!r}, not a number")
+            if name[len("Track "):] in out:
+                sys.exit(f"{LENGTHS.name}: {name} is listed twice")
+            out[name[len("Track "):]] = inches
+    return out
+
+
+def stale_lengths():
+    """Track names whose copy in the staging layer file differs from block_lengths.csv ([] when current)."""
+    have, want = json.loads(STAGING.read_text()).get("track_lengths_in") or {}, measured_lengths()
+    return sorted(k for k in set(have) | set(want) if have.get(k) != want.get(k))
+
+
+def copy_lengths():
+    over = json.loads(STAGING.read_text())
+    over["track_lengths_in"] = measured_lengths()
+    STAGING.write_text(json.dumps(over, indent=1, ensure_ascii=False) + "\n")
+
+
 def drawing_only(svg):
     """The sheet up to the title block (which the plugin draws last), to tell a real drawing change."""
     box = TITLE_BOX.search(svg)
@@ -130,20 +166,30 @@ def pdf(svg_path, pdf_path):
 
 
 def main(argv):
-    sheet = draw()
     target = OUT / "schematic-system-draft.svg"
-    if "--check" in argv:
+    check = "--check" in argv
+    stale = stale_lengths()
+    if stale and check:
+        print(f"{STAGING.name}: track_lengths_in differs from {LENGTHS.name} for {', '.join(stale)}; "
+              "run publish_draft.py to copy them")
+        return 1
+    if check:
+        sheet = draw()
         same = target.exists() and target.read_text() == sheet
         print("published draft is current" if same else "published draft differs from the drawing")
         return 0 if same else 1
     prefs = page_prefs()
-    original = prefs.read_text()
+    kept = {p: p.read_text() for p in (prefs, STAGING)}      # put back if anything below fails
     try:
-        publish(sheet, target, prefs, original)
+        if stale:
+            copy_lengths()
+            print(f"copied the lengths of {', '.join(stale)} into {STAGING.name}")
+        publish(draw(), target, prefs, kept[prefs])
     except BaseException:
-        if prefs.read_text() != original:
-            prefs.write_text(original)
-            print(f"put back {prefs.name}")
+        for p, text in kept.items():
+            if p.read_text() != text:
+                p.write_text(text)
+                print(f"put back {p.name}")
         raise
     return 0
 

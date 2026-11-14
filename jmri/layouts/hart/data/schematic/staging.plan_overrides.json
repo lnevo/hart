@@ -11,7 +11,10 @@
    "5"
   ],
   "Barn": [
-   "7"
+   "7",
+   "9",
+   "11",
+   "13"
   ],
   "South Yard": [
    "15",
@@ -265,5 +268,41 @@
  "level_title": "Staging level",
  "mast_prefix": "Mast ",
  "mast_dir_pattern": "\\d+([LR])",
- "helix_side": "east"
+ "helix_side": "east",
+ "track_lengths_in": {
+  "W-1": 105.0,
+  "W-2": 93.0,
+  "Brick-Plane": 58.1,
+  "East Lead": 87.9,
+  "Main West": 217.3,
+  "West Ext": 156.1,
+  "Main East": 315.1,
+  "East Ext": 140.8,
+  "S-R": 218.0,
+  "S-1": 212.0,
+  "S-2": 178.0,
+  "S-3": 142.0,
+  "S-4": 100.0,
+  "K-1": 108.0,
+  "K-2": 113.6,
+  "Scale": 144.5,
+  "Barn": 33.7,
+  "EH-1": 24.0,
+  "EH-2": 24.0,
+  "EH-3": 24.0,
+  "McKees Rocks": 24.0,
+  "McKeesport": 24.0,
+  "S-1 West": 15.748,
+  "S-1 East": 15.748,
+  "S-2 West": 15.748,
+  "S-2 East": 15.748,
+  "S-3 West": 15.748,
+  "S-3 East": 15.748,
+  "S-4 West": 15.748,
+  "S-4 East": 15.748,
+  "S-R West": 15.748,
+  "S-R East": 15.748,
+  "East Lead East": 15.748,
+  "K-1 West": 15.748
+ }
 }
