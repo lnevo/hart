@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1056 816" width="1056" height="816" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
+<rect width="1056" height="816" fill="#fff"/>
+<rect x="24" y="24" width="1008" height="768" fill="none" stroke="#000" stroke-width="1.5"/>
+<g transform="translate(137.1,192.8) scale(1.5789)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+<path d="M280.0,86.0 L308.0,86.0" stroke-width="1.4"/>
+<path d="M224.0,86.0 L280.0,86.0" stroke-width="1.4"/>
+<path d="M196.0,58.0 L364.0,58.0" stroke-width="3.2"/>
+<path d="M196.0,58.0 L224.0,86.0" stroke-width="1.4"/>
+<path d="M196.0,170.0 L224.0,142.0" stroke-width="1.4"/>
+<path d="M252.0,114.0 L280.0,86.0" stroke-width="1.4"/>
+<path d="M56.0,198.0 L168.0,198.0 L196.0,170.0" stroke-width="1.4"/>
+<path d="M56.0,170.0 L196.0,170.0" stroke-width="1.4"/>
+<path d="M112.0,114.0 L252.0,114.0" stroke-width="1.4"/>
+<path d="M224.0,142.0 L252.0,114.0" stroke-width="1.4"/>
+<path d="M308.0,86.0 L476.0,86.0" stroke-width="3.2"/>
+<path d="M84.0,142.0 L224.0,142.0" stroke-width="1.4"/>
+<path d="M0.0,226.0 L168.0,226.0 L308.0,86.0" stroke-width="3.2"/>
+<path d="M84.0,86.0 L224.0,86.0" stroke-width="1.4"/>
+<path d="M28.0,58.0 L196.0,58.0" stroke-width="3.2"/>
+<path d="M364.0,58.0 m-6,-5 l6,5 l-6,5" stroke-width="1.6"/>
+<path d="M56.0,198.0 m6,-5 l-6,5 l6,5" stroke-width="1.6"/>
+<path d="M56.0,170.0 m6,-5 l-6,5 l6,5" stroke-width="1.6"/>
+<path d="M112.0,114.0 m6,-5 l-6,5 l6,5" stroke-width="1.6"/>
+<path d="M476.0,86.0 m-6,-5 l6,5 l-6,5" stroke-width="1.6"/>
+<path d="M84.0,142.0 m6,-5 l-6,5 l6,5" stroke-width="1.6"/>
+<path d="M0.0,226.0 m6,-5 l-6,5 l6,5" stroke-width="1.6"/>
+<path d="M84.0,86.0 m6,-5 l-6,5 l6,5" stroke-width="1.6"/>
+<path d="M28.0,58.0 m6,-5 l-6,5 l6,5" stroke-width="1.6"/>
+<path d="M186.0,254 L186.0,260 L318.0,260 L318.0,254" stroke-width="1.4"/>
+<path d="M215.6,46.8 L215.6,54.8 M215.6,50.8 L211.6,50.8" stroke-width="0.9"/>
+<circle cx="208.0" cy="50.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="200.8" cy="50.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M176.4,61.2 L176.4,69.2 M176.4,65.2 L180.4,65.2" stroke-width="0.9"/>
+<circle cx="184.0" cy="65.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="191.2" cy="65.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M204.4,88.3 L204.4,96.3 M204.4,92.3 L208.4,92.3" stroke-width="0.9"/>
+<circle cx="212.0" cy="92.3" r="3.6" stroke-width="0.9" fill="#fff"/>
+<g transform="translate(275.1,99.8) rotate(-45.0)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff"/></g>
+<path d="M327.6,74.8 L327.6,82.8 M327.6,78.8 L323.6,78.8" stroke-width="0.9"/>
+<circle cx="320.0" cy="78.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="312.8" cy="78.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M148.4,229.2 L148.4,237.2 M148.4,233.2 L152.4,233.2" stroke-width="0.9"/>
+<circle cx="156.0" cy="233.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="163.2" cy="233.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M175.0,49.0 L170.0,49.0 L170.0,233.0 L175.0,233.0" stroke-width="1.4"/>
+<path d="M343.0,49.0 L348.0,49.0 L348.0,95.0 L343.0,95.0" stroke-width="1.4"/>
+<path d="M378.4,86.0 L378.4,92.0" stroke-width="1"/>
+<path d="M378.4,92.0 L381.6,95.2 L378.4,98.4 L375.2,95.2 Z" stroke-width="1" fill="#fff"/>
+<text x="0.0" y="4.0" font-size="12" text-anchor="start" font-weight="bold" fill="#000" stroke="none" letter-spacing="1.5">STAGING LEVEL</text>
+<text x="372.0" y="61.0" font-size="8.5" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >TO PRINCESS</text>
+<text x="48.0" y="201.0" font-size="8.5" text-anchor="end" font-weight="bold" fill="#000" stroke="none" >TO SOUTH YARD</text>
+<text x="48.0" y="173.0" font-size="8.5" text-anchor="end" font-weight="bold" fill="#000" stroke="none" >TO SOUTH YARD</text>
+<text x="104.0" y="117.0" font-size="8.5" text-anchor="end" font-weight="bold" fill="#000" stroke="none" >TO SOUTH YARD</text>
+<text x="484.0" y="89.0" font-size="8.5" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >TO PRINCESS</text>
+<text x="76.0" y="145.0" font-size="8.5" text-anchor="end" font-weight="bold" fill="#000" stroke="none" >TO SOUTH YARD</text>
+<text x="-8.0" y="229.0" font-size="8.5" text-anchor="end" font-weight="bold" fill="#000" stroke="none" >TO BARN</text>
+<text x="76.0" y="89.0" font-size="8.5" text-anchor="end" font-weight="bold" fill="#000" stroke="none" >TO SOUTH YARD</text>
+<text x="20.0" y="61.0" font-size="8.5" text-anchor="end" font-weight="bold" fill="#000" stroke="none" >TO BRICK</text>
+<text x="252.0" y="274.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">EAST END</text>
+<text x="185.6" y="81.3" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >24RA</text>
+<text x="119.0" y="81.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-R (29)</text>
+<text x="270.4" y="111.6" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >32R</text>
+<text x="145.9" y="236.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >34R</text>
+<text x="218.1" y="53.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >24L</text>
+<text x="201.9" y="95.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >24RB</text>
+<text x="330.1" y="81.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >34L</text>
+<text x="280.0" y="53.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">WEST EXT</text>
+<text x="126.0" y="165.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-3 (19)</text>
+<text x="392.0" y="81.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EAST LEAD</text>
+<text x="112.0" y="53.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MAIN WEST</text>
+<text x="189.0" y="163.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >25</text>
+<text x="245.0" y="107.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >29</text>
+<text x="147.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-1 (28)</text>
+<text x="217.0" y="135.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >27</text>
+<text x="119.0" y="137.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-2 (24)</text>
+<text x="112.0" y="193.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-4 (13)</text>
+<text x="84.0" y="221.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MAIN EAST</text>
+<text x="189.0" y="51.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >23</text>
+<text x="287.0" y="79.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >31</text>
+<text x="301.0" y="79.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >33</text>
+<text x="259.0" y="35.5" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"EAST END" [EE]</text>
+<text x="378.4" y="105.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >0.75</text>
+</g>
+<text x="508.0" y="62" font-size="15" text-anchor="end" font-weight="bold" letter-spacing="2">&#8592; WEST</text>
+<text x="548.0" y="62" font-size="15" text-anchor="start" font-weight="bold" letter-spacing="2">EAST &#8594;</text>
+<rect x="24" y="728" width="330" height="64" fill="#fff" stroke="#000" stroke-width="1.5"/>
+<text x="34" y="748" font-size="14" font-weight="bold" letter-spacing="1">EAST END</text>
+<text x="34" y="766" font-size="11" font-weight="normal" letter-spacing="1">STATION DETAIL SHEET</text>
+<text x="34" y="784" font-size="11" font-weight="normal" letter-spacing="1">STAGING LEVEL</text>
+<text x="344" y="784" font-size="16" text-anchor="end" font-weight="bold" letter-spacing="3" fill="#c00">DRAFT</text>
+</svg>

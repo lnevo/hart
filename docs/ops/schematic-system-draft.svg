@@ -1,435 +1,479 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1056 816" width="1056" height="816" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
 <rect width="1056" height="816" fill="#fff"/>
 <rect x="24" y="24" width="1008" height="768" fill="none" stroke="#000" stroke-width="1.5"/>
-<g transform="translate(48.0,111.1) scale(0.5783)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
-<path d="M1048.0,116.0 L1076.0,116.0" stroke-width="1.4"/>
-<path d="M992.0,116.0 L1048.0,116.0" stroke-width="1.4"/>
-<path d="M1020.0,144.0 L1048.0,116.0" stroke-width="1.4"/>
-<path d="M208.0,88.0 L236.0,88.0" stroke-width="1.4"/>
-<path d="M96.0,60.0 L180.0,60.0 L208.0,88.0" stroke-width="1.4"/>
-<path d="M124.0,88.0 L208.0,88.0" stroke-width="1.4"/>
-<path d="M712.0,116.0 L740.0,144.0" stroke-width="1.4"/>
-<path d="M1300.0,88.0 L1328.0,88.0" stroke-width="3.2"/>
-<path d="M964.0,88.0 L1300.0,88.0" stroke-width="3.2"/>
-<path d="M1272.0,116.0 L1300.0,88.0" stroke-width="1.4"/>
-<path d="M1328.0,88.0 L1468.0,88.0" stroke-width="3.2"/>
-<path d="M1328.0,88.0 L1356.0,60.0 L1580.0,60.0" stroke-width="1.4"/>
-<path d="M1328.0,116.0 L1356.0,144.0 L1580.0,144.0" stroke-width="1.4"/>
-<path d="M964.0,88.0 L992.0,116.0" stroke-width="1.4"/>
-<path d="M964.0,200.0 L992.0,172.0" stroke-width="1.4"/>
-<path d="M796.0,200.0 L824.0,228.0 L936.0,228.0 L964.0,200.0" stroke-width="1.4"/>
-<path d="M796.0,200.0 L964.0,200.0" stroke-width="1.4"/>
-<path d="M740.0,144.0 L768.0,172.0" stroke-width="1.4"/>
-<path d="M740.0,144.0 L1020.0,144.0" stroke-width="1.4"/>
-<path d="M768.0,172.0 L796.0,200.0" stroke-width="1.4"/>
-<path d="M1272.0,116.0 L1328.0,116.0" stroke-width="3.2"/>
-<path d="M1328.0,116.0 L1468.0,116.0" stroke-width="3.2"/>
-<path d="M992.0,172.0 L1020.0,144.0" stroke-width="1.4"/>
-<path d="M1076.0,116.0 L1272.0,116.0" stroke-width="3.2"/>
-<path d="M768.0,172.0 L992.0,172.0" stroke-width="1.4"/>
-<path d="M40.0,256.0 L292.0,256.0" stroke-width="3.2"/>
-<path d="M40.0,116.0 L208.0,116.0 L236.0,88.0" stroke-width="3.2"/>
-<path d="M712.0,116.0 L992.0,116.0" stroke-width="1.4"/>
-<path d="M236.0,88.0 L964.0,88.0" stroke-width="3.2"/>
-<path d="M292.0,256.0 L320.0,228.0 L460.0,228.0" stroke-width="1.4"/>
-<path d="M292.0,256.0 L432.0,256.0" stroke-width="3.2"/>
-<path d="M432.0,256.0 L936.0,256.0 L1076.0,116.0" stroke-width="3.2"/>
-<path d="M432.0,256.0 L460.0,228.0" stroke-width="1.4"/>
-<path d="M460.0,228.0 L572.0,228.0 L684.0,116.0" stroke-width="1.4"/>
-<path d="M684.0,116.0 L712.0,116.0" stroke-width="1.4"/>
-<path d="M656.0,116.0 L684.0,116.0" stroke-width="1.4"/>
-<path d="M572.0,116.0 L656.0,116.0" stroke-width="1.4"/>
-<path d="M628.0,144.0 L656.0,116.0" stroke-width="1.4"/>
-<path d="M516.0,172.0 L600.0,172.0 L628.0,144.0" stroke-width="1.4"/>
-<path d="M544.0,144.0 L628.0,144.0" stroke-width="1.4"/>
-<path d="M1580.0,60.0 L1594.0,74.0 L1594.0,130.0 L1580.0,144.0" stroke-width="1.4"/>
-<path d="M40.0,116.0 L26.0,130.0 L26.0,242.0 L40.0,256.0" stroke-width="3.2"/>
-<path d="M96.0,55.0 L96.0,65.0" stroke-width="2.4"/>
-<path d="M124.0,83.0 L124.0,93.0" stroke-width="2.4"/>
-<ellipse cx="1475.0" cy="88.0" rx="6" ry="9" stroke-width="1.6"/>
-<ellipse cx="1482.0" cy="88.0" rx="6" ry="9" stroke-width="1.6"/>
-<ellipse cx="1489.0" cy="88.0" rx="6" ry="9" stroke-width="1.6"/>
-<ellipse cx="1475.0" cy="116.0" rx="6" ry="9" stroke-width="1.6"/>
-<ellipse cx="1482.0" cy="116.0" rx="6" ry="9" stroke-width="1.6"/>
-<ellipse cx="1489.0" cy="116.0" rx="6" ry="9" stroke-width="1.6"/>
-<path d="M572.0,111.0 L572.0,121.0" stroke-width="2.4"/>
-<path d="M516.0,167.0 L516.0,177.0" stroke-width="2.4"/>
-<path d="M544.0,139.0 L544.0,149.0" stroke-width="2.4"/>
-<path d="M198.0,284 L198.0,290 L246.0,290 L246.0,284" stroke-width="1.4"/>
-<path d="M282.0,284 L282.0,290 L302.0,290 L302.0,284" stroke-width="1.4"/>
-<path d="M422.0,284 L422.0,290 L694.0,290 L694.0,284" stroke-width="1.4"/>
-<path d="M702.0,324 L702.0,330 L806.0,330 L806.0,324" stroke-width="1.4"/>
-<path d="M954.0,284 L954.0,290 L1086.0,290 L1086.0,284" stroke-width="1.4"/>
-<path d="M1262.0,284 L1262.0,290 L1338.0,290 L1338.0,284" stroke-width="1.4"/>
-<path d="M255.6,76.8 L255.6,84.8 M255.6,80.8 L251.6,80.8" stroke-width="0.9"/>
-<circle cx="248.0" cy="80.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="240.8" cy="80.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M160.4,62.3 L160.4,70.3 M160.4,66.3 L164.4,66.3" stroke-width="0.9"/>
-<circle cx="168.0" cy="66.3" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M188.4,90.3 L188.4,98.3 M188.4,94.3 L192.4,94.3" stroke-width="0.9"/>
-<circle cx="196.0" cy="94.3" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M339.6,217.7 L339.6,225.7 M339.6,221.7 L335.6,221.7" stroke-width="0.9"/>
-<circle cx="332.0" cy="221.7" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M325.6,244.8 L325.6,252.8 M325.6,248.8 L321.6,248.8" stroke-width="0.9"/>
-<circle cx="318.0" cy="248.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M465.6,244.8 L465.6,252.8 M465.6,248.8 L461.6,248.8" stroke-width="0.9"/>
-<circle cx="458.0" cy="248.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="450.8" cy="248.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M479.6,217.7 L479.6,225.7 M479.6,221.7 L475.6,221.7" stroke-width="0.9"/>
-<circle cx="472.0" cy="221.7" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M420.5,230.3 L420.5,238.3 M420.5,234.3 L424.5,234.3" stroke-width="0.9"/>
-<circle cx="428.1" cy="234.3" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="435.3" cy="234.3" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M412.4,259.2 L412.4,267.2 M412.4,263.2 L416.4,263.2" stroke-width="0.9"/>
-<circle cx="420.0" cy="263.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="427.2" cy="263.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M983.6,76.8 L983.6,84.8 M983.6,80.8 L979.6,80.8" stroke-width="0.9"/>
-<circle cx="976.0" cy="80.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="968.8" cy="80.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M944.4,91.2 L944.4,99.2 M944.4,95.2 L948.4,95.2" stroke-width="0.9"/>
-<circle cx="952.0" cy="95.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="959.2" cy="95.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M972.4,118.3 L972.4,126.3 M972.4,122.3 L976.4,122.3" stroke-width="0.9"/>
-<circle cx="980.0" cy="122.3" r="3.6" stroke-width="0.9" fill="#fff"/>
-<g transform="translate(1043.1,129.8) rotate(-45.0)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff"/></g>
-<path d="M1095.6,104.8 L1095.6,112.8 M1095.6,108.8 L1091.6,108.8" stroke-width="0.9"/>
-<circle cx="1088.0" cy="108.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="1080.8" cy="108.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M916.4,259.2 L916.4,267.2 M916.4,263.2 L920.4,263.2" stroke-width="0.9"/>
-<circle cx="924.0" cy="263.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="931.2" cy="263.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M1266.4,91.2 L1266.4,99.2 M1266.4,95.2 L1270.4,95.2" stroke-width="0.9"/>
-<circle cx="1274.0" cy="95.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="1281.2" cy="95.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M1252.4,119.2 L1252.4,127.2 M1252.4,123.2 L1256.4,123.2" stroke-width="0.9"/>
-<circle cx="1260.0" cy="123.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="1267.2" cy="123.2" r="3.6" stroke-width="0.9" fill="#fff"/>
-<path d="M1347.6,104.8 L1347.6,112.8 M1347.6,108.8 L1343.6,108.8" stroke-width="0.9"/>
-<circle cx="1340.0" cy="108.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<circle cx="1332.8" cy="108.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<path d="M1375.6,133.7 L1375.6,141.7 M1375.6,137.7 L1371.6,137.7" stroke-width="0.9"/>
-<circle cx="1368.0" cy="137.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<path d="M1361.6,76.8 L1361.6,84.8 M1361.6,80.8 L1357.6,80.8" stroke-width="0.9"/>
-<circle cx="1354.0" cy="80.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<circle cx="1346.8" cy="80.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<path d="M1375.6,49.7 L1375.6,57.7 M1375.6,53.7 L1371.6,53.7" stroke-width="0.9"/>
-<circle cx="1368.0" cy="53.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<path d="M1560.4,49.7 L1560.4,57.7 M1560.4,53.7 L1556.4,53.7" stroke-width="0.9"/>
-<circle cx="1552.8" cy="53.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<path d="M1560.4,133.7 L1560.4,141.7 M1560.4,137.7 L1556.4,137.7" stroke-width="0.9"/>
-<circle cx="1552.8" cy="137.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<g transform="translate(48.0,98.9) scale(0.5783)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+<path d="M1048.0,158.0 L1076.0,158.0" stroke-width="1.4"/>
+<path d="M992.0,158.0 L1048.0,158.0" stroke-width="1.4"/>
+<path d="M1020.0,186.0 L1048.0,158.0" stroke-width="1.4"/>
+<path d="M208.0,130.0 L236.0,130.0" stroke-width="1.4"/>
+<path d="M96.0,102.0 L180.0,102.0 L208.0,130.0" stroke-width="1.4"/>
+<path d="M124.0,130.0 L208.0,130.0" stroke-width="1.4"/>
+<path d="M712.0,158.0 L740.0,186.0" stroke-width="1.4"/>
+<path d="M1300.0,130.0 L1328.0,130.0" stroke-width="3.2"/>
+<path d="M964.0,130.0 L1300.0,130.0" stroke-width="3.2"/>
+<path d="M1272.0,158.0 L1300.0,130.0" stroke-width="1.4"/>
+<path d="M1328.0,130.0 L1468.0,130.0" stroke-width="3.2"/>
+<path d="M1328.0,130.0 L1356.0,102.0 L1580.0,102.0" stroke-width="1.4"/>
+<path d="M1328.0,158.0 L1356.0,186.0 L1580.0,186.0" stroke-width="1.4"/>
+<path d="M964.0,130.0 L992.0,158.0" stroke-width="1.4"/>
+<path d="M964.0,242.0 L992.0,214.0" stroke-width="1.4"/>
+<path d="M796.0,242.0 L824.0,270.0 L936.0,270.0 L964.0,242.0" stroke-width="1.4"/>
+<path d="M796.0,242.0 L964.0,242.0" stroke-width="1.4"/>
+<path d="M740.0,186.0 L768.0,214.0" stroke-width="1.4"/>
+<path d="M740.0,186.0 L1020.0,186.0" stroke-width="1.4"/>
+<path d="M768.0,214.0 L796.0,242.0" stroke-width="1.4"/>
+<path d="M1272.0,158.0 L1328.0,158.0" stroke-width="3.2"/>
+<path d="M1328.0,158.0 L1468.0,158.0" stroke-width="3.2"/>
+<path d="M992.0,214.0 L1020.0,186.0" stroke-width="1.4"/>
+<path d="M1076.0,158.0 L1272.0,158.0" stroke-width="3.2"/>
+<path d="M768.0,214.0 L992.0,214.0" stroke-width="1.4"/>
+<path d="M40.0,298.0 L292.0,298.0" stroke-width="3.2"/>
+<path d="M40.0,158.0 L208.0,158.0 L236.0,130.0" stroke-width="3.2"/>
+<path d="M712.0,158.0 L992.0,158.0" stroke-width="1.4"/>
+<path d="M236.0,130.0 L964.0,130.0" stroke-width="3.2"/>
+<path d="M292.0,298.0 L320.0,270.0 L460.0,270.0" stroke-width="1.4"/>
+<path d="M292.0,298.0 L432.0,298.0" stroke-width="3.2"/>
+<path d="M432.0,298.0 L936.0,298.0 L1076.0,158.0" stroke-width="3.2"/>
+<path d="M432.0,298.0 L460.0,270.0" stroke-width="1.4"/>
+<path d="M460.0,270.0 L572.0,270.0 L684.0,158.0" stroke-width="1.4"/>
+<path d="M684.0,158.0 L712.0,158.0" stroke-width="1.4"/>
+<path d="M656.0,158.0 L684.0,158.0" stroke-width="1.4"/>
+<path d="M572.0,158.0 L656.0,158.0" stroke-width="1.4"/>
+<path d="M628.0,186.0 L656.0,158.0" stroke-width="1.4"/>
+<path d="M516.0,214.0 L600.0,214.0 L628.0,186.0" stroke-width="1.4"/>
+<path d="M544.0,186.0 L628.0,186.0" stroke-width="1.4"/>
+<path d="M1580.0,102.0 L1594.0,116.0 L1594.0,172.0 L1580.0,186.0" stroke-width="1.4"/>
+<path d="M40.0,158.0 L26.0,172.0 L26.0,284.0 L40.0,298.0" stroke-width="3.2"/>
+<path d="M96.0,97.0 L96.0,107.0" stroke-width="2.4"/>
+<path d="M124.0,125.0 L124.0,135.0" stroke-width="2.4"/>
+<ellipse cx="1475.0" cy="130.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1482.0" cy="130.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1489.0" cy="130.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1475.0" cy="158.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1482.0" cy="158.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1489.0" cy="158.0" rx="6" ry="9" stroke-width="1.6"/>
+<path d="M572.0,153.0 L572.0,163.0" stroke-width="2.4"/>
+<path d="M516.0,209.0 L516.0,219.0" stroke-width="2.4"/>
+<path d="M544.0,181.0 L544.0,191.0" stroke-width="2.4"/>
+<path d="M198.0,326 L198.0,332 L246.0,332 L246.0,326" stroke-width="1.4"/>
+<path d="M86.0,74 L86.0,68 L218.0,68 L218.0,74" stroke-width="1.4"/>
+<path d="M282.0,326 L282.0,332 L302.0,332 L302.0,326" stroke-width="1.4"/>
+<path d="M422.0,326 L422.0,332 L694.0,332 L694.0,326" stroke-width="1.4"/>
+<path d="M702.0,366 L702.0,372 L806.0,372 L806.0,366" stroke-width="1.4"/>
+<path d="M954.0,326 L954.0,332 L1086.0,332 L1086.0,326" stroke-width="1.4"/>
+<path d="M1262.0,326 L1262.0,332 L1338.0,332 L1338.0,326" stroke-width="1.4"/>
+<path d="M255.6,118.8 L255.6,126.8 M255.6,122.8 L251.6,122.8" stroke-width="0.9"/>
+<circle cx="248.0" cy="122.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="240.8" cy="122.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M160.4,104.3 L160.4,112.3 M160.4,108.3 L164.4,108.3" stroke-width="0.9"/>
+<circle cx="168.0" cy="108.3" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M188.4,132.3 L188.4,140.3 M188.4,136.3 L192.4,136.3" stroke-width="0.9"/>
+<circle cx="196.0" cy="136.3" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M339.6,259.7 L339.6,267.7 M339.6,263.7 L335.6,263.7" stroke-width="0.9"/>
+<circle cx="332.0" cy="263.7" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M325.6,286.8 L325.6,294.8 M325.6,290.8 L321.6,290.8" stroke-width="0.9"/>
+<circle cx="318.0" cy="290.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M465.6,286.8 L465.6,294.8 M465.6,290.8 L461.6,290.8" stroke-width="0.9"/>
+<circle cx="458.0" cy="290.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="450.8" cy="290.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M479.6,259.7 L479.6,267.7 M479.6,263.7 L475.6,263.7" stroke-width="0.9"/>
+<circle cx="472.0" cy="263.7" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M420.5,272.3 L420.5,280.3 M420.5,276.3 L424.5,276.3" stroke-width="0.9"/>
+<circle cx="428.1" cy="276.3" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="435.3" cy="276.3" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M412.4,301.2 L412.4,309.2 M412.4,305.2 L416.4,305.2" stroke-width="0.9"/>
+<circle cx="420.0" cy="305.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="427.2" cy="305.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M983.6,118.8 L983.6,126.8 M983.6,122.8 L979.6,122.8" stroke-width="0.9"/>
+<circle cx="976.0" cy="122.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="968.8" cy="122.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M944.4,133.2 L944.4,141.2 M944.4,137.2 L948.4,137.2" stroke-width="0.9"/>
+<circle cx="952.0" cy="137.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="959.2" cy="137.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M972.4,160.3 L972.4,168.3 M972.4,164.3 L976.4,164.3" stroke-width="0.9"/>
+<circle cx="980.0" cy="164.3" r="3.6" stroke-width="0.9" fill="#fff"/>
+<g transform="translate(1043.1,171.8) rotate(-45.0)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff"/></g>
+<path d="M1095.6,146.8 L1095.6,154.8 M1095.6,150.8 L1091.6,150.8" stroke-width="0.9"/>
+<circle cx="1088.0" cy="150.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="1080.8" cy="150.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M916.4,301.2 L916.4,309.2 M916.4,305.2 L920.4,305.2" stroke-width="0.9"/>
+<circle cx="924.0" cy="305.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="931.2" cy="305.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M1266.4,133.2 L1266.4,141.2 M1266.4,137.2 L1270.4,137.2" stroke-width="0.9"/>
+<circle cx="1274.0" cy="137.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="1281.2" cy="137.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M1252.4,161.2 L1252.4,169.2 M1252.4,165.2 L1256.4,165.2" stroke-width="0.9"/>
+<circle cx="1260.0" cy="165.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="1267.2" cy="165.2" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M1347.6,146.8 L1347.6,154.8 M1347.6,150.8 L1343.6,150.8" stroke-width="0.9"/>
+<circle cx="1340.0" cy="150.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<circle cx="1332.8" cy="150.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M1375.6,175.7 L1375.6,183.7 M1375.6,179.7 L1371.6,179.7" stroke-width="0.9"/>
+<circle cx="1368.0" cy="179.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M1361.6,118.8 L1361.6,126.8 M1361.6,122.8 L1357.6,122.8" stroke-width="0.9"/>
+<circle cx="1354.0" cy="122.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<circle cx="1346.8" cy="122.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M1375.6,91.7 L1375.6,99.7 M1375.6,95.7 L1371.6,95.7" stroke-width="0.9"/>
+<circle cx="1368.0" cy="95.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M1560.4,91.7 L1560.4,99.7 M1560.4,95.7 L1556.4,95.7" stroke-width="0.9"/>
+<circle cx="1552.8" cy="95.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M1560.4,175.7 L1560.4,183.7 M1560.4,179.7 L1556.4,179.7" stroke-width="0.9"/>
+<circle cx="1552.8" cy="179.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M403.1,298.0 L403.1,304.0" stroke-width="1"/>
+<path d="M403.1,304.0 L406.3,307.2 L403.1,310.4 L399.9,307.2 Z" stroke-width="1" fill="#fff"/>
+<path d="M200.0,158.0 L200.0,164.0" stroke-width="1"/>
+<path d="M200.0,164.0 L203.2,167.2 L200.0,170.4 L196.8,167.2 Z" stroke-width="1" fill="#fff"/>
+<path d="M1146.4,158.0 L1146.4,164.0" stroke-width="1"/>
+<path d="M1146.4,164.0 L1149.6,167.2 L1146.4,170.4 L1143.2,167.2 Z" stroke-width="1" fill="#fff"/>
+<path d="M799.2,298.0 L799.2,292.0" stroke-width="1"/>
+<path d="M799.2,285.6 L802.4,288.8 L799.2,292.0 L796.0,288.8 Z" stroke-width="1" fill="#fff"/>
 <text x="40.0" y="34.0" font-size="12" text-anchor="start" font-weight="bold" fill="#000" stroke="none" letter-spacing="1.5">STAGING LEVEL</text>
-<text x="1502.0" y="91.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H1</text>
-<text x="1518.0" y="91.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO MAIN LEVEL</text>
-<text x="1502.0" y="119.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H2</text>
-<text x="1518.0" y="119.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO UPPER LEVEL</text>
-<text x="222.0" y="304.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">BRICK</text>
-<text x="222.0" y="315.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">26 CARS</text>
-<text x="292.0" y="304.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">PLANE</text>
-<text x="292.0" y="315.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">19 CARS</text>
-<text x="558.0" y="304.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">BARN</text>
-<text x="558.0" y="315.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">13 CARS</text>
-<text x="754.0" y="344.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">SOUTH YARD</text>
-<text x="754.0" y="355.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">113 CARS</text>
-<text x="1020.0" y="304.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">EAST END</text>
-<text x="1300.0" y="304.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">PRINCESS</text>
-<text x="1300.0" y="315.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">29 CARS</text>
-<text x="328.1" y="251.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >6LB</text>
-<text x="468.1" y="251.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >8LA</text>
-<text x="418.0" y="237.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >8RA</text>
-<text x="1263.9" y="98.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >36RA</text>
-<text x="1364.1" y="83.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >40LA</text>
-<text x="157.9" y="69.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >4RA</text>
-<text x="941.9" y="98.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >24RA</text>
-<text x="1038.4" y="141.6" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >32R</text>
-<text x="1378.1" y="140.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >38LB</text>
-<text x="1547.2" y="140.6" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >2036</text>
-<text x="215.0" y="101.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >3</text>
-<text x="185.9" y="97.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >4RB</text>
-<text x="166.0" y="83.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">W-2 (12)</text>
-<text x="1398.0" y="100.1" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEES ROCKS</text>
-<text x="258.1" y="83.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >2L</text>
-<text x="342.1" y="224.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >6LA</text>
-<text x="482.1" y="224.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >8LB</text>
-<text x="409.9" y="266.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >8RB</text>
-<text x="986.1" y="83.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >24L</text>
-<text x="969.9" y="125.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >24RB</text>
-<text x="1098.1" y="111.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >34L</text>
-<text x="913.9" y="266.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >34R</text>
-<text x="1249.9" y="126.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >36RB</text>
-<text x="1350.1" y="111.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >38LA</text>
-<text x="1433.0" y="111.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEESPORT</text>
-<text x="1378.1" y="56.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >40LB</text>
-<text x="1562.9" y="56.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >2035</text>
-<text x="957.0" y="193.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >25</text>
-<text x="1013.0" y="137.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >29</text>
-<text x="985.0" y="165.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >27</text>
-<text x="138.0" y="55.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">W-1 (14)</text>
-<text x="390.0" y="223.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">SCALE (19)</text>
-<text x="397.0" y="251.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EAST EXT</text>
-<text x="586.0" y="139.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EH-2 (3)</text>
-<text x="460.0" y="221.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >7</text>
-<text x="1468.0" y="139.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">K-2 (15)</text>
-<text x="1174.0" y="111.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EAST LEAD</text>
-<text x="544.0" y="223.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">BARN (4)</text>
-<text x="614.0" y="111.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EH-1 (3)</text>
-<text x="1321.0" y="101.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >39</text>
-<text x="285.0" y="269.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >5</text>
-<text x="1468.0" y="55.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">K-1 (14)</text>
-<text x="880.0" y="195.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-3 (19)</text>
-<text x="558.0" y="167.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EH-3 (3)</text>
-<text x="1055.0" y="109.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >31</text>
-<text x="1069.0" y="109.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >33</text>
-<text x="957.0" y="81.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >23</text>
-<text x="1132.0" y="83.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">WEST EXT</text>
-<text x="747.0" y="137.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >17</text>
-<text x="803.0" y="193.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >21</text>
-<text x="775.0" y="165.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >19</text>
-<text x="229.0" y="81.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >1</text>
-<text x="628.0" y="137.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >9</text>
-<text x="166.0" y="251.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">BRICK-PLANE</text>
-<text x="852.0" y="111.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-R (29)</text>
-<text x="1292.0" y="105.0" font-size="8" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >35</text>
-<text x="1321.0" y="109.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >37</text>
-<text x="663.0" y="109.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >11</text>
-<text x="880.0" y="223.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-4 (13)</text>
-<text x="880.0" y="139.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-1 (28)</text>
-<text x="880.0" y="167.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-2 (24)</text>
-<text x="600.0" y="83.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MAIN WEST</text>
-<text x="684.0" y="251.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MAIN EAST</text>
-<text x="691.0" y="109.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >13</text>
-<text x="705.0" y="109.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >15</text>
-<path d="M929.0,576.0 L992.6,576.0" stroke-width="1.4"/>
-<path d="M992.6,576.0 L1151.7,576.0" stroke-width="1.4"/>
-<path d="M992.6,576.0 L1024.4,548.0" stroke-width="1.4"/>
-<path d="M1151.7,576.0 L1183.5,576.0" stroke-width="1.4"/>
-<path d="M1183.5,576.0 L1247.1,576.0" stroke-width="1.4"/>
-<path d="M1183.5,576.0 L1215.3,604.0 L1278.9,604.0" stroke-width="1.4"/>
-<path d="M1024.4,548.0 L1056.2,520.0" stroke-width="1.4"/>
-<path d="M738.2,548.0 L1024.4,548.0" stroke-width="1.4"/>
-<path d="M674.6,548.0 L738.2,548.0" stroke-width="1.4"/>
-<path d="M706.4,520.0 L738.2,548.0" stroke-width="1.4"/>
-<path d="M1088.0,520.0 L1151.7,576.0" stroke-width="1.4"/>
-<path d="M515.6,548.0 L642.8,548.0" stroke-width="1.4"/>
-<path d="M452.0,548.0 L515.6,548.0" stroke-width="1.4"/>
-<path d="M420.2,576.0 L483.8,576.0 L515.6,548.0" stroke-width="1.4"/>
-<path d="M642.8,548.0 L674.6,520.0" stroke-width="1.4"/>
-<path d="M547.4,576.0 L611.0,576.0 L642.8,548.0" stroke-width="1.4"/>
-<path d="M674.6,520.0 L706.4,520.0" stroke-width="3.2"/>
-<path d="M706.4,520.0 L1056.2,520.0" stroke-width="3.2"/>
-<path d="M388.3,520.0 L420.2,520.0" stroke-width="3.2"/>
-<path d="M356.5,520.0 L388.3,520.0" stroke-width="3.2"/>
-<path d="M356.5,548.0 L388.3,520.0" stroke-width="1.4"/>
-<path d="M133.9,576.0 L324.7,576.0 L356.5,548.0" stroke-width="1.4" stroke-dasharray="7 5"/>
-<path d="M165.7,548.0 L356.5,548.0" stroke-width="1.4" stroke-dasharray="7 5"/>
-<path d="M420.2,520.0 L674.6,520.0" stroke-width="3.2"/>
-<path d="M133.9,604.0 L324.7,604.0 L420.2,520.0" stroke-width="1.4" stroke-dasharray="7 5"/>
-<path d="M38.5,576.0 L102.1,576.0" stroke-width="1.4"/>
-<path d="M102.1,576.0 L133.9,604.0" stroke-width="1.4"/>
-<path d="M133.9,576.0 L165.7,548.0" stroke-width="1.4"/>
-<path d="M102.1,576.0 L133.9,576.0" stroke-width="1.4"/>
-<path d="M1056.2,520.0 L1088.0,520.0" stroke-width="3.2"/>
-<path d="M1088.0,520.0 L1119.8,520.0" stroke-width="3.2"/>
-<path d="M102.1,548.0 L165.7,548.0" stroke-width="1.4"/>
-<path d="M70.3,604.0 L133.9,604.0" stroke-width="1.4"/>
-<path d="M102.1,520.0 L356.5,520.0" stroke-width="3.2" stroke-dasharray="7 5"/>
-<path d="M102.1,492.0 L324.7,492.0 L356.5,520.0" stroke-width="3.2" stroke-dasharray="7 5"/>
-<path d="M1342.5,520.0 L1501.5,520.0" stroke-width="3.2"/>
-<path d="M1119.8,520.0 L1342.5,520.0" stroke-width="3.2"/>
-<path d="M1278.9,492.0 L1310.7,492.0 L1342.5,520.0" stroke-width="1.4"/>
-<path d="M1119.8,520.0 L1151.7,492.0 L1183.5,492.0" stroke-width="1.4"/>
-<path d="M102.1,492.0 L86.2,506.0 L86.2,506.0 L102.1,520.0" stroke-width="3.2"/>
-<path d="M929.0,571.0 L929.0,581.0" stroke-width="2.4"/>
-<path d="M1247.1,571.0 L1247.1,581.0" stroke-width="2.4"/>
-<path d="M1278.9,599.0 L1278.9,609.0" stroke-width="2.4"/>
-<path d="M674.6,543.0 L674.6,553.0" stroke-width="2.4"/>
-<path d="M452.0,543.0 L452.0,553.0" stroke-width="2.4"/>
-<path d="M420.2,571.0 L420.2,581.0" stroke-width="2.4"/>
-<path d="M547.4,571.0 L547.4,581.0" stroke-width="2.4"/>
-<path d="M38.5,571.0 L38.5,581.0" stroke-width="2.4"/>
-<path d="M102.1,543.0 L102.1,553.0" stroke-width="2.4"/>
-<path d="M70.3,599.0 L70.3,609.0" stroke-width="2.4"/>
-<ellipse cx="1508.5" cy="520.0" rx="6" ry="9" stroke-width="1.6"/>
-<ellipse cx="1515.5" cy="520.0" rx="6" ry="9" stroke-width="1.6"/>
-<ellipse cx="1522.5" cy="520.0" rx="6" ry="9" stroke-width="1.6"/>
-<circle cx="1269.9" cy="492.0" r="8" stroke-width="1.4" fill="#fff"/>
-<circle cx="1192.5" cy="492.0" r="8" stroke-width="1.4" fill="#fff"/>
-<text x="38.5" y="466.0" font-size="12" text-anchor="start" font-weight="bold" fill="#000" stroke="none" letter-spacing="1.5">MAIN LEVEL</text>
-<text x="1535.5" y="523.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H1</text>
-<text x="1551.5" y="523.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO STAGING</text>
-<text x="1269.9" y="495.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >A</text>
-<text x="1192.5" y="495.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >B</text>
-<text x="1017.4" y="541.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >123</text>
-<text x="1119.8" y="533.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >129A</text>
-<text x="349.5" y="541.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >105</text>
-<text x="363.5" y="533.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >107</text>
-<text x="1268.3" y="515.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
-<text x="1269.9" y="480.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO UPPER LEVEL</text>
-<text x="1192.5" y="511.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO UPPER LEVEL</text>
-<text x="287.6" y="487.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
-<text x="699.4" y="513.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >119A</text>
-<text x="681.6" y="513.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >117</text>
-<text x="95.1" y="569.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >101A</text>
-<text x="172.7" y="541.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >103B</text>
-<text x="1349.5" y="533.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >135A</text>
-<text x="1422.0" y="515.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEES ROCKS</text>
-<text x="133.9" y="589.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >103A</text>
-<text x="960.8" y="571.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(15)</text>
-<text x="483.8" y="543.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(6)</text>
-<text x="635.8" y="541.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >115</text>
-<text x="395.3" y="513.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >109</text>
-<text x="1247.1" y="599.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(3)</text>
-<text x="881.3" y="543.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(14)</text>
-<text x="452.0" y="571.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
-<text x="579.2" y="571.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(4)</text>
-<text x="229.3" y="571.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(22)</text>
-<text x="261.1" y="543.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(24)</text>
-<text x="229.3" y="599.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(26)</text>
-<text x="427.2" y="513.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >111</text>
-<text x="985.6" y="589.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >121</text>
-<text x="1176.5" y="569.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >133</text>
-<text x="745.2" y="561.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >119B</text>
-<text x="1158.7" y="589.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >131</text>
-<text x="522.6" y="541.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >113</text>
-<text x="1081.0" y="513.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >127</text>
-<text x="1063.2" y="513.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >125</text>
-<text x="140.9" y="617.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >101B</text>
-<path d="M1194.0,838.0 L1238.0,838.0" stroke-width="1.4"/>
-<path d="M1238.0,838.0 L1326.0,782.0 L1370.0,782.0" stroke-width="1.4"/>
-<path d="M1238.0,838.0 L1282.0,838.0" stroke-width="1.4"/>
-<path d="M1370.0,782.0 L1458.0,782.0" stroke-width="1.4"/>
-<path d="M1326.0,810.0 L1370.0,782.0" stroke-width="1.4"/>
-<path d="M1238.0,866.0 L1282.0,894.0 L1326.0,894.0" stroke-width="1.4"/>
-<path d="M1326.0,894.0 L1370.0,894.0" stroke-width="1.4"/>
-<path d="M1326.0,894.0 L1370.0,866.0 L1458.0,866.0" stroke-width="1.4"/>
-<path d="M1370.0,894.0 L1414.0,894.0" stroke-width="1.4"/>
-<path d="M1414.0,894.0 L1502.0,894.0" stroke-width="1.4"/>
-<path d="M1414.0,894.0 L1458.0,866.0" stroke-width="1.4"/>
-<path d="M1194.0,866.0 L1238.0,866.0" stroke-width="1.4"/>
-<path d="M1238.0,866.0 L1326.0,866.0" stroke-width="1.4"/>
-<path d="M1282.0,838.0 L1326.0,810.0" stroke-width="1.4"/>
-<path d="M1282.0,838.0 L1370.0,838.0" stroke-width="1.4"/>
-<path d="M1458.0,866.0 L1546.0,866.0" stroke-width="1.4"/>
-<path d="M1370.0,894.0 L1414.0,922.0 L1502.0,922.0" stroke-width="1.4"/>
-<path d="M1326.0,810.0 L1414.0,810.0" stroke-width="1.4"/>
-<path d="M182.0,978.0 L226.0,950.0 L270.0,950.0" stroke-width="1.4"/>
-<path d="M270.0,950.0 L358.0,950.0" stroke-width="1.4"/>
-<path d="M270.0,950.0 L314.0,922.0" stroke-width="1.4"/>
-<path d="M50.0,978.0 L94.0,978.0" stroke-width="3.2"/>
-<path d="M50.0,838.0 L798.0,838.0" stroke-width="3.2"/>
-<path d="M94.0,978.0 L182.0,978.0" stroke-width="3.2"/>
-<path d="M94.0,978.0 L182.0,922.0" stroke-width="1.4"/>
-<path d="M1106.0,838.0 L1194.0,838.0" stroke-width="3.2"/>
-<path d="M1194.0,838.0 L1326.0,754.0" stroke-width="3.2"/>
-<path d="M1326.0,754.0 L1370.0,726.0 L1590.0,726.0" stroke-width="3.2"/>
-<path d="M1194.0,866.0 L1326.0,950.0 L1590.0,950.0" stroke-width="3.2"/>
-<path d="M1326.0,754.0 L1414.0,754.0" stroke-width="1.4"/>
-<path d="M1106.0,866.0 L1194.0,866.0" stroke-width="3.2"/>
-<path d="M1282.0,978.0 L1326.0,978.0" stroke-width="3.2"/>
-<path d="M182.0,978.0 L402.0,978.0" stroke-width="3.2"/>
-<path d="M798.0,838.0 L842.0,838.0" stroke-width="3.2"/>
-<path d="M842.0,838.0 L1062.0,978.0" stroke-width="1.4"/>
-<path d="M358.0,950.0 L578.0,950.0" stroke-width="1.4"/>
-<path d="M358.0,950.0 L402.0,978.0" stroke-width="1.4"/>
-<path d="M1062.0,978.0 L1282.0,978.0" stroke-width="3.2"/>
-<path d="M534.0,978.0 L1062.0,978.0" stroke-width="3.2"/>
-<path d="M578.0,950.0 L622.0,950.0 L798.0,838.0" stroke-width="1.4"/>
-<path d="M534.0,978.0 L578.0,950.0" stroke-width="1.4"/>
-<path d="M402.0,978.0 L534.0,978.0" stroke-width="3.2"/>
-<path d="M886.0,838.0 L930.0,866.0 L1106.0,866.0" stroke-width="3.2"/>
-<path d="M314.0,922.0 L490.0,922.0" stroke-width="1.4"/>
-<path d="M490.0,922.0 L578.0,922.0" stroke-width="1.4"/>
-<path d="M490.0,922.0 L534.0,894.0 L622.0,894.0" stroke-width="1.4"/>
-<path d="M182.0,922.0 L226.0,894.0" stroke-width="1.4"/>
-<path d="M226.0,894.0 L314.0,894.0" stroke-width="1.4"/>
-<path d="M226.0,894.0 L270.0,866.0 L358.0,866.0" stroke-width="1.4"/>
-<path d="M314.0,922.0 L358.0,894.0 L446.0,894.0" stroke-width="1.4"/>
-<path d="M182.0,922.0 L270.0,922.0" stroke-width="1.4"/>
-<path d="M1326.0,978.0 L1502.0,978.0" stroke-width="3.2"/>
-<path d="M886.0,838.0 L1106.0,838.0" stroke-width="3.2"/>
-<path d="M842.0,838.0 L886.0,838.0" stroke-width="3.2"/>
-<path d="M1326.0,978.0 L1370.0,1006.0 L1414.0,1006.0" stroke-width="1.4"/>
-<path d="M1194.0,1006.0 L1238.0,1006.0 L1282.0,978.0" stroke-width="1.4"/>
-<path d="M50.0,838.0 L28.0,852.0 L28.0,964.0 L50.0,978.0" stroke-width="3.2"/>
-<path d="M1590.0,726.0 L1612.0,740.0 L1612.0,936.0 L1590.0,950.0" stroke-width="3.2"/>
-<path d="M1092.0,838.0 L1120.0,866.0 M1092.0,866.0 L1120.0,838.0" stroke-width="1.4"/>
-<path d="M1458.0,777.0 L1458.0,787.0" stroke-width="2.4"/>
-<path d="M1502.0,889.0 L1502.0,899.0" stroke-width="2.4"/>
-<path d="M1326.0,861.0 L1326.0,871.0" stroke-width="2.4"/>
-<path d="M1370.0,833.0 L1370.0,843.0" stroke-width="2.4"/>
-<path d="M1546.0,861.0 L1546.0,871.0" stroke-width="2.4"/>
-<path d="M1502.0,917.0 L1502.0,927.0" stroke-width="2.4"/>
-<path d="M1414.0,805.0 L1414.0,815.0" stroke-width="2.4"/>
-<path d="M1414.0,749.0 L1414.0,759.0" stroke-width="2.4"/>
-<ellipse cx="1509.0" cy="978.0" rx="6" ry="9" stroke-width="1.6"/>
-<ellipse cx="1516.0" cy="978.0" rx="6" ry="9" stroke-width="1.6"/>
-<ellipse cx="1523.0" cy="978.0" rx="6" ry="9" stroke-width="1.6"/>
-<path d="M578.0,917.0 L578.0,927.0" stroke-width="2.4"/>
-<path d="M622.0,889.0 L622.0,899.0" stroke-width="2.4"/>
-<path d="M314.0,889.0 L314.0,899.0" stroke-width="2.4"/>
-<path d="M358.0,861.0 L358.0,871.0" stroke-width="2.4"/>
-<path d="M446.0,889.0 L446.0,899.0" stroke-width="2.4"/>
-<path d="M270.0,917.0 L270.0,927.0" stroke-width="2.4"/>
-<circle cx="1423.0" cy="1006.0" r="8" stroke-width="1.4" fill="#fff"/>
-<circle cx="1185.0" cy="1006.0" r="8" stroke-width="1.4" fill="#fff"/>
-<text x="50.0" y="700.0" font-size="12" text-anchor="start" font-weight="bold" fill="#000" stroke="none" letter-spacing="1.5">UPPER LEVEL, 4.25 IN</text>
-<text x="1106.0" y="832.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >225</text>
-<text x="1536.0" y="981.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H2</text>
-<text x="1552.0" y="981.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO STAGING</text>
-<text x="1423.0" y="1009.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >A</text>
-<text x="1185.0" y="1009.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >B</text>
-<text x="1326.0" y="823.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >241A</text>
-<text x="1260.0" y="973.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
-<text x="1326.0" y="767.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >239</text>
-<text x="226.0" y="907.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >207</text>
-<text x="314.0" y="935.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >211</text>
-<text x="182.0" y="935.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >205</text>
-<text x="1414.0" y="973.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEESPORT</text>
-<text x="1406.7" y="721.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
-<text x="240.7" y="833.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
-<text x="974.0" y="861.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
-<text x="1546.0" y="945.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
-<text x="1377.0" y="775.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >241B</text>
-<text x="1348.0" y="777.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(8)</text>
-<text x="1465.0" y="859.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >245B</text>
-<text x="87.0" y="991.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >201</text>
-<text x="175.0" y="991.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >203</text>
-<text x="351.0" y="943.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >213A</text>
-<text x="1069.0" y="991.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >221B</text>
-<text x="585.0" y="943.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >217B</text>
-<text x="409.0" y="991.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >213B</text>
-<text x="527.0" y="991.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >217A</text>
-<text x="1370.0" y="805.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(3)</text>
-<text x="270.0" y="889.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(10)</text>
-<text x="1423.0" y="1025.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO MAIN LEVEL</text>
-<text x="1185.0" y="1025.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO MAIN LEVEL</text>
-<text x="1231.0" y="859.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >233</text>
-<text x="879.0" y="831.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >223*</text>
-<text x="1414.0" y="861.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(6)</text>
-<text x="1458.0" y="889.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(8)</text>
-<text x="1282.0" y="861.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
-<text x="1326.0" y="833.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(11)</text>
-<text x="1370.0" y="749.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
-<text x="534.0" y="917.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
-<text x="226.0" y="917.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
-<text x="1187.0" y="851.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >229</text>
-<text x="1289.0" y="971.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >129B</text>
-<text x="1458.0" y="917.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
-<text x="468.0" y="945.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(35)</text>
-<text x="578.0" y="889.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
-<text x="314.0" y="861.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
-<text x="402.0" y="889.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(7)</text>
-<text x="1407.0" y="907.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >245A</text>
-<text x="1363.0" y="887.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >243</text>
-<text x="1231.0" y="851.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >231</text>
-<text x="1319.0" y="907.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >237</text>
-<text x="1275.0" y="851.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >235</text>
-<text x="263.0" y="963.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >209</text>
-<text x="1187.0" y="859.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >227</text>
-<text x="1319.0" y="971.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >135B</text>
-<text x="835.0" y="831.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >221A</text>
-<text x="805.0" y="831.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >219</text>
-<text x="483.0" y="935.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >215</text>
+<text x="1502.0" y="133.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H1</text>
+<text x="1518.0" y="133.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO MAIN LEVEL</text>
+<text x="1502.0" y="161.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H2</text>
+<text x="1518.0" y="161.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO UPPER LEVEL</text>
+<text x="222.0" y="346.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">BRICK</text>
+<text x="152.0" y="61.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">WEST YARD</text>
+<text x="152.0" y="47.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">26 CARS</text>
+<text x="292.0" y="346.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">PLANE</text>
+<text x="292.0" y="357.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">19 CARS</text>
+<text x="558.0" y="346.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">BARN</text>
+<text x="558.0" y="357.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">13 CARS</text>
+<text x="754.0" y="386.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">SOUTH YARD</text>
+<text x="754.0" y="397.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">113 CARS</text>
+<text x="1020.0" y="346.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">EAST END</text>
+<text x="1300.0" y="346.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">PRINCESS</text>
+<text x="1300.0" y="357.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">29 CARS</text>
+<text x="328.1" y="293.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >6LB</text>
+<text x="468.1" y="293.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >8LA</text>
+<text x="418.0" y="279.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >8RA</text>
+<text x="1263.9" y="140.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >36RA</text>
+<text x="1364.1" y="125.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >40LA</text>
+<text x="157.9" y="111.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >4RA</text>
+<text x="941.9" y="140.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >24RA</text>
+<text x="1038.4" y="183.6" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >32R</text>
+<text x="1378.1" y="182.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >38LB</text>
+<text x="1547.2" y="182.6" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >2036</text>
+<text x="215.0" y="143.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >3</text>
+<text x="185.9" y="139.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >4RB</text>
+<text x="166.0" y="125.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">W-2 (12)</text>
+<text x="1398.0" y="142.1" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEES ROCKS</text>
+<text x="403.1" y="317.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >0.25</text>
+<text x="432.8" y="308.1" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >8RB</text>
+<text x="258.1" y="125.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >2L</text>
+<text x="342.1" y="266.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >6LA</text>
+<text x="482.1" y="266.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >8LB</text>
+<text x="986.1" y="125.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >24L</text>
+<text x="969.9" y="167.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >24RB</text>
+<text x="1098.1" y="153.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >34L</text>
+<text x="913.9" y="308.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >34R</text>
+<text x="1249.9" y="168.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >36RB</text>
+<text x="1350.1" y="153.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >38LA</text>
+<text x="1433.0" y="153.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEESPORT</text>
+<text x="1378.1" y="98.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >40LB</text>
+<text x="1562.9" y="98.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >2035</text>
+<text x="460.0" y="263.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >7</text>
+<text x="390.0" y="265.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">SCALE (19)</text>
+<text x="200.0" y="177.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >0</text>
+<text x="957.0" y="235.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >25</text>
+<text x="1013.0" y="179.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >29</text>
+<text x="985.0" y="207.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >27</text>
+<text x="138.0" y="97.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">W-1 (14)</text>
+<text x="397.0" y="293.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EAST EXT</text>
+<text x="586.0" y="181.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EH-2 (3)</text>
+<text x="1468.0" y="181.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">K-2 (15)</text>
+<text x="1174.0" y="153.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EAST LEAD</text>
+<text x="544.0" y="265.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">BARN (4)</text>
+<text x="614.0" y="153.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EH-1 (3)</text>
+<text x="1321.0" y="143.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >39</text>
+<text x="285.0" y="311.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >5</text>
+<text x="1468.0" y="97.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">K-1 (14)</text>
+<text x="880.0" y="237.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-3 (19)</text>
+<text x="558.0" y="209.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EH-3 (3)</text>
+<text x="1055.0" y="151.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >31</text>
+<text x="1069.0" y="151.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >33</text>
+<text x="957.0" y="123.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >23</text>
+<text x="1132.0" y="125.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">WEST EXT</text>
+<text x="747.0" y="179.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >17</text>
+<text x="803.0" y="235.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >21</text>
+<text x="775.0" y="207.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >19</text>
+<text x="229.0" y="123.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >1</text>
+<text x="628.0" y="179.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >9</text>
+<text x="166.0" y="293.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">BRICK-PLANE</text>
+<text x="852.0" y="153.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-R (29)</text>
+<text x="1292.0" y="147.0" font-size="8" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >35</text>
+<text x="1321.0" y="151.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >37</text>
+<text x="663.0" y="151.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >11</text>
+<text x="880.0" y="265.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-4 (13)</text>
+<text x="880.0" y="181.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-1 (28)</text>
+<text x="880.0" y="209.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">S-2 (24)</text>
+<text x="600.0" y="125.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MAIN WEST</text>
+<text x="684.0" y="293.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MAIN EAST</text>
+<text x="1146.4" y="177.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >0.75</text>
+<text x="691.0" y="151.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >13</text>
+<text x="705.0" y="151.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >15</text>
+<text x="799.2" y="283.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >0.5</text>
+<path d="M929.0,618.0 L992.6,618.0" stroke-width="1.4"/>
+<path d="M992.6,618.0 L1151.7,618.0" stroke-width="1.4"/>
+<path d="M992.6,618.0 L1024.4,590.0" stroke-width="1.4"/>
+<path d="M1151.7,618.0 L1183.5,618.0" stroke-width="1.4"/>
+<path d="M1183.5,618.0 L1247.1,618.0" stroke-width="1.4"/>
+<path d="M1183.5,618.0 L1215.3,646.0 L1278.9,646.0" stroke-width="1.4"/>
+<path d="M1024.4,590.0 L1056.2,562.0" stroke-width="1.4"/>
+<path d="M738.2,590.0 L1024.4,590.0" stroke-width="1.4"/>
+<path d="M674.6,590.0 L738.2,590.0" stroke-width="1.4"/>
+<path d="M706.4,562.0 L738.2,590.0" stroke-width="1.4"/>
+<path d="M1088.0,562.0 L1151.7,618.0" stroke-width="1.4"/>
+<path d="M515.6,590.0 L642.8,590.0" stroke-width="1.4"/>
+<path d="M452.0,590.0 L515.6,590.0" stroke-width="1.4"/>
+<path d="M420.2,618.0 L483.8,618.0 L515.6,590.0" stroke-width="1.4"/>
+<path d="M642.8,590.0 L674.6,562.0" stroke-width="1.4"/>
+<path d="M547.4,618.0 L611.0,618.0 L642.8,590.0" stroke-width="1.4"/>
+<path d="M674.6,562.0 L706.4,562.0" stroke-width="3.2"/>
+<path d="M706.4,562.0 L1056.2,562.0" stroke-width="3.2"/>
+<path d="M388.3,562.0 L420.2,562.0" stroke-width="3.2"/>
+<path d="M356.5,562.0 L388.3,562.0" stroke-width="3.2"/>
+<path d="M356.5,590.0 L388.3,562.0" stroke-width="1.4"/>
+<path d="M133.9,618.0 L324.7,618.0 L356.5,590.0" stroke-width="1.4" stroke-dasharray="7 5"/>
+<path d="M165.7,590.0 L356.5,590.0" stroke-width="1.4" stroke-dasharray="7 5"/>
+<path d="M420.2,562.0 L674.6,562.0" stroke-width="3.2"/>
+<path d="M133.9,646.0 L324.7,646.0 L420.2,562.0" stroke-width="1.4" stroke-dasharray="7 5"/>
+<path d="M38.5,618.0 L102.1,618.0" stroke-width="1.4"/>
+<path d="M102.1,618.0 L133.9,646.0" stroke-width="1.4"/>
+<path d="M133.9,618.0 L165.7,590.0" stroke-width="1.4"/>
+<path d="M102.1,618.0 L133.9,618.0" stroke-width="1.4"/>
+<path d="M1056.2,562.0 L1088.0,562.0" stroke-width="3.2"/>
+<path d="M1088.0,562.0 L1119.8,562.0" stroke-width="3.2"/>
+<path d="M102.1,590.0 L165.7,590.0" stroke-width="1.4"/>
+<path d="M70.3,646.0 L133.9,646.0" stroke-width="1.4"/>
+<path d="M102.1,562.0 L356.5,562.0" stroke-width="3.2" stroke-dasharray="7 5"/>
+<path d="M102.1,534.0 L324.7,534.0 L356.5,562.0" stroke-width="3.2" stroke-dasharray="7 5"/>
+<path d="M1342.5,562.0 L1501.5,562.0" stroke-width="3.2"/>
+<path d="M1119.8,562.0 L1342.5,562.0" stroke-width="3.2"/>
+<path d="M1278.9,534.0 L1310.7,534.0 L1342.5,562.0" stroke-width="1.4"/>
+<path d="M1119.8,562.0 L1151.7,534.0 L1183.5,534.0" stroke-width="1.4"/>
+<path d="M102.1,534.0 L86.2,548.0 L86.2,548.0 L102.1,562.0" stroke-width="3.2"/>
+<path d="M929.0,613.0 L929.0,623.0" stroke-width="2.4"/>
+<path d="M1247.1,613.0 L1247.1,623.0" stroke-width="2.4"/>
+<path d="M1278.9,641.0 L1278.9,651.0" stroke-width="2.4"/>
+<path d="M674.6,585.0 L674.6,595.0" stroke-width="2.4"/>
+<path d="M452.0,585.0 L452.0,595.0" stroke-width="2.4"/>
+<path d="M420.2,613.0 L420.2,623.0" stroke-width="2.4"/>
+<path d="M547.4,613.0 L547.4,623.0" stroke-width="2.4"/>
+<path d="M38.5,613.0 L38.5,623.0" stroke-width="2.4"/>
+<path d="M102.1,585.0 L102.1,595.0" stroke-width="2.4"/>
+<path d="M70.3,641.0 L70.3,651.0" stroke-width="2.4"/>
+<ellipse cx="1508.5" cy="562.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1515.5" cy="562.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1522.5" cy="562.0" rx="6" ry="9" stroke-width="1.6"/>
+<circle cx="1269.9" cy="534.0" r="8" stroke-width="1.4" fill="#fff"/>
+<circle cx="1192.5" cy="534.0" r="8" stroke-width="1.4" fill="#fff"/>
+<path d="M714.4,562.0 L714.4,556.0" stroke-width="1"/>
+<path d="M714.4,549.6 L717.6,552.8 L714.4,556.0 L711.2,552.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M1354.6,562.0 L1354.6,556.0" stroke-width="1"/>
+<path d="M1354.6,549.6 L1357.8,552.8 L1354.6,556.0 L1351.4,552.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M1441.1,562.0 L1441.1,568.0" stroke-width="1"/>
+<path d="M1441.1,568.0 L1444.3,571.2 L1441.1,574.4 L1437.9,571.2 Z" stroke-width="1" fill="#fff"/>
+<text x="38.5" y="508.0" font-size="12" text-anchor="start" font-weight="bold" fill="#000" stroke="none" letter-spacing="1.5">MAIN LEVEL</text>
+<text x="1535.5" y="565.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H1</text>
+<text x="1551.5" y="565.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO STAGING</text>
+<text x="1269.9" y="537.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >A</text>
+<text x="1192.5" y="537.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >B</text>
+<text x="1017.4" y="583.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >123</text>
+<text x="1119.8" y="575.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >129A</text>
+<text x="714.4" y="547.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.5</text>
+<text x="699.4" y="555.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >119A</text>
+<text x="349.5" y="583.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >105</text>
+<text x="363.5" y="575.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >107</text>
+<text x="1268.3" y="557.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
+<text x="1269.9" y="522.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO UPPER LEVEL</text>
+<text x="1192.5" y="553.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO UPPER LEVEL</text>
+<text x="681.6" y="555.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >117</text>
+<text x="287.6" y="529.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
+<text x="95.1" y="611.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >101A</text>
+<text x="172.7" y="583.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >103B</text>
+<text x="1349.5" y="575.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >135A</text>
+<text x="1422.0" y="557.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEES ROCKS</text>
+<text x="1354.6" y="547.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.25</text>
+<text x="1441.1" y="581.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2</text>
+<text x="133.9" y="631.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >103A</text>
+<text x="960.8" y="613.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(15)</text>
+<text x="483.8" y="585.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(6)</text>
+<text x="635.8" y="583.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >115</text>
+<text x="395.3" y="555.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >109</text>
+<text x="1247.1" y="641.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(3)</text>
+<text x="881.3" y="585.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(14)</text>
+<text x="452.0" y="613.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
+<text x="579.2" y="613.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(4)</text>
+<text x="229.3" y="613.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(22)</text>
+<text x="261.1" y="585.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(24)</text>
+<text x="229.3" y="641.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(26)</text>
+<text x="427.2" y="555.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >111</text>
+<text x="985.6" y="631.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >121</text>
+<text x="1176.5" y="611.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >133</text>
+<text x="745.2" y="603.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >119B</text>
+<text x="1158.7" y="631.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >131</text>
+<text x="522.6" y="583.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >113</text>
+<text x="1081.0" y="555.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >127</text>
+<text x="1063.2" y="555.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >125</text>
+<text x="140.9" y="659.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >101B</text>
+<path d="M1194.0,880.0 L1238.0,880.0" stroke-width="1.4"/>
+<path d="M1238.0,880.0 L1326.0,824.0 L1370.0,824.0" stroke-width="1.4"/>
+<path d="M1238.0,880.0 L1282.0,880.0" stroke-width="1.4"/>
+<path d="M1370.0,824.0 L1458.0,824.0" stroke-width="1.4"/>
+<path d="M1326.0,852.0 L1370.0,824.0" stroke-width="1.4"/>
+<path d="M1238.0,908.0 L1282.0,936.0 L1326.0,936.0" stroke-width="1.4"/>
+<path d="M1326.0,936.0 L1370.0,936.0" stroke-width="1.4"/>
+<path d="M1326.0,936.0 L1370.0,908.0 L1458.0,908.0" stroke-width="1.4"/>
+<path d="M1370.0,936.0 L1414.0,936.0" stroke-width="1.4"/>
+<path d="M1414.0,936.0 L1502.0,936.0" stroke-width="1.4"/>
+<path d="M1414.0,936.0 L1458.0,908.0" stroke-width="1.4"/>
+<path d="M1194.0,908.0 L1238.0,908.0" stroke-width="1.4"/>
+<path d="M1238.0,908.0 L1326.0,908.0" stroke-width="1.4"/>
+<path d="M1282.0,880.0 L1326.0,852.0" stroke-width="1.4"/>
+<path d="M1282.0,880.0 L1370.0,880.0" stroke-width="1.4"/>
+<path d="M1458.0,908.0 L1546.0,908.0" stroke-width="1.4"/>
+<path d="M1370.0,936.0 L1414.0,964.0 L1502.0,964.0" stroke-width="1.4"/>
+<path d="M1326.0,852.0 L1414.0,852.0" stroke-width="1.4"/>
+<path d="M182.0,1020.0 L226.0,992.0 L270.0,992.0" stroke-width="1.4"/>
+<path d="M270.0,992.0 L358.0,992.0" stroke-width="1.4"/>
+<path d="M270.0,992.0 L314.0,964.0" stroke-width="1.4"/>
+<path d="M50.0,1020.0 L94.0,1020.0" stroke-width="3.2"/>
+<path d="M50.0,880.0 L798.0,880.0" stroke-width="3.2"/>
+<path d="M94.0,1020.0 L182.0,1020.0" stroke-width="3.2"/>
+<path d="M94.0,1020.0 L182.0,964.0" stroke-width="1.4"/>
+<path d="M1106.0,880.0 L1194.0,880.0" stroke-width="3.2"/>
+<path d="M1194.0,880.0 L1326.0,796.0" stroke-width="3.2"/>
+<path d="M1326.0,796.0 L1370.0,768.0 L1590.0,768.0" stroke-width="3.2"/>
+<path d="M1194.0,908.0 L1326.0,992.0 L1590.0,992.0" stroke-width="3.2"/>
+<path d="M1326.0,796.0 L1414.0,796.0" stroke-width="1.4"/>
+<path d="M1106.0,908.0 L1194.0,908.0" stroke-width="3.2"/>
+<path d="M1282.0,1020.0 L1326.0,1020.0" stroke-width="3.2"/>
+<path d="M182.0,1020.0 L402.0,1020.0" stroke-width="3.2"/>
+<path d="M798.0,880.0 L842.0,880.0" stroke-width="3.2"/>
+<path d="M842.0,880.0 L1062.0,1020.0" stroke-width="1.4"/>
+<path d="M358.0,992.0 L578.0,992.0" stroke-width="1.4"/>
+<path d="M358.0,992.0 L402.0,1020.0" stroke-width="1.4"/>
+<path d="M1062.0,1020.0 L1282.0,1020.0" stroke-width="3.2"/>
+<path d="M534.0,1020.0 L1062.0,1020.0" stroke-width="3.2"/>
+<path d="M578.0,992.0 L622.0,992.0 L798.0,880.0" stroke-width="1.4"/>
+<path d="M534.0,1020.0 L578.0,992.0" stroke-width="1.4"/>
+<path d="M402.0,1020.0 L534.0,1020.0" stroke-width="3.2"/>
+<path d="M886.0,880.0 L930.0,908.0 L1106.0,908.0" stroke-width="3.2"/>
+<path d="M314.0,964.0 L490.0,964.0" stroke-width="1.4"/>
+<path d="M490.0,964.0 L578.0,964.0" stroke-width="1.4"/>
+<path d="M490.0,964.0 L534.0,936.0 L622.0,936.0" stroke-width="1.4"/>
+<path d="M182.0,964.0 L226.0,936.0" stroke-width="1.4"/>
+<path d="M226.0,936.0 L314.0,936.0" stroke-width="1.4"/>
+<path d="M226.0,936.0 L270.0,908.0 L358.0,908.0" stroke-width="1.4"/>
+<path d="M314.0,964.0 L358.0,936.0 L446.0,936.0" stroke-width="1.4"/>
+<path d="M182.0,964.0 L270.0,964.0" stroke-width="1.4"/>
+<path d="M1326.0,1020.0 L1502.0,1020.0" stroke-width="3.2"/>
+<path d="M886.0,880.0 L1106.0,880.0" stroke-width="3.2"/>
+<path d="M842.0,880.0 L886.0,880.0" stroke-width="3.2"/>
+<path d="M1326.0,1020.0 L1370.0,1048.0 L1414.0,1048.0" stroke-width="1.4"/>
+<path d="M1194.0,1048.0 L1238.0,1048.0 L1282.0,1020.0" stroke-width="1.4"/>
+<path d="M50.0,880.0 L28.0,894.0 L28.0,1006.0 L50.0,1020.0" stroke-width="3.2"/>
+<path d="M1590.0,768.0 L1612.0,782.0 L1612.0,978.0 L1590.0,992.0" stroke-width="3.2"/>
+<path d="M1092.0,880.0 L1120.0,908.0 M1092.0,908.0 L1120.0,880.0" stroke-width="1.4"/>
+<path d="M1458.0,819.0 L1458.0,829.0" stroke-width="2.4"/>
+<path d="M1502.0,931.0 L1502.0,941.0" stroke-width="2.4"/>
+<path d="M1326.0,903.0 L1326.0,913.0" stroke-width="2.4"/>
+<path d="M1370.0,875.0 L1370.0,885.0" stroke-width="2.4"/>
+<path d="M1546.0,903.0 L1546.0,913.0" stroke-width="2.4"/>
+<path d="M1502.0,959.0 L1502.0,969.0" stroke-width="2.4"/>
+<path d="M1414.0,847.0 L1414.0,857.0" stroke-width="2.4"/>
+<path d="M1414.0,791.0 L1414.0,801.0" stroke-width="2.4"/>
+<ellipse cx="1509.0" cy="1020.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1516.0" cy="1020.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1523.0" cy="1020.0" rx="6" ry="9" stroke-width="1.6"/>
+<path d="M578.0,959.0 L578.0,969.0" stroke-width="2.4"/>
+<path d="M622.0,931.0 L622.0,941.0" stroke-width="2.4"/>
+<path d="M314.0,931.0 L314.0,941.0" stroke-width="2.4"/>
+<path d="M358.0,903.0 L358.0,913.0" stroke-width="2.4"/>
+<path d="M446.0,931.0 L446.0,941.0" stroke-width="2.4"/>
+<path d="M270.0,959.0 L270.0,969.0" stroke-width="2.4"/>
+<circle cx="1423.0" cy="1048.0" r="8" stroke-width="1.4" fill="#fff"/>
+<circle cx="1185.0" cy="1048.0" r="8" stroke-width="1.4" fill="#fff"/>
+<path d="M190.0,1020.0 L190.0,1026.0" stroke-width="1"/>
+<path d="M190.0,1026.0 L193.2,1029.2 L190.0,1032.4 L186.8,1029.2 Z" stroke-width="1" fill="#fff"/>
+<path d="M869.1,880.0 L869.1,874.0" stroke-width="1"/>
+<path d="M869.1,867.6 L872.3,870.8 L869.1,874.0 L865.9,870.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M1550.3,992.0 L1550.3,998.0" stroke-width="1"/>
+<path d="M1550.3,998.0 L1553.5,1001.2 L1550.3,1004.4 L1547.1,1001.2 Z" stroke-width="1" fill="#fff"/>
+<path d="M1369.2,1020.0 L1369.2,1014.0" stroke-width="1"/>
+<path d="M1369.2,1007.6 L1372.4,1010.8 L1369.2,1014.0 L1366.0,1010.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M507.4,1020.0 L507.4,1014.0" stroke-width="1"/>
+<path d="M507.4,1007.6 L510.6,1010.8 L507.4,1014.0 L504.2,1010.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M1043.6,880.0 L1043.6,874.0" stroke-width="1"/>
+<path d="M1043.6,867.6 L1046.8,870.8 L1043.6,874.0 L1040.4,870.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M1136.4,1020.0 L1136.4,1014.0" stroke-width="1"/>
+<path d="M1136.4,1007.6 L1139.6,1010.8 L1136.4,1014.0 L1133.2,1010.8 Z" stroke-width="1" fill="#fff"/>
+<text x="50.0" y="742.0" font-size="12" text-anchor="start" font-weight="bold" fill="#000" stroke="none" letter-spacing="1.5">UPPER LEVEL, 4.25 IN</text>
+<text x="1106.0" y="874.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >225</text>
+<text x="1536.0" y="1023.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H2</text>
+<text x="1552.0" y="1023.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO STAGING</text>
+<text x="1423.0" y="1051.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >A</text>
+<text x="1185.0" y="1051.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >B</text>
+<text x="190.0" y="1039.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.75</text>
+<text x="175.0" y="1033.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >203</text>
+<text x="869.1" y="865.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >3</text>
+<text x="1326.0" y="865.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >241A</text>
+<text x="886.0" y="873.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >223*</text>
+<text x="1260.0" y="1015.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
+<text x="1326.0" y="809.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >239</text>
+<text x="226.0" y="949.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >207</text>
+<text x="314.0" y="977.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >211</text>
+<text x="182.0" y="977.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >205</text>
+<text x="1414.0" y="1015.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEESPORT</text>
+<text x="1406.7" y="763.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
+<text x="240.7" y="875.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
+<text x="974.0" y="903.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
+<text x="1546.0" y="987.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
+<text x="1377.0" y="817.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >241B</text>
+<text x="1348.0" y="819.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(8)</text>
+<text x="1465.0" y="901.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >245B</text>
+<text x="87.0" y="1033.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >201</text>
+<text x="351.0" y="985.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >213A</text>
+<text x="1069.0" y="1033.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >221B</text>
+<text x="585.0" y="985.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >217B</text>
+<text x="409.0" y="1033.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >213B</text>
+<text x="527.0" y="1033.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >217A</text>
+<text x="1370.0" y="847.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(3)</text>
+<text x="270.0" y="931.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(10)</text>
+<text x="1550.3" y="1011.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >3.5</text>
+<text x="1423.0" y="1067.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO MAIN LEVEL</text>
+<text x="1185.0" y="1067.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO MAIN LEVEL</text>
+<text x="1231.0" y="901.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >233</text>
+<text x="1414.0" y="903.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(6)</text>
+<text x="1458.0" y="931.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(8)</text>
+<text x="1282.0" y="903.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
+<text x="1326.0" y="875.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(11)</text>
+<text x="1370.0" y="791.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
+<text x="534.0" y="959.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
+<text x="226.0" y="959.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
+<text x="1187.0" y="893.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >229</text>
+<text x="1369.2" y="1005.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2</text>
+<text x="1289.0" y="1013.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >129B</text>
+<text x="1458.0" y="959.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
+<text x="468.0" y="987.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(35)</text>
+<text x="578.0" y="931.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
+<text x="314.0" y="903.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
+<text x="402.0" y="931.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(7)</text>
+<text x="1407.0" y="949.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >245A</text>
+<text x="507.4" y="1005.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.5</text>
+<text x="1363.0" y="929.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >243</text>
+<text x="1231.0" y="893.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >231</text>
+<text x="1319.0" y="949.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >237</text>
+<text x="1275.0" y="893.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >235</text>
+<text x="263.0" y="1005.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >209</text>
+<text x="1187.0" y="901.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >227</text>
+<text x="1319.0" y="1013.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >135B</text>
+<text x="835.0" y="873.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >221A</text>
+<text x="805.0" y="873.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >219</text>
+<text x="483.0" y="977.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >215</text>
+<text x="1043.6" y="865.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >3.25</text>
+<text x="1136.4" y="1005.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.25</text>
 </g>
 <text x="508.0" y="62" font-size="15" text-anchor="end" font-weight="bold" letter-spacing="2">&#8592; WEST</text>
 <text x="548.0" y="62" font-size="15" text-anchor="start" font-weight="bold" letter-spacing="2">EAST &#8594;</text>
@@ -440,7 +484,7 @@
 <rect x="354" y="728" width="104" height="64" fill="#fff" stroke="#000" stroke-width="1.5"/>
 <text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 14, 2026</text>
 <path d="M354,749.3 L458,749.3" stroke="#000" stroke-width="0.8"/>
-<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 5</text>
+<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 6</text>
 <path d="M354,770.7 L458,770.7" stroke="#000" stroke-width="0.8"/>
 <text x="362" y="785.2" font-size="9.5" letter-spacing="1">SHEET 1 OF 1</text>
 <text x="344" y="784" font-size="16" text-anchor="end" font-weight="bold" letter-spacing="3" fill="#c00">DRAFT</text>

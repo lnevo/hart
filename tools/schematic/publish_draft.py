@@ -2,12 +2,13 @@
 
 Draw the system schematic with the schematic-maps plugin and publish it as the marked draft in docs/ops:
 schematic-system-draft.svg (with a red DRAFT mark in the title block) and a Letter landscape PDF printed by
-Chrome. Inputs: the layer files in jmri/layouts/hart/data/schematic/ and the plan graphs in its inputs/ folder
+Chrome, and one SVG per station detail sheet (the `detail_sheets` preference) in docs/ops/stations/. Inputs: the layer files in jmri/layouts/hart/data/schematic/ and the plan graphs in its inputs/ folder
 (track only, regenerated from the owner's AnyRail export as its README says). The plugin is this checkout's submodule
 external/model-railroad-skills at its pinned commit (`git submodule update --init external/model-railroad-skills`
 in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plugin code.
 
---check draws and compares with the published SVG without writing anything (exit 1 if they differ). It also
+--check draws and compares with the published SVG and the station sheets without writing anything (exit 1 if
+any differ). It also
 fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for car counts) no longer match
 jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
 --preview DIR draws the marked SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
@@ -37,6 +38,7 @@ REPO = paths.REPO_ROOT
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
+STATIONS = OUT / "stations"                                              # one SVG per station detail sheet
 LENGTHS = REPO / "jmri/layouts/hart/data/block_lengths.csv"
 STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
@@ -102,6 +104,35 @@ def draw():
         if run.returncode:
             sys.exit(run.returncode)
         return mark(svg.read_text())
+
+
+def draw_stations():
+    """{file name: marked SVG} of every station detail sheet (the detail_sheets preference), drawn from both
+    inputs so the sheet-wide look (helix coils, mileposts) reaches them as it does the overall sheet."""
+    with tempfile.TemporaryDirectory() as tmp:
+        run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(DATA),
+                              *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
+                             capture_output=True, text=True)
+        print(run.stdout + run.stderr, end="")
+        if run.returncode:
+            sys.exit(run.returncode)
+        return {f.name: mark(f.read_text()) for f in sorted(Path(tmp).glob("*.svg"))}
+
+
+def stations_differ(sheets):
+    """Names of station sheets that differ from (or are missing in, or no longer belong to) docs/ops/stations."""
+    have = {f.name for f in STATIONS.glob("*.svg")} if STATIONS.exists() else set()
+    return sorted(n for n in have | set(sheets)
+                  if n not in sheets or n not in have or (STATIONS / n).read_text() != sheets[n])
+
+
+def write_stations(sheets, folder):
+    folder.mkdir(parents=True, exist_ok=True)
+    for f in folder.glob("*.svg"):
+        if f.name not in sheets:
+            f.unlink()
+    for name, svg in sheets.items():
+        (folder / name).write_text(svg)
 
 
 def measured_lengths():
@@ -180,6 +211,7 @@ def main(argv):
         if stale:
             print(f"note: {STAGING.name} track_lengths_in differs from {LENGTHS.name} for {', '.join(stale)}; "
                   "this preview counts cars from the old lengths, and publishing copies the new ones")
+        write_stations(draw_stations(), folder / "stations")
         return preview(draw(), folder)
     check = "--check" in argv
     stale = stale_lengths()
@@ -191,7 +223,9 @@ def main(argv):
         sheet = draw()
         same = target.exists() and target.read_text() == sheet
         print("published draft is current" if same else "published draft differs from the drawing")
-        return 0 if same else 1
+        differ = stations_differ(draw_stations())
+        print(f"station sheets differ: {', '.join(differ)}" if differ else "station sheets are current")
+        return 0 if same and not differ else 1
     prefs = page_prefs()
     kept = {p: p.read_text() for p in (prefs, STAGING)}      # put back if anything below fails
     try:
@@ -199,6 +233,8 @@ def main(argv):
             copy_lengths()
             print(f"copied the lengths of {', '.join(stale)} into {STAGING.name}")
         publish(draw(), target, prefs, kept[prefs])
+        write_stations(draw_stations(), STATIONS)
+        print(f"wrote the station sheets in {STATIONS.relative_to(REPO)}")
     except BaseException:
         for p, text in kept.items():
             if p.read_text() != text:
