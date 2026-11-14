@@ -41,17 +41,20 @@
    "switches": [
     "1",
     "3"
-   ]
+   ],
+   "code": "BK"
   },
   "Plane": {
    "switches": [
     "5"
-   ]
+   ],
+   "code": "PL"
   },
   "Barn": {
    "switches": [
     "7"
-   ]
+   ],
+   "code": "BN"
   },
   "South Yard": {
    "switches": [
@@ -59,7 +62,8 @@
     "17",
     "19",
     "21"
-   ]
+   ],
+   "code": "SY"
   },
   "East End": {
    "switches": [
@@ -69,21 +73,24 @@
     "31",
     "23",
     "33"
-   ]
+   ],
+   "code": "EE"
   },
   "Princess": {
    "switches": [
     "35",
     "37",
     "39"
-   ]
+   ],
+   "code": "PR"
   },
   "Engine House": {
    "switches": [
     "9",
     "11",
     "13"
-   ]
+   ],
+   "code": "EH"
   }
  },
  "edits": [

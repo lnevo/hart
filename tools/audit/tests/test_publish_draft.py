@@ -195,5 +195,30 @@ class Inputs(unittest.TestCase):
         turnouts = {p["name"] for p in parts if len(p["eps"]) >= 3}
         self.assertEqual([i for i, p in enumerate(parts) if p["name"] in turnouts and len(p["eps"]) < 3], [0])
 
+class StationSheets(unittest.TestCase):
+    """docs/ops/stations follows the drawn station sheets exactly: changed, missing and dropped sheets all differ."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.old, PD.STATIONS = PD.STATIONS, Path(self.tmp.name) / "stations"
+        self.addCleanup(setattr, PD, "STATIONS", self.old)
+
+    def test_written_sheets_are_current(self) -> None:
+        sheets = {"a.svg": "<svg>a</svg>", "b.svg": "<svg>b</svg>"}
+        PD.write_stations(sheets, PD.STATIONS)
+        self.assertEqual(PD.stations_differ(sheets), [])
+
+    def test_changed_new_and_dropped_differ(self) -> None:
+        PD.write_stations({"a.svg": "<svg>a</svg>", "gone.svg": "<svg>g</svg>"}, PD.STATIONS)
+        self.assertEqual(PD.stations_differ({"a.svg": "<svg>A</svg>", "new.svg": "<svg>n</svg>"}),
+                         ["a.svg", "gone.svg", "new.svg"])
+
+    def test_writing_removes_dropped_sheets(self) -> None:
+        PD.write_stations({"gone.svg": "x"}, PD.STATIONS)
+        PD.write_stations({"a.svg": "y"}, PD.STATIONS)
+        self.assertEqual(sorted(f.name for f in PD.STATIONS.iterdir()), ["a.svg"])
+
+
 if __name__ == "__main__":
     unittest.main()
