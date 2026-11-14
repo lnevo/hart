@@ -23,14 +23,6 @@ def main() -> int:
 
     root = ET.parse(PANEL).getroot()
 
-    # layout_paths registration
-    sys.path.insert(0, str(JMRI_ROOT.parent))
-    from jmri.layout_paths import layout_paths
-
-    paths = layout_paths("hart")
-    if not paths["output"].endswith("hart_blocked.xml"):
-        errors.append(f"layout_paths output unexpected: {paths['output']}")
-
     # No leftover ISIS sensors
     for s in root.iter("sensor"):
         sn = s.get("systemName") or s.findtext("systemName") or ""

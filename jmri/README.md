@@ -38,7 +38,7 @@ python3 jmri/scripts/apply_blocks_to_panel.py \
   use-panel-layout
 ```
 
-Defaults resolve via [`layout_paths.py`](layout_paths.py) when arguments are omitted.
+Defaults resolve via `hartlib.paths.layout_paths()` (`tools/hartlib/`) when arguments are omitted.
 
 ## Documentation
 

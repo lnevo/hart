@@ -6,7 +6,7 @@
 
 ## Context
 
-Work proceeded under linear3 → linear4 → linear5 → linear6 names. linear6 holds the best live connectivity and positions but is not registered in `layout_paths.py`.
+Work proceeded under linear3 → linear4 → linear5 → linear6 names. linear6 holds the best live connectivity and positions but is not registered in `layout_paths.py` (2026-11-14: that file is gone; paths live in `hartlib.paths`).
 
 ## Decision
 
