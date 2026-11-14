@@ -69,7 +69,7 @@ Known gaps: labels are not checked for collisions; the three bare export numbers
 
 ## Layer 3: the owner's preferences for this sheet
 
-- Order from the top: staging, upper, main (owner, 2026-11-14; was main, upper, staging). Helix at the east end of every band (a 180-degree turn of the two upper bands was tried and undone; east and west on the looped mains are to be settled later by following the main line, perhaps on the CATS diagram; ADR-022 stands meanwhile).
+- Order from the top: staging, main, upper (owner, 2026-11-14, REV 3). Helix at the east end of every band (a 180-degree turn of the two upper bands was tried and undone; east and west on the looped mains are to be settled later by following the main line, perhaps on the CATS diagram; ADR-022 stands meanwhile).
 - All bands the same width; main band 95% and nudged left; upper band nudged so H2 sits under H1.
 - Helix marks: three-turn coil with H1 or H2 and "Helix to …". Connectors between main and upper: circled A and B.
 - The helix-top switches T285 and T251 are drawn on the upper band (they are at height 0), T199 and T175 on the main band.
@@ -104,6 +104,7 @@ The three layers above are the contract between the streams. Keep the spike's ed
 - **Rename East Ext / West Ext, PR #425.** Merged and deployed 2026-11-13; the run's logs in `~/speedmatch-logs/2026-11-13/` are converted (originals in `2026-11-13-before-rename/`).
 - **Mast 32L renamed 16R, PR #441.** Hidden S-R east mast; merged and deployed 2026-11-13. `staging.signals.json` regenerated.
 - **Spike, PR #423.** Draft; the layer split and baseline (#430) and signals and labels (#431) are merged into its branch after review. Keep as the reference; do not merge as the product. Review findings left for B2 (tested modules): label text measured with a macOS font file (needs a fallback), helix boxes and station brackets drawn after the label placer, the placer's speed, `schem.py`'s single-band entry no longer reads the layered files, run matching by end switches can tie on two stubs off one switch.
+- **Hardening (2026-11-14):** the font fallback and drawing the helix boxes and station brackets before the labels were already done. Speed (about 30 s a draw, 28,000 row solves) was dropped by the owner, since it can't be cut without changing the search. Run hints may now list their tracks, and the run stops on a hint that reaches no track, or reaches two without saying which (plugin 0.1.4). Helix level heights are parked: staging is 34 in, and the owner will check the rises.
 - **Owner's names** for the main and upper levels (stations, tracks, level names): pending by the owner's choice. Switch numbers are set (2026-11-14, layer 1 above).
 - **Princess masts 2035 and 2036** drawn near the K-1/K-2 turnback rather than mid-run: accepted by the owner (2026-11-14); they are placeholders and the fold rule stands.
 - **Evolution record.** `~/Documents/Layout/schematic-evolution/` holds every committed drawing and `evolution.gif`; refresh it after each drawing commit with `tools/schematic/evolution.py` (spike samples, then every commit of `docs/ops/schematic-system-draft.svg`).
