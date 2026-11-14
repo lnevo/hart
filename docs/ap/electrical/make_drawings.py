@@ -79,7 +79,9 @@ def label(x, y, t, size=9.5, color=GREY, anchor="start", weight="normal") -> str
 def d1() -> str:
     """Staging level from the REV schematic, with reversing sections and passing siding marked."""
     src = SCHEMATIC.read_text()
-    m = re.search(r'<g transform="translate\(([\d.]+),([\d.]+)\) scale\(([\d.]+)\)"', src)
+    m = re.search(r'<g transform="translate\(([-\d.]+),([-\d.]+)\) scale\(([\d.]+)\)"', src)
+    if not m:
+        raise SystemExit(f"{SCHEMATIC}: no <g transform=translate(..) scale(..)> group; update d1()")
     tx, ty, sc = map(float, m.groups())
     depth, i = 0, m.start()
     for t in re.finditer(r"<g[\s>]|</g>", src[m.start():]):
@@ -87,6 +89,8 @@ def d1() -> str:
         if depth == 0:
             i = m.start() + t.end()
             break
+    if depth != 0:
+        raise SystemExit(f"{SCHEMATIC}: unbalanced <g> group; update d1()")
     group = src[m.start():i]
     # Overlays in the group's own coordinates (paths as drawn in the schematic).
     reverse = ["M236,130 L964,130",                                   # Main West, Switch 1 to Switch 23
@@ -100,13 +104,13 @@ def d1() -> str:
     for x, y in [(236, 130), (964, 130), (1356, 102), (1356, 186)]:
         ov.append(f'<path d="M{x-5},{y-14} L{x-5},{y+14} M{x+5},{y-14} L{x+5},{y+14}" stroke="{RED}" stroke-width="3.2"/>')
     ov.append("</g>")
-    # Keep only the staging band (group y 0..335) of the sheet.
-    y0, y1 = ty - 10, ty + 335 * sc
-    legend_y = y1 + 14
+    # Keep only the staging band (group y 0..345) of the sheet.
+    y0, y1 = ty - 10, ty + 345 * sc
+    legend_y = 30 + (y1 - y0) + 26                  # outer-SVG coordinates, just below the map
     body = (
         f'<svg x="0" y="30" width="1056" height="{y1 - y0:.0f}" viewBox="0 {y0:.1f} 1056 {y1 - y0:.1f}">'
         f"{group}{''.join(ov)}</svg>\n"
-        f'<g transform="translate(40,{legend_y + 30:.0f})">'
+        f'<g transform="translate(40,{legend_y:.0f})">'
         f'<rect x="0" y="-9" width="26" height="10" fill="{RED}" opacity="0.45"/>'
         + label(34, 0, "Reversing section on an auto-reverser: Main West (Switch 1 to Switch 23), and the K-1 / K-2 loop at Princess", 10, INK)
         + f'<path d="M3,12 L3,30 M11,12 L11,30" stroke="{RED}" stroke-width="2.4"/>'
@@ -116,19 +120,27 @@ def d1() -> str:
         + label(34, 63, "Every other detected section is also gapped in both rails at both ends; see D2. Base drawing: system schematic REV 7, staging level, not to scale.", 9.5)
         + "</g>"
     )
-    return svg(1056, int(legend_y + 110), body, "D1 · Staging level: reversing sections and passing siding")
+    return svg(1056, int(legend_y + 76), body, "D1 · Staging level: reversing sections and passing siding")
 
 
 # ---------------------------------------------------------------- D2
-def blocks() -> list[tuple[str, str, str]]:
-    rows = []
+def blocks() -> tuple[list[tuple[str, str, str]], list[str]]:
+    """Detected sections on a node ("Block n-c"), and sections not yet on a node.
+
+    Rows flagged "stub" are panel sub-blocks sharing another section's detector; they
+    are not separate electrical sections and are left out.
+    """
+    rows, unnoded = [], []
     with BLOCKS.open() as f:
         for r in csv.DictReader(f):
+            name = r["user_name"].replace("Track ", "")
             m = re.match(r"Block (\d+)-(\d+)$", r["occupancy_sensor"])
             if m:
-                rows.append((r["user_name"].replace("Track ", ""), f"C{m.group(1)}", m.group(2)))
+                rows.append((name, f"C{m.group(1)}", m.group(2)))
+            elif r["flag"] != "stub":
+                unnoded.append(name)
     rows.sort(key=lambda t: (int(t[1][1:]), int(t[2])))
-    return rows
+    return rows, unnoded
 
 
 def d2() -> str:
@@ -166,9 +178,11 @@ def d2() -> str:
     b.append(label(632, 133, "one feeder passes through the detector", 9.5, INK))
     b.append(label(632, 146, "(one turn through the transformer).", 9.5, INK))
     # table
-    rows = blocks()
-    b.append(label(20, 306, f"Detected sections on the staging level and helix: {len(rows)} on LCOS nodes, each wired as above.", 10.5, INK, weight="bold"))
-    b.append(label(20, 322, "The McKees Rocks and McKeesport stubs have their own sections, wired the same way but not yet on a node.", 9.5))
+    rows, unnoded = blocks()
+    b.append(label(20, 306, f"Detected sections on LCOS nodes: {len(rows)}, each wired as above.", 10.5, INK, weight="bold"))
+    if unnoded:
+        names = " and ".join(unnoded) if len(unnoded) < 3 else ", ".join(unnoded)
+        b.append(label(20, 322, f"{names}: own sections, wired the same way but not yet on a node.", 9.5))
     cols, per = 3, -(-len(rows) // 3)
     for i, (name, node, ch) in enumerate(rows):
         c, r = divmod(i, per)
@@ -181,69 +195,93 @@ def d2() -> str:
 
 # ---------------------------------------------------------------- D3
 def d3() -> str:
-    """Powered frog and panel indication through the MTB MP4's two SPDT contacts."""
+    """Powered frog and panel indication through the MTB MP4's two SPDT contacts.
+
+    Straight route: top rail at y=206, bottom rail at y=214. The diverging route leaves
+    up and to the right; its lower rail crosses the straight top rail at the frog.
+    """
     b = []
-    # turnout: points left, diverging up-right
-    y = 210
-    b.append(rails(60, 560, y))                       # straight route
-    b.append(wire(f"M300,{y-4} L520,{y-96}", INK, 1.6))
-    b.append(wire(f"M300,{y+4} L528,{y-88}", INK, 1.6))
-    b.append(label(62, y + 24, "stock rails", 9.5))
-    # frog
-    fx, fy = 420, y - 40
-    b.append(f'<path d="M{fx-22},{fy+14} L{fx},{fy} L{fx+40},{fy+36} M{fx},{fy} L{fx+44},{fy-18}" stroke="{RED}" stroke-width="3" fill="none"/>')
-    b.append(label(fx + 30, fy - 24, "frog (insulated, powered)", 10, RED, weight="bold"))
-    for gx, gy in [(470, y - 4), (470, y + 4)]:
-        pass
-    # gaps in both frog rails beyond the frog
-    b.append(f'<path d="M478,{y-12} L478,{y+12} M484,{y-12} L484,{y+12}" stroke="{INK}" stroke-width="2.4"/>')
-    b.append(f'<path d="M488,{y-74} L500,{y-86} M494,{y-68} L506,{y-80}" stroke="{INK}" stroke-width="2.4"/>')
-    b.append(label(490, y + 26, "gaps in both frog rails", 9.5))
+    yt, yb = 206, 214
+    k = -90 / 220                                   # slope of the diverging route
+    def dy(x0, y0, x):                              # y on a diverging rail through (x0, y0)
+        return y0 + k * (x - x0)
+    fx = 300 + (yt - yb) / k + 0                    # lower diverging rail from (300, 214) meets y=206
+    b.append(wire(f"M60,{yt} L560,{yt}", INK, 1.6))                     # straight top rail
+    b.append(wire(f"M60,{yb} L560,{yb}", INK, 1.6))                     # straight bottom rail (stock)
+    b.append(wire(f"M280,{yt} L520,{dy(280, yt, 520):.1f}", INK, 1.6))  # diverging outer rail (stock)
+    b.append(wire(f"M300,{yb} L540,{dy(300, yb, 540):.1f}", INK, 1.6))  # diverging inner rail
+    # frog rails: from the crossing to the gaps, in red
+    gx = 400
+    b.append(wire(f"M{fx:.1f},{yt} L{gx},{yt}", RED, 3.2))
+    b.append(wire(f"M{fx:.1f},{yt} L{gx},{dy(300, yb, gx):.1f}", RED, 3.2))
+    b.append(f'<circle cx="{fx:.1f}" cy="{yt}" r="3.5" fill="{RED}"/>')
+    b.append(label(fx - 6, yt - 46, "frog", 10, RED, "end", "bold"))
+    b.append(wire(f"M{fx-8:.1f},{yt-42} L{fx:.1f},{yt-4}", RED, 0.8))
+    # one gap in each frog rail, the stock rails untouched
+    b.append(wire(f"M{gx},{yt-3.5} L{gx},{yt+3.5} M{gx+4},{yt-3.5} L{gx+4},{yt+3.5}", INK, 2.2))
+    yd = dy(300, yb, gx)
+    b.append(wire(f"M{gx-1.5},{yd-3.5} L{gx+1.5},{yd+3.5} M{gx+2.5},{yd-5} L{gx+5.5},{yd+2}", INK, 2.2))
+    b.append(label(gx + 10, yt + 26, "a gap in each frog rail (stock rails continuous)", 9.5))
+    b.append(label(62, yb + 24, "stock rails", 9.5))
     # MP4
-    b.append(f'<rect x="110" y="300" width="200" height="124" fill="#f3f6f8" stroke="{INK}"/>')
+    b.append(f'<rect x="110" y="300" width="200" height="130" fill="#f3f6f8" stroke="{INK}"/>')
     b.append(label(210, 318, "MTB MP4 switch machine", 10.5, INK, "middle", "bold"))
     # SPDT 1 (frog)
     b.append(label(124, 340, "SPDT 1: frog power", 10, INK, weight="bold"))
     b.append(f'<circle cx="150" cy="362" r="3" fill="{INK}"/><circle cx="200" cy="352" r="3" fill="{INK}"/><circle cx="200" cy="372" r="3" fill="{INK}"/>')
     b.append(wire("M150,362 L198,353", INK, 1.6))
     b.append(label(124, 366, "C", 9, GREY))
-    b.append(wire(f"M200,352 L250,352 L250,{y+4}", INK, 1.3))
-    b.append(wire(f"M200,372 L270,372 L270,{y-4}", RED, 1.3))
-    b.append(f'<circle cx="250" cy="{y+4}" r="3" fill="{INK}"/><circle cx="270" cy="{y-4}" r="3" fill="{RED}"/>')
-    b.append(wire(f"M150,362 L140,362 L140,280 L{fx},280 L{fx},{fy+2}", RED, 1.6))
-    b.append(label(150, 274, "common to the frog", 9.5, RED))
-    b.append(label(278, 292, "throws to the two stock rails", 9.5))
+    b.append(wire(f"M200,352 L250,352 L250,{yb}", INK, 1.3))
+    b.append(wire(f"M200,372 L270,372 L270,280 L230,280 L230,{yt}", INK, 1.3))
+    b.append(f'<circle cx="250" cy="{yb}" r="3" fill="{INK}"/><circle cx="230" cy="{yt}" r="3" fill="{INK}"/>')
+    b.append(label(276, 292, "throws to the two stock rails", 9.5))
+    b.append(wire(f"M150,362 L140,362 L140,262 L{fx + 25:.1f},262 L{fx + 25:.1f},{yt}", RED, 1.6))
+    b.append(f'<circle cx="{fx + 25:.1f}" cy="{yt}" r="3" fill="{RED}"/>')
+    b.append(label(150, 256, "common to the frog", 9.5, RED))
     # SPDT 2 (indication)
     b.append(label(124, 396, "SPDT 2: panel indication", 10, INK, weight="bold"))
-    b.append(f'<circle cx="150" cy="408" r="3" fill="{INK}"/><circle cx="200" cy="402" r="3" fill="{INK}"/><circle cx="200" cy="414" r="3" fill="{INK}"/>')
-    b.append(wire("M150,408 L198,403", INK, 1.6))
-    b.append(box(380, 380, 170, 44, "Panel indication", "Touch Toggle LED, normal / reverse", size=9))
+    b.append(f'<circle cx="150" cy="410" r="3" fill="{INK}"/><circle cx="200" cy="402" r="3" fill="{INK}"/><circle cx="200" cy="416" r="3" fill="{INK}"/>')
+    b.append(wire("M150,410 L198,403", INK, 1.6))
+    b.append(box(380, 380, 190, 44, "Panel indication", "Touch Toggle LED: normal / reverse", size=9))
     b.append(wire("M200,402 L380,396", BLUE, 1.3))
-    b.append(wire("M200,414 L380,410", BLUE, 1.3))
-    b.append(box(380, 316, 170, 44, "Motor drive", "LCOS 12 V output", size=9))
+    b.append(wire("M200,416 L380,410", BLUE, 1.3))
+    b.append(wire("M150,410 L150,444 L475,444 L475,424", BLUE, 1.3))
+    b.append(label(160, 440, "LED supply to the common", 9, BLUE))
+    b.append(box(380, 316, 190, 44, "Motor drive", "LCOS 12 V output", size=9))
     b.append(wire("M310,338 L380,338", INK, 1.3, "4 3"))
-    b.append(label(20, 456, "The frog always takes the polarity of the stock rail its points lie against, because the same throw of the machine that moves", 9.5, INK))
-    b.append(label(20, 470, "the points also moves the SPDT 1 contact. Every staging turnout is wired this way. Indication follows the machine, so it is", 9.5, INK))
-    b.append(label(20, 484, "correct whether the turnout is thrown from the panel, a DCC throttle or the computer.", 9.5, INK))
-    return svg(620, 500, "\n".join(b), "D3 · Turnout: powered frog and panel indication (MTB MP4, two SPDT)")
+    b.append(label(20, 472, "The frog always takes the polarity of the stock rail its points lie against, because the same throw of the machine that moves", 9.5, INK))
+    b.append(label(20, 486, "the points also moves the SPDT 1 contact. Every staging turnout is wired this way. Indication follows the machine, so it is", 9.5, INK))
+    b.append(label(20, 500, "correct whether the turnout is thrown from the panel, a DCC throttle or the computer.", 9.5, INK))
+    return svg(620, 516, "\n".join(b), "D3 · Turnout: powered frog and panel indication (MTB MP4, two SPDT)")
 
 
 # ---------------------------------------------------------------- D4
 def d4() -> str:
-    """Crossover: two turnouts, gaps in both rails between the frogs."""
+    """Crossover: two turnouts joined by a pair of parallel rails, gapped between the frogs."""
     b = []
     ya, yb = 110, 230
     b.append(rails(40, 700, ya))
     b.append(rails(40, 700, yb))
-    b.append(wire(f"M230,{ya+4} L500,{yb-4}", INK, 1.6))
-    b.append(wire(f"M240,{ya-4} L510,{yb+4}", INK, 1.6, ))
-    # frogs
-    b.append(f'<circle cx="300" cy="{ya+20}" r="6" fill="{RED}"/><circle cx="440" cy="{yb-20}" r="6" fill="{RED}"/>')
-    b.append(label(312, ya + 34, "frog A", 9.5, RED, weight="bold"))
-    b.append(label(380, yb - 30, "frog B", 9.5, RED, weight="bold"))
-    # gaps both rails mid crossover
-    b.append(f'<path d="M352,{ya+48} L376,{ya+62} M360,{ya+40} L384,{ya+54}" stroke="{INK}" stroke-width="2.6"/>')
-    b.append(label(392, ya + 54, "gaps in both rails between the frogs", 10, INK, weight="bold"))
+    # crossover rails: parallel, from the lower rail of track a to the upper rail of track b
+    x1, x2 = 220, 500
+    off = 20                                        # horizontal offset gives two parallel rails
+    p1 = ((x1, ya + 4), (x2, yb - 4))
+    p2 = ((x1 + off, ya + 4), (x2 + off, yb - 4))
+    for (sx, sy), (ex, ey) in (p1, p2):
+        b.append(wire(f"M{sx},{sy} L{ex},{ey}", INK, 1.6))
+    def at(p, t):
+        (sx, sy), (ex, ey) = p
+        return sx + (ex - sx) * t, sy + (ey - sy) * t
+    fa, fb = at(p2, 0.12), at(p1, 0.88)
+    b.append(f'<circle cx="{fa[0]:.1f}" cy="{fa[1]:.1f}" r="5" fill="{RED}"/><circle cx="{fb[0]:.1f}" cy="{fb[1]:.1f}" r="5" fill="{RED}"/>')
+    b.append(label(fa[0] + 10, fa[1] + 4, "frog A", 9.5, RED, weight="bold"))
+    b.append(label(fb[0] - 10, fb[1] + 4, "frog B", 9.5, RED, "end", "bold"))
+    # a gap in each crossover rail at mid-length
+    for p in (p1, p2):
+        cx, cy = at(p, 0.5)
+        b.append(wire(f"M{cx-4},{cy-6} L{cx+4},{cy+6} M{cx+1},{cy-8} L{cx+9},{cy+4}", INK, 2.2))
+    mx, my = at(p2, 0.5)
+    b.append(label(mx + 18, my, "gap in both crossover rails, between the frogs", 10, INK, weight="bold"))
     for x in (150, 600):
         b.append(gap(x, ya, color=GREY))
         b.append(gap(x, yb, color=GREY))
