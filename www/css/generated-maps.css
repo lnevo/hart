@@ -4,7 +4,7 @@
   padding: 0.55rem 0.8rem;
   border: 1px solid var(--rule);
   border-left: 4px solid var(--muted);
-  background: var(--surface, transparent);
+  background: var(--card);
   font-size: 0.92rem;
 }
 

@@ -63,7 +63,7 @@ LEAK_PATTERNS = re.compile(r"localhost|127\.0\.0\.1|/Users/|external/sts-docker-
 # prefix when resolving logos and photos, so only data files are checked for it.
 MIRROR_PREFIXES = ("../external/", "../media/", "../ops/", "../docs/")
 DATA_LEAK = re.compile(r"\.\./(?:external|media|ops|docs)/")
-LEAK_SUFFIXES = {".html", ".json", ".css", ".md", ".txt"}
+LEAK_SUFFIXES = {".html", ".json", ".css", ".md", ".txt", ".svg"}
 # Share previews (Facebook, iMessage, …) read static tags only, so every page gets them at build time.
 # The site is served at the domain root; override with --site-url or HART_SITE_URL.
 SITE_URL = os.environ.get("HART_SITE_URL", "https://www.hartrailroad.com/")
