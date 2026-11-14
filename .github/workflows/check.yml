@@ -1,4 +1,5 @@
-# The checks a clean clone can run. Submodules stay out, and the portal build needs
+# The checks a clean clone can run. Submodules stay out except the public schematic-maps plugin
+# (for the schematic signals check), and the portal build needs
 # the gitignored photo mirrors, so tools/check.sh skips it here (CI=true).
 name: check
 on:
@@ -10,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init external/model-railroad-skills
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"

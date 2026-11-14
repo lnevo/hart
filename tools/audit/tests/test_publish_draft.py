@@ -56,5 +56,40 @@ class Fields(unittest.TestCase):
             self.assertEqual(json.loads(p.read_text()), {"title": ["x"], "date": "2026-12-01", "revision": 2})
 
 
+class Preview(unittest.TestCase):
+    def test_writes_only_into_the_folder(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            prefs = PD.page_prefs().read_text()
+            target = (PD.OUT / "schematic-system-draft.svg").read_text()
+            printed = []
+            real_pdf, PD.pdf = PD.pdf, lambda svg, out: printed.append(out)
+            try:
+                self.assertEqual(PD.preview(sheet(), Path(tmp) / "out"), 0)
+            finally:
+                PD.pdf = real_pdf
+            self.assertEqual((Path(tmp) / "out/schematic-system-draft.svg").read_text(), sheet())
+            self.assertEqual(printed, [Path(tmp) / "out/schematic-system-draft.pdf"])
+            self.assertEqual(PD.page_prefs().read_text(), prefs)
+            self.assertEqual((PD.OUT / "schematic-system-draft.svg").read_text(), target)
+
+    def test_graphs_are_in_the_repo(self) -> None:
+        for graph, _ in PD.INPUTS:
+            self.assertTrue((PD.GRAPHS / graph).is_file(), graph)
+        self.assertTrue(PD.GRAPHS.is_relative_to(PD.REPO))
+
+
+class SignalsCheck(unittest.TestCase):
+    def test_skips_without_the_plugin(self) -> None:
+        spec = importlib.util.spec_from_file_location("build_signals", ROOT / "tools/schematic/build_signals.py")
+        bs = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(bs)
+        with tempfile.TemporaryDirectory() as tmp:
+            real, bs.pd.REPO = bs.pd.REPO, Path(tmp)
+            try:
+                self.assertEqual(bs.main(["--check"]), 0)
+            finally:
+                bs.pd.REPO = real
+
+
 if __name__ == "__main__":
     unittest.main()
