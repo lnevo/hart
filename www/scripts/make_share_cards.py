@@ -460,6 +460,23 @@ def link_build_main_level():
     return card(im.crop((0, top, w, top + ch)))
 
 
+def build_track_plan():
+    """build-track-plan: the three level drawings of the track plan article side by side, staging with its loop and engine terminal."""
+    text = (PORTAL / "build/track-plan.html").read_text(encoding="utf-8")
+    figs = re.findall(r'<div class="plan"><svg viewBox="([^"]+)" role="img" aria-label="([^"]+)">(.*?)</svg></div>', text, re.S)
+    css = re.search(r"</style>", text) and _page_style("build/track-plan.html")
+    parts = []
+    for (vb, _label, inner), name in zip(figs, ("Staging", "Main level", "Upper level")):
+        inner = re.sub(r'<line class="scale".*$', "", inner, flags=re.S)  # the 100 cm bar is too small to read at card size
+        _x, _y, vw, vh = map(float, vb.split())
+        parts.append(f'<figure><svg viewBox="{vb}" style="width:{vw / vh * 440:.0f}px">{inner}</svg><figcaption>{name}</figcaption></figure>')
+    style = (css + "svg text{display:none}body{background:" + PAPER + ";display:flex;justify-content:center;gap:40px;"
+             "align-items:center;box-sizing:border-box;padding:0 30px}figure{margin:0;text-align:center}"
+             "svg{height:440px;display:block}figure{flex:none}"
+             "figcaption{font:700 40px var(--font-display);letter-spacing:.04em;color:var(--brand);margin-top:16px}")
+    return card(draw("track-plan", "".join(parts), style))
+
+
 def ai_operations():
     """ai-operations: the weighed car on the STS Track Scale, from the owner's screenshot."""
     from PIL import Image
@@ -549,6 +566,7 @@ CARDS = {
     "crew-maps": station_maps,
     "crew-tt23": tt23,
     "link-build-main-level": link_build_main_level,
+    "build-track-plan": build_track_plan,
     "crew-nvl": crew_nvl,
     "crew-dispatcher": crew_dispatcher,
 }

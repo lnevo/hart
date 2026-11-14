@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""Build the level-plans page: staging, main and upper level of plan 5.3b, drawn to scale.
+"""Build the track plan article (www/build/track-plan.html): staging, main and upper level of plan 5.3b, drawn to scale.
 
     python3 levels_page.py SVG_DIR STAGING_SVG PANEL_IMG|- OUT_SITE_HTML OUT_ARTIFACT_HTML
+
+OUT_SITE_HTML is www/build/track-plan.html (the Build section article; never edit it by hand, rerun this).
+PANEL_IMG goes into the artifact copy only, never into the site article.
 
 SVG_DIR holds main.svg, upper.svg and levels_meta.json from levels_svg.py. STAGING_SVG is the
 staging level's track drawing (staging_plan.svg here). The Switch 7 and 13 markers are added
@@ -123,10 +126,14 @@ def sections(svg_dir, staging):
     f_main = figure((mb[0] - pad, mb[1] - pad, mb[2] - mb[0] + 2 * pad, mb[3] - mb[1] + 2 * pad), main, "Main level of plan 5.3b")
     f_upper = figure((ub[0] - pad, ub[1] - pad, ub[2] - ub[0] + 2 * pad, ub[3] - ub[1] + 2 * pad), upper, "Upper level of plan 5.3b")
     t = {}
-    t["intro"] = ('<p>The track plans of all three levels, read from the layout plan (version 5.3b) and drawn to scale in centimetres. '
-                  'Staging is 38.1 cm (15 in) below the main level, and the upper level is 10.8 cm (4.25 in) above it. '
-                  'The helix joins them. Every drawing is track only, with the changes made to the plan applied: the unbuilt crossover is left out, '
-                  'T300 is moved to the upper level, and the switches the plan lacks are added where the plan has room for them.</p>')
+    t["intro"] = (
+        '<p>Track plans of the staging, main and upper levels, read from layout plan version 5.3b and drawn to scale in centimetres. '
+        'Staging is 38.1 cm (15 in) below the main level and the upper level is 10.8 cm (4.25 in) above it; the helix joins them. '
+        'The main level has %d turnouts and %.1f m of flex, the upper level %d turnouts and %.1f m. '
+        'The test loop on staging measures 1382 in (35,108 mm) along the plan. '
+        'Every drawing is track only, with the changes made to the plan applied: the unbuilt crossover is left out, '
+        'T300 is moved to the upper level, and the switches the plan lacks are added where the plan has room for them.</p>'
+        % (meta["main"]["drawn"], meta["main"]["flex_m"], meta["upper"]["drawn"], meta["upper"]["flex_m"]))
     t["stage_key"] = ('<div class="key"><span class="k-loop">test loop route</span><span class="k-sw7">run from Switch 5 to Switch 15</span>'
                       '<span class="k-trk">other track</span></div>')
     l7, a7, b7, before7 = LOCATE["7"]
@@ -216,24 +223,26 @@ polyline,line,circle{fill:none;stroke-linecap:round}
 .key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem;color:var(--muted);margin-bottom:8px}
 .key span::before{content:"";display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:6px}
 .k-loop::before{border-color:var(--loop)!important}.k-sw7::before{border-color:var(--sw7)!important;border-top-style:dashed!important}.k-ramp::before{border-color:var(--sw7)!important;border-top-style:dotted!important}.k-nb::before,.k-flag::before{border-color:var(--nb)!important}.k-trk::before{border-color:var(--track)!important}
-.lv h2{margin-top:2.2rem}
+.feature-body.lv{max-width:none;font-family:var(--font-body);font-size:1rem;line-height:1.55}
+.feature-body.lv h2{margin-top:0}
+.feature-body.lv p{max-width:70ch}
+.lv li{max-width:70ch}
+.lv h2 .num{display:block;font-size:.85rem;letter-spacing:.12em;color:var(--muted)}
 .tw{overflow-x:auto}
 .lv table{border-collapse:collapse;width:100%;font-size:.9rem;font-variant-numeric:tabular-nums}
 .lv td,.lv th{text-align:left;padding:4px 8px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
 .lv td.n,.lv th.n{text-align:right;padding-left:10px}
 .lv th{font-weight:600;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
 .lv ol,.lv ul{padding-left:1.3em;display:flex;flex-direction:column;gap:8px}
-.lv .jump{display:flex;gap:16px;flex-wrap:wrap;margin:.6rem 0 0}
 """
 
 
 def body(t, f_stage):
-    return ('<nav class="jump"><a href="#staging">Staging</a><a href="#main">Main level</a><a href="#upper">Upper level</a></nav>'
-            + t["intro"] +
-            '<section id="staging"><h2>Staging level</h2>' + t["stage_key"] + f_stage +
+    return (t["intro"] +
+            '<section id="staging"><h2><span class="num">01</span>Staging level</h2>' + t["stage_key"] + f_stage +
             t["locate"] + t["diffs"] + t["terminal"] + t["loop"] + t["blocks"] + '</section>'
-            '<section id="main"><h2>Main level</h2>' + t["main"] + '</section>'
-            '<section id="upper"><h2>Upper level</h2>' + t["upper"] + '</section>')
+            '<section id="main"><h2><span class="num">02</span>Main level</h2>' + t["main"] + '</section>'
+            '<section id="upper"><h2><span class="num">03</span>Upper level</h2>' + t["upper"] + '</section>')
 
 
 SITE = """<!DOCTYPE html>
@@ -241,11 +250,12 @@ SITE = """<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Level plans — HART</title>
+  <title>Track plan — HART</title>
+  <meta name="description" content="Track plans of the staging, main and upper levels drawn to scale from plan 5.3b, with the Switch 7 and 13 timings, plan and built differences, and loop and block lengths.">
   <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
   <style>
     :root{--track:#6b7a86;--loop:#146377;--sw7:#a85a10;--nb:#b33a3a;--fg:var(--ink);--display:var(--font-display);--body:var(--font-body)}
-    .lv{max-width:72rem;display:block;min-width:0}
     .lv section,.lv .plan{min-width:0;max-width:100%%}
     .lv h3{font-family:var(--font-display);font-size:1.15rem;margin:1.6rem 0 .4rem;color:var(--brand-2)}
 %s
@@ -254,17 +264,28 @@ SITE = """<!DOCTYPE html>
 <body>
   <header class="site-header" data-ops-header></header>
   <main>
-    <div class="page-head">
-      <h1>Level plans</h1>
-      <p class="muted">Staging, main and upper level, drawn to scale from plan 5.3b</p>
-    </div>
-    <div class="guide-body lv prose">
+    <article class="feature">
+      <header class="feature-head">
+        <h1>Track plan</h1>
+        <p class="standfirst">Staging, main and upper level drawn to scale from plan 5.3b, with the Switch 7 and 13 timings and the loop and block lengths.</p>
+        <p class="byline">The Build · November 2026</p>
+      </header>
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#staging">Staging level</a></li>
+          <li><a href="#main">Main level</a></li>
+          <li><a href="#upper">Upper level</a></li>
+        </ol>
+      </nav>
+      <div class="feature-body lv">
 %s
-    </div>
+      </div>
+    </article>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
-  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("layout-levels"); });</script>
+  <script>document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("build-track-plan"); });</script>
 </body>
 </html>
 """

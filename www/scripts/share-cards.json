@@ -98,6 +98,11 @@
       "from": "docs/benchwork/main_level/main_level_joist_construction.pdf page 1 (top of the sheet)",
       "shared": true
     },
+    "build/track-plan.html": {
+      "image": "assets/share/build-track-plan.jpg",
+      "alt": "The staging, main and upper level track plans side by side, drawn to scale, with the staging test loop and engine terminal marked in orange.",
+      "from": "make_share_cards.py build-track-plan (the three drawings of build/track-plan.html)"
+    },
     "build/index.html": {
       "image": "assets/share/build-index.jpg",
       "alt": "Overview of the layout room with the helix, benchwork and painted backdrop, the hub's own banner.",
