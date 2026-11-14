@@ -17,3 +17,5 @@ jobs:
           python-version: "3.13"
       - run: pip install -r ops/hart-ops/requirements-test.txt
       - run: ./tools/check.sh
+        env:
+          SCHEMATIC_REQUIRED: "1"

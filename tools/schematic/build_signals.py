@@ -5,9 +5,13 @@ Editor panel in tables.xml with the schematic-maps plugin's `signals` command, t
 switch numbers in switches.csv and the run lengths in block_lengths.csv. Only staging has masts on the panel;
 add a level to LEVELS when its masts are placed.
 
---check regenerates into a temporary folder and compares (exit 1 if a file is stale). When the plugin
-submodule is not checked out it says so and exits 0, so a checkout without submodules still runs check.sh.
+--check regenerates into a temporary folder and compares (exit 1 if a file is stale). Masts the plugin could
+not place fail the run, with or without --check. When the plugin submodule is not checked out and
+SCHEMATIC_PLUGIN is not set, --check prints SKIPPED and exits 0, so a checkout without submodules still runs
+check.sh; with SCHEMATIC_REQUIRED=1 (set in CI) that skip is a failure instead.
 """
+import os
+import re
 import difflib
 import subprocess
 import sys
@@ -15,11 +19,11 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import publish_draft as pd  # noqa: E402  REPO, DATA, GRAPHS and the pinned plugin
+import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pinned plugin
 
 LEVELS = [("staging.json", "staging")]     # plan graph in inputs/, layer file stem
-TABLES = pd.REPO / "jmri/layouts/hart/output/tables.xml"
-FACTS = pd.REPO / "jmri/layouts/hart/data"
+TABLES = pd.paths.TABLES_XML
+FACTS = pd.paths.LAYOUT_DATA
 
 
 def generate(graph, name, out):
@@ -29,13 +33,19 @@ def generate(graph, name, out):
     print(run.stdout + run.stderr, end="")
     if run.returncode:
         sys.exit(run.returncode)
+    unplaced = re.search(r"\| (\d+) problems", run.stdout)
+    if not unplaced:
+        sys.exit("plugin signals output has no problem count; has its output changed?")
+    if int(unplaced.group(1)):
+        sys.exit(f"{name}: {unplaced.group(1)} masts not placed (listed above); fix the panel or the layer files")
 
 
 def main(argv):
     check = "--check" in argv
-    if check and not (pd.REPO / "external/model-railroad-skills/plugins/schematic-maps/bin/schematic").exists():
-        print("schematic signals check skipped: plugin submodule external/model-railroad-skills not checked out")
-        return 0
+    submodule = pd.REPO / "external/model-railroad-skills/plugins/schematic-maps/bin/schematic"
+    if check and not os.environ.get("SCHEMATIC_PLUGIN") and not submodule.exists():
+        print("SKIPPED schematic signals check: plugin submodule external/model-railroad-skills not checked out")
+        return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     stale = 0
     with tempfile.TemporaryDirectory() as tmp:
         for graph, name in LEVELS:

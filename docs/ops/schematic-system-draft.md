@@ -20,6 +20,8 @@ Regenerate after a new AnyRail export, from the worktree root with the plugin su
     $P plan "$X" $I/staging.json --section +Staging --parts $I/parts.json --z-range -100 -5
     $P plan "$X" $I/main.json --section Staging --parts $I/parts.json --z-range -5 100
 
-Checked 2026-11-14: both reproduce the committed graphs (the plugin adds a `notes` list of what it did). `parts.json` comes from the `.any` file through the AnyRail reader in `tools/anyrail/prototype/` (`parse1.py`, then `parse2.py`), run in a scratch folder outside the repo; check it still holds track parts only before committing a new one.
+Checked 2026-11-14: both reproduce the committed graphs except for a `notes` list the plugin adds (what it joined and matched); delete that key before committing. `parts.json` comes from the `.any` file through the AnyRail reader in `tools/anyrail/prototype/` (`parse1.py`, then `parse2.py`), run in a scratch folder outside the repo. Keep only each part's `name` and its end points' `x`, `y` and `z` (the plugin uses nothing else, and the list order gives the `T` labels, so drop no parts), and drop any end point whose `sys` differs from its part's, which is a misread of the next record. `tools/audit/tests/test_publish_draft.py` fails on any other field:
+
+    python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); json.dump([{"name": p["name"], "eps": [{k: e[k] for k in "xyz"} for e in p["eps"] if e["sys"] == p["sys"]]} for p in d], open(sys.argv[2], "w"), separators=(",", ":"))' raw_parts.json $I/parts.json
 
 The staging masts, `staging.signals.json`, come from `tables.xml`, `switches.csv` and `block_lengths.csv`: `python3 tools/schematic/build_signals.py` regenerates them and `--check` (in `tools/check.sh`) fails when they are stale.

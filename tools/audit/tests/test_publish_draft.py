@@ -1,9 +1,12 @@
 """publish_draft.py: what counts as a drawing change, and the date and revision it sets."""
 from __future__ import annotations
 
+import contextlib
 import datetime
 import importlib.util
+import io
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -103,17 +106,70 @@ class Preview(unittest.TestCase):
 
 
 class SignalsCheck(unittest.TestCase):
-    def test_skips_without_the_plugin(self) -> None:
+    def setUp(self) -> None:
         spec = importlib.util.spec_from_file_location("build_signals", ROOT / "tools/schematic/build_signals.py")
-        bs = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(bs)
-        with tempfile.TemporaryDirectory() as tmp:
-            real, bs.pd.REPO = bs.pd.REPO, Path(tmp)
-            try:
-                self.assertEqual(bs.main(["--check"]), 0)
-            finally:
-                bs.pd.REPO = real
+        self.bs = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.bs)
+        self.env = {k: os.environ.pop(k) for k in ("SCHEMATIC_PLUGIN", "SCHEMATIC_REQUIRED") if k in os.environ}
 
+    def tearDown(self) -> None:
+        os.environ.update(self.env)
+
+    def without_plugin(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            real, self.bs.pd.REPO = self.bs.pd.REPO, Path(tmp)
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    return self.bs.main(["--check"])
+            finally:
+                self.bs.pd.REPO = real
+
+    def test_skips_without_the_plugin(self) -> None:
+        self.assertEqual(self.without_plugin(), 0)
+
+    def test_skip_fails_when_required(self) -> None:
+        os.environ["SCHEMATIC_REQUIRED"] = "1"
+        self.assertEqual(self.without_plugin(), 1)
+
+    def run_with(self, plugin_says, committed):
+        """main() with the plugin replaced by a script that prints plugin_says and writes {"fresh": 1}."""
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            (tmp / "bin").mkdir()
+            tool = tmp / "bin/schematic"
+            tool.write_text(f"#!/bin/sh\nprintf '%s\\n' '{plugin_says}'\necho '{{\"fresh\": 1}}' > \"$5\"\n")
+            tool.chmod(0o755)
+            (tmp / "staging.signals.json").write_text(committed)
+            real = self.bs.pd.plugin, self.bs.pd.DATA
+            self.bs.pd.plugin, self.bs.pd.DATA = (lambda: tmp), tmp
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    return self.bs.main(["--check"])
+            finally:
+                self.bs.pd.plugin, self.bs.pd.DATA = real
+
+    def test_current_passes(self) -> None:
+        self.assertEqual(self.run_with("3 masts placed {} | 0 problems", '{"fresh": 1}\n'), 0)
+
+    def test_stale_fails(self) -> None:
+        self.assertEqual(self.run_with("3 masts placed {} | 0 problems", '{"old": 1}\n'), 1)
+
+    def test_unplaced_masts_fail(self) -> None:
+        with self.assertRaises(SystemExit) as e:
+            self.run_with("2 masts placed {} | 1 problems", '{"fresh": 1}\n')
+        self.assertIn("not placed", str(e.exception.code))
+
+
+class Inputs(unittest.TestCase):
+    def test_parts_hold_track_positions_only(self) -> None:
+        parts = json.loads((PD.GRAPHS / "parts.json").read_text())
+        self.assertTrue(parts)
+        for p in parts:
+            self.assertEqual(set(p), {"name", "eps"})
+            for e in p["eps"]:
+                self.assertEqual(set(e), {"x", "y", "z"})
+                self.assertLess(max(abs(e[k]) for k in "xyz"), 5000)
+                self.assertTrue(abs(e["x"]) > 1e-6 or abs(e["y"]) > 1e-6, "endpoint at the origin: corrupt read")
 
 if __name__ == "__main__":
     unittest.main()
