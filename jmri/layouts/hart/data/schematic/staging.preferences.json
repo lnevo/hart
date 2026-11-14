@@ -51,5 +51,49 @@
  "direction_arrows": true,
  "capacity": {
   "car_in": 7.4
- }
+ },
+ "detail_sheets": {
+  "Brick": [
+   "1",
+   "3"
+  ],
+  "Plane": [
+   "5"
+  ],
+  "West Yard": [
+   "1",
+   "3",
+   "5"
+  ],
+  "Barn": [
+   "7",
+   "9",
+   "11",
+   "13"
+  ],
+  "South Yard": [
+   "7",
+   "9",
+   "11",
+   "13",
+   "15",
+   "17",
+   "19",
+   "21"
+  ],
+  "East End": [
+   "23",
+   "25",
+   "27",
+   "29",
+   "31",
+   "33"
+  ],
+  "Princess": [
+   "35",
+   "37",
+   "39"
+  ]
+ },
+ "_detail_sheets": "Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations above. South Yard covers the yard and the Barn (owner, 2026-11-14); West Yard pairs the hand map with Brick and Plane; Princess is the hand map's Shenango."
 }
