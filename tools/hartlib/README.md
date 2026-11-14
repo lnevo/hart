@@ -1,7 +1,8 @@
 # hartlib
 
 The shared library for the repo's CPython tools: one way to read and write `tables.xml`,
-one place for repo paths, one place for broker and JMRI host settings. Standard library
+one place for repo paths, one place for broker and JMRI host settings, and the name
+map's DCC column. Standard library
 only, Python 3.9 or newer.
 
 **Never import hartlib from a Jython script that runs inside JMRI** (JMRI runs Jython 2.7).
@@ -116,6 +117,14 @@ Lookups (all take the root element unless noted):
 - Scripts that edit tables.xml as text with regexes (`apply_public_names.py`,
   `refresh_bean_comments.py`, `apply_le_sml_facing.py`) keep untouched bytes by design.
   Move them only if the regex work is replaced by element edits and the output is the same.
+
+### `hartlib.names`
+
+`public_name_map.csv` keeps a turnout's DCC address in its own `dcc` column; JMRI's
+comment carries it as the second group (`Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2`).
+`row_comment(row)` gives the JMRI comment for a map row, `jmri_comment(comment, dcc)` builds
+one, and `split_dcc(comment)` takes the group out of a JMRI or Device-map comment. Read the
+address from the column; never regex it out of `comment`.
 
 ### `hartlib.hosts`
 
