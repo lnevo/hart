@@ -1,0 +1,16 @@
+{
+  "_note": "Voiceover for the Diverging Route promo. 'say' is what the voice speaks (spelled for the TTS), 'caption' is what shows on screen. The first line differs by voice.",
+  "intro": {
+    "owner": {"say": "Alright TikTok, I've got something new for you.", "caption": "Alright TikTok…"},
+    "generic": {"say": "What happens when you bring AI into model railroading?", "caption": "What happens when AI meets model railroading?"}
+  },
+  "lines": [
+    {"key": "title", "say": "It's called The Diverging Route. A new series about AI in model railroading.", "caption": "A new series about AI in model railroading"},
+    {"key": "switch", "say": "On a real railroad, the diverging route is the other way through a switch, where a train leaves the main line and heads somewhere new.", "caption": "The other way through the switch"},
+    {"key": "hobbies", "say": "Model railroading is a lot of hobbies in one. Historian. Carpenter. Electrician. Signal engineer. Programmer.", "caption": ""},
+    {"key": "jobs", "say": "I've been bringing AI into every one of them. The research, the helix, the wiring, the signals, the paperwork, even speed matching locomotives.", "caption": "AI in every part of the build"},
+    {"key": "verdict", "say": "Every job shows what I asked, what came out, and an honest verdict on how it went.", "caption": "What I asked. What came out. The verdict."},
+    {"key": "same", "say": "A different route, but the destination is the same: more time running trains.", "caption": "Different route. Same destination."},
+    {"key": "cta", "say": "Find The Diverging Route at hart railroad dot com, and stay tuned for the video series.", "caption": ""}
+  ]
+}
