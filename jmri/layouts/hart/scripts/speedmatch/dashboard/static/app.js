@@ -1,6 +1,11 @@
 "use strict";
-// Speed-match dashboard client. Polls /api/state; every value from the server goes in with textContent.
+// Speed-match dashboard client. Two data sources, one set of panels: live polls /api/state;
+// recorded (the website page sets window.SM_RECORDED) reads the static JSON export_site_runs.py
+// wrote, with a run picker. Every value from either source goes in with textContent.
 const $ = (id) => document.getElementById(id);
+const REC = window.SM_RECORDED || null;  // {base: folder of index.json, photos: {loco: url}, tz: time zone of the logs}
+const ROOT = document.querySelector(".smd") || document.documentElement;  // where the theme attribute lives
+let INDEX = [];  // recorded: the published runs, newest first
 const SVGNS = "http://www.w3.org/2000/svg";
 const MAX_STEP = 126, TOL = 3;
 let S = null, manual = null, showTable = false;
@@ -27,7 +32,9 @@ function dur(s) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
   return h ? `${h}:${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` : `${m}:${String(x).padStart(2, "0")}`;
 }
-const clock = (t) => new Date(t * 1000).toLocaleTimeString([], { hour12: false });
+const clock = (t) => new Date(t * 1000).toLocaleTimeString([], { hour12: false, timeZone: REC ? REC.tz : undefined });
+const when = (t) => new Date(t * 1000).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: REC ? REC.tz : undefined });
+const tagOf = (o) => ({ used: "Used", superseded: "Superseded", "not-used": "Not used" }[o] || o);
 const locoVar = (loco) => (loco === "2738" ? "var(--c2738)" : "var(--c2121)");
 const STATUS = { waiting: "Waiting", starting: "Starting", warming: "Warming up", settling: "Settling", measuring: "Measuring", computing: "Computing", done: "Done", stopped: "Stopped", error: "Error", aborted: "Aborted" };
 const ICON = { waiting: "…", starting: "▸", warming: "♨", settling: "◔", measuring: "●", computing: "…", done: "✓", stopped: "■", error: "✕", aborted: "✕" };
@@ -40,44 +47,52 @@ function focusRun() {
 
 // ---------------------------------------------------------------- theme
 function setTheme(t) {
-  if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
+  if (t) ROOT.dataset.theme = t; else delete ROOT.dataset.theme;
   try { t ? localStorage.setItem("sm-theme", t) : localStorage.removeItem("sm-theme"); } catch (e) {}
   if (S) render();
 }
-try { const t = localStorage.getItem("sm-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
-{ const q = new URLSearchParams(location.search).get("theme"); if (q === "dark" || q === "light") document.documentElement.dataset.theme = q; }
+try { const t = localStorage.getItem("sm-theme"); if (t) ROOT.dataset.theme = t; } catch (e) {}
+{ const q = new URLSearchParams(location.search).get("theme"); if (q === "dark" || q === "light") ROOT.dataset.theme = q; }
+if (REC && !ROOT.dataset.theme) ROOT.dataset.theme = "light";  // the site itself has no dark theme
 $("theme").addEventListener("click", () => {
-  const dark = document.documentElement.dataset.theme
-    ? document.documentElement.dataset.theme === "dark"
+  const dark = ROOT.dataset.theme
+    ? ROOT.dataset.theme === "dark"
     : matchMedia("(prefers-color-scheme: dark)").matches;
   setTheme(dark ? "light" : "dark");
 });
 $("follow").addEventListener("click", () => { manual = null; tick(); });
+if ($("runpick")) $("runpick").addEventListener("change", (e) => pick(e.target.value));
 $("tbl").addEventListener("click", () => { showTable = !showTable; $("tbl").textContent = showTable ? "Chart" : "Table"; renderChart(); });
 
 // ---------------------------------------------------------------- banner and header
 function renderTop(run) {
   $("mode").textContent = S.mode;
-  $("livedot").className = "dot" + (S.reachable && run && !finished(run) ? " on" : "");
+  $("livedot").className = "dot" + (S.reachable && run && !finished(run) && !REC ? " on" : "");
   const c = $("conn");
-  c.textContent = S.reachable ? (S.mode === "live" ? "Pi connected" : "Playing " + S.mode) : (S.message || "Pi not reachable, retrying");
+  c.textContent = REC ? (run && run.t0 ? "Recorded " + when(run.t0) : "") : S.reachable ? (S.mode === "live" ? "Pi connected" : "Playing " + S.mode) : (S.message || "Pi not reachable, retrying");
   c.className = "conn" + (S.reachable ? "" : " bad");
-  $("follow").hidden = !manual;
+  $("follow").hidden = REC || !manual;
   const b = $("banner");
-  let level = null, text = null;
+  let level = null, text = null, why = null;
   if (!S.reachable) { level = "net"; text = S.message || "Pi not reachable, retrying"; }
   else if (run && run.banner) { level = run.banner[0]; text = run.banner[1] + (run.road ? "  (" + run.road + ")" : ""); }
+  else if (S.note) { level = S.note.level; text = S.note.headline; why = S.note.text; }  // recorded: what the record says about this run
   b.hidden = !text;
-  if (text) { b.className = "banner " + level; b.textContent = (level === "error" ? "✕ " : "⚠ ") + text; }
+  if (text) {
+    b.className = "banner " + level;
+    b.textContent = (level === "error" ? "✕ " : level === "used" ? "✓ " : "⚠ ") + text;
+    if (why) b.append(el("span", { class: "why", text: why }));
+  }
 }
 
 // ---------------------------------------------------------------- hero
 function renderHero(run) {
   const h = $("hero");
   h.replaceChildren();
-  if (!run) { h.append(el("p", { class: "empty", text: "Waiting for a run. Start one with drop_job.sh, or run this server with --demo." })); return; }
+  if (!run) { h.append(el("p", { class: "empty", text: REC ? "Loading the recorded runs." : "Waiting for a run. Start one with drop_job.sh, or run this server with --demo." })); return; }
   h.style.setProperty("--loco", locoVar(run.loco));
-  const photo = run.photo ? el("img", { class: "photo", src: run.photo, alt: run.road || "Locomotive" }) : el("div", { class: "photo none", text: "No photo" });
+  const src = run.photo || (REC && REC.photos && REC.photos[run.loco]);
+  const photo = src ? el("img", { class: "photo", src, alt: run.road || "Locomotive" }) : el("div", { class: "photo none", text: "No photo" });
   const stepPct = run.step != null ? (100 * run.step) / MAX_STEP : 0;
   const gauge = el("div", { class: "gauge", role: "img", "aria-label": `Throttle step ${run.step ?? "none"} of ${MAX_STEP}` });
   gauge.append(el("i", { style: `width:${stepPct}%` }));
@@ -90,19 +105,19 @@ function renderHero(run) {
   const eta = run.eta;
   const info = el("div", {},
     el("h2", { text: run.road || "Unknown loco" }),
-    el("p", { class: "model", text: (run.model || "") + (run.kind !== "steprun" ? "  ·  " + run.kind : "") }),
+    el("p", { class: "model", text: [run.model, run.kind === "pass" ? "Timed pass" : run.kind === "stoptest" ? "Stop test" : run.kind !== "steprun" ? run.kind : null].filter(Boolean).join("  ·  ") }),
     el("div", { class: "chips" },
       run.stale ? el("span", { class: "chip st-stopped", text: "⚠ No updates (stale)" }) : el("span", { class: "chip st-" + run.status, text: (ICON[run.status] || "") + " " + status }),
       el("span", { class: "chip", text: (run.direction === "reverse" ? "◀ " : "▶ ") + (run.direction || "direction ?") }),
-      el("span", { class: "chip", text: "Route " + (run.route || "?") })),
+      run.route || !REC ? el("span", { class: "chip", text: "Route " + (run.route || "?") }) : null),
     el("div", { class: "stats" },
       stat("Throttle step", run.step != null ? `${run.step}` : "-", ` / ${MAX_STEP}  (${fmt(stepPct)}%)`),
       stat("Speed", fmt(run.speed, 1), "mm/s"),
       stat("Scale speed", fmt(run.speed_mph, 1), "mph HO"),
       stat("Elapsed", dur(run.elapsed), ""),
-      run.pass ? stat("Pass step", String(run.pass.step), "") : stat(finished(run) ? "Steps done" : "Time left (rough)", finished(run) ? `${run.done_steps}` : (eta != null ? dur(eta) : "-"), finished(run) ? ` / ${(run.steps || []).length || "?"}` : "")),
+      run.pass ? stat("Pass step", String(run.pass.step), "") : run.stoptest ? stat("Test step", String(run.step ?? "-"), "") : stat(finished(run) ? "Steps done" : "Time left (rough)", finished(run) ? `${run.done_steps}` : (eta != null ? dur(eta) : "-"), finished(run) ? ` / ${(run.steps || []).length || "?"}` : "")),
     gauge,
-    el("div", { class: "gauge-l" }, el("span", { text: "0" }), el("span", { text: run.pass ? "pass job" : `${run.done_steps} of ${(run.steps || []).length || "?"} steps measured` }), el("span", { text: String(MAX_STEP) })));
+    el("div", { class: "gauge-l" }, el("span", { text: "0" }), el("span", { text: run.pass ? "pass job" : run.stoptest ? "stop test" : `${run.done_steps} of ${(run.steps || []).length || "?"} steps measured` }), el("span", { text: String(MAX_STEP) })));
   h.append(photo, info);
 }
 function stat(k, v, unit) {
@@ -137,6 +152,17 @@ function renderStep(run) {
   if (!run) return;
   const p = $("steppanel");
   p.replaceChildren();
+  if (run.stoptest) {
+    const st = run.stoptest;
+    $("stepsub").textContent = st.started ? `stop test at step ${st.step}, stop command when ${(st.trigger || "").replace(/^BS /, "")} lit` : "stop test";
+    if (!st.started) { p.append(el("p", { class: "empty", text: "The loco never started, so there is nothing to compare." })); return; }
+    const t = el("table", {});
+    t.append(el("tr", {}, ...["Block lit", "Seconds after the stop command"].map((x) => el("th", { text: x }))));
+    for (const r of st.rows) t.append(el("tr", {}, el("td", { text: r.sensor.replace(/^BS /, "") }), el("td", { text: fmt(r.t_rel, 2) })));
+    p.append(t);
+    p.append(el("p", { class: "sub", text: st.rest ? `The last block lit was ${st.rest.replace(/^BS /, "")}.` : "No block lit after the stop command." }));
+    return;
+  }
   if (run.pass) {
     const ps = run.pass;
     $("stepsub").textContent = `pass at step ${ps.step}: ${ps.from} to ${ps.to}`;
@@ -196,7 +222,7 @@ function lineKey(color, dash, dots) {
 let chartSig = "";
 function renderChart(force) {
   const ser = series();
-  const sig = JSON.stringify([ser, S.runs.map((r) => r.flagged), S.reference, showTable, document.documentElement.dataset.theme, $("chart").clientWidth]);
+  const sig = JSON.stringify([ser, S.runs.map((r) => r.flagged), S.reference, showTable, ROOT.dataset.theme, $("chart").clientWidth]);
   if (sig === chartSig && !force) return;
   chartSig = sig;
   const ref = S.reference || {};
@@ -205,7 +231,7 @@ function renderChart(force) {
   for (const s of ser) lg.append(el("span", {}, lineKey(locoVar(s.loco), s.dir === "reverse"), `${s.road} ${s.dir}`));
   if (Object.keys(ref).length) lg.append(el("span", {}, lineKey("var(--ink-3)", false, true), "2026-11-08 result ×1.122"));
   const fl = [];
-  for (const r of S.runs) for (const f of r.flagged || []) fl.push(`${r.loco} ${r.direction === "reverse" ? "rev" : "fwd"} step ${f.step} (${f.reason})`);
+  for (const r of S.runs) if (!REC || r.id === S.focus) for (const f of r.flagged || []) fl.push(`${r.loco} ${r.direction === "reverse" ? "rev" : "fwd"} step ${f.step} (${f.reason})`);
   $("flagnote").textContent = fl.length ? "▲ Not on the curve, not valid or no reading: " + fl.join(", ") : "";
   $("chart").parentNode.hidden = showTable;
   $("datatable").hidden = !showTable;
@@ -306,6 +332,17 @@ function renderCompare() {
 function renderRuns(run) {
   const host = $("runs");
   host.replaceChildren();
+  if (REC) {  // recorded: every published run, with what the record says about it
+    const t = el("table", {});
+    t.append(el("tr", {}, ...["Time", "Run", "Result"].map((x) => el("th", { text: x }))));
+    for (const r of INDEX) {
+      const go = () => pick(r.id);
+      t.append(el("tr", { class: "click" + (run && S.focus === r.id + ".log" ? " sel" : ""), tabindex: 0, onclick: go, onkeydown: (e) => { if (e.key === "Enter") go(); } },
+        el("td", { text: when(r.start) }), el("td", { text: runTitle(r) }), el("td", {}, el("span", { class: "tag " + r.outcome, text: r.headline }))));
+    }
+    host.append(t);
+    return;
+  }
   if (!S.runs.length) { host.append(el("p", { class: "empty", text: "No logs seen yet." })); return; }
   const t = el("table", {});
   t.append(el("tr", {}, ...["Loco", "Dir", "Kind", "Steps", "Status"].map((x) => el("th", { text: x }))));
@@ -326,12 +363,50 @@ function renderFeed(run) {
     f.append(el("li", {}, el("span", { class: "tm", text: clock(e.t) }), el("span", { class: e.level, text: e.text })));
 }
 
+function runTitle(r) {
+  const what = r.kind === "pass" ? `pass, step ${r.pass_step}` : r.kind === "stoptest" ? (r.stop_step == null ? "stop test, did not start" : `stop test, step ${r.stop_step}`) : `steps, ${r.steps.length} valid`;
+  return `${r.road || "?"} ${r.direction || ""}, ${what}`;
+}
 function render() {
   const run = focusRun();
   renderTop(run); renderHero(run); renderStrip(run); renderStep(run);
   renderChart(); renderCompare(); renderRuns(run); renderFeed(run);
 }
+// ---------------------------------------------------------------- recorded source
+function fillPicker(cur) {
+  const sel = $("runpick");
+  if (!sel) return;
+  if (!sel.options.length) for (const r of INDEX) sel.append(el("option", { value: r.id, text: `${when(r.start)}  ${runTitle(r)}  (${r.headline.toLowerCase()})` }));
+  sel.value = cur;
+}
+function pick(id) {
+  manual = id;
+  try { history.replaceState(null, "", "#run=" + encodeURIComponent(id)); } catch (e) {}
+  tick();
+}
+async function tickRecorded() {
+  try {
+    if (!INDEX.length) {
+      const r = await fetch(REC.base + "index.json", { cache: "no-cache" });
+      INDEX = (await r.json()).runs;  // already newest first
+      const h = /^#run=(.+)$/.exec(location.hash);
+      if (h && INDEX.some((x) => x.id === decodeURIComponent(h[1]))) manual = decodeURIComponent(h[1]);
+    }
+    const cur = INDEX.find((x) => x.id === manual) || INDEX[0];
+    manual = cur.id;
+    const r = await fetch(REC.base + cur.file, { cache: "no-cache" });
+    S = await r.json();
+    fillPicker(cur.id);
+  } catch (e) {
+    $("banner").hidden = false;
+    $("banner").className = "banner net";
+    $("banner").textContent = "The recorded runs could not be loaded. Reload the page to try again.";
+    return;
+  }
+  render();
+}
 async function tick() {
+  if (REC) return tickRecorded();
   try {
     const r = await fetch("/api/state" + (manual ? "?run=" + encodeURIComponent(manual) : ""), { cache: "no-store" });
     S = await r.json();
@@ -343,4 +418,4 @@ async function tick() {
 let rz;
 addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => S && renderChart(), 150); });
 tick();
-setInterval(tick, 1000);
+if (!REC) setInterval(tick, 1000);
