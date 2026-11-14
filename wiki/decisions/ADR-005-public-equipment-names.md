@@ -53,7 +53,7 @@ After a rename: `systemName` columns identical; public strings follow the CSV `p
 
 [`jmri/layouts/hart/data/public_name_map.csv`](../../jmri/layouts/hart/data/public_name_map.csv)
 
-Identity rows are `current` == `proposed` == live userName, with Device-map text in **`comment`**. Historical alias rows keep pre-convert names. Rebuild with `sync_public_name_map.py` (from the HART Device map canvas + live `tables.xml`). For the next rename pass: edit **`proposed`** on the live identity rows; leave historical alias rows pointing at the same `proposed`. ADR-002’s `block_display_names.csv` is a live-name index, not the apply map.
+Identity rows are `current` == `proposed` == live userName, with Device-map text in **`comment`** and a turnout's DCC address in **`dcc`** (since 2026-11-14; `hartlib.names` puts it back as the comment's second group for JMRI). Historical alias rows keep pre-convert names. Rebuild with `sync_public_name_map.py` (from the HART Device map canvas + live `tables.xml`). For the next rename pass: edit **`proposed`** on the live identity rows; leave historical alias rows pointing at the same `proposed`. ADR-002’s `block_display_names.csv` is a live-name index, not the apply map.
 
 ## Attack (executed 2026-08-21)
 
@@ -89,7 +89,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | `jmri/scripts/check_hart_phase02.py` | Requires `OS Switch 7b` |
 | `build_ctc_full_15col.py` | SIDI mast lists (unsafe to re-run until updated) |
 | `wire_digicon.py` | CATS `BLOCK` / `SECSIGNAL` SoR |
-| `apply_sml_cats_pairs.py` | SML pair + block dests |
+| `apply_sml_cats_pairs.py` | Retired, PAIRS only (oracle for `validate_le_signalling.py`); writes nothing |
 | `validate_cats_panel.py` | Required `OS Switch 13` / `OS Switch 9` (was Track 13 / Track 9) |
 | `build_hart_signal_heads.py` | Mast userNames |
 | `sim_hart_train_mqtt.py` | Route step block names |
@@ -104,9 +104,8 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | `docs/wiring/signals/signal_head_plan.csv` |
 | `docs/wiring/signals/signal_wiring.csv` |
 | `jmri/layouts/hart/data/le_signal_boundaries.csv` |
-| `cats/data/turnout_bindings.csv` |
-| `cats/data/jmri_devices.csv` |
-| `cats/data/plants_from_hart.csv` |
+| `cats/data/jmri_devices.csv` (removed 2026-11-14) |
+| `cats/data/plants_from_hart.csv` (removed 2026-11-14) |
 | `jmri/layouts/hart/data/block_lengths.csv` |
 | `jmri/layouts/hart/README.md` |
 

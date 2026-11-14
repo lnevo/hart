@@ -228,6 +228,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "./tools/ops/pull_tables.sh", "./cats/scripts/sync_hart_package.sh --pi",
                     "cd x && ./cats/scripts/sync_hart_package.sh --all",
                     "./tools/hosts/sync_hart_package.sh --pi",
+                    "make redeploy COMMIT=abc123 HOSTS=--pi", "./tools/hosts/redeploy_commit.sh abc123 --pi",
                     "python3 jmri/layouts/hart/scripts/apply_nx_layer.py",
                     "JMRI_LAYOUT=hart python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
                     "python3 jmri/layouts/hart/scripts/apply_public_names.py --apply"):
@@ -243,6 +244,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py --dry-run",
                     "python3 jmri/layouts/hart/scripts/apply_public_names.py",
                     "./cats/scripts/sync_hart_package.sh --help", "./tools/hosts/sync_hart_package.sh --dry-run --pi",
+                    "./tools/hosts/redeploy_commit.sh abc123 --stage-only /tmp/x",
                     "./cats/scripts/sync_hart_package.sh --stage-only /tmp/x",
                     "./tools/hosts/sync_hart_package.sh --pi --stage-only=/tmp/x",
                     "./cats/scripts/sync_hart_package.sh --dry-run --pi", "cat tools/ops/pull_tables.sh"):
@@ -332,6 +334,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
     def test_readers_and_launchers_pass_while_open(self) -> None:
         for cmd in ("python3 jmri/scripts/check_hart_phase02.py", "git grep pull_tables.sh",
                     "python3 jmri/layouts/hart/scripts/export_track_lengths.py",
+                    "python3 www/scripts/build_layout_index.py",
                     "./cats/scripts/launch_cats.sh", "python3 -m unittest discover -s tools/audit/tests",
                     "python3 www/scripts/check_portal_build.py"):  # baseline: never touched the tables
             self.assertEqual(self.code(cmd), 0, cmd)

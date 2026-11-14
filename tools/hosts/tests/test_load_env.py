@@ -16,13 +16,14 @@ ROOT = Path(__file__).resolve().parents[3]
 LOAD_ENV = ROOT / "tools/env/load_env.sh"
 EXAMPLE = ROOT / "tools/env/hart.env.example"
 NAMES = ("HART_MQTT_BROKER", "HART_MQTT_PORT", "HART_JMRI_JSON", "HART_PI_SSH", "HART_PI_USERFILES",
-         "HART_WIN_SSH", "HART_WIN_SSH_PORT", "HART_WIN_USERFILES")
+         "HART_PI_WEB_HOST", "HART_WIN_SSH", "HART_WIN_SSH_PORT", "HART_WIN_USERFILES")
 DEFAULTS = {
     "HART_MQTT_BROKER": "10.0.0.150",
     "HART_MQTT_PORT": "1883",
     "HART_JMRI_JSON": "http://10.0.0.150:12080/json",
     "HART_PI_SSH": "pi",
     "HART_PI_USERFILES": "/home/pi/JMRI_UserFiles",
+    "HART_PI_WEB_HOST": "RPi-JMRI.local",
     "HART_WIN_SSH": "lnevo@minipc-e5h6x.local",
     "HART_WIN_SSH_PORT": "2222",
     "HART_WIN_USERFILES": "C:/Users/lnevo/JMRI_UserFiles",
@@ -31,9 +32,9 @@ DEFAULTS = {
 CLEAR = NAMES + ("MQTT_HOST", "HART_MQTT_HOST", "JMRI_JSON", "PI_HOST", "HART_ENV_FILE", "HART_REPO_ROOT")
 
 
-def load_hart_hosts():
+def load_hartlib_hosts():
     path = ROOT / "tools/hartlib/src/hartlib/hosts.py"
-    spec = importlib.util.spec_from_file_location("hart_hosts_for_shell_test", path)
+    spec = importlib.util.spec_from_file_location("hartlib_hosts_for_shell_test", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -103,8 +104,8 @@ class Order(unittest.TestCase):
                                   env=env, capture_output=True, text=True, check=True)
             self.assertIn("u", done.stdout.strip().strip("[]"))
 
-    def test_same_answers_as_hart_hosts(self) -> None:
-        hosts = load_hart_hosts()
+    def test_same_answers_as_hartlib_hosts(self) -> None:
+        hosts = load_hartlib_hosts()
         cases = [
             ({}, None),
             ({}, "HART_MQTT_BROKER=192.0.2.1   # comment\nHART_MQTT_PORT=1884\n"),
@@ -140,8 +141,8 @@ class NoHardCodedHosts(unittest.TestCase):
 
     def test_scripts_source_load_env(self) -> None:
         for path in self.MAC_SIDE:
-            if path.name == "pack_roster_stage.sh":
-                continue  # local packing only, no host
+            if path.name in ("pack_roster_stage.sh", "profile_tables_guard.sh"):
+                continue  # local packing, and a sourced Mac-only helper: no host
             self.assertIn("load_env.sh", path.read_text(encoding="utf-8"), path.name)
 
     def test_no_host_literals(self) -> None:

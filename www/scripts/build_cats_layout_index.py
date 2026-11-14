@@ -13,6 +13,8 @@ Joined to layout-index.json for MQTT / hardware when names match.
 
 from __future__ import annotations
 
+import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -150,6 +152,20 @@ def match_turnout(by: dict, stations: set[str], blocks: set[str]) -> dict | None
         if match:
             return match
     return None
+
+
+EFFECTIVE = re.compile(r"Eff \d{4}-\d{2}-\d{2}")
+
+
+def render_inputs_sha256() -> str:
+    """What the desk PNG is drawn from: the desk's TRACKPLAN (build date left out) and the renderer.
+
+    Recorded in the JSON so --check finds a PNG that needs re-rendering without drawing it.
+    """
+    tp = ET.tostring(ET.parse(PANEL).getroot().find("TRACKPLAN"), encoding="unicode")
+    h = hashlib.sha256(EFFECTIVE.sub("Eff DATE", tp).encode("utf-8"))
+    h.update(RENDER.read_bytes())
+    return h.hexdigest()
 
 
 def build() -> dict:
@@ -293,6 +309,7 @@ def build() -> dict:
             "width": w,
             "height": h,
             "scale": 1.0,
+            "inputs_sha256": render_inputs_sha256(),
         },
         "items": items,
         "counts": {
@@ -306,9 +323,24 @@ def build() -> dict:
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--check", action="store_true",
+                    help="build without rendering or writing; exit 1 if layout-index-cats.json or the PNG "
+                         "(by its recorded render inputs) is stale")
+    args = ap.parse_args(argv)
     if not PANEL.is_file():
         raise SystemExit(f"missing {PANEL}")
+    if args.check:
+        want = json.dumps(build(), indent=2) + "\n"
+        have = OUT_JSON.read_text(encoding="utf-8") if OUT_JSON.is_file() else ""
+        if want != have:
+            print(f"{OUT_JSON.relative_to(ROOT)} or {OUT_IMG.relative_to(ROOT)} is stale: run python3 "
+                  "www/scripts/build_cats_layout_index.py (after build_layout_index.py) and commit both",
+                  file=sys.stderr)
+            return 1
+        print(f"{OUT_JSON.relative_to(ROOT)} is current")
+        return 0
     render()
     payload = build()
     OUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

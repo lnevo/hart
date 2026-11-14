@@ -1,4 +1,4 @@
-"""hartlib.paths: one checkout, one layout, and the shims at the old paths."""
+"""hartlib.paths: one checkout, one layout, and a check that the old shims are gone."""
 import importlib
 import os
 import sys
@@ -60,7 +60,7 @@ class LayoutPathsTest(unittest.TestCase):
         got = paths.layout_paths()
         self.assertEqual(set(got), self.KEYS)
         self.assertEqual(Path(got["authoritative"]), paths.TABLES_XML)
-        self.assertTrue(got["output"].endswith("hart_blocked.xml"))  # check_hart_phase02.py
+        self.assertTrue(got["output"].endswith("hart_blocked.xml"))
         self.assertTrue(Path(got["anyrail"]).is_file())
         self.assertTrue(Path(got["style_defaults"]).is_file())
         self.assertFalse(any(k.startswith("dispatcher") for k in got))
@@ -70,25 +70,11 @@ class LayoutPathsTest(unittest.TestCase):
         self.assertTrue(paths.layout_paths("other")["layout_dir"].endswith("layouts/other"))
 
 
-class ShimTest(unittest.TestCase):
-    def _import(self, directory, name):
-        sys.path.insert(0, str(directory))
-        try:
-            sys.modules.pop(name, None)
-            return importlib.import_module(name)
-        finally:
-            sys.path.remove(str(directory))
-
-    def test_jmri_layout_paths(self):
-        old = self._import(CHECKOUT / "jmri", "layout_paths")
-        self.assertEqual(old.layout_paths(), paths.layout_paths())
-        self.assertEqual(old.layout_root(), str(paths.LAYOUT_DIR))
-        self.assertEqual(old.JMRI_ROOT, str(CHECKOUT / "jmri"))
-        self.assertEqual(old.ACTIVE_LAYOUT, paths.LAYOUT)
-
-    def test_hart_paths_is_gone(self):
-        # Its last callers moved onto hartlib; nothing may come back to it.
-        self.assertFalse((CHECKOUT / "tools/ops/lib/hart_paths.py").exists())
+class ShimsGoneTest(unittest.TestCase):
+    def test_old_path_modules_are_gone(self):
+        # Their callers moved onto hartlib; nothing may come back to them.
+        for old in ("tools/ops/lib/hart_paths.py", "tools/ops/lib/hart_hosts.py", "jmri/layout_paths.py"):
+            self.assertFalse((CHECKOUT / old).exists(), old)
 
 
 class BootstrapTest(unittest.TestCase):

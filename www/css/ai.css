@@ -90,6 +90,34 @@
   color: var(--brand);
 }
 
+/* Link card: a whole-row link to the full article, placed after a verdict. */
+.feature-body a.ai-linkcard {
+  display: block;
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--accent);
+  font-family: var(--font-body);
+  font-size: 0.97rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.feature-body a.ai-linkcard b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  color: var(--brand);
+}
+
+.feature-body a.ai-linkcard:hover b,
+.feature-body a.ai-linkcard:focus-visible b {
+  text-decoration: underline;
+}
+
 /* Topic pager at the foot of each topic page. */
 .ai-pager {
   display: flex;

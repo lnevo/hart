@@ -8,26 +8,52 @@ external/model-railroad-skills at its pinned commit (`git submodule update --ini
 in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plugin code.
 
 --check draws and compares with the published SVG without writing anything (exit 1 if they differ).
+When the drawing itself (everything but the title block) differs from main's, publishing sets `date` to today and
+`revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
+from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
+whole number is left alone. If anything fails after that, the preferences file is put back.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 """
+import datetime
+import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+REPO = paths.REPO_ROOT
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = Path.home() / "Documents/Layout/schematic"
 OUT = REPO / "docs/ops"
-sys.path.insert(0, str(REPO / "tools/ops"))
+INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
+sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
 
-# the plugin's title block; the DRAFT mark sits in its bottom right corner
-TITLE_BOX = '<rect x="24" y="728" width="330" height="64"'
-DRAFT = ('<text x="344" y="784" font-size="16" text-anchor="end" font-weight="bold" '
+# the plugin's title box (it grows for a long title line); the DRAFT mark sits in its bottom right corner
+TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
+DRAFT = ('<text x="{x:g}" y="784" font-size="16" text-anchor="end" font-weight="bold" '
          'letter-spacing="3" fill="#c00">DRAFT</text>\n')
+
+
+def page_prefs():
+    """The preferences file that sets the page: sheet.preferences.json if present, else the last input's."""
+    sheet = DATA / "sheet.preferences.json"
+    return sheet if sheet.exists() else DATA / f"{INPUTS[-1][1]}.preferences.json"
+
+
+def on_main(path):
+    """The file's text where this branch left main (None if it was not there)."""
+    git = lambda *a: subprocess.run(["git", "-C", str(REPO), *a], capture_output=True, text=True)
+    base = git("merge-base", "HEAD", "origin/main").stdout.strip() or "HEAD"
+    r = git("show", f"{base}:{path.relative_to(REPO).as_posix()}")
+    return r.stdout if r.returncode == 0 else None
 
 
 def plugin():
@@ -53,21 +79,43 @@ def plugin():
 def mark(svg):
     """The drawing with the DRAFT mark added just before the end."""
     end = svg.rstrip().rfind("</svg>")
-    if end < 0 or TITLE_BOX not in svg:
+    box = TITLE_BOX.search(svg)
+    if end < 0 or not box:
         sys.exit("the plugin's title block moved; place the DRAFT mark again in publish_draft.py")
-    return svg[:end] + DRAFT + svg[end:].rstrip() + "\n"
+    return svg[:end] + DRAFT.format(x=24 + float(box.group(1)) - 10) + svg[end:].rstrip() + "\n"
 
 
 def draw():
     with tempfile.TemporaryDirectory() as tmp:
         svg = Path(tmp) / "sheet.svg"
         run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(DATA),
-                              f"{GRAPHS}/staging.json:staging", f"{GRAPHS}/main.json:main_upper"],
+                              *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
                              capture_output=True, text=True)
         print(run.stdout + run.stderr, end="")
         if run.returncode:
             sys.exit(run.returncode)
         return mark(svg.read_text())
+
+
+def drawing_only(svg):
+    """The sheet up to the title block (which the plugin draws last), to tell a real drawing change."""
+    box = TITLE_BOX.search(svg)
+    return svg[:box.start()] if box else svg
+
+
+def next_fields(main_prefs, today):
+    """(date, revision) for a changed drawing: today and main's revision plus one; None if that revision
+    is not a whole number (a lettered revision is the owner's to set)."""
+    rev = json.loads(main_prefs).get("revision", 0) if main_prefs else 0
+    if isinstance(rev, bool) or not str(rev).strip().isdigit():
+        return None
+    return today.isoformat(), int(rev) + 1
+
+
+def set_fields(path, date, rev):
+    prefs = json.loads(path.read_text())
+    prefs["date"], prefs["revision"] = date, rev
+    path.write_text(json.dumps(prefs, indent=1, ensure_ascii=False) + "\n")
 
 
 def pdf(svg_path, pdf_path):
@@ -88,6 +136,29 @@ def main(argv):
         same = target.exists() and target.read_text() == sheet
         print("published draft is current" if same else "published draft differs from the drawing")
         return 0 if same else 1
+    prefs = page_prefs()
+    original = prefs.read_text()
+    try:
+        publish(sheet, target, prefs, original)
+    except BaseException:
+        if prefs.read_text() != original:
+            prefs.write_text(original)
+            print(f"put back {prefs.name}")
+        raise
+    return 0
+
+
+def publish(sheet, target, prefs, original):
+    base = on_main(target) or (target.read_text() if target.exists() else None)
+    if base and drawing_only(base) != drawing_only(sheet):
+        fields = next_fields(on_main(prefs), datetime.date.today())
+        now = json.loads(original)
+        if fields is None:
+            print(f"drawing changed; revision {now.get('revision')!r} is not a number, so date and revision are left as set")
+        elif (now.get("date"), now.get("revision")) != fields:
+            set_fields(prefs, *fields)
+            print(f"drawing changed: title block set to {fields[0]}, revision {fields[1]}")
+            sheet = draw()
     with tempfile.TemporaryDirectory() as tmp:
         svg, printed = Path(tmp) / target.name, Path(tmp) / "sheet.pdf"
         svg.write_text(sheet)
@@ -100,7 +171,6 @@ def main(argv):
         shutil.copyfile(svg, target)
         shutil.copyfile(printed, OUT / "schematic-system-draft.pdf")
     print(f"wrote {target} and the PDF (--check compares the SVG only; the PDF follows it)")
-    return 0
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lcc_turnout_contract import DCC_RE, child_text
+from lcc_turnout_contract import child_text, comment_dcc
 
 DEFAULT = paths.TABLES_XML
 
@@ -71,10 +71,10 @@ def mqtt_fb_for_lcc(root: ET.Element) -> dict[str, tuple[str, str, str]]:
         sn = child_text(turnout, "systemName")
         if not sn.startswith("M2T"):
             continue
-        match = DCC_RE.search(child_text(turnout, "comment"))
-        if not match:
+        dcc = comment_dcc(child_text(turnout, "comment"))
+        if not dcc:
             continue
-        out[f"MTT{match.group(1)}"] = (
+        out[f"MTT{dcc}"] = (
             turnout.get("feedback") or "DIRECT",
             turnout.get("sensor1") or "",
             turnout.get("sensor2") or "",

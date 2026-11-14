@@ -21,7 +21,7 @@ WRAPPER = ROOT / "cats/scripts/sync_hart_package.sh"
 PI_SRC = ROOT / "tools/hosts/pi"
 WIN_SRC = ROOT / "tools/hosts/windows"
 STAMP_KEYS = ("commit", "branch", "dirty", "dirty_paths", "tables_sha256", "tables_modified_by_deploy",
-              "date", "deployed_from", "target")
+              "date", "deployed_from", "target", "source", "redeploy_from")
 
 
 def fake_bin(tmp: Path) -> Path:
@@ -125,6 +125,7 @@ class StageOnly(unittest.TestCase):
             self.assertEqual(stamp["branch"], git("rev-parse", "--abbrev-ref", "HEAD"))
             self.assertEqual(stamp["dirty"], "yes" if dirty else "no")
             self.assertEqual(stamp["target"], host)
+            self.assertEqual((stamp["source"], stamp["redeploy_from"]), ("deploy", "none"))
             self.assertRegex(stamp["date"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4}$")
             shipped = hashlib.sha256((self.out / host / "tables.xml").read_bytes()).hexdigest()
             self.assertEqual(stamp["tables_sha256"], shipped)

@@ -9,10 +9,11 @@
 #   tools/ops/loco_roster_import.sh --apply    create the missing roster entries
 set -euo pipefail
 
+source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default; first, so hart.env cannot move ROOT, SCRIPT or LIST
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SCRIPT="$ROOT/jmri/layouts/hart/scripts/loco_roster_import.py"
 LIST="$ROOT/jmri/layouts/hart/data/new_locos.json"
-PI_HOST="${HART_PI_SSH:-pi}"
+PI_HOST="$HART_PI_SSH"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 TIMEOUT="${LOCO_IMPORT_TIMEOUT:-120}"
 

@@ -26,17 +26,9 @@ The layout deploy and the Pi and Windows host scripts live in [`tools/hosts/`](.
 
 ## Bindings from hart panel
 
-```bash
-export JMRI_LAYOUT=hart
-python3 jmri/scripts/export_hart_devices_for_cats.py
-```
-
 | File | Use in Designer |
 |------|-----------------|
-| [`data/jmri_devices.csv`](data/jmri_devices.csv) | Full sensor/turnout catalog |
 | [`data/occupancy_bindings.csv`](data/occupancy_bindings.csv) | Block → occupancy sensor userName |
-| [`data/turnout_bindings.csv`](data/turnout_bindings.csv) | Layout OS → Switch / M2T* |
-| [`data/plants_from_hart.csv`](data/plants_from_hart.csv) | CP → switch list |
 | [`docs/wiring/signals/signal_mast_plan.csv`](../docs/wiring/signals/signal_mast_plan.csv) | Planned mast slots |
 
 ## Decisions (Accepted)
