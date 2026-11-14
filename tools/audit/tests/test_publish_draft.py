@@ -58,3 +58,21 @@ class Fields(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Lengths(unittest.TestCase):
+    def test_track_rows_only(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "block_lengths.csv"
+            csv_path.write_text("user_name,occupancy_sensor,inches,flag,old_source\n"
+                                "Track S-1,Block 2-7,212,assigned,\nOS Switch 3,Block 4-1,10,estimate,switch\n"
+                                "Track EH-1,Block 13-7,24,estimate,\nTrack X,Block 9-9,,estimate,\n")
+            old = PD.LENGTHS
+            try:
+                PD.LENGTHS = csv_path
+                self.assertEqual(PD.measured_lengths(), {"S-1": 212.0, "EH-1": 24.0})
+            finally:
+                PD.LENGTHS = old
+
+    def test_repo_copy_is_current(self) -> None:
+        self.assertTrue(PD.lengths_current(), "run tools/schematic/publish_draft.py to copy block_lengths.csv")

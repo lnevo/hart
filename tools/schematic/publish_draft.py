@@ -7,13 +7,16 @@ AnyRail plan in ~/Documents/Layout/schematic/ (outside the repo). The plugin is 
 external/model-railroad-skills at its pinned commit (`git submodule update --init external/model-railroad-skills`
 in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plugin code.
 
---check draws and compares with the published SVG without writing anything (exit 1 if they differ).
+--check draws and compares with the published SVG without writing anything (exit 1 if they differ). It also
+fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for car counts) no longer match
+jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
 When the drawing itself (everything but the title block) differs from main's, publishing sets `date` to today and
 `revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
 from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
 whole number is left alone. If anything fails after that, the preferences file is put back.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 """
+import csv
 import datetime
 import json
 import os
@@ -32,6 +35,8 @@ REPO = paths.REPO_ROOT
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = Path.home() / "Documents/Layout/schematic"
 OUT = REPO / "docs/ops"
+LENGTHS = REPO / "jmri/layouts/hart/data/block_lengths.csv"
+STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
@@ -97,6 +102,23 @@ def draw():
         return mark(svg.read_text())
 
 
+def measured_lengths():
+    """{track name: inches} for every Track row of block_lengths.csv."""
+    with open(LENGTHS, newline="") as f:
+        return {r["user_name"][len("Track "):]: float(r["inches"]) for r in csv.DictReader(f)
+                if r["user_name"].startswith("Track ") and r["inches"]}
+
+
+def lengths_current():
+    return json.loads(STAGING.read_text()).get("track_lengths_in") == measured_lengths()
+
+
+def copy_lengths():
+    over = json.loads(STAGING.read_text())
+    over["track_lengths_in"] = measured_lengths()
+    STAGING.write_text(json.dumps(over, indent=1, ensure_ascii=False) + "\n")
+
+
 def drawing_only(svg):
     """The sheet up to the title block (which the plugin draws last), to tell a real drawing change."""
     box = TITLE_BOX.search(svg)
@@ -130,8 +152,14 @@ def pdf(svg_path, pdf_path):
 
 
 def main(argv):
-    sheet = draw()
     target = OUT / "schematic-system-draft.svg"
+    if "--check" in argv and not lengths_current():
+        print(f"{STAGING.name}: track_lengths_in differs from {LENGTHS.name}; run publish_draft.py to copy them")
+        return 1
+    if "--check" not in argv and not lengths_current():
+        copy_lengths()
+        print(f"copied the measured track lengths into {STAGING.name}")
+    sheet = draw()
     if "--check" in argv:
         same = target.exists() and target.read_text() == sheet
         print("published draft is current" if same else "published draft differs from the drawing")
