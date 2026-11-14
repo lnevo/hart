@@ -45,20 +45,23 @@ custom objects are in the repo.) `system_sample.svg` redraws byte-identical from
 both levels: the main level's helix track from T175 is McKees Rocks and the one from T251 is McKeesport
 (owner confirmed, 2026-11-13).
 
-To redraw the three-band sheet:
+To redraw the three-band sheet (with signals and the label placer, `signals_sample.svg`):
 
-    python3 system.py staging.json staging_opts.json main.json main_asbuilt_opts.json system.svg
+    L=~/Documents/Layout/schematic
+    python3 system.py $L/staging.json $L/main.json out.svg [--no-preferences] [--no-hints]
+    python3 label_check.py out.svg --list
 
-`staging.json` and `main.json` are the two input files: the logical graph of the staging level and of the
-main and upper levels (switches, track ends, the runs between them with lengths, and the plan part numbers
-and heights). They hold track only. They were made from the owner's AnyRail 5.3b files, which are not in
-the repo, and are kept here so the sheet can be redrawn without them:
+`staging.json` and `main.json` are the logical graphs of the staging level and of the main and upper levels
+(switches, track ends, the runs between them with lengths, plan part numbers and heights). They come from the
+owner's AnyRail files, so they live beside the plan in `~/Documents/Layout/schematic/` (with `parts.json` and a
+README there), never in a repo. They regenerate byte for byte from the 5.3b export (checked 2026-11-13):
 
-    python3 export_reader.py <5.3b JMRI export .xml> staging.json +Staging <parts.json>
-    python3 export_reader.py <5.3b JMRI export .xml> main.json Staging <parts.json>
+    python3 export_reader.py "$HOME/Documents/Layout/Lee Nevo Design Version 5.3b.xml" $L/staging.json +Staging $L/parts.json
+    python3 export_reader.py "$HOME/Documents/Layout/Lee Nevo Design Version 5.3b.xml" $L/main.json -Staging $L/parts.json
 
 `parts.json` comes from the `.any` plan through `tools/anyrail/prototype/parse1.py` and `parse2.py`; it
-supplies the part numbers (T…) and the heights.
+supplies the part numbers (T…) and the heights. The layer files and `staging.signals.json` are HART data on
+main, in `jmri/layouts/hart/data/schematic/`.
 
 `evolution.py` keeps a folder of every committed version of the sample drawings and an animated GIF of them
 (owner's request, 2026-11-13). Run it after each commit that changes a sample:
