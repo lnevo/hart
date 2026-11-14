@@ -103,14 +103,28 @@ def draw():
 
 
 def measured_lengths():
-    """{track name: inches} for every Track row of block_lengths.csv."""
+    """{track name: inches} for every Track row of block_lengths.csv (measured, timed or estimated, as its
+    flag column says). Stops on a repeated name or a length that is not a number."""
+    out = {}
     with open(LENGTHS, newline="") as f:
-        return {r["user_name"][len("Track "):]: float(r["inches"]) for r in csv.DictReader(f)
-                if r["user_name"].startswith("Track ") and r["inches"]}
+        for r in csv.DictReader(f):
+            name, raw = r["user_name"], (r["inches"] or "").strip()
+            if not name.startswith("Track ") or not raw:
+                continue
+            try:
+                inches = float(raw)
+            except ValueError:
+                sys.exit(f"{LENGTHS.name}: {name} has length {raw!r}, not a number")
+            if name[len("Track "):] in out:
+                sys.exit(f"{LENGTHS.name}: {name} is listed twice")
+            out[name[len("Track "):]] = inches
+    return out
 
 
-def lengths_current():
-    return json.loads(STAGING.read_text()).get("track_lengths_in") == measured_lengths()
+def stale_lengths():
+    """Track names whose copy in the staging layer file differs from block_lengths.csv ([] when current)."""
+    have, want = json.loads(STAGING.read_text()).get("track_lengths_in") or {}, measured_lengths()
+    return sorted(k for k in set(have) | set(want) if have.get(k) != want.get(k))
 
 
 def copy_lengths():
@@ -153,25 +167,29 @@ def pdf(svg_path, pdf_path):
 
 def main(argv):
     target = OUT / "schematic-system-draft.svg"
-    if "--check" in argv and not lengths_current():
-        print(f"{STAGING.name}: track_lengths_in differs from {LENGTHS.name}; run publish_draft.py to copy them")
+    check = "--check" in argv
+    stale = stale_lengths()
+    if stale and check:
+        print(f"{STAGING.name}: track_lengths_in differs from {LENGTHS.name} for {', '.join(stale)}; "
+              "run publish_draft.py to copy them")
         return 1
-    if "--check" not in argv and not lengths_current():
-        copy_lengths()
-        print(f"copied the measured track lengths into {STAGING.name}")
-    sheet = draw()
-    if "--check" in argv:
+    if check:
+        sheet = draw()
         same = target.exists() and target.read_text() == sheet
         print("published draft is current" if same else "published draft differs from the drawing")
         return 0 if same else 1
     prefs = page_prefs()
-    original = prefs.read_text()
+    kept = {p: p.read_text() for p in (prefs, STAGING)}      # put back if anything below fails
     try:
-        publish(sheet, target, prefs, original)
+        if stale:
+            copy_lengths()
+            print(f"copied the lengths of {', '.join(stale)} into {STAGING.name}")
+        publish(draw(), target, prefs, kept[prefs])
     except BaseException:
-        if prefs.read_text() != original:
-            prefs.write_text(original)
-            print(f"put back {prefs.name}")
+        for p, text in kept.items():
+            if p.read_text() != text:
+                p.write_text(text)
+                print(f"put back {p.name}")
         raise
     return 0
 
