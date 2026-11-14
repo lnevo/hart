@@ -100,6 +100,7 @@ The three layers above are the contract between the streams. Keep the spike's ed
 
 ## Other open items
 
+- **Side by side (owner, 2026-11-14, ADR-023):** C1, C2a and the Layout Editor regeneration each write new files beside the live desk, panel or crew page, and swap in only on the owner's approval.
 - **To do: main and upper switch hands (owner, 2026-11-14, saved for later).** The owner wants the main and upper switch hands taken from the schematic drawing for now, and kept off the sheet. Read as each switch node's `hand` from `sheet.build` (diverging side seen from the points). On staging this agrees with the owner's `switches.csv` hands on 21 of 23. Drawn hands on REV 5:
   - Main: R 101A, 101B, 105, 107, 115, 119A, 119B, 123, 127, 133, 135A; L 103A, 103B, 109, 111, 113, 117, 121, 125, 129A, 131.
   - Upper: R 135B, 213A, 213B, 221A, 221B, 223 (T300, owner-confirmed R), 227, 231, 233, 235, 239; L 129B, 201, 203, 205, 207, 209, 211, 215, 217A, 217B, 219, 229, 237, 241A, 241B, 243, 245A, 245B. 225 is the double crossover (no hand).
