@@ -83,6 +83,42 @@ def read_published(logdir, skip=()):
     return [(rid, lines) for _, rid, lines in logs]
 
 
+def run_view(store, rid, lines, reference, note=None, now=None, mode="recorded"):
+    """(snapshot, index entry) for one run already fed into store. rid is the store's id (a log
+    name, or a path on the Pi); lines are the log's lines. The snapshot is what the live page
+    would show with this run in focus; note is the record's label (None on the Pi, where a run
+    has no label yet). Shared by this export and publish_live.py, so both write the same files."""
+    run = store.runs[rid]
+    name = Path(rid).name
+    rid_out = name[:-4] if name.endswith(".log") else name
+    snap = store.snapshot(now=now or run.t_end or run.t_last, reachable=True, message=None, mode=mode, focus=rid)
+    focus = next(r for r in snap["runs"] if r["id"] == rid)
+    stop = None
+    if run.kind == "stoptest":
+        # dashstate does not read STOPTEST lines (no loco, a "stopped: quiet" banner): fill them in
+        stop = stoptest_view(lines, name)
+        loco = stop["loco"].split()[-1] if stop["loco"] else None
+        focus.update(kind="stoptest", loco=loco, road=state.LOCO_ROAD.get(loco, stop["loco"]),
+                     direction=stop["direction"], step=stop["step"], banner=None, stoptest=stop,
+                     status="done" if stop["started"] else "stopped",
+                     reason=None if stop["started"] else "did not start", t0=stop["t_first"],
+                     t_end=stop["t_end"], elapsed=(stop["t_end"] - stop["t_first"]) if stop["t_end"] else None)
+    elif focus["banner"] and focus["status"] == "done":
+        focus["banner"] = None  # a step run that finished is not a stop
+    for r in snap["runs"]:
+        r["photo"] = r["model"] = None
+    snap["reference"] = reference
+    snap["note"] = note
+    note = note or {}
+    entry = {
+        "id": rid_out, "file": "runs/%s.json" % rid_out, "kind": focus["kind"], "loco": focus["loco"],
+        "road": focus["road"], "direction": focus["direction"], "route": focus["route"], "start": focus["t0"],
+        "steps": [c["step"] for c in focus["curve"]], "pass_step": (focus["pass"] or {}).get("step"),
+        "stop_step": stop["step"] if stop else None, "status": focus["status"], "reason": focus["reason"],
+        "outcome": note.get("level"), "headline": note.get("headline"), "note": note.get("text")}
+    return snap, entry
+
+
 def export(logdir, out, labels):
     """Write this session's runs into out, keeping runs of other sessions already there. Built in
     a folder next to out and swapped in at the end, so a failure leaves out as it was."""
@@ -108,33 +144,10 @@ def export(logdir, out, labels):
         if run is None or not any(state.parse_line(ln) for ln in lines):
             shutil.rmtree(tmp)
             raise SystemExit("%s: no readable line, nothing to publish (label it in skip or fix the log)" % rid)
-        snap = store.snapshot(now=run.t_end or run.t_last, reachable=True, message=None, mode="recorded", focus=rid)
-        focus = next(r for r in snap["runs"] if r["id"] == rid)
         level, headline, text = notes[rid]
-        stop = None
-        if run.kind == "stoptest":
-            # dashstate does not read STOPTEST lines (no loco, a "stopped: quiet" banner): fill them in
-            stop = stoptest_view(lines, rid)
-            loco = stop["loco"].split()[-1] if stop["loco"] else None
-            focus.update(kind="stoptest", loco=loco, road=state.LOCO_ROAD.get(loco, stop["loco"]),
-                         direction=stop["direction"], step=stop["step"], banner=None, stoptest=stop,
-                         status="done" if stop["started"] else "stopped",
-                         reason=None if stop["started"] else "did not start", t0=stop["t_first"],
-                         t_end=stop["t_end"], elapsed=(stop["t_end"] - stop["t_first"]) if stop["t_end"] else None)
-        elif focus["banner"] and focus["status"] == "done":
-            focus["banner"] = None  # a step run that finished is not a stop
-        for r in snap["runs"]:
-            r["photo"] = r["model"] = None
-        snap["reference"] = reference
-        snap["note"] = {"level": level, "headline": headline, "text": text}
-        (tmp / "runs" / (rid[:-4] + ".json")).write_text(
-            json.dumps(snap, separators=(",", ":"), sort_keys=True) + "\n", encoding="utf-8")
-        index.append({
-            "id": rid[:-4], "file": "runs/%s.json" % rid[:-4], "kind": focus["kind"], "loco": focus["loco"],
-            "road": focus["road"], "direction": focus["direction"], "route": focus["route"], "start": focus["t0"],
-            "steps": [c["step"] for c in focus["curve"]], "pass_step": (focus["pass"] or {}).get("step"),
-            "stop_step": stop["step"] if stop else None, "status": focus["status"], "reason": focus["reason"],
-            "outcome": level, "headline": headline, "note": text})
+        snap, entry = run_view(store, rid, lines, reference, {"level": level, "headline": headline, "text": text})
+        (tmp / entry["file"]).write_text(json.dumps(snap, separators=(",", ":"), sort_keys=True) + "\n", encoding="utf-8")
+        index.append(entry)
     old_index = out / "index.json"
     if old_index.exists():  # keep the runs of other sessions
         for r in json.loads(old_index.read_text(encoding="utf-8")).get("runs", []):

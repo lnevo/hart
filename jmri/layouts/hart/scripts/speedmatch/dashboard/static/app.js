@@ -3,13 +3,14 @@
 // recorded (the website page sets window.SM_RECORDED) reads the static JSON export_site_runs.py
 // wrote, with a run picker. Every value from either source goes in with textContent.
 const $ = (id) => document.getElementById(id);
-const REC = window.SM_RECORDED || null;  // {base: folder of index.json, photos: {loco: url}, tz: time zone of the logs}
+const REC = window.SM_RECORDED || null;  // {base: folder of index.json, photos: {loco: url}, tz: time zone of the logs, poll: ms (live on the Pi)}
+const POLL = REC && REC.poll ? REC.poll : 0;  // the Pi page re-reads the files the publisher keeps writing
 const bare = (id) => String(id || "").replace(/\.log$/, "");  // run ids with or without the log suffix
 const ROOT = document.querySelector(".smd") || document.documentElement;  // where the theme attribute lives
 let INDEX = [];  // recorded: the published runs, newest first
 const SVGNS = "http://www.w3.org/2000/svg";
 const MAX_STEP = 126, TOL = 3;
-let S = null, manual = null, showTable = false;
+let S = null, manual = null, picked = false, showTable = false;
 
 function el(tag, attrs, ...kids) {
   const e = document.createElement(tag);
@@ -60,18 +61,19 @@ $("theme").addEventListener("click", () => {
     : matchMedia("(prefers-color-scheme: dark)").matches;
   setTheme(dark ? "light" : "dark");
 });
-$("follow").addEventListener("click", () => { manual = null; tick(); });
+$("follow").addEventListener("click", () => { manual = null; picked = false; tick(); });
 if ($("runpick")) $("runpick").addEventListener("change", (e) => pick(e.target.value));
+if ($("pickwrap")) $("pickwrap").hidden = !REC;  // the live page shows the picker only when it reads files
 $("tbl").addEventListener("click", () => { showTable = !showTable; $("tbl").textContent = showTable ? "Chart" : "Table"; renderChart(); });
 
 // ---------------------------------------------------------------- banner and header
 function renderTop(run) {
   $("mode").textContent = S.mode;
-  $("livedot").className = "dot" + (S.reachable && run && !finished(run) && !REC ? " on" : "");
+  $("livedot").className = "dot" + (S.reachable && run && !finished(run) && (!REC || POLL) ? " on" : "");
   const c = $("conn");
-  c.textContent = REC ? (run && run.t0 ? "Recorded " + when(run.t0) : "") : S.reachable ? (S.mode === "live" ? "Pi connected" : "Playing " + S.mode) : (S.message || "Pi not reachable, retrying");
+  c.textContent = POLL ? (S.reachable ? "Live on the Pi" : (S.message || "Not updating, retrying")) : REC ? (run && run.t0 ? "Recorded " + when(run.t0) : "") : S.reachable ? (S.mode === "live" ? "Pi connected" : "Playing " + S.mode) : (S.message || "Pi not reachable, retrying");
   c.className = "conn" + (S.reachable ? "" : " bad");
-  $("follow").hidden = REC || !manual;
+  $("follow").hidden = POLL ? !picked : (REC || !manual);
   const b = $("banner");
   let level = null, text = null, why = null;
   if (!S.reachable) { level = "net"; text = S.message || "Pi not reachable, retrying"; }
@@ -92,7 +94,7 @@ function renderTop(run) {
 function renderHero(run) {
   const h = $("hero");
   h.replaceChildren();
-  if (!run) { h.append(el("p", { class: "empty", text: REC ? "Loading the recorded runs." : "Waiting for a run. Start one with drop_job.sh, or run this server with --demo." })); return; }
+  if (!run) { h.append(el("p", { class: "empty", text: POLL ? (S.runs && !S.runs.length ? "No run logs on the Pi since it started. A run shows here as soon as it begins." : "Waiting for the publisher on the Pi.") : REC ? "Loading the recorded runs." : "Waiting for a run. Start one with drop_job.sh, or run this server with --demo." })); return; }
   h.style.setProperty("--loco", locoVar(run.loco));
   const src = run.photo || (REC && REC.photos && REC.photos[run.loco]);
   const photo = src ? el("img", { class: "photo", src, alt: run.road || "Locomotive" }) : el("div", { class: "photo none", text: "No photo" });
@@ -350,7 +352,7 @@ function renderRuns(run) {
   const t = el("table", {});
   t.append(el("tr", {}, ...["Loco", "Dir", "Kind", "Steps", "Status"].map((x) => el("th", { text: x }))));
   for (const r of [...S.runs].reverse()) {
-    const tr = el("tr", { class: "click" + (run && r.id === run.id ? " sel" : ""), tabindex: 0, onclick: () => { manual = r.id; tick(); }, onkeydown: (e) => { if (e.key === "Enter") { manual = r.id; tick(); } } },
+    const tr = el("tr", { class: "click" + (run && r.id === run.id ? " sel" : ""), tabindex: 0, onclick: () => pick(r.id), onkeydown: (e) => { if (e.key === "Enter") pick(r.id); } },
       el("td", { text: r.road || "?" }), el("td", { text: r.direction || "-" }), el("td", { text: r.kind }),
       el("td", { text: r.pass ? "pass " + r.pass.step : `${r.done_steps}${r.steps.length ? " / " + r.steps.length : ""}` }),
       el("td", { text: r.stale ? "⚠ No updates (stale)" : (ICON[r.status] || "") + " " + (STATUS[r.status] || r.status) }));
@@ -379,28 +381,41 @@ function render() {
 function fillPicker(cur) {
   const sel = $("runpick");
   if (!sel) return;
-  if (!sel.options.length) for (const r of INDEX) sel.append(el("option", { value: r.id, text: `${when(r.start)}  ${runTitle(r)}  (${r.headline.toLowerCase()})` }));
+  const ids = INDEX.map((r) => r.id).join(" ");
+  if (sel.dataset.ids !== ids) {  // the Pi page adds runs as they start
+    sel.replaceChildren(...INDEX.map((r) => el("option", { value: r.id, text: `${when(r.start)}  ${runTitle(r)}${r.headline ? "  (" + r.headline.toLowerCase() + ")" : ""}` })));
+    sel.dataset.ids = ids;
+  }
   sel.value = cur;
 }
 function pick(id) {
   manual = id;
+  picked = true;
   try { history.replaceState(null, "", "#run=" + encodeURIComponent(id)); } catch (e) {}
   tick();
 }
 async function tickRecorded() {
   try {
-    if (!INDEX.length) {
-      const r = await fetch(REC.base + "index.json", { cache: "no-cache" });
+    if (!INDEX.length || POLL) {
+      const r = await fetch(REC.base + "index.json", { cache: POLL ? "no-store" : "no-cache" });
       INDEX = (await r.json()).runs;  // already newest first
-      const h = /^#run=(.+)$/.exec(location.hash);
-      if (h && INDEX.some((x) => x.id === decodeURIComponent(h[1]))) manual = decodeURIComponent(h[1]);
+      if (!picked) {
+        const h = /^#run=(.+)$/.exec(location.hash);
+        if (h && INDEX.some((x) => x.id === decodeURIComponent(h[1]))) { manual = decodeURIComponent(h[1]); picked = true; }
+      }
     }
-    const cur = INDEX.find((x) => x.id === manual) || INDEX[0];
+    if (!INDEX.length) { S = { runs: [], mode: "live", reachable: true, reference: {} }; render(); return; }
+    const cur = (picked && INDEX.find((x) => x.id === manual)) || INDEX[0];  // follow the newest unless one was picked
     manual = cur.id;
-    const r = await fetch(REC.base + cur.file, { cache: "no-cache" });
+    const r = await fetch(REC.base + cur.file, { cache: POLL ? "no-store" : "no-cache" });
     S = await r.json();
     fillPicker(cur.id);
   } catch (e) {
+    if (POLL) {  // the Pi page keeps trying
+      S = S ? { ...S, reachable: false, message: "Not updating, retrying" } : { runs: [], mode: "live", reachable: false, message: "Waiting for the publisher on the Pi", reference: {} };
+      render();
+      return;
+    }
     $("banner").hidden = false;
     $("banner").className = "banner net";
     $("banner").textContent = "The recorded runs could not be loaded. Reload the page to try again.";
@@ -422,3 +437,4 @@ let rz;
 addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => S && renderChart(), 150); });
 tick();
 if (!REC) setInterval(tick, 1000);
+else if (POLL) setInterval(tick, POLL);

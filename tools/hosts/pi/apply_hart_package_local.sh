@@ -171,6 +171,23 @@ fi
 if [[ -x "$HART/cats/scripts/install_jmri_web_override.sh" ]]; then
   bash "$HART/cats/scripts/install_jmri_web_override.sh"
 fi
+# Speed-match live view (/web/speedmatch/): the page, and its publisher as a user service.
+if [[ -d "$HART/cats/resources/speedmatch-web" && -d "$HART/cats/speedmatch-live" ]]; then
+  mkdir -p "$UF/web/speedmatch/live"
+  cp -f "$HART/cats/resources/speedmatch-web/"* "$UF/web/speedmatch/"
+  mkdir -p "$HOME/speedmatch/publisher" "$HOME/.config/systemd/user"
+  rsync -a --delete "$HART/cats/speedmatch-live/" "$HOME/speedmatch/publisher/"
+  cp -f "$HART/cats/scripts/pi/hart-speedmatch-live.service" "$HOME/.config/systemd/user/"
+  loginctl enable-linger "$USER" 2>/dev/null || true
+  if systemctl --user daemon-reload 2>/dev/null; then
+    systemctl --user enable hart-speedmatch-live.service >/dev/null 2>&1 || true
+    systemctl --user restart hart-speedmatch-live.service \
+      || echo "WARN: speed-match publisher (hart-speedmatch-live) did not start"
+  else
+    echo "WARN: no systemd user session; speed-match publisher not started"
+  fi
+  echo "Speed-match live view -> $UF/web/speedmatch/ (publisher: hart-speedmatch-live)"
+fi
 if [[ -x "$HART/cats/scripts/pi/install_desktop_icons.sh" ]]; then
   bash "$HART/cats/scripts/pi/install_desktop_icons.sh"
 fi

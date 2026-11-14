@@ -117,3 +117,26 @@ builds next to the output and swaps it in at the end, so a failed export changes
 website page repeats the live page's panels; a test checks that every id `app.js` needs is on
 both. Positioning (`moveto_`) logs
 are never published. The live view is not on the public site.
+
+## Live view on the Pi
+
+The live view also runs on the Pi itself, so no Mac is needed during a session:
+`http://RPi-JMRI.local:12080/web/speedmatch/`, served by JMRI's web server from
+`~/JMRI_UserFiles/web/speedmatch/`. It works from the house network and from the throttle Wi-Fi
+(port 12080 is open there); it is not on the public site, which links to it as home-network only.
+
+- **Publisher:** `dashboard/publish_live.py`, the user service `hart-speedmatch-live` on the Pi.
+  Every 1.5 s it reads the newest run logs in `/tmp` (the same `ls`, `stat` and `tail` as the Mac
+  dashboard, run locally), feeds them through `dashstate`, and writes `index.json` and
+  `runs/<id>.json` into `web/speedmatch/live/` in the website export's shape (`run_view()` in
+  `export_site_runs.py`, shared). It rewrites only when a log grew; each file is written under a
+  temporary name and renamed. It writes nowhere else.
+- **Page:** the live page's own `index.html`, `app.js` and `style.css`, built by
+  `publish_live.py --build-page` with the recorded mode set to re-read `live/` every 1.5 s. It
+  follows the newest run, and the run picker switches to any run still in the Pi's `/tmp` (since
+  its last boot). Runs carry no label there; labels are added for the website.
+- **Install:** the Pi deploy (`sync_hart_package.sh --pi`) ships the page and a bundle of the
+  publisher with the files it reads (`analyze.py`, `liverule.py`, the dashboard modules,
+  `data/block_lengths.csv`) into `~/speedmatch/publisher/`, installs the unit
+  (`tools/hosts/pi/hart-speedmatch-live.service`) and restarts it.
+- **Check it:** `ssh pi systemctl --user status hart-speedmatch-live`, and the page.

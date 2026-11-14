@@ -1,0 +1,15 @@
+# Speed-match live view publisher (docs/jmri/speedmatching/DASHBOARD.md, "Live view on the Pi").
+# Reads the run logs in /tmp and writes ~/JMRI_UserFiles/web/speedmatch/live/ for the page at
+# http://RPi-JMRI.local:12080/web/speedmatch/. Read only towards JMRI and the layout.
+# Installed by apply_hart_package_local.sh into ~/.config/systemd/user/.
+[Unit]
+Description=HART speed-match live view publisher
+
+[Service]
+ExecStart=/usr/bin/python3 %h/speedmatch/publisher/scripts/speedmatch/dashboard/publish_live.py
+Restart=always
+RestartSec=10
+Nice=10
+
+[Install]
+WantedBy=default.target
