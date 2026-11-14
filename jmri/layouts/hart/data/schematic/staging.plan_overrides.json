@@ -95,7 +95,8 @@
       "Main East"
      ]
     }
-   ]
+   ],
+   "source": "owner"
   },
   {
    "op": "switch",
@@ -127,7 +128,8 @@
       "end": "EH-2"
      }
     }
-   }
+   },
+   "source": "owner"
   },
   {
    "op": "name",
@@ -259,5 +261,9 @@
   "2035",
   "2036"
  ],
- "_signals_planned": "Princess masts with no field hardware (placeholders in JMRI, CATS and wiring records, as of 2026-11-07)."
+ "_signals_planned": "Princess masts with no field hardware (placeholders in JMRI, CATS and wiring records, as of 2026-11-07).",
+ "level_title": "Staging level",
+ "mast_prefix": "Mast ",
+ "mast_dir_pattern": "\\d+([LR])",
+ "helix_side": "east"
 }
