@@ -156,6 +156,7 @@ def sections(svg_dir, staging):
         '<li><b>The two long dead ends past Switches 37 and 39 are the helix lines.</b> On the layout they are the McKeesport and McKees Rocks stubs.</li></ol>')
     d = derive()
     now = block_inches()
+    et_in = engine_terminal.build()[4]["lengths_in"]
     ft = lambda mm: "%.1f in (%d mm)" % (mm / 25.4, round(mm))
     t["terminal"] = (
         '<h3>Lengths in the Switch 5 to Switch 15 run, and the engine terminal</h3>'
@@ -170,11 +171,11 @@ def sections(svg_dir, staging):
         '<tr><td>Track Barn (Switch 7 to Switch 13)</td><td class="n">24 in</td><td class="n"><b>%s</b></td><td class="n">timed passes</td></tr>' % ("%.1f in" % now["Track Barn"]) +
         '<tr><td>OS Switch 13</td><td class="n">10 in</td><td class="n"><b>%s</b></td><td class="n">timed passes</td></tr>' % ("%.1f in" % now["OS Switch 13"]) +
         '<tr><td>OS Switch 15</td><td class="n">10 in</td><td class="n"><b>%s</b></td><td class="n">timed passes</td></tr>' % ("%.1f in" % now["OS Switch 15"]) +
-        '<tr><td>Switch 13 to Switch 11</td><td class="n">&ndash;</td><td class="n">10.2 in</td><td class="n">drawing</td></tr>'
-        '<tr><td>Switch 11 to Switch 9</td><td class="n">&ndash;</td><td class="n">14.7 in</td><td class="n">drawing</td></tr>'
-        '<tr><td>Track EH-1 (Switch 11 to the bumper)</td><td class="n">24 in</td><td class="n">24 in (drawing: 48.3 in)</td><td class="n">drawing, bumper placed</td></tr>'
-        '<tr><td>Track EH-2 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">24 in (drawing: 22.3 in)</td><td class="n">drawing, bumper placed</td></tr>'
-        '<tr><td>Track EH-3 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">24 in (drawing: 22.2 in)</td><td class="n">drawing, bumper placed</td></tr>'
+        '<tr><td>Switch 13 to Switch 11</td><td class="n">&ndash;</td><td class="n">%.1f in</td><td class="n">drawing</td></tr>' % et_in["13 to 11"] +
+        '<tr><td>Switch 11 to Switch 9</td><td class="n">&ndash;</td><td class="n">%.1f in</td><td class="n">drawing</td></tr>' % et_in["11 to 9"] +
+        '<tr><td>Track EH-1 (Switch 11 to the bumper)</td><td class="n">24 in</td><td class="n">24 in (drawing: %.1f in)</td><td class="n">drawing, bumper placed</td></tr>' % et_in["EH-1"] +
+        '<tr><td>Track EH-2 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">24 in (drawing: %.1f in)</td><td class="n">drawing, bumper placed</td></tr>' % et_in["EH-2"] +
+        '<tr><td>Track EH-3 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">24 in (drawing: %.1f in)</td><td class="n">drawing, bumper placed</td></tr>' % et_in["EH-3"] +
         '</tbody></table></div>')
     t["loop"] = ('<h3>Test loop length</h3><div class="tw"><table><thead><tr><th>Source</th><th class="n">Test loop</th></tr></thead><tbody>'
                  '<tr><td>Plan 5.3b, along the test route</td><td class="n">35,108 mm (1382 in)</td></tr>'
