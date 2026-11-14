@@ -30,21 +30,19 @@ class LookupsMatchOldLoops(unittest.TestCase):
                 by_user[un] = sn[3:]
                 by_user[sn] = sn[3:]
         want: dict[str, tuple[str, str]] = {}
-        with tio.TURNOUT_CSV.open(newline="", encoding="utf-8") as fh:
-            for row in csv.DictReader(fh):
-                ident = row["layout_ident"].strip()
-                key = row["turnout_user_or_system"].strip()
-                addr = by_user.get(key)
-                if not addr and key.startswith("M2T"):
-                    addr = key[3:]
-                if not addr:
-                    continue
-                uname = key
-                for u, a in by_user.items():
-                    if a == addr and u.startswith("Switch"):
-                        uname = u
-                        break
-                want[ident] = (addr, uname)
+        for sw in tio.facts.load_switches().values():
+            ident, key = sw.le_ident, sw.hardware
+            addr = by_user.get(key)
+            if not addr and key.startswith("M2T"):
+                addr = key[3:]
+            if not addr:
+                continue
+            uname = key
+            for u, a in by_user.items():
+                if a == addr and u.startswith("Switch"):
+                    uname = u
+                    break
+            want[ident] = (addr, uname)
         self.assertTrue(want)
         with contextlib.redirect_stderr(io.StringIO()):
             got = tio.load_turnouts()

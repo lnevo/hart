@@ -18,7 +18,7 @@ Visual SoR for yard body: CATS sample [cats.jpg](https://cats4ctc.wdfiles.com/lo
 - On-track `STATION` shows map names (`OS W-1`, `West Lead`, `OS S-R`…`OS S-4`, `OS McKees Rocks`/`OS McKeesport`, CP switch numbers `1`…`39`) while `NAME` stays the JMRI occupancy id.
 - Header/footer `SEC_NAME` callouts spell connections: e.g. `15→OS S-R`, `West Lead: Plane → OS Barn → 15 → OS S-R`, `33 → OS East Lead → Princess`.
 
-Block / turnout names: `cats/data/occupancy_bindings.csv`, `turnout_bindings.csv`.
+Block / turnout names: `cats/data/occupancy_bindings.csv`, `jmri/layouts/hart/data/switches.csv`.
 
 **Sheet panels:** West Yard sheets are archived at `cats/panels/sheets/archive/west_yard/`. Live Digicon: `cats/panels/HART_CTC.xml` and `HART_ABS.xml`.
 

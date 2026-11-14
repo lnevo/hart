@@ -12,7 +12,7 @@ Layout Editor (tables.xml)
   - which leg the continuing sense closes to (plain turnouts);
   - the stored block paths: the closed leg needs Closed or no setting, the thrown
     leg Thrown, and neither may be reached with the other setting.
-CATS desks (HART_CTC.xml, HART_ABS.xml) and cats/data/turnout_bindings.csv
+CATS desks (HART_CTC.xml, HART_ABS.xml)
   - each plant's turnout, the leg each command (close/throw) leads to, and which
     leg is NORMAL (the closed one, unless the switch is CATS-inverted);
   - every block name on the desk is a Layout Editor block;
@@ -61,7 +61,6 @@ import digicon_trace as trace  # noqa: E402
 TABLES = paths.TABLES_XML
 GUI = HART / "ctc/GUIObjects.xml"
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
-TURNOUT_BINDINGS = ROOT / "cats/data/turnout_bindings.csv"
 OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
 
 CLOSED, THROWN = "2", "4"
@@ -308,28 +307,6 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
                                        f"puts NORMAL on the {'thrown' if sw.cats_inverted else 'closed'} leg")
 
 
-def check_turnout_bindings(path: Path, switches: dict[int, facts.Switch], r: Report) -> None:
-    by_ident = {sw.le_ident: sw for sw in switches.values()}
-    seen = set()
-    with path.open(newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            ident = row["layout_ident"].strip()
-            sw = by_ident.get(ident)
-            if sw is None:
-                r.add(f"bindings:{ident}", f"{path.name}: {ident} is not a le_ident in switches.csv")
-                continue
-            seen.add(sw.number)
-            n = f"Switch {sw.number}"
-            if row["os_block"].strip() != sw.legs[0].os_block:
-                r.add(f"bindings:{n}", f"{n}: {path.name} puts {ident} in {row['os_block']}, "
-                                       f"switch_legs.csv in {sw.legs[0].os_block}")
-            if row["turnout_user_or_system"].strip() not in (sw.turnout, sw.hardware):
-                r.add(f"bindings:{n}", f"{n}: {path.name} binds {ident} to {row['turnout_user_or_system']}, "
-                                       f"switches.csv to {sw.turnout} ({sw.hardware})")
-    for n in sorted(set(switches) - seen):
-        r.add(f"bindings:Switch {n}", f"Switch {n}: not in {path.name}")
-
-
 # ---------------------------------------------------------------- USS CTC
 
 def occupancy_sensors(path: Path) -> dict[str, str]:
@@ -510,7 +487,7 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, t: Tables, r: Re
 
 
 def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path = GUI,
-        bindings: Path = TURNOUT_BINDINGS, occupancy: Path = OCCUPANCY) -> Report:
+        occupancy: Path = OCCUPANCY) -> Report:
     import gen_ctc_track_plan as gen
 
     r = Report()
@@ -523,7 +500,6 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
         check_tables(sw, t, r)
     for desk in desks:
         check_desk(Path(desk), switches, t, r)
-    check_turnout_bindings(bindings, switches, r)
     check_ctc_buttons(switches, t, occupancy_sensors(occupancy), r)
     cells = gen.parse_cats(Path(desks[0]))
     for label, path in (("GUIObjects.xml", gui), ("tables.xml USS panel", tables)):

@@ -969,14 +969,7 @@ def _expected_blocks() -> set[str]:
 
 
 def _expected_idents() -> set[str]:
-    idents: set[str] = set()
-    with (paths.CATS_DIR / "data/turnout_bindings.csv").open(encoding="utf-8") as fh:
-        next(fh)
-        for line in fh:
-            ident = line.split(",", 1)[0].strip()
-            if ident:
-                idents.add(ident)
-    return idents
+    return {sw.le_ident for sw in SWITCHES.values()}
 
 
 OMITTED_BLOCKS: set[str] = set()

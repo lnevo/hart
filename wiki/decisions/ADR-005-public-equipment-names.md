@@ -104,7 +104,6 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | `docs/wiring/signals/signal_head_plan.csv` |
 | `docs/wiring/signals/signal_wiring.csv` |
 | `jmri/layouts/hart/data/le_signal_boundaries.csv` |
-| `cats/data/turnout_bindings.csv` |
 | `cats/data/jmri_devices.csv` |
 | `cats/data/plants_from_hart.csv` |
 | `jmri/layouts/hart/data/block_lengths.csv` |
