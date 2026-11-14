@@ -3,22 +3,13 @@
  "_note": "Facts about the railroad that the AnyRail plan 5.3b does not hold or holds wrongly. Every output uses them. Hands and legs of added switches come from the Layout Editor panel in tables.xml (Switch 9: hand R, straight EH-3, diverging EH-2).",
  "left_end": "W-1",
  "stations": {
-  "Brick": {
-   "switches": [
-    "1",
-    "3"
-   ],
-   "tracks": []
-  },
-  "West Yard": {
-   "switches": [
-    "3"
-   ],
-   "tracks": [
-    "W-1",
-    "W-2"
-   ]
-  },
+  "Brick": [
+   "1",
+   "3"
+  ],
+  "West Yard": [
+   "3"
+  ],
   "Plane": [
    "5"
   ],
@@ -413,5 +404,12 @@
   "East Lead East": 15.748,
   "K-1 West": 15.748
  },
- "_stations": "West Yard is W-1 and W-2 with Switch 3 (owner, 2026-11-14). Brick is the interlocking between Switches 1 and 3: a control point, not a station."
+ "_stations": "West Yard is W-1 and W-2 with Switch 3 (owner, 2026-11-14). Brick is the interlocking between Switches 1 and 3: a control point, not a station.",
+ "station_tracks": {
+  "West Yard": [
+   "W-1",
+   "W-2"
+  ],
+  "Brick": []
+ }
 }
