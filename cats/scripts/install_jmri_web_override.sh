@@ -29,6 +29,12 @@ install_into() {
     sed -i.tmp "s/var HART_MIMIC_PORT = \"\";/var HART_MIMIC_PORT = \"${HART_MIMIC_PORT}\";/" \
       "${dest_root}/web/servlet/home/Home.html" && rm -f "${dest_root}/web/servlet/home/Home.html.tmp"
   fi
+  # The Mac sets HART_PI_HOST so the speed-match link, a Pi-only page, names the Pi.
+  if [[ -n "${HART_PI_HOST:-}" ]]; then
+    [[ "$HART_PI_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo "HART_PI_HOST must be a host name" >&2; exit 1; }
+    sed -i.tmp "s/var HART_PI_HOST = \"\";/var HART_PI_HOST = \"${HART_PI_HOST}\";/" \
+      "${dest_root}/web/servlet/home/Home.html" && rm -f "${dest_root}/web/servlet/home/Home.html.tmp"
+  fi
   rm -f "${dest_root}/web/sts.html"
   echo "Installed JMRI web home override -> ${dest_root}/web"
   # LCOS mimic page (served at /web/mimic/). Only with its generated layout, which the

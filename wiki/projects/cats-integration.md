@@ -18,7 +18,7 @@
 
 1. Diff the new stock `web/servlet/home/Home.html` (from the JMRI tag, e.g. `~/dev/JMRI`) against our copy.
 2. Start from the new stock file and carry the HART block onto it.
-3. Keep the two `var HART_APPS_HOST = "";` and `var HART_MIMIC_PORT = "";` lines exactly as written; the installer fills them with sed.
+3. Keep the three `var HART_APPS_HOST = "";`, `var HART_MIMIC_PORT = "";` and `var HART_PI_HOST = "";` lines exactly as written; the installer fills them with sed.
 4. Update the "based on stock JMRI" comment at the top of the block to the new version.
 5. Run `python3 -m unittest discover -s cats/scripts/tests`, then deploy.
 

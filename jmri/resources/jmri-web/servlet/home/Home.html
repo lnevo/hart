@@ -107,13 +107,15 @@
                         <p>The speed-matching run as it happens, served by the Pi.</p>
                         <script>
                             // STS (port 8980, plain HTTP), the mimic and the speed-match live view (JMRI
-                            // on 12080) run on the Pi. The speed-match page exists only on the Pi, so off
-                            // the Pi (the Mac or Windows) it always names the Pi.
-                            // Empty host = follow this page's own host (the Pi, or the Mac's development
-                            // copies). Windows fills in the Pi's name (RPi-JMRI.local). The Mac fills in
-                            // HART_MIMIC_PORT, the port of its own mimic server.
+                            // on 12080) run on the Pi. Empty host = STS and the mimic follow this page's
+                            // own host (the Pi, or the Mac's development copies). Windows fills in the
+                            // Pi's name (RPi-JMRI.local). The Mac fills in HART_MIMIC_PORT, the port of
+                            // its own mimic server. Only the Pi serves the speed-match page, so every
+                            // other host names the Pi: Windows through HART_APPS_HOST, the Mac through
+                            // HART_PI_HOST.
                             var HART_APPS_HOST = "";
                             var HART_MIMIC_PORT = "";
+                            var HART_PI_HOST = "";
                             (function () {
                                 var host = HART_APPS_HOST || location.hostname;
                                 document.getElementById("sts-link").href = "http://" + host + ":8980/sts/";
@@ -122,9 +124,10 @@
                                 } else if (HART_APPS_HOST) {
                                     document.getElementById("mimic-link").href = "http://" + host + ":12080/web/mimic/";
                                 }
-                                if (HART_APPS_HOST || HART_MIMIC_PORT) {
+                                var piHost = HART_PI_HOST || HART_APPS_HOST;
+                                if (piHost) {
                                     document.getElementById("speedmatch-link").href =
-                                        "http://" + (HART_APPS_HOST || "RPi-JMRI.local") + ":12080/web/speedmatch/";
+                                        "http://" + piHost + ":12080/web/speedmatch/";
                                 }
                             })();
                         </script>
