@@ -17,11 +17,15 @@ import sys
 import tempfile
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+REPO = paths.REPO_ROOT
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = Path.home() / "Documents/Layout/schematic"
 OUT = REPO / "docs/ops"
-sys.path.insert(0, str(REPO / "tools/ops"))
+sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
 
 # the plugin's title block; the DRAFT mark sits in its bottom right corner
