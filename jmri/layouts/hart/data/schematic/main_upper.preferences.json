@@ -103,5 +103,6 @@
  "direction_arrows": true,
  "capacity": {
   "car_in": 7.4
- }
+ },
+ "mileposts": true
 }
