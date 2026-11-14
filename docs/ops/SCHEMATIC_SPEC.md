@@ -18,7 +18,7 @@ This page fixes three things: the file format of each input layer, each generati
 
 Every step writes a file the next one reads. Layers 1 and 3 are data files; layer 2 is code. The generic code and the made-up example go in `model-railroad-skills`. The HART files live in `jmri/layouts/hart/data/schematic/`.
 
-**The separation test.** With layer 3 off, layers 1 and 2 must draw every level with no crossings or overlaps, the main straight through every switch on it, and yard ladders stepping diagonally with their tracks level. A hint file is not allowed in the finished tool.
+**The separation test.** With layer 3 off, layers 1 and 2 must draw every level with no crossings or overlaps, the main straight through every switch on it, and yard ladders stepping diagonally with their tracks level, except where R5 or R6 gives way for a tighter drawing (see R6). A hint file is not allowed in the finished tool.
 
 ## Layer 1: plan overrides
 
@@ -80,7 +80,9 @@ Each rule has an id used in code, tests and fault messages. "Replaces" names the
 | R3 Order | Tracks are ordered top to bottom from each switch's hand. A loop's two tracks are stacked by which way the loop bends. Two track ends on the same spot in the export are one track. | — | T196 loop drawn as a loop |
 | R4 Double crossover | Its two tracks sit on neighbouring rows. | — | Double crossover at 23 on adjacent rows |
 | R5 Main level | Every switch on the main route keeps its main-route leg level. Where the route uses the diverging leg, that leg is level and the straight leg slopes. **Loop exception:** where the main uses both legs (a loop's entry switch, such as T196, T300 and the upper peninsula loop at T239, T241, T253), the leg the main enters the loop by is level and the return is drawn as a fold; the check does not count the return leg. | `level_leg` on the 18 main/upper switches and on staging's main | Chosen leg equals each removed `level_leg` entry; the seven loop-return cases in A2's `baseline_faults.md` (PR #430) pass under the exception |
-| R6 Ladder | A ladder is a chain of two or more switches, each joined to the next by a short link (shorter than `ladder_link_max_cm`, default 60), whose other legs start tracks off the main. The yard track leg of each ladder switch is level; the link slopes. The lead into the first switch runs straight into it: that switch's lead-side leg is level. | `level_leg` on 13, 15, 17, 19 | Chosen leg equals the removed entries; S-1 to S-4 drawn level and stepped |
+| R6 Ladder | A ladder is a chain of two or more switches, each joined to the next by a short link (shorter than `ladder_link_max_cm`, default 40; at 60, T143 and T226 would count as ladder switches and lose the approved look), whose other legs start tracks off the main. The yard track leg of each ladder switch is level; the link slopes. The lead into the first switch runs straight into it: that switch's lead-side leg is level. | `level_leg` on 13, 15, 17, 19 | Chosen leg equals the removed entries; S-1 to S-4 drawn level and stepped |
+
+**R5 and R6 are weighted, not pinned (owner, 2026-11-13).** Breaking either costs `rule_weight` (default 2, the price of two rows of slope) in the row search, so a rule gives way only where the drawing gets clearly tighter: the upper loop entries T239 and T300\*, the peninsula ladder at T345, and staging's 33. That is the look the spike's own search chose and the owner approved; weights from 1.3 to 4 all reproduce it with only the two free-choice pins (T210, T212). The report lists each switch where a rule gave way; it is not a fault.
 | R7 Rows | Two tracks need separate rows only if their column spans overlap along the band. Tracks that never run side by side may share a row. | `keep_close`; the `shorten` and `min_cells` entries that only fixed row spacing | Upper band: helix tracks sit under T300 with no `keep_close` |
 | R8 Length | Spare columns along a band are shared in proportion to real track length. Switches joined by short links move as a block; ends and folds travel with their switch. A long track (over `long_track_cm`, default 100) always gets a level run. A connector gets one short cell. | — | Three parallel tracks west of T162 and T160 show as three |
 | R9 Clearance | After placing, test every pair of drawn lines for crossing or lying on top of each other; add clearance and redraw until none do. | — | Zero faults on all golden drawings |
@@ -117,7 +119,7 @@ Two goldens per level, stored as **fingerprints**, not SVG bytes, so a style cha
 
 | Golden | Inputs | Must have |
 |--------|--------|-----------|
-| Baseline | Layers 1 and 2 | Zero faults, R5 and R6 met (after B2; A2's baseline is the starting fault list) |
+| Baseline | Layers 1 and 2 | Zero faults; every place R5 or R6 gave way listed in the report |
 | Approved | Layers 1, 2 and 3 | Same grid as the owner-approved `system_sample.svg` (PR #423 at 59fb4c6d) |
 
 A fingerprint is JSON: for each switch its band, column, row, facing and level leg; for each track its row and column span; for each connector its letter and both ends. Tests compare fingerprints; a difference prints switch by switch. The SVG goes alongside for the eye.
@@ -128,7 +130,7 @@ The made-up example railroad in the plugin has its own baseline golden and must 
 
 1. Every switch, leg and run of the railroad graph appears once in the grid.
 2. No two drawn lines cross or overlap unless they cross on the layout.
-3. R5: the main is level through every switch on it. R6: yard tracks level in every ladder.
+3. R5: the main is level through every switch on it. R6: yard tracks level in every ladder. Each switch where one gave way is listed, not counted as a fault.
 4. Every added or moved switch has a `source`.
 5. No label overlaps a drawn line, a symbol or another label; each fault names both items.
 6. For HART staging, the railroad graph agrees with `switch_legs.csv` (hands and legs).
