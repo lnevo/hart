@@ -104,5 +104,5 @@
  "capacity": {
   "car_in": 7.4
  },
- "mileposts": true
+ "mileposts": false
 }
