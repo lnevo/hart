@@ -1,0 +1,10 @@
+{
+ "_layer": 2,
+ "_note": "TEMPORARY. Hand hints that stand in for generation rules not written yet (stream B2). Switch off with --no-hints.",
+ "level_leg": {
+  "13": "C",
+  "T52": "B",
+  "T133": "C",
+  "T73": "C"
+ }
+}
