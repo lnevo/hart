@@ -2,7 +2,7 @@
 
 The map keeps a turnout's DCC address in its own ``dcc`` column and the rest of the
 wiring text in ``comment``. JMRI's turnout comment carries the address as the group
-after the first one (ADR-005)::
+after the first one (ADR-005), groups joined by exactly `` | ``::
 
     comment  Node: 4 Turnout: 0 | OU: 1 Ports: 1,2
     dcc      100
@@ -10,12 +10,17 @@ after the first one (ADR-005)::
 
 LCC aliases (``DCC Switch N``, hardware ``MTTN``) leave ``dcc`` blank: their address
 is their system name and their JMRI comment has no DCC group.
+
+``split_dcc`` only takes a DCC group out when ``jmri_comment`` puts the very same
+text back; a comment that mentions DCC any other way raises instead of being reordered.
 """
 from __future__ import annotations
 
 import re
 
-_DCC_GROUP = re.compile(r"\s*\|\s*DCC:\s*(\d+)\s*(?=\||$)")
+SEP = " | "
+_DCC_GROUP = re.compile(r"DCC: (\d+)")
+_DCC_ANY = re.compile(r"DCC:?\s*\d")
 
 
 def jmri_comment(comment: str, dcc: str) -> str:
@@ -23,23 +28,26 @@ def jmri_comment(comment: str, dcc: str) -> str:
     comment, dcc = (comment or "").strip(), (dcc or "").strip()
     if not dcc:
         return comment
-    parts = comment.split(" | ") if comment else []
+    parts = comment.split(SEP) if comment else []
     parts.insert(1 if parts else 0, f"DCC: {dcc}")
-    return " | ".join(parts)
+    return SEP.join(parts)
 
 
 def split_dcc(comment: str) -> tuple[str, str]:
-    """(comment without its DCC group, address) for a JMRI or Device-map comment.
+    """(comment without its DCC group, address); ``jmri_comment`` of the result is ``comment``.
 
-    Only a DCC group after the first group is taken, so ``jmri_comment`` puts it back
-    where it was. A comment with no such group comes back unchanged with ``""``.
+    A comment with no DCC text comes back unchanged with ``""``. One whose DCC text is
+    not exactly a ``DCC: N`` second group raises ValueError, so nothing is moved silently.
     """
     comment = (comment or "").strip()
-    m = _DCC_GROUP.search(comment)
-    if not m:
+    if not _DCC_ANY.search(comment):
         return comment, ""
-    rest = (comment[: m.start()] + (" " if m.end() < len(comment) else "") + comment[m.end():].lstrip())
-    return rest.strip(), m.group(1)
+    parts = comment.split(SEP)
+    m = _DCC_GROUP.fullmatch(parts[1]) if len(parts) > 1 else None
+    rest = SEP.join(parts[:1] + parts[2:])
+    if not m or _DCC_ANY.search(rest) or jmri_comment(rest, m.group(1)) != comment:
+        raise ValueError(f"comment {comment!r}: DCC is not a 'DCC: N' second group; fix the comment by hand")
+    return rest, m.group(1)
 
 
 def row_comment(row: dict) -> str:

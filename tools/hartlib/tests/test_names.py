@@ -25,6 +25,20 @@ class CommentTest(unittest.TestCase):
         self.assertEqual(names.split_dcc("Node: 4 Turnout: 0 | DCC: 100"), ("Node: 4 Turnout: 0", "100"))
         self.assertEqual(names.split_dcc("Brick | Switch 1"), ("Brick | Switch 1", ""))
 
+    def test_a_dcc_group_it_cannot_put_back_is_refused(self):
+        for odd in ("DCC: 100 | Node: 4", "Node: 4 | OU: 1 | DCC: 100", "Node: 4 |DCC: 100| OU: 1",
+                    "Node: 4 | DCC 100", "Node: 4 | DCC: 100 | DCC: 101"):
+            with self.subTest(comment=odd), self.assertRaises(ValueError):
+                names.split_dcc(odd)
+
+    def test_every_map_row_round_trips_exactly(self):
+        with paths.PUBLIC_NAME_MAP.open(newline="", encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                jmri = names.row_comment(row)
+                with self.subTest(row=row["current"]):
+                    self.assertEqual(names.split_dcc(jmri), (row["comment"], row["dcc"]))
+                    self.assertEqual(names.jmri_comment(*names.split_dcc(jmri)), jmri)
+
     def test_map_comments_carry_no_dcc(self):
         with paths.PUBLIC_NAME_MAP.open(newline="", encoding="utf-8") as fh:
             rows = list(csv.DictReader(fh))

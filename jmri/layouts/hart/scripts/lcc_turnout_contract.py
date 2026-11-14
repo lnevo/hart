@@ -4,17 +4,21 @@
 Every MQTT turnout whose comment has ``DCC: N`` has an LCC twin ``MTT{N}``:
 userName ``DCC Switch N``, comment is the MQTT comment without DCC, and the
 same feedback sensors as the MQTT bean. Do not delete MTT* as leftovers.
+The DCC group grammar is hartlib.names (one place for it).
 """
 
 from __future__ import annotations
 
 import csv
 import re
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-DCC_RE = re.compile(r"DCC:\s*(\d+)")
-DCC_SEG_RE = re.compile(r"\s*\|\s*DCC:\s*\d+\s*")
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib.names import split_dcc  # noqa: E402
+
 SWITCH_USER_RE = re.compile(r"^Switch \d+$")
 
 
@@ -23,13 +27,14 @@ def child_text(element: ET.Element, tag: str) -> str:
     return value.strip() if value else ""
 
 
+def comment_dcc(comment: str) -> str:
+    """The DCC address in an MQTT turnout comment, "" if it has none (ValueError if misplaced)."""
+    return split_dcc(comment)[1]
+
+
 def lcc_comment_from_mqtt(comment: str) -> str:
-    parts = [
-        part.strip()
-        for part in DCC_SEG_RE.sub("|", comment or "").split("|")
-        if part.strip()
-    ]
-    return " | ".join(parts)
+    """The MQTT comment without its DCC group, as the LCC twin carries it."""
+    return split_dcc(comment)[0]
 
 
 def expected_lcc_user(mqtt_user: str) -> str | None:
@@ -79,11 +84,15 @@ def contract_violations(root: ET.Element, csv_path: Path | None = None) -> list[
     for sn, el in sorted(mqtt.items()):
         user = child_text(el, "userName")
         comment = child_text(el, "comment")
-        match = DCC_RE.search(comment)
-        if not match:
+        try:
+            dcc = comment_dcc(comment)
+        except ValueError as err:
+            problems.append(f"{sn} ({user or '?'}) {err}")
+            continue
+        if not dcc:
             problems.append(f"{sn} ({user or '?'}) comment missing DCC")
             continue
-        alias = f"MTT{match.group(1)}"
+        alias = f"MTT{dcc}"
         paired.add(alias)
         want_user = expected_lcc_user(user)
         want_comment = lcc_comment_from_mqtt(comment)
