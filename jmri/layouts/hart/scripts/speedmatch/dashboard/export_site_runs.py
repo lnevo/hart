@@ -85,18 +85,20 @@ def read_published(logdir, skip=()):
     return [(rid, lines) for _, rid, lines in logs]
 
 
-def fix_focus(focus, kind, lines, name, now=None):
+def fix_focus(focus, kind, lines, name, replay_now=None):
     """Fill in what dashstate leaves out of the focused run's view, in place. lines are the log's
-    lines so far; now is the time of the last one during a replay (None once the run has ended).
+    lines so far. replay_now is the time of the last of them while building replay frames; it is
+    None for the published record, which says done or stopped whether or not the log ended.
     Returns the stop-test view, or None for other kinds."""
     focus["photo"] = focus["model"] = None
     if kind == "stoptest":
         # dashstate does not read STOPTEST lines (no loco, a "stopped: quiet" banner): fill them in
         stop = stoptest_view(lines, name)
         loco = stop["loco"].split()[-1] if stop["loco"] else None
-        end = stop["t_end"] if stop["t_end"] is not None else now
-        status = ("done" if stop["started"] else "stopped") if stop["t_end"] is not None else (
-            "measuring" if stop["started"] else "starting")
+        if replay_now is None or stop["t_end"] is not None:  # the record, as before replays
+            status, end = ("done" if stop["started"] else "stopped"), stop["t_end"]
+        else:  # a replay frame part-way through the log
+            status, end = ("measuring" if stop["started"] else "starting"), replay_now
         focus.update(kind="stoptest", loco=loco, road=state.LOCO_ROAD.get(loco, stop["loco"]),
                      direction=stop["direction"], step=stop["step"], banner=None, stoptest=stop,
                      status=status, reason="did not start" if status == "stopped" else None,
@@ -136,9 +138,6 @@ def diff_frame(prev, cur):
     return out
 
 
-EVENTS_SHOWN = 15  # dashstate sends the newest 15 events of the focused run
-
-
 def apply_frame(prev, d):
     """The inverse of diff_frame (the test checks the pair; app.js has the same steps)."""
     cur = dict(prev)
@@ -151,7 +150,7 @@ def apply_frame(prev, d):
                 bl[int(i)] = dict(ch["="]) if "=" in ch else {**bl[int(i)], **ch}
             cur["blocks"] = bl
         elif k == "events+":
-            cur["events"] = (cur["events"] + v)[-EVENTS_SHOWN:]
+            cur["events"] = (cur["events"] + v)[-state.EVENTS_SHOWN:]
         elif k != "-":
             cur[k] = v
     return cur
@@ -214,8 +213,9 @@ def frames_of(store, rid, lines, name, kind_hint=None):
         if p is None or rid not in store.runs:
             continue
         snap = store.snapshot(now=p[0], reachable=True, message=None, mode="recorded", focus=rid)
-        cur = next(r for r in snap["runs"] if r["id"] == rid)
-        fix_focus(cur, store.runs[rid].kind, lines[: i + 1], name, now=p[0])
+        # a copy: to_dict hands out the run's own lists (step rows, cfg), which later lines change
+        cur = json.loads(json.dumps(next(r for r in snap["runs"] if r["id"] == rid)))
+        fix_focus(cur, store.runs[rid].kind, lines[: i + 1], name, replay_now=p[0])
         if prev is None:
             frames.append([p[0], cur])
         else:
@@ -262,7 +262,7 @@ def export(logdir, out, labels):
             if not frames[-1][1]:
                 frames.pop()  # the replay already ends where the record does
             entry["frames"] = "runs/%s.frames.json" % entry["id"]
-            (tmp / entry["frames"]).write_text(json.dumps({"frames": frames}, separators=(",", ":"), sort_keys=True) + "\n", encoding="utf-8")
+            (tmp / entry["frames"]).write_text(json.dumps({"events_shown": state.EVENTS_SHOWN, "frames": frames}, separators=(",", ":"), sort_keys=True) + "\n", encoding="utf-8")
         index.append(entry)
     old_index = out / "index.json"
     if old_index.exists():  # keep the runs of other sessions

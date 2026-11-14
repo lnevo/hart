@@ -410,7 +410,7 @@ async function tickRecorded() {
     let cur = picked && INDEX.find((x) => x.id === manual);
     if (!cur) { picked = false; cur = INDEX[0]; }  // follow the newest unless a run still listed was picked
     manual = cur.id;
-    if (RP && RP.id !== cur.id) { clearTimeout(RP.timer); RP = null; }  // another run was picked
+    if (RP && RP.id !== cur.id) { clearTimeout(RP.timer); RP = null; setReplayBar(null); }  // another run was picked
     if (RP) { render(); return; }
     const r = await fetch(REC.base + cur.file, { cache: POLL ? "no-store" : "no-cache" });
     S = BASE = await r.json();
@@ -435,8 +435,8 @@ async function tickRecorded() {
 // apply_frame this repeats). Playing swaps the frames into the run's slot of the record in time
 // order, sped up; long waits between lines are cut short.
 const RATES = [10, 30, 100], MAX_GAP = 60;
-let BASE = null;  // the record of the picked run, as loaded
-function applyFrame(prev, d) {
+let BASE = null, LOADING = false;  // the record of the picked run, as loaded; a replay being fetched
+function applyFrame(prev, d, shown) {  // shown: how many events a frame carries (frames.json events_shown)
   const cur = { ...prev };
   for (const k of d["-"] || []) delete cur[k];
   for (const [k, v] of Object.entries(d)) {
@@ -444,7 +444,7 @@ function applyFrame(prev, d) {
       const bl = cur.blocks.map((b) => ({ ...b }));
       for (const [i, ch] of Object.entries(v)) bl[+i] = "=" in ch ? { ...ch["="] } : { ...bl[+i], ...ch };
       cur.blocks = bl;
-    } else if (k === "events+") cur.events = [...cur.events, ...v].slice(-15);
+    } else if (k === "events+") cur.events = [...cur.events, ...v].slice(-shown);
     else if (k !== "-") cur[k] = v;
   }
   return cur;
@@ -485,19 +485,22 @@ async function loadReplay() {
   const entry = INDEX.find((x) => x.id === manual);
   if (!entry || !entry.frames) return false;
   const r = await fetch(REC.base + entry.frames, { cache: "no-cache" });
-  const raw = (await r.json()).frames;
+  const data = await r.json(), raw = data.frames;
   if (!raw.length || manual !== entry.id) return false;
   const frames = [];
   let cur = null;
-  for (const [t, d] of raw) { cur = cur ? applyFrame(cur, d) : d; frames.push([t, cur]); }
+  for (const [t, d] of raw) { cur = cur ? applyFrame(cur, d, data.events_shown) : d; frames.push([t, cur]); }
   RP = { id: entry.id, frames, i: 0, rate: +$("rp-rate").value, timer: null };
   $("rp-seek").max = frames.length - 1; $("rp-seek").disabled = false; $("rp-end").hidden = false;
   return true;
 }
 async function playReplay() {
+  if (LOADING || (RP && RP.timer)) return;  // a second click while the frames load, or already playing
   try {
+    LOADING = true;
     if (!RP && !(await loadReplay())) return;
   } catch (e) { $("rp-t").textContent = "The replay could not be loaded."; return; }
+  finally { LOADING = false; }
   if (RP.i >= RP.frames.length - 1) RP.i = 0;
   $("rp-play").textContent = "❚❚ Pause";
   showFrame();

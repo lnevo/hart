@@ -24,6 +24,7 @@ MM_S_TO_MPH_HO = 3.6 * 87 / 1609.34
 MAX_STEP = 126
 LOCO_ROAD = {"2121": "CSX 2121", "2738": "CSX 2738"}
 EVENT_KEEP = 40
+EVENTS_SHOWN = 15  # the newest events the focused run carries (the replay frames rely on it)
 WRONG_WAY = "Pass went the wrong way, loco stopped"
 STALE_S = 300.0  # an unfinished run with no new line for this long is stale
 DEFAULT_ROUTE = analyze.DEFAULT_ROUTE
@@ -541,7 +542,7 @@ class Run:
             "step_sum_s": total_s, "step_spread": spread, "curve": curve, "lines": self.lines,
         }
         if full:
-            out.update({"blocks": self.blocks_view(), "step_rows": step_rows, "events": self.events[-15:]})
+            out.update({"blocks": self.blocks_view(), "step_rows": step_rows, "events": self.events[-EVENTS_SHOWN:]})
         else:
             out["pass"] = {"step": pv["step"]} if pv else None
             for k in ("last_done", "banner"):

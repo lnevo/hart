@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -11,6 +13,8 @@ from pathlib import Path
 DASH = Path(__file__).resolve().parents[1] / "speedmatch" / "dashboard"
 sys.path.insert(0, str(DASH))
 import export_site_runs as ex  # noqa: E402
+import dashsources as sources  # noqa: E402
+import dashstate as state  # noqa: E402
 
 T = 1794300000.0
 
@@ -120,6 +124,50 @@ class Replay(unittest.TestCase):
             snap = json.loads((out / idx[0]["file"]).read_text())
             self.assertEqual(cur, next(r for r in snap["runs"] if r["id"] == snap["focus"]))
 
+    def test_every_frame_is_the_view_after_its_line(self):
+        """Each rebuilt frame equals the run as the live page showed it then: frames are copies,
+        so lists the run keeps growing (step rows, events) grow frame by frame."""
+        state.warm_caches()
+        rid, lines = sources.demo_logs()[0]
+        frames = ex.frames_of(state.Store(), rid, lines, rid)
+        want, store = [], state.Store()
+        for i, ln in enumerate(lines):
+            store.feed(rid, ln)
+            p = state.parse_line(ln)
+            if p is None or rid not in store.runs:
+                continue
+            v = json.loads(json.dumps(next(r for r in store.snapshot(now=p[0], reachable=True, message=None, mode="recorded", focus=rid)["runs"] if r["id"] == rid)))
+            ex.fix_focus(v, store.runs[rid].kind, lines[: i + 1], rid, replay_now=p[0])
+            if not want or want[-1][1] != v:  # a line that changes nothing makes no frame
+                want.append((p[0], v))
+        cur, rows = None, set()
+        self.assertEqual(len(frames), len(want))
+        for (t, f), (wt, wv) in zip(frames, want):
+            cur = f if cur is None else ex.apply_frame(cur, f)
+            self.assertEqual((t, cur), (wt, wv))
+            rows.add(len(cur.get("step_rows") or []))
+        self.assertGreater(len(rows), 2)  # readings fill in during a step
+
+    @unittest.skipUnless(shutil.which("node"), "node not installed")
+    def test_app_js_rebuilds_the_same_frames(self):
+        state.warm_caches()
+        rid, lines = sources.demo_logs()[0]
+        frames = ex.frames_of(state.Store(), rid, lines, rid)
+        py, cur = [], None
+        for _, f in frames:
+            cur = f if cur is None else ex.apply_frame(cur, f)
+            py.append(cur)
+        app = (DASH / "static" / "app.js").read_text()
+        fn = re.search(r"^function applyFrame\(.*?^}$", app, re.S | re.M).group(0)
+        js = fn + """
+const data = JSON.parse(require("fs").readFileSync(0, "utf8"));
+let cur = null; const out = [];
+for (const [, d] of data.frames) { cur = cur ? applyFrame(cur, d, data.events_shown) : d; out.push(cur); }
+process.stdout.write(JSON.stringify(out));"""
+        r = subprocess.run(["node", "-e", js], input=json.dumps({"events_shown": state.EVENTS_SHOWN, "frames": frames}),
+                           capture_output=True, text=True, check=True)
+        self.assertEqual(json.loads(r.stdout), py)
+
     def test_diff_carries_block_and_event_changes(self):
         a = {"blocks": [{"name": "A", "current": True}, {"name": "B", "current": False}],
              "events": [{"t": i, "text": str(i)} for i in range(15)], "speed": 1, "eta": 5}
@@ -139,7 +187,7 @@ class SharedMarkup(unittest.TestCase):
         app = (DASH / "static" / "app.js").read_text()
         ids = set(re.findall(r'\$\("([\w-]+)"\)', app))
         ids -= set(re.findall(r'if \(\$\("([\w-]+)"\)\)', app))  # guarded: only one page has it
-        ids -= set(re.findall(r'id: "([\w-]+)"', app))  # made by app.js itself (the replay bar)
+        ids -= {i for i in ids if i == "replaybar" or i.startswith("rp-")}  # the replay bar app.js builds itself
         self.assertTrue(ids)
         repo = DASH.parents[5]
         for page in (DASH / "static" / "index.html", repo / "www" / "ai" / "speed-runs.html"):
