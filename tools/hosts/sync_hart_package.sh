@@ -55,6 +55,7 @@ if [[ $# -gt 0 ]]; then
         echo "  --stage-only DIR: build the host packages into DIR/pi and DIR/win and stop."
         echo "                    No ssh, no Mac install, and the repo's tables.xml is only checked."
         echo "  What a host last got: tools/hosts/deploy_status.sh [--pi] [--win] [--mac]"
+  echo "  Redeploy an older commit (rollback): tools/hosts/redeploy_commit.sh <commit> --pi"
         echo "  Pi PanelPro: quit it first with tools/hosts/pi_quit_panelpro.sh --for-deploy;"
         echo "               the Pi deploy starts it again (also if the deploy fails). A plain"
         echo "               quit or one closed by hand stays closed. HART_PI_RESTART=0 skips."
@@ -94,6 +95,14 @@ if [[ -n "$DEPLOY_CHANGES" ]]; then
     [[ "$DEPLOY_DIRTY_PATHS" -le 10 ]] || echo "    ..."
   } >&2
 fi
+# tools/hosts/redeploy_commit.sh runs an older commit's deploy from a worktree on the
+# branch redeploy/<sha12>; the branch, not the environment, marks the stamp as a redeploy.
+DEPLOY_SOURCE=deploy
+DEPLOY_REDEPLOY_FROM=none
+if [[ "$DEPLOY_BRANCH" == redeploy/* ]]; then
+  DEPLOY_SOURCE=redeploy
+  DEPLOY_REDEPLOY_FROM="${HART_REDEPLOY_FROM:-unknown}"
+fi
 DEPLOY_DATE="$(date +%Y-%m-%dT%H:%M:%S%z)"
 DEPLOY_FROM="$(hostname -s 2>/dev/null || hostname)"
 
@@ -111,6 +120,8 @@ tables_modified_by_deploy=$DEPLOY_TABLES_MODIFIED
 date=$DEPLOY_DATE
 deployed_from=$DEPLOY_FROM
 target=$2
+source=$DEPLOY_SOURCE
+redeploy_from=$DEPLOY_REDEPLOY_FROM
 STAMP
 }
 
@@ -460,8 +471,8 @@ fi
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   # Mac JMRI is for development: the STS and mimic links follow the page's host to the Mac's own
   # STS and mimic server (PORT as in tools/mqtt-mimic/install_mimic_launchagent.sh). The
-  # speed-match link names the Pi, the only host that serves that page.
-  HART_PI_HOST="${HART_PI_WEB_HOST:-RPi-JMRI.local}" HART_MIMIC_PORT="${MIMIC_PORT:-8765}" bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
+  # speed-match link names the Pi, the only host that serves that page (HART_PI_WEB_HOST, load_env.sh).
+  HART_PI_HOST="$HART_PI_WEB_HOST" HART_MIMIC_PORT="${MIMIC_PORT:-8765}" bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
   install_tables_local
   install_ops_local
   install_cats_panels_local

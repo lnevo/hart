@@ -70,6 +70,18 @@ class DeployStatus(unittest.TestCase):
         self.assertIn("tables_modified_by_deploy=yes", done.stdout)
         self.assertIn("WARNING: the tables.xml shipped is not the committed one", done.stdout)
 
+    def test_redeploy_is_named(self) -> None:
+        self.fake_ssh(self.stamp(head()).replace("branch=main", "branch=redeploy/0123456789ab")
+                      + "source=redeploy\nredeploy_from=" + head() + "\n")
+        done = self.run_status("--pi")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("source=redeploy", done.stdout)
+        self.assertIn("NOTE: a redeploy of an older commit", done.stdout)
+
+    def test_plain_deploy_has_no_redeploy_note(self) -> None:
+        self.fake_ssh(self.stamp(head()))
+        self.assertNotIn("redeploy", self.run_status("--pi").stdout)
+
     def test_help_lists_all(self) -> None:
         done = self.run_status("--help")
         self.assertIn("--all", done.stdout)

@@ -63,6 +63,8 @@ for t in "${TARGETS[@]}"; do
   printf '%s\n' "$out" | grep -q '^dirty=yes' && echo "  WARNING: shipped from a checkout with uncommitted changes."
   printf '%s\n' "$out" | grep -q '^tables_modified_by_deploy=yes' &&
     echo "  WARNING: the tables.xml shipped is not the committed one (uncommitted, or rewritten by the deploy gates)."
+  printf '%s\n' "$out" | grep -q '^branch=redeploy/' &&
+    echo "  NOTE: a redeploy of an older commit (tools/hosts/redeploy_commit.sh); deploy from main to go forward."
   compare "$(printf '%s\n' "$out" | sed -n 's/^commit=//p' | head -1)"
 done
 exit "$rc"
