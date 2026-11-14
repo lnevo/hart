@@ -102,8 +102,13 @@
 
                         <h4><a id="mimic-link" href="/web/mimic/" target="mimic">LCOS Mimic</a></h4>
                         <p>Fake LCOS occupancy and turnout feedback for testing, with live signal heads.</p>
+
+                        <h4><a id="speedmatch-link" href="/web/speedmatch/" target="speedmatch">Speed-match live</a></h4>
+                        <p>The speed-matching run as it happens, served by the Pi.</p>
                         <script>
-                            // STS (port 8980, plain HTTP) and the mimic (JMRI on 12080) run on the Pi.
+                            // STS (port 8980, plain HTTP), the mimic and the speed-match live view (JMRI
+                            // on 12080) run on the Pi. The speed-match page exists only on the Pi, so off
+                            // the Pi (the Mac or Windows) it always names the Pi.
                             // Empty host = follow this page's own host (the Pi, or the Mac's development
                             // copies). Windows fills in the Pi's name (RPi-JMRI.local). The Mac fills in
                             // HART_MIMIC_PORT, the port of its own mimic server.
@@ -116,6 +121,10 @@
                                     document.getElementById("mimic-link").href = "http://" + host + ":" + HART_MIMIC_PORT + "/";
                                 } else if (HART_APPS_HOST) {
                                     document.getElementById("mimic-link").href = "http://" + host + ":12080/web/mimic/";
+                                }
+                                if (HART_APPS_HOST || HART_MIMIC_PORT) {
+                                    document.getElementById("speedmatch-link").href =
+                                        "http://" + (HART_APPS_HOST || "RPi-JMRI.local") + ":12080/web/speedmatch/";
                                 }
                             })();
                         </script>

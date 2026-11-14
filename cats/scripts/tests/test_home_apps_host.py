@@ -1,4 +1,4 @@
-"""The JMRI home page's STS and mimic links: the Pi and the Mac follow the page host, Windows names the Pi."""
+"""The JMRI home page's STS, mimic and speed-match links: the Pi and the Mac follow the page host (the speed-match page is Pi-only), Windows names the Pi."""
 
 import json
 import os
@@ -27,7 +27,8 @@ def _link_script(html):
 
 def _links(html, page_host):
     """Run the page's link script under Node with a fake DOM; return the two hrefs."""
-    links = {"sts-link": None, "mimic-link": "/web/mimic/"}  # the page gives STS no static address
+    # The page gives STS no static address.
+    links = {"sts-link": None, "mimic-link": "/web/mimic/", "speedmatch-link": "/web/speedmatch/"}
     js = (
         "const links = %s;\n"
         "const document = { getElementById: (id) => ({ set href(v) { links[id] = v; } }) };\n"
@@ -69,20 +70,23 @@ class Behaviour(unittest.TestCase):
     def test_on_the_pi_links_follow_the_page_host(self):
         self.assertEqual(
             _links(HOME, "10.0.0.150"),
-            {"sts-link": "http://10.0.0.150:8980/sts/", "mimic-link": "/web/mimic/"},
+            {"sts-link": "http://10.0.0.150:8980/sts/", "mimic-link": "/web/mimic/",
+             "speedmatch-link": "/web/speedmatch/"},
         )
 
     def test_off_the_pi_links_name_the_pi(self):
         self.assertEqual(
             _links(_filled("RPi-JMRI.local"), "10.0.0.28"),
             {"sts-link": "http://RPi-JMRI.local:8980/sts/",
-             "mimic-link": "http://RPi-JMRI.local:12080/web/mimic/"},
+             "mimic-link": "http://RPi-JMRI.local:12080/web/mimic/",
+             "speedmatch-link": "http://RPi-JMRI.local:12080/web/speedmatch/"},
         )
 
     def test_windows_host_is_a_working_value(self):
         host = re.search(r"\$PiHost = '([^']+)'", WIN).group(1)
         links = _links(_filled(host), "10.0.0.28")
         self.assertEqual(links["sts-link"], "http://%s:8980/sts/" % host)
+        self.assertEqual(links["speedmatch-link"], "http://%s:12080/web/speedmatch/" % host)
 
 
 class Install(unittest.TestCase):
@@ -125,7 +129,8 @@ class Install(unittest.TestCase):
         for host in ("localhost", "10.0.0.53"):
             self.assertEqual(
                 _links(installed, host),
-                {"sts-link": "http://%s:8980/sts/" % host, "mimic-link": "http://%s:8765/" % host},
+                {"sts-link": "http://%s:8980/sts/" % host, "mimic-link": "http://%s:8765/" % host,
+                 "speedmatch-link": "http://RPi-JMRI.local:12080/web/speedmatch/"},
             )
 
 
