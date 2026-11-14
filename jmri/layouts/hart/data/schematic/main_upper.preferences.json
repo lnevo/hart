@@ -17,9 +17,9 @@
  "num_px": 6.5,
  "helix_style": "coil",
  "band_order": [
-  "Main",
+  "Staging",
   "Upper",
-  "Staging"
+  "Main"
  ],
  "rotate_bands": [],
  "equal_width": true,
