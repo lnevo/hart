@@ -119,7 +119,7 @@ Lookups (all take the root element unless noted):
 
 ### `hartlib.hosts`
 
-The broker and JMRI JSON settings, moved from `tools/ops/lib/hart_hosts.py`:
+The broker and JMRI JSON settings:
 `mqtt_broker()`, `mqtt_port()`, `jmri_json_url()`, `read_env_file()`, `env_file_path()`,
 `PI_HOST`. The lookup order is in the module docstring.
 

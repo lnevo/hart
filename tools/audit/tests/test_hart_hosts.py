@@ -1,4 +1,4 @@
-"""The Mac MQTT scripts take the broker from hartlib.hosts (or the hart_hosts shim), not a literal.
+"""The Mac MQTT scripts take the broker from hartlib.hosts, not a literal.
 
 The lookup order itself is tested in tools/hartlib/tests/test_hosts.py.
 """
@@ -22,7 +22,7 @@ class ScriptsUseHelperTest(unittest.TestCase):
     def test_no_literal_pi_address_left(self):
         for rel in SCRIPTS:
             text = (ROOT / rel).read_text(encoding="utf-8")
-            self.assertTrue("hart_hosts" in text or "hartlib" in text, rel)
+            self.assertTrue("hartlib" in text, rel)
             self.assertIsNone(re.search(r"10\.0\.0\.150", text), rel)
             self.assertNotIn('environ.get("MQTT_HOST"', text, rel)
 

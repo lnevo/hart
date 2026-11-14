@@ -110,17 +110,5 @@ class StandaloneTest(unittest.TestCase):
         self.assertEqual(done.stdout.strip(), "10.0.0.150")
 
 
-class ShimTest(unittest.TestCase):
-    def test_old_module_reexports_hosts(self):
-        sys.path.insert(0, str(ROOT / "tools/ops/lib"))
-        try:
-            import hart_hosts
-        finally:
-            sys.path.remove(str(ROOT / "tools/ops/lib"))
-        self.assertIs(hart_hosts.mqtt_broker, hosts.mqtt_broker)
-        self.assertEqual(hart_hosts.PI_HOST, hosts.PI_HOST)
-        self.assertEqual(hart_hosts.env_file_path, hosts.env_file_path)
-
-
 if __name__ == "__main__":
     unittest.main()
