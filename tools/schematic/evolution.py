@@ -38,8 +38,12 @@ def git(*args):
 
 def versions():
     """(hash, time, subject, file) for each commit that changed a sample drawing, oldest first."""
-    log = git("log", "--reverse", "--format=@%h|%ad|%s", "--date=format:%Y-%m-%d %H:%M", "--name-only",
-              SPIKE_REF, "--", f"{SPIKE}/*_sample.svg")
+    try:
+        log = git("log", "--reverse", "--format=@%h|%ad|%s", "--date=format:%Y-%m-%d %H:%M", "--name-only",
+                  SPIKE_REF, "--", f"{SPIKE}/*_sample.svg")
+    except subprocess.CalledProcessError:
+        sys.exit(f"{SPIKE_REF} not found: run git fetch origin agent/claude/schematic-spike "
+                 "(the spike's frames number the folder, so they must come first)")
     out, head, files = [], None, []
     for line in log.splitlines() + ["@"]:
         if line.startswith("@"):
@@ -91,6 +95,8 @@ def frame(png, caption):
 def main(folder):
     folder.mkdir(parents=True, exist_ok=True)
     todo = versions()
+    if not todo:
+        sys.exit("no committed drawings found")
     frames = []
     for i, (h, when, subject, name) in enumerate(todo, 1):
         svg, png = folder / f"{i:03d}_{h}.svg", folder / f"{i:03d}_{h}.png"
