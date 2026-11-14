@@ -227,3 +227,8 @@ PAIRS: list[tuple[str, str, list[str], list[tuple[str, str]]]] = [
         [("Switch 3", "thrown")],
     ),
 ]
+
+
+if __name__ == "__main__":
+    raise SystemExit("apply_sml_cats_pairs.py is retired: it holds PAIRS only (imported by "
+                     "validate_le_signalling.py) and writes nothing. SML is native (Discover).")

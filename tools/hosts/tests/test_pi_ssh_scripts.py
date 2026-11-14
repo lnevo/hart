@@ -46,15 +46,17 @@ def run(name: str, env: dict[str, str], file_text: str | None):
 
 class PiHost(unittest.TestCase):
     def check(self, name: str) -> None:
-        rc, err = run(name, {}, None)
-        if "no such file" in err or "missing" in err or "no " + str(ROOT) in err:
-            self.skipTest(f"{name}: input file absent in this checkout")
-        self.assertEqual(rc, 1, err)
-        self.assertIn("running on pi (JMRI up?)", err, "default host is pi")
-        rc, err = run(name, {"HART_PI_SSH": "envpi.example.invalid"}, "HART_PI_SSH=filepi.example.invalid\n")
-        self.assertIn("running on envpi.example.invalid (", err, "environment beats hart.env")
-        rc, err = run(name, {}, "HART_PI_SSH=filepi.example.invalid\n")
-        self.assertIn("running on filepi.example.invalid (", err, "hart.env is read")
+        for env, file_text, want in (
+            ({}, None, "running on pi (JMRI up?)"),
+            ({"HART_PI_SSH": "envpi.example.invalid"}, "HART_PI_SSH=filepi.example.invalid\n",
+             "running on envpi.example.invalid ("),
+            ({}, "HART_PI_SSH=filepi.example.invalid\n", "running on filepi.example.invalid ("),
+        ):
+            rc, err = run(name, env, file_text)
+            if name == "cs105_roster_sync" and "git submodule update --init" in err:
+                self.skipTest("external/jmri-cs105-roster-sync is not checked out here")
+            self.assertEqual(rc, 1, err)  # reached the stub ssh
+            self.assertIn(want, err)
 
     def test_drop_job(self) -> None:
         self.check("drop_job")

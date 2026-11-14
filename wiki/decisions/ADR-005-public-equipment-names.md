@@ -89,7 +89,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | `jmri/scripts/check_hart_phase02.py` | Requires `OS Switch 7b` |
 | `build_ctc_full_15col.py` | SIDI mast lists (unsafe to re-run until updated) |
 | `wire_digicon.py` | CATS `BLOCK` / `SECSIGNAL` SoR |
-| `apply_sml_cats_pairs.py` | SML pair + block dests |
+| `apply_sml_cats_pairs.py` | Retired, PAIRS only (oracle for `validate_le_signalling.py`); writes nothing |
 | `validate_cats_panel.py` | Required `OS Switch 13` / `OS Switch 9` (was Track 13 / Track 9) |
 | `build_hart_signal_heads.py` | Mast userNames |
 | `sim_hart_train_mqtt.py` | Route step block names |

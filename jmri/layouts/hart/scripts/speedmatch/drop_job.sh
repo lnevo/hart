@@ -11,8 +11,15 @@
 # can leave the file behind). A kill flag (/tmp/speedrun.kill) is never removed here: the
 # operator removes it (ssh pi rm /tmp/speedrun.kill) once the runner has ended.
 set -euo pipefail
-source "$(cd "$(dirname "$0")/../../../../../tools/env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
-PI_HOST="$HART_PI_SSH"
+# Hosts: environment, hart.env, default. Sourced first, so hart.env cannot move ROOT. If the repo or
+# load_env.sh is not found, warn and use "pi": --kill and usage must still work.
+ROOT="$(cd "$(dirname "$0")" && git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -n "$ROOT" && -f "$ROOT/tools/env/load_env.sh" ]]; then
+  source "$ROOT/tools/env/load_env.sh"
+else
+  echo "drop_job.sh: tools/env/load_env.sh not found; using host ${HART_PI_SSH:-pi}" >&2
+fi
+PI_HOST="${HART_PI_SSH:-pi}"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 ssh_pi() { ssh "${SSH_OPTS[@]}" "$PI_HOST" "$@"; }
 usage() { sed -n '2,13p' "$0"; }

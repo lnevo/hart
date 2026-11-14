@@ -83,9 +83,10 @@ class Guards(unittest.TestCase):
         """Same list, same order, as a plain ElementTree walk of tables.xml (what guard_for did
         before it moved onto hartlib), so the guard a job carries has not shifted."""
         import xml.etree.ElementTree as ET
+        names = list(ET.parse(str(TABLES)).getroot().iter("userName"))
         for route in analyze.ROUTES:
             on_route, want = set(analyze.route_order(route)), []
-            for el in ET.parse(str(TABLES)).getroot().iter("userName"):
+            for el in names:
                 n = (el.text or "").strip()
                 if n.startswith("BS ") and n not in on_route and n not in want:
                     want.append(n)
