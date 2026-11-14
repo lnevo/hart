@@ -128,7 +128,7 @@ def sections(svg_dir, staging):
         '<h3>Where the plan and the built layout differ</h3><ol>'
         '<li><b>No crossover near Switch 1.</b> The plan has a crossover (T41/T43) between Main West and Track S-R, about 27 in from Switch 1. It was not built, so both tracks are drawn plain: Main West runs from Switch 1 to Switch 23.</li>'
         '<li><b>The Switch 7 crossover is not in the plan.</b> It joins the two long parallel runs out of Switch 5.</li>'
-        '<li><b>Switch 13 and the engine terminal are not in the plan</b> (Switches 9 and 11, Barn, Scale, EH-1 to EH-3). They sit on the run from Switch 5 to the yard ladder (Switch 5, Scale, Switch 7, Barn, Switch 13). The terminal is drawn as a placeholder from the built topology and a photo of the benchwork: the track radii and the length of the stubs are not measured.</li>'
+        '<li><b>Switch 13 and the engine terminal are not in the plan</b> (Switches 9 and 11, Barn, Scale, EH-1 to EH-3). They sit on the run from Switch 5 to the yard ladder (Switch 5, Scale, Switch 7, Barn, Switch 13). The terminal is drawn as a placeholder from the built topology and a photo of the benchwork: the track radii and the length of the stubs are not measured. Switch 9&rsquo;s normal route goes to EH-2.</li>'
         '<li><b>The two long dead ends past Switches 37 and 39 are the helix lines.</b> On the layout they are the McKeesport and McKees Rocks stubs.</li></ol>')
     t["loop"] = ('<h3>Test loop length</h3><div class="tw"><table><thead><tr><th>Source</th><th class="n">Test loop</th></tr></thead><tbody>'
                  '<tr><td>Plan 5.3b, along the test route</td><td class="n">35,108 mm (1382 in)</td></tr>'

@@ -90,7 +90,7 @@ def build():
     end = 90.0
     hd = a_toe - step / 2 + frog
     p = (div13[0] + LEAD_STRAIGHT * h[0], div13[1] + LEAD_STRAIGHT * h[1])
-    c, r = arc_to_line(p, hd, Y2, end)
+    c, r = arc_to_line(p, hd, Y3, end)
     a11 = hd + (end - hd) * SW11_AT                  # Switch 11's points on the lead
     st11 = math.degrees(TO_LEN / r)
 
@@ -106,17 +106,18 @@ def build():
     trk.append(arc_pts(c, r, a11 - st11, end))                           # Switch 11 to Switch 9
     c1, r1 = arc_to_line(out11, hd1, Y1)
     trk.append(arc_pts(c1, r1, hd1, 90.0) + [(STUB_END, Y1)])            # EH-1, the outer track
-    # Switch 9 is left hand (owner, 2026-11-13): through leg EH-2, diverging leg north to EH-3
+    # first build: Switch 9 right hand, through leg EH-3, diverging leg south to EH-2
     toe9 = at(end)
-    thru9, div9 = (toe9[0] + TO_LEN, Y2), (toe9[0] + TO_LEN, Y2 - TO_OFF)
+    thru9, div9 = (toe9[0] + TO_LEN, Y3), (toe9[0] + TO_LEN, Y3 + TO_OFF)
     to.append((toe9, thru9, div9))
     lb.append((toe9[0] - 6, Y3 - 5, "Sw 9"))
-    trk.append([thru9, (STUB_END, Y2)])                                  # EH-2
-    trk.append(ease(div9, (div9[0] + 30, Y3)) + [(STUB_END, Y3)])        # EH-3
+    trk.append([thru9, (STUB_END, Y3)])                                  # EH-3
+    trk.append(ease(div9, (div9[0] + 30, Y2)) + [(STUB_END, Y2)])        # EH-2
     for y, name in ((Y3, "EH-3"), (Y2, "EH-2"), (Y1, "EH-1")):
         to.append(((STUB_END, y - 1.6), (STUB_END, y + 1.6), None))      # end bumper
         rl.append((STUB_END + 3, y + 1.8, name))
     rl.append((toe9[0] + 34, Y1 + 9, "Engine terminal: placeholder, not in plan 5.3b"))
+    rl.append((toe9[0] + 34, Y1 + 15, "Switch 9's normal route goes to EH-2"))
     info = dict(lead_radius=r, eh1_radius=r1, sw13_toe=toe13, sw11_toe=toe11, sw9_toe=toe9,
                 eh=dict(y1=Y1, y2=Y2, y3=Y3), eh1_tangent_x=c1[0])
     return trk, to, lb, rl, info
