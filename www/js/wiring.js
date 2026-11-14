@@ -179,7 +179,7 @@
 
       // —— Search haystacks ——
       function nodeHay(n) {
-        var parts = [n.id, n.legacy, "radio " + n.address, n.location, n.type]
+        var parts = [n.id, "radio " + n.address, n.location, n.type]
           .concat(n.turnouts, n.signals, n.blockNames);
         (n.outputs || []).concat(n.inputs || []).forEach(function (b) {
           b.pins.forEach(function (p) {

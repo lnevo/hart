@@ -56,6 +56,10 @@ Each 2-head mast now occupies 6 consecutive pins on one DNOU8 so that board can 
 
 Two-head masts are two 3-pin LCOS objects (T + B) on the same radio. New **5V DNOU8 OU4** on **C1, C2, C3, C13**. C1 also reuses OU2-8 (was relay) so 24 pins cover 24 lamps. C11 36RB Bottom uses leftover OU3 (no new board). Dwarfs stay one 3-pin disc. Packed MQTT: bottoms use the historical adjacent UID (433, 439, 1333, …). Full disc × OU × G/Y/R table: [`README.md`](README.md#digicon-heads-and-ou-boards). `tables.xml` not patched.
 
+## 2026-11-14 — Old node labels retired
+
+Every enclosure and board is now labelled with its radio-address ID (owner). The wiring schematic deck no longer prints "(was C3)" in its titles, and the website's wiring viewer and `wiring-inventory.json` drop the old labels. The inventory keeps its **Legacy Node ID** column as history only.
+
 ## 2026-08-29 — Node ID = radio Address
 
 Enclosure labels now match the Nodes **Address**: `C2` is radio 2 (East End signals), `C12` is radio 12 (East End turnouts 107–112). Old sequential C1–C13 / D1 IDs are in **Legacy Node ID** (v84 snapshot unchanged). Helix DCC is **D5**. Packed MQTT numbers are unchanged (Plane/Brick heads stay `4xx` on C3). Princess **C1**; overflow **C11**; Barn **C13**; Plane/Brick **C3**.
@@ -78,6 +82,6 @@ C5-B3-1 (`Block 13-5` / M2S1304) is **EH-3** (track T11). C5-B4-1 (`Block 13-7` 
 - **signals_asbuilt_abs_v2.xlsx** rebuilt from the same CSVs (Digicon names, Scale/Barn, new Princess dwarfs). **Princess** / **all_logic** now include 114LA, 115LA, 114R, 115R (K-1/K-2 westbound + A48 balloon). **signals_split_v8.xlsx** kept as the frozen RGB plan (README sheet added).
 
 ## Still true from v84b
-- Physical board silk / tape may still show sequential C1–C13; inventory **Legacy Node ID** is that label. MQTT occupancy (`Block n-n`, `M2T12xx`) already used Address.
+- MQTT occupancy (`Block n-n`, `M2T12xx`) already used Address.
 - Confirm physical board IDs for C13 yard motors/FB (ASSUMED in v84 as C5).
 - Upper-deck RGB (`S4-*`…`S6-*`) is still the planned matrix, not Digicon.

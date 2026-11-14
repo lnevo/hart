@@ -3,7 +3,7 @@
   "file": "LCOS_Layout_Inventory_v85.xlsx",
   "version": "v85",
   "modified": "2026-11-08",
-  "built": "2026-11-07"
+  "built": "2026-11-14"
  },
  "nodes": [
   {
@@ -559,7 +559,6 @@
   },
   {
    "id": "C2",
-   "legacy": "C3",
    "address": "2",
    "location": "North - Lower (East End west 24)",
    "type": "Client",
@@ -1013,7 +1012,6 @@
   },
   {
    "id": "C3",
-   "legacy": "C4",
    "address": "3",
    "location": "West - Lower (Switch 15–21 motors)",
    "type": "Client",
@@ -1368,7 +1366,6 @@
   },
   {
    "id": "C4",
-   "legacy": "C6",
    "address": "4",
    "location": "West - Lower (Brick / Plane)",
    "type": "Client",
@@ -1903,7 +1900,6 @@
   },
   {
    "id": "C11",
-   "legacy": "C7",
    "address": "11",
    "location": "Helix (Princess east 40 + balloon)",
    "type": "Client",
@@ -2194,7 +2190,6 @@
   },
   {
    "id": "C12",
-   "legacy": "C2",
    "address": "12",
    "location": "North - Lower (East End 34 + Switch 25–33)",
    "type": "Client",
@@ -2760,7 +2755,6 @@
   },
   {
    "id": "C13",
-   "legacy": "C5",
    "address": "13",
    "location": "West - Lower (Barn)",
    "type": "Client",
@@ -3245,7 +3239,6 @@
   },
   {
    "id": "C14",
-   "legacy": "C12",
    "address": "14",
    "location": "West - Upper",
    "type": "Client",
@@ -3695,7 +3688,6 @@
   },
   {
    "id": "C21",
-   "legacy": "C8",
    "address": "21",
    "location": "Helix - Upper",
    "type": "Client",
@@ -4144,7 +4136,6 @@
   },
   {
    "id": "C22",
-   "legacy": "C9",
    "address": "22",
    "location": "North - Upper",
    "type": "Client",
@@ -4590,7 +4581,6 @@
   },
   {
    "id": "C23",
-   "legacy": "C11",
    "address": "23",
    "location": "West - Upper",
    "type": "Client",
@@ -4976,7 +4966,6 @@
   },
   {
    "id": "C24",
-   "legacy": "C13",
    "address": "24",
    "location": "Peninsula - Upper",
    "type": "Client",
@@ -5420,7 +5409,6 @@
   },
   {
    "id": "C32",
-   "legacy": "C10",
    "address": "32",
    "location": "North - Upper",
    "type": "Client",
@@ -5583,7 +5571,6 @@
   },
   {
    "id": "D5",
-   "legacy": "D1",
    "address": "5",
    "location": "Helix DCC (radio 5; no Digicon DNOU8)",
    "type": "DCC",
@@ -5878,7 +5865,7 @@
     "Y": "C4-OU2-5",
     "G": "C4-OU2-6"
    },
-   "appearance": "two-searchlight"
+   "appearance": "one-low"
   },
   {
    "head": "6LB T",
@@ -5893,7 +5880,7 @@
     "Y": "C4-OU2-2",
     "G": "C4-OU2-3"
    },
-   "appearance": "two-searchlight"
+   "appearance": "one-low"
   },
   {
    "head": "2035",
@@ -6510,15 +6497,12 @@
   {
    "mast": "6LB",
    "node": "C4",
-   "heads": "2",
-   "appearance": "two-searchlight",
+   "heads": "1",
+   "appearance": "one-low",
    "ports": [
     "C4-OU2-1",
     "C4-OU2-2",
-    "C4-OU2-3",
-    "C4-OU2-4",
-    "C4-OU2-5",
-    "C4-OU2-6"
+    "C4-OU2-3"
    ]
   },
   {
