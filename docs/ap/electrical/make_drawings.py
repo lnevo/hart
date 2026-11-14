@@ -327,10 +327,34 @@ def d5() -> str:
     return svg(720, 364, "\n".join(b), "D5 · Reversing section on an auto-reverser")
 
 
+# ---------------------------------------------------------------- D6
+def d6() -> str:
+    """Computer-to-railroad interface: the owner's LCOS-to-MQTT bridge (external/lcos-bridge)."""
+    b = []
+    b.append(box(20, 60, 170, 56, "JMRI (Raspberry Pi)", "turnouts, sensors, masts", "MQTT connection", size=9.5))
+    b.append(box(250, 60, 150, 56, "MQTT broker", "Mosquitto on the Pi", "topics track/...", size=9.5))
+    b.append(box(460, 50, 200, 76, "Bridge program (PC)", "serial_to_mqtt.py", "serial lines <-> MQTT topics", "written for HART", size=9.5))
+    b.append(box(460, 190, 200, 76, "Bridge node", "Arduino Nano + nRF24 radio", "LCOS bridge firmware", "written for HART", size=9.5))
+    b.append(box(250, 190, 150, 76, "LCOS field nodes", "Nano + radio + input,", "output, detector boards", size=9.5))
+    b.append(box(20, 196, 170, 64, "Railroad", "switch machines, signals,", "block detectors", size=9.5))
+    for d in ("M190,88 L250,88", "M400,88 L460,88", "M560,126 L560,190", "M460,228 L400,228", "M250,228 L190,228"):
+        b.append(wire(d, BLUE, 1.8))
+    b.append(label(200, 82, "TCP/IP", 9))
+    b.append(label(408, 82, "TCP/IP", 9))
+    b.append(label(568, 160, "USB serial, 250000 baud", 9))
+    b.append(label(408, 222, "2.4 GHz", 9))
+    b.append(label(196, 222, "wired", 9))
+    b.append(label(20, 300, "Turnout commands from JMRI go out as MQTT messages, which the bridge program writes to the bridge node as serial lines; the node sends", 9.5, INK))
+    b.append(label(20, 314, "them by radio to the field node beside the switch. Field events (switch position, block occupied or clear, button presses) come back", 9.5, INK))
+    b.append(label(20, 328, "the same way and appear in JMRI as sensors and turnout feedback. Both the firmware and the bridge program were written for this", 9.5, INK))
+    b.append(label(20, 342, "railroad and are published as open source; LCOS (the radio protocol), JMRI and Mosquitto are existing software.", 9.5, INK))
+    return svg(680, 358, "\n".join(b), "D6 · Computer-to-railroad interface: LCOS radio network to JMRI over MQTT")
+
+
 def main() -> None:
     OUT.mkdir(exist_ok=True)
     for name, fn in [("D1-staging-reversing-sections", d1), ("D2-propulsion-sections", d2),
-                     ("D3-turnout-frog-indication", d3), ("D4-crossover", d4), ("D5-reversing-section", d5)]:
+                     ("D3-turnout-frog-indication", d3), ("D4-crossover", d4), ("D5-reversing-section", d5), ("D6-computer-interface", d6)]:
         (OUT / f"{name}.svg").write_text(fn())
         print(OUT / f"{name}.svg")
 

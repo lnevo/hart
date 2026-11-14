@@ -29,11 +29,11 @@ Member details are on the form.</p>
 <h2>Contents</h2>
 <ol>
   <li>Requirement 1: the layout's control system (this attachment, section A)</li>
-  <li>Requirements 2 and 3: the items chosen (three trackwork, four control), with construction, wiring and commercial components (section B)</li>
+  <li>Requirements 2 and 3: the items chosen (three trackwork, seven control), with construction, wiring and commercial components (section B)</li>
   <li>Requirement 6a: track plan (attached after this description)</li>
   <li>Requirements 4 and 5: schematic drawings (attached after the track plan; index in section C)</li>
 </ol>
-<p>Drawings D1 to D5, and the CTC diagram C8 at the end of this description, were drawn for this application; C1 to C5 are pages of the railroad's wiring decks. The layout is built in stages. Everything below is on the finished staging level and the helix, which run trains today; the main and upper levels are under construction. More detail and photos: hartrailroad.com/behind/ (wiring, LCOS nodes, signals, CTC panels).</p>
+<p>Drawings D1 to D6, and the CTC diagram C8 at the end of this description, were drawn for this application; C1 to C5 are pages of the railroad's wiring decks. The layout is built in stages. Everything below is on the finished staging level and the helix, which run trains today; the main and upper levels are under construction. More detail and photos: hartrailroad.com/behind/ (wiring, LCOS nodes, signals, CTC panels).</p>
 
 <h2>A. Requirement 1: the control system</h2>
 <table>
@@ -80,9 +80,19 @@ Commercial components: DNCT2B / DNCTA detectors, LCOS nodes. Drawings D2, C2, C5
 <p>A centralized traffic control system designed and built for this railroad, not a commercial unit. A dispatcher's desk (CATS, laid out as a Union Switch &amp; Signal Digicon machine, with a second USS-style board as the alternate) lines routes and clears signals at each control point. Field state comes back from the layout: switch positions from the machine contacts, block occupancy from the detectors. The desk refuses a route through an occupied block or a switch locked by another route, and signal logic sets the aspects. The panels, interlocking tables and signal logic were drawn up and configured for HART; JMRI and CATS supply the software platform.
 Components: JMRI and CATS (free software), LCOS nodes, MQTT link. Drawing C8.</p>
 <h3>Requirement 3k · Advanced electronic and computer control (fourth item)</h3>
-<p>JMRI on a Raspberry Pi runs the railroad's turnouts, sensors, signal logic and CTC desks, and talks to the LCOS radio nodes through an MQTT broker; the desks also run on a Mac and a Windows PC. Turnouts can be thrown from the fascia buttons, a DCC throttle or the computer, and every route reports back. Listed as a fourth item in case 3r is not accepted as non-commercial.
+<p>JMRI on a Raspberry Pi runs the railroad's turnouts, sensors, signal logic and CTC desks, and talks to the LCOS radio nodes through an MQTT broker; the desks also run on a Mac and a Windows PC. Turnouts can be thrown from the fascia buttons, a DCC throttle or the computer, and every route reports back. Listed in addition to 3r in case the CTC desks are not accepted as non-commercial.
 Components: JMRI (free software), Raspberry Pi, LCOS nodes, MQTT broker. Drawing C8.</p>
-<p>Also in place: computerized block detection (3t), computerized operation (3u) and a computer-to-railroad interface (3v, the bridge that carries LCOS radio traffic to MQTT).</p>
+<h3>Requirement 3t · Computer-generated block detection information</h3>
+<p>The 43 detected sections (3b) are read by the LCOS nodes and turned into JMRI sensors by the computer, which then uses them beyond the panel lamps: the signal logic sets aspects from them, the CTC desks refuse routes through occupied blocks, the Dispatcher System tracks each train from block to block, and timed runs between sensors were used to measure block lengths and locomotive speeds. The nodes were assembled from boards for this railroad, and the bridge that carries their reports to the computer was written for it (3v).
+Components: DNCT2B detectors, LCOS nodes, JMRI. Drawings D2, D6, C8.</p>
+
+<h3>Requirement 3u · Stored control program for operation of the railroad</h3>
+<p>Programs written for this railroad run inside JMRI from start-up: a signal coordinator that sets every mast from the routes and occupancy, a panel status program that keeps the desks in step with the field, and LogixNG logic in the tables file. The JMRI Dispatcher System runs trains automatically between twelve stations from stored train files (374 of them), and scripted timed runs have operated locomotives unattended to profile their speeds.
+Components: JMRI (free software) with HART's own Jython scripts, Dispatcher train files and LogixNG. Drawing C8.</p>
+
+<h3>Requirement 3v · Development and demonstration of a computer-to-railroad interface</h3>
+<p>The link between the LCOS radio network and the computer was developed for this railroad: firmware for an Arduino Nano with an nRF24 radio, which joins the LCOS network as a node, and a program on the PC that passes its serial lines to and from the MQTT broker that JMRI uses. Turnout commands go out and switch positions, block occupancy and button presses come back through it. Both are published as open source (github.com/lnevo/LCOS_ESP32_MQTT_Client).
+Components: Arduino Nano, nRF24L01 radio, PC, Mosquitto MQTT broker. Drawing D6.</p>
 
 <h2 class="page">C. Schematic index (Requirements 4 and 5)</h2>
 <table>
@@ -92,6 +102,7 @@ Components: JMRI (free software), Raspberry Pi, LCOS nodes, MQTT broker. Drawing
   <tr><td>C3</td><td>Turnout wiring (p. 6)</td><td>Switch machine, its auxiliary contacts to the input board, the 12 V output, Touch Toggle and Universal Translator.</td></tr>
   <tr><td>C4</td><td>Control node configuration (p. 5) and turnout summary (schematic deck p. 2)</td><td>One node's inputs, outputs and block sensors; each switch's button, feedback and output pins.</td></tr>
   <tr><td>C5</td><td>Node pages for the staging nodes (schematic deck)</td><td>Every pin of each staging node: switch outputs, feedback, buttons and detection blocks.</td></tr>
+  <tr><td>D6</td><td>Computer-to-railroad interface</td><td>JMRI, MQTT broker, the bridge program and bridge node, the LCOS field nodes and the railroad, with the link between each.</td></tr>
   <tr><td>C8</td><td>CTC system diagram (next page)</td><td>How the desk, JMRI, MQTT and the LCOS nodes connect to switches, signals and detectors.</td></tr>
   <tr><td>D1</td><td>Staging level: reversing sections and passing siding</td><td>The system schematic's staging level with Main West and K-1 / K-2 marked, their gaps in both rails, and the passing siding.</td></tr>
   <tr><td>D2</td><td>Propulsion: typical detected section, and every section</td><td>District bus, breaker, feeder pair through the current transformer, gaps in both rails at both ends; table of all 43 sections and their detector channels. With C1 and C2 this is the Requirement 4 propulsion schematic: every section is wired like the one drawn in detail.</td></tr>
