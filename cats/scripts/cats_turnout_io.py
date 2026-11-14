@@ -42,31 +42,20 @@ def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
 
 
 def load_turnouts() -> dict[str, tuple[str, str]]:
-    """layout_ident → (DECADDR, USER_NAME) for M2T, one per switch in switches.csv."""
-    by_user: dict[str, str] = {}
-    root = tables.read(HART_PANEL)
-    for t in tables.turnouts(root):
-        sn = (t.findtext("systemName") or t.get("systemName") or "").strip()
-        un = (t.findtext("userName") or "").strip()
-        if sn.startswith("M2T") and un:
-            by_user[un] = sn[3:]
-            by_user[sn] = sn[3:]
+    """layout_ident → (DECADDR, USER_NAME) for M2T, one per switch in switches.csv.
+
+    The address is the switch's M2T hardware (public_name_map.csv); the user name is
+    its public name, Switch N. A switch whose hardware is not an M2T turnout in
+    tables.xml is skipped with a message.
+    """
+    m2t = {tables.system_name(t) for t in tables.turnouts(tables.read(HART_PANEL))
+           if tables.system_name(t).startswith("M2T")}
     out: dict[str, tuple[str, str]] = {}
     for sw in facts.load_switches().values():
-        ident = sw.le_ident
-        key = sw.hardware or sw.turnout
-        addr = by_user.get(key)
-        if not addr and key.startswith("M2T"):
-            addr = key[3:]
-        if not addr:
-            print(f"TURNOUT SKIP: {ident} unresolved {key}", file=sys.stderr)
+        if sw.hardware not in m2t:
+            print(f"TURNOUT SKIP: {sw.le_ident} unresolved {sw.hardware or sw.turnout}", file=sys.stderr)
             continue
-        uname = key
-        for u, a in by_user.items():
-            if a == addr and u.startswith("Switch"):
-                uname = u
-                break
-        out[ident] = (addr, uname)
+        out[sw.le_ident] = (sw.hardware[3:], sw.turnout)
     return out
 
 

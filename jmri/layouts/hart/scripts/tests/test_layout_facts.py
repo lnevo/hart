@@ -82,7 +82,7 @@ class LoaderTest(unittest.TestCase):
         sys.path.insert(0, str(facts.paths.REPO_ROOT / "tools/anyrail"))
         import engine_terminal
 
-        self.assertEqual(engine_terminal.SW9_HAND, "L")
+        self.assertEqual(engine_terminal.switch_hand(9), "L")
         self.assertIn("Switch 9 is left hand: its normal route goes to EH-2", engine_terminal.svg()[0])
 
     def test_a_mast_or_a_cell_listed_twice_names_both_rows(self) -> None:

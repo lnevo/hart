@@ -48,8 +48,6 @@ TO_LEN, TO_OFF = 23.4, 2.6  # turnout symbol, as the plan turnouts are drawn
 LEAD_STRAIGHT = 0.0         # straight out of Switch 13's diverging leg before the lead curves
 SW11_AT = 0.30              # Switch 11's points, as a share of the lead curve from Switch 13
 STUB_END = 180.0            # x of the three end bumpers: lengths not measured
-SW9_HAND = switch_hand(9)   # switches.csv. "L" (the owner's Switch 9): tilted so its diverging leg runs parallel to the
-                            # EH tracks (through leg to EH-2); "R" (the first build): through leg EH-3, diverging leg EH-2
 
 
 def on_run(deg):
@@ -93,6 +91,9 @@ def ease(p0, p1, n=12):
 
 
 def build():
+    # Switch 9's hand from switches.csv. "L" (the owner's Switch 9): tilted so its diverging leg runs parallel
+    # to the EH tracks (through leg to EH-2); "R" (the first build): through leg EH-3, diverging leg EH-2.
+    sw9_hand = switch_hand(9)
     trk, to, lb, rl = [], [], [], []
     frog = math.degrees(math.atan2(TO_OFF, TO_LEN))
     step = math.degrees(TO_LEN / RUN_R)
@@ -108,7 +109,7 @@ def build():
     # the lead: one curve from Switch 13 that ends on the EH-2 line, at Switch 9's points
     # Left-hand Switch 9: its diverging leg must leave parallel to the EH tracks (east), so the lead arrives
     # one frog angle south of east and the through leg, straight on, carries that tilt before it eases to EH-2.
-    end = 90.0 + (frog if SW9_HAND == "L" else 0.0)
+    end = 90.0 + (frog if sw9_hand == "L" else 0.0)
     hd = a_toe - step / 2 + frog
     p = (div13[0] + LEAD_STRAIGHT * h[0], div13[1] + LEAD_STRAIGHT * h[1])
     c, r = arc_to_line(p, hd, Y3, end)
@@ -128,7 +129,7 @@ def build():
     c1, r1 = arc_to_line(out11, hd1, Y1)
     trk.append(arc_pts(c1, r1, hd1, 90.0) + [(STUB_END, Y1)])            # EH-1, the outer track
     toe9 = at(end)
-    if SW9_HAND == "L":
+    if sw9_hand == "L":
         # through leg straight on along the arrival heading, diverging leg east along EH-3
         thru9 = (toe9[0] + TO_LEN * math.cos(math.radians(frog)), toe9[1] + TO_LEN * math.sin(math.radians(frog)))
         div9 = (toe9[0] + TO_LEN, toe9[1])
@@ -146,7 +147,7 @@ def build():
         rl.append((STUB_END + 3, y + 1.8, name))
     rl.append((toe9[0] + 34, Y1 + 9, "Engine terminal: placeholder, not in plan 5.3b"))
     rl.append((toe9[0] + 34, Y1 + 15, "Switch 9 is left hand: its normal route goes to EH-2"
-               if SW9_HAND == "L" else "Switch 9's normal route goes to EH-2"))
+               if sw9_hand == "L" else "Switch 9's normal route goes to EH-2"))
     run = lambda P: sum(math.dist(P[k], P[k + 1]) for k in range(len(P) - 1)) / 2.54
     # trk order: Switch 13 to 11, Switch 11 to 9, EH-1, EH-3, EH-2
     lengths_in = {"13 to 11": run(trk[0]), "11 to 9": run(trk[1]), "EH-1": run(trk[2]), "EH-3": run(trk[3]), "EH-2": run(trk[4])}

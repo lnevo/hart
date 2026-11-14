@@ -21,35 +21,11 @@ import digicon_lib as le  # noqa: E402
 class LookupsMatchOldLoops(unittest.TestCase):
     """The old ElementTree loops, copied from before the move, against the hartlib versions."""
 
-    def test_turnouts_match_old_loop(self):
-        by_user: dict[str, str] = {}
-        for t in ET.parse(TABLES).getroot().iter("turnout"):
-            sn = (t.findtext("systemName") or t.get("systemName") or "").strip()
-            un = (t.findtext("userName") or "").strip()
-            if sn.startswith("M2T") and un:
-                by_user[un] = sn[3:]
-                by_user[sn] = sn[3:]
-        want: dict[str, tuple[str, str]] = {}
-        for sw in tio.facts.load_switches().values():
-            ident, key = sw.le_ident, sw.hardware
-            addr = by_user.get(key)
-            if not addr and key.startswith("M2T"):
-                addr = key[3:]
-            if not addr:
-                continue
-            uname = key
-            for u, a in by_user.items():
-                if a == addr and u.startswith("Switch"):
-                    uname = u
-                    break
-            want[ident] = (addr, uname)
-        self.assertTrue(want)
-        with contextlib.redirect_stderr(io.StringIO()):
-            got = tio.load_turnouts()
-        self.assertEqual(got, want)
-
     def test_each_plant_binds_its_switch(self):
-        """Layout Editor turnout -> (M2T address, public name) that wire_digicon.py writes on the desk."""
+        """Layout Editor turnout -> (M2T address, public name) that wire_digicon.py writes on the desk.
+
+        Frozen from load_turnouts() on origin/main (a31cd561), before the bindings came from switches.csv.
+        """
         with contextlib.redirect_stderr(io.StringIO()) as err:
             got = tio.load_turnouts()
         self.assertEqual(err.getvalue(), "")
