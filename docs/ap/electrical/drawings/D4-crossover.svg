@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 394" width="720" height="394" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
+<rect width="720" height="394" fill="#fff"/>
+<text x="12" y="20" font-size="13" font-weight="bold" fill="#121a22">D4 · Crossover: two powered-frog turnouts, gapped between the frogs</text>
+<path d="M40,106 L700,106 M40,114 L700,114" stroke="#121a22" stroke-width="1.6"/>
+<path d="M40,226 L700,226 M40,234 L700,234" stroke="#121a22" stroke-width="1.6"/>
+<path d="M230,114 L500,226" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<path d="M240,106 L510,234" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<circle cx="300" cy="130" r="6" fill="#c0392b"/><circle cx="440" cy="210" r="6" fill="#c0392b"/>
+<text x="312" y="144" font-size="9.5" fill="#c0392b" text-anchor="start" font-weight="bold">frog A</text>
+<text x="380" y="200" font-size="9.5" fill="#c0392b" text-anchor="start" font-weight="bold">frog B</text>
+<path d="M352,158 L376,172 M360,150 L384,164" stroke="#121a22" stroke-width="2.6"/>
+<text x="392" y="164" font-size="10" fill="#121a22" text-anchor="start" font-weight="bold">gaps in both rails between the frogs</text>
+<path d="M147,101 L147,119 M153,101 L153,119" stroke="#6b7a86" stroke-width="2.4"/>
+<path d="M147,221 L147,239 M153,221 L153,239" stroke="#6b7a86" stroke-width="2.4"/>
+<path d="M597,101 L597,119 M603,101 L603,119" stroke="#6b7a86" stroke-width="2.4"/>
+<path d="M597,221 L597,239 M603,221 L603,239" stroke="#6b7a86" stroke-width="2.4"/>
+<text x="40" y="92" font-size="9.5" fill="#6b7a86" text-anchor="start" font-weight="normal">section a (for example OS Switch 23a)</text>
+<text x="40" y="260" font-size="9.5" fill="#6b7a86" text-anchor="start" font-weight="normal">section b (for example OS Switch 23b)</text>
+<rect x="40" y="280" width="200" height="40" fill="#e4ebf0" stroke="#121a22"/>
+<text x="140.0" y="297.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">MP4 half a</text>
+<text x="140.0" y="308.5" font-size="9" text-anchor="middle" fill="#121a22">SPDT 1 to frog A, SPDT 2 to panel</text>
+<rect x="480" y="280" width="200" height="40" fill="#e4ebf0" stroke="#121a22"/>
+<text x="580.0" y="297.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">MP4 half b</text>
+<text x="580.0" y="308.5" font-size="9" text-anchor="middle" fill="#121a22">SPDT 1 to frog B, SPDT 2 to panel</text>
+<text x="20" y="350" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">Each half is a turnout wired as D3, on its own machine; both machines are thrown together. Because each frog takes its own</text>
+<text x="20" y="364" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">polarity, the crossover rails are gapped between the frogs. Each half is its own detected section, gapped in both rails (grey).</text>
+<text x="20" y="378" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">Built at Switches 23 (23a / 23b) and 35 (35a / 35b) in staging, and at Switch 7 (7 / 7b).</text>
+</svg>
