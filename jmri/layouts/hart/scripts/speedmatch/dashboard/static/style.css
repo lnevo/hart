@@ -1,3 +1,7 @@
+/* the page root follows the dashboard's theme, so scrollbars and overscroll match it */
+:root:has(> body.smd) { color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:has(> body.smd:not([data-theme="light"])) { color-scheme: dark; } }
+:root:has(> body.smd[data-theme="dark"]) { color-scheme: dark; }
 .smd {
   color-scheme: light;
   --bg: #f4f3ef; --surface: #fcfcfb; --surface-2: #f0efeb; --line: #dddbd4;
@@ -160,3 +164,8 @@ body.smd { margin: 0; background: var(--bg); }
 .smd .picker { min-width: 0; max-width: 100%; }
 .smd .picker select { flex: 1 1 12rem; width: 0; text-overflow: ellipsis; }
 .smd.embed .top { min-width: 0; }
+
+/* inside the website shell: keep the site's hover lift off the dashboard's panels and buttons */
+.smd .card:hover, .smd .btn:hover { transform: none; }
+.smd .card, .smd .btn { transition: none; }
+.smd .card:hover { border-color: var(--line); }

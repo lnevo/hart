@@ -1,0 +1,99 @@
+{
+ "runs": {
+  "pass_CSX_2121_reverse_step24_20261113_154325.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Timed pass at step 24, Switch 5 to Switch 15, that places OS Switch 7 and OS Switch 13 on loop 2."
+  },
+  "pass_CSX_2121_reverse_step48_20261113_154720.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Timed pass at step 48, Switch 5 to Switch 15, that places OS Switch 7 and OS Switch 13 on loop 2."
+  },
+  "steprun_CSX_2121_forward_20261113_162410.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "2121 forward profile, steps 16 to 126."
+  },
+  "steprun_CSX_2121_forward_20261113_172606.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Step 16 of the 2121 forward profile, measured again. Step 8 was set by hand to 50.6 (the clean Main West block); this run's 54.7 includes one flicker reading."
+  },
+  "steprun_CSX_2121_reverse_20261113_161505.log": {
+   "headline": "Used for loop 2",
+   "level": "used",
+   "text": "Lap survey of loop 2 at steps 32, 48 and 64, for block lengths, not a speed profile. Each step hit its reading limit, so one lap was usable: it confirmed the Switch 7 and Switch 13 placement within 20 mm and gave the S-R length."
+  },
+  "steprun_CSX_2121_reverse_20261113_163539.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "2121 reverse profile, steps 16 to 126. Step 8 read no speed here; the 17:29 run has it."
+  },
+  "steprun_CSX_2121_reverse_20261113_172957.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Steps 8 and 16 of the 2121 reverse profile, measured again."
+  },
+  "steprun_CSX_2738_forward_20261113_114309.log": {
+   "headline": "Not used",
+   "level": "not-used",
+   "text": "Before a fix in the run tool, the loco ran the opposite way to the one asked, so this is not a forward profile."
+  },
+  "steprun_CSX_2738_forward_20261113_125138.log": {
+   "headline": "Superseded",
+   "level": "superseded",
+   "text": "Replaced by the 16:57 run, made after CV66 went from 128 to 135."
+  },
+  "steprun_CSX_2738_forward_20261113_165713.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "2738 forward profile, steps 32 to 126, after CV66 went from 128 to 135."
+  },
+  "steprun_CSX_2738_forward_20261113_171458.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Steps 8 to 24 of the 2738 forward profile, after CV69 and CV70 each moved one notch."
+  },
+  "steprun_CSX_2738_reverse_20261113_114309.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "2738 reverse profile, steps 16 to 126, before any change to the decoder."
+  },
+  "steprun_CSX_2738_reverse_20261113_120156.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Steps 8 and 24 of the 2738 reverse profile, measured again."
+  },
+  "steprun_CSX_2738_reverse_20261113_171459.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Steps 16 and 24 of the 2738 reverse profile, after CV69 and CV70 each moved one notch."
+  },
+  "stoptest_CSX_2121_reverse_20261113_174751.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Momentum test, step 32, in the 2738 against 2121 comparison."
+  },
+  "stoptest_CSX_2121_reverse_20261113_174927.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Momentum test, step 96, in the 2738 against 2121 comparison."
+  },
+  "stoptest_CSX_2738_forward_20261113_175212.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Momentum test, step 32, in the 2738 against 2121 comparison."
+  },
+  "stoptest_CSX_2738_forward_20261113_175331.log": {
+   "headline": "Used",
+   "level": "used",
+   "text": "Momentum test, step 96, in the 2738 against 2121 comparison."
+  }
+ },
+ "session": "2026-11-13",
+ "skip": {
+  "stoptest_CSX_2121_reverse_20261113_180458.log": "The coupled pair, driven through 2121: Switch 33 had been closed under the pair, so the first ran the wrong route and the second refused to start. Not a solo test.",
+  "stoptest_CSX_2121_reverse_20261113_180555.log": "The coupled pair, driven through 2121: Switch 33 had been closed under the pair, so the first ran the wrong route and the second refused to start. Not a solo test."
+ }
+}

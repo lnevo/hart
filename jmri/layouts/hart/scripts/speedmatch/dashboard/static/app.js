@@ -4,6 +4,7 @@
 // wrote, with a run picker. Every value from either source goes in with textContent.
 const $ = (id) => document.getElementById(id);
 const REC = window.SM_RECORDED || null;  // {base: folder of index.json, photos: {loco: url}, tz: time zone of the logs}
+const bare = (id) => String(id || "").replace(/\.log$/, "");  // run ids with or without the log suffix
 const ROOT = document.querySelector(".smd") || document.documentElement;  // where the theme attribute lives
 let INDEX = [];  // recorded: the published runs, newest first
 const SVGNS = "http://www.w3.org/2000/svg";
@@ -34,7 +35,6 @@ function dur(s) {
 }
 const clock = (t) => new Date(t * 1000).toLocaleTimeString([], { hour12: false, timeZone: REC ? REC.tz : undefined });
 const when = (t) => new Date(t * 1000).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: REC ? REC.tz : undefined });
-const tagOf = (o) => ({ used: "Used", superseded: "Superseded", "not-used": "Not used" }[o] || o);
 const locoVar = (loco) => (loco === "2738" ? "var(--c2738)" : "var(--c2121)");
 const STATUS = { waiting: "Waiting", starting: "Starting", warming: "Warming up", settling: "Settling", measuring: "Measuring", computing: "Computing", done: "Done", stopped: "Stopped", error: "Error", aborted: "Aborted" };
 const ICON = { waiting: "…", starting: "▸", warming: "♨", settling: "◔", measuring: "●", computing: "…", done: "✓", stopped: "■", error: "✕", aborted: "✕" };
@@ -75,8 +75,11 @@ function renderTop(run) {
   const b = $("banner");
   let level = null, text = null, why = null;
   if (!S.reachable) { level = "net"; text = S.message || "Pi not reachable, retrying"; }
+  else if (REC && S.note) {  // recorded: what the record says about this run comes first
+    level = S.note.level; text = S.note.headline; why = S.note.text;
+    if (run && run.banner) why = (why ? why + " " : "") + "Run ended: " + run.banner[1] + ".";
+  }
   else if (run && run.banner) { level = run.banner[0]; text = run.banner[1] + (run.road ? "  (" + run.road + ")" : ""); }
-  else if (S.note) { level = S.note.level; text = S.note.headline; why = S.note.text; }  // recorded: what the record says about this run
   b.hidden = !text;
   if (text) {
     b.className = "banner " + level;
@@ -337,7 +340,7 @@ function renderRuns(run) {
     t.append(el("tr", {}, ...["Time", "Run", "Result"].map((x) => el("th", { text: x }))));
     for (const r of INDEX) {
       const go = () => pick(r.id);
-      t.append(el("tr", { class: "click" + (run && S.focus === r.id + ".log" ? " sel" : ""), tabindex: 0, onclick: go, onkeydown: (e) => { if (e.key === "Enter") go(); } },
+      t.append(el("tr", { class: "click" + (run && bare(S.focus) === bare(r.id) ? " sel" : ""), tabindex: 0, onclick: go, onkeydown: (e) => { if (e.key === "Enter") go(); } },
         el("td", { text: when(r.start) }), el("td", { text: runTitle(r) }), el("td", {}, el("span", { class: "tag " + r.outcome, text: r.headline }))));
     }
     host.append(t);

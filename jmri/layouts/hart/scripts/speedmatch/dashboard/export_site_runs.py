@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Write recorded speed-match runs as static JSON for the website. Python 3 standard library only.
 
-    python3 export_site_runs.py ~/speedmatch-logs/2026-11-13 [--out www/data/speedmatch]
+    python3 export_site_runs.py ~/speedmatch-logs/2026-11-13 \
+        --labels docs/jmri/speedmatching/profile-2026-11-13/site_labels.json [--out www/data/speedmatch]
 
 The logs are fed, oldest first, through the dashboard's own state code (dashstate.Store), so the
 page shows what the live dashboard showed. For each published run the file runs/<id>.json holds
@@ -17,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -28,70 +30,16 @@ import dashstate as state  # noqa: E402
 PUBLISH = ("steprun", "pass", "stoptest")
 DEFAULT_OUT = sources.REPO / "www/data/speedmatch"
 
-# What the record says about each run of 2026-11-13 (docs/jmri/speedmatching/profile-2026-11-13).
-# level: used | superseded | not-used. Times are the Pi's clock, from the file names.
-NOTES = {
-    "steprun_CSX_2738_forward_20261113_114309.log": (
-        "not-used", "Not used",
-        "Before a fix in the run tool, the loco ran the opposite way to the one asked, so this "
-        "is not a forward profile."),
-    "steprun_CSX_2738_reverse_20261113_114309.log": (
-        "used", "Used",
-        "2738 reverse profile, steps 16 to 126, before any change to the decoder."),
-    "steprun_CSX_2738_reverse_20261113_120156.log": (
-        "used", "Used",
-        "Steps 8 and 24 of the 2738 reverse profile, measured again."),
-    "steprun_CSX_2738_forward_20261113_125138.log": (
-        "superseded", "Superseded",
-        "Replaced by the 16:57 run, made after CV66 went from 128 to 135."),
-    "pass_CSX_2121_reverse_step24_20261113_154325.log": (
-        "used", "Used",
-        "Timed pass at step 24, Switch 5 to Switch 15, that places OS Switch 7 and OS Switch 13 on loop 2."),
-    "pass_CSX_2121_reverse_step48_20261113_154720.log": (
-        "used", "Used",
-        "Timed pass at step 48, Switch 5 to Switch 15, that places OS Switch 7 and OS Switch 13 on loop 2."),
-    "steprun_CSX_2121_reverse_20261113_161505.log": (
-        "used", "Used for loop 2",
-        "Lap survey of loop 2 at steps 32, 48 and 64, for block lengths, not a speed profile. "
-        "Each step hit its reading limit, so one lap was usable: it confirmed the Switch 7 and "
-        "Switch 13 placement within 20 mm and gave the S-R length."),
-    "steprun_CSX_2121_forward_20261113_162410.log": (
-        "used", "Used", "2121 forward profile, steps 16 to 126."),
-    "steprun_CSX_2121_reverse_20261113_163539.log": (
-        "used", "Used",
-        "2121 reverse profile, steps 16 to 126. Step 8 read no speed here; the 17:29 run has it."),
-    "steprun_CSX_2738_forward_20261113_165713.log": (
-        "used", "Used",
-        "2738 forward profile, steps 32 to 126, after CV66 went from 128 to 135."),
-    "steprun_CSX_2738_forward_20261113_171458.log": (
-        "used", "Used",
-        "Steps 8 to 24 of the 2738 forward profile, after CV69 and CV70 each moved one notch."),
-    "steprun_CSX_2738_reverse_20261113_171459.log": (
-        "used", "Used",
-        "Steps 16 and 24 of the 2738 reverse profile, after CV69 and CV70 each moved one notch."),
-    "steprun_CSX_2121_forward_20261113_172606.log": (
-        "used", "Used",
-        "Step 16 of the 2121 forward profile, measured again. Step 8 was set by hand to 50.6 "
-        "(the clean Main West block); this run's 54.7 includes one flicker reading."),
-    "steprun_CSX_2121_reverse_20261113_172957.log": (
-        "used", "Used", "Steps 8 and 16 of the 2121 reverse profile, measured again."),
-    "stoptest_CSX_2121_reverse_20261113_174751.log": (
-        "used", "Used", "Momentum test, step 32, in the 2738 against 2121 comparison."),
-    "stoptest_CSX_2121_reverse_20261113_174927.log": (
-        "used", "Used", "Momentum test, step 96, in the 2738 against 2121 comparison."),
-    "stoptest_CSX_2738_forward_20261113_175212.log": (
-        "used", "Used", "Momentum test, step 32, in the 2738 against 2121 comparison."),
-    "stoptest_CSX_2738_forward_20261113_175331.log": (
-        "used", "Used", "Momentum test, step 96, in the 2738 against 2121 comparison."),
-}
-
-# Logs that are never published. The 18:04 and 18:05 stop tests were the coupled pair, driven
-# through 2121: Switch 33 had been closed under the pair, so the first ran the wrong route and
-# the second refused to start. They are not 2121 solo tests and say nothing about momentum.
-SKIP = {
-    "stoptest_CSX_2121_reverse_20261113_180458.log",
-    "stoptest_CSX_2121_reverse_20261113_180555.log",
-}
+def load_labels(path):
+    """The session's labels file: {"runs": {log name: {level, headline, text}}, "skip": {log name: why}}.
+    level is used, superseded or not-used. Every published log needs an entry; skipped logs are
+    left out. The file is kept with the session's record (docs/jmri/speedmatching/profile-<date>/)."""
+    d = json.loads(Path(path).read_text(encoding="utf-8"))
+    runs, skip = d.get("runs") or {}, d.get("skip") or {}
+    bad = [k for k, v in runs.items() if v.get("level") not in ("used", "superseded", "not-used")]
+    if bad:
+        raise SystemExit("labels: unknown level for " + ", ".join(sorted(bad)))
+    return {k: (v["level"], v["headline"], v["text"]) for k, v in runs.items()}, set(skip)
 
 
 def stoptest_view(lines, name):
@@ -123,10 +71,10 @@ def stoptest_view(lines, name):
     return info
 
 
-def read_published(logdir):
+def read_published(logdir, skip=()):
     """[(id, lines)] for the published logs, oldest first by their first timestamp."""
     paths = [p for p in sorted(Path(logdir).glob("*.log"))
-             if state.kind_of_log(p.name) in PUBLISH and p.name not in SKIP]
+             if state.kind_of_log(p.name) in PUBLISH and p.name not in skip]
     logs = []
     for rid, lines in sources.read_logs(paths):
         first = next((p for p in map(state.parse_line, lines) if p), None)
@@ -135,26 +83,34 @@ def read_published(logdir):
     return [(rid, lines) for _, rid, lines in logs]
 
 
-def export(logdir, out):
+def export(logdir, out, labels):
+    """Write this session's runs into out, keeping runs of other sessions already there. Built in
+    a folder next to out and swapped in at the end, so a failure leaves out as it was."""
+    notes, skip = load_labels(labels)
     state.warm_caches()
-    logs = read_published(logdir)
-    unknown = [rid for rid, _ in logs if rid not in NOTES]
+    logs = read_published(logdir, skip)
+    unknown = [rid for rid, _ in logs if rid not in notes]
     if unknown:
         raise SystemExit("no label for: " + ", ".join(unknown))
     reference = sources.reference_curves()
     out = Path(out)
-    (out / "runs").mkdir(parents=True, exist_ok=True)
-    for old in (out / "runs").glob("*.json"):
-        old.unlink()
+    tmp = out.with_name(out.name + ".new")
+    if tmp.exists():
+        shutil.rmtree(tmp)
+    (tmp / "runs").mkdir(parents=True)
+    mine = {rid[:-4] for rid, _ in logs} | {n[:-4] for n in skip}
     store = state.Store()
     index = []
     for rid, lines in logs:
         for ln in lines:
             store.feed(rid, ln)
-        run = store.runs[rid]
+        run = store.runs.get(rid)
+        if run is None or not any(state.parse_line(ln) for ln in lines):
+            shutil.rmtree(tmp)
+            raise SystemExit("%s: no readable line, nothing to publish (label it in skip or fix the log)" % rid)
         snap = store.snapshot(now=run.t_end or run.t_last, reachable=True, message=None, mode="recorded", focus=rid)
         focus = next(r for r in snap["runs"] if r["id"] == rid)
-        level, headline, text = NOTES[rid]
+        level, headline, text = notes[rid]
         stop = None
         if run.kind == "stoptest":
             # dashstate does not read STOPTEST lines (no loco, a "stopped: quiet" banner): fill them in
@@ -171,7 +127,7 @@ def export(logdir, out):
             r["photo"] = r["model"] = None
         snap["reference"] = reference
         snap["note"] = {"level": level, "headline": headline, "text": text}
-        (out / "runs" / (rid[:-4] + ".json")).write_text(
+        (tmp / "runs" / (rid[:-4] + ".json")).write_text(
             json.dumps(snap, separators=(",", ":"), sort_keys=True) + "\n", encoding="utf-8")
         index.append({
             "id": rid[:-4], "file": "runs/%s.json" % rid[:-4], "kind": focus["kind"], "loco": focus["loco"],
@@ -179,17 +135,34 @@ def export(logdir, out):
             "steps": [c["step"] for c in focus["curve"]], "pass_step": (focus["pass"] or {}).get("step"),
             "stop_step": stop["step"] if stop else None, "status": focus["status"], "reason": focus["reason"],
             "outcome": level, "headline": headline, "note": text})
+    old_index = out / "index.json"
+    if old_index.exists():  # keep the runs of other sessions
+        for r in json.loads(old_index.read_text(encoding="utf-8")).get("runs", []):
+            f = out / r["file"]
+            if r["id"] not in mine and f.exists():
+                shutil.copy2(f, tmp / r["file"])
+                index.append(r)
     index.sort(key=lambda r: (-(r["start"] or 0), r["id"]))
-    (out / "index.json").write_text(json.dumps({"runs": index}, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    (tmp / "index.json").write_text(json.dumps({"runs": index}, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    if out.exists():
+        gone = out.with_name(out.name + ".old")
+        if gone.exists():
+            shutil.rmtree(gone)
+        out.rename(gone)
+        tmp.rename(out)
+        shutil.rmtree(gone)
+    else:
+        tmp.rename(out)
     return index
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("logdir", help="folder with the run logs, one session")
+    ap.add_argument("--labels", required=True, help="the session's labels JSON (docs/jmri/speedmatching/profile-<date>/site_labels.json)")
     ap.add_argument("--out", default=str(DEFAULT_OUT), help="where the JSON goes (default www/data/speedmatch)")
     a = ap.parse_args(argv)
-    print("wrote %d runs to %s" % (len(export(a.logdir, a.out)), a.out))
+    print("%d runs published in %s" % (len(export(a.logdir, a.out, a.labels)), a.out))
 
 
 if __name__ == "__main__":

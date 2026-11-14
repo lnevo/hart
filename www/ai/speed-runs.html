@@ -83,7 +83,7 @@
         (d.items || []).forEach(function (it) {
           var loco = { "csx-2121": "2121", "csx-2738": "2738" }[it.id];
           var src = it.thumb || it.src || "";
-          if (loco && src && !/^(\.\.\/|https?:)/.test(src)) photos[loco] = "../" + src;
+          if (loco && src && !/^https?:/.test(src)) photos[loco] = /^\.\.\//.test(src) ? src : "../" + src;  // gallery paths are already relative to ai/ when they start with ../
         });
       }).catch(function () {}).then(function () {
         window.SM_RECORDED = { base: "../data/speedmatch/", photos: photos, tz: "America/New_York" };

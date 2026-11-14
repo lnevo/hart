@@ -105,10 +105,15 @@ there is no second copy.
 Regenerate the data after a session (the logs stay outside the repo):
 
 ```
-python3 jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py ~/speedmatch-logs/<date>
+python3 jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py ~/speedmatch-logs/<date> \
+    --labels docs/jmri/speedmatching/profile-<date>/site_labels.json
 ```
 
 It feeds each `steprun_`, `pass_` and `stoptest_` log through `dashstate` and writes
-`www/data/speedmatch/index.json` and `runs/<id>.json`. Every published log needs a label in
-`NOTES` (the export stops otherwise); logs in `SKIP` are left out. Positioning (`moveto_`) logs
+`www/data/speedmatch/index.json` and `runs/<id>.json`, keeping runs of earlier sessions. Every
+published log needs a label in the session's `site_labels.json` (used, superseded or not-used,
+with a headline and the reason; the export stops otherwise); logs under `skip` are left out. It
+builds next to the output and swaps it in at the end, so a failed export changes nothing. The
+website page repeats the live page's panels; a test checks that every id `app.js` needs is on
+both. Positioning (`moveto_`) logs
 are never published. The live view is not on the public site.
