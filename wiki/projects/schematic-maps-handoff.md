@@ -76,6 +76,7 @@ Known gaps: labels are not checked for collisions; the three bare export numbers
 - Main level: the loop at T196 above the main, the three yard tracks below it (drawn sides flipped for T196, T155, T160, T162, T194, T183, 50, 51).
 - Lengths: staging: Plane to the right of Brick, Switches 7 and 13 further east, Switch 13 to 15 one cell, drawn short like T274 to T237 (owner, 2026-11-14; the cells given to East Lead, now 7, and West Ext), long yard tracks. Main: yard throat level with the loop's edge, a long run between T1 and 12, room between T160 and T165. Upper: T237 to T300 short, T262 to T285 five cells.
 - NYAMR drafting style, Letter landscape, title block, station brackets under staging.
+- Title block fields (owner, 2026-11-14): `date`, `revision` and `sheet` in `main_upper.preferences.json` print in a ruled column at the right of the title box (NOV 14, 2026 / REV 1 / SHEET 1 OF 1; plugin 0.1.2). `publish_draft.py` sets today's date and adds 1 to the revision whenever the drawing itself changes; `--check` never changes them.
 
 ## Work to do, in parallel
 
