@@ -16,7 +16,7 @@
   <main>
     <div class="page-head">
       <h1>How the dispatcher panels grew</h1>
-      <p class="section-note">The Layout Editor panel and the two CTC panels built over it, CATS and the JMRI lever machine, each shown a step at a time.</p>
+      <p class="section-note">The Layout Editor panel, the two CTC panels built over it, CATS and the JMRI lever machine, and the generated system schematic, each shown a step at a time.</p>
     </div>
 
     <article class="explainer prose">
@@ -24,7 +24,8 @@
         HART has two dispatcher panels over the same railroad (see <a href="signals.html">How the signals work</a>).
         Neither was drawn in one go. Each grew from a few track pieces and station names into the full plant, and
         the screenshots taken along the way make a short film. Underneath both is JMRI's Layout Editor panel, the
-        drawing of the track that JMRI itself works from, so its film comes first. All three loop, with no sound.
+        drawing of the track that JMRI itself works from, so its film comes first. A fourth film, the system
+        schematic, closes the page. All four loop, with no sound.
       </p>
 
       <h2>The Layout Editor panel</h2>
@@ -115,6 +116,33 @@
         <li>Straight mains and the OS track names, twenty columns</li>
         <li>Public names: Track S-1, Track EH-1, Track K-1</li>
       </ol>
+
+      <h2>The system schematic</h2>
+      <p>
+        The system schematic is the newest panel. It draws staging, the main level and the upper level on one
+        Letter-landscape sheet, one band per level. Lettered connectors join the levels and the helix. The main line
+        runs straight through every switch, the yard ladders step down diagonally, and the signal masts on staging are
+        drawn in the NYAMR Physical Characteristics Book style.
+      </p>
+      <p>
+        It is generated, not hand-drawn. A tool reads the track plan's AnyRail JMRI export (track only), applies a
+        short file of as-built facts, and lays out the sheet by rules. It then checks the drawing for crossing lines
+        and overlapping labels; today there are none of either. The tool is a public plugin and skill,
+        <a href="https://github.com/lnevo/model-railroad-skills/tree/main/plugins/schematic-maps">schematic-maps</a>,
+        in the model-railroad-skills repository.
+      </p>
+      <figure>
+        <video controls autoplay muted loop playsinline preload="metadata" poster="../assets/behind/panel-evolution/schematic-poster.jpg"
+               aria-label="Thirty-eight versions of the system schematic in order, from the first proof of staging to the three-level sheet">
+          <source src="../assets/behind/panel-evolution/schematic-evolution.mp4" type="video/mp4">
+          <img src="../assets/behind/panel-evolution/schematic-poster.jpg" alt="The system schematic: staging, main level and upper level as black track on white, with switch numbers, track names and signal masts">
+        </video>
+        <figcaption>The system schematic, 38 committed versions from the first proof of staging on 13 November to the sheet of 14 November 2026. <a href="../assets/behind/panel-evolution/schematic-poster.jpg">Open the last frame full size</a>.</figcaption>
+      </figure>
+      <p>
+        The current sheet is a draft until the main and upper levels are named:
+        <a href="https://github.com/lnevo/hart/blob/main/docs/ops/schematic-system-draft.pdf">the draft system schematic (PDF)</a>.
+      </p>
 
       <p>
         The wider story of how these panels fit into the rest of the project is in
