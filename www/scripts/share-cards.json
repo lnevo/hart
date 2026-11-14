@@ -26,6 +26,11 @@
       "alt": "Speed-match chart: CSX 2738 running slow before, and level with 2121 after matching.",
       "from": "the speed-match chart in www/ai/locomotives.html, rendered"
     },
+    "ai/speed-runs.html": {
+      "image": "assets/share/ai-speed-runs.jpg",
+      "alt": "The speed-match run viewer on a CSX 2738 run: the loco, throttle step 126 at 490.3 mm/s, eight steps measured, and the track strip with the speed in each block.",
+      "from": "headless screenshot of www/ai/speed-runs.html (make_share_cards.py ai-speed-runs)"
+    },
     "ai/operations.html": {
       "image": "assets/share/ai-operations.jpg",
       "alt": "The virtual track scale after weighing Kosmos cement hopper KSMX 101: 105.00 tons gross, 78.75 tons net, marked PASS.",

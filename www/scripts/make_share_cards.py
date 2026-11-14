@@ -48,6 +48,18 @@ class _Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args) -> None:
         pass
 
+    def translate_path(self, path: str) -> str:
+        """Serve published files from their one source (published-files.json), and the gitignored
+        car-card photos a page names as ../ops/car-cards/ from the checkout, as the build does."""
+        rel = path.split("?", 1)[0].split("#", 1)[0].lstrip("/")
+        if rel.startswith("www/ops/car-cards/"):
+            return str(REPO / rel[len("www/"):])
+        if rel.startswith("www/"):
+            source = json.loads((PORTAL / "scripts/published-files.json").read_text(encoding="utf-8")).get(rel[4:])
+            if source:
+                return str(REPO / source)
+        return super().translate_path(path)
+
 
 @contextlib.contextmanager
 def serving():
@@ -219,6 +231,12 @@ def ai_locomotives():
     style = (_page_style(page) + f"body{{background:var(--card)}}.w{{display:flex;align-items:center;justify-content:center;"
              f"width:{W}px;height:{H}px}}.speed-svg{{max-width:none!important;width:auto!important;height:600px!important}}")
     return card(draw("speed", f"<div class=w>{_svg(page, 'speed-svg')}</div>", style, ("css/ops.css", "css/ai.css")))
+
+
+def speed_runs():
+    """ai-speed-runs: the run viewer on the 8-step 2738 forward run, its loco, readings and track strip."""
+    im = shot(_site + "ai/speed-runs.html#run=steprun_CSX_2738_forward_20261113_165713", (1400, 1200))
+    return card(im.crop((150 * 2, 550 * 2, 1250 * 2, 1128 * 2)))  # the hero and Track cards, in CSS px x2
 
 
 def repo_guide():
@@ -509,6 +527,7 @@ CARDS = {
     "library-repository-guide": repo_guide,
     "library-sts-operations-article": sts_home,
     "ai-locomotives": ai_locomotives,
+    "ai-speed-runs": speed_runs,
     "ai-electronics": ai_electronics,
     "ai-construction": ai_construction,
     "ai-operations": ai_operations,
