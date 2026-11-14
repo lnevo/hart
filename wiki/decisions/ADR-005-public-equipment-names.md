@@ -84,15 +84,15 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | `jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py` | Same mast keys as polish |
 | `reconcile_dispatcher_stations.py` | Station `Track East Lead` + icon xy |
 | `audit_panel_contracts.py` | `Track East Lead` stop contract |
-| `annotate_mqtt_sensors_and_dispatcher.py` | Section graph / transit comments (`Track East Lead`, `OS Switch 7b`) |
+| `annotate_mqtt_sensors_and_dispatcher.py` | Section graph / transit comments (`Track East Lead`, `OS Switch 7b`). Removed 2026-11-14 (one-shot) |
 | `panelpro_smoke_test.py` | Station list `Track East Lead` |
 | `jmri/scripts/check_hart_phase02.py` | Requires `OS Switch 7b` |
 | `build_ctc_full_15col.py` | SIDI mast lists (unsafe to re-run until updated) |
 | `wire_digicon.py` | CATS `BLOCK` / `SECSIGNAL` SoR |
-| `apply_sml_cats_pairs.py` | Retired, PAIRS only (oracle for `validate_le_signalling.py`); writes nothing |
+| `apply_sml_cats_pairs.py` | Retired, PAIRS only (oracle for `validate_le_signalling.py`); writes nothing. Removed 2026-11-14; the pairs are `data/sml_cats_oracle.csv` |
 | `validate_cats_panel.py` | Required `OS Switch 13` / `OS Switch 9` (was Track 13 / Track 9) |
 | `build_hart_signal_heads.py` | Mast userNames |
-| `sim_hart_train_mqtt.py` | Route step block names |
+| `sim_hart_train_mqtt.py` | Route step block names. Removed 2026-11-14 (its names were stale) |
 | `lcos_mqtt_mimic.py` | Groups by live CP (`Brick`, `Barn`, `Engine House`); turnout keys `Switch 1` |
 
 **Data CSVs (same strings as XML)**

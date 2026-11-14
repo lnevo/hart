@@ -44,7 +44,6 @@ class DefaultPathsTest(unittest.TestCase):
         for name, attr in (
             ("add_digicon_le_signal_icons", "DEFAULT_PANEL"),
             ("add_yard_ladder_le_icons", "DEFAULT_PANEL"),
-            ("annotate_mqtt_sensors_and_dispatcher", "TABLES"),
             ("apply_le_cleanup", "DEFAULT"),
             ("apply_le_sml_facing", "DEFAULT_PANEL"),
             ("apply_public_names", "DEFAULT_TABLES"),
@@ -60,8 +59,6 @@ class DefaultPathsTest(unittest.TestCase):
         audit = load("audit_panel_contracts")
         self.assertEqual(paths.LAYOUT_DATA / "le_signal_boundaries.csv", audit.BOUNDARIES)
         self.assertEqual(paths.LAYOUT_DIR / "dispatcher" / "traininfo", audit.TRAININFO)
-        self.assertEqual(paths.CATS_DIR / "data" / "occupancy_bindings.csv",
-                         load("annotate_mqtt_sensors_and_dispatcher").OCC_CSV)
         self.assertEqual(paths.PUBLIC_NAME_MAP, load("apply_public_names").DEFAULT_MAP)
         self.assertEqual(paths.JMRI_USER_FILES / "tables.xml", load("apply_le_sml_facing").PREF_TABLES)
 
@@ -116,24 +113,6 @@ class WritersOnACopyTest(unittest.TestCase):
         result = run("apply_le_sml_facing.py", "--panel", str(panel), home=self.home)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(panel.read_bytes(), pref.read_bytes())
-
-
-class AnnotateWritePathTest(unittest.TestCase):
-    def test_write_path_completes_on_a_temp_copy(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            module = load("annotate_mqtt_sensors_and_dispatcher")
-            module.TABLES = tmp / "tables.xml"
-            shutil.copy(TABLES, module.TABLES)
-            module.TRAININFO_DIR = tmp / "traininfo"
-            home = tmp / "JMRI_UserFiles"
-            home.mkdir()
-            (home / "tables.xml").write_text("old")
-            module.MAC_PROFILE = home
-            module.main()
-            self.assertEqual(module.TABLES.read_bytes(), (home / "tables.xml").read_bytes())
-            self.assertTrue(any((home / "dispatcher" / "traininfo").glob("*.xml")))
-            self.assertTrue(any(module.TRAININFO_DIR.glob("*.xml")))
 
 
 class CommentNodeTest(unittest.TestCase):

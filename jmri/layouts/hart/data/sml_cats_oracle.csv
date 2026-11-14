@@ -1,0 +1,34 @@
+source,dest,blocks,turnouts
+Mast 6LB,Mast 8RB,Track East Ext,
+Mast 8RB,Mast 6LB,Track East Ext,
+Mast 8RB,Mast 34R,OS Switch 7b | Track Main East,Switch 7=closed
+Mast 8RB,Mast 8RA,OS Switch 7,Switch 7=thrown
+Mast 8LA,Mast 6LB,Track East Ext,Switch 7=closed
+Mast 6LA,Mast 8RA,Track Scale,Switch 5=thrown
+Mast 8RA,Mast 8LB,OS Switch 7 | Track Barn,Switch 7=closed
+Mast 2L,Mast 8RB,OS Switch 5 | Track East Ext,Switch 1=thrown | Switch 5=closed
+Mast 2L,Mast 8RA,OS Switch 5 | Track Scale,Switch 1=thrown | Switch 5=thrown
+Mast 24L,Mast 2L,Track Main West,Switch 23=closed
+Mast 34L,Mast 8LA,OS Switch 33 | Track Main East,Switch 33=thrown
+Mast 34R,Mast 36RB,Track East Lead,Switch 33=thrown
+Mast 32R,Mast 36RB,OS Switch 31 | Track East Lead,Switch 31=thrown | Switch 33=closed
+Mast 24RA,Mast 36RA,Track West Ext,Switch 23=closed
+Mast 24RB,Mast 36RB,Track S-R | Track East Lead,Switch 23=closed | Switch 33=closed
+Mast 8LB,Mast 8RA,Track Barn | OS Switch 7,Switch 7=closed
+Mast 8LB,Mast 6LA,Track Barn | Track Scale,Switch 7=thrown
+Mast 40LB,Mast 24L,OS Switch 39 | Track West Ext,Switch 39=thrown | Switch 35=closed
+Mast 40LB,Mast 34L,OS Switch 39 | Track East Lead,Switch 39=thrown | Switch 35=thrown
+Mast 38LB,Mast 24L,OS Switch 37 | Track West Ext,Switch 37=thrown | Switch 35=closed
+Mast 38LB,Mast 34L,OS Switch 37 | Track East Lead,Switch 37=thrown | Switch 35=thrown
+Mast 40LA,Mast 24L,OS Switch 39 | Track West Ext,Switch 39=closed | Switch 35=closed
+Mast 40LA,Mast 34L,OS Switch 39 | Track East Lead,Switch 39=closed | Switch 35=thrown
+Mast 38LA,Mast 24L,OS Switch 37 | Track West Ext,Switch 37=closed | Switch 35=closed
+Mast 38LA,Mast 34L,OS Switch 37 | Track East Lead,Switch 37=closed | Switch 35=thrown
+Mast 36RA,Mast 2035,OS Switch 35b | OS Switch 39,Switch 35=closed | Switch 39=thrown
+Mast 36RA,Mast 40LA,OS Switch 35b | OS Switch 39,Switch 35=closed | Switch 39=closed
+Mast 36RB,Mast 2036,OS Switch 35a | OS Switch 37,Switch 35=closed | Switch 37=thrown
+Mast 36RB,Mast 38LA,OS Switch 35a | OS Switch 37,Switch 35=closed | Switch 37=closed
+Mast 2036,Mast 2035,,
+Mast 2035,Mast 2036,,
+Mast 4RA,Mast 24RA,Track W-1 | OS Switch 3 | Track Main West,Switch 3=closed
+Mast 4RB,Mast 24RA,Track W-2 | OS Switch 3 | Track Main West,Switch 3=thrown

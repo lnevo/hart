@@ -15,6 +15,7 @@ run tables-browser python3 www/scripts/build_tables_browser.py --check
 run layout-index python3 www/scripts/build_layout_index.py --check
 run layout-index-cats python3 www/scripts/build_cats_layout_index.py --check
 run track-lengths python3 jmri/layouts/hart/scripts/export_track_lengths.py --check
+run speedmatch-routes python3 jmri/layouts/hart/scripts/speedmatch/build_routes.py --check
 run panel-contracts python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
 run baselines python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py --check
 run le-polish python3 jmri/layouts/hart/scripts/polish_hart_layout_editor.py --check
@@ -28,6 +29,7 @@ run sml-invariants python3 tools/audit/check_sml_invariants.py
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
 run layout-facts python3 tools/audit/check_layout_facts.py
+run name-copies python3 tools/audit/check_name_copies.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
 run unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests

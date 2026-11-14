@@ -30,38 +30,58 @@ DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
 DEFAULT_TRUSTED = ("anyrail", "inferred")  # "assigned" counts only when passed explicitly
 MM_PER_INCH = 25.4
 
-# The test routes: (block sensor, block_lengths.csv user_name) in running order. The pairing is
-# explicit because the CSV names tracks and switches, not sensors. loop1 is the 2026-11-08 loop,
-# east from East Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5.
-# A job, its log (the CFG line) and the analysis all name the route.
-LOOP = [
-    ("BS East Ext", "Track East Ext"), ("BS Switch 7b", "OS Switch 7b"),
-    ("BS Main East", "Track Main East"), ("BS Switch 33", "OS Switch 33"),
-    ("BS East Lead", "Track East Lead"), ("BS Switch 35a", "OS Switch 35a"),
-    ("BS Switch 37 / BS McKeesport", "OS Switch 37"), ("BS K-2", "Track K-2"),
-    ("BS K-1", "Track K-1"), ("BS Switch 39 / BS McKees Rocks", "OS Switch 39"),
-    ("BS Switch 35b", "OS Switch 35b"), ("BS West Ext", "Track West Ext"),
-    ("BS Switch 23a", "OS Switch 23a"), ("BS Main West", "Track Main West"),
-    ("BS Switch 1", "OS Switch 1"), ("BS Brick-Plane", "Track Brick-Plane"),
-    ("BS Switch 5", "OS Switch 5"),
-]
-LOOP2 = [
-    ("BS Switch 5", "OS Switch 5"), ("BS Scale", "Track Scale"), ("BS Switch 7", "OS Switch 7"),
-    ("BS Barn", "Track Barn"), ("BS Switch 13", "OS Switch 13"), ("BS Switch 15", "OS Switch 15"),
-    ("BS S-R", "Track S-R"), ("BS Switch 23b", "OS Switch 23b"), ("BS Switch 31", "OS Switch 31"),
-    ("BS Switch 33", "OS Switch 33"), ("BS East Lead", "Track East Lead"),
-    ("BS Switch 35a", "OS Switch 35a"), ("BS Switch 37 / BS McKeesport", "OS Switch 37"),
-    ("BS K-2", "Track K-2"), ("BS K-1", "Track K-1"),
-    ("BS Switch 39 / BS McKees Rocks", "OS Switch 39"), ("BS Switch 35b", "OS Switch 35b"),
-    ("BS West Ext", "Track West Ext"), ("BS Switch 23a", "OS Switch 23a"),
-    ("BS Main West", "Track Main West"), ("BS Switch 1", "OS Switch 1"),
-    ("BS Brick-Plane", "Track Brick-Plane"),
-]
-ROUTES = {"loop1": LOOP, "loop2": LOOP2}
+# The test routes: the blocks in running order, by their block_lengths.csv user_name. Only the
+# order is typed here. Each block's sensor is the occupancy sensor tables.xml gives it, written
+# into routes.json by build_routes.py (--check in tools/check.sh), so this file needs neither
+# hartlib nor tables.xml: the Pi's speed-match live publisher imports it. Names that are not
+# current fail tools/audit/check_name_copies.py. loop1 is the 2026-11-08 loop, east from East
+# Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5. A job, its log (the
+# CFG line) and the analysis all name the route.
+ROUTE_BLOCKS = {
+    "loop1": [
+        "Track East Ext", "OS Switch 7b", "Track Main East", "OS Switch 33", "Track East Lead",
+        "OS Switch 35a", "OS Switch 37", "Track K-2", "Track K-1", "OS Switch 39", "OS Switch 35b",
+        "Track West Ext", "OS Switch 23a", "Track Main West", "OS Switch 1", "Track Brick-Plane",
+        "OS Switch 5",
+    ],
+    "loop2": [
+        "OS Switch 5", "Track Scale", "OS Switch 7", "Track Barn", "OS Switch 13", "OS Switch 15",
+        "Track S-R", "OS Switch 23b", "OS Switch 31", "OS Switch 33", "Track East Lead",
+        "OS Switch 35a", "OS Switch 37", "Track K-2", "Track K-1", "OS Switch 39", "OS Switch 35b",
+        "Track West Ext", "OS Switch 23a", "Track Main West", "OS Switch 1", "Track Brick-Plane",
+    ],
+}
+# The warm-up lap counter counts REF (the route's first sensor) lit again after MID, the sensor
+# of a block about half way round the route.
+ROUTE_MID_BLOCK = {"loop1": "OS Switch 23a", "loop2": "Track K-2"}
+
+
+ROUTES_JSON = HERE / "routes.json"
+
+
+def load_routes(path=ROUTES_JSON, order=ROUTE_BLOCKS, mid=ROUTE_MID_BLOCK):
+    """(ROUTES, ROUTE_MID) from routes.json: {route: [(block sensor, block)]}, {route: sensor}.
+
+    Stops when the file's blocks or mid blocks are not the ones typed here (rebuild it)."""
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise SystemExit("cannot read %s (%s); run speedmatch/build_routes.py" % (path, e))
+    routes = {r: [tuple(pair) for pair in pairs] for r, pairs in data["routes"].items()}
+    stale = sorted(r for r in set(order) | set(routes)
+                   if [b for _, b in routes.get(r, [])] != list(order.get(r, [])))
+    by_block = {r: dict((b, s) for s, b in pairs) for r, pairs in routes.items()}
+    stale += sorted(r for r, b in mid.items()
+                    if r not in stale and data["mid"].get(r) != by_block.get(r, {}).get(b))
+    if stale:
+        raise SystemExit("%s does not match ROUTE_BLOCKS / ROUTE_MID_BLOCK for %s; run "
+                         "speedmatch/build_routes.py" % (path, ", ".join(stale)))
+    return routes, dict(data["mid"])
+
+
+ROUTES, ROUTE_MID = load_routes()
+LOOP, LOOP2 = ROUTES["loop1"], ROUTES["loop2"]
 DEFAULT_ROUTE = "loop1"
-# The warm-up lap counter counts REF (the route's first sensor) lit again after MID, a sensor
-# about half way round the route.
-ROUTE_MID = {"loop1": "BS Switch 23a", "loop2": "BS K-2"}
 ORDER = [s for s, _ in LOOP]  # loop1 aliases: LOOP and ORDER
 
 # Switch positions the owner sets by hand before a run (nothing here is ever sent to JMRI):
@@ -157,6 +177,7 @@ def parse_log(lines, loco=None, direction=None, source=""):
     line (older logs) needs loco and direction given."""
     check_names(lines, source)
     runs, run, cur, seen, active = [], None, None, {}, {}
+    sensed = {}  # id(run) -> sensor names the run logged, for check_route_sensors
     last_active = None
     for line in lines:
         m = _LINE.match(line.strip())
@@ -220,13 +241,30 @@ def parse_log(lines, loco=None, direction=None, source=""):
                 cur["events"].append(last_active)
         elif msg.startswith("SENS "):
             name, st = msg[5:].rsplit(" ", 1)
+            if run is not None:
+                sensed.setdefault(id(run), set()).add(name)
             if st == "ACTIVE" and active.get(name) != "ACTIVE":
                 last_active = (t, name)
                 if cur is not None and cur.get("measuring", True):
                     cur["events"].append((t, name))
             if st in STATES:  # any state counts: UNKNOWN between two ACTIVEs is a new ACTIVE
                 active[name] = st
+    for run in runs:
+        check_route_sensors(sensed.get(id(run), ()), run["cfg"].get("route", DEFAULT_ROUTE), source)
     return runs
+
+
+def check_route_sensors(names, route, source=""):
+    """Stop on a sensor the route does not have: a log recorded before a block or sensor rename
+    (its blocks would not match and laps would come out short), or a log of another route."""
+    if route not in ROUTES:
+        return  # route_loop() names the unknown route when the run is analysed
+    known = {s for s, _ in ROUTES[route]}
+    stray = sorted(set(names) - known)
+    if stray:
+        raise SystemExit("%s logs sensor(s) not on route %s: %s. If a block or sensor was renamed, "
+                         "convert the log first (as speedmatch/rename_extension_tracks.py did for the "
+                         "2026-11-13 rename)" % (source or "a log", route, ", ".join(stray)))
 
 
 def step_readings(events, step, lengths, order=ORDER, settle=lr.SETTLE_EVENTS,

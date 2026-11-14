@@ -50,7 +50,6 @@ MM_PER_IN = 25.4
 # Both PLAN_ constants are printed by tools/anyrail/prototype/loop_route.py (steps in its README).
 PLAN_LOOP_MM = 35108.2
 MIN_STEP = 24
-REF_BLOCK = "East Ext"
 DEFAULT_ROUTE = "loop1"
 
 # The loop's sensors and their block_lengths.csv rows come from the speed-match analysis
@@ -60,6 +59,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "speedmatch"))
 import analyze  # noqa: E402
 
 SENSOR_ROWS = {sensor[3:]: row for sensor, row in analyze.LOOP}  # loop1
+# The lap reference: loop1's first block (East Ext), the one the 2026-11-08 laps were timed on.
+REF_BLOCK = next(iter(SENSOR_ROWS))
 
 
 def route_rows(route):
@@ -68,7 +69,7 @@ def route_rows(route):
 
 
 def route_ref(route):
-    """The lap reference block: loop1 keeps East Ext, every other route its first sensor."""
+    """The lap reference block: each route's first sensor (loop1: East Ext)."""
     return REF_BLOCK if route == DEFAULT_ROUTE else next(iter(route_rows(route)))
 
 
