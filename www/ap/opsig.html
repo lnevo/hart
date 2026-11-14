@@ -11,18 +11,19 @@
   <header class="site-header" data-ops-header></header>
   <main class="ap-wrap">
     <div class="page-head">
+      <nav class="crumb" aria-label="Breadcrumb"><ol><li><a href="index.html">NMRA Achievement Program</a></li></ol></nav>
       <h1>OPSIG Achievement Program</h1>
       <p class="section-note">
         The Operations Special Interest Group runs its own awards for operators, started in 2025.
         Each Achievement stands alone, with its own certificate. Earning eight, including
         Conductor &amp; Engineer, makes you a Ninja (Qualified Operator). This page shows where HART
         stands on each one. For the NMRA certificates, see the
-        <a href="nmra.html">NMRA Achievement Program</a>.
+        <a href="index.html">NMRA Achievement Program</a>.
       </p>
     </div>
 
     <ul class="ap-key" aria-label="Key">
-      <li><span class="ap-mark done">Done</span> shown in the railroad's records</li>
+      <li><span class="ap-mark done">Done</span> met, with a link to the evidence</li>
       <li><span class="ap-mark part">Partly</span> started, more needed</li>
       <li><span class="ap-mark todo">To do</span> not started</li>
       <li><span class="ap-mark ask">Confirm</span> kept outside these records</li>
@@ -56,7 +57,7 @@
       <div class="ap-body">
         <ul class="ap-list">
           <li><span class="ap-mark done">Done</span><span>Principal organiser of five operating sessions.
-            <small>HART sessions 1 to 5, with invitations, crew sheets and STS paperwork for each (<a href="../operators/index.html">Operations</a>).</small></span></li>
+            <small>HART sessions 1 to 5: <a href="../operators/index.html">Operations</a>, <a href="../crew/index.html">session paperwork</a>, <a href="../photos/index.html#layout/session-night">session night photos</a>.</small></span></li>
           <li><span class="ap-mark todo">To do</span><span>Send the application with session dates.</span></li>
         </ul>
       </div>
@@ -90,7 +91,7 @@
         <p>Required for Ninja.</p>
         <ul class="ap-list">
           <li><span class="ap-mark done">Done</span><span>Ten sessions as conductor or engineer, on three different layouts. Your own layout and home club do not count.
-            <small>More than 20 such sessions logged in 2025 and 2026, on about ten layouts, including Island Ops and Ops Around the Clock.</small></span></li>
+            <small>More than 20 such sessions in 2025 and 2026, on eleven layouts, including Island Ops and Ops Around the Clock: <a href="log.html">operations log</a>.</small></span></li>
           <li><span class="ap-mark todo">To do</span><span>Pass the exam: timetable and train order, DTC, track warrants, CTC and general rules.
             <small>Register by email with OPSIG-AP; study material is linked from their C&amp;E page.</small></span></li>
         </ul>
@@ -122,7 +123,7 @@
       <div class="ap-body">
         <ul class="ap-list">
           <li><span class="ap-mark done">Done</span><span>Work as yardmaster on three different layouts.
-            <small>Four yardmaster sessions logged on three layouts in 2025 and 2026.</small></span></li>
+            <small>Four yardmaster sessions on three layouts in 2025 and 2026: <a href="log.html#by-job">operations log</a>.</small></span></li>
           <li><span class="ap-mark todo">To do</span><span>Send the application with the sessions.</span></li>
         </ul>
       </div>
@@ -142,7 +143,7 @@
       <div class="ap-body">
         <ul class="ap-list">
           <li><span class="ap-mark part">Partly</span><span>Attend three operating weekends, usually more than 100 miles from home.
-            <small>Ops Around the Clock in Rochester (2025, three layouts). Earlier or later years there count as more weekends.</small></span></li>
+            <small>Ops Around the Clock in Rochester (2025, three layouts): <a href="log.html#y2025">operations log</a>. Earlier or later years there count as more weekends.</small></span></li>
         </ul>
       </div>
     </details>
@@ -152,7 +153,7 @@
       <div class="ap-body">
         <ul class="ap-list">
           <li><span class="ap-mark todo">To do</span><span>Give three clinics mostly about operations.
-            <small>Ready-made subjects: STS car forwarding, the virtual track scale, the CATS CTC desk. A clinic also counts toward the NMRA <a href="nmra.html#author">Author</a> certificate.</small></span></li>
+            <small>Ready-made subjects: STS car forwarding, the virtual track scale, the CATS CTC desk. A clinic also counts toward the NMRA <a href="index.html#author">Author</a> certificate.</small></span></li>
         </ul>
       </div>
     </details>
@@ -180,14 +181,14 @@
       <a href="https://opsig-ap.org/ninja/">Ninja</a> ·
       <a href="https://opsig-ap.org/ce/">Conductor &amp; Engineer</a> ·
       <a href="https://www.opsig.org/">OPSIG</a> ·
-      <a href="nmra.html">NMRA Achievement Program</a>
+      <a href="index.html">NMRA Achievement Program</a>
     </p>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      HARTOps.mountChrome("behind-opsig").catch(function (err) {
+      HARTOps.mountChrome("ap-opsig").catch(function (err) {
         console.error(err);
       });
       document.querySelectorAll("[data-ap-toggle]").forEach(function (btn) {
