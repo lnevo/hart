@@ -23,11 +23,6 @@
    4
   ],
   [
-   "13",
-   "T52",
-   4
-  ],
-  [
    "T116",
    "T106",
    9
@@ -40,8 +35,8 @@
   [
    "T77",
    "T98",
-   4
+   5
   ]
  ],
- "_min_cells_east_lead": "Owner, 2026-11-13: East Lead (33-35) longer so its name and Mast 34L fit; South Yard tracks shorter (6 to 4 cells) to give the length back."
+ "_min_cells_east_lead": "Owner, 2026-11-13: East Lead (33-35) longer so its name and Mast 34L fit; South Yard tracks shorter (6 to 4 cells) to give the length back. Owner, 2026-11-14: the run from Switch 13 to Switch 15 drawn as short as the rules allow (3 cells, was 4) and the cell given to East Lead (5 cells), which lengthens West Ext beside it."
 }
