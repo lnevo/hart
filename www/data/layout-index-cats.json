@@ -45,10 +45,10 @@
       "y": 420.0,
       "systemName": "Switch 23",
       "publicName": "Switch 23",
-      "cp": "Brick",
-      "hardware": "Switch 23",
-      "mqtt": "",
-      "comment": "Digicon plant @ 40,6; OS OS Switch 23a",
+      "cp": "East End",
+      "hardware": "M2T1212",
+      "mqtt": "1212",
+      "comment": "Node: 12 Turnout: 4 | DCC: 111 | OU: 4 Ports: 1,2",
       "block": "OS Switch 23a"
     },
     {
@@ -84,10 +84,10 @@
       "y": 420.0,
       "systemName": "Switch 35",
       "publicName": "Switch 35",
-      "cp": "Brick",
-      "hardware": "Switch 35",
-      "mqtt": "",
-      "comment": "Digicon plant @ 52,6; OS OS Switch 35b",
+      "cp": "Princess",
+      "hardware": "M2T108",
+      "mqtt": "108",
+      "comment": "Node: 1 Turnout: 0 | DCC: 113 | OU: 1 Ports: 1,2",
       "block": "OS Switch 35b"
     },
     {
@@ -176,9 +176,9 @@
       "systemName": "Switch 7",
       "publicName": "Switch 7",
       "cp": "Barn",
-      "hardware": "Switch 7",
-      "mqtt": "",
-      "comment": "Digicon plant @ 15,7; OS OS Switch 7",
+      "hardware": "M2T1308",
+      "mqtt": "1308",
+      "comment": "Node: 13 Turnout: 0 | DCC: 117 | OU: 2 Ports: 1,2",
       "block": "OS Switch 7"
     },
     {
@@ -201,10 +201,10 @@
       "y": 480.0,
       "systemName": "Switch 13",
       "publicName": "Switch 13",
-      "cp": "Brick",
-      "hardware": "Switch 13",
-      "mqtt": "",
-      "comment": "Digicon plant @ 27,7; OS OS Switch 13",
+      "cp": "Engine House",
+      "hardware": "M2T411",
+      "mqtt": "411",
+      "comment": "Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8",
       "block": "OS Switch 13"
     },
     {
@@ -449,9 +449,9 @@
       "systemName": "Switch 9",
       "publicName": "Switch 9",
       "cp": "Engine House",
-      "hardware": "Switch 9",
-      "mqtt": "",
-      "comment": "Digicon plant @ 24,8; OS OS Switch 9",
+      "hardware": "M2T1310",
+      "mqtt": "1310",
+      "comment": "Node: 13 Turnout: 2 | DCC: 119 | OU: 2 Ports: 5,6",
       "block": "OS Switch 9"
     },
     {
@@ -461,10 +461,10 @@
       "y": 540.0,
       "systemName": "Switch 11",
       "publicName": "Switch 11",
-      "cp": "Brick",
-      "hardware": "Switch 11",
-      "mqtt": "",
-      "comment": "Digicon plant @ 26,8; OS OS Switch 11",
+      "cp": "Engine House",
+      "hardware": "M2T1309",
+      "mqtt": "1309",
+      "comment": "Node: 13 Turnout: 1 | DCC: 118 | OU: 2 Ports: 3,4",
       "block": "OS Switch 11"
     },
     {

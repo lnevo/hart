@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import names, paths, tables  # noqa: E402
 from hartlib.names import row_comment  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
@@ -86,55 +86,55 @@ def load_devices(path: Path = PANEL):
     root = tables.read(path)
     out = {}
     pair = {}  # DCC mirror turnout -> its "Node: n Turnout: k" text, to sit beside its MQTT turnout
+    address = re.compile(r"^(?:M2[ST]|IH)(\d+)$")  # hardware systems whose number is an MQTT address
 
     def node_comment(el):
         return tables.text(el, "comment").startswith("Node:")
 
-    def add(el, kind, mqtt=""):
-        out[tables.system_name(el)] = {
+    def add(el, kind):
+        sn = tables.system_name(el)
+        m = address.match(sn)
+        out[sn] = {
             "kind": kind,
             "userName": tables.user_name(el),
-            "mqtt": mqtt,
+            "mqtt": m.group(1) if m else "",
             "comment": tables.text(el, "comment"),
         }
 
-    def number(sn):
-        return re.sub(r"^(?:M2[ST]|[A-Z]+)", "", sn)
-
-    sensors = {tables.user_name(b): tables.system_name(b) for b in tables.sensors(root)}
+    detectors = {}  # occupancy sensor user name or system name -> MQTT address ("" for internal sensors)
     for el in tables.sensors(root):
         sn = tables.system_name(el)
-        if sn.startswith("M2S") and node_comment(el):
-            kind = "occupancy" if "Block:" in tables.text(el, "comment") else "feedback"
-            add(el, kind, number(sn))
+        m = address.match(sn)
+        number = m.group(1) if m else ""
+        detectors[sn] = detectors[tables.user_name(el)] = number
+        if m and sn.startswith("M2S") and node_comment(el):
+            add(el, "occupancy" if "Block:" in tables.text(el, "comment") else "feedback")
     for el in tables.turnouts(root):
         sn = tables.system_name(el)
         if sn.startswith("M2T"):
-            add(el, "turnout", number(sn))
+            add(el, "turnout")
         elif sn.startswith("MTT"):
             add(el, "lcc turnout")
-            pair[sn] = tables.text(el, "comment").split("|")[0].strip()
+            pair[sn] = names.first_group(tables.text(el, "comment"))
     for el in tables.signal_heads(root):
-        sn = tables.system_name(el)
-        if sn.startswith("IH") and node_comment(el):
-            add(el, "signal head", number(sn))
+        if tables.system_name(el).startswith("IH") and node_comment(el):
+            add(el, "signal head")
     for el in tables.masts(root):
         add(el, "signal mast")
     for el in tables.blocks(root):
         if tables.text(el, "comment").startswith("Hidden"):
             continue
-        det = sensors.get(tables.text(el, "occupancysensor"), "")
-        add(el, "os block" if tables.user_name(el).startswith("OS ") else "block", number(det))
+        add(el, "os block" if tables.user_name(el).startswith("OS ") else "block")
+        out[tables.system_name(el)]["mqtt"] = detectors.get(tables.text(el, "occupancysensor"), "")
 
     # Address order (node, port), a block or DCC mirror after its sensor or turnout, masts last.
-    turnout_at = {d["comment"].split("|")[0].strip(): d["mqtt"] for sn, d in out.items() if sn.startswith("M2T")}
-    inf = 10 ** 9
+    turnout_at = {names.first_group(d["comment"]): d["mqtt"] for sn, d in out.items() if sn.startswith("M2T")}
 
     def key(item):
         sn, d = item
         addr = d["mqtt"] or turnout_at.get(pair.get(sn, ""), "")
         late = sn in pair or d["kind"] in ("block", "os block")
-        return (int(addr) if addr else inf, late, not sn.startswith("IB:AUTO"))
+        return (int(addr) if addr.isdigit() else 10 ** 9, late, not sn.startswith("IB:AUTO"))
 
     return dict(sorted(out.items(), key=key))
 
@@ -219,21 +219,25 @@ def build():
 
     by_hw, by_name = load_names(NAMES)
     devices = load_devices(PANEL)
+    by_user = {d["userName"]: sn for sn, d in devices.items() if d["userName"]}
+    on_panel = set()  # device system names already drawn from the panel, so no dev- item repeats them
     cps = load_cps(CPS)
     items = []
 
     for i, t in enumerate(turnouts):
         tn = t.get("tn") or ""
         rec = by_hw.get(tn) or {}
+        dsn = tn if tn in devices else by_user.get(tn, "")
+        on_panel.add(dsn)
         if not rec:
-            un = (devices.get(tn) or {}).get("userName") or ""
+            un = (devices.get(dsn) or {}).get("userName") or ""
             rec = by_name.get(un) or {}
         public = rec.get("proposed") or rec.get("current") or tn or t.get("ident")
         block = t.get("block") or ""
         cp = cp_for(public, cps, rec.get("cp") or "")
         if not cp and block.startswith("OS "):
             cp = block
-        dev = devices.get(tn) or {}
+        dev = devices.get(dsn) or {}
         items.append(
             {
                 "id": f"to-{t.get('ident') or i}",
@@ -252,6 +256,7 @@ def build():
 
     for i, s in enumerate(signals):
         mast = s.get("name") or ""
+        on_panel.add(mast if mast in devices else by_user.get(mast, ""))
         rec = by_name.get(mast) or by_hw.get(mast) or {}
         public = rec.get("proposed") or rec.get("current") or mast
         items.append(
@@ -270,9 +275,8 @@ def build():
             }
         )
 
-    mapped = {it["systemName"] for it in items if it.get("systemName")}
     for sn, dev in devices.items():
-        if sn in mapped:
+        if sn in on_panel:
             continue
         kind_raw = (dev.get("kind") or "").lower()
         if "turnout" in kind_raw:

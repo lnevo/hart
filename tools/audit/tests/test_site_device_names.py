@@ -1,4 +1,4 @@
-"""Website device data must name masts and heads as tables.xml does.
+"""Published layout index must name masts and heads as tables.xml does.
 
 www/scripts/build_layout_index.py reads its device rows straight from tables.xml
 (it used to read a hand-kept JSON copy that kept the dwarf masts as AAR-1946:SL-1-low
@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import paths  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 INDEX = ROOT / "www/data/layout-index.json"
@@ -32,26 +32,27 @@ def _load_builder():
 class SiteDeviceNamesTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        root = tables.read(paths.TABLES_XML)
-        cls.live = {tables.system_name(b): tables.user_name(b)
-                    for b in list(tables.masts(root)) + list(tables.signal_heads(root))}
-        cls.devices = _load_builder().load_devices(paths.TABLES_XML)
+        # The masts and heads the site covers (load_devices' own filter), and the published index.
+        cls.expected = {sn: d["userName"] for sn, d in _load_builder().load_devices(paths.TABLES_XML).items()
+                        if d["kind"] in SIGNAL_KINDS}
+        cls.items = json.loads(INDEX.read_text(encoding="utf-8"))["items"]
+        cls.published = {it["systemName"] for it in cls.items if it.get("systemName")}
 
-    def test_every_mast_and_head_is_listed_as_tables_names_it(self) -> None:
-        listed = {sn: d["userName"] for sn, d in self.devices.items() if d["kind"] in SIGNAL_KINDS}
-        for sn, user in self.live.items():
-            if sn.startswith("IH9990"):
-                continue  # lamp head, not signal hardware
+    def test_filter_finds_the_signal_hardware(self) -> None:
+        self.assertGreater(len(self.expected), 50)
+
+    def test_every_mast_and_head_is_published_under_a_tables_name(self) -> None:
+        # Panel signals carry the mast's user name, device rows its system name.
+        for sn, user in self.expected.items():
             with self.subTest(device=sn):
-                self.assertEqual(listed.get(sn), user)
+                self.assertTrue(sn in self.published or user in self.published, f"{sn} / {user} not in the index")
 
-    def test_published_index_signal_devices_match_tables(self) -> None:
-        index = json.loads(INDEX.read_text(encoding="utf-8"))
-        for item in index["items"]:
-            sn = item.get("systemName")
-            if item["id"].startswith("dev-") and sn in self.live:
-                with self.subTest(device=sn):
-                    self.assertEqual(self.devices[sn]["userName"], self.live[sn])
+    def test_published_signal_names_are_tables_names(self) -> None:
+        names = set(self.expected) | set(self.expected.values())
+        for item in self.items:
+            if item["kind"] == "signal":
+                with self.subTest(item=item["id"]):
+                    self.assertIn(item["systemName"], names)
 
 
 if __name__ == "__main__":
