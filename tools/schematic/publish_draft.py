@@ -8,9 +8,14 @@ external/model-railroad-skills at its pinned commit (`git submodule update --ini
 in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plugin code.
 
 --check draws and compares with the published SVG without writing anything (exit 1 if they differ).
+When the drawing itself changed (not just the title block's date, revision or sheet), publishing sets `date`
+to today and adds 1 to `revision` in the page's preferences file (main_upper, the last input) and draws again.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 """
+import datetime
+import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -21,6 +26,8 @@ REPO = Path(__file__).resolve().parents[2]
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = Path.home() / "Documents/Layout/schematic"
 OUT = REPO / "docs/ops"
+PAGE_PREFS = DATA / "main_upper.preferences.json"      # the last input's preferences set the page
+FIELD = re.compile(r'^<text x="[\d.]+" y="[\d.]+" font-size="9.5" letter-spacing="1">.*</text>$')
 sys.path.insert(0, str(REPO / "tools/ops"))
 from screenshot import find_chrome  # noqa: E402
 
@@ -70,6 +77,19 @@ def draw():
         return mark(svg.read_text())
 
 
+def drawing_only(svg):
+    """The sheet without the title block's date, revision and sheet texts, to tell a real drawing change."""
+    return "\n".join(l for l in svg.splitlines() if not FIELD.match(l))
+
+
+def bump(path, today):
+    """Set the page's date to today and add 1 to its revision; returns the new (date, revision)."""
+    prefs = json.loads(path.read_text())
+    prefs["date"], prefs["revision"] = today.isoformat(), int(prefs.get("revision") or 0) + 1
+    path.write_text(json.dumps(prefs, indent=1, ensure_ascii=False) + "\n")
+    return prefs["date"], prefs["revision"]
+
+
 def pdf(svg_path, pdf_path):
     with tempfile.TemporaryDirectory() as tmp:
         page = Path(tmp) / "page.html"
@@ -88,6 +108,10 @@ def main(argv):
         same = target.exists() and target.read_text() == sheet
         print("published draft is current" if same else "published draft differs from the drawing")
         return 0 if same else 1
+    if target.exists() and drawing_only(target.read_text()) != drawing_only(sheet):
+        date, rev = bump(PAGE_PREFS, datetime.date.today())
+        print(f"drawing changed: title block set to {date}, revision {rev}")
+        sheet = draw()
     with tempfile.TemporaryDirectory() as tmp:
         svg, printed = Path(tmp) / target.name, Path(tmp) / "sheet.pdf"
         svg.write_text(sheet)

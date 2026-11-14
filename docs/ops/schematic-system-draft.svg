@@ -401,5 +401,11 @@
 <text x="34" y="748" font-size="14" font-weight="bold" letter-spacing="1">SYSTEM SCHEMATIC</text>
 <text x="34" y="766" font-size="11" font-weight="normal" letter-spacing="1">STAGING, MAIN AND UPPER LEVEL</text>
 <text x="34" y="784" font-size="11" font-weight="normal" letter-spacing="1">STAGE 0 PROOF, AS BUILT</text>
+<rect x="354" y="728" width="104" height="64" fill="#fff" stroke="#000" stroke-width="1.5"/>
+<text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 14, 2026</text>
+<path d="M354,749.3 L458,749.3" stroke="#000" stroke-width="0.8"/>
+<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 1</text>
+<path d="M354,770.7 L458,770.7" stroke="#000" stroke-width="0.8"/>
+<text x="362" y="785.2" font-size="9.5" letter-spacing="1">SHEET 1 OF 1</text>
 <text x="344" y="784" font-size="16" text-anchor="end" font-weight="bold" letter-spacing="3" fill="#c00">DRAFT</text>
 </svg>
