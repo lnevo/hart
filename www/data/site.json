@@ -55,7 +55,6 @@
         "guides",
         "guide",
         "layout",
-        "layout-levels",
         "tools"
       ]
     },
@@ -83,6 +82,7 @@
         "behind-car-cards",
         "behind-repo",
         "build",
+        "build-track-plan",
         "helix",
         "helix-status"
       ]
@@ -121,10 +121,10 @@
         "href": "guides/index.html"
       }
     ],
-    "layout-levels": [
+    "build-track-plan": [
       {
-        "label": "Layout",
-        "href": "layout/index.html"
+        "label": "The Build",
+        "href": "build/index.html"
       }
     ],
     "helix-status": [

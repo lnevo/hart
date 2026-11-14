@@ -16,7 +16,7 @@ the repo as `plan.any` and run the scripts there, in order:
 They write their JSON into the current folder. A generic, tested version is planned for the
 public model-railroad-skills plugin after the speed-matching run.
 
-Level plans page (`www/layout/levels.html`, also published as an artifact): `../levels_svg.py parts.json graph.json OUT`
+Level plans page (`www/build/track-plan.html`, also published as an artifact): `../levels_svg.py parts.json graph.json OUT`
 draws the main and upper level to scale (track only), and `../levels_page.py OUT ../staging_plan.svg PANEL|- site.html artifact.html`
 builds the page. `staging_plan.svg` is the staging level's track drawing, with the test loop and the Switch 5 to Switch 15 run
 marked; the Switch 7 and 13 markers come from the loop 2 passes (`infer_block_lengths.py --route loop2 --locate`).
