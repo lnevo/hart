@@ -12,14 +12,14 @@
   "Stage 0 proof, as built"
  ],
  "date": "2026-11-14",
- "revision": 1,
+ "revision": 2,
  "sheet": "1 of 1",
  "num_px": 6.5,
  "helix_style": "coil",
  "band_order": [
-  "Main",
+  "Staging",
   "Upper",
-  "Staging"
+  "Main"
  ],
  "rotate_bands": [],
  "equal_width": true,
@@ -98,5 +98,7 @@
  "level_leg": {
   "T210": "C",
   "T212": "B"
- }
+ },
+ "facing_letters": true,
+ "direction_arrows": true
 }
