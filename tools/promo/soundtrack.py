@@ -20,7 +20,8 @@ from scipy.io import wavfile
 from scipy.signal import butter, fftconvolve, sawtooth, sosfilt, sosfilt_zi
 
 SR = 44100
-RNG = np.random.default_rng(7)  # fixed seed: the same track every render
+SEED = 7
+RNG = np.random.default_rng(SEED)  # reseeded per track in render(): same track every time
 
 PADS = [(62, 66, 69), (61, 64, 69), (62, 66, 71), (62, 67, 71)]  # D, A, Bm, G
 BASS = [38, 33, 35, 31]
@@ -34,14 +35,14 @@ class Cue:
     beats: int
     sections: list[tuple[int, int, str]]
     hits: list[int] = field(default_factory=list)  # crash + stop
-    outro: int = 0  # beat of the final chord
+    outro: float = 0  # beat of the final chord (may fall between beats)
 
 
 CUES = {
     # build: 100 BPM, 0.6 s beat. Hook 3 beats, seven 0.6 s cuts, drop on the
-    # reveal at 6.0 s (beat 10), end card at 24.8 s, video ends 27.8 s.
+    # reveal at 6.0 s (beat 10), end card at 24.8 s (beat 41.33), video ends 27.8 s.
     "build": Cue(bpm=100, beats=47, sections=[(0, 3, "intro"), (3, 10, "rise"),
-                                              (10, 41, "full")], hits=[10], outro=41),
+                                              (10, 42, "full")], hits=[10], outro=24.8 / 0.6),
     # site: 85.71 BPM, 0.7 s beat, so every shot is one beat. Slams at beats
     # 3, 10, 17, 25; end card at 32; video ends 25.9 s (beat 37).
     "site": Cue(bpm=600 / 7, beats=37, sections=[(0, 3, "rise"), (3, 32, "full")],
@@ -107,7 +108,9 @@ def saw(freq: float, n: int, detune_cents: float = 0.0) -> np.ndarray:
 
 def place(buf: np.ndarray, sig: np.ndarray, t: float, gain: float = 1.0) -> None:
     i = int(t * SR)
-    if i >= len(buf):
+    if i < 0:  # starts before the track: keep only the part after 0
+        sig, i = sig[-i:], 0
+    if i >= len(buf) or not len(sig):
         return
     m = min(len(sig), len(buf) - i)
     buf[i:i + m] += sig[:m] * gain
@@ -190,6 +193,8 @@ def section_at(cue: Cue, beat: int) -> str:
 
 
 def render(cut: str) -> np.ndarray:
+    global RNG
+    RNG = np.random.default_rng(SEED)  # independent of what rendered before
     cue = CUES[cut]
     beat = 60.0 / cue.bpm
     total = cue.beats * beat
@@ -220,13 +225,13 @@ def render(cut: str) -> np.ndarray:
         if kind == "rise":
             place(drums, H, t + beat / 2, 0.12)
         # bass: 8ths, octave bounce
-        if kind == "full":
+        if hit:
+            place(bass, bass_note(BASS[chord], beat * 1.5), t, 0.6)
+        elif kind == "full":
             root = BASS[chord]
             for s in range(2):
                 note = root + (12 if s else 0)
                 place(bass, bass_note(note, beat / 2 * 0.95), t + s * beat / 2, 0.55)
-        elif hit:
-            place(bass, bass_note(BASS[chord], beat * 1.5), t, 0.6)
         # pad, one chord per bar
         if pos == 0:
             cutoff = {"intro": 700, "rise": 1100}.get(kind, 2200)

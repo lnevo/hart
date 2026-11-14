@@ -29,6 +29,7 @@ Condensed.
 from __future__ import annotations
 
 import argparse
+import functools
 import shutil
 import subprocess
 import tempfile
@@ -237,7 +238,8 @@ def video_frames(path: Path, vf: str, size: tuple[int, int], start: float = 0.0,
         if len(buf) < frame_bytes:
             break
         yield Image.frombytes("RGB", size, buf)
-    proc.wait()
+    if proc.wait():
+        raise SystemExit(f"ffmpeg could not decode {path}")
 
 
 def schematic(n: int) -> Iterator[Image.Image]:
@@ -252,7 +254,9 @@ def schematic(n: int) -> Iterator[Image.Image]:
     vf = (f"setpts=PTS/{speed:.4f},fps={FPS},crop=1372:1058:14:11,"
           f"scale={fw}:{fh}:flags=lanczos")
     frames = list(video_frames(src, vf, (fw, fh)))
-    last = frames[-1] if frames else Image.new("RGB", (fw, fh), WHITE)
+    if not frames:
+        raise SystemExit(f"no frames from {src}")
+    last = frames[-1]
     for i in range(n):
         im = frames[i] if i < len(frames) else last
         canvas = Image.new("RGB", (W, H), WHITE)
@@ -272,6 +276,8 @@ def ctc_pan(n: int) -> Iterator[Image.Image]:
     view = STAGE[2] - STAGE[0]
     vf = f"fps={FPS},crop=1200:652:0:62,scale={pw}:{ph}:flags=lanczos"
     frames = list(video_frames(src, vf, (pw, ph), start=19.0))
+    if not frames:
+        raise SystemExit(f"no frames from {src} after 19 s; is it shorter now?")
     bg = (34, 34, 42)
     for i in range(n):
         t = i / max(n - 1, 1)
@@ -285,7 +291,12 @@ def ctc_pan(n: int) -> Iterator[Image.Image]:
 
 
 def backdrop(name: str | None) -> Image.Image:
-    """Brand colour, or a layout photo blurred and tinted towards it."""
+    """Brand colour, or a layout photo blurred and tinted towards it (a copy)."""
+    return _backdrop(name, W, H).copy()
+
+
+@functools.lru_cache(maxsize=16)
+def _backdrop(name: str | None, w: int, h: int) -> Image.Image:
     if not name:
         return Image.new("RGB", (W, H), BRAND)
     src = ImageOps.exif_transpose(Image.open(PHOTOS / name)).convert("RGB")
@@ -488,11 +499,20 @@ def site_cut(fonts: Fonts, shots: dict[str, Path]) -> list[Segment]:
 
 
 CUTS = {"build": build_cut, "site": site_cut}
+CUT_PAGES = {"build": {"home"}, "site": set(PAGES.values())}  # captures each cut reads
 
 
 # ---------------------------------------------------------------- render
 
-def capture_pages(out: Path) -> dict[str, Path]:
+def find_chrome() -> str:
+    for name in (CHROME, "google-chrome", "chromium"):
+        found = shutil.which(name)
+        if found:
+            return found
+    raise SystemExit("Google Chrome not found")
+
+
+def capture_pages(out: Path, stems: set[str]) -> dict[str, Path]:
     """Phone-width captures of the live pages in PAGES, reusing files in out.
 
     Headless Chrome on macOS lays out no narrower than about 500 CSS px, so a
@@ -501,12 +521,17 @@ def capture_pages(out: Path) -> dict[str, Path]:
     out.mkdir(parents=True, exist_ok=True)
     shots = {}
     for path, stem in PAGES.items():
+        if stem not in stems:
+            continue
         shot = out / f"{stem}.png"
         if not shot.exists():
-            subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
-                            "--virtual-time-budget=6000", "--force-device-scale-factor=2.16",
-                            "--window-size=500,3600", f"--screenshot={shot}", SITE_URL + path],
-                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            with tempfile.TemporaryDirectory() as profile:  # never touch the owner's Chrome
+                subprocess.run([find_chrome(), "--headless=new", "--disable-gpu",
+                                "--hide-scrollbars", f"--user-data-dir={profile}",
+                                "--virtual-time-budget=6000", "--force-device-scale-factor=2.16",
+                                "--window-size=500,3600", f"--screenshot={shot}",
+                                SITE_URL + path],
+                               check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         shots[stem] = shot
     return shots
 
@@ -575,6 +600,10 @@ def main() -> None:
     ap.add_argument("--shots", type=Path, default=OUT / "shots",
                     help="folder for page captures; existing files are reused")
     args = ap.parse_args()
+    cuts = args.cuts.split(",")
+    unknown = [c for c in cuts if c not in CUTS]
+    if unknown:
+        ap.error(f"unknown cut(s): {', '.join(unknown)}; choose from {', '.join(CUTS)}")
     if not shutil.which("ffmpeg"):
         raise SystemExit("ffmpeg not found")
     args.out.mkdir(parents=True, exist_ok=True)
@@ -582,8 +611,8 @@ def main() -> None:
     set_format(args.format)
     suffix = "-youtube" if LAND else ""
     with tempfile.TemporaryDirectory() as tmp:
-        shots = capture_pages(args.shots or Path(tmp))
-        for cut in args.cuts.split(","):
+        shots = capture_pages(args.shots, set().union(*(CUT_PAGES[c] for c in cuts)))
+        for cut in cuts:
             out = args.out / f"hart-promo-{cut}{suffix}.mp4"
             segs = CUTS[cut](fonts, shots)
             render(segs, fonts, out)
