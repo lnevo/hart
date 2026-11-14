@@ -92,3 +92,28 @@ Each line is `<epoch seconds> <message>`. It reads `RUN`, `CFG`, `LENGTHS`, `WAR
 skipped. Logs from before distance mode (`READ`, `median=`, `WARMUP ... laps=`) still show.
 
 Tests: `jmri/layouts/hart/scripts/tests/test_speedmatch_dashboard.py`, run by `./tools/check.sh`.
+
+## Recorded runs on the website
+
+The same client shows finished runs on the public site at `ai/speed-runs.html`, linked from the
+speed-matching section of `ai/locomotives.html`. There it reads static JSON instead of polling
+`/api/state` (`window.SM_RECORDED` is set on that page), with a run picker, newest first, and a
+label for each run (used, superseded or not used, with the reason). The site build publishes the
+dashboard's own `static/app.js` and `static/style.css` (`www/scripts/published-files.json`), so
+there is no second copy.
+
+Regenerate the data after a session (the logs stay outside the repo):
+
+```
+python3 jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py ~/speedmatch-logs/<date> \
+    --labels docs/jmri/speedmatching/profile-<date>/site_labels.json
+```
+
+It feeds each `steprun_`, `pass_` and `stoptest_` log through `dashstate` and writes
+`www/data/speedmatch/index.json` and `runs/<id>.json`, keeping runs of earlier sessions. Every
+published log needs a label in the session's `site_labels.json` (used, superseded or not-used,
+with a headline and the reason; the export stops otherwise); logs under `skip` are left out. It
+builds next to the output and swaps it in at the end, so a failed export changes nothing. The
+website page repeats the live page's panels; a test checks that every id `app.js` needs is on
+both. Positioning (`moveto_`) logs
+are never published. The live view is not on the public site.

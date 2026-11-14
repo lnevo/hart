@@ -18,6 +18,7 @@
   "build/files/main-level-lumber-cut-list.html": "docs/benchwork/main_level/lumber_cut_list.html",
   "build/files/main-level-marking-sheets.pdf": "docs/benchwork/main_level/main_level_marking_sheets.pdf",
   "build/files/staging-level-framing.pdf": "docs/benchwork/staging_level/staging_level_framing.pdf",
+  "css/speedmatch-runs.css": "jmri/layouts/hart/scripts/speedmatch/dashboard/static/style.css",
   "docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf": "docs/ops/STRR Speed Match-Measure Table SOP Rev2.pdf",
   "helix/files/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md": "docs/benchwork/helix/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md",
   "helix/files/HART_Neville_Helix_BUILD_STATUS.md": "docs/benchwork/helix/HART_Neville_Helix_BUILD_STATUS.md",
@@ -88,5 +89,6 @@
   "helix/stl/router_depth_gauge.stl": "docs/benchwork/helix/stl/router_depth_gauge.stl",
   "helix/stl/router_sigerio_test_plate.stl": "docs/benchwork/helix/stl/router_sigerio_test_plate.stl",
   "helix/stl/router_sigerio_test_plate_body.stl": "docs/benchwork/helix/stl/router_sigerio_test_plate_body.stl",
-  "helix/stl/router_sigerio_test_plate_screw_rings.stl": "docs/benchwork/helix/stl/router_sigerio_test_plate_screw_rings.stl"
+  "helix/stl/router_sigerio_test_plate_screw_rings.stl": "docs/benchwork/helix/stl/router_sigerio_test_plate_screw_rings.stl",
+  "js/speedmatch-runs.js": "jmri/layouts/hart/scripts/speedmatch/dashboard/static/app.js"
 }

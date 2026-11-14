@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Speed-Match Runs — HART</title>
+  <meta name="description" content="Every recorded speed-matching run of CSX 2121 and CSX 2738 from 13 November 2026, newest first, drawn the way the live dashboard draws them: throttle step, speed in mm/s, blocks crossed, the 2738 against 2121 comparison, and which runs the final profile used.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/speedmatch-runs.css">
+  <style>
+    /* The viewer sits wider than the text column, like the tables browser. */
+    @media (min-width: 900px) {
+      #sm { position: relative; width: min(calc(100vw - 2.5rem), calc(var(--max) - 2.5rem)); }
+    }
+    .smd.embed .photo { object-fit: contain; background: #fff; }
+    .sm-wrap { margin: 1.25rem 0 2rem; }
+  </style>
+</head>
+<body data-page="behind-ai-speed-runs">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Speed-Match Runs</h1>
+      <p class="section-note">The recorded runs of CSX 2121 and CSX 2738 from 13 November 2026, newest first. Pick a run to see its readings, the speed curve and the comparison, as the live dashboard drew them while the run was under way. Each run says whether the final profile used it.</p>
+      <p><a href="locomotives.html#speed">&larr; Speed matching, the article</a></p>
+    </div>
+
+    <div class="sm-wrap">
+      <div class="smd embed" id="sm">
+        <noscript><p>This viewer needs JavaScript. The results are in the <a href="locomotives.html#speed">speed-matching article</a>.</p></noscript>
+        <header class="top">
+          <div class="brand"><span class="dot" id="livedot"></span><h2>Recorded runs</h2><span class="mode" id="mode"></span></div>
+          <div class="picker">
+            <label for="runpick">Run</label>
+            <select id="runpick" aria-label="Choose a run, newest first"></select>
+            <span class="conn" id="conn"></span>
+            <button class="btn" id="follow" hidden>Newest run</button>
+            <button class="btn" id="theme" aria-label="Switch light and dark theme">Theme</button>
+          </div>
+        </header>
+        <!-- LIVE LINK: one link to the home-network live dashboard goes here when it exists (Pi, not public). -->
+        <p class="live-link" id="live-link" hidden></p>
+        <div id="banner" class="banner" role="status" hidden></div>
+        <div class="dash">
+          <section class="card hero" id="hero"><p class="empty">Loading the recorded runs.</p></section>
+          <section class="card" id="stripcard" hidden>
+            <div class="card-h"><h2>Track</h2><span class="sub" id="stripsub"></span></div>
+            <div id="strip"></div>
+          </section>
+          <div class="two">
+            <section class="card" id="stepcard" hidden>
+              <div class="card-h"><h2>Readings</h2><span class="sub" id="stepsub"></span></div>
+              <div id="steppanel"></div>
+            </section>
+            <section class="card" id="chartcard">
+              <div class="card-h"><h2>Speed curve</h2>
+                <span class="sub">mm/s by throttle step</span>
+                <button class="btn small" id="tbl">Table</button></div>
+              <div class="legend" id="legend"></div>
+              <p class="flagnote" id="flagnote"></p>
+              <div class="chartwrap" id="chartwrap"><svg id="chart" role="img" aria-label="Speed in mm/s against throttle step for each run"></svg><div class="tip" id="tip" hidden></div></div>
+              <div class="datatable" id="datatable" hidden></div>
+            </section>
+          </div>
+          <div class="two">
+            <section class="card"><div class="card-h"><h2>2738 against 2121</h2><span class="sub">outside 3% is flagged</span></div><div id="compare"></div></section>
+            <section class="card"><div class="card-h"><h2>All runs</h2><span class="sub">click to open</span></div><div id="runs"></div></section>
+          </div>
+          <section class="card"><div class="card-h"><h2>Events</h2></div><ul class="feed" id="feed"></ul></section>
+        </div>
+      </div>
+    </div>
+    <p class="muted">The chart and the comparison show the latest run of each loco and direction up to the one picked, as the live page would have at that moment. The faint dotted lines are the 2026-11-08 result scaled to the corrected loop length. Times are Eastern. The raw logs are not published.</p>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-ai-speed-runs").catch(function (err) { console.error(err); });
+      // The fleet photos of the two locos, when the site has them; the dashboard shows none otherwise.
+      var photos = {};
+      fetch("../data/fleet-gallery.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (d) {
+        (d.items || []).forEach(function (it) {
+          var loco = { "csx-2121": "2121", "csx-2738": "2738" }[it.id];
+          var src = it.thumb || it.src || "";
+          if (loco && src && !/^https?:/.test(src)) photos[loco] = /^\.\.\//.test(src) ? src : "../" + src;  // gallery paths are already relative to ai/ when they start with ../
+        });
+      }).catch(function () {}).then(function () {
+        window.SM_RECORDED = { base: "../data/speedmatch/", photos: photos, tz: "America/New_York" };
+        var s = document.createElement("script");
+        s.src = "../js/speedmatch-runs.js";
+        document.body.appendChild(s);
+      });
+    });
+  </script>
+</body>
+</html>
