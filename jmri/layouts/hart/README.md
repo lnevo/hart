@@ -35,7 +35,6 @@ contains the Layout Editor, native SML, Dispatcher System, and USS CTC data.
 ```bash
 python3 jmri/scripts/cleanup_hart_duplicate_blocks.py   # drop empty duplicate <block> rows
 python3 jmri/scripts/polish_hart_cp_labels.py           # CP/area label hierarchy
-python3 jmri/scripts/export_hart_devices_for_cats.py    # CATS Designer bindings
 python3 jmri/scripts/check_hart_phase02.py
 python3 jmri/layouts/hart/scripts/polish_hart_layout_editor.py --check
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py

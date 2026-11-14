@@ -12,13 +12,14 @@ import csv
 import hashlib
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables  # noqa: E402
 from hartlib.names import row_comment  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
@@ -26,7 +27,6 @@ ROOT = paths.REPO_ROOT
 
 PANEL = paths.TABLES_XML
 NAMES = paths.PUBLIC_NAME_MAP
-DEVICES = PORTAL / "review-data/hart_devices_review.json"
 CPS = paths.LAYOUT_DATA / "control_points.csv"
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
@@ -76,16 +76,67 @@ def load_names(path: Path):
     return by_hw, by_name
 
 
-def load_devices(path: Path):
-    if not path.is_file():
-        return {}
-    data = json.loads(path.read_text(encoding="utf-8"))
-    rows = data if isinstance(data, list) else data.get("devices") or []
-    return {
-        (r.get("systemName") or "").strip(): r
-        for r in rows
-        if (r.get("systemName") or "").strip()
-    }
+def load_devices(path: Path = PANEL):
+    """Device rows read from tables.xml: system name -> {kind, userName, mqtt, comment}.
+
+    Covers the layout hardware only: MQTT occupancy and feedback sensors, turnouts
+    (MQTT and the DCC mirror), signal heads, signal masts, and the detected track blocks
+    (not the hidden throat blocks). Internal lamps, lever and CTC sensors are left out.
+    """
+    root = tables.read(path)
+    out = {}
+    pair = {}  # DCC mirror turnout -> its "Node: n Turnout: k" text, to sit beside its MQTT turnout
+
+    def node_comment(el):
+        return tables.text(el, "comment").startswith("Node:")
+
+    def add(el, kind, mqtt=""):
+        out[tables.system_name(el)] = {
+            "kind": kind,
+            "userName": tables.user_name(el),
+            "mqtt": mqtt,
+            "comment": tables.text(el, "comment"),
+        }
+
+    def number(sn):
+        return re.sub(r"^(?:M2[ST]|[A-Z]+)", "", sn)
+
+    sensors = {tables.user_name(b): tables.system_name(b) for b in tables.sensors(root)}
+    for el in tables.sensors(root):
+        sn = tables.system_name(el)
+        if sn.startswith("M2S") and node_comment(el):
+            kind = "occupancy" if "Block:" in tables.text(el, "comment") else "feedback"
+            add(el, kind, number(sn))
+    for el in tables.turnouts(root):
+        sn = tables.system_name(el)
+        if sn.startswith("M2T"):
+            add(el, "turnout", number(sn))
+        elif sn.startswith("MTT"):
+            add(el, "lcc turnout")
+            pair[sn] = tables.text(el, "comment").split("|")[0].strip()
+    for el in tables.signal_heads(root):
+        sn = tables.system_name(el)
+        if sn.startswith("IH") and node_comment(el):
+            add(el, "signal head", number(sn))
+    for el in tables.masts(root):
+        add(el, "signal mast")
+    for el in tables.blocks(root):
+        if tables.text(el, "comment").startswith("Hidden"):
+            continue
+        det = sensors.get(tables.text(el, "occupancysensor"), "")
+        add(el, "os block" if tables.user_name(el).startswith("OS ") else "block", number(det))
+
+    # Address order (node, port), a block or DCC mirror after its sensor or turnout, masts last.
+    turnout_at = {d["comment"].split("|")[0].strip(): d["mqtt"] for sn, d in out.items() if sn.startswith("M2T")}
+    inf = 10 ** 9
+
+    def key(item):
+        sn, d = item
+        addr = d["mqtt"] or turnout_at.get(pair.get(sn, ""), "")
+        late = sn in pair or d["kind"] in ("block", "os block")
+        return (int(addr) if addr else inf, late, not sn.startswith("IB:AUTO"))
+
+    return dict(sorted(out.items(), key=key))
 
 
 def load_cps(path: Path):
@@ -167,7 +218,7 @@ def build():
     X, Y, width, height, scale = overview_xy(turnouts, segs, signals, stations)
 
     by_hw, by_name = load_names(NAMES)
-    devices = load_devices(DEVICES)
+    devices = load_devices(PANEL)
     cps = load_cps(CPS)
     items = []
 
@@ -264,7 +315,7 @@ def build():
             "workspace": "hart",
             "panel": str(PANEL.relative_to(ROOT)),
             "names": str(NAMES.relative_to(ROOT)),
-            "devices": str(DEVICES.relative_to(ROOT)) if DEVICES.is_file() else None,
+            "devices": str(PANEL.relative_to(ROOT)),
         },
         "image": {
             "path": "assets/layout/HART_le_schematic.png",
