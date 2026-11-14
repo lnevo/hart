@@ -79,6 +79,20 @@ class Guards(unittest.TestCase):
             self.assertEqual(len(g), len(set(g)))
             self.assertEqual(make_job.guards(["default"], route), g)
 
+    def test_guard_order_is_the_file_order_of_the_real_tables(self):
+        """Same list, same order, as a plain ElementTree walk of tables.xml (what guard_for did
+        before it moved onto hartlib), so the guard a job carries has not shifted."""
+        import xml.etree.ElementTree as ET
+        for route in analyze.ROUTES:
+            on_route, want = set(analyze.route_order(route)), []
+            for el in ET.parse(str(TABLES)).getroot().iter("userName"):
+                n = (el.text or "").strip()
+                if n.startswith("BS ") and n not in on_route and n not in want:
+                    want.append(n)
+            self.assertEqual(make_job.guard_for(route), want, route)
+            self.assertTrue(want, route)
+        self.assertEqual(make_job.TABLES, TABLES)
+
     def test_loop2_guards_loop1_only_sensors(self):
         g = make_job.guard_for("loop2")
         for n in ("BS Main East", "BS East Ext", "BS Switch 7b", "BS S-1"):
