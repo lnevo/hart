@@ -15,6 +15,12 @@ both locos in both directions, Switch 13 and Switch 7 placed on loop 2, 2738 adj
 measured profiles written into both roster entries on the Pi and synced to the Mac and Windows.
 The pair is parked on EH-3 (Switches 13, 11 and 9 thrown), track power off.
 
+Watching and publishing: during a session the Pi serves the live view at
+`http://RPi-JMRI.local:12080/web/speedmatch/` (user service `hart-speedmatch-live`, house network or
+throttle Wi-Fi), so the Mac dashboard is not needed. After a session, label the runs in
+`profile-<date>/site_labels.json` and publish them to the website run viewer with
+`export_site_runs.py` ([`DASHBOARD.md`](../../docs/jmri/speedmatching/DASHBOARD.md)).
+
 Owner decisions: tolerance 5% (run-to-run repeat is about ±2%, more at slow steps); change only
 2738, never 2121; the consist does not link F0, so the trailing headlight stays off.
 
