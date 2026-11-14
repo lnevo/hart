@@ -53,14 +53,14 @@
   "car_in": 7.4
  },
  "detail_sheets": {
-  "Brick": [
+  "West Yard": [
    "1",
    "3"
   ],
   "Plane": [
    "5"
   ],
-  "West Yard": [
+  "Brick and Plane": [
    "1",
    "3",
    "5"
@@ -80,6 +80,26 @@
    "17",
    "19",
    "21"
+  ],
+  "Brick and South Yard": [
+   "1",
+   "3",
+   "15",
+   "17",
+   "19",
+   "21"
+  ],
+  "South Yard and East End": [
+   "15",
+   "17",
+   "19",
+   "21",
+   "23",
+   "25",
+   "27",
+   "29",
+   "31",
+   "33"
   ],
   "East End": [
    "23",

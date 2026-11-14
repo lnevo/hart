@@ -3,7 +3,7 @@
  "_note": "Facts about the railroad that the AnyRail plan 5.3b does not hold or holds wrongly. Every output uses them. Hands and legs of added switches come from the Layout Editor panel in tables.xml (Switch 9: hand R, straight EH-3, diverging EH-2).",
  "left_end": "W-1",
  "stations": {
-  "Brick": [
+  "West Yard": [
    "1",
    "3"
   ],
@@ -400,5 +400,6 @@
   "S-R East": 15.748,
   "East Lead East": 15.748,
   "K-1 West": 15.748
- }
+ },
+ "_stations": "W-1 and W-2 make up West Yard (owner, 2026-11-14); its switches 1 and 3 are the Brick control point."
 }
