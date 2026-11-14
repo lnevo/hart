@@ -12,8 +12,10 @@ drawn with Pillow and piped to ffmpeg, so this ffmpeg build needs no
 drawtext. Two cuts: "build" (empty room to railroad) and "site" (a tour of
 the website's Prototype, Operations, Behind the Scenes and AI sections).
 
-The output has a silent audio track. Add music from TikTok's own sound library
-when posting; do not bake in commercial music.
+The output has a silent audio track unless --music is given, which mixes in
+an original synthesised soundtrack from soundtrack.py (no rights holder, so
+nothing for Content ID to claim). On TikTok, add a sound from its library
+instead; do not bake in commercial music.
 
 --font-dir must hold BarlowCondensed-ExtraBold.ttf and -SemiBold.ttf (the
 site's display face, OFL, from github.com/google/fonts ofl/barlowcondensed).
@@ -465,16 +467,16 @@ def site_cut(fonts: Fonts, shots: dict[str, Path]) -> list[Segment]:
             ("ai", 7150, 7700, 0, 1080, -2),
         ]),
     ]
-    segs = [Segment(page_shot(shots["home"], 0, 1950, bg="IMG_8904.jpg"), 2.2,
+    segs = [Segment(page_shot(shots["home"], 0, 1950, bg="IMG_8904.jpg"), 2.1,
                     "My model railroad has its own website", caption_y=150)]
     for k, (name, caption, bg, picks) in enumerate(sections, 1):
-        segs.append(Segment(slam(fonts, name, f"{k} / {len(sections)}", bg), 0.6))
+        segs.append(Segment(slam(fonts, name, f"{k} / {len(sections)}", bg), 0.7))
         for page, y0, y1, x0, x1, tilt in picks:
             segs.append(Segment(page_shot(shots[page], y0, y1, x0, x1, tilt, bg), 0.7,
                                 caption, kicker=name, caption_y=150))
     segs.append(Segment(end_card(fonts, ("Prototype · Operations · Behind the Scenes",
                                          "The Diverging Route: AI in model railroading")),
-                        3.0))
+                        3.5))
     return segs
 
 
@@ -537,6 +539,22 @@ def render(segs: list[Segment], fonts: Fonts, out: Path) -> None:
         raise SystemExit("ffmpeg failed")
 
 
+def add_music(cut: str, video: Path, seconds: float, tmp: Path) -> None:
+    """Replace the silent track with the cut's soundtrack, faded at the end."""
+    import soundtrack  # same folder; numpy and scipy are only needed here
+
+    wav = tmp / f"{cut}.wav"
+    soundtrack.write(cut, str(wav))
+    mixed = video.with_suffix(".music.mp4")
+    af = (f"atrim=0:{seconds:.3f},afade=t=out:st={seconds - 0.6:.3f}:d=0.6,"
+          "loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(video), "-i", str(wav),
+                    "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", af,
+                    "-c:a", "aac", "-b:a", "192k", "-t", f"{seconds:.3f}",
+                    "-movflags", "+faststart", str(mixed)], check=True)
+    mixed.replace(video)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out", type=Path, required=True, help="output directory")
@@ -544,6 +562,8 @@ def main() -> None:
     ap.add_argument("--format", choices=("vertical", "landscape"), default="vertical",
                     help="vertical 1080x1920 (TikTok/Shorts) or landscape 1920x1080 (YouTube)")
     ap.add_argument("--cuts", default="build,site", help="comma list of: " + ", ".join(CUTS))
+    ap.add_argument("--music", action="store_true",
+                    help="mix in the cut's original soundtrack (soundtrack.py), -14 LUFS")
     ap.add_argument("--shots", type=Path,
                     help="folder for page captures; existing files are reused (default: temp)")
     args = ap.parse_args()
@@ -557,7 +577,10 @@ def main() -> None:
         shots = capture_pages(args.shots or Path(tmp))
         for cut in args.cuts.split(","):
             out = args.out / f"hart-promo-{cut}{suffix}.mp4"
-            render(CUTS[cut](fonts, shots), fonts, out)
+            segs = CUTS[cut](fonts, shots)
+            render(segs, fonts, out)
+            if args.music:
+                add_music(cut, out, sum(seg.n for seg in segs) / FPS, Path(tmp))
             print(out)
 
 
