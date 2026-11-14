@@ -29,9 +29,19 @@ What it does:
 - With no flag it installs on the Mac only. A host flag also installs on the Mac, then sends one staged package: the Pi by rsync, Windows by tarball over ssh. Each host unpacks into a temporary folder, installs into `JMRI_UserFiles`, and removes the folder.
 - It runs `audit_panel_contracts.py --strict` first and turns off the Digicon SML MQTT destinations in the shipped tables.
 - Operations files are overwritten on every host (`HART_OVERWRITE_OPS=1` is the default; `0` restores the guards).
-- Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES` and `HART_WIN_USERFILES`, read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `load_env.sh`.
+- Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES`, `HART_WIN_USERFILES` and `HART_PI_WEB_HOST` (the Pi's name in the Mac web home's links), read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `load_env.sh`.
 - Inside the package the host scripts still sit at cats/scripts/pi and cats/scripts/windows, where the hosts expect them; their repo source is `tools/hosts/pi/` and `tools/hosts/windows/`.
-- Each host it installs ends with `JMRI_UserFiles/cats/deploy_stamp.txt` (commit, branch, dirty, sha256 of the shipped `tables.xml` and `tables_modified_by_deploy`, date, deploying machine, target), written last by the apply step. Both apply steps install into the configured `HART_PI_USERFILES` / `HART_WIN_USERFILES`, so the stamp and `deploy_status.sh` agree.
+- Each host it installs ends with `JMRI_UserFiles/cats/deploy_stamp.txt` (commit, branch, dirty, sha256 of the shipped `tables.xml` and `tables_modified_by_deploy`, date, deploying machine, target, `source` and `redeploy_from`), written last by the apply step. Both apply steps install into the configured `HART_PI_USERFILES` / `HART_WIN_USERFILES`, so the stamp and `deploy_status.sh` agree.
+
+Redeploy an older commit (rollback):
+
+- `tools/hosts/redeploy_commit.sh <commit> --pi [--win]` (`--all`, or `--mac` for the Mac only), or `make redeploy COMMIT=<sha> HOSTS="--pi"`. Quit PanelPro on the Pi first, as for any deploy.
+- It makes a temporary detached worktree at that commit, runs that commit's own `sync_hart_package.sh` there with a clean environment (`env -i`: PATH, HOME, ssh agent, the deploy switches, and the host settings this checkout resolves, named by `load_env.sh`'s `HART_HOST_NAMES`), then removes the worktree. `--dry-run` and `--stage-only DIR` pass through.
+- It refuses a commit that is not on `origin/main` (git fetch first; `--allow-unmerged` overrides), one without `tools/hosts/sync_hart_package.sh` or the deploy stamp (before the ADR-007 amendment 2026-11-12), and a real run while PanelPro, DecoderPro or CATS is open on the Mac. It stops before building anything if `~/JMRI_UserFiles/tables.xml` holds a Store that is not pulled (the same test as the deploy, `tools/hosts/profile_tables_guard.sh`): run `make tables-pull` first.
+- The Operations files keep their guards (`HART_OVERWRITE_OPS=0`): an unpulled Pi session stops the Pi step, so run `make ops-pull`; a running JMRI keeps its files. `HART_OVERWRITE_OPS=1` replaces them as a normal deploy does.
+- For commits from this change on the stamp says `source=redeploy` and `redeploy_from=<commit that ran it>`; older commits' stamps say `branch=HEAD`. `make deploy-status` prints a note for either. A normal deploy writes `source=deploy`.
+- The stamp keeps no history. To find the commit to go back to, read the current one with `make deploy-status` and look at `git log --first-parent --oneline origin/main` for the merge before it.
+- After a rollback the Mac and the hosts hold the old commit's `tables.xml`. Go forward with a normal deploy from `main` before a PanelPro Store, or `make tables-pull` would bring the old tables back into the repo.
 
 Hosts and failures:
 
@@ -64,7 +74,7 @@ Name the hosts and sites deployed, or say which were skipped and why.
 
 ## Sources
 
-- `tools/hosts/sync_hart_package.sh`, `tools/hosts/deploy_status.sh`, `tools/env/load_env.sh`, `www/scripts/deploy_hartrailroad.sh`
+- `tools/hosts/sync_hart_package.sh`, `tools/hosts/redeploy_commit.sh`, `tools/hosts/deploy_status.sh`, `tools/env/load_env.sh`, `www/scripts/deploy_hartrailroad.sh`
 - `www/README.md` (Deploy safety, server notes)
 - `AGENTS.md` (close-out step 5), `wiki/STATUS.md`
 - `wiki/decisions/ADR-014-jmri-user-files.md`, `wiki/decisions/ADR-015-operations-files-in-repo.md`

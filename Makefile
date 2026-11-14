@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help wt wt-sweep check portal-check desks panelpro-test docs-index publications waybills submodules tables-pull ops-pull sts-pull shot deploy-layout deploy-all deploy-status deploy-site
+.PHONY: help wt wt-sweep check portal-check desks panelpro-test docs-index publications waybills submodules tables-pull ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -57,6 +57,10 @@ deploy-all:  ## Deploy to every layout host
 
 deploy-status:  ## Show which commit each layout host last got: make deploy-status HOSTS="--pi --win"
 	./tools/hosts/deploy_status.sh $(HOSTS)
+
+redeploy:  ## Redeploy an older commit (rollback): make redeploy COMMIT=<sha> HOSTS="--pi"
+	@test -n "$(COMMIT)" || { echo 'make redeploy COMMIT=<sha> HOSTS="--pi" (or --win, --all, --mac)'; exit 2; }
+	./tools/hosts/redeploy_commit.sh $(COMMIT) $(HOSTS)
 
 deploy-site:  ## Deploy www.hartrailroad.com
 	./www/scripts/deploy_hartrailroad.sh
