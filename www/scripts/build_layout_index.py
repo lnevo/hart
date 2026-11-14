@@ -17,6 +17,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
+from hartlib.names import row_comment  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = paths.REPO_ROOT
@@ -56,7 +57,7 @@ def load_names(path: Path):
                 "proposed": proposed,
                 "cp": row.get("cp") or "",
                 "hardware": hw,
-                "comment": row.get("comment") or "",
+                "comment": row_comment(row),
                 "historical": hist,
             }
 

@@ -17,6 +17,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
+from hartlib.names import row_comment  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
@@ -828,7 +829,7 @@ def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], st
             current = (row.get("current") or "").strip()
             proposed = (row.get("proposed") or "").strip()
             layer = (row.get("layer") or "").strip()
-            comment = public_comment(layer, proposed, (row.get("comment") or "").strip())
+            comment = public_comment(layer, proposed, row_comment(row))
             if not comment or current != proposed:
                 continue
             for token in (row.get("hardware") or "").split():

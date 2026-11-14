@@ -2,7 +2,8 @@
 """Rebuild public_name_map.csv from the HART Device map + live tables.
 
 After a convert, identity rows must be current == proposed == live userName.
-Device-map comments land in the `comment` column. Historical aliases stay so
+Device-map comments land in the `comment` column, with a turnout's DCC address
+split out into `dcc` (hartlib.names puts it back for JMRI). Historical aliases stay so
 leftover strings still convert.
 
 Default is dry-run. Pass --write-csv / --apply-comments to write.
@@ -21,6 +22,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables  # noqa: E402
+from hartlib.names import row_comment, split_dcc  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
@@ -207,22 +209,24 @@ def rebuild_rows(
         live_name = live.get(system_name) or device["userName"].strip()
         if not live_name:
             continue
+        comment, dcc = split_dcc(public_comment(device["kind"], live_name, device["comment"].strip()))
         row = {
             "layer": layer,
             "current": live_name,
             "proposed": live_name,
             "cp": cp_for({**device, "userName": live_name}, old_by_proposed),
             "hardware": hardware_for({**device, "userName": live_name}, old_by_proposed),
-            "comment": public_comment(device["kind"], live_name, device["comment"].strip()),
+            "dcc": dcc,
+            "comment": comment,
             "notes": "",
         }
         key = (layer, live_name)
         prev = identity.get(key)
-        if prev and prev["comment"] and row["comment"] and prev["comment"] != row["comment"]:
+        if prev and row_comment(prev) and row_comment(row) and row_comment(prev) != row_comment(row):
             # Two canvas rows share a live userName (unused occupancy). Keep
             # hardware-specific comments on the first; skip the duplicate key.
             continue
-        if prev is None or (not prev["comment"] and row["comment"]):
+        if prev is None or (not row_comment(prev) and row_comment(row)):
             identity[key] = row
 
     alias_rows: list[dict[str, str]] = []
@@ -239,6 +243,8 @@ def rebuild_rows(
         notes = row.get("notes") or ""
         if current != proposed and "historical alias" not in notes.lower():
             notes = f"historical alias; {notes}".strip("; ")
+        comment, dcc = (ident["comment"], ident["dcc"]) if ident else split_dcc(
+            public_comment(layer, proposed, row_comment(row)))
         alias_rows.append(
             {
                 "layer": layer,
@@ -246,9 +252,8 @@ def rebuild_rows(
                 "proposed": ident["proposed"] if ident else proposed,
                 "cp": ident["cp"] if ident else row.get("cp") or "",
                 "hardware": ident["hardware"] if ident else row.get("hardware") or "",
-                "comment": ident["comment"]
-                if ident
-                else public_comment(layer, proposed, row.get("comment") or ""),
+                "dcc": dcc,
+                "comment": comment,
                 "notes": notes,
             }
         )
@@ -266,7 +271,7 @@ def rebuild_rows(
 
 
 def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
-    fieldnames = ["layer", "current", "proposed", "cp", "hardware", "comment", "notes"]
+    fieldnames = ["layer", "current", "proposed", "cp", "hardware", "dcc", "comment", "notes"]
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
@@ -289,7 +294,7 @@ def comment_index(rows: list[dict[str, str]]) -> tuple[dict[str, str], dict[tupl
     for row in rows:
         if row["current"] != row["proposed"]:
             continue
-        comment = (row.get("comment") or "").strip()
+        comment = row_comment(row)
         if not comment:
             continue
         hardware = row.get("hardware") or ""

@@ -7,8 +7,8 @@
     switch_legs.csv  one row per OS block at the points: the block each leg
                      leads to when the switch is closed and when it is thrown
 
-Hardware, DCC address and control point come from the canonical turnout row
-of public_name_map.csv (current == proposed); control_points.csv lists which
+Hardware, DCC address (its own ``dcc`` column) and control point come from the
+canonical turnout row of public_name_map.csv (current == proposed); control_points.csv lists which
 switches each control point holds and its level. Nothing here is copied from
 those files.
 
@@ -144,7 +144,6 @@ def load_switches(data: Path = DATA) -> dict[int, Switch]:
         if hand not in HANDS:
             raise ValueError(f"{where}: hand is L, R or blank, got {hand!r}")
         nm = names.get(f"Switch {n}", {})
-        dcc = re.search(r"DCC:\s*(\d+)", nm.get("comment", ""))
         out[n] = Switch(
             number=n,
             level=row["level"],
@@ -155,7 +154,7 @@ def load_switches(data: Path = DATA) -> dict[int, Switch]:
             legs=tuple(legs.pop(n)),
             hand=hand,
             hardware=nm.get("hardware", ""),
-            dcc=dcc.group(1) if dcc else "",
+            dcc=nm.get("dcc", ""),
             cp=nm.get("cp", ""),
         )
     if legs:
