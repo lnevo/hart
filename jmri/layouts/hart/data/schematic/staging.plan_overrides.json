@@ -269,6 +269,45 @@
  "mast_prefix": "Mast ",
  "mast_dir_pattern": "\\d+([LR])",
  "helix_side": "east",
+ "milepost_origin": {
+  "switch": "1",
+  "milepost": 0.0
+ },
+ "_milepost_origin": "Made up (owner, 2026-11-14): no real milepost data, so the count starts at Switch 1 as MP 0.0 and runs east in scale miles.",
+ "scale_ratio": 87.1,
+ "helix_length_in": 690,
+ "_helix_length_in": "Estimate: the 15 in climb from staging to the main level at the helix's 2.27% (inner) and 2.09% (outer) grades is 661 to 718 in of track; 690 is the middle.",
+ "milepost_route": [
+  [
+   "1",
+   "5"
+  ],
+  [
+   "5",
+   "33"
+  ],
+  [
+   "33",
+   "T98"
+  ],
+  [
+   "T98",
+   "37"
+  ],
+  [
+   "37",
+   "McKeesport"
+  ],
+  [
+   "T98",
+   "39"
+  ],
+  [
+   "39",
+   "McKees Rocks"
+  ]
+ ],
+ "_milepost_route": "The count runs the long way round the staging main: Brick-Plane, East Ext, Main East, East Lead, then the two throats into the helix (through the Switch 35 crossover to 39). Main West and West Ext, the west part of the loop, carry none.",
  "track_lengths_in": {
   "W-1": 105.0,
   "W-2": 93.0,
