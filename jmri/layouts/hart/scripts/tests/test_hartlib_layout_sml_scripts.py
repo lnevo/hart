@@ -48,7 +48,6 @@ class PathsTest(unittest.TestCase):
             "disable_digicon_sml_in_tables": {
                 "ROOT": REPO, "NEW_TABLES": TABLES,
                 "WIRING": REPO / "docs/wiring/signals/signal_wiring.csv"},
-            "patch_ctc_locking": {"ROOT": REPO, "TABLES": TABLES},
             "polish_hart_layout_editor": {"ROOT": REPO, "DEFAULT_PANEL": TABLES},
             "reconcile_dispatcher_stations": {
                 "ROOT": REPO, "DEFAULT_PANEL": TABLES, "SYNC_PANEL": TABLES},
@@ -62,7 +61,7 @@ class PathsTest(unittest.TestCase):
             "validate_le_signalling": {
                 "DEFAULT_XML": TABLES,
                 "DEFAULT_CSV": REPO / "jmri/layouts/hart/data/le_signal_boundaries.csv",
-                "ORACLE": SCRIPTS / "apply_sml_cats_pairs.py"},
+                "ORACLE": REPO / "jmri/layouts/hart/data/sml_cats_oracle.csv"},
             "layout_facts": {"DATA": REPO / "jmri/layouts/hart/data"},
         }.items():
             mod = load(name)

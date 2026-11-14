@@ -287,7 +287,6 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "python3 jmri/scripts/polish_hart_cp_labels.py",
                     "python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py",
                     # flags these scripts do not define do not make them safe
-                    "python3 jmri/layouts/hart/scripts/annotate_mqtt_sensors_and_dispatcher.py --check",
                     "python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --dry-run"):
             self.assertEqual(self.code(cmd), 2, cmd)
 

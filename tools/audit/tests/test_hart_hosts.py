@@ -13,7 +13,6 @@ SCRIPTS = (
     "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
     "tools/mqtt/clear_mqtt_cmd_sensor_retain.py",
     "tools/mqtt-mimic/lcos_mqtt_mimic.py",
-    "tools/mqtt-mimic/sim_hart_train_mqtt.py",
     "tools/mqtt-mimic/qa/run_native_sml_qa.py",
 )
 
