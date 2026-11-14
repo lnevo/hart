@@ -31,6 +31,14 @@ def bezier(ctrl, n=14):
     return out
 
 
+def ease(x0, y0, x1, y1, n=16):
+    """An S-curve between two points, level at both ends, so the track eases off and back on."""
+    dx = x1 - x0
+    c = [(x0, y0), (x0 + 0.5 * dx, y0), (x1 - 0.5 * dx, y1), (x1, y1)]
+    return [[(1 - t) ** 3 * c[0][j] + 3 * (1 - t) ** 2 * t * c[1][j] + 3 * (1 - t) * t * t * c[2][j] + t ** 3 * c[3][j]
+             for j in range(2)] for t in (k / n for k in range(n + 1))]
+
+
 def poly(pts):
     return " ".join("%.1f,%.1f" % (x, y) for x, y in pts)
 
@@ -91,7 +99,7 @@ def svg_for(level, cls, to, labels):
                 d = (a["a"] - toe["a"] - math.pi) % (2 * math.pi)
                 return min(d, 2 * math.pi - d)
             leg = max(e[1:], key=off)          # T251 runs on into the inner helix track, T300's diverging leg
-            out.append('<line class="trk" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (toe["x"], toe["y"], leg["x"], leg["y"]))
+            out.append('<polyline class="trk" points="%s"/>' % poly(ease(toe["x"], toe["y"], leg["x"], leg["y"])))
             continue
         for a in e[1:]:
             out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (toe["x"], toe["y"], a["x"], a["y"]))
@@ -110,7 +118,7 @@ def svg_for(level, cls, to, labels):
         out.append('<text class="tl" x="%.1f" y="%.1f">crossover 23</text>' % (wx + 6, sy + 9))
         tx, ty, lx, dy = T300_NEW
         out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (tx, ty, lx, ty))
-        out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (tx, ty, lx, dy))
+        out.append('<polyline class="to" points="%s"/>' % poly(ease(tx, ty, lx, dy)))
         out.append('<text class="tl" x="%.1f" y="%.1f">T300</text>' % (tx, ty - 4))
     for x, y, anchor, text in NOTES.get(level, []):
         out.append('<text class="rl" x="%d" y="%d" text-anchor="%s">%s</text>' % (x, y, anchor, text))
