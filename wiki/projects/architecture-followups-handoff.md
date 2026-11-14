@@ -20,6 +20,24 @@ These are the items left from the 2026-11-14 re-review (senior architect, site r
 4. Add a rename checklist to `wiki/pipelines/switch-facts.md`.
 5. Prose in the wiki and docs may keep names. A record of what happened is not a copy to maintain.
 
+**Inventory (2026-11-14, step 1 only).** The full list is in the draft PR on branch `agent/claude/names-one-place`. Outside the generated and checked files there are:
+- 50 CPython scripts: 38 to move, 12 that hold names only in comments or dated records;
+- 5 Jython scripts, left alone;
+- 16 data files besides the six sources: 9 to move, 7 owned by JMRI, the Designer or Operations Pro;
+- 38 tests;
+- 10 site pages and 29 docs, mostly prose.
+
+Thirteen of the scripts are over 500 lines and need tests before they change. Several also need a new home for a drawing fact: CATS cells, desk anchors, USS labels, NX numbers, stations, throat splits. The estimate is 2 to 3 weeks, not a day, so the work stopped at the inventory.
+
+The PR proposes these phases:
+- **Phase 0, half a day:** a stale-name check in `check.sh`.
+- **Phase 1:** item 2 and the small lookups.
+- **Phase 2:** the desk, USS and Layout Editor generators.
+- **Phase 3:** wiring, mimic and publications.
+- **Retire instead:** a few one-shot scripts. `sim_hart_train_mqtt.py` already uses a name retired before 16R.
+
+**Next step:** the owner picks the phases.
+
 ## 2. Speed-match test routes from the data — do now
 
 **Owner (2026-11-14):** yes. `jmri/layouts/hart/scripts/speedmatch/analyze.py` types its test routes as (block sensor, track) pairs. Tests check them against `switch_legs.csv`, but they are still a third place that holds track names. Build the routes from the data files, or keep only the running order (the route) and look the names up. This is part of item 1 and is done in the same work.
@@ -58,7 +76,7 @@ The site is deployed with `./www/scripts/deploy_hartrailroad.sh` after the merge
 
 | Item | State |
 |------|-------|
-| 1 and 2 | In progress, one agent, one PR |
+| 1 and 2 | Inventory done (draft PR, `agent/claude/names-one-place`); waiting for the owner to pick phases |
 | 3 | Waiting for the owner's choice |
 | 4 | Parked with the USS work |
 | 5 | In progress, `site-builder`, one PR |
