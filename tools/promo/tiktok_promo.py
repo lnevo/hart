@@ -45,14 +45,21 @@ WHITE = (255, 255, 255)
 # Site pages for the "site" cut, captured live at phone width (path -> file stem).
 PAGES = {
     "": "home",
+    "history/": "history",
     "plants/": "plants",
+    "railroads/": "railroads",
     "photos/": "photos",
     "operators/cards/": "cards",
+    "operators/room/": "room",
     "crew/": "crew",
     "build/": "build",
+    "behind/": "behind",
     "behind/signals.html": "signals",
+    "behind/wiring.html": "wiring",
+    "behind/panel-evolution.html": "panels",
     "ai/": "ai",
     "ai/control.html": "ai-control",
+    "ai/speed-runs.html": "speed-runs",
 }
 
 
@@ -289,29 +296,117 @@ def build_cut(fonts: Fonts, shots: dict[str, Path]) -> list[Segment]:
     return segs
 
 
+def page_shot(shot: Path, y0: int, y1: int, x0: int = 0, x1: int = 1080,
+              tilt: float = 0.0, bg: str | None = None, area=(540, 1820)):
+    """One region of a page capture as a card: pops in, then creeps closer.
+
+    y0..x1 are pixels in the 1080 px wide capture. Full-width regions show at
+    960 px; narrower crops show at 1000 px, so they read as a zoom.
+    """
+    def gen(n: int) -> Iterator[Image.Image]:
+        region = Image.open(shot).convert("RGB").crop((x0, y0, x1, y1))
+        dw = 960 if x1 - x0 >= 1080 else 1000
+        dh = round(region.height * dw / region.width)
+        room = area[1] - area[0]
+        if dh > room:
+            dw, dh = round(dw * room / dh), room
+        region = region.resize((dw, dh), Image.LANCZOS)
+        pad = 60
+        card = Image.new("RGBA", (dw + 2 * pad, dh + 2 * pad), (0, 0, 0, 0))
+        sh = Image.new("RGBA", card.size, (0, 0, 0, 0))
+        ImageDraw.Draw(sh).rounded_rectangle((pad - 4, pad + 8, pad + dw + 4, pad + dh + 16),
+                                             radius=34, fill=(0, 0, 0, 160))
+        card.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)))
+        mask = Image.new("L", (dw, dh), 0)
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, dw, dh), radius=30, fill=255)
+        card.paste(region, (pad, pad), mask)
+        base = backdrop(bg)
+        cx, cy = W // 2, (area[0] + area[1]) // 2
+        for i in range(n):
+            pop = 4
+            if i < pop:
+                k = (i + 1) / pop
+                scale = 1.10 - 0.10 * (k * (2 - k))
+            else:
+                scale = 1.0 + 0.035 * (i - pop) / max(n - pop, 1)
+            im = card.resize((round(card.width * scale), round(card.height * scale)),
+                             Image.BICUBIC)
+            if tilt:
+                im = im.rotate(tilt, resample=Image.BICUBIC, expand=True)
+            frame = base.copy().convert("RGBA")
+            frame.alpha_composite(im, (cx - im.width // 2, cy - im.height // 2))
+            yield frame.convert("RGB")
+    return gen
+
+
+def slam(fonts: Fonts, word: str, count: str, bg: str | None):
+    """Section title card: the name punches in over a gold rule."""
+    def gen(n: int) -> Iterator[Image.Image]:
+        base = backdrop(bg)
+        for i in range(n):
+            k = min(1.0, (i + 1) / 4)
+            size = round(190 * (1.35 - 0.35 * (k * (2 - k))))
+            frame = base.copy()
+            d = ImageDraw.Draw(frame)
+            font = fonts.get(size)
+            lines = wrap(d, word.upper(), font, 980)
+            y = H // 2 - len(lines) * size * 0.95 / 2
+            d.text((W // 2, y - 90), count, font=fonts.get(64, heavy=False), fill=GOLD, anchor="mt")
+            for line in lines:
+                d.text((W // 2, y), line, font=font, fill=WHITE, anchor="mt")
+                y += size * 0.95
+            d.rectangle((W // 2 - 150, y + 30, W // 2 + 150, y + 42), fill=GOLD)
+            yield frame
+    return gen
+
+
 def site_cut(fonts: Fonts, shots: dict[str, Path]) -> list[Segment]:
-    """A tour of the website's four sections, two pages each."""
-    kw = dict(top=520, sh=1400, travel=1900)
-    sections = [  # kicker, caption, backdrop photo, pages
-        ("Prototype", "Real Neville Island history", "IMG_9231.jpg",
-         ["plants", "photos"]),
-        ("Operations", "Car cards, waybills and crew sheets", "IMG_8904.jpg",
-         ["cards", "crew"]),
-        ("Behind the Scenes", "How it's built, wired and signalled", "IMG_7813.jpg",
-         ["build", "signals"]),
-        ("The Diverging Route", "How AI helps build and run it", "IMG_9288.jpg",
-         ["ai", "ai-control"]),
+    """Rapid-fire tour of the site: four sections, a title slam then quick shots."""
+    sections = [  # name, caption, backdrop, shots (page, y0, y1, x0, x1, tilt)
+        ("Prototype", "Real Neville Island history", "IMG_9231.jpg", [
+            ("history", 120, 1400, 0, 1080, 0),
+            ("photos", 1900, 3000, 0, 1080, -3),
+            ("plants", 4300, 5700, 0, 1080, 0),
+            ("photos", 2900, 4000, 0, 1080, 3),
+            ("railroads", 2700, 3700, 0, 1080, 0),
+            ("photos", 5800, 6950, 0, 1080, -2.5),
+        ]),
+        ("Operations", "Car cards, waybills and crew sheets", "IMG_8904.jpg", [
+            ("cards", 330, 1650, 60, 1020, 0),
+            ("cards", 3360, 4440, 150, 930, -3),
+            ("cards", 4500, 5560, 150, 930, 3),
+            ("crew", 560, 2300, 0, 1080, 0),
+            ("room", 1150, 2500, 0, 1080, -2),
+            ("cards", 6560, 7160, 20, 780, 0),
+        ]),
+        ("Behind the Scenes", "How it's built, wired and signalled", "IMG_7813.jpg", [
+            ("behind", 280, 660, 20, 560, 0),
+            ("behind", 2230, 2960, 0, 1080, 3),
+            ("signals", 1600, 2550, 0, 1080, 0),
+            ("wiring", 1350, 2750, 0, 1080, -3),
+            ("build", 5550, 6800, 0, 1080, 0),
+            ("panels", 5400, 6000, 380, 700, 2.5),
+            ("build", 4250, 5500, 0, 1080, 0),
+        ]),
+        ("The Diverging Route", "How AI helps build and run it", "IMG_9288.jpg", [
+            ("ai", 600, 2150, 0, 1080, 0),
+            ("speed-runs", 2600, 3450, 0, 1080, -3),
+            ("speed-runs", 6100, 6950, 0, 1080, 0),
+            ("ai-control", 0, 1650, 0, 1080, 3),
+            ("ai", 4300, 5450, 0, 1080, 0),
+            ("ai", 7150, 7700, 0, 1080, -2),
+        ]),
     ]
-    segs = [Segment(phone_scroll(shots["home"], travel=500, bg="IMG_8904.jpg", **{
-        k: v for k, v in kw.items() if k != "travel"}), 2.8,
-        "My model railroad has its own website", caption_y=150)]
-    for kicker, caption, bg, pages in sections:
-        for page in pages:
-            segs.append(Segment(phone_scroll(shots[page], bg=bg, hold=0.15, **kw), 3.2,
-                                caption, kicker=kicker, caption_y=150))
+    segs = [Segment(page_shot(shots["home"], 0, 1950, bg="IMG_8904.jpg"), 2.2,
+                    "My model railroad has its own website", caption_y=150)]
+    for k, (name, caption, bg, picks) in enumerate(sections, 1):
+        segs.append(Segment(slam(fonts, name, f"{k} / {len(sections)}", bg), 0.6))
+        for page, y0, y1, x0, x1, tilt in picks:
+            segs.append(Segment(page_shot(shots[page], y0, y1, x0, x1, tilt, bg), 0.7,
+                                caption, kicker=name, caption_y=150))
     segs.append(Segment(end_card(fonts, ("Prototype · Operations · Behind the Scenes",
                                          "The Diverging Route: AI in model railroading")),
-                        3.5))
+                        3.0))
     return segs
 
 
