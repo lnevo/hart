@@ -105,6 +105,13 @@ def run_view(store, rid, lines, reference, note=None, now=None, mode="recorded")
                      t_end=stop["t_end"], elapsed=(stop["t_end"] - stop["t_first"]) if stop["t_end"] else None)
     elif focus["banner"] and focus["status"] == "done":
         focus["banner"] = None  # a step run that finished is not a stop
+    # Only this run and the ones before it, as the live page showed at the time. The export feeds
+    # the logs in order so later runs are not in the store yet; the Pi's store holds them all.
+    def began(r):
+        t = r["t0"] if r["t0"] is not None else r["t_last"]
+        return t if t is not None else 0.0
+    upto = began(focus)
+    snap["runs"] = [r for r in snap["runs"] if r is focus or began(r) <= upto]
     for r in snap["runs"]:
         r["photo"] = r["model"] = None
     snap["reference"] = reference
