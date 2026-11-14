@@ -33,11 +33,13 @@ Feedback from operating session #4: the dispatcher's notes on DS-01 Rev D, the o
 | 7 | Resistor wheels | Needed before standing cars between Princess and East End show, and before the train label "bounce" is looked at |
 | 8 | Put up mock signals at every interlocking rail gap so crews know where to stop | With the CP signs (item 4) beside them |
 | 9 | Print and mount the crew board (item 5) | |
-| 10 | Drill signal on the Barn lead: decide what it should be | See below |
+| 10 | Wire the drill signal on the Barn lead | The signal is already installed, not yet wired. See below |
 
 ### Drill signal
 
-A drill track is a yard lead that crews use for switching ("drilling") cars. A drill signal is usually a dwarf at the lead's end. It tells the yard crew whether they may pull out past the lead's limit onto the controlled track, here the Switch 7 crossover at Barn. It goes with the new crossover rule: the yardmaster asks for the move and the dispatcher lines it and clears the signal. It can be a mock signal (a stop marker, like item 8) or a real mast that the dispatcher clears from the panel.
+A drill track is a yard lead that crews use for switching ("drilling") cars. A drill signal is a dwarf at the lead's end. It tells the yard crew whether they may pull out past the lead onto the Switch 7 crossover at Barn. It goes with the crossover rule: the yardmaster asks for the move, and the dispatcher lines it and clears the signal.
+
+The signal is already on the layout; it needs wiring. The wiring plan has one dwarf at Barn: Mast 8LB on Switch 7 reverse. It is head IH1334, LCOS Signal 2 on C13, at ports C13-OU3-7, C13-OU3-8 and C13-OU4-7 (`docs/wiring/signals/signal_wiring.csv`). If the drill signal is a different one, it needs its own entry in the plan.
 
 ## Deferred
 
