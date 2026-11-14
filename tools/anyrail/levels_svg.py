@@ -31,16 +31,31 @@ def bezier(ctrl, n=14):
     return out
 
 
-def ease(x0, y0, x1, y1, n=16):
-    """An S-curve between two points, level at both ends, so the track eases off and back on."""
-    dx = x1 - x0
-    c = [(x0, y0), (x0 + 0.5 * dx, y0), (x1 - 0.5 * dx, y1), (x1, y1)]
+def heading(parts, x, y, near=0.5):
+    """Unit direction of the flex that ends at (x, y), pointing away from that end, or None."""
+    for p in parts:
+        for b in p["bez"] or []:
+            for end, nxt in ((b[0], b[1]), (b[-1], b[-2])):
+                if math.dist(end, (x, y)) < near:
+                    d = math.dist(end, nxt) or 1.0
+                    return [(nxt[0] - end[0]) / d, (nxt[1] - end[1]) / d]
+    return None
+
+
+def ease(x0, y0, x1, y1, d0=(1.0, 0.0), d1=(1.0, 0.0), n=20):
+    """A smooth curve between two points that leaves along d0 and arrives along d1 (the tracks either side),
+    so there is no kink where it meets them."""
+    k = 0.4 * math.dist((x0, y0), (x1, y1))
+    c = [(x0, y0), (x0 + k * d0[0], y0 + k * d0[1]), (x1 - k * d1[0], y1 - k * d1[1]), (x1, y1)]
     return [[(1 - t) ** 3 * c[0][j] + 3 * (1 - t) ** 2 * t * c[1][j] + 3 * (1 - t) * t * t * c[2][j] + t ** 3 * c[3][j]
-             for j in range(2)] for t in (k / n for k in range(n + 1))]
+             for j in range(2)] for t in (m / n for m in range(n + 1))]
 
 
 def poly(pts):
     return " ".join("%.1f,%.1f" % (x, y) for x, y in pts)
+
+
+PARTS = []
 
 
 def build(parts, graph):
@@ -72,7 +87,11 @@ NAMES = {161: "double crossover"}      # plan parts that read better by what the
 # other up to T237. The owner built both on the upper level, joined by T300 (plan_overrides: T300 moved).
 UPPER_RAILS = {254, 287, 259, 303, 296, 293, 261, 298, 304, 302}
 XOVER23 = (413.7, 320.0, 461.4, 325.1)      # west x, north y, east x, south y of the plan's double crossover
-T300_NEW = (428.1, 127.4, 451.5, 134.1)     # toe x and y, then the end of the straight (north) and the diverging leg
+# T300 on the upper level: a stock turnout (23.4 cm long, legs 2.5 cm apart) on the north rail, its diverging
+# leg eased into the south rail (which starts at B_RAIL) over the gap. The toe sits 20 cm west of the plan's old T300.
+T300_NEW = (408.1, 127.4)
+T300_LEN, T300_OFFSET = 23.4, 2.5
+B_RAIL = (451.5, 134.1)
 MOVED = {300}     # plan parts the overlay (plan_overrides) moves to another level: drawn as plain track here
 NOTES = {         # words placed on a level: (x, y, anchor, text)
     "main": [(405, 130, "start", "H1 McKees Rocks (T175)"), (392, 130, "end", "H2 McKeesport (T251)")],
@@ -99,7 +118,9 @@ def svg_for(level, cls, to, labels):
                 d = (a["a"] - toe["a"] - math.pi) % (2 * math.pi)
                 return min(d, 2 * math.pi - d)
             leg = max(e[1:], key=off)          # T251 runs on into the inner helix track, T300's diverging leg
-            out.append('<polyline class="trk" points="%s"/>' % poly(ease(toe["x"], toe["y"], leg["x"], leg["y"])))
+            d0 = heading(PARTS, toe["x"], toe["y"]) or (1.0, 0.0)
+            d1 = heading(PARTS, leg["x"], leg["y"]) or (1.0, 0.0)
+            out.append('<polyline class="trk" points="%s"/>' % poly(ease(toe["x"], toe["y"], leg["x"], leg["y"], d0, d1)))
             continue
         for a in e[1:]:
             out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (toe["x"], toe["y"], a["x"], a["y"]))
@@ -116,9 +137,14 @@ def svg_for(level, cls, to, labels):
         out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (mx0, ny, mx1, sy))
         out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (mx0, sy, mx1, ny))
         out.append('<text class="tl" x="%.1f" y="%.1f">crossover 23</text>' % (wx + 6, sy + 9))
-        tx, ty, lx, dy = T300_NEW
-        out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (tx, ty, lx, ty))
-        out.append('<polyline class="to" points="%s"/>' % poly(ease(tx, ty, lx, dy)))
+        tx, ty = T300_NEW
+        ex, dy = tx + T300_LEN, ty + T300_OFFSET
+        out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (tx, ty, ex, ty))
+        out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (tx, ty, ex, dy))
+        out.append('<line class="to" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (ex, ty, ex, dy))
+        d0 = [T300_LEN / math.hypot(T300_LEN, T300_OFFSET), T300_OFFSET / math.hypot(T300_LEN, T300_OFFSET)]
+        d1 = heading(PARTS, B_RAIL[0], B_RAIL[1]) or (1.0, 0.0)
+        out.append('<polyline class="trk" points="%s"/>' % poly(ease(ex, dy, B_RAIL[0], B_RAIL[1], d0, d1)))
         out.append('<text class="tl" x="%.1f" y="%.1f">T300</text>' % (tx, ty - 4))
     for x, y, anchor, text in NOTES.get(level, []):
         out.append('<text class="rl" x="%d" y="%d" text-anchor="%s">%s</text>' % (x, y, anchor, text))
@@ -143,6 +169,7 @@ def bbox(cls, to, level):
 
 def main(parts_file, graph_file, out_dir):
     parts = json.load(open(parts_file))
+    PARTS[:] = parts
     graph = json.load(open(graph_file))
     cls, to = build(parts, graph)
     out = Path(out_dir)
