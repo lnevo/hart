@@ -2,7 +2,8 @@
 """Railroad facts about each switch, read from jmri/layouts/hart/data/.
 
     switches.csv     one row per switch: level, number, Layout Editor turnout,
-                     CATS inversion and its USS CTC lever
+                     CATS inversion, its USS CTC lever and its hand (L or R,
+                     blank where nobody has recorded it)
     switch_legs.csv  one row per OS block at the points: the block each leg
                      leads to when the switch is closed and when it is thrown
 
@@ -41,6 +42,7 @@ from hartlib import paths  # noqa: E402
 
 DATA = paths.LAYOUT_DATA
 YES = {"yes": True, "no": False}
+HANDS = {"", "L", "R"}
 _SWITCH_NAME = re.compile(r"(?:DCC |FB )?Switch (\d+)(?: [NR])?")
 
 
@@ -60,6 +62,7 @@ class Switch:
     ctc_is: int
     ctc_signals: bool
     legs: tuple[Leg, ...] = ()
+    hand: str = ""
     hardware: str = ""
     dcc: str = ""
     cp: str = ""
@@ -137,6 +140,9 @@ def load_switches(data: Path = DATA) -> dict[int, Switch]:
             raise ValueError(f"switches.csv lines {first} (Switch {other}) and {line} (Switch {n}) "
                              f"both use USS lever IS{ctc_is}")
         lever[ctc_is] = (line, n)
+        hand = row.get("hand", "")
+        if hand not in HANDS:
+            raise ValueError(f"{where}: hand is L, R or blank, got {hand!r}")
         nm = names.get(f"Switch {n}", {})
         dcc = re.search(r"DCC:\s*(\d+)", nm.get("comment", ""))
         out[n] = Switch(
@@ -147,6 +153,7 @@ def load_switches(data: Path = DATA) -> dict[int, Switch]:
             ctc_is=ctc_is,
             ctc_signals=_yes(row["ctc_signals"], where),
             legs=tuple(legs.pop(n)),
+            hand=hand,
             hardware=nm.get("hardware", ""),
             dcc=dcc.group(1) if dcc else "",
             cp=nm.get("cp", ""),
