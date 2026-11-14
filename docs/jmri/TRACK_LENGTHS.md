@@ -35,8 +35,8 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | Track S-4 | Block 2-4 | 100 | 2540.0 | assigned | Yard 1 (reversed) |
 | Track K-1 | Block 1-1 | 108 | 2743.2 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps; detector length minus Track K-1 West |
 | Track K-2 | Block 1-2 | 113.6 | 2885.4 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
-| Track Scale | Block 4-8 | 24 | 609.6 | estimate | new with 116/117 |
-| Track Barn | Block 13-1 | 24 | 609.6 | estimate | new with 116/117 |
+| Track Scale | Block 4-8 | 144.5 | 3670.3 | inferred | timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48): Switch 7 at 4249 mm, less half of OS Switch 5 and OS Switch 7 |
+| Track Barn | Block 13-1 | 37.6 | 955.0 | inferred | timed passes of 2026-11-13: Switch 7 at 4249 mm and Switch 13 at 5457 mm, less half of OS Switch 7 and OS Switch 13 |
 | Track EH-1 | Block 13-7 | 24 | 609.6 | estimate |  |
 | Track EH-2 | Block 13-6 | 24 | 609.6 | estimate |  |
 | Track EH-3 | Block 13-5 | 24 | 609.6 | estimate |  |
@@ -67,7 +67,7 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | OS Switch 1 | Block 4-2 | 22.6 | 574.0 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
 | OS Switch 3 | Block 4-1 | 10 | 254.0 | estimate | switch |
 | OS Switch 5 | Block 4-5 | 24.6 | 624.8 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
-| OS Switch 15 | Block 3-2 | 10 | 254.0 | estimate | switch |
+| OS Switch 15 | Block 3-2 | 13.9 | 353.1 | inferred | takes half of the 7.7 in between Switch 13 and Switch 15, so Switch 5 to Switch 15 matches the plan |
 | OS Switch 17 | Block 3-3 | 10 | 254.0 | estimate | switch |
 | OS Switch 19 | Block 3-5 | 10 | 254.0 | estimate | switch |
 | OS Switch 21 | Block 3-7 | 10 | 254.0 | estimate | switch |
@@ -82,7 +82,7 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | OS Switch 35b | Block 1-5 | 20.5 | 520.7 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
 | OS Switch 37 | Block 1-3 | 16.5 | 419.1 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.4 in over 33 laps |
 | OS Switch 39 | Block 1-4 | 9.6 | 243.8 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
-| OS Switch 13 | Block 3-1 | 10 | 254.0 | estimate | cut from West Lead |
+| OS Switch 13 | Block 3-1 | 13.9 | 353.1 | inferred | takes half of the 7.7 in between Switch 13 (5457 mm) and Switch 15 (5909 mm), so Switch 5 to Switch 15 matches the plan |
 | OS Switch 7 | Block 13-3 | 10 | 254.0 | estimate | cut from Track Main East |
 | OS Switch 7b | Block 13-4 | 9.2 | 233.7 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
 | OS Switch 11 | Block 13-2 | 10 | 254.0 | estimate | switch |
