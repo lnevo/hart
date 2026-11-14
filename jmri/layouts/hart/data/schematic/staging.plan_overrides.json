@@ -75,7 +75,7 @@
       "T52"
      ],
      "port": "C",
-     "cm_from_first": 86,
+     "cm_from_first": 396.9,
      "points_toward": "T52",
      "names": [
       "Scale",
@@ -88,7 +88,7 @@
       "T77"
      ],
      "port": "B",
-     "cm_from_first": 357,
+     "cm_from_first": 387.0,
      "points_toward": "T106",
      "names": [
       "East Ext",
@@ -106,7 +106,7 @@
     "7a",
     "T52"
    ],
-   "cm_from_first": 61,
+   "cm_from_first": 120.8,
    "points_toward": "T52",
    "names": [
     "Barn",
