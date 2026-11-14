@@ -166,37 +166,11 @@ FALLBACK_LABEL_SENSORS = {"Track Main East": ("BS Main East", "Track Main East")
 # OS occupancy-cut sits at the frog; lamp goes left/right of the points.
 OS_FROG = {os_name: xy for xy, os_name in PLANT_CELLS.items()}
 
-# (mast, cats_x, cats_y, facing, kind, IH* or None). kind "h2" draws a mast
-# icon (two-head masts); "d1" draws a head icon on the mast's only head.
-# Cells and kinds follow the SECSIGNALs in the CATS desk (LAMP2 = h2).
-SIGNALS = [
-    ("Mast 4RA", 6, 10, "E", "d1", "IH436"),
-    ("Mast 4RB", 6, 9, "E", "d1", "IH437"),
-    ("Mast 2L", 3, 8, "W", "h2", None),
-    ("Mast 6LA", 10, 7, "W", "d1", "IH434"),
-    ("Mast 6LB", 10, 8, "W", "d1", "IH432"),
-    ("Mast 8RA", 14, 7, "E", "h2", None),
-    ("Mast 8RB", 14, 8, "E", "h2", None),
-    ("Mast 8LB", 16, 7, "W", "d1", "IH1334"),
-    ("Mast 8LA", 16, 8, "W", "h2", None),
-    ("Mast 24RA", 39, 6, "E", "h2", None),
-    ("Mast 24RB", 39, 7, "E", "d1", "IH234"),
-    ("Mast 24L", 45, 6, "W", "h2", None),
-    ("Mast 32R", 42, 7, "E", "d1", "IH1234"),
-    ("Mast 34R", 44, 8, "E", "h2", None),
-    ("Mast 34L", 45, 7, "W", "h2", None),
-    ("Mast 36RA", 51, 6, "E", "h2", None),
-    ("Mast 36RB", 51, 7, "E", "h2", None),
-    # Princess (ADR-017 item 9): two-head homes on the McKees Rocks / McKeesport
-    # mains (centre rows), dwarfs on K-1 / K-2 (outer rows), as on the CATS desk.
-    ("Mast 40LB", 56, 5, "W", "d1", "IH1136"),
-    ("Mast 40LA", 56, 6, "W", "h2", None),
-    ("Mast 38LA", 56, 7, "W", "h2", None),
-    ("Mast 38LB", 56, 8, "W", "d1", "IH143"),
-    # Balloon intermediates on Track K-1, east of 40LB, as on the CATS desk.
-    ("Mast 2035", 61, 5, "W", "d1", "IH1134"),
-    ("Mast 2036", 62, 5, "E", "d1", "IH1133"),
-]
+# (mast, cats_x, cats_y, facing, kind, IH* or None), from mast_cells.csv, which
+# wire_digicon.py reads for the same cells. kind "h2" draws a mast icon (two-head
+# masts); "d1" draws a head icon on the mast's only head. Cells and kinds follow
+# the SECSIGNALs in the CATS desk (LAMP2 = h2). File order is drawing order.
+SIGNALS = [(c.mast, c.x, c.y, c.uss_facing, c.uss_kind, c.uss_head or None) for c in facts.load_mast_cells()]
 
 STATION_NAMES = facts.station_names()  # control point plates: BRICK, EAST END, ...
 # Desk titles are not drawn on the USS board. Each desk's dated revision header

@@ -11,7 +11,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import layout_facts as facts  # noqa: E402
 
-FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv")
+FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv")
 
 
 class LoaderTest(unittest.TestCase):
@@ -84,6 +84,16 @@ class LoaderTest(unittest.TestCase):
 
         self.assertEqual(engine_terminal.SW9_HAND, "L")
         self.assertIn("Switch 9 is left hand: its normal route goes to EH-2", engine_terminal.svg()[0])
+
+    def test_a_mast_or_a_cell_listed_twice_names_both_rows(self) -> None:
+        self.append("mast_cells.csv", "Mast 2L,1,1,LEFT,W,h2,,,,")
+        with self.assertRaisesRegex(ValueError, r"lines 4 and 25: same mast Mast 2L"):
+            facts.load_mast_cells(self.data)
+
+    def test_a_d1_icon_needs_its_head(self) -> None:
+        self.append("mast_cells.csv", "Mast 99L,1,1,LEFT,W,d1,,,,")
+        with self.assertRaisesRegex(ValueError, r"line 25 \(Mast 99L\): uss_head is the head for d1"):
+            facts.load_mast_cells(self.data)
 
 
 if __name__ == "__main__":

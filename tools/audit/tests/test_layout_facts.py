@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
 
-DATA_FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv")
+DATA_FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv")
 
 
 class LayoutFactsTest(unittest.TestCase):
@@ -117,6 +117,22 @@ class LayoutFactsTest(unittest.TestCase):
         out = self.failures(data=data)
         self.assertTrue(any(m.startswith("Track Main West: no control point") and "join levels ['1', '2']" in m
                             for m in out), out)
+
+    def test_a_mast_moved_on_one_desk_fails(self) -> None:
+        def move(text: str) -> str:
+            cell = re.search(r'<SECTION X="45" Y="6">.*?</SECTION>', text, re.S)
+            return text[:cell.start()] + cell.group(0).replace("Mast 24L", "Mast 24LX") + text[cell.end():]
+
+        out = self.failures(desks=(self.copy(check.DESKS[0], move), check.DESKS[1]))
+        self.assertIn("Mast 24L: HART_CTC.xml has Mast 24LX at (45, 6, 'RIGHT'), "
+                      "mast_cells.csv has Mast 24L there", out)
+
+    def test_a_mast_drawn_with_the_wrong_head_fails(self) -> None:
+        data = self.data_copy()
+        cells = data / "mast_cells.csv"
+        cells.write_text(cells.read_text().replace("Mast 4RA,6,10,RIGHT,E,d1,IH436", "Mast 4RA,6,10,RIGHT,E,d1,IH437"))
+        self.assertIn("Mast 4RA: mast_cells.csv draws it d1 IH437, tables.xml gives it heads ['IH436']",
+                      self.failures(data=data))
 
     def test_stale_known_entry_fails(self) -> None:
         report = check.run()

@@ -15,7 +15,10 @@ Layout Editor (tables.xml)
 CATS desks (HART_CTC.xml, HART_ABS.xml) and cats/data/turnout_bindings.csv
   - each plant's turnout, the leg each command (close/throw) leads to, and which
     leg is NORMAL (the closed one, unless the switch is CATS-inverted);
-  - every block name on the desk is a Layout Editor block.
+  - every block name on the desk is a Layout Editor block;
+  - each mast's lamp is in the cell and on the edge mast_cells.csv gives it, and no
+    other lamp is named; the mast is in the name map and tables.xml, with one head
+    (the one named) for a d1 icon and two for h2.
 Levels (control_points.csv, switches.csv, public_name_map.csv)
   - each control point's switches are on its level, and every cp in the name map has a row;
   - every mast and block has one level: its switch's, its control point's, or, for a
@@ -434,6 +437,45 @@ def check_data(switches: dict[int, facts.Switch], data: Path, r: Report) -> None
         r.add(f"data:Switch {num}", f"Switch {num}: in control_points.csv, not in switches.csv")
 
 
+def desk_signals(path: Path) -> dict[tuple[int, int, str], str]:
+    """(x, y, edge) -> mast for every named SECSIGNAL on a CATS desk."""
+    out = {}
+    for sec in parse(path).getroot().find("TRACKPLAN").findall("SECTION"):
+        for edge in sec.findall("SEC_EDGE"):
+            sig = edge.find("SECSIGNAL")
+            if sig is not None and (sig.text or "").strip():
+                out[(int(sec.get("X")), int(sec.get("Y")), edge.get("EDGE"))] = sig.text.strip()
+    return out
+
+
+def check_mast_cells(data: Path, desks, t: Tables, r: Report) -> None:
+    """mast_cells.csv against both desks, the name map and the masts' heads in tables.xml."""
+    cells = facts.load_mast_cells(data)
+    want = {(c.x, c.y, c.edge): c.mast for c in cells}
+    for desk in desks:
+        have = desk_signals(Path(desk))
+        name = Path(desk).name
+        for xy in sorted(set(want) | set(have)):
+            if want.get(xy) != have.get(xy):
+                mast = want.get(xy) or have.get(xy)
+                r.add(f"mast:{mast}", f"{mast}: {name} has {have.get(xy) or 'no signal'} at {xy}, "
+                                      f"mast_cells.csv has {want.get(xy) or 'no mast'} there")
+    named = {row["proposed"] for row in facts.identity_rows(data) if row["layer"] == "mast"}
+    heads = {}
+    for m in hart_tables.masts(t.root):
+        heads[hart_tables.user_name(m)] = re.findall(r"\((IH\d+)\)", hart_tables.system_name(m))
+    for c in cells:
+        if c.mast not in named:
+            r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a mast row in public_name_map.csv")
+        if c.mast not in heads:
+            r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a mast in tables.xml")
+            continue
+        got = heads[c.mast]
+        if (c.uss_kind == "d1" and got != [c.uss_head]) or (c.uss_kind == "h2" and len(got) != 2):
+            r.add(f"mast:{c.mast}", f"{c.mast}: mast_cells.csv draws it {c.uss_kind} "
+                                    f"{c.uss_head or ''}".rstrip() + f", tables.xml gives it heads {got}")
+
+
 def check_levels(switches: dict[int, facts.Switch], data: Path, t: Tables, r: Report) -> None:
     """Each control point, mast and block has one level, and it agrees with its switches."""
     by_cp = facts.cp_levels(data)
@@ -476,6 +518,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
     t = Tables(tables)
     check_data(switches, data, r)
     check_levels(switches, data, t, r)
+    check_mast_cells(data, desks, t, r)
     for sw in switches.values():
         check_tables(sw, t, r)
     for desk in desks:

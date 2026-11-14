@@ -6,6 +6,9 @@
                      blank where nobody has recorded it)
     switch_legs.csv  one row per OS block at the points: the block each leg
                      leads to when the switch is closed and when it is thrown
+    mast_cells.csv   one row per mast on the CATS desk: its cell and edge, and
+                     how the USS CTC board draws it (read by wire_digicon.py
+                     and gen_ctc_track_plan.py)
 
 Hardware, DCC address (its own ``dcc`` column) and control point come from the
 canonical turnout row of public_name_map.csv (current == proposed); control_points.csv lists which
@@ -51,6 +54,20 @@ class Leg:
     os_block: str
     closed: str
     thrown: str
+
+
+@dataclass(frozen=True)
+class MastCell:
+    """A mast's lamp on the CATS desk and its icon on the USS CTC board."""
+    mast: str
+    x: int
+    y: int
+    edge: str          # SEC_EDGE of the desk cell that holds the SECSIGNAL
+    uss_facing: str    # E or W on the USS board
+    uss_kind: str      # h2: mast icon (two heads); d1: head icon on the only head
+    uss_head: str      # that head for d1, blank for h2
+    sig_location: str = ""  # PANELSIGNAL SIGLOCATION / SIGORIENT to set, blank to keep the Designer's
+    sig_orient: str = ""
 
 
 @dataclass(frozen=True)
@@ -159,6 +176,33 @@ def load_switches(data: Path = DATA) -> dict[int, Switch]:
         )
     if legs:
         raise ValueError(f"switch_legs.csv: switches not in switches.csv: {sorted(legs)}")
+    return out
+
+
+EDGES = {"LEFT", "RIGHT", "TOP", "BOTTOM"}
+
+
+def load_mast_cells(data: Path = DATA) -> list[MastCell]:
+    """mast_cells.csv in file order (the order the USS board draws the icons)."""
+    out: list[MastCell] = []
+    seen: dict[str, int] = {}
+    cells: dict[tuple[int, int, str], int] = {}
+    for line, row in enumerate(_rows(data / "mast_cells.csv"), start=2):
+        where = f"mast_cells.csv line {line} ({row['mast']})"
+        cell = MastCell(row["mast"], int(row["x"]), int(row["y"]), row["edge"], row["uss_facing"],
+                        row["uss_kind"], row["uss_head"], row["sig_location"], row["sig_orient"])
+        key = (cell.x, cell.y, cell.edge)
+        for what, index, value in (("mast", seen, cell.mast), ("cell and edge", cells, key)):
+            if value in index:
+                raise ValueError(f"mast_cells.csv lines {index[value]} and {line}: same {what} {value}")
+            index[value] = line
+        if cell.edge not in EDGES or cell.uss_facing not in ("E", "W") or cell.uss_kind not in ("h2", "d1"):
+            raise ValueError(f"{where}: edge {EDGES}, uss_facing E/W, uss_kind h2/d1")
+        if (cell.uss_kind == "d1") != bool(cell.uss_head):
+            raise ValueError(f"{where}: uss_head is the head for d1 and blank for h2")
+        if bool(cell.sig_location) != bool(cell.sig_orient):
+            raise ValueError(f"{where}: sig_location and sig_orient go together")
+        out.append(cell)
     return out
 
 
