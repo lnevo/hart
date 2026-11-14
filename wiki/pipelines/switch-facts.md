@@ -43,9 +43,10 @@ Example: after a rewiring, Switch 9 normal leads to EH-2 and thrown to EH-3.
 4. **CATS:** if the desk shows the name, rename it in the Designer save (`HART_Digicon.xml`) or `ANCHORS`/`PLANT_CELLS` in `wire_digicon.py`, then run `wire_digicon.py` and `gen_ctc_track_plan.py`.
 5. **Dispatcher:** traininfo files carry block names; regenerate them in PanelPro (Dispatcher System) if a station block was renamed.
 6. **Derived files:** run `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `build_layout_index.py` and `build_cats_layout_index.py`.
-7. **Check:** `./tools/check.sh`. `tools/audit/check_name_copies.py` lists every hand-kept copy of the old name (file and line) in code, data and site pages. Change each one to the new name, or better, look it up from the data. Markdown is prose and is not read. A dated record that must keep the old name goes in its `ALLOW`, with the reason.
+7. **Speed-match logs:** if a block on a test route, or its sensor, was renamed, run `python3 jmri/layouts/hart/scripts/speedmatch/build_routes.py` (its `--check` in `check.sh` fails until then). Then convert the speed-match logs and data recorded before the rename, as `speedmatch/rename_extension_tracks.py` does for the 2026-11-13 extension tracks. The analysis stops on a log with a sensor that is not on its route, and names that sensor.
+8. **Check:** `./tools/check.sh`. `tools/audit/check_name_copies.py` lists every hand-kept copy of the old name (file and line) in code, data and site pages. Change each one to the new name, or better, look it up from the data. Markdown is prose and is not read. A dated record that must keep the old name goes in its `ALLOW`, with the reason.
 
-The speed-match routes (`speedmatch/analyze.py`) hold only the running order of block names; each sensor comes from the block's occupancy sensor in `tables.xml`.
+The speed-match routes (`speedmatch/analyze.py`) hold only the running order of block names. `build_routes.py` writes each block's occupancy sensor from `tables.xml` into `speedmatch/routes.json`, which `analyze.py` reads with the standard library only, since the Pi's speed-match live publisher has neither hartlib nor `tables.xml`.
 
 ## Changing a level or a control point
 

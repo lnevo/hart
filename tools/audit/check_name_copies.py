@@ -54,6 +54,7 @@ SKIP_PREFIXES = (
     "jmri/layouts/hart/data/baselines/",          # capture_public_name_baseline.py --check
     "jmri/layouts/hart/data/schematic/",          # build_signals.py --check
     "www/data/",                                  # build_tables_browser / build_layout_index --check
+    "jmri/layouts/hart/scripts/speedmatch/routes.json",  # build_routes.py --check
     "cats/panels/HART_CTC.xml", "cats/panels/HART_ABS.xml",  # test_desks_match_source.py
     "tools/audit/check_name_copies.py",           # this file
 )
@@ -135,11 +136,14 @@ def scan_text(path: str, text: str, current: set[str], track_re: re.Pattern[str]
 
 
 def tracked_files(root: Path) -> list[str]:
+    """The checkout's tracked files. Needs git: walking the folder would also read untracked
+    and gitignored files (media mirrors, local runs), so there is no fallback."""
     try:
         out = subprocess.run(["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=True)
-        return [p for p in out.stdout.decode("utf-8").split("\0") if p]
-    except (OSError, subprocess.CalledProcessError):
-        return sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file())
+    except (OSError, subprocess.CalledProcessError) as e:
+        detail = e.stderr.decode("utf-8", "replace").strip() if isinstance(e, subprocess.CalledProcessError) else e
+        raise SystemExit(f"check_name_copies.py needs git to list the tracked files of {root}: {detail}")
+    return [p for p in out.stdout.decode("utf-8").split("\0") if p]
 
 
 def readable(rel: str) -> bool:
@@ -158,8 +162,7 @@ def run(root: Path, files: list[str] | None = None, allow=None, name_map: Path |
     blocks = table_blocks(tables_xml or root / TABLES_REL)
     current |= blocks
     known |= blocks
-    track_re = _track_pattern(known)
-    counts_re = _track_pattern(known | current)
+    track_re = _track_pattern(known)  # known holds every current name too
     hits: list[Hit] = []
     counts: dict[str, int] = {}
     used: set[tuple[str, str]] = set()
@@ -173,7 +176,7 @@ def run(root: Path, files: list[str] | None = None, allow=None, name_map: Path |
             text = p.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
-        n = len(_SHAPED.findall(text)) + (len(counts_re.findall(text)) if counts_re else 0)
+        n = len(_SHAPED.findall(text)) + (len(track_re.findall(text)) if track_re else 0)
         if n:
             counts[rel] = n
         names, _reason = allow.get(rel, (frozenset(), ""))

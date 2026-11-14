@@ -143,6 +143,11 @@ class NameCopiesTest(unittest.TestCase):
         gen = self.write("www/data/x.json", '{"m": "Mast 32L"}\n')
         self.assertEqual([], self.stale([md, gen]))
 
+    def test_a_folder_that_is_not_a_checkout_stops_instead_of_walking_it(self):
+        with self.assertRaises(SystemExit) as cm:
+            check.tracked_files(self.tmp)
+        self.assertIn("needs git", str(cm.exception))
+
     def test_allow_covers_only_its_names_and_reports_unused(self):
         f = self.write("tools/x.py", '"Mast 32L", "Mast 99Z"\n')
         allow = {"tools/x.py": (frozenset({"Mast 32L", "Mast 31L"}), "dated record")}

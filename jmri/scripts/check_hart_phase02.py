@@ -12,6 +12,7 @@ HART = JMRI_ROOT / "layouts" / "hart"
 PANEL = HART / "output" / "tables.xml"
 NAME_MAP = HART / "data" / "public_name_map.csv"
 SWITCH_LEGS = HART / "data" / "switch_legs.csv"
+SWITCHES = HART / "data" / "switches.csv"
 
 
 def secondary_os_blocks(path: Path = SWITCH_LEGS) -> set[str]:
@@ -24,6 +25,23 @@ def secondary_os_blocks(path: Path = SWITCH_LEGS) -> set[str]:
                 out.add(row["os_block"])
             seen.add(row["switch"])
     return out
+
+
+def crossover_row_errors(root: ET.Element, switches: Path = SWITCHES, legs: Path = SWITCH_LEGS) -> list[str]:
+    """A switch whose Layout Editor turnout is a crossover needs two switch_legs.csv rows
+    (its main and its second OS block); with one, its second OS block would go unchecked."""
+    xover = {t.get("ident") for t in root.iter("layoutturnout") if (t.get("type") or "").endswith("_XOVER")}
+    rows: dict[str, int] = {}
+    with legs.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            rows[row["switch"]] = rows.get(row["switch"], 0) + 1
+    errors = []
+    with switches.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if row["le_ident"] in xover and rows.get(row["switch"], 0) < 2:
+                errors.append(f"Switch {row['switch']} is a crossover ({row['le_ident']}) but "
+                              f"{legs.name} has {rows.get(row['switch'], 0)} row(s) for it, not 2")
+    return errors
 
 
 def main() -> int:
@@ -84,6 +102,7 @@ def main() -> int:
     missing = sorted(expected_os - found)
     # Crossover / paired legs: occupancy exists in block table; layoutturnout
     # may only name the primary leg (linear6 connectivity).
+    errors.extend(crossover_row_errors(root))
     secondary_ok = secondary_os_blocks()
     missing = [m for m in missing if m not in secondary_ok]
     if missing:

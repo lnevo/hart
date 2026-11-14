@@ -40,7 +40,7 @@ The PR proposes these phases:
 
 **Done (PR #483):**
 - **Phase 0:** `tools/audit/check_name_copies.py` is in `check.sh`. It fails on any Track, OS or Mast name in a hand-kept code, data or site file that is not current: the map's identity rows, plus the block user names in `tables.xml`, which is how the hidden throat blocks count. Its tests rename a mast and a track in temporary copies and expect every stale copy to fail. The rename checklist is in `wiki/pipelines/switch-facts.md`.
-- **Phase 1:** the speed-match routes are a running order of block names, with the sensors looked up in `tables.xml`. `audit_panel_contracts.py`, `check_hart_phase02.py` and `infer_block_lengths.py` look up what they typed, and `validate_cats_panel.py` lost its unused name sets.
+- **Phase 1:** the speed-match routes are a running order of block names, with the sensors written from `tables.xml` into `speedmatch/routes.json` by `build_routes.py` (`--check` in `check.sh`); `analyze.py` reads that file with the standard library, so the Pi live view needs no hartlib. `audit_panel_contracts.py`, `check_hart_phase02.py` and `infer_block_lengths.py` look up what they typed, and `validate_cats_panel.py` lost its unused name sets.
 - **Deleted:** `sim_hart_train_mqtt.py`, `annotate_mqtt_sensors_and_dispatcher.py`, `patch_ctc_locking.py`, `render_ctc_panel.py` and `apply_sml_cats_pairs.py`. The CATS pairs `validate_le_signalling.py` compares against are now `data/sml_cats_oracle.csv`.
 
 ## 2. Speed-match test routes from the data — do now

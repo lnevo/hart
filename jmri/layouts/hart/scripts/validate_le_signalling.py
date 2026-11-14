@@ -411,8 +411,15 @@ def load_oracle(path: Path = ORACLE) -> list[tuple[str, str, list[str], list[tup
 
     out = []
     with path.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            turnouts = [tuple(t.split("=", 1)) for t in split(row["turnouts"])]
+        reader = csv.DictReader(f)
+        for row in reader:
+            turnouts = []
+            for cell in split(row["turnouts"]):
+                name, sep, state = (part.strip() for part in cell.partition("="))
+                if not (sep and name and state in ("closed", "thrown")):
+                    raise SystemExit(f"{path.name} line {reader.line_num}: turnout {cell!r} is not "
+                                     "'name=closed' or 'name=thrown'")
+                turnouts.append((name, state))
             out.append((row["source"], row["dest"], split(row["blocks"]), turnouts))
     return out
 

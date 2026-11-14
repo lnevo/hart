@@ -26,20 +26,17 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import liverule as lr  # noqa: E402
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
-
 DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
 DEFAULT_TRUSTED = ("anyrail", "inferred")  # "assigned" counts only when passed explicitly
 MM_PER_INCH = 25.4
 
 # The test routes: the blocks in running order, by their block_lengths.csv user_name. Only the
-# order is kept here; each block's sensor is the occupancy sensor tables.xml gives it, so a
-# rename in PanelPro and the name map reaches the routes with nothing to edit here (names that
-# are not current fail tools/audit/check_name_copies.py). loop1 is the 2026-11-08 loop, east from
-# East Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5. A job, its log
-# (the CFG line) and the analysis all name the route.
+# order is typed here. Each block's sensor is the occupancy sensor tables.xml gives it, written
+# into routes.json by build_routes.py (--check in tools/check.sh), so this file needs neither
+# hartlib nor tables.xml: the Pi's speed-match live publisher imports it. Names that are not
+# current fail tools/audit/check_name_copies.py. loop1 is the 2026-11-08 loop, east from East
+# Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5. A job, its log (the
+# CFG line) and the analysis all name the route.
 ROUTE_BLOCKS = {
     "loop1": [
         "Track East Ext", "OS Switch 7b", "Track Main East", "OS Switch 33", "Track East Lead",
@@ -59,31 +56,32 @@ ROUTE_BLOCKS = {
 ROUTE_MID_BLOCK = {"loop1": "OS Switch 23a", "loop2": "Track K-2"}
 
 
-def block_sensors(root=None):
-    """Block user name -> its occupancy sensor user name, from tables.xml (the full <block>)."""
-    root = tables.read(paths.TABLES_XML) if root is None else root
-    out = {}
-    for b in tables.blocks(root):
-        name, sensor = tables.user_name(b), tables.text(b, "occupancysensor")
-        if name and sensor:
-            out[name] = sensor
-    return out
+ROUTES_JSON = HERE / "routes.json"
 
 
-def route_pairs(blocks, sensors):
-    """[(block sensor, block)] for a running order; stops on a block tables.xml lacks."""
-    missing = [b for b in blocks if b not in sensors]
-    if missing:
-        raise SystemExit("speed-match route block(s) with no occupancy sensor in %s: %s"
-                         % (paths.rel(paths.TABLES_XML), ", ".join(missing)))
-    return [(sensors[b], b) for b in blocks]
+def load_routes(path=ROUTES_JSON, order=ROUTE_BLOCKS, mid=ROUTE_MID_BLOCK):
+    """(ROUTES, ROUTE_MID) from routes.json: {route: [(block sensor, block)]}, {route: sensor}.
+
+    Stops when the file's blocks or mid blocks are not the ones typed here (rebuild it)."""
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise SystemExit("cannot read %s (%s); run speedmatch/build_routes.py" % (path, e))
+    routes = {r: [tuple(pair) for pair in pairs] for r, pairs in data["routes"].items()}
+    stale = sorted(r for r in set(order) | set(routes)
+                   if [b for _, b in routes.get(r, [])] != list(order.get(r, [])))
+    by_block = {r: dict((b, s) for s, b in pairs) for r, pairs in routes.items()}
+    stale += sorted(r for r, b in mid.items()
+                    if r not in stale and data["mid"].get(r) != by_block.get(r, {}).get(b))
+    if stale:
+        raise SystemExit("%s does not match ROUTE_BLOCKS / ROUTE_MID_BLOCK for %s; run "
+                         "speedmatch/build_routes.py" % (path, ", ".join(stale)))
+    return routes, dict(data["mid"])
 
 
-_SENSORS = block_sensors()
-ROUTES = {r: route_pairs(blocks, _SENSORS) for r, blocks in ROUTE_BLOCKS.items()}
+ROUTES, ROUTE_MID = load_routes()
 LOOP, LOOP2 = ROUTES["loop1"], ROUTES["loop2"]
 DEFAULT_ROUTE = "loop1"
-ROUTE_MID = {r: _SENSORS[b] for r, b in ROUTE_MID_BLOCK.items()}
 ORDER = [s for s, _ in LOOP]  # loop1 aliases: LOOP and ORDER
 
 # Switch positions the owner sets by hand before a run (nothing here is ever sent to JMRI):
@@ -179,6 +177,7 @@ def parse_log(lines, loco=None, direction=None, source=""):
     line (older logs) needs loco and direction given."""
     check_names(lines, source)
     runs, run, cur, seen, active = [], None, None, {}, {}
+    sensed = {}  # id(run) -> sensor names the run logged, for check_route_sensors
     last_active = None
     for line in lines:
         m = _LINE.match(line.strip())
@@ -242,13 +241,30 @@ def parse_log(lines, loco=None, direction=None, source=""):
                 cur["events"].append(last_active)
         elif msg.startswith("SENS "):
             name, st = msg[5:].rsplit(" ", 1)
+            if run is not None:
+                sensed.setdefault(id(run), set()).add(name)
             if st == "ACTIVE" and active.get(name) != "ACTIVE":
                 last_active = (t, name)
                 if cur is not None and cur.get("measuring", True):
                     cur["events"].append((t, name))
             if st in STATES:  # any state counts: UNKNOWN between two ACTIVEs is a new ACTIVE
                 active[name] = st
+    for run in runs:
+        check_route_sensors(sensed.get(id(run), ()), run["cfg"].get("route", DEFAULT_ROUTE), source)
     return runs
+
+
+def check_route_sensors(names, route, source=""):
+    """Stop on a sensor the route does not have: a log recorded before a block or sensor rename
+    (its blocks would not match and laps would come out short), or a log of another route."""
+    if route not in ROUTES:
+        return  # route_loop() names the unknown route when the run is analysed
+    known = {s for s, _ in ROUTES[route]}
+    stray = sorted(set(names) - known)
+    if stray:
+        raise SystemExit("%s logs sensor(s) not on route %s: %s. If a block or sensor was renamed, "
+                         "convert the log first (as speedmatch/rename_extension_tracks.py did for the "
+                         "2026-11-13 rename)" % (source or "a log", route, ", ".join(stray)))
 
 
 def step_readings(events, step, lengths, order=ORDER, settle=lr.SETTLE_EVENTS,
