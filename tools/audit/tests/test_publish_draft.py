@@ -1,9 +1,12 @@
 """publish_draft.py: what counts as a drawing change, and the date and revision it sets."""
 from __future__ import annotations
 
+import contextlib
 import datetime
 import importlib.util
+import io
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -79,6 +82,118 @@ class Lengths(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.read("Track S-1,Block 2-7,212,assigned,\nTrack S-1,Block 2-8,200,assigned,\n")
 
+
+class Preview(unittest.TestCase):
+    def test_writes_only_into_the_folder(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            prefs = PD.page_prefs().read_text()
+            target = (PD.OUT / "schematic-system-draft.svg").read_text()
+            printed = []
+            real_pdf, PD.pdf = PD.pdf, lambda svg, out: printed.append(out)
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(PD.preview(sheet(), Path(tmp) / "out"), 0)
+            finally:
+                PD.pdf = real_pdf
+            self.assertEqual((Path(tmp) / "out/schematic-system-draft.svg").read_text(), sheet())
+            self.assertEqual(printed, [Path(tmp) / "out/schematic-system-draft.pdf"])
+            self.assertEqual(PD.page_prefs().read_text(), prefs)
+            self.assertEqual((PD.OUT / "schematic-system-draft.svg").read_text(), target)
+
+    def test_graphs_are_in_the_repo(self) -> None:
+        for graph, _ in PD.INPUTS:
+            self.assertTrue((PD.GRAPHS / graph).is_file(), graph)
+        self.assertTrue(PD.GRAPHS.is_relative_to(PD.REPO))
+
+
+class SignalsCheck(unittest.TestCase):
+    def setUp(self) -> None:
+        spec = importlib.util.spec_from_file_location("build_signals", ROOT / "tools/schematic/build_signals.py")
+        self.bs = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.bs)
+        self.env = {k: os.environ.pop(k) for k in ("SCHEMATIC_PLUGIN", "SCHEMATIC_REQUIRED") if k in os.environ}
+
+    def tearDown(self) -> None:
+        os.environ.update(self.env)
+
+    def without_plugin(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            real, self.bs.pd.REPO = self.bs.pd.REPO, Path(tmp)
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    return self.bs.main(["--check"])
+            finally:
+                self.bs.pd.REPO = real
+
+    def test_skips_without_the_plugin(self) -> None:
+        self.assertEqual(self.without_plugin(), 0)
+
+    def test_skips_off_the_pin(self) -> None:
+        def off_pin():
+            raise SystemExit("submodule is at aaaaaaaa, pinned bbbbbbbb")
+        real, self.bs.pd.plugin = self.bs.pd.plugin, off_pin
+        try:
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(self.bs.main(["--check"]), 0)
+        finally:
+            self.bs.pd.plugin = real
+        self.assertIn("SKIPPED", out.getvalue())
+
+    def test_skip_fails_when_required(self) -> None:
+        os.environ["SCHEMATIC_REQUIRED"] = "1"
+        self.assertEqual(self.without_plugin(), 1)
+
+    def run_with(self, written, committed):
+        """main() with the plugin replaced by a script that writes `written` as the signals file."""
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            (tmp / "bin").mkdir()
+            tool = tmp / "bin/schematic"
+            tool.write_text(f"#!/bin/sh\ncat > \"$5\" <<'END'\n{written}\nEND\n")
+            tool.chmod(0o755)
+            (tmp / "staging.signals.json").write_text(committed)
+            real = self.bs.pd.plugin, self.bs.pd.DATA
+            self.bs.pd.plugin, self.bs.pd.DATA = (lambda: tmp), tmp
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    return self.bs.main(["--check"])
+            finally:
+                self.bs.pd.plugin, self.bs.pd.DATA = real
+
+    def test_current_passes(self) -> None:
+        self.assertEqual(self.run_with('{"unplaced": []}', '{"unplaced": []}\n'), 0)
+
+    def test_stale_fails(self) -> None:
+        self.assertEqual(self.run_with('{"unplaced": []}', '{"old": 1, "unplaced": []}\n'), 1)
+
+    def test_unplaced_masts_fail(self) -> None:
+        with self.assertRaises(SystemExit) as e:
+            self.run_with('{"unplaced": ["x"]}', '{"unplaced": ["x"]}\n')
+        self.assertIn("not placed", str(e.exception.code))
+
+
+class PreviewFolder(unittest.TestCase):
+    def test_refuses_a_folder_in_the_repo(self) -> None:
+        with self.assertRaises(SystemExit):
+            PD.main(["--preview", str(PD.OUT)])
+
+
+class Inputs(unittest.TestCase):
+    def test_parts_hold_track_positions_only(self) -> None:
+        parts = json.loads((PD.GRAPHS / "parts.json").read_text())
+        self.assertTrue(parts)
+        for p in parts:
+            self.assertEqual(set(p), {"name", "eps"})
+            for e in p["eps"]:
+                self.assertEqual(set(e), {"x", "y", "z"})
+                self.assertLess(max(abs(e[k]) for k in "xyz"), 5000)
+                self.assertTrue(abs(e["x"]) > 1e-6 or abs(e["y"]) > 1e-6, "endpoint at the origin: corrupt read")
+
+    def test_only_the_misread_turnout_is_short(self) -> None:
+        """Part 0's third end point is unreadable in the .any file; any other turnout short of three is new."""
+        parts = json.loads((PD.GRAPHS / "parts.json").read_text())
+        turnouts = {p["name"] for p in parts if len(p["eps"]) >= 3}
+        self.assertEqual([i for i, p in enumerate(parts) if p["name"] in turnouts and len(p["eps"]) < 3], [0])
 
 if __name__ == "__main__":
     unittest.main()
