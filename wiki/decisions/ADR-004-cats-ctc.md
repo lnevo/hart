@@ -21,7 +21,7 @@ HART has a Layout Editor panel (`hart_prod.xml`) with MQTT occupancy and turnout
 
 ## Consequences
 
-- Device catalog CSV is exported from hart for Designer binding (`cats/data/jmri_devices.csv`).
+- Device catalog CSV was exported from hart for Designer binding (`cats/data/jmri_devices.csv`). Removed 2026-11-14 with its export script; bindings now come from the switch facts and `tables.xml`.
 - Designer work starts at Brick (`cats/docs/BRICK_BINDINGS.md`).
 - JMRI upgrades past 5.16 require a new CATS release check before cutting over.
 - NextTrain remains a parallel schematic product; it is not fed by CATS XML.

@@ -1,13 +1,14 @@
-"""Website device data must name masts and heads as tables.xml does.
+"""Published layout index must name masts and heads as tables.xml does.
 
-www/review-data/hart_devices_review.json is kept by hand and feeds
-www/scripts/build_layout_index.py. It listed the dwarf masts as
-AAR-1946:SL-1-low long after tables.xml moved them to basic:one-low.
+www/scripts/build_layout_index.py reads its device rows straight from tables.xml
+(it used to read a hand-kept JSON copy that kept the dwarf masts as AAR-1946:SL-1-low
+long after tables.xml moved them to basic:one-low). This checks the rows it builds
+and the published www/data/layout-index.json against tables.xml.
 """
 from __future__ import annotations
 
+import importlib.util
 import json
-import re
 import sys
 import unittest
 from pathlib import Path
@@ -17,25 +18,41 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 
 ROOT = paths.REPO_ROOT
-DEVICES = ROOT / "www/review-data/hart_devices_review.json"
-TABLES = paths.TABLES_XML
+INDEX = ROOT / "www/data/layout-index.json"
+SIGNAL_KINDS = ("signal mast", "signal head")
 
-BEAN_RE = re.compile(
-    r"<(?:signalmast|virtualsignalmast|signalhead) [^>]*>\s*"
-    r"<systemName>([^<]*)</systemName>\s*<userName>([^<]*)</userName>"
-)
+
+def _load_builder():
+    spec = importlib.util.spec_from_file_location("build_layout_index", ROOT / "www/scripts/build_layout_index.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 class SiteDeviceNamesTest(unittest.TestCase):
-    def test_signal_system_names_match_tables(self) -> None:
-        live = {user: sys for sys, user in BEAN_RE.findall(TABLES.read_text(encoding="utf-8"))}
-        devices = json.loads(DEVICES.read_text(encoding="utf-8"))
-        for row in devices:
-            if row.get("kind") not in ("Signal mast", "Virtual mast", "Signal head"):
-                continue
-            with self.subTest(device=row["userName"]):
-                self.assertIn(row["userName"], live, "not in tables.xml")
-                self.assertEqual(row["systemName"], live[row["userName"]])
+    @classmethod
+    def setUpClass(cls) -> None:
+        # The masts and heads the site covers (load_devices' own filter), and the published index.
+        cls.expected = {sn: d["userName"] for sn, d in _load_builder().load_devices(paths.TABLES_XML).items()
+                        if d["kind"] in SIGNAL_KINDS}
+        cls.items = json.loads(INDEX.read_text(encoding="utf-8"))["items"]
+        cls.published = {it["systemName"] for it in cls.items if it.get("systemName")}
+
+    def test_filter_finds_the_signal_hardware(self) -> None:
+        self.assertGreater(len(self.expected), 50)
+
+    def test_every_mast_and_head_is_published_under_a_tables_name(self) -> None:
+        # Panel signals carry the mast's user name, device rows its system name.
+        for sn, user in self.expected.items():
+            with self.subTest(device=sn):
+                self.assertTrue(sn in self.published or user in self.published, f"{sn} / {user} not in the index")
+
+    def test_published_signal_names_are_tables_names(self) -> None:
+        names = set(self.expected) | set(self.expected.values())
+        for item in self.items:
+            if item["kind"] == "signal":
+                with self.subTest(item=item["id"]):
+                    self.assertIn(item["systemName"], names)
 
 
 if __name__ == "__main__":

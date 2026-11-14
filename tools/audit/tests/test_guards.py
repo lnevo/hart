@@ -334,6 +334,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
     def test_readers_and_launchers_pass_while_open(self) -> None:
         for cmd in ("python3 jmri/scripts/check_hart_phase02.py", "git grep pull_tables.sh",
                     "python3 jmri/layouts/hart/scripts/export_track_lengths.py",
+                    "python3 www/scripts/build_layout_index.py",
                     "./cats/scripts/launch_cats.sh", "python3 -m unittest discover -s tools/audit/tests",
                     "python3 www/scripts/check_portal_build.py"):  # baseline: never touched the tables
             self.assertEqual(self.code(cmd), 0, cmd)

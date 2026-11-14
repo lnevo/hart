@@ -23,6 +23,11 @@ _DCC_GROUP = re.compile(r"DCC: (\d+)")
 _DCC_ANY = re.compile(r"DCC:?\s*\d")
 
 
+def first_group(comment: str) -> str:
+    """The first `` | `` group of a JMRI comment, e.g. ``Node: 4 Turnout: 0``; it names a turnout's node and output."""
+    return (comment or "").split(SEP)[0].strip()
+
+
 def jmri_comment(comment: str, dcc: str) -> str:
     """The comment JMRI stores: ``comment`` with ``DCC: <dcc>`` as its second group."""
     comment, dcc = (comment or "").strip(), (dcc or "").strip()
