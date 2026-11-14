@@ -1,6 +1,6 @@
 # Live status
 
-Updated 2026-11-13. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
+Updated 2026-11-14. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Current state
 
