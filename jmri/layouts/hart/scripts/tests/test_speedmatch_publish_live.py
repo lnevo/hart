@@ -79,11 +79,34 @@ class Publish(unittest.TestCase):
         self.assertEqual([f.name for f in (self.out / "runs").glob("*.json")],
                          ["steprun_CSX_2738_forward_20261113_120000.json"])
         (self.out / "runs" / "stale_old_run.json").write_text("{}")
-        log.unlink()
-        p.store.drop(str(log))
+        log.unlink()  # the publisher sees it leave the listing and drops it itself
         p.once()
         self.assertEqual(list((self.out / "runs").glob("*.json")), [])
         self.assertEqual(json.loads((self.out / "index.json").read_text())["runs"], [])
+
+    def test_a_quiet_unfinished_run_is_republished_every_refresh(self):
+        (self.logs / "steprun_CSX_2738_forward_20261113_120000.log").write_text("\n".join(STEPRUN) + "\n")
+        p = self.pub()
+        now = [T + 10]
+        real = pl.time.time
+        pl.time.time = lambda: now[0]
+        try:
+            self.assertEqual(p.once(), 1)
+            self.assertIsNone(p.once())          # same refresh window, nothing new
+            now[0] += pl.REFRESH_S
+            self.assertEqual(p.once(), 1)        # still running: republished for stale/countdowns
+        finally:
+            pl.time.time = real
+
+    def test_a_failing_poll_is_logged_once(self):
+        def bad(cmd):
+            raise OSError("no tmp")
+        p = pl.Publisher(self.out, fetch=bad)
+        import io, contextlib
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            p.once(); p.once(); p.once()
+        self.assertEqual(err.getvalue().count("no tmp"), 1)
 
     def test_no_temporary_files_are_left(self):
         (self.logs / "steprun_CSX_2738_forward_20261113_120000.log").write_text("\n".join(STEPRUN) + "\n")

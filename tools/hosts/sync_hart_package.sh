@@ -375,6 +375,8 @@ stage_package() {
   cp -f "$sm/dashboard/dashstate.py" "$sm/dashboard/dashsources.py" "$sm/dashboard/export_site_runs.py" \
     "$sm/dashboard/publish_live.py" "$stage/cats/speedmatch-live/scripts/speedmatch/dashboard/"
   cp -f "$ROOT/jmri/layouts/hart/data/block_lengths.csv" "$stage/cats/speedmatch-live/data/"
+  cp -f "$ROOT/docs/jmri/speedmatching/profile-2026-11-08/speed_by_step.csv" \
+    "$stage/cats/speedmatch-live/data/speed_by_step_2026-11-08.csv"
   # Host scripts live in tools/hosts/ but land where the hosts and their shortcuts expect them (ADR-007).
   rsync -a "$ROOT/tools/hosts/pi/" "$stage/cats/scripts/pi/"
   rsync -a "$ROOT/tools/hosts/windows/" "$stage/cats/scripts/windows/"

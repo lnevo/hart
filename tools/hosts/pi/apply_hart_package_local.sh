@@ -179,6 +179,9 @@ if [[ -d "$HART/cats/resources/speedmatch-web" && -d "$HART/cats/speedmatch-live
   rsync -a --delete "$HART/cats/speedmatch-live/" "$HOME/speedmatch/publisher/"
   cp -f "$HART/cats/scripts/pi/hart-speedmatch-live.service" "$HOME/.config/systemd/user/"
   loginctl enable-linger "$USER" 2>/dev/null || true
+  # The deploy arrives over ssh, which may not carry the user manager's bus address.
+  export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+  export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=$XDG_RUNTIME_DIR/bus}"
   if systemctl --user daemon-reload 2>/dev/null; then
     systemctl --user enable hart-speedmatch-live.service >/dev/null 2>&1 || true
     systemctl --user restart hart-speedmatch-live.service \

@@ -61,7 +61,7 @@ $("theme").addEventListener("click", () => {
     : matchMedia("(prefers-color-scheme: dark)").matches;
   setTheme(dark ? "light" : "dark");
 });
-$("follow").addEventListener("click", () => { manual = null; picked = false; tick(); });
+$("follow").addEventListener("click", () => { manual = null; picked = false; if (REC) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {} } tick(); });
 if ($("runpick")) $("runpick").addEventListener("change", (e) => pick(e.target.value));
 if ($("pickwrap")) $("pickwrap").hidden = !REC;  // the live page shows the picker only when it reads files
 $("tbl").addEventListener("click", () => { showTable = !showTable; $("tbl").textContent = showTable ? "Chart" : "Table"; renderChart(); });
@@ -343,7 +343,7 @@ function renderRuns(run) {
     for (const r of INDEX) {
       const go = () => pick(r.id);
       t.append(el("tr", { class: "click" + (run && bare(S.focus) === bare(r.id) ? " sel" : ""), tabindex: 0, onclick: go, onkeydown: (e) => { if (e.key === "Enter") go(); } },
-        el("td", { text: when(r.start) }), el("td", { text: runTitle(r) }), el("td", {}, el("span", { class: "tag " + r.outcome, text: r.headline }))));
+        el("td", { text: when(r.start) }), el("td", { text: runTitle(r) }), el("td", {}, r.outcome ? el("span", { class: "tag " + r.outcome, text: r.headline }) : el("span", { text: (ICON[r.status] || "") + " " + (STATUS[r.status] || r.status || "") }))));
     }
     host.append(t);
     return;
@@ -390,6 +390,7 @@ function fillPicker(cur) {
 }
 function pick(id) {
   manual = id;
+  if (!REC) { tick(); return; }  // the Mac live page: just focus the run
   picked = true;
   try { history.replaceState(null, "", "#run=" + encodeURIComponent(id)); } catch (e) {}
   tick();
@@ -405,7 +406,8 @@ async function tickRecorded() {
       }
     }
     if (!INDEX.length) { S = { runs: [], mode: "live", reachable: true, reference: {} }; render(); return; }
-    const cur = (picked && INDEX.find((x) => x.id === manual)) || INDEX[0];  // follow the newest unless one was picked
+    let cur = picked && INDEX.find((x) => x.id === manual);
+    if (!cur) { picked = false; cur = INDEX[0]; }  // follow the newest unless a run still listed was picked
     manual = cur.id;
     const r = await fetch(REC.base + cur.file, { cache: POLL ? "no-store" : "no-cache" });
     S = await r.json();

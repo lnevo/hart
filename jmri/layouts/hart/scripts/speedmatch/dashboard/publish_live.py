@@ -34,6 +34,8 @@ import export_site_runs as ex  # noqa: E402
 
 DEFAULT_OUT = Path.home() / "JMRI_UserFiles" / "web" / "speedmatch" / "live"
 POLL_MS = 1500
+REFRESH_S = 5.0  # republish an unfinished run this often even if its log is quiet (stale, countdowns)
+REF_IN_BUNDLE = HERE.parents[2] / "data" / "speed_by_step_2026-11-08.csv"  # where the Pi bundle puts it
 ROSTER = HERE.parents[4] / "resources" / "roster"  # jmri/resources/roster in the repo
 
 
@@ -64,18 +66,33 @@ class Publisher:
         self.src = sources.SshSource(fetch)
         self.store = state.Store()
         self.read = read
+        if REF_IN_BUNDLE.is_file():  # on the Pi the repo is not there; the bundle carries the CSV
+            sources.REF_CSV = REF_IN_BUNDLE
         self.reference = sources.reference_curves()
         self.seen = None  # (path, bytes) of every run last written
+        self.last_msg = None
 
     def once(self):
         """One poll. Rewrites the files only when a log grew, a run appeared or one went away.
         Returns the number of runs published, or None when nothing changed."""
         ok, msg = self.src.poll(self.store)
         if not ok:
-            print("publish_live: %s" % msg, file=sys.stderr)
+            if msg != self.last_msg:  # once per kind of failure, not every poll
+                print("publish_live: %s" % msg, file=sys.stderr)
+            self.last_msg = msg
             return None
+        if self.last_msg:
+            print("publish_live: reading the logs again", file=sys.stderr)
+        self.last_msg = None
+        listed = set(self.src.listed)
+        for rid in [r for r in self.store.runs if r not in listed]:  # gone from /tmp or aged out
+            self.store.drop(rid)
+            self.src.offsets.pop(rid, None)
+            self.src.carry.pop(rid, None)
         rids = [rid for rid in self.store.runs if state.kind_of_log(Path(rid).name) in ex.PUBLISH]
-        seen = tuple(sorted((rid, self.src.offsets.get(rid, 0)) for rid in rids))
+        running = any(self.store.runs[r].t_end is None for r in rids)
+        tick = int(time.time() // REFRESH_S) if running else None
+        seen = (tuple(sorted((rid, self.src.offsets.get(rid, 0)) for rid in rids)), tick)
         if seen == self.seen:
             return None
         (self.out / "runs").mkdir(parents=True, exist_ok=True)
