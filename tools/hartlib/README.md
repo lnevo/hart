@@ -60,8 +60,8 @@ worktree never reads the main checkout's tables.xml.
 
 Functions: `lcos_bridge()` (the submodule, else a sibling clone), `car_images_final()`
 (`HART_CAR_IMAGES_FINAL`, else the repo copy), `rel(path)` (a repo-relative string for
-messages). `layout_paths()` is the old `jmri/layout_paths.py`
-dict for the AnyRail-era scripts.
+messages). `layout_paths()` is the dict the AnyRail-era scripts in
+`jmri/scripts` use (it replaced `jmri/layout_paths.py`).
 
 ### `hartlib.tables`
 
@@ -119,15 +119,13 @@ Lookups (all take the root element unless noted):
 
 ### `hartlib.hosts`
 
-The broker and JMRI JSON settings, moved from `tools/ops/lib/hart_hosts.py`:
+The broker and JMRI JSON settings:
 `mqtt_broker()`, `mqtt_port()`, `jmri_json_url()`, `read_env_file()`, `env_file_path()`,
 `PI_HOST`. The lookup order is in the module docstring.
 
-## Shims at the old paths
+## Old paths
 
-`jmri/layout_paths.py` and `tools/ops/lib/hart_hosts.py` re-export from hartlib so their
-callers keep working. Remove a shim once nothing imports it (`tools/ops/lib/hart_paths.py`
-is already gone).
+`jmri/layout_paths.py`, `tools/ops/lib/hart_hosts.py` and `tools/ops/lib/hart_paths.py` are gone; import hartlib.
 
 ## Moving a script onto hartlib
 

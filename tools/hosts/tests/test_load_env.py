@@ -31,9 +31,9 @@ DEFAULTS = {
 CLEAR = NAMES + ("MQTT_HOST", "HART_MQTT_HOST", "JMRI_JSON", "PI_HOST", "HART_ENV_FILE", "HART_REPO_ROOT")
 
 
-def load_hart_hosts():
+def load_hartlib_hosts():
     path = ROOT / "tools/hartlib/src/hartlib/hosts.py"
-    spec = importlib.util.spec_from_file_location("hart_hosts_for_shell_test", path)
+    spec = importlib.util.spec_from_file_location("hartlib_hosts_for_shell_test", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -103,8 +103,8 @@ class Order(unittest.TestCase):
                                   env=env, capture_output=True, text=True, check=True)
             self.assertIn("u", done.stdout.strip().strip("[]"))
 
-    def test_same_answers_as_hart_hosts(self) -> None:
-        hosts = load_hart_hosts()
+    def test_same_answers_as_hartlib_hosts(self) -> None:
+        hosts = load_hartlib_hosts()
         cases = [
             ({}, None),
             ({}, "HART_MQTT_BROKER=192.0.2.1   # comment\nHART_MQTT_PORT=1884\n"),
