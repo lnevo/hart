@@ -67,10 +67,12 @@ class LoaderTest(unittest.TestCase):
         self.assertEqual(levels[("mast", "Mast 6LA")], "2")
         self.assertEqual(levels[("turnout", "Switch 5")], "1")       # switches.csv still says 1
 
-    def test_switch_9_is_left_hand_and_unrecorded_hands_are_blank(self) -> None:
+    def test_every_staging_switch_has_the_owners_hand(self) -> None:
         switches = facts.load_switches()
         self.assertEqual(switches[9].hand, "L")
-        self.assertEqual(switches[13].hand, "")
+        self.assertEqual(switches[13].hand, "L")
+        self.assertEqual(switches[23].hand, "R")
+        self.assertEqual([n for n, s in switches.items() if s.level == "1" and not s.hand], [])
 
     def test_a_hand_other_than_l_r_or_blank_is_refused(self) -> None:
         text = (self.data / "switches.csv").read_text().replace("1,9,TO10,no,31,no,L", "1,9,TO10,no,31,no,left")
