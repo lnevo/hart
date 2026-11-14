@@ -1,6 +1,6 @@
 layer,current,proposed,cp,hardware,dcc,comment,notes
 turnout,Switch 1,Switch 1,Brick,M2T408,100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",
-turnout,Switch 11,Switch 11,,M2T1309,118,"Node: 13 Turnout: 1 | OU: 2 Ports: 3,4",
+turnout,Switch 11,Switch 11,Engine House,M2T1309,118,"Node: 13 Turnout: 1 | OU: 2 Ports: 3,4",
 turnout,Switch 13,Switch 13,Engine House,M2T411,116,"Node: 4 Turnout: 3 | OU: 1 Ports: 7,8",
 turnout,Switch 15,Switch 15,South Yard,M2T308,103,"Node: 3 Turnout: 0 | OU: 1 Ports: 1,2",
 turnout,Switch 17,Switch 17,South Yard,M2T309,104,"Node: 3 Turnout: 1 | OU: 1 Ports: 3,4",
@@ -18,9 +18,9 @@ turnout,Switch 37,Switch 37,Princess,M2T109,114,"Node: 1 Turnout: 1 | OU: 1 Port
 turnout,Switch 39,Switch 39,Princess,M2T110,115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",
 turnout,Switch 5,Switch 5,Plane,M2T410,102,"Node: 4 Turnout: 2 | OU: 1 Ports: 5,6",
 turnout,Switch 7,Switch 7,Barn,M2T1308,117,"Node: 13 Turnout: 0 | OU: 2 Ports: 1,2",
-turnout,Switch 9,Switch 9,,M2T1310,119,"Node: 13 Turnout: 2 | OU: 2 Ports: 5,6",
+turnout,Switch 9,Switch 9,Engine House,M2T1310,119,"Node: 13 Turnout: 2 | OU: 2 Ports: 5,6",
 turnout,Switch 100,Switch 1,Brick,M2T408,100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; CTC Switch 1 (was 100); keep
-turnout,Switch 118,Switch 11,,M2T1309,118,"Node: 13 Turnout: 1 | OU: 2 Ports: 3,4",historical alias; CTC Switch 11 (was 118); Engine House; C13 OU2 motors
+turnout,Switch 118,Switch 11,Engine House,M2T1309,118,"Node: 13 Turnout: 1 | OU: 2 Ports: 3,4",historical alias; CTC Switch 11 (was 118); Engine House; C13 OU2 motors
 turnout,Switch 116,Switch 13,Engine House,M2T411,116,"Node: 4 Turnout: 3 | OU: 1 Ports: 7,8",historical alias; CTC Switch 13 (was 116); motors+FB on C4 OU1
 turnout,Switch 103,Switch 15,South Yard,M2T308,103,"Node: 3 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; CTC Switch 15 (was 103); keep; east of Barn
 turnout,Switch 104,Switch 17,South Yard,M2T309,104,"Node: 3 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; CTC Switch 17 (was 104); keep; hand-throw
@@ -38,7 +38,7 @@ turnout,Switch 114,Switch 37,Princess,M2T109,114,"Node: 1 Turnout: 1 | OU: 1 Por
 turnout,Switch 115,Switch 39,Princess,M2T110,115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; CTC Switch 39 (was 115); keep
 turnout,Switch 102,Switch 5,Plane,M2T410,102,"Node: 4 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; CTC Switch 5 (was 102); keep
 turnout,Switch 117,Switch 7,Barn,M2T1308,117,"Node: 13 Turnout: 0 | OU: 2 Ports: 1,2",historical alias; CTC Switch 7 (was 117); crossover 7/7b; motors+FB on C13 OU2
-turnout,Switch 119,Switch 9,,M2T1310,119,"Node: 13 Turnout: 2 | OU: 2 Ports: 5,6",historical alias; CTC Switch 9 (was 119); Engine House; C13 OU2 motors
+turnout,Switch 119,Switch 9,Engine House,M2T1310,119,"Node: 13 Turnout: 2 | OU: 2 Ports: 5,6",historical alias; CTC Switch 9 (was 119); Engine House; C13 OU2 motors
 turnout,DCC Switch 1,DCC Switch 1,,MTT100,,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",LCC alias of Switch 1 (M2T408)
 turnout,Switch 1 alias,DCC Switch 1,,MTT100,,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; was Switch N alias
 turnout,DCC Switch 3,DCC Switch 3,,MTT101,,"Node: 4 Turnout: 1 | OU: 1 Ports: 3,4",LCC alias of Switch 3 (M2T409)

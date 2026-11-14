@@ -5,4 +5,4 @@ barn,Barn,1,"7,7b",Crossover only
 south_yard,South Yard,1,"15,17,19,21",South Yard ladder
 east_end,East End,1,"25,27,29,31,23a,23b,33",Includes 23 crossover legs
 princess,Princess,1,"35a,35b,37,39",East plant toward McKees Rocks / McKeesport
-engine_house,Engine House,1,13,No plate on the CATS desk; the cp of the Engine House masts and blocks in public_name_map.csv. Switches 9 and 11 have no cp there
+engine_house,Engine House,1,"9,11,13",No plate on the CATS desk; the engine terminal lead and EH-1 to EH-3
