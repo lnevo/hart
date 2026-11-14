@@ -36,7 +36,12 @@ The PR proposes these phases:
 - **Phase 3:** wiring, mimic and publications.
 - **Retire instead:** a few one-shot scripts. `sim_hart_train_mqtt.py` already uses a name retired before 16R.
 
-**Next step:** the owner picks the phases.
+**Owner (2026-11-14):** do Phase 0, Phase 1 and the deletions now. Phases 2 and 3 are deferred to the import of the main and upper levels.
+
+**Done (PR #483):**
+- **Phase 0:** `tools/audit/check_name_copies.py` is in `check.sh`. It fails on any Track, OS or Mast name in a hand-kept code, data or site file that is not current: the map's identity rows, plus the block user names in `tables.xml`, which is how the hidden throat blocks count. Its tests rename a mast and a track in temporary copies and expect every stale copy to fail. The rename checklist is in `wiki/pipelines/switch-facts.md`.
+- **Phase 1:** the speed-match routes are a running order of block names, with the sensors looked up in `tables.xml`. `audit_panel_contracts.py`, `check_hart_phase02.py` and `infer_block_lengths.py` look up what they typed, and `validate_cats_panel.py` lost its unused name sets.
+- **Deleted:** `sim_hart_train_mqtt.py`, `annotate_mqtt_sensors_and_dispatcher.py`, `patch_ctc_locking.py`, `render_ctc_panel.py` and `apply_sml_cats_pairs.py`. The CATS pairs `validate_le_signalling.py` compares against are now `data/sml_cats_oracle.csv`.
 
 ## 2. Speed-match test routes from the data — do now
 
@@ -56,7 +61,7 @@ It now produces the `parts.json` the schematic reads from the repo. Options, non
 - **Checks on the committed outputs.** `parts.json` already has invariants in `tools/audit/tests/test_publish_draft.py`: only names and x, y, z; no point at the origin; only part 0 is a short turnout. Both graphs regenerate the same from it.
 - **A local-only test against the owner's plan.** If `~/Documents/Layout/Lee Nevo Design Version 5.3b.any` is present, run the reader and compare with the committed `parts.json` after the same strip. It is skipped everywhere else, CI included. This is the only test that proves the format against a real file.
 
-**Next step:** the owner picks which of the three to build.
+**Owner (2026-11-14):** deferred. The three options stay as written for when it is picked up.
 
 ## 4. USS lever numbering
 
@@ -76,7 +81,7 @@ The site is deployed with `./www/scripts/deploy_hartrailroad.sh` after the merge
 
 | Item | State |
 |------|-------|
-| 1 and 2 | Inventory done (draft PR, `agent/claude/names-one-place`); waiting for the owner to pick phases |
-| 3 | Waiting for the owner's choice |
+| 1 and 2 | Phase 0, Phase 1 and the deletions done (PR #483). Phases 2 and 3 deferred to the level import (owner, 2026-11-14) |
+| 3 | Deferred (owner) |
 | 4 | Parked with the USS work |
 | 5 | In progress, `site-builder`, one PR |

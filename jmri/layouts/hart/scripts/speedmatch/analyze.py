@@ -26,42 +26,64 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import liverule as lr  # noqa: E402
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths, tables  # noqa: E402
+
 DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
 DEFAULT_TRUSTED = ("anyrail", "inferred")  # "assigned" counts only when passed explicitly
 MM_PER_INCH = 25.4
 
-# The test routes: (block sensor, block_lengths.csv user_name) in running order. The pairing is
-# explicit because the CSV names tracks and switches, not sensors. loop1 is the 2026-11-08 loop,
-# east from East Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5.
-# A job, its log (the CFG line) and the analysis all name the route.
-LOOP = [
-    ("BS East Ext", "Track East Ext"), ("BS Switch 7b", "OS Switch 7b"),
-    ("BS Main East", "Track Main East"), ("BS Switch 33", "OS Switch 33"),
-    ("BS East Lead", "Track East Lead"), ("BS Switch 35a", "OS Switch 35a"),
-    ("BS Switch 37 / BS McKeesport", "OS Switch 37"), ("BS K-2", "Track K-2"),
-    ("BS K-1", "Track K-1"), ("BS Switch 39 / BS McKees Rocks", "OS Switch 39"),
-    ("BS Switch 35b", "OS Switch 35b"), ("BS West Ext", "Track West Ext"),
-    ("BS Switch 23a", "OS Switch 23a"), ("BS Main West", "Track Main West"),
-    ("BS Switch 1", "OS Switch 1"), ("BS Brick-Plane", "Track Brick-Plane"),
-    ("BS Switch 5", "OS Switch 5"),
-]
-LOOP2 = [
-    ("BS Switch 5", "OS Switch 5"), ("BS Scale", "Track Scale"), ("BS Switch 7", "OS Switch 7"),
-    ("BS Barn", "Track Barn"), ("BS Switch 13", "OS Switch 13"), ("BS Switch 15", "OS Switch 15"),
-    ("BS S-R", "Track S-R"), ("BS Switch 23b", "OS Switch 23b"), ("BS Switch 31", "OS Switch 31"),
-    ("BS Switch 33", "OS Switch 33"), ("BS East Lead", "Track East Lead"),
-    ("BS Switch 35a", "OS Switch 35a"), ("BS Switch 37 / BS McKeesport", "OS Switch 37"),
-    ("BS K-2", "Track K-2"), ("BS K-1", "Track K-1"),
-    ("BS Switch 39 / BS McKees Rocks", "OS Switch 39"), ("BS Switch 35b", "OS Switch 35b"),
-    ("BS West Ext", "Track West Ext"), ("BS Switch 23a", "OS Switch 23a"),
-    ("BS Main West", "Track Main West"), ("BS Switch 1", "OS Switch 1"),
-    ("BS Brick-Plane", "Track Brick-Plane"),
-]
-ROUTES = {"loop1": LOOP, "loop2": LOOP2}
+# The test routes: the blocks in running order, by their block_lengths.csv user_name. Only the
+# order is kept here; each block's sensor is the occupancy sensor tables.xml gives it, so a
+# rename in PanelPro and the name map reaches the routes with nothing to edit here (names that
+# are not current fail tools/audit/check_name_copies.py). loop1 is the 2026-11-08 loop, east from
+# East Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5. A job, its log
+# (the CFG line) and the analysis all name the route.
+ROUTE_BLOCKS = {
+    "loop1": [
+        "Track East Ext", "OS Switch 7b", "Track Main East", "OS Switch 33", "Track East Lead",
+        "OS Switch 35a", "OS Switch 37", "Track K-2", "Track K-1", "OS Switch 39", "OS Switch 35b",
+        "Track West Ext", "OS Switch 23a", "Track Main West", "OS Switch 1", "Track Brick-Plane",
+        "OS Switch 5",
+    ],
+    "loop2": [
+        "OS Switch 5", "Track Scale", "OS Switch 7", "Track Barn", "OS Switch 13", "OS Switch 15",
+        "Track S-R", "OS Switch 23b", "OS Switch 31", "OS Switch 33", "Track East Lead",
+        "OS Switch 35a", "OS Switch 37", "Track K-2", "Track K-1", "OS Switch 39", "OS Switch 35b",
+        "Track West Ext", "OS Switch 23a", "Track Main West", "OS Switch 1", "Track Brick-Plane",
+    ],
+}
+# The warm-up lap counter counts REF (the route's first sensor) lit again after MID, the sensor
+# of a block about half way round the route.
+ROUTE_MID_BLOCK = {"loop1": "OS Switch 23a", "loop2": "Track K-2"}
+
+
+def block_sensors(root=None):
+    """Block user name -> its occupancy sensor user name, from tables.xml (the full <block>)."""
+    root = tables.read(paths.TABLES_XML) if root is None else root
+    out = {}
+    for b in tables.blocks(root):
+        name, sensor = tables.user_name(b), tables.text(b, "occupancysensor")
+        if name and sensor:
+            out[name] = sensor
+    return out
+
+
+def route_pairs(blocks, sensors):
+    """[(block sensor, block)] for a running order; stops on a block tables.xml lacks."""
+    missing = [b for b in blocks if b not in sensors]
+    if missing:
+        raise SystemExit("speed-match route block(s) with no occupancy sensor in %s: %s"
+                         % (paths.rel(paths.TABLES_XML), ", ".join(missing)))
+    return [(sensors[b], b) for b in blocks]
+
+
+_SENSORS = block_sensors()
+ROUTES = {r: route_pairs(blocks, _SENSORS) for r, blocks in ROUTE_BLOCKS.items()}
+LOOP, LOOP2 = ROUTES["loop1"], ROUTES["loop2"]
 DEFAULT_ROUTE = "loop1"
-# The warm-up lap counter counts REF (the route's first sensor) lit again after MID, a sensor
-# about half way round the route.
-ROUTE_MID = {"loop1": "BS Switch 23a", "loop2": "BS K-2"}
+ROUTE_MID = {r: _SENSORS[b] for r, b in ROUTE_MID_BLOCK.items()}
 ORDER = [s for s, _ in LOOP]  # loop1 aliases: LOOP and ORDER
 
 # Switch positions the owner sets by hand before a run (nothing here is ever sent to JMRI):

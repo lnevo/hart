@@ -154,10 +154,16 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
         )
 
 
-DISPATCHER_VIRTUALS = {
-    "Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB", "Mast 2R", "Mast 6R",
-    "Mast 36L", "Mast 40RB",
-}
+def dispatcher_virtuals(expected: set[str], name_map: Path = paths.PUBLIC_NAME_MAP) -> set[str]:
+    """The boundary masts that are hidden virtual masts for Dispatcher Stage 1, not field
+    masts: those whose name-map hardware is `virtual $10nn` (Mast 8LC, 2R, 36L ...)."""
+    with name_map.open(newline="", encoding="utf-8") as f:
+        virtual = {
+            row["proposed"] for row in csv.DictReader(f)
+            if row["layer"] == "mast" and row["current"] == row["proposed"]
+            and row["hardware"].startswith("virtual")
+        }
+    return expected & virtual
 
 
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
@@ -180,7 +186,8 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
                 continue
             if name:
                 names.add(name)
-    field_expected = expected - DISPATCHER_VIRTUALS
+    virtuals = dispatcher_virtuals(expected)
+    field_expected = expected - virtuals
     missing = sorted(field_expected - names)
     extra = sorted(names - field_expected)
     if missing or extra or len(names) != 23:
@@ -188,7 +195,7 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
             f"signal mast names are not the exact expected 23; "
             f"missing={missing or 'none'}, extra={extra or 'none'}, count={len(names)}"
         )
-    missing_virtuals = sorted(DISPATCHER_VIRTUALS - virtual_names)
+    missing_virtuals = sorted(virtuals - virtual_names)
     if missing_virtuals:
         audit.error(f"missing dispatcher virtual masts: {missing_virtuals}")
     if cats_virtual:

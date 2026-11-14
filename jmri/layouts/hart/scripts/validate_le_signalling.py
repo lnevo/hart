@@ -4,7 +4,10 @@
 Validates jmri/layouts/hart/output/tables.xml for JMRI native SML discovery readiness
 WITHOUT launching JMRI, then simulates discovery (path-walk from every
 mast to the next facing mast) and diffs the result against the CATS
-oracle PAIRS in jmri/layouts/hart/scripts/apply_sml_cats_pairs.py.
+oracle pairs in jmri/layouts/hart/data/sml_cats_oracle.csv (the PAIRS list of the
+retired hand-pair injector, kept only as a historical comparison; it has known
+defects: opposing-face pairs SML never models, impossible Mast 38LB -> 111a rows,
+and balloon rows with source and dest swapped).
 
 Semantics are transcribed from JMRI source (LayoutTurnout.java,
 PositionablePoint.java, LayoutBlockManager.getFacingBean,
@@ -32,7 +35,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import importlib.util
 import sys
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
@@ -44,7 +46,7 @@ from hartlib import paths, tables  # noqa: E402
 
 DEFAULT_XML = paths.TABLES_XML
 DEFAULT_CSV = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
-ORACLE = paths.LAYOUT_SCRIPTS / "apply_sml_cats_pairs.py"
+ORACLE = paths.LAYOUT_DATA / "sml_cats_oracle.csv"
 
 PORTS = "ABCD"
 XOVER_TYPES = {"RH_XOVER", "LH_XOVER", "DOUBLE_XOVER"}
@@ -402,11 +404,17 @@ def walk_from_site(m: Model, site: MastSite, max_hops: int = 80) -> list[Dest]:
     return dests
 
 
-def load_oracle() -> list[tuple[str, str, list[str], list[tuple[str, str]]]]:
-    spec = importlib.util.spec_from_file_location("apply_sml_cats_pairs", ORACLE)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.PAIRS
+def load_oracle(path: Path = ORACLE) -> list[tuple[str, str, list[str], list[tuple[str, str]]]]:
+    """(source, dest, blocks, [(turnout, closed|thrown)]) per row; lists are ` | `-separated."""
+    def split(cell: str) -> list[str]:
+        return [part.strip() for part in cell.split("|") if part.strip()]
+
+    out = []
+    with path.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            turnouts = [tuple(t.split("=", 1)) for t in split(row["turnouts"])]
+            out.append((row["source"], row["dest"], split(row["blocks"]), turnouts))
+    return out
 
 
 def load_stored_sml(xml_path: Path) -> list[tuple[str, str, str]]:

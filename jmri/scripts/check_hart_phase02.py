@@ -11,6 +11,19 @@ JMRI_ROOT = Path(__file__).resolve().parents[1]
 HART = JMRI_ROOT / "layouts" / "hart"
 PANEL = HART / "output" / "tables.xml"
 NAME_MAP = HART / "data" / "public_name_map.csv"
+SWITCH_LEGS = HART / "data" / "switch_legs.csv"
+
+
+def secondary_os_blocks(path: Path = SWITCH_LEGS) -> set[str]:
+    """A crossover's OS blocks after its first (main) row in switch_legs.csv (7b, 23b, 35a)."""
+    seen: set[str] = set()
+    out: set[str] = set()
+    with path.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if row["switch"] in seen:
+                out.add(row["os_block"])
+            seen.add(row["switch"])
+    return out
 
 
 def main() -> int:
@@ -71,15 +84,11 @@ def main() -> int:
     missing = sorted(expected_os - found)
     # Crossover / paired legs: occupancy exists in block table; layoutturnout
     # may only name the primary leg (linear6 connectivity).
-    secondary_ok = {
-        "OS Switch 23b",
-        "OS Switch 35a",
-        "OS Switch 7b",
-    }
+    secondary_ok = secondary_os_blocks()
     missing = [m for m in missing if m not in secondary_ok]
     if missing:
         errors.append("layoutturnout missing OS blocks: " + ", ".join(missing))
-    for name in secondary_ok:
+    for name in sorted(secondary_ok):
         if not any(
             (b.findtext("userName") or "") == name for b in root.iter("block")
         ):
