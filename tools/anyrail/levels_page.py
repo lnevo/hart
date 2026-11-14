@@ -130,6 +130,19 @@ def sections(svg_dir, staging):
         '<li><b>The Switch 7 crossover is not in the plan.</b> It joins the two long parallel runs out of Switch 5.</li>'
         '<li><b>Switch 13 and the engine terminal are not in the plan</b> (Switches 9 and 11, Barn, Scale, EH-1 to EH-3). They sit on the run from Switch 5 to the yard ladder (Switch 5, Scale, Switch 7, Barn, Switch 13). The terminal is drawn as a placeholder from the built topology and a photo of the benchwork: the track radii and the length of the stubs are not measured. Switch 9&rsquo;s normal route goes to EH-2.</li>'
         '<li><b>The two long dead ends past Switches 37 and 39 are the helix lines.</b> On the layout they are the McKeesport and McKees Rocks stubs.</li></ol>')
+    t["terminal"] = (
+        '<h3>Lengths in the Switch 5 to Switch 15 run, and the engine terminal</h3>'
+        '<p>Scale and Barn come from the timed passes: the distance between the switch centres, less half of each switch&rsquo;s own block. '
+        'The terminal rows are measured on the drawing, between the switches as drawn. The EH track ends are not measured: the stub ends are placed at x 180 cm, so the EH lengths show what that placement gives, not what is built.</p>'
+        '<div class="tw"><table><thead><tr><th>Track</th><th class="n">Block table now</th><th class="n">Measured</th><th>From</th></tr></thead><tbody>'
+        '<tr><td>Scale (Switch 5 to Switch 7)</td><td class="n">24 in</td><td class="n"><b>144.5 in</b> (3670 mm)</td><td>timed passes</td></tr>'
+        '<tr><td>Barn (Switch 7 to Switch 13)</td><td class="n">24 in</td><td class="n"><b>37.6 in</b> (954 mm)</td><td>timed passes</td></tr>'
+        '<tr><td>Switch 13 to Switch 11</td><td class="n">&ndash;</td><td class="n">10.2 in</td><td>drawing</td></tr>'
+        '<tr><td>Switch 11 to Switch 9</td><td class="n">&ndash;</td><td class="n">14.7 in</td><td>drawing</td></tr>'
+        '<tr><td>EH-1 (Switch 11 to the bumper)</td><td class="n">24 in</td><td class="n">48.3 in</td><td>drawing, bumper placed</td></tr>'
+        '<tr><td>EH-2 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">22.3 in</td><td>drawing, bumper placed</td></tr>'
+        '<tr><td>EH-3 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">22.2 in</td><td>drawing, bumper placed</td></tr>'
+        '</tbody></table></div>')
     t["loop"] = ('<h3>Test loop length</h3><div class="tw"><table><thead><tr><th>Source</th><th class="n">Test loop</th></tr></thead><tbody>'
                  '<tr><td>Plan 5.3b, along the test route</td><td class="n">35,108 mm (1382 in)</td></tr>'
                  '<tr><td>Block table before the timed loop</td><td class="n">31,293 mm (1232 in)</td></tr>'
@@ -192,7 +205,7 @@ def body(t, f_stage):
     return ('<nav class="jump"><a href="#staging">Staging</a><a href="#main">Main level</a><a href="#upper">Upper level</a></nav>'
             + t["intro"] +
             '<section id="staging"><h2>Staging level</h2>' + t["stage_key"] + f_stage +
-            t["locate"] + t["diffs"] + t["loop"] + t["blocks"] + '</section>'
+            t["locate"] + t["diffs"] + t["terminal"] + t["loop"] + t["blocks"] + '</section>'
             '<section id="main"><h2>Main level</h2>' + t["main"] + '</section>'
             '<section id="upper"><h2>Upper level</h2>' + t["upper"] + '</section>')
 
