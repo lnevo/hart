@@ -6,6 +6,13 @@
   "Schematic diagram",
   "From the AnyRail plan, as built"
  ],
+ "band_legend": {
+  "Staging": {
+   "west": "left",
+   "show": "west"
+  }
+ },
+ "_band_legend": "Owner, 2026-11-14: Main East and Main West both run east to west, with West Yard (W-1, W-2) at the west end, drawn at the left: one arrow pointing west toward it.",
  "min_cells": [
   [
    "T106",

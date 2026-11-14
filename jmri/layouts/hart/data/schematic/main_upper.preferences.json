@@ -21,6 +21,15 @@
   "Upper",
   "Main"
  ],
+ "band_legend": {
+  "Main": "reversed",
+  "Upper": "none"
+ },
+ "track_arrows": {
+  "Upper": "main"
+ },
+ "_band_legend": "Owner, 2026-11-14: the main level is drawn reversed (east to the left); the upper level runs both ways, so it has no legend and an arrow on each main track instead. Two-way arrows until the owner gives each upper track's direction (track_directions in main_upper.plan_overrides.json).",
+ "band_gap": 40,
  "rotate_bands": [],
  "equal_width": true,
  "band_width": {
@@ -100,5 +109,6 @@
   "T212": "B"
  },
  "facing_letters": true,
- "direction_arrows": true
+ "direction_arrows": false,
+ "_direction_arrows": "Off since 2026-11-14: the main band's own legend and the upper band's per-track arrows say the direction instead of an EAST arrow on each main run."
 }

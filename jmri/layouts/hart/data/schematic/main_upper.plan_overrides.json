@@ -200,5 +200,7 @@
  "_helix_side": "Fact, not a preference: the helix is at the east end of every level (ADR-022: timetable east runs toward Princess and the helix).",
  "helix_to": "Staging",
  "mast_prefix": "Mast ",
- "mast_dir_pattern": "\\d+([LR])"
+ "mast_dir_pattern": "\\d+([LR])",
+ "track_directions": [],
+ "_track_directions": "Which way trains run on each upper level track, as [from, to] (one way) or [a, b, \"both\"]; the owner's to give (2026-11-14). Until then every upper main track draws a two-headed arrow (track_arrows in the preferences). Tracks: 201-219 (west loop), 201-203, 203-213B, 213B-217A, 217A-221B, 221B-129B, 129B-135B, 135B to helix H2, 219-221A, 221A-223, 223-225 (two tracks), 225-229, 225-227, 229-239 and 239-227 (peninsula loop)."
 }
