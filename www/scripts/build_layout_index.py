@@ -7,6 +7,7 @@ so hotspot pixels align with assets/layout/HART_le_schematic.png.
 
 from __future__ import annotations
 
+import argparse
 import csv
 import importlib.util
 import json
@@ -270,11 +271,24 @@ def build():
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--check", action="store_true",
+                    help="build without rendering or writing; exit 1 if layout-index.json is stale")
+    args = ap.parse_args(argv)
     if not PANEL.is_file():
         raise SystemExit(f"missing panel: {PANEL}")
     if not NAMES.is_file():
         raise SystemExit(f"missing names: {NAMES}")
+    if args.check:
+        want = json.dumps(build(), indent=2) + "\n"
+        have = OUT_JSON.read_text(encoding="utf-8") if OUT_JSON.is_file() else ""
+        if want != have:
+            print(f"{OUT_JSON.relative_to(ROOT)} is stale: run python3 www/scripts/build_layout_index.py "
+                  "and commit the result", file=sys.stderr)
+            return 1
+        print(f"{OUT_JSON.relative_to(ROOT)} is current")
+        return 0
     refresh_schematic()
     payload = build()
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)

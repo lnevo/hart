@@ -13,6 +13,7 @@ Joined to layout-index.json for MQTT / hardware when names match.
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import subprocess
@@ -306,9 +307,22 @@ def build() -> dict:
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--check", action="store_true",
+                    help="build without rendering or writing; exit 1 if layout-index-cats.json is stale")
+    args = ap.parse_args(argv)
     if not PANEL.is_file():
         raise SystemExit(f"missing {PANEL}")
+    if args.check:
+        want = json.dumps(build(), indent=2) + "\n"
+        have = OUT_JSON.read_text(encoding="utf-8") if OUT_JSON.is_file() else ""
+        if want != have:
+            print(f"{OUT_JSON.relative_to(ROOT)} is stale: run python3 www/scripts/build_cats_layout_index.py "
+                  "(after build_layout_index.py) and commit the result", file=sys.stderr)
+            return 1
+        print(f"{OUT_JSON.relative_to(ROOT)} is current")
+        return 0
     render()
     payload = build()
     OUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
