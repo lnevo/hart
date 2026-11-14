@@ -96,7 +96,7 @@ Tests: `jmri/layouts/hart/scripts/tests/test_speedmatch_dashboard.py`, run by `.
 ## Recorded runs on the website
 
 The same client shows finished runs on the public site at `ai/speed-runs.html`, linked from the
-speed-matching section of `ai/locomotives.html`. There it reads static JSON instead of polling
+Behind the Scenes and `ai/locomotives.html`. There it reads static JSON instead of polling
 `/api/state` (`window.SM_RECORDED` is set on that page), with a run picker, newest first, and a
 label for each run (used, superseded or not used, with the reason). The site build publishes the
 dashboard's own `static/app.js` and `static/style.css` (`www/scripts/published-files.json`), so
@@ -117,6 +117,14 @@ builds next to the output and swaps it in at the end, so a failed export changes
 website page repeats the live page's panels; a test checks that every id `app.js` needs is on
 both. Positioning (`moveto_`) logs
 are never published. The live view is not on the public site.
+
+Each run also gets `runs/<id>.frames.json`, its replay: the run as the live page drew it after
+every log line that changed it, the first frame whole and the rest as changes only
+(`diff_frame`; `applyFrame` in `app.js` undoes it, and the export checks every frame rebuilds).
+The page fetches it only when Replay is pressed, plays it at ×10, ×30 or ×100 with waits over
+a minute cut short, and has a position slider; Show the result goes back to the published
+snapshot. The website's Replay replaces the `--demo` and `--replay` modes of the Mac server for
+anyone without the logs.
 
 ## Live view on the Pi
 
