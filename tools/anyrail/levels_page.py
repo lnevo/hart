@@ -127,12 +127,7 @@ def sections(svg_dir, staging):
     f_upper = figure((ub[0] - pad, ub[1] - pad, ub[2] - ub[0] + 2 * pad, ub[3] - ub[1] + 2 * pad), upper, "Upper level of plan 5.3b")
     t = {}
     t["intro"] = (
-        '<p>Track plans of the staging, main and upper levels, read from layout plan version 5.3b and drawn to scale in centimetres. '
-        'Staging is 38.1 cm (15 in) below the main level and the upper level is 10.8 cm (4.25 in) above it; the helix joins them. '
-        'The main level has %d turnouts and %.1f m of flex, the upper level %d turnouts and %.1f m. '
-        'The test loop on staging measures 1382 in (35,108 mm) along the plan. '
-        'Every drawing is track only, with the changes made to the plan applied: the unbuilt crossover is left out, '
-        'T300 is moved to the upper level, and the switches the plan lacks are added where the plan has room for them.</p>'
+        '<p>Track plans of the staging, main and upper levels, read from layout plan version 5.3b and drawn to scale in centimetres. Staging is 38.1 cm (15 in) below the main level and the upper level is 10.8 cm (4.25 in) above it; the helix joins them. The main level has %d turnouts and %.1f m of flex, the upper level %d turnouts and %.1f m. The staging section adds the run from Switch 5 to Switch 15, the engine terminal and the block lengths, including the 1382 in (35,108 mm) test loop. Every drawing is track only.</p><p>AI read the geometry out of the plan file. The changes made since the plan was drawn had never been written down, and were filled in by talking them through with it: the unbuilt crossover is left out, T300 is moved to the upper level, and the switches the plan lacks are added where it has room for them.</p>'
         % (meta["main"]["drawn"], meta["main"]["flex_m"], meta["upper"]["drawn"], meta["upper"]["flex_m"]))
     t["stage_key"] = ('<div class="key"><span class="k-loop">test loop route</span><span class="k-sw7">run from Switch 5 to Switch 15</span>'
                       '<span class="k-trk">other track</span></div>')
