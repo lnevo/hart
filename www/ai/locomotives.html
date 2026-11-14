@@ -101,13 +101,53 @@
           <dl class="ai-facts">
             <div><dt>Tool</dt><dd>Claude</dd></div>
             <div><dt>When</dt><dd>November 2026</dd></div>
-            <div><dt>Status</dt><dd>2738 matched to 2121; first coupled run to come</dd></div>
+            <div><dt>Status</dt><dd>2738 matched to 2121 in both directions; first coupled run to come</dd></div>
           </dl>
           <h3 class="ai-sub">The job</h3>
           <p>Two locomotives that run at different speeds cannot work together; one drags the other. I wanted CSX 2121 and 2738 to run as a pair.</p>
           <h3 class="ai-sub">What AI did</h3>
-          <p>A program running inside JMRI set each locomotive to a throttle step, let it run laps of the whole loop and timed each lap from the block sensors, step after step, with no hands on the throttle. Both topped out at about the same speed, but 2738 ran at only 47 to 74 per cent of 2121&rsquo;s speed through the lower steps. Its settings explained why: the speed table was switched off and it had no momentum.</p>
-          <p>I chose to match 2738 to 2121, momentum included. It was programmed on the programming track with a calculated speed table, and every value read back correctly. Measured again at steps 24, 48 and 126 it ran within 1.2 per cent of 2121, and about 5 per cent fast at step 12. At step 96 the two stopped within a tenth of a second of each other and started within three tenths.</p>
+          <p>A program running inside JMRI sets a locomotive to a throttle step, lets it run through the block sensors and times each block, step after step, with no hands on the throttle. Block lengths now come from the track plan and were checked against timed passes. Both locomotives were measured in both directions on 13 November 2026, 2738 was adjusted to match 2121, and the two were compared stopping.</p>
+          <h3 class="ai-sub">The 13 November 2026 runs</h3>
+          <p>2738 now runs within 4 per cent of 2121 at every step from 24 up, in both pairings of the two locomotives (most steps within 2 to 3 per cent). Step 16 is 2 per cent fast in one pairing and 6 per cent fast in the other. The locomotives face away from each other in a consist, so 2121 forward runs with 2738 reverse and the other way round.</p>
+          <div class="table-wrap">
+            <table class="data-table tt-table">
+              <caption class="sr-only">Speed in mm/s by throttle step, and 2738 against 2121</caption>
+              <thead>
+                <tr><th>Step</th><th>2121 fwd</th><th>2121 rev</th><th>2738 fwd</th><th>2738 rev</th><th>2738 rev vs 2121 fwd</th><th>2738 fwd vs 2121 rev</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>8</td><td>50.6</td><td>50.9</td><td>60.3</td><td>61.4</td><td>+21%</td><td>+18%</td></tr>
+                <tr><td>16</td><td>156.3</td><td>161.9</td><td>171.8</td><td>159.6</td><td>+2.1%</td><td>+6.1%</td></tr>
+                <tr><td>24</td><td>261.7</td><td>272.8</td><td>270.0</td><td>253.2</td><td>&minus;3.2%</td><td>&minus;1.0%</td></tr>
+                <tr><td>32</td><td>338.8</td><td>358.7</td><td>354.1</td><td>341.9</td><td>+0.9%</td><td>&minus;1.3%</td></tr>
+                <tr><td>48</td><td>429.0</td><td>440.5</td><td>447.6</td><td>419.4</td><td>&minus;2.2%</td><td>+1.6%</td></tr>
+                <tr><td>64</td><td>454.1</td><td>493.7</td><td>484.5</td><td>472.0</td><td>+3.9%</td><td>&minus;1.9%</td></tr>
+                <tr><td>96</td><td>453.4</td><td>484.6</td><td>479.3</td><td>466.1</td><td>+2.8%</td><td>&minus;1.1%</td></tr>
+                <tr><td>126</td><td>465.0</td><td>499.9</td><td>490.3</td><td>466.3</td><td>+0.3%</td><td>&minus;1.9%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Speeds are in mm/s, as written to the roster. The tolerance is 5 per cent: one step repeats to about 2 per cent between runs, and to 6 per cent at the slowest steps. Step 8 is creep, where 2738 is about 20 per cent fast and stays so.</p>
+          <p>2121 ran 3 to 10 per cent faster in reverse than forward, while 2738 ran evenly both ways. Raising only 2738&rsquo;s forward trim brought 2738 forward up to 2121 reverse; the other pairing already matched.</p>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>2738 decoder setting</th><th>Old</th><th>New</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>CV66, forward trim</td><td>128</td><td>135</td></tr>
+                <tr><td>CV69, speed table entry 3</td><td>50</td><td>51</td></tr>
+                <tr><td>CV70, speed table entry 4</td><td>73</td><td>74</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Stopping from step 32 and from step 96 on the same track, with the same trigger, every block lit within 0.2 seconds of the other locomotive, and both came to rest in the same block. 2121 slows more gently than its settings predict, and 2738 matches it. The test of the coupled pair did not run cleanly, so the solo match stands for it.</p>
+          <p>Both roster entries now hold the measured speed profile, eight points each. 2121 was not changed.</p>
+          <p class="ai-see"><b>See it:</b> <a href="speed-runs.html">Every recorded run, newest first</a>, drawn the way the live dashboard draws it. Two runs are marked: the 11:43 run of 2738 forward is not used, because before a fix the locomotive ran the opposite way to the one asked, and the 12:51 run of 2738 forward is superseded by the run after the CV66 change.</p>
+          <!-- LIVE LINK: add one link to the home-network live dashboard here when it exists (Pi, not public). -->
+          <h3 class="ai-sub">The first run, 8 November 2026</h3>
+          <p>The first program set each locomotive to a throttle step and timed laps of the whole loop. Both topped out at about the same speed, but 2738 ran at only 47 to 74 per cent of 2121&rsquo;s speed through the lower steps. Its settings explained why: the speed table was switched off and it had no momentum.</p>
+          <p>2738 was matched to 2121, momentum included, with a calculated speed table programmed on the programming track; every value read back correctly. Measured again at steps 24, 48 and 126 it ran within 1.2 per cent of 2121, and about 5 per cent fast at step 12. At step 96 the two stopped within a tenth of a second of each other and started within three tenths. The two were timed running in opposite directions then, which the 13 November runs corrected.</p>
           <figure>
             <svg class="speed-svg" viewBox="0 0 480 300" role="img" aria-labelledby="speed-t speed-d">
               <title id="speed-t">CSX 2738 against CSX 2121, by throttle step</title>
@@ -136,7 +176,7 @@
               <text class="t-b" x="172" y="231">Before: 2738 runs slow</text>
               <text class="t-brand" x="236" y="42">After: matched</text>
             </svg>
-            <figcaption><strong>2738 as a share of 2121&rsquo;s speed.</strong> Dashed with open circles is before programming, solid with squares is after. The after line was measured at four steps only. The shaded band is the 3 per cent the measurements repeat to.</figcaption>
+            <figcaption><strong>2738 as a share of 2121&rsquo;s speed.</strong> Dashed with open circles is before programming, solid with squares is after. The after line was measured at four steps only, on 8 November. The shaded band is the 3 per cent the measurements repeat to.</figcaption>
           </figure>
 
           <h3 class="ai-sub">What came out</h3>
@@ -144,11 +184,11 @@
           <div class="ai-verdict">
             <b>Verdict</b>
             <ul>
-              <li><span class="k">Worked well:</span> hours of unattended, repeatable measuring, and a speed table worked out from the numbers rather than by feel.</li>
-              <li><span class="k">Be honest about:</span> the speeds are relative. The block lengths used to turn lap times into real speeds came from the track plan, and the timings show several are wrong, so scale miles an hour cannot be trusted yet. The comparison between the two is not affected, but they were timed running in opposite directions, so a direction effect is mixed in. Measuring the real blocks comes next.</li>
+              <li><span class="k">Worked well:</span> hours of unattended, repeatable measuring, a speed table worked out from the numbers rather than by feel, and one trim setting that matched both directions.</li>
+              <li><span class="k">Be honest about:</span> step 8 stays about 20 per cent apart, and step 16 is 6 per cent apart in one pairing. Block lengths now come from the track plan and were checked against timed passes; both directions were measured. Some loop 2 lengths are still estimates, so scale miles an hour is approximate. A block lighting again behind the locomotive can be taken as the next block, which is not fixed. The coupled stop test has not run cleanly.</li>
             </ul>
           </div>
-          <p class="ai-see"><b>See it:</b> <a href="../docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf">Speed matching and the measure table</a> (the Short Track Rail Road club's procedure, PDF, 37 pp, which HART is adapting for HO)</p>
+          <p class="ai-see"><b>See it:</b> <a href="speed-runs.html">Every recorded run</a> · <a href="../docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf">Speed matching and the measure table</a> (the Short Track Rail Road club's procedure, PDF, 37 pp, which HART is adapting for HO)</p>
         </section>
 
         <nav class="ai-pager" aria-label="Topics">
