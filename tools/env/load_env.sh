@@ -15,7 +15,7 @@ export HART_REPO_ROOT="${HART_REPO_ROOT:-$(cd "${_env_dir}/../.." && pwd)}"
 # Host settings, read in the same order as tools/hartlib/src/hartlib/hosts.py: the environment
 # first, then hart.env, then the default. Older names follow the new one in each list.
 _hart_host_names="HART_MQTT_BROKER MQTT_HOST HART_MQTT_HOST HART_MQTT_PORT HART_JMRI_JSON JMRI_JSON
-  HART_PI_SSH HART_PI_USERFILES HART_WIN_SSH HART_WIN_SSH_PORT HART_WIN_USERFILES"
+  HART_PI_SSH HART_PI_USERFILES HART_PI_WEB_HOST HART_WIN_SSH HART_WIN_SSH_PORT HART_WIN_USERFILES"
 for _n in $_hart_host_names; do
   eval "_hart_env_${_n}=\"\${${_n}:-}\""
 done
@@ -54,6 +54,8 @@ export HART_JMRI_JSON="$(_hart_pick http://10.0.0.150:12080/json HART_JMRI_JSON 
 # Docker helpers honoured it before, and they still put it first themselves.
 export HART_PI_SSH="$(_hart_pick pi HART_PI_SSH)"
 export HART_PI_USERFILES="$(_hart_pick /home/pi/JMRI_UserFiles HART_PI_USERFILES)"
+# The Pi's name in web links (the Mac JMRI web home's speed-match link), not an ssh target.
+export HART_PI_WEB_HOST="$(_hart_pick RPi-JMRI.local HART_PI_WEB_HOST)"
 # ssh to Windows (OpenSSH on port 2222). minipc-e5h6x.local is never the broker.
 export HART_WIN_SSH="$(_hart_pick lnevo@minipc-e5h6x.local HART_WIN_SSH)"
 export HART_WIN_SSH_PORT="$(_hart_pick 2222 HART_WIN_SSH_PORT)"

@@ -16,13 +16,14 @@ ROOT = Path(__file__).resolve().parents[3]
 LOAD_ENV = ROOT / "tools/env/load_env.sh"
 EXAMPLE = ROOT / "tools/env/hart.env.example"
 NAMES = ("HART_MQTT_BROKER", "HART_MQTT_PORT", "HART_JMRI_JSON", "HART_PI_SSH", "HART_PI_USERFILES",
-         "HART_WIN_SSH", "HART_WIN_SSH_PORT", "HART_WIN_USERFILES")
+         "HART_PI_WEB_HOST", "HART_WIN_SSH", "HART_WIN_SSH_PORT", "HART_WIN_USERFILES")
 DEFAULTS = {
     "HART_MQTT_BROKER": "10.0.0.150",
     "HART_MQTT_PORT": "1883",
     "HART_JMRI_JSON": "http://10.0.0.150:12080/json",
     "HART_PI_SSH": "pi",
     "HART_PI_USERFILES": "/home/pi/JMRI_UserFiles",
+    "HART_PI_WEB_HOST": "RPi-JMRI.local",
     "HART_WIN_SSH": "lnevo@minipc-e5h6x.local",
     "HART_WIN_SSH_PORT": "2222",
     "HART_WIN_USERFILES": "C:/Users/lnevo/JMRI_UserFiles",
