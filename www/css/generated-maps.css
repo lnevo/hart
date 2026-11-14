@@ -1,0 +1,80 @@
+/* Generated station map previews (ADR-023). Not linked from the crew map index. */
+.gen-note {
+  margin: 0 0 1.25rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--muted);
+  background: var(--surface, transparent);
+  font-size: 0.92rem;
+}
+
+.gen-sheet {
+  margin: 0 0 1.75rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.gen-sheet h2 {
+  margin-bottom: 0.2rem;
+}
+
+.gen-scroll {
+  max-width: 100%;
+  /* The page never scrolls sideways: on a phone the drawing keeps a readable
+     width and this box scrolls instead. */
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.gen-scroll img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 700px) {
+  .gen-scroll img {
+    width: 150vw;
+    max-width: none;
+  }
+}
+
+.gen-sheet figcaption {
+  margin-top: 0.45rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.gen-list {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+}
+
+.gen-list a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.gen-list img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  background: #fff;
+}
+
+.gen-list strong {
+  display: block;
+  margin-top: 0.3rem;
+}
+
+.gen-list small {
+  color: var(--muted);
+}
