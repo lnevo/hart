@@ -8,25 +8,43 @@ staging level's track drawing (staging_plan.svg here). The Switch 7 and 13 marke
 here from the loop 2 timed passes (infer_block_lengths.py --route loop2 --locate).
 """
 import base64
-import sys as _sys
-from pathlib import Path as _P
-_sys.path.insert(0, str(_P(__file__).resolve().parent))
-import engine_terminal
+import csv
 import json
 import math
 import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import engine_terminal  # noqa: E402
+
+BLOCK_CSV = Path(__file__).resolve().parents[2] / "jmri/layouts/hart/data/block_lengths.csv"
+PIN_5, PIN_15 = 140, 5909     # Switch 5 and Switch 15 centres on the plan, mm from Switch 5's points (infer_block_lengths.py)
+
 # loop 2 pass results, 2026-11-13: mm from Switch 5's points along Switch 5, Scale, 7, Barn, 13, 15
 LOCATE = {"7": (4249, 4260, 4239, 1660), "13": (5457, 5444, 5470, 452)}
 # the run Switch 5 to Switch 15 on the staging drawing, from Switch 5's points (cm)
 RUN = [(72.9, 636.5), (94.9, 653.9)]
 RUN_SEGS = [  # polylines of the run, in order from Switch 5, as drawn in staging_plan.svg
-    ("141.8,666.2", "94.9,653.9", True), ("141.8,666.2", "197.9,666.3", False),
-    ("270.3,593.9", "197.9,666.3", True), ("197.9,521.5", "270.3,593.9", True),
-    ("103.0,521.5", "197.9,521.5", True), ("103.0,521.5", "24.3,442.8", False)]
+    ("141.8,666.2", "94.9,653.9"), ("141.8,666.2", "197.9,666.3"),
+    ("270.3,593.9", "197.9,666.3"), ("197.9,521.5", "270.3,593.9"),
+    ("103.0,521.5", "197.9,521.5"), ("103.0,521.5", "24.3,442.8")]
 OLD_7B = (168.5, 515.1)   # Switch 7b from loop 1 (PR #399 pass), kept as a ring for comparison
+
+
+def block_inches():
+    return {r["user_name"]: float(r["inches"]) for r in csv.DictReader(open(BLOCK_CSV, newline=""))}
+
+
+def derive(os5=24.6, os7=10.0):
+    """Block lengths that follow from the timed centres of Switch 7 and 13 and the pins at Switch 5 and 15.
+    Blocks tile the run, so half of OS 13 and half of OS 15 span the gap between their centres (split evenly,
+    since the timing cannot split it), and Barn is what is left between Switch 7 and Switch 13. mm."""
+    l7, l13 = LOCATE["7"][0], LOCATE["13"][0]
+    gap = PIN_15 - l13
+    scale = (l7 - PIN_5) - os5 * 25.4 / 2 - os7 * 25.4 / 2
+    barn = (l13 - l7) - os7 * 25.4 / 2 - gap / 2
+    return dict(scale=scale, barn=barn, os13=gap, os15=gap)
 
 
 def run_path(staging):
@@ -35,10 +53,8 @@ def run_path(staging):
         q = [tuple(map(float, p.split(","))) for p in m.group(1).split()]
         polys[("%.1f,%.1f" % q[0], "%.1f,%.1f" % q[-1])] = q
     path = list(RUN)
-    for a, b, rev in RUN_SEGS:
+    for a, b in RUN_SEGS:
         q = polys.get((a, b)) or polys[(b, a)][::-1]
-        if q[0] != (float(a.split(",")[0]), float(a.split(",")[1])) and not rev:
-            pass
         # orient so the piece continues from where the path is
         if math.dist(path[-1], q[0]) > math.dist(path[-1], q[-1]):
             q = q[::-1]
@@ -63,13 +79,14 @@ def markers(staging):
     p13 = point_at(path, LOCATE["13"][0] / 10)
     out = []
     # the crossover joins the run (orange) to the loop's bottom straight, 6.4 cm above it
-    out.append('<line class="m7" x1="%.1f" y1="521.5" x2="%.1f" y2="515.1"/>' % (p7[0] - 7, p7[0] + 7))
+    out.append('<line class="m7" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>' % (p7[0] - 7, p7[1], p7[0] + 7, p7[1] - 6.4))
     out.append('<circle class="m7dot" cx="%.1f" cy="%.1f" r="3.2"/>' % tuple(p7))
     out.append('<text class="m7t" x="%.1f" y="511">Sw 7</text>' % (p7[0] - 24))
     out.append('<circle class="m7old" cx="%.1f" cy="%.1f" r="3.2"/>' % OLD_7B)
     out.append('<text class="rl" x="%.1f" y="507">Sw 7b, loop 1 estimate</text>' % (OLD_7B[0] - 10))
     out.append('<circle class="m7dot" cx="%.1f" cy="%.1f" r="3.2"/>' % tuple(p13))
     out.append('<text class="m7t" x="%.1f" y="%.1f">Sw 13</text>' % (p13[0] + 14, p13[1] + 3))
+    engine_terminal.SW13 = (p13[0], p13[1])      # one Switch 13: the one marked above
     out.append(engine_terminal.svg()[0])
     return "\n".join(out), p7, p13
 
@@ -84,7 +101,7 @@ def block_table():
     h = '<table><thead><tr><th>Block</th><th class="n">Before</th><th class="n">Now</th><th class="n">Change</th><th class="n">&plusmn;</th></tr></thead><tbody>'
     for n, a, b, s in rows:
         h += '<tr><td>%s</td><td class="n">%g</td><td class="n">%.1f</td><td class="n">%+.1f</td><td class="n">%.1f</td></tr>' % (n, a, b, b - a, s)
-    return h + '<tr><td><b>Loop total</b></td><td class="n"><b>1232</b></td><td class="n"><b>1382</b></td><td class="n"><b>+150</b></td><td></td></tr></tbody></table>'
+    return h + '<tr><td><b>Loop total</b> (with the hidden stubs, 31.5 in)</td><td class="n"><b>1232</b></td><td class="n"><b>1382</b></td><td class="n"><b>+150</b></td><td></td></tr></tbody></table>'
 
 
 def figure(vb, body, label, extra=""):
@@ -130,18 +147,27 @@ def sections(svg_dir, staging):
         '<li><b>The Switch 7 crossover is not in the plan.</b> It joins the two long parallel runs out of Switch 5.</li>'
         '<li><b>Switch 13 and the engine terminal are not in the plan</b> (Switches 9 and 11, Barn, Scale, EH-1 to EH-3). They sit on the run from Switch 5 to the yard ladder (Switch 5, Scale, Switch 7, Barn, Switch 13). The terminal is drawn as a placeholder from the built topology and a photo of the benchwork: the track radii and the length of the stubs are not measured. Switch 9&rsquo;s normal route goes to EH-2.</li>'
         '<li><b>The two long dead ends past Switches 37 and 39 are the helix lines.</b> On the layout they are the McKeesport and McKees Rocks stubs.</li></ol>')
+    d = derive()
+    now = block_inches()
+    ft = lambda mm: "%.1f in (%d mm)" % (mm / 25.4, round(mm))
     t["terminal"] = (
         '<h3>Lengths in the Switch 5 to Switch 15 run, and the engine terminal</h3>'
-        '<p>Scale and Barn come from the timed passes: the distance between the switch centres, less half of each switch&rsquo;s own block. '
-        'The terminal rows are measured on the drawing, between the switches as drawn. The EH track ends are not measured: the stub ends are placed at x 180 cm, so the EH lengths show what that placement gives, not what is built.</p>'
-        '<div class="tw"><table><thead><tr><th>Track</th><th class="n">Block table now</th><th class="n">Measured</th><th>From</th></tr></thead><tbody>'
-        '<tr><td>Scale (Switch 5 to Switch 7)</td><td class="n">24 in</td><td class="n"><b>144.5 in</b> (3670 mm)</td><td>timed passes</td></tr>'
-        '<tr><td>Barn (Switch 7 to Switch 13)</td><td class="n">24 in</td><td class="n"><b>37.6 in</b> (954 mm)</td><td>timed passes</td></tr>'
-        '<tr><td>Switch 13 to Switch 11</td><td class="n">&ndash;</td><td class="n">10.2 in</td><td>drawing</td></tr>'
-        '<tr><td>Switch 11 to Switch 9</td><td class="n">&ndash;</td><td class="n">14.7 in</td><td>drawing</td></tr>'
-        '<tr><td>EH-1 (Switch 11 to the bumper)</td><td class="n">24 in</td><td class="n">48.3 in</td><td>drawing, bumper placed</td></tr>'
-        '<tr><td>EH-2 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">22.3 in</td><td>drawing, bumper placed</td></tr>'
-        '<tr><td>EH-3 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">22.2 in</td><td>drawing, bumper placed</td></tr>'
+        '<p>The blocks along the run tile it, so they must add up to the plan&rsquo;s distance between the Switch 5 and Switch 15 centres. '
+        'The timed passes fix where the centres of Switch 7 and 13 fall. Scale is the distance from Switch 5 to Switch 7 less half of each switch&rsquo;s block. '
+        'Switch 13 sits %d mm before Switch 15, so half of the Switch 13 block and half of the Switch 15 block span that gap: the timing cannot split it, so both are given the same length. '
+        'Barn is what is left between Switch 7 and Switch 13. '
+        'The terminal rows are measured on the drawing, between the switches as drawn. The EH track ends are not measured: the stub ends are placed at x 180 cm, so those lengths show what that placement gives, not what is built.</p>'
+        '<div class="tw"><table><thead><tr><th>Block</th><th class="n">Before</th><th class="n">Recorded now</th><th class="n">From</th></tr></thead><tbody>'
+        % (PIN_15 - LOCATE["13"][0]) +
+        '<tr><td>Track Scale (Switch 5 to Switch 7)</td><td class="n">24 in</td><td class="n"><b>%s</b></td><td class="n">timed passes</td></tr>' % ("%.1f in" % now["Track Scale"]) +
+        '<tr><td>Track Barn (Switch 7 to Switch 13)</td><td class="n">24 in</td><td class="n"><b>%s</b></td><td class="n">timed passes</td></tr>' % ("%.1f in" % now["Track Barn"]) +
+        '<tr><td>OS Switch 13</td><td class="n">10 in</td><td class="n"><b>%s</b></td><td class="n">timed passes</td></tr>' % ("%.1f in" % now["OS Switch 13"]) +
+        '<tr><td>OS Switch 15</td><td class="n">10 in</td><td class="n"><b>%s</b></td><td class="n">timed passes</td></tr>' % ("%.1f in" % now["OS Switch 15"]) +
+        '<tr><td>Switch 13 to Switch 11</td><td class="n">&ndash;</td><td class="n">10.2 in</td><td class="n">drawing</td></tr>'
+        '<tr><td>Switch 11 to Switch 9</td><td class="n">&ndash;</td><td class="n">14.7 in</td><td class="n">drawing</td></tr>'
+        '<tr><td>Track EH-1 (Switch 11 to the bumper)</td><td class="n">24 in</td><td class="n">24 in (drawing: 48.3 in)</td><td class="n">drawing, bumper placed</td></tr>'
+        '<tr><td>Track EH-2 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">24 in (drawing: 22.3 in)</td><td class="n">drawing, bumper placed</td></tr>'
+        '<tr><td>Track EH-3 (Switch 9 to the bumper)</td><td class="n">24 in</td><td class="n">24 in (drawing: 22.2 in)</td><td class="n">drawing, bumper placed</td></tr>'
         '</tbody></table></div>')
     t["loop"] = ('<h3>Test loop length</h3><div class="tw"><table><thead><tr><th>Source</th><th class="n">Test loop</th></tr></thead><tbody>'
                  '<tr><td>Plan 5.3b, along the test route</td><td class="n">35,108 mm (1382 in)</td></tr>'
@@ -157,13 +183,13 @@ def sections(svg_dir, staging):
         'Turnouts show their plan part number; the main level&rsquo;s own switch numbers and names are not assigned yet.</p>'
         '<ul><li><b>T251 runs on into the inner helix track</b> (McKeesport). The plan has T300 in that track at height 0; it is built on the upper level, so the main level has no T300.</li>'
         '<li>The two helix tracks start at T175 (McKees Rocks) and T251 (McKeesport).</li></ul>'
-        % (meta["main"]["turnouts"] - 1, meta["main"]["flex_m"], meta["ramp_m"]))
+        % (meta["main"]["drawn"], meta["main"]["flex_m"], meta["ramp_m"]))
     t["upper"] = (
         '<div class="key"><span class="k-trk">track</span></div>' + f_upper +
         '<p>%d turnouts and %.1f m of flex at 4.25 in (10.8 cm), including the peninsula loop with its yard tracks, which the plan holds at 1 in and is built at 4.25 in. '
         'Turnouts show their plan part number; switch numbers and names for this level are not assigned yet.</p>'
         '<ul><li><b>Crossover 23</b> is the plan&rsquo;s double crossover at the east end of the peninsula. Its two tracks on the north side run round the east end together: one to T237 and the west, the other to <b>T300</b>, which joins it to the first (T300 is the turnout moved up from the main level; its plan run from the crossover is 292 cm).</li></ul>'
-        % (meta["upper"]["turnouts"] + 2, meta["upper"]["flex_m"]))
+        % (meta["upper"]["drawn"], meta["upper"]["flex_m"]))
     return t, f_stage
 
 
@@ -259,7 +285,7 @@ p{margin:.5rem 0;max-width:70ch}.muted{color:var(--muted)}
 a{color:var(--loop)}
 %s
 .panel img{border:1px solid var(--rule);border-radius:6px;background:#121418;max-width:100%%}
-</style></head><body><div class="wrap"><h1>Level plans, with HART switch numbers</h1>
+</style></head><body><div class="wrap"><h1>Level plans from plan 5.3b</h1>
 <p class="muted">Staging, main and upper level, drawn to scale from plan 5.3b.</p>
 <div class="lv">
 %s

@@ -178,6 +178,7 @@ def main(parts_file, graph_file, out_dir):
     for level in ("main", "upper"):
         x0, y0, x1, y1 = bbox(cls, to, level)
         meta[level] = dict(bbox=[x0, y0, x1, y1], flex=len(cls[level]), turnouts=len(to[level]),
+                           drawn=len(to[level]) - sum(1 for i, _ in to[level] if i in MOVED) + (2 if level == "upper" else 0),
                            flex_m=round(sum(flex_cm(pts) for _, pts, *_ in cls[level]) / 100, 1))
         (out / (level + ".svg")).write_text(svg_for(level, cls, to, []) + "\n")
     meta["ramp_flex"] = len(cls["ramp"])

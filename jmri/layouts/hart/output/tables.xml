@@ -4194,7 +4194,7 @@
       <systemName>IB:AUTO:0063</systemName>
       <userName>Track K-1 West</userName>
     </block>
-    <block systemName="IB1" length="353.1" curve="0">
+    <block systemName="IB1" length="452.1" curve="0">
       <systemName>IB1</systemName>
       <userName>OS Switch 13</userName>
       <comment>Hand-throw west of South Yard Switch 15; occupancy Block 3-1 / M2S300</comment>
@@ -4257,7 +4257,7 @@
       </path>
       <path todir="64" fromdir="128" block="IB15" />
     </block>
-    <block systemName="IB15" length="955.0" curve="0">
+    <block systemName="IB15" length="856.0" curve="0">
       <systemName>IB15</systemName>
       <userName>Track Barn</userName>
       <comment>Lead Switch 7 to Switch 13; occupancy Block 13-1 / M2S1300; stop</comment>
@@ -4706,7 +4706,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0041" length="353.1" curve="0">
+    <block systemName="IB:AUTO:0041" length="452.1" curve="0">
       <systemName>IB:AUTO:0041</systemName>
       <userName>OS Switch 15</userName>
       <comment>South Yard, Switch 15; occupancy Block 3-2 / M2S301</comment>
