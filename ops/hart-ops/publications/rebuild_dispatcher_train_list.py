@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild Neville Island Dispatcher Train List (DS-01, Revision D).
+"""Rebuild Neville Island Dispatcher Train List (DS-01, Revision E).
 
 Page 1: train lineup + priority + color key.
 Page 2: subdivision diagram + narrow TT-23 timetable (no map chrome).
@@ -7,8 +7,8 @@ Publication identity lives in the footer.
 
 Page-1 spacing (hand-tuned Jul 2026 — keep on rebuild):
   top/bottom margins 0.62 / 0.38; title rule_after=6;
-  soft pad before §1 (before=6/after=2); lineup before=6;
-  priority before=18; destination colors before=18.
+  no soft pad before §1 since Rev E (room for ten rows); lineup before=6;
+  priority before=8; destination colors before=8 (Rev E: ten lineup rows at 23pt).
   Do not reintroduce a large page1 bottom-bias spacer.
 
 Usage (from repo root):
@@ -52,30 +52,65 @@ CANONICAL = DOCS / "Neville_Island_Dispatcher_Train_List.docx"
 PUBLICATION = {
     "title": "Dispatcher Train List",
     "pub_id": "DS-01",
-    "revision": "D",
-    "effective": "21 July 2026",
+    "revision": "E",
+    "effective": "14 November 2026",
 }
 
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 
-# Order, Train, one-sentence dispatcher action (aligned with YM-01).
-LINEUP: list[tuple[str, str, str]] = [
-    ("1", "Route 23 AM", "Operate per timetable; hold conflicting work until the train clears."),
+# Order, Train, route (origin → points → destination, printed bold), dispatcher action.
+# Rev E (Session #4 punch list, 2026-11-08): starting tracks, routes, three extras,
+# and the crossover rule.
+LINEUP: list[tuple[str, str, str, str]] = [
+    (
+        "1",
+        "Route 23 AM",
+        "Barn → McKees Rocks.",
+        "Per timetable; lays over at McKees Rocks until PM. Hold conflicting work.",
+    ),
     (
         "2",
         "D749",
-        "Demmler → South Yard to open; interchange; release outbounds to McKeesport.",
+        "W1 → South Yard → McKeesport.",
+        "Opens South Yard; interchange; release outbounds to McKeesport.",
     ),
-    ("3", "OCS-1", "When scheduled — highest priority; clear the route."),
+    (
+        "3",
+        "OCS-1",
+        "W2 → Princess → W2.",
+        "When scheduled, highest priority: highball to Princess, run around, back to W2 at Brick.",
+    ),
     (
         "4",
         "NVL",
-        "Scully → South Yard; interchange; service local industries; return with outbounds; return to McKees Rocks.",
+        "Helix outer → South Yard → McKees Rocks.",
+        "May start before Route 23 AM, clear to East End; interchange and locals.",
     ),
-    ("5", "CK1", "Shenango pickup and delivery; calibrate scale, weigh coke pull, and sort."),
-    ("6", "D749 Return", "Authorize return; terminate in West Yard."),
-    ("7", "Route 23 PM", "Operate per timetable; hold conflicting work until the train clears."),
+    (
+        "5",
+        "CK1",
+        "Engine House → Shenango → S-4.",
+        "Shenango pickup and delivery; calibrate scale, weigh coke pull, sort.",
+    ),
+    ("6", "D749 Return", "South Yard → West Yard.", "Authorize return; terminate in West Yard."),
+    (
+        "7",
+        "Route 23 PM",
+        "McKees Rocks → Barn.",
+        "Per timetable; hold conflicting work until it clears.",
+    ),
+    ("8", "Extra CK", "McKeesport → South Yard.", "Extra coal train; terminate at South Yard."),
+    ("9", "X9602", "Scale track.", "Scale tank move."),
+    (
+        "10",
+        "X1993",
+        "Loop → South Yard.",
+        "Coal extra: drop a cut at the loop, pick up at the loop, terminate at South Yard.",
+    ),
 ]
+
+# Dispatcher rules printed under the lineup (Session #4 punch list).
+RULES = "Throw the Switch 7 crossover at Barn only with the yardmaster's permission."
 
 PRIORITY = "OCS-1 → Route 23 → D749 → NVL → CK1 → Yard"
 
@@ -133,22 +168,24 @@ def _add_lineup(doc: Document) -> None:
 
     table = doc.add_table(rows=1 + len(LINEUP), cols=3)
     fill_header_row(table.rows[0], ["#", "Train", "Dispatcher action"])
-    for i, (num, train, action) in enumerate(LINEUP, start=1):
+    for i, (num, train, route, action) in enumerate(LINEUP, start=1):
         row = table.rows[i]
 
         row.cells[0].text = ""
         p0 = row.cells[0].paragraphs[0]
         p0.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r0 = p0.add_run(num)
-        _set_run_font(r0, size_pt=10, bold=True, color=BODY, name="Calibri")
+        _set_run_font(r0, size_pt=9, bold=True, color=BODY, name="Calibri")
 
         row.cells[1].text = ""
         r1 = row.cells[1].paragraphs[0].add_run(train)
-        _set_run_font(r1, size_pt=8.5, bold=True, color=BODY, name="Calibri")
+        _set_run_font(r1, size_pt=8, bold=True, color=BODY, name="Calibri")
 
         row.cells[2].text = ""
+        rr = row.cells[2].paragraphs[0].add_run(route + " ")
+        _set_run_font(rr, size_pt=8, bold=True, color=BODY, name="Calibri")
         r2 = row.cells[2].paragraphs[0].add_run(action)
-        _set_run_font(r2, size_pt=8.5, color=BODY, name="Calibri")
+        _set_run_font(r2, size_pt=8, color=BODY, name="Calibri")
 
     style_table(table)
 
@@ -159,24 +196,26 @@ def _add_lineup(doc: Document) -> None:
             for run in p.runs:
                 _set_run_font(run, size_pt=8.5, bold=True, color=WHITE, name="Calibri")
 
-    for i, (num, train, action) in enumerate(LINEUP, start=1):
+    for i, (num, train, route, action) in enumerate(LINEUP, start=1):
         row = table.rows[i]
         row.cells[0].text = ""
         p0 = row.cells[0].paragraphs[0]
         p0.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r0 = p0.add_run(num)
-        _set_run_font(r0, size_pt=10, bold=True, color=BODY, name="Calibri")
+        _set_run_font(r0, size_pt=9, bold=True, color=BODY, name="Calibri")
 
         row.cells[1].text = ""
         r1 = row.cells[1].paragraphs[0].add_run(train)
-        _set_run_font(r1, size_pt=8.5, bold=True, color=BODY, name="Calibri")
+        _set_run_font(r1, size_pt=8, bold=True, color=BODY, name="Calibri")
 
         row.cells[2].text = ""
+        rr = row.cells[2].paragraphs[0].add_run(route + " ")
+        _set_run_font(rr, size_pt=8, bold=True, color=BODY, name="Calibri")
         r2 = row.cells[2].paragraphs[0].add_run(action)
-        _set_run_font(r2, size_pt=8.5, color=BODY, name="Calibri")
+        _set_run_font(r2, size_pt=8, color=BODY, name="Calibri")
 
     for ri, row in enumerate(table.rows):
-        _set_exact_row_height(row, 16 if ri == 0 else 26)
+        _set_exact_row_height(row, 16 if ri == 0 else 23)
         for cell in row.cells:
             _set_cell_margins(cell, top=32, bottom=32)
             for p in cell.paragraphs:
@@ -187,12 +226,17 @@ def _add_lineup(doc: Document) -> None:
 
 
 def _add_priority(doc: Document) -> None:
-    _heading(doc, "2. Priority Order", space_before=18)
+    _heading(doc, "2. Priority Order", space_before=8)
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(2)
     p.paragraph_format.space_after = Pt(0)
     r = p.add_run(PRIORITY)
     _set_run_font(r, size_pt=9, bold=True, color=BODY, name="Calibri")
+    q = doc.add_paragraph()
+    q.paragraph_format.space_before = Pt(2)
+    q.paragraph_format.space_after = Pt(0)
+    rq = q.add_run(RULES)
+    _set_run_font(rq, size_pt=8.5, color=BODY, name="Calibri")
 
 
 def rebuild(out: Path = CANONICAL) -> Path:
@@ -219,11 +263,10 @@ def rebuild(out: Path = CANONICAL) -> Path:
         size_pt=12,
         rule_after=6,
     )
-    _soft_pad(doc, before=6, after=2)
 
     _add_lineup(doc)
     _add_priority(doc)
-    add_abridged_color_key(doc, heading="3. Destination Colors", space_before=18, compact=True)
+    add_abridged_color_key(doc, heading="3. Destination Colors", space_before=8, compact=True)
     add_diagram_and_timetable_page(doc)
 
     doc.save(out)
