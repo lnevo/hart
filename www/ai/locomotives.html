@@ -8,22 +8,6 @@
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="../css/article.css">
   <link rel="stylesheet" href="../css/ai.css">
-  <style>
-    /* Speed-match chart: same tokens. The two series differ by line style and marker as well as colour. */
-    .speed-svg { display: block; width: 100%; max-width: 38rem; height: auto; margin: 0 auto; font-family: var(--font-body); }
-    .speed-svg .grid { stroke: var(--rule); stroke-width: 1; }
-    .speed-svg .axis { stroke: var(--muted); stroke-width: 1.5; }
-    .speed-svg .band { fill: var(--rule); opacity: .45; }
-    .speed-svg .ref { stroke: var(--ink-soft); stroke-width: 1.5; }
-    .speed-svg .before { fill: none; stroke: var(--muted); stroke-width: 2.5; stroke-dasharray: 7 5; }
-    .speed-svg .after { fill: none; stroke: var(--brand); stroke-width: 3; }
-    .speed-svg .pt-b { fill: var(--card); stroke: var(--muted); stroke-width: 2; }
-    .speed-svg .pt-a { fill: var(--brand); stroke: var(--card); stroke-width: 1.5; }
-    .speed-svg text { fill: var(--ink); font-size: 13px; }
-    .speed-svg .t-s { fill: var(--muted); font-size: 12px; }
-    .speed-svg .t-b { font-weight: 700; }
-    .speed-svg .t-brand { fill: var(--brand); font-weight: 700; }
-  </style>
 </head>
 <body data-page="behind-ai-locomotives">
   <header class="site-header" data-ops-header></header>
@@ -106,89 +90,17 @@
           <h3 class="ai-sub">The job</h3>
           <p>Two locomotives that run at different speeds cannot work together; one drags the other. I wanted CSX 2121 and 2738 to run as a pair.</p>
           <h3 class="ai-sub">What AI did</h3>
-          <p>A program running inside JMRI sets a locomotive to a throttle step, lets it run through the block sensors and times each block, step after step, with no hands on the throttle. Block lengths now come from the track plan and were checked against timed passes. Both locomotives were measured in both directions on 13 November 2026, 2738 was adjusted to match 2121, and the two were compared stopping.</p>
-          <h3 class="ai-sub">The 13 November 2026 runs</h3>
-          <p>2738 now runs within 4 per cent of 2121 at every step from 24 up, in both pairings of the two locomotives (most steps within 2 to 3 per cent). Step 16 is 2 per cent fast in one pairing and 6 per cent fast in the other. The locomotives face away from each other in a consist, so 2121 forward runs with 2738 reverse and the other way round.</p>
-          <div class="table-wrap">
-            <table class="data-table tt-table">
-              <caption class="sr-only">Speed in mm/s by throttle step, and 2738 against 2121</caption>
-              <thead>
-                <tr><th>Step</th><th>2121 fwd</th><th>2121 rev</th><th>2738 fwd</th><th>2738 rev</th><th>2738 rev vs 2121 fwd</th><th>2738 fwd vs 2121 rev</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>8</td><td>50.6</td><td>50.9</td><td>60.3</td><td>61.4</td><td>+21%</td><td>+18%</td></tr>
-                <tr><td>16</td><td>156.3</td><td>161.9</td><td>171.8</td><td>159.6</td><td>+2.1%</td><td>+6.1%</td></tr>
-                <tr><td>24</td><td>261.7</td><td>272.8</td><td>270.0</td><td>253.2</td><td>&minus;3.2%</td><td>&minus;1.0%</td></tr>
-                <tr><td>32</td><td>338.8</td><td>358.7</td><td>354.1</td><td>341.9</td><td>+0.9%</td><td>&minus;1.3%</td></tr>
-                <tr><td>48</td><td>429.0</td><td>440.5</td><td>447.6</td><td>419.4</td><td>&minus;2.2%</td><td>+1.6%</td></tr>
-                <tr><td>64</td><td>454.1</td><td>493.7</td><td>484.5</td><td>472.0</td><td>+3.9%</td><td>&minus;1.9%</td></tr>
-                <tr><td>96</td><td>453.4</td><td>484.6</td><td>479.3</td><td>466.1</td><td>+2.8%</td><td>&minus;1.1%</td></tr>
-                <tr><td>126</td><td>465.0</td><td>499.9</td><td>490.3</td><td>466.3</td><td>+0.3%</td><td>&minus;1.9%</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>Speeds are in mm/s, as written to the roster. The tolerance is 5 per cent: one step repeats to about 2 per cent between runs, and to 6 per cent at the slowest steps. Step 8 is creep, where 2738 is about 20 per cent fast and stays so.</p>
-          <p>2121 ran 3 to 10 per cent faster in reverse than forward, while 2738 ran evenly both ways. Raising only 2738&rsquo;s forward trim brought 2738 forward up to 2121 reverse; the other pairing already matched.</p>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr><th>2738 decoder setting</th><th>Old</th><th>New</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>CV66, forward trim</td><td>128</td><td>135</td></tr>
-                <tr><td>CV69, speed table entry 3</td><td>50</td><td>51</td></tr>
-                <tr><td>CV70, speed table entry 4</td><td>73</td><td>74</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>Stopping from step 32 and from step 96 on the same track, with the same trigger, every block lit within 0.2 seconds of the other locomotive, and both came to rest in the same block. 2121 slows more gently than its settings predict, and 2738 matches it. The test of the coupled pair did not run cleanly, so the solo match stands for it.</p>
-          <p>Both roster entries now hold the measured speed profile, eight points each. 2121 was not changed.</p>
-          <p class="ai-see"><b>See it:</b> <a href="speed-runs.html">Every recorded run, newest first</a>, drawn the way the live dashboard draws it. Two runs are marked: the 11:43 run of 2738 forward is not used, because before a fix the locomotive ran the opposite way to the one asked, and the 12:51 run of 2738 forward is superseded by the run after the CV66 change.</p>
-          <!-- LIVE LINK: add one link to the home-network live dashboard here when it exists (Pi, not public). -->
-          <h3 class="ai-sub">The first run, 8 November 2026</h3>
-          <p>The first program set each locomotive to a throttle step and timed laps of the whole loop. Both topped out at about the same speed, but 2738 ran at only 47 to 74 per cent of 2121&rsquo;s speed through the lower steps. Its settings explained why: the speed table was switched off and it had no momentum.</p>
-          <p>2738 was matched to 2121, momentum included, with a calculated speed table programmed on the programming track; every value read back correctly. Measured again at steps 24, 48 and 126 it ran within 1.2 per cent of 2121, and about 5 per cent fast at step 12. At step 96 the two stopped within a tenth of a second of each other and started within three tenths. The two were timed running in opposite directions then, which the 13 November runs corrected.</p>
-          <figure>
-            <svg class="speed-svg" viewBox="0 0 480 300" role="img" aria-labelledby="speed-t speed-d">
-              <title id="speed-t">CSX 2738 against CSX 2121, by throttle step</title>
-              <desc id="speed-d">A chart of the speed of CSX 2738 as a percentage of CSX 2121 at each throttle step. Before programming, shown dashed, 2738 starts at 74 per cent at step 8, falls to 47 per cent at step 32, then climbs to 100 per cent at step 96 and about 101 per cent at the top. After programming, shown solid, it measures 105 per cent at step 12 and between 99 and 101 per cent at steps 24, 48 and 126. A shaded band marks 97 to 103 per cent, the repeatability of the measurements.</desc>
-              <rect class="band" x="56" y="51" width="404" height="18"/>
-              <line class="grid" x1="56" y1="120" x2="460" y2="120"/>
-              <line class="grid" x1="56" y1="180" x2="460" y2="180"/>
-              <line class="ref" x1="56" y1="60" x2="460" y2="60"/>
-              <line class="axis" x1="56" y1="240" x2="460" y2="240"/>
-              <line class="axis" x1="56" y1="30" x2="56" y2="240"/>
-              <text class="t-s" x="50" y="64" text-anchor="end">100%</text>
-              <text class="t-s" x="50" y="124" text-anchor="end">80%</text>
-              <text class="t-s" x="50" y="184" text-anchor="end">60%</text>
-              <text class="t-s" x="50" y="244" text-anchor="end">40%</text>
-              <text class="t-s" x="56" y="258" text-anchor="middle">0</text>
-              <text class="t-s" x="158.6" y="258" text-anchor="middle">32</text>
-              <text class="t-s" x="261.2" y="258" text-anchor="middle">64</text>
-              <text class="t-s" x="363.8" y="258" text-anchor="middle">96</text>
-              <text class="t-s" x="460" y="258" text-anchor="middle">126</text>
-              <text class="t-s" x="258" y="276" text-anchor="middle">Throttle step</text>
-              <text class="t-s" x="64" y="88">2121 = 100%</text>
-              <polyline class="before" points="81.7,138 94.5,183 107.3,204 133.0,216 158.6,219 209.9,189 261.2,156 312.5,93 363.8,60 415.1,45 460.0,57"/>
-              <g class="pt-b"><circle cx="81.7" cy="138" r="4"/><circle cx="94.5" cy="183" r="4"/><circle cx="107.3" cy="204" r="4"/><circle cx="133.0" cy="216" r="4"/><circle cx="158.6" cy="219" r="4"/><circle cx="209.9" cy="189" r="4"/><circle cx="261.2" cy="156" r="4"/><circle cx="312.5" cy="93" r="4"/><circle cx="363.8" cy="60" r="4"/><circle cx="415.1" cy="45" r="4"/><circle cx="460.0" cy="57" r="4"/></g>
-              <polyline class="after" points="94.5,44 133.0,59 209.9,58 460.0,64"/>
-              <g class="pt-a"><rect x="90.5" y="40" width="8" height="8"/><rect x="129" y="55" width="8" height="8"/><rect x="205.9" y="54" width="8" height="8"/><rect x="456" y="60" width="8" height="8"/></g>
-              <text class="t-b" x="172" y="231">Before: 2738 runs slow</text>
-              <text class="t-brand" x="236" y="42">After: matched</text>
-            </svg>
-            <figcaption><strong>2738 as a share of 2121&rsquo;s speed.</strong> Dashed with open circles is before programming, solid with squares is after. The after line was measured at four steps only, on 8 November. The shaded band is the 3 per cent the measurements repeat to.</figcaption>
-          </figure>
-
+          <p>A program inside JMRI ran each locomotive through the block sensors at one throttle step after another, with no hands on the throttle, and timed every block. From the numbers it corrected 2738&rsquo;s decoder settings to match 2121.</p>
           <h3 class="ai-sub">What came out</h3>
-          <p>A matched pair, ready to be tried coupled, and a method to repeat for the other fifteen locomotives.</p>
+          <p>2738 now runs within 4 per cent of 2121 from step 24 up, in both directions, and the two stop together. The pair is ready to be tried coupled.</p>
           <div class="ai-verdict">
             <b>Verdict</b>
             <ul>
-              <li><span class="k">Worked well:</span> hours of unattended, repeatable measuring, a speed table worked out from the numbers rather than by feel, and one trim setting that matched both directions.</li>
-              <li><span class="k">Be honest about:</span> step 8 stays about 20 per cent apart, and step 16 is 6 per cent apart in one pairing. Block lengths now come from the track plan and were checked against timed passes; both directions were measured. Some loop 2 lengths are still estimates, so scale miles an hour is approximate. A block lighting again behind the locomotive can be taken as the next block, which is not fixed. The coupled stop test has not run cleanly.</li>
+              <li><span class="k">Worked well:</span> hours of unattended, repeatable measuring, and one trim setting that matched both directions.</li>
+              <li><span class="k">Be honest about:</span> the slowest steps stay apart, and the coupled stop test has not run cleanly.</li>
             </ul>
           </div>
-          <p class="ai-see"><b>See it:</b> <a href="speed-runs.html">Every recorded run</a> · <a href="../docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf">Speed matching and the measure table</a> (the Short Track Rail Road club's procedure, PDF, 37 pp, which HART is adapting for HO)</p>
+          <p class="ai-see"><b>See it:</b> <a href="speed-runs.html">Speed matching CSX 2121 and 2738</a>, the article, with the results and every recorded run</p>
         </section>
 
         <nav class="ai-pager" aria-label="Topics">
