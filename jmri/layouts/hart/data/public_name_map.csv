@@ -402,7 +402,7 @@ mast,Mast 24RB,Mast 24RB,East End,IH234,East End | Switch 23,
 mast,Mast 26L,Mast 26L,South Yard,virtual $1011,South Yard | Switch 21,
 mast,Mast 26R,Mast 26R,South Yard,virtual $1015,South Yard | Switch 21,
 mast,Mast 2L,Mast 2L,Brick,IH438 IH439,Brick | Switch 1,
-mast,Mast 32L,Mast 32L,East End,virtual $1017,East End | Switch 31,
+mast,Mast 16R,Mast 16R,South Yard,virtual $1017,South Yard | Switch 15,
 mast,Mast 32R,Mast 32R,East End,IH1234,East End | Switch 31,
 mast,Mast 34L,Mast 34L,East End,IH1232 IH1233,East End | Switch 33,
 mast,Mast 34R,Mast 34R,East End,IH1235 IH1236,East End | Switch 33,
@@ -458,7 +458,8 @@ mast,South Yard 5 west,Mast 26L,South Yard,virtual $1011,South Yard | Switch 21,
 mast,107R,Mast 26R,South Yard,virtual $1015,South Yard | Switch 21,historical alias; hidden S-4 east throat; Dispatcher Stage 1
 mast,100L,Mast 2L,Brick,IH438 IH439,Brick | Switch 1,historical alias; lever 4 Left
 mast,Brick East Main West,Mast 2L,Brick,IH438 IH439,Brick | Switch 1,historical alias; lever 4 Left
-mast,110L,Mast 32L,East End,virtual $1017,East End | Switch 31,historical alias; hidden S-R east / 110 ladder; Dispatcher Stage 1
+mast,110L,Mast 16R,South Yard,virtual $1017,South Yard | Switch 15,historical alias; hidden S-R east / 110 ladder; Dispatcher Stage 1
+mast,Mast 32L,Mast 16R,South Yard,virtual $1017,South Yard | Switch 15,historical alias; name until 2026-11-13
 mast,110R,Mast 32R,East End,IH1234,East End | Switch 31,historical alias; lever 20 Right; dwarf
 mast,East End South OS 110,Mast 32R,East End,IH1234,East End | Switch 31,historical alias; lever 20 Right; dwarf
 mast,112L,Mast 34L,East End,IH1232 IH1233,East End | Switch 33,historical alias; lever 24 Left

@@ -421,6 +421,25 @@
    "_toward_node": "TOR28939"
   },
   {
+   "mast": "16R",
+   "toward": "23",
+   "run": [
+    "23",
+    "15"
+   ],
+   "names": [
+    "S-R"
+   ],
+   "edge_cm": 633.7,
+   "cm_from_toward": 40.0,
+   "dir": "east",
+   "kind": "virtual",
+   "heads": 1,
+   "source": "le_panel",
+   "_edge": "e7+e17",
+   "_toward_node": "TOR29392"
+  },
+  {
    "mast": "18L",
    "toward": "17",
    "run": [
@@ -628,25 +647,6 @@
    "source": "le_panel",
    "_edge": "e20",
    "_toward_node": "TOR28908"
-  },
-  {
-   "mast": "32L",
-   "toward": "23",
-   "run": [
-    "23",
-    "15"
-   ],
-   "names": [
-    "S-R"
-   ],
-   "edge_cm": 633.7,
-   "cm_from_toward": 40.0,
-   "dir": "west",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e7+e17",
-   "_toward_node": "TOR29392"
   },
   {
    "mast": "32R",
@@ -937,7 +937,5 @@
    "_toward_node": "TOR29969"
   }
  ],
- "unplaced": [
-  "32L: name says west, binding says east"
- ]
+ "unplaced": []
 }

@@ -2658,12 +2658,12 @@
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0734:forward</systemName>
       <userName>IY:AUTO:0734:forward</userName>
-      <comment>SML section forward direction: Mast 32L:Mast 24RB (IY:AUTO:0734)</comment>
+      <comment>SML section forward direction: Mast 16R:Mast 24RB (IY:AUTO:0734)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0734:reverse</systemName>
       <userName>IY:AUTO:0734:reverse</userName>
-      <comment>SML section reverse direction: Mast 32L:Mast 24RB (IY:AUTO:0734)</comment>
+      <comment>SML section reverse direction: Mast 16R:Mast 24RB (IY:AUTO:0734)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0735:forward</systemName>
@@ -2728,12 +2728,12 @@
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0741:forward</systemName>
       <userName>IY:AUTO:0741:forward</userName>
-      <comment>SML section forward direction: Mast 14R:Mast 32L (IY:AUTO:0741)</comment>
+      <comment>SML section forward direction: Mast 14R:Mast 16R (IY:AUTO:0741)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0741:reverse</systemName>
       <userName>IY:AUTO:0741:reverse</userName>
-      <comment>SML section reverse direction: Mast 14R:Mast 32L (IY:AUTO:0741)</comment>
+      <comment>SML section reverse direction: Mast 14R:Mast 16R (IY:AUTO:0741)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0742:forward</systemName>
@@ -2798,12 +2798,12 @@
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0748:forward</systemName>
       <userName>IY:AUTO:0748:forward</userName>
-      <comment>SML section forward direction: Mast 12R:Mast 32L (IY:AUTO:0748)</comment>
+      <comment>SML section forward direction: Mast 12R:Mast 16R (IY:AUTO:0748)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0748:reverse</systemName>
       <userName>IY:AUTO:0748:reverse</userName>
-      <comment>SML section reverse direction: Mast 12R:Mast 32L (IY:AUTO:0748)</comment>
+      <comment>SML section reverse direction: Mast 12R:Mast 16R (IY:AUTO:0748)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0749:forward</systemName>
@@ -2868,12 +2868,12 @@
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0755:forward</systemName>
       <userName>IY:AUTO:0755:forward</userName>
-      <comment>SML section forward direction: Mast 10RA:Mast 32L (IY:AUTO:0755)</comment>
+      <comment>SML section forward direction: Mast 10RA:Mast 16R (IY:AUTO:0755)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0755:reverse</systemName>
       <userName>IY:AUTO:0755:reverse</userName>
-      <comment>SML section reverse direction: Mast 10RA:Mast 32L (IY:AUTO:0755)</comment>
+      <comment>SML section reverse direction: Mast 10RA:Mast 16R (IY:AUTO:0755)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0756:forward</systemName>
@@ -2938,12 +2938,12 @@
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0762:forward</systemName>
       <userName>IY:AUTO:0762:forward</userName>
-      <comment>SML section forward direction: Mast 10RB:Mast 32L (IY:AUTO:0762)</comment>
+      <comment>SML section forward direction: Mast 10RB:Mast 16R (IY:AUTO:0762)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0762:reverse</systemName>
       <userName>IY:AUTO:0762:reverse</userName>
-      <comment>SML section reverse direction: Mast 10RB:Mast 32L (IY:AUTO:0762)</comment>
+      <comment>SML section reverse direction: Mast 10RB:Mast 16R (IY:AUTO:0762)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:IY:AUTO:0763:forward</systemName>
@@ -3881,8 +3881,8 @@
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1017)</systemName>
-      <userName>Mast 32L</userName>
-      <comment>East End | Switch 31</comment>
+      <userName>Mast 16R</userName>
+      <comment>South Yard | Switch 15</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -6173,9 +6173,9 @@
         </property>
       </properties>
     </section>
-    <section systemName="IY:AUTO:0734" userName="Mast 32L:Mast 24RB" creationtype="signalmastlogic" fsensorname="IY:AUTO:0734:forward" rsensorname="IY:AUTO:0734:reverse">
+    <section systemName="IY:AUTO:0734" userName="Mast 16R:Mast 24RB" creationtype="signalmastlogic" fsensorname="IY:AUTO:0734:forward" rsensorname="IY:AUTO:0734:reverse">
       <systemName>IY:AUTO:0734</systemName>
-      <userName>Mast 32L:Mast 24RB</userName>
+      <userName>Mast 16R:Mast 24RB</userName>
       <properties>
         <property>
           <key>forwardMast</key>
@@ -6271,13 +6271,13 @@
         </property>
       </properties>
     </section>
-    <section systemName="IY:AUTO:0741" userName="Mast 14R:Mast 32L" creationtype="signalmastlogic" fsensorname="IY:AUTO:0741:forward" rsensorname="IY:AUTO:0741:reverse">
+    <section systemName="IY:AUTO:0741" userName="Mast 14R:Mast 16R" creationtype="signalmastlogic" fsensorname="IY:AUTO:0741:forward" rsensorname="IY:AUTO:0741:reverse">
       <systemName>IY:AUTO:0741</systemName>
-      <userName>Mast 14R:Mast 32L</userName>
+      <userName>Mast 14R:Mast 16R</userName>
       <properties>
         <property>
           <key>forwardMast</key>
-          <value class="java.lang.String">Mast 32L</value>
+          <value class="java.lang.String">Mast 16R</value>
         </property>
         <property>
           <key>intermediateSection</key>
@@ -6369,13 +6369,13 @@
         </property>
       </properties>
     </section>
-    <section systemName="IY:AUTO:0748" userName="Mast 12R:Mast 32L" creationtype="signalmastlogic" fsensorname="IY:AUTO:0748:forward" rsensorname="IY:AUTO:0748:reverse">
+    <section systemName="IY:AUTO:0748" userName="Mast 12R:Mast 16R" creationtype="signalmastlogic" fsensorname="IY:AUTO:0748:forward" rsensorname="IY:AUTO:0748:reverse">
       <systemName>IY:AUTO:0748</systemName>
-      <userName>Mast 12R:Mast 32L</userName>
+      <userName>Mast 12R:Mast 16R</userName>
       <properties>
         <property>
           <key>forwardMast</key>
-          <value class="java.lang.String">Mast 32L</value>
+          <value class="java.lang.String">Mast 16R</value>
         </property>
         <property>
           <key>intermediateSection</key>
@@ -6467,13 +6467,13 @@
         </property>
       </properties>
     </section>
-    <section systemName="IY:AUTO:0755" userName="Mast 10RA:Mast 32L" creationtype="signalmastlogic" fsensorname="IY:AUTO:0755:forward" rsensorname="IY:AUTO:0755:reverse">
+    <section systemName="IY:AUTO:0755" userName="Mast 10RA:Mast 16R" creationtype="signalmastlogic" fsensorname="IY:AUTO:0755:forward" rsensorname="IY:AUTO:0755:reverse">
       <systemName>IY:AUTO:0755</systemName>
-      <userName>Mast 10RA:Mast 32L</userName>
+      <userName>Mast 10RA:Mast 16R</userName>
       <properties>
         <property>
           <key>forwardMast</key>
-          <value class="java.lang.String">Mast 32L</value>
+          <value class="java.lang.String">Mast 16R</value>
         </property>
         <property>
           <key>intermediateSection</key>
@@ -6565,13 +6565,13 @@
         </property>
       </properties>
     </section>
-    <section systemName="IY:AUTO:0762" userName="Mast 10RB:Mast 32L" creationtype="signalmastlogic" fsensorname="IY:AUTO:0762:forward" rsensorname="IY:AUTO:0762:reverse">
+    <section systemName="IY:AUTO:0762" userName="Mast 10RB:Mast 16R" creationtype="signalmastlogic" fsensorname="IY:AUTO:0762:forward" rsensorname="IY:AUTO:0762:reverse">
       <systemName>IY:AUTO:0762</systemName>
-      <userName>Mast 10RB:Mast 32L</userName>
+      <userName>Mast 10RB:Mast 16R</userName>
       <properties>
         <property>
           <key>forwardMast</key>
-          <value class="java.lang.String">Mast 32L</value>
+          <value class="java.lang.String">Mast 16R</value>
         </property>
         <property>
           <key>intermediateSection</key>
@@ -10156,8 +10156,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 32L">
-      <sourceSignalMast>Mast 32L</sourceSignalMast>
+    <signalmastlogic source="Mast 16R">
+      <sourceSignalMast>Mast 16R</sourceSignalMast>
       <destinationMast destination="Mast 24RB">
         <destinationSignalMast>Mast 24RB</destinationSignalMast>
         <comment />
@@ -10166,7 +10166,7 @@
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <associatedSection>Mast 32L:Mast 24RB</associatedSection>
+        <associatedSection>Mast 16R:Mast 24RB</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
@@ -10252,15 +10252,15 @@
         <associatedSection>Mast 14R:Mast 26R</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 32L">
-        <destinationSignalMast>Mast 32L</destinationSignalMast>
+      <destinationMast destination="Mast 16R">
+        <destinationSignalMast>Mast 16R</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <associatedSection>Mast 14R:Mast 32L</associatedSection>
+        <associatedSection>Mast 14R:Mast 16R</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
@@ -10332,15 +10332,15 @@
         <associatedSection>Mast 12R:Mast 26R</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 32L">
-        <destinationSignalMast>Mast 32L</destinationSignalMast>
+      <destinationMast destination="Mast 16R">
+        <destinationSignalMast>Mast 16R</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <associatedSection>Mast 12R:Mast 32L</associatedSection>
+        <associatedSection>Mast 12R:Mast 16R</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
@@ -10412,15 +10412,15 @@
         <associatedSection>Mast 10RA:Mast 26R</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 32L">
-        <destinationSignalMast>Mast 32L</destinationSignalMast>
+      <destinationMast destination="Mast 16R">
+        <destinationSignalMast>Mast 16R</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <associatedSection>Mast 10RA:Mast 32L</associatedSection>
+        <associatedSection>Mast 10RA:Mast 16R</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
@@ -10492,15 +10492,15 @@
         <associatedSection>Mast 10RB:Mast 26R</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 32L">
-        <destinationSignalMast>Mast 32L</destinationSignalMast>
+      <destinationMast destination="Mast 16R">
+        <destinationSignalMast>Mast 16R</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <associatedSection>Mast 10RB:Mast 32L</associatedSection>
+        <associatedSection>Mast 10RB:Mast 16R</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
@@ -19160,7 +19160,7 @@
     <signalmasticon signalmast="Mast 22R" x="1148" y="444" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 26R" x="1148" y="474" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 16L" x="720" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 32L" x="1145" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 16R" x="1145" y="300" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 8LC" x="382" y="305" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 14R" x="620" y="305" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 12R" x="620" y="270" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
@@ -20670,7 +20670,7 @@
     <positionablepoint ident="A46" type="ANCHOR" x="858.0" y="413.0" connect1name="F48-S-0" connect2name="T-EL-TOL17" westboundsignalmast="Mast 20L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A50" type="ANCHOR" x="1561.0" y="315.0" connect1name="T-I-TOR36" connect2name="F37-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A51" type="ANCHOR" x="1581.0" y="252.0" connect1name="T-I-TOL29" connect2name="T-I-TOL1" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A37" type="ANCHOR" x="1145.0" y="315.0" connect1name="F46-S-0" connect2name="T-EL-TOR32" eastboundsignalmast="Mast 32L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A37" type="ANCHOR" x="1145.0" y="315.0" connect1name="F46-S-0" connect2name="T-EL-TOR32" eastboundsignalmast="Mast 16R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A41" type="ANCHOR" x="925.0" y="460.0" connect1name="F49-S-0" connect2name="T-EL-TOL19" westboundsignalmast="Mast 22L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A54" type="ANCHOR" x="196.0" y="252.0" connect1name="F53-S-0" connect2name="T-ER-TOL38" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A36" type="ANCHOR" x="1134.0" y="414.0" connect1name="F48-S-0" connect2name="T-ER-TOR9" eastboundsignalmast="Mast 20R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
