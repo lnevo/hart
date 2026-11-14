@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Render a vertical (1080x1920) promo video for TikTok, Reels and Shorts.
+"""Render a promo video: vertical for TikTok, Reels and Shorts, or 16:9 for YouTube.
 
     .venv/bin/python tools/promo/tiktok_promo.py --font-dir <dir> --out <dir>
+    .venv/bin/python tools/promo/tiktok_promo.py --format landscape ...   # YouTube
 
 Builds the cut from material already in the repo: layout photos from
 media/photos-layout (the gitignored mirror), the schematic and USS CTC
@@ -38,6 +39,20 @@ SITE_URL = "https://www.hartrailroad.com/"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 W, H, FPS = 1080, 1920, 30
+LAND = False  # 16:9 for YouTube: captions in a left column, content on the right
+STAGE = (0, 0, W, H)  # where content sits (x0, y0, x1, y1)
+
+
+def set_format(fmt: str) -> None:
+    """"vertical" (TikTok, Reels, Shorts) or "landscape" (YouTube, 1920x1080)."""
+    global W, H, LAND, STAGE
+    LAND = fmt == "landscape"
+    W, H = (1920, 1080) if LAND else (1080, 1920)
+    STAGE = (720, 60, 1860, 1020) if LAND else (0, 0, W, H)
+
+
+def stage_centre() -> tuple[int, int]:
+    return (STAGE[0] + STAGE[2]) // 2, (STAGE[1] + STAGE[3]) // 2
 BRAND = (11, 52, 62)  # dark teal of the site footer band
 GOLD = (240, 192, 85)  # --accent-on-dark
 WHITE = (255, 255, 255)
@@ -97,9 +112,28 @@ def wrap(draw: ImageDraw.ImageDraw, text: str, font, width: int) -> list[str]:
 
 
 def caption_layer(fonts: Fonts, text: str, kicker: str = "", y: int = 330) -> Image.Image:
-    """Caption on a dark band, kept out of TikTok's top bar and bottom/right UI."""
+    """Caption on a dark band, kept out of TikTok's top bar and bottom/right UI.
+
+    Landscape puts it in a column left of the stage, centred top to bottom.
+    """
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
+    if LAND:
+        font, kfont = fonts.get(84), fonts.get(40, heavy=False)
+        lines = wrap(d, text.upper(), font, 560)
+        line_h, pad, x0, x1 = 88, 40, 60, 680
+        block_h = len(lines) * line_h + (60 if kicker else 0)
+        top = (H - block_h) // 2
+        d.rounded_rectangle((x0, top - pad, x1, top + block_h + pad - 6), radius=26,
+                            fill=(*BRAND, 228))
+        cy = top
+        if kicker:
+            d.text((x0 + 40, cy), kicker.upper(), font=kfont, fill=GOLD)
+            cy += 60
+        for line in lines:
+            d.text((x0 + 40, cy), line, font=font, fill=WHITE)
+            cy += line_h
+        return layer
     font = fonts.get(104)
     kfont = fonts.get(44, heavy=False)
     lines = wrap(d, text.upper(), font, 860)
@@ -143,6 +177,9 @@ def photo(name: str, zoom=(1.0, 1.1), focus=(0.5, 0.5), drift=(0.0, 0.0)):
     """Slow push-in on one photo (Ken Burns), drawn from a 1.3x base."""
     def gen(n: int) -> Iterator[Image.Image]:
         src = ImageOps.exif_transpose(Image.open(PHOTOS / name)).convert("RGB")
+        if LAND and src.height > src.width:
+            yield from framed(src, n)
+            return
         k = 1.3
         base = cover(src, int(W * k), int(H * k), focus)
         bw, bh = base.size
@@ -155,6 +192,25 @@ def photo(name: str, zoom=(1.0, 1.1), focus=(0.5, 0.5), drift=(0.0, 0.0)):
             cy = bh / 2 + drift[1] * H * t
             box = (cx - cw / 2, cy - ch / 2, cx + cw / 2, cy + ch / 2)
             yield base.resize((W, H), Image.BICUBIC, box=box)
+    def framed(src: Image.Image, n: int) -> Iterator[Image.Image]:
+        # Portrait photo in a 16:9 frame: sharp on the stage, blurred fill behind.
+        blur = cover(src, W // 8, H // 8).filter(ImageFilter.GaussianBlur(4)).resize((W, H))
+        blur = Image.blend(blur, Image.new("RGB", (W, H), BRAND), 0.45)
+        ph = STAGE[3] - STAGE[1]
+        pw = round(ph * src.width / src.height)
+        sharp = src.resize((round(pw * 1.2), round(ph * 1.2)), Image.LANCZOS)
+        cx, cy = stage_centre()
+        for i in range(n):
+            t = i / max(n - 1, 1)
+            t = t * t * (3 - 2 * t)
+            z = zoom[0] + (zoom[1] - zoom[0]) * t
+            cw, ch = sharp.width / z, sharp.height / z
+            bx = (sharp.width - cw) / 2
+            by = (sharp.height - ch) / 2
+            im = sharp.resize((pw, ph), Image.BICUBIC, box=(bx, by, bx + cw, by + ch))
+            frame = blur.copy()
+            frame.paste(im, (cx - pw // 2, cy - ph // 2))
+            yield frame
     return gen
 
 
@@ -183,7 +239,7 @@ def schematic(n: int) -> Iterator[Image.Image]:
          "-of", "csv=p=0", str(src)]).strip())
     speed = dur / (n / FPS)
     # Crop the frame border and fit the whole sheet to the phone width.
-    fw, fh = 1040, 800
+    fw, fh = (1140, 880) if LAND else (1040, 800)
     vf = (f"setpts=PTS/{speed:.4f},fps={FPS},crop=1372:1058:14:11,"
           f"scale={fw}:{fh}:flags=lanczos")
     frames = list(video_frames(src, vf, (fw, fh)))
@@ -191,15 +247,20 @@ def schematic(n: int) -> Iterator[Image.Image]:
     for i in range(n):
         im = frames[i] if i < len(frames) else last
         canvas = Image.new("RGB", (W, H), WHITE)
-        canvas.paste(im, ((W - fw) // 2, 700))
+        if LAND:
+            cx, cy = stage_centre()
+            canvas.paste(im, (cx - fw // 2, cy - fh // 2))
+        else:
+            canvas.paste(im, ((W - fw) // 2, 700))
         yield canvas
 
 
 def ctc_pan(n: int) -> Iterator[Image.Image]:
     """Pan across the USS CTC machine while its last changes come in."""
     src = EVOLUTION / "uss-panel-evolution.mp4"
-    ph = 1120
+    ph = 800 if LAND else 1120
     pw = round(1200 * ph / 652)
+    view = STAGE[2] - STAGE[0]
     vf = f"fps={FPS},crop=1200:652:0:62,scale={pw}:{ph}:flags=lanczos"
     frames = list(video_frames(src, vf, (pw, ph), start=19.0))
     bg = (34, 34, 42)
@@ -207,9 +268,10 @@ def ctc_pan(n: int) -> Iterator[Image.Image]:
         t = i / max(n - 1, 1)
         t = t * t * (3 - 2 * t)
         im = frames[min(len(frames) - 1, int(i * len(frames) / n))]
-        x = int((pw - W) * t)
+        x = int((pw - view) * t)
         canvas = Image.new("RGB", (W, H), bg)
-        canvas.paste(im.crop((x, 0, x + W, ph)), (0, 620))
+        top = (H - ph) // 2 if LAND else 620
+        canvas.paste(im.crop((x, 0, x + view, ph)), (STAGE[0], top))
         yield canvas
 
 
@@ -227,15 +289,16 @@ def phone_scroll(shot: Path, travel: int = 3300, start: int = 0, top: int = 410,
     """A page capture scrolling inside a rounded phone-sized card."""
     def gen(n: int) -> Iterator[Image.Image]:
         page = Image.open(shot).convert("RGB")
-        sw = 900
+        sw, sh_, top_ = (560, 940, 70) if LAND else (900, sh, top)
+        cx = stage_centre()[0]
         page = page.resize((sw, round(page.height * sw / page.width)), Image.LANCZOS)
-        dist = max(0, min(page.height - sh - start, travel))
-        mask = Image.new("L", (sw, sh), 0)
-        ImageDraw.Draw(mask).rounded_rectangle((0, 0, sw, sh), radius=48, fill=255)
+        dist = max(0, min(page.height - sh_ - start, travel))
+        mask = Image.new("L", (sw, sh_), 0)
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, sw, sh_), radius=48, fill=255)
         base = backdrop(bg)
         shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         ImageDraw.Draw(shadow).rounded_rectangle(
-            ((W - sw) // 2 - 6, top + 10, (W + sw) // 2 + 6, top + sh + 18), radius=54,
+            (cx - sw // 2 - 6, top_ + 10, cx + sw // 2 + 6, top_ + sh_ + 18), radius=54,
             fill=(0, 0, 0, 150))
         shadow = shadow.filter(ImageFilter.GaussianBlur(18))
         base.paste(shadow, (0, 0), shadow)
@@ -245,7 +308,7 @@ def phone_scroll(shot: Path, travel: int = 3300, start: int = 0, top: int = 410,
             t = t * t * (3 - 2 * t)
             y = start + int(dist * t)
             frame = base.copy()
-            frame.paste(page.crop((0, y, sw, y + sh)), ((W - sw) // 2, top), mask)
+            frame.paste(page.crop((0, y, sw, y + sh_)), (cx - sw // 2, top_), mask)
             yield frame
     return gen
 
@@ -255,12 +318,13 @@ def end_card(fonts: Fonts, lines=("Neville Island, Pittsburgh · HO scale",
     def gen(n: int) -> Iterator[Image.Image]:
         card = Image.new("RGB", (W, H), BRAND)
         logo = Image.open(LOGO).convert("RGBA")
-        logo = logo.resize((560, 560), Image.LANCZOS)
-        card.paste(logo, ((W - 560) // 2, 420), logo)
+        size, top, url_y, line_y = (420, 90, 560, 700) if LAND else (560, 420, 1060, 1200)
+        logo = logo.resize((size, size), Image.LANCZOS)
+        card.paste(logo, ((W - size) // 2, top), logo)
         d = ImageDraw.Draw(card)
-        d.text((W // 2, 1060), "HARTRAILROAD.COM", font=fonts.get(118), fill=GOLD, anchor="mt")
+        d.text((W // 2, url_y), "HARTRAILROAD.COM", font=fonts.get(118), fill=GOLD, anchor="mt")
         for k, line in enumerate(lines):
-            d.text((W // 2, 1200 + 75 * k), line,
+            d.text((W // 2, line_y + 75 * k), line,
                    font=fonts.get(54, heavy=False), fill=WHITE, anchor="mt")
         for _ in range(n):
             yield card
@@ -308,6 +372,10 @@ def page_shot(shot: Path, y0: int, y1: int, x0: int = 0, x1: int = 1080,
         dw = 960 if x1 - x0 >= 1080 else 1000
         dh = round(region.height * dw / region.width)
         room = area[1] - area[0]
+        if LAND:
+            dw = min(dw, STAGE[2] - STAGE[0] - 80)
+            dh = round(region.height * dw / region.width)
+            room = STAGE[3] - STAGE[1] - 40
         if dh > room:
             dw, dh = round(dw * room / dh), room
         region = region.resize((dw, dh), Image.LANCZOS)
@@ -321,7 +389,7 @@ def page_shot(shot: Path, y0: int, y1: int, x0: int = 0, x1: int = 1080,
         ImageDraw.Draw(mask).rounded_rectangle((0, 0, dw, dh), radius=30, fill=255)
         card.paste(region, (pad, pad), mask)
         base = backdrop(bg)
-        cx, cy = W // 2, (area[0] + area[1]) // 2
+        cx, cy = stage_centre() if LAND else (W // 2, (area[0] + area[1]) // 2)
         for i in range(n):
             pop = 4
             if i < pop:
@@ -473,6 +541,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out", type=Path, required=True, help="output directory")
     ap.add_argument("--font-dir", type=Path, help="folder with Barlow Condensed .ttf files")
+    ap.add_argument("--format", choices=("vertical", "landscape"), default="vertical",
+                    help="vertical 1080x1920 (TikTok/Shorts) or landscape 1920x1080 (YouTube)")
     ap.add_argument("--cuts", default="build,site", help="comma list of: " + ", ".join(CUTS))
     ap.add_argument("--shots", type=Path,
                     help="folder for page captures; existing files are reused (default: temp)")
@@ -481,10 +551,12 @@ def main() -> None:
         raise SystemExit("ffmpeg not found")
     args.out.mkdir(parents=True, exist_ok=True)
     fonts = Fonts(args.font_dir)
+    set_format(args.format)
+    suffix = "-youtube" if LAND else ""
     with tempfile.TemporaryDirectory() as tmp:
         shots = capture_pages(args.shots or Path(tmp))
         for cut in args.cuts.split(","):
-            out = args.out / f"hart-promo-{cut}.mp4"
+            out = args.out / f"hart-promo-{cut}{suffix}.mp4"
             render(CUTS[cut](fonts, shots), fonts, out)
             print(out)
 
