@@ -4,13 +4,11 @@ level,area,node,source
 2,West,33,node grid 2025-10-06 (West band)
 2,West,43,node grid 2025-10-06 (West band)
 2,Peninsula,34,node grid 2025-10-06 (Peninsula band)
-2,Peninsula,15,node grid 2025-10-06 (Peninsula block)
-2,Peninsula,25,node grid 2025-10-06 (Peninsula block)
+2,Peninsula,25,node grid 2025-10-06 (Peninsula block; 015 is the LCOS bridge, 041 the engine terminal)
 3,North,22,LCOS inventory v85: C22 North - Upper
 3,North,32,LCOS inventory v85: C32 North - Upper
 3,Helix,21,LCOS inventory v85: C21 Helix - Upper
 3,Helix,31,node grid 2025-10-06 (Helix)
-3,Helix,41,node grid 2025-10-06 (Helix)
 3,Helix,51,node grid 2025-10-06 (Helix)
 3,West,23,LCOS inventory v85: C23 West - Upper
 3,West,14,LCOS inventory v85: C14 West - Upper
