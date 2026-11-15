@@ -44,6 +44,11 @@
     return { status: statusOf(n, total), text: text === "\u2014" ? "" : text, pct: barPct(text, n, total) };
   }
 
+  var RANK = { done: 4, ready: 3, part: 2, todo: 1, ask: 1 };
+  function bestStatus(list) {
+    return list.reduce(function (best, s) { return (RANK[s] || 0) > (RANK[best] || 0) ? s : best; }, "");
+  }
+
   function setMark(mark, status) {
     if (!mark || !status) return;
     mark.className = "ap-mark " + status;
@@ -52,9 +57,10 @@
 
   /* Dashboard cards copy each checklist's score, bar and mark; the summary counts Done and Ready cards. */
   function fillDashboard() {
-    var earned = 0, ready = 0;
+    var earned = 0, ready = 0, byId = {};
     document.querySelectorAll("[data-ap-cert]").forEach(function (card) {
-      var p = certProgress(document.getElementById(card.getAttribute("data-ap-cert")));
+      var id = card.getAttribute("data-ap-cert");
+      var p = byId[id] = certProgress(document.getElementById(id));
       var out = card.querySelector(".ap-dash-score");
       if (out) out.textContent = p.text;
       var bar = card.querySelector(".ap-dash-bar > span");
@@ -65,9 +71,13 @@
       if (p.status === "done") earned++;
       if (p.status === "ready") ready++;
     });
-    /* The "path to seven" table reads the same checklists, so it cannot disagree with the cards. */
+    /* The "path to seven" table reads the same checklists, so it cannot disagree with the cards.
+       A row that names several certificates (Prototype Models, or Structures, or Scenery) shows the furthest along. */
     document.querySelectorAll("[data-ap-path]").forEach(function (mark) {
-      setMark(mark, certProgress(document.getElementById(mark.getAttribute("data-ap-path"))).status);
+      var ids = mark.getAttribute("data-ap-path").split(/\s+/);
+      var status = bestStatus(ids.map(function (id) { return (byId[id] || certProgress(document.getElementById(id))).status; }));
+      if (!status) console.warn("achievements: no checklist marks for path row", ids.join(" "));
+      setMark(mark, status);
     });
     var count = document.querySelector("[data-ap-earned]");
     if (count) count.textContent = earned;
@@ -78,7 +88,7 @@
       note.hidden = !ready;
     }
   }
-  var api = { statusOf: statusOf, barPct: barPct };
+  var api = { statusOf: statusOf, barPct: barPct, bestStatus: bestStatus };
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
     return;
