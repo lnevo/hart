@@ -88,6 +88,7 @@
 .ce .learn-table th,.ce .learn-table td{border-bottom:1px solid var(--rule);padding:6px 10px 6px 0;text-align:left;vertical-align:top}
 .ce .learn-table th{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
 .ce .learn-table td:first-child{font-family:var(--f-mono);white-space:nowrap}
+.ce .ce-panel{scroll-margin-top:calc(var(--header-h) + 12px)}
 .ce .learn-go{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px dashed var(--rule);margin-top:12px;padding-top:10px}
   </style>
 </head>
@@ -272,8 +273,8 @@
           <tr><td>Back up</td><td>o o o (standing)</td><td>o o o (stopped)</td></tr>
           <tr><td>Flagman protect rear</td><td>— o o o</td><td>·</td></tr>
           <tr><td>Public road crossing</td><td>— — o —</td><td>— — o —</td></tr>
-          <tr><td>Acknowledge</td><td>·</td><td>o o</td></tr>
-          <tr><td>Repeat or give a signal</td><td>·</td><td>o o o o</td></tr>
+          <tr><td>Acknowledge, answer to any signal not otherwise provided for</td><td>o o</td><td>o o</td></tr>
+          <tr><td>Call for signals / ask for a signal to be given or repeated</td><td>o o o o</td><td>o o o o</td></tr>
           <tr><td>Men or equipment ahead</td><td>·</td><td>— o</td></tr>
           <tr><td>Emergency, people or animals on track</td><td>·</td><td>many shorts (other trains stop)</td></tr>
         </tbody>
@@ -474,6 +475,8 @@ C("sig","Hand signal 12(d): BACK","Swung vertically in a circle at right angle t
 C("sig","Standard Code whistle: o (one short)","Apply brakes. Stop.","SC · Rule 14(a)");
 C("sig","Standard Code whistle: — — (two long)","Release brakes. Proceed.","SC · Rule 14(b)");
 C("sig","Standard Code whistle: — o o o","Flagman protect rear of train.","SC · Rule 14(c)");
+C("sig","Standard Code whistle: o o","Answer to any signal not otherwise provided for.","SC · Rule 14(g)");
+C("sig","Standard Code whistle: o o o o","Call for signals.","SC · Rule 14(j)");
 C("sig","Standard Code whistle: o o o","When standing: back (answer to hand signal 12(d)). When running: answer to the communicating signal 16(d).","SC · Rule 14(h)");
 C("sig","Whistle: — — o —","Approaching public crossings at grade. Prolonged or repeated until the crossing is reached (Standard Code) / until the engine completely occupies the crossing (GCOR).","SC · Rule 14(l) / GC · 5.8.2(7)");
 C("sig","GCOR whistle (1): succession of short sounds","Persons or livestock on the track (other than at crossings), or warning employees of an emergency such as a derailment. Crews on other trains who hear it must stop until it is safe to proceed.","GC · 5.8.2");
@@ -683,7 +686,7 @@ const keys=Object.keys(SECTIONS);
 const views={learn:"view-learn",cards:"view-cards",quiz:"view-quiz",notes:"view-notes"};
 let view="learn";
 function show(v){if(!views[v])v="learn";view=v;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
-  for(const k in views)document.getElementById(views[k]).hidden=k!==v;store.set("ce_view",v)}
+  for(const k in views)document.getElementById(views[k]).hidden=k!==v}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view));
 
 /* chips */
@@ -762,10 +765,10 @@ function renderSetup(){
   const h=store.get("ce_hist",[]);
   document.getElementById("history").textContent=h.length?"Recent: "+h.slice(-5).map(x=>x.p+"%").join(" · "):pool.length+" questions in the selected sections";
 }
-function startTest(list){
+function startTest(list,record){
   const pool=list||QS.filter(q=>quizSel.has(q.s));
   const n=qlen==="All"||list?pool.length:Math.min(qlen,pool.length);
-  test={retake:!!list,items:shuffle(pool).slice(0,n).map(q=>({q,order:shuffle([0,1,2,3]),pick:null})),i:0};
+  test={retake:!!list&&!record,items:shuffle(pool).slice(0,n).map(q=>({q,order:shuffle([0,1,2,3]),pick:null})),i:0};
   document.getElementById("quizSetup").hidden=true;document.getElementById("quizDone").hidden=true;document.getElementById("quizRun").hidden=false;
   renderQ();
 }
@@ -822,15 +825,19 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-/* study guide: practice buttons per section */
+/* study guide: practice buttons per section. They focus one section for this run only and leave the saved choices alone. */
 document.querySelectorAll("#view-learn [data-sec]").forEach(a=>{
   const k=a.dataset.sec,go=a.querySelector(".learn-go");if(!go)return;
   go.innerHTML=`<span class="label">Practice ${esc(SECTIONS[k])}</span><button class="ce-btn" data-go="cards">Flashcards</button><button class="ce-btn" data-go="quiz">10-question test</button>`;
-  go.querySelector('[data-go="cards"]').onclick=()=>{cardSel.clear();cardSel.add(k);store.set("ce_cardSel",[k]);deal();show("cards");document.getElementById("view-cards").scrollIntoView()};
-  go.querySelector('[data-go="quiz"]').onclick=()=>{quizSel.clear();quizSel.add(k);store.set("ce_quizSel",[k]);qlen=10;store.set("ce_qlen",10);test=null;
-    document.getElementById("quizDone").hidden=true;document.getElementById("quizSetup").hidden=false;renderSetup();show("quiz");startTest();document.getElementById("view-quiz").scrollIntoView()};
+  go.querySelector('[data-go="cards"]').onclick=()=>{cardSel.clear();cardSel.add(k);deal();show("cards");document.getElementById("view-cards").scrollIntoView()};
+  go.querySelector('[data-go="quiz"]').onclick=()=>{
+    if(test&&!document.getElementById("quizRun").hidden&&test.items.some(x=>x.pick!==null))finish(); // keep a running test's answers
+    show("quiz");startTest(shuffle(QS.filter(q=>q.s===k)).slice(0,10),true);document.getElementById("view-quiz").scrollIntoView()};
 });
-show(store.get("ce_view","learn"));renderSetup();deal();
+/* open on the study guide, or on the tab or guide section named in the link */
+function fromHash(){const h=location.hash.slice(1);if(views[h])show(h);else if(h.startsWith("learn-")&&document.getElementById(h)){show("learn");document.getElementById(h).scrollIntoView()}}
+window.addEventListener("hashchange",fromHash);
+show("learn");renderSetup();deal();fromHash();
 })();
 </script>
 <script>
