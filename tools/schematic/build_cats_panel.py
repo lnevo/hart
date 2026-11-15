@@ -32,8 +32,8 @@ SKIPPED and exits 0 (a failure with SCHEMATIC_REQUIRED=1).
 import difflib
 import json
 import math
-import re
 import os
+import re
 import sys
 import tempfile
 from collections import Counter, defaultdict
@@ -54,14 +54,18 @@ OUT = pd.REPO / "cats/panels/generated/HART_Generated.xml"
 BINDINGS = OUT.with_name("HART_Generated.bindings.json")
 LIVE = paths.CATS_DIR / "panels/HART_CTC.xml"       # SIGNALTEMPLATE and JMRINAME lines come from here
 BOUND = "Staging"                                    # the band bound to JMRI (its title starts with this)
-# The dispatcher's screen is 1900 x 1200 pixels and CATS draws each cell at its default 30 x 30 pixel grid, with no
-# zoom (the Grid Size is not kept in the panel). Width: 1900 / 30 = 63 columns (the live desk is 63 wide in a 1920
-# window). Height: about 100 pixels go to the menu bar, the CATS title and menu bars and the train status line,
-# so (1200 - 100) / 30 = 36 rows. One cell per schematic grid unit is what fits all three levels in that.
+# The dispatcher's screen is 1900 x 1200 pixels. CATS opens the panel in WINDOW and draws each cell at its default
+# 30 x 30 pixel grid (the plugin's GRID_PX) with no zoom (the Grid Size is not kept in the panel). Inside the window
+# about CHROME pixels go to the frame and scrollbar (width) and to the title and menu bars and the train status line
+# (height), so the panel must show at most FIT cells: (1900 - 20) // 30 = 62 columns, (1150 - 100) // 30 = 35 rows.
+# One cell per schematic grid unit is what fits all three levels in that.
 CELLS_PER_UNIT = 1
-FIT = (63, 36)                                       # columns x rows the panel must fit in
 WINDOW = (1900, 1150)   # the dispatcher's 1900x1200 screen less a taskbar: CATS opens the panel at this size, uncropped
-MAX_COLS = FIT[0] - 1   # one free column on the right as on the left: the plugin drops a level-only column to keep it
+CHROME = (20, 100)
+GRID_PX = 30            # checked against the plugin's cats.GRID_PX when the panel is built
+FIT = ((WINDOW[0] - CHROME[0]) // GRID_PX, (WINDOW[1] - CHROME[1]) // GRID_PX)
+MAX_COLS = FIT[0]       # the plugin drops level-only columns so the panel keeps within the window (a free column
+                        # each side: column 0 is never drawn and the track starts at column 2)
 
 
 def plugin_modules(plugin):
@@ -253,7 +257,7 @@ def switch_bindings(band, F, os_of):
         key = d["label"] if labels[d["label"]] == 1 else f"{d['label']}/{d['alias']}"
         out[key] = {
             "block": leg.os_block,
-            **({"label": half_label(sw, leg)} if len(sw.legs) > 1 else {}),
+            **({"label": half_label(sw, leg)} if labels[d["label"]] > 1 else {}),     # drawn as halves
             "normal": thrown if sw.cats_inverted else closed,
             "routes": {closed: {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
                        thrown: {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}},
@@ -316,7 +320,7 @@ def bindings(bands, cats, F):
     os_of = os_blocks(band, F)
     out_sw = switch_bindings(band, F, os_of)
     # the panel's block names once the switches name their OS blocks
-    P = cats.panel(bands, scale=CELLS_PER_UNIT, max_cols=MAX_COLS,
+    P = cats.panel(bands, scale=CELLS_PER_UNIT,          # names only: no column trimming needed here
                    bindings={"switches": {k: {"block": v["block"]} for k, v in out_sw.items()}})
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:")}
     return {"_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit.",
@@ -329,6 +333,8 @@ def generate(plugin, out, bindings_out):
     bands = sheet.build([(f"{pd.GRAPHS}/{g}", n) for g, n in pd.INPUTS], str(pd.DATA)).bands
     text = json.dumps(bindings(bands, cats, load_facts()), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")
+    if cats.GRID_PX != GRID_PX:
+        sys.exit(f"error: the plugin draws a {cats.GRID_PX} pixel grid; FIT here assumes {GRID_PX}")
     try:
         header = cats.header_from(str(LIVE))
         P = cats.panel(bands, scale=CELLS_PER_UNIT, bindings=json.loads(text), max_cols=MAX_COLS)
@@ -338,7 +344,8 @@ def generate(plugin, out, bindings_out):
         sys.exit(f"error: {e}")
     cols, rows = cats.shown(P)
     print(", ".join(t for t, _, _ in bands) + ": " + cats.summary(P) +
-          f"; shows {cols} x {rows} cells ({cols * 30} x {rows * 30} pixels at the 30 pixel grid), fit {FIT[0]} x {FIT[1]}")
+          f"; shows {cols} x {rows} cells ({cols * GRID_PX} x {rows * GRID_PX} pixels at the {GRID_PX} pixel grid), "
+          f"fit {FIT[0]} x {FIT[1]} in a {WINDOW[0]} x {WINDOW[1]} window")
     print("\n".join(P.log))
 
 

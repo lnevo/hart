@@ -142,6 +142,16 @@ class Switches(unittest.TestCase):
                                                        Leg("OS X", "Track B", "OS Switch 7")))
         with self.assertRaises(SystemExit):
             B.half_label(both, both.legs[0])
+        with self.assertRaises(SystemExit):                   # the second, unlettered leg too
+            B.half_label(both, both.legs[1])
+        taken = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Switch 7", "Track A", "OS Switch 7a"),
+                                                        Leg("OS Switch 7a", "Track B", "OS Switch 7")))
+        with self.assertRaises(SystemExit):                   # 7 cannot be A when 7a already is
+            B.half_label(taken, taken.legs[0])
+
+    def test_fit_comes_from_the_window(self):
+        self.assertEqual(B.FIT, ((B.WINDOW[0] - B.CHROME[0]) // B.GRID_PX, (B.WINDOW[1] - B.CHROME[1]) // B.GRID_PX))
+        self.assertLessEqual(B.MAX_COLS, B.FIT[0])
 
     def test_legs_disagreeing_with_switch_legs_stop(self):
         f = facts()
