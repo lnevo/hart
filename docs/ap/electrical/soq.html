@@ -103,8 +103,8 @@
     <figcaption>The power panel: TCS CS-105 command station (top right), TCS B-106 booster (below it), the PSX breaker and auto-reverser boards (left) and the terminal strips.</figcaption>
   </figure>
   <figure class="photo" id="photo-two-trains" data-punch="PL-01">
-    <img src="photos/two-trains.jpg" alt="Two trains running at the same time on the staging level, with two throttles in view.">
-    <figcaption>Two trains running at the same time, each on its own throttle.</figcaption>
+    <img src="photos/two-trains.jpg" alt="Two locomotives side by side on the double-track main line, each pulling its own train, both moving at the same time.">
+    <figcaption>Two trains running at the same time on the main line.</figcaption>
   </figure>
 
   <h3 id="req1-gaps">Gaps and switches for troubleshooting</h3>
@@ -120,6 +120,19 @@
       <figcaption>A section boundary with gaps in both rails.</figcaption>
     </figure>
   </div>
+  <p>The terminal strips under the layout all use the same eight positions, so any bus or feeder can be traced the same way at every strip.</p>
+  <table id="tab-terminal">
+    <caption>Terminal strip positions (same on every strip)</caption>
+    <thead><tr><th scope="col">Terminals</th><th scope="col">Carries</th></tr></thead>
+    <tbody>
+      <tr><td>1 and 2</td><td>DCC bus A (+ and –)</td></tr>
+      <tr><td>3 and 4</td><td>DCC bus B (+ and –)</td></tr>
+      <tr><td>5</td><td>+12 V (switch machines, accessories)</td></tr>
+      <tr><td>6</td><td>+5 V</td></tr>
+      <tr><td>7</td><td>+3 V</td></tr>
+      <tr><td>8</td><td>Ground</td></tr>
+    </tbody>
+  </table>
 
   <h3 id="req1-loop">Reverse loop</h3>
   <p>At the east end of the main line is a return loop, RS-2 (Plan P2). A train goes out on one track, around the loop, and comes back on the other track facing the other way. The loop has gaps in both rails at both ends and is powered through a DCC Specialties PSX-AR auto-reverser (drawing D5). It is two detected sections, one on each channel of the same DNCT2B detector. Because both get power from the one auto-reverser, they always change polarity together, so for wiring and troubleshooting they are one reversing section.</p>
@@ -172,9 +185,9 @@
       <img src="photos/yard.jpg" alt="The yard seen along its length, with freight cars on several tracks.">
       <figcaption>The yard.</figcaption>
     </figure>
-    <figure class="photo" id="photo-ladder">
-      <img src="photos/staging-ladder.jpg" alt="A ladder of Peco turnouts on cork roadbed fanning out into parallel tracks.">
-      <figcaption>A yard ladder of Peco turnouts.</figcaption>
+    <figure class="photo" id="photo-lead" data-punch="PL-13">
+      <img src="photos/yard-lead.jpg" alt="The yard lead running from Switch 7 to the yard ladder, with a switcher on it and the main line beside it.">
+      <figcaption>The yard lead, off the main line.</figcaption>
     </figure>
   </div>
 
@@ -333,7 +346,7 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
 <!-- ============================================================ 6 -->
 <section class="chapter">
   <h2 id="req45">Requirements 4 and 5: drawings</h2>
-  <p>I made drawings D1 to D7 for this application. They are on the landscape pages after Chapter 6. Appendix E has my railroad's own wiring records, which show every bus, node and turnout.</p>
+  <p>I made drawings D1 to D7 for this application. They are on the landscape pages after Chapter 6. Appendix E has pages from my railroad's own wiring records: power districts, bus wiring, node and turnout wiring, and the node and turnout summaries.</p>
   <table id="tab-drawings">
     <caption>Drawings</caption>
     <thead><tr><th scope="col">Drawing</th><th scope="col">Shows</th><th scope="col">For</th></tr></thead>
@@ -347,7 +360,7 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
       <tr><td>D7</td><td>Crossover position indication: two contacts in series</td><td>Req. 5: crossover, turnout position (a)</td></tr>
     </tbody>
   </table>
-  <p>Requirement 4 asks the propulsion drawing to show six things. Gaps, blocks and feeders are in D2. Speed and direction control, the electrical switches (booster matrix, breakers and auto-reversers) and the power supplies are in D1. The frog switch is in D3. In Appendix E, the bus wiring, power district and track bus pages show the as-built wiring, and the turnout and node pages show the wiring behind each item in Requirement 5.</p>
+  <p>Requirement 4 asks the propulsion drawing to show six things. Gaps, blocks and feeders are in D2. Speed and direction control, the electrical switches (booster matrix, breakers and auto-reversers) and the power supplies are in D1. The frog switch is in D3. In Appendix E, the power district and bus wiring pages show the as-built wiring, and the node and turnout pages show the wiring behind each item in Requirement 5.</p>
 </section>
 
 <!-- ============================================================ PLATES -->

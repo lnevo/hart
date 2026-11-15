@@ -29,8 +29,9 @@ Owner facts (2026-11-15): each auto-reverser's output passes through a DNCT2B be
 
 1. Take the photographs in `PHOTO_PUNCH_LIST.md` and rebuild.
 2. On a private copy outside the repo (`~/Documents/NMRA AP/`): name, NMRA number, address, date and signature on the form. Never in the repo.
-3. Check drawing D7 against the wires on one crossover, and note how a crossover's fascia Touch Toggle lights are fed (the text only claims the computer panel waits for both halves).
-4. Confirm how the feeders pass through a DNCT2B channel (D2, D5 show both feeders of the pair through one channel).
-5. The witness visit and the evaluator's signature.
+3. Confirm the terminal strip positions in Section 3.2 (1–2 and 3–4 DCC buses, 5 +12 V, 6 +5 V, 7 +3 V, 8 ground). They come from docs/wiring/terminal_blocks.md, which is marked not verified.
+4. Check drawing D7 against the wires on one crossover, and note how a crossover's fascia Touch Toggle lights are fed (the text only claims the computer panel waits for both halves).
+5. Confirm how the feeders pass through a DNCT2B channel (D2, D5 show both feeders of the pair through one channel).
+6. The witness visit and the evaluator's signature.
 
 Sources: `docs/wiring/Layout Documentation.pptx` and `docs/wiring/Wiring_Schematic.pptx` (inventory v86), `docs/ops/schematic-system-draft.svg`, `jmri/layouts/hart/data/block_lengths.csv`, `www/build/track-plan.html`, `external/lcos-bridge` (bridge facts), form from nmra.org/electrical.
