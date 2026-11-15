@@ -558,74 +558,46 @@ def ai_mmr():
 
 
 def ap_exam():
-    """ap-exam: the C&E exam study deck at work, a flipped flashcard beside an answered practice question.
+    """ap-exam: a Form 19 train order on its green flimsy, running Engs C and E extra from the Study Guide to the Exam.
 
-    Drawn with the deck's own styles, labels and text, all read from www/exam/index.html."""
-    page = (PORTAL / "exam" / "index.html").read_text(encoding="utf-8")
-    js_str = r'("(?:[^"\\]|\\.)*")'  # a double-quoted JS string, escapes included
-
-    def find(pattern: str, what: str):
-        m = re.search(pattern, page, re.S)
-        if not m:
-            raise SystemExit(f"ap-exam: {what} not found in www/exam/index.html; update the recipe to the page's text")
-        return m
-
-    def table(name: str) -> dict[str, str]:
-        body = find(r"const " + name + r"=\{(.*?)\};", f"the {name} table").group(1)
-        return dict(re.findall(r'(\w+):"([^"]*)"', body))
-
-    sections, srcs = table("SECTIONS"), table("SRC")
-    label = lambda src: re.sub(r"^(SC|GC|TT|YL|TW|SG|SM)\b", lambda m: srcs.get(m[1], m[1]), src)
-    front = "Rule S-71 (single track): how is a train superior?"
-    c = find(r'C\("(\w+)",' + re.escape(json.dumps(front, ensure_ascii=False)) + "," + js_str + "," + js_str, "the S-71 flashcard")
-    c_sec, back, c_src = c[1], json.loads(c[2]), json.loads(c[3])
-    ask = "A regular train is more than 12 hours behind its schedule at a station. It\u2026"
-    q = find(r'Q\("(\w+)",' + re.escape(json.dumps(ask, ensure_ascii=False)) + r",(\[.*?\])," + js_str + "," + js_str, "the 12-hour question")
-    q_sec, opts, why, q_src = q[1], json.loads(q[2]), json.loads(q[3]), json.loads(q[4])
-    if "train order" not in opts[0]:  # the deck lists each question's correct answer first
-        raise SystemExit("ap-exam: the 12-hour question's first option is no longer the train-order answer")
-    e = html.escape
-    counts = {k: len(re.findall(r'C\("' + k + '",', page)) for k in sections}
-    chips = "".join(f'<span class="ce-chip" aria-pressed="{"true" if k == c_sec else "false"}">{e(n)} <span class="n">{counts[k]}</span></span>'
-                    for k, n in sections.items())
-    order = [2, 0, 1, 3]  # where the correct answer (opts[0]) sits: B
-    rows = "".join(
-        f'<div class="opt{" right" if o == 0 else ""}"><span class="k">{"ABCD"[i]}</span><span>{e(opts[o])}</span></div>'
-        for i, o in enumerate(order)
-    )
-    body = f"""<div class="ce sc">
-  <div class="sc-head"><span class="sc-eye">OPSIG Achievement Program \u00b7 Conductor &amp; Engineer</span>
-    <span class="sc-title">C&amp;E Exam Study Deck</span></div>
-  <div class="sc-cols">
-    <div class="sc-left"><div class="ce-chips">{chips}</div>
-    <div class="flimsy"><div class="top"><span class="sec">{e(sections[c_sec])}</span><span>Box 1 of 3</span></div>
-      <div class="front">{e(front)}</div><div class="back">{e(back)}</div><div class="src">{e(label(c_src))}</div></div>
-    <div class="row"><span class="ce-btn again">Again<span class="kbd">1</span></span><span class="ce-btn got">Got it<span class="kbd">2</span></span></div></div>
-    <div class="flimsy"><div class="top"><span class="sec">{e(sections[q_sec])}</span><span>{e(label(q_src))}</span></div>
-      <div class="front">{e(ask)}</div><div class="opts">{rows}</div>
-      <div class="why"><b class="ok">Correct.</b> {e(why)}</div></div>
-  </div></div>"""
-    css = find(r"<style>(.*?)</style>", "the deck's styles").group(1)
-    style = css + """
-body{background:var(--paper);font-family:var(--font-body)}
-.sc{height:630px;padding:24px 34px 30px;gap:14px}
-.sc-head{display:flex;flex-direction:column;gap:2px}
-.sc-eye{font-family:var(--f-mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text)}
-.sc-title{font-family:var(--font-display);font-weight:700;font-size:54px;line-height:1;color:var(--brand)}
-.sc-cols{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
-.ce .sc-cols .flimsy{min-height:0;padding:14px 20px 16px;gap:10px;background-position:0 50px}
-.ce .sc-cols .front{font-size:29px;line-height:32px}
-.ce .sc-cols .back{font-size:21px;line-height:32px}
-.ce .sc-cols .src{font-size:14px}
-.sc-left{display:flex;flex-direction:column;gap:12px}
-.ce .sc-left .ce-chip{font-size:13px;padding:3px 10px;cursor:default}
-.ce .sc-left .ce-chips{gap:5px}
-.ce .sc-left .ce-btn{cursor:default;display:inline-flex;align-items:center}
-.ce .sc-cols .opt{padding:8px 12px;font-size:17px}
-.ce .sc-cols .opts{gap:8px}
-.ce .sc-cols .why{font-size:17px;padding-top:10px}
+    The order follows Standard Code Form G ("Eng 99 run extra A to F") and a Form S-C wait, the rules the deck teaches."""
+    body = """<div class="desk"><div class="order">
+  <div class="hd"><span class="form">19</span><div class="rr">HART RAILROAD</div><div class="kind">TRAIN ORDER No. <b class="ty">516</b></div></div>
+  <div class="ln"><span>Superintendent's Office</span><span class="ty">Nov 14</span><span>20</span><span class="ty">26</span></div>
+  <div class="ln"><span>To</span><span class="ty wide">C &amp; E Extra West</span><span>At</span><span class="ty wide">Study Guide</span><span>Opr.</span><span class="ty">HT</span></div>
+  <div class="body ty">Engs C and E run extra Study Guide to Exam<br>and wait at Flashcards until learned.</div>
+  <div class="copy">CONDUCTOR AND ENGINEMAN MUST EACH HAVE A COPY OF THIS ORDER</div>
+  <div class="ln foot"><span>Repeated at</span><span class="ty">8 10 pm</span><span>Made</span><span class="ty">Complete</span><span>Time</span><span class="ty">8 15 pm</span><span>Opr.</span><span class="ty">HT</span></div>
+  <div class="stamp">OK<br><small>8 15 PM</small></div>
+</div></div>"""
+    style = """@import url("https://fonts.googleapis.com/css2?family=Special+Elite&display=swap");
+body{background:#0c2f39}
+.desk{width:1200px;height:630px;display:grid;place-items:center;
+  background:radial-gradient(ellipse at 30% 20%,#164c5a 0,#0c2f39 60%,#081f27 100%)}
+.order{position:relative;width:1010px;padding:30px 46px 28px;transform:rotate(-1.6deg);
+  background:linear-gradient(180deg,#e6efd2,#dbe7c3);color:#26331f;
+  font-family:"Source Serif 4",Georgia,serif;box-shadow:0 22px 50px rgba(0,0,0,.45),0 2px 0 rgba(255,255,255,.4) inset}
+.order::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(60,80,40,.05) 0 1px,transparent 1px 4px)}
+.hd{display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:2px solid #3d4d33;padding-bottom:10px;position:relative}
+.form{position:absolute;left:0;top:0;font:700 46px/1 "Barlow Condensed",sans-serif;border:3px solid #3d4d33;padding:2px 10px}
+.rr{font:700 44px/1 "Barlow Condensed",sans-serif;letter-spacing:.14em}
+.kind{font-size:22px;letter-spacing:.2em}
+.ty{font-family:"Special Elite","Courier New",monospace;color:#1d2b5c;letter-spacing:0;font-weight:400}
+.kind .ty{font-size:28px;padding:0 8px}
+.ln{display:flex;align-items:baseline;gap:10px;font-size:19px;margin-top:14px}
+.ln .ty{font-size:24px;border-bottom:1.5px solid #4c5d40;padding:0 10px 1px;min-width:60px}
+.ln .wide{flex:1}
+.body{font-size:34px;line-height:52px;margin:24px 0 18px;padding:2px 4px;
+  background:repeating-linear-gradient(180deg,transparent 0 50px,#9fb08a 50px 52px)}
+.copy{font-size:15px;letter-spacing:.12em;text-align:center;border-top:1px solid #4c5d40;padding-top:8px}
+.foot{font-size:16px}.foot .ty{font-size:21px}
+.stamp{position:absolute;right:52px;bottom:18px;transform:rotate(-10deg);color:rgba(178,36,36,.82);
+  border:4px solid rgba(178,36,36,.75);border-radius:8px;padding:4px 18px;text-align:center;
+  font:700 48px/0.95 "Barlow Condensed",sans-serif;letter-spacing:.06em}
+.stamp small{font-size:22px;letter-spacing:.1em}
 """
-    return card(draw("ap-exam", body, style, ("css/ops.css", "css/achievements.css")))
+    return card(draw("ap-exam", body, style))
 
 
 CARDS = {

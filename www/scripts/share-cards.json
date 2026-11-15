@@ -221,8 +221,8 @@
     },
     "exam/index.html": {
       "image": "assets/share/ap-exam.jpg",
-      "alt": "The C&E exam study deck: section chips over a flipped flashcard on Rule S-71, beside a practice question on the 12-hour rule answered correctly.",
-      "from": "drawn with the deck's own styles, labels, counts and text from www/exam/index.html (make_share_cards.py ap-exam)"
+      "alt": "A green Form 19 train order on the HART Railroad, stamped OK: Engs C and E run extra Study Guide to Exam and wait at Flashcards until learned.",
+      "from": "drawn by make_share_cards.py ap-exam, after Standard Code train order Forms G and S-C"
     },
     "guides/auto-dispatcher.html": {
       "image": "assets/share/guides-auto-dispatcher.jpg",
