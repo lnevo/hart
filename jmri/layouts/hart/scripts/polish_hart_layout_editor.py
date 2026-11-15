@@ -364,7 +364,7 @@ def _circuit_occupancy_icon(sensor: str, x: int, y: int) -> ET.Element:
             "x": str(x),
             "y": str(y),
             "level": "10",
-            "forcecontroloff": "false",
+            "forcecontroloff": "true",      # display only: a click must never set occupancy (owner, 2026-11-15)
             "hidden": "no",
             "positionable": "true",
             "showtooltip": "true",
