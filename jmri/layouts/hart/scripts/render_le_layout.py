@@ -69,9 +69,24 @@ def _font(size: int, bold: bool = False):
     return ImageFont.load_default()
 
 
-def load_geometry(src: Path):
+def bezier_points(a, controls, b, n=16):
+    """Points along a JMRI Bezier track segment (end, control points, end), for drawing."""
+    ctrl = [a, *controls, b]
+    out = []
+    for i in range(n + 1):
+        t = i / n
+        pts = list(ctrl)
+        while len(pts) > 1:      # de Casteljau, any number of control points
+            pts = [((1 - t) * p[0] + t * q[0], (1 - t) * p[1] + t * q[1]) for p, q in zip(pts, pts[1:])]
+        out.append(pts[0])
+    return out
+
+
+def load_geometry(src: Path, panel: str | None = None, curves: bool = False):
+    """`curves` draws Bezier track as curves; off, every segment is a straight chord (the site's overview image)."""
     root = ET.parse(src).getroot()
-    le = next(e for e in root.iter("LayoutEditor") if e.get("name") in ("HART Railroad", "HART"))
+    names = (panel,) if panel else ("HART Railroad", "HART")
+    le = next(e for e in root.iter("LayoutEditor") if e.get("name") in names)
     pp = {p.get("ident"): (float(p.get("x")), float(p.get("y")))
           for p in le.findall("positionablepoint")}
     legs = {}
@@ -107,7 +122,14 @@ def load_geometry(src: Path):
         a = resolve(s.get("connect1name"), s.get("type1"))
         b = resolve(s.get("connect2name"), s.get("type2"))
         if a and b:
-            segs.append((a, b, s.get("mainline") == "yes", s.get("blockname") or ""))
+            main = s.get("mainline") == "yes"
+            block = s.get("blockname") or ""
+            controls = [(float(c.get("x")), float(c.get("y"))) for c in s.iter("controlpoint")]
+            if curves and s.get("bezier") == "yes" and controls:
+                curve = bezier_points(a, controls, b)
+                segs.extend((p, q, main, block) for p, q in zip(curve, curve[1:]))
+            else:
+                segs.append((a, b, main, block))
     drawn = {a for a, _b, _m, _blk in segs} | {b for _a, b, _m, _blk in segs}
     pp = {k: v for k, v in pp.items() if v in drawn}
     signals = []
@@ -379,9 +401,11 @@ def main():
     ap.add_argument("--title", default="HART Layout")
     ap.add_argument("--subtitle", default="")
     ap.add_argument("--xwin", type=float, nargs=2, metavar=("XMIN", "XMAX"))
+    ap.add_argument("--panel", help="Layout Editor panel name (default: HART Railroad)")
+    ap.add_argument("--curves", action="store_true", help="draw Bezier track as curves, not chords")
     args = ap.parse_args()
 
-    pp, legs, turnouts, segs, signals, stations = load_geometry(args.src)
+    pp, legs, turnouts, segs, signals, stations = load_geometry(args.src, args.panel, args.curves)
 
     if args.all_views:
         for key, (title, subtitle, xmin, xmax) in VIEWS.items():
