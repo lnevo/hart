@@ -117,8 +117,7 @@ def header(ws) -> list[str]:
 def append(ws, values) -> None:
     """Add a main or upper level row, shaded so it stands apart from the staging rows."""
     ws.append(values)
-    width = sum(1 for c in ws[1] if c.value is not None) or len(values)
-    for cell in ws[ws.max_row][:width]:
+    for cell in ws[ws.max_row][:len(values)]:      # every cell the row writes, one per header column
         cell.fill = SHADE
 
 
@@ -253,7 +252,8 @@ def build(dest: Path) -> None:
 def values(path: Path) -> dict:
     """Every cell's value and fill colour, per sheet: the shading is part of what --check compares."""
     wb = load_workbook(path, data_only=True)
-    return {ws.title: [[(c.value, c.fill.fgColor.rgb if c.fill and c.fill.fill_type else None) for c in row]
+    return {ws.title: [[(c.value, (c.fill.fill_type, c.fill.fgColor.rgb) if c.fill and c.fill.fill_type else None)
+                        for c in row]
                        for row in ws.iter_rows()] for ws in wb.worksheets}
 
 

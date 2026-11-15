@@ -81,8 +81,10 @@ class Inventory(unittest.TestCase):
             for row in ws.iter_rows(min_row=2):
                 if row[c].value is None:
                     continue
-                shaded = row[0].fill.fill_type == "solid" and str(row[0].fill.fgColor.rgb).endswith("DDEBF7")
-                self.assertEqual(shaded, row[c].value in new, f"{sheet} {row[0].value}")
+                width = sum(1 for h in ws[1] if h.value is not None)
+                for cell in row[:width]:                             # the whole row, not only column A
+                    shaded = cell.fill.fill_type == "solid" and str(cell.fill.fgColor.rgb).endswith("DDEBF7")
+                    self.assertEqual(shaded, row[c].value in new, f"{sheet} {row[0].value} {cell.coordinate}")
 
     def test_detector_nodes_keep_the_calibration_pin(self):
         detectors = {r[1] for r in V86["BlockSensors"][1:]}
