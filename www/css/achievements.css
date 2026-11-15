@@ -135,7 +135,7 @@
 
 .ap-tools { margin: 0 0 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
-/* Seven-certificate dashboard (ap/index.html); scores filled from each .ap-cert by achievements.js */
+/* Progress dashboards (ap/index.html, ap/opsig.html); scores and marks filled from each .ap-cert by achievements.js */
 .ap-dash { margin: 0 0 1.8rem; }
 .ap-dash-sum { margin: 0 0 0.8rem; color: var(--ink-soft); }
 .ap-dash-grid {
@@ -159,7 +159,11 @@
   text-decoration: none;
 }
 .ap-dash-card:hover,
-.ap-dash-card:focus-visible { border-color: var(--brand-2); }
+.ap-dash-card:focus-visible {
+  border-left-color: var(--brand-2);
+  border-right-color: var(--brand-2);
+  border-bottom-color: var(--brand-2);
+}
 .ap-dash-group { font-size: 0.8rem; color: var(--muted); }
 .ap-dash-name {
   font-family: var(--font-display);
