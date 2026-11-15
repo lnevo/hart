@@ -4,6 +4,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import io
+import json
 import math
 import sys
 import tempfile
@@ -110,14 +111,15 @@ class Built(unittest.TestCase):
                 self.assertIn((t.get("ident"), f"TURNOUT_{leg.upper()}"), ends)
 
     def test_turnouts_sit_where_the_plan_puts_them(self) -> None:
-        # centre within 2 cm of the plan's switch (moved 223 and the dx centre aside), on its level
+        # centre within 2.5 cm of the plan's switch, on its level (moved 223 and the dx aside); the parts sit
+        # up to about 2 cm off the export after the least-squares fit
         for nid, n in self.plan.nodes.items():
             if n["kind"] != "switch" or n["label"] == "223":
                 continue
             t = self.items[f"TO{B.TAG}-{n['label']}"]
             ox, oy = self.panel.offset[self.plan.level[nid]]
             cen = (float(t.get("xcen")) - ox, float(t.get("ycen")) - oy)
-            self.assertLess(math.dist(cen, n["xy"]) / B.PX_PER_CM, 6.0, n["label"])
+            self.assertLess(math.dist(cen, n["xy"]) / B.PX_PER_CM, 2.5, n["label"])
 
     # ---- track
     def test_no_dangling_connection_names(self) -> None:
@@ -254,6 +256,130 @@ class Built(unittest.TestCase):
             self.assertEqual(len(chords), len(shown))                # default: one chord a segment
             _pp, _legs, live_turnouts, *_ = RENDER.load_geometry(path)
             self.assertEqual(len(live_turnouts), 20)            # the default is still the live panel
+
+
+def inputs():
+    return (json.loads(B.GRAPH.read_text()), json.loads(B.PARTS.read_text()), json.loads(B.OVERRIDES.read_text()))
+
+
+def bare_plan(parts):
+    """A Plan with only the part tables filled, for the walk and port code; parts in export px already."""
+    P = B.Plan.__new__(B.Plan)
+    P.parts, P.notes = parts, []
+    P.sx = P.sy = 1 / B.PX_PER_CM
+    P.ox = P.oy = 0.0
+    P._joints()
+    return P
+
+
+class ReviewFixes(unittest.TestCase):
+    def test_moved_switch_stays_on_its_run(self) -> None:
+        graph, parts, ov = inputs()
+        move = next(ed for ed in ov["edits"] if ed["op"] == "move")
+        move["cm_from_first"] = 1           # the plugin clamps to 5 cm; half the switch is longer than that
+        plan = B.Plan(graph, parts, ov)
+        x = plan.by_label("223")
+        run_a = next(e for e in plan.edges if e["id"].endswith("a") and x in (e["u"], e["v"]))
+        start = run_a["pts"][0] if run_a["v"] == x else run_a["pts"][-1]
+        self.assertLess(math.dist(plan.port_pt[(x, "B")], start[:2]), 1.0)
+
+    def test_a_part_on_another_level_is_not_claimed(self) -> None:
+        base = B.Plan(*inputs())
+
+        def to_cm(xy):
+            return ((xy[0] / B.PX_PER_CM - base.ox) / base.sx, (xy[1] / B.PX_PER_CM - base.oy) / base.sy)
+
+        # switch 119B's part, copied onto the upper level and centred exactly on the plan's switch
+        graph, parts, ov = inputs()
+        node = graph["nodes"]["TOR33649"]
+        tx, ty = to_cm(node["xy"])
+        cx = sum(q["x"] for q in parts[0]["eps"]) / len(parts[0]["eps"])
+        cy = sum(q["y"] for q in parts[0]["eps"]) / len(parts[0]["eps"])
+        twin = {"name": "SL-8351", "eps": [{"x": q["x"] + tx - cx, "y": q["y"] + ty - cy, "z": 10.795}
+                                           for q in parts[0]["eps"]]}
+        parts.append(twin)
+        self.assertEqual(B.Plan(graph, parts, ov).part_of["TOR33649"], 0)
+
+        # a dead end on the upper level, nearer the track end's plan point than the real one, is not that end
+        graph, parts, ov = inputs()
+        real = base.nodes["END:EB398"]["xy"]            # the walk put it on the real dead end
+        ex, ey = to_cm(real)
+        parts.append({"name": "SL-8300", "eps": [{"x": ex + 0.5, "y": ey, "z": 10.795},
+                                                 {"x": ex + 0.5, "y": ey + 40, "z": 10.795}]})
+        plan = B.Plan(graph, parts, ov)
+        plan.nodes["END:EB398"]["xy"] = [real[0] + 0.5 * B.PX_PER_CM * base.sx, real[1]]
+        self.assertAlmostEqual(plan.joint_point(plan._end_start("END:EB398"))[2], 0.0)
+
+    def test_walk_stops_at_a_part_with_more_than_two_ends(self) -> None:
+        flex = {"name": "SL-8300", "eps": [{"x": 0, "y": 0, "z": 0}, {"x": 10, "y": 0, "z": 0}]}
+        diamond = {"name": "SL-8387", "eps": [{"x": 10, "y": 0, "z": 0}, {"x": 20, "y": 0, "z": 0},
+                                               {"x": 15, "y": -5, "z": 0}, {"x": 15, "y": 5, "z": 0}]}
+        P = bare_plan([flex, diamond])
+        P.switch_parts = set()
+        with self.assertRaises(B.BuildError):
+            P._walk(P.joint[(0, 0)], None)
+
+    def test_misread_part_with_too_many_ends_stops(self) -> None:
+        part = {"name": "SL-8351", "eps": [{"x": i, "y": 0, "z": 0} for i in range(4)]}
+        P = bare_plan([part])
+        P.nodes = {"N": {"kind": "switch", "label": "X", "xy": [0, 0], "hand": 1,
+                         "dirs": {"A": [-1, 0], "B": [1, 0], "C": [1, 0.1]}}}
+        P.part_of, P.shared_parts = {"N": 0}, set()
+        with self.assertRaises(B.BuildError):
+            P._ports()
+
+    def test_override_keys_the_panel_does_not_draw_stop_it(self) -> None:
+        for change in (lambda ov: ov.update(new_thing=1),
+                       lambda ov: ov["levels"].update(squash=1),
+                       lambda ov: ov["edits"].append({"op": "remove", "switches": ["T6"]}),
+                       lambda ov: ov["edits"][1].update(points_toward="T237")):
+            graph, parts, ov = inputs()
+            change(ov)
+            with self.assertRaises(B.BuildError):
+                B.Plan(graph, parts, ov)
+
+    def test_levels_come_from_the_plugin(self) -> None:
+        graph, parts, ov = inputs()
+        ov["levels"]["assign"] = {"T262": 0}      # the plugin's per-switch pin, which _levels never read
+        plan = B.Plan(graph, parts, ov)
+        self.assertEqual(plan.level[plan.by_label("221B")], 0)
+        self.assertEqual(plan.level[plan.by_label("221A")], 1)
+
+    def test_level_cut_uses_treat(self) -> None:
+        spec = json.loads(B.OVERRIDES.read_text())["levels"]
+        self.assertEqual(B.z_level(0.8, spec), 0)
+        self.assertEqual(B.z_level(2.5, spec), 1)        # treated as 10.8: upper
+        self.assertEqual(B.z_level(4.9, spec), 1)
+        _data, plan, panel = B.build()
+        e75 = next(e for e in plan.edges if e["id"] == "e75")
+        lu, lv = plan.level[e75["u"]], plan.level[e75["v"]]
+        cut = panel.cuts["e75"]
+        self.assertNotEqual(lu, lv)
+        self.assertEqual(plan.point_level(e75["pts"][cut][2], lu), lv)
+        for q in e75["pts"][1:cut]:
+            self.assertEqual(plan.point_level(q[2], lu), lu)
+
+    def test_part_geometry_must_agree_with_the_plan_hand(self) -> None:
+        graph, parts, ov = inputs()
+        graph["nodes"]["TOL30431"]["hand"] *= -1       # switch 121 (plan T15)
+        with self.assertRaisesRegex(B.BuildError, "part 15"):
+            B.Plan(graph, parts, ov)
+
+    def test_renderer_reads_control_points_by_index_and_labels_a_curve_once(self) -> None:
+        xml = ('<layout-config><LayoutEditor name="P">'
+               '<positionablepoint ident="A1" type="ANCHOR" x="0" y="0"/>'
+               '<positionablepoint ident="A2" type="ANCHOR" x="100" y="0"/>'
+               '<tracksegment ident="T1" blockname="Blk" connect1name="A1" type1="POS_POINT" connect2name="A2" '
+               'type2="POS_POINT" mainline="yes" hidden="no" bezier="yes"><controlpoints>'
+               '<controlpoint index="1" x="70" y="50"/><controlpoint index="0" x="30" y="0"/>'
+               '</controlpoints></tracksegment></LayoutEditor></layout-config>')
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "p.xml"
+            path.write_text(xml)
+            segs = RENDER.load_geometry(path, "P", curves=True)[3]
+        want = RENDER.bezier_points((0.0, 0.0), [(30.0, 0.0), (70.0, 50.0)], (100.0, 0.0))
+        self.assertEqual([s[0] for s in segs] + [segs[-1][1]], want)
+        self.assertEqual(sum(1 for s in segs if s[3] == "Blk"), 1)
 
 
 class Geometry(unittest.TestCase):

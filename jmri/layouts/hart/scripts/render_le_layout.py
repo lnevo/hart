@@ -124,10 +124,14 @@ def load_geometry(src: Path, panel: str | None = None, curves: bool = False):
         if a and b:
             main = s.get("mainline") == "yes"
             block = s.get("blockname") or ""
-            controls = [(float(c.get("x")), float(c.get("y"))) for c in s.iter("controlpoint")]
+            controls = [(float(c.get("x")), float(c.get("y")))
+                        for c in sorted(s.iter("controlpoint"), key=lambda c: int(c.get("index") or 0))]
             if curves and s.get("bezier") == "yes" and controls:
                 curve = bezier_points(a, controls, b)
-                segs.extend((p, q, main, block) for p, q in zip(curve, curve[1:]))
+                mid = (len(curve) - 1) // 2
+                # one piece carries the block name, so a curve weighs as much as a straight in the label's place
+                segs.extend((p, q, main, block if i == mid else "")
+                            for i, (p, q) in enumerate(zip(curve, curve[1:])))
             else:
                 segs.append((a, b, main, block))
     drawn = {a for a, _b, _m, _blk in segs} | {b for _a, b, _m, _blk in segs}

@@ -17,12 +17,16 @@ Inputs (all committed, track only):
   the flex track parts between switches, so each run is drawn through every flex joint; joints become
   anchors and the track between them is a Bezier whose ends follow the track either side.
 - data/schematic/main_upper.plan_overrides.json: the owner's switch numbers (relabel), T300 moved to the
-  upper level (move), and the level cut (`levels`).
-- data/schematic/hands.csv: the owner's hands; the build stops if the plan geometry disagrees.
+  upper level (move), and the level cut (`levels`). Switch lookups, the levels and a check of the edited
+  graph come from the schematic-maps plugin (the pinned submodule, or SCHEMATIC_PLUGIN); overrides the
+  panel does not draw stop the build.
+- data/schematic/hands.csv: the owner's hands. The build stops if a part's geometry, the plan's hand and
+  hands.csv disagree.
 
 The main level and the upper level overlap in plan, so the upper level is drawn to the right of the main
-level (shifted, never scaled). A run that climbs from one level to the other is cut where it crosses
-UPPER_FROM_Z and joined across the gap by a hidden track segment, so the blocks stay connected.
+level (shifted, never scaled). A run that climbs from one level to the other is cut at its first joint on
+the other level (the plugin's `treat` and bands) and joined across the gap by a hidden track segment, so
+the blocks stay connected.
 """
 from __future__ import annotations
 
@@ -30,7 +34,10 @@ import argparse
 import copy
 import csv
 import json
+import importlib
 import math
+import os
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -51,7 +58,7 @@ TEMPLATE_PANEL = "HART Railroad"     # attributes and drawing options are copied
 PX_PER_CM = 120 / 25.4               # AnyRail's JMRI export, as in the schematic plugin's plan reader
 Z_RANGE = (-5.0, 100.0)              # the parts of the main and upper levels (staging is below -5)
 JOIN_CM = 0.3                        # part end points closer than this are one joint
-UPPER_FROM_Z = 5.0                   # cm; the level cut (plan_overrides `levels` bands)
+Z_TOL_CM = 1.0                       # a switch or track end and its part: heights this close
 UNMATCHED_LEG_CM = 3.0               # leg length for a switch with no part of its own (the three-way halves)
 LEVEL_GAP_PX = 300.0
 MARGIN_PX = 60.0
@@ -76,6 +83,61 @@ class BuildError(RuntimeError):
     pass
 
 
+# The overrides this build understands. Anything else stops it, so an edit the geometry ignores is never
+# drawn silently (the schematic plugin may handle more ops than the panel does).
+OVERRIDE_KEYS = {"_layer", "_note", "edits", "levels",
+                 # the schematic sheet's own: names, main route, helix side, mast names (no track geometry)
+                 "helix", "_helix_side", "helix_side", "helix_to", "main_route", "mast_prefix", "mast_dir_pattern"}
+LEVEL_KEYS = {"treat", "bands", "assign"}
+EDIT_KEYS = {"relabel": {"op", "map", "source", "_note"},
+             "move": {"op", "switch", "through", "onto", "cm_from_first", "z", "hand", "source", "_note"}}
+
+
+def plugin_edits():
+    """The schematic plugin's edits module: SCHEMATIC_PLUGIN, else the pinned submodule (as publish_draft.py)."""
+    env = os.environ.get("SCHEMATIC_PLUGIN")
+    if env:
+        folder = Path(env)
+    else:
+        sub_dir = paths.REPO_ROOT / "external/model-railroad-skills"
+        folder = sub_dir / "plugins/schematic-maps"
+        if not (folder / "schematic/edits.py").exists():
+            raise BuildError("schematic-maps plugin not found: run git submodule update --init "
+                             "external/model-railroad-skills")
+        git = lambda *a: subprocess.run(["git", *a], capture_output=True, text=True).stdout.strip()  # noqa: E731
+        have = git("-C", str(sub_dir), "rev-parse", "HEAD")
+        pinned = (git("-C", str(paths.REPO_ROOT), "ls-files", "-s", "external/model-railroad-skills").split()
+                  or ["", ""])[1]
+        if pinned and have != pinned:
+            raise BuildError(f"submodule is at {have[:8]}, pinned {pinned[:8]}: run git submodule update, "
+                             "or set SCHEMATIC_PLUGIN on purpose")
+    if str(folder) not in sys.path:
+        sys.path.insert(0, str(folder))
+    return importlib.import_module("schematic.edits"), importlib.import_module("schematic.core")
+
+
+def check_override_keys(overrides: dict) -> None:
+    bad = sorted(set(overrides) - OVERRIDE_KEYS)
+    bad += [f"levels.{k}" for k in sorted(set(overrides.get("levels", {})) - LEVEL_KEYS)]
+    for ed in overrides.get("edits", []):
+        allowed = EDIT_KEYS.get(ed.get("op"))
+        if allowed is None:
+            bad.append(f"edit op {ed.get('op')!r}")
+        else:
+            bad += [f"{ed['op']}.{k}" for k in sorted(set(ed) - allowed)]
+    if bad:
+        raise BuildError("plan overrides the panel build does not handle: " + ", ".join(bad))
+
+
+def z_level(z, spec) -> int:
+    """A height's level, as the plugin's split_levels reads it: `treat` first, then the first band below."""
+    for lo, hi, to in spec.get("treat", []):
+        if lo <= z < hi:
+            z = to
+            break
+    return next(i for i, b in enumerate(spec["bands"]) if z < b["below"])
+
+
 # ---------------------------------------------------------------- small geometry
 
 def sub(a, b):
@@ -89,6 +151,11 @@ def unit(v):
 
 def cross(a, b):
     return a[0] * b[1] - a[1] * b[0]
+
+
+def angle_to(a, b) -> float:
+    """Angle between two directions, radians."""
+    return abs(math.atan2(cross(a, b), a[0] * b[0] + a[1] * b[1]))
 
 
 def r1(v: float) -> str:
@@ -118,6 +185,10 @@ class Plan:
     """The plan graph with geometry: every switch's leg points and every run's polyline, in export px."""
 
     def __init__(self, graph: dict, parts: list, overrides: dict):
+        check_override_keys(overrides)
+        self.edits_mod, core = plugin_edits()
+        self.plugin_error = core.SchematicError
+        self.original = copy.deepcopy(graph)
         self.nodes = copy.deepcopy(graph["nodes"])
         self.edges = copy.deepcopy(graph["edges"])
         self.parts = parts
@@ -130,6 +201,21 @@ class Plan:
         self._trace()
         self._apply_edits()
         self._levels()
+
+    def node_z(self, nid):
+        """A switch's height, or the nearest switch's along the track when the plan reader left it out."""
+        dist, todo = {nid: 0.0}, [(0.0, nid)]
+        while todo:
+            todo.sort()
+            d, n = todo.pop(0)
+            if self.nodes[n].get("z") is not None:
+                return self.nodes[n]["z"]
+            for e in self.edges:
+                for a, b in ((e["u"], e["v"]), (e["v"], e["u"])):
+                    if a == n and d + e["cm"] < dist.get(b, math.inf):
+                        dist[b] = d + e["cm"]
+                        todo.append((dist[b], b))
+        return None
 
     # parts (cm) to export px: least squares over the switches the plan reader matched (T<part index>)
     def _fit(self):
@@ -169,15 +255,23 @@ class Plan:
         def q(e):
             return self.parts[e[0]]["eps"][e[1]]
 
-        for a in range(len(eps)):
-            qa = q(eps[a])
-            for b in range(a + 1, len(eps)):
-                qb = q(eps[b])
-                if (abs(qa["x"] - qb["x"]) < JOIN_CM and abs(qa["y"] - qb["y"]) < JOIN_CM
-                        and abs(qa["z"] - qb["z"]) < JOIN_CM):
-                    ra, rb = find(eps[a]), find(eps[b])
-                    if ra != rb:
-                        parent[max(ra, rb)] = min(ra, rb)
+        def cell(e):
+            return tuple(math.floor(q(e)[c] / JOIN_CM) for c in "xyz")
+
+        grid: dict = {}
+        for e in eps:
+            grid.setdefault(cell(e), []).append(e)
+        for a in eps:           # same or next cell in each direction: every pair closer than JOIN_CM
+            qa, (cx, cy, cz) = q(a), cell(a)
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    for dz in (-1, 0, 1):
+                        for b in grid.get((cx + dx, cy + dy, cz + dz), ()):
+                            qb = q(b)
+                            if b > a and all(abs(qa[c] - qb[c]) < JOIN_CM for c in "xyz"):
+                                ra, rb = find(a), find(b)
+                                if ra != rb:
+                                    parent[max(ra, rb)] = min(ra, rb)
         self.joint = {e: find(e) for e in eps}
         self.members: dict = {}
         for e in eps:
@@ -200,10 +294,13 @@ class Plan:
             if n["kind"] == "end" or nid in self.part_of:
                 continue
             best = None
+            nz = self.node_z(nid)
             for i in self.live:
                 if i in claimed and len(self.parts[i]["eps"]) < 4:
                     continue
                 e = self.parts[i]["eps"]
+                if nz is None or abs(max(q["z"] for q in e) - nz) > Z_TOL_CM:
+                    continue        # main and upper overlap in plan: a part on another level is not this one
                 c = (sum(self.px(q)[0] for q in e) / len(e), sum(self.px(q)[1] for q in e) / len(e))
                 d = math.dist(c, n["xy"]) / PX_PER_CM
                 # a turnout part (3 ends) within 20 cm, a three-way (4 ends, shared by the export's two
@@ -231,10 +328,17 @@ class Plan:
             if len(e) == 3:
                 toe = max(e, key=lambda x: sum(math.dist(pts[x], pts[y]) for y in e))
                 p, q = [x for x in e if x != toe]
-                if (cross(sub(pts[p], pts[toe]), sub(pts[q], pts[toe])) > 0) != (n["hand"] > 0):
+                # B is the leg whose direction from the points is nearer the plan's B direction
+                if angle_to(sub(pts[q], pts[toe]), n["dirs"]["B"]) < angle_to(sub(pts[p], pts[toe]), n["dirs"]["B"]):
                     p, q = q, p
+                hand = 1 if cross(sub(pts[p], pts[toe]), sub(pts[q], pts[toe])) > 0 else -1
+                if hand != n["hand"]:
+                    raise BuildError(f"{n['label']}: part {i} is {'RL'[hand < 0]}-hand, the plan says "
+                                     f"{'RL'[n['hand'] < 0]}")
                 assign = {"A": toe, "B": p, "C": q}
             else:           # a part with a misread end: match the ends it has by direction
+                if len(e) >= len(n["dirs"]):
+                    raise BuildError(f"{n['label']}: part {i} has {len(e)} ends, the switch {len(n['dirs'])} legs")
                 assign = {}
                 for x in e:
                     d = unit(sub(pts[x], n["xy"]))
@@ -284,6 +388,9 @@ class Plan:
             if len(att) > 1:
                 raise BuildError(f"track branches at a joint with no switch near {self.joint_point(cur)}")
             p, k = att[0]
+            if len(self.parts[p]["eps"]) != 2:
+                raise BuildError(f"part {p} ({self.parts[p]['name']}) has {len(self.parts[p]['eps'])} ends but "
+                                 "is no switch of this graph: a crossing or an unmatched turnout")
             if p in seen:
                 raise BuildError(f"track loops back on part {p}")
             seen.add(p)
@@ -294,9 +401,12 @@ class Plan:
     def _end_start(self, nid):
         """The dead-end joint at a track end."""
         xy = self.nodes[nid]["xy"]
+        nz = self.node_z(nid)
         best = None
         for j, mem in self.members.items():
             if len(mem) == 1 and mem[0][0] not in self.switch_parts:
+                if nz is None or abs(self.joint_point(j)[2] - nz) > Z_TOL_CM:
+                    continue        # a dead end on another level
                 d = math.dist(self.joint_point(j)[:2], xy)
                 if best is None or d < best[0]:
                     best = (d, j)
@@ -370,11 +480,10 @@ class Plan:
 
     # ---- the owner's overrides
     def by_label(self, ref):
-        hits = [n for n, d in self.nodes.items() if d.get("alias") == ref]
-        hits = hits or [n for n, d in self.nodes.items() if d.get("label") == ref and d["kind"] != "end"]
-        if len(hits) != 1:
-            raise BuildError(f"{len(hits)} switches answer to {ref}")
-        return hits[0]
+        try:
+            return self.edits_mod.by_label({"nodes": self.nodes, "edges": self.edges}, ref)
+        except self.plugin_error as exc:
+            raise BuildError(str(exc)) from None
 
     def edge_at(self, n, port):
         return next(e for e in self.edges if (e["u"], e["up"]) == (n, port) or (e["v"], e["vp"]) == (n, port))
@@ -394,6 +503,25 @@ class Plan:
                 self._move(ed)
             else:
                 raise BuildError(f"plan override {ed['op']!r} is not handled here; add it")
+        # the plugin's own edits on the bare graph must give the same switches and runs
+        topo = copy.deepcopy(self.original)
+        try:
+            self.edits_mod.apply_edits(topo, copy.deepcopy(self.overrides.get("edits", [])))
+        except self.plugin_error as exc:
+            raise BuildError(f"plan overrides: {exc}") from None
+
+        def runs(g):
+            return sorted(tuple(sorted([(g["nodes"][e["u"]].get("label", e["u"]).rstrip("*"), e["up"]),
+                                        (g["nodes"][e["v"]].get("label", e["v"]).rstrip("*"), e["vp"])]))
+                          for e in g["edges"])
+
+        def junctions(g):
+            return sorted((d["label"].rstrip("*"), d["hand"]) for d in g["nodes"].values() if d["kind"] != "end")
+
+        mine = {"nodes": self.nodes, "edges": self.edges}
+        if runs(topo) != runs(mine) or junctions(topo) != junctions(mine):
+            raise BuildError("the panel's edits and the schematic plugin's differ; update _move to match")
+        self.topology = topo
 
     def _move(self, ed):
         """As the schematic plugin's `move`: lift the switch out of one run and set it into another."""
@@ -424,8 +552,10 @@ class Plan:
         run = self.oriented(t, *end0)
         at = max(5.0, min(ed["cm_from_first"], t["cm"] - 5))
         total = polyline_length(run)
-        s = at / t["cm"] * total
         lab = math.dist(old["A"], old["B"])
+        if total <= lab:
+            raise BuildError(f"move {ed['switch']}: the run {ed['onto']} is shorter than the switch")
+        s = min(max(at / t["cm"] * total, lab / 2), total - lab / 2)     # the whole switch on the run
         along = (sub(old["C"], old["A"])[0] * unit(sub(old["B"], old["A"]))[0]
                  + sub(old["C"], old["A"])[1] * unit(sub(old["B"], old["A"]))[1])
         lat = abs(cross(unit(sub(old["B"], old["A"])), sub(old["C"], old["A"])))
@@ -453,29 +583,26 @@ class Plan:
                           f"at {at} cm, hand {ed['hand']} (plan overrides)")
 
     def _levels(self):
-        """Each switch's level: its height after `treat`, as the plugin's split_levels cuts them."""
+        """Each switch's and end's level, from the plugin's own cut (split_levels) of the edited graph."""
         spec = self.overrides["levels"]
-        z = {n: d.get("z") for n, d in self.nodes.items() if d["kind"] != "end"}
-        for lo, hi, to in spec.get("treat", []):
-            for n, v in z.items():
-                if v is not None and lo <= v < hi:
-                    z[n] = to
-        while any(v is None for v in z.values()):
-            progress = False
-            for e in sorted(self.edges, key=lambda e: e["cm"]):
-                for a, b in ((e["u"], e["v"]), (e["v"], e["u"])):
-                    if a in z and b in z and z[a] is None and z[b] is not None:
-                        z[a], progress = z[b], True
-            if not progress:
-                break
-        cut = spec["bands"][0]["below"]
-        if cut != UPPER_FROM_Z:
-            raise BuildError(f"levels band cut is {cut}, the build expects {UPPER_FROM_Z}")
-        self.level = {n: (0 if (v or 0) < cut else 1) for n, v in z.items()}
-        for e in self.edges:
-            for a, b in ((e["u"], e["v"]), (e["v"], e["u"])):
-                if self.nodes[a]["kind"] == "end":
-                    self.level[a] = self.level[b]
+        names = [b["name"] for b in spec["bands"]]
+        if len(names) != 2:
+            raise BuildError(f"the panel draws two levels; the plan overrides give {len(names)} bands")
+        try:
+            bands = self.edits_mod.split_levels(copy.deepcopy(self.topology), copy.deepcopy(spec))
+        except self.plugin_error as exc:
+            raise BuildError(f"levels: {exc}") from None
+        self.level = {}
+        for name, sub_graph in bands:
+            for nid in sub_graph["nodes"]:
+                if nid in self.nodes:
+                    self.level[nid] = names.index(name)
+        missing = sorted(n for n in self.nodes if n not in self.level)
+        if missing:
+            raise BuildError(f"no level for {missing}")
+
+    def point_level(self, z, fallback):
+        return fallback if z is None else z_level(z, self.overrides["levels"])
 
 
 # ---------------------------------------------------------------- the panel
@@ -504,6 +631,7 @@ class Panel:
         self.points: list[ET.Element] = []
         self.blocks: dict[str, float] = {}         # block user name -> length mm
         self.n_anchor = 0
+        self.cuts: dict[str, int | None] = {}      # run id -> vertex where it changes level
         self.n_seg = 0
         self._offsets()
         self.ident = {}
@@ -548,11 +676,12 @@ class Panel:
             return os_name(lu)          # the track between a crossover's two halves
         return f"Track {e['id']}"
 
-    def _anchor(self, xy):
+    def _anchor(self, xy, run_anchors):
         self.n_anchor += 1
         ident = f"A{TAG}-{self.n_anchor}"
         el = ET.Element("positionablepoint", {"ident": ident, "type": "ANCHOR", "x": r1(xy[0]), "y": r1(xy[1])})
         self.points.append(el)
+        run_anchors[ident] = el
         return ident, el
 
     def _segment(self, block, c1, t1, c2, t2, p0, p1, a0, a1, dashed, hidden):
@@ -590,12 +719,12 @@ class Panel:
         cut = None
         if lu != lv:          # the vertex where the run reaches the other level's height
             for i in range(1, len(pts) - 1):
-                zi = pts[i][2]
-                if zi is not None and ((zi >= UPPER_FROM_Z) == (lv == 1)):
+                if pts[i][2] is not None and p.point_level(pts[i][2], lu) == lv:
                     cut = i
                     break
             if cut is None:
                 cut = len(pts) // 2 if len(pts) > 2 else None
+            self.cuts[e["id"]] = cut
             if cut is None:          # no vertex to cut at: add the midpoint
                 mid = ((pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2, None)
                 pts = [pts[0], mid, pts[1]]
@@ -612,12 +741,13 @@ class Panel:
         ang = arc_tangents([q[:2] for q in pts], d0, (-d1[0], -d1[1]) if d1 else None)
         # connection names along the run
         names = [(self.ident[e["u"]], self._ctype(e["u"], e["up"]))]
+        run_anchors: dict[str, ET.Element] = {}
         jump = {}
         for i in range(1, n - 1):
-            ident, el = self._anchor(self.at(pts[i], levels[i]))
+            ident, el = self._anchor(self.at(pts[i], levels[i]), run_anchors)
             names.append((ident, "POS_POINT"))
             if i == cut:
-                ident2, el2 = self._anchor(self.at(pts[i], lv))
+                ident2, el2 = self._anchor(self.at(pts[i], lv), run_anchors)
                 jump[i] = (el, el2, ident2)
         names.append((self.ident[e["v"]], self._ctype(e["v"], e["vp"])))
         anchor_el = {}
@@ -642,14 +772,13 @@ class Panel:
                                  (float(el2.get("x")), float(el2.get("y"))), None, None, False, True)
             anchor_el.setdefault(el.get("ident"), []).append(hseg)
             anchor_el.setdefault(ident2, []).append(hseg)
-        for pt in self.points:
-            segs = anchor_el.get(pt.get("ident"))
-            if segs:
-                if len(segs) != 2:
-                    raise BuildError(f"anchor {pt.get('ident')} has {len(segs)} tracks")
-                pt.set("connect1name", segs[0])
-                pt.set("connect2name", segs[1])
-                pt.set("class", CLASS["point"])
+        for ident, pt in run_anchors.items():
+            segs = anchor_el.get(ident, [])
+            if len(segs) != 2:
+                raise BuildError(f"anchor {ident} has {len(segs)} tracks")
+            pt.set("connect1name", segs[0])
+            pt.set("connect2name", segs[1])
+            pt.set("class", CLASS["point"])
 
     def _ctype(self, nid, port):
         return "POS_POINT" if self.plan.nodes[nid]["kind"] == "end" else f"TURNOUT_{port}"
