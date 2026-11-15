@@ -4,10 +4,10 @@ The Statement of Qualifications for the NMRA Achievement Program certificate, re
 
 | File | What it is |
 |------|------------|
-| `MRE-Electrical-SOQ.pdf` | The package: ticked NMRA form, title page, contents, six short chapters (introduction, checklist, Requirements 1 to 5), landscape drawing plates D1 to D6, and Appendices A to E (labels, to-scale plan and detected sections, parts list, features not claimed, wiring records). Written in plain first person (owner, 2026-11-15). Tagged PDF with bookmarks. |
+| `MRE-Electrical-SOQ.pdf` | The package: ticked NMRA form, title page, contents, six short chapters (introduction, checklist, Requirements 1 to 5), landscape drawing plates D1 to D7, and Appendices A to E (labels, to-scale plan and detected sections, parts list, features not claimed, wiring records). Written in plain first person (owner, 2026-11-15). Tagged PDF with bookmarks. |
 | `soq.html`, `soq.css` | Source of the document. Numbers, cross-references, contents and page numbers are filled in by the build. |
 | `build_soq.py` | Builds the PDF: drawings, numbering, two Chrome print passes for page numbers, the form ticks, Keynote export of the two wiring decks, footers and bookmarks. `--html-only` writes `build/` without printing. |
-| `make_drawings.py` | Writes plan clips P1 to P5 (the staging level copied from the system schematic, its own names removed, generic labels added) and drawings D1 to D6. The build also writes P0, the staging level to scale from `www/build/track-plan.html`. |
+| `make_drawings.py` | Writes plan clips P1 to P5 (the staging level copied from the system schematic, its own names removed, generic labels added) and drawings D1 to D7. The build also writes P0, the staging level to scale from `www/build/track-plan.html`. |
 | `PHOTO_PUNCH_LIST.md` | Photographs still to take, with file names. Until one exists, the PDF shows a dashed placeholder where it goes. |
 | `photos/` | Photographs used, downsized from `media/photos-layout` (IMG_7226, 7471, 7813, 8070, 8414, 8415, 8940, 8947, 8954, 9231, 9288). |
 | `MRE-Electrical-SOQ-form.pdf` | The blank NMRA 2025 fillable form. The build ticks the claimed items and fills Region and Division only. |
@@ -23,7 +23,7 @@ Build (Mac, with PanelPro not needed): `/Users/lnevo/hart/.venv/bin/python docs/
 
 The document uses generic labels (RS-1, Y1–Y5, E1–E3 and so on); Appendix A maps them to the layout's names. The drawings are kept apart from the railroad's own schematics and wiring docs (owner, 2026-11-14).
 
-Owner facts (2026-11-15): the AR-10 is an NCE AR10; one TCS B-106 booster is installed, a second is planned if needed (the wiring deck's power district page shows the planned B2).
+Owner facts (2026-11-15): each auto-reverser's output passes through a DNCT2B before the track; RS-2 is K-1 and K-2, one on each channel of one DNCT2B, and they change polarity together (D5). A crossover's two position contacts are wired in series to one N/R input pair, so the panel shows Inconsistent when the halves disagree (D7, drawn from the owner's description; check against the wiring). The AR-10 is an NCE AR10; one TCS B-106 booster is installed, a second is planned if needed (the wiring deck's power district page shows the planned B2).
 
 ## Open before submission
 

@@ -86,7 +86,7 @@
       <tr><td>3</td><td>(a) Electrical turnout position</td><td>Fascia and panel lamps</td><td><a class="xref" href="#req3-a"></a></td></tr>
       <tr><td>3</td><td>(b) Track occupancy</td><td>All 43 sections detected</td><td><a class="xref" href="#req3-b"></a></td></tr>
       <tr><td>3</td><td>(v) Computer to railroad interface</td><td>My LCOS-to-JMRI bridge</td><td><a class="xref" href="#req3-v"></a></td></tr>
-      <tr><td>4, 5</td><td>Schematic drawings</td><td>Drawings D1 to D6, wiring records</td><td><a class="xref" href="#req45"></a></td></tr>
+      <tr><td>4, 5</td><td>Schematic drawings</td><td>Drawings D1 to D7, wiring records</td><td><a class="xref" href="#req45"></a></td></tr>
       <tr><td>6</td><td>Track plan; descriptions and parts; witness form</td><td>Plans P1 to P5 and P0; Chapters 3 to 5 and the parts list; the form</td><td><a class="xref" href="#fig-p1"></a>, <a class="xref" href="#app-b"></a>, <a class="xref" href="#app-c"></a></td></tr>
     </tbody>
   </table>
@@ -122,7 +122,7 @@
   </div>
 
   <h3 id="req1-loop">Reverse loop</h3>
-  <p>At the east end of the main line is a return loop, RS-2 (Plan P2). A train goes out on one track, around the loop, and comes back on the other track facing the other way. The loop has gaps in both rails at both ends and is powered through a DCC Specialties PSX-AR auto-reverser (drawing D5).</p>
+  <p>At the east end of the main line is a return loop, RS-2 (Plan P2). A train goes out on one track, around the loop, and comes back on the other track facing the other way. The loop has gaps in both rails at both ends and is powered through a DCC Specialties PSX-AR auto-reverser (drawing D5). It is two detected sections, one on each channel of the same DNCT2B detector. Because both get power from the one auto-reverser, they always change polarity together, so for wiring and troubleshooting they are one reversing section.</p>
   <p>The main line also loops back on itself at the west end, so the west part of the main line, RS-1, is a second reversing section. It is wired the same way on an NCE AR10. RS-1 is 217 in long, longer than any train on the level.</p>
   <figure class="fig wide" id="fig-p2">
     <img src="drawings/P2-reversing-sections.svg" alt="Track diagram with the two reversing sections highlighted and the gaps at their ends marked.">
@@ -213,6 +213,7 @@
 
   <h3 id="req2-crossover">Crossover</h3>
   <p>There are crossovers at Switch 23, Switch 35 and Switch 7. Each is two turnouts, wired like any other turnout, and both machines throw together. Because each frog has its own polarity, both rails between the two frogs are gapped (drawing D4). Each half is its own detected section.</p>
+  <p>The two halves share one pair of position inputs on the node. Their position contacts are wired in series, so the panel shows normal only when both halves are normal and reverse only when both are reverse. If the halves disagree, neither light comes on and JMRI shows the crossover as inconsistent (drawing D7).</p>
   <p><strong>Parts:</strong> the same as for a turnout.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-crossover" data-punch="PL-07">
@@ -226,7 +227,7 @@
   </div>
 
   <h3 id="req2-other">Other: reversing sections on auto-reversers</h3>
-  <p>RS-1 and RS-2 (Section 3.3) each have gaps in both rails at both ends and get power through their own auto-reverser. When a train's wheels bridge a gap with the wrong polarity, the auto-reverser senses the short and flips the section's polarity in a few milliseconds, so the train keeps going. Each section is longer than the longest train, so the flip finishes before the train reaches the far gap (drawing D5).</p>
+  <p>RS-1 and RS-2 (Section 3.3) each have gaps in both rails at both ends and get power through their own auto-reverser. The auto-reverser's output goes through a DNCT2B detector on its way to the track, so the reversing sections are detected like every other section. When a train's wheels bridge a gap with the wrong polarity, the auto-reverser senses the short and flips the section's polarity in a few milliseconds, so the train keeps going. Each section is longer than the longest train, so the flip finishes before the train reaches the far gap (drawing D5).</p>
   <p><strong>Parts:</strong> NCE AR10, DCC Specialties PSX-AR.</p>
 </section>
 
@@ -241,8 +242,8 @@
     <li>On the fascia, the turnout's Touch Toggle button lights up. The light is driven from contact 2 of the MP4 through a Touch Toggle Universal Translator. A framed track diagram on the fascia also has a light at each of its turnouts.</li>
     <li>On the computer panels, each switch shows a normal or reverse light. The same contact is read by an LCOS input board.</li>
   </ul>
-  <p>Both come from the switch machine itself, so they show where the points really are, no matter how the turnout was thrown. The form asks for at least four turnouts. All of the staging turnouts are wired this way.</p>
-  <p><strong>Parts:</strong> MTB MP4, Touch Toggle buttons and Universal Translators, LCOS input boards. <strong>Drawing:</strong> D3.</p>
+  <p>Both come from the switch machine itself, so they show where the points really are, no matter how the turnout was thrown. The form asks for at least four turnouts. All of the staging turnouts are wired this way. On a crossover, the contacts of its two machines are wired in series, so the lights show a position only when both halves agree (drawing D7).</p>
+  <p><strong>Parts:</strong> MTB MP4, Touch Toggle buttons and Universal Translators, LCOS input boards. <strong>Drawings:</strong> D3, D7.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-tt">
       <img src="photos/touch-toggle-translator.jpg" alt="A yellow Touch Toggle Universal Translator board wired to a lit green indicator lamp and a push button.">
@@ -332,7 +333,7 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
 <!-- ============================================================ 6 -->
 <section class="chapter">
   <h2 id="req45">Requirements 4 and 5: drawings</h2>
-  <p>I made drawings D1 to D6 for this application. They are on the landscape pages after Chapter 6. Appendix E has my railroad's own wiring records, which show every bus, node and turnout.</p>
+  <p>I made drawings D1 to D7 for this application. They are on the landscape pages after Chapter 6. Appendix E has my railroad's own wiring records, which show every bus, node and turnout.</p>
   <table id="tab-drawings">
     <caption>Drawings</caption>
     <thead><tr><th scope="col">Drawing</th><th scope="col">Shows</th><th scope="col">For</th></tr></thead>
@@ -341,8 +342,9 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
       <tr><td>D2</td><td>A typical section: bus, feeders, gaps, detector</td><td>Req. 4: gaps, blocks, feeders; Req. 5: occupancy (b)</td></tr>
       <tr><td>D3</td><td>Turnout: frog power and position contact</td><td>Req. 5: turnout, turnout position (a)</td></tr>
       <tr><td>D4</td><td>Crossover</td><td>Req. 5: crossover</td></tr>
-      <tr><td>D5</td><td>Reversing section on an auto-reverser</td><td>Req. 5: reversing sections</td></tr>
+      <tr><td>D5</td><td>Reversing section on an auto-reverser, with its detector</td><td>Req. 5: reversing sections</td></tr>
       <tr><td>D6</td><td>The bridge between LCOS and JMRI</td><td>Req. 5: computer-to-railroad interface (v)</td></tr>
+      <tr><td>D7</td><td>Crossover position indication: two contacts in series</td><td>Req. 5: crossover, turnout position (a)</td></tr>
     </tbody>
   </table>
   <p>Requirement 4 asks the propulsion drawing to show six things. Gaps, blocks and feeders are in D2. Speed and direction control, the electrical switches (booster matrix, breakers and auto-reversers) and the power supplies are in D1. The frog switch is in D3. In Appendix E, the bus wiring, power district and track bus pages show the as-built wiring, and the turnout and node pages show the wiring behind each item in Requirement 5.</p>
@@ -350,14 +352,15 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
 
 <!-- ============================================================ PLATES -->
 <section class="plates">
-  <h2 class="no-num plate-head" id="plates">Drawings D1 to D6</h2>
+  <h2 class="no-num plate-head" id="plates">Drawings D1 to D7</h2>
   <p class="plate-intro">Not to scale. Red is track power, blue is detection and data, grey is nearby track. In D6, the shaded boxes are my own work.</p>
   <figure class="plate" id="fig-d1"><img src="drawings/D1-propulsion-one-line.svg" alt="Drawing D1: throttles, command station, booster, booster matrix, and the six breakers and auto-reversers feeding the district buses."><figcaption>Drawing D1: power and control. Each locomotive gets its speed and direction from the DCC commands sent to its address.</figcaption></figure>
   <figure class="plate" id="fig-d2"><img src="drawings/D2-propulsion-sections.svg" alt="Drawing D2: a district bus, a section gapped at both ends, its feeder pair through a DNCT2B detector channel, and the LCOS node."><figcaption>Drawing D2: a typical section. All 43 sections in Appendix B are wired this way.</figcaption></figure>
   <figure class="plate" id="fig-d3"><img src="drawings/D3-turnout-frog-indication.svg" alt="Drawing D3: a turnout with the MP4's contact 1 powering the frog and contact 2 reporting the position."><figcaption>Drawing D3: turnout frog power and position contact.</figcaption></figure>
   <figure class="plate" id="fig-d4"><img src="drawings/D4-crossover.svg" alt="Drawing D4: two turnouts forming a crossover, with gaps between the frogs."><figcaption>Drawing D4: crossover.</figcaption></figure>
-  <figure class="plate" id="fig-d5"><img src="drawings/D5-reversing-section.svg" alt="Drawing D5: a section gapped at both ends, powered through an auto-reverser."><figcaption>Drawing D5: reversing section on an auto-reverser.</figcaption></figure>
+  <figure class="plate" id="fig-d5"><img src="drawings/D5-reversing-section.svg" alt="Drawing D5: a section gapped at both ends, powered through an auto-reverser."><figcaption>Drawing D5: reversing section on an auto-reverser. The two detected sections share the auto-reverser and change polarity together.</figcaption></figure>
   <figure class="plate" id="fig-d6"><img src="drawings/D6-computer-interface.svg" alt="Drawing D6: JMRI, the MQTT server, the bridge program, the bridge node, the LCOS nodes and the railroad, with the links between them."><figcaption>Drawing D6: the bridge between the LCOS radio network and JMRI.</figcaption></figure>
+  <figure class="plate" id="fig-d7"><img src="drawings/D7-crossover-indication.svg" alt="Drawing D7: the position contacts of a crossover's two machines wired in series to one normal and one reverse input, with a table of what the panel shows for each combination."><figcaption>Drawing D7: crossover position indication. Both halves must agree before a position shows.</figcaption></figure>
 </section>
 
 <!-- ============================================================ APPENDICES -->

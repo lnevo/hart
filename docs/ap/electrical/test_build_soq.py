@@ -54,7 +54,7 @@ class Numbering(unittest.TestCase):
 
     def test_drawings_are_labelled_from_their_captions(self):
         self.assertEqual([lab for _, lab, _, _ in self.figs if lab.startswith("Drawing")],
-                         [f"Drawing D{n}" for n in range(1, 7)])
+                         [f"Drawing D{n}" for n in range(1, 8)])
 
     def test_placeholders_name_a_punch_list_item(self):
         punch = build_soq.punch_items()
