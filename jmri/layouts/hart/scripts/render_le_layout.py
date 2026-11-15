@@ -212,6 +212,7 @@ def load_geometry(src: Path, panel: str | None = None, curves: bool = False, roo
                 "x": float(icon.get("x") or "0"),
                 "y": float(icon.get("y") or "0"),
                 "degrees": int(float(icon.get("degrees") or "0")) % 360,
+                "hidden": icon.get("hidden") == "yes",
             })
         except ValueError:
             continue
@@ -233,7 +234,7 @@ def load_geometry(src: Path, panel: str | None = None, curves: bool = False, roo
 
 def render_view(
     pp, legs, turnouts, segs, signals, stations, out: Path, title: str, subtitle: str,
-    xmin=None, xmax=None, decor=None
+    xmin=None, xmax=None, decor=None, fixed_scale=None
 ):
     """`decor` is load_decor's (labels, shapes): the panel drawn as Layout Editor shows it, its own labels and
     shapes in place of the block and turnout text this view makes up, and a single crossover with its one diagonal
@@ -281,7 +282,7 @@ def render_view(
     by1 = max(p[1] for p in pts) + pad
 
     scale = (target_w - 2 * pad) / (bx1 - bx0)
-    scale = max(scale, 1.0)
+    scale = max(scale, 1.0) if fixed_scale is None else fixed_scale
     W = int((bx1 - bx0) * scale + 2 * pad)
     top = 78
     H = int((by1 - by0) * scale + top + pad)
@@ -443,12 +444,23 @@ def render_view(
             d.text((X(x), Y(y)), text, font=_font(max(8, round(size * scale)), bold=bold), fill=TITLE if bold else BLKTXT)
 
     # Display-only signal markers. The stem points in the mast's facing
-    # direction (0=north, 90=east, 180=south, 270=west).
+    # direction (0=north, 90=east, 180=south, 270=west). With decor (the panel as Layout Editor shows it) the
+    # marker sits where the icon does: x, y is its top left corner, the box a dwarf's (12 x 17 upright, turned),
+    # and a hidden icon is drawn hollow.
     f_sig = _font(10)
-    vectors = {0: (0, -1), 90: (1, 0), 180: (0, 1), 270: (-1, 0)}
     for signal in vsignals:
+        th = math.radians(signal["degrees"])
+        dx, dy = math.sin(th), -math.cos(th)
         px, py = X(signal["x"]), Y(signal["y"])
-        dx, dy = vectors.get(signal["degrees"], (0, -1))
+        if decor:
+            bw = 12 * abs(math.cos(th)) + 17 * abs(math.sin(th))
+            bh = 12 * abs(math.sin(th)) + 17 * abs(math.cos(th))
+            px, py = X(signal["x"] + bw / 2), Y(signal["y"] + bh / 2)
+            r = 3
+            d.ellipse([px - r, py - r, px + r, py + r], outline=SIGNAL, width=1,
+                      fill=None if signal.get("hidden") else SIGNAL)
+            d.line([(px, py), (px + 9 * dx * scale, py + 9 * dy * scale)], fill=SIGNAL, width=2)
+            continue
         d.ellipse([px - 5, py - 5, px + 5, py + 5], fill=SIGNAL)
         d.line([(px, py), (px + 18 * dx, py + 18 * dy)], fill=SIGNAL, width=4)
         tx = px + (8 if dx >= 0 else -8)
@@ -506,6 +518,7 @@ def main():
     ap.add_argument("--panel", help="Layout Editor panel name (default: HART Railroad)")
     ap.add_argument("--curves", action="store_true", help="draw Bezier and arc track as curves, not chords")
     ap.add_argument("--labels", action="store_true", help="draw the panel as Layout Editor shows it: its labels, shapes and single crossovers")
+    ap.add_argument("--scale", type=float, help="image pixels per panel pixel (1 draws the panel at 100%% zoom)")
     args = ap.parse_args()
 
     root = ET.parse(args.src).getroot()
@@ -524,7 +537,8 @@ def main():
     render_view(
         pp, legs, turnouts, segs, signals, stations,
         args.out, args.title, args.subtitle, xmin, xmax,
-        decor=load_decor(args.src, args.panel, root) if args.labels else None
+        decor=load_decor(args.src, args.panel, root) if args.labels else None,
+        fixed_scale=args.scale,
     )
 
 

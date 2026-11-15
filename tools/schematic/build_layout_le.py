@@ -16,9 +16,19 @@ Names:
   has them; switches 7, 23 and 35 are one single crossover each), and each schematic track takes the blocks of the
   live track between the same two switches, in order (a turnback's two tracks split them by track name). The
   normal leg is switch_legs.csv's closed leg. No staging object is created; the build stops if a name is missing.
+- Staging masts: every mast the live panel binds in a slot goes in the slot of the new panel that JMRI resolves to
+  the same facing and protected blocks, and the same kind of slot (anchor, end bumper or turnout leg), so Signal
+  Mast Logic discovery and the Dispatcher System read the same boundaries from either panel (the plugin's slots.py
+  holds JMRI's rules). Its icon goes on the right-hand side of the train it governs, hidden as the live icon is.
+  Staging's helix joins carry the next level's block ("joins": "other"), so the helix entrance anchor is a block
+  boundary: a live buffer-stop mast whose track the new panel runs on through the helix (Mast 38RA, 40RA) stands
+  there, facing the same block and protecting the helix run (the live buffer stop protects nothing). Any mast with
+  no matching slot stops the build.
 - Main and upper use placeholders: turnouts "Switch <number>" (internal IT:HART:C3: system names, so nothing
   commands field hardware), blocks "Track <plan edge id>" and "OS Switch <number>" (the track between the A and B
   halves of one number is that number's OS block). No sensors and no masts.
+
+Size: the panel opens at 100% zoom in a FIT pixel window (the plugin's `fit` scales the grid; label fonts keep their size).
 
 The plugin is the pinned submodule, or SCHEMATIC_PLUGIN (as publish_draft.py).
 """
@@ -51,6 +61,13 @@ TURNOUT_SYS = "IT:HART:C3:"          # internal turnouts: nothing reaches the fi
 BLOCK_SYS = "IB:C3:"
 LAYOUT_BLOCK_FIRST = 1001            # ILB1001 up; the live file stops well below
 COMMENT = "Placeholder from the schematic (C3 trial, build_layout_le.py)"
+# The window the panel opens in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside
+# it less Layout Editor's 18 x 60 px frame allowance). Width: the whole 1900, so the panel is at most 1882 (the
+# live panel's window is 1882 wide). Height: 1200 less the macOS menu bar (37 px on a notched display, 25 else)
+# and 23 px spare for the Dock's edge is 1140; the 60 px allowance covers the title bar (28 px) and the thin edit
+# toolbar, leaving the panel at most 1080.
+FIT = (1900, 1140)
+DWARF, HIGH = (12, 17), (12, 40)     # upright icon sizes of JMRI's AAR-1946 one-low and two-searchlight aspects
 
 
 class BuildError(RuntimeError):
@@ -68,6 +85,11 @@ def plugin():
         sys.path.insert(0, str(folder))
     return (importlib.import_module("schematic.sheet"), importlib.import_module("schematic.le"),
             importlib.import_module("schematic.core"))
+
+
+def slots_module():
+    plugin()
+    return importlib.import_module("schematic.slots")
 
 
 def band_key(title: str) -> str:
@@ -322,6 +344,42 @@ def staging_names(band, live_le: ET.Element, tidy) -> dict:
     return names
 
 
+def staging_masts(root: ET.Element, live_le: ET.Element) -> list[dict]:
+    """The plugin's mast list for staging: every mast in a slot of the live panel, with the facing block, protected
+    blocks and kind of slot JMRI resolves for it there, its icon size from its aspect type, and hidden as its live
+    icon is."""
+    slots = slots_module()
+    hidden = {}
+    for icon in live_le.findall("signalmasticon"):
+        hidden.setdefault(icon.get("signalmast"), icon.get("hidden") == "yes")
+    system = {}
+    for m in root.iter("signalmast"):
+        system[(m.findtext("userName") or "").strip()] = m.findtext("systemName") or ""
+    for m in root.iter("virtualsignalmast"):
+        system[(m.findtext("userName") or "").strip()] = m.findtext("systemName") or ""
+    out = []
+    for m in slots.Index(live_le).masts():
+        if not m["facing"]:
+            raise BuildError(f"live panel: mast {m['mast']} on {m['kind']} {m['ident']} {m['slot']} has no facing "
+                             "block")
+        if m["mast"] not in system:
+            raise BuildError(f"live panel: mast {m['mast']} is not in the signal mast table")
+        entry = dict(mast=m["mast"], facing=m["facing"], protects=m["protects"], kind=m["kind"],
+                     hidden=hidden.get(m["mast"], False), icon=list(DWARF if "low" in system[m["mast"]] else HIGH))
+        if m["kind"] == "end bumper":       # the new panel may run the track on through a helix join instead
+            entry["or_join"] = True
+        out.append(entry)
+    return sorted(out, key=lambda m: m["mast"])
+
+
+def check_unplaced(P) -> list[str]:
+    """Stop on any mast the plugin could not place; a note for each buffer-stop mast moved to a helix join."""
+    if P.unplaced:
+        raise BuildError("staging masts with no matching slot on the new panel: " +
+                         "; ".join(f"{mast}: {why}" for _t, mast, why in P.unplaced))
+    return [f"{mast}: {why}" for _t, mast, why in P.moved]
+
+
 # ---------------------------------------------------------------- main and upper placeholders
 
 def placeholder_names(bands, le_mod) -> tuple[dict, dict]:
@@ -433,8 +491,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None):
 
     names, lengths = placeholder_names(bands, le_mod)
     names[STAGING] = staging_names(bands[keys.index(STAGING)][1], template, core.tidy)
+    names[STAGING]["masts"] = staging_masts(root, template)
+    names[STAGING]["joins"] = "other"
     try:
-        P = le_mod.panel(bands, names, page=page)
+        P = le_mod.panel(bands, names, page=page, fit=FIT)
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
 
@@ -485,6 +545,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None):
     attrs = dict(template.attrib)
     attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")
     panel_el = le_mod.to_xml(P, PANEL_NAME, attrs, copy.deepcopy(template.find("layoutTrackDrawingOptions")))
+    P.mast_notes = check_unplaced(P)
     place(root, [panel_el], 1, tables.layout_editors(root)[-1])
     return doc.tobytes(), P, names, bands
 
@@ -510,8 +571,12 @@ def main(argv=None) -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     tables.loads(data, path=args.out).save(args.out)
     print(f"wrote {paths.rel(args.out)}: {summary}")
+    moved = {mast for _t, mast, _w in P.moved}
     for line in P.log:
-        print(f"  note: {line}")
+        if not any(f"mast {m}:" in line for m in moved):
+            print(f"  note: {line}")
+    for line in P.mast_notes:
+        print(f"  mast at a helix join: {line}")
     return 0
 
 

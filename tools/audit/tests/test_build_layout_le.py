@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import functools
 import importlib.util
 import io
 import re
@@ -94,11 +95,17 @@ def crossover_legs(le) -> dict:
     return out
 
 
+@functools.lru_cache(maxsize=None)
+def built():
+    """(trial bytes, Panel, names, bands): built once for every test module that needs it."""
+    with contextlib.redirect_stdout(io.StringIO()):
+        return B.build()
+
+
 class Built(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        with contextlib.redirect_stdout(io.StringIO()):
-            cls.data, cls.P, cls.names, cls.bands = B.build()
+        cls.data, cls.P, cls.names, cls.bands = built()
         cls.root = tables.loads(cls.data).root
         cls.live = tables.read(paths.TABLES_XML)
         cls.le = tables.layout_editor(cls.root, B.PANEL_NAME)
@@ -179,11 +186,59 @@ class Built(unittest.TestCase):
         self.assertTrue({"STAGING LEVEL", "MAIN LEVEL", "Main West", "39", "135A"} <= texts, texts)
         self.assertEqual(len(self.le.findall("layoutShape")), 8)     # four helix ends, four connector ends
 
-    def test_no_masts_or_sensors(self) -> None:
+    def test_no_sensors_and_masts_only_on_staging(self) -> None:
         for el in self.le.iter():
-            self.assertNotIn(el.tag, ("signalmasticon", "sensoricon", "signalAMast", "sensorA"))
-            for a in ("eastboundsignalmast", "westboundsignalmast", "eastboundsensor", "westboundsensor"):
+            self.assertNotIn(el.tag, ("sensoricon", "sensorA", "sensorB", "sensorC", "sensorD"))
+            for a in ("eastboundsensor", "westboundsensor"):
                 self.assertIsNone(el.get(a))
+        staging = B.band_key(self.bands[0][0])
+        self.assertEqual(staging, B.STAGING)
+        self.assertTrue(self.P.masts)
+        self.assertEqual({m["band"] for m in self.P.masts}, {0})       # main and upper have none
+
+    # ---- size: the owner's 1900 x 1200 display at 100% zoom
+    def test_panel_fits_the_display(self) -> None:
+        w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
+        window = (int(self.le.get("windowwidth")), int(self.le.get("windowheight")))
+        self.assertEqual(window, (w + 18, h + 60))                    # Layout Editor's frame allowance
+        self.assertLessEqual(window[0], B.FIT[0])
+        self.assertLessEqual(window[1], B.FIT[1])
+        self.assertLessEqual(window[0], 1900)                         # the owner's display
+        self.assertLessEqual(window[1], 1200 - 37)                    # below the macOS menu bar
+        self.assertGreater(window[0], 0.98 * B.FIT[0])                # as large as fits, not smaller
+        # everything drawn lies on the panel: track, turnout legs, labels (at the plugin's text width) and icons
+        xs, ys = [], []
+        for p in self.le.findall("positionablepoint"):
+            xs.append(float(p.get("x")))
+            ys.append(float(p.get("y")))
+        for t in self.le.findall("layoutturnout"):
+            for leg in "abcd":
+                xs.append(float(t.get(f"x{leg}")))
+                ys.append(float(t.get(f"y{leg}")))
+        _sheet, le_mod, _core = B.plugin()
+        for lb in self.le.findall("positionablelabel"):
+            x, y, size = float(lb.get("x")), float(lb.get("y")), int(lb.get("size"))
+            xs += [x, x + le_mod.text_width(lb.get("text"), size)]
+            ys += [y, y + size]
+        for m in self.P.masts:
+            x, y, bw, bh = m["box"]
+            xs += [x, x + bw]
+            ys += [y, y + bh]
+        self.assertGreaterEqual(min(xs), 0)
+        self.assertGreaterEqual(min(ys), 0)
+        self.assertLessEqual(max(xs), w)
+        self.assertLessEqual(max(ys), h)
+
+    def test_fitting_keeps_label_fonts(self) -> None:
+        _sheet, le_mod, _core = B.plugin()
+        sizes = {int(lb.get("size")) for lb in self.le.findall("positionablelabel")}
+        unscaled = {le_mod.LABEL_SIZE, le_mod.LABEL_SIZE - 1, le_mod.LABEL_SIZE - 2, le_mod.NUMBER_SIZE,
+                    le_mod.TITLE_SIZE}
+        self.assertLessEqual(sizes, unscaled)
+        self.assertIn(le_mod.TITLE_SIZE, sizes)
+        kx, ky = self.P.scale
+        self.assertLess(kx, 1.0)                  # the full-size grid is too wide for the display
+        self.assertGreaterEqual(ky, kx)           # rows keep their room: only as short as the height needs
 
     # ---- the live file
     def test_live_tables_unchanged_but_for_the_additions(self) -> None:
@@ -232,8 +287,10 @@ class Built(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "t.xml"
             path.write_bytes(self.data)
-            _pp, _legs, turnouts, segs, *_ = RENDER.load_geometry(path, B.PANEL_NAME, curves=True)
+            _pp, _legs, turnouts, segs, signals, _st = RENDER.load_geometry(path, B.PANEL_NAME, curves=True)
             self.assertEqual(len(turnouts), 71)
+            self.assertEqual(len(signals), len(self.P.masts))
+            self.assertEqual({s["hidden"] for s in signals}, {True, False})
             shown = [s for s in self.le.findall("tracksegment") if s.get("hidden") != "yes"]
             self.assertGreater(len(segs), len(shown))                # arcs drawn as pieces
             labels, shapes = RENDER.load_decor(path, B.PANEL_NAME)
