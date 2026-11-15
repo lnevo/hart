@@ -545,6 +545,18 @@ def station_maps():
     return out
 
 
+def ai_mmr():
+    """ai-mmr: the twelve-certificate dashboard on the NMRA Achievement Program page, on the page background."""
+    from PIL import Image
+
+    im = shot(f"{_site}ap/index.html", (1400, 1100))
+    grid = im.crop((464, 975, 2338, 1835))  # the three card rows (device px, x2)
+    w, h = grid.size[0] + 80, round((grid.size[0] + 80) * H / W)
+    out = Image.new("RGB", (w, h), im.getpixel((300, 1300)))  # the page background beside the grid
+    out.paste(grid, (40, (h - grid.size[1]) // 2))
+    return card(out)
+
+
 CARDS = {
     "library-operations-pro-article": opspro_article,
     "library-opspro-showcase-guide": opspro_walkthrough,
@@ -556,6 +568,7 @@ CARDS = {
     "ai-electronics": ai_electronics,
     "ai-construction": ai_construction,
     "ai-operations": ai_operations,
+    "ai-mmr": ai_mmr,
     "behind-wiring": wiring_node,
     "behind-jmri-additions": jmri_additions,
     "behind-panel-evolution": panel_evolution,
