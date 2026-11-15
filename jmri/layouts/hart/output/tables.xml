@@ -3103,7 +3103,7 @@
     <sensor inverted="false">
       <systemName>ISNX:114LB</systemName>
       <userName>NX Mast 38LB</userName>
-      <comment>Princess, Track K-2 westbound; lever 28 Left</comment>
+      <comment>Princess, Track K-2 dwarf westbound; lever 28 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:115LA</systemName>
@@ -3113,7 +3113,7 @@
     <sensor inverted="false">
       <systemName>ISNX:115LB</systemName>
       <userName>NX Mast 40LB</userName>
-      <comment>Princess, Track K-1 westbound; lever 30 Left</comment>
+      <comment>Princess, Track K-1 dwarf westbound; lever 30 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117LA</systemName>
@@ -9507,7 +9507,7 @@
         <associatedSection>Mast 36RB:Mast 40RB</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      </signalmastlogic>
+    </signalmastlogic>
     <signalmastlogic source="Mast 36RA">
       <sourceSignalMast>Mast 36RA</sourceSignalMast>
       <destinationMast destination="Mast 40RA">
@@ -9532,7 +9532,7 @@
         <associatedSection>Mast 36RA:Mast 40RB</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      </signalmastlogic>
+    </signalmastlogic>
     <signalmastlogic source="Mast 38LA">
       <sourceSignalMast>Mast 38LA</sourceSignalMast>
       <destinationMast destination="Mast 36L">

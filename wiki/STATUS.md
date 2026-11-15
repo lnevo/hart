@@ -1,6 +1,6 @@
 # Live status
 
-Updated 2026-11-14. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
+Updated 2026-11-15: the two hand-added Princess SML pairs are retired, so every SML destination comes from Discover. Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
 
 ## Current state
 

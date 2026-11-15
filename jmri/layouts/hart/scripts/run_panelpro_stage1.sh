@@ -19,7 +19,8 @@ REPO_TRAININFO="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
 pp_refuse_running "Quit local CATS/PanelPro before Stage 1"
 
 pp_begin "$SCRIPT"
-# Stage 1 drops, on a generated panel, the icon spots; keep a copy to restore them from.
+# Keep the tables as they were before Stage 1: reconcile_dispatcher_stations.py and both polish passes
+# take it as --reference on every panel (a generated panel gets its icon spots back from it).
 BEFORE_TABLES="$(mktemp)"
 PP_TMP_FILES+=("$BEFORE_TABLES")
 cp "$REPO_TABLES" "$BEFORE_TABLES"

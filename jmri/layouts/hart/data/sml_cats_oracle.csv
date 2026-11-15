@@ -25,9 +25,7 @@ Mast 40LA,Mast 34L,OS Switch 39 | Track East Lead,Switch 39=closed | Switch 35=t
 Mast 38LA,Mast 24L,OS Switch 37 | Track West Ext,Switch 37=closed | Switch 35=closed
 Mast 38LA,Mast 34L,OS Switch 37 | Track East Lead,Switch 37=closed | Switch 35=thrown
 Mast 36RA,Mast 2035,OS Switch 35b | OS Switch 39,Switch 35=closed | Switch 39=thrown
-Mast 36RA,Mast 40LA,OS Switch 35b | OS Switch 39,Switch 35=closed | Switch 39=closed
 Mast 36RB,Mast 2036,OS Switch 35a | OS Switch 37,Switch 35=closed | Switch 37=thrown
-Mast 36RB,Mast 38LA,OS Switch 35a | OS Switch 37,Switch 35=closed | Switch 37=closed
 Mast 2036,Mast 2035,,
 Mast 2035,Mast 2036,,
 Mast 4RA,Mast 24RA,Track W-1 | OS Switch 3 | Track Main West,Switch 3=closed

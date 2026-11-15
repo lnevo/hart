@@ -147,9 +147,12 @@ class OracleTest(unittest.TestCase):
                         val.load_oracle(p)
                     self.assertIn(f"o.csv line 3: turnout {cell!r}", str(cm.exception))
 
-    def test_repo_oracle_has_its_33_pairs(self):
+    def test_repo_oracle_has_its_31_pairs(self):
         pairs = load("validate_le_signalling").load_oracle()
-        self.assertEqual(33, len(pairs))
+        self.assertEqual(31, len(pairs))
+        # The wrong-direction Princess pairs were retired on 2026-11-15 (wiki/DISPATCHER_LAYOUT_HOOPS.md).
+        keys = {(src, dst) for src, dst, *_ in pairs}
+        self.assertFalse(keys & {("Mast 36RA", "Mast 40LA"), ("Mast 36RB", "Mast 38LA")})
         self.assertTrue(all(state in ("closed", "thrown") for *_, ts in pairs for _, state in ts))
 
 
