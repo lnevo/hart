@@ -146,7 +146,6 @@
   white-space: nowrap; /* a job's name never splits across lines */
 }
 
-/* Hub: how-we-work principles as a short grid. */
 /* Getting started habits: numbered stops along a line, read down each column.
    Deliberately not cards, so the section does not echo the Topics grid. */
 .ai-rules {
@@ -200,7 +199,7 @@
   background: var(--rule);
 }
 
-.ai-rules li:nth-child(4n)::after {
+.ai-rules li:last-child::after {
   display: none;
 }
 
@@ -213,18 +212,16 @@
   color: var(--brand);
 }
 
+@media (min-width: 701px) {
+  .ai-rules li:nth-child(4)::after {
+    display: none;
+  }
+}
+
 @media (max-width: 700px) {
   .ai-rules {
     grid-template-rows: none;
     grid-auto-flow: row;
-  }
-
-  .ai-rules li:nth-child(4n)::after {
-    display: block;
-  }
-
-  .ai-rules li:last-child::after {
-    display: none;
   }
 }
 
