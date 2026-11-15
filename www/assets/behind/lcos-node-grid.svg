@@ -163,8 +163,8 @@
 <text x="465.0" y="229.0" text-anchor="middle" fill="#ffffff">031</text>
 <rect x="480" y="210" width="30" height="30" fill="#cc4a1b" stroke="#d6d6d6" stroke-width="0.6"/>
 <rect x="510" y="210" width="30" height="30" fill="#cc4a1b" stroke="#d6d6d6" stroke-width="0.6"/>
-<rect x="0" y="240" width="30" height="30" fill="#cc4a1b" stroke="#d6d6d6" stroke-width="0.6"/>
-<text x="15.0" y="259.0" text-anchor="middle" fill="#ffffff">013</text>
+<rect x="0" y="240" width="30" height="30" fill="#fff200" stroke="#d6d6d6" stroke-width="0.6"/>
+<text x="15.0" y="259.0" text-anchor="middle" fill="#111111">013</text>
 <rect x="30" y="240" width="30" height="30" fill="#cc4a1b" stroke="#d6d6d6" stroke-width="0.6"/>
 <rect x="60" y="240" width="30" height="30" fill="#ffffff" stroke="#d6d6d6" stroke-width="0.6"/>
 <rect x="90" y="240" width="30" height="30" fill="#ffffff" stroke="#d6d6d6" stroke-width="0.6"/>

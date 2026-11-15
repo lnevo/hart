@@ -334,12 +334,18 @@
         );
       }
 
-      function lampRow(h) {
+      function lampRow(h, plain) {
         return ["R", "Y", "G"]
           .map(function (c) {
-            return '<span class="wr-lamp-pin">' + chip(c) + " " + portLink(h.lamps[c]) + "</span>";
+            var pin = plain ? esc(h.lamps[c] || "—") : portLink(h.lamps[c]);
+            return '<span class="wr-lamp-pin">' + chip(c) + " " + pin + "</span>";
           })
           .join("");
+      }
+      // Split pins were recorded against an older inventory when the versions differ (signals_split_v8 is on v85):
+      // show them as text, since the same pin may hold another device in the published inventory.
+      function splitPinsPlain() {
+        return !!(spl.source.inventory && inv.source && spl.source.inventory !== inv.source.version);
       }
 
       function renderSignals(list) {
@@ -423,7 +429,7 @@
                 '<header><h3>' + esc(s.signal) + "</h3>" +
                 (s.mast ? '<span class="muted">' + esc(s.mast) + "</span>" : "") +
                 (lamps
-                  ? '<span class="wr-head-pins">' + lampRow({ lamps: lamps }) + "</span>"
+                  ? '<span class="wr-head-pins">' + lampRow({ lamps: lamps }, splitPinsPlain()) + "</span>"
                   : '<span class="muted wr-planned">' + (s.planned ? "planned ID" : "no pins in inventory") + "</span>") +
                 "</header>";
               var routes = s.routes

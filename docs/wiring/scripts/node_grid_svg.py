@@ -4,7 +4,7 @@
     python3 docs/wiring/scripts/node_grid_svg.py [GRID.xlsx]
 
 Reads media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06b.xlsx (the owner's floor grid of the room:
-benchwork cells filled orange, staging nodes yellow, each node's radio address in its cell; local media mirror,
+benchwork cells filled orange, nodes in service yellow, each node's radio address in its cell; local media mirror,
 not in git) and writes www/assets/behind/lcos-node-grid.svg, used by www/behind/bridge.html. Cell text other than
 radio addresses (the owner's working notes) is left out, as is the "*" mark on 01. Rerun after the owner edits
 the grid.
