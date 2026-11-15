@@ -12,7 +12,7 @@
   "Stage 0 proof, as built"
  ],
  "date": "2026-11-14",
- "revision": 7,
+ "revision": 8,
  "sheet": "1 of 1",
  "num_px": 6.5,
  "helix_style": "coil",
@@ -93,6 +93,11 @@
    "T262",
    "T285",
    5
+  ],
+  [
+   "T237",
+   "T300",
+   9
   ]
  ],
  "level_leg": {
@@ -104,5 +109,6 @@
  "capacity": {
   "car_in": 7.4
  },
- "mileposts": true
+ "mileposts": true,
+ "_min_cells_upper": "Owner, 2026-11-14: Switch 221A to 223 at least 9 cells, so the upper level stretches to about the width of the other levels on the sheet and the generated CATS and Layout Editor panels (11 or more put the H2 helix end under 223's slope)."
 }
