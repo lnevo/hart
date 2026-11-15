@@ -13,11 +13,10 @@ Inputs (jmri/layouts/hart/data/schematic/):
   switches on the main route, grouped where they stand close together.
 - local_switches_main_upper.csv: every other switch (yards and industry spurs), with its area. These get a
   turnout and feedback but no control point, no signals and no detection.
-- lcos_nodes_main_upper.csv: the LCOS radio addresses each level and area may use, in order. The upper level's
-  come from LCOS_Layout_Inventory_v85.xlsx; the others follow the radio tree on the owner's node map
-  (media/hart-research/wiring-drafts/lcos-node-grid-2026-11-15.png): address 0XN is device X off node 0N and sits
-  near it, so each area takes its parent's children (North 02, West 03, Peninsula 04, Helix 01). 015 is the LCOS
-  bridge and 041 the engine terminal.
+- lcos_nodes_main_upper.csv: the LCOS radio addresses each level and area may use, in order: the upper level's
+  from LCOS_Layout_Inventory_v85.xlsx, the rest from the owner's node grid
+  (media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06b.xlsx, local), where an address 0XN is device X off
+  node 0N.
 - the solved schematic bands (the inputs publish_draft.py draws), for tracks, their ends and which way is east.
 
 Outputs:

@@ -1,17 +1,15 @@
 level,area,node,source
-2,North,42,node map 2026-11-15: child of 02 (East End)
-2,North,52,node map 2026-11-15: child of 02 (East End)
-2,West,33,node map 2026-11-15: child of 03 (South Yard)
-2,West,43,node map 2026-11-15: child of 03 (South Yard)
-2,West,53,node map 2026-11-15: child of 03 (South Yard)
-2,Peninsula,34,node map 2026-11-15: child of 04 (Brick / Plane)
-2,Peninsula,44,node map 2026-11-15: child of 04 (Brick / Plane)
+2,North,42,node grid lcos-node-grid-2025-10-06b.xlsx (top band)
+2,North,52,node grid lcos-node-grid-2025-10-06b.xlsx (top band)
+2,West,33,node grid lcos-node-grid-2025-10-06b.xlsx (left band)
+2,West,43,node grid lcos-node-grid-2025-10-06b.xlsx (top band; child of 03)
+2,Peninsula,34,node grid lcos-node-grid-2025-10-06b.xlsx (peninsula)
+2,Peninsula,44,node grid lcos-node-grid-2025-10-06b.xlsx (peninsula)
 3,North,22,LCOS inventory v85: C22 North - Upper
 3,North,32,LCOS inventory v85: C32 North - Upper
 3,Helix,21,LCOS inventory v85: C21 Helix - Upper
-3,Helix,31,node map 2026-11-15: child of 01 (Princess)
-3,Helix,51,node map 2026-11-15: child of 01 (Princess)
+3,Helix,31,node grid lcos-node-grid-2025-10-06b.xlsx (helix)
 3,West,23,LCOS inventory v85: C23 West - Upper
 3,West,14,LCOS inventory v85: C14 West - Upper
 3,Peninsula,24,LCOS inventory v85: C24 Peninsula - Upper
-3,Peninsula,54,node map 2026-11-15: child of 04 (Brick / Plane)
+3,Peninsula,54,node grid lcos-node-grid-2025-10-06b.xlsx (left band; child of 04)
