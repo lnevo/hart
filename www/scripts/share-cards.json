@@ -39,7 +39,19 @@
     "ai/mmr.html": {
       "image": "assets/share/ai-mmr.jpg",
       "alt": "The NMRA Achievement Program dashboard: twelve certificate cards, each with its group, a progress bar and a status mark.",
-      "from": "headless screenshot of www/ap/index.html (make_share_cards.py ai-mmr)"
+      "from": "headless screenshot of www/ap/index.html (make_share_cards.py ai-mmr)",
+      "shared": true
+    },
+    "ap/index.html": {
+      "image": "assets/share/ai-mmr.jpg",
+      "alt": "The NMRA Achievement Program dashboard: twelve certificate cards, each with its group, a progress bar and a status mark.",
+      "from": "same picture as ai/mmr.html (make_share_cards.py ai-mmr)",
+      "shared": true
+    },
+    "ap/opsig.html": {
+      "image": "assets/share/ap-opsig.jpg",
+      "alt": "The OPSIG Achievement Program dashboard: eleven Achievement cards toward Ninja, each with a progress bar and a status mark.",
+      "from": "headless screenshot of www/ap/opsig.html (make_share_cards.py ap-opsig)"
     },
     "ai/operations.html": {
       "image": "assets/share/ai-operations.jpg",
