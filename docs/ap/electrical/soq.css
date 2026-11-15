@@ -99,3 +99,6 @@ figure.plate figcaption { font-size: 9.5pt; max-width: 9.4in; margin: 0.15in aut
 .glossary dd { margin: 0.1em 0 0 1.2em; }
 .record-list { font-size: 9.5pt; }
 #fig-p0 img { max-height: 7.3in; object-fit: contain; }   /* the to-scale plan is taller than it is wide */
+
+/* Console transcript (bridge output) */
+figure.console pre { background: #12181e; color: #e6edf3; font-family: Menlo, Consolas, monospace; font-size: 7.6pt; line-height: 1.45; padding: 0.12in 0.16in; border-radius: 3px; white-space: pre-wrap; margin: 0; }
