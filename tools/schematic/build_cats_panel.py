@@ -61,9 +61,7 @@ BOUND = "Staging"                                    # the band bound to JMRI (i
 CELLS_PER_UNIT = 1
 FIT = (63, 36)                                       # columns x rows the panel must fit in
 WINDOW = (1900, 1150)   # the dispatcher's 1900x1200 screen less a taskbar: CATS opens the panel at this size, uncropped
-# The owner's look for single masts where the drawn spot reads badly (2026-11-15): Mast 32R at Switch 31 points up,
-# in the lowest spot of its cell (every spot there touches a track line; this one reads best).
-MAST_LOOK = {"32R": {"orient": "TOP", "location": "LOWLEFT"}}
+MAX_COLS = FIT[0] - 1   # one free column on the right as on the left: the plugin drops a level-only column to keep it
 
 
 def plugin_modules(plugin):
@@ -305,10 +303,7 @@ def mast_bindings(opts, F):
         name = opts.get("mast_prefix", "") + sg["mast"]
         if name not in F.masts or name not in F.templates:
             raise SystemExit(f"{name}: not a JMRI mast with a template in signal_head_plan.csv")
-        out[sg["mast"]] = {"name": name, "template": F.templates[name], **MAST_LOOK.get(sg["mast"], {})}
-    unknown = sorted(set(MAST_LOOK) - set(out))
-    if unknown:
-        raise SystemExit(f"MAST_LOOK names masts that are not drawn: {', '.join(unknown)}")
+        out[sg["mast"]] = {"name": name, "template": F.templates[name]}
     return out
 
 
@@ -321,7 +316,7 @@ def bindings(bands, cats, F):
     os_of = os_blocks(band, F)
     out_sw = switch_bindings(band, F, os_of)
     # the panel's block names once the switches name their OS blocks
-    P = cats.panel(bands, scale=CELLS_PER_UNIT,
+    P = cats.panel(bands, scale=CELLS_PER_UNIT, max_cols=MAX_COLS,
                    bindings={"switches": {k: {"block": v["block"]} for k, v in out_sw.items()}})
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:")}
     return {"_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit.",
@@ -336,7 +331,7 @@ def generate(plugin, out, bindings_out):
     bindings_out.write_text(text, encoding="utf-8")
     try:
         header = cats.header_from(str(LIVE))
-        P = cats.panel(bands, scale=CELLS_PER_UNIT, bindings=json.loads(text))
+        P = cats.panel(bands, scale=CELLS_PER_UNIT, bindings=json.loads(text), max_cols=MAX_COLS)
         cats.check_fit(P, *FIT)
         cats.write(P, str(out), "CTC", header, WINDOW)
     except cats.SchematicError as e:
