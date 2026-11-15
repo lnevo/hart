@@ -76,6 +76,7 @@ def main():
     rows = list(csv.DictReader(CSV.open(encoding="utf-8")))
     text = render(rows)
     if "--check" not in sys.argv:
+        paths.exit_if_overridden(Path(__file__).name)
         DOC.write_text(text, encoding="utf-8")
         print(f"wrote {DOC.relative_to(ROOT)} ({len(rows)} blocks)")
         return 0

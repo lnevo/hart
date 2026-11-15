@@ -117,6 +117,11 @@ class Slots(unittest.TestCase):
         self.assertEqual((counts["aligned"], counts["moved"]), (0, 0))
         self.assertIn('<sensoricon sensor="NX Mast 2L" x="650" y="90"', out)
         self.assertIn('<signalmasticon signalmast="Mast 2L" x="700" y="100"', out)
+        # the marker text anywhere else (a comment, another panel) does not make the panel generated
+        quoted = self.PANEL.replace('<signalmasticon signalmast="Mast 2L"',
+                                    f"<!-- {tables.GENERATED_PANEL_MARKER} -->\n    "
+                                    '<signalmasticon signalmast="Mast 2L"', 1)
+        self.assertEqual(apply_nx.apply_text(quoted, mode="sml")[1]["generated"], 0)
         # NX Mast 6LA has a pixel spot for the hand-drawn panel; here it goes by its own mast icon instead
         self.assertIn(f'sensor="NX Mast 6LA" x="928" y="102"', out)
 

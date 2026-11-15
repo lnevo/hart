@@ -683,8 +683,6 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
     le = find_layout_editor(root)
     generated = tables.generated_panel(le)
     ref = reference_panel(reference)
-    targets, notes = lamp_targets(root, le, ref)
-    _print_notes(path, notes)
     changes = 0
     errors: list[str] = []
 
@@ -791,6 +789,9 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
     changes += bci_changes
     errors.extend(bci_errors)
 
+    # After the turnout and anchor fixes above, as the lamp spots are read off that geometry.
+    targets, notes = lamp_targets(root, le, ref)
+    _print_notes(path, notes)
     os_added, os_errors = ensure_os_occupancy_icons(le, check=check, targets=targets)
     changes += os_added
     errors.extend(os_errors)
@@ -918,8 +919,7 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False, reference: Path | 
     doc = tables.load(path)
     le = find_layout_editor(doc.root)
     generated = tables.generated_panel(le)
-    targets, notes = lamp_targets(doc.root, le, reference_panel(reference))
-    _print_notes(path, notes)
+    ref = reference_panel(reference)
     changes = 0
     errors: list[str] = []
 
@@ -947,6 +947,8 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False, reference: Path | 
                 changes += 1
 
     # Placing also removes extra copies, so no separate dedupe pass is needed.
+    targets, notes = lamp_targets(doc.root, le, ref)
+    _print_notes(path, notes)
     lamp_n, lamp_errors = place_stage1_lamps(le, check=check, targets=targets)
     changes += lamp_n
     errors.extend(f"{path.name}: {e}" for e in lamp_errors)
@@ -1010,6 +1012,8 @@ def main() -> int:
         help="Pi mast nudges, hide virtuals, drop shared occupancy duplicates only.",
     )
     args = ap.parse_args()
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
 
     panels = [args.panel.resolve()]
 

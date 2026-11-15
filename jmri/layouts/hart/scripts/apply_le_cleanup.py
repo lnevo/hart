@@ -322,6 +322,7 @@ def main() -> int:
     ap.add_argument("--panel", type=Path, default=DEFAULT)
     ap.add_argument("--sync-output", action="store_true", help="No effect since ADR-008; kept for existing callers")
     args = ap.parse_args()
+    paths.exit_if_overridden(Path(__file__).name)
     refused = tables.hand_drawn_only(args.panel, Path(__file__).name)
     if refused:
         sys.exit(refused)

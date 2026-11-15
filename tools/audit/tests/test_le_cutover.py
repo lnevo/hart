@@ -346,6 +346,12 @@ class BuilderErrors(unittest.TestCase):
             with self.assertRaisesRegex(B.BuildError, "already a generated one"):
                 B.build(path, levels="staging", as_live=True)
 
+    def test_the_checkout_tables_are_refused_whatever_hart_tables_says(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B.paths, "TABLES_XML", Path(tmp) / "c.xml"):
+            self.assertTrue(B.live_target(paths.REPO_TABLES_XML))
+            self.assertTrue(B.live_target(Path(tmp) / "c.xml"))
+            self.assertFalse(B.live_target(Path(tmp) / "other.xml"))
+
     def test_generated_audit_needs_a_candidate(self) -> None:
         with contextlib.redirect_stdout(io.StringIO()) as out:
             self.assertEqual(AUDIT.main(["--generated"]), 2)

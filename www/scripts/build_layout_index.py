@@ -353,6 +353,9 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"missing panel: {PANEL}")
     if not NAMES.is_file():
         raise SystemExit(f"missing names: {NAMES}")
+    if not args.check:
+        # never render the public site's schematic from a HART_TABLES candidate the owner has not approved
+        paths.exit_if_overridden(Path(__file__).name)
     if args.check:
         want = json.dumps(build(), indent=2) + "\n"
         have = OUT_JSON.read_text(encoding="utf-8") if OUT_JSON.is_file() else ""

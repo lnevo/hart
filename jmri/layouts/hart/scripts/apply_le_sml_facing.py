@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import re
 import shutil
 import sys
@@ -217,7 +218,16 @@ def main() -> None:
     ap.add_argument("--no-pref", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
+    if not args.dry_run:
+        paths.exit_if_overridden(Path(__file__).name)
     syncing = not (args.dry_run or args.no_sync or args.no_pref) and PREF_TABLES.is_file()
+    # A generated panel reaches the profile only as the checkout's own tables.xml: a cut-over candidate or sandbox
+    # copy named by --panel is never copied there.
+    if (syncing and Path(os.path.realpath(args.panel)) != Path(os.path.realpath(paths.REPO_TABLES_XML))
+            and tables.hand_drawn_only(args.panel, Path(__file__).name)):
+        print(f"{args.panel}: a generated panel that is not the checkout's tables.xml, so it is not copied to "
+              f"{PREF_TABLES}; rerun with --no-pref (or --no-sync)", file=sys.stderr)
+        sys.exit(1)
     # The running JMRI holds the profile copy and would overwrite it on Store; refuse
     # before touching anything, so the repo panel and the profile never part ways.
     if syncing and tables.jmri_running():

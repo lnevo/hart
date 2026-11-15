@@ -4,6 +4,14 @@
 # own (the Layout Editor cut-over candidate, a sandbox copy; hartlib.paths). The unit tests
 # always run against the checkout's own file.
 set -uo pipefail
+# A relative HART_TABLES is the caller's (read before the cd below), and ~ is expanded as hartlib does.
+if [[ -n "${HART_TABLES:-}" ]]; then
+  case "$HART_TABLES" in "~"/*) HART_TABLES="$HOME/${HART_TABLES#"~/"}" ;; esac
+  [[ -f "$HART_TABLES" ]] || { echo "HART_TABLES=$HART_TABLES: no such file"; exit 1; }
+  HART_TABLES="$(cd "$(dirname "$HART_TABLES")" && pwd)/$(basename "$HART_TABLES")"
+  export HART_TABLES
+  echo "Table checks read $HART_TABLES (HART_TABLES), not the checkout's tables file"
+fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
@@ -19,12 +27,6 @@ unit() {
   shift
   env -u HART_TABLES "$@" || fail=1
 }
-if [[ -n "${HART_TABLES:-}" ]]; then
-  [[ -f "$HART_TABLES" ]] || { echo "HART_TABLES=$HART_TABLES: no such file"; exit 1; }
-  HART_TABLES="$(cd "$(dirname "$HART_TABLES")" && pwd)/$(basename "$HART_TABLES")"
-  export HART_TABLES
-  echo "Table checks read $HART_TABLES (HART_TABLES), not the checkout's tables file"
-fi
 run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
 run layout-index python3 www/scripts/build_layout_index.py --check

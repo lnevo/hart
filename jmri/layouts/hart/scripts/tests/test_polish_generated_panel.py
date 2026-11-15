@@ -191,6 +191,17 @@ class GeneratedPanelTest(unittest.TestCase):
         (_n, errors), _ = run(polish.apply_visual_standard, write(root, self.dir, "two.xml"), check=True)
         self.assertTrue(any("none has the caption style" in e for e in errors))
 
+    def test_hand_drawn_lamps_are_placed_after_the_turnout_fix(self) -> None:
+        # TURNOUT_GEOMETRY puts TOR36 back first; its OS lamp then centres on the fixed circle, as before Phase 3
+        root = copy.deepcopy(self.live)
+        le = tables.layout_editor(root)
+        tor36 = next(t for t in le.findall("layoutturnout") if t.get("ident") == "TOR36")
+        tor36.set("xcen", "1500.0")
+        path = write(root, self.dir)
+        run(polish.apply_visual_standard, path, check=False)
+        run(polish.apply_overlap_cleanup, path, check=False)
+        self.assertEqual(spots(self.live), spots(tables.read(path)))
+
     def test_main_reports_a_bad_reference_as_a_failure(self) -> None:
         path = write(self.gen, self.dir)
         argv = sys.argv

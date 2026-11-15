@@ -300,6 +300,7 @@ def main() -> int:
         help="Do not also restyle jmri/layouts/hart/output/tables.xml",
     )
     args = ap.parse_args()
+    paths.exit_if_overridden(Path(__file__).name)
     refused = tables.hand_drawn_only(args.panel, Path(__file__).name)
     if refused:
         sys.exit(refused)

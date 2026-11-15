@@ -480,18 +480,23 @@ def generated_positions(
     editor: ET.Element, reference: ET.Element | None
 ) -> dict[str, tuple[tuple[int, int], tuple[int, int], tuple[int, int]]]:
     """{station: (progress, MoveTo, occupancy)} on a generated panel, from the panels themselves (module docstring)."""
-    icons = cluster_icons(reference if reference is not None else editor)
+    sources = [cluster_icons(reference)] if reference is not None else []
+    sources.append(cluster_icons(editor))
 
     def spot(name: str) -> tuple[int, int] | None:
-        rows = icons.get(name, [])
-        return xy(rows[0]) if len(rows) == 1 else None
+        """The one copy on the reference panel, else the one copy on the panel itself."""
+        for icons in sources:
+            rows = icons.get(name, [])
+            if len(rows) == 1:
+                return xy(rows[0])
+        return None
 
     out = {}
     for station in STATIONS:
         move_to_name, progress_name = sensor_names(station)
         move_to = spot(move_to_name)
         if move_to is None:
-            where = "the --reference panel" if reference is not None else "the panel"
+            where = "the --reference panel or the panel" if reference is not None else "the panel"
             raise ValueError(f"generated panel: {station}: no single {move_to_name} icon on {where}, so its "
                              "cluster has no position (run with --reference <tables before Stage 1>)")
         derived = cluster_positions(station, move_to)
@@ -767,6 +772,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
     try:
         panel = safe_panel_path(args.panel)
         tree = parse_xml(panel)

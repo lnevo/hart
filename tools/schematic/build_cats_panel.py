@@ -362,6 +362,8 @@ def generate(plugin, out, bindings_out):
 
 def main(argv):
     check = "--check" in argv
+    if not check:
+        pd.paths.exit_if_overridden(Path(__file__).name)
     try:
         plugin = pd.plugin()
     except SystemExit as e:

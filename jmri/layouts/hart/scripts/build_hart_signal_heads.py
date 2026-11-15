@@ -491,6 +491,8 @@ def write_publisher(rows: list[dict]) -> None:
 
 def main() -> int:
     wiring_only = "--wiring-only" in sys.argv
+    if not wiring_only:
+        paths.exit_if_overridden(Path(__file__).name)
     rows = build_rows()
     write_csvs(rows)
     if wiring_only:

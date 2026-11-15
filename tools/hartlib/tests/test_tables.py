@@ -356,5 +356,40 @@ class GeneratedPanelMarkerTest(unittest.TestCase):
             self.assertIn("no main Layout Editor panel", tables.hand_drawn_only(other, "x.py"))
 
 
+class OverrideSaveTest(unittest.TestCase):
+    """While HART_TABLES is set, Tables.save refuses the checkout's file, the override and the profile."""
+
+    def test_saves_refused_under_hart_tables(self):
+        import subprocess
+        src = str(Path(paths.__file__).resolve().parents[1])
+        code = (
+            "import sys; sys.path.insert(0, sys.argv[1]); from pathlib import Path\n"
+            "from hartlib import paths, tables\n"
+            "doc = tables.load(paths.TABLES_XML)\n"
+            "for target in (paths.TABLES_XML, paths.REPO_TABLES_XML, paths.JMRI_USER_FILES / 'tables.xml'):\n"
+            "    try:\n"
+            "        doc.save(target); print('WROTE', target)\n"
+            "    except RuntimeError as exc:\n"
+            "        print('REFUSED', 'HART_TABLES is set' in str(exc))\n"
+            "print('OTHER', doc.save(Path(sys.argv[2])))\n"
+            "try:\n    paths.exit_if_overridden('x.py')\nexcept SystemExit as exc:\n    print('EXIT', exc.code[:5])\n")
+        with tempfile.TemporaryDirectory() as d:
+            home = Path(d) / "home"
+            (home / "JMRI_UserFiles").mkdir(parents=True)
+            copy = Path(d) / "tables.xml"
+            copy.write_bytes(b"<layout-config><LayoutEditor name='HART Railroad'/></layout-config>")
+            env = {**os.environ, "HART_TABLES": str(copy), "HOME": str(home), "HART_GUARD_JMRI_RUNNING": "0"}
+            done = subprocess.run([sys.executable, "-c", code, src, str(Path(d) / "other.xml")], env=env,
+                                  capture_output=True, text=True, timeout=60)
+            self.assertEqual(0, done.returncode, done.stderr)
+            self.assertEqual(["REFUSED True"] * 3 + ["OTHER True", "EXIT x.py:"], done.stdout.splitlines())
+            self.assertEqual([], list((home / "JMRI_UserFiles").iterdir()))
+
+    def test_no_message_without_hart_tables(self):
+        if not paths.TABLES_OVERRIDDEN:
+            self.assertIsNone(paths.check_only_message("x.py"))
+            paths.exit_if_overridden("x.py")
+
+
 if __name__ == "__main__":
     unittest.main()

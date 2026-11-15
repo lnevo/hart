@@ -90,11 +90,15 @@ class Tables:
         """Write the file when its bytes differ from what is on disk. Returns True if written.
 
         Refuses to write a file named tables.xml outside the temp directory while PanelPro,
-        DecoderPro, DispatcherPro or CATS is open (AGENTS.md), unless told otherwise.
+        DecoderPro, DispatcherPro or CATS is open (AGENTS.md), unless told otherwise. While
+        HART_TABLES is set (checks only, hartlib.paths) it refuses every tables file: the
+        checkout's, the override itself and anything in the JMRI profile.
         """
         target = Path(path) if path is not None else self.path
         if target is None:
             raise ValueError("no path to save to")
+        if paths.TABLES_OVERRIDDEN and _override_protected(target):
+            raise RuntimeError(paths.check_only_message(f"saving {target}"))
         data = self.tobytes()
         try:
             if target.read_bytes() == data:
@@ -164,6 +168,14 @@ def jmri_running() -> bool:
     except (OSError, subprocess.SubprocessError, AttributeError):
         return False
     return done.returncode == 0
+
+
+def _override_protected(target: Path) -> bool:
+    """While HART_TABLES is set: the checkout's tables.xml, the override file, or anything in the JMRI profile."""
+    real = Path(os.path.realpath(target))
+    profile = Path(os.path.realpath(paths.JMRI_USER_FILES))
+    return (real in (Path(os.path.realpath(paths.REPO_TABLES_XML)), Path(os.path.realpath(paths.TABLES_XML)))
+            or real == profile or profile in real.parents)
 
 
 def _guarded(target: Path) -> bool:
