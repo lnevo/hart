@@ -19,7 +19,6 @@ The form's personal fields stay blank: the member fills them on a private copy.
 from __future__ import annotations
 
 import argparse
-import csv
 import datetime as dt
 import html
 import re
@@ -41,7 +40,7 @@ TRACK_PLAN = ROOT / "www/build/track-plan.html"
 DECKS = {"layout": ROOT / "docs/wiring/Layout Documentation.pptx", "nodes": ROOT / "docs/wiring/Wiring_Schematic.pptx"}
 CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 FORM_PAGES = 2
-FOOTER = "HART Railroad · Model Railroad Engineer – Electrical · SOQ supporting documentation"
+FOOTER = "HART Railroad · Model Railroad Engineer - Electrical · SOQ supporting documentation"   # base-14 Helvetica has no en dash
 
 # Wiring record pages, in order: (deck, 1-based page, expected title start, record name).
 RECORDS = [
@@ -71,8 +70,11 @@ PHOTO_SOURCES = {
 }
 
 # Ids whose numbers the text and drawings quote by hand ("Section 3.3" and so on).
-EXPECTED = {"req1": "3", "req1-loop": "3.3", "req1-siding": "3.4", "req1-engine": "3.5", "req1-yard": "3.6",
-            "req1-gaps": "3.2", "req3-a": "5.2", "req3-v": "5.4", "demo": "8", "conclusion": "9", "req45": "6"}
+# Ids whose numbers soq.html, the plan legends and PHOTO_PUNCH_LIST.md quote by hand.
+EXPECTED = {"matrix": "2", "req1": "3", "req1-two": "3.1", "req1-gaps": "3.2", "req1-loop": "3.3", "req1-siding": "3.4",
+            "req1-engine": "3.5", "req1-yard": "3.6", "req2": "4", "req2-turnout": "4.1", "req2-crossover": "4.2",
+            "req3": "5", "req3-a": "5.2", "req3-b": "5.3", "req3-v": "5.4", "req45": "6", "demo": "8", "conclusion": "9",
+            "app-a": "A", "app-b": "B", "app-c": "C", "app-d": "D", "app-e": "E", "app-f": "F", "app-h": "H"}
 
 YARD = {"S-R": "Y1", "S-1": "Y2", "S-2": "Y3", "S-3": "Y4", "S-4": "Y5"}
 
@@ -103,21 +105,13 @@ def generic(name: str) -> str:
 
 
 def appendix_b() -> str:
-    rows = []
-    with BLOCKS.open() as f:
-        for r in csv.DictReader(f):
-            m = re.fullmatch(r"Block (\d+)-(\d+)", r["occupancy_sensor"])
-            if not m:
-                continue
-            name = r["user_name"].replace("Track ", "")
-            length = float(r["inches"])
-            est = "≈ " if r["flag"] == "estimate" else ""
-            rows.append((int(m.group(1)), int(m.group(2)), generic(name), name, f"C{m.group(1)} · {m.group(2)}", f"{est}{length:.0f}"))
+    import make_drawings
+    rows = make_drawings.detected_sections()
     if len(rows) != 43:
         die(f"{BLOCKS} has {len(rows)} detected sections, the text says 43; update soq.html")
-    rows.sort()
-    body = "".join(f"<tr><td>{i}</td><td>{html.escape(g)}</td><td>{html.escape(n)}</td><td>{c}</td><td>{ln}</td></tr>"
-                   for i, (_, _, g, n, c, ln) in enumerate(rows, 1))
+    body = "".join(f"<tr><td>{i}</td><td>{html.escape(generic(s['name']))}</td><td>{html.escape(s['name'])}</td>"
+                   f"<td>C{s['node']} · {s['ch']}</td><td>{'≈ ' if s['estimate'] else ''}{s['inches']:.0f}</td></tr>"
+                   for i, s in enumerate(rows, 1))
     return ('<table id="tab-sections"><caption>Detected sections on the staging level and helix</caption>'
             '<thead><tr><th scope="col">No.</th><th scope="col">Section (this document)</th><th scope="col">Layout name</th>'
             f'<th scope="col">Node · ch</th><th scope="col">Length, in</th></tr></thead><tbody>{body}</tbody></table>')
@@ -192,9 +186,11 @@ def number(doc: str) -> tuple[str, dict[str, str], list[tuple[int, str, str, str
             key = str(ch)
         elif current == "appendix":
             app += 1
+            sec = sub = 0
             key = chr(64 + app)
         else:
-            key = "D"
+            sec = sub = 0
+            key = "Plate"         # never shown: the plates hold only drawings labelled D1 to D6
 
         def head(hm: re.Match) -> str:
             nonlocal sec, sub
@@ -275,11 +271,11 @@ def lists(doc: str, toc, figs, tabs, pages: dict[str, int]) -> str:
                      f'<span class="fill"></span><span class="pg">{pg(hid)}</span></li>')
     doc = doc.replace('<nav id="toc" aria-label="Table of contents"></nav>',
                       f'<nav id="toc" aria-label="Table of contents"><ol>{"".join(lines)}</ol></nav>')
-    fl = "".join(f'<li><a href="#{i}"><span class="lbl">{lab}</span>{html.escape(t)}</a><span class="fill"></span>'
+    fl = "".join(f'<li><a href="#{i}"><span class="lbl">{lab}</span>{html.escape(html.unescape(t))}</a><span class="fill"></span>'
                  f'<span class="pg">{pg(i)}</span></li>' for i, lab, t, _ in figs)
     doc = doc.replace('<nav id="figlist" aria-label="List of figures"></nav>',
                       f'<nav id="figlist" aria-label="List of figures"><ol>{fl}</ol></nav>')
-    tl = "".join(f'<li><a href="#{i}"><span class="lbl">{lab}</span>{html.escape(t)}</a><span class="fill"></span>'
+    tl = "".join(f'<li><a href="#{i}"><span class="lbl">{lab}</span>{html.escape(html.unescape(t))}</a><span class="fill"></span>'
                  f'<span class="pg">{pg(i)}</span></li>' for i, lab, t, _ in tabs)
     return doc.replace('<nav id="tablist" aria-label="List of tables"></nav>',
                        f'<nav id="tablist" aria-label="List of tables"><ol>{tl}</ol></nav>')
@@ -398,6 +394,8 @@ def ticked_form(tmp: Path) -> Path:
     missing = (want_on | set(text)) - seen
     if missing:
         die(f"form fields not found: {sorted(missing)}")
+    if d.page_count != FORM_PAGES:
+        die(f"{FORM.name} has {d.page_count} pages; FORM_PAGES (and 'Pages 1 and 2' in soq.html) assume {FORM_PAGES}")
     dst = tmp / "form.pdf"
     d.save(dst)
     return dst
@@ -475,8 +473,9 @@ def main() -> None:
         shutil.copy(HERE / name, BUILD / name)
     for sub in ("drawings", "photos"):
         link = BUILD / sub
-        if not link.exists():
-            link.symlink_to(HERE / sub)
+        if link.is_symlink() or link.exists():   # a link left by a swept worktree dangles
+            link.unlink()
+        link.symlink_to(HERE / sub)
 
     plates_html = BUILD / "plates.html"
     plate_keys = {"plates"} | {i for i, lab, _, _ in figs if lab.startswith("Drawing ")}

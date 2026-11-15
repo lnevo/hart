@@ -28,6 +28,14 @@ class GenericLabels(unittest.TestCase):
         self.assertEqual(build_soq.generic("EH-3"), "Engine storage E3")
         self.assertEqual(build_soq.generic("OS Switch 23b"), "Turnout 23 (crossover half b)")
 
+    def test_stub_named_as_subtracted_is_added_back(self):
+        lengths = {s["name"]: s["inches"] for s in make_drawings.detected_sections()}
+        self.assertAlmostEqual(lengths["K-1"], 108.0 + 15.748, places=2)    # "detector length minus Track K-1 West"
+        self.assertAlmostEqual(lengths["K-2"], 113.6, places=2)             # no stub named
+
+    def test_footer_has_no_glyph_base14_helvetica_lacks(self):
+        self.assertNotIn("–", build_soq.FOOTER)
+
     def test_unknown_section_stops_the_build(self):
         with self.assertRaises(SystemExit):
             build_soq.generic("Track Nowhere")
@@ -63,6 +71,16 @@ class PlanClips(unittest.TestCase):
             self.assertRegex(t, r"^\d{1,2}[ab]?$")
         for name in ("MAIN WEST", "PRINCESS", "SOUTH YARD", "EH-1"):
             self.assertNotIn(name, group)
+
+    def test_highlights_sit_on_the_schematic_track(self):
+        make_drawings.check_overlays()
+        saved = make_drawings.RS_GAPS
+        try:
+            make_drawings.RS_GAPS = saved + [(5, 5)]
+            with self.assertRaises(SystemExit):
+                make_drawings.check_overlays()
+        finally:
+            make_drawings.RS_GAPS = saved
 
     def test_figures_draw(self):
         for name, fn in make_drawings.FIGURES:

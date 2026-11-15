@@ -102,6 +102,38 @@ LEAD = ["M460,270 L572,270 L684,158 L712,158"]                         # yard le
 ENGINE = ["M572,158 L656,158", "M544,186 L628,186 L656,158", "M516,214 L600,214 L628,186"]
 
 
+def track_segments() -> list[tuple[float, float, float, float]]:
+    """Straight segments of the staging track in the schematic (paths of track stroke width)."""
+    src = SCHEMATIC.read_text()
+    segs = []
+    for d, w in re.findall(r'<path d="([^"]+)" stroke-width="(1\.4|3\.2)"', src):
+        pts = [tuple(map(float, p)) for p in re.findall(r"([\d.]+),([\d.]+)", d)]
+        segs += [(*a, *b) for a, b in zip(pts, pts[1:])]
+    return segs
+
+
+def check_overlays() -> None:
+    """Every vertex of the hand-placed highlights must lie on the schematic's track, so a
+    schematic revision that moves the staging level stops the build instead of drawing the
+    highlights beside the track."""
+    segs = track_segments()
+
+    def on_track(x: float, y: float) -> bool:
+        for x1, y1, x2, y2 in segs:
+            dx, dy = x2 - x1, y2 - y1
+            t = ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy or 1)
+            if 0 <= t <= 1 and abs(x1 + t * dx - x) < 0.6 and abs(y1 + t * dy - y) < 0.6:
+                return True
+        return False
+    for d in MAIN + RS1 + RS2 + SIDING + SIDING_MAIN + YARD + LEAD + ENGINE:
+        for x, y in re.findall(r"([\d.]+),([\d.]+)", d):
+            if not on_track(float(x), float(y)):
+                raise SystemExit(f"{SCHEMATIC}: highlight point {x},{y} is off the track; update the plan clip paths")
+    for x, y in RS_GAPS:
+        if not on_track(x, y):
+            raise SystemExit(f"{SCHEMATIC}: gap mark {x},{y} is off the track; update RS_GAPS")
+
+
 def staging_group(k: float = 1.0) -> str:
     """The staging group of the system schematic, with its names, masts and brackets removed.
 
@@ -125,7 +157,6 @@ def staging_group(k: float = 1.0) -> str:
     inner = re.sub(r'<path d="[^"]*Z" stroke-width="1"[^>]*/>', "", inner)                             # milepost marks
     inner = re.sub(r'<path d="[^"]*" stroke-width="0\.9"[^>]*/>', "", inner)                           # mast stems
     inner = re.sub(r'<path d="M[\d.]+,3[2-9]\d[^"]*"[^>]*/>', "", inner)                               # station brackets
-    inner = re.sub(r'<path d="M[\d.]+,3[2-9]\d[^"]*"[^>]*/>', "", inner)
 
     nudge = {"13": -9, "15": 9, "31": -9, "33": 9}       # pairs drawn side by side in the schematic
 
@@ -269,23 +300,30 @@ def p5() -> str:
 
 
 # ---------------------------------------------------------------- wiring drawings
-def blocks() -> tuple[list[tuple[str, str, str]], list[str]]:
-    """Detected sections on a node ("Block n-c"), and sections not yet on a node.
+def detected_sections() -> list[dict]:
+    """Every detected section on an LCOS node ("Block n-c"), sorted by node and channel.
 
-    Rows flagged "stub" are panel sub-blocks sharing another section's detector; they
-    are not separate electrical sections and are left out.
+    Length is the whole detected section: where the table's note says a row's length is
+    the "detector length minus" a hidden stub on the same detector, the stub is added back.
+    Stub rows themselves are panel sub-blocks, not separate electrical sections.
     """
-    rows, unnoded = [], []
     with BLOCKS.open() as f:
-        for r in csv.DictReader(f):
-            name = r["user_name"].replace("Track ", "")
-            m = re.match(r"Block (\d+)-(\d+)$", r["occupancy_sensor"])
-            if m:
-                rows.append((name, f"C{m.group(1)}", m.group(2)))
-            elif r["flag"] != "stub":
-                unnoded.append(name)
-    rows.sort(key=lambda t: (int(t[1][1:]), int(t[2])))
-    return rows, unnoded
+        rows = list(csv.DictReader(f))
+    by_name = {r["user_name"]: r for r in rows}
+    out = []
+    for r in rows:
+        m = re.fullmatch(r"Block (\d+)-(\d+)", r["occupancy_sensor"])
+        if not m:
+            continue
+        inches = float(r["inches"])
+        for stub in re.findall(r"detector length minus (Track [^;\"]+?)(?:;|$)", r["old_source"]):
+            if stub.strip() not in by_name:
+                raise SystemExit(f"{BLOCKS}: {r['user_name']} names a missing stub {stub!r}")
+            inches += float(by_name[stub.strip()]["inches"])
+        out.append({"name": r["user_name"].replace("Track ", ""), "node": int(m.group(1)), "ch": int(m.group(2)),
+                    "inches": inches, "estimate": r["flag"] == "estimate"})
+    out.sort(key=lambda s: (s["node"], s["ch"]))
+    return out
 
 
 def d1() -> str:
@@ -354,7 +392,7 @@ def d2() -> str:
     b.append(label(600, 150, "Both feeders of the section pass through the", 9.5, INK))
     b.append(label(600, 163, "same sensor channel; each section has at least", 9.5, INK))
     b.append(label(600, 176, "one feeder pair. One DNCT2B serves two sections.", 9.5, INK))
-    rows, _ = blocks()
+    rows = detected_sections()
     b.append(label(20, 304, f"All {len(rows)} detected sections on the staging level and helix are wired this way; Appendix B lists them.", 10, INK, weight="bold"))
     return svg(920, 320, "\n".join(b), "D2 · Propulsion: typical detected section",
                "A district bus of two wires runs from its protection device. A feeder pair drops to one section of track, "
@@ -524,6 +562,7 @@ FIGURES = [("P1-staging-plan", p1), ("P2-reversing-sections", p2), ("P3-passing-
 
 
 def main() -> None:
+    check_overlays()
     OUT.mkdir(exist_ok=True)
     for old in OUT.glob("D1-staging-reversing-sections.svg"):
         old.unlink()
