@@ -64,7 +64,7 @@
   <h3 id="railroad">The railroad</h3>
   <p>The HART Railroad is an HO scale layout, operated with Digital Command Control (DCC). The plan is an original design with three levels joined by a two-track helix. Its control system has four parts:</p>
   <ul>
-    <li><strong>Track power:</strong> a TCS CS-105 command station and TCS boosters, distributed through a booster matrix to protected power districts (<a class="xref" href="#req1-protect"></a>).</li>
+    <li><strong>Track power:</strong> a TCS CS-105 command station and a TCS B-106 booster, distributed through a booster matrix to protected power districts (<a class="xref" href="#req1-protect"></a>).</li>
     <li><strong>Field control:</strong> LCOS radio control nodes (Beagle Bay Inc.) beside the track drive the switch machines and signals, read the turnout contacts and fascia buttons, and read current-sense block detectors.</li>
     <li><strong>Computer:</strong> JMRI on a Raspberry Pi, with dispatcher and CTC panels on the layout's computers.</li>
     <li><strong>The link between them:</strong> a radio-to-network bridge designed and written by the member (<a class="xref" href="#req3-v"></a>).</li>
@@ -86,7 +86,7 @@
     <thead><tr><th scope="col">Label</th><th scope="col">What it is</th></tr></thead>
     <tbody>
       <tr><td>Main line</td><td>The continuous loop of the staging level, including the double-track section at the east end</td></tr>
-      <tr><td>RS-1</td><td>Reversing section 1: the west part of the main line, Switch 1 to Switch 23, on an AR-10 auto-reverser</td></tr>
+      <tr><td>RS-1</td><td>Reversing section 1: the west part of the main line, Switch 1 to Switch 23, on an AR10 auto-reverser</td></tr>
       <tr><td>RS-2</td><td>Reversing section 2: the return loop at the east end, on a PSX-AR auto-reverser</td></tr>
       <tr><td>Passing siding</td><td>The siding beside the main line from Switch 5 to Switch 7</td></tr>
       <tr><td>Yard, Y1 to Y5</td><td>The five-track yard, worked from the yard lead through Switches 15 to 21</td></tr>
@@ -165,7 +165,7 @@
   </div>
 
   <h3 id="req1-loop">Reverse loop</h3>
-  <p><strong>How it is met.</strong> The east end of the main line has a return loop, RS-2 (Plan P2, <a class="xref" href="#fig-p2"></a>). A train leaving the double-track section on one track runs around the loop and comes back on the other, facing the other way. The loop is gapped in both rails at both ends and fed through a PSX-AR auto-reverser, which matches the loop's polarity to the track a train enters from (drawing D5). The west part of the main line, RS-1 from Switch 1 to Switch 23, is a second reversing section wired the same way on an AR-10, because the main line's loop at the west end also turns trains. Each section is longer than the longest train run on the level; RS-1 is 217 in between its gaps.</p>
+  <p><strong>How it is met.</strong> The east end of the main line has a return loop, RS-2 (Plan P2, <a class="xref" href="#fig-p2"></a>). A train leaving the double-track section on one track runs around the loop and comes back on the other, facing the other way. The loop is gapped in both rails at both ends and fed through a PSX-AR auto-reverser, which matches the loop's polarity to the track a train enters from (drawing D5). The west part of the main line, RS-1 from Switch 1 to Switch 23, is a second reversing section wired the same way on an AR10, because the main line's loop at the west end also turns trains. Each section is longer than the longest train run on the level; RS-1 is 217 in between its gaps.</p>
   <p><strong>Evidence.</strong> Plan P2; drawing D5; <a class="xref" href="#photo-loop"></a>; <a class="xref" href="#photo-ar"></a>.</p>
   <p><strong>Demonstration.</strong> W3: a train runs through each reversing section in both directions without stopping and without a short.</p>
   <figure class="fig wide" id="fig-p2">
@@ -178,8 +178,8 @@
       <figcaption>The return loop RS-2 from above, gaps marked.</figcaption>
     </figure>
     <figure class="photo" id="photo-ar" data-punch="PL-04">
-      <img src="photos/auto-reversers.jpg" alt="The AR-10 and PSX-AR auto-reversers as installed, each labelled with its section.">
-      <figcaption>The AR-10 (RS-1) and PSX-AR (RS-2) as installed.</figcaption>
+      <img src="photos/auto-reversers.jpg" alt="The AR10 and PSX-AR auto-reversers as installed, each labelled with its section.">
+      <figcaption>The AR10 (RS-1) and PSX-AR (RS-2) as installed.</figcaption>
     </figure>
   </div>
 
@@ -229,12 +229,12 @@
   </div>
 
   <h3 id="req1-protect">Power supply with protective devices</h3>
-  <p><strong>How it is met.</strong> Track power comes from the command station's own output and the boosters, through the booster matrix, to six protection devices (D1):</p>
+  <p><strong>How it is met.</strong> Track power comes from the command station's own output and the booster, through the booster matrix, to six protection devices (D1):</p>
   <ul>
     <li>four DCC Specialties PSX-series electronic circuit breakers, one per district A to D, each with a status lamp that shows a trip;</li>
-    <li>the AR-10 and DCC Specialties PSX-AR auto-reversers on RS-1 and RS-2, which reverse polarity when a train bridges a gap and cut the section off if a short lasts.</li>
+    <li>the NCE AR10 and DCC Specialties PSX-AR auto-reversers on RS-1 and RS-2, which reverse polarity when a train bridges a gap and cut the section off if a short lasts.</li>
   </ul>
-  <p>Every section of the staging level and helix is therefore behind a device that clears a short within milliseconds, without tripping the booster and without stopping the other districts. The command station and boosters have their own internal short protection behind these.</p>
+  <p>Every section of the staging level and helix is therefore behind a device that clears a short within milliseconds, without tripping the booster and without stopping the other districts. The command station and booster have their own internal short protection behind these. The matrix has room for a second booster, planned if the load needs it.</p>
   <p><strong>Evidence.</strong> Drawing D1; <a class="xref" href="#photo-power"></a>; Appendix H (power district record).</p>
   <p><strong>Demonstration.</strong> W7: a short placed in one district trips only its breaker, which resets once the short is removed.</p>
 </section>
@@ -284,9 +284,9 @@
   </div>
 
   <h3 id="req2-other">Other: reversing sections on auto-reversers</h3>
-  <p><strong>Construction.</strong> RS-1 and RS-2 (Plan P2) are each gapped in both rails at both ends. Each is fed from the booster matrix through its own auto-reverser, the AR-10 for RS-1 and the PSX-AR for RS-2, and its feeders pass through a detector channel like any other section.</p>
+  <p><strong>Construction.</strong> RS-1 and RS-2 (Plan P2) are each gapped in both rails at both ends. Each is fed from the booster matrix through its own auto-reverser, the AR10 for RS-1 and the PSX-AR for RS-2, and its feeders pass through a detector channel like any other section.</p>
   <p><strong>Operation.</strong> When a train's wheels bridge a gap with the polarity wrong, the auto-reverser sees the short and swaps the section's two outputs within milliseconds, faster than any breaker trips, so the train runs through without a pause. The swap has to finish before the train reaches the gap at the far end, so each section is longer than the longest train (D5).</p>
-  <p><strong>Commercial components.</strong> AR-10 auto-reverser; DCC Specialties PSX-AR.</p>
+  <p><strong>Commercial components.</strong> NCE AR10 auto-reverser; DCC Specialties PSX-AR.</p>
   <p><strong>Evidence.</strong> Plan P2; drawing D5; <a class="xref" href="#photo-ar"></a>.</p>
   <p><strong>Demonstration.</strong> W3.</p>
 </section>
@@ -429,7 +429,7 @@
       <tr><td>Feeders</td><td>D2 (feeder pair per section, through its detector channel); Appendix H, bus wiring record</td></tr>
       <tr><td>Speed and direction control</td><td>D1 (throttles, command station, DCC to each decoder)</td></tr>
       <tr><td>Electrical switches</td><td>D1 (booster matrix, breakers, auto-reversers); D3 (frog contact)</td></tr>
-      <tr><td>Power supplies</td><td>D1 (command station and boosters); Appendix H, power district and track bus records</td></tr>
+      <tr><td>Power supplies</td><td>D1 (command station and booster); Appendix H, power district and track bus records</td></tr>
     </tbody>
   </table>
   <table id="tab-req5">
@@ -497,7 +497,7 @@
 <section class="plates">
   <h2 class="no-num plate-head" id="plates">Drawings D1 to D6</h2>
   <p class="plate-intro">Drawn for this application from the railroad's records. Not to scale. Colours: red for track power and frogs, blue for detection and data, grey for neighbouring track. The shaded boxes in D6 are the member's own design.</p>
-  <figure class="plate" id="fig-d1"><img src="drawings/D1-propulsion-one-line.svg" alt="Drawing D1, the propulsion one-line diagram; see its description in the text."><figcaption>Drawing D1: propulsion one-line. Throttles, command station and boosters, booster matrix, and the six protection devices that feed the district buses. Speed and direction reach each locomotive in the DCC packets addressed to its decoder. Six protected districts are wired today on the staging level and helix; the upper levels add further districts as they are built.</figcaption></figure>
+  <figure class="plate" id="fig-d1"><img src="drawings/D1-propulsion-one-line.svg" alt="Drawing D1, the propulsion one-line diagram; see its description in the text."><figcaption>Drawing D1: propulsion one-line. Throttles, command station and booster, booster matrix, and the six protection devices that feed the district buses. Speed and direction reach each locomotive in the DCC packets addressed to its decoder. Six protected districts are wired today on the staging level and helix; the upper levels add further districts as they are built.</figcaption></figure>
   <figure class="plate" id="fig-d2"><img src="drawings/D2-propulsion-sections.svg" alt="Drawing D2, a typical detected section; see its description in the text."><figcaption>Drawing D2: propulsion, typical detected section. Every one of the 43 sections listed in Appendix B is wired this way.</figcaption></figure>
   <figure class="plate" id="fig-d3"><img src="drawings/D3-turnout-frog-indication.svg" alt="Drawing D3, turnout frog and position contact wiring; see its description in the text."><figcaption>Drawing D3: turnout, powered frog and position contact (MTB MP4, two SPDT contacts).</figcaption></figure>
   <figure class="plate" id="fig-d4"><img src="drawings/D4-crossover.svg" alt="Drawing D4, crossover wiring; see its description in the text."><figcaption>Drawing D4: crossover, two powered-frog turnouts gapped between the frogs.</figcaption></figure>
@@ -544,7 +544,7 @@
       <tr><td>CS-105 command station</td><td>TCS (Train Control Systems)</td><td>DCC command station and track output</td><td>1</td></tr>
       <tr><td>B-106 booster</td><td>TCS</td><td>Track power</td><td>1</td></tr>
       <tr><td>PSX-series circuit breakers</td><td>DCC Specialties</td><td>Districts A to D</td><td>1, 2</td></tr>
-      <tr><td>AR-10 auto-reverser</td><td>see note</td><td>RS-1</td><td>1, 2</td></tr>
+      <tr><td>AR10 auto-reverser</td><td>NCE</td><td>RS-1</td><td>1, 2</td></tr>
       <tr><td>PSX-AR auto-reverser</td><td>DCC Specialties</td><td>RS-2</td><td>1, 2</td></tr>
       <tr><td>Turnouts</td><td>Peco</td><td>All staging turnouts and crossovers</td><td>2</td></tr>
       <tr><td>MP4 slow-motion switch machine</td><td>MTB</td><td>Turnout drive; frog contact; position contact</td><td>2, 3a</td></tr>
@@ -558,7 +558,6 @@
       <tr><td>Terminal strips, bus and feeder wire</td><td>Various</td><td>Buses, booster matrix, feeders</td><td>1</td></tr>
     </tbody>
   </table>
-  <p class="note">Note: the AR-10's maker is to be confirmed from the unit before submission (see the open items in the README).</p>
 </section>
 
 <section class="appendix">

@@ -17,18 +17,18 @@ Build (Mac, with PanelPro not needed): `/Users/lnevo/hart/.venv/bin/python docs/
 
 ## Claims
 
-- Requirement 1 on the staging level and helix: DCC; 43 gapped and detected sections in six protected districts; reverse loop RS-2 (K-1 / K-2) and RS-1 (Main West); passing siding Scale (Switch 5 to 7, chosen 2026-11-15 as the textbook example; West Ext beside East Lead is named as a second passing place); engine storage EH-1 to EH-3; yard S-R to S-4 with Barn as its lead.
+- Requirement 1 on the staging level and helix: DCC; 43 gapped and detected sections in six protected districts; reverse loop RS-2 (K-1 / K-2) and RS-1 (Main West); passing siding Scale (Switch 5 to 7, owner-confirmed 2026-11-15; West Ext beside East Lead is named as a second passing place); engine storage EH-1 to EH-3; yard S-R to S-4 with Barn as its lead.
 - Requirement 2: Turnout (powered frogs through the MP4 contact), Crossover (7, 23, 35), Other (two reversing sections on auto-reversers).
 - Requirement 3: (a) turnout position, (b) track occupancy, (v) the LCOS-to-MQTT bridge (owner's choice, 2026-11-15). (r) CTC, (k), (t) and (u) are described in Appendix D as reserves, not ticked.
 
 The document uses generic labels (RS-1, Y1–Y5, E1–E3 and so on); Appendix A maps them to the layout's names. The drawings are kept apart from the railroad's own schematics and wiring docs (owner, 2026-11-14).
 
+Owner facts (2026-11-15): the AR-10 is an NCE AR10; one TCS B-106 booster is installed, a second is planned if needed (the wiring deck's power district page shows the planned B2).
+
 ## Open before submission
 
 1. Take the photographs in `PHOTO_PUNCH_LIST.md` and rebuild.
-2. Confirm the AR-10's maker from the unit (Appendix C says "see note").
-3. Confirm Scale as the passing siding (the earlier draft named West Ext / East Lead).
-4. On a private copy outside the repo (`~/Documents/NMRA AP/`): name, NMRA number, address, date and signature on the form. Never in the repo.
-5. The witness visit (Chapter 8) and the evaluator's signature.
+2. On a private copy outside the repo (`~/Documents/NMRA AP/`): name, NMRA number, address, date and signature on the form. Never in the repo.
+3. The witness visit (Chapter 8) and the evaluator's signature.
 
 Sources: `docs/wiring/Layout Documentation.pptx` and `docs/wiring/Wiring_Schematic.pptx` (inventory v86), `docs/ops/schematic-system-draft.svg`, `jmri/layouts/hart/data/block_lengths.csv`, `www/build/track-plan.html`, `external/lcos-bridge` (bridge facts), form from nmra.org/electrical.

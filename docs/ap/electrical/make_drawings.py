@@ -13,7 +13,7 @@ Two kinds of figure:
 They are kept apart from the railroad's own schematics and wiring docs on purpose
 (owner, 2026-11-14). Facts:
 
-- Reversing sections: RS-1 (the west main, Switch 1 to Switch 23) on an AR-10 and RS-2
+- Reversing sections: RS-1 (the west main, Switch 1 to Switch 23) on an AR10 and RS-2
   (the return loop at the east end) on a PSX-AR (owner, 2026-11-14).
 - Block gaps are in both rails; every section has at least one feeder pair, and both
   feeders of a pair pass through one channel of its DNCT2B; each DNCT2B has two
@@ -248,7 +248,7 @@ def p1() -> str:
 
 def p2() -> str:
     def layers(u):
-        over = "".join([tag(u, 600, 112, "RS-1 (AR-10)", RED, 19), tag(u, 1420, 84, "RS-2 return loop (PSX-AR)", RED, 19),
+        over = "".join([tag(u, 600, 112, "RS-1 (AR10)", RED, 19), tag(u, 1420, 84, "RS-2 return loop (PSX-AR)", RED, 19),
                         tag(u, 250, 168, "gap", RED, 14), tag(u, 964, 168, "gap", RED, 14),
                         tag(u, 1316, 110, "gap", RED, 14), tag(u, 1316, 206, "gap", RED, 14),
                         tag(u, 1170, 118, "main line", GREY, 14), tag(u, 1170, 182, "main line", GREY, 14)])
@@ -327,11 +327,11 @@ def detected_sections() -> list[dict]:
 
 
 def d1() -> str:
-    """Propulsion one-line: throttles to command station, boosters, protection, district buses, sections."""
+    """Propulsion one-line: throttles to command station, booster, protection, district buses, sections."""
     b = []
     b.append(box(20, 40, 150, 50, "DCC throttles", "speed and direction", "per locomotive address", size=9.5))
     b.append(box(220, 40, 170, 50, "Command station", "TCS CS-105", "(also a track output)", size=9.5))
-    b.append(box(220, 120, 170, 50, "Boosters", "TCS B-106 class", "same DCC signal, more power", size=9.5))
+    b.append(box(220, 120, 170, 50, "Booster", "TCS B-106 (a second", "is planned if needed)", size=9.5))
     b.append(wire("M170,65 L220,65", BLUE, 1.8))
     b.append(label(176, 58, "throttle bus", 8.5, BLUE))
     b.append(wire("M305,90 L305,120", BLUE, 1.8))
@@ -340,7 +340,7 @@ def d1() -> str:
     b.append(wire("M390,65 L440,80", INK, 2))
     b.append(wire("M390,145 L440,130", INK, 2))
     rows = [("District A", "PSX-series breaker"), ("District B", "PSX-series breaker"), ("District C", "PSX-series breaker"),
-            ("District D", "PSX-series breaker"), ("RS-1", "AR-10 auto-reverser"), ("RS-2", "PSX-AR auto-reverser")]
+            ("District D", "PSX-series breaker"), ("RS-1", "AR10 auto-reverser"), ("RS-2", "PSX-AR auto-reverser")]
     for i, (name, dev) in enumerate(rows):
         y = 30 + i * 46
         col = RED if name.startswith("RS") else INK
@@ -350,15 +350,15 @@ def d1() -> str:
         b.append(wire(f"M760,{y+22} L840,{y+22}", INK, 1.8))
         b.append(label(846, y + 22, f"{name} bus → sections", 10.5, col, weight="bold" if col == RED else "normal"))
     return svg(1000, 312, "\n".join(b), "D1 · Propulsion one-line: control, power and protection",
-               "Block diagram. Throttles feed the command station, which sends the DCC signal to the boosters. The command "
-               "station and boosters feed a booster matrix, which feeds four circuit breakers and two auto-reversers. Each "
+               "Block diagram. Throttles feed the command station, which sends the DCC signal to the booster. The command "
+               "station and booster feed a booster matrix, which feeds four circuit breakers and two auto-reversers. Each "
                "feeds its own district bus.")
 
 
 def d2() -> str:
     """Typical detected section: district bus, feeder pair through one DNCT2B channel, gaps in both rails."""
     b = []
-    b.append(box(20, 50, 120, 46, "Command station", "and boosters (D1)"))
+    b.append(box(20, 50, 120, 46, "Command station", "and booster (D1)"))
     b.append(box(190, 50, 130, 46, "Protection device", "breaker or auto-reverser"))
     b.append(wire("M140,73 L190,73", INK, 2))
     b.append(label(145, 66, "DCC"))
@@ -503,7 +503,7 @@ def d5() -> str:
     b.append(wire("M40,66 L700,66", RED, 2.2))
     b.append(wire("M40,80 L700,80", INK, 2.2))
     b.append(label(44, 58, "DCC from the booster matrix (D1)", 9.5, INK))
-    b.append(box(260, 110, 240, 46, "Auto-reverser", "AR-10 (RS-1) or PSX-AR (RS-2)", size=10))
+    b.append(box(260, 110, 240, 46, "Auto-reverser", "AR10 (RS-1) or PSX-AR (RS-2)", size=10))
     b.append(wire("M360,80 L360,110", INK, 1.4))
     b.append(wire("M400,66 L400,110", RED, 1.4))
     y = 250
