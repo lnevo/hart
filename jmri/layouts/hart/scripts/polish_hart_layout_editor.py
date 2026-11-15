@@ -364,7 +364,7 @@ def _circuit_occupancy_icon(sensor: str, x: int, y: int) -> ET.Element:
             "x": str(x),
             "y": str(y),
             "level": "10",
-            "forcecontroloff": "false",
+            "forcecontroloff": "true",      # display only: a click must never set occupancy (owner, 2026-11-15)
             "hidden": "no",
             "positionable": "true",
             "showtooltip": "true",
@@ -605,6 +605,29 @@ def lamp_targets(
     return stage1_lamp_targets(root, le), notes
 
 
+def _is_display_lamp(icon: ET.Element) -> bool:
+    """A lamp that shows state and must not take a click: an occupancy lamp (block sensor "BS ...") or any icon
+    drawn with the circuit-* lamp images (Stage 1's occupancy and move-in-progress lamps)."""
+    active = icon.find("active")
+    return ((icon.get("sensor") or "").startswith("BS ")
+            or (active is not None and "circuit-" in (active.get("url") or "")))
+
+
+def lamps_display_only(le: ET.Element, *, check: bool, name: str = "") -> tuple[int, list[str]]:
+    """Every lamp on the panel display only (forcecontroloff="true"). A switch OS lamp sits in its turnout
+    circle, so a clickable lamp took the turnout click and set the block occupied on every host (owner,
+    2026-11-15). Stage 1's Store writes its lamps clickable; this puts them back on every polish."""
+    changes, errors = 0, []
+    for icon in le.findall("sensoricon"):
+        if _is_display_lamp(icon) and icon.get("forcecontroloff") != "true":
+            if check:
+                errors.append(f"{name}: lamp {icon.get('sensor')!r} can be clicked")
+            else:
+                icon.set("forcecontroloff", "true")
+                changes += 1
+    return changes, errors
+
+
 def _is_circuit_lamp(icon: ET.Element) -> bool:
     active = icon.find("active")
     # A bare test icon has no state children; treat it as a lamp.
@@ -799,6 +822,10 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
     shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check, targets=targets)
     changes += shared_n
     errors.extend(shared_errors)
+
+    lamp_n, lamp_errors = lamps_display_only(le, check=check, name=path.name)
+    changes += lamp_n
+    errors.extend(lamp_errors)
 
     # Layout Editor track coloring already provides occupancy indication
     # for leftover Block n-n sensors. Keep Dispatcher System OS occupancy
