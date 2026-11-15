@@ -13,8 +13,10 @@ Inputs (jmri/layouts/hart/data/schematic/):
   switches on the main route, grouped where they stand close together.
 - local_switches_main_upper.csv: every other switch (yards and industry spurs), with its area. These get a
   turnout and feedback but no control point, no signals and no detection.
-- lcos_nodes_main_upper.csv: the LCOS node addresses each level and area may use, in order. Upper-level areas reuse
-  the nodes of the August 2026 upper-deck plan (LCOS inventory v85); the rest are free RF24 addresses, proposed.
+- lcos_nodes_main_upper.csv: the LCOS radio addresses each level and area may use, in order. The upper level's
+  come from LCOS_Layout_Inventory_v85.xlsx; the others from the owner's node grid
+  (media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06.png), except North on the main level, which the grid
+  has no spare address for (42 and 52, proposed).
 - the solved schematic bands (the inputs publish_draft.py draws), for tracks, their ends and which way is east.
 
 Outputs:
