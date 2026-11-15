@@ -4,7 +4,7 @@ The Statement of Qualifications for the NMRA Achievement Program certificate, re
 
 | File | What it is |
 |------|------------|
-| `MRE-Electrical-SOQ.pdf` | The package: ticked NMRA form, title page, contents, seven short chapters (introduction, checklist, Requirements 1 to 5, what the witness will see), landscape drawing plates D1 to D6, and Appendices A to E (labels, to-scale plan and detected sections, parts list, features not claimed, wiring records). Written in plain first person (owner, 2026-11-15). Tagged PDF with bookmarks. |
+| `MRE-Electrical-SOQ.pdf` | The package: ticked NMRA form, title page, contents, six short chapters (introduction, checklist, Requirements 1 to 5), landscape drawing plates D1 to D6, and Appendices A to E (labels, to-scale plan and detected sections, parts list, features not claimed, wiring records). Written in plain first person (owner, 2026-11-15). Tagged PDF with bookmarks. |
 | `soq.html`, `soq.css` | Source of the document. Numbers, cross-references, contents and page numbers are filled in by the build. |
 | `build_soq.py` | Builds the PDF: drawings, numbering, two Chrome print passes for page numbers, the form ticks, Keynote export of the two wiring decks, footers and bookmarks. `--html-only` writes `build/` without printing. |
 | `make_drawings.py` | Writes plan clips P1 to P5 (the staging level copied from the system schematic, its own names removed, generic labels added) and drawings D1 to D6. The build also writes P0, the staging level to scale from `www/build/track-plan.html`. |
@@ -29,6 +29,6 @@ Owner facts (2026-11-15): the AR-10 is an NCE AR10; one TCS B-106 booster is ins
 
 1. Take the photographs in `PHOTO_PUNCH_LIST.md` and rebuild.
 2. On a private copy outside the repo (`~/Documents/NMRA AP/`): name, NMRA number, address, date and signature on the form. Never in the repo.
-3. The witness visit (Chapter 7) and the evaluator's signature.
+3. The witness visit and the evaluator's signature.
 
 Sources: `docs/wiring/Layout Documentation.pptx` and `docs/wiring/Wiring_Schematic.pptx` (inventory v86), `docs/ops/schematic-system-draft.svg`, `jmri/layouts/hart/data/block_lengths.csv`, `www/build/track-plan.html`, `external/lcos-bridge` (bridge facts), form from nmra.org/electrical.

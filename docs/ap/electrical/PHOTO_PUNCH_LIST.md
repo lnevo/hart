@@ -22,11 +22,10 @@ General tips: shoot in good light with the layout lights on; fill the frame with
 | PL-09 | `photos/dnct2b-feeders.jpg` | 5.2 Track occupancy | A DNCT2B under the layout with a section's two feeders visibly passing through one channel. |
 | PL-10 | `photos/occupancy-panel.png` | 5.2 Track occupancy | Screenshot of the dispatcher panel (or the CTC desk) with a train's sections lit as occupied. A PNG screenshot is best. |
 | PL-11 | `photos/bridge-node.jpg` | 5.3 Bridge | The bridge node (Nano + nRF24) with its USB cable to the PC that runs `serial_to_mqtt.py`. |
-| PL-12 | `photos/bridge-console.png` | 5.3 Bridge | Screenshot of the bridge program's console while a turnout is thrown from the computer: the command line out and the turnout report back. Run it with `verbose` so both show. |
 
 ## Also worth having (not placed in the document)
 
 These strengthen the witness visit rather than the paper:
 
 - A photo of the PSX breaker boards with a small label for each district (A to D). The power-board photo already shows them, but not which district each feeds.
-- A photo of the NMRA standards gauge seated on a claimed turnout (step 13 of the witness plan, Chapter 7).
+- A photo of the NMRA standards gauge seated on a claimed turnout.

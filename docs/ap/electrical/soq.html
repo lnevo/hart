@@ -42,7 +42,7 @@
     <li>JMRI on a Raspberry Pi for the control panels;</li>
     <li>a bridge that I designed and programmed, which connects the LCOS radio network to JMRI.</li>
   </ul>
-  <p>Chapter 2 is a checklist of every requirement and where to find it. Chapter 7 lists what I will show the witness.</p>
+  <p>Chapter 2 is a checklist of every requirement and where to find it.</p>
 
   <h3 id="labels">Track plan and labels</h3>
   <p>Plan P1 shows the staging level. To keep it easy to follow, I use simple labels instead of my railroad's own track names. Appendix A matches each label to the name on the layout.</p>
@@ -282,10 +282,10 @@
   <h3 id="req3-v">(v) Computer-to-railroad interface</h3>
   <p>The LCOS nodes under the layout talk to each other by radio. Each node is an Arduino Nano with an nRF24L01 radio. LCOS did not come with a way to connect to JMRI, so I designed and programmed one. It has two parts (drawing D6):</p>
   <ul>
-    <li><strong>The bridge node:</strong> an LCOS node running my own firmware, written in C++. It joins the radio network and listens for events from the other nodes: a turnout moved, a section became occupied or clear, a button was pressed. It sends each event to the PC over USB as one line of text. It also takes commands from the PC, such as "throw turnout 100", and sends them by radio to the right node.</li>
+    <li><strong>The bridge node:</strong> an LCOS node running my own firmware, written in C++. It joins the radio network and listens for events from the other nodes: a turnout moved, a section became occupied or clear, a button was pressed. It sends each event to the PC over USB as one line of text. It also takes commands from the PC, such as "throw turnout 1308", and sends them by radio to the right node.</li>
     <li><strong>The bridge program:</strong> a Python program on the PC. It passes each line from the node to an MQTT message server, and passes each command from the server back to the node.</li>
   </ul>
-  <p>JMRI has a built-in MQTT connection, so every LCOS turnout, sensor and signal shows up in JMRI as a normal turnout, sensor or signal. For example, the line <code>track/turnout/100 THROWN</code> means turnout 100 has been thrown.</p>
+  <p>JMRI has a built-in MQTT connection, so every LCOS turnout, sensor and signal shows up in JMRI as a normal turnout, sensor or signal. The address is the node number and the device number: turnout 1308 is turnout 8 on node 13. For example, the line <code>track/turnout/1308 THROWN</code> means that turnout has thrown. <a class="xref" href="#photo-console"></a> shows real traffic.</p>
   <p>I also added checks to keep the two sides in step. The program checks the USB link about every 12 seconds and reconnects if it stops answering. After the layout power is turned off and on, it tells the node to sign up for events again. It also reports whether the link is up, so the panels can show it.</p>
   <p>I started the bridge in February 2026. It is how the computer talks to the layout every time the layout runs. I published it as open source on GitHub (<code>github.com/lnevo/LCOS_ESP32_MQTT_Client</code>) so other LCOS users can use it.</p>
   <table id="tab-bridge">
@@ -308,16 +308,31 @@
       <figcaption>The bridge node connected to the PC.</figcaption>
     </figure>
   </div>
-  <figure class="photo" id="photo-console" data-punch="PL-12">
-    <img src="photos/bridge-console.png" alt="The bridge program's window showing a turnout command going out and the turnout's report coming back.">
-    <figcaption>The bridge program: a command going out and the report coming back.</figcaption>
+  <figure class="console" id="photo-console">
+    <pre aria-label="Bridge program output">MQTT RX turnout cmd topic='track/cmd/turnout/1308' qos=1 retain=False raw_bytes=b'THROWN'
+MQTT turnout queued for serial: 'track/cmd/turnout/1308 THROWN'
+MQTT -&gt; serial b'track/cmd/turnout/1308 THROWN\n'
+ACK track/cmd/turnout/1308 THROWN
+TX -&gt; track/turnout/1308 THROWN
+TX -&gt; track/sensor/1367 INACTIVE
+TX -&gt; track/sensor/1368 ACTIVE
+TX -&gt; track/sensor/1368 ACTIVE
+MQTT RX turnout cmd topic='track/cmd/turnout/1308' qos=1 retain=False raw_bytes=b'CLOSED'
+MQTT turnout queued for serial: 'track/cmd/turnout/1308 CLOSED'
+MQTT -&gt; serial b'track/cmd/turnout/1308 CLOSED\n'
+ACK track/cmd/turnout/1308 CLOSED
+TX -&gt; track/turnout/1308 CLOSED
+TX -&gt; track/sensor/1367 ACTIVE
+TX -&gt; track/sensor/1368 INACTIVE
+TX -&gt; track/sensor/1368 INACTIVE</pre>
+    <figcaption>The bridge program at work, copied from its window on 15 November 2026. JMRI throws turnout 1308; the node acknowledges (ACK), the turnout reports THROWN, and its two position sensors (1367 and 1368) change. Then the same for CLOSED. Lines that start with MQTT are commands from JMRI; lines that start with TX are reports from the layout.</figcaption>
   </figure>
 </section>
 
 <!-- ============================================================ 6 -->
 <section class="chapter">
   <h2 id="req45">Requirements 4 and 5: drawings</h2>
-  <p>I made drawings D1 to D6 for this application. They are on the landscape pages after Chapter 7. Appendix E has my railroad's own wiring records, which show every bus, node and turnout.</p>
+  <p>I made drawings D1 to D6 for this application. They are on the landscape pages after Chapter 6. Appendix E has my railroad's own wiring records, which show every bus, node and turnout.</p>
   <table id="tab-drawings">
     <caption>Drawings</caption>
     <thead><tr><th scope="col">Drawing</th><th scope="col">Shows</th><th scope="col">For</th></tr></thead>
@@ -331,31 +346,6 @@
     </tbody>
   </table>
   <p>Requirement 4 asks the propulsion drawing to show six things. Gaps, blocks and feeders are in D2. Speed and direction control, the electrical switches (booster matrix, breakers and auto-reversers) and the power supplies are in D1. The frog switch is in D3. In Appendix E, the bus wiring, power district and track bus pages show the as-built wiring, and the turnout and node pages show the wiring behind each item in Requirement 5.</p>
-</section>
-
-<!-- ============================================================ 7 -->
-<section class="chapter">
-  <h2 id="demo">What I will show the witness</h2>
-  <p>Before the visit I will clean the track, put two trains on the main line, a switcher on the yard lead and two locomotives on the engine storage tracks, and start the panels and the bridge program. I will have a meter and an NMRA standards gauge ready.</p>
-  <table id="tab-demo" class="demo">
-    <caption>Demonstration steps</caption>
-    <thead><tr><th scope="col">Step</th><th scope="col">Req.</th><th scope="col">What I do</th><th scope="col">What you should see</th><th scope="col">Seen</th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td>1</td><td>Run two trains at once, each on its own throttle, and reverse each one.</td><td>Each train follows only its own throttle.</td><td class="box"></td></tr>
-      <tr><td>2</td><td>1</td><td>Show gaps, a feeder pair and a breaker. With a locomotive standing in one section, disconnect that section's feeders.</td><td>The locomotive loses power and the section goes dark on the panel; nothing else changes.</td><td class="box"></td></tr>
-      <tr><td>3</td><td>1, 2</td><td>Run a train through RS-2 and RS-1, both ways.</td><td>No stop and no short.</td><td class="box"></td></tr>
-      <tr><td>4</td><td>1</td><td>Hold a train on the passing siding while another passes.</td><td>The trains pass.</td><td class="box"></td></tr>
-      <tr><td>5</td><td>1</td><td>Point out the locomotives on E1 to E3.</td><td>They stay put while trains run.</td><td class="box"></td></tr>
-      <tr><td>6</td><td>1</td><td>Switch the yard from the lead while a train runs on the main.</td><td>Yard work stays off the main line.</td><td class="box"></td></tr>
-      <tr><td>7</td><td>1</td><td>Put a coin across the rails in one district, then remove it.</td><td>Only that breaker trips, and it resets.</td><td class="box"></td></tr>
-      <tr><td>8</td><td>2</td><td>Run a locomotive slowly through a turnout both ways; check the frog with a meter.</td><td>No stall at the frog; frog polarity follows the points.</td><td class="box"></td></tr>
-      <tr><td>9</td><td>2</td><td>Run a train through the crossover at Switch 23 or 35.</td><td>No short between the frogs.</td><td class="box"></td></tr>
-      <tr><td>10</td><td>3a</td><td>Throw four turnouts: two from the fascia, one from a throttle, one from the computer.</td><td>Fascia and panel lights follow each turnout.</td><td class="box"></td></tr>
-      <tr><td>11</td><td>3b</td><td>Run a train through five or more sections.</td><td>Each section lights up as the train enters and goes dark as it leaves.</td><td class="box"></td></tr>
-      <tr><td>12</td><td>3v</td><td>With the bridge program open, throw a turnout from the computer, then run a train into a section.</td><td>The command and the reply show in the program, and the panel follows.</td><td class="box"></td></tr>
-      <tr><td>13</td><td>6</td><td>Check the turnouts and a crossover with the NMRA gauge, and the wheels of the locomotives used.</td><td>Within NMRA standards.</td><td class="box"></td></tr>
-    </tbody>
-  </table>
 </section>
 
 <!-- ============================================================ PLATES -->
