@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
 # Load HART tables in PanelPro, run stock Stage 1 (auto-Yes shared-sensor), store.
+# The run lifecycle (profile backup and restore, publishing Start Up scripts off, stopping
+# PanelPro on timeout or a signal) is tools/hosts/panelpro_session.sh.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 source "$ROOT/tools/hosts/profile_tables_guard.sh"
+source "$ROOT/tools/hosts/panelpro_session.sh"
 refuse_hart_tables "run PanelPro on tables.xml"
-# PanelPro loads the tables of the checkout this script lives in (main or a worktree).
-case "$ROOT" in
-  "$HOME"/*) TABLES_URI="home:${ROOT#"$HOME"/}/jmri/layouts/hart/output/tables.xml" ;;
-  *) TABLES_URI="$ROOT/jmri/layouts/hart/output/tables.xml" ;;
-esac
-JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
-PROFILE_ID="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
-PROFILE_XML="${JMRI_PROFILE_XML:-$HOME/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml}"
-STARTJMRI="$JMRI_HOME/PanelPro.app/Contents/MacOS/StartJMRI"
-PATCH="$ROOT/cats/scripts/patch_jmri_startup.py"
+pp_profile
 SCRIPT="$ROOT/jmri/layouts/hart/scripts/run_dispatcher_stage1.py"
 MARKER="${HART_STAGE1_MARKER:-/tmp/hart_stage1.done}"
 LOG="${HART_STAGE1_LOG:-/tmp/hart_stage1.log}"
@@ -22,57 +16,15 @@ REPO_OUTPUT="$ROOT/jmri/layouts/hart/output/tables.xml"
 REPO_TABLES="$REPO_OUTPUT"
 REPO_TRAININFO="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
 
-if [[ ! -f "$PROFILE_XML" || ! -x "$STARTJMRI" ]]; then
-  echo "PanelPro profile or launcher missing" >&2
-  exit 1
-fi
-if pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1; then
-  echo "Quit local CATS/PanelPro before Stage 1" >&2
-  exit 1
-fi
+pp_refuse_running "Quit local CATS/PanelPro before Stage 1"
 
-BACKUP="$(mktemp)"
-cp "$PROFILE_XML" "$BACKUP"
+pp_begin
 # Stage 1 drops the manual Princess SML pairs and, on a generated panel, the icon spots; keep a
 # copy to restore them from.
 BEFORE_TABLES="$(mktemp)"
+PP_TMP_FILES+=("$BEFORE_TABLES")
 cp "$REPO_TABLES" "$BEFORE_TABLES"
-restore() {
-  cp "$BACKUP" "$PROFILE_XML"
-  rm -f "$BACKUP" "$BEFORE_TABLES"
-}
-trap restore EXIT
-python3 "$ROOT/cats/scripts/patch_jmri_startup.py" load-tables --profile "$PROFILE_XML" \
-  --tables "$TABLES_URI"   # automation works on this checkout's repo file (worktrees too)
-
-python3 - "$PROFILE_XML" <<'PY'
-import re
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-text = path.read_text(encoding="utf-8")
-for name in (
-    "panel_status.py",
-    "signal_coordinator.py",
-    "sts_car_sync.py",
-):
-    pattern = re.compile(
-        r'<perform\b(?=[^>]*\bname="[^"]*'
-        + re.escape(name)
-        + r'")[^>]*/>'
-    )
-    text, count = pattern.subn(
-        lambda match: match.group(0).replace('enabled="yes"', 'enabled="no"'),
-        text,
-        count=1,
-    )
-    if count != 1:
-        print("startup action not present (ok): " + name)
-path.write_text(text, encoding="utf-8")
-PY
-
-python3 "$PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" \
+python3 "$PP_PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" \
   --after signal_coordinator.py
 rm -f "$MARKER"
 
@@ -81,44 +33,25 @@ export HART_STAGE1_TABLES="$REPO_TABLES"
 export HART_STAGE1_TRAININFO="$REPO_TRAININFO"
 export HART_STAGE1_STORE="$REPO_OUTPUT"
 
-if [[ -z "${JAVA_HOME:-}" ]]; then
-  for ver in 21 17 11; do
-    if JH=$(/usr/libexec/java_home -v "$ver" 2>/dev/null); then
-      export JAVA_HOME="$JH"
-      break
-    fi
-  done
-fi
-
-"$STARTJMRI" -p "$PROFILE_ID" >"$LOG" 2>&1 &
-JPID=$!
+pp_launch "$LOG"
 # Stage 1 on HART can take a long time (graph + hundreds of transits).
-deadline=$((SECONDS + 2700))
-while (( SECONDS < deadline )); do
-  [[ -f "$MARKER" ]] && break
-  if ! kill -0 "$JPID" 2>/dev/null; then
-    break
-  fi
-  sleep 5
-done
-
-if [[ ! -f "$MARKER" ]]; then
-  kill "$JPID" 2>/dev/null || true
+rc=0
+pp_wait_marker "$MARKER" "${HART_PANELPRO_TIMEOUT:-2700}" 5 || rc=$?
+if (( rc != 0 )); then
   echo "Stage 1 did not produce a marker; log: $LOG" >&2
   exit 1
 fi
 
 # JMRI writes the marker just before it exits. The repairs below save tables.xml
 # through hartlib, which refuses while PanelPro runs, so wait for it to be gone.
-JMRI_PROC='java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)'
-exit_deadline=$((SECONDS + ${HART_STAGE1_EXIT_WAIT:-180}))
-while kill -0 "$JPID" 2>/dev/null || pgrep -u "$(id -u)" -f "$JMRI_PROC" >/dev/null 2>&1; do
-  if (( SECONDS >= exit_deadline )); then
-    echo "PanelPro is still running ${HART_STAGE1_EXIT_WAIT:-180}s after the Stage 1 marker; not running the repairs. Quit it, then run the repairs listed in wiki/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
-    exit 1
-  fi
-  sleep 2
-done
+if ! pp_wait_exit "${HART_STAGE1_EXIT_WAIT:-180}"; then
+  echo "PanelPro is still running ${HART_STAGE1_EXIT_WAIT:-180}s after the Stage 1 marker; stopping it and not running the repairs. Run the repairs listed in wiki/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
+  exit 1
+fi
+if pgrep -u "$(id -u)" -f "$PP_JMRI_PROC" >/dev/null 2>&1; then
+  echo "Another CATS/PanelPro is running; not running the repairs. Quit it, then run the repairs listed in wiki/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
+  exit 1
+fi
 
 status="$(awk 'NR==1 {print; exit}' "$MARKER")"
 detail="$(awk 'NR>1 {print}' "$MARKER")"

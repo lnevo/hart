@@ -30,6 +30,8 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 python3 jmri/layouts/hart/scripts/validate_le_signalling.py
 ```
 
+The PanelPro wrappers share `tools/hosts/panelpro_session.sh`: the publishing Start Up scripts are off for the run, the PanelPro they started is stopped on a timeout, Ctrl-C or SIGTERM, and the profile comes back from `profile.xml.hart-run.bak`. After a `kill -9`, quit that PanelPro and run `python3 cats/scripts/patch_jmri_startup.py restore --profile <profile.xml>`. The NX smoke (`HART_NX_SMOKE=1`, default) paints sensor states in PanelPro only and publishes nothing; `HART_NX_THROW=1` sets a real route and commands MQTT turnouts. For a rehearsal profile set `JMRI_PROFILE_XML` (and `JMRI_USER_FILES` if the profile does not say).
+
 After Discover, re-add manual Princess pairs (`Mast 36RA→Mast 40LA`, `Mast 36RB→Mast 38LA`): `restore_manual_sml_pairs.py --reference <tables before Discover>` (the Stage 1 wrapper does this itself). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.
 
 ## Do not
