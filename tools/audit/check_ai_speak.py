@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Fail if study text uses AI-speak: filler and stock phrases that add tone but no facts.
+"""Fail if site prose uses AI-speak: filler and stock phrases that add tone but no facts.
 
-The C&E study deck (``www/exam/index.html``) holds the guide prose, the flashcards and the
-practice questions. Its text should state rules and facts in plain words. This check
-flags the phrasings that crept in when it was drafted, for example "People mix the two
-up; the exam won't." or "The terms are often confused.": claims about readers or the
-exam that the OPSIG guides never make.
+Covers the article pages (``DEFAULT_GLOBS``): the AI topics, library, behind-the-scenes,
+guides, Achievement Program pages and the C&E study deck. Their text should state facts in
+plain words. Flagged kinds: claims about what readers get wrong ("People mix the two up;
+the exam won't."), coaching asides ("Think of the motion"), tidy morals ("the log is
+only as good as my notes"), stock phrases ("the key is") and invented colour.
+
+Only HTML text is read: <style>, <script> and comments are skipped. Pages that load their
+prose from another file at runtime (www/library/opspro-showcase-guide.md, copied from the
+plugin's GUIDE.md) are not covered.
 
 Each pattern names what is wrong with it. Rewrite the sentence (usually by deleting the
 clause); there is no suppression marker. Pass paths to check other files.
@@ -23,7 +27,8 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 
 ROOT = paths.REPO_ROOT
-DEFAULT_FILES = ("www/exam/index.html",)
+DEFAULT_GLOBS = ("www/ai/*.html", "www/library/*.html", "www/behind/*.html",
+                 "www/guides/*.html", "www/ap/*.html", "www/exam/index.html")
 
 # (pattern, why it is flagged). Case-insensitive, matched on the text with tags removed,
 # entities decoded, curly apostrophes made straight and line breaks joined.
@@ -42,10 +47,14 @@ PATTERNS: tuple[tuple[str, str], ...] = (
     (r"\b(crucial(ly)?|essentially|delve|seamless(ly)?|robust|leverage|tapestry|nuanced?)\b", "stock word"),
     (r"\b(worth noting|it should be noted|keep in mind|remember that)\b", "stock phrase"),
     (r"\b(waiting|wait|run|going) forever\b", "invented colour"),
+    (r"\bis only as good as\b", "tidy moral"),
+    (r"\b(a )?(spare|free) (evening|weekend|afternoon|hour)\b", "speaking for the reader"),
+    (r"\ba good place to start\b", "coaching aside"),
+    (r"\bworks the other way\b|\bthe reverse (also )?holds\b", "stock phrase"),
     (r"\bexplains the ideas\b|\b(cards|tests) (and tests |and cards )?check (them|it)\b", "closing summary line"),
 )
 COMPILED = tuple((re.compile(p, re.I), why) for p, why in PATTERNS)
-STYLE = re.compile(r"<style\b.*?</style>", re.I | re.S)
+STYLE = re.compile(r"<style\b.*?</style>|<script\b.*?</script>|<!--.*?-->", re.I | re.S)
 TAG = re.compile(r"<[^>]*>")
 APOSTROPHES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u02bc": "'"})
 
@@ -85,9 +94,16 @@ def find(text: str) -> list[tuple[int, str, str]]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("paths", nargs="*", help=f"files to check (default: {', '.join(DEFAULT_FILES)})")
+    ap.add_argument("paths", nargs="*", help=f"files to check (default: {', '.join(DEFAULT_GLOBS)})")
     args = ap.parse_args(argv)
-    paths = [Path(p) for p in args.paths] or [ROOT / f for f in DEFAULT_FILES]
+    if args.paths:
+        paths = [Path(p) for p in args.paths]
+    else:
+        empty = [g for g in DEFAULT_GLOBS if not any(ROOT.glob(g))]
+        if empty:
+            print("default pattern matches no file: " + ", ".join(empty))
+            return 2
+        paths = sorted(p for g in DEFAULT_GLOBS for p in ROOT.glob(g))
     bad = 0
     missing = [p for p in paths if not p.is_file()]
     if missing:

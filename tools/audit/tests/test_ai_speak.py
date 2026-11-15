@@ -21,6 +21,10 @@ class AiSpeakTest(unittest.TestCase):
             "Most TT&TO questions turn on a definition, so learn these exactly.",
             "<p>Picture eastbound No 7 due to leave Cedar at 9:40.</p>",
             "Think of the motion: a swing across the track stops you.",
+            "the log is only as good as my notes.",
+            "A good place to start reading is the wiki home page.",
+            "The rule also works the other way.",
+            "a clear next step, so a spare evening can go to it.",
             "That stops crews waiting forever on a train.",
             "This guide explains the ideas; the cards and tests check them.",
         ):
@@ -62,6 +66,22 @@ class AiSpeakTest(unittest.TestCase):
         ):
             with self.subTest(line=line):
                 self.assertEqual(cas.find(line), [])
+
+    def test_default_covers_article_pages(self):
+        for g in cas.DEFAULT_GLOBS:
+            with self.subTest(glob=g):
+                self.assertTrue(any(ROOT.glob(g)), g)
+
+    def test_skips_script_and_comments(self):
+        self.assertEqual(cas.find("<script>// essentially robust</script><!-- the key is -->ok"), [])
+
+    def test_missing_default_glob_fails(self):
+        old = cas.DEFAULT_GLOBS
+        cas.DEFAULT_GLOBS = old + ("www/no-such-dir/*.html",)
+        try:
+            self.assertEqual(cas.main([]), 2)
+        finally:
+            cas.DEFAULT_GLOBS = old
 
     def test_wrapped_hit_reports_its_first_line(self):
         self.assertEqual([n for n, _, _ in cas.find("a\nThe terms are often\nconfused.")], [2])
