@@ -113,3 +113,6 @@ tools/mqtt-mimic/qa/native_sml_qa_baseline.json
 
 # Owner's operations log (names people; site copy is www/ap/log.html)
 docs/ap/operations.log
+
+# C3 trial tables copy: generated on demand by tools/anyrail/build_main_upper_le.py (goes stale with every tables.xml change)
+jmri/layouts/hart/output/trial/
