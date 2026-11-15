@@ -348,7 +348,8 @@ TURNOUT = """<turnouticon turnout="{name}" x="{x}" y="{y}" level="7" forcecontro
       <iconmaps />
     </turnouticon>"""
 
-LAMP = """<sensoricon sensor="{sensor}" x="{x}" y="{y}" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+# Occupancy jewels are display only (forcecontroloff): a click must never set a block occupied (owner, 2026-11-15).
+LAMP = """<sensoricon sensor="{sensor}" x="{x}" y="{y}" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>{tip}</tooltip>
       <active url="{u}sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
