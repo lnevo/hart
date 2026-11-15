@@ -176,7 +176,7 @@ def number(doc: str) -> tuple[str, dict[str, str], list[tuple[int, str, str, str
             key = chr(64 + app)
         else:
             sec = sub = 0
-            key = "Plate"         # never shown: the plates hold only drawings labelled D1 to D6
+            key = "Plate"         # never shown: the plates hold only drawings labelled D1 to D7
 
         def head(hm: re.Match) -> str:
             nonlocal sec, sub

@@ -22,7 +22,7 @@
 <path d="M170,190 L170,330 L570,330 L570,190" fill="none" stroke="#1f5fa8" stroke-width="2.2"/>
 <path d="M500,160 L500,120 L420,120 L420,90" fill="none" stroke="#1f5fa8" stroke-width="2.2"/>
 <path d="M240,220 L300,220 L300,90" fill="none" stroke="#121a22" stroke-width="1.5"/>
-<path d="M500,220 L660,220 L660,90" fill="none" stroke="#121a22" stroke-width="1.5"/>
+<path d="M500,220 L564,220 A6,6 0 0 1 576,220 L660,220 L660,90" fill="none" stroke="#121a22" stroke-width="1.5"/>
 <text x="370" y="346" font-size="9.5" fill="#121a22" text-anchor="middle" font-weight="normal">commons of the two contacts tied together</text>
 <text x="30" y="384" font-size="9.5" fill="#1f5fa8" text-anchor="start" font-weight="normal">Blue: the path that closes when both halves are normal (N input to common through a and b in series).</text>
 <text x="30" y="418" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="bold">Half a</text>

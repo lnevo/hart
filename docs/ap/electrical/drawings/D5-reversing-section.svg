@@ -11,9 +11,10 @@
 <path d="M400,66 L400,100" fill="none" stroke="#b03a2e" stroke-width="1.4"/>
 <text x="512" y="130" font-size="9" fill="#b03a2e" text-anchor="start" font-weight="normal">output: both wires change polarity together</text>
 <path d="M350,144 L350,170 L210,170 L210,252" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
-<path d="M410,144 L410,182 L240,182 L240,260" fill="none" stroke="#121a22" stroke-width="1.6"/>
-<path d="M350,170 L520,170 L520,252" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
+<path d="M410,144 L410,164 A6,6 0 0 1 410,176 L410,182 L240,182 L240,260" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<path d="M350,170 L520,170 L520,176 A6,6 0 0 1 520,188 L520,252" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
 <path d="M410,182 L550,182 L550,260" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<circle cx="350" cy="170" r="3" fill="#b03a2e"/><circle cx="410" cy="182" r="3" fill="#121a22"/>
 <rect x="300" y="196" width="160" height="34" rx="3" fill="#e4ebf0" stroke="#121a22"/>
 <text x="380.0" y="210.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">DNCT2B</text>
 <text x="380.0" y="221.5" font-size="9" text-anchor="middle" fill="#121a22">channel 1 · channel 2</text>
@@ -21,18 +22,16 @@
 <ellipse cx="535" cy="214" rx="30" ry="9" fill="none" stroke="#1f5fa8" stroke-width="2"/>
 <path d="M300,213 L255,214" fill="none" stroke="#1f5fa8" stroke-width="1.2" stroke-dasharray="4 3"/>
 <path d="M460,213 L505,214" fill="none" stroke="#1f5fa8" stroke-width="1.2" stroke-dasharray="4 3"/>
-<path d="M120,252 L330,252 M120,260 L330,260" stroke="#b03a2e" stroke-width="2"/>
-<path d="M430,252 L640,252 M430,260 L640,260" stroke="#b03a2e" stroke-width="2"/>
-<path d="M334,252 L426,252 M334,260 L426,260" stroke="#b03a2e" stroke-width="2"/>
+<path d="M120,252 L378,252 M120,260 L378,260" stroke="#b03a2e" stroke-width="2"/>
+<path d="M382,252 L640,252 M382,260 L640,260" stroke="#b03a2e" stroke-width="2"/>
 <path d="M40,252 L116,252 M40,260 L116,260" stroke="#5f6e7a" stroke-width="1.6"/>
 <path d="M644,252 L720,252 M644,260 L720,260" stroke="#5f6e7a" stroke-width="1.6"/>
 <path d="M115,247 L115,265 M121,247 L121,265" stroke="#b03a2e" stroke-width="2.4"/>
 <path d="M639,247 L639,265 M645,247 L645,265" stroke="#b03a2e" stroke-width="2.4"/>
-<path d="M329,247 L329,265 M335,247 L335,265" stroke="#1f5fa8" stroke-width="2.4"/>
-<path d="M425,247 L425,265 M431,247 L431,265" stroke="#1f5fa8" stroke-width="2.4"/>
+<path d="M377,247 L377,265 M383,247 L383,265" stroke="#1f5fa8" stroke-width="2.4"/>
 <text x="225" y="282" font-size="10" fill="#b03a2e" text-anchor="middle" font-weight="bold">section 1 (K-1 on RS-2)</text>
 <text x="535" y="282" font-size="10" fill="#b03a2e" text-anchor="middle" font-weight="bold">section 2 (K-2 on RS-2)</text>
-<text x="380" y="282" font-size="9" fill="#1f5fa8" text-anchor="middle" font-weight="normal">detection gap</text>
+<text x="380" y="240" font-size="9" fill="#1f5fa8" text-anchor="middle" font-weight="normal">detection gap</text>
 <text x="380" y="298" font-size="9.5" fill="#5f6e7a" text-anchor="middle" font-weight="normal">Reversing section: both rails gapped at both ends (red), longer than the longest train</text>
 <text x="60" y="240" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">normal section</text>
 <text x="650" y="240" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">normal section</text>

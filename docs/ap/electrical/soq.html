@@ -213,7 +213,7 @@
 
   <h3 id="req2-crossover">Crossover</h3>
   <p>There are crossovers at Switch 23, Switch 35 and Switch 7. Each is two turnouts, wired like any other turnout, and both machines throw together. Because each frog has its own polarity, both rails between the two frogs are gapped (drawing D4). Each half is its own detected section.</p>
-  <p>The two halves share one pair of position inputs on the node. Their position contacts are wired in series, so the panel shows normal only when both halves are normal and reverse only when both are reverse. If the halves disagree, neither light comes on and JMRI shows the crossover as inconsistent (drawing D7).</p>
+  <p>The two halves share one pair of position inputs on the node. Their position contacts are wired in series, so the computer panel shows normal only when both halves are normal and reverse only when both are reverse. If the halves disagree, neither light comes on and JMRI shows the crossover as inconsistent (drawing D7).</p>
   <p><strong>Parts:</strong> the same as for a turnout.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-crossover" data-punch="PL-07">
@@ -242,7 +242,7 @@
     <li>On the fascia, the turnout's Touch Toggle button lights up. The light is driven from contact 2 of the MP4 through a Touch Toggle Universal Translator. A framed track diagram on the fascia also has a light at each of its turnouts.</li>
     <li>On the computer panels, each switch shows a normal or reverse light. The same contact is read by an LCOS input board.</li>
   </ul>
-  <p>Both come from the switch machine itself, so they show where the points really are, no matter how the turnout was thrown. The form asks for at least four turnouts. All of the staging turnouts are wired this way. On a crossover, the contacts of its two machines are wired in series, so the lights show a position only when both halves agree (drawing D7).</p>
+  <p>Both come from the switch machine itself, so they show where the points really are, no matter how the turnout was thrown. The form asks for at least four turnouts. All of the staging turnouts are wired this way. On a crossover, the contacts of its two machines are wired in series to the node inputs, so the computer panel shows a position only when both halves agree (drawing D7).</p>
   <p><strong>Parts:</strong> MTB MP4, Touch Toggle buttons and Universal Translators, LCOS input boards. <strong>Drawings:</strong> D3, D7.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-tt">
@@ -358,7 +358,7 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
   <figure class="plate" id="fig-d2"><img src="drawings/D2-propulsion-sections.svg" alt="Drawing D2: a district bus, a section gapped at both ends, its feeder pair through a DNCT2B detector channel, and the LCOS node."><figcaption>Drawing D2: a typical section. All 43 sections in Appendix B are wired this way.</figcaption></figure>
   <figure class="plate" id="fig-d3"><img src="drawings/D3-turnout-frog-indication.svg" alt="Drawing D3: a turnout with the MP4's contact 1 powering the frog and contact 2 reporting the position."><figcaption>Drawing D3: turnout frog power and position contact.</figcaption></figure>
   <figure class="plate" id="fig-d4"><img src="drawings/D4-crossover.svg" alt="Drawing D4: two turnouts forming a crossover, with gaps between the frogs."><figcaption>Drawing D4: crossover.</figcaption></figure>
-  <figure class="plate" id="fig-d5"><img src="drawings/D5-reversing-section.svg" alt="Drawing D5: a section gapped at both ends, powered through an auto-reverser."><figcaption>Drawing D5: reversing section on an auto-reverser. The two detected sections share the auto-reverser and change polarity together.</figcaption></figure>
+  <figure class="plate" id="fig-d5"><img src="drawings/D5-reversing-section.svg" alt="Drawing D5: an auto-reverser whose output passes through the two channels of a DNCT2B to two detected sections of one reversing section, gapped at both outer ends and between the two sections."><figcaption>Drawing D5: reversing section on an auto-reverser. The two detected sections share the auto-reverser and change polarity together.</figcaption></figure>
   <figure class="plate" id="fig-d6"><img src="drawings/D6-computer-interface.svg" alt="Drawing D6: JMRI, the MQTT server, the bridge program, the bridge node, the LCOS nodes and the railroad, with the links between them."><figcaption>Drawing D6: the bridge between the LCOS radio network and JMRI.</figcaption></figure>
   <figure class="plate" id="fig-d7"><img src="drawings/D7-crossover-indication.svg" alt="Drawing D7: the position contacts of a crossover's two machines wired in series to one normal and one reverse input, with a table of what the panel shows for each combination."><figcaption>Drawing D7: crossover position indication. Both halves must agree before a position shows.</figcaption></figure>
 </section>

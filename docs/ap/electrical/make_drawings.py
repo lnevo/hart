@@ -8,7 +8,7 @@ Two kinds of figure:
   station brackets taken out and generic labels drawn on top, so a reader who has
   never seen the layout can follow them. Switch numbers are kept, because they are
   what the witness finds on the fascia.
-- Wiring drawings D1 to D6: drawn here for the SOQ only.
+- Wiring drawings D1 to D7: drawn here for the SOQ only.
 
 They are kept apart from the railroad's own schematics and wiring docs on purpose
 (owner, 2026-11-14). Facts:
@@ -514,27 +514,26 @@ def d5() -> str:
     b.append(label(512, 130, "output: both wires change polarity together", 9, RED))
     # reversed output pair to the two channels
     b.append(wire("M350,144 L350,170 L210,170 L210,252", RED, 1.6))
-    b.append(wire("M410,144 L410,182 L240,182 L240,260", INK, 1.6))
-    b.append(wire("M350,170 L520,170 L520,252", RED, 1.6))
+    b.append(wire("M410,144 L410,164 A6,6 0 0 1 410,176 L410,182 L240,182 L240,260", INK, 1.6))   # hop over red
+    b.append(wire("M350,170 L520,170 L520,176 A6,6 0 0 1 520,188 L520,252", RED, 1.6))          # hop over black
     b.append(wire("M410,182 L550,182 L550,260", INK, 1.6))
+    b.append(f'<circle cx="350" cy="170" r="3" fill="{RED}"/><circle cx="410" cy="182" r="3" fill="{INK}"/>')
     b.append(box(300, 196, 160, 34, "DNCT2B", "channel 1 · channel 2", size=9))
     b.append(f'<ellipse cx="225" cy="214" rx="30" ry="9" fill="none" stroke="{BLUE}" stroke-width="2"/>')
     b.append(f'<ellipse cx="535" cy="214" rx="30" ry="9" fill="none" stroke="{BLUE}" stroke-width="2"/>')
     b.append(wire("M300,213 L255,214", BLUE, 1.2, "4 3"))
     b.append(wire("M460,213 L505,214", BLUE, 1.2, "4 3"))
     y = 256
-    b.append(rails(120, 330, y, RED, 2))
-    b.append(rails(430, 640, y, RED, 2))
-    b.append(rails(334, 426, y, RED, 2))
+    b.append(rails(120, 378, y, RED, 2))
+    b.append(rails(382, 640, y, RED, 2))
     b.append(rails(40, 116, y, GREY))
     b.append(rails(644, 720, y, GREY))
     b.append(gap(118, y, color=RED))
     b.append(gap(642, y, color=RED))
-    b.append(gap(332, y, color=BLUE))
-    b.append(gap(428, y, color=BLUE))
+    b.append(gap(380, y, color=BLUE))
     b.append(label(225, y + 26, "section 1 (K-1 on RS-2)", 10, RED, "middle", "bold"))
     b.append(label(535, y + 26, "section 2 (K-2 on RS-2)", 10, RED, "middle", "bold"))
-    b.append(label(380, y + 26, "detection gap", 9, BLUE, "middle"))
+    b.append(label(380, y - 16, "detection gap", 9, BLUE, "middle"))
     b.append(label(380, y + 42, "Reversing section: both rails gapped at both ends (red), longer than the longest train", 9.5, GREY, "middle"))
     b.append(label(60, y - 16, "normal section", 9, GREY))
     b.append(label(650, y - 16, "normal section", 9, GREY))
@@ -592,10 +591,11 @@ def d7() -> str:
 
     Each crossover (Switches 7, 23, 35) has one normal and one reverse feedback input
     (turnout summary; tables.xml TWOSENSOR "FB Switch n N/R"). With one SPDT per machine,
-    the only wiring that closes N only when both halves are normal, R only when both are
+    the wiring that closes N only when both halves are normal, R only when both are
     reverse, and neither when they disagree ties the two commons together, takes N from
     half a's N throw and R from half b's R throw, and puts a's R and b's N on the input
-    common (owner's description, 2026-11-15).
+    common. Drawn from the owner's description (2026-11-15); to be checked against the
+    wires (README, open items).
     """
     b = []
     sa, a = spdt(170, 190, False, "N")
@@ -612,7 +612,8 @@ def d7() -> str:
     b.append(wire(f"M{bb['N'][0]},{bb['N'][1]} L{bb['N'][0]},120 L420,120 L420,90", BLUE, 2.2))    # b.N to common
     # the other two throws
     b.append(wire(f"M{a['R'][0]},{a['R'][1]} L300,{a['R'][1]} L300,90", INK, 1.5))                 # a.R to common
-    b.append(wire(f"M{bb['R'][0]},{bb['R'][1]} L660,{bb['R'][1]} L660,90", INK, 1.5))              # b.R to R input
+    x, y = bb['C'][0], bb['R'][1]
+    b.append(wire(f"M{bb['R'][0]},{y} L{x - 6},{y} A6,6 0 0 1 {x + 6},{y} L660,{y} L660,90", INK, 1.5))  # b.R to R input, hopping the tie
     b.append(label(370, 346, "commons of the two contacts tied together", 9.5, INK, "middle"))
     b.append(label(30, 384, "Blue: the path that closes when both halves are normal (N input to common through a and b in series).", 9.5, BLUE))
     # truth table
