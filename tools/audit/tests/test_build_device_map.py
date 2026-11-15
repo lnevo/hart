@@ -81,13 +81,28 @@ class Output(unittest.TestCase):
 
     def test_every_switch_has_a_turnout_two_feedbacks_and_an_os_block(self):
         have = rows()
-        switches = [s for cp in BD.load_cps() for s in cp["switches"]]
-        switches += [row["switch"] for row in BD.read_csv(BD.LOCAL)]
-        for s in switches:
+        cp_sw = [s for cp in BD.load_cps() for s in cp["switches"]]
+        local = [row["switch"] for row in BD.read_csv(BD.LOCAL)]
+        for s in cp_sw + local:
             kinds = sorted(x["layer"] for x in have if x["user_name"] in
-                           (f"Switch {s}", f"FB Switch {s} N", f"FB Switch {s} R", f"OS Switch {s}",
-                            f"BS Switch {s}"))
-            self.assertEqual(kinds, ["block", "fb", "fb", "occupancy", "turnout"], s)
+                           (f"Switch {s}", f"DCC Switch {s}", f"FB Switch {s} N", f"FB Switch {s} R",
+                            f"OS Switch {s}", f"BS Switch {s}"))
+            want = ["block", "fb", "fb"] + (["occupancy"] if s in cp_sw else []) + ["turnout", "turnout"]
+            self.assertEqual(kinds, want, s)
+
+    def test_dcc_continues_from_120_in_switch_order(self):
+        got = [(x["user_name"], int(x["dcc"])) for x in rows() if x["layer"] == "turnout"
+               and x["user_name"].startswith("Switch ")]
+        got.sort(key=lambda g: int(g[0].split()[1]))
+        self.assertEqual([d for _, d in got], list(range(120, 120 + len(got))))
+        aliases = {x["user_name"]: x["system_name"] for x in rows() if x["user_name"].startswith("DCC Switch ")}
+        self.assertEqual(aliases["DCC Switch 101"], "MTT120")
+
+    def test_detection_only_on_the_main_line(self):
+        for x in rows():
+            if x["layer"] == "block" and "off the main line" in x["notes"]:
+                bs = "BS " + x["user_name"].removeprefix("Track ").removeprefix("OS ")
+                self.assertFalse(any(y["user_name"] == bs and y["layer"] == "occupancy" for y in rows()), bs)
 
     def test_system_names_unique_and_in_lcos_bands(self):
         seen = set()
@@ -97,6 +112,8 @@ class Output(unittest.TestCase):
             self.assertNotIn(x["system_name"], seen)
             seen.add(x["system_name"])
             uid = int(x["system_name"][3:] if x["layer"] != "head" else x["system_name"][2:]) % 100
+            if x["system_name"].startswith("MTT"):
+                continue                                        # LCC alias: its number is the DCC address
             band = {"turnout": range(8, 16), "occupancy": range(0, 8), "head": range(32, 48), "fb": range(67, 100)}
             self.assertIn(uid, band[x["layer"]], x["user_name"])
 

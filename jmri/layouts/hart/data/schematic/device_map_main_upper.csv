@@ -1,433 +1,411 @@
-level,cp,layer,user_name,system_name,node,comment,trial_name,notes
-2,,turnout,Switch 101,M2T3408,34,Node: 34 Turnout: 0,"Switch 101A, Switch 101B",no control point: Yard throat crossover
-2,,turnout,Switch 103,M2T3409,34,Node: 34 Turnout: 1,"Switch 103A, Switch 103B",no control point: Yard throat crossover
-2,,turnout,Switch 105,M2T3313,33,Node: 33 Turnout: 5,Switch 105,no control point: Yard ladder
-2,CP 107,turnout,Switch 107,M2T3308,33,Node: 33 Turnout: 0,Switch 107,
-2,CP 109,turnout,Switch 109,M2T3309,33,Node: 33 Turnout: 1,Switch 109,
-2,CP 109,turnout,Switch 111,M2T3310,33,Node: 33 Turnout: 2,Switch 111,
-2,,turnout,Switch 113,M2T3314,33,Node: 33 Turnout: 6,Switch 113,no control point: Industry 1 spur
-2,,turnout,Switch 115,M2T3315,33,Node: 33 Turnout: 7,Switch 115,no control point: Industry 1 spur
-2,CP 109,turnout,Switch 117,M2T3311,33,Node: 33 Turnout: 3,Switch 117,
-2,CP 109,turnout,Switch 119,M2T3312,33,Node: 33 Turnout: 4,"Switch 119A, Switch 119B",
-2,,turnout,Switch 121,M2T4212,42,Node: 42 Turnout: 4,Switch 121,no control point: Industry 2 spur
-2,,turnout,Switch 123,M2T4213,42,Node: 42 Turnout: 5,Switch 123,no control point: Industry 2 lead off the siding
-2,CP 125,turnout,Switch 125,M2T4208,42,Node: 42 Turnout: 0,Switch 125,
-2,CP 125,turnout,Switch 127,M2T4209,42,Node: 42 Turnout: 1,Switch 127,
-2,CP 129,turnout,Switch 129,M2T4210,42,Node: 42 Turnout: 2,"Switch 129A, Switch 129B",
-2,,turnout,Switch 131,M2T4214,42,Node: 42 Turnout: 6,Switch 131,no control point: Industry 2 spur
-2,,turnout,Switch 133,M2T4215,42,Node: 42 Turnout: 7,Switch 133,no control point: Industry 2 spurs
-2,CP 129,turnout,Switch 135,M2T4211,42,Node: 42 Turnout: 3,"Switch 135A, Switch 135B",
-2,,fb,FB Switch 101 N,M2S3467,34,Node: 34 Sensor: 0,,
-2,,fb,FB Switch 101 R,M2S3468,34,Node: 34 Sensor: 1,,
-2,,fb,FB Switch 103 N,M2S3469,34,Node: 34 Sensor: 2,,
-2,,fb,FB Switch 103 R,M2S3470,34,Node: 34 Sensor: 3,,
-2,,fb,FB Switch 105 N,M2S3377,33,Node: 33 Sensor: 10,,
-2,,fb,FB Switch 105 R,M2S3378,33,Node: 33 Sensor: 11,,
-2,CP 107,fb,FB Switch 107 N,M2S3367,33,Node: 33 Sensor: 0,,
-2,CP 107,fb,FB Switch 107 R,M2S3368,33,Node: 33 Sensor: 1,,
-2,CP 109,fb,FB Switch 109 N,M2S3369,33,Node: 33 Sensor: 2,,
-2,CP 109,fb,FB Switch 109 R,M2S3370,33,Node: 33 Sensor: 3,,
-2,CP 109,fb,FB Switch 111 N,M2S3371,33,Node: 33 Sensor: 4,,
-2,CP 109,fb,FB Switch 111 R,M2S3372,33,Node: 33 Sensor: 5,,
-2,,fb,FB Switch 113 N,M2S3379,33,Node: 33 Sensor: 12,,
-2,,fb,FB Switch 113 R,M2S3380,33,Node: 33 Sensor: 13,,
-2,,fb,FB Switch 115 N,M2S3381,33,Node: 33 Sensor: 14,,
-2,,fb,FB Switch 115 R,M2S3382,33,Node: 33 Sensor: 15,,
-2,CP 109,fb,FB Switch 117 N,M2S3373,33,Node: 33 Sensor: 6,,
-2,CP 109,fb,FB Switch 117 R,M2S3374,33,Node: 33 Sensor: 7,,
-2,CP 109,fb,FB Switch 119 N,M2S3375,33,Node: 33 Sensor: 8,,
-2,CP 109,fb,FB Switch 119 R,M2S3376,33,Node: 33 Sensor: 9,,
-2,,fb,FB Switch 121 N,M2S4275,42,Node: 42 Sensor: 8,,
-2,,fb,FB Switch 121 R,M2S4276,42,Node: 42 Sensor: 9,,
-2,,fb,FB Switch 123 N,M2S4277,42,Node: 42 Sensor: 10,,
-2,,fb,FB Switch 123 R,M2S4278,42,Node: 42 Sensor: 11,,
-2,CP 125,fb,FB Switch 125 N,M2S4267,42,Node: 42 Sensor: 0,,
-2,CP 125,fb,FB Switch 125 R,M2S4268,42,Node: 42 Sensor: 1,,
-2,CP 125,fb,FB Switch 127 N,M2S4269,42,Node: 42 Sensor: 2,,
-2,CP 125,fb,FB Switch 127 R,M2S4270,42,Node: 42 Sensor: 3,,
-2,CP 129,fb,FB Switch 129 N,M2S4271,42,Node: 42 Sensor: 4,,
-2,CP 129,fb,FB Switch 129 R,M2S4272,42,Node: 42 Sensor: 5,,
-2,,fb,FB Switch 131 N,M2S4279,42,Node: 42 Sensor: 12,,
-2,,fb,FB Switch 131 R,M2S4280,42,Node: 42 Sensor: 13,,
-2,,fb,FB Switch 133 N,M2S4281,42,Node: 42 Sensor: 14,,
-2,,fb,FB Switch 133 R,M2S4282,42,Node: 42 Sensor: 15,,
-2,CP 129,fb,FB Switch 135 N,M2S4273,42,Node: 42 Sensor: 6,,
-2,CP 129,fb,FB Switch 135 R,M2S4274,42,Node: 42 Sensor: 7,,
-2,,block,OS Switch 101,,34,Peninsula,OS Switch 101,
-2,,block,OS Switch 103,,34,Peninsula,OS Switch 103,
-2,,block,OS Switch 105,,33,West,OS Switch 105,
-2,CP 107,block,OS Switch 107,,33,CP 107,OS Switch 107,
-2,CP 109,block,OS Switch 109,,33,CP 109,OS Switch 109,
-2,CP 109,block,OS Switch 111,,33,CP 109,OS Switch 111,
-2,,block,OS Switch 113,,33,West,OS Switch 113,
-2,,block,OS Switch 115,,33,West,OS Switch 115,
-2,CP 109,block,OS Switch 117,,33,CP 109,OS Switch 117,
-2,CP 109,block,OS Switch 119,,33,CP 109,OS Switch 119,
-2,,block,OS Switch 121,,42,North,OS Switch 121,
-2,,block,OS Switch 123,,42,North,OS Switch 123,
-2,CP 125,block,OS Switch 125,,42,CP 125,OS Switch 125,
-2,CP 125,block,OS Switch 127,,42,CP 125,OS Switch 127,
-2,CP 129,block,OS Switch 129,,42,CP 129,OS Switch 129,
-2,,block,OS Switch 131,,42,North,OS Switch 131,
-2,,block,OS Switch 133,,42,North,OS Switch 133,
-2,CP 129,block,OS Switch 135,,42,CP 129,OS Switch 135,
-2,,block,Track 101 Spur 1,,,,Track e25,63.1 cm
-2,,block,Track 101 Spur 2,,,,Track e32,99.0 cm
-2,,block,Track 101-103,,,,Track e28,"3.4 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 109,block,Track 101-111,,,CP 109,Track e24,398.1 cm
-2,,block,Track 103 Spur,,,,Track e31,111.1 cm
-2,,block,Track 103-105 1,,,,Track e22,318.6 cm
-2,,block,Track 103-105 2,,,,Track e21,361.3 cm
-2,CP 109,block,Track 105-109,,,CP 109,Track e20,"21.5 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 107,block,Track 107 Loop,,,CP 107,Track e33,777.0 cm
-2,CP 107,block,Track 107-109,,,CP 107 / CP 109,Track e19,99.9 cm
-2,CP 109,block,Track 109-111,,,CP 109,Track e18,"24.2 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 109,block,Track 111-117,,,CP 109,Track e23,"11.1 cm short link: inside the OS blocks of its switches, no detector"
-2,,block,Track 113 Spur 1,,,,Track e12,55.0 cm
-2,,block,Track 113 Spur 2,,,,Track e13,108.2 cm
-2,,block,Track 113-115,,,,Track e11,44.2 cm
-2,,block,Track 115 Spur,,,,Track e15,76.5 cm
-2,CP 109,block,Track 115-117,,,CP 109,Track e14,"24.2 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 109,block,Track 117-119,,,CP 109,Track e16,"11.1 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 109,block,Track 119 Spur,,,CP 109,Track e8,89.0 cm
-2,CP 109,block,Track 119-123,,,CP 109,Track e7,158.6 cm
-2,CP 109,block,Track 119-125,,,CP 109 / CP 125,Track e17,230.0 cm
-2,,block,Track 121 Spur,,,,Track e0,122.3 cm
-2,,block,Track 121-123,,,,Track e2,"10.7 cm short link: inside the OS blocks of its switches, no detector"
-2,,block,Track 121-131,,,,Track e1,87.5 cm
-2,CP 125,block,Track 123-125,,,CP 125,Track e6,"25.2 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 125,block,Track 125-127,,,CP 125,Track e29,"10.5 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 125,block,Track 127-129,,,CP 125 / CP 129,Track e30,86.9 cm
-2,CP 125,block,Track 127-131,,,CP 125,Track e10,"10.7 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 129,block,Track 129-135 1,,,CP 129,Track e35,73.6 cm
-2,,block,Track 131-133,,,,Track e3,"10.5 cm short link: inside the OS blocks of its switches, no detector"
-2,,block,Track 133 Spur 1,,,,Track e4,69.3 cm
-2,,block,Track 133 Spur 2,,,,Track e5,70.5 cm
-2,CP 129,block,Track 135-H1,,,CP 129,Track e34,849.6 cm
-2,,occupancy,BS 101 Spur 1,M2S3402,34,Node: 34 Block: 3,,
-2,,occupancy,BS 101 Spur 2,M2S3403,34,Node: 34 Block: 4,,
-2,CP 109,occupancy,BS 101-111,M2S3404,34,Node: 34 Block: 5,,
-2,,occupancy,BS 103 Spur,M2S3405,34,Node: 34 Block: 6,,
-2,,occupancy,BS 103-105 1,M2S3406,34,Node: 34 Block: 7,,
-2,,occupancy,BS 103-105 2,M2S3407,34,Node: 34 Block: 8,,
-2,CP 107,occupancy,BS 107 Loop,M2S4300,43,Node: 43 Block: 1,,
-2,CP 107,occupancy,BS 107-109,M2S4301,43,Node: 43 Block: 2,,
-2,,occupancy,BS 113 Spur 1,M2S4302,43,Node: 43 Block: 3,,
-2,,occupancy,BS 113 Spur 2,M2S4303,43,Node: 43 Block: 4,,
-2,,occupancy,BS 113-115,M2S4304,43,Node: 43 Block: 5,,
-2,,occupancy,BS 115 Spur,M2S4305,43,Node: 43 Block: 6,,
-2,CP 109,occupancy,BS 119 Spur,M2S4306,43,Node: 43 Block: 7,,
-2,CP 109,occupancy,BS 119-123,M2S4307,43,Node: 43 Block: 8,,
-2,CP 109,occupancy,BS 119-125,M2S5300,53,Node: 53 Block: 1,,
-2,,occupancy,BS 121 Spur,M2S5200,52,Node: 52 Block: 1,,
-2,,occupancy,BS 121-131,M2S5201,52,Node: 52 Block: 2,,
-2,CP 125,occupancy,BS 127-129,M2S5202,52,Node: 52 Block: 3,,
-2,CP 129,occupancy,BS 129-135 1,M2S5203,52,Node: 52 Block: 4,,
-2,,occupancy,BS 133 Spur 1,M2S5204,52,Node: 52 Block: 5,,
-2,,occupancy,BS 133 Spur 2,M2S5205,52,Node: 52 Block: 6,,
-2,CP 129,occupancy,BS 135-H1,M2S5206,52,Node: 52 Block: 7,,
-2,,occupancy,BS Switch 101,M2S3400,34,Node: 34 Block: 1,,
-2,,occupancy,BS Switch 103,M2S3401,34,Node: 34 Block: 2,,
-2,,occupancy,BS Switch 105,M2S3305,33,Node: 33 Block: 6,,
-2,CP 107,occupancy,BS Switch 107,M2S3300,33,Node: 33 Block: 1,,
-2,CP 109,occupancy,BS Switch 109,M2S3301,33,Node: 33 Block: 2,,
-2,CP 109,occupancy,BS Switch 111,M2S3302,33,Node: 33 Block: 3,,
-2,,occupancy,BS Switch 113,M2S3306,33,Node: 33 Block: 7,,
-2,,occupancy,BS Switch 115,M2S3307,33,Node: 33 Block: 8,,
-2,CP 109,occupancy,BS Switch 117,M2S3303,33,Node: 33 Block: 4,,
-2,CP 109,occupancy,BS Switch 119,M2S3304,33,Node: 33 Block: 5,,
-2,,occupancy,BS Switch 121,M2S4204,42,Node: 42 Block: 5,,
-2,,occupancy,BS Switch 123,M2S4205,42,Node: 42 Block: 6,,
-2,CP 125,occupancy,BS Switch 125,M2S4200,42,Node: 42 Block: 1,,
-2,CP 125,occupancy,BS Switch 127,M2S4201,42,Node: 42 Block: 2,,
-2,CP 129,occupancy,BS Switch 129,M2S4202,42,Node: 42 Block: 3,,
-2,,occupancy,BS Switch 131,M2S4206,42,Node: 42 Block: 7,,
-2,,occupancy,BS Switch 133,M2S4207,42,Node: 42 Block: 8,,
-2,CP 129,occupancy,BS Switch 135,M2S4203,42,Node: 42 Block: 4,,
-2,CP 107,mast,Mast 108R,IF$shsm:basic:two-searchlight(IH3332)(IH3333),33,CP 107 | Switch 107,,home signal from Track 107-109
-2,CP 109,mast,Mast 110LA,IF$shsm:basic:one-low(IH3334),33,CP 109 | Switch 109,,home signal from Track 107-109
-2,CP 109,mast,Mast 110LB,IF$shsm:basic:one-low(IH3335),33,CP 109 | Switch 109,,home signal from Track 105-109
-2,CP 109,mast,Mast 112L,IF$shsm:basic:one-low(IH3336),33,CP 109 | Switch 111,,home signal from Track 101-111
-2,CP 109,mast,Mast 118L,IF$shsm:basic:one-low(IH3337),33,CP 109 | Switch 117,,home signal from Track 115-117
-2,CP 109,mast,Mast 120RA,IF$shsm:basic:one-low(IH3338),33,CP 109 | Switch 119,,home signal from Track 119-125
-2,CP 109,mast,Mast 120RB,IF$shsm:basic:two-searchlight(IH3339)(IH3340),33,CP 109 | Switch 119,,home signal from Track 119-123
-2,CP 125,mast,Mast 126LA,IF$shsm:basic:one-low(IH4232),42,CP 125 | Switch 125,,home signal from Track 119-125
-2,CP 125,mast,Mast 126LB,IF$shsm:basic:one-low(IH4233),42,CP 125 | Switch 125,,home signal from Track 123-125
-2,CP 125,mast,Mast 128RA,IF$shsm:basic:one-low(IH4234),42,CP 125 | Switch 127,,home signal from Track 127-131
-2,CP 125,mast,Mast 128RB,IF$shsm:basic:one-low(IH4235),42,CP 125 | Switch 127,,home signal from Track 127-129
-2,CP 129,mast,Mast 130LA,IF$shsm:basic:two-searchlight(IH4236)(IH4237),42,CP 129 | Switch 129,,home signal from Track 127-129
-2,CP 129,mast,Mast 130LB,IF$shsm:basic:one-low(IH4238),42,CP 129 | Switch 129,,home signal from Track 129-221
-2,CP 129,mast,Mast 136RA,IF$shsm:basic:two-searchlight(IH4239)(IH4240),42,CP 129 | Switch 135,,home signal from Track 135-H1
-2,CP 129,mast,Mast 136RB,IF$shsm:basic:one-low(IH4241),42,CP 129 | Switch 135,,home signal from Track 135-H2
-2,CP 107,head,Head 108R Bottom,IH3333,33,Node: 33 Signal: 1,,
-2,CP 107,head,Head 108R Top,IH3332,33,Node: 33 Signal: 0,,
-2,CP 109,head,Head 110LA,IH3334,33,Node: 33 Signal: 2,,
-2,CP 109,head,Head 110LB,IH3335,33,Node: 33 Signal: 3,,
-2,CP 109,head,Head 112L,IH3336,33,Node: 33 Signal: 4,,
-2,CP 109,head,Head 118L,IH3337,33,Node: 33 Signal: 5,,
-2,CP 109,head,Head 120RA,IH3338,33,Node: 33 Signal: 6,,
-2,CP 109,head,Head 120RB Bottom,IH3340,33,Node: 33 Signal: 8,,
-2,CP 109,head,Head 120RB Top,IH3339,33,Node: 33 Signal: 7,,
-2,CP 125,head,Head 126LA,IH4232,42,Node: 42 Signal: 0,,
-2,CP 125,head,Head 126LB,IH4233,42,Node: 42 Signal: 1,,
-2,CP 125,head,Head 128RA,IH4234,42,Node: 42 Signal: 2,,
-2,CP 125,head,Head 128RB,IH4235,42,Node: 42 Signal: 3,,
-2,CP 129,head,Head 130LA Bottom,IH4237,42,Node: 42 Signal: 5,,
-2,CP 129,head,Head 130LA Top,IH4236,42,Node: 42 Signal: 4,,
-2,CP 129,head,Head 130LB,IH4238,42,Node: 42 Signal: 6,,
-2,CP 129,head,Head 136RA Bottom,IH4240,42,Node: 42 Signal: 8,,
-2,CP 129,head,Head 136RA Top,IH4239,42,Node: 42 Signal: 7,,
-2,CP 129,head,Head 136RB,IH4241,42,Node: 42 Signal: 9,,
-3,CP 201,turnout,Switch 201,M2T2308,23,Node: 23 Turnout: 0,Switch 201,
-3,CP 201,turnout,Switch 203,M2T2309,23,Node: 23 Turnout: 1,Switch 203,
-3,,turnout,Switch 205,M2T2312,23,Node: 23 Turnout: 4,Switch 205,no control point: Industry 3 spur
-3,,turnout,Switch 207,M2T2313,23,Node: 23 Turnout: 5,Switch 207,no control point: Industry 3 spurs
-3,,turnout,Switch 209,M2T2410,24,Node: 24 Turnout: 2,Switch 209,no control point: Industry 3 lead
-3,,turnout,Switch 211,M2T2411,24,Node: 24 Turnout: 3,Switch 211,no control point: Industry 3 spur
-3,CP 213,turnout,Switch 213,M2T2408,24,Node: 24 Turnout: 0,"Switch 213A, Switch 213B",
-3,,turnout,Switch 215,M2T2412,24,Node: 24 Turnout: 4,Switch 215,no control point: Industry 3 spurs
-3,CP 217,turnout,Switch 217,M2T2409,24,Node: 24 Turnout: 1,"Switch 217A, Switch 217B",
-3,CP 201,turnout,Switch 219,M2T2310,23,Node: 23 Turnout: 2,Switch 219,
-3,CP 201,turnout,Switch 221,M2T2311,23,Node: 23 Turnout: 3,"Switch 221A, Switch 221B",
-3,CP 223,turnout,Switch 223,M2T2208,22,Node: 22 Turnout: 0,Switch 223*,
-3,CP 225,turnout,Switch 225,M2T2108,21,Node: 21 Turnout: 0,Switch 225,
-3,CP 225,turnout,Switch 227,M2T2109,21,Node: 21 Turnout: 1,Switch 227,
-3,CP 225,turnout,Switch 229,M2T2110,21,Node: 21 Turnout: 2,Switch 229,
-3,,turnout,Switch 231,M2T2111,21,Node: 21 Turnout: 3,Switch 231,no control point: Yard throat
-3,,turnout,Switch 233,M2T2112,21,Node: 21 Turnout: 4,Switch 233,no control point: Yard spur
-3,,turnout,Switch 235,M2T2113,21,Node: 21 Turnout: 5,Switch 235,no control point: Yard throat
-3,,turnout,Switch 237,M2T2114,21,Node: 21 Turnout: 6,Switch 237,no control point: Yard ladder
-3,,turnout,Switch 239,M2T2115,21,Node: 21 Turnout: 7,Switch 239,no control point: Spur off the peninsula loop
-3,,turnout,Switch 241,M2T3108,31,Node: 31 Turnout: 0,"Switch 241A, Switch 241B",no control point: Yard crossover
-3,,turnout,Switch 243,M2T3109,31,Node: 31 Turnout: 1,Switch 243,no control point: Yard ladder
-3,,turnout,Switch 245,M2T3110,31,Node: 31 Turnout: 2,"Switch 245A, Switch 245B",no control point: Yard crossover
-3,CP 201,fb,FB Switch 201 N,M2S2367,23,Node: 23 Sensor: 0,,
-3,CP 201,fb,FB Switch 201 R,M2S2368,23,Node: 23 Sensor: 1,,
-3,CP 201,fb,FB Switch 203 N,M2S2369,23,Node: 23 Sensor: 2,,
-3,CP 201,fb,FB Switch 203 R,M2S2370,23,Node: 23 Sensor: 3,,
-3,,fb,FB Switch 205 N,M2S2375,23,Node: 23 Sensor: 8,,
-3,,fb,FB Switch 205 R,M2S2376,23,Node: 23 Sensor: 9,,
-3,,fb,FB Switch 207 N,M2S2377,23,Node: 23 Sensor: 10,,
-3,,fb,FB Switch 207 R,M2S2378,23,Node: 23 Sensor: 11,,
-3,,fb,FB Switch 209 N,M2S2471,24,Node: 24 Sensor: 4,,
-3,,fb,FB Switch 209 R,M2S2472,24,Node: 24 Sensor: 5,,
-3,,fb,FB Switch 211 N,M2S2473,24,Node: 24 Sensor: 6,,
-3,,fb,FB Switch 211 R,M2S2474,24,Node: 24 Sensor: 7,,
-3,CP 213,fb,FB Switch 213 N,M2S2467,24,Node: 24 Sensor: 0,,
-3,CP 213,fb,FB Switch 213 R,M2S2468,24,Node: 24 Sensor: 1,,
-3,,fb,FB Switch 215 N,M2S2475,24,Node: 24 Sensor: 8,,
-3,,fb,FB Switch 215 R,M2S2476,24,Node: 24 Sensor: 9,,
-3,CP 217,fb,FB Switch 217 N,M2S2469,24,Node: 24 Sensor: 2,,
-3,CP 217,fb,FB Switch 217 R,M2S2470,24,Node: 24 Sensor: 3,,
-3,CP 201,fb,FB Switch 219 N,M2S2371,23,Node: 23 Sensor: 4,,
-3,CP 201,fb,FB Switch 219 R,M2S2372,23,Node: 23 Sensor: 5,,
-3,CP 201,fb,FB Switch 221 N,M2S2373,23,Node: 23 Sensor: 6,,
-3,CP 201,fb,FB Switch 221 R,M2S2374,23,Node: 23 Sensor: 7,,
-3,CP 223,fb,FB Switch 223 N,M2S2267,22,Node: 22 Sensor: 0,,
-3,CP 223,fb,FB Switch 223 R,M2S2268,22,Node: 22 Sensor: 1,,
-3,CP 225,fb,FB Switch 225 N,M2S2167,21,Node: 21 Sensor: 0,,
-3,CP 225,fb,FB Switch 225 R,M2S2168,21,Node: 21 Sensor: 1,,
-3,CP 225,fb,FB Switch 227 N,M2S2169,21,Node: 21 Sensor: 2,,
-3,CP 225,fb,FB Switch 227 R,M2S2170,21,Node: 21 Sensor: 3,,
-3,CP 225,fb,FB Switch 229 N,M2S2171,21,Node: 21 Sensor: 4,,
-3,CP 225,fb,FB Switch 229 R,M2S2172,21,Node: 21 Sensor: 5,,
-3,,fb,FB Switch 231 N,M2S2173,21,Node: 21 Sensor: 6,,
-3,,fb,FB Switch 231 R,M2S2174,21,Node: 21 Sensor: 7,,
-3,,fb,FB Switch 233 N,M2S2175,21,Node: 21 Sensor: 8,,
-3,,fb,FB Switch 233 R,M2S2176,21,Node: 21 Sensor: 9,,
-3,,fb,FB Switch 235 N,M2S2177,21,Node: 21 Sensor: 10,,
-3,,fb,FB Switch 235 R,M2S2178,21,Node: 21 Sensor: 11,,
-3,,fb,FB Switch 237 N,M2S2179,21,Node: 21 Sensor: 12,,
-3,,fb,FB Switch 237 R,M2S2180,21,Node: 21 Sensor: 13,,
-3,,fb,FB Switch 239 N,M2S2181,21,Node: 21 Sensor: 14,,
-3,,fb,FB Switch 239 R,M2S2182,21,Node: 21 Sensor: 15,,
-3,,fb,FB Switch 241 N,M2S3167,31,Node: 31 Sensor: 0,,
-3,,fb,FB Switch 241 R,M2S3168,31,Node: 31 Sensor: 1,,
-3,,fb,FB Switch 243 N,M2S3169,31,Node: 31 Sensor: 2,,
-3,,fb,FB Switch 243 R,M2S3170,31,Node: 31 Sensor: 3,,
-3,,fb,FB Switch 245 N,M2S3171,31,Node: 31 Sensor: 4,,
-3,,fb,FB Switch 245 R,M2S3172,31,Node: 31 Sensor: 5,,
-3,CP 201,block,OS Switch 201,,23,CP 201,OS Switch 201,
-3,CP 201,block,OS Switch 203,,23,CP 201,OS Switch 203,
-3,,block,OS Switch 205,,23,West,OS Switch 205,
-3,,block,OS Switch 207,,23,West,OS Switch 207,
-3,,block,OS Switch 209,,24,Peninsula,OS Switch 209,
-3,,block,OS Switch 211,,24,Peninsula,OS Switch 211,
-3,CP 213,block,OS Switch 213,,24,CP 213,OS Switch 213,
-3,,block,OS Switch 215,,24,Peninsula,OS Switch 215,
-3,CP 217,block,OS Switch 217,,24,CP 217,OS Switch 217,
-3,CP 201,block,OS Switch 219,,23,CP 201,OS Switch 219,
-3,CP 201,block,OS Switch 221,,23,CP 201,OS Switch 221,
-3,CP 223,block,OS Switch 223,,22,CP 223,OS Switch 223,
-3,CP 225,block,OS Switch 225,,21,CP 225,OS Switch 225,
-3,CP 225,block,OS Switch 227,,21,CP 225,OS Switch 227,
-3,CP 225,block,OS Switch 229,,21,CP 225,OS Switch 229,
-3,,block,OS Switch 231,,21,Helix,OS Switch 231,
-3,,block,OS Switch 233,,21,Helix,OS Switch 233,
-3,,block,OS Switch 235,,21,Helix,OS Switch 235,
-3,,block,OS Switch 237,,21,Helix,OS Switch 237,
-3,,block,OS Switch 239,,21,Helix,OS Switch 239,
-3,,block,OS Switch 241,,31,Helix,OS Switch 241,
-3,,block,OS Switch 243,,31,Helix,OS Switch 243,
-3,,block,OS Switch 245,,31,Helix,OS Switch 245,
-3,CP 129,block,Track 129-135 2,,,CP 129,Track e67,"11.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 129,block,Track 129-221,,,CP 129 / CP 201,Track e75,521.9 cm
-3,CP 129,block,Track 135-H2,,,CP 129,Track e68+e81,427.1 cm
-3,CP 201,block,Track 201-203,,,CP 201,Track e60,"11.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 201,block,Track 201-205,,,CP 201,Track e61,"22.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 201,block,Track 201-219,,,CP 201,Track e59,"23.1 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 201,block,Track 203-209,,,CP 201,Track e56,145.0 cm
-3,CP 201,block,Track 203-213,,,CP 201 / CP 213,Track e69,283.2 cm
-3,,block,Track 205 Spur,,,,Track e89,88.9 cm
-3,,block,Track 205-207,,,,Track e85,"10.7 cm short link: inside the OS blocks of its switches, no detector"
-3,,block,Track 207 Spur 1,,,,Track e87,170.4 cm
-3,,block,Track 207 Spur 2,,,,Track e86,180.4 cm
-3,,block,Track 209-211,,,,Track e58,73.3 cm
-3,CP 213,block,Track 209-213,,,CP 213,Track e57,86.2 cm
-3,,block,Track 211 Spur,,,,Track e88,139.0 cm
-3,,block,Track 211-215,,,,Track e82,"14.2 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 213,block,Track 213-217 1,,,CP 213 / CP 217,Track e73,278.4 cm
-3,CP 213,block,Track 213-217 2,,,CP 213 / CP 217,Track e79,234.4 cm
-3,,block,Track 215 Spur 1,,,,Track e84,97.9 cm
-3,,block,Track 215 Spur 2,,,,Track e83,91.5 cm
-3,CP 201,block,Track 217-219,,,CP 201 / CP 217,Track e77,163.2 cm
-3,CP 201,block,Track 217-221,,,CP 201 / CP 217,Track e76,238.2 cm
-3,CP 201,block,Track 219-221,,,CP 201,Track e70,"11.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 201,block,Track 221-223,,,CP 201 / CP 223,Track e71b,659.6 cm
-3,CP 223,block,Track 223-225 1,,,CP 223 / CP 225,Track e71a,292 cm
-3,CP 223,block,Track 223-225 2,,,CP 223 / CP 225,Track e80,292.1 cm
-3,CP 225,block,Track 225-227,,,CP 225,Track e66,"17.8 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 225,block,Track 225-229,,,CP 225,Track e62,"17.8 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 225,block,Track 227-233,,,CP 225,Track e49,"20.6 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 225,block,Track 227-239,,,CP 225,Track e64,518.6 cm
-3,CP 225,block,Track 229-231,,,CP 225,Track e38,48.3 cm
-3,CP 225,block,Track 229-239,,,CP 225,Track e63,77.6 cm
-3,,block,Track 231-235,,,,Track e40,75.9 cm
-3,,block,Track 231-241,,,,Track e39,117.6 cm
-3,,block,Track 233 Spur,,,,Track e50,157.2 cm
-3,,block,Track 233-237,,,,Track e43,39.6 cm
-3,,block,Track 235 Spur,,,,Track e52,88.0 cm
-3,,block,Track 235-241,,,,Track e51,"10.5 cm short link: inside the OS blocks of its switches, no detector"
-3,,block,Track 237-243,,,,Track e44,"15.2 cm short link: inside the OS blocks of its switches, no detector"
-3,,block,Track 237-245,,,,Track e45,92.1 cm
-3,,block,Track 239 Spur,,,,Track e65,97.1 cm
-3,,block,Track 241 Spur 1,,,,Track e41,35.4 cm
-3,,block,Track 241 Spur 2,,,,Track e55,56.3 cm
-3,,block,Track 243 Spur,,,,Track e54,111.3 cm
-3,,block,Track 243-245,,,,Track e46,45.9 cm
-3,,block,Track 245 Spur 1,,,,Track e53,33.2 cm
-3,,block,Track 245 Spur 2,,,,Track e47,54.4 cm
-3,CP 129,occupancy,BS 129-221,M2S2306,23,Node: 23 Block: 7,,
-3,CP 129,occupancy,BS 135-H2,M2S5207,52,Node: 52 Block: 8,,
-3,CP 201,occupancy,BS 203-209,M2S2307,23,Node: 23 Block: 8,,
-3,CP 201,occupancy,BS 203-213,M2S2405,24,Node: 24 Block: 6,,
-3,,occupancy,BS 205 Spur,M2S1400,14,Node: 14 Block: 1,,
-3,,occupancy,BS 207 Spur 1,M2S1401,14,Node: 14 Block: 2,,
-3,,occupancy,BS 207 Spur 2,M2S1402,14,Node: 14 Block: 3,,
-3,,occupancy,BS 209-211,M2S2406,24,Node: 24 Block: 7,,
-3,CP 213,occupancy,BS 209-213,M2S2407,24,Node: 24 Block: 8,,
-3,,occupancy,BS 211 Spur,M2S5400,54,Node: 54 Block: 1,,
-3,CP 213,occupancy,BS 213-217 1,M2S5401,54,Node: 54 Block: 2,,
-3,CP 213,occupancy,BS 213-217 2,M2S5402,54,Node: 54 Block: 3,,
-3,,occupancy,BS 215 Spur 1,M2S5403,54,Node: 54 Block: 4,,
-3,,occupancy,BS 215 Spur 2,M2S5404,54,Node: 54 Block: 5,,
-3,CP 201,occupancy,BS 217-219,M2S5405,54,Node: 54 Block: 6,,
-3,CP 201,occupancy,BS 217-221,M2S5406,54,Node: 54 Block: 7,,
-3,CP 201,occupancy,BS 221-223,M2S2201,22,Node: 22 Block: 2,,
-3,CP 223,occupancy,BS 223-225 1,M2S2202,22,Node: 22 Block: 3,,
-3,CP 223,occupancy,BS 223-225 2,M2S2203,22,Node: 22 Block: 4,,
-3,CP 225,occupancy,BS 227-239,M2S3103,31,Node: 31 Block: 4,,
-3,CP 225,occupancy,BS 229-231,M2S3104,31,Node: 31 Block: 5,,
-3,CP 225,occupancy,BS 229-239,M2S3105,31,Node: 31 Block: 6,,
-3,,occupancy,BS 231-235,M2S3106,31,Node: 31 Block: 7,,
-3,,occupancy,BS 231-241,M2S3107,31,Node: 31 Block: 8,,
-3,,occupancy,BS 233 Spur,M2S4100,41,Node: 41 Block: 1,,
-3,,occupancy,BS 233-237,M2S4101,41,Node: 41 Block: 2,,
-3,,occupancy,BS 235 Spur,M2S4102,41,Node: 41 Block: 3,,
-3,,occupancy,BS 237-245,M2S4103,41,Node: 41 Block: 4,,
-3,,occupancy,BS 239 Spur,M2S4104,41,Node: 41 Block: 5,,
-3,,occupancy,BS 241 Spur 1,M2S4105,41,Node: 41 Block: 6,,
-3,,occupancy,BS 241 Spur 2,M2S4106,41,Node: 41 Block: 7,,
-3,,occupancy,BS 243 Spur,M2S4107,41,Node: 41 Block: 8,,
-3,,occupancy,BS 243-245,M2S5100,51,Node: 51 Block: 1,,
-3,,occupancy,BS 245 Spur 1,M2S5101,51,Node: 51 Block: 2,,
-3,,occupancy,BS 245 Spur 2,M2S5102,51,Node: 51 Block: 3,,
-3,CP 201,occupancy,BS Switch 201,M2S2300,23,Node: 23 Block: 1,,
-3,CP 201,occupancy,BS Switch 203,M2S2301,23,Node: 23 Block: 2,,
-3,,occupancy,BS Switch 205,M2S2304,23,Node: 23 Block: 5,,
-3,,occupancy,BS Switch 207,M2S2305,23,Node: 23 Block: 6,,
-3,,occupancy,BS Switch 209,M2S2402,24,Node: 24 Block: 3,,
-3,,occupancy,BS Switch 211,M2S2403,24,Node: 24 Block: 4,,
-3,CP 213,occupancy,BS Switch 213,M2S2400,24,Node: 24 Block: 1,,
-3,,occupancy,BS Switch 215,M2S2404,24,Node: 24 Block: 5,,
-3,CP 217,occupancy,BS Switch 217,M2S2401,24,Node: 24 Block: 2,,
-3,CP 201,occupancy,BS Switch 219,M2S2302,23,Node: 23 Block: 3,,
-3,CP 201,occupancy,BS Switch 221,M2S2303,23,Node: 23 Block: 4,,
-3,CP 223,occupancy,BS Switch 223,M2S2200,22,Node: 22 Block: 1,,
-3,CP 225,occupancy,BS Switch 225,M2S2100,21,Node: 21 Block: 1,,
-3,CP 225,occupancy,BS Switch 227,M2S2101,21,Node: 21 Block: 2,,
-3,CP 225,occupancy,BS Switch 229,M2S2102,21,Node: 21 Block: 3,,
-3,,occupancy,BS Switch 231,M2S2103,21,Node: 21 Block: 4,,
-3,,occupancy,BS Switch 233,M2S2104,21,Node: 21 Block: 5,,
-3,,occupancy,BS Switch 235,M2S2105,21,Node: 21 Block: 6,,
-3,,occupancy,BS Switch 237,M2S2106,21,Node: 21 Block: 7,,
-3,,occupancy,BS Switch 239,M2S2107,21,Node: 21 Block: 8,,
-3,,occupancy,BS Switch 241,M2S3100,31,Node: 31 Block: 1,,
-3,,occupancy,BS Switch 243,M2S3101,31,Node: 31 Block: 2,,
-3,,occupancy,BS Switch 245,M2S3102,31,Node: 31 Block: 3,,
-3,CP 201,mast,Mast 202R,IF$shsm:basic:one-low(IH2332),23,CP 201 | Switch 201,,home signal from Track 201-205
-3,CP 201,mast,Mast 204RA,IF$shsm:basic:one-low(IH2333),23,CP 201 | Switch 203,,home signal from Track 203-209
-3,CP 201,mast,Mast 204RB,IF$shsm:basic:one-low(IH2334),23,CP 201 | Switch 203,,home signal from Track 203-213
-3,CP 213,mast,Mast 214LA,IF$shsm:basic:two-searchlight(IH2432)(IH2433),24,CP 213 | Switch 213,,home signal from Track 209-213
-3,CP 213,mast,Mast 214LB,IF$shsm:basic:one-low(IH2434),24,CP 213 | Switch 213,,home signal from Track 203-213
-3,CP 213,mast,Mast 214RA,IF$shsm:basic:one-low(IH2435),24,CP 213 | Switch 213,,home signal from Track 213-217 1
-3,CP 213,mast,Mast 214RB,IF$shsm:basic:two-searchlight(IH2436)(IH2437),24,CP 213 | Switch 213,,home signal from Track 213-217 2
-3,CP 217,mast,Mast 218LA,IF$shsm:basic:one-low(IH2438),24,CP 217 | Switch 217,,home signal from Track 213-217 1
-3,CP 217,mast,Mast 218LB,IF$shsm:basic:two-searchlight(IH2439)(IH2440),24,CP 217 | Switch 217,,home signal from Track 213-217 2
-3,CP 217,mast,Mast 218RA,IF$shsm:basic:two-searchlight(IH2441)(IH2442),24,CP 217 | Switch 217,,home signal from Track 217-219
-3,CP 217,mast,Mast 218RB,IF$shsm:basic:one-low(IH2443),24,CP 217 | Switch 217,,home signal from Track 217-221
-3,CP 201,mast,Mast 220R,IF$shsm:basic:one-low(IH2335),23,CP 201 | Switch 219,,home signal from Track 217-219
-3,CP 201,mast,Mast 222LA,IF$shsm:basic:one-low(IH2336),23,CP 201 | Switch 221,,home signal from Track 221-223
-3,CP 201,mast,Mast 222LB,IF$shsm:basic:one-low(IH2337),23,CP 201 | Switch 221,,home signal from Track 217-221
-3,CP 201,mast,Mast 222R,IF$shsm:basic:two-searchlight(IH2338)(IH2339),23,CP 201 | Switch 221,,home signal from Track 129-221
-3,CP 223,mast,Mast 224LA,IF$shsm:basic:one-low(IH2232),22,CP 223 | Switch 223,,home signal from Track 223-225 1
-3,CP 223,mast,Mast 224LB,IF$shsm:basic:one-low(IH2233),22,CP 223 | Switch 223,,home signal from Track 223-225 2
-3,CP 223,mast,Mast 224R,IF$shsm:basic:two-searchlight(IH2234)(IH2235),22,CP 223 | Switch 223,,home signal from Track 221-223
-3,CP 225,mast,Mast 226RA,IF$shsm:basic:two-searchlight(IH2132)(IH2133),21,CP 225 | Switch 225,,home signal from Track 223-225 1
-3,CP 225,mast,Mast 226RB,IF$shsm:basic:two-searchlight(IH2134)(IH2135),21,CP 225 | Switch 225,,home signal from Track 223-225 2
-3,CP 225,mast,Mast 228RA,IF$shsm:basic:one-low(IH2136),21,CP 225 | Switch 227,,home signal from Track 227-233
-3,CP 225,mast,Mast 228RB,IF$shsm:basic:one-low(IH2137),21,CP 225 | Switch 227,,home signal from Track 227-239
-3,CP 225,mast,Mast 230LA,IF$shsm:basic:one-low(IH2138),21,CP 225 | Switch 229,,home signal from Track 229-239
-3,CP 225,mast,Mast 230LB,IF$shsm:basic:one-low(IH2139),21,CP 225 | Switch 229,,home signal from Track 229-231
-3,CP 201,head,Head 202R,IH2332,23,Node: 23 Signal: 0,,
-3,CP 201,head,Head 204RA,IH2333,23,Node: 23 Signal: 1,,
-3,CP 201,head,Head 204RB,IH2334,23,Node: 23 Signal: 2,,
-3,CP 213,head,Head 214LA Bottom,IH2433,24,Node: 24 Signal: 1,,
-3,CP 213,head,Head 214LA Top,IH2432,24,Node: 24 Signal: 0,,
-3,CP 213,head,Head 214LB,IH2434,24,Node: 24 Signal: 2,,
-3,CP 213,head,Head 214RA,IH2435,24,Node: 24 Signal: 3,,
-3,CP 213,head,Head 214RB Bottom,IH2437,24,Node: 24 Signal: 5,,
-3,CP 213,head,Head 214RB Top,IH2436,24,Node: 24 Signal: 4,,
-3,CP 217,head,Head 218LA,IH2438,24,Node: 24 Signal: 6,,
-3,CP 217,head,Head 218LB Bottom,IH2440,24,Node: 24 Signal: 8,,
-3,CP 217,head,Head 218LB Top,IH2439,24,Node: 24 Signal: 7,,
-3,CP 217,head,Head 218RA Bottom,IH2442,24,Node: 24 Signal: 10,,
-3,CP 217,head,Head 218RA Top,IH2441,24,Node: 24 Signal: 9,,
-3,CP 217,head,Head 218RB,IH2443,24,Node: 24 Signal: 11,,
-3,CP 201,head,Head 220R,IH2335,23,Node: 23 Signal: 3,,
-3,CP 201,head,Head 222LA,IH2336,23,Node: 23 Signal: 4,,
-3,CP 201,head,Head 222LB,IH2337,23,Node: 23 Signal: 5,,
-3,CP 201,head,Head 222R Bottom,IH2339,23,Node: 23 Signal: 7,,
-3,CP 201,head,Head 222R Top,IH2338,23,Node: 23 Signal: 6,,
-3,CP 223,head,Head 224LA,IH2232,22,Node: 22 Signal: 0,,
-3,CP 223,head,Head 224LB,IH2233,22,Node: 22 Signal: 1,,
-3,CP 223,head,Head 224R Bottom,IH2235,22,Node: 22 Signal: 3,,
-3,CP 223,head,Head 224R Top,IH2234,22,Node: 22 Signal: 2,,
-3,CP 225,head,Head 226RA Bottom,IH2133,21,Node: 21 Signal: 1,,
-3,CP 225,head,Head 226RA Top,IH2132,21,Node: 21 Signal: 0,,
-3,CP 225,head,Head 226RB Bottom,IH2135,21,Node: 21 Signal: 3,,
-3,CP 225,head,Head 226RB Top,IH2134,21,Node: 21 Signal: 2,,
-3,CP 225,head,Head 228RA,IH2136,21,Node: 21 Signal: 4,,
-3,CP 225,head,Head 228RB,IH2137,21,Node: 21 Signal: 5,,
-3,CP 225,head,Head 230LA,IH2138,21,Node: 21 Signal: 6,,
-3,CP 225,head,Head 230LB,IH2139,21,Node: 21 Signal: 7,,
+level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
+2,,turnout,DCC Switch 101,MTT120,34,120,Node: 34 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
+2,,turnout,DCC Switch 103,MTT121,34,121,Node: 34 Turnout: 1,,LCC alias of the MQTT turnout (ADR-005)
+2,,turnout,DCC Switch 105,MTT122,33,122,Node: 33 Turnout: 5,,LCC alias of the MQTT turnout (ADR-005)
+2,CP 107,turnout,DCC Switch 107,MTT123,33,123,Node: 33 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
+2,CP 109,turnout,DCC Switch 109,MTT124,33,124,Node: 33 Turnout: 1,,LCC alias of the MQTT turnout (ADR-005)
+2,CP 109,turnout,DCC Switch 111,MTT125,33,125,Node: 33 Turnout: 2,,LCC alias of the MQTT turnout (ADR-005)
+2,,turnout,DCC Switch 113,MTT126,33,126,Node: 33 Turnout: 6,,LCC alias of the MQTT turnout (ADR-005)
+2,,turnout,DCC Switch 115,MTT127,33,127,Node: 33 Turnout: 7,,LCC alias of the MQTT turnout (ADR-005)
+2,CP 109,turnout,DCC Switch 117,MTT128,33,128,Node: 33 Turnout: 3,,LCC alias of the MQTT turnout (ADR-005)
+2,CP 109,turnout,DCC Switch 119,MTT129,33,129,Node: 33 Turnout: 4,,LCC alias of the MQTT turnout (ADR-005)
+2,,turnout,DCC Switch 121,MTT130,42,130,Node: 42 Turnout: 4,,LCC alias of the MQTT turnout (ADR-005)
+2,,turnout,DCC Switch 123,MTT131,42,131,Node: 42 Turnout: 5,,LCC alias of the MQTT turnout (ADR-005)
+2,CP 125,turnout,DCC Switch 125,MTT132,42,132,Node: 42 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
+2,CP 125,turnout,DCC Switch 127,MTT133,42,133,Node: 42 Turnout: 1,,LCC alias of the MQTT turnout (ADR-005)
+2,CP 129,turnout,DCC Switch 129,MTT134,42,134,Node: 42 Turnout: 2,,LCC alias of the MQTT turnout (ADR-005)
+2,,turnout,DCC Switch 131,MTT135,42,135,Node: 42 Turnout: 6,,LCC alias of the MQTT turnout (ADR-005)
+2,,turnout,DCC Switch 133,MTT136,42,136,Node: 42 Turnout: 7,,LCC alias of the MQTT turnout (ADR-005)
+2,CP 129,turnout,DCC Switch 135,MTT137,42,137,Node: 42 Turnout: 3,,LCC alias of the MQTT turnout (ADR-005)
+2,,turnout,Switch 101,M2T3408,34,120,Node: 34 Turnout: 0,"Switch 101A, Switch 101B",no control point: Yard throat crossover
+2,,turnout,Switch 103,M2T3409,34,121,Node: 34 Turnout: 1,"Switch 103A, Switch 103B",no control point: Yard throat crossover
+2,,turnout,Switch 105,M2T3313,33,122,Node: 33 Turnout: 5,Switch 105,no control point: Yard ladder
+2,CP 107,turnout,Switch 107,M2T3308,33,123,Node: 33 Turnout: 0,Switch 107,
+2,CP 109,turnout,Switch 109,M2T3309,33,124,Node: 33 Turnout: 1,Switch 109,
+2,CP 109,turnout,Switch 111,M2T3310,33,125,Node: 33 Turnout: 2,Switch 111,
+2,,turnout,Switch 113,M2T3314,33,126,Node: 33 Turnout: 6,Switch 113,no control point: Industry 1 spur
+2,,turnout,Switch 115,M2T3315,33,127,Node: 33 Turnout: 7,Switch 115,no control point: Industry 1 spur
+2,CP 109,turnout,Switch 117,M2T3311,33,128,Node: 33 Turnout: 3,Switch 117,
+2,CP 109,turnout,Switch 119,M2T3312,33,129,Node: 33 Turnout: 4,"Switch 119A, Switch 119B",
+2,,turnout,Switch 121,M2T4212,42,130,Node: 42 Turnout: 4,Switch 121,no control point: Industry 2 spur
+2,,turnout,Switch 123,M2T4213,42,131,Node: 42 Turnout: 5,Switch 123,no control point: Industry 2 lead off the siding
+2,CP 125,turnout,Switch 125,M2T4208,42,132,Node: 42 Turnout: 0,Switch 125,
+2,CP 125,turnout,Switch 127,M2T4209,42,133,Node: 42 Turnout: 1,Switch 127,
+2,CP 129,turnout,Switch 129,M2T4210,42,134,Node: 42 Turnout: 2,"Switch 129A, Switch 129B",
+2,,turnout,Switch 131,M2T4214,42,135,Node: 42 Turnout: 6,Switch 131,no control point: Industry 2 spur
+2,,turnout,Switch 133,M2T4215,42,136,Node: 42 Turnout: 7,Switch 133,no control point: Industry 2 spurs
+2,CP 129,turnout,Switch 135,M2T4211,42,137,Node: 42 Turnout: 3,"Switch 135A, Switch 135B",
+2,,fb,FB Switch 101 N,M2S3467,34,,Node: 34 Sensor: 0,,
+2,,fb,FB Switch 101 R,M2S3468,34,,Node: 34 Sensor: 1,,
+2,,fb,FB Switch 103 N,M2S3469,34,,Node: 34 Sensor: 2,,
+2,,fb,FB Switch 103 R,M2S3470,34,,Node: 34 Sensor: 3,,
+2,,fb,FB Switch 105 N,M2S3377,33,,Node: 33 Sensor: 10,,
+2,,fb,FB Switch 105 R,M2S3378,33,,Node: 33 Sensor: 11,,
+2,CP 107,fb,FB Switch 107 N,M2S3367,33,,Node: 33 Sensor: 0,,
+2,CP 107,fb,FB Switch 107 R,M2S3368,33,,Node: 33 Sensor: 1,,
+2,CP 109,fb,FB Switch 109 N,M2S3369,33,,Node: 33 Sensor: 2,,
+2,CP 109,fb,FB Switch 109 R,M2S3370,33,,Node: 33 Sensor: 3,,
+2,CP 109,fb,FB Switch 111 N,M2S3371,33,,Node: 33 Sensor: 4,,
+2,CP 109,fb,FB Switch 111 R,M2S3372,33,,Node: 33 Sensor: 5,,
+2,,fb,FB Switch 113 N,M2S3379,33,,Node: 33 Sensor: 12,,
+2,,fb,FB Switch 113 R,M2S3380,33,,Node: 33 Sensor: 13,,
+2,,fb,FB Switch 115 N,M2S3381,33,,Node: 33 Sensor: 14,,
+2,,fb,FB Switch 115 R,M2S3382,33,,Node: 33 Sensor: 15,,
+2,CP 109,fb,FB Switch 117 N,M2S3373,33,,Node: 33 Sensor: 6,,
+2,CP 109,fb,FB Switch 117 R,M2S3374,33,,Node: 33 Sensor: 7,,
+2,CP 109,fb,FB Switch 119 N,M2S3375,33,,Node: 33 Sensor: 8,,
+2,CP 109,fb,FB Switch 119 R,M2S3376,33,,Node: 33 Sensor: 9,,
+2,,fb,FB Switch 121 N,M2S4275,42,,Node: 42 Sensor: 8,,
+2,,fb,FB Switch 121 R,M2S4276,42,,Node: 42 Sensor: 9,,
+2,,fb,FB Switch 123 N,M2S4277,42,,Node: 42 Sensor: 10,,
+2,,fb,FB Switch 123 R,M2S4278,42,,Node: 42 Sensor: 11,,
+2,CP 125,fb,FB Switch 125 N,M2S4267,42,,Node: 42 Sensor: 0,,
+2,CP 125,fb,FB Switch 125 R,M2S4268,42,,Node: 42 Sensor: 1,,
+2,CP 125,fb,FB Switch 127 N,M2S4269,42,,Node: 42 Sensor: 2,,
+2,CP 125,fb,FB Switch 127 R,M2S4270,42,,Node: 42 Sensor: 3,,
+2,CP 129,fb,FB Switch 129 N,M2S4271,42,,Node: 42 Sensor: 4,,
+2,CP 129,fb,FB Switch 129 R,M2S4272,42,,Node: 42 Sensor: 5,,
+2,,fb,FB Switch 131 N,M2S4279,42,,Node: 42 Sensor: 12,,
+2,,fb,FB Switch 131 R,M2S4280,42,,Node: 42 Sensor: 13,,
+2,,fb,FB Switch 133 N,M2S4281,42,,Node: 42 Sensor: 14,,
+2,,fb,FB Switch 133 R,M2S4282,42,,Node: 42 Sensor: 15,,
+2,CP 129,fb,FB Switch 135 N,M2S4273,42,,Node: 42 Sensor: 6,,
+2,CP 129,fb,FB Switch 135 R,M2S4274,42,,Node: 42 Sensor: 7,,
+2,,block,OS Switch 101,,,,Peninsula,OS Switch 101,no detector: off the main line
+2,,block,OS Switch 103,,,,Peninsula,OS Switch 103,no detector: off the main line
+2,,block,OS Switch 105,,,,West,OS Switch 105,no detector: off the main line
+2,CP 107,block,OS Switch 107,,33,,CP 107,OS Switch 107,
+2,CP 109,block,OS Switch 109,,33,,CP 109,OS Switch 109,
+2,CP 109,block,OS Switch 111,,33,,CP 109,OS Switch 111,
+2,,block,OS Switch 113,,,,West,OS Switch 113,no detector: off the main line
+2,,block,OS Switch 115,,,,West,OS Switch 115,no detector: off the main line
+2,CP 109,block,OS Switch 117,,33,,CP 109,OS Switch 117,
+2,CP 109,block,OS Switch 119,,33,,CP 109,OS Switch 119,
+2,,block,OS Switch 121,,,,North,OS Switch 121,no detector: off the main line
+2,,block,OS Switch 123,,,,North,OS Switch 123,no detector: off the main line
+2,CP 125,block,OS Switch 125,,42,,CP 125,OS Switch 125,
+2,CP 125,block,OS Switch 127,,42,,CP 125,OS Switch 127,
+2,CP 129,block,OS Switch 129,,42,,CP 129,OS Switch 129,
+2,,block,OS Switch 131,,,,North,OS Switch 131,no detector: off the main line
+2,,block,OS Switch 133,,,,North,OS Switch 133,no detector: off the main line
+2,CP 129,block,OS Switch 135,,42,,CP 129,OS Switch 135,
+2,,block,Track 101 Spur 1,,,,,Track e25,63.1 cm no detector: off the main line
+2,,block,Track 101 Spur 2,,,,,Track e32,99.0 cm no detector: off the main line
+2,,block,Track 101-103,,,,,Track e28,"3.4 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 109,block,Track 101-111,,,,CP 109,Track e24,398.1 cm no detector: off the main line
+2,,block,Track 103 Spur,,,,,Track e31,111.1 cm no detector: off the main line
+2,,block,Track 103-105 1,,,,,Track e22,318.6 cm no detector: off the main line
+2,,block,Track 103-105 2,,,,,Track e21,361.3 cm no detector: off the main line
+2,CP 109,block,Track 105-109,,,,CP 109,Track e20,"21.5 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 107,block,Track 107 Loop,,,,CP 107,Track e33,777.0 cm
+2,CP 107,block,Track 107-109,,,,CP 107 / CP 109,Track e19,99.9 cm
+2,CP 109,block,Track 109-111,,,,CP 109,Track e18,"24.2 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 109,block,Track 111-117,,,,CP 109,Track e23,"11.1 cm short link: inside the OS blocks of its switches, no detector"
+2,,block,Track 113 Spur 1,,,,,Track e12,55.0 cm no detector: off the main line
+2,,block,Track 113 Spur 2,,,,,Track e13,108.2 cm no detector: off the main line
+2,,block,Track 113-115,,,,,Track e11,44.2 cm no detector: off the main line
+2,,block,Track 115 Spur,,,,,Track e15,76.5 cm no detector: off the main line
+2,CP 109,block,Track 115-117,,,,CP 109,Track e14,"24.2 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 109,block,Track 117-119,,,,CP 109,Track e16,"11.1 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 109,block,Track 119 Spur,,,,CP 109,Track e8,89.0 cm no detector: off the main line
+2,CP 109,block,Track 119-123,,,,CP 109,Track e7,158.6 cm no detector: off the main line
+2,CP 109,block,Track 119-125,,,,CP 109 / CP 125,Track e17,230.0 cm
+2,,block,Track 121 Spur,,,,,Track e0,122.3 cm no detector: off the main line
+2,,block,Track 121-123,,,,,Track e2,"10.7 cm short link: inside the OS blocks of its switches, no detector"
+2,,block,Track 121-131,,,,,Track e1,87.5 cm no detector: off the main line
+2,CP 125,block,Track 123-125,,,,CP 125,Track e6,"25.2 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 125,block,Track 125-127,,,,CP 125,Track e29,"10.5 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 125,block,Track 127-129,,,,CP 125 / CP 129,Track e30,86.9 cm
+2,CP 125,block,Track 127-131,,,,CP 125,Track e10,"10.7 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 129,block,Track 129-135 1,,,,CP 129,Track e35,73.6 cm
+2,,block,Track 131-133,,,,,Track e3,"10.5 cm short link: inside the OS blocks of its switches, no detector"
+2,,block,Track 133 Spur 1,,,,,Track e4,69.3 cm no detector: off the main line
+2,,block,Track 133 Spur 2,,,,,Track e5,70.5 cm no detector: off the main line
+2,CP 129,block,Track 135-H1,,,,CP 129,Track e34,849.6 cm
+2,CP 107,occupancy,BS 107 Loop,M2S3305,33,,Node: 33 Block: 6,,
+2,CP 107,occupancy,BS 107-109,M2S3306,33,,Node: 33 Block: 7,,
+2,CP 109,occupancy,BS 119-125,M2S3307,33,,Node: 33 Block: 8,,
+2,CP 125,occupancy,BS 127-129,M2S4204,42,,Node: 42 Block: 5,,
+2,CP 129,occupancy,BS 129-135 1,M2S4205,42,,Node: 42 Block: 6,,
+2,CP 129,occupancy,BS 135-H1,M2S4206,42,,Node: 42 Block: 7,,
+2,CP 107,occupancy,BS Switch 107,M2S3300,33,,Node: 33 Block: 1,,
+2,CP 109,occupancy,BS Switch 109,M2S3301,33,,Node: 33 Block: 2,,
+2,CP 109,occupancy,BS Switch 111,M2S3302,33,,Node: 33 Block: 3,,
+2,CP 109,occupancy,BS Switch 117,M2S3303,33,,Node: 33 Block: 4,,
+2,CP 109,occupancy,BS Switch 119,M2S3304,33,,Node: 33 Block: 5,,
+2,CP 125,occupancy,BS Switch 125,M2S4200,42,,Node: 42 Block: 1,,
+2,CP 125,occupancy,BS Switch 127,M2S4201,42,,Node: 42 Block: 2,,
+2,CP 129,occupancy,BS Switch 129,M2S4202,42,,Node: 42 Block: 3,,
+2,CP 129,occupancy,BS Switch 135,M2S4203,42,,Node: 42 Block: 4,,
+2,CP 107,mast,Mast 108R,IF$shsm:basic:two-searchlight(IH3332)(IH3333),33,,CP 107 | Switch 107,,home signal from Track 107-109
+2,CP 109,mast,Mast 110LA,IF$shsm:basic:one-low(IH3334),33,,CP 109 | Switch 109,,home signal from Track 107-109
+2,CP 109,mast,Mast 110LB,IF$shsm:basic:one-low(IH3335),33,,CP 109 | Switch 109,,home signal from Track 105-109
+2,CP 109,mast,Mast 112L,IF$shsm:basic:one-low(IH3336),33,,CP 109 | Switch 111,,home signal from Track 101-111
+2,CP 109,mast,Mast 118L,IF$shsm:basic:one-low(IH3337),33,,CP 109 | Switch 117,,home signal from Track 115-117
+2,CP 109,mast,Mast 120RA,IF$shsm:basic:one-low(IH3338),33,,CP 109 | Switch 119,,home signal from Track 119-125
+2,CP 109,mast,Mast 120RB,IF$shsm:basic:two-searchlight(IH3339)(IH3340),33,,CP 109 | Switch 119,,home signal from Track 119-123
+2,CP 125,mast,Mast 126LA,IF$shsm:basic:one-low(IH4232),42,,CP 125 | Switch 125,,home signal from Track 119-125
+2,CP 125,mast,Mast 126LB,IF$shsm:basic:one-low(IH4233),42,,CP 125 | Switch 125,,home signal from Track 123-125
+2,CP 125,mast,Mast 128RA,IF$shsm:basic:one-low(IH4234),42,,CP 125 | Switch 127,,home signal from Track 127-131
+2,CP 125,mast,Mast 128RB,IF$shsm:basic:one-low(IH4235),42,,CP 125 | Switch 127,,home signal from Track 127-129
+2,CP 129,mast,Mast 130LA,IF$shsm:basic:two-searchlight(IH4236)(IH4237),42,,CP 129 | Switch 129,,home signal from Track 127-129
+2,CP 129,mast,Mast 130LB,IF$shsm:basic:one-low(IH4238),42,,CP 129 | Switch 129,,home signal from Track 129-221
+2,CP 129,mast,Mast 136RA,IF$shsm:basic:two-searchlight(IH4239)(IH4240),42,,CP 129 | Switch 135,,home signal from Track 135-H1
+2,CP 129,mast,Mast 136RB,IF$shsm:basic:one-low(IH4241),42,,CP 129 | Switch 135,,home signal from Track 135-H2
+2,CP 107,head,Head 108R Bottom,IH3333,33,,Node: 33 Signal: 1,,
+2,CP 107,head,Head 108R Top,IH3332,33,,Node: 33 Signal: 0,,
+2,CP 109,head,Head 110LA,IH3334,33,,Node: 33 Signal: 2,,
+2,CP 109,head,Head 110LB,IH3335,33,,Node: 33 Signal: 3,,
+2,CP 109,head,Head 112L,IH3336,33,,Node: 33 Signal: 4,,
+2,CP 109,head,Head 118L,IH3337,33,,Node: 33 Signal: 5,,
+2,CP 109,head,Head 120RA,IH3338,33,,Node: 33 Signal: 6,,
+2,CP 109,head,Head 120RB Bottom,IH3340,33,,Node: 33 Signal: 8,,
+2,CP 109,head,Head 120RB Top,IH3339,33,,Node: 33 Signal: 7,,
+2,CP 125,head,Head 126LA,IH4232,42,,Node: 42 Signal: 0,,
+2,CP 125,head,Head 126LB,IH4233,42,,Node: 42 Signal: 1,,
+2,CP 125,head,Head 128RA,IH4234,42,,Node: 42 Signal: 2,,
+2,CP 125,head,Head 128RB,IH4235,42,,Node: 42 Signal: 3,,
+2,CP 129,head,Head 130LA Bottom,IH4237,42,,Node: 42 Signal: 5,,
+2,CP 129,head,Head 130LA Top,IH4236,42,,Node: 42 Signal: 4,,
+2,CP 129,head,Head 130LB,IH4238,42,,Node: 42 Signal: 6,,
+2,CP 129,head,Head 136RA Bottom,IH4240,42,,Node: 42 Signal: 8,,
+2,CP 129,head,Head 136RA Top,IH4239,42,,Node: 42 Signal: 7,,
+2,CP 129,head,Head 136RB,IH4241,42,,Node: 42 Signal: 9,,
+3,CP 201,turnout,DCC Switch 201,MTT138,23,138,Node: 23 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 201,turnout,DCC Switch 203,MTT139,23,139,Node: 23 Turnout: 1,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 205,MTT140,23,140,Node: 23 Turnout: 4,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 207,MTT141,23,141,Node: 23 Turnout: 5,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 209,MTT142,24,142,Node: 24 Turnout: 2,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 211,MTT143,24,143,Node: 24 Turnout: 3,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 213,turnout,DCC Switch 213,MTT144,24,144,Node: 24 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 215,MTT145,24,145,Node: 24 Turnout: 4,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 217,turnout,DCC Switch 217,MTT146,24,146,Node: 24 Turnout: 1,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 201,turnout,DCC Switch 219,MTT147,23,147,Node: 23 Turnout: 2,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 201,turnout,DCC Switch 221,MTT148,23,148,Node: 23 Turnout: 3,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 223,turnout,DCC Switch 223,MTT149,22,149,Node: 22 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 225,turnout,DCC Switch 225,MTT150,21,150,Node: 21 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 225,turnout,DCC Switch 227,MTT151,21,151,Node: 21 Turnout: 1,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 225,turnout,DCC Switch 229,MTT152,21,152,Node: 21 Turnout: 2,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 231,MTT153,21,153,Node: 21 Turnout: 3,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 233,MTT154,21,154,Node: 21 Turnout: 4,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 235,MTT155,21,155,Node: 21 Turnout: 5,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 237,MTT156,21,156,Node: 21 Turnout: 6,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 239,MTT157,21,157,Node: 21 Turnout: 7,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 241,MTT158,31,158,Node: 31 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 243,MTT159,31,159,Node: 31 Turnout: 1,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 245,MTT160,31,160,Node: 31 Turnout: 2,,LCC alias of the MQTT turnout (ADR-005)
+3,CP 201,turnout,Switch 201,M2T2308,23,138,Node: 23 Turnout: 0,Switch 201,
+3,CP 201,turnout,Switch 203,M2T2309,23,139,Node: 23 Turnout: 1,Switch 203,
+3,,turnout,Switch 205,M2T2312,23,140,Node: 23 Turnout: 4,Switch 205,no control point: Industry 3 spur
+3,,turnout,Switch 207,M2T2313,23,141,Node: 23 Turnout: 5,Switch 207,no control point: Industry 3 spurs
+3,,turnout,Switch 209,M2T2410,24,142,Node: 24 Turnout: 2,Switch 209,no control point: Industry 3 lead
+3,,turnout,Switch 211,M2T2411,24,143,Node: 24 Turnout: 3,Switch 211,no control point: Industry 3 spur
+3,CP 213,turnout,Switch 213,M2T2408,24,144,Node: 24 Turnout: 0,"Switch 213A, Switch 213B",
+3,,turnout,Switch 215,M2T2412,24,145,Node: 24 Turnout: 4,Switch 215,no control point: Industry 3 spurs
+3,CP 217,turnout,Switch 217,M2T2409,24,146,Node: 24 Turnout: 1,"Switch 217A, Switch 217B",
+3,CP 201,turnout,Switch 219,M2T2310,23,147,Node: 23 Turnout: 2,Switch 219,
+3,CP 201,turnout,Switch 221,M2T2311,23,148,Node: 23 Turnout: 3,"Switch 221A, Switch 221B",
+3,CP 223,turnout,Switch 223,M2T2208,22,149,Node: 22 Turnout: 0,Switch 223*,
+3,CP 225,turnout,Switch 225,M2T2108,21,150,Node: 21 Turnout: 0,Switch 225,
+3,CP 225,turnout,Switch 227,M2T2109,21,151,Node: 21 Turnout: 1,Switch 227,
+3,CP 225,turnout,Switch 229,M2T2110,21,152,Node: 21 Turnout: 2,Switch 229,
+3,,turnout,Switch 231,M2T2111,21,153,Node: 21 Turnout: 3,Switch 231,no control point: Yard throat
+3,,turnout,Switch 233,M2T2112,21,154,Node: 21 Turnout: 4,Switch 233,no control point: Yard spur
+3,,turnout,Switch 235,M2T2113,21,155,Node: 21 Turnout: 5,Switch 235,no control point: Yard throat
+3,,turnout,Switch 237,M2T2114,21,156,Node: 21 Turnout: 6,Switch 237,no control point: Yard ladder
+3,,turnout,Switch 239,M2T2115,21,157,Node: 21 Turnout: 7,Switch 239,no control point: Spur off the peninsula loop
+3,,turnout,Switch 241,M2T3108,31,158,Node: 31 Turnout: 0,"Switch 241A, Switch 241B",no control point: Yard crossover
+3,,turnout,Switch 243,M2T3109,31,159,Node: 31 Turnout: 1,Switch 243,no control point: Yard ladder
+3,,turnout,Switch 245,M2T3110,31,160,Node: 31 Turnout: 2,"Switch 245A, Switch 245B",no control point: Yard crossover
+3,CP 201,fb,FB Switch 201 N,M2S2367,23,,Node: 23 Sensor: 0,,
+3,CP 201,fb,FB Switch 201 R,M2S2368,23,,Node: 23 Sensor: 1,,
+3,CP 201,fb,FB Switch 203 N,M2S2369,23,,Node: 23 Sensor: 2,,
+3,CP 201,fb,FB Switch 203 R,M2S2370,23,,Node: 23 Sensor: 3,,
+3,,fb,FB Switch 205 N,M2S2375,23,,Node: 23 Sensor: 8,,
+3,,fb,FB Switch 205 R,M2S2376,23,,Node: 23 Sensor: 9,,
+3,,fb,FB Switch 207 N,M2S2377,23,,Node: 23 Sensor: 10,,
+3,,fb,FB Switch 207 R,M2S2378,23,,Node: 23 Sensor: 11,,
+3,,fb,FB Switch 209 N,M2S2471,24,,Node: 24 Sensor: 4,,
+3,,fb,FB Switch 209 R,M2S2472,24,,Node: 24 Sensor: 5,,
+3,,fb,FB Switch 211 N,M2S2473,24,,Node: 24 Sensor: 6,,
+3,,fb,FB Switch 211 R,M2S2474,24,,Node: 24 Sensor: 7,,
+3,CP 213,fb,FB Switch 213 N,M2S2467,24,,Node: 24 Sensor: 0,,
+3,CP 213,fb,FB Switch 213 R,M2S2468,24,,Node: 24 Sensor: 1,,
+3,,fb,FB Switch 215 N,M2S2475,24,,Node: 24 Sensor: 8,,
+3,,fb,FB Switch 215 R,M2S2476,24,,Node: 24 Sensor: 9,,
+3,CP 217,fb,FB Switch 217 N,M2S2469,24,,Node: 24 Sensor: 2,,
+3,CP 217,fb,FB Switch 217 R,M2S2470,24,,Node: 24 Sensor: 3,,
+3,CP 201,fb,FB Switch 219 N,M2S2371,23,,Node: 23 Sensor: 4,,
+3,CP 201,fb,FB Switch 219 R,M2S2372,23,,Node: 23 Sensor: 5,,
+3,CP 201,fb,FB Switch 221 N,M2S2373,23,,Node: 23 Sensor: 6,,
+3,CP 201,fb,FB Switch 221 R,M2S2374,23,,Node: 23 Sensor: 7,,
+3,CP 223,fb,FB Switch 223 N,M2S2267,22,,Node: 22 Sensor: 0,,
+3,CP 223,fb,FB Switch 223 R,M2S2268,22,,Node: 22 Sensor: 1,,
+3,CP 225,fb,FB Switch 225 N,M2S2167,21,,Node: 21 Sensor: 0,,
+3,CP 225,fb,FB Switch 225 R,M2S2168,21,,Node: 21 Sensor: 1,,
+3,CP 225,fb,FB Switch 227 N,M2S2169,21,,Node: 21 Sensor: 2,,
+3,CP 225,fb,FB Switch 227 R,M2S2170,21,,Node: 21 Sensor: 3,,
+3,CP 225,fb,FB Switch 229 N,M2S2171,21,,Node: 21 Sensor: 4,,
+3,CP 225,fb,FB Switch 229 R,M2S2172,21,,Node: 21 Sensor: 5,,
+3,,fb,FB Switch 231 N,M2S2173,21,,Node: 21 Sensor: 6,,
+3,,fb,FB Switch 231 R,M2S2174,21,,Node: 21 Sensor: 7,,
+3,,fb,FB Switch 233 N,M2S2175,21,,Node: 21 Sensor: 8,,
+3,,fb,FB Switch 233 R,M2S2176,21,,Node: 21 Sensor: 9,,
+3,,fb,FB Switch 235 N,M2S2177,21,,Node: 21 Sensor: 10,,
+3,,fb,FB Switch 235 R,M2S2178,21,,Node: 21 Sensor: 11,,
+3,,fb,FB Switch 237 N,M2S2179,21,,Node: 21 Sensor: 12,,
+3,,fb,FB Switch 237 R,M2S2180,21,,Node: 21 Sensor: 13,,
+3,,fb,FB Switch 239 N,M2S2181,21,,Node: 21 Sensor: 14,,
+3,,fb,FB Switch 239 R,M2S2182,21,,Node: 21 Sensor: 15,,
+3,,fb,FB Switch 241 N,M2S3167,31,,Node: 31 Sensor: 0,,
+3,,fb,FB Switch 241 R,M2S3168,31,,Node: 31 Sensor: 1,,
+3,,fb,FB Switch 243 N,M2S3169,31,,Node: 31 Sensor: 2,,
+3,,fb,FB Switch 243 R,M2S3170,31,,Node: 31 Sensor: 3,,
+3,,fb,FB Switch 245 N,M2S3171,31,,Node: 31 Sensor: 4,,
+3,,fb,FB Switch 245 R,M2S3172,31,,Node: 31 Sensor: 5,,
+3,CP 201,block,OS Switch 201,,23,,CP 201,OS Switch 201,
+3,CP 201,block,OS Switch 203,,23,,CP 201,OS Switch 203,
+3,,block,OS Switch 205,,,,West,OS Switch 205,no detector: off the main line
+3,,block,OS Switch 207,,,,West,OS Switch 207,no detector: off the main line
+3,,block,OS Switch 209,,,,Peninsula,OS Switch 209,no detector: off the main line
+3,,block,OS Switch 211,,,,Peninsula,OS Switch 211,no detector: off the main line
+3,CP 213,block,OS Switch 213,,24,,CP 213,OS Switch 213,
+3,,block,OS Switch 215,,,,Peninsula,OS Switch 215,no detector: off the main line
+3,CP 217,block,OS Switch 217,,24,,CP 217,OS Switch 217,
+3,CP 201,block,OS Switch 219,,23,,CP 201,OS Switch 219,
+3,CP 201,block,OS Switch 221,,23,,CP 201,OS Switch 221,
+3,CP 223,block,OS Switch 223,,22,,CP 223,OS Switch 223,
+3,CP 225,block,OS Switch 225,,21,,CP 225,OS Switch 225,
+3,CP 225,block,OS Switch 227,,21,,CP 225,OS Switch 227,
+3,CP 225,block,OS Switch 229,,21,,CP 225,OS Switch 229,
+3,,block,OS Switch 231,,,,Helix,OS Switch 231,no detector: off the main line
+3,,block,OS Switch 233,,,,Helix,OS Switch 233,no detector: off the main line
+3,,block,OS Switch 235,,,,Helix,OS Switch 235,no detector: off the main line
+3,,block,OS Switch 237,,,,Helix,OS Switch 237,no detector: off the main line
+3,,block,OS Switch 239,,,,Helix,OS Switch 239,no detector: off the main line
+3,,block,OS Switch 241,,,,Helix,OS Switch 241,no detector: off the main line
+3,,block,OS Switch 243,,,,Helix,OS Switch 243,no detector: off the main line
+3,,block,OS Switch 245,,,,Helix,OS Switch 245,no detector: off the main line
+3,CP 129,block,Track 129-135 2,,,,CP 129,Track e67,"11.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 129,block,Track 129-221,,,,CP 129 / CP 201,Track e75,521.9 cm
+3,CP 129,block,Track 135-H2,,,,CP 129,Track e68+e81,427.1 cm
+3,CP 201,block,Track 201-203,,,,CP 201,Track e60,"11.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 201,block,Track 201-205,,,,CP 201,Track e61,"22.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 201,block,Track 201-219,,,,CP 201,Track e59,"23.1 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 201,block,Track 203-209,,,,CP 201,Track e56,145.0 cm no detector: off the main line
+3,CP 201,block,Track 203-213,,,,CP 201 / CP 213,Track e69,283.2 cm
+3,,block,Track 205 Spur,,,,,Track e89,88.9 cm no detector: off the main line
+3,,block,Track 205-207,,,,,Track e85,"10.7 cm short link: inside the OS blocks of its switches, no detector"
+3,,block,Track 207 Spur 1,,,,,Track e87,170.4 cm no detector: off the main line
+3,,block,Track 207 Spur 2,,,,,Track e86,180.4 cm no detector: off the main line
+3,,block,Track 209-211,,,,,Track e58,73.3 cm no detector: off the main line
+3,CP 213,block,Track 209-213,,,,CP 213,Track e57,86.2 cm no detector: off the main line
+3,,block,Track 211 Spur,,,,,Track e88,139.0 cm no detector: off the main line
+3,,block,Track 211-215,,,,,Track e82,"14.2 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 213,block,Track 213-217 1,,,,CP 213 / CP 217,Track e73,278.4 cm no detector: off the main line
+3,CP 213,block,Track 213-217 2,,,,CP 213 / CP 217,Track e79,234.4 cm
+3,,block,Track 215 Spur 1,,,,,Track e84,97.9 cm no detector: off the main line
+3,,block,Track 215 Spur 2,,,,,Track e83,91.5 cm no detector: off the main line
+3,CP 201,block,Track 217-219,,,,CP 201 / CP 217,Track e77,163.2 cm no detector: off the main line
+3,CP 201,block,Track 217-221,,,,CP 201 / CP 217,Track e76,238.2 cm
+3,CP 201,block,Track 219-221,,,,CP 201,Track e70,"11.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 201,block,Track 221-223,,,,CP 201 / CP 223,Track e71b,659.6 cm
+3,CP 223,block,Track 223-225 1,,,,CP 223 / CP 225,Track e71a,292 cm
+3,CP 223,block,Track 223-225 2,,,,CP 223 / CP 225,Track e80,292.1 cm
+3,CP 225,block,Track 225-227,,,,CP 225,Track e66,"17.8 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 225,block,Track 225-229,,,,CP 225,Track e62,"17.8 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 225,block,Track 227-233,,,,CP 225,Track e49,"20.6 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 225,block,Track 227-239,,,,CP 225,Track e64,518.6 cm
+3,CP 225,block,Track 229-231,,,,CP 225,Track e38,48.3 cm no detector: off the main line
+3,CP 225,block,Track 229-239,,,,CP 225,Track e63,77.6 cm
+3,,block,Track 231-235,,,,,Track e40,75.9 cm no detector: off the main line
+3,,block,Track 231-241,,,,,Track e39,117.6 cm no detector: off the main line
+3,,block,Track 233 Spur,,,,,Track e50,157.2 cm no detector: off the main line
+3,,block,Track 233-237,,,,,Track e43,39.6 cm no detector: off the main line
+3,,block,Track 235 Spur,,,,,Track e52,88.0 cm no detector: off the main line
+3,,block,Track 235-241,,,,,Track e51,"10.5 cm short link: inside the OS blocks of its switches, no detector"
+3,,block,Track 237-243,,,,,Track e44,"15.2 cm short link: inside the OS blocks of its switches, no detector"
+3,,block,Track 237-245,,,,,Track e45,92.1 cm no detector: off the main line
+3,,block,Track 239 Spur,,,,,Track e65,97.1 cm no detector: off the main line
+3,,block,Track 241 Spur 1,,,,,Track e41,35.4 cm no detector: off the main line
+3,,block,Track 241 Spur 2,,,,,Track e55,56.3 cm no detector: off the main line
+3,,block,Track 243 Spur,,,,,Track e54,111.3 cm no detector: off the main line
+3,,block,Track 243-245,,,,,Track e46,45.9 cm no detector: off the main line
+3,,block,Track 245 Spur 1,,,,,Track e53,33.2 cm no detector: off the main line
+3,,block,Track 245 Spur 2,,,,,Track e47,54.4 cm no detector: off the main line
+3,CP 129,occupancy,BS 129-221,M2S2304,23,,Node: 23 Block: 5,,
+3,CP 129,occupancy,BS 135-H2,M2S4207,42,,Node: 42 Block: 8,,
+3,CP 201,occupancy,BS 203-213,M2S2305,23,,Node: 23 Block: 6,,
+3,CP 213,occupancy,BS 213-217 2,M2S2402,24,,Node: 24 Block: 3,,
+3,CP 201,occupancy,BS 217-221,M2S2403,24,,Node: 24 Block: 4,,
+3,CP 201,occupancy,BS 221-223,M2S2306,23,,Node: 23 Block: 7,,
+3,CP 223,occupancy,BS 223-225 1,M2S2201,22,,Node: 22 Block: 2,,
+3,CP 223,occupancy,BS 223-225 2,M2S2202,22,,Node: 22 Block: 3,,
+3,CP 225,occupancy,BS 227-239,M2S2103,21,,Node: 21 Block: 4,,
+3,CP 225,occupancy,BS 229-239,M2S2104,21,,Node: 21 Block: 5,,
+3,CP 201,occupancy,BS Switch 201,M2S2300,23,,Node: 23 Block: 1,,
+3,CP 201,occupancy,BS Switch 203,M2S2301,23,,Node: 23 Block: 2,,
+3,CP 213,occupancy,BS Switch 213,M2S2400,24,,Node: 24 Block: 1,,
+3,CP 217,occupancy,BS Switch 217,M2S2401,24,,Node: 24 Block: 2,,
+3,CP 201,occupancy,BS Switch 219,M2S2302,23,,Node: 23 Block: 3,,
+3,CP 201,occupancy,BS Switch 221,M2S2303,23,,Node: 23 Block: 4,,
+3,CP 223,occupancy,BS Switch 223,M2S2200,22,,Node: 22 Block: 1,,
+3,CP 225,occupancy,BS Switch 225,M2S2100,21,,Node: 21 Block: 1,,
+3,CP 225,occupancy,BS Switch 227,M2S2101,21,,Node: 21 Block: 2,,
+3,CP 225,occupancy,BS Switch 229,M2S2102,21,,Node: 21 Block: 3,,
+3,CP 201,mast,Mast 202R,IF$shsm:basic:one-low(IH2332),23,,CP 201 | Switch 201,,home signal from Track 201-205
+3,CP 201,mast,Mast 204RA,IF$shsm:basic:one-low(IH2333),23,,CP 201 | Switch 203,,home signal from Track 203-209
+3,CP 201,mast,Mast 204RB,IF$shsm:basic:one-low(IH2334),23,,CP 201 | Switch 203,,home signal from Track 203-213
+3,CP 213,mast,Mast 214LA,IF$shsm:basic:two-searchlight(IH2432)(IH2433),24,,CP 213 | Switch 213,,home signal from Track 209-213
+3,CP 213,mast,Mast 214LB,IF$shsm:basic:one-low(IH2434),24,,CP 213 | Switch 213,,home signal from Track 203-213
+3,CP 213,mast,Mast 214RA,IF$shsm:basic:one-low(IH2435),24,,CP 213 | Switch 213,,home signal from Track 213-217 1
+3,CP 213,mast,Mast 214RB,IF$shsm:basic:two-searchlight(IH2436)(IH2437),24,,CP 213 | Switch 213,,home signal from Track 213-217 2
+3,CP 217,mast,Mast 218LA,IF$shsm:basic:one-low(IH2438),24,,CP 217 | Switch 217,,home signal from Track 213-217 1
+3,CP 217,mast,Mast 218LB,IF$shsm:basic:two-searchlight(IH2439)(IH2440),24,,CP 217 | Switch 217,,home signal from Track 213-217 2
+3,CP 217,mast,Mast 218RA,IF$shsm:basic:two-searchlight(IH2441)(IH2442),24,,CP 217 | Switch 217,,home signal from Track 217-219
+3,CP 217,mast,Mast 218RB,IF$shsm:basic:one-low(IH2443),24,,CP 217 | Switch 217,,home signal from Track 217-221
+3,CP 201,mast,Mast 220R,IF$shsm:basic:one-low(IH2335),23,,CP 201 | Switch 219,,home signal from Track 217-219
+3,CP 201,mast,Mast 222LA,IF$shsm:basic:one-low(IH2336),23,,CP 201 | Switch 221,,home signal from Track 221-223
+3,CP 201,mast,Mast 222LB,IF$shsm:basic:one-low(IH2337),23,,CP 201 | Switch 221,,home signal from Track 217-221
+3,CP 201,mast,Mast 222R,IF$shsm:basic:two-searchlight(IH2338)(IH2339),23,,CP 201 | Switch 221,,home signal from Track 129-221
+3,CP 223,mast,Mast 224LA,IF$shsm:basic:one-low(IH2232),22,,CP 223 | Switch 223,,home signal from Track 223-225 1
+3,CP 223,mast,Mast 224LB,IF$shsm:basic:one-low(IH2233),22,,CP 223 | Switch 223,,home signal from Track 223-225 2
+3,CP 223,mast,Mast 224R,IF$shsm:basic:two-searchlight(IH2234)(IH2235),22,,CP 223 | Switch 223,,home signal from Track 221-223
+3,CP 225,mast,Mast 226RA,IF$shsm:basic:two-searchlight(IH2132)(IH2133),21,,CP 225 | Switch 225,,home signal from Track 223-225 1
+3,CP 225,mast,Mast 226RB,IF$shsm:basic:two-searchlight(IH2134)(IH2135),21,,CP 225 | Switch 225,,home signal from Track 223-225 2
+3,CP 225,mast,Mast 228RA,IF$shsm:basic:one-low(IH2136),21,,CP 225 | Switch 227,,home signal from Track 227-233
+3,CP 225,mast,Mast 228RB,IF$shsm:basic:one-low(IH2137),21,,CP 225 | Switch 227,,home signal from Track 227-239
+3,CP 225,mast,Mast 230LA,IF$shsm:basic:one-low(IH2138),21,,CP 225 | Switch 229,,home signal from Track 229-239
+3,CP 225,mast,Mast 230LB,IF$shsm:basic:one-low(IH2139),21,,CP 225 | Switch 229,,home signal from Track 229-231
+3,CP 201,head,Head 202R,IH2332,23,,Node: 23 Signal: 0,,
+3,CP 201,head,Head 204RA,IH2333,23,,Node: 23 Signal: 1,,
+3,CP 201,head,Head 204RB,IH2334,23,,Node: 23 Signal: 2,,
+3,CP 213,head,Head 214LA Bottom,IH2433,24,,Node: 24 Signal: 1,,
+3,CP 213,head,Head 214LA Top,IH2432,24,,Node: 24 Signal: 0,,
+3,CP 213,head,Head 214LB,IH2434,24,,Node: 24 Signal: 2,,
+3,CP 213,head,Head 214RA,IH2435,24,,Node: 24 Signal: 3,,
+3,CP 213,head,Head 214RB Bottom,IH2437,24,,Node: 24 Signal: 5,,
+3,CP 213,head,Head 214RB Top,IH2436,24,,Node: 24 Signal: 4,,
+3,CP 217,head,Head 218LA,IH2438,24,,Node: 24 Signal: 6,,
+3,CP 217,head,Head 218LB Bottom,IH2440,24,,Node: 24 Signal: 8,,
+3,CP 217,head,Head 218LB Top,IH2439,24,,Node: 24 Signal: 7,,
+3,CP 217,head,Head 218RA Bottom,IH2442,24,,Node: 24 Signal: 10,,
+3,CP 217,head,Head 218RA Top,IH2441,24,,Node: 24 Signal: 9,,
+3,CP 217,head,Head 218RB,IH2443,24,,Node: 24 Signal: 11,,
+3,CP 201,head,Head 220R,IH2335,23,,Node: 23 Signal: 3,,
+3,CP 201,head,Head 222LA,IH2336,23,,Node: 23 Signal: 4,,
+3,CP 201,head,Head 222LB,IH2337,23,,Node: 23 Signal: 5,,
+3,CP 201,head,Head 222R Bottom,IH2339,23,,Node: 23 Signal: 7,,
+3,CP 201,head,Head 222R Top,IH2338,23,,Node: 23 Signal: 6,,
+3,CP 223,head,Head 224LA,IH2232,22,,Node: 22 Signal: 0,,
+3,CP 223,head,Head 224LB,IH2233,22,,Node: 22 Signal: 1,,
+3,CP 223,head,Head 224R Bottom,IH2235,22,,Node: 22 Signal: 3,,
+3,CP 223,head,Head 224R Top,IH2234,22,,Node: 22 Signal: 2,,
+3,CP 225,head,Head 226RA Bottom,IH2133,21,,Node: 21 Signal: 1,,
+3,CP 225,head,Head 226RA Top,IH2132,21,,Node: 21 Signal: 0,,
+3,CP 225,head,Head 226RB Bottom,IH2135,21,,Node: 21 Signal: 3,,
+3,CP 225,head,Head 226RB Top,IH2134,21,,Node: 21 Signal: 2,,
+3,CP 225,head,Head 228RA,IH2136,21,,Node: 21 Signal: 4,,
+3,CP 225,head,Head 228RB,IH2137,21,,Node: 21 Signal: 5,,
+3,CP 225,head,Head 230LA,IH2138,21,,Node: 21 Signal: 6,,
+3,CP 225,head,Head 230LB,IH2139,21,,Node: 21 Signal: 7,,

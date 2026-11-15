@@ -12,7 +12,7 @@ Inputs (jmri/layouts/hart/data/schematic/):
   affect the main route are control points, as in the bench plans (docs/wiring/bench/control_point_4 to 6):
   switches on the main route, grouped where they stand close together.
 - local_switches_main_upper.csv: every other switch (yards and industry spurs), with its area. These get a
-  turnout and detection but no control point and no signals.
+  turnout and feedback but no control point, no signals and no detection.
 - lcos_nodes_main_upper.csv: the LCOS node addresses each level and area may use, in order. Upper-level areas reuse
   the nodes of the August 2026 upper-deck plan (LCOS inventory v85); the rest are free RF24 addresses, proposed.
 - the solved schematic bands (the inputs publish_draft.py draws), for tracks, their ends and which way is east.
@@ -34,6 +34,9 @@ Naming rules (ADR-005 grammar, LCOS conventions):
 - Track "Track <a>-<b>" from its end switches (numbers, H1 or H2 for a helix), "Track <n> Spur" to a bumper,
   "Track <n> Loop" back to the same switch; parallel tracks between the same ends take " 1", " 2" from the top row.
   A track under SHORT_CM between two switches gets a block but no detector (it would sit inside their OS blocks).
+- Detection on the main line only (owner, 2026-11-15): main-route tracks and the OS blocks of control point
+  switches get an occupancy sensor; yard and industry tracks and the OS blocks of switches in no control point
+  get a block for the panels but no detector.
 - Home signals: one mast where each track from outside a control point meets one of its switches; none on spurs
   or yard tracks that end at a bumper. "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number
   and direction has two. A mast at the points has two heads (two-searchlight, Top and Bottom); one at a trailing
@@ -42,7 +45,8 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   8-15 (M2T, "Node: n Turnout: k"), signals 32-47 (IH, "Node: n Signal: k"), inputs from 67 (M2S, feedback N then R
   per turnout, "Node: n Sensor: k"). A control point's turnouts stay on one node; switches in no control point
   follow, area by area.
-- No DCC address and no LCC alias (DCC Switch <n>): the owner has not given these levels DCC addresses.
+- DCC addresses continue from staging's last (119): 120 up in switch-number order, main level first (owner,
+  2026-11-15). Each turnout also gets its LCC alias "DCC Switch <n>" (MTT<dcc>, same node comment, as staging has).
 """
 from __future__ import annotations
 
@@ -69,7 +73,8 @@ LEVELS = {"Main": 2, "Upper": 3}      # band key (first word of the band title) 
 SHORT_CM = 30.0
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
 UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}
-COLUMNS = ["level", "cp", "layer", "user_name", "system_name", "node", "comment", "trial_name", "notes"]
+COLUMNS = ["level", "cp", "layer", "user_name", "system_name", "node", "dcc", "comment", "trial_name", "notes"]
+DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
 TAU = {"A": -1, "B": 1, "C": 1, "D": -1}      # the plugin's leg sides (schematic.core.TAU)
 
 
@@ -190,6 +195,7 @@ def tracks(bands, runs, joined, helix_tag) -> list[dict]:
             seen.add(key)
             ends = [(start[0], start[1]), (end[0], end[1])]
             found.append(dict(level=lv, ends=(a, b), legs=ends, band=bi, cm=round(sum(edges.values()), 1),
+                              main=any(strands[sid]["main"] for sid, _ in chain),
                               row=min(srow.get(sid, 0) for sid, _ in chain),
                               strands=[sid for sid, _ in chain],
                               trial=sorted({"Track " + re.sub(r"(?<=\d)[xy]$", "", strands[sid]["edge"])
@@ -309,10 +315,11 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
     nodes = Nodes(node_rows)
     rows = []
 
-    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes=""):
+    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc=""):
         rows.append(dict(level=level, cp=cp, layer=layer, user_name=user, system_name=system,
-                         node=node, comment=comment, trial_name=trial, notes=notes))
+                         node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes))
 
+    dcc = {s: DCC_FIRST + i for i, s in enumerate(sorted(set(cp_of) | set(loc), key=natural))}
     home, area_of = {}, {}                  # switch -> its turnout's node, its area
 
     def switch_rows(lv, area, name, s, node, note=""):
@@ -320,13 +327,19 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
         home[s], area_of[s] = node, (lv, area)
         halves = sorted({lb for labels in by_level.values() for lb in labels if base(lb) == s}, key=natural)
         add(lv, name, "turnout", f"Switch {s}", f"M2T{packed}", node, f"Node: {node} Turnout: {k}",
-            ", ".join(f"Switch {lb}" for lb in halves), note)
+            ", ".join(f"Switch {lb}" for lb in halves), note, dcc[s])
+        add(lv, name, "turnout", f"DCC Switch {s}", f"MTT{dcc[s]}", node, f"Node: {node} Turnout: {k}",
+            notes="LCC alias of the MQTT turnout (ADR-005)", dcc=dcc[s])
         for nr in "NR":
             fnode = nodes.pick(lv, area, "sensor", prefer=[node])
             kk, pp = nodes.take(fnode, "sensor")
             add(lv, name, "fb", f"FB Switch {s} {nr}", f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}")
 
-    def os_rows(lv, area, name, s, comment):
+    def os_rows(lv, area, name, s, comment, detect=True):
+        if not detect:
+            add(lv, name, "block", f"OS Switch {s}", "", "", comment, f"OS Switch {s}",
+                "no detector: off the main line")
+            return
         bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
         k, packed = nodes.take(bnode, "block")
         add(lv, name, "block", f"OS Switch {s}", "", bnode, comment, f"OS Switch {s}")
@@ -356,17 +369,19 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
         r = loc[s]
         node = nodes.pick(r["level"], r["area"], "turnout")
         switch_rows(r["level"], r["area"], "", s, node, "no control point: " + r["notes"])
-        os_rows(r["level"], r["area"], "", s, r["area"])
+        os_rows(r["level"], r["area"], "", s, r["area"], detect=False)
 
     for t in sorted(found, key=lambda t: natural(t["name"])):
         sws = [v for k, v in t["ends"] if k == "sw"]
         ends_cp = sorted({cp_of[v] for v in sws if v in cp_of}, key=natural)
         cp = ends_cp[0] if ends_cp else ""
         short = t["cm"] < SHORT_CM and all(k == "sw" for k, _ in t["ends"])
-        note = f"{t['cm']} cm" + (" short link: inside the OS blocks of its switches, no detector" if short else "")
+        note = f"{t['cm']} cm" + (" short link: inside the OS blocks of its switches, no detector" if short else
+                                  "" if t["main"] else " no detector: off the main line")
         add(t["level"], cp, "block", t["name"], "", "", " / ".join(ends_cp), ", ".join(t["trial"]), note)
-        if short or not sws:
+        if short or not t["main"] or not sws:
             continue
+        sws.sort(key=lambda s: area_of[s][0] != t["level"])      # a node on the track's own level first
         lv, area = area_of[sws[0]]
         bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws])
         k, packed = nodes.take(bnode, "block")
