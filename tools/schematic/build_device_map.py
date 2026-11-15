@@ -18,11 +18,12 @@ Inputs (jmri/layouts/hart/data/schematic/):
 - the solved schematic bands (the inputs publish_draft.py draws), for tracks, their ends and which way is east.
 
 Outputs:
-- main_upper.plan_overrides.json, key `control_points`, so the detail sheets (the "Main level" and "Upper level"
-  sheets of main_upper.preferences.json) draw each control point's interlocking limits and name. A control point
-  may list only switches on one band, so a crossover whose halves sit on two bands (129, 135) lists the half on
-  the control point's level. The overall sheet does not show them: a station bar per control point made the page
-  taller and the smaller scale put 7 milepost labels on their markers (2026-11-15).
+- main_upper.plan_overrides.json, keys `control_points` and `stations`: the detail sheets (the "Main level" and
+  "Upper level" sheets of main_upper.preferences.json) draw each control point's interlocking limits and name,
+  and the overall sheet a bar per control point (no car count). A control point may list only switches on one
+  band, so a crossover whose halves sit on two bands (129, 135) lists the half on the control point's level. The
+  bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
+  markers (draft, 2026-11-15; labels are placed before the page is scaled).
 - device_map_main_upper.csv: the names each switch, track and home signal would take under ADR-005, with LCOS
   system names. Placeholders: nothing in tables.xml uses them yet, and the names change when the owner names
   the levels.
@@ -387,6 +388,7 @@ def csv_text(rows) -> str:
 def overrides_text(overrides, cp_keys) -> str:
     over = dict(overrides)
     over["control_points"] = cp_keys
+    over["stations"] = {name: {"switches": cp["switches"], "tracks": []} for name, cp in cp_keys.items()}
     over["_control_points"] = ("Placeholder control points 'CP <lowest switch>' (owner, 2026-11-15), written by "
                                "tools/schematic/build_device_map.py from control_points_main_upper.csv; edit that "
                                "file, not this key.")

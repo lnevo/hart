@@ -117,7 +117,9 @@ class Output(unittest.TestCase):
         over = json.loads(BD.OVERRIDES.read_text())
         names = [cp["cp_name"] for cp in BD.load_cps()]
         self.assertEqual(list(over["control_points"]), names)
-        self.assertNotIn("stations", over)
+        self.assertEqual({k: v["switches"] for k, v in over["stations"].items()},
+                         {k: v["switches"] for k, v in over["control_points"].items()})
+        self.assertTrue(all(v["tracks"] == [] for v in over["stations"].values()))
 
 
 if __name__ == "__main__":
