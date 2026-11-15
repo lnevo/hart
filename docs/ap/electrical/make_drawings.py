@@ -8,7 +8,7 @@ Two kinds of figure:
   station brackets taken out and generic labels drawn on top, so a reader who has
   never seen the layout can follow them. Switch numbers are kept, because they are
   what the witness finds on the fascia.
-- Wiring drawings D1 to D6: drawn here for the SOQ only.
+- Wiring drawings D1 to D7: drawn here for the SOQ only.
 
 They are kept apart from the railroad's own schematics and wiring docs on purpose
 (owner, 2026-11-14). Facts:
@@ -498,35 +498,53 @@ def d4() -> str:
 
 
 def d5() -> str:
-    """Reversing section on an auto-reverser."""
+    """Reversing section on an auto-reverser, with its detection.
+
+    The auto-reverser's output passes through a DNCT2B before the track (owner,
+    2026-11-15). RS-2 is two detected sections, K-1 and K-2, one on each channel of the
+    same DNCT2B; both are fed from the one PSX-AR, so they change polarity together.
+    """
     b = []
     b.append(wire("M40,66 L700,66", RED, 2.2))
     b.append(wire("M40,80 L700,80", INK, 2.2))
     b.append(label(44, 58, "DCC from the booster matrix (D1)", 9.5, INK))
-    b.append(box(260, 110, 240, 46, "Auto-reverser", "AR10 (RS-1) or PSX-AR (RS-2)", size=10))
-    b.append(wire("M360,80 L360,110", INK, 1.4))
-    b.append(wire("M400,66 L400,110", RED, 1.4))
-    y = 250
-    b.append(rails(160, 600, y, RED, 2))
-    b.append(rails(60, 156, y, GREY))
-    b.append(rails(604, 700, y, GREY))
-    b.append(gap(158, y, color=RED))
-    b.append(gap(602, y, color=RED))
-    b.append(label(380, y + 28, "Reversing section: both rails gapped at both ends", 10, RED, "middle", "bold"))
-    b.append(label(380, y + 42, "(longer than the longest train)", 9.5, GREY, "middle"))
-    b.append(wire(f"M350,156 L350,{y-4}", RED, 1.4))
-    b.append(wire(f"M410,156 L410,{y+4}", INK, 1.4))
-    b.append(f'<circle cx="350" cy="{y-4}" r="3" fill="{RED}"/><circle cx="410" cy="{y+4}" r="3" fill="{INK}"/>')
-    b.append(f'<ellipse cx="380" cy="200" rx="42" ry="9" fill="none" stroke="{BLUE}" stroke-width="2"/>')
-    b.append(label(430, 204, "both feeders through one DNCT2B channel, as D2", 9.5, BLUE))
+    b.append(box(255, 100, 250, 44, "Auto-reverser", "NCE AR10 (RS-1) or PSX-AR (RS-2)", size=10))
+    b.append(wire("M360,80 L360,100", INK, 1.4))
+    b.append(wire("M400,66 L400,100", RED, 1.4))
+    b.append(label(512, 130, "output: both wires change polarity together", 9, RED))
+    # reversed output pair to the two channels
+    b.append(wire("M350,144 L350,170 L210,170 L210,252", RED, 1.6))
+    b.append(wire("M410,144 L410,164 A6,6 0 0 1 410,176 L410,182 L240,182 L240,260", INK, 1.6))   # hop over red
+    b.append(wire("M350,170 L520,170 L520,176 A6,6 0 0 1 520,188 L520,252", RED, 1.6))          # hop over black
+    b.append(wire("M410,182 L550,182 L550,260", INK, 1.6))
+    b.append(f'<circle cx="350" cy="170" r="3" fill="{RED}"/><circle cx="410" cy="182" r="3" fill="{INK}"/>')
+    b.append(box(300, 196, 160, 34, "DNCT2B", "channel 1 · channel 2", size=9))
+    b.append(f'<ellipse cx="225" cy="214" rx="30" ry="9" fill="none" stroke="{BLUE}" stroke-width="2"/>')
+    b.append(f'<ellipse cx="535" cy="214" rx="30" ry="9" fill="none" stroke="{BLUE}" stroke-width="2"/>')
+    b.append(wire("M300,213 L255,214", BLUE, 1.2, "4 3"))
+    b.append(wire("M460,213 L505,214", BLUE, 1.2, "4 3"))
+    y = 256
+    b.append(rails(120, 378, y, RED, 2))
+    b.append(rails(382, 640, y, RED, 2))
+    b.append(rails(40, 116, y, GREY))
+    b.append(rails(644, 720, y, GREY))
+    b.append(gap(118, y, color=RED))
+    b.append(gap(642, y, color=RED))
+    b.append(gap(380, y, color=BLUE))
+    b.append(label(225, y + 26, "section 1 (K-1 on RS-2)", 10, RED, "middle", "bold"))
+    b.append(label(535, y + 26, "section 2 (K-2 on RS-2)", 10, RED, "middle", "bold"))
+    b.append(label(380, y - 16, "detection gap", 9, BLUE, "middle"))
+    b.append(label(380, y + 42, "Reversing section: both rails gapped at both ends (red), longer than the longest train", 9.5, GREY, "middle"))
     b.append(label(60, y - 16, "normal section", 9, GREY))
-    b.append(label(620, y - 16, "normal section", 9, GREY))
-    b.append(label(20, 320, "When a train's wheels bridge a gap with the polarity wrong, the auto-reverser sees the short and swaps the section's two", 9.5, INK))
-    b.append(label(20, 334, "outputs in milliseconds, before any breaker trips; on a lasting short it cuts the section off like a breaker. Two sections", 9.5, INK))
-    b.append(label(20, 348, "are wired this way: RS-1 on the west main line and RS-2, the return loop (Plan P2).", 9.5, INK))
-    return svg(720, 364, "\n".join(b), "D5 · Reversing section on an auto-reverser",
-               "A section of track gapped in both rails at both ends, fed through an auto-reverser that swaps its polarity "
-               "when a train crosses a gap.")
+    b.append(label(650, y - 16, "normal section", 9, GREY))
+    b.append(label(20, 330, "The auto-reverser's output passes through the DNCT2B on its way to the track, so the reversing section is detected like any", 9.5, INK))
+    b.append(label(20, 344, "other. RS-2 is split into two detected sections, K-1 and K-2, one on each channel of the same DNCT2B. Both are fed by the one", 9.5, INK))
+    b.append(label(20, 358, "auto-reverser, so they always change polarity together: for wiring and troubleshooting they are one reversing section.", 9.5, INK))
+    b.append(label(20, 372, "When a train bridges an outer gap with the polarity wrong, the auto-reverser sees the short and swaps its output in", 9.5, INK))
+    b.append(label(20, 386, "milliseconds, before any breaker trips. RS-1 is wired the same way with one detected section on an NCE AR10.", 9.5, INK))
+    return svg(740, 402, "\n".join(b), "D5 · Reversing section on an auto-reverser, with detection",
+               "DCC feeds an auto-reverser. Its output passes through the two channels of a DNCT2B detector to two detected sections "
+               "of one reversing section, which is gapped in both rails at both outer ends. Both sections change polarity together.")
 
 
 def d6() -> str:
@@ -555,10 +573,73 @@ def d6() -> str:
                "and bridge node firmware were written by me.")
 
 
+def spdt(cx: float, cy: float, mirror: bool, set_to: str) -> tuple[str, dict[str, tuple[float, float]]]:
+    """One SPDT contact: common C and throws N (upper) and R (lower). Returns svg and terminal points."""
+    sx = -1 if mirror else 1
+    c, n, r = (cx, cy), (cx + 70 * sx, cy - 30), (cx + 70 * sx, cy + 30)
+    tip = n if set_to == "N" else r
+    out = [f'<circle cx="{x}" cy="{y}" r="4" fill="#fff" stroke="{INK}" stroke-width="1.6"/>' for x, y in (c, n, r)]
+    out.append(wire(f"M{c[0]},{c[1]} L{tip[0] - 5 * sx},{tip[1] + (4 if set_to == 'N' else -4)}", INK, 2.4))
+    out.append(label(c[0] - 10 * sx, c[1] + 4, "C", 10, INK, "end" if not mirror else "start", "bold"))
+    out.append(label(n[0] + 14 * sx, n[1] - 8, "N", 10, INK, "middle", "bold"))
+    out.append(label(r[0], r[1] + 20, "R", 10, INK, "middle", "bold"))
+    return "".join(out), {"C": c, "N": n, "R": r}
+
+
+def d7() -> str:
+    """Crossover position indication: the two halves' position contacts in series on one N/R input pair.
+
+    Each crossover (Switches 7, 23, 35) has one normal and one reverse feedback input
+    (turnout summary; tables.xml TWOSENSOR "FB Switch n N/R"). With one SPDT per machine,
+    the wiring that closes N only when both halves are normal, R only when both are
+    reverse, and neither when they disagree ties the two commons together, takes N from
+    half a's N throw and R from half b's R throw, and puts a's R and b's N on the input
+    common. Drawn from the owner's description (2026-11-15); to be checked against the
+    wires (README, open items).
+    """
+    b = []
+    sa, a = spdt(170, 190, False, "N")
+    sb, bb = spdt(570, 190, True, "N")
+    b += [sa, sb]
+    b.append(box(20, 250, 130, 34, "Half a: MP4 contact 2", "shown normal", size=9))
+    b.append(box(590, 250, 130, 34, "Half b: MP4 contact 2", "shown normal", size=9))
+    b.append(box(30, 50, 150, 40, "Node input: N", "FB Switch n N", size=9.5))
+    b.append(box(560, 50, 150, 40, "Node input: R", "FB Switch n R", size=9.5))
+    b.append(box(295, 50, 150, 40, "Node input common", "", size=9.5))
+    # the N path when both halves are normal, drawn in blue
+    b.append(wire(f"M{a['N'][0]},{a['N'][1]} L{a['N'][0]},70 L180,70", BLUE, 2.2))                 # N input to a.N
+    b.append(wire(f"M{a['C'][0]},{a['C'][1]} L{a['C'][0]},330 L{bb['C'][0]},330 L{bb['C'][0]},{bb['C'][1]}", BLUE, 2.2))  # commons tied
+    b.append(wire(f"M{bb['N'][0]},{bb['N'][1]} L{bb['N'][0]},120 L420,120 L420,90", BLUE, 2.2))    # b.N to common
+    # the other two throws
+    b.append(wire(f"M{a['R'][0]},{a['R'][1]} L300,{a['R'][1]} L300,90", INK, 1.5))                 # a.R to common
+    x, y = bb['C'][0], bb['R'][1]
+    b.append(wire(f"M{bb['R'][0]},{y} L{x - 6},{y} A6,6 0 0 1 {x + 6},{y} L660,{y} L660,90", INK, 1.5))  # b.R to R input, hopping the tie
+    b.append(label(370, 346, "commons of the two contacts tied together", 9.5, INK, "middle"))
+    b.append(label(30, 384, "Blue: the path that closes when both halves are normal (N input to common through a and b in series).", 9.5, BLUE))
+    # truth table
+    rows = [("Half a", "Half b", "N input", "R input", "Panel shows"),
+            ("Normal", "Normal", "closed", "open", "Normal"),
+            ("Reverse", "Reverse", "open", "closed", "Reverse"),
+            ("Normal", "Reverse", "open", "open", "Inconsistent (N and R inputs joined, no common)"),
+            ("Reverse", "Normal", "open", "open", "Inconsistent (only the common is connected)")]
+    xs = (30, 120, 210, 300, 390)
+    for i, row in enumerate(rows):
+        y = 418 + i * 17
+        for x, t in zip(xs, row):
+            b.append(label(x, y, t, 9.5, INK, weight="bold" if i == 0 else "normal"))
+    b.append(label(30, 516, "JMRI reads each crossover with two-sensor feedback (FB Switch n N and R). When the halves disagree neither", 9.5, INK))
+    b.append(label(30, 530, "sensor is active, so the panel shows the switch as Inconsistent and no Normal or Reverse light is lit. Used on the", 9.5, INK))
+    b.append(label(30, 544, "crossovers at Switches 7, 23 and 35.", 9.5, INK))
+    return svg(740, 560, "\n".join(b), "D7 · Crossover position indication: two contacts on one input pair",
+               "The position contacts of the two crossover machines, wired so the normal input closes only when both halves are "
+               "normal and the reverse input only when both are reverse. If the halves disagree, neither input closes and the "
+               "panel shows the crossover as inconsistent.")
+
+
 FIGURES = [("P1-staging-plan", p1), ("P2-reversing-sections", p2), ("P3-passing-siding", p3), ("P4-yard", p4),
            ("P5-engine-storage", p5), ("D1-propulsion-one-line", d1), ("D2-propulsion-sections", d2),
            ("D3-turnout-frog-indication", d3), ("D4-crossover", d4), ("D5-reversing-section", d5),
-           ("D6-computer-interface", d6)]
+           ("D6-computer-interface", d6), ("D7-crossover-indication", d7)]
 
 
 def main() -> None:
