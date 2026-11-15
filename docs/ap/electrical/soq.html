@@ -16,614 +16,430 @@
   <p class="subtitle">Statement of Qualifications: supporting documentation</p>
   <img class="title-photo" src="photos/layout-overview.jpg" alt="The layout room from above: benchwork on three levels, the helix, track on cork roadbed and a skyline backdrop along the walls.">
   <dl class="title-meta">
-    <dt>Railroad</dt><dd>HART Railroad, HO scale, Digital Command Control</dd>
+    <dt>Railroad</dt><dd>HART Railroad, HO scale, DCC</dd>
     <dt>Member</dt><dd>As named on the SOQ form (page 1)</dd>
     <dt>Region / Division</dt><dd>Northeastern Region (NER) / Sunrise Trails Division</dd>
-    <dt>Requirements</dt><dd>NMRA SOQ form, Model Railroad Engineer – Electrical, January 2025</dd>
-    <dt>Document</dt><dd>Version 2.0, {{DATE}}. Built from the railroad's records by <code>docs/ap/electrical/build_soq.py</code></dd>
+    <dt>Date</dt><dd>{{DATE}}</dd>
   </dl>
 </section>
 
-<!-- ============================================================ FRONT MATTER -->
+<!-- ============================================================ CONTENTS -->
 <section class="front">
-  <h2 class="no-num" id="abstract">Summary</h2>
-  <p>This document supports an application for the NMRA Achievement Program certificate <em>Model Railroad Engineer – Electrical</em>. It shows that each requirement on the Statement of Qualifications (SOQ) form is met on the member's HO layout, the HART Railroad, and it gives the evaluator what is needed to verify each claim: the track plan, schematic drawings, photographs, the commercial components used, and a step-by-step demonstration plan.</p>
-  <p>The layout is built in stages. Every claim in this document is demonstrated on the finished staging level and helix, which are fully wired and in use for operating sessions. The main and upper levels above it are under construction and are not relied on.</p>
-  <p>The claims are:</p>
-  <ul>
-    <li><strong>Requirement 1:</strong> DCC control of two or more trains at once in either direction, on a level with 43 separately gapped and detected sections in six protected power districts, two reversing sections, a passing siding, three engine storage tracks and a five-track yard with its own lead.</li>
-    <li><strong>Requirement 2 (three trackwork items):</strong> turnouts with powered frogs, crossovers, and reversing sections on auto-reversers.</li>
-    <li><strong>Requirement 3 (three control features):</strong> (a) electrical turnout position indication, (b) track occupancy indication, and (v) a computer-to-railroad interface designed, programmed and published by the member.</li>
-    <li><strong>Requirements 4 and 5:</strong> drawings D1 to D6 and the railroad's own wiring records (Appendix H).</li>
-  </ul>
-  <p>Chapter 2 gives a one-page compliance matrix. Chapter 8 is the witness demonstration plan.</p>
-
   <h2 class="no-num" id="contents">Contents</h2>
   <nav id="toc" aria-label="Table of contents"></nav>
-
-  <h2 class="no-num" id="lof">List of figures and photographs</h2>
-  <nav id="figlist" aria-label="List of figures"></nav>
-
-  <h2 class="no-num" id="lot">List of tables</h2>
-  <nav id="tablist" aria-label="List of tables"></nav>
 </section>
 
 <!-- ============================================================ 1 -->
 <section class="chapter">
   <h2 id="intro">Introduction</h2>
-
-  <h3 id="purpose">Purpose and scope</h3>
-  <p>The SOQ form asks the member to build and demonstrate an electrical control system (Requirement 1), wire three trackwork items (Requirement 2) and three control features (Requirement 3), draw the propulsion schematic and the schematics of the six chosen items (Requirements 4 and 5), and submit the package with a signed witness certification (Requirement 6). This document is that package's attachment. Each requirement has its own chapter. Each claim in it follows the same pattern:</p>
-  <ol>
-    <li>the requirement, as worded on the SOQ form;</li>
-    <li>how the layout meets it, with the construction method and the commercial components named;</li>
-    <li>the evidence: a plan clip, a schematic drawing, a photograph or a record;</li>
-    <li>the demonstration the witness can ask for, cross-referenced to Chapter 8.</li>
-  </ol>
-
-  <h3 id="railroad">The railroad</h3>
-  <p>The HART Railroad is an HO scale layout, operated with Digital Command Control (DCC). The plan is an original design with three levels joined by a two-track helix. Its control system has four parts:</p>
+  <p>This document goes with my SOQ form for the Model Railroad Engineer – Electrical certificate. It describes the wiring on my HO layout, the HART Railroad, and shows where each requirement on the form is met.</p>
+  <p>The layout has three levels joined by a two-track helix. The lowest level, the staging level, is finished and wired, and is used for operating sessions. Everything in this document is on the staging level and the helix. The two upper levels are still being built.</p>
+  <p>The layout runs on DCC. The main parts of the electrical system are:</p>
   <ul>
-    <li><strong>Track power:</strong> a TCS CS-105 command station and a TCS B-106 booster, distributed through a booster matrix to protected power districts (<a class="xref" href="#req1-protect"></a>).</li>
-    <li><strong>Field control:</strong> LCOS radio control nodes (Beagle Bay Inc.) beside the track drive the switch machines and signals, read the turnout contacts and fascia buttons, and read current-sense block detectors.</li>
-    <li><strong>Computer:</strong> JMRI on a Raspberry Pi, with dispatcher and CTC panels on the layout's computers.</li>
-    <li><strong>The link between them:</strong> a radio-to-network bridge designed and written by the member (<a class="xref" href="#req3-v"></a>).</li>
+    <li>a TCS CS-105 command station and a TCS B-106 booster;</li>
+    <li>six power districts, each with its own circuit breaker or auto-reverser;</li>
+    <li>LCOS radio control nodes (made by Beagle Bay Inc.) under the layout, which drive the switch machines and read the block detectors;</li>
+    <li>JMRI on a Raspberry Pi for the control panels;</li>
+    <li>a bridge that I designed and programmed, which connects the LCOS radio network to JMRI.</li>
   </ul>
-  <p>The staging level, the lowest of the three, is a complete railroad in its own right. It has a continuous main line, two reversing sections, a passing siding, a five-track yard, engine storage and holding tracks, all wired, detected and controlled as described here. Plan P1 (<a class="xref" href="#fig-p1"></a>) shows it.</p>
-  <figure class="fig wide" id="fig-p1">
-    <img src="drawings/P1-staging-plan.svg" alt="Track diagram of the staging level with generic labels; see the figure description in the drawing.">
-    <figcaption>Plan P1: the staging level, on which every claim in this document is demonstrated. Copied from the railroad's system schematic with its own names removed and generic labels added; not to scale. Switch numbers are as marked on the layout fascia. Plan P0 (<a class="xref" href="#fig-p0"></a>) shows the same track to scale.</figcaption>
-  </figure>
-  <figure class="fig" id="fig-p0">
-    <img src="drawings/P0-staging-to-scale.svg" alt="To-scale track plan of the staging level, with switch numbers and a 100 cm scale bar. The main line runs around the edge of the room, the yard lies along the left side, and the return loop sits in the middle around the helix.">
-    <figcaption>Plan P0: the staging level to scale, from the railroad's track plan 5.3b. Switch numbers match Plan P1; E1 to E3 are the engine storage tracks. Scale bar 100 cm.</figcaption>
-  </figure>
+  <p>Chapter 2 is a checklist of every requirement and where to find it. Chapter 7 lists what I will show the witness.</p>
 
-  <h3 id="labels">Labels used in this document</h3>
-  <p>The railroad's own track and station names mean nothing to a reader who has not visited it, so this document uses generic labels instead. The main ones are listed below. Appendix A cross-references each one to the name painted on the fascia and used in the wiring records, so the witness can find it on the layout.</p>
+  <h3 id="labels">Track plan and labels</h3>
+  <p>Plan P1 shows the staging level. To keep it easy to follow, I use simple labels instead of my railroad's own track names. Appendix A matches each label to the name on the layout.</p>
+  <figure class="fig wide" id="fig-p1">
+    <img src="drawings/P1-staging-plan.svg" alt="Track diagram of the staging level with generic labels for the main line, the two reversing sections, the passing siding, the yard, the yard lead and the engine storage tracks.">
+    <figcaption>Plan P1: the staging level (not to scale). Switch numbers match the layout fascia. Appendix B has the same track drawn to scale.</figcaption>
+  </figure>
   <table id="tab-labels">
-    <caption>Generic labels used in this document</caption>
+    <caption>Labels used in this document</caption>
     <thead><tr><th scope="col">Label</th><th scope="col">What it is</th></tr></thead>
     <tbody>
-      <tr><td>Main line</td><td>The continuous loop of the staging level, including the double-track section at the east end</td></tr>
-      <tr><td>RS-1</td><td>Reversing section 1: the west part of the main line, Switch 1 to Switch 23, on an AR10 auto-reverser</td></tr>
-      <tr><td>RS-2</td><td>Reversing section 2: the return loop at the east end, on a PSX-AR auto-reverser</td></tr>
-      <tr><td>Passing siding</td><td>The siding beside the main line from Switch 5 to Switch 7</td></tr>
-      <tr><td>Yard, Y1 to Y5</td><td>The five-track yard, worked from the yard lead through Switches 15 to 21</td></tr>
-      <tr><td>Yard lead</td><td>The track from Switch 7 to Switch 15 that serves the yard and engine storage without using the main line</td></tr>
-      <tr><td>E1 to E3</td><td>Engine storage tracks, off the yard lead at Switches 9 and 11</td></tr>
-      <tr><td>District A to D</td><td>The four power districts on circuit breakers (RS-1 and RS-2 are the fifth and sixth)</td></tr>
-      <tr><td>Section</td><td>A length of track gapped in both rails at both ends, with its own feeders and its own detector channel. The SOQ form calls this a block.</td></tr>
+      <tr><td>Main line</td><td>The main loop of the staging level</td></tr>
+      <tr><td>RS-1</td><td>Reversing section 1: the west part of the main line, Switch 1 to Switch 23</td></tr>
+      <tr><td>RS-2</td><td>Reversing section 2: the return loop at the east end</td></tr>
+      <tr><td>Passing siding</td><td>The siding beside the main line, Switch 5 to Switch 7</td></tr>
+      <tr><td>Y1 to Y5</td><td>The five yard tracks</td></tr>
+      <tr><td>Yard lead</td><td>The track that serves the yard, Switch 7 to Switch 15</td></tr>
+      <tr><td>E1 to E3</td><td>The three engine storage tracks</td></tr>
+      <tr><td>Section</td><td>A piece of track with gaps in both rails at both ends and its own feeders and detector. The SOQ form calls this a block.</td></tr>
     </tbody>
   </table>
 </section>
 
 <!-- ============================================================ 2 -->
 <section class="chapter">
-  <h2 id="matrix">Summary of compliance</h2>
-  <p>The table below lists every requirement on the SOQ form, the item claimed, and where the evidence is. Every requirement is met on the staging level as built.</p>
+  <h2 id="matrix">Checklist</h2>
   <table id="tab-matrix" class="matrix">
-    <caption>Compliance matrix</caption>
-    <thead><tr><th scope="col">Req.</th><th scope="col">SOQ form item</th><th scope="col">Claimed</th><th scope="col">Evidence</th><th scope="col">Demo</th></tr></thead>
+    <caption>SOQ requirements and where they are met</caption>
+    <thead><tr><th scope="col">Req.</th><th scope="col">Requirement</th><th scope="col">On my layout</th><th scope="col">See</th></tr></thead>
     <tbody>
-      <tr><td>1</td><td>Two mainline trains, simultaneous and independent, either direction</td><td>DCC, each locomotive on its own address</td><td><a class="xref" href="#req1-two"></a>; D1</td><td>W1</td></tr>
-      <tr><td>1</td><td>DCC: gaps/switches/phase for troubleshooting</td><td>43 sections gapped in both rails; 6 protected districts</td><td><a class="xref" href="#req1-gaps"></a>; D1, D2; Appendix B</td><td>W2</td></tr>
-      <tr><td>1</td><td>One reverse loop or wye or turntable or transfer table</td><td>Return loop RS-2 (and RS-1)</td><td><a class="xref" href="#req1-loop"></a>; P2, D5</td><td>W3</td></tr>
-      <tr><td>1</td><td>One passing siding</td><td>Passing siding, Switch 5 to Switch 7</td><td><a class="xref" href="#req1-siding"></a>; P3</td><td>W4</td></tr>
-      <tr><td>1</td><td>Storage for at least two unused motive power units</td><td>Engine storage E1 to E3</td><td><a class="xref" href="#req1-engine"></a>; P5</td><td>W5</td></tr>
-      <tr><td>1</td><td>Yard of three or more tracks with a lead independent of the main</td><td>Yard Y1 to Y5 and its lead</td><td><a class="xref" href="#req1-yard"></a>; P4</td><td>W6</td></tr>
-      <tr><td>1</td><td>Power supply with protective devices</td><td>4 circuit breakers and 2 auto-reversers</td><td><a class="xref" href="#req1-protect"></a>; D1</td><td>W7</td></tr>
-      <tr><td>2</td><td>Turnout</td><td>Powered frogs through the switch machine contact</td><td><a class="xref" href="#req2-turnout"></a>; D3</td><td>W8</td></tr>
-      <tr><td>2</td><td>Crossover</td><td>Crossovers at Switches 7, 23 and 35</td><td><a class="xref" href="#req2-crossover"></a>; D4</td><td>W9</td></tr>
-      <tr><td>2</td><td>Other</td><td>Reversing sections (2) on auto-reversers</td><td><a class="xref" href="#req2-other"></a>; D5</td><td>W3</td></tr>
-      <tr><td>3</td><td>(a) Electrical turnout position</td><td>Fascia lamps and panel lamps, every staging turnout</td><td><a class="xref" href="#req3-a"></a>; D3</td><td>W10</td></tr>
-      <tr><td>3</td><td>(b) Track occupancy</td><td>43 detected sections shown on the panels</td><td><a class="xref" href="#req3-b"></a>; D2</td><td>W11</td></tr>
-      <tr><td>3</td><td>(v) Computer to railroad interface</td><td>The member's LCOS-to-MQTT bridge</td><td><a class="xref" href="#req3-v"></a>; D6; Appendix E</td><td>W12</td></tr>
-      <tr><td>4</td><td>Propulsion schematic</td><td>Drawings D1 and D2 with Appendix B</td><td><a class="xref" href="#req45"></a></td><td>–</td></tr>
-      <tr><td>5</td><td>Schematics of the six items</td><td>Drawings D2 to D6 and wiring records</td><td><a class="xref" href="#req45"></a>; Appendix H</td><td>–</td></tr>
-      <tr><td>6</td><td>Track plan, descriptions, witness form</td><td>This document and the signed form</td><td><a class="xref" href="#req6"></a></td><td>W13</td></tr>
+      <tr><td>1</td><td>Two mainline trains at once, either direction</td><td>DCC</td><td><a class="xref" href="#req1-two"></a></td></tr>
+      <tr><td>1</td><td>Gaps and switches for troubleshooting (DCC)</td><td>43 gapped sections in 6 power districts</td><td><a class="xref" href="#req1-gaps"></a></td></tr>
+      <tr><td>1</td><td>Reverse loop, wye, turntable or transfer table</td><td>Return loop RS-2, and RS-1</td><td><a class="xref" href="#req1-loop"></a></td></tr>
+      <tr><td>1</td><td>Passing siding</td><td>Switch 5 to Switch 7</td><td><a class="xref" href="#req1-siding"></a></td></tr>
+      <tr><td>1</td><td>Storage for two locomotives</td><td>Engine storage E1 to E3</td><td><a class="xref" href="#req1-engine"></a></td></tr>
+      <tr><td>1</td><td>Yard of three tracks with its own lead</td><td>Five-track yard and yard lead</td><td><a class="xref" href="#req1-yard"></a></td></tr>
+      <tr><td>1</td><td>Power supply with protection</td><td>4 circuit breakers, 2 auto-reversers</td><td><a class="xref" href="#req1-protect"></a></td></tr>
+      <tr><td>2</td><td>Turnout</td><td>Powered frogs</td><td><a class="xref" href="#req2-turnout"></a></td></tr>
+      <tr><td>2</td><td>Crossover</td><td>Switches 7, 23 and 35</td><td><a class="xref" href="#req2-crossover"></a></td></tr>
+      <tr><td>2</td><td>Other</td><td>Reversing sections on auto-reversers</td><td><a class="xref" href="#req2-other"></a></td></tr>
+      <tr><td>3</td><td>(a) Electrical turnout position</td><td>Fascia and panel lamps</td><td><a class="xref" href="#req3-a"></a></td></tr>
+      <tr><td>3</td><td>(b) Track occupancy</td><td>All 43 sections detected</td><td><a class="xref" href="#req3-b"></a></td></tr>
+      <tr><td>3</td><td>(v) Computer to railroad interface</td><td>My LCOS-to-JMRI bridge</td><td><a class="xref" href="#req3-v"></a></td></tr>
+      <tr><td>4, 5</td><td>Schematic drawings</td><td>Drawings D1 to D6, wiring records</td><td><a class="xref" href="#req45"></a></td></tr>
+      <tr><td>6</td><td>Track plan; descriptions and parts; witness form</td><td>Plans P1 to P5 and P0; Chapters 3 to 5 and the parts list; the form</td><td><a class="xref" href="#fig-p1"></a>, <a class="xref" href="#app-b"></a>, <a class="xref" href="#app-c"></a></td></tr>
     </tbody>
   </table>
 </section>
 
 <!-- ============================================================ 3 -->
 <section class="chapter">
-  <h2 id="req1">Requirement 1: the electrical control system</h2>
-  <blockquote class="req"><span>SOQ form, Requirement 1</span>Construct and demonstrate on your own, someone else's layout, or a club layout, the satisfactory operation of an electrical control system on a model railroad capable of simultaneous and independent control of two mainline trains in either direction, and containing at least: [the items in Sections 3.2 to 3.7].</blockquote>
+  <h2 id="req1">Requirement 1: the control system</h2>
 
-  <h3 id="req1-two">Two mainline trains, simultaneously and independently, in either direction</h3>
-  <p><strong>How it is met.</strong> The layout runs on DCC. The command station puts one digital signal on all the track. Each locomotive's decoder answers only to its own address and takes its speed and direction from the packets sent to that address. Two trains anywhere on the main line therefore run at the same time, each under its own throttle, in either direction, with no cab selection or block switching. The command station and boosters are shown in <a class="xref" href="#photo-power"></a>; the path from throttle to rail is drawing D1.</p>
-  <p><strong>Evidence.</strong> Drawing D1; <a class="xref" href="#photo-power"></a>; <a class="xref" href="#photo-two-trains"></a>. The staging level is used for operating sessions in which several crews run trains at the same time.</p>
-  <p><strong>Demonstration.</strong> W1: two trains on the main line at once, each on its own throttle, each reversed during the run.</p>
+  <h3 id="req1-two">Two trains at once</h3>
+  <p>The layout runs on DCC. Every locomotive has a decoder with its own address, and it only follows commands sent to that address. So two trains can run at the same time anywhere on the main line, in either direction, each on its own throttle.</p>
   <figure class="photo" id="photo-power">
-    <img src="photos/power-board.jpg" alt="A plywood panel holding a TCS CS-105 command station, a TCS B-106 booster, five green circuit-breaker boards with their status lamps lit, and terminal strips joining them with red and black wire.">
-    <figcaption>The track power panel: TCS CS-105 command station (top right), TCS B-106 booster (below it), the PSX-series circuit-breaker boards (left, lamps lit) and the terminal strips of the booster matrix.</figcaption>
+    <img src="photos/power-board.jpg" alt="A plywood panel holding a TCS CS-105 command station, a TCS B-106 booster, five green DCC Specialties boards with their status lamps lit, and terminal strips joining them with red and black wire.">
+    <figcaption>The power panel: TCS CS-105 command station (top right), TCS B-106 booster (below it), the PSX breaker and auto-reverser boards (left) and the terminal strips.</figcaption>
   </figure>
   <figure class="photo" id="photo-two-trains" data-punch="PL-01">
     <img src="photos/two-trains.jpg" alt="Two trains running at the same time on the staging level, with two throttles in view.">
-    <figcaption>Two trains under way at the same time on the staging main line, each on its own throttle.</figcaption>
+    <figcaption>Two trains running at the same time, each on its own throttle.</figcaption>
   </figure>
 
-  <h3 id="req1-gaps">Command control: gaps and switches for troubleshooting</h3>
-  <p><strong>How it is met.</strong> The SOQ form asks a DCC layout for gaps and switches that allow troubleshooting. The staging level and helix are divided twice over:</p>
-  <ul>
-    <li><strong>Six power districts</strong>, each on its own protection device: four on PSX-series circuit breakers (Districts A to D) and the two reversing sections on their auto-reversers, which also cut power on a short (RS-1, RS-2). A short or fault shuts down only its own district, and the breaker's lamp shows which one. Any district can be isolated at its breaker while the rest of the railroad runs. Drawing D1.</li>
-    <li><strong>43 detected sections</strong>, each gapped in both rails at both ends and fed from its district bus by its own feeder pair, which passes through its own detector channel (D2, Appendix B). A fault can be traced to one section by lifting its feeder pair at the terminal strip, and the panel shows which section a train or a short is in.</li>
-  </ul>
-  <p>The district buses are run under the benchwork as pairs of heavy wire, joined at terminal strips (<a class="xref" href="#photo-bus"></a>). The feeder pairs drop from the bus to the rails.</p>
-  <p><strong>Evidence.</strong> Drawings D1 and D2; Appendix B (every section and its detector); <a class="xref" href="#photo-bus"></a>; <a class="xref" href="#photo-gap"></a>.</p>
-  <p><strong>Demonstration.</strong> W2: the witness is shown the gaps, a feeder pair and a district breaker, and a short in one district stops only that district.</p>
+  <h3 id="req1-gaps">Gaps and switches for troubleshooting</h3>
+  <p>The staging level and helix are split into six power districts. Four are on DCC Specialties PSX circuit breakers. The other two are the reversing sections, which are on auto-reversers that also shut off on a short. A short only shuts down its own district, and the breaker's light shows which one tripped.</p>
+  <p>The districts are split again into 43 sections. Each section has gaps in both rails at both ends and its own pair of feeder wires from the district bus (drawing D2). If there is a problem, I can disconnect one section's feeders at the terminal strip to find it. Appendix B lists all 43 sections.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-bus">
       <img src="photos/bus-terminal-strip.jpg" alt="An eight-position terminal strip mounted under the benchwork with red, black, white, blue, yellow and orange wires connected to it.">
-      <figcaption>A terminal strip under the benchwork joining district bus and feeder wiring.</figcaption>
+      <figcaption>A terminal strip under the layout, where bus and feeder wires join.</figcaption>
     </figure>
     <figure class="photo" id="photo-gap" data-punch="PL-02">
       <img src="photos/gap-both-rails.jpg" alt="Close-up of a section boundary with an insulated gap cut in both rails.">
-      <figcaption>A section boundary: insulated gaps in both rails.</figcaption>
+      <figcaption>A section boundary with gaps in both rails.</figcaption>
     </figure>
   </div>
 
   <h3 id="req1-loop">Reverse loop</h3>
-  <p><strong>How it is met.</strong> The east end of the main line has a return loop, RS-2 (Plan P2, <a class="xref" href="#fig-p2"></a>). A train leaving the double-track section on one track runs around the loop and comes back on the other, facing the other way. The loop is gapped in both rails at both ends and fed through a PSX-AR auto-reverser, which matches the loop's polarity to the track a train enters from (drawing D5). The west part of the main line, RS-1 from Switch 1 to Switch 23, is a second reversing section wired the same way on an AR10, because the main line's loop at the west end also turns trains. Each section is longer than the longest train run on the level; RS-1 is 217 in between its gaps.</p>
-  <p><strong>Evidence.</strong> Plan P2; drawing D5; <a class="xref" href="#photo-loop"></a>; <a class="xref" href="#photo-ar"></a>.</p>
-  <p><strong>Demonstration.</strong> W3: a train runs through each reversing section in both directions without stopping and without a short.</p>
+  <p>At the east end of the main line is a return loop, RS-2 (Plan P2). A train goes out on one track, around the loop, and comes back on the other track facing the other way. The loop has gaps in both rails at both ends and is powered through a DCC Specialties PSX-AR auto-reverser (drawing D5).</p>
+  <p>The main line also loops back on itself at the west end, so the west part of the main line, RS-1, is a second reversing section. It is wired the same way on an NCE AR10. RS-1 is 217 in long, longer than any train on the level.</p>
   <figure class="fig wide" id="fig-p2">
-    <img src="drawings/P2-reversing-sections.svg" alt="Track diagram with reversing section RS-1 on the west main line and the return loop RS-2 at the east end highlighted, and the gaps at their ends marked.">
+    <img src="drawings/P2-reversing-sections.svg" alt="Track diagram with the two reversing sections highlighted and the gaps at their ends marked.">
     <figcaption>Plan P2: the two reversing sections and their gaps.</figcaption>
   </figure>
   <div class="photo-row">
     <figure class="photo" id="photo-loop" data-punch="PL-03">
       <img src="photos/return-loop.jpg" alt="The return loop RS-2 seen from above, with the gaps at both ends marked.">
-      <figcaption>The return loop RS-2 from above, gaps marked.</figcaption>
+      <figcaption>The return loop RS-2.</figcaption>
     </figure>
     <figure class="photo" id="photo-ar" data-punch="PL-04">
       <img src="photos/auto-reversers.jpg" alt="The AR10 and PSX-AR auto-reversers as installed, each labelled with its section.">
-      <figcaption>The AR10 (RS-1) and PSX-AR (RS-2) as installed.</figcaption>
+      <figcaption>The two auto-reversers as installed.</figcaption>
     </figure>
   </div>
 
   <h3 id="req1-siding">Passing siding</h3>
-  <p><strong>How it is met.</strong> A passing siding lies beside the main line between Switch 5 and Switch 7 (Plan P3, <a class="xref" href="#fig-p3"></a>). It is 144 in long, room for about 19 cars, and joins the main line at both ends, so a train can wait on it while another passes on the main in either direction. Like every track on the level it is its own detected section, gapped at both ends. The double-track section at the east end gives a second place for trains to pass.</p>
-  <p><strong>Evidence.</strong> Plan P3; <a class="xref" href="#photo-siding"></a>.</p>
-  <p><strong>Demonstration.</strong> W4: one train holds on the siding while a second passes it on the main line.</p>
-  <figure class="fig" id="fig-p3">
+  <p>The passing siding runs beside the main line from Switch 5 to Switch 7 (Plan P3). It is 144 in long, about 19 cars, and joins the main line at both ends. One train can wait on the siding while another passes on the main.</p>
+  <figure class="fig small" id="fig-p3">
     <img src="drawings/P3-passing-siding.svg" alt="Close-up track diagram of the passing siding beside the main line between Switch 5 and Switch 7.">
     <figcaption>Plan P3: the passing siding.</figcaption>
   </figure>
   <figure class="photo" id="photo-siding" data-punch="PL-05">
     <img src="photos/passing-siding.jpg" alt="A train waiting on the passing siding while another passes on the main line.">
-    <figcaption>The passing siding in use: one train holds while another passes.</figcaption>
+    <figcaption>One train waits on the siding while another passes.</figcaption>
   </figure>
 
-  <h3 id="req1-engine">Storage for two unused motive power units</h3>
-  <p><strong>How it is met.</strong> Three stub-ended engine storage tracks, E1 to E3, leave the yard lead at Switches 9 and 11 beside an engine house (Plan P5, <a class="xref" href="#fig-p5"></a>). Each holds at least one locomotive and is its own detected section. Under DCC, a locomotive parked there with its throttle at zero stays put while others run.</p>
-  <p><strong>Evidence.</strong> Plan P5; <a class="xref" href="#photo-engine"></a>.</p>
-  <p><strong>Demonstration.</strong> W5: two locomotives stand on the storage tracks while trains run elsewhere.</p>
-  <figure class="fig" id="fig-p5">
-    <img src="drawings/P5-engine-storage.svg" alt="Close-up track diagram of three engine storage tracks E1 to E3 off the yard lead.">
+  <h3 id="req1-engine">Engine storage</h3>
+  <p>Three engine storage tracks, E1 to E3, branch off the yard lead at Switches 9 and 11 (Plan P5). Each holds at least one locomotive. A locomotive parked there stays put while other trains run.</p>
+  <figure class="fig small" id="fig-p5">
+    <img src="drawings/P5-engine-storage.svg" alt="Close-up track diagram of the three engine storage tracks off the yard lead.">
     <figcaption>Plan P5: engine storage.</figcaption>
   </figure>
   <figure class="photo" id="photo-engine">
-      <img src="photos/engine-storage.jpg" alt="Diesel locomotives standing on the engine storage tracks in front of a two-stall engine house, with a turnout in the foreground.">
-      <figcaption>Locomotives on the engine storage tracks beside the engine house.</figcaption>
+    <img src="photos/engine-storage.jpg" alt="Diesel locomotives standing on the engine storage tracks in front of a two-stall engine house.">
+    <figcaption>Locomotives on the engine storage tracks.</figcaption>
   </figure>
 
-  <h3 id="req1-yard">Yard with a switching lead independent of the main line</h3>
-  <p><strong>How it is met.</strong> The yard has five tracks, Y1 to Y5, from 100 to 218 in long (Plan P4, <a class="xref" href="#fig-p4"></a>). Its west ladder, Switches 15 to 21, is worked from the yard lead. The lead leaves the main line at Switch 7 and runs to Switch 15 on its own track, so a switcher can work the yard from the lead while trains run on the main line. Each yard track and the lead are separate detected sections.</p>
-  <p><strong>Evidence.</strong> Plan P4; <a class="xref" href="#photo-yard"></a>; <a class="xref" href="#photo-ladder"></a>.</p>
-  <p><strong>Demonstration.</strong> W6: a switcher works the yard from the lead while a train runs on the main line.</p>
+  <h3 id="req1-yard">Yard and yard lead</h3>
+  <p>The yard has five tracks, Y1 to Y5, from 100 to 218 in long (Plan P4). A switcher works the yard from the yard lead, which leaves the main line at Switch 7 and runs on its own track to the yard ladder. Trains can keep running on the main line while the yard is switched.</p>
   <figure class="fig wide" id="fig-p4">
     <img src="drawings/P4-yard.svg" alt="Close-up track diagram of the five-track yard and its lead.">
     <figcaption>Plan P4: the yard and its lead.</figcaption>
   </figure>
   <div class="photo-row">
     <figure class="photo" id="photo-yard">
-      <img src="photos/yard.jpg" alt="The yard seen along its length, with freight cars on several tracks and a fascia label naming the yard.">
-      <figcaption>The yard, looking along its tracks.</figcaption>
+      <img src="photos/yard.jpg" alt="The yard seen along its length, with freight cars on several tracks.">
+      <figcaption>The yard.</figcaption>
     </figure>
     <figure class="photo" id="photo-ladder">
       <img src="photos/staging-ladder.jpg" alt="A ladder of Peco turnouts on cork roadbed fanning out into parallel tracks.">
-      <figcaption>A ladder of Peco turnouts on the staging level.</figcaption>
+      <figcaption>A yard ladder of Peco turnouts.</figcaption>
     </figure>
   </div>
 
-  <h3 id="req1-protect">Power supply with protective devices</h3>
-  <p><strong>How it is met.</strong> Track power comes from the command station's own output and the booster, through the booster matrix, to six protection devices (D1):</p>
+  <h3 id="req1-protect">Power supply and protection</h3>
+  <p>The command station and booster feed the districts through a set of terminal strips (the booster matrix). Each district has its own protection (drawing D1):</p>
   <ul>
-    <li>four DCC Specialties PSX-series electronic circuit breakers, one per district A to D, each with a status lamp that shows a trip;</li>
-    <li>the NCE AR10 and DCC Specialties PSX-AR auto-reversers on RS-1 and RS-2, which reverse polarity when a train bridges a gap and cut the section off if a short lasts.</li>
+    <li>Districts A to D: one DCC Specialties PSX circuit breaker each. The breaker cuts power within milliseconds of a short and turns it back on when the short is cleared.</li>
+    <li>RS-1 and RS-2: the NCE AR10 and the DCC Specialties PSX-AR. They flip polarity when a train crosses the gap, and shut off if a short lasts.</li>
   </ul>
-  <p>Every section of the staging level and helix is therefore behind a device that clears a short within milliseconds, without tripping the booster and without stopping the other districts. The command station and booster have their own internal short protection behind these. The matrix has room for a second booster, planned if the load needs it.</p>
-  <p><strong>Evidence.</strong> Drawing D1; <a class="xref" href="#photo-power"></a>; Appendix H (power district record).</p>
-  <p><strong>Demonstration.</strong> W7: a short placed in one district trips only its breaker, which resets once the short is removed.</p>
+  <p>The command station and booster also have their own short protection. The booster matrix has room for a second booster if I need one later.</p>
 </section>
 
 <!-- ============================================================ 4 -->
 <section class="chapter">
-  <h2 id="req2">Requirement 2: trackwork items</h2>
-  <blockquote class="req"><span>SOQ form, Requirement 2</span>Wire and demonstrate the electrical operation of at least three of the following track items. <em>Claimed: Turnout; Crossover; Other: reversing sections on auto-reversers.</em></blockquote>
+  <h2 id="req2">Requirement 2: trackwork</h2>
+  <p>I claim three items: turnouts, crossovers, and reversing sections on auto-reversers.</p>
 
   <h3 id="req2-turnout">Turnout</h3>
-  <p><strong>Construction.</strong> Every turnout on the staging level is a Peco turnout with a powered frog, thrown by an MTB MP4 slow-motion switch machine mounted under the benchwork (<a class="xref" href="#photo-mp4"></a>). The level has twenty numbered switch locations; three are crossovers of two turnouts each.</p>
-  <p><strong>Wiring.</strong> The MP4 has two SPDT contacts that move with its throwbar (D3):</p>
+  <p>Every turnout on the staging level is a Peco turnout with a powered frog. Each one is thrown by an MTB MP4 slow-motion switch machine under the layout. The MP4 has two built-in switches (SPDT contacts) that move with the points (drawing D3):</p>
   <ul>
-    <li><strong>Contact 1 powers the frog.</strong> Its two throws go to the two stock rails and its common to the frog. With the points against one stock rail the frog takes that rail's polarity, and the contact changes over with the points. Both frog rails are gapped beyond the frog so the frog's polarity cannot reach the track beyond.</li>
-    <li><strong>Contact 2 reports the position</strong> for the indication described in <a class="xref" href="#req3-a"></a>.</li>
+    <li>Contact 1 powers the frog. It connects the frog to whichever stock rail the points are against, so the frog always has the right polarity. Both frog rails are gapped past the frog.</li>
+    <li>Contact 2 reports which way the turnout is set (Section 5.1).</li>
   </ul>
-  <p>The machine motor is driven from a 12 V output of the LCOS control node beside the turnout, commanded from the fascia button, a DCC throttle or the computer.</p>
-  <p><strong>Commercial components.</strong> Peco turnouts; MTB MP4 switch machines; LCOS output and input boards (Beagle Bay Inc.).</p>
-  <p><strong>Evidence.</strong> Drawing D3; <a class="xref" href="#photo-mp4"></a>; <a class="xref" href="#photo-frog"></a>; Appendix H (turnout wiring record and node pages).</p>
-  <p><strong>Demonstration.</strong> W8: a locomotive crawls through a turnout on both routes without stalling on the frog, and a meter shows the frog's polarity change with the points.</p>
+  <p>The switch machine is driven by a 12 V output on the nearby LCOS node, so a turnout can be thrown from the fascia button, a DCC throttle or the computer.</p>
+  <p><strong>Parts:</strong> Peco turnouts, MTB MP4 switch machines, LCOS output and input boards.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-mp4">
-      <img src="photos/touch-toggle-mp4.jpg" alt="An MTB MP4 switch machine and a round Touch Toggle push button with a green lamp, on the plywood next to the track before mounting.">
-      <figcaption>An MTB MP4 switch machine (bottom) and the Touch Toggle fascia button that shows its position (centre, lamp lit).</figcaption>
+      <img src="photos/touch-toggle-mp4.jpg" alt="An MTB MP4 switch machine and a round Touch Toggle push button with a green lamp.">
+      <figcaption>An MTB MP4 switch machine (bottom) and a Touch Toggle fascia button (centre).</figcaption>
     </figure>
     <figure class="photo" id="photo-frog" data-punch="PL-06">
       <img src="photos/mp4-frog-wiring.jpg" alt="The underside of a turnout showing the MP4 machine's contact wired to both stock rails and the frog.">
-      <figcaption>Frog wiring at the MP4: stock rails to the throws, frog to the common.</figcaption>
+      <figcaption>Frog wiring at the MP4.</figcaption>
     </figure>
   </div>
 
   <h3 id="req2-crossover">Crossover</h3>
-  <p><strong>Construction.</strong> Crossovers of two Peco turnouts join parallel tracks at Switch 23 (halves 23a and 23b) and Switch 35 (35a and 35b), at the two ends of the double-track section, and at Switch 7, where the passing siding meets the main line and the yard lead.</p>
-  <p><strong>Wiring.</strong> Each half is wired as a turnout (D3) on its own MP4, and both machines are thrown together from one command. Because each frog takes the polarity of its own route, both rails between the two frogs are gapped. Each half is its own detected section, so the panel shows which half a train is on (D4).</p>
-  <p><strong>Commercial components.</strong> As for the turnout.</p>
-  <p><strong>Evidence.</strong> Drawing D4; <a class="xref" href="#photo-crossover"></a>.</p>
-  <p><strong>Demonstration.</strong> W9: a train runs through a crossover in both directions with no short at the gaps between the frogs.</p>
+  <p>There are crossovers at Switch 23, Switch 35 and Switch 7. Each is two turnouts, wired like any other turnout, and both machines throw together. Because each frog has its own polarity, both rails between the two frogs are gapped (drawing D4). Each half is its own detected section.</p>
+  <p><strong>Parts:</strong> the same as for a turnout.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-crossover" data-punch="PL-07">
       <img src="photos/crossover-gaps.jpg" alt="A crossover seen from above, with the gaps in both rails between the two frogs marked.">
-      <figcaption>A crossover from above, with the gaps between the frogs marked.</figcaption>
+      <figcaption>A crossover, with the gaps between the frogs marked.</figcaption>
     </figure>
     <figure class="photo" id="photo-turnouts">
-      <img src="photos/staging-turnouts.jpg" alt="Peco turnouts on cork roadbed with feeder holes and a backdrop of an industrial skyline.">
+      <img src="photos/staging-turnouts.jpg" alt="Peco turnouts on cork roadbed.">
       <figcaption>Peco turnouts on the staging level.</figcaption>
     </figure>
   </div>
 
   <h3 id="req2-other">Other: reversing sections on auto-reversers</h3>
-  <p><strong>Construction.</strong> RS-1 and RS-2 (Plan P2) are each gapped in both rails at both ends. Each is fed from the booster matrix through its own auto-reverser, the AR10 for RS-1 and the PSX-AR for RS-2, and its feeders pass through a detector channel like any other section.</p>
-  <p><strong>Operation.</strong> When a train's wheels bridge a gap with the polarity wrong, the auto-reverser sees the short and swaps the section's two outputs within milliseconds, faster than any breaker trips, so the train runs through without a pause. The swap has to finish before the train reaches the gap at the far end, so each section is longer than the longest train (D5).</p>
-  <p><strong>Commercial components.</strong> NCE AR10 auto-reverser; DCC Specialties PSX-AR.</p>
-  <p><strong>Evidence.</strong> Plan P2; drawing D5; <a class="xref" href="#photo-ar"></a>.</p>
-  <p><strong>Demonstration.</strong> W3.</p>
+  <p>RS-1 and RS-2 (Section 3.3) each have gaps in both rails at both ends and get power through their own auto-reverser. When a train's wheels bridge a gap with the wrong polarity, the auto-reverser senses the short and flips the section's polarity in a few milliseconds, so the train keeps going. Each section is longer than the longest train, so the flip finishes before the train reaches the far gap (drawing D5).</p>
+  <p><strong>Parts:</strong> NCE AR10, DCC Specialties PSX-AR.</p>
 </section>
 
 <!-- ============================================================ 5 -->
 <section class="chapter">
   <h2 id="req3">Requirement 3: control features</h2>
-  <blockquote class="req"><span>SOQ form, Requirement 3</span>Wire and demonstrate the satisfactory electrical operation of at least three of the following features. <em>Claimed: Electrical turnout position (a); Track occupancy (b); Computer to railroad interface (v).</em></blockquote>
+  <p>I claim three features: (a) turnout position, (b) track occupancy, and (v) a computer-to-railroad interface. Appendix D lists other features I have built but am not claiming.</p>
 
-  <h3 id="req3-choice">Choice of features</h3>
-  <p>The railroad has more control features than the three the form needs. The three claimed were chosen because each can be seen working on the layout and none depends on a commercial control product:</p>
+  <h3 id="req3-a">(a) Turnout position indication</h3>
+  <p>Every turnout on the staging level shows which way it is set, in two places:</p>
   <ul>
-    <li><strong>(a) Turnout position</strong> is wired from the switch machine's own contact. The lamps show where the points actually are, not where they were last told to go.</li>
-    <li><strong>(b) Track occupancy</strong> is detected on every section of the level, and the witness can watch it follow a train.</li>
-    <li><strong>(v) The computer-to-railroad interface</strong> is the member's own design, hardware integration and software, and is published for other modellers to use.</li>
+    <li>On the fascia, the turnout's Touch Toggle button lights up. The light is driven from contact 2 of the MP4 through a Touch Toggle Universal Translator. A framed track diagram on the fascia also has a light at each of its turnouts.</li>
+    <li>On the computer panels, each switch shows a normal or reverse light. The same contact is read by an LCOS input board.</li>
   </ul>
-  <p>Appendix D lists the further features that are built and working but not claimed (CTC, computer control, computerized block detection and stored-program operation). If an evaluator does not accept one of the three, one of these can be offered in its place.</p>
-
-  <h3 id="req3-a">(a) Electrical turnout position indication</h3>
-  <p><strong>What it does.</strong> Every turnout on the staging level shows its position in two places:</p>
-  <ul>
-    <li><strong>On the fascia</strong>, at the turnout's Touch Toggle push button. The button's lamp is driven from the MP4's position contact through a Touch Toggle Universal Translator (<a class="xref" href="#photo-tt"></a>). A framed route diagram on the fascia also shows the indication, with a lamp at each turnout (<a class="xref" href="#photo-panel"></a>).</li>
-    <li><strong>On the dispatcher and CTC panels</strong>, where the same contact is read by an LCOS input board and passed to the computer. Each switch shows a normal or reverse lamp.</li>
-  </ul>
-  <p>Both are driven by the machine's contact, so they show where the points are, whichever control threw the turnout: the fascia button, a DCC throttle or the computer. If a machine fails to complete its throw, the lamp stays where it was. The form asks for at least four turnouts; every staging turnout is wired this way.</p>
-  <p><strong>Wiring.</strong> Drawing D3, contact 2; Appendix H (turnout wiring record, which shows the machine contact, the Universal Translator, the Touch Toggle and the input board; and the node pages, which give each switch's input pins).</p>
-  <p><strong>Commercial components.</strong> MTB MP4 (position contact); Touch Toggle buttons and Universal Translators; LCOS input boards.</p>
-  <p><strong>Demonstration.</strong> W10: four turnouts thrown from three different controls; the fascia lamp and the panel lamp follow each one.</p>
+  <p>Both come from the switch machine itself, so they show where the points really are, no matter how the turnout was thrown. The form asks for at least four turnouts. All of the staging turnouts are wired this way.</p>
+  <p><strong>Parts:</strong> MTB MP4, Touch Toggle buttons and Universal Translators, LCOS input boards. <strong>Drawing:</strong> D3.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-tt">
-      <img src="photos/touch-toggle-translator.jpg" alt="A yellow Touch Toggle Universal Translator board with its wiring to a lit green indicator lamp and a push button, on the plywood beside curved track.">
-      <figcaption>A Touch Toggle Universal Translator wired to its fascia button and lamp (green lamp lit), before mounting.</figcaption>
+      <img src="photos/touch-toggle-translator.jpg" alt="A yellow Touch Toggle Universal Translator board wired to a lit green indicator lamp and a push button.">
+      <figcaption>A Universal Translator wired to its button and light, before mounting.</figcaption>
     </figure>
     <figure class="photo" id="photo-panel">
-      <img src="photos/fascia-indication-panel.jpg" alt="A framed route diagram on the fascia below the track, with green and red lamps at three turnouts showing which way each is set.">
-      <figcaption>A framed route diagram on the fascia, with a lamp at each turnout showing how it is set.</figcaption>
+      <img src="photos/fascia-indication-panel.jpg" alt="A framed track diagram on the fascia with green and red lights at three turnouts.">
+      <figcaption>A framed track diagram on the fascia with a light at each turnout.</figcaption>
     </figure>
   </div>
   <div class="photo-row">
     <figure class="photo" id="photo-ind-n" data-punch="PL-08">
-      <img src="photos/indication-normal.jpg" alt="A turnout set normal, with its fascia lamp and the panel lamp both showing normal.">
-      <figcaption>Turnout set normal: fascia lamp and panel lamp agree.</figcaption>
+      <img src="photos/indication-normal.jpg" alt="A turnout set normal, with its fascia light and the panel light both showing normal.">
+      <figcaption>Turnout set normal.</figcaption>
     </figure>
     <figure class="photo" id="photo-ind-r" data-punch="PL-08">
-      <img src="photos/indication-reverse.jpg" alt="The same turnout set reverse, with its fascia lamp and the panel lamp both showing reverse.">
+      <img src="photos/indication-reverse.jpg" alt="The same turnout set reverse, with its fascia light and the panel light both showing reverse.">
       <figcaption>The same turnout set reverse.</figcaption>
     </figure>
   </div>
 
   <h3 id="req3-b">(b) Track occupancy indication</h3>
-  <p><strong>What it does.</strong> All 43 sections of the staging level and helix are detected, and each shows as occupied on the panels whenever a locomotive or a car with resistor wheelsets is on it. The form asks for at least five blocks.</p>
-  <p><strong>How it works.</strong> Detection is by current sensing. Both feeders of a section pass through one channel of a DNCT2B current-sense board, so any current drawn in the section, by a motor, a lamp or a resistor wheelset, is seen by the board. Each DNCT2B has two channels and serves two sections. Its output goes to the block input of the LCOS node in that area, which reports occupied or clear (D2). The computer shows each section as a lamp on the track it represents, on the dispatcher panel and the CTC panels.</p>
-  <p>Because each section is gapped in both rails and has its own feeders, detection cannot leak from one section into the next; this is the same division that serves troubleshooting (<a class="xref" href="#req1-gaps"></a>).</p>
-  <p><strong>Wiring.</strong> Drawing D2; Appendix B (each section with its node and channel); Appendix H (bus wiring record showing the detector chain, and the node pages showing each node's block inputs).</p>
-  <p><strong>Commercial components.</strong> DNCT2B and DNCTA current-sense detectors and LCOS nodes (Beagle Bay Inc.); JMRI (free software) for the display.</p>
-  <p><strong>Demonstration.</strong> W11: a train moved through five or more sections; each lamp lights as the train enters and clears as it leaves.</p>
+  <p>All 43 sections are detected. A section shows as occupied on the computer panels when a locomotive, or a car with resistor wheelsets, is on it. The form asks for at least five blocks.</p>
+  <p>Detection works by sensing current. Both feeder wires of a section pass through one channel of a DNCT2B current sensor, so the sensor sees any current drawn in that section. Each DNCT2B has two channels and covers two sections. The sensor tells the nearby LCOS node, which reports the section as occupied or clear (drawing D2).</p>
+  <p><strong>Parts:</strong> DNCT2B and DNCTA detectors and LCOS nodes (Beagle Bay Inc.), JMRI for the panels. <strong>Drawing:</strong> D2. <strong>List of sections:</strong> Appendix B.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-dnct" data-punch="PL-09">
-      <img src="photos/dnct2b-feeders.jpg" alt="A DNCT2B detector board under the benchwork with a section's two feeder wires passing through one sensing channel.">
-      <figcaption>A DNCT2B: both feeders of a section through one channel.</figcaption>
+      <img src="photos/dnct2b-feeders.jpg" alt="A DNCT2B detector board with a section's two feeder wires passing through one sensing channel.">
+      <figcaption>A DNCT2B with a section's two feeders through one channel.</figcaption>
     </figure>
     <figure class="photo" id="photo-occ" data-punch="PL-10">
       <img src="photos/occupancy-panel.png" alt="The dispatcher panel on screen with the sections under a train lit as occupied.">
-      <figcaption>The panel with the sections under a train shown occupied.</figcaption>
+      <figcaption>The panel showing the sections under a train as occupied.</figcaption>
     </figure>
   </div>
 
-  <h3 id="req3-v">(v) Computer-to-railroad interface: the LCOS bridge</h3>
-
-  <h4 id="v-problem">The problem it solves</h4>
-  <p>The layout's field control uses LCOS, a commercial system of small radio nodes from Beagle Bay Inc. Each node is an Arduino Nano with an nRF24L01 2.4 GHz radio and add-on boards for switch-machine outputs, button and contact inputs, signal lamps and block detectors. The nodes talk to each other over their own radio network. LCOS had no way to connect that network to JMRI, the open-source railroad control program the layout uses for its panels, signal logic and dispatching. The member designed and built that link.</p>
-
-  <h4 id="v-design">Design</h4>
-  <p>The interface has two parts, both written by the member (D6):</p>
+  <h3 id="req3-v">(v) Computer-to-railroad interface</h3>
+  <p>The LCOS nodes under the layout talk to each other by radio. Each node is an Arduino Nano with an nRF24L01 radio. LCOS did not come with a way to connect to JMRI, so I designed and programmed one. It has two parts (drawing D6):</p>
   <ul>
-    <li><strong>The bridge node</strong> is an LCOS node with the member's firmware (C++ for the Arduino Nano). It joins the radio network as a node, subscribes to the events of the field nodes it serves, and turns each event (switch moved, block occupied or clear, button pressed, signal aspect) into one line of text on its USB serial port. Lines that arrive the other way, such as a turnout command, it sends to the right field node as an LCOS radio command.</li>
-    <li><strong>The bridge program</strong> (Python, on a PC) connects that serial port to an MQTT message broker. It publishes each line from the node as an MQTT message, and writes each command message from the broker to the node as a line.</li>
+    <li><strong>The bridge node:</strong> an LCOS node running my own firmware, written in C++. It joins the radio network and listens for events from the other nodes: a turnout moved, a section became occupied or clear, a button was pressed. It sends each event to the PC over USB as one line of text. It also takes commands from the PC, such as "throw turnout 100", and sends them by radio to the right node.</li>
+    <li><strong>The bridge program:</strong> a Python program on the PC. It passes each line from the node to an MQTT message server, and passes each command from the server back to the node.</li>
   </ul>
-  <p>JMRI has a standard MQTT connection, so once the bridge is running, every LCOS turnout, sensor and signal appears in JMRI as an ordinary turnout, sensor or signal head. The layout's panels, signal logic and dispatching need nothing LCOS-specific.</p>
-  <p>The two halves share a plain text protocol: one message per line, <code>&lt;topic&gt; &lt;payload&gt;</code>, at 250 000 baud. For example, <code>track/turnout/100 THROWN</code> reports that switch 0 on node 1 has thrown, and <code>track/sensor/…&nbsp;ACTIVE</code> reports an occupied block. Each device has a numeric address, the node number times 100 plus the device number, which is also its JMRI system name. Appendix E lists the message types.</p>
-
-  <h4 id="v-reliability">Reliability</h4>
-  <p>A link that loses messages would leave the panels wrong, so most of the engineering went into keeping the two ends in step:</p>
-  <ul>
-    <li>The program sends a quiet <code>PING</code> over USB about every 12 seconds. If acknowledgements stop, it reopens the serial port, which resets the node and makes it subscribe again.</li>
-    <li>A radio-path check echoes a message off the LCOS network's master node. When the echo is lost and then returns, for example after layout power is cycled, the bridge tells the node to subscribe again within one second and keeps retrying until traffic flows.</li>
-    <li>The program publishes its own state, <code>online</code> or <code>offline</code>, as a retained MQTT message, so JMRI and the operator can see whether the link is up.</li>
-    <li>If the computer's signal control stops responding, the program sets the field signals to stop and hands them back to local control, instead of leaving the last aspects lit.</li>
-  </ul>
-
-  <h4 id="v-dev">Development, testing and publication</h4>
-  <p>Development began in February 2026. The bridge is the layout's only link between the field nodes and the computer, and is in use whenever the layout runs. It is published as open source on GitHub (<code>github.com/lnevo/LCOS_ESP32_MQTT_Client</code>), with setup guides for Windows and Linux, so that other LCOS users can connect their layouts to JMRI.</p>
+  <p>JMRI has a built-in MQTT connection, so every LCOS turnout, sensor and signal shows up in JMRI as a normal turnout, sensor or signal. For example, the line <code>track/turnout/100 THROWN</code> means turnout 100 has been thrown.</p>
+  <p>I also added checks to keep the two sides in step. The program checks the USB link about every 12 seconds and reconnects if it stops answering. After the layout power is turned off and on, it tells the node to sign up for events again. It also reports whether the link is up, so the panels can show it.</p>
+  <p>I started the bridge in February 2026. It is how the computer talks to the layout every time the layout runs. I published it as open source on GitHub (<code>github.com/lnevo/LCOS_ESP32_MQTT_Client</code>) so other LCOS users can use it.</p>
   <table id="tab-bridge">
-    <caption>The bridge in figures (repository as of {{DATE}})</caption>
-    <thead><tr><th scope="col">Item</th><th scope="col">Value</th></tr></thead>
+    <caption>The bridge in numbers (as of 15 November 2026)</caption>
     <tbody>
-      <tr><td>Firmware (bridge node, C++)</td><td>5 files, about 1,200 lines</td></tr>
-      <tr><td>Bridge program (PC, Python)</td><td>1 program, about 2,100 lines</td></tr>
-      <tr><td>Automated tests</td><td>29 tests in 3 suites: connection watchdog, signal safety guard, signal aspect names</td></tr>
-      <tr><td>Revisions</td><td>146 commits, February to November 2026</td></tr>
-      <tr><td>Documentation</td><td>Setup guide, Windows and Linux installation notes, signal and recovery design notes</td></tr>
+      <tr><td>Bridge node firmware (C++)</td><td>About 1,200 lines</td></tr>
+      <tr><td>Bridge program (Python)</td><td>About 2,100 lines</td></tr>
+      <tr><td>Automated tests</td><td>29</td></tr>
+      <tr><td>Changes saved (commits)</td><td>146, February to November 2026</td></tr>
     </tbody>
   </table>
-  <p><strong>What is original and what is commercial.</strong> Designed and written by the member: the bridge firmware, the bridge program, the message protocol between them and the device addressing. Commercial or existing products used: the LCOS boards and LCOS library (Beagle Bay Inc.), the Arduino Nano and nRF24L01 radio, JMRI (free software) and the Mosquitto MQTT broker (free software).</p>
-  <p><strong>Wiring and diagrams.</strong> Drawing D6; Appendix E; Appendix H (node summary and node pages).</p>
-  <p><strong>Demonstration.</strong> W12: with the program's console open, a turnout is thrown from the computer panel. The command line appears in the console, the machine moves, and the position report comes back and lights the panel lamp. A train entering a section produces an occupancy message the same way.</p>
+  <p><strong>My work:</strong> the bridge firmware, the bridge program, and the message format between them. <strong>Parts I used:</strong> LCOS boards and library (Beagle Bay Inc.), Arduino Nano, nRF24L01 radio, JMRI, the Mosquitto MQTT server.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-node">
-      <img src="photos/lcos-node-radio.jpg" alt="An LCOS node board with an Arduino Nano plugged in, an nRF24L01 radio module, green screw terminals and lit status lamps.">
-      <figcaption>An LCOS node: Arduino Nano and nRF24L01 radio on its carrier board. The bridge node is the same hardware running the member's firmware.</figcaption>
+      <img src="photos/lcos-node-radio.jpg" alt="An LCOS node board with an Arduino Nano, an nRF24L01 radio module and lit status lights.">
+      <figcaption>An LCOS node: Arduino Nano and radio on its board. The bridge node is the same hardware with my firmware.</figcaption>
     </figure>
-    <figure class="photo" id="photo-node-mounted">
-      <img src="photos/lcos-node-mounted.jpg" alt="An LCOS node board screwed to the benchwork with its Nano and connections.">
-      <figcaption>A field node mounted under the layout.</figcaption>
-    </figure>
-  </div>
-  <div class="photo-row">
     <figure class="photo" id="photo-bridge" data-punch="PL-11">
       <img src="photos/bridge-node.jpg" alt="The bridge node connected by USB cable to the PC that runs the bridge program.">
-      <figcaption>The bridge node on its USB link to the PC.</figcaption>
-    </figure>
-    <figure class="photo" id="photo-console" data-punch="PL-12">
-      <img src="photos/bridge-console.png" alt="The bridge program's console showing a turnout command going out and the position report coming back.">
-      <figcaption>The bridge program console: a command out and its report back.</figcaption>
+      <figcaption>The bridge node connected to the PC.</figcaption>
     </figure>
   </div>
+  <figure class="photo" id="photo-console" data-punch="PL-12">
+    <img src="photos/bridge-console.png" alt="The bridge program's window showing a turnout command going out and the turnout's report coming back.">
+    <figcaption>The bridge program: a command going out and the report coming back.</figcaption>
+  </figure>
 </section>
 
 <!-- ============================================================ 6 -->
 <section class="chapter">
-  <h2 id="req45">Requirements 4 and 5: schematic drawings</h2>
-  <blockquote class="req"><span>SOQ form, Requirements 4 and 5</span>Prepare a schematic drawing of the propulsion circuitry of the model railroad in Section 1 showing the gaps, blocks, feeders, speed and direction control, electrical switches and power supplies. Prepare schematic drawings identifying the wiring and components of the six items in Requirements 2 &amp; 3.</blockquote>
-  <p>Drawings D1 to D6 were drawn for this application and are printed as full-page plates after Chapter 9. Appendix H reproduces the railroad's own wiring records, which give the as-built detail: every bus, node, pin and turnout.</p>
-  <table id="tab-req4">
-    <caption>Requirement 4: where each element of the propulsion schematic is shown</caption>
-    <thead><tr><th scope="col">Element named on the form</th><th scope="col">Where shown</th></tr></thead>
+  <h2 id="req45">Requirements 4 and 5: drawings</h2>
+  <p>I made drawings D1 to D6 for this application. They are on the landscape pages after Chapter 7. Appendix E has my railroad's own wiring records, which show every bus, node and turnout.</p>
+  <table id="tab-drawings">
+    <caption>Drawings</caption>
+    <thead><tr><th scope="col">Drawing</th><th scope="col">Shows</th><th scope="col">For</th></tr></thead>
     <tbody>
-      <tr><td>Gaps</td><td>D2 (every section, both rails, both ends); D3, D4 (frog gaps); D5 and P2 (reversing sections)</td></tr>
-      <tr><td>Blocks</td><td>D2 and Appendix B (all 43 sections); P1</td></tr>
-      <tr><td>Feeders</td><td>D2 (feeder pair per section, through its detector channel); Appendix H, bus wiring record</td></tr>
-      <tr><td>Speed and direction control</td><td>D1 (throttles, command station, DCC to each decoder)</td></tr>
-      <tr><td>Electrical switches</td><td>D1 (booster matrix, breakers, auto-reversers); D3 (frog contact)</td></tr>
-      <tr><td>Power supplies</td><td>D1 (command station and booster); Appendix H, power district and track bus records</td></tr>
+      <tr><td>D1</td><td>Throttles, command station, booster, breakers and auto-reversers</td><td>Req. 4: speed and direction control, switches, power supplies</td></tr>
+      <tr><td>D2</td><td>A typical section: bus, feeders, gaps, detector</td><td>Req. 4: gaps, blocks, feeders; Req. 5: occupancy (b)</td></tr>
+      <tr><td>D3</td><td>Turnout: frog power and position contact</td><td>Req. 5: turnout, turnout position (a)</td></tr>
+      <tr><td>D4</td><td>Crossover</td><td>Req. 5: crossover</td></tr>
+      <tr><td>D5</td><td>Reversing section on an auto-reverser</td><td>Req. 5: reversing sections</td></tr>
+      <tr><td>D6</td><td>The bridge between LCOS and JMRI</td><td>Req. 5: computer-to-railroad interface (v)</td></tr>
     </tbody>
   </table>
-  <table id="tab-req5">
-    <caption>Requirement 5: schematics for the six claimed items</caption>
-    <thead><tr><th scope="col">Item</th><th scope="col">Drawings</th><th scope="col">Wiring records (Appendix H)</th></tr></thead>
-    <tbody>
-      <tr><td>2 · Turnout</td><td>D3</td><td>Turnout wiring; turnout summary; node pages</td></tr>
-      <tr><td>2 · Crossover</td><td>D4 (with D3)</td><td>Turnout summary; node pages</td></tr>
-      <tr><td>2 · Other: reversing sections</td><td>D5, P2</td><td>Power districts; track buses</td></tr>
-      <tr><td>3a · Turnout position</td><td>D3 (contact 2)</td><td>Turnout wiring; node configuration; node pages</td></tr>
-      <tr><td>3b · Track occupancy</td><td>D2</td><td>Bus wiring (detector chain); node pages</td></tr>
-      <tr><td>3v · Computer to railroad interface</td><td>D6</td><td>Node summary; node configuration</td></tr>
-    </tbody>
-  </table>
+  <p>Requirement 4 asks the propulsion drawing to show six things. Gaps, blocks and feeders are in D2. Speed and direction control, the electrical switches (booster matrix, breakers and auto-reversers) and the power supplies are in D1. The frog switch is in D3. In Appendix E, the bus wiring, power district and track bus pages show the as-built wiring, and the turnout and node pages show the wiring behind each item in Requirement 5.</p>
 </section>
 
 <!-- ============================================================ 7 -->
 <section class="chapter">
-  <h2 id="req6">Requirement 6: the SOQ package</h2>
-  <blockquote class="req"><span>SOQ form, Requirement 6</span>Submit a completed Statement of Qualifications (SOQ) which shall include the following: attachment showing the track plan required in Requirement 1; description of the track work features, method of construction and identification of commercial components used in 2 &amp; 3; the signed witness certification form showing that each of the above items are operational and meet all applicable NMRA Standards.</blockquote>
-  <table id="tab-package">
-    <caption>Contents of the SOQ package</caption>
-    <thead><tr><th scope="col">Required</th><th scope="col">Where</th><th scope="col">Status</th></tr></thead>
-    <tbody>
-      <tr><td>Completed SOQ form</td><td>Pages 1 and 2 of this PDF</td><td>Items ticked; member's details and signature to be added by hand</td></tr>
-      <tr><td>Track plan (Requirement 1)</td><td>Plan P0 (to scale) and Plans P1 to P5</td><td>Included</td></tr>
-      <tr><td>Description, construction and commercial components (2 and 3)</td><td>Chapters 4 and 5; Appendix C</td><td>Included</td></tr>
-      <tr><td>Signed witness certification</td><td>SOQ form, evaluator rows; Chapter 8 is the plan for the visit</td><td>At the witness visit</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- ============================================================ 8 -->
-<section class="chapter">
-  <h2 id="demo">Witness demonstration plan</h2>
-  <p>The visit is planned to take about 90 minutes. Each step names the requirement it proves, what is done and what the witness should see. The member prepares the layout beforehand: track cleaned, two locomotives on the main line, a switcher on the yard lead, two locomotives on the engine storage tracks, the panels and the bridge program running, and a meter and an NMRA standards gauge to hand.</p>
+  <h2 id="demo">What I will show the witness</h2>
+  <p>Before the visit I will clean the track, put two trains on the main line, a switcher on the yard lead and two locomotives on the engine storage tracks, and start the panels and the bridge program. I will have a meter and an NMRA standards gauge ready.</p>
   <table id="tab-demo" class="demo">
     <caption>Demonstration steps</caption>
-    <thead><tr><th scope="col">Step</th><th scope="col">Req.</th><th scope="col">Action</th><th scope="col">Expected result</th><th scope="col">Seen</th></tr></thead>
+    <thead><tr><th scope="col">Step</th><th scope="col">Req.</th><th scope="col">What I do</th><th scope="col">What you should see</th><th scope="col">Seen</th></tr></thead>
     <tbody>
-      <tr><td>W1</td><td>1</td><td>Run two trains on the main line at once, each on its own throttle; reverse each during the run.</td><td>Each train answers only its own throttle, in both directions.</td><td class="box"></td></tr>
-      <tr><td>W2</td><td>1</td><td>Show a pair of gaps, a feeder pair at its terminal strip and a district breaker. Lift one section's feeder pair.</td><td>That section goes dead and dark on the panel; the rest of the district runs.</td><td class="box"></td></tr>
-      <tr><td>W3</td><td>1, 2</td><td>Run a train through RS-2 and through RS-1, both directions.</td><td>No stop, no breaker trip; the auto-reverser changes over as the train crosses the gap.</td><td class="box"></td></tr>
-      <tr><td>W4</td><td>1</td><td>Hold one train on the passing siding; run a second past it on the main line.</td><td>The trains pass.</td><td class="box"></td></tr>
-      <tr><td>W5</td><td>1</td><td>Point out two locomotives standing on E1 to E3 while W1 runs.</td><td>Stored locomotives stay put.</td><td class="box"></td></tr>
-      <tr><td>W6</td><td>1</td><td>Switch the yard from the yard lead while a train runs on the main line.</td><td>Yard work does not use the main line.</td><td class="box"></td></tr>
-      <tr><td>W7</td><td>1</td><td>Lay a coin across the rails in one district; remove it.</td><td>Only that breaker trips (lamp shows it); it resets when the short is removed.</td><td class="box"></td></tr>
-      <tr><td>W8</td><td>2</td><td>Crawl a locomotive through a turnout on both routes; measure the frog against each stock rail.</td><td>No stall or short at the frog; frog polarity follows the points.</td><td class="box"></td></tr>
-      <tr><td>W9</td><td>2</td><td>Run a train through the crossover at Switch 23 or 35, both directions.</td><td>No short at the gaps between the frogs.</td><td class="box"></td></tr>
-      <tr><td>W10</td><td>3a</td><td>Throw four turnouts: two from the fascia, one from a DCC throttle, one from the computer panel.</td><td>Each turnout's fascia lamp and panel lamp follow the points.</td><td class="box"></td></tr>
-      <tr><td>W11</td><td>3b</td><td>Run a train through five or more sections while watching the panel.</td><td>Each section lights as the train enters and clears as it leaves.</td><td class="box"></td></tr>
-      <tr><td>W12</td><td>3v</td><td>With the bridge console open, throw a turnout from the computer, then run a train into a section.</td><td>Command out, machine moves, report back, panel lamp follows; occupancy message arrives.</td><td class="box"></td></tr>
-      <tr><td>W13</td><td>6</td><td>Check the claimed turnouts and a crossover with the NMRA standards gauge; check the wheels of the locomotives used.</td><td>Track and wheels within NMRA standards.</td><td class="box"></td></tr>
+      <tr><td>1</td><td>1</td><td>Run two trains at once, each on its own throttle, and reverse each one.</td><td>Each train follows only its own throttle.</td><td class="box"></td></tr>
+      <tr><td>2</td><td>1</td><td>Show gaps, a feeder pair and a breaker. With a locomotive standing in one section, disconnect that section's feeders.</td><td>The locomotive loses power and the section goes dark on the panel; nothing else changes.</td><td class="box"></td></tr>
+      <tr><td>3</td><td>1, 2</td><td>Run a train through RS-2 and RS-1, both ways.</td><td>No stop and no short.</td><td class="box"></td></tr>
+      <tr><td>4</td><td>1</td><td>Hold a train on the passing siding while another passes.</td><td>The trains pass.</td><td class="box"></td></tr>
+      <tr><td>5</td><td>1</td><td>Point out the locomotives on E1 to E3.</td><td>They stay put while trains run.</td><td class="box"></td></tr>
+      <tr><td>6</td><td>1</td><td>Switch the yard from the lead while a train runs on the main.</td><td>Yard work stays off the main line.</td><td class="box"></td></tr>
+      <tr><td>7</td><td>1</td><td>Put a coin across the rails in one district, then remove it.</td><td>Only that breaker trips, and it resets.</td><td class="box"></td></tr>
+      <tr><td>8</td><td>2</td><td>Run a locomotive slowly through a turnout both ways; check the frog with a meter.</td><td>No stall at the frog; frog polarity follows the points.</td><td class="box"></td></tr>
+      <tr><td>9</td><td>2</td><td>Run a train through the crossover at Switch 23 or 35.</td><td>No short between the frogs.</td><td class="box"></td></tr>
+      <tr><td>10</td><td>3a</td><td>Throw four turnouts: two from the fascia, one from a throttle, one from the computer.</td><td>Fascia and panel lights follow each turnout.</td><td class="box"></td></tr>
+      <tr><td>11</td><td>3b</td><td>Run a train through five or more sections.</td><td>Each section lights up as the train enters and goes dark as it leaves.</td><td class="box"></td></tr>
+      <tr><td>12</td><td>3v</td><td>With the bridge program open, throw a turnout from the computer, then run a train into a section.</td><td>The command and the reply show in the program, and the panel follows.</td><td class="box"></td></tr>
+      <tr><td>13</td><td>6</td><td>Check the turnouts and a crossover with the NMRA gauge, and the wheels of the locomotives used.</td><td>Within NMRA standards.</td><td class="box"></td></tr>
     </tbody>
   </table>
-</section>
-
-<!-- ============================================================ 9 -->
-<section class="chapter">
-  <h2 id="conclusion">Conclusion</h2>
-  <p>The staging level of the HART Railroad meets each item of Requirement 1 as built: DCC control of two or more trains in either direction, 43 gapped and detected sections in six protected districts, two reversing sections, a passing siding, engine storage and a five-track yard with its own lead. Three trackwork items (turnouts with powered frogs, crossovers, and reversing sections on auto-reversers) and three control features (turnout position indication, track occupancy indication, and the member's own computer-to-railroad interface) are wired, documented and ready to demonstrate. Drawings D1 to D6 and the railroad's wiring records meet Requirements 4 and 5. What remains is the witness visit set out in Chapter 8 and the signatures on the form.</p>
 </section>
 
 <!-- ============================================================ PLATES -->
 <section class="plates">
   <h2 class="no-num plate-head" id="plates">Drawings D1 to D6</h2>
-  <p class="plate-intro">Drawn for this application from the railroad's records. Not to scale. Colours: red for track power and frogs, blue for detection and data, grey for neighbouring track. The shaded boxes in D6 are the member's own design.</p>
-  <figure class="plate" id="fig-d1"><img src="drawings/D1-propulsion-one-line.svg" alt="Drawing D1, the propulsion one-line diagram; see its description in the text."><figcaption>Drawing D1: propulsion one-line. Throttles, command station and booster, booster matrix, and the six protection devices that feed the district buses. Speed and direction reach each locomotive in the DCC packets addressed to its decoder. Six protected districts are wired today on the staging level and helix; the upper levels add further districts as they are built.</figcaption></figure>
-  <figure class="plate" id="fig-d2"><img src="drawings/D2-propulsion-sections.svg" alt="Drawing D2, a typical detected section; see its description in the text."><figcaption>Drawing D2: propulsion, typical detected section. Every one of the 43 sections listed in Appendix B is wired this way.</figcaption></figure>
-  <figure class="plate" id="fig-d3"><img src="drawings/D3-turnout-frog-indication.svg" alt="Drawing D3, turnout frog and position contact wiring; see its description in the text."><figcaption>Drawing D3: turnout, powered frog and position contact (MTB MP4, two SPDT contacts).</figcaption></figure>
-  <figure class="plate" id="fig-d4"><img src="drawings/D4-crossover.svg" alt="Drawing D4, crossover wiring; see its description in the text."><figcaption>Drawing D4: crossover, two powered-frog turnouts gapped between the frogs.</figcaption></figure>
-  <figure class="plate" id="fig-d5"><img src="drawings/D5-reversing-section.svg" alt="Drawing D5, reversing section on an auto-reverser; see its description in the text."><figcaption>Drawing D5: reversing section on an auto-reverser.</figcaption></figure>
-  <figure class="plate" id="fig-d6"><img src="drawings/D6-computer-interface.svg" alt="Drawing D6, the computer-to-railroad interface; see its description in the text."><figcaption>Drawing D6: computer-to-railroad interface, from JMRI through the MQTT broker, the bridge program and the bridge node to the LCOS field nodes.</figcaption></figure>
+  <p class="plate-intro">Not to scale. Red is track power, blue is detection and data, grey is nearby track. In D6, the shaded boxes are my own work.</p>
+  <figure class="plate" id="fig-d1"><img src="drawings/D1-propulsion-one-line.svg" alt="Drawing D1: throttles, command station, booster, booster matrix, and the six breakers and auto-reversers feeding the district buses."><figcaption>Drawing D1: power and control. Each locomotive gets its speed and direction from the DCC commands sent to its address.</figcaption></figure>
+  <figure class="plate" id="fig-d2"><img src="drawings/D2-propulsion-sections.svg" alt="Drawing D2: a district bus, a section gapped at both ends, its feeder pair through a DNCT2B detector channel, and the LCOS node."><figcaption>Drawing D2: a typical section. All 43 sections in Appendix B are wired this way.</figcaption></figure>
+  <figure class="plate" id="fig-d3"><img src="drawings/D3-turnout-frog-indication.svg" alt="Drawing D3: a turnout with the MP4's contact 1 powering the frog and contact 2 reporting the position."><figcaption>Drawing D3: turnout frog power and position contact.</figcaption></figure>
+  <figure class="plate" id="fig-d4"><img src="drawings/D4-crossover.svg" alt="Drawing D4: two turnouts forming a crossover, with gaps between the frogs."><figcaption>Drawing D4: crossover.</figcaption></figure>
+  <figure class="plate" id="fig-d5"><img src="drawings/D5-reversing-section.svg" alt="Drawing D5: a section gapped at both ends, powered through an auto-reverser."><figcaption>Drawing D5: reversing section on an auto-reverser.</figcaption></figure>
+  <figure class="plate" id="fig-d6"><img src="drawings/D6-computer-interface.svg" alt="Drawing D6: JMRI, the MQTT server, the bridge program, the bridge node, the LCOS nodes and the railroad, with the links between them."><figcaption>Drawing D6: the bridge between the LCOS radio network and JMRI.</figcaption></figure>
 </section>
 
 <!-- ============================================================ APPENDICES -->
 <section class="appendix">
-  <h2 id="app-a">Label cross-reference</h2>
-  <p>Generic labels used in this document, with the names used on the layout fascia, the panels and the wiring records in Appendix H.</p>
+  <h2 id="app-a">Labels and layout names</h2>
+  <p>The labels in this document and the names used on the layout and in the wiring records (Appendix E).</p>
   <table id="tab-xref">
-    <caption>Generic labels and layout names</caption>
-    <thead><tr><th scope="col">Label in this document</th><th scope="col">Name on the layout and in the records</th></tr></thead>
+    <caption>Labels and layout names</caption>
+    <thead><tr><th scope="col">Label</th><th scope="col">Name on the layout</th></tr></thead>
     <tbody>
-      <tr><td>Main line (west), RS-1</td><td>Main West (Switch 1 to Switch 23)</td></tr>
-      <tr><td>Main line (east)</td><td>Brick-Plane, East Ext, Main East</td></tr>
-      <tr><td>Double-track section</td><td>West Ext and East Lead (Switches 23 and 33 to Switch 35)</td></tr>
+      <tr><td>RS-1 (main line, west)</td><td>Main West</td></tr>
+      <tr><td>Main line, east</td><td>Brick-Plane, East Ext, Main East</td></tr>
+      <tr><td>Double track at the east end</td><td>West Ext and East Lead</td></tr>
       <tr><td>RS-2, return loop</td><td>K-1 and K-2, the loop at Princess</td></tr>
-      <tr><td>Passing siding</td><td>Scale (Switch 5 to Switch 7), at Plane</td></tr>
-      <tr><td>Yard lead</td><td>Barn (Switch 7 to Switch 13) and OS Switch 13 and 15</td></tr>
-      <tr><td>Yard Y1, Y2, Y3, Y4, Y5</td><td>South Yard S-R, S-1, S-2, S-3, S-4</td></tr>
-      <tr><td>Engine storage E1, E2, E3</td><td>EH-1, EH-2, EH-3 (engine house at Barn)</td></tr>
+      <tr><td>Passing siding</td><td>Scale, at Plane</td></tr>
+      <tr><td>Yard lead</td><td>Barn</td></tr>
+      <tr><td>Y1, Y2, Y3, Y4, Y5</td><td>South Yard S-R, S-1, S-2, S-3, S-4</td></tr>
+      <tr><td>E1, E2, E3</td><td>EH-1, EH-2, EH-3</td></tr>
       <tr><td>Holding tracks</td><td>W-1 and W-2, West Yard</td></tr>
-      <tr><td>To helix</td><td>H1 (to the main level) and H2 (to the upper level)</td></tr>
-      <tr><td>District A to D</td><td>The four PSX-series breaker districts on staging and the helix (power district record, Appendix H)</td></tr>
-      <tr><td>LCOS control node</td><td>Node C1, C2, C3, C4, C11, C12, C13 (staging and helix)</td></tr>
+      <tr><td>LCOS nodes on staging</td><td>C1, C2, C3, C4, C11, C12, C13</td></tr>
     </tbody>
   </table>
 </section>
 
 <section class="appendix">
-  <h2 id="app-b">Detected sections</h2>
-  <p>Every detected section on the staging level and helix, from the railroad's block table (<code>jmri/layouts/hart/data/block_lengths.csv</code>). Each is gapped in both rails at both ends and wired as drawing D2. "Node · ch" is the LCOS node and detector channel that reports it. Lengths are measured or timed; OS sections marked ≈ are estimates.</p>
+  <h2 id="app-b">Track plan to scale and detected sections</h2>
+  <figure class="fig" id="fig-p0">
+    <img src="drawings/P0-staging-to-scale.svg" alt="To-scale track plan of the staging level, with switch numbers and a 100 cm scale bar.">
+    <figcaption>Plan P0: the staging level to scale. Switch numbers match Plan P1. Scale bar 100 cm.</figcaption>
+  </figure>
+  <p>Every detected section on the staging level and helix. Each one has gaps in both rails at both ends and is wired as in drawing D2. "Node · ch" is the LCOS node and detector channel. Lengths marked ≈ are estimates.</p>
   {{APPENDIX_B}}
 </section>
 
 <section class="appendix">
-  <h2 id="app-c">Commercial components</h2>
+  <h2 id="app-c">Parts list</h2>
   <table id="tab-components">
-    <caption>Commercial components used in Requirements 1 to 3</caption>
-    <thead><tr><th scope="col">Component</th><th scope="col">Maker</th><th scope="col">Used for</th><th scope="col">Items</th></tr></thead>
+    <caption>Commercial parts used</caption>
+    <thead><tr><th scope="col">Part</th><th scope="col">Maker</th><th scope="col">Used for</th></tr></thead>
     <tbody>
-      <tr><td>CS-105 command station</td><td>TCS (Train Control Systems)</td><td>DCC command station and track output</td><td>1</td></tr>
-      <tr><td>B-106 booster</td><td>TCS</td><td>Track power</td><td>1</td></tr>
-      <tr><td>PSX-series circuit breakers</td><td>DCC Specialties</td><td>Districts A to D</td><td>1, 2</td></tr>
-      <tr><td>AR10 auto-reverser</td><td>NCE</td><td>RS-1</td><td>1, 2</td></tr>
-      <tr><td>PSX-AR auto-reverser</td><td>DCC Specialties</td><td>RS-2</td><td>1, 2</td></tr>
-      <tr><td>Turnouts</td><td>Peco</td><td>All staging turnouts and crossovers</td><td>2</td></tr>
-      <tr><td>MP4 slow-motion switch machine</td><td>MTB</td><td>Turnout drive; frog contact; position contact</td><td>2, 3a</td></tr>
-      <tr><td>Touch Toggle buttons, Universal Translator</td><td>Berrett Hill</td><td>Fascia control and position lamps</td><td>3a</td></tr>
-      <tr><td>LCOS node, input and output boards</td><td>Beagle Bay Inc.</td><td>Machine drive, contact and button inputs</td><td>2, 3a, 3v</td></tr>
-      <tr><td>DNCT2B, DNCTA current-sense detectors</td><td>Beagle Bay Inc.</td><td>Block detection</td><td>3b</td></tr>
-      <tr><td>Arduino Nano, nRF24L01 radio</td><td>Arduino; Nordic-based module</td><td>Bridge node hardware</td><td>3v</td></tr>
-      <tr><td>Raspberry Pi</td><td>Raspberry Pi Ltd</td><td>Runs JMRI and the MQTT broker</td><td>3b, 3v</td></tr>
-      <tr><td>JMRI</td><td>JMRI project (free software)</td><td>Panels, sensor and turnout tables</td><td>3a, 3b, 3v</td></tr>
-      <tr><td>Mosquitto MQTT broker</td><td>Eclipse Foundation (free software)</td><td>Message broker</td><td>3v</td></tr>
-      <tr><td>Terminal strips, bus and feeder wire</td><td>Various</td><td>Buses, booster matrix, feeders</td><td>1</td></tr>
+      <tr><td>CS-105 command station</td><td>TCS</td><td>DCC command station</td></tr>
+      <tr><td>B-106 booster</td><td>TCS</td><td>Track power</td></tr>
+      <tr><td>PSX circuit breakers</td><td>DCC Specialties</td><td>Districts A to D</td></tr>
+      <tr><td>AR10 auto-reverser</td><td>NCE</td><td>RS-1</td></tr>
+      <tr><td>PSX-AR auto-reverser</td><td>DCC Specialties</td><td>RS-2</td></tr>
+      <tr><td>Turnouts</td><td>Peco</td><td>All turnouts and crossovers</td></tr>
+      <tr><td>MP4 switch machines</td><td>MTB</td><td>Throwing turnouts, frog power, position contact</td></tr>
+      <tr><td>Touch Toggles, Universal Translator</td><td>Berrett Hill</td><td>Fascia buttons and lights</td></tr>
+      <tr><td>LCOS nodes and boards</td><td>Beagle Bay Inc.</td><td>Switch machine outputs, inputs</td></tr>
+      <tr><td>DNCT2B, DNCTA detectors</td><td>Beagle Bay Inc.</td><td>Block detection</td></tr>
+      <tr><td>Arduino Nano, nRF24L01 radio</td><td>Arduino; various</td><td>Bridge node</td></tr>
+      <tr><td>Raspberry Pi</td><td>Raspberry Pi Ltd</td><td>Runs JMRI and the MQTT server</td></tr>
+      <tr><td>JMRI, Mosquitto</td><td>Free software</td><td>Panels; MQTT server</td></tr>
     </tbody>
   </table>
 </section>
 
 <section class="appendix">
-  <h2 id="app-d">Further control features, not claimed</h2>
-  <p>These features are built and in use, but are not claimed, so that the three claimed items stand without depending on commercial software. Any of them can be offered in place of a claimed item if the evaluator asks.</p>
-  <table id="tab-further">
-    <caption>Further control features</caption>
-    <thead><tr><th scope="col">SOQ item</th><th scope="col">What is built</th></tr></thead>
-    <tbody>
-      <tr><td>CTC system</td><td>A dispatcher's CTC desk (CATS, laid out as a Union Switch &amp; Signal machine) and a second lever-style board. They line routes and clear signals at each control point, refuse a route through an occupied block or a locked switch, and take their field state from the machine contacts and detectors. Panels, interlocking tables and signal logic were drawn up and configured for this railroad on stock JMRI and CATS.</td></tr>
-      <tr><td>Computer control</td><td>JMRI on a Raspberry Pi controls every turnout, sensor and signal through the bridge (Section 5.4). Turnouts can be thrown from the fascia, a DCC throttle or the computer, and every one reports back.</td></tr>
-      <tr><td>Computerized block detection</td><td>The 43 detected sections drive the signal logic, CTC route locking and JMRI's Dispatcher, which tracks each train from block to block. Timed runs between detectors were used to measure section lengths and locomotive speeds.</td></tr>
-      <tr><td>Computerized operation</td><td>Scripts written for this railroad run inside JMRI from start-up: a signal coordinator that sets every mast from routes and occupancy, and a panel status program that keeps the panels in step with the field. JMRI's Dispatcher runs trains automatically between twelve stations from stored train files.</td></tr>
-    </tbody>
-  </table>
+  <h2 id="app-d">Other features, not claimed</h2>
+  <p>These are built and working, but I am not claiming them. I can show any of them if the evaluator wants one in place of a claimed feature.</p>
+  <ul>
+    <li><strong>CTC system:</strong> a CTC dispatcher's panel (CATS) and a second lever-style panel, set up for this railroad. They line routes, clear signals and refuse a route through an occupied block.</li>
+    <li><strong>Computer control:</strong> JMRI on a Raspberry Pi controls every turnout, sensor and signal through the bridge.</li>
+    <li><strong>Computerized block detection:</strong> the 43 detected sections drive the signals, the CTC route locking and JMRI's Dispatcher.</li>
+    <li><strong>Computerized operation:</strong> my own scripts in JMRI set the signals and keep the panels up to date, and JMRI's Dispatcher can run trains automatically between twelve stations.</li>
+  </ul>
 </section>
 
 <section class="appendix">
-  <h2 id="app-e">Bridge message reference</h2>
-  <p>Messages carried by the computer-to-railroad interface (Section 5.4). <em>&lt;addr&gt;</em> is the device address, node number × 100 + device number; for example, switch 0 on node 1 is 100. Serial lines between the bridge node and the program use the same topic and payload, separated by a space.</p>
-  <table id="tab-topics">
-    <caption>MQTT topics used by the bridge</caption>
-    <thead><tr><th scope="col">Direction</th><th scope="col">Topic</th><th scope="col">Payload</th><th scope="col">Meaning</th></tr></thead>
-    <tbody>
-      <tr><td>Railroad → computer</td><td><code>track/turnout/&lt;addr&gt;</code></td><td>CLOSED, THROWN</td><td>Switch machine position from its contact</td></tr>
-      <tr><td>Railroad → computer</td><td><code>track/sensor/&lt;addr&gt;</code></td><td>ACTIVE, INACTIVE</td><td>Block occupied or clear; button pressed</td></tr>
-      <tr><td>Railroad → computer</td><td><code>track/signalmast/&lt;addr&gt;</code></td><td>aspect; Lit; Unheld</td><td>Signal aspect as shown in the field</td></tr>
-      <tr><td>Computer → railroad</td><td><code>track/cmd/turnout/&lt;addr&gt;</code></td><td>THROWN, CLOSED, TOGGLE, GET</td><td>Throw a turnout, or ask its position</td></tr>
-      <tr><td>Computer → railroad</td><td><code>track/signalhead/&lt;addr&gt;</code></td><td>Red, Yellow, Green, Dark</td><td>Set a signal head</td></tr>
-      <tr><td>Program → all</td><td><code>track/bridge/status</code></td><td>online, offline (retained)</td><td>Whether the link is up</td></tr>
-      <tr><td>Operator → program</td><td><code>track/bridge/cmd</code></td><td>PING, RESUBSCRIBE, REOPEN</td><td>Health check and recovery</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="appendix">
-  <h2 id="app-f">Photograph register</h2>
-  <p>Photographs in this document, with the file each comes from. Photographs marked "pending" are still to be taken; a placeholder shows where each goes.</p>
-  {{PHOTO_REGISTER}}
-</section>
-
-<section class="appendix">
-  <h2 id="app-g">Glossary</h2>
-  <dl class="glossary">
-    <dt>Auto-reverser</dt><dd>A device that feeds a reversing section and swaps its polarity when a train bridges a gap with the polarity wrong.</dd>
-    <dt>Booster</dt><dd>An amplifier that puts the command station's DCC signal on the track at full power.</dd>
-    <dt>Booster matrix</dt><dd>Terminal strips where any booster output can be connected to any district.</dd>
-    <dt>Circuit breaker (electronic)</dt><dd>A device that cuts power to its district within milliseconds of a short and restores it when the short is removed.</dd>
-    <dt>Command station</dt><dd>The DCC unit that takes throttle commands and generates the digital signal sent to every decoder.</dd>
-    <dt>DCC</dt><dd>Digital Command Control, the NMRA standard for sending addressed commands to locomotive decoders through the rails.</dd>
-    <dt>Detected section</dt><dd>A length of track gapped in both rails at both ends, with its own feeders and detector channel; called a block on the SOQ form.</dd>
-    <dt>District</dt><dd>A group of sections fed through one protection device.</dd>
-    <dt>Feeder</dt><dd>A wire from a bus to a rail.</dd>
-    <dt>Frog</dt><dd>The part of a turnout where two rails cross. A powered frog is a metal frog connected to one rail or the other according to the route.</dd>
-    <dt>JMRI</dt><dd>Java Model Railroad Interface, free software for railroad control, panels and signalling.</dd>
-    <dt>LCOS</dt><dd>A commercial radio control system of nodes, input, output and detector boards from Beagle Bay Inc.</dd>
-    <dt>MQTT</dt><dd>A standard publish-and-subscribe messaging protocol. A broker passes each message from its sender to the programs that subscribe to its topic.</dd>
-    <dt>OS section</dt><dd>The detected section that holds a turnout (from "on sheet", the railroad term for a train reported past a station).</dd>
-    <dt>SPDT</dt><dd>Single pole, double throw: a switch contact with one common and two throws.</dd>
-  </dl>
-</section>
-
-<section class="appendix">
-  <h2 id="app-h">Railroad wiring records</h2>
-  <p>The pages that follow are the railroad's own records, reproduced as they stand on {{DATE}}. They use the layout's own names; Appendix A cross-references them. They are generated from the railroad's wiring inventory (version 86) and are the as-built detail behind drawings D1 to D6.</p>
-  {{APPENDIX_H}}
+  <h2 id="app-records">Wiring records</h2>
+  <p>These pages are my railroad's own wiring records as of {{DATE}}. They use the layout's names; Appendix A matches them to the labels in this document.</p>
+  {{APPENDIX_RECORDS}}
 </section>
 
 </body>
