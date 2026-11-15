@@ -83,30 +83,22 @@
 <path d="M18.0,282 L18.0,288 L1354.0,288 L1354.0,282" stroke-width="1.4"/>
 <path d="M7.0,49.0 L2.0,49.0 L2.0,207.0 L7.0,207.0" stroke-width="1.4"/>
 <path d="M693.0,161.0 L698.0,161.0 L698.0,207.0 L693.0,207.0" stroke-width="1.4"/>
-<path d="M113.0,165.0 L108.0,165.0 L108.0,183.0 L113.0,183.0" stroke-width="1.4"/>
-<path d="M161.0,135.0 L166.0,135.0 L166.0,179.0 L161.0,179.0" stroke-width="1.4"/>
-<path d="M237.0,133.0 L232.0,133.0 L232.0,151.0 L237.0,151.0" stroke-width="1.4"/>
-<path d="M357.0,107.0 L362.0,107.0 L362.0,151.0 L357.0,151.0" stroke-width="1.4"/>
 <path d="M209.0,161.0 L204.0,161.0 L204.0,207.0 L209.0,207.0" stroke-width="1.4"/>
-<path d="M287.0,161.0 L292.0,161.0 L292.0,207.0 L287.0,207.0" stroke-width="1.4"/>
-<path d="M377.0,161.0 L372.0,161.0 L372.0,207.0 L377.0,207.0" stroke-width="1.4"/>
+<path d="M279.0,161.0 L284.0,161.0 L284.0,207.0 L279.0,207.0" stroke-width="1.4"/>
+<path d="M347.0,161.0 L342.0,161.0 L342.0,207.0 L347.0,207.0" stroke-width="1.4"/>
 <path d="M447.0,161.0 L452.0,161.0 L452.0,207.0 L447.0,207.0" stroke-width="1.4"/>
 <path d="M785.0,161.0 L780.0,161.0 L780.0,179.0 L785.0,179.0" stroke-width="1.4"/>
 <path d="M827.0,141.0 L832.0,141.0 L832.0,179.0 L827.0,179.0" stroke-width="1.4"/>
 <path d="M1027.0,133.0 L1022.0,133.0 L1022.0,179.0 L1027.0,179.0" stroke-width="1.4"/>
-<path d="M1401.0,245.0 L1406.0,245.0 L1406.0,263.0 L1401.0,263.0" stroke-width="1.4"/>
-<path d="M1217.0,125.0 L1212.0,125.0 L1212.0,151.0 L1217.0,151.0" stroke-width="1.4"/>
-<path d="M1331.0,77.0 L1336.0,77.0 L1336.0,123.0 L1331.0,123.0" stroke-width="1.4"/>
-<path d="M1245.0,49.0 L1240.0,49.0 L1240.0,67.0 L1245.0,67.0" stroke-width="1.4"/>
-<path d="M1275.0,29.0 L1280.0,29.0 L1280.0,67.0 L1275.0,67.0" stroke-width="1.4"/>
+<path d="M1163.0,113.0 L1168.0,113.0 L1168.0,255.0 L1163.0,255.0" stroke-width="1.4"/>
 <path d="M92.0,198.0 L92.0,204.0" stroke-width="1"/>
 <path d="M92.0,204.0 L95.2,207.2 L92.0,210.4 L88.8,207.2 Z" stroke-width="1" fill="#fff"/>
 <path d="M867.5,198.0 L867.5,204.0" stroke-width="1"/>
 <path d="M867.5,204.0 L870.7,207.2 L867.5,210.4 L864.3,207.2 Z" stroke-width="1" fill="#fff"/>
+<path d="M1393.0,254.0 L1393.0,260.0" stroke-width="1"/>
+<path d="M1393.0,260.0 L1396.2,263.2 L1393.0,266.4 L1389.8,263.2 Z" stroke-width="1" fill="#fff"/>
 <path d="M363.8,198.0 L363.8,192.0" stroke-width="1"/>
 <path d="M363.8,185.6 L367.0,188.8 L363.8,192.0 L360.6,188.8 Z" stroke-width="1" fill="#fff"/>
-<path d="M1393.0,254.0 L1393.0,248.0" stroke-width="1"/>
-<path d="M1393.0,241.6 L1396.2,244.8 L1393.0,248.0 L1389.8,244.8 Z" stroke-width="1" fill="#fff"/>
 <path d="M715.5,170.0 L715.5,164.0" stroke-width="1"/>
 <path d="M715.5,157.6 L718.7,160.8 L715.5,164.0 L712.3,160.8 Z" stroke-width="1" fill="#fff"/>
 <path d="M969.2,142.0 L969.2,136.0" stroke-width="1"/>
@@ -121,74 +113,70 @@
 <text x="1002.0" y="201.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO STAGING</text>
 <text x="686.0" y="302.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">UPPER LEVEL</text>
 <text x="686.0" y="313.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">135 CARS</text>
-<text x="1236.7" y="53.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
-<text x="1316.0" y="79.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >241B</text>
 <text x="224.0" y="163.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >213A</text>
-<text x="392.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >217A</text>
 <text x="805.0" y="183.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >223*</text>
-<text x="1274.0" y="161.5" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 235"</text>
-<text x="1260.0" y="137.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(11)</text>
-<text x="1316.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(3)</text>
+<text x="1148.0" y="165.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
 <text x="896.0" y="193.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEESPORT</text>
 <text x="92.0" y="217.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.75</text>
 <text x="77.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >203</text>
+<text x="1236.7" y="53.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
 <text x="625.3" y="165.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
-<text x="1344.0" y="249.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
-<text x="1253.0" y="71.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >239</text>
 <text x="867.5" y="217.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2</text>
 <text x="793.3" y="193.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
 <text x="21.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >201</text>
 <text x="427.0" y="163.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >217B</text>
-<text x="1288.0" y="53.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
-<text x="378.0" y="137.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
+<text x="259.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >213B</text>
+<text x="264.0" y="158.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 213"</text>
+<text x="1260.0" y="137.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(11)</text>
 <text x="224.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(10)</text>
 <text x="1311.3" y="25.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
 <text x="70.0" y="53.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
 <text x="891.3" y="137.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
+<text x="1386.0" y="249.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
 <text x="905.0" y="245.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO MAIN LEVEL</text>
 <text x="747.0" y="245.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO MAIN LEVEL</text>
+<text x="1323.0" y="79.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >241B</text>
 <text x="1351.0" y="163.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >245B</text>
+<text x="1141.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >229</text>
 <text x="553.0" y="163.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >221A</text>
 <text x="595.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >221B</text>
-<text x="259.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >213B</text>
-<text x="270.0" y="158.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 213"</text>
-<text x="245.0" y="149.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >211</text>
-<text x="297.0" y="104.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 211"</text>
-<text x="322.0" y="165.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(35)</text>
-<text x="327.6" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(7)</text>
+<text x="385.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >217A</text>
 <text x="84.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >205</text>
-<text x="137.0" y="132.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 209"</text>
-<text x="112.0" y="154.1" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
-<text x="392.0" y="158.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 217"</text>
 <text x="806.0" y="138.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 223"</text>
-<text x="1260.0" y="26.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 239"</text>
+<text x="112.0" y="137.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
+<text x="233.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >211</text>
+<text x="397.0" y="158.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 217"</text>
+<text x="322.0" y="165.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(35)</text>
+<text x="364.0" y="137.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
 <text x="1288.0" y="81.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(8)</text>
 <text x="1344.0" y="193.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(8)</text>
-<text x="1148.0" y="165.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
-<text x="1197.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >231</text>
+<text x="1316.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(3)</text>
+<text x="1288.0" y="53.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
+<text x="1393.0" y="273.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >3.5</text>
+<text x="1176.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >237</text>
 <text x="1113.0" y="163.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >233</text>
-<text x="1225.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >235</text>
-<text x="1141.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >229</text>
+<text x="1253.0" y="71.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >239</text>
 <text x="539.0" y="183.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >219</text>
 <text x="819.0" y="191.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >129B</text>
 <text x="840.0" y="191.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >135B</text>
-<text x="1118.0" y="130.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 225"</text>
-<text x="1239.0" y="165.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(6)</text>
-<text x="252.0" y="81.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
 <text x="363.8" y="183.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.5</text>
+<text x="1274.0" y="165.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(6)</text>
 <text x="1260.0" y="221.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
 <text x="392.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
-<text x="1393.0" y="239.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >3.5</text>
+<text x="252.0" y="81.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(9)</text>
+<text x="308.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(7)</text>
 <text x="1197.0" y="191.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >243</text>
 <text x="1085.0" y="163.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >227</text>
 <text x="715.5" y="155.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >3</text>
-<text x="1169.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >237</text>
+<text x="1197.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >231</text>
 <text x="1309.0" y="211.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >245A</text>
+<text x="1225.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >235</text>
 <text x="1281.0" y="127.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >241A</text>
 <text x="133.0" y="183.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >209</text>
 <text x="329.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >215</text>
 <text x="189.0" y="127.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >207</text>
 <text x="350.0" y="46.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 201"</text>
+<text x="1095.0" y="110.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 225"</text>
 <text x="969.2" y="127.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >3.25</text>
 <text x="663.8" y="183.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.25</text>
 </g>

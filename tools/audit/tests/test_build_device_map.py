@@ -42,6 +42,16 @@ class Pure(unittest.TestCase):
             with self.assertRaisesRegex(BD.MapError, "switch 3 is in CP 1 and CP 3"):
                 BD.load_cps(p)
 
+    def test_every_switch_needs_a_control_point_or_a_local_row(self):
+        bands = [("Main level", {"nodes": {"a": dict(kind="switch", label="101A"), "b": dict(kind="switch", label="105")},
+                                 "strands": {}, "R": {"srow": {}}, "rail": {}}, {})]
+        cps = [dict(cp_name="CP 105", level=2, switches=["105"], area="West")]
+        over = {"edits": [{"op": "relabel", "map": {}}]}
+        with self.assertRaisesRegex(BD.MapError, "switch 101 is in no control point"):
+            BD.build(bands, {}, lambda b: [], over, cps, [])
+        with self.assertRaisesRegex(BD.MapError, "switch 105 is in a control point and in"):
+            BD.build(bands, {}, lambda b: [], over, cps, [], [dict(switch="105", level="2", area="West", notes="")])
+
     def test_track_names(self):
         sw, hx, bump = (lambda n: ("sw", n)), (lambda h: ("helix", h)), ("bumper", None)
         found = [dict(ends=(sw("101"), sw("105")), row=2, trial=["Track e2"]),
@@ -70,14 +80,14 @@ class Output(unittest.TestCase):
     """The committed map against the rules it was built to (run build_device_map.py after changing inputs)."""
 
     def test_every_switch_has_a_turnout_two_feedbacks_and_an_os_block(self):
-        r = rows()
-        cps = BD.load_cps()
-        for cp in cps:
-            for s in cp["switches"]:
-                kinds = sorted(x["layer"] for x in r if x["user_name"] in
-                               (f"Switch {s}", f"FB Switch {s} N", f"FB Switch {s} R", f"OS Switch {s}",
-                                f"BS Switch {s}"))
-                self.assertEqual(kinds, ["block", "fb", "fb", "occupancy", "turnout"], s)
+        have = rows()
+        switches = [s for cp in BD.load_cps() for s in cp["switches"]]
+        switches += [row["switch"] for row in BD.read_csv(BD.LOCAL)]
+        for s in switches:
+            kinds = sorted(x["layer"] for x in have if x["user_name"] in
+                           (f"Switch {s}", f"FB Switch {s} N", f"FB Switch {s} R", f"OS Switch {s}",
+                            f"BS Switch {s}"))
+            self.assertEqual(kinds, ["block", "fb", "fb", "occupancy", "turnout"], s)
 
     def test_system_names_unique_and_in_lcos_bands(self):
         seen = set()

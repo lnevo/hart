@@ -8,7 +8,11 @@
 
 Inputs (jmri/layouts/hart/data/schematic/):
 - control_points_main_upper.csv: the placeholder control points, "CP <lowest switch>" (owner, 2026-11-15).
-  Hand data, one row per control point: level (2 main, 3 upper), switch numbers, area.
+  Hand data, one row per control point: level (2 main, 3 upper), switch numbers, area. Only interlockings that
+  affect the main route are control points, as in the bench plans (docs/wiring/bench/control_point_4 to 6):
+  switches on the main route, grouped where they stand close together.
+- local_switches_main_upper.csv: every other switch (yards and industry spurs), with its area. These get a
+  turnout and detection but no control point and no signals.
 - lcos_nodes_main_upper.csv: the LCOS node addresses each level and area may use, in order. Upper-level areas reuse
   the nodes of the August 2026 upper-deck plan (LCOS inventory v85); the rest are free RF24 addresses, proposed.
 - the solved schematic bands (the inputs publish_draft.py draws), for tracks, their ends and which way is east.
@@ -35,7 +39,8 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   leg has one (one-low). East is the schematic's (ADR-022 amendment: away from the helix on these levels).
 - LCOS packed IDs are node * 100 + UID (external/lcos-bridge): blocks UID 0-7 (BS, "Node: n Block: k+1"), turnouts
   8-15 (M2T, "Node: n Turnout: k"), signals 32-47 (IH, "Node: n Signal: k"), inputs from 67 (M2S, feedback N then R
-  per turnout, "Node: n Sensor: k"). A control point's turnouts stay on one node.
+  per turnout, "Node: n Sensor: k"). A control point's turnouts stay on one node; switches in no control point
+  follow, area by area.
 - No DCC address and no LCC alias (DCC Switch <n>): the owner has not given these levels DCC addresses.
 """
 from __future__ import annotations
@@ -55,6 +60,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned pl
 
 CPS = pd.DATA / "control_points_main_upper.csv"
 NODES = pd.DATA / "lcos_nodes_main_upper.csv"
+LOCAL = pd.DATA / "local_switches_main_upper.csv"
 OVERRIDES = pd.DATA / "main_upper.plan_overrides.json"
 OUT = pd.DATA / "device_map_main_upper.csv"
 
@@ -282,12 +288,20 @@ def masts(bands, cps, found, cp_of) -> list[dict]:
     return out
 
 
-def build(bands, joined, runs, overrides, cps, node_rows) -> tuple[dict, list[dict]]:
-    """(control_points, device map rows)."""
+def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dict, list[dict]]:
+    """(control_points, device map rows). `local`: the switches in no control point (local_switches_main_upper.csv
+    rows). Every switch on the main and upper bands must be in exactly one of the two."""
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
     cp_of = {s: cp["cp_name"] for cp in cps for s in cp["switches"]}
-    cp_row = {cp["cp_name"]: cp for cp in cps}
+    loc = {r["switch"]: dict(r, level=int(r["level"])) for r in local}
+    both = sorted(set(cp_of) & set(loc), key=natural)
+    if both:
+        raise MapError(f"switch {', '.join(both)} is in a control point and in {LOCAL.name}")
+    on_bands = {base(lb) for labels in by_level.values() for lb in labels}
+    missing = sorted(on_bands - set(cp_of) - set(loc), key=natural)
+    if missing:
+        raise MapError(f"switch {', '.join(missing)} is in no control point and not in {LOCAL.name}")
     found = tracks(bands, runs, joined, helix_tags(bands, overrides))
     track_names(found)
     ms = masts(bands, cps, found, cp_of)
@@ -298,25 +312,32 @@ def build(bands, joined, runs, overrides, cps, node_rows) -> tuple[dict, list[di
         rows.append(dict(level=level, cp=cp, layer=layer, user_name=user, system_name=system,
                          node=node, comment=comment, trial_name=trial, notes=notes))
 
-    home = {}
+    home, area_of = {}, {}                  # switch -> its turnout's node, its area
+
+    def switch_rows(lv, area, name, s, node, note=""):
+        k, packed = nodes.take(node, "turnout")
+        home[s], area_of[s] = node, (lv, area)
+        halves = sorted({lb for labels in by_level.values() for lb in labels if base(lb) == s}, key=natural)
+        add(lv, name, "turnout", f"Switch {s}", f"M2T{packed}", node, f"Node: {node} Turnout: {k}",
+            ", ".join(f"Switch {lb}" for lb in halves), note)
+        for nr in "NR":
+            fnode = nodes.pick(lv, area, "sensor", prefer=[node])
+            kk, pp = nodes.take(fnode, "sensor")
+            add(lv, name, "fb", f"FB Switch {s} {nr}", f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}")
+
+    def os_rows(lv, area, name, s, comment):
+        bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
+        k, packed = nodes.take(bnode, "block")
+        add(lv, name, "block", f"OS Switch {s}", "", bnode, comment, f"OS Switch {s}")
+        add(lv, name, "occupancy", f"BS Switch {s}", f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
+
     for cp in cps:
         lv, area, name = cp["level"], cp["area"], cp["cp_name"]
         node = nodes.pick(lv, area, "turnout", len(cp["switches"]))
-        home[name] = node
         for s in cp["switches"]:
-            k, packed = nodes.take(node, "turnout")
-            halves = sorted({lb for labels in by_level.values() for lb in labels if base(lb) == s}, key=natural)
-            add(lv, name, "turnout", f"Switch {s}", f"M2T{packed}", node, f"Node: {node} Turnout: {k}",
-                ", ".join(f"Switch {lb}" for lb in halves))
-            for nr in "NR":
-                bnode = nodes.pick(lv, area, "sensor", prefer=[node])
-                kk, pp = nodes.take(bnode, "sensor")
-                add(lv, name, "fb", f"FB Switch {s} {nr}", f"M2S{pp}", bnode, f"Node: {bnode} Sensor: {kk}")
+            switch_rows(lv, area, name, s, node)
         for s in cp["switches"]:
-            bnode = nodes.pick(lv, area, "block", prefer=[node])
-            k, packed = nodes.take(bnode, "block")
-            add(lv, name, "block", f"OS Switch {s}", "", bnode, name, f"OS Switch {s}")
-            add(lv, name, "occupancy", f"BS Switch {s}", f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
+            os_rows(lv, area, name, s, name)
         for m in sorted((m for m in ms if m["cp"] == name), key=lambda m: natural(m["name"])):
             hnode = nodes.pick(lv, area, "signal", m["heads"], prefer=[node])
             heads = []
@@ -330,16 +351,23 @@ def build(bands, joined, runs, overrides, cps, node_rows) -> tuple[dict, list[di
             for user, sysn, k in heads:
                 add(lv, name, "head", user, sysn, hnode, f"Node: {hnode} Signal: {k}")
 
+    for s in sorted(loc, key=natural):          # no control point: turnout and detection, no signals
+        r = loc[s]
+        node = nodes.pick(r["level"], r["area"], "turnout")
+        switch_rows(r["level"], r["area"], "", s, node, "no control point: " + r["notes"])
+        os_rows(r["level"], r["area"], "", s, r["area"])
+
     for t in sorted(found, key=lambda t: natural(t["name"])):
-        ends_cp = sorted({cp_of[v] for k, v in t["ends"] if k == "sw" and v in cp_of}, key=natural)
+        sws = [v for k, v in t["ends"] if k == "sw"]
+        ends_cp = sorted({cp_of[v] for v in sws if v in cp_of}, key=natural)
         cp = ends_cp[0] if ends_cp else ""
         short = t["cm"] < SHORT_CM and all(k == "sw" for k, _ in t["ends"])
         note = f"{t['cm']} cm" + (" short link: inside the OS blocks of its switches, no detector" if short else "")
         add(t["level"], cp, "block", t["name"], "", "", " / ".join(ends_cp), ", ".join(t["trial"]), note)
-        if short or not cp:
+        if short or not sws:
             continue
-        prefer = [home[c] for c in ends_cp]
-        bnode = nodes.pick(t["level"], cp_row[cp]["area"], "block", prefer=prefer)
+        lv, area = area_of[sws[0]]
+        bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws])
         k, packed = nodes.take(bnode, "block")
         add(t["level"], cp, "occupancy", "BS " + t["name"].removeprefix("Track "), f"M2S{packed}", bnode,
             f"Node: {bnode} Block: {k + 1}")
@@ -387,7 +415,7 @@ def main(argv=None) -> int:
         print(f"SKIPPED device map check: {exc}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
-        cp_keys, rows = build(bands, joined, runs, overrides, load_cps(), read_csv(NODES))
+        cp_keys, rows = build(bands, joined, runs, overrides, load_cps(), read_csv(NODES), read_csv(LOCAL))
     except MapError as exc:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
