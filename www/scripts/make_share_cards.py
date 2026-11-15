@@ -557,6 +557,18 @@ def ai_mmr():
     return card(out)
 
 
+def ap_opsig():
+    """ap-opsig: the Toward Ninja dashboard on the OPSIG Achievement Program page, on the page background."""
+    from PIL import Image
+
+    im = shot(f"{_site}ap/opsig.html", (1400, 1100))
+    grid = im.crop((464, 910, 2338, 1760))  # the three card rows (device px, x2); recheck the crop if the dashboard changes
+    w, h = grid.size[0] + 80, round((grid.size[0] + 80) * H / W)
+    out = Image.new("RGB", (w, h), im.getpixel((300, 1300)))  # the page background beside the grid
+    out.paste(grid, (40, (h - grid.size[1]) // 2))
+    return card(out)
+
+
 def ap_exam():
     """ap-exam: a Form 19 train order on its green flimsy, running Engs C and E extra from the Study Guide to the Exam.
 
@@ -612,6 +624,7 @@ CARDS = {
     "ai-construction": ai_construction,
     "ai-operations": ai_operations,
     "ai-mmr": ai_mmr,
+    "ap-opsig": ap_opsig,
     "ap-exam": ap_exam,
     "behind-wiring": wiring_node,
     "behind-jmri-additions": jmri_additions,
