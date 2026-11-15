@@ -191,9 +191,9 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 3,,turnout,DCC Switch 235,MTT155,21,155,Node: 21 Turnout: 5,,LCC alias of the MQTT turnout (ADR-005)
 3,,turnout,DCC Switch 237,MTT156,21,156,Node: 21 Turnout: 6,,LCC alias of the MQTT turnout (ADR-005)
 3,,turnout,DCC Switch 239,MTT157,21,157,Node: 21 Turnout: 7,,LCC alias of the MQTT turnout (ADR-005)
-3,,turnout,DCC Switch 241,MTT158,31,158,Node: 31 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
-3,,turnout,DCC Switch 243,MTT159,31,159,Node: 31 Turnout: 1,,LCC alias of the MQTT turnout (ADR-005)
-3,,turnout,DCC Switch 245,MTT160,31,160,Node: 31 Turnout: 2,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 241,MTT158,41,158,Node: 41 Turnout: 0,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 243,MTT159,41,159,Node: 41 Turnout: 1,,LCC alias of the MQTT turnout (ADR-005)
+3,,turnout,DCC Switch 245,MTT160,41,160,Node: 41 Turnout: 2,,LCC alias of the MQTT turnout (ADR-005)
 3,CP 201,turnout,Switch 201,M2T2308,23,138,Node: 23 Turnout: 0,Switch 201,
 3,CP 201,turnout,Switch 203,M2T2309,23,139,Node: 23 Turnout: 1,Switch 203,
 3,,turnout,Switch 205,M2T2312,23,140,Node: 23 Turnout: 4,Switch 205,no control point: Industry 3 spur
@@ -214,9 +214,9 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 3,,turnout,Switch 235,M2T2113,21,155,Node: 21 Turnout: 5,Switch 235,no control point: Yard throat
 3,,turnout,Switch 237,M2T2114,21,156,Node: 21 Turnout: 6,Switch 237,no control point: Yard ladder
 3,,turnout,Switch 239,M2T2115,21,157,Node: 21 Turnout: 7,Switch 239,no control point: Spur off the peninsula loop
-3,,turnout,Switch 241,M2T3108,31,158,Node: 31 Turnout: 0,"Switch 241A, Switch 241B",no control point: Yard crossover
-3,,turnout,Switch 243,M2T3109,31,159,Node: 31 Turnout: 1,Switch 243,no control point: Yard ladder
-3,,turnout,Switch 245,M2T3110,31,160,Node: 31 Turnout: 2,"Switch 245A, Switch 245B",no control point: Yard crossover
+3,,turnout,Switch 241,M2T4108,41,158,Node: 41 Turnout: 0,"Switch 241A, Switch 241B",no control point: Yard crossover
+3,,turnout,Switch 243,M2T4109,41,159,Node: 41 Turnout: 1,Switch 243,no control point: Yard ladder
+3,,turnout,Switch 245,M2T4110,41,160,Node: 41 Turnout: 2,"Switch 245A, Switch 245B",no control point: Yard crossover
 3,CP 201,fb,FB Switch 201 N,M2S2367,23,,Node: 23 Sensor: 0,,
 3,CP 201,fb,FB Switch 201 R,M2S2368,23,,Node: 23 Sensor: 1,,
 3,CP 201,fb,FB Switch 203 N,M2S2369,23,,Node: 23 Sensor: 2,,
@@ -257,12 +257,12 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 3,,fb,FB Switch 237 R,M2S2180,21,,Node: 21 Sensor: 13,,
 3,,fb,FB Switch 239 N,M2S2181,21,,Node: 21 Sensor: 14,,
 3,,fb,FB Switch 239 R,M2S2182,21,,Node: 21 Sensor: 15,,
-3,,fb,FB Switch 241 N,M2S3167,31,,Node: 31 Sensor: 0,,
-3,,fb,FB Switch 241 R,M2S3168,31,,Node: 31 Sensor: 1,,
-3,,fb,FB Switch 243 N,M2S3169,31,,Node: 31 Sensor: 2,,
-3,,fb,FB Switch 243 R,M2S3170,31,,Node: 31 Sensor: 3,,
-3,,fb,FB Switch 245 N,M2S3171,31,,Node: 31 Sensor: 4,,
-3,,fb,FB Switch 245 R,M2S3172,31,,Node: 31 Sensor: 5,,
+3,,fb,FB Switch 241 N,M2S4167,41,,Node: 41 Sensor: 0,,
+3,,fb,FB Switch 241 R,M2S4168,41,,Node: 41 Sensor: 1,,
+3,,fb,FB Switch 243 N,M2S4169,41,,Node: 41 Sensor: 2,,
+3,,fb,FB Switch 243 R,M2S4170,41,,Node: 41 Sensor: 3,,
+3,,fb,FB Switch 245 N,M2S4171,41,,Node: 41 Sensor: 4,,
+3,,fb,FB Switch 245 R,M2S4172,41,,Node: 41 Sensor: 5,,
 3,CP 201,block,OS Switch 201,,23,,CP 201,OS Switch 201,
 3,CP 201,block,OS Switch 203,,23,,CP 201,OS Switch 203,
 3,,block,OS Switch 205,,,,West,OS Switch 205,no detector: off the main line
