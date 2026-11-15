@@ -21,11 +21,19 @@ from __future__ import annotations
 
 import argparse
 import math
+import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+try:            # mast icon sizes, as build_layout_le.py places them
+    from hartlib import tables
+except ImportError:     # run as a script: find the repo's hartlib above this file
+    sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                    if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+    from hartlib import tables
 
 BG = (18, 20, 24)
 MAIN = (228, 231, 236)      # mainline track
@@ -105,6 +113,13 @@ def find_panel(src: Path, panel: str | None = None, root=None):
     return next(e for e in root.iter("LayoutEditor") if e.get("name") in names)
 
 
+def icon_box(signal):
+    """(width, height) of a mast icon's box: its upright size turned to its degrees, as JMRI's rotate gives it."""
+    w, h = signal.get("size") or tables.MAST_ICON_DWARF
+    th = math.radians(signal["degrees"])
+    return w * abs(math.cos(th)) + h * abs(math.sin(th)), w * abs(math.sin(th)) + h * abs(math.cos(th))
+
+
 def shape_outline(points, kind, n=8):
     """The outline Layout Editor draws for a layoutShape (LayoutShapeView.draw): from the middle of each side, a
     Straight point is a corner and a Curve point a quadratic curve through the side middles; an Open shape's first
@@ -149,7 +164,9 @@ def load_decor(src: Path, panel: str | None = None, root=None):
 def load_geometry(src: Path, panel: str | None = None, curves: bool = False, root=None):
     """`curves` draws Bezier and arc track as curves; off, every segment is a straight chord (the site's overview
     image)."""
+    root = ET.parse(src).getroot() if root is None else root
     le = find_panel(src, panel, root)
+    system = tables.mast_system_names(root)
     pp = {p.get("ident"): (float(p.get("x")), float(p.get("y")))
           for p in le.findall("positionablepoint")}
     legs = {}
@@ -213,6 +230,7 @@ def load_geometry(src: Path, panel: str | None = None, curves: bool = False, roo
                 "y": float(icon.get("y") or "0"),
                 "degrees": int(float(icon.get("degrees") or "0")) % 360,
                 "hidden": icon.get("hidden") == "yes",
+                "size": tables.mast_icon_size(system.get(icon.get("signalmast") or "", ""))[0],
             })
         except ValueError:
             continue
@@ -265,6 +283,9 @@ def render_view(
         pts.append(t["cen"])
     for signal in vsignals:
         pts.append((signal["x"], signal["y"]))
+        if decor:       # the icon's whole box, as Layout Editor draws it from its top left corner
+            bw, bh = icon_box(signal)
+            pts.append((signal["x"] + bw, signal["y"] + bh))
     for station in vstations:
         pts.append((station["x"], station["y"]))
     if decor:           # the panel's own labels and shapes, in the window, count toward the picture's size
@@ -445,16 +466,15 @@ def render_view(
 
     # Display-only signal markers. The stem points in the mast's facing
     # direction (0=north, 90=east, 180=south, 270=west). With decor (the panel as Layout Editor shows it) the
-    # marker sits where the icon does: x, y is its top left corner, the box a dwarf's (12 x 17 upright, turned),
-    # and a hidden icon is drawn hollow.
+    # marker sits where the icon does: x, y is its top left corner of the turned box of its upright size (a dwarf
+    # 12 x 17, a high mast 12 x 40: hartlib.tables.mast_icon_size), and a hidden icon is drawn hollow.
     f_sig = _font(10)
     for signal in vsignals:
         th = math.radians(signal["degrees"])
         dx, dy = math.sin(th), -math.cos(th)
         px, py = X(signal["x"]), Y(signal["y"])
         if decor:
-            bw = 12 * abs(math.cos(th)) + 17 * abs(math.sin(th))
-            bh = 12 * abs(math.sin(th)) + 17 * abs(math.cos(th))
+            bw, bh = icon_box(signal)
             px, py = X(signal["x"] + bw / 2), Y(signal["y"] + bh / 2)
             r = 3
             d.ellipse([px - r, py - r, px + r, py + r], outline=SIGNAL, width=1,
@@ -507,6 +527,17 @@ def render_view(
     )
 
 
+def positive(text):
+    """A --scale above zero."""
+    try:
+        v = float(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a number") from None
+    if not v > 0 or math.isinf(v):
+        raise argparse.ArgumentTypeError(f"{text!r}: the scale must be above zero")
+    return v
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("src", type=Path)
@@ -518,7 +549,7 @@ def main():
     ap.add_argument("--panel", help="Layout Editor panel name (default: HART Railroad)")
     ap.add_argument("--curves", action="store_true", help="draw Bezier and arc track as curves, not chords")
     ap.add_argument("--labels", action="store_true", help="draw the panel as Layout Editor shows it: its labels, shapes and single crossovers")
-    ap.add_argument("--scale", type=float, help="image pixels per panel pixel (1 draws the panel at 100%% zoom)")
+    ap.add_argument("--scale", type=positive, help="image pixels per panel pixel (1 draws the panel at 100%% zoom)")
     args = ap.parse_args()
 
     root = ET.parse(args.src).getroot()

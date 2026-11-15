@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import copy
 import functools
 import importlib.util
 import io
@@ -388,6 +389,85 @@ class ReviewFixes(unittest.TestCase):
             path.write_bytes(doc.tobytes())
             with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "names-only"):
                 B.build(path, bands=Built.bands)
+
+
+def anchor_panel(*anchors) -> str:
+    """A panel of separate W|E boundaries, one anchor each (A1, A2, ...), the anchor's east slot holding `anchors`."""
+    parts = []
+    for i, mast in enumerate(anchors, 1):
+        y = 100 * i
+        east = f' eastboundsignalmast="{mast}"' if mast else ""
+        parts += [f'<positionablepoint ident="EB{i}a" type="END_BUMPER" x="0" y="{y}" connect1name="T{i}a"/>',
+                  f'<positionablepoint ident="A{i}" type="ANCHOR" x="100" y="{y}" connect1name="T{i}a" '
+                  f'connect2name="T{i}b"{east}/>',
+                  f'<positionablepoint ident="EB{i}b" type="END_BUMPER" x="200" y="{y}" connect1name="T{i}b"/>',
+                  f'<tracksegment ident="T{i}a" blockname="W" connect1name="EB{i}a" type1="POS_POINT" '
+                  f'connect2name="A{i}" type2="POS_POINT"/>',
+                  f'<tracksegment ident="T{i}b" blockname="E" connect1name="A{i}" type1="POS_POINT" '
+                  f'connect2name="EB{i}b" type2="POS_POINT"/>']
+    return "<LayoutEditor>" + "".join(parts) + "</LayoutEditor>"
+
+
+class SecondReview(unittest.TestCase):
+    def fake(self, n_anchors):
+        el = ET.fromstring(anchor_panel(*["M"] + [""] * (n_anchors - 1)))
+        P = mock.Mock(turnouts=[], points={p.get("ident"): {"band": 0} for p in el.findall("positionablepoint")},
+                      masts=[dict(mast="M", kind="anchor", ident="A1", slot="east")])
+        le_mod = mock.Mock(to_xml=lambda *_a: el)
+        return P, el, le_mod
+
+    def test_a_mast_two_slots_would_fit_stops_the_build(self) -> None:
+        P, el, le_mod = self.fake(1)
+        B.check_slots(P, [{"mast": "M"}], el, le_mod)                       # one W|E boundary: certain
+        P, el, le_mod = self.fake(2)
+        with self.assertRaisesRegex(B.BuildError, "fits 2 slots"):
+            B.check_slots(P, [{"mast": "M"}], el, le_mod)
+
+    def test_slots_naming_a_mast_by_system_name_resolve(self) -> None:
+        root = tables.read(paths.TABLES_XML)
+        live = copy.deepcopy(tables.layout_editor(root, LIVE_PANEL))
+        system = tables.mast_system_names(root)
+        point = next(p for p in live.findall("positionablepoint") if p.get("eastboundsignalmast") == "Mast 16R")
+        point.set("eastboundsignalmast", system["Mast 16R"])
+        with contextlib.redirect_stdout(io.StringIO()):
+            got = {m["mast"]: m for m in B.staging_masts(root, live)}
+        self.assertIn(system["Mast 16R"], got)
+        self.assertEqual(got[system["Mast 16R"]]["icon"], list(tables.MAST_ICON_DWARF))     # one-low virtual
+        self.assertTrue(got[system["Mast 16R"]]["hidden"])
+
+    def test_hidden_only_when_every_live_icon_is(self) -> None:
+        live = ET.fromstring('<LayoutEditor><signalmasticon signalmast="M" hidden="yes"/>'
+                             '<signalmasticon signalmast="M" hidden="no"/>'
+                             '<signalmasticon signalmast="N" hidden="yes"/></LayoutEditor>')
+        self.assertEqual(B.live_icons_hidden(live, {}), {"M": False, "N": True})
+
+    def test_the_trial_is_never_written_over_the_live_tables(self) -> None:
+        self.assertTrue(B.live_target(paths.TABLES_XML))
+        self.assertTrue(B.live_target(paths.JMRI_USER_FILES / "tables.xml"))
+        self.assertFalse(B.live_target(B.TRIAL))
+        with mock.patch.object(B, "build") as built_, contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(B.main(["--out", str(paths.TABLES_XML)]), 1)
+            self.assertEqual(B.main(["--out", str(paths.JMRI_USER_FILES / "x.xml")]), 1)
+        built_.assert_not_called()
+        self.assertIn("viewing only", out.getvalue())
+        self.assertIn("for looking at only", B.__doc__)
+
+    def test_renderer_sizes_icons_by_mast_type(self) -> None:
+        data = built()[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "t.xml"
+            path.write_bytes(data)
+            signals = RENDER.load_geometry(path, B.PANEL_NAME, curves=True)[4]
+        sizes = {s["name"]: s["size"] for s in signals}
+        self.assertEqual(sizes["Mast 2L"], tables.MAST_ICON_HIGH)        # two-searchlight
+        self.assertEqual(sizes["Mast 2R"], tables.MAST_ICON_DWARF)       # one-low virtual
+        bw, bh = RENDER.icon_box({"size": tables.MAST_ICON_HIGH, "degrees": 90})
+        self.assertAlmostEqual(bw, 40)
+        self.assertAlmostEqual(bh, 12)
+        for bad in ("0", "-1", "x", "inf"):
+            with self.subTest(bad=bad), self.assertRaises(Exception):
+                RENDER.positive(bad)
+        self.assertEqual(RENDER.positive("1"), 1.0)
 
 
 if __name__ == "__main__":

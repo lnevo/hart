@@ -109,7 +109,10 @@ class MastParity(unittest.TestCase):
             self.assertNotIn(icon.get("signalmast"), icons, "two icons for one mast")
             icons[icon.get("signalmast")] = icon
         self.assertEqual(set(icons), set(self.gen))
-        live_hidden = {i.get("signalmast"): i.get("hidden") for i in self.live_le.findall("signalmasticon")}
+        live_hidden = {}           # hidden only when every live icon of the mast is (build_layout_le's rule)
+        for i in self.live_le.findall("signalmasticon"):
+            was = live_hidden.get(i.get("signalmast"), "yes")
+            live_hidden[i.get("signalmast")] = "yes" if was == "yes" and i.get("hidden") == "yes" else "no"
         size = {m["mast"]: m["box"][2:] for m in self.P.masts}
         for name, m in sorted(self.gen.items()):
             with self.subTest(mast=name):

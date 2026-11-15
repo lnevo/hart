@@ -23,12 +23,23 @@ Names:
   Staging's helix joins carry the next level's block ("joins": "other"), so the helix entrance anchor is a block
   boundary: a live buffer-stop mast whose track the new panel runs on through the helix (Mast 38RA, 40RA) stands
   there, facing the same block and protecting the helix run (the live buffer stop protects nothing). Any mast with
-  no matching slot stops the build.
+  no matching slot stops the build, and so does a mast that two slots of the new panel would fit (a turnout mast
+  must also land on the live turnout).
 - Main and upper use placeholders: turnouts "Switch <number>" (internal IT:HART:C3: system names, so nothing
   commands field hardware), blocks "Track <plan edge id>" and "OS Switch <number>" (the track between the A and B
   halves of one number is that number's OS block). No sensors and no masts.
 
-Size: the panel opens at 100% zoom in a FIT pixel window (the plugin's `fit` scales the grid; label fonts keep their size).
+Size: the panel opens at 100% zoom in a FIT pixel window (the plugin's `fit` scales the grid; label fonts keep their
+size).
+
+The trial is for looking at only. Both panels bind the same staging masts in one tables file. JMRI's mast lookups
+(LayoutBlockManager, DefaultSignalMastLogic) walk the Layout Editor panels in title order and take the first panel
+that has the mast, so "HART Railroad" answers before "Layout (generated)"; but Layout Block routing merges the block
+connections of every loaded panel, so the trial adds the helix joins (McKeesport and McKees Rocks to the next
+levels' placeholder blocks) to the routing graph, and 38RA and 40RA resolve differently on the two panels. So with
+the trial loaded do not run Signal Mast Logic discovery, Dispatcher System Stage 1 or Entry/Exit generation, and do
+not Store. At the cut-over the live panel goes and the generated one alone carries the masts. This script never
+writes the live tables.xml or anything in the JMRI profile (main() refuses such an --out).
 
 The plugin is the pinned submodule, or SCHEMATIC_PLUGIN (as publish_draft.py).
 """
@@ -40,6 +51,7 @@ import csv
 import functools
 import importlib
 import json
+import os
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -67,7 +79,6 @@ COMMENT = "Placeholder from the schematic (C3 trial, build_layout_le.py)"
 # and 23 px spare for the Dock's edge is 1140; the 60 px allowance covers the title bar (28 px) and the thin edit
 # toolbar, leaving the panel at most 1080.
 FIT = (1900, 1140)
-DWARF, HIGH = (12, 17), (12, 40)     # upright icon sizes of JMRI's AAR-1946 one-low and two-searchlight aspects
 
 
 class BuildError(RuntimeError):
@@ -349,14 +360,8 @@ def staging_masts(root: ET.Element, live_le: ET.Element) -> list[dict]:
     blocks and kind of slot JMRI resolves for it there, its icon size from its aspect type, and hidden as its live
     icon is."""
     slots = slots_module()
-    hidden = {}
-    for icon in live_le.findall("signalmasticon"):
-        hidden.setdefault(icon.get("signalmast"), icon.get("hidden") == "yes")
-    system = {}
-    for m in root.iter("signalmast"):
-        system[(m.findtext("userName") or "").strip()] = m.findtext("systemName") or ""
-    for m in root.iter("virtualsignalmast"):
-        system[(m.findtext("userName") or "").strip()] = m.findtext("systemName") or ""
+    system = tables.mast_system_names(root)
+    hidden = live_icons_hidden(live_le, system)
     out = []
     for m in slots.Index(live_le).masts():
         if not m["facing"]:
@@ -364,12 +369,57 @@ def staging_masts(root: ET.Element, live_le: ET.Element) -> list[dict]:
                              "block")
         if m["mast"] not in system:
             raise BuildError(f"live panel: mast {m['mast']} is not in the signal mast table")
+        size, known = tables.mast_icon_size(system[m["mast"]])
+        if not known:
+            print(f"  note: mast {m['mast']}: appearance {tables.mast_appearance(system[m['mast']])!r} has no known "
+                  f"icon size; drawn as a high mast {size[0]} x {size[1]}")
         entry = dict(mast=m["mast"], facing=m["facing"], protects=m["protects"], kind=m["kind"],
-                     hidden=hidden.get(m["mast"], False), icon=list(DWARF if "low" in system[m["mast"]] else HIGH))
+                     hidden=hidden.get(system[m["mast"]], False), icon=list(size))
         if m["kind"] == "end bumper":       # the new panel may run the track on through a helix join instead
             entry["or_join"] = True
         out.append(entry)
     return sorted(out, key=lambda m: m["mast"])
+
+
+def live_icons_hidden(live_le: ET.Element, system: dict) -> dict:
+    """{mast system name: hidden} from the live panel's icons: hidden only when every icon of that mast is."""
+    seen = defaultdict(list)
+    for icon in live_le.findall("signalmasticon"):
+        name = icon.get("signalmast")
+        seen[system.get(name, name)].append(icon.get("hidden") == "yes")
+    return {k: all(v) for k, v in seen.items()}
+
+
+def check_slots(P, masts: list[dict], live_le: ET.Element, le_mod) -> None:
+    """Stop when a staging mast could have gone in more than one slot of the new panel (the plugin would take the
+    first), or a turnout mast is on another turnout than live."""
+    slots = slots_module()
+    ix = slots.Index(le_mod.to_xml(P, "check"))
+    live = {m["mast"]: m for m in slots.Index(live_le).masts()}
+    staging = {t["ident"] for t in P.turnouts if t["band"] == 0} | {k for k, p in P.points.items() if p["band"] == 0}
+    fits = defaultdict(list)
+    for c in ix.candidates():
+        if c[1] in staging:
+            f, pr = ix.blocks(*c)
+            fits[(c[0], f, tuple(pr))].append(c)
+    want = {m["mast"]: m for m in masts}
+    bad = []
+    for m in P.masts:
+        f, pr = ix.blocks(m["kind"], m["ident"], m["slot"])
+        same = fits[(m["kind"], f, tuple(pr))]
+        name = m["mast"]
+        if live[name]["kind"] == "turnout":
+            here = ix.turnouts[m["ident"]].get("turnoutname")
+            if here != live[name]["turnout"]:
+                bad.append(f"{name} is on turnout {here}, live on {live[name]['turnout']}")
+            same = [c for c in same if ix.turnouts[c[1]].get("turnoutname") == live[name]["turnout"]]
+        if len(same) > 1:
+            bad.append(f"{name} fits {len(same)} slots ({', '.join(f'{c[1]} {c[2]}' for c in same)}): which one is a "
+                       "guess")
+        if name not in want:
+            bad.append(f"{name} was not asked for")
+    if bad:
+        raise BuildError("staging masts not placed for certain: " + "; ".join(bad))
 
 
 def check_unplaced(P) -> list[str]:
@@ -497,6 +547,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None):
         P = le_mod.panel(bands, names, page=page, fit=FIT)
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
+    if band_key(bands[0][0]) != STAGING:
+        raise BuildError(f"the first band is {bands[0][0]!r}, not {STAGING}")
+    P.mast_notes = check_unplaced(P)
+    check_slots(P, names[STAGING]["masts"], template, le_mod)
 
     # staging: every name must already be live
     staging_turnouts = set(names[STAGING]["turnouts"].values())
@@ -545,9 +599,17 @@ def build(live_path: Path = paths.TABLES_XML, bands=None):
     attrs = dict(template.attrib)
     attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")
     panel_el = le_mod.to_xml(P, PANEL_NAME, attrs, copy.deepcopy(template.find("layoutTrackDrawingOptions")))
-    P.mast_notes = check_unplaced(P)
     place(root, [panel_el], 1, tables.layout_editors(root)[-1])
     return doc.tobytes(), P, names, bands
+
+
+def live_target(out: Path) -> bool:
+    """True when `out` is the live tables.xml or lies in the JMRI profile (by path or through a link)."""
+    real = Path(os.path.realpath(out))
+    if real == Path(os.path.realpath(paths.TABLES_XML)):
+        return True
+    profile = Path(os.path.realpath(paths.JMRI_USER_FILES))
+    return real == profile or profile in real.parents
 
 
 def main(argv=None) -> int:
@@ -555,6 +617,10 @@ def main(argv=None) -> int:
     ap.add_argument("--check", action="store_true", help="regenerate in memory and fail if the trial file differs")
     ap.add_argument("--out", type=Path, default=TRIAL, help="where to write (default: the trial file)")
     args = ap.parse_args(argv)
+    if not args.check and live_target(args.out):
+        print(f"ERROR: {args.out} is the live tables or in the JMRI profile; the trial is for viewing only and is "
+              "written beside them, never over them")
+        return 1
     try:
         data, P, _names, _bands = build()
     except BuildError as exc:
@@ -571,9 +637,9 @@ def main(argv=None) -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     tables.loads(data, path=args.out).save(args.out)
     print(f"wrote {paths.rel(args.out)}: {summary}")
-    moved = {mast for _t, mast, _w in P.moved}
+    moved = {f"{t}: mast {m}: {why}" for t, m, why in P.moved}       # the plugin's own log line for each
     for line in P.log:
-        if not any(f"mast {m}:" in line for m in moved):
+        if line not in moved:
             print(f"  note: {line}")
     for line in P.mast_notes:
         print(f"  mast at a helix join: {line}")
