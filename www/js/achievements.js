@@ -11,10 +11,26 @@
   }
   var LABELS = { done: "Done", ready: "Ready", part: "Partly", todo: "To do", ask: "Confirm" };
 
-  /* A card's mark sums its checklist: all Done is Done, Done plus Ready only (paperwork
-     ready, waiting for a signed witness) is Ready, any Done or Partly is Partly,
-     all Confirm is Confirm, otherwise To do. The bar uses the score's "N of M" when it
-     has one, else the share of Done items. */
+  /* A card's mark sums its checklist counts: all Done is Done; Done plus Ready only
+     (paperwork ready, waiting for a signed witness) is Ready; any Done, Ready or Partly
+     is Partly; all Confirm is Confirm; otherwise To do. */
+  function statusOf(n, total) {
+    if (!total) return "";
+    if (n.done === total) return "done";
+    if (n.ready && n.done + n.ready === total) return "ready";
+    if (n.done || n.ready || n.part) return "part";
+    if (n.ask === total) return "ask";
+    return "todo";
+  }
+
+  /* Bar width: the score's "N of M" when it has one, else the share of Done and Ready items. */
+  function barPct(text, n, total) {
+    var m = String(text || "").match(/(\d+(?:\.\d+)?) of (\d+(?:\.\d+)?)/);
+    var of = m ? parseFloat(m[2]) : 0;
+    if (of) return Math.min(100, (100 * parseFloat(m[1])) / of);
+    return total ? (100 * (n.done + n.ready)) / total : 0;
+  }
+
   function certProgress(cert) {
     var n = { done: 0, ready: 0, part: 0, todo: 0, ask: 0 }, total = 0;
     if (cert) {
@@ -23,18 +39,12 @@
         Object.keys(n).forEach(function (k) { if (el.classList.contains(k)) n[k]++; });
       });
     }
-    var status = !total ? "" : n.done === total ? "done"
-      : n.ready && n.done + n.ready === total ? "ready" : n.done || n.part ? "part"
-      : n.ask === total ? "ask" : "todo";
     var score = cert && cert.querySelector(".ap-score");
     var text = score ? score.textContent.trim() : "";
-    var m = text.match(/(\d+(?:\.\d+)?) of (\d+(?:\.\d+)?)/);
-    var of = m ? parseFloat(m[2]) : 0;
-    var pct = of ? Math.min(100, (100 * parseFloat(m[1])) / of) : total ? (100 * n.done) / total : 0;
-    return { status: status, text: text === "\u2014" ? "" : text, pct: pct };
+    return { status: statusOf(n, total), text: text === "\u2014" ? "" : text, pct: barPct(text, n, total) };
   }
 
-  /* Dashboard cards copy each checklist's score, bar and mark; the summary counts Done cards. */
+  /* Dashboard cards copy each checklist's score, bar and mark; the summary counts Done and Ready cards. */
   function fillDashboard() {
     var earned = 0, ready = 0;
     document.querySelectorAll("[data-ap-cert]").forEach(function (card) {
@@ -61,6 +71,11 @@
       noteCount.textContent = ready;
       note.hidden = !ready;
     }
+  }
+  var api = { statusOf: statusOf, barPct: barPct };
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = api;
+    return;
   }
   window.HARTAchievements = {
     mount: function (pageId) {
