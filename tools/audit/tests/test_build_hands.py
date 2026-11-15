@@ -19,12 +19,13 @@ FLIPPED = "101A 101B 103A 103B 105 107 109 111".split()
 
 
 def hands():
-    return {r["switch"]: r["hand"] for r in csv.DictReader(BH.OUT.open())}
+    with BH.OUT.open() as f:
+        return {r["switch"]: r["hand"] for r in csv.DictReader(f)}
 
 
 class BuildHands(unittest.TestCase):
-    def test_file_is_current(self):
-        self.assertEqual(BH.OUT.read_text(), BH.build())
+    def test_unknown_argument_is_refused(self):
+        self.assertEqual(BH.main(["--chek"]), 2)
 
     def test_flipped_are_opposite_drawn_rest_equal(self):
         h = hands()
@@ -39,6 +40,34 @@ class BuildHands(unittest.TestCase):
     def test_double_crossover_has_no_hand(self):
         self.assertNotIn("225", hands())
         self.assertEqual(len(hands()), len(DRAWN_R) + len(DRAWN_L))
+
+
+class Refusals(unittest.TestCase):
+    """Edits or graph values it cannot vouch for stop the build instead of writing a quietly wrong file."""
+
+    def build_with(self, change):
+        import json
+        import tempfile
+        d = json.loads(BH.OVERRIDES.read_text())
+        change(d)
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+            json.dump(d, f)
+        saved, BH.OVERRIDES = BH.OVERRIDES, Path(f.name)
+        try:
+            with self.assertRaises(SystemExit):
+                BH.build()
+        finally:
+            BH.OVERRIDES = saved
+            Path(f.name).unlink()
+
+    def test_an_edit_it_does_not_read(self):
+        self.build_with(lambda d: d["edits"].append({"op": "remove", "switches": ["T1"]}))
+
+    def test_a_relabel_key_with_no_plan_switch(self):
+        self.build_with(lambda d: d["edits"][0]["map"].update({"T99999": "999"}))
+
+    def test_a_move_edit_naming_no_plan_switch(self):
+        self.build_with(lambda d: [e.update(switch="223") for e in d["edits"] if e["op"] == "move"])
 
 
 if __name__ == "__main__":

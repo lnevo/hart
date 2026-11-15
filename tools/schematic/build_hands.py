@@ -16,14 +16,12 @@ import re
 import sys
 from pathlib import Path
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import publish_draft as pd  # noqa: E402  DATA, GRAPHS and hartlib paths
 
-DATA = paths.REPO_ROOT / "jmri/layouts/hart/data/schematic"
-GRAPH = DATA / "inputs/main.json"
-OVERRIDES = DATA / "main_upper.plan_overrides.json"
-OUT = DATA / "hands.csv"
+GRAPH = pd.GRAPHS / "main.json"
+OVERRIDES = pd.DATA / "main_upper.plan_overrides.json"
+OUT = pd.DATA / "hands.csv"
 SOURCE = "plan geometry (provisional)"
 
 
@@ -32,20 +30,40 @@ def natural(name):
     return int(m.group(1)), m.group(2)
 
 
+KNOWN_EDITS = {"relabel", "move"}     # switch-changing edits this script reads; any other fails loudly
+
+
 def build():
-    """The file's text."""
+    """The file's text. Fails on anything it cannot vouch for: an edit kind it does not read (a `switch`,
+    `crossover` or `remove` edit changes which switches exist), a relabel key with no plan node other than the one
+    double crossover, a graph hand that is not +1 or -1, or a `move` edit that names no plan switch."""
     nodes = json.loads(GRAPH.read_text())["nodes"]
     edits = json.loads(OVERRIDES.read_text())["edits"]
+    unknown = sorted({e["op"] for e in edits} - KNOWN_EDITS)
+    if unknown:
+        raise SystemExit(f"build_hands.py does not read {unknown} edits yet: teach it before using hands.csv")
     relabel = next(e["map"] for e in edits if e["op"] == "relabel")
-    owner_hand = {e["switch"]: e["hand"] for e in edits if e["op"] == "move" and "hand" in e}
     by_label = {n["label"]: n for n in nodes.values() if n["kind"] == "switch"}
+    dx = {n["label"] for n in nodes.values() if n["kind"] == "dx"}
+    owner_hand = {}
+    for e in edits:
+        if e["op"] == "move" and "hand" in e:
+            if e["switch"] not in by_label:
+                raise SystemExit(f"move edit names {e['switch']!r}, which is no plan switch label")
+            owner_hand[e["switch"]] = e["hand"]
     rows = {}
     for old, new in relabel.items():
         node = by_label.get(old)
         if node is None:
-            continue  # the double crossover is kind "dx": no hand
-        hand = owner_hand.get(old) or ("R" if node["hand"] > 0 else "L")
-        rows[new] = hand
+            if old in dx:
+                continue                    # the double crossover: no hand
+            raise SystemExit(f"relabel {old!r} -> {new!r}: no switch {old!r} in {GRAPH.name}")
+        if old in owner_hand:
+            rows[new] = owner_hand[old]
+        elif node.get("hand") in (1, -1):
+            rows[new] = "R" if node["hand"] == 1 else "L"
+        else:
+            raise SystemExit(f"{old} ({new}): plan hand {node.get('hand')!r} is not +1 or -1")
     out = io.StringIO()
     w = csv.writer(out, lineterminator="\n")
     w.writerow(["switch", "hand", "source"])
@@ -55,15 +73,18 @@ def build():
 
 
 def main(argv):
+    if set(argv) - {"--check"}:
+        print(__doc__)
+        return 2
     text = build()
     if "--check" in argv:
         if not OUT.exists() or OUT.read_text() != text:
-            print(f"{OUT.relative_to(paths.REPO_ROOT)} is out of date: run tools/schematic/build_hands.py")
+            print(f"{OUT.relative_to(pd.REPO)} is out of date: run tools/schematic/build_hands.py")
             return 1
         print("hands.csv up to date")
         return 0
     OUT.write_text(text)
-    print(f"wrote {OUT.relative_to(paths.REPO_ROOT)}")
+    print(f"wrote {OUT.relative_to(pd.REPO)}")
     return 0
 
 
