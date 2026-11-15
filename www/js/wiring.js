@@ -179,7 +179,7 @@
 
       // —— Search haystacks ——
       function nodeHay(n) {
-        var parts = [n.id, n.legacy, "radio " + n.address, n.location, n.type]
+        var parts = [n.id, "radio " + n.address, n.location, n.type]
           .concat(n.turnouts, n.signals, n.blockNames);
         (n.outputs || []).concat(n.inputs || []).forEach(function (b) {
           b.pins.forEach(function (p) {
@@ -310,8 +310,7 @@
                 '<a class="wr-node card" href="' + esc(link({ node: n.id })) + '" data-node="' + esc(n.id) + '">' +
                 '<span class="wr-node-head"><strong class="wr-node-id">' + esc(n.id) + "</strong>" +
                 '<span class="wr-node-addr">' + esc(n.type === "Main" ? "main node" : n.type === "DCC" ? "DCC" : "radio " + n.address) + "</span></span>" +
-                '<span class="wr-node-loc">' + esc(n.location) +
-                (n.legacy ? ' <small class="muted">· old label ' + esc(n.legacy) + "</small>" : "") + "</span>" +
+                '<span class="wr-node-loc">' + esc(n.location) + "</span>" +
                 (noIo ? '<span class="muted wr-node-none">No output or input boards.</span>' : '<span class="wr-minis">' + boards + "</span>") +
                 (facts.length ? '<dl class="wr-facts">' + facts.join("") + "</dl>" : "") +
                 "</a>"
@@ -554,8 +553,7 @@
         syncUrl();
         dlgTitle.innerHTML =
           esc(n.id) + ' <small class="muted">' +
-          esc([n.type === "Main" ? "main node" : n.type === "DCC" ? "DCC" : "radio " + n.address, n.location]
-            .concat(n.legacy ? ["old label " + n.legacy] : []).join(" · ")) +
+          esc([n.type === "Main" ? "main node" : n.type === "DCC" ? "DCC" : "radio " + n.address, n.location].join(" · ")) +
           "</small>";
         var html = (n.outputs || []).length || (n.inputs || []).length
           ? '<p class="muted wr-hint">Tap a pin to see what it is wired to.</p>'

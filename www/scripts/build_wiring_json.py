@@ -207,7 +207,6 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
             continue
         nodes[nid] = {
             "id": nid,
-            "legacy": r.get("Legacy Node ID", "") if r.get("Legacy Node ID") != nid else "",
             "address": r.get("Address", ""),
             "location": r.get("Location", ""),
             "type": r.get("Type", ""),
@@ -232,7 +231,7 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
     def node_for(nid: str, sheet: str, pid: str):
         if nid not in nodes:
             warn(f"{sheet}: {pid} names node {nid}, which is not on the Nodes sheet")
-            nodes[nid] = {"id": nid, "legacy": "", "address": "", "location": "", "type": "",
+            nodes[nid] = {"id": nid, "address": "", "location": "", "type": "",
                           "turnouts": [], "signals": [], "blockNames": [], "summary": {},
                           "outputs": [], "inputs": [], "detectors": [], "declared": {}}
         return nodes[nid]
