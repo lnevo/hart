@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import math
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
@@ -82,8 +83,35 @@ def bezier_points(a, controls, b, n=16):
     return out
 
 
+def arc_points(a, b, angle, flip, n=16):
+    """Points along a Layout Editor circle arc (arc="yes" circle="yes") from end 1 to end 2, as
+    TrackSegmentView.calculateTrackSegmentAngle draws it: from end 2 (end 1 when flipped), `angle` degrees
+    counterclockwise on screen."""
+    a1, a2 = (b, a) if flip else (a, b)
+    half = math.radians(angle) / 2
+    dx, dy = a2[0] - a1[0], a2[1] - a1[1]
+    r = math.hypot(dx, dy) / 2 / math.sin(half)
+    start = math.atan2(dx, dy) - half
+    cx, cy = a2[0] - math.cos(start) * r, a2[1] + math.sin(start) * r
+    pts = [(cx + r * math.cos(start + math.radians(angle) * i / n), cy - r * math.sin(start + math.radians(angle) * i / n))
+           for i in range(n + 1)]
+    return pts if flip else pts[::-1]
+
+
+def load_decor(src: Path, panel: str | None = None):
+    """The panel's text labels [(text, x, y, size, bold)] and shapes [[(x, y), ...] closed point lists]."""
+    root = ET.parse(src).getroot()
+    names = (panel,) if panel else ("HART Railroad", "HART")
+    le = next(e for e in root.iter("LayoutEditor") if e.get("name") in names)
+    labels = [(lb.get("text") or "", float(lb.get("x") or 0), float(lb.get("y") or 0), int(lb.get("size") or 10),
+               lb.get("style") == "1") for lb in le.findall("positionablelabel") if lb.get("text")]
+    shapes = [[(float(p.get("x")), float(p.get("y"))) for p in sh.iter("point")] for sh in le.findall("layoutShape")]
+    return labels, shapes
+
+
 def load_geometry(src: Path, panel: str | None = None, curves: bool = False):
-    """`curves` draws Bezier track as curves; off, every segment is a straight chord (the site's overview image)."""
+    """`curves` draws Bezier and arc track as curves; off, every segment is a straight chord (the site's overview
+    image)."""
     root = ET.parse(src).getroot()
     names = (panel,) if panel else ("HART Railroad", "HART")
     le = next(e for e in root.iter("LayoutEditor") if e.get("name") in names)
@@ -126,8 +154,12 @@ def load_geometry(src: Path, panel: str | None = None, curves: bool = False):
             block = s.get("blockname") or ""
             controls = [(float(c.get("x")), float(c.get("y")))
                         for c in sorted(s.iter("controlpoint"), key=lambda c: int(c.get("index") or 0))]
+            curve = None
             if curves and s.get("bezier") == "yes" and controls:
                 curve = bezier_points(a, controls, b)
+            elif curves and s.get("arc") == "yes" and s.get("circle") == "yes" and float(s.get("angle") or 0) > 0:
+                curve = arc_points(a, b, float(s.get("angle")), s.get("flip") == "yes")
+            if curve:
                 mid = (len(curve) - 1) // 2
                 # one piece carries the block name, so a curve weighs as much as a straight in the label's place
                 segs.extend((p, q, main, block if i == mid else "")
@@ -165,11 +197,16 @@ def load_geometry(src: Path, panel: str | None = None, curves: bool = False):
 
 def render_view(
     pp, legs, turnouts, segs, signals, stations, out: Path, title: str, subtitle: str,
-    xmin=None, xmax=None
+    xmin=None, xmax=None, decor=None
 ):
+    """`decor` is load_decor's (labels, shapes): the panel drawn as Layout Editor shows it, its own labels and
+    shapes in place of the block and turnout text this view makes up, and a single crossover with its one diagonal
+    (without it, every crossover is drawn with two diagonals, as the site's overview image has it)."""
     pad = 34
     if xmin is None:
         allx = [p[0] for p in pp.values()] + [t["cen"][0] for t in turnouts]
+        if decor:       # the whole drawing, arcs too (a turnback's far point need not be an anchor of the window)
+            allx += [q[0] for a, b, _m, _blk in segs for q in (a, b)]
         xmin, xmax = min(allx), max(allx)
         target_w = 2000
     else:
@@ -229,7 +266,7 @@ def render_view(
             blk_pts[bl].append(((a[0] + b[0]) / 2, (a[1] + b[1]) / 2))
     f_blk = _font(12)
     placed = []
-    for bl, mids in blk_pts.items():
+    for bl, mids in ([] if decor else blk_pts.items()):
         if bl.startswith("OS "):
             continue  # OS shown on the control point marker
         mx = sum(m[0] for m in mids) / len(mids)
@@ -294,6 +331,12 @@ def render_view(
             # Continuing routes (parallel rails)
             d.line([_pt(a), _pt(b)], fill=THRU, width=5)
             d.line([_pt(dd), _pt(c)], fill=THRU, width=5)
+            if decor and ttype in ("RH_XOVER", "LH_XOVER"):
+                # a single crossover: one diagonal, from the middle of A-B to the middle of C-D (as JMRI draws it)
+                d.line([_pt(((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)), _pt(((c[0] + dd[0]) / 2, (c[1] + dd[1]) / 2))],
+                       fill=DIVERGE, width=5)
+                d.ellipse([X(cx) - 6, Y(cy) - 6, X(cx) + 6, Y(cy) + 6], fill=POINT)
+                continue
             # Pick the diagonal pair that actually forms the diamond. JMRI RH/LH
             # naming can be mirrored in LE so type alone is not enough.
             rh_pair = (a, dd, b, c)  # A–D & B–C
@@ -322,7 +365,7 @@ def render_view(
 
     # labels with simple anti-collision (stagger above/below the point)
     placed_lbl = []  # (px, py) top-left of a 3-line label block (~52px tall)
-    for t in sorted(vturn, key=lambda tt: tt["cen"][0]):
+    for t in ([] if decor else sorted(vturn, key=lambda tt: tt["cen"][0])):
         cx, cy = t["cen"]
         block = t["block"]
         osnum, area = block, ""
@@ -343,6 +386,14 @@ def render_view(
         if area:
             d.text((lx, ly + 20), area, font=f_sub, fill=OSSUB)
         d.text((lx, ly + 36), f"{t['tn']} · {t['ident']}", font=f_id, fill=SWID)
+
+    if decor:
+        labels, shapes = decor
+        for shape in shapes:
+            if len(shape) > 2:
+                d.line([(X(x), Y(y)) for x, y in shape + shape[:1]], fill=MAIN, width=3)
+        for text, x, y, size, bold in labels:
+            d.text((X(x), Y(y)), text, font=_font(max(8, round(size * scale)), bold=bold), fill=TITLE if bold else BLKTXT)
 
     # Display-only signal markers. The stem points in the mast's facing
     # direction (0=north, 90=east, 180=south, 270=west).
@@ -406,7 +457,8 @@ def main():
     ap.add_argument("--subtitle", default="")
     ap.add_argument("--xwin", type=float, nargs=2, metavar=("XMIN", "XMAX"))
     ap.add_argument("--panel", help="Layout Editor panel name (default: HART Railroad)")
-    ap.add_argument("--curves", action="store_true", help="draw Bezier track as curves, not chords")
+    ap.add_argument("--curves", action="store_true", help="draw Bezier and arc track as curves, not chords")
+    ap.add_argument("--labels", action="store_true", help="draw the panel as Layout Editor shows it: its labels, shapes and single crossovers")
     args = ap.parse_args()
 
     pp, legs, turnouts, segs, signals, stations = load_geometry(args.src, args.panel, args.curves)
@@ -423,7 +475,8 @@ def main():
     xmax = args.xwin[1] if args.xwin else None
     render_view(
         pp, legs, turnouts, segs, signals, stations,
-        args.out, args.title, args.subtitle, xmin, xmax
+        args.out, args.title, args.subtitle, xmin, xmax,
+        decor=load_decor(args.src, args.panel) if args.labels else None
     )
 
 

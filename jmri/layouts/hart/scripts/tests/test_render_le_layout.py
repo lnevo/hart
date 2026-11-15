@@ -1,4 +1,4 @@
-"""render_le_layout.load_geometry skips hidden track segments."""
+"""render_le_layout.load_geometry skips hidden track segments and draws circle arcs as JMRI does."""
 import sys
 import tempfile
 import unittest
@@ -32,6 +32,31 @@ class HiddenSegments(unittest.TestCase):
         self.assertEqual([(a, b) for a, b, _m, _blk in segs], [((0.0, 0.0), (10.0, 0.0))])
         # the anchor only the hidden segment reaches is not drawn either
         self.assertEqual(sorted(pp), ["A1", "A2"])
+
+
+ARC = PANEL.replace('mainline="no" hidden="yes" />', 'mainline="no" hidden="no" arc="yes" flip="no" circle="yes" angle="90" />')
+
+
+class Arcs(unittest.TestCase):
+    def test_arc_runs_end_to_end_and_bows_left_of_its_way(self):
+        pts = render_le_layout.arc_points((0.0, 0.0), (10.0, 0.0), 90.0, False)
+        self.assertAlmostEqual(pts[0][0], 0.0)
+        self.assertAlmostEqual(pts[-1][0], 10.0)
+        self.assertLess(pts[len(pts) // 2][1], 0.0)       # going east, the arc bows north (up the screen)
+        flipped = render_le_layout.arc_points((0.0, 0.0), (10.0, 0.0), 90.0, True)
+        self.assertGreater(flipped[len(flipped) // 2][1], 0.0)
+
+    def test_curves_draw_an_arc_segment_as_pieces(self):
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "panel.xml"
+            src.write_text(ARC)
+            chords = render_le_layout.load_geometry(src)[3]
+            curves = render_le_layout.load_geometry(src, curves=True)[3]
+        self.assertEqual(len(chords), 2)
+        self.assertEqual(len(curves), 1 + 16)
+        self.assertEqual(curves[1][0], (10.0, 0.0))
+        self.assertAlmostEqual(curves[-1][1][0], 10.0)
+        self.assertAlmostEqual(curves[-1][1][1], 10.0)
 
 
 if __name__ == "__main__":
