@@ -82,7 +82,29 @@
 .ce .learn p,.ce .learn li{font-size:16px;line-height:1.6;max-width:70ch}
 .ce .learn p{margin:6px 0}
 .ce .learn ul,.ce .learn ol{margin:6px 0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
-.ce .learn-toc{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+/* study guide frames: one section at a time, picked from a line of stops */
+.ce .ce-line{scroll-margin-top:calc(var(--header-h) + 12px)}
+.ce .ce-line ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--n,9),minmax(0,1fr));position:relative}
+.ce .ce-line ol::before,.ce .ce-line .fill{content:"";position:absolute;top:14px;left:calc(50% / var(--n,9));height:3px;border-radius:2px;background:var(--rule);right:calc(50% / var(--n,9))}
+.ce .ce-line .fill{background:var(--ink);right:auto;width:0}
+@media (prefers-reduced-motion:no-preference){.ce .ce-line .fill{transition:width .25s ease}}
+.ce .ce-line button{background:none;border:0;padding:0 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;position:relative;z-index:1}
+.ce .ce-line .dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);background:var(--paper);display:grid;place-items:center;font-family:var(--f-mono);font-size:12px;transition:transform .15s ease}
+.ce .ce-line .past .dot{background:var(--rule)}
+.ce .ce-line [aria-current="step"] .dot{background:var(--ink);color:var(--paper);box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--signal-red)}
+.ce .ce-line button:hover .dot{transform:scale(1.1)}
+.ce .ce-line button:focus-visible{outline:none}.ce .ce-line button:focus-visible .dot{outline:2px solid var(--signal-red);outline-offset:3px}
+.ce .ce-line .name{font-size:12px;line-height:1.25;color:var(--muted);text-align:center;text-wrap:balance}
+.ce .ce-line [aria-current="step"] .name{color:var(--ink);font-weight:600}
+.ce .ce-line-cap{display:none;margin:8px 0 0;font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:center}
+@media (max-width:640px){.ce .ce-line .name{display:none}.ce .ce-line-cap{display:block}.ce .ce-line .dot{width:26px;height:26px;font-size:11px}.ce .ce-line ol::before,.ce .ce-line .fill{top:12px}}
+.ce .learn article[hidden]{display:none}
+@media (prefers-reduced-motion:no-preference){.ce .learn article.in{animation:ce-in .22s ease}}
+@keyframes ce-in{from{opacity:0;transform:translateX(var(--from,16px))}to{opacity:1;transform:none}}
+.ce .learn-step{display:flex;gap:8px;justify-content:space-between;margin-top:12px}
+.ce .learn-step .ce-btn{max-width:48%;text-align:left}
+.ce .learn-step .nx{margin-left:auto;text-align:right}
+.ce .learn-step small{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
 .ce .learn-table{overflow-x:auto;margin:8px 0}
 .ce .learn-table table{border-collapse:collapse;font-size:14px;min-width:420px}
 .ce .learn-table th,.ce .learn-table td{border-bottom:1px solid var(--rule);padding:6px 10px 6px 0;text-align:left;vertical-align:top}
@@ -90,6 +112,7 @@
 .ce .learn-table td:first-child{font-family:var(--f-mono);white-space:nowrap}
 .ce .ce-panel{scroll-margin-top:calc(var(--header-h) + 12px)}
 .ce .learn-go{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px dashed var(--rule);margin-top:12px;padding-top:10px}
+.ce .learn-go:empty{display:none}
   </style>
 </head>
 <body>
@@ -118,20 +141,14 @@
 
 <section class="ce-panel" id="view-learn">
   <div class="learn">
-    <div class="note"><b>How to use this deck.</b> Read one section below, then press its <i>Flashcards</i> button and go through those cards until most are learned. Then take a 10-question test on that section. When each section scores well, take full 20 or 40 question tests across everything. This guide explains the ideas; the cards and tests check them.</div>
+    <div class="note"><b>How to use this deck.</b> Read one section, then press its <i>Flashcards</i> button and go through those cards until most are learned. Then take a 10-question test on that section. When each section scores well, take full 20 or 40 question tests across everything. This guide explains the ideas; the cards and tests check them.</div>
 
-    <nav class="learn-toc" aria-label="Study guide contents">
-      <a href="#learn-def">1. The words</a>
-      <a href="#learn-sup">2. Who goes first</a>
-      <a href="#learn-to">3. Train orders</a>
-      <a href="#learn-yl">4. Yard limits</a>
-      <a href="#learn-twc">5. Track warrants</a>
-      <a href="#learn-sig">6. Signals and whistles</a>
-      <a href="#learn-sem">7. Semaphores</a>
-      <a href="#learn-gcor">8. Crew duties and speed</a>
+    <nav class="ce-line" aria-label="Study guide sections">
+      <ol id="learnLine"></ol>
+      <p class="ce-line-cap" id="learnCap" aria-live="polite"></p>
     </nav>
 
-    <article>
+    <article id="learn-intro" data-short="Overview">
       <h3>The big picture</h3>
       <p>Every train on a main track needs <b>authority</b> to be there. The exam covers the ways railroads have given that authority:</p>
       <ul>
@@ -140,9 +157,10 @@
         <li><b>Signals</b>: block signals, interlockings and CTC, where the signal itself gives the authority.</li>
       </ul>
       <p>On top of these sit general rules that apply everywhere: hand and whistle signals, flag protection, restricted speed and yard limits.</p>
+      <div class="learn-go"></div>
     </article>
 
-    <article id="learn-def" data-sec="def">
+    <article id="learn-def" data-sec="def" data-short="The words">
       <h3>1. The words</h3>
       <p>Most TT&amp;TO questions turn on a definition, so learn these exactly.</p>
       <ul>
@@ -157,7 +175,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-sup" data-sec="sup">
+    <article id="learn-sup" data-sec="sup" data-short="Who goes first">
       <h3>2. Who goes first</h3>
       <p>Under TT&amp;TO there is no dispatcher watching each move. Crews work it out themselves from <b>superiority</b>, which comes in three kinds:</p>
       <ul>
@@ -182,7 +200,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-to" data-sec="to">
+    <article id="learn-to" data-sec="to" data-short="Train orders">
       <h3>3. Train orders</h3>
       <p>A train order is how the dispatcher changes the timetable: creating extras, setting meets, giving right, making trains late. An order stays in force until it is <b>fulfilled, superseded or annulled</b>.</p>
       <h4>Getting an order to a crew</h4>
@@ -214,7 +232,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-yl" data-sec="yl">
+    <article id="learn-yl" data-sec="yl" data-short="Yard limits">
       <h3>4. Yard limits</h3>
       <p>Yard limits are a stretch of <b>main track</b>, set by mileposts in the timetable and marked by signs, where engines can switch and shuffle without asking the dispatcher each time. Inside them, trains and engines don't protect against each other, so <b>everyone moves slowly</b> enough to stop for whatever is ahead.</p>
       <ul>
@@ -225,7 +243,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-twc" data-sec="twc">
+    <article id="learn-twc" data-sec="twc" data-short="Track warrants">
       <h3>5. Track warrants</h3>
       <p>A track warrant is a fill-in form the dispatcher reads over the radio. It is the modern replacement for train orders on lines without signals.</p>
       <h4>The exchange</h4>
@@ -251,7 +269,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-sig" data-sec="sig">
+    <article id="learn-sig" data-sec="sig" data-short="Signals">
       <h3>6. Signals and whistles</h3>
       <h4>Reading a signal</h4>
       <p>The <b>aspect</b> is what you see; the <b>indication</b> is what it tells you to do; the <b>name</b> is the railroad's label for it. Under <b>route signaling</b> (most model railroads) the signal tells you which way you're lined and how clear the blocks ahead are; speeds come from the timetable. Under <b>speed signaling</b> the signal tells you how fast to go.</p>
@@ -283,7 +301,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-sem" data-sec="sem">
+    <article id="learn-sem" data-sec="sem" data-short="Semaphores">
       <h3>7. Semaphores</h3>
       <p>A semaphore shows its aspect by the <b>angle of a blade</b> by day and colored lights at night. Horizontal is always <b>stop</b>; treat it as a closed gate.</p>
       <ul>
@@ -296,7 +314,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-gcor" data-sec="gcor">
+    <article id="learn-gcor" data-sec="gcor" data-short="Crew & speed">
       <h3>8. Crew duties and speed</h3>
       <ul>
         <li><b>Conductor</b>: in charge of the train and its paperwork. The crew follows the conductor unless that would be unsafe or against the rules. When two crews combine, the senior conductor takes charge. The conductor warns the engineer of restrictions and authority limits ahead, at least two miles before.</li>
@@ -826,7 +844,7 @@ document.addEventListener("keydown",e=>{
 });
 
 /* study guide: practice buttons per section. They focus one section for this run only and leave the saved choices alone. */
-document.querySelectorAll("#view-learn [data-sec]").forEach(a=>{
+document.querySelectorAll("#view-learn article[data-sec]").forEach(a=>{
   const k=a.dataset.sec,go=a.querySelector(".learn-go");if(!go)return;
   go.innerHTML=`<span class="label">Practice ${esc(SECTIONS[k])}</span><button class="ce-btn" data-go="cards">Flashcards</button><button class="ce-btn" data-go="quiz">10-question test</button>`;
   go.querySelector('[data-go="cards"]').onclick=()=>{cardSel.clear();cardSel.add(k);deal();show("cards");document.getElementById("view-cards").scrollIntoView()};
@@ -834,8 +852,46 @@ document.querySelectorAll("#view-learn [data-sec]").forEach(a=>{
     if(test&&!document.getElementById("quizRun").hidden&&test.items.some(x=>x.pick!==null))finish(); // keep a running test's answers
     show("quiz");startTest(shuffle(QS.filter(q=>q.s===k)).slice(0,10),true);document.getElementById("view-quiz").scrollIntoView()};
 });
+/* study guide frames: one section shows at a time; the line of stops, Prev/Next, arrow keys and swipes move between them */
+const frames=[...document.querySelectorAll("#view-learn .learn article")];
+const line=document.getElementById("learnLine"),cap=document.getElementById("learnCap");
+let frame=-1;
+line.style.setProperty("--n",frames.length);
+line.innerHTML='<span class="fill" aria-hidden="true"></span>'+frames.map((a,i)=>`<li><button type="button" data-i="${i}" aria-label="${i?"Section "+i+": ":""}${esc(a.querySelector("h3").textContent.replace(/^\d+\.\s*/,""))}"><span class="dot">${i||"&#9679;"}</span><span class="name">${esc(a.dataset.short)}</span></button></li>`).join("");
+line.querySelectorAll("button").forEach(b=>b.onclick=()=>goFrame(+b.dataset.i));
+frames.forEach((a,i)=>{
+  const nav=document.createElement("div");nav.className="learn-step";
+  const p=frames[i-1],n=frames[i+1];
+  nav.innerHTML=(p?`<button type="button" class="ce-btn pv"><small>&larr; Back</small>${esc(p.dataset.short)}</button>`:"")+(n?`<button type="button" class="ce-btn nx primary"><small>Next &rarr;</small>${esc(n.dataset.short)}</button>`:"");
+  a.appendChild(nav);
+  if(p)nav.querySelector(".pv").onclick=()=>goFrame(i-1,true);
+  if(n)nav.querySelector(".nx").onclick=()=>goFrame(i+1,true);
+});
+function goFrame(i,fromBottom){
+  i=Math.max(0,Math.min(frames.length-1,i));
+  const dir=i<frame?-1:1;
+  frames.forEach((a,k)=>{a.hidden=k!==i;a.classList.remove("in")});
+  const a=frames[i];a.style.setProperty("--from",(dir*16)+"px");void a.offsetWidth;if(frame>=0&&frame!==i)a.classList.add("in");
+  const first=frame<0;frame=i;
+  line.querySelectorAll("button").forEach((b,k)=>{if(k===i)b.setAttribute("aria-current","step");else b.removeAttribute("aria-current");b.parentNode.classList.toggle("past",k<i)});
+  line.querySelector(".fill").style.width=`calc(${i} * (100% / ${frames.length}))`;
+  cap.textContent=i?`Section ${i} of ${frames.length-1}: ${a.dataset.short}`:"Overview";
+  store.set("ce-learn",a.id);
+  if(!first&&view==="learn"&&location.hash.slice(1)!==a.id)history.replaceState(null,"","#"+a.id);
+  if(fromBottom){const nav=line.parentNode;if(nav.getBoundingClientRect().top<0)nav.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"})}
+}
+document.addEventListener("keydown",e=>{
+  if(view!=="learn"||e.metaKey||e.ctrlKey||e.altKey||e.shiftKey||e.target.closest("input,textarea,select,.learn-table"))return;
+  if(e.key==="ArrowRight"){e.preventDefault();goFrame(frame+1)}else if(e.key==="ArrowLeft"){e.preventDefault();goFrame(frame-1)}
+});
+let tx=null,ty=0;
+const learnEl=document.querySelector("#view-learn .learn");
+learnEl.addEventListener("touchstart",e=>{tx=e.target.closest(".learn-table")||e.touches.length>1?null:e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+learnEl.addEventListener("touchend",e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;
+  if(Math.abs(dx)>70&&Math.abs(dx)>2*Math.abs(dy))goFrame(frame+(dx<0?1:-1),true)},{passive:true});
 /* open on the study guide, or on the tab or guide section named in the link */
-function fromHash(){const h=location.hash.slice(1);if(views[h])show(h);else if(h.startsWith("learn-")&&document.getElementById(h)){show("learn");document.getElementById(h).scrollIntoView()}}
+function fromHash(){const h=location.hash.slice(1);if(views[h])show(h);else if(h.startsWith("learn-")&&document.getElementById(h)){show("learn");const i=frames.findIndex(a=>a.id===h);if(i>=0)goFrame(i)}}
+{const last=frames.findIndex(a=>a.id===store.get("ce-learn",""));goFrame(last>=0?last:0)}
 window.addEventListener("hashchange",fromHash);
 show("learn");renderSetup();deal();fromHash();
 })();
