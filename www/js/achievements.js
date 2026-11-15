@@ -44,6 +44,12 @@
     return { status: statusOf(n, total), text: text === "\u2014" ? "" : text, pct: barPct(text, n, total) };
   }
 
+  function setMark(mark, status) {
+    if (!mark || !status) return;
+    mark.className = "ap-mark " + status;
+    mark.textContent = LABELS[status];
+  }
+
   /* Dashboard cards copy each checklist's score, bar and mark; the summary counts Done and Ready cards. */
   function fillDashboard() {
     var earned = 0, ready = 0;
@@ -55,13 +61,13 @@
       if (bar) bar.style.width = p.pct + "%";
       card.classList.toggle("is-done", p.status === "done");
       card.classList.toggle("is-ready", p.status === "ready");
-      var mark = card.querySelector(".ap-mark");
-      if (mark && p.status) {
-        mark.className = "ap-mark " + p.status;
-        mark.textContent = LABELS[p.status];
-      }
+      setMark(card.querySelector(".ap-mark"), p.status);
       if (p.status === "done") earned++;
       if (p.status === "ready") ready++;
+    });
+    /* The "path to seven" table reads the same checklists, so it cannot disagree with the cards. */
+    document.querySelectorAll("[data-ap-path]").forEach(function (mark) {
+      setMark(mark, certProgress(document.getElementById(mark.getAttribute("data-ap-path"))).status);
     });
     var count = document.querySelector("[data-ap-earned]");
     if (count) count.textContent = earned;
