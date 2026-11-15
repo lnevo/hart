@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import csv
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -22,6 +21,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables  # noqa: E402
+from hartlib.cats import mast_templates, station_plate  # noqa: E402,F401  (shared with build_cats_panel.py)
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -52,33 +52,10 @@ ABS = paths.CATS_DIR / "panels/HART_ABS.xml"
 # Y=12 Track Main East under the south-yard ladders.
 # SHARED: (1,6) LEFT ↔ (1,8) LEFT Track Main West; (63,5) RIGHT ↔ (63,8) RIGHT Track K-2 (the K loop, not drawn).
 #
-# Order: the USS CTC draws a points dot on each switch's first OS cell in this
-# order, so a reorder moves those lines in GUIObjects.xml (no other effect).
-PLANT_CELLS: dict[tuple[int, int], str] = {
-    (4, 8): "OS Switch 1",  # Brick
-    (5, 9): "OS Switch 3",
-    (9, 8): "OS Switch 5",
-    (15, 7): "OS Switch 7",
-    (15, 8): "OS Switch 7b",
-    (24, 8): "OS Switch 9",
-    (26, 8): "OS Switch 11",
-    (27, 7): "OS Switch 13",  # thrown BOTTOM is a stub; does not join Switch 11
-    (30, 7): "OS Switch 15",  # thrown BOTTOM geographic into the Switch 17 approach
-    (31, 8): "OS Switch 17",
-    (32, 9): "OS Switch 19",
-    (33, 10): "OS Switch 21",
-    (39, 10): "OS Switch 25",
-    (40, 9): "OS Switch 27",
-    (41, 8): "OS Switch 29",
-    (40, 6): "OS Switch 23a",  # Track Main West
-    (40, 7): "OS Switch 23b",  # Track S-R
-    (42, 7): "OS Switch 31",
-    (44, 7): "OS Switch 33",
-    (52, 6): "OS Switch 35b",  # Track West Ext
-    (52, 7): "OS Switch 35a",  # Track East Lead
-    (55, 6): "OS Switch 39",
-    (55, 7): "OS Switch 37",
-}
+# The cells are rows of jmri/layouts/hart/data/uss_board_plants.csv (frozen 2026-11-15; the USS CTC board's grid is
+# this desk's). Order: the USS CTC draws a points dot on each switch's first OS cell in the file's row order, so a
+# reorder moves those lines in GUIObjects.xml (no other effect).
+PLANT_CELLS: dict[tuple[int, int], str] = facts.load_uss_plants()
 
 SWITCHES = facts.load_switches()
 LEGS_BY_OS = facts.legs_by_os(SWITCHES)
@@ -244,11 +221,6 @@ SHARED_LINKS: list[tuple[tuple[int, int, str], tuple[int, int, str]]] = [
 TRACK_ENDS = le.TRACK_ENDS
 
 _SWITCH_OS_RE = re.compile(r"^(?:OS Switch |(?:OS|Track) )\d")
-
-def station_plate(name: str) -> str:
-    """Desk plate for a block: `OS Switch 39` -> 39, `Track West Ext` -> West."""
-    return name.removeprefix("OS Switch ").removeprefix("Track ").split()[0]
-
 
 def callout_text(name: str) -> str:
     """Desk callout for a track: `Track S-1` -> S-1. The JMRI block keeps its `Track` prefix."""
@@ -440,16 +412,6 @@ def name_signals(tp: ET.Element) -> int:
             pan.set("SIGORIENT", loc[1])
         n += 1
     return n
-
-
-def mast_templates() -> dict[str, str]:
-    """CATS signal template per mast userName, from signal_head_plan.csv."""
-    path = paths.SIGNAL_HEAD_PLAN
-    with path.open(newline="") as f:
-        return {
-            row["mast_user_name"].strip(): row["physignal"].strip()
-            for row in csv.DictReader(f)
-        }
 
 
 def align_physignal_to_heads(tp: ET.Element) -> int:

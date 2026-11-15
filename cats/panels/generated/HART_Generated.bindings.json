@@ -1,6 +1,454 @@
 {
- "_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit.",
+ "_main_upper_not_on_desk": {
+  "Track 101-103": {
+   "why": "a short link (3.4 cm) inside its switches' OS blocks"
+  },
+  "Track 105-109": {
+   "why": "a short link (21.5 cm) inside its switches' OS blocks"
+  },
+  "Track 107-109": {
+   "detector": "BS 107-109",
+   "why": "inside its switches' OS blocks on the desk (99.9 cm, too short at one cell per grid unit for a block)"
+  },
+  "Track 109-111": {
+   "why": "a short link (24.2 cm) inside its switches' OS blocks"
+  },
+  "Track 115-117": {
+   "why": "a short link (24.2 cm) inside its switches' OS blocks"
+  },
+  "Track 117-119": {
+   "why": "a short link (11.1 cm) inside its switches' OS blocks"
+  },
+  "Track 121-123": {
+   "why": "a short link (10.7 cm) inside its switches' OS blocks"
+  },
+  "Track 123-125": {
+   "why": "a short link (25.2 cm) inside its switches' OS blocks"
+  },
+  "Track 125-127": {
+   "why": "a short link (10.5 cm) inside its switches' OS blocks"
+  },
+  "Track 127-129": {
+   "detector": "BS 127-129",
+   "why": "inside its switches' OS blocks on the desk (86.9 cm, too short at one cell per grid unit for a block)"
+  },
+  "Track 129-135 2": {
+   "why": "a short link (11.7 cm) inside its switches' OS blocks"
+  },
+  "Track 131-133": {
+   "why": "a short link (10.5 cm) inside its switches' OS blocks"
+  },
+  "Track 135-H1": {
+   "detector": "BS 135-H1",
+   "why": "one block with staging's McKees Rocks on the desk (joined through the helix)"
+  },
+  "Track 135-H2": {
+   "detector": "BS 135-H2",
+   "why": "one block with staging's McKeesport on the desk (joined through the helix)"
+  },
+  "Track 201-203": {
+   "why": "a short link (11.7 cm) inside its switches' OS blocks"
+  },
+  "Track 201-205": {
+   "why": "a short link (22.7 cm) inside its switches' OS blocks"
+  },
+  "Track 201-219": {
+   "why": "a short link (23.1 cm) inside its switches' OS blocks"
+  },
+  "Track 203-209": {
+   "why": "inside its switches' OS blocks on the desk (145 cm, too short at one cell per grid unit for a block)"
+  },
+  "Track 219-221": {
+   "why": "a short link (11.7 cm) inside its switches' OS blocks"
+  },
+  "Track 225-227": {
+   "why": "a short link (17.8 cm) inside its switches' OS blocks"
+  },
+  "Track 227-233": {
+   "why": "a short link (20.6 cm) inside its switches' OS blocks"
+  },
+  "Track 231-235": {
+   "why": "inside its switches' OS blocks on the desk (75.9 cm, too short at one cell per grid unit for a block)"
+  },
+  "Track 233-237": {
+   "why": "inside its switches' OS blocks on the desk (39.6 cm, too short at one cell per grid unit for a block)"
+  },
+  "Track 235-241": {
+   "why": "a short link (10.5 cm) inside its switches' OS blocks"
+  },
+  "Track 237-243": {
+   "why": "a short link (15.2 cm) inside its switches' OS blocks"
+  }
+ },
+ "_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and upper blocks carry their planned detectors as _planned_occupied / _planned_unoccupied until DETECT_MAIN_UPPER is set.",
  "blocks": {
+  "101B-111": {
+   "discipline": "DTC",
+   "name": "Track 101-111",
+   "station": "101-111"
+  },
+  "103A-105": {
+   "discipline": "DTC",
+   "name": "Track 103-105 2",
+   "station": "103-105"
+  },
+  "103B-105": {
+   "discipline": "DTC",
+   "name": "Track 103-105 1",
+   "station": "103-105"
+  },
+  "111-117": {
+   "discipline": "DTC",
+   "name": "Track 111-117",
+   "station": "111-117"
+  },
+  "113-115": {
+   "discipline": "DTC",
+   "name": "Track 113-115",
+   "station": "113-115"
+  },
+  "119A-125": {
+   "_planned_occupied": {
+    "DECADDR": "3307",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 119-125",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "3307",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 119-125",
+   "station": "119-125"
+  },
+  "119B-123": {
+   "discipline": "DTC",
+   "name": "Track 119-123",
+   "station": "119-123"
+  },
+  "121-131": {
+   "discipline": "DTC",
+   "name": "Track 121-131",
+   "station": "121-131"
+  },
+  "127-131": {
+   "discipline": "DTC",
+   "name": "Track 127-131",
+   "station": "127-131"
+  },
+  "129A-135A": {
+   "_planned_occupied": {
+    "DECADDR": "4205",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 129-135 1",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4205",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 129-135 1",
+   "station": "129-135"
+  },
+  "129A-link B": {
+   "_planned_occupied": {
+    "DECADDR": "4202",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 129",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4202",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 129",
+   "station": "129"
+  },
+  "133-end": {
+   "discipline": "DTC",
+   "name": "Track 133 Spur 1",
+   "station": "133"
+  },
+  "133-end 2": {
+   "discipline": "DTC",
+   "name": "Track 133 Spur 2",
+   "station": "133"
+  },
+  "203-213B": {
+   "_planned_occupied": {
+    "DECADDR": "2305",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 203-213",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2305",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 203-213",
+   "station": "203-213"
+  },
+  "205-207": {
+   "discipline": "DTC",
+   "name": "Track 205-207",
+   "station": "205-207"
+  },
+  "205-end": {
+   "discipline": "DTC",
+   "name": "Track 205 Spur",
+   "station": "205"
+  },
+  "207-end": {
+   "discipline": "DTC",
+   "name": "Track 207 Spur 2",
+   "station": "207"
+  },
+  "207-end 2": {
+   "discipline": "DTC",
+   "name": "Track 207 Spur 1",
+   "station": "207"
+  },
+  "209-211": {
+   "discipline": "DTC",
+   "name": "Track 209-211",
+   "station": "209-211"
+  },
+  "209-213A": {
+   "discipline": "DTC",
+   "name": "Track 209-213",
+   "station": "209-213"
+  },
+  "211-215": {
+   "discipline": "DTC",
+   "name": "Track 211-215",
+   "station": "211-215"
+  },
+  "211-end": {
+   "discipline": "DTC",
+   "name": "Track 211 Spur",
+   "station": "211"
+  },
+  "213A-217B": {
+   "discipline": "DTC",
+   "name": "Track 213-217 1",
+   "station": "213-217"
+  },
+  "213B-217A": {
+   "_planned_occupied": {
+    "DECADDR": "2402",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 213-217 2",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2402",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 213-217 2",
+   "station": "213-217"
+  },
+  "215-end": {
+   "discipline": "DTC",
+   "name": "Track 215 Spur 2",
+   "station": "215"
+  },
+  "215-end 2": {
+   "discipline": "DTC",
+   "name": "Track 215 Spur 1",
+   "station": "215"
+  },
+  "217A-221B": {
+   "_planned_occupied": {
+    "DECADDR": "2403",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 217-221",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2403",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 217-221",
+   "station": "217-221"
+  },
+  "217B-219": {
+   "discipline": "DTC",
+   "name": "Track 217-219",
+   "station": "217-219"
+  },
+  "221A-223*": {
+   "_planned_occupied": {
+    "DECADDR": "2306",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 221-223",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2306",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 221-223",
+   "station": "221-223"
+  },
+  "221B-129B": {
+   "_planned_occupied": {
+    "DECADDR": "2304",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 129-221",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2304",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 129-221",
+   "station": "129-221"
+  },
+  "223*-225": {
+   "_planned_occupied": {
+    "DECADDR": "2202",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 223-225 1",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2202",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 223-225 1",
+   "station": "223-225"
+  },
+  "223*-225 2": {
+   "_planned_occupied": {
+    "DECADDR": "2203",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 223-225 2",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2203",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 223-225 2",
+   "station": "223-225"
+  },
+  "225-229": {
+   "discipline": "DTC",
+   "name": "Track 225-229",
+   "station": "225-229"
+  },
+  "229-231": {
+   "discipline": "DTC",
+   "name": "Track 229-231",
+   "station": "229-231"
+  },
+  "229-239": {
+   "_planned_occupied": {
+    "DECADDR": "2104",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 229-239",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2104",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 229-239",
+   "station": "229-239"
+  },
+  "231-241B": {
+   "discipline": "DTC",
+   "name": "Track 231-241",
+   "station": "231-241"
+  },
+  "233-end": {
+   "discipline": "DTC",
+   "name": "Track 233 Spur",
+   "station": "233"
+  },
+  "235-end": {
+   "discipline": "DTC",
+   "name": "Track 235 Spur",
+   "station": "235"
+  },
+  "237-245B": {
+   "discipline": "DTC",
+   "name": "Track 237-245",
+   "station": "237-245"
+  },
+  "239-end": {
+   "_planned_occupied": {
+    "DECADDR": "2103",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 227-239",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2103",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 227-239",
+   "station": "227-239"
+  },
+  "239-end 2": {
+   "discipline": "DTC",
+   "name": "Track 239 Spur",
+   "station": "239"
+  },
+  "241A-end": {
+   "discipline": "DTC",
+   "name": "Track 241 Spur 2",
+   "station": "241"
+  },
+  "241B-end": {
+   "discipline": "DTC",
+   "name": "Track 241 Spur 1",
+   "station": "241"
+  },
+  "243-245A": {
+   "discipline": "DTC",
+   "name": "Track 243-245",
+   "station": "243-245"
+  },
+  "243-end": {
+   "discipline": "DTC",
+   "name": "Track 243 Spur",
+   "station": "243"
+  },
+  "245A-end": {
+   "discipline": "DTC",
+   "name": "Track 245 Spur 2",
+   "station": "245"
+  },
+  "245B-end": {
+   "discipline": "DTC",
+   "name": "Track 245 Spur 1",
+   "station": "245"
+  },
   "35-37": {
    "name": "OS Switch 35a"
   },
@@ -211,6 +659,531 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    }
+  },
+  "OS 101A-103A": {
+   "discipline": "DTC",
+   "name": "OS Switch 101",
+   "station": "101"
+  },
+  "OS 101B": {
+   "discipline": "DTC",
+   "name": "OS Switch 101",
+   "station": "101"
+  },
+  "OS 103B": {
+   "discipline": "DTC",
+   "name": "OS Switch 103",
+   "station": "103"
+  },
+  "OS 105": {
+   "discipline": "DTC",
+   "name": "OS Switch 105",
+   "station": "105"
+  },
+  "OS 107": {
+   "_planned_occupied": {
+    "DECADDR": "3300",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 107",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "3300",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 107",
+   "station": "107"
+  },
+  "OS 109": {
+   "_planned_occupied": {
+    "DECADDR": "3301",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 109",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "3301",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 109",
+   "station": "109"
+  },
+  "OS 111": {
+   "_planned_occupied": {
+    "DECADDR": "3302",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 111",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "3302",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 111",
+   "station": "111"
+  },
+  "OS 113": {
+   "discipline": "DTC",
+   "name": "OS Switch 113",
+   "station": "113"
+  },
+  "OS 115": {
+   "discipline": "DTC",
+   "name": "OS Switch 115",
+   "station": "115"
+  },
+  "OS 117": {
+   "_planned_occupied": {
+    "DECADDR": "3303",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 117",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "3303",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 117",
+   "station": "117"
+  },
+  "OS 119A": {
+   "_planned_occupied": {
+    "DECADDR": "3304",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 119",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "3304",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 119",
+   "station": "119"
+  },
+  "OS 119B": {
+   "_planned_occupied": {
+    "DECADDR": "3304",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 119",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "3304",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 119",
+   "station": "119"
+  },
+  "OS 121": {
+   "discipline": "DTC",
+   "name": "OS Switch 121",
+   "station": "121"
+  },
+  "OS 123": {
+   "discipline": "DTC",
+   "name": "OS Switch 123",
+   "station": "123"
+  },
+  "OS 125": {
+   "_planned_occupied": {
+    "DECADDR": "4200",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 125",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4200",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 125",
+   "station": "125"
+  },
+  "OS 127": {
+   "_planned_occupied": {
+    "DECADDR": "4201",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 127",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4201",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 127",
+   "station": "127"
+  },
+  "OS 129A": {
+   "_planned_occupied": {
+    "DECADDR": "4202",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 129",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4202",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 129",
+   "station": "129"
+  },
+  "OS 129B": {
+   "_planned_occupied": {
+    "DECADDR": "4202",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 129",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4202",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 129",
+   "station": "129"
+  },
+  "OS 131": {
+   "discipline": "DTC",
+   "name": "OS Switch 131",
+   "station": "131"
+  },
+  "OS 133": {
+   "discipline": "DTC",
+   "name": "OS Switch 133",
+   "station": "133"
+  },
+  "OS 135A": {
+   "_planned_occupied": {
+    "DECADDR": "4203",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 135",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4203",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 135",
+   "station": "135"
+  },
+  "OS 135B": {
+   "_planned_occupied": {
+    "DECADDR": "4203",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 135",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4203",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 135",
+   "station": "135"
+  },
+  "OS 201": {
+   "_planned_occupied": {
+    "DECADDR": "2300",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 201",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2300",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 201",
+   "station": "201"
+  },
+  "OS 203": {
+   "_planned_occupied": {
+    "DECADDR": "2301",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 203",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2301",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 203",
+   "station": "203"
+  },
+  "OS 205": {
+   "discipline": "DTC",
+   "name": "OS Switch 205",
+   "station": "205"
+  },
+  "OS 207": {
+   "discipline": "DTC",
+   "name": "OS Switch 207",
+   "station": "207"
+  },
+  "OS 209": {
+   "discipline": "DTC",
+   "name": "OS Switch 209",
+   "station": "209"
+  },
+  "OS 211": {
+   "discipline": "DTC",
+   "name": "OS Switch 211",
+   "station": "211"
+  },
+  "OS 213A": {
+   "_planned_occupied": {
+    "DECADDR": "2400",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 213",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2400",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 213",
+   "station": "213"
+  },
+  "OS 213B": {
+   "_planned_occupied": {
+    "DECADDR": "2400",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 213",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2400",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 213",
+   "station": "213"
+  },
+  "OS 215": {
+   "discipline": "DTC",
+   "name": "OS Switch 215",
+   "station": "215"
+  },
+  "OS 217A": {
+   "_planned_occupied": {
+    "DECADDR": "2401",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 217",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2401",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 217",
+   "station": "217"
+  },
+  "OS 217B": {
+   "_planned_occupied": {
+    "DECADDR": "2401",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 217",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2401",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 217",
+   "station": "217"
+  },
+  "OS 219": {
+   "_planned_occupied": {
+    "DECADDR": "2302",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 219",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2302",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 219",
+   "station": "219"
+  },
+  "OS 221A": {
+   "_planned_occupied": {
+    "DECADDR": "2303",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 221",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2303",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 221",
+   "station": "221"
+  },
+  "OS 221B": {
+   "_planned_occupied": {
+    "DECADDR": "2303",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 221",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2303",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 221",
+   "station": "221"
+  },
+  "OS 223*": {
+   "_planned_occupied": {
+    "DECADDR": "2200",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 223",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2200",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 223",
+   "station": "223"
+  },
+  "OS 225": {
+   "_planned_occupied": {
+    "DECADDR": "2100",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 225",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2100",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 225",
+   "station": "225"
+  },
+  "OS 227": {
+   "_planned_occupied": {
+    "DECADDR": "2101",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 227",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2101",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 227",
+   "station": "227"
+  },
+  "OS 229": {
+   "_planned_occupied": {
+    "DECADDR": "2102",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 229",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2102",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 229",
+   "station": "229"
+  },
+  "OS 231": {
+   "discipline": "DTC",
+   "name": "OS Switch 231",
+   "station": "231"
+  },
+  "OS 233": {
+   "discipline": "DTC",
+   "name": "OS Switch 233",
+   "station": "233"
+  },
+  "OS 235": {
+   "discipline": "DTC",
+   "name": "OS Switch 235",
+   "station": "235"
+  },
+  "OS 237": {
+   "discipline": "DTC",
+   "name": "OS Switch 237",
+   "station": "237"
+  },
+  "OS 239": {
+   "discipline": "DTC",
+   "name": "OS Switch 239",
+   "station": "239"
+  },
+  "OS 241A": {
+   "discipline": "DTC",
+   "name": "OS Switch 241",
+   "station": "241"
+  },
+  "OS 241B": {
+   "discipline": "DTC",
+   "name": "OS Switch 241",
+   "station": "241"
+  },
+  "OS 243": {
+   "discipline": "DTC",
+   "name": "OS Switch 243",
+   "station": "243"
+  },
+  "OS 245A": {
+   "discipline": "DTC",
+   "name": "OS Switch 245",
+   "station": "245"
+  },
+  "OS 245B": {
+   "discipline": "DTC",
+   "name": "OS Switch 245",
+   "station": "245"
   },
   "OS Switch 1": {
    "discipline": "CTC",
@@ -700,6 +1673,78 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    }
+  },
+  "end-101A": {
+   "discipline": "DTC",
+   "name": "Track 101 Spur 1",
+   "station": "101"
+  },
+  "end-101B": {
+   "discipline": "DTC",
+   "name": "Track 101 Spur 2",
+   "station": "101"
+  },
+  "end-103B": {
+   "discipline": "DTC",
+   "name": "Track 103 Spur",
+   "station": "103"
+  },
+  "end-107": {
+   "_planned_occupied": {
+    "DECADDR": "3305",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 107 Loop",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "3305",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 107 Loop",
+   "station": "107"
+  },
+  "end-113": {
+   "discipline": "DTC",
+   "name": "Track 113 Spur 1",
+   "station": "113"
+  },
+  "end-113 2": {
+   "discipline": "DTC",
+   "name": "Track 113 Spur 2",
+   "station": "113"
+  },
+  "end-115": {
+   "discipline": "DTC",
+   "name": "Track 115 Spur",
+   "station": "115"
+  },
+  "end-119B": {
+   "discipline": "DTC",
+   "name": "Track 119 Spur",
+   "station": "119"
+  },
+  "end-121": {
+   "discipline": "DTC",
+   "name": "Track 121 Spur",
+   "station": "121"
+  },
+  "link A-135A": {
+   "_planned_occupied": {
+    "DECADDR": "4203",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 135",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4203",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "OS Switch 135",
+   "station": "135"
   }
  },
  "masts": {
