@@ -42,8 +42,29 @@ class AiSpeakTest(unittest.TestCase):
         text = "<style>\n.robust{}\n</style>\nThe terms are often confused.\n"
         self.assertEqual([n for n, _, _ in cas.find(text)], [4])
 
-    def test_exam_page_is_clean(self):
-        self.assertEqual(cas.find((ROOT / "www/exam/index.html").read_text(encoding="utf-8")), [])
+    def test_sees_through_tags_entities_curly_quotes_and_wraps(self):
+        for text in (
+            "The terms are often <i>confused</i>.",
+            "People <b>mix</b> the two up.",
+            "the exam won\u2019t",
+            "the exam won&rsquo;t",
+            "the terms are often\n        confused.",
+            'C("def","Meet","Picture a westbound extra at Dale.");',
+            "        Picture a westbound extra.",
+        ):
+            with self.subTest(text=text):
+                self.assertTrue(cas.find(text), text)
+
+    def test_railroad_words_pass(self):
+        for line in (
+            "Most branch lines ran mixed trains.",
+            "The test does not apply to extras.",
+        ):
+            with self.subTest(line=line):
+                self.assertEqual(cas.find(line), [])
+
+    def test_wrapped_hit_reports_its_first_line(self):
+        self.assertEqual([n for n, _, _ in cas.find("a\nThe terms are often\nconfused.")], [2])
 
 
 if __name__ == "__main__":

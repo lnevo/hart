@@ -13,21 +13,27 @@ clause); there is no suppression marker. Pass paths to check other files.
 from __future__ import annotations
 
 import argparse
+import html
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 DEFAULT_FILES = ("www/exam/index.html",)
 
-# (pattern, why it is flagged). Case-insensitive, matched per line.
+# (pattern, why it is flagged). Case-insensitive, matched on the text with tags removed,
+# entities decoded, curly apostrophes made straight and line breaks joined.
 PATTERNS: tuple[tuple[str, str], ...] = (
-    (r"\b(people|students|crews|readers|many|most)\b[^.;]{0,20}\b(mix|confuse|muddle)", "claim about readers' mistakes"),
+    (r"\b(people|students|crews|readers|many|most)\b[^.;]{0,20}\b(mix(es|ed)? (up|them|the)|confuse|muddle)", "claim about readers' mistakes"),
     (r"\b(often|commonly|easily|frequently) (confused|mixed up|misread|forgotten)", "claim about readers' mistakes"),
-    (r"\bthe (exam|test|quiz)\b[^.;]{0,25}\b(won't|will not|doesn't|does not|loves|likes|expects|wants)\b", "speaking for the exam"),
+    (r"\bthe (exam|quiz)\b[^.;]{0,25}\b(won't|will not|doesn't|does not|loves|likes|expects|wants)\b", "speaking for the exam"),
     (r"\b(questions?|answers?) (often |usually |mostly )?turns? on\b", "speaking for the exam"),
     (r"\bthink of (it|the|this|them)\b", "coaching aside"),
-    (r"(^|[.>]\s*)picture (this|a|an|eastbound|westbound|northbound|southbound)\b", "coaching aside"),
+    (r"(?<![\w-])picture (this|a|an|eastbound|westbound|northbound|southbound)\b", "coaching aside"),
     (r"\bso learn (these|this|them|which)\b", "coaching aside"),
     (r"\bthe (key|trick|catch|secret) (is|here)\b", "stock phrase"),
     (r"\bhere'?s (the|what|why|how)\b", "stock phrase"),
@@ -40,21 +46,41 @@ PATTERNS: tuple[tuple[str, str], ...] = (
 )
 COMPILED = tuple((re.compile(p, re.I), why) for p, why in PATTERNS)
 STYLE = re.compile(r"<style\b.*?</style>", re.I | re.S)
+TAG = re.compile(r"<[^>]*>")
+APOSTROPHES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u02bc": "'"})
 
 
-def strip_style(text: str) -> str:
-    """Blank CSS blocks but keep their newlines so line numbers still match."""
-    return STYLE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+def plain(text: str) -> tuple[str, list[int]]:
+    """Text to match (whitespace runs, including newlines, become one space) and the
+    source line of each of its characters. CSS and tags are dropped; entities decoded."""
+    text = STYLE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+    text = TAG.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+    out: list[str] = []
+    lines: list[int] = []
+    line = 1
+    for chunk in re.split(r"(\s+)", text):
+        if not chunk:
+            continue
+        if chunk.isspace():
+            if out and out[-1] != " ":
+                out.append(" ")
+                lines.append(line)
+            line += chunk.count("\n")
+            continue
+        for ch in html.unescape(chunk).translate(APOSTROPHES):
+            out.append(ch)
+            lines.append(line)
+    return "".join(out), lines
 
 
 def find(text: str) -> list[tuple[int, str, str]]:
-    """(line number, matched text, reason) for each hit."""
+    """(line number, matched text, reason) for each hit, in source order."""
+    flat, lines = plain(text)
     hits = []
-    for n, line in enumerate(strip_style(text).splitlines(), 1):
-        for rx, why in COMPILED:
-            for m in rx.finditer(line):
-                hits.append((n, m.group(0).strip(" .>"), why))
-    return hits
+    for rx, why in COMPILED:
+        for m in rx.finditer(flat):
+            hits.append((lines[m.start()], m.group(0).strip(" .>"), why))
+    return sorted(hits)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -63,6 +89,10 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     paths = [Path(p) for p in args.paths] or [ROOT / f for f in DEFAULT_FILES]
     bad = 0
+    missing = [p for p in paths if not p.is_file()]
+    if missing:
+        print("no such file: " + ", ".join(map(str, missing)))
+        return 2
     for path in paths:
         for n, hit, why in find(path.read_text(encoding="utf-8")):
             rel = path.resolve().relative_to(ROOT) if path.resolve().is_relative_to(ROOT) else path
