@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# The profile-tables guards, sourced by the deploy scripts and the PanelPro wrappers: the
-# unpulled-Store test (ADR-014 item 5) and the HART_TABLES refusal.
+# The profile guards, sourced by the deploy scripts, launch_cats.sh and the PanelPro wrappers: the
+# unpulled-Store test (ADR-014 item 5), the HART_TABLES refusal and the unrestored-profile refusal.
 #
 # profile_tables_unpulled SRC DIR succeeds when DIR/tables.xml changed since the last deploy
 # wrote DIR/.tables_deployed.sha256 (a PanelPro Store) and installing SRC would replace it.
@@ -18,6 +18,18 @@ profile_tables_unpulled() {
 refuse_hart_tables() {
   if [[ -n "${HART_TABLES:-}" ]]; then
     echo "HART_TABLES is set ($HART_TABLES): it is for checks only; unset it to $1" >&2
+    exit 1
+  fi
+}
+
+# refuse_unrestored_profile WHAT exits 1 while a PanelPro wrapper run's profile backup is left over
+# (the run was killed with SIGKILL, tools/hosts/panelpro_session.sh): the live profile.xml may still
+# hold that run's Start Up changes, so nothing should start JMRI on it or patch it until it is back.
+refuse_unrestored_profile() {
+  local profile="${HOME}/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml"
+  if [[ -e "$profile.hart-run.bak" || -e "$profile.hart-run.sha256" ]]; then
+    echo "STOP: $profile.hart-run.bak is left from a PanelPro wrapper run that did not finish; not going to $1." >&2
+    echo "Quit the PanelPro it left, then run: python3 $ROOT/tools/hosts/panelpro_profile.py restore --profile $profile" >&2
     exit 1
   fi
 }

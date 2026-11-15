@@ -369,7 +369,9 @@ def icon_element(
         "x": str(x),
         "y": str(y),
         "level": CLUSTER_LEVEL,
-        "forcecontroloff": "false",
+        # Only the MoveTo button takes a click. The occupancy and move-in-progress lamps show state: a click would
+        # set the block occupied or a move in progress (owner, 2026-11-15).
+        "forcecontroloff": "false" if kind == "move_to" else "true",
         "hidden": "no",
         "positionable": "true",
         "showtooltip": "true",
