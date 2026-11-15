@@ -75,6 +75,20 @@
 .ce .guides p,.ce .guides ul{margin:6px 0}
 .ce .guides ul{padding-left:20px}
 @media (prefers-reduced-motion:no-preference){.ce .flimsy{transition:transform .15s ease}.ce .flimsy.pulse{transform:translateY(-2px)}}
+.ce .learn{display:flex;flex-direction:column;gap:16px}
+.ce .learn article{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:14px 18px;scroll-margin-top:calc(var(--header-h) + 12px)}
+.ce .learn h3{font-family:var(--f-head);font-size:26px;font-weight:700;margin:0 0 6px;text-wrap:balance}
+.ce .learn h4{font-family:var(--f-head);font-size:19px;font-weight:600;margin:14px 0 2px;letter-spacing:.02em}
+.ce .learn p,.ce .learn li{font-size:16px;line-height:1.6;max-width:70ch}
+.ce .learn p{margin:6px 0}
+.ce .learn ul,.ce .learn ol{margin:6px 0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+.ce .learn-toc{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+.ce .learn-table{overflow-x:auto;margin:8px 0}
+.ce .learn-table table{border-collapse:collapse;font-size:14px;min-width:420px}
+.ce .learn-table th,.ce .learn-table td{border-bottom:1px solid var(--rule);padding:6px 10px 6px 0;text-align:left;vertical-align:top}
+.ce .learn-table th{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.ce .learn-table td:first-child{font-family:var(--f-mono);white-space:nowrap}
+.ce .learn-go{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px dashed var(--rule);margin-top:12px;padding-top:10px}
   </style>
 </head>
 <body>
@@ -84,7 +98,7 @@
       <nav class="crumb" aria-label="Breadcrumb"><ol><li><a href="../ap/opsig.html#ce">OPSIG Achievement Program</a></li></ol></nav>
       <h1>C&amp;E Exam Study Deck</h1>
       <p class="section-note">
-        Flashcards and practice questions for the OPSIG Conductor &amp; Engineer exam, drawn from
+        A study guide, flashcards and practice questions for the OPSIG Conductor &amp; Engineer exam, drawn from
         the seven OPSIG study guides: the 1949 Standard Code, the GCOR, timetable and train orders,
         yard limits, track warrants, signals and semaphores. The Standard Code rules OPSIG prints in
         red, the ones it marks as likely exam material, get the most cards. Progress is kept in your
@@ -95,12 +109,209 @@
 
   <div class="ce">
 <nav class="tabs" role="tablist">
-  <button role="tab" id="tab-cards" aria-selected="true" data-view="cards">Flashcards</button>
+  <button role="tab" id="tab-learn" aria-selected="true" data-view="learn">Study guide</button>
+  <button role="tab" id="tab-cards" aria-selected="false" data-view="cards">Flashcards</button>
   <button role="tab" id="tab-quiz" aria-selected="false" data-view="quiz">Practice test</button>
   <button role="tab" id="tab-notes" aria-selected="false" data-view="notes">Guide notes</button>
 </nav>
 
-<section class="ce-panel" id="view-cards">
+<section class="ce-panel" id="view-learn">
+  <div class="learn">
+    <div class="note"><b>How to use this deck.</b> Read one section below, then press its <i>Flashcards</i> button and go through those cards until most are learned. Then take a 10-question test on that section. When each section scores well, take full 20 or 40 question tests across everything. This guide explains the ideas; the cards and tests check them.</div>
+
+    <nav class="learn-toc" aria-label="Study guide contents">
+      <a href="#learn-def">1. The words</a>
+      <a href="#learn-sup">2. Who goes first</a>
+      <a href="#learn-to">3. Train orders</a>
+      <a href="#learn-yl">4. Yard limits</a>
+      <a href="#learn-twc">5. Track warrants</a>
+      <a href="#learn-sig">6. Signals and whistles</a>
+      <a href="#learn-sem">7. Semaphores</a>
+      <a href="#learn-gcor">8. Crew duties and speed</a>
+    </nav>
+
+    <article>
+      <h3>The big picture</h3>
+      <p>Every train on a main track needs <b>authority</b> to be there. The exam covers the ways railroads have given that authority:</p>
+      <ul>
+        <li><b>Timetable and train orders (TT&amp;TO)</b>, from the mid-1800s into the 1980s. The timetable authorizes scheduled trains; the dispatcher changes things with written train orders delivered by operators. The exam's rulebook for this is the <b>1949 Standard Code</b>.</li>
+        <li><b>Track warrants (TWC)</b> and <b>Direct Traffic Control (DTC)</b>: the dispatcher gives authority directly by radio, with no operators. The rulebook is the <b>GCOR</b>.</li>
+        <li><b>Signals</b>: block signals, interlockings and CTC, where the signal itself gives the authority.</li>
+      </ul>
+      <p>On top of these sit general rules that apply everywhere: hand and whistle signals, flag protection, restricted speed and yard limits.</p>
+    </article>
+
+    <article id="learn-def" data-sec="def">
+      <h3>1. The words</h3>
+      <p>Most TT&amp;TO questions turn on a definition, so learn these exactly.</p>
+      <ul>
+        <li>A <b>regular train</b> has a schedule in the timetable. An <b>extra train</b> does not; it runs only on a train order. Extras come in three kinds: plain <i>Extra</i>, <i>Passenger Extra</i> and <i>Work Extra</i>.</li>
+        <li>The <b>time-table</b> is the whole book: the authority for regular trains plus special instructions. A <b>schedule</b> is one train's line in it, giving its <i>class, direction, number and movement</i>. People mix the two up; the exam won't.</li>
+        <li>When one schedule needs more than one train, they run as <b>sections</b> (First 7, Second 7). Every section except the last carries signals (green) to warn others another section follows.</li>
+        <li><b>Main track</b> runs through yards and between stations and is used by timetable, train order or block signals. A <b>siding</b> is auxiliary to it, for meeting and passing. <b>Single track</b> carries trains both ways.</li>
+        <li>A schedule shows at most two times at a station. If it shows two, they are arrival and departure. If it shows one, read it as the <b>leaving</b> time.</li>
+        <li><b>Block</b> words: a block is a stretch of track governed by block or cab signals; a block signal stands at its entrance; an approach signal warns of the signal ahead; an automatic block system is a run of blocks the trains themselves control.</li>
+      </ul>
+      <p>The GCOR adds modern terms: control points, controlled (absolute) signals, distant signals marked D, spring and variable switches, current of traffic, clearance point. Read the glossary cards for these.</p>
+      <div class="learn-go"></div>
+    </article>
+
+    <article id="learn-sup" data-sec="sup">
+      <h3>2. Who goes first</h3>
+      <p>Under TT&amp;TO there is no dispatcher watching each move. Crews work it out themselves from <b>superiority</b>, which comes in three kinds:</p>
+      <ul>
+        <li><b>Class</b>, set by timetable: first class beats second, second beats third.</li>
+        <li><b>Direction</b>, set by timetable: between trains of the <i>same</i> class only, the timetable names one direction superior.</li>
+        <li><b>Right</b>, set by train order: the dispatcher can give any train right over another, and right beats both class and direction.</li>
+      </ul>
+      <p>Extras are inferior to every regular train. On double track (the D- rules) direction drops out, since opposing trains are on separate tracks; superiority is by right or class only. The S- rules are the single-track versions.</p>
+      <p><b>Schedules expire.</b> A regular train that falls more than twelve hours behind its schedule at a station loses its right <i>and</i> its schedule, and can then move only on train orders. That stops crews waiting forever on a train that was annulled or forgotten.</p>
+      <p><b>Before leaving</b> its starting station, a junction, or the end of double track, a train must find out whether every superior train that is due has arrived or left, usually from the <b>train register</b>. It must also have a proper signal to start, and it may never leave a station before its schedule's leaving time.</p>
+      <h4>Keeping out of the way</h4>
+      <p>Picture eastbound No 7 (first class) due to leave Cedar at 9:40 and Dale, the next station east, at 10:05.</p>
+      <ul>
+        <li><b>A slower train ahead of No 7, going the same way</b>, must be in the clear when No 7 is due to leave the station <i>behind</i> it. If the slow train is between Cedar and Dale, it must be clear by 9:40, not 10:05.</li>
+        <li><b>An opposing extra</b> must clear No 7's time with a safety margin. The Standard Code margin is 5 minutes; the TT&amp;TO primer quotes 10 (see Guide notes). An extra waiting at Dale for No 7 must be clear by 10:00 under the Standard Code. If an inferior train can't clear in time, it must flag (Rule 99).</li>
+        <li><b>At a meeting point</b> the inferior train takes the siding. Two extras meeting: the one going the inferior timetable direction takes it. Two trains of the same class with a scheduled meet: the inferior one only has to clear the main before the superior train's leaving time, and the superior train stops at the meet unless the switch is lined and the track clear.</li>
+      </ul>
+      <p>Trains of the same class going the same way may pass each other. Sections of one schedule may pass only after swapping orders, signals and numbers. A train that catches a disabled train may pass it and, if needed, take over its schedule and orders.</p>
+      <h4>Protecting the train</h4>
+      <p>When a train might be overtaken, the flagman protects the rear (Rule 99). <b>Moving</b>: drop lighted fusees at intervals. <b>Stopped</b>: walk back far enough, lay <b>two torpedoes</b>, add fusees when needed; when called in, leave the torpedoes and a lit fusee behind. The <i>engineman</i> whistles the flagman out and recalls him. The front is protected the same way when needed. Conductors are also responsible for every switch their crew uses: line it back, and never leave it open for another train unless one of that train's crew is tending it.</p>
+      <p>Where block signals govern trains in the same direction, the signals take over from superiority (Rule 251).</p>
+      <div class="learn-go"></div>
+    </article>
+
+    <article id="learn-to" data-sec="to">
+      <h3>3. Train orders</h3>
+      <p>A train order is how the dispatcher changes the timetable: creating extras, setting meets, giving right, making trains late. An order stays in force until it is <b>fulfilled, superseded or annulled</b>.</p>
+      <h4>Getting an order to a crew</h4>
+      <ol>
+        <li>Orders are numbered in sequence, starting again each day at midnight.</li>
+        <li>The dispatcher calls each office with a "31" or "19" signal, the direction and how many copies to make.</li>
+        <li>Place names and numbers are said and then spelled; zero is "naught".</li>
+        <li>The operator writes up <b>Clearance Form A</b>, listing how many orders the train has and their numbers, with no erasures, and reads it back. The dispatcher answers "OK" with the time and his initials.</li>
+        <li>The crew (conductor, engineman, fireman) checks that the clearance matches the orders in hand.</li>
+      </ol>
+      <p>If the wire fails after all the orders are complete but before the OK, the operator may still deliver them, marking the clearance "Wire has failed". At an open office the train order signal shows <b>stop</b>, and no train passes it without a clearance.</p>
+      <h4>How trains are named in orders</h4>
+      <p>Regular trains by number (No 7), sections by position (Second 7), extras by engine number and direction (Extra 4410 West), work extras as Work Extra and the engine number. A foreign railroad's engine gets its initials in front.</p>
+      <h4>The order forms</h4>
+      <div class="learn-table"><table>
+        <thead><tr><th>Form</th><th>What it does</th><th>The point to remember</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Sets a meeting point</td><td>Neither train goes past the meeting station until both are there.</td></tr>
+          <tr><td>C</td><td>Gives one train right over an opposing train between two stations</td><td>The <i>first-named</i> train holds the right. If they meet at either end point, the first-named takes the siding unless the order says otherwise. Wait times can be added.</td></tr>
+          <tr><td>D</td><td>Gives right over a train in the <i>same</i> direction</td><td>The other train must keep clear of the first-named between the points.</td></tr>
+          <tr><td>E</td><td>Time order: runs a train late</td><td>Everyone who has the order treats the later time as the schedule.</td></tr>
+          <tr><td>F</td><td>Runs sections</td><td>Engines are named to run as First, Second, Third of a schedule.</td></tr>
+          <tr><td>G</td><td>Creates an extra</td><td>"…and return" means go all the way out before coming back.</td></tr>
+          <tr><td>H</td><td>Work extra between two points for a span of time</td><td>Protects itself against extras in both directions unless told otherwise; always clears regular trains.</td></tr>
+          <tr><td>L</td><td>Annuls an order</td><td>An annulled number is never reused.</td></tr>
+          <tr><td>P</td><td>Supersedes an order</td><td>Uses the words "instead of". The old number is never reused.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="learn-go"></div>
+    </article>
+
+    <article id="learn-yl" data-sec="yl">
+      <h3>4. Yard limits</h3>
+      <p>Yard limits are a stretch of <b>main track</b>, set by mileposts in the timetable and marked by signs, where engines can switch and shuffle without asking the dispatcher each time. Inside them, trains and engines don't protect against each other, so <b>everyone moves slowly</b> enough to stop for whatever is ahead.</p>
+      <ul>
+        <li><b>Standard Code Rule 93</b>: you may use the main track but must still clear first-class trains. You don't need protection against other trains; move at yard speed unless you know the main is clear.</li>
+        <li><b>GCOR 6.13</b>: restricted speed unless a block signal shows better than Approach. Engines get out of the way of trains and never delay passenger trains. In CTC the control operator still authorizes main track moves.</li>
+        <li>Inside yard limits the yardmaster or agent is in charge if one is on duty; otherwise, usually the conductor or foreman of the first crew there.</li>
+      </ul>
+      <div class="learn-go"></div>
+    </article>
+
+    <article id="learn-twc" data-sec="twc">
+      <h3>5. Track warrants</h3>
+      <p>A track warrant is a fill-in form the dispatcher reads over the radio. It is the modern replacement for train orders on lines without signals.</p>
+      <h4>The exchange</h4>
+      <ol>
+        <li>The crew asks for a warrant, saying what they'll do, on which tracks and for how long.</li>
+        <li>The dispatcher reads it at copying speed. The crew writes it down and reads <i>every word</i> back, not just the box numbers.</li>
+        <li>The dispatcher gives an <b>OK time</b> and initials. Until the OK time is on the form, the warrant is just paper.</li>
+        <li>Conductor and engineer each have a dated copy.</li>
+        <li>The warrant lasts until the crew releases it. To report clear, the <i>whole</i> train must be off the limits, and switches it used must be back to normal (inside yard limits this last part doesn't apply).</li>
+      </ol>
+      <h4>Where the limits start and end</h4>
+      <p>When a station is named as a limit, the crew's authority covers the siding switches that matter for a meet: <b>from the far switch</b> of the first station and <b>to the near switch</b> of the last station. The guide's memory aid is "first is last and last is first". With no siding, the station sign is the limit. "Hold main track at last named point" carries the limit on past the near switch, up to but not including the far switch, so the train can hold the main while an opposing train uses the siding. A train must never foul a switch at either end that an opposing train could use to clear.</p>
+      <h4>The form's 17 boxes, by purpose</h4>
+      <ul>
+        <li><b>Cancelling:</b> 1 voids an earlier warrant.</li>
+        <li><b>Authority:</b> 2 and 3 "Proceed from … to" (one direction; backing up needs separate permission). 4 "Work between" (both directions, for locals and work trains).</li>
+        <li><b>Timing:</b> 5 not in effect until a time, 6 expires at a time, 7 not in effect until another train arrives.</li>
+        <li><b>At the far end:</b> 8 hold main track, 9 don't foul limits ahead of another train, 10 clear the main track.</li>
+        <li><b>Speed:</b> 11 restricted speed because a train is in the limits, 12 because men or equipment are, 13 and 14 mph limits.</li>
+        <li><b>Other:</b> 15 no flag needed against following trains, 16 track bulletins, 17 anything else (such as "joint with" another train).</li>
+      </ul>
+      <p>Warrants govern only the main track. In sidings, move at a speed that lets you stop in half the distance you can see. Outside yard limits, nobody goes on the main without one. Model railroads usually drop boxes 5, 6, 12 to 15.</p>
+      <div class="learn-go"></div>
+    </article>
+
+    <article id="learn-sig" data-sec="sig">
+      <h3>6. Signals and whistles</h3>
+      <h4>Reading a signal</h4>
+      <p>The <b>aspect</b> is what you see; the <b>indication</b> is what it tells you to do; the <b>name</b> is the railroad's label for it. Under <b>route signaling</b> (most model railroads) the signal tells you which way you're lined and how clear the blocks ahead are; speeds come from the timetable. Under <b>speed signaling</b> the signal tells you how fast to go.</p>
+      <ul>
+        <li>Green: the next two blocks are clear. Yellow: the next block is clear but the one after is not.</li>
+        <li>On a two-head mast, red over green or red over yellow is the same idea for the diverging route. It is <b>not</b> a stop: "it's not red unless it's all red".</li>
+        <li>What a stop means depends on the <b>plate</b>. A or no plate: absolute; wait for permission. Number plate: stop, then go on at restricted speed. G: may pass at restricted speed without stopping, to avoid stalling on a grade. SA: an interlocking signal; ask the operator. D: distant signal warning of an interlocking ahead. P: a detector in the block that the crew must check.</li>
+      </ul>
+      <p><b>ABS</b> divides track into automatic blocks. <b>APB</b> adds a rule for opposing moves: once a train enters between sidings, opposing signals all go red to the next siding. <b>CTC</b> lets a dispatcher set switches and signals at control points. An <b>interlocking</b> makes conflicting routes impossible, run from a tower.</p>
+      <h4>Hand signals (Standard Code)</h4>
+      <p>Think of the motion: a swing <i>across</i> the track stops you; up-and-down <i>proceeds</i>; held out <i>level</i> means slow; a full <i>circle</i> means back up.</p>
+      <h4>Whistles</h4>
+      <p>Shorts are "o", longs are "—". The two codes differ, so learn which is which:</p>
+      <div class="learn-table"><table>
+        <thead><tr><th>Meaning</th><th>Standard Code</th><th>GCOR</th></tr></thead>
+        <tbody>
+          <tr><td>Brakes applied / stop</td><td>o</td><td>— (when stopped)</td></tr>
+          <tr><td>Release brakes, proceed</td><td>— —</td><td>— —</td></tr>
+          <tr><td>Back up</td><td>o o o (standing)</td><td>o o o (stopped)</td></tr>
+          <tr><td>Flagman protect rear</td><td>— o o o</td><td>·</td></tr>
+          <tr><td>Public road crossing</td><td>— — o —</td><td>— — o —</td></tr>
+          <tr><td>Acknowledge</td><td>·</td><td>o o</td></tr>
+          <tr><td>Repeat or give a signal</td><td>·</td><td>o o o o</td></tr>
+          <tr><td>Men or equipment ahead</td><td>·</td><td>— o</td></tr>
+          <tr><td>Emergency, people or animals on track</td><td>·</td><td>many shorts (other trains stop)</td></tr>
+        </tbody>
+      </table></div>
+      <p>GCOR crossing timing: above 45 mph start at the sign but no more than a quarter mile out; at 45 mph or less, 15 to 20 seconds before the crossing; keep at it until the engine is on the crossing. Ring the bell before moving and approaching crossings and workers. If the whistle fails, ring the bell continuously and stop at crossings unless gates are down or the road is empty.</p>
+      <div class="learn-go"></div>
+    </article>
+
+    <article id="learn-sem" data-sec="sem">
+      <h3>7. Semaphores</h3>
+      <p>A semaphore shows its aspect by the <b>angle of a blade</b> by day and colored lights at night. Horizontal is always <b>stop</b>; treat it as a closed gate.</p>
+      <ul>
+        <li><b>Upper quadrant</b> blades rise to clear (positions about 0, 45 and 90 degrees); they spread from around 1900. <b>Lower quadrant</b> blades drop (0, 30, 60).</li>
+        <li>Lower quadrant isn't fail-safe: if the linkage breaks, gravity pulls the blade toward clear.</li>
+        <li>Parts: blade, roundels (the colored lenses), the spectacle that holds them, lamp, mechanism, housing.</li>
+        <li>Semaphores served both as train order boards and as block signals; some were fixed at 45 degrees as a permanent warning.</li>
+      </ul>
+      <p>On a model railroad, ask the host what a semaphore means.</p>
+      <div class="learn-go"></div>
+    </article>
+
+    <article id="learn-gcor" data-sec="gcor">
+      <h3>8. Crew duties and speed</h3>
+      <ul>
+        <li><b>Conductor</b>: in charge of the train and its paperwork. The crew follows the conductor unless that would be unsafe or against the rules. When two crews combine, the senior conductor takes charge. The conductor warns the engineer of restrictions and authority limits ahead, at least two miles before.</li>
+        <li><b>Engineer</b>: runs the engine safely and asks the conductor about cars needing special handling. With no conductor present, the crew follows the engineer.</li>
+        <li><b>Everyone in the cab</b> calls out each signal by name and keeps watching it. If they disagree, take the most restrictive reading. Anyone may stop the train if the rules aren't being followed.</li>
+        <li><b>Yardmaster</b>: runs the yard; where one is on duty, crews take the yardmaster's instructions. <b>Dispatcher</b>: supervises train movement; operators work under the dispatcher.</li>
+      </ul>
+      <h4>Speed words</h4>
+      <p><b>Restricted speed</b> means you can stop short of anything in your path: a train, a car, workers, a red signal, a misaligned switch or derail. The GCOR puts it as within <i>half your range of vision</i>, never over <b>20 mph</b>, watching for broken rail, until the <i>front</i> of the train is past the restriction. The Standard Code says the same without the numbers. Off the main track (and outside signal systems) the same half-range rule applies.</p>
+      <p>A burning fusee by the track means stop, then restricted speed for a mile past it, unless it is beyond the first rail of the next track over. Moving against the current of traffic needs a warrant or bulletin, except in places such as yard limits that have their own rule.</p>
+      <div class="learn-go"></div>
+    </article>
+  </div>
+</section>
+
+<section class="ce-panel" id="view-cards" hidden>
   <div class="row"><span class="label">Sections</span></div>
   <div class="ce-chips" id="cardChips"></div>
   <div class="meter" id="cardMeter"></div>
@@ -469,9 +680,9 @@ const srcLabel=s=>s.replace(/^(SC|GC|TT|YL|TW|SG|SM)\b/,m=>SRC[m]||m);
 const keys=Object.keys(SECTIONS);
 
 /* tabs */
-const views={cards:"view-cards",quiz:"view-quiz",notes:"view-notes"};
-let view="cards";
-function show(v){if(!views[v])v="cards";view=v;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
+const views={learn:"view-learn",cards:"view-cards",quiz:"view-quiz",notes:"view-notes"};
+let view="learn";
+function show(v){if(!views[v])v="learn";view=v;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
   for(const k in views)document.getElementById(views[k]).hidden=k!==v;store.set("ce_view",v)}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view));
 
@@ -611,7 +822,15 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-show(store.get("ce_view","cards"));renderSetup();deal();
+/* study guide: practice buttons per section */
+document.querySelectorAll("#view-learn [data-sec]").forEach(a=>{
+  const k=a.dataset.sec,go=a.querySelector(".learn-go");if(!go)return;
+  go.innerHTML=`<span class="label">Practice ${esc(SECTIONS[k])}</span><button class="ce-btn" data-go="cards">Flashcards</button><button class="ce-btn" data-go="quiz">10-question test</button>`;
+  go.querySelector('[data-go="cards"]').onclick=()=>{cardSel.clear();cardSel.add(k);store.set("ce_cardSel",[k]);deal();show("cards");document.getElementById("view-cards").scrollIntoView()};
+  go.querySelector('[data-go="quiz"]').onclick=()=>{quizSel.clear();quizSel.add(k);store.set("ce_quizSel",[k]);qlen=10;store.set("ce_qlen",10);test=null;
+    document.getElementById("quizDone").hidden=true;document.getElementById("quizSetup").hidden=false;renderSetup();show("quiz");startTest();document.getElementById("view-quiz").scrollIntoView()};
+});
+show(store.get("ce_view","learn"));renderSetup();deal();
 })();
 </script>
 <script>
