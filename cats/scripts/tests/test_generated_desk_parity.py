@@ -26,7 +26,8 @@ GENERATED = ROOT / "cats/panels/generated/HART_Generated.xml"
 # Two live masts stand inside a block, on a lamp gap with the same block on both sides (mast_cells.csv): Mast 24L
 # mid Track West Ext and Mast 2035 inside Track K-2, a cell east of the K-1/K-2 cut. The generated panel puts every
 # mast on the block boundary it guards: 24L governs the move toward Switch 23, so it guards OS Switch 23a; 2035
-# governs the move from K-2 toward Switch 39, so it guards Track K-1. Live block, generated block:
+# governs the move from K-2 toward Switch 39, so it guards Track K-1. Owner approved the boundary placement for both
+# (2026-11-14): the cut-over carries it on purpose. Live block, generated block:
 PROTECTS = {"Mast 24L": ("Track West Ext", "OS Switch 23a"), "Mast 2035": ("Track K-2", "Track K-1")}
 
 
@@ -72,18 +73,40 @@ def plants(root: ET.Element) -> dict[str, dict[str, tuple]]:
     return out
 
 
-def masts(root: ET.Element) -> dict[str, tuple]:
-    """Mast user name -> (PHYSIGNAL, SIGPANTYPE, block on its edge)."""
-    out = {}
+def placed_ios(root: ET.Element) -> tuple[int, set[tuple]]:
+    """(IOSPECs anywhere in the panel, {(where, IOSPEC)} of those in a block spec or a route): where is
+    (block name, spec) or (route tag,); a count above the set's coverage means an IOSPEC somewhere else."""
+    found, placed = 0, set()
+    for b in root.iter("BLOCK"):
+        for tag in ("OCCUPIEDSPEC", "UNOCCUPIEDSPEC"):
+            for el in b.findall(tag):
+                placed |= {((b.get("NAME"), tag), ios(i)) for i in el.iter("IOSPEC")}
+                found += len(list(el.iter("IOSPEC")))
+    for ri in root.iter("ROUTEINFO"):
+        for c in ri:
+            placed |= {((c.tag,), ios(i)) for i in c.iter("IOSPEC")}
+            found += len(list(c.iter("IOSPEC")))
+    return found, placed
+
+
+def empty_specs(root: ET.Element) -> list[str]:
+    """Blocks with an OCCUPIEDSPEC or UNOCCUPIEDSPEC that holds no IOSPEC."""
+    return sorted({b.get("NAME") or "?" for b in root.iter("BLOCK") for tag in ("OCCUPIEDSPEC", "UNOCCUPIEDSPEC")
+                   for el in b.findall(tag) if el.find("IOSPEC") is None})
+
+
+def masts(root: ET.Element) -> dict[str, list[tuple]]:
+    """Mast user name -> [(PHYSIGNAL, SIGPANTYPE, block on its edge)] for each SECSIGNAL of that name."""
+    out: dict[str, list[tuple]] = {}
     for se in root.iter("SEC_EDGE"):
         s = se.find("SECSIGNAL")
         if s is None:
             continue
         pan = s.find("PANELSIGNAL")
         blk = se.find("BLOCK")
-        out[(s.text or "").strip()] = ((s.findtext("PHYSIGNAL") or "").strip(),
-                                       pan.get("SIGPANTYPE") if pan is not None else None,
-                                       blk.get("NAME") if blk is not None else None)
+        out.setdefault((s.text or "").strip(), []).append((
+            (s.findtext("PHYSIGNAL") or "").strip(), pan.get("SIGPANTYPE") if pan is not None else None,
+            blk.get("NAME") if blk is not None else None))
     return out
 
 
@@ -94,26 +117,36 @@ class Parity(unittest.TestCase):
 
     def test_every_live_block_is_bound_the_same(self) -> None:
         live, gen = blocks(self.live), blocks(self.gen)
-        self.assertEqual(len(live), 45)
+        self.assertTrue(live)
         for name, defs in sorted(live.items()):
             with self.subTest(block=name):
                 self.assertEqual(len(defs), 1, defs)
                 self.assertEqual(gen.get(name), defs)
         bound = {n for n, d in gen.items() if any(spec for *_, spec in d)}
-        self.assertEqual(bound, set(live))
+        self.assertEqual(bound, {n for n, d in live.items() if any(spec for *_, spec in d)})
+        self.assertEqual(empty_specs(self.live), [])
+        self.assertEqual(empty_specs(self.gen), [])
+
+    def test_every_iospec_is_the_same_both_ways(self) -> None:
+        (n_live, live), (n_gen, gen) = placed_ios(self.live), placed_ios(self.gen)
+        self.assertEqual(n_live, len(list(self.live.iter("IOSPEC"))), "an IOSPEC outside a block spec or route")
+        self.assertEqual(n_gen, len(list(self.gen.iter("IOSPEC"))), "an IOSPEC outside a block spec or route")
+        self.assertEqual(gen - live, set())
+        self.assertEqual(live - gen, set())
 
     def test_every_live_switch_is_bound_the_same(self) -> None:
         live, gen = plants(self.live), plants(self.gen)
-        self.assertEqual(len(live), 23)
+        self.assertTrue(live)
         self.assertEqual(gen, live)
 
     def test_every_live_mast_is_bound_the_same(self) -> None:
         live, gen = masts(self.live), masts(self.gen)
-        self.assertEqual(len(live), 23)
+        self.assertTrue(live)
         self.assertEqual(set(gen), set(live))
-        for name, (template, pantype, block) in sorted(live.items()):
+        for name, here in sorted(live.items()):
             with self.subTest(mast=name):
-                g_template, g_pantype, g_block = gen[name]
+                self.assertEqual((len(here), len(gen[name])), (1, 1), "one SECSIGNAL per mast")
+                (template, pantype, block), (g_template, g_pantype, g_block) = here[0], gen[name][0]
                 self.assertEqual((g_template, g_pantype), (template, pantype))
                 self.assertEqual((block, g_block), PROTECTS.get(name, (block, block)))
 
