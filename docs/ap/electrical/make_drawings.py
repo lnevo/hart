@@ -8,7 +8,7 @@ Two kinds of figure:
   station brackets taken out and generic labels drawn on top, so a reader who has
   never seen the layout can follow them. Switch numbers are kept, because they are
   what the witness finds on the fascia.
-- Wiring drawings D1 to D7: drawn here for the SOQ only.
+- Wiring drawings D1 to D6: drawn here for the SOQ only.
 
 They are kept apart from the railroad's own schematics and wiring docs on purpose
 (owner, 2026-11-14). Facts:
@@ -458,45 +458,6 @@ def d3() -> str:
                "frog to one stock rail or the other. Contact 2 reports the position to the indication circuit.")
 
 
-def d4() -> str:
-    """Crossover: two turnouts joined by a pair of parallel rails, gapped between the frogs."""
-    b = []
-    ya, yb = 110, 230
-    b.append(rails(40, 700, ya))
-    b.append(rails(40, 700, yb))
-    x1, x2 = 220, 500
-    off = 20
-    p1_ = ((x1, ya + 4), (x2, yb - 4))
-    p2_ = ((x1 + off, ya + 4), (x2 + off, yb - 4))
-    for (sx, sy), (ex, ey) in (p1_, p2_):
-        b.append(wire(f"M{sx},{sy} L{ex},{ey}", INK, 1.6))
-    def at(p, t):
-        (sx, sy), (ex, ey) = p
-        return sx + (ex - sx) * t, sy + (ey - sy) * t
-    fa, fb = at(p2_, 0.12), at(p1_, 0.88)
-    b.append(f'<circle cx="{fa[0]:.1f}" cy="{fa[1]:.1f}" r="5" fill="{RED}"/><circle cx="{fb[0]:.1f}" cy="{fb[1]:.1f}" r="5" fill="{RED}"/>')
-    b.append(label(fa[0] + 10, fa[1] + 4, "frog A", 9.5, RED, weight="bold"))
-    b.append(label(fb[0] - 10, fb[1] + 4, "frog B", 9.5, RED, "end", "bold"))
-    for p in (p1_, p2_):
-        cx, cy = at(p, 0.5)
-        b.append(wire(f"M{cx-4},{cy-6} L{cx+4},{cy+6} M{cx+1},{cy-8} L{cx+9},{cy+4}", INK, 2.2))
-    mx, my = at(p2_, 0.5)
-    b.append(label(mx + 18, my, "gap in both crossover rails, between the frogs", 10, INK, weight="bold"))
-    for x in (150, 600):
-        b.append(gap(x, ya, color=GREY))
-        b.append(gap(x, yb, color=GREY))
-    b.append(label(40, ya - 18, "track a: half a is its own detected section", 9.5))
-    b.append(label(40, yb + 30, "track b: half b is its own detected section", 9.5))
-    b.append(box(40, 280, 200, 40, "MP4 half a", "SPDT 1 to frog A, SPDT 2 to indication", size=9))
-    b.append(box(480, 280, 200, 40, "MP4 half b", "SPDT 1 to frog B, SPDT 2 to indication", size=9))
-    b.append(label(20, 350, "Each half is a turnout wired as D3, on its own machine; both machines are thrown together. Because each frog takes its own", 9.5, INK))
-    b.append(label(20, 364, "polarity, the crossover rails are gapped between the frogs. Each half is its own detected section, gapped in both rails (grey).", 9.5, INK))
-    b.append(label(20, 378, "Built at Switch 23 (halves 23a and 23b) and Switch 35 (35a and 35b) on the staging level, and at Switch 7.", 9.5, INK))
-    return svg(720, 394, "\n".join(b), "D4 · Crossover: two powered-frog turnouts, gapped between the frogs",
-               "Two parallel tracks joined by a crossover of two turnouts. Each frog is powered by its own machine, and both "
-               "crossover rails are gapped between the two frogs.")
-
-
 def d5() -> str:
     """Reversing section on an auto-reverser, with its detection.
 
@@ -586,66 +547,116 @@ def spdt(cx: float, cy: float, mirror: bool, set_to: str) -> tuple[str, dict[str
     return "".join(out), {"C": c, "N": n, "R": r}
 
 
-def d7() -> str:
-    """Crossover position indication: the two halves' position contacts in series on one N/R input pair.
+def wrap(text: str, width: int) -> list[str]:
+    """Split text into lines of at most width characters, on spaces."""
+    lines, cur = [], ""
+    for word in text.split():
+        if cur and len(cur) + 1 + len(word) > width:
+            lines.append(cur)
+            cur = word
+        else:
+            cur = f"{cur} {word}".strip()
+    return lines + [cur] if cur else lines
 
-    Each crossover (Switches 7, 23, 35) has one normal and one reverse feedback input
-    (turnout summary; tables.xml TWOSENSOR "FB Switch n N/R"). With one SPDT per machine,
-    the wiring that closes N only when both halves are normal, R only when both are
-    reverse, and neither when they disagree ties the two commons together, takes N from
-    half a's N throw and R from half b's R throw, and puts a's R and b's N on the input
-    common. Drawn from the owner's description (2026-11-15); to be checked against the
+
+def d4() -> str:
+    """Crossover: track, frogs and gaps (top), and the position indication of its two machines (bottom).
+
+    Each half is a turnout wired as D3 on its own MP4. Contact 1 of each machine powers its
+    own frog, so both rails between the frogs are gapped. Contact 2 of the two machines are
+    wired in series on the crossover's one N/R input pair (turnout summary; tables.xml
+    TWOSENSOR "FB Switch n N/R"): the commons are tied together, N comes from half a's N
+    throw, R from half b's R throw, and a's R and b's N go to the input common, so N closes
+    only when both halves are normal, R only when both are reverse, and neither when they
+    disagree. Drawn from the owner's description (2026-11-15); to be checked against the
     wires (README, open items).
     """
     b = []
-    sa, a = spdt(170, 190, False, "N")
-    sb, bb = spdt(570, 190, True, "N")
+    # ---- track: two parallel tracks joined by two turnouts
+    ya, yb = 60, 170
+    b.append(rails(40, 700, ya))
+    b.append(rails(40, 700, yb))
+    x1, x2, off = 220, 500, 20
+    p1_ = ((x1, ya + 4), (x2, yb - 4))
+    p2_ = ((x1 + off, ya + 4), (x2 + off, yb - 4))
+    for (sx, sy), (ex, ey) in (p1_, p2_):
+        b.append(wire(f"M{sx},{sy} L{ex},{ey}", INK, 1.6))
+
+    def at(p, t):
+        (sx, sy), (ex, ey) = p
+        return sx + (ex - sx) * t, sy + (ey - sy) * t
+    fa, fb = at(p2_, 0.12), at(p1_, 0.88)
+    b.append(f'<circle cx="{fa[0]:.1f}" cy="{fa[1]:.1f}" r="5" fill="{RED}"/><circle cx="{fb[0]:.1f}" cy="{fb[1]:.1f}" r="5" fill="{RED}"/>')
+    b.append(label(fa[0] + 10, fa[1] + 4, "frog A (half a)", 10, RED, weight="bold"))
+    b.append(label(fb[0] - 10, fb[1] + 4, "frog B (half b)", 10, RED, "end", "bold"))
+    for p in (p1_, p2_):
+        cx, cy = at(p, 0.5)
+        b.append(wire(f"M{cx-4},{cy-6} L{cx+4},{cy+6} M{cx+1},{cy-8} L{cx+9},{cy+4}", INK, 2.2))
+    mx, my = at(p2_, 0.5)
+    b.append(label(mx + 18, my, "gap in both crossover rails, between the frogs", 10, INK, weight="bold"))
+    for x in (150, 600):
+        b.append(gap(x, ya, color=GREY))
+        b.append(gap(x, yb, color=GREY))
+    b.append(label(40, ya - 16, "track a: half a is its own detected section", 9.5))
+    b.append(label(40, yb + 28, "track b: half b is its own detected section", 9.5))
+    b.append(wire("M20,222 L720,222", GREY, 0.8, "3 3"))
+    b.append(label(20, 240, "Position indication: contact 2 of each machine, in series on the crossover's one N/R input pair", 10.5, INK, weight="bold"))
+    # ---- indication circuit (the two MP4 position contacts)
+    dy = 220
+    sa, a = spdt(170, 190 + dy, False, "N")
+    sb, bb = spdt(570, 190 + dy, True, "N")
     b += [sa, sb]
-    b.append(box(20, 250, 130, 34, "Half a: MP4 contact 2", "shown normal", size=9))
-    b.append(box(590, 250, 130, 34, "Half b: MP4 contact 2", "shown normal", size=9))
-    b.append(box(30, 50, 150, 40, "Node input: N", "FB Switch n N", size=9.5))
-    b.append(box(560, 50, 150, 40, "Node input: R", "FB Switch n R", size=9.5))
-    b.append(box(295, 50, 150, 40, "Node input common", "", size=9.5))
-    # the N path when both halves are normal, drawn in blue
-    b.append(wire(f"M{a['N'][0]},{a['N'][1]} L{a['N'][0]},70 L180,70", BLUE, 2.2))                 # N input to a.N
-    b.append(wire(f"M{a['C'][0]},{a['C'][1]} L{a['C'][0]},330 L{bb['C'][0]},330 L{bb['C'][0]},{bb['C'][1]}", BLUE, 2.2))  # commons tied
-    b.append(wire(f"M{bb['N'][0]},{bb['N'][1]} L{bb['N'][0]},120 L420,120 L420,90", BLUE, 2.2))    # b.N to common
-    # the other two throws
-    b.append(wire(f"M{a['R'][0]},{a['R'][1]} L300,{a['R'][1]} L300,90", INK, 1.5))                 # a.R to common
+    b.append(box(20, 250 + dy, 140, 46, "Half a: MP4", "contact 1 to frog A", "contact 2 (shown normal)", size=9))
+    b.append(box(580, 250 + dy, 140, 46, "Half b: MP4", "contact 1 to frog B", "contact 2 (shown normal)", size=9))
+    b.append(box(30, 50 + dy, 150, 40, "Node input: N", "FB Switch n N", size=9.5))
+    b.append(box(560, 50 + dy, 150, 40, "Node input: R", "FB Switch n R", size=9.5))
+    b.append(box(295, 50 + dy, 150, 40, "Node input common", "", size=9.5))
+    b.append(wire(f"M{a['N'][0]},{a['N'][1]} L{a['N'][0]},{70 + dy} L180,{70 + dy}", BLUE, 2.2))
+    b.append(wire(f"M{a['C'][0]},{a['C'][1]} L{a['C'][0]},{330 + dy} L{bb['C'][0]},{330 + dy} L{bb['C'][0]},{bb['C'][1]}", BLUE, 2.2))
+    b.append(wire(f"M{bb['N'][0]},{bb['N'][1]} L{bb['N'][0]},{120 + dy} L420,{120 + dy} L420,{90 + dy}", BLUE, 2.2))
+    b.append(wire(f"M{a['R'][0]},{a['R'][1]} L300,{a['R'][1]} L300,{90 + dy}", INK, 1.5))
     x, y = bb['C'][0], bb['R'][1]
-    b.append(wire(f"M{bb['R'][0]},{y} L{x - 6},{y} A6,6 0 0 1 {x + 6},{y} L660,{y} L660,90", INK, 1.5))  # b.R to R input, hopping the tie
-    b.append(label(370, 346, "commons of the two contacts tied together", 9.5, INK, "middle"))
-    b.append(label(30, 384, "Blue: the path that closes when both halves are normal (N input to common through a and b in series).", 9.5, BLUE))
-    # truth table
-    rows = [("Half a", "Half b", "N input", "R input", "Panel shows"),
-            ("Normal", "Normal", "closed", "open", "Normal"),
-            ("Reverse", "Reverse", "open", "closed", "Reverse"),
-            ("Normal", "Reverse", "open", "open", "Inconsistent (N and R inputs joined, no common)"),
-            ("Reverse", "Normal", "open", "open", "Inconsistent (only the common is connected)")]
-    xs = (30, 120, 210, 300, 390)
+    b.append(wire(f"M{bb['R'][0]},{y} L{x - 6},{y} A6,6 0 0 1 {x + 6},{y} L660,{y} L660,{90 + dy}", INK, 1.5))
+    b.append(label(370, 346 + dy, "commons of the two contacts tied together", 9.5, INK, "middle"))
+    # ---- right column: truth table and notes
+    X = 745
+    b.append(label(X, 40, "What the panel shows", 10.5, INK, weight="bold"))
+    rows = [("Half a", "Half b", "N", "R", "Panel"), ("Normal", "Normal", "closed", "open", "Normal"),
+            ("Reverse", "Reverse", "open", "closed", "Reverse"), ("Normal", "Reverse", "open", "open", "Inconsistent"),
+            ("Reverse", "Normal", "open", "open", "Inconsistent")]
     for i, row in enumerate(rows):
-        y = 418 + i * 17
-        for x, t in zip(xs, row):
-            b.append(label(x, y, t, 9.5, INK, weight="bold" if i == 0 else "normal"))
-    b.append(label(30, 516, "JMRI reads each crossover with two-sensor feedback (FB Switch n N and R). When the halves disagree neither", 9.5, INK))
-    b.append(label(30, 530, "sensor is active, so the panel shows the switch as Inconsistent and no Normal or Reverse light is lit. Used on the", 9.5, INK))
-    b.append(label(30, 544, "crossovers at Switches 7, 23 and 35.", 9.5, INK))
-    return svg(740, 560, "\n".join(b), "D7 · Crossover position indication: two contacts on one input pair",
-               "The position contacts of the two crossover machines, wired so the normal input closes only when both halves are "
-               "normal and the reverse input only when both are reverse. If the halves disagree, neither input closes and the "
-               "panel shows the crossover as inconsistent.")
+        for xo, t in zip((0, 50, 100, 140, 178), row):
+            b.append(label(X + xo, 60 + i * 16, t, 9, INK, weight="bold" if i == 0 else "normal"))
+    notes = [
+        ("Frogs", "Each half is a turnout wired as D3. Contact 1 of each machine powers its own frog, so both rails between the frogs are gapped."),
+        ("Detection", "Each half is its own detected section, gapped in both rails (grey)."),
+        ("Indication", "Both machines are thrown together. Their position contacts are in series, so N closes only when both halves are normal and R only when both are reverse. Blue is the path when both are normal. If the halves disagree, neither input closes, and JMRI (two-sensor feedback) shows the crossover as Inconsistent."),
+        ("Where", "Switch 7, Switch 23 (halves 23a and 23b) and Switch 35 (35a and 35b)."),
+    ]
+    y = 160
+    for head, text in notes:
+        b.append(label(X, y, head, 10, INK, weight="bold"))
+        y += 15
+        for line in wrap(text, 42):
+            b.append(label(X, y, line, 9.5, INK))
+            y += 13.5
+        y += 8
+    return svg(1000, 580, "\n".join(b), "D4 · Crossover: frogs, gaps and position indication",
+               "Top: two parallel tracks joined by a crossover of two turnouts, each frog powered by its own machine, with both "
+               "crossover rails gapped between the frogs. Bottom: the position contacts of the two machines wired in series to "
+               "one normal and one reverse input, so the panel shows a position only when both halves agree.")
 
 
 FIGURES = [("P1-staging-plan", p1), ("P2-reversing-sections", p2), ("P3-passing-siding", p3), ("P4-yard", p4),
            ("P5-engine-storage", p5), ("D1-propulsion-one-line", d1), ("D2-propulsion-sections", d2),
            ("D3-turnout-frog-indication", d3), ("D4-crossover", d4), ("D5-reversing-section", d5),
-           ("D6-computer-interface", d6), ("D7-crossover-indication", d7)]
+           ("D6-computer-interface", d6)]
 
 
 def main() -> None:
     check_overlays()
     OUT.mkdir(exist_ok=True)
-    for old in OUT.glob("D1-staging-reversing-sections.svg"):
+    for old in [*OUT.glob("D1-staging-reversing-sections.svg"), *OUT.glob("D7-crossover-indication.svg")]:
         old.unlink()
     for name, fn in FIGURES:
         (OUT / f"{name}.svg").write_text(fn())
