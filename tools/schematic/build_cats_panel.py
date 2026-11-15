@@ -10,7 +10,8 @@ binds every turnout, block, sensor and mast the live desk binds, the same way.
 Bands stack in the sheet's order (staging on top). Staging is bound to the live JMRI objects through the bindings
 file cats/panels/generated/HART_Generated.bindings.json, which this script writes from the railroad's facts, never by
 hand:
-  switches.csv / switch_legs.csv  which OS block each switch's points are in, which leg is closed and which thrown,
+  switches.csv / switch_legs.csv  which OS block each switch's points are in (and a crossover half's label, 23A
+                                  or 23B, from its OS block's letter), which leg is closed and which thrown,
                                   and whether CATS normal is JMRI thrown (cats_inverted); Switch 9 and 13 follow them
   public_name_map.csv + tables.xml  each switch's M2T turnout (cats_turnout_io.load_turnouts)
   occupancy_bindings.csv + tables.xml  each block's M2S sensor and discipline (digicon_lib.load_occupancy)
@@ -32,6 +33,7 @@ import difflib
 import json
 import math
 import os
+import re
 import sys
 import tempfile
 from collections import Counter, defaultdict
@@ -52,6 +54,18 @@ OUT = pd.REPO / "cats/panels/generated/HART_Generated.xml"
 BINDINGS = OUT.with_name("HART_Generated.bindings.json")
 LIVE = paths.CATS_DIR / "panels/HART_CTC.xml"       # SIGNALTEMPLATE and JMRINAME lines come from here
 BOUND = "Staging"                                    # the band bound to JMRI (its title starts with this)
+# The dispatcher's screen is 1900 x 1200 pixels. CATS opens the panel in WINDOW and draws each cell at its default
+# 30 x 30 pixel grid (the plugin's GRID_PX) with no zoom (the Grid Size is not kept in the panel). Inside the window
+# about CHROME pixels go to the frame and scrollbar (width) and to the title and menu bars and the train status line
+# (height), so the panel must show at most FIT cells: (1900 - 20) // 30 = 62 columns, (1150 - 100) // 30 = 35 rows.
+# One cell per schematic grid unit is what fits all three levels in that.
+CELLS_PER_UNIT = 1
+WINDOW = (1900, 1150)   # the dispatcher's 1900x1200 screen less a taskbar: CATS opens the panel at this size, uncropped
+CHROME = (20, 100)
+GRID_PX = 30            # checked against the plugin's cats.GRID_PX when the panel is built
+FIT = ((WINDOW[0] - CHROME[0]) // GRID_PX, (WINDOW[1] - CHROME[1]) // GRID_PX)
+MAX_COLS = FIT[0]       # the plugin drops level-only columns so the panel keeps within the window (a free column
+                        # each side: column 0 is never drawn and the track starts at column 2)
 
 
 def plugin_modules(plugin):
@@ -208,6 +222,20 @@ def dest(band, os_of, n, port):
     raise SystemExit(f"switch {nodes[n]['label']} leg {port}: the track from it reaches no named track or switch")
 
 
+def half_label(sw, leg):
+    """The panel label of one half of a switch with several OS blocks (a crossover): its number and the letter of
+    its OS block in switch_legs.csv, upper case (OS Switch 23a -> 23A). The row without a letter is A when every
+    other row has one (OS Switch 7 and 7b -> 7A, 7B)."""
+    letter = lambda name: m.group(1) if (m := re.fullmatch(rf"OS Switch {sw.number}([a-z])", name)) else None
+    own = letter(leg.os_block)
+    if own is None:
+        others = [letter(l.os_block) for l in sw.legs if l is not leg]
+        if None in others or "a" in others:
+            raise SystemExit(f"Switch {sw.number}: cannot tell which half {leg.os_block} is from switch_legs.csv")
+        own = "a"
+    return f"{sw.number}{own.upper()}"
+
+
 def switch_bindings(band, F, os_of):
     nodes = band["nodes"]
     sw_nodes = {n: d for n, d in nodes.items() if d["kind"] == "switch"}
@@ -229,6 +257,7 @@ def switch_bindings(band, F, os_of):
         key = d["label"] if labels[d["label"]] == 1 else f"{d['label']}/{d['alias']}"
         out[key] = {
             "block": leg.os_block,
+            **({"label": half_label(sw, leg)} if labels[d["label"]] > 1 else {}),     # drawn as halves
             "normal": thrown if sw.cats_inverted else closed,
             "routes": {closed: {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
                        thrown: {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}},
@@ -291,7 +320,8 @@ def bindings(bands, cats, F):
     os_of = os_blocks(band, F)
     out_sw = switch_bindings(band, F, os_of)
     # the panel's block names once the switches name their OS blocks
-    P = cats.panel(bands, bindings={"switches": {k: {"block": v["block"]} for k, v in out_sw.items()}})
+    P = cats.panel(bands, scale=CELLS_PER_UNIT,          # names only: no column trimming needed here
+                   bindings={"switches": {k: {"block": v["block"]} for k, v in out_sw.items()}})
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:")}
     return {"_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit.",
             "switches": out_sw, "blocks": block_bindings(band, F, names), "masts": mast_bindings(opts, F)}
@@ -303,13 +333,19 @@ def generate(plugin, out, bindings_out):
     bands = sheet.build([(f"{pd.GRAPHS}/{g}", n) for g, n in pd.INPUTS], str(pd.DATA)).bands
     text = json.dumps(bindings(bands, cats, load_facts()), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")
+    if cats.GRID_PX != GRID_PX:
+        sys.exit(f"error: the plugin draws a {cats.GRID_PX} pixel grid; FIT here assumes {GRID_PX}")
     try:
         header = cats.header_from(str(LIVE))
-        P = cats.panel(bands, bindings=json.loads(text))
-        cats.write(P, str(out), "CTC", header)
+        P = cats.panel(bands, scale=CELLS_PER_UNIT, bindings=json.loads(text), max_cols=MAX_COLS)
+        cats.check_fit(P, *FIT)
+        cats.write(P, str(out), "CTC", header, WINDOW)
     except cats.SchematicError as e:
         sys.exit(f"error: {e}")
-    print(", ".join(t for t, _, _ in bands) + ": " + cats.summary(P))
+    cols, rows = cats.shown(P)
+    print(", ".join(t for t, _, _ in bands) + ": " + cats.summary(P) +
+          f"; shows {cols} x {rows} cells ({cols * GRID_PX} x {rows * GRID_PX} pixels at the {GRID_PX} pixel grid), "
+          f"fit {FIT[0]} x {FIT[1]} in a {WINDOW[0]} x {WINDOW[1]} window")
     print("\n".join(P.log))
 
 
