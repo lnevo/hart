@@ -44,9 +44,11 @@ DIVERGE = (95, 205, 255)    # turnout diverging legs (C/D)
 POINT = (255, 190, 60)      # turnout center / control point
 SIGNAL = (255, 105, 125)    # signal mast icon / facing marker
 # with --kinds: a field mast (hardware on the layout) red, a virtual one (JMRI only, for Dispatcher) blue, a planned
-# one (placeholder, no hardware yet) amber; a mast the signals file does not list stays red
+# one (placeholder, no hardware yet) violet (amber would read as a turnout's control point); a mast the signals file
+# does not list grey
 KINDS_FILE = Path(__file__).resolve().parents[1] / "data/schematic/staging.signals.json"
-KIND_COLOUR = {"field": SIGNAL, "virtual": (110, 170, 255), "planned": (240, 180, 60)}
+KIND_COLOUR = {"field": SIGNAL, "virtual": (110, 170, 255), "planned": (190, 130, 255)}
+UNLISTED = (150, 150, 150)
 STATION = (110, 220, 180)   # Dispatcher station control pair
 ANCHOR = (66, 72, 82)
 OSNUM = (255, 255, 255)
@@ -475,7 +477,7 @@ def render_view(
     # 12 x 17, a high mast 12 x 40: hartlib.tables.mast_icon_size), and a hidden icon is drawn hollow.
     f_sig = _font(10)
     for signal in vsignals:
-        colour = KIND_COLOUR.get(signal.get("kind"), SIGNAL)
+        colour = (KIND_COLOUR.get(signal["kind"], UNLISTED) if "kind" in signal else SIGNAL)
         th = math.radians(signal["degrees"])
         dx, dy = math.sin(th), -math.cos(th)
         px, py = X(signal["x"]), Y(signal["y"])
@@ -517,12 +519,15 @@ def render_view(
     d.text((pad + 418, ly - 7), "control point (turnout)", font=f_id, fill=SUBTITLE)
     d.ellipse([pad + 590, ly - 5, pad + 600, ly + 5], fill=SIGNAL)
     d.text((pad + 608, ly - 7), "signal facing", font=f_id, fill=SUBTITLE)
-    if any(s.get("kind") for s in vsignals):
-        kx = pad + 900
-        for kind in ("field", "virtual", "planned"):
-            d.ellipse([kx, ly - 5, kx + 10, ly + 5], fill=KIND_COLOUR[kind])
-            d.text((kx + 16, ly - 7), f"{kind} mast", font=f_id, fill=SUBTITLE)
-            kx += 110
+    if any("kind" in s for s in vsignals):              # a second legend row, so it never runs off a narrow image
+        kx, ky = pad, ly - 18
+        entries = [(f"{k} mast", KIND_COLOUR[k]) for k in ("field", "virtual", "planned")]
+        if any("kind" in s and s["kind"] not in KIND_COLOUR for s in vsignals):
+            entries.append(("not in the signals file", UNLISTED))
+        for text, colour in entries:
+            d.ellipse([kx, ky - 5, kx + 10, ky + 5], fill=colour)
+            d.text((kx + 16, ky - 7), text, font=f_id, fill=SUBTITLE)
+            kx += 16 + d.textlength(text, font=f_id) + 24
     d.rounded_rectangle(
         [pad + 720, ly - 5, pad + 744, ly + 7],
         radius=3,
@@ -551,19 +556,32 @@ def positive(text):
 
 
 def mast_kinds(path):
-    """{mast user name: kind} from a schematic signals file (its `signals` list: mast, kind; names take the
-    layer-1 `mast_prefix`, "Mast " on this railroad). Stops on a file it cannot read."""
+    """{mast user name: kind} from a schematic signals file (its `signals` list: mast, kind). Names take the
+    layer-1 `mast_prefix` from the plan overrides beside it (NAME.signals.json -> NAME.plan_overrides.json), or
+    "Mast " when there is none. Stops on a file it cannot use, or a mast listed twice."""
+    path = Path(path)
     try:
-        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
         rows = data["signals"]
+        if not isinstance(rows, list):
+            raise TypeError("signals is not a list")
     except (OSError, ValueError, KeyError, TypeError) as e:
         raise SystemExit(f"--kinds {path}: cannot read a signals list ({e})")
-    prefix = data.get("mast_prefix", "Mast ")
+    prefix = "Mast "
+    overrides = path.with_name(path.name.replace(".signals.json", ".plan_overrides.json"))
+    if overrides != path and overrides.exists():
+        try:
+            prefix = json.loads(overrides.read_text(encoding="utf-8")).get("mast_prefix", prefix)
+        except (OSError, ValueError) as e:
+            raise SystemExit(f"--kinds: cannot read {overrides} for the mast prefix ({e})")
     out = {}
     for r in rows:
         if not isinstance(r, dict) or not r.get("mast") or r.get("kind") not in KIND_COLOUR:
             raise SystemExit(f"--kinds {path}: each signal needs a mast and a kind of {', '.join(KIND_COLOUR)}: {r!r}")
-        out[prefix + r["mast"]] = r["kind"]
+        name = prefix + r["mast"]
+        if name in out:
+            raise SystemExit(f"--kinds {path}: {name} is listed twice")
+        out[name] = r["kind"]
     return out
 
 
@@ -588,6 +606,9 @@ def main():
     pp, legs, turnouts, segs, signals, stations = load_geometry(args.src, args.panel, args.curves, root)
     if args.kinds:
         kinds = mast_kinds(args.kinds)
+        unlisted = sorted(s["name"] for s in signals if s["name"] not in kinds)
+        if unlisted:
+            print(f"--kinds: not in {args.kinds.name}, drawn grey: {', '.join(unlisted)}")
         for s in signals:
             s["kind"] = kinds.get(s["name"])
 

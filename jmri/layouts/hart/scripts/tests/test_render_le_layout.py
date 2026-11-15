@@ -104,9 +104,6 @@ class ReviewFixes(unittest.TestCase):
             self.assertGreater(w1 / h1, w0 / h0)        # the picture widened to take in the label far to the west
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class MastKinds(unittest.TestCase):
     """--kinds: mast user names to kinds from a schematic signals file; a file it cannot use stops."""
@@ -134,3 +131,10 @@ class MastKinds(unittest.TestCase):
                 render_le_layout.mast_kinds(self.write(text))
         with self.assertRaises(SystemExit):
             render_le_layout.mast_kinds("/nonexistent/signals.json")
+        with self.assertRaises(SystemExit):                       # one mast, two kinds
+            render_le_layout.mast_kinds(self.write('{"signals": [{"mast": "4LA", "kind": "virtual"}, '
+                                                   '{"mast": "4LA", "kind": "planned"}]}'))
+
+
+if __name__ == "__main__":
+    unittest.main()

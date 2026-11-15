@@ -369,8 +369,16 @@ def staging_lengths(opts: dict, names: dict) -> dict:
     for track, inches in sorted(measured.items()):
         if isinstance(inches, bool) or not isinstance(inches, (int, float)) or not inches > 0:
             raise BuildError(f"staging track_lengths_in: {track!r} has length {inches!r}, not inches above zero")
-        if f"Track {track}" in used:
-            out[f"Track {track}"] = float(inches)
+        if f"Track {track}" not in used:
+            raise BuildError(f"staging track_lengths_in: no drawn staging track has the block 'Track {track}' "
+                             "(renamed or misspelt?)")
+        out[f"Track {track}"] = float(inches)
+    # A track that also holds an OS block (the Scale track ends in OS Switch 7) has no measured length for it, so
+    # it is drawn with equal blocks as before; its track's length is left out rather than logged on every build.
+    for blocks in names["blocks"].values():
+        if any(b.startswith("OS ") for b in blocks):
+            for b in blocks:
+                out.pop(b, None)
     return out
 
 
