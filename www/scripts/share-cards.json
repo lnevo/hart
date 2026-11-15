@@ -219,6 +219,11 @@
       "from": "www/assets/behind/sts/scale-instructions.jpg",
       "shared": true
     },
+    "exam/index.html": {
+      "image": "assets/share/ap-exam.jpg",
+      "alt": "The C&E exam study deck: a flipped flashcard on Rule S-71 beside a practice question on the 12-hour rule, answered correctly.",
+      "from": "drawn with the deck's own styles and text from www/exam/index.html (make_share_cards.py ap-exam)"
+    },
     "guides/auto-dispatcher.html": {
       "image": "assets/share/guides-auto-dispatcher.jpg",
       "alt": "The Dispatcher System command menu in PanelPro, with Run Dispatch, Setup Route and Run Route.",

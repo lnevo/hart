@@ -557,6 +557,51 @@ def ai_mmr():
     return card(out)
 
 
+def ap_exam():
+    """ap-exam: the C&E exam study deck at work, a flipped flashcard beside an answered practice question.
+
+    Drawn with the deck's own styles and text, both read from www/exam/index.html, so the card follows the page."""
+    page = (PORTAL / "exam" / "index.html").read_text(encoding="utf-8")
+    css = re.search(r"<style>(.*?)</style>", page, re.S).group(1)
+    front = "Rule S-71 (single track): how is a train superior?"
+    back = re.search(r'C\("sup","' + re.escape(front) + r'","((?:[^"\\]|\\.)*)"', page).group(1)
+    ask = "A regular train is more than 12 hours behind its schedule at a station. It\u2026"
+    m = re.search(r'Q\("sup","' + re.escape(ask) + r'",(\[.*?\]),"((?:[^"\\]|\\.)*)"', page)
+    opts, why = json.loads(m.group(1)), m.group(2)
+    e = html.escape
+    order = [2, 0, 1, 3]  # where the correct answer (opts[0]) sits: B
+    rows = "".join(
+        f'<div class="opt{" right" if o == 0 else ""}"><span class="k">{"ABCD"[i]}</span><span>{e(opts[o])}</span></div>'
+        for i, o in enumerate(order)
+    )
+    body = f"""<div class="ce sc">
+  <div class="sc-head"><span class="sc-eye">OPSIG Achievement Program \u00b7 Conductor &amp; Engineer</span>
+    <span class="sc-title">C&amp;E Exam Study Deck</span></div>
+  <div class="sc-cols">
+    <div class="flimsy"><div class="top"><span class="sec">Superiority &amp; movement</span><span>Flashcard</span></div>
+      <div class="front">{e(front)}</div><div class="back">{e(back)}</div><div class="src">\u00a71.0 Standard Code \u00b7 Rule S-71</div></div>
+    <div class="flimsy"><div class="top"><span class="sec">Practice test</span><span>Question 7 of 20</span></div>
+      <div class="front">{e(ask)}</div><div class="opts">{rows}</div>
+      <div class="why"><b class="ok">Correct.</b> {e(why)}</div></div>
+  </div></div>"""
+    style = css + """
+body{background:var(--paper);font-family:var(--font-body)}
+.sc{height:630px;padding:24px 34px 30px;gap:14px}
+.sc-head{display:flex;flex-direction:column;gap:2px}
+.sc-eye{font-family:var(--f-mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text)}
+.sc-title{font-family:var(--font-display);font-weight:700;font-size:54px;line-height:1;color:var(--brand)}
+.sc-cols{display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1;min-height:0}
+.ce .sc-cols .flimsy{min-height:0;padding:14px 20px 16px;gap:12px;background-position:0 50px}
+.ce .sc-cols .front{font-size:29px}
+.ce .sc-cols .back{font-size:21px;line-height:1.5}
+.ce .sc-cols .src{font-size:14px}
+.ce .sc-cols .opt{padding:8px 12px;font-size:17px}
+.ce .sc-cols .opts{gap:8px}
+.ce .sc-cols .why{font-size:17px;padding-top:10px}
+"""
+    return card(draw("ap-exam", body, style))
+
+
 CARDS = {
     "library-operations-pro-article": opspro_article,
     "library-opspro-showcase-guide": opspro_walkthrough,
@@ -569,6 +614,7 @@ CARDS = {
     "ai-construction": ai_construction,
     "ai-operations": ai_operations,
     "ai-mmr": ai_mmr,
+    "ap-exam": ap_exam,
     "behind-wiring": wiring_node,
     "behind-jmri-additions": jmri_additions,
     "behind-panel-evolution": panel_evolution,
