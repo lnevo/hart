@@ -50,7 +50,7 @@ def main(argv):
     with tempfile.TemporaryDirectory() as tmp:
         fresh = Path(tmp) / OUT.name
         generate(plugin, fresh)
-        new, old = fresh.read_text(), (OUT.read_text() if OUT.exists() else "")
+        new, old = fresh.read_text(encoding="utf-8"), (OUT.read_text(encoding="utf-8") if OUT.exists() else "")
         if new == old:
             print(f"{OUT.relative_to(pd.REPO)} is current")
         elif check:
@@ -60,7 +60,7 @@ def main(argv):
             return 1
         else:
             OUT.parent.mkdir(parents=True, exist_ok=True)
-            OUT.write_text(new)
+            OUT.write_text(new, encoding="utf-8")
             print(f"wrote {OUT.relative_to(pd.REPO)}")
     return 0
 
