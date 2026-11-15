@@ -2,7 +2,7 @@
 
 Layout Editor Discover writes Signal Mast Logic (and NX pairs) into the tables bundle. JMRI re-paths SML on load when `useLayoutEditor=yes`.
 
-**Status:** Live. Current tables hold 40 sources / 100 dests and 39 NX pairs. Two Princess dests are manual after every Discover.
+**Status:** Live. Current tables hold 42 sources / 100 dests (all from Discover) and 39 NX pairs.
 
 NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at runtime (`useLayoutEditor=yes`); they are **not** stored in `tables.xml`. Digicon dests boot **Enabled=no**. Brick pairs without a stored dest use live connectivity.
 
@@ -30,9 +30,9 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 python3 jmri/layouts/hart/scripts/validate_le_signalling.py
 ```
 
-The PanelPro wrappers share `tools/hosts/panelpro_session.sh`: every Start Up item that runs code is off for the run except a short allowlist (`tools/hosts/panelpro_profile.py`), the PanelPro they started is stopped on a timeout, Ctrl-C or SIGTERM, and the profile comes back from `profile.xml.hart-run.bak`. After a `kill -9`, quit that PanelPro and run `python3 tools/hosts/panelpro_profile.py restore --profile <profile.xml>`; until then the wrappers, deploy and `launch_cats.sh` refuse. NX Discover paints every occupancy sensor INACTIVE in PanelPro before discovery (no MQTT publish, but JMRI's own listeners react), so run it with the layout idle. The Brick smoke is opt-in (`HART_NX_SMOKE=1`); `HART_NX_THROW=1` with it sets a real route and commands MQTT turnouts. Rehearsal steps on a copy of the profile are in the header of `panelpro_session.sh`.
+Every SML dest comes from Discover; there are no manual pairs. The two Princess pairs `Mast 36RA→Mast 40LA` and `Mast 36RB→Mast 38LA` were retired on 2026-11-15: Discover refuses them ("Signal mast in the wrong direction") because 40LA and 38LA are westbound homes and 36RA/36RB govern eastbound, and no section, NX pair or route used them ([`DISPATCHER_LAYOUT_HOOPS.md`](../DISPATCHER_LAYOUT_HOOPS.md)). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.
 
-After Discover, re-add manual Princess pairs (`Mast 36RA→Mast 40LA`, `Mast 36RB→Mast 38LA`): `restore_manual_sml_pairs.py --reference <tables before Discover>` (the Stage 1 wrapper does this itself). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.
+The PanelPro wrappers share `tools/hosts/panelpro_session.sh`: every Start Up item that runs code is off for the run except a short allowlist (`tools/hosts/panelpro_profile.py`), the PanelPro they started is stopped on a timeout, Ctrl-C or SIGTERM, and the profile comes back from `profile.xml.hart-run.bak`. After a `kill -9`, quit that PanelPro and run `python3 tools/hosts/panelpro_profile.py restore --profile <profile.xml>`; until then the wrappers, deploy and `launch_cats.sh` refuse. NX Discover paints every occupancy sensor INACTIVE in PanelPro before discovery (no MQTT publish, but JMRI's own listeners react), so run it with the layout idle. The Brick smoke is opt-in (`HART_NX_SMOKE=1`); `HART_NX_THROW=1` with it sets a real route and commands MQTT turnouts. Rehearsal steps on a copy of the profile are in the header of `panelpro_session.sh`.
 
 ## Do not
 

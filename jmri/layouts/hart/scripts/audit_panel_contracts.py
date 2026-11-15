@@ -295,10 +295,11 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:
     auto = sum(use_le == "yes" for _, _, use_le in destinations)
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
-    if (len(destinations), auto, manual, unknown) != (102, 100, 2, 0):
+    # Every destination comes from Discover: the two manual Princess pairs were retired on 2026-11-15.
+    if (len(destinations), auto, manual, unknown) != (100, 100, 0, 0):
         message = (
-            "stored SML destinations expected total=102, useLayoutEditor=yes=100, "
-            f"manual=2; found total={len(destinations)}, yes={auto}, "
+            "stored SML destinations expected total=100, useLayoutEditor=yes=100, "
+            f"manual=0; found total={len(destinations)}, yes={auto}, "
             f"manual={manual}, unspecified/other={unknown}"
         )
         (audit.error if required else audit.warn)(message)

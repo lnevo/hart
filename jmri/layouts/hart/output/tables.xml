@@ -3098,22 +3098,22 @@
     <sensor inverted="false">
       <systemName>ISNX:114LA</systemName>
       <userName>NX Mast 38LA</userName>
-      <comment>Princess, Track McKeesport dwarf westbound; lever 28 Left</comment>
+      <comment>Princess, Track McKeesport westbound home, two-head; lever 28 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:114LB</systemName>
       <userName>NX Mast 38LB</userName>
-      <comment>Princess, Track K-2 westbound; lever 28 Left</comment>
+      <comment>Princess, Track K-2 dwarf westbound; lever 28 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:115LA</systemName>
       <userName>NX Mast 40LA</userName>
-      <comment>Princess, Track McKees Rocks dwarf westbound; lever 30 Left</comment>
+      <comment>Princess, Track McKees Rocks westbound home, two-head; lever 30 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:115LB</systemName>
       <userName>NX Mast 40LB</userName>
-      <comment>Princess, Track K-1 westbound; lever 30 Left</comment>
+      <comment>Princess, Track K-1 dwarf westbound; lever 30 Left</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>ISNX:117LA</systemName>
@@ -9507,36 +9507,6 @@
         <associatedSection>Mast 36RB:Mast 40RB</associatedSection>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 38LA">
-        <destinationSignalMast>Mast 38LA</destinationSignalMast>
-        <comment>Princess Discover hole; useLayoutEditor=no</comment>
-        <enabled>no</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>no</useLayoutEditor>
-        <useLayoutEditorTurnouts>no</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>no</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-        <blocks>
-          <block>
-            <blockName>OS Switch 37</blockName>
-            <blockState>unoccupied</blockState>
-          </block>
-          <block>
-            <blockName>OS Switch 35a</blockName>
-            <blockState>unoccupied</blockState>
-          </block>
-        </blocks>
-        <turnouts>
-          <turnout>
-            <turnoutName>Switch 35</turnoutName>
-            <turnoutState>closed</turnoutState>
-          </turnout>
-          <turnout>
-            <turnoutName>Switch 37</turnoutName>
-            <turnoutState>closed</turnoutState>
-          </turnout>
-        </turnouts>
-      </destinationMast>
     </signalmastlogic>
     <signalmastlogic source="Mast 36RA">
       <sourceSignalMast>Mast 36RA</sourceSignalMast>
@@ -9561,36 +9531,6 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <associatedSection>Mast 36RA:Mast 40RB</associatedSection>
         <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 40LA">
-        <destinationSignalMast>Mast 40LA</destinationSignalMast>
-        <comment>Princess Discover hole; useLayoutEditor=no</comment>
-        <enabled>no</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>no</useLayoutEditor>
-        <useLayoutEditorTurnouts>no</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>no</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-        <blocks>
-          <block>
-            <blockName>OS Switch 39</blockName>
-            <blockState>unoccupied</blockState>
-          </block>
-          <block>
-            <blockName>OS Switch 35b</blockName>
-            <blockState>unoccupied</blockState>
-          </block>
-        </blocks>
-        <turnouts>
-          <turnout>
-            <turnoutName>Switch 35</turnoutName>
-            <turnoutState>closed</turnoutState>
-          </turnout>
-          <turnout>
-            <turnoutName>Switch 39</turnoutName>
-            <turnoutState>closed</turnoutState>
-          </turnout>
-        </turnouts>
       </destinationMast>
     </signalmastlogic>
     <signalmastlogic source="Mast 38LA">

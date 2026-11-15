@@ -74,11 +74,11 @@ CTC_MASTS = {
     "Mast 36RA": "Princess, Track Main West eastbound; lever 26 Right",
     "Mast 36RB": "Princess, Track East Lead eastbound; lever 26 Right",
     "Mast 2036": "Princess, Track K-2 dwarf eastbound; lever 28 Right",
-    "Mast 38LA": "Princess, Track McKeesport dwarf westbound; lever 28 Left",
-    "Mast 38LB": "Princess, Track K-2 westbound; lever 28 Left",
+    "Mast 38LA": "Princess, Track McKeesport westbound home, two-head; lever 28 Left",
+    "Mast 38LB": "Princess, Track K-2 dwarf westbound; lever 28 Left",
     "Mast 2035": "Princess, Track K-1 dwarf eastbound; lever 30 Right",
-    "Mast 40LA": "Princess, Track McKees Rocks dwarf westbound; lever 30 Left",
-    "Mast 40LB": "Princess, Track K-1 westbound; lever 30 Left",
+    "Mast 40LA": "Princess, Track McKees Rocks westbound home, two-head; lever 30 Left",
+    "Mast 40LB": "Princess, Track K-1 dwarf westbound; lever 30 Left",
 }
 
 INTERNAL_CLOSE = "  </sensors>\n  <turnouts class=\"jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml\">"
