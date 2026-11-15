@@ -26,6 +26,7 @@ run status-counts python3 tools/ops/status_counts.py --check
 # Prints SKIPPED and passes when the schematic-maps plugin submodule is not checked out (fails in CI, SCHEMATIC_REQUIRED=1).
 run schematic-signals python3 tools/schematic/build_signals.py --check
 run schematic-cats python3 tools/schematic/build_cats_panel.py --check
+run schematic-hands python3 tools/schematic/build_hands.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
