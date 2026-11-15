@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import sys
 import xml.etree.ElementTree as ET
@@ -42,6 +43,10 @@ THRU = (232, 236, 242)      # turnout continuing legs (A/B)
 DIVERGE = (95, 205, 255)    # turnout diverging legs (C/D)
 POINT = (255, 190, 60)      # turnout center / control point
 SIGNAL = (255, 105, 125)    # signal mast icon / facing marker
+# with --kinds: a field mast (hardware on the layout) red, a virtual one (JMRI only, for Dispatcher) blue, a planned
+# one (placeholder, no hardware yet) amber; a mast the signals file does not list stays red
+KINDS_FILE = Path(__file__).resolve().parents[1] / "data/schematic/staging.signals.json"
+KIND_COLOUR = {"field": SIGNAL, "virtual": (110, 170, 255), "planned": (240, 180, 60)}
 STATION = (110, 220, 180)   # Dispatcher station control pair
 ANCHOR = (66, 72, 82)
 OSNUM = (255, 255, 255)
@@ -470,6 +475,7 @@ def render_view(
     # 12 x 17, a high mast 12 x 40: hartlib.tables.mast_icon_size), and a hidden icon is drawn hollow.
     f_sig = _font(10)
     for signal in vsignals:
+        colour = KIND_COLOUR.get(signal.get("kind"), SIGNAL)
         th = math.radians(signal["degrees"])
         dx, dy = math.sin(th), -math.cos(th)
         px, py = X(signal["x"]), Y(signal["y"])
@@ -477,16 +483,16 @@ def render_view(
             bw, bh = icon_box(signal)
             px, py = X(signal["x"] + bw / 2), Y(signal["y"] + bh / 2)
             r = 3
-            d.ellipse([px - r, py - r, px + r, py + r], outline=SIGNAL, width=1,
-                      fill=None if signal.get("hidden") else SIGNAL)
-            d.line([(px, py), (px + 9 * dx * scale, py + 9 * dy * scale)], fill=SIGNAL, width=2)
+            d.ellipse([px - r, py - r, px + r, py + r], outline=colour, width=1,
+                      fill=None if signal.get("hidden") else colour)
+            d.line([(px, py), (px + 9 * dx * scale, py + 9 * dy * scale)], fill=colour, width=2)
             continue
-        d.ellipse([px - 5, py - 5, px + 5, py + 5], fill=SIGNAL)
-        d.line([(px, py), (px + 18 * dx, py + 18 * dy)], fill=SIGNAL, width=4)
+        d.ellipse([px - 5, py - 5, px + 5, py + 5], fill=colour)
+        d.line([(px, py), (px + 18 * dx, py + 18 * dy)], fill=colour, width=4)
         tx = px + (8 if dx >= 0 else -8)
         ty = py + (9 if dy >= 0 else -20)
         anchor = "la" if dx >= 0 else "ra"
-        d.text((tx, ty), signal["name"], font=f_sig, fill=SIGNAL, anchor=anchor)
+        d.text((tx, ty), signal["name"], font=f_sig, fill=colour, anchor=anchor)
 
     f_station = _font(10, bold=True)
     for station in vstations:
@@ -511,6 +517,12 @@ def render_view(
     d.text((pad + 418, ly - 7), "control point (turnout)", font=f_id, fill=SUBTITLE)
     d.ellipse([pad + 590, ly - 5, pad + 600, ly + 5], fill=SIGNAL)
     d.text((pad + 608, ly - 7), "signal facing", font=f_id, fill=SUBTITLE)
+    if any(s.get("kind") for s in vsignals):
+        kx = pad + 900
+        for kind in ("field", "virtual", "planned"):
+            d.ellipse([kx, ly - 5, kx + 10, ly + 5], fill=KIND_COLOUR[kind])
+            d.text((kx + 16, ly - 7), f"{kind} mast", font=f_id, fill=SUBTITLE)
+            kx += 110
     d.rounded_rectangle(
         [pad + 720, ly - 5, pad + 744, ly + 7],
         radius=3,
@@ -538,6 +550,23 @@ def positive(text):
     return v
 
 
+def mast_kinds(path):
+    """{mast user name: kind} from a schematic signals file (its `signals` list: mast, kind; names take the
+    layer-1 `mast_prefix`, "Mast " on this railroad). Stops on a file it cannot read."""
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        rows = data["signals"]
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        raise SystemExit(f"--kinds {path}: cannot read a signals list ({e})")
+    prefix = data.get("mast_prefix", "Mast ")
+    out = {}
+    for r in rows:
+        if not isinstance(r, dict) or not r.get("mast") or r.get("kind") not in KIND_COLOUR:
+            raise SystemExit(f"--kinds {path}: each signal needs a mast and a kind of {', '.join(KIND_COLOUR)}: {r!r}")
+        out[prefix + r["mast"]] = r["kind"]
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("src", type=Path)
@@ -550,10 +579,17 @@ def main():
     ap.add_argument("--curves", action="store_true", help="draw Bezier and arc track as curves, not chords")
     ap.add_argument("--labels", action="store_true", help="draw the panel as Layout Editor shows it: its labels, shapes and single crossovers")
     ap.add_argument("--scale", type=positive, help="image pixels per panel pixel (1 draws the panel at 100%% zoom)")
+    ap.add_argument("--kinds", type=Path, nargs="?", const=KINDS_FILE, metavar="SIGNALS_JSON",
+                    help="colour mast icons by kind (field, virtual, planned) from a schematic signals file "
+                         "(default: the staging signals file)")
     args = ap.parse_args()
 
     root = ET.parse(args.src).getroot()
     pp, legs, turnouts, segs, signals, stations = load_geometry(args.src, args.panel, args.curves, root)
+    if args.kinds:
+        kinds = mast_kinds(args.kinds)
+        for s in signals:
+            s["kind"] = kinds.get(s["name"])
 
     if args.all_views:
         for key, (title, subtitle, xmin, xmax) in VIEWS.items():

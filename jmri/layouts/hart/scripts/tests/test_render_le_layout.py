@@ -106,3 +106,31 @@ class ReviewFixes(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MastKinds(unittest.TestCase):
+    """--kinds: mast user names to kinds from a schematic signals file; a file it cannot use stops."""
+
+    def write(self, text):
+        f = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        f.write(text)
+        f.close()
+        self.addCleanup(Path(f.name).unlink)
+        return f.name
+
+    def test_kinds_by_mast_user_name(self):
+        path = self.write('{"signals": [{"mast": "2L", "kind": "field"}, {"mast": "4LA", "kind": "virtual"}]}')
+        self.assertEqual(render_le_layout.mast_kinds(path), {"Mast 2L": "field", "Mast 4LA": "virtual"})
+
+    def test_the_repo_signals_file_reads(self):
+        kinds = render_le_layout.mast_kinds(render_le_layout.KINDS_FILE)
+        self.assertTrue(kinds)
+        self.assertTrue(set(kinds.values()) <= set(render_le_layout.KIND_COLOUR))
+
+    def test_a_file_it_cannot_use_stops(self):
+        for text in ("not json", '{"masts": []}', '{"signals": [{"mast": "2L", "kind": "phantom"}]}',
+                     '{"signals": [{"kind": "field"}]}', '{"signals": ["2L"]}'):
+            with self.subTest(text=text), self.assertRaises(SystemExit):
+                render_le_layout.mast_kinds(self.write(text))
+        with self.assertRaises(SystemExit):
+            render_le_layout.mast_kinds("/nonexistent/signals.json")

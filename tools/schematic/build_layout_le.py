@@ -14,7 +14,9 @@ Names:
 - Staging binds to the live objects, so the panel can replace "HART Railroad" at the cut-over: each schematic
   switch is the live Layout Editor turnout that switches.csv names (its turnout name and OS blocks as the live panel
   has them; switches 7, 23 and 35 are one single crossover each), and each schematic track takes the blocks of the
-  live track between the same two switches, in order (a turnback's two tracks split them by track name). The
+  live track between the same two switches, in order (a turnback's two tracks split them by track name), drawn at
+  their measured lengths (staging `track_lengths_in`), so each short throat block (S-1 West, S-1 East, East Lead
+  East, K-1 West) sits at its own end of its track, by its ladder. The
   normal leg is switch_legs.csv's closed leg. No staging object is created; the build stops if a name is missing.
 - Staging masts: every mast the live panel binds in a slot goes in the slot of the new panel that JMRI resolves to
   the same facing and protected blocks, and the same kind of slot (anchor, end bumper or turnout leg), so Signal
@@ -355,6 +357,23 @@ def staging_names(band, live_le: ET.Element, tidy) -> dict:
     return names
 
 
+def staging_lengths(opts: dict, names: dict) -> dict:
+    """{block: inches} for each staging block the schematic draws whose track has a measured length (layer 1
+    `track_lengths_in`, by track name: block "Track S-1 West" is track "S-1 West"), so a track with several blocks
+    is cut at their real shares: a short throat block (S-1 West, East Lead East, K-1 West) sits at its own end."""
+    measured = opts.get("track_lengths_in") or {}
+    if not isinstance(measured, dict):
+        raise BuildError("staging track_lengths_in must be an object of track name: inches")
+    used = {b for v in names["blocks"].values() for b in v}
+    out = {}
+    for track, inches in sorted(measured.items()):
+        if isinstance(inches, bool) or not isinstance(inches, (int, float)) or not inches > 0:
+            raise BuildError(f"staging track_lengths_in: {track!r} has length {inches!r}, not inches above zero")
+        if f"Track {track}" in used:
+            out[f"Track {track}"] = float(inches)
+    return out
+
+
 def staging_masts(root: ET.Element, live_le: ET.Element) -> list[dict]:
     """The plugin's mast list for staging: every mast in a slot of the live panel, with the facing block, protected
     blocks and kind of slot JMRI resolves for it there, its icon size from its aspect type, and hidden as its live
@@ -543,6 +562,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None):
     names[STAGING] = staging_names(bands[keys.index(STAGING)][1], template, core.tidy)
     names[STAGING]["masts"] = staging_masts(root, template)
     names[STAGING]["joins"] = "other"
+    names[STAGING]["lengths"] = staging_lengths(bands[keys.index(STAGING)][2], names[STAGING])
     try:
         P = le_mod.panel(bands, names, page=page, fit=FIT)
     except core.SchematicError as exc:
