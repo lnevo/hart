@@ -659,8 +659,16 @@
       "pub": "SM-02",
       "revision": "A",
       "effective": "23 July 2026",
-      "img": "assets/maps/station_map_west_yard.png",
-      "alt": "West Yard station map: W-1 and W-2 off switch 3, Brick at switch 1 on Main West, Plane at switch 5 to the West Lead and Main East.",
+      "img": "crew/maps/generated-sheets/brick-and-plane.svg",
+      "alt": "Brick and Plane station map, Switches 1, 3 and 5",
+      "sheets": [
+        {
+          "img": "crew/maps/generated-sheets/brick-and-plane.svg",
+          "title": "Brick and Plane",
+          "switches": "Switches 1, 3 and 5",
+          "alt": "Brick and Plane station map, Switches 1, 3 and 5"
+        }
+      ],
       "what": "Where D749 ties down: yard tracks W-1 and W-2 off Brick, and the Plane junction to the West Lead and Main East.",
       "tracks": [
         {
@@ -702,8 +710,7 @@
         "south-yard",
         "barn",
         "east-end"
-      ],
-      "source": "../docs/ops/Neville_Island_Station_Map_West_Yard.docx"
+      ]
     },
     {
       "id": "south-yard",
@@ -711,8 +718,22 @@
       "pub": "SM-03",
       "revision": "A",
       "effective": "23 July 2026",
-      "img": "assets/maps/station_map_south_yard.png",
-      "alt": "South Yard station map: Scale and Barn tracks, engine house EH-1 to EH-3 off switch 13, yard ladder switches 15, 17, 19 and 21 to tracks S-R to S-4, Switch 7 crossover to Main East.",
+      "img": "crew/maps/generated-sheets/south-yard.svg",
+      "alt": "South Yard station map, Switches 7 to 21",
+      "sheets": [
+        {
+          "img": "crew/maps/generated-sheets/south-yard.svg",
+          "title": "South Yard",
+          "switches": "Switches 7 to 21",
+          "alt": "South Yard station map, Switches 7 to 21"
+        },
+        {
+          "img": "crew/maps/generated-sheets/south-yard-and-east-end.svg",
+          "title": "South Yard and East End",
+          "switches": "Switches 15 to 33",
+          "alt": "South Yard and East End station map, Switches 15 to 33"
+        }
+      ],
       "what": "The yard where D749, NVL and CK1 meet: tracks S-R to S-4 on the ladder, the Scale and Barn tracks, and the engine house leads.",
       "tracks": [
         {
@@ -787,8 +808,7 @@
         "barn",
         "west-yard",
         "east-end"
-      ],
-      "source": "../docs/ops/Neville_Island_Station_Map_South_Yard.docx"
+      ]
     },
     {
       "id": "barn",
@@ -796,8 +816,16 @@
       "pub": "SM-06",
       "revision": "",
       "effective": "",
-      "img": "assets/maps/station_map_barn.png",
-      "alt": "Barn station map: Engine House EH-1, EH-2 and EH-3 into switches 9 and 11, Switch 13 on the Barn track, Switch 7 crossover to Main East.",
+      "img": "crew/maps/generated-sheets/barn.svg",
+      "alt": "Barn station map, Switches 7 to 13",
+      "sheets": [
+        {
+          "img": "crew/maps/generated-sheets/barn.svg",
+          "title": "Barn",
+          "switches": "Switches 7 to 13",
+          "alt": "Barn station map, Switches 7 to 13"
+        }
+      ],
       "what": "The engine terminal: engine house tracks EH-1 to EH-3 off switches 9, 11 and 13, and the Switch 7 crossover to Main East.",
       "tracks": [
         {
@@ -847,8 +875,7 @@
         "south-yard",
         "west-yard",
         "east-end"
-      ],
-      "source": "../docs/ops/Neville_Island_Station_Map_Barn.docx"
+      ]
     },
     {
       "id": "east-end",
@@ -856,8 +883,22 @@
       "pub": "SM-04",
       "revision": "A",
       "effective": "23 July 2026",
-      "img": "assets/maps/station_map_east_end.png",
-      "alt": "East End station map: Aristech Plastics on S-1, Ferrellgas and A. Stucki Co. on S-2, Kosmos Cement on S-3, Calgon Carbon on S-4, ladder switches 25 to 31, crossover 23, and switch 33 to Main East.",
+      "img": "crew/maps/generated-sheets/east-end.svg",
+      "alt": "East End station map, Switches 23 to 33",
+      "sheets": [
+        {
+          "img": "crew/maps/generated-sheets/east-end.svg",
+          "title": "East End",
+          "switches": "Switches 23 to 33",
+          "alt": "East End station map, Switches 23 to 33"
+        },
+        {
+          "img": "crew/maps/generated-sheets/south-yard-and-east-end.svg",
+          "title": "South Yard and East End",
+          "switches": "Switches 15 to 33",
+          "alt": "South Yard and East End station map, Switches 15 to 33"
+        }
+      ],
       "what": "The island industries: Aristech on S-1, Ferrellgas and A. Stucki on S-2, Kosmos on S-3, and Calgon Carbon on S-4.",
       "tracks": [
         {
@@ -945,8 +986,7 @@
         "west-yard",
         "barn",
         "shenango"
-      ],
-      "source": "../docs/ops/Neville_Island_Station_Map_East_End.docx"
+      ]
     },
     {
       "id": "shenango",
@@ -954,9 +994,16 @@
       "pub": "SM-05",
       "revision": "B",
       "effective": "7 November 2026",
-      "img": "assets/maps/station_map_shenango.png",
-      "rotated": "assets/maps/station_map_shenango_rotated.png",
-      "alt": "Shenango station map: Princess crossover 35 between Main West and Main East; Track McKees Rocks off switch 39 and Track McKeesport off switch 37 run east toward the helix and the Scully and Demmler interchanges; Shenango Coke Works sits inside the Track K-1 / Track K-2 loop.",
+      "img": "crew/maps/generated-sheets/princess.svg",
+      "alt": "Princess station map, Switches 35 to 39",
+      "sheets": [
+        {
+          "img": "crew/maps/generated-sheets/princess.svg",
+          "title": "Princess",
+          "switches": "Switches 35 to 39",
+          "alt": "Princess station map, Switches 35 to 39"
+        }
+      ],
       "what": "Princess junction, Shenango Coke Works on K-1 and K-2, and the loops to McKees Rocks / Scully and McKeesport / Demmler.",
       "tracks": [
         {
@@ -1024,8 +1071,7 @@
       ],
       "connects": [
         "east-end"
-      ],
-      "source": "../docs/ops/Neville_Island_Station_Map_Shenango.docx"
+      ]
     }
   ],
   "jobs": [

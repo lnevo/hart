@@ -463,14 +463,6 @@
     document.getElementById("page-pub").textContent = pubLine(m);
     document.getElementById("page-lede").textContent = m.what;
 
-    var toggle = "";
-    if (m.rotated) {
-      toggle =
-        '<div class="seg no-print" role="group" aria-label="Map orientation">' +
-        '<button type="button" aria-pressed="true" data-src="' + esc(u(m.img)) + '">Standard</button>' +
-        '<button type="button" aria-pressed="false" data-src="' + esc(u(m.rotated)) + '">Rotated (desk view)</button></div>';
-    }
-
     var tracks =
       '<section class="sheet-sec no-print"><h2>Tracks</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>Track</th><th>What is there</th><th>Color</th></tr></thead><tbody>' +
       m.tracks
@@ -509,24 +501,29 @@
       }).join("") +
       "</div></section>";
 
+    // Each station sheet is a drawing generated from the layout data (ADR-023); a sheet
+    // shared by two stations is listed under both.
+    var sheets = m.sheets || [{ img: m.img, alt: m.alt }];
+    var figures = sheets
+      .map(function (sh) {
+        return (
+          '<figure class="map-figure">' +
+          (sheets.length > 1 ? "<h2>" + esc(sh.title) + '</h2><p class="muted no-print">' + esc(sh.switches) + "</p>" : "") +
+          '<button type="button" class="map-open" data-zoom aria-label="Open ' + esc(sh.title || m.title) +
+          ' map full screen"><img src="' + esc(u(sh.img)) + '" alt="' + esc(sh.alt) + '" width="1056" height="816"></button>' +
+          '<figcaption class="no-print">Tap the map to zoom. <a href="' + esc(u(sh.img)) + '">Open the drawing full size</a>. ' +
+          '<span class="rotate-hint">Turn your phone sideways for a bigger view.</span></figcaption></figure>'
+        );
+      })
+      .join("");
+
     root.innerHTML =
-      toggle +
-      '<figure class="map-figure"><button type="button" class="map-open" data-zoom aria-label="Open ' + esc(m.title) +
-      ' map full screen"><img src="' + esc(u(m.img)) + '" alt="' + esc(m.alt) + '" width="1600" height="1000"></button>' +
-      '<figcaption class="no-print">Tap the map to zoom. <span class="rotate-hint">Turn your phone sideways for a bigger view.</span></figcaption></figure>' +
+      figures +
       tracks + switches + connects +
-      '<div class="sheet-actions no-print">' + printButton("Print map (8×5)") + sourceButton(m.source) +
+      '<div class="sheet-actions no-print">' + printButton("Print map") +
       '<a class="btn btn-ghost" href="' + u("crew/maps/index.html") + '">All maps</a>' +
       '<a class="btn btn-ghost" href="' + u("crew/index.html") + '">Session paperwork</a></div>';
 
-    root.querySelectorAll(".seg button").forEach(function (b) {
-      b.addEventListener("click", function () {
-        root.querySelectorAll(".seg button").forEach(function (o) {
-          o.setAttribute("aria-pressed", o === b ? "true" : "false");
-        });
-        root.querySelector(".map-figure img").src = b.getAttribute("data-src");
-      });
-    });
     wireZoom(root);
     wirePrint(root);
   }

@@ -1,18 +1,17 @@
-"""Generated station map previews (ADR-023): every station SVG is published from docs/ops/stations,
-every preview page points at a published sheet, and nothing on the live crew pages links them."""
+"""Station map sheets (ADR-023): every station SVG is published from docs/ops/stations, the crew
+map pages show those sheets, and no hand-drawn station PNG or preview page is left."""
 from __future__ import annotations
 
 import json
-import re
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 PUBLISHED = json.loads((ROOT / "www/scripts/published-files.json").read_text())
+CREW = json.loads((ROOT / "www/data/crew.json").read_text())
 MAPS = ROOT / "www/crew/maps"
 SHEETS = sorted((ROOT / "docs/ops/stations").glob("*.svg"))
 FOLDER = "crew/maps/generated-sheets/"
-WORDS = {6: "Six", 7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten"}
 
 
 class GeneratedMapsTest(unittest.TestCase):
@@ -25,32 +24,34 @@ class GeneratedMapsTest(unittest.TestCase):
             if rel.startswith(FOLDER):
                 self.assertTrue((ROOT / src).is_file(), src)
 
-    def test_pages_use_published_sheets_and_are_noindex(self):
-        pages = list(MAPS.glob("*/generated.html")) + [MAPS / "generated.html"]
-        self.assertTrue(pages)
-        for page in pages:
-            text = page.read_text()
-            self.assertIn('<meta name="robots" content="noindex">', text, page)
-            self.assertIn("Generated map, preview" if page.parent != MAPS else "Preview for review", text)
-            for name in re.findall(r"generated-sheets/([\w-]+\.svg)", text):
-                self.assertIn(FOLDER + name, PUBLISHED, page)
+    def test_every_sheet_is_on_a_crew_map_page(self):
+        used = {s["img"] for m in CREW["maps"] for s in m["sheets"]}
+        self.assertEqual(used, {FOLDER + svg.name for svg in SHEETS})
 
-    def test_overview_lists_all_sheets_and_says_how_many(self):
-        text = (MAPS / "generated.html").read_text()
-        for svg in SHEETS:
-            self.assertIn(f"generated-sheets/{svg.name}", text)
-        self.assertEqual(len(re.findall(r"<li>", text)), len(SHEETS))
-        self.assertIn(f"{WORDS[len(SHEETS)]} generated station map sheets", text)
+    def test_each_map_shows_only_published_sheets(self):
+        for m in CREW["maps"]:
+            self.assertEqual(m["img"], m["sheets"][0]["img"], m["id"])
+            for s in m["sheets"]:
+                self.assertIn(s["img"], PUBLISHED, m["id"])
+            self.assertNotIn("source", m, m["id"])
+            self.assertNotIn("rotated", m, m["id"])
 
-    def test_live_pages_do_not_link_the_previews(self):
-        link = re.compile(r"""(href|src)=["'][^"']*generated(\.html|-sheets/)""")
-        live = [MAPS / "index.html", *[p for p in MAPS.glob("*/index.html")]]
-        for page in live:
-            self.assertIsNone(link.search(page.read_text()), page)
-        for data in ("www/data/crew.json", "www/data/site.json"):
-            path = ROOT / data
-            if path.exists():
-                self.assertNotRegex(path.read_text(), r"crew/maps/[\w/-]*generated", data)
+    def test_sheet_shared_by_south_yard_and_east_end(self):
+        shared = FOLDER + "south-yard-and-east-end.svg"
+        homes = {m["id"] for m in CREW["maps"] if shared in {s["img"] for s in m["sheets"]}}
+        self.assertEqual(homes, {"south-yard", "east-end"})
+
+    def test_station_pages_are_indexed_and_have_no_preview_twin(self):
+        self.assertFalse(list(MAPS.glob("**/generated.html")))
+        for m in CREW["maps"]:
+            page = (MAPS / m["id"] / "index.html").read_text()
+            self.assertNotIn("noindex", page, m["id"])
+            self.assertIn(f'HARTCrew.page("map", "{m["id"]}")', page)
+
+    def test_hand_drawn_station_pngs_are_retired(self):
+        for rel in PUBLISHED:
+            self.assertNotRegex(rel, r"assets/maps/station_map_(west_yard|south_yard|barn|east_end|shenango)", rel)
+        self.assertNotIn("station_map_west_yard", (ROOT / "www/data/crew.json").read_text())
 
 
 if __name__ == "__main__":
