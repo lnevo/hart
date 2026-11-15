@@ -9,72 +9,72 @@
   <style>
 /* C&E study deck: a train-order "flimsy" on the desk; site palette, own classes (ce-*) to stay clear of ops.css. */
 .ce{
-  --desk:var(--paper); --paper:var(--card); --ink:#121a22;
+  --paper:var(--card); --ink:#121a22;
   --signal-red:var(--signal); --signal-yellow:var(--accent-text); --signal-green:var(--ok);
-  --red-wash:#f6e3e1; --green-wash:#e2f1e7; --yellow-wash:#f5ecd6; --focus:var(--brand-2);
+  --red-wash:#f6e3e1; --green-wash:#e2f1e7; --yellow-wash:#f5ecd6;
   --f-head:var(--font-display); --f-body:var(--font-body);
   --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   display:flex;flex-direction:column;gap:18px;font-family:var(--f-body);color:var(--ink)}
 .ce button{font:inherit;color:inherit}
-nav.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
-nav.tabs button{font-family:var(--f-head);font-size:19px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
+.ce nav.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
+.ce nav.tabs button{font-family:var(--f-head);font-size:19px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
   background:transparent;color:var(--muted);border:2px solid transparent;border-bottom:none;padding:6px 14px 4px;cursor:pointer;border-radius:4px 4px 0 0;margin-bottom:-2px}
-nav.tabs button[aria-selected="true"]{background:var(--paper);color:var(--ink);border-color:var(--ink)}
+.ce nav.tabs button[aria-selected="true"]{background:var(--paper);color:var(--ink);border-color:var(--ink)}
 .ce-panel{display:flex;flex-direction:column;gap:14px}
 .ce-chips{display:flex;flex-wrap:wrap;gap:6px}
 .ce-chip{border:1.5px solid var(--rule);background:var(--paper);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
 .ce-chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 .ce-chip .n{font-family:var(--f-mono);font-size:11px;opacity:.75}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.label{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ce .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ce .label{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .ce-btn{border:1.5px solid var(--ink);background:var(--paper);border-radius:6px;padding:8px 14px;cursor:pointer;font-weight:600}
 .ce-btn.primary{background:var(--ink);color:var(--paper)}
 .ce-btn.again{border-color:var(--signal-red);color:var(--signal-red)}
 .ce-btn.got{border-color:var(--signal-green);color:var(--signal-green)}
 .ce-btn:disabled{opacity:.4;cursor:default}
 .ce-btn.ce-sm{padding:5px 10px;font-size:13px;font-weight:500}
-.kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--rule);border-radius:3px;padding:0 4px;color:var(--muted);margin-left:4px}
+.ce .kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--rule);border-radius:3px;padding:0 4px;color:var(--muted);margin-left:4px}
 
 /* the flimsy */
-.flimsy{background:var(--paper);border:1.5px solid var(--ink);border-radius:3px;position:relative;
+.ce .flimsy{background:var(--paper);border:1.5px solid var(--ink);border-radius:3px;position:relative;
   background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--rule) 31px 32px);background-position:0 54px;
   padding:16px 20px 20px;min-height:260px;display:flex;flex-direction:column;gap:12px}
-.flimsy .top{display:flex;justify-content:space-between;gap:10px;font-family:var(--f-mono);font-size:12px;color:var(--muted);border-bottom:1.5px solid var(--ink);padding-bottom:8px;background:var(--paper)}
-.flimsy .top .sec{color:var(--signal-red);text-transform:uppercase;letter-spacing:.06em}
-.front{font-family:var(--f-head);font-weight:600;font-size:clamp(22px,4.4vw,28px);line-height:1.2;text-wrap:balance;background:var(--paper);align-self:flex-start}
-.back{font-size:16px;line-height:1.6;background:var(--paper);white-space:pre-line}
-.src{font-family:var(--f-mono);font-size:12px;color:var(--muted);background:var(--paper);align-self:flex-start}
-.note{border-left:3px solid var(--signal-yellow);background:var(--yellow-wash);padding:8px 12px;font-size:14px;border-radius:0 4px 4px 0}
-.flipzone{cursor:pointer;display:flex;flex-direction:column;gap:12px;flex:1}
-.hint{font-size:13px;color:var(--muted);background:var(--paper);align-self:flex-start}
-.meter{display:flex;gap:10px;align-items:center;font-family:var(--f-mono);font-size:12px;color:var(--muted);flex-wrap:wrap}
-.bar{flex:1;min-width:140px;height:8px;border-radius:4px;background:var(--rule);overflow:hidden;display:flex}
-.bar i{display:block;height:100%}
-.bar .m{background:var(--signal-green)} .bar .l{background:var(--signal-yellow)}
+.ce .flimsy .top{display:flex;justify-content:space-between;gap:10px;font-family:var(--f-mono);font-size:12px;color:var(--muted);border-bottom:1.5px solid var(--ink);padding-bottom:8px;background:var(--paper)}
+.ce .flimsy .top .sec{color:var(--signal-red);text-transform:uppercase;letter-spacing:.06em}
+.ce .front{font-family:var(--f-head);font-weight:600;font-size:clamp(22px,4.4vw,28px);line-height:1.2;text-wrap:balance;background:var(--paper);align-self:flex-start}
+.ce .back{font-size:16px;line-height:1.6;background:var(--paper);white-space:pre-line}
+.ce .src{font-family:var(--f-mono);font-size:12px;color:var(--muted);background:var(--paper);align-self:flex-start}
+.ce .note{border-left:3px solid var(--signal-yellow);background:var(--yellow-wash);padding:8px 12px;font-size:14px;border-radius:0 4px 4px 0}
+.ce .flipzone{cursor:pointer;display:flex;flex-direction:column;gap:12px;flex:1}
+.ce .hint{font-size:13px;color:var(--muted);background:var(--paper);align-self:flex-start}
+.ce .meter{display:flex;gap:10px;align-items:center;font-family:var(--f-mono);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.ce .bar{flex:1;min-width:140px;height:8px;border-radius:4px;background:var(--rule);overflow:hidden;display:flex}
+.ce .bar i{display:block;height:100%}
+.ce .bar .m{background:var(--signal-green)}.ce .bar .l{background:var(--signal-yellow)}
 
 /* quiz */
-.opts{display:flex;flex-direction:column;gap:8px;background:var(--paper)}
-.opt{text-align:left;border:1.5px solid var(--rule);background:var(--paper);border-radius:6px;padding:10px 12px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;line-height:1.45}
-.opt .k{font-family:var(--f-mono);font-size:12px;color:var(--muted);padding-top:2px;min-width:14px}
-.opt:hover:not(:disabled){border-color:var(--ink)}
-.opt.right{border-color:var(--signal-green);background:var(--green-wash)}
-.opt.wrong{border-color:var(--signal-red);background:var(--red-wash)}
-.opt:disabled{cursor:default}
-.why{background:var(--paper);border-top:1.5px dashed var(--rule);padding-top:10px;font-size:15px}
-.why b.ok{color:var(--signal-green)} .why b.no{color:var(--signal-red)}
-.score{font-family:var(--f-head);font-size:56px;font-weight:700;line-height:1}
-.secrow{display:grid;grid-template-columns:minmax(0,1fr) 70px;gap:4px 12px;align-items:center;font-size:14px}
-.secrow .bar{min-width:0;grid-column:1/-1}
-.missed{display:flex;flex-direction:column;gap:10px}
-.missed details{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:8px 12px}
-.missed summary{cursor:pointer;font-weight:500}
-.history{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
-.guides{display:flex;flex-direction:column;gap:12px}
-.guides article{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:12px 16px}
-.guides h3{font-family:var(--f-head);font-size:21px;margin:0 0 4px;font-weight:600}
-.guides p,.guides ul{margin:6px 0}
-.guides ul{padding-left:20px}
-@media (prefers-reduced-motion:no-preference){.flimsy{transition:transform .15s ease}.flimsy.pulse{transform:translateY(-2px)}}
+.ce .opts{display:flex;flex-direction:column;gap:8px;background:var(--paper)}
+.ce .opt{text-align:left;border:1.5px solid var(--rule);background:var(--paper);border-radius:6px;padding:10px 12px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;line-height:1.45}
+.ce .opt .k{font-family:var(--f-mono);font-size:12px;color:var(--muted);padding-top:2px;min-width:14px}
+.ce .opt:hover:not(:disabled){border-color:var(--ink)}
+.ce .opt.right{border-color:var(--signal-green);background:var(--green-wash)}
+.ce .opt.wrong{border-color:var(--signal-red);background:var(--red-wash)}
+.ce .opt:disabled{cursor:default}
+.ce .why{background:var(--paper);border-top:1.5px dashed var(--rule);padding-top:10px;font-size:15px}
+.ce .why b.ok{color:var(--signal-green)}.ce .why b.no{color:var(--signal-red)}
+.ce .score{font-family:var(--f-head);font-size:56px;font-weight:700;line-height:1}
+.ce .secrow{display:grid;grid-template-columns:minmax(0,1fr) 70px;gap:4px 12px;align-items:center;font-size:14px}
+.ce .secrow .bar{min-width:0;grid-column:1/-1}
+.ce .missed{display:flex;flex-direction:column;gap:10px}
+.ce .missed details{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:8px 12px}
+.ce .missed summary{cursor:pointer;font-weight:500}
+.ce .history{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.ce .guides{display:flex;flex-direction:column;gap:12px}
+.ce .guides article{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:12px 16px}
+.ce .guides h3{font-family:var(--f-head);font-size:21px;margin:0 0 4px;font-weight:600}
+.ce .guides p,.ce .guides ul{margin:6px 0}
+.ce .guides ul{padding-left:20px}
+@media (prefers-reduced-motion:no-preference){.ce .flimsy{transition:transform .15s ease}.ce .flimsy.pulse{transform:translateY(-2px)}}
   </style>
 </head>
 <body>
@@ -461,7 +461,7 @@ Q("gcor","GCOR 6.28: off the main track (and outside a block system), trains mov
 <script>
 (function(){
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc=HARTOps.esc;
 const hash=s=>{let h=5381;for(const ch of s)h=((h<<5)+h+ch.charCodeAt(0))|0;return (h>>>0).toString(36)};
 CARDS.forEach(c=>c.id=hash(c.f));QS.forEach(q=>q.id=hash(q.q));
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -471,7 +471,7 @@ const keys=Object.keys(SECTIONS);
 /* tabs */
 const views={cards:"view-cards",quiz:"view-quiz",notes:"view-notes"};
 let view="cards";
-function show(v){view=v;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
+function show(v){if(!views[v])v="cards";view=v;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
   for(const k in views)document.getElementById(views[k]).hidden=k!==v;store.set("ce_view",v)}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view));
 
@@ -489,9 +489,12 @@ const count=arr=>arr.reduce((m,x)=>(m[x.s]=(m[x.s]||0)+1,m),{});
 
 /* ---------- flashcards ---------- */
 let boxes=store.get("ce_boxes",{});
-const cardSel=new Set(store.get("ce_cardSel",keys));
+const validSel=v=>Array.isArray(v)?v.filter(k=>SECTIONS[k]):keys;
+const cardSel=new Set(validSel(store.get("ce_cardSel",keys)));
 let queue=[],cur=null,flipped=false,roundSeen=0;
+function renderCardChips(){chips(document.getElementById("cardChips"),count(CARDS),cardSel,()=>{store.set("ce_cardSel",[...cardSel]);deal()})}
 function deal(){
+  renderCardChips();
   const pool=CARDS.filter(c=>cardSel.has(c.s));
   const byBox={};pool.forEach(c=>{const b=boxes[c.id]||0;(byBox[b]=byBox[b]||[]).push(c)});
   queue=[];Object.keys(byBox).sort((a,b)=>a-b).forEach(b=>queue.push(...shuffle(byBox[b])));
@@ -499,7 +502,6 @@ function deal(){
 }
 function next(){cur=queue.shift()||null;flipped=false;renderCard()}
 function renderCard(){
-  chips(document.getElementById("cardChips"),count(CARDS),cardSel,()=>{store.set("ce_cardSel",[...cardSel]);deal()});
   const pool=CARDS.filter(c=>cardSel.has(c.s));
   const learned=pool.filter(c=>(boxes[c.id]||0)>=3).length, learning=pool.filter(c=>{const b=boxes[c.id]||0;return b>0&&b<3}).length;
   const pct=n=>pool.length?(100*n/pool.length).toFixed(1):0;
@@ -536,7 +538,7 @@ bReset.onclick=()=>{if(!resetArm){resetArm=true;bReset.textContent="Click again 
   boxes={};store.set("ce_boxes",boxes);resetArm=false;bReset.textContent="Reset progress";deal()};
 
 /* ---------- quiz ---------- */
-const quizSel=new Set(store.get("ce_quizSel",keys));
+const quizSel=new Set(validSel(store.get("ce_quizSel",keys)));
 let qlen=store.get("ce_qlen",20);
 const LENS=[10,20,40,"All"];
 let test=null;
@@ -552,7 +554,7 @@ function renderSetup(){
 function startTest(list){
   const pool=list||QS.filter(q=>quizSel.has(q.s));
   const n=qlen==="All"||list?pool.length:Math.min(qlen,pool.length);
-  test={items:shuffle(pool).slice(0,n).map(q=>({q,order:shuffle([0,1,2,3]),pick:null})),i:0};
+  test={retake:!!list,items:shuffle(pool).slice(0,n).map(q=>({q,order:shuffle([0,1,2,3]),pick:null})),i:0};
   document.getElementById("quizSetup").hidden=true;document.getElementById("quizDone").hidden=true;document.getElementById("quizRun").hidden=false;
   renderQ();
 }
@@ -577,7 +579,7 @@ function finish(){
   const done=test.items.filter(x=>x.pick!==null);
   const right=done.filter(x=>x.pick===0).length;
   const p=done.length?Math.round(100*right/done.length):0;
-  if(done.length){const h=store.get("ce_hist",[]);h.push({p,n:done.length,d:new Date().toISOString().slice(0,10)});store.set("ce_hist",h.slice(-30))}
+  if(done.length&&!test.retake){const h=store.get("ce_hist",[]);h.push({p,n:done.length,d:new Date().toISOString().slice(0,10)});store.set("ce_hist",h.slice(-30))}
   const per={};done.forEach(x=>{const s=x.q.s;per[s]=per[s]||[0,0];per[s][1]++;if(x.pick===0)per[s][0]++});
   const missed=done.filter(x=>x.pick!==0);
   const el=document.getElementById("quizDone");
@@ -598,12 +600,14 @@ document.getElementById("bQuit").onclick=()=>{if(test)finish()};
 document.addEventListener("keydown",e=>{
   if(e.target.closest("input,textarea")||e.metaKey||e.ctrlKey||e.altKey)return;
   if(view==="cards"){
-    if(e.key===" "||e.key==="Enter"){if(e.target.tagName==="BUTTON"&&e.target.id!=="flip")return;e.preventDefault();flip()}
+    const own=e.target.closest("a,summary,select,[contenteditable]");
+    if(e.key===" "&&!own){e.preventDefault();flip()}
+    else if(e.key==="Enter"&&(e.target===document.body||e.target.id==="flip")){e.preventDefault();flip()}
     else if(e.key==="1")grade(false);else if(e.key==="2")grade(true);
   }else if(view==="quiz"&&test&&!document.getElementById("quizRun").hidden){
     const k=e.key.toUpperCase();const idx="ABCD".indexOf(k)>=0?"ABCD".indexOf(k):["1","2","3","4"].indexOf(e.key);
     if(idx>=0){const it=test.items[test.i];answer(it.order[idx])}
-    else if(e.key==="Enter"){e.preventDefault();nextQ()}
+    else if(e.key==="Enter"&&!e.target.closest("button,a,summary")){e.preventDefault();nextQ()}
   }
 });
 
@@ -611,7 +615,7 @@ show(store.get("ce_view","cards"));renderSetup();deal();
 })();
 </script>
 <script>
-  document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("ap-exam"); });
+  document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("ap-exam").catch(function (err) { console.error(err); }); });
 </script>
 </body>
 </html>
