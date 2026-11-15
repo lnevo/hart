@@ -12,6 +12,8 @@ and wiring decks (docs/wiring/). Facts:
 - Switch machines are MTB MP4 with two SPDT contacts: one feeds the panel LED
   indication, the other powers the frog (stock rails to the two throws, the common
   to the frog) (owner, 2026-11-14).
+- Both feeders of a section pass through one channel of its DNCT2B current sensor;
+  each DNCT2B has two channels and serves two sections (owner, 2026-11-14).
 - Detected sections and their node channels: jmri/layouts/hart/data/block_lengths.csv
   ("Block n-c" = node Cn, channel c).
 
@@ -145,7 +147,7 @@ def blocks() -> tuple[list[tuple[str, str, str]], list[str]]:
 
 
 def d2() -> str:
-    """Typical detected section: district bus, feeder through a current transformer, gaps in both rails."""
+    """Typical detected section: district bus, feeder pair through one DNCT2B channel, gaps in both rails."""
     b = []
     b.append(box(20, 50, 120, 46, "Command station", "CS-105 + boosters"))
     b.append(box(190, 50, 130, 46, "Circuit breaker", "PSX / PSXX, per district"))
@@ -165,19 +167,26 @@ def d2() -> str:
     b.append(rails(804, 880, y, GREY))
     b.append(label(300, y - 14, "next section", 9, GREY))
     b.append(label(820, y - 14, "next section", 9, GREY))
-    # feeders
-    b.append(wire(f"M560,66 L560,150 L560,{y-4}", RED, 1.6))
-    b.append(wire(f"M620,80 L620,{y+4}", INK, 1.6))
-    b.append(f'<circle cx="560" cy="{y-4}" r="3" fill="{RED}"/><circle cx="620" cy="{y+4}" r="3" fill="{INK}"/>')
-    b.append(f'<circle cx="560" cy="128" r="11" fill="none" stroke="{BLUE}" stroke-width="2"/>')
-    b.append(box(430, 112, 100, 32, "DNCT2B", "current transformer", size=9))
-    b.append(wire("M530,128 L549,128", BLUE, 1.4))
-    b.append(box(430, 240, 140, 34, "LCOS node Cn", "block input, channel c", size=9))
-    b.append(wire("M480,144 L480,240", BLUE, 1.4, "4 3"))
-    b.append(label(474, 172, "occupied / clear", 9, BLUE, "end"))
-    b.append(label(632, 120, "At least one feeder pair from the bus to each section;", 9.5, INK))
-    b.append(label(632, 133, "one feeder passes through the detector", 9.5, INK))
-    b.append(label(632, 146, "(one turn through the transformer).", 9.5, INK))
+    # feeders: both wires of the pair pass through one DNCT2B channel
+    b.append(wire(f"M560,66 L560,{y-4}", RED, 1.6))
+    b.append(wire(f"M580,80 L580,{y+4}", INK, 1.6))
+    b.append(f'<circle cx="560" cy="{y-4}" r="3" fill="{RED}"/><circle cx="580" cy="{y+4}" r="3" fill="{INK}"/>')
+    b.append(f'<ellipse cx="570" cy="128" rx="20" ry="9" fill="none" stroke="{BLUE}" stroke-width="2.2"/>')
+    b.append(label(596, 124, "channel 1", 9, BLUE))
+    # the board's second channel serves the next section the same way
+    b.append(wire(f"M836,66 L836,{y-4}", GREY, 1.3))
+    b.append(wire(f"M856,80 L856,{y+4}", GREY, 1.3))
+    b.append(f'<ellipse cx="846" cy="128" rx="20" ry="9" fill="none" stroke="{BLUE}" stroke-width="2.2" opacity="0.6"/>')
+    b.append(label(870, 132, "channel 2", 9, BLUE))
+    b.append(box(400, 112, 110, 32, "DNCT2B", "two-channel sensor", size=9))
+    b.append(wire("M510,128 L550,128", BLUE, 1.4))
+    b.append(wire("M455,112 L455,100 L846,100 L846,119", BLUE, 1.2, "4 3"))
+    b.append(box(400, 240, 140, 34, "LCOS node Cn", "block input, channel c", size=9))
+    b.append(wire("M450,144 L450,240", BLUE, 1.4, "4 3"))
+    b.append(label(444, 172, "occupied / clear", 9, BLUE, "end"))
+    b.append(label(600, 150, "Both feeders of the section pass through the", 9.5, INK))
+    b.append(label(600, 163, "same sensor channel; each section has at least", 9.5, INK))
+    b.append(label(600, 176, "one feeder pair. One DNCT2B serves two sections.", 9.5, INK))
     # table
     rows, unnoded = blocks()
     b.append(label(20, 306, f"Detected sections on LCOS nodes: {len(rows)}, each wired as above.", 10.5, INK, weight="bold"))
@@ -317,8 +326,8 @@ def d5() -> str:
     b.append(wire(f"M350,156 L350,{y-4}", RED, 1.4))
     b.append(wire(f"M410,156 L410,{y+4}", INK, 1.4))
     b.append(f'<circle cx="350" cy="{y-4}" r="3" fill="{RED}"/><circle cx="410" cy="{y+4}" r="3" fill="{INK}"/>')
-    b.append(f'<circle cx="350" cy="200" r="10" fill="none" stroke="{BLUE}" stroke-width="2"/>')
-    b.append(label(366, 204, "DNCT2B detector on the feeder, as D2", 9.5, BLUE))
+    b.append(f'<ellipse cx="380" cy="200" rx="42" ry="9" fill="none" stroke="{BLUE}" stroke-width="2"/>')
+    b.append(label(430, 204, "both feeders through one DNCT2B channel, as D2", 9.5, BLUE))
     b.append(label(60, y - 16, "normal section", 9, GREY))
     b.append(label(620, y - 16, "normal section", 9, GREY))
     b.append(label(20, 320, "When a train's wheels bridge a gap with the polarity wrong, the short is seen by the auto-reverser, which swaps the section's two", 9.5, INK))

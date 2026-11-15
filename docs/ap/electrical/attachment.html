@@ -41,7 +41,7 @@ Member details are on the form.</p>
   <tr><td>Simultaneous and independent control of two mainline trains in both directions</td>
       <td>DCC command control (TCS CS-105 command station and two boosters). Two trains run at once in either direction, each under its own throttle, for example one on loop 1 (the main line) and one on loop 2 (S-R, Scale and Barn), with the two-track helix as a further route.</td></tr>
   <tr><td>Command control: gaps and switches for polarity and troubleshooting</td>
-      <td>The staging level and helix are wired as six protected power districts: four on circuit breakers, and the two reversing sections, whose auto-reversers also act as their breakers. Further districts in the wiring plan come with the upper levels. Within the six, the staging level and helix are cut into 43 detected sections, each gapped in both rails at both ends and fed from its district bus through a current-transformer detector, so a fault shows on the panel as one section and a district can be isolated at its breaker (D2). Every section has at least one feeder pair.</td></tr>
+      <td>The staging level and helix are wired as six protected power districts: four on circuit breakers, and the two reversing sections, whose auto-reversers also act as their breakers. Further districts in the wiring plan come with the upper levels. Within the six, the staging level and helix are cut into 43 detected sections, each gapped in both rails at both ends and fed from its district bus by at least one feeder pair; both feeders of the pair pass through one channel of a DNCT2B current sensor, so a fault shows on the panel as one section and a district can be isolated at its breaker (D2). Every section has at least one feeder pair.</td></tr>
   <tr><td>One reversing loop, wye, turntable or transfer table</td>
       <td>Two reversing sections, each on an auto-reverser: Main West, and the K-1 / K-2 loop legs at Princess.</td></tr>
   <tr><td>One mainline passing siding</td>
@@ -73,7 +73,7 @@ Drawings D1, D5.</p>
 Commercial components: Touch Toggles and Universal Translators, LCOS DNIN8 input boards. Drawings D3, C3, C4, C8.</p>
 
 <h3>Requirement 3b · Track occupancy indication (5+ blocks)</h3>
-<p>43 sections are detected by current transformers on their feeders (DNCT2B two-channel detectors, read by the LCOS node in that area). Occupancy is shown on the CATS CTC desk, the USS CTC board and the JMRI Layout Editor panel, each block as a lamp on the track it shows.
+<p>43 sections are detected by DNCT2B current sensors, read by the LCOS node in that area. Each DNCT2B has two channels and serves two sections; both feeders of a section pass through its channel, which the sensor needs in order to detect a train. Occupancy is shown on the CATS CTC desk, the USS CTC board and the JMRI Layout Editor panel, each block as a lamp on the track it shows.
 Commercial components: DNCT2B / DNCTA detectors, LCOS nodes. Drawings D2, C2, C5.</p>
 
 <h3>Requirement 3r · CTC system</h3>
@@ -105,7 +105,7 @@ Components: Arduino Nano, nRF24L01 radio, PC, Mosquitto MQTT broker. Drawing D6.
   <tr><td>D6</td><td>Computer-to-railroad interface</td><td>JMRI, MQTT broker, the bridge program and bridge node, the LCOS field nodes and the railroad, with the link between each.</td></tr>
   <tr><td>C8</td><td>CTC system diagram (next page)</td><td>How the desk, JMRI, MQTT and the LCOS nodes connect to switches, signals and detectors.</td></tr>
   <tr><td>D1</td><td>Staging level: reversing sections and passing siding</td><td>The system schematic's staging level with Main West and K-1 / K-2 marked, their gaps in both rails, and the passing siding.</td></tr>
-  <tr><td>D2</td><td>Propulsion: typical detected section, and every section</td><td>District bus, breaker, feeder pair through the current transformer, gaps in both rails at both ends; table of all 43 sections and their detector channels. With C1 and C2 this is the Requirement 4 propulsion schematic: every section is wired like the one drawn in detail.</td></tr>
+  <tr><td>D2</td><td>Propulsion: typical detected section, and every section</td><td>District bus, breaker, both feeders of the pair through one DNCT2B channel (the board's second channel serving the next section), gaps in both rails at both ends; table of all 43 sections and their detector channels. With C1 and C2 this is the Requirement 4 propulsion schematic: every section is wired like the one drawn in detail.</td></tr>
   <tr><td>D3</td><td>Turnout: powered frog and panel indication</td><td>MTB MP4 with its two SPDT contacts: stock rails to the throws and common to the frog; the second contact to the panel LED.</td></tr>
   <tr><td>D4</td><td>Crossover</td><td>Two powered-frog turnouts, gapped in both rails between the frogs, each half its own section.</td></tr>
   <tr><td>D5</td><td>Reversing section</td><td>Section gapped in both rails at both ends, fed through the auto-reverser from the district bus.</td></tr>

@@ -20,22 +20,28 @@
 <path d="M804,196 L880,196 M804,204 L880,204" stroke="#6b7a86" stroke-width="1.6"/>
 <text x="300" y="186" font-size="9" fill="#6b7a86" text-anchor="start" font-weight="normal">next section</text>
 <text x="820" y="186" font-size="9" fill="#6b7a86" text-anchor="start" font-weight="normal">next section</text>
-<path d="M560,66 L560,150 L560,196" fill="none" stroke="#c0392b" stroke-width="1.6"/>
-<path d="M620,80 L620,204" fill="none" stroke="#121a22" stroke-width="1.6"/>
-<circle cx="560" cy="196" r="3" fill="#c0392b"/><circle cx="620" cy="204" r="3" fill="#121a22"/>
-<circle cx="560" cy="128" r="11" fill="none" stroke="#1f5fa8" stroke-width="2"/>
-<rect x="430" y="112" width="100" height="32" fill="#e4ebf0" stroke="#121a22"/>
-<text x="480.0" y="125.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">DNCT2B</text>
-<text x="480.0" y="136.5" font-size="9" text-anchor="middle" fill="#121a22">current transformer</text>
-<path d="M530,128 L549,128" fill="none" stroke="#1f5fa8" stroke-width="1.4"/>
-<rect x="430" y="240" width="140" height="34" fill="#e4ebf0" stroke="#121a22"/>
-<text x="500.0" y="254.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">LCOS node Cn</text>
-<text x="500.0" y="265.5" font-size="9" text-anchor="middle" fill="#121a22">block input, channel c</text>
-<path d="M480,144 L480,240" fill="none" stroke="#1f5fa8" stroke-width="1.4" stroke-dasharray="4 3"/>
-<text x="474" y="172" font-size="9" fill="#1f5fa8" text-anchor="end" font-weight="normal">occupied / clear</text>
-<text x="632" y="120" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">At least one feeder pair from the bus to each section;</text>
-<text x="632" y="133" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">one feeder passes through the detector</text>
-<text x="632" y="146" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">(one turn through the transformer).</text>
+<path d="M560,66 L560,196" fill="none" stroke="#c0392b" stroke-width="1.6"/>
+<path d="M580,80 L580,204" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<circle cx="560" cy="196" r="3" fill="#c0392b"/><circle cx="580" cy="204" r="3" fill="#121a22"/>
+<ellipse cx="570" cy="128" rx="20" ry="9" fill="none" stroke="#1f5fa8" stroke-width="2.2"/>
+<text x="596" y="124" font-size="9" fill="#1f5fa8" text-anchor="start" font-weight="normal">channel 1</text>
+<path d="M836,66 L836,196" fill="none" stroke="#6b7a86" stroke-width="1.3"/>
+<path d="M856,80 L856,204" fill="none" stroke="#6b7a86" stroke-width="1.3"/>
+<ellipse cx="846" cy="128" rx="20" ry="9" fill="none" stroke="#1f5fa8" stroke-width="2.2" opacity="0.6"/>
+<text x="870" y="132" font-size="9" fill="#1f5fa8" text-anchor="start" font-weight="normal">channel 2</text>
+<rect x="400" y="112" width="110" height="32" fill="#e4ebf0" stroke="#121a22"/>
+<text x="455.0" y="125.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">DNCT2B</text>
+<text x="455.0" y="136.5" font-size="9" text-anchor="middle" fill="#121a22">two-channel sensor</text>
+<path d="M510,128 L550,128" fill="none" stroke="#1f5fa8" stroke-width="1.4"/>
+<path d="M455,112 L455,100 L846,100 L846,119" fill="none" stroke="#1f5fa8" stroke-width="1.2" stroke-dasharray="4 3"/>
+<rect x="400" y="240" width="140" height="34" fill="#e4ebf0" stroke="#121a22"/>
+<text x="470.0" y="254.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">LCOS node Cn</text>
+<text x="470.0" y="265.5" font-size="9" text-anchor="middle" fill="#121a22">block input, channel c</text>
+<path d="M450,144 L450,240" fill="none" stroke="#1f5fa8" stroke-width="1.4" stroke-dasharray="4 3"/>
+<text x="444" y="172" font-size="9" fill="#1f5fa8" text-anchor="end" font-weight="normal">occupied / clear</text>
+<text x="600" y="150" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">Both feeders of the section pass through the</text>
+<text x="600" y="163" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">same sensor channel; each section has at least</text>
+<text x="600" y="176" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">one feeder pair. One DNCT2B serves two sections.</text>
 <text x="20" y="306" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="bold">Detected sections on LCOS nodes: 43, each wired as above.</text>
 <text x="20" y="322" font-size="9.5" fill="#6b7a86" text-anchor="start" font-weight="normal">McKees Rocks and McKeesport: own sections, wired the same way but not yet on a node.</text>
 <text x="20" y="344.0" font-size="9.5" fill="#121a22">K-1</text>

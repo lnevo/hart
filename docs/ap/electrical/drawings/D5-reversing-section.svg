@@ -19,8 +19,8 @@
 <path d="M350,156 L350,246" fill="none" stroke="#c0392b" stroke-width="1.4"/>
 <path d="M410,156 L410,254" fill="none" stroke="#121a22" stroke-width="1.4"/>
 <circle cx="350" cy="246" r="3" fill="#c0392b"/><circle cx="410" cy="254" r="3" fill="#121a22"/>
-<circle cx="350" cy="200" r="10" fill="none" stroke="#1f5fa8" stroke-width="2"/>
-<text x="366" y="204" font-size="9.5" fill="#1f5fa8" text-anchor="start" font-weight="normal">DNCT2B detector on the feeder, as D2</text>
+<ellipse cx="380" cy="200" rx="42" ry="9" fill="none" stroke="#1f5fa8" stroke-width="2"/>
+<text x="430" y="204" font-size="9.5" fill="#1f5fa8" text-anchor="start" font-weight="normal">both feeders through one DNCT2B channel, as D2</text>
 <text x="60" y="234" font-size="9" fill="#6b7a86" text-anchor="start" font-weight="normal">normal section</text>
 <text x="620" y="234" font-size="9" fill="#6b7a86" text-anchor="start" font-weight="normal">normal section</text>
 <text x="20" y="320" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">When a train&#x27;s wheels bridge a gap with the polarity wrong, the short is seen by the auto-reverser, which swaps the section&#x27;s two</text>
