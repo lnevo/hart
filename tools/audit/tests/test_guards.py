@@ -338,6 +338,14 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "python3 www/scripts/check_portal_build.py"):  # baseline: never touched the tables
             self.assertEqual(self.code(cmd), 0, cmd)
 
+    def test_process_pattern_is_hartlibs(self) -> None:
+        # The PanelPro wrappers use hartlib's check (tools/hosts/panelpro_profile.py jmri-running).
+        guard = load(MAIN_GUARD, "hart_main_guard_process_same")
+        done = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, sys.argv[1]); "
+                               "from hartlib import tables; print(tables._JMRI_PROCESS)",
+                               str(ROOT / "tools/hartlib/src")], capture_output=True, text=True, check=True)
+        self.assertEqual(guard.PROCESS, done.stdout.strip())
+
     def test_process_pattern_covers_jmri5_decoderpro(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_process_test")
         for line in ("java -cp x apps.gui3.dp3.DecoderPro3", "java -cp x apps.PanelPro.PanelPro",

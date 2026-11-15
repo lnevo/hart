@@ -16,6 +16,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 source "$ROOT/tools/hosts/profile_tables_guard.sh"
 refuse_hart_tables "deploy"
+refuse_unrestored_profile "deploy"
 # Hosts: environment first, then tools/env/hart.env, then the defaults in load_env.sh
 # (the same order the Python tools use through tools/hartlib/src/hartlib/hosts.py).
 source "$ROOT/tools/env/load_env.sh"

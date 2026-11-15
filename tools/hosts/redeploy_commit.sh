@@ -28,6 +28,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 source "$ROOT/tools/hosts/profile_tables_guard.sh"
 refuse_hart_tables "deploy"
+refuse_unrestored_profile "deploy"
 SYNC_REL="tools/hosts/sync_hart_package.sh"
 TABLES_REL="jmri/layouts/hart/output/tables.xml"
 
