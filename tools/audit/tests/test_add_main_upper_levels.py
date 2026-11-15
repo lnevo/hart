@@ -72,6 +72,20 @@ class Inventory(unittest.TestCase):
                 row = blocks[x["system_name"]]
                 self.assertEqual(row[0], f"{node}-B{k // 2 + 1}-{k % 2 + 1}")
 
+    def test_main_and_upper_rows_are_shaded_and_staging_rows_are_not(self):
+        wb = load_workbook(AM.OUT)
+        new = {f"C{x['node']}" for x in MAP if x["node"]}
+        col = {"Nodes": 0, "DNOU8": 1, "DNIN8": 1, "TurnoutSummary": 1, "BlockSensors": 1}
+        for sheet, c in col.items():
+            ws = wb[sheet]
+            for row in ws.iter_rows(min_row=2):
+                if row[c].value is None:
+                    continue
+                width = sum(1 for h in ws[1] if h.value is not None)
+                for cell in row[:width]:                             # the whole row, not only column A
+                    shaded = cell.fill.fill_type == "solid" and str(cell.fill.fgColor.rgb).endswith("DDEBF7")
+                    self.assertEqual(shaded, row[c].value in new, f"{sheet} {row[0].value} {cell.coordinate}")
+
     def test_detector_nodes_keep_the_calibration_pin(self):
         detectors = {r[1] for r in V86["BlockSensors"][1:]}
         for n in {f"C{x['node']}" for x in MAP if x["layer"] == "occupancy"}:

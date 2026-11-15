@@ -13,7 +13,8 @@ v85 still carries the August 2026 upper-deck plan, drawn for an older track plan
 and C32 with Switches 61 to 91, and three motor outputs on C11 (Switches 63, 65, 67). Those rows go; C11 keeps
 its helix blocks, since the helix is still there. Every node of the device map is written in their place, one row per port: turnouts on 12V boards,
 heads and the detector calibration pin on 5V boards, feedback on DNIN8 boards, detectors on B devices (two
-blocks each), with the ports the device map gives. Staging rows and the DigiconSignals sheet are unchanged.
+blocks each), with the ports the device map gives, each row shaded light blue. Staging rows and the
+DigiconSignals sheet are unchanged.
 """
 from __future__ import annotations
 
@@ -26,6 +27,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 
 ROOT = Path(__file__).resolve().parents[3]
 WIRING = ROOT / "docs/wiring"
@@ -38,6 +40,7 @@ NODES = DATA / "lcos_nodes_main_upper.csv"
 OLD_UPPER = {"C14", "C21", "C22", "C23", "C24", "C32"}       # the August 2026 upper-deck nodes
 OLD_SWITCH = re.compile(r"^Switch (6[1-9]|[78]\d|9[01])\b")    # its Switches 61 to 91
 LEVEL_NAME = {"2": "Main", "3": "Upper"}
+SHADE = PatternFill("solid", fgColor="DDEBF7")    # light blue: every main and upper level row (owner, 2026-11-15)
 PORT = re.compile(r"(OU|IN): (\d+) Ports: ([\d,]+)$")
 NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
 
@@ -111,6 +114,13 @@ def header(ws) -> list[str]:
     return [c.value for c in ws[1]]
 
 
+def append(ws, values) -> None:
+    """Add a main or upper level row, shaded so it stands apart from the staging rows."""
+    ws.append(values)
+    for cell in ws[ws.max_row][:len(values)]:      # every cell the row writes, one per header column
+        cell.fill = SHADE
+
+
 def drop_rows(ws, keep) -> None:
     """Delete the data rows for which keep(row values) is false (bottom up, so indexes hold)."""
     for i in range(ws.max_row, 1, -1):
@@ -159,7 +169,7 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
             "Block Section Names": ", ".join(block_name(r, by_name) for _, r in sorted(n.blocks, key=lambda b: b[0]))
             or None,
         }
-        ws.append([vals.get(name) if name else None for name in cols])
+        append(ws, [vals.get(name) if name else None for name in cols])
 
     # DNOU8
     ws = wb["DNOU8"]
@@ -173,7 +183,7 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
         for board in sorted(n.ou):
             for pin in range(1, 9):
                 dev, kind, volts, notes = n.ou[board].get(pin, (None, None, rail(n, board), None))
-                ws.append([f"{n.id}-OU{board}-{pin}", n.id, n.location, pin, dev, kind, volts, notes])
+                append(ws, [f"{n.id}-OU{board}-{pin}", n.id, n.location, pin, dev, kind, volts, notes])
 
     # DNIN8
     ws = wb["DNIN8"]
@@ -183,7 +193,7 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
         for board in sorted(n.inp):
             for pin in range(1, 9):
                 dev, kind, notes = n.inp[board].get(pin, (None, None, None))
-                ws.append([f"{n.id}-IN{board}-{pin}", n.id, n.location, pin, dev, kind, notes])
+                append(ws, [f"{n.id}-IN{board}-{pin}", n.id, n.location, pin, dev, kind, notes])
 
     # TurnoutSummary
     ws = wb["TurnoutSummary"]
@@ -207,7 +217,7 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
                     "Feedback N": fb.get(f"FB {name} N"), "Feedback R": fb.get(f"FB {name} R"),
                     "Entry Signal": mast, "Entry Signal R Port": pins[0], "Entry Signal Y Port": pins[1],
                     "Entry Signal G Port": pins[2]}
-            ws.append([vals.get(c) for c in cols])
+            append(ws, [vals.get(c) for c in cols])
 
     # BlockSensors
     ws = wb["BlockSensors"]
@@ -217,7 +227,7 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
         for k, r in sorted(n.blocks, key=lambda b: b[0]):
             dev = f"{n.id}-B{k // 2 + 1}"
             blk = block_name(r, by_name)
-            ws.append([f"{dev}-{k % 2 + 1}", n.id, dev, k % 2 + 1, blk, by_name[blk]["trial_name"] or None,
+            append(ws, [f"{dev}-{k % 2 + 1}", n.id, dev, k % 2 + 1, blk, by_name[blk]["trial_name"] or None,
                        n.location, None, f"Block {num}-{k + 1} / {r['system_name']}"])
 
 
@@ -240,8 +250,11 @@ def build(dest: Path) -> None:
 
 
 def values(path: Path) -> dict:
+    """Every cell's value and fill colour, per sheet: the shading is part of what --check compares."""
     wb = load_workbook(path, data_only=True)
-    return {ws.title: [[c for c in row] for row in ws.iter_rows(values_only=True)] for ws in wb.worksheets}
+    return {ws.title: [[(c.value, (c.fill.fill_type, c.fill.fgColor.rgb) if c.fill and c.fill.fill_type else None)
+                        for c in row]
+                       for row in ws.iter_rows()] for ws in wb.worksheets}
 
 
 def main(argv=None) -> int:
