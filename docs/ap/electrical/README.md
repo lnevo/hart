@@ -1,25 +1,34 @@
-# Model Railroad Engineer – Electrical: SOQ draft
+# Model Railroad Engineer – Electrical: SOQ package
 
-Draft Statement of Qualification for the NMRA Achievement Program certificate, prepared 2026-11-14. Checklist and rules: [www/ap/index.html#electrical](../../../www/ap/index.html) (live at hartrailroad.com/ap/#electrical).
+The Statement of Qualifications for the NMRA Achievement Program certificate, rebuilt 2026-11-15 as one bound PDF for review by the member's evaluator. Checklist and rules: [www/ap/index.html#electrical](../../../www/ap/index.html) (live at hartrailroad.com/ap/#electrical).
 
 | File | What it is |
 |------|------------|
-| `MRE-Electrical-SOQ-form.pdf` | The NMRA 2025 fillable SOQ form with the chosen items ticked, Region (NER) and Division (Sunrise Trails) filled. Personal fields are blank on purpose: fill them on your own copy, never in the repo. |
-| `MRE-Electrical-SOQ-package.pdf` | Form + description + staging track plan + schematics (wiring deck pages 1, 2, 4, 5, 6 and the schematic deck's summary, turnout and staging node pages). |
-| `attachment.html` | Source of the description (sections A to C). Print to PDF with headless Chrome and rebuild the package after editing. |
-| `drawings/D1`…`D6` (SVG) | Drawings made for this application only: D1 staging level with the reversing sections (Main West, K-1 / K-2), their gaps and the passing siding (West Ext beside East Lead); D2 typical detected section and every section's detector channel; D3 MTB MP4 frog and indication wiring; D4 crossover; D5 reversing section; D6 computer-to-railroad interface. |
-| `make_drawings.py` | Writes D1 to D6 from the system schematic (copied, never changed), `block_lengths.csv` and the owner's facts in its docstring. |
+| `MRE-Electrical-SOQ.pdf` | The package: ticked NMRA form, title page, contents and lists, chapters for each requirement, the witness demonstration plan, landscape drawing plates D1 to D6, appendices A to G, and the railroad's wiring records (Appendix H). Tagged PDF with bookmarks. |
+| `soq.html`, `soq.css` | Source of the document. Numbers, cross-references, contents and page numbers are filled in by the build. |
+| `build_soq.py` | Builds the PDF: drawings, numbering, two Chrome print passes for page numbers, the form ticks, Keynote export of the two wiring decks, footers and bookmarks. `--html-only` writes `build/` without printing. |
+| `make_drawings.py` | Writes plan clips P1 to P5 (the staging level copied from the system schematic, its own names removed, generic labels added) and drawings D1 to D6. The build also writes P0, the staging level to scale from `www/build/track-plan.html`. |
+| `PHOTO_PUNCH_LIST.md` | Photographs still to take, with file names. Until one exists, the PDF shows a dashed placeholder where it goes. |
+| `photos/` | Photographs used, downsized from `media/photos-layout` (register in Appendix F). |
+| `MRE-Electrical-SOQ-form.pdf` | The blank NMRA 2025 fillable form. The build ticks the claimed items and fills Region and Division only. |
+| `test_build_soq.py` | `python3 -m unittest docs/ap/electrical/test_build_soq.py` |
 
-These drawings are kept apart from the railroad's own schematics and wiring docs on purpose (owner, 2026-11-14): do not copy them into `docs/wiring/`, `docs/ops/` or the schematic tool until the owner says so.
+Build (Mac, with PanelPro not needed): `/Users/lnevo/hart/.venv/bin/python docs/ap/electrical/build_soq.py`. Needs Google Chrome, Keynote and PyMuPDF (in the root `.venv`).
 
-Items chosen: Requirement 2 turnout, crossover, other (two reversing sections on auto-reversers: Main West, K-1 / K-2); Requirement 3 (a) turnout position indication, (b) track occupancy, (r) CTC system, (k) computer control, (t) computer block detection, (u) stored control program, (v) computer-to-railroad interface (the owner's LCOS-to-MQTT bridge). (n) command control receiver waits on a named hard-wired decoder install.
+## Claims
 
-Facts from the owner (2026-11-14): block gaps are in both rails; switch machines are MTB MP4 with two SPDT contacts, one for the panel LED indication and one for the frog (stock rails to the throws, common to the frog); the mainline passing siding runs between East End and Princess, with Barn and Plane as more passing places.
+- Requirement 1 on the staging level and helix: DCC; 43 gapped and detected sections in six protected districts; reverse loop RS-2 (K-1 / K-2) and RS-1 (Main West); passing siding Scale (Switch 5 to 7, chosen 2026-11-15 as the textbook example; West Ext beside East Lead is named as a second passing place); engine storage EH-1 to EH-3; yard S-R to S-4 with Barn as its lead.
+- Requirement 2: Turnout (powered frogs through the MP4 contact), Crossover (7, 23, 35), Other (two reversing sections on auto-reversers).
+- Requirement 3: (a) turnout position, (b) track occupancy, (v) the LCOS-to-MQTT bridge (owner's choice, 2026-11-15). (r) CTC, (k), (t) and (u) are described in Appendix D as reserves, not ticked.
 
-Owner answers (2026-11-14, later): Main West is on the AR-10 (so K-1 / K-2 is on a PSX-AR); turnouts are Peco; every section has at least one feeder pair, and both feeders of the pair pass through one channel of its DNCT2B (two channels per board, two sections per board); two trains can be shown on loop 1 and loop 2; East Lead or West Ext can serve as the passing siding.
+The document uses generic labels (RS-1, Y1–Y5, E1–E3 and so on); Appendix A maps them to the layout's names. The drawings are kept apart from the railroad's own schematics and wiring docs (owner, 2026-11-14).
 
-Still open: name, address and signature on the form, then the witness (Region AP Manager or designee) signs. The owner's NMRA number and other personal details go only on a private copy outside the repo (`~/Documents/NMRA AP/` on the Mac), never here.
+## Open before submission
 
-Rebuild: `python3 docs/ap/electrical/make_drawings.py`, then print `attachment.html` and each drawing to PDF and reassemble the package (form, description, track plan pages 1–2, D1–D6, wiring deck pages).
+1. Take the photographs in `PHOTO_PUNCH_LIST.md` and rebuild.
+2. Confirm the AR-10's maker from the unit (Appendix C says "see note").
+3. Confirm Scale as the passing siding (the earlier draft named West Ext / East Lead).
+4. On a private copy outside the repo (`~/Documents/NMRA AP/`): name, NMRA number, address, date and signature on the form. Never in the repo.
+5. The witness visit (Chapter 8) and the evaluator's signature.
 
-Sources: `docs/wiring/Layout Documentation.pptx`, `docs/wiring/Wiring_Schematic.pptx` (exported with Keynote), `docs/ops/schematic-system-draft.svg` (REV 7), `www/build/track-plan.html`, form from nmra.org/electrical.
+Sources: `docs/wiring/Layout Documentation.pptx` and `docs/wiring/Wiring_Schematic.pptx` (inventory v86), `docs/ops/schematic-system-draft.svg`, `jmri/layouts/hart/data/block_lengths.csv`, `www/build/track-plan.html`, `external/lcos-bridge` (bridge facts), form from nmra.org/electrical.

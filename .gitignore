@@ -116,3 +116,6 @@ docs/ap/operations.log
 
 # C3 trial tables copy: generated on demand by tools/schematic/build_layout_le.py (goes stale with every tables.xml change)
 jmri/layouts/hart/output/trial/
+
+# MRE Electrical SOQ build scratch (docs/ap/electrical/build_soq.py)
+/docs/ap/electrical/build/

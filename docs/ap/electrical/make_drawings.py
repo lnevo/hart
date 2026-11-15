@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
-"""Draw the MMR Electrical SOQ drawings (D1 to D5) into docs/ap/electrical/drawings/.
+"""Draw the figures for the MRE Electrical SOQ into docs/ap/electrical/drawings/.
 
-These drawings are for the NMRA Achievement Program package only. They copy from,
-but never change, the railroad's own schematic (docs/ops/schematic-system-draft.svg)
-and wiring decks (docs/wiring/). Facts:
+Two kinds of figure:
 
-- Reversing sections: Track Main West and the K-1 / K-2 loop at Princess, each on an
-  auto-reverser (owner, 2026-11-14).
-- Block gaps are in both rails; every section has at least one feeder (owner, 2026-11-14).
-- Main West is on an AR-10; turnouts are Peco (owner, 2026-11-14).
-- Switch machines are MTB MP4 with two SPDT contacts: one feeds the panel LED
-  indication, the other powers the frog (stock rails to the two throws, the common
-  to the frog) (owner, 2026-11-14).
-- Both feeders of a section pass through one channel of its DNCT2B current sensor;
-  each DNCT2B has two channels and serves two sections (owner, 2026-11-14).
-- Detected sections and their node channels: jmri/layouts/hart/data/block_lengths.csv
-  ("Block n-c" = node Cn, channel c).
+- Plan clips P1 to P5: the staging level copied from the railroad's system schematic
+  (docs/ops/schematic-system-draft.svg, never changed), with its own names, masts and
+  station brackets taken out and generic labels drawn on top, so a reader who has
+  never seen the layout can follow them. Switch numbers are kept, because they are
+  what the witness finds on the fascia.
+- Wiring drawings D1 to D6: drawn here for the SOQ only.
+
+They are kept apart from the railroad's own schematics and wiring docs on purpose
+(owner, 2026-11-14). Facts:
+
+- Reversing sections: RS-1 (the west main, Switch 1 to Switch 23) on an AR-10 and RS-2
+  (the return loop at the east end) on a PSX-AR (owner, 2026-11-14).
+- Block gaps are in both rails; every section has at least one feeder pair, and both
+  feeders of a pair pass through one channel of its DNCT2B; each DNCT2B has two
+  channels and serves two sections (owner, 2026-11-14).
+- Turnouts are Peco. Switch machines are MTB MP4 with two SPDT contacts: one feeds the
+  panel LED indication, the other powers the frog (stock rails to the two throws, the
+  common to the frog) (owner, 2026-11-14).
+- Six protected districts on staging and the helix: four PSX-series circuit breakers
+  and the two auto-reversers (owner, 2026-11-14).
+- Detected sections and their node channels: jmri/layouts/hart/data/block_lengths.csv.
 
     python3 docs/ap/electrical/make_drawings.py
 """
@@ -32,26 +40,28 @@ OUT = HERE / "drawings"
 SCHEMATIC = ROOT / "docs/ops/schematic-system-draft.svg"
 BLOCKS = ROOT / "jmri/layouts/hart/data/block_lengths.csv"
 
-RED = "#c0392b"
+RED = "#b03a2e"
 BLUE = "#1f5fa8"
+GREEN = "#2e7d4f"
+AMBER = "#a8650a"
 INK = "#121a22"
-GREY = "#6b7a86"
+GREY = "#5f6e7a"
 FONT = "font-family=\"'Helvetica Neue',Helvetica,Arial,sans-serif\""
 
 
-def svg(w: int, h: int, body: str, title: str) -> str:
+def svg(w: int, h: int, body: str, title: str, desc: str) -> str:
+    """A standalone SVG with an accessible title and description."""
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" {FONT}>\n'
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" '
+        f'role="img" aria-labelledby="t d" {FONT}>\n'
+        f'<title id="t">{escape(title)}</title><desc id="d">{escape(desc)}</desc>\n'
         f'<rect width="{w}" height="{h}" fill="#fff"/>\n'
-        f'<text x="12" y="20" font-size="13" font-weight="bold" fill="{INK}">{escape(title)}</text>\n'
         f"{body}\n</svg>\n"
     )
 
 
-def gap(x: float, y: float, vertical: bool = False, color: str = INK) -> str:
+def gap(x: float, y: float, color: str = INK) -> str:
     """Insulated gap in both rails: two short bars across a two-rail track drawn at y-4 / y+4."""
-    if vertical:
-        return (f'<path d="M{x-7},{y-3} L{x+7},{y-3} M{x-7},{y+3} L{x+7},{y+3}" stroke="{color}" stroke-width="2.4"/>')
     return (f'<path d="M{x-3},{y-9} L{x-3},{y+9} M{x+3},{y-9} L{x+3},{y+9}" stroke="{color}" stroke-width="2.4"/>')
 
 
@@ -60,7 +70,7 @@ def rails(x1: float, x2: float, y: float, color: str = INK, w: float = 1.6) -> s
 
 
 def box(x, y, w, h, *lines, fill="#e4ebf0", stroke=INK, size=10) -> str:
-    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{fill}" stroke="{stroke}"/>']
+    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="3" fill="{fill}" stroke="{stroke}"/>']
     n = len(lines)
     for i, t in enumerate(lines):
         ty = y + h / 2 + (i - (n - 1) / 2) * (size + 2) + size / 3
@@ -78,86 +88,283 @@ def label(x, y, t, size=9.5, color=GREY, anchor="start", weight="normal") -> str
     return (f'<text x="{x}" y="{y}" font-size="{size}" fill="{color}" text-anchor="{anchor}" font-weight="{weight}">{escape(t)}</text>')
 
 
-# ---------------------------------------------------------------- D1
-def d1() -> str:
-    """Staging level from the REV schematic, with reversing sections and passing siding marked."""
+# ---------------------------------------------------------------- plan clips
+# Paths below are in the staging group's own coordinates, as drawn in the schematic.
+MAIN = ["M40,158 L208,158 L236,130 L1468,130", "M40,158 L26,172 L26,284 L40,298 L936,298 L1076,158 L1468,158"]
+RS1 = ["M236,130 L964,130"]                                            # west main, Switch 1 to Switch 23
+RS2 = ["M1356,102 L1580,102 L1594,116 L1594,172 L1580,186 L1356,186"]  # return loop
+RS_GAPS = [(236, 130), (964, 130), (1356, 102), (1356, 186)]
+SIDING = ["M292,298 L320,270 L432,270"]                                # passing siding, Switch 5 to Switch 7
+SIDING_MAIN = ["M292,298 L432,298"]
+YARD = ["M712,158 L992,158", "M740,186 L1020,186", "M768,214 L992,214", "M796,242 L964,242",
+        "M824,270 L936,270", "M712,158 L824,270", "M992,158 L1076,158", "M936,270 L1048,158"]
+LEAD = ["M460,270 L572,270 L684,158 L712,158"]                         # yard lead, Switch 7 to Switch 15
+ENGINE = ["M572,158 L656,158", "M544,186 L628,186 L656,158", "M516,214 L600,214 L628,186"]
+
+
+def track_segments() -> list[tuple[float, float, float, float]]:
+    """Straight segments of the staging track in the schematic (paths of track stroke width)."""
     src = SCHEMATIC.read_text()
-    m = re.search(r'<g transform="translate\(([-\d.]+),([-\d.]+)\) scale\(([\d.]+)\)"', src)
+    segs = []
+    for d, w in re.findall(r'<path d="([^"]+)" stroke-width="(1\.4|3\.2)"', src):
+        pts = [tuple(map(float, p)) for p in re.findall(r"([\d.]+),([\d.]+)", d)]
+        segs += [(*a, *b) for a, b in zip(pts, pts[1:])]
+    return segs
+
+
+def check_overlays() -> None:
+    """Every vertex of the hand-placed highlights must lie on the schematic's track, so a
+    schematic revision that moves the staging level stops the build instead of drawing the
+    highlights beside the track."""
+    segs = track_segments()
+
+    def on_track(x: float, y: float) -> bool:
+        for x1, y1, x2, y2 in segs:
+            dx, dy = x2 - x1, y2 - y1
+            t = ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy or 1)
+            if 0 <= t <= 1 and abs(x1 + t * dx - x) < 0.6 and abs(y1 + t * dy - y) < 0.6:
+                return True
+        return False
+    for d in MAIN + RS1 + RS2 + SIDING + SIDING_MAIN + YARD + LEAD + ENGINE:
+        for x, y in re.findall(r"([\d.]+),([\d.]+)", d):
+            if not on_track(float(x), float(y)):
+                raise SystemExit(f"{SCHEMATIC}: highlight point {x},{y} is off the track; update the plan clip paths")
+    for x, y in RS_GAPS:
+        if not on_track(x, y):
+            raise SystemExit(f"{SCHEMATIC}: gap mark {x},{y} is off the track; update RS_GAPS")
+
+
+def staging_group(k: float = 1.0) -> str:
+    """The staging group of the system schematic, with its names, masts and brackets removed.
+
+    Kept: track, end bumpers, and the bold switch numbers (digits, optionally a/b).
+    """
+    src = SCHEMATIC.read_text()
+    m = re.search(r'<g transform="translate\(([-\d.]+),([-\d.]+)\) scale\(([\d.]+)\)"[^>]*>', src)
     if not m:
-        raise SystemExit(f"{SCHEMATIC}: no <g transform=translate(..) scale(..)> group; update d1()")
-    tx, ty, sc = map(float, m.groups())
-    depth, i = 0, m.start()
+        raise SystemExit(f"{SCHEMATIC}: no <g transform=translate(..) scale(..)> group; update staging_group()")
+    depth, end = 0, None
     for t in re.finditer(r"<g[\s>]|</g>", src[m.start():]):
         depth += -1 if t.group(0) == "</g>" else 1
         if depth == 0:
-            i = m.start() + t.end()
+            end = m.start() + t.start()
             break
-    if depth != 0:
-        raise SystemExit(f"{SCHEMATIC}: unbalanced <g> group; update d1()")
-    group = src[m.start():i]
-    # Overlays in the group's own coordinates (paths as drawn in the schematic).
-    reverse = ["M236,130 L964,130",                                   # Main West, Switch 1 to Switch 23
-               "M1356,102 L1580,102 L1594,116 L1594,172 L1580,186 L1356,186"]  # K-1, loop end, K-2
-    siding = ["M964,130 L1300,130", "M1076,158 L1272,158"]           # West Ext and East Lead
-    ov = [f'<g transform="translate({tx},{ty}) scale({sc})" fill="none" stroke-linecap="round">']
-    for d in reverse:
-        ov.append(f'<path d="{d}" stroke="{RED}" stroke-width="9" opacity="0.45"/>')
-    for d in siding:
-        ov.append(f'<path d="{d}" stroke="{BLUE}" stroke-width="9" opacity="0.35"/>')
-    for x, y in [(236, 130), (964, 130), (1356, 102), (1356, 186)]:
-        ov.append(f'<path d="M{x-5},{y-14} L{x-5},{y+14} M{x+5},{y-14} L{x+5},{y+14}" stroke="{RED}" stroke-width="3.2"/>')
-    ov.append("</g>")
-    # Keep only the staging band (group y 0..345) of the sheet.
-    y0, y1 = ty - 10, ty + 345 * sc
-    legend_y = 30 + (y1 - y0) + 26                  # outer-SVG coordinates, just below the map
-    body = (
-        f'<svg x="0" y="30" width="1056" height="{y1 - y0:.0f}" viewBox="0 {y0:.1f} 1056 {y1 - y0:.1f}">'
-        f"{group}{''.join(ov)}</svg>\n"
-        f'<g transform="translate(40,{legend_y:.0f})">'
-        f'<rect x="0" y="-9" width="26" height="10" fill="{RED}" opacity="0.45"/>'
-        + label(34, 0, "Reversing section on an auto-reverser: Main West (Switch 1 to Switch 23), and the K-1 / K-2 loop at Princess", 10, INK)
-        + f'<path d="M3,12 L3,30 M11,12 L11,30" stroke="{RED}" stroke-width="2.4"/>'
-        + label(34, 25, "Gaps in both rails at each end of a reversing section (positions approximate on this schematic)", 10, INK)
-        + f'<rect x="0" y="36" width="26" height="10" fill="{BLUE}" opacity="0.35"/>'
-        + label(34, 45, "Mainline passing siding: West Ext beside East Lead, East End (Switches 23, 33) to Princess (Switch 35)", 10, INK)
-        + label(34, 63, "Every other detected section is also gapped in both rails at both ends; see D2. Base drawing: system schematic REV 7, staging level, not to scale.", 9.5)
-        + "</g>"
-    )
-    return svg(1056, int(legend_y + 76), body, "D1 · Staging level: reversing sections and passing siding")
+    if end is None:
+        raise SystemExit(f"{SCHEMATIC}: unbalanced <g> group; update staging_group()")
+    inner = src[m.end():end]
+    inner = re.sub(r'<g transform="translate\([^)]*\) rotate\([^)]*\)">.*?</g>', "", inner, flags=re.S)  # masts
+    inner = re.sub(r"<circle[^>]*/>", "", inner)                                                        # mast lamps
+    inner = re.sub(r'<path d="[^"]*Z" stroke-width="1"[^>]*/>', "", inner)                             # milepost marks
+    inner = re.sub(r'<path d="[^"]*" stroke-width="0\.9"[^>]*/>', "", inner)                           # mast stems
+    inner = re.sub(r'<path d="M[\d.]+,3[2-9]\d[^"]*"[^>]*/>', "", inner)                               # station brackets
+
+    nudge = {"13": -9, "15": 9, "31": -9, "33": 9}       # pairs drawn side by side in the schematic
+
+    def keep(t: re.Match) -> str:
+        attrs, body = t.group(1), t.group(2)
+        if 'font-weight="bold"' in attrs and re.fullmatch(r"\d{1,2}[ab]?", body):
+            x = float(re.search(r'x="([\d.]+)"', attrs).group(1)) + nudge.get(body, 0) * k
+            attrs = re.sub(r'x="[\d.]+"', f'x="{x:.1f}"', attrs)
+            attrs = attrs.replace('font-size="8"', f'font-size="{13 * k:.1f}"').replace('fill="#000"', f'fill="{GREY}"')
+            return f"<text{attrs}>{body}</text>"
+        return ""
+    inner = re.sub(r"<text([^>]*)>([^<]*)</text>", keep, inner)
+    inner = re.sub(r"<(polygon|polyline|rect)[^>]*/>", "", inner)
+    if "<text" in inner and not re.search(r">\d{1,2}[ab]?</text>", inner):
+        raise SystemExit("staging_group(): unexpected text left in the copy")
+    # The plan is printed small: thicken the lines so they hold up on paper.
+    inner = (inner.replace('stroke-width="1.4"', f'stroke-width="{2.4 * k:.2f}"')
+             .replace('stroke-width="3.2"', f'stroke-width="{4.6 * k:.2f}"')
+             .replace('stroke-width="2.4"', f'stroke-width="{2.4 * k:.2f}"'))
+    return f'<g fill="none" stroke="{INK}" stroke-linecap="round" stroke-linejoin="round">{inner}</g>'
 
 
-# ---------------------------------------------------------------- D2
-def blocks() -> tuple[list[tuple[str, str, str]], list[str]]:
-    """Detected sections on a node ("Block n-c"), and sections not yet on a node.
+def tag(u, x, y, text, color=INK, px=15, anchor="middle", weight="bold") -> str:
+    """A plan label with a white halo so it reads over track. px is the printed size at full width."""
+    t, size = escape(text), px * u
+    return (f'<text x="{x}" y="{y}" font-size="{size:.1f}" text-anchor="{anchor}" font-weight="{weight}" '
+            f'stroke="#fff" stroke-width="{4 * u:.1f}" stroke-linejoin="round" fill="#fff">{t}</text>'
+            f'<text x="{x}" y="{y}" font-size="{size:.1f}" text-anchor="{anchor}" font-weight="{weight}" fill="{color}">{t}</text>')
 
-    Rows flagged "stub" are panel sub-blocks sharing another section's detector; they
-    are not separate electrical sections and are left out.
+
+def hl(u, paths, color, px=9, opacity=0.38) -> str:
+    return "".join(f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{px * u:.1f}" stroke-linecap="round" '
+                   f'stroke-linejoin="round" opacity="{opacity}"/>' for d in paths)
+
+
+def gaps_at(u, points, color=RED) -> str:
+    a, h = 4 * u, 11 * u
+    return "".join(f'<path d="M{x-a:.1f},{y-h:.1f} L{x-a:.1f},{y+h:.1f} M{x+a:.1f},{y-h:.1f} L{x+a:.1f},{y+h:.1f}" '
+                   f'stroke="{color}" stroke-width="{2.6 * u:.1f}"/>' for x, y in points)
+
+
+WIDTH = 1000          # every plan clip is drawn 1000 units wide and printed at full text width
+
+
+def plan(view, layers, legend, title, desc) -> str:
+    """A clip of the staging level. layers(u) returns (under, over); u = schematic units per printed unit."""
+    vx, vy, vw, vh = view
+    u = vw / WIDTH
+    under, over = layers(u)
+    h_map = WIDTH * vh / vw
+    body = [f'<svg x="0" y="0" width="{WIDTH}" height="{h_map:.0f}" viewBox="{vx} {vy} {vw} {vh}">',
+            under, staging_group(max(u / 1.64, 0.3)), over, "</svg>"]
+    y = h_map + 30
+    for color, text in legend:
+        if color == "gap":
+            body.append(f'<path d="M14,{y-15} L14,{y+3} M23,{y-15} L23,{y+3}" stroke="{RED}" stroke-width="3"/>')
+        else:
+            body.append(f'<rect x="4" y="{y-14}" width="30" height="15" fill="{color}" opacity="0.5"/>')
+        body.append(label(46, y, text, 17, INK))
+        y += 32
+    return svg(WIDTH, int(y - 8), "\n".join(body), title, desc)
+
+
+def p1() -> str:
+    def layers(u):
+        under = (hl(u, MAIN, "#9aa7b1", 6, 0.25) + hl(u, RS1 + RS2, RED) + hl(u, SIDING, BLUE) + hl(u, YARD, GREEN)
+                 + hl(u, LEAD + ENGINE, AMBER))
+        over = "".join([
+            tag(u, 420, 114, "MAIN LINE", INK, 19), tag(u, 680, 334, "MAIN LINE", INK, 19),
+            tag(u, 800, 114, "RS-1", RED, 19), tag(u, 1440, 84, "RS-2 return loop", RED, 19),
+            tag(u, 372, 256, "Passing siding", BLUE, 17), tag(u, 880, 300, "Yard Y1–Y5", GREEN, 17),
+            tag(u, 596, 256, "Yard lead", AMBER, 16, "start"), tag(u, 500, 196, "Engine storage", AMBER, 16, "end"),
+            tag(u, 150, 88, "Holding tracks", GREY, 14), tag(u, 1440, 148, "to helix", GREY, 14),
+            tag(u, 1170, 116, "Double track", GREY, 14),
+            tag(u, 80, 232, "WEST", GREY, 16), tag(u, 1560, 232, "EAST", GREY, 16),
+        ]) + gaps_at(u, RS_GAPS)
+        return under, over
+    return plan((0, 66, 1640, 280), layers, [
+        (RED, "RS-1 and RS-2: reversing sections, each on its own auto-reverser (Section 3.3)"),
+        (BLUE, "Passing siding beside the main line, Switch 5 to Switch 7 (Section 3.4)"),
+        (GREEN, "Yard of five tracks, Y1 to Y5 (Section 3.6)"),
+        (AMBER, "Yard lead and the engine storage tracks E1 to E3 (Sections 3.5 and 3.6)"),
+        ("gap", "Gaps in both rails at the ends of each reversing section (positions schematic)"),
+    ], "Plan P1: the staging level with generic labels",
+        "Track diagram of the staging level, west at left. The main line runs as a long loop. Highlighted: two reversing "
+        "sections in red, a passing siding in blue, a five-track yard in green, and the yard lead with three engine "
+        "storage tracks in amber. Switch numbers are shown as on the layout fascia.")
+
+
+def p2() -> str:
+    def layers(u):
+        over = "".join([tag(u, 600, 112, "RS-1 (AR-10)", RED, 19), tag(u, 1420, 84, "RS-2 return loop (PSX-AR)", RED, 19),
+                        tag(u, 250, 168, "gap", RED, 14), tag(u, 964, 168, "gap", RED, 14),
+                        tag(u, 1316, 110, "gap", RED, 14), tag(u, 1316, 206, "gap", RED, 14),
+                        tag(u, 1170, 118, "main line", GREY, 14), tag(u, 1170, 182, "main line", GREY, 14)])
+        return hl(u, RS1 + RS2, RED), over + gaps_at(u, RS_GAPS)
+    return plan((0, 62, 1640, 170), layers, [
+        (RED, "Reversing section: gapped in both rails at both ends, fed through its own auto-reverser"),
+        ("gap", "Insulated gaps in both rails (positions schematic; the witness sees the real gaps)"),
+    ], "Plan P2: the two reversing sections",
+        "Track diagram of the staging level with the two reversing sections highlighted in red: RS-1 on the west main "
+        "line between Switch 1 and Switch 23, and RS-2, the return loop at the east end. Each is gapped at both ends.")
+
+
+def p3() -> str:
+    def layers(u):
+        over = "".join([tag(u, 372, 258, "Passing siding", BLUE, 22), tag(u, 362, 318, "Main line", INK, 22)])
+        return hl(u, SIDING, BLUE, 12) + hl(u, SIDING_MAIN, "#9aa7b1", 8, 0.3), over
+    return plan((240, 240, 280, 92), layers, [
+        (BLUE, "Passing siding, 144 in long (about 19 cars), joined to the main line at both ends"),
+    ], "Plan P3: the passing siding",
+        "Close-up of the passing siding beside the main line, between Switch 5 at the west end and Switch 7 at the east "
+        "end. A train can hold on the siding while another passes on the main.")
+
+
+def p4() -> str:
+    def layers(u):
+        over = "".join([tag(u, 852, 152, "Y1", GREEN, 13), tag(u, 880, 180, "Y2", GREEN, 13), tag(u, 880, 208, "Y3", GREEN, 13),
+                        tag(u, 880, 236, "Y4", GREEN, 13), tag(u, 880, 264, "Y5", GREEN, 13),
+                        tag(u, 560, 292, "Yard lead", AMBER, 14),
+                        tag(u, 700, 320, "Main line", INK, 13), tag(u, 1190, 150, "Main line", INK, 13)])
+        return hl(u, YARD, GREEN, 10) + hl(u, LEAD, AMBER, 10), over
+    return plan((440, 128, 800, 205), layers, [
+        (GREEN, "Yard tracks Y1 to Y5, 100 to 218 in long"),
+        (AMBER, "Yard lead: a switcher works the west ladder from here without occupying the main line"),
+    ], "Plan P4: the yard and its lead",
+        "Close-up of the five-track yard. Its west ladder (Switches 15 to 21) is reached from the yard lead, which leaves "
+        "the main line at Switch 7 and does not use it. The east ladder joins the main line at the east end.")
+
+
+def p5() -> str:
+    def layers(u):
+        over = "".join([tag(u, 540, 150, "E1", AMBER, 22), tag(u, 512, 180, "E2", AMBER, 22), tag(u, 486, 208, "E3", AMBER, 22),
+                        tag(u, 590, 262, "Yard lead", AMBER, 20)])
+        return hl(u, ENGINE, AMBER, 12) + hl(u, LEAD, AMBER, 8, 0.18), over
+    return plan((450, 136, 290, 140), layers, [
+        (AMBER, "Engine storage tracks E1 to E3, each its own detected section, off the yard lead"),
+    ], "Plan P5: engine storage",
+        "Close-up of three stub-ended engine storage tracks E1 to E3, reached through Switches 9 and 11 from the yard "
+        "lead.")
+
+
+# ---------------------------------------------------------------- wiring drawings
+def detected_sections() -> list[dict]:
+    """Every detected section on an LCOS node ("Block n-c"), sorted by node and channel.
+
+    Length is the whole detected section: where the table's note says a row's length is
+    the "detector length minus" a hidden stub on the same detector, the stub is added back.
+    Stub rows themselves are panel sub-blocks, not separate electrical sections.
     """
-    rows, unnoded = [], []
     with BLOCKS.open() as f:
-        for r in csv.DictReader(f):
-            name = r["user_name"].replace("Track ", "")
-            m = re.match(r"Block (\d+)-(\d+)$", r["occupancy_sensor"])
-            if m:
-                rows.append((name, f"C{m.group(1)}", m.group(2)))
-            elif r["flag"] != "stub":
-                unnoded.append(name)
-    rows.sort(key=lambda t: (int(t[1][1:]), int(t[2])))
-    return rows, unnoded
+        rows = list(csv.DictReader(f))
+    by_name = {r["user_name"]: r for r in rows}
+    out = []
+    for r in rows:
+        m = re.fullmatch(r"Block (\d+)-(\d+)", r["occupancy_sensor"])
+        if not m:
+            continue
+        inches = float(r["inches"])
+        for stub in re.findall(r"detector length minus (Track [^;\"]+?)(?:;|$)", r["old_source"]):
+            if stub.strip() not in by_name:
+                raise SystemExit(f"{BLOCKS}: {r['user_name']} names a missing stub {stub!r}")
+            inches += float(by_name[stub.strip()]["inches"])
+        out.append({"name": r["user_name"].replace("Track ", ""), "node": int(m.group(1)), "ch": int(m.group(2)),
+                    "inches": inches, "estimate": r["flag"] == "estimate"})
+    out.sort(key=lambda s: (s["node"], s["ch"]))
+    return out
+
+
+def d1() -> str:
+    """Propulsion one-line: throttles to command station, boosters, protection, district buses, sections."""
+    b = []
+    b.append(box(20, 40, 150, 50, "DCC throttles", "speed and direction", "per locomotive address", size=9.5))
+    b.append(box(220, 40, 170, 50, "Command station", "TCS CS-105", "(also a track output)", size=9.5))
+    b.append(box(220, 120, 170, 50, "Boosters", "TCS B-106 class", "same DCC signal, more power", size=9.5))
+    b.append(wire("M170,65 L220,65", BLUE, 1.8))
+    b.append(label(176, 58, "throttle bus", 8.5, BLUE))
+    b.append(wire("M305,90 L305,120", BLUE, 1.8))
+    b.append(label(312, 108, "DCC control signal", 8.5, BLUE))
+    b.append(box(440, 60, 120, 90, "Booster matrix", "terminal strips:", "any output to", "any district", size=9))
+    b.append(wire("M390,65 L440,80", INK, 2))
+    b.append(wire("M390,145 L440,130", INK, 2))
+    rows = [("District A", "PSX-series breaker"), ("District B", "PSX-series breaker"), ("District C", "PSX-series breaker"),
+            ("District D", "PSX-series breaker"), ("RS-1", "AR-10 auto-reverser"), ("RS-2", "PSX-AR auto-reverser")]
+    for i, (name, dev) in enumerate(rows):
+        y = 30 + i * 46
+        col = RED if name.startswith("RS") else INK
+        b.append(box(610, y, 150, 36, dev, "short protection", size=9, fill="#fbeeee" if col == RED else "#e4ebf0"))
+        b.append(wire(f"M560,105 L585,105 L585,{y+18} L610,{y+18}", INK, 1.4))
+        b.append(wire(f"M760,{y+14} L840,{y+14}", RED, 1.8))
+        b.append(wire(f"M760,{y+22} L840,{y+22}", INK, 1.8))
+        b.append(label(846, y + 22, f"{name} bus → sections", 10.5, col, weight="bold" if col == RED else "normal"))
+    return svg(1000, 312, "\n".join(b), "D1 · Propulsion one-line: control, power and protection",
+               "Block diagram. Throttles feed the command station, which sends the DCC signal to the boosters. The command "
+               "station and boosters feed a booster matrix, which feeds four circuit breakers and two auto-reversers. Each "
+               "feeds its own district bus.")
 
 
 def d2() -> str:
     """Typical detected section: district bus, feeder pair through one DNCT2B channel, gaps in both rails."""
     b = []
-    b.append(box(20, 50, 120, 46, "Command station", "CS-105 + boosters"))
-    b.append(box(190, 50, 130, 46, "Circuit breaker", "PSX / PSXX, per district"))
+    b.append(box(20, 50, 120, 46, "Command station", "and boosters (D1)"))
+    b.append(box(190, 50, 130, 46, "Protection device", "breaker or auto-reverser"))
     b.append(wire("M140,73 L190,73", INK, 2))
     b.append(label(145, 66, "DCC"))
-    # district bus
     b.append(wire("M320,66 L860,66", RED, 2.2))
     b.append(wire("M320,80 L860,80", INK, 2.2))
     b.append(label(330, 60, "District bus (two wires, one per rail)", 9.5, INK))
-    # one section
     y = 200
     b.append(rails(360, 820, y))
     b.append(gap(380, y))
@@ -167,13 +374,11 @@ def d2() -> str:
     b.append(rails(804, 880, y, GREY))
     b.append(label(300, y - 14, "next section", 9, GREY))
     b.append(label(820, y - 14, "next section", 9, GREY))
-    # feeders: both wires of the pair pass through one DNCT2B channel
     b.append(wire(f"M560,66 L560,{y-4}", RED, 1.6))
     b.append(wire(f"M580,80 L580,{y+4}", INK, 1.6))
     b.append(f'<circle cx="560" cy="{y-4}" r="3" fill="{RED}"/><circle cx="580" cy="{y+4}" r="3" fill="{INK}"/>')
     b.append(f'<ellipse cx="570" cy="128" rx="20" ry="9" fill="none" stroke="{BLUE}" stroke-width="2.2"/>')
     b.append(label(596, 124, "channel 1", 9, BLUE))
-    # the board's second channel serves the next section the same way
     b.append(wire(f"M836,66 L836,{y-4}", GREY, 1.3))
     b.append(wire(f"M856,80 L856,{y+4}", GREY, 1.3))
     b.append(f'<ellipse cx="846" cy="128" rx="20" ry="9" fill="none" stroke="{BLUE}" stroke-width="2.2" opacity="0.6"/>')
@@ -181,29 +386,20 @@ def d2() -> str:
     b.append(box(400, 112, 110, 32, "DNCT2B", "two-channel sensor", size=9))
     b.append(wire("M510,128 L550,128", BLUE, 1.4))
     b.append(wire("M455,112 L455,100 L846,100 L846,119", BLUE, 1.2, "4 3"))
-    b.append(box(400, 240, 140, 34, "LCOS node Cn", "block input, channel c", size=9))
+    b.append(box(400, 240, 140, 34, "LCOS control node", "block input", size=9))
     b.append(wire("M450,144 L450,240", BLUE, 1.4, "4 3"))
     b.append(label(444, 172, "occupied / clear", 9, BLUE, "end"))
     b.append(label(600, 150, "Both feeders of the section pass through the", 9.5, INK))
     b.append(label(600, 163, "same sensor channel; each section has at least", 9.5, INK))
     b.append(label(600, 176, "one feeder pair. One DNCT2B serves two sections.", 9.5, INK))
-    # table
-    rows, unnoded = blocks()
-    b.append(label(20, 306, f"Detected sections on LCOS nodes: {len(rows)}, each wired as above.", 10.5, INK, weight="bold"))
-    if unnoded:
-        names = " and ".join(unnoded) if len(unnoded) < 3 else ", ".join(unnoded)
-        b.append(label(20, 322, f"{names}: own sections, wired the same way but not yet on a node.", 9.5))
-    cols, per = 3, -(-len(rows) // 3)
-    for i, (name, node, ch) in enumerate(rows):
-        c, r = divmod(i, per)
-        x, yy = 20 + c * 300, 344 + r * 14.5
-        b.append(f'<text x="{x}" y="{yy:.1f}" font-size="9.5" fill="{INK}">{escape(name)}</text>')
-        b.append(f'<text x="{x + 190}" y="{yy:.1f}" font-size="9.5" fill="{GREY}">{node} · ch {ch}</text>')
-    h = int(344 + per * 14.5 + 20)
-    return svg(920, h, "\n".join(b), "D2 · Propulsion: typical detected section, and every section on its detector")
+    rows = detected_sections()
+    b.append(label(20, 304, f"All {len(rows)} detected sections on the staging level and helix are wired this way; Appendix B lists them.", 10, INK, weight="bold"))
+    return svg(920, 320, "\n".join(b), "D2 · Propulsion: typical detected section",
+               "A district bus of two wires runs from its protection device. A feeder pair drops to one section of track, "
+               "gapped in both rails at both ends. Both feeders pass through one channel of a DNCT2B current sensor, which "
+               "reports occupied or clear to an LCOS control node.")
 
 
-# ---------------------------------------------------------------- D3
 def d3() -> str:
     """Powered frog and panel indication through the MTB MP4's two SPDT contacts.
 
@@ -212,31 +408,27 @@ def d3() -> str:
     """
     b = []
     yt, yb = 206, 214
-    k = -90 / 220                                   # slope of the diverging route
-    def dy(x0, y0, x):                              # y on a diverging rail through (x0, y0)
+    k = -90 / 220
+    def dy(x0, y0, x):
         return y0 + k * (x - x0)
-    fx = 300 + (yt - yb) / k + 0                    # lower diverging rail from (300, 214) meets y=206
-    b.append(wire(f"M60,{yt} L560,{yt}", INK, 1.6))                     # straight top rail
-    b.append(wire(f"M60,{yb} L560,{yb}", INK, 1.6))                     # straight bottom rail (stock)
-    b.append(wire(f"M280,{yt} L520,{dy(280, yt, 520):.1f}", INK, 1.6))  # diverging outer rail (stock)
-    b.append(wire(f"M300,{yb} L540,{dy(300, yb, 540):.1f}", INK, 1.6))  # diverging inner rail
-    # frog rails: from the crossing to the gaps, in red
+    fx = 300 + (yt - yb) / k
+    b.append(wire(f"M60,{yt} L560,{yt}", INK, 1.6))
+    b.append(wire(f"M60,{yb} L560,{yb}", INK, 1.6))
+    b.append(wire(f"M280,{yt} L520,{dy(280, yt, 520):.1f}", INK, 1.6))
+    b.append(wire(f"M300,{yb} L540,{dy(300, yb, 540):.1f}", INK, 1.6))
     gx = 400
     b.append(wire(f"M{fx:.1f},{yt} L{gx},{yt}", RED, 3.2))
     b.append(wire(f"M{fx:.1f},{yt} L{gx},{dy(300, yb, gx):.1f}", RED, 3.2))
     b.append(f'<circle cx="{fx:.1f}" cy="{yt}" r="3.5" fill="{RED}"/>')
     b.append(label(fx - 6, yt - 46, "frog", 10, RED, "end", "bold"))
     b.append(wire(f"M{fx-8:.1f},{yt-42} L{fx:.1f},{yt-4}", RED, 0.8))
-    # one gap in each frog rail, the stock rails untouched
     b.append(wire(f"M{gx},{yt-3.5} L{gx},{yt+3.5} M{gx+4},{yt-3.5} L{gx+4},{yt+3.5}", INK, 2.2))
     yd = dy(300, yb, gx)
     b.append(wire(f"M{gx-1.5},{yd-3.5} L{gx+1.5},{yd+3.5} M{gx+2.5},{yd-5} L{gx+5.5},{yd+2}", INK, 2.2))
     b.append(label(gx + 10, yt + 26, "a gap in each frog rail (stock rails continuous)", 9.5))
     b.append(label(62, yb + 24, "stock rails", 9.5))
-    # MP4
     b.append(f'<rect x="110" y="300" width="200" height="130" fill="#f3f6f8" stroke="{INK}"/>')
     b.append(label(210, 318, "MTB MP4 switch machine", 10.5, INK, "middle", "bold"))
-    # SPDT 1 (frog)
     b.append(label(124, 340, "SPDT 1: frog power", 10, INK, weight="bold"))
     b.append(f'<circle cx="150" cy="362" r="3" fill="{INK}"/><circle cx="200" cy="352" r="3" fill="{INK}"/><circle cx="200" cy="372" r="3" fill="{INK}"/>')
     b.append(wire("M150,362 L198,353", INK, 1.6))
@@ -248,71 +440,70 @@ def d3() -> str:
     b.append(wire(f"M150,362 L140,362 L140,262 L{fx + 25:.1f},262 L{fx + 25:.1f},{yt}", RED, 1.6))
     b.append(f'<circle cx="{fx + 25:.1f}" cy="{yt}" r="3" fill="{RED}"/>')
     b.append(label(150, 256, "common to the frog", 9.5, RED))
-    # SPDT 2 (indication)
     b.append(label(124, 396, "SPDT 2: panel indication", 10, INK, weight="bold"))
     b.append(f'<circle cx="150" cy="410" r="3" fill="{INK}"/><circle cx="200" cy="402" r="3" fill="{INK}"/><circle cx="200" cy="416" r="3" fill="{INK}"/>')
     b.append(wire("M150,410 L198,403", INK, 1.6))
-    b.append(box(380, 380, 190, 44, "Panel indication", "Touch Toggle LED: normal / reverse", size=9))
+    b.append(box(380, 380, 190, 44, "Indication input", "Universal Translator / node input", size=9))
     b.append(wire("M200,402 L380,396", BLUE, 1.3))
     b.append(wire("M200,416 L380,410", BLUE, 1.3))
     b.append(wire("M150,410 L150,444 L475,444 L475,424", BLUE, 1.3))
-    b.append(label(160, 440, "LED supply to the common", 9, BLUE))
-    b.append(box(380, 316, 190, 44, "Motor drive", "LCOS 12 V output", size=9))
+    b.append(label(160, 440, "signal common", 9, BLUE))
+    b.append(box(380, 316, 190, 44, "Motor drive", "LCOS 12 V output board", size=9))
     b.append(wire("M310,338 L380,338", INK, 1.3, "4 3"))
     b.append(label(20, 472, "The frog always takes the polarity of the stock rail its points lie against, because the same throw of the machine that moves", 9.5, INK))
     b.append(label(20, 486, "the points also moves the SPDT 1 contact. Every staging turnout is wired this way. Indication follows the machine, so it is", 9.5, INK))
-    b.append(label(20, 500, "correct whether the turnout is thrown from the panel, a DCC throttle or the computer.", 9.5, INK))
-    return svg(620, 516, "\n".join(b), "D3 · Turnout: powered frog and panel indication (MTB MP4, two SPDT)")
+    b.append(label(20, 500, "correct whether the turnout is thrown from the fascia, a DCC throttle or the computer (Section 5.2).", 9.5, INK))
+    return svg(620, 516, "\n".join(b), "D3 · Turnout: powered frog and position contact (MTB MP4, two SPDT)",
+               "A turnout with its frog rails in red, gapped beyond the frog. Contact 1 of the switch machine connects the "
+               "frog to one stock rail or the other. Contact 2 reports the position to the indication circuit.")
 
 
-# ---------------------------------------------------------------- D4
 def d4() -> str:
     """Crossover: two turnouts joined by a pair of parallel rails, gapped between the frogs."""
     b = []
     ya, yb = 110, 230
     b.append(rails(40, 700, ya))
     b.append(rails(40, 700, yb))
-    # crossover rails: parallel, from the lower rail of track a to the upper rail of track b
     x1, x2 = 220, 500
-    off = 20                                        # horizontal offset gives two parallel rails
-    p1 = ((x1, ya + 4), (x2, yb - 4))
-    p2 = ((x1 + off, ya + 4), (x2 + off, yb - 4))
-    for (sx, sy), (ex, ey) in (p1, p2):
+    off = 20
+    p1_ = ((x1, ya + 4), (x2, yb - 4))
+    p2_ = ((x1 + off, ya + 4), (x2 + off, yb - 4))
+    for (sx, sy), (ex, ey) in (p1_, p2_):
         b.append(wire(f"M{sx},{sy} L{ex},{ey}", INK, 1.6))
     def at(p, t):
         (sx, sy), (ex, ey) = p
         return sx + (ex - sx) * t, sy + (ey - sy) * t
-    fa, fb = at(p2, 0.12), at(p1, 0.88)
+    fa, fb = at(p2_, 0.12), at(p1_, 0.88)
     b.append(f'<circle cx="{fa[0]:.1f}" cy="{fa[1]:.1f}" r="5" fill="{RED}"/><circle cx="{fb[0]:.1f}" cy="{fb[1]:.1f}" r="5" fill="{RED}"/>')
     b.append(label(fa[0] + 10, fa[1] + 4, "frog A", 9.5, RED, weight="bold"))
     b.append(label(fb[0] - 10, fb[1] + 4, "frog B", 9.5, RED, "end", "bold"))
-    # a gap in each crossover rail at mid-length
-    for p in (p1, p2):
+    for p in (p1_, p2_):
         cx, cy = at(p, 0.5)
         b.append(wire(f"M{cx-4},{cy-6} L{cx+4},{cy+6} M{cx+1},{cy-8} L{cx+9},{cy+4}", INK, 2.2))
-    mx, my = at(p2, 0.5)
+    mx, my = at(p2_, 0.5)
     b.append(label(mx + 18, my, "gap in both crossover rails, between the frogs", 10, INK, weight="bold"))
     for x in (150, 600):
         b.append(gap(x, ya, color=GREY))
         b.append(gap(x, yb, color=GREY))
-    b.append(label(40, ya - 18, "section a (for example OS Switch 23a)", 9.5))
-    b.append(label(40, yb + 30, "section b (for example OS Switch 23b)", 9.5))
-    b.append(box(40, 280, 200, 40, "MP4 half a", "SPDT 1 to frog A, SPDT 2 to panel", size=9))
-    b.append(box(480, 280, 200, 40, "MP4 half b", "SPDT 1 to frog B, SPDT 2 to panel", size=9))
+    b.append(label(40, ya - 18, "track a: half a is its own detected section", 9.5))
+    b.append(label(40, yb + 30, "track b: half b is its own detected section", 9.5))
+    b.append(box(40, 280, 200, 40, "MP4 half a", "SPDT 1 to frog A, SPDT 2 to indication", size=9))
+    b.append(box(480, 280, 200, 40, "MP4 half b", "SPDT 1 to frog B, SPDT 2 to indication", size=9))
     b.append(label(20, 350, "Each half is a turnout wired as D3, on its own machine; both machines are thrown together. Because each frog takes its own", 9.5, INK))
     b.append(label(20, 364, "polarity, the crossover rails are gapped between the frogs. Each half is its own detected section, gapped in both rails (grey).", 9.5, INK))
-    b.append(label(20, 378, "Built at Switches 23 (23a / 23b) and 35 (35a / 35b) in staging, and at Switch 7 (7 / 7b).", 9.5, INK))
-    return svg(720, 394, "\n".join(b), "D4 · Crossover: two powered-frog turnouts, gapped between the frogs")
+    b.append(label(20, 378, "Built at Switch 23 (halves 23a and 23b) and Switch 35 (35a and 35b) on the staging level, and at Switch 7.", 9.5, INK))
+    return svg(720, 394, "\n".join(b), "D4 · Crossover: two powered-frog turnouts, gapped between the frogs",
+               "Two parallel tracks joined by a crossover of two turnouts. Each frog is powered by its own machine, and both "
+               "crossover rails are gapped between the two frogs.")
 
 
-# ---------------------------------------------------------------- D5
 def d5() -> str:
     """Reversing section on an auto-reverser."""
     b = []
     b.append(wire("M40,66 L700,66", RED, 2.2))
     b.append(wire("M40,80 L700,80", INK, 2.2))
-    b.append(label(44, 58, "District bus from its circuit breaker", 9.5, INK))
-    b.append(box(260, 110, 240, 46, "Auto-reverser", "AR-10 (Main West), PSX-AR (K-1 / K-2)", size=10))
+    b.append(label(44, 58, "DCC from the booster matrix (D1)", 9.5, INK))
+    b.append(box(260, 110, 240, 46, "Auto-reverser", "AR-10 (RS-1) or PSX-AR (RS-2)", size=10))
     b.append(wire("M360,80 L360,110", INK, 1.4))
     b.append(wire("M400,66 L400,110", RED, 1.4))
     y = 250
@@ -330,20 +521,21 @@ def d5() -> str:
     b.append(label(430, 204, "both feeders through one DNCT2B channel, as D2", 9.5, BLUE))
     b.append(label(60, y - 16, "normal section", 9, GREY))
     b.append(label(620, y - 16, "normal section", 9, GREY))
-    b.append(label(20, 320, "When a train's wheels bridge a gap with the polarity wrong, the short is seen by the auto-reverser, which swaps the section's two", 9.5, INK))
-    b.append(label(20, 334, "outputs in milliseconds, faster than the district's breaker trips. Two sections are wired this way: Main West, and the K-1 / K-2 loop", 9.5, INK))
-    b.append(label(20, 348, "at Princess (D1).", 9.5, INK))
-    return svg(720, 364, "\n".join(b), "D5 · Reversing section on an auto-reverser")
+    b.append(label(20, 320, "When a train's wheels bridge a gap with the polarity wrong, the auto-reverser sees the short and swaps the section's two", 9.5, INK))
+    b.append(label(20, 334, "outputs in milliseconds, before any breaker trips; on a lasting short it cuts the section off like a breaker. Two sections", 9.5, INK))
+    b.append(label(20, 348, "are wired this way: RS-1 on the west main line and RS-2, the return loop (Plan P2).", 9.5, INK))
+    return svg(720, 364, "\n".join(b), "D5 · Reversing section on an auto-reverser",
+               "A section of track gapped in both rails at both ends, fed through an auto-reverser that swaps its polarity "
+               "when a train crosses a gap.")
 
 
-# ---------------------------------------------------------------- D6
 def d6() -> str:
     """Computer-to-railroad interface: the owner's LCOS-to-MQTT bridge (external/lcos-bridge)."""
     b = []
-    b.append(box(20, 60, 170, 56, "JMRI (Raspberry Pi)", "turnouts, sensors, masts", "MQTT connection", size=9.5))
-    b.append(box(250, 60, 150, 56, "MQTT broker", "Mosquitto on the Pi", "topics track/...", size=9.5))
-    b.append(box(460, 50, 200, 76, "Bridge program (PC)", "serial_to_mqtt.py", "serial lines <-> MQTT topics", "written for HART", size=9.5))
-    b.append(box(460, 190, 200, 76, "Bridge node", "Arduino Nano + nRF24 radio", "LCOS bridge firmware", "written for HART", size=9.5))
+    b.append(box(20, 60, 170, 56, "JMRI (Raspberry Pi)", "turnouts, sensors, signals", "MQTT connection", size=9.5))
+    b.append(box(250, 60, 150, 56, "MQTT broker", "Mosquitto", "topics track/...", size=9.5))
+    b.append(box(460, 50, 200, 76, "Bridge program (PC)", "serial_to_mqtt.py", "serial lines <-> MQTT topics", "written by the member", size=9.5, fill="#fdf3e3"))
+    b.append(box(460, 190, 200, 76, "Bridge node", "Arduino Nano + nRF24 radio", "bridge firmware", "written by the member", size=9.5, fill="#fdf3e3"))
     b.append(box(250, 190, 150, 76, "LCOS field nodes", "Nano + radio + input,", "output, detector boards", size=9.5))
     b.append(box(20, 196, 170, 64, "Railroad", "switch machines, signals,", "block detectors", size=9.5))
     for d in ("M190,88 L250,88", "M400,88 L460,88", "M560,126 L560,190", "M460,228 L400,228", "M250,228 L190,228"):
@@ -355,15 +547,26 @@ def d6() -> str:
     b.append(label(196, 222, "wired", 9))
     b.append(label(20, 300, "Turnout commands from JMRI go out as MQTT messages, which the bridge program writes to the bridge node as serial lines; the node sends", 9.5, INK))
     b.append(label(20, 314, "them by radio to the field node beside the switch. Field events (switch position, block occupied or clear, button presses) come back", 9.5, INK))
-    b.append(label(20, 328, "the same way and appear in JMRI as sensors and turnout feedback. Both the firmware and the bridge program were written for this", 9.5, INK))
-    b.append(label(20, 342, "railroad and are published as open source; LCOS (the radio protocol), JMRI and Mosquitto are existing software.", 9.5, INK))
-    return svg(680, 358, "\n".join(b), "D6 · Computer-to-railroad interface: LCOS radio network to JMRI over MQTT")
+    b.append(label(20, 328, "the same way and appear in JMRI as sensors and turnout feedback. The shaded parts were designed and written by the member and are", 9.5, INK))
+    b.append(label(20, 342, "published as open source; LCOS (the radio protocol and boards), JMRI and Mosquitto are existing products.", 9.5, INK))
+    return svg(680, 358, "\n".join(b), "D6 · Computer-to-railroad interface: LCOS radio network to JMRI over MQTT",
+               "Block diagram: JMRI talks to an MQTT broker, which talks to the bridge program on a PC, which talks over USB "
+               "to the bridge node, which talks by radio to the LCOS field nodes wired to the railroad. The bridge program "
+               "and bridge node firmware were written by the member.")
+
+
+FIGURES = [("P1-staging-plan", p1), ("P2-reversing-sections", p2), ("P3-passing-siding", p3), ("P4-yard", p4),
+           ("P5-engine-storage", p5), ("D1-propulsion-one-line", d1), ("D2-propulsion-sections", d2),
+           ("D3-turnout-frog-indication", d3), ("D4-crossover", d4), ("D5-reversing-section", d5),
+           ("D6-computer-interface", d6)]
 
 
 def main() -> None:
+    check_overlays()
     OUT.mkdir(exist_ok=True)
-    for name, fn in [("D1-staging-reversing-sections", d1), ("D2-propulsion-sections", d2),
-                     ("D3-turnout-frog-indication", d3), ("D4-crossover", d4), ("D5-reversing-section", d5), ("D6-computer-interface", d6)]:
+    for old in OUT.glob("D1-staging-reversing-sections.svg"):
+        old.unlink()
+    for name, fn in FIGURES:
         (OUT / f"{name}.svg").write_text(fn())
         print(OUT / f"{name}.svg")
 
