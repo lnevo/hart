@@ -68,9 +68,20 @@ class AiSpeakTest(unittest.TestCase):
                 self.assertEqual(cas.find(line), [])
 
     def test_default_covers_article_pages(self):
-        globs = " ".join(cas.DEFAULT_GLOBS)
-        for part in ("www/ai/", "www/library/", "www/ap/", "www/exam/"):
-            self.assertIn(part, globs)
+        for g in cas.DEFAULT_GLOBS:
+            with self.subTest(glob=g):
+                self.assertTrue(any(ROOT.glob(g)), g)
+
+    def test_skips_script_and_comments(self):
+        self.assertEqual(cas.find("<script>// essentially robust</script><!-- the key is -->ok"), [])
+
+    def test_missing_default_glob_fails(self):
+        old = cas.DEFAULT_GLOBS
+        cas.DEFAULT_GLOBS = old + ("www/no-such-dir/*.html",)
+        try:
+            self.assertEqual(cas.main([]), 2)
+        finally:
+            cas.DEFAULT_GLOBS = old
 
     def test_wrapped_hit_reports_its_first_line(self):
         self.assertEqual([n for n, _, _ in cas.find("a\nThe terms are often\nconfused.")], [2])

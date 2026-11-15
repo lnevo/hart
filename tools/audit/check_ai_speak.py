@@ -3,9 +3,13 @@
 
 Covers the article pages (``DEFAULT_GLOBS``): the AI topics, library, behind-the-scenes,
 guides, Achievement Program pages and the C&E study deck. Their text should state facts in
-plain words. This check flags the phrasings that crept in when they were drafted, for example "People mix the two
-up; the exam won't." or "The terms are often confused.": claims about readers or the
-exam that the OPSIG guides never make.
+plain words. Flagged kinds: claims about what readers get wrong ("People mix the two up;
+the exam won't."), coaching asides ("Think of the motion"), tidy morals ("the log is
+only as good as my notes"), stock phrases ("the key is") and invented colour.
+
+Only HTML text is read: <style>, <script> and comments are skipped. Pages that load their
+prose from another file at runtime (www/library/opspro-showcase-guide.md, copied from the
+plugin's GUIDE.md) are not covered.
 
 Each pattern names what is wrong with it. Rewrite the sentence (usually by deleting the
 clause); there is no suppression marker. Pass paths to check other files.
@@ -44,13 +48,13 @@ PATTERNS: tuple[tuple[str, str], ...] = (
     (r"\b(worth noting|it should be noted|keep in mind|remember that)\b", "stock phrase"),
     (r"\b(waiting|wait|run|going) forever\b", "invented colour"),
     (r"\bis only as good as\b", "tidy moral"),
-    (r"\bso a spare (evening|weekend|afternoon)\b", "speaking for the reader"),
+    (r"\b(a )?(spare|free) (evening|weekend|afternoon|hour)\b", "speaking for the reader"),
     (r"\ba good place to start\b", "coaching aside"),
-    (r"\bthe rule (also )?works the other way\b", "stock phrase"),
+    (r"\bworks the other way\b|\bthe reverse (also )?holds\b", "stock phrase"),
     (r"\bexplains the ideas\b|\b(cards|tests) (and tests |and cards )?check (them|it)\b", "closing summary line"),
 )
 COMPILED = tuple((re.compile(p, re.I), why) for p, why in PATTERNS)
-STYLE = re.compile(r"<style\b.*?</style>", re.I | re.S)
+STYLE = re.compile(r"<style\b.*?</style>|<script\b.*?</script>|<!--.*?-->", re.I | re.S)
 TAG = re.compile(r"<[^>]*>")
 APOSTROPHES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u02bc": "'"})
 
@@ -92,7 +96,14 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("paths", nargs="*", help=f"files to check (default: {', '.join(DEFAULT_GLOBS)})")
     args = ap.parse_args(argv)
-    paths = [Path(p) for p in args.paths] or sorted(p for g in DEFAULT_GLOBS for p in ROOT.glob(g))
+    if args.paths:
+        paths = [Path(p) for p in args.paths]
+    else:
+        empty = [g for g in DEFAULT_GLOBS if not any(ROOT.glob(g))]
+        if empty:
+            print("default pattern matches no file: " + ", ".join(empty))
+            return 2
+        paths = sorted(p for g in DEFAULT_GLOBS for p in ROOT.glob(g))
     bad = 0
     missing = [p for p in paths if not p.is_file()]
     if missing:
