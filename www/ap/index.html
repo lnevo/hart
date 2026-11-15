@@ -23,6 +23,7 @@
 
     <ul class="ap-key" aria-label="Key">
       <li><span class="ap-mark done">Done</span> met, with a link to the evidence</li>
+      <li><span class="ap-mark ready">Ready</span> paperwork ready, waiting for a signed witness</li>
       <li><span class="ap-mark part">Partly</span> started, more needed</li>
       <li><span class="ap-mark todo">To do</span> not started</li>
       <li><span class="ap-mark ask">Confirm</span> kept outside these records</li>
@@ -30,13 +31,13 @@
 
     <section class="ap-dash" aria-labelledby="dashboard">
       <h2 id="dashboard">Twelve certificates</h2>
-      <p class="ap-dash-sum"><strong><span data-ap-earned>0</span> of 7 earned.</strong> MMR needs seven of the twelve, at least one from each group. The seven with a dark top edge are the <a href="#path">path to seven</a> and cover all four groups; the five with a light edge are the other options. Each score is read from its checklist further down.</p>
+      <p class="ap-dash-sum"><strong><span data-ap-earned>0</span> of 7 earned.</strong><span data-ap-ready hidden> <span data-ap-ready-count>1</span> ready for a witness.</span> MMR needs seven of the twelve, at least one from each group. The seven with a dark top edge are the <a href="#path">path to seven</a> and cover all four groups; the five with a light edge are the other options. Each score is read from its checklist further down.</p>
       <ul class="ap-dash-grid">
         <li><a class="ap-dash-card" href="#electrical" data-ap-cert="electrical">
           <span class="ap-dash-group">Group C · Construction &amp; Operation</span>
           <span class="ap-dash-name">MRE Electrical</span>
           <span class="ap-dash-bar" aria-hidden="true"><span></span></span>
-          <span class="ap-dash-foot"><span class="ap-mark part">Partly</span><span class="ap-dash-score"></span></span>
+          <span class="ap-dash-foot"><span class="ap-mark ready">Ready</span><span class="ap-dash-score"></span></span>
         </a></li>
         <li><a class="ap-dash-card" href="#dispatcher" data-ap-cert="dispatcher">
           <span class="ap-dash-group">Group C · Construction &amp; Operation</span>
@@ -172,7 +173,7 @@
             <small>(a) Turnout position indication on at least four turnouts: the Touch Toggle panel buttons show each switch machine's position through the MP4's second SPDT contact and a Universal Translator, and the LCOS input boards report it to the CTC desks (<a href="../behind/bridge.html">LCOS nodes</a>, <a href="../behind/panel-evolution.html">panels</a>). (b) Occupancy indication on at least five blocks: current-transformer detectors on 43 detected sections, shown on the CATS and USS CTC desks (<a href="../behind/bridge.html">block detectors</a>). (r) A CTC system: the owner-built CATS and USS CTC desks (<a href="../behind/signals.html">signals</a>, <a href="../behind/jmri-additions.html">JMRI additions</a>). (k) Advanced computer control: JMRI with the LCOS nodes over MQTT. (t) Computer-generated block detection: the detectors drive signal logic, CTC route locking and the Dispatcher System. (u) Stored control programs: HART's own signal and panel scripts, LogixNG and automatic Dispatcher trains. (v) A computer-to-railroad interface developed for HART: the <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS-to-MQTT bridge</a>. Seven items, where three are needed.</small></span></li>
           <li><span class="ap-mark done">Done</span><span>Schematics of the track power circuit and of the six chosen items. <a class="ap-rule" href="https://www.nmra.org/electrical#:~:text=Prepare%20a%20schematic%20drawing%20of%20the%20propulsion%20circuitry">NMRA rule</a>
             <small>Drawings D1 to D5 (reversing sections and passing siding, propulsion with every detected section, turnout frog and indication, crossover, reversing section) plus the wiring deck pages, in the <a href="https://github.com/lnevo/hart/blob/main/docs/ap/electrical/MRE-Electrical-SOQ-package.pdf">draft SOQ package</a>. Kept apart from the railroad's own schematics.</small></span></li>
-          <li><span class="ap-mark todo">To do</span><span>Signed witness certification. <a class="ap-rule" href="https://www.nmra.org/electrical#:~:text=The%20signed%20Witness%20Certification%20form">NMRA rule</a></span></li>
+          <li><span class="ap-mark ready">Ready</span><span>Signed witness certification. <a class="ap-rule" href="https://www.nmra.org/electrical#:~:text=The%20signed%20Witness%20Certification%20form">NMRA rule</a></span></li>
         </ul>
         <p class="ap-next"><strong>Next:</strong> the <a href="https://github.com/lnevo/hart/blob/main/docs/ap/electrical/MRE-Electrical-SOQ-package.pdf">SOQ package</a> is complete apart from your name, address and signature. Ask the Region AP Manager or a designee to witness the layout and sign.</p>
       </div>
