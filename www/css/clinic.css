@@ -17,11 +17,6 @@
 .clinic-slide .cover-text { width: 760px; display: flex; flex-direction: column; gap: 24px; justify-content: center; flex: 1; }
 .clinic-slide .big { font-family: var(--font-display); font-size: 120px; font-weight: 600; line-height: 1.05; color: #F4F1EA; }
 .clinic-slide .sub { font-size: 44px; color: #E39A62; font-weight: 600; }
-.clinic-slide .track { position: relative; width: 1664px; height: 260px; }
-.clinic-slide .track svg { position: absolute; left: 0; top: 0; width: 1664px; height: 260px; }
-.clinic-slide .lbl { position: absolute; font-size: 28px; font-weight: 600; width: 400px; }
-.clinic-slide .lbl.main { left: 40px; top: 210px; color: #1E2B3A; }
-.clinic-slide .lbl.div { left: 640px; top: 0; color: #A8551E; text-align: center; }
 .clinic-slide .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
 .clinic-slide .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
 .clinic-slide .card { background: #FBFAF6; border: 2px solid #D9D2C3; border-top: 8px solid #1E2B3A; border-radius: 8px; padding: 28px 32px; display: flex; flex-direction: column; gap: 12px; }
@@ -43,14 +38,7 @@
 .clinic-slide .text-col { display: flex; flex-direction: column; gap: 28px; }
 .clinic-slide .block { display: flex; flex-direction: column; gap: 6px; }
 .clinic-slide .label { font-size: 24px; font-weight: 600; color: #A8551E; letter-spacing: 1px; }
-.clinic-slide .cat .pick { color: #A8551E; font-weight: 600; }
 .clinic-slide .block .body { font-size: 28px; line-height: 1.4; color: #3E4B5A; }
-.clinic-slide .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-.clinic-slide .stat { display: flex; flex-direction: column; gap: 4px; border-left: 6px solid #A8551E; padding-left: 20px; }
-.clinic-slide .stat .num { font-family: var(--font-display); font-size: 72px; font-weight: 600; color: #1E2B3A; line-height: 1.1; }
-.clinic-slide .stat .what { font-size: 24px; line-height: 1.3; color: #3E4B5A; }
-.clinic-slide .quote { font-family: var(--font-display); font-size: 88px; font-weight: 500; line-height: 1.15; color: #F4F1EA; width: 1500px; }
-.clinic-slide .after { font-size: 36px; color: #F4F1EA; }
 .clinic-slide .cl-list { font-size: 34px; line-height: 1.4; color: #1E2B3A; padding-left: 48px; display: flex; flex-direction: column; gap: 16px; }
 .clinic-slide .tbl { font-size: 30px; color: #F4F1EA; width: 1664px; }
 .clinic-slide .url { font-family: var(--font-display); font-size: 64px; font-weight: 600; color: #A8551E; }
@@ -72,13 +60,14 @@
 .clinic-tools { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 0 0 1.25rem; }
 .clinic-deck { display: flex; flex-direction: column; gap: 2rem; margin: 0 0 2.5rem; }
 .clinic-item { display: flex; flex-direction: column; gap: 0.5rem; }
+.clinic-frame:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
 .clinic-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--rule); border-radius: 6px; background: #F4F1EA; cursor: zoom-in; }
 .clinic-notes { font-family: var(--font-body); font-size: 0.95rem; color: var(--ink-soft); }
 .clinic-notes summary { cursor: pointer; color: var(--muted); }
 .clinic-notes p { margin: 0.4rem 0 0; }
 
 /* Presenting: the deck fills the screen and shows one slide at a time. */
-.clinic-deck.presenting { margin: 0; gap: 0; background: #0E141B; }
+.clinic-deck.presenting { position: fixed; inset: 0; z-index: 1000; margin: 0; gap: 0; overflow: hidden; background: #0E141B; }
 .clinic-deck.presenting .clinic-item { display: none; }
 .clinic-deck.presenting .clinic-item.current { display: flex; width: 100vw; height: 100vh; align-items: center; justify-content: center; }
 .clinic-deck.presenting .clinic-frame { width: min(100vw, calc(100vh * 16 / 9)); border: 0; border-radius: 0; cursor: default; }
