@@ -1,8 +1,8 @@
-"""The CPython scripts moved onto hartlib: paths, tables.xml reads and the one writer that saves.
+"""The CPython scripts moved onto hartlib: paths, tables.xml reads and a clean save failure.
 
 Proves what the move relied on: each script finds this checkout's files through
 hartlib.paths, reads tables.xml through hartlib.tables (comments inside the file do not
-break it), and restore_manual_sml_pairs writes only through ``doc.save``.
+break it), and a refused ``doc.save`` (JMRI open) is a clean exit, not a traceback.
 """
 from __future__ import annotations
 
@@ -54,7 +54,6 @@ class PathsTest(unittest.TestCase):
             "refresh_bean_comments": {
                 "ROOT": REPO, "TABLES": TABLES,
                 "PUBLIC_NAME_MAP": REPO / "jmri/layouts/hart/data/public_name_map.csv"},
-            "restore_manual_sml_pairs": {"DEFAULT_PANEL": TABLES},
             "sync_public_name_map": {
                 "ROOT": REPO, "TABLES": TABLES,
                 "CSV_PATH": REPO / "jmri/layouts/hart/data/public_name_map.csv"},
@@ -115,46 +114,12 @@ class ReadsThroughHartlibTest(unittest.TestCase):
         self.assertIn("MTT1", out)
 
 
-class RestoreWritesThroughSaveTest(unittest.TestCase):
-    def test_only_the_restored_pair_changes_and_comments_stay(self):
-        mod = load("restore_manual_sml_pairs")
-
-        def sml(source, dest):
-            return (f'<signalmastlogic source="{source}"><sourceSignalMast>{source}</sourceSignalMast>'
-                    f'<destinationMast destination="{dest}"><destinationSignalMast>{dest}'
-                    f'</destinationSignalMast></destinationMast></signalmastlogic>')
-
-        def doc(pairs):
-            return ('<?xml version="1.0" encoding="UTF-8"?>\n<layout-config>\n<!-- keep me -->\n'
-                    '<signalmastlogics>' + "".join(sml(s, d) for s, d in pairs) +
-                    '</signalmastlogics>\n</layout-config>\n')
-
-        with tempfile.TemporaryDirectory() as tmp:
-            ref = Path(tmp) / "ref.xml"
-            panel = Path(tmp) / "tables.xml"
-            ref.write_text(doc([("Mast 36RA", "Mast 40LA"), ("Mast 36RB", "Mast 38LA")]), encoding="utf-8")
-            panel.write_text(doc([("Mast 36RA", "Mast 2036"), ("Mast 36RB", "Mast 38LA")]), encoding="utf-8")
-            self.assertEqual(0, mod.main(["--panel", str(panel), "--reference", str(ref)]))
-            written = panel.read_text(encoding="utf-8")
-            self.assertIn("<!-- keep me -->", written)
-            self.assertIn("Mast 40LA", written)
-            before = panel.read_bytes()
-            self.assertEqual(0, mod.main(["--panel", str(panel), "--reference", str(ref)]))
-            self.assertEqual(before, panel.read_bytes())
-
-
+class SaveFailureTest(unittest.TestCase):
     def test_jmri_open_is_a_clean_failure_not_a_traceback(self):
-        restore = load("restore_manual_sml_pairs")
         polish = load("polish_hart_layout_editor")
         with tempfile.TemporaryDirectory() as tmp:
             panel = Path(tmp) / "tables.xml"
             panel.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
-            ref = Path(tmp) / "ref.xml"
-            ref.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
-            boom = mock.patch.object(restore.tables.Tables, "save",
-                                     side_effect=RuntimeError("PanelPro or CATS is open"))
-            with boom, mock.patch.object(restore, "restore", return_value=[("a", "b")]):
-                self.assertEqual(1, restore.main(["--panel", str(panel), "--reference", str(ref)]))
             with mock.patch.object(polish.tables.Tables, "save",
                                    side_effect=RuntimeError("PanelPro or CATS is open")), \
                     mock.patch.object(polish, "apply_visual_standard",

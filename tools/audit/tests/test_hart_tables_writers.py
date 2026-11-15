@@ -18,7 +18,6 @@ S = "jmri/layouts/hart/scripts/"
 WRITERS = (
     (S + "polish_hart_layout_editor.py", []), (S + "polish_hart_layout_editor.py", ["--block-labels-only"]),
     (S + "reconcile_dispatcher_stations.py", ["--no-sync"]),
-    (S + "restore_manual_sml_pairs.py", ["--reference", "jmri/layouts/hart/output/tables.xml"]),
     (S + "disable_digicon_sml_in_tables.py", []), (S + "refresh_bean_comments.py", []),
     (S + "apply_nx_layer.py", []), (S + "apply_le_sml_facing.py", []), (S + "apply_le_cleanup.py", []),
     (S + "apply_yard_throat_blocks.py", []), (S + "add_yard_ladder_le_icons.py", []),

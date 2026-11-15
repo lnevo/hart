@@ -33,8 +33,7 @@ fi
 
 BACKUP="$(mktemp)"
 cp "$PROFILE_XML" "$BACKUP"
-# Stage 1 drops the manual Princess SML pairs and, on a generated panel, the icon spots; keep a
-# copy to restore them from.
+# Stage 1 drops, on a generated panel, the icon spots; keep a copy to restore them from.
 BEFORE_TABLES="$(mktemp)"
 cp "$REPO_TABLES" "$BEFORE_TABLES"
 restore() {
@@ -139,8 +138,6 @@ repair() {
 repair python3 "$SCRIPTS/disable_digicon_sml_in_tables.py" --panel "$REPO_OUTPUT"
 # Stage 1 writes Entire Train detection; HART cars detect head and tail only.
 repair python3 "$SCRIPTS/fix_traininfo_detection.py" "$REPO_TRAININFO"
-repair python3 "$SCRIPTS/restore_manual_sml_pairs.py" --panel "$REPO_OUTPUT" \
-  --reference "$BEFORE_TABLES"
 # --reference: on a generated Layout Editor panel (build_layout_le.py --as-live) Stage 1's deleted
 # and re-added cluster icons, lamps and train-name labels go back where they stood before it; the
 # hand-drawn panel keeps its pinned spots and only notes the reference.

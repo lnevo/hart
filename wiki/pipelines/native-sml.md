@@ -2,7 +2,7 @@
 
 Layout Editor Discover writes Signal Mast Logic (and NX pairs) into the tables bundle. JMRI re-paths SML on load when `useLayoutEditor=yes`.
 
-**Status:** Live. Current tables hold 40 sources / 100 dests and 39 NX pairs. Two Princess dests are manual after every Discover.
+**Status:** Live. Current tables hold 42 sources / 100 dests (all from Discover) and 39 NX pairs.
 
 NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at runtime (`useLayoutEditor=yes`); they are **not** stored in `tables.xml`. Digicon dests boot **Enabled=no**. Brick pairs without a stored dest use live connectivity.
 
@@ -30,7 +30,7 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 python3 jmri/layouts/hart/scripts/validate_le_signalling.py
 ```
 
-After Discover, re-add manual Princess pairs (`Mast 36RA→Mast 40LA`, `Mast 36RB→Mast 38LA`): `restore_manual_sml_pairs.py --reference <tables before Discover>` (the Stage 1 wrapper does this itself). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.
+Every SML dest comes from Discover; there are no manual pairs. The two Princess pairs `Mast 36RA→Mast 40LA` and `Mast 36RB→Mast 38LA` were retired on 2026-11-15: Discover refuses them ("Signal mast in the wrong direction") because 40LA and 38LA are westbound homes and 36RA/36RB govern eastbound, and no section, NX pair or route used them ([`DISPATCHER_LAYOUT_HOOPS.md`](../DISPATCHER_LAYOUT_HOOPS.md)). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.
 
 ## Do not
 
