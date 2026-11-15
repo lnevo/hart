@@ -10,7 +10,8 @@ binds every turnout, block, sensor and mast the live desk binds, the same way.
 Bands stack in the sheet's order (staging on top). Staging is bound to the live JMRI objects through the bindings
 file cats/panels/generated/HART_Generated.bindings.json, which this script writes from the railroad's facts, never by
 hand:
-  switches.csv / switch_legs.csv  which OS block each switch's points are in, which leg is closed and which thrown,
+  switches.csv / switch_legs.csv  which OS block each switch's points are in (and a crossover half's label, 23A
+                                  or 23B, from its OS block's letter), which leg is closed and which thrown,
                                   and whether CATS normal is JMRI thrown (cats_inverted); Switch 9 and 13 follow them
   public_name_map.csv + tables.xml  each switch's M2T turnout (cats_turnout_io.load_turnouts)
   occupancy_bindings.csv + tables.xml  each block's M2S sensor and discipline (digicon_lib.load_occupancy)
@@ -31,6 +32,7 @@ SKIPPED and exits 0 (a failure with SCHEMATIC_REQUIRED=1).
 import difflib
 import json
 import math
+import re
 import os
 import sys
 import tempfile
@@ -52,6 +54,16 @@ OUT = pd.REPO / "cats/panels/generated/HART_Generated.xml"
 BINDINGS = OUT.with_name("HART_Generated.bindings.json")
 LIVE = paths.CATS_DIR / "panels/HART_CTC.xml"       # SIGNALTEMPLATE and JMRINAME lines come from here
 BOUND = "Staging"                                    # the band bound to JMRI (its title starts with this)
+# The dispatcher's screen is 1900 x 1200 pixels and CATS draws each cell at its default 30 x 30 pixel grid, with no
+# zoom (the Grid Size is not kept in the panel). Width: 1900 / 30 = 63 columns (the live desk is 63 wide in a 1920
+# window). Height: about 100 pixels go to the menu bar, the CATS title and menu bars and the train status line,
+# so (1200 - 100) / 30 = 36 rows. One cell per schematic grid unit is what fits all three levels in that.
+CELLS_PER_UNIT = 1
+FIT = (63, 36)                                       # columns x rows the panel must fit in
+WINDOW = (1900, 1150)   # the dispatcher's 1900x1200 screen less a taskbar: CATS opens the panel at this size, uncropped
+# The owner's look for single masts where the drawn spot reads badly (2026-11-15): Mast 32R at Switch 31 points up,
+# in the lowest spot of its cell (every spot there touches a track line; this one reads best).
+MAST_LOOK = {"32R": {"orient": "TOP", "location": "LOWLEFT"}}
 
 
 def plugin_modules(plugin):
@@ -208,6 +220,20 @@ def dest(band, os_of, n, port):
     raise SystemExit(f"switch {nodes[n]['label']} leg {port}: the track from it reaches no named track or switch")
 
 
+def half_label(sw, leg):
+    """The panel label of one half of a switch with several OS blocks (a crossover): its number and the letter of
+    its OS block in switch_legs.csv, upper case (OS Switch 23a -> 23A). The row without a letter is A when every
+    other row has one (OS Switch 7 and 7b -> 7A, 7B)."""
+    letter = lambda name: m.group(1) if (m := re.fullmatch(rf"OS Switch {sw.number}([a-z])", name)) else None
+    own = letter(leg.os_block)
+    if own is None:
+        others = [letter(l.os_block) for l in sw.legs if l is not leg]
+        if None in others or "a" in others:
+            raise SystemExit(f"Switch {sw.number}: cannot tell which half {leg.os_block} is from switch_legs.csv")
+        own = "a"
+    return f"{sw.number}{own.upper()}"
+
+
 def switch_bindings(band, F, os_of):
     nodes = band["nodes"]
     sw_nodes = {n: d for n, d in nodes.items() if d["kind"] == "switch"}
@@ -229,6 +255,7 @@ def switch_bindings(band, F, os_of):
         key = d["label"] if labels[d["label"]] == 1 else f"{d['label']}/{d['alias']}"
         out[key] = {
             "block": leg.os_block,
+            **({"label": half_label(sw, leg)} if len(sw.legs) > 1 else {}),
             "normal": thrown if sw.cats_inverted else closed,
             "routes": {closed: {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
                        thrown: {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}},
@@ -278,7 +305,10 @@ def mast_bindings(opts, F):
         name = opts.get("mast_prefix", "") + sg["mast"]
         if name not in F.masts or name not in F.templates:
             raise SystemExit(f"{name}: not a JMRI mast with a template in signal_head_plan.csv")
-        out[sg["mast"]] = {"name": name, "template": F.templates[name]}
+        out[sg["mast"]] = {"name": name, "template": F.templates[name], **MAST_LOOK.get(sg["mast"], {})}
+    unknown = sorted(set(MAST_LOOK) - set(out))
+    if unknown:
+        raise SystemExit(f"MAST_LOOK names masts that are not drawn: {', '.join(unknown)}")
     return out
 
 
@@ -291,7 +321,8 @@ def bindings(bands, cats, F):
     os_of = os_blocks(band, F)
     out_sw = switch_bindings(band, F, os_of)
     # the panel's block names once the switches name their OS blocks
-    P = cats.panel(bands, bindings={"switches": {k: {"block": v["block"]} for k, v in out_sw.items()}})
+    P = cats.panel(bands, scale=CELLS_PER_UNIT,
+                   bindings={"switches": {k: {"block": v["block"]} for k, v in out_sw.items()}})
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:")}
     return {"_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit.",
             "switches": out_sw, "blocks": block_bindings(band, F, names), "masts": mast_bindings(opts, F)}
@@ -305,11 +336,14 @@ def generate(plugin, out, bindings_out):
     bindings_out.write_text(text, encoding="utf-8")
     try:
         header = cats.header_from(str(LIVE))
-        P = cats.panel(bands, bindings=json.loads(text))
-        cats.write(P, str(out), "CTC", header)
+        P = cats.panel(bands, scale=CELLS_PER_UNIT, bindings=json.loads(text))
+        cats.check_fit(P, *FIT)
+        cats.write(P, str(out), "CTC", header, WINDOW)
     except cats.SchematicError as e:
         sys.exit(f"error: {e}")
-    print(", ".join(t for t, _, _ in bands) + ": " + cats.summary(P))
+    cols, rows = cats.shown(P)
+    print(", ".join(t for t, _, _ in bands) + ": " + cats.summary(P) +
+          f"; shows {cols} x {rows} cells ({cols * 30} x {rows * 30} pixels at the 30 pixel grid), fit {FIT[0]} x {FIT[1]}")
     print("\n".join(P.log))
 
 
