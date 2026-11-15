@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Diverging Route Clinic — HART</title>
+  <meta name="description" content="Slides and speaker notes for a clinic on AI in model railroading for the Sunrise Trails Division: what AI is, four habits, and four projects from this layout with what AI did and what came out.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+  <link rel="stylesheet" href="../css/ai.css">
+  <link rel="stylesheet" href="../css/clinic.css">
+</head>
+<body data-page="behind-ai-clinic">
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>The Diverging Route clinic</h1>
+        <p class="standfirst">A 45-minute clinic for the Sunrise Trails Division on using AI on a model railroad: what AI is, four habits, and four projects from this layout. The slides are below, each with its speaker notes.</p>
+        <p class="byline">Lee Nevo · Clinic · November 2026</p>
+      </header>
+
+      <div class="feature-body">
+        <p>The four projects are place and era, the helix and its printed fixtures, car cards from photos, and speed matching CSX 2121 and 2738. Each has a full write-up in <a href="index.html#topics">the topics</a>.</p>
+        <div class="clinic-tools">
+          <button type="button" class="btn" id="clinic-present">Present full screen</button>
+          <span class="muted">Arrow keys or a click move between slides; Esc leaves.</span>
+        </div>
+      </div>
+
+      <div class="clinic-deck" id="clinic-deck">
+        <div class="clinic-item" id="slide-1">
+          <div class="clinic-frame" role="group" aria-label="Slide 1 of 14">
+            <section class="clinic-slide dark">
+            <img class="cover-photo" src="../assets/ai/clinic/staging.jpg" alt="Freight trains lined up on the layout's staging tracks in front of a river-valley backdrop">
+            <div class="cover-text">
+            <p class="eyebrow">CLINIC · SUNRISE TRAILS DIVISION</p>
+            <p class="big">The Diverging Route</p>
+            <p class="sub">AI in model railroading</p>
+            <p class="small">Lee Nevo · hartrailroad.com/ai</p>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 30 seconds. Introduce yourself and the railroad. This clinic covers one layout and what AI did on it. Questions at the end, about 15 minutes.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-2">
+          <div class="clinic-frame" role="group" aria-label="Slide 2 of 14">
+            <section class="clinic-slide">
+            <div class="head">
+            <p class="eyebrow">THE DIVERGING ROUTE</p>
+            <h2 class="title">One person builds the layout and runs it</h2>
+            </div>
+            <div class="row">
+            <div class="card"><h3>To build it</h3>
+            <ul class="cl-list" style="font-size:32px; gap:4px;"><li>Historian</li><li>Carpenter</li><li>Electrician</li><li>Programmer</li><li>Photographer</li></ul></div>
+            <div class="card"><h3>To run it</h3>
+            <ul class="cl-list" style="font-size:32px; gap:4px;"><li>Engineer</li><li>Conductor</li><li>Yardmaster</li><li>Signal engineer</li><li>Dispatcher</li></ul></div>
+            <div style="display:flex; flex-direction:column; justify-content:center;">
+            <p class="lede">AI is a second way to do some of this work.</p>
+            </div>
+            </div>
+            <div style="position:relative; width:1664px; height:200px;">
+            <svg viewBox="0 0 1664 160" width="1664" height="160" style="position:absolute; left:0; top:0; width:1664px; height:160px;" aria-label="A straight main line with a diverging route that leaves it through a switch and rejoins it further on"><path d="M0 130 H1664" stroke="#1E2B3A" stroke-width="10" fill="none"/><path d="M260 130 C460 130 520 56 720 56 H944 C1144 56 1204 130 1404 130" stroke="#A8551E" stroke-width="10" fill="none"/></svg>
+            <p style="position:absolute; left:332px; top:0; width:1000px; font-size:28px; font-weight:600; color:#A8551E; text-align:center;">AI: a different way, with new tools</p>
+            <p style="position:absolute; left:0; top:150px; width:1000px; font-size:28px; font-weight:600; color:#1E2B3A;">By hand: the usual way, and it still works</p>
+            </div>
+            <p class="lede">AI helped me read a wiring diagram, write a script and draw a part for a 3D printer.</p>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 2 minutes. Read the two lists. Then explain the drawing: on a real railroad the diverging route is the other way through a switch. The main line is the usual way of doing a job by hand, and it still works. The diverging route uses AI for the same job. Examples: reading a wiring diagram, writing a script, drawing a part for the 3D printer, finding a fact in an old record.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-3">
+          <div class="clinic-frame" role="group" aria-label="Slide 3 of 14">
+            <section class="clinic-slide">
+            <div class="head">
+            <p class="eyebrow">THE ONE-MINUTE VERSION</p>
+            <h2 class="title">What we mean by AI</h2>
+            </div>
+            <div style="display:grid; grid-template-columns:960px 1fr; gap:64px;">
+            <div style="position:relative; width:960px; height:640px;">
+            <svg viewBox="0 0 960 640" width="960" height="640" style="position:absolute; left:0; top:0; width:960px; height:640px;" aria-label="Cartoon: a modeler in an engineer's cap types a question on a laptop. A large speech balloon rising from the laptop holds a panel of five experts: a historian with glasses and a book, a carpenter in a hard hat, an electrician with a lightning bolt, a programmer with a headset and a coach with a cap and whistle.">
+            <rect x="20" y="20" width="920" height="300" rx="40" fill="#FBFAF6" stroke="#1E2B3A" stroke-width="4"/>
+            <polygon points="656,316 700,444 724,316" fill="#FBFAF6"/>
+            <path d="M656 319 L700 444 L724 319" stroke="#1E2B3A" stroke-width="4" fill="none" stroke-linejoin="round"/>
+            <path d="M70 250 Q70 156 128 156 Q186 156 186 250 Z" fill="#5E7D5A"/>
+            <circle cx="128" cy="110" r="36" fill="#E9C9A8" stroke="#1E2B3A" stroke-width="3"/>
+            <circle cx="116" cy="108" r="10" fill="none" stroke="#1E2B3A" stroke-width="3"/>
+            <circle cx="140" cy="108" r="10" fill="none" stroke="#1E2B3A" stroke-width="3"/>
+            <path d="M126 108 H130" stroke="#1E2B3A" stroke-width="3"/>
+            <rect x="104" y="192" width="48" height="36" rx="3" fill="#F4F1EA" stroke="#1E2B3A" stroke-width="3"/>
+            <path d="M128 192 V228" stroke="#1E2B3A" stroke-width="2"/>
+            <path d="M246 250 Q246 156 304 156 Q362 156 362 250 Z" fill="#B08A4E"/>
+            <circle cx="304" cy="110" r="36" fill="#E9C9A8" stroke="#1E2B3A" stroke-width="3"/>
+            <path d="M266 98 A38 38 0 0 1 342 98 Z" fill="#E8B83A" stroke="#1E2B3A" stroke-width="3"/>
+            <rect x="258" y="94" width="92" height="10" rx="5" fill="#E8B83A" stroke="#1E2B3A" stroke-width="3"/>
+            <path d="M422 250 Q422 156 480 156 Q538 156 538 250 Z" fill="#4F6D8A"/>
+            <circle cx="480" cy="110" r="36" fill="#E9C9A8" stroke="#1E2B3A" stroke-width="3"/>
+            <polygon points="488,176 464,212 480,212 468,242 500,200 484,200 496,176" fill="#E8B83A" stroke="#1E2B3A" stroke-width="2"/>
+            <path d="M598 250 Q598 156 656 156 Q714 156 714 250 Z" fill="#1E2B3A"/>
+            <circle cx="656" cy="110" r="36" fill="#E9C9A8" stroke="#1E2B3A" stroke-width="3"/>
+            <path d="M618 108 A38 38 0 0 1 694 108" fill="none" stroke="#5A6573" stroke-width="7"/>
+            <rect x="610" y="98" width="14" height="26" rx="5" fill="#5A6573"/>
+            <rect x="688" y="98" width="14" height="26" rx="5" fill="#5A6573"/>
+            <path d="M617 122 Q624 146 646 140" fill="none" stroke="#5A6573" stroke-width="4"/>
+            <path d="M774 250 Q774 156 832 156 Q890 156 890 250 Z" fill="#A8551E"/>
+            <circle cx="832" cy="110" r="36" fill="#E9C9A8" stroke="#1E2B3A" stroke-width="3"/>
+            <path d="M796 100 A36 36 0 0 1 868 100 Z" fill="#A8551E" stroke="#1E2B3A" stroke-width="3"/>
+            <path d="M866 99 H900" stroke="#A8551E" stroke-width="8" stroke-linecap="round"/>
+            <path d="M818 158 L830 196" stroke="#F4F1EA" stroke-width="3"/>
+            <circle cx="832" cy="204" r="9" fill="#C9D3DD" stroke="#1E2B3A" stroke-width="2"/>
+            <rect x="270" y="350" width="290" height="96" rx="24" fill="#FBFAF6" stroke="#1E2B3A" stroke-width="4"/>
+            <polygon points="286,438 238,456 314,438" fill="#FBFAF6"/>
+            <path d="M286 444 L238 456 L314 445" stroke="#1E2B3A" stroke-width="4" fill="none" stroke-linejoin="round"/>
+            <rect x="40" y="598" width="880" height="18" rx="4" fill="#B08A4E"/>
+            <path d="M118 600 Q118 500 190 500 Q262 500 262 600 Z" fill="#1E2B3A"/>
+            <path d="M236 540 Q330 566 566 584" stroke="#1E2B3A" stroke-width="22" stroke-linecap="round" fill="none"/>
+            <circle cx="190" cy="440" r="46" fill="#E9C9A8" stroke="#1E2B3A" stroke-width="3"/>
+            <path d="M144 432 A46 42 0 0 1 236 432 Z" fill="#4F6D8A" stroke="#1E2B3A" stroke-width="3"/>
+            <path d="M156 416 H224 M168 402 H212" stroke="#F4F1EA" stroke-width="4"/>
+            <path d="M230 430 H266" stroke="#4F6D8A" stroke-width="8" stroke-linecap="round"/>
+            <rect x="590" y="448" width="220" height="140" rx="10" fill="#1E2B3A"/>
+            <rect x="608" y="468" width="120" height="16" rx="8" fill="#F4F1EA"/>
+            <rect x="662" y="496" width="130" height="16" rx="8" fill="#E39A62"/>
+            <rect x="608" y="524" width="150" height="16" rx="8" fill="#F4F1EA"/>
+            <rect x="662" y="552" width="100" height="16" rx="8" fill="#E39A62"/>
+            <rect x="560" y="586" width="280" height="12" rx="6" fill="#5A6573"/>
+            </svg>
+            <p style="position:absolute; left:290px; top:364px; width:250px; font-size:24px; line-height:1.3; color:#1E2B3A;">How should I wire this turnout?</p>
+            <p style="position:absolute; left:43px; top:256px; width:170px; font-size:24px; font-weight:600; text-align:center; color:#1E2B3A;">Historian</p>
+            <p style="position:absolute; left:219px; top:256px; width:170px; font-size:24px; font-weight:600; text-align:center; color:#1E2B3A;">Carpenter</p>
+            <p style="position:absolute; left:395px; top:256px; width:170px; font-size:24px; font-weight:600; text-align:center; color:#1E2B3A;">Electrician</p>
+            <p style="position:absolute; left:571px; top:256px; width:170px; font-size:24px; font-weight:600; text-align:center; color:#1E2B3A;">Programmer</p>
+            <p style="position:absolute; left:747px; top:256px; width:170px; font-size:24px; font-weight:600; text-align:center; color:#1E2B3A;">Coach</p>
+            </div>
+            <div class="text-col" style="justify-content:center;">
+            <div class="block"><p class="label">YOU TYPE TO IT</p><p class="body">You ask in plain English and it answers. No programming needed.</p></div>
+            <div class="block"><p class="label">ONE CHAT, MANY EXPERTS</p><p class="body">Ask it to answer as a historian, a carpenter, an electrician, a programmer or a coach.</p></div>
+            <div class="block"><p class="label">IT STARTS WITH NO FACTS ABOUT YOUR RAILROAD</p><p class="body">Tell it your scale, era, room and roster, and the answers get more specific.</p></div>
+            <p class="small">ChatGPT, Claude, Gemini and Copilot all have a free version.</p>
+            </div>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 1 minute. The cartoon: one question typed into one chat, answered by whichever expert the question needs. You can also name the role in the question, for example “Answer as a signal engineer” or “Quiz me like a coach.”</p></details>
+        </div>
+        <div class="clinic-item" id="slide-4">
+          <div class="clinic-frame" role="group" aria-label="Slide 4 of 14">
+            <section class="clinic-slide">
+            <div class="head">
+            <p class="eyebrow">GETTING STARTED</p>
+            <h2 class="title">Four habits</h2>
+            </div>
+            <div class="grid2">
+            <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.5-4.5"/></svg><h3><span class="n">1</span> Start with something you know</h3><p class="body">Ask about a locomotive or a technique you know well, so you can judge the answers.</p></div>
+            <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><h3><span class="n">2</span> Give it the whole picture</h3><p class="body">Say your scale, era, what you’re modelling and what you have, and whether you want a list, a table or a plan back.</p></div>
+            <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6.5"/></svg><h3><span class="n">3</span> Work in small steps</h3><p class="body">Ask for one thing at a time and check it before asking for the next.</p></div>
+            <div class="card"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h13v16H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h11"/></svg><h3><span class="n">4</span> Write down what you decide</h3><p class="body">It doesn’t remember earlier chats. Keep a short note of your choices and paste it in when you start again.</p></div>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 4 minutes, a minute per habit. Each one comes up again in the four projects.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-5">
+          <div class="clinic-frame" role="group" aria-label="Slide 5 of 14">
+            <section class="clinic-slide">
+            <div class="head">
+            <p class="eyebrow">AI IN MODEL RAILROADING</p>
+            <h2 class="title">Where AI helped on one railroad</h2>
+            </div>
+            <div class="grid">
+            <div class="cat"><h3><span class="n">1</span> Prototype research</h3>
+            <ul><li><b><span style="color:#A8551E">Place and era</span></b></li><li>Industry histories</li><li>The historic archive</li><li>Identity and paperwork</li></ul></div>
+            <div class="cat"><h3><span class="n">2</span> Construction</h3>
+            <ul><li><b><span style="color:#A8551E">Planning the helix</span></b></li><li><b><span style="color:#A8551E">Printed helix fixtures</span></b></li><li>Framing and cut plans</li><li>Station maps in plastic</li></ul></div>
+            <div class="cat"><h3><span class="n">3</span> Electronics</h3>
+            <ul><li>First ESP32 client</li><li>The LCOS bridge</li><li>Wiring inventory</li></ul></div>
+            <div class="cat"><h3><span class="n">4</span> Control &amp; signals</h3>
+            <ul><li>Track plan to panels</li><li>Dispatcher desks</li><li>Settling the signals</li><li>One tables file</li></ul></div>
+            <div class="cat"><h3><span class="n">5</span> Operations</h3>
+            <ul><li><b><span style="color:#A8551E">Car cards from photos</span></b></li><li>Traffic simulator (STS)</li><li>Operations Pro plugin</li><li>Operations Pro setup</li><li>STS–JMRI sync</li><li>New stock intake</li></ul></div>
+            <div class="cat"><h3><span class="n">6</span> Locomotives</h3>
+            <ul><li>Roster on the throttle</li><li>Roster photos</li><li><b><span style="color:#A8551E">Speed matching</span></b></li></ul></div>
+            <div class="cat"><h3><span class="n">7</span> The workshop</h3>
+            <ul><li>One repository</li><li>One source per fact</li><li>Agents and skills</li><li>The website</li><li>Shared tools</li></ul></div>
+            <div class="cat"><h3><span class="n">8</span> Master Model Railroader</h3>
+            <ul><li>Keeping score</li><li>Operations log</li><li>Electrical SOQ</li><li>Applications</li><li>OPSIG C&amp;E study deck</li></ul></div>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 2 minutes. These are all the AI projects on the railroad, grouped as on the website. The four in orange are covered today; the rest are on the website.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-6">
+          <div class="clinic-frame" role="group" aria-label="Slide 6 of 14">
+            <section class="clinic-slide">
+            <div class="story">
+            <div class="photo-col">
+            <img class="photo" src="../assets/media/birdseye-neville-island.jpg" alt="Early aerial photograph of the upper end of Neville Island in the Ohio River, with its plants, the back-channel bridge and rail yards on the mainland">
+            <p class="small">Neville Island from the air, early view. Credit unknown.</p>
+            </div>
+            <div class="text-col">
+            <div class="head">
+            <p class="eyebrow">PROJECT 1 · PROTOTYPE RESEARCH</p>
+            <h2 class="title">Choosing the place and era</h2>
+            </div>
+            <div class="block"><p class="label">THE JOB</p><p class="body">I had a roster of equipment and an empty room, but no prototype.</p></div>
+            <div class="block"><p class="label">WHAT AI DID</p><p class="body">Went through the roster with me, asked what to model and when, and compared candidate corridors. I made the choice.</p></div>
+            <div class="block"><p class="label">WHAT CAME OUT</p><p class="body">Neville Island, in the Ohio River below Pittsburgh, with plastics, carbon, cement, propane and a coke works to switch. The track plan was settled in July 2025.</p></div>
+            </div>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 4 minutes. Tool: ChatGPT, spring to summer 2025. After the choice was made, it also helped write the fictional backstory that sits on the real geography.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-7">
+          <div class="clinic-frame" role="group" aria-label="Slide 7 of 14">
+            <section class="clinic-slide">
+            <div class="story">
+            <img class="photo" src="../assets/ai/clinic/helix.jpg" alt="The helix under construction: tiers of curved plywood roadbed stacked on a timber frame">
+            <div class="text-col">
+            <div class="head">
+            <p class="eyebrow">PROJECT 2 · CONSTRUCTION</p>
+            <h2 class="title">Planning the helix</h2>
+            </div>
+            <div class="block"><p class="label">THE JOB</p><p class="body">The helix climbs from staging to the main level. It needed a gentle grade and clearance under each turn, and had to be built from plywood by one person.</p></div>
+            <div class="block"><p class="label">WHAT AI DID</p><p class="body">Worked out the radius, grade, clearance, roadbed cuts and build order with me before any wood was cut.</p></div>
+            <div class="block"><p class="label">WHAT CAME OUT</p><p class="body">A 13-page construction plan, and a design record that lists the options considered and why they were turned down.</p></div>
+            </div>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 3 minutes. Tool: ChatGPT, September 2026. The plan held through the build; later corrections were about the materials, not the design.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-8">
+          <div class="clinic-frame" role="group" aria-label="Slide 8 of 14">
+            <section class="clinic-slide">
+            <div class="head">
+            <p class="eyebrow">PROJECT 2 · CONSTRUCTION</p>
+            <h2 class="title">Printed fixtures for the helix</h2>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:24px;">
+            <div style="display:flex; flex-direction:column; gap:12px;">
+            <img src="../assets/ai/clinic/lap-template.jpg" alt="A white printed router template held against the curved edge of a plywood helix piece" style="width:100%; height:330px; object-fit:cover; border-radius:8px;">
+            <h3 style="font-family:var(--font-display); font-size:32px; font-weight:600; color:#1E2B3A;">Router jigs</h3>
+            <p style="font-size:24px; line-height:1.35; color:#3E4B5A;">Templates for the half-lap joints and bracket pockets, with a depth block and gauge.</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+            <img src="../assets/ai/clinic/router-plate.jpg" alt="A black printed base plate screwed to the router, with the collet showing through the centre hole" style="width:100%; height:330px; object-fit:cover; border-radius:8px;">
+            <h3 style="font-family:var(--font-display); font-size:32px; font-weight:600; color:#1E2B3A;">Router base plate</h3>
+            <p style="font-size:24px; line-height:1.35; color:#3E4B5A;">Fits the router to the circle jig that cut the helix arcs.</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+            <img src="../assets/ai/clinic/piers.jpg" alt="A row of dark grey printed piers with lattice sides and screw tabs, each one shorter than the last" style="width:100%; height:330px; object-fit:cover; border-radius:8px;">
+            <h3 style="font-family:var(--font-display); font-size:32px; font-weight:600; color:#1E2B3A;">Risers</h3>
+            <p style="font-size:24px; line-height:1.35; color:#3E4B5A;">Piers under the first loop and risers under the entry liftout, set to the grade.</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+            <img src="../assets/ai/clinic/cork-transition.jpg" alt="Track on cork roadbed curving into the helix, with cork strips laid on the plywood helix roadbed" style="width:100%; height:330px; object-fit:cover; border-radius:8px;">
+            <h3 style="font-family:var(--font-display); font-size:32px; font-weight:600; color:#1E2B3A;">Cork transition bracket</h3>
+            <p style="font-size:24px; line-height:1.35; color:#3E4B5A;">Holds the helix where the corked track meets the plywood, so the railheads line up.</p>
+            </div>
+            </div>
+            <p class="small">Also printed: height spacers that set each bracket 1/2″ higher every 45°, and spacers that check the gap between loops. All sized from the measured 0.72″ plywood.</p>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 3 minutes. Tool: Claude, September to October 2026. Pass a fixture around. Claude turned the plan into scripts and the scripts into printable files, and checked each file before printing. The height spacers stack like building blocks to mark the top of the roadbed at each bracket. The cork transition bracket makes up the 0.236-inch step between the liftout and the first helix piece. The first height template was settled at 1-1/32 inch by test fit. One batch of corner spacers printed 1.65 mm short, so a measured correction went in.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-9">
+          <div class="clinic-frame" role="group" aria-label="Slide 9 of 14">
+            <section class="clinic-slide">
+            <div class="story">
+            <img class="photo" src="../assets/ai/clinic/card-bins.jpg" alt="Car cards with photos of each car standing in coloured industry bins along the fascia">
+            <div class="text-col">
+            <div class="head">
+            <p class="eyebrow">PROJECT 3 · OPERATIONS</p>
+            <h2 class="title">Car cards from photos</h2>
+            </div>
+            <div class="block"><p class="label">THE JOB</p><p class="body">I had a roster and photographs of the fleet, but no car cards.</p></div>
+            <div class="block"><p class="label">WHAT AI DID</p><p class="body">Cropped each photo, read the reporting marks and the small stencils, such as built dates and weights, and matched them to the roster.</p></div>
+            <div class="block"><p class="label">WHAT CAME OUT</p><p class="body">A printed card for every car with its own picture, and waybills for the layout’s industries.</p></div>
+            </div>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 4 minutes with the next slide. Pass the cards around. Stencilled lettering is hard for a computer to read, so any number it is unsure of goes to me to check.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-10">
+          <div class="clinic-frame" role="group" aria-label="Slide 10 of 14">
+            <section class="clinic-slide">
+            <div class="story narrow">
+            <img class="photo" style="object-fit:contain; background:#E8E2D4;" src="../assets/cards/car-card-nw-32800.png" alt="A printed car card for Norfolk & Western 32800, with a photo of the car and its details">
+            <div class="text-col">
+            <div class="head">
+            <p class="eyebrow">PROJECT 3 · OPERATIONS</p>
+            <h2 class="title">The car-cards plugin</h2>
+            </div>
+            <ol class="cl-list">
+            <li>Take a photo of each car</li>
+            <li>AI crops it and reads the numbers</li>
+            <li>You check every reading on a review page</li>
+            <li>Print car and locomotive cards, nine to a sticker sheet</li>
+            </ol>
+            <p class="lede">The plugin is free and works with Claude Code, Cursor or Codex. Details are at hartrailroad.com/ai.</p>
+            </div>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>The workflow I used became this plugin. Nothing prints until a person has checked the review page.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-11">
+          <div class="clinic-frame" role="group" aria-label="Slide 11 of 14">
+            <section class="clinic-slide">
+            <div class="head">
+            <p class="eyebrow">PROJECT 4 · LOCOMOTIVES</p>
+            <h2 class="title">Speed matching CSX 2121 and 2738</h2>
+            </div>
+            <div class="story wide">
+            <img class="chart" src="../assets/share/ai-locomotives.jpg" alt="Chart of 2738's speed as a percentage of 2121's across throttle steps: before matching it ran as slow as 47 per cent; after, it stays level at about 100 per cent">
+            <div class="text-col">
+            <div class="block"><p class="label">THE JOB</p><p class="body">2121 and 2738 run as a pair, so 2738’s decoder had to match 2121’s speeds.</p></div>
+            <div class="block"><p class="label">WHAT AI DID</p><p class="body">Wrote a program in JMRI that ran each locomotive through the block detectors at each throttle step and timed every block, then adjusted 2738’s decoder.</p></div>
+            <div class="block"><p class="label">WHAT CAME OUT</p><p class="body">2738 runs within 4% of 2121 from step 24 up, in both directions, and the two stop together.</p></div>
+            </div>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 4 minutes. Tool: Claude, November 2026. The runs were unattended. The slowest steps still differ, and the first coupled run is still to come. Every recorded run is on the website.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-12">
+          <div class="clinic-frame" role="group" aria-label="Slide 12 of 14">
+            <section class="clinic-slide dark">
+            <div class="head">
+            <p class="eyebrow">SUMMARY</p>
+            <h2 class="title">The four projects</h2>
+            </div>
+            <table class="tbl">
+            <tr><th style="width:24%">Project</th><th style="width:40%">What AI did</th><th style="width:36%">What I did</th></tr>
+            <tr><td>Place and era</td><td>Listed options and asked questions</td><td>Chose the corridor</td></tr>
+            <tr><td>The helix</td><td>The plan, the numbers, the printed fixtures</td><td>The decisions, measuring, test fits</td></tr>
+            <tr><td>Car cards</td><td>Read marks and stencils across the fleet</td><td>Checked every number on the review page</td></tr>
+            <tr><td>Speed matching</td><td>Ran and timed the test runs</td><td>Set up the locomotives and accepted the result</td></tr>
+            </table>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 2 minutes.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-13">
+          <div class="clinic-frame" role="group" aria-label="Slide 13 of 14">
+            <section class="clinic-slide">
+            <div class="head">
+            <p class="eyebrow">TO TRY</p>
+            <h2 class="title">Three things to try</h2>
+            </div>
+            <div class="row">
+            <div class="card"><h3>Learn something</h3><p class="body">Ask it to explain something, such as how a passing siding works, and then to quiz you on it.</p></div>
+            <div class="card"><h3>Make paperwork</h3><p class="body">Describe a switch list or waybill and ask for a layout you can print.</p></div>
+            <div class="card"><h3>Caption a photo</h3><p class="body">Give it a photo of a car and ask what the stencils say, then correct any mistakes.</p></div>
+            </div>
+            <div class="head">
+            <p class="small">Every project, with what was asked, what came out and a verdict:</p>
+            <p class="url">hartrailroad.com/ai</p>
+            </div>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 2 minutes. These come from the Getting started section of the AI page. Each works in a free chat tool with nothing to install.</p></details>
+        </div>
+        <div class="clinic-item" id="slide-14">
+          <div class="clinic-frame" role="group" aria-label="Slide 14 of 14">
+            <section class="clinic-slide dark" style="justify-content:center;">
+            <h2 class="big">Questions?</h2>
+            <p class="url">hartrailroad.com/ai</p>
+            
+            </section>
+          </div>
+          <details class="clinic-notes"><summary>Speaker notes</summary><p>About 15 minutes. Likely questions: which tool and what it costs (the free versions are enough to start); privacy (what you type goes to the company that runs the tool); whether it counts for the Achievement Program (the models and the decisions are the modeler’s own); whether you need to program (no: research, cards and planning need no code).</p></details>
+        </div>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-ai-clinic").catch(function (err) { console.error(err); });
+      var deck = document.getElementById("clinic-deck");
+      var items = Array.prototype.slice.call(deck.querySelectorAll(".clinic-item"));
+      var current = 0;
+      // Each slide is drawn at 1920 x 1080 and scaled to its frame.
+      function fit() {
+        deck.querySelectorAll(".clinic-frame").forEach(function (f) {
+          if (f.clientWidth) f.style.setProperty("--s", f.clientWidth / 1920);
+        });
+      }
+      function show(i) {
+        current = Math.max(0, Math.min(items.length - 1, i));
+        items.forEach(function (it, n) { it.classList.toggle("current", n === current); });
+        fit();
+      }
+      function present(i) {
+        show(i);
+        if (deck.requestFullscreen) deck.requestFullscreen().catch(function () {});
+      }
+      document.addEventListener("fullscreenchange", function () {
+        deck.classList.toggle("presenting", document.fullscreenElement === deck);
+        if (document.fullscreenElement !== deck) items[current].scrollIntoView({ block: "center" });
+        fit();
+      });
+      document.getElementById("clinic-present").addEventListener("click", function () { present(0); });
+      items.forEach(function (it, n) {
+        it.querySelector(".clinic-frame").addEventListener("click", function () {
+          if (deck.classList.contains("presenting")) show(current + 1); else present(n);
+        });
+      });
+      document.addEventListener("keydown", function (e) {
+        if (!deck.classList.contains("presenting")) return;
+        if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { show(current + 1); e.preventDefault(); }
+        if (e.key === "ArrowLeft" || e.key === "PageUp") { show(current - 1); e.preventDefault(); }
+      });
+      if (window.ResizeObserver) new ResizeObserver(fit).observe(deck); else window.addEventListener("resize", fit);
+      fit();
+    });
+  </script>
+</body>
+</html>

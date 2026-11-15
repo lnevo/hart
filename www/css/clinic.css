@@ -1,0 +1,90 @@
+/* The clinic slides (ai/clinic.html): the deck's own styles, scoped to .clinic-slide.
+   Each slide is a 1920 x 1080 box scaled to fit its frame by the page script. */
+.clinic-slide { font-family: var(--font-body); color: #1E2B3A; }
+.clinic-slide { background: #F4F1EA; padding: 128px; display: flex; flex-direction: column; gap: 40px; }
+.clinic-slide.dark { background: #1E2B3A; color: #F4F1EA; }
+.clinic-slide.accent { background: #A8551E; color: #F4F1EA; justify-content: center; }
+.clinic-slide .head { display: flex; flex-direction: column; gap: 8px; }
+.clinic-slide .eyebrow { font-size: 24px; font-weight: 600; color: #A8551E; letter-spacing: 2px; }
+.clinic-slide.dark .eyebrow { color: #E39A62; }
+.clinic-slide .title { font-family: var(--font-display); font-size: 64px; font-weight: 600; color: #1E2B3A; line-height: 1.1; }
+.clinic-slide.dark .title { color: #F4F1EA; }
+.clinic-slide .lede { font-size: 36px; line-height: 1.4; color: #3E4B5A; }
+.clinic-slide.dark .lede { color: #C9D3DD; }
+.clinic-slide .small { font-size: 24px; color: #5A6573; }
+.clinic-slide.dark .small { color: #AEB9C4; }
+.clinic-slide .cover-photo { position: absolute; left: 1000px; top: 0; width: 920px; height: 1080px; object-fit: cover; }
+.clinic-slide .cover-text { width: 760px; display: flex; flex-direction: column; gap: 24px; justify-content: center; flex: 1; }
+.clinic-slide .big { font-family: var(--font-display); font-size: 120px; font-weight: 600; line-height: 1.05; color: #F4F1EA; }
+.clinic-slide .sub { font-size: 44px; color: #E39A62; font-weight: 600; }
+.clinic-slide .track { position: relative; width: 1664px; height: 260px; }
+.clinic-slide .track svg { position: absolute; left: 0; top: 0; width: 1664px; height: 260px; }
+.clinic-slide .lbl { position: absolute; font-size: 28px; font-weight: 600; width: 400px; }
+.clinic-slide .lbl.main { left: 40px; top: 210px; color: #1E2B3A; }
+.clinic-slide .lbl.div { left: 640px; top: 0; color: #A8551E; text-align: center; }
+.clinic-slide .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+.clinic-slide .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+.clinic-slide .card { background: #FBFAF6; border: 2px solid #D9D2C3; border-top: 8px solid #1E2B3A; border-radius: 8px; padding: 28px 32px; display: flex; flex-direction: column; gap: 12px; }
+.clinic-slide .card h3 { font-family: var(--font-display); font-size: 40px; font-weight: 600; color: #1E2B3A; line-height: 1.15; }
+.clinic-slide .card .n { color: #A8551E; }
+.clinic-slide .card .body { font-size: 28px; line-height: 1.4; color: #3E4B5A; }
+.clinic-slide .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.clinic-slide .cat { background: #FBFAF6; border: 2px solid #D9D2C3; border-top: 8px solid #1E2B3A; border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+.clinic-slide .cat h3 { font-family: var(--font-display); font-size: 32px; font-weight: 600; color: #1E2B3A; line-height: 1.2; }
+.clinic-slide .cat .n { color: #A8551E; }
+.clinic-slide .cat ul { font-size: 24px; line-height: 1.3; color: #3E4B5A; padding-left: 28px; display: flex; flex-direction: column; gap: 2px; }
+.clinic-slide .story { display: grid; grid-template-columns: 760px 1fr; gap: 64px; flex: 1; }
+.clinic-slide .story.narrow { grid-template-columns: 560px 1fr; }
+.clinic-slide .story.wide { grid-template-columns: 980px 1fr; }
+.clinic-slide .photo { width: 100%; height: 824px; object-fit: cover; border-radius: 8px; }
+.clinic-slide .photo-col { display: flex; flex-direction: column; gap: 12px; }
+.clinic-slide .photo-col .photo { height: 780px; }
+.clinic-slide .chart { width: 980px; height: 515px; object-fit: contain; border-radius: 8px; background: #EEF2F5; }
+.clinic-slide .text-col { display: flex; flex-direction: column; gap: 28px; }
+.clinic-slide .block { display: flex; flex-direction: column; gap: 6px; }
+.clinic-slide .label { font-size: 24px; font-weight: 600; color: #A8551E; letter-spacing: 1px; }
+.clinic-slide .cat .pick { color: #A8551E; font-weight: 600; }
+.clinic-slide .block .body { font-size: 28px; line-height: 1.4; color: #3E4B5A; }
+.clinic-slide .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.clinic-slide .stat { display: flex; flex-direction: column; gap: 4px; border-left: 6px solid #A8551E; padding-left: 20px; }
+.clinic-slide .stat .num { font-family: var(--font-display); font-size: 72px; font-weight: 600; color: #1E2B3A; line-height: 1.1; }
+.clinic-slide .stat .what { font-size: 24px; line-height: 1.3; color: #3E4B5A; }
+.clinic-slide .quote { font-family: var(--font-display); font-size: 88px; font-weight: 500; line-height: 1.15; color: #F4F1EA; width: 1500px; }
+.clinic-slide .after { font-size: 36px; color: #F4F1EA; }
+.clinic-slide .cl-list { font-size: 34px; line-height: 1.4; color: #1E2B3A; padding-left: 48px; display: flex; flex-direction: column; gap: 16px; }
+.clinic-slide .tbl { font-size: 30px; color: #F4F1EA; width: 1664px; }
+.clinic-slide .url { font-family: var(--font-display); font-size: 64px; font-weight: 600; color: #A8551E; }
+.clinic-slide.dark .url { color: #E39A62; }
+.clinic-slide .card .ic { color: #A8551E; width: 56px; height: 56px; }
+
+/* Slide defaults (the deck format's base rules). */
+.clinic-slide { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; box-sizing: border-box; overflow: hidden; transform-origin: 0 0; transform: scale(var(--s, 0.5)); font-size: 32px; line-height: 1.2; }
+.clinic-slide * { margin: 0; box-sizing: content-box; }
+.clinic-slide h2 { font-size: 64px; font-weight: 600; }
+.clinic-slide h3 { font-size: 44px; font-weight: 600; }
+.clinic-slide p, .clinic-slide li, .clinic-slide h2, .clinic-slide h3, .clinic-slide td, .clinic-slide th { overflow-wrap: break-word; }
+.clinic-slide img { display: block; max-width: none; }
+.clinic-slide .ic { display: block; }
+.clinic-slide .tbl { border-collapse: separate; border-spacing: 0; border: solid rgba(244, 241, 234, 0.25); border-width: 2px 0 0 2px; }
+.clinic-slide .tbl th, .clinic-slide .tbl td { padding: 0.35em 0.6em; text-align: left; border: solid rgba(244, 241, 234, 0.25); border-width: 0 2px 2px 0; }
+
+/* The page: one frame per slide, scaled to the column, with its speaker notes below. */
+.clinic-tools { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 0 0 1.25rem; }
+.clinic-deck { display: flex; flex-direction: column; gap: 2rem; margin: 0 0 2.5rem; }
+.clinic-item { display: flex; flex-direction: column; gap: 0.5rem; }
+.clinic-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--rule); border-radius: 6px; background: #F4F1EA; cursor: zoom-in; }
+.clinic-notes { font-family: var(--font-body); font-size: 0.95rem; color: var(--ink-soft); }
+.clinic-notes summary { cursor: pointer; color: var(--muted); }
+.clinic-notes p { margin: 0.4rem 0 0; }
+
+/* Presenting: the deck fills the screen and shows one slide at a time. */
+.clinic-deck.presenting { margin: 0; gap: 0; background: #0E141B; }
+.clinic-deck.presenting .clinic-item { display: none; }
+.clinic-deck.presenting .clinic-item.current { display: flex; width: 100vw; height: 100vh; align-items: center; justify-content: center; }
+.clinic-deck.presenting .clinic-frame { width: min(100vw, calc(100vh * 16 / 9)); border: 0; border-radius: 0; cursor: default; }
+.clinic-deck.presenting .clinic-notes { display: none; }
+
+/* No contents list on this page, so the slides take the full article width. */
+@media (min-width: 1000px) {
+  .feature .clinic-deck { grid-column: 1 / -1; }
+}
