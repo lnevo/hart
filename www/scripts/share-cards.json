@@ -221,8 +221,8 @@
     },
     "exam/index.html": {
       "image": "assets/share/ap-exam.jpg",
-      "alt": "The C&E exam study deck: a flipped flashcard on Rule S-71 beside a practice question on the 12-hour rule, answered correctly.",
-      "from": "drawn with the deck's own styles and text from www/exam/index.html (make_share_cards.py ap-exam)"
+      "alt": "The C&E exam study deck: section chips over a flipped flashcard on Rule S-71, beside a practice question on the 12-hour rule answered correctly.",
+      "from": "drawn with the deck's own styles, labels, counts and text from www/exam/index.html (make_share_cards.py ap-exam)"
     },
     "guides/auto-dispatcher.html": {
       "image": "assets/share/guides-auto-dispatcher.jpg",
