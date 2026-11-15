@@ -130,5 +130,57 @@ class PinnedLayout(unittest.TestCase):
         self.assertIn("jmri/layouts/hart/output/tables.xml", out.stdout)
 
 
+class TablesOverrideTest(unittest.TestCase):
+    """HART_TABLES points TABLES_XML at another file for checks (the LE cut-over candidate)."""
+
+    def probe(self, value, home=None):
+        import subprocess
+        src = str(Path(paths.__file__).resolve().parents[1])
+        env = {k: v for k, v in os.environ.items() if k != "HART_TABLES"}
+        if home is not None:
+            env["HOME"] = str(home)
+        if value is not None:
+            env["HART_TABLES"] = value
+        return subprocess.run(
+            [sys.executable, "-c", "import sys; sys.path.insert(0, sys.argv[1]); from hartlib import paths; "
+             "print(paths.TABLES_XML); print(paths.REPO_TABLES_XML); print(paths.TABLES_OVERRIDDEN); "
+             "print(paths.layout_paths()['authoritative'])", src],
+            env=env, capture_output=True, text=True)
+
+    def test_unset_is_the_checkout_file(self):
+        out = self.probe(None)
+        self.assertEqual(0, out.returncode, out.stderr)
+        tables_xml, repo, overridden, auth = out.stdout.split("\n")[:4]
+        self.assertEqual(tables_xml, repo)
+        self.assertEqual("False", overridden)
+        self.assertEqual(auth, repo)
+
+    def test_set_points_at_the_file_but_not_the_repo_path(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "tables.xml"
+            f.write_text("<layout-config/>")
+            out = self.probe(str(f))
+        self.assertEqual(0, out.returncode, out.stderr)
+        tables_xml, repo, overridden, auth = out.stdout.split("\n")[:4]
+        self.assertEqual(str(f.resolve()), tables_xml)
+        self.assertEqual(str(CHECKOUT / "jmri/layouts/hart/output/tables.xml"), repo)
+        self.assertEqual("True", overridden)
+        self.assertEqual(tables_xml, auth)
+
+    def test_missing_file_and_profile_are_refused(self):
+        out = self.probe("/nowhere/tables.xml")
+        self.assertNotEqual(0, out.returncode)
+        self.assertIn("HART_TABLES=/nowhere/tables.xml: no such file", out.stderr)
+        import tempfile
+        with tempfile.TemporaryDirectory() as home:
+            profile = Path(home) / "JMRI_UserFiles" / "tables.xml"
+            profile.parent.mkdir()
+            profile.write_text("<layout-config/>")
+            out = self.probe(str(profile), home=home)
+        self.assertNotEqual(0, out.returncode)
+        self.assertIn("is in the JMRI profile", out.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

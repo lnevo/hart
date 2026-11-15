@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # Load HART in PanelPro, repair stale generated TrainInfo bindings, then exit.
 set -euo pipefail
+# PanelPro loads and stores this checkout's tables.xml, and the repairs after it write the file
+# hartlib names; HART_TABLES (checks only) would point those at another file.
+if [[ -n "${HART_TABLES:-}" ]]; then
+  echo "HART_TABLES is set ($HART_TABLES): it is for checks only; unset it to run PanelPro on tables.xml" >&2
+  exit 1
+fi
 
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 # PanelPro loads the tables of the checkout this script lives in (main or a worktree).

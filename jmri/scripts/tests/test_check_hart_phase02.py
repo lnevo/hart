@@ -48,5 +48,25 @@ class SecondaryOsBlocksTest(unittest.TestCase):
         self.assertEqual([], phase02.crossover_row_errors(ET.parse(phase02.PANEL).getroot()))
 
 
+class HartTablesTest(unittest.TestCase):
+    """HART_TABLES (tools/check.sh, hartlib.paths) names the tables file the checks read."""
+
+    def run_with(self, value):
+        import os
+        import subprocess
+        env = {k: v for k, v in os.environ.items() if k != "HART_TABLES"}
+        if value is not None:
+            env["HART_TABLES"] = value
+        return subprocess.run([sys.executable, str(SCRIPT)], env=env, capture_output=True, text=True, timeout=120)
+
+    def test_the_checkout_file_by_default_and_the_named_file_when_set(self):
+        self.assertEqual(0, self.run_with(None).returncode)
+        with tempfile.TemporaryDirectory() as tmp:
+            broken = Path(tmp) / "tables.xml"
+            broken.write_text("<layout-config/>", encoding="utf-8")
+            done = self.run_with(str(broken))
+        self.assertNotEqual(0, done.returncode)
+
+
 if __name__ == "__main__":
     unittest.main()

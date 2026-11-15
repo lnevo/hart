@@ -380,7 +380,9 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_test")
         check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
         for name, argv in after.CHECKS:
-            self.assertIn(f"run {name} " + " ".join(argv), check_sh, name)
+            # unit tests run through `unit` (no HART_TABLES), the table checks through `run`
+            step = "unit" if "unittest" in argv else "run"
+            self.assertIn(f"{step} {name} " + " ".join(argv), check_sh, name)
 
     def test_real_name_check_loads_and_passes_clean_text(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_real_name_test")

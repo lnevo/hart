@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables  # noqa: E402
 
 DEFAULT_PANEL = paths.TABLES_XML
 PREF_TABLES = paths.JMRI_USER_FILES / "tables.xml"
@@ -149,6 +149,9 @@ def main() -> None:
     )
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
+    refused = tables.hand_drawn_only(args.panel, Path(__file__).name)
+    if refused:
+        sys.exit(refused)
 
     patch_file(args.panel, dry_run=args.dry_run)
     if args.dry_run:

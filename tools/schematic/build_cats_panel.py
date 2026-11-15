@@ -67,6 +67,11 @@ FIT = ((WINDOW[0] - CHROME[0]) // GRID_PX, (WINDOW[1] - CHROME[1]) // GRID_PX)
 MAX_COLS = FIT[0]       # the plugin drops level-only columns so the panel keeps within the window (a free column
                         # each side: column 0 is never drawn and the track starts at column 2)
 
+# A short unnamed track whose block is a railroad fact rather than whatever holds most of the drawn track: the
+# generated Layout Editor panel (build_layout_le.py) splits the 35-37 track evenly between the two OS blocks, where
+# the hand-drawn panel gave most of it to OS Switch 35a. The named block must lie on that track.
+SHORT_TRACK_BLOCKS = {"35-37": "OS Switch 35a"}
+
 
 def plugin_modules(plugin):
     """The plugin's cats and sheet modules, imported from `plugin` (the same code the command would run)."""
@@ -118,9 +123,10 @@ class LayoutEditor:
                     out.append(path)
         return out
 
-    def block_between(self, a, b, what):
+    def block_between(self, a, b, what, fixed=None):
         """The block holding most of the one track from turnout `a` to `b` (by segment length, unnamed segments
-        ignored). Stops when there is no such track, several, no named segment, or a tie."""
+        ignored), or `fixed` when given (it must be one of that track's blocks). Stops when there is no such track,
+        several, no named segment, a `fixed` block the track does not have, or a tie."""
         found = self.paths(a, b)
         if len(found) != 1:
             raise SystemExit(f"{what}: {'no' if not found else len(found)} Layout Editor tracks join {a} and {b}; "
@@ -131,6 +137,11 @@ class LayoutEditor:
                 weight[blk] += length
         if not weight:
             raise SystemExit(f"{what}: the Layout Editor track from {a} to {b} has no block")
+        if fixed is not None:
+            if fixed not in weight:
+                raise SystemExit(f"{what}: SHORT_TRACK_BLOCKS names {fixed}, but the Layout Editor track from {a} "
+                                 f"to {b} holds only {', '.join(sorted(weight))}")
+            return fixed
         ranked = sorted(weight.items(), key=lambda kv: -kv[1])
         if len(ranked) > 1 and math.isclose(ranked[0][1], ranked[1][1]):
             raise SystemExit(f"{what}: the Layout Editor track from {a} to {b} is split evenly between "
@@ -281,7 +292,7 @@ def block_bindings(band, F, names):
                 raise SystemExit(f"block {name}: no JMRI block {name} or Track {name} in occupancy_bindings.csv / "
                                  "tables.xml, and it is not a short unnamed track between two switches")
             a, b = (switch_of(F, d).le_ident for d in ends)
-            out[name] = {"name": F.layout.block_between(a, b, f"block {name}")}
+            out[name] = {"name": F.layout.block_between(a, b, f"block {name}", SHORT_TRACK_BLOCKS.get(name))}
             continue
         addr, sensor = F.occupancy[layout]
         out[name] = {

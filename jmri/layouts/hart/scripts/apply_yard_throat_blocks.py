@@ -647,6 +647,9 @@ def main() -> int:
         help="Only the Scale/Switch 7, Mast 14R, engine-house exit, Brick-Plane and East Lead / K-1 rear masts; skip the South Yard throats.",
     )
     args = ap.parse_args()
+    refused = tables.hand_drawn_only(args.panel, Path(__file__).name)
+    if refused:
+        sys.exit(refused)
     targets = [args.panel.resolve()]
     fn = apply_scale_east if args.scale_east_only else apply
     for path in targets:

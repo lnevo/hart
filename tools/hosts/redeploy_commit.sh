@@ -26,6 +26,12 @@
 # keeps no history, so the commit before it comes from git log --first-parent origin/main.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+# HART_TABLES points the table checks at another file (hartlib.paths); a deploy ships the
+# checkout's tables.xml, so it never runs with it set.
+if [[ -n "${HART_TABLES:-}" ]]; then
+  echo "HART_TABLES is set ($HART_TABLES): it is for checks only; unset it to deploy" >&2
+  exit 1
+fi
 SYNC_REL="tools/hosts/sync_hart_package.sh"
 TABLES_REL="jmri/layouts/hart/output/tables.xml"
 source "$ROOT/tools/hosts/profile_tables_guard.sh"

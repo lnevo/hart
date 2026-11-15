@@ -186,6 +186,18 @@ class LayoutEditorTracks(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "split evenly"):
             B.LayoutEditor(ET.fromstring(tie)).block_between("TO1", "TO2", "t")
 
+    def test_a_fixed_block_wins_even_a_tie_but_must_lie_on_the_track(self):
+        tie = LE_XML.replace('xb="10"', 'xb="15"')
+        le = B.LayoutEditor(ET.fromstring(tie))
+        self.assertEqual(le.block_between("TO1", "TO2", "t", "OS Switch 2a"), "OS Switch 2a")
+        with self.assertRaisesRegex(SystemExit, "SHORT_TRACK_BLOCKS names OS Switch 9, but .* holds only "
+                                    "OS Switch 1, OS Switch 2a"):
+            le.block_between("TO1", "TO2", "t", "OS Switch 9")
+
+    def test_the_35_37_track_is_os_switch_35a(self):
+        # the generated Layout Editor panel splits it evenly; the hand-drawn one gave most of it to 35a
+        self.assertEqual(B.SHORT_TRACK_BLOCKS, {"35-37": "OS Switch 35a"})
+
 
 class Blocks(unittest.TestCase):
     def test_jmri_blocks_and_the_short_track_rule(self):

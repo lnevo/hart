@@ -315,5 +315,46 @@ class MastIconTest(unittest.TestCase):
         self.assertEqual(names["IF$vsm:basic:one-low($1)"], "IF$vsm:basic:one-low($1)")
 
 
+class GeneratedPanelMarkerTest(unittest.TestCase):
+    """The hidden label that marks a generated Layout Editor panel (LE cut-over)."""
+
+    def panel(self, markers: int) -> ET.Element:
+        le = ET.Element("LayoutEditor", {"name": "HART Railroad"})
+        for _ in range(markers):
+            le.append(tables.generated_marker_label())
+        return le
+
+    def test_marker_is_a_hidden_label_with_the_marker_text(self):
+        label = tables.generated_marker_label()
+        self.assertEqual(("positionablelabel", "yes", tables.GENERATED_PANEL_MARKER),
+                         (label.tag, label.get("hidden"), label.get("text")))
+
+    def test_found_once_or_not_at_all(self):
+        self.assertFalse(tables.generated_panel(None))
+        self.assertFalse(tables.generated_panel(self.panel(0)))
+        self.assertTrue(tables.generated_panel(self.panel(1)))
+        with self.assertRaisesRegex(ValueError, "'HART Railroad' has 2 generated-panel markers"):
+            tables.generated_panel(self.panel(2))
+
+    def test_the_repo_panel_is_hand_drawn(self):
+        self.assertFalse(tables.generated_panel(tables.layout_editor(tables.read(paths.REPO_TABLES_XML))))
+
+    def test_hand_drawn_only(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = ET.Element("layout-config")
+            root.append(self.panel(0))
+            hand = Path(d) / "hand.xml"
+            hand.write_bytes(ET.tostring(root))
+            self.assertIsNone(tables.hand_drawn_only(hand, "x.py"))
+            tables.layout_editor(root).append(tables.generated_marker_label())
+            gen = Path(d) / "gen.xml"
+            gen.write_bytes(ET.tostring(root))
+            self.assertIn("is generated", tables.hand_drawn_only(gen, "x.py"))
+            self.assertIn("cannot read", tables.hand_drawn_only(Path(d) / "none.xml", "x.py"))
+            other = Path(d) / "other.xml"
+            other.write_bytes(b"<layout-config><LayoutEditor name='Dispatcher System'/></layout-config>")
+            self.assertIn("no main Layout Editor panel", tables.hand_drawn_only(other, "x.py"))
+
+
 if __name__ == "__main__":
     unittest.main()

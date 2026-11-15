@@ -20,6 +20,15 @@ Modes (--mode):
         the path. CATS CTC and USS Logic off while this is on.
 
 Switch later: python3 apply_nx_layer.py --mode lock && deploy.
+
+A mast whose NX sensor is already bound somewhere on the panel (a turnout leg's
+<sensorX> or an anchor's east/westboundsensor) gets no second binding.
+
+On a generated panel (build_layout_le.py --as-live; it holds the hidden
+hartlib.tables.GENERATED_PANEL_MARKER label) the pixel tables MAST_ALIGN and
+NX_ICON_POSITIONS are the hand-drawn panel's and are not used: mast icons and NX
+icons keep where they stand, and a missing NX icon goes on the facing side of its
+mast icon (nx_xy's rule for an unlisted mast).
 """
 
 from __future__ import annotations
@@ -40,7 +49,7 @@ from nx_contract import (
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables  # noqa: E402
 
 DEFAULTS = [paths.TABLES_XML]
 
@@ -216,9 +225,9 @@ def restyle_icons(panel: str) -> tuple[str, int]:
     return NX_ICON_RE.sub(repl, panel), changed
 
 
-def nx_xy(mast: str, x: float, y: float, degrees: float) -> tuple[int, int]:
-    """Approach-rail lamp, or a facing-side fallback for an unknown mast."""
-    if mast in NX_ICON_POSITIONS:
+def nx_xy(mast: str, x: float, y: float, degrees: float, generated: bool = False) -> tuple[int, int]:
+    """Approach-rail lamp, or a facing-side fallback for an unknown mast (every mast on a generated panel)."""
+    if mast in NX_ICON_POSITIONS and not generated:
         return NX_ICON_POSITIONS[mast]
     d = int(degrees) % 360
     along = 28
@@ -310,39 +319,54 @@ def refresh_sensor_comments(text: str, mode: str) -> tuple[str, int]:
     return text, changed
 
 
-def patch_turnout(xml: str) -> str:
+def bound_nx_sensors(panel: str) -> set[str]:
+    """NX sensor user names already bound in a slot on the panel (turnout legs and anchors)."""
+    legs = re.findall(r"<sensor[ABCD]>(NX [^<]+)</sensor[ABCD]>", panel)
+    points = re.findall(r'(?:east|west)boundsensor="(NX [^"]+)"', panel)
+    return set(legs) | set(points)
+
+
+def patch_turnout(xml: str, bound: set[str] | None = None) -> str:
+    """Bind each CTC mast's NX sensor on this turnout's legs; `bound` (sensors already bound anywhere on the
+    panel) gains each one bound here, so no sensor is bound twice."""
+    bound = set() if bound is None else bound
     for letter in "ABCD":
         mast_m = re.search(rf"<signal{letter}Mast>([^<]+)</signal{letter}Mast>", xml)
         if not mast_m:
             continue
         mast = mast_m.group(1)
-        if mast not in CTC_MASTS or re.search(rf"<sensor{letter}>", xml):
+        if mast not in CTC_MASTS or re.search(rf"<sensor{letter}>", xml) or user_name(mast) in bound:
             continue
         xml = xml.replace(
             f"</signal{letter}Mast>",
             f"</signal{letter}Mast>\n      <sensor{letter}>{user_name(mast)}</sensor{letter}>",
             1,
         )
+        bound.add(user_name(mast))
     return xml
 
 
-def patch_point(xml: str) -> str:
+def patch_point(xml: str, bound: set[str] | None = None) -> str:
+    """As patch_turnout, for an anchor's east and west bound slots."""
+    bound = set() if bound is None else bound
     if "eastboundsignalmast=" not in xml and "westboundsignalmast=" not in xml:
         return xml
     attrs = dict(re.findall(r'(\w+)="([^"]*)"', xml))
     east_mast = attrs.get("eastboundsignalmast")
     west_mast = attrs.get("westboundsignalmast")
     extra = []
-    if east_mast in CTC_MASTS and "eastboundsensor" not in attrs:
+    if east_mast in CTC_MASTS and "eastboundsensor" not in attrs and user_name(east_mast) not in bound:
         extra.append(f'eastboundsensor="{user_name(east_mast)}"')
-    if west_mast in CTC_MASTS and "westboundsensor" not in attrs:
+        bound.add(user_name(east_mast))
+    if west_mast in CTC_MASTS and "westboundsensor" not in attrs and user_name(west_mast) not in bound:
         extra.append(f'westboundsensor="{user_name(west_mast)}"')
+        bound.add(user_name(west_mast))
     if not extra:
         return xml
     return xml.replace(" class=", " " + " ".join(extra) + " class=", 1)
 
 
-def insert_icons(panel: str) -> tuple[str, int]:
+def insert_icons(panel: str, generated: bool = False) -> tuple[str, int]:
     present = set(re.findall(r'<sensoricon sensor="(NX [^"]+)"', panel))
     last = None
     for match in MAST_ICON_RE.finditer(panel):
@@ -354,7 +378,7 @@ def insert_icons(panel: str) -> tuple[str, int]:
         mast, x, y, degrees = match.group(1), float(match.group(2)), float(match.group(3)), float(match.group(4))
         if mast not in CTC_MASTS or user_name(mast) in present:
             continue
-        ix, iy = nx_xy(mast, x, y, degrees)
+        ix, iy = nx_xy(mast, x, y, degrees, generated)
         chunks.append(icon_xml(mast, ix, iy))
     if not chunks:
         return panel, 0
@@ -368,25 +392,33 @@ def insert_icons(panel: str) -> tuple[str, int]:
 
 def apply_panel(panel: str) -> tuple[str, dict[str, int]]:
     counts = {"turnouts": 0, "points": 0}
+    generated = tables.GENERATED_PANEL_MARKER in panel
+    bound = bound_nx_sensors(panel)     # grows as sensors are bound: turnout legs first, then anchors
 
     def turnout_sub(match: re.Match[str]) -> str:
-        patched = patch_turnout(match.group(0))
+        patched = patch_turnout(match.group(0), bound)
         if patched != match.group(0):
             counts["turnouts"] += 1
         return patched
 
     def point_sub(match: re.Match[str]) -> str:
-        patched = patch_point(match.group(0))
+        patched = patch_point(match.group(0), bound)
         if patched != match.group(0):
             counts["points"] += 1
         return patched
 
     panel = TURNOUT_RE.sub(turnout_sub, panel)
     panel = POINT_RE.sub(point_sub, panel)
-    panel, aligned = align_masts(panel)
-    panel, icons = insert_icons(panel)
-    panel, restyled = restyle_icons(panel)
-    panel, moved = reposition_icons(panel)
+    if generated:   # the hand-drawn panel's pixels do not apply: icons keep where they stand
+        aligned = moved = 0
+        panel, icons = insert_icons(panel, generated=True)
+        panel, restyled = restyle_icons(panel)
+    else:
+        panel, aligned = align_masts(panel)
+        panel, icons = insert_icons(panel)
+        panel, restyled = restyle_icons(panel)
+        panel, moved = reposition_icons(panel)
+    counts["generated"] = int(generated)
     counts["aligned"] = aligned
     counts["icons"] = icons
     counts["restyled"] = restyled
