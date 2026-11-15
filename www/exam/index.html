@@ -82,7 +82,30 @@
 .ce .learn p,.ce .learn li{font-size:16px;line-height:1.6;max-width:70ch}
 .ce .learn p{margin:6px 0}
 .ce .learn ul,.ce .learn ol{margin:6px 0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
-.ce .learn-toc{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+/* study guide frames: one section at a time, picked from a line of stops */
+.ce .ce-line{scroll-margin-top:calc(var(--header-h) + 12px);position:relative;--n:9}
+.ce .ce-line ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--n,9),minmax(0,1fr));position:relative}
+.ce .ce-line ol::before,.ce .ce-line .fill{content:"";position:absolute;top:14px;left:calc(50% / var(--n,9));height:3px;border-radius:2px;background:var(--rule);right:calc(50% / var(--n,9))}
+.ce .ce-line .fill{background:var(--ink);right:auto;width:0;z-index:1}
+@media (prefers-reduced-motion:no-preference){.ce .ce-line .fill{transition:width .25s ease}}
+.ce .ce-line button{background:none;border:0;padding:0 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;position:relative;z-index:2}
+.ce .ce-line .dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);background:var(--paper);display:grid;place-items:center;font-family:var(--f-mono);font-size:12px;transition:transform .15s ease}
+.ce .ce-line .past .dot{background:var(--rule)}
+.ce .ce-line [aria-current="step"] .dot{background:var(--ink);color:var(--paper);box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--signal-red)}
+.ce .ce-line button:hover .dot{transform:scale(1.1)}
+.ce .ce-line button:focus-visible{outline:none}.ce .ce-line button:focus-visible .dot{outline:2px solid var(--signal-red);outline-offset:3px}
+.ce .ce-line .name{font-size:12px;line-height:1.25;color:var(--muted);text-align:center;text-wrap:balance}
+.ce .ce-line [aria-current="step"] .name{color:var(--ink);font-weight:600}
+.ce .ce-line-cap{display:none;margin:8px 0 0;font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:center}
+@media (max-width:640px){.ce .ce-line .name{display:none}.ce .ce-line-cap{display:block}.ce .ce-line .dot{width:26px;height:26px;font-size:11px}.ce .ce-line ol::before,.ce .ce-line .fill{top:12px}}
+.ce .learn article[hidden]{padding:0;border:0;margin-top:-16px}
+@media print{.ce .learn article[hidden]{display:block!important;content-visibility:visible!important;padding:14px 18px;border:1px solid var(--rule);margin-top:0}.ce .ce-line,.ce .learn-step,.ce .learn-go{display:none}}
+@media (prefers-reduced-motion:no-preference){.ce .learn article.in{animation:ce-in .22s ease}}
+@keyframes ce-in{from{opacity:0;transform:translateX(var(--from,16px))}to{opacity:1;transform:none}}
+.ce .learn-step{display:flex;gap:8px;justify-content:space-between;margin-top:12px}
+.ce .learn-step .ce-btn{max-width:48%;text-align:left}
+.ce .learn-step .nx{margin-left:auto;text-align:right}
+.ce .learn-step small{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
 .ce .learn-table{overflow-x:auto;margin:8px 0}
 .ce .learn-table table{border-collapse:collapse;font-size:14px;min-width:420px}
 .ce .learn-table th,.ce .learn-table td{border-bottom:1px solid var(--rule);padding:6px 10px 6px 0;text-align:left;vertical-align:top}
@@ -118,20 +141,15 @@
 
 <section class="ce-panel" id="view-learn">
   <div class="learn">
-    <div class="note"><b>How to use this deck.</b> Read one section below, then press its <i>Flashcards</i> button and go through those cards until most are learned. Then take a 10-question test on that section. When each section scores well, take full 20 or 40 question tests across everything. This guide explains the ideas; the cards and tests check them.</div>
+    <div class="note"><b>How to use this deck.</b> Read one section, then press its <i>Flashcards</i> button and go through those cards until most are learned. Then take a 10-question test on that section. When each section scores well, take full 20 or 40 question tests across everything.</div>
 
-    <nav class="learn-toc" aria-label="Study guide contents">
-      <a href="#learn-def">1. The words</a>
-      <a href="#learn-sup">2. Who goes first</a>
-      <a href="#learn-to">3. Train orders</a>
-      <a href="#learn-yl">4. Yard limits</a>
-      <a href="#learn-twc">5. Track warrants</a>
-      <a href="#learn-sig">6. Signals and whistles</a>
-      <a href="#learn-sem">7. Semaphores</a>
-      <a href="#learn-gcor">8. Crew duties and speed</a>
+    <nav class="ce-line" aria-label="Study guide sections">
+      <span class="fill" id="learnFill" aria-hidden="true"></span>
+      <ol id="learnLine"></ol>
+      <p class="ce-line-cap" id="learnCap" aria-live="polite"></p>
     </nav>
 
-    <article>
+    <article id="learn-intro" data-short="Overview">
       <h3>The big picture</h3>
       <p>Every train on a main track needs <b>authority</b> to be there. The exam covers the ways railroads have given that authority:</p>
       <ul>
@@ -142,12 +160,12 @@
       <p>On top of these sit general rules that apply everywhere: hand and whistle signals, flag protection, restricted speed and yard limits.</p>
     </article>
 
-    <article id="learn-def" data-sec="def">
+    <article id="learn-def" data-sec="def" data-short="The words">
       <h3>1. The words</h3>
-      <p>Most TT&amp;TO questions turn on a definition, so learn these exactly.</p>
+      <p>The Standard Code gives each of these words an exact meaning, and the rules depend on it.</p>
       <ul>
         <li>A <b>regular train</b> has a schedule in the timetable. An <b>extra train</b> does not; it runs only on a train order. Extras come in three kinds: plain <i>Extra</i>, <i>Passenger Extra</i> and <i>Work Extra</i>.</li>
-        <li>The <b>time-table</b> is the whole book: the authority for regular trains plus special instructions. A <b>schedule</b> is one train's line in it, giving its <i>class, direction, number and movement</i>. People mix the two up; the exam won't.</li>
+        <li>The <b>time-table</b> is the whole book: the authority for regular trains plus special instructions. A <b>schedule</b> is one train's line in it, giving its <i>class, direction, number and movement</i>.</li>
         <li>When one schedule needs more than one train, they run as <b>sections</b> (First 7, Second 7). Every section except the last carries signals (green) to warn others another section follows.</li>
         <li><b>Main track</b> runs through yards and between stations and is used by timetable, train order or block signals. A <b>siding</b> is auxiliary to it, for meeting and passing. <b>Single track</b> carries trains both ways.</li>
         <li>A schedule shows at most two times at a station. If it shows two, they are arrival and departure. If it shows one, read it as the <b>leaving</b> time.</li>
@@ -157,7 +175,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-sup" data-sec="sup">
+    <article id="learn-sup" data-sec="sup" data-short="Who goes first">
       <h3>2. Who goes first</h3>
       <p>Under TT&amp;TO there is no dispatcher watching each move. Crews work it out themselves from <b>superiority</b>, which comes in three kinds:</p>
       <ul>
@@ -166,10 +184,10 @@
         <li><b>Right</b>, set by train order: the dispatcher can give any train right over another, and right beats both class and direction.</li>
       </ul>
       <p>Extras are inferior to every regular train. On double track (the D- rules) direction drops out, since opposing trains are on separate tracks; superiority is by right or class only. The S- rules are the single-track versions.</p>
-      <p><b>Schedules expire.</b> A regular train that falls more than twelve hours behind its schedule at a station loses its right <i>and</i> its schedule, and can then move only on train orders. That stops crews waiting forever on a train that was annulled or forgotten.</p>
+      <p><b>Schedules expire.</b> A regular train that falls more than twelve hours behind its schedule at a station loses its right <i>and</i> its schedule, and can then move only on train orders.</p>
       <p><b>Before leaving</b> its starting station, a junction, or the end of double track, a train must find out whether every superior train that is due has arrived or left, usually from the <b>train register</b>. It must also have a proper signal to start, and it may never leave a station before its schedule's leaving time.</p>
       <h4>Keeping out of the way</h4>
-      <p>Picture eastbound No 7 (first class) due to leave Cedar at 9:40 and Dale, the next station east, at 10:05.</p>
+      <p>Example: eastbound No 7 (first class) due to leave Cedar at 9:40 and Dale, the next station east, at 10:05.</p>
       <ul>
         <li><b>A slower train ahead of No 7, going the same way</b>, must be in the clear when No 7 is due to leave the station <i>behind</i> it. If the slow train is between Cedar and Dale, it must be clear by 9:40, not 10:05.</li>
         <li><b>An opposing extra</b> must clear No 7's time with a safety margin. The Standard Code margin is 5 minutes; the TT&amp;TO primer quotes 10 (see Guide notes). An extra waiting at Dale for No 7 must be clear by 10:00 under the Standard Code. If an inferior train can't clear in time, it must flag (Rule 99).</li>
@@ -182,7 +200,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-to" data-sec="to">
+    <article id="learn-to" data-sec="to" data-short="Train orders">
       <h3>3. Train orders</h3>
       <p>A train order is how the dispatcher changes the timetable: creating extras, setting meets, giving right, making trains late. An order stays in force until it is <b>fulfilled, superseded or annulled</b>.</p>
       <h4>Getting an order to a crew</h4>
@@ -197,7 +215,7 @@
       <h4>How trains are named in orders</h4>
       <p>Regular trains by number (No 7), sections by position (Second 7), extras by engine number and direction (Extra 4410 West), work extras as Work Extra and the engine number. A foreign railroad's engine gets its initials in front.</p>
       <h4>The order forms</h4>
-      <div class="learn-table"><table>
+      <div class="learn-table" tabindex="0"><table>
         <thead><tr><th>Form</th><th>What it does</th><th>The point to remember</th></tr></thead>
         <tbody>
           <tr><td>A</td><td>Sets a meeting point</td><td>Neither train goes past the meeting station until both are there.</td></tr>
@@ -214,7 +232,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-yl" data-sec="yl">
+    <article id="learn-yl" data-sec="yl" data-short="Yard limits">
       <h3>4. Yard limits</h3>
       <p>Yard limits are a stretch of <b>main track</b>, set by mileposts in the timetable and marked by signs, where engines can switch and shuffle without asking the dispatcher each time. Inside them, trains and engines don't protect against each other, so <b>everyone moves slowly</b> enough to stop for whatever is ahead.</p>
       <ul>
@@ -225,7 +243,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-twc" data-sec="twc">
+    <article id="learn-twc" data-sec="twc" data-short="Track warrants">
       <h3>5. Track warrants</h3>
       <p>A track warrant is a fill-in form the dispatcher reads over the radio. It is the modern replacement for train orders on lines without signals.</p>
       <h4>The exchange</h4>
@@ -251,7 +269,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-sig" data-sec="sig">
+    <article id="learn-sig" data-sec="sig" data-short="Signals">
       <h3>6. Signals and whistles</h3>
       <h4>Reading a signal</h4>
       <p>The <b>aspect</b> is what you see; the <b>indication</b> is what it tells you to do; the <b>name</b> is the railroad's label for it. Under <b>route signaling</b> (most model railroads) the signal tells you which way you're lined and how clear the blocks ahead are; speeds come from the timetable. Under <b>speed signaling</b> the signal tells you how fast to go.</p>
@@ -262,10 +280,10 @@
       </ul>
       <p><b>ABS</b> divides track into automatic blocks. <b>APB</b> adds a rule for opposing moves: once a train enters between sidings, opposing signals all go red to the next siding. <b>CTC</b> lets a dispatcher set switches and signals at control points. An <b>interlocking</b> makes conflicting routes impossible, run from a tower.</p>
       <h4>Hand signals (Standard Code)</h4>
-      <p>Think of the motion: a swing <i>across</i> the track stops you; up-and-down <i>proceeds</i>; held out <i>level</i> means slow; a full <i>circle</i> means back up.</p>
+      <p>The motion gives the meaning: a swing <i>across</i> the track stops you; up-and-down <i>proceeds</i>; held out <i>level</i> means slow; a full <i>circle</i> means back up.</p>
       <h4>Whistles</h4>
-      <p>Shorts are "o", longs are "—". The two codes differ, so learn which is which:</p>
-      <div class="learn-table"><table>
+      <p>Shorts are "o", longs are "—". Some signals differ between the two codes:</p>
+      <div class="learn-table" tabindex="0"><table>
         <thead><tr><th>Meaning</th><th>Standard Code</th><th>GCOR</th></tr></thead>
         <tbody>
           <tr><td>Brakes applied / stop</td><td>o</td><td>— (when stopped)</td></tr>
@@ -283,7 +301,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-sem" data-sec="sem">
+    <article id="learn-sem" data-sec="sem" data-short="Semaphores">
       <h3>7. Semaphores</h3>
       <p>A semaphore shows its aspect by the <b>angle of a blade</b> by day and colored lights at night. Horizontal is always <b>stop</b>; treat it as a closed gate.</p>
       <ul>
@@ -296,7 +314,7 @@
       <div class="learn-go"></div>
     </article>
 
-    <article id="learn-gcor" data-sec="gcor">
+    <article id="learn-gcor" data-sec="gcor" data-short="Crew & speed">
       <h3>8. Crew duties and speed</h3>
       <ul>
         <li><b>Conductor</b>: in charge of the train and its paperwork. The crew follows the conductor unless that would be unsafe or against the rules. When two crews combine, the senior conductor takes charge. The conductor warns the engineer of restrictions and authority limits ahead, at least two miles before.</li>
@@ -348,7 +366,7 @@
   <div class="guides">
     <article>
       <h3>Where the guides disagree</h3>
-      <p>These cards follow the 1949 Standard Code (Study Guide §1.0), which the TT&amp;TO primer names as the reference document. If an exam question turns on one of these, read it closely for which rulebook it means.</p>
+      <p>These cards follow the 1949 Standard Code (Study Guide §1.0), which the TT&amp;TO primer names as the reference document. Where a question depends on one of these, check which rulebook it refers to.</p>
       <ul>
         <li><b>Clearing time (S-87, S-89).</b> The Standard Code says extras clear opposing regular trains by <b>not less than 5 minutes</b>. The TT&amp;TO primer quotes the rules with <b>10 minutes</b> and works its Rule 87 example with 10. Its own appendix example then uses 5.</li>
         <li><b>Yard limits speed (Rule 93).</b> Standard Code: <i>yard speed unless the main track is known to be clear</i>. TT&amp;TO primer: a speed that permits stopping within one-half the range of vision. Yard Limits guide: restricted speed unless block signal protection is present. GCOR 6.13: restricted speed unless a block signal shows something better than Approach.</li>
@@ -387,7 +405,7 @@ C("def","Regular train","A train authorized by time-table schedule.","SC · Defi
 C("def","Extra train","A train not authorized by a time-table schedule. Designated as:\n• Extra: any extra except passenger extra or work extra\n• Passenger Extra: passenger train extra\n• Work Extra: work train extra","SC · Definitions");
 C("def","Time-table","The authority for the movement of regular trains subject to the rules. It contains classified schedules with special instructions relating to the movement of trains.","SC · Definitions");
 C("def","Schedule","That part of a time-table which prescribes class, direction, number and movement for a regular train.","SC · Definitions");
-C("def","Time-table vs. schedule: what is the difference?","The time-table is the whole publication (the authority for regular trains, special instructions, notes). The schedule is the part of it that sets class, direction, number and movement for one regular train. The terms are often confused.","TT · What is TT&TO");
+C("def","Time-table vs. schedule: what is the difference?","The time-table is the whole publication (the authority for regular trains, special instructions, notes). The schedule is the part of it that sets class, direction, number and movement for one regular train.","TT · What is TT&TO");
 C("def","Superior train","A train having precedence over another train.","SC · Definitions");
 C("def","Train of superior class","A train given precedence by time-table.","SC · Definitions");
 C("def","Train of superior direction","A train given precedence in the direction specified by time-table, as between opposing trains of the same class.","SC · Definitions");
@@ -687,7 +705,7 @@ const views={learn:"view-learn",cards:"view-cards",quiz:"view-quiz",notes:"view-
 let view="learn";
 function show(v){if(!views[v])v="learn";view=v;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
   for(const k in views)document.getElementById(views[k]).hidden=k!==v}
-document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view));
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>{show(b.dataset.view);if(location.hash)history.replaceState(null,"","#"+(view==="learn"&&frame>=0?frames[frame].id:view))});
 
 /* chips */
 function chips(el,counts,sel,onChange){
@@ -826,7 +844,7 @@ document.addEventListener("keydown",e=>{
 });
 
 /* study guide: practice buttons per section. They focus one section for this run only and leave the saved choices alone. */
-document.querySelectorAll("#view-learn [data-sec]").forEach(a=>{
+document.querySelectorAll("#view-learn article[data-sec]").forEach(a=>{
   const k=a.dataset.sec,go=a.querySelector(".learn-go");if(!go)return;
   go.innerHTML=`<span class="label">Practice ${esc(SECTIONS[k])}</span><button class="ce-btn" data-go="cards">Flashcards</button><button class="ce-btn" data-go="quiz">10-question test</button>`;
   go.querySelector('[data-go="cards"]').onclick=()=>{cardSel.clear();cardSel.add(k);deal();show("cards");document.getElementById("view-cards").scrollIntoView()};
@@ -834,8 +852,51 @@ document.querySelectorAll("#view-learn [data-sec]").forEach(a=>{
     if(test&&!document.getElementById("quizRun").hidden&&test.items.some(x=>x.pick!==null))finish(); // keep a running test's answers
     show("quiz");startTest(shuffle(QS.filter(q=>q.s===k)).slice(0,10),true);document.getElementById("view-quiz").scrollIntoView()};
 });
+/* study guide frames: one section shows at a time; the line of stops, Prev/Next, arrow keys and swipes move between them */
+const frames=[...document.querySelectorAll("#view-learn .learn article")];
+const line=document.getElementById("learnLine"),cap=document.getElementById("learnCap");
+let frame=-1;
+const fill=document.getElementById("learnFill");
+line.parentNode.style.setProperty("--n",frames.length);
+line.innerHTML=frames.map((a,i)=>`<li><button type="button" data-i="${i}" aria-label="${i?"Section "+i+": ":""}${esc(a.querySelector("h3").textContent.replace(/^\d+\.\s*/,""))}"><span class="dot">${i||"&#9679;"}</span><span class="name">${esc(a.dataset.short)}</span></button></li>`).join("");
+line.querySelectorAll("button").forEach(b=>b.onclick=()=>goFrame(+b.dataset.i));
+frames.forEach((a,i)=>{
+  const nav=document.createElement("div");nav.className="learn-step";
+  const p=frames[i-1],n=frames[i+1];
+  nav.innerHTML=(p?`<button type="button" class="ce-btn pv"><small>&larr; Back</small>${esc(p.dataset.short)}</button>`:"")+(n?`<button type="button" class="ce-btn nx primary"><small>Next &rarr;</small>${esc(n.dataset.short)}</button>`:"");
+  a.appendChild(nav);
+  a.addEventListener("beforematch",()=>{show("learn");goFrame(i)}); // find-in-page reaches hidden sections
+  if(p)nav.querySelector(".pv").onclick=()=>goFrame(i-1,true,true);
+  if(n)nav.querySelector(".nx").onclick=()=>goFrame(i+1,true,true);
+  a.querySelector("h3").tabIndex=-1;
+});
+function goFrame(i,toTop,focus){
+  i=Math.max(0,Math.min(frames.length-1,i));
+  const dir=i<frame?-1:1;
+  frames.forEach((a,k)=>{if(k===i)a.removeAttribute("hidden");else a.setAttribute("hidden","until-found");a.classList.remove("in")});
+  const a=frames[i];a.style.setProperty("--from",(dir*16)+"px");void a.offsetWidth;if(frame>=0&&frame!==i)a.classList.add("in");
+  const first=frame<0;frame=i;
+  line.querySelectorAll("button").forEach((b,k)=>{if(k===i)b.setAttribute("aria-current","step");else b.removeAttribute("aria-current");b.parentNode.classList.toggle("past",k<i)});
+  fill.style.width=`calc(${i} * (100% / ${frames.length}))`;
+  cap.textContent=i?`Section ${i} of ${frames.length-1}: ${a.dataset.short}`:"Overview";
+  store.set("ce-learn",a.id);
+  if(!first&&view==="learn"&&location.hash.slice(1)!==a.id)history.replaceState(null,"","#"+a.id);
+  if(toTop){const nav=line.parentNode,hd=document.querySelector(".site-header");
+    if(nav.getBoundingClientRect().top<(hd?hd.getBoundingClientRect().bottom:0))nav.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"})}
+  if(focus)a.querySelector("h3").focus({preventScroll:true});
+}
+document.addEventListener("keydown",e=>{
+  if(view!=="learn"||e.metaKey||e.ctrlKey||e.altKey||e.shiftKey||e.target.closest("input,textarea,select,.learn-table,[role=tab],[contenteditable]"))return;
+  if(e.key==="ArrowRight"){e.preventDefault();goFrame(frame+1,true)}else if(e.key==="ArrowLeft"){e.preventDefault();goFrame(frame-1,true)}
+});
+let tx=null,ty=0;
+const learnEl=document.querySelector("#view-learn .learn");
+learnEl.addEventListener("touchstart",e=>{const x=e.touches[0].clientX;tx=e.target.closest(".learn-table")||e.touches.length>1||x<24||x>innerWidth-24?null:x;ty=e.touches[0].clientY},{passive:true});
+learnEl.addEventListener("touchend",e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;
+  if(Math.abs(dx)>70&&Math.abs(dx)>2*Math.abs(dy))goFrame(frame+(dx<0?1:-1),true)},{passive:true});
 /* open on the study guide, or on the tab or guide section named in the link */
-function fromHash(){const h=location.hash.slice(1);if(views[h])show(h);else if(h.startsWith("learn-")&&document.getElementById(h)){show("learn");document.getElementById(h).scrollIntoView()}}
+function fromHash(){const h=location.hash.slice(1);if(views[h])show(h);else if(h.startsWith("learn-")&&document.getElementById(h)){show("learn");const i=frames.findIndex(a=>a.id===h);if(i>=0)goFrame(i)}}
+{const h=location.hash.slice(1),at=frames.findIndex(a=>a.id===h),last=frames.findIndex(a=>a.id===store.get("ce-learn",""));goFrame(at>=0?at:last>=0?last:0)}
 window.addEventListener("hashchange",fromHash);
 show("learn");renderSetup();deal();fromHash();
 })();

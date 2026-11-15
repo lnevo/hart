@@ -62,6 +62,25 @@ JSON pages (Briefing, About, Photos, Layout, spot sheets) need **HTTP**, not `fi
 
 Plain `python3 -m http.server` works for read-only pages but **cannot save** archive or gallery edits.
 
+## Writing
+
+Page text states what the page covers and the facts, in plain words. An intro is a short summary of the page plus its key facts. Readers notice text that sounds written by AI, and the owner rejects it. Avoid these, with real examples the owner removed:
+
+| Avoid | Rejected example | Instead |
+|---|---|---|
+| Speaking for the reader or the exam | "People mix the two up; the exam won't." · "The terms are often confused." | Delete the clause; the definition is enough. |
+| Invented colour or reasons the source does not give | "That stops crews waiting forever on a train that was annulled or forgotten." · "which can take 30 days or more" (not in OPSIG's rules) | Only what a source or the railroad's records say. |
+| Coaching asides | "Picture eastbound No 7…" · "Think of the motion" · "so learn these exactly" | "Example: eastbound No 7…" · state the rule. |
+| Tidy morals and closing summaries | "the log is only as good as my notes" · "so a spare evening can go to the one that is closest" · "This guide explains the ideas; the cards and tests check them." | End on the last fact. |
+| Balanced, hedged framing | "AI made it cheap to try an approach, which is good, and it also made it easy to build something clever…" · "The direction that won in the end was the plainest one." | Say what was tried and what is used now. |
+| Metaphor and story openers | "It is the destination at the end of the main line…" · "I wanted one place that says…" · "This topic has the most trial and error in it." | Open with what the thing is. |
+| Hedges | "would fit" · "would do it" | "is a candidate" · "not yet checked". |
+| Stock phrases | "the key is", "here's why", "worth noting", "the rule also works the other way", "a good place to start", "X, not Y" for effect | Plain statement. |
+
+When cutting filler, keep any fact or rule inside the sentence; rewrite it plainly rather than deleting it. A suggestion is not a fact: do not turn "would do it" into "counts" without a source. Never write a claim about a program's rules (NMRA, OPSIG) that its own pages do not make.
+
+`python3 tools/audit/check_ai_speak.py` (run by `tools/check.sh` and CI) flags the known phrasings on the article pages (AI topics, library, behind, guides, AP, exam). It cannot catch everything above, so read new prose against this table too. The "Worked well / Needed me" labels on the AI topic pages are the series format; keep them, and keep what follows them factual.
+
 ## Sections
 
 The header has six links (`data/site.json` → `nav`): **Home · Prototype · Operations · Behind the Scenes · The Diverging Route · About**. Each nav entry lists the page ids (the argument to `HARTOps.mountChrome(id)`) that belong to it in `pages`; `js/nav.js` underlines the parent section and adds a small section link above the child page's title. Add a new page's id to the right section's `pages`.
