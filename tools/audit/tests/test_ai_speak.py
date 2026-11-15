@@ -21,6 +21,10 @@ class AiSpeakTest(unittest.TestCase):
             "Most TT&TO questions turn on a definition, so learn these exactly.",
             "<p>Picture eastbound No 7 due to leave Cedar at 9:40.</p>",
             "Think of the motion: a swing across the track stops you.",
+            "the log is only as good as my notes.",
+            "A good place to start reading is the wiki home page.",
+            "The rule also works the other way.",
+            "a clear next step, so a spare evening can go to it.",
             "That stops crews waiting forever on a train.",
             "This guide explains the ideas; the cards and tests check them.",
         ):
@@ -62,6 +66,11 @@ class AiSpeakTest(unittest.TestCase):
         ):
             with self.subTest(line=line):
                 self.assertEqual(cas.find(line), [])
+
+    def test_default_covers_article_pages(self):
+        globs = " ".join(cas.DEFAULT_GLOBS)
+        for part in ("www/ai/", "www/library/", "www/ap/", "www/exam/"):
+            self.assertIn(part, globs)
 
     def test_wrapped_hit_reports_its_first_line(self):
         self.assertEqual([n for n, _, _ in cas.find("a\nThe terms are often\nconfused.")], [2])

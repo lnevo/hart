@@ -108,7 +108,7 @@
 
         <section id="folders" aria-labelledby="h-folders">
           <h2 id="h-folders"><span class="num">02</span>The top-level folders</h2>
-          <p>There are ten folders at the top. Each has one purpose, and a file that does not fit any of them is a sign it is in the wrong place.</p>
+          <p>There are ten folders at the top, each with one purpose.</p>
           <div class="table-wrap">
             <table class="roster">
               <thead><tr><th>Folder</th><th>What it holds</th></tr></thead>
@@ -147,7 +147,7 @@
               </tbody>
             </table>
           </div>
-          <p>The switch files show how this works in practice. Moving a switch's legs is a change to one row of <code>switch_legs.csv</code>, then a run of the generators. If the Layout Editor, a CATS desk and the USS board then disagree, the check fails and names the switch and both files.</p>
+          <p>Moving a switch's legs is a change to one row of <code>switch_legs.csv</code>, then a run of the generators. If the Layout Editor, a CATS desk and the USS board then disagree, the check fails and names the switch and both files.</p>
         </section>
 
         <section id="layout" aria-labelledby="h-layout">
@@ -198,7 +198,7 @@
             </table>
           </div>
           <p>The rule for what becomes a submodule: a project another modeler could use on their own layout. Those projects carry nothing specific to this railroad. HART's values live in the hart repository and are loaded as settings, such as the STS-to-JMRI names in <code>jmri/layouts/hart/data/sts_jmri_ops_settings.json</code>, or kept in one clearly named place, such as the <code>hart_layout</code> plugin in sts-plugins. A test in sts-plugins fails if a HART name appears anywhere else.</p>
-          <p>The rule also works the other way. The car tools, <code>hart-ops</code>, were a separate repository until November 2026. Nearly everything they read and write is in hart, so every change needed two pull requests, one in each repository. They now live in <code>ops/hart-ops/</code>, and their tests run with the rest.</p>
+          <p>A project that mostly reads and writes this railroad's own files stays in hart. The car tools, <code>hart-ops</code>, were a separate repository until November 2026. Nearly everything they read and write is in hart, so every change needed two pull requests, one in each repository. They now live in <code>ops/hart-ops/</code>, and their tests run with the rest.</p>
           <p>Two folders look like submodules and are not. The STS data folder in <code>external/</code> holds the simulator's database, backups and photos, outside git. The research scans are a private repository of their own, cloned separately into <code>media/</code>.</p>
         </section>
 
@@ -255,7 +255,7 @@
           <h2 id="h-records"><span class="num">10</span>Decisions and documents</h2>
           <p>Decisions are written down in <code>wiki/decisions/</code> as short records, ADR-001 onward. Each says what was decided, why, and what it replaced, and a later change is added as a dated amendment. The layout of the folders above is <a href="https://github.com/lnevo/hart/blob/main/wiki/decisions/ADR-007-repository-layout.md">ADR-007</a>; the one tables file is <a href="https://github.com/lnevo/hart/blob/main/wiki/decisions/ADR-008-tables-ownership.md">ADR-008</a>; the shared library and switch files are <a href="https://github.com/lnevo/hart/blob/main/wiki/decisions/ADR-021-shared-library-and-switch-facts.md">ADR-021</a>.</p>
           <p>The rest of <code>wiki/</code> is the railroad's current state: <code>STATUS.md</code> for what is live, one page per pipeline in <code>wiki/pipelines/</code> for how each thing is built, and a list of what is waiting on a person. Documents written for the railroad go in <code>docs/</code>. The working rules for AI tools are in one file, <a href="https://github.com/lnevo/hart/blob/main/AGENTS.md"><code>AGENTS.md</code></a>; the Claude and Cursor settings point to it, and a check fails if it names a path that no longer exists.</p>
-          <p>A good place to start reading is the wiki home page, <a href="https://github.com/lnevo/hart/blob/main/wiki/home.md"><code>wiki/home.md</code></a>. It links to the decision records, the live status, the pipelines and every document.</p>
+          <p>The wiki home page, <a href="https://github.com/lnevo/hart/blob/main/wiki/home.md"><code>wiki/home.md</code></a>, links to the decision records, the live status, the pipelines and every document.</p>
         </section>
 
         <section id="references" aria-labelledby="h-refs">
