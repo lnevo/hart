@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # Load HART tables in PanelPro, run stock Stage 1 (auto-Yes shared-sensor), store.
 set -euo pipefail
+# PanelPro loads and stores this checkout's tables.xml, and the repairs after it write the file
+# hartlib names; HART_TABLES (checks only) would point those at another file.
+if [[ -n "${HART_TABLES:-}" ]]; then
+  echo "HART_TABLES is set ($HART_TABLES): it is for checks only; unset it to run PanelPro on tables.xml" >&2
+  exit 1
+fi
 
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 # PanelPro loads the tables of the checkout this script lives in (main or a worktree).
@@ -31,7 +37,8 @@ fi
 
 BACKUP="$(mktemp)"
 cp "$PROFILE_XML" "$BACKUP"
-# Stage 1 drops the manual Princess SML pairs; keep a copy to restore them from.
+# Stage 1 drops the manual Princess SML pairs and, on a generated panel, the icon spots; keep a
+# copy to restore them from.
 BEFORE_TABLES="$(mktemp)"
 cp "$REPO_TABLES" "$BEFORE_TABLES"
 restore() {
@@ -138,14 +145,19 @@ repair python3 "$SCRIPTS/disable_digicon_sml_in_tables.py" --panel "$REPO_OUTPUT
 repair python3 "$SCRIPTS/fix_traininfo_detection.py" "$REPO_TRAININFO"
 repair python3 "$SCRIPTS/restore_manual_sml_pairs.py" --panel "$REPO_OUTPUT" \
   --reference "$BEFORE_TABLES"
-repair python3 "$SCRIPTS/reconcile_dispatcher_stations.py" --panel "$REPO_OUTPUT" --no-sync
+# --reference: on a generated Layout Editor panel (build_layout_le.py --as-live) Stage 1's deleted
+# and re-added cluster icons, lamps and train-name labels go back where they stood before it; the
+# hand-drawn panel keeps its pinned spots and only notes the reference.
+repair python3 "$SCRIPTS/reconcile_dispatcher_stations.py" --panel "$REPO_OUTPUT" --no-sync \
+  --reference "$BEFORE_TABLES"
 # Stage 1 drops generated bean comments (SML section notes, Dispatcher sensors).
 repair python3 "$SCRIPTS/refresh_bean_comments.py"
 # Stage 1 Store writes BlockContentsIcons at level 0 (behind the track), moves
 # train-name labels and puts its occupancy lamps back on the turnouts. Run the
 # full visual standard and the overlap pass, the same two check.sh checks.
-repair python3 "$SCRIPTS/polish_hart_layout_editor.py" --panel "$REPO_OUTPUT"
-repair python3 "$SCRIPTS/polish_hart_layout_editor.py" --overlap-cleanup --panel "$REPO_OUTPUT"
+repair python3 "$SCRIPTS/polish_hart_layout_editor.py" --panel "$REPO_OUTPUT" --reference "$BEFORE_TABLES"
+repair python3 "$SCRIPTS/polish_hart_layout_editor.py" --overlap-cleanup --panel "$REPO_OUTPUT" \
+  --reference "$BEFORE_TABLES"
 if (( repair_failed )); then
   echo "Stage 1 stored, but a repair failed (see above); fix it before committing." >&2
   exit 1

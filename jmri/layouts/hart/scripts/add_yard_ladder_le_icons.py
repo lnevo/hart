@@ -300,6 +300,9 @@ def main() -> int:
         help="Do not also restyle jmri/layouts/hart/output/tables.xml",
     )
     args = ap.parse_args()
+    refused = tables.hand_drawn_only(args.panel, Path(__file__).name)
+    if refused:
+        sys.exit(refused)
     installed = install_preference_icons()
     if installed:
         roots = sorted({p.parent for p in installed})

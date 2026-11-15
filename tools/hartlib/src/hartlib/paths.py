@@ -8,6 +8,13 @@ railroad is split later, the unit will be the level or district, not the layout 
 Every path names a file in *this* checkout, the one hartlib sits in, so a script in a
 worktree reads that worktree's tables.xml. ``HART_REPO_ROOT`` and ``HART_RUNTIME_ROOT``
 (exported by tools/env/load_env.sh) do not move them.
+
+One exception, for checks only: ``HART_TABLES`` names another tables file (the Layout Editor
+cut-over candidate, a sandbox copy) that ``TABLES_XML`` then points at, so
+``HART_TABLES=<file> tools/check.sh`` runs every table check against it. It must be an
+existing file outside the JMRI profile (``~/JMRI_UserFiles``), because scripts that write
+tables write ``TABLES_XML``. ``REPO_TABLES_XML`` always names this checkout's file; deploy
+scripts refuse to run while ``HART_TABLES`` is set.
 """
 from __future__ import annotations
 
@@ -35,7 +42,7 @@ LAYOUT_DATA = LAYOUT_DIR / "data"
 LAYOUT_OUTPUT = LAYOUT_DIR / "output"
 LAYOUT_SCRIPTS = LAYOUT_DIR / "scripts"
 
-TABLES_XML = LAYOUT_OUTPUT / "tables.xml"
+REPO_TABLES_XML = LAYOUT_OUTPUT / "tables.xml"
 PUBLIC_NAME_MAP = LAYOUT_DATA / "public_name_map.csv"
 SIGNAL_WIRING = REPO_ROOT / "docs" / "wiring" / "signals" / "signal_wiring.csv"
 SIGNAL_HEAD_PLAN = SIGNAL_WIRING.parent / "signal_head_plan.csv"
@@ -43,6 +50,24 @@ CATS_DIR = REPO_ROOT / "cats"
 
 # Where PanelPro loads preference:tables.xml on every host (ADR-014).
 JMRI_USER_FILES = Path.home() / "JMRI_UserFiles"
+
+
+def _tables_xml() -> Path:
+    """This checkout's tables.xml, or the file ``HART_TABLES`` names (see the module docstring)."""
+    value = os.environ.get("HART_TABLES", "").strip()
+    if not value:
+        return REPO_TABLES_XML
+    path = Path(value).expanduser().resolve()
+    if not path.is_file():
+        raise ImportError(f"HART_TABLES={value}: no such file; unset it or name a tables file")
+    profile = JMRI_USER_FILES.resolve()
+    if path == profile or profile in path.parents:
+        raise ImportError(f"HART_TABLES={value} is in the JMRI profile ({profile}); name a copy elsewhere")
+    return path
+
+
+TABLES_XML = _tables_xml()
+TABLES_OVERRIDDEN = TABLES_XML != REPO_TABLES_XML.resolve()
 
 
 def lcos_bridge() -> Path:
@@ -83,7 +108,7 @@ def layout_paths(layout: str | None = None) -> dict[str, str]:
     return {
         "layout_dir": str(base),
         "anyrail": str(base / "anyrail" / "hart.xml"),
-        "authoritative": str(base / "output" / "tables.xml"),
+        "authoritative": str(TABLES_XML if layout in (None, LAYOUT) else base / "output" / "tables.xml"),
         "output": str(base / "output" / "hart_blocked.xml"),
         "excel": str(base / "data" / "layout_blocks.xlsx"),
         "merge": str(base / "data" / "block_merges.txt"),

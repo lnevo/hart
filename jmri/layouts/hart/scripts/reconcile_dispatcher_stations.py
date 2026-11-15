@@ -7,6 +7,14 @@ same reconciliation independently to ``jmri/layouts/hart/output/tables.xml``;
 it never copies one complete configuration over the other.  Use ``--no-sync``
 to skip the deployment bundle.  ``--check`` validates without writing.
 
+Cluster positions: STATION_ICON_POSITIONS are the hand-drawn panel's pixels. On a generated
+panel (build_layout_le.py --as-live; it holds hartlib.tables.GENERATED_PANEL_MARKER) each
+cluster icon stays where it stands: where the same icon stands on the ``--reference`` panel
+(the copy taken before Stage 1, which deletes and re-adds the cluster icons;
+run_panelpro_stage1.sh passes it), else where the panel's own one copy stands, else (Progress
+and occupancy only) the usual offset from its MoveTo icon. A MoveTo icon found on neither stops
+the run: there is no spot to give it.
+
 This script deliberately leaves all existing sections, transits, and traininfo
 untouched. Run Dispatcher Stage 1 and Stage 2 in PanelPro only when the
 generated graph is absent or the audit reports it stale.
@@ -26,7 +34,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DEFAULT_PANEL = paths.TABLES_XML
@@ -164,11 +172,15 @@ def sensor_names(station: str) -> tuple[str, str]:
 
 
 def cluster_positions(
-    station: str,
+    station: str, move_to: tuple[int, int] | None = None,
 ) -> tuple[tuple[int, int], tuple[int, int], tuple[int, int]]:
-    """Return progress, MoveTo, occupancy coordinates."""
-    progress_pos = STATION_ICON_POSITIONS[station]
-    move_to_pos = (progress_pos[0] + PAIR_DX, progress_pos[1])
+    """Return progress, MoveTo, occupancy coordinates: from STATION_ICON_POSITIONS, or around `move_to`."""
+    if move_to is None:
+        progress_pos = STATION_ICON_POSITIONS[station]
+        move_to_pos = (progress_pos[0] + PAIR_DX, progress_pos[1])
+    else:
+        move_to_pos = move_to
+        progress_pos = (move_to[0] - PAIR_DX, move_to[1])
     if station in EH_ROW_STATIONS:
         occ_pos = (
             move_to_pos[0] - PAIR_DX - CIRCUIT_ICON_SIZE,
@@ -455,8 +467,50 @@ def xy(element: ET.Element) -> tuple[int, int] | None:
         return None
 
 
-def reconcile_icons(root: ET.Element, changes: Changes) -> None:
+def cluster_icons(editor: ET.Element | None) -> dict[str, list[ET.Element]]:
+    """{sensor: its station cluster icons} on a panel (Stage 1 track lamps left out)."""
+    out: dict[str, list[ET.Element]] = {}
+    for element in (editor.findall("sensoricon") if editor is not None else ()):
+        if not is_stage1_lamp(element):
+            out.setdefault(element.get("sensor") or "", []).append(element)
+    return out
+
+
+def generated_positions(
+    editor: ET.Element, reference: ET.Element | None
+) -> dict[str, tuple[tuple[int, int], tuple[int, int], tuple[int, int]]]:
+    """{station: (progress, MoveTo, occupancy)} on a generated panel, from the panels themselves (module docstring)."""
+    icons = cluster_icons(reference if reference is not None else editor)
+
+    def spot(name: str) -> tuple[int, int] | None:
+        rows = icons.get(name, [])
+        return xy(rows[0]) if len(rows) == 1 else None
+
+    out = {}
+    for station in STATIONS:
+        move_to_name, progress_name = sensor_names(station)
+        move_to = spot(move_to_name)
+        if move_to is None:
+            where = "the --reference panel" if reference is not None else "the panel"
+            raise ValueError(f"generated panel: {station}: no single {move_to_name} icon on {where}, so its "
+                             "cluster has no position (run with --reference <tables before Stage 1>)")
+        derived = cluster_positions(station, move_to)
+        out[station] = (spot(progress_name) or derived[0], move_to,
+                        spot(STATION_OCCUPANCY[station]) or derived[2])
+    return out
+
+
+def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | None = None) -> None:
     editor = main_layout_editor(root)
+    if tables.generated_panel(editor):
+        if reference is not None and not tables.generated_panel(reference):
+            raise ValueError("--reference: its main panel is not a generated one")
+        positions = generated_positions(editor, reference)
+    else:
+        if reference is not None:
+            print("note: --reference not used: the panel is the hand-drawn one, whose clusters take "
+                  "STATION_ICON_POSITIONS")
+        positions = {station: cluster_positions(station) for station in STATIONS}
     expected_names = {
         sensor_name
         for station in STATIONS
@@ -504,7 +558,7 @@ def reconcile_icons(root: ET.Element, changes: Changes) -> None:
         anchor = xy(anchors[station][0])
         if anchor is None:
             raise ValueError(f"BlockContentsIcon for {station!r} has invalid x/y")
-        progress_pos, move_to_pos, occ_pos = cluster_positions(station)
+        progress_pos, move_to_pos, occ_pos = positions[station]
         move_to_name, progress_name = sensor_names(station)
         occ_name = STATION_OCCUPANCY[station]
         expected_positions = {
@@ -565,13 +619,14 @@ def copy_element_without_tails(element: ET.Element) -> ET.Element:
     return clone
 
 
-def reconcile(tree: ET.ElementTree) -> Changes:
+def reconcile(tree: ET.ElementTree, reference: ET.Element | None = None) -> Changes:
+    """`reference`: the main panel of the tables before Stage 1 (a generated panel only)."""
     changes = Changes()
     root = tree.getroot()
     reconcile_block_comments(root, changes)
     reconcile_sensors(root, changes)
     retire_stations(root, changes)
-    reconcile_icons(root, changes)
+    reconcile_icons(root, changes, reference)
     validate(root)
     return changes
 
@@ -697,6 +752,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="validate a reconciled in-memory copy; never write or sync",
     )
     parser.add_argument(
+        "--reference",
+        type=Path,
+        help="a generated panel's tables before Stage 1 (run_panelpro_stage1.sh): station clusters go "
+        "back where they stood in it",
+    )
+    parser.add_argument(
         "--no-sync",
         action="store_true",
         help="do not independently reconcile hart/output/tables.xml",
@@ -709,7 +770,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         panel = safe_panel_path(args.panel)
         tree = parse_xml(panel)
-        changes = reconcile(tree)
+        reference = main_layout_editor(parse_xml(args.reference).getroot()) if args.reference else None
+        changes = reconcile(tree, reference)
     except (OSError, ET.ParseError, ValueError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 2
@@ -734,7 +796,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_sync and panel == DEFAULT_PANEL.resolve():
         try:
             sync_tree = parse_xml(SYNC_PANEL)
-            sync_changes = reconcile(sync_tree)
+            sync_changes = reconcile(sync_tree, reference)
             if sync_changes.total:
                 write_atomic(sync_tree, SYNC_PANEL)
                 print(

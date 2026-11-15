@@ -14,6 +14,12 @@
 # Usage: ./tools/hosts/sync_hart_package.sh [--pi] [--win] [--all] [--dry-run] [--stage-only DIR]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+# HART_TABLES points the table checks at another file (hartlib.paths); a deploy ships the
+# checkout's tables.xml, so it never runs with it set.
+if [[ -n "${HART_TABLES:-}" ]]; then
+  echo "HART_TABLES is set ($HART_TABLES): it is for checks only; unset it to deploy" >&2
+  exit 1
+fi
 # Hosts: environment first, then tools/env/hart.env, then the defaults in load_env.sh
 # (the same order the Python tools use through tools/hartlib/src/hartlib/hosts.py).
 source "$ROOT/tools/env/load_env.sh"
