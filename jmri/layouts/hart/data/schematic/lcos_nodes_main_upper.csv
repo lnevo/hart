@@ -4,7 +4,6 @@ level,area,node,source
 2,West,33,node grid lcos-node-grid-2025-10-06b.xlsx (left band)
 2,West,43,node grid lcos-node-grid-2025-10-06b.xlsx (top band; child of 03)
 2,Peninsula,34,node grid lcos-node-grid-2025-10-06b.xlsx (peninsula)
-2,Peninsula,44,node grid lcos-node-grid-2025-10-06b.xlsx (peninsula)
 3,North,22,LCOS inventory v85: C22 North - Upper
 3,North,32,LCOS inventory v85: C32 North - Upper
 3,Helix,21,LCOS inventory v85: C21 Helix - Upper
@@ -13,3 +12,4 @@ level,area,node,source
 3,West,14,LCOS inventory v85: C14 West - Upper
 3,Peninsula,24,LCOS inventory v85: C24 Peninsula - Upper
 3,Peninsula,54,node grid lcos-node-grid-2025-10-06b.xlsx (left band; child of 04)
+3,Peninsula,44,node grid lcos-node-grid-2025-10-06b.xlsx (peninsula)

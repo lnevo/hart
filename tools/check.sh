@@ -28,6 +28,7 @@ run schematic-signals python3 tools/schematic/build_signals.py --check
 run schematic-cats python3 tools/schematic/build_cats_panel.py --check
 run schematic-hands python3 tools/schematic/build_hands.py --check
 run schematic-device-map python3 tools/schematic/build_device_map.py --check
+run wiring-v86 python3 docs/wiring/scripts/add_main_upper_levels.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py

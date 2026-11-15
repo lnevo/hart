@@ -74,6 +74,7 @@ OUT = pd.DATA / "device_map_main_upper.csv"
 LEVELS = {"Main": 2, "Upper": 3}      # band key (first word of the band title) -> level
 SHORT_CM = 30.0
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
+MAX_OU = 4                            # DNOU8 boards per node: the most any node has in LCOS_Layout_Inventory_v85
 UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}
 COLUMNS = ["level", "cp", "layer", "user_name", "system_name", "node", "dcc", "comment", "trial_name", "notes"]
 DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
@@ -235,6 +236,7 @@ class Nodes:
         for r in rows:
             self.pool[(int(r["level"]), r["area"])].append(int(r["node"]))
         self.used = defaultdict(lambda: defaultdict(int))
+        self.boards = {}                     # node -> pins used on each of its 5V boards
 
     def room(self, node, what, n=1):
         return self.used[node][what] + n <= CAP[what]
@@ -250,6 +252,49 @@ class Nodes:
         k = self.used[node][what]
         self.used[node][what] += 1
         return k, node * 100 + UID[what] + k
+
+    # 5V boards for heads, after the node's 12V turnout boards (call once every turnout and detector is placed)
+    def n12(self, node):
+        return -(-self.used[node]["turnout"] // 4)
+
+    def _cap(self, node, i):
+        return 7 if i == 0 and self.used[node]["block"] else 8     # pin 8 of the first 5V board: calibration
+
+    def _fit(self, node, pins):
+        """(board index among the node's 5V boards, first pin) where `pins` consecutive pins fit, or None."""
+        boards = self.boards.setdefault(node, [])
+        if boards and boards[-1] + pins <= self._cap(node, len(boards) - 1):
+            return len(boards) - 1, boards[-1] + 1
+        if self.n12(node) + len(boards) + 1 <= MAX_OU and pins <= self._cap(node, len(boards)):
+            return len(boards), 1
+        return None
+
+    def pick_mast(self, level, area, heads, prefer=()):
+        for node in list(prefer) + self.pool[(level, area)]:
+            if self.room(node, "signal", heads) and self._fit(node, 3 * heads):
+                return node
+        raise MapError(f"level {level} {area}: no LCOS node left with board room for a {heads}-head mast; "
+                       f"add one to {NODES.name}")
+
+    def place_mast(self, node, heads):
+        """[(signal index, packed id, OU board, first pin)] for the mast's heads, on one 5V board."""
+        i, first = self._fit(node, 3 * heads)
+        boards = self.boards[node]
+        if i == len(boards):
+            boards.append(0)
+        out = []
+        for h in range(heads):
+            k, packed = self.take(node, "signal")
+            out.append((k, packed, self.n12(node) + 1 + i, first + 3 * h))
+        boards[i] = first - 1 + 3 * heads
+        return out
+
+    def check_boards(self):
+        """A node with detectors needs a 5V board for the calibration pin; no node may need more than MAX_OU."""
+        for node, used in self.used.items():
+            five = max(len(self.boards.get(node, [])), 1 if used["block"] else 0)
+            if self.n12(node) + five > MAX_OU:
+                raise MapError(f"node {node} needs {self.n12(node) + five} DNOU8 boards; the limit is {MAX_OU}")
 
 
 # ---------------------------------------------------------------- the map
@@ -347,31 +392,19 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
         add(lv, name, "block", f"OS Switch {s}", "", bnode, comment, f"OS Switch {s}")
         add(lv, name, "occupancy", f"BS Switch {s}", f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
-    for cp in cps:
-        lv, area, name = cp["level"], cp["area"], cp["cp_name"]
-        node = nodes.pick(lv, area, "turnout", len(cp["switches"]))
+    for cp in cps:                               # turnouts first: a node's 12V boards come before its 5V boards
+        node = nodes.pick(cp["level"], cp["area"], "turnout", len(cp["switches"]))
         for s in cp["switches"]:
-            switch_rows(lv, area, name, s, node)
-        for s in cp["switches"]:
-            os_rows(lv, area, name, s, name)
-        for m in sorted((m for m in ms if m["cp"] == name), key=lambda m: natural(m["name"])):
-            hnode = nodes.pick(lv, area, "signal", m["heads"], prefer=[node])
-            heads = []
-            for part in (["Top", "Bottom"] if m["heads"] == 2 else [""]):
-                k, packed = nodes.take(hnode, "signal")
-                heads.append((f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k))
-            kind = "two-searchlight" if m["heads"] == 2 else "one-low"
-            sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
-            add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name} | Switch {m['switch']}",
-                notes=f"home signal from {m['track']}")
-            for user, sysn, k in heads:
-                add(lv, name, "head", user, sysn, hnode, f"Node: {hnode} Signal: {k}")
-
-    for s in sorted(loc, key=natural):          # no control point: turnout and detection, no signals
+            switch_rows(cp["level"], cp["area"], cp["cp_name"], s, node)
+    for s in sorted(loc, key=natural):           # no control point: turnout and feedback, no signals or detection
         r = loc[s]
         node = nodes.pick(r["level"], r["area"], "turnout")
         switch_rows(r["level"], r["area"], "", s, node, "no control point: " + r["notes"])
-        os_rows(r["level"], r["area"], "", s, r["area"], detect=False)
+    for cp in cps:
+        for s in cp["switches"]:
+            os_rows(cp["level"], cp["area"], cp["cp_name"], s, cp["cp_name"])
+    for s in sorted(loc, key=natural):
+        os_rows(loc[s]["level"], loc[s]["area"], "", s, loc[s]["area"], detect=False)
 
     for t in sorted(found, key=lambda t: natural(t["name"])):
         sws = [v for k, v in t["ends"] if k == "sw"]
@@ -384,14 +417,51 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
         if short or not t["main"] or not sws:
             continue
         sws.sort(key=lambda s: area_of[s][0] != t["level"])      # a node on the track's own level first
-        lv, area = area_of[sws[0]]
-        bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws])
+        lv, area = t["level"], area_of[sws[0]][1]                 # the track's level, its switch's area
+        bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws if area_of[s][0] == lv])
         k, packed = nodes.take(bnode, "block")
         add(t["level"], cp, "occupancy", "BS " + t["name"].removeprefix("Track "), f"M2S{packed}", bnode,
             f"Node: {bnode} Block: {k + 1}")
+
+    for cp in cps:                               # heads last, once every node's boards are known
+        lv, area, name = cp["level"], cp["area"], cp["cp_name"]
+        for m in sorted((m for m in ms if m["cp"] == name), key=lambda m: natural(m["name"])):
+            hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[cp["switches"][0]]])
+            parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
+            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
+                     for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
+            kind = "two-searchlight" if m["heads"] == 2 else "one-low"
+            sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
+            add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name} | Switch {m['switch']}",
+                notes=f"home signal from {m['track']}")
+            for user, sysn, k, board, pin in heads:
+                add(lv, name, "head", user, sysn, hnode,
+                    f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}")
+    nodes.check_boards()
     order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}
+    assign_ports(rows)
     rows.sort(key=lambda r: (r["level"], order[r["layer"]], natural(r["user_name"])))
     return cp_keys, rows
+
+
+PIN_RE = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)$")
+
+
+def assign_ports(rows) -> None:
+    """Board and pins for turnout and feedback rows, as docs/wiring/README.md lays boards out: turnouts two pins
+    each on 12V DNOU8 boards from OU1; feedback N then R on DNIN8 boards from IN1. Heads get theirs when placed
+    (Nodes.place_mast: 5V boards after the 12V ones, R Y G on three consecutive pins, a mast's heads on one board,
+    pin 8 of the first 5V board kept for detector calibration). Comments become ADR-005's
+    "Node: n Turnout: k | OU: b Ports: p,q" (LCC aliases the same); occupancy keeps "Node: n Block: k"."""
+    for r in rows:
+        m = PIN_RE.match(r["comment"])
+        if not m:
+            continue
+        kind, k = m.group(2), int(m.group(3))
+        if kind == "Turnout":
+            r["comment"] += f" | OU: {k // 4 + 1} Ports: {2 * (k % 4) + 1},{2 * (k % 4) + 2}"
+        elif kind == "Sensor":
+            r["comment"] += f" | IN: {k // 8 + 1} Ports: {k % 8 + 1}"
 
 
 def csv_text(rows) -> str:

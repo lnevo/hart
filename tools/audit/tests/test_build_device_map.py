@@ -130,6 +130,33 @@ class Output(unittest.TestCase):
                 self.assertEqual(int(m.group(1)) % 2, 0)
                 self.assertEqual(x["comment"].split(" | Switch ")[1], str(int(m.group(1)) - 1))
 
+    def test_boards_follow_the_wiring_rules(self):
+        import re
+        have = rows()
+        by_node = {}
+        for x in have:
+            if x["node"] and not x["system_name"].startswith("MTT"):
+                by_node.setdefault(x["node"], []).append(x)
+        for node, xs in by_node.items():
+            turnouts = [x for x in xs if x["layer"] == "turnout"]
+            n12 = -(-len(turnouts) // 4)
+            detectors = any(x["layer"] == "occupancy" for x in xs)
+            boards = set()
+            for x in xs:
+                m = re.search(r"OU: (\d+) Ports: ([\d,]+)$", x["comment"])
+                if not m:
+                    continue
+                board, pins = int(m.group(1)), [int(p) for p in m.group(2).split(",")]
+                boards.add(board)
+                if x["layer"] == "turnout":
+                    self.assertLessEqual(board, n12, x["user_name"])
+                if x["layer"] == "head":
+                    self.assertGreater(board, n12, x["user_name"])          # 5V boards follow the 12V ones
+                    self.assertEqual(pins, list(range(pins[0], pins[0] + 3)), x["user_name"])
+                    if detectors and board == n12 + 1:
+                        self.assertNotIn(8, pins, x["user_name"])          # calibration pin
+            self.assertLessEqual(max(boards, default=0), BD.MAX_OU, node)
+
     def test_overrides_match_the_control_point_file(self):
         over = json.loads(BD.OVERRIDES.read_text())
         names = [cp["cp_name"] for cp in BD.load_cps()]
