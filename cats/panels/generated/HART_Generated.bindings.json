@@ -1,42 +1,42 @@
 {
  "_main_upper_not_on_desk": {
   "Track 101-103": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (3.4 cm) inside its switches' OS blocks"
   },
   "Track 105-109": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (21.5 cm) inside its switches' OS blocks"
   },
   "Track 107-109": {
    "detector": "BS 107-109",
-   "why": "drawn inside its switches' OS blocks (too short at one cell per grid unit for a block)"
+   "why": "inside its switches' OS blocks on the desk (99.9 cm, too short at one cell per grid unit for a block)"
   },
   "Track 109-111": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (24.2 cm) inside its switches' OS blocks"
   },
   "Track 115-117": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (24.2 cm) inside its switches' OS blocks"
   },
   "Track 117-119": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (11.1 cm) inside its switches' OS blocks"
   },
   "Track 121-123": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (10.7 cm) inside its switches' OS blocks"
   },
   "Track 123-125": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (25.2 cm) inside its switches' OS blocks"
   },
   "Track 125-127": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (10.5 cm) inside its switches' OS blocks"
   },
   "Track 127-129": {
    "detector": "BS 127-129",
-   "why": "drawn inside its switches' OS blocks (too short at one cell per grid unit for a block)"
+   "why": "inside its switches' OS blocks on the desk (86.9 cm, too short at one cell per grid unit for a block)"
   },
   "Track 129-135 2": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (11.7 cm) inside its switches' OS blocks"
   },
   "Track 131-133": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (10.5 cm) inside its switches' OS blocks"
   },
   "Track 135-H1": {
    "detector": "BS 135-H1",
@@ -47,37 +47,37 @@
    "why": "one block with staging's McKeesport on the desk (joined through the helix)"
   },
   "Track 201-203": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (11.7 cm) inside its switches' OS blocks"
   },
   "Track 201-205": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (22.7 cm) inside its switches' OS blocks"
   },
   "Track 201-219": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (23.1 cm) inside its switches' OS blocks"
   },
   "Track 203-209": {
-   "why": "drawn inside its switches' OS blocks (too short at one cell per grid unit for a block)"
+   "why": "inside its switches' OS blocks on the desk (145 cm, too short at one cell per grid unit for a block)"
   },
   "Track 219-221": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (11.7 cm) inside its switches' OS blocks"
   },
   "Track 225-227": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (17.8 cm) inside its switches' OS blocks"
   },
   "Track 227-233": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (20.6 cm) inside its switches' OS blocks"
   },
   "Track 231-235": {
-   "why": "drawn inside its switches' OS blocks (too short at one cell per grid unit for a block)"
+   "why": "inside its switches' OS blocks on the desk (75.9 cm, too short at one cell per grid unit for a block)"
   },
   "Track 233-237": {
-   "why": "drawn inside its switches' OS blocks (too short at one cell per grid unit for a block)"
+   "why": "inside its switches' OS blocks on the desk (39.6 cm, too short at one cell per grid unit for a block)"
   },
   "Track 235-241": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (10.5 cm) inside its switches' OS blocks"
   },
   "Track 237-243": {
-   "why": "a short link inside its switches' OS blocks"
+   "why": "a short link (15.2 cm) inside its switches' OS blocks"
   }
  },
  "_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and upper blocks carry their planned detectors as _planned_occupied / _planned_unoccupied until DETECT_MAIN_UPPER is set.",

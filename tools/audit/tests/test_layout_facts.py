@@ -18,7 +18,8 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
 
-DATA_FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv")
+DATA_FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv",
+              "uss_board_cells.csv", "uss_board_plants.csv")
 
 
 class LayoutFactsTest(unittest.TestCase):
@@ -144,6 +145,15 @@ class LayoutFactsTest(unittest.TestCase):
         cells.write_text(cells.read_text().replace("Mast 4RA,6,10,RIGHT,E,d1,IH436", "Mast 4RA,6,10,RIGHT,E,d1,IH437"))
         self.assertIn("Mast 4RA: mast_cells.csv draws it d1 IH437, tables.xml gives it heads ['IH436']",
                       self.failures(data=data))
+
+    def test_the_board_grid_comes_from_the_data_folder(self) -> None:
+        data = self.data_copy()
+        grid = data / "uss_board_cells.csv"
+        text = grid.read_text(encoding="utf-8")
+        line = next(ln for ln in text.splitlines() if ln.startswith("6,10,"))     # Mast 4RA's cell
+        grid.write_text(text.replace(line + "\n", ""), encoding="utf-8")
+        self.assertIn("Mast 4RA: mast_cells.csv puts it at (6, 10), a cell with no track on the USS board's grid "
+                      "(uss_board_cells.csv)", self.failures(data=data))
 
     def test_stale_known_entry_fails(self) -> None:
         report = check.run()

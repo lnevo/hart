@@ -649,6 +649,25 @@ def parse_cats(path: Path) -> dict:
     return cells
 
 
+def desk_cells(path: Path) -> dict:
+    """parse_cats(path) for --cats, refused when the desk's wired plants are not the frozen plant cells
+    (uss_board_plants.csv), which the points dots and OS jewels follow."""
+    sys.path.append(str(ROOT / "cats/scripts"))
+    import digicon_trace as trace
+    tp = ET.parse(path).getroot().find("TRACKPLAN")
+    try:
+        have = trace.desk_plants(trace.track_cells(tp))
+    except trace.PlantError as e:
+        raise SystemExit(f"{path}: cannot read its plants ({e})") from None
+    want = {os_name: xy for xy, os_name in PLANT_CELLS.items()}
+    if have != want:
+        diff = sorted(f"{n}: desk {have.get(n)}, uss_board_plants.csv {want.get(n)}"
+                      for n in set(have) | set(want) if have.get(n) != want.get(n))
+        raise SystemExit(f"{path}: its plants are not the frozen plant cells; "
+                         "update uss_board_plants.csv or use the frozen grid: " + "; ".join(diff))
+    return parse_cats(path)
+
+
 _SWITCH_OS_RE = re.compile(r"^(?:OS Switch |(?:OS|Track) )\d")
 
 
@@ -1349,7 +1368,7 @@ def main() -> None:
 
     if not args.xml_only:
         write_cell_icons()
-    cells = parse_cats(args.cats) if args.cats else facts.load_uss_cells()
+    cells = desk_cells(args.cats) if args.cats else facts.load_uss_cells()
     txt = args.gui.read_text()
     new = apply(txt, cells)
     args.gui.write_text(new)

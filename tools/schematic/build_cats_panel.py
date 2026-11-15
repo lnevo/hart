@@ -151,7 +151,7 @@ def load_device_map(path=DEVICE_MAP):
                 if name in out.blocks:
                     raise SystemExit(f"{path.name}: block {name} is listed twice")
                 trial = {t.strip() for t in row["trial_name"].split(",") if t.strip()}
-                out.blocks[name] = {"level": int(row["level"]), "trial": trial, "short": "short link" in row["notes"]}
+                out.blocks[name] = {"level": int(row["level"]), "trial": trial}
             elif row["layer"] == "occupancy":
                 if name in out.sensors or not row["system_name"].startswith("M2S"):
                     raise SystemExit(f"{path.name}: occupancy {name} is listed twice or is no M2S sensor")
@@ -388,6 +388,40 @@ def planned_sensor(name, F):
             "unoccupied": {"DECADDR": addr, "JMRIPREFIX": "M2S", "command": "throw"}}
 
 
+def inside_os(bands, P, bound_bi, name, row):
+    """Why device map block `name` has no block of its own on the desk, checked on the drawing: each schematic track
+    it holds (its trial names) is drawn on main or upper from a switch to a switch (or through a turnback or a
+    connector), and the plugin gave every cell of it to their OS blocks (its track key is no block, or one joined to
+    an OS block). Anything else stops, naming the block."""
+    found, cm = [], {}
+    for bi, (title, band, _) in enumerate(bands):
+        if bi == bound_bi or not bdm.band_level(title):
+            continue
+        for sid, s in band["strands"].items():
+            if "Track " + re.sub(r"(?<=\d)[xy]$", "", s["edge"]) not in row["trial"]:
+                continue
+            found.append((bi, sid))
+            key = ("track", f"b{bi}:{sid}")
+            if key in P.blocks and P.find(key)[0] != "os":    # union-find roots: an OS key sorts before a track key
+                raise SystemExit(f"{name}: its schematic track {s['edge']} is a desk block, but not one named {name}")
+            ends = [band["nodes"][e[0]] for e in (s["src"], s["dst"])]
+            if not all(d["kind"] in ("switch", "dx") or d["kind"].startswith("turn") or d.get("sub") == "link"
+                       for d in ends) or not any(d["kind"] in ("switch", "dx") for d in ends):
+                raise SystemExit(f"{name}: its schematic track {s['edge']} has no desk block and does not run "
+                                 "between switches, so it is not inside their OS blocks")
+            cm[re.sub(r"(?<=\d)[xy]$", "", s["edge"])] = s["cm"]     # as the device map measures it
+    if not found or any(t.removeprefix("Track ") not in
+                        {re.sub(r"(?<=\d)[xy]$", "", bands[bi][1]["strands"][sid]["edge"]) for bi, sid in found}
+                        for t in row["trial"]):
+        raise SystemExit(f"{name}: the device map's tracks {', '.join(sorted(row['trial']))} are not all drawn on "
+                         "main or upper")
+    length = round(sum(cm.values()), 1)
+    if length < bdm.SHORT_CM:
+        return f"a short link ({length:g} cm) inside its switches' OS blocks"
+    return (f"inside its switches' OS blocks on the desk ({length:g} cm, too short at one cell per grid unit for a "
+            "block)")
+
+
 def dark_bindings(bands, cats, P, F, bound_bi):
     """(bindings, log, report) for the main and upper blocks: device map names, DTC, the station plate and the
     planned detector (bound only with DETECT_MAIN_UPPER, when the sensor must be in tables.xml); the report names each
@@ -426,10 +460,8 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         seen.add(name)
         out[panel_name] = e
     for name, row in sorted(F.device.blocks.items()):
-        if name in seen or name in missing:
-            continue
-        missing[name] = ("a short link inside its switches' OS blocks" if row["short"] else
-                         "drawn inside its switches' OS blocks (too short at one cell per grid unit for a block)")
+        if name not in seen and name not in missing:
+            missing[name] = inside_os(bands, P, bound_bi, name, row)
     report = {}
     for name, why in sorted(missing.items()):
         report[name] = {"why": why}
@@ -439,6 +471,18 @@ def dark_bindings(bands, cats, P, F, bound_bi):
             log.append(f"{name}: not a block of its own on the desk ({why}); its detector "
                        f"{report[name]['detector']} has no block to bind")
     return out, log, report
+
+
+def check_apart(staging, dark):
+    """Stop when a staging and a main or upper block binding share a panel name or the block name they take (which
+    would make them one CATS block)."""
+    clash = sorted(set(staging) & set(dark))
+    if clash:
+        raise SystemExit(f"staging and main/upper blocks share panel names {', '.join(clash)}")
+    bound = lambda bs: {e.get("name", k) for k, e in bs.items()}     # the block name each desk block takes
+    clash = sorted(bound(staging) & bound(dark))
+    if clash:
+        raise SystemExit(f"staging and main/upper desk blocks would both be {', '.join(clash)}")
 
 
 def bindings(bands, cats, F):
@@ -456,9 +500,7 @@ def bindings(bands, cats, F):
     blocks = block_bindings(band, F, names)
     dark, log, missing = dark_bindings(bands, cats, P, F, bi)
     print("\n".join(log))
-    clash = sorted(set(blocks) & set(dark))
-    if clash:
-        raise SystemExit(f"staging and main/upper blocks share panel names {', '.join(clash)}")
+    check_apart(blocks, dark)
     return {"_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and "
                      "upper blocks carry their planned detectors as _planned_occupied / _planned_unoccupied until "
                      "DETECT_MAIN_UPPER is set.",
@@ -475,6 +517,10 @@ def frozen_header(path=HEADER):
     bad = sorted({el.tag for el in els} - set(ORDER))
     if bad:
         raise SystemExit(f"{path}: elements {', '.join(bad)} are not header elements ({', '.join(ORDER)})")
+    lacking = [t for t in ("SIGNALTEMPLATE", "JMRINAME") if not any(el.tag == t for el in els)]
+    if lacking:
+        raise SystemExit(f"{path}: no {' or '.join(lacking)} elements; the staging bindings' masts and IOSPECs "
+                         "need them")
     plan = root.find("TRACKPLAN")
     return [el for el in els if el.tag != "TRACKPLAN"], list(plan) if plan is not None else []
 
@@ -490,10 +536,10 @@ def dress(cats, root, header, plate, desk):
     element in the live desk's order, and the plate's labels on free cells of their row, clear of each other and of
     the labels there. desk "ABS": every CTC block ABS and the plate's ABS words."""
     fonts = {el.get("FONTKEY"): el for el in root.findall("FONTDEFINITION")}
-    kids = [el for el in root if el.tag not in ("FONTDEFINITION", "COLORDEFINITION", "SIGNALTEMPLATE", "JMRINAME")]
+    taken = {el.tag for el in header}           # a tag the header supplies replaces the plugin's copies
+    kids = [el for el in root if el.tag != "FONTDEFINITION"]
     for el in list(root):
         root.remove(el)
-    taken = {el.tag for el in header}
     picked = []
     for el in header:
         if el.tag == "FONTDEFINITION":
@@ -502,6 +548,9 @@ def dress(cats, root, header, plate, desk):
         else:
             picked.append(copy.deepcopy(el))
     picked += list(fonts.values()) + [el for el in kids if el.tag not in taken]
+    unknown = sorted({el.tag for el in picked} - set(ORDER))
+    if unknown:
+        raise SystemExit(f"the generated desk has elements {', '.join(unknown)}, which ORDER does not place; add them")
     for el in sorted(picked, key=lambda el: ORDER.index(el.tag)):
         root.append(el)
     tp = root.find("TRACKPLAN")

@@ -6,7 +6,9 @@ turnback to the named half Loop.
 """
 from __future__ import annotations
 
+import shutil
 import sys
+import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from unittest import mock
@@ -235,11 +237,11 @@ class StubCats:
 
 def device():
     return B.DeviceMap(
-        blocks={"OS Switch 101": {"level": 2, "trial": {"OS Switch 101"}, "short": False},
-                "OS Switch 103": {"level": 2, "trial": {"OS Switch 103"}, "short": False},
-                "Track 101-111": {"level": 2, "trial": {"Track e24"}, "short": False},
-                "Track 101-103": {"level": 2, "trial": {"Track e28"}, "short": True},
-                "Track 135-H1": {"level": 2, "trial": {"Track e34", "Track e35"}, "short": False}},
+        blocks={"OS Switch 101": {"level": 2, "trial": {"OS Switch 101"}},
+                "OS Switch 103": {"level": 2, "trial": {"OS Switch 103"}},
+                "Track 101-111": {"level": 2, "trial": {"Track e24"}},
+                "Track 101-103": {"level": 2, "trial": {"Track e28"}},
+                "Track 135-H1": {"level": 2, "trial": {"Track e34", "Track e35"}}},
         sensors={"BS Switch 101": "M2S3300", "BS 101-111": "M2S3306"})
 
 
@@ -287,8 +289,39 @@ class MainAndUpper(unittest.TestCase):
         dm = B.load_device_map()
         self.assertEqual(len(dm.sensors), 35)
         self.assertTrue(all(v.startswith("M2S") for v in dm.sensors.values()))
-        self.assertTrue(dm.blocks["Track 101-103"]["short"])
         self.assertEqual(dm.blocks["Track 107-109"]["trial"], {"Track e19"})
+
+    def test_a_block_missing_from_the_desk_is_checked_on_the_drawing(self):
+        class FakeP:
+            def __init__(self, blocks):
+                self.blocks = blocks
+
+            def find(self, k):
+                return ("os", "b1:A") if k == ("track", "b1:e24") else k
+        bands = dark_bands()
+        bands[1][1]["strands"]["e28"] = dict(strand(("A", "C"), ("C", "A")), edge="e28", cm=3.4)
+        bands[1][1]["strands"]["e24"]["cm"] = 398.1
+        row = lambda *t: {"level": 2, "trial": set(t)}
+        self.assertEqual(B.inside_os(bands, FakeP({}), 0, "Track 101-103", row("Track e28")),
+                         "a short link (3.4 cm) inside its switches' OS blocks")
+        # a track key joined to an OS block counts as inside it; a long one says why it has no block
+        bands[1][1]["strands"]["e24"] = dict(strand(("B", "C"), ("C", "B")), edge="e24", cm=398.1)
+        self.assertIn("398.1 cm, too short at one cell per grid unit",
+                      B.inside_os(bands, FakeP({("track", "b1:e24"): None}), 0, "Track 101-111", row("Track e24")))
+        with self.assertRaisesRegex(SystemExit, "Track X: its schematic track e28 is a desk block"):
+            B.inside_os(bands, FakeP({("track", "b1:e28"): None}), 0, "Track X", row("Track e28"))
+        with self.assertRaisesRegex(SystemExit, "Track Y: its schematic track e99 has no desk block and does not run "
+                                    "between switches"):
+            B.inside_os(bands, FakeP({}), 0, "Track Y", row("Track e99"))      # e99 ends at a bumper
+        with self.assertRaisesRegex(SystemExit, "Track Z: the device map's tracks .* are not all drawn"):
+            B.inside_os(bands, FakeP({}), 0, "Track Z", row("Track e28", "Track e500"))
+
+    def test_staging_and_dark_blocks_never_take_one_name(self):
+        B.check_apart({"West": {"name": "Track West"}}, {"OS 101": {"name": "OS Switch 101"}})
+        with self.assertRaisesRegex(SystemExit, "share panel names West"):
+            B.check_apart({"West": {}}, {"West": {"name": "Track 1-2"}})
+        with self.assertRaisesRegex(SystemExit, "would both be Track West"):
+            B.check_apart({"West": {"name": "Track West"}}, {"1-2": {"name": "Track West"}})
 
     def test_main_and_upper_are_dtc_and_not_detected_yet(self):
         self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "DTC")
@@ -329,6 +362,33 @@ class Header(unittest.TestCase):
         self.assertTrue(any(w.startswith("DS-ABS ") for w in words))
         self.assertEqual({b.get("DISCIPLINE") for b in out.iter("BLOCK")}, {"ABS"})
         self.assertEqual(out.find("OPERATIONS").get("CONNECT"), "false")
+
+    def test_header_tags_replace_the_plugins_only_when_the_header_has_them(self):
+        cats = plugin_cats()
+        header, plate = B.frozen_header()
+        doc = self.doc((2, "STAGING"))
+        doc.insert(1, ET.Element("COLORDEFINITION", COLORKEY="PLUGIN"))
+        no_colours = [el for el in header if el.tag != "COLORDEFINITION"]
+        out = ET.fromstring(B.dress(cats, doc, no_colours, plate, "CTC").split("\n", 1)[1])
+        self.assertEqual([c.get("COLORKEY") for c in out.findall("COLORDEFINITION")], ["PLUGIN"])
+        out = ET.fromstring(B.dress(cats, self.doc((2, "S")), header, plate, "CTC").split("\n", 1)[1])
+        self.assertNotIn("PLUGIN", [c.get("COLORKEY") for c in out.findall("COLORDEFINITION")])
+        odd = self.doc((2, "STAGING"))
+        odd.insert(1, ET.Element("MYSTERY"))
+        with self.assertRaisesRegex(SystemExit, "elements MYSTERY, which ORDER does not place"):
+            B.dress(cats, odd, header, plate, "CTC")
+
+    def test_a_header_without_signal_templates_or_jmri_names_stops(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        for tag in ("SIGNALTEMPLATE", "JMRINAME"):
+            root = ET.parse(B.HEADER).getroot()
+            for el in root.findall(tag):
+                root.remove(el)
+            path = tmp / f"no_{tag}.xml"
+            ET.ElementTree(root).write(path)
+            with self.subTest(tag=tag), self.assertRaisesRegex(SystemExit, f"no {tag} elements"):
+                B.frozen_header(path)
 
     def test_a_plate_label_on_a_used_cell_or_over_another_label_stops(self):
         cats = plugin_cats()

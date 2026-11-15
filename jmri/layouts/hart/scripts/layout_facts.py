@@ -231,7 +231,14 @@ def _noted_rows(path: Path, columns: list[str]) -> list[tuple[int, dict[str, str
         reader = csv.DictReader(fh)
         if reader.fieldnames != columns:
             raise ValueError(f"{path.name}: columns {','.join(columns)}, not {','.join(reader.fieldnames or [])}")
-        return list(enumerate(reader, start=3))
+        out = []
+        for row in reader:
+            line = reader.line_num + 1              # + the note line, which the reader did not see
+            if None in row or any(v is None for v in row.values()):
+                have = sum(v is not None for k, v in row.items() if k is not None) + len(row.get(None) or [])
+                raise ValueError(f"{path.name} line {line}: {len(columns)} fields ({','.join(columns)}), not {have}")
+            out.append((line, row))
+        return out
 
 
 def load_uss_cells(data: Path = DATA) -> dict[tuple[int, int], dict]:

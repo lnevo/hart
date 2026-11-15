@@ -34,6 +34,27 @@ class FrozenGrid(unittest.TestCase):
         self.assertEqual(next(iter(gen.PLANT_CELLS.items())), ((4, 8), "OS Switch 1"))   # the drawing order
 
 
+class OtherDesk(unittest.TestCase):
+    def test_a_desk_whose_plants_are_not_the_frozen_ones_is_refused(self):
+        import gen_ctc_track_plan as gen
+        if DESK.is_file():
+            self.assertEqual(gen.desk_cells(DESK), gen.parse_cats(DESK))
+        src = DESK if DESK.is_file() else None
+        if src is None:
+            self.skipTest("the hand-wired desk is archived")
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        moved = tmp / "desk.xml"
+        text = src.read_text(encoding="utf-8")
+        # drop every wired route at Switch 3's plant (5, 9): the desk then has no plant for OS Switch 3
+        start = text.index('<SECTION X="5" Y="9">')
+        end = text.index("</SECTION>", start)
+        cell = text[start:end].replace("<ROUTEINFO", "<NOROUTE").replace("</ROUTEINFO>", "</NOROUTE>")
+        moved.write_text(text[:start] + cell + text[end:], encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "OS Switch 3: desk None, uss_board_plants.csv \\(5, 9\\)"):
+            gen.desk_cells(moved)
+
+
 class Malformed(unittest.TestCase):
     def setUp(self):
         self.data = Path(tempfile.mkdtemp())
@@ -52,6 +73,14 @@ class Malformed(unittest.TestCase):
         p.write_text(p.read_text(encoding="utf-8").split("\n", 1)[1], encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "the note line"):
             facts.load_uss_cells(self.data)
+
+    def test_a_short_or_long_row_names_its_file_and_line(self):
+        self.edit(facts.USS_PLANTS, "OS Switch 3,5,9,", "OS Switch 3,5,9")
+        with self.assertRaisesRegex(ValueError, r"uss_board_plants.csv line 4: 4 fields \(os_block,x,y,notes\), not 3"):
+            facts.load_uss_plants(self.data)
+        self.edit(facts.USS_PLANTS, "OS Switch 3,5,9", "OS Switch 3,5,9,,extra")
+        with self.assertRaisesRegex(ValueError, "uss_board_plants.csv line 4: 4 fields .*, not 5"):
+            facts.load_uss_plants(self.data)
 
     def test_a_bad_track_or_block_stops(self):
         self.edit(facts.USS_CELLS, "HORIZONTAL", "SIDEWAYS")

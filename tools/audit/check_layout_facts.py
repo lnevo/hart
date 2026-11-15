@@ -435,7 +435,7 @@ def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r
     """mast_cells.csv against the USS board's grid, both hand-wired desks (the lamp's cell and edge: columns only
     those desks use), the name map and the masts' heads in tables.xml."""
     cells = facts.load_mast_cells(data)
-    grid = facts.load_uss_cells()
+    grid = facts.load_uss_cells(data)
     for c in cells:
         if not grid.get((c.x, c.y), {}).get("tracks"):
             r.add(f"mast:{c.mast}", f"{c.mast}: mast_cells.csv puts it at ({c.x}, {c.y}), a cell with no track on "
@@ -518,7 +518,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
     for desk in desks:
         check_desk(Path(desk), switches, t, r)
     check_ctc_buttons(switches, t, occupancy_sensors(occupancy), r)
-    cells = facts.load_uss_cells()  # the board's grid, frozen from the hand-wired desk (as gen_ctc_track_plan reads it)
+    cells = facts.load_uss_cells(data)  # the board's grid, frozen from the hand-wired desk (uss_board_cells.csv)
     for label, path in (("GUIObjects.xml", gui), ("tables.xml USS panel", tables)):
         check_uss_panel(label, uss_panel(Path(path).read_text(encoding="utf-8")), switches, gen, cells, r)
     return r
