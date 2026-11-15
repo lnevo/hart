@@ -426,7 +426,8 @@ def staging_lengths(opts: dict, names: dict) -> dict:
 
 def check_slots(P, masts: list[dict], le_mod) -> None:
     """Stop when a staging mast could have gone in more than one slot of the new panel (the plugin would take the
-    first), or a turnout mast is on another turnout than live (`masts`: masts.csv's rows)."""
+    first), a turnout mast is on another turnout than live, or a mast stands in another slot (ident and slot) than
+    masts.csv gives, so a hand edit of those columns takes effect or fails (`masts`: masts.csv's rows)."""
     slots = slots_module()
     ix = slots.Index(le_mod.to_xml(P, "check"))
     alias = P.name          # the XML holds the idents as written; the Panel's lookups keep the generated ones
@@ -438,12 +439,17 @@ def check_slots(P, masts: list[dict], le_mod) -> None:
             f, pr = ix.blocks(*c)
             fits[(c[0], f, tuple(pr))].append(c)
     want = {m["mast"]: m for m in masts}
+    moved = {mast for _t, mast, _why in P.moved}       # a bumper mast at a helix join (all-levels trial): elsewhere
     bad = []
     for m in P.masts:
         name = m["mast"]
         if name not in want:
             bad.append(f"{name} was not asked for")
             continue
+        placed = (alias(m["ident"]), m["slot"])
+        frozen = (want[name]["ident"], want[name]["slot"])
+        if name not in moved and placed != frozen:
+            bad.append(f"{name} stands at {placed[0]} {placed[1]}, masts.csv says {frozen[0]} {frozen[1]}")
         f, pr = ix.blocks(m["kind"], alias(m["ident"]), m["slot"])
         same = fits[(m["kind"], f, tuple(pr))]
         if want[name]["kind"] == "turnout":
@@ -829,12 +835,18 @@ def freeze(tables_path: Path = paths.TABLES_XML, folder: Path = le_inputs.FOLDER
     """Read every staging input off the hand-drawn panel in `tables_path` into the frozen files in `folder`, once
     (le_inputs.py): its turnouts, tracks, kept idents, Entry/Exit sensors, masts (with their schematic runs, by the
     plugin's signal reader, as build_signals.py read them before) and overlay (le_overlay.freeze), and its
-    attributes. Refuses a generated panel. Then rebuilds the cut-over candidate from the written files and stops
-    unless it is byte for byte the one built from the panel, and the signals match the reader's. Returns the files
-    written."""
+    attributes. Refuses a generated panel. The files are written to a new folder beside `folder` first; the cut-over
+    candidate is rebuilt from them there and must be byte for byte the one built from the panel, and the signals the
+    reader's. Only then do they replace `folder` (each step a rename); on any failure `folder` is left as it was.
+    Every failure is a BuildError (or le_inputs.InputsError). Returns the files written."""
     import datetime
+    import shutil
+    import tempfile
 
-    root = tables.read(tables_path)
+    try:
+        root = tables.read(tables_path)
+    except (OSError, ET.ParseError, ValueError) as exc:
+        raise BuildError(f"cannot read {tables_path}: {exc}") from None
     live_le = tables.layout_editor(root, TEMPLATE_PANEL)
     if live_le is None:
         raise BuildError(f"{tables_path} has no {TEMPLATE_PANEL!r} panel to freeze")
@@ -845,8 +857,11 @@ def freeze(tables_path: Path = paths.TABLES_XML, folder: Path = le_inputs.FOLDER
     reader = importlib.import_module("schematic.signal_reader")
     layers = importlib.import_module("schematic.layers")
     panel_reader = importlib.import_module("schematic.panel_reader")
-    overrides = layers.load("staging", str(pd.DATA), preferences=False)
-    graph = json.loads((pd.GRAPHS / SIGNAL_GRAPH).read_text(encoding="utf-8"))
+    try:
+        overrides = layers.load("staging", str(pd.DATA), preferences=False)
+        graph = json.loads((pd.GRAPHS / SIGNAL_GRAPH).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:        # a missing or unparsable layer file or plan graph
+        raise BuildError(f"cannot read the staging plan overrides or {SIGNAL_GRAPH}: {exc}") from None
     try:
         signals = reader.read(str(tables_path), graph, overrides, panel_reader.load_numbers(str(SWITCHES)),
                               panel_reader.load_lengths(str(paths.LAYOUT_DATA / "block_lengths.csv")),
@@ -861,19 +876,43 @@ def freeze(tables_path: Path = paths.TABLES_XML, folder: Path = le_inputs.FOLDER
                                  date=date or datetime.date.today().isoformat())
     inputs = le_inputs.from_live(root, live_le, slots_module(), signals, overrides.get("mast_prefix", ""), note)
     data = build(tables_path, levels="staging", as_live=True, inputs=inputs, freeze_from=live_le)[0]
-    written = le_inputs.write(inputs, folder)
-    again = le_inputs.load(folder)
-    if le_inputs.signal_rows(again.masts) != signals["signals"]:
-        raise BuildError(f"{paths.rel(folder / 'masts.csv')} does not give back the signal reader's runs")
-    if build(tables_path, levels="staging", as_live=True, inputs=again)[0] != data:
-        raise BuildError(f"the files written in {folder} do not rebuild the panel built from the hand-drawn one")
-    return written
+    folder = Path(folder)
+    try:
+        folder.parent.mkdir(parents=True, exist_ok=True)
+        fresh = Path(tempfile.mkdtemp(prefix=f".{folder.name}.new.", dir=folder.parent))
+    except OSError as exc:
+        raise BuildError(f"cannot make a folder beside {folder}: {exc}") from None
+    try:
+        written = le_inputs.write(inputs, fresh)
+        again = le_inputs.load(fresh)
+        if le_inputs.signal_rows(again.masts) != signals["signals"]:
+            raise BuildError("the written masts.csv does not give back the signal reader's runs")
+        if build(tables_path, levels="staging", as_live=True, inputs=again)[0] != data:
+            raise BuildError("the written files do not rebuild the panel built from the hand-drawn one")
+        old = None
+        if folder.exists():
+            old = Path(tempfile.mkdtemp(prefix=f".{folder.name}.old.", dir=folder.parent)) / folder.name
+            folder.rename(old)
+        try:
+            fresh.rename(folder)
+        except OSError:
+            if old is not None:
+                old.rename(folder)          # put the committed files back
+            raise
+        if old is not None:
+            shutil.rmtree(old.parent)
+    except OSError as exc:
+        raise BuildError(f"cannot put the frozen files in {folder}: {exc}") from None
+    finally:
+        if fresh.exists():
+            shutil.rmtree(fresh)
+    return [folder / p.name for p in written]
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true", help="regenerate in memory and fail if the file differs")
-    ap.add_argument("--levels", choices=LEVELS, default="all",
+    ap.add_argument("--levels", choices=LEVELS, default=None,
                     help="all: every band, main and upper as placeholders (default); staging: staging alone")
     ap.add_argument("--as-live", action="store_true",
                     help="write the cut-over candidate: the live panel replaced by the new one (needs --levels "
@@ -885,7 +924,7 @@ def main(argv=None) -> int:
     ap.add_argument("--freeze", action="store_true",
                     help="one-shot: read the staging inputs off the hand-drawn panel into the frozen files "
                          f"({paths.rel(le_inputs.FOLDER)}), then check they rebuild the same candidate")
-    ap.add_argument("--freeze-to", type=Path, default=le_inputs.FOLDER,
+    ap.add_argument("--freeze-to", type=Path,
                     help="with --freeze: the folder to write (default: the frozen files' own)")
     args = ap.parse_args(argv)
     if not args.check:          # --freeze writes the committed frozen files: refused with HART_TABLES as any write
@@ -894,11 +933,11 @@ def main(argv=None) -> int:
             print(f"ERROR: {message}")
             return 1
     if args.freeze:
-        if args.check or args.as_live or args.out or args.levels != "all":
+        if args.check or args.as_live or args.out or args.levels is not None:
             print("ERROR: --freeze takes only --tables and --freeze-to")
             return 1
         try:
-            written = freeze(args.tables or paths.TABLES_XML, args.freeze_to)
+            written = freeze(args.tables or paths.TABLES_XML, args.freeze_to or le_inputs.FOLDER)
         except le_inputs.InputsError as exc:
             print(f"ERROR: {exc}")
             return 1
@@ -906,14 +945,18 @@ def main(argv=None) -> int:
             print(f"wrote {p}")
         print("ok: the written files rebuild the same cut-over candidate")
         return 0
-    out = args.out or default_out(args.levels, args.as_live)
+    if args.freeze_to is not None:
+        print("ERROR: --freeze-to goes with --freeze")
+        return 1
+    levels = args.levels or "all"
+    out = args.out or default_out(levels, args.as_live)
     if live_target(out):
         print(f"ERROR: {out} is the live tables or in the JMRI profile; the trial is for viewing only and is "
               "written beside them, never over them")
         return 1
     try:
         where = {} if args.tables is None else {"live_path": args.tables}
-        data, P, _names, _bands = build(levels=args.levels, as_live=args.as_live, **where)
+        data, P, _names, _bands = build(levels=levels, as_live=args.as_live, **where)
     except le_inputs.InputsError as exc:
         print(f"ERROR: {exc}")
         return 1

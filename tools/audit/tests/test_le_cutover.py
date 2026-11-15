@@ -391,6 +391,59 @@ class BuilderErrors(unittest.TestCase):
         with self.assertRaisesRegex(I.InputsError, "ANCHOR A1 connects to"):
             I.staging_idents(le, {})
 
+    def test_freeze_options(self) -> None:
+        for argv, why in ((["--freeze", "--levels", "all"], "--freeze takes only"),
+                          (["--freeze", "--levels", "staging"], "--freeze takes only"),
+                          (["--freeze-to", "/nowhere"], "--freeze-to goes with --freeze")):
+            with self.subTest(argv=argv), contextlib.redirect_stdout(io.StringIO()) as out, \
+                    mock.patch.object(B, "freeze") as frozen, mock.patch.object(B, "build") as built:
+                self.assertEqual(B.main(argv), 1)
+            self.assertIn(why, out.getvalue())
+            frozen.assert_not_called()
+            built.assert_not_called()
+
+    def test_freeze_failures_are_errors_not_tracebacks(self) -> None:
+        B.plugin()
+        layers = B.importlib.import_module("schematic.layers")
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(layers, "load", side_effect=ValueError("bad JSON")), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(B.main(["--freeze", "--freeze-to", str(Path(tmp) / "f")]), 1)
+        self.assertIn("ERROR: cannot read the staging plan overrides", out.getvalue())
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(B.main(["--freeze", "--tables", str(Path(tmp) / "none.xml"),
+                                     "--freeze-to", str(Path(tmp) / "f")]), 1)
+        self.assertIn("ERROR: cannot read", out.getvalue())
+
+    def test_freeze_replaces_the_folder_only_after_the_rebuild_matches(self) -> None:
+        overlay = I.load().overlay
+
+        def fake_build(_path, levels, as_live, inputs, freeze_from=None):      # the two builds, without drawing
+            if freeze_from is not None:
+                inputs.overlay = overlay
+                return (b"from the panel",)
+            return (rebuilt,)
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp) / "staging_le"
+            folder.mkdir()
+            (folder / "kept.txt").write_text("the committed files")
+            rebuilt = b"something else"
+            with mock.patch.object(B, "build", side_effect=fake_build), \
+                    self.assertRaisesRegex(B.BuildError, "do not rebuild"):
+                B.freeze(paths.TABLES_XML, folder)
+            self.assertEqual([p.name for p in folder.iterdir()], ["kept.txt"])     # untouched
+            self.assertEqual(sorted(p.name for p in Path(tmp).iterdir()), ["staging_le"])   # nothing left beside
+            rebuilt = b"from the panel"
+            with mock.patch.object(B, "build", side_effect=fake_build):
+                written = B.freeze(paths.TABLES_XML, folder)
+            self.assertEqual(sorted(p.name for p in folder.iterdir()), sorted(p.name for p in I.FOLDER.iterdir()))
+            self.assertEqual(sorted(written), sorted(folder / p.name for p in I.FOLDER.iterdir()))
+            self.assertEqual(sorted(p.name for p in Path(tmp).iterdir()), ["staging_le"])
+            for p in I.FOLDER.iterdir():
+                if p.name != "panel.json":                  # its note names today's date: compare the rest
+                    self.assertEqual((folder / p.name).read_text().split("\n", 1)[1],
+                                     p.read_text().split("\n", 1)[1], p.name)
+
     def test_freezing_refuses_a_generated_panel(self) -> None:
         doc = tables.load(paths.REPO_TABLES_XML)
         tables.layout_editor(doc.root, LIVE).insert(1, tables.generated_marker_label())
@@ -494,6 +547,16 @@ class FrozenFiles(unittest.TestCase):
             ("turnouts.csv", lambda t: t.replace("ident,turnoutname", "id,turnoutname"), "columns"),
             ("turnouts.csv", lambda t: t.replace(",LH_TURNOUT,", ",ODD_TURNOUT,", 1), "line 3: type"),
             ("tracks.csv", lambda t: t.replace("TOL3,", "NOPE,", 1), "no such turnout leg"),
+            # a leg is one whole letter: never blank or several (a substring test would let these through)
+            ("tracks.csv", lambda t: t.replace("TOL3,A,TO111,A,", "TOL3,,TO111,A,", 1), "leg ''"),
+            ("tracks.csv", lambda t: t.replace("TOL3,A,TO111,A,", "TOL3,AB,TO111,A,", 1), "leg 'AB'"),
+            ("tracks.csv", lambda t: t.replace("TOL3,A,TO111,A,", "TOL3,A,TO111,,", 1), "leg ''"),
+            ("tracks.csv", lambda t: t.replace("TOL3,A,TO111,A,", "TOL3,A,TO111,BCD,", 1), "leg 'BCD'"),
+            ("sensors.csv", lambda t: t.replace(",turnout,TO111,A,", ",turnout,TO111,,", 1), "slot ''"),
+            ("sensors.csv", lambda t: t.replace(",turnout,TO111,A,", ",turnout,TO111,AB,", 1), "slot 'AB'"),
+            ("masts.csv", lambda t: t.replace(",turnout,TO111,A,", ",turnout,TO111,,", 1), "slot ''"),
+            ("masts.csv", lambda t: t.replace(",turnout,TO111,A,", ",turnout,TO111,BC,", 1), "slot 'BC'"),
+            ("masts.csv", lambda t: t.replace(",2L,1,1;23,", ",2L,1,;23,", 1), "must be 'toward;far'"),
             ("idents.csv", lambda t: t.replace("boundary,", "pillar,", 1), "kind 'pillar'"),
             ("sensors.csv", lambda t: t.replace(",anchor,", ",signal,", 1), "kind 'signal'"),
             ("masts.csv", lambda t: t.replace(",no,12,", ",maybe,12,", 1), "hidden 'maybe'"),

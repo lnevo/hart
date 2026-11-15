@@ -9,12 +9,18 @@ owner's signal plan; add a level to LEVELS when it has masts.
 
 Each mast's schematic run (schematic_edge, schematic_toward_node) is checked against the plan graph in inputs/ with
 the plan overrides' edits: the edge must exist, run between the switches named in `run`, carry the track names in
-`names`, and end at the node it heads for. A mast that does not fit fails the run, with or without --check.
+`names`, and end at the node it heads for, whose switch is `toward`. Its lengths are checked against the frozen
+tracks (staging_le/tracks.csv) and block_lengths.csv, as the signal reader measured them (a block with no length
+counts as zero there too): edge_cm is the length of the track holding the mast's facing block, and cm_from_toward
+is 0 at a turnout leg, the whole run at an end bumper, and at an anchor the length from one end of that track to the
+boundary between the facing and protected blocks (within TOLERANCE_CM). A mast that does not fit fails the run, with
+or without --check.
 
 --check regenerates in memory and compares (exit 1 if a file is stale). When SCHEMATIC_PLUGIN is not set and the
 plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0, so a checkout
 without submodules still runs check.sh; with SCHEMATIC_REQUIRED=1 (set in CI) that skip is a failure instead.
 """
+import csv
 import difflib
 import importlib
 import json
@@ -28,6 +34,49 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pi
 
 LEVELS = [("staging.json", "staging")]     # plan graph in inputs/, layer file stem
 SCHEMA = "schematic.signals/1"
+BLOCK_LENGTHS = pd.paths.LAYOUT_DATA / "block_lengths.csv"
+TOLERANCE_CM = 0.2          # the reader rounds each length to 0.1 cm
+
+
+def block_cm(path=BLOCK_LENGTHS) -> dict:
+    """{block: cm} from block_lengths.csv (inches); a blank length is zero, as the signal reader reads it."""
+    out = {}
+    with open(path, newline="", encoding="utf-8") as fh:
+        for k, r in enumerate(csv.DictReader(fh), 2):
+            try:
+                out[r["user_name"]] = float(r["inches"] or 0) * 2.54
+            except (KeyError, ValueError):
+                sys.exit(f"{path.name} line {k}: no user_name or inches {r.get('inches')!r} is not a number")
+    return out
+
+
+def check_lengths(masts: list[dict], chains: list[dict], cm: dict) -> list[str]:
+    """Problems with each mast's edge_cm and cm_from_toward against the frozen tracks' block lengths."""
+    bad = []
+    near = lambda a, b: abs(a - b) <= TOLERANCE_CM      # noqa: E731
+    for m in masts:
+        tracks = [c for c in chains if m["facing"] in c["blocks"]]
+        totals = [sum(cm.get(b, 0.0) for b in c["blocks"]) for c in tracks]
+        if not any(near(t, m["edge_cm"]) for t in totals):
+            bad.append(f"{m['signal']}: edge_cm {m['edge_cm']} is not the length of a track holding "
+                       f"{m['facing']} ({', '.join(f'{t:.1f}' for t in totals) or 'no such track'})")
+            continue
+        if m["kind"] == "turnout":
+            want = [0.0]
+        elif m["kind"] == "end bumper":
+            want = [m["edge_cm"]]
+        else:
+            want = []
+            for c in tracks:
+                bl, total = c["blocks"], sum(cm.get(b, 0.0) for b in c["blocks"])
+                for i in range(len(bl) - 1):
+                    if {bl[i], bl[i + 1]} == {m["facing"], *m["protects"]}:
+                        d = sum(cm.get(b, 0.0) for b in bl[:i + 1])
+                        want += [d, total - d]
+        if not any(near(w, m["cm_from_toward"]) for w in want):
+            bad.append(f"{m['signal']}: cm_from_toward {m['cm_from_toward']} is not where its {m['kind']} stands "
+                       f"({', '.join(f'{w:.1f}' for w in want) or 'no boundary of its blocks on the track'})")
+    return bad
 
 
 def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str]:
@@ -53,6 +102,9 @@ def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str
             bad.append(f"{r['mast']}: node {r['_toward_node']} is not an end of edge {r['_edge']}")
             continue
         far = e["v"] if r["_toward_node"] == e["u"] else e["u"]
+        toward = lab(r["_toward_node"]) or nodes[r["_toward_node"]].get("label", "")
+        if r["toward"] != toward:
+            bad.append(f"{r['mast']}: toward {r['toward']!r}, but node {r['_toward_node']} is switch {toward!r}")
         if [lab(r["_toward_node"]), lab(far)] != r["run"]:
             bad.append(f"{r['mast']}: edge {r['_edge']} runs {lab(r['_toward_node'])} to {lab(far)}, masts.csv says "
                        f"{r['run']}")
@@ -64,11 +116,11 @@ def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str
 def generate(plugin, graph, name) -> str:
     """The signals file's text for one level, from masts.csv; stops on a mast whose run is not in the plan."""
     try:
-        masts = le_inputs.load_masts()
+        inputs = le_inputs.load()
     except le_inputs.InputsError as exc:
         sys.exit(f"ERROR: {exc}")
-    rows = le_inputs.signal_rows(masts)
-    bad = check_runs(plugin, graph, name, rows)
+    rows = le_inputs.signal_rows(inputs.masts)
+    bad = check_runs(plugin, graph, name, rows) + check_lengths(inputs.masts, inputs.chains, block_cm())
     if bad:
         sys.exit(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
     return json.dumps(dict(schema=SCHEMA, source=le_inputs.SIGNALS_SOURCE, signals=rows, unplaced=[]), indent=1)

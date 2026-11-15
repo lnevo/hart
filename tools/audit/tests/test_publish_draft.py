@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import datetime
 import importlib.util
 import io
@@ -148,17 +149,18 @@ class SignalsCheck(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             (tmp / "staging.signals.json").write_text(committed)
-            real_data, real_load = self.bs.pd.DATA, self.bs.le_inputs.load_masts
+            real_data, real_load = self.bs.pd.DATA, self.bs.le_inputs.load
             for f in ("staging.plan_overrides.json",):
                 (tmp / f).write_text((real_data / f).read_text())
             self.bs.pd.DATA = tmp
             if masts is not None:
-                self.bs.le_inputs.load_masts = lambda: masts
+                frozen = dataclasses.replace(real_load(), masts=masts)
+                self.bs.le_inputs.load = lambda: frozen
             try:
                 with contextlib.redirect_stdout(io.StringIO()):
                     return self.bs.main(["--check"])
             finally:
-                self.bs.pd.DATA, self.bs.le_inputs.load_masts = real_data, real_load
+                self.bs.pd.DATA, self.bs.le_inputs.load = real_data, real_load
 
     def test_current_passes(self) -> None:
         committed = (self.bs.pd.DATA / "staging.signals.json").read_text()
@@ -175,12 +177,19 @@ class SignalsCheck(unittest.TestCase):
         self.assertEqual((got["source"], got["unplaced"]), (self.bs.le_inputs.SIGNALS_SOURCE, []))
 
     def test_a_run_not_in_the_plan_fails(self) -> None:
-        masts = self.bs.le_inputs.load_masts()
-        for field, value, why in (("schematic_edge", "e9999", "not in the plan graph"),
-                                  ("names", ["Nowhere"], "carries"), ("run", ["1", "99"], "runs")):
+        masts = self.bs.le_inputs.load().masts
+        first = next(i for i, m in enumerate(masts) if m["signal"] == "2L")       # a turnout mast, switch 1 to 23
+        anchor = next(i for i, m in enumerate(masts) if m["signal"] == "16L")     # an anchor 40 cm in
+        self.assertEqual((masts[first]["kind"], masts[anchor]["kind"]), ("turnout", "anchor"))
+        for i, field, value, why in ((first, "schematic_edge", "e9999", "not in the plan graph"),
+                                     (first, "names", ["Nowhere"], "carries"), (first, "run", ["1", "99"], "runs"),
+                                     (first, "toward", "23", "toward '23'"),
+                                     (first, "edge_cm", 560.0, "edge_cm 560.0 is not the length"),
+                                     (first, "cm_from_toward", 5.0, "cm_from_toward 5.0"),
+                                     (anchor, "cm_from_toward", 41.0, "cm_from_toward 41.0")):
             bad = [dict(m) for m in masts]
-            bad[0][field] = value
-            with self.subTest(field=field):
+            bad[i][field] = value
+            with self.subTest(field=field, mast=bad[i]["signal"]):
                 with self.assertRaises(SystemExit) as e:
                     self.run_with('{"signals": []}', bad)
                 self.assertIn(why, str(e.exception.code))

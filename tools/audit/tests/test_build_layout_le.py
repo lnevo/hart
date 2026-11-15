@@ -419,11 +419,12 @@ class SecondReview(unittest.TestCase):
         P = mock.Mock(turnouts=[], points={p.get("ident"): {"band": 0} for p in el.findall("positionablepoint")},
                       masts=[dict(mast="M", kind="anchor", ident="A1", slot="east")])
         P.name = lambda i: i            # Mock's own name= argument is not an attribute: set it after
+        P.moved = []
         le_mod = mock.Mock(to_xml=lambda *_a: el)
         return P, el, le_mod
 
     def test_a_mast_two_slots_would_fit_stops_the_build(self) -> None:
-        want = [{"mast": "M", "kind": "anchor"}]
+        want = [{"mast": "M", "kind": "anchor", "ident": "A1", "slot": "east"}]
         P, el, le_mod = self.fake(1)
         B.check_slots(P, want, le_mod)                                      # one W|E boundary: certain
         P, el, le_mod = self.fake(2)
@@ -432,6 +433,12 @@ class SecondReview(unittest.TestCase):
         P, el, le_mod = self.fake(1)
         with self.assertRaisesRegex(B.BuildError, "M was not asked for"):
             B.check_slots(P, [], le_mod)
+        for ident, slot in (("A2", "east"), ("A1", "west")):         # masts.csv edited by hand: it must take effect
+            with self.subTest(ident=ident, slot=slot), self.assertRaisesRegex(
+                    B.BuildError, f"M stands at A1 east, masts.csv says {ident} {slot}"):
+                B.check_slots(P, [dict(want[0], ident=ident, slot=slot)], le_mod)
+        P.moved = [("t", "M", "at a helix join")]                    # the all-levels trial's helix-join masts
+        B.check_slots(P, [dict(want[0], ident="EB9", slot="west")], le_mod)
 
     def test_slots_naming_a_mast_by_system_name_resolve(self) -> None:
         root = tables.read(paths.TABLES_XML)

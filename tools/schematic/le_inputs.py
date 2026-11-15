@@ -15,7 +15,8 @@ not in a panel. Each file starts with a note saying so (a `# ` line in a CSV, `_
                  segment of each block drawn as one segment
   sensors.csv    each Entry/Exit sensor: its slot and the facing and protected blocks JMRI resolves there
   masts.csv      each staging mast: its slot, facing and protected blocks, icon size and hidden flag (the Layout
-                 Editor build), and its run on the schematic (build_signals.py writes staging.signals.json from it)
+                 Editor build), and its run on the schematic (build_signals.py writes staging.signals.json from it):
+                 `run` is 'toward;far', the far switch left blank at a track end ('3;')
   overlay.json   each icon and label of the overlay with what it is tied to (le_overlay.py)
 
 Main and upper are dark territory (no masts) until the owner's signal plan. Every file is checked for shape on load
@@ -56,7 +57,7 @@ MAST_COLUMNS = ("mast", "kind", "ident", "slot", "turnout", "facing", "protects"
                 "schematic_edge", "schematic_toward_node")
 PANEL_FIELDS = {"_note", "name", "attributes", "layoutTrackDrawingOptions"}
 SLOT_KINDS = ("anchor", "end bumper", "turnout")
-LEGS = "ABCD"
+LEGS = ("A", "B", "C", "D")        # a tuple: membership is one whole leg letter, never a substring ("", "AB")
 BUMPER = "bumper"                   # tracks.csv to_leg of a track that ends at an end bumper
 
 
@@ -536,7 +537,8 @@ def load_masts(folder: Path = FOLDER) -> list[dict]:
         _need(r["signal_kind"] in ("field", "virtual", "planned"), p, r,
               f"signal_kind {r['signal_kind']!r} is not field, virtual or planned")
         run = r["run"].split(LIST)
-        _need(len(run) == 2, p, r, f"run {r['run']!r} must be two switch labels (or blank for a track end)")
+        _need(len(run) == 2 and run[0], p, r, f"run {r['run']!r} must be 'toward;far': the switch the mast heads "
+              "for, then the one at the run's far end, left blank at a track end ('3;')")
         _need(r["schematic_edge"] and r["schematic_toward_node"], p, r,
               "schematic_edge and schematic_toward_node are needed")
         out.append(dict(mast=r["mast"], kind=r["kind"], ident=r["ident"], slot=r["slot"], turnout=r["turnout"],
