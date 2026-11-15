@@ -36,6 +36,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
@@ -390,9 +391,9 @@ def insert_icons(panel: str, generated: bool = False) -> tuple[str, int]:
     return panel[:insert_at] + "".join(chunks) + panel[insert_at:], len(chunks)
 
 
-def apply_panel(panel: str) -> tuple[str, dict[str, int]]:
+def apply_panel(panel: str, generated: bool = False) -> tuple[str, dict[str, int]]:
+    """`generated`: the panel is a generated one (hartlib.tables.generated_panel), so its pixels are its own."""
     counts = {"turnouts": 0, "points": 0}
-    generated = tables.GENERATED_PANEL_MARKER in panel
     bound = bound_nx_sensors(panel)     # grows as sensors are bound: turnout legs first, then anchors
 
     def turnout_sub(match: re.Match[str]) -> str:
@@ -481,7 +482,11 @@ def apply_text(text: str, mode: str = "sml") -> tuple[str, dict[str, int]]:
             break
     if start < 0 or end < 0 or end <= start:
         raise SystemExit("HART Railroad / Dispatcher System panel bounds not found")
-    panel, counts = apply_panel(text[start:end])
+    try:
+        generated = tables.generated_panel(tables.layout_editor(tables.loads(text.encode("utf-8")).root))
+    except (ValueError, ET.ParseError) as exc:
+        raise SystemExit(f"cannot read the main Layout Editor panel: {exc}") from None
+    panel, counts = apply_panel(text[start:end], generated=generated)
     text = text[:start] + panel + text[end:]
     lock = mode == "lock"
     text, abs_mode = set_abs_mode(text, enabled=not lock)
@@ -512,6 +517,7 @@ def main() -> int:
     )
     ap.add_argument("paths", nargs="*", type=Path, default=DEFAULTS)
     args = ap.parse_args()
+    paths.exit_if_overridden(Path(__file__).name)
     for path in args.paths:
         if not path.is_file():
             print(f"skip missing {path}", file=sys.stderr)

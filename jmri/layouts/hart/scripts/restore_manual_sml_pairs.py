@@ -115,6 +115,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--reference", type=Path, help="tables.xml from before Stage 1")
     ap.add_argument("--check", action="store_true", help="Report missing pairs; write nothing")
     args = ap.parse_args(argv)
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
 
     doc = tables.load(args.panel)
     root = doc.root

@@ -45,5 +45,27 @@ class HandDrawnOnly(unittest.TestCase):
             self.assertEqual([], list(home.rglob("*")))
 
 
+class ProfileSync(unittest.TestCase):
+    def test_apply_le_sml_facing_never_copies_a_generated_candidate_to_the_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            home = Path(d) / "home"
+            (home / "JMRI_UserFiles").mkdir(parents=True)
+            profile = home / "JMRI_UserFiles" / "tables.xml"
+            profile.write_text("<layout-config/>")
+            doc = tables.load(paths.REPO_TABLES_XML)
+            tables.layout_editor(doc.root).insert(1, tables.generated_marker_label())
+            panel = Path(d) / "tables.xml"
+            panel.write_bytes(doc.tobytes())
+            before = panel.read_bytes()
+            env = {**os.environ, "HOME": str(home), "HART_GUARD_JMRI_RUNNING": "0"}
+            env.pop("HART_TABLES", None)
+            done = subprocess.run([sys.executable, str(SCRIPTS / "apply_le_sml_facing.py"), "--panel", str(panel)],
+                                  env=env, capture_output=True, text=True, timeout=120)
+            self.assertEqual(1, done.returncode)
+            self.assertIn("a generated panel that is not the checkout's tables.xml", done.stderr)
+            self.assertEqual("<layout-config/>", profile.read_text())
+            self.assertEqual(before, panel.read_bytes())
+
+
 if __name__ == "__main__":
     unittest.main()

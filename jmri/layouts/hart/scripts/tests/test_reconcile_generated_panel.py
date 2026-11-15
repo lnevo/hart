@@ -64,6 +64,20 @@ class GeneratedStationsTest(unittest.TestCase):
         self.assertGreater(changes.total, 0)
         self.assertEqual(clusters(reference.getroot()), clusters(tree.getroot()))
 
+    def test_an_icon_missing_from_the_reference_keeps_the_panels_own_copy(self) -> None:
+        reference = marked()
+        ref_le = reconciler.main_layout_editor(reference.getroot())
+        for icon in list(ref_le.findall("sensoricon")):
+            if icon.get("sensor") == "MoveToTrack_K-1_stored":
+                ref_le.remove(icon)
+        tree = marked()
+        shift_clusters(tree.getroot())
+        own = clusters(tree.getroot())["MoveToTrack_K-1_stored"]
+        reconciler.reconcile(tree, ref_le)
+        got = clusters(tree.getroot())
+        self.assertEqual(own, got["MoveToTrack_K-1_stored"])
+        self.assertEqual(clusters(reference.getroot())["MoveToTrack_K-2_stored"], got["MoveToTrack_K-2_stored"])
+
     def test_a_moveto_icon_found_nowhere_stops(self) -> None:
         tree = marked()
         le = reconciler.main_layout_editor(tree.getroot())

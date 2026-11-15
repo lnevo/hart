@@ -149,6 +149,8 @@ def main() -> None:
     )
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
+    if not args.dry_run:
+        paths.exit_if_overridden(Path(__file__).name)
     refused = tables.hand_drawn_only(args.panel, Path(__file__).name)
     if refused:
         sys.exit(refused)

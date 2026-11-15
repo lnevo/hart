@@ -207,6 +207,8 @@ def write(www=WWW, src=SRC):
 
 
 def main():
+    if "--check" not in sys.argv:
+        paths.exit_if_overridden(Path(__file__).name)
     if "--check" in sys.argv:
         bad = stale()
         if bad:

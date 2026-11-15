@@ -64,6 +64,8 @@ def main(argv: list[str]) -> int:
     except ValueError as exc:
         print(exc)
         return 1
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
     if args.check:
         if new != text:
             print("wiki/STATUS.md Counts line is stale; run python3 tools/ops/status_counts.py")

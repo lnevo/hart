@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 # Load HART tables in PanelPro, run stock Stage 1 (auto-Yes shared-sensor), store.
 set -euo pipefail
-# PanelPro loads and stores this checkout's tables.xml, and the repairs after it write the file
-# hartlib names; HART_TABLES (checks only) would point those at another file.
-if [[ -n "${HART_TABLES:-}" ]]; then
-  echo "HART_TABLES is set ($HART_TABLES): it is for checks only; unset it to run PanelPro on tables.xml" >&2
-  exit 1
-fi
 
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+source "$ROOT/tools/hosts/profile_tables_guard.sh"
+refuse_hart_tables "run PanelPro on tables.xml"
 # PanelPro loads the tables of the checkout this script lives in (main or a worktree).
 case "$ROOT" in
   "$HOME"/*) TABLES_URI="home:${ROOT#"$HOME"/}/jmri/layouts/hart/output/tables.xml" ;;

@@ -70,6 +70,23 @@ TABLES_XML = _tables_xml()
 TABLES_OVERRIDDEN = TABLES_XML != REPO_TABLES_XML.resolve()
 
 
+def check_only_message(what: str) -> str | None:
+    """Why `what` (a script about to write tables, the profile or an output derived from the tables) must not
+    run, or None. While HART_TABLES is set every such write is refused: the override is for checks only, so a
+    candidate never reaches the repo's tables, its committed outputs or the JMRI profile."""
+    if not TABLES_OVERRIDDEN:
+        return None
+    return (f"{what}: HART_TABLES is set ({TABLES_XML}); it is for checks only and nothing is written while it "
+            "is set. Unset it, and name a candidate file explicitly (--panel) to edit one.")
+
+
+def exit_if_overridden(what: str) -> None:
+    """Stop the script (SystemExit, exit status 1) with check_only_message when HART_TABLES is set."""
+    message = check_only_message(what)
+    if message:
+        raise SystemExit(message)
+
+
 def lcos_bridge() -> Path:
     """The LCOS bridge source: the external/lcos-bridge submodule, else a sibling clone."""
     sub = REPO_ROOT / "external" / "lcos-bridge"

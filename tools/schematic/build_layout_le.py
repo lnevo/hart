@@ -886,7 +886,8 @@ def add_placeholders(root: ET.Element, P, names: dict, lengths: dict, staging_bl
 def live_target(out: Path) -> bool:
     """True when `out` is the live tables.xml or lies in the JMRI profile (by path or through a link)."""
     real = Path(os.path.realpath(out))
-    if real == Path(os.path.realpath(paths.TABLES_XML)):
+    # the checkout's own file, whatever HART_TABLES points TABLES_XML at
+    if real in (Path(os.path.realpath(paths.REPO_TABLES_XML)), Path(os.path.realpath(paths.TABLES_XML))):
         return True
     profile = Path(os.path.realpath(paths.JMRI_USER_FILES))
     return real == profile or profile in real.parents
@@ -904,6 +905,11 @@ def main(argv=None) -> int:
                     "tables_layout.xml, tables_layout_staging.xml or tables_cutover.xml)")
     args = ap.parse_args(argv)
     out = args.out or default_out(args.levels, args.as_live)
+    if not args.check:
+        message = paths.check_only_message(Path(__file__).name)
+        if message:
+            print(f"ERROR: {message}")
+            return 1
     if live_target(out):
         print(f"ERROR: {out} is the live tables or in the JMRI profile; the trial is for viewing only and is "
               "written beside them, never over them")

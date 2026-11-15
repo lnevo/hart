@@ -1010,6 +1010,7 @@ TARGETS = [
 
 
 def main() -> int:
+    paths.exit_if_overridden(Path(__file__).name)
     n_map = sync_map_head_comments()
     if n_map:
         print(f"public_name_map.csv: {n_map} head comments from signal_wiring.csv")

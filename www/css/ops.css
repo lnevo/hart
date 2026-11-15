@@ -3729,6 +3729,13 @@ html.zoomer-open body {
   background: #fff;
 }
 
+/* A tall drawing (the LCOS node grid): a readable size, not the full column width */
+.explainer figure.tall img {
+  max-width: 34rem;
+  height: auto;
+  display: block;
+}
+
 .explainer figcaption {
   margin-top: 0.45rem;
   font-size: 0.9rem;

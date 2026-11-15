@@ -28,6 +28,25 @@ class CheckShTables(unittest.TestCase):
         self.assertEqual(1, done.returncode)
         self.assertIn("HART_TABLES=/nowhere/tables.xml: no such file", done.stdout)
 
+    def resolve(self, value: str, cwd: Path, home: Path) -> subprocess.CompletedProcess:
+        """Run check.sh's HART_TABLES block (the lines before ROOT=) from `cwd`, then print the result."""
+        text = CHECK.read_text(encoding="utf-8")
+        block = text[text.index("if [[ -n \"${HART_TABLES:-}\" ]]"):text.index('ROOT="$(cd')]
+        env = {**os.environ, "HART_TABLES": value, "HOME": str(home)}
+        return subprocess.run(["bash", "-c", block + 'echo "RESOLVED=$HART_TABLES"'], cwd=cwd, env=env,
+                              capture_output=True, text=True, timeout=30)
+
+    def test_a_relative_or_tilde_hart_tables_is_the_callers(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d).resolve()
+            (d / "sub").mkdir()
+            (d / "sub" / "cand.xml").write_text("<layout-config/>")
+            done = self.resolve("sub/cand.xml", d, d)
+            self.assertIn(f"RESOLVED={d}/sub/cand.xml", done.stdout, done.stderr)
+            done = self.resolve("~/sub/cand.xml", ROOT, d)
+            self.assertIn(f"RESOLVED={d}/sub/cand.xml", done.stdout, done.stderr)
+            self.assertIn("no such file", self.resolve("nope.xml", d, d).stdout)
+
 
 class LayoutIndexSource(unittest.TestCase):
     def test_the_index_names_the_checkout_file_when_hart_tables_points_elsewhere(self) -> None:

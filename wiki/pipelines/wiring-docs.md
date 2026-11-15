@@ -14,7 +14,8 @@ Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 
 ## Outputs
 
-- `docs/wiring/LCOS_Layout_Inventory_v85.xlsx`
+- `docs/wiring/LCOS_Layout_Inventory_v85.xlsx` (staging)
+- `docs/wiring/LCOS_Layout_Inventory_v86.xlsx` (v85 plus the main and upper levels from `device_map_main_upper.csv`)
 - `docs/wiring/signals_asbuilt_abs_v2.xlsx`
 - `docs/wiring/signals_split_v8.xlsx` (frozen RGB plan + notes)
 - `docs/wiring/Wiring_Schematic.pptx`
@@ -26,6 +27,8 @@ Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 python3 docs/wiring/lcos/build_lcos_signal_manager_plan.py
 python3 docs/wiring/scripts/refresh_wiring_docs.py
+python3 tools/schematic/build_device_map.py
+python3 docs/wiring/scripts/add_main_upper_levels.py
 python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
 ```
 

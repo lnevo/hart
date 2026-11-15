@@ -42,6 +42,8 @@ def generate(plugin, graph, name, out):
 
 def main(argv):
     check = "--check" in argv
+    if not check:
+        pd.paths.exit_if_overridden(Path(__file__).name)
     try:
         plugin = pd.plugin()
     except SystemExit as e:             # submodule missing or off its pin, and no SCHEMATIC_PLUGIN
