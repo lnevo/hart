@@ -44,20 +44,12 @@ FOOTER = "HART Railroad · Model Railroad Engineer - Electrical · SOQ supportin
 
 # Wiring record pages, in order: (deck, 1-based page, expected title start, record name).
 RECORDS = [
-    ("layout", 1, "Track Busses", "Track buses: each bus, its colours, location and protection device"),
     ("layout", 2, "PSXX-AR", "Power districts: command station, boosters, booster matrix, breakers and auto-reversers"),
     ("layout", 4, "PSXX-2", "Bus wiring: power supply outputs, DCC buses, detector chain, 12 V control bus"),
     ("layout", 5, "Input", "Control node configuration: one node's inputs, outputs and block sensors"),
     ("layout", 6, "Input", "Turnout wiring: switch machine, contacts, Universal Translator, Touch Toggle, output"),
     ("nodes", 1, "Wiring Schematic - Node Summary", "Node summary: every LCOS node, its location and boards"),
     ("nodes", 2, "Turnout Summary", "Turnout summary: each switch's button, feedback and output pins"),
-    ("nodes", 3, "Node C1", "Node C1 pin page (east end and return loop)"),
-    ("nodes", 4, "Node C2", "Node C2 pin page (east end, west part)"),
-    ("nodes", 5, "Node C3", "Node C3 pin page (yard west ladder)"),
-    ("nodes", 6, "Node C4", "Node C4 pin page (west end and passing siding)"),
-    ("nodes", 7, "Node C11", "Node C11 pin page (helix and return loop)"),
-    ("nodes", 8, "Node C12", "Node C12 pin page (east end, yard east ladder)"),
-    ("nodes", 9, "Node C13", "Node C13 pin page (yard lead and engine storage)"),
 ]
 
 # Ids whose numbers soq.html, the drawings and PHOTO_PUNCH_LIST.md quote by hand ("Section 3.3" and so on).
@@ -176,7 +168,7 @@ def number(doc: str) -> tuple[str, dict[str, str], list[tuple[int, str, str, str
             key = chr(64 + app)
         else:
             sec = sub = 0
-            key = "Plate"         # never shown: the plates hold only drawings labelled D1 to D6
+            key = "Plate"         # never shown: the plates hold only drawings labelled D1 to D7
 
         def head(hm: re.Match) -> str:
             nonlocal sec, sub
