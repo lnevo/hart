@@ -87,7 +87,7 @@
       <tr><td>3</td><td>(b) Track occupancy</td><td>All 43 sections detected</td><td><a class="xref" href="#req3-b"></a></td></tr>
       <tr><td>3</td><td>(v) Computer to railroad interface</td><td>My LCOS-to-JMRI bridge</td><td><a class="xref" href="#req3-v"></a></td></tr>
       <tr><td>4, 5</td><td>Schematic drawings</td><td>Drawings D1 to D6, wiring records</td><td><a class="xref" href="#req45"></a></td></tr>
-      <tr><td>6</td><td>Track plan; descriptions and parts; witness form</td><td>Plans P1 to P5 and Appendix B; Chapters 3 to 5 and Appendix C; the form</td><td><a class="xref" href="#demo"></a></td></tr>
+      <tr><td>6</td><td>Track plan; descriptions and parts; witness form</td><td>Plans P1 to P5 and P0; Chapters 3 to 5 and the parts list; the form</td><td><a class="xref" href="#fig-p1"></a>, <a class="xref" href="#app-b"></a>, <a class="xref" href="#app-c"></a></td></tr>
     </tbody>
   </table>
 </section>
@@ -99,8 +99,8 @@
   <h3 id="req1-two">Two trains at once</h3>
   <p>The layout runs on DCC. Every locomotive has a decoder with its own address, and it only follows commands sent to that address. So two trains can run at the same time anywhere on the main line, in either direction, each on its own throttle.</p>
   <figure class="photo" id="photo-power">
-    <img src="photos/power-board.jpg" alt="A plywood panel holding a TCS CS-105 command station, a TCS B-106 booster, five green circuit-breaker boards with their status lamps lit, and terminal strips joining them with red and black wire.">
-    <figcaption>The power panel: TCS CS-105 command station (top right), TCS B-106 booster (below it), the circuit breakers (left) and the terminal strips.</figcaption>
+    <img src="photos/power-board.jpg" alt="A plywood panel holding a TCS CS-105 command station, a TCS B-106 booster, five green DCC Specialties boards with their status lamps lit, and terminal strips joining them with red and black wire.">
+    <figcaption>The power panel: TCS CS-105 command station (top right), TCS B-106 booster (below it), the PSX breaker and auto-reverser boards (left) and the terminal strips.</figcaption>
   </figure>
   <figure class="photo" id="photo-two-trains" data-punch="PL-01">
     <img src="photos/two-trains.jpg" alt="Two trains running at the same time on the staging level, with two throttles in view.">
@@ -141,7 +141,7 @@
 
   <h3 id="req1-siding">Passing siding</h3>
   <p>The passing siding runs beside the main line from Switch 5 to Switch 7 (Plan P3). It is 144 in long, about 19 cars, and joins the main line at both ends. One train can wait on the siding while another passes on the main.</p>
-  <figure class="fig" id="fig-p3">
+  <figure class="fig small" id="fig-p3">
     <img src="drawings/P3-passing-siding.svg" alt="Close-up track diagram of the passing siding beside the main line between Switch 5 and Switch 7.">
     <figcaption>Plan P3: the passing siding.</figcaption>
   </figure>
@@ -152,7 +152,7 @@
 
   <h3 id="req1-engine">Engine storage</h3>
   <p>Three engine storage tracks, E1 to E3, branch off the yard lead at Switches 9 and 11 (Plan P5). Each holds at least one locomotive. A locomotive parked there stays put while other trains run.</p>
-  <figure class="fig" id="fig-p5">
+  <figure class="fig small" id="fig-p5">
     <img src="drawings/P5-engine-storage.svg" alt="Close-up track diagram of the three engine storage tracks off the yard lead.">
     <figcaption>Plan P5: engine storage.</figcaption>
   </figure>
@@ -289,7 +289,7 @@
   <p>I also added checks to keep the two sides in step. The program checks the USB link about every 12 seconds and reconnects if it stops answering. After the layout power is turned off and on, it tells the node to sign up for events again. It also reports whether the link is up, so the panels can show it.</p>
   <p>I started the bridge in February 2026. It is how the computer talks to the layout every time the layout runs. I published it as open source on GitHub (<code>github.com/lnevo/LCOS_ESP32_MQTT_Client</code>) so other LCOS users can use it.</p>
   <table id="tab-bridge">
-    <caption>The bridge in numbers</caption>
+    <caption>The bridge in numbers (as of 15 November 2026)</caption>
     <tbody>
       <tr><td>Bridge node firmware (C++)</td><td>About 1,200 lines</td></tr>
       <tr><td>Bridge program (Python)</td><td>About 2,100 lines</td></tr>
@@ -330,6 +330,7 @@
       <tr><td>D6</td><td>The bridge between LCOS and JMRI</td><td>Req. 5: computer-to-railroad interface (v)</td></tr>
     </tbody>
   </table>
+  <p>Requirement 4 asks the propulsion drawing to show six things. Gaps, blocks and feeders are in D2. Speed and direction control, the electrical switches (booster matrix, breakers and auto-reversers) and the power supplies are in D1. The frog switch is in D3. In Appendix E, the bus wiring, power district and track bus pages show the as-built wiring, and the turnout and node pages show the wiring behind each item in Requirement 5.</p>
 </section>
 
 <!-- ============================================================ 7 -->
@@ -341,7 +342,7 @@
     <thead><tr><th scope="col">Step</th><th scope="col">Req.</th><th scope="col">What I do</th><th scope="col">What you should see</th><th scope="col">Seen</th></tr></thead>
     <tbody>
       <tr><td>1</td><td>1</td><td>Run two trains at once, each on its own throttle, and reverse each one.</td><td>Each train follows only its own throttle.</td><td class="box"></td></tr>
-      <tr><td>2</td><td>1</td><td>Show gaps, a feeder pair and a breaker. Disconnect one section's feeders.</td><td>Only that section goes dead and dark on the panel.</td><td class="box"></td></tr>
+      <tr><td>2</td><td>1</td><td>Show gaps, a feeder pair and a breaker. With a locomotive standing in one section, disconnect that section's feeders.</td><td>The locomotive loses power and the section goes dark on the panel; nothing else changes.</td><td class="box"></td></tr>
       <tr><td>3</td><td>1, 2</td><td>Run a train through RS-2 and RS-1, both ways.</td><td>No stop and no short.</td><td class="box"></td></tr>
       <tr><td>4</td><td>1</td><td>Hold a train on the passing siding while another passes.</td><td>The trains pass.</td><td class="box"></td></tr>
       <tr><td>5</td><td>1</td><td>Point out the locomotives on E1 to E3.</td><td>They stay put while trains run.</td><td class="box"></td></tr>
@@ -436,9 +437,9 @@
 </section>
 
 <section class="appendix">
-  <h2 id="app-h">Wiring records</h2>
+  <h2 id="app-records">Wiring records</h2>
   <p>These pages are my railroad's own wiring records as of {{DATE}}. They use the layout's names; Appendix A matches them to the labels in this document.</p>
-  {{APPENDIX_H}}
+  {{APPENDIX_RECORDS}}
 </section>
 
 </body>

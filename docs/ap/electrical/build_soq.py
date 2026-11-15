@@ -64,7 +64,7 @@ RECORDS = [
 EXPECTED = {"matrix": "2", "req1": "3", "req1-two": "3.1", "req1-gaps": "3.2", "req1-loop": "3.3", "req1-siding": "3.4",
             "req1-engine": "3.5", "req1-yard": "3.6", "req2": "4", "req2-turnout": "4.1", "req2-crossover": "4.2",
             "req3": "5", "req3-a": "5.1", "req3-b": "5.2", "req3-v": "5.3", "req45": "6", "demo": "7",
-            "app-a": "A", "app-b": "B", "app-c": "C", "app-d": "D", "app-h": "E"}
+            "app-a": "A", "app-b": "B", "app-c": "C", "app-d": "D", "app-records": "E"}
 
 YARD = {"S-R": "Y1", "S-1": "Y2", "S-2": "Y3", "S-3": "Y4", "S-4": "Y5"}
 
@@ -449,7 +449,7 @@ def main() -> None:
     doc, toc, figs, tabs, labels = render(a.date)
     records = "".join(f"<li>{html.escape(name)} <span class=\"pg\">(page {{{{REC{k}}}}})</span></li>"
                       for k, (_, _, _, name) in enumerate(RECORDS))
-    doc = doc.replace("{{APPENDIX_H}}", f'<ol class="record-list">{records}</ol>')
+    doc = doc.replace("{{APPENDIX_RECORDS}}", f'<ol class="record-list">{records}</ol>')
     page_html = BUILD / "soq.html"
     for name in ("soq.css",):
         shutil.copy(HERE / name, BUILD / name)
@@ -503,7 +503,7 @@ def main() -> None:
         if paginate(tmp / "main2.pdf", tmp / "plates2.pdf") != (pages, after, rec0):
             die("page numbers moved between the two passes; check the contents lists")
         assemble(tmp / "main2.pdf", tmp / "plates2.pdf", after, ticked_form(tmp), export_decks(tmp), toc, pages,
-                 labels["app-h"])
+                 labels["app-records"])
     print(f"{OUT_PDF.relative_to(ROOT)}: {fitz.open(OUT_PDF).page_count} pages")
 
 

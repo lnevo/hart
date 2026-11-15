@@ -29,4 +29,4 @@ General tips: shoot in good light with the layout lights on; fill the frame with
 These strengthen the witness visit rather than the paper:
 
 - A photo of the PSX breaker boards with a small label for each district (A to D). The power-board photo already shows them, but not which district each feeds.
-- A photo of the NMRA standards gauge seated on a claimed turnout (W13 in the demonstration plan).
+- A photo of the NMRA standards gauge seated on a claimed turnout (step 13 of the witness plan, Chapter 7).
