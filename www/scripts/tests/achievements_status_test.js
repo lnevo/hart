@@ -26,4 +26,9 @@ assert.strictEqual(A.barPct("not logged", N({ ready: 1 }), 1), 100);
 assert.strictEqual(A.barPct("—", N({ ask: 1 }), 1), 0);
 assert.strictEqual(A.barPct("7 of 5", N({}), 0), 100);
 
+assert.strictEqual(A.bestStatus(["part", "todo", "todo"]), "part"); // Prototype Models row today
+assert.strictEqual(A.bestStatus(["part", "done", "todo"]), "done");
+assert.strictEqual(A.bestStatus(["todo", "ready"]), "ready");
+assert.strictEqual(A.bestStatus(["", ""]), "");
+
 console.log("achievements status: ok");
