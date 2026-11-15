@@ -15,7 +15,7 @@ Inputs (jmri/layouts/hart/data/schematic/):
   turnout and feedback but no control point, no signals and no detection.
 - lcos_nodes_main_upper.csv: the LCOS radio addresses each level and area may use, in order: the upper level's
   from LCOS_Layout_Inventory_v85.xlsx, the rest from the owner's node grid
-  (media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06b.xlsx, local), where an address 0XN is device X off
+  (media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx, local), where an address 0XN is device X off
   node 0N.
 - the solved schematic bands (the inputs publish_draft.py draws), for tracks, their ends and which way is east.
 
