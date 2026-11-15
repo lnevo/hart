@@ -356,6 +356,44 @@ def masts(root: ET.Element, tags: Iterable[str] = MAST_TAGS) -> list[ET.Element]
     return [el for box in root.findall("signalmasts") for el in elements(box) if el.tag in want]
 
 
+# Upright size in pixels of a mast icon in Layout Editor: JMRI's AAR-1946 aspect images for the appearance types
+# HART uses (one-low: SL-1-low, a dwarf; two-searchlight: SL-2-high-abs, a high mast).
+MAST_ICON_DWARF = (12, 17)
+MAST_ICON_HIGH = (12, 40)
+
+
+def mast_appearance(system_name: str) -> str:
+    """The appearance type of a mast system name: "one-low" from ``IF$shsm:basic:one-low(IH143)`` (or
+    ``IF$vsm:basic:one-low($1001)``); "" when the name has no ``prefix:system:appearance`` form."""
+    parts = (system_name or "").split(":")
+    if len(parts) < 3:
+        return ""
+    return parts[2].split("(", 1)[0].strip().lower()
+
+
+def mast_icon_size(system_name: str) -> tuple[tuple[int, int], bool]:
+    """(upright icon size, known) for a mast system name: a low (dwarf) appearance is 12 x 17, a high or
+    searchlight one 12 x 40. Any other appearance gets the high size and known False, so the caller can say so."""
+    look = mast_appearance(system_name)
+    if look.endswith("-low") or "dwarf" in look:
+        return MAST_ICON_DWARF, True
+    if look.endswith("-high") or "searchlight" in look or "-high-" in look:
+        return MAST_ICON_HIGH, True
+    return MAST_ICON_HIGH, False
+
+
+def mast_system_names(root: ET.Element) -> dict[str, str]:
+    """{user name and system name: system name} for every signal mast, so a slot or icon naming either finds it."""
+    out = {}
+    for m in masts(root):
+        sysname = system_name(m)
+        if sysname:
+            out[sysname] = sysname
+            if user_name(m):
+                out[user_name(m)] = sysname
+    return out
+
+
 def blocks(root: ET.Element, *, full: bool = True) -> list[ET.Element]:
     """``<block>`` beans. ``full=True``: the full pass (one per block, with length, sensor
     and paths); ``full=False``: the names-only first pass JMRI writes before it."""

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import contextlib
+import copy
+import functools
 import importlib.util
 import io
 import re
@@ -94,11 +96,17 @@ def crossover_legs(le) -> dict:
     return out
 
 
+@functools.lru_cache(maxsize=None)
+def built():
+    """(trial bytes, Panel, names, bands): built once for every test module that needs it."""
+    with contextlib.redirect_stdout(io.StringIO()):
+        return B.build()
+
+
 class Built(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        with contextlib.redirect_stdout(io.StringIO()):
-            cls.data, cls.P, cls.names, cls.bands = B.build()
+        cls.data, cls.P, cls.names, cls.bands = built()
         cls.root = tables.loads(cls.data).root
         cls.live = tables.read(paths.TABLES_XML)
         cls.le = tables.layout_editor(cls.root, B.PANEL_NAME)
@@ -179,11 +187,59 @@ class Built(unittest.TestCase):
         self.assertTrue({"STAGING LEVEL", "MAIN LEVEL", "Main West", "39", "135A"} <= texts, texts)
         self.assertEqual(len(self.le.findall("layoutShape")), 8)     # four helix ends, four connector ends
 
-    def test_no_masts_or_sensors(self) -> None:
+    def test_no_sensors_and_masts_only_on_staging(self) -> None:
         for el in self.le.iter():
-            self.assertNotIn(el.tag, ("signalmasticon", "sensoricon", "signalAMast", "sensorA"))
-            for a in ("eastboundsignalmast", "westboundsignalmast", "eastboundsensor", "westboundsensor"):
+            self.assertNotIn(el.tag, ("sensoricon", "sensorA", "sensorB", "sensorC", "sensorD"))
+            for a in ("eastboundsensor", "westboundsensor"):
                 self.assertIsNone(el.get(a))
+        staging = B.band_key(self.bands[0][0])
+        self.assertEqual(staging, B.STAGING)
+        self.assertTrue(self.P.masts)
+        self.assertEqual({m["band"] for m in self.P.masts}, {0})       # main and upper have none
+
+    # ---- size: the owner's 1900 x 1200 display at 100% zoom
+    def test_panel_fits_the_display(self) -> None:
+        w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
+        window = (int(self.le.get("windowwidth")), int(self.le.get("windowheight")))
+        self.assertEqual(window, (w + 18, h + 60))                    # Layout Editor's frame allowance
+        self.assertLessEqual(window[0], B.FIT[0])
+        self.assertLessEqual(window[1], B.FIT[1])
+        self.assertLessEqual(window[0], 1900)                         # the owner's display
+        self.assertLessEqual(window[1], 1200 - 37)                    # below the macOS menu bar
+        self.assertGreater(window[0], 0.98 * B.FIT[0])                # as large as fits, not smaller
+        # everything drawn lies on the panel: track, turnout legs, labels (at the plugin's text width) and icons
+        xs, ys = [], []
+        for p in self.le.findall("positionablepoint"):
+            xs.append(float(p.get("x")))
+            ys.append(float(p.get("y")))
+        for t in self.le.findall("layoutturnout"):
+            for leg in "abcd":
+                xs.append(float(t.get(f"x{leg}")))
+                ys.append(float(t.get(f"y{leg}")))
+        _sheet, le_mod, _core = B.plugin()
+        for lb in self.le.findall("positionablelabel"):
+            x, y, size = float(lb.get("x")), float(lb.get("y")), int(lb.get("size"))
+            xs += [x, x + le_mod.text_width(lb.get("text"), size)]
+            ys += [y, y + size]
+        for m in self.P.masts:
+            x, y, bw, bh = m["box"]
+            xs += [x, x + bw]
+            ys += [y, y + bh]
+        self.assertGreaterEqual(min(xs), 0)
+        self.assertGreaterEqual(min(ys), 0)
+        self.assertLessEqual(max(xs), w)
+        self.assertLessEqual(max(ys), h)
+
+    def test_fitting_keeps_label_fonts(self) -> None:
+        _sheet, le_mod, _core = B.plugin()
+        sizes = {int(lb.get("size")) for lb in self.le.findall("positionablelabel")}
+        unscaled = {le_mod.LABEL_SIZE, le_mod.LABEL_SIZE - 1, le_mod.LABEL_SIZE - 2, le_mod.NUMBER_SIZE,
+                    le_mod.TITLE_SIZE}
+        self.assertLessEqual(sizes, unscaled)
+        self.assertIn(le_mod.TITLE_SIZE, sizes)
+        kx, ky = self.P.scale
+        self.assertLess(kx, 1.0)                  # the full-size grid is too wide for the display
+        self.assertGreaterEqual(ky, kx)           # rows keep their room: only as short as the height needs
 
     # ---- the live file
     def test_live_tables_unchanged_but_for_the_additions(self) -> None:
@@ -232,8 +288,10 @@ class Built(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "t.xml"
             path.write_bytes(self.data)
-            _pp, _legs, turnouts, segs, *_ = RENDER.load_geometry(path, B.PANEL_NAME, curves=True)
+            _pp, _legs, turnouts, segs, signals, _st = RENDER.load_geometry(path, B.PANEL_NAME, curves=True)
             self.assertEqual(len(turnouts), 71)
+            self.assertEqual(len(signals), len(self.P.masts))
+            self.assertEqual({s["hidden"] for s in signals}, {True, False})
             shown = [s for s in self.le.findall("tracksegment") if s.get("hidden") != "yes"]
             self.assertGreater(len(segs), len(shown))                # arcs drawn as pieces
             labels, shapes = RENDER.load_decor(path, B.PANEL_NAME)
@@ -331,6 +389,85 @@ class ReviewFixes(unittest.TestCase):
             path.write_bytes(doc.tobytes())
             with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "names-only"):
                 B.build(path, bands=Built.bands)
+
+
+def anchor_panel(*anchors) -> str:
+    """A panel of separate W|E boundaries, one anchor each (A1, A2, ...), the anchor's east slot holding `anchors`."""
+    parts = []
+    for i, mast in enumerate(anchors, 1):
+        y = 100 * i
+        east = f' eastboundsignalmast="{mast}"' if mast else ""
+        parts += [f'<positionablepoint ident="EB{i}a" type="END_BUMPER" x="0" y="{y}" connect1name="T{i}a"/>',
+                  f'<positionablepoint ident="A{i}" type="ANCHOR" x="100" y="{y}" connect1name="T{i}a" '
+                  f'connect2name="T{i}b"{east}/>',
+                  f'<positionablepoint ident="EB{i}b" type="END_BUMPER" x="200" y="{y}" connect1name="T{i}b"/>',
+                  f'<tracksegment ident="T{i}a" blockname="W" connect1name="EB{i}a" type1="POS_POINT" '
+                  f'connect2name="A{i}" type2="POS_POINT"/>',
+                  f'<tracksegment ident="T{i}b" blockname="E" connect1name="A{i}" type1="POS_POINT" '
+                  f'connect2name="EB{i}b" type2="POS_POINT"/>']
+    return "<LayoutEditor>" + "".join(parts) + "</LayoutEditor>"
+
+
+class SecondReview(unittest.TestCase):
+    def fake(self, n_anchors):
+        el = ET.fromstring(anchor_panel(*["M"] + [""] * (n_anchors - 1)))
+        P = mock.Mock(turnouts=[], points={p.get("ident"): {"band": 0} for p in el.findall("positionablepoint")},
+                      masts=[dict(mast="M", kind="anchor", ident="A1", slot="east")])
+        le_mod = mock.Mock(to_xml=lambda *_a: el)
+        return P, el, le_mod
+
+    def test_a_mast_two_slots_would_fit_stops_the_build(self) -> None:
+        P, el, le_mod = self.fake(1)
+        B.check_slots(P, [{"mast": "M"}], el, le_mod)                       # one W|E boundary: certain
+        P, el, le_mod = self.fake(2)
+        with self.assertRaisesRegex(B.BuildError, "fits 2 slots"):
+            B.check_slots(P, [{"mast": "M"}], el, le_mod)
+
+    def test_slots_naming_a_mast_by_system_name_resolve(self) -> None:
+        root = tables.read(paths.TABLES_XML)
+        live = copy.deepcopy(tables.layout_editor(root, LIVE_PANEL))
+        system = tables.mast_system_names(root)
+        point = next(p for p in live.findall("positionablepoint") if p.get("eastboundsignalmast") == "Mast 16R")
+        point.set("eastboundsignalmast", system["Mast 16R"])
+        with contextlib.redirect_stdout(io.StringIO()):
+            got = {m["mast"]: m for m in B.staging_masts(root, live)}
+        self.assertIn(system["Mast 16R"], got)
+        self.assertEqual(got[system["Mast 16R"]]["icon"], list(tables.MAST_ICON_DWARF))     # one-low virtual
+        self.assertTrue(got[system["Mast 16R"]]["hidden"])
+
+    def test_hidden_only_when_every_live_icon_is(self) -> None:
+        live = ET.fromstring('<LayoutEditor><signalmasticon signalmast="M" hidden="yes"/>'
+                             '<signalmasticon signalmast="M" hidden="no"/>'
+                             '<signalmasticon signalmast="N" hidden="yes"/></LayoutEditor>')
+        self.assertEqual(B.live_icons_hidden(live, {}), {"M": False, "N": True})
+
+    def test_the_trial_is_never_written_over_the_live_tables(self) -> None:
+        self.assertTrue(B.live_target(paths.TABLES_XML))
+        self.assertTrue(B.live_target(paths.JMRI_USER_FILES / "tables.xml"))
+        self.assertFalse(B.live_target(B.TRIAL))
+        with mock.patch.object(B, "build") as built_, contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(B.main(["--out", str(paths.TABLES_XML)]), 1)
+            self.assertEqual(B.main(["--out", str(paths.JMRI_USER_FILES / "x.xml")]), 1)
+        built_.assert_not_called()
+        self.assertIn("viewing only", out.getvalue())
+        self.assertIn("for looking at only", B.__doc__)
+
+    def test_renderer_sizes_icons_by_mast_type(self) -> None:
+        data = built()[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "t.xml"
+            path.write_bytes(data)
+            signals = RENDER.load_geometry(path, B.PANEL_NAME, curves=True)[4]
+        sizes = {s["name"]: s["size"] for s in signals}
+        self.assertEqual(sizes["Mast 2L"], tables.MAST_ICON_HIGH)        # two-searchlight
+        self.assertEqual(sizes["Mast 2R"], tables.MAST_ICON_DWARF)       # one-low virtual
+        bw, bh = RENDER.icon_box({"size": tables.MAST_ICON_HIGH, "degrees": 90})
+        self.assertAlmostEqual(bw, 40)
+        self.assertAlmostEqual(bh, 12)
+        for bad in ("0", "-1", "x", "inf"):
+            with self.subTest(bad=bad), self.assertRaises(Exception):
+                RENDER.positive(bad)
+        self.assertEqual(RENDER.positive("1"), 1.0)
 
 
 if __name__ == "__main__":
