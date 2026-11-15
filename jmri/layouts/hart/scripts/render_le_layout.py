@@ -98,23 +98,58 @@ def arc_points(a, b, angle, flip, n=16):
     return pts if flip else pts[::-1]
 
 
-def load_decor(src: Path, panel: str | None = None):
-    """The panel's text labels [(text, x, y, size, bold)] and shapes [[(x, y), ...] closed point lists]."""
-    root = ET.parse(src).getroot()
+def find_panel(src: Path, panel: str | None = None, root=None):
+    """The <LayoutEditor> element named `panel` (default: the live HART panel); `root` saves parsing src again."""
+    root = ET.parse(src).getroot() if root is None else root
     names = (panel,) if panel else ("HART Railroad", "HART")
-    le = next(e for e in root.iter("LayoutEditor") if e.get("name") in names)
+    return next(e for e in root.iter("LayoutEditor") if e.get("name") in names)
+
+
+def shape_outline(points, kind, n=8):
+    """The outline Layout Editor draws for a layoutShape (LayoutShapeView.draw): from the middle of each side, a
+    Straight point is a corner and a Curve point a quadratic curve through the side middles; an Open shape's first
+    and last points are always Straight and it is not closed. `points` is [(x, y, type)]."""
+    cnt = len(points)
+    if cnt < 2:
+        return [(p[0], p[1]) for p in points]
+    out = []
+    for i, (x, y, typ) in enumerate(points):
+        prev, nxt = points[i - 1], points[(i + 1) % cnt]
+        mid_l = ((prev[0] + x) / 2, (prev[1] + y) / 2)
+        mid_r = ((x + nxt[0]) / 2, (y + nxt[1]) / 2)
+        if kind == "Open" and i in (0, cnt - 1):
+            typ = "Straight"
+        if typ == "Curve":
+            out += [((1 - t) ** 2 * mid_l[0] + 2 * (1 - t) * t * x + t * t * mid_r[0],
+                     (1 - t) ** 2 * mid_l[1] + 2 * (1 - t) * t * y + t * t * mid_r[1]) for t in
+                    (k / n for k in range(n + 1))]
+        elif kind == "Open":
+            out += ([] if i == 0 else [mid_l]) + [(x, y)] + ([] if i == cnt - 1 else [mid_r])
+        else:
+            out += [mid_l, (x, y), mid_r]
+    if kind != "Open":
+        out.append(out[0])
+    return out
+
+
+def load_decor(src: Path, panel: str | None = None, root=None):
+    """The panel's text labels [(text, x, y, size, bold)] and shapes [{"type", "outline"}], each outline the
+    points Layout Editor draws through."""
+    le = find_panel(src, panel, root)
     labels = [(lb.get("text") or "", float(lb.get("x") or 0), float(lb.get("y") or 0), int(lb.get("size") or 10),
                lb.get("style") == "1") for lb in le.findall("positionablelabel") if lb.get("text")]
-    shapes = [[(float(p.get("x")), float(p.get("y"))) for p in sh.iter("point")] for sh in le.findall("layoutShape")]
+    shapes = []
+    for sh in le.findall("layoutShape"):
+        pts = [(float(p.get("x")), float(p.get("y")), p.get("type") or "Straight") for p in sh.iter("point")]
+        if pts:
+            shapes.append({"type": sh.get("type") or "Open", "outline": shape_outline(pts, sh.get("type") or "Open")})
     return labels, shapes
 
 
-def load_geometry(src: Path, panel: str | None = None, curves: bool = False):
+def load_geometry(src: Path, panel: str | None = None, curves: bool = False, root=None):
     """`curves` draws Bezier and arc track as curves; off, every segment is a straight chord (the site's overview
     image)."""
-    root = ET.parse(src).getroot()
-    names = (panel,) if panel else ("HART Railroad", "HART")
-    le = next(e for e in root.iter("LayoutEditor") if e.get("name") in names)
+    le = find_panel(src, panel, root)
     pp = {p.get("ident"): (float(p.get("x")), float(p.get("y")))
           for p in le.findall("positionablepoint")}
     legs = {}
@@ -157,8 +192,9 @@ def load_geometry(src: Path, panel: str | None = None, curves: bool = False):
             curve = None
             if curves and s.get("bezier") == "yes" and controls:
                 curve = bezier_points(a, controls, b)
-            elif curves and s.get("arc") == "yes" and s.get("circle") == "yes" and float(s.get("angle") or 0) > 0:
-                curve = arc_points(a, b, float(s.get("angle")), s.get("flip") == "yes")
+            elif curves and s.get("arc") == "yes" and s.get("circle") == "yes":
+                # JMRI draws a circle arc stored with no angle (or 0) as 90 degrees
+                curve = arc_points(a, b, float(s.get("angle") or 0) or 90.0, s.get("flip") == "yes")
             if curve:
                 mid = (len(curve) - 1) // 2
                 # one piece carries the block name, so a curve weighs as much as a straight in the label's place
@@ -207,6 +243,7 @@ def render_view(
         allx = [p[0] for p in pp.values()] + [t["cen"][0] for t in turnouts]
         if decor:       # the whole drawing, arcs too (a turnback's far point need not be an anchor of the window)
             allx += [q[0] for a, b, _m, _blk in segs for q in (a, b)]
+            allx += [lb[1] for lb in decor[0]] + [q[0] for sh in decor[1] for q in sh["outline"]]
         xmin, xmax = min(allx), max(allx)
         target_w = 2000
     else:
@@ -229,6 +266,13 @@ def render_view(
         pts.append((signal["x"], signal["y"]))
     for station in vstations:
         pts.append((station["x"], station["y"]))
+    if decor:           # the panel's own labels and shapes, in the window, count toward the picture's size
+        labels, shapes = decor
+        for text, x, y, size, _bold in labels:
+            if xmin - pad <= x <= xmax + pad:
+                pts += [(x, y), (x + 0.6 * size * len(text), y + size)]
+        for shape in shapes:
+            pts += [q for q in shape["outline"] if xmin - pad <= q[0] <= xmax + pad]
     if not pts:
         return
     bx0 = min(p[0] for p in pts) - pad
@@ -390,8 +434,11 @@ def render_view(
     if decor:
         labels, shapes = decor
         for shape in shapes:
-            if len(shape) > 2:
-                d.line([(X(x), Y(y)) for x, y in shape + shape[:1]], fill=MAIN, width=3)
+            outline = [(X(x), Y(y)) for x, y in shape["outline"]]
+            if shape["type"] == "Filled" and len(outline) > 2:
+                d.polygon(outline, fill=SIDE)
+            if len(outline) > 1:
+                d.line(outline, fill=MAIN, width=3)
         for text, x, y, size, bold in labels:
             d.text((X(x), Y(y)), text, font=_font(max(8, round(size * scale)), bold=bold), fill=TITLE if bold else BLKTXT)
 
@@ -461,7 +508,8 @@ def main():
     ap.add_argument("--labels", action="store_true", help="draw the panel as Layout Editor shows it: its labels, shapes and single crossovers")
     args = ap.parse_args()
 
-    pp, legs, turnouts, segs, signals, stations = load_geometry(args.src, args.panel, args.curves)
+    root = ET.parse(args.src).getroot()
+    pp, legs, turnouts, segs, signals, stations = load_geometry(args.src, args.panel, args.curves, root)
 
     if args.all_views:
         for key, (title, subtitle, xmin, xmax) in VIEWS.items():
@@ -476,7 +524,7 @@ def main():
     render_view(
         pp, legs, turnouts, segs, signals, stations,
         args.out, args.title, args.subtitle, xmin, xmax,
-        decor=load_decor(args.src, args.panel) if args.labels else None
+        decor=load_decor(args.src, args.panel, root) if args.labels else None
     )
 
 

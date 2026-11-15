@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import copy
 import csv
+import functools
 import importlib
 import json
 import re
@@ -56,8 +57,9 @@ class BuildError(RuntimeError):
     pass
 
 
+@functools.lru_cache(maxsize=None)
 def plugin():
-    """The plugin's modules: sheet, le, core."""
+    """The plugin's modules: sheet, le, core (found and checked once)."""
     try:
         folder = pd.plugin()
     except SystemExit as exc:
@@ -83,6 +85,7 @@ def live_chains(le: ET.Element) -> list[dict]:
     [(ident, leg letter) or ("END", bumper ident)] and its blocks in order from the first end (repeats folded)."""
     segs = {s.get("ident"): s for s in le.findall("tracksegment")}
     pts = {p.get("ident"): p for p in le.findall("positionablepoint")}
+    turnouts = {t.get("ident") for t in le.findall("layoutturnout")}
     out, seen = [], set()
     for t in le.findall("layoutturnout"):
         for leg in "abcd":
@@ -91,20 +94,28 @@ def live_chains(le: ET.Element) -> list[dict]:
                 continue
             start = (t.get("ident"), f"TURNOUT_{leg.upper()}")
             here, seg, blocks = start, first, []
-            while True:
-                s = segs[seg]
+            for _ in range(len(segs) + 1):
+                s = segs.get(seg)
+                if s is None:
+                    raise BuildError(f"live panel: {here[0]} connects to {seg!r}, which is no track segment")
                 if not blocks or blocks[-1] != s.get("blockname"):
                     blocks.append(s.get("blockname"))
                 ends = [(s.get("connect1name"), s.get("type1")), (s.get("connect2name"), s.get("type2"))]
                 other = ends[1] if ends[0] == here else ends[0]
-                if other[1] != "POS_POINT":
+                if other[1] in ("TURNOUT_A", "TURNOUT_B", "TURNOUT_C", "TURNOUT_D") and other[0] in turnouts:
                     end = (other[0], other[1][-1])
                     break
-                p = pts[other[0]]
+                p = pts.get(other[0]) if other[1] == "POS_POINT" else None
+                if p is None or p.get("type") not in ("ANCHOR", "END_BUMPER"):
+                    raise BuildError(f"live panel: track {s.get('ident')} reaches {other[0]} ({other[1]}"
+                                     f"{', ' + p.get('type') if p is not None else ''}), which this build does not "
+                                     "follow (only turnouts, anchors and end bumpers)")
                 if p.get("type") == "END_BUMPER":
                     end = ("END", other[0])
                     break
                 here, seg = other, (p.get("connect2name") if p.get("connect1name") == seg else p.get("connect1name"))
+            else:
+                raise BuildError(f"live panel: the track from {start[0]} leg {leg.upper()} never ends")
             a = (start[0], start[1][-1])
             key = tuple(sorted((a, end)))
             if key not in seen:
@@ -135,19 +146,27 @@ def runs(band, skip=()):
     nodes, strands = band["nodes"], band["strands"]
     turn = lambda n: nodes[n]["kind"].startswith("turn")      # noqa: E731
     done, out = set(), []
+
+    def beyond(cur, node):
+        nxt = next((k for k in strands if k != cur and node in (strands[k]["src"][0], strands[k]["dst"][0])), None)
+        if nxt is None:
+            raise BuildError(f"turnback {node}: only track {cur} reaches it")
+        return nxt
+
     for sid in sorted(strands):
         if sid in done or sid in skip:
             continue
-        s = strands[sid]
         # walk back to a terminal end, then forward
         cur, rev = sid, False
-        for _ in range(len(strands)):
+        for _ in range(len(strands) + 1):
             head = strands[cur]["dst"] if rev else strands[cur]["src"]
             if not turn(head[0]):
                 break
-            nxt = next(k for k in strands if k != cur and head[0] in (strands[k]["src"][0], strands[k]["dst"][0]))
+            nxt = beyond(cur, head[0])
             rev = strands[nxt]["src"][0] == head[0]
             cur = nxt
+        else:
+            raise BuildError(f"track {sid}: a closed loop of turnbacks with no switch or end")
         start = strands[cur]["dst"] if rev else strands[cur]["src"]
         chain = []
         for _ in range(len(strands)):
@@ -156,9 +175,50 @@ def runs(band, skip=()):
             tail = strands[cur]["src"] if rev else strands[cur]["dst"]
             if not turn(tail[0]):
                 break
-            cur = next(k for k in strands if k != cur and tail[0] in (strands[k]["src"][0], strands[k]["dst"][0]))
+            cur = beyond(cur, tail[0])
             rev = strands[cur]["dst"][0] == tail[0]
         out.append((tuple(start), chain, tuple(tail)))
+    return out
+
+
+def orient(chain: dict, start_label: str, what: str):
+    """(blocks, ends) of a live track, in order from the end at `start_label`. A track with one label at both ends
+    (a reversing track, or two end bumpers) has no order to read; it stops unless its blocks read the same both
+    ways."""
+    if chain["labels"][0] == chain["labels"][1]:
+        if chain["blocks"] != chain["blocks"][::-1]:
+            raise BuildError(f"staging track {what}: both ends at {chain['labels'][0]}, so its blocks cannot be put "
+                             "in order")
+        return list(chain["blocks"]), list(chain["ends"])
+    if start_label == chain["labels"][0]:
+        return list(chain["blocks"]), list(chain["ends"])
+    return chain["blocks"][::-1], chain["ends"][::-1]
+
+
+def share_blocks(blocks: list[str], chain, strands) -> dict:
+    """{strand id: [block, ...] from its src to its dst} for a run of tracks with the live blocks in run order.
+    A block named after a strand's track goes with it ("Track K-2 West" is track K-2, unless a track is named
+    "K-2 West"); the others with the strand of the block before (or after, at the start)."""
+    names = [strands[sid]["name"] for sid, _ in chain]
+    owner = []
+    for b in blocks:
+        name = b.removeprefix("Track ")
+        hit = [i for i, n in enumerate(names) if n and n == name] or \
+            [i for i, n in enumerate(names) if n and n == re.sub(r" (East|West)$", "", name)]
+        owner.append(hit[0] if hit else None)
+    for i in range(len(owner)):
+        if owner[i] is None and i and owner[i - 1] is not None:
+            owner[i] = owner[i - 1]
+    for i in reversed(range(len(owner))):
+        if owner[i] is None:
+            owner[i] = owner[i + 1] if i + 1 < len(owner) and owner[i + 1] is not None else 0
+    out = {}
+    for k, (sid, rev) in enumerate(chain):
+        mine = [b for b, o in zip(blocks, owner) if o == k]
+        if not mine:        # a track with no block of its own: the one it meets
+            before = [b for b, o in zip(blocks, owner) if o < k]
+            mine = [before[-1] if before else blocks[0]]
+        out[sid] = mine[::-1] if rev else mine
     return out
 
 
@@ -205,37 +265,18 @@ def staging_names(band, live_le: ET.Element, tidy) -> dict:
         cands = [i for i, c in enumerate(chains) if sorted(c["labels"]) == want and i not in used]
         if len(cands) > 1:
             mine = {t for sid, _ in chain if strands[sid]["name"] for t in tidy([strands[sid]["name"]])}
-            cands = [i for i in cands if mine & set(tidy([b.removeprefix("Track ") for b in chains[i]["blocks"]]))]
+            cands = [i for i in cands if mine & {t for b in tidy(chains[i]["blocks"])
+                                                 for t in (b, re.sub(r" (East|West)$", "", b))}]
         if len(cands) != 1:
             raise BuildError(f"staging track {' + '.join(s for s, _ in chain)} ({want[0]} to {want[1]}): "
                              f"{len(cands)} live tracks match")
         used.add(cands[0])
         c = chains[cands[0]]
-        blocks = list(c["blocks"]) if c["labels"][0] == node_label(start[0]) else c["blocks"][::-1]
+        blocks, ends = orient(c, node_label(start[0]), " + ".join(s for s, _ in chain))
         run_far[start] = node_label(end[0])
         run_far[end] = node_label(start[0])
-        ends = c["ends"] if c["labels"][0] == node_label(start[0]) else c["ends"][::-1]
         far_block[start], far_block[end] = leg_block(ends[1]), leg_block(ends[0])
-        # share the blocks out over the run's tracks: a block whose track name is a strand's goes with it, the
-        # others with the strand of the block before (or after, at the start)
-        owner = []
-        for b in blocks:
-            name = tidy([b.removeprefix("Track ")])[0]
-            hit = [i for i, (sid, _) in enumerate(chain) if strands[sid]["name"] and
-                   tidy([strands[sid]["name"]])[0] == name]
-            owner.append(hit[0] if hit else None)
-        for i in range(len(owner)):
-            if owner[i] is None and i and owner[i - 1] is not None:
-                owner[i] = owner[i - 1]
-        for i in reversed(range(len(owner))):
-            if owner[i] is None:
-                owner[i] = owner[i + 1] if i + 1 < len(owner) and owner[i + 1] is not None else 0
-        for k, (sid, rev) in enumerate(chain):
-            mine = [b for b, o in zip(blocks, owner) if o == k]
-            if not mine:        # a track with no block of its own: the one it meets
-                before = [b for b, o in zip(blocks, owner) if o < k]
-                mine = [before[-1] if before else blocks[0]]
-            names["blocks"][sid] = mine[::-1] if rev else mine
+        names["blocks"].update(share_blocks(blocks, chain, strands))
     missing = [i for i in range(len(chains)) if i not in used]
     if missing:
         raise BuildError("live staging tracks with no schematic track: " +
@@ -318,8 +359,10 @@ def placeholder_names(bands, le_mod) -> tuple[dict, dict]:
                     edge = re.sub(r"(?<=\d)[xy]$", "", edge)
                 block = f"OS Switch {a[:-1]}" if halves else f"Track {edge}"
                 names["blocks"][sid] = [block]
-                if (block, edge) not in counted:
-                    counted.add((block, edge))
+                # a turnback's two tracks each carry their whole edge's length (count it once); a connector or
+                # helix cut leaves a piece on each band (e36x, e36y): count both
+                if (block, s["edge"]) not in counted:
+                    counted.add((block, s["edge"]))
                     lengths[block] += s["cm"] * 10
         for n in names["os"].values():
             lengths[n] += 0.0
@@ -428,9 +471,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None):
     place(internal, [bean("turnout", {"feedback": "DIRECT", "inverted": "false", "automate": "Off"}, turnout_sys[t],
                           t, ("comment", COMMENT)) for t in new_turnouts], 2)
     blocks_el = root.find("blocks")
-    kids = blocks_el.findall("block")
-    first_full = next(b for b in kids if b.get("length") is not None)
-    last_short = kids[kids.index(first_full) - 1]
+    short = tables.blocks(root, full=False)
+    if not short:
+        raise BuildError("the live tables have no names-only block pass to add to")
+    last_short = short[-1]
     place(blocks_el, [bean("block", {"systemName": block_sys[b]}, block_sys[b], b) for b in new_blocks], 2, last_short)
     place(blocks_el, [bean("block", {"systemName": block_sys[b], "length": r1(lengths[b]), "curve": "0"},
                            block_sys[b], b, ("comment", COMMENT), ("permissive", "no")) for b in new_blocks], 2)

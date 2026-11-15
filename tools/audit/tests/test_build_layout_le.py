@@ -271,5 +271,67 @@ class Pieces(unittest.TestCase):
         self.assertEqual(dict(chain), {"a": start[0] == "S", "b": start[0] != "S"})
 
 
+class ReviewFixes(unittest.TestCase):
+    def test_split_connector_track_counts_both_pieces(self) -> None:
+        _sheet, le_mod, _core = B.plugin()
+        _names, lengths = B.placeholder_names(Built.bands, le_mod)
+        cm = {k: s["cm"] for _, b, _ in Built.bands for k, s in b["strands"].items()}
+        self.assertGreater(cm["e36x"], 0)
+        # e36 (19.7 cm) is cut at connector A into a piece on each level: both count (the plugin rounds each piece)
+        self.assertAlmostEqual(lengths["OS Switch 135"], (cm["e36x"] + cm["e36y"]) * 10)
+        self.assertAlmostEqual(lengths["OS Switch 129"], (cm["e37x"] + cm["e37y"]) * 10)
+        self.assertGreater(lengths["OS Switch 135"], 190)
+        self.assertAlmostEqual(lengths["Track e33"], next(s["cm"] for _, b, _ in Built.bands
+                                                          for k, s in b["strands"].items() if k == "e33.0") * 10)
+
+    def test_east_and_west_blocks_go_with_their_track(self) -> None:
+        strands = {"a": {"name": "K-1"}, "b": {"name": "K-2"}, "c": {"name": "Main East"}}
+        got = B.share_blocks(["Track K-1", "Track K-2 West", "Track K-2"], [("a", False), ("b", True)], strands)
+        self.assertEqual(got, {"a": ["Track K-1"], "b": ["Track K-2", "Track K-2 West"]})
+        got = B.share_blocks(["Track Main East"], [("c", False)], strands)   # a track really named ... East
+        self.assertEqual(got, {"c": ["Track Main East"]})
+
+    def test_a_track_with_one_label_at_both_ends_needs_a_symmetric_block_order(self) -> None:
+        chain = dict(labels=["7", "7"], blocks=["Track X", "Track Y"], ends=[("TO1", "B"), ("TO1", "C")])
+        with self.assertRaises(B.BuildError):
+            B.orient(chain, "7", "x")
+        chain["blocks"] = ["Track X"]
+        self.assertEqual(B.orient(chain, "7", "x")[0], ["Track X"])
+        chain = dict(labels=["1", "3"], blocks=["A", "B"], ends=[("TO1", "B"), ("TO3", "A")])
+        self.assertEqual(B.orient(chain, "3", "x"), (["B", "A"], [("TO3", "A"), ("TO1", "B")]))
+
+    def test_runs_stop_on_a_broken_or_closed_turnback(self) -> None:
+        lone = {"nodes": {"S": {"kind": "switch"}, "turn": {"kind": "turnL"}},
+                "strands": {"a": {"src": ("turn", 0), "dst": ("S", "A")}}}
+        with self.assertRaises(B.BuildError):
+            B.runs(lone)
+        ring = {"nodes": {"t1": {"kind": "turnL"}, "t2": {"kind": "turnR"}},
+                "strands": {"a": {"src": ("t1", 0), "dst": ("t2", 0)}, "b": {"src": ("t2", 1), "dst": ("t1", 1)}}}
+        with self.assertRaises(B.BuildError):
+            B.runs(ring)
+
+    def test_live_chains_stop_at_what_they_cannot_follow(self) -> None:
+        for far in ('<positionablepoint ident="EC1" type="EDGE_CONNECTOR" connect1name="T1"/>',
+                    '<levelxing ident="X1" connectaname="T1"/>'):
+            typ = "POS_POINT" if "EC1" in far else "LEVEL_XING_A"
+            name = "EC1" if "EC1" in far else "X1"
+            xml = ('<LayoutEditor name="P"><layoutturnout ident="TO1" type="RH_TURNOUT" connectaname="T1"/>' + far +
+                   f'<tracksegment ident="T1" blockname="X" connect1name="TO1" type1="TURNOUT_A" '
+                   f'connect2name="{name}" type2="{typ}"/></LayoutEditor>')
+            with self.assertRaisesRegex(B.BuildError, "does not follow"):
+                B.live_chains(ET.fromstring(xml))
+
+    def test_tables_with_no_names_only_block_pass_stop(self) -> None:
+        doc = tables.load(paths.TABLES_XML)
+        blocks_el = doc.root.find("blocks")
+        for b in tables.blocks(doc.root, full=False):
+            blocks_el.remove(b)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tables.xml"
+            path.write_bytes(doc.tobytes())
+            with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "names-only"):
+                B.build(path, bands=Built.bands)
+
+
 if __name__ == "__main__":
     unittest.main()
