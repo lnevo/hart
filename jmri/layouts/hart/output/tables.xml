@@ -19189,7 +19189,7 @@
       <unknownText text="Track K-1" red="0" green="0" blue="255" />
       <inconsistentText text="Track K-1" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_K-1" x="1706" y="185" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_K-1" x="1706" y="185" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19238,7 +19238,7 @@
       <unknownText text="Track K-2" red="0" green="0" blue="255" />
       <inconsistentText text="Track K-2" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_K-2" x="1706" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_K-2" x="1706" y="345" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19287,7 +19287,7 @@
       <unknownText text="East End" red="0" green="0" blue="255" />
       <inconsistentText text="East End" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_East_Lead" x="1416" y="345" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_East_Lead" x="1416" y="345" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19336,7 +19336,7 @@
       <unknownText text="Track EH-1" red="0" green="0" blue="255" />
       <inconsistentText text="Track EH-1" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_EH-1" x="668" y="256" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_EH-1" x="668" y="256" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19385,7 +19385,7 @@
       <unknownText text="Track EH-2" red="0" green="0" blue="255" />
       <inconsistentText text="Track EH-2" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_EH-2" x="668" y="270" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_EH-2" x="668" y="270" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19434,7 +19434,7 @@
       <unknownText text="Track EH-3" red="0" green="0" blue="255" />
       <inconsistentText text="Track EH-3" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_EH-3" x="668" y="284" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_EH-3" x="668" y="284" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19483,7 +19483,7 @@
       <unknownText text="Scale" red="0" green="0" blue="255" />
       <inconsistentText text="Scale" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_Scale" x="410" y="266" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_Scale" x="410" y="266" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19532,7 +19532,7 @@
       <unknownText text="Barn" red="0" green="0" blue="255" />
       <inconsistentText text="Barn" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_Barn" x="490" y="266" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_Barn" x="490" y="266" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19581,7 +19581,7 @@
       <unknownText text="Track W-1" red="0" green="0" blue="255" />
       <inconsistentText text="Track W-1" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_W-1" x="103" y="230" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_W-1" x="103" y="230" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19630,7 +19630,7 @@
       <unknownText text="Track W-2" red="0" green="0" blue="255" />
       <inconsistentText text="Track W-2" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_W-2" x="105" y="293" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_W-2" x="105" y="293" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19679,7 +19679,7 @@
       <unknownText text="McK Rks" red="0" green="0" blue="255" />
       <inconsistentText text="McK Rks" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_McKees_Rocks" x="1730" y="230" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_McKees_Rocks" x="1730" y="230" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
@@ -19728,7 +19728,7 @@
       <unknownText text="McKport" red="0" green="0" blue="255" />
       <inconsistentText text="McKport" red="0" green="0" blue="0" />
     </sensoricon>
-    <sensoricon sensor="MoveInProgressTrack_McKeesport" x="1730" y="293" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="MoveInProgressTrack_McKeesport" x="1730" y="293" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
         <rotation>0</rotation>
       </active>
