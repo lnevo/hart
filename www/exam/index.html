@@ -83,12 +83,12 @@
 .ce .learn p{margin:6px 0}
 .ce .learn ul,.ce .learn ol{margin:6px 0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
 /* study guide frames: one section at a time, picked from a line of stops */
-.ce .ce-line{scroll-margin-top:calc(var(--header-h) + 12px)}
+.ce .ce-line{scroll-margin-top:calc(var(--header-h) + 12px);position:relative;--n:9}
 .ce .ce-line ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--n,9),minmax(0,1fr));position:relative}
 .ce .ce-line ol::before,.ce .ce-line .fill{content:"";position:absolute;top:14px;left:calc(50% / var(--n,9));height:3px;border-radius:2px;background:var(--rule);right:calc(50% / var(--n,9))}
-.ce .ce-line .fill{background:var(--ink);right:auto;width:0}
+.ce .ce-line .fill{background:var(--ink);right:auto;width:0;z-index:1}
 @media (prefers-reduced-motion:no-preference){.ce .ce-line .fill{transition:width .25s ease}}
-.ce .ce-line button{background:none;border:0;padding:0 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;position:relative;z-index:1}
+.ce .ce-line button{background:none;border:0;padding:0 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;position:relative;z-index:2}
 .ce .ce-line .dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);background:var(--paper);display:grid;place-items:center;font-family:var(--f-mono);font-size:12px;transition:transform .15s ease}
 .ce .ce-line .past .dot{background:var(--rule)}
 .ce .ce-line [aria-current="step"] .dot{background:var(--ink);color:var(--paper);box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--signal-red)}
@@ -98,7 +98,8 @@
 .ce .ce-line [aria-current="step"] .name{color:var(--ink);font-weight:600}
 .ce .ce-line-cap{display:none;margin:8px 0 0;font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:center}
 @media (max-width:640px){.ce .ce-line .name{display:none}.ce .ce-line-cap{display:block}.ce .ce-line .dot{width:26px;height:26px;font-size:11px}.ce .ce-line ol::before,.ce .ce-line .fill{top:12px}}
-.ce .learn article[hidden]{display:none}
+.ce .learn article[hidden]{padding:0;border:0;margin-top:-16px}
+@media print{.ce .learn article[hidden]{display:block!important;content-visibility:visible!important;padding:14px 18px;border:1px solid var(--rule);margin-top:0}.ce .ce-line,.ce .learn-step,.ce .learn-go{display:none}}
 @media (prefers-reduced-motion:no-preference){.ce .learn article.in{animation:ce-in .22s ease}}
 @keyframes ce-in{from{opacity:0;transform:translateX(var(--from,16px))}to{opacity:1;transform:none}}
 .ce .learn-step{display:flex;gap:8px;justify-content:space-between;margin-top:12px}
@@ -112,7 +113,6 @@
 .ce .learn-table td:first-child{font-family:var(--f-mono);white-space:nowrap}
 .ce .ce-panel{scroll-margin-top:calc(var(--header-h) + 12px)}
 .ce .learn-go{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px dashed var(--rule);margin-top:12px;padding-top:10px}
-.ce .learn-go:empty{display:none}
   </style>
 </head>
 <body>
@@ -144,6 +144,7 @@
     <div class="note"><b>How to use this deck.</b> Read one section, then press its <i>Flashcards</i> button and go through those cards until most are learned. Then take a 10-question test on that section. When each section scores well, take full 20 or 40 question tests across everything. This guide explains the ideas; the cards and tests check them.</div>
 
     <nav class="ce-line" aria-label="Study guide sections">
+      <span class="fill" id="learnFill" aria-hidden="true"></span>
       <ol id="learnLine"></ol>
       <p class="ce-line-cap" id="learnCap" aria-live="polite"></p>
     </nav>
@@ -157,7 +158,6 @@
         <li><b>Signals</b>: block signals, interlockings and CTC, where the signal itself gives the authority.</li>
       </ul>
       <p>On top of these sit general rules that apply everywhere: hand and whistle signals, flag protection, restricted speed and yard limits.</p>
-      <div class="learn-go"></div>
     </article>
 
     <article id="learn-def" data-sec="def" data-short="The words">
@@ -215,7 +215,7 @@
       <h4>How trains are named in orders</h4>
       <p>Regular trains by number (No 7), sections by position (Second 7), extras by engine number and direction (Extra 4410 West), work extras as Work Extra and the engine number. A foreign railroad's engine gets its initials in front.</p>
       <h4>The order forms</h4>
-      <div class="learn-table"><table>
+      <div class="learn-table" tabindex="0"><table>
         <thead><tr><th>Form</th><th>What it does</th><th>The point to remember</th></tr></thead>
         <tbody>
           <tr><td>A</td><td>Sets a meeting point</td><td>Neither train goes past the meeting station until both are there.</td></tr>
@@ -283,7 +283,7 @@
       <p>Think of the motion: a swing <i>across</i> the track stops you; up-and-down <i>proceeds</i>; held out <i>level</i> means slow; a full <i>circle</i> means back up.</p>
       <h4>Whistles</h4>
       <p>Shorts are "o", longs are "—". The two codes differ, so learn which is which:</p>
-      <div class="learn-table"><table>
+      <div class="learn-table" tabindex="0"><table>
         <thead><tr><th>Meaning</th><th>Standard Code</th><th>GCOR</th></tr></thead>
         <tbody>
           <tr><td>Brakes applied / stop</td><td>o</td><td>— (when stopped)</td></tr>
@@ -705,7 +705,7 @@ const views={learn:"view-learn",cards:"view-cards",quiz:"view-quiz",notes:"view-
 let view="learn";
 function show(v){if(!views[v])v="learn";view=v;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
   for(const k in views)document.getElementById(views[k]).hidden=k!==v}
-document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view));
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>{show(b.dataset.view);if(location.hash)history.replaceState(null,"","#"+(view==="learn"&&frame>=0?frames[frame].id:view))});
 
 /* chips */
 function chips(el,counts,sel,onChange){
@@ -856,42 +856,47 @@ document.querySelectorAll("#view-learn article[data-sec]").forEach(a=>{
 const frames=[...document.querySelectorAll("#view-learn .learn article")];
 const line=document.getElementById("learnLine"),cap=document.getElementById("learnCap");
 let frame=-1;
-line.style.setProperty("--n",frames.length);
-line.innerHTML='<span class="fill" aria-hidden="true"></span>'+frames.map((a,i)=>`<li><button type="button" data-i="${i}" aria-label="${i?"Section "+i+": ":""}${esc(a.querySelector("h3").textContent.replace(/^\d+\.\s*/,""))}"><span class="dot">${i||"&#9679;"}</span><span class="name">${esc(a.dataset.short)}</span></button></li>`).join("");
+const fill=document.getElementById("learnFill");
+line.parentNode.style.setProperty("--n",frames.length);
+line.innerHTML=frames.map((a,i)=>`<li><button type="button" data-i="${i}" aria-label="${i?"Section "+i+": ":""}${esc(a.querySelector("h3").textContent.replace(/^\d+\.\s*/,""))}"><span class="dot">${i||"&#9679;"}</span><span class="name">${esc(a.dataset.short)}</span></button></li>`).join("");
 line.querySelectorAll("button").forEach(b=>b.onclick=()=>goFrame(+b.dataset.i));
 frames.forEach((a,i)=>{
   const nav=document.createElement("div");nav.className="learn-step";
   const p=frames[i-1],n=frames[i+1];
   nav.innerHTML=(p?`<button type="button" class="ce-btn pv"><small>&larr; Back</small>${esc(p.dataset.short)}</button>`:"")+(n?`<button type="button" class="ce-btn nx primary"><small>Next &rarr;</small>${esc(n.dataset.short)}</button>`:"");
   a.appendChild(nav);
-  if(p)nav.querySelector(".pv").onclick=()=>goFrame(i-1,true);
-  if(n)nav.querySelector(".nx").onclick=()=>goFrame(i+1,true);
+  a.addEventListener("beforematch",()=>{show("learn");goFrame(i)}); // find-in-page reaches hidden sections
+  if(p)nav.querySelector(".pv").onclick=()=>goFrame(i-1,true,true);
+  if(n)nav.querySelector(".nx").onclick=()=>goFrame(i+1,true,true);
+  a.querySelector("h3").tabIndex=-1;
 });
-function goFrame(i,fromBottom){
+function goFrame(i,toTop,focus){
   i=Math.max(0,Math.min(frames.length-1,i));
   const dir=i<frame?-1:1;
-  frames.forEach((a,k)=>{a.hidden=k!==i;a.classList.remove("in")});
+  frames.forEach((a,k)=>{if(k===i)a.removeAttribute("hidden");else a.setAttribute("hidden","until-found");a.classList.remove("in")});
   const a=frames[i];a.style.setProperty("--from",(dir*16)+"px");void a.offsetWidth;if(frame>=0&&frame!==i)a.classList.add("in");
   const first=frame<0;frame=i;
   line.querySelectorAll("button").forEach((b,k)=>{if(k===i)b.setAttribute("aria-current","step");else b.removeAttribute("aria-current");b.parentNode.classList.toggle("past",k<i)});
-  line.querySelector(".fill").style.width=`calc(${i} * (100% / ${frames.length}))`;
+  fill.style.width=`calc(${i} * (100% / ${frames.length}))`;
   cap.textContent=i?`Section ${i} of ${frames.length-1}: ${a.dataset.short}`:"Overview";
   store.set("ce-learn",a.id);
   if(!first&&view==="learn"&&location.hash.slice(1)!==a.id)history.replaceState(null,"","#"+a.id);
-  if(fromBottom){const nav=line.parentNode;if(nav.getBoundingClientRect().top<0)nav.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"})}
+  if(toTop){const nav=line.parentNode,hd=document.querySelector(".site-header");
+    if(nav.getBoundingClientRect().top<(hd?hd.getBoundingClientRect().bottom:0))nav.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"})}
+  if(focus)a.querySelector("h3").focus({preventScroll:true});
 }
 document.addEventListener("keydown",e=>{
-  if(view!=="learn"||e.metaKey||e.ctrlKey||e.altKey||e.shiftKey||e.target.closest("input,textarea,select,.learn-table"))return;
-  if(e.key==="ArrowRight"){e.preventDefault();goFrame(frame+1)}else if(e.key==="ArrowLeft"){e.preventDefault();goFrame(frame-1)}
+  if(view!=="learn"||e.metaKey||e.ctrlKey||e.altKey||e.shiftKey||e.target.closest("input,textarea,select,.learn-table,[role=tab],[contenteditable]"))return;
+  if(e.key==="ArrowRight"){e.preventDefault();goFrame(frame+1,true)}else if(e.key==="ArrowLeft"){e.preventDefault();goFrame(frame-1,true)}
 });
 let tx=null,ty=0;
 const learnEl=document.querySelector("#view-learn .learn");
-learnEl.addEventListener("touchstart",e=>{tx=e.target.closest(".learn-table")||e.touches.length>1?null:e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+learnEl.addEventListener("touchstart",e=>{const x=e.touches[0].clientX;tx=e.target.closest(".learn-table")||e.touches.length>1||x<24||x>innerWidth-24?null:x;ty=e.touches[0].clientY},{passive:true});
 learnEl.addEventListener("touchend",e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;
   if(Math.abs(dx)>70&&Math.abs(dx)>2*Math.abs(dy))goFrame(frame+(dx<0?1:-1),true)},{passive:true});
 /* open on the study guide, or on the tab or guide section named in the link */
 function fromHash(){const h=location.hash.slice(1);if(views[h])show(h);else if(h.startsWith("learn-")&&document.getElementById(h)){show("learn");const i=frames.findIndex(a=>a.id===h);if(i>=0)goFrame(i)}}
-{const last=frames.findIndex(a=>a.id===store.get("ce-learn",""));goFrame(last>=0?last:0)}
+{const h=location.hash.slice(1),at=frames.findIndex(a=>a.id===h),last=frames.findIndex(a=>a.id===store.get("ce-learn",""));goFrame(at>=0?at:last>=0?last:0)}
 window.addEventListener("hashchange",fromHash);
 show("learn");renderSetup();deal();fromHash();
 })();
