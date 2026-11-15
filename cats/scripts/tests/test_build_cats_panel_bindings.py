@@ -9,6 +9,7 @@ from __future__ import annotations
 import sys
 import unittest
 import xml.etree.ElementTree as ET
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -49,15 +50,11 @@ def band():
     return {"nodes": nodes, "strands": strands}
 
 
-LE_XML = """<layout-config><LayoutEditor name="HART Railroad">
-  <layoutturnout ident="TO1" xa="0" ya="0" xb="10" yb="0" xc="10" yc="5" />
-  <layoutturnout ident="TO2" xa="40" ya="0" xb="50" yb="0" xc="50" yc="5" />
-  <positionablepoint ident="P1" x="20" y="0" />
-  <positionablepoint ident="P2" x="35" y="0" />
-  <tracksegment ident="S1" blockname="OS Switch 1" connect1name="TO1" type1="TURNOUT_B" connect2name="P1" type2="POS_POINT" />
-  <tracksegment ident="S2" blockname="" connect1name="P1" type1="POS_POINT" connect2name="P2" type2="POS_POINT" />
-  <tracksegment ident="S3" blockname="OS Switch 2a" connect1name="P2" type1="POS_POINT" connect2name="TO2" type2="TURNOUT_A" />
-</LayoutEditor></layout-config>"""
+# the frozen Layout Editor tracks (staging_le/tracks.csv as le_inputs loads it): TO1 leg B to TO2 leg A holds
+# OS Switch 1 then OS Switch 2a
+CHAINS = [{"ends": [("TO1", "B"), ("TO2", "A")], "blocks": ["OS Switch 1", "OS Switch 2a"]},
+          {"ends": [("TO1", "C"), ("END", "EB1")], "blocks": ["Track Yard"]},
+          {"ends": [("TO2", "B"), ("TO3", "A")], "blocks": ["Track Main"]}]
 
 
 def facts(**kw):
@@ -70,7 +67,7 @@ def facts(**kw):
         ["OS Switch 1", "OS Switch 2a", "OS Switch 2b", "Track West", "Track Yard", "Track Main", "Track East",
          "Track Loop"])}
     f = B.Facts(switches, {"TO1": ("11", "Switch 1"), "TO2": ("12", "Switch 2")}, occupancy, {},
-                B.LayoutEditor(ET.fromstring(LE_XML)), {"Mast 1L": "single"}, {"Mast 1L"})
+                B.FrozenTracks(CHAINS), {"Mast 1L": "single"}, {"Mast 1L"})
     for k, v in kw.items():
         setattr(f, k, v)
     return f
@@ -161,49 +158,46 @@ class Switches(unittest.TestCase):
             B.switch_bindings(b, f, B.os_blocks(b, f))
 
 
-class LayoutEditorTracks(unittest.TestCase):
-    def test_the_block_holding_most_of_the_track(self):
-        le = facts().layout
-        self.assertEqual([[blk for blk, _ in p] for p in le.paths("TO1", "TO2")],
-                         [["OS Switch 1", "", "OS Switch 2a"]])
-        # OS Switch 1: 10 long, unnamed 15 (ignored), OS Switch 2a: 5
-        self.assertEqual(le.block_between("TO1", "TO2", "t"), "OS Switch 1")
+class FrozenLayoutEditorTracks(unittest.TestCase):
+    def test_a_track_of_one_block_is_that_block(self):
+        self.assertEqual(B.FrozenTracks(CHAINS).block_between("TO3", "TO2", "t"), "Track Main")
 
-    def test_no_track_two_tracks_no_block_or_a_tie_stop(self):
-        xml = LE_XML
-        le = B.LayoutEditor(ET.fromstring(xml))
+    def test_no_track_two_tracks_or_a_bumper_stop(self):
+        tracks = B.FrozenTracks(CHAINS)
+        with self.assertRaisesRegex(SystemExit, "no Layout Editor tracks join TO2 and TO9"):
+            tracks.block_between("TO2", "TO9", "t")
         with self.assertRaisesRegex(SystemExit, "no Layout Editor tracks join"):
-            le.block_between("TO2", "TO9", "t")
-        twice = xml.replace("</LayoutEditor>", '<tracksegment ident="S4" blockname="X" connect1name="TO1" '
-                            'type1="TURNOUT_C" connect2name="TO2" type2="TURNOUT_C" /></LayoutEditor>')
+            tracks.block_between("TO1", "END", "t")               # a track to a bumper joins no two switches
+        twice = B.FrozenTracks(CHAINS + [{"ends": [("TO2", "C"), ("TO1", "D")], "blocks": ["X"]}])
         with self.assertRaisesRegex(SystemExit, "2 Layout Editor tracks join"):
-            B.LayoutEditor(ET.fromstring(twice)).block_between("TO1", "TO2", "t")
-        blank = xml.replace('blockname="OS Switch 1"', 'blockname=""').replace('blockname="OS Switch 2a"',
-                                                                               'blockname=""')
-        with self.assertRaisesRegex(SystemExit, "has no block"):
-            B.LayoutEditor(ET.fromstring(blank)).block_between("TO1", "TO2", "t")
-        tie = xml.replace('xb="10"', 'xb="15"')        # OS Switch 1 now 5 long, like OS Switch 2a
-        with self.assertRaisesRegex(SystemExit, "split evenly"):
-            B.LayoutEditor(ET.fromstring(tie)).block_between("TO1", "TO2", "t")
+            twice.block_between("TO1", "TO2", "t")
 
-    def test_a_fixed_block_wins_even_a_tie_but_must_lie_on_the_track(self):
-        tie = LE_XML.replace('xb="10"', 'xb="15"')
-        le = B.LayoutEditor(ET.fromstring(tie))
-        self.assertEqual(le.block_between("TO1", "TO2", "t", "OS Switch 2a"), "OS Switch 2a")
+    def test_a_track_of_several_blocks_needs_a_fixed_one_on_it(self):
+        tracks = B.FrozenTracks(CHAINS)
+        with self.assertRaisesRegex(SystemExit, "holds blocks OS Switch 1, OS Switch 2a; name the one"):
+            tracks.block_between("TO1", "TO2", "t")
+        self.assertEqual(tracks.block_between("TO1", "TO2", "t", "OS Switch 2a"), "OS Switch 2a")
         with self.assertRaisesRegex(SystemExit, "SHORT_TRACK_BLOCKS names OS Switch 9, but .* holds only "
                                     "OS Switch 1, OS Switch 2a"):
-            le.block_between("TO1", "TO2", "t", "OS Switch 9")
+            tracks.block_between("TO1", "TO2", "t", "OS Switch 9")
 
-    def test_the_35_37_track_is_os_switch_35a(self):
+    def test_the_35_37_track_is_os_switch_35a_on_the_frozen_track(self):
         # the generated Layout Editor panel splits it evenly; the hand-drawn one gave most of it to 35a
         self.assertEqual(B.SHORT_TRACK_BLOCKS, {"35-37": "OS Switch 35a"})
+        sys.path.insert(0, str(ROOT / "tools/schematic"))
+        import le_inputs
+        frozen = B.FrozenTracks(le_inputs.load().chains)
+        self.assertEqual(frozen.block_between("TOR36", "TO113", "t", "OS Switch 35a"), "OS Switch 35a")
 
 
 class Blocks(unittest.TestCase):
     def test_jmri_blocks_and_the_short_track_rule(self):
         b = band()
         names = {("os", "b0:N1"): "OS Switch 1", ("track", "b0:w"): "West", ("track", "b0:s12"): "1-2"}
-        out = B.block_bindings(b, facts(), names)
+        with self.assertRaisesRegex(SystemExit, "block 1-2: .* holds blocks OS Switch 1, OS Switch 2a"):
+            B.block_bindings(b, facts(), names)       # the frozen track holds two blocks and none is named
+        with mock.patch.dict(B.SHORT_TRACK_BLOCKS, {"1-2": "OS Switch 1"}):
+            out = B.block_bindings(b, facts(), names)
         self.assertNotIn("name", out["OS Switch 1"])
         self.assertEqual(out["OS Switch 1"]["occupied"]["USER_NAME"], "BS OS Switch 1")
         self.assertEqual(out["West"]["name"], "Track West")
@@ -229,6 +223,120 @@ class Masts(unittest.TestCase):
             B.mast_bindings(dict(opts, signals=[sig, dict(sig)]), facts())
         with self.assertRaisesRegex(SystemExit, "not a JMRI mast"):
             B.mast_bindings(dict(opts, signals=[{"mast": "2R", "kind": "planned"}]), facts())
+
+
+class StubCats:
+    """The plugin's label_of, for the main and upper naming."""
+    @staticmethod
+    def label_of(bands, key):
+        tag, n = key[1].split(":", 1)
+        return bands[int(tag[1:])][1]["nodes"][n].get("label") or ""
+
+
+def device():
+    return B.DeviceMap(
+        blocks={"OS Switch 101": {"level": 2, "trial": {"OS Switch 101"}, "short": False},
+                "OS Switch 103": {"level": 2, "trial": {"OS Switch 103"}, "short": False},
+                "Track 101-111": {"level": 2, "trial": {"Track e24"}, "short": False},
+                "Track 101-103": {"level": 2, "trial": {"Track e28"}, "short": True},
+                "Track 135-H1": {"level": 2, "trial": {"Track e34", "Track e35"}, "short": False}},
+        sensors={"BS Switch 101": "M2S3300", "BS 101-111": "M2S3306"})
+
+
+def dark_bands():
+    nodes = {"A": node("101A", "", {}, {}), "B": node("101B", "", {}, {}), "C": node("103A", "", {}, {}),
+             "END": node("", "", {}, {}, kind="end")}
+    strands = {"e24": dict(strand(("B", "C"), ("END", "E")), edge="e24"),
+               "e34x": dict(strand(("A", "B"), ("END", "E")), edge="e34x"),
+               "e99": dict(strand(("A", "B"), ("END", "E")), edge="e99"),
+               "e77": dict(strand(("A", "C"), ("B", "C")), edge="e77")}
+    return [("Staging level", {"nodes": {}, "strands": {}}, {}),
+            ("Main level", {"nodes": nodes, "strands": strands}, {})]
+
+
+class MainAndUpper(unittest.TestCase):
+    def test_os_blocks_take_the_switch_number_and_a_merge_the_lowest(self):
+        f, log = facts(device=device()), []
+        self.assertEqual(B.device_name(dark_bands(), StubCats, [("os", "b1:A"), ("os", "b1:B")], f, log),
+                         "OS Switch 101")
+        self.assertEqual(log, [])
+        self.assertEqual(B.device_name(dark_bands(), StubCats, [("os", "b1:C"), ("os", "b1:A")], f, log),
+                         "OS Switch 101")
+        self.assertIn("switches 101, 103 share one OS block", log[0])
+
+    def test_tracks_take_the_device_map_row_holding_their_schematic_tracks(self):
+        f = facts(device=device())
+        self.assertEqual(B.device_name(dark_bands(), StubCats, [("track", "b1:e24")], f, []), "Track 101-111")
+        self.assertEqual(B.device_name(dark_bands(), StubCats, [("track", "b1:e34x")], f, []), "Track 135-H1")
+        with self.assertRaisesRegex(SystemExit, "in no device map block rows"):
+            B.device_name(dark_bands(), StubCats, [("track", "b1:e99")], f, [])
+
+    def test_the_track_between_crossover_halves_is_the_crossovers_os_block(self):
+        f = facts(device=device())          # e77 joins 101A and 101B and is in no device map row
+        self.assertEqual(B.device_name(dark_bands(), StubCats, [("track", "b1:e77")], f, []), "OS Switch 101")
+
+    def test_planned_detectors(self):
+        f = facts(device=device())
+        self.assertEqual(B.planned_sensor("OS Switch 101", f)["occupied"],
+                         {"DECADDR": "3300", "JMRIPREFIX": "M2S", "USER_NAME": "BS Switch 101", "command": "close"})
+        self.assertEqual(B.planned_sensor("Track 101-111", f)["unoccupied"],
+                         {"DECADDR": "3306", "JMRIPREFIX": "M2S", "command": "throw"})
+        self.assertIsNone(B.planned_sensor("OS Switch 103", f))
+
+    def test_the_device_map_reads_blocks_and_detectors(self):
+        dm = B.load_device_map()
+        self.assertEqual(len(dm.sensors), 35)
+        self.assertTrue(all(v.startswith("M2S") for v in dm.sensors.values()))
+        self.assertTrue(dm.blocks["Track 101-103"]["short"])
+        self.assertEqual(dm.blocks["Track 107-109"]["trial"], {"Track e19"})
+
+    def test_main_and_upper_are_dtc_and_not_detected_yet(self):
+        self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "DTC")
+        self.assertFalse(B.DETECT_MAIN_UPPER)
+
+
+def plugin_cats():
+    try:
+        return B.plugin_modules(B.pd.plugin())[0]
+    except SystemExit as e:
+        raise unittest.SkipTest(f"no plugin: {e.code}") from None
+
+
+class Header(unittest.TestCase):
+    def doc(self, *labels):
+        root = ET.Element("DOCUMENT", VERSION="3.1")
+        ET.SubElement(root, "FONTDEFINITION", FONTKEY="FONT_TITLE", FONTSIZE="13")
+        ET.SubElement(root, "COMPRESSIONTAG")
+        ET.SubElement(root, "ROWWRAPTAG")
+        tp = ET.SubElement(root, "TRACKPLAN")
+        for x, text in labels:
+            sec = ET.SubElement(tp, "SECTION", X=str(x), Y="1")
+            ET.SubElement(sec, "SEC_NAME", LOC_NAME="LOWLEFT", NAME=text, FONT_NAME="FONT_TITLE")
+        ET.SubElement(ET.SubElement(tp, "SECTION", X="5", Y="3"), "SEC_EDGE", EDGE="LEFT").append(
+            ET.Element("BLOCK", NAME="Track X", DISCIPLINE="CTC"))
+        return root
+
+    def test_the_frozen_header_in_the_live_order_and_the_abs_plate(self):
+        cats = plugin_cats()
+        header, plate = B.frozen_header()
+        out = ET.fromstring(B.dress(cats, self.doc((2, "STAGING")), header, plate, "ABS").split("\n", 1)[1])
+        tags = [el.tag for el in out]
+        self.assertEqual(sorted(set(tags), key=tags.index), [t for t in B.ORDER if t in tags])
+        fonts = {el.get("FONTKEY"): el.get("FONTSIZE") for el in out.findall("FONTDEFINITION")}
+        self.assertEqual((len(fonts), fonts["FONT_TITLE"]), (12, "13"))     # the plugin's own font kept
+        words = {n.get("NAME") for n in out.iter("SEC_NAME")}
+        self.assertIn("ABS DIGICON", words)
+        self.assertTrue(any(w.startswith("DS-ABS ") for w in words))
+        self.assertEqual({b.get("DISCIPLINE") for b in out.iter("BLOCK")}, {"ABS"})
+        self.assertEqual(out.find("OPERATIONS").get("CONNECT"), "false")
+
+    def test_a_plate_label_on_a_used_cell_or_over_another_label_stops(self):
+        cats = plugin_cats()
+        header, plate = B.frozen_header()
+        with self.assertRaisesRegex(SystemExit, "a cell the desk uses"):
+            B.dress(cats, self.doc((15, "X")), header, plate, "CTC")
+        with self.assertRaisesRegex(SystemExit, "runs into the label"):
+            B.dress(cats, self.doc((2, "A VERY LONG TITLE THAT RUNS FAR TO THE RIGHT")), header, plate, "CTC")
 
 
 if __name__ == "__main__":

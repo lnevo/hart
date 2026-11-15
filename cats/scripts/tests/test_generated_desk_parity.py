@@ -1,14 +1,18 @@
-"""The generated three-level panel binds staging exactly as the live desk does, so it can replace the desk at the
-cut-over (ADR-023). Geometry is ignored: the two panels are drawn differently.
+"""The generated three-level desks bind staging exactly as the live desks do, so they can replace them at the
+cut-over (ADR-023). Geometry is ignored: the panels are drawn differently.
 
-Compared for every binding of cats/panels/HART_CTC.xml against cats/panels/generated/HART_Generated.xml:
+Compared for every binding of cats/panels/HART_CTC.xml against cats/panels/generated/HART_Generated.xml, and of
+HART_ABS.xml against its twin HART_Generated_ABS.xml:
   blocks   name, STATION, DISCIPLINE and the occupied and unoccupied IOSPECs
   switches each OS block's points: the block each route leads to, which route is NORMAL, and its IOSPECs
   masts    SECSIGNAL name, PHYSIGNAL template and SIGPANTYPE, and the block it protects
-and the generated panel binds nothing the live desk does not.
+  header   the live desk's header elements (counters, signal templates, stores, colours, OPERATIONS, JMRI names,
+           fonts) in its order, and its publication plate's words
+and the generated desk binds nothing the live desk does not. Main and upper blocks are DTC on both twins.
 """
 from __future__ import annotations
 
+import json
 import sys
 import unittest
 import xml.etree.ElementTree as ET
@@ -22,6 +26,13 @@ import digicon_trace as trace  # noqa: E402
 
 LIVE = ROOT / "cats/panels/HART_CTC.xml"
 GENERATED = ROOT / "cats/panels/generated/HART_Generated.xml"
+LIVE_ABS = ROOT / "cats/panels/HART_ABS.xml"
+GENERATED_ABS = ROOT / "cats/panels/generated/HART_Generated_ABS.xml"
+BINDINGS = ROOT / "cats/panels/generated/HART_Generated.bindings.json"
+HEADER_TAGS = ("LINE", "COUNTER", "SIGNALTEMPLATE", "TRAINSTORE", "JOBSTORE", "CREWSTORE", "COLORDEFINITION",
+               "TRAINSTATLABEL", "OPERATIONS", "JMRINAME")
+# The plugin writes the panel title font at 13 points and sizes its band titles by it; the live desk has 16.
+FONT_SIZES = {"FONT_TITLE": "13"}
 
 # Two live masts stand inside a block, on a lamp gap with the same block on both sides (mast_cells.csv): Mast 24L
 # mid Track West Ext and Mast 2035 inside Track K-2, a cell east of the K-1/K-2 cut. The generated panel puts every
@@ -110,10 +121,26 @@ def masts(root: ET.Element) -> dict[str, list[tuple]]:
     return out
 
 
+def plate(root: ET.Element) -> set[tuple]:
+    """(text, font, place) of every label on the top row of the track plan (the publication plate)."""
+    return {(n.get("NAME"), n.get("FONT_NAME"), n.get("LOC_NAME")) for sec in root.find("TRACKPLAN")
+            if sec.get("Y") == "1" for n in sec.findall("SEC_NAME")}
+
+
+def order(root: ET.Element) -> list[str]:
+    out = []
+    for el in root:
+        if not out or out[-1] != el.tag:
+            out.append(el.tag)
+    return out
+
+
 class Parity(unittest.TestCase):
+    LIVE, GENERATED, DISCIPLINE = LIVE, GENERATED, "CTC"
+
     @classmethod
     def setUpClass(cls) -> None:
-        cls.live, cls.gen = ET.parse(LIVE).getroot(), ET.parse(GENERATED).getroot()
+        cls.live, cls.gen = ET.parse(cls.LIVE).getroot(), ET.parse(cls.GENERATED).getroot()
 
     def test_every_live_block_is_bound_the_same(self) -> None:
         live, gen = blocks(self.live), blocks(self.gen)
@@ -151,10 +178,43 @@ class Parity(unittest.TestCase):
                 self.assertEqual((block, g_block), PROTECTS.get(name, (block, block)))
 
     def test_header_matches_the_live_desk(self) -> None:
-        for tag in ("SIGNALTEMPLATE", "JMRINAME"):
+        for tag in HEADER_TAGS:
             with self.subTest(tag=tag):
+                self.assertTrue(self.live.findall(tag))
                 self.assertEqual([canon(e) for e in self.gen.findall(tag)],
                                  [canon(e) for e in self.live.findall(tag)])
+        self.assertEqual(self.gen.find("OPERATIONS").get("CONNECT"), "false")
+
+    def test_fonts_are_the_live_desks(self) -> None:
+        live = {e.get("FONTKEY"): dict(e.attrib) for e in self.live.findall("FONTDEFINITION")}
+        gen = {e.get("FONTKEY"): dict(e.attrib) for e in self.gen.findall("FONTDEFINITION")}
+        for key, size in FONT_SIZES.items():
+            live[key]["FONTSIZE"] = size
+        self.assertEqual(gen, live)
+        self.assertEqual([e.get("FONTKEY") for e in self.gen.findall("FONTDEFINITION")], list(live))
+
+    def test_elements_are_in_the_live_desks_order(self) -> None:
+        self.assertEqual([t for t in order(self.gen) if t != "ROWWRAPTAG"], order(self.live))
+
+    def test_the_plate_says_what_the_live_desk_says(self) -> None:
+        self.assertEqual(len(plate(self.live)), 5)
+        self.assertLessEqual(plate(self.live), plate(self.gen))
+
+    def test_main_and_upper_are_dark_territory(self) -> None:
+        bound = json.loads(BINDINGS.read_text(encoding="utf-8"))["blocks"]
+        dark = {e.get("name", k) for k, e in bound.items() if e.get("discipline") == "DTC"}
+        self.assertTrue(dark)
+        found = blocks(self.gen)
+        for name in sorted(dark):
+            with self.subTest(block=name):
+                self.assertEqual({d[1] for d in found[name]}, {"DTC"})
+                self.assertEqual({d[2] for d in found[name]}, {()}, "no detector bound yet")
+        others = {d[1] for name, defs in found.items() if name not in dark for d in defs}
+        self.assertEqual(others, {self.DISCIPLINE})
+
+
+class ParityABS(Parity):
+    LIVE, GENERATED, DISCIPLINE = LIVE_ABS, GENERATED_ABS, "ABS"
 
 
 if __name__ == "__main__":

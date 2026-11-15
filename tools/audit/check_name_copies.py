@@ -60,6 +60,7 @@ SKIP_PREFIXES = (
     "www/data/",                                  # build_tables_browser / build_layout_index --check
     "jmri/layouts/hart/scripts/speedmatch/routes.json",  # build_routes.py --check
     "cats/panels/HART_CTC.xml", "cats/panels/HART_ABS.xml",  # test_desks_match_source.py
+    "cats/panels/generated/",                     # build_cats_panel.py --check (main and upper names from the device map)
     "tools/audit/check_name_copies.py",           # this file
 )
 # Tests are not read. A test that asserts the real data fails by itself after a rename;

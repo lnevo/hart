@@ -26,7 +26,8 @@ Levels (control_points.csv, switches.csv, public_name_map.csv)
 USS CTC (CTC code buttons in tables.xml, ctc/GUIObjects.xml and the copy in tables.xml)
   - the code button's turnout, OS sensors, lever and signal levers;
   - the lever, the points dot and its polarity in the switch's column;
-  - the track jewels and labels are the ones the CATS desk gives today.
+  - the track jewels and labels are the ones the board's grid gives (uss_board_cells.csv,
+    frozen from the hand-wired CATS desk on 2026-11-15; gen_ctc_track_plan.py reads it too).
 
 Track names are the CATS occupancy names; a Layout Editor throat block such as
 Track S-R West (same occupancy sensor as Track S-R) counts as Track S-R.
@@ -373,7 +374,7 @@ def check_uss_panel(label: str, pe: str, switches: dict[int, facts.Switch], gen,
             r.add(key, f"{n}: {label} points dot shows Normal when {'thrown' if swapped else 'closed'}; "
                        f"switches.csv cats_inverted={'yes' if sw.cats_inverted else 'no'} (Normal is the "
                        f"{'thrown' if sw.cats_inverted else 'closed'} leg)")
-    # Track jewels and labels against a fresh build from the CATS desk.
+    # Track jewels and labels against a fresh build from the board grid (uss_board_cells.csv).
     _t, _tracks, lamps, texts = gen.build_geometry(cells)
     want_lamps = Counter((s, x, y, tip) for s, x, y, tip in lamps)
     have_lamps = Counter((s, int(x), int(y), tip) for s, x, y, tip in re.findall(
@@ -431,8 +432,14 @@ def desk_signals(path: Path) -> dict[tuple[int, int, str], str]:
 
 
 def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
-    """mast_cells.csv against both desks, the name map and the masts' heads in tables.xml."""
+    """mast_cells.csv against the USS board's grid, both hand-wired desks (the lamp's cell and edge: columns only
+    those desks use), the name map and the masts' heads in tables.xml."""
     cells = facts.load_mast_cells(data)
+    grid = facts.load_uss_cells()
+    for c in cells:
+        if not grid.get((c.x, c.y), {}).get("tracks"):
+            r.add(f"mast:{c.mast}", f"{c.mast}: mast_cells.csv puts it at ({c.x}, {c.y}), a cell with no track on "
+                                    f"the USS board's grid ({facts.USS_CELLS})")
     want = {(c.x, c.y, c.edge): c.mast for c in cells}
     for desk in desks:
         have = desk_signals(Path(desk))
@@ -511,7 +518,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
     for desk in desks:
         check_desk(Path(desk), switches, t, r)
     check_ctc_buttons(switches, t, occupancy_sensors(occupancy), r)
-    cells = gen.parse_cats(Path(desks[0]))
+    cells = facts.load_uss_cells()  # the board's grid, frozen from the hand-wired desk (as gen_ctc_track_plan reads it)
     for label, path in (("GUIObjects.xml", gui), ("tables.xml USS panel", tables)):
         check_uss_panel(label, uss_panel(Path(path).read_text(encoding="utf-8")), switches, gen, cells, r)
     return r

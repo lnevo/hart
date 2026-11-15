@@ -132,6 +132,12 @@ comment carries it as the second group (`Node: 4 Turnout: 0 | DCC: 100 | OU: 1 P
 one, and `split_dcc(comment)` takes the group out of a JMRI or Device-map comment. Read the
 address from the column; never regex it out of `comment`.
 
+### `hartlib.cats`
+
+CATS desk conventions both desk builders use: `station_plate(block)` (`OS Switch 39` -> `39`,
+`Track West Ext` -> `West`) and `mast_templates()` (mast user name -> CATS signal template, from
+`signal_head_plan.csv`).
+
 ### `hartlib.hosts`
 
 The broker and JMRI JSON settings:
