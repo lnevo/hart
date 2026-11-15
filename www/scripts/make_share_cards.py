@@ -550,7 +550,7 @@ def ai_mmr():
     from PIL import Image
 
     im = shot(f"{_site}ap/index.html", (1400, 1100))
-    grid = im.crop((464, 975, 2338, 1835))  # the three card rows (device px, x2)
+    grid = im.crop((464, 975, 2338, 1835))  # the three card rows (device px, x2); recheck the crop if the dashboard changes
     w, h = grid.size[0] + 80, round((grid.size[0] + 80) * H / W)
     out = Image.new("RGB", (w, h), im.getpixel((300, 1300)))  # the page background beside the grid
     out.paste(grid, (40, (h - grid.size[1]) // 2))
