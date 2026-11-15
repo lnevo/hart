@@ -22,7 +22,7 @@ class DefaultPanels(unittest.TestCase):
         finally:
             V.check, sys.argv = saved, argv
         self.assertIn("cats/panels/HART_CTC.xml", seen)
-        self.assertIn("cats/panels/generated/HART_Main_Upper.xml", seen)
+        self.assertIn("cats/panels/generated/HART_Generated.xml", seen)
         self.assertTrue(all(Path(p).name.startswith("HART") for p in seen), seen)
 
     def test_a_layout_editor_file_fails(self):

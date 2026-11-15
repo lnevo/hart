@@ -1,0 +1,1586 @@
+{
+ "_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit.",
+ "blocks": {
+  "23-31": {
+   "name": "OS Switch 31"
+  },
+  "35-37": {
+   "name": "OS Switch 35a"
+  },
+  "Barn": {
+   "discipline": "CTC",
+   "name": "Track Barn",
+   "occupied": {
+    "DECADDR": "1300",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Barn",
+    "command": "close"
+   },
+   "station": "Barn",
+   "unoccupied": {
+    "DECADDR": "1300",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "Brick-Plane": {
+   "discipline": "CTC",
+   "name": "Track Brick-Plane",
+   "occupied": {
+    "DECADDR": "405",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Brick-Plane",
+    "command": "close"
+   },
+   "station": "Brick-Plane",
+   "unoccupied": {
+    "DECADDR": "405",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "EH-1": {
+   "discipline": "CTC",
+   "name": "Track EH-1",
+   "occupied": {
+    "DECADDR": "1306",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS EH-1",
+    "command": "close"
+   },
+   "station": "EH-1",
+   "unoccupied": {
+    "DECADDR": "1306",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "EH-2": {
+   "discipline": "CTC",
+   "name": "Track EH-2",
+   "occupied": {
+    "DECADDR": "1305",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS EH-2",
+    "command": "close"
+   },
+   "station": "EH-2",
+   "unoccupied": {
+    "DECADDR": "1305",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "EH-3": {
+   "discipline": "CTC",
+   "name": "Track EH-3",
+   "occupied": {
+    "DECADDR": "1304",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS EH-3",
+    "command": "close"
+   },
+   "station": "EH-3",
+   "unoccupied": {
+    "DECADDR": "1304",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "East Ext": {
+   "discipline": "CTC",
+   "name": "Track East Ext",
+   "occupied": {
+    "DECADDR": "406",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS East Ext",
+    "command": "close"
+   },
+   "station": "East",
+   "unoccupied": {
+    "DECADDR": "406",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "East Lead": {
+   "discipline": "CTC",
+   "name": "Track East Lead",
+   "occupied": {
+    "DECADDR": "106",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS East Lead",
+    "command": "close"
+   },
+   "station": "East",
+   "unoccupied": {
+    "DECADDR": "106",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "K-1": {
+   "discipline": "CTC",
+   "name": "Track K-1",
+   "occupied": {
+    "DECADDR": "100",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS K-1",
+    "command": "close"
+   },
+   "station": "K-1",
+   "unoccupied": {
+    "DECADDR": "100",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "K-2": {
+   "discipline": "CTC",
+   "name": "Track K-2",
+   "occupied": {
+    "DECADDR": "101",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS K-2",
+    "command": "close"
+   },
+   "station": "K-2",
+   "unoccupied": {
+    "DECADDR": "101",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "Main East": {
+   "discipline": "CTC",
+   "name": "Track Main East",
+   "occupied": {
+    "DECADDR": "202",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Main East",
+    "command": "close"
+   },
+   "station": "Main",
+   "unoccupied": {
+    "DECADDR": "202",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "Main West": {
+   "discipline": "CTC",
+   "name": "Track Main West",
+   "occupied": {
+    "DECADDR": "200",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Main West",
+    "command": "close"
+   },
+   "station": "Main",
+   "unoccupied": {
+    "DECADDR": "200",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "McKees Rocks": {
+   "discipline": "CTC",
+   "name": "Track McKees Rocks",
+   "occupied": {
+    "DECADDR": "103",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 39 / BS McKees Rocks",
+    "command": "close"
+   },
+   "station": "McKees",
+   "unoccupied": {
+    "DECADDR": "103",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "McKeesport": {
+   "discipline": "CTC",
+   "name": "Track McKeesport",
+   "occupied": {
+    "DECADDR": "102",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 37 / BS McKeesport",
+    "command": "close"
+   },
+   "station": "McKeesport",
+   "unoccupied": {
+    "DECADDR": "102",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 1": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "401",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 1",
+    "command": "close"
+   },
+   "station": "1",
+   "unoccupied": {
+    "DECADDR": "401",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 11": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1301",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 11",
+    "command": "close"
+   },
+   "station": "11",
+   "unoccupied": {
+    "DECADDR": "1301",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 13": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "300",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 13",
+    "command": "close"
+   },
+   "station": "13",
+   "unoccupied": {
+    "DECADDR": "300",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 15": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "301",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 15",
+    "command": "close"
+   },
+   "station": "15",
+   "unoccupied": {
+    "DECADDR": "301",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 17": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "302",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 17",
+    "command": "close"
+   },
+   "station": "17",
+   "unoccupied": {
+    "DECADDR": "302",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 19": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "304",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 19",
+    "command": "close"
+   },
+   "station": "19",
+   "unoccupied": {
+    "DECADDR": "304",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 21": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "306",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 21",
+    "command": "close"
+   },
+   "station": "21",
+   "unoccupied": {
+    "DECADDR": "306",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 23a": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1203",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 23a",
+    "command": "close"
+   },
+   "station": "23a",
+   "unoccupied": {
+    "DECADDR": "1203",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 23b": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1205",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 23b",
+    "command": "close"
+   },
+   "station": "23b",
+   "unoccupied": {
+    "DECADDR": "1205",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 25": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1200",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 25",
+    "command": "close"
+   },
+   "station": "25",
+   "unoccupied": {
+    "DECADDR": "1200",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 27": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1202",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 27",
+    "command": "close"
+   },
+   "station": "27",
+   "unoccupied": {
+    "DECADDR": "1202",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 29": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1204",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 29",
+    "command": "close"
+   },
+   "station": "29",
+   "unoccupied": {
+    "DECADDR": "1204",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 3": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "400",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 3",
+    "command": "close"
+   },
+   "station": "3",
+   "unoccupied": {
+    "DECADDR": "400",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 31": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1206",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 31",
+    "command": "close"
+   },
+   "station": "31",
+   "unoccupied": {
+    "DECADDR": "1206",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 33": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1207",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 33",
+    "command": "close"
+   },
+   "station": "33",
+   "unoccupied": {
+    "DECADDR": "1207",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 35a": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "105",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 35a",
+    "command": "close"
+   },
+   "station": "35a",
+   "unoccupied": {
+    "DECADDR": "105",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 35b": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "104",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 35b",
+    "command": "close"
+   },
+   "station": "35b",
+   "unoccupied": {
+    "DECADDR": "104",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 37": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "102",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 37 / BS McKeesport",
+    "command": "close"
+   },
+   "station": "37",
+   "unoccupied": {
+    "DECADDR": "102",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 39": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "103",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 39 / BS McKees Rocks",
+    "command": "close"
+   },
+   "station": "39",
+   "unoccupied": {
+    "DECADDR": "103",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 5": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "404",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 5",
+    "command": "close"
+   },
+   "station": "5",
+   "unoccupied": {
+    "DECADDR": "404",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 7": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1302",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 7",
+    "command": "close"
+   },
+   "station": "7",
+   "unoccupied": {
+    "DECADDR": "1302",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 7b": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1303",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 7b",
+    "command": "close"
+   },
+   "station": "7b",
+   "unoccupied": {
+    "DECADDR": "1303",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "OS Switch 9": {
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": "1307",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 9",
+    "command": "close"
+   },
+   "station": "9",
+   "unoccupied": {
+    "DECADDR": "1307",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "S-1": {
+   "discipline": "CTC",
+   "name": "Track S-1",
+   "occupied": {
+    "DECADDR": "206",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS S-1",
+    "command": "close"
+   },
+   "station": "S-1",
+   "unoccupied": {
+    "DECADDR": "206",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "S-2": {
+   "discipline": "CTC",
+   "name": "Track S-2",
+   "occupied": {
+    "DECADDR": "205",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS S-2",
+    "command": "close"
+   },
+   "station": "S-2",
+   "unoccupied": {
+    "DECADDR": "205",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "S-3": {
+   "discipline": "CTC",
+   "name": "Track S-3",
+   "occupied": {
+    "DECADDR": "204",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS S-3",
+    "command": "close"
+   },
+   "station": "S-3",
+   "unoccupied": {
+    "DECADDR": "204",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "S-4": {
+   "discipline": "CTC",
+   "name": "Track S-4",
+   "occupied": {
+    "DECADDR": "203",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS S-4",
+    "command": "close"
+   },
+   "station": "S-4",
+   "unoccupied": {
+    "DECADDR": "203",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "S-R": {
+   "discipline": "CTC",
+   "name": "Track S-R",
+   "occupied": {
+    "DECADDR": "207",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS S-R",
+    "command": "close"
+   },
+   "station": "S-R",
+   "unoccupied": {
+    "DECADDR": "207",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "Scale": {
+   "discipline": "CTC",
+   "name": "Track Scale",
+   "occupied": {
+    "DECADDR": "407",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Scale",
+    "command": "close"
+   },
+   "station": "Scale",
+   "unoccupied": {
+    "DECADDR": "407",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "W-1": {
+   "discipline": "CTC",
+   "name": "Track W-1",
+   "occupied": {
+    "DECADDR": "403",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS W-1",
+    "command": "close"
+   },
+   "station": "W-1",
+   "unoccupied": {
+    "DECADDR": "403",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "W-2": {
+   "discipline": "CTC",
+   "name": "Track W-2",
+   "occupied": {
+    "DECADDR": "402",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS W-2",
+    "command": "close"
+   },
+   "station": "W-2",
+   "unoccupied": {
+    "DECADDR": "402",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  },
+  "West Ext": {
+   "discipline": "CTC",
+   "name": "Track West Ext",
+   "occupied": {
+    "DECADDR": "107",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS West Ext",
+    "command": "close"
+   },
+   "station": "West",
+   "unoccupied": {
+    "DECADDR": "107",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
+  }
+ },
+ "masts": {
+  "2035": {
+   "name": "Mast 2035",
+   "template": "single"
+  },
+  "2036": {
+   "name": "Mast 2036",
+   "template": "single"
+  },
+  "24L": {
+   "name": "Mast 24L",
+   "template": "double"
+  },
+  "24RA": {
+   "name": "Mast 24RA",
+   "template": "double"
+  },
+  "24RB": {
+   "name": "Mast 24RB",
+   "template": "single"
+  },
+  "2L": {
+   "name": "Mast 2L",
+   "template": "double"
+  },
+  "32R": {
+   "name": "Mast 32R",
+   "template": "single"
+  },
+  "34L": {
+   "name": "Mast 34L",
+   "template": "double"
+  },
+  "34R": {
+   "name": "Mast 34R",
+   "template": "double"
+  },
+  "36RA": {
+   "name": "Mast 36RA",
+   "template": "double"
+  },
+  "36RB": {
+   "name": "Mast 36RB",
+   "template": "double"
+  },
+  "38LA": {
+   "name": "Mast 38LA",
+   "template": "double"
+  },
+  "38LB": {
+   "name": "Mast 38LB",
+   "template": "single"
+  },
+  "40LA": {
+   "name": "Mast 40LA",
+   "template": "double"
+  },
+  "40LB": {
+   "name": "Mast 40LB",
+   "template": "single"
+  },
+  "4RA": {
+   "name": "Mast 4RA",
+   "template": "single"
+  },
+  "4RB": {
+   "name": "Mast 4RB",
+   "template": "single"
+  },
+  "6LA": {
+   "name": "Mast 6LA",
+   "template": "single"
+  },
+  "6LB": {
+   "name": "Mast 6LB",
+   "template": "single"
+  },
+  "8LA": {
+   "name": "Mast 8LA",
+   "template": "double"
+  },
+  "8LB": {
+   "name": "Mast 8LB",
+   "template": "single"
+  },
+  "8RA": {
+   "name": "Mast 8RA",
+   "template": "double"
+  },
+  "8RB": {
+   "name": "Mast 8RB",
+   "template": "double"
+  }
+ },
+ "switches": {
+  "1": {
+   "block": "OS Switch 1",
+   "normal": "C",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "408",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 1",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "408",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 1",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "408",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 1",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "408",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 1",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "11": {
+   "block": "OS Switch 11",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1309",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 11",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1309",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 11",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1309",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 11",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1309",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 11",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "13": {
+   "block": "OS Switch 13",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "411",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 13",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "411",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 13",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "411",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 13",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "411",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 13",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "15": {
+   "block": "OS Switch 15",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 15",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 15",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 15",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 15",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "17": {
+   "block": "OS Switch 17",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "309",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 17",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "309",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 17",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "309",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 17",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "309",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 17",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "19": {
+   "block": "OS Switch 19",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "310",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 19",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "310",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 19",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "310",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 19",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "310",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 19",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "21": {
+   "block": "OS Switch 21",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "311",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 21",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "311",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 21",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "311",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 21",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "311",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 21",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "23/T118": {
+   "block": "OS Switch 23b",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1212",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 23",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1212",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 23",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1212",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 23",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1212",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 23",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "23/T58": {
+   "block": "OS Switch 23a",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1212",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 23",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1212",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 23",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1212",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 23",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1212",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 23",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "25": {
+   "block": "OS Switch 25",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1208",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 25",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1208",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 25",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1208",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 25",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1208",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 25",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "27": {
+   "block": "OS Switch 27",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1209",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 27",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1209",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 27",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1209",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 27",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1209",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 27",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "29": {
+   "block": "OS Switch 29",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1210",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 29",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1210",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 29",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1210",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 29",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1210",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 29",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "3": {
+   "block": "OS Switch 3",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "409",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 3",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "409",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 3",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "409",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 3",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "409",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 3",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "31": {
+   "block": "OS Switch 31",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1211",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 31",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1211",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 31",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1211",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 31",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1211",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 31",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "33": {
+   "block": "OS Switch 33",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1213",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 33",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1213",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 33",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1213",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 33",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1213",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 33",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "35/T55": {
+   "block": "OS Switch 35b",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "108",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 35",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "108",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 35",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "108",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 35",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "108",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 35",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "35/T98": {
+   "block": "OS Switch 35a",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "108",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 35",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "108",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 35",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "108",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 35",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "108",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 35",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "37": {
+   "block": "OS Switch 37",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "109",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 37",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "109",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 37",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "109",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 37",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "109",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 37",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "39": {
+   "block": "OS Switch 39",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "110",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 39",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "110",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 39",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "110",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 39",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "110",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 39",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "5": {
+   "block": "OS Switch 5",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "410",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 5",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "410",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 5",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "410",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 5",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "410",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 5",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "7/7a": {
+   "block": "OS Switch 7",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 7",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 7",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 7",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 7",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "7/7b": {
+   "block": "OS Switch 7b",
+   "normal": "B",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 7",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 7",
+      "command": "close"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 7",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1308",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 7",
+      "command": "throw"
+     }
+    }
+   }
+  },
+  "9": {
+   "block": "OS Switch 9",
+   "normal": "C",
+   "routes": {
+    "B": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1310",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 9",
+      "command": "throw"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1310",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 9",
+      "command": "throw"
+     }
+    },
+    "C": {
+     "ROUTECOMMAND": {
+      "DECADDR": "1310",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 9",
+      "command": "close"
+     },
+     "SELECTEDREPORT": {
+      "DECADDR": "1310",
+      "JMRIPREFIX": "M2T",
+      "USER_NAME": "Switch 9",
+      "command": "close"
+     }
+    }
+   }
+  }
+ }
+}
