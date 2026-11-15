@@ -743,6 +743,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    if args.generated and not args.tables:
+        print("ERROR: --generated is for a generated candidate named by --tables; the live tables.xml keeps its "
+              "pinned label pixels checked")
+        return 2
     try:
         boundaries = load_boundaries(args.boundaries)
     except (OSError, KeyError, ValueError) as exc:

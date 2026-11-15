@@ -226,6 +226,32 @@ class Cutover(unittest.TestCase):
         self.assertFalse({"BRICK", "SOUTH YARD", "1", "39", "S-R"} & texts)
         self.assertLessEqual({"SW-1", "SW-39", "Brick", "South Yard", "Track S-R"}, texts)
 
+    def test_overlay_report_is_printed(self) -> None:
+        lines = B.overlay_lines(self.P.overlay)
+        self.assertTrue(lines[0].startswith(f"{len(self.P.overlay['records'])} live items carried"))
+        self.assertIn("BRICK", lines[1])
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
+                B, "build", return_value=(self.data, self.P, self.names, self.bands)):
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                B.main(["--levels", "staging", "--as-live", "--out", str(Path(tmp) / "c.xml")])
+        self.assertIn("  overlay: generated labels dropped", out.getvalue())
+        self.assertIn("panel 'HART Railroad'", out.getvalue())
+
+    def test_each_option_set_has_its_own_trial_file(self) -> None:
+        self.assertEqual(B.default_out("all", False), B.TRIAL)
+        self.assertEqual(B.default_out("staging", False), B.TRIAL_STAGING)
+        self.assertEqual(B.default_out("staging", True), B.CUTOVER)
+        self.assertEqual(len({B.TRIAL, B.TRIAL_STAGING, B.CUTOVER}), 3)
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "TRIAL_STAGING", Path(tmp) / "s.xml"), \
+                mock.patch.object(B, "TRIAL", Path(tmp) / "a.xml"), \
+                mock.patch.object(B, "build", return_value=(self.data, self.P, self.names, self.bands)):
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(B.main(["--levels", "staging"]), 0)
+                self.assertEqual(B.main(["--levels", "staging", "--check"]), 0)
+                self.assertEqual(B.main(["--check"]), 1)          # the all-levels trial is another file
+            self.assertTrue((Path(tmp) / "s.xml").exists())
+            self.assertFalse((Path(tmp) / "a.xml").exists())
+
     def test_check_mode_and_out(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
                 B, "build", return_value=(self.data, self.P, self.names, self.bands)) as built:
@@ -274,6 +300,25 @@ class BuilderErrors(unittest.TestCase):
         le.find("positionablepoint[@ident='EB3']").set("connect1name", "T3")     # two bumpers end block B
         with self.assertRaisesRegex(B.BuildError, "two bumpers"):
             B.staging_idents(le, {})
+
+    def test_live_points_off_the_track_stop(self) -> None:
+        le = two_block_panel()
+        le.find("positionablepoint[@ident='EB3']").attrib.pop("connect1name")      # a bumper on nothing
+        with self.assertRaisesRegex(B.BuildError, "END_BUMPER EB3 connects to no track"):
+            B.staging_idents(le, {})
+        le = two_block_panel()
+        le.find("tracksegment[@ident='T4']").attrib.pop("blockname")
+        with self.assertRaisesRegex(B.BuildError, "EB3 meets a track segment with no block"):
+            B.staging_idents(le, {})
+        le = two_block_panel()
+        le.find("positionablepoint[@ident='A1']").set("connect2name", "T99")
+        with self.assertRaisesRegex(B.BuildError, "ANCHOR A1 connects to"):
+            B.staging_idents(le, {})
+
+    def test_generated_audit_needs_a_candidate(self) -> None:
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(AUDIT.main(["--generated"]), 2)
+        self.assertIn("--tables", out.getvalue())
 
     def test_leg_b_reads_the_live_leg(self) -> None:
         le = two_block_panel()
@@ -355,6 +400,20 @@ class OverlayErrors(unittest.TestCase):
         self.assertFalse(one)                                     # two pieces apart: reported as unchained
         with self.assertRaisesRegex(ov.OverlayError, "no drawn track"):
             tr.where("C", (0, 0))
+
+    def test_moving_the_panel_down_moves_bezier_control_points(self) -> None:
+        ov = self.ov
+        le = ET.fromstring('<LayoutEditor><tracksegment ident="T1" bezier="yes"><controlpoints>'
+                           '<controlpoint index="0" x="5" y="10"/></controlpoints></tracksegment>'
+                           '<positionablepoint ident="A1" x="1" y="2"/></LayoutEditor>')
+        ov.shift_panel(le, 7)
+        self.assertEqual(le.find(".//controlpoint").get("y"), "17.0")
+        self.assertEqual(le.find(".//controlpoint").get("x"), "5")
+        self.assertEqual(le.find("positionablepoint").get("y"), "9.0")
+
+    def test_a_flat_live_track_stops(self) -> None:
+        with self.assertRaisesRegex(self.ov.OverlayError, "spans no height"):
+            self.ov.frame_point((5, 5), (0, 3, 10, 3), (0, 0, 10, 10))
 
     def test_no_clear_spot_stops(self) -> None:
         ov = self.ov

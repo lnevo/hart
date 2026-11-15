@@ -80,6 +80,7 @@ from hartlib import paths, tables  # noqa: E402
 
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"
+TRIAL_STAGING = paths.LAYOUT_OUTPUT / "trial" / "tables_layout_staging.xml"
 LEVELS = ("all", "staging")
 PANEL_NAME = "Layout (generated)"
 TEMPLATE_PANEL = "HART Railroad"     # the live panel: staging's names, and the attributes the new panel copies
@@ -392,7 +393,11 @@ def staging_names(band, live_le: ET.Element, tidy) -> dict:
         names["normal"][n] = legs[0]
         # the band leg that is the live Layout Editor leg B: the one whose first block is live leg B's
         live_b = live_leg_first(chains, lts, ident, "B")
-        on_b = [p for p in "BC" if first[p] == live_b]
+        if live_b is None or None in first.values():
+            raise BuildError(f"staging switch {d['label']}: no block past live {ident} leg B ({live_b}) or past "
+                             f"drawn leg B ({first['B']}) or C ({first['C']}), so leg B cannot be matched")
+        track = lambda b: re.sub(r" (East|West)$", "", b)      # noqa: E731  "Track S-4 West" is S-4, as above
+        on_b = [p for p in "BC" if first[p] == live_b] or [p for p in "BC" if track(first[p]) == track(live_b)]
         if len(on_b) != 1:
             raise BuildError(f"staging switch {d['label']}: live {ident} leg B reaches {live_b}, which "
                              f"{'both' if on_b else 'neither'} of its drawn legs B ({first['B']}) and C "
@@ -428,7 +433,13 @@ def staging_idents(live_le: ET.Element, turnouts: dict) -> dict:
     segs = {s.get("ident"): s for s in live_le.findall("tracksegment")}
     boundaries, ends, seen_pairs = [], {}, set()
     for p in live_le.findall("positionablepoint"):
-        blocks = [segs[c].get("blockname") for c in (p.get("connect1name"), p.get("connect2name")) if c]
+        conns = [c for c in (p.get("connect1name"), p.get("connect2name")) if c]
+        if not conns or any(c not in segs for c in conns):
+            raise BuildError(f"live panel: {p.get('type')} {p.get('ident')} connects to "
+                             f"{conns or 'no track'}, not to track segments of the panel")
+        blocks = [segs[c].get("blockname") for c in conns]
+        if not all(blocks):
+            raise BuildError(f"live panel: {p.get('type')} {p.get('ident')} meets a track segment with no block")
         if p.get("type") == "END_BUMPER":
             if blocks[0] in ends:
                 raise BuildError(f"live panel: block {blocks[0]} ends at two bumpers ({ends[blocks[0]]}, "
@@ -881,9 +892,10 @@ def main(argv=None) -> int:
     ap.add_argument("--as-live", action="store_true",
                     help="write the cut-over candidate: the live panel replaced by the new one (needs --levels "
                          "staging; default out: the trial tables_cutover.xml)")
-    ap.add_argument("--out", type=Path, help="where to write (default: the trial file)")
+    ap.add_argument("--out", type=Path, help="where to write (default: the trial file for these options: "
+                    "tables_layout.xml, tables_layout_staging.xml or tables_cutover.xml)")
     args = ap.parse_args(argv)
-    out = args.out or (CUTOVER if args.as_live else TRIAL)
+    out = args.out or default_out(args.levels, args.as_live)
     if live_target(out):
         print(f"ERROR: {out} is the live tables or in the JMRI profile; the trial is for viewing only and is "
               "written beside them, never over them")
@@ -894,7 +906,7 @@ def main(argv=None) -> int:
         print(f"ERROR: {exc}")
         return 1
     _, le_mod, _ = plugin()
-    summary = f"panel {TEMPLATE_PANEL if args.as_live else PANEL_NAME!r}: {le_mod.summary(P)}"
+    summary = f"panel {(TEMPLATE_PANEL if args.as_live else PANEL_NAME)!r}: {le_mod.summary(P)}"
     if args.check:
         if not out.exists() or out.read_bytes() != data:
             print(f"STALE: {paths.rel(out)}; run {paths.rel(Path(__file__))}")
@@ -910,9 +922,34 @@ def main(argv=None) -> int:
             print(f"  note: {line}")
     for line in P.mast_notes:
         print(f"  mast at a helix join: {line}")
-    for line in getattr(P, "overlay_log", []):
+    for line in overlay_lines(getattr(P, "overlay", None)):
         print(f"  overlay: {line}")
     return 0
+
+
+def default_out(levels: str, as_live: bool) -> Path:
+    """The trial file for these options, so --check always compares like with like."""
+    if as_live:
+        return CUTOVER
+    return TRIAL_STAGING if levels == "staging" else TRIAL
+
+
+def overlay_lines(report) -> list[str]:
+    """The overlay report (le_overlay.carry) as printed lines; none without one."""
+    if not report:
+        return []
+    kinds = defaultdict(int)
+    for r in report["records"]:
+        kinds[r["anchor"].split(" ", 1)[0] if r["anchor"].startswith("group") else r["anchor"]] += 1
+    out = [f"{len(report['records'])} live items carried ({', '.join(f'{v} {k}' for k, v in sorted(kinds.items()))})"
+           f"; panel {report['size'][0]}x{report['size'][1]} px, moved down {report['down']} px",
+           "generated labels dropped (the live panel gives them): " + (", ".join(report["dropped"]) or "none")]
+    if report["unchained"]:
+        out.append("blocks whose track is not one run (an item's share read against its pieces in order): "
+                   + ", ".join(report["unchained"]))
+    far = sorted(report["records"], key=lambda r: -r["nudged"])[:5]
+    out.append("nudged furthest: " + ", ".join(f"{r['item']} {r['nudged']:g} px" for r in far))
+    return out
 
 
 if __name__ == "__main__":

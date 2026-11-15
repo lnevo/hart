@@ -456,6 +456,9 @@ def frame_point(p, live_box, gen_box):
     out = []
     for k in (0, 1):
         lo, hi, glo, ghi = live_box[k], live_box[k + 2], gen_box[k], gen_box[k + 2]
+        if hi - lo < EPS:
+            raise OverlayError(f"the live track spans no {'width' if k == 0 else 'height'}, so an item's share "
+                               "across it is undefined")
         if p[k] < lo:
             out.append(glo - (lo - p[k]))
         elif p[k] > hi:
@@ -713,7 +716,10 @@ def carry(live_le, gen_le, P, root, le_mod, slots_mod, switch_ident: dict, fit: 
         if it.new != (round(it.new[0]), round(it.new[1])):
             raise OverlayError(f"{it.what}: placed at {it.new}, not on whole pixels")
         it.new = (round(it.new[0]), round(it.new[1]))
-    top = min(min(it.new[1] for it in items if not it.backdrop), TOP)
+    placed = [it.new[1] for it in items if not it.backdrop]
+    if not placed:
+        raise OverlayError("the live panel has no overlay item to carry but its backdrop")
+    top = min(min(placed), TOP)
     down = TOP - top if top < TOP else 0
     if down:
         shift_panel(gen_le, down)
@@ -753,6 +759,9 @@ def shift_panel(le, dy):
         elif el.tag == "layoutShape":
             for p in el.iter("point"):
                 p.set("y", f"{float(p.get('y')) + dy:.1f}")
+        elif el.tag == "tracksegment":          # a Bezier's control points are absolute
+            for c in el.iter("controlpoint"):
+                c.set("y", f"{float(c.get('y')) + dy:.1f}")
 
 
 def fit_size(le, items, P, down, le_mod, fit):
