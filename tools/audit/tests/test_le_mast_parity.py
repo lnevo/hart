@@ -1,4 +1,5 @@
-"""Mast parity between the live "HART Railroad" panel and the generated "Layout (generated)" panel (staging).
+"""Mast parity between the hand-drawn "HART Railroad" panel, as its masts are frozen in
+jmri/layouts/hart/data/schematic/staging_le/masts.csv, and the generated "Layout (generated)" panel (staging).
 
 Signal Mast Logic discovery, the Dispatcher System and Entry/Exit never read a mast icon: they read the slot a mast
 is bound in and resolve its facing block (where the train stands when it reads the mast) and protected blocks (what
@@ -62,8 +63,10 @@ class MastParity(unittest.TestCase):
         cls.slots = B.slots_module()
         cls.root = tables.loads(cls.data).root
         cls.gen_le = tables.layout_editor(cls.root, B.PANEL_NAME)
-        cls.live_le = tables.layout_editor(tables.read(paths.TABLES_XML), B.TEMPLATE_PANEL)
-        cls.live = masts_by_name(cls.slots.Index(cls.live_le))
+        cls.frozen = {m["mast"]: m for m in B.le_inputs.load_masts()}
+        cls.live = {n: dict(mast=n, kind=m["kind"], ident=m["ident"], slot=m["slot"], facing=m["facing"],
+                            protects=m["protects"], **({"turnout": m["turnout"]} if m["kind"] == "turnout" else {}))
+                    for n, m in cls.frozen.items()}
         cls.gen_ix = cls.slots.Index(cls.gen_le)
         cls.gen = masts_by_name(cls.gen_ix)
         cls.hidden = {s.get("ident"): s.get("blockname") for s in cls.gen_le.findall("tracksegment")
@@ -112,10 +115,8 @@ class MastParity(unittest.TestCase):
             self.assertNotIn(icon.get("signalmast"), icons, "two icons for one mast")
             icons[icon.get("signalmast")] = icon
         self.assertEqual(set(icons), set(self.gen))
-        live_hidden = {}           # hidden only when every live icon of the mast is (build_layout_le's rule)
-        for i in self.live_le.findall("signalmasticon"):
-            was = live_hidden.get(i.get("signalmast"), "yes")
-            live_hidden[i.get("signalmast")] = "yes" if was == "yes" and i.get("hidden") == "yes" else "no"
+        # hidden only when every icon of the mast on the hand-drawn panel was (le_inputs.live_icons_hidden)
+        live_hidden = {n: "yes" if m["hidden"] else "no" for n, m in self.frozen.items()}
         size = {m["mast"]: m["box"][2:] for m in self.P.masts}
         for name, m in sorted(self.gen.items()):
             with self.subTest(mast=name):

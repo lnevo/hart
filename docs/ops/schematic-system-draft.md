@@ -24,4 +24,4 @@ Checked 2026-11-14: both reproduce the committed graphs except for a `notes` lis
 
     python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); json.dump([{"name": p["name"], "eps": [{k: e[k] for k in "xyz"} for e in p["eps"] if e["sys"] == p["sys"]]} for p in d], open(sys.argv[2], "w"), separators=(",", ":"))' raw_parts.json $I/parts.json
 
-The staging masts, `staging.signals.json`, come from `tables.xml`, `switches.csv` and `block_lengths.csv`: `python3 tools/schematic/build_signals.py` regenerates them and `--check` (in `tools/check.sh`) fails when they are stale.
+The staging masts, `staging.signals.json`, come from `jmri/layouts/hart/data/schematic/staging_le/masts.csv`, frozen from the hand-drawn Layout Editor panel on 2026-11-15 (the generated Layout Editor panel places its masts from the same file): `python3 tools/schematic/build_signals.py` regenerates them, checking each run against the plan graph, and `--check` (in `tools/check.sh`) fails when they are stale.

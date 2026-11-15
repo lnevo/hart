@@ -143,6 +143,15 @@ class NameCopiesTest(unittest.TestCase):
         gen = self.write("www/data/x.json", '{"m": "Mast 32L"}\n')
         self.assertEqual([], self.stale([md, gen]))
 
+    def test_frozen_schematic_files_are_read_and_generated_ones_not(self):
+        sch = "jmri/layouts/hart/data/schematic/"
+        for rel in ("staging_le/masts.csv", "staging_le/overlay.json", "staging.plan_overrides.json"):
+            self.assertTrue(check.readable(sch + rel), rel)
+        for rel in ("staging.signals.json", "hands.csv", "device_map_main_upper.csv", "inputs/staging.json"):
+            self.assertFalse(check.readable(sch + rel), rel)
+        hand = self.write(sch + "staging_le/masts.csv", "mast\nMast 32L\n")
+        self.assertEqual([f"{hand}:2: 'Mast 32L' is not a current name"], self.stale([hand]))
+
     def test_a_folder_that_is_not_a_checkout_stops_instead_of_walking_it(self):
         with self.assertRaises(SystemExit) as cm:
             check.tracked_files(self.tmp)

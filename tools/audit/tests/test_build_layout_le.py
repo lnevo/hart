@@ -73,26 +73,31 @@ def used_blocks(le) -> set:
     return out
 
 
-def closed_block(le) -> dict:
-    """{turnout name: block of the track on its closed route} for each plain turnout."""
-    segs = {s.get("ident"): s for s in le.findall("tracksegment")}
+def closed_block(facts: dict) -> dict:
+    """{turnout name: block of the track on its closed route} for each plain turnout (`facts`: turnout facts, from
+    B.turnout_facts(panel) or the frozen le_inputs.Inputs.turnout_facts())."""
     out = {}
-    for t in le.findall("layoutturnout"):
-        if "XOVER" not in t.get("type"):
-            leg = "b" if t.get("continuing") == "2" else "c"
-            out[t.get("turnoutname")] = segs[t.get(f"connect{leg}name")].get("blockname")
+    for t in facts.values():
+        if "XOVER" not in t["type"]:
+            out[t["name"]] = t["legs"]["B" if t["continuing"] == "2" else "C"]
     return out
 
 
-def crossover_legs(le) -> dict:
+def crossover_legs(facts: dict) -> dict:
     """{turnout name: (type, sorted (leg block, block of the track on that leg))} for each crossover."""
-    segs = {s.get("ident"): s for s in le.findall("tracksegment")}
     out = {}
-    for t in le.findall("layoutturnout"):
-        if "XOVER" in t.get("type") and t.get("type") != "DOUBLE_XOVER":
-            pairs = sorted(((t.get("blockname") if leg == "a" else t.get(f"block{leg}name") or t.get("blockname")),
-                            segs[t.get(f"connect{leg}name")].get("blockname")) for leg in "abcd")
-            out[t.get("turnoutname")] = (t.get("type"), pairs)
+    for t in facts.values():
+        if "XOVER" in t["type"] and t["type"] != "DOUBLE_XOVER":
+            own = t["blocks"][0]
+            pairs = sorted(((own if i == 0 else t["blocks"][i] or own), t["legs"][leg]) for i, leg in enumerate("ABCD"))
+            out[t["name"]] = (t["type"], pairs)
+    return out
+
+
+def frozen_blocks(inputs) -> set:
+    out = {b for c in inputs.chains for b in c["blocks"]}
+    for t in inputs.turnouts:
+        out |= {t[a] for a in ("blockname", "blockbname", "blockcname", "blockdname") if t.get(a)}
     return out
 
 
@@ -110,23 +115,23 @@ class Built(unittest.TestCase):
         cls.root = tables.loads(cls.data).root
         cls.live = tables.read(paths.TABLES_XML)
         cls.le = tables.layout_editor(cls.root, B.PANEL_NAME)
-        cls.live_le = tables.layout_editor(cls.live, LIVE_PANEL)
+        cls.inputs = B.le_inputs.load()          # the staging facts frozen from the hand-drawn panel
         cls.items = {el.get("ident"): el for el in tables.elements(cls.le) if el.get("ident")}
 
     # ---- staging is the live railroad
     def test_every_live_staging_turnout_and_block_is_on_the_new_panel(self) -> None:
-        live_turnouts = {t.get("turnoutname") for t in self.live_le.findall("layoutturnout")}
+        live_turnouts = {t["turnoutname"] for t in self.inputs.turnouts}
         new_turnouts = {t.get("turnoutname") for t in self.le.findall("layoutturnout")}
         self.assertTrue(live_turnouts)
         self.assertLessEqual(live_turnouts, new_turnouts)
-        self.assertLessEqual(used_blocks(self.live_le), used_blocks(self.le))
+        self.assertLessEqual(frozen_blocks(self.inputs), used_blocks(self.le))
 
     def test_closed_routes_and_crossovers_match_the_live_panel(self) -> None:
-        live, new = closed_block(self.live_le), closed_block(self.le)
+        live, new = closed_block(self.inputs.turnout_facts()), closed_block(B.turnout_facts(self.le))
         self.assertEqual(len(live), 17)
         for name, block in live.items():
             self.assertEqual(new[name], block, name)
-        live_x, new_x = crossover_legs(self.live_le), crossover_legs(self.le)
+        live_x, new_x = crossover_legs(self.inputs.turnout_facts()), crossover_legs(B.turnout_facts(self.le))
         self.assertEqual(sorted(live_x), ["Switch 23", "Switch 35", "Switch 7"])
         for name, legs in live_x.items():
             self.assertEqual(new_x[name], legs, name)
@@ -315,7 +320,7 @@ class Pieces(unittest.TestCase):
                'connect2name="EB2" type2="POS_POINT"/>'
                '<tracksegment ident="T3" blockname="Z" connect1name="EB3" type1="POS_POINT" '
                'connect2name="TO1" type2="TURNOUT_C"/></LayoutEditor>')
-        chains = B.live_chains(ET.fromstring(xml))
+        chains = B.le_inputs.live_chains(ET.fromstring(xml))
         got = {c["ends"][0][1]: c["blocks"] for c in chains}
         self.assertEqual(got, {"A": ["X West", "X"], "B": ["Y"], "C": ["Z"]})
 
@@ -376,8 +381,8 @@ class ReviewFixes(unittest.TestCase):
             xml = ('<LayoutEditor name="P"><layoutturnout ident="TO1" type="RH_TURNOUT" connectaname="T1"/>' + far +
                    f'<tracksegment ident="T1" blockname="X" connect1name="TO1" type1="TURNOUT_A" '
                    f'connect2name="{name}" type2="{typ}"/></LayoutEditor>')
-            with self.assertRaisesRegex(B.BuildError, "does not follow"):
-                B.live_chains(ET.fromstring(xml))
+            with self.assertRaisesRegex(B.le_inputs.InputsError, "does not follow"):
+                B.le_inputs.live_chains(ET.fromstring(xml))
 
     def test_tables_with_no_names_only_block_pass_stop(self) -> None:
         doc = tables.load(paths.TABLES_XML)
@@ -413,15 +418,27 @@ class SecondReview(unittest.TestCase):
         el = ET.fromstring(anchor_panel(*["M"] + [""] * (n_anchors - 1)))
         P = mock.Mock(turnouts=[], points={p.get("ident"): {"band": 0} for p in el.findall("positionablepoint")},
                       masts=[dict(mast="M", kind="anchor", ident="A1", slot="east")])
+        P.name = lambda i: i            # Mock's own name= argument is not an attribute: set it after
+        P.moved = []
         le_mod = mock.Mock(to_xml=lambda *_a: el)
         return P, el, le_mod
 
     def test_a_mast_two_slots_would_fit_stops_the_build(self) -> None:
+        want = [{"mast": "M", "kind": "anchor", "ident": "A1", "slot": "east"}]
         P, el, le_mod = self.fake(1)
-        B.check_slots(P, [{"mast": "M"}], el, le_mod)                       # one W|E boundary: certain
+        B.check_slots(P, want, le_mod)                                      # one W|E boundary: certain
         P, el, le_mod = self.fake(2)
         with self.assertRaisesRegex(B.BuildError, "fits 2 slots"):
-            B.check_slots(P, [{"mast": "M"}], el, le_mod)
+            B.check_slots(P, want, le_mod)
+        P, el, le_mod = self.fake(1)
+        with self.assertRaisesRegex(B.BuildError, "M was not asked for"):
+            B.check_slots(P, [], le_mod)
+        for ident, slot in (("A2", "east"), ("A1", "west")):         # masts.csv edited by hand: it must take effect
+            with self.subTest(ident=ident, slot=slot), self.assertRaisesRegex(
+                    B.BuildError, f"M stands at A1 east, masts.csv says {ident} {slot}"):
+                B.check_slots(P, [dict(want[0], ident=ident, slot=slot)], le_mod)
+        P.moved = [("t", "M", "at a helix join")]                    # the all-levels trial's helix-join masts
+        B.check_slots(P, [dict(want[0], ident="EB9", slot="west")], le_mod)
 
     def test_slots_naming_a_mast_by_system_name_resolve(self) -> None:
         root = tables.read(paths.TABLES_XML)
@@ -430,7 +447,7 @@ class SecondReview(unittest.TestCase):
         point = next(p for p in live.findall("positionablepoint") if p.get("eastboundsignalmast") == "Mast 16R")
         point.set("eastboundsignalmast", system["Mast 16R"])
         with contextlib.redirect_stdout(io.StringIO()):
-            got = {m["mast"]: m for m in B.staging_masts(root, live)}
+            got = {m["mast"]: m for m in B.le_inputs.staging_masts(root, live, B.slots_module())}
         self.assertIn(system["Mast 16R"], got)
         self.assertEqual(got[system["Mast 16R"]]["icon"], list(tables.MAST_ICON_DWARF))     # one-low virtual
         self.assertTrue(got[system["Mast 16R"]]["hidden"])
@@ -439,7 +456,7 @@ class SecondReview(unittest.TestCase):
         live = ET.fromstring('<LayoutEditor><signalmasticon signalmast="M" hidden="yes"/>'
                              '<signalmasticon signalmast="M" hidden="no"/>'
                              '<signalmasticon signalmast="N" hidden="yes"/></LayoutEditor>')
-        self.assertEqual(B.live_icons_hidden(live, {}), {"M": False, "N": True})
+        self.assertEqual(B.le_inputs.live_icons_hidden(live, {}), {"M": False, "N": True})
 
     def test_the_trial_is_never_written_over_the_live_tables(self) -> None:
         self.assertTrue(B.live_target(paths.TABLES_XML))

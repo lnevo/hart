@@ -52,7 +52,11 @@ SKIP_PREFIXES = (
     NAME_MAP_REL,                                 # the source of the names, old ones included
     TABLES_REL,                                   # JMRI's file; held to the map by the baselines
     "jmri/layouts/hart/data/baselines/",          # capture_public_name_baseline.py --check
-    "jmri/layouts/hart/data/schematic/",          # build_signals.py --check
+    # the generated files of the schematic data; its hand-kept files (staging_le/, the overrides) are read
+    "jmri/layouts/hart/data/schematic/staging.signals.json",          # build_signals.py --check
+    "jmri/layouts/hart/data/schematic/hands.csv",                     # build_hands.py --check
+    "jmri/layouts/hart/data/schematic/device_map_main_upper.csv",     # build_device_map.py --check
+    "jmri/layouts/hart/data/schematic/inputs/",                       # plan graphs read from the AnyRail export
     "www/data/",                                  # build_tables_browser / build_layout_index --check
     "jmri/layouts/hart/scripts/speedmatch/routes.json",  # build_routes.py --check
     "cats/panels/HART_CTC.xml", "cats/panels/HART_ABS.xml",  # test_desks_match_source.py
