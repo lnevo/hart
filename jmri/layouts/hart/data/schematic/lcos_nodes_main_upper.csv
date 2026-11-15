@@ -1,0 +1,18 @@
+level,area,node,source
+2,North,42,proposed: free RF24 address (child of node 2)
+2,North,52,proposed: free RF24 address (child of node 2)
+2,West,33,proposed: free RF24 address (child of node 3)
+2,West,43,proposed: free RF24 address (child of node 3)
+2,West,53,proposed: free RF24 address (child of node 3)
+2,Peninsula,34,proposed: free RF24 address (child of node 4)
+2,Peninsula,44,proposed: free RF24 address (child of node 4)
+3,North,22,LCOS inventory v85: C22 North - Upper
+3,North,32,LCOS inventory v85: C32 North - Upper
+3,Helix,21,LCOS inventory v85: C21 Helix - Upper
+3,Helix,31,proposed: free RF24 address (child of node 1)
+3,Helix,41,proposed: free RF24 address (child of node 1)
+3,Helix,51,proposed: free RF24 address (child of node 1)
+3,West,23,LCOS inventory v85: C23 West - Upper
+3,West,14,LCOS inventory v85: C14 West - Upper
+3,Peninsula,24,LCOS inventory v85: C24 Peninsula - Upper
+3,Peninsula,54,proposed: free RF24 address (child of node 4)

@@ -1,0 +1,15 @@
+cp_id,cp_name,level,switches,area,notes
+cp_101,CP 101,2,"101,103",Peninsula,Yard throat at the peninsula end (plan 51/T194 and 50/T183); the three long yard tracks run from here to CP 105
+cp_105,CP 105,2,"105,109,111,113,115,117,119",West,Yard ladder (105) and main (109 and 111) with the Industry 1 spurs (113 and 115) and the 117/119 crossover to the long siding
+cp_107,CP 107,2,107,West,Balloon loop switch (plan T196)
+cp_121,CP 121,2,"121,123,125,127,131,133",North,East end of the long siding (125 and 127) with the Industry 2 spurs (121 and 123; 131 and 133)
+cp_129,CP 129,2,"129,135",North,"Helix-top crossovers, main level by the owner's rule; their B halves are drawn on the upper band, so the schematic bracket and bar list only 129A and 135A. Old plan: CP5 (North - Upper), Switches 69 and 71"
+cp_201,CP 201,3,"201,203,205,207,219,221",West,"West end of the upper main: 219 and the 221 crossover, 201 and 203, and the Industry 3 spurs 205 and 207. Old plan: CP6, crossover 75"
+cp_209,CP 209,3,209,Peninsula,Upper main junction to the Industry 3 spurs
+cp_211,CP 211,3,"211,215",Peninsula,Industry 3 spurs
+cp_213,CP 213,3,213,Peninsula,Crossover on the upper main around the west loop
+cp_217,CP 217,3,217,Peninsula,Crossover on the upper main around the west loop
+cp_223,CP 223,3,223,North,"Closet junction (plan T300, moved). Old plan: CP5, Switch 73"
+cp_225,CP 225,3,"225,227,229,231,233,237,243,245",Helix,"Double crossover 225 and the peninsula loop entry (227, 229) with the throats of the two yards (district 7: 233, 237, 243, 245; 231). Old plan: CP4, double crossover 61"
+cp_235,CP 235,3,"235,241",Helix,Second yard throat (district 8)
+cp_239,CP 239,3,239,Helix,Peninsula loop switch on the upper main

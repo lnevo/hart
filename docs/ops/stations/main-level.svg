@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1056 816" width="1056" height="816" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
+<rect width="1056" height="816" fill="#fff"/>
+<rect x="24" y="24" width="1008" height="768" fill="none" stroke="#000" stroke-width="1.5"/>
+<g transform="translate(55.6,339.4) scale(0.6771)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+<path d="M784.0,114.0 L840.0,114.0" stroke-width="1.4"/>
+<path d="M840.0,114.0 L980.0,114.0" stroke-width="1.4"/>
+<path d="M924.0,58.0 L980.0,114.0" stroke-width="1.4"/>
+<path d="M420.0,86.0 L532.0,86.0" stroke-width="1.4"/>
+<path d="M364.0,86.0 L420.0,86.0" stroke-width="1.4"/>
+<path d="M336.0,114.0 L392.0,114.0 L420.0,86.0" stroke-width="1.4"/>
+<path d="M532.0,86.0 L560.0,58.0" stroke-width="1.4"/>
+<path d="M448.0,114.0 L504.0,114.0 L532.0,86.0" stroke-width="1.4"/>
+<path d="M560.0,58.0 L588.0,58.0" stroke-width="3.2"/>
+<path d="M588.0,58.0 L896.0,58.0" stroke-width="3.2"/>
+<path d="M308.0,58.0 L336.0,58.0" stroke-width="3.2"/>
+<path d="M280.0,58.0 L308.0,58.0" stroke-width="3.2"/>
+<path d="M840.0,114.0 L868.0,86.0" stroke-width="1.4"/>
+<path d="M280.0,86.0 L308.0,58.0" stroke-width="1.4"/>
+<path d="M84.0,114.0 L252.0,114.0 L280.0,86.0" stroke-width="1.4" stroke-dasharray="7 5"/>
+<path d="M112.0,86.0 L280.0,86.0" stroke-width="1.4" stroke-dasharray="7 5"/>
+<path d="M336.0,58.0 L560.0,58.0" stroke-width="3.2"/>
+<path d="M84.0,142.0 L252.0,142.0 L336.0,58.0" stroke-width="1.4" stroke-dasharray="7 5"/>
+<path d="M0.0,114.0 L56.0,114.0" stroke-width="1.4"/>
+<path d="M56.0,114.0 L84.0,142.0" stroke-width="1.4"/>
+<path d="M84.0,114.0 L112.0,86.0" stroke-width="1.4"/>
+<path d="M56.0,114.0 L84.0,114.0" stroke-width="1.4"/>
+<path d="M896.0,58.0 L924.0,58.0" stroke-width="3.2"/>
+<path d="M980.0,114.0 L1008.0,114.0" stroke-width="1.4"/>
+<path d="M924.0,58.0 L952.0,58.0" stroke-width="3.2"/>
+<path d="M56.0,86.0 L112.0,86.0" stroke-width="1.4"/>
+<path d="M28.0,142.0 L84.0,142.0" stroke-width="1.4"/>
+<path d="M56.0,58.0 L280.0,58.0" stroke-width="3.2" stroke-dasharray="7 5"/>
+<path d="M56.0,30.0 L252.0,30.0 L280.0,58.0" stroke-width="3.2" stroke-dasharray="7 5"/>
+<path d="M1148.0,58.0 L1288.0,58.0" stroke-width="3.2"/>
+<path d="M952.0,58.0 L1148.0,58.0" stroke-width="3.2"/>
+<path d="M1092.0,30.0 L1120.0,30.0 L1148.0,58.0" stroke-width="1.4"/>
+<path d="M952.0,58.0 L980.0,30.0 L1008.0,30.0" stroke-width="1.4"/>
+<path d="M1008.0,114.0 L1064.0,114.0" stroke-width="1.4"/>
+<path d="M1008.0,114.0 L1036.0,142.0 L1092.0,142.0" stroke-width="1.4"/>
+<path d="M868.0,86.0 L896.0,58.0" stroke-width="1.4"/>
+<path d="M616.0,86.0 L868.0,86.0" stroke-width="1.4"/>
+<path d="M560.0,86.0 L616.0,86.0" stroke-width="1.4"/>
+<path d="M588.0,58.0 L616.0,86.0" stroke-width="1.4"/>
+<path d="M56.0,30.0 L42.0,44.0 L42.0,44.0 L56.0,58.0" stroke-width="3.2"/>
+<path d="M784.0,109.0 L784.0,119.0" stroke-width="2.4"/>
+<path d="M364.0,81.0 L364.0,91.0" stroke-width="2.4"/>
+<path d="M336.0,109.0 L336.0,119.0" stroke-width="2.4"/>
+<path d="M448.0,109.0 L448.0,119.0" stroke-width="2.4"/>
+<path d="M0.0,109.0 L0.0,119.0" stroke-width="2.4"/>
+<path d="M56.0,81.0 L56.0,91.0" stroke-width="2.4"/>
+<path d="M28.0,137.0 L28.0,147.0" stroke-width="2.4"/>
+<ellipse cx="1295.0" cy="58.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1302.0" cy="58.0" rx="6" ry="9" stroke-width="1.6"/>
+<ellipse cx="1309.0" cy="58.0" rx="6" ry="9" stroke-width="1.6"/>
+<circle cx="1083.0" cy="30.0" r="8" stroke-width="1.4" fill="#fff"/>
+<circle cx="1017.0" cy="30.0" r="8" stroke-width="1.4" fill="#fff"/>
+<path d="M1064.0,109.0 L1064.0,119.0" stroke-width="2.4"/>
+<path d="M1092.0,137.0 L1092.0,147.0" stroke-width="2.4"/>
+<path d="M560.0,81.0 L560.0,91.0" stroke-width="2.4"/>
+<path d="M46.0,170 L46.0,176 L1158.0,176 L1158.0,170" stroke-width="1.4"/>
+<path d="M29.0,105.0 L24.0,105.0 L24.0,123.0 L29.0,123.0" stroke-width="1.4"/>
+<path d="M139.0,77.0 L144.0,77.0 L144.0,151.0 L139.0,151.0" stroke-width="1.4"/>
+<path d="M259.0,77.0 L254.0,77.0 L254.0,149.0 L259.0,149.0" stroke-width="1.4"/>
+<path d="M687.0,49.0 L692.0,49.0 L692.0,95.0 L687.0,95.0" stroke-width="1.4"/>
+<path d="M265.0,29.0 L260.0,29.0 L260.0,67.0 L265.0,67.0" stroke-width="1.4"/>
+<path d="M289.0,49.0 L294.0,49.0 L294.0,67.0 L289.0,67.0" stroke-width="1.4"/>
+<path d="M783.0,49.0 L778.0,49.0 L778.0,95.0 L783.0,95.0" stroke-width="1.4"/>
+<path d="M1029.0,105.0 L1034.0,105.0 L1034.0,149.0 L1029.0,149.0" stroke-width="1.4"/>
+<path d="M943.0,49.0 L938.0,49.0 L938.0,67.0 L943.0,67.0" stroke-width="1.4"/>
+<path d="M1219.0,49.0 L1224.0,49.0 L1224.0,67.0 L1219.0,67.0" stroke-width="1.4"/>
+<path d="M1158.7,58.0 L1158.7,52.0" stroke-width="1"/>
+<path d="M1158.7,45.6 L1161.9,48.8 L1158.7,52.0 L1155.5,48.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M596.0,58.0 L596.0,52.0" stroke-width="1"/>
+<path d="M596.0,45.6 L599.2,48.8 L596.0,52.0 L592.8,48.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M1234.8,58.0 L1234.8,52.0" stroke-width="1"/>
+<path d="M1234.8,45.6 L1238.0,48.8 L1234.8,52.0 L1231.6,48.8 Z" stroke-width="1" fill="#fff"/>
+<text x="0.0" y="4.0" font-size="12" text-anchor="start" font-weight="bold" fill="#000" stroke="none" letter-spacing="1.5">MAIN LEVEL</text>
+<text x="1322.0" y="61.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H1</text>
+<text x="1338.0" y="61.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO STAGING</text>
+<text x="1083.0" y="33.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >A</text>
+<text x="1017.0" y="33.5" font-size="10" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >B</text>
+<text x="602.0" y="190.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">MAIN LEVEL</text>
+<text x="602.0" y="201.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">119 CARS</text>
+<text x="1169.0" y="70.1" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEES ROCKS</text>
+<text x="1155.0" y="71.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >135A</text>
+<text x="861.0" y="79.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >123</text>
+<text x="280.0" y="71.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >107</text>
+<text x="959.0" y="71.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >129A</text>
+<text x="1158.7" y="43.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.25</text>
+<text x="1082.7" y="53.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
+<text x="1083.0" y="18.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO UPPER LEVEL</text>
+<text x="1017.0" y="49.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO UPPER LEVEL</text>
+<text x="273.0" y="79.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >105</text>
+<text x="596.0" y="43.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2.5</text>
+<text x="581.0" y="51.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >119A</text>
+<text x="560.0" y="51.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >117</text>
+<text x="49.0" y="107.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >101A</text>
+<text x="119.0" y="79.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >103B</text>
+<text x="196.0" y="81.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(24)</text>
+<text x="219.3" y="25.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
+<text x="315.0" y="51.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >109</text>
+<text x="277.0" y="26.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 107"</text>
+<text x="1152.5" y="35.5" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 129"</text>
+<text x="84.0" y="127.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >103A</text>
+<text x="84.0" y="74.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 101"</text>
+<text x="812.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(15)</text>
+<text x="392.0" y="81.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(6)</text>
+<text x="1234.8" y="43.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2</text>
+<text x="525.0" y="79.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >115</text>
+<text x="742.0" y="81.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(14)</text>
+<text x="364.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
+<text x="476.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(4)</text>
+<text x="168.0" y="109.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(22)</text>
+<text x="168.0" y="137.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(26)</text>
+<text x="1064.0" y="137.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(3)</text>
+<text x="917.0" y="51.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >127</text>
+<text x="842.0" y="46.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 121"</text>
+<text x="903.0" y="51.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >125</text>
+<text x="343.0" y="51.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >111</text>
+<text x="473.0" y="46.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"CP 105"</text>
+<text x="833.0" y="127.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >121</text>
+<text x="1001.0" y="107.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >133</text>
+<text x="623.0" y="99.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >119B</text>
+<text x="987.0" y="127.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >131</text>
+<text x="427.0" y="79.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >113</text>
+<text x="91.0" y="155.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >101B</text>
+</g>
+<text x="508.0" y="62" font-size="15" text-anchor="end" font-weight="bold" letter-spacing="2">&#8592; WEST</text>
+<text x="548.0" y="62" font-size="15" text-anchor="start" font-weight="bold" letter-spacing="2">EAST &#8594;</text>
+<rect x="24" y="728" width="330" height="64" fill="#fff" stroke="#000" stroke-width="1.5"/>
+<text x="34" y="748" font-size="14" font-weight="bold" letter-spacing="1">MAIN LEVEL</text>
+<text x="34" y="766" font-size="11" font-weight="normal" letter-spacing="1">STATION DETAIL SHEET</text>
+<text x="34" y="784" font-size="11" font-weight="normal" letter-spacing="1">MAIN LEVEL</text>
+<rect x="354" y="728" width="104" height="64" fill="#fff" stroke="#000" stroke-width="1.5"/>
+<text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 14, 2026</text>
+<path d="M354,749.3 L458,749.3" stroke="#000" stroke-width="0.8"/>
+<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 8</text>
+<text x="344" y="784" font-size="16" text-anchor="end" font-weight="bold" letter-spacing="3" fill="#c00">DRAFT</text>
+</svg>

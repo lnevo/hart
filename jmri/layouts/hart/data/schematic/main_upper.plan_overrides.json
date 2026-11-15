@@ -200,5 +200,113 @@
  "_helix_side": "Fact, not a preference: the helix is at the east end of every level (ADR-022: timetable east runs toward Princess and the helix).",
  "helix_to": "Staging",
  "mast_prefix": "Mast ",
- "mast_dir_pattern": "\\d+([LR])"
+ "mast_dir_pattern": "\\d+([LR])",
+ "control_points": {
+  "CP 101": {
+   "switches": [
+    "101A",
+    "101B",
+    "103A",
+    "103B"
+   ]
+  },
+  "CP 105": {
+   "switches": [
+    "105",
+    "109",
+    "111",
+    "113",
+    "115",
+    "117",
+    "119A",
+    "119B"
+   ]
+  },
+  "CP 107": {
+   "switches": [
+    "107"
+   ]
+  },
+  "CP 121": {
+   "switches": [
+    "121",
+    "123",
+    "125",
+    "127",
+    "131",
+    "133"
+   ]
+  },
+  "CP 129": {
+   "switches": [
+    "129A",
+    "135A"
+   ]
+  },
+  "CP 201": {
+   "switches": [
+    "201",
+    "203",
+    "205",
+    "207",
+    "219",
+    "221A",
+    "221B"
+   ]
+  },
+  "CP 209": {
+   "switches": [
+    "209"
+   ]
+  },
+  "CP 211": {
+   "switches": [
+    "211",
+    "215"
+   ]
+  },
+  "CP 213": {
+   "switches": [
+    "213A",
+    "213B"
+   ]
+  },
+  "CP 217": {
+   "switches": [
+    "217A",
+    "217B"
+   ]
+  },
+  "CP 223": {
+   "switches": [
+    "223*"
+   ]
+  },
+  "CP 225": {
+   "switches": [
+    "225",
+    "227",
+    "229",
+    "231",
+    "233",
+    "237",
+    "243",
+    "245A",
+    "245B"
+   ]
+  },
+  "CP 235": {
+   "switches": [
+    "235",
+    "241A",
+    "241B"
+   ]
+  },
+  "CP 239": {
+   "switches": [
+    "239"
+   ]
+  }
+ },
+ "_control_points": "Placeholder control points 'CP <lowest switch>' (owner, 2026-11-15), written by tools/schematic/build_device_map.py from control_points_main_upper.csv; edit that file, not this key."
 }
