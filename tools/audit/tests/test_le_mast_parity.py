@@ -16,7 +16,10 @@ once in the schematic-maps plugin's slots.py and read here from the XML of each 
 - turnout leg X: faces the block of the track on X and protects the turnout's (leg) block, or, when that track is
   in the turnout's own block, the blocks beyond (crossovers pair A with C and B with D by type).
 
-Exceptions (owner's choice, 2026-11-15), and only these, in HELIX_ENTRANCE: on the live panel McKees Rocks and
+These checks read the all-levels trial. The cut-over candidate (--levels staging --as-live) ends both helix tracks at
+end bumpers as live, so there every mast matches exactly, with no exception (test_le_cutover.py).
+
+Exceptions in the all-levels trial (owner's choice, 2026-11-15), and only these, in HELIX_ENTRANCE: on the live panel McKees Rocks and
 McKeesport end at buffer stops, so their bumper masts protect nothing. The generated panel runs both tracks on
 through the helix to the next level, so there is no bumper: each mast stands on the anchor at the helix entrance
 (the hidden helix run carries the next level's block, so the anchor is a block boundary), facing the same block as

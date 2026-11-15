@@ -3,6 +3,20 @@
 
     python3 tools/schematic/build_layout_le.py           # write the trial tables file
     python3 tools/schematic/build_layout_le.py --check   # fail if the trial file is stale
+    python3 tools/schematic/build_layout_le.py --levels staging --as-live   # the cut-over candidate
+
+Cut-over (staging only, owner approved 2026-11-15). `--levels staging` draws the staging band alone: its helix
+tracks end at end bumpers as live, so every mast resolves exactly as live (no helix-entrance exception), its rows
+STAGING_ROW px apart, and no placeholder object is added to the tables. `--as-live` writes
+jmri/layouts/hart/output/trial/tables_cutover.xml: the live tables with the "HART Railroad" panel replaced, in its
+place, by the generated one under the same name and the live panel's attributes (editable, scrollable, colours,
+turnout sizes, autoblkgenerate), sized by FIT and opening at 0, 0 so the window fits the display; the "Dispatcher
+System" panel and everything else unchanged. In it the staging turnouts, boundary anchors, end bumpers and the
+track segment of each one-segment block keep their live idents (the plugin's `idents`), each turnout keeps its
+live leg letters, type and continuing route (`leg_b`: a switch whose drawn diverging leg is live leg B is drawn
+that way), the Entry/Exit sensors go back in their live slots (same ident and slot, checked to resolve to the same
+blocks), and le_overlay.py carries every live icon and label across (Phase 2). Geometry-assuming scripts
+(polish_hart_layout_editor.py and the others) are Phase 3 and are not run on it.
 
 Writes jmri/layouts/hart/output/trial/tables_layout.xml: the live tables.xml unchanged, plus one new Layout
 Editor panel, PANEL_NAME, and the internal turnouts, blocks and layout blocks the main and upper levels need. The
@@ -65,6 +79,9 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 from hartlib import paths, tables  # noqa: E402
 
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
+CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"
+TRIAL_STAGING = paths.LAYOUT_OUTPUT / "trial" / "tables_layout_staging.xml"
+LEVELS = ("all", "staging")
 PANEL_NAME = "Layout (generated)"
 TEMPLATE_PANEL = "HART Railroad"     # the live panel: staging's names, and the attributes the new panel copies
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
@@ -81,6 +98,9 @@ COMMENT = "Placeholder from the schematic (C3 trial, build_layout_le.py)"
 # and 23 px spare for the Dock's edge is 1140; the 60 px allowance covers the title bar (28 px) and the thin edit
 # toolbar, leaving the panel at most 1080.
 FIT = (1900, 1140)
+# Staging alone fills the window's width long before its height, so its rows may be as far apart as the live
+# panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels.
+STAGING_ROW = 48
 
 
 class BuildError(RuntimeError):
@@ -98,6 +118,21 @@ def plugin():
         sys.path.insert(0, str(folder))
     return (importlib.import_module("schematic.sheet"), importlib.import_module("schematic.le"),
             importlib.import_module("schematic.core"))
+
+
+@functools.lru_cache(maxsize=None)
+def schematic():
+    """(bands, page options) of the solved schematic (the inputs of publish_draft.py), solved once per run."""
+    sheet = plugin()[0]
+    built = sheet.build([(json.loads((pd.GRAPHS / g).read_text(encoding="utf-8")), n) for g, n in pd.INPUTS],
+                        str(pd.DATA))
+    return built.bands, built.opts
+
+
+def overlay_mod():
+    """tools/schematic/le_overlay.py: the live panel's icons and labels carried onto the new one."""
+    import le_overlay
+    return le_overlay
 
 
 def slots_module():
@@ -283,7 +318,8 @@ def staging_names(band, live_le: ET.Element, tidy) -> dict:
             return "END"
         return bare(d.get("label"))
 
-    names = dict(turnouts={}, os={}, normal={}, blocks={})
+    names = dict(turnouts={}, os={}, normal={}, blocks={}, leg_b={})
+    idents = {}                 # switch node -> live turnout ident
     inner = crossover_strands(band)
     used = set()
     run_far = {}                # (node, port) -> label at the other end of its run
@@ -327,6 +363,7 @@ def staging_names(band, live_le: ET.Element, tidy) -> dict:
             raise BuildError(f"staging switch {d['label']}: no live Layout Editor turnout in switches.csv")
         lt = lts[ident]
         names["turnouts"][n] = lt.get("turnoutname")
+        idents[n] = ident
         if "XOVER" in (lt.get("type") or ""):
             mine = {run_far[(n, p)] for p in "AB"}
             ab = {far.get((ident, "A")), far.get((ident, "B"))}
@@ -342,19 +379,83 @@ def staging_names(band, live_le: ET.Element, tidy) -> dict:
         want = closed.get(lt.get("blockname"))
         if want is None:
             raise BuildError(f"staging switch {d['label']}: {lt.get('blockname')} is not in switch_legs.csv")
-        legs = []
+        legs, first = [], {}
         for p in "BC":
             sid = d["ins"].get(p) or d["outs"].get(p)
             seq = names["blocks"][sid] if tuple(strands[sid]["src"]) == (n, p) else names["blocks"][sid][::-1]
-            first = next((b for b in seq if b != lt.get("blockname")), None)
-            if first is None:           # the track is all this switch's OS: the block past it is the next switch's
-                first = far_block[(n, p)]
-            if first == want or re.sub(r" (East|West)$", "", first or "") == want:    # "Track S-4 West" is S-4
+            first[p] = next((b for b in seq if b != lt.get("blockname")), None)
+            if first[p] is None:        # the track is all this switch's OS: the block past it is the next switch's
+                first[p] = far_block[(n, p)]
+            if first[p] == want or re.sub(r" (East|West)$", "", first[p] or "") == want:   # "Track S-4 West" is S-4
                 legs.append(p)
         if len(legs) != 1:
             raise BuildError(f"staging switch {d['label']}: closed leg {want} is on {len(legs)} of its legs")
         names["normal"][n] = legs[0]
+        # the band leg that is the live Layout Editor leg B: the one whose first block is live leg B's
+        live_b = live_leg_first(chains, lts, ident, "B")
+        if live_b is None or None in first.values():
+            raise BuildError(f"staging switch {d['label']}: no block past live {ident} leg B ({live_b}) or past "
+                             f"drawn leg B ({first['B']}) or C ({first['C']}), so leg B cannot be matched")
+        track = lambda b: re.sub(r" (East|West)$", "", b)      # noqa: E731  "Track S-4 West" is S-4, as above
+        on_b = [p for p in "BC" if first[p] == live_b] or [p for p in "BC" if track(first[p]) == track(live_b)]
+        if len(on_b) != 1:
+            raise BuildError(f"staging switch {d['label']}: live {ident} leg B reaches {live_b}, which "
+                             f"{'both' if on_b else 'neither'} of its drawn legs B ({first['B']}) and C "
+                             f"({first['C']}) reach first")
+        names["leg_b"][n] = on_b[0]
+    names["idents"] = staging_idents(live_le, idents)
     return names
+
+
+def live_leg_first(chains: list[dict], lts: dict, ident: str, leg: str) -> str | None:
+    """The first block past a live turnout's own block along its leg (the block of the turnout leg at the far end,
+    when the whole track is in this turnout's block)."""
+    own = lts[ident].get("blockname")
+    for c in chains:
+        for i in (0, 1):
+            if tuple(c["ends"][i]) == (ident, leg):
+                seq = c["blocks"] if i == 0 else c["blocks"][::-1]
+                got = next((b for b in seq if b != own), None)
+                if got is not None:
+                    return got
+                far = c["ends"][1 - i]
+                if far[0] == "END":
+                    return None
+                t = lts[far[0]]
+                return (t.get(f"block{far[1].lower()}name") if far[1] != "A" else None) or t.get("blockname")
+    raise BuildError(f"live panel: turnout {ident} leg {leg} reaches no track")
+
+
+def staging_idents(live_le: ET.Element, turnouts: dict) -> dict:
+    """The plugin's `idents` for staging, from the live panel: each switch's live turnout ident (`turnouts`, node:
+    ident), each anchor between two blocks by that pair, each end bumper by its block, and the track segment of
+    each block the live panel draws as one segment."""
+    segs = {s.get("ident"): s for s in live_le.findall("tracksegment")}
+    boundaries, ends, seen_pairs = [], {}, set()
+    for p in live_le.findall("positionablepoint"):
+        conns = [c for c in (p.get("connect1name"), p.get("connect2name")) if c]
+        if not conns or any(c not in segs for c in conns):
+            raise BuildError(f"live panel: {p.get('type')} {p.get('ident')} connects to "
+                             f"{conns or 'no track'}, not to track segments of the panel")
+        blocks = [segs[c].get("blockname") for c in conns]
+        if not all(blocks):
+            raise BuildError(f"live panel: {p.get('type')} {p.get('ident')} meets a track segment with no block")
+        if p.get("type") == "END_BUMPER":
+            if blocks[0] in ends:
+                raise BuildError(f"live panel: block {blocks[0]} ends at two bumpers ({ends[blocks[0]]}, "
+                                 f"{p.get('ident')}): which is which is a guess")
+            ends[blocks[0]] = p.get("ident")
+        elif p.get("type") == "ANCHOR" and len(blocks) == 2 and blocks[0] != blocks[1]:
+            pair = frozenset(blocks)
+            if pair in seen_pairs:
+                raise BuildError(f"live panel: blocks {sorted(pair)} meet at two anchors: which is which is a guess")
+            seen_pairs.add(pair)
+            boundaries.append(dict(blocks=sorted(blocks), ident=p.get("ident")))
+    count = defaultdict(list)
+    for s in segs.values():
+        count[s.get("blockname")].append(s.get("ident"))
+    one = {b: v[0] for b, v in sorted(count.items()) if b and len(v) == 1}
+    return dict(turnouts=dict(turnouts), boundaries=boundaries, ends=ends, segments=one)
 
 
 def staging_lengths(opts: dict, names: dict) -> dict:
@@ -379,6 +480,22 @@ def staging_lengths(opts: dict, names: dict) -> dict:
         if any(b.startswith("OS ") for b in blocks):
             for b in blocks:
                 out.pop(b, None)
+    return out
+
+
+def live_sensor_slots(live_le: ET.Element) -> dict:
+    """{(ident, slot): sensor} for every sensor the live panel binds in a slot (eastboundsensor / westboundsensor on
+    a point, sensorA..D on a turnout): the Entry/Exit sensors."""
+    out = {}
+    for p in live_le.findall("positionablepoint"):
+        for slot in ("east", "west"):
+            if p.get(f"{slot}boundsensor"):
+                out[(p.get("ident"), slot)] = p.get(f"{slot}boundsensor")
+    for t in live_le.findall("layoutturnout"):
+        for leg in "ABCD":
+            el = t.find(f"sensor{leg}")
+            if el is not None and (el.text or "").strip():
+                out[(t.get("ident"), leg)] = el.text.strip()
     return out
 
 
@@ -546,39 +663,149 @@ def block_sort(name: str):
     return (kind, int(digits or 0), name)
 
 
-def build(live_path: Path = paths.TABLES_XML, bands=None):
-    """(trial tables bytes, the plugin's Panel, {band key: names}, bands)."""
-    sheet, le_mod, core = plugin()
+def joined_ends(bands, staging: dict, le_mod) -> set:
+    """The blocks of the staging tracks that end at a helix or connector join to another drawn band."""
+    band = bands[0][1]
+    out = set()
+    for (bi, n), _other in le_mod.partners(bands).items():
+        if bi != 0:
+            continue
+        d = band["nodes"][n]
+        sid = next(iter(list(d["ins"].values()) + list(d["outs"].values())))
+        blocks = staging["blocks"][sid]
+        out.add(blocks[0] if band["strands"][sid]["src"][0] == n else blocks[-1])
+    return out
+
+
+def bind_sensors(gen_le: ET.Element, live_le: ET.Element) -> int:
+    """Bind each sensor of a live slot (the Entry/Exit sensors) in the same slot of the new panel: the same ident and
+    slot, since staging keeps the live idents and leg letters. Stops unless that slot is there and resolves to the
+    same facing and protected blocks as live. Returns how many."""
+    slots = slots_module()
+    live_ix, gen_ix = slots.Index(live_le), slots.Index(gen_le)
+    bad = []
+    wanted = live_sensor_slots(live_le)
+    for (ident, slot), sensor in sorted(wanted.items()):
+        kind = "turnout" if ident in live_ix.turnouts else (
+            "end bumper" if live_ix.points[ident].get("type") == "END_BUMPER" else "anchor")
+        have = gen_ix.turnouts if kind == "turnout" else gen_ix.points
+        if ident not in have:
+            bad.append(f"{sensor}: live {kind} {ident} is not on the new panel")
+            continue
+        if kind != "turnout" and have[ident].get("type") != live_ix.points[ident].get("type"):
+            bad.append(f"{sensor}: {ident} is a {have[ident].get('type')} on the new panel, live a "
+                       f"{live_ix.points[ident].get('type')}")
+            continue
+        if kind == "turnout" and not have[ident].get(f"connect{slot.lower()}name"):
+            bad.append(f"{sensor}: turnout {ident} has no leg {slot} on the new panel")
+            continue
+        want, got = live_ix.blocks(kind, ident, slot), gen_ix.blocks(kind, ident, slot)
+        if want != got:
+            bad.append(f"{sensor}: {ident} {slot} faces {got[0]} and protects {got[1]} on the new panel, live "
+                       f"{want[0]} and {want[1]}")
+            continue
+        if kind == "turnout":
+            el = ET.SubElement(have[ident], f"sensor{slot}")
+            el.text = sensor
+        else:
+            have[ident].set(f"{slot}boundsensor", sensor)
+    if bad:
+        raise BuildError("Entry/Exit sensors not placed for certain: " + "; ".join(bad))
+    return len(wanted)
+
+
+def check_live_turnouts(gen_le: ET.Element, live_le: ET.Element) -> None:
+    """Stop unless each staging turnout keeps its live ident, name, type, continuing route, leg blocks and the block
+    of the track on each leg (leg letters are what the boundaries contract, switch_legs.csv and CATS key on)."""
+    def facts(le):
+        segs = {s.get("ident"): s.get("blockname") for s in le.findall("tracksegment")}
+        out = {}
+        for t in le.findall("layoutturnout"):
+            legs = {L: segs.get(t.get(f"connect{L.lower()}name")) for L in "ABCD" if t.get(f"connect{L.lower()}name")}
+            out[t.get("ident")] = dict(name=t.get("turnoutname"), type=t.get("type"),
+                                       continuing=t.get("continuing") if "XOVER" not in t.get("type") else None,
+                                       blocks=tuple(t.get(a) for a in ("blockname", "blockbname", "blockcname",
+                                                                         "blockdname")), legs=legs)
+        return out
+    live, gen = facts(live_le), facts(gen_le)
+    bad = []
+    for ident, want in sorted(live.items()):
+        got = gen.get(ident)
+        if got is None:
+            bad.append(f"{ident} ({want['name']}) is not on the new panel")
+            continue
+        for k in want:
+            if got[k] != want[k]:
+                bad.append(f"{ident} ({want['name']}) {k}: live {want[k]}, new {got[k]}")
+    if bad:
+        raise BuildError("staging turnouts differ from the live panel: " + "; ".join(bad))
+
+
+def replace(parent: ET.Element, old: ET.Element, new: ET.Element, depth: int) -> None:
+    """Put `new` where `old` stands in `parent`, indented as JMRI writes."""
+    idx = list(parent).index(old)
+    ET.indent(new, space="  ", level=depth)
+    new.tail = old.tail
+    parent.remove(old)
+    parent.insert(idx, new)
+
+
+def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", as_live: bool = False):
+    """(tables bytes, the plugin's Panel, {band key: names}, bands). `levels` "all" draws every band with main and
+    upper placeholders (the trial); "staging" draws staging alone, its helix ends as end bumpers as live, and adds
+    no table object. `as_live` (staging only) writes the cut-over candidate: the live panel replaced by the new
+    one, under the live name and attributes."""
+    if levels not in LEVELS:
+        raise BuildError(f"levels must be one of {', '.join(LEVELS)}, not {levels!r}")
+    if as_live and levels != "staging":
+        raise BuildError("--as-live replaces the live staging panel, so it draws staging alone (--levels staging)")
+    _sheet, le_mod, core = plugin()
     if bands is None:
-        built = sheet.build([(json.loads((pd.GRAPHS / g).read_text(encoding="utf-8")), n) for g, n in pd.INPUTS],
-                            str(pd.DATA))
-        bands, page = built.bands, built.opts
+        bands, page = schematic()
     else:
         page = bands[-1][2]
     keys = [band_key(t) for t, _, _ in bands]
     if STAGING not in keys:
         raise BuildError(f"no {STAGING} band in the schematic (bands: {', '.join(keys)})")
+    if levels == "staging":
+        bands = [bands[keys.index(STAGING)]]
+        keys = [STAGING]
+    if band_key(bands[0][0]) != STAGING:
+        raise BuildError(f"the first band is {bands[0][0]!r}, not {STAGING}")
     doc = tables.load(live_path)
     root = doc.root
-    if any(le.get("name") == PANEL_NAME for le in tables.layout_editors(root)):
+    panel_name = TEMPLATE_PANEL if as_live else PANEL_NAME
+    if not as_live and any(le.get("name") == PANEL_NAME for le in tables.layout_editors(root)):
         raise BuildError(f"{live_path} already has a panel named {PANEL_NAME}")
     template = tables.layout_editor(root, TEMPLATE_PANEL)
     if template is None:
         raise BuildError(f"no live panel named {TEMPLATE_PANEL}")
 
-    names, lengths = placeholder_names(bands, le_mod)
-    names[STAGING] = staging_names(bands[keys.index(STAGING)][1], template, core.tidy)
+    names, lengths = placeholder_names(bands, le_mod) if levels == "all" else ({}, {})
+    names[STAGING] = staging_names(bands[0][1], template, core.tidy)
+    # a live segment ident JMRI cannot find as a segment by name (F46-W-0: LayoutEditorFindItems.findObjectByName
+    # reads only T... and F<n>-S-<n>; such names load, but the Check menu and connection menus miss them) is not
+    # carried over: that segment takes a generated ident (noted)
+    segs = names[STAGING]["idents"]["segments"]
+    unfindable = sorted(i for i in segs.values() if le_mod.jmri_kind(i) != "segment")
+    names[STAGING]["idents"]["segments"] = {b: i for b, i in segs.items() if i not in unfindable}
     names[STAGING]["masts"] = staging_masts(root, template)
-    names[STAGING]["joins"] = "other"
-    names[STAGING]["lengths"] = staging_lengths(bands[keys.index(STAGING)][2], names[STAGING])
+    if levels == "all":
+        names[STAGING]["joins"] = "other"
+        # a staging track that runs on through a helix join has no end bumper here: its live bumper's ident goes
+        names[STAGING]["idents"]["ends"] = {b: i for b, i in names[STAGING]["idents"]["ends"].items()
+                                            if b not in joined_ends(bands, names[STAGING], le_mod)}
+    names[STAGING]["lengths"] = staging_lengths(bands[0][2], names[STAGING])
     try:
-        P = le_mod.panel(bands, names, page=page, fit=FIT)
+        rows = {"row": STAGING_ROW} if levels == "staging" else {}
+        P = le_mod.panel(bands, names, page=page, fit=FIT, **rows)
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
-    if band_key(bands[0][0]) != STAGING:
-        raise BuildError(f"the first band is {bands[0][0]!r}, not {STAGING}")
     P.mast_notes = check_unplaced(P)
+    if unfindable:
+        P.log.append(f"live segment idents JMRI does not find as segments, so not reused: {', '.join(unfindable)}")
     check_slots(P, names[STAGING]["masts"], template, le_mod)
+    check_live_turnouts(le_mod.to_xml(P, "check"), template)
 
     # staging: every name must already be live
     staging_turnouts = set(names[STAGING]["turnouts"].values())
@@ -589,8 +816,31 @@ def build(live_path: Path = paths.TABLES_XML, bands=None):
         sorted(b for b in staging_blocks if b not in live_lb)
     if missing:
         raise BuildError(f"staging names not in the live tables: {missing}")
+    if levels == "staging" and set(P.blocks) - staging_blocks:
+        raise BuildError(f"the staging panel draws blocks that are not live: {sorted(set(P.blocks) - staging_blocks)}")
+    if levels == "all":
+        add_placeholders(root, P, names, lengths, staging_blocks)
 
-    # main and upper: new placeholder turnouts and blocks
+    if as_live:
+        attrs = dict(template.attrib)
+        panel_el = le_mod.to_xml(P, panel_name, attrs, copy.deepcopy(template.find("layoutTrackDrawingOptions")))
+        P.sensors_bound = bind_sensors(panel_el, template)
+        try:
+            P.overlay = overlay_mod().carry(template, panel_el, P, root, le_mod, slots_module(),
+                                            {r["switch"]: r["le_ident"] for r in read_csv(SWITCHES)}, FIT)
+        except overlay_mod().OverlayError as exc:
+            raise BuildError(f"overlay: {exc}") from None
+        replace(root, template, panel_el, 1)
+    else:
+        attrs = dict(template.attrib)
+        attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")
+        panel_el = le_mod.to_xml(P, panel_name, attrs, copy.deepcopy(template.find("layoutTrackDrawingOptions")))
+        place(root, [panel_el], 1, tables.layout_editors(root)[-1])
+    return doc.tobytes(), P, names, bands
+
+
+def add_placeholders(root: ET.Element, P, names: dict, lengths: dict, staging_blocks: set) -> None:
+    """Main and upper: new placeholder turnouts and blocks in the tables (the all-levels trial)."""
     new_turnouts = sorted({t for k, v in names.items() if k != STAGING for t in v["turnouts"].values()},
                           key=lambda s: block_sort("OS " + s))
     new_blocks = sorted((b for b in P.blocks if b not in staging_blocks), key=block_sort)
@@ -624,12 +874,6 @@ def build(live_path: Path = paths.TABLES_XML, bands=None):
           [bean("layoutblock", {"systemName": lb_sys[b], "occupiedsense": "2", "trackcolor": "gray",
                                 "occupiedcolor": "red", "extracolor": "white"}, lb_sys[b], b) for b in new_blocks], 2)
 
-    attrs = dict(template.attrib)
-    attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")
-    panel_el = le_mod.to_xml(P, PANEL_NAME, attrs, copy.deepcopy(template.find("layoutTrackDrawingOptions")))
-    place(root, [panel_el], 1, tables.layout_editors(root)[-1])
-    return doc.tobytes(), P, names, bands
-
 
 def live_target(out: Path) -> bool:
     """True when `out` is the live tables.xml or lies in the JMRI profile (by path or through a link)."""
@@ -642,36 +886,70 @@ def live_target(out: Path) -> bool:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--check", action="store_true", help="regenerate in memory and fail if the trial file differs")
-    ap.add_argument("--out", type=Path, default=TRIAL, help="where to write (default: the trial file)")
+    ap.add_argument("--check", action="store_true", help="regenerate in memory and fail if the file differs")
+    ap.add_argument("--levels", choices=LEVELS, default="all",
+                    help="all: every band, main and upper as placeholders (default); staging: staging alone")
+    ap.add_argument("--as-live", action="store_true",
+                    help="write the cut-over candidate: the live panel replaced by the new one (needs --levels "
+                         "staging; default out: the trial tables_cutover.xml)")
+    ap.add_argument("--out", type=Path, help="where to write (default: the trial file for these options: "
+                    "tables_layout.xml, tables_layout_staging.xml or tables_cutover.xml)")
     args = ap.parse_args(argv)
-    if not args.check and live_target(args.out):
-        print(f"ERROR: {args.out} is the live tables or in the JMRI profile; the trial is for viewing only and is "
+    out = args.out or default_out(args.levels, args.as_live)
+    if live_target(out):
+        print(f"ERROR: {out} is the live tables or in the JMRI profile; the trial is for viewing only and is "
               "written beside them, never over them")
         return 1
     try:
-        data, P, _names, _bands = build()
+        data, P, _names, _bands = build(levels=args.levels, as_live=args.as_live)
     except BuildError as exc:
         print(f"ERROR: {exc}")
         return 1
     _, le_mod, _ = plugin()
-    summary = f"panel {PANEL_NAME!r}: {le_mod.summary(P)}"
+    summary = f"panel {(TEMPLATE_PANEL if args.as_live else PANEL_NAME)!r}: {le_mod.summary(P)}"
     if args.check:
-        if not args.out.exists() or args.out.read_bytes() != data:
-            print(f"STALE: {paths.rel(args.out)}; run {paths.rel(Path(__file__))}")
+        if not out.exists() or out.read_bytes() != data:
+            print(f"STALE: {paths.rel(out)}; run {paths.rel(Path(__file__))}")
             return 1
-        print(f"ok: {paths.rel(args.out)} is current ({summary})")
+        print(f"ok: {paths.rel(out)} is current ({summary})")
         return 0
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    tables.loads(data, path=args.out).save(args.out)
-    print(f"wrote {paths.rel(args.out)}: {summary}")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tables.loads(data, path=out).save(out)
+    print(f"wrote {paths.rel(out)}: {summary}")
     moved = {f"{t}: mast {m}: {why}" for t, m, why in P.moved}       # the plugin's own log line for each
     for line in P.log:
         if line not in moved:
             print(f"  note: {line}")
     for line in P.mast_notes:
         print(f"  mast at a helix join: {line}")
+    for line in overlay_lines(getattr(P, "overlay", None)):
+        print(f"  overlay: {line}")
     return 0
+
+
+def default_out(levels: str, as_live: bool) -> Path:
+    """The trial file for these options, so --check always compares like with like."""
+    if as_live:
+        return CUTOVER
+    return TRIAL_STAGING if levels == "staging" else TRIAL
+
+
+def overlay_lines(report) -> list[str]:
+    """The overlay report (le_overlay.carry) as printed lines; none without one."""
+    if not report:
+        return []
+    kinds = defaultdict(int)
+    for r in report["records"]:
+        kinds[r["anchor"].split(" ", 1)[0] if r["anchor"].startswith("group") else r["anchor"]] += 1
+    out = [f"{len(report['records'])} live items carried ({', '.join(f'{v} {k}' for k, v in sorted(kinds.items()))})"
+           f"; panel {report['size'][0]}x{report['size'][1]} px, moved down {report['down']} px",
+           "generated labels dropped (the live panel gives them): " + (", ".join(report["dropped"]) or "none")]
+    if report["unchained"]:
+        out.append("blocks whose track is not one run (an item's share read against its pieces in order): "
+                   + ", ".join(report["unchained"]))
+    far = sorted(report["records"], key=lambda r: -r["nudged"])[:5]
+    out.append("nudged furthest: " + ", ".join(f"{r['item']} {r['nudged']:g} px" for r in far))
+    return out
 
 
 if __name__ == "__main__":

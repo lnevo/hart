@@ -504,11 +504,12 @@ def audit_stations(
     audit.facts["station_icons"] = tuple(sorted(icon_set))
 
 
-def audit_block_contents_visible(panel: ET.Element | None, audit: Audit) -> None:
-    """Tracks paint at level 3; labels at 0 sit behind the panel background."""
+def audit_block_contents_visible(panel: ET.Element | None, audit: Audit, *, placements: bool = True) -> None:
+    """Tracks paint at level 3; labels at 0 sit behind the panel background. `placements`: the hand-drawn
+    panel's pinned label pixels too (not on a generated panel)."""
     if panel is None:
         return
-    _, errors = ensure_block_contents_visible(panel, check=True)
+    _, errors = ensure_block_contents_visible(panel, check=True, placements=placements)
     for message in errors:
         audit.error(message)
 
@@ -613,7 +614,7 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit) -> None:
 
 
 def audit_source(
-    label: str, path: Path, boundaries: list[Boundary], expected_masts: set[str]
+    label: str, path: Path, boundaries: list[Boundary], expected_masts: set[str], *, generated: bool = False
 ) -> Audit:
     audit = Audit(label=label, path=path)
     try:
@@ -649,7 +650,7 @@ def audit_source(
         audit_turnout_systemname_lookups(root, audit, required=True)
         audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
     audit_placeholders(panel, audit)
-    audit_block_contents_visible(panel, audit)
+    audit_block_contents_visible(panel, audit, placements=not generated)
     return audit
 
 
@@ -719,25 +720,48 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="also fail when warnings or semantic source drift are present",
     )
+    parser.add_argument(
+        "--tables",
+        type=Path,
+        help="audit this tables file as the deployment source instead of the live tables.xml "
+        "(a cut-over candidate, say)",
+    )
+    parser.add_argument(
+        "--boundaries",
+        type=Path,
+        default=BOUNDARIES,
+        help="the mast boundary contract (default: data/le_signal_boundaries.csv)",
+    )
+    parser.add_argument(
+        "--generated",
+        action="store_true",
+        help="the panel is generated (build_layout_le.py --as-live): skip the hand-drawn panel's "
+        "pinned label pixels",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    if args.generated and not args.tables:
+        print("ERROR: --generated is for a generated candidate named by --tables; the live tables.xml keeps its "
+              "pinned label pixels checked")
+        return 2
     try:
-        boundaries = load_boundaries(BOUNDARIES)
+        boundaries = load_boundaries(args.boundaries)
     except (OSError, KeyError, ValueError) as exc:
         print(f"ERROR: cannot load boundary contract: {exc}")
         return 1
     expected_masts = {item.mast for item in boundaries}
+    sources = (("deployment", args.tables),) if args.tables else DEFAULT_SOURCES
     audits = [
-        audit_source(label, path, boundaries, expected_masts)
-        for label, path in DEFAULT_SOURCES
+        audit_source(label, path, boundaries, expected_masts, generated=args.generated)
+        for label, path in sources
     ]
     for audit in audits:
         panel = audit.facts.get("panel", "<not selected>")
         print(
-            f"{audit.label}: {audit.path.relative_to(REPO_ROOT)} "
+            f"{audit.label}: {paths.rel(audit.path)} "
             f"(panel={panel}, errors={len(audit.errors)}, warnings={len(audit.warnings)})"
         )
         print_messages("ERROR", audit.errors)
