@@ -32,6 +32,7 @@ run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
 run layout-facts python3 tools/audit/check_layout_facts.py
 run name-copies python3 tools/audit/check_name_copies.py
+run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
 run unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
