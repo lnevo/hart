@@ -31,6 +31,7 @@
 .ap-mark.part { background: var(--card); border-color: var(--accent); color: var(--accent-text); }
 .ap-mark.todo { background: var(--card); border-color: var(--rule); color: var(--muted); }
 .ap-mark.ask { background: var(--card); border-color: var(--brand-2); color: var(--brand-2); }
+.ap-mark.ready { background: var(--card); border: 2px solid var(--ok); color: var(--ok); }
 
 .ap-priority {
   margin: 0 0 1.6rem;
@@ -187,6 +188,7 @@
 }
 .ap-dash-card.is-option { border-top-color: var(--rule); }
 .ap-dash-card.is-done .ap-dash-bar > span { background: var(--ok); }
+.ap-dash-card.is-ready .ap-dash-bar > span { background: var(--ok); opacity: 0.6; }
 .ap-dash-foot {
   display: flex;
   align-items: center;
