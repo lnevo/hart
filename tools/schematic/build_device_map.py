@@ -152,7 +152,10 @@ def end_ref(bands, joined, bi, node_id, helix_tag):
     if d["kind"] in ("switch", "dx"):
         return ("sw", base(d["label"]))
     if d.get("sub") == "helix":
-        return ("helix", helix_tag[band_level(bands[bi][0])])
+        level = band_level(bands[bi][0])
+        if level not in helix_tag:
+            raise MapError(f"a track reaches the helix end on band {bands[bi][0]!r}, which is not main or upper")
+        return ("helix", helix_tag[level])
     if d.get("sub") == "link" and (bi, node_id) in joined:
         bj, m = joined[(bi, node_id)]
         other = bands[bj][1]
@@ -161,6 +164,21 @@ def end_ref(bands, joined, bi, node_id, helix_tag):
         far = s["dst"][0] if s["src"][0] == m else s["src"][0]
         return end_ref(bands, joined, bj, far, helix_tag)
     return ("bumper", None)
+
+
+def end_label(bands, joined, bi, node_id) -> str:
+    """The switch label a track ends at, followed through a connector to the other band ("" at a bumper or
+    helix): the halves of the helix-top crossovers 129 and 135 sit on two bands, joined by connectors."""
+    d = bands[bi][1]["nodes"][node_id]
+    if d["kind"] in ("switch", "dx"):
+        return d.get("label") or ""
+    if d.get("sub") == "link" and (bi, node_id) in joined:
+        bj, m = joined[(bi, node_id)]
+        other = bands[bj][1]
+        sid = next(iter(list(other["nodes"][m]["ins"].values()) + list(other["nodes"][m]["outs"].values())))
+        s = other["strands"][sid]
+        return end_label(bands, joined, bj, s["dst"][0] if s["src"][0] == m else s["src"][0])
+    return ""
 
 
 def helix_tags(bands, overrides) -> dict[int, str]:
@@ -186,8 +204,9 @@ def tracks(bands, runs, joined, helix_tag) -> list[dict]:
         for start, chain, end in runs(band):
             a = end_ref(bands, joined, bi, start[0], helix_tag)
             b = end_ref(bands, joined, bi, end[0], helix_tag)
-            la, lb = nodes[start[0]].get("label", ""), nodes[end[0]].get("label", "")
-            if a[0] == b[0] == "sw" and a[1] == b[1] and la != lb and la[-1:] in "AB" and lb[-1:] in "AB":
+            la, lb = end_label(bands, joined, bi, start[0]), end_label(bands, joined, bi, end[0])
+            halves = la[-1:] in ("A", "B") and lb[-1:] in ("A", "B")
+            if a[0] == b[0] == "sw" and a[1] == b[1] and la != lb and halves:
                 continue                                    # between a crossover's halves: its OS block
             edges = {}
             for sid, _ in chain:
@@ -213,6 +232,8 @@ def track_names(found) -> None:
         (ka, va), (kb, vb) = t["ends"]
         sw = sorted([v for k, v in t["ends"] if k == "sw"], key=natural)
         hx = [v for k, v in t["ends"] if k == "helix"]
+        if not sw:
+            raise MapError(f"a track ({', '.join(t['trial'])}) has no switch at either end, so it has no name")
         if len(sw) == 2 and sw[0] == sw[1]:
             stem = f"Track {sw[0]} Loop"
         elif sw and not hx and len(sw) == 1:
@@ -323,7 +344,8 @@ def masts(bands, cps, found, cp_of) -> list[dict]:
                 if hit is None:
                     continue
                 t, (kind, far) = hit
-                if kind == "bumper" or (kind == "sw" and cp_of.get(far) == cp):
+                loop = kind == "sw" and far == num and t["name"].endswith(" Loop")   # comes back to this switch
+                if kind == "bumper" or (kind == "sw" and cp_of.get(far) == cp and not loop):
                     continue
                 eastward = TAU[p] * rail[n] == 1
                 sid = d["ins"].get(p) or d["outs"].get(p)
@@ -408,6 +430,10 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
 
     for t in sorted(found, key=lambda t: natural(t["name"])):
         sws = [v for k, v in t["ends"] if k == "sw"]
+        stray = [s for s in sws if s not in area_of]
+        if stray:
+            raise MapError(f"{t['name']} ends at switch {', '.join(stray)}, which is on neither the main nor the "
+                           "upper level")
         ends_cp = sorted({cp_of[v] for v in sws if v in cp_of}, key=natural)
         cp = ends_cp[0] if ends_cp else ""
         short = t["cm"] < SHORT_CM and all(k == "sw" for k, _ in t["ends"])

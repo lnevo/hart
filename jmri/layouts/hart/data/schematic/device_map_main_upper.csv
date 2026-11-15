@@ -137,13 +137,15 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 2,CP 125,occupancy,BS Switch 127,M2S4201,42,,Node: 42 Block: 2,,
 2,CP 129,occupancy,BS Switch 129,M2S4202,42,,Node: 42 Block: 3,,
 2,CP 129,occupancy,BS Switch 135,M2S4203,42,,Node: 42 Block: 4,,
-2,CP 107,mast,Mast 108R,IF$shsm:basic:two-searchlight(IH3332)(IH3333),33,,CP 107 | Switch 107,,home signal from Track 107-109
-2,CP 109,mast,Mast 110LA,IF$shsm:basic:one-low(IH3334),33,,CP 109 | Switch 109,,home signal from Track 107-109
-2,CP 109,mast,Mast 110LB,IF$shsm:basic:one-low(IH3335),33,,CP 109 | Switch 109,,home signal from Track 105-109
-2,CP 109,mast,Mast 112L,IF$shsm:basic:one-low(IH4332),43,,CP 109 | Switch 111,,home signal from Track 101-111
-2,CP 109,mast,Mast 118L,IF$shsm:basic:one-low(IH4333),43,,CP 109 | Switch 117,,home signal from Track 115-117
-2,CP 109,mast,Mast 120RA,IF$shsm:basic:one-low(IH4334),43,,CP 109 | Switch 119,,home signal from Track 119-125
-2,CP 109,mast,Mast 120RB,IF$shsm:basic:two-searchlight(IH4335)(IH4336),43,,CP 109 | Switch 119,,home signal from Track 119-123
+2,CP 107,mast,Mast 108LA,IF$shsm:basic:one-low(IH3332),33,,CP 107 | Switch 107,,home signal from Track 107 Loop
+2,CP 107,mast,Mast 108LB,IF$shsm:basic:one-low(IH3333),33,,CP 107 | Switch 107,,home signal from Track 107 Loop
+2,CP 107,mast,Mast 108R,IF$shsm:basic:two-searchlight(IH3334)(IH3335),33,,CP 107 | Switch 107,,home signal from Track 107-109
+2,CP 109,mast,Mast 110LA,IF$shsm:basic:one-low(IH4332),43,,CP 109 | Switch 109,,home signal from Track 107-109
+2,CP 109,mast,Mast 110LB,IF$shsm:basic:one-low(IH4333),43,,CP 109 | Switch 109,,home signal from Track 105-109
+2,CP 109,mast,Mast 112L,IF$shsm:basic:one-low(IH4334),43,,CP 109 | Switch 111,,home signal from Track 101-111
+2,CP 109,mast,Mast 118L,IF$shsm:basic:one-low(IH4335),43,,CP 109 | Switch 117,,home signal from Track 115-117
+2,CP 109,mast,Mast 120RA,IF$shsm:basic:one-low(IH4336),43,,CP 109 | Switch 119,,home signal from Track 119-125
+2,CP 109,mast,Mast 120RB,IF$shsm:basic:two-searchlight(IH4337)(IH4338),43,,CP 109 | Switch 119,,home signal from Track 119-123
 2,CP 125,mast,Mast 126LA,IF$shsm:basic:one-low(IH4232),42,,CP 125 | Switch 125,,home signal from Track 119-125
 2,CP 125,mast,Mast 126LB,IF$shsm:basic:one-low(IH4233),42,,CP 125 | Switch 125,,home signal from Track 123-125
 2,CP 125,mast,Mast 128RA,IF$shsm:basic:one-low(IH4234),42,,CP 125 | Switch 127,,home signal from Track 127-131
@@ -152,15 +154,17 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 2,CP 129,mast,Mast 130LB,IF$shsm:basic:one-low(IH5234),52,,CP 129 | Switch 129,,home signal from Track 129-221
 2,CP 129,mast,Mast 136RA,IF$shsm:basic:two-searchlight(IH5235)(IH5236),52,,CP 129 | Switch 135,,home signal from Track 135-H1
 2,CP 129,mast,Mast 136RB,IF$shsm:basic:one-low(IH5237),52,,CP 129 | Switch 135,,home signal from Track 135-H2
-2,CP 107,head,Head 108R Bottom,IH3333,33,,"Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6",,
-2,CP 107,head,Head 108R Top,IH3332,33,,"Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3",,
-2,CP 109,head,Head 110LA,IH3334,33,,"Node: 33 Signal: 2 | OU: 4 Ports: 1,2,3",,
-2,CP 109,head,Head 110LB,IH3335,33,,"Node: 33 Signal: 3 | OU: 4 Ports: 4,5,6",,
-2,CP 109,head,Head 112L,IH4332,43,,"Node: 43 Signal: 0 | OU: 1 Ports: 1,2,3",,
-2,CP 109,head,Head 118L,IH4333,43,,"Node: 43 Signal: 1 | OU: 1 Ports: 4,5,6",,
-2,CP 109,head,Head 120RA,IH4334,43,,"Node: 43 Signal: 2 | OU: 2 Ports: 1,2,3",,
-2,CP 109,head,Head 120RB Bottom,IH4336,43,,"Node: 43 Signal: 4 | OU: 3 Ports: 4,5,6",,
-2,CP 109,head,Head 120RB Top,IH4335,43,,"Node: 43 Signal: 3 | OU: 3 Ports: 1,2,3",,
+2,CP 107,head,Head 108LA,IH3332,33,,"Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3",,
+2,CP 107,head,Head 108LB,IH3333,33,,"Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6",,
+2,CP 107,head,Head 108R Bottom,IH3335,33,,"Node: 33 Signal: 3 | OU: 4 Ports: 4,5,6",,
+2,CP 107,head,Head 108R Top,IH3334,33,,"Node: 33 Signal: 2 | OU: 4 Ports: 1,2,3",,
+2,CP 109,head,Head 110LA,IH4332,43,,"Node: 43 Signal: 0 | OU: 1 Ports: 1,2,3",,
+2,CP 109,head,Head 110LB,IH4333,43,,"Node: 43 Signal: 1 | OU: 1 Ports: 4,5,6",,
+2,CP 109,head,Head 112L,IH4334,43,,"Node: 43 Signal: 2 | OU: 2 Ports: 1,2,3",,
+2,CP 109,head,Head 118L,IH4335,43,,"Node: 43 Signal: 3 | OU: 2 Ports: 4,5,6",,
+2,CP 109,head,Head 120RA,IH4336,43,,"Node: 43 Signal: 4 | OU: 3 Ports: 1,2,3",,
+2,CP 109,head,Head 120RB Bottom,IH4338,43,,"Node: 43 Signal: 6 | OU: 4 Ports: 4,5,6",,
+2,CP 109,head,Head 120RB Top,IH4337,43,,"Node: 43 Signal: 5 | OU: 4 Ports: 1,2,3",,
 2,CP 125,head,Head 126LA,IH4232,42,,"Node: 42 Signal: 0 | OU: 3 Ports: 1,2,3",,
 2,CP 125,head,Head 126LB,IH4233,42,,"Node: 42 Signal: 1 | OU: 3 Ports: 4,5,6",,
 2,CP 125,head,Head 128RA,IH4234,42,,"Node: 42 Signal: 2 | OU: 4 Ports: 1,2,3",,

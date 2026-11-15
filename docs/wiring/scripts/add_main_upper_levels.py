@@ -10,8 +10,8 @@ Runs after refresh_wiring_docs.py (which writes v85, staging only). Reads:
   jmri/layouts/hart/data/schematic/lcos_nodes_main_upper.csv  (each node's level and area)
 
 v85 still carries the August 2026 upper-deck plan, drawn for an older track plan: nodes C14, C21, C22, C23, C24
-and C32 with Switches 61 to 91, the old helix blocks on C11 and three of its motor outputs (Switches 63, 65, 67).
-Those rows go. Every node of the device map is written in their place, one row per port: turnouts on 12V boards,
+and C32 with Switches 61 to 91, and three motor outputs on C11 (Switches 63, 65, 67). Those rows go; C11 keeps
+its helix blocks, since the helix is still there. Every node of the device map is written in their place, one row per port: turnouts on 12V boards,
 heads and the detector calibration pin on 5V boards, feedback on DNIN8 boards, detectors on B devices (two
 blocks each), with the ports the device map gives. Staging rows and the DigiconSignals sheet are unchanged.
 """
@@ -130,8 +130,7 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
     for row in ws.iter_rows(min_row=2):
         if row[0].value == "C11":                     # its motor outputs were the old upper deck's 63/65/67
             for name, value in (("Num Turnouts", 0), ("Turnout Output Ports", None), ("Turnout Names", None),
-                                ("12V Used", 0), ("12V Free", 8), ("BS Devices", None), ("Num Blocks", 0),
-                                ("Block Section Names", None)):
+                                ("12V Used", 0), ("12V Free", 8)):
                 row[col[name]].value = value
     for num in sorted(nodes):
         n = nodes[num]
@@ -212,7 +211,7 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
 
     # BlockSensors
     ws = wb["BlockSensors"]
-    drop_rows(ws, lambda v: v[1] not in OLD_UPPER | {"C11"})
+    drop_rows(ws, lambda v: v[1] not in OLD_UPPER)       # C11 keeps the helix blocks: the helix is still there
     for num in sorted(nodes):
         n = nodes[num]
         for k, r in sorted(n.blocks, key=lambda b: b[0]):
@@ -223,7 +222,8 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
 
 
 def block_name(occ: dict, by_name: dict) -> str:
-    """The JMRI block an occupancy row detects: BS Switch 107 -> OS Switch 107, BS 107-109 -> Track 107-109."""
+    """The JMRI block an occupancy row detects: a switch's sensor ("BS Switch <n>") detects its OS block
+    ("OS Switch <n>"), any other ("BS <a>-<b>") the track of the same name ("Track <a>-<b>")."""
     rest = occ["user_name"].removeprefix("BS ")
     name = f"OS {rest}" if rest.startswith("Switch ") else f"Track {rest}"
     if name not in by_name:

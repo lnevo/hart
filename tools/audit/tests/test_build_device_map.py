@@ -157,6 +157,14 @@ class Output(unittest.TestCase):
                         self.assertNotIn(8, pins, x["user_name"])          # calibration pin
             self.assertLessEqual(max(boards, default=0), BD.MAX_OU, node)
 
+    def test_a_loop_back_into_its_control_point_has_home_signals(self):
+        loop = [x["user_name"] for x in rows() if x["layer"] == "mast" and x["notes"].endswith(" Loop")]
+        self.assertEqual(sorted(loop), ["Mast 108LA", "Mast 108LB"])        # the balloon at CP 107
+
+    def test_helix_top_crossover_tracks_are_not_loops(self):
+        names = {x["user_name"] for x in rows() if x["layer"] == "block"}
+        self.assertFalse({"Track 129 Loop", "Track 135 Loop"} & names)
+
     def test_overrides_match_the_control_point_file(self):
         over = json.loads(BD.OVERRIDES.read_text())
         names = [cp["cp_name"] for cp in BD.load_cps()]

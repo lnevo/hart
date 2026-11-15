@@ -38,7 +38,8 @@ class Inventory(unittest.TestCase):
                                 for r in rows), sheet)
         c11 = {r[0]: r for r in V86["DNOU8"] if r[1] == "C11"}
         self.assertTrue(all(c11[f"C11-OU1-{p}"][4] is None for p in range(1, 7)))
-        self.assertFalse([r for r in V86["BlockSensors"] if r[1] == "C11"])
+        self.assertEqual([r for r in V85["BlockSensors"] if r[1] == "C11"],      # the helix is still there
+                         [r for r in V86["BlockSensors"] if r[1] == "C11"])
 
     def test_staging_rows_unchanged(self):
         staging = {"C1", "C2", "C3", "C4", "C12", "C13"}
