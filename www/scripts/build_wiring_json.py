@@ -8,6 +8,9 @@ Reads the LCOS Layout Inventory and the signal-split workbook and writes:
   data/signal-splits.json     per control point: each signal's routes, the turnout
                               positions and occupancy behind each aspect, and the lamp pins
 
+The signal splits take their lamp pins from --splits-inventory (default v85), the inventory the frozen
+RGB plan was recorded against; the nodes and pins come from --inventory.
+
 Re-run after a version bump:
 
   python3 www/scripts/build_wiring_json.py \
@@ -37,6 +40,9 @@ ROOT = PORTAL.parent
 WIRING = ROOT / "docs" / "wiring"
 OUT_INV = PORTAL / "data" / "wiring-inventory.json"
 OUT_SPLIT = PORTAL / "data" / "signal-splits.json"
+# The signal-split workbook is the frozen Nov 2025 RGB plan; its lamp pins are the rows of v85. v86 replaced the
+# old upper-deck rows with the main and upper levels, so the splits keep reading v85 (owner: keep the old data).
+SPLITS_INVENTORY = WIRING / "LCOS_Layout_Inventory_v85.xlsx"
 
 WARNINGS: list[str] = []
 SCRUBBED: list[str] = []
@@ -683,6 +689,9 @@ def main() -> int:
                     help="LCOS Layout Inventory workbook (default: newest in docs/wiring/)")
     ap.add_argument("--splits", type=Path, default=latest("signals_split_v*.xlsx"),
                     help="signal split workbook (default: newest in docs/wiring/)")
+    ap.add_argument("--splits-inventory", type=Path, default=SPLITS_INVENTORY,
+                    help="inventory that holds the split plan's lamp pins (default: v85; v86 replaced the old "
+                         "upper-deck rows the frozen RGB plan points at)")
     ap.add_argument("--out-dir", type=Path, default=PORTAL / "data", help="where the JSON goes")
     ap.add_argument("-q", "--quiet", action="store_true", help="don't list data warnings")
     args = ap.parse_args()
@@ -691,12 +700,17 @@ def main() -> int:
     if not args.splits or not args.splits.exists():
         ap.error(f"split workbook not found: {args.splits}")
 
+    if not args.splits_inventory or not args.splits_inventory.exists():
+        ap.error(f"split inventory workbook not found: {args.splits_inventory}")
+
     inv, ctx = build_inventory(args.inventory)
-    splits = build_splits(args.splits, ctx)
+    split_inv, split_ctx = (inv, ctx) if args.splits_inventory == args.inventory else \
+        build_inventory(args.splits_inventory)
+    splits = build_splits(args.splits, split_ctx)
     stamp = dt.date.today().isoformat()
     inv["source"]["built"] = stamp
     splits["source"]["built"] = stamp
-    splits["source"]["inventory"] = inv["source"]["version"]
+    splits["source"]["inventory"] = split_inv["source"]["version"]
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     for name, data in (("wiring-inventory.json", inv), ("signal-splits.json", splits)):
