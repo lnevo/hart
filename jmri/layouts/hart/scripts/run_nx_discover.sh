@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # One-shot PanelPro NX Discover (SML mode by default) → store tables.xml, then quit.
 # Full interlock: HART_NX_LOCK=1. Refuses if CATS/PanelPro is already running (MQTT client-id).
-# The run lifecycle (profile backup and restore, publishing Start Up scripts off, stopping
+# The run lifecycle (profile backup and restore, Start Up items that run code off, stopping
 # PanelPro on timeout or a signal) is tools/hosts/panelpro_session.sh.
-# The Brick smoke (HART_NX_SMOKE=1, default) paints sensor states in this PanelPro only
-# (setOwnState) and publishes nothing. HART_NX_THROW=1 sets a real NX route: that commands
-# MQTT turnouts, so it is never on by default.
+# Sensor states are only painted in this PanelPro (setOwnState): no MQTT publish from the script.
+# Painting still fires JMRI's own listeners (Logix, LogixNG, SML, Dispatcher, block occupancy),
+# which can act on what they see. Before Discover the script paints every occupancy sensor
+# INACTIVE so routing can stabilise; that clear always runs. Run it with the layout idle, and a
+# rehearsal with the broker unreachable.
+#   HART_NX_SMOKE=1   opt in to the Brick occupancy smoke (paints BS Switch 1 ACTIVE and back)
+#   HART_NX_THROW=1   with the smoke, sets a real NX route: that commands MQTT turnouts
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 source "$ROOT/tools/hosts/profile_tables_guard.sh"
@@ -34,8 +38,7 @@ else:
     print("blockrouting already yes")
 PY
 
-pp_begin
-python3 "$PP_PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" --after signal_coordinator.py
+pp_begin "$SCRIPT"
 rm -f "$MARKER"
 
 export HART_NX_DISCOVER_STORE=1
@@ -43,7 +46,7 @@ export HART_NX_DISCOVER_EXIT=1
 export HART_NX_DISCOVER_MARKER="$MARKER"
 export HART_NX_DISCOVER_FILE="$TABLES"
 export HART_NX_DISCOVER_WAIT="${HART_NX_DISCOVER_WAIT:-180}"
-export HART_NX_SMOKE="${HART_NX_SMOKE:-1}"
+export HART_NX_SMOKE="${HART_NX_SMOKE:-0}"
 export HART_NX_THROW="${HART_NX_THROW:-}"
 if [[ "$HART_NX_THROW" == "1" ]]; then
   echo "HART_NX_THROW=1: the smoke sets a real NX route, which commands MQTT turnouts." >&2

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Load the deployment bundle in PanelPro, verify core beans, and exit.
-# The run lifecycle (profile backup and restore, publishing Start Up scripts off, stopping
+# The run lifecycle (profile backup and restore, Start Up items that run code off, stopping
 # PanelPro on timeout or a signal) is tools/hosts/panelpro_session.sh.
 set -euo pipefail
 
@@ -15,9 +15,7 @@ LOG="${HART_PANELPRO_SMOKE_LOG:-/tmp/hart_panelpro_smoke.log}"
 
 pp_refuse_running "SKIPPED: quit CATS and PanelPro, then run the smoke test again" 0
 
-pp_begin
-python3 "$PP_PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" \
-  --after signal_coordinator.py
+pp_begin "$SCRIPT"
 rm -f "$MARKER"
 export HART_PANELPRO_SMOKE_MARKER="$MARKER"
 

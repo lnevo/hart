@@ -28,6 +28,8 @@
 # Emergency only: CATS_FORCE_LAUNCH=1
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+source "$ROOT/tools/hosts/profile_tables_guard.sh"
+refuse_unrestored_profile "launch CATS"
 JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
 # Default: live CATS CTC (HOLD_ONLY; JMRI SML).
 # ABS: ./cats/scripts/launch_cats.sh cats/panels/HART_ABS.xml

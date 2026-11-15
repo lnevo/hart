@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Load HART in PanelPro, repair stale generated TrainInfo bindings, then exit.
-# The run lifecycle (profile backup and restore, publishing Start Up scripts off, stopping
+# The run lifecycle (profile backup and restore, Start Up items that run code off, stopping
 # PanelPro on timeout or a signal) is tools/hosts/panelpro_session.sh.
 set -euo pipefail
 
@@ -18,12 +18,11 @@ LOG="${HART_TRAININFO_LOG:-/tmp/hart_traininfo_repair.log}"
 
 pp_refuse_running "Quit local CATS/PanelPro before repairing TrainInfo"
 
+pp_begin "$SCRIPT"
+# Only now, with the profile backed up: a failed run puts the profile's traininfo back.
+pp_guard_dir "$PROFILE_TRAININFO"
 mkdir -p "$PROFILE_TRAININFO"
 cp "$REPO_TRAININFO"/*.xml "$PROFILE_TRAININFO/"
-
-pp_begin
-python3 "$PP_PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" \
-  --after signal_coordinator.py
 rm -f "$MARKER"
 export HART_TRAININFO_REPAIR=1
 export HART_TRAININFO_MARKER="$MARKER"

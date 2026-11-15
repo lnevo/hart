@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-shot PanelPro SML Discover → store tables.xml, then quit.
 # Refuses if CATS/PanelPro is already running (MQTT client-id).
-# The run lifecycle (profile backup and restore, publishing Start Up scripts off, stopping
+# The run lifecycle (profile backup and restore, Start Up items that run code off, stopping
 # PanelPro on timeout or a signal) is tools/hosts/panelpro_session.sh.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
@@ -31,8 +31,7 @@ else:
     print("blockrouting already yes")
 PY
 
-pp_begin
-python3 "$PP_PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" --after signal_coordinator.py
+pp_begin "$SCRIPT"
 rm -f "$MARKER"
 
 export HART_SML_DISCOVER_STORE=1

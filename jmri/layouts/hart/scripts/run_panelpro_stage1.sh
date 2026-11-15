@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Load HART tables in PanelPro, run stock Stage 1 (auto-Yes shared-sensor), store.
-# The run lifecycle (profile backup and restore, publishing Start Up scripts off, stopping
+# The run lifecycle (profile backup and restore, Start Up items that run code off, stopping
 # PanelPro on timeout or a signal) is tools/hosts/panelpro_session.sh.
 set -euo pipefail
 
@@ -18,14 +18,12 @@ REPO_TRAININFO="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
 
 pp_refuse_running "Quit local CATS/PanelPro before Stage 1"
 
-pp_begin
+pp_begin "$SCRIPT"
 # Stage 1 drops the manual Princess SML pairs and, on a generated panel, the icon spots; keep a
 # copy to restore them from.
 BEFORE_TABLES="$(mktemp)"
 PP_TMP_FILES+=("$BEFORE_TABLES")
 cp "$REPO_TABLES" "$BEFORE_TABLES"
-python3 "$PP_PATCH" insert --profile "$PROFILE_XML" --script "$SCRIPT" \
-  --after signal_coordinator.py
 rm -f "$MARKER"
 
 export HART_STAGE1_MARKER="$MARKER"
@@ -48,7 +46,7 @@ if ! pp_wait_exit "${HART_STAGE1_EXIT_WAIT:-180}"; then
   echo "PanelPro is still running ${HART_STAGE1_EXIT_WAIT:-180}s after the Stage 1 marker; stopping it and not running the repairs. Run the repairs listed in wiki/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
   exit 1
 fi
-if pgrep -u "$(id -u)" -f "$PP_JMRI_PROC" >/dev/null 2>&1; then
+if pp_jmri_running; then
   echo "Another CATS/PanelPro is running; not running the repairs. Quit it, then run the repairs listed in wiki/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
   exit 1
 fi

@@ -1,4 +1,4 @@
-"""discover_nx.py publishes nothing on its default path (HART_NX_SMOKE=1, HART_NX_THROW unset).
+"""discover_nx.py publishes nothing: the smoke is opt-in (HART_NX_SMOKE=1) and HART_NX_THROW is unset.
 
 setKnownState on an MQTT sensor publishes it (stock MqttSensor.setKnownState), so occupancy for
 the Brick smoke and the clear before Discover must be painted with setOwnState. The script runs
@@ -128,8 +128,8 @@ class DefaultPathPublishesNothing(unittest.TestCase):
         for p in reversed(self.patches):
             p.stop()
 
-    def test_defaults_are_smoke_on_throw_off(self) -> None:
-        self.assertTrue(self.ns["SMOKE"])
+    def test_defaults_are_smoke_off_throw_off(self) -> None:
+        self.assertFalse(self.ns["SMOKE"])
         self.assertFalse(self.ns["THROW"])
         self.assertEqual(1, len(Thread.started))   # worker scheduled, not run here
 
