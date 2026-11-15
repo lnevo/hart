@@ -13,7 +13,7 @@ General tips: shoot in good light with the layout lights on; fill the frame with
 | PL-01 | `photos/two-trains.jpg` | 3.1 Two trains | Two trains moving on the staging main line at the same time, with two throttles in hand or on the fascia in view. |
 | PL-02 | `photos/gap-both-rails.jpg` | 3.2 Gaps | Close-up of one section boundary with the insulated gap visible in **both** rails (a coin or ruler beside it for scale). |
 | PL-03 | `photos/return-loop.jpg` | 3.3 Reverse loop | The return loop (RS-2, K-1 / K-2) from above, ideally with small arrows or tape flags at the two gaps. |
-| PL-04 | `photos/auto-reversers.jpg` | 3.3 Reverse loop | The AR-10 and PSX-AR as installed, each labelled with its section (RS-1, RS-2). Also note the AR-10's maker from its label for Appendix C. |
+| PL-04 | `photos/auto-reversers.jpg` | 3.3 Reverse loop | The AR-10 and PSX-AR as installed, each labelled with its section (RS-1, RS-2). |
 | PL-05 | `photos/passing-siding.jpg` | 3.4 Passing siding | A train standing on the passing siding (Scale, Switch 5 to Switch 7) while a second train passes on the main. |
 | PL-06 | `photos/mp4-frog-wiring.jpg` | 4.1 Turnout | Underside of one turnout: the MP4 with the wires from its first contact to the two stock rails and the frog. |
 | PL-07 | `photos/crossover-gaps.jpg` | 4.2 Crossover | The crossover at Switch 23 or 35 from above, with the gaps in both rails between the two frogs marked. |
@@ -30,4 +30,3 @@ These strengthen the witness visit rather than the paper:
 
 - A photo of the PSX breaker boards with a small label for each district (A to D). The power-board photo already shows them, but not which district each feeds.
 - A photo of the NMRA standards gauge seated on a claimed turnout (W13 in the demonstration plan).
-- A note of which booster(s) are installed today (the record shows two; the power-board photo shows one B-106).

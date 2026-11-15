@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 312" width="1000" height="312" role="img" aria-labelledby="t d" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
-<title id="t">D1 · Propulsion one-line: control, power and protection</title><desc id="d">Block diagram. Throttles feed the command station, which sends the DCC signal to the boosters. The command station and boosters feed a booster matrix, which feeds four circuit breakers and two auto-reversers. Each feeds its own district bus.</desc>
+<title id="t">D1 · Propulsion one-line: control, power and protection</title><desc id="d">Block diagram. Throttles feed the command station, which sends the DCC signal to the booster. The command station and booster feed a booster matrix, which feeds four circuit breakers and two auto-reversers. Each feeds its own district bus.</desc>
 <rect width="1000" height="312" fill="#fff"/>
 <rect x="20" y="40" width="150" height="50" rx="3" fill="#e4ebf0" stroke="#121a22"/>
 <text x="95.0" y="56.7" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#121a22">DCC throttles</text>
@@ -10,9 +10,9 @@
 <text x="305.0" y="68.2" font-size="9.5" text-anchor="middle" fill="#121a22">TCS CS-105</text>
 <text x="305.0" y="79.7" font-size="9.5" text-anchor="middle" fill="#121a22">(also a track output)</text>
 <rect x="220" y="120" width="170" height="50" rx="3" fill="#e4ebf0" stroke="#121a22"/>
-<text x="305.0" y="136.7" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#121a22">Boosters</text>
-<text x="305.0" y="148.2" font-size="9.5" text-anchor="middle" fill="#121a22">TCS B-106 class</text>
-<text x="305.0" y="159.7" font-size="9.5" text-anchor="middle" fill="#121a22">same DCC signal, more power</text>
+<text x="305.0" y="136.7" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#121a22">Booster</text>
+<text x="305.0" y="148.2" font-size="9.5" text-anchor="middle" fill="#121a22">TCS B-106 (a second</text>
+<text x="305.0" y="159.7" font-size="9.5" text-anchor="middle" fill="#121a22">is planned if needed)</text>
 <path d="M170,65 L220,65" fill="none" stroke="#1f5fa8" stroke-width="1.8"/>
 <text x="176" y="58" font-size="8.5" fill="#1f5fa8" text-anchor="start" font-weight="normal">throttle bus</text>
 <path d="M305,90 L305,120" fill="none" stroke="#1f5fa8" stroke-width="1.8"/>
@@ -53,7 +53,7 @@
 <path d="M760,190 L840,190" fill="none" stroke="#121a22" stroke-width="1.8"/>
 <text x="846" y="190" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">District D bus → sections</text>
 <rect x="610" y="214" width="150" height="36" rx="3" fill="#fbeeee" stroke="#121a22"/>
-<text x="685.0" y="229.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">AR-10 auto-reverser</text>
+<text x="685.0" y="229.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">AR10 auto-reverser</text>
 <text x="685.0" y="240.5" font-size="9" text-anchor="middle" fill="#121a22">short protection</text>
 <path d="M560,105 L585,105 L585,232 L610,232" fill="none" stroke="#121a22" stroke-width="1.4"/>
 <path d="M760,228 L840,228" fill="none" stroke="#b03a2e" stroke-width="1.8"/>
