@@ -110,3 +110,6 @@ external/sts-docker-data/sandbox/
 external/sts-docker-data/pi/
 tools/mqtt-mimic/qa/native_sml_qa_notes.md
 tools/mqtt-mimic/qa/native_sml_qa_baseline.json
+
+# Owner's operations log (names people; site copy is www/ap/log.html)
+docs/ap/operations.log
