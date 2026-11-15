@@ -53,7 +53,8 @@ worktree never reads the main checkout's tables.xml.
 | `JMRI_DIR` | `jmri/` |
 | `LAYOUT` | `JMRI_LAYOUT`, default `hart` (a single-layout setting; only `hart` exists) |
 | `LAYOUT_DIR`, `LAYOUT_DATA`, `LAYOUT_OUTPUT`, `LAYOUT_SCRIPTS` | `jmri/layouts/hart/` and its `data/`, `output/`, `scripts/` |
-| `TABLES_XML` | `jmri/layouts/hart/output/tables.xml` (ADR-008) |
+| `TABLES_XML` | `jmri/layouts/hart/output/tables.xml` (ADR-008), or the file `HART_TABLES` names |
+| `REPO_TABLES_XML` | always `jmri/layouts/hart/output/tables.xml` |
 | `PUBLIC_NAME_MAP` | `jmri/layouts/hart/data/public_name_map.csv` |
 | `SIGNAL_WIRING` | `docs/wiring/signals/signal_wiring.csv` |
 | `CATS_DIR` | `cats/` |
@@ -63,6 +64,8 @@ Functions: `lcos_bridge()` (the submodule, else a sibling clone), `car_images_fi
 (`HART_CAR_IMAGES_FINAL`, else the repo copy), `rel(path)` (a repo-relative string for
 messages). `layout_paths()` is the dict the AnyRail-era scripts in
 `jmri/scripts` use (it replaced `jmri/layout_paths.py`).
+
+`HART_TABLES=<file>` (checks only) points `TABLES_XML` at another tables file, such as the Layout Editor cut-over candidate: `HART_TABLES=<file> tools/check.sh` runs every table check against it, and the unit tests still read the checkout's file. The file must exist and lie outside `~/JMRI_UserFiles`. Nothing is written while it is set: `Tables.save` refuses the checkout's tables.xml, the override and anything in the profile, every other script that writes tables, the profile or an output derived from the tables calls `paths.exit_if_overridden(name)` first, and the deploy and PanelPro wrappers stop through `refuse_hart_tables` in `tools/hosts/profile_tables_guard.sh`.
 
 ### `hartlib.tables`
 
@@ -93,6 +96,9 @@ Lookups (all take the root element unless noted):
 | `layout_blocks` | `<layoutblock>` beans |
 | `layout_editor(root, name=None)` | the main Layout Editor panel, or the one named |
 | `layout_editors` | every Layout Editor panel |
+| `generated_panel(panel)` | True when the panel holds the hidden marker label a generated panel carries (`build_layout_le.py --as-live`); two markers raise ValueError |
+| `generated_marker_label()`, `GENERATED_PANEL_MARKER` | that label and its text |
+| `hand_drawn_only(path, script)` | None, or why a one-off edit of the hand-drawn panel must not run on that file's panel |
 | `layout_turnouts(panel)` | `<layoutturnout>` (turnouts and crossovers) on a panel |
 | `continuing_sense(lt)` | `CLOSED` (2), `THROWN` (4) or `UNKNOWN` (1) |
 | `mast_logics`, `mast_logic_sources`, `mast_logic_pairs` | SML elements, source -> element, (source, destination, element) |

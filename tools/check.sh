@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 # Run before any commit that changes tables or signals. Deploy gates run separately.
+# HART_TABLES=<tables file> runs the table checks against that file instead of the checkout's
+# own (the Layout Editor cut-over candidate, a sandbox copy; hartlib.paths). The unit tests
+# always run against the checkout's own file.
 set -uo pipefail
+# A relative HART_TABLES is the caller's (read before the cd below), and ~ is expanded as hartlib does.
+if [[ -n "${HART_TABLES:-}" ]]; then
+  case "$HART_TABLES" in "~"/*) HART_TABLES="$HOME/${HART_TABLES#"~/"}" ;; esac
+  [[ -f "$HART_TABLES" ]] || { echo "HART_TABLES=$HART_TABLES: no such file"; exit 1; }
+  HART_TABLES="$(cd "$(dirname "$HART_TABLES")" && pwd)/$(basename "$HART_TABLES")"
+  export HART_TABLES
+  echo "Table checks read $HART_TABLES (HART_TABLES), not the checkout's tables file"
+fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
@@ -9,6 +20,12 @@ run() {
   echo "--- $1"
   shift
   "$@" || fail=1
+}
+# Unit tests compare fixtures with the checkout's tables file, so HART_TABLES never reaches them.
+unit() {
+  echo "--- $1"
+  shift
+  env -u HART_TABLES "$@" || fail=1
 }
 run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
@@ -37,14 +54,14 @@ run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
-run unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
-run unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
-run unit-cats python3 -m unittest discover -q -s cats/scripts/tests
-run unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
-run unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
-run unit-guards python3 -m unittest discover -q -s tools/audit/tests
-run unit-hosts python3 -m unittest discover -q -s tools/hosts/tests
-run unit-portal python3 -m unittest discover -q -s www/scripts/tests
+unit unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
+unit unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
+unit unit-cats python3 -m unittest discover -q -s cats/scripts/tests
+unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
+unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
+unit unit-guards python3 -m unittest discover -q -s tools/audit/tests
+unit unit-hosts python3 -m unittest discover -q -s tools/hosts/tests
+unit unit-portal python3 -m unittest discover -q -s www/scripts/tests
 run desks python3 cats/scripts/validate_cats_panel.py
 # Car cards, intake and publications. Uses ops/hart-ops/.venv when it exists; a checkout
 # without it (a worktree) skips, CI installs ops/hart-ops/requirements-test.txt.
@@ -53,7 +70,7 @@ HOPS_PY=python3
 # The venv carries pypdf for the PDF part; plain python3 checks everything else.
 run public-text "$HOPS_PY" tools/audit/check_public_text.py
 if [[ -n "${CI:-}" ]] || "$HOPS_PY" -c "import numpy, scipy, docx, pytesseract" 2>/dev/null; then
-  run unit-hart-ops "$HOPS_PY" -m unittest discover -q -s ops/hart-ops/tests
+  unit unit-hart-ops "$HOPS_PY" -m unittest discover -q -s ops/hart-ops/tests
 else
   echo "--- unit-hart-ops skipped (no ops/hart-ops/.venv)"
 fi

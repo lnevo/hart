@@ -26,9 +26,10 @@
 # keeps no history, so the commit before it comes from git log --first-parent origin/main.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+source "$ROOT/tools/hosts/profile_tables_guard.sh"
+refuse_hart_tables "deploy"
 SYNC_REL="tools/hosts/sync_hart_package.sh"
 TABLES_REL="jmri/layouts/hart/output/tables.xml"
-source "$ROOT/tools/hosts/profile_tables_guard.sh"
 
 usage() { sed -n '4,5p' "$0" | sed 's/^# \{0,1\}//'; }
 

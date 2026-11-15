@@ -80,5 +80,51 @@ class FrozenIsnx(unittest.TestCase):
         self.assertEqual(contract.nx_system_name("Mast 40LB"), "ISNX:115LB")
 
 
+class Slots(unittest.TestCase):
+    """A sensor bound once stays bound once; a generated panel keeps its icon spots (LE cut-over)."""
+
+    PANEL = MINIMAL.replace(
+        '<signalmasticon signalmast="Mast 2L" x="382" y="242" degrees="0" />',
+        '<signalmasticon signalmast="Mast 2L" x="700" y="100" degrees="270" />\n'
+        '    <signalmasticon signalmast="Mast 6LA" x="900" y="100" degrees="270" />\n'
+        '    <sensoricon sensor="NX Mast 2L" x="650" y="90" level="11" />\n'
+        '    <positionablepoint ident="A1" type="ANCHOR" x="10.0" y="10.0" westboundsignalmast="Mast 2L" '
+        'class="x" />')
+
+    def test_a_mast_whose_sensor_is_bound_gets_no_second_slot(self) -> None:
+        apply_nx = _load("apply_nx_layer")
+        out, counts = apply_nx.apply_text(self.PANEL, mode="sml")
+        self.assertEqual(out.count("NX Mast 2L</sensorA>"), 1)
+        self.assertNotIn('westboundsensor="NX Mast 2L"', out)
+        self.assertEqual(counts["points"], 0)
+
+    def test_hand_drawn_panel_moves_icons_to_its_pixels(self) -> None:
+        apply_nx = _load("apply_nx_layer")
+        out, counts = apply_nx.apply_text(self.PANEL, mode="sml")
+        self.assertIn('<sensoricon sensor="NX Mast 2L" x="382" y="242"', out)
+        self.assertEqual(counts["generated"], 0)
+
+    def test_generated_panel_keeps_icon_spots_and_places_new_icons_by_their_mast(self) -> None:
+        apply_nx = _load("apply_nx_layer")
+        import sys
+        sys.path.insert(0, str(SCRIPTS.parents[3] / "tools/hartlib/src"))
+        from hartlib import tables
+        marker = f'<positionablelabel text="{tables.GENERATED_PANEL_MARKER}" hidden="yes" />'
+        panel = self.PANEL.replace('<signalmasticon signalmast="Mast 2L"', marker + '\n    <signalmasticon '
+                                   'signalmast="Mast 2L"', 1)
+        out, counts = apply_nx.apply_text(panel, mode="sml")
+        self.assertEqual(counts["generated"], 1)
+        self.assertEqual((counts["aligned"], counts["moved"]), (0, 0))
+        self.assertIn('<sensoricon sensor="NX Mast 2L" x="650" y="90"', out)
+        self.assertIn('<signalmasticon signalmast="Mast 2L" x="700" y="100"', out)
+        # the marker text anywhere else (a comment, another panel) does not make the panel generated
+        quoted = self.PANEL.replace('<signalmasticon signalmast="Mast 2L"',
+                                    f"<!-- {tables.GENERATED_PANEL_MARKER} -->\n    "
+                                    '<signalmasticon signalmast="Mast 2L"', 1)
+        self.assertEqual(apply_nx.apply_text(quoted, mode="sml")[1]["generated"], 0)
+        # NX Mast 6LA has a pixel spot for the hand-drawn panel; here it goes by its own mast icon instead
+        self.assertIn(f'sensor="NX Mast 6LA" x="928" y="102"', out)
+
+
 if __name__ == "__main__":
     unittest.main()

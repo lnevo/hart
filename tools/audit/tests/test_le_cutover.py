@@ -185,6 +185,28 @@ class Cutover(unittest.TestCase):
         self.assertEqual(audit.facts["panel"], LIVE)
         self.assertEqual(cli, 0)
 
+    # ---- Phase 3: the scripts that run on tables.xml
+    def test_the_candidate_carries_one_generated_panel_marker(self) -> None:
+        self.assertTrue(tables.generated_panel(self.le))
+        self.assertFalse(tables.generated_panel(self.live_le))
+        self.assertEqual(1, sum(lb.get("text") == tables.GENERATED_PANEL_MARKER
+                                for lb in self.root.iter("positionablelabel")))
+
+    def test_polish_reconcile_and_audit_leave_the_candidate_as_built(self) -> None:
+        polish = T._load("polish_hart_layout_editor", paths.LAYOUT_SCRIPTS / "polish_hart_layout_editor.py")
+        stations = T._load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tables.xml"
+            path.write_bytes(self.data)
+            with contextlib.redirect_stdout(io.StringIO()):
+                for fn in (polish.apply_visual_standard, polish.apply_overlap_cleanup,
+                           polish.apply_block_labels_only):
+                    self.assertEqual(fn(path, check=True)[1], [], fn.__name__)
+                    fn(path, check=False, reference=path)
+                self.assertEqual(stations.main(["--panel", str(path), "--check", "--no-sync"]), 0)
+                self.assertEqual(AUDIT.main(["--strict", "--tables", str(path)]), 0)   # found by its marker
+            self.assertEqual(path.read_bytes(), self.data)
+
     def test_layout_facts_pass_on_the_candidate(self) -> None:
         facts = T._load("check_layout_facts", T.ROOT / "tools/audit/check_layout_facts.py")
         with tempfile.TemporaryDirectory() as tmp:
@@ -314,6 +336,21 @@ class BuilderErrors(unittest.TestCase):
         le.find("positionablepoint[@ident='A1']").set("connect2name", "T99")
         with self.assertRaisesRegex(B.BuildError, "ANCHOR A1 connects to"):
             B.staging_idents(le, {})
+
+    def test_a_generated_live_panel_is_not_replaced_again(self) -> None:
+        doc = tables.load(paths.REPO_TABLES_XML)
+        tables.layout_editor(doc.root, LIVE).insert(1, tables.generated_marker_label())
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tables.xml"
+            path.write_bytes(doc.tobytes())
+            with self.assertRaisesRegex(B.BuildError, "already a generated one"):
+                B.build(path, levels="staging", as_live=True)
+
+    def test_the_checkout_tables_are_refused_whatever_hart_tables_says(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B.paths, "TABLES_XML", Path(tmp) / "c.xml"):
+            self.assertTrue(B.live_target(paths.REPO_TABLES_XML))
+            self.assertTrue(B.live_target(Path(tmp) / "c.xml"))
+            self.assertFalse(B.live_target(Path(tmp) / "other.xml"))
 
     def test_generated_audit_needs_a_candidate(self) -> None:
         with contextlib.redirect_stdout(io.StringIO()) as out:

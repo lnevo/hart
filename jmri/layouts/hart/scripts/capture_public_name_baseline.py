@@ -356,6 +356,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
     if args.check:
         with tempfile.TemporaryDirectory() as temporary:
             fresh = Path(temporary)

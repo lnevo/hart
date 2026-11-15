@@ -650,7 +650,17 @@ def audit_source(
         audit_turnout_systemname_lookups(root, audit, required=True)
         audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
     audit_placeholders(panel, audit)
-    audit_block_contents_visible(panel, audit, placements=not generated)
+    # A generated panel (it holds hartlib.tables.GENERATED_PANEL_MARKER) has no hand-drawn label pixels.
+    try:
+        marked = tables.generated_panel(panel)
+    except ValueError as exc:
+        audit.error(str(exc))
+        marked = True
+    if generated and not marked:
+        audit.error("--generated, but the panel has no generated-panel marker (build_layout_le.py --as-live "
+                    "writes it)")
+    audit.facts["generated_panel"] = marked
+    audit_block_contents_visible(panel, audit, placements=not (generated or marked))
     return audit
 
 
@@ -736,7 +746,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--generated",
         action="store_true",
         help="the panel is generated (build_layout_le.py --as-live): skip the hand-drawn panel's "
-        "pinned label pixels",
+        "pinned label pixels, and fail if it has no generated-panel marker (a marked panel is "
+        "recognised without this flag)",
     )
     return parser.parse_args(argv)
 

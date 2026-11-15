@@ -76,6 +76,8 @@ def main() -> int:
     parser.add_argument("--tables", type=Path)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
 
     tables = args.tables
     if tables is None:

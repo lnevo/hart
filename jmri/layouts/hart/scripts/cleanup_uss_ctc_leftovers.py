@@ -62,6 +62,8 @@ def delete_orphans(text: str) -> tuple[str, int]:
 
 def main() -> int:
     write = "--apply" in sys.argv
+    if write:
+        paths.exit_if_overridden(Path(__file__).name)
     for path in TABLES:
         if not path.is_file():
             continue

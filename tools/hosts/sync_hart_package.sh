@@ -14,10 +14,11 @@
 # Usage: ./tools/hosts/sync_hart_package.sh [--pi] [--win] [--all] [--dry-run] [--stage-only DIR]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+source "$ROOT/tools/hosts/profile_tables_guard.sh"
+refuse_hart_tables "deploy"
 # Hosts: environment first, then tools/env/hart.env, then the defaults in load_env.sh
 # (the same order the Python tools use through tools/hartlib/src/hartlib/hosts.py).
 source "$ROOT/tools/env/load_env.sh"
-source "$ROOT/tools/hosts/profile_tables_guard.sh"
 WIN_HOST="$HART_WIN_SSH"
 WIN_PORT="$HART_WIN_SSH_PORT"
 PI_HOST="$HART_PI_SSH"

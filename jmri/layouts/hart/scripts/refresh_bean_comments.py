@@ -1010,6 +1010,7 @@ TARGETS = [
 
 
 def main() -> int:
+    paths.exit_if_overridden(Path(__file__).name)
     n_map = sync_map_head_comments()
     if n_map:
         print(f"public_name_map.csv: {n_map} head comments from signal_wiring.csv")
@@ -1036,7 +1037,7 @@ def main() -> int:
                 if updated != text:
                     path.write_text(updated, encoding="utf-8")
                     files += 1
-                    print(f"{path.relative_to(ROOT)}: names={sum(counts.values())} comments={n_comments}")
+                    print(f"{paths.rel(path)}: names={sum(counts.values())} comments={n_comments}")
     print(f"updated {files} files")
     return 0
 

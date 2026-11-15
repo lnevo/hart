@@ -15,8 +15,10 @@ System" panel and everything else unchanged. In it the staging turnouts, boundar
 track segment of each one-segment block keep their live idents (the plugin's `idents`), each turnout keeps its
 live leg letters, type and continuing route (`leg_b`: a switch whose drawn diverging leg is live leg B is drawn
 that way), the Entry/Exit sensors go back in their live slots (same ident and slot, checked to resolve to the same
-blocks), and le_overlay.py carries every live icon and label across (Phase 2). Geometry-assuming scripts
-(polish_hart_layout_editor.py and the others) are Phase 3 and are not run on it.
+blocks), and le_overlay.py carries every live icon and label across (Phase 2). The panel carries the hidden
+generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER, Phase 3): polish_hart_layout_editor.py,
+reconcile_dispatcher_stations.py, the audit and the other scripts that pin the hand-drawn panel's pixels read it and
+take positions from the panel itself (wiki/projects/schematic-maps-handoff.md, cut-over runbook).
 
 Writes jmri/layouts/hart/output/trial/tables_layout.xml: the live tables.xml unchanged, plus one new Layout
 Editor panel, PANEL_NAME, and the internal turnouts, blocks and layout blocks the main and upper levels need. The
@@ -780,6 +782,9 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     template = tables.layout_editor(root, TEMPLATE_PANEL)
     if template is None:
         raise BuildError(f"no live panel named {TEMPLATE_PANEL}")
+    if as_live and tables.generated_panel(template):
+        raise BuildError(f"the live {TEMPLATE_PANEL} panel is already a generated one (it holds the generated-panel "
+                         "marker); --as-live replaces the hand-drawn panel")
 
     names, lengths = placeholder_names(bands, le_mod) if levels == "all" else ({}, {})
     names[STAGING] = staging_names(bands[0][1], template, core.tidy)
@@ -830,6 +835,9 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                                             {r["switch"]: r["le_ident"] for r in read_csv(SWITCHES)}, FIT)
         except overlay_mod().OverlayError as exc:
             raise BuildError(f"overlay: {exc}") from None
+        # the marker that tells polish_hart_layout_editor.py and the other hand-pixel scripts to leave positions alone
+        opts = panel_el.find("layoutTrackDrawingOptions")
+        panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
         replace(root, template, panel_el, 1)
     else:
         attrs = dict(template.attrib)
@@ -878,7 +886,8 @@ def add_placeholders(root: ET.Element, P, names: dict, lengths: dict, staging_bl
 def live_target(out: Path) -> bool:
     """True when `out` is the live tables.xml or lies in the JMRI profile (by path or through a link)."""
     real = Path(os.path.realpath(out))
-    if real == Path(os.path.realpath(paths.TABLES_XML)):
+    # the checkout's own file, whatever HART_TABLES points TABLES_XML at
+    if real in (Path(os.path.realpath(paths.REPO_TABLES_XML)), Path(os.path.realpath(paths.TABLES_XML))):
         return True
     profile = Path(os.path.realpath(paths.JMRI_USER_FILES))
     return real == profile or profile in real.parents
@@ -896,6 +905,11 @@ def main(argv=None) -> int:
                     "tables_layout.xml, tables_layout_staging.xml or tables_cutover.xml)")
     args = ap.parse_args(argv)
     out = args.out or default_out(args.levels, args.as_live)
+    if not args.check:
+        message = paths.check_only_message(Path(__file__).name)
+        if message:
+            print(f"ERROR: {message}")
+            return 1
     if live_target(out):
         print(f"ERROR: {out} is the live tables or in the JMRI profile; the trial is for viewing only and is "
               "written beside them, never over them")

@@ -7,6 +7,23 @@ SML, CTC data, or hardware bean names.
 
 The writable source is ``jmri/layouts/hart/output/tables.xml``.  ``--sync-output`` has had
 no effect since ADR-008.
+
+The pixel tables below (SIGNAL_PLACEMENTS, TRACK_NAME_LABELS, LABEL_PLACEMENTS, TURNOUT_GEOMETRY,
+ANCHOR_POSITIONS, BCI_PLACEMENTS, STAGE1_LAMP_PLACEMENTS and the South Yard lamp column) belong
+to the hand-drawn panel. A generated panel (tools/schematic/build_layout_le.py --as-live; it
+holds the hidden marker label hartlib.tables.GENERATED_PANEL_MARKER) keeps every other duty
+(levels, colours, fonts, label styles, removed labels, one lamp per sensor, the OS lamps, the
+managed mast icons and which are hidden) but takes every position from the panel itself:
+
+- a Stage 1 lamp or block contents label goes where the same sensor's lamp (the same block's
+  label) stands on the ``--reference`` panel, the copy taken before Stage 1, which deletes and
+  re-adds them all (run_panelpro_stage1.sh passes it);
+- else where the panel's own one lamp for that sensor stands (a no-op: deploy and check);
+- else, for a lamp with none or several copies, the computed spot (turnout circle centre or the
+  middle of the track), printed as a note.
+
+So on a generated panel nothing goes back to the hand-drawn pixels, and ``--check`` passes on a
+panel the build wrote.
 """
 
 from __future__ import annotations
@@ -172,12 +189,18 @@ def _track_name_label(text: str, x: int, y: int) -> ET.Element:
     return label
 
 
-def ensure_track_name_labels(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
+def ensure_track_name_labels(le: ET.Element, *, check: bool, generated: bool = False) -> tuple[int, list[str]]:
+    """One label per South Yard track name, at its TRACK_NAME_LABELS pixels; on a generated panel one label each
+    wherever it stands (a missing one is an error: there is no spot to give it)."""
     changes = 0
     errors: list[str] = []
     labels = [l for l in le.findall("positionablelabel")]
     for text, (x, y) in TRACK_NAME_LABELS.items():
         found = [l for l in labels if (l.get("text") or "").strip() == text]
+        if generated:
+            if len(found) != 1:
+                errors.append(f"track name label {text!r}: {len(found)} found, expected one (generated panel)")
+            continue
         if len(found) == 1 and _same_number(found[0].get("x"), x) and _same_number(found[0].get("y"), y):
             continue
         if check:
@@ -239,6 +262,9 @@ def _panel_score(le: ET.Element) -> tuple[int, int]:
 
 
 def find_layout_editor(root: ET.Element) -> ET.Element:
+    main = tables.layout_editor(root)
+    if tables.generated_panel(main):
+        return main
     editors = list(root.findall("LayoutEditor"))
     candidates = [le for le in editors if len(le.findall("tracksegment")) >= 90]
     if len(candidates) != 1:
@@ -262,12 +288,15 @@ BCI_PLACEMENTS = {
 }
 
 
-def ensure_block_contents_visible(le: ET.Element, *, check: bool, placements: bool = True) -> tuple[int, list[str]]:
-    """Put block-value labels on the label layer with default Dialog/black text. `placements` also pins the
-    BCI_PLACEMENTS labels to their pixels on this hand-drawn panel (off for a generated panel, whose geometry
-    differs)."""
+def ensure_block_contents_visible(
+    le: ET.Element, *, check: bool, placements: bool | dict[str, tuple[int, int]] = True
+) -> tuple[int, list[str]]:
+    """Put block-value labels on the label layer with default Dialog/black text. `placements` True also pins the
+    BCI_PLACEMENTS labels to their pixels on this hand-drawn panel; False pins none (a generated panel, whose
+    geometry differs); a dict pins those blocks' labels to its spots (a generated panel's --reference spots)."""
     changes = 0
     errors: list[str] = []
+    spots = BCI_PLACEMENTS if placements is True else (placements or {})
     for icon in le.findall("BlockContentsIcon"):
         name = icon.get("blockcontents") or "?"
         if icon.get("level") != BCI_LEVEL:
@@ -298,8 +327,8 @@ def ensure_block_contents_visible(le: ET.Element, *, check: bool, placements: bo
             else:
                 del icon.attrib[attr]
                 changes += 1
-        if placements and name in BCI_PLACEMENTS:
-            x, y = BCI_PLACEMENTS[name]
+        if name in spots:
+            x, y = spots[name]
             if not (_same_number(icon.get("x"), x) and _same_number(icon.get("y"), y)):
                 if check:
                     errors.append(
@@ -435,12 +464,13 @@ def _segment_ends(le: ET.Element) -> list[tuple[str, tuple[float, float], tuple[
     return out
 
 
-def stage1_lamp_targets(root: ET.Element, le: ET.Element) -> dict[str, tuple[int, int]]:
+def stage1_lamp_targets(root: ET.Element, le: ET.Element, *, fixed: bool = True) -> dict[str, tuple[int, int]]:
     """Where each Stage 1 occupancy lamp belongs, from the panel geometry.
 
     A sensor whose block is a switch's OS block goes in the centre of that
     turnout circle. Otherwise it goes in the middle of the longest straight
     segment of its track, leaving out hidden throat blocks that share it.
+    `fixed` (the hand-drawn panel) lets STAGE1_LAMP_PLACEMENTS win.
     """
     blocks_by_sensor: dict[str, list[str]] = {}
     throats: set[str] = set()
@@ -491,8 +521,88 @@ def stage1_lamp_targets(root: ET.Element, le: ET.Element) -> dict[str, tuple[int
             )
             cx, cy = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
         targets[sensor] = (round(cx - half), round(cy - half))
-    targets.update(STAGE1_LAMP_PLACEMENTS)
+    if fixed:
+        targets.update(STAGE1_LAMP_PLACEMENTS)
     return targets
+
+
+def _stage1_lamps(le: ET.Element) -> dict[str, list[ET.Element]]:
+    """{sensor: its Stage 1 circuit lamps} on a panel, leaving out the level-12 station cluster lamps."""
+    out: dict[str, list[ET.Element]] = {}
+    for icon in le.findall("sensoricon"):
+        name = (icon.get("sensor") or "").strip()
+        if name and icon.get("level") != CLUSTER_LAMP_LEVEL and _is_circuit_lamp(icon):
+            out.setdefault(name, []).append(icon)
+    return out
+
+
+def _xy(el: ET.Element, what: str) -> tuple[int, int]:
+    try:
+        return round(float(el.get("x"))), round(float(el.get("y")))
+    except (TypeError, ValueError):
+        raise ValueError(f"{what}: x={el.get('x')!r} y={el.get('y')!r} is not a position") from None
+
+
+def reference_panel(path: Path | None) -> ET.Element | None:
+    """The main panel of the --reference tables (the copy taken before Stage 1), or None."""
+    if path is None:
+        return None
+    try:
+        return find_layout_editor(tables.read(path))
+    except (OSError, ET.ParseError) as exc:
+        raise ValueError(f"--reference {path}: {exc}") from None
+
+
+def generated_lamp_targets(
+    root: ET.Element, le: ET.Element, reference: ET.Element | None
+) -> tuple[dict[str, tuple[int, int]], list[str]]:
+    """(targets, notes) for a generated panel's Stage 1 lamps; see the module docstring for the order."""
+    computed = stage1_lamp_targets(root, le, fixed=False)
+    ref_lamps = _stage1_lamps(reference) if reference is not None else {}
+    own = _stage1_lamps(le)
+    targets: dict[str, tuple[int, int]] = {}
+    notes: list[str] = []
+    for sensor in sorted(set(computed) | set(OS_OCCUPANCY_ICONS)):
+        ref = ref_lamps.get(sensor, [])
+        mine = own.get(sensor, [])
+        if len(ref) == 1:
+            targets[sensor] = _xy(ref[0], f"reference lamp {sensor}")
+        elif len(mine) == 1 and reference is None:
+            targets[sensor] = _xy(mine[0], f"lamp {sensor}")
+        elif sensor in computed:
+            targets[sensor] = computed[sensor]
+            if mine or ref:
+                why = (f"{len(ref)} on the reference panel" if reference is not None
+                       else f"{len(mine)} on the panel")
+                notes.append(f"lamp {sensor}: {why}, so it goes to the computed spot {computed[sensor]}")
+    return targets, notes
+
+
+def generated_bci_spots(reference: ET.Element | None) -> dict[str, tuple[int, int]]:
+    """{block: (x, y)} of each block contents label that stands once on the reference panel."""
+    if reference is None:
+        return {}
+    by_block: dict[str, list[ET.Element]] = {}
+    for icon in reference.findall("BlockContentsIcon"):
+        by_block.setdefault(icon.get("blockcontents") or "", []).append(icon)
+    return {b: _xy(icons[0], f"reference block contents {b}") for b, icons in by_block.items()
+            if b and len(icons) == 1}
+
+
+def lamp_targets(
+    root: ET.Element, le: ET.Element, reference: ET.Element | None
+) -> tuple[dict[str, tuple[int, int]], list[str]]:
+    """(targets, notes): the hand-drawn panel's rule, or a generated panel's (module docstring)."""
+    if tables.generated_panel(le):
+        if reference is not None and not tables.generated_panel(reference):
+            raise ValueError("--reference: its main panel is not a generated one; a reference gives the positions "
+                             "of a generated panel only")
+        return generated_lamp_targets(root, le, reference)
+    notes = []
+    if reference is not None:
+        notes.append("--reference not used: the panel is the hand-drawn one, whose lamps take the computed and "
+                     "STAGE1_LAMP_PLACEMENTS spots")
+    return stage1_lamp_targets(root, le), notes
 
 
 def _is_circuit_lamp(icon: ET.Element) -> bool:
@@ -567,14 +677,16 @@ def dedupe_shared_occupancy_icons(
             changes += 1
     return changes, errors
 
-def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list[str]]:
+def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | None = None) -> tuple[int, list[str]]:
     doc = tables.load(path)
     root = doc.root
     le = find_layout_editor(root)
+    generated = tables.generated_panel(le)
+    ref = reference_panel(reference)
     changes = 0
     errors: list[str] = []
 
-    track_n, track_errors = ensure_track_name_labels(le, check=check)
+    track_n, track_errors = ensure_track_name_labels(le, check=check, generated=generated)
     changes += track_n
     errors.extend(f"{path.name}: {e}" for e in track_errors)
 
@@ -587,7 +699,8 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
                 le.set(attr, expected)
                 changes += 1
 
-    for ident, expected_attrs in TURNOUT_GEOMETRY.items():
+    # The hand-drawn panel's pixels; a generated panel's geometry is the build's.
+    for ident, expected_attrs in ({} if generated else TURNOUT_GEOMETRY).items():
         rows = [
             turnout
             for turnout in le.findall("layoutturnout")
@@ -611,7 +724,7 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
                 turnout.set(attr, value)
                 changes += 1
 
-    for ident, (x, y) in ANCHOR_POSITIONS.items():
+    for ident, (x, y) in ({} if generated else ANCHOR_POSITIONS).items():
         rows = [
             point
             for point in le.findall("positionablepoint")
@@ -654,7 +767,7 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
         icon = icons.get(name)
         if icon is None:
             continue
-        expected = {
+        expected = {"scale": SIGNAL_ICON_SCALE} if generated else {
             "x": str(x),
             "y": str(y),
             "degrees": str(degrees),
@@ -671,11 +784,14 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
                 icon.set(attr, value)
                 changes += 1
 
-    bci_changes, bci_errors = ensure_block_contents_visible(le, check=check)
+    bci_changes, bci_errors = ensure_block_contents_visible(
+        le, check=check, placements=generated_bci_spots(ref) if generated else True)
     changes += bci_changes
     errors.extend(bci_errors)
 
-    targets = stage1_lamp_targets(root, le)
+    # After the turnout and anchor fixes above, as the lamp spots are read off that geometry.
+    targets, notes = lamp_targets(root, le, ref)
+    _print_notes(path, notes)
     os_added, os_errors = ensure_os_occupancy_icons(le, check=check, targets=targets)
     changes += os_added
     errors.extend(os_errors)
@@ -699,6 +815,21 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
             le.remove(icon)
             changes += 1
 
+    # A generated panel can also name a track like a region caption (the track Barn under the Barn caption):
+    # there a caption that already has its style is enough, and the track names keep theirs.
+    captioned: set[str] = set()
+    if generated:
+        same_text: dict[str, list[ET.Element]] = {}
+        for label in le.findall("positionablelabel"):
+            same_text.setdefault((label.get("text") or "").strip(), []).append(label)
+        for text, (size, style) in LABEL_STYLE.items():
+            group = same_text.get(text, [])
+            if any(l.get("size") == size and l.get("style") == style for l in group):
+                captioned.add(text)
+            elif len(group) > 1:
+                errors.append(f"{path.name}: {len(group)} labels say {text!r} and none has the caption style "
+                              f"(size {size}, style {style}); style the caption by hand")
+                captioned.add(text)
     for label in list(le.findall("positionablelabel")):
         text = (label.get("text") or "").strip()
         if text in REMOVED_LABELS:
@@ -715,7 +846,7 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
                 le.remove(label)
                 changes += 1
             continue
-        if text in LABEL_STYLE:
+        if text in LABEL_STYLE and not (generated and text in captioned):
             size, style = LABEL_STYLE[text]
             for attr, value in (("size", size), ("style", style)):
                 if label.get(attr) == value:
@@ -741,7 +872,7 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
                     label.set(attr, value)
                     changes += 1
 
-    for text, positions in LABEL_PLACEMENTS.items():
+    for text, positions in ({} if generated else LABEL_PLACEMENTS).items():
         labels = sorted(
             [
                 label
@@ -779,13 +910,16 @@ def apply_visual_standard(path: Path, *, check: bool = False) -> tuple[int, list
     return changes, errors
 
 
-def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list[str]]:
+def apply_overlap_cleanup(path: Path, *, check: bool = False, reference: Path | None = None) -> tuple[int, list[str]]:
     """Shrink-LE companion: keep Pi mast nudges, hide virtuals, put Stage 1 lamps on their targets.
 
-    Does not add OS Block n-n icons or restripe station occupancy.
+    Does not add OS Block n-n icons or restripe station occupancy. On a generated panel the mast icons keep
+    their positions; only which are hidden is set.
     """
     doc = tables.load(path)
     le = find_layout_editor(doc.root)
+    generated = tables.generated_panel(le)
+    ref = reference_panel(reference)
     changes = 0
     errors: list[str] = []
 
@@ -793,7 +927,7 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
         name = (icon.get("signalmast") or "").strip()
         if name in SIGNAL_PLACEMENTS:
             x, y, degrees = SIGNAL_PLACEMENTS[name]
-            expected = {
+            expected = {"hidden": "no"} if generated else {
                 "x": str(x),
                 "y": str(y),
                 "degrees": str(degrees),
@@ -813,9 +947,9 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
                 changes += 1
 
     # Placing also removes extra copies, so no separate dedupe pass is needed.
-    lamp_n, lamp_errors = place_stage1_lamps(
-        le, check=check, targets=stage1_lamp_targets(doc.root, le)
-    )
+    targets, notes = lamp_targets(doc.root, le, ref)
+    _print_notes(path, notes)
+    lamp_n, lamp_errors = place_stage1_lamps(le, check=check, targets=targets)
     changes += lamp_n
     errors.extend(f"{path.name}: {e}" for e in lamp_errors)
 
@@ -825,23 +959,31 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False) -> tuple[int, list
     return changes, errors
 
 
-def apply_block_labels_only(path: Path, *, check: bool) -> tuple[int, list[str]]:
+def apply_block_labels_only(path: Path, *, check: bool, reference: Path | None = None) -> tuple[int, list[str]]:
     """Lift BlockContentsIcons to level 4 and put Stage 1 lamps on their targets.
 
     A Stage 1 Store resets both, so the deploy and Stage 1 wrapper run this.
     """
     doc = tables.load(path)
     le = find_layout_editor(doc.root)
-    changes, errors = ensure_block_contents_visible(le, check=check)
-    lamp_n, lamp_errors = place_stage1_lamps(
-        le, check=check, targets=stage1_lamp_targets(doc.root, le)
-    )
+    generated = tables.generated_panel(le)
+    ref = reference_panel(reference)
+    targets, notes = lamp_targets(doc.root, le, ref)
+    _print_notes(path, notes)
+    changes, errors = ensure_block_contents_visible(
+        le, check=check, placements=generated_bci_spots(ref) if generated else True)
+    lamp_n, lamp_errors = place_stage1_lamps(le, check=check, targets=targets)
     changes += lamp_n
     errors.extend(f"{path.name}: {e}" for e in lamp_errors)
     if check or not changes:
         return changes, errors
     doc.save(path)
     return changes, errors
+
+
+def _print_notes(path: Path, notes: list[str]) -> None:
+    for note in notes:
+        print(f"note: {path.name}: {note}")
 
 
 def main() -> int:
@@ -854,6 +996,12 @@ def main() -> int:
     )
     ap.add_argument("--check", action="store_true", help="Validate without writing")
     ap.add_argument(
+        "--reference",
+        type=Path,
+        help="a generated panel's tables before Stage 1 (run_panelpro_stage1.sh): lamps and block contents "
+             "labels go back where they stood in it",
+    )
+    ap.add_argument(
         "--block-labels-only",
         action="store_true",
         help="Only restore BlockContentsIcon level/color and Stage 1 lamp spots (safe after Stage 1 Store).",
@@ -864,6 +1012,8 @@ def main() -> int:
         help="Pi mast nudges, hide virtuals, drop shared occupancy duplicates only.",
     )
     args = ap.parse_args()
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
 
     panels = [args.panel.resolve()]
 
@@ -879,9 +1029,12 @@ def main() -> int:
             all_errors.append(f"missing {path}")
             continue
         try:
-            changes, errors = apply_fn(path, check=args.check)
+            changes, errors = apply_fn(path, check=args.check, reference=args.reference)
         except RuntimeError as exc:  # hartlib save refuses while PanelPro or CATS is open
             all_errors.append(f"{path}: not changed: {exc}")
+            continue
+        except ValueError as exc:  # no main panel, a bad --reference, a doubled marker
+            all_errors.append(f"{path}: {exc}")
             continue
         all_errors.extend(errors)
         verb = "checked" if args.check else "updated"

@@ -4,12 +4,15 @@
 from __future__ import annotations
 
 import csv
+import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 JMRI_ROOT = Path(__file__).resolve().parents[1]
 HART = JMRI_ROOT / "layouts" / "hart"
-PANEL = HART / "output" / "tables.xml"
+# HART_TABLES names another tables file for the checks (tools/check.sh, hartlib.paths); this
+# script stays free of hartlib.
+PANEL = Path(os.environ["HART_TABLES"]) if os.environ.get("HART_TABLES") else HART / "output" / "tables.xml"
 NAME_MAP = HART / "data" / "public_name_map.csv"
 SWITCH_LEGS = HART / "data" / "switch_legs.csv"
 SWITCHES = HART / "data" / "switches.csv"

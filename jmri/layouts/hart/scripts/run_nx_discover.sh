@@ -3,6 +3,8 @@
 # Full interlock: HART_NX_LOCK=1. Refuses if CATS/PanelPro is already running (MQTT client-id).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+source "$ROOT/tools/hosts/profile_tables_guard.sh"
+refuse_hart_tables "run PanelPro on tables.xml"
 # PanelPro loads the tables of the checkout this script lives in (main or a worktree).
 case "$ROOT" in
   "$HOME"/*) TABLES_URI="home:${ROOT#"$HOME"/}/jmri/layouts/hart/output/tables.xml" ;;
