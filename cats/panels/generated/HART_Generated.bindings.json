@@ -1,9 +1,6 @@
 {
  "_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit.",
  "blocks": {
-  "23-31": {
-   "name": "OS Switch 31"
-  },
   "35-37": {
    "name": "OS Switch 35a"
   },
@@ -1040,6 +1037,7 @@
   },
   "23/T118": {
    "block": "OS Switch 23b",
+   "label": "23B",
    "normal": "B",
    "routes": {
     "B": {
@@ -1074,6 +1072,7 @@
   },
   "23/T58": {
    "block": "OS Switch 23a",
+   "label": "23A",
    "normal": "B",
    "routes": {
     "B": {
@@ -1312,6 +1311,7 @@
   },
   "35/T55": {
    "block": "OS Switch 35b",
+   "label": "35B",
    "normal": "B",
    "routes": {
     "B": {
@@ -1346,6 +1346,7 @@
   },
   "35/T98": {
    "block": "OS Switch 35a",
+   "label": "35A",
    "normal": "B",
    "routes": {
     "B": {
@@ -1482,6 +1483,7 @@
   },
   "7/7a": {
    "block": "OS Switch 7",
+   "label": "7A",
    "normal": "B",
    "routes": {
     "B": {
@@ -1516,6 +1518,7 @@
   },
   "7/7b": {
    "block": "OS Switch 7b",
+   "label": "7B",
    "normal": "B",
    "routes": {
     "B": {
