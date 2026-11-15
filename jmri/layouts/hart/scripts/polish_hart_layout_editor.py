@@ -262,8 +262,10 @@ BCI_PLACEMENTS = {
 }
 
 
-def ensure_block_contents_visible(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
-    """Put block-value labels on the label layer with default Dialog/black text."""
+def ensure_block_contents_visible(le: ET.Element, *, check: bool, placements: bool = True) -> tuple[int, list[str]]:
+    """Put block-value labels on the label layer with default Dialog/black text. `placements` also pins the
+    BCI_PLACEMENTS labels to their pixels on this hand-drawn panel (off for a generated panel, whose geometry
+    differs)."""
     changes = 0
     errors: list[str] = []
     for icon in le.findall("BlockContentsIcon"):
@@ -296,7 +298,7 @@ def ensure_block_contents_visible(le: ET.Element, *, check: bool) -> tuple[int, 
             else:
                 del icon.attrib[attr]
                 changes += 1
-        if name in BCI_PLACEMENTS:
+        if placements and name in BCI_PLACEMENTS:
             x, y = BCI_PLACEMENTS[name]
             if not (_same_number(icon.get("x"), x) and _same_number(icon.get("y"), y)):
                 if check:
