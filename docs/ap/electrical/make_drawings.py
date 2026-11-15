@@ -452,7 +452,7 @@ def d3() -> str:
     b.append(wire("M310,338 L380,338", INK, 1.3, "4 3"))
     b.append(label(20, 472, "The frog always takes the polarity of the stock rail its points lie against, because the same throw of the machine that moves", 9.5, INK))
     b.append(label(20, 486, "the points also moves the SPDT 1 contact. Every staging turnout is wired this way. Indication follows the machine, so it is", 9.5, INK))
-    b.append(label(20, 500, "correct whether the turnout is thrown from the fascia, a DCC throttle or the computer (Section 5.2).", 9.5, INK))
+    b.append(label(20, 500, "correct whether the turnout is thrown from the fascia, a DCC throttle or the computer (Section 5.1).", 9.5, INK))
     return svg(620, 516, "\n".join(b), "D3 · Turnout: powered frog and position contact (MTB MP4, two SPDT)",
                "A turnout with its frog rails in red, gapped beyond the frog. Contact 1 of the switch machine connects the "
                "frog to one stock rail or the other. Contact 2 reports the position to the indication circuit.")
@@ -534,8 +534,8 @@ def d6() -> str:
     b = []
     b.append(box(20, 60, 170, 56, "JMRI (Raspberry Pi)", "turnouts, sensors, signals", "MQTT connection", size=9.5))
     b.append(box(250, 60, 150, 56, "MQTT broker", "Mosquitto", "topics track/...", size=9.5))
-    b.append(box(460, 50, 200, 76, "Bridge program (PC)", "serial_to_mqtt.py", "serial lines <-> MQTT topics", "written by the member", size=9.5, fill="#fdf3e3"))
-    b.append(box(460, 190, 200, 76, "Bridge node", "Arduino Nano + nRF24 radio", "bridge firmware", "written by the member", size=9.5, fill="#fdf3e3"))
+    b.append(box(460, 50, 200, 76, "Bridge program (PC)", "serial_to_mqtt.py", "serial lines <-> MQTT topics", "my own work", size=9.5, fill="#fdf3e3"))
+    b.append(box(460, 190, 200, 76, "Bridge node", "Arduino Nano + nRF24 radio", "bridge firmware", "my own work", size=9.5, fill="#fdf3e3"))
     b.append(box(250, 190, 150, 76, "LCOS field nodes", "Nano + radio + input,", "output, detector boards", size=9.5))
     b.append(box(20, 196, 170, 64, "Railroad", "switch machines, signals,", "block detectors", size=9.5))
     for d in ("M190,88 L250,88", "M400,88 L460,88", "M560,126 L560,190", "M460,228 L400,228", "M250,228 L190,228"):
@@ -547,12 +547,12 @@ def d6() -> str:
     b.append(label(196, 222, "wired", 9))
     b.append(label(20, 300, "Turnout commands from JMRI go out as MQTT messages, which the bridge program writes to the bridge node as serial lines; the node sends", 9.5, INK))
     b.append(label(20, 314, "them by radio to the field node beside the switch. Field events (switch position, block occupied or clear, button presses) come back", 9.5, INK))
-    b.append(label(20, 328, "the same way and appear in JMRI as sensors and turnout feedback. The shaded parts were designed and written by the member and are", 9.5, INK))
+    b.append(label(20, 328, "the same way and appear in JMRI as sensors and turnout feedback. The shaded parts were designed and written by me and are", 9.5, INK))
     b.append(label(20, 342, "published as open source; LCOS (the radio protocol and boards), JMRI and Mosquitto are existing products.", 9.5, INK))
     return svg(680, 358, "\n".join(b), "D6 · Computer-to-railroad interface: LCOS radio network to JMRI over MQTT",
                "Block diagram: JMRI talks to an MQTT broker, which talks to the bridge program on a PC, which talks over USB "
                "to the bridge node, which talks by radio to the LCOS field nodes wired to the railroad. The bridge program "
-               "and bridge node firmware were written by the member.")
+               "and bridge node firmware were written by me.")
 
 
 FIGURES = [("P1-staging-plan", p1), ("P2-reversing-sections", p2), ("P3-passing-siding", p3), ("P4-yard", p4),

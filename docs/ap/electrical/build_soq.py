@@ -5,7 +5,7 @@ Steps:
   1. Draw the plan clips and drawings (make_drawings.py) and the scaled staging plan.
   2. Fill soq.html: numbers for chapters, sections, figures and tables; cross-references;
      contents lists; Appendix B from the block table; photo placeholders for photos not
-     yet taken (PHOTO_PUNCH_LIST.md); the photo register; the list of wiring records.
+     yet taken (PHOTO_PUNCH_LIST.md); the list of wiring records.
   3. Print it twice with headless Chrome: once to find the page of every heading and
      caption, then again with those page numbers in the contents.
   4. Put the ticked NMRA form in front, the railroad's wiring records (exported from the
@@ -60,21 +60,11 @@ RECORDS = [
     ("nodes", 9, "Node C13", "Node C13 pin page (yard lead and engine storage)"),
 ]
 
-# Where each photograph came from (media/photos-layout), for the register.
-PHOTO_SOURCES = {
-    "layout-overview.jpg": "IMG_8954", "power-board.jpg": "IMG_7813", "bus-terminal-strip.jpg": "IMG_7226",
-    "touch-toggle-translator.jpg": "IMG_8415", "touch-toggle-mp4.jpg": "IMG_8414 (cropped)",
-    "fascia-indication-panel.jpg": "IMG_8940", "lcos-node-radio.jpg": "IMG_7471", "lcos-node-mounted.jpg": "IMG_7868",
-    "staging-turnouts.jpg": "IMG_9231", "staging-ladder.jpg": "IMG_8070", "yard.jpg": "IMG_8947",
-    "engine-storage.jpg": "IMG_9288",
-}
-
-# Ids whose numbers the text and drawings quote by hand ("Section 3.3" and so on).
-# Ids whose numbers soq.html, the plan legends and PHOTO_PUNCH_LIST.md quote by hand.
+# Ids whose numbers soq.html, the drawings and PHOTO_PUNCH_LIST.md quote by hand ("Section 3.3" and so on).
 EXPECTED = {"matrix": "2", "req1": "3", "req1-two": "3.1", "req1-gaps": "3.2", "req1-loop": "3.3", "req1-siding": "3.4",
             "req1-engine": "3.5", "req1-yard": "3.6", "req2": "4", "req2-turnout": "4.1", "req2-crossover": "4.2",
-            "req3": "5", "req3-a": "5.2", "req3-b": "5.3", "req3-v": "5.4", "req45": "6", "demo": "8", "conclusion": "9",
-            "app-a": "A", "app-b": "B", "app-c": "C", "app-d": "D", "app-e": "E", "app-f": "F", "app-h": "H"}
+            "req3": "5", "req3-a": "5.1", "req3-b": "5.2", "req3-v": "5.3", "req45": "6", "demo": "7",
+            "app-a": "A", "app-b": "B", "app-c": "C", "app-d": "D", "app-h": "E"}
 
 YARD = {"S-R": "Y1", "S-1": "Y2", "S-2": "Y3", "S-3": "Y4", "S-4": "Y5"}
 
@@ -128,10 +118,9 @@ def punch_items() -> dict[str, str]:
     return {k: v for k, v in items.items()}
 
 
-def fill_photos(doc: str) -> tuple[str, list[tuple[str, str, str, str]]]:
-    """Swap missing photos for placeholders; return the register rows (id, file, source, status)."""
+def fill_photos(doc: str) -> str:
+    """Swap photos not yet taken for placeholders that name their punch-list item."""
     punch = punch_items()
-    register = []
 
     def one(m: re.Match) -> str:
         fig = m.group(0)
@@ -142,19 +131,16 @@ def fill_photos(doc: str) -> tuple[str, list[tuple[str, str, str, str]]]:
         name = src.group(1)
         pid = re.search(r'data-punch="([^"]+)"', fig)
         if (HERE / "photos" / name).exists():
-            register.append((fid, name, PHOTO_SOURCES.get(name, "taken for this document"), "included"))
             return fig
         if not pid:
             die(f"photos/{name} is missing and figure {fid} has no data-punch item")
         if name not in punch.get(pid.group(1), []):
             die(f"figure {fid}: {pid.group(1)} in {PUNCH.name} does not name photos/{name}")
         alt = re.search(r'alt="([^"]*)"', fig).group(1)
-        register.append((fid, name, "—", f"pending ({pid.group(1)})"))
         box = (f'<div class="pending" role="img" aria-label="Photograph pending: {alt}"><strong>Photograph pending · '
                f'{pid.group(1)}</strong>{alt}<br>File: photos/{name}</div>')
         return re.sub(r"<img [^>]*>", box, fig)
-    doc = re.sub(r'<figure class="photo"[^>]*>.*?</figure>', one, doc, flags=re.S)
-    return doc, register
+    return re.sub(r'<figure class="photo"[^>]*>.*?</figure>', one, doc, flags=re.S)
 
 
 # ---------------------------------------------------------------- numbering
@@ -401,7 +387,8 @@ def ticked_form(tmp: Path) -> Path:
     return dst
 
 
-def assemble(doc_pdf: Path, plates_pdf: Path, after: int, form_pdf: Path, decks: dict[str, Path], toc, pages) -> None:
+def assemble(doc_pdf: Path, plates_pdf: Path, after: int, form_pdf: Path, decks: dict[str, Path], toc, pages,
+             records_label: str) -> None:
     """after: the main-document page (1-based) the landscape plates follow."""
     import fitz
     doc = fitz.open(doc_pdf)
@@ -414,7 +401,7 @@ def assemble(doc_pdf: Path, plates_pdf: Path, after: int, form_pdf: Path, decks:
         if src.page_count < n or not src[n - 1].get_text().strip().startswith(start):
             die(f"{DECKS[key].name} page {n} does not start with {start!r}; update RECORDS")
         page = doc.new_page(width=792, height=612)
-        page.insert_text((50, 40), f"Appendix H · {name}", fontsize=10, fontname="helv", color=(0.12, 0.31, 0.51))
+        page.insert_text((50, 40), f"{records_label} · {name}", fontsize=10, fontname="helv", color=(0.12, 0.31, 0.51))
         page.show_pdf_page(fitz.Rect(50, 52, 742, 560), src, n - 1, keep_proportion=True)
     total = doc.page_count
     for i, page in enumerate(doc):
@@ -444,13 +431,8 @@ def assemble(doc_pdf: Path, plates_pdf: Path, after: int, form_pdf: Path, decks:
 def render(date: str) -> tuple[str, list, list, list, dict]:
     doc = (HERE / "soq.html").read_text()
     doc = doc.replace("{{DATE}}", date).replace("{{APPENDIX_B}}", appendix_b())
-    doc, register = fill_photos(doc)
+    doc = fill_photos(doc)
     doc, labels, toc, figs, tabs = number(doc)
-    reg = "".join(f'<tr><td>{labels.get(fid, fid)}</td><td><code>photos/{n}</code></td><td>{s}</td><td>{st}</td></tr>'
-                  for fid, n, s, st in register)
-    doc = doc.replace("{{PHOTO_REGISTER}}", '<table id="tab-photos"><caption>Photographs</caption><thead><tr>'
-                      '<th scope="col">Figure</th><th scope="col">File</th><th scope="col">Original</th>'
-                      f'<th scope="col">Status</th></tr></thead><tbody>{reg}</tbody></table>')
     return doc, toc, figs, tabs, labels
 
 
@@ -520,7 +502,8 @@ def main() -> None:
         chrome_pdf(plates_html, tmp / "plates2.pdf")
         if paginate(tmp / "main2.pdf", tmp / "plates2.pdf") != (pages, after, rec0):
             die("page numbers moved between the two passes; check the contents lists")
-        assemble(tmp / "main2.pdf", tmp / "plates2.pdf", after, ticked_form(tmp), export_decks(tmp), toc, pages)
+        assemble(tmp / "main2.pdf", tmp / "plates2.pdf", after, ticked_form(tmp), export_decks(tmp), toc, pages,
+                 labels["app-h"])
     print(f"{OUT_PDF.relative_to(ROOT)}: {fitz.open(OUT_PDF).page_count} pages")
 
 
