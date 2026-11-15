@@ -16,6 +16,8 @@ class DataCsvShapeTest(unittest.TestCase):
         for path in sorted(DATA.rglob("*.csv")):
             with path.open(encoding="utf-8", newline="") as fh:
                 rows = list(csv.reader(fh))
+            if rows and rows[0] and rows[0][0].startswith("# "):
+                rows = rows[1:]          # a provenance note line (the frozen schematic/staging_le files)
             if not rows:
                 continue
             width = len(rows[0])

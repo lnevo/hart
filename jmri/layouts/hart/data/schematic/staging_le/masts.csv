@@ -1,0 +1,51 @@
+# Frozen from the hand-drawn "HART Railroad" panel in jmri/layouts/hart/output/tables.xml on 2026-11-15 (build_layout_le.py --freeze); the generated panel is built from this file. Edit here, not in the panel.
+mast,kind,ident,slot,turnout,facing,protects,hidden,icon_w,icon_h,signal,toward,run,names,edge_cm,cm_from_toward,dir,signal_kind,heads,schematic_edge,schematic_toward_node
+Mast 10LA,end bumper,EB2,west,,Track EH-2,,yes,12,17,10LA,9,9;,EH-2,61.0,61.0,west,virtual,1,n5,NEW:9
+Mast 10LB,end bumper,EB3,west,,Track EH-3,,yes,12,17,10LB,9,9;,EH-3,61.0,61.0,west,virtual,1,n4,NEW:9
+Mast 10RA,turnout,TO10,C,Switch 9,Track EH-2,OS Switch 9,yes,12,17,10RA,9,9;,EH-2,61.0,0.0,east,virtual,1,n5,NEW:9
+Mast 10RB,turnout,TO10,B,Switch 9,Track EH-3,OS Switch 9,yes,12,17,10RB,9,9;,EH-3,61.0,0.0,east,virtual,1,n4,NEW:9
+Mast 12L,end bumper,EB1,west,,Track EH-1,,yes,12,17,12L,11,11;,EH-1,61.0,61.0,west,virtual,1,n2,NEW:11
+Mast 12R,turnout,TO11,B,Switch 11,Track EH-1,OS Switch 11,yes,12,17,12R,11,11;,EH-1,61.0,0.0,east,virtual,1,n2,NEW:11
+Mast 14R,turnout,TO1,B,Switch 13,Track Barn,OS Switch 13,yes,12,17,14R,13,13;7,Barn,85.6,0.0,east,virtual,1,e6ba,NEW:13
+Mast 16L,anchor,A81,west,,Track S-R,Track S-R West,yes,12,17,16L,15,15;23,S-R,633.7,40.0,west,virtual,1,e7+e17,TOR28939
+Mast 16R,anchor,A37,east,,Track S-R,Track S-R East,yes,12,17,16R,23,23;15,S-R,633.7,40.0,east,virtual,1,e7+e17,TOR29392
+Mast 18L,anchor,A53,west,,Track S-1,Track S-1 West,yes,12,17,18L,17,17;29,S-1,618.5,40.0,west,virtual,1,e23,TOL28940
+Mast 18R,anchor,A61,east,,Track S-1,Track S-1 East,yes,12,17,18R,29,29;17,S-1,618.5,40.0,east,virtual,1,e23,TOR28903
+Mast 2035,anchor,A48,west,,Track K-2,Track K-1,no,12,17,2035,39,39;37,K-1;K-2,602.9,314.3,west,planned,1,e16,TOL29312
+Mast 2036,anchor,A48,east,,Track K-1,Track K-2,no,12,17,2036,37,37;39,K-1;K-2,602.9,288.6,east,planned,1,e16,TOR29969
+Mast 20L,anchor,A46,west,,Track S-2,Track S-2 West,yes,12,17,20L,19,19;27,S-2,532.1,40.0,west,virtual,1,e29,TOL28942
+Mast 20R,anchor,A36,east,,Track S-2,Track S-2 East,yes,12,17,20R,27,27;19,S-2,532.1,40.0,east,virtual,1,e29,TOR28906
+Mast 22L,anchor,A41,west,,Track S-3,Track S-3 West,yes,12,17,22L,21,21;25,S-3,440.7,40.0,west,virtual,1,e21,TOL28944
+Mast 22R,anchor,A39,east,,Track S-3,Track S-3 East,yes,12,17,22R,25,25;21,S-3,440.7,40.0,east,virtual,1,e21,TOR28908
+Mast 24L,turnout,TO111,B,Switch 23,Track West Ext,OS Switch 23a,no,12,40,24L,23,23;35,West Ext,396.5,0.0,west,field,2,e13,TOR29391
+Mast 24RA,turnout,TO111,A,Switch 23,Track Main West,OS Switch 23a,no,12,40,24RA,23,23;1,Main West,551.9,0.0,east,field,2,e9+e10,TOR29391
+Mast 24RB,turnout,TO111,D,Switch 23,Track S-R East,OS Switch 23b,no,12,17,24RB,23,23;15,S-R,633.7,0.0,east,field,1,e7+e17,TOR29392
+Mast 26L,anchor,A15,west,,Track S-4,Track S-4 West,yes,12,17,26L,21,21;25,S-4,334.0,40.0,west,virtual,1,e20,TOL28944
+Mast 26R,anchor,A12,east,,Track S-4,Track S-4 East,yes,12,17,26R,25,25;21,S-4,334.0,40.0,east,virtual,1,e20,TOR28908
+Mast 2L,turnout,TOL3,A,M2T408,Track Main West,OS Switch 1,no,12,40,2L,1,1;23,Main West,551.9,0.0,west,field,2,e9+e10,TOL34067
+Mast 2R,turnout,TOL3,C,M2T408,Track Brick-Plane,OS Switch 1,yes,12,17,2R,1,1;5,Brick-Plane,147.6,0.0,east,virtual,1,e31,TOL34067
+Mast 32R,turnout,TOL6,C,M2T1211,OS Switch 29,OS Switch 31,no,12,17,32R,31,31;29,,25.4,0.0,east,field,1,e2,TOL28902
+Mast 34L,turnout,TOL23,A,M2T1213,Track East Lead,OS Switch 33,no,12,40,34L,33,33;35,East Lead,263.3,0.0,west,field,2,e28,TOL29277
+Mast 34R,turnout,TOL23,C,M2T1213,Track Main East,OS Switch 33,no,12,40,34R,33,33;7,Main East,800.4,0.0,east,field,2,e30b,TOL29277
+Mast 36L,anchor,A56,west,,Track East Lead East,Track East Lead,yes,12,17,36L,33,33;35,East Lead,263.3,223.3,west,virtual,1,e28,TOL29277
+Mast 36RA,turnout,TO113,A,Switch 35,Track West Ext,OS Switch 35b,no,12,40,36RA,35,35;23,West Ext,396.5,0.0,east,field,2,e13,TOL29967
+Mast 36RB,turnout,TO113,D,Switch 35,Track East Lead East,OS Switch 35a,no,12,40,36RB,35,35;33,East Lead,263.3,0.0,east,field,2,e28,TOL29970
+Mast 38LA,turnout,TOR36,B,M2T109,Track McKeesport,OS Switch 37,no,12,40,38LA,37,37;,McKeesport,61.0,0.0,west,planned,2,e26,TOR29969
+Mast 38LB,turnout,TOR36,C,M2T109,Track K-2,OS Switch 37,no,12,17,38LB,37,37;39,K-1;K-2,602.9,0.0,west,planned,1,e16,TOR29969
+Mast 38RA,end bumper,EB72,east,,Track McKeesport,,yes,12,17,38RA,37,37;,McKeesport,61.0,61.0,east,virtual,1,e26,TOR29969
+Mast 40LA,turnout,TOL29,B,M2T110,Track McKees Rocks,OS Switch 39,no,12,40,40LA,39,39;,McKees Rocks,61.0,0.0,west,planned,2,e15,TOL29312
+Mast 40LB,turnout,TOL29,C,M2T110,Track K-1 West,OS Switch 39,no,12,17,40LB,39,39;37,K-1;K-2,602.9,0.0,west,planned,1,e16,TOL29312
+Mast 40RA,end bumper,EB71,east,,Track McKees Rocks,,yes,12,17,40RA,39,39;,McKees Rocks,61.0,61.0,east,virtual,1,e15,TOL29312
+Mast 40RB,anchor,A1,east,,Track K-1 West,Track K-1,yes,12,17,40RB,37,37;39,K-1;K-2,602.9,562.9,east,virtual,1,e16,TOR29969
+Mast 4LA,end bumper,EB70,west,,Track W-1,,yes,12,17,4LA,3,3;,W-1,266.7,266.7,west,virtual,1,e4,TOL33902
+Mast 4LB,end bumper,EB73,west,,Track W-2,,yes,12,17,4LB,3,3;,W-2,236.2,236.2,west,virtual,1,e5,TOL33902
+Mast 4RA,turnout,TOL38,B,M2T409,Track W-1,OS Switch 3,no,12,17,4RA,3,3;,W-1,266.7,0.0,east,field,1,e4,TOL33902
+Mast 4RB,turnout,TOL38,C,M2T409,Track W-2,OS Switch 3,no,12,17,4RB,3,3;,W-2,236.2,0.0,east,field,1,e5,TOL33902
+Mast 6LA,turnout,TOL42,C,M2T410,Track Scale,OS Switch 5,no,12,17,6LA,5,5;7,Scale,392.4,0.0,west,field,1,e6a,TOL34057
+Mast 6LB,turnout,TOL42,B,M2T410,Track East Ext,OS Switch 5,no,12,17,6LB,5,5;7,East Ext,357.6,0.0,west,field,1,e30a,TOL34057
+Mast 6R,turnout,TOL42,A,M2T410,Track Brick-Plane,OS Switch 5,yes,12,17,6R,5,5;1,Brick-Plane,147.6,0.0,east,virtual,1,e31,TOL34057
+Mast 8LA,turnout,TO117,C,Switch 7,Track Main East,OS Switch 7b,no,12,40,8LA,7,7;33,Main East,800.4,0.0,west,field,2,e30b,NEW:7b
+Mast 8LB,turnout,TO117,B,Switch 7,Track Barn,OS Switch 7,no,12,17,8LB,7,7;13,Barn,85.6,0.0,west,field,1,e6ba,NEW:7a
+Mast 8LC,anchor,A45,west,,OS Switch 7,Track Scale,yes,12,17,8LC,5,5;7,Scale,392.4,367.0,west,virtual,1,e6a,TOL34057
+Mast 8RA,anchor,A45,east,,Track Scale,OS Switch 7,no,12,40,8RA,7,7;5,Scale,392.4,25.4,east,field,2,e6a,NEW:7a
+Mast 8RB,turnout,TO117,D,Switch 7,Track East Ext,OS Switch 7b,no,12,40,8RB,7,7;5,East Ext,357.6,0.0,east,field,2,e30a,NEW:7b

@@ -143,33 +143,47 @@ class SignalsCheck(unittest.TestCase):
         os.environ["SCHEMATIC_REQUIRED"] = "1"
         self.assertEqual(self.without_plugin(), 1)
 
-    def run_with(self, written, committed):
-        """main() with the plugin replaced by a script that writes `written` as the signals file."""
+    def run_with(self, committed, masts=None):
+        """main(["--check"]) against `committed` as the signals file, from masts.csv (or `masts` rows)."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            (tmp / "bin").mkdir()
-            tool = tmp / "bin/schematic"
-            tool.write_text(f"#!/bin/sh\ncat > \"$5\" <<'END'\n{written}\nEND\n")
-            tool.chmod(0o755)
             (tmp / "staging.signals.json").write_text(committed)
-            real = self.bs.pd.plugin, self.bs.pd.DATA
-            self.bs.pd.plugin, self.bs.pd.DATA = (lambda: tmp), tmp
+            real_data, real_load = self.bs.pd.DATA, self.bs.le_inputs.load_masts
+            for f in ("staging.plan_overrides.json",):
+                (tmp / f).write_text((real_data / f).read_text())
+            self.bs.pd.DATA = tmp
+            if masts is not None:
+                self.bs.le_inputs.load_masts = lambda: masts
             try:
                 with contextlib.redirect_stdout(io.StringIO()):
                     return self.bs.main(["--check"])
             finally:
-                self.bs.pd.plugin, self.bs.pd.DATA = real
+                self.bs.pd.DATA, self.bs.le_inputs.load_masts = real_data, real_load
 
     def test_current_passes(self) -> None:
-        self.assertEqual(self.run_with('{"unplaced": []}', '{"unplaced": []}\n'), 0)
+        committed = (self.bs.pd.DATA / "staging.signals.json").read_text()
+        self.assertEqual(self.run_with(committed), 0)
 
     def test_stale_fails(self) -> None:
-        self.assertEqual(self.run_with('{"unplaced": []}', '{"old": 1, "unplaced": []}\n'), 1)
+        self.assertEqual(self.run_with('{"signals": [], "unplaced": []}\n'), 1)   # layers.load reads it too
 
-    def test_unplaced_masts_fail(self) -> None:
-        with self.assertRaises(SystemExit) as e:
-            self.run_with('{"unplaced": ["x"]}', '{"unplaced": ["x"]}\n')
-        self.assertIn("not placed", str(e.exception.code))
+    def test_written_from_the_frozen_masts(self) -> None:
+        masts = self.bs.le_inputs.load_masts()
+        self.assertEqual(len(masts), 49)
+        got = json.loads((self.bs.pd.DATA / "staging.signals.json").read_text())
+        self.assertEqual(got["signals"], self.bs.le_inputs.signal_rows(masts))
+        self.assertEqual((got["source"], got["unplaced"]), (self.bs.le_inputs.SIGNALS_SOURCE, []))
+
+    def test_a_run_not_in_the_plan_fails(self) -> None:
+        masts = self.bs.le_inputs.load_masts()
+        for field, value, why in (("schematic_edge", "e9999", "not in the plan graph"),
+                                  ("names", ["Nowhere"], "carries"), ("run", ["1", "99"], "runs")):
+            bad = [dict(m) for m in masts]
+            bad[0][field] = value
+            with self.subTest(field=field):
+                with self.assertRaises(SystemExit) as e:
+                    self.run_with('{"signals": []}', bad)
+                self.assertIn(why, str(e.exception.code))
 
 
 class PreviewFolder(unittest.TestCase):
