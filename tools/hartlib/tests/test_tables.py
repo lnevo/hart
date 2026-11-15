@@ -294,5 +294,26 @@ class RepoTablesTest(unittest.TestCase):
             self.assertIn(tables.continuing_sense(lt), (tables.CLOSED, tables.THROWN), lt.get("ident"))
 
 
+class MastIconTest(unittest.TestCase):
+    def test_appearance_and_icon_size(self):
+        self.assertEqual(tables.mast_appearance("IF$shsm:basic:one-low(IH143)"), "one-low")
+        self.assertEqual(tables.mast_appearance("IF$vsm:basic:one-low($1001)"), "one-low")
+        self.assertEqual(tables.mast_appearance("IM1"), "")
+        self.assertEqual(tables.mast_icon_size("IF$shsm:basic:one-low(IH143)"), (tables.MAST_ICON_DWARF, True))
+        self.assertEqual(tables.mast_icon_size("IF$shsm:basic:two-searchlight(IH1)(IH2)"),
+                         (tables.MAST_ICON_HIGH, True))
+        self.assertEqual(tables.mast_icon_size("IF$shsm:basic:slow-lowish(IH1)"), (tables.MAST_ICON_HIGH, False))
+        self.assertEqual(tables.mast_icon_size(""), (tables.MAST_ICON_HIGH, False))
+
+    def test_masts_found_by_user_or_system_name(self):
+        root = ET.fromstring("<layout-config><signalmasts><signalmast><systemName>IF$shsm:basic:one-low(IH1)"
+                             "</systemName><userName>Mast 1</userName></signalmast><virtualsignalmast><systemName>"
+                             "IF$vsm:basic:one-low($1)</systemName></virtualsignalmast></signalmasts></layout-config>")
+        names = tables.mast_system_names(root)
+        self.assertEqual(names["Mast 1"], "IF$shsm:basic:one-low(IH1)")
+        self.assertEqual(names["IF$shsm:basic:one-low(IH1)"], "IF$shsm:basic:one-low(IH1)")
+        self.assertEqual(names["IF$vsm:basic:one-low($1)"], "IF$vsm:basic:one-low($1)")
+
+
 if __name__ == "__main__":
     unittest.main()
