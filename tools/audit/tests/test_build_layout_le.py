@@ -470,5 +470,95 @@ class SecondReview(unittest.TestCase):
         self.assertEqual(RENDER.positive("1"), 1.0)
 
 
+class Throats(unittest.TestCase):
+    """The short throat blocks of a staging track (S-1 West / S-1 East, East Lead East, K-1 West) are drawn at their
+    own ends of the track, in block order, at their real share (wiki/DISPATCHER_LAYOUT_HOOPS.md: mid-block anchors
+    vs throat blocks), not cut into equal thirds."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        _data, cls.P, cls.names, cls.bands = built()
+        _sheet, cls.le_mod, _core = B.plugin()
+        cls.turnouts = {t["ident"]: t for t in cls.P.turnouts}
+        cls.segs = {s["ident"]: s for s in cls.P.segments}
+
+    def xy(self, end):
+        ident, typ = end
+        return tuple(self.P.points[ident]["xy"]) if typ == "POS_POINT" else tuple(self.turnouts[ident]["pts"][typ[-1]])
+
+    def drawn(self, sid, bent=False):
+        """[(block, px)] along a staging track from its first end, runs of one block folded; with `bent`, only the
+        px of its arcs and slopes."""
+        out = []
+        for ident in self.P.strand_segments[(0, sid)]:
+            s = self.segs[ident]
+            a, b = (self.xy(e) for e in s["ends"])
+            L = self.le_mod.piece_len(dict(kind="arc", a=a, b=b, angle=s["arc"]["angle"])) if s["arc"] else \
+                self.le_mod.math.dist(a, b)
+            if bent and not s["arc"] and abs(a[1] - b[1]) < 0.5:
+                L = 0.0
+            if out and out[-1][0] == s["block"]:
+                out[-1] = (s["block"], out[-1][1] + L)
+            else:
+                out.append((s["block"], L))
+        return out
+
+    def measured(self):
+        lengths = self.names[B.STAGING]["lengths"]
+        return {sid: bl for sid, bl in self.names[B.STAGING]["blocks"].items()
+                if len(bl) > 1 and all(b in lengths for b in bl)}
+
+    def test_the_throat_tracks_are_measured(self) -> None:
+        tracks = {self.bands[0][1]["strands"][sid]["name"] for sid in self.measured()}
+        self.assertEqual(tracks, {"S-R", "S-1", "S-2", "S-3", "S-4", "East Lead", "K-1"})
+
+    def test_throats_sit_at_their_own_ends_in_block_order(self) -> None:
+        lengths = self.names[B.STAGING]["lengths"]
+        moved = {}
+        for _mast, ident, px in self.P.anchors_moved:
+            moved[ident] = max(moved.get(ident, 0.0), px)
+        for sid, blocks in sorted(self.measured().items()):
+            on_track = {e[0] for i in self.P.strand_segments[(0, sid)] for e in self.segs[i]["ends"]}
+            stretch = max([0.0] + [px for ident, px in moved.items() if ident in on_track])
+            with self.subTest(track=self.bands[0][1]["strands"][sid]["name"]):
+                got = self.drawn(sid)
+                bent = dict(self.drawn(sid, bent=True))
+                self.assertEqual([b for b, _ in got], blocks)                  # the order along the run
+                total, real = sum(L for _, L in got), sum(lengths[b] for b in blocks)
+                for b, L in got:
+                    if lengths[b] * 4 < real:                                   # a throat: at an end, short
+                        self.assertIn(b, (blocks[0], blocks[-1]))
+                        share = total * lengths[b] / real
+                        self.assertGreaterEqual(L, min(self.le_mod.MIN_BLOCK, share) - 0.5)
+                        # its share, or the floor, or the room for the icon of a mast facing it (a high mast needs
+                        # more), plus what the gantry moved its boundary and the arcs and slopes it takes in (a
+                        # boundary stands on straight track)
+                        room = [8 + m["icon"][1] for m in self.names[B.STAGING]["masts"] if m["facing"] == b]
+                        least = max([self.le_mod.MIN_BLOCK] + room)
+                        self.assertLessEqual(L, max(share, least) + stretch + bent[b] + 0.5)
+                        self.assertLess(L, total / 2)
+
+    def test_the_south_yard_masts_stand_in_a_column_by_each_ladder(self) -> None:
+        cols = {}
+        for g in self.P.gantries:
+            names = {m["mast"] for m in g}
+            xs = {round(self.P.points[m["ident"]]["xy"][0], 1) for m in g if m["kind"] == "anchor"}
+            if not xs:                      # a gantry of turnout-leg masts only: no anchor column
+                continue
+            self.assertEqual(len(xs), 1, names)
+            x = xs.pop()
+            for n in names:
+                cols[n] = x
+        west = [cols[f"Mast {n}L"] for n in (16, 18, 20) if f"Mast {n}L" in cols]
+        east = [cols[f"Mast {n}R"] for n in (16, 18, 20) if f"Mast {n}R" in cols]
+        self.assertTrue(west and east)
+        for sid in self.measured():
+            if self.bands[0][1]["strands"][sid]["name"].startswith("S-"):
+                pts = [self.xy(self.segs[i]["ends"][0]) for i in self.P.strand_segments[(0, sid)]]
+                lo, hi = min(p[0] for p in pts), max(p[0] for p in pts)
+                self.assertLess(max(west), lo + (hi - lo) / 2)                  # the west column on the west half
+                self.assertGreater(min(east), lo + (hi - lo) / 2)               # the east column on the east half
+
+
 if __name__ == "__main__":
     unittest.main()
