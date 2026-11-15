@@ -866,6 +866,26 @@ def _unsafe_dest(dest: Path) -> bool:
     return any(dest == p or dest in p.parents for p in (repo, PORTAL))
 
 
+SCHEMATIC_PREFS = PORTAL.parent / "jmri/layouts/hart/data/schematic/main_upper.preferences.json"
+
+
+def sheet_revision() -> str:
+    """"REV 8 · Nov 14, 2026" from the schematic preferences, the one place the sheets' revision and date live."""
+    prefs = json.loads(SCHEMATIC_PREFS.read_text(encoding="utf-8"))
+    day = datetime.strptime(prefs["date"], "%Y-%m-%d")
+    return f"REV {prefs['revision']} · {day.strftime('%b')} {day.day}, {day.year}"
+
+
+def _stamp_sheet_revision(dest_root: Path) -> None:
+    """Put the schematic's revision and date on every station map in the built crew.json."""
+    path = dest_root / "data" / "crew.json"
+    crew = json.loads(path.read_text(encoding="utf-8"))
+    rev = sheet_revision()
+    for m in crew["maps"]:
+        m["sheetRev"] = rev
+    path.write_text(json.dumps(crew, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     global SITE_URL
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
@@ -895,6 +915,7 @@ def main() -> int:
         shutil.rmtree(dest)
     _copy_published(dest)
     _refresh_tables_page(dest)
+    _stamp_sheet_revision(dest)
 
     site_path = dest / "data" / "site.json"
     site = json.loads(site_path.read_text(encoding="utf-8"))

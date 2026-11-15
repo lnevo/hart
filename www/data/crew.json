@@ -657,8 +657,6 @@
       "id": "west-yard",
       "title": "West Yard",
       "pub": "SM-02",
-      "revision": "A",
-      "effective": "23 July 2026",
       "img": "crew/maps/generated-sheets/brick-and-plane.svg",
       "alt": "Brick and Plane station map, Switches 1, 3 and 5",
       "sheets": [
@@ -716,8 +714,6 @@
       "id": "south-yard",
       "title": "South Yard",
       "pub": "SM-03",
-      "revision": "A",
-      "effective": "23 July 2026",
       "img": "crew/maps/generated-sheets/south-yard.svg",
       "alt": "South Yard station map, Switches 7 to 21",
       "sheets": [
@@ -814,8 +810,6 @@
       "id": "barn",
       "title": "Barn",
       "pub": "SM-06",
-      "revision": "",
-      "effective": "",
       "img": "crew/maps/generated-sheets/barn.svg",
       "alt": "Barn station map, Switches 7 to 13",
       "sheets": [
@@ -881,8 +875,6 @@
       "id": "east-end",
       "title": "East End",
       "pub": "SM-04",
-      "revision": "A",
-      "effective": "23 July 2026",
       "img": "crew/maps/generated-sheets/east-end.svg",
       "alt": "East End station map, Switches 23 to 33",
       "sheets": [
@@ -992,8 +984,6 @@
       "id": "shenango",
       "title": "Shenango",
       "pub": "SM-05",
-      "revision": "B",
-      "effective": "7 November 2026",
       "img": "crew/maps/generated-sheets/princess.svg",
       "alt": "Princess station map, Switches 35 to 39",
       "sheets": [

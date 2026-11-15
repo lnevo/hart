@@ -33,6 +33,7 @@
   function pubLine(o) {
     var bits = [];
     if (o.pub) bits.push("Publication " + o.pub);
+    if (o.sheetRev) bits.push(o.sheetRev);  // station maps: stamped at build from the schematic preferences
     if (o.revision) bits.push("Revision " + o.revision);
     if (o.effective) bits.push("Effective " + o.effective);
     return bits.join(" · ");
@@ -511,7 +512,7 @@
           (sheets.length > 1 ? "<h2>" + esc(sh.title) + '</h2><p class="muted no-print">' + esc(sh.switches) + "</p>" : "") +
           '<button type="button" class="map-open" data-zoom aria-label="Open ' + esc(sh.title || m.title) +
           ' map full screen"><img src="' + esc(u(sh.img)) + '" alt="' + esc(sh.alt) + '" width="1056" height="816"></button>' +
-          '<figcaption class="no-print">Tap the map to zoom. <a href="' + esc(u(sh.img)) + '">Open the drawing full size</a>. ' +
+          '<figcaption class="no-print">Tap the map to zoom. <a href="' + esc(u(sh.img)) + '">Open the sheet to print or save (SVG)</a>. ' +
           '<span class="rotate-hint">Turn your phone sideways for a bigger view.</span></figcaption></figure>'
         );
       })
@@ -550,7 +551,7 @@
         .map(function (m) {
           return (
             '<li><a href="' + mapHref(m.id) + '"><img src="' + esc(u(m.img)) + '" alt="" loading="lazy">' +
-            "<span><strong>" + esc(m.title) + "</strong><small>" + esc(m.pub + (m.revision ? " · Rev " + m.revision : "")) +
+            "<span><strong>" + esc(m.title) + "</strong><small>" + esc(m.pub + (m.sheetRev ? " · " + m.sheetRev : "")) +
             "</small><em>" + esc(m.what) + "</em></span></a></li>"
           );
         })

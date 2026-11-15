@@ -3,6 +3,8 @@ map pages show those sheets, and no hand-drawn station PNG or preview page is le
 from __future__ import annotations
 
 import json
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -12,6 +14,9 @@ CREW = json.loads((ROOT / "www/data/crew.json").read_text())
 MAPS = ROOT / "www/crew/maps"
 SHEETS = sorted((ROOT / "docs/ops/stations").glob("*.svg"))
 FOLDER = "crew/maps/generated-sheets/"
+
+sys.path.insert(0, str(ROOT / "www/scripts"))
+import prepare_github_pages as pgp  # noqa: E402
 
 
 class GeneratedMapsTest(unittest.TestCase):
@@ -52,6 +57,24 @@ class GeneratedMapsTest(unittest.TestCase):
         for rel in PUBLISHED:
             self.assertNotRegex(rel, r"assets/maps/station_map_(west_yard|south_yard|barn|east_end|shenango)", rel)
         self.assertNotIn("station_map_west_yard", (ROOT / "www/data/crew.json").read_text())
+
+    def test_revision_comes_from_schematic_preferences(self):
+        prefs = json.loads(pgp.SCHEMATIC_PREFS.read_text())
+        year, month, day = prefs["date"].split("-")
+        rev = pgp.sheet_revision()
+        self.assertTrue(rev.startswith(f"REV {prefs['revision']} · "), rev)
+        self.assertTrue(rev.endswith(f" {int(day)}, {year}"), rev)
+        for m in CREW["maps"]:  # never hand-typed in the source data
+            self.assertNotIn("revision", m, m["id"])
+            self.assertNotIn("effective", m, m["id"])
+            self.assertNotIn("sheetRev", m, m["id"])
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp)
+            (dest / "data").mkdir()
+            (dest / "data/crew.json").write_text(json.dumps(CREW))
+            pgp._stamp_sheet_revision(dest)
+            built = json.loads((dest / "data/crew.json").read_text())
+        self.assertEqual({m["sheetRev"] for m in built["maps"]}, {rev})
 
 
 if __name__ == "__main__":
