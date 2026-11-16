@@ -117,7 +117,7 @@ class MemberCopy(unittest.TestCase):
                 title_text = d[build_soq.FORM_PAGES].get_text()
         self.assertEqual(fields["s Name"], "Test Member")
         self.assertIn("Test Member", title_text)
-        self.assertNotIn(build_soq.TITLE_MEMBER, title_text)
+        self.assertNotIn(build_soq.title_member_placeholder(), title_text)
         self.assertEqual(fields["NAME"], "Test Member")
         self.assertEqual(fields["Street"], "1 Test St")
         self.assertNotIn(fields[build_soq.FIRST_AWARD], ("Off", "", None))
@@ -165,6 +165,29 @@ class MemberCopy(unittest.TestCase):
             f = self.write(Path(td), 'nam = "typo"\n')
             with self.assertRaises(SystemExit):
                 build_soq.fill_member(f)
+
+
+class DeckCache(unittest.TestCase):
+    """export_decks reuses a cached export while the deck is unchanged, without starting Keynote."""
+
+    def test_unchanged_deck_is_not_exported_again(self):
+        import hashlib
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            deck = td / "deck.pptx"
+            deck.write_bytes(b"deck v1")
+            key = (b'tell application "Keynote" / open / export as PDF / close saving no'
+                   + build_soq.DECK_EXPORT_VERSION.encode())
+            cached = td / "build" / "decks" / f"layout-{hashlib.sha256(deck.read_bytes() + key).hexdigest()[:16]}.pdf"
+            cached.parent.mkdir(parents=True)
+            cached.write_bytes(b"%PDF cached")
+            with mock.patch.object(build_soq, "DECKS", {"layout": deck}), \
+                    mock.patch.object(build_soq, "BUILD", td / "build"), \
+                    mock.patch.object(build_soq.subprocess, "run", side_effect=AssertionError("Keynote started")):
+                out = build_soq.export_decks(td)
+        self.assertEqual(out["layout"], cached)
 
 
 class BuiltPdf(unittest.TestCase):
