@@ -132,7 +132,7 @@
       <h1>Extra West</h1>
       <p class="section-note">
         A game for the C&amp;E exam. You are the conductor of a westbound freight extra on the Kestrel Valley,
-        an invented single-track railroad, and you take it 46 miles from Ashby to Ironton. Pick the rules era at the start.
+        an invented railroad, mostly single track, and you take it 46 miles from Ashby to Ironton. Pick the rules era at the start.
         Each decision uses a rule from the <a href="index.html">study deck</a>, and the source is shown after every answer.
       </p>
     </div>
@@ -188,9 +188,9 @@
 /* ---------- helpers ---------- */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-/* Random streams: R sets up the run, RW writes the train orders, RE draws events, RO orders the answers.
-   A daily run seeds all four from the date, so everyone gets the same railroad that day. */
-let R=Math.random,RW=Math.random,RE=Math.random,RO=Math.random;
+/* Random streams: R sets up the run, RW writes the train orders, RO orders the answers on a free run.
+   A daily run seeds R and RW from the date; events (drawFrom) and answer order (ask) have their own daily seeds. */
+let R=Math.random,RW=Math.random,RO=Math.random;
 function seeded(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}
   let a=h>>>0;return ()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
@@ -217,6 +217,7 @@ const ST=[
   {n:"Hollis",mp:140.0,sd:1},
   {n:"Ironton",mp:146.0,sd:1,yl:1,off:1}];
 const LAST=ST.length-1;
+const DT=7; // double track from Hollis (index 7) to Ironton
 const MAXMARKS=5;
 
 let S=null; // the run
@@ -249,7 +250,7 @@ function hereName(){return S.moving?S.moving:ST[S.pos].n}
    why = explanation shown after any answer; src = deck source; sec = deck section. */
 function ask(o){
   return ()=>{
-    const opts=shuffle([{t:o.right,ok:true,c:o.ok||{}},...o.wrong.map(w=>({t:w[0],ok:false,c:w[1]||{min:5,marks:1},why:w[2]}))],S.daily?seeded(S.daily+"|"+o.title+"|"+o.body):RO);
+    const opts=shuffle([{t:o.right,ok:true,c:o.ok||{}},...o.wrong.map(w=>({t:w[0],ok:false,c:w[1]||{min:5,marks:1},why:w[2]}))],S.daily?seeded(S.daily+"|"+o.title+"|"+o.right):RO);
     const el=scene(o.where||hereName(),o.title,`<p>${o.body}</p>${o.extra||""}<div class="choices">${opts.map((x,i)=>`<button class="xw-btn opt" data-i="${i}">${esc(x.t)}</button>`).join("")}</div><div class="result" hidden></div>`);
     const box=el.querySelector(".choices");
     box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
@@ -298,6 +299,7 @@ function renderMap(){
   s+=`<rect x="${MX(100)-12}" y="${y-16}" width="${W>400?32:22}" height="32" fill="#e8dfc4"/><rect x="${MX(146)-(W>400?20:10)}" y="${y-16}" width="${W>400?32:22}" height="32" fill="#e8dfc4"/>`;
   if(W>400)s+=`<text x="${MX(100)+3}" y="${y-20}" font-size="8.5" text-anchor="middle" fill="#5d5a4e">YARD LIMITS</text><text x="${MX(146)-3}" y="${y-20}" font-size="8.5" text-anchor="middle" fill="#5d5a4e">YARD LIMITS</text>`;
   s+=`<line x1="${MX(100)-10}" y1="${y}" x2="${MX(146)+10}" y2="${y}" stroke="#1d2733" stroke-width="2.5"/>`;
+  s+=`<path d="M${MX(140)+(W>400?30:18)} ${y} L${MX(140)+(W>400?38:24)} ${y+5} L${MX(146)+10} ${y+5}" fill="none" stroke="#1d2733" stroke-width="2"/>`;
   ST.forEach((st,i)=>{
     const x=MX(st.mp);
     const sw=W>400?26:15;
@@ -377,9 +379,11 @@ function checkMove(k,j,c,a){
     }
     if(tr.dir==="E"){
       if(tr.act[k]<=c)continue; // already past us
-      // head-on if it reaches j before we do, and we leave k before it gets there
-      if(c<tr.act[k]&&tr.act[j]<a)probs.push({kind:"headon",tr});
-      else if(a>tr.act[j]-5&&!tr.meetOnly)probs.push({kind:"margin",tr,by:Math.round(tr.act[j]-a)});
+      if(k>=DT)continue; // double track: opposing trains use the other main (Rule D-71)
+      const jj=Math.min(j,DT),aa=c+runTime(k,jj); // only the single-track part can meet them
+      // head-on if it reaches jj before we do, and we leave k before it gets there
+      if(c<tr.act[k]&&tr.act[jj]<aa)probs.push({kind:"headon",tr});
+      else if(aa>tr.act[jj]-5&&!tr.meetOnly)probs.push({kind:"margin",tr,by:Math.round(tr.act[jj]-aa)});
     }else{
       if(tr.act[k]<=c)continue; // already ahead of us
       // Rule 86: clear at j by the time it is due to leave k, the station in its rear
@@ -405,13 +409,13 @@ function solvePar(){
       if(!ST[j].sd)continue;n++;
       const to=(!stopped&&office>k&&office<j)?office:j; // the board at the order office stops the train
       const a=c+runTime(k,to);
-      if(!checkMove(k,to,c,a).length)go(to,a,stopped||to===office);
+      if(!checkMove(k,to,c,a).length)go(to,a+(!stopped&&to===office?(S.clearFix||0):0),stopped||to===office); // the clearance fix happens at the office
     }
     const waits=S.tt.trains.map(tr=>tr.act[k]).filter(t=>t!==undefined&&t>c).sort((x,y)=>x-y);
     if(waits.length)go(k,waits[0],stopped||k===office);
     else if(c<S.start+720)go(k,c+10,stopped||k===office);
   }
-  go(0,S.start,false);
+  go(0,S.start+(S.hotDelay?3:0),false); // a hot box needs at least the 3-minute sign-out
   return best;
 }
 
@@ -424,6 +428,7 @@ function startTTO(){
     info("Ashby","Called for 6:00","<p>You are the conductor of Extra 812 West, a freight extra from Ashby to Ironton. The time-table on the right shows the regular trains on this subdivision. Eastward trains are superior to westward trains of the same class, and your extra is inferior to every regular train (Rule 73).</p><p>Your engineer has the train air tested. The caboose locker is short of flag equipment.</p>","Go to the caboose"),
     storeScene,
     ask({sec:"sup",src:"SC · Rule S-83",title:"Before leaving Ashby",body:"Ashby is your initial station and a register station. What must you find out before Extra 812 West leaves?",right:"Whether all superior trains that are due have arrived or left",wrong:[["That the block ahead shows clear"],["Whether all extras on the division have reported clear"],["The dispatcher's OK on a track warrant"]],why:"Rule S-83: a train must not leave its initial station until it has been ascertained whether all superior trains due have arrived or left. Register stations are named in the time-table, and the train register shows it."}),
+    ask({sec:"sup",src:"SC · Rule 73",title:"Reading the time-table",body:"No 21 is a second-class freight. Your train is an extra. Which is superior?",right:"No 21: extra trains are inferior to regular trains",wrong:[["Your extra, since it has no schedule to keep"],["Neither; the first to reach a siding decides"],["Your extra, being westward"]],why:"Rule 73: extra trains are inferior to regular trains. Rule 72: first class is superior to second, second to third."}),
     ask({sec:"sup",src:"SC · Rule 84",title:"Ready to go",body:"The register shows no superior train due. The engineer has steam up. When may he start the train?",right:"When a proper signal is given",wrong:[["As soon as the brake test is done"],["At once, since extras have no schedule"],["After whistling — — o —"]],why:"Rule 84: a train must not start until a proper signal is given. A highball, raised and lowered vertically, is the proceed hand signal (Rule 12(c))."}),
     ()=>{log("Extra 812 West ready at Ashby");stationTTO()}
   );
@@ -483,7 +488,10 @@ function departTTO(j){
   const scenes=[];
   let delay=0,prot=null;
   const hotOk=!checkMove(k,stopAt,S.clock,S.clock+runTime(k,stopAt)+15).some(p=>p.kind==="headon"||p.kind==="margin");
-  if(S.hotLeg>=0&&S.legs>=S.hotLeg&&!S.used.has("hot")&&hotOk){
+  if(stopAt===LAST&&!S.used.has("d71")){
+    S.used.add("d71");
+    scenes.push(ask({sec:"sup",src:"SC · Rule D-71",title:"Onto double track",body:"West of Hollis the line is double track. On two or more tracks, how is a train superior?",right:"By right or class only; direction no longer counts",wrong:[["By right, class or direction, as on single track"],["By direction only"],["By class or direction"]],why:"Rule D-71: on two or more tracks a train is superior by right or class only. Right is conferred by train order, class by time-table, and right is superior to class. The S- rules are the single-track versions."}));
+  }else if(S.hotLeg>=0&&S.legs>=S.hotLeg&&!S.used.has("hot")&&hotOk){
     S.used.add("hot");delay=15;S.hotDelay=15;
     scenes.push(hotBox(k,stopAt,p=>{prot=p}));
   }else{
@@ -569,7 +577,7 @@ function orderBoard(j){
   const orders=[];
   if(cand.length){
     const tr=pick(cand,RW),L=pick([20,25,30,35],RW);
-    orders.push({no:n1,text:`${tr.name} run ${L} mins late Ironton to Ashby`,apply:()=>{tr.late+=L;tr.act=tr.act.map(x=>x>S.clock?x+L:x)},tr,L});
+    orders.push({no:n1,text:`${tr.name} run ${L} mins late Ironton to Ashby`,apply:()=>{tr.late+=L;tr.lateAt=tr.act.map(x=>x>S.clock);tr.act=tr.act.map(x=>x>S.clock?x+L:x)},tr,L});
   }
   const meet=(RW()<.6||!cand.length)&&j<6;
   const meetAfter=rnd(30,50,RW);
@@ -585,7 +593,7 @@ function orderBoard(j){
   const ordTxt=orders.map(o=>`<span class="no">Order No ${o.no}</span>\n${esc(o.text)}`).join("\n\n");
   out.push(info(ST[j].n,"Orders","<p>The operator hands up the orders and the clearance.</p><div class='xw-tele'>"+ordTxt+"</div><div class='xw-clear'>"+esc(clearTxt)+"</div>","Check them"));
   if(wrongClear){
-    out.push(ask({sec:"to",src:"SC · Rule 211",title:"Check the clearance",body:`The clearance lists Nos ${shown.join(", ")}, but you hold Nos ${nums.join(", ")}. What do you do?`,right:"Do not leave; have the operator correct it with the dispatcher",wrong:[["Leave; the orders in hand are what count"],["Cross out the number and write the right one in"],["Leave and report it from the next office"]],why:"Rule 211: Clearance Form A is filled out without erasure or alteration, and conductors, enginemen and firemen must see that its information matches the orders received.",after:()=>{addTime(6);log("Clearance corrected (+6 min)")}}));
+    out.push(ask({sec:"to",src:"SC · Rule 211",title:"Check the clearance",body:`The clearance lists Nos ${shown.join(", ")}, but you hold Nos ${nums.join(", ")}. What do you do?`,right:"Do not leave; have the operator correct it with the dispatcher",wrong:[["Leave; the orders in hand are what count"],["Cross out the number and write the right one in"],["Leave and report it from the next office"]],why:"Rule 211: Clearance Form A is filled out without erasure or alteration, and conductors, enginemen and firemen must see that its information matches the orders received.",after:()=>{addTime(6);S.clearFix=6;log("Clearance corrected (+6 min)")}}));
   }else{
     out.push(ask({sec:"to",src:"SC · Rule 211",title:"Check the clearance",body:`The clearance lists Nos ${shown.join(", ")} and you hold Nos ${nums.join(", ")}. Who on your crew must check that they match?`,right:"The conductor, the engineman and the fireman",wrong:[["Only the conductor"],["Only the engineman"],["The operator alone"]],why:"Rule 211: conductors, enginemen and firemen, and trainmen when practicable, must see that the information on Clearance Form A matches the train orders received."}));
   }
@@ -768,6 +776,7 @@ function startTWC(){
   S.tt={leg:[]};for(let i=0;i<LAST;i++)S.tt.leg[i]=Math.round((ST[i+1].mp-ST[i].mp)*2.6)+rnd(-1,2);
   const box12=R()<.6;
   const w1={no:"101",at:"Ashby",boxes:{2:["Ashby","Dunmore","Main"],5:["6:20"],10:[],15:[]}};
+  const setBox5=()=>{const t=Math.ceil((S.clock+12)/5)*5;S.box5=t;w1.boxes[5]=[fmt(t)];if(!TW_SEL.time.includes(fmt(t)))TW_SEL.time.splice(2,0,fmt(t));S.par=t+S.tt.leg.reduce((a,b)=>a+b,0)+wait+3+8;next()};
   if(box12)w1.boxes[12]=["Birchwood","Cobb"];
   else{w1.boxes[11]=["Birchwood","Cobb"];w1.boxes[17]=["Joint with work train 292 between Birchwood and Cobb"]}
   const hold=R()<.5;
@@ -777,18 +786,20 @@ function startTWC(){
   const w3={no:"103",at:"Granite",boxes:{1:["102"],2:["Granite","Hollis","Main"],3:["Hollis","Ironton","Main 2"],13:["30","Hollis","Ironton"],16:[]}};
   S.inSiding=false;
   const wait=rnd(10,18);
-  S.par=380+S.tt.leg.reduce((a,b)=>a+b,0)+wait+3+8; // the run cannot start before Box 5's 6:20
+  TW_SEL.time=["6:15","6:20","6:25","7:00","8:00","9:00"];
+
   push(
     info("Ashby","On duty at Ashby, 6:00","<p>You are the conductor of KV 812 West, a freight from Ashby to Ironton through dark territory. Train movements here are authorized by track warrant. Ashby and Ironton are inside yard limits. Your train is on the main track inside the Ashby yard limits.</p>","Begin"),
     ask({sec:"yl",src:"GC · 6.13",title:"Moving up to the limit sign",body:"You pull up the main inside the Ashby yard limits toward the yard limit sign. There is no block signal. At what speed?",right:"Restricted speed",wrong:[["Yard speed, unless the main is known to be clear"],["Maximum authorized speed"],["10 MPH"]],why:"GCOR 6.13: within yard limits, movements are made at restricted speed unless a block signal shows something more favorable than Approach. “Yard speed unless known clear” is the Standard Code wording."}),
     ask({sec:"twc",src:"GC · 14.8",title:"Calling the dispatcher",body:"At the yard limit sign you call the dispatcher for a track warrant. What do you tell him?",right:"What movements you will make and, when necessary, which tracks and how much time you need",wrong:[["Your train's tonnage and car count"],["Only your train symbol; he works out the rest"],["The OK time you would like"]],why:"GCOR 14.8: tell the dispatcher what movements will be made and, when necessary, which tracks and how much time is required."}),
+    setBox5,
     warrantCopy(w1),
     ask({sec:"twc",src:"GC · 14.9",title:"The OK time",body:"The dispatcher has given the OK time and his initials. What do you do now?",right:"Write the OK time and initials on the warrant and repeat them",wrong:[["Highball the engineer and go; the warrant is good",{end:true,endText:"You left before the OK time and initials were on the warrant and repeated back."}],["Wait for a written copy at the next station"],["Read the box numbers back again"]],why:"GCOR 14.9 step 4: the employee writes the OK time and initials and repeats them. A warrant is not in effect until the OK time is shown on it."}),
     ask({sec:"twc",src:"GC · 14.9",title:"Copies",body:"Who must have a copy of warrant 101?",right:"The conductor and the engineer, each copy dated",wrong:[["Only you, the conductor"],["Only the engineer, who runs the train"],["The dispatcher keeps the only copy"]],why:"GCOR 14.9: the conductor and the engineer each have a copy, every crew member must read and understand it, and the copy shows the date."}),
-    ask({sec:"twc",src:"GC · 14.0 form",title:"Box 5",body:"Warrant 101 has its OK time, and Box 5 reads “Not in effect until 6:20.” May you leave now?",right:"No; wait until 6:20, when the warrant takes effect",wrong:[["Yes; the OK time puts it in effect",{end:true,endText:"You took the main before 6:20. Box 5 kept warrant 101 out of effect until then."}],["Yes, at restricted speed until 6:20"],["Yes, if no train is in sight"]],why:"Box 5: Not in effect until the time shown. Box 6 is the other timing box: This authority expires at the time shown.",after:()=>{if(S.clock<380){log("Waited for 6:20");S.clock=380}}}),
+    ask({sec:"twc",src:"GC · 14.0 form",title:"Box 5",get body(){return `Warrant 101 has its OK time, and Box 5 reads “Not in effect until ${fmt(S.box5)}.” It is ${fmt(S.clock)}. May you leave now?`},get right(){return `No; wait until ${fmt(S.box5)}, when the warrant takes effect`},get wrong(){return [["Yes; the OK time puts it in effect",{end:true,endText:`You took the main before ${fmt(S.box5)}. Box 5 kept warrant 101 out of effect until then.`}],[`Yes, at restricted speed until ${fmt(S.box5)}`],["Yes, if no train is in sight"]]},why:"Box 5: Not in effect until the time shown. Box 6 is the other timing box: This authority expires at the time shown.",after:()=>{if(S.clock<S.box5){log("Waited for "+fmt(S.box5));S.clock=S.box5}}}),
     ask({sec:"twc",src:"GC · 14.0 form",title:"Box 15",body:"Box 15 is checked on warrant 101: “Flag protection not required against following trains on the same track.” What does that tell you?",right:"The dispatcher protects your rear: you need not flag against following trains",wrong:[["You must flag against following trains"],["No other train is on the subdivision"],["You may back up without permission"]],why:"Box 15: flag protection not required against following trains on the same track. Model railroads usually drop it, along with Boxes 5, 6 and 12 to 14."}),
     legTWC(0,1),
-    legTWC(1,2,!box12?[ask({sec:"twc",src:"GC · 14.0 form",where:"Birchwood to Cobb",title:"Joint with work train 292",body:"Boxes 11 and 17 say you are joint with work train 292 between Birchwood and Cobb. How do you run there?",right:"At restricted speed: the limits are occupied by a train",wrong:[["At maximum authorized speed; 292 will stay clear"],["Not over 30 MPH"],["Stop and wait for 292 to report clear"]],why:"Box 11: between the points, make all movements at restricted speed; limits occupied by train. Box 17 carries other instructions such as “joint with”. GCOR 6.27: not over 20 MPH, able to stop within half the range of vision."})]:box12?[ask({sec:"sig",src:"GC · 5.8.2",where:"Birchwood to Cobb",title:"Men on the track",body:"Box 12 is in your warrant. Rounding a curve you see a track gang ahead at Cobb. What whistle signal?",right:"— o, then o o at intervals until the head end has passed them",wrong:[["A succession of short sounds"],["— — o —"],["None; Box 12 replaces the whistle"]],why:"GCOR 5.8.2 (8): — o approaching men or equipment, regardless of whistle prohibitions; then o o intermittently until the head end has passed. It cannot be replaced by radio."}),ask({sec:"gcor",src:"GC · 6.27",where:"Birchwood to Cobb",title:"How long at restricted speed?",body:"Box 12 puts you at restricted speed between Birchwood and Cobb. When may you resume speed?",right:"When the leading wheels pass the end of the restriction",wrong:[["When the rear car passes the end"],["When you see a clear signal"],["When the foreman waves you by"]],why:"GCOR 6.27: restricted speed applies until the leading wheels pass the point where it is no longer required. Not over 20 MPH, able to stop within half the range of vision."})]:null),
+    legTWC(1,2,box12?[ask({sec:"sig",src:"GC · 5.8.2",where:"Birchwood to Cobb",title:"Men on the track",body:"Box 12 is in your warrant. Rounding a curve you see a track gang ahead at Cobb. What whistle signal?",right:"— o, then o o at intervals until the head end has passed them",wrong:[["A succession of short sounds"],["— — o —"],["None; Box 12 replaces the whistle"]],why:"GCOR 5.8.2 (8): — o approaching men or equipment, regardless of whistle prohibitions; then o o intermittently until the head end has passed. It cannot be replaced by radio."}),ask({sec:"gcor",src:"GC · 6.27",where:"Birchwood to Cobb",title:"How long at restricted speed?",body:"Box 12 puts you at restricted speed between Birchwood and Cobb. When may you resume speed?",right:"When the leading wheels pass the end of the restriction",wrong:[["When the rear car passes the end"],["When you see a clear signal"],["When the foreman waves you by"]],why:"GCOR 6.27: restricted speed applies until the leading wheels pass the point where it is no longer required. Not over 20 MPH, able to stop within half the range of vision."})]:[ask({sec:"twc",src:"GC · 14.0 form",where:"Birchwood to Cobb",title:"Joint with work train 292",body:"Boxes 11 and 17 say you are joint with work train 292 between Birchwood and Cobb. How do you run there?",right:"At restricted speed: the limits are occupied by a train",wrong:[["At maximum authorized speed; 292 will stay clear"],["Not over 30 MPH"],["Stop and wait for 292 to report clear"]],why:"Box 11: between the points, make all movements at restricted speed; limits occupied by train. Box 17 carries other instructions such as “joint with”. GCOR 6.27: not over 20 MPH, able to stop within half the range of vision."})]),
     ask({sec:"gcor",src:"GC · 1.47A",where:"Cobb",title:"Approaching your limit",body:"Dunmore is the end of your authority. When must you remind the engineer of it?",right:"After passing the last station before it, and at least 2 miles before it",wrong:[["When the Dunmore station sign comes into view"],["Only if he asks"],["One mile before it"]],why:"GCOR 1.47A: the conductor reminds the engineer when approaching the limits of authority after passing the last station, but at least 2 miles before."}),
     legTWC(2,3),
     ask({sec:"twc",src:"GC · 14.2",where:"Dunmore",title:"Where does warrant 101 end?",body:"Dunmore is the last named point, and Box 10 tells you to clear the main track there. Where does your authority end?",extra:"",right:"At the first siding switch at Dunmore, including it",wrong:[["At the Dunmore station sign"],["At the last siding switch at Dunmore",{end:true,endText:"You ran past the first siding switch at Dunmore, out of your limits, toward the switch 2211 East would use."}],["At the next station, Elk Gap",{end:true,endText:"You ran past the end of your authority at Dunmore."}]],why:"GCOR 14.2: at the last named point, authority extends to and includes the first siding switch. First is last and last is first. GCOR 14.3: never foul a switch at either end where an opposing train may use it to clear."}),
@@ -894,7 +905,7 @@ function renderSheet(){
     const tr=S.tt.trains.filter(t=>!t.hidden&&!t.meetOnly);
     const cols=[...tr.filter(t=>t.dir==="E"),...tr.filter(t=>t.dir==="W")];
     if(S.meet&&!S.meet.tr.hidden)cols.push(S.meet.tr);
-    let h=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">Time-table No 12 · single track · D = open office</div><div class="xw-tt" tabindex="0"><table><thead><tr><th>Station</th>`;
+    let h=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">Time-table No 12 · single track, double Hollis to Ironton · D = open office</div><div class="xw-tt" tabindex="0"><table><thead><tr><th>Station</th>`;
     const short={"First class":"1st","Second class":"2nd","Extra":"extra"};
     cols.forEach(t=>h+=`<th>${esc(t.name)}<small>${t.dir==="E"?"East":"West"} · ${esc(short[t.cls]||t.cls)}</small></th>`);
     h+=`<th>X 812 W<small>run min</small></th></tr></thead><tbody>`;
@@ -903,27 +914,28 @@ function renderSheet(){
       cols.forEach(t=>{
         if(t.meetOnly){h+=`<td>${i===6?"meet":""}</td>`;return}
         const known=S.orders.some(o=>o.tr===t);
-        const v=known&&t.late?`<span class="late"><s>${fmt(t.t[i])}</s><b>${fmt(t.t[i]+t.late)}</b></span>`:fmt(t.t[i]);
+        const v=known&&t.late&&t.lateAt&&t.lateAt[i]?`<span class="late"><s>${fmt(t.t[i])}</s><b>${fmt(t.t[i]+t.late)}</b></span>`:fmt(t.t[i]);
         h+=`<td>${v}</td>`;
       });
       h+=`<td class="pencil">${i<LAST?S.tt.leg[i]:""}</td></tr>`;
     });
-    h+=`</tbody></table></div><div class="xw-si"><b>Special instructions</b><ul><li>Eastward trains are superior to westward trains of the same class.</li><li>One time shown is the leaving time (Rule 5).</li><li>Ashby and Ironton are inside yard limits.</li><li>Extras clear opposing regular trains by 5 minutes (Rule S-87).</li></ul></div>`;
+    h+=`</tbody></table></div><div class="xw-si"><b>Special instructions</b><ul><li>Eastward trains are superior to westward trains of the same class.</li><li>One time shown is the leaving time (Rule 5).</li><li>Ashby and Ironton are inside yard limits.</li><li>Extras clear opposing regular trains by 5 minutes (Rule S-87).</li><li>Double track Hollis to Ironton: D- rules apply there.</li></ul></div>`;
     if(S.orders.length)h+=`<div class="xw-orders"><b>Orders held</b>${S.orders.map(o=>`<div class="ord">No ${o.no}: ${esc(o.text)}<span class="ok">OK</span></div>`).join("")}</div>`;
     el.innerHTML=h;
   }else{
-    let h=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">Track warrant control · dark territory · single track</div><div class="xw-tt" tabindex="0"><table><thead><tr><th>Station</th><th>Siding</th><th>Notes</th><th>KV 812 W<small>run min</small></th></tr></thead><tbody>`;
-    ST.forEach((st,i)=>{h+=`<tr class="${i===S.pos&&!S.moving?"here":""}"><td class="stn">${esc(st.n)}<small>MP ${st.mp.toFixed(1)}</small></td><td>${st.sd?"yes":"no"}</td><td>${st.yl?"yard limits":i===4?"tunnel":""}</td><td class="pencil">${i<LAST?S.tt.leg[i]:""}</td></tr>`});
-    h+=`</tbody></table></div><div class="xw-si"><b>Special instructions</b><ul><li>Main track between the yard limits is governed by track warrant (GCOR 14).</li><li>Ashby and Ironton yard limits: GCOR 6.13.</li><li>Dispatcher: RK.</li></ul></div>`;
+    let h=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">Track warrant control · dark territory · double track Hollis to Ironton</div><div class="xw-tt" tabindex="0"><table><thead><tr><th>Station</th><th>Siding</th><th>Notes</th><th>KV 812 W<small>run min</small></th></tr></thead><tbody>`;
+    ST.forEach((st,i)=>{h+=`<tr class="${i===S.pos&&!S.moving?"here":""}"><td class="stn">${esc(st.n)}<small>MP ${st.mp.toFixed(1)}</small></td><td>${st.sd?"yes":"no"}</td><td>${st.yl?"yard limits":i===4?"tunnel":i===7?"double track west":""}</td><td class="pencil">${i<LAST?S.tt.leg[i]:""}</td></tr>`});
+    h+=`</tbody></table></div><div class="xw-si"><b>Special instructions</b><ul><li>Main track between the yard limits is governed by track warrant (GCOR 14).</li><li>Ashby and Ironton yard limits: GCOR 6.13.</li><li>Double track Hollis to Ironton: Main 1 westward, Main 2 eastward.</li><li>Dispatcher: RK.</li></ul></div>`;
     el.innerHTML=h;
   }
 }
 
 /* ---------- start ---------- */
 function begin(era,daily){
-  if(daily){const k="extra-west|"+today()+"|"+era;R=seeded(k+"|setup");RW=seeded(k+"|orders");RE=seeded(k+"|events");RO=seeded(k+"|answers")}
-  else R=RW=RE=RO=Math.random;
-  S=newState(era);S.daily=daily?today():null;queue=[];
+  if(daily===true)daily=today();
+  if(daily){const k="extra-west|"+daily+"|"+era;R=seeded(k+"|setup");RW=seeded(k+"|orders")}
+  else R=RW=RO=Math.random;
+  S=newState(era);S.daily=daily||null;queue=[];
   if(daily){S.attempt=Date.now();const key="xw_daily_"+S.daily+"_"+era;if(!store.get(key,null))store.set(key,{id:S.attempt,verdict:"Did not finish",marks:0,time:0,failed:true})}$("xwLog").innerHTML="";trainMp=100;
   $("xwStart").hidden=true;$("xwGame").hidden=false;
   renderStatus();renderSheet();
@@ -940,7 +952,7 @@ function showStart(){
 /* ---------- title screen (pixel art) ---------- */
 (function title(){
   const cv=$("xwTitleCv");if(!cv)return;
-  const g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  let g=cv.getContext("2d");const W=cv.width,H=cv.height;
   const SKY1="#e9dcb4",SKY2="#efe6c8",SKY3="#f5f0e1",SUN="#ead39a",GOLD="#ead39a",CREAM="#f5f0e1",RED="#a3302b",HILL1="#d6c79f",HILL2="#c3b287",GROUND="#a99a72",RAIL="#1d2733",INK="#1d2733",POLE="#5d5a4e",MUTED="#5d5a4e";
   const FONT={A:"01110100011000111111100011000110001",D:"11110100011000110001100011000111110",E:"11111100001000011110100001000011111",H:"10001100011000111111100011000110001",
     I:"11111001000010000100001000010011111",K:"10001100101010011000101001001010001",L:"10000100001000010000100001000011111",N:"10001110011010110011100011000110001",
@@ -967,6 +979,8 @@ function showStart(){
   b.fillStyle=RAIL;b.fillRect(0,103,W,1);b.fillStyle="#8c7e58";for(let x=0;x<W;x+=4)b.fillRect(x,105,2,1);
   b.fillStyle=POLE;for(let x=10;x<W;x+=48){b.fillRect(x,82,1,21);b.fillRect(x-3,83,7,1)} // telegraph poles
   for(let x=10;x<W-48;x+=48)for(let i=0;i<48;i++)b.fillRect(x+i,84+Math.round(2*Math.sin(Math.PI*i/48)),1,1);
+  { const keep=g;g=b; // the lettering never changes, so it goes on the still picture once
+    text("KESTREL VALLEY RAILROAD","c",7,1,INK);text("EXTRA WEST","c",19,3,INK,RED);text("ASHBY TO IRONTON · 46 MILES","c",45,1,MUTED);g=keep }
   // the train, 92 px long, facing west (right)
   function train(x,f){
     const R=(c,a,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x+a),y,w,h)};
@@ -989,9 +1003,6 @@ function showStart(){
   }
   function draw(t){
     g.drawImage(bg,0,0);
-    text("KESTREL VALLEY RAILROAD","c",7,1,INK);
-    text("EXTRA WEST","c",19,3,INK,RED);
-    text("ASHBY TO IRONTON · 46 MILES","c",45,1,MUTED);
     const span=W+110,x=still?120:((t/40)%span)-100;
     train(x,Math.floor(t/120));
   }
