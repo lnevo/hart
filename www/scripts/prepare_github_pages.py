@@ -17,7 +17,10 @@ Usage: prepare_github_pages.py [DEST] [--site-url URL] [--require-mirrors]
 from __future__ import annotations
 
 import argparse
+import functools
+import hashlib
 import html
+import inspect
 import os
 import json
 import re
@@ -659,14 +662,95 @@ def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600, subdir
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
-    """Write a resized JPEG; False when Pillow is missing."""
+# Resized photos are kept in a cache folder between builds: re-encoding the ~530 photos took ~27 s of every build.
+# HART_WEB_JPEG_CACHE=<folder> moves it, HART_WEB_JPEG_CACHE= (empty) turns it off. The key holds the source of
+# _render_jpeg, so a change to how photos are drawn never reuses copies drawn the old way.
+JPEG_CACHE_ENV = "HART_WEB_JPEG_CACHE"
+JPEG_CACHE_KEEP_DAYS = 60
+_CACHED_NAME = re.compile(r"^[0-9a-f]{64}(\.jpg|\.\d+\.tmp)$")   # only these are the cache's own files
+
+
+def _jpeg_cache() -> Path | None:
+    """The resized-photo cache folder, or None when it is turned off or cannot be made (said once on stderr)."""
+    return _jpeg_cache_at(os.environ.get(JPEG_CACHE_ENV))
+
+
+@functools.lru_cache(maxsize=None)
+def _jpeg_cache_at(value: str | None) -> Path | None:
+    if value is not None and not value.strip():
+        return None
+    path = Path(value).expanduser() if value else Path.home() / ".cache/hart/web-jpeg"
     try:
-        from PIL import Image
+        path.mkdir(mode=0o700, parents=True, exist_ok=True)
+        path.chmod(0o700)            # resized copies of mirror-only originals: private to this user
+    except OSError as exc:
+        print(f"{JPEG_CACHE_ENV}: cannot use {path} ({exc}); resizing every photo", file=sys.stderr)
+        return None
+    return path
+
+
+@functools.lru_cache(maxsize=None)
+def _render_key() -> bytes:
+    """What decides how a photo is drawn: _render_jpeg's own source and Pillow's version."""
+    import PIL
+
+    return f"{_RENDER_SOURCE}|{PIL.__version__}".encode()
+
+
+def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
+    """Write a resized JPEG; False when Pillow is missing. A photo resized before from the same bytes, size and
+    drawing code is copied from the cache."""
+    try:
+        import PIL  # noqa: F401
     except ImportError:
         return False
 
     out.parent.mkdir(parents=True, exist_ok=True)
+    cache = _jpeg_cache()
+    if cache is None:
+        _render_jpeg(src, out, max_px)
+        return True
+    h = hashlib.sha256(_render_key() + f"|{max_px}|".encode())
+    with open(src, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    kept = cache / f"{h.hexdigest()}.jpg"
+    try:
+        shutil.copyfile(kept, out)   # a fresh time stamp on the output, so rsync never passes over a changed photo
+        os.utime(kept)               # last use, for pruning
+        return True
+    except FileNotFoundError:        # not cached yet, or pruned by a build running at the same time
+        pass
+    tmp = kept.with_name(f"{kept.stem}.{os.getpid()}.tmp")
+    try:
+        _render_jpeg(src, tmp, max_px)
+        os.replace(tmp, kept)        # atomic: a parallel build never reads half a file
+    finally:
+        tmp.unlink(missing_ok=True)
+    shutil.copyfile(kept, out)
+    return True
+
+
+def _prune_jpeg_cache(keep_days: int = JPEG_CACHE_KEEP_DAYS) -> None:
+    """Remove the cache's own files no build has used in keep_days (photos replaced or dropped from the site).
+    Other files in the folder are left alone."""
+    cache = _jpeg_cache()
+    if cache is None:
+        return
+    cutoff = datetime.now().timestamp() - keep_days * 86400
+    for f in cache.iterdir():
+        if not _CACHED_NAME.match(f.name):
+            continue
+        try:
+            if f.stat().st_mtime < cutoff:
+                f.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def _render_jpeg(src: Path, out: Path, max_px: int) -> None:
+    from PIL import Image
+
     with Image.open(src) as im:
         im.seek(0)  # first frame of an animated GIF/WebP
         if im.mode in ("RGBA", "LA", "P"):
@@ -677,7 +761,9 @@ def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
             im = im.convert("RGB")
         im.thumbnail((max_px, max_px))
         im.save(out, "JPEG", quality=82, optimize=True, progressive=True)
-    return True
+
+
+_RENDER_SOURCE = inspect.getsource(_render_jpeg)   # read once, as written: part of every cache key
 
 
 def _gallery_thumbs(path: Path, dest_root: Path, subdir: str, thumb_px: int = 640) -> None:
@@ -927,6 +1013,7 @@ def main() -> int:
         return 1
     index = build_search_index(dest)
     print(f"Search index: {len(index['records'])} records")
+    _prune_jpeg_cache()
     print(f"Prepared public portal tree → {dest}", flush=True)
     return 0
 
