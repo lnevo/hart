@@ -134,7 +134,7 @@ NX_ICON_POSITIONS: dict[str, tuple[int, int]] = {
     "Mast 4RB": (198, 293),   # Track W-2, left+up off the rail
     "Mast 6LA": (374, 305),   # Track Scale into 102
     "Mast 6LB": (378, 353),   # Track East Ext into 102
-    "Mast 8RA": (462, 305),   # Track Scale into 117
+    "Mast 8RA": (462, 305),   # just east of A45 (its slot since 2026-11-15), on OS Switch 7; lamp rework pending
     "Mast 8LB": (548, 305),   # Track Barn into 117; same X as Mast 8LA
     "Mast 8RB": (445, 353),   # Track East Ext into 117; same Y as NX Mast 6LB
     "Mast 8LA": (548, 353),   # Track Main East into 117

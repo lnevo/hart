@@ -155,6 +155,50 @@ class CurrentTablesTest(unittest.TestCase):
         self.assertEqual(0, edits)
         self.assertEqual(before, after)
 
+    def test_scale_east_moves_the_nx_sensor_with_8ra(self):
+        """A tables file from before 2026-11-15 has NX Mast 8RA left on TO117 A; it moves to A45 east."""
+        text = throat.DEFAULT.read_text(encoding="utf-8")
+        old_point = 'eastboundsignalmast="Mast 8RA" westboundsignalmast="Mast 8LC" eastboundsensor="NX Mast 8RA" class='
+        self.assertEqual(1, text.count(old_point))
+        text = text.replace(old_point, 'eastboundsignalmast="Mast 8RA" westboundsignalmast="Mast 8LC" class=', 1)
+        text = text.replace("<sensorB>NX Mast 8LB</sensorB>",
+                            "<sensorA>NX Mast 8RA</sensorA>\n      <sensorB>NX Mast 8LB</sensorB>", 1)
+        with tempfile.TemporaryDirectory() as temporary:
+            copy = Path(temporary) / "tables.xml"
+            copy.write_text(text, encoding="utf-8")
+            self.assertEqual(2, throat.apply_scale_east(copy))
+            after = copy.read_text(encoding="utf-8")
+        self.assertNotIn("<sensorA>NX Mast 8RA</sensorA>", after)
+        a45 = [pt for pt in ET.fromstring(after.encode()).iter("positionablepoint") if pt.get("ident") == "A45"]
+        self.assertEqual(["NX Mast 8RA"], [pt.get("eastboundsensor") for pt in a45])
+
+
+class NxSlotAuditTest(unittest.TestCase):
+    """audit_panel_contracts stops when an NX sensor is not in its own mast's slot."""
+
+    def problems(self, text: str) -> list[str]:
+        import sys
+        sys.path.insert(0, str(SCRIPTS))
+        import audit_panel_contracts as audit
+        found: list[str] = []
+        audit.audit_nx_slots(ET.fromstring(text), found.append)
+        return found
+
+    def test_left_behind_sensor_is_reported(self):
+        panel = ('<root><LayoutEditor name="HART Railroad">'
+                 '<layoutturnout ident="TO117"><signalBMast>Mast 8LB</signalBMast>'
+                 '<sensorA>NX Mast 8RA</sensorA><sensorB>NX Mast 8LB</sensorB></layoutturnout>'
+                 '<positionablepoint ident="A45" eastboundsignalmast="Mast 8RA" '
+                 'westboundsensor="NX Mast 8LC" westboundsignalmast="Mast 2L"/>'
+                 '</LayoutEditor></root>')
+        found = self.problems(panel)
+        self.assertEqual(2, len(found), found)
+        self.assertIn("NX Mast 8RA is on TO117 A", found[0])
+        self.assertIn("NX Mast 8LC is on A45 westbound", found[1])
+
+    def test_live_tables_pass(self):
+        self.assertEqual([], self.problems(throat.DEFAULT.read_text(encoding="utf-8")))
+
 
 if __name__ == "__main__":
     unittest.main()
