@@ -24,7 +24,7 @@ General tips: shoot in good light with the layout lights on; fill the frame with
 | PL-08 | `photos/indication-reverse.jpg` | 5.1 Turnout position | The same turnout set reverse, same framing. | in the SOQ (Switch 3 (DCC 102) points beside its Touch Toggle) |
 | PL-09 | `photos/dnct2b-feeders.jpg` | 5.2 Track occupancy | A DNCT2B under the layout with a section's two feeders visibly passing through one channel. | in the SOQ (owner photo) |
 | PL-10 | `photos/occupancy-panel.png` | 5.2 Track occupancy | Screenshot of the dispatcher panel (or the CTC desk) with a train's sections lit as occupied. A PNG screenshot is best. | in the SOQ (panel screenshot) |
-| PL-11 | `photos/bridge-node.jpg` | 5.3 Bridge | The bridge node (Nano + nRF24) with its USB cable to the PC that runs `serial_to_mqtt.py`. | in the SOQ (bridge node on the benchwork) |
+| PL-11 | `photos/bridge-node.jpg` | 5.3 Bridge | The bridge node (Nano + nRF24) with its USB cable to the PC that runs `serial_to_mqtt.py`. | in the SOQ (bridge node beside the PC and the Raspberry Pi) |
 
 ## Also worth having (not placed in the document)
 
