@@ -11,6 +11,8 @@ This is the sheet drawn by the `schematic-maps` plugin (model-railroad-skills) f
 
 Inputs: the layer files and `staging.signals.json` in [`jmri/layouts/hart/data/schematic/`](../../jmri/layouts/hart/data/schematic/) (plan overrides, the owner's preferences, the old hand hints kept for comparison runs, and the masts generated from `tables.xml`), and the plan graphs in its `inputs/` folder. Specification: [`SCHEMATIC_SPEC.md`](SCHEMATIC_SPEC.md). `--preview DIR` draws the SVG and PDF into DIR for the owner to look at, without touching this folder or the title block's date and revision.
 
+Solved-sheet cache: solving the sheet takes about 25 s, so publishing and the LE, CATS and device-map builds keep one solve in `~/.cache/hart/schematic` (the plugin's `SCHEMATIC_CACHE`, private to the user) and read it back while the plugin code, the graphs and the layer files are unchanged. `SCHEMATIC_CACHE= python3 tools/schematic/publish_draft.py` solves without it; deleting the folder clears it. A test that patches plugin code before a solve sets `SCHEMATIC_CACHE` to empty.
+
 ## Plan inputs
 
 `jmri/layouts/hart/data/schematic/inputs/` holds the track taken from the owner's AnyRail plan 5.3b: `staging.json` and `main.json` (track graphs) and `parts.json` (361 track parts, Peco code 83 and one Walthers part). Track exports of the plan may be public; its custom objects and buildings, the `.any` file and its JMRI XML export may not, so those stay in `~/Documents/Layout/` and are never committed.

@@ -511,8 +511,7 @@ def overrides_text(overrides, cp_keys) -> str:
 def solve():
     import build_layout_le as bl
     sheet, le_mod, _core = bl.plugin()
-    built = sheet.build([(str(pd.GRAPHS / g), n) for g, n in pd.INPUTS],   # paths: the key publish_draft uses
-                        str(pd.DATA))
+    built = pd.solved_sheet(sheet)
     return built.bands, le_mod.partners(built.bands), bl.runs
 
 

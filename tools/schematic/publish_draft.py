@@ -19,11 +19,11 @@ from the last publish, keeps a branch that publishes several times at one revisi
 whole number is left alone. If anything fails after that, the preferences file is put back.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
-Importing this module turns on the plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic)
-for this process and the plugin commands it runs, so publishing, build_layout_le.py, build_cats_panel.py and
-build_device_map.py solve the same inputs once between them. The key covers the plugin's source, the graphs and
-the layer files, so a SCHEMATIC_PLUGIN trial or an edited layer file solves again. SCHEMATIC_CACHE= (empty) turns
-it off.
+The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
+is on for the plugin commands this runs and for solved_sheet(), the one way build_layout_le.py, build_cats_panel.py
+and build_device_map.py get the solved bands, so they and publishing solve the same inputs once between them. The
+key covers the plugin's source, the graphs and the layer files, so a SCHEMATIC_PLUGIN trial or an edited layer file
+solves again. SCHEMATIC_CACHE= (empty) turns it off, as must any test that patches plugin code before a solve.
 """
 import csv
 import datetime
@@ -41,7 +41,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
-os.environ.setdefault("SCHEMATIC_CACHE", str(Path.home() / ".cache/hart/schematic"))
+CACHE = Path.home() / ".cache/hart/schematic"
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
@@ -92,6 +92,31 @@ def plugin():
     return p
 
 
+def cache_env():
+    """os.environ with SCHEMATIC_CACHE set to CACHE (made private to this user) unless the caller set it, even to
+    empty (off)."""
+    env = dict(os.environ)
+    if "SCHEMATIC_CACHE" not in env:
+        CACHE.mkdir(parents=True, exist_ok=True)
+        CACHE.chmod(0o700)                       # the plugin unpickles what is in it: nobody else may write there
+        env["SCHEMATIC_CACHE"] = str(CACHE)
+    return env
+
+
+def solved_sheet(sheet):
+    """The solved Sheet of the schematic (INPUTS from GRAPHS, layer files in DATA), from the plugin's `sheet` module,
+    through the cache. Every builder gets its bands here, so they share one cache key with publishing."""
+    old = os.environ.get("SCHEMATIC_CACHE")
+    os.environ["SCHEMATIC_CACHE"] = cache_env()["SCHEMATIC_CACHE"]
+    try:
+        return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
+    finally:
+        if old is None:
+            del os.environ["SCHEMATIC_CACHE"]
+        else:
+            os.environ["SCHEMATIC_CACHE"] = old
+
+
 def mark(svg):
     """The drawing with the DRAFT mark added just before the end."""
     end = svg.rstrip().rfind("</svg>")
@@ -106,7 +131,7 @@ def draw():
         svg = Path(tmp) / "sheet.svg"
         run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(DATA),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
-                             capture_output=True, text=True)
+                             capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")
         if run.returncode:
             sys.exit(run.returncode)
@@ -119,7 +144,7 @@ def draw_stations():
     with tempfile.TemporaryDirectory() as tmp:
         run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(DATA),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
-                             capture_output=True, text=True)
+                             capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")
         if run.returncode:
             sys.exit(run.returncode)

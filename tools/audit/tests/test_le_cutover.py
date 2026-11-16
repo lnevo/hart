@@ -13,6 +13,7 @@ import contextlib
 import copy
 import functools
 import io
+import os
 import sys
 import tempfile
 import unittest
@@ -407,6 +408,7 @@ class BuilderErrors(unittest.TestCase):
         layers = B.importlib.import_module("schematic.layers")
         with tempfile.TemporaryDirectory() as tmp, \
                 mock.patch.object(layers, "load", side_effect=ValueError("bad JSON")), \
+                mock.patch.dict(os.environ, {"SCHEMATIC_CACHE": ""}), \
                 contextlib.redirect_stdout(io.StringIO()) as out:
             self.assertEqual(B.main(["--freeze", "--freeze-to", str(Path(tmp) / "f")]), 1)
         self.assertIn("ERROR: cannot read the staging plan overrides", out.getvalue())
