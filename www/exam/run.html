@@ -243,8 +243,6 @@ function ask(o){
       const c=x.c||{};
       if(c.min)addTime(c.min);
       if(c.marks)S.marks+=c.marks;
-      if(c.fus)S.fus=Math.max(0,S.fus-c.fus);
-      if(c.torp)S.torp=Math.max(0,S.torp-c.torp);
       const res=el.querySelector(".result");res.hidden=false;
       let cost=[];if(c.min)cost.push("+"+c.min+" min");if(c.marks)cost.push("+"+c.marks+" mark"+(c.marks>1?"s":""));
       const why=(!x.ok&&x.why?x.why+" ":"")+o.why;
@@ -255,6 +253,7 @@ function ask(o){
       renderStatus();renderSheet();
       const go=$("xwGo");go.focus({preventScroll:true});
       go.onclick=()=>{
+        go.disabled=true;
         if(c.end){finish(c.endText||o.endText||"The run ended here.",true);return}
         if(S.marks>=MAXMARKS){finish("Five marks on the record. You are pulled from service.",true);return}
         next();
@@ -265,7 +264,7 @@ function ask(o){
 function info(where,title,html,btn,after){
   return ()=>{
     const el=scene(where||hereName(),title,html+`<div><button class="xw-btn primary" id="xwGo">${esc(btn||"Continue")}</button></div>`);
-    $("xwGo").onclick=()=>{if(after)after();next()};
+    $("xwGo").onclick=()=>{$("xwGo").disabled=true;if(after)after();next()};
     $("xwGo").focus({preventScroll:true});
   };
 }
@@ -295,6 +294,7 @@ function renderMap(){
   $("xwMap").innerHTML=s;
 }
 function animateTo(idx,done){
+  $("xwScene").querySelectorAll("button").forEach(b=>b.disabled=true);
   const x0=trainMp,x1=ST[idx].mp;
   if(reduced){trainMp=x1;renderMap();done();return}
   const t0=performance.now(),dur=Math.min(1800,350+Math.abs(x1-x0)*80);
@@ -379,23 +379,21 @@ function checkMove(k,j,c,a){
 /* the best legal finish, for par */
 function solvePar(){
   let best=Infinity;
-  const seen=new Map();
-  function go(k,c){
+  const seen=new Set(),office=S.officeOrders;
+  function go(k,c,stopped){
     if(k===LAST){best=Math.min(best,c);return}
-    const key=k+":"+c;if(seen.has(key))return;seen.set(key,1);
-    if(c>best)return;
-    for(let j=k+1;j<=Math.min(LAST,k+4);j++){
-      if(!ST[j].sd)continue;
-      const a=c+runTime(k,j);
-      const saved=S.clock;S.clock=c;
-      const p=checkMove(k,j,c,a);S.clock=saved;
-      if(!p.length)go(j,a);
+    const key=k+":"+c+":"+stopped;if(seen.has(key)||c>=best)return;seen.add(key);
+    let n=0;
+    for(let j=k+1;j<=LAST&&n<3;j++){ // the same three choices stationTTO offers
+      if(!ST[j].sd)continue;n++;
+      const to=(!stopped&&office>k&&office<j)?office:j; // the board at the order office stops the train
+      const a=c+runTime(k,to);
+      if(!checkMove(k,to,c,a).length)go(to,a,stopped||to===office);
     }
-    // or wait for the next train to pass here
     const waits=S.tt.trains.map(tr=>tr.act[k]).filter(t=>t!==undefined&&t>c).sort((x,y)=>x-y);
-    if(waits.length)go(k,waits[0]);
+    if(waits.length)go(k,waits[0],stopped||k===office);
   }
-  go(0,S.clock);
+  go(0,S.start,false);
   return best;
 }
 
@@ -421,7 +419,7 @@ function storeScene(){
     {t:"Sign out 2 fusees and 2 torpedoes",s:"3 min",min:3,f:2,tp:2},
     {t:"Leave with what is in the locker",s:"no delay",min:0,f:0,tp:0}];
   $("stb").innerHTML=items.map((x,i)=>`<button class="xw-btn" data-i="${i}">${esc(x.t)}<small>${x.s}</small></button>`).join("");
-  $("stb").querySelectorAll("button").forEach(b=>b.onclick=()=>{const x=items[+b.dataset.i];S.fus=f+x.f;S.torp=t+x.tp;addTime(x.min);log(`Caboose: ${S.fus} fusees, ${S.torp} torpedoes`);next()});
+  $("stb").querySelectorAll("button").forEach(b=>b.onclick=()=>{$("stb").querySelectorAll("button").forEach(z=>z.disabled=true);const x=items[+b.dataset.i];S.fus=f+x.f;S.torp=t+x.tp;addTime(x.min);log(`Caboose: ${S.fus} fusees, ${S.torp} torpedoes`);next()});
 }
 
 /* station decision */
@@ -439,8 +437,9 @@ function stationTTO(){
   }
   $("dc").innerHTML=opts.map((o,i)=>`<button class="xw-btn" data-i="${i}">${esc(o.t)}<small>${esc(o.s)}</small></button>`).join("")+
     `<button class="xw-btn" id="dw">Wait in the siding for the next train<small>${k===0?"stay at Ashby":"hold at "+esc(ST[k].n)}</small></button>`;
-  $("dc").querySelectorAll("button[data-i]").forEach(b=>b.onclick=()=>departTTO(opts[+b.dataset.i].j));
-  $("dw").onclick=waitTTO;
+  const lock=f=>()=>{$("dc").querySelectorAll("button").forEach(z=>z.disabled=true);f()};
+  $("dc").querySelectorAll("button[data-i]").forEach(b=>b.onclick=lock(()=>departTTO(opts[+b.dataset.i].j)));
+  $("dw").onclick=lock(waitTTO);
 }
 function waitTTO(){
   const k=S.pos;
@@ -465,7 +464,8 @@ function departTTO(j){
   const stopAt=office>0?office:j;
   const scenes=[];
   let delay=0,prot=null;
-  if(S.hotLeg>=0&&S.legs>=S.hotLeg&&!S.used.has("hot")){
+  const hotOk=!checkMove(k,stopAt,S.clock,S.clock+runTime(k,stopAt)+15).some(p=>p.kind==="headon"||p.kind==="margin");
+  if(S.hotLeg>=0&&S.legs>=S.hotLeg&&!S.used.has("hot")&&hotOk){
     S.used.add("hot");delay=15;S.hotDelay=15;
     scenes.push(hotBox(k,stopAt,p=>{prot=p}));
   }else{
@@ -483,7 +483,8 @@ function resolveMove(k,j,delay,getProt){
   const dep=S.depAt,extra=S.clock-dep;
   const a0=dep+runTime(k,j),a1=a0+delay;
   const fault=checkMove(k,j,dep,a0);
-  const fault2=delay?checkMove(k,j,dep,a1):[];
+  // only what the hot box stop adds: Rule 99 protection covers a train that cannot clear in time (Rules 86, S-87)
+  const fault2=delay?checkMove(k,j,dep,a1).filter(p=>!fault.some(f=>f.tr===p.tr)):[];
   const prot=getProt();
   const sev=fault.find(p=>p.kind==="headon"||p.kind==="rear"||p.kind==="meet");
   if(sev){animateTo(j,()=>crash(sev,k,j));return}
@@ -491,6 +492,7 @@ function resolveMove(k,j,delay,getProt){
   const notes=[];
   fault.filter(p=>p.kind==="margin").forEach(p=>notes.push(marginMiss(p,j)));
   fault.filter(p=>p.kind==="r86").forEach(p=>notes.push(r86Miss(p,j)));
+  if(prot!=="ok")fault2.filter(p=>p.kind==="r86").forEach(p=>notes.push(r86Miss(p,j)));
   if(sev2){
     if(prot==="ok")notes.push(info(null,"Flagged",`<p>${esc(sev2.tr.name)} came up while you stood on the main. Your flagman stopped it, and it followed you in at restricted speed.</p>`));
     else{animateTo(j,()=>crash(sev2,k,j,true));return}
@@ -539,7 +541,7 @@ function hotBox(k,j,setProt){
       const r=document.querySelector("#xwScene .result");r.hidden=false;
       r.innerHTML=`<p>${esc(txt)}</p><div class="src">${esc(srcLabel("SC · Rule 99"))}</div><div><button class="xw-btn primary" id="xwGo">${S.marks>=MAXMARKS?"See the record":"Continue"}</button></div>`;
       renderStatus();
-      $("xwGo").onclick=()=>{if(S.marks>=MAXMARKS){finish("Five marks on the record. You are pulled from service.",true);return}next()};
+      $("xwGo").onclick=()=>{$("xwGo").disabled=true;if(S.marks>=MAXMARKS){finish("Five marks on the record. You are pulled from service.",true);return}next()};
     });
   };
 }
@@ -573,7 +575,7 @@ function orderBoard(j){
   const nums=orders.map(o=>o.no);
   const wrongClear=Math.random()<.5;
   const shown=wrongClear?nums.map((x,i)=>i===nums.length-1?x+3:x):nums;
-  const clearTxt=`CLEARANCE FORM A\nTo C&E Extra 812 West  at ${ST[j].n.toUpperCase()}\nI have ${shown.length} order${shown.length>1?"s":""} for your train.\nNos ${shown.join(", ")}\nOK  ${fmt(S.clock+3)}  RK, dispatcher`;
+  const clearTxt=`CLEARANCE FORM A\nTo KV Extra 812 West  at ${ST[j].n.toUpperCase()}\nI have ${shown.length} order${shown.length>1?"s":""} for your train.\nNos ${shown.join(", ")}\nOK  ${fmt(S.clock+3)}  RK, dispatcher`;
   const ordTxt=orders.map(o=>`<span class="no">Order No ${o.no}</span>\n${esc(o.text)}`).join("\n\n");
   out.push(info(ST[j].n,"Orders","<p>The operator hands up the orders and the clearance.</p><div class='xw-tele'>"+ordTxt+"</div><div class='xw-clear'>"+esc(clearTxt)+"</div>","Check them"));
   if(wrongClear){
@@ -668,7 +670,7 @@ function warrantCopy(w){
       <div class="choices"><button class="xw-btn primary" id="rb">Repeat it to the dispatcher</button></div><div class="result" hidden></div>`);
     // read it out a line at a time
     const d=$("dict");let i=0;
-    const tick=()=>{if(i<lines.length){d.textContent+=(i?"\n":"")+lines[i++];if(!reduced)setTimeout(tick,650);else tick()}};
+    const tick=()=>{if(!d.isConnected)return;if(i<lines.length){d.textContent+=(i?"\n":"")+lines[i++];if(!reduced)setTimeout(tick,650);else tick()}};
     tick();
     $("rb").onclick=()=>{
       const bad=[];
@@ -691,7 +693,7 @@ function warrantCopy(w){
         r.innerHTML=`<div class="verdict ok">“That is correct. OK ${ok}, RK.”</div><div><button class="xw-btn primary" id="xwGo">Continue</button></div>`;
         log("Warrant "+w.no+" OK "+ok);
         addTime(1);renderStatus();
-        $("xwGo").onclick=next;
+        $("xwGo").onclick=()=>{$("xwGo").disabled=true;next()};
       }
     };
   };
@@ -701,8 +703,7 @@ function legTWC(from,to,events){
   return ()=>{
     S.moving=ST[from].n+" and "+ST[to].n;S.inSiding=false;
     const ev=events||[];
-    const r=drawRoad();
-    if(!ev.length&&r)ev.push(r);
+    if(!ev.length){const r=drawRoad();if(r)ev.push(r)}
     front(...ev,()=>{animateTo(to,()=>{addTime(runTime(from,to));S.pos=to;S.moving=null;log("At "+ST[to].n);next()})});
     next();
   };
@@ -738,7 +739,7 @@ function startTWC(){
     ask({sec:"twc",src:"GC · 14.0 form",where:"Dunmore",title:"Box 7",body:"Warrant 102 has its OK time. A headlight is coming: 2211 East is a mile out of Dunmore. May you pull out of the siding?",right:"No. The warrant is not in effect until 2211 East has arrived at Dunmore",wrong:[["Yes; the OK time is on the warrant",{end:true,endText:"You took the main before 2211 East arrived at Dunmore. Box 7 kept warrant 102 out of effect."}],["Yes, at restricted speed"],["Yes, after whistling — o"]],why:"Box 7: Not in effect until after arrival of the named train at the named point. Box 7 was used in the worked example for 844 West waiting on 2211 East."}),
     ()=>{addTime(wait);log("2211 East arrives Dunmore");front(info("Dunmore","2211 East arrives","<p>2211 East rolls past the siding and stops on the main at Dunmore. Its conductor reports clear. Warrant 102 is now in effect.</p>"));next()},
     ()=>{S.inSiding=false;next()},
-    legTWC(3,4,[ask({sec:"gcor",src:"GC · 1.43",where:"Elk Gap",title:"Stalled in the tunnel",body:"Your engine slips down to a stop in the tunnel at Elk Gap and cannot move promptly. What first?",right:"Shut down the diesel, make a full service brake application, apply hand brakes and call the dispatcher",wrong:[["Keep the engine running for heat and wait"],["Back out of the tunnel at once"],["Sound a succession of short sounds"]],why:"GCOR 1.43: shut down the diesel at once, make a full service brake application, apply hand brakes, and notify the dispatcher immediately.",ok:{min:8}})]),
+    legTWC(3,4,[ask({sec:"gcor",src:"GC · 1.43",where:"Elk Gap",title:"Stalled in the tunnel",body:"Your engine slips down to a stop in the tunnel at Elk Gap and cannot move promptly. What first?",right:"Shut down the diesel, make a full service brake application, apply hand brakes and call the dispatcher",wrong:[["Keep the engine running for heat and wait",{min:13,marks:1}],["Back out of the tunnel at once",{min:13,marks:1}],["Sound a succession of short sounds",{min:13,marks:1}]],why:"GCOR 1.43: shut down the diesel at once, make a full service brake application, apply hand brakes, and notify the dispatcher immediately.",ok:{min:8}})]),
     legTWC(4,5),
     legTWC(5,6),
     ask({sec:"twc",src:"GC · 14.2",where:"Granite",title:"The end of warrant 102",body:hold?"Granite is your last named point and Box 8, Hold main track at last named point, is checked. Where does your authority end?":"Granite is your last named point. Where does your authority end?",right:hold?"Short of the last siding switch at Granite, not including it":"At the first siding switch at Granite, including it",wrong:hold?[["At the first siding switch, including it"],["At the last siding switch, including it",{end:true,endText:"You fouled the far switch at Granite that an opposing train needed."}],["At the Granite station sign"]]:[["At the last siding switch at Granite, including it",{end:true,endText:"You ran past the first siding switch at Granite, out of your limits."}],["At the Granite depot"],["At the next station, Hollis",{end:true,endText:"You ran past the end of your authority at Granite."}]],why:hold?"Box 8 extends the limit past the near switch, to but not including the last siding switch, so you hold the main while an opposing train uses the siding. GCOR 14.3: never foul that switch.":"GCOR 14.2: at the last named point, authority extends to and includes the first siding switch. First is last and last is first."}),
@@ -766,7 +767,7 @@ const ROAD_TWC=[
 function finish(text,failed){
   if(S.ended)return;S.ended=true;
   const time=S.clock-S.start;
-  if(S.era==="tto"&&!failed){const c=S.clock,p=S.pos;S.pos=0;S.clock=S.start;S.par=solvePar();S.clock=c;S.pos=p}
+  if(S.era==="tto"&&!failed)S.par=solvePar();
   const par=S.par&&isFinite(S.par)?S.par-S.start:null;
   let verdict,cls="";
   if(failed){verdict="Pulled from service"}
@@ -836,7 +837,6 @@ function showStart(){
   $("xwBest").textContent=runs.length?`Your best in this browser. 1949: ${best("tto")}. Modern: ${best("twc")}.`:"";
 }
 document.querySelectorAll("[data-era]").forEach(b=>b.onclick=()=>begin(b.dataset.era));
-if(location.hash==="#xw-test")window.__xw={get S(){return S},checkMove,runTime,ST}; // for the play-through test only
 showStart();
 })();
 </script>
