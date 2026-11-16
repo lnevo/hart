@@ -148,6 +148,16 @@ class MemberCopy(unittest.TestCase):
             self.skipTest("needs PyMuPDF")
         self.assertLessEqual(box.x1, 100 + 160)
 
+    @unittest.skipUnless(HAVE_FITZ, "needs PyMuPDF (root .venv)")
+    def test_built_pdf_numbers_its_pages_once(self):
+        import fitz
+        with fitz.open(build_soq.OUT_PDF) as d:
+            labels = d.get_page_labels()
+            last = d[d.page_count - 1].get_text()
+            total = d.page_count
+        self.assertEqual(labels, [{"startpage": 0, "prefix": "", "style": "D", "firstpagenum": 1}])
+        self.assertIn(f"Page {total} of {total}", last)
+
     def test_refuses_output_inside_the_repo(self):
         import tempfile
         with tempfile.TemporaryDirectory() as td:
