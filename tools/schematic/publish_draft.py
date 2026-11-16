@@ -22,9 +22,12 @@ After a commit that changes the drawing, run tools/schematic/evolution.py.
 The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
 is on for the plugin commands this runs and for solved_sheet(), the one way build_layout_le.py, build_cats_panel.py
 and build_device_map.py get the solved bands, so they and publishing solve the same inputs once between them. The
-key covers the plugin's source, the graphs and the layer files, so a SCHEMATIC_PLUGIN trial or an edited layer file
-solves again. SCHEMATIC_CACHE= (empty) turns it off, as must any test that patches plugin code before a solve.
+key covers the source of the plugin code the solve runs, the graphs and the layer files, so a SCHEMATIC_PLUGIN trial
+or an edited layer file solves again; a change to the title block's date, revision or sheet alone does not (the
+plugin draws the cached page again with them). build_layout_le.py also keeps its Layout Editor panels and their fit
+grids there (cache_on). SCHEMATIC_CACHE= (empty) turns it off, as must any test that patches plugin code.
 """
+import contextlib
 import csv
 import datetime
 import json
@@ -103,18 +106,25 @@ def cache_env():
     return env
 
 
-def solved_sheet(sheet):
-    """The solved Sheet of the schematic (INPUTS from GRAPHS, layer files in DATA), from the plugin's `sheet` module,
-    through the cache. Every builder gets its bands here, so they share one cache key with publishing."""
+@contextlib.contextmanager
+def cache_on():
+    """The plugin's cache on (cache_env) for the code inside, in this process; the variable as it was afterwards."""
     old = os.environ.get("SCHEMATIC_CACHE")
     os.environ["SCHEMATIC_CACHE"] = cache_env()["SCHEMATIC_CACHE"]
     try:
-        return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
+        yield
     finally:
         if old is None:
             del os.environ["SCHEMATIC_CACHE"]
         else:
             os.environ["SCHEMATIC_CACHE"] = old
+
+
+def solved_sheet(sheet):
+    """The solved Sheet of the schematic (INPUTS from GRAPHS, layer files in DATA), from the plugin's `sheet` module,
+    through the cache. Every builder gets its bands here, so they share one cache key with publishing."""
+    with cache_on():
+        return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
 
 
 def mark(svg):
@@ -232,6 +242,11 @@ def pdf(svg_path, pdf_path):
 
 def main(argv):
     target = OUT / "schematic-system-draft.svg"
+    i = argv.index("--preview") + 1 if "--preview" in argv else None
+    unknown = [a for n, a in enumerate(argv) if a not in ("--check", "--preview") and n != i]
+    if unknown or ("--check" in argv and i):     # anything else would publish: say how to call it instead
+        print(__doc__.split("\n\n")[0])
+        return 2
     if "--preview" in argv:
         i = argv.index("--preview")
         if i + 1 >= len(argv) or argv[i + 1].startswith("--"):
@@ -301,6 +316,10 @@ def publish(sheet, target, prefs, original):
             set_fields(prefs, *fields)
             print(f"drawing changed: title block set to {fields[0]}, revision {fields[1]}")
             sheet = draw()
+    pdf_file = OUT / "schematic-system-draft.pdf"
+    if target.exists() and target.read_text() == sheet and pdf_file.exists():
+        print(f"{target.relative_to(REPO)} is current: SVG and PDF left as they are")
+        return
     with tempfile.TemporaryDirectory() as tmp:
         svg, printed = Path(tmp) / target.name, Path(tmp) / "sheet.pdf"
         svg.write_text(sheet)
@@ -310,8 +329,8 @@ def publish(sheet, target, prefs, original):
             sys.exit(f"PDF not printed, nothing written: {e}")
         if not printed.exists():
             sys.exit("Chrome wrote no PDF, nothing written")
-        shutil.copyfile(svg, target)
-        shutil.copyfile(printed, OUT / "schematic-system-draft.pdf")
+        shutil.copyfile(printed, pdf_file)          # the PDF first: a run stopped between the two leaves the SVG
+        shutil.copyfile(svg, target)                # old, so the next publish sees it differ and prints again
     print(f"wrote {target} and the PDF (--check compares the SVG only; the PDF follows it)")
 
 

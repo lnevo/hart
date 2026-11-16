@@ -96,6 +96,7 @@ The plugin is the pinned submodule, or SCHEMATIC_PLUGIN (as publish_draft.py).
 from __future__ import annotations
 
 import argparse
+import contextlib
 import copy
 import csv
 import functools
@@ -1655,6 +1656,13 @@ def freeze(tables_path: Path = paths.TABLES_XML, folder: Path = le_inputs.FOLDER
 
 
 def main(argv=None) -> int:
+    """The command. Once its arguments pass, the plugin's cache is on (publish_draft.cache_on) for the solve and the
+    Layout Editor panels, so a run whose inputs and plugin code are unchanged draws nothing again."""
+    with contextlib.ExitStack() as cached:
+        return run(argv, cached)
+
+
+def run(argv, cached) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true", help="regenerate in memory and fail if the file differs")
     ap.add_argument("--levels", choices=LEVELS, default=None,
@@ -1686,6 +1694,7 @@ def main(argv=None) -> int:
         if message:
             print(f"ERROR: {message}")
             return 1
+    cached.enter_context(pd.cache_on())     # after the HART_TABLES refusal: a refused run touches nothing
     if args.approve_staging:
         if args.check or args.freeze or args.freeze_to or args.as_live or args.out or args.levels is not None \
                 or args.review:

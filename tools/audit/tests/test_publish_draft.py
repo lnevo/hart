@@ -11,6 +11,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("publish_draft", ROOT / "tools/schematic/publish_draft.py")
@@ -105,6 +106,36 @@ class Preview(unittest.TestCase):
         for graph, _ in PD.INPUTS:
             self.assertTrue((PD.GRAPHS / graph).is_file(), graph)
         self.assertTrue(PD.GRAPHS.is_relative_to(PD.REPO))
+
+
+class Calls(unittest.TestCase):
+    def test_an_unknown_option_publishes_nothing(self) -> None:
+        for argv in (["--help"], ["--chek"], ["--check", "--preview", "/tmp/x"]):
+            with self.subTest(argv=argv), mock.patch.object(PD, "draw", side_effect=AssertionError("drew")), \
+                    contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(PD.main(argv), 2)
+            self.assertIn("--check | --preview DIR", out.getvalue())
+
+    def test_a_current_drawing_prints_no_pdf(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pdf_file = Path(tmp) / "schematic-system-draft.svg", Path(tmp) / "schematic-system-draft.pdf"
+            target.write_text("<svg>same</svg>\n")
+            pdf_file.write_bytes(b"%PDF old")
+            with mock.patch.object(PD, "OUT", Path(tmp)), mock.patch.object(PD, "REPO", Path(tmp)), \
+                    mock.patch.object(PD, "on_main", return_value=None), \
+                    mock.patch.object(PD, "pdf", side_effect=AssertionError("printed")), \
+                    contextlib.redirect_stdout(io.StringIO()) as out:
+                PD.publish("<svg>same</svg>\n", target, None, "{}")
+            self.assertIn("left as they are", out.getvalue())
+            self.assertEqual(pdf_file.read_bytes(), b"%PDF old")
+            pdf_file.unlink()                       # no PDF yet: printed although the SVG is current
+            printed = []
+            with mock.patch.object(PD, "OUT", Path(tmp)), mock.patch.object(PD, "on_main", return_value=None), \
+                    mock.patch.object(PD, "pdf", lambda svg, out: (printed.append(out), out.write_bytes(b"%PDF"))), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                PD.publish("<svg>same</svg>\n", target, None, "{}")
+            self.assertEqual(len(printed), 1)
+            self.assertEqual(pdf_file.read_bytes(), b"%PDF")
 
 
 class SignalsCheck(unittest.TestCase):
