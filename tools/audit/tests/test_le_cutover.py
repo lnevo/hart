@@ -496,6 +496,10 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(len(rights), 1)                    # right-justified ...
         self.assertTrue(all(c.get("justification") == "right" for c in captions))
         self.assertEqual({box(l)[0] for l in lamps}, {rights.pop() + B.overlay_mod().STATUS_GAP})   # lamps right
+        right = max(box(l)[0] + 21 for l in lamps)          # the lamps' right edge: by the panel's right edge
+        width = int(tables.layout_editor(tables.loads(self.base[0]).root, LIVE).get("panelwidth"))
+        self.assertLessEqual(right, width - B.overlay_mod().EDGE)
+        self.assertGreater(right, width - B.overlay_mod().EDGE - 80)
         staging_low = self.P.band_boxes[0][3]
         main_title = next(lb for lb in self.P.labels if lb["text"] == "MAIN LEVEL")
         for el in captions + lamps:

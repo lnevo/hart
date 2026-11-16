@@ -32,9 +32,10 @@ that thing on the new panel:
   legs), at the same offset;
 - block: an item of a track block (its lamp, a caption by it) at the same share of the way along the block's track,
   left to right, and the same distance to its side;
-- frame: what is tied to no track (region captions, the status cluster, any item over NEAR px from the track) keeps
+- frame: what is tied to no track (region captions, any item over NEAR px from the track) keeps
   its place against the track's bounding box: across it by share, outside it by distance (the staging band's box
   when the panel holds more levels: carry's `frame_blocks`);
+- the status cluster: at the right of the panel, as low below the staging track as it stood (status_target);
 - backdrop: the background picture (an icon label at level 1 or below) stays at its live x and y, under everything.
 The station clusters (level 12, one per Dispatcher station: a loco marker with its track's name and two lamps) and
 the status cluster (the LCOS, Turnouts, Signals and Track Power lamps and captions) move as one block each. A station
@@ -1091,6 +1092,17 @@ def arrange_status(items) -> None:
         c.x, lamp.x = float(c.el.get("x")), float(lamp.el.get("x"))
 
 
+def status_target(its, frame, gen_frame, le_mod):
+    """The centre the status cluster `its` goes to (owner, 2026-11-16): at the right of the panel, its right edge
+    EDGE px inside where the staging band's panel ends (the plugin's MARGIN beyond the staging track), and as far
+    below the staging track as it stood below the hand-drawn track (frame_point), so in the space between the staging
+    and main levels. The nudge then clears it of everything."""
+    x0 = min(i.x for i in its)
+    w = max(i.x + i.w for i in its) - x0
+    y = frame_point(cluster_centre(its), frame, gen_frame)[1]
+    return (gen_frame[2] + le_mod.MARGIN - EDGE - w / 2, y)
+
+
 def plain_backdrop(items) -> None:
     """Give the one backdrop of `items` (from a copy of the hand-drawn panel) the picture without the compass rose
     (see BACKDROP_URL). Stops unless there is exactly one backdrop and it is the picture with the rose."""
@@ -1226,7 +1238,7 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
         else:
             if u["key"] == "status":
                 start = cluster_centre(its)
-                want = frame_point(start, frame, gen_frame)
+                want = status_target(its, frame, gen_frame, le_mod)
             else:
                 start = its[0].centre
                 want = target(its[0], frame, gen, gen_frame)
