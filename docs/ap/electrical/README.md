@@ -23,14 +23,13 @@ Build (Mac, with PanelPro not needed): `/Users/lnevo/hart/.venv/bin/python docs/
 
 The document uses generic labels (RS-1, Y1–Y5, E1–E3 and so on); Appendix A maps them to the layout's names. The drawings are kept apart from the railroad's own schematics and wiring docs (owner, 2026-11-14).
 
-Owner facts (2026-11-15): the bus or an auto-reverser feeds a DNCT2B's rail input (both rails), each of its two outputs feeds one section's feeders, and a DNCTA links up to four DNCT2Bs to a client node (D2, D5); RS-2 is K-1 and K-2, on the two outputs of one DNCT2B, and they change polarity together (D5). A crossover's two position contacts are wired in series to one N/R input pair, so the panel shows Inconsistent when the halves disagree (drawing D4, drawn from the owner's description; check against the wiring). The AR-10 is an NCE AR10 and RS-2 is on a DCC Specialties PSXX-AR; one TCS B-106 booster is installed, a second is planned if needed (the wiring deck's power district page shows the planned B2).
+Owner facts (2026-11-15): the bus or an auto-reverser feeds a DNCT2B's rail input (both rails), each of its two outputs feeds one section's feeders, and a DNCTA links up to four DNCT2Bs to a client node (D2, D5); RS-2 is K-1 and K-2, on the two outputs of one DNCT2B, and they change polarity together (D5). A crossover's two position contacts are wired in series to one N/R input pair, so the panel shows Inconsistent when the halves disagree (drawing D4, confirmed by the owner against the wiring 2026-11-15). The AR-10 is an NCE AR10 and RS-2 is on a DCC Specialties PSXX-AR; one TCS B-106 booster is installed, a second is planned if needed (the wiring deck's power district page shows the planned B2).
 
 ## Open before submission
 
 All photographs are in (punch list complete, 2026-11-15).
 
-1. Member details: filled 2026-11-15 from `~/Documents/NMRA AP/soq-member.toml` with `build_soq.py --member`. Run it again after every rebuild so the private copy matches; it refuses a stale PDF and anything inside a git checkout.
-2. Check the indication half of drawing D4 against the wires on one crossover, and note how a crossover's fascia Touch Toggle lights are fed (the text only claims the computer panel waits for both halves).
-3. The witness visit and the evaluator's signature.
+1. Member details: filled 2026-11-15 (form and the title page's Member line) from `~/Documents/NMRA AP/soq-member.toml` with `build_soq.py --member`. Run it again after every rebuild so the private copy matches; it refuses a stale PDF and anything inside a git checkout.
+2. The witness visit and the evaluator's signature.
 
 Sources: `docs/wiring/Layout Documentation.pptx` and `docs/wiring/Wiring_Schematic.pptx` (inventory v86), `docs/ops/schematic-system-draft.svg`, `jmri/layouts/hart/data/block_lengths.csv`, `www/build/track-plan.html`, `external/lcos-bridge` (bridge facts), form from nmra.org/electrical.

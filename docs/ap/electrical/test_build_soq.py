@@ -114,7 +114,10 @@ class MemberCopy(unittest.TestCase):
             build_soq.fill_member(f)
             with fitz.open(out) as d:
                 fields = {w.field_name: w.field_value for p in list(d)[:2] for w in p.widgets()}
+                title_text = d[build_soq.FORM_PAGES].get_text()
         self.assertEqual(fields["s Name"], "Test Member")
+        self.assertIn("Test Member", title_text)
+        self.assertNotIn(build_soq.TITLE_MEMBER, title_text)
         self.assertEqual(fields["NAME"], "Test Member")
         self.assertEqual(fields["Street"], "1 Test St")
         self.assertNotIn(fields[build_soq.FIRST_AWARD], ("Off", "", None))

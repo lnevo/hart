@@ -327,21 +327,34 @@ def locate(pdf: Path, wanted: dict[str, tuple[str, bool]]) -> dict[str, int]:
 
 
 def export_decks(tmp: Path) -> dict[str, Path]:
-    out = {}
+    """The two wiring decks as PDF. Keynote is the slow step, so each export is kept in
+    build/decks/ under the deck's content hash and reused until the deck changes."""
+    import hashlib
+    cache = BUILD / "decks"
+    cache.mkdir(parents=True, exist_ok=True)
+    out, opened = {}, False
     for key, pptx in DECKS.items():
-        dst = tmp / f"{key}.pdf"
-        script = (f'tell application "Keynote"\nset d to open POSIX file "{pptx}"\n'
-                  f'export d to POSIX file "{dst}" as PDF\nclose d saving no\nend tell')
-        for attempt in range(3):          # Keynote refuses ("Connection is invalid") while it is still quitting
-            subprocess.run(["osascript", "-e", 'tell application "Keynote" to launch'], capture_output=True, timeout=60)
-            time.sleep(2 + 3 * attempt)
-            r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=180)
-            if dst.exists():
-                break
-        if not dst.exists():
-            die(f"Keynote could not export {pptx.name}: {r.stderr.strip()}")
-        out[key] = dst
-    subprocess.run(["osascript", "-e", 'tell application "Keynote" to quit'], capture_output=True)
+        digest = hashlib.sha256(pptx.read_bytes()).hexdigest()[:16]
+        cached = cache / f"{key}-{digest}.pdf"
+        if not cached.exists():
+            dst = tmp / f"{key}.pdf"
+            script = (f'tell application "Keynote"\nset d to open POSIX file "{pptx}"\n'
+                      f'export d to POSIX file "{dst}" as PDF\nclose d saving no\nend tell')
+            for attempt in range(3):      # Keynote refuses ("Connection is invalid") while it is still quitting
+                subprocess.run(["osascript", "-e", 'tell application "Keynote" to launch'], capture_output=True, timeout=60)
+                opened = True
+                time.sleep(2 + 3 * attempt)
+                r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=180)
+                if dst.exists():
+                    break
+            if not dst.exists():
+                die(f"Keynote could not export {pptx.name}: {r.stderr.strip()}")
+            for old in cache.glob(f"{key}-*.pdf"):    # keep only the current export of each deck
+                old.unlink()
+            shutil.copy(dst, cached)
+        out[key] = cached
+    if opened:
+        subprocess.run(["osascript", "-e", 'tell application "Keynote" to quit'], capture_output=True)
     return out
 
 
@@ -431,6 +444,7 @@ MEMBER_FIELDS = {          # key in the member file -> form fields it fills
 }
 MEMBER_OTHER = {"first_award", "signature_image", "output"}
 FIRST_AWARD = "Check here if this is the members first award"
+TITLE_MEMBER = "As named on the SOQ form (page 1)"   # the title page's Member line in the repo build
 
 
 def inside_repo(path: Path) -> bool:
@@ -526,6 +540,16 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
         except Exception as e:                   # noqa: BLE001 - any unreadable image gets one message
             die(f"signature_image {sig}: not a readable image ({e})")
         page.insert_image(signature_box(rect, pix.width / pix.height), filename=str(sig))
+    if data.get("name"):                                  # the title page names the member too
+        title = d[FORM_PAGES]
+        hits = title.search_for(TITLE_MEMBER)
+        if len(hits) != 1:
+            die(f"title page: expected one '{TITLE_MEMBER}', found {len(hits)}; update TITLE_MEMBER")
+        size = round(hits[0].height * 0.78, 1)
+        title.add_redact_annot(hits[0])
+        title.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
+        title.insert_text((hits[0].x0, hits[0].y1 - hits[0].height * 0.22), data["name"], fontsize=size,
+                          fontname="helv", color=(0.09, 0.13, 0.16))
     out.parent.mkdir(parents=True, exist_ok=True)
     d.save(out, garbage=3, deflate=True)
     d.close()
