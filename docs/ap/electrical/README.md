@@ -1,5 +1,7 @@
 # Model Railroad Engineer – Electrical: SOQ package
 
+**Submitted 15 November 2026 and frozen.** See [SUBMITTED.md](SUBMITTED.md): the build refuses to run unless the evaluator asks for changes.
+
 The Statement of Qualifications for the NMRA Achievement Program certificate, rebuilt 2026-11-15 as one bound PDF for review by the member's evaluator. Checklist and rules: [www/ap/index.html#electrical](../../../www/ap/index.html) (live at hartrailroad.com/ap/#electrical).
 
 | File | What it is |
@@ -30,6 +32,6 @@ Owner facts (2026-11-15): the bus or an auto-reverser feeds a DNCT2B's rail inpu
 All photographs are in (punch list complete, 2026-11-15).
 
 1. Member details: filled 2026-11-15 (form and the title page's Member line) from `~/Documents/NMRA AP/soq-member.toml` with `build_soq.py --member`. Run it again after every rebuild so the private copy matches; it refuses a stale PDF and anything inside a git checkout.
-2. The witness visit and the evaluator's signature.
+2. The witness visit and the evaluator's signature (SOQ submitted 2026-11-15).
 
 Sources: `docs/wiring/Layout Documentation.pptx` and `docs/wiring/Wiring_Schematic.pptx` (inventory v86), `docs/ops/schematic-system-draft.svg`, `jmri/layouts/hart/data/block_lengths.csv`, `www/build/track-plan.html`, `external/lcos-bridge` (bridge facts), form from nmra.org/electrical.

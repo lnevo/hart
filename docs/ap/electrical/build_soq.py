@@ -20,6 +20,7 @@ The form's personal fields stay blank in the repo; --member writes a filled copy
 from __future__ import annotations
 
 import argparse
+import hashlib
 import datetime as dt
 import html
 import re
@@ -36,6 +37,7 @@ BUILD = HERE / "build"
 OUT_PDF = HERE / "MRE-Electrical-SOQ.pdf"
 FORM = HERE / "MRE-Electrical-SOQ-form.pdf"
 PUNCH = HERE / "PHOTO_PUNCH_LIST.md"
+SUBMITTED = HERE / "SUBMITTED.md"           # its presence freezes the package (sent 2026-11-15)
 BLOCKS = ROOT / "jmri/layouts/hart/data/block_lengths.csv"
 TRACK_PLAN = ROOT / "www/build/track-plan.html"
 DECKS = {"layout": ROOT / "docs/wiring/Layout Documentation.pptx", "nodes": ROOT / "docs/wiring/Wiring_Schematic.pptx"}
@@ -479,6 +481,14 @@ def inside_repo(path: Path) -> bool:
     return r.returncode == 0 and r.stdout.strip() == "true"
 
 
+def submitted_sha() -> str:
+    """The public build's SHA-256 recorded in SUBMITTED.md (the first 64-hex value in its table)."""
+    m = re.search(r"`([0-9a-f]{64})`", SUBMITTED.read_text())
+    if not m:
+        die(f"{SUBMITTED.name}: no SHA-256 for the public build")
+    return m.group(1)
+
+
 def stale_sources(pdf: Path) -> list[str]:
     """Inputs of the SOQ newer than the built PDF (the member copy must start from a current build)."""
     if not pdf.exists():
@@ -535,7 +545,13 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
     sig = near(data["signature_image"]) if data.get("signature_image") else None
     if sig and not sig.is_file():
         die(f"signature_image {sig} not found")
-    stale = stale_sources(src)
+    if SUBMITTED.exists():                                # frozen: the PDF must be the one that was sent
+        recorded, actual = submitted_sha(), hashlib.sha256(src.read_bytes()).hexdigest()
+        if actual != recorded:
+            die(f"{src.name} is not the submitted build ({actual[:12]} != {recorded[:12]} in {SUBMITTED.name})")
+        stale = []
+    else:
+        stale = stale_sources(src)
     if stale:
         die(f"{src.name} is older than {', '.join(stale[:5])}; run the full build first so the copy is current")
     import fitz
@@ -602,9 +618,16 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--html-only", action="store_true", help="write build/soq.html and stop")
     ap.add_argument("--date", default=dt.date.today().strftime("%-d %B %Y"))
+    ap.add_argument("--unfreeze", metavar="REASON",
+                    help="build or fill although SUBMITTED.md marks the package as sent (say why)")
     ap.add_argument("--member", type=Path, metavar="FILE",
                     help="fill the built PDF's form from this private TOML file and stop (output stays outside the repo)")
     a = ap.parse_args()
+    if SUBMITTED.exists() and not (a.unfreeze or "").strip():
+        die(f"the SOQ was submitted ({SUBMITTED.name}); it is final. Rebuild only for evaluator feedback, "
+            f"with --unfreeze \"reason\", and update {SUBMITTED.name} in the same change")
+    if SUBMITTED.exists():
+        print(f"build_soq: unfreezing the submitted SOQ: {a.unfreeze.strip()}")
     if a.member:
         fill_member(a.member)
         return
