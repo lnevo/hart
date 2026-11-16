@@ -225,18 +225,20 @@ class GeneratedPanelTest(unittest.TestCase):
         self.assertTrue(any("label 'Barn' size='10'" in e for e in errors))
 
     def test_a_carried_caption_keeps_its_style_on_a_generated_panel(self) -> None:
-        self.assertLessEqual({"Neville Island", "Industries"}, polish.carried_captions())
+        self.assertLessEqual({"HART RAILROAD", "Industries"}, polish.carried_captions())
         self.assertNotIn("Barn", polish.carried_captions())        # the plugin gives it now
+        self.assertNotIn("Neville Island", polish.carried_captions())   # renamed at freeze (le_overlay.CAPTIONS)
         root = copy.deepcopy(self.gen)
         label = next(l for l in tables.layout_editor(root).findall("positionablelabel")
-                     if l.get("text") == "Neville Island")
+                     if l.get("text") == "Neville Island")     # the fixture is the live panel, marked
+        label.set("text", "HART RAILROAD")                      # as the build carries it
         label.set("size", "20")
         path = write(root, self.dir)
         (_n, errors), _ = run(polish.apply_visual_standard, path, check=True)
-        self.assertEqual(["tables.xml: label 'Neville Island' size='20', expected '28'"], errors)
+        self.assertEqual(["tables.xml: label 'HART RAILROAD' size='20', expected '28'"], errors)
         run(polish.apply_visual_standard, path, check=False)
         fixed = next(l for l in tables.layout_editor(tables.read(path)).findall("positionablelabel")
-                     if l.get("text") == "Neville Island")
+                     if l.get("text") == "HART RAILROAD")
         self.assertEqual("28", fixed.get("size"))
         with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(ValueError, "carried captions"):
             polish.carried_captions(Path(tmp) / "none.json")

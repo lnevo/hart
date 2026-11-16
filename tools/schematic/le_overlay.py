@@ -63,8 +63,14 @@ import functools
 import importlib
 import math
 import re
+import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from pathlib import Path
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import tables  # noqa: E402
 
 TRACK_TAGS = {"layoutTrackDrawingOptions", "layoutturnout", "tracksegment", "positionablepoint", "signalmasticon",
               "layoutShape"}
@@ -696,8 +702,8 @@ def drop_track_word(el) -> bool:
     changed = False
     for e in [el] + [c for c in el if c.tag in TEXT_TAGS]:
         text = e.get("text")
-        if text and text.startswith("Track "):
-            e.set("text", text[len("Track "):])
+        if text and tables.without_track_word(text) != text:
+            e.set("text", tables.without_track_word(text))
             changed = True
     return changed
 
@@ -774,7 +780,7 @@ def half_lamps(items, gen, os_sensors: dict) -> list:
         blocks = sorted({t.get(a) for a in ("blockname", "blockbname", "blockcname", "blockdname")} - {None})
         have = [lamps[b] for b in blocks if b in lamps]
         for block in blocks:
-            if block in lamps or not have:
+            if block in lamps or not have or not block.startswith("OS "):     # an OS block's lamp only
                 continue
             sensor = os_sensors.get(block)
             if not sensor:
@@ -791,14 +797,22 @@ def half_lamps(items, gen, os_sensors: dict) -> list:
 
 def check_half_lamps(gen_le, os_sensors: dict) -> None:
     """Stop when a single crossover of `gen_le` has a lamp for one of its OS blocks but not for another (every half
-    shows its own occupancy once any does)."""
+    shows its own occupancy once any does), or when such a crossover has an OS block with no occupancy sensor
+    (`os_sensors`): a block with none never counts as shown."""
     shown = {el.get("sensor") for el in gen_le.iter("sensoricon")}
     for t in gen_le.iter("layoutturnout"):
         if "XOVER" not in (t.get("type") or "") or t.get("type") == "DOUBLE_XOVER":
             continue
         blocks = sorted({t.get(a) for a in ("blockname", "blockbname", "blockcname", "blockdname")} - {None})
-        lit = [b for b in blocks if os_sensors.get(b) in shown]
-        if lit and len(lit) != len(blocks):
+        blocks = [b for b in blocks if b.startswith("OS ")]
+        lit = [b for b in blocks if os_sensors.get(b) and os_sensors[b] in shown]
+        if not lit:                 # no lamps on this crossover (main and upper have none yet)
+            continue
+        unsensed = [b for b in blocks if not os_sensors.get(b)]
+        if unsensed:
+            raise OverlayError(f"crossover {t.get('turnoutname')}: block {', '.join(unsensed)} has no occupancy "
+                               "sensor, so no lamp can show it")
+        if len(lit) != len(blocks):
             raise OverlayError(f"crossover {t.get('turnoutname')}: lamps for {lit} but none for "
                                f"{sorted(set(blocks) - set(lit))}")
 

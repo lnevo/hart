@@ -675,3 +675,60 @@ class Throats(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FinalReview(unittest.TestCase):
+    """The 2026-11-16 code review's findings on the cut-over build."""
+
+    def test_legs_swapped_and_generated_slot_agree(self) -> None:
+        B.check_swapped_slots()
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "b.csv"
+            text = B.BOUNDARIES.read_text(encoding="utf-8")
+            path.write_text(text.replace("(owner, 2026-11-16)\",C", "(owner, 2026-11-16)\","), encoding="utf-8")
+            with self.assertRaisesRegex(B.BuildError, "TO1 B .*generated_slot empty, LEGS_SWAPPED gives C"):
+                B.check_swapped_slots(path)
+            path.write_text(text + "turnout,TO99,B,Mast X,,C\n", encoding="utf-8")
+            with self.assertRaisesRegex(B.BuildError, "TO99 B .*generated_slot C, LEGS_SWAPPED gives empty"):
+                B.check_swapped_slots(path)
+
+    def test_station_steps_on_one_row_stop(self) -> None:
+        boxes = mock.Mock(extras=[{"id": "A", "box": (100, 0, 10, 10)}, {"id": "B", "box": (90, 0, 10, 10)},
+                                  {"id": "W", "box": (50, 0, 10, 10)}, {"id": "V", "box": (70, 48, 10, 10)}])
+        with self.assertRaisesRegex(B.BuildError, "stand on one row"):
+            B.cluster_steps(boxes, [["A", "B"]], [("W", "V")])
+
+    def test_west_shift_stops_on_a_reversed_track(self) -> None:
+        raw = B.schematic()[0]
+        B.west_shifted(raw)
+        with mock.patch.dict(B.WEST_SHIFT, {"columns": 9}), \
+                self.assertRaisesRegex(B.BuildError, "overlapped or reversed .*Brick-Plane"):
+            B.west_shifted(raw)
+
+    def test_half_lamps_are_for_os_blocks_with_sensors(self) -> None:
+        ov = B.overlay_mod()
+        panel = ET.fromstring(
+            '<LayoutEditor><layoutturnout type="RH_XOVER" turnoutname="Switch 7" blockname="OS Switch 7" '
+            'blockcname="OS Switch 7b"/><sensoricon sensor="BS Switch 7"/></LayoutEditor>')
+        sensors = {"OS Switch 7": "BS Switch 7", "OS Switch 7b": "BS Switch 7b"}
+        with self.assertRaisesRegex(ov.OverlayError, "lamps for .* but none for \\['OS Switch 7b'\\]"):
+            ov.check_half_lamps(panel, sensors)
+        with self.assertRaisesRegex(ov.OverlayError, "OS Switch 7b has no occupancy sensor"):
+            ov.check_half_lamps(panel, {"OS Switch 7": "BS Switch 7"})
+        ov.check_half_lamps(panel, {})                          # no lamp shown: nothing to match
+        track = ET.fromstring('<LayoutEditor><layoutturnout type="RH_XOVER" turnoutname="Switch 9" '
+                              'blockname="OS Switch 9" blockcname="Track X"/><sensoricon sensor="BS 9"/>'
+                              '</LayoutEditor>')
+        ov.check_half_lamps(track, {"OS Switch 9": "BS 9", "Track X": "BS X"})      # a track block needs none
+        gen = mock.Mock(turnouts={"T": track.find("layoutturnout")})
+        lamp = mock.Mock(anchor=("turnout", "T", "OS Switch 9", (0, 0)), lamp=True, index=1)
+        with mock.patch.object(ov, "in_circle", lambda its: True):
+            self.assertEqual(ov.half_lamps([lamp], gen, {"Track X": "BS X"}), [])
+
+    def test_one_track_word_rule(self) -> None:
+        ov = B.overlay_mod()
+        stations = _load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
+        for name in ("Track EH-1", "Track Power", "EH-1", "Tracks", "Track "):
+            el = ET.fromstring(f'<sensoricon text="{name}"/>')
+            ov.drop_track_word(el)
+            self.assertEqual(el.get("text"), stations.station_display(name, generated=True), name)

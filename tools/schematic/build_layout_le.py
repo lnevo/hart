@@ -215,9 +215,23 @@ def west_shifted(bands):
             if lo is None or hi is None or lo > hi:
                 raise BuildError(f"WEST_SHIFT: switches {WEST_SHIFT['from']} and {WEST_SHIFT['to']} are not drawn "
                                  f"west to east on the {WEST_SHIFT['band']} band")
-            band = dict(band, x={n: x - WEST_SHIFT["columns"]
-                                 if lo <= x <= hi and not is_turnback(band, n) else x
-                                 for n, x in band["x"].items()})
+            x = {n: x - WEST_SHIFT["columns"] if lo <= x <= hi and not is_turnback(band, n) else x
+                 for n, x in band["x"].items()}
+            # a track with one end moved and one not keeps its ends in their order, as many columns apart as its
+            # climbs need (band "need"), so nothing west of the shift is overlapped or passed
+            bad = []
+            for sid, st in band["strands"].items():
+                u, v = st["src"][0], st["dst"][0]
+                if u not in x or v not in x or (x[u] == band["x"][u]) == (x[v] == band["x"][v]):
+                    continue
+                old, new = band["x"][v] - band["x"][u], x[v] - x[u]
+                need = sum(band["need"].get(sid, (0, 0))[:2])
+                if old * new <= 0 or abs(new) < need:
+                    bad.append(f"{st.get('name') or sid} ({old:g} -> {new:g} columns, needs {need:g})")
+            if bad:
+                raise BuildError(f"WEST_SHIFT of {WEST_SHIFT['columns']} columns leaves tracks overlapped or reversed "
+                                 f"on the {WEST_SHIFT['band']} band: " + ", ".join(bad))
+            band = dict(band, x=x)
         out.append((title, band, opts))
     return out
 
@@ -515,6 +529,26 @@ def swapped_idents() -> set:
     return {idents[k] for k in LEGS_SWAPPED}
 
 
+BOUNDARIES = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
+
+
+def check_swapped_slots(path: Path = BOUNDARIES) -> None:
+    """Stop when le_signal_boundaries.csv's generated_slot column and LEGS_SWAPPED disagree: every turnout row on a
+    swapped switch's leg B or C gives the other letter as its generated_slot, and no other row gives one (the
+    audits and apply_le_sml_facing.py read the column; this build reads LEGS_SWAPPED)."""
+    swapped = swapped_idents()
+    bad = []
+    for row in read_csv(path):
+        slot, gen = row["slot"].strip(), (row.get("generated_slot") or "").strip()
+        swaps = row["kind"].strip() == "turnout" and row["ident"].strip() in swapped and slot in ("B", "C")
+        want = "BC".replace(slot, "") if swaps else ""
+        if gen != want:
+            bad.append(f"{row['ident']} {slot} ({row['mast_user_name']}): generated_slot {gen or 'empty'}, "
+                       f"LEGS_SWAPPED gives {want or 'empty'}")
+    if bad:
+        raise BuildError(f"{paths.rel(path)} and LEGS_SWAPPED disagree: " + "; ".join(bad))
+
+
 def swap_legs(facts: dict) -> dict:
     """A turnout's facts (turnout_facts) with legs B and C swapped, as LEGS_SWAPPED draws it: the other hand (the
     straight leg is now B) and the continuing route on the other letter."""
@@ -799,7 +833,10 @@ def cluster_steps(P, groups, follow=()) -> dict:
         x0, step = boxes[group[0]][0], boxes[group[1]][0] - boxes[group[0]][0]
         out.update({g: round(x0 + k * step) for k, g in enumerate(group[2:], 2)})
         if slope is None:
-            slope = step / (boxes[group[1]][1] - boxes[group[0]][1])
+            dy = boxes[group[1]][1] - boxes[group[0]][1]
+            if dy == 0:
+                raise BuildError(f"station steps: {group[0]} and {group[1]} stand on one row, so they give no slope")
+            slope = step / dy
     for lead, follower in follow:
         missing = [g for g in (lead, follower) if g not in boxes]
         if missing:
@@ -1135,6 +1172,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     if unfindable:
         P.log.append(f"live segment idents JMRI does not find as segments, so not reused: {', '.join(unfindable)}")
     check_slots(P, inputs.masts, le_mod)
+    check_swapped_slots()
     check_live_turnouts(le_mod.to_xml(P, "check"), inputs)
 
     # staging: every name must already be live

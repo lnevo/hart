@@ -361,7 +361,7 @@ def station_display(station: str, generated: bool = False) -> str:
     """The MoveTo button's text: STATION_DISPLAY_NAMES, and on a generated panel without a leading "Track " (owner,
     2026-11-16: "EH-1" fits the loco marker; the sensor and block names keep it)."""
     display = STATION_DISPLAY_NAMES.get(station, station)
-    return display.removeprefix("Track ") if generated else display
+    return tables.without_track_word(display) if generated else display
 
 
 def icon_element(
