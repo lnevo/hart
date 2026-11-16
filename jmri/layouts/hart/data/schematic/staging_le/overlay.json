@@ -195,7 +195,7 @@
   },
   {
    "index": 14,
-   "xml": "<positionablelabel x=\"877\" y=\"48\" level=\"3\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Neville Island\" fontFamily=\"Lucida Grande\" fontname=\"LucidaGrande-Bold\" size=\"28\" style=\"1\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"centre\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
+   "xml": "<positionablelabel x=\"855\" y=\"48\" level=\"3\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"HART RAILROAD\" fontFamily=\"Lucida Grande\" fontname=\"LucidaGrande-Bold\" size=\"28\" style=\"1\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"centre\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
    "group": null,
    "anchor": {
     "kind": "frame"

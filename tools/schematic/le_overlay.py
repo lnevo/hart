@@ -435,6 +435,7 @@ def shown_items(live_le):
     for el in le:
         if is_station_button(el):
             drop_track_word(el)
+        recaption(el)
     return overlay_items(le)
 
 
@@ -668,6 +669,25 @@ def block_anchor(it, blocks, live, os_of):
 # ---------------------------------------------------------------- where each goes on the new panel
 
 TEXT_TAGS = ("activeText", "inactiveText", "unknownText", "inconsistentText")
+
+
+# Captions of the hand-drawn panel shown with other text on the generated one (owner, 2026-11-16): the panel title
+CAPTIONS = {"Neville Island": "HART RAILROAD"}
+
+
+def recaption(el) -> bool:
+    """Give a label whose text is a CAPTIONS key its new text, centred where the old one was (x moved by half the
+    change in width, as JMRI draws the text). True if it changed."""
+    new = CAPTIONS.get(el.get("text") or "") if el.tag == "positionablelabel" else None
+    if new is None:
+        return False
+    what = describe(el)
+    size, bold = text_size(el, what)
+    old_w = text_box(el.get("text"), size, bold, what)[0]
+    new_w = text_box(new, size, bold, what)[0]
+    el.set("x", str(round(num(el, "x", what) + (old_w - new_w) / 2)))
+    el.set("text", new)
+    return True
 
 
 def drop_track_word(el) -> bool:
@@ -1113,6 +1133,8 @@ def validate(frozen, what="overlay.json", switch_prefix="") -> None:
              (" (the generated panel gives one per block)" if el.tag == "BlockContentsIcon" else ""))
         name = f"item {k} ({describe(el)})"
         need(not left_out(el), f"{name}: Entry/Exit sensor icons and yard ladder buttons are not carried (re-freeze)")
+        need(not (el.tag == "positionablelabel" and (el.get("text") or "") in CAPTIONS),
+             f"{name}: a caption the generated panel shows as {CAPTIONS.get(el.get('text') or '')!r} (re-freeze)")
         need(not (is_station_button(el) and drop_track_word(copy.deepcopy(el))),
              f"{name}: a station button shows \"Track \" before its track's name (re-freeze drops it)")
         need(not any((c.get("url") or "").endswith(BACKDROP_URL) for c in el.iter()),

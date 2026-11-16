@@ -293,7 +293,8 @@ class Cutover(unittest.TestCase):
             self.assertEqual(set(got), names)
             self.assertEqual(set(got.values()), {1})
         texts = {lb.get("text") for lb in self.le.findall("positionablelabel")}
-        self.assertLessEqual({"LCOS", "Turnouts", "Signals", "Track Power", "Neville Island"}, texts)
+        self.assertLessEqual({"LCOS", "Turnouts", "Signals", "Track Power", "HART RAILROAD"}, texts)
+        self.assertNotIn("Neville Island", texts)              # the title, renamed (le_overlay.CAPTIONS)
         dropped = self.inputs.overlay["dropped"]["block_contents"]
         self.assertEqual(len(dropped), 55)
         bcis = Counter(i.get("blockcontents") for i in self.le.findall("BlockContentsIcon"))
@@ -569,6 +570,30 @@ class ThreeLevels(unittest.TestCase):
         xs = [int(next(el for el in self.le.iter("sensoricon") if el.get("sensor") == f"MoveToTrack_EH-{n}_stored")
                   .get("x")) for n in (1, 2, 3)]
         self.assertEqual(xs[2] - xs[1], xs[1] - xs[0])
+        # West Yard's W-2 follows W-1 one row down at the engine house's step (STATION_FOLLOW)
+        button = lambda n: next(el for el in self.le.iter("sensoricon")      # noqa: E731
+                                if el.get("sensor") == f"MoveToTrack_{n}_stored")
+        w1, w2 = button("W-1"), button("W-2")
+        rows = (int(w2.get("y")) - int(w1.get("y"))) / (int(button("EH-2").get("y")) - int(button("EH-1").get("y")))
+        self.assertAlmostEqual(int(w2.get("x")) - int(w1.get("x")), rows * (xs[1] - xs[0]), delta=1)
+        self.assertLess(int(w2.get("x")), int(w1.get("x")))
+        boxes = mock.Mock(extras=[{"id": "A", "box": (100, 0, 10, 10)}, {"id": "B", "box": (90, 48, 10, 10)},
+                                  {"id": "W", "box": (50, 0, 10, 10)}, {"id": "V", "box": (70, 48, 10, 10)}])
+        self.assertEqual(B.cluster_steps(boxes, [["A", "B"]], [("W", "V")]), {"V": 40})
+        with self.assertRaisesRegex(B.BuildError, "no group gives the slope"):
+            B.cluster_steps(boxes, [], [("W", "V")])
+        # the title caption renamed at freeze, centred where the old one stood, and a frozen old one stops
+        ov = B.overlay_mod()
+        el = ET.fromstring('<positionablelabel x="877" y="48" text="Neville Island" size="28" style="1"/>')
+        self.assertTrue(ov.recaption(el))
+        old_w, new_w = (ov.text_box(t, 28, True, "t")[0] for t in ("Neville Island", "HART RAILROAD"))
+        self.assertEqual(el.get("text"), "HART RAILROAD")
+        self.assertAlmostEqual(int(el.get("x")) + new_w / 2, 877 + old_w / 2, delta=0.5)
+        bad = copy.deepcopy(B.le_inputs.load().overlay)
+        item = next(it for it in bad["items"] if 'text="HART RAILROAD"' in it["xml"])
+        item["xml"] = item["xml"].replace('text="HART RAILROAD"', 'text="Neville Island"')
+        with self.assertRaisesRegex(ov.OverlayError, "re-freeze"):
+            ov.validate(bad)
         # each OS lamp of a plain switch centred in its control circle
         seg_block = {b.findtext("occupancysensor").strip(): b.findtext("userName") for b in self.root.iter("block")
                      if b.find("occupancysensor") is not None}

@@ -779,19 +779,34 @@ LAMP_COLUMNS = [{"BS S-R": "S-R", "BS S-1": "S-1", "BS S-2": "S-2", "BS S-3": "S
 # Station clusters that step along one slope (owner, 2026-11-16): the engine house's buttons, one row apart. Each after
 # the second is placed again at the x the first two's step gives it (the plugin's extra "x"), its y the plugin's.
 STATION_STEPS = [["Track EH-1", "Track EH-2", "Track EH-3"]]
+# Station clusters that follow another's along a curve at the first STATION_STEPS group's slope (owner, 2026-11-16):
+# West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3.
+STATION_FOLLOW = [("Track W-1", "Track W-2")]
 
 
-def cluster_steps(P, groups) -> dict:
+def cluster_steps(P, groups, follow=()) -> dict:
     """{station block: x} for the clusters after the second of each group (STATION_STEPS): the first's x plus n
-    times the first step, from the boxes the plugin placed (P.extras). Stops on a group member it placed none for."""
+    times the first step, from the boxes the plugin placed (P.extras); then each (leader, follower) of `follow`
+    (STATION_FOLLOW): the leader's x plus the first group's step per px of y times the follower's y less the
+    leader's. Stops on a group member it placed none for."""
     boxes = {e["id"]: e["box"] for e in getattr(P, "extras", ())}
     out = {}
+    slope = None
     for group in groups:
         missing = [g for g in group if g not in boxes]
         if missing:
             raise BuildError(f"station steps: the plugin placed no cluster for {missing}")
         x0, step = boxes[group[0]][0], boxes[group[1]][0] - boxes[group[0]][0]
         out.update({g: round(x0 + k * step) for k, g in enumerate(group[2:], 2)})
+        if slope is None:
+            slope = step / (boxes[group[1]][1] - boxes[group[0]][1])
+    for lead, follower in follow:
+        missing = [g for g in (lead, follower) if g not in boxes]
+        if missing:
+            raise BuildError(f"station steps: the plugin placed no cluster for {missing}")
+        if slope is None:
+            raise BuildError("station steps: a cluster follows another, but no group gives the slope")
+        out[follower] = round(boxes[lead][0] + slope * (boxes[follower][1] - boxes[lead][1]))
     return out
 
 
@@ -1106,7 +1121,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                                           crossover_run={STAGING: crossover_run(scale)[STAGING]},
                                           **e)
             P = draw(extras)
-            xs = cluster_steps(P, STATION_STEPS) if extras else {}
+            xs = cluster_steps(P, STATION_STEPS, STATION_FOLLOW) if extras else {}
             if xs:                  # again, with the stepped clusters placed at their x (STATION_STEPS)
                 P = draw(with_x(extras, xs))
             P.scale, P.fit, P.staging_fit, P.station_x = scale, None, fitted, xs
