@@ -166,6 +166,9 @@ TRIAL_LE_LABELS = dict(LE_LABELS, switch_size=9, block_contents=False)
 # comes first and a track name with no room is left out (logged; the plugin's names_last), and the icons are 12 px,
 # the short reserve still tried before none (owner, 2026-11-16): at 13 px three have no clean spot at any reserve.
 LEVEL_LE_LABELS = {"names_last": True, "block_contents_size": 12}
+# {band key: switch numbers} placed below their turnout first (the plugin's numbers_below): SW-101 on its crossover's
+# bottom track side, clear of 103 drawn tight above it (owner, 2026-11-16)
+NUMBERS_BELOW = {"Main": ["101"]}
 
 
 class BuildError(le_inputs.InputsError):
@@ -191,6 +194,72 @@ def schematic():
     sheet = plugin()[0]
     built = pd.solved_sheet(sheet)
     return built.bands, built.opts
+
+
+# Layout Editor only (the sheet keeps its columns; owner, 2026-11-16): staging from Plane (switch 5) to East End's
+# switch 33 drawn this many grid columns further west, into the empty space above Scale, so West Ext and East Lead
+# are drawn longer and Main West and Brick-Plane shorter by as much, and the panel keeps its width. Whole columns,
+# and an even number keeps the label layer's spots as on the sheet's grid (an odd one moved a dozen labels).
+WEST_SHIFT = {"band": "Staging", "from": "5", "to": "33", "columns": 2}
+
+
+def west_shifted(bands):
+    """`bands` with WEST_SHIFT applied: a copy whose staging band has every node (switch, end) at or between the
+    columns of switches WEST_SHIFT from and to moved WEST_SHIFT columns west; turnbacks stay. The others as given."""
+    out = []
+    for title, band, opts in bands:
+        if band_key(title) == WEST_SHIFT["band"]:
+            cols = {d.get("label"): band["x"][n] for n, d in band["nodes"].items()
+                    if d["kind"] == "switch" and n in band["x"]}
+            lo, hi = (cols.get(WEST_SHIFT[k]) for k in ("from", "to"))
+            if lo is None or hi is None or lo > hi:
+                raise BuildError(f"WEST_SHIFT: switches {WEST_SHIFT['from']} and {WEST_SHIFT['to']} are not drawn "
+                                 f"west to east on the {WEST_SHIFT['band']} band")
+            band = dict(band, x={n: x - WEST_SHIFT["columns"]
+                                 if lo <= x <= hi and not is_turnback(band, n) else x
+                                 for n, x in band["x"].items()})
+        out.append((title, band, opts))
+    return out
+
+
+# Layout Editor only (the sheet keeps its drawing): the straight of a track at one switch's end lengthened by moving
+# its bend toward the other switch, so a crossover there has room for its 45 degrees. Track 235-241 (switch 235's
+# leg B up to 241's half A): its straight at 241 was one column (40.4 px), 241 needed about 7 px more (owner,
+# 2026-11-16). Only the bend moves: 235 and 241 stay, the climb from 235 is a little steeper.
+LONGER_STRAIGHTS = [{"band": "Upper", "from": "235", "to": "241A", "columns": 0.18}]
+
+
+def straights_lengthened(bands):
+    """`bands` with LONGER_STRAIGHTS applied: the track joining the switches labelled from and to (the sheet's
+    labels) has the climb at its `from` end ending `columns` sooner, so its straight at `to` is that much longer.
+    Stops on a track not found, or one with no climb at its from end that long."""
+    out = list(bands)
+    for want in LONGER_STRAIGHTS:
+        i = next((k for k, (t, _b, _o) in enumerate(out) if band_key(t) == want["band"]), None)
+        if i is None:
+            raise BuildError(f"LONGER_STRAIGHTS: no {want['band']} band")
+        title, band, opts = out[i]
+        label = {n: d.get("label") for n, d in band["nodes"].items()}
+        found = [(sid, s) for sid, s in band["strands"].items()
+                 if {label[s["src"][0]], label[s["dst"][0]]} == {want["from"], want["to"]}]
+        if len(found) != 1:
+            raise BuildError(f"LONGER_STRAIGHTS: {len(found)} tracks join switches {want['from']} and {want['to']} "
+                             f"on the {want['band']} band, not one")
+        sid, st = found[0]
+        su, sv, *rest = band["need"][sid]
+        at_src = label[st["src"][0]] == want["from"]
+        climb = su if at_src else sv
+        if climb <= want["columns"]:
+            raise BuildError(f"LONGER_STRAIGHTS: track {sid} climbs {climb} columns at switch {want['from']}, not "
+                             f"more than {want['columns']}")
+        need = (su - want["columns"], sv, *rest) if at_src else (su, sv - want["columns"], *rest)
+        out[i] = (title, dict(band, need=dict(band["need"], **{sid: need})), opts)
+    return out
+
+
+def is_turnback(band, n) -> bool:
+    """A turnback node (its own column at the band's end)."""
+    return band["nodes"].get(n, {}).get("kind", "").startswith("turn")
 
 
 def overlay_mod():
@@ -787,7 +856,8 @@ def named_bands(bands, names: dict):
             band["strands"][best]["name"] = block.removeprefix("Track ")
         if "le_labels" in (opts or {}):
             raise BuildError(f"{title}: its preferences already hold le_labels; HART sets them here (LEVEL_LE_LABELS)")
-        out.append((title, band, dict(opts or {}, le_labels=dict(LEVEL_LE_LABELS))))
+        labels = dict(LEVEL_LE_LABELS, numbers_below=list(NUMBERS_BELOW.get(band_key(title), [])))
+        out.append((title, band, dict(opts or {}, le_labels=labels)))
     return out
 
 
@@ -945,6 +1015,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     _sheet, le_mod, core = plugin()
     if bands is None:
         bands, page = schematic()
+        bands = straights_lengthened(west_shifted(bands))
     else:
         page = bands[-1][2]
     base = None             # the three-level candidate: the staging candidate it must hold unchanged, and its grid
@@ -1016,7 +1087,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             draw = lambda g: le_mod.panel(staging_columns(named_bands(bands, names)), names,  # noqa: E731
                                           cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1],
                                           page=dict(page, band_align={STAGING: "left"}), gap=g, labels_by_band=True,
-                                          crossover_run=crossover_run(scale), **stepped)
+                                          crossover_run=crossover_run(scale),
+                                          tight_crossovers=TIGHT_CROSSOVERS, **stepped)
             P = draw(gaps)
             if len(P.band_boxes) > 2:
                 gaps[1:] = [band_gap(le_mod.extent(P, bi)[3], P.band_boxes[bi][3], le_mod)
@@ -1069,8 +1141,14 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             if freeze_from is not None:
                 inputs.overlay = ov.freeze(freeze_from, panel_el, root, le_mod, slots_module(), inputs.note,
                                            LE_LABELS["switch_prefix"])
+            # every crossover half shows its own OS occupancy (owner, 2026-11-16): the hand-drawn panel has one lamp
+            # for 7 and 23, the generated one a lamp per half, each in the middle of its half (le_overlay.half_lamps)
+            os_sensors = {b.findtext("userName"): b.findtext("occupancysensor").strip() for b in root.iter("block")
+                          if b.findtext("userName") and b.find("occupancysensor") is not None}
             P.overlay = ov.carry(inputs.overlay, panel_el, P, le_mod, slots_module(), FIT,
-                                 LE_LABELS["switch_prefix"], frame_blocks=staging_blocks, lamp_columns=LAMP_COLUMNS)
+                                 LE_LABELS["switch_prefix"], frame_blocks=staging_blocks, lamp_columns=LAMP_COLUMNS,
+                                 os_sensors=os_sensors)
+            ov.check_half_lamps(panel_el, os_sensors)
         except ov.OverlayError as exc:
             raise BuildError(f"overlay: {exc}") from None
         # a panel larger than its window (the cut-over grid: staging alone is wider, three levels wider and taller)
@@ -1102,10 +1180,13 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
 
 # The angle each level's crossovers (single and double) cross at on the cut-over candidates (owner, 2026-11-16):
 # staging at the schematic's own diverging angle for turnouts and yard ladders, one grid column across per row, so
-# 45 degrees on the sheet's square grid (30 would leave a staging track shorter than its switches' legs); main and
-# upper flatter, at 30. A crossover with no room for its angle is drawn as steep as it must be (the plugin logs
+# 45 degrees on the sheet's square grid; main and upper at 45 too, double crossover included (owner, 2026-11-16,
+# after a round at 30). A crossover with no room for its angle is drawn as steep as it must be (the plugin logs
 # which, at what angle).
-CROSSOVER_ANGLES = {"Staging": 45.0, "Main": 30.0, "Upper": 30.0}
+CROSSOVER_ANGLES = {"Staging": 45.0, "Main": 45.0, "Upper": 45.0}
+# Crossovers drawn as close together as JMRI's shapes allow on the track they share (the plugin's tight_crossovers):
+# 101 and 103 are one physical three-way switch (owner, 2026-11-16)
+TIGHT_CROSSOVERS = {"Main": [["101", "103"]]}
 
 
 def crossover_run(scale) -> dict:

@@ -385,7 +385,8 @@ class DeviceNames(unittest.TestCase):
         self.assertIn("101", labels)
         self.assertNotIn("101A", labels)
         self.assertIn("129A", labels)                           # its B half is on the upper level
-        self.assertEqual(drawn[1][2]["le_labels"], B.LEVEL_LE_LABELS)
+        self.assertEqual(drawn[1][2]["le_labels"], dict(B.LEVEL_LE_LABELS, numbers_below=B.NUMBERS_BELOW["Main"]))
+        self.assertEqual(drawn[2][2]["le_labels"], dict(B.LEVEL_LE_LABELS, numbers_below=[]))
         named = [s["name"] for s in main["strands"].values() if s["name"]]
         self.assertEqual(len(named), len(set(named)))           # one track per block
         self.assertIn("McKees Rocks", named)                    # the helix track keeps its plan name

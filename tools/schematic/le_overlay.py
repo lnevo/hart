@@ -736,9 +736,51 @@ def lamp_column(its, group, P, obstacles, bounds):
 
 def in_circle(its) -> bool:
     """True for a lone occupancy lamp of a switch's OS block (tied to its turnout): it stands centred in that
-    turnout's control circle, or a crossover half's lamp in its own half's (Track.turnout_point), by the owner's
-    rule (2026-11-13), on every switch alike."""
+    turnout's control circle, by the owner's rule (2026-11-13), on every switch alike; a crossover half's lamp in
+    the middle of its own half (Track.turnout_point; owner, 2026-11-16: one lamp per half, as 35's two)."""
     return len(its) == 1 and its[0].lamp and its[0].anchor is not None and its[0].anchor[0] == "turnout"
+
+
+def half_lamps(items, gen, os_sensors: dict) -> list:
+    """New lamp Items for the crossover halves of the new panel whose OS block has no lamp while the crossover's
+    other half has one (the hand-drawn panel drew one lamp for 7 and 23; owner, 2026-11-16: a lamp for every half,
+    as 35): a copy of that half's lamp showing the block's own occupancy sensor (`os_sensors`: {block: sensor}),
+    tied to the same turnout in its own half. Stops on such a block with no sensor."""
+    lamps = {it.anchor[2]: it for it in items if in_circle([it])}
+    out, index = [], max(it.index for it in items)
+    for ident, t in sorted(gen.turnouts.items()):
+        if "XOVER" not in (t.get("type") or "") or t.get("type") == "DOUBLE_XOVER":
+            continue
+        blocks = sorted({t.get(a) for a in ("blockname", "blockbname", "blockcname", "blockdname")} - {None})
+        have = [lamps[b] for b in blocks if b in lamps]
+        for block in blocks:
+            if block in lamps or not have:
+                continue
+            sensor = os_sensors.get(block)
+            if not sensor:
+                raise OverlayError(f"crossover {t.get('turnoutname') or ident}: block {block} has no occupancy "
+                                   "sensor for its half's lamp")
+            el = copy.deepcopy(have[0].el)
+            el.set("sensor", sensor)
+            index += 1
+            it = Item(el, index)
+            it.anchor = ("turnout", have[0].anchor[1], block, (0.0, 0.0))
+            out.append(it)
+    return out
+
+
+def check_half_lamps(gen_le, os_sensors: dict) -> None:
+    """Stop when a single crossover of `gen_le` has a lamp for one of its OS blocks but not for another (every half
+    shows its own occupancy once any does)."""
+    shown = {el.get("sensor") for el in gen_le.iter("sensoricon")}
+    for t in gen_le.iter("layoutturnout"):
+        if "XOVER" not in (t.get("type") or "") or t.get("type") == "DOUBLE_XOVER":
+            continue
+        blocks = sorted({t.get(a) for a in ("blockname", "blockbname", "blockcname", "blockdname")} - {None})
+        lit = [b for b in blocks if os_sensors.get(b) in shown]
+        if lit and len(lit) != len(blocks):
+            raise OverlayError(f"crossover {t.get('turnoutname')}: lamps for {lit} but none for "
+                               f"{sorted(set(blocks) - set(lit))}")
 
 
 def target(it, frame, gen, gen_frame):
@@ -1236,12 +1278,15 @@ def same_boxes(fixed, P):
 
 
 def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str = "", frame_blocks=None,
-          lamp_columns=()) -> dict:
+          lamp_columns=(), os_sensors=None) -> dict:
     """Copy every frozen overlay item onto gen_le (see the module text). Returns a report: records [(item, anchor,
     hand-drawn xy, new xy, moved px)], the generated labels and block contents icons placed around ({kind: count}),
-    notes, the new panel size, the lowest carried item's bottom and the blocks whose track is not one run. `frame_blocks`: the blocks of the band the
+    notes, the new panel size, the lowest carried item's bottom, the blocks whose track is not one run and the
+    Items added (half_lamps). `frame_blocks`: the blocks of the band the
     frame items and the status cluster are tied to (default: every block drawn), so they keep their place against
-    that band's track however the panel grows below it. A panel the plugin drew taller than the `fit` window
+    that band's track however the panel grows below it. `os_sensors` ({block: occupancy sensor}): a crossover
+    half with no lamp of its own gets one when its other half has one (half_lamps); None adds none.
+    A panel the plugin drew taller than the `fit` window
     (several bands at one band's grid) keeps its items inside the panel instead, and its window is `fit`."""
     validate(frozen, switch_prefix=switch_prefix)
     gen = Track(gen_le, le_mod, slots_mod, "new panel")
@@ -1260,6 +1305,8 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
     bounds = (0, TOP, W - EDGE, H - EDGE)       # inside the window (or panel), so fit_size never moves the panel
 
     # units: a group moves as one, every other item alone; a lamp column's lamps are placed together
+    added = half_lamps(items, gen, os_sensors) if os_sensors is not None else []
+    items += added
     columns = lamp_column_items(items, lamp_columns)
     in_column = {id(it): k for k, its in enumerate(columns) for it in its}
     groups = defaultdict(list)
@@ -1330,7 +1377,7 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
         if (int(el.get("x")), int(el.get("y"))) != it.new:
             raise OverlayError(f"overlay check: {it.what} is not where it was placed")
     bad = check(gen_le, frozen, le_mod, slots_mod, {m["mast"]: m["size"] for m in P.masts}, switch_prefix,
-                bci_widths)
+                bci_widths, added)
     if bad:
         raise OverlayError("overlay check: " + "; ".join(bad))
     counts = defaultdict(int)
@@ -1338,7 +1385,8 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
         counts[kind] += 1
     bottom = max(it.new[1] + it.h for it in items if not it.backdrop)       # the lowest carried item's bottom
     return dict(records=records, generated=dict(counts), dropped={k: len(v) for k, v in frozen["dropped"].items()},
-                notes=notes, size=size, bottom=bottom, unchained=sorted(set(frozen["unchained"]) | set(gen.unchained)))
+                notes=notes, size=size, bottom=bottom, unchained=sorted(set(frozen["unchained"]) | set(gen.unchained)),
+                added=added)
 
 
 def room(P, le_mod, fit):
@@ -1379,15 +1427,15 @@ def strip(el):
     return ET.tostring(e)
 
 
-def check(gen_le, frozen, le_mod, slots_mod, mast_size, switch_prefix="", bci_widths=None) -> list[str]:
+def check(gen_le, frozen, le_mod, slots_mod, mast_size, switch_prefix="", bci_widths=None, added=()) -> list[str]:
     """Problems with the overlay on a written panel, read from scratch: each frozen overlay item there exactly once
     with the same attributes and children but x and y, nothing else of the overlay kinds but the generated labels
     and block contents icons (and the hidden generated-panel marker); no item over track (lamps, and a station
     cluster on its own track, excepted), turnouts, mast icons (`mast_size`: mast name -> (w, h) upright), generated
     labels and block contents icons (at the sizes JMRI draws), shapes or another item (within one cluster excepted);
-    every item on the panel."""
+    every item on the panel. `added`: Items carry added beside the frozen ones (half_lamps), checked alike."""
     validate(frozen, switch_prefix=switch_prefix)
-    items = frozen_items(frozen)
+    items = frozen_items(frozen) + [copy.copy(it) for it in added]
     by_key = defaultdict(list)
     for el in gen_le:
         if el.tag in OVERLAY_TAGS:

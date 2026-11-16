@@ -272,11 +272,16 @@ class Cutover(unittest.TestCase):
         size = {m: tables.mast_icon_size(s)[0] for m, s in system.items()}
         widths = {b["block"]: float(b["box"][2]) for b in self.P.bcis}     # as the plugin placed them
         self.assertEqual(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size,
-                                  B.LE_LABELS["switch_prefix"], widths), [])
+                                  B.LE_LABELS["switch_prefix"], widths, self.P.overlay["added"]), [])
         live_items = frozen_items()
         self.assertEqual(Counter(el.tag for el in live_items), Counter(
             sensoricon=80, positionablelabel=10, signalheadicon=1))
-        self.assertEqual(len(self.P.overlay["records"]), len(live_items))
+        # the two crossover halves the hand-drawn panel drew no lamp for get one (le_overlay.half_lamps)
+        self.assertEqual(sorted(it.el.get("sensor") for it in self.P.overlay["added"]),
+                         ["BS Switch 23b", "BS Switch 7b"])
+        self.assertEqual(len(self.P.overlay["records"]), len(live_items) + 2)
+        self.assertTrue(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size,
+                                 B.LE_LABELS["switch_prefix"], widths))       # not without them
         strip = Counter(ov.strip(el) for el in live_items)
         got = Counter(ov.strip(el) for el in self.le if el.tag in ov.OVERLAY_TAGS)
         self.assertEqual(strip - got, Counter())             # each live item there, attributes as live
@@ -576,6 +581,66 @@ class ThreeLevels(unittest.TestCase):
                                            (float(t.get("xcen")), float(t.get("ycen")))), 1.0, el.get("sensor"))
         with self.assertRaisesRegex(B.BuildError, "placed no cluster"):
             B.cluster_steps(mock.Mock(extras=[]), B.STATION_STEPS)
+
+    def test_owner_layout_rules_of_2026_11_16_second_round(self) -> None:
+        import math
+        xo = {t.get("turnoutname"): t for t in self.le.findall("layoutturnout") if "XOVER" in t.get("type")}
+        pt = lambda t, L: (float(t.get("x" + L)), float(t.get("y" + L)))      # noqa: E731
+        # 101 and 103 (one three-way switch) drawn tight: their shared track at its least length, both at 45
+        self.assertLessEqual(pt(xo["Switch 103"], "d")[0] - pt(xo["Switch 101"], "b")[0], 13)
+        self.assertEqual(pt(xo["Switch 103"], "d")[1], pt(xo["Switch 101"], "b")[1])
+        limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
+                   and "crossover" in line}
+        self.assertNotIn("101", limited)
+        self.assertNotIn("225", limited)
+        self.assertNotIn("241", limited)        # Track 235-241's straight lengthened on the LE (LONGER_STRAIGHTS)
+        # SW-101 below its crossover
+        label = next(el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101")
+        self.assertGreaterEqual(int(label.get("y")), pt(xo["Switch 101"], "c")[1])
+        # every half of a single crossover shows its own OS lamp, in the middle of its half's two leg ends (the
+        # throat, where the diagonal leaves its track), as 35's two were; the hand-drawn panel had none for 7b, 23b
+        seg_block = {b.findtext("occupancysensor").strip(): b.findtext("userName") for b in self.root.iter("block")
+                     if b.find("occupancysensor") is not None}
+        lamp_of = {seg_block.get(el.get("sensor")): el for el in self.le.iter("sensoricon") if el.get("level") == "10"}
+        for name in ("Switch 7", "Switch 23", "Switch 35"):
+            t = xo[name]
+            for legs, attr in (("ab", "blockname"), ("cd", "blockcname")):
+                el = lamp_of.get(t.get(attr))
+                self.assertIsNotNone(el, (name, t.get(attr)))
+                half = [pt(t, L) for L in legs]
+                mid = ((half[0][0] + half[1][0]) / 2, half[0][1])
+                self.assertLessEqual(math.dist((int(el.get("x")) + 5, int(el.get("y")) + 5), mid), 1.0, t.get(attr))
+        ov = B.overlay_mod()
+        ov.check_half_lamps(self.le, {v: k for k, v in seg_block.items()})
+        bare = copy.deepcopy(self.le)
+        bare.remove(next(el for el in bare.iter("sensoricon") if el.get("sensor") == "BS Switch 7b"))
+        with self.assertRaisesRegex(ov.OverlayError, r"Switch 7: lamps for \['OS Switch 7'\] but none"):
+            ov.check_half_lamps(bare, {v: k for k, v in seg_block.items()})
+        # staging from Plane to East End drawn WEST_SHIFT columns west: West Ext and East Lead longer
+        bands = B.west_shifted(B.schematic()[0])
+        before = B.schematic()[0][0][1]["x"]
+        after = bands[0][1]["x"]
+        moved = {n for n in before if after[n] != before[n]}
+        self.assertTrue(moved)
+        self.assertEqual({before[n] - after[n] for n in moved}, {B.WEST_SHIFT["columns"]})
+        self.assertFalse([n for n in moved if n.startswith("turn")])
+        with mock.patch.dict(B.WEST_SHIFT, {"from": "33", "to": "5"}), \
+                self.assertRaisesRegex(B.BuildError, "not drawn west to east"):
+            B.west_shifted(B.schematic()[0])
+        # LONGER_STRAIGHTS: only the one track's climb changes, by its columns
+        raw = B.schematic()[0]
+        got = B.straights_lengthened(raw)
+        changed = [(i, sid) for i, ((_t, b0, _o), (_u, b1, _p)) in enumerate(zip(raw, got))
+                   for sid in b0["need"] if b0["need"][sid] != b1["need"][sid]]
+        self.assertEqual(len(changed), 1)
+        i, sid = changed[0]
+        self.assertAlmostEqual(raw[i][1]["need"][sid][0] - got[i][1]["need"][sid][0],
+                               B.LONGER_STRAIGHTS[0]["columns"])
+        for bad, why in (({"to": "999"}, "0 tracks join"), ({"columns": 5}, "climbs")):
+            one = [dict(B.LONGER_STRAIGHTS[0], **bad)]
+            with self.subTest(bad=bad), mock.patch.object(B, "LONGER_STRAIGHTS", one), \
+                    self.assertRaisesRegex(B.BuildError, why):
+                B.straights_lengthened(raw)
 
     def test_station_buttons_show_no_track_word(self) -> None:
         buttons = [el for el in self.le.iter("sensoricon") if (el.get("sensor") or "").startswith("MoveTo")]
