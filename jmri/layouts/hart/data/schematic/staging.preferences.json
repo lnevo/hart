@@ -103,5 +103,9 @@
  "_detail_sheets": "Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations above. South Yard covers the yard and the Barn (owner, 2026-11-14); West Yard pairs the hand map with Brick and Plane; Princess is the hand map's Shenango.",
  "station_side": {
   "West Yard": "top"
- }
+ },
+ "level_leg": {
+  "3": "B"
+ },
+ "_level_leg": "Switch 3 keeps W-1 (its leg B, the straight track) level, W-2 diverging below it, as the left-hand turnout stands on the layout and in the Layout Editor (owner, 2026-11-16)."
 }

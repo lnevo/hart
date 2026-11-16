@@ -45,6 +45,15 @@ class GeneratedStationsTest(unittest.TestCase):
         tree = marked()
         shift_clusters(tree.getroot())       # off the hand-drawn pixels
         before = clusters(tree.getroot())
+        # the hand-drawn panel's buttons read "Track K-1": on a generated panel they read "K-1" (owner, 2026-11-16),
+        # so the first run rewrites only those buttons' text, in place
+        changes = reconciler.reconcile(tree)
+        self.assertTrue(changes.details)
+        self.assertTrue(all(d.startswith("reconciled icon MoveToTrack_") for d in changes.details), changes.details)
+        self.assertEqual(before, clusters(tree.getroot()))
+        for icon in reconciler.main_layout_editor(tree.getroot()).findall("sensoricon"):
+            if (icon.get("sensor") or "").startswith("MoveTo"):
+                self.assertFalse((icon.get("text") or "").startswith("Track "), icon.get("sensor"))
         changes = reconciler.reconcile(tree)
         self.assertEqual(0, changes.total, changes.details)
         self.assertEqual(before, clusters(tree.getroot()))

@@ -50,13 +50,16 @@ _DISABLED_2 = """      <unlit allowed="no" />
       </disabledAspects>"""
 
 
-def load_assignments(path: Path) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
+def load_assignments(path: Path, generated: bool = False
+                     ) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
+    """({turnout ident: {slot: mast}}, {anchor ident: {slot: mast}}) from the boundaries CSV; on a `generated` panel
+    each row in its generated_slot where it has one (a switch drawn with legs B and C swapped)."""
     turnouts: dict[str, dict[str, str]] = {}
     anchors: dict[str, dict[str, str]] = {}
     with path.open(newline="") as f:
         for row in csv.DictReader(f):
             ident = row["ident"]
-            slot = row["slot"]
+            slot = tables.boundary_slot(row, generated)
             mast = row["mast_user_name"]
             if row["kind"] == "turnout":
                 turnouts.setdefault(ident, {})[slot] = mast
@@ -234,7 +237,7 @@ def main() -> None:
         print(f"{PREF_TABLES}: not changed: PanelPro or CATS is open; quit it and rerun, "
               "or use --no-pref and deploy", file=sys.stderr)
         sys.exit(1)
-    turnouts, anchors = load_assignments(args.csv)
+    turnouts, anchors = load_assignments(args.csv, tables.path_has_generated_panel(args.panel))
     patch_file(args.panel, turnouts, anchors, dry_run=args.dry_run)
     if args.dry_run or args.no_sync:
         return

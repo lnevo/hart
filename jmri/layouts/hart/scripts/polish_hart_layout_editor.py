@@ -153,6 +153,7 @@ REMOVED_LABELS = {
 # ADR-002 visible hierarchy.
 LABEL_STYLE: dict[str, tuple[str, str]] = {
     "Neville Island": ("28", "1"),
+    "HART RAILROAD": ("28", "1"),       # the generated panel's title (le_overlay.CAPTIONS)
     "Brick": ("16", "1"),
     "Plane": ("16", "1"),
     "Barn": ("16", "1"),

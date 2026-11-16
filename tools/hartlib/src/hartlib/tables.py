@@ -470,6 +470,24 @@ def generated_panel(panel: ET.Element | None) -> bool:
     return bool(found)
 
 
+def without_track_word(text: str) -> str:
+    """What a generated panel's station button shows for `text`: no leading "Track " (owner, 2026-11-16: "EH-1" fits
+    the loco marker). Shared by le_overlay.drop_track_word and reconcile_dispatcher_stations.station_display."""
+    return text.removeprefix("Track ")
+
+
+def boundary_slot(row: dict, generated: bool) -> str:
+    """The slot of an le_signal_boundaries.csv row on the panel at hand: its ``generated_slot`` on a generated panel
+    (generated_panel) where it has one (a switch whose generated turnout swaps legs B and C), else its ``slot``."""
+    gen = (row.get("generated_slot") or "").strip()
+    return gen if generated and gen else (row.get("slot") or "").strip()
+
+
+def path_has_generated_panel(path: Path | str) -> bool:
+    """True when the main Layout Editor panel in the tables file at ``path`` is a generated one (generated_panel)."""
+    return generated_panel(layout_editor(read(path)))
+
+
 def hand_drawn_only(path: Path | str, script: str) -> str | None:
     """None when the main panel in ``path`` is the hand-drawn one; else why ``script`` (a one-off edit of the
     hand-drawn panel's pixels or idents) must not run on it. The caller stops with that message."""

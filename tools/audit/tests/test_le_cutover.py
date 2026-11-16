@@ -16,11 +16,12 @@ import copy
 import functools
 import io
 import os
+import re
 import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from unittest import mock
 
@@ -38,7 +39,7 @@ STATUS = {"sensoricon": {"Bridge HBLOOP", "SML Mode", "Track Power"}, "signalhea
 def cutover():
     """(candidate bytes, Panel, names, bands), built once for every test that needs it."""
     with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(levels="staging", as_live=True)
+        return B.build(levels="staging", as_live=True, approved=None)     # the fingerprint: its own test
 
 
 def without_panel(root: ET.Element) -> bytes:
@@ -97,14 +98,18 @@ class Cutover(unittest.TestCase):
         self.assertEqual(list(self.root).index(self.le), list(self.live).index(tables.layout_editor(self.live, LIVE)))
 
     def test_live_panel_attributes_fit_sizing(self) -> None:
-        got = {k: v for k, v in self.le.attrib.items() if k not in SIZE_ATTRS}
-        want = {k: v for k, v in self.inputs.attrs.items() if k not in SIZE_ATTRS}
+        got = {k: v for k, v in self.le.attrib.items() if k not in SIZE_ATTRS | {"scrollable"}}
+        want = {k: v for k, v in self.inputs.attrs.items() if k not in SIZE_ATTRS | {"scrollable"}}
         self.assertEqual(got, want)
-        self.assertEqual((self.le.get("editable"), self.le.get("scrollable")), ("no", "none"))
+        # larger than its window, so it scrolls both ways (the frozen attribute, for a panel that fits, is "none")
+        self.assertEqual((self.le.get("editable"), self.le.get("scrollable")), ("no", "both"))
+        self.assertEqual(self.inputs.attrs["scrollable"], "none")
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        self.assertEqual((int(self.le.get("windowwidth")), int(self.le.get("windowheight"))), (w + 18, h + 60))
-        self.assertLessEqual(w + 18, B.FIT[0])
-        self.assertLessEqual(h + 60, B.FIT[1])
+        # the window is the panel and its frame, at most FIT; the stretched panel (STRETCH) is wider than it
+        self.assertEqual((int(self.le.get("windowwidth")), int(self.le.get("windowheight"))),
+                         (min(w + 18, B.FIT[0]), min(h + 60, B.FIT[1])))
+        self.assertEqual(self.P.scale, (self.P.staging_fit[0] * B.STRETCH, self.P.staging_fit[1]))
+        self.assertTrue(0.7 < self.P.staging_fit[0] < 0.9, self.P.staging_fit)     # staging's own fit to FIT
 
     def test_no_placeholders_in_staging_mode(self) -> None:
         self.assertFalse([t for t in tables.turnouts(self.root) if tables.system_name(t).startswith(B.TURNOUT_SYS)])
@@ -126,12 +131,18 @@ class Cutover(unittest.TestCase):
         for t in self.inputs.turnouts:
             with self.subTest(turnout=t["ident"]):
                 g = gen_t[t["ident"]]
+                if t["ident"] in B.swapped_idents():        # Switch 13: Barn on leg C (owner, 2026-11-16)
+                    self.assertEqual(B.turnout_facts(self.le)[t["ident"]],
+                                     B.swap_legs(self.inputs.turnout_facts()[t["ident"]]))
+                    continue
                 for a in ("turnoutname", "type", "blockname", "blockbname", "blockcname", "blockdname"):
                     self.assertEqual(g.get(a), t.get(a), a)
                 if "XOVER" not in t["type"]:
                     self.assertEqual(g.get("continuing"), t.get("continuing"))
         self.assertEqual(len(self.inputs.turnouts), 20)
-        self.assertEqual(B.turnout_facts(self.le), {**B.turnout_facts(self.le), **self.inputs.turnout_facts()})
+        live = {i: B.swap_legs(f) if i in B.swapped_idents() else f for i, f in self.inputs.turnout_facts().items()}
+        self.assertEqual(B.turnout_facts(self.le), {**B.turnout_facts(self.le), **live})
+        self.assertEqual(B.swapped_idents(), {"TO1"})
         gen_s = {s.get("ident"): s.get("blockname") for s in self.le.findall("tracksegment")}
         gen_p = {p.get("ident"): p for p in self.le.findall("positionablepoint")}
         want = [(b["ident"], "ANCHOR", b["blocks"]) for b in self.inputs.boundaries] + \
@@ -157,7 +168,10 @@ class Cutover(unittest.TestCase):
     def test_every_mast_resolves_exactly_as_live(self) -> None:
         live = {}
         for m in self.inputs.masts:
-            live[m["mast"]] = dict(mast=m["mast"], kind=m["kind"], ident=m["ident"], slot=m["slot"],
+            slot = m["slot"]
+            if m["kind"] == "turnout" and m["ident"] in B.swapped_idents() and slot in "BC":
+                slot = "BC".replace(slot, "")              # moves with its leg (Mast 14R to Switch 13's leg C)
+            live[m["mast"]] = dict(mast=m["mast"], kind=m["kind"], ident=m["ident"], slot=slot,
                                    facing=m["facing"], protects=m["protects"],
                                    **({"turnout": m["turnout"]} if m["kind"] == "turnout" else {}))
         gen = {m["mast"]: m for m in self.slots.Index(self.le).masts()}
@@ -258,11 +272,16 @@ class Cutover(unittest.TestCase):
         size = {m: tables.mast_icon_size(s)[0] for m, s in system.items()}
         widths = {b["block"]: float(b["box"][2]) for b in self.P.bcis}     # as the plugin placed them
         self.assertEqual(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size,
-                                  B.LE_LABELS["switch_prefix"], widths), [])
+                                  B.LE_LABELS["switch_prefix"], widths, self.P.overlay["added"]), [])
         live_items = frozen_items()
         self.assertEqual(Counter(el.tag for el in live_items), Counter(
             sensoricon=80, positionablelabel=10, signalheadicon=1))
-        self.assertEqual(len(self.P.overlay["records"]), len(live_items))
+        # the two crossover halves the hand-drawn panel drew no lamp for get one (le_overlay.half_lamps)
+        self.assertEqual(sorted(it.el.get("sensor") for it in self.P.overlay["added"]),
+                         ["BS Switch 23b", "BS Switch 7b"])
+        self.assertEqual(len(self.P.overlay["records"]), len(live_items) + 2)
+        self.assertTrue(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size,
+                                 B.LE_LABELS["switch_prefix"], widths))       # not without them
         strip = Counter(ov.strip(el) for el in live_items)
         got = Counter(ov.strip(el) for el in self.le if el.tag in ov.OVERLAY_TAGS)
         self.assertEqual(strip - got, Counter())             # each live item there, attributes as live
@@ -274,7 +293,8 @@ class Cutover(unittest.TestCase):
             self.assertEqual(set(got), names)
             self.assertEqual(set(got.values()), {1})
         texts = {lb.get("text") for lb in self.le.findall("positionablelabel")}
-        self.assertLessEqual({"LCOS", "Turnouts", "Signals", "Track Power", "Neville Island"}, texts)
+        self.assertLessEqual({"LCOS", "Turnouts", "Signals", "Track Power", "HART RAILROAD"}, texts)
+        self.assertNotIn("Neville Island", texts)              # the title, renamed (le_overlay.CAPTIONS)
         dropped = self.inputs.overlay["dropped"]["block_contents"]
         self.assertEqual(len(dropped), 55)
         bcis = Counter(i.get("blockcontents") for i in self.le.findall("BlockContentsIcon"))
@@ -331,7 +351,8 @@ class Cutover(unittest.TestCase):
             for argv in (["--approve-staging", "--levels", "staging"], ["--approve-staging", "--as-live"],
                          ["--approve-staging", "--check"]):
                 self.assertEqual(B.main(argv), 1, argv)
-        P = mock.Mock(staging_data=b"staging", log=[], mast_notes=[], moved=[], overlay=None, staging_same=["x"])
+        P = mock.Mock(staging_data=b"staging", log=[], mast_notes=[], moved=[], overlay=None, staging_same=["x"],
+                      gaps=[10, 20], scale=(1.0, 1.0))
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "build", return_value=(self.data, P, {}, [])), \
                 mock.patch.object(B.tables, "loads") as loads, mock.patch.object(B, "plugin") as plug:
             le_mod = mock.Mock()
@@ -358,7 +379,7 @@ class Cutover(unittest.TestCase):
 def three_levels():
     """(candidate bytes, Panel, names, bands) of the three-level candidate (--levels all --as-live), built once."""
     with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(levels="all", as_live=True)
+        return B.build(levels="all", as_live=True, approved=None)
 
 
 class ThreeLevels(unittest.TestCase):
@@ -375,9 +396,9 @@ class ThreeLevels(unittest.TestCase):
 
     def test_staging_is_the_staging_candidate_but_for_the_helix_joins(self) -> None:
         self.assertEqual(sorted(self.P.staging_same), [
-            "end bumper EB71 -> anchor AGE2 (hidden join TG221 to Track 135-H1, Mast 40RA)",
-            "end bumper EB72 -> anchor AGE1 (hidden join TG220 to Track 135-H2, Mast 38RA)",
-            "track segment TG30 connect2name EB72 -> AGE1",
+            "end bumper EB71 -> anchor AGE2 (hidden join TG225 to Track 135-H1, Mast 40RA)",
+            "end bumper EB72 -> anchor AGE1 (hidden join TG224 to Track 135-H2, Mast 38RA)",
+            "track segment TG32 connect2name EB72 -> AGE1",
             "track segment TG6 connect2name EB71 -> AGE2"])
         self.assertEqual(self.P.scale, self.base[1].scale)
         self.assertEqual(self.P.staging_data, self.base[0])
@@ -391,11 +412,11 @@ class ThreeLevels(unittest.TestCase):
             "a staging bean changed": lambda r: next(t for t in tables.turnouts(r)
                                                      if tables.user_name(t) == "Switch 1").set("inverted", "true"),
             "a reconnected segment's block": lambda r: el(r, "tracksegment", ident="TG6").set("blockname", "Track X"),
-            "a reconnected segment's geometry": lambda r: el(r, "tracksegment", ident="TG30").set("arc", "yes"),
+            "a reconnected segment's geometry": lambda r: el(r, "tracksegment", ident="TG32").set("arc", "yes"),
             "a join anchor moved": lambda r: el(r, "positionablepoint", ident="AGE1").set("x", "1600.0"),
             "a join anchor's mast slot": lambda r: el(r, "positionablepoint", ident="AGE2").set(
                 "westboundsignalmast", "Mast 40RA"),
-            "a join shown": lambda r: el(r, "tracksegment", ident="TG220").set("hidden", "no"),
+            "a join shown": lambda r: el(r, "tracksegment", ident="TG224").set("hidden", "no"),
             "a helix mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38RA").set("x", "1"),
             "a staging BCI moved": lambda r: el(r, "BlockContentsIcon", blockcontents="Track K-1").set("y", "1"),
         }
@@ -406,18 +427,37 @@ class ThreeLevels(unittest.TestCase):
                 with self.assertRaisesRegex(B.BuildError, "staging guard"):
                     B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE)
 
-    def test_staging_is_the_approved_panel(self) -> None:
+    def test_the_staging_candidate_is_the_approved_panel(self) -> None:
+        # Fails after a staging change on purpose until the owner approves the new panel in PanelPro and
+        # build_layout_le.py --approve-staging records it (intended: the merge waits for that).
+        B.check_approved(tables.layout_editor(tables.loads(self.base[0]).root, LIVE), B.APPROVED)
+
+    def test_staging_is_checked_against_the_approved_panel(self) -> None:
+        # The committed fingerprint is the owner's (refreshed by --approve-staging after an approval in PanelPro);
+        # a staging change on purpose (STRETCH) is built with --review until then, so the tests check the mechanism
+        # against a fingerprint of the candidate as built, and that the committed one is a fingerprint.
+        self.assertEqual(B.read_approved(B.APPROVED)[-1][1], "panel")
         le = tables.layout_editor(tables.loads(self.base[0]).root, LIVE)
-        B.check_approved(le, B.APPROVED)                                   # as committed
-        moved = copy.deepcopy(le)
-        next(e for e in moved.iter("positionablelabel") if e.get("text") == "STAGING LEVEL").set("x", "61")
-        with self.assertRaisesRegex(B.BuildError, r"element \d+ is positionablelabel STAGING LEVEL, approved "
-                                                  r"positionablelabel STAGING LEVEL \(changed\)"):
-            B.check_approved(moved, B.APPROVED)
-        fewer = copy.deepcopy(le)
-        fewer.remove(fewer[-1])
-        with self.assertRaisesRegex(B.BuildError, "not the one the owner approved"):
-            B.check_approved(fewer, B.APPROVED)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "a.sha256"
+            B.write_approved(le, path, date="2026-11-16")
+            B.check_approved(le, path)
+            moved = copy.deepcopy(le)
+            next(e for e in moved.iter("positionablelabel") if e.get("text") == "STAGING LEVEL").set("x", "61")
+            with self.assertRaisesRegex(B.BuildError, r"element \d+ is positionablelabel STAGING LEVEL, approved "
+                                                      r"positionablelabel STAGING LEVEL \(changed\)"):
+                B.check_approved(moved, path)
+            fewer = copy.deepcopy(le)
+            fewer.remove(fewer[-1])
+            with self.assertRaisesRegex(B.BuildError, "not the one the owner approved"):
+                B.check_approved(fewer, path)
+            # the build itself refuses a staging panel that is not the approved one, unless asked to (--review)
+            with mock.patch.object(B, "check_approved", side_effect=B.BuildError("not approved")) as check, \
+                    contextlib.redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(B.BuildError, "not approved"):
+                    B.build(levels="staging", as_live=True, approved=path)
+                self.assertEqual(B.main(["--review", "--levels", "staging"]), 1)     # --review needs --as-live
+            self.assertEqual(check.call_args.args[1], path)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "a.sha256"
             B.write_approved(moved, path, date="2026-11-16")
@@ -430,6 +470,241 @@ class ThreeLevels(unittest.TestCase):
                 B.check_approved(le, path)
             with self.assertRaisesRegex(B.BuildError, "--approve-staging"):
                 B.check_approved(le, Path(tmp) / "none")
+
+    def test_the_panel_has_the_windows_shape(self) -> None:
+        w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
+        want = (B.FIT[0] - 18) / (B.FIT[1] - 60)
+        self.assertLessEqual(abs(w / h / want - 1), B.ASPECT_TOLERANCE)
+        self.assertEqual((self.le.get("windowwidth"), self.le.get("windowheight")), tuple(map(str, B.FIT)))
+        with self.assertRaisesRegex(B.BuildError, r"set STRETCH to about 1\.\d+"):
+            B.check_aspect((1984, 1505), (18, 60))
+
+    def test_no_compass_rose_and_the_plain_backdrop(self) -> None:
+        urls = [el.find("icon").get("url") for el in self.le.iter("positionablelabel") if el.find("icon") is not None]
+        self.assertEqual([u for u in urls if "hart_panel" in u], ["preference:resources/misc/hart_panel_bg_plain.jpg"])
+        self.assertTrue((T.ROOT / "jmri/resources/misc/hart_panel_bg_plain.jpg").exists())
+        ov = B.overlay_mod()
+        # frozen once, at --freeze (plain_backdrop): a frozen file still holding the picture with the rose stops
+        bad = copy.deepcopy(B.le_inputs.load().overlay)
+        item = next(it for it in bad["items"] if "hart_panel_bg_plain" in it["xml"])
+        item["xml"] = item["xml"].replace("hart_panel_bg_plain.jpg", "hart_panel_bg.jpg")
+        with self.assertRaisesRegex(ov.OverlayError, "compass rose in it"):
+            ov.validate(bad)
+        items = ov.frozen_items(B.le_inputs.load().overlay)
+        with self.assertRaisesRegex(ov.OverlayError, "backdrop pictures, not one"):
+            ov.plain_backdrop([it for it in items if not it.backdrop])
+        with self.assertRaisesRegex(ov.OverlayError, "not the misc/hart_panel_bg.jpg"):
+            ov.plain_backdrop(items)                        # its backdrop is the plain picture already
+
+    def test_the_status_cluster_stands_between_staging_and_main(self) -> None:
+        def box(el):
+            return int(el.get("x")), int(el.get("y"))
+        rows = {}
+        for el in self.le:
+            name = el.get("text") if el.tag == "positionablelabel" else (el.get("sensor") or el.get("signalhead"))
+            if el.get("level") == "10" and name in (B.overlay_mod().STATUS_LABELS | B.overlay_mod().STATUS_SENSORS
+                                                     | B.overlay_mod().STATUS_HEADS):
+                rows.setdefault(el.tag == "positionablelabel", []).append(el)
+        captions, lamps = rows[True], rows[False]
+        self.assertEqual((len(captions), len(lamps)), (4, 4))
+        jt = B.importlib.import_module("schematic.jmri_text")
+        rights = {box(c)[0] + jt.width(c.get("text"), 12) for c in captions}
+        self.assertEqual(len(rights), 1)                    # right-justified ...
+        self.assertTrue(all(c.get("justification") == "right" for c in captions))
+        self.assertEqual({box(l)[0] for l in lamps}, {rights.pop() + B.overlay_mod().STATUS_GAP})   # lamps right
+        right = max(box(l)[0] + 21 for l in lamps)          # the lamps' right edge: by the panel's right edge
+        width = int(tables.layout_editor(tables.loads(self.base[0]).root, LIVE).get("panelwidth"))
+        self.assertLessEqual(right, width - B.overlay_mod().EDGE)
+        self.assertGreater(right, width - B.overlay_mod().EDGE - 80)
+        staging_low = self.P.band_boxes[0][3]
+        main_title = next(lb for lb in self.P.labels if lb["text"] == "MAIN LEVEL")
+        for el in captions + lamps:
+            self.assertGreater(box(el)[1], staging_low - 40)                          # in the gap ...
+            self.assertLess(box(el)[1] + 20, main_title["box"][1])                    # ... above the main level
+        items = B.overlay_mod().frozen_items(B.le_inputs.load().overlay)
+        lone = [it for it in items if not (it.group == "status" and it.el.tag == "positionablelabel" and
+                                           it.text == "LCOS")]
+        with self.assertRaisesRegex(B.overlay_mod().OverlayError, "a lamp with no caption"):
+            B.overlay_mod().arrange_status(lone)
+
+    def test_the_gaps_between_levels_are_as_small_as_is_clean(self) -> None:
+        self.assertEqual(len(self.P.gaps), 2)
+        boxes = self.P.band_boxes
+        for i, gap in enumerate(self.P.gaps):
+            self.assertAlmostEqual(boxes[i + 1][1] - boxes[i][3], gap)
+        titles = [lb for lb in self.P.labels if lb.get("kind") == "title"][1:]
+        extent = B.plugin()[1].extent
+        lows = [max(extent(self.P, 0)[3], self.base[1].overlay["bottom"]), extent(self.P, 1)[3]]
+        for title, low in zip(titles, lows):
+            self.assertAlmostEqual(title["box"][1] - low, B.TITLE_CLEAR, delta=1.0)
+
+    def test_owner_layout_rules_of_2026_11_16(self) -> None:
+        import math
+        # every crossover at its level's angle, or as near as its track allows (the plugin logs those)
+        limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
+                   and "crossover" in line}
+        for t in self.le.findall("layoutturnout"):
+            if "XOVER" not in t.get("type"):
+                continue
+            p = {L: (float(t.get("x" + L.lower())), float(t.get("y" + L.lower()))) for L in "ABCD"}
+            if t.get("type") == "DOUBLE_XOVER":     # JMRI draws from 5/8 of the way from A to A-B's middle
+                am = [p["A"][k] + 5 / 8 * ((p["A"][k] + p["B"][k]) / 2 - p["A"][k]) for k in (0, 1)]
+                dx, dy = float(t.get("xcen")) - am[0], float(t.get("ycen")) - am[1]
+            else:
+                dx = (p["D"][0] + p["C"][0] - p["A"][0] - p["B"][0]) / 2
+                dy = (p["D"][1] + p["C"][1] - p["A"][1] - p["B"][1]) / 2
+            angle = math.degrees(math.atan2(abs(dy), abs(dx)))
+            number = re.sub(r"\D", "", t.get("turnoutname") or "")
+            with self.subTest(crossover=t.get("turnoutname")):
+                if number in limited:
+                    self.assertGreater(angle, min(B.CROSSOVER_ANGLES.values()) - 0.5)
+                else:
+                    # whole pixels (JMRI rebuilds the points exactly): within half a degree of its level's angle
+                    self.assertTrue(any(abs(angle - a) <= 0.5 for a in B.CROSSOVER_ANGLES.values()), angle)
+        # South Yard's names on one centre x
+        jt = B.importlib.import_module("schematic.jmri_text")
+        centres = {round(int(el.get("x")) + jt.width(el.get("text"), int(el.get("size")), False) / 2)
+                   for el in self.le.iter("positionablelabel") if el.get("text") in B.NAME_COLUMNS[0]}
+        self.assertLessEqual(max(centres) - min(centres), 1, centres)
+        # the engine house's buttons step alike
+        xs = [int(next(el for el in self.le.iter("sensoricon") if el.get("sensor") == f"MoveToTrack_EH-{n}_stored")
+                  .get("x")) for n in (1, 2, 3)]
+        self.assertEqual(xs[2] - xs[1], xs[1] - xs[0])
+        # West Yard's W-2 follows W-1 one row down at the engine house's step (STATION_FOLLOW)
+        button = lambda n: next(el for el in self.le.iter("sensoricon")      # noqa: E731
+                                if el.get("sensor") == f"MoveToTrack_{n}_stored")
+        w1, w2 = button("W-1"), button("W-2")
+        rows = (int(w2.get("y")) - int(w1.get("y"))) / (int(button("EH-2").get("y")) - int(button("EH-1").get("y")))
+        self.assertAlmostEqual(int(w2.get("x")) - int(w1.get("x")), rows * (xs[1] - xs[0]), delta=1)
+        self.assertLess(int(w2.get("x")), int(w1.get("x")))
+        boxes = mock.Mock(extras=[{"id": "A", "box": (100, 0, 10, 10)}, {"id": "B", "box": (90, 48, 10, 10)},
+                                  {"id": "W", "box": (50, 0, 10, 10)}, {"id": "V", "box": (70, 48, 10, 10)}])
+        self.assertEqual(B.cluster_steps(boxes, [["A", "B"]], [("W", "V")]), {"V": 40})
+        with self.assertRaisesRegex(B.BuildError, "no group gives the slope"):
+            B.cluster_steps(boxes, [], [("W", "V")])
+        # the title caption renamed at freeze, centred where the old one stood, and a frozen old one stops
+        ov = B.overlay_mod()
+        el = ET.fromstring('<positionablelabel x="877" y="48" text="Neville Island" size="28" style="1"/>')
+        self.assertTrue(ov.recaption(el))
+        old_w, new_w = (ov.text_box(t, 28, True, "t")[0] for t in ("Neville Island", "HART RAILROAD"))
+        self.assertEqual(el.get("text"), "HART RAILROAD")
+        self.assertAlmostEqual(int(el.get("x")) + new_w / 2, 877 + old_w / 2, delta=0.5)
+        bad = copy.deepcopy(B.le_inputs.load().overlay)
+        item = next(it for it in bad["items"] if 'text="HART RAILROAD"' in it["xml"])
+        item["xml"] = item["xml"].replace('text="HART RAILROAD"', 'text="Neville Island"')
+        with self.assertRaisesRegex(ov.OverlayError, "re-freeze"):
+            ov.validate(bad)
+        # each OS lamp of a plain switch centred in its control circle
+        seg_block = {b.findtext("occupancysensor").strip(): b.findtext("userName") for b in self.root.iter("block")
+                     if b.find("occupancysensor") is not None}
+        own = {t.get("blockname"): t for t in self.le.findall("layoutturnout") if "XOVER" not in t.get("type")}
+        lamps = [el for el in self.le.iter("sensoricon") if el.get("level") == "10"
+                 and seg_block.get(el.get("sensor")) in own]
+        self.assertGreaterEqual(len(lamps), 15)
+        for el in lamps:
+            t = own[seg_block[el.get("sensor")]]
+            self.assertLessEqual(math.dist((int(el.get("x")) + 5, int(el.get("y")) + 5),
+                                           (float(t.get("xcen")), float(t.get("ycen")))), 1.0, el.get("sensor"))
+        with self.assertRaisesRegex(B.BuildError, "placed no cluster"):
+            B.cluster_steps(mock.Mock(extras=[]), B.STATION_STEPS)
+
+    def test_owner_layout_rules_of_2026_11_16_second_round(self) -> None:
+        import math
+        xo = {t.get("turnoutname"): t for t in self.le.findall("layoutturnout") if "XOVER" in t.get("type")}
+        pt = lambda t, L: (float(t.get("x" + L)), float(t.get("y" + L)))      # noqa: E731
+        # 101 and 103 (one three-way switch): each two plain turnouts on its one name, their throats on the shared
+        # track two legs and Track 101-103's least length apart, each diagonal at 45 degrees
+        plain = defaultdict(list)
+        for t in self.le.findall("layoutturnout"):
+            if t.get("turnoutname") in ("Switch 101", "Switch 103"):
+                plain[t.get("turnoutname")].append(t)
+        self.assertEqual({k: sorted(t.get("type") for t in v) for k, v in plain.items()},
+                         {"Switch 101": ["RH_TURNOUT", "RH_TURNOUT"], "Switch 103": ["LH_TURNOUT", "LH_TURNOUT"]})
+        middle = {k: next(t for t in v if t.get("ycen") == "800.0") for k, v in plain.items()}
+        throats = abs(float(middle["Switch 103"].get("xcen")) - float(middle["Switch 101"].get("xcen")))
+        self.assertLessEqual(throats, 37)
+        for k, v in plain.items():
+            (x0, y0), (x1, y1) = sorted((float(t.get("xcen")), float(t.get("ycen"))) for t in v)
+            self.assertAlmostEqual(abs(y1 - y0), abs(x1 - x0), delta=0.5, msg=k)
+        self.assertNotIn("101-103", {el.get("text") for el in self.le.iter("positionablelabel")})
+        limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
+                   and "crossover" in line}
+        self.assertFalse(limited & {"225", "241"})
+        # SW-101 once, below its lower turnout
+        labels = [el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101"]
+        self.assertEqual(len(labels), 1)
+        self.assertGreaterEqual(int(labels[0].get("y")), max(float(t.get("ycen")) for t in plain["Switch 101"]))
+        # every half of a single crossover shows its own OS lamp, in the middle of its half's two leg ends (the
+        # throat, where the diagonal leaves its track), as 35's two were; the hand-drawn panel had none for 7b, 23b
+        seg_block = {b.findtext("occupancysensor").strip(): b.findtext("userName") for b in self.root.iter("block")
+                     if b.find("occupancysensor") is not None}
+        lamp_of = {seg_block.get(el.get("sensor")): el for el in self.le.iter("sensoricon") if el.get("level") == "10"}
+        for name in ("Switch 7", "Switch 23", "Switch 35"):
+            t = xo[name]
+            for legs, attr in (("ab", "blockname"), ("cd", "blockcname")):
+                el = lamp_of.get(t.get(attr))
+                self.assertIsNotNone(el, (name, t.get(attr)))
+                half = [pt(t, L) for L in legs]
+                mid = ((half[0][0] + half[1][0]) / 2, half[0][1])
+                self.assertLessEqual(math.dist((int(el.get("x")) + 5, int(el.get("y")) + 5), mid), 1.0, t.get(attr))
+        ov = B.overlay_mod()
+        ov.check_half_lamps(self.le, {v: k for k, v in seg_block.items()})
+        bare = copy.deepcopy(self.le)
+        bare.remove(next(el for el in bare.iter("sensoricon") if el.get("sensor") == "BS Switch 7b"))
+        with self.assertRaisesRegex(ov.OverlayError, r"Switch 7: lamps for \['OS Switch 7'\] but none"):
+            ov.check_half_lamps(bare, {v: k for k, v in seg_block.items()})
+        # staging from Plane to East End drawn WEST_SHIFT columns west: West Ext and East Lead longer
+        bands = B.west_shifted(B.schematic()[0])
+        before = B.schematic()[0][0][1]["x"]
+        after = bands[0][1]["x"]
+        moved = {n for n in before if after[n] != before[n]}
+        self.assertTrue(moved)
+        self.assertEqual({before[n] - after[n] for n in moved}, {B.WEST_SHIFT["columns"]})
+        self.assertFalse([n for n in moved if n.startswith("turn")])
+        with mock.patch.dict(B.WEST_SHIFT, {"from": "33", "to": "5"}), \
+                self.assertRaisesRegex(B.BuildError, "not drawn west to east"):
+            B.west_shifted(B.schematic()[0])
+        # LONGER_STRAIGHTS: only the one track's climb changes, by its columns
+        raw = B.schematic()[0]
+        got = B.straights_lengthened(raw)
+        changed = [(i, sid) for i, ((_t, b0, _o), (_u, b1, _p)) in enumerate(zip(raw, got))
+                   for sid in b0["need"] if b0["need"][sid] != b1["need"][sid]]
+        self.assertEqual(len(changed), 1)
+        i, sid = changed[0]
+        self.assertAlmostEqual(raw[i][1]["need"][sid][0] - got[i][1]["need"][sid][0],
+                               B.LONGER_STRAIGHTS[0]["columns"])
+        for bad, why in (({"to": "999"}, "0 tracks join"), ({"columns": 5}, "climbs")):
+            one = [dict(B.LONGER_STRAIGHTS[0], **bad)]
+            with self.subTest(bad=bad), mock.patch.object(B, "LONGER_STRAIGHTS", one), \
+                    self.assertRaisesRegex(B.BuildError, why):
+                B.straights_lengthened(raw)
+
+    def test_station_buttons_show_no_track_word(self) -> None:
+        buttons = [el for el in self.le.iter("sensoricon") if (el.get("sensor") or "").startswith("MoveTo")]
+        self.assertEqual(len(buttons), 12)
+        for el in buttons:
+            for e in [el] + [c for c in el if c.tag.endswith("Text")]:
+                self.assertFalse((e.get("text") or "").startswith("Track "), el.get("sensor"))
+        self.assertIn("EH-1", {el.get("text") for el in buttons})
+        self.assertIn("MoveToTrack_EH-1_stored", {el.get("sensor") for el in buttons})      # the names keep it
+        stations = T._load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
+        self.assertEqual(stations.station_display("Track EH-1", generated=True), "EH-1")
+        self.assertEqual(stations.station_display("Track EH-1"), "Track EH-1")            # the hand-drawn panel
+        self.assertEqual(stations.station_display("Track East Lead", generated=True), "East End")
+        ov = B.overlay_mod()
+        bad = copy.deepcopy(B.le_inputs.load().overlay)
+        item = next(it for it in bad["items"] if "MoveToTrack_EH-1" in it["xml"])
+        item["xml"] = item["xml"].replace('text="EH-1"', 'text="Track EH-1"')
+        with self.assertRaisesRegex(ov.OverlayError, 'station button shows "Track " before its track'):
+            ov.validate(bad)
+        ok = copy.deepcopy(B.le_inputs.load().overlay)                # "Track Power" is no station button
+        self.assertTrue(any('text="Track Power"' in it["xml"] for it in ok["items"]))
+        ov.validate(ok)
+        live = tables.layout_editor(tables.read(paths.TABLES_XML), LIVE)  # freeze reads a copy: the panel unchanged
+        before = ET.tostring(live)
+        shown = [it.el.get("text") for it in ov.shown_items(live) if ov.is_station_button(it.el)]
+        self.assertIn("EH-1", shown)
+        self.assertEqual(ET.tostring(live), before)
 
     def test_main_and_upper_objects_are_internal_with_device_map_names(self) -> None:
         added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
@@ -491,7 +766,7 @@ class ThreeLevels(unittest.TestCase):
         self.assertGreater(h, B.FIT[1])
         self.assertLessEqual(int(self.le.get("windowwidth")), B.FIT[0])
         self.assertLessEqual(int(self.le.get("windowheight")), B.FIT[1])
-        self.assertEqual(self.le.get("scrollable"), B.le_inputs.load().attrs["scrollable"])    # as frozen
+        self.assertEqual(self.le.get("scrollable"), "both")        # larger than its window: it scrolls both ways
         self.assertGreaterEqual(w, self.P.size[0])
 
     def test_audit_polish_reconcile_and_facts_on_the_candidate(self) -> None:
@@ -522,7 +797,7 @@ class Rebuilt(unittest.TestCase):
             path = Path(tmp) / "tables.xml"
             path.write_bytes(data)
             with contextlib.redirect_stdout(io.StringIO()):
-                return B.build(path, levels="staging", as_live=True)[0]
+                return B.build(path, levels="staging", as_live=True, approved=None)[0]
 
     def test_without_the_hand_drawn_panel(self) -> None:
         data = cutover()[0]
@@ -615,7 +890,7 @@ class BuilderErrors(unittest.TestCase):
     def test_freeze_replaces_the_folder_only_after_the_rebuild_matches(self) -> None:
         overlay = I.load().overlay
 
-        def fake_build(_path, levels, as_live, inputs, freeze_from=None):      # the two builds, without drawing
+        def fake_build(_path, levels, as_live, inputs, freeze_from=None, approved=None):      # the two builds, without drawing
             if freeze_from is not None:
                 inputs.overlay = overlay
                 return (b"from the panel",)
@@ -701,15 +976,24 @@ class BuilderErrors(unittest.TestCase):
                                      if k in I.TURNOUT_COLUMNS}],
                           chains=I.live_chains(le), boundaries=[], ends={}, segments={}, sensors=[], masts=[])
         self.assertEqual(frozen.turnout_facts(), B.turnout_facts(le))     # the frozen facts read as the panel's
-        B.check_live_turnouts(two_block_panel(), frozen)
+        B.check_live_turnouts(two_block_panel(), frozen, swapped=set())
         with self.assertRaisesRegex(B.BuildError, "type: live RH_TURNOUT, new LH_TURNOUT"):
-            B.check_live_turnouts(two_block_panel(turnout_type="LH_TURNOUT"), frozen)
+            B.check_live_turnouts(two_block_panel(turnout_type="LH_TURNOUT"), frozen, swapped=set())
         gen = two_block_panel()
         t = gen.find("layoutturnout")
         t.set("connectbname", "T4")
         t.set("connectcname", "T3")
         with self.assertRaisesRegex(B.BuildError, "legs"):
-            B.check_live_turnouts(gen, frozen)
+            B.check_live_turnouts(gen, frozen, swapped=set())
+        # a LEGS_SWAPPED turnout must have them swapped, its hand and continuing route with them
+        swapped = two_block_panel(turnout_type="LH_TURNOUT")
+        t = swapped.find("layoutturnout")
+        t.set("connectbname", "T4")
+        t.set("connectcname", "T3")
+        t.set("continuing", "4")
+        B.check_live_turnouts(swapped, frozen, swapped={"TO1"})
+        with self.assertRaisesRegex(B.BuildError, "type: live LH_TURNOUT, new RH_TURNOUT"):
+            B.check_live_turnouts(two_block_panel(), frozen, swapped={"TO1"})
 
 
 class FrozenFiles(unittest.TestCase):
@@ -789,7 +1073,7 @@ class OverlayErrors(unittest.TestCase):
 
     LAMP = ('<sensoricon sensor="BS W" x="{x}" y="{y}" level="10"><active url="program:resources/icons/'
             'smallschematics/tracksegments/circuit-empty.gif"/></sensoricon>')
-    MARKER = ('<sensoricon sensor="MoveToTrack_{b}_stored" x="{x}" y="{y}" level="12" text="Track {b}" size="10" '
+    MARKER = ('<sensoricon sensor="MoveToTrack_{b}_stored" x="{x}" y="{y}" level="12" text="{b}" size="10" '
               'style="1"><active url="program:resources/icons/markers/loco-red.gif"/></sensoricon>')
 
     def panel(self, *extra: str) -> ET.Element:
@@ -812,7 +1096,7 @@ class OverlayErrors(unittest.TestCase):
         label = ov.Item(ET.fromstring('<positionablelabel text="Industries" x="1" y="2" size="16" style="1"/>'), 0)
         self.assertEqual(label.size, (jt.width("Industries", 16, True), jt.height(16, True)))
         marker = ov.Item(ET.fromstring(self.MARKER.format(b="EH-2", x=0, y=0)), 0)
-        self.assertEqual(marker.size, (max(60, jt.width("Track EH-2", 10, True)), max(20, jt.height(10, True))))
+        self.assertEqual(marker.size, (max(60, jt.width("EH-2", 10, True)), max(20, jt.height(10, True))))  # fits
         bci = ET.fromstring('<BlockContentsIcon blockcontents="W" x="3" y="4" size="13" style="0"/>')
         (kind, name, r), = ov.generated([bci])
         self.assertEqual((kind, name, r.w), ("block contents", "W", jt.width(ov.bci_text(), 13)))

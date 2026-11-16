@@ -444,6 +444,18 @@ def load_boundary_csv(path: Path) -> list[dict]:
         return list(csv.DictReader(fh))
 
 
+def csv_bindings(rows: list[dict], generated: bool) -> set:
+    """{((kind, ident, slot), mast)} the boundaries CSV asks for; on a `generated` panel each row in its
+    generated_slot where it has one (a switch drawn with legs B and C swapped)."""
+    out = set()
+    for row in rows:
+        slot = tables.boundary_slot(row, generated)
+        key = (row["kind"].strip(), row["ident"].strip(),
+               slot.upper() if row["kind"].strip() == "turnout" else slot.lower())
+        out.add((key, row["mast_user_name"].strip()))
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--xml", type=Path, default=DEFAULT_XML)
@@ -511,13 +523,7 @@ def main() -> None:
                           f"cannot use this mast")
 
     # CSV cross-check
-    csv_rows = load_boundary_csv(args.csv)
-    csv_set = set()
-    for row in csv_rows:
-        slot = row["slot"].strip()
-        key = (row["kind"].strip(), row["ident"].strip(),
-               slot.upper() if row["kind"].strip() == "turnout" else slot.lower())
-        csv_set.add((key, row["mast_user_name"].strip()))
+    csv_set = csv_bindings(load_boundary_csv(args.csv), tables.path_has_generated_panel(args.xml))
     xml_set = set()
     for s in sites:
         key = (s.kind, s.ident, s.port.upper() if s.kind == "turnout" else s.port)
