@@ -171,6 +171,13 @@ class Sandbox:
         raise AssertionError("fake java never started")
 
 
+def _default_signals() -> None:
+    """A wrapper started from a background job (check.sh runs the suites in parallel) inherits SIGINT and SIGQUIT
+    ignored, and bash cannot trap a signal ignored on entry. The owner's terminal delivers them, so set them back."""
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+
+
 class WrapperCase(unittest.TestCase):
     def setUp(self) -> None:
         self._td = tempfile.TemporaryDirectory()
@@ -288,7 +295,8 @@ class Cleanup(WrapperCase):
                 (self.box.state / "java.pid").unlink(missing_ok=True)
                 env = self.box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="60")
                 proc = subprocess.Popen(self.box.cmd("run_sml_discover.sh"), env=env, cwd=self.box.tmp,
-                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                        preexec_fn=_default_signals)
                 try:
                     java = self.box.java_pid()
                     self.assertIn(b'enabled="no"', self.box.profile.read_bytes())   # patched while running
