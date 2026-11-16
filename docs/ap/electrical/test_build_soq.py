@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for the MRE Electrical SOQ build (no Chrome, Keynote or PyMuPDF needed).
+"""Tests for the MRE Electrical SOQ build (no Chrome or Keynote needed; the member-copy fill test needs PyMuPDF).
 
     python3 -m unittest docs/ap/electrical/test_build_soq.py
 """
@@ -89,6 +89,13 @@ class PlanClips(unittest.TestCase):
             self.assertIn("<title", svg, name)
 
 
+try:
+    import fitz  # noqa: F401
+    HAVE_FITZ = True
+except ImportError:
+    HAVE_FITZ = False
+
+
 class MemberCopy(unittest.TestCase):
     """--member: the private filled copy (dummy data, temporary folders outside the repo)."""
 
@@ -97,6 +104,7 @@ class MemberCopy(unittest.TestCase):
         f.write_text(body)
         return f
 
+    @unittest.skipUnless(HAVE_FITZ, "needs PyMuPDF (root .venv)")
     def test_fills_the_member_fields_outside_the_repo(self):
         import tempfile
         import fitz
@@ -104,7 +112,8 @@ class MemberCopy(unittest.TestCase):
             out = Path(td) / "filled.pdf"
             f = self.write(Path(td), f'name = "Test Member"\nstreet = "1 Test St"\nfirst_award = true\noutput = "{out}"\n')
             build_soq.fill_member(f)
-            fields = {w.field_name: w.field_value for p in list(fitz.open(out))[:2] for w in p.widgets()}
+            with fitz.open(out) as d:
+                fields = {w.field_name: w.field_value for p in list(d)[:2] for w in p.widgets()}
         self.assertEqual(fields["s Name"], "Test Member")
         self.assertEqual(fields["NAME"], "Test Member")
         self.assertEqual(fields["Street"], "1 Test St")

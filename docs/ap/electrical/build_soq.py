@@ -431,8 +431,21 @@ FIRST_AWARD = "Check here if this is the members first award"
 
 
 def inside_repo(path: Path) -> bool:
-    """True if path is in any git checkout (a folder above it holds .git)."""
-    return any((d / ".git").exists() for d in [path, *path.parents])
+    """True if path is in any git work tree: a folder above it holds .git, or git says so."""
+    if any((d / ".git").exists() for d in [path, *path.parents]):
+        return True
+    folder = next((d for d in [path, *path.parents] if d.is_dir()), Path("/"))
+    r = subprocess.run(["git", "-C", str(folder), "rev-parse", "--is-inside-work-tree"], capture_output=True, text=True)
+    return r.returncode == 0 and r.stdout.strip() == "true"
+
+
+def stale_sources(pdf: Path) -> list[str]:
+    """Inputs of the SOQ newer than the built PDF (the member copy must start from a current build)."""
+    if not pdf.exists():
+        return ["(no built PDF)"]
+    built = pdf.stat().st_mtime
+    inputs = [HERE / "soq.html", HERE / "soq.css", HERE / "make_drawings.py", *HERE.glob("photos/*")]
+    return [str(f.relative_to(HERE)) for f in inputs if f.stat().st_mtime > built + 1]
 
 
 def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
@@ -442,11 +455,15 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
     never enter the repo: the member file and the output must both be outside any git checkout.
     """
     import tomllib
-    import fitz
     member_file = member_file.expanduser().resolve()
     if inside_repo(member_file):
         die(f"{member_file} is inside a git checkout; keep the member file outside the repo")
-    data = tomllib.loads(member_file.read_text())
+    with member_file.open("rb") as fh:
+        data = tomllib.load(fh)
+
+    def near(value: str) -> Path:                      # relative paths are next to the member file
+        path = Path(value).expanduser()
+        return (path if path.is_absolute() else member_file.parent / path).resolve()
     unknown = set(data) - set(MEMBER_FIELDS) - MEMBER_OTHER
     if unknown:
         die(f"{member_file.name}: unknown keys {sorted(unknown)}; allowed: {sorted([*MEMBER_FIELDS, *MEMBER_OTHER])}")
@@ -455,12 +472,16 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
             die(f"{member_file.name}: {k} must be text in quotes")
     if not isinstance(data.get("first_award", False), bool):
         die(f"{member_file.name}: first_award must be true or false")
-    out = Path(data.get("output") or member_file.with_name("MRE-Electrical-SOQ-filled.pdf")).expanduser().resolve()
+    out = near(data.get("output") or "MRE-Electrical-SOQ-filled.pdf")
     if inside_repo(out):
         die(f"output {out} is inside a git checkout; write the filled form outside the repo")
-    sig = data.get("signature_image", "")
-    if sig and not Path(sig).expanduser().is_file():
+    sig = near(data["signature_image"]) if data.get("signature_image") else None
+    if sig and not sig.is_file():
         die(f"signature_image {sig} not found")
+    stale = stale_sources(src)
+    if stale:
+        die(f"{src.name} is older than {', '.join(stale[:5])}; run the full build first so the copy is current")
+    import fitz
     d = fitz.open(src)
     values = {field: data.get(k, "") for k, fields in MEMBER_FIELDS.items() for field in fields}
     seen, sig_at = set(), None
@@ -476,16 +497,17 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
                 seen.add(w.field_name)
             elif w.field_name == "SIGNATURE":
                 sig_at = (page, w.rect)
-    wanted = {f for f, v in values.items() if v}
+    wanted = {f for f, v in values.items() if v} | ({FIRST_AWARD} if data.get("first_award") else set())
     if wanted - seen:
         die(f"form fields not found in {src.name}: {sorted(wanted - seen)}")
     if sig:
         if not sig_at:
             die("the Member Statement SIGNATURE field was not found")
         page, rect = sig_at
-        page.insert_image(rect, filename=str(Path(sig).expanduser()), keep_proportion=True)
+        page.insert_image(rect, filename=str(sig), keep_proportion=True)
     out.parent.mkdir(parents=True, exist_ok=True)
     d.save(out, garbage=3, deflate=True)
+    d.close()
     blank = sorted(k for k in MEMBER_FIELDS if not data.get(k))
     print(f"wrote {out}" + (f"; left blank: {', '.join(blank)}" if blank else ""))
     return out
