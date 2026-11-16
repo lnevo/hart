@@ -38,7 +38,7 @@ STATUS = {"sensoricon": {"Bridge HBLOOP", "SML Mode", "Track Power"}, "signalhea
 def cutover():
     """(candidate bytes, Panel, names, bands), built once for every test that needs it."""
     with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(levels="staging", as_live=True)
+        return B.build(levels="staging", as_live=True, approved=None)     # the fingerprint: its own test
 
 
 def without_panel(root: ET.Element) -> bytes:
@@ -102,9 +102,10 @@ class Cutover(unittest.TestCase):
         self.assertEqual(got, want)
         self.assertEqual((self.le.get("editable"), self.le.get("scrollable")), ("no", "none"))
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        self.assertEqual((int(self.le.get("windowwidth")), int(self.le.get("windowheight"))), (w + 18, h + 60))
-        self.assertLessEqual(w + 18, B.FIT[0])
-        self.assertLessEqual(h + 60, B.FIT[1])
+        # the window is the panel and its frame, at most FIT; the stretched panel (STRETCH) is wider and scrolls
+        self.assertEqual((int(self.le.get("windowwidth")), int(self.le.get("windowheight"))),
+                         (min(w + 18, B.FIT[0]), min(h + 60, B.FIT[1])))
+        self.assertEqual(self.P.scale, (B.STAGING_SCALE[0] * B.STRETCH, B.STAGING_SCALE[1]))
 
     def test_no_placeholders_in_staging_mode(self) -> None:
         self.assertFalse([t for t in tables.turnouts(self.root) if tables.system_name(t).startswith(B.TURNOUT_SYS)])
@@ -257,11 +258,13 @@ class Cutover(unittest.TestCase):
         system = tables.mast_system_names(self.root)
         size = {m: tables.mast_icon_size(s)[0] for m, s in system.items()}
         widths = {b["block"]: float(b["box"][2]) for b in self.P.bcis}     # as the plugin placed them
-        self.assertEqual(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size,
+        self.assertEqual(ov.check(self.le, ov.with_compass(self.inputs.overlay), le_mod, self.slots, size,
                                   B.LE_LABELS["switch_prefix"], widths), [])
-        live_items = frozen_items()
-        self.assertEqual(Counter(el.tag for el in live_items), Counter(
+        self.assertEqual(Counter(el.tag for el in frozen_items()), Counter(
             sensoricon=80, positionablelabel=10, signalheadicon=1))
+        # carried: the frozen items, the backdrop without the compass rose, and the rose as an item of its own
+        live_items = [ET.fromstring(it["xml"]) for it in ov.with_compass(self.inputs.overlay)["items"]]
+        self.assertEqual(len(live_items), 92)
         self.assertEqual(len(self.P.overlay["records"]), len(live_items))
         strip = Counter(ov.strip(el) for el in live_items)
         got = Counter(ov.strip(el) for el in self.le if el.tag in ov.OVERLAY_TAGS)
@@ -358,7 +361,7 @@ class Cutover(unittest.TestCase):
 def three_levels():
     """(candidate bytes, Panel, names, bands) of the three-level candidate (--levels all --as-live), built once."""
     with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(levels="all", as_live=True)
+        return B.build(levels="all", as_live=True, approved=None)
 
 
 class ThreeLevels(unittest.TestCase):
@@ -375,9 +378,9 @@ class ThreeLevels(unittest.TestCase):
 
     def test_staging_is_the_staging_candidate_but_for_the_helix_joins(self) -> None:
         self.assertEqual(sorted(self.P.staging_same), [
-            "end bumper EB71 -> anchor AGE2 (hidden join TG221 to Track 135-H1, Mast 40RA)",
-            "end bumper EB72 -> anchor AGE1 (hidden join TG220 to Track 135-H2, Mast 38RA)",
-            "track segment TG30 connect2name EB72 -> AGE1",
+            "end bumper EB71 -> anchor AGE2 (hidden join TG223 to Track 135-H1, Mast 40RA)",
+            "end bumper EB72 -> anchor AGE1 (hidden join TG222 to Track 135-H2, Mast 38RA)",
+            "track segment TG32 connect2name EB72 -> AGE1",
             "track segment TG6 connect2name EB71 -> AGE2"])
         self.assertEqual(self.P.scale, self.base[1].scale)
         self.assertEqual(self.P.staging_data, self.base[0])
@@ -391,11 +394,11 @@ class ThreeLevels(unittest.TestCase):
             "a staging bean changed": lambda r: next(t for t in tables.turnouts(r)
                                                      if tables.user_name(t) == "Switch 1").set("inverted", "true"),
             "a reconnected segment's block": lambda r: el(r, "tracksegment", ident="TG6").set("blockname", "Track X"),
-            "a reconnected segment's geometry": lambda r: el(r, "tracksegment", ident="TG30").set("arc", "yes"),
+            "a reconnected segment's geometry": lambda r: el(r, "tracksegment", ident="TG32").set("arc", "yes"),
             "a join anchor moved": lambda r: el(r, "positionablepoint", ident="AGE1").set("x", "1600.0"),
             "a join anchor's mast slot": lambda r: el(r, "positionablepoint", ident="AGE2").set(
                 "westboundsignalmast", "Mast 40RA"),
-            "a join shown": lambda r: el(r, "tracksegment", ident="TG220").set("hidden", "no"),
+            "a join shown": lambda r: el(r, "tracksegment", ident="TG222").set("hidden", "no"),
             "a helix mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38RA").set("x", "1"),
             "a staging BCI moved": lambda r: el(r, "BlockContentsIcon", blockcontents="Track K-1").set("y", "1"),
         }
@@ -406,18 +409,32 @@ class ThreeLevels(unittest.TestCase):
                 with self.assertRaisesRegex(B.BuildError, "staging guard"):
                     B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE)
 
-    def test_staging_is_the_approved_panel(self) -> None:
+    def test_staging_is_checked_against_the_approved_panel(self) -> None:
+        # The committed fingerprint is the owner's (refreshed by --approve-staging after an approval in PanelPro);
+        # a staging change on purpose (STRETCH) is built with --review until then, so the tests check the mechanism
+        # against a fingerprint of the candidate as built, and that the committed one is a fingerprint.
+        self.assertEqual(B.read_approved(B.APPROVED)[-1][1], "panel")
         le = tables.layout_editor(tables.loads(self.base[0]).root, LIVE)
-        B.check_approved(le, B.APPROVED)                                   # as committed
-        moved = copy.deepcopy(le)
-        next(e for e in moved.iter("positionablelabel") if e.get("text") == "STAGING LEVEL").set("x", "61")
-        with self.assertRaisesRegex(B.BuildError, r"element \d+ is positionablelabel STAGING LEVEL, approved "
-                                                  r"positionablelabel STAGING LEVEL \(changed\)"):
-            B.check_approved(moved, B.APPROVED)
-        fewer = copy.deepcopy(le)
-        fewer.remove(fewer[-1])
-        with self.assertRaisesRegex(B.BuildError, "not the one the owner approved"):
-            B.check_approved(fewer, B.APPROVED)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "a.sha256"
+            B.write_approved(le, path, date="2026-11-16")
+            B.check_approved(le, path)
+            moved = copy.deepcopy(le)
+            next(e for e in moved.iter("positionablelabel") if e.get("text") == "STAGING LEVEL").set("x", "61")
+            with self.assertRaisesRegex(B.BuildError, r"element \d+ is positionablelabel STAGING LEVEL, approved "
+                                                      r"positionablelabel STAGING LEVEL \(changed\)"):
+                B.check_approved(moved, path)
+            fewer = copy.deepcopy(le)
+            fewer.remove(fewer[-1])
+            with self.assertRaisesRegex(B.BuildError, "not the one the owner approved"):
+                B.check_approved(fewer, path)
+            # the build itself refuses a staging panel that is not the approved one, unless asked to (--review)
+            with mock.patch.object(B, "check_approved", side_effect=B.BuildError("not approved")) as check, \
+                    contextlib.redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(B.BuildError, "not approved"):
+                    B.build(levels="staging", as_live=True, approved=path)
+                self.assertEqual(B.main(["--review", "--levels", "staging"]), 1)     # --review needs --as-live
+            self.assertEqual(check.call_args.args[1], path)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "a.sha256"
             B.write_approved(moved, path, date="2026-11-16")
@@ -430,6 +447,49 @@ class ThreeLevels(unittest.TestCase):
                 B.check_approved(le, path)
             with self.assertRaisesRegex(B.BuildError, "--approve-staging"):
                 B.check_approved(le, Path(tmp) / "none")
+
+    def test_the_panel_has_the_windows_shape(self) -> None:
+        w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
+        want = (B.FIT[0] - 18) / (B.FIT[1] - 60)
+        self.assertLessEqual(abs(w / h / want - 1), B.ASPECT_TOLERANCE)
+        self.assertEqual((self.le.get("windowwidth"), self.le.get("windowheight")), tuple(map(str, B.FIT)))
+        with self.assertRaisesRegex(B.BuildError, r"set STRETCH to about 1\.\d+"):
+            B.check_aspect((1984, 1505), (18, 60))
+
+    def test_the_compass_rose_is_its_own_item_clear_of_everything(self) -> None:
+        urls = [(el, el.find("icon").get("url")) for el in self.le.iter("positionablelabel") if el.find("icon") is not None]
+        rose = [el for el, u in urls if u.endswith(B.overlay_mod().COMPASS_URL)]
+        self.assertEqual(len(rose), 1)
+        self.assertEqual([u for _el, u in urls if "hart_panel_bg" in u], ["preference:resources/misc/hart_panel_bg_plain.jpg"])
+        for name in ("hart_panel_compass.png", "hart_panel_bg_plain.jpg"):
+            self.assertTrue((T.ROOT / "jmri/resources/misc" / name).exists(), name)
+        x, y = int(rose[0].get("x")), int(rose[0].get("y"))
+        princess = next(lb for lb in self.P.labels if lb["text"] == "PRINCESS")
+        px, py, pw, ph = princess["box"]
+        self.assertTrue(x + 111 <= px or px + pw <= x or y + 115 <= py or py + ph <= y)     # carry checked the rest
+        with self.assertRaisesRegex(B.overlay_mod().OverlayError, "backdrop pictures, not one"):
+            frozen = copy.deepcopy(B.le_inputs.load().overlay)
+            frozen["items"] = [it for it in frozen["items"] if "hart_panel_bg" not in it["xml"]]
+            B.overlay_mod().with_compass(frozen)
+
+    def test_station_buttons_show_no_track_word(self) -> None:
+        buttons = [el for el in self.le.iter("sensoricon") if (el.get("sensor") or "").startswith("MoveTo")]
+        self.assertEqual(len(buttons), 12)
+        for el in buttons:
+            for e in [el] + [c for c in el if c.tag.endswith("Text")]:
+                self.assertFalse((e.get("text") or "").startswith("Track "), el.get("sensor"))
+        self.assertIn("EH-1", {el.get("text") for el in buttons})
+        self.assertIn("MoveToTrack_EH-1_stored", {el.get("sensor") for el in buttons})      # the names keep it
+        stations = T._load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
+        self.assertEqual(stations.station_display("Track EH-1", generated=True), "EH-1")
+        self.assertEqual(stations.station_display("Track EH-1"), "Track EH-1")            # the hand-drawn panel
+        self.assertEqual(stations.station_display("Track East Lead", generated=True), "East End")
+        ov = B.overlay_mod()
+        bad = copy.deepcopy(B.le_inputs.load().overlay)
+        item = next(it for it in bad["items"] if "MoveToTrack_EH-1" in it["xml"])
+        item["xml"] = item["xml"].replace('text="EH-1"', 'text="Track EH-1"')
+        with self.assertRaisesRegex(ov.OverlayError, 'shows "Track " before its track'):
+            ov.validate(bad)
 
     def test_main_and_upper_objects_are_internal_with_device_map_names(self) -> None:
         added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
@@ -522,7 +582,7 @@ class Rebuilt(unittest.TestCase):
             path = Path(tmp) / "tables.xml"
             path.write_bytes(data)
             with contextlib.redirect_stdout(io.StringIO()):
-                return B.build(path, levels="staging", as_live=True)[0]
+                return B.build(path, levels="staging", as_live=True, approved=None)[0]
 
     def test_without_the_hand_drawn_panel(self) -> None:
         data = cutover()[0]
@@ -615,7 +675,7 @@ class BuilderErrors(unittest.TestCase):
     def test_freeze_replaces_the_folder_only_after_the_rebuild_matches(self) -> None:
         overlay = I.load().overlay
 
-        def fake_build(_path, levels, as_live, inputs, freeze_from=None):      # the two builds, without drawing
+        def fake_build(_path, levels, as_live, inputs, freeze_from=None, approved=None):      # the two builds, without drawing
             if freeze_from is not None:
                 inputs.overlay = overlay
                 return (b"from the panel",)
@@ -789,7 +849,7 @@ class OverlayErrors(unittest.TestCase):
 
     LAMP = ('<sensoricon sensor="BS W" x="{x}" y="{y}" level="10"><active url="program:resources/icons/'
             'smallschematics/tracksegments/circuit-empty.gif"/></sensoricon>')
-    MARKER = ('<sensoricon sensor="MoveToTrack_{b}_stored" x="{x}" y="{y}" level="12" text="Track {b}" size="10" '
+    MARKER = ('<sensoricon sensor="MoveToTrack_{b}_stored" x="{x}" y="{y}" level="12" text="{b}" size="10" '
               'style="1"><active url="program:resources/icons/markers/loco-red.gif"/></sensoricon>')
 
     def panel(self, *extra: str) -> ET.Element:
@@ -812,7 +872,7 @@ class OverlayErrors(unittest.TestCase):
         label = ov.Item(ET.fromstring('<positionablelabel text="Industries" x="1" y="2" size="16" style="1"/>'), 0)
         self.assertEqual(label.size, (jt.width("Industries", 16, True), jt.height(16, True)))
         marker = ov.Item(ET.fromstring(self.MARKER.format(b="EH-2", x=0, y=0)), 0)
-        self.assertEqual(marker.size, (max(60, jt.width("Track EH-2", 10, True)), max(20, jt.height(10, True))))
+        self.assertEqual(marker.size, (max(60, jt.width("EH-2", 10, True)), max(20, jt.height(10, True))))  # fits
         bci = ET.fromstring('<BlockContentsIcon blockcontents="W" x="3" y="4" size="13" style="0"/>')
         (kind, name, r), = ov.generated([bci])
         self.assertEqual((kind, name, r.w), ("block contents", "W", jt.width(ov.bci_text(), 13)))

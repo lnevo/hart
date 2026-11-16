@@ -4,6 +4,7 @@
     python3 tools/schematic/build_layout_le.py           # write the trial tables file
     python3 tools/schematic/build_layout_le.py --check   # fail if the trial file is stale
     python3 tools/schematic/build_layout_le.py --as-live                   # the cut-over candidate, all three levels
+    python3 tools/schematic/build_layout_le.py --as-live --review          # the same, staging not yet approved
     python3 tools/schematic/build_layout_le.py --levels staging --as-live   # staging alone (the candidate's base)
     python3 tools/schematic/build_layout_le.py --freeze [--tables FILE]     # one-shot: re-read the frozen inputs
 
@@ -17,9 +18,11 @@ re-reads them from a hand-drawn panel (it refuses a generated one) and checks th
 it is not part of the normal build. "Live" below means the railroad's objects and the hand-drawn panel as frozen.
 
 Three levels (owner, 2026-11-16). `--as-live` (levels all) writes the cut-over candidate
-jmri/layouts/hart/output/trial/tables_cutover.xml: first the staging candidate below (--levels staging --as-live), then
-all three bands at that candidate's grid (no fitting: the panel grows taller than the FIT window, which stays FIT;
-zoom to fit), staging against the left edge (the plugin's band_align) and the main level below everything the
+jmri/layouts/hart/output/trial/tables_cutover.xml: first the staging candidate below (--levels staging --as-live, drawn
+at staging's own fit widened by STRETCH, so the three-level panel has the window's shape; check_aspect), then
+all three bands at that candidate's grid (no fitting: the panel is larger than the FIT window, which stays FIT;
+zoom to fit), each band's labels placed in rounds of their own (the plugin's labels_by_band, so staging's do not
+depend on the levels below), staging against the left edge (the plugin's band_align) and the main level below everything the
 staging candidate holds (the band gap grows by what the overlay adds under staging), the frame items and status
 cluster tied to the staging band's track. check_staging_unchanged then stops unless the staging candidate is in it
 unchanged: every bean, every other panel, every staging element, but the main and upper objects and the helix joins
@@ -144,6 +147,14 @@ FIT = (1900, 1140)
 # Staging alone fills the window's width long before its height, so its rows may be as far apart as the live
 # panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels.
 STAGING_ROW = 48
+# The cut-over candidates' grid (owner, 2026-11-16). Staging's own fit to the window (STAGING_SCALE, the grid's
+# scale across and down when the staging band alone was fitted into FIT) widened by STRETCH, so that the three-level
+# panel has the shape of the window's panel area (FIT less Layout Editor's frame, about 1.74 wide to 1 high) and
+# fills it when zoomed to fit. Rows, their spacing and the band gap do not change. The build stops when the panel's
+# shape drifts more than ASPECT_TOLERANCE from the window's (check_aspect names the factor that would fit it).
+STAGING_SCALE = (0.78466796875, 1.0)
+STRETCH = 1.397
+ASPECT_TOLERANCE = 0.03
 # The plugin's label layer (schematic/le_labels.py): switch numbers as the hand-drawn panel wrote them ("SW-13",
 # 13 px bold), block contents icons on with the plugin's reserve; given to every band through the page options.
 # The all-levels trial (viewing only) has no block contents icons (owner, 2026-11-16), and its switch numbers at the
@@ -918,6 +929,11 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             gap = le_mod.BAND_GAP + max(0, base[1].overlay["size"][1] - base[1].size[1])
             P = le_mod.panel(named_bands(bands, names), names, cell=le_mod.CELL * scale[0],
                              row=STAGING_ROW * scale[1], page=dict(page, band_align={STAGING: "left"}), gap=gap,
+                             labels_by_band=True, **extras)     # staging's labels as when it is drawn alone
+            P.scale, P.fit = scale, None
+        elif as_live:               # the staging candidate: the cut-over grid, no fitting (it scrolls in FIT)
+            scale = (STAGING_SCALE[0] * STRETCH, STAGING_SCALE[1])
+            P = le_mod.panel(bands, names, cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1], page=page,
                              **extras)
             P.scale, P.fit = scale, None
         else:
@@ -954,7 +970,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             if freeze_from is not None:
                 inputs.overlay = ov.freeze(freeze_from, panel_el, root, le_mod, slots_module(), inputs.note,
                                            LE_LABELS["switch_prefix"])
-            P.overlay = ov.carry(inputs.overlay, panel_el, P, le_mod, slots_module(), FIT,
+            P.overlay = ov.carry(ov.with_compass(inputs.overlay), panel_el, P, le_mod, slots_module(), FIT,
                                  LE_LABELS["switch_prefix"], frame_blocks=staging_blocks)
         except ov.OverlayError as exc:
             raise BuildError(f"overlay: {exc}") from None
@@ -971,12 +987,24 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         if base is not None:
             P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name)
             P.staging_data = base[0]
+            check_aspect(P.overlay["size"], le_mod.CHROME)
     else:
         attrs = dict(inputs.attrs)
         attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")
         panel_el = le_mod.to_xml(P, panel_name, attrs, copy.deepcopy(inputs.drawing_options))
         place(root, [panel_el], 1, tables.layout_editors(root)[-1])
     return doc.tobytes(), P, names, bands
+
+
+def check_aspect(size, chrome, fit=FIT, stretch=STRETCH, tolerance=ASPECT_TOLERANCE) -> None:
+    """Stop unless the panel `size` (width, height) has the shape of the `fit` window's panel area (fit less
+    `chrome`) within `tolerance`, naming the STRETCH that would give it (the panel's width grows about in step)."""
+    want = (fit[0] - chrome[0]) / (fit[1] - chrome[1])
+    got = size[0] / size[1]
+    if abs(got / want - 1) > tolerance:
+        raise BuildError(f"the panel is {size[0]}x{size[1]} px, {got:.3f} wide to 1 high; the {fit[0]}x{fit[1]} "
+                         f"window's panel area is {want:.3f}: set STRETCH to about {stretch * want / got:.3f} "
+                         f"(now {stretch})")
 
 
 def canon_sorted(el: ET.Element) -> str:
@@ -1319,7 +1347,8 @@ def freeze(tables_path: Path = paths.TABLES_XML, folder: Path = le_inputs.FOLDER
     note = le_inputs.NOTE.format(panel=TEMPLATE_PANEL, source=source,
                                  date=date or datetime.date.today().isoformat())
     inputs = le_inputs.from_live(root, live_le, slots_module(), signals, overrides.get("mast_prefix", ""), note)
-    data = build(tables_path, levels="staging", as_live=True, inputs=inputs, freeze_from=live_le)[0]
+    # the freeze compares two builds with each other; whether the owner approved that panel is the cut-over's check
+    data = build(tables_path, levels="staging", as_live=True, inputs=inputs, freeze_from=live_le, approved=None)[0]
     folder = Path(folder)
     try:
         folder.parent.mkdir(parents=True, exist_ok=True)
@@ -1331,7 +1360,7 @@ def freeze(tables_path: Path = paths.TABLES_XML, folder: Path = le_inputs.FOLDER
         again = le_inputs.load(fresh)
         if le_inputs.signal_rows(again.masts) != signals["signals"]:
             raise BuildError("the written masts.csv does not give back the signal reader's runs")
-        if build(tables_path, levels="staging", as_live=True, inputs=again)[0] != data:
+        if build(tables_path, levels="staging", as_live=True, inputs=again, approved=None)[0] != data:
             raise BuildError("the written files do not rebuild the panel built from the hand-drawn one")
         old = None
         if folder.exists():
@@ -1373,6 +1402,9 @@ def main(argv=None) -> int:
                          f"({paths.rel(le_inputs.FOLDER)}), then check they rebuild the same candidate")
     ap.add_argument("--freeze-to", type=Path,
                     help="with --freeze: the folder to write (default: the frozen files' own)")
+    ap.add_argument("--review", action="store_true",
+                    help="with --as-live: write the candidate for the owner to review although its staging panel is "
+                         f"not the approved one ({paths.rel(APPROVED)} is not checked; the run says so)")
     ap.add_argument("--approve-staging", action="store_true",
                     help="after the owner approves the staging panel in PanelPro: record its fingerprint in "
                          f"{paths.rel(APPROVED)}, which both cut-over builds then check")
@@ -1383,7 +1415,8 @@ def main(argv=None) -> int:
             print(f"ERROR: {message}")
             return 1
     if args.approve_staging:
-        if args.check or args.freeze or args.freeze_to or args.as_live or args.out or args.levels is not None:
+        if args.check or args.freeze or args.freeze_to or args.as_live or args.out or args.levels is not None \
+                or args.review:
             print("ERROR: --approve-staging takes only --tables")
             return 1
         try:
@@ -1396,7 +1429,7 @@ def main(argv=None) -> int:
         print(f"wrote {paths.rel(APPROVED)}: the staging panel as the owner approved it")
         return 0
     if args.freeze:
-        if args.check or args.as_live or args.out or args.levels is not None:
+        if args.check or args.as_live or args.out or args.levels is not None or args.review:
             print("ERROR: --freeze takes only --tables and --freeze-to")
             return 1
         try:
@@ -1411,6 +1444,9 @@ def main(argv=None) -> int:
     if args.freeze_to is not None:
         print("ERROR: --freeze-to goes with --freeze")
         return 1
+    if args.review and not args.as_live:
+        print("ERROR: --review goes with --as-live")
+        return 1
     levels = args.levels or "all"
     out = args.out or default_out(levels, args.as_live)
     if live_target(out):
@@ -1419,6 +1455,8 @@ def main(argv=None) -> int:
         return 1
     try:
         where = {} if args.tables is None else {"live_path": args.tables}
+        if args.review:
+            where["approved"] = None
         data, P, _names, _bands = build(levels=levels, as_live=args.as_live, **where)
     except le_inputs.InputsError as exc:
         print(f"ERROR: {exc}")
@@ -1444,6 +1482,9 @@ def main(argv=None) -> int:
     for f, d in files:
         tables.loads(d, path=f).save(f)
     print(f"wrote {paths.rel(out)}: {summary}")
+    if args.review:
+        print(f"  REVIEW: the staging panel was not checked against the approved one ({paths.rel(APPROVED)}); it is "
+              "UNAPPROVED until the owner approves it in PanelPro and --approve-staging records it")
     if len(files) > 1:
         print(f"wrote {paths.rel(files[1][0])}: the staging candidate it holds")
     moved = {f"{t}: mast {m}: {why}" for t, m, why in P.moved}       # the plugin's own log line for each
@@ -1456,7 +1497,8 @@ def main(argv=None) -> int:
         print(f"  overlay: {line}")
     same = getattr(P, "staging_same", None)
     if same is not None:
-        print("  staging guard: the approved staging candidate is held unchanged but for the helix joins:")
+        print(f"  staging guard: the {'(unapproved) ' if args.review else 'approved '}staging candidate is held "
+              "unchanged but for the helix joins:")
         for line in same:
             print(f"    {line}")
     return 0

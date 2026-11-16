@@ -357,12 +357,20 @@ def main_layout_editor(root: ET.Element) -> ET.Element:
     return candidates[0]
 
 
+def station_display(station: str, generated: bool = False) -> str:
+    """The MoveTo button's text: STATION_DISPLAY_NAMES, and on a generated panel without a leading "Track " (owner,
+    2026-11-16: "EH-1" fits the loco marker; the sensor and block names keep it)."""
+    display = STATION_DISPLAY_NAMES.get(station, station)
+    return display.removeprefix("Track ") if generated else display
+
+
 def icon_element(
     sensor_name: str,
     station: str,
     x: int,
     y: int,
     kind: str,
+    generated: bool = False,
 ) -> ET.Element:
     attributes = {
         "sensor": sensor_name,
@@ -381,7 +389,7 @@ def icon_element(
         "icon": "yes",
         "class": "jmri.jmrit.display.configurexml.SensorIconXml",
     }
-    display = STATION_DISPLAY_NAMES.get(station, station)
+    display = station_display(station, generated)
     if kind == "move_to":
         attributes.update(
             {
@@ -509,7 +517,8 @@ def generated_positions(
 
 def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | None = None) -> None:
     editor = main_layout_editor(root)
-    if tables.generated_panel(editor):
+    generated = tables.generated_panel(editor)
+    if generated:
         if reference is not None and not tables.generated_panel(reference):
             raise ValueError("--reference: its main panel is not a generated one")
         positions = generated_positions(editor, reference)
@@ -575,13 +584,13 @@ def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | 
         }
         expected_icons = {
             move_to_name: icon_element(
-                move_to_name, station, move_to_pos[0], move_to_pos[1], "move_to"
+                move_to_name, station, move_to_pos[0], move_to_pos[1], "move_to", generated
             ),
             progress_name: icon_element(
-                progress_name, station, progress_pos[0], progress_pos[1], "progress"
+                progress_name, station, progress_pos[0], progress_pos[1], "progress", generated
             ),
             occ_name: icon_element(
-                occ_name, station, occ_pos[0], occ_pos[1], "occupancy"
+                occ_name, station, occ_pos[0], occ_pos[1], "occupancy", generated
             ),
         }
         for name in (move_to_name, progress_name, occ_name):
