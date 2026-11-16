@@ -1,5 +1,6 @@
 # Frozen from the hand-drawn "HART Railroad" panel in jmri/layouts/hart/output/tables.xml on 2026-11-15 (build_layout_le.py --freeze); the generated panel is built from this file. Edit here, not in the panel.
 sensor,kind,ident,slot,facing,protects
+NX Mast 8RA,anchor,A45,east,Track Scale,OS Switch 7
 NX Mast 2036,anchor,A48,east,Track K-1,Track K-2
 NX Mast 2035,anchor,A48,west,Track K-2,Track K-1
 NX Mast 24RA,turnout,TO111,A,Track Main West,OS Switch 23a
@@ -7,7 +8,6 @@ NX Mast 24L,turnout,TO111,B,Track West Ext,OS Switch 23a
 NX Mast 24RB,turnout,TO111,D,Track S-R East,OS Switch 23b
 NX Mast 36RA,turnout,TO113,A,Track West Ext,OS Switch 35b
 NX Mast 36RB,turnout,TO113,D,Track East Lead East,OS Switch 35a
-NX Mast 8RA,turnout,TO117,A,OS Switch 7,
 NX Mast 8LB,turnout,TO117,B,Track Barn,OS Switch 7
 NX Mast 8LA,turnout,TO117,C,Track Main East,OS Switch 7b
 NX Mast 8RB,turnout,TO117,D,Track East Ext,OS Switch 7b

@@ -277,8 +277,28 @@ def audit_nx(root: ET.Element, audit: Audit, *, required: bool) -> None:
             f"NX pairs expected nxType={NXTYPE_SML}; "
             f"found {sorted({p[2] for p in bad_type})}"
         )
+    audit_nx_slots(root, problem)
     audit.facts["nx_pairs"] = tuple(sorted(pairs))
     audit.facts["isnx"] = tuple(sorted(sensors.items()))
+
+
+def audit_nx_slots(root: ET.Element, problem) -> None:
+    """Each NX sensor sits in the slot of its own mast. A sensor left behind when its mast moves is not at a
+    block boundary, and Discover walks past the mast into false pairs (NX Mast 8RA on TO117 A, 2026-11-15)."""
+    def check(where: str, sensor: str | None, mast: str | None) -> None:
+        if sensor and sensor.startswith("NX ") and sensor != f"NX {mast}":
+            problem(f"{sensor} is on {where}, whose mast is {mast or 'none'}; bind it in the slot of {sensor[3:]}")
+    for panel in root.iter("LayoutEditor"):
+        if panel.get("name") != LAYOUT_PANEL:
+            continue
+        for turnout in panel.iter("layoutturnout"):
+            for leg in "ABCD":
+                check(f"{turnout.get('ident')} {leg}", text(turnout, f"sensor{leg}") or None,
+                      text(turnout, f"signal{leg}Mast") or None)
+        for point in panel.iter("positionablepoint"):
+            for bound in ("east", "west"):
+                check(f"{point.get('ident')} {bound}bound", point.get(f"{bound}boundsensor"),
+                      point.get(f"{bound}boundsignalmast"))
 
 
 def audit_sml(root: ET.Element, audit: Audit, *, required: bool) -> None:

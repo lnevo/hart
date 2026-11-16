@@ -12835,89 +12835,86 @@
     <abssignalmode>yes</abssignalmode>
     <layoutPanel name="HART Railroad">
       <source type="sensor" item="NX Mast 2L">
-        <destination type="sensor" item="NX Mast 6LB" nxType="signalmastlogic" uniqueid="IN:ee93974c-2a81-46c8-b68c-ac13b097a4bb" />
-        <destination type="sensor" item="NX Mast 8RA" nxType="signalmastlogic" uniqueid="IN:85fc7d22-12ae-48c9-b7f7-a81983ec6aa6" />
-        <destination type="sensor" item="NX Mast 8RB" nxType="signalmastlogic" uniqueid="IN:749965e2-6b44-43c8-92d2-900b390611fb" />
+        <destination type="sensor" item="NX Mast 6LB" nxType="signalmastlogic" uniqueid="IN:3d65246e-ca47-4422-b7d2-252a7f8d8a6b" />
+        <destination type="sensor" item="NX Mast 8RA" nxType="signalmastlogic" uniqueid="IN:c67793ac-5296-438d-b4b3-8708bb20f001" />
+        <destination type="sensor" item="NX Mast 8RB" nxType="signalmastlogic" uniqueid="IN:feac7f13-3ac0-464d-bf87-796a48530c6b" />
       </source>
       <source type="sensor" item="NX Mast 4RA">
-        <destination type="sensor" item="NX Mast 2L" nxType="signalmastlogic" uniqueid="IN:9500756c-39c4-4459-80ad-e74146c12ae0" />
-        <destination type="sensor" item="NX Mast 24RA" nxType="signalmastlogic" uniqueid="IN:d413abb8-93de-4c1e-a500-02b2bdb1f193" />
+        <destination type="sensor" item="NX Mast 2L" nxType="signalmastlogic" uniqueid="IN:7fc953ae-cc01-4b47-af24-b1479ee556fa" />
+        <destination type="sensor" item="NX Mast 24RA" nxType="signalmastlogic" uniqueid="IN:61deed33-6d9a-4399-8355-a13a4948f477" />
       </source>
       <source type="sensor" item="NX Mast 4RB">
-        <destination type="sensor" item="NX Mast 24RA" nxType="signalmastlogic" uniqueid="IN:27c016a4-bcbc-4495-9f16-b7ef9d17a25e" />
+        <destination type="sensor" item="NX Mast 24RA" nxType="signalmastlogic" uniqueid="IN:b6522677-ab1e-495f-ad5e-8671da58cd3b" />
       </source>
       <source type="sensor" item="NX Mast 6LA">
-        <destination type="sensor" item="NX Mast 24RA" nxType="signalmastlogic" uniqueid="IN:2baa2e6a-e921-42fc-acb8-527b406fef10" />
+        <destination type="sensor" item="NX Mast 24RA" nxType="signalmastlogic" uniqueid="IN:adea3746-5bd9-4052-8d3d-cab120d739aa" />
       </source>
       <source type="sensor" item="NX Mast 6LB">
-        <destination type="sensor" item="NX Mast 24RA" nxType="signalmastlogic" uniqueid="IN:36cffa60-3353-4de2-8f75-b7bc3e2e1d4a" />
+        <destination type="sensor" item="NX Mast 24RA" nxType="signalmastlogic" uniqueid="IN:31644be2-d88b-4c84-baad-015a8869ff32" />
       </source>
       <source type="sensor" item="NX Mast 32R">
-        <destination type="sensor" item="NX Mast 36RB" nxType="signalmastlogic" uniqueid="IN:0c166d0f-931b-4888-9b8b-f4f651c20419" />
+        <destination type="sensor" item="NX Mast 36RB" nxType="signalmastlogic" uniqueid="IN:f39f8110-88b5-4613-b57d-9321337c9f2b" />
       </source>
       <source type="sensor" item="NX Mast 24L">
-        <destination type="sensor" item="NX Mast 2L" nxType="signalmastlogic" uniqueid="IN:1d02df1e-c0e8-4406-8b65-b19406cbf3de" />
+        <destination type="sensor" item="NX Mast 2L" nxType="signalmastlogic" uniqueid="IN:c623509e-8cf8-4cf7-845f-05bcbcbabd18" />
       </source>
       <source type="sensor" item="NX Mast 24RA">
-        <destination type="sensor" item="NX Mast 36RA" nxType="signalmastlogic" uniqueid="IN:2bb7f600-f356-4969-bf25-03781ceae637" />
-        <destination type="sensor" item="NX Mast 36RB" nxType="signalmastlogic" uniqueid="IN:baa80073-7675-4c89-bcf5-04d50c024440" />
+        <destination type="sensor" item="NX Mast 36RA" nxType="signalmastlogic" uniqueid="IN:34d8cb8f-544e-43e0-9945-fba31fa0aab1" />
+        <destination type="sensor" item="NX Mast 36RB" nxType="signalmastlogic" uniqueid="IN:3c62c3f8-e643-4ec8-a35d-b57159df38f1" />
       </source>
       <source type="sensor" item="NX Mast 24RB">
-        <destination type="sensor" item="NX Mast 36RB" nxType="signalmastlogic" uniqueid="IN:3440a78b-fdff-4bbf-bc37-e5a3489be6c1" />
+        <destination type="sensor" item="NX Mast 36RB" nxType="signalmastlogic" uniqueid="IN:8b8b39b2-302b-4aa4-9b4f-4380c9f1e64b" />
       </source>
       <source type="sensor" item="NX Mast 34L">
-        <destination type="sensor" item="NX Mast 2L" nxType="signalmastlogic" uniqueid="IN:bd327d64-d6b0-4273-a2b7-a5d9bad264d1" />
-        <destination type="sensor" item="NX Mast 8LA" nxType="signalmastlogic" uniqueid="IN:b244fb6e-647a-4758-90da-08b9ae9c0ec3" />
-        <destination type="sensor" item="NX Mast 8LB" nxType="signalmastlogic" uniqueid="IN:69012274-2f01-4e7a-adcf-339d845e2613" />
+        <destination type="sensor" item="NX Mast 2L" nxType="signalmastlogic" uniqueid="IN:934e6a37-b52e-4fd5-a661-7209f33c5aaf" />
+        <destination type="sensor" item="NX Mast 8LA" nxType="signalmastlogic" uniqueid="IN:1bf6b61b-662b-461e-8a0d-8ac33953a9e4" />
+        <destination type="sensor" item="NX Mast 8LB" nxType="signalmastlogic" uniqueid="IN:55d4041e-9ba1-4bf7-8d24-adc523d88d5d" />
       </source>
       <source type="sensor" item="NX Mast 34R">
-        <destination type="sensor" item="NX Mast 36RB" nxType="signalmastlogic" uniqueid="IN:a4b3a457-f6c6-43dc-b8be-bd9d242fffbe" />
+        <destination type="sensor" item="NX Mast 36RB" nxType="signalmastlogic" uniqueid="IN:1d3471f8-2dc4-4795-a370-0e40519eaeb0" />
       </source>
       <source type="sensor" item="NX Mast 36RA">
-        <destination type="sensor" item="NX Mast 2035" nxType="signalmastlogic" uniqueid="IN:c713cc56-16a5-4605-8173-d176fa810af2" />
-        <destination type="sensor" item="NX Mast 2036" nxType="signalmastlogic" uniqueid="IN:485804f5-1047-440a-bdec-774d9b4e7ed8" />
+        <destination type="sensor" item="NX Mast 2036" nxType="signalmastlogic" uniqueid="IN:90cb0657-7e5b-4231-b380-7f22232ca9f5" />
       </source>
       <source type="sensor" item="NX Mast 36RB">
-        <destination type="sensor" item="NX Mast 2035" nxType="signalmastlogic" uniqueid="IN:49d9a880-41b8-487f-82f3-c2926a9829b8" />
-        <destination type="sensor" item="NX Mast 2036" nxType="signalmastlogic" uniqueid="IN:dfba4984-358c-4dd8-b25a-afd0aa967742" />
+        <destination type="sensor" item="NX Mast 2035" nxType="signalmastlogic" uniqueid="IN:889d5c8d-26b8-4823-97d3-bb618de88d49" />
+        <destination type="sensor" item="NX Mast 2036" nxType="signalmastlogic" uniqueid="IN:7c248e20-ff13-4b1a-b6f4-18ed91adf148" />
       </source>
       <source type="sensor" item="NX Mast 38LA">
-        <destination type="sensor" item="NX Mast 34L" nxType="signalmastlogic" uniqueid="IN:254f476a-7782-4339-b1ed-3bf0b5b96aa2" />
+        <destination type="sensor" item="NX Mast 34L" nxType="signalmastlogic" uniqueid="IN:db367375-e334-44a9-9cf9-b3dec18ca58d" />
       </source>
       <source type="sensor" item="NX Mast 38LB">
-        <destination type="sensor" item="NX Mast 34L" nxType="signalmastlogic" uniqueid="IN:7696b43c-1ad9-4dba-b3c5-6bac3eb637eb" />
+        <destination type="sensor" item="NX Mast 34L" nxType="signalmastlogic" uniqueid="IN:d0b141d9-974c-426f-8cb1-1e4bae135d1e" />
       </source>
       <source type="sensor" item="NX Mast 40LA">
-        <destination type="sensor" item="NX Mast 24L" nxType="signalmastlogic" uniqueid="IN:6262c4f1-81cc-4ac3-9cb8-99a8f530733b" />
-        <destination type="sensor" item="NX Mast 34L" nxType="signalmastlogic" uniqueid="IN:6bc899e4-9104-4475-959b-ea17a181ea74" />
+        <destination type="sensor" item="NX Mast 24L" nxType="signalmastlogic" uniqueid="IN:faf97193-484f-4660-b823-c99622a843bf" />
+        <destination type="sensor" item="NX Mast 34L" nxType="signalmastlogic" uniqueid="IN:75bda827-e703-48bf-9a2f-80ba4005445d" />
       </source>
       <source type="sensor" item="NX Mast 40LB">
-        <destination type="sensor" item="NX Mast 24L" nxType="signalmastlogic" uniqueid="IN:23dc63ed-a259-4867-8257-9d99e0736092" />
-        <destination type="sensor" item="NX Mast 34L" nxType="signalmastlogic" uniqueid="IN:aa74564a-0aeb-42f0-93e7-8f4fd2c05090" />
+        <destination type="sensor" item="NX Mast 24L" nxType="signalmastlogic" uniqueid="IN:34fb0230-77b2-4017-9c0c-31bd2faf55be" />
+        <destination type="sensor" item="NX Mast 34L" nxType="signalmastlogic" uniqueid="IN:cbe22cfa-b73e-4eb7-8c12-8b282989d90e" />
       </source>
       <source type="sensor" item="NX Mast 8LA">
-        <destination type="sensor" item="NX Mast 6LB" nxType="signalmastlogic" uniqueid="IN:aa53ea35-a248-432e-abc3-ec8851f4e3f8" />
+        <destination type="sensor" item="NX Mast 6LB" nxType="signalmastlogic" uniqueid="IN:c8df4a74-f429-45d3-a349-1ebb3cdd8584" />
       </source>
       <source type="sensor" item="NX Mast 8LB">
-        <destination type="sensor" item="NX Mast 6LA" nxType="signalmastlogic" uniqueid="IN:ed1d483c-5fde-4625-82b9-8137f72764c2" />
-        <destination type="sensor" item="NX Mast 6LB" nxType="signalmastlogic" uniqueid="IN:d9b39a59-0f49-4ea3-ac34-aafcb12de6fa" />
+        <destination type="sensor" item="NX Mast 6LA" nxType="signalmastlogic" uniqueid="IN:f79dbd74-ae24-4dd9-81c2-85359f1b9927" />
+        <destination type="sensor" item="NX Mast 6LB" nxType="signalmastlogic" uniqueid="IN:1ecf2c32-2f15-4f97-883e-efeb466f2c4a" />
       </source>
       <source type="sensor" item="NX Mast 8RA">
-        <destination type="sensor" item="NX Mast 32R" nxType="signalmastlogic" uniqueid="IN:b58a8074-7320-43d1-82c9-1d03081ab2de" />
-        <destination type="sensor" item="NX Mast 24RB" nxType="signalmastlogic" uniqueid="IN:ac586062-f7db-4cec-9036-6ec58919fb0d" />
+        <destination type="sensor" item="NX Mast 32R" nxType="signalmastlogic" uniqueid="IN:7ddc4e6f-5d7d-4b97-b535-886d3a7a20b4" />
+        <destination type="sensor" item="NX Mast 24RB" nxType="signalmastlogic" uniqueid="IN:193b32e2-3ed5-4afe-a69d-2fd9745a5890" />
       </source>
       <source type="sensor" item="NX Mast 8RB">
-        <destination type="sensor" item="NX Mast 32R" nxType="signalmastlogic" uniqueid="IN:a4cfaeff-beca-4693-a8ba-e362db4f771a" />
-        <destination type="sensor" item="NX Mast 24RB" nxType="signalmastlogic" uniqueid="IN:55074cf0-bc52-4e3e-aad2-36faeec4b0cf" />
-        <destination type="sensor" item="NX Mast 34R" nxType="signalmastlogic" uniqueid="IN:3cb41998-c20f-41de-ba80-740b0b8f20a8" />
+        <destination type="sensor" item="NX Mast 32R" nxType="signalmastlogic" uniqueid="IN:426be6c7-4f87-4ac1-bd2f-5cfa05bd33f9" />
+        <destination type="sensor" item="NX Mast 24RB" nxType="signalmastlogic" uniqueid="IN:b25ee4e2-4623-4267-a1d4-c17ba103ef50" />
+        <destination type="sensor" item="NX Mast 34R" nxType="signalmastlogic" uniqueid="IN:621e648c-bf88-4cea-9fa1-012af95cdb63" />
       </source>
       <source type="sensor" item="NX Mast 2035">
-        <destination type="sensor" item="NX Mast 38LB" nxType="signalmastlogic" uniqueid="IN:1c3c36e9-8e16-466f-9c51-eaa43c915242" />
-        <destination type="sensor" item="NX Mast 40LB" nxType="signalmastlogic" uniqueid="IN:0e8987e3-b2ed-44de-92ef-bd279d4a9633" />
+        <destination type="sensor" item="NX Mast 40LB" nxType="signalmastlogic" uniqueid="IN:4272af4d-2975-452f-b0e0-4aadbd5d4dba" />
       </source>
       <source type="sensor" item="NX Mast 2036">
-        <destination type="sensor" item="NX Mast 38LB" nxType="signalmastlogic" uniqueid="IN:e07f9867-0a32-4f87-9642-04b9c78cacdb" />
-        <destination type="sensor" item="NX Mast 40LB" nxType="signalmastlogic" uniqueid="IN:2958e10a-036b-4ef7-868a-ced628f32ce5" />
+        <destination type="sensor" item="NX Mast 38LB" nxType="signalmastlogic" uniqueid="IN:0d29c162-414f-4e4f-ba21-6fdacc8fd1ed" />
       </source>
     </layoutPanel>
   </entryexitpairs>
@@ -20440,7 +20437,6 @@
       <signalBMast>Mast 8LB</signalBMast>
       <signalCMast>Mast 8LA</signalCMast>
       <signalDMast>Mast 8RB</signalDMast>
-      <sensorA>NX Mast 8RA</sensorA>
       <sensorB>NX Mast 8LB</sensorB>
       <sensorC>NX Mast 8LA</sensorC>
       <sensorD>NX Mast 8RB</sensorD>
@@ -20604,7 +20600,7 @@
     <positionablepoint ident="A42" type="ANCHOR" x="772.0" y="382.0" connect1name="F18-S-0" connect2name="T-ER-TOL15" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A43" type="ANCHOR" x="1183.0" y="398.0" connect1name="F10-S-0" connect2name="T-I-TOR9" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A48" type="ANCHOR" x="1837.0" y="276.0" connect1name="F56-S-0" connect2name="F55-S-0" eastboundsignalmast="Mast 2036" westboundsignalmast="Mast 2035" eastboundsensor="NX Mast 2036" westboundsensor="NX Mast 2035" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="A45" type="ANCHOR" x="445.0" y="315.0" connect1name="T3" connect2name="T1" eastboundsignalmast="Mast 8RA" westboundsignalmast="Mast 8LC" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="A45" type="ANCHOR" x="445.0" y="315.0" connect1name="T3" connect2name="T1" eastboundsignalmast="Mast 8RA" westboundsignalmast="Mast 8LC" eastboundsensor="NX Mast 8RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A44" type="ANCHOR" x="1268.0" y="315.0" connect1name="T-I-TOR32" connect2name="F34-S-0" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A47" type="ANCHOR" x="1333.0" y="340.0" connect1name="F24-S-0" connect2name="T-EL-TOL23" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="A46" type="ANCHOR" x="858.0" y="413.0" connect1name="F48-S-0" connect2name="T-EL-TOL17" westboundsignalmast="Mast 20L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
