@@ -65,7 +65,7 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## Future goals
 
-- Import the two remaining levels into Layout Editor through the AnyRail pipeline ([`pipelines/jmri-anyrail.md`](pipelines/jmri-anyrail.md)), fitted to the current panel. The panel stays a physical picture of the railroad, though not to scale.
+- Layout Editor cut-over: the generated three-level "HART Railroad" panel (staging bound to the live objects, main and upper on device-map names over internal objects, no masts there yet) was approved by the owner in PanelPro on 2026-11-16. Next: re-run the Phase 4 rehearsal on it, then the Phase 5 cut-over ([`projects/schematic-maps-handoff.md`](projects/schematic-maps-handoff.md)).
 - Schematic maps from the AnyRail plan: stage 0 proved 2026-11-13. A spike (draft PR #423) draws staging, the main level and the upper level on one sheet from the plan plus as-built overrides, and the owner approved the look. Next is to separate plan overrides, generation rules and preferences and build the tool in `model-railroad-skills`: [`projects/schematic-maps-handoff.md`](projects/schematic-maps-handoff.md), plan in [`projects/schematic-maps.md`](projects/schematic-maps.md).
 - Measured speed profiles for the other 15 roster locos ([`projects/speedmatching.md`](projects/speedmatching.md)); CSX 2121 and CSX 2738 are measured.
 - Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
