@@ -146,3 +146,30 @@ PanelPro and CATS closed on the Mac, nothing unpulled (`make tables-pull`), owne
 8. `make panelpro-test`, then deploy: `tools/hosts/pi_quit_panelpro.sh --for-deploy`, `./tools/hosts/sync_hart_package.sh --pi --win` (it runs `polish --block-labels-only`, a no-op on the generated panel, the strict audit and the Digicon gate), `./www/scripts/deploy_hartrailroad.sh` for the site.
 
 After the cut-over the hand-drawn pixel tables in polish, reconcile and apply_nx_layer are unused (left for one release, then removed), and the one-off edit scripts can go. `build_layout_le.py --as-live` refuses a live panel that is already generated, and `tools/audit/tests/test_le_cutover.py`, `test_build_layout_le.py` and `test_le_mast_parity.py` compare the build with the hand-drawn live panel, so they need a new template (the last hand-drawn tables from git) in Phase 5.
+
+## Hand-off, 2026-11-15 evening: generated labels on the Layout Editor panel (blocks Phase 5)
+
+**Where things stand.** Phase 4 rehearsal passed. NX fixed (PR #557: NX Mast 8RA on A45 east, 36 pairs, audit checks each NX sensor sits in its own mast's slot). The owner opened the cut-over candidate in PanelPro and approved the track ("sharp") but not the labels. Phase 5 waits on the label work below. Main and upper go into the LE **after** the cut-over (owner, 2026-11-15); CATS already has them as dark territory.
+
+**What the owner saw (PanelPro screenshot, 2026-11-15).** Every label, block-contents icon and station button is carried from the hand-drawn panel by `tools/schematic/le_overlay.py` at its old offset, so:
+1. labels overlap: SW-3 on SW-1, SW-5 under the "Plane" caption, "Main West" against SW-11, Princess caption on the compass picture;
+2. switch numbers float away from their switches (SW-13, SW-17, SW-19, SW-21);
+3. Dispatcher station buttons are cut short ("Track EH-"), stacked (EH-2 on EH-3) and off their tracks;
+4. block contents icons (BCIs) are invisible until a train is in the block, so the owner could not tell they exist; 55, all at old offsets;
+5. staging alone fills only the top two-thirds of the 1900x1140 window.
+The overlay's own clearance check passed all of this: its boxes are smaller than what JMRI draws (BCI sized for 5 characters, text widths at 0.6 x size).
+
+**Owner's decisions (2026-11-15).**
+- Labels: the builder generates every label, readout and switch number itself, with a hard no-overlap check sized to what JMRI really draws; the hand-panel labels and BCIs are dropped.
+- Block readouts: "the labels that show the block value when a train is assigned to a block. Every section of track and switch should have a label showing the train clearly" — one BCI per block, track blocks and every OS block (crossover halves too).
+- Main/upper in the LE: after the cut-over.
+
+**Plan.**
+1. Plugin (`external/model-railroad-skills`, `schematic le`): a label layer (new `schematic/le_labels.py`) run after `le_masts.place`, placing in order: switch numbers (beside their turnout), track names, one BCI per block (track: above/below its run near mid-length, opposite its name; OS: around the turnout, clear of the control circle), station captions. Each item tries ranked spots against obstacles from `le_masts.World`/`Rect` (track lines, turnout bodies and circles, mast icon rects, labels placed so far); no clear spot stops with `SchematicError` naming the item. Size boxes to JMRI: measure real label and BCI sizes in PanelPro first (BCI font size 13, reserve a full train name such as `OCS-1`, about 8 characters). Emit `BlockContentsIcon` (attributes as the live ones: `blockcontents`, level 4, size 13, justification left, class `jmri.jmrit.display.configurexml.BlockContentsIconXml`). Use the full window height when the panel is one band. Follow CONTRIBUTING.md's five-point checklist; tests for the error paths.
+2. HART (`tools/schematic/le_overlay.py`, `build_layout_le.py`): stop carrying BCIs, SW-n, track-name and station-caption labels (generated ones win); keep lamps, NX icons, station clusters, status cluster, region captions, backdrop, and place them against the generated labels and BCIs as obstacles, with real JMRI sizes. Station buttons: decide a rule with the owner (on or beside their track, not cut short). Re-freeze (`--freeze`); retarget tests that expect carried items.
+3. Check in PanelPro, not only `render_le_layout.py` (it draws no BCIs or icons): launch the candidate in the rehearsal profile clone and screenshot the panel window only (see below), fix, then the owner reviews.
+4. Then Phase 5 (runbook above).
+
+**How to view the candidate in PanelPro (safe).** Profile clone `<scratchpad>/rehearsal/HARTRehearsalCand.jmri` (M = LCC simulator, M2 = local mosquitto 127.0.0.1:18830, user files `uf_cand`); JMRI skips Start Up if M2 cannot connect, so start the broker first (`/opt/local/sbin/mosquitto -c <scratchpad>/rehearsal/broker/mosquitto.conf -d`). A launcher (`<scratchpad>/ownerview/view.sh`) sources `tools/hosts/panelpro_session.sh` (pp_profile, pp_begin with a no-op script, pp_launch, pp_wait_exit) on the `le-owner-view` worktree, whose `tables.xml` is the candidate (never commit it); quitting PanelPro restores the clone. The scratchpad is per session: a new session rebuilds the clone per the header of `panelpro_session.sh` (copy the live profile, own user-files folder, MQTT at the local broker). Screenshots: `screencapture -x` captures the owner's whole screen (crop to the panel and delete the full image at once); `osascript` window queries trigger a macOS Accessibility prompt — do not use them. The guard hook blocks `render_le_layout.py` while PanelPro is open.
+
+**Loose ends.** `HART_Trial_View.jmri` profile left in `~/Library/Preferences/JMRI` (delete was denied; owner may remove). Rehearsal worktrees `le-cutover-rehearsal`, `le-rehearsal-baseline`, `le-owner-view` hold modified tables (never commit; remove after the cut-over). ADR-005 and `sml_cats_oracle.csv` still mention the old NX count / 36RA→2035 (history; not changed). 8RA NX lamp sits east of A45 on OS Switch 7 (owner's lamp rework). Owner's signal questions and the optional 16R sandbox test wait.
