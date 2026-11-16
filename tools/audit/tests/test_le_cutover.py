@@ -97,15 +97,18 @@ class Cutover(unittest.TestCase):
         self.assertEqual(list(self.root).index(self.le), list(self.live).index(tables.layout_editor(self.live, LIVE)))
 
     def test_live_panel_attributes_fit_sizing(self) -> None:
-        got = {k: v for k, v in self.le.attrib.items() if k not in SIZE_ATTRS}
-        want = {k: v for k, v in self.inputs.attrs.items() if k not in SIZE_ATTRS}
+        got = {k: v for k, v in self.le.attrib.items() if k not in SIZE_ATTRS | {"scrollable"}}
+        want = {k: v for k, v in self.inputs.attrs.items() if k not in SIZE_ATTRS | {"scrollable"}}
         self.assertEqual(got, want)
-        self.assertEqual((self.le.get("editable"), self.le.get("scrollable")), ("no", "none"))
+        # larger than its window, so it scrolls both ways (the frozen attribute, for a panel that fits, is "none")
+        self.assertEqual((self.le.get("editable"), self.le.get("scrollable")), ("no", "both"))
+        self.assertEqual(self.inputs.attrs["scrollable"], "none")
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        # the window is the panel and its frame, at most FIT; the stretched panel (STRETCH) is wider and scrolls
+        # the window is the panel and its frame, at most FIT; the stretched panel (STRETCH) is wider than it
         self.assertEqual((int(self.le.get("windowwidth")), int(self.le.get("windowheight"))),
                          (min(w + 18, B.FIT[0]), min(h + 60, B.FIT[1])))
-        self.assertEqual(self.P.scale, (B.STAGING_SCALE[0] * B.STRETCH, B.STAGING_SCALE[1]))
+        self.assertEqual(self.P.scale, (self.P.staging_fit[0] * B.STRETCH, self.P.staging_fit[1]))
+        self.assertAlmostEqual(self.P.staging_fit[0], 0.785, places=3)          # staging's own fit to FIT
 
     def test_no_placeholders_in_staging_mode(self) -> None:
         self.assertFalse([t for t in tables.turnouts(self.root) if tables.system_name(t).startswith(B.TURNOUT_SYS)])
@@ -258,13 +261,11 @@ class Cutover(unittest.TestCase):
         system = tables.mast_system_names(self.root)
         size = {m: tables.mast_icon_size(s)[0] for m, s in system.items()}
         widths = {b["block"]: float(b["box"][2]) for b in self.P.bcis}     # as the plugin placed them
-        self.assertEqual(ov.check(self.le, ov.with_compass(self.inputs.overlay), le_mod, self.slots, size,
+        self.assertEqual(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size,
                                   B.LE_LABELS["switch_prefix"], widths), [])
-        self.assertEqual(Counter(el.tag for el in frozen_items()), Counter(
+        live_items = frozen_items()
+        self.assertEqual(Counter(el.tag for el in live_items), Counter(
             sensoricon=80, positionablelabel=10, signalheadicon=1))
-        # carried: the frozen items, the backdrop without the compass rose, and the rose as an item of its own
-        live_items = [ET.fromstring(it["xml"]) for it in ov.with_compass(self.inputs.overlay)["items"]]
-        self.assertEqual(len(live_items), 92)
         self.assertEqual(len(self.P.overlay["records"]), len(live_items))
         strip = Counter(ov.strip(el) for el in live_items)
         got = Counter(ov.strip(el) for el in self.le if el.tag in ov.OVERLAY_TAGS)
@@ -334,7 +335,8 @@ class Cutover(unittest.TestCase):
             for argv in (["--approve-staging", "--levels", "staging"], ["--approve-staging", "--as-live"],
                          ["--approve-staging", "--check"]):
                 self.assertEqual(B.main(argv), 1, argv)
-        P = mock.Mock(staging_data=b"staging", log=[], mast_notes=[], moved=[], overlay=None, staging_same=["x"])
+        P = mock.Mock(staging_data=b"staging", log=[], mast_notes=[], moved=[], overlay=None, staging_same=["x"],
+                      gaps=[10, 20], scale=(1.0, 1.0))
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "build", return_value=(self.data, P, {}, [])), \
                 mock.patch.object(B.tables, "loads") as loads, mock.patch.object(B, "plugin") as plug:
             le_mod = mock.Mock()
@@ -409,6 +411,11 @@ class ThreeLevels(unittest.TestCase):
                 with self.assertRaisesRegex(B.BuildError, "staging guard"):
                     B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE)
 
+    def test_the_staging_candidate_is_the_approved_panel(self) -> None:
+        # Fails after a staging change on purpose until the owner approves the new panel in PanelPro and
+        # build_layout_le.py --approve-staging records it (intended: the merge waits for that).
+        B.check_approved(tables.layout_editor(tables.loads(self.base[0]).root, LIVE), B.APPROVED)
+
     def test_staging_is_checked_against_the_approved_panel(self) -> None:
         # The committed fingerprint is the owner's (refreshed by --approve-staging after an approval in PanelPro);
         # a staging change on purpose (STRETCH) is built with --review until then, so the tests check the mechanism
@@ -456,21 +463,60 @@ class ThreeLevels(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, r"set STRETCH to about 1\.\d+"):
             B.check_aspect((1984, 1505), (18, 60))
 
-    def test_the_compass_rose_is_its_own_item_clear_of_everything(self) -> None:
-        urls = [(el, el.find("icon").get("url")) for el in self.le.iter("positionablelabel") if el.find("icon") is not None]
-        rose = [el for el, u in urls if u.endswith(B.overlay_mod().COMPASS_URL)]
-        self.assertEqual(len(rose), 1)
-        self.assertEqual([u for _el, u in urls if "hart_panel_bg" in u], ["preference:resources/misc/hart_panel_bg_plain.jpg"])
-        for name in ("hart_panel_compass.png", "hart_panel_bg_plain.jpg"):
-            self.assertTrue((T.ROOT / "jmri/resources/misc" / name).exists(), name)
-        x, y = int(rose[0].get("x")), int(rose[0].get("y"))
-        princess = next(lb for lb in self.P.labels if lb["text"] == "PRINCESS")
-        px, py, pw, ph = princess["box"]
-        self.assertTrue(x + 111 <= px or px + pw <= x or y + 115 <= py or py + ph <= y)     # carry checked the rest
-        with self.assertRaisesRegex(B.overlay_mod().OverlayError, "backdrop pictures, not one"):
-            frozen = copy.deepcopy(B.le_inputs.load().overlay)
-            frozen["items"] = [it for it in frozen["items"] if "hart_panel_bg" not in it["xml"]]
-            B.overlay_mod().with_compass(frozen)
+    def test_no_compass_rose_and_the_plain_backdrop(self) -> None:
+        urls = [el.find("icon").get("url") for el in self.le.iter("positionablelabel") if el.find("icon") is not None]
+        self.assertEqual([u for u in urls if "hart_panel" in u], ["preference:resources/misc/hart_panel_bg_plain.jpg"])
+        self.assertTrue((T.ROOT / "jmri/resources/misc/hart_panel_bg_plain.jpg").exists())
+        ov = B.overlay_mod()
+        # frozen once, at --freeze (plain_backdrop): a frozen file still holding the picture with the rose stops
+        bad = copy.deepcopy(B.le_inputs.load().overlay)
+        item = next(it for it in bad["items"] if "hart_panel_bg_plain" in it["xml"])
+        item["xml"] = item["xml"].replace("hart_panel_bg_plain.jpg", "hart_panel_bg.jpg")
+        with self.assertRaisesRegex(ov.OverlayError, "compass rose in it"):
+            ov.validate(bad)
+        items = ov.frozen_items(B.le_inputs.load().overlay)
+        with self.assertRaisesRegex(ov.OverlayError, "backdrop pictures, not one"):
+            ov.plain_backdrop([it for it in items if not it.backdrop])
+        with self.assertRaisesRegex(ov.OverlayError, "not the misc/hart_panel_bg.jpg"):
+            ov.plain_backdrop(items)                        # its backdrop is the plain picture already
+
+    def test_the_status_cluster_stands_between_staging_and_main(self) -> None:
+        def box(el):
+            return int(el.get("x")), int(el.get("y"))
+        rows = {}
+        for el in self.le:
+            name = el.get("text") if el.tag == "positionablelabel" else (el.get("sensor") or el.get("signalhead"))
+            if el.get("level") == "10" and name in (B.overlay_mod().STATUS_LABELS | B.overlay_mod().STATUS_SENSORS
+                                                     | B.overlay_mod().STATUS_HEADS):
+                rows.setdefault(el.tag == "positionablelabel", []).append(el)
+        captions, lamps = rows[True], rows[False]
+        self.assertEqual((len(captions), len(lamps)), (4, 4))
+        jt = B.importlib.import_module("schematic.jmri_text")
+        rights = {box(c)[0] + jt.width(c.get("text"), 12) for c in captions}
+        self.assertEqual(len(rights), 1)                    # right-justified ...
+        self.assertTrue(all(c.get("justification") == "right" for c in captions))
+        self.assertEqual({box(l)[0] for l in lamps}, {rights.pop() + B.overlay_mod().STATUS_GAP})   # lamps right
+        staging_low = self.P.band_boxes[0][3]
+        main_title = next(lb for lb in self.P.labels if lb["text"] == "MAIN LEVEL")
+        for el in captions + lamps:
+            self.assertGreater(box(el)[1], staging_low - 40)                          # in the gap ...
+            self.assertLess(box(el)[1] + 20, main_title["box"][1])                    # ... above the main level
+        items = B.overlay_mod().frozen_items(B.le_inputs.load().overlay)
+        lone = [it for it in items if not (it.group == "status" and it.el.tag == "positionablelabel" and
+                                           it.text == "LCOS")]
+        with self.assertRaisesRegex(B.overlay_mod().OverlayError, "a lamp with no caption"):
+            B.overlay_mod().arrange_status(lone)
+
+    def test_the_gaps_between_levels_are_as_small_as_is_clean(self) -> None:
+        self.assertEqual(len(self.P.gaps), 2)
+        boxes = self.P.band_boxes
+        for i, gap in enumerate(self.P.gaps):
+            self.assertAlmostEqual(boxes[i + 1][1] - boxes[i][3], gap)
+        titles = [lb for lb in self.P.labels if lb.get("kind") == "title"][1:]
+        extent = B.plugin()[1].extent
+        lows = [max(extent(self.P, 0)[3], self.base[1].overlay["bottom"]), extent(self.P, 1)[3]]
+        for title, low in zip(titles, lows):
+            self.assertAlmostEqual(title["box"][1] - low, B.TITLE_CLEAR, delta=1.0)
 
     def test_station_buttons_show_no_track_word(self) -> None:
         buttons = [el for el in self.le.iter("sensoricon") if (el.get("sensor") or "").startswith("MoveTo")]
@@ -488,8 +534,16 @@ class ThreeLevels(unittest.TestCase):
         bad = copy.deepcopy(B.le_inputs.load().overlay)
         item = next(it for it in bad["items"] if "MoveToTrack_EH-1" in it["xml"])
         item["xml"] = item["xml"].replace('text="EH-1"', 'text="Track EH-1"')
-        with self.assertRaisesRegex(ov.OverlayError, 'shows "Track " before its track'):
+        with self.assertRaisesRegex(ov.OverlayError, 'station button shows "Track " before its track'):
             ov.validate(bad)
+        ok = copy.deepcopy(B.le_inputs.load().overlay)                # "Track Power" is no station button
+        self.assertTrue(any('text="Track Power"' in it["xml"] for it in ok["items"]))
+        ov.validate(ok)
+        live = tables.layout_editor(tables.read(paths.TABLES_XML), LIVE)  # freeze reads a copy: the panel unchanged
+        before = ET.tostring(live)
+        shown = [it.el.get("text") for it in ov.shown_items(live) if ov.is_station_button(it.el)]
+        self.assertIn("EH-1", shown)
+        self.assertEqual(ET.tostring(live), before)
 
     def test_main_and_upper_objects_are_internal_with_device_map_names(self) -> None:
         added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
@@ -551,7 +605,7 @@ class ThreeLevels(unittest.TestCase):
         self.assertGreater(h, B.FIT[1])
         self.assertLessEqual(int(self.le.get("windowwidth")), B.FIT[0])
         self.assertLessEqual(int(self.le.get("windowheight")), B.FIT[1])
-        self.assertEqual(self.le.get("scrollable"), B.le_inputs.load().attrs["scrollable"])    # as frozen
+        self.assertEqual(self.le.get("scrollable"), "both")        # larger than its window: it scrolls both ways
         self.assertGreaterEqual(w, self.P.size[0])
 
     def test_audit_polish_reconcile_and_facts_on_the_candidate(self) -> None:

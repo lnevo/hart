@@ -147,49 +147,49 @@
  "items": [
   {
    "index": 1,
-   "xml": "<sensoricon sensor=\"Bridge HBLOOP\" x=\"24\" y=\"560\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><tooltip>Click: MQTT RESUBSCRIBE (not FORCE)</tooltip><active url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/USS/sensor/s-unknown.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>",
+   "xml": "<sensoricon sensor=\"Bridge HBLOOP\" x=\"104\" y=\"560\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><tooltip>Click: MQTT RESUBSCRIBE (not FORCE)</tooltip><active url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/USS/sensor/s-unknown.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>",
    "group": "status",
    "anchor": null
   },
   {
    "index": 7,
-   "xml": "<positionablelabel x=\"48\" y=\"558\" level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"LCOS\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"left\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
+   "xml": "<positionablelabel x=\"70\" y=\"558\" level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"LCOS\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"right\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
    "group": "status",
    "anchor": null
   },
   {
    "index": 8,
-   "xml": "<signalheadicon signalhead=\"IH9990\" x=\"24\" y=\"588\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" clickmode=\"0\" litmode=\"false\" class=\"jmri.jmrit.display.configurexml.SignalHeadIconXml\"><tooltip>Click: toggle TWOSENSOR/DIRECT on 2-sensor M2T/MTT</tooltip><icons><held url=\"program:resources/icons/USS/sensor/green-off.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></held><dark url=\"program:resources/icons/USS/sensor/green-off.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></dark><red url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></red><yellow url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></yellow><green url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></green><flashred url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></flashred><flashyellow url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></flashyellow><flashgreen url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></flashgreen></icons><iconmaps /></signalheadicon>",
+   "xml": "<signalheadicon signalhead=\"IH9990\" x=\"104\" y=\"588\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" clickmode=\"0\" litmode=\"false\" class=\"jmri.jmrit.display.configurexml.SignalHeadIconXml\"><tooltip>Click: toggle TWOSENSOR/DIRECT on 2-sensor M2T/MTT</tooltip><icons><held url=\"program:resources/icons/USS/sensor/green-off.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></held><dark url=\"program:resources/icons/USS/sensor/green-off.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></dark><red url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></red><yellow url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></yellow><green url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></green><flashred url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></flashred><flashyellow url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></flashyellow><flashgreen url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></flashgreen></icons><iconmaps /></signalheadicon>",
    "group": "status",
    "anchor": null
   },
   {
    "index": 9,
-   "xml": "<positionablelabel x=\"48\" y=\"586\" level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Turnouts\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"left\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
+   "xml": "<positionablelabel x=\"44\" y=\"586\" level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Turnouts\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"right\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
    "group": "status",
    "anchor": null
   },
   {
    "index": 10,
-   "xml": "<sensoricon sensor=\"SML Mode\" x=\"24\" y=\"616\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><tooltip>Click: toggle Digicon SML mode</tooltip><active url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/USS/sensor/s-unknown.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>",
+   "xml": "<sensoricon sensor=\"SML Mode\" x=\"104\" y=\"616\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><tooltip>Click: toggle Digicon SML mode</tooltip><active url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/USS/sensor/s-unknown.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>",
    "group": "status",
    "anchor": null
   },
   {
    "index": 11,
-   "xml": "<positionablelabel x=\"48\" y=\"614\" level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Signals\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"left\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
+   "xml": "<positionablelabel x=\"56\" y=\"614\" level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Signals\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"right\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
    "group": "status",
    "anchor": null
   },
   {
    "index": 12,
-   "xml": "<sensoricon sensor=\"Track Power\" x=\"24\" y=\"644\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><tooltip>LCC layout power: green=ON red=OFF; click toggles track power</tooltip><active url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/USS/sensor/s-unknown.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>",
+   "xml": "<sensoricon sensor=\"Track Power\" x=\"104\" y=\"644\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><tooltip>LCC layout power: green=ON red=OFF; click toggles track power</tooltip><active url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/USS/sensor/s-unknown.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>",
    "group": "status",
    "anchor": null
   },
   {
    "index": 13,
-   "xml": "<positionablelabel x=\"48\" y=\"642\" level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Track Power\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"left\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
+   "xml": "<positionablelabel x=\"24\" y=\"642\" level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Track Power\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"right\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />",
    "group": "status",
    "anchor": null
   },
@@ -243,7 +243,7 @@
   },
   {
    "index": 52,
-   "xml": "<positionablelabel x=\"9\" y=\"0\" level=\"1\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"false\" editable=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\"><icon url=\"preference:resources/misc/hart_panel_bg.jpg\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></icon></positionablelabel>",
+   "xml": "<positionablelabel x=\"9\" y=\"0\" level=\"1\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"false\" editable=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\"><icon url=\"preference:resources/misc/hart_panel_bg_plain.jpg\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></icon></positionablelabel>",
    "group": null,
    "anchor": {
     "kind": "backdrop"

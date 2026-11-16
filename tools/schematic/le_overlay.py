@@ -70,16 +70,12 @@ CARRIED_TAGS = OVERLAY_TAGS - {"BlockContentsIcon"}         # block contents ico
 # px of each icon image (the JMRI 5.16 program resources and the repo's preference resources)
 ICON_SIZES = (("smallschematics/tracksegments/circuit-", (10, 10)), ("icons/USS/sensor/", (21, 21)),
               ("icons/markers/loco-", (60, 20)), ("buttons/triangle_", (16, 16)),
-              ("misc/hart_panel_bg.jpg", (1900, 600)), ("misc/hart_panel_bg_plain.jpg", (1900, 600)),
-              ("misc/hart_panel_compass.png", (111, 115)))
+              ("misc/hart_panel_bg.jpg", (1900, 600)), ("misc/hart_panel_bg_plain.jpg", (1900, 600)))
 # The compass rose is drawn into the hand-drawn panel's backdrop picture (hart_panel_bg.jpg), where captions of the
-# generated panel can land on it. with_compass() carries it as an item of its own instead (owner, 2026-11-16): the
-# backdrop becomes the same picture without it (hart_panel_bg_plain.jpg) and the rose (hart_panel_compass.png, cut
-# from it with its background made clear) is a frame item placed clear of everything, near where it stood.
+# generated panel land on it. The generated panel shows no compass for now (owner, 2026-11-16): freeze() gives it
+# the same picture without the rose (hart_panel_bg_plain.jpg; plain_backdrop).
 BACKDROP_URL = "misc/hart_panel_bg.jpg"
 PLAIN_BACKDROP_URL = "misc/hart_panel_bg_plain.jpg"
-COMPASS_URL = "misc/hart_panel_compass.png"
-COMPASS_AT = (1444, 445)        # px: the rose's corner in the backdrop picture (hart_panel_bg.jpg)
 STATUS_LABELS = {"LCOS", "Turnouts", "Signals", "Track Power"}          # panel_status.py's lamps and captions
 STATUS_SENSORS = {"Bridge HBLOOP", "SML Mode", "Track Power"}
 STATUS_HEADS = {"IH9990"}
@@ -420,6 +416,23 @@ class Item:
     @property
     def centre(self):
         return (self.x + self.w / 2, self.y + self.h / 2)
+
+
+def is_station_button(el) -> bool:
+    """A Dispatcher station cluster's MoveTo button (the loco marker with its track's name)."""
+    return el.tag == "sensoricon" and el.get("level") == STATION_LEVEL and \
+        (el.get("sensor") or "").startswith("MoveTo") and station_key(el.get("sensor")) is not None
+
+
+def shown_items(live_le):
+    """overlay_items of a copy of the hand-drawn panel whose station buttons show their text without "Track "
+    (drop_track_word), so every size and offset is measured from what the generated panel shows; the hand-drawn
+    panel is not changed."""
+    le = copy.deepcopy(live_le)
+    for el in le:
+        if is_station_button(el):
+            drop_track_word(el)
+    return overlay_items(le)
 
 
 def overlay_items(live_le):
@@ -846,16 +859,11 @@ def station_clusters(frozen):
 def panel_station_clusters(live_le):
     """{station block: [Item]} of the station clusters on the hand-drawn panel (--freeze: before the overlay is
     frozen, the same items as station_clusters gives from the frozen file)."""
-    items = overlay_items(live_le)
+    items = shown_items(live_le)            # as freeze() keeps them: the buttons' text without "Track "
     assign_groups(items)
     out = defaultdict(list)
     for it in items:
         if station_block(it.group):
-            if it.el.tag == "sensoricon":           # as freeze() keeps it: its button text without "Track "
-                el = copy.deepcopy(it.el)
-                if drop_track_word(el):
-                    group, it = it.group, Item(el, it.index)
-                    it.group = group
             out[station_block(it.group)].append(it)
     return dict(out)
 
@@ -956,16 +964,17 @@ def freeze(live_le, gen_le, root, le_mod, slots_mod, note: str, switch_prefix: s
     or what it is tied to and its offset from that, the hand-drawn track's bounding box (for the frame items and the
     status cluster), and under "dropped" what the generated panel gives instead (split_generated). `gen_le` is the
     generated panel the items go on: its labels decide which captions it gives. Reads `gen_le` only, and stops
-    unless it gives everything dropped (given())."""
+    unless it gives everything dropped (given()). The station buttons are read as they show on the generated panel
+    (shown_items), the backdrop is the picture without the compass rose (plain_backdrop) and the status cluster is
+    laid out captions right-justified with their lamps on their right (arrange_status); `live_le` is not changed."""
     live = Track(live_le, le_mod, slots_mod, "hand-drawn panel")
     live.le = live_le
     gen = generated(gen_le)
-    items, dropped = split_generated(overlay_items(live_le), live, gen, switch_prefix)
+    items, dropped = split_generated(shown_items(live_le), live, gen, switch_prefix)
     given(dropped, gen, "freeze", switch_prefix)
     tie(items, live, root)
-    for it in items:
-        if it.el.tag == "sensoricon" and station_block(it.group):
-            drop_track_word(it.el)
+    plain_backdrop(items)
+    arrange_status(items)
     return {"_note": note, "frame": list(live.box), "dropped": dropped, "unchained": sorted(live.unchained),
             "items": [dict(index=it.index, xml=element_xml(it.el), group=it.group,
                            anchor=anchor_json(it.anchor) if it.anchor else None) for it in items]}
@@ -1013,8 +1022,10 @@ def validate(frozen, what="overlay.json", switch_prefix="") -> None:
              (" (the generated panel gives one per block)" if el.tag == "BlockContentsIcon" else ""))
         name = f"item {k} ({describe(el)})"
         need(not left_out(el), f"{name}: Entry/Exit sensor icons and yard ladder buttons are not carried (re-freeze)")
-        need(not (el.tag == "sensoricon" and drop_track_word(copy.deepcopy(el))),
-             f"{name}: a sensor icon shows \"Track \" before its track's name (re-freeze drops it)")
+        need(not (is_station_button(el) and drop_track_word(copy.deepcopy(el))),
+             f"{name}: a station button shows \"Track \" before its track's name (re-freeze drops it)")
+        need(not any((c.get("url") or "").endswith(BACKDROP_URL) for c in el.iter()),
+             f"{name}: the backdrop picture with the compass rose in it (re-freeze gives the plain one)")
         need(not (el.tag == "positionablelabel" and switch_number((el.get("text") or "").strip(), switch_prefix)),
              f"{name}: the generated panel gives the switch numbers, so it is not carried (re-freeze)")
         Item(el, it["index"])           # its position, image size and font read, or a clear stop
@@ -1050,33 +1061,47 @@ def validate(frozen, what="overlay.json", switch_prefix="") -> None:
         need(g == "status" or len(g) > len("station "), f"group {g!r} names no station block")
 
 
-def with_compass(frozen):
-    """A copy of the frozen overlay whose backdrop is the picture without the compass rose, plus the rose as an item
-    tied to the frame at the place it had on the hand-drawn panel (backdrop place plus COMPASS_AT); see BACKDROP_URL.
-    Stops unless there is exactly one backdrop and it is the picture with the rose."""
-    validate(frozen)
-    out = copy.deepcopy(frozen)
-    backdrops = [it for it in out["items"] if Item(ET.fromstring(it["xml"]), it["index"]).backdrop]
+STATUS_GAP = 3          # px between a status caption's right edge and its lamp
+
+
+def arrange_status(items) -> None:
+    """Lay out the status cluster (owner, 2026-11-16): each caption right-justified, its lamp on its right, STATUS_GAP
+    px from it; rows and the cluster's left edge as they were. Each caption pairs with the lamp in its row (the
+    lamp's top within 4 px of the caption's). Stops unless every caption has exactly one lamp and every lamp one
+    caption."""
+    status = [it for it in items if it.group == "status"]
+    captions = [it for it in status if it.el.tag == "positionablelabel"]
+    lamps = [it for it in status if it.el.tag != "positionablelabel"]
+    rows = []
+    for c in captions:
+        mine = [l for l in lamps if abs(l.y - c.y) <= 4]
+        if len(mine) != 1:
+            raise OverlayError(f"status cluster: caption {c.text!r} has {len(mine)} lamps in its row, not one")
+        rows.append((c, mine[0]))
+    if len({id(l) for _c, l in rows}) != len(lamps):
+        raise OverlayError("status cluster: a lamp with no caption of its own in its row")
+    if not rows:
+        raise OverlayError("the hand-drawn panel has no status cluster")
+    left = min(it.x for it in status)
+    right = left + max(c.w for c, _l in rows)
+    for c, lamp in rows:
+        c.el.set("x", str(round(right - c.w)))
+        c.el.set("justification", "right")
+        lamp.el.set("x", str(round(right + STATUS_GAP)))
+        c.x, lamp.x = float(c.el.get("x")), float(lamp.el.get("x"))
+
+
+def plain_backdrop(items) -> None:
+    """Give the one backdrop of `items` (from a copy of the hand-drawn panel) the picture without the compass rose
+    (see BACKDROP_URL). Stops unless there is exactly one backdrop and it is the picture with the rose."""
+    backdrops = [it for it in items if it.backdrop]
     if len(backdrops) != 1:
-        raise OverlayError(f"the frozen overlay has {len(backdrops)} backdrop pictures, not one, to take the compass "
-                           "rose from")
-    el = ET.fromstring(backdrops[0]["xml"])
-    icon = el.find("icon")
+        raise OverlayError(f"the hand-drawn panel has {len(backdrops)} backdrop pictures, not one")
+    icon = backdrops[0].el.find("icon")
     if icon is None or not (icon.get("url") or "").endswith(BACKDROP_URL):
         raise OverlayError(f"the backdrop is {icon.get('url') if icon is not None else 'no picture'}, not the "
-                           f"{BACKDROP_URL} the compass rose is cut from")
-    url = icon.get("url")
-    icon.set("url", url[:-len(BACKDROP_URL)] + PLAIN_BACKDROP_URL)
-    backdrops[0]["xml"] = element_xml(el)
-    rose = copy.deepcopy(el)
-    rose.set("x", str(round(num(el, "x", "backdrop") + COMPASS_AT[0])))
-    rose.set("y", str(round(num(el, "y", "backdrop") + COMPASS_AT[1])))
-    rose.set("level", "2")                     # above the backdrop, so not one
-    rose.find("icon").set("url", url[:-len(BACKDROP_URL)] + COMPASS_URL)
-    out["items"].append(dict(index=max(it["index"] for it in out["items"]) + 1, xml=element_xml(rose), group=None,
-                             anchor={"kind": "frame"}))
-    validate(out)
-    return out
+                           f"{BACKDROP_URL} it is drawn from")
+    icon.set("url", icon.get("url")[:-len(BACKDROP_URL)] + PLAIN_BACKDROP_URL)
 
 
 def frozen_items(frozen):
@@ -1153,7 +1178,7 @@ def same_boxes(fixed, P):
 def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str = "", frame_blocks=None) -> dict:
     """Copy every frozen overlay item onto gen_le (see the module text). Returns a report: records [(item, anchor,
     hand-drawn xy, new xy, moved px)], the generated labels and block contents icons placed around ({kind: count}),
-    notes, the new panel size and the blocks whose track is not one run. `frame_blocks`: the blocks of the band the
+    notes, the new panel size, the lowest carried item's bottom and the blocks whose track is not one run. `frame_blocks`: the blocks of the band the
     frame items and the status cluster are tied to (default: every block drawn), so they keep their place against
     that band's track however the panel grows below it. A panel the plugin drew taller than the `fit` window
     (several bands at one band's grid) keeps its items inside the panel instead, and its window is `fit`."""
@@ -1236,8 +1261,9 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
     counts = defaultdict(int)
     for kind, _n, _r in fixed:
         counts[kind] += 1
+    bottom = max(it.new[1] + it.h for it in items if not it.backdrop)       # the lowest carried item's bottom
     return dict(records=records, generated=dict(counts), dropped={k: len(v) for k, v in frozen["dropped"].items()},
-                notes=notes, size=size, unchained=sorted(set(frozen["unchained"]) | set(gen.unchained)))
+                notes=notes, size=size, bottom=bottom, unchained=sorted(set(frozen["unchained"]) | set(gen.unchained)))
 
 
 def room(P, le_mod, fit):

@@ -389,8 +389,8 @@ def icon_element(
         "icon": "yes",
         "class": "jmri.jmrit.display.configurexml.SensorIconXml",
     }
-    display = station_display(station, generated)
     if kind == "move_to":
+        display = station_display(station, generated)
         attributes.update(
             {
                 "text": display,

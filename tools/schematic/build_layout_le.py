@@ -102,6 +102,7 @@ import functools
 import hashlib
 import importlib
 import json
+import math
 import os
 import re
 import sys
@@ -147,13 +148,13 @@ FIT = (1900, 1140)
 # Staging alone fills the window's width long before its height, so its rows may be as far apart as the live
 # panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels.
 STAGING_ROW = 48
-# The cut-over candidates' grid (owner, 2026-11-16). Staging's own fit to the window (STAGING_SCALE, the grid's
-# scale across and down when the staging band alone was fitted into FIT) widened by STRETCH, so that the three-level
+# The cut-over candidates' grid (owner, 2026-11-16). Staging's own fit to the window (the grid's scale across and down
+# when the staging band alone is fitted into FIT at STAGING_ROW, found by the plugin's fit in each staging cut-over
+# build and kept as P.staging_fit) widened by STRETCH, so that the three-level
 # panel has the shape of the window's panel area (FIT less Layout Editor's frame, about 1.74 wide to 1 high) and
 # fills it when zoomed to fit. Rows, their spacing and the band gap do not change. The build stops when the panel's
 # shape drifts more than ASPECT_TOLERANCE from the window's (check_aspect names the factor that would fit it).
-STAGING_SCALE = (0.78466796875, 1.0)
-STRETCH = 1.397
+STRETCH = 1.307
 ASPECT_TOLERANCE = 0.03
 # The plugin's label layer (schematic/le_labels.py): switch numbers as the hand-drawn panel wrote them ("SW-13",
 # 13 px bold), block contents icons on with the plugin's reserve; given to every band through the page options.
@@ -923,19 +924,29 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             scale = base[1].scale
             if page.get("band_align"):
                 raise BuildError("the schematic's page options hold band_align; HART sets it for the panel here")
-            # staging against the left edge: where it stands drawn alone, however wide the other levels are; and
-            # the main level starts below all the staging candidate holds (its carried status cluster and captions
-            # reach below the drawing): the band gap grows by what the overlay added to the staging panel's height
-            gap = le_mod.BAND_GAP + max(0, base[1].overlay["size"][1] - base[1].size[1])
-            P = le_mod.panel(named_bands(bands, names), names, cell=le_mod.CELL * scale[0],
-                             row=STAGING_ROW * scale[1], page=dict(page, band_align={STAGING: "left"}), gap=gap,
-                             labels_by_band=True, **extras)     # staging's labels as when it is drawn alone
-            P.scale, P.fit = scale, None
+            # staging against the left edge, where it stands drawn alone, however wide the other levels are; its
+            # labels placed as when it is drawn alone (labels_by_band); and the gaps between the levels as small as
+            # is clean (owner, 2026-11-16; band_gap): each level's title TITLE_CLEAR px below the lowest thing of
+            # the level above, which for staging is everything its candidate holds (its status cluster stands in
+            # the gap). The main level's lowest label is known only once it is drawn: drawn twice
+            S = base[1]
+            gaps = [band_gap(max(le_mod.extent(S)[3], S.overlay["bottom"]), S.band_boxes[0][3], le_mod),
+                    le_mod.BAND_GAP]
+            draw = lambda g: le_mod.panel(named_bands(bands, names), names, cell=le_mod.CELL * scale[0],  # noqa
+                                          row=STAGING_ROW * scale[1], page=dict(page, band_align={STAGING: "left"}),
+                                          gap=g, labels_by_band=True, **extras)
+            P = draw(gaps)
+            if len(P.band_boxes) > 2:
+                gaps[1:] = [band_gap(le_mod.extent(P, bi)[3], P.band_boxes[bi][3], le_mod)
+                            for bi in range(1, len(P.band_boxes) - 1)]
+                P = draw(gaps)
+            P.scale, P.fit, P.gaps = scale, None, gaps
         elif as_live:               # the staging candidate: the cut-over grid, no fitting (it scrolls in FIT)
-            scale = (STAGING_SCALE[0] * STRETCH, STAGING_SCALE[1])
+            fitted = le_mod.panel(bands, names, page=page, fit=FIT, row=STAGING_ROW, **extras).scale
+            scale = (fitted[0] * STRETCH, fitted[1])
             P = le_mod.panel(bands, names, cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1], page=page,
                              **extras)
-            P.scale, P.fit = scale, None
+            P.scale, P.fit, P.staging_fit = scale, None, fitted
         else:
             rows = {"row": STAGING_ROW} if levels == "staging" else {}
             drawn = named_bands(bands, names) if levels == "all" else bands
@@ -970,10 +981,15 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             if freeze_from is not None:
                 inputs.overlay = ov.freeze(freeze_from, panel_el, root, le_mod, slots_module(), inputs.note,
                                            LE_LABELS["switch_prefix"])
-            P.overlay = ov.carry(ov.with_compass(inputs.overlay), panel_el, P, le_mod, slots_module(), FIT,
+            P.overlay = ov.carry(inputs.overlay, panel_el, P, le_mod, slots_module(), FIT,
                                  LE_LABELS["switch_prefix"], frame_blocks=staging_blocks)
         except ov.OverlayError as exc:
             raise BuildError(f"overlay: {exc}") from None
+        # a panel larger than its window (the cut-over grid: staging alone is wider, three levels wider and taller)
+        # scrolls both ways, so nothing on it is out of reach at 100% zoom; the frozen attribute says "none"
+        w, h = P.overlay["size"]
+        if w + le_mod.CHROME[0] > FIT[0] or h + le_mod.CHROME[1] > FIT[1]:
+            panel_el.set("scrollable", "both")
         # the marker that tells polish_hart_layout_editor.py and the other hand-pixel scripts to leave positions alone
         opts = panel_el.find("layoutTrackDrawingOptions")
         panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
@@ -994,6 +1010,17 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         panel_el = le_mod.to_xml(P, panel_name, attrs, copy.deepcopy(inputs.drawing_options))
         place(root, [panel_el], 1, tables.layout_editors(root)[-1])
     return doc.tobytes(), P, names, bands
+
+
+# px between the lowest thing of one level (labels, readouts, carried items) and the next level's title
+TITLE_CLEAR = 8
+
+
+def band_gap(lowest: float, box_bottom: float, le_mod) -> float:
+    """The gap the plugin leaves below a band whose box (P.band_boxes) ends at `box_bottom` and whose lowest drawn
+    thing ends at `lowest`, so the next band's title stands TITLE_CLEAR px below it (the title is drawn TITLE_GAP
+    above the next band's box, less 4 px)."""
+    return math.ceil(max(0.0, lowest - box_bottom) + le_mod.TITLE_GAP - 4 + TITLE_CLEAR)
 
 
 def check_aspect(size, chrome, fit=FIT, stretch=STRETCH, tolerance=ASPECT_TOLERANCE) -> None:
@@ -1495,6 +1522,9 @@ def main(argv=None) -> int:
         print(f"  mast at a helix join: {line}")
     for line in overlay_lines(getattr(P, "overlay", None)):
         print(f"  overlay: {line}")
+    if getattr(P, "gaps", None):
+        print(f"  gaps between the levels: {', '.join(f'{g:g}' for g in P.gaps)} px; grid {P.scale[0]:.4f} x "
+              f"{P.scale[1]:.4f} (STRETCH {STRETCH})")
     same = getattr(P, "staging_same", None)
     if same is not None:
         print(f"  staging guard: the {'(unapproved) ' if args.review else 'approved '}staging candidate is held "
