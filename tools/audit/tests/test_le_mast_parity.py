@@ -17,10 +17,11 @@ once in the schematic-maps plugin's slots.py and read here from the XML of each 
 - turnout leg X: faces the block of the track on X and protects the turnout's (leg) block, or, when that track is
   in the turnout's own block, the blocks beyond (crossovers pair A with C and B with D by type).
 
-These checks read the all-levels trial. The cut-over candidate (--levels staging --as-live) ends both helix tracks at
-end bumpers as live, so there every mast matches exactly, with no exception (test_le_cutover.py).
+These checks read the all-levels trial and the three-level cut-over candidate (--as-live, owner 2026-11-16). The
+staging-only candidate (--levels staging --as-live) ends both helix tracks at end bumpers as live, so there every
+mast matches exactly, with no exception (test_le_cutover.py).
 
-Exceptions in the all-levels trial (owner's choice, 2026-11-15), and only these, in HELIX_ENTRANCE: on the live panel McKees Rocks and
+Exceptions on both three-level panels (owner's choice, 2026-11-15, option 1), and only these, in HELIX_ENTRANCE: on the live panel McKees Rocks and
 McKeesport end at buffer stops, so their bumper masts protect nothing. The generated panel runs both tracks on
 through the helix to the next level, so there is no bumper: each mast stands on the anchor at the helix entrance
 (the hidden helix run carries the next level's block, so the anchor is a block boundary), facing the same block as
@@ -57,12 +58,18 @@ def masts_by_name(ix) -> dict:
 
 
 class MastParity(unittest.TestCase):
+    PANEL = B.PANEL_NAME
+
+    @classmethod
+    def built(cls):
+        return T.built()
+
     @classmethod
     def setUpClass(cls) -> None:
-        cls.data, cls.P, _names, _bands = T.built()
+        cls.data, cls.P, _names, _bands = cls.built()
         cls.slots = B.slots_module()
         cls.root = tables.loads(cls.data).root
-        cls.gen_le = tables.layout_editor(cls.root, B.PANEL_NAME)
+        cls.gen_le = tables.layout_editor(cls.root, cls.PANEL)
         cls.frozen = {m["mast"]: m for m in B.le_inputs.load_masts()}
         cls.live = {n: dict(mast=n, kind=m["kind"], ident=m["ident"], slot=m["slot"], facing=m["facing"],
                             protects=m["protects"], **({"turnout": m["turnout"]} if m["kind"] == "turnout" else {}))
@@ -135,6 +142,16 @@ class MastParity(unittest.TestCase):
                 deg = math.degrees(math.atan2(d[0], -d[1])) % 360
                 gap = abs((float(icon.get("degrees")) - deg + 180) % 360 - 180)
                 self.assertLessEqual(gap, 3.5, "turned to the direction of travel")
+
+
+class CandidateMastParity(MastParity):
+    """The same checks on the three-level cut-over candidate, whose panel is "HART Railroad"."""
+    PANEL = "HART Railroad"
+
+    @classmethod
+    def built(cls):
+        import test_le_cutover
+        return test_le_cutover.three_levels()
 
 
 if __name__ == "__main__":

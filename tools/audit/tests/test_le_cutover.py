@@ -114,11 +114,11 @@ class Cutover(unittest.TestCase):
         self.assertEqual(T.used_blocks(self.le), frozen_blocks(self.inputs))
         self.assertEqual({s.get("hidden") for s in self.le.findall("tracksegment")}, {"no"})     # no helix joins
 
-    def test_as_live_needs_staging_alone(self) -> None:
-        with self.assertRaisesRegex(B.BuildError, "staging alone"):
-            B.build(levels="all", as_live=True)
+    def test_levels_are_checked(self) -> None:
         with self.assertRaisesRegex(B.BuildError, "levels must be"):
             B.build(levels="main")
+        with self.assertRaisesRegex(B.BuildError, "frozen from the staging cut-over build"):
+            B.build(levels="all", as_live=True, freeze_from=self.le)
 
     # ---- Phase 1: idents, leg letters, masts, sensors
     def test_live_idents_and_leg_letters_are_kept(self) -> None:
@@ -178,15 +178,14 @@ class Cutover(unittest.TestCase):
         for r in self.inputs.sensors:
             self.assertEqual(gen_ix.blocks(r["kind"], r["ident"], r["slot"]), (r["facing"], r["protects"]),
                              r["sensor"])
-        # the NX sensor beans: the frozen set, each bound once and shown by one icon, as frozen
+        # the NX sensor beans: the frozen set, each bound once; no NX sensor icon and no yard ladder button on the
+        # panel (owner, 2026-11-16): the pairs resolve from the bound sensors alone
         nx_beans = {tables.user_name(s) for s in self.root.iter("sensor")
                     if tables.user_name(s).startswith("NX Mast ")}
         self.assertEqual(set(live_slots.values()), nx_beans)
-        icons = lambda els: Counter(i.get("sensor") for i in els if i.tag == "sensoricon"      # noqa: E731
-                                    and (i.get("sensor") or "").startswith("NX "))
-        self.assertEqual(icons(self.le), icons(frozen_items()))
-        self.assertEqual(set(icons(self.le)), nx_beans)
-        self.assertEqual(set(icons(self.le).values()), {1})
+        self.assertFalse([i for i in self.le.iter("sensoricon") if (i.get("sensor") or "").startswith("NX ")])
+        self.assertFalse([i for i in self.le.iter("turnouticon") if (i.get("turnout") or "").startswith("IT:HART:YL:")])
+        self.assertFalse([el for el in frozen_items() if B.overlay_mod().left_out(el)])
         # every Entry/Exit pair's source and destination is bound on the candidate's panel
         bound = set(gen_slots.values())
         masts = {m["mast"] for m in gen_ix.masts()}
@@ -258,7 +257,7 @@ class Cutover(unittest.TestCase):
                                   B.LE_LABELS["switch_prefix"], widths), [])
         live_items = frozen_items()
         self.assertEqual(Counter(el.tag for el in live_items), Counter(
-            sensoricon=103, positionablelabel=10, turnouticon=10, signalheadicon=1))
+            sensoricon=80, positionablelabel=10, signalheadicon=1))
         self.assertEqual(len(self.P.overlay["records"]), len(live_items))
         strip = Counter(ov.strip(el) for el in live_items)
         got = Counter(ov.strip(el) for el in self.le if el.tag in ov.OVERLAY_TAGS)
@@ -310,8 +309,9 @@ class Cutover(unittest.TestCase):
     def test_each_option_set_has_its_own_trial_file(self) -> None:
         self.assertEqual(B.default_out("all", False), B.TRIAL)
         self.assertEqual(B.default_out("staging", False), B.TRIAL_STAGING)
-        self.assertEqual(B.default_out("staging", True), B.CUTOVER)
-        self.assertEqual(len({B.TRIAL, B.TRIAL_STAGING, B.CUTOVER}), 3)
+        self.assertEqual(B.default_out("staging", True), B.CUTOVER_STAGING)
+        self.assertEqual(B.default_out("all", True), B.CUTOVER)
+        self.assertEqual(len({B.TRIAL, B.TRIAL_STAGING, B.CUTOVER, B.CUTOVER_STAGING}), 4)
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "TRIAL_STAGING", Path(tmp) / "s.xml"), \
                 mock.patch.object(B, "TRIAL", Path(tmp) / "a.xml"), \
                 mock.patch.object(B, "build", return_value=(self.data, self.P, self.names, self.bands)):
@@ -331,6 +331,122 @@ class Cutover(unittest.TestCase):
                 self.assertEqual(B.main(["--levels", "staging", "--as-live", "--check", "--out", str(out)]), 0)
             built.assert_called_with(levels="staging", as_live=True)
         self.assertEqual(B.CUTOVER.parent, B.TRIAL.parent)                 # gitignored trial folder
+
+
+@functools.lru_cache(maxsize=None)
+def three_levels():
+    """(candidate bytes, Panel, names, bands) of the three-level candidate (--levels all --as-live), built once."""
+    with contextlib.redirect_stdout(io.StringIO()):
+        return B.build(levels="all", as_live=True)
+
+
+class ThreeLevels(unittest.TestCase):
+    """--levels all --as-live: the staging candidate held unchanged (the build's guard), with main and upper drawn
+    below it at staging's grid, on internal turnouts and blocks under the device map's names (owner, 2026-11-16)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.data, cls.P, cls.names, cls.bands = three_levels()
+        cls.base = cutover()
+        cls.root = tables.loads(cls.data).root
+        cls.le = tables.layout_editor(cls.root, LIVE)
+        cls.device = B.device_names()
+
+    def test_staging_is_the_staging_candidate_but_for_the_helix_joins(self) -> None:
+        self.assertEqual(self.P.staging_same, ["positionablepoint AGE1", "positionablepoint AGE2",
+                                               "positionablepoint EB71", "positionablepoint EB72",
+                                               "tracksegment TG30", "tracksegment TG6"])
+        self.assertEqual(self.P.scale, self.base[1].scale)
+        # the guard stops on any other change: a staging label moved, a staging bean changed
+        for what, edit in (("label", lambda r: next(el for el in tables.layout_editor(r, LIVE).iter("positionablelabel")
+                                                    if el.get("text") == "STAGING LEVEL").set("x", "61")),
+                           ("bean", lambda r: next(t for t in tables.turnouts(r)
+                                                   if tables.user_name(t) == "Switch 1").set("inverted", "true"))):
+            with self.subTest(changed=what):
+                doc = tables.loads(self.data)
+                edit(doc.root)
+                with self.assertRaisesRegex(B.BuildError, "staging guard"):
+                    B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE)
+
+    def test_main_and_upper_objects_are_internal_with_device_map_names(self) -> None:
+        added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
+        added_lb = [b for b in tables.layout_blocks(self.root) if B.is_level_bean(b)]
+        added_b = {tables.user_name(b) for b in tables.blocks(self.root) if B.is_level_bean(b)}
+        self.assertEqual(len(added_t), 41)
+        self.assertTrue(all(tables.system_name(t).startswith("IT:HART:C3:") for t in added_t))
+        self.assertEqual({tables.user_name(t) for t in added_t}, {v for k, v in self.device.items()
+                                                                   if k.startswith("Switch ")})
+        self.assertEqual({tables.user_name(b) for b in added_lb}, {v for k, v in self.device.items()
+                                                                    if not k.startswith("Switch ")})
+        self.assertEqual(added_b, {tables.user_name(b) for b in added_lb})
+        self.assertEqual(len(added_lb), 121)
+        self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
+                            if B.is_level_bean(b)))
+
+    def test_no_masts_or_sensors_on_main_and_upper(self) -> None:
+        level = {t["ident"] for t in self.P.turnouts if t["band"]} | {k for k, p in self.P.points.items() if p["band"]}
+        self.assertFalse([m for m in self.P.masts if m["ident"] in level])
+        written = {self.P.name(i) for i in level}
+        for el in self.le:
+            if el.get("ident") in written:
+                self.assertFalse([k for k in el.attrib if k.endswith(("signalmast", "boundsensor"))], el.get("ident"))
+                self.assertIsNone(el.find("sensorA"))
+
+    def test_helix_masts_stand_at_the_join_anchors(self) -> None:
+        ix = B.slots_module().Index(self.le)
+        got = {m["mast"]: (self.P.name(m["ident"]), m["slot"], ix.blocks(m["kind"], self.P.name(m["ident"]), m["slot"]))
+               for m in self.P.masts if m["mast"] in ("Mast 38RA", "Mast 40RA")}
+        self.assertEqual(got["Mast 38RA"][2], ("Track McKeesport", ["Track 135-H2"]))
+        self.assertEqual(got["Mast 40RA"][2], ("Track McKees Rocks", ["Track 135-H1"]))
+        self.assertTrue(all(v[0].startswith("AGE") for v in got.values()))
+
+    def test_one_block_contents_icon_per_block_on_every_level(self) -> None:
+        icons = Counter(el.get("blockcontents") for el in self.le.iter("BlockContentsIcon"))
+        self.assertEqual(set(icons), T.used_blocks(self.le))
+        self.assertEqual(set(icons.values()), {1})
+        staging = {b["block"] for b in self.base[1].bcis}
+        self.assertEqual(len(staging), 57)
+        size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
+        self.assertEqual({size[b] for b in staging}, {"13"})
+        self.assertEqual({size[b] for b in set(size) - staging}, {str(B.LEVEL_LE_LABELS["block_contents_size"])})
+
+    def test_switch_numbers_and_track_names(self) -> None:
+        labels = [el for el in self.le.iter("positionablelabel") if el.get("text")]
+        numbers = {el.get("text"): el.get("size") for el in labels if el.get("text").startswith("SW-")}
+        # a single crossover reads by its number; the helix-top 129 and 135 keep a half on each level
+        self.assertLessEqual({"SW-101", "SW-225", "SW-245", "SW-129A", "SW-129B", "SW-135A", "SW-135B"}, set(numbers))
+        self.assertNotIn("SW-101A", numbers)
+        self.assertEqual(set(numbers.values()), {"13"})
+        names = {lb["text"] for lb in self.P.labels if lb.get("kind") == "name" and lb["band"]}
+        tracks = {v.removeprefix("Track ") for v in self.device.values() if v.startswith("Track ")}
+        self.assertTrue(names)
+        self.assertLessEqual(names - {"McKees Rocks", "McKeesport"}, tracks)    # the helix tracks keep their names
+        self.assertEqual(len(self.P.names_skipped), len([x for x in self.P.log if "names_last: left out" in x]))
+
+    def test_window_fits_the_display_and_the_panel_scrolls(self) -> None:
+        w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
+        self.assertGreater(h, B.FIT[1])
+        self.assertLessEqual(int(self.le.get("windowwidth")), B.FIT[0])
+        self.assertLessEqual(int(self.le.get("windowheight")), B.FIT[1])
+        self.assertEqual(self.le.get("scrollable"), B.le_inputs.load().attrs["scrollable"])    # as frozen
+        self.assertGreaterEqual(w, self.P.size[0])
+
+    def test_audit_polish_reconcile_and_facts_on_the_candidate(self) -> None:
+        polish = T._load("polish_hart_layout_editor", paths.LAYOUT_SCRIPTS / "polish_hart_layout_editor.py")
+        stations = T._load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
+        facts = T._load("check_layout_facts", T.ROOT / "tools/audit/check_layout_facts.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tables.xml"
+            path.write_bytes(self.data)
+            with contextlib.redirect_stdout(io.StringIO()):
+                for fn in (polish.apply_visual_standard, polish.apply_overlap_cleanup,
+                           polish.apply_block_labels_only):
+                    self.assertEqual(fn(path, check=True)[1], [], fn.__name__)
+                    fn(path, check=False, reference=path)
+                self.assertEqual(stations.main(["--panel", str(path), "--check", "--no-sync"]), 0)
+                self.assertEqual(AUDIT.main(["--strict", "--tables", str(path)]), 0)
+                self.assertEqual(facts.main(["--tables", str(path)]), 0)
+            self.assertEqual(path.read_bytes(), self.data)
 
 
 class Rebuilt(unittest.TestCase):
@@ -552,7 +668,7 @@ class FrozenFiles(unittest.TestCase):
         got = I.load()
         self.assertEqual((len(got.turnouts), len(got.chains), len(got.boundaries), len(got.ends), len(got.segments),
                           len(got.sensors), len(got.masts), len(got.overlay["items"])),
-                         (20, 35, 17, 7, 26, 23, 49, 124))
+                         (20, 35, 17, 7, 26, 23, 49, 91))
         self.assertEqual(got.panel_name, LIVE)
         for f in sorted(I.FOLDER.iterdir()):
             with self.subTest(file=f.name):
@@ -754,6 +870,30 @@ class OverlayErrors(unittest.TestCase):
             ov.Item(ET.fromstring('<positionablelabel text="A" x="z" y="2" size="10"/>'), 0)
         with self.assertRaisesRegex(ov.OverlayError, "no text"):
             ov.Item(ET.fromstring('<positionablelabel text=" " x="1" y="2" size="10"/>'), 0)
+
+    def test_nx_icons_and_ladder_buttons_are_left_out(self) -> None:
+        ov = self.ov
+        nx = ('<sensoricon sensor="NX Mast 2L" x="1" y="2" level="11"><active url="program:resources/icons/USS/sensor/'
+              'green-on.gif"/></sensoricon>')
+        ladder = ('<turnouticon turnout="IT:HART:YL:L1" x="1" y="2" level="10"><closed url="program:resources/icons/'
+                  'buttons/triangle_x.gif"/></turnouticon>')
+        self.assertTrue(ov.left_out(ET.fromstring(nx)))
+        self.assertTrue(ov.left_out(ET.fromstring(ladder)))
+        self.assertFalse(ov.left_out(ET.fromstring(self.LAMP.format(x=1, y=2))))
+        for x in (nx, ladder):          # a frozen file holding one stops: a re-freeze leaves them out
+            with self.subTest(item=x[:30]), self.assertRaisesRegex(ov.OverlayError, "are not carried"):
+                ov.validate(self.frozen((x, None, {"kind": "frame"})))
+
+    def test_the_frame_and_the_room_are_checked(self) -> None:
+        ov = self.ov
+        track = ov.Track(self.panel(), self.le_mod, self.slots, "panel")
+        self.assertEqual(track.box_of(set(track.pieces)), track.box)
+        with self.assertRaisesRegex(ov.OverlayError, "none of the frame's 1 blocks is drawn"):
+            track.box_of({"Track Nowhere"})
+        P = mock.Mock(size=(500, 2000))
+        self.assertEqual(ov.room(P, self.le_mod, B.FIT), (B.FIT[0] - self.le_mod.CHROME[0], 2000))
+        with self.assertRaisesRegex(ov.OverlayError, "leaves no room"):
+            ov.room(P, self.le_mod, (10, 10))
 
     def test_a_cluster_lamp_by_no_station_stops(self) -> None:
         ov = self.ov
