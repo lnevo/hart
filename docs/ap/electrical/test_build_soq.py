@@ -110,17 +110,21 @@ class MemberCopy(unittest.TestCase):
         import fitz
         with tempfile.TemporaryDirectory() as td:
             out = Path(td) / "filled.pdf"
-            f = self.write(Path(td), f'name = "Test Member"\nstreet = "1 Test St"\nfirst_award = true\noutput = "{out}"\n')
+            f = self.write(Path(td), f'name = "Test Membér Ångström"\nstreet = "1 Test St"\nfirst_award = true\noutput = "{out}"\n')
             build_soq.fill_member(f)
             with fitz.open(out) as d:
                 fields = {w.field_name: w.field_value for p in list(d)[:2] for w in p.widgets()}
                 title_text = d[build_soq.FORM_PAGES].get_text()
+                fonts = [f[3] for f in d.get_page_fonts(build_soq.FORM_PAGES)]
             size = out.stat().st_size
-        self.assertEqual(fields["s Name"], "Test Member")
-        self.assertIn("Test Member", title_text)
+        self.assertEqual(fields["s Name"], "Test Membér Ångström")
+        self.assertIn("Test Membér Ångström", title_text)
+        name_fonts = [f for f in fonts if "Arial Unicode" in f]
+        self.assertTrue(name_fonts and all(re.match(r"[A-Z]{6}\+", f) for f in name_fonts), fonts)   # embedded as a subset
         self.assertNotIn(build_soq.title_member_placeholder(), title_text)
         self.assertLess(size, build_soq.OUT_PDF.stat().st_size + 2_000_000)   # the name font is subset, not whole
-        self.assertEqual(fields["NAME"], "Test Member")
+        self.assertLess(size, 20_000_000)                                     # well under Gmail's 25 MB
+        self.assertEqual(fields["NAME"], "Test Membér Ångström")
         self.assertEqual(fields["Street"], "1 Test St")
         self.assertNotIn(fields[build_soq.FIRST_AWARD], ("Off", "", None))
 
