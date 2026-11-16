@@ -541,7 +541,16 @@ class ThreeLevels(unittest.TestCase):
                 dx = (p["D"][0] + p["C"][0] - p["A"][0] - p["B"][0]) / 2
                 dy = (p["D"][1] + p["C"][1] - p["A"][1] - p["B"][1]) / 2
                 angles.add(round(math.degrees(math.atan2(abs(dy), abs(dx))), 1))
-        self.assertEqual(len(angles), 1, angles)
+        self.assertEqual(angles, {B.CROSSOVER_ANGLE}, angles)        # the schematic's own diverging angle
+        # South Yard's lamps on one x, each on its own track
+        lamps = {el.get("sensor"): el for el in self.le.iter("sensoricon")
+                 if el.get("sensor") in B.LAMP_COLUMNS[0] and el.get("level") == "10"}
+        self.assertEqual(set(lamps), set(B.LAMP_COLUMNS[0]))
+        self.assertEqual(len({el.get("x") for el in lamps.values()}), 1)
+        with self.assertRaisesRegex(B.overlay_mod().OverlayError, "kept no box"):
+            items = B.overlay_mod().frozen_items(B.le_inputs.load().overlay)
+            its = B.overlay_mod().lamp_column_items(items, B.LAMP_COLUMNS)[0]
+            B.overlay_mod().lamp_column(its, B.LAMP_COLUMNS[0], mock.Mock(lamps=[]), None, None)
         # South Yard's names on one centre x
         jt = B.importlib.import_module("schematic.jmri_text")
         centres = {round(int(el.get("x")) + jt.width(el.get("text"), int(el.get("size")), False) / 2)

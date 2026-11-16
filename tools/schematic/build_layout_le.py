@@ -703,6 +703,8 @@ def shared_turnouts(names: dict) -> None:
 # Track names on the cut-over candidates that stand on one centre x (owner, 2026-11-16): South Yard's, in the middle
 # of the yard between its ladders (the plugin's name_columns)
 NAME_COLUMNS = [["S-R", "S-1", "S-2", "S-3", "S-4"]]
+# Occupancy lamps that share one x on the cut-over candidates (owner, 2026-11-16): South Yard's, each on its track
+LAMP_COLUMNS = [{"BS S-R": "S-R", "BS S-1": "S-1", "BS S-2": "S-2", "BS S-3": "S-3", "BS S-4": "S-4"}]
 
 
 # Station clusters that step along one slope (owner, 2026-11-16): the engine house's buttons, one row apart. Each after
@@ -736,7 +738,8 @@ def staging_columns(bands):
         if band_key(title) == STAGING:
             if "le_labels" in (opts or {}):
                 raise BuildError(f"{title}: its preferences already hold le_labels; HART sets them here")
-            opts = dict(opts or {}, le_labels={"name_columns": [list(g) for g in NAME_COLUMNS]})
+            opts = dict(opts or {}, le_labels={"name_columns": [list(g) for g in NAME_COLUMNS],
+                                               "lamp_columns": [list(g.values()) for g in LAMP_COLUMNS]})
         out.append((title, band, opts))
     return out
 
@@ -1008,12 +1011,12 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             S = base[1]
             gaps = [band_gap(max(le_mod.extent(S)[3], S.overlay["bottom"]), S.band_boxes[0][3], le_mod),
                     le_mod.BAND_GAP]
-            # every single crossover at staging's angle (one grid column across), however each level is stretched
+            # every single crossover at CROSSOVER_ANGLE, however each level is stretched
             stepped = with_x(extras, S.station_x)       # the station clusters where staging's candidate has them
             draw = lambda g: le_mod.panel(staging_columns(named_bands(bands, names)), names,  # noqa: E731
                                           cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1],
                                           page=dict(page, band_align={STAGING: "left"}), gap=g, labels_by_band=True,
-                                          crossover_run=le_mod.CELL * scale[0], **stepped)
+                                          crossover_run=crossover_run(scale), **stepped)
             P = draw(gaps)
             if len(P.band_boxes) > 2:
                 gaps[1:] = [band_gap(le_mod.extent(P, bi)[3], P.band_boxes[bi][3], le_mod)
@@ -1024,7 +1027,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             fitted = le_mod.panel(bands, names, page=page, fit=FIT, row=STAGING_ROW, **extras).scale
             scale = (fitted[0] * STRETCH, fitted[1])
             draw = lambda e: le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0],  # noqa: E731
-                                          row=STAGING_ROW * scale[1], page=page, **e)
+                                          row=STAGING_ROW * scale[1], page=page, crossover_run=crossover_run(scale),
+                                          **e)
             P = draw(extras)
             xs = cluster_steps(P, STATION_STEPS) if extras else {}
             if xs:                  # again, with the stepped clusters placed at their x (STATION_STEPS)
@@ -1065,7 +1069,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                 inputs.overlay = ov.freeze(freeze_from, panel_el, root, le_mod, slots_module(), inputs.note,
                                            LE_LABELS["switch_prefix"])
             P.overlay = ov.carry(inputs.overlay, panel_el, P, le_mod, slots_module(), FIT,
-                                 LE_LABELS["switch_prefix"], frame_blocks=staging_blocks)
+                                 LE_LABELS["switch_prefix"], frame_blocks=staging_blocks, lamp_columns=LAMP_COLUMNS)
         except ov.OverlayError as exc:
             raise BuildError(f"overlay: {exc}") from None
         # a panel larger than its window (the cut-over grid: staging alone is wider, three levels wider and taller)
@@ -1093,6 +1097,17 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         panel_el = le_mod.to_xml(P, panel_name, attrs, copy.deepcopy(inputs.drawing_options))
         place(root, [panel_el], 1, tables.layout_editors(root)[-1])
     return doc.tobytes(), P, names, bands
+
+
+# The angle every single crossover crosses at on the cut-over candidates (owner, 2026-11-16): the schematic's own
+# diverging angle for turnouts and yard ladders, one grid column across per row, so 45 degrees on the sheet's square
+# grid. A crossover with no room for it is drawn as steep as it must be (the plugin logs which, at what angle).
+CROSSOVER_ANGLE = 45.0
+
+
+def crossover_run(scale) -> float:
+    """px across a single crossover's diagonal runs at CROSSOVER_ANGLE, one row (STAGING_ROW at `scale`) deep."""
+    return STAGING_ROW * scale[1] / math.tan(math.radians(CROSSOVER_ANGLE))
 
 
 # px between the lowest thing of one level (labels, readouts, carried items) and the next level's title

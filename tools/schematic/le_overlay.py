@@ -35,6 +35,8 @@ that thing on the new panel:
 - frame: what is tied to no track (region captions, any item over NEAR px from the track) keeps
   its place against the track's bounding box: across it by share, outside it by distance (the staging band's box
   when the panel holds more levels: carry's `frame_blocks`);
+- a lamp column (carry's `lamp_columns`): those lamps in the boxes the plugin kept clear on their tracks, on one x
+  (the plugin's lamp_columns; lamp_column);
 - the status cluster: at the right of the panel, as low below the staging track as it stood (status_target);
 - backdrop: the background picture (an icon label at level 1 or below) stays at its live x and y, under everything.
 The station clusters (level 12, one per Dispatcher station: a loco marker with its track's name and two lamps) and
@@ -697,6 +699,41 @@ def frame_point(p, live_box, gen_box):
     return tuple(out)
 
 
+def lamp_column_items(items, lamp_columns):
+    """[[Item]] per group of `lamp_columns` ([{sensor: track}]): the occupancy lamps of those sensors. Stops on a
+    sensor with no lamp of its own."""
+    out = []
+    for group in lamp_columns:
+        its = []
+        for sensor in group:
+            got = [it for it in items if it.lamp and it.el.get("sensor") == sensor and not it.group]
+            if len(got) != 1:
+                raise OverlayError(f"lamp column: sensor {sensor} has {len(got)} lamps of its own, not one")
+            its.append(got[0])
+        out.append(its)
+    return out
+
+
+def lamp_column(its, group, P, obstacles, bounds):
+    """[(x, y)] corners for a lamp column (owner, 2026-11-16): each lamp in the box the plugin's label layer kept
+    clear for it on its own track (P.lamps, by the track `group` gives its sensor), one x for them all. Stops when
+    the plugin kept no box of the lamp's size for a track, or a lamp there meets a carried item."""
+    boxes = {lp["track"]: lp["box"] for lp in getattr(P, "lamps", ())}
+    out = []
+    for it in its:
+        track = group[it.el.get("sensor")]
+        box = boxes.get(track)
+        if box is None or (round(box[2], 1), round(box[3], 1)) != (round(it.w, 1), round(it.h, 1)):
+            raise OverlayError(f"lamp column: the plugin kept {'no box' if box is None else f'a {box[2]}x{box[3]} box'} "
+                               f"for {it.what} on track {track} (its lamp is {it.w:g}x{it.h:g})")
+        r = Rect(box[0], box[1], it.w, it.h)
+        hit = obstacles.hits(r, True)
+        if hit or not inside([r], bounds):
+            raise OverlayError(f"lamp column: {it.what} on track {track} meets {hit or 'the window edge'}")
+        out.append((round(box[0]), round(box[1])))
+    return out
+
+
 def in_circle(its) -> bool:
     """True for a lone occupancy lamp of a switch's OS block (tied to its turnout): it stands centred in that
     turnout's control circle, or a crossover half's lamp in its own half's (Track.turnout_point), by the owner's
@@ -915,6 +952,8 @@ def rank(unit):
     its = unit["items"]
     if its[0].backdrop:
         return ORDER.index("backdrop")
+    if unit["key"].startswith("column "):
+        return ORDER.index("lamp")
     if unit["key"] == "status":
         return ORDER.index("status")
     if unit["key"].startswith("station "):
@@ -1196,7 +1235,8 @@ def same_boxes(fixed, P):
                            "; ".join(bad))
 
 
-def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str = "", frame_blocks=None) -> dict:
+def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str = "", frame_blocks=None,
+          lamp_columns=()) -> dict:
     """Copy every frozen overlay item onto gen_le (see the module text). Returns a report: records [(item, anchor,
     hand-drawn xy, new xy, moved px)], the generated labels and block contents icons placed around ({kind: count}),
     notes, the new panel size, the lowest carried item's bottom and the blocks whose track is not one run. `frame_blocks`: the blocks of the band the
@@ -1219,10 +1259,12 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
     W, H = room(P, le_mod, fit)
     bounds = (0, TOP, W - EDGE, H - EDGE)       # inside the window (or panel), so fit_size never moves the panel
 
-    # units: a group moves as one, every other item alone
+    # units: a group moves as one, every other item alone; a lamp column's lamps are placed together
+    columns = lamp_column_items(items, lamp_columns)
+    in_column = {id(it): k for k, its in enumerate(columns) for it in its}
     groups = defaultdict(list)
     for it in items:
-        groups[it.group or f"item {it.index}"].append(it)
+        groups[it.group or (f"column {in_column[id(it)]}" if id(it) in in_column else f"item {it.index}")].append(it)
     units = sorted((dict(key=key, items=its) for key, its in groups.items()),
                    key=lambda u: (rank(u), u["items"][0].index))
     records = []
@@ -1234,6 +1276,12 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
                 records.append(dict(item=it.what, anchor="backdrop", live=(it.x, it.y), new=it.new, nudged=0.0))
             continue
         what = u["key"] if not u["key"].startswith("item ") else its[0].what
+        if u["key"].startswith("column "):
+            for i, new in zip(its, lamp_column(its, lamp_columns[int(u["key"].split()[1])], P, obstacles, bounds)):
+                i.new = new
+                obstacles.add_rect(i.what, Rect(new[0], new[1], i.w, i.h))
+                records.append(dict(item=i.what, anchor="lamp column", live=(i.x, i.y), new=new, nudged=0.0))
+            continue
         block = station_block(u["key"])
         if block:
             dx, dy = station_shift(its, block, P)
