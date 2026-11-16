@@ -89,5 +89,42 @@ class PlanClips(unittest.TestCase):
             self.assertIn("<title", svg, name)
 
 
+class MemberCopy(unittest.TestCase):
+    """--member: the private filled copy (dummy data, temporary folders outside the repo)."""
+
+    def write(self, folder: Path, body: str) -> Path:
+        f = folder / "member.toml"
+        f.write_text(body)
+        return f
+
+    def test_fills_the_member_fields_outside_the_repo(self):
+        import tempfile
+        import fitz
+        with tempfile.TemporaryDirectory() as td:
+            out = Path(td) / "filled.pdf"
+            f = self.write(Path(td), f'name = "Test Member"\nstreet = "1 Test St"\nfirst_award = true\noutput = "{out}"\n')
+            build_soq.fill_member(f)
+            fields = {w.field_name: w.field_value for p in list(fitz.open(out))[:2] for w in p.widgets()}
+        self.assertEqual(fields["s Name"], "Test Member")
+        self.assertEqual(fields["NAME"], "Test Member")
+        self.assertEqual(fields["Street"], "1 Test St")
+        self.assertNotIn(fields[build_soq.FIRST_AWARD], ("Off", "", None))
+
+    def test_refuses_output_inside_the_repo(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            f = self.write(Path(td), f'name = "X"\noutput = "{HERE / "filled.pdf"}"\n')
+            with self.assertRaises(SystemExit):
+                build_soq.fill_member(f)
+        self.assertFalse((HERE / "filled.pdf").exists())
+
+    def test_refuses_unknown_keys(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            f = self.write(Path(td), 'nam = "typo"\n')
+            with self.assertRaises(SystemExit):
+                build_soq.fill_member(f)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -29,7 +29,7 @@ Owner facts (2026-11-15): each auto-reverser's output passes through a DNCT2B be
 
 All photographs are in (punch list complete, 2026-11-15).
 
-1. On a private copy outside the repo (`~/Documents/NMRA AP/`): name, NMRA number, address, date and signature on the form. Never in the repo.
+1. Fill `~/Documents/NMRA AP/soq-member.toml` (name, NMRA number and expiry, address, email, phone, date, first award, optional signature image), then run `build_soq.py --member "~/Documents/NMRA AP/soq-member.toml"`. It writes the filled PDF next to that file; it refuses to read or write inside a git checkout, so personal details never enter the repo.
 2. Confirm the terminal strip positions in Section 3.2 (1–2 and 3–4 DCC buses, 5 +12 V, 6 +5 V, 7 +3 V, 8 ground). They come from docs/wiring/terminal_blocks.md, which is marked not verified.
 3. Check the indication half of drawing D4 against the wires on one crossover, and note how a crossover's fascia Touch Toggle lights are fed (the text only claims the computer panel waits for both halves).
 4. Confirm how the feeders pass through a DNCT2B channel (D2, D5 show both feeders of the pair through one channel).

@@ -97,11 +97,7 @@
   <h2 id="req1">Requirement 1: the control system</h2>
 
   <h3 id="req1-two">Two trains at once</h3>
-  <p>The layout runs on DCC. Every locomotive has a decoder with its own address, and it only follows commands sent to that address. So two trains can run at the same time anywhere on the main line, in either direction, each on its own throttle.</p>
-  <figure class="photo" id="photo-power">
-    <img src="photos/power-board.jpg" alt="A plywood panel holding a TCS CS-105 command station, a TCS B-106 booster, five green DCC Specialties boards with their status lamps lit, and terminal strips joining them with red and black wire.">
-    <figcaption>The power panel: TCS CS-105 command station (top right), TCS B-106 booster (below it), the PSX breaker and auto-reverser boards (left) and the terminal strips.</figcaption>
-  </figure>
+  <p>The layout runs on DCC. Every locomotive has a decoder with its own address, and it only follows commands sent to that address. So two trains can run at the same time anywhere on the main line, in either direction, each on its own throttle. The command station and booster are shown in <a class="xref" href="#photo-power"></a>, in Section 3.7.</p>
   <figure class="photo" id="photo-two-trains" data-punch="PL-01">
     <img src="photos/two-trains.jpg" alt="Locomotives 2091 and Conrail 1993 side by side on two tracks, each pulling its own train, both moving at the same time.">
     <figcaption>Two trains running at the same time, each under its own control: 2091 (left) and 1993 (right).</figcaption>
@@ -196,12 +192,16 @@
   </div>
 
   <h3 id="req1-protect">Power supply and protection</h3>
-  <p>The command station and booster feed the districts through a set of terminal strips (the booster matrix). Each district has its own protection (drawing D1):</p>
+  <p>The command station and booster feed the districts through a set of terminal strips (the booster matrix). Each district has its own protection (drawing D1 and <a class="xref" href="#photo-power"></a>):</p>
   <ul>
     <li>Districts A to D: one DCC Specialties PSX circuit breaker each. The breaker cuts power within milliseconds of a short and turns it back on when the short is cleared.</li>
     <li>RS-1 and RS-2: the NCE AR10 and the DCC Specialties PSXX-AR. They flip polarity when a train crosses the gap, and shut off if a short lasts.</li>
   </ul>
   <p>The command station and booster also have their own short protection. The booster matrix has room for a second booster if I need one later.</p>
+  <figure class="photo" id="photo-power">
+    <img src="photos/power-board.jpg" alt="A plywood panel holding a TCS CS-105 command station, a TCS B-106 booster, five green DCC Specialties boards with their status lamps lit, and terminal strips joining them with red and black wire.">
+    <figcaption>The power panel: TCS CS-105 command station (top right), TCS B-106 booster (below it), and the DCC Specialties circuit breaker and auto-reverser boards (left) that protect each district, joined by the terminal strips of the booster matrix.</figcaption>
+  </figure>
 </section>
 
 <!-- ============================================================ 4 -->
