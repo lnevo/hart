@@ -28,7 +28,7 @@ from hartlib import paths  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DEFAULT_GLOBS = ("www/ai/*.html", "www/library/*.html", "www/behind/*.html",
-                 "www/guides/*.html", "www/ap/*.html", "www/exam/index.html")
+                 "www/guides/*.html", "www/ap/*.html", "www/exam/index.html", "www/exam/run.html")
 
 # (pattern, why it is flagged). Case-insensitive, matched on the text with tags removed,
 # entities decoded, curly apostrophes made straight and line breaks joined.
