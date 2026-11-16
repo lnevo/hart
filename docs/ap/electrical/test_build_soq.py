@@ -209,14 +209,23 @@ class Frozen(unittest.TestCase):
     """SUBMITTED.md freezes the package: no build or fill without --unfreeze and a reason."""
 
     def test_build_and_fill_refuse_without_unfreeze(self):
+        import tempfile
         from unittest import mock
-        self.assertTrue(build_soq.SUBMITTED.exists())
-        for argv in (["build_soq.py"], ["build_soq.py", "--member", "/tmp/x.toml"], ["build_soq.py", "--unfreeze", "  "]):
-            with mock.patch.object(sys, "argv", argv), \
-                    mock.patch("make_drawings.main", side_effect=AssertionError("drawings rebuilt")):
-                with self.assertRaises(SystemExit) as cm:
-                    build_soq.main()
-            self.assertIn("submitted", str(cm.exception))
+        with tempfile.TemporaryDirectory() as td:
+            marker = Path(td) / "SUBMITTED.md"
+            marker.write_text("frozen")
+            for argv in (["build_soq.py"], ["build_soq.py", "--member", "/tmp/x.toml"], ["build_soq.py", "--unfreeze", "  "]):
+                with mock.patch.object(build_soq, "SUBMITTED", marker), mock.patch.object(sys, "argv", argv), \
+                        mock.patch("make_drawings.main", side_effect=AssertionError("drawings rebuilt")):
+                    with self.assertRaises(SystemExit) as cm:
+                        build_soq.main()
+                self.assertIn("submitted", str(cm.exception))
+
+    def test_committed_pdf_is_the_submitted_one(self):
+        import hashlib
+        if not build_soq.SUBMITTED.exists():
+            self.skipTest("package not frozen")
+        self.assertEqual(hashlib.sha256(build_soq.OUT_PDF.read_bytes()).hexdigest(), build_soq.submitted_sha())
 
 
 class BuiltPdf(unittest.TestCase):

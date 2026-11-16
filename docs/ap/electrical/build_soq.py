@@ -20,6 +20,7 @@ The form's personal fields stay blank in the repo; --member writes a filled copy
 from __future__ import annotations
 
 import argparse
+import hashlib
 import datetime as dt
 import html
 import re
@@ -480,6 +481,14 @@ def inside_repo(path: Path) -> bool:
     return r.returncode == 0 and r.stdout.strip() == "true"
 
 
+def submitted_sha() -> str:
+    """The public build's SHA-256 recorded in SUBMITTED.md (the first 64-hex value in its table)."""
+    m = re.search(r"`([0-9a-f]{64})`", SUBMITTED.read_text())
+    if not m:
+        die(f"{SUBMITTED.name}: no SHA-256 for the public build")
+    return m.group(1)
+
+
 def stale_sources(pdf: Path) -> list[str]:
     """Inputs of the SOQ newer than the built PDF (the member copy must start from a current build)."""
     if not pdf.exists():
@@ -536,7 +545,13 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
     sig = near(data["signature_image"]) if data.get("signature_image") else None
     if sig and not sig.is_file():
         die(f"signature_image {sig} not found")
-    stale = stale_sources(src)
+    if SUBMITTED.exists():                                # frozen: the PDF must be the one that was sent
+        recorded, actual = submitted_sha(), hashlib.sha256(src.read_bytes()).hexdigest()
+        if actual != recorded:
+            die(f"{src.name} is not the submitted build ({actual[:12]} != {recorded[:12]} in {SUBMITTED.name})")
+        stale = []
+    else:
+        stale = stale_sources(src)
     if stale:
         die(f"{src.name} is older than {', '.join(stale[:5])}; run the full build first so the copy is current")
     import fitz
