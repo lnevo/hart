@@ -186,6 +186,10 @@ class Cutover(unittest.TestCase):
         self.assertFalse([i for i in self.le.iter("sensoricon") if (i.get("sensor") or "").startswith("NX ")])
         self.assertFalse([i for i in self.le.iter("turnouticon") if (i.get("turnout") or "").startswith("IT:HART:YL:")])
         self.assertFalse([el for el in frozen_items() if B.overlay_mod().left_out(el)])
+        dropped = self.inputs.overlay["dropped"]
+        self.assertEqual(set(dropped["nx_icons"]), nx_beans)                 # recorded as dropped, as every drop
+        self.assertEqual(len(dropped["ladder_buttons"]), 10)
+        self.assertEqual(self.P.overlay["dropped"]["nx_icons"], 23)
         # every Entry/Exit pair's source and destination is bound on the candidate's panel
         bound = set(gen_slots.values())
         masts = {m["mast"] for m in gen_ix.masts()}
@@ -322,6 +326,23 @@ class Cutover(unittest.TestCase):
             self.assertTrue((Path(tmp) / "s.xml").exists())
             self.assertFalse((Path(tmp) / "a.xml").exists())
 
+    def test_approve_staging_options_and_the_staging_file_beside_the_candidate(self) -> None:
+        with contextlib.redirect_stdout(io.StringIO()):
+            for argv in (["--approve-staging", "--levels", "staging"], ["--approve-staging", "--as-live"],
+                         ["--approve-staging", "--check"]):
+                self.assertEqual(B.main(argv), 1, argv)
+        P = mock.Mock(staging_data=b"staging", log=[], mast_notes=[], moved=[], overlay=None, staging_same=["x"])
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "build", return_value=(self.data, P, {}, [])), \
+                mock.patch.object(B.tables, "loads") as loads, mock.patch.object(B, "plugin") as plug:
+            le_mod = mock.Mock()
+            le_mod.summary.return_value = "s"
+            plug.return_value = (None, le_mod, None)
+            out = Path(tmp) / "c.xml"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(B.main(["--as-live", "--out", str(out)]), 0)
+            self.assertEqual([c.kwargs.get("path") for c in loads.call_args_list], [out, Path(tmp) / "c_staging.xml"])
+            self.assertEqual(loads.call_args_list[1].args[0], b"staging")
+
     def test_check_mode_and_out(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
                 B, "build", return_value=(self.data, self.P, self.names, self.bands)) as built:
@@ -353,20 +374,62 @@ class ThreeLevels(unittest.TestCase):
         cls.device = B.device_names()
 
     def test_staging_is_the_staging_candidate_but_for_the_helix_joins(self) -> None:
-        self.assertEqual(self.P.staging_same, ["positionablepoint AGE1", "positionablepoint AGE2",
-                                               "positionablepoint EB71", "positionablepoint EB72",
-                                               "tracksegment TG30", "tracksegment TG6"])
+        self.assertEqual(sorted(self.P.staging_same), [
+            "end bumper EB71 -> anchor AGE2 (hidden join TG221 to Track 135-H1, Mast 40RA)",
+            "end bumper EB72 -> anchor AGE1 (hidden join TG220 to Track 135-H2, Mast 38RA)",
+            "track segment TG30 connect2name EB72 -> AGE1",
+            "track segment TG6 connect2name EB71 -> AGE2"])
         self.assertEqual(self.P.scale, self.base[1].scale)
-        # the guard stops on any other change: a staging label moved, a staging bean changed
-        for what, edit in (("label", lambda r: next(el for el in tables.layout_editor(r, LIVE).iter("positionablelabel")
-                                                    if el.get("text") == "STAGING LEVEL").set("x", "61")),
-                           ("bean", lambda r: next(t for t in tables.turnouts(r)
-                                                   if tables.user_name(t) == "Switch 1").set("inverted", "true"))):
+        self.assertEqual(self.P.staging_data, self.base[0])
+
+    def test_the_guard_stops_on_any_other_change(self) -> None:
+        def el(root, tag, **attrs):
+            le = tables.layout_editor(root, LIVE)
+            return next(e for e in le.iter(tag) if all(e.get(k) == v for k, v in attrs.items()))
+        edits = {
+            "a staging label moved": lambda r: el(r, "positionablelabel", text="STAGING LEVEL").set("x", "61"),
+            "a staging bean changed": lambda r: next(t for t in tables.turnouts(r)
+                                                     if tables.user_name(t) == "Switch 1").set("inverted", "true"),
+            "a reconnected segment's block": lambda r: el(r, "tracksegment", ident="TG6").set("blockname", "Track X"),
+            "a reconnected segment's geometry": lambda r: el(r, "tracksegment", ident="TG30").set("arc", "yes"),
+            "a join anchor moved": lambda r: el(r, "positionablepoint", ident="AGE1").set("x", "1600.0"),
+            "a join anchor's mast slot": lambda r: el(r, "positionablepoint", ident="AGE2").set(
+                "westboundsignalmast", "Mast 40RA"),
+            "a join shown": lambda r: el(r, "tracksegment", ident="TG220").set("hidden", "no"),
+            "a helix mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38RA").set("x", "1"),
+            "a staging BCI moved": lambda r: el(r, "BlockContentsIcon", blockcontents="Track K-1").set("y", "1"),
+        }
+        for what, edit in edits.items():
             with self.subTest(changed=what):
                 doc = tables.loads(self.data)
                 edit(doc.root)
                 with self.assertRaisesRegex(B.BuildError, "staging guard"):
                     B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE)
+
+    def test_staging_is_the_approved_panel(self) -> None:
+        le = tables.layout_editor(tables.loads(self.base[0]).root, LIVE)
+        B.check_approved(le, B.APPROVED)                                   # as committed
+        moved = copy.deepcopy(le)
+        next(e for e in moved.iter("positionablelabel") if e.get("text") == "STAGING LEVEL").set("x", "61")
+        with self.assertRaisesRegex(B.BuildError, r"element \d+ is positionablelabel STAGING LEVEL, approved "
+                                                  r"positionablelabel STAGING LEVEL \(changed\)"):
+            B.check_approved(moved, B.APPROVED)
+        fewer = copy.deepcopy(le)
+        fewer.remove(fewer[-1])
+        with self.assertRaisesRegex(B.BuildError, "not the one the owner approved"):
+            B.check_approved(fewer, B.APPROVED)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "a.sha256"
+            B.write_approved(moved, path, date="2026-11-16")
+            self.assertIn("approved by the owner in PanelPro on 2026-11-16", path.read_text())
+            B.check_approved(moved, path)
+            with self.assertRaisesRegex(B.BuildError, "not the one the owner approved"):
+                B.check_approved(le, path)
+            path.write_text("# note\nnot a hash\n")
+            with self.assertRaisesRegex(B.BuildError, "line 2: not"):
+                B.check_approved(le, path)
+            with self.assertRaisesRegex(B.BuildError, "--approve-staging"):
+                B.check_approved(le, Path(tmp) / "none")
 
     def test_main_and_upper_objects_are_internal_with_device_map_names(self) -> None:
         added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
@@ -772,14 +835,18 @@ class OverlayErrors(unittest.TestCase):
             '<positionablelabel text="116" x="1" y="2" size="13"/>',        # an equipment label, no prefix
             '<positionablelabel text="Industries" x="1" y="2" size="16"/>',
             '<positionablelabel x="0" y="0" level="1"><icon url="program:misc/hart_panel_bg.jpg"/>'
-            '</positionablelabel>'))]
+            '</positionablelabel>',
+            '<sensoricon sensor="NX Mast 2L" x="1" y="2" level="11"><active url="program:resources/icons/USS/sensor/'
+            'green-on.gif"/></sensoricon>',
+            '<turnouticon turnout="IT:HART:YL:L1" x="1" y="2" level="10"><closed url="program:resources/icons/'
+            'buttons/triangle_x.gif"/></turnouticon>'))]
         # an unblocked segment gives Track.pieces the block "": a label with no text is no track name
         live.pieces[""] = [((0, 0), (1, 0))]
         kept, dropped = ov.split_generated(items, live, gen, "SW-")
         self.assertEqual([it.text for it in kept], ["116", "Industries", None])
         self.assertTrue(kept[-1].backdrop)
         self.assertEqual(dropped, dict(block_contents=["W"], switch_numbers=["1", "35A"], track_names=["E"],
-                                       captions=["Brick"]))
+                                       captions=["Brick"], nx_icons=["NX Mast 2L"], ladder_buttons=["IT:HART:YL:L1"]))
         self.assertIsNone(ov.switch_number("SW-1", ""))           # no prefix: nothing is a switch label
         self.assertIsNone(ov.switch_number("SW-1x", "SW-"))
         dropped["switch_numbers"] = ["1"]

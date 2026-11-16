@@ -82,10 +82,12 @@ TOP = 6                 # px: nothing above this on the panel
 EDGE = 20               # px kept free beyond the furthest item at the right and the bottom
 CLEAR = 1.5             # px from a track line or turnout leg an item must keep
 TURNOUT_R = 8           # px around a turnout's centre: its control circle
-DROPPED = ("block_contents", "switch_numbers", "track_names", "captions")     # overlay.json "dropped" lists
+GIVEN = ("block_contents", "switch_numbers", "track_names", "captions")    # dropped: the generated panel gives them
+NOT_CARRIED = ("nx_icons", "ladder_buttons")                                # dropped: on no panel (LEFT_OUT)
+DROPPED = GIVEN + NOT_CARRIED                                               # overlay.json "dropped" lists
 # Not carried at all (owner, 2026-11-16): the Entry/Exit sensor icons (the sensors stay bound in their mast slots,
 # so the NX pairs still resolve; only the panel icons go) and the yard ladder buttons.
-LEFT_OUT = (("sensoricon", "sensor", "NX "), ("turnouticon", "turnout", "IT:HART:YL:"))
+LEFT_OUT = (("sensoricon", "sensor", "NX ", "nx_icons"), ("turnouticon", "turnout", "IT:HART:YL:", "ladder_buttons"))
 EPS = 1e-6
 
 
@@ -455,23 +457,26 @@ def switch_number(text, switch_prefix):
     return n if re.fullmatch(r"\d+[A-Z]?", n) else None
 
 
-def left_out(el) -> bool:
-    """True for an item the generated panel does not carry at all (LEFT_OUT: an NX sensor icon, a yard ladder
-    button)."""
-    return any(el.tag == tag and (el.get(attr) or "").startswith(prefix) for tag, attr, prefix in LEFT_OUT)
+def left_out(el) -> str | None:
+    """The "dropped" list of an item the generated panel does not carry at all (LEFT_OUT: "nx_icons" for an NX sensor
+    icon, "ladder_buttons" for a yard ladder button), else None."""
+    return next((key for tag, attr, prefix, key in LEFT_OUT
+                 if el.tag == tag and (el.get(attr) or "").startswith(prefix)), None)
 
 
 def split_generated(items, live, gen, switch_prefix):
     """(kept items, dropped {kind: [name]}): the hand-drawn items the generated panel gives itself now (`gen`:
     generated() of it) left out. Block contents icons, switch number labels (`switch_prefix` and the number) and
     labels naming a block always; a caption when a generated label has its text, in any case. A label with no text
-    (the backdrop, an icon-only label) is never one of them."""
+    (the backdrop, an icon-only label) is never one of them. The items no panel carries (left_out) are listed too,
+    under their own lists (NOT_CARRIED)."""
     gen_texts = {name.lower() for kind, name, _r in gen if kind == "label"}
     blocks = set(live.pieces) | set(live.os_turnouts())
     kept, dropped = [], {k: set() for k in DROPPED}
     for it in items:
         el, text = it.el, (it.el.get("text") or "").strip()
         if left_out(el):
+            dropped[left_out(el)].add(el.get("sensor") or el.get("turnout"))
             continue
         if el.tag == "BlockContentsIcon":
             if not el.get("blockcontents"):

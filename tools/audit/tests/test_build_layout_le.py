@@ -366,6 +366,10 @@ class DeviceNames(unittest.TestCase):
             B.level_names(bands, le_mod, {k: v for k, v in device.items() if k != "Track e1"})
         with self.assertRaisesRegex(B.BuildError, "does not have: \\['Track e999'\\]"):
             B.level_names(bands, le_mod, dict(device, **{"Track e999": "Track 9-9"}))
+        names, lengths = B.placeholder_names(bands, le_mod)         # a length with no device-map row: named, no KeyError
+        with mock.patch.object(B, "placeholder_names", return_value=(names, dict(lengths, **{"Track e777": 1.0}))):
+            with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track e777'\\]"):
+                B.level_names(bands, le_mod, device)
 
     def test_named_bands_join_a_crossovers_halves_and_name_one_track_per_block(self) -> None:
         _sheet, le_mod, _core = B.plugin()

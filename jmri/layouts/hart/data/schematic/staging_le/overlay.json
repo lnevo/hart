@@ -101,6 +101,43 @@
    "Princess",
    "West Yard",
    "South Yard"
+  ],
+  "nx_icons": [
+   "NX Mast 2L",
+   "NX Mast 24L",
+   "NX Mast 32R",
+   "NX Mast 34L",
+   "NX Mast 34R",
+   "NX Mast 4RA",
+   "NX Mast 4RB",
+   "NX Mast 6LA",
+   "NX Mast 6LB",
+   "NX Mast 8LA",
+   "NX Mast 8LB",
+   "NX Mast 8RA",
+   "NX Mast 8RB",
+   "NX Mast 2035",
+   "NX Mast 2036",
+   "NX Mast 24RA",
+   "NX Mast 24RB",
+   "NX Mast 36RA",
+   "NX Mast 36RB",
+   "NX Mast 38LA",
+   "NX Mast 38LB",
+   "NX Mast 40LA",
+   "NX Mast 40LB"
+  ],
+  "ladder_buttons": [
+   "IT:HART:YL:L1",
+   "IT:HART:YL:L2",
+   "IT:HART:YL:L3",
+   "IT:HART:YL:L4",
+   "IT:HART:YL:L5",
+   "IT:HART:YL:R1",
+   "IT:HART:YL:R2",
+   "IT:HART:YL:R3",
+   "IT:HART:YL:R4",
+   "IT:HART:YL:R5"
   ]
  },
  "unchained": [

@@ -96,6 +96,7 @@ import argparse
 import copy
 import csv
 import functools
+import hashlib
 import importlib
 import json
 import os
@@ -120,6 +121,14 @@ TEMPLATE_PANEL = le_inputs.PANEL     # the panel the cut-over candidate replaces
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
 SWITCH_LEGS = paths.LAYOUT_DATA / "switch_legs.csv"
 DEVICE_MAP = pd.DATA / "device_map_main_upper.csv"   # main and upper names (trial_name: the drawing's placeholder)
+# The staging candidate's panel as the owner approved it: a hash per element (approved_fingerprint), so a plugin bump
+# or an overlay edit that changes the approved staging panel stops both cut-over builds. Refreshed only by
+# --approve-staging, after the owner approves the new panel in PanelPro.
+APPROVED = pd.DATA / "approved_staging.sha256"
+APPROVED_NOTE = ("# The staging cut-over candidate's \"HART Railroad\" panel as approved by the owner in PanelPro on {date}\n"
+                 "# (build_layout_le.py --approve-staging; checked by --levels staging --as-live and --as-live). One line\n"
+                 "# per element, in panel order: its sha256 (attributes sorted, layout whitespace dropped) and what it\n"
+                 "# is; the first line is the panel's own attributes, the last the whole panel's hash.\n")
 STAGING = "Staging"                  # band key (first word of the band title) bound to the live objects
 
 TURNOUT_SYS = "IT:HART:C3:"          # internal turnouts: nothing reaches the field
@@ -622,14 +631,14 @@ def level_names(bands, le_mod, device: dict | None = None) -> tuple[dict, dict]:
         out[key] = dict(turnouts={n: to(t) for n, t in nm["turnouts"].items()},
                         os={n: to(b) for n, b in nm["os"].items()},
                         blocks={sid: [to(b) for b in v] for sid, v in nm["blocks"].items()})
+    out_len = defaultdict(float)
+    for ph, mm in lengths.items():
+        out_len[to(ph)] += mm
     if missing:
         raise BuildError(f"main and upper placeholders {paths.rel(DEVICE_MAP)} names nowhere: {sorted(missing)}")
     unused = sorted(set(device) - used)
     if unused:
         raise BuildError(f"{paths.rel(DEVICE_MAP)} trial names the drawing does not have: {unused}")
-    out_len = defaultdict(float)
-    for ph, mm in lengths.items():
-        out_len[device[ph]] += mm
     return out, dict(out_len)
 
 
@@ -824,7 +833,7 @@ def replace(parent: ET.Element, old: ET.Element, new: ET.Element, depth: int) ->
 
 
 def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", as_live: bool = False, inputs=None,
-          freeze_from: ET.Element | None = None):
+          freeze_from: ET.Element | None = None, approved: Path | None = APPROVED):
     """(tables bytes, the plugin's Panel, {band key: names}, bands). `levels` "all" draws every band, main and upper
     under the device map's names (level_names) and their objects added to the tables; "staging" draws staging alone, its
     helix ends as end bumpers as live, and adds no table object. `as_live` writes a cut-over candidate: the "HART
@@ -834,7 +843,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     `as_live`, "all" is the viewing trial beside the live panel, fitted into the FIT window. The staging facts come
     from `inputs` (default: the frozen files, le_inputs.load()); nothing is read from a panel in the tables.
     `freeze_from` (--freeze only, with `as_live`): the hand-drawn panel whose overlay le_overlay.freeze reads into
-    inputs.overlay before it is carried."""
+    inputs.overlay before it is carried. `approved`: the fingerprint the staging candidate's panel must match
+    (check_approved; None skips it, for --approve-staging and tests that change the inputs)."""
     if levels not in LEVELS:
         raise BuildError(f"levels must be one of {', '.join(LEVELS)}, not {levels!r}")
     if freeze_from is not None and not (as_live and levels == "staging"):
@@ -848,7 +858,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         page = bands[-1][2]
     base = None             # the three-level candidate: the staging candidate it must hold unchanged, and its grid
     if as_live and levels == "all":
-        base = build(live_path, bands, "staging", True, inputs)
+        base = build(live_path, bands, "staging", True, inputs, approved=approved)
     keys = [band_key(t) for t, _, _ in bands]
     if STAGING not in keys:
         raise BuildError(f"no {STAGING} band in the schematic (bands: {', '.join(keys)})")
@@ -951,6 +961,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         # the marker that tells polish_hart_layout_editor.py and the other hand-pixel scripts to leave positions alone
         opts = panel_el.find("layoutTrackDrawingOptions")
         panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
+        if levels == "staging" and approved is not None:
+            check_approved(panel_el, approved)
         old = tables.layout_editor(root, panel_name)
         if old is not None:
             replace(root, old, panel_el, 1)
@@ -958,12 +970,85 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             insert_first_panel(root, panel_el, 1)
         if base is not None:
             P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name)
+            P.staging_data = base[0]
     else:
         attrs = dict(inputs.attrs)
         attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")
         panel_el = le_mod.to_xml(P, panel_name, attrs, copy.deepcopy(inputs.drawing_options))
         place(root, [panel_el], 1, tables.layout_editors(root)[-1])
     return doc.tobytes(), P, names, bands
+
+
+def canon_sorted(el: ET.Element) -> str:
+    """An element as text with each element's attributes in name order and no layout whitespace."""
+    e = copy.deepcopy(el)
+    for c in e.iter():
+        c.attrib = dict(sorted(c.attrib.items()))
+        c.tail = None
+        c.text = (c.text or "").strip() or None
+    return ET.tostring(e, encoding="unicode")
+
+
+def element_label(el: ET.Element, index: int) -> str:
+    """What a panel element is, for a message: its tag and name (ident, mast, text, block, sensor, turnout)."""
+    name = next((el.get(a) for a in ("ident", "signalmast", "text", "blockcontents", "sensor", "turnout") if el.get(a)),
+                f"#{index}")
+    return f"{el.tag} {name}"
+
+
+def approved_fingerprint(panel_el: ET.Element) -> list[tuple[str, str]]:
+    """[(sha256, what)]: the panel's own attributes, then each element in order, then the whole panel."""
+    head = ET.Element(panel_el.tag, panel_el.attrib)
+    out = [(hashlib.sha256(canon_sorted(head).encode()).hexdigest(), f"LayoutEditor {panel_el.get('name')}")]
+    out += [(hashlib.sha256(canon_sorted(el).encode()).hexdigest(), element_label(el, i))
+            for i, el in enumerate(panel_el)]
+    out.append((hashlib.sha256(canon_sorted(panel_el).encode()).hexdigest(), "panel"))
+    return out
+
+
+def write_approved(panel_el: ET.Element, path: Path = APPROVED, date: str | None = None) -> None:
+    """Write the staging panel's fingerprint (approved_fingerprint) to `path` (--approve-staging)."""
+    import datetime
+    lines = [f"{h} {what}" for h, what in approved_fingerprint(panel_el)]
+    try:
+        path.write_text(APPROVED_NOTE.format(date=date or datetime.date.today().isoformat()) + "\n".join(lines) + "\n",
+                        encoding="utf-8")
+    except OSError as exc:
+        raise BuildError(f"cannot write {path}: {exc}") from None
+
+
+def read_approved(path: Path = APPROVED) -> list[tuple[str, str]]:
+    """The approved fingerprint's [(sha256, what)]; stops on a missing file or a line of the wrong shape."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise BuildError(f"cannot read the approved staging fingerprint {paths.rel(path)}: {exc}; after the owner "
+                         "approves the staging panel, run build_layout_le.py --approve-staging") from None
+    out = []
+    for n, line in enumerate(text.splitlines(), 1):
+        if not line.strip() or line.startswith("#"):
+            continue
+        m = re.fullmatch(r"([0-9a-f]{64}) (\S.*)", line)
+        if not m:
+            raise BuildError(f"{paths.rel(path)} line {n}: not '<sha256> <what>'")
+        out.append((m.group(1), m.group(2)))
+    if len(out) < 2 or out[-1][1] != "panel":
+        raise BuildError(f"{paths.rel(path)}: no panel hash on its last line")
+    return out
+
+
+def check_approved(panel_el: ET.Element, path: Path = APPROVED) -> None:
+    """Stop with BuildError unless the staging candidate's panel is the one the owner approved (`path`), naming the
+    first element that differs."""
+    want, got = read_approved(path), approved_fingerprint(panel_el)
+    if want[-1] == got[-1]:
+        return
+    for i, (w, g) in enumerate(zip(want, got)):
+        if w != g:
+            raise BuildError(f"the staging panel is not the one the owner approved ({paths.rel(path)}): element {i} "
+                             f"is {g[1]}, approved {w[1]}" + (" (changed)" if w[1] == g[1] else ""))
+    raise BuildError(f"the staging panel is not the one the owner approved ({paths.rel(path)}): it has "
+                     f"{len(got) - 2} elements, approved {len(want) - 2}")
 
 
 def canon(el: ET.Element) -> str:
@@ -989,45 +1074,102 @@ def is_level_bean(el: ET.Element) -> bool:
 
 
 def level_items(P, panel_el: ET.Element) -> set:
-    """ids of the panel elements that belong to main and upper: their turnouts, points, track segments (and the
-    hidden helix and connector joins), circles, labels and block contents icons, as the plugin drew them."""
+    """ids of the panel elements that belong to main and upper, by the plugin's own band of each: their turnouts,
+    points, track segments (and the hidden helix and connector joins, drawn with no band), circles, labels (band
+    titles have no band either: every one but staging's) and block contents icons. The plugin writes its labels and
+    block contents icons in P.labels and P.bcis order, before the carried items, so the n-th of each on the panel is
+    the n-th of the plugin's (checked by text and block)."""
     mine = {P.name(t["ident"]) for t in P.turnouts if t["band"] != 0} | \
         {P.name(k) for k, p in P.points.items() if p["band"] != 0} | \
         {P.name(s["ident"]) for s in P.segments if s.get("band") != 0} | \
         {P.name(sh["ident"]) for sh in P.shapes if sh["band"] != 0}
-    # band titles are written with no band (le draws them once the bands are placed): staging's is its own
-    staging_title = next(lb["text"] for lb in P.labels if lb.get("kind") == "title")
-    texts = {(lb["text"], round(lb["xy"][0]), round(lb["xy"][1])) for lb in P.labels
-             if lb["band"] != 0 and not (lb.get("kind") == "title" and lb["text"] == staging_title)}
-    bcis = {b["block"] for b in P.bcis if b["band"] != 0}
-    out = set()
-    for el in panel_el:
-        if el.get("ident") in mine:
+    staging_title = next((i for i, lb in enumerate(P.labels) if lb.get("kind") == "title"), None)
+    if staging_title is None:
+        raise BuildError("staging guard: the plugin wrote no band title")
+    labels = [el for el in panel_el.findall("positionablelabel")
+              if not (el.get("hidden") == "yes" and el.get("text") == tables.GENERATED_PANEL_MARKER)]
+    bcis = panel_el.findall("BlockContentsIcon")
+    if len(labels) < len(P.labels) or len(bcis) != len(P.bcis):
+        raise BuildError(f"staging guard: the panel holds {len(labels)} labels and {len(bcis)} block contents icons, "
+                         f"the plugin wrote {len(P.labels)} and {len(P.bcis)}")
+    out = {id(el) for el in panel_el if el.get("ident") in mine}
+    for i, (el, lb) in enumerate(zip(labels, P.labels)):
+        if el.get("text") != lb["text"]:
+            raise BuildError(f"staging guard: label {i} on the panel reads {el.get('text')!r}, the plugin wrote "
+                             f"{lb['text']!r}")
+        if lb["band"] != 0 and i != staging_title:
             out.add(id(el))
-        elif el.tag == "positionablelabel" and el.get("text") is not None and \
-                (el.get("text"), round(float(el.get("x"))), round(float(el.get("y")))) in texts:
-            out.add(id(el))
-        elif el.tag == "BlockContentsIcon" and el.get("blockcontents") in bcis:
+    for el, b in zip(bcis, P.bcis):
+        if el.get("blockcontents") != b["block"]:
+            raise BuildError(f"staging guard: a block contents icon on the panel is {el.get('blockcontents')}, the "
+                             f"plugin wrote {b['block']}")
+        if b["band"] != 0:
             out.add(id(el))
     return out
 
 
 # What the three-level candidate may change on the staging candidate's panel (owner, 2026-11-16): its size, and
 # what the helix joins change: the staging helix tracks run on to the main level instead of ending at a buffer stop,
-# so their end bumpers become anchors, the track segment reaching each is reconnected, and the masts that stood at
-# those bumpers (38RA, 40RA) stand at the anchors (option 1 of the three-level trial).
+# so each of their end bumpers becomes an anchor where the hidden join starts (same place, same mast slot), and the
+# track segment reaching it is reconnected to it (helix_join_changes). Masts 38RA and 40RA stay in that slot, so
+# their icons do not change.
 PANEL_SIZE_ATTRS = ("panelheight", "windowheight", "panelwidth", "windowwidth")
+
+
+def helix_join_changes(missing: list, extra: list, new_le: ET.Element, P, ends: set, joins: set) -> list[str]:
+    """Take out of `missing` (staging-candidate elements not in the three-level panel) and `extra` (the reverse) the
+    changes the helix joins make, and only those: a staging end bumper in `ends` that the three-level panel draws as
+    an anchor in `joins` at the same place, with the same attributes but its ident, its type ANCHOR and one more
+    connection, a hidden join segment (P.joins) starting there; and a track segment that ends at that bumper, with
+    the same attributes but that connection, now the anchor. Returns them as notes; anything else stays."""
+    notes = []
+    segs = {el.get("ident"): el for el in new_le.findall("tracksegment")}
+    join_segs = {P.name(i) for i in P.joins}
+    anchors = {(el.get("x"), el.get("y")): el for el in extra
+               if el.tag == "positionablepoint" and el.get("ident") in joins}
+    rename = {}
+    for old in [el for el in missing if el.tag == "positionablepoint" and el.get("ident") in ends]:
+        new = anchors.get((old.get("x"), old.get("y")))
+        if new is None or len(old) or len(new):
+            continue
+        added = {k: v for k, v in new.attrib.items() if k not in old.attrib}
+        want = dict(old.attrib, ident=new.get("ident"), type="ANCHOR")
+        seg = segs.get(added.get("connect2name"))
+        if set(added) != {"connect2name"} or old.get("type") != "END_BUMPER" or \
+                {k: new.get(k) for k in want} != want or seg is None or seg.get("ident") not in join_segs or \
+                seg.get("hidden") != "yes" or new.get("ident") not in (seg.get("connect1name"), seg.get("connect2name")):
+            continue
+        rename[old.get("ident")] = new.get("ident")
+        missing.remove(old)
+        extra.remove(new)
+        notes.append(f"end bumper {old.get('ident')} -> anchor {new.get('ident')} (hidden join {seg.get('ident')} to "
+                     f"{seg.get('blockname')}" + (f", {old.get('eastboundsignalmast') or old.get('westboundsignalmast')}"
+                                                  if old.get("eastboundsignalmast") or old.get("westboundsignalmast")
+                                                  else "") + ")")
+    by_ident = {el.get("ident"): el for el in extra if el.tag == "tracksegment"}
+    for old in [el for el in missing if el.tag == "tracksegment"]:
+        at = [k for k in ("connect1name", "connect2name") if old.get(k) in rename]
+        new = by_ident.get(old.get("ident"))
+        if len(at) != 1 or new is None or len(old) != len(new) or \
+                any(canon_sorted(a) != canon_sorted(b) for a, b in zip(old, new)):
+            continue
+        if dict(new.attrib) != dict(old.attrib, **{at[0]: rename[old.get(at[0])]}):
+            continue
+        missing.remove(old)
+        extra.remove(new)
+        notes.append(f"track segment {old.get('ident')} {at[0]} {old.get(at[0])} -> {new.get(at[0])}")
+    return notes
 
 
 def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     """Stop with BuildError unless the three-level candidate `data` holds the staging candidate (`base`: build()'s
     result for --levels staging --as-live) unchanged: every bean, every other panel and every element of the staging
-    panel (track, mast icons, labels, block contents icons, carried items), but the main and upper objects added and
-    the helix-join changes the owner accepted (PANEL_SIZE_ATTRS; the staging end bumpers the joins replace, the track
-    segments reaching them, and the icons of the masts P.moved lists). Returns those accepted changes, as notes."""
+    panel (track, mast icons, labels, block contents icons, carried items), but the main and upper objects added
+    (level_items), the panel size (PANEL_SIZE_ATTRS) and the helix-join changes the owner accepted
+    (helix_join_changes). Returns those helix-join changes, as notes."""
     S = base[1]
     old_root, new_root = tables.loads(base[0]).root, tables.loads(data).root
-    bad, notes = [], []
+    bad = []
     if [c.tag for c in old_root] != [c.tag for c in new_root]:
         raise BuildError("staging guard: the top-level sections of the two candidates differ")
     for old, new in zip(old_root, new_root):
@@ -1046,14 +1188,7 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     ends = {S.name(k) for k, p in S.points.items() if p["type"] == "END_BUMPER"} - \
         {P.name(k) for k, p in P.points.items() if p["type"] == "END_BUMPER"}
     joins = {P.name(i) for (b, i) in P.join_ends if b == 0}     # the staging anchors the hidden joins start at
-    moved = {m for _t, m, _why in P.moved}
     level = level_items(P, new_le)
-    ends_or_joins = ends | joins
-
-    def accepted(el):
-        return el.get("ident") in ends_or_joins or el.get("signalmast") in moved or (
-            el.tag == "tracksegment" and ends_or_joins & {el.get("connect1name"), el.get("connect2name")})
-
     old_els = defaultdict(list)
     for el in old_le:
         old_els[canon(el)].append(el)
@@ -1067,18 +1202,16 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
         else:
             extra.append(el)
     missing = [el for v in old_els.values() for el in v]
-    for el in missing + extra:
-        name = next((el.get(a) for a in ("ident", "signalmast", "text", "blockcontents", "sensor", "turnout")
-                     if el.get(a)), "")
-        what = f"{el.tag} {name}".strip()
-        if accepted(el):
-            notes.append(what)
-        else:
-            bad.append(f"{what} {'gone or changed' if el in missing else 'new or changed'}")
+    notes = helix_join_changes(missing, extra, new_le, P, ends, joins)
+    if len(notes) != 2 * len(ends):
+        bad.append(f"{len(ends)} staging end bumpers ({', '.join(sorted(ends))}) are joined to the next level, but "
+                   f"only these helix-join changes are as expected: {notes}")
+    for i, el in enumerate(missing + extra):
+        bad.append(f"{element_label(el, i)} {'gone or changed' if el in missing else 'new or changed'}")
     if bad:
         raise BuildError("staging guard: the three-level candidate changes the approved staging panel: " +
                          "; ".join(bad[:20]) + (f" (and {len(bad) - 20} more)" if len(bad) > 20 else ""))
-    return sorted(set(notes))
+    return notes
 
 
 def insert_first_panel(root: ET.Element, new: ET.Element, depth: int) -> None:
@@ -1240,12 +1373,28 @@ def main(argv=None) -> int:
                          f"({paths.rel(le_inputs.FOLDER)}), then check they rebuild the same candidate")
     ap.add_argument("--freeze-to", type=Path,
                     help="with --freeze: the folder to write (default: the frozen files' own)")
+    ap.add_argument("--approve-staging", action="store_true",
+                    help="after the owner approves the staging panel in PanelPro: record its fingerprint in "
+                         f"{paths.rel(APPROVED)}, which both cut-over builds then check")
     args = ap.parse_args(argv)
     if not args.check:          # --freeze writes the committed frozen files: refused with HART_TABLES as any write
         message = paths.check_only_message(Path(__file__).name)
         if message:
             print(f"ERROR: {message}")
             return 1
+    if args.approve_staging:
+        if args.check or args.freeze or args.freeze_to or args.as_live or args.out or args.levels is not None:
+            print("ERROR: --approve-staging takes only --tables")
+            return 1
+        try:
+            where = {} if args.tables is None else {"live_path": args.tables}
+            data = build(levels="staging", as_live=True, approved=None, **where)[0]
+            write_approved(tables.layout_editor(tables.loads(data).root, TEMPLATE_PANEL))
+        except le_inputs.InputsError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(f"wrote {paths.rel(APPROVED)}: the staging panel as the owner approved it")
+        return 0
     if args.freeze:
         if args.check or args.as_live or args.out or args.levels is not None:
             print("ERROR: --freeze takes only --tables and --freeze-to")
@@ -1276,15 +1425,27 @@ def main(argv=None) -> int:
         return 1
     _, le_mod, _ = plugin()
     summary = f"panel {(TEMPLATE_PANEL if args.as_live else PANEL_NAME)!r}: {le_mod.summary(P)}"
+    # the three-level candidate writes the staging candidate it holds beside it (tables_cutover_staging.xml)
+    files = [(out, data)]
+    if getattr(P, "staging_data", None) is not None:
+        files.append((staging_out(out), P.staging_data))
     if args.check:
-        if not out.exists() or out.read_bytes() != data:
-            print(f"STALE: {paths.rel(out)}; run {paths.rel(Path(__file__))}")
+        stale = [f for f, d in files if not f.exists() or f.read_bytes() != d]
+        if stale:
+            print(f"STALE: {', '.join(paths.rel(f) for f in stale)}; run {paths.rel(Path(__file__))}")
             return 1
-        print(f"ok: {paths.rel(out)} is current ({summary})")
+        print(f"ok: {', '.join(paths.rel(f) for f, _d in files)} current ({summary})")
         return 0
+    for f, d in files:
+        if live_target(f):
+            print(f"ERROR: {f} is the live tables or in the JMRI profile")
+            return 1
     out.parent.mkdir(parents=True, exist_ok=True)
-    tables.loads(data, path=out).save(out)
+    for f, d in files:
+        tables.loads(d, path=f).save(f)
     print(f"wrote {paths.rel(out)}: {summary}")
+    if len(files) > 1:
+        print(f"wrote {paths.rel(files[1][0])}: the staging candidate it holds")
     moved = {f"{t}: mast {m}: {why}" for t, m, why in P.moved}       # the plugin's own log line for each
     for line in P.log:
         if line not in moved:
@@ -1295,9 +1456,16 @@ def main(argv=None) -> int:
         print(f"  overlay: {line}")
     same = getattr(P, "staging_same", None)
     if same is not None:
-        print("  staging guard: the staging candidate is held unchanged but for the helix joins"
-              + (f" ({', '.join(same)})" if same else ""))
+        print("  staging guard: the approved staging candidate is held unchanged but for the helix joins:")
+        for line in same:
+            print(f"    {line}")
     return 0
+
+
+def staging_out(out: Path) -> Path:
+    """Where the three-level candidate `out` writes the staging candidate it holds: tables_cutover.xml ->
+    tables_cutover_staging.xml (CUTOVER_STAGING)."""
+    return out.with_name(f"{out.stem}_staging{out.suffix}")
 
 
 def default_out(levels: str, as_live: bool) -> Path:
@@ -1311,6 +1479,7 @@ def overlay_lines(report) -> list[str]:
     """The overlay report (le_overlay.carry) as printed lines; none without one."""
     if not report:
         return []
+    ov = overlay_mod()
     kinds = defaultdict(int)
     for r in report["records"]:
         kinds[r["anchor"].split(" ", 1)[0] if r["anchor"].startswith("group") else r["anchor"]] += 1
@@ -1318,7 +1487,10 @@ def overlay_lines(report) -> list[str]:
            f"; panel {report['size'][0]}x{report['size'][1]} px",
            "placed around the generated " + (", ".join(f"{v} {k if k.endswith('s') else k + 's'}"
                                                        for k, v in sorted(report["generated"].items())) or "nothing") +
-           "; left to the generator: " + ", ".join(f"{v} {k.replace('_', ' ')}" for k, v in report["dropped"].items())]
+           "; left to the generator: " + ", ".join(f"{v} {k.replace('_', ' ')}" for k, v in report["dropped"].items()
+                                                   if k in ov.GIVEN) +
+           "; not carried: " + ", ".join(f"{v} {k.replace('_', ' ')}" for k, v in report["dropped"].items()
+                                         if k in ov.NOT_CARRIED)]
     out += report["notes"]
     if report["unchained"]:
         out.append("blocks whose track is not one run (an item's share read against its pieces in order): "
