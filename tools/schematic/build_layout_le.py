@@ -138,8 +138,7 @@ def plugin():
 def schematic():
     """(bands, page options) of the solved schematic (the inputs of publish_draft.py), solved once per run."""
     sheet = plugin()[0]
-    built = sheet.build([(json.loads((pd.GRAPHS / g).read_text(encoding="utf-8")), n) for g, n in pd.INPUTS],
-                        str(pd.DATA))
+    built = pd.solved_sheet(sheet)
     return built.bands, built.opts
 
 

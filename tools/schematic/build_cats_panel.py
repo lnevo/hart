@@ -597,7 +597,7 @@ def dress(cats, root, header, plate, desk):
 def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
-    bands = sheet.build([(f"{pd.GRAPHS}/{g}", n) for g, n in pd.INPUTS], str(pd.DATA)).bands
+    bands = pd.solved_sheet(sheet).bands
     text = json.dumps(bindings(bands, cats, load_facts()), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")
     if cats.GRID_PX != GRID_PX:
