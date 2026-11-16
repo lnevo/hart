@@ -1,8 +1,8 @@
-"""The old "HART Railroad" panel's icons and labels carried onto the generated staging panel (LE cut-over, Phases 2
-and 3b).
+"""The old "HART Railroad" panel's icons carried onto the generated staging panel (LE cut-over, Phases 2 and 3b),
+placed around the labels and block readouts the plugin generates.
 
-    frozen = le_overlay.freeze(live_le, gen_le, root, le_mod, slots_mod, switch_ident, note)  # once (--freeze)
-    report = le_overlay.carry(frozen, gen_le, P, le_mod, slots_mod, fit)                # every build
+    frozen = le_overlay.freeze(live_le, gen_le, root, le_mod, slots_mod, note, switch_prefix)   # once (--freeze)
+    report = le_overlay.carry(frozen, gen_le, P, le_mod, slots_mod, fit, switch_prefix)        # every build
 
 The overlay is frozen (Phase 3b, owner requirement 2026-11-15): freeze() reads each item off the hand-drawn panel
 once, with what it is tied to there and its offset from that thing, into
@@ -11,39 +11,50 @@ alone, so the generated panel is rebuilt with no hand-drawn panel in the tables.
 its x and y on the hand-drawn panel: a cluster's members keep their places against each other from them, and every
 other item only needs its size.
 
-Everything on the live panel that is not track, a turnout, a point, a mast icon or the drawing options is overlay:
-occupancy lamps, Entry/Exit sensor icons, the Dispatcher System station clusters, status lamps, block contents
-labels, yard ladder buttons, the Turnouts signal head, text labels and the background picture. Each is copied with
-every attribute and child as live; only x and y change.
+Generated labels win (owner, 2026-11-15). The plugin's label layer writes every switch number, track name, station
+caption and block contents icon (one per block, every OS block too) with its own no-overlap check. So freeze()
+leaves out of the file the hand-drawn panel's block contents icons, its "SW-<n>" labels, its labels naming a block
+and every caption a generated label also gives (same text, any case: Brick, West Yard, South Yard ...), and records
+them under "dropped"; carry() stops unless the generated panel gives each of them (a generated block contents icon
+for each dropped one, once the plugin writes any), and stops on a carried label that repeats a generated one.
+
+What is carried: occupancy lamps, Entry/Exit sensor icons, yard ladder buttons, the Dispatcher System station
+clusters, the status cluster, the region captions (Neville Island, Industries, the helix arrows) and the background
+picture. Each is copied with every attribute and child as live; only x and y change.
 
 Where each goes. In the hand-drawn panel each item is tied to what it belongs to, then put at the same place against
 that thing on the new panel:
 - slot: an Entry/Exit sensor icon to the slot its sensor is bound in (same ident and slot on both panels), at the
   same offset from the boundary point;
-- turnout: an item of a switch's OS block (lamp, block contents) or its "SW-<n>" label to that turnout's centre (a
-  crossover half to the middle of its legs), at the same offset;
-- block: an item of a track block (lamp, block contents, a label naming the block, the station clusters) at the same
-  share of the way along the block's track, left to right, and the same distance to its side;
-- station: a caption that a generated station label also gives (Brick, South Yard ...) centred where that label
-  was, and the generated label dropped (the live one is the panel's);
+- turnout: an item of a switch's OS block (its lamp) to that turnout's centre (a crossover half to the middle of its
+  legs), at the same offset;
+- block: an item of a track block (its lamp, a caption by it) at the same share of the way along the block's track,
+  left to right, and the same distance to its side;
 - frame: what is tied to no track (region captions, the status cluster, any item over NEAR px from the track) keeps
   its place against the track's bounding box: across it by share, outside it by distance;
 - backdrop: the background picture (an icon label at level 1 or below) stays at its live x and y, under everything.
-The station clusters (level 12, one per Dispatcher station) and the status cluster (the LCOS, Turnouts, Signals and
-Track Power lamps and captions) move as one block each. Generated switch numbers and track names that a live label
-also gives are dropped the same way.
+The station clusters (level 12, one per Dispatcher station: a loco marker with its track's name and two lamps) and
+the status cluster (the LCOS, Turnouts, Signals and Track Power lamps and captions) move as one block each. A station
+cluster is not tied to its hand-drawn place: the plugin's label layer places it (owner, 2026-11-16). The build
+passes each cluster's box to `schematic le` as an extra (station_extras: id and block its track block, size its
+bounding box as JMRI draws it), placed by its own track in the same rounds as the block contents icons and before
+them, with the same no-overlap check; carry() moves the cluster as one to the box's place in P.extras
+(station_shift) and stops if the plugin placed none, one of another size, or one that meets a carried item.
 
-Then each item, in order (lamps, sensors, clusters, labels, captions), takes the nearest spot (STEP px at a time,
-out to REACH px) clear of the track, the turnouts and their control circles, the mast icons, the labels and the
-items placed before it. An occupancy lamp (a circuit lamp) sits on its own track by the owner's rule (2026-11-13), so
-track and turnouts do not count against it; icons and labels do. An item with no clear spot stops the build. Last,
-if anything stands above the panel's top the whole panel moves down, and the panel grows to hold everything, within
-the FIT window; checked again from scratch.
+Then each other item, in order (lamps, sensors, labels, captions), takes the nearest spot (STEP px at a
+time, out to REACH px) clear of the track, the turnouts and their control circles, the mast icons, the generated
+labels and block contents icons, and the items placed before it. An occupancy lamp (a circuit lamp) sits on its own
+track by the owner's rule (2026-11-13), so track and turnouts do not count against it; icons and labels do. Every
+item stays inside the FIT window (TOP px from the top, EDGE px from the right and bottom), so the panel never moves;
+an item with no clear spot stops the build. Sizes are what JMRI draws: text by the plugin's schematic.jmri_text
+(Dialog, the larger of Mac and Pi), an icon with text the larger of the two each way. Last, the panel grows to hold
+everything within the window, and check() reads the written panel again from scratch.
 """
 from __future__ import annotations
 
 import copy
 import functools
+import importlib
 import math
 import re
 import xml.etree.ElementTree as ET
@@ -52,11 +63,11 @@ from collections import defaultdict
 TRACK_TAGS = {"layoutTrackDrawingOptions", "layoutturnout", "tracksegment", "positionablepoint", "signalmasticon",
               "layoutShape"}
 OVERLAY_TAGS = {"sensoricon", "BlockContentsIcon", "positionablelabel", "turnouticon", "signalheadicon"}
+CARRIED_TAGS = OVERLAY_TAGS - {"BlockContentsIcon"}         # block contents icons are the plugin's now
 # px of each icon image (the JMRI 5.16 program resources and the repo's preference resources)
 ICON_SIZES = (("smallschematics/tracksegments/circuit-", (10, 10)), ("icons/USS/sensor/", (21, 21)),
               ("icons/markers/loco-", (60, 20)), ("buttons/triangle_", (16, 16)),
               ("misc/hart_panel_bg.jpg", (1900, 600)))
-BCI_CHARS = 5           # a block contents label shows a train name: room for this many characters
 STATUS_LABELS = {"LCOS", "Turnouts", "Signals", "Track Power"}          # panel_status.py's lamps and captions
 STATUS_SENSORS = {"Bridge HBLOOP", "SML Mode", "Track Power"}
 STATUS_HEADS = {"IH9990"}
@@ -68,6 +79,7 @@ TOP = 6                 # px: nothing above this on the panel
 EDGE = 20               # px kept free beyond the furthest item at the right and the bottom
 CLEAR = 1.5             # px from a track line or turnout leg an item must keep
 TURNOUT_R = 8           # px around a turnout's centre: its control circle
+DROPPED = ("block_contents", "switch_numbers", "track_names", "captions")     # overlay.json "dropped" lists
 EPS = 1e-6
 
 
@@ -175,25 +187,34 @@ class Track:
             acc += L
         return best[1], best[2], best[3]
 
-    def at(self, block, share, off, past=None):
-        """The point at `share` of the way along the block's run, `off` px to its side; or, with `past` (dx, dy),
-        that far from the run's end (as where())."""
+    def length(self, block):
         run = self.runs.get(block)
         if not run:
             raise OverlayError(f"{self.what}: block {block} has no drawn track")
-        total = sum(math.dist(a, b) for a, b in run)
-        want, acc = share * total, 0.0
+        return sum(math.dist(a, b) for a, b in run)
+
+    def point_dir(self, block, along):
+        """(point, unit direction) `along` px from the start of the block's run (clamped to the run)."""
+        run = self.runs.get(block)
+        if not run:
+            raise OverlayError(f"{self.what}: block {block} has no drawn track")
+        acc = 0.0
         for a, b in run:
             L = math.dist(a, b)
-            if acc + L >= want - EPS or (a, b) == run[-1]:
+            if acc + L >= along - EPS or (a, b) == run[-1]:
                 u = ((b[0] - a[0]) / L, (b[1] - a[1]) / L)
-                t = max(0.0, min(L, want - acc))
-                q = (a[0] + u[0] * t, a[1] + u[1] * t)
-                if past is not None:
-                    return (q[0] + past[0], q[1] + past[1])
-                return (q[0] - u[1] * off, q[1] + u[0] * off)
+                t = max(0.0, min(L, along - acc))
+                return (a[0] + u[0] * t, a[1] + u[1] * t), u
             acc += L
-        raise OverlayError(f"{self.what}: block {block}: no point at share {share}")
+        raise OverlayError(f"{self.what}: block {block}: no point {along} px along")
+
+    def at(self, block, share, off, past=None):
+        """The point at `share` of the way along the block's run, `off` px to its side; or, with `past` (dx, dy),
+        that far from the run's end (as where())."""
+        q, u = self.point_dir(block, share * self.length(block))
+        if past is not None:
+            return (q[0] + past[0], q[1] + past[1])
+        return (q[0] - u[1] * off, q[1] + u[0] * off)
 
     def nearest_block(self, p):
         best = None
@@ -265,8 +286,53 @@ def icon_size(el, what):
     return sizes.pop() if sizes else None
 
 
-def text_box(text, size):
-    return 0.6 * size * len(text), float(size)
+@functools.lru_cache(maxsize=None)
+def jmri_text():
+    """The plugin's schematic.jmri_text: the Dialog sizes JMRI draws (the plugin is on sys.path in a build)."""
+    try:
+        return importlib.import_module("schematic.jmri_text")
+    except ImportError as exc:
+        raise OverlayError(f"cannot size text: the schematic-maps plugin's schematic.jmri_text is not importable "
+                           f"({exc}); run through build_layout_le.py, which puts the plugin on the path") from None
+
+
+def text_box(text, size, bold, what):
+    """(w, h) px JMRI gives `text` at `size` in Dialog (bold or plain)."""
+    jt = jmri_text()
+    if size not in jt.SIZES:
+        raise OverlayError(f"{what}: font size {size} has no measured Dialog size ({jt.SIZES.start}.."
+                           f"{jt.SIZES.stop - 1})")
+    return float(jt.width(text, size, bold)), float(jt.height(size, bold))
+
+
+def text_size(el, what):
+    """(size, bold) of a text item's font, read from its attributes (a size that is no whole number stops)."""
+    size = num(el, "size", what)
+    if size != int(size):
+        raise OverlayError(f"{what}: size={el.get('size')!r} is no whole number")
+    style = el.get("style") or "0"
+    if style not in ("0", "1", "2", "3"):
+        raise OverlayError(f"{what}: style={style!r} is not a JMRI font style (0..3)")
+    return int(size), style in ("1", "3")
+
+
+@functools.lru_cache(maxsize=None)
+def bci_text(key="block_contents_text"):
+    """The train name a block contents icon's box is reserved for: the plugin label layer's default
+    (schematic.le_labels DEFAULTS `key`: block_contents_text, or block_contents_short for an icon that fits only
+    the shorter box; carry() checks the plugin's own boxes agree)."""
+    try:
+        return importlib.import_module("schematic.le_labels").DEFAULTS[key]
+    except (ImportError, AttributeError, KeyError) as exc:
+        raise OverlayError(f"cannot size block contents icons: the schematic-maps plugin's label layer "
+                           f"(schematic.le_labels DEFAULTS[{key!r}]) is missing ({exc})") from None
+
+
+def bci_box(el, what):
+    """(w, h) a block contents icon takes: the full reserved train name (bci_text()) in its font. The XML does
+    not say which icons the plugin gave the short reserve, so every one is kept clear at full width (the wider
+    box holds the shorter one)."""
+    return text_box(bci_text(), *text_size(el, what), what)
 
 
 def describe(el):
@@ -276,32 +342,50 @@ def describe(el):
 
 
 class Item:
+    """One overlay item: its place (x, y), its image size and font read at once (a bad one stops); its drawn size
+    (w, h) on first use, from the plugin's font sizes, so le_inputs.load can check the file without the plugin."""
+
     def __init__(self, el, index):
         self.el, self.index = el, index
         self.what = describe(el)
         self.x, self.y = num(el, "x", self.what), num(el, "y", self.what)
-        icon = icon_size(el, self.what)
-        texty = el.tag == "BlockContentsIcon" or el.get("text") is not None
-        size = int(num(el, "size", self.what)) if texty else None      # a text item without a size stops
-        if el.tag == "BlockContentsIcon":
-            w, h = text_box("M" * BCI_CHARS, size)
-        elif icon:
-            w, h = icon
-            if el.get("text"):
-                tw, th = text_box(el.get("text"), size)
-                w, h = max(w, tw), max(h, th)
-        elif el.get("text") is not None:
-            if not el.get("text").strip():
+        self.icon = icon_size(el, self.what)
+        self.text = el.get("text")
+        texty = el.tag == "BlockContentsIcon" or self.text is not None
+        self.font = text_size(el, self.what) if texty else None      # a text item without a size stops
+        if el.tag != "BlockContentsIcon" and not self.icon:
+            if self.text is None:
+                raise OverlayError(f"{self.what}: neither an image nor text, so its size is unknown")
+            if not self.text.strip():
                 raise OverlayError(f"{self.what}: a text label with no text")
-            w, h = text_box(el.get("text"), size)
-        else:
-            raise OverlayError(f"{self.what}: neither an image nor text, so its size is unknown")
-        self.w, self.h = w, h
+        self._size = None
         self.lamp = el.tag == "sensoricon" and any("circuit-" in (c.get("url") or "") for c in el.iter())
-        self.backdrop = el.tag == "positionablelabel" and icon is not None and int(el.get("level") or 0) <= 1
+        self.backdrop = el.tag == "positionablelabel" and self.icon is not None and int(el.get("level") or 0) <= 1
         self.group = None       # a cluster key: its members move as one
         self.anchor = None      # (kind, ...) in the live panel
         self.new = None         # (x, y) on the new panel
+
+    @property
+    def size(self):
+        """(w, h) px as JMRI draws it: an icon with text the larger of the two each way (PositionableLabel)."""
+        if self._size is None:
+            if self.el.tag == "BlockContentsIcon":
+                self._size = bci_box(self.el, self.what)
+            elif self.text:
+                tw, th = text_box(self.text, *self.font, self.what)
+                iw, ih = self.icon or (0, 0)
+                self._size = (max(iw, tw), max(ih, th))
+            else:
+                self._size = self.icon
+        return self._size
+
+    @property
+    def w(self):
+        return self.size[0]
+
+    @property
+    def h(self):
+        return self.size[1]
 
     @property
     def centre(self):
@@ -317,6 +401,89 @@ def overlay_items(live_le):
             raise OverlayError(f"live panel: {el.tag} is neither track nor an overlay item this build carries")
         items.append(Item(el, i))
     return items
+
+
+def generated(elements, bci_widths=None):
+    """[(kind, name, Rect)] of the generated labels ("label", its text) and block contents icons ("block contents",
+    its block) among `elements`, sized as JMRI draws them. A hidden label (the generated-panel marker) is not drawn
+    on the running panel, so it is left out. A block contents icon is as wide as the full reserve, or with
+    `bci_widths` ({block: px}, the plugin's boxes; same_boxes checks they are a reserve) as the plugin placed it."""
+    out = []
+    for el in elements:
+        what = describe(el)
+        if el.tag == "positionablelabel" and el.get("text") and el.get("hidden") != "yes":
+            w, h = text_box(el.get("text"), *text_size(el, what), what)
+            out.append(("label", el.get("text"), Rect(num(el, "x", what), num(el, "y", what), w, h)))
+        elif el.tag == "BlockContentsIcon":
+            if not el.get("blockcontents"):
+                raise OverlayError(f"generated panel: a block contents icon at {el.get('x')}, {el.get('y')} names "
+                                   "no block")
+            w, h = bci_box(el, what)
+            if bci_widths is not None:
+                if el.get("blockcontents") not in bci_widths:
+                    raise OverlayError(f"generated panel: {what} is not among the plugin's block contents icons")
+                w = bci_widths[el.get("blockcontents")]
+            out.append(("block contents", el.get("blockcontents"), Rect(num(el, "x", what), num(el, "y", what), w, h)))
+    return out
+
+
+def switch_number(text, switch_prefix):
+    """The switch number a label names ("SW-13" -> "13", "SW-35A" -> "35A", with `switch_prefix` "SW-"), else None.
+    With no prefix nothing is a switch label (a bare number may be an equipment label)."""
+    if not switch_prefix or not text.startswith(switch_prefix):
+        return None
+    n = text[len(switch_prefix):]
+    return n if re.fullmatch(r"\d+[A-Z]?", n) else None
+
+
+def split_generated(items, live, gen, switch_prefix):
+    """(kept items, dropped {kind: [name]}): the hand-drawn items the generated panel gives itself now (`gen`:
+    generated() of it) left out. Block contents icons, switch number labels (`switch_prefix` and the number) and
+    labels naming a block always; a caption when a generated label has its text, in any case. A label with no text
+    (the backdrop, an icon-only label) is never one of them."""
+    gen_texts = {name.lower() for kind, name, _r in gen if kind == "label"}
+    blocks = set(live.pieces) | set(live.os_turnouts())
+    kept, dropped = [], {k: set() for k in DROPPED}
+    for it in items:
+        el, text = it.el, (it.el.get("text") or "").strip()
+        if el.tag == "BlockContentsIcon":
+            if not el.get("blockcontents"):
+                raise OverlayError(f"live {it.what} names no block")
+            dropped["block_contents"].add(el.get("blockcontents"))
+        elif el.tag != "positionablelabel" or it.backdrop or not text:
+            kept.append(it)
+        elif switch_number(text, switch_prefix):
+            dropped["switch_numbers"].add(switch_number(text, switch_prefix))
+        elif text in blocks:
+            dropped["track_names"].add(text.removeprefix("Track "))
+        elif text.lower() in gen_texts:
+            dropped["captions"].add(text)
+        else:
+            kept.append(it)
+    return kept, {k: sorted(v, key=lambda t: (len(t), t)) for k, v in dropped.items()}
+
+
+def given(dropped, gen, what, switch_prefix=""):
+    """[notes]: stop with OverlayError when the generated panel (`gen`: generated() of it) lacks a switch number,
+    track name or caption that the hand-drawn panel had and the overlay no longer carries (a switch number with the
+    plugin's `switch_prefix`), or a block contents icon of a dropped one; a note instead when it has no block
+    contents icon at all (a plugin without the label layer)."""
+    texts = {name for kind, name, _r in gen if kind == "label"}
+    lower = {t.lower() for t in texts}
+    bcis = {name for kind, name, _r in gen if kind == "block contents"}
+    missing = [f"switch number {switch_prefix}{n}" for n in dropped["switch_numbers"] if switch_prefix + n not in texts]
+    missing += [f"track name {t}" for t in dropped["track_names"] if t not in texts]
+    missing += [f"caption {c!r}" for c in dropped["captions"] if c.lower() not in lower]
+    notes = []
+    if bcis:
+        missing += [f"block contents icon of {b}" for b in dropped["block_contents"] if b not in bcis]
+    elif dropped["block_contents"]:
+        notes.append(f"the generated panel has no block contents icon (the plugin has no label layer?): "
+                     f"{len(dropped['block_contents'])} blocks show no train")
+    if missing:
+        raise OverlayError(f"{what}: the generated panel lacks what the hand-drawn panel showed and the overlay "
+                           f"leaves to it: {', '.join(missing)}")
+    return notes
 
 
 # ---------------------------------------------------------------- tying each item to what it belongs to
@@ -389,8 +556,8 @@ def assign_groups(items):
             it.group = f"station {key}"
 
 
-def tie(items, live, root, switch_ident, station_labels):
-    """Set each item's group (assign_groups) or anchor, from the live panel."""
+def tie(items, live, root):
+    """Set each item's group (assign_groups) or anchor, from the live panel (`items`: split_generated()'s kept)."""
     assign_groups(items)
     by_sensor = sensor_blocks(root)
     slots_of = sensor_slots(live.le)
@@ -398,33 +565,16 @@ def tie(items, live, root, switch_ident, station_labels):
     for it in items:
         el = it.el
         sensor = el.get("sensor")
-        text = (el.get("text") or "").strip()
         if it.group:
             continue
+        if el.tag not in CARRIED_TAGS:
+            raise OverlayError(f"live {it.what}: the generated panel gives these, so it is not carried")
         if it.backdrop:
             it.anchor = ("backdrop",)
         elif sensor in slots_of:
             it.anchor = ("slot",) + slots_of[sensor] + (sub(it.centre, slot_point(live, *slots_of[sensor])),)
-        elif el.tag == "positionablelabel" and re.fullmatch(r"SW-(\d+)", text):
-            n = text[3:]
-            if n not in switch_ident:
-                raise OverlayError(f"live label {text!r}: switch {n} is not in switches.csv")
-            ident = switch_ident[n]
-            if ident not in live.turnouts:
-                raise OverlayError(f"live label {text!r}: switches.csv's turnout {ident} is not on the live panel")
-            block = live.turnouts[ident].get("blockname")
-            it.anchor = ("turnout", ident, block, sub(it.centre, live.turnout_point(ident, block)))
-        elif el.tag == "positionablelabel" and text.lower() in station_labels:
-            it.anchor = ("station", text.lower())
         else:
-            blocks = set()
-            if el.tag == "BlockContentsIcon":
-                blocks = {el.get("blockcontents")}
-            elif sensor:
-                blocks = by_sensor.get(sensor, set())
-            elif el.tag == "positionablelabel" and text in live.pieces:
-                blocks = {text}
-            it.anchor = block_anchor(it, blocks, live, os_of)
+            it.anchor = block_anchor(it, by_sensor.get(sensor, set()) if sensor else set(), live, os_of)
 
 
 def sub(a, b):
@@ -477,7 +627,7 @@ def frame_point(p, live_box, gen_box):
     return tuple(out)
 
 
-def target(it, frame, gen, station_at):
+def target(it, frame, gen):
     """The centre the item would take on the new panel before it is nudged clear (`frame`: the hand-drawn track's
     bounding box)."""
     kind = it.anchor[0]
@@ -496,8 +646,6 @@ def target(it, frame, gen, station_at):
         if block not in gen.runs:
             raise OverlayError(f"{it.what}: block {block} is not drawn on the new panel")
         return gen.at(block, share, off, past)
-    if kind == "station":
-        return station_at[it.anchor[1]]
     if kind == "frame":
         return frame_point(it.centre, frame, gen.box)
     raise OverlayError(f"{it.what}: anchor {kind} not known")
@@ -543,15 +691,17 @@ def cross_segs(a, b, c, d):
 
 
 class Obstacles:
-    """The new panel's track lines, turnouts, mast icons, labels and the items placed so far, indexed by grid cell
-    (CELL px) so a spot is scored against what is near it only."""
+    """The new panel's track lines, turnouts, mast icons, generated labels and block contents icons, and the items
+    placed so far, indexed by grid cell (CELL px) so a spot is scored against what is near it only. `fixed`:
+    [(name, Rect)] of the generated labels and icons (generated(), named "<kind> <name>")."""
     CELL = 32
 
-    def __init__(self, gen, masts, labels, shapes):
+    def __init__(self, gen, masts, fixed, shapes):
         self.grid = defaultdict(list)       # cell -> [(kind, payload)]
-        for pcs in gen.pieces.values():
+        for block, pcs in gen.pieces.items():
             for a, b in pcs:
-                self._add(("line", (a, b)), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
+                self._add(("line", (a, b, block)), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]),
+                          max(a[1], b[1]))
         for t in gen.turnouts.values():
             cen = (float(t.get("xcen")), float(t.get("ycen")))
             legs = [gen.ix.leg_coords(t, L) for L in ("ABCD" if "XOVER" in (t.get("type") or "") else "ABC")]
@@ -560,8 +710,8 @@ class Obstacles:
                       max(xs) + TURNOUT_R, max(ys) + TURNOUT_R)
         for n, r in masts:
             self.add_rect("mast " + n, r)
-        for n, r in labels:
-            self.add_rect("label " + n, r)
+        for n, r in fixed:
+            self.add_rect(n, r)
         for c, rad in shapes:
             self._add(("shape", (c, rad)), c[0] - rad, c[1] - rad, c[0] + rad, c[1] + rad)
 
@@ -577,8 +727,9 @@ class Obstacles:
     def add_rect(self, name, r):
         self._add(("rect", (name, r)), r.x, r.y, r.x + r.w, r.y + r.h)
 
-    def hits(self, r, lamp):
-        """What rectangle r would stand on: [reason]."""
+    def hits(self, r, lamp, own=None):
+        """What rectangle r would stand on: [reason]. A lamp may stand on any track and turnout; with `own` (a
+        block) r may stand on that block's track lines."""
         seen, why = set(), []
         for c in self._cells(r.x - 2, r.y - 2, r.x + r.w + 2, r.y + r.h + 2):
             for obj in self.grid.get(c, ()):
@@ -586,7 +737,7 @@ class Obstacles:
                     continue
                 seen.add(id(obj))
                 kind, v = obj
-                if kind == "line" and not lamp and r.gap_seg(*v) < CLEAR:
+                if kind == "line" and not lamp and v[2] != own and r.gap_seg(v[0], v[1]) < CLEAR:
                     why.append("track")
                 elif kind == "body" and not lamp and (r.gap_point(v[0]) < TURNOUT_R or
                                                       any(r.gap_seg(a, b) < CLEAR for a, b in v[1])):
@@ -605,23 +756,80 @@ def spots(reach):
                          if dx * dx + dy * dy <= reach * reach), key=lambda d: (d[0] ** 2 + d[1] ** 2, d)))
 
 
+def inside(rects, bounds):
+    """True when every rectangle is inside `bounds` (x0, y0, x1, y1)."""
+    return all(r.x >= bounds[0] and r.y >= bounds[1] and r.x + r.w <= bounds[2] and r.y + r.h <= bounds[3]
+               for r in rects)
+
+
 def nudge(rects, obstacles, lamp, bounds, what):
-    """(dx, dy): the nearest offset at which no rectangle of `rects` hits anything, inside `bounds` (x0, x1)."""
+    """(dx, dy): the nearest offset at which no rectangle of `rects` hits anything, inside `bounds` (x0, y0, x1,
+    y1)."""
     for reach in REACH:
         for dx, dy in spots(reach):
             moved = [r.moved(dx, dy) for r in rects]
-            if any(m.x < bounds[0] or m.x + m.w > bounds[1] for m in moved):
-                continue
-            if not any(obstacles.hits(m, lamp) for m in moved):
+            if inside(moved, bounds) and not any(obstacles.hits(m, lamp) for m in moved):
                 return dx, dy
     here = [obstacles.hits(r, lamp) for r in rects]
-    raise OverlayError(f"{what}: no clear spot within {REACH[-1]} px (where it would stand it meets "
-                       f"{sorted({w for h in here for w in h}) or 'nothing'}, but it is off the panel)")
+    raise OverlayError(f"{what}: no clear spot within {REACH[-1]} px inside the window (where it would stand it "
+                       f"meets {sorted({w for h in here for w in h}) or 'nothing'})")
+
+
+def station_clusters(frozen):
+    """{station block: [Item]}: the station clusters of a frozen overlay (validated), each member sized as JMRI
+    draws it; the clusters' boxes go to the plugin's label layer to be placed (station_extras)."""
+    validate(frozen)
+    out = defaultdict(list)
+    for it in frozen_items(frozen):
+        block = station_block(it.group)
+        if block:
+            out[block].append(it)
+    return dict(out)
+
+
+def panel_station_clusters(live_le):
+    """{station block: [Item]} of the station clusters on the hand-drawn panel (--freeze: before the overlay is
+    frozen, the same items as station_clusters gives from the frozen file)."""
+    items = overlay_items(live_le)
+    assign_groups(items)
+    out = defaultdict(list)
+    for it in items:
+        if station_block(it.group):
+            out[station_block(it.group)].append(it)
+    return dict(out)
+
+
+def cluster_box(its):
+    """(x, y, w, h) of the members' bounding box, as they stand in the frozen file."""
+    x0, y0 = min(i.x for i in its), min(i.y for i in its)
+    return x0, y0, max(i.x + i.w for i in its) - x0, max(i.y + i.h for i in its) - y0
+
+
+def station_extras(clusters):
+    """The plugin's `extras` for the station clusters ({block: [Item]}, station_clusters or panel_station_clusters):
+    one box per cluster, its id and block the station's track block, its size the members' bounding box as JMRI
+    draws them. The label layer places each beside its own track with its labels and block contents icons."""
+    return [dict(id=block, block=block, size=list(cluster_box(its)[2:])) for block, its in sorted(clusters.items())]
+
+
+def station_shift(its, block, P):
+    """(dx, dy) moving the station cluster `its` (as one) to where the plugin's label layer placed its box
+    (P.extras); stops when the plugin placed none or a box of another size."""
+    got = [e for e in getattr(P, "extras", ()) if e["id"] == block]
+    if len(got) != 1:
+        raise OverlayError(f"station cluster {block}: the plugin's label layer placed {len(got)} boxes for it "
+                           "(build_layout_le.py passes each cluster as an extra)")
+    x0, y0, w, h = cluster_box(its)
+    bx, by, bw, bh = got[0]["box"]
+    if got[0]["block"] != block or (round(bw, 1), round(bh, 1)) != (round(w, 1), round(h, 1)):
+        raise OverlayError(f"station cluster {block}: the plugin placed a {bw:g}x{bh:g} px box by "
+                           f"{got[0]['block']}, not its {w:g}x{h:g} px")
+    return bx - x0, by - y0
 
 
 # ---------------------------------------------------------------- carry
 
-ORDER = ("lamp", "slot", "station", "turnout", "block", "label", "frame", "status", "backdrop")
+ORDER = ("station", "lamp", "slot", "turnout", "block", "label", "frame", "status", "backdrop")
 
 
 def rank(unit):
@@ -641,32 +849,12 @@ def rank(unit):
     return ORDER.index(kind if kind in ORDER else "frame")
 
 
-def generated_labels(gen_le, items):
-    """({caption: centre}, [labels to drop]): the generated labels that a carried label also gives. A station name
-    (upper case, bold) is dropped and its caption put where it was; a switch number or track name just dropped."""
-    live_texts = {(it.el.get("text") or "").strip() for it in items if it.el.tag == "positionablelabel"}
-    station_labels, drop = {}, []
-    lower = {t.lower() for t in live_texts}
-    for lb in gen_le.findall("positionablelabel"):
-        text = lb.get("text") or ""
-        x, y, size = num(lb, "x", "label"), num(lb, "y", "label"), int(num(lb, "size", "label"))
-        w, h = text_box(text, size)
-        if text.isupper() and text.lower() in lower and lb.get("style") == "1":
-            station_labels[text.lower()] = (x + w / 2, y + h / 2)
-            drop.append(lb)
-        elif re.fullmatch(r"\d+", text) and f"SW-{text}" in live_texts:
-            drop.append(lb)
-        elif f"Track {text}" in live_texts:
-            drop.append(lb)
-    return station_labels, drop
-
-
 # ---------------------------------------------------------------- the frozen overlay (overlay.json)
 
-ANCHOR_FIELDS = {"backdrop": (), "frame": (), "station": ("caption",), "slot": ("on", "ident", "slot", "offset"),
+ANCHOR_FIELDS = {"backdrop": (), "frame": (), "slot": ("on", "ident", "slot", "offset"),
                  "turnout": ("ident", "block", "offset"), "block": ("block", "share", "side", "past")}
 ITEM_FIELDS = {"index", "xml", "group", "anchor"}
-FROZEN_FIELDS = {"_note", "frame", "stations", "unchained", "items"}
+FROZEN_FIELDS = {"_note", "frame", "dropped", "unchained", "items"}
 
 
 def element_xml(el) -> str:
@@ -688,8 +876,6 @@ def anchor_json(anchor):
     if kind == "block":
         return dict(kind=kind, block=anchor[1], share=anchor[2], side=anchor[3],
                     past=list(anchor[4]) if anchor[4] is not None else None)
-    if kind == "station":
-        return dict(kind=kind, caption=anchor[1])
     return dict(kind=kind)
 
 
@@ -701,40 +887,27 @@ def anchor_tuple(a: dict):
         return (kind, a["ident"], a["block"], tuple(a["offset"]))
     if kind == "block":
         return (kind, a["block"], a["share"], a["side"], tuple(a["past"]) if a["past"] is not None else None)
-    if kind == "station":
-        return (kind, a["caption"])
     return (kind,)
 
 
-def freeze(live_le, gen_le, root, le_mod, slots_mod, switch_ident: dict, note: str) -> dict:
-    """The overlay of the hand-drawn panel `live_le` as overlay.json holds it: each item's XML, its cluster or what
-    it is tied to and its offset from that, the hand-drawn track's bounding box (for the frame items and the status
-    cluster) and each station cluster's place along its block. `gen_le` is the generated panel the items go on:
-    its station names decide which captions are tied to them. Reads `gen_le` only."""
+def freeze(live_le, gen_le, root, le_mod, slots_mod, note: str, switch_prefix: str = "") -> dict:
+    """The overlay of the hand-drawn panel `live_le` as overlay.json holds it: each carried item's XML, its cluster
+    or what it is tied to and its offset from that, the hand-drawn track's bounding box (for the frame items and the
+    status cluster), and under "dropped" what the generated panel gives instead (split_generated). `gen_le` is the
+    generated panel the items go on: its labels decide which captions it gives. Reads `gen_le` only, and stops
+    unless it gives everything dropped (given())."""
     live = Track(live_le, le_mod, slots_mod, "hand-drawn panel")
     live.le = live_le
-    items = overlay_items(live_le)
-    station_labels, _drop = generated_labels(gen_le, items)
-    tie(items, live, root, switch_ident, station_labels)
-    groups = defaultdict(list)
-    for it in items:
-        if it.group:
-            groups[it.group].append(it)
-    stations = {}
-    for key, its in sorted(groups.items()):
-        if not key.startswith("station "):
-            continue
-        block = key[len("station "):]
-        if block not in live.runs:
-            raise OverlayError(f"station cluster {block}: its block is not drawn on the hand-drawn panel")
-        share, side, past = live.where(block, cluster_centre(its))
-        stations[block] = dict(share=share, side=side, past=list(past) if past is not None else None)
-    return {"_note": note, "frame": list(live.box), "stations": stations, "unchained": sorted(live.unchained),
+    gen = generated(gen_le)
+    items, dropped = split_generated(overlay_items(live_le), live, gen, switch_prefix)
+    given(dropped, gen, "freeze", switch_prefix)
+    tie(items, live, root)
+    return {"_note": note, "frame": list(live.box), "dropped": dropped, "unchained": sorted(live.unchained),
             "items": [dict(index=it.index, xml=element_xml(it.el), group=it.group,
                            anchor=anchor_json(it.anchor) if it.anchor else None) for it in items]}
 
 
-def validate(frozen, what="overlay.json") -> None:
+def validate(frozen, what="overlay.json", switch_prefix="") -> None:
     """Stop with OverlayError on a frozen overlay of the wrong shape (fields, kinds, numbers, XML), naming the item."""
     def need(cond, msg):
         if not cond:
@@ -753,11 +926,11 @@ def validate(frozen, what="overlay.json") -> None:
          "frame must be [x0, y0, x1, y1]")
     need(isinstance(frozen["unchained"], list) and all(isinstance(b, str) for b in frozen["unchained"]),
          "unchained must be a list of block names")
-    need(isinstance(frozen["stations"], dict), "stations must be an object of block: place")
-    for block, at in frozen["stations"].items():
-        need(isinstance(at, dict) and set(at) == {"share", "side", "past"} and number(at["share"]) and
-             number(at["side"]) and (at["past"] is None or pair(at["past"])),
-             f"station {block!r}: needs share, side (numbers) and past (null or [dx, dy])")
+    dropped = frozen["dropped"]
+    need(isinstance(dropped, dict) and set(dropped) == set(DROPPED), f"dropped must be an object of {list(DROPPED)}")
+    for k in DROPPED:
+        need(isinstance(dropped[k], list) and all(isinstance(v, str) and v for v in dropped[k]) and
+             len(set(dropped[k])) == len(dropped[k]), f"dropped {k} must be a list of different names")
     need(isinstance(frozen["items"], list) and frozen["items"], "items must be a list of items")
     seen, groups = set(), set()
     for k, it in enumerate(frozen["items"]):
@@ -772,9 +945,12 @@ def validate(frozen, what="overlay.json") -> None:
             el = ET.fromstring(it["xml"])
         except ET.ParseError as exc:
             raise OverlayError(f"{what}: {name}: xml does not parse ({exc})") from None
-        need(el.tag in OVERLAY_TAGS, f"{name}: {el.tag} is not an overlay item this build carries")
+        need(el.tag in CARRIED_TAGS, f"{name}: {el.tag} is not an overlay item this build carries" +
+             (" (the generated panel gives one per block)" if el.tag == "BlockContentsIcon" else ""))
         name = f"item {k} ({describe(el)})"
-        Item(el, it["index"])           # its position and size read, or a clear stop
+        need(not (el.tag == "positionablelabel" and switch_number((el.get("text") or "").strip(), switch_prefix)),
+             f"{name}: the generated panel gives the switch numbers, so it is not carried (re-freeze)")
+        Item(el, it["index"])           # its position, image size and font read, or a clear stop
         group, anchor = it["group"], it["anchor"]
         need((group is None) != (anchor is None), f"{name}: needs a group or an anchor, not both or neither")
         if group is not None:
@@ -800,9 +976,11 @@ def validate(frozen, what="overlay.json") -> None:
             need(ok, f"{name}: anchor {f} {v!r} has the wrong type")
         if anchor["kind"] == "slot":
             need(anchor["on"] in ("point", "turnout"), f"{name}: a slot anchor is on a point or a turnout")
-    stations = {g[len("station "):] for g in groups if g.startswith("station ")}
-    need(stations == set(frozen["stations"]), f"station clusters {sorted(stations)} but places for "
-         f"{sorted(frozen['stations'])}")
+        if el.tag == "positionablelabel" and anchor["kind"] in ("block", "turnout"):
+            need((el.get("text") or "").strip() != anchor["block"],
+                 f"{name}: the generated panel gives the track names, so it is not carried (re-freeze)")
+    for g in groups:
+        need(g == "status" or len(g) > len("station "), f"group {g!r} names no station block")
 
 
 def frozen_items(frozen):
@@ -821,131 +999,154 @@ def cluster_centre(its):
     return ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
 
 
-def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple) -> dict:
+def station_block(group):
+    """The block of a station cluster's group ("station <block>"), else None."""
+    return group[len("station "):] if group and group.startswith("station ") else None
+
+
+def repeats(items, gen):
+    """Stop on a carried label that a generated label repeats (same text, any case): a caption the generator gives
+    now, which a re-freeze leaves out."""
+    lower = {name.lower(): name for kind, name, _r in gen if kind == "label"}
+    bad = [f"{it.what} (generated {lower[it.text.strip().lower()]!r})" for it in items
+           if it.el.tag == "positionablelabel" and it.text and it.text.strip().lower() in lower]
+    if bad:
+        raise OverlayError("carried labels the generated panel also gives (re-freeze with build_layout_le.py "
+                           "--freeze to leave them out): " + ", ".join(bad))
+
+
+def whole(it, p):
+    """p as whole pixels, as JMRI stores them; an item off whole pixels on the hand-drawn panel stops."""
+    if p != (round(p[0]), round(p[1])):
+        raise OverlayError(f"{it.what}: placed at {p}, not on whole pixels")
+    return (round(p[0]), round(p[1]))
+
+
+def same_boxes(fixed, P):
+    """Stop unless each generated label and block contents icon read from the XML (`fixed`: generated()) has the
+    box the plugin placed it by (P.labels / P.bcis "box", when the plugin gives them): the overlay must keep clear
+    of what JMRI draws, not of a guess."""
+    want = defaultdict(list)
+    for lb in P.labels:
+        if lb.get("box") is not None:
+            want[("label", lb["text"])].append(tuple(round(v, 1) for v in lb["box"]))
+    sizes = {}
+    for b in getattr(P, "bcis", ()):       # a plugin without the label layer has none (given() notes it)
+        want[("block contents", b["block"])].append(tuple(round(v, 1) for v in b["box"]))
+        sizes[b["block"]] = int(b["size"])
+    bad = []
+    for kind, name, r in fixed:
+        boxes = want.get((kind, name))
+        if boxes is None:
+            if want:            # the plugin boxes what it places: an item it did not place is not its own
+                bad.append(f"{kind} {name!r}: on the generated panel, but the plugin placed no such item")
+            continue
+        got = (round(r.x, 1), round(r.y, 1), round(r.w, 1), round(r.h, 1))
+        if kind == "block contents":        # the plugin may have given it the short reserve: same left, top, height
+            short = round(text_box(bci_text("block_contents_short"), sizes[name], False, name)[0], 1)
+            ok = got in boxes or (got[0], got[1], short, got[3]) in boxes
+        else:
+            ok = got in boxes
+        if not ok:
+            bad.append(f"{kind} {name!r}: {got}, the plugin's {boxes}")
+    if bad:
+        raise OverlayError("generated items sized otherwise than the plugin placed them (x, y, w, h): " +
+                           "; ".join(bad))
+
+
+def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str = "") -> dict:
     """Copy every frozen overlay item onto gen_le (see the module text). Returns a report: records [(item, anchor,
-    hand-drawn xy, new xy, moved px)], dropped generated labels, the vertical shift and the new panel size."""
-    validate(frozen)
+    hand-drawn xy, new xy, moved px)], the generated labels and block contents icons placed around ({kind: count}),
+    notes, the new panel size and the blocks whose track is not one run."""
+    validate(frozen, switch_prefix=switch_prefix)
     gen = Track(gen_le, le_mod, slots_mod, "new panel")
     items = frozen_items(frozen)
     frame = tuple(frozen["frame"])
-
-    station_labels, drop = generated_labels(gen_le, items)
-    for it in items:
-        if it.anchor and it.anchor[0] == "station" and it.anchor[1] not in station_labels:
-            raise OverlayError(f"{it.what}: tied to the generated station name {it.anchor[1].upper()!r}, which the "
-                               "new panel does not draw")
-    for lb in drop:
-        gen_le.remove(lb)
-    kept = [lb for lb in gen_le.findall("positionablelabel")]
-    labels = []
-    for lb in kept:
-        x, y, size = num(lb, "x", "label"), num(lb, "y", "label"), int(num(lb, "size", "label"))
-        labels.append((lb.get("text"), Rect(x, y, *text_box(lb.get("text"), size))))
+    same_boxes(generated(list(gen_le)), P)     # the XML read alone agrees with the plugin's boxes
+    bci_widths = {b["block"]: float(b["box"][2]) for b in getattr(P, "bcis", ())}
+    fixed = generated(list(gen_le), bci_widths)     # obstacles as wide as the plugin cleared them
+    notes = given(frozen["dropped"], fixed, "carry", switch_prefix)
+    repeats(items, fixed)
     masts = [(m["mast"], Rect(*m["box"])) for m in P.masts]
     shapes = [(tuple(sh["centre"]), sh["r"]) for sh in P.shapes]
-    obstacles = Obstacles(gen, masts, labels, shapes)
+    obstacles = Obstacles(gen, masts, [(f"{k} {n}", r) for k, n, r in fixed], shapes)
+    W, H = fit[0] - le_mod.CHROME[0], fit[1] - le_mod.CHROME[1]
+    bounds = (0, TOP, W - EDGE, H - EDGE)       # inside the window, so fit_size never has to move the panel
 
     # units: a group moves as one, every other item alone
     groups = defaultdict(list)
     for it in items:
         groups[it.group or f"item {it.index}"].append(it)
-    units = []
-    for key, its in groups.items():
-        units.append(dict(key=key, items=its))
-    units.sort(key=lambda u: (rank(u), u["items"][0].index))
-    W = fit[0] - le_mod.CHROME[0]
+    units = sorted((dict(key=key, items=its) for key, its in groups.items()),
+                   key=lambda u: (rank(u), u["items"][0].index))
     records = []
     for u in units:
         its = u["items"]
         if its[0].backdrop:
             for it in its:
-                it.new = (it.x, it.y)
+                it.new = whole(it, (it.x, it.y))
                 records.append(dict(item=it.what, anchor="backdrop", live=(it.x, it.y), new=it.new, nudged=0.0))
             continue
-        if u["key"] == "status" or u["key"].startswith("station "):
-            centre = cluster_centre(its)
-            if u["key"] == "status":
-                want = frame_point(centre, frame, gen.box)
-            else:
-                key = u["key"][len("station "):]
-                if key not in gen.runs:
-                    raise OverlayError(f"station cluster {key}: its block is not drawn on the new panel")
-                at = frozen["stations"][key]
-                want = gen.at(key, at["share"], at["side"], tuple(at["past"]) if at["past"] is not None else None)
-            shift = sub(want, centre)
-        else:
-            want = target(its[0], frame, gen, station_labels)
-            shift = sub(want, its[0].centre)
-        shift = (round(shift[0]), round(shift[1]))        # whole pixels, as JMRI stores them
-        rects = [Rect(i.x + shift[0], i.y + shift[1], i.w, i.h) for i in its]
         what = u["key"] if not u["key"].startswith("item ") else its[0].what
-        dx, dy = nudge(rects, obstacles, all(i.lamp for i in its), (0, W), what)
-        for i, r in zip(its, rects):
-            i.new = (r.x + dx, r.y + dy)
-            obstacles.add_rect(i.what, Rect(i.new[0], i.new[1], i.w, i.h))
+        block = station_block(u["key"])
+        if block:
+            dx, dy = station_shift(its, block, P)
+            dx, dy = round(dx), round(dy)       # whole pixels, as JMRI stores them
+            moved = 0.0         # placed by the plugin, not tied to its hand-drawn place: no nudge to report
+            rects = [Rect(i.x + dx, i.y + dy, i.w, i.h) for i in its]
+            hit = sorted({x for r in rects for x in obstacles.hits(r, False, block)})
+            if hit or not inside(rects, bounds):
+                raise OverlayError(f"station cluster {block}: where the plugin placed it it meets "
+                                   f"{hit or 'the window edge'}")
+        else:
+            if u["key"] == "status":
+                start = cluster_centre(its)
+                want = frame_point(start, frame, gen.box)
+            else:
+                start = its[0].centre
+                want = target(its[0], frame, gen)
+            shift = (round(want[0] - start[0]), round(want[1] - start[1]))      # whole pixels, as JMRI stores
+            rects = [Rect(i.x + shift[0], i.y + shift[1], i.w, i.h) for i in its]
+            ndx, ndy = nudge(rects, obstacles, all(i.lamp for i in its), bounds, what)
+            dx, dy = shift[0] + ndx, shift[1] + ndy
+            moved = round(math.hypot(ndx, ndy), 1)
         for i in its:
+            i.new = whole(i, (i.x + dx, i.y + dy))
+            obstacles.add_rect(i.what, Rect(i.new[0], i.new[1], i.w, i.h))
             kind = "group " + u["key"] if i.group else i.anchor[0]
-            records.append(dict(item=i.what, anchor=kind, live=(i.x, i.y), new=i.new,
-                                nudged=round(math.hypot(dx, dy), 1)))
+            records.append(dict(item=i.what, anchor=kind, live=(i.x, i.y), new=i.new, nudged=moved))
 
-    # everything below TOP, then the panel big enough for it all, within the window
-    for it in items:
-        if it.new != (round(it.new[0]), round(it.new[1])):
-            raise OverlayError(f"{it.what}: placed at {it.new}, not on whole pixels")
-        it.new = (round(it.new[0]), round(it.new[1]))
-    placed = [it.new[1] for it in items if not it.backdrop]
-    if not placed:
+    if not any(not it.backdrop for it in items):
         raise OverlayError("the frozen overlay has no item to carry but its backdrop")
-    top = min(min(placed), TOP)
-    down = TOP - top if top < TOP else 0
-    if down:
-        shift_panel(gen_le, down)
     carried = []
     for it in items:
         el = copy.deepcopy(it.el)
-        carried.append(el)
-        y = it.new[1] if it.backdrop else it.new[1] + down
         el.set("x", str(it.new[0]))
-        el.set("y", str(y))
+        el.set("y", str(it.new[1]))
         gen_le.append(el)
-        it.final = (it.new[0], y)
-    for r in records:
-        r["new"] = (round(r["new"][0]), round(r["new"][1]) + (0 if r["anchor"] == "backdrop" else down))
-    size = fit_size(gen_le, items, P, down, le_mod, fit)
+        carried.append(el)
+    size = fit_size(gen_le, items, P, le_mod, fit)
     for it, el in zip(items, carried):
-        if (int(el.get("x")), int(el.get("y"))) != it.final:
+        if (int(el.get("x")), int(el.get("y"))) != it.new:
             raise OverlayError(f"overlay check: {it.what} is not where it was placed")
-    bad = check(gen_le, frozen, le_mod, slots_mod, {m["mast"]: m["size"] for m in P.masts})
+    bad = check(gen_le, frozen, le_mod, slots_mod, {m["mast"]: m["size"] for m in P.masts}, switch_prefix,
+                bci_widths)
     if bad:
         raise OverlayError("overlay check: " + "; ".join(bad))
-    return dict(records=records, dropped=[lb.get("text") for lb in drop], down=down, size=size,
-                unchained=sorted(set(frozen["unchained"]) | set(gen.unchained)))
+    counts = defaultdict(int)
+    for kind, _n, _r in fixed:
+        counts[kind] += 1
+    return dict(records=records, generated=dict(counts), dropped={k: len(v) for k, v in frozen["dropped"].items()},
+                notes=notes, size=size, unchained=sorted(set(frozen["unchained"]) | set(gen.unchained)))
 
 
-def shift_panel(le, dy):
-    """Move everything already on the generated panel down dy px (track, turnouts, labels, icons, shapes)."""
-    for el in le:
-        if el.tag == "layoutturnout":
-            for a in ("ycen", "ya", "yb", "yc", "yd"):
-                if el.get(a) is not None:
-                    el.set(a, f"{float(el.get(a)) + dy:.1f}")
-        elif el.tag == "positionablepoint":
-            el.set("y", f"{float(el.get('y')) + dy:.1f}")
-        elif el.tag in ("positionablelabel", "signalmasticon"):
-            el.set("y", str(int(round(float(el.get("y")))) + dy))
-        elif el.tag == "layoutShape":
-            for p in el.iter("point"):
-                p.set("y", f"{float(p.get('y')) + dy:.1f}")
-        elif el.tag == "tracksegment":          # a Bezier's control points are absolute
-            for c in el.iter("controlpoint"):
-                c.set("y", f"{float(c.get('y')) + dy:.1f}")
-
-
-def fit_size(le, items, P, down, le_mod, fit):
-    """Grow the panel to hold every item (EDGE px beyond the furthest), within the window less its frame."""
+def fit_size(le, items, P, le_mod, fit):
+    """Grow the panel to hold every item (EDGE px beyond the furthest), within the window less its frame. The panel
+    is never moved: carry() keeps every item inside the window, so a panel the plugin spreads over the full window
+    height (one band) stays as drawn."""
     W, H = fit[0] - le_mod.CHROME[0], fit[1] - le_mod.CHROME[1]
-    right = max([P.size[0]] + [it.final[0] + it.w + EDGE for it in items if not it.backdrop])
-    bottom = max([P.size[1] + down] + [it.final[1] + it.h + EDGE for it in items if not it.backdrop])
+    right = max([P.size[0]] + [it.new[0] + it.w + EDGE for it in items if not it.backdrop])
+    bottom = max([P.size[1]] + [it.new[1] + it.h + EDGE for it in items if not it.backdrop])
     w, h = math.ceil(right), math.ceil(bottom)
     if w > W or h > H:
         raise OverlayError(f"with its overlay the panel is {w}x{h} px, more than the {W}x{H} px the {fit[0]}x"
@@ -968,13 +1169,14 @@ def strip(el):
     return ET.tostring(e)
 
 
-def check(gen_le, frozen, le_mod, slots_mod, mast_size) -> list[str]:
+def check(gen_le, frozen, le_mod, slots_mod, mast_size, switch_prefix="", bci_widths=None) -> list[str]:
     """Problems with the overlay on a written panel, read from scratch: each frozen overlay item there exactly once
     with the same attributes and children but x and y, nothing else of the overlay kinds but the generated labels
-    (and the generated-panel marker); no item over track (lamps excepted), turnouts, mast icons (`mast_size`: mast
-    name -> (w, h) upright), labels, shapes or another item (within one cluster excepted); every item on the
-    panel."""
-    validate(frozen)
+    and block contents icons (and the hidden generated-panel marker); no item over track (lamps, and a station
+    cluster on its own track, excepted), turnouts, mast icons (`mast_size`: mast name -> (w, h) upright), generated
+    labels and block contents icons (at the sizes JMRI draws), shapes or another item (within one cluster excepted);
+    every item on the panel."""
+    validate(frozen, switch_prefix=switch_prefix)
     items = frozen_items(frozen)
     by_key = defaultdict(list)
     for el in gen_le:
@@ -989,13 +1191,10 @@ def check(gen_le, frozen, le_mod, slots_mod, mast_size) -> list[str]:
         el = got.pop(0)
         it.final = (num(el, "x", it.what), num(el, "y", it.what))
     extra = [el for v in by_key.values() for el in v]
-    labels = []
     for el in extra:
-        if el.tag != "positionablelabel" or not el.get("text"):
+        if not (el.tag == "BlockContentsIcon" or el.tag == "positionablelabel" and el.get("text")):
             bad.append(f"{describe(el)} is on the new panel but not in the frozen overlay")
-            continue
-        labels.append((el.get("text"), Rect(num(el, "x", "label"), num(el, "y", "label"),
-                                            *text_box(el.get("text"), int(num(el, "size", describe(el)))))))
+    fixed = generated(extra, bci_widths)
     masts = []
     for icon in gen_le.findall("signalmasticon"):
         name = icon.get("signalmast")
@@ -1010,7 +1209,8 @@ def check(gen_le, frozen, le_mod, slots_mod, mast_size) -> list[str]:
         c = (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
         # the plugin's circle: eight curve points at r / cos(22.5 degrees) from the centre
         shapes.append((c, max(math.dist(c, p) for p in pts) * math.cos(math.pi / 8)))
-    obstacles = Obstacles(Track(gen_le, le_mod, slots_mod, "new panel"), masts, labels, shapes)
+    obstacles = Obstacles(Track(gen_le, le_mod, slots_mod, "new panel"), masts,
+                          [(f"{k} {n}", r) for k, n, r in fixed], shapes)
     w, h = num(gen_le, "panelwidth", "panel"), num(gen_le, "panelheight", "panel")
     for it in items:
         if it.backdrop or not hasattr(it, "final"):
@@ -1018,7 +1218,7 @@ def check(gen_le, frozen, le_mod, slots_mod, mast_size) -> list[str]:
         r = Rect(it.final[0], it.final[1], it.w, it.h)
         if r.x < 0 or r.y < 0 or r.x + r.w > w or r.y + r.h > h:
             bad.append(f"{it.what} is off the panel")
-        hit = obstacles.hits(r, it.lamp)
+        hit = obstacles.hits(r, it.lamp, station_block(it.group))
         hit += [n for (n, g), o in placed if r.overlaps(o) and not (it.group and g == it.group)]
         if hit:
             bad.append(f"{it.what} meets {sorted(set(hit))}")

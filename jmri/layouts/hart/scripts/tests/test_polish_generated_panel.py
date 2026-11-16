@@ -191,6 +191,56 @@ class GeneratedPanelTest(unittest.TestCase):
         (_n, errors), _ = run(polish.apply_visual_standard, write(root, self.dir, "two.xml"), check=True)
         self.assertTrue(any("none has the caption style" in e for e in errors))
 
+    def test_the_plugins_labels_and_fonts_stay_on_a_generated_panel(self) -> None:
+        # the plugin writes its block contents icons in Dialog and the track names itself (S-R, not "Track S-R"),
+        # and a track may be named like a caption (one "Barn" label in the track-name style)
+        root = copy.deepcopy(self.gen)
+        le = tables.layout_editor(root)
+        for icon in le.findall("BlockContentsIcon"):
+            icon.set("fontFamily", "Dialog")
+            icon.set("fontname", "Dialog")
+        for label in le.findall("positionablelabel"):
+            if label.get("text") in polish.TRACK_NAME_LABELS:
+                le.remove(label)
+            elif label.get("text") == "Barn":
+                label.set("size", "10")
+                label.set("style", "0")
+        path = write(root, self.dir)
+        before = path.read_bytes()
+        for fn in (polish.apply_visual_standard, polish.apply_block_labels_only):
+            (_n, errors), _ = run(fn, path, check=True)
+            self.assertEqual([], errors, fn.__name__)
+            run(fn, path, check=False)
+        self.assertEqual(path.read_bytes(), before)
+        # another font on a generated icon still goes; on the hand-drawn panel even Dialog goes, as before
+        le.find("BlockContentsIcon").set("fontFamily", "Lucida Grande")
+        (_n, errors), _ = run(polish.apply_block_labels_only, write(root, self.dir, "other.xml"), check=True)
+        self.assertEqual(1, len([e for e in errors if "still has fontFamily" in e]))
+        hand = copy.deepcopy(root)
+        lab = tables.layout_editor(hand).find(f"positionablelabel[@text='{tables.GENERATED_PANEL_MARKER}']")
+        tables.layout_editor(hand).remove(lab)
+        (_n, errors), _ = run(polish.apply_visual_standard, write(hand, self.dir, "hand.xml"), check=True)
+        self.assertTrue(any("still has fontname" in e for e in errors))
+        self.assertTrue(any("track name label 'Track S-R'" in e for e in errors))
+        self.assertTrue(any("label 'Barn' size='10'" in e for e in errors))
+
+    def test_a_carried_caption_keeps_its_style_on_a_generated_panel(self) -> None:
+        self.assertLessEqual({"Neville Island", "Industries"}, polish.carried_captions())
+        self.assertNotIn("Barn", polish.carried_captions())        # the plugin gives it now
+        root = copy.deepcopy(self.gen)
+        label = next(l for l in tables.layout_editor(root).findall("positionablelabel")
+                     if l.get("text") == "Neville Island")
+        label.set("size", "20")
+        path = write(root, self.dir)
+        (_n, errors), _ = run(polish.apply_visual_standard, path, check=True)
+        self.assertEqual(["tables.xml: label 'Neville Island' size='20', expected '28'"], errors)
+        run(polish.apply_visual_standard, path, check=False)
+        fixed = next(l for l in tables.layout_editor(tables.read(path)).findall("positionablelabel")
+                     if l.get("text") == "Neville Island")
+        self.assertEqual("28", fixed.get("size"))
+        with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(ValueError, "carried captions"):
+            polish.carried_captions(Path(tmp) / "none.json")
+
     def test_hand_drawn_lamps_are_placed_after_the_turnout_fix(self) -> None:
         # TURNOUT_GEOMETRY puts TOR36 back first; its OS lamp then centres on the fixed circle, as before Phase 3
         root = copy.deepcopy(self.live)

@@ -189,7 +189,9 @@ class Built(unittest.TestCase):
         self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"), 4)
         self.assertEqual({s.get("mainline") for s in self.le.findall("tracksegment")}, {"yes", "no"})
         texts = {lb.get("text") for lb in self.le.findall("positionablelabel")}
-        self.assertTrue({"STAGING LEVEL", "MAIN LEVEL", "Main West", "39", "135A"} <= texts, texts)
+        prefix = B.TRIAL_LE_LABELS["switch_prefix"]          # switch numbers as the plugin's label layer writes them
+        self.assertTrue({"STAGING LEVEL", "MAIN LEVEL", "Main West", prefix + "39", prefix + "135A"} <= texts, texts)
+        self.assertEqual(self.le.findall("BlockContentsIcon"), [])     # none in the all-levels trial
         self.assertEqual(len(self.le.findall("layoutShape")), 8)     # four helix ends, four connector ends
 
     def test_no_sensors_and_masts_only_on_staging(self) -> None:
@@ -212,7 +214,7 @@ class Built(unittest.TestCase):
         self.assertLessEqual(window[0], 1900)                         # the owner's display
         self.assertLessEqual(window[1], 1200 - 37)                    # below the macOS menu bar
         self.assertGreater(window[0], 0.98 * B.FIT[0])                # as large as fits, not smaller
-        # everything drawn lies on the panel: track, turnout legs, labels (at the plugin's text width) and icons
+        # everything drawn lies on the panel: track, turnout legs, labels (at the width JMRI draws) and icons
         xs, ys = [], []
         for p in self.le.findall("positionablepoint"):
             xs.append(float(p.get("x")))
@@ -221,11 +223,12 @@ class Built(unittest.TestCase):
             for leg in "abcd":
                 xs.append(float(t.get(f"x{leg}")))
                 ys.append(float(t.get(f"y{leg}")))
-        _sheet, le_mod, _core = B.plugin()
+        B.plugin()
+        jt = B.importlib.import_module("schematic.jmri_text")
         for lb in self.le.findall("positionablelabel"):
-            x, y, size = float(lb.get("x")), float(lb.get("y")), int(lb.get("size"))
-            xs += [x, x + le_mod.text_width(lb.get("text"), size)]
-            ys += [y, y + size]
+            x, y, size, bold = float(lb.get("x")), float(lb.get("y")), int(lb.get("size")), lb.get("style") == "1"
+            xs += [x, x + jt.width(lb.get("text"), size, bold)]
+            ys += [y, y + jt.height(size, bold)]
         for m in self.P.masts:
             x, y, bw, bh = m["box"]
             xs += [x, x + bw]

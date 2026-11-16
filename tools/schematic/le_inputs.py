@@ -17,7 +17,8 @@ not in a panel. Each file starts with a note saying so (a `# ` line in a CSV, `_
   masts.csv      each staging mast: its slot, facing and protected blocks, icon size and hidden flag (the Layout
                  Editor build), and its run on the schematic (build_signals.py writes staging.signals.json from it):
                  `run` is 'toward;far', the far switch left blank at a track end ('3;')
-  overlay.json   each icon and label of the overlay with what it is tied to (le_overlay.py)
+  overlay.json   each carried icon and caption with what it is tied to, and what the generated panel gives
+                 instead of the hand-drawn labels and block contents icons (le_overlay.py)
 
 Main and upper are dark territory (no masts) until the owner's signal plan. Every file is checked for shape on load
 (InputsError names the file, the row and the field).

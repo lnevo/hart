@@ -2,10 +2,12 @@
 generated staging panel (Phases 1 and 2, owner approved 2026-11-15), built from the frozen inputs (Phase 3b).
 
 The candidate must be a drop-in: the same tables but the one panel, the same idents, leg letters and slots, every
-mast and Entry/Exit sensor resolving as frozen from the hand-drawn panel, every frozen icon and label carried once,
-the audits passing on it. The comparisons read the frozen files (jmri/layouts/hart/data/schematic/staging_le/), not
-the panel in tables.xml, so they hold after the cut-over too, when that panel is the generated one; and the
-candidate is the same whether the tables hold the hand-drawn panel, a generated one or none.
+mast and Entry/Exit sensor resolving as frozen from the hand-drawn panel, every frozen icon and caption carried once
+and clear of the generated switch numbers, track names, station captions and block contents icons (which win over
+the hand-drawn ones, owner 2026-11-15), the audits passing on it. The comparisons read the frozen files
+(jmri/layouts/hart/data/schematic/staging_le/), not the panel in tables.xml, so they hold after the cut-over too,
+when that panel is the generated one; and the candidate is the same whether the tables hold the hand-drawn panel,
+a generated one or none.
 """
 from __future__ import annotations
 
@@ -251,10 +253,12 @@ class Cutover(unittest.TestCase):
         _sheet, le_mod, _core = B.plugin()
         system = tables.mast_system_names(self.root)
         size = {m: tables.mast_icon_size(s)[0] for m, s in system.items()}
-        self.assertEqual(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size), [])
+        widths = {b["block"]: float(b["box"][2]) for b in self.P.bcis}     # as the plugin placed them
+        self.assertEqual(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size,
+                                  B.LE_LABELS["switch_prefix"], widths), [])
         live_items = frozen_items()
         self.assertEqual(Counter(el.tag for el in live_items), Counter(
-            sensoricon=103, BlockContentsIcon=55, positionablelabel=42, turnouticon=10, signalheadicon=1))
+            sensoricon=103, positionablelabel=10, turnouticon=10, signalheadicon=1))
         self.assertEqual(len(self.P.overlay["records"]), len(live_items))
         strip = Counter(ov.strip(el) for el in live_items)
         got = Counter(ov.strip(el) for el in self.le if el.tag in ov.OVERLAY_TAGS)
@@ -268,27 +272,39 @@ class Cutover(unittest.TestCase):
             self.assertEqual(set(got.values()), {1})
         texts = {lb.get("text") for lb in self.le.findall("positionablelabel")}
         self.assertLessEqual({"LCOS", "Turnouts", "Signals", "Track Power", "Neville Island"}, texts)
-        self.assertEqual(Counter(i.get("blockcontents") for i in self.le.findall("BlockContentsIcon")),
-                         Counter(i.get("blockcontents") for i in frozen_items() if i.tag == "BlockContentsIcon"))
+        dropped = self.inputs.overlay["dropped"]["block_contents"]
+        self.assertEqual(len(dropped), 55)
+        bcis = Counter(i.get("blockcontents") for i in self.le.findall("BlockContentsIcon"))
+        self.assertEqual({b: bcis[b] for b in dropped}, {b: 1 for b in dropped},
+                         "one generated block contents icon for each block the hand-drawn panel showed")
         status = [r for r in self.P.overlay["records"] if r["anchor"] == "group status"]
         self.assertEqual(len(status), 8)
         moves = {(r["new"][0] - r["live"][0], r["new"][1] - r["live"][1]) for r in status}
         self.assertEqual(len(moves), 1, "the status cluster moves as one block")
 
-    def test_generated_duplicates_are_dropped(self) -> None:
-        texts = {lb.get("text") for lb in self.le.findall("positionablelabel")}
-        self.assertFalse({"BRICK", "SOUTH YARD", "1", "39", "S-R"} & texts)
-        self.assertLessEqual({"SW-1", "SW-39", "Brick", "South Yard", "Track S-R"}, texts)
+    def test_generated_labels_win(self) -> None:
+        texts = Counter(lb.get("text") for lb in self.le.findall("positionablelabel"))
+        prefix = B.LE_LABELS["switch_prefix"]
+        for n in self.inputs.overlay["dropped"]["switch_numbers"]:
+            self.assertEqual(texts[prefix + n], 1, f"switch {n}: the generated number only")
+        self.assertIn("S-R", texts)
+        self.assertNotIn("Track S-R", texts)
+        lower = Counter(t.lower() for t in texts if t)
+        for caption in ("Brick", "South Yard", "Princess"):
+            with self.subTest(caption=caption):
+                self.assertIn(caption, self.inputs.overlay["dropped"]["captions"])
+                self.assertGreaterEqual(lower[caption.lower()], 1)         # the generated one
+                self.assertNotIn(caption, texts)                           # not the hand-drawn one
 
     def test_overlay_report_is_printed(self) -> None:
         lines = B.overlay_lines(self.P.overlay)
         self.assertTrue(lines[0].startswith(f"{len(self.P.overlay['records'])} live items carried"))
-        self.assertIn("BRICK", lines[1])
+        self.assertIn("left to the generator: 55 block contents, 20 switch numbers", lines[1])
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
                 B, "build", return_value=(self.data, self.P, self.names, self.bands)):
             with contextlib.redirect_stdout(io.StringIO()) as out:
                 B.main(["--levels", "staging", "--as-live", "--out", str(Path(tmp) / "c.xml")])
-        self.assertIn("  overlay: generated labels dropped", out.getvalue())
+        self.assertIn("  overlay: placed around the generated", out.getvalue())
         self.assertIn("panel 'HART Railroad'", out.getvalue())
 
     def test_each_option_set_has_its_own_trial_file(self) -> None:
@@ -536,7 +552,7 @@ class FrozenFiles(unittest.TestCase):
         got = I.load()
         self.assertEqual((len(got.turnouts), len(got.chains), len(got.boundaries), len(got.ends), len(got.segments),
                           len(got.sensors), len(got.masts), len(got.overlay["items"])),
-                         (20, 35, 17, 7, 26, 23, 49, 211))
+                         (20, 35, 17, 7, 26, 23, 49, 124))
         self.assertEqual(got.panel_name, LIVE)
         for f in sorted(I.FOLDER.iterdir()):
             with self.subTest(file=f.name):
@@ -567,6 +583,13 @@ class FrozenFiles(unittest.TestCase):
             ("overlay.json", lambda t: t.replace('"kind": "frame"', '"kind": "nowhere"', 1), "anchor kind"),
             ("overlay.json", lambda t: t.replace('sensoricon', 'memoryicon'), "memoryicon"),
             ("overlay.json", lambda t: "[]", "not an object"),
+            ("overlay.json", lambda t: t.replace('"dropped"', '"stations"', 1), "fields"),
+            ("overlay.json", lambda t: t.replace('"switch_numbers": [', '"switch_numbers": [\n   "1",', 1),
+             "dropped switch_numbers"),
+            ("overlay.json", lambda t: "\n".join(ln.replace("sensoricon", "BlockContentsIcon")
+                                                 if 'sensor=\\"BS Main East\\"' in ln else ln
+                                                 for ln in t.split("\n")),
+             "gives one per block"),
         ]
         for name, edit, why in cases:
             with self.subTest(file=name, why=why):
@@ -581,6 +604,144 @@ class OverlayErrors(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.ov = T._load("le_overlay", T.ROOT / "tools/schematic/le_overlay.py")
+        with contextlib.redirect_stdout(io.StringIO()):
+            _sheet, cls.le_mod, _core = B.plugin()      # the plugin's font sizes (schematic.jmri_text) on the path
+        cls.slots = B.slots_module()
+
+    LAMP = ('<sensoricon sensor="BS W" x="{x}" y="{y}" level="10"><active url="program:resources/icons/'
+            'smallschematics/tracksegments/circuit-empty.gif"/></sensoricon>')
+    MARKER = ('<sensoricon sensor="MoveToTrack_{b}_stored" x="{x}" y="{y}" level="12" text="Track {b}" size="10" '
+              'style="1"><active url="program:resources/icons/markers/loco-red.gif"/></sensoricon>')
+
+    def panel(self, *extra: str) -> ET.Element:
+        """two_block_panel (blocks W, E, OS, B, C along y = 0 and 60) as a written panel, with `extra` items."""
+        le = two_block_panel()
+        le.set("panelwidth", "400")
+        le.set("panelheight", "200")
+        for x in extra:
+            le.append(ET.fromstring(x))
+        return le
+
+    def frozen(self, *items: tuple) -> dict:
+        """A frozen overlay of (xml, group, anchor) items."""
+        return {"frame": [0.0, 0.0, 300.0, 60.0], "dropped": {k: [] for k in self.ov.DROPPED}, "unchained": [],
+                "items": [dict(index=i, xml=x, group=g, anchor=a) for i, (x, g, a) in enumerate(items)]}
+
+    def test_text_is_sized_as_jmri_draws_it(self) -> None:
+        ov = self.ov
+        jt = B.importlib.import_module("schematic.jmri_text")
+        label = ov.Item(ET.fromstring('<positionablelabel text="Industries" x="1" y="2" size="16" style="1"/>'), 0)
+        self.assertEqual(label.size, (jt.width("Industries", 16, True), jt.height(16, True)))
+        marker = ov.Item(ET.fromstring(self.MARKER.format(b="EH-2", x=0, y=0)), 0)
+        self.assertEqual(marker.size, (max(60, jt.width("Track EH-2", 10, True)), max(20, jt.height(10, True))))
+        bci = ET.fromstring('<BlockContentsIcon blockcontents="W" x="3" y="4" size="13" style="0"/>')
+        (kind, name, r), = ov.generated([bci])
+        self.assertEqual((kind, name, r.w), ("block contents", "W", jt.width(ov.bci_text(), 13)))
+        hidden = ET.fromstring('<positionablelabel text="marker" hidden="yes" x="2" y="2" size="9"/>')
+        self.assertEqual(ov.generated([hidden]), [])        # not drawn on the running panel
+        with self.assertRaisesRegex(ov.OverlayError, "font size 40"):
+            ov.Item(ET.fromstring('<positionablelabel text="A" x="1" y="2" size="40"/>'), 0).size
+
+    def test_hand_drawn_labels_the_generator_gives_are_dropped(self) -> None:
+        ov = self.ov
+        live = ov.Track(self.panel(), self.le_mod, self.slots, "hand-drawn panel")
+        gen = ov.generated([ET.fromstring(f'<positionablelabel text="{t}" x="0" y="0" size="10"/>')
+                            for t in ("BRICK", "SW-1")])
+        items = [ov.Item(ET.fromstring(x), i) for i, x in enumerate((
+            '<BlockContentsIcon blockcontents="W" x="3" y="4" size="13"/>',
+            '<positionablelabel text="SW-1" x="1" y="2" size="13"/>',
+            '<positionablelabel text="SW-35A" x="1" y="2" size="13"/>',     # a lettered number
+            '<positionablelabel text="E" x="1" y="2" size="10"/>',          # names block E
+            '<positionablelabel text="Brick" x="1" y="2" size="16"/>',
+            '<positionablelabel text="116" x="1" y="2" size="13"/>',        # an equipment label, no prefix
+            '<positionablelabel text="Industries" x="1" y="2" size="16"/>',
+            '<positionablelabel x="0" y="0" level="1"><icon url="program:misc/hart_panel_bg.jpg"/>'
+            '</positionablelabel>'))]
+        # an unblocked segment gives Track.pieces the block "": a label with no text is no track name
+        live.pieces[""] = [((0, 0), (1, 0))]
+        kept, dropped = ov.split_generated(items, live, gen, "SW-")
+        self.assertEqual([it.text for it in kept], ["116", "Industries", None])
+        self.assertTrue(kept[-1].backdrop)
+        self.assertEqual(dropped, dict(block_contents=["W"], switch_numbers=["1", "35A"], track_names=["E"],
+                                       captions=["Brick"]))
+        self.assertIsNone(ov.switch_number("SW-1", ""))           # no prefix: nothing is a switch label
+        self.assertIsNone(ov.switch_number("SW-1x", "SW-"))
+        dropped["switch_numbers"] = ["1"]
+        with self.assertRaisesRegex(ov.OverlayError, r"lacks .*track name E, caption 'Brick'"):
+            ov.given(dict(dropped, captions=["Brick"]), gen[1:], "carry", "SW-")
+        with self.assertRaisesRegex(ov.OverlayError, "lacks .*switch number 1,"):
+            ov.given(dropped, gen, "carry")                 # the plugin writes "SW-1": no prefix, no match
+        with self.assertRaisesRegex(ov.OverlayError, "block contents icon of OS"):
+            ov.given(dict(dropped, block_contents=["W", "OS"], track_names=[]),
+                     gen + ov.generated([ET.fromstring('<BlockContentsIcon blockcontents="W" x="3" y="4" '
+                                                       'size="13"/>')]), "carry", "SW-")
+        notes = ov.given(dict(dropped, track_names=[]), gen, "carry", "SW-")     # no BCI at all: noted, not hidden
+        self.assertIn("no block contents icon", notes[0])
+        with self.assertRaisesRegex(ov.OverlayError, "re-freeze.*'Brick'"):
+            ov.repeats([items[4]], gen)
+
+    def test_a_carried_switch_number_stops(self) -> None:
+        ov = self.ov
+        frozen = copy.deepcopy(I.load().overlay)
+        item = next(it for it in frozen["items"] if 'text="Industries"' in it["xml"])
+        item["xml"] = item["xml"].replace('text="Industries"', 'text="SW-3"')
+        ov.validate(frozen)                                  # no prefix (le_inputs.load): read as a caption
+        with self.assertRaisesRegex(ov.OverlayError, "gives the switch numbers"):
+            ov.validate(frozen, switch_prefix="SW-")        # the build's prefix: generated, not carried
+
+    def test_a_carried_item_on_a_generated_bci_is_found(self) -> None:
+        ov = self.ov
+        lamp = self.LAMP.format(x=40, y=20)
+        le = self.panel('<BlockContentsIcon blockcontents="W" x="30" y="15" size="13" style="0"/>', lamp)
+        frozen = self.frozen((lamp, None, {"kind": "frame"}))
+        bad = ov.check(le, frozen, self.le_mod, self.slots, {})
+        self.assertEqual(len(bad), 1)
+        self.assertIn("meets ['block contents W']", bad[0])
+        # sized as the plugin placed it: a short box (44 px) leaves the lamp at x 80 clear, the full one does not
+        le.find("sensoricon").set("x", "80")
+        self.assertIn("meets ['block contents W']", ov.check(le, frozen, self.le_mod, self.slots, {})[0])
+        self.assertEqual(ov.check(le, frozen, self.le_mod, self.slots, {}, bci_widths={"W": 44.0}), [])
+        with self.assertRaisesRegex(ov.OverlayError, "not among the plugin's block contents icons"):
+            ov.check(le, frozen, self.le_mod, self.slots, {}, bci_widths={})
+        le.find("sensoricon").set("y", "-60")
+        self.assertIn("off the panel", ov.check(le, frozen, self.le_mod, self.slots, {})[0])
+
+    def test_station_clusters_go_to_the_plugin_as_extras_and_move_as_one(self) -> None:
+        ov = self.ov
+        its = [ov.Item(ET.fromstring(self.MARKER.format(b="W", x=520, y=500)), 0),
+               ov.Item(ET.fromstring(self.LAMP.format(x=500, y=505)), 1)]
+        for it in its:
+            it.group = "station W"
+        (extra,) = ov.station_extras({"W": its})
+        w, h = its[0].x + its[0].w - its[1].x, its[0].h
+        self.assertEqual(extra, {"id": "W", "block": "W", "size": [w, h]})
+        P = mock.Mock(extras=[dict(id="W", block="W", xy=[30, -25], box=(30, -25, w, h), on_track=False)])
+        self.assertEqual(ov.station_shift(its, "W", P), (30 - 500, -25 - 500))     # the box's corner, as one
+        P.extras[0]["box"] = (30, -25, w + 1, h)
+        with self.assertRaisesRegex(ov.OverlayError, "station cluster W: the plugin placed a"):
+            ov.station_shift(its, "W", P)
+        with self.assertRaisesRegex(ov.OverlayError, "station cluster Z: the plugin's label layer placed 0 boxes"):
+            ov.station_shift(its, "Z", P)
+
+    def test_frozen_and_hand_drawn_clusters_are_the_same(self) -> None:
+        ov = self.ov
+        panel = tables.layout_editor(tables.read(paths.REPO_TABLES_XML), LIVE)
+        if tables.generated_panel(panel):
+            self.skipTest("the live panel is the generated one (after the cut-over): no hand-drawn clusters to "
+                          "compare with the frozen ones")
+        frozen = ov.station_clusters(I.load().overlay)
+        self.assertEqual(len(frozen), 12)
+        live = ov.panel_station_clusters(panel)
+        self.assertEqual(ov.station_extras(frozen), ov.station_extras(live))
+
+    def test_a_station_cluster_on_a_carried_item_is_found(self) -> None:
+        ov = self.ov
+        marker = self.MARKER.format(b="W", x=30, y=-25)
+        lamp = self.LAMP.format(x=35, y=-20)
+        le = self.panel(marker, lamp)
+        frozen = self.frozen((marker, "station W", None), (lamp, None, {"kind": "frame"}))
+        bad = ov.check(le, frozen, self.le_mod, self.slots, {})
+        self.assertTrue(any("meets" in e and "MoveToTrack_W_stored" in e for e in bad), bad)
 
     def test_unknown_items_and_images_stop(self) -> None:
         ov = self.ov
@@ -621,16 +782,6 @@ class OverlayErrors(unittest.TestCase):
         with self.assertRaisesRegex(ov.OverlayError, "no drawn track"):
             tr.where("C", (0, 0))
 
-    def test_moving_the_panel_down_moves_bezier_control_points(self) -> None:
-        ov = self.ov
-        le = ET.fromstring('<LayoutEditor><tracksegment ident="T1" bezier="yes"><controlpoints>'
-                           '<controlpoint index="0" x="5" y="10"/></controlpoints></tracksegment>'
-                           '<positionablepoint ident="A1" x="1" y="2"/></LayoutEditor>')
-        ov.shift_panel(le, 7)
-        self.assertEqual(le.find(".//controlpoint").get("y"), "17.0")
-        self.assertEqual(le.find(".//controlpoint").get("x"), "5")
-        self.assertEqual(le.find("positionablepoint").get("y"), "9.0")
-
     def test_a_flat_live_track_stops(self) -> None:
         with self.assertRaisesRegex(self.ov.OverlayError, "spans no height"):
             self.ov.frame_point((5, 5), (0, 3, 10, 3), (0, 0, 10, 10))
@@ -641,7 +792,7 @@ class OverlayErrors(unittest.TestCase):
         obstacles.grid = ov.defaultdict(list)
         obstacles.add_rect("wall", ov.Rect(-500, -500, 1000, 1000))
         with self.assertRaisesRegex(ov.OverlayError, "no clear spot"):
-            ov.nudge([ov.Rect(0, 0, 5, 5)], obstacles, False, (-1000, 1000), "item")
+            ov.nudge([ov.Rect(0, 0, 5, 5)], obstacles, False, (-1000, -1000, 1000, 1000), "item")
 
 
 if __name__ == "__main__":
