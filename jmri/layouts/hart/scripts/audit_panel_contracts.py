@@ -525,12 +525,12 @@ def audit_stations(
     audit.facts["station_icons"] = tuple(sorted(icon_set))
 
 
-def audit_block_contents_visible(panel: ET.Element | None, audit: Audit, *, placements: bool = True) -> None:
-    """Tracks paint at level 3; labels at 0 sit behind the panel background. `placements`: the hand-drawn
-    panel's pinned label pixels too (not on a generated panel)."""
+def audit_block_contents_visible(panel: ET.Element | None, audit: Audit, *, generated: bool = False) -> None:
+    """Tracks paint at level 3; labels at 0 sit behind the panel background. The hand-drawn panel's pinned label
+    pixels too; on a generated panel (`generated`) none, and the plugin's Dialog font stays."""
     if panel is None:
         return
-    _, errors = ensure_block_contents_visible(panel, check=True, placements=placements)
+    _, errors = ensure_block_contents_visible(panel, check=True, placements=not generated, generated=generated)
     for message in errors:
         audit.error(message)
 
@@ -681,7 +681,7 @@ def audit_source(
         audit.error("--generated, but the panel has no generated-panel marker (build_layout_le.py --as-live "
                     "writes it)")
     audit.facts["generated_panel"] = marked
-    audit_block_contents_visible(panel, audit, placements=not (generated or marked))
+    audit_block_contents_visible(panel, audit, generated=generated or marked)
     return audit
 
 

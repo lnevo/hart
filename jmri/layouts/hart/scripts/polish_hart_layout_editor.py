@@ -189,18 +189,15 @@ def _track_name_label(text: str, x: int, y: int) -> ET.Element:
     return label
 
 
-def ensure_track_name_labels(le: ET.Element, *, check: bool, generated: bool = False) -> tuple[int, list[str]]:
-    """One label per South Yard track name, at its TRACK_NAME_LABELS pixels; on a generated panel one label each
-    wherever it stands (a missing one is an error: there is no spot to give it)."""
+def ensure_track_name_labels(le: ET.Element, *, check: bool) -> tuple[int, list[str]]:
+    """One label per South Yard track name, at its TRACK_NAME_LABELS pixels (the hand-drawn panel only: on a
+    generated panel the schematic-maps plugin writes every track name, checked clear by its label layer, and a
+    Stage 1 Store keeps plain labels)."""
     changes = 0
     errors: list[str] = []
     labels = [l for l in le.findall("positionablelabel")]
     for text, (x, y) in TRACK_NAME_LABELS.items():
         found = [l for l in labels if (l.get("text") or "").strip() == text]
-        if generated:
-            if len(found) != 1:
-                errors.append(f"track name label {text!r}: {len(found)} found, expected one (generated panel)")
-            continue
         if len(found) == 1 and _same_number(found[0].get("x"), x) and _same_number(found[0].get("y"), y):
             continue
         if check:
@@ -278,6 +275,9 @@ def find_layout_editor(root: ET.Element) -> ET.Element:
 BCI_LEVEL = "4"
 BCI_COLOR = ("0", "0", "0")
 BCI_DROP_FONT_ATTRS = ("fontFamily", "fontname")
+# The font the schematic-maps plugin names on a generated panel's block contents icons (and JMRI's default), so its
+# label layer's sizes are the ones JMRI draws: kept there, any other font dropped.
+GENERATED_BCI_FONT = "Dialog"
 # Stage 1 (CreateIcons) puts the engine-house train names on Switch 9 and 11,
 # where they overlap the OS Switch 9 / 11 labels. Each sits on its spur's
 # Dispatcher button row instead, at x 794 clear of the station buttons.
@@ -289,11 +289,13 @@ BCI_PLACEMENTS = {
 
 
 def ensure_block_contents_visible(
-    le: ET.Element, *, check: bool, placements: bool | dict[str, tuple[int, int]] = True
+    le: ET.Element, *, check: bool, placements: bool | dict[str, tuple[int, int]] = True, generated: bool = False
 ) -> tuple[int, list[str]]:
     """Put block-value labels on the label layer with default Dialog/black text. `placements` True also pins the
     BCI_PLACEMENTS labels to their pixels on this hand-drawn panel; False pins none (a generated panel, whose
-    geometry differs); a dict pins those blocks' labels to its spots (a generated panel's --reference spots)."""
+    geometry differs); a dict pins those blocks' labels to its spots (a generated panel's --reference spots).
+    `generated`: a font attribute naming GENERATED_BCI_FONT stays (the plugin writes it); on the hand-drawn panel
+    every font attribute goes, so JMRI's default draws."""
     changes = 0
     errors: list[str] = []
     spots = BCI_PLACEMENTS if placements is True else (placements or {})
@@ -320,7 +322,7 @@ def ensure_block_contents_visible(
                 icon.set(attr, value)
                 changes += 1
         for attr in BCI_DROP_FONT_ATTRS:
-            if attr not in icon.attrib:
+            if attr not in icon.attrib or (generated and icon.get(attr) == GENERATED_BCI_FONT):
                 continue
             if check:
                 errors.append(f"BlockContentsIcon {name!r} still has {attr}")
@@ -709,9 +711,10 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
     changes = 0
     errors: list[str] = []
 
-    track_n, track_errors = ensure_track_name_labels(le, check=check, generated=generated)
-    changes += track_n
-    errors.extend(f"{path.name}: {e}" for e in track_errors)
+    if not generated:
+        track_n, track_errors = ensure_track_name_labels(le, check=check)
+        changes += track_n
+        errors.extend(f"{path.name}: {e}" for e in track_errors)
 
     for attr, expected in EXPECTED_TURNOUT_DEFAULTS.items():
         actual = le.get(attr)
@@ -808,7 +811,7 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
                 changes += 1
 
     bci_changes, bci_errors = ensure_block_contents_visible(
-        le, check=check, placements=generated_bci_spots(ref) if generated else True)
+        le, check=check, placements=generated_bci_spots(ref) if generated else True, generated=generated)
     changes += bci_changes
     errors.extend(bci_errors)
 
@@ -842,8 +845,9 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
             le.remove(icon)
             changes += 1
 
-    # A generated panel can also name a track like a region caption (the track Barn under the Barn caption):
-    # there a caption that already has its style is enough, and the track names keep theirs.
+    # A generated panel's labels are the build's: the plugin writes the station names and track names (a track can
+    # be named like a caption, the track Barn), so none is restyled there. Two labels of one caption's text with
+    # neither in its style would be a damaged caption beside a track name: an error, not a guess.
     captioned: set[str] = set()
     if generated:
         same_text: dict[str, list[ET.Element]] = {}
@@ -851,12 +855,10 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
             same_text.setdefault((label.get("text") or "").strip(), []).append(label)
         for text, (size, style) in LABEL_STYLE.items():
             group = same_text.get(text, [])
-            if any(l.get("size") == size and l.get("style") == style for l in group):
-                captioned.add(text)
-            elif len(group) > 1:
+            captioned.add(text)
+            if len(group) > 1 and not any(l.get("size") == size and l.get("style") == style for l in group):
                 errors.append(f"{path.name}: {len(group)} labels say {text!r} and none has the caption style "
                               f"(size {size}, style {style}); style the caption by hand")
-                captioned.add(text)
     for label in list(le.findall("positionablelabel")):
         text = (label.get("text") or "").strip()
         if text in REMOVED_LABELS:
@@ -998,7 +1000,7 @@ def apply_block_labels_only(path: Path, *, check: bool, reference: Path | None =
     targets, notes = lamp_targets(doc.root, le, ref)
     _print_notes(path, notes)
     changes, errors = ensure_block_contents_visible(
-        le, check=check, placements=generated_bci_spots(ref) if generated else True)
+        le, check=check, placements=generated_bci_spots(ref) if generated else True, generated=generated)
     lamp_n, lamp_errors = place_stage1_lamps(le, check=check, targets=targets)
     changes += lamp_n
     errors.extend(f"{path.name}: {e}" for e in lamp_errors)

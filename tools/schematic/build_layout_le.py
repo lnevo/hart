@@ -26,10 +26,12 @@ System" panel and everything else unchanged. In it the staging turnouts, boundar
 track segment of each one-segment block keep their live idents (the plugin's `idents`), each turnout keeps its
 live leg letters, type and continuing route (`leg_b`: a switch whose drawn diverging leg is live leg B is drawn
 that way), the Entry/Exit sensors go back in their live slots (same ident and slot, checked to resolve to the same
-blocks), and le_overlay.py carries every live icon and label across (Phase 2). The panel carries the hidden
-generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER, Phase 3): polish_hart_layout_editor.py,
-reconcile_dispatcher_stations.py, the audit and the other scripts that pin the hand-drawn panel's pixels read it and
-take positions from the panel itself (wiki/projects/schematic-maps-handoff.md, cut-over runbook).
+blocks), and le_overlay.py carries the live icons and region captions across (Phase 2), around the switch
+numbers, track names, station captions and block contents icons the plugin generates (owner, 2026-11-15). The
+panel carries the hidden generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER, Phase 3):
+polish_hart_layout_editor.py, reconcile_dispatcher_stations.py, the audit and the other scripts that pin the
+hand-drawn panel's pixels read it and take positions from the panel itself (wiki/projects/schematic-maps-handoff.md,
+cut-over runbook).
 
 Writes jmri/layouts/hart/output/trial/tables_layout.xml: the live tables.xml unchanged, plus one new Layout
 Editor panel, PANEL_NAME, and the internal turnouts, blocks and layout blocks the main and upper levels need. The
@@ -115,6 +117,12 @@ FIT = (1900, 1140)
 # Staging alone fills the window's width long before its height, so its rows may be as far apart as the live
 # panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels.
 STAGING_ROW = 48
+# The plugin's label layer (schematic/le_labels.py): switch numbers as the hand-drawn panel wrote them ("SW-13",
+# 13 px bold), block contents icons on with the plugin's reserve; given to every band through the page options.
+# The all-levels trial (viewing only) has no block contents icons (owner, 2026-11-16), and its switch numbers at the
+# plugin's 9 px: three bands in one window leave no room for 13 px ones (SW-29 fits nowhere). Staging keeps both.
+LE_LABELS = {"switch_prefix": "SW-", "switch_size": 13}
+TRIAL_LE_LABELS = dict(LE_LABELS, switch_size=9, block_contents=False)
 
 
 class BuildError(le_inputs.InputsError):
@@ -719,9 +727,21 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         names[STAGING]["idents"]["ends"] = {b: i for b, i in names[STAGING]["idents"]["ends"].items()
                                             if b not in joined_ends(bands, names[STAGING], le_mod)}
     names[STAGING]["lengths"] = staging_lengths(bands[0][2], names[STAGING])
+    if "le_labels" in page:
+        raise BuildError("the schematic's page options already hold le_labels; HART sets them here (LE_LABELS)")
+    page = dict(page, le_labels=dict(LE_LABELS if levels == "staging" else TRIAL_LE_LABELS))   # a copy: cached
+    extras = {}
+    if as_live:         # the station clusters, placed by the plugin's label layer (le_overlay.station_extras)
+        ov = overlay_mod()
+        try:
+            clusters = ov.panel_station_clusters(freeze_from) if freeze_from is not None else \
+                ov.station_clusters(inputs.overlay)
+            extras = {"extras": ov.station_extras(clusters)}
+        except ov.OverlayError as exc:
+            raise BuildError(f"overlay: {exc}") from None
     try:
         rows = {"row": STAGING_ROW} if levels == "staging" else {}
-        P = le_mod.panel(bands, names, page=page, fit=FIT, **rows)
+        P = le_mod.panel(bands, names, page=page, fit=FIT, **rows, **extras)
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
     P.mast_notes = check_unplaced(P)
@@ -750,9 +770,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         ov = overlay_mod()
         try:
             if freeze_from is not None:
-                inputs.overlay = ov.freeze(freeze_from, panel_el, root, le_mod, slots_module(),
-                                           {r["switch"]: r["le_ident"] for r in read_csv(SWITCHES)}, inputs.note)
-            P.overlay = ov.carry(inputs.overlay, panel_el, P, le_mod, slots_module(), FIT)
+                inputs.overlay = ov.freeze(freeze_from, panel_el, root, le_mod, slots_module(), inputs.note,
+                                           LE_LABELS["switch_prefix"])
+            P.overlay = ov.carry(inputs.overlay, panel_el, P, le_mod, slots_module(), FIT,
+                                 LE_LABELS["switch_prefix"])
         except ov.OverlayError as exc:
             raise BuildError(f"overlay: {exc}") from None
         # the marker that tells polish_hart_layout_editor.py and the other hand-pixel scripts to leave positions alone
@@ -996,8 +1017,11 @@ def overlay_lines(report) -> list[str]:
     for r in report["records"]:
         kinds[r["anchor"].split(" ", 1)[0] if r["anchor"].startswith("group") else r["anchor"]] += 1
     out = [f"{len(report['records'])} live items carried ({', '.join(f'{v} {k}' for k, v in sorted(kinds.items()))})"
-           f"; panel {report['size'][0]}x{report['size'][1]} px, moved down {report['down']} px",
-           "generated labels dropped (the live panel gives them): " + (", ".join(report["dropped"]) or "none")]
+           f"; panel {report['size'][0]}x{report['size'][1]} px",
+           "placed around the generated " + (", ".join(f"{v} {k if k.endswith('s') else k + 's'}"
+                                                       for k, v in sorted(report["generated"].items())) or "nothing") +
+           "; left to the generator: " + ", ".join(f"{v} {k.replace('_', ' ')}" for k, v in report["dropped"].items())]
+    out += report["notes"]
     if report["unchained"]:
         out.append("blocks whose track is not one run (an item's share read against its pieces in order): "
                    + ", ".join(report["unchained"]))
