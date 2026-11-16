@@ -21,7 +21,7 @@ import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from unittest import mock
 
@@ -395,8 +395,8 @@ class ThreeLevels(unittest.TestCase):
 
     def test_staging_is_the_staging_candidate_but_for_the_helix_joins(self) -> None:
         self.assertEqual(sorted(self.P.staging_same), [
-            "end bumper EB71 -> anchor AGE2 (hidden join TG223 to Track 135-H1, Mast 40RA)",
-            "end bumper EB72 -> anchor AGE1 (hidden join TG222 to Track 135-H2, Mast 38RA)",
+            "end bumper EB71 -> anchor AGE2 (hidden join TG225 to Track 135-H1, Mast 40RA)",
+            "end bumper EB72 -> anchor AGE1 (hidden join TG224 to Track 135-H2, Mast 38RA)",
             "track segment TG32 connect2name EB72 -> AGE1",
             "track segment TG6 connect2name EB71 -> AGE2"])
         self.assertEqual(self.P.scale, self.base[1].scale)
@@ -415,7 +415,7 @@ class ThreeLevels(unittest.TestCase):
             "a join anchor moved": lambda r: el(r, "positionablepoint", ident="AGE1").set("x", "1600.0"),
             "a join anchor's mast slot": lambda r: el(r, "positionablepoint", ident="AGE2").set(
                 "westboundsignalmast", "Mast 40RA"),
-            "a join shown": lambda r: el(r, "tracksegment", ident="TG222").set("hidden", "no"),
+            "a join shown": lambda r: el(r, "tracksegment", ident="TG224").set("hidden", "no"),
             "a helix mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38RA").set("x", "1"),
             "a staging BCI moved": lambda r: el(r, "BlockContentsIcon", blockcontents="Track K-1").set("y", "1"),
         }
@@ -546,8 +546,9 @@ class ThreeLevels(unittest.TestCase):
             if "XOVER" not in t.get("type"):
                 continue
             p = {L: (float(t.get("x" + L.lower())), float(t.get("y" + L.lower()))) for L in "ABCD"}
-            if t.get("type") == "DOUBLE_XOVER":
-                dx, dy = p["C"][0] - p["A"][0], p["C"][1] - p["A"][1]
+            if t.get("type") == "DOUBLE_XOVER":     # JMRI draws from 5/8 of the way from A to A-B's middle
+                am = [p["A"][k] + 5 / 8 * ((p["A"][k] + p["B"][k]) / 2 - p["A"][k]) for k in (0, 1)]
+                dx, dy = float(t.get("xcen")) - am[0], float(t.get("ycen")) - am[1]
             else:
                 dx = (p["D"][0] + p["C"][0] - p["A"][0] - p["B"][0]) / 2
                 dy = (p["D"][1] + p["C"][1] - p["A"][1] - p["B"][1]) / 2
@@ -586,17 +587,28 @@ class ThreeLevels(unittest.TestCase):
         import math
         xo = {t.get("turnoutname"): t for t in self.le.findall("layoutturnout") if "XOVER" in t.get("type")}
         pt = lambda t, L: (float(t.get("x" + L)), float(t.get("y" + L)))      # noqa: E731
-        # 101 and 103 (one three-way switch) drawn tight: their shared track at its least length, both at 45
-        self.assertLessEqual(pt(xo["Switch 103"], "d")[0] - pt(xo["Switch 101"], "b")[0], 13)
-        self.assertEqual(pt(xo["Switch 103"], "d")[1], pt(xo["Switch 101"], "b")[1])
+        # 101 and 103 (one three-way switch): each two plain turnouts on its one name, their throats on the shared
+        # track two legs and Track 101-103's least length apart, each diagonal at 45 degrees
+        plain = defaultdict(list)
+        for t in self.le.findall("layoutturnout"):
+            if t.get("turnoutname") in ("Switch 101", "Switch 103"):
+                plain[t.get("turnoutname")].append(t)
+        self.assertEqual({k: sorted(t.get("type") for t in v) for k, v in plain.items()},
+                         {"Switch 101": ["RH_TURNOUT", "RH_TURNOUT"], "Switch 103": ["LH_TURNOUT", "LH_TURNOUT"]})
+        middle = {k: next(t for t in v if t.get("ycen") == "800.0") for k, v in plain.items()}
+        throats = abs(float(middle["Switch 103"].get("xcen")) - float(middle["Switch 101"].get("xcen")))
+        self.assertLessEqual(throats, 37)
+        for k, v in plain.items():
+            (x0, y0), (x1, y1) = sorted((float(t.get("xcen")), float(t.get("ycen"))) for t in v)
+            self.assertAlmostEqual(abs(y1 - y0), abs(x1 - x0), delta=0.5, msg=k)
+        self.assertNotIn("101-103", {el.get("text") for el in self.le.iter("positionablelabel")})
         limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
                    and "crossover" in line}
-        self.assertNotIn("101", limited)
-        self.assertNotIn("225", limited)
-        self.assertNotIn("241", limited)        # Track 235-241's straight lengthened on the LE (LONGER_STRAIGHTS)
-        # SW-101 below its crossover
-        label = next(el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101")
-        self.assertGreaterEqual(int(label.get("y")), pt(xo["Switch 101"], "c")[1])
+        self.assertFalse(limited & {"225", "241"})
+        # SW-101 once, below its lower turnout
+        labels = [el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101"]
+        self.assertEqual(len(labels), 1)
+        self.assertGreaterEqual(int(labels[0].get("y")), max(float(t.get("ycen")) for t in plain["Switch 101"]))
         # every half of a single crossover shows its own OS lamp, in the middle of its half's two leg ends (the
         # throat, where the diagonal leaves its track), as 35's two were; the hand-drawn panel had none for 7b, 23b
         seg_block = {b.findtext("occupancysensor").strip(): b.findtext("userName") for b in self.root.iter("block")

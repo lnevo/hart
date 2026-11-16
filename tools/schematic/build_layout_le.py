@@ -853,7 +853,9 @@ def named_bands(bands, names: dict):
             if helix & set(sids):
                 continue
             best = max(sids, key=lambda k: (band["strands"][k]["cm"], k))
-            band["strands"][best]["name"] = block.removeprefix("Track ")
+            name = block.removeprefix("Track ")
+            if name not in NO_NAME.get(band_key(title), []):
+                band["strands"][best]["name"] = name
         if "le_labels" in (opts or {}):
             raise BuildError(f"{title}: its preferences already hold le_labels; HART sets them here (LEVEL_LE_LABELS)")
         labels = dict(LEVEL_LE_LABELS, numbers_below=list(NUMBERS_BELOW.get(band_key(title), [])))
@@ -1088,7 +1090,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                                           cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1],
                                           page=dict(page, band_align={STAGING: "left"}), gap=g, labels_by_band=True,
                                           crossover_run=crossover_run(scale),
-                                          tight_crossovers=TIGHT_CROSSOVERS, **stepped)
+                                          tight_crossovers=TIGHT_CROSSOVERS,
+                                          split_crossovers=SPLIT_CROSSOVERS, **stepped)
             P = draw(gaps)
             if len(P.band_boxes) > 2:
                 gaps[1:] = [band_gap(le_mod.extent(P, bi)[3], P.band_boxes[bi][3], le_mod)
@@ -1185,8 +1188,14 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
 # which, at what angle).
 CROSSOVER_ANGLES = {"Staging": 45.0, "Main": 45.0, "Upper": 45.0}
 # Crossovers drawn as close together as JMRI's shapes allow on the track they share (the plugin's tight_crossovers):
-# 101 and 103 are one physical three-way switch (owner, 2026-11-16)
+# 101 and 103 are one physical three-way switch (owner, 2026-11-16). JMRI's crossover shape runs its pieces a run
+# past the diagonal on each track, which kept their throats about 110 px apart, so the two are drawn as two plain
+# turnouts each on their one turnout name (split_crossovers): their throats on the shared track stand two legs and
+# the block's least length apart, each diagonal at 45 degrees.
 TIGHT_CROSSOVERS = {"Main": [["101", "103"]]}
+SPLIT_CROSSOVERS = {"Main": ["101", "103"]}
+# track names left off the panel (owner, 2026-11-16): the short track inside the three-way
+NO_NAME = {"Main": ["101-103"]}
 
 
 def crossover_run(scale) -> dict:
