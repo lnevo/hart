@@ -13,8 +13,9 @@ Steps:
 
     python3 docs/ap/electrical/build_soq.py            # needs Chrome, Keynote and PyMuPDF
     python3 docs/ap/electrical/build_soq.py --html-only  # just write build/soq.html and build/plates.html
+    python3 docs/ap/electrical/build_soq.py --member "~/Documents/NMRA AP/soq-member.toml"   # private filled copy
 
-The form's personal fields stay blank: the member fills them on a private copy.
+The form's personal fields stay blank in the repo; --member writes a filled copy outside it.
 """
 from __future__ import annotations
 
@@ -419,6 +420,99 @@ def assemble(doc_pdf: Path, plates_pdf: Path, after: int, form_pdf: Path, decks:
     doc.save(OUT_PDF, garbage=3, deflate=True)
 
 
+# ---------------------------------------------------------------- the member's private copy
+MEMBER_FIELDS = {          # key in the member file -> form fields it fills
+    "name": ("s Name", "NAME"), "nmra_number": ("NMRA",), "nmra_expires": ("Exp",), "street": ("Street",),
+    "city": ("City",), "state": ("StateProv",), "zip": ("ZIPPC",), "country": ("Country",), "email": ("EMail",),
+    "phone": ("Phone",), "date_submitted": ("Date Submitted", "Date"),
+}
+MEMBER_OTHER = {"first_award", "signature_image", "output"}
+FIRST_AWARD = "Check here if this is the members first award"
+
+
+def inside_repo(path: Path) -> bool:
+    """True if path is in any git work tree: a folder above it holds .git, or git says so."""
+    if any((d / ".git").exists() for d in [path, *path.parents]):
+        return True
+    folder = next((d for d in [path, *path.parents] if d.is_dir()), Path("/"))
+    r = subprocess.run(["git", "-C", str(folder), "rev-parse", "--is-inside-work-tree"], capture_output=True, text=True)
+    return r.returncode == 0 and r.stdout.strip() == "true"
+
+
+def stale_sources(pdf: Path) -> list[str]:
+    """Inputs of the SOQ newer than the built PDF (the member copy must start from a current build)."""
+    if not pdf.exists():
+        return ["(no built PDF)"]
+    built = pdf.stat().st_mtime
+    inputs = [HERE / "soq.html", HERE / "soq.css", HERE / "make_drawings.py", *HERE.glob("photos/*")]
+    return [str(f.relative_to(HERE)) for f in inputs if f.stat().st_mtime > built + 1]
+
+
+def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
+    """Write a copy of the built SOQ with the member's details on the form, outside the repo.
+
+    The member file is TOML (template: ~/Documents/NMRA AP/soq-member.toml). Personal details
+    never enter the repo: the member file and the output must both be outside any git checkout.
+    """
+    import tomllib
+    member_file = member_file.expanduser().resolve()
+    if inside_repo(member_file):
+        die(f"{member_file} is inside a git checkout; keep the member file outside the repo")
+    with member_file.open("rb") as fh:
+        data = tomllib.load(fh)
+
+    def near(value: str) -> Path:                      # relative paths are next to the member file
+        path = Path(value).expanduser()
+        return (path if path.is_absolute() else member_file.parent / path).resolve()
+    unknown = set(data) - set(MEMBER_FIELDS) - MEMBER_OTHER
+    if unknown:
+        die(f"{member_file.name}: unknown keys {sorted(unknown)}; allowed: {sorted([*MEMBER_FIELDS, *MEMBER_OTHER])}")
+    for k in [*MEMBER_FIELDS, "signature_image", "output"]:
+        if not isinstance(data.get(k, ""), str):
+            die(f"{member_file.name}: {k} must be text in quotes")
+    if not isinstance(data.get("first_award", False), bool):
+        die(f"{member_file.name}: first_award must be true or false")
+    out = near(data.get("output") or "MRE-Electrical-SOQ-filled.pdf")
+    if inside_repo(out):
+        die(f"output {out} is inside a git checkout; write the filled form outside the repo")
+    sig = near(data["signature_image"]) if data.get("signature_image") else None
+    if sig and not sig.is_file():
+        die(f"signature_image {sig} not found")
+    stale = stale_sources(src)
+    if stale:
+        die(f"{src.name} is older than {', '.join(stale[:5])}; run the full build first so the copy is current")
+    import fitz
+    d = fitz.open(src)
+    values = {field: data.get(k, "") for k, fields in MEMBER_FIELDS.items() for field in fields}
+    seen, sig_at = set(), None
+    for page in list(d)[:FORM_PAGES]:
+        for w in page.widgets():
+            if w.field_name in values and values[w.field_name]:
+                w.field_value = values[w.field_name]
+                w.update()
+                seen.add(w.field_name)
+            elif w.field_name == FIRST_AWARD:
+                w.field_value = w.on_state() if data.get("first_award") else "Off"
+                w.update()
+                seen.add(w.field_name)
+            elif w.field_name == "SIGNATURE":
+                sig_at = (page, w.rect)
+    wanted = {f for f, v in values.items() if v} | ({FIRST_AWARD} if data.get("first_award") else set())
+    if wanted - seen:
+        die(f"form fields not found in {src.name}: {sorted(wanted - seen)}")
+    if sig:
+        if not sig_at:
+            die("the Member Statement SIGNATURE field was not found")
+        page, rect = sig_at
+        page.insert_image(rect, filename=str(sig), keep_proportion=True)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    d.save(out, garbage=3, deflate=True)
+    d.close()
+    blank = sorted(k for k in MEMBER_FIELDS if not data.get(k))
+    print(f"wrote {out}" + (f"; left blank: {', '.join(blank)}" if blank else ""))
+    return out
+
+
 # ---------------------------------------------------------------- main
 def render(date: str) -> tuple[str, list, list, list, dict]:
     doc = (HERE / "soq.html").read_text()
@@ -432,7 +526,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--html-only", action="store_true", help="write build/soq.html and stop")
     ap.add_argument("--date", default=dt.date.today().strftime("%-d %B %Y"))
+    ap.add_argument("--member", type=Path, metavar="FILE",
+                    help="fill the built PDF's form from this private TOML file and stop (output stays outside the repo)")
     a = ap.parse_args()
+    if a.member:
+        fill_member(a.member)
+        return
     sys.path.insert(0, str(HERE))
     import make_drawings
     make_drawings.main()
