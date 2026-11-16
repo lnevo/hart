@@ -403,10 +403,11 @@ def overlay_items(live_le):
     return items
 
 
-def generated(elements):
+def generated(elements, bci_widths=None):
     """[(kind, name, Rect)] of the generated labels ("label", its text) and block contents icons ("block contents",
     its block) among `elements`, sized as JMRI draws them. A hidden label (the generated-panel marker) is not drawn
-    on the running panel, so it is left out."""
+    on the running panel, so it is left out. A block contents icon is as wide as the full reserve, or with
+    `bci_widths` ({block: px}, the plugin's boxes; same_boxes checks they are a reserve) as the plugin placed it."""
     out = []
     for el in elements:
         what = describe(el)
@@ -417,15 +418,29 @@ def generated(elements):
             if not el.get("blockcontents"):
                 raise OverlayError(f"generated panel: a block contents icon at {el.get('x')}, {el.get('y')} names "
                                    "no block")
-            out.append(("block contents", el.get("blockcontents"),
-                        Rect(num(el, "x", what), num(el, "y", what), *bci_box(el, what))))
+            w, h = bci_box(el, what)
+            if bci_widths is not None:
+                if el.get("blockcontents") not in bci_widths:
+                    raise OverlayError(f"generated panel: {what} is not among the plugin's block contents icons")
+                w = bci_widths[el.get("blockcontents")]
+            out.append(("block contents", el.get("blockcontents"), Rect(num(el, "x", what), num(el, "y", what), w, h)))
     return out
 
 
-def split_generated(items, live, gen):
+def switch_number(text, switch_prefix):
+    """The switch number a label names ("SW-13" -> "13", "SW-35A" -> "35A", with `switch_prefix` "SW-"), else None.
+    With no prefix nothing is a switch label (a bare number may be an equipment label)."""
+    if not switch_prefix or not text.startswith(switch_prefix):
+        return None
+    n = text[len(switch_prefix):]
+    return n if re.fullmatch(r"\d+[A-Z]?", n) else None
+
+
+def split_generated(items, live, gen, switch_prefix):
     """(kept items, dropped {kind: [name]}): the hand-drawn items the generated panel gives itself now (`gen`:
-    generated() of it) left out. Block contents icons, "SW-<n>" labels and labels naming a block always; a caption
-    when a generated label has its text, in any case."""
+    generated() of it) left out. Block contents icons, switch number labels (`switch_prefix` and the number) and
+    labels naming a block always; a caption when a generated label has its text, in any case. A label with no text
+    (the backdrop, an icon-only label) is never one of them."""
     gen_texts = {name.lower() for kind, name, _r in gen if kind == "label"}
     blocks = set(live.pieces) | set(live.os_turnouts())
     kept, dropped = [], {k: set() for k in DROPPED}
@@ -435,11 +450,13 @@ def split_generated(items, live, gen):
             if not el.get("blockcontents"):
                 raise OverlayError(f"live {it.what} names no block")
             dropped["block_contents"].add(el.get("blockcontents"))
-        elif el.tag == "positionablelabel" and re.fullmatch(r"SW-\d+", text):
-            dropped["switch_numbers"].add(text[3:])
-        elif el.tag == "positionablelabel" and text in blocks:
+        elif el.tag != "positionablelabel" or it.backdrop or not text:
+            kept.append(it)
+        elif switch_number(text, switch_prefix):
+            dropped["switch_numbers"].add(switch_number(text, switch_prefix))
+        elif text in blocks:
             dropped["track_names"].add(text.removeprefix("Track "))
-        elif el.tag == "positionablelabel" and not it.backdrop and text.lower() in gen_texts:
+        elif text.lower() in gen_texts:
             dropped["captions"].add(text)
         else:
             kept.append(it)
@@ -882,7 +899,7 @@ def freeze(live_le, gen_le, root, le_mod, slots_mod, note: str, switch_prefix: s
     live = Track(live_le, le_mod, slots_mod, "hand-drawn panel")
     live.le = live_le
     gen = generated(gen_le)
-    items, dropped = split_generated(overlay_items(live_le), live, gen)
+    items, dropped = split_generated(overlay_items(live_le), live, gen, switch_prefix)
     given(dropped, gen, "freeze", switch_prefix)
     tie(items, live, root)
     return {"_note": note, "frame": list(live.box), "dropped": dropped, "unchained": sorted(live.unchained),
@@ -890,7 +907,7 @@ def freeze(live_le, gen_le, root, le_mod, slots_mod, note: str, switch_prefix: s
                            anchor=anchor_json(it.anchor) if it.anchor else None) for it in items]}
 
 
-def validate(frozen, what="overlay.json") -> None:
+def validate(frozen, what="overlay.json", switch_prefix="") -> None:
     """Stop with OverlayError on a frozen overlay of the wrong shape (fields, kinds, numbers, XML), naming the item."""
     def need(cond, msg):
         if not cond:
@@ -931,7 +948,7 @@ def validate(frozen, what="overlay.json") -> None:
         need(el.tag in CARRIED_TAGS, f"{name}: {el.tag} is not an overlay item this build carries" +
              (" (the generated panel gives one per block)" if el.tag == "BlockContentsIcon" else ""))
         name = f"item {k} ({describe(el)})"
-        need(not (el.tag == "positionablelabel" and re.fullmatch(r"SW-\d+", (el.get("text") or "").strip())),
+        need(not (el.tag == "positionablelabel" and switch_number((el.get("text") or "").strip(), switch_prefix)),
              f"{name}: the generated panel gives the switch numbers, so it is not carried (re-freeze)")
         Item(el, it["index"])           # its position, image size and font read, or a clear stop
         group, anchor = it["group"], it["anchor"]
@@ -1041,12 +1058,13 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
     """Copy every frozen overlay item onto gen_le (see the module text). Returns a report: records [(item, anchor,
     hand-drawn xy, new xy, moved px)], the generated labels and block contents icons placed around ({kind: count}),
     notes, the new panel size and the blocks whose track is not one run."""
-    validate(frozen)
+    validate(frozen, switch_prefix=switch_prefix)
     gen = Track(gen_le, le_mod, slots_mod, "new panel")
     items = frozen_items(frozen)
     frame = tuple(frozen["frame"])
-    fixed = generated(list(gen_le))
-    same_boxes(fixed, P)
+    same_boxes(generated(list(gen_le)), P)     # the XML read alone agrees with the plugin's boxes
+    bci_widths = {b["block"]: float(b["box"][2]) for b in getattr(P, "bcis", ())}
+    fixed = generated(list(gen_le), bci_widths)     # obstacles as wide as the plugin cleared them
     notes = given(frozen["dropped"], fixed, "carry", switch_prefix)
     repeats(items, fixed)
     masts = [(m["mast"], Rect(*m["box"])) for m in P.masts]
@@ -1073,6 +1091,7 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
         block = station_block(u["key"])
         if block:
             dx, dy = station_shift(its, block, P)
+            dx, dy = round(dx), round(dy)       # whole pixels, as JMRI stores them
             moved = 0.0         # placed by the plugin, not tied to its hand-drawn place: no nudge to report
             rects = [Rect(i.x + dx, i.y + dy, i.w, i.h) for i in its]
             hit = sorted({x for r in rects for x in obstacles.hits(r, False, block)})
@@ -1110,7 +1129,8 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
     for it, el in zip(items, carried):
         if (int(el.get("x")), int(el.get("y"))) != it.new:
             raise OverlayError(f"overlay check: {it.what} is not where it was placed")
-    bad = check(gen_le, frozen, le_mod, slots_mod, {m["mast"]: m["size"] for m in P.masts})
+    bad = check(gen_le, frozen, le_mod, slots_mod, {m["mast"]: m["size"] for m in P.masts}, switch_prefix,
+                bci_widths)
     if bad:
         raise OverlayError("overlay check: " + "; ".join(bad))
     counts = defaultdict(int)
@@ -1149,14 +1169,14 @@ def strip(el):
     return ET.tostring(e)
 
 
-def check(gen_le, frozen, le_mod, slots_mod, mast_size) -> list[str]:
+def check(gen_le, frozen, le_mod, slots_mod, mast_size, switch_prefix="", bci_widths=None) -> list[str]:
     """Problems with the overlay on a written panel, read from scratch: each frozen overlay item there exactly once
     with the same attributes and children but x and y, nothing else of the overlay kinds but the generated labels
     and block contents icons (and the hidden generated-panel marker); no item over track (lamps, and a station
     cluster on its own track, excepted), turnouts, mast icons (`mast_size`: mast name -> (w, h) upright), generated
     labels and block contents icons (at the sizes JMRI draws), shapes or another item (within one cluster excepted);
     every item on the panel."""
-    validate(frozen)
+    validate(frozen, switch_prefix=switch_prefix)
     items = frozen_items(frozen)
     by_key = defaultdict(list)
     for el in gen_le:
@@ -1174,7 +1194,7 @@ def check(gen_le, frozen, le_mod, slots_mod, mast_size) -> list[str]:
     for el in extra:
         if not (el.tag == "BlockContentsIcon" or el.tag == "positionablelabel" and el.get("text")):
             bad.append(f"{describe(el)} is on the new panel but not in the frozen overlay")
-    fixed = generated(extra)
+    fixed = generated(extra, bci_widths)
     masts = []
     for icon in gen_le.findall("signalmasticon"):
         name = icon.get("signalmast")

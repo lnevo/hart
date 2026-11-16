@@ -224,6 +224,23 @@ class GeneratedPanelTest(unittest.TestCase):
         self.assertTrue(any("track name label 'Track S-R'" in e for e in errors))
         self.assertTrue(any("label 'Barn' size='10'" in e for e in errors))
 
+    def test_a_carried_caption_keeps_its_style_on_a_generated_panel(self) -> None:
+        self.assertLessEqual({"Neville Island", "Industries"}, polish.carried_captions())
+        self.assertNotIn("Barn", polish.carried_captions())        # the plugin gives it now
+        root = copy.deepcopy(self.gen)
+        label = next(l for l in tables.layout_editor(root).findall("positionablelabel")
+                     if l.get("text") == "Neville Island")
+        label.set("size", "20")
+        path = write(root, self.dir)
+        (_n, errors), _ = run(polish.apply_visual_standard, path, check=True)
+        self.assertEqual(["tables.xml: label 'Neville Island' size='20', expected '28'"], errors)
+        run(polish.apply_visual_standard, path, check=False)
+        fixed = next(l for l in tables.layout_editor(tables.read(path)).findall("positionablelabel")
+                     if l.get("text") == "Neville Island")
+        self.assertEqual("28", fixed.get("size"))
+        with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(ValueError, "carried captions"):
+            polish.carried_captions(Path(tmp) / "none.json")
+
     def test_hand_drawn_lamps_are_placed_after_the_turnout_fix(self) -> None:
         # TURNOUT_GEOMETRY puts TOR36 back first; its OS lamp then centres on the fixed circle, as before Phase 3
         root = copy.deepcopy(self.live)

@@ -253,7 +253,9 @@ class Cutover(unittest.TestCase):
         _sheet, le_mod, _core = B.plugin()
         system = tables.mast_system_names(self.root)
         size = {m: tables.mast_icon_size(s)[0] for m, s in system.items()}
-        self.assertEqual(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size), [])
+        widths = {b["block"]: float(b["box"][2]) for b in self.P.bcis}     # as the plugin placed them
+        self.assertEqual(ov.check(self.le, self.inputs.overlay, le_mod, self.slots, size,
+                                  B.LE_LABELS["switch_prefix"], widths), [])
         live_items = frozen_items()
         self.assertEqual(Counter(el.tag for el in live_items), Counter(
             sensoricon=103, positionablelabel=10, turnouticon=10, signalheadicon=1))
@@ -588,8 +590,6 @@ class FrozenFiles(unittest.TestCase):
                                                  if 'sensor=\\"BS Main East\\"' in ln else ln
                                                  for ln in t.split("\n")),
              "gives one per block"),
-            ("overlay.json", lambda t: t.replace('text=\\"Industries\\"', 'text=\\"SW-3\\"', 1),
-             "gives the switch numbers"),
         ]
         for name, edit, why in cases:
             with self.subTest(file=name, why=why):
@@ -650,13 +650,23 @@ class OverlayErrors(unittest.TestCase):
         items = [ov.Item(ET.fromstring(x), i) for i, x in enumerate((
             '<BlockContentsIcon blockcontents="W" x="3" y="4" size="13"/>',
             '<positionablelabel text="SW-1" x="1" y="2" size="13"/>',
+            '<positionablelabel text="SW-35A" x="1" y="2" size="13"/>',     # a lettered number
             '<positionablelabel text="E" x="1" y="2" size="10"/>',          # names block E
             '<positionablelabel text="Brick" x="1" y="2" size="16"/>',
-            '<positionablelabel text="Industries" x="1" y="2" size="16"/>'))]
-        kept, dropped = ov.split_generated(items, live, gen)
-        self.assertEqual([it.text for it in kept], ["Industries"])
-        self.assertEqual(dropped, dict(block_contents=["W"], switch_numbers=["1"], track_names=["E"],
+            '<positionablelabel text="116" x="1" y="2" size="13"/>',        # an equipment label, no prefix
+            '<positionablelabel text="Industries" x="1" y="2" size="16"/>',
+            '<positionablelabel x="0" y="0" level="1"><icon url="program:misc/hart_panel_bg.jpg"/>'
+            '</positionablelabel>'))]
+        # an unblocked segment gives Track.pieces the block "": a label with no text is no track name
+        live.pieces[""] = [((0, 0), (1, 0))]
+        kept, dropped = ov.split_generated(items, live, gen, "SW-")
+        self.assertEqual([it.text for it in kept], ["116", "Industries", None])
+        self.assertTrue(kept[-1].backdrop)
+        self.assertEqual(dropped, dict(block_contents=["W"], switch_numbers=["1", "35A"], track_names=["E"],
                                        captions=["Brick"]))
+        self.assertIsNone(ov.switch_number("SW-1", ""))           # no prefix: nothing is a switch label
+        self.assertIsNone(ov.switch_number("SW-1x", "SW-"))
+        dropped["switch_numbers"] = ["1"]
         with self.assertRaisesRegex(ov.OverlayError, r"lacks .*track name E, caption 'Brick'"):
             ov.given(dict(dropped, captions=["Brick"]), gen[1:], "carry", "SW-")
         with self.assertRaisesRegex(ov.OverlayError, "lacks .*switch number 1,"):
@@ -668,7 +678,16 @@ class OverlayErrors(unittest.TestCase):
         notes = ov.given(dict(dropped, track_names=[]), gen, "carry", "SW-")     # no BCI at all: noted, not hidden
         self.assertIn("no block contents icon", notes[0])
         with self.assertRaisesRegex(ov.OverlayError, "re-freeze.*'Brick'"):
-            ov.repeats([items[3]], gen)
+            ov.repeats([items[4]], gen)
+
+    def test_a_carried_switch_number_stops(self) -> None:
+        ov = self.ov
+        frozen = copy.deepcopy(I.load().overlay)
+        item = next(it for it in frozen["items"] if 'text="Industries"' in it["xml"])
+        item["xml"] = item["xml"].replace('text="Industries"', 'text="SW-3"')
+        ov.validate(frozen)                                  # no prefix (le_inputs.load): read as a caption
+        with self.assertRaisesRegex(ov.OverlayError, "gives the switch numbers"):
+            ov.validate(frozen, switch_prefix="SW-")        # the build's prefix: generated, not carried
 
     def test_a_carried_item_on_a_generated_bci_is_found(self) -> None:
         ov = self.ov
@@ -678,6 +697,12 @@ class OverlayErrors(unittest.TestCase):
         bad = ov.check(le, frozen, self.le_mod, self.slots, {})
         self.assertEqual(len(bad), 1)
         self.assertIn("meets ['block contents W']", bad[0])
+        # sized as the plugin placed it: a short box (44 px) leaves the lamp at x 80 clear, the full one does not
+        le.find("sensoricon").set("x", "80")
+        self.assertIn("meets ['block contents W']", ov.check(le, frozen, self.le_mod, self.slots, {})[0])
+        self.assertEqual(ov.check(le, frozen, self.le_mod, self.slots, {}, bci_widths={"W": 44.0}), [])
+        with self.assertRaisesRegex(ov.OverlayError, "not among the plugin's block contents icons"):
+            ov.check(le, frozen, self.le_mod, self.slots, {}, bci_widths={})
         le.find("sensoricon").set("y", "-60")
         self.assertIn("off the panel", ov.check(le, frozen, self.le_mod, self.slots, {})[0])
 
@@ -700,9 +725,13 @@ class OverlayErrors(unittest.TestCase):
 
     def test_frozen_and_hand_drawn_clusters_are_the_same(self) -> None:
         ov = self.ov
+        panel = tables.layout_editor(tables.read(paths.REPO_TABLES_XML), LIVE)
+        if tables.generated_panel(panel):
+            self.skipTest("the live panel is the generated one (after the cut-over): no hand-drawn clusters to "
+                          "compare with the frozen ones")
         frozen = ov.station_clusters(I.load().overlay)
         self.assertEqual(len(frozen), 12)
-        live = ov.panel_station_clusters(tables.layout_editor(tables.read(paths.REPO_TABLES_XML), LIVE))
+        live = ov.panel_station_clusters(panel)
         self.assertEqual(ov.station_extras(frozen), ov.station_extras(live))
 
     def test_a_station_cluster_on_a_carried_item_is_found(self) -> None:

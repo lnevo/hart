@@ -163,6 +163,22 @@ LABEL_STYLE: dict[str, tuple[str, str]] = {
     "Industries": ("16", "0"),
 }
 
+# The overlay the cut-over build carries onto a generated panel (tools/schematic/le_overlay.py): its labels are the
+# hand-drawn panel's captions, kept to LABEL_STYLE there too; every other label on a generated panel is the plugin's.
+FROZEN_OVERLAY = paths.LAYOUT_DATA / "schematic" / "staging_le" / "overlay.json"
+
+
+def carried_captions(overlay: Path = FROZEN_OVERLAY) -> set[str]:
+    """The texts of the labels the cut-over build carries onto a generated panel (overlay.json's items)."""
+    import json
+    try:
+        items = json.loads(overlay.read_text(encoding="utf-8"))["items"]
+        els = [ET.fromstring(it["xml"]) for it in items]
+    except (OSError, ValueError, KeyError, TypeError, ET.ParseError) as exc:
+        raise ValueError(f"cannot read the carried captions from {overlay}: {exc}") from None
+    return {(el.get("text") or "").strip() for el in els if el.tag == "positionablelabel" and el.get("text")}
+
+
 # South Yard track names. The Dispatcher station buttons carried them until
 # South Yard stopped being stations (2026-11-12); plain labels sit in the same
 # spots, in the buttons' size-10 bold grey text.
@@ -845,17 +861,21 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
             le.remove(icon)
             changes += 1
 
-    # A generated panel's labels are the build's: the plugin writes the station names and track names (a track can
-    # be named like a caption, the track Barn), so none is restyled there. Two labels of one caption's text with
-    # neither in its style would be a damaged caption beside a track name: an error, not a guess.
-    captioned: set[str] = set()
+    # On a generated panel the plugin writes the station names and track names (a track can be named like a
+    # caption, the track Barn): those are the build's and keep their style. The captions the build carries from
+    # the hand-drawn panel (overlay.json: Neville Island, Industries ...) are kept to LABEL_STYLE as there. Two
+    # labels of one caption's text with neither in its style would be a damaged caption beside a track name: an
+    # error, not a guess.
+    exempt: set[str] = set()
     if generated:
+        carried = carried_captions()
         same_text: dict[str, list[ET.Element]] = {}
         for label in le.findall("positionablelabel"):
             same_text.setdefault((label.get("text") or "").strip(), []).append(label)
         for text, (size, style) in LABEL_STYLE.items():
             group = same_text.get(text, [])
-            captioned.add(text)
+            if text not in carried:
+                exempt.add(text)
             if len(group) > 1 and not any(l.get("size") == size and l.get("style") == style for l in group):
                 errors.append(f"{path.name}: {len(group)} labels say {text!r} and none has the caption style "
                               f"(size {size}, style {style}); style the caption by hand")
@@ -875,7 +895,7 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
                 le.remove(label)
                 changes += 1
             continue
-        if text in LABEL_STYLE and not (generated and text in captioned):
+        if text in LABEL_STYLE and text not in exempt:
             size, style = LABEL_STYLE[text]
             for attr, value in (("size", size), ("style", style)):
                 if label.get(attr) == value:
