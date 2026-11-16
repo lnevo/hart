@@ -580,6 +580,7 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
         title.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
         title.insert_text(sp["origin"], data["name"], fontsize=sp["size"], fontname="namefont",
                           fontfile=str(NAME_FONT), color=rgb)
+        d.subset_fonts()                                  # the name font is ~15 MB whole; keep only its used glyphs
     out.parent.mkdir(parents=True, exist_ok=True)
     d.save(out, garbage=3, deflate=True)
     d.close()
