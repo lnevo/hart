@@ -448,6 +448,20 @@ def stale_sources(pdf: Path) -> list[str]:
     return [str(f.relative_to(HERE)) for f in inputs if f.stat().st_mtime > built + 1]
 
 
+SIG_SCALE = 1.35    # signature height as a multiple of the form's one-line SIGNATURE box
+SIG_DROP = 4        # pt the signature's base sits below the box (on the printed line)
+SIG_INSET = 4       # pt from the box's left and right edges
+
+
+def signature_box(rect, aspect: float):
+    """Where the signature image goes: SIG_SCALE times the box height (a box-height signature is
+    unreadably small), base SIG_DROP below the box, inside the box's width, aspect kept."""
+    import fitz
+    width = min(rect.height * SIG_SCALE * aspect, rect.width - 2 * SIG_INSET)
+    height = width / aspect
+    return fitz.Rect(rect.x0 + SIG_INSET, rect.y1 + SIG_DROP - height, rect.x0 + SIG_INSET + width, rect.y1 + SIG_DROP)
+
+
 def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
     """Write a copy of the built SOQ with the member's details on the form, outside the repo.
 
@@ -504,7 +518,11 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
         if not sig_at:
             die("the Member Statement SIGNATURE field was not found")
         page, rect = sig_at
-        page.insert_image(rect, filename=str(sig), keep_proportion=True)
+        try:
+            pix = fitz.Pixmap(str(sig))          # same library that embeds it, so the size agrees
+        except Exception as e:                   # noqa: BLE001 - any unreadable image gets one message
+            die(f"signature_image {sig}: not a readable image ({e})")
+        page.insert_image(signature_box(rect, pix.width / pix.height), filename=str(sig))
     out.parent.mkdir(parents=True, exist_ok=True)
     d.save(out, garbage=3, deflate=True)
     d.close()

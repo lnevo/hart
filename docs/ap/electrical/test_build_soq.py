@@ -119,6 +119,35 @@ class MemberCopy(unittest.TestCase):
         self.assertEqual(fields["Street"], "1 Test St")
         self.assertNotIn(fields[build_soq.FIRST_AWARD], ("Off", "", None))
 
+    @unittest.skipUnless(HAVE_FITZ, "needs PyMuPDF (root .venv)")
+    def test_signature_lands_on_the_line_inside_the_box(self):
+        import tempfile
+        import fitz
+        with tempfile.TemporaryDirectory() as td:
+            sig = Path(td) / "sig.png"
+            fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 400, 100), 1).save(str(sig))      # wide 4:1 image
+            out = Path(td) / "filled.pdf"
+            f = self.write(Path(td), f'signature_image = "sig.png"\noutput = "{out}"\n')
+            build_soq.fill_member(f)
+            with fitz.open(out) as d:
+                page = d[1]
+                field = next(w.rect for w in page.widgets() if w.field_name == "SIGNATURE")
+                (img,) = page.get_image_info()
+                box = fitz.Rect(img["bbox"])
+        self.assertGreaterEqual(box.x0, field.x0)
+        self.assertLessEqual(box.x1, field.x1)
+        self.assertAlmostEqual(box.y1, field.y1 + build_soq.SIG_DROP, delta=0.5)
+        self.assertGreater(box.height, field.height)
+
+    def test_signature_box_keeps_wide_images_inside(self):
+        import types
+        rect = types.SimpleNamespace(x0=100, y1=200, width=160, height=16)
+        try:
+            box = build_soq.signature_box(rect, 50.0)
+        except ImportError:
+            self.skipTest("needs PyMuPDF")
+        self.assertLessEqual(box.x1, 100 + 160)
+
     def test_refuses_output_inside_the_repo(self):
         import tempfile
         with tempfile.TemporaryDirectory() as td:
