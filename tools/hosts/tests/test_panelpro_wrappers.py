@@ -159,7 +159,7 @@ class Sandbox:
 
     def run(self, wrapper: str, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
         return subprocess.run(self.cmd(wrapper), env=env, capture_output=True, text=True, timeout=90,
-                              cwd=self.tmp)
+                              cwd=self.tmp, preexec_fn=_default_signals)
 
     def java_pid(self, timeout: float = 20) -> int:
         path = self.state / "java.pid"
@@ -169,6 +169,13 @@ class Sandbox:
                 return int(path.read_text())
             time.sleep(0.1)
         raise AssertionError("fake java never started")
+
+
+def _default_signals() -> None:
+    """A wrapper started from a background job (check.sh runs the suites in parallel) inherits SIGINT and SIGQUIT
+    ignored, and bash cannot trap a signal ignored on entry. The owner's terminal delivers them, so set them back."""
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
 
 
 class WrapperCase(unittest.TestCase):
@@ -288,7 +295,8 @@ class Cleanup(WrapperCase):
                 (self.box.state / "java.pid").unlink(missing_ok=True)
                 env = self.box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="60")
                 proc = subprocess.Popen(self.box.cmd("run_sml_discover.sh"), env=env, cwd=self.box.tmp,
-                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                        preexec_fn=_default_signals)
                 try:
                     java = self.box.java_pid()
                     self.assertIn(b'enabled="no"', self.box.profile.read_bytes())   # patched while running
@@ -304,7 +312,7 @@ class Cleanup(WrapperCase):
     def test_after_sigkill_the_next_run_refuses_and_restore_recovers(self) -> None:
         env = self.box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="60")
         proc = subprocess.Popen(self.box.cmd("run_panelpro_stage1.sh"), env=env, cwd=self.box.tmp,
-                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, preexec_fn=_default_signals)
         java = self.box.java_pid()
         proc.kill()
         proc.wait(timeout=10)
@@ -340,6 +348,7 @@ pp_stop_jmri() {{ echo "Could not stop pids 99999" >&2; return 1; }}
 exit 1
 """, encoding="utf-8")
         done = subprocess.run(["/bin/bash", str(script)], env=self.box.env(), capture_output=True, text=True,
+                              preexec_fn=_default_signals,
                               timeout=60)
         self.assertEqual(1, done.returncode)
         self.assertIn("PROFILE NOT RESTORED: quit that PanelPro, then run: python3", done.stderr)
@@ -410,6 +419,7 @@ class Deploy(WrapperCase):
                           ("cats/scripts/launch_cats.sh", [])):
             with self.subTest(script=rel):
                 done = subprocess.run(["/bin/bash", str(self.box.root / rel), *args], env=env, capture_output=True,
+                                      preexec_fn=_default_signals,
                                       text=True, timeout=30)
                 self.assertEqual(1, done.returncode, done.stderr)
                 self.assertIn("is left from a PanelPro wrapper run that did not finish", done.stderr)

@@ -102,7 +102,8 @@ if ! git -C "$ROOT" cat-file -e "$SHA:$SYNC_REL" 2>/dev/null; then
     "(ADR-007 amendment 2026-11-12), so it cannot be redeployed with this script." >&2
   exit 1
 fi
-if ! git -C "$ROOT" show "$SHA:$SYNC_REL" | grep -q 'write_deploy_stamp'; then
+# grep reads to the end: with -q it stops at the match, git can die of SIGPIPE, and pipefail refuses a good commit.
+if ! git -C "$ROOT" show "$SHA:$SYNC_REL" | grep 'write_deploy_stamp' >/dev/null; then
   echo "REFUSED: $SHORT predates the deploy stamp (cats/deploy_stamp.txt), so make deploy-status" \
     "could not tell what the hosts run. Pick a later commit." >&2
   exit 1

@@ -19,13 +19,55 @@ fail=0
 run() {
   echo "--- $1"
   shift
+  local start=$SECONDS
   "$@" || fail=1
+  (( SECONDS - start < 5 )) || echo "    ($((SECONDS - start))s)"
+}
+# The slow part (unit tests, public text, the portal build) runs at the same time once the read-only
+# checks above it are done, at most one job per core. Every one works in its own temp folders. `later`
+# starts a job with its output in a file; `collect` waits for each in the order started and prints its
+# output under its heading. Job control (set -m) gives each job its own process group with the signals a
+# terminal has (a plain background job ignores SIGINT), and Ctrl-C or TERM stops every group still running.
+set -m
+JOBS="$(mktemp -d)"
+MAX_JOBS="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)"
+(( MAX_JOBS >= 2 )) || MAX_JOBS=2
+names=()
+pids=()
+stop_jobs() {
+  local pid
+  for pid in ${pids[@]+"${pids[@]}"}; do kill -TERM -- "-$pid" 2>/dev/null; done
+}
+trap 'rm -rf "$JOBS"' EXIT
+trap 'stop_jobs; exit 130' INT
+trap 'stop_jobs; exit 143' TERM
+later() {
+  local name="$1"
+  shift
+  while (( $(jobs -rp | wc -l) >= MAX_JOBS )); do sleep 0.2; done
+  local n="${#names[@]}"
+  (start=$SECONDS; "$@" >"$JOBS/$n.log" 2>&1; rc=$?; echo "$((SECONDS - start))" >"$JOBS/$n.time"; exit "$rc") &
+  pids+=("$!")
+  names+=("$name")
+}
+collect() {
+  local i took
+  for i in "${!names[@]}"; do
+    if wait "${pids[$i]}"; then
+      echo "--- ${names[$i]} ($(cat "$JOBS/$i.time")s)"
+    else
+      fail=1
+      took="$(cat "$JOBS/$i.time" 2>/dev/null)" || took="killed before it finished, no "
+      echo "--- ${names[$i]} FAILED (${took}s)"
+    fi
+    cat "$JOBS/$i.log"
+  done
 }
 # Unit tests compare fixtures with the checkout's tables file, so HART_TABLES never reaches them.
 unit() {
-  echo "--- $1"
+  local name="$1"
   shift
-  env -u HART_TABLES "$@" || fail=1
+  later "$name" env -u HART_TABLES "$@"
 }
 run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
@@ -55,31 +97,39 @@ run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
+run desks python3 cats/scripts/validate_cats_panel.py
 unit unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
 unit unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
 unit unit-cats python3 -m unittest discover -q -s cats/scripts/tests
 unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
 unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
 unit unit-guards python3 -m unittest discover -q -s tools/audit/tests
-unit unit-hosts python3 -m unittest discover -q -s tools/hosts/tests
+# The host tests start real processes and wait out their timers: one job per file, found as discover finds them.
+if [[ -n "$(find tools/hosts/tests -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
+  echo "--- unit-hosts: tests in a subfolder of tools/hosts/tests; give them their own job in check.sh"
+  fail=1
+fi
+for t in tools/hosts/tests/test*.py; do
+  unit "unit-hosts $(basename "$t" .py)" python3 -m unittest discover -q -s tools/hosts/tests -p "$(basename "$t")"
+done
 unit unit-portal python3 -m unittest discover -q -s www/scripts/tests
-run desks python3 cats/scripts/validate_cats_panel.py
 # Car cards, intake and publications. Uses ops/hart-ops/.venv when it exists; a checkout
 # without it (a worktree) skips, CI installs ops/hart-ops/requirements-test.txt.
 HOPS_PY=python3
 [[ -x ops/hart-ops/.venv/bin/python ]] && HOPS_PY=ops/hart-ops/.venv/bin/python
 # The venv carries pypdf for the PDF part; plain python3 checks everything else.
-run public-text "$HOPS_PY" tools/audit/check_public_text.py
+later public-text "$HOPS_PY" tools/audit/check_public_text.py
 if [[ -n "${CI:-}" ]] || "$HOPS_PY" -c "import numpy, scipy, docx, pytesseract" 2>/dev/null; then
   unit unit-hart-ops "$HOPS_PY" -m unittest discover -q -s ops/hart-ops/tests
 else
-  echo "--- unit-hart-ops skipped (no ops/hart-ops/.venv)"
+  later "unit-hart-ops skipped (no ops/hart-ops/.venv)" true
 fi
 # The portal build needs the gitignored photo mirrors (media/), which CI does not have.
 if [[ -z "${CI:-}" ]]; then
-  run portal python3 www/scripts/check_portal_build.py
+  later portal python3 www/scripts/check_portal_build.py
 else
-  echo "--- portal skipped in CI"
+  later "portal skipped in CI" true
 fi
+collect
 if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi
 exit "$fail"
