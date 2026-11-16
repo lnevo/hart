@@ -34,7 +34,9 @@ ISNX_SYSTEM: dict[str, str] = {
 }
 
 NX_USER = {mast: f"NX {mast}" for mast in ISNX_SYSTEM}
-EXPECTED_NX_PAIRS = 39
+# Stock Discover from an empty pair list, 2026-11-15, after NX Mast 8RA moved to A45 east (its mast's
+# boundary). The 39 stored before were frozen on 2026-08-31 and kept 2L->8RA-era and pre-swap 2035/2036 leftovers.
+EXPECTED_NX_PAIRS = 36
 NXTYPE_SML = "signalmastlogic"
 LAYOUT_PANEL = "HART Railroad"
 

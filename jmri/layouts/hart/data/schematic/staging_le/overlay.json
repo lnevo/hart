@@ -799,11 +799,11 @@
    "group": null,
    "anchor": {
     "kind": "slot",
-    "on": "turnout",
-    "ident": "TO117",
-    "slot": "A",
+    "on": "point",
+    "ident": "A45",
+    "slot": "east",
     "offset": [
-     -23.5,
+     27.5,
      0.5
     ]
    }

@@ -2,7 +2,7 @@
 
 Layout Editor Discover writes Signal Mast Logic (and NX pairs) into the tables bundle. JMRI re-paths SML on load when `useLayoutEditor=yes`.
 
-**Status:** Live. Current tables hold 42 sources / 100 dests (all from Discover) and 39 NX pairs.
+**Status:** Live. Current tables hold 42 sources / 100 dests (all from Discover) and 36 NX pairs (re-Discovered from an empty list 2026-11-15 after NX Mast 8RA moved to A45 east).
 
 NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at runtime (`useLayoutEditor=yes`); they are **not** stored in `tables.xml`. Digicon dests boot **Enabled=no**. Brick pairs without a stored dest use live connectivity.
 
