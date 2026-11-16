@@ -14,7 +14,7 @@ They are kept apart from the railroad's own schematics and wiring docs on purpos
 (owner, 2026-11-14). Facts:
 
 - Reversing sections: RS-1 (the west main, Switch 1 to Switch 23) on an AR10 and RS-2
-  (the return loop at the east end) on a PSX-AR (owner, 2026-11-14).
+  (the return loop at the east end) on a PSXX-AR (owner, 2026-11-14 and 2026-11-15).
 - Block gaps are in both rails; every section has at least one feeder pair, and both
   feeders of a pair pass through one channel of its DNCT2B; each DNCT2B has two
   channels and serves two sections (owner, 2026-11-14).
@@ -249,7 +249,7 @@ def p1() -> str:
 
 def p2() -> str:
     def layers(u):
-        over = "".join([tag(u, 600, 112, "RS-1 (AR10)", RED, 19), tag(u, 1420, 84, "RS-2 return loop (PSX-AR)", RED, 19),
+        over = "".join([tag(u, 600, 112, "RS-1 (AR10)", RED, 19), tag(u, 1420, 84, "RS-2 return loop (PSXX-AR)", RED, 19),
                         tag(u, 250, 168, "gap", RED, 14), tag(u, 964, 168, "gap", RED, 14),
                         tag(u, 1316, 110, "gap", RED, 14), tag(u, 1316, 206, "gap", RED, 14),
                         tag(u, 1170, 118, "main line", GREY, 14), tag(u, 1170, 182, "main line", GREY, 14)])
@@ -341,7 +341,7 @@ def d1() -> str:
     b.append(wire("M390,65 L440,80", INK, 2))
     b.append(wire("M390,145 L440,130", INK, 2))
     rows = [("District A", "PSX-series breaker"), ("District B", "PSX-series breaker"), ("District C", "PSX-series breaker"),
-            ("District D", "PSX-series breaker"), ("RS-1", "AR10 auto-reverser"), ("RS-2", "PSX-AR auto-reverser")]
+            ("District D", "PSX-series breaker"), ("RS-1", "AR10 auto-reverser"), ("RS-2", "PSXX-AR auto-reverser")]
     for i, (name, dev) in enumerate(rows):
         y = 30 + i * 46
         col = RED if name.startswith("RS") else INK
@@ -464,13 +464,13 @@ def d5() -> str:
 
     The auto-reverser's output passes through a DNCT2B before the track (owner,
     2026-11-15). RS-2 is two detected sections, K-1 and K-2, one on each channel of the
-    same DNCT2B; both are fed from the one PSX-AR, so they change polarity together.
+    same DNCT2B; both are fed from the one PSXX-AR, so they change polarity together.
     """
     b = []
     b.append(wire("M40,66 L700,66", RED, 2.2))
     b.append(wire("M40,80 L700,80", INK, 2.2))
     b.append(label(44, 58, "DCC from the booster matrix (D1)", 9.5, INK))
-    b.append(box(255, 100, 250, 44, "Auto-reverser", "NCE AR10 (RS-1) or PSX-AR (RS-2)", size=10))
+    b.append(box(255, 100, 250, 44, "Auto-reverser", "NCE AR10 (RS-1) or PSXX-AR (RS-2)", size=10))
     b.append(wire("M360,80 L360,100", INK, 1.4))
     b.append(wire("M400,66 L400,100", RED, 1.4))
     b.append(label(512, 130, "output: both wires change polarity together", 9, RED))
