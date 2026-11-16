@@ -413,6 +413,9 @@ def assemble(doc_pdf: Path, plates_pdf: Path, after: int, form_pdf: Path, decks:
     for k, (_, _, _, name) in enumerate(RECORDS):
         outline.append([2, name.split(":")[0], rec_start + k])
     doc.set_toc(outline)
+    # One numbering for the whole file: Chrome's page labels restart at 1 after the inserted form,
+    # so Preview showed 38 pages against footers counting 40. Pages are 1 to N, form included.
+    doc.set_page_labels([{"startpage": 0, "prefix": "", "style": "D", "firstpagenum": 1}])
     doc.set_metadata({"title": "Model Railroad Engineer – Electrical: Statement of Qualifications",
                       "author": "HART Railroad", "subject": "NMRA Achievement Program SOQ supporting documentation",
                       "keywords": "NMRA, Achievement Program, Model Railroad Engineer, Electrical, SOQ"})
@@ -444,7 +447,7 @@ def stale_sources(pdf: Path) -> list[str]:
     if not pdf.exists():
         return ["(no built PDF)"]
     built = pdf.stat().st_mtime
-    inputs = [HERE / "soq.html", HERE / "soq.css", HERE / "make_drawings.py", *HERE.glob("photos/*")]
+    inputs = [HERE / "soq.html", HERE / "soq.css", HERE / "make_drawings.py", HERE / "build_soq.py", *HERE.glob("photos/*")]
     return [str(f.relative_to(HERE)) for f in inputs if f.stat().st_mtime > built + 1]
 
 
