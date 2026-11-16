@@ -57,7 +57,7 @@ RECORDS = [
 EXPECTED = {"matrix": "2", "req1": "3", "req1-two": "3.1", "req1-gaps": "3.2", "req1-loop": "3.3", "req1-siding": "3.4",
             "req1-engine": "3.5", "req1-yard": "3.6", "req2": "4", "req2-turnout": "4.1", "req2-crossover": "4.2",
             "req3": "5", "req3-a": "5.1", "req3-b": "5.2", "req3-v": "5.3", "req45": "6",
-            "app-a": "A", "app-b": "B", "app-c": "C", "app-d": "D", "app-records": "E"}
+            "app-a": "A", "app-b": "B", "app-c": "C", "app-d": "D", "app-grid": "E", "app-records": "F"}
 
 YARD = {"S-R": "Y1", "S-1": "Y2", "S-2": "Y3", "S-3": "Y4", "S-4": "Y5"}
 
@@ -562,6 +562,7 @@ def main() -> None:
     page_html = BUILD / "soq.html"
     for name in ("soq.css",):
         shutil.copy(HERE / name, BUILD / name)
+    shutil.copy(ROOT / "www/assets/behind/lcos-node-grid.svg", BUILD / "node-grid.svg")   # grid of record, copied fresh
     for sub in ("drawings", "photos"):
         link = BUILD / sub
         if link.is_symlink() or link.exists():   # a link left by a swept worktree dangles

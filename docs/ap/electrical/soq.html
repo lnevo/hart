@@ -116,22 +116,24 @@
       <figcaption>A section boundary with gaps in both rails.</figcaption>
     </figure>
   </div>
-  <p>The terminal strips under the layout all use the same eight positions, so any bus or feeder can be traced the same way at every strip.</p>
+  <p>The terminal strips under the layout all use the same eight positions and wire colours, so any bus or feeder can be traced the same way at every strip.</p>
   <table id="tab-terminal">
-    <caption>Terminal strip positions (same on every strip)</caption>
-    <thead><tr><th scope="col">Terminals</th><th scope="col">Carries</th></tr></thead>
+    <caption>Terminal strip positions and wire colours (same on every strip)</caption>
+    <thead><tr><th scope="col">Terminal</th><th scope="col">Carries</th><th scope="col">Wire colour</th></tr></thead>
     <tbody>
-      <tr><td>1 and 2</td><td>DCC bus A (+ and –)</td></tr>
-      <tr><td>3 and 4</td><td>DCC bus B (+ and –)</td></tr>
-      <tr><td>5</td><td>+12 V (switch machines, accessories)</td></tr>
-      <tr><td>6</td><td>+5 V</td></tr>
-      <tr><td>7</td><td>+3 V</td></tr>
-      <tr><td>8</td><td>Ground</td></tr>
+      <tr><td>1</td><td>DCC1 +</td><td><span class="swatch" style="background:#e01b1b"></span><span class="swatch" style="background:#1d8a2e"></span> Red, or Green on a secondary bus</td></tr>
+      <tr><td>2</td><td>DCC1 –</td><td><span class="swatch" style="background:#111111"></span><span class="swatch" style="background:#7a5524"></span> Black, or Brown on a secondary bus</td></tr>
+      <tr><td>3</td><td>DCC2 +</td><td><span class="swatch" style="background:#ffffff"></span> White</td></tr>
+      <tr><td>4</td><td>DCC2 –</td><td><span class="swatch" style="background:#1f4fd6"></span> Blue</td></tr>
+      <tr><td>5</td><td>+12 V (switch machines, accessories)</td><td><span class="swatch" style="background:#f5e400"></span> Yellow</td></tr>
+      <tr><td>6</td><td>+5 V</td><td><span class="swatch" style="background:#e01b1b"></span> Red</td></tr>
+      <tr><td>7</td><td>+3.3 V</td><td><span class="swatch" style="background:#f59a00"></span> Orange</td></tr>
+      <tr><td>8</td><td>Ground</td><td><span class="swatch" style="background:#111111"></span> Black</td></tr>
     </tbody>
   </table>
 
   <h3 id="req1-loop">Reverse loop</h3>
-  <p>At the east end of the main line is a return loop, RS-2 (Plan P2). A train goes out on one track, around the loop, and comes back on the other track facing the other way. The loop has gaps in both rails at both ends and is powered through a DCC Specialties PSXX-AR auto-reverser (drawing D5). It is two detected sections, one on each channel of the same DNCT2B detector. Because both get power from the one auto-reverser, they always change polarity together, so for wiring and troubleshooting they are one reversing section.</p>
+  <p>At the east end of the main line is a return loop, RS-2 (Plan P2). A train goes out on one track, around the loop, and comes back on the other track facing the other way. The loop has gaps in both rails at both ends and is powered through a DCC Specialties PSXX-AR auto-reverser (drawing D5). It is two detected sections, one on each output of the same DNCT2B detector. Because both get power from the one auto-reverser, they always change polarity together, so for wiring and troubleshooting they are one reversing section.</p>
   <p>The main line also loops back on itself at the west end, so the west part of the main line, RS-1, is a second reversing section. It is wired the same way on an NCE AR10. RS-1 is 217 in long, longer than any train on the level.</p>
   <figure class="fig wide" id="fig-p2">
     <img src="drawings/P2-reversing-sections.svg" alt="Track diagram with the two reversing sections highlighted and the gaps at their ends marked.">
@@ -244,7 +246,7 @@
   </div>
 
   <h3 id="req2-other">Other: reversing sections on auto-reversers</h3>
-  <p>RS-1 and RS-2 (Section 3.3) each have gaps in both rails at both ends and get power through their own auto-reverser. The auto-reverser's output goes through a DNCT2B detector on its way to the track, so the reversing sections are detected like every other section. When a train's wheels bridge a gap with the wrong polarity, the auto-reverser senses the short and flips the section's polarity in a few milliseconds, so the train keeps going. Each section is longer than the longest train, so the flip finishes before the train reaches the far gap (drawing D5).</p>
+  <p>RS-1 and RS-2 (Section 3.3) each have gaps in both rails at both ends and get power through their own auto-reverser. The auto-reverser's output feeds the rail input of a DNCT2B detector, and the DNCT2B's outputs feed the track, so the reversing sections are detected like every other section. When a train's wheels bridge a gap with the wrong polarity, the auto-reverser senses the short and flips the section's polarity in a few milliseconds, so the train keeps going. Each section is longer than the longest train, so the flip finishes before the train reaches the far gap (drawing D5).</p>
   <p><strong>Parts:</strong> NCE AR10, DCC Specialties PSXX-AR.</p>
 </section>
 
@@ -284,12 +286,12 @@
 
   <h3 id="req3-b">(b) Track occupancy indication</h3>
   <p>All 43 sections are detected. A section shows as occupied on the computer panels when a locomotive, or a car with resistor wheelsets, is on it. The form asks for at least five blocks.</p>
-  <p>Detection works by sensing current. Both feeder wires of a section pass through one channel of a DNCT2B current sensor, so the sensor sees any current drawn in that section. Each DNCT2B has two channels and covers two sections. The sensor tells the nearby LCOS node, which reports the section as occupied or clear (drawing D2).</p>
+  <p>Detection works by sensing current. The district bus, both rails, feeds a DNCT2B detector's rail input. The DNCT2B has two outputs, and each one feeds the feeders of one section, so the detector sees any current drawn in that section. Each DNCT2B plugs into a DNCTA by network cable, and one DNCTA connects up to four DNCT2Bs to the nearby LCOS client node, which reports each section as occupied or clear (drawing D2).</p>
   <p><strong>Parts:</strong> DNCT2B and DNCTA detectors and LCOS nodes (Beagle Bay Inc.), JMRI for the panels. <strong>Drawing:</strong> D2. <strong>List of sections:</strong> Appendix B.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-dnct" data-punch="PL-09">
-      <img src="photos/dnct2b-feeders.jpg" alt="A DNCT2B detector board mounted under the layout, with track wiring in its screw terminals and a network cable to its LCOS node.">
-      <figcaption>A DNCT2B detector under the layout, wired between the bus and the track.</figcaption>
+      <img src="photos/dnct2b-feeders.jpg" alt="A DNCT2B detector board mounted under the layout, with track wiring in its screw terminals and a network cable to its DNCTA.">
+      <figcaption>A DNCT2B detector under the layout: rail input from the bus, two outputs to the track, and the network cable to its DNCTA.</figcaption>
     </figure>
     <figure class="photo" id="photo-occ" data-punch="PL-10">
       <img src="photos/occupancy-panel.png" alt="Part of the dispatcher panel for the west end of the staging level, with occupied sections shown in red.">
@@ -350,7 +352,7 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
 <!-- ============================================================ 6 -->
 <section class="chapter">
   <h2 id="req45">Requirements 4 and 5: drawings</h2>
-  <p>I made drawings D1 to D6 for this application. They are on the landscape pages after Chapter 6. Appendix E has pages from my railroad's own wiring records: power districts, bus wiring, node and turnout wiring, and the node and turnout summaries.</p>
+  <p>I made drawings D1 to D6 for this application. They are on the landscape pages after Chapter 6. Appendix F has pages from my railroad's own wiring records: power districts, bus wiring, node and turnout wiring, and the node and turnout summaries.</p>
   <table id="tab-drawings">
     <caption>Drawings</caption>
     <thead><tr><th scope="col">Drawing</th><th scope="col">Shows</th><th scope="col">For</th></tr></thead>
@@ -363,7 +365,7 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
       <tr><td>D6</td><td>The bridge between LCOS and JMRI</td><td>Req. 5: computer-to-railroad interface (v)</td></tr>
     </tbody>
   </table>
-  <p>Requirement 4 asks the propulsion drawing to show six things. Gaps, blocks and feeders are in D2. Speed and direction control, the electrical switches (booster matrix, breakers and auto-reversers) and the power supplies are in D1. The frog switch is in D3. In Appendix E, the power district and bus wiring pages show the as-built wiring, and the node and turnout pages show the wiring behind each item in Requirement 5.</p>
+  <p>Requirement 4 asks the propulsion drawing to show six things. Gaps, blocks and feeders are in D2. Speed and direction control, the electrical switches (booster matrix, breakers and auto-reversers) and the power supplies are in D1. The frog switch is in D3. In Appendix F, the power district and bus wiring pages show the as-built wiring, and the node and turnout pages show the wiring behind each item in Requirement 5.</p>
 </section>
 
 <!-- ============================================================ PLATES -->
@@ -371,17 +373,17 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
   <h2 class="no-num plate-head" id="plates">Drawings D1 to D6</h2>
   <p class="plate-intro">Not to scale. Red is track power, blue is detection and data, grey is nearby track. In D6, the shaded boxes are my own work.</p>
   <figure class="plate" id="fig-d1"><img src="drawings/D1-propulsion-one-line.svg" alt="Drawing D1: throttles, command station, booster, booster matrix, and the six breakers and auto-reversers feeding the district buses."><figcaption>Drawing D1: power and control. Each locomotive gets its speed and direction from the DCC commands sent to its address.</figcaption></figure>
-  <figure class="plate" id="fig-d2"><img src="drawings/D2-propulsion-sections.svg" alt="Drawing D2: a district bus, a section gapped at both ends, its feeder pair through a DNCT2B detector channel, and the LCOS node."><figcaption>Drawing D2: a typical section. All 43 sections in Appendix B are wired this way.</figcaption></figure>
+  <figure class="plate" id="fig-d2"><img src="drawings/D2-propulsion-sections.svg" alt="Drawing D2: the district bus feeding a DNCT2B detector's rail input; its two outputs feeding the feeders of two sections, each gapped in both rails at both ends; and the DNCT2B's network cable to a DNCTA and the LCOS client node."><figcaption>Drawing D2: a typical section. All 43 sections in Appendix B are wired this way.</figcaption></figure>
   <figure class="plate" id="fig-d3"><img src="drawings/D3-turnout-frog-indication.svg" alt="Drawing D3: a turnout with the MP4's contact 1 powering the frog and contact 2 reporting the position."><figcaption>Drawing D3: turnout frog power and position contact.</figcaption></figure>
   <figure class="plate" id="fig-d4"><img src="drawings/D4-crossover.svg" alt="Drawing D4: a crossover of two turnouts with both rails gapped between the frogs, and below it the position contacts of the two machines wired in series to one normal and one reverse input, with a table of what the panel shows."><figcaption>Drawing D4: crossover. Top: frogs and gaps. Bottom: the two machines' position contacts in series, so a position shows only when both halves agree.</figcaption></figure>
-  <figure class="plate" id="fig-d5"><img src="drawings/D5-reversing-section.svg" alt="Drawing D5: an auto-reverser whose output passes through the two channels of a DNCT2B to two detected sections of one reversing section, gapped at both outer ends and between the two sections."><figcaption>Drawing D5: reversing section on an auto-reverser. The two detected sections share the auto-reverser and change polarity together.</figcaption></figure>
+  <figure class="plate" id="fig-d5"><img src="drawings/D5-reversing-section.svg" alt="Drawing D5: an auto-reverser whose output feeds a DNCT2B detector's rail input; the DNCT2B's two outputs feed two detected sections of one reversing section, gapped at both outer ends and between the two sections."><figcaption>Drawing D5: reversing section on an auto-reverser. The two detected sections share the auto-reverser and change polarity together.</figcaption></figure>
   <figure class="plate" id="fig-d6"><img src="drawings/D6-computer-interface.svg" alt="Drawing D6: JMRI, the MQTT server, the bridge program, the bridge node, the LCOS nodes and the railroad, with the links between them."><figcaption>Drawing D6: the bridge between the LCOS radio network and JMRI.</figcaption></figure>
 </section>
 
 <!-- ============================================================ APPENDICES -->
 <section class="appendix">
   <h2 id="app-a">Labels and layout names</h2>
-  <p>The labels in this document and the names used on the layout and in the wiring records (Appendix E).</p>
+  <p>The labels in this document and the names used on the layout and in the wiring records (Appendix F).</p>
   <table id="tab-xref">
     <caption>Labels and layout names</caption>
     <thead><tr><th scope="col">Label</th><th scope="col">Name on the layout</th></tr></thead>
@@ -425,7 +427,7 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
       <tr><td>MP4 switch machines</td><td>MTB</td><td>Throwing turnouts, frog power, position contact</td></tr>
       <tr><td>Touch Toggles, Universal Translator</td><td>Berrett Hill</td><td>Fascia buttons and lights</td></tr>
       <tr><td>LCOS nodes and boards</td><td>Beagle Bay Inc.</td><td>Switch machine outputs, inputs</td></tr>
-      <tr><td>DNCT2B, DNCTA detectors</td><td>Beagle Bay Inc.</td><td>Block detection</td></tr>
+      <tr><td>DNCT2B detectors, DNCTA</td><td>Beagle Bay Inc.</td><td>Block detection (DNCT2B, two sections each); linking up to four DNCT2Bs to a node (DNCTA)</td></tr>
       <tr><td>Arduino Nano, nRF24L01 radio</td><td>Arduino; various</td><td>Bridge node</td></tr>
       <tr><td>Raspberry Pi</td><td>Raspberry Pi Ltd</td><td>Runs JMRI and the MQTT server</td></tr>
       <tr><td>JMRI, Mosquitto</td><td>Free software</td><td>Panels; MQTT server</td></tr>
@@ -442,6 +444,15 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
     <li><strong>Computerized block detection:</strong> the 43 detected sections drive the signals, the CTC route locking and JMRI's Dispatcher.</li>
     <li><strong>Computerized operation:</strong> my own scripts in JMRI set the signals and keep the panels up to date, and JMRI's Dispatcher can run trains automatically between twelve stations.</li>
   </ul>
+</section>
+
+<section class="appendix">
+  <h2 id="app-grid">Radio node grid</h2>
+  <p>Where each LCOS radio node sits in the layout room, by its radio address. The yellow squares are explained below the grid.</p>
+  <figure class="fig" id="fig-grid">
+    <img src="node-grid.svg" alt="Floor plan grid of the layout room. Orange squares are benchwork; each LCOS radio node address sits in the square where that node is mounted. Yellow squares mark the master, its direct nodes, two staging nodes and the bridge node.">
+    <figcaption>Radio addresses on a floor plan of the layout room. Orange squares are benchwork, and each address is in the square where its node sits. Yellow squares mark the master (00), the five nodes that talk to it directly (01 to 05), 012 at East End, 013 at the Barn, and the bridge node, 015.</figcaption>
+  </figure>
 </section>
 
 <section class="appendix">

@@ -15,9 +15,9 @@ They are kept apart from the railroad's own schematics and wiring docs on purpos
 
 - Reversing sections: RS-1 (the west main, Switch 1 to Switch 23) on an AR10 and RS-2
   (the return loop at the east end) on a PSXX-AR (owner, 2026-11-14 and 2026-11-15).
-- Block gaps are in both rails; every section has at least one feeder pair, and both
-  feeders of a pair pass through one channel of its DNCT2B; each DNCT2B has two
-  channels and serves two sections (owner, 2026-11-14).
+- Block gaps are in both rails; every section has at least one feeder pair. The bus (or an
+  auto-reverser) feeds a DNCT2B's rail input, both rails; each of its two outputs feeds one
+  section's feeders; a DNCTA links up to four DNCT2Bs to an LCOS client node (owner, 2026-11-15).
 - Turnouts are Peco. Switch machines are MTB MP4 with two SPDT contacts: one feeds the
   panel LED indication, the other powers the frog (stock rails to the two throws, the
   common to the frog) (owner, 2026-11-14).
@@ -356,49 +356,59 @@ def d1() -> str:
                "feeds its own district bus.")
 
 
+def detection_chain(b, x: float, y: float, cable: str) -> None:
+    """DNCTA and LCOS client node boxes at (x, y), the DNCT2B's cable drawn along the path given."""
+    b.append(box(x, y, 130, 40, "DNCTA", "up to 4 DNCT2Bs", size=9.5))
+    b.append(box(x + 160, y, 130, 40, "LCOS client node", "block inputs", size=9.5))
+    b.append(wire(f"M{x + 130},{y + 20} L{x + 160},{y + 20}", BLUE, 1.6))
+    b.append(wire(cable, BLUE, 1.4, "4 3"))
+    b.append(label(x + 72, y + 64, "network cable", 9, BLUE))
+
+
 def d2() -> str:
-    """Typical detected section: district bus, feeder pair through one DNCT2B channel, gaps in both rails."""
+    """Typical detected section: the district bus feeds a DNCT2B's rail input (both rails); each of
+    its two outputs feeds one section's feeder pair; the DNCT2B reports through a DNCTA, which links
+    up to four DNCT2Bs to an LCOS client node (owner, 2026-11-15)."""
     b = []
-    b.append(box(20, 50, 120, 46, "Command station", "and booster (D1)"))
-    b.append(box(190, 50, 130, 46, "Protection device", "breaker or auto-reverser"))
-    b.append(wire("M140,73 L190,73", INK, 2))
-    b.append(label(145, 66, "DCC"))
-    b.append(wire("M320,66 L860,66", RED, 2.2))
-    b.append(wire("M320,80 L860,80", INK, 2.2))
-    b.append(label(330, 60, "District bus (two wires, one per rail)", 9.5, INK))
-    y = 200
-    b.append(rails(360, 820, y))
-    b.append(gap(380, y))
-    b.append(gap(800, y))
-    b.append(label(590, y + 26, "Detected section (one block): both rails gapped at both ends", 10, INK, "middle"))
-    b.append(rails(300, 376, y, GREY))
-    b.append(rails(804, 880, y, GREY))
-    b.append(label(300, y - 14, "next section", 9, GREY))
-    b.append(label(820, y - 14, "next section", 9, GREY))
-    b.append(wire(f"M560,66 L560,{y-4}", RED, 1.6))
-    b.append(wire(f"M580,80 L580,{y+4}", INK, 1.6))
-    b.append(f'<circle cx="560" cy="{y-4}" r="3" fill="{RED}"/><circle cx="580" cy="{y+4}" r="3" fill="{INK}"/>')
-    b.append(f'<ellipse cx="570" cy="128" rx="20" ry="9" fill="none" stroke="{BLUE}" stroke-width="2.2"/>')
-    b.append(label(596, 124, "channel 1", 9, BLUE))
-    b.append(wire(f"M836,66 L836,{y-4}", GREY, 1.3))
-    b.append(wire(f"M856,80 L856,{y+4}", GREY, 1.3))
-    b.append(f'<ellipse cx="846" cy="128" rx="20" ry="9" fill="none" stroke="{BLUE}" stroke-width="2.2" opacity="0.6"/>')
-    b.append(label(870, 132, "channel 2", 9, BLUE))
-    b.append(box(400, 112, 110, 32, "DNCT2B", "two-channel sensor", size=9))
-    b.append(wire("M510,128 L550,128", BLUE, 1.4))
-    b.append(wire("M455,112 L455,100 L846,100 L846,119", BLUE, 1.2, "4 3"))
-    b.append(box(400, 240, 140, 34, "LCOS control node", "block input", size=9))
-    b.append(wire("M450,144 L450,240", BLUE, 1.4, "4 3"))
-    b.append(label(444, 172, "occupied / clear", 9, BLUE, "end"))
-    b.append(label(600, 150, "Both feeders of the section pass through the", 9.5, INK))
-    b.append(label(600, 163, "same sensor channel; each section has at least", 9.5, INK))
-    b.append(label(600, 176, "one feeder pair. One DNCT2B serves two sections.", 9.5, INK))
+    b.append(box(20, 40, 130, 46, "Command station", "and booster (D1)"))
+    b.append(box(190, 40, 140, 46, "Protection device", "breaker or auto-reverser"))
+    b.append(wire("M150,63 L190,63", INK, 2))
+    b.append(wire("M330,56 L560,56", RED, 2.2))
+    b.append(wire("M330,70 L560,70", INK, 2.2))
+    b.append(label(340, 50, "District bus (both rails)", 9.5, INK))
+    # DNCT2B: rail input from the bus, two outputs
+    b.append(box(380, 110, 180, 58, "DNCT2B", "rail in: both rails", "output 1 · output 2", size=9.5))
+    b.append(wire("M420,56 L420,110", RED, 1.6))
+    b.append(wire("M436,70 L436,110", INK, 1.6))
+    b.append(f'<circle cx="420" cy="56" r="3" fill="{RED}"/><circle cx="436" cy="70" r="3" fill="{INK}"/>')
+    y = 246
+    b.append(rails(170, 528, y))
+    b.append(rails(532, 880, y))
+    b.append(rails(100, 166, y, GREY))
+    b.append(gap(168, y))
+    b.append(gap(530, y))
+    b.append(gap(882, y))
+    # output 1 -> section A feeders, output 2 -> section B feeders
+    b.append(wire(f"M400,168 L400,190 L330,190 L330,{y - 4}", RED, 1.6))
+    b.append(wire(f"M414,168 L414,202 L346,202 L346,{y + 4}", INK, 1.6))
+    b.append(wire(f"M560,128 L716,128 L716,{y + 4}", INK, 1.6))   # outer wire to the lower rail, so the pair
+    b.append(wire(f"M560,142 L700,142 L700,{y - 4}", RED, 1.6))   # does not cross on its way down
+    for x, yy, c in ((330, y - 4, RED), (346, y + 4, INK), (700, y - 4, RED), (716, y + 4, INK)):
+        b.append(f'<circle cx="{x}" cy="{yy}" r="3" fill="{c}"/>')
+    b.append(label(352, 186, "output 1", 9.5, BLUE))
+    b.append(label(724, 124, "output 2", 9.5, BLUE))
+    b.append(label(349, y + 28, "Section A: gapped in both rails at both ends", 10, INK, "middle"))
+    b.append(label(706, y + 28, "Section B (the board's second output)", 10, INK, "middle"))
+    detection_chain(b, 600, 30, "M560,118 L665,118 L665,70")
     rows = detected_sections()
-    b.append(label(20, 304, f"All {len(rows)} detected sections on the staging level and helix are wired this way; Appendix B lists them.", 10, INK, weight="bold"))
-    return svg(920, 320, "\n".join(b), "D2 · Propulsion: typical detected section",
-               "A district bus of two wires runs from its protection device. A feeder pair drops to one section of track, "
-               "gapped in both rails at both ends. Both feeders pass through one channel of a DNCT2B current sensor, which "
-               "reports occupied or clear to an LCOS control node.")
+    b.append(label(20, 300, "The DNCT2B senses the current", 9.5, INK))
+    b.append(label(20, 313, "on each output, so a train in", 9.5, INK))
+    b.append(label(20, 326, "a section shows as occupied.", 9.5, INK))
+    b.append(label(20, 360, f"All {len(rows)} detected sections on the staging level and helix are wired this way; Appendix B lists them.", 10, INK, weight="bold"))
+    return svg(920, 376, "\n".join(b), "D2 · Propulsion: typical detected section",
+               "The district bus, both rails, feeds the rail input of a DNCT2B detector. Each of its two outputs feeds the "
+               "feeder pair of one section, gapped in both rails at both ends. The DNCT2B connects to a DNCTA, which links up "
+               "to four DNCT2Bs to an LCOS client node.")
 
 
 def d3() -> str:
@@ -462,9 +472,9 @@ def d3() -> str:
 def d5() -> str:
     """Reversing section on an auto-reverser, with its detection.
 
-    The auto-reverser's output passes through a DNCT2B before the track (owner,
-    2026-11-15). RS-2 is two detected sections, K-1 and K-2, one on each channel of the
-    same DNCT2B; both are fed from the one PSXX-AR, so they change polarity together.
+    The auto-reverser's output feeds the rail input of a DNCT2B (both rails); the DNCT2B's two
+    outputs feed the two detected sections, K-1 and K-2 on RS-2 (owner, 2026-11-15). Both are fed
+    by the one PSXX-AR, so they change polarity together.
     """
     b = []
     b.append(wire("M40,66 L700,66", RED, 2.2))
@@ -473,19 +483,13 @@ def d5() -> str:
     b.append(box(255, 100, 250, 44, "Auto-reverser", "NCE AR10 (RS-1) or PSXX-AR (RS-2)", size=10))
     b.append(wire("M360,80 L360,100", INK, 1.4))
     b.append(wire("M400,66 L400,100", RED, 1.4))
-    b.append(label(512, 130, "output: both wires change polarity together", 9, RED))
-    # reversed output pair to the two channels
-    b.append(wire("M350,144 L350,170 L210,170 L210,252", RED, 1.6))
-    b.append(wire("M410,144 L410,164 A6,6 0 0 1 410,176 L410,182 L240,182 L240,260", INK, 1.6))   # hop over red
-    b.append(wire("M350,170 L520,170 L520,176 A6,6 0 0 1 520,188 L520,252", RED, 1.6))          # hop over black
-    b.append(wire("M410,182 L550,182 L550,260", INK, 1.6))
-    b.append(f'<circle cx="350" cy="170" r="3" fill="{RED}"/><circle cx="410" cy="182" r="3" fill="{INK}"/>')
-    b.append(box(300, 196, 160, 34, "DNCT2B", "channel 1 · channel 2", size=9))
-    b.append(f'<ellipse cx="225" cy="214" rx="30" ry="9" fill="none" stroke="{BLUE}" stroke-width="2"/>')
-    b.append(f'<ellipse cx="535" cy="214" rx="30" ry="9" fill="none" stroke="{BLUE}" stroke-width="2"/>')
-    b.append(wire("M300,213 L255,214", BLUE, 1.2, "4 3"))
-    b.append(wire("M460,213 L505,214", BLUE, 1.2, "4 3"))
-    y = 256
+    b.append(f'<circle cx="360" cy="80" r="3" fill="{INK}"/><circle cx="400" cy="66" r="3" fill="{RED}"/>')
+    b.append(label(512, 122, "output: both rails change polarity together", 9, RED))
+    # auto-reverser output -> DNCT2B rail input
+    b.append(wire("M350,144 L350,170", RED, 1.6))
+    b.append(wire("M410,144 L410,170", INK, 1.6))
+    b.append(box(290, 170, 180, 48, "DNCT2B", "rail in: both rails", "output 1 · output 2", size=9))
+    y = 270
     b.append(rails(120, 378, y, RED, 2))
     b.append(rails(382, 640, y, RED, 2))
     b.append(rails(40, 116, y, GREY))
@@ -493,20 +497,33 @@ def d5() -> str:
     b.append(gap(118, y, color=RED))
     b.append(gap(642, y, color=RED))
     b.append(gap(380, y, color=BLUE))
-    b.append(label(225, y + 26, "section 1 (K-1 on RS-2)", 10, RED, "middle", "bold"))
-    b.append(label(535, y + 26, "section 2 (K-2 on RS-2)", 10, RED, "middle", "bold"))
+    # output 1 -> section 1, output 2 -> section 2
+    b.append(wire(f"M290,186 L210,186 L210,{y - 4}", RED, 1.6))
+    b.append(wire(f"M290,202 L226,202 L226,{y + 4}", INK, 1.6))
+    b.append(wire(f"M470,186 L550,186 L550,{y - 4}", RED, 1.6))
+    b.append(wire(f"M470,202 L534,202 L534,{y + 4}", INK, 1.6))
+    for xx, yy, c in ((210, y - 4, RED), (226, y + 4, INK), (550, y - 4, RED), (534, y + 4, INK)):
+        b.append(f'<circle cx="{xx}" cy="{yy}" r="3" fill="{c}"/>')
+    b.append(label(206, 180, "output 1", 9, BLUE, "end"))
+    b.append(label(556, 180, "output 2", 9, BLUE))
+    b.append(label(240, y + 28, "section 1 (K-1 on RS-2)", 10, RED, "middle", "bold"))
+    b.append(label(520, y + 28, "section 2 (K-2 on RS-2)", 10, RED, "middle", "bold"))
     b.append(label(380, y - 16, "detection gap", 9, BLUE, "middle"))
-    b.append(label(380, y + 42, "Reversing section: both rails gapped at both ends (red), longer than the longest train", 9.5, GREY, "middle"))
+    b.append(label(380, y + 44, "Reversing section: both rails gapped at both ends (red), longer than the longest train", 9.5, GREY, "middle"))
     b.append(label(60, y - 16, "normal section", 9, GREY))
     b.append(label(650, y - 16, "normal section", 9, GREY))
-    b.append(label(20, 330, "The auto-reverser's output passes through the DNCT2B on its way to the track, so the reversing section is detected like any", 9.5, INK))
-    b.append(label(20, 344, "other. RS-2 is split into two detected sections, K-1 and K-2, one on each channel of the same DNCT2B. Both are fed by the one", 9.5, INK))
-    b.append(label(20, 358, "auto-reverser, so they always change polarity together: for wiring and troubleshooting they are one reversing section.", 9.5, INK))
-    b.append(label(20, 372, "When a train bridges an outer gap with the polarity wrong, the auto-reverser sees the short and swaps its output in", 9.5, INK))
-    b.append(label(20, 386, "milliseconds, before any breaker trips. RS-1 is wired the same way with one detected section on an NCE AR10.", 9.5, INK))
-    return svg(740, 402, "\n".join(b), "D5 · Reversing section on an auto-reverser, with detection",
-               "DCC feeds an auto-reverser. Its output passes through the two channels of a DNCT2B detector to two detected sections "
-               "of one reversing section, which is gapped in both rails at both outer ends. Both sections change polarity together.")
+    b.append(wire("M380,218 L380,236", BLUE, 1.2, "4 3"))
+    b.append(label(388, 232, "to DNCTA and LCOS node (as D2)", 9, BLUE))
+    b.append(label(20, 350, "The auto-reverser's output feeds the DNCT2B's rail input, both rails. Each of the DNCT2B's two outputs feeds one section,", 9.5, INK))
+    b.append(label(20, 364, "so the reversing section is detected like any other. RS-2 is two detected sections, K-1 and K-2, on the two outputs of one", 9.5, INK))
+    b.append(label(20, 378, "DNCT2B. Both are fed by the one auto-reverser, so they always change polarity together: for wiring and troubleshooting", 9.5, INK))
+    b.append(label(20, 392, "they are one reversing section. RS-1 is wired the same way with one detected section on an NCE AR10.", 9.5, INK))
+    b.append(label(20, 410, "When a train's wheels bridge an outer gap with the polarity wrong, the auto-reverser sees the short and swaps its output in", 9.5, INK))
+    b.append(label(20, 424, "milliseconds, before any breaker trips, so the train runs through without stopping.", 9.5, INK))
+    return svg(740, 440, "\n".join(b), "D5 · Reversing section on an auto-reverser, with detection",
+               "DCC feeds an auto-reverser. Its output feeds the rail input of a DNCT2B detector, whose two outputs feed the two "
+               "detected sections of one reversing section, gapped in both rails at both outer ends. Both sections change "
+               "polarity together.")
 
 
 def d6() -> str:

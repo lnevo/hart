@@ -102,3 +102,5 @@ figure.plate figcaption { font-size: 9.5pt; max-width: 9.4in; margin: 0.15in aut
 
 /* Console transcript (bridge output) */
 figure.console pre { background: #12181e; color: #e6edf3; font-family: Menlo, Consolas, monospace; font-size: 7.6pt; line-height: 1.45; padding: 0.12in 0.16in; border-radius: 3px; white-space: pre-wrap; margin: 0; }
+.swatch { display: inline-block; width: 0.9em; height: 0.9em; border: 1px solid #999; vertical-align: -0.1em; margin-right: 0.15em; border-radius: 2px; }
+#fig-grid img { max-height: 7.2in; object-fit: contain; }   /* the node grid is taller than it is wide */
