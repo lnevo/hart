@@ -326,22 +326,50 @@ def locate(pdf: Path, wanted: dict[str, tuple[str, bool]]) -> dict[str, int]:
     return pages
 
 
+DECK_EXPORT_VERSION = "1"   # bump when the Keynote export changes, so cached exports are redone
+
+
 def export_decks(tmp: Path) -> dict[str, Path]:
-    out = {}
+    """The two wiring decks as PDF. Keynote is the slow step, so each export is kept in
+    build/decks/ under the deck's content hash and reused until the deck changes."""
+    import hashlib
+    cache = BUILD / "decks"
+    cache.mkdir(parents=True, exist_ok=True)
+    out, opened = {}, False
     for key, pptx in DECKS.items():
-        dst = tmp / f"{key}.pdf"
-        script = (f'tell application "Keynote"\nset d to open POSIX file "{pptx}"\n'
-                  f'export d to POSIX file "{dst}" as PDF\nclose d saving no\nend tell')
-        for attempt in range(3):          # Keynote refuses ("Connection is invalid") while it is still quitting
-            subprocess.run(["osascript", "-e", 'tell application "Keynote" to launch'], capture_output=True, timeout=60)
-            time.sleep(2 + 3 * attempt)
-            r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=180)
-            if dst.exists():
-                break
-        if not dst.exists():
-            die(f"Keynote could not export {pptx.name}: {r.stderr.strip()}")
-        out[key] = dst
-    subprocess.run(["osascript", "-e", 'tell application "Keynote" to quit'], capture_output=True)
+        script_tpl = (b'tell application "Keynote" / open / export as PDF / close saving no' + DECK_EXPORT_VERSION.encode())
+        digest = hashlib.sha256(pptx.read_bytes() + script_tpl).hexdigest()[:16]
+        cached = cache / f"{key}-{digest}.pdf"
+        if not cached.exists():
+            dst = tmp / f"{key}.pdf"
+            script = (f'tell application "Keynote"\nset d to open POSIX file "{pptx}"\n'
+                      f'export d to POSIX file "{dst}" as PDF\nclose d saving no\nend tell')
+            for attempt in range(3):      # Keynote refuses ("Connection is invalid") while it is still quitting
+                subprocess.run(["osascript", "-e", 'tell application "Keynote" to launch'], capture_output=True, timeout=60)
+                opened = True
+                time.sleep(2 + 3 * attempt)
+                r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=180)
+                if dst.exists():
+                    break
+            if not dst.exists():
+                die(f"Keynote could not export {pptx.name}: {r.stderr.strip()}")
+            import fitz
+            try:
+                with fitz.open(dst) as check:
+                    pages = check.page_count
+            except Exception as e:                    # noqa: BLE001 - any unreadable export is refused
+                die(f"Keynote's export of {pptx.name} is not a readable PDF ({e})")
+            needed = max(n for k, n, _, _ in RECORDS if k == key)
+            if pages < needed:
+                die(f"Keynote's export of {pptx.name} has {pages} pages; the records need {needed}")
+            for old in cache.glob(f"{key}-*.pdf"):    # keep only the current export of each deck
+                old.unlink()
+            part = cached.with_suffix(".part")
+            shutil.copy(dst, part)
+            part.replace(cached)                      # appears whole or not at all
+        out[key] = cached
+    if opened:
+        subprocess.run(["osascript", "-e", 'tell application "Keynote" to quit'], capture_output=True)
     return out
 
 
@@ -431,6 +459,15 @@ MEMBER_FIELDS = {          # key in the member file -> form fields it fills
 }
 MEMBER_OTHER = {"first_award", "signature_image", "output"}
 FIRST_AWARD = "Check here if this is the members first award"
+NAME_FONT = Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf")   # covers any name, unlike base-14 Helvetica
+
+
+def title_member_placeholder() -> str:
+    """The title page's Member text in the repo build, read from soq.html so the two cannot drift."""
+    m = re.search(r"<dt>Member</dt><dd>([^<]+)</dd>", (HERE / "soq.html").read_text())
+    if not m:
+        die("soq.html: no <dt>Member</dt><dd>...</dd> on the title page")
+    return html.unescape(m.group(1))
 
 
 def inside_repo(path: Path) -> bool:
@@ -447,7 +484,7 @@ def stale_sources(pdf: Path) -> list[str]:
     if not pdf.exists():
         return ["(no built PDF)"]
     built = pdf.stat().st_mtime
-    inputs = [HERE / "soq.html", HERE / "soq.css", HERE / "make_drawings.py", HERE / "build_soq.py", *HERE.glob("photos/*")]
+    inputs = [HERE / "soq.html", HERE / "soq.css", HERE / "make_drawings.py", HERE / "build_soq.py", *DECKS.values(), *HERE.glob("photos/*")]
     return [str(f.relative_to(HERE)) for f in inputs if f.stat().st_mtime > built + 1]
 
 
@@ -487,6 +524,9 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
     for k in [*MEMBER_FIELDS, "signature_image", "output"]:
         if not isinstance(data.get(k, ""), str):
             die(f"{member_file.name}: {k} must be text in quotes")
+    data = {k: v.strip() if isinstance(v, str) else v for k, v in data.items()}
+    if "name" in data and not data["name"]:
+        die(f"{member_file.name}: name is blank; fill it in or remove the line")
     if not isinstance(data.get("first_award", False), bool):
         die(f"{member_file.name}: first_award must be true or false")
     out = near(data.get("output") or "MRE-Electrical-SOQ-filled.pdf")
@@ -526,6 +566,20 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
         except Exception as e:                   # noqa: BLE001 - any unreadable image gets one message
             die(f"signature_image {sig}: not a readable image ({e})")
         page.insert_image(signature_box(rect, pix.width / pix.height), filename=str(sig))
+    if data.get("name"):                                  # the title page names the member too
+        title, placeholder = d[FORM_PAGES], title_member_placeholder()
+        spans = [sp for blk in title.get_text("dict")["blocks"] for ln in blk.get("lines", [])
+                 for sp in ln["spans"] if sp["text"].strip() == placeholder]
+        if len(spans) != 1:
+            die(f"title page: expected one '{placeholder}', found {len(spans)}")
+        sp = spans[0]
+        if not NAME_FONT.exists():
+            die(f"{NAME_FONT} not found; it is needed to draw the name on the title page")
+        rgb = tuple(((sp["color"] >> k) & 255) / 255 for k in (16, 8, 0))
+        title.add_redact_annot(fitz.Rect(sp["bbox"]))
+        title.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
+        title.insert_text(sp["origin"], data["name"], fontsize=sp["size"], fontname="namefont",
+                          fontfile=str(NAME_FONT), color=rgb)
     out.parent.mkdir(parents=True, exist_ok=True)
     d.save(out, garbage=3, deflate=True)
     d.close()

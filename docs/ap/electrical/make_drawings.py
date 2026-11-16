@@ -574,8 +574,8 @@ def d4() -> str:
     TWOSENSOR "FB Switch n N/R"): the commons are tied together, N comes from half a's N
     throw, R from half b's R throw, and a's R and b's N go to the input common, so N closes
     only when both halves are normal, R only when both are reverse, and neither when they
-    disagree. Drawn from the owner's description (2026-11-15); to be checked against the
-    wires (README, open items).
+    disagree. Drawn from the owner's description and confirmed against the wiring by the
+    owner (2026-11-15).
     """
     b = []
     # ---- track: two parallel tracks joined by two turnouts
