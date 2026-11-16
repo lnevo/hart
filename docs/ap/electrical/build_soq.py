@@ -504,7 +504,16 @@ def fill_member(member_file: Path, src: Path = OUT_PDF) -> Path:
         if not sig_at:
             die("the Member Statement SIGNATURE field was not found")
         page, rect = sig_at
-        page.insert_image(rect, filename=str(sig), keep_proportion=True)
+        # The form's box is one text line high; a signature that fits it is unreadably small. Draw it
+        # a third taller, its base just below the signature line, clear of the text line above.
+        from PIL import Image
+        with Image.open(sig) as im:
+            aspect = im.width / im.height
+        height = rect.height * 1.35
+        width = min(height * aspect, rect.width)
+        height = width / aspect
+        box = fitz.Rect(rect.x0 + 4, rect.y1 + 4 - height, rect.x0 + 4 + width, rect.y1 + 4)
+        page.insert_image(box, filename=str(sig), keep_proportion=True)
     out.parent.mkdir(parents=True, exist_ok=True)
     d.save(out, garbage=3, deflate=True)
     d.close()
