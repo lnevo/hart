@@ -28,8 +28,8 @@ Where each goes. In the hand-drawn panel each item is tied to what it belongs to
 that thing on the new panel:
 - slot: an item whose sensor is bound in a slot to that slot (same ident and slot on both panels), at the same
   offset from the boundary point (no carried item is one since the NX icons went; kept for a re-freeze);
-- turnout: an item of a switch's OS block (its lamp) to that turnout's centre (a crossover half to the middle of its
-  legs), at the same offset;
+- turnout: an item of a switch's OS block to that turnout's centre (a crossover half to the middle of its legs), at
+  the same offset; its occupancy lamp centred there exactly, in the control circle, never nudged (in_circle);
 - block: an item of a track block (its lamp, a caption by it) at the same share of the way along the block's track,
   left to right, and the same distance to its side;
 - frame: what is tied to no track (region captions, any item over NEAR px from the track) keeps
@@ -697,6 +697,13 @@ def frame_point(p, live_box, gen_box):
     return tuple(out)
 
 
+def in_circle(its) -> bool:
+    """True for a lone occupancy lamp of a switch's OS block (tied to its turnout): it stands centred in that
+    turnout's control circle, or a crossover half's lamp in its own half's (Track.turnout_point), by the owner's
+    rule (2026-11-13), on every switch alike."""
+    return len(its) == 1 and its[0].lamp and its[0].anchor is not None and its[0].anchor[0] == "turnout"
+
+
 def target(it, frame, gen, gen_frame):
     """The centre the item would take on the new panel before it is nudged clear (`frame`: the hand-drawn track's
     bounding box; `gen_frame`: the box on the new panel a frame item keeps its place against)."""
@@ -710,6 +717,8 @@ def target(it, frame, gen, gen_frame):
         if ident not in gen.turnouts:
             raise OverlayError(f"{it.what}: turnout {ident} is not on the new panel")
         p = gen.turnout_point(ident, block)
+        if in_circle([it]):
+            return p                                # centred on it, not at the hand-drawn offset
         return (p[0] + off[0], p[1] + off[1])
     if kind == "block":
         _k, block, share, off, past = it.anchor
@@ -1244,7 +1253,13 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
                 want = target(its[0], frame, gen, gen_frame)
             shift = (round(want[0] - start[0]), round(want[1] - start[1]))      # whole pixels, as JMRI stores
             rects = [Rect(i.x + shift[0], i.y + shift[1], i.w, i.h) for i in its]
-            ndx, ndy = nudge(rects, obstacles, all(i.lamp for i in its), bounds, what)
+            if in_circle(its):          # an OS lamp: exactly in its turnout's control circle, never nudged
+                hit = sorted({x for r in rects for x in obstacles.hits(r, True)})
+                if hit or not inside(rects, bounds):
+                    raise OverlayError(f"{what}: in its turnout's control circle it meets {hit or 'the window edge'}")
+                ndx = ndy = 0
+            else:
+                ndx, ndy = nudge(rects, obstacles, all(i.lamp for i in its), bounds, what)
             dx, dy = shift[0] + ndx, shift[1] + ndy
             moved = round(math.hypot(ndx, ndy), 1)
         for i in its:

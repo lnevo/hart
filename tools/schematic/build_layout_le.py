@@ -424,10 +424,38 @@ def staging_names(band, inputs, tidy) -> dict:
             raise BuildError(f"staging switch {d['label']}: live {ident} leg B reaches {live_b}, which "
                              f"{'both' if on_b else 'neither'} of its drawn legs B ({first['B']}) and C "
                              f"({first['C']}) reach first")
-        names["leg_b"][n] = on_b[0]
+        names["leg_b"][n] = on_b[0] if bare(d["label"]) not in LEGS_SWAPPED else "BC".replace(on_b[0], "")
     names["idents"] = dict(turnouts=idents, boundaries=copy.deepcopy(inputs.boundaries), ends=dict(inputs.ends),
                            segments=dict(inputs.segments))
     return names
+
+
+# Staging switches whose generated turnout swaps the live leg letters B and C (and so its continuing route): JMRI
+# draws a plain turnout's leg A in line with leg B, so a switch whose live leg B is the diverging track on the sheet
+# can be drawn as the sheet has it only with that track on leg C (owner, 2026-11-16). A mast on such a leg moves to
+# the other letter with it (le_signal_boundaries.csv's generated_slot); the blocks stay.
+LEGS_SWAPPED = {"13": "Barn on leg C, so 15-13-11 is drawn level as on the sheet (owner, 2026-11-16)"}
+
+
+def swapped_idents() -> set:
+    """The live Layout Editor idents of the LEGS_SWAPPED switches (switches.csv)."""
+    idents = {r["switch"]: r["le_ident"] for r in read_csv(SWITCHES)}
+    missing = sorted(set(LEGS_SWAPPED) - set(idents))
+    if missing:
+        raise BuildError(f"LEGS_SWAPPED names switches switches.csv does not have: {missing}")
+    return {idents[k] for k in LEGS_SWAPPED}
+
+
+def swap_legs(facts: dict) -> dict:
+    """A turnout's facts (turnout_facts) with legs B and C swapped, as LEGS_SWAPPED draws it: the other hand (the
+    straight leg is now B) and the continuing route on the other letter."""
+    legs = dict(facts["legs"])
+    legs["B"], legs["C"] = facts["legs"].get("C"), facts["legs"].get("B")
+    a, b, c, d = facts["blocks"]
+    hand = {"RH_TURNOUT": "LH_TURNOUT", "LH_TURNOUT": "RH_TURNOUT"}
+    return dict(facts, legs={k: v for k, v in legs.items() if v is not None}, blocks=(a, c, b, d),
+                type=hand.get(facts["type"], facts["type"]),
+                continuing={"2": "4", "4": "2"}.get(facts["continuing"], facts["continuing"]))
 
 
 def live_leg_first(chains: list[dict], lts: dict, ident: str, leg: str) -> str | None:
@@ -489,6 +517,7 @@ def check_slots(P, masts: list[dict], le_mod) -> None:
             f, pr = ix.blocks(*c)
             fits[(c[0], f, tuple(pr))].append(c)
     want = {m["mast"]: m for m in masts}
+    swapped = swapped_idents()
     moved = {mast for _t, mast, _why in P.moved}       # a bumper mast at a helix join (all-levels trial): elsewhere
     bad = []
     for m in P.masts:
@@ -497,7 +526,10 @@ def check_slots(P, masts: list[dict], le_mod) -> None:
             bad.append(f"{name} was not asked for")
             continue
         placed = (alias(m["ident"]), m["slot"])
-        frozen = (want[name]["ident"], want[name]["slot"])
+        slot = want[name]["slot"]
+        if want[name]["kind"] == "turnout" and want[name]["ident"] in swapped and slot in "BC":
+            slot = "BC".replace(slot, "")          # LEGS_SWAPPED: the mast moves with its leg
+        frozen = (want[name]["ident"], slot)
         if name not in moved and placed != frozen:
             bad.append(f"{name} stands at {placed[0]} {placed[1]}, masts.csv says {frozen[0]} {frozen[1]}")
         f, pr = ix.blocks(m["kind"], alias(m["ident"]), m["slot"])
@@ -668,6 +700,47 @@ def shared_turnouts(names: dict) -> None:
             nm["shared_turnouts"] = sorted(t for t in set(nm["turnouts"].values()) if len(bands_of[t]) > 1)
 
 
+# Track names on the cut-over candidates that stand on one centre x (owner, 2026-11-16): South Yard's, in the middle
+# of the yard between its ladders (the plugin's name_columns)
+NAME_COLUMNS = [["S-R", "S-1", "S-2", "S-3", "S-4"]]
+
+
+# Station clusters that step along one slope (owner, 2026-11-16): the engine house's buttons, one row apart. Each after
+# the second is placed again at the x the first two's step gives it (the plugin's extra "x"), its y the plugin's.
+STATION_STEPS = [["Track EH-1", "Track EH-2", "Track EH-3"]]
+
+
+def cluster_steps(P, groups) -> dict:
+    """{station block: x} for the clusters after the second of each group (STATION_STEPS): the first's x plus n
+    times the first step, from the boxes the plugin placed (P.extras). Stops on a group member it placed none for."""
+    boxes = {e["id"]: e["box"] for e in getattr(P, "extras", ())}
+    out = {}
+    for group in groups:
+        missing = [g for g in group if g not in boxes]
+        if missing:
+            raise BuildError(f"station steps: the plugin placed no cluster for {missing}")
+        x0, step = boxes[group[0]][0], boxes[group[1]][0] - boxes[group[0]][0]
+        out.update({g: round(x0 + k * step) for k, g in enumerate(group[2:], 2)})
+    return out
+
+
+def with_x(extras: dict, xs: dict) -> dict:
+    """`extras` ({"extras": [...]}) with each station cluster in `xs` placed at that x (the plugin's extra "x")."""
+    return {"extras": [dict(e, x=xs[e["id"]]) if e["id"] in xs else e for e in extras.get("extras", [])]}
+
+
+def staging_columns(bands):
+    """`bands` with the staging band's le_labels giving NAME_COLUMNS (a copy of its options)."""
+    out = []
+    for title, band, opts in bands:
+        if band_key(title) == STAGING:
+            if "le_labels" in (opts or {}):
+                raise BuildError(f"{title}: its preferences already hold le_labels; HART sets them here")
+            opts = dict(opts or {}, le_labels={"name_columns": [list(g) for g in NAME_COLUMNS]})
+        out.append((title, band, opts))
+    return out
+
+
 def named_bands(bands, names: dict):
     """A copy of `bands` in which each main and upper track block is named on one of its tracks (the longest; its
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
@@ -817,11 +890,14 @@ def turnout_facts(le: ET.Element) -> dict:
     return out
 
 
-def check_live_turnouts(gen_le: ET.Element, inputs) -> None:
+def check_live_turnouts(gen_le: ET.Element, inputs, swapped: set | None = None) -> None:
     """Stop unless each staging turnout keeps its live ident, name, type, continuing route, leg blocks and the block
     of the track on each leg, as turnouts.csv and tracks.csv hold them (leg letters are what the boundaries
-    contract, switch_legs.csv and CATS key on)."""
+    contract, switch_legs.csv and CATS key on); a turnout in `swapped` (default: the LEGS_SWAPPED ones) with its
+    legs B and C swapped (swap_legs)."""
     live, gen = inputs.turnout_facts(), turnout_facts(gen_le)
+    swapped = swapped_idents() if swapped is None else swapped
+    live = {i: swap_legs(f) if i in swapped else f for i, f in live.items()}
     bad = []
     for ident, want in sorted(live.items()):
         got = gen.get(ident)
@@ -932,9 +1008,12 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             S = base[1]
             gaps = [band_gap(max(le_mod.extent(S)[3], S.overlay["bottom"]), S.band_boxes[0][3], le_mod),
                     le_mod.BAND_GAP]
-            draw = lambda g: le_mod.panel(named_bands(bands, names), names, cell=le_mod.CELL * scale[0],  # noqa
-                                          row=STAGING_ROW * scale[1], page=dict(page, band_align={STAGING: "left"}),
-                                          gap=g, labels_by_band=True, **extras)
+            # every single crossover at staging's angle (one grid column across), however each level is stretched
+            stepped = with_x(extras, S.station_x)       # the station clusters where staging's candidate has them
+            draw = lambda g: le_mod.panel(staging_columns(named_bands(bands, names)), names,  # noqa: E731
+                                          cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1],
+                                          page=dict(page, band_align={STAGING: "left"}), gap=g, labels_by_band=True,
+                                          crossover_run=le_mod.CELL * scale[0], **stepped)
             P = draw(gaps)
             if len(P.band_boxes) > 2:
                 gaps[1:] = [band_gap(le_mod.extent(P, bi)[3], P.band_boxes[bi][3], le_mod)
@@ -944,9 +1023,13 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         elif as_live:               # the staging candidate: the cut-over grid, no fitting (it scrolls in FIT)
             fitted = le_mod.panel(bands, names, page=page, fit=FIT, row=STAGING_ROW, **extras).scale
             scale = (fitted[0] * STRETCH, fitted[1])
-            P = le_mod.panel(bands, names, cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1], page=page,
-                             **extras)
-            P.scale, P.fit, P.staging_fit = scale, None, fitted
+            draw = lambda e: le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0],  # noqa: E731
+                                          row=STAGING_ROW * scale[1], page=page, **e)
+            P = draw(extras)
+            xs = cluster_steps(P, STATION_STEPS) if extras else {}
+            if xs:                  # again, with the stepped clusters placed at their x (STATION_STEPS)
+                P = draw(with_x(extras, xs))
+            P.scale, P.fit, P.staging_fit, P.station_x = scale, None, fitted, xs
         else:
             rows = {"row": STAGING_ROW} if levels == "staging" else {}
             drawn = named_bands(bands, names) if levels == "all" else bands

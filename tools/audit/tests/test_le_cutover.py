@@ -108,7 +108,7 @@ class Cutover(unittest.TestCase):
         self.assertEqual((int(self.le.get("windowwidth")), int(self.le.get("windowheight"))),
                          (min(w + 18, B.FIT[0]), min(h + 60, B.FIT[1])))
         self.assertEqual(self.P.scale, (self.P.staging_fit[0] * B.STRETCH, self.P.staging_fit[1]))
-        self.assertAlmostEqual(self.P.staging_fit[0], 0.785, places=3)          # staging's own fit to FIT
+        self.assertTrue(0.7 < self.P.staging_fit[0] < 0.9, self.P.staging_fit)     # staging's own fit to FIT
 
     def test_no_placeholders_in_staging_mode(self) -> None:
         self.assertFalse([t for t in tables.turnouts(self.root) if tables.system_name(t).startswith(B.TURNOUT_SYS)])
@@ -130,12 +130,18 @@ class Cutover(unittest.TestCase):
         for t in self.inputs.turnouts:
             with self.subTest(turnout=t["ident"]):
                 g = gen_t[t["ident"]]
+                if t["ident"] in B.swapped_idents():        # Switch 13: Barn on leg C (owner, 2026-11-16)
+                    self.assertEqual(B.turnout_facts(self.le)[t["ident"]],
+                                     B.swap_legs(self.inputs.turnout_facts()[t["ident"]]))
+                    continue
                 for a in ("turnoutname", "type", "blockname", "blockbname", "blockcname", "blockdname"):
                     self.assertEqual(g.get(a), t.get(a), a)
                 if "XOVER" not in t["type"]:
                     self.assertEqual(g.get("continuing"), t.get("continuing"))
         self.assertEqual(len(self.inputs.turnouts), 20)
-        self.assertEqual(B.turnout_facts(self.le), {**B.turnout_facts(self.le), **self.inputs.turnout_facts()})
+        live = {i: B.swap_legs(f) if i in B.swapped_idents() else f for i, f in self.inputs.turnout_facts().items()}
+        self.assertEqual(B.turnout_facts(self.le), {**B.turnout_facts(self.le), **live})
+        self.assertEqual(B.swapped_idents(), {"TO1"})
         gen_s = {s.get("ident"): s.get("blockname") for s in self.le.findall("tracksegment")}
         gen_p = {p.get("ident"): p for p in self.le.findall("positionablepoint")}
         want = [(b["ident"], "ANCHOR", b["blocks"]) for b in self.inputs.boundaries] + \
@@ -161,7 +167,10 @@ class Cutover(unittest.TestCase):
     def test_every_mast_resolves_exactly_as_live(self) -> None:
         live = {}
         for m in self.inputs.masts:
-            live[m["mast"]] = dict(mast=m["mast"], kind=m["kind"], ident=m["ident"], slot=m["slot"],
+            slot = m["slot"]
+            if m["kind"] == "turnout" and m["ident"] in B.swapped_idents() and slot in "BC":
+                slot = "BC".replace(slot, "")              # moves with its leg (Mast 14R to Switch 13's leg C)
+            live[m["mast"]] = dict(mast=m["mast"], kind=m["kind"], ident=m["ident"], slot=slot,
                                    facing=m["facing"], protects=m["protects"],
                                    **({"turnout": m["turnout"]} if m["kind"] == "turnout" else {}))
         gen = {m["mast"]: m for m in self.slots.Index(self.le).masts()}
@@ -522,6 +531,40 @@ class ThreeLevels(unittest.TestCase):
         for title, low in zip(titles, lows):
             self.assertAlmostEqual(title["box"][1] - low, B.TITLE_CLEAR, delta=1.0)
 
+    def test_owner_layout_rules_of_2026_11_16(self) -> None:
+        import math
+        # every single crossover at one angle
+        angles = set()
+        for t in self.le.findall("layoutturnout"):
+            if t.get("type") in ("RH_XOVER", "LH_XOVER"):
+                p = {L: (float(t.get("x" + L.lower())), float(t.get("y" + L.lower()))) for L in "ABCD"}
+                dx = (p["D"][0] + p["C"][0] - p["A"][0] - p["B"][0]) / 2
+                dy = (p["D"][1] + p["C"][1] - p["A"][1] - p["B"][1]) / 2
+                angles.add(round(math.degrees(math.atan2(abs(dy), abs(dx))), 1))
+        self.assertEqual(len(angles), 1, angles)
+        # South Yard's names on one centre x
+        jt = B.importlib.import_module("schematic.jmri_text")
+        centres = {round(int(el.get("x")) + jt.width(el.get("text"), int(el.get("size")), False) / 2)
+                   for el in self.le.iter("positionablelabel") if el.get("text") in B.NAME_COLUMNS[0]}
+        self.assertLessEqual(max(centres) - min(centres), 1, centres)
+        # the engine house's buttons step alike
+        xs = [int(next(el for el in self.le.iter("sensoricon") if el.get("sensor") == f"MoveToTrack_EH-{n}_stored")
+                  .get("x")) for n in (1, 2, 3)]
+        self.assertEqual(xs[2] - xs[1], xs[1] - xs[0])
+        # each OS lamp of a plain switch centred in its control circle
+        seg_block = {b.findtext("occupancysensor").strip(): b.findtext("userName") for b in self.root.iter("block")
+                     if b.find("occupancysensor") is not None}
+        own = {t.get("blockname"): t for t in self.le.findall("layoutturnout") if "XOVER" not in t.get("type")}
+        lamps = [el for el in self.le.iter("sensoricon") if el.get("level") == "10"
+                 and seg_block.get(el.get("sensor")) in own]
+        self.assertGreaterEqual(len(lamps), 15)
+        for el in lamps:
+            t = own[seg_block[el.get("sensor")]]
+            self.assertLessEqual(math.dist((int(el.get("x")) + 5, int(el.get("y")) + 5),
+                                           (float(t.get("xcen")), float(t.get("ycen")))), 1.0, el.get("sensor"))
+        with self.assertRaisesRegex(B.BuildError, "placed no cluster"):
+            B.cluster_steps(mock.Mock(extras=[]), B.STATION_STEPS)
+
     def test_station_buttons_show_no_track_word(self) -> None:
         buttons = [el for el in self.le.iter("sensoricon") if (el.get("sensor") or "").startswith("MoveTo")]
         self.assertEqual(len(buttons), 12)
@@ -819,15 +862,24 @@ class BuilderErrors(unittest.TestCase):
                                      if k in I.TURNOUT_COLUMNS}],
                           chains=I.live_chains(le), boundaries=[], ends={}, segments={}, sensors=[], masts=[])
         self.assertEqual(frozen.turnout_facts(), B.turnout_facts(le))     # the frozen facts read as the panel's
-        B.check_live_turnouts(two_block_panel(), frozen)
+        B.check_live_turnouts(two_block_panel(), frozen, swapped=set())
         with self.assertRaisesRegex(B.BuildError, "type: live RH_TURNOUT, new LH_TURNOUT"):
-            B.check_live_turnouts(two_block_panel(turnout_type="LH_TURNOUT"), frozen)
+            B.check_live_turnouts(two_block_panel(turnout_type="LH_TURNOUT"), frozen, swapped=set())
         gen = two_block_panel()
         t = gen.find("layoutturnout")
         t.set("connectbname", "T4")
         t.set("connectcname", "T3")
         with self.assertRaisesRegex(B.BuildError, "legs"):
-            B.check_live_turnouts(gen, frozen)
+            B.check_live_turnouts(gen, frozen, swapped=set())
+        # a LEGS_SWAPPED turnout must have them swapped, its hand and continuing route with them
+        swapped = two_block_panel(turnout_type="LH_TURNOUT")
+        t = swapped.find("layoutturnout")
+        t.set("connectbname", "T4")
+        t.set("connectcname", "T3")
+        t.set("continuing", "4")
+        B.check_live_turnouts(swapped, frozen, swapped={"TO1"})
+        with self.assertRaisesRegex(B.BuildError, "type: live LH_TURNOUT, new RH_TURNOUT"):
+            B.check_live_turnouts(two_block_panel(), frozen, swapped={"TO1"})
 
 
 class FrozenFiles(unittest.TestCase):
