@@ -90,6 +90,21 @@
 .xw-tw .okline{border-top:1px solid var(--ink);margin-top:4px;padding-top:6px;color:var(--muted)}
 .xw-tw .okline b{color:var(--stamp)}
 
+/* title */
+.xw-title{position:relative;overflow:hidden;padding:0;margin-bottom:14px;height:clamp(190px,30vw,300px)}
+.xw-title svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.xw-name{position:absolute;left:0;right:0;top:clamp(10px,3vw,26px);display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;pointer-events:none}
+.xw-name .road{font-family:var(--mono);font-size:clamp(10px,1.4vw,13px);letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
+.xw-name .big{font-family:var(--font-display);font-weight:700;font-size:clamp(46px,9vw,92px);line-height:.95;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);text-shadow:2px 2px 0 #e9dcb4,4px 4px 0 rgba(163,48,43,.55)}
+.xw-name .sub{font-family:var(--mono);font-size:clamp(10px,1.4vw,13px);color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){
+  .xw-consist{animation:xw-roll 22s linear infinite}
+  .xw-smoke use{animation:xw-puff 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
+  .xw-smoke use:nth-child(2){animation-delay:.6s}.xw-smoke use:nth-child(3){animation-delay:1.2s}
+}
+@keyframes xw-roll{from{transform:translateX(-560px)}to{transform:translateX(980px)}}
+@keyframes xw-puff{0%{opacity:.9;transform:scale(.6) translateY(0)}100%{opacity:0;transform:scale(1.6) translateY(-26px)}}
+@media (prefers-reduced-motion:reduce){.xw-consist{transform:translateX(220px)}}
 /* start screen */
 .xw-start{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
 .xw-start .card{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
@@ -99,6 +114,10 @@
 .xw-how{padding:12px 16px;font-size:15px;line-height:1.55}
 .xw-how ul{margin:6px 0;padding-left:20px}
 .xw-best{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.xw-go{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}.xw-go .xw-btn{flex:1 1 180px}
+.xw-daily{border-top:1.5px dashed var(--line);margin-top:10px;padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.xw-daily p{font-size:14px;margin:0}
+.xw-share{font-family:var(--mono);font-size:13px;background:#fff;border:1px solid var(--line);padding:8px 10px;user-select:all;line-height:1.5}
 
 /* end */
 .xw-end .score{display:flex;flex-wrap:wrap;gap:8px 26px;font-family:var(--mono)}
@@ -132,18 +151,64 @@
 
   <div class="xw" id="xw">
     <div id="xwStart">
+      <div class="xw-title xw-paper" role="img" aria-label="Title: Extra West, Kestrel Valley Railroad. A steam freight with a caboose runs west across the valley.">
+        <svg viewBox="0 0 960 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs>
+            <linearGradient id="xwSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9dcb4"/><stop offset="1" stop-color="#f5f0e1"/></linearGradient>
+            <g id="xwPole"><rect x="-1.5" y="-46" width="3" height="46" fill="#5d5a4e"/><rect x="-10" y="-42" width="20" height="2.5" fill="#5d5a4e"/></g>
+            <g id="xwPuff"><circle r="9" fill="#cfc3a2"/></g>
+          </defs>
+          <rect width="960" height="300" fill="url(#xwSky)"/>
+          <circle cx="880" cy="70" r="34" fill="#ead39a"/>
+          <path d="M0 200 L90 150 L170 178 L260 128 L360 172 L450 140 L560 182 L650 132 L760 170 L860 138 L960 176 L960 300 L0 300Z" fill="#d6c79f"/>
+          <path d="M0 222 L120 196 L240 214 L380 188 L520 216 L640 194 L780 212 L960 192 L960 300 L0 300Z" fill="#c3b287"/>
+          <g transform="translate(0 244)"><use href="#xwPole" x="60"/><use href="#xwPole" x="230"/><use href="#xwPole" x="400"/><use href="#xwPole" x="570"/><use href="#xwPole" x="740"/><use href="#xwPole" x="910"/>
+            <path d="M50 -41 Q145 -33 240 -41 Q315 -33 390 -41 Q485 -33 580 -41 Q655 -33 730 -41 Q825 -33 920 -41" fill="none" stroke="#5d5a4e" stroke-width="1"/></g>
+          <rect x="0" y="262" width="960" height="38" fill="#a99a72"/>
+          <rect x="0" y="258" width="960" height="4" fill="#1d2733"/>
+                    <g class="xw-consist">
+            <!-- caboose -->
+            <g transform="translate(0 0)" fill="#a3302b"><rect x="8" y="214" width="62" height="34" rx="2"/><rect x="26" y="200" width="24" height="15"/><rect x="22" y="198" width="32" height="3" fill="#1d2733"/><rect x="2" y="212" width="74" height="3" fill="#1d2733"/>
+              <rect x="16" y="222" width="10" height="9" fill="#f5f0e1"/><rect x="52" y="222" width="10" height="9" fill="#f5f0e1"/><circle cx="22" cy="252" r="7" fill="#1d2733"/><circle cx="56" cy="252" r="7" fill="#1d2733"/></g>
+            <!-- boxcar -->
+            <g fill="#6b4a33"><rect x="82" y="206" width="96" height="42" rx="1"/><rect x="118" y="210" width="24" height="36" fill="#5a3d29"/><rect x="80" y="203" width="100" height="4" fill="#1d2733"/>
+              <circle cx="96" cy="252" r="7" fill="#1d2733"/><circle cx="112" cy="252" r="7" fill="#1d2733"/><circle cx="148" cy="252" r="7" fill="#1d2733"/><circle cx="164" cy="252" r="7" fill="#1d2733"/></g>
+            <!-- gondola with a load -->
+            <g fill="#3d4652"><rect x="190" y="226" width="92" height="22"/><path d="M196 226 L214 214 L236 220 L258 212 L276 226Z" fill="#2a2f36"/>
+              <circle cx="204" cy="252" r="7" fill="#1d2733"/><circle cx="220" cy="252" r="7" fill="#1d2733"/><circle cx="252" cy="252" r="7" fill="#1d2733"/><circle cx="268" cy="252" r="7" fill="#1d2733"/></g>
+            <!-- tender -->
+            <g fill="#1d2733"><rect x="296" y="214" width="70" height="34" rx="2"/><rect x="300" y="208" width="62" height="7" fill="#2a2f36"/>
+              <circle cx="312" cy="252" r="7"/><circle cx="350" cy="252" r="7"/><text x="331" y="238" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#e9dcb4" text-anchor="middle">KV</text></g>
+            <!-- engine 812, a 2-6-0 -->
+            <g fill="#1d2733">
+              <rect x="372" y="190" width="42" height="56" rx="2"/><rect x="366" y="186" width="54" height="6" rx="2"/><rect x="380" y="198" width="22" height="16" fill="#e9dcb4"/>
+              <rect x="412" y="210" width="96" height="30" rx="14"/><rect x="496" y="206" width="20" height="36" rx="3"/>
+              <rect x="498" y="182" width="12" height="26"/><rect x="494" y="178" width="20" height="6" rx="2"/>
+              <path d="M448 212 a12 10 0 0 1 24 0Z"/><path d="M424 212 a9 8 0 0 1 18 0Z"/>
+              <rect x="514" y="200" width="12" height="10" rx="2"/><circle cx="526" cy="205" r="3" fill="#ead39a"/>
+              <rect x="408" y="240" width="112" height="4"/>
+              <path d="M516 244 L540 258 L516 258Z"/>
+              <circle cx="434" cy="248" r="12"/><circle cx="462" cy="248" r="12"/><circle cx="490" cy="248" r="12"/><circle cx="520" cy="252" r="7"/>
+              <rect x="430" y="246" width="64" height="3" fill="#a3302b"/>
+              <text x="393" y="236" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#e9dcb4" text-anchor="middle">812</text>
+            </g>
+            <g class="xw-smoke"><use href="#xwPuff" x="504" y="168"/><use href="#xwPuff" x="490" y="150" transform-origin="490 150"/><use href="#xwPuff" x="470" y="134"/></g>
+          </g>
+        </svg>
+        <div class="xw-name"><span class="road">Kestrel Valley Railroad · Second Subdivision</span><span class="big">Extra West</span><span class="sub">Ashby to Ironton · 46 miles · single track</span></div>
+      </div>
       <div class="xw-start">
         <div class="card xw-paper">
           <h2>1949: Time-table and train orders</h2>
           <p>Extra 812 West has no schedule and gives way to every regular train. You read the time-table, decide where to wait for opposing and following trains, pick up train orders at the open offices, and protect the train when it stops on the main.</p>
           <p class="rules">Rulebook: 1949 Standard Code</p>
-          <button class="xw-btn primary" data-era="tto">Start the 1949 run</button>
+          <div class="xw-go"><button class="xw-btn primary" data-era="tto">Start the 1949 run</button><button class="xw-btn" data-era="tto" data-daily>Today's 1949 run<small id="dTto"></small></button></div>
         </div>
         <div class="card xw-paper">
           <h2>Modern: Track warrant control</h2>
           <p>KV 812 West runs in dark territory on track warrants. You copy each warrant the dispatcher reads, repeat it back, wait for the OK time, and stop at the right switch at the end of your limits.</p>
           <p class="rules">Rulebook: GCOR</p>
-          <button class="xw-btn primary" data-era="twc">Start the modern run</button>
+          <div class="xw-go"><button class="xw-btn primary" data-era="twc">Start the modern run</button><button class="xw-btn" data-era="twc" data-daily>Today's modern run<small id="dTwc"></small></button></div>
         </div>
       </div>
       <div class="xw-how xw-paper" style="margin-top:14px">
@@ -152,6 +217,7 @@
           <li>The run has eight legs between Ashby and Ironton. Each leg brings a decision or an event on the road.</li>
           <li>A wrong call costs time, a mark against your record, or both. Five marks and you are pulled from service. A few mistakes, such as a collision or running past your authority, end the run at once.</li>
           <li>At Ironton the run is scored on time, marks and what is left in the caboose. Your missed rules are listed with links back to the study guide.</li>
+          <li>Today's run gives everyone the same time-table, orders and events for the day. Your first try counts, and you can copy the result to compare with friends.</li>
           <li>The 1949 run uses the Standard Code's 5-minute clearing margin (Rule S-87). The TT&amp;TO primer quotes 10; see the deck's Guide notes.</li>
         </ul>
         <div class="xw-best" id="xwBest"></div>
@@ -177,9 +243,15 @@
 /* ---------- helpers ---------- */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-const pick=a=>a[Math.floor(Math.random()*a.length)];
-const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* Random streams: R sets up the run, RW writes the train orders, RE draws events, RO orders the answers.
+   A daily run seeds all four from the date, so everyone gets the same railroad that day. */
+let R=Math.random,RW=Math.random,RE=Math.random,RO=Math.random;
+function seeded(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}
+  let a=h>>>0;return ()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const rnd=(a,b,r=R)=>a+Math.floor(r()*(b-a+1));
+const pick=(a,r=R)=>a[Math.floor(r()*a.length)];
+const shuffle=(a,r=R)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const fmt=m=>{m=Math.round(m);const h=Math.floor(m/60),mm=m%60;return h+":"+String(mm).padStart(2,"0")};
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const reduced=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -232,7 +304,7 @@ function hereName(){return S.moving?S.moving:ST[S.pos].n}
    why = explanation shown after any answer; src = deck source; sec = deck section. */
 function ask(o){
   return ()=>{
-    const opts=shuffle([{t:o.right,ok:true,c:o.ok||{}},...o.wrong.map(w=>({t:w[0],ok:false,c:w[1]||{min:5,marks:1},why:w[2]}))]);
+    const opts=shuffle([{t:o.right,ok:true,c:o.ok||{}},...o.wrong.map(w=>({t:w[0],ok:false,c:w[1]||{min:5,marks:1},why:w[2]}))],RO);
     const el=scene(o.where||hereName(),o.title,`<p>${o.body}</p>${o.extra||""}<div class="choices">${opts.map((x,i)=>`<button class="xw-btn opt" data-i="${i}">${esc(x.t)}</button>`).join("")}</div><div class="result" hidden></div>`);
     const box=el.querySelector(".choices");
     box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
@@ -315,7 +387,7 @@ function animateTo(idx,done){
 /* ---------- status ---------- */
 function renderStatus(){
   const at=S.moving?("between "+S.moving):ST[S.pos].n+(S.inSiding&&S.pos>0&&S.pos<LAST?" (siding)":"");
-  let h=`<span><span class="lbl">Time</span><b>${fmt(S.clock)}</b></span><span><span class="lbl">At</span>${esc(at)}</span><span><span class="lbl">Train</span>${S.era==="tto"?"Extra 812 West":"KV 812 West"}</span><span class="marks"><span class="lbl">Marks</span><b>${S.marks}</b>/${MAXMARKS}</span>`;
+  let h=`<span><span class="lbl">Time</span><b>${fmt(S.clock)}</b></span><span><span class="lbl">At</span>${esc(at)}</span><span><span class="lbl">Train</span>${S.era==="tto"?"Extra 812 West":"KV 812 West"}</span>${S.daily?`<span><span class="lbl">Daily run</span>${esc(S.daily)}</span>`:""}<span class="marks"><span class="lbl">Marks</span><b>${S.marks}</b>/${MAXMARKS}</span>`;
   if(S.era==="tto")h+=`<span><span class="lbl">Caboose</span>${S.fus} fusees · ${S.torp} torpedoes</span>`;
   $("xwStatus").innerHTML=h;
   renderMap();
@@ -338,7 +410,7 @@ function makeTT(){
   [no2,no1,no21].forEach(tr=>{tr.act=tr.t.slice();tr.late=0});
   const trains=[no2,no21,no1];
   // No 1 runs in two sections on about half the runs: Second 1 is on the same schedule, about 10 minutes behind.
-  if(Math.random()<.5){
+  if(R()<.5){
     no1.signals=true;
     trains.push({id:"2nd1",name:"Second 1",dir:"W",cls:"First class",hidden:true,t:no1.t.slice(),act:no1.t.map(x=>x+10+rnd(0,4)),late:0});
   }
@@ -401,7 +473,7 @@ function startTTO(){
   S.tt=makeTT();
   S.par=0;
   S.officeOrders=pick([2,3]); // Cobb or Dunmore holds orders for us
-  S.hotLeg=Math.random()<.75?rnd(1,5):-1;
+  S.hotLeg=R()<.75?rnd(1,5):-1;
   push(
     info("Ashby","Called for 6:00","<p>You are the conductor of Extra 812 West, a freight extra from Ashby to Ironton. The time-table on the right shows the regular trains on this subdivision. Eastward trains are superior to westward trains of the same class, and your extra is inferior to every regular train (Rule 73).</p><p>Your engineer has the train air tested. The caboose locker is short of flag equipment.</p>","Go to the caboose"),
     storeScene,
@@ -527,7 +599,7 @@ function hotBox(k,j,setProt){
       {t:"Flagman goes back with two torpedoes and a lighted fusee; the front is protected the same way",ok:true},
       {t:"Leave the marker lamps lit; that is protection enough",ok:false},
       {t:"No protection; the stop is short",ok:false},
-      {t:"Flagman drops a lighted fusee while the train stands",ok:false}]);
+      {t:"Flagman drops a lighted fusee while the train stands",ok:false}],RO);
     $("hb").innerHTML=opts.map((o,i)=>`<button class="xw-btn opt" data-i="${i}">${esc(o.t)}</button>`).join("");
     $("hb").querySelectorAll("button").forEach(b=>b.onclick=()=>{
       const o=opts[+b.dataset.i];
@@ -559,21 +631,22 @@ function orderBoard(j){
   const out=[];
   out.push(ask({sec:"to",src:"SC · Rule 221",where:ST[j].n,title:"The train order board",body:`Coming into ${ST[j].n}, the semaphore at the open office shows its blade horizontal.`,extra:semSvg(0),right:"Stop: there are orders, and you need a Clearance Form A to leave",wrong:[["Slow down and take orders on the fly"],["Proceed: it is only a block signal"],["Whistle o o o o and keep going"]],why:"Rule 221: the train order signal shows stop while an operator is on duty, and trains must not leave without a Clearance Form A. A horizontal blade is always stop."}));
   // build the orders: a time order on a regular train still ahead of us, and sometimes a meet with an extra
-  const n1=rnd(11,19);
+  const n1=rnd(11,19,RW);
   const cand=S.tt.trains.filter(tr=>tr.dir==="E"&&!tr.hidden&&tr.act[j]>S.clock+10);
   const orders=[];
   if(cand.length){
-    const tr=pick(cand),L=pick([20,25,30,35]);
+    const tr=pick(cand,RW),L=pick([20,25,30,35],RW);
     orders.push({no:n1,text:`${tr.name} run ${L} mins late Ironton to Ashby`,apply:()=>{tr.late+=L;tr.act=tr.act.map(x=>x+L)},tr,L});
   }
-  const meet=(Math.random()<.6||!cand.length)&&j<6;
+  const meet=(RW()<.6||!cand.length)&&j<6;
+  const meetAfter=rnd(30,50,RW);
   if(meet)orders.push({no:n1+(orders.length?1:0),text:"Extra 812 West meet Extra 530 East at Granite",apply:()=>{
-    const t=new Array(ST.length);t[LAST]=S.clock+rnd(30,50);for(let i=LAST-1;i>=6;i--)t[i]=Math.round(t[i+1]+(ST[i+1].mp-ST[i].mp)*3.3);
+    const t=new Array(ST.length);t[LAST]=S.clock+meetAfter;for(let i=LAST-1;i>=6;i--)t[i]=Math.round(t[i+1]+(ST[i+1].mp-ST[i].mp)*3.3);
     const tr={id:"530",name:"Extra 530 East",dir:"E",cls:"Extra",t:t.slice(),act:t,meetOnly:true,meetAt:6,late:0};
     S.tt.trains.push(tr);S.meet={at:6,tr};
   }});
   const nums=orders.map(o=>o.no);
-  const wrongClear=Math.random()<.5;
+  const wrongClear=RW()<.5;
   const shown=wrongClear?nums.map((x,i)=>i===nums.length-1?x+3:x):nums;
   const clearTxt=`CLEARANCE FORM A\nTo KV Extra 812 West  at ${ST[j].n.toUpperCase()}\nI have ${shown.length} order${shown.length>1?"s":""} for your train.\nNos ${shown.join(", ")}\nOK  ${fmt(S.clock+3)}  RK, dispatcher`;
   const ordTxt=orders.map(o=>`<span class="no">Order No ${o.no}</span>\n${esc(o.text)}`).join("\n\n");
@@ -612,6 +685,11 @@ const ROAD_TTO=[
   ()=>ask({sec:"sig",src:"SC · Rule 14(j)",title:"Calling for signals",body:"The engineman sounds o o o o. What is he asking for?",right:"He is calling for signals",wrong:[["The flagman to protect the rear"],["Release brakes"],["Back up"]],why:"Standard Code Rule 14(j): o o o o calls for signals. o o answers any signal not otherwise provided for."}),
   ()=>ask({sec:"def",src:"SC · Definitions",title:"Restricted speed",body:"A bulletin says to run at restricted speed over a bridge being repaired. Under the Standard Code that means…",right:"Proceed prepared to stop short of train, obstruction or switch not properly lined, and look out for broken rail",wrong:[["Not over 20 MPH"],["Half the maximum authorized speed"],["Not over 15 MPH, prepared to stop at the next signal"]],why:"The Standard Code gives no mph figure. GCOR 6.27 adds half the range of vision and 20 MPH."}),
   ()=>ask({sec:"sig",src:"SG · Signal signage",title:"Automatic block signal",body:"In the automatic block between stations, a signal with a number plate shows stop.",right:"Stop, then proceed at restricted speed",wrong:[["Wait for the dispatcher's permission"],["Pass at reduced speed without stopping"],["Wait 5 minutes, then proceed at track speed"]],why:"A number plate makes the signal permissive: stop, then go on at restricted speed. An A plate or no plate is absolute."})
+  ,()=>ask({sec:"sup",src:"SC · Rule 99",title:"Slow on the grade",body:"Extra 812 West is crawling up the grade below Granite, and a superior train may come up behind you while you are still moving. How does the flagman protect the rear?",right:"He drops lighted fusees at proper intervals",wrong:[["He goes back and places two torpedoes while the train keeps moving"],["None is needed while the train is moving"],["The engineman sounds — o o o every mile"]],why:"Rule 99: a moving train that may be overtaken is protected by the flagman dropping lighted fusees at proper intervals. Torpedoes are for a stopped train."})
+  ,()=>ask({sec:"sig",src:"SG · Signal signage",title:"Stop on the hill",body:"Halfway up the grade, an automatic signal with a G plate and a number plate shows stop.",right:"Pass it at restricted speed without stopping",wrong:[["Stop and wait for permission"],["Stop, then proceed at restricted speed"],["Pass it at track speed"]],why:"A G plate marks a grade signal: a train may pass it at restricted speed without stopping, so it does not stall on the grade."})
+  ,()=>ask({sec:"sig",src:"SG · Signal signage",title:"A P plate",body:"The signal ahead carries a P plate and shows stop.",right:"There is a detector in the block, such as high water or a slide, and the crew must inspect it",wrong:[["It is a permissive signal; pass at restricted speed"],["A passenger station is ahead"],["A pilot is required"]],why:"A P plate marks a protective signal: a detector in the block that the crew must check."})
+  ,()=>ask({sec:"sup",src:"SC · Rule 251",title:"Block signals ahead",body:"From Granite west the time-table names the track as governed by block signals for trains in the same direction. What decides how you run ahead of No 1 there?",right:"The block signal indications, which supersede superiority",wrong:[["Superiority by class, as before"],["A train order for each block"],["Whoever reaches the next signal first"]],why:"Rule 251: on designated tracks, trains run with reference to other trains in the same direction by block signals, whose indications supersede the superiority of trains."})
+  ,()=>ask({sec:"def",src:"SC · Definitions",title:"Approach signal",body:"A fixed signal a mile out warns you of the home signal at the next interlocking. What is it called?",right:"An approach signal",wrong:[["A block signal"],["A train order signal"],["An interlocking signal"]],why:"Standard Code: an approach signal is a fixed signal used in connection with one or more signals to govern the approach to them."})
 ];
 const STN_TTO=[
   ()=>ask({sec:"sig",src:"SC · Rule 12(d)",title:"Hand signal",body:"The head brakeman on the ground swings his lamp vertically in a circle at right angle to the track. What does he want?",right:"Back up",wrong:[["Proceed"],["Stop"],["Apply air brakes"]],why:"Rule 12(d): swung vertically in a circle at right angle to the track is back. The engineman answers with o o o (Rule 14(h))."}),
@@ -620,14 +698,21 @@ const STN_TTO=[
   ()=>ask({sec:"sup",src:"SC · Rule 82",title:"A very late train",body:"The operator says No 3, a regular train, is more than 12 hours behind its schedule at this station. What is its standing now?",right:"It has lost both right and schedule and may move only by train order",wrong:[["It became an extra automatically"],["It keeps its schedule but loses right"],["It runs on its schedule at restricted speed"]],why:"Rule 82: a regular train more than 12 hours behind its time at any station loses both right and schedule."}),
   ()=>ask({sec:"sup",src:"SC · Rule 94",title:"A disabled train",body:"Word comes of a westbound freight disabled ahead and unable to move. If needed, your train may…",right:"Pass it if practicable, and if necessary take its schedule and orders",wrong:[["Push it to the next siding"],["Wait until the dispatcher annuls its orders"],["Become a work extra"]],why:"Rule 94: pass the disabled train if practicable; if necessary assume its schedule and take its train orders, then report from the next point of communication."}),
   ()=>ask({sec:"to",src:"SC · Rule 220",title:"How long an order lasts",body:"The fireman asks how long an order you hold stays in force.",right:"Until it is fulfilled, superseded or annulled",wrong:[["Until midnight"],["Until you reach Ironton"],["12 hours after it was issued"]],why:"Rule 220. Orders are numbered each day from midnight (Rule 203), but that does not end them."}),
-  ()=>ask({sec:"to",src:"SC · Form S-C",title:"A right-over order",body:"The operator reads you another crew's order: “No 21 has right over Extra 640 East Granite to Hollis.” If they meet at Granite or Hollis, which train takes the siding?",right:"The first-named train, No 21, unless the order says otherwise",wrong:[["Extra 640 East, the inferior train"],["Whichever arrives last"],["Neither; they wait for a meet order"]],why:"Form S-C: the first-named train holds the right, and at either named point it takes the siding unless the order says otherwise."})
+  ()=>ask({sec:"to",src:"SC · Form S-C",title:"A right-over order",body:"The operator reads you another crew's order: “No 21 has right over Extra 640 West Granite to Hollis.” If they meet at Granite or Hollis, which train takes the siding?",right:"The first-named train, No 21, unless the order says otherwise",wrong:[["Extra 640 West, the inferior train"],["Whichever arrives last"],["Neither; they wait for a meet order"]],why:"Form S-C: the first-named train holds the right, and at either named point it takes the siding unless the order says otherwise."})
+  ,()=>ask({sec:"to",src:"SC · Rule 207",title:"On the wire",body:"Standing at the office, you hear the dispatcher call: “31, West, copy 3.” What is he doing?",right:"Sending a 31 order for westward trains, asking the operator to make three copies",wrong:[["Giving order number 31"],["Calling train No 31 west"],["Asking for three clearances"]],why:"Rule 207: the transmitting signal is “31” or “19”, then the direction, then the number of copies, given to each office addressed."})
+  ,()=>ask({sec:"to",src:"SC · Rule 211",title:"The wire goes down",body:"The operator has all your orders complete, but the wire fails before the dispatcher gives the OK on the clearance.",right:"He may deliver them with the clearance marked “Wire has failed”",wrong:[["You must wait until the wire is restored"],["The orders are void and must be sent again"],["He gives you a verbal OK and you go"]],why:"Rule 211: if all orders for the train are complete, the operator may deliver them with Clearance Form A marked “Wire has failed”, acted on as though OK had been given."})
+  ,()=>ask({sec:"to",src:"SC · Form S-H",title:"A work extra ahead",body:"The operator reads you the work train's order: “Eng 292 works extra 7 00 am until 5 00 pm between Elk Gap and Fenwick.” Inside those limits, who protects against your extra?",right:"The work extra protects itself against extras in both directions",wrong:[["You must flag through the limits"],["Nobody; work extras have right over extras"],["The dispatcher, by holding you at Elk Gap"]],why:"Form S-H: within the working limits the work extra, standing or moving, protects itself against extra trains in both directions, and it must clear the time of regular trains."})
+  ,()=>ask({sec:"to",src:"SC · Form L",title:"An annulled order",body:"The operator says order 9 was annulled this morning. May the dispatcher issue a new order under number 9 later today?",right:"No; an annulled order is never reissued under its number",wrong:[["Yes, once the annulment is delivered"],["Yes, if the dispatcher initials it"],["Only for extras"]],why:"Form L: an annulled order must not be reissued under its original number. Orders are numbered each day from midnight (Rule 203)."})
+  ,()=>ask({sec:"to",src:"SC · Form S-P",title:"Instead of",body:"An order reads “No 21 meet Extra 640 West at Hollis instead of Granite.” What has happened?",right:"An earlier meet at Granite is superseded; the meet is now at Hollis",wrong:[["There are now two meets, at Granite and Hollis"],["The Granite order is annulled and no meet remains"],["No 21 waits at Granite, then at Hollis"]],why:"Form S-P: the words “instead of” supersede an order or part of one. A superseded order is not reissued under its number."})
+  ,()=>ask({sec:"to",src:"SC · Form G",title:"And return",body:"Another crew's order reads “Eng 640 run extra Ironton to Cobb and return to Hollis.” Where must Extra 640 go before turning back?",right:"All the way to Cobb",wrong:[["To Hollis, then back"],["Anywhere between Ironton and Cobb"],["Only to the first open office"]],why:"Form G: “…and return” means the extra must go all the way out to the far point before returning."})
+  ,()=>ask({sec:"to",src:"SC · Rule 222",title:"The operator's report",body:"As you leave, the operator picks up the phone to the dispatcher. What must he report about your train?",right:"Its time of arrival and departure, and the direction of an extra",wrong:[["Only the number of cars"],["Nothing, unless you had orders"],["Its tonnage and crew names"]],why:"Rule 222: operators promptly record and report the time of arrival and departure of all trains and the direction of extra trains."})
 ];
 function drawRoad(){return drawFrom("road",S.era==="tto"?ROAD_TTO:ROAD_TWC,.7)}
 function drawStation(){return drawFrom("stn",S.era==="tto"?STN_TTO:[],.6)}
 function drawFrom(key,pool,p){
-  if(!pool.length||Math.random()>p)return null;
+  if(!pool.length||RE()>p)return null;
   S.pools=S.pools||{};
-  if(!S.pools[key]||!S.pools[key].length)S.pools[key]=shuffle(pool.map((_,i)=>i));
+  if(!S.pools[key]||!S.pools[key].length)S.pools[key]=shuffle(pool.map((_,i)=>i),RE);
   const i=S.pools[key].pop();
   return pool[i]();
 }
@@ -710,10 +795,10 @@ function legTWC(from,to,events){
 }
 function startTWC(){
   S.tt={leg:[]};for(let i=0;i<LAST;i++)S.tt.leg[i]=Math.round((ST[i+1].mp-ST[i].mp)*2.6)+rnd(-1,2);
-  const box12=Math.random()<.6;
+  const box12=R()<.6;
   const w1={no:"101",at:"Ashby",boxes:{2:["Ashby","Dunmore","Main"],10:[]}};
   if(box12)w1.boxes[12]=["Birchwood","Cobb"];
-  const hold=Math.random()<.5;
+  const hold=R()<.5;
   const w2={no:"102",at:"Dunmore",boxes:{2:["Dunmore","Granite","Main"],7:["2211 East","Dunmore"]}};
   if(hold)w2.boxes[8]=[];
   const w3={no:"103",at:"Granite",boxes:{1:["102"],2:["Granite","Ironton","Main"],11:["Hollis","Ironton"],17:["Joint with 640 West between Hollis and Ironton"]}};
@@ -761,6 +846,16 @@ const ROAD_TWC=[
   ()=>ask({sec:"sig",src:"GC · 5.8.3",title:"The whistle fails",body:"The horn on the lead unit quits and no other unit can lead. How do you go on?",right:"With the bell ringing continuously, stopping before each public crossing unless the gates are down or no traffic is near",wrong:[["Normally, with the headlight on bright"],["Not at all; wait for a rescue engine"],["At restricted speed only"]],why:"GCOR 5.8.3: continue with the bell ringing and stop before each public crossing so a crew member can warn traffic, unless the gates are fully down or no traffic is approaching or stopped."}),
   ()=>ask({sec:"def",src:"GC · Glossary",title:"A sign with a D",body:"A signal ahead in dark territory carries a D on its mast. What is it?",right:"A distant signal, governing the approach to the signal or interlocking ahead",wrong:[["A dwarf signal for sidings"],["A detector signal you must inspect"],["A signal you may pass at restricted speed without stopping"]],why:"A distant signal is outside a block system and governs the approach to a block signal, interlocking signal or switch point indicator. It says nothing about the track between. A P plate marks a detector; a G plate a grade signal."}),
   ()=>ask({sec:"sig",src:"SG · Route indications",title:"Two heads at the junction",body:"The interlocking signal at the junction shows red over yellow.",right:"Diverging Approach: proceed on the diverging route, prepared to stop at the next signal",wrong:[["Stop: there is red on the mast"],["Approach on the main route"],["Restricting"]],why:"It is not red unless it is all red. Red over yellow is Diverging Approach: the next block on the diverging route is unoccupied."})
+  ,()=>ask({sec:"twc",src:"GC · 14.7",title:"Reporting clear by a hand switch",body:"You report clear of a warrant after leaving the main through a hand-operated switch, outside yard limits. What must you tell the dispatcher?",right:"The position of the switch and that it is locked",wrong:[["Only that the train is clear"],["The time you passed the switch"],["Nothing more; the switch is not his concern"]],why:"GCOR 14.7: outside yard or restricted limits, tell the dispatcher the switch position and that it is locked when reporting clear. He repeats it and you confirm."})
+  ,()=>ask({sec:"twc",src:"GC · 14.7",title:"No caboose",body:"There is no crew on the rear of KV 812 West. Which shows the dispatcher your whole train is clear of the limits?",right:"Rear device air pressure showing brake pipe continuity",wrong:[["The engineer's word that the train felt complete"],["The time since you passed the last station"],["The head end passing the clearance point"]],why:"GCOR 14.7 lists: rear device pressure showing brake pipe continuity, an employee verifying the marker, a crew member seeing the rear car with the marker, an inspection while stopped, or matching axle counts from two detectors."})
+  ,()=>ask({sec:"def",src:"GC · Glossary",title:"A switch marked V",body:"You must trail through a switch whose bowl is painted yellow and marked V. What will it do after your train passes?",right:"Stay where your wheels forced the points",wrong:[["Spring back to its original position"],["Lock in the reverse position"],["Throw itself to normal after a delay"]],why:"A variable switch stays where the points were forced when trailed through. A spring switch returns to its original position."})
+  ,()=>ask({sec:"sig",src:"GC · 5.8.1",title:"Before moving",body:"You are ready to pull out of the siding at Hollis. What does the engineer do before moving?",right:"Ring the bell",wrong:[["Sound — — o —"],["Sound a succession of short sounds"],["Nothing; the radio call is enough"]],why:"GCOR 5.8.1: ring the bell before moving (except momentary stop-and-start switching), approaching men or equipment, and approaching public crossings."})
+  ,()=>ask({sec:"sig",src:"GC · 5.8.2(7)",title:"Crossing at 50 MPH",body:"On the tangent past Fenwick you are at 50 MPH, approaching a public crossing. When does the crossing whistle start?",right:"At or about the crossing sign, but not more than 1/4 mile before the crossing",wrong:[["15 to 20 seconds before the crossing"],["Half a mile before the crossing"],["When the crossing comes into view"]],why:"GCOR 5.8.2(7): over 45 MPH, start at or about the sign, but not more than 1/4 mile before. At 45 MPH or less, start 15 to 20 seconds before."})
+  ,()=>ask({sec:"gcor",src:"GC · 1.47B",title:"Special handling",body:"There are two loads of steel plate on the head end. Who checks whether any cars need special handling?",right:"The engineer checks with the conductor",wrong:[["The dispatcher tells the engineer"],["Nobody; it is on the waybills"],["The yardmaster at Ironton"]],why:"GCOR 1.47B: the engineer must check with the conductor whether any cars need special handling."})
+  ,()=>ask({sec:"gcor",src:"GC · 1.47A",title:"Doubled up",body:"The dispatcher combines your train with 640 West at Hollis. Both have conductors. Who is in charge?",right:"The conductor with the most seniority",wrong:[["The conductor of the leading train"],["The engineer of the lead unit"],["The dispatcher names one"]],why:"GCOR 1.47A: if trains combine, the senior conductor takes charge."})
+  ,()=>ask({sec:"def",src:"GC · Glossary",title:"Into CTC",body:"Past Ironton the line enters CTC. What authorizes your movement there?",right:"Block signal indications, set by the control operator at control points",wrong:[["Your track warrant, extended to Ironton"],["The yardmaster's radio OK"],["Time-table superiority"]],why:"GCOR: CTC is a block system that uses block signal indications to authorize train movements. Control points are absolute signals controlled by a control operator."})
+  ,()=>ask({sec:"def",src:"GC · Glossary",title:"DTC territory",body:"A neighboring subdivision runs under DTC. How is authority given there?",right:"The dispatcher authorizes occupancy of named blocks, marked by Begin and End block signs",wrong:[["By track warrant boxes"],["By block signal indications"],["By time-table and train order"]],why:"GCOR: in DTC the train dispatcher authorizes occupancy of a DTC block, a length of main track named by wayside signs reading Begin and End block, and by milepost in the time-table."})
+  ,()=>ask({sec:"def",src:"GC · Glossary",title:"Interlocking limits",body:"You cross the other railroad at grade at Granite under an interlocking. Where do its limits run?",right:"Between the outer opposing absolute signals",wrong:[["Between the first and last switches"],["From the tower to the distant signal"],["A quarter mile each side of the crossing"]],why:"GCOR: interlocking limits are the tracks between the outer opposing absolute signals of an interlocking."})
 ];
 
 /* ---------- the end ---------- */
@@ -781,10 +876,22 @@ function finish(text,failed){
      <div class="xw-end"><div class="score"><div><b>${failed?"—":fmt(S.clock)}</b><span>In at</span></div><div><b>${Math.floor(time/60)}h ${String(time%60).padStart(2,"0")}</b><span>On the road</span></div>${par!==null&&!failed?`<div><b>${Math.floor(par/60)}h ${String(Math.round(par)%60).padStart(2,"0")}</b><span>Fastest legal run${S.hotDelay?", no hot box":""}</span></div>`:""}<div><b>${S.marks}</b><span>Marks</span></div>${S.era==="tto"?`<div><b>${S.fus}/${S.torp}</b><span>Fusees/torpedoes left</span></div>`:""}</div>
      <h3 style="font-family:var(--font-display);margin:10px 0 4px;font-size:20px">Service record</h3><div style="display:flex;flex-direction:column;gap:6px">${missHtml}</div>
      ${secs.length?`<p style="margin-top:8px">Study next: ${secs.map(s=>`<a href="index.html#learn-${s}">${esc(SEC[s])}</a>`).join(" · ")}</p>`:""}</div>
-     <div class="choices" style="flex-direction:row;flex-wrap:wrap"><button class="xw-btn primary" id="again">Run it again</button><button class="xw-btn" id="other">Try the ${S.era==="tto"?"modern":"1949"} run</button><button class="xw-btn" id="home">Back to the start</button></div>`);
-  const runs=store.get("xw_runs",[]);runs.unshift({era:S.era,when:Date.now(),marks:S.marks,time,failed,verdict});store.set("xw_runs",runs.slice(0,20));
-  const era=S.era;
-  $("again").onclick=()=>begin(era);
+     <div class="choices" style="flex-direction:row;flex-wrap:wrap"><button class="xw-btn primary" id="again">${S.daily?"Replay today's run":"Run it again"}</button><button class="xw-btn" id="other">Try the ${S.era==="tto"?"modern":"1949"} run</button><button class="xw-btn" id="home">Back to the start</button></div>`);
+  const runs=store.get("xw_runs",[]);runs.unshift({era:S.era,when:Date.now(),marks:S.marks,time,failed,verdict,daily:S.daily});store.set("xw_runs",runs.slice(0,20));
+  const era=S.era,daily=S.daily;
+  if(daily){
+    const key="xw_daily_"+daily+"_"+era,first=store.get(key,null);
+    const mine={verdict,marks:S.marks,time,failed};
+    if(!first)store.set(key,mine);
+    const rec=first||mine;
+    const line=`Extra West, daily run ${daily}, ${era==="tto"?"1949 time-table and train orders":"modern track warrants"}: ${rec.verdict}, ${rec.marks} mark${rec.marks===1?"":"s"}${rec.failed?"":", "+Math.floor(rec.time/60)+"h "+String(rec.time%60).padStart(2,"0")+"m on the road"}. ${location.origin.startsWith("http")?location.origin+location.pathname:"hartrailroad.com/exam/run.html"}`;
+    const box=document.createElement("div");box.className="xw-daily";
+    box.innerHTML=`<p>${first?"Your first try at today's run counts for the day; this replay does not change it.":"This is your result for today's run. Replays are for practice and do not change it."}</p><div class="xw-share">${esc(line)}</div><div><button class="xw-btn" id="copy">Copy the result</button></div>`;
+    el.querySelector(".xw-end").appendChild(box);
+    $("copy").onclick=()=>{const done=()=>{$("copy").textContent="Copied"};
+      if(navigator.clipboard)navigator.clipboard.writeText(line).then(done,()=>{$("copy").textContent="Select the text above to copy it"});else $("copy").textContent="Select the text above to copy it"};
+  }
+  $("again").onclick=()=>begin(era,daily);
   $("other").onclick=()=>begin(era==="tto"?"twc":"tto");
   $("home").onclick=showStart;
 }
@@ -823,8 +930,10 @@ function renderSheet(){
 }
 
 /* ---------- start ---------- */
-function begin(era){
-  S=newState(era);queue=[];$("xwLog").innerHTML="";trainMp=100;
+function begin(era,daily){
+  if(daily){const k="extra-west|"+today()+"|"+era;R=seeded(k+"|setup");RW=seeded(k+"|orders");RE=seeded(k+"|events");RO=seeded(k+"|answers")}
+  else R=RW=RE=RO=Math.random;
+  S=newState(era);S.daily=daily?today():null;queue=[];$("xwLog").innerHTML="";trainMp=100;
   $("xwStart").hidden=true;$("xwGame").hidden=false;
   renderStatus();renderSheet();
   window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:reduced?"auto":"smooth"});
@@ -834,9 +943,10 @@ function showStart(){
   $("xwStart").hidden=false;$("xwGame").hidden=true;
   const runs=store.get("xw_runs",[]);
   const best=e=>{const r=runs.filter(x=>x.era===e&&!x.failed).sort((a,b)=>a.marks-b.marks||a.time-b.time)[0];return r?`${r.verdict}, ${r.marks} mark${r.marks===1?"":"s"}, ${Math.floor(r.time/60)}h ${String(r.time%60).padStart(2,"0")}`:"none yet"};
+  const d=today();[["tto","dTto"],["twc","dTwc"]].forEach(([e,id])=>{const r=store.get("xw_daily_"+d+"_"+e,null);$(id).textContent=r?`played: ${r.verdict}, ${r.marks} mark${r.marks===1?"":"s"}`:d});
   $("xwBest").textContent=runs.length?`Your best in this browser. 1949: ${best("tto")}. Modern: ${best("twc")}.`:"";
 }
-document.querySelectorAll("[data-era]").forEach(b=>b.onclick=()=>begin(b.dataset.era));
+document.querySelectorAll("[data-era]").forEach(b=>b.onclick=()=>begin(b.dataset.era,b.hasAttribute("data-daily")));
 showStart();
 })();
 </script>
