@@ -20,6 +20,7 @@ except ImportError:                      # CI without Pillow: _web_jpeg returns 
 @unittest.skipIf(Image is None, "Pillow is not installed")
 class WebJpegCache(unittest.TestCase):
     def setUp(self):
+        build._jpeg_cache_at.cache_clear()
         self._tmp = tempfile.TemporaryDirectory()
         self.tmp = Path(self._tmp.name)
         self.cache = self.tmp / "cache"
@@ -41,22 +42,21 @@ class WebJpegCache(unittest.TestCase):
             self.assertTrue(build._web_jpeg(src, out, max_px))
         return spy.call_count
 
-    def test_a_hit_is_the_same_bytes_and_time_stamp_without_resizing(self):
+    def test_a_hit_is_the_same_bytes_without_resizing(self):
         self.assertEqual(self.renders(self.src, self.tmp / "o1.jpg"), 1)
         self.assertEqual(self.renders(self.src, self.tmp / "o2.jpg"), 0)
         fresh = self.tmp / "fresh.jpg"
         build._render_jpeg(self.src, fresh, 100)
         self.assertEqual((self.tmp / "o2.jpg").read_bytes(), fresh.read_bytes())
-        self.assertEqual((self.tmp / "o1.jpg").stat().st_mtime, (self.tmp / "o2.jpg").stat().st_mtime)
         with Image.open(self.tmp / "o2.jpg") as im:
             self.assertEqual(im.size, (100, 75))
 
-    def test_new_bytes_a_new_size_or_new_settings_resize_again(self):
+    def test_new_bytes_a_new_size_or_new_drawing_code_resize_again(self):
         self.renders(self.src, self.tmp / "o.jpg")
         self.photo("a.png", (10, 20, 30))                      # same name, new picture
         self.assertEqual(self.renders(self.src, self.tmp / "o.jpg"), 1)
         self.assertEqual(self.renders(self.src, self.tmp / "o.jpg", max_px=50), 1)
-        with mock.patch.object(build, "JPEG_SETTINGS", "changed"):
+        with mock.patch.object(build, "_render_key", return_value=b"other drawing code"):
             self.assertEqual(self.renders(self.src, self.tmp / "o.jpg"), 1)
         self.assertEqual(len(list(self.cache.glob("*.jpg"))), 4)
 
@@ -85,9 +85,38 @@ class WebJpegCache(unittest.TestCase):
         self.renders(self.photo("b.png", (0, 0, 255)), self.tmp / "p.jpg")
         old, used = sorted(self.cache.glob("*.jpg"))
         long_ago = time.time() - (build.JPEG_CACHE_KEEP_DAYS + 1) * 86400
-        os.utime(old, (long_ago, old.stat().st_mtime))
+        mine = self.cache / "holiday.jpg"                        # not the cache's: never removed
+        mine.write_bytes(b"x")
+        for f in (old, mine):
+            os.utime(f, (long_ago, long_ago))
         build._prune_jpeg_cache()
-        self.assertEqual(list(self.cache.glob("*.jpg")), [used])
+        self.assertEqual(sorted(self.cache.glob("*.jpg")), sorted([used, mine]))
+
+    def test_the_cache_folder_is_private_and_a_bad_one_is_reported_once(self):
+        self.renders(self.src, self.tmp / "o.jpg")
+        self.assertEqual(self.cache.stat().st_mode & 0o777, 0o700)
+        blocker = self.tmp / "file"
+        blocker.write_text("x")
+        with mock.patch.dict(os.environ, {build.JPEG_CACHE_ENV: str(blocker / "sub")}), \
+                mock.patch("sys.stderr") as err:
+            self.renders(self.src, self.tmp / "o.jpg")
+            self.renders(self.src, self.tmp / "p.jpg")
+        self.assertEqual("".join(c.args[0] for c in err.write.call_args_list).count("cannot use"), 1)
+
+    def test_an_entry_pruned_by_another_build_is_resized_again(self):
+        self.renders(self.src, self.tmp / "o.jpg")
+        real = build.shutil.copyfile
+        calls = []
+
+        def vanish_once(a, b):
+            calls.append(a)
+            if len(calls) == 1:
+                Path(a).unlink()
+                raise FileNotFoundError(a)
+            return real(a, b)
+        with mock.patch.object(build.shutil, "copyfile", side_effect=vanish_once):
+            self.assertEqual(self.renders(self.src, self.tmp / "o.jpg"), 1)
+        self.assertTrue((self.tmp / "o.jpg").stat().st_size > 0)
 
 
 if __name__ == "__main__":
