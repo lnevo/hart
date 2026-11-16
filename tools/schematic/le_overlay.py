@@ -18,20 +18,23 @@ and every caption a generated label also gives (same text, any case: Brick, West
 them under "dropped"; carry() stops unless the generated panel gives each of them (a generated block contents icon
 for each dropped one, once the plugin writes any), and stops on a carried label that repeats a generated one.
 
-What is carried: occupancy lamps, Entry/Exit sensor icons, yard ladder buttons, the Dispatcher System station
-clusters, the status cluster, the region captions (Neville Island, Industries, the helix arrows) and the background
-picture. Each is copied with every attribute and child as live; only x and y change.
+What is carried: occupancy lamps, the Dispatcher System station clusters, the status cluster, the region captions
+(Neville Island, Industries, the helix arrows) and the background picture. Each is copied with every attribute and
+child as live; only x and y change. Not carried (owner, 2026-11-16; LEFT_OUT): the Entry/Exit sensor icons, whose
+sensors stay bound in their mast slots (the build binds them, so the NX pairs resolve without an icon), and the yard
+ladder buttons.
 
 Where each goes. In the hand-drawn panel each item is tied to what it belongs to, then put at the same place against
 that thing on the new panel:
-- slot: an Entry/Exit sensor icon to the slot its sensor is bound in (same ident and slot on both panels), at the
-  same offset from the boundary point;
+- slot: an item whose sensor is bound in a slot to that slot (same ident and slot on both panels), at the same
+  offset from the boundary point (no carried item is one since the NX icons went; kept for a re-freeze);
 - turnout: an item of a switch's OS block (its lamp) to that turnout's centre (a crossover half to the middle of its
   legs), at the same offset;
 - block: an item of a track block (its lamp, a caption by it) at the same share of the way along the block's track,
   left to right, and the same distance to its side;
 - frame: what is tied to no track (region captions, the status cluster, any item over NEAR px from the track) keeps
-  its place against the track's bounding box: across it by share, outside it by distance;
+  its place against the track's bounding box: across it by share, outside it by distance (the staging band's box
+  when the panel holds more levels: carry's `frame_blocks`);
 - backdrop: the background picture (an icon label at level 1 or below) stays at its live x and y, under everything.
 The station clusters (level 12, one per Dispatcher station: a loco marker with its track's name and two lamps) and
 the status cluster (the LCOS, Turnouts, Signals and Track Power lamps and captions) move as one block each. A station
@@ -79,7 +82,12 @@ TOP = 6                 # px: nothing above this on the panel
 EDGE = 20               # px kept free beyond the furthest item at the right and the bottom
 CLEAR = 1.5             # px from a track line or turnout leg an item must keep
 TURNOUT_R = 8           # px around a turnout's centre: its control circle
-DROPPED = ("block_contents", "switch_numbers", "track_names", "captions")     # overlay.json "dropped" lists
+GIVEN = ("block_contents", "switch_numbers", "track_names", "captions")    # dropped: the generated panel gives them
+NOT_CARRIED = ("nx_icons", "ladder_buttons")                                # dropped: on no panel (LEFT_OUT)
+DROPPED = GIVEN + NOT_CARRIED                                               # overlay.json "dropped" lists
+# Not carried at all (owner, 2026-11-16): the Entry/Exit sensor icons (the sensors stay bound in their mast slots,
+# so the NX pairs still resolve; only the panel icons go) and the yard ladder buttons.
+LEFT_OUT = (("sensoricon", "sensor", "NX ", "nx_icons"), ("turnouticon", "turnout", "IT:HART:YL:", "ladder_buttons"))
 EPS = 1e-6
 
 
@@ -138,6 +146,19 @@ class Track:
             raise OverlayError(f"{what}: no track drawn")
         xs, ys = [p[0] for p in allp], [p[1] for p in allp]
         self.box = (min(xs), min(ys), max(xs), max(ys))
+
+    def box_of(self, blocks):
+        """(x0, y0, x1, y1) of the drawn track of `blocks` and of the turnouts whose own block is one of them; stops
+        when none of them is drawn."""
+        blocks = set(blocks)
+        allp = [p for b in blocks for pc in self.pieces.get(b, ()) for p in pc]
+        for t in self.turnouts.values():
+            if t.get("blockname") in blocks:
+                allp += [self.ix.leg_coords(t, L) for L in "ABC"]
+        if not allp:
+            raise OverlayError(f"{self.what}: none of the frame's {len(blocks)} blocks is drawn")
+        xs, ys = [p[0] for p in allp], [p[1] for p in allp]
+        return (min(xs), min(ys), max(xs), max(ys))
 
     def turnout_point(self, ident, block):
         """The middle of the legs of turnout `ident` that are in `block` (its centre for its own block)."""
@@ -436,16 +457,27 @@ def switch_number(text, switch_prefix):
     return n if re.fullmatch(r"\d+[A-Z]?", n) else None
 
 
+def left_out(el) -> str | None:
+    """The "dropped" list of an item the generated panel does not carry at all (LEFT_OUT: "nx_icons" for an NX sensor
+    icon, "ladder_buttons" for a yard ladder button), else None."""
+    return next((key for tag, attr, prefix, key in LEFT_OUT
+                 if el.tag == tag and (el.get(attr) or "").startswith(prefix)), None)
+
+
 def split_generated(items, live, gen, switch_prefix):
     """(kept items, dropped {kind: [name]}): the hand-drawn items the generated panel gives itself now (`gen`:
     generated() of it) left out. Block contents icons, switch number labels (`switch_prefix` and the number) and
     labels naming a block always; a caption when a generated label has its text, in any case. A label with no text
-    (the backdrop, an icon-only label) is never one of them."""
+    (the backdrop, an icon-only label) is never one of them. The items no panel carries (left_out) are listed too,
+    under their own lists (NOT_CARRIED)."""
     gen_texts = {name.lower() for kind, name, _r in gen if kind == "label"}
     blocks = set(live.pieces) | set(live.os_turnouts())
     kept, dropped = [], {k: set() for k in DROPPED}
     for it in items:
         el, text = it.el, (it.el.get("text") or "").strip()
+        if left_out(el):
+            dropped[left_out(el)].add(el.get("sensor") or el.get("turnout"))
+            continue
         if el.tag == "BlockContentsIcon":
             if not el.get("blockcontents"):
                 raise OverlayError(f"live {it.what} names no block")
@@ -627,9 +659,9 @@ def frame_point(p, live_box, gen_box):
     return tuple(out)
 
 
-def target(it, frame, gen):
+def target(it, frame, gen, gen_frame):
     """The centre the item would take on the new panel before it is nudged clear (`frame`: the hand-drawn track's
-    bounding box)."""
+    bounding box; `gen_frame`: the box on the new panel a frame item keeps its place against)."""
     kind = it.anchor[0]
     if kind == "slot":
         _k, what, ident, slot, off = it.anchor
@@ -647,7 +679,7 @@ def target(it, frame, gen):
             raise OverlayError(f"{it.what}: block {block} is not drawn on the new panel")
         return gen.at(block, share, off, past)
     if kind == "frame":
-        return frame_point(it.centre, frame, gen.box)
+        return frame_point(it.centre, frame, gen_frame)
     raise OverlayError(f"{it.what}: anchor {kind} not known")
 
 
@@ -948,6 +980,7 @@ def validate(frozen, what="overlay.json", switch_prefix="") -> None:
         need(el.tag in CARRIED_TAGS, f"{name}: {el.tag} is not an overlay item this build carries" +
              (" (the generated panel gives one per block)" if el.tag == "BlockContentsIcon" else ""))
         name = f"item {k} ({describe(el)})"
+        need(not left_out(el), f"{name}: Entry/Exit sensor icons and yard ladder buttons are not carried (re-freeze)")
         need(not (el.tag == "positionablelabel" and switch_number((el.get("text") or "").strip(), switch_prefix)),
              f"{name}: the generated panel gives the switch numbers, so it is not carried (re-freeze)")
         Item(el, it["index"])           # its position, image size and font read, or a clear stop
@@ -1054,12 +1087,16 @@ def same_boxes(fixed, P):
                            "; ".join(bad))
 
 
-def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str = "") -> dict:
+def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str = "", frame_blocks=None) -> dict:
     """Copy every frozen overlay item onto gen_le (see the module text). Returns a report: records [(item, anchor,
     hand-drawn xy, new xy, moved px)], the generated labels and block contents icons placed around ({kind: count}),
-    notes, the new panel size and the blocks whose track is not one run."""
+    notes, the new panel size and the blocks whose track is not one run. `frame_blocks`: the blocks of the band the
+    frame items and the status cluster are tied to (default: every block drawn), so they keep their place against
+    that band's track however the panel grows below it. A panel the plugin drew taller than the `fit` window
+    (several bands at one band's grid) keeps its items inside the panel instead, and its window is `fit`."""
     validate(frozen, switch_prefix=switch_prefix)
     gen = Track(gen_le, le_mod, slots_mod, "new panel")
+    gen_frame = gen.box if frame_blocks is None else gen.box_of(frame_blocks)
     items = frozen_items(frozen)
     frame = tuple(frozen["frame"])
     same_boxes(generated(list(gen_le)), P)     # the XML read alone agrees with the plugin's boxes
@@ -1070,8 +1107,8 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
     masts = [(m["mast"], Rect(*m["box"])) for m in P.masts]
     shapes = [(tuple(sh["centre"]), sh["r"]) for sh in P.shapes]
     obstacles = Obstacles(gen, masts, [(f"{k} {n}", r) for k, n, r in fixed], shapes)
-    W, H = fit[0] - le_mod.CHROME[0], fit[1] - le_mod.CHROME[1]
-    bounds = (0, TOP, W - EDGE, H - EDGE)       # inside the window, so fit_size never has to move the panel
+    W, H = room(P, le_mod, fit)
+    bounds = (0, TOP, W - EDGE, H - EDGE)       # inside the window (or panel), so fit_size never moves the panel
 
     # units: a group moves as one, every other item alone
     groups = defaultdict(list)
@@ -1101,10 +1138,10 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
         else:
             if u["key"] == "status":
                 start = cluster_centre(its)
-                want = frame_point(start, frame, gen.box)
+                want = frame_point(start, frame, gen_frame)
             else:
                 start = its[0].centre
-                want = target(its[0], frame, gen)
+                want = target(its[0], frame, gen, gen_frame)
             shift = (round(want[0] - start[0]), round(want[1] - start[1]))      # whole pixels, as JMRI stores
             rects = [Rect(i.x + shift[0], i.y + shift[1], i.w, i.h) for i in its]
             ndx, ndy = nudge(rects, obstacles, all(i.lamp for i in its), bounds, what)
@@ -1140,21 +1177,30 @@ def carry(frozen, gen_le, P, le_mod, slots_mod, fit: tuple, switch_prefix: str =
                 notes=notes, size=size, unchained=sorted(set(frozen["unchained"]) | set(gen.unchained)))
 
 
-def fit_size(le, items, P, le_mod, fit):
-    """Grow the panel to hold every item (EDGE px beyond the furthest), within the window less its frame. The panel
-    is never moved: carry() keeps every item inside the window, so a panel the plugin spreads over the full window
-    height (one band) stays as drawn."""
+def room(P, le_mod, fit):
+    """(width, height) px the panel may take: the `fit` window less its frame, or the plugin's panel where that is
+    larger (drawn at a fixed grid, it scrolls in the window)."""
     W, H = fit[0] - le_mod.CHROME[0], fit[1] - le_mod.CHROME[1]
+    if W <= 0 or H <= 0:
+        raise OverlayError(f"a {fit[0]}x{fit[1]} px window leaves no room for a panel inside its frame")
+    return max(W, P.size[0]), max(H, P.size[1])
+
+
+def fit_size(le, items, P, le_mod, fit):
+    """Grow the panel to hold every item (EDGE px beyond the furthest), within room(). The panel is never moved:
+    carry() keeps every item inside that room, so a panel the plugin spreads over the full window height (one band)
+    stays as drawn. The window is the panel and its frame, at most `fit` (a larger panel scrolls in it)."""
+    W, H = room(P, le_mod, fit)
     right = max([P.size[0]] + [it.new[0] + it.w + EDGE for it in items if not it.backdrop])
     bottom = max([P.size[1]] + [it.new[1] + it.h + EDGE for it in items if not it.backdrop])
     w, h = math.ceil(right), math.ceil(bottom)
     if w > W or h > H:
-        raise OverlayError(f"with its overlay the panel is {w}x{h} px, more than the {W}x{H} px the {fit[0]}x"
-                           f"{fit[1]} window leaves")
+        raise OverlayError(f"with its overlay the panel is {w}x{h} px, more than the {W}x{H} px it may take "
+                           f"(the {fit[0]}x{fit[1]} window, or the drawn panel where larger)")
     le.set("panelwidth", str(w))
     le.set("panelheight", str(h))
-    le.set("windowwidth", str(w + le_mod.CHROME[0]))
-    le.set("windowheight", str(h + le_mod.CHROME[1]))
+    le.set("windowwidth", str(min(w + le_mod.CHROME[0], fit[0])))
+    le.set("windowheight", str(min(h + le_mod.CHROME[1], fit[1])))
     return (w, h)
 
 

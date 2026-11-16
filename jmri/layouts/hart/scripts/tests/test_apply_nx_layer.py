@@ -104,7 +104,7 @@ class Slots(unittest.TestCase):
         self.assertIn('<sensoricon sensor="NX Mast 2L" x="382" y="242"', out)
         self.assertEqual(counts["generated"], 0)
 
-    def test_generated_panel_keeps_icon_spots_and_places_new_icons_by_their_mast(self) -> None:
+    def test_generated_panel_keeps_icon_spots_and_adds_no_icon(self) -> None:
         apply_nx = _load("apply_nx_layer")
         import sys
         sys.path.insert(0, str(SCRIPTS.parents[3] / "tools/hartlib/src"))
@@ -122,8 +122,9 @@ class Slots(unittest.TestCase):
                                     f"<!-- {tables.GENERATED_PANEL_MARKER} -->\n    "
                                     '<signalmasticon signalmast="Mast 2L"', 1)
         self.assertEqual(apply_nx.apply_text(quoted, mode="sml")[1]["generated"], 0)
-        # NX Mast 6LA has a pixel spot for the hand-drawn panel; here it goes by its own mast icon instead
-        self.assertIn(f'sensor="NX Mast 6LA" x="928" y="102"', out)
+        # NX Mast 6LA has no icon and gets none (owner, 2026-11-16); its sensor is still bound in its slot
+        self.assertNotIn('<sensoricon sensor="NX Mast 6LA"', out)
+        self.assertEqual(counts["icons"], 0)
 
 
 if __name__ == "__main__":

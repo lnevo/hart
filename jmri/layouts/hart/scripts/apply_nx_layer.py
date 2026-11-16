@@ -27,8 +27,9 @@ A mast whose NX sensor is already bound somewhere on the panel (a turnout leg's
 On a generated panel (build_layout_le.py --as-live; it holds the hidden
 hartlib.tables.GENERATED_PANEL_MARKER label) the pixel tables MAST_ALIGN and
 NX_ICON_POSITIONS are the hand-drawn panel's and are not used: mast icons and NX
-icons keep where they stand, and a missing NX icon goes on the facing side of its
-mast icon (nx_xy's rule for an unlisted mast).
+icons keep where they stand, and no NX icon is added (owner, 2026-11-16: the
+generated panel shows no NX sensor icons; the sensors bound in the mast slots are
+what Entry/Exit discovery and the pairs use).
 """
 
 from __future__ import annotations
@@ -226,9 +227,9 @@ def restyle_icons(panel: str) -> tuple[str, int]:
     return NX_ICON_RE.sub(repl, panel), changed
 
 
-def nx_xy(mast: str, x: float, y: float, degrees: float, generated: bool = False) -> tuple[int, int]:
-    """Approach-rail lamp, or a facing-side fallback for an unknown mast (every mast on a generated panel)."""
-    if mast in NX_ICON_POSITIONS and not generated:
+def nx_xy(mast: str, x: float, y: float, degrees: float) -> tuple[int, int]:
+    """Approach-rail lamp, or a facing-side fallback for an unknown mast."""
+    if mast in NX_ICON_POSITIONS:
         return NX_ICON_POSITIONS[mast]
     d = int(degrees) % 360
     along = 28
@@ -367,7 +368,7 @@ def patch_point(xml: str, bound: set[str] | None = None) -> str:
     return xml.replace(" class=", " " + " ".join(extra) + " class=", 1)
 
 
-def insert_icons(panel: str, generated: bool = False) -> tuple[str, int]:
+def insert_icons(panel: str) -> tuple[str, int]:
     present = set(re.findall(r'<sensoricon sensor="(NX [^"]+)"', panel))
     last = None
     for match in MAST_ICON_RE.finditer(panel):
@@ -379,7 +380,7 @@ def insert_icons(panel: str, generated: bool = False) -> tuple[str, int]:
         mast, x, y, degrees = match.group(1), float(match.group(2)), float(match.group(3)), float(match.group(4))
         if mast not in CTC_MASTS or user_name(mast) in present:
             continue
-        ix, iy = nx_xy(mast, x, y, degrees, generated)
+        ix, iy = nx_xy(mast, x, y, degrees)
         chunks.append(icon_xml(mast, ix, iy))
     if not chunks:
         return panel, 0
@@ -410,9 +411,8 @@ def apply_panel(panel: str, generated: bool = False) -> tuple[str, dict[str, int
 
     panel = TURNOUT_RE.sub(turnout_sub, panel)
     panel = POINT_RE.sub(point_sub, panel)
-    if generated:   # the hand-drawn panel's pixels do not apply: icons keep where they stand
-        aligned = moved = 0
-        panel, icons = insert_icons(panel, generated=True)
+    if generated:   # the hand-drawn panel's pixels do not apply: icons keep where they stand, none is added
+        aligned = moved = icons = 0
         panel, restyled = restyle_icons(panel)
     else:
         panel, aligned = align_masts(panel)

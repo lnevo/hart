@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from collections import Counter
 from pathlib import Path
 from unittest import mock
 
@@ -64,6 +65,11 @@ def strip_new(root) -> int:
             parent.remove(el)
             removed += 1
     return removed
+
+
+def is_new_name(name) -> bool:
+    """A main or upper level turnout name (Switch 101 to 245)."""
+    return bool(re.fullmatch(r"Switch [12]\d\d", name or ""))
 
 
 def used_blocks(le) -> set:
@@ -139,25 +145,35 @@ class Built(unittest.TestCase):
     def test_no_staging_object_is_created(self) -> None:
         for t in tables.turnouts(self.root):
             if is_new(t):
-                self.assertTrue(re.fullmatch(r"Switch [12]\d\d[AB]?", tables.user_name(t)), tables.user_name(t))
+                self.assertTrue(re.fullmatch(r"Switch [12]\d\d", tables.user_name(t)), tables.user_name(t))
         live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live)}
         staging = set(self.names[B.STAGING]["os"].values()) | {
             b for v in self.names[B.STAGING]["blocks"].values() for b in v}
         self.assertLessEqual(staging, live_lb)
 
-    # ---- main and upper placeholders, as C3 named them
-    def test_main_and_upper_placeholders(self) -> None:
+    # ---- main and upper: the device map's names (device_map_main_upper.csv)
+    def test_main_and_upper_device_map_names(self) -> None:
+        device = B.device_names()
         new_t = [tables.user_name(t) for t in tables.turnouts(self.root) if is_new(t)]
-        self.assertEqual(len(new_t), 51)
-        self.assertIn("Switch 223", new_t)             # T300 moved, its mark dropped from the name
-        self.assertIn("Switch 225", new_t)             # the double crossover
+        self.assertEqual(len(new_t), 41)                # one turnout per crossover (101A and 101B are Switch 101)
+        self.assertEqual(set(new_t), {v for k, v in device.items() if k.startswith("Switch ")})
+        self.assertIn("Switch 223", new_t)              # its trial name's mark dropped
+        self.assertIn("Switch 225", new_t)              # the double crossover
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
         self.assertEqual(len(new_lb), 121)
-        self.assertIn("OS Switch 135", new_lb)         # connector A joins 135A and 135B: their OS block
-        self.assertIn("Track e68+e81", new_lb)
-        self.assertFalse({b for b in new_lb if re.search(r"e\d+[xy]$", b)})
+        self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")})
+        self.assertIn("OS Switch 135", new_lb)          # connector A joins 135A and 135B: their OS block
+        self.assertIn("Track 135-H2", new_lb)           # the placeholder Track e68+e81
+        self.assertFalse({b for b in new_lb if re.search(r"\be\d+", b)})
         dx = [t for t in self.le.findall("layoutturnout") if t.get("type") == "DOUBLE_XOVER"]
         self.assertEqual([t.get("turnoutname") for t in dx], ["Switch 225"])
+        # a crossover's halves on one level are one single crossover; the helix-top 129 and 135 stand on two
+        # levels, so each is two Layout Editor turnouts on one turnout
+        xo = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout")
+                     if t.get("type") in ("RH_XOVER", "LH_XOVER") and is_new_name(t.get("turnoutname")))
+        self.assertEqual(set(xo), {f"Switch {n}" for n in (101, 103, 119, 213, 217, 221, 241, 245)})
+        twice = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout"))
+        self.assertEqual({n for n, c in twice.items() if c > 1}, {"Switch 129", "Switch 135"})
 
     def test_blocks_match_track(self) -> None:
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
@@ -253,7 +269,7 @@ class Built(unittest.TestCase):
     def test_live_tables_unchanged_but_for_the_additions(self) -> None:
         doc = tables.loads(self.data)
         removed = strip_new(doc.root)
-        self.assertEqual(removed, 1 + 51 + 3 * 121)
+        self.assertEqual(removed, 1 + 41 + 3 * 121)
         self.assertEqual(doc.tobytes(), paths.TABLES_XML.read_bytes())
 
     def test_no_name_collisions(self) -> None:
@@ -297,7 +313,7 @@ class Built(unittest.TestCase):
             path = Path(tmp) / "t.xml"
             path.write_bytes(self.data)
             _pp, _legs, turnouts, segs, signals, _st = RENDER.load_geometry(path, B.PANEL_NAME, curves=True)
-            self.assertEqual(len(turnouts), 71)
+            self.assertEqual(len(turnouts), 63)
             self.assertEqual(len(signals), len(self.P.masts))
             self.assertEqual({s["hidden"] for s in signals}, {True, False})
             shown = [s for s in self.le.findall("tracksegment") if s.get("hidden") != "yes"]
@@ -305,6 +321,82 @@ class Built(unittest.TestCase):
             labels, shapes = RENDER.load_decor(path, B.PANEL_NAME)
             self.assertEqual(len(shapes), 8)
             self.assertIn("MAIN LEVEL", {lb[0] for lb in labels})
+
+
+class DeviceNames(unittest.TestCase):
+    """device_map_main_upper.csv's trial_name maps each drawn placeholder to a device-map name; anything else stops."""
+    HEAD = "level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes\n"
+
+    def read(self, rows: str) -> dict:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "map.csv"
+            path.write_text(self.HEAD + rows, encoding="utf-8")
+            return B.device_names(path)
+
+    def test_the_committed_map(self) -> None:
+        got = B.device_names()
+        self.assertEqual(got["Switch 101A"], "Switch 101")
+        self.assertEqual(got["Switch 101B"], "Switch 101")
+        self.assertEqual(got["Switch 223"], "Switch 223")          # "Switch 223*" in the file
+        self.assertEqual(got["Track e68+e81"], "Track 135-H2")
+        self.assertEqual(len(got), 51 + 121)
+
+    def test_rows_read_and_bad_rows_stop(self) -> None:
+        got = self.read('2,,turnout,DCC Switch 101,MTT120,34,120,,,\n'
+                        '2,,turnout,Switch 101,M2T1,34,120,,"Switch 101A, Switch 101B",\n'
+                        '2,,fb,FB Switch 101 N,M2S1,34,,,,\n'
+                        '2,,block,Track 1-2,,,,,Track e1,\n')
+        self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track e1": "Track 1-2"})
+        for rows, why in (('2,,block,Track 1-2,,,,,,\n', "has no trial_name"),
+                          ('2,,block,Track 1-2,,,,,Track e1,\n2,,block,Track 3-4,,,,,Track e1,\n',
+                           "trial_name Track e1 is given to Track 1-2 and Track 3-4"),
+                          ('2,,turnout,Turnout 5,,,,,Switch 5,\n', "is not named"),
+                          ('2,,block,Siding,,,,,Track e1,\n', "is not named"),
+                          ('2,,fb,FB 1,,,,,,\n', "no turnout or block rows")):
+            with self.subTest(why=why), self.assertRaisesRegex(B.BuildError, why):
+                self.read(rows)
+        with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(B.BuildError, "cannot read"):
+            B.device_names(Path(tmp) / "none.csv")
+
+    def test_a_placeholder_with_no_name_or_a_name_with_no_placeholder_stops(self) -> None:
+        _sheet, le_mod, _core = B.plugin()
+        bands = B.schematic()[0]
+        device = B.device_names()
+        with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track e1'\\]"):
+            B.level_names(bands, le_mod, {k: v for k, v in device.items() if k != "Track e1"})
+        with self.assertRaisesRegex(B.BuildError, "does not have: \\['Track e999'\\]"):
+            B.level_names(bands, le_mod, dict(device, **{"Track e999": "Track 9-9"}))
+        names, lengths = B.placeholder_names(bands, le_mod)         # a length with no device-map row: named, no KeyError
+        with mock.patch.object(B, "placeholder_names", return_value=(names, dict(lengths, **{"Track e777": 1.0}))):
+            with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track e777'\\]"):
+                B.level_names(bands, le_mod, device)
+
+    def test_named_bands_join_a_crossovers_halves_and_name_one_track_per_block(self) -> None:
+        _sheet, le_mod, _core = B.plugin()
+        bands = B.schematic()[0]
+        names, _lengths = B.level_names(bands, le_mod)
+        B.shared_turnouts(names)
+        self.assertEqual(names["Main"]["shared_turnouts"], ["Switch 129", "Switch 135"])
+        self.assertEqual(names["Upper"]["shared_turnouts"], ["Switch 129", "Switch 135"])
+        drawn = B.named_bands(bands, names)
+        self.assertIs(drawn[0][1], bands[0][1])                 # staging as it is
+        main = drawn[1][1]
+        labels = {d.get("label") for d in main["nodes"].values()}
+        self.assertIn("101", labels)
+        self.assertNotIn("101A", labels)
+        self.assertIn("129A", labels)                           # its B half is on the upper level
+        self.assertEqual(drawn[1][2]["le_labels"], B.LEVEL_LE_LABELS)
+        named = [s["name"] for s in main["strands"].values() if s["name"]]
+        self.assertEqual(len(named), len(set(named)))           # one track per block
+        self.assertIn("McKees Rocks", named)                    # the helix track keeps its plan name
+        bad = copy.deepcopy(names)
+        n = next(k for k, d in bands[1][1]["nodes"].items() if d.get("label") == "101B")
+        bad["Main"]["turnouts"][n] = "Switch 999"
+        with self.assertRaisesRegex(B.BuildError, "joined as a crossover but the device map gives them two"):
+            B.named_bands(bands, bad)
+        prefs = [(t, b, dict(o, le_labels={})) for t, b, o in bands]
+        with self.assertRaisesRegex(B.BuildError, "already hold le_labels"):
+            B.named_bands(prefs, names)
 
 
 class Pieces(unittest.TestCase):
