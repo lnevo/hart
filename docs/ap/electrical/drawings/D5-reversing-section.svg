@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 402" width="740" height="402" role="img" aria-labelledby="t d" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
-<title id="t">D5 · Reversing section on an auto-reverser, with detection</title><desc id="d">DCC feeds an auto-reverser. Its output passes through the two channels of a DNCT2B detector to two detected sections of one reversing section, which is gapped in both rails at both outer ends. Both sections change polarity together.</desc>
-<rect width="740" height="402" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 408" width="740" height="408" role="img" aria-labelledby="t d" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
+<title id="t">D5 · Reversing section on an auto-reverser, with detection</title><desc id="d">DCC feeds an auto-reverser. Its output feeds the rail input of a DNCT2B detector, whose two outputs feed the two detected sections of one reversing section, gapped in both rails at both outer ends. Both sections change polarity together.</desc>
+<rect width="740" height="408" fill="#fff"/>
 <path d="M40,66 L700,66" fill="none" stroke="#b03a2e" stroke-width="2.2"/>
 <path d="M40,80 L700,80" fill="none" stroke="#121a22" stroke-width="2.2"/>
 <text x="44" y="58" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">DCC from the booster matrix (D1)</text>
@@ -9,35 +9,41 @@
 <text x="380.0" y="131.3" font-size="10" text-anchor="middle" fill="#121a22">NCE AR10 (RS-1) or PSXX-AR (RS-2)</text>
 <path d="M360,80 L360,100" fill="none" stroke="#121a22" stroke-width="1.4"/>
 <path d="M400,66 L400,100" fill="none" stroke="#b03a2e" stroke-width="1.4"/>
-<text x="512" y="130" font-size="9" fill="#b03a2e" text-anchor="start" font-weight="normal">output: both wires change polarity together</text>
-<path d="M350,144 L350,170 L210,170 L210,252" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
-<path d="M410,144 L410,164 A6,6 0 0 1 410,176 L410,182 L240,182 L240,260" fill="none" stroke="#121a22" stroke-width="1.6"/>
-<path d="M350,170 L520,170 L520,176 A6,6 0 0 1 520,188 L520,252" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
-<path d="M410,182 L550,182 L550,260" fill="none" stroke="#121a22" stroke-width="1.6"/>
-<circle cx="350" cy="170" r="3" fill="#b03a2e"/><circle cx="410" cy="182" r="3" fill="#121a22"/>
-<rect x="300" y="196" width="160" height="34" rx="3" fill="#e4ebf0" stroke="#121a22"/>
-<text x="380.0" y="210.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">DNCT2B</text>
-<text x="380.0" y="221.5" font-size="9" text-anchor="middle" fill="#121a22">channel 1 · channel 2</text>
-<ellipse cx="225" cy="214" rx="30" ry="9" fill="none" stroke="#1f5fa8" stroke-width="2"/>
-<ellipse cx="535" cy="214" rx="30" ry="9" fill="none" stroke="#1f5fa8" stroke-width="2"/>
-<path d="M300,213 L255,214" fill="none" stroke="#1f5fa8" stroke-width="1.2" stroke-dasharray="4 3"/>
-<path d="M460,213 L505,214" fill="none" stroke="#1f5fa8" stroke-width="1.2" stroke-dasharray="4 3"/>
-<path d="M120,252 L378,252 M120,260 L378,260" stroke="#b03a2e" stroke-width="2"/>
-<path d="M382,252 L640,252 M382,260 L640,260" stroke="#b03a2e" stroke-width="2"/>
-<path d="M40,252 L116,252 M40,260 L116,260" stroke="#5f6e7a" stroke-width="1.6"/>
-<path d="M644,252 L720,252 M644,260 L720,260" stroke="#5f6e7a" stroke-width="1.6"/>
-<path d="M115,247 L115,265 M121,247 L121,265" stroke="#b03a2e" stroke-width="2.4"/>
-<path d="M639,247 L639,265 M645,247 L645,265" stroke="#b03a2e" stroke-width="2.4"/>
-<path d="M377,247 L377,265 M383,247 L383,265" stroke="#1f5fa8" stroke-width="2.4"/>
-<text x="225" y="282" font-size="10" fill="#b03a2e" text-anchor="middle" font-weight="bold">section 1 (K-1 on RS-2)</text>
-<text x="535" y="282" font-size="10" fill="#b03a2e" text-anchor="middle" font-weight="bold">section 2 (K-2 on RS-2)</text>
-<text x="380" y="240" font-size="9" fill="#1f5fa8" text-anchor="middle" font-weight="normal">detection gap</text>
-<text x="380" y="298" font-size="9.5" fill="#5f6e7a" text-anchor="middle" font-weight="normal">Reversing section: both rails gapped at both ends (red), longer than the longest train</text>
-<text x="60" y="240" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">normal section</text>
-<text x="650" y="240" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">normal section</text>
-<text x="20" y="330" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">The auto-reverser&#x27;s output passes through the DNCT2B on its way to the track, so the reversing section is detected like any</text>
-<text x="20" y="344" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">other. RS-2 is split into two detected sections, K-1 and K-2, one on each channel of the same DNCT2B. Both are fed by the one</text>
-<text x="20" y="358" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">auto-reverser, so they always change polarity together: for wiring and troubleshooting they are one reversing section.</text>
-<text x="20" y="372" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">When a train bridges an outer gap with the polarity wrong, the auto-reverser sees the short and swaps its output in</text>
-<text x="20" y="386" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">milliseconds, before any breaker trips. RS-1 is wired the same way with one detected section on an NCE AR10.</text>
+<circle cx="360" cy="80" r="3" fill="#121a22"/><circle cx="400" cy="66" r="3" fill="#b03a2e"/>
+<text x="512" y="122" font-size="9" fill="#b03a2e" text-anchor="start" font-weight="normal">output: both rails change polarity together</text>
+<path d="M350,144 L350,170" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
+<path d="M410,144 L410,170" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<rect x="290" y="170" width="180" height="48" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="380.0" y="186.0" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">DNCT2B</text>
+<text x="380.0" y="197.0" font-size="9" text-anchor="middle" fill="#121a22">rail in: both rails</text>
+<text x="380.0" y="208.0" font-size="9" text-anchor="middle" fill="#121a22">output 1 · output 2</text>
+<path d="M120,266 L378,266 M120,274 L378,274" stroke="#b03a2e" stroke-width="2"/>
+<path d="M382,266 L640,266 M382,274 L640,274" stroke="#b03a2e" stroke-width="2"/>
+<path d="M40,266 L116,266 M40,274 L116,274" stroke="#5f6e7a" stroke-width="1.6"/>
+<path d="M644,266 L720,266 M644,274 L720,274" stroke="#5f6e7a" stroke-width="1.6"/>
+<path d="M115,261 L115,279 M121,261 L121,279" stroke="#b03a2e" stroke-width="2.4"/>
+<path d="M639,261 L639,279 M645,261 L645,279" stroke="#b03a2e" stroke-width="2.4"/>
+<path d="M377,261 L377,279 M383,261 L383,279" stroke="#1f5fa8" stroke-width="2.4"/>
+<path d="M290,186 L210,186 L210,266" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
+<path d="M290,202 L226,202 L226,274" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<path d="M470,186 L550,186 L550,266" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
+<path d="M470,202 L534,202 L534,274" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<circle cx="210" cy="266" r="3" fill="#b03a2e"/>
+<circle cx="226" cy="274" r="3" fill="#121a22"/>
+<circle cx="550" cy="266" r="3" fill="#b03a2e"/>
+<circle cx="534" cy="274" r="3" fill="#121a22"/>
+<text x="206" y="180" font-size="9" fill="#1f5fa8" text-anchor="end" font-weight="normal">output 1</text>
+<text x="556" y="180" font-size="9" fill="#1f5fa8" text-anchor="start" font-weight="normal">output 2</text>
+<text x="240" y="298" font-size="10" fill="#b03a2e" text-anchor="middle" font-weight="bold">section 1 (K-1 on RS-2)</text>
+<text x="520" y="298" font-size="10" fill="#b03a2e" text-anchor="middle" font-weight="bold">section 2 (K-2 on RS-2)</text>
+<text x="380" y="254" font-size="9" fill="#1f5fa8" text-anchor="middle" font-weight="normal">detection gap</text>
+<text x="380" y="314" font-size="9.5" fill="#5f6e7a" text-anchor="middle" font-weight="normal">Reversing section: both rails gapped at both ends (red), longer than the longest train</text>
+<text x="60" y="254" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">normal section</text>
+<text x="650" y="254" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">normal section</text>
+<path d="M380,218 L380,236" fill="none" stroke="#1f5fa8" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="388" y="232" font-size="9" fill="#1f5fa8" text-anchor="start" font-weight="normal">to DNCTA and LCOS node (as D2)</text>
+<text x="20" y="350" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">The auto-reverser&#x27;s output feeds the DNCT2B&#x27;s rail input, both rails. Each of the DNCT2B&#x27;s two outputs feeds one section,</text>
+<text x="20" y="364" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">so the reversing section is detected like any other. RS-2 is two detected sections, K-1 and K-2, on the two outputs of one</text>
+<text x="20" y="378" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">DNCT2B. Both are fed by the one auto-reverser, so they always change polarity together: for wiring and troubleshooting</text>
+<text x="20" y="392" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">they are one reversing section. RS-1 is wired the same way with one detected section on an NCE AR10.</text>
 </svg>
