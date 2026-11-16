@@ -26,13 +26,13 @@
 <path d="M879,237 L879,255 M885,237 L885,255" stroke="#121a22" stroke-width="2.4"/>
 <path d="M400,168 L400,190 L330,190 L330,242" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
 <path d="M414,168 L414,202 L346,202 L346,250" fill="none" stroke="#121a22" stroke-width="1.6"/>
-<path d="M560,128 L700,128 L700,242" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
-<path d="M560,142 L716,142 L716,250" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<path d="M560,128 L716,128 L716,250" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<path d="M560,142 L700,142 L700,242" fill="none" stroke="#b03a2e" stroke-width="1.6"/>
 <circle cx="330" cy="242" r="3" fill="#b03a2e"/>
 <circle cx="346" cy="250" r="3" fill="#121a22"/>
 <circle cx="700" cy="242" r="3" fill="#b03a2e"/>
 <circle cx="716" cy="250" r="3" fill="#121a22"/>
-<text x="256" y="186" font-size="9.5" fill="#1f5fa8" text-anchor="start" font-weight="normal">output 1</text>
+<text x="352" y="186" font-size="9.5" fill="#1f5fa8" text-anchor="start" font-weight="normal">output 1</text>
 <text x="724" y="124" font-size="9.5" fill="#1f5fa8" text-anchor="start" font-weight="normal">output 2</text>
 <text x="349" y="274" font-size="10" fill="#121a22" text-anchor="middle" font-weight="normal">Section A: gapped in both rails at both ends</text>
 <text x="706" y="274" font-size="10" fill="#121a22" text-anchor="middle" font-weight="normal">Section B (the board&#x27;s second output)</text>

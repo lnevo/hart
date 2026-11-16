@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 408" width="740" height="408" role="img" aria-labelledby="t d" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 440" width="740" height="440" role="img" aria-labelledby="t d" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
 <title id="t">D5 · Reversing section on an auto-reverser, with detection</title><desc id="d">DCC feeds an auto-reverser. Its output feeds the rail input of a DNCT2B detector, whose two outputs feed the two detected sections of one reversing section, gapped in both rails at both outer ends. Both sections change polarity together.</desc>
-<rect width="740" height="408" fill="#fff"/>
+<rect width="740" height="440" fill="#fff"/>
 <path d="M40,66 L700,66" fill="none" stroke="#b03a2e" stroke-width="2.2"/>
 <path d="M40,80 L700,80" fill="none" stroke="#121a22" stroke-width="2.2"/>
 <text x="44" y="58" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">DCC from the booster matrix (D1)</text>
@@ -46,4 +46,6 @@
 <text x="20" y="364" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">so the reversing section is detected like any other. RS-2 is two detected sections, K-1 and K-2, on the two outputs of one</text>
 <text x="20" y="378" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">DNCT2B. Both are fed by the one auto-reverser, so they always change polarity together: for wiring and troubleshooting</text>
 <text x="20" y="392" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">they are one reversing section. RS-1 is wired the same way with one detected section on an NCE AR10.</text>
+<text x="20" y="410" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">When a train&#x27;s wheels bridge an outer gap with the polarity wrong, the auto-reverser sees the short and swaps its output in</text>
+<text x="20" y="424" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">milliseconds, before any breaker trips, so the train runs through without stopping.</text>
 </svg>

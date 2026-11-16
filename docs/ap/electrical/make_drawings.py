@@ -391,11 +391,11 @@ def d2() -> str:
     # output 1 -> section A feeders, output 2 -> section B feeders
     b.append(wire(f"M400,168 L400,190 L330,190 L330,{y - 4}", RED, 1.6))
     b.append(wire(f"M414,168 L414,202 L346,202 L346,{y + 4}", INK, 1.6))
-    b.append(wire(f"M560,128 L700,128 L700,{y - 4}", RED, 1.6))
-    b.append(wire(f"M560,142 L716,142 L716,{y + 4}", INK, 1.6))
+    b.append(wire(f"M560,128 L716,128 L716,{y + 4}", INK, 1.6))   # outer wire to the lower rail, so the pair
+    b.append(wire(f"M560,142 L700,142 L700,{y - 4}", RED, 1.6))   # does not cross on its way down
     for x, yy, c in ((330, y - 4, RED), (346, y + 4, INK), (700, y - 4, RED), (716, y + 4, INK)):
         b.append(f'<circle cx="{x}" cy="{yy}" r="3" fill="{c}"/>')
-    b.append(label(256, 186, "output 1", 9.5, BLUE))
+    b.append(label(352, 186, "output 1", 9.5, BLUE))
     b.append(label(724, 124, "output 2", 9.5, BLUE))
     b.append(label(349, y + 28, "Section A: gapped in both rails at both ends", 10, INK, "middle"))
     b.append(label(706, y + 28, "Section B (the board's second output)", 10, INK, "middle"))
@@ -518,7 +518,9 @@ def d5() -> str:
     b.append(label(20, 364, "so the reversing section is detected like any other. RS-2 is two detected sections, K-1 and K-2, on the two outputs of one", 9.5, INK))
     b.append(label(20, 378, "DNCT2B. Both are fed by the one auto-reverser, so they always change polarity together: for wiring and troubleshooting", 9.5, INK))
     b.append(label(20, 392, "they are one reversing section. RS-1 is wired the same way with one detected section on an NCE AR10.", 9.5, INK))
-    return svg(740, 408, "\n".join(b), "D5 · Reversing section on an auto-reverser, with detection",
+    b.append(label(20, 410, "When a train's wheels bridge an outer gap with the polarity wrong, the auto-reverser sees the short and swaps its output in", 9.5, INK))
+    b.append(label(20, 424, "milliseconds, before any breaker trips, so the train runs through without stopping.", 9.5, INK))
+    return svg(740, 440, "\n".join(b), "D5 · Reversing section on an auto-reverser, with detection",
                "DCC feeds an auto-reverser. Its output feeds the rail input of a DNCT2B detector, whose two outputs feed the two "
                "detected sections of one reversing section, gapped in both rails at both outer ends. Both sections change "
                "polarity together.")

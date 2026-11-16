@@ -22,7 +22,7 @@ General tips: shoot in good light with the layout lights on; fill the frame with
 | PL-07 | `photos/crossover-gaps.jpg` | 4.2 Crossover | The crossover at Switch 23 or 35 from above, with the gaps in both rails between the two frogs marked. | in the SOQ (Switch 7 crossover, reshot) |
 | PL-08 | `photos/indication-normal.jpg` | 5.1 Turnout position | One turnout set normal, with its fascia lamp and the CTC/panel screen in the same frame (or a matching pair of photos). | in the SOQ (Switch 3 (DCC 102) points beside its Touch Toggle) |
 | PL-08 | `photos/indication-reverse.jpg` | 5.1 Turnout position | The same turnout set reverse, same framing. | in the SOQ (Switch 3 (DCC 102) points beside its Touch Toggle) |
-| PL-09 | `photos/dnct2b-feeders.jpg` | 5.2 Track occupancy | A DNCT2B under the layout with a section's two feeders visibly passing through one channel. | in the SOQ (owner photo) |
+| PL-09 | `photos/dnct2b-feeders.jpg` | 5.2 Track occupancy | A DNCT2B under the layout: rail input from the bus, its two outputs to the track, and its network cable to the DNCTA. | in the SOQ (owner photo) |
 | PL-10 | `photos/occupancy-panel.png` | 5.2 Track occupancy | Screenshot of the dispatcher panel (or the CTC desk) with a train's sections lit as occupied. A PNG screenshot is best. | in the SOQ (panel screenshot) |
 | PL-11 | `photos/bridge-node.jpg` | 5.3 Bridge | The bridge node (Nano + nRF24) with its USB cable to the PC that runs `serial_to_mqtt.py`. | in the SOQ (bridge node beside the PC and the Raspberry Pi) |
 

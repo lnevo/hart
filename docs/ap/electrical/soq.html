@@ -120,7 +120,16 @@
   <table id="tab-terminal">
     <caption>Terminal strip positions and wire colours (same on every strip)</caption>
     <thead><tr><th scope="col">Terminal</th><th scope="col">Carries</th><th scope="col">Wire colour</th></tr></thead>
-    <tbody><tr><td>1</td><td>DCC1 +</td><td><span class="swatch" style="background:#e01b1b;border-color:#999"></span><span class="swatch" style="background:#1d8a2e;border-color:#999"></span> Red, or Green on a secondary bus</td></tr><tr><td>2</td><td>DCC1 –</td><td><span class="swatch" style="background:#111111;border-color:#999"></span><span class="swatch" style="background:#7a5524;border-color:#999"></span> Black, or Brown on a secondary bus</td></tr><tr><td>3</td><td>DCC2 +</td><td><span class="swatch" style="background:#ffffff;border-color:#999"></span> White</td></tr><tr><td>4</td><td>DCC2 –</td><td><span class="swatch" style="background:#1f4fd6;border-color:#999"></span> Blue</td></tr><tr><td>5</td><td>+12 V</td><td><span class="swatch" style="background:#f5e400;border-color:#999"></span> Yellow</td></tr><tr><td>6</td><td>+5 V</td><td><span class="swatch" style="background:#e01b1b;border-color:#999"></span> Red</td></tr><tr><td>7</td><td>+3.3 V</td><td><span class="swatch" style="background:#f59a00;border-color:#999"></span> Orange</td></tr><tr><td>8</td><td>Ground</td><td><span class="swatch" style="background:#111111;border-color:#999"></span> Black</td></tr></tbody>
+    <tbody>
+      <tr><td>1</td><td>DCC1 +</td><td><span class="swatch" style="background:#e01b1b"></span><span class="swatch" style="background:#1d8a2e"></span> Red, or Green on a secondary bus</td></tr>
+      <tr><td>2</td><td>DCC1 –</td><td><span class="swatch" style="background:#111111"></span><span class="swatch" style="background:#7a5524"></span> Black, or Brown on a secondary bus</td></tr>
+      <tr><td>3</td><td>DCC2 +</td><td><span class="swatch" style="background:#ffffff"></span> White</td></tr>
+      <tr><td>4</td><td>DCC2 –</td><td><span class="swatch" style="background:#1f4fd6"></span> Blue</td></tr>
+      <tr><td>5</td><td>+12 V (switch machines, accessories)</td><td><span class="swatch" style="background:#f5e400"></span> Yellow</td></tr>
+      <tr><td>6</td><td>+5 V</td><td><span class="swatch" style="background:#e01b1b"></span> Red</td></tr>
+      <tr><td>7</td><td>+3.3 V</td><td><span class="swatch" style="background:#f59a00"></span> Orange</td></tr>
+      <tr><td>8</td><td>Ground</td><td><span class="swatch" style="background:#111111"></span> Black</td></tr>
+    </tbody>
   </table>
 
   <h3 id="req1-loop">Reverse loop</h3>
@@ -281,7 +290,7 @@
   <p><strong>Parts:</strong> DNCT2B and DNCTA detectors and LCOS nodes (Beagle Bay Inc.), JMRI for the panels. <strong>Drawing:</strong> D2. <strong>List of sections:</strong> Appendix B.</p>
   <div class="photo-row">
     <figure class="photo" id="photo-dnct" data-punch="PL-09">
-      <img src="photos/dnct2b-feeders.jpg" alt="A DNCT2B detector board mounted under the layout, with track wiring in its screw terminals and a network cable to its LCOS node.">
+      <img src="photos/dnct2b-feeders.jpg" alt="A DNCT2B detector board mounted under the layout, with track wiring in its screw terminals and a network cable to its DNCTA.">
       <figcaption>A DNCT2B detector under the layout: rail input from the bus, two outputs to the track, and the network cable to its DNCTA.</figcaption>
     </figure>
     <figure class="photo" id="photo-occ" data-punch="PL-10">
@@ -439,10 +448,10 @@ TX -&gt; track/sensor/1368 INACTIVE</pre>
 
 <section class="appendix">
   <h2 id="app-grid">Radio node grid</h2>
-  <p>Where each LCOS radio node sits in the layout room, by its radio address. The bridge node (015) and the nodes on the staging level are among those in service.</p>
+  <p>Where each LCOS radio node sits in the layout room, by its radio address. The yellow squares are explained below the grid.</p>
   <figure class="fig" id="fig-grid">
-    <img src="drawings/node-grid.svg" alt="Floor plan grid of the layout room. Orange squares are benchwork; each LCOS radio node address sits in the square where that node is mounted. Yellow squares are the nodes in service.">
-    <figcaption>Radio addresses on a floor plan of the layout room. Orange squares are benchwork, and each address is in the square where its node sits. Yellow squares are the nodes in service: the master (00), the five nodes that talk to it directly (01 to 05), 012 at East End, 013 at the Barn, and the bridge node, 015.</figcaption>
+    <img src="node-grid.svg" alt="Floor plan grid of the layout room. Orange squares are benchwork; each LCOS radio node address sits in the square where that node is mounted. Yellow squares mark the master, its direct nodes, two staging nodes and the bridge node.">
+    <figcaption>Radio addresses on a floor plan of the layout room. Orange squares are benchwork, and each address is in the square where its node sits. Yellow squares mark the master (00), the five nodes that talk to it directly (01 to 05), 012 at East End, 013 at the Barn, and the bridge node, 015.</figcaption>
   </figure>
 </section>
 

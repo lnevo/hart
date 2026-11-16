@@ -554,7 +554,6 @@ def main() -> None:
     import make_drawings
     make_drawings.main()
     scaled_plan()
-    shutil.copy(ROOT / "www/assets/behind/lcos-node-grid.svg", HERE / "drawings/node-grid.svg")   # grid of record (06c)
     BUILD.mkdir(exist_ok=True)
     doc, toc, figs, tabs, labels = render(a.date)
     records = "".join(f"<li>{html.escape(name)} <span class=\"pg\">(page {{{{REC{k}}}}})</span></li>"
@@ -563,6 +562,7 @@ def main() -> None:
     page_html = BUILD / "soq.html"
     for name in ("soq.css",):
         shutil.copy(HERE / name, BUILD / name)
+    shutil.copy(ROOT / "www/assets/behind/lcos-node-grid.svg", BUILD / "node-grid.svg")   # grid of record, copied fresh
     for sub in ("drawings", "photos"):
         link = BUILD / sub
         if link.is_symlink() or link.exists():   # a link left by a swept worktree dangles

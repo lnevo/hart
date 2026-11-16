@@ -23,7 +23,7 @@ Build (Mac, with PanelPro not needed): `/Users/lnevo/hart/.venv/bin/python docs/
 
 The document uses generic labels (RS-1, Y1–Y5, E1–E3 and so on); Appendix A maps them to the layout's names. The drawings are kept apart from the railroad's own schematics and wiring docs (owner, 2026-11-14).
 
-Owner facts (2026-11-15): the bus or an auto-reverser feeds a DNCT2B's rail input (both rails), each of its two outputs feeds one section's feeders, and a DNCTA links up to four DNCT2Bs to a client node (D2, D5); RS-2 is K-1 and K-2, one on each channel of one DNCT2B, and they change polarity together (D5). A crossover's two position contacts are wired in series to one N/R input pair, so the panel shows Inconsistent when the halves disagree (drawing D4, drawn from the owner's description; check against the wiring). The AR-10 is an NCE AR10 and RS-2 is on a DCC Specialties PSXX-AR; one TCS B-106 booster is installed, a second is planned if needed (the wiring deck's power district page shows the planned B2).
+Owner facts (2026-11-15): the bus or an auto-reverser feeds a DNCT2B's rail input (both rails), each of its two outputs feeds one section's feeders, and a DNCTA links up to four DNCT2Bs to a client node (D2, D5); RS-2 is K-1 and K-2, on the two outputs of one DNCT2B, and they change polarity together (D5). A crossover's two position contacts are wired in series to one N/R input pair, so the panel shows Inconsistent when the halves disagree (drawing D4, drawn from the owner's description; check against the wiring). The AR-10 is an NCE AR10 and RS-2 is on a DCC Specialties PSXX-AR; one TCS B-106 booster is installed, a second is planned if needed (the wiring deck's power district page shows the planned B2).
 
 ## Open before submission
 
