@@ -36,6 +36,7 @@ BUILD = HERE / "build"
 OUT_PDF = HERE / "MRE-Electrical-SOQ.pdf"
 FORM = HERE / "MRE-Electrical-SOQ-form.pdf"
 PUNCH = HERE / "PHOTO_PUNCH_LIST.md"
+SUBMITTED = HERE / "SUBMITTED.md"           # its presence freezes the package (sent 2026-11-15)
 BLOCKS = ROOT / "jmri/layouts/hart/data/block_lengths.csv"
 TRACK_PLAN = ROOT / "www/build/track-plan.html"
 DECKS = {"layout": ROOT / "docs/wiring/Layout Documentation.pptx", "nodes": ROOT / "docs/wiring/Wiring_Schematic.pptx"}
@@ -602,9 +603,16 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--html-only", action="store_true", help="write build/soq.html and stop")
     ap.add_argument("--date", default=dt.date.today().strftime("%-d %B %Y"))
+    ap.add_argument("--unfreeze", metavar="REASON",
+                    help="build or fill although SUBMITTED.md marks the package as sent (say why)")
     ap.add_argument("--member", type=Path, metavar="FILE",
                     help="fill the built PDF's form from this private TOML file and stop (output stays outside the repo)")
     a = ap.parse_args()
+    if SUBMITTED.exists() and not (a.unfreeze or "").strip():
+        die(f"the SOQ was submitted ({SUBMITTED.name}); it is final. Rebuild only for evaluator feedback, "
+            f"with --unfreeze \"reason\", and update {SUBMITTED.name} in the same change")
+    if SUBMITTED.exists():
+        print(f"build_soq: unfreezing the submitted SOQ: {a.unfreeze.strip()}")
     if a.member:
         fill_member(a.member)
         return

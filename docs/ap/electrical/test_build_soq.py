@@ -97,7 +97,16 @@ except ImportError:
 
 
 class MemberCopy(unittest.TestCase):
-    """--member: the private filled copy (dummy data, temporary folders outside the repo)."""
+    """--member: the private filled copy (dummy data, temporary folders outside the repo).
+
+    The package is frozen (SUBMITTED.md), so the committed PDF is never rebuilt and can look
+    older than the scripts; these tests are about filling, so the freshness check is set aside."""
+
+    def setUp(self):
+        from unittest import mock
+        patcher = mock.patch.object(build_soq, "stale_sources", return_value=[])
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def write(self, folder: Path, body: str) -> Path:
         f = folder / "member.toml"
@@ -194,6 +203,20 @@ class DeckCache(unittest.TestCase):
                     mock.patch.object(build_soq.subprocess, "run", side_effect=AssertionError("Keynote started")):
                 out = build_soq.export_decks(td)
         self.assertEqual(out["layout"], cached)
+
+
+class Frozen(unittest.TestCase):
+    """SUBMITTED.md freezes the package: no build or fill without --unfreeze and a reason."""
+
+    def test_build_and_fill_refuse_without_unfreeze(self):
+        from unittest import mock
+        self.assertTrue(build_soq.SUBMITTED.exists())
+        for argv in (["build_soq.py"], ["build_soq.py", "--member", "/tmp/x.toml"], ["build_soq.py", "--unfreeze", "  "]):
+            with mock.patch.object(sys, "argv", argv), \
+                    mock.patch("make_drawings.main", side_effect=AssertionError("drawings rebuilt")):
+                with self.assertRaises(SystemExit) as cm:
+                    build_soq.main()
+            self.assertIn("submitted", str(cm.exception))
 
 
 class BuiltPdf(unittest.TestCase):
