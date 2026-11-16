@@ -1027,7 +1027,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             fitted = le_mod.panel(bands, names, page=page, fit=FIT, row=STAGING_ROW, **extras).scale
             scale = (fitted[0] * STRETCH, fitted[1])
             draw = lambda e: le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0],  # noqa: E731
-                                          row=STAGING_ROW * scale[1], page=page, crossover_run=crossover_run(scale),
+                                          row=STAGING_ROW * scale[1], page=page,
+                                          crossover_run={STAGING: crossover_run(scale)[STAGING]},
                                           **e)
             P = draw(extras)
             xs = cluster_steps(P, STATION_STEPS) if extras else {}
@@ -1099,15 +1100,18 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     return doc.tobytes(), P, names, bands
 
 
-# The angle every single crossover crosses at on the cut-over candidates (owner, 2026-11-16): the schematic's own
-# diverging angle for turnouts and yard ladders, one grid column across per row, so 45 degrees on the sheet's square
-# grid. A crossover with no room for it is drawn as steep as it must be (the plugin logs which, at what angle).
-CROSSOVER_ANGLE = 45.0
+# The angle each level's crossovers (single and double) cross at on the cut-over candidates (owner, 2026-11-16):
+# staging at the schematic's own diverging angle for turnouts and yard ladders, one grid column across per row, so
+# 45 degrees on the sheet's square grid (30 would leave a staging track shorter than its switches' legs); main and
+# upper flatter, at 30. A crossover with no room for its angle is drawn as steep as it must be (the plugin logs
+# which, at what angle).
+CROSSOVER_ANGLES = {"Staging": 45.0, "Main": 30.0, "Upper": 30.0}
 
 
-def crossover_run(scale) -> float:
-    """px across a single crossover's diagonal runs at CROSSOVER_ANGLE, one row (STAGING_ROW at `scale`) deep."""
-    return STAGING_ROW * scale[1] / math.tan(math.radians(CROSSOVER_ANGLE))
+def crossover_run(scale) -> dict:
+    """{band key: px across} a crossover's diagonal runs at its level's CROSSOVER_ANGLES, one row (STAGING_ROW at
+    `scale`) deep."""
+    return {k: STAGING_ROW * scale[1] / math.tan(math.radians(a)) for k, a in CROSSOVER_ANGLES.items()}
 
 
 # px between the lowest thing of one level (labels, readouts, carried items) and the next level's title
