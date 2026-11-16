@@ -90,21 +90,9 @@
 .xw-tw .okline{border-top:1px solid var(--ink);margin-top:4px;padding-top:6px;color:var(--muted)}
 .xw-tw .okline b{color:var(--stamp)}
 
-/* title */
-.xw-title{position:relative;overflow:hidden;padding:0;margin-bottom:14px;height:clamp(190px,30vw,300px)}
-.xw-title svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-.xw-name{position:absolute;left:0;right:0;top:clamp(10px,3vw,26px);display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;pointer-events:none}
-.xw-name .road{font-family:var(--mono);font-size:clamp(10px,1.4vw,13px);letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
-.xw-name .big{font-family:var(--font-display);font-weight:700;font-size:clamp(46px,9vw,92px);line-height:.95;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);text-shadow:2px 2px 0 #e9dcb4,4px 4px 0 rgba(163,48,43,.55)}
-.xw-name .sub{font-family:var(--mono);font-size:clamp(10px,1.4vw,13px);color:var(--muted)}
-@media (prefers-reduced-motion:no-preference){
-  .xw-consist{animation:xw-roll 22s linear infinite}
-  .xw-smoke use{animation:xw-puff 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
-  .xw-smoke use:nth-child(2){animation-delay:.6s}.xw-smoke use:nth-child(3){animation-delay:1.2s}
-}
-@keyframes xw-roll{from{transform:translateX(-560px)}to{transform:translateX(980px)}}
-@keyframes xw-puff{0%{opacity:.9;transform:scale(.6) translateY(0)}100%{opacity:0;transform:scale(1.6) translateY(-26px)}}
-@media (prefers-reduced-motion:reduce){.xw-consist{transform:translateX(220px)}}
+/* title: a pixel-art screen drawn on a canvas at 256x128 and scaled up without smoothing */
+.xw-title{margin-bottom:14px;border:3px solid #0f1838;border-radius:4px;background:#0f1838;box-shadow:2px 3px 0 rgba(29,39,51,.2);line-height:0}
+.xw-title canvas{width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 /* start screen */
 .xw-start{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
 .xw-start .card{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
@@ -151,51 +139,8 @@
 
   <div class="xw" id="xw">
     <div id="xwStart">
-      <div class="xw-title xw-paper" role="img" aria-label="Title: Extra West, Kestrel Valley Railroad. A steam freight with a caboose runs west across the valley.">
-        <svg viewBox="0 0 960 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <defs>
-            <linearGradient id="xwSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9dcb4"/><stop offset="1" stop-color="#f5f0e1"/></linearGradient>
-            <g id="xwPole"><rect x="-1.5" y="-46" width="3" height="46" fill="#5d5a4e"/><rect x="-10" y="-42" width="20" height="2.5" fill="#5d5a4e"/></g>
-            <g id="xwPuff"><circle r="9" fill="#cfc3a2"/></g>
-          </defs>
-          <rect width="960" height="300" fill="url(#xwSky)"/>
-          <circle cx="880" cy="70" r="34" fill="#ead39a"/>
-          <path d="M0 200 L90 150 L170 178 L260 128 L360 172 L450 140 L560 182 L650 132 L760 170 L860 138 L960 176 L960 300 L0 300Z" fill="#d6c79f"/>
-          <path d="M0 222 L120 196 L240 214 L380 188 L520 216 L640 194 L780 212 L960 192 L960 300 L0 300Z" fill="#c3b287"/>
-          <g transform="translate(0 244)"><use href="#xwPole" x="60"/><use href="#xwPole" x="230"/><use href="#xwPole" x="400"/><use href="#xwPole" x="570"/><use href="#xwPole" x="740"/><use href="#xwPole" x="910"/>
-            <path d="M50 -41 Q145 -33 240 -41 Q315 -33 390 -41 Q485 -33 580 -41 Q655 -33 730 -41 Q825 -33 920 -41" fill="none" stroke="#5d5a4e" stroke-width="1"/></g>
-          <rect x="0" y="262" width="960" height="38" fill="#a99a72"/>
-          <rect x="0" y="258" width="960" height="4" fill="#1d2733"/>
-                    <g class="xw-consist">
-            <!-- caboose -->
-            <g transform="translate(0 0)" fill="#a3302b"><rect x="8" y="214" width="62" height="34" rx="2"/><rect x="26" y="200" width="24" height="15"/><rect x="22" y="198" width="32" height="3" fill="#1d2733"/><rect x="2" y="212" width="74" height="3" fill="#1d2733"/>
-              <rect x="16" y="222" width="10" height="9" fill="#f5f0e1"/><rect x="52" y="222" width="10" height="9" fill="#f5f0e1"/><circle cx="22" cy="252" r="7" fill="#1d2733"/><circle cx="56" cy="252" r="7" fill="#1d2733"/></g>
-            <!-- boxcar -->
-            <g fill="#6b4a33"><rect x="82" y="206" width="96" height="42" rx="1"/><rect x="118" y="210" width="24" height="36" fill="#5a3d29"/><rect x="80" y="203" width="100" height="4" fill="#1d2733"/>
-              <circle cx="96" cy="252" r="7" fill="#1d2733"/><circle cx="112" cy="252" r="7" fill="#1d2733"/><circle cx="148" cy="252" r="7" fill="#1d2733"/><circle cx="164" cy="252" r="7" fill="#1d2733"/></g>
-            <!-- gondola with a load -->
-            <g fill="#3d4652"><rect x="190" y="226" width="92" height="22"/><path d="M196 226 L214 214 L236 220 L258 212 L276 226Z" fill="#2a2f36"/>
-              <circle cx="204" cy="252" r="7" fill="#1d2733"/><circle cx="220" cy="252" r="7" fill="#1d2733"/><circle cx="252" cy="252" r="7" fill="#1d2733"/><circle cx="268" cy="252" r="7" fill="#1d2733"/></g>
-            <!-- tender -->
-            <g fill="#1d2733"><rect x="296" y="214" width="70" height="34" rx="2"/><rect x="300" y="208" width="62" height="7" fill="#2a2f36"/>
-              <circle cx="312" cy="252" r="7"/><circle cx="350" cy="252" r="7"/><text x="331" y="238" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="#e9dcb4" text-anchor="middle">KV</text></g>
-            <!-- engine 812, a 2-6-0 -->
-            <g fill="#1d2733">
-              <rect x="372" y="190" width="42" height="56" rx="2"/><rect x="366" y="186" width="54" height="6" rx="2"/><rect x="380" y="198" width="22" height="16" fill="#e9dcb4"/>
-              <rect x="412" y="210" width="96" height="30" rx="14"/><rect x="496" y="206" width="20" height="36" rx="3"/>
-              <rect x="498" y="182" width="12" height="26"/><rect x="494" y="178" width="20" height="6" rx="2"/>
-              <path d="M448 212 a12 10 0 0 1 24 0Z"/><path d="M424 212 a9 8 0 0 1 18 0Z"/>
-              <rect x="514" y="200" width="12" height="10" rx="2"/><circle cx="526" cy="205" r="3" fill="#ead39a"/>
-              <rect x="408" y="240" width="112" height="4"/>
-              <path d="M516 244 L540 258 L516 258Z"/>
-              <circle cx="434" cy="248" r="12"/><circle cx="462" cy="248" r="12"/><circle cx="490" cy="248" r="12"/><circle cx="520" cy="252" r="7"/>
-              <rect x="430" y="246" width="64" height="3" fill="#a3302b"/>
-              <text x="393" y="236" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#e9dcb4" text-anchor="middle">812</text>
-            </g>
-            <g class="xw-smoke"><use href="#xwPuff" x="504" y="168"/><use href="#xwPuff" x="490" y="150" transform-origin="490 150"/><use href="#xwPuff" x="470" y="134"/></g>
-          </g>
-        </svg>
-        <div class="xw-name"><span class="road">Kestrel Valley Railroad · Second Subdivision</span><span class="big">Extra West</span><span class="sub">Ashby to Ironton · 46 miles · single track</span></div>
+      <div class="xw-title" role="img" aria-label="Title screen in pixel art: HART Railroad presents Extra West, Kestrel Valley Railroad. A steam freight with a red caboose rolls west under a gold sun.">
+        <canvas id="xwTitleCv" width="256" height="114"></canvas>
       </div>
       <div class="xw-start">
         <div class="card xw-paper">
@@ -304,7 +249,7 @@ function hereName(){return S.moving?S.moving:ST[S.pos].n}
    why = explanation shown after any answer; src = deck source; sec = deck section. */
 function ask(o){
   return ()=>{
-    const opts=shuffle([{t:o.right,ok:true,c:o.ok||{}},...o.wrong.map(w=>({t:w[0],ok:false,c:w[1]||{min:5,marks:1},why:w[2]}))],RO);
+    const opts=shuffle([{t:o.right,ok:true,c:o.ok||{}},...o.wrong.map(w=>({t:w[0],ok:false,c:w[1]||{min:5,marks:1},why:w[2]}))],S.daily?seeded(S.daily+"|"+o.title+"|"+o.body):RO);
     const el=scene(o.where||hereName(),o.title,`<p>${o.body}</p>${o.extra||""}<div class="choices">${opts.map((x,i)=>`<button class="xw-btn opt" data-i="${i}">${esc(x.t)}</button>`).join("")}</div><div class="result" hidden></div>`);
     const box=el.querySelector(".choices");
     box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
@@ -464,6 +409,7 @@ function solvePar(){
     }
     const waits=S.tt.trains.map(tr=>tr.act[k]).filter(t=>t!==undefined&&t>c).sort((x,y)=>x-y);
     if(waits.length)go(k,waits[0],stopped||k===office);
+    else if(c<S.start+720)go(k,c+10,stopped||k===office);
   }
   go(0,S.start,false);
   return best;
@@ -569,7 +515,7 @@ function resolveMove(k,j,delay,getProt){
     if(prot==="ok")notes.push(info(null,"Flagged",`<p>${esc(sev2.tr.name)} came up while you stood on the main. Your flagman stopped it, and it followed you in at restricted speed.</p>`));
     else{animateTo(j,()=>crash(sev2,k,j,true));return}
   }
-  animateTo(j,()=>{S.clock=a1+extra;S.pos=j;S.moving=null;S.inSiding=ST[j].sd&&j<LAST;front(...notes);arriveTTO(j)});
+  animateTo(j,()=>{S.clock=a1+extra;S.pos=j;S.moving=null;S.inSiding=ST[j].sd&&j<LAST;arriveTTO(j,notes)});
 }
 function marginMiss(p,j){
   return ask({miss:true,sec:"sup",src:"SC · Rule S-87",title:"Too close to "+p.tr.name,body:`You got into the siding at ${ST[j].n} only ${Math.max(0,p.by)} minutes ahead of ${p.tr.name}'s time there. By how much must an extra clear the time of an opposing regular train?`,right:"Not less than 5 minutes",wrong:[["Any margin, as long as it is in the clear"],["Not less than 2 minutes"],["Only to the leaving time"]],ok:{marks:1},okText:"Right, and you did not. +1 mark.",why:"Rule S-87: extras must clear the time of opposing regular trains by not less than 5 minutes unless otherwise provided. The TT&TO primer quotes 10 minutes."});
@@ -593,39 +539,26 @@ function crash(p,k,j,stopped){
 function hotBox(k,j,setProt){
   return ()=>{
     S.moving=ST[k].n+" and "+ST[j].n;
-    const can=S.fus>=1&&S.torp>=2;
-    const el=scene(S.moving,"Hot box","<p>Smoke from a journal on the ninth car. The engineer stops Extra 812 West on the main track to cool and repack it, about 15 minutes. Trains may come up behind you or against you.</p><p>What protection do you give the train?</p><div class='choices' id='hb'></div><div class='result' hidden></div>");
-    const opts=shuffle([
-      {t:"Flagman goes back with two torpedoes and a lighted fusee; the front is protected the same way",ok:true},
-      {t:"Leave the marker lamps lit; that is protection enough",ok:false},
-      {t:"No protection; the stop is short",ok:false},
-      {t:"Flagman drops a lighted fusee while the train stands",ok:false}],RO);
-    $("hb").innerHTML=opts.map((o,i)=>`<button class="xw-btn opt" data-i="${i}">${esc(o.t)}</button>`).join("");
-    $("hb").querySelectorAll("button").forEach(b=>b.onclick=()=>{
-      const o=opts[+b.dataset.i];
-      $("hb").classList.add("done");$("hb").querySelectorAll("button").forEach(z=>z.disabled=true);
-      b.classList.add(o.ok?"right":"wrong");
-      if(!o.ok)$("hb").querySelectorAll("button").forEach((z,i)=>{if(opts[i].ok)z.classList.add("right")});
-      let txt;
-      if(o.ok&&can){S.fus-=1;S.torp-=2;setProt("ok");txt="The engineman whistles — o o o and the flagman goes back. He places two torpedoes, and when he is called in he leaves them and a lighted fusee. (Uses 1 fusee and 2 torpedoes.)";log("✓ Rule 99 protection at hot box")}
-      else if(o.ok){setProt("none");S.marks++;txt="Right idea, but the caboose is short: you need two torpedoes and a fusee, and you do not have them. The train stands unprotected. +1 mark.";S.misses.push({title:"Hot box: no flag equipment",why:"Rule 99 needs two torpedoes and, when necessary, lighted fusees. Sign out enough at the start.",src:"SC · Rule 99",sec:"sup"});log("✗ Out of flag equipment")}
-      else{setProt("none");S.marks++;txt="Not right. +1 mark. A stopped train that may be overtaken is protected by the flagman going back with two torpedoes and, when necessary, lighted fusees. Dropping fusees at intervals is the protection for a moving train.";S.misses.push({title:"Hot box protection",why:"Rule 99 (stopped): the flagman goes back with two torpedoes and lighted fusees when necessary; the front is protected the same way when necessary.",src:"SC · Rule 99",sec:"sup"});log("✗ Hot box protection")}
-      const r=document.querySelector("#xwScene .result");r.hidden=false;
-      r.innerHTML=`<p>${esc(txt)}</p><div class="src">${esc(srcLabel("SC · Rule 99"))}</div><div><button class="xw-btn primary" id="xwGo">${S.marks>=MAXMARKS?"See the record":"Continue"}</button></div>`;
-      renderStatus();
-      $("xwGo").onclick=()=>{$("xwGo").disabled=true;if(S.marks>=MAXMARKS){finish("Five marks on the record. You are pulled from service.",true);return}next()};
-    });
+    const can=S.fus>=1&&S.torp>=2; // Rule 99 needs two torpedoes and a fusee
+    ask({sec:"sup",src:"SC · Rule 99",miss:!can,title:"Hot box",
+      body:"Smoke from a journal on the ninth car. The engineer stops Extra 812 West on the main track to cool and repack it, about 15 minutes. Trains may come up behind you or against you. What protection do you give the train?",
+      right:"Flagman goes back with two torpedoes and a lighted fusee; the front is protected the same way",
+      wrong:[["Leave the marker lamps lit; that is protection enough",{marks:1}],["No protection; the stop is short",{marks:1}],["Flagman drops a lighted fusee while the train stands",{marks:1},"Dropping fusees at intervals protects a moving train."]],
+      ok:can?{}:{marks:1},
+      okText:can?"Right. The engineman whistles — o o o and the flagman goes back. (Uses 1 fusee and 2 torpedoes.)":"Right, but the caboose is short of flag equipment, so the train stands unprotected. +1 mark.",
+      why:"Rule 99: a stopped train that may be overtaken is protected by the flagman going back with two torpedoes and, when necessary, lighted fusees; when called in he leaves the torpedoes and a lighted fusee. The front is protected the same way when necessary."+(can?"":" Sign out enough at the start."),
+      after:ok=>{if(ok&&can){S.fus-=1;S.torp-=2;setProt("ok")}else setProt("none")}})();
   };
 }
-function arriveTTO(j){
+function arriveTTO(j,notes){
   log("Arrives "+ST[j].n);
   const scenes=[];
-  if(j===LAST){front(stationTTO);next();return}
+  if(j===LAST){front(...(notes||[]),stationTTO);next();return}
   if(j===S.officeOrders&&!S.used.has("orders")){S.used.add("orders");scenes.push(...orderBoard(j))}
   if(S.meet&&j===S.meet.at&&!S.used.has("s88")){S.used.add("s88");scenes.push(ask({sec:"sup",src:"SC · Rule S-88",title:"Meeting Extra 530 East",body:"Your order says Extra 812 West meet Extra 530 East at Granite. Eastward trains are superior by direction. Which extra takes the siding?",right:"Extra 812 West, the train in the inferior time-table direction",wrong:[["Extra 530 East, because it is the opposing train"],["Whichever arrives first"],["The one with the higher engine number"]],why:"Rule S-88: when two extras meet, the train in the inferior time-table direction takes the siding, unless otherwise provided. Form S-A: neither train goes past Granite until both have arrived."}))}
   if(!S.used.has("r104")&&j>0){S.used.add("r104");scenes.push(ask({sec:"sup",src:"SC · Rule 104",title:"The siding switch",body:"Your head brakeman lined the switch at "+ST[j].n+" and the train pulled into the siding. Who is responsible for that switch now?",right:"You, the conductor: it must be lined back for the main track",wrong:[["The section foreman"],["The engineman"],["Nobody; leave it open for the next train"]],why:"Rule 104: conductors are responsible for the position of switches used by them and their crews, except where switch tenders are stationed. A switch must not be left open for another train unless a member of that train's crew is in charge of it."}))}
   else{const ev=drawStation();if(ev)scenes.push(ev)}
-  front(...scenes,stationTTO);next();
+  front(...(notes||[]),...scenes,stationTTO);next();
 }
 function orderBoard(j){
   const out=[];
@@ -636,12 +569,12 @@ function orderBoard(j){
   const orders=[];
   if(cand.length){
     const tr=pick(cand,RW),L=pick([20,25,30,35],RW);
-    orders.push({no:n1,text:`${tr.name} run ${L} mins late Ironton to Ashby`,apply:()=>{tr.late+=L;tr.act=tr.act.map(x=>x+L)},tr,L});
+    orders.push({no:n1,text:`${tr.name} run ${L} mins late Ironton to Ashby`,apply:()=>{tr.late+=L;tr.act=tr.act.map(x=>x>S.clock?x+L:x)},tr,L});
   }
   const meet=(RW()<.6||!cand.length)&&j<6;
   const meetAfter=rnd(30,50,RW);
   if(meet)orders.push({no:n1+(orders.length?1:0),text:"Extra 812 West meet Extra 530 East at Granite",apply:()=>{
-    const t=new Array(ST.length);t[LAST]=S.clock+meetAfter;for(let i=LAST-1;i>=6;i--)t[i]=Math.round(t[i+1]+(ST[i+1].mp-ST[i].mp)*3.3);
+    const t=new Array(ST.length);t[LAST]=S.start+150+meetAfter;for(let i=LAST-1;i>=6;i--)t[i]=Math.round(t[i+1]+(ST[i+1].mp-ST[i].mp)*3.3);
     const tr={id:"530",name:"Extra 530 East",dir:"E",cls:"Extra",t:t.slice(),act:t,meetOnly:true,meetAt:6,late:0};
     S.tt.trains.push(tr);S.meet={at:6,tr};
   }});
@@ -710,10 +643,13 @@ const STN_TTO=[
 function drawRoad(){return drawFrom("road",S.era==="tto"?ROAD_TTO:ROAD_TWC,.7)}
 function drawStation(){return drawFrom("stn",S.era==="tto"?STN_TTO:[],.6)}
 function drawFrom(key,pool,p){
-  if(!pool.length||RE()>p)return null;
+  if(!pool.length)return null;
+  // Each kind of draw has its own stream, so the n-th draw does not depend on how many draws of other kinds came first.
   S.pools=S.pools||{};
-  if(!S.pools[key]||!S.pools[key].length)S.pools[key]=shuffle(pool.map((_,i)=>i),RE);
-  const i=S.pools[key].pop();
+  const st=S.pools[key]=S.pools[key]||{r:S.daily?seeded("extra-west|"+S.daily+"|"+S.era+"|"+key):Math.random,left:[]};
+  if(st.r()>p)return null;
+  if(!st.left.length)st.left=shuffle(pool.map((_,i)=>i),st.r);
+  const i=st.left.pop();
   return pool[i]();
 }
 
@@ -810,7 +746,7 @@ function startTWC(){
     ask({sec:"yl",src:"GC · 6.13",title:"Moving up to the limit sign",body:"You pull up the main inside the Ashby yard limits toward the yard limit sign. There is no block signal. At what speed?",right:"Restricted speed",wrong:[["Yard speed, unless the main is known to be clear"],["Maximum authorized speed"],["10 MPH"]],why:"GCOR 6.13: within yard limits, movements are made at restricted speed unless a block signal shows something more favorable than Approach. “Yard speed unless known clear” is the Standard Code wording."}),
     ask({sec:"twc",src:"GC · 14.8",title:"Calling the dispatcher",body:"At the yard limit sign you call the dispatcher for a track warrant. What do you tell him?",right:"What movements you will make and, when necessary, which tracks and how much time you need",wrong:[["Your train's tonnage and car count"],["Only your train symbol; he works out the rest"],["The OK time you would like"]],why:"GCOR 14.8: tell the dispatcher what movements will be made and, when necessary, which tracks and how much time is required."}),
     warrantCopy(w1),
-    ask({sec:"twc",src:"GC · 14.9",title:"The OK time",body:"The dispatcher has given the OK time and his initials. What do you do now?",right:"Write the OK time and initials on the warrant and repeat them",wrong:[["Highball the engineer and go; the warrant is good",{end:true,endText:"You left before the OK time and initials were on the warrant and repeated back."}],["Wait for a written copy at the next station"],["Read the box numbers back again"]],why:"GCOR 14.9 step 4: the employee writes the OK time and initials and repeats them. A warrant is not in effect until the OK time is shown on it: an authority without an OK time is just a piece of paper."}),
+    ask({sec:"twc",src:"GC · 14.9",title:"The OK time",body:"The dispatcher has given the OK time and his initials. What do you do now?",right:"Write the OK time and initials on the warrant and repeat them",wrong:[["Highball the engineer and go; the warrant is good",{end:true,endText:"You left before the OK time and initials were on the warrant and repeated back."}],["Wait for a written copy at the next station"],["Read the box numbers back again"]],why:"GCOR 14.9 step 4: the employee writes the OK time and initials and repeats them. A warrant is not in effect until the OK time is shown on it."}),
     ask({sec:"twc",src:"GC · 14.9",title:"Copies",body:"Who must have a copy of warrant 101?",right:"The conductor and the engineer, each copy dated",wrong:[["Only you, the conductor"],["Only the engineer, who runs the train"],["The dispatcher keeps the only copy"]],why:"GCOR 14.9: the conductor and the engineer each have a copy, every crew member must read and understand it, and the copy shows the date."}),
     legTWC(0,1),
     legTWC(1,2,box12?[ask({sec:"sig",src:"GC · 5.8.2",where:"Birchwood to Cobb",title:"Men on the track",body:"Box 12 is in your warrant. Rounding a curve you see a track gang ahead at Cobb. What whistle signal?",right:"— o, then o o at intervals until the head end has passed them",wrong:[["A succession of short sounds"],["— — o —"],["None; Box 12 replaces the whistle"]],why:"GCOR 5.8.2 (8): — o approaching men or equipment, regardless of whistle prohibitions; then o o intermittently until the head end has passed. It cannot be replaced by radio."}),ask({sec:"gcor",src:"GC · 6.27",where:"Birchwood to Cobb",title:"How long at restricted speed?",body:"Box 12 puts you at restricted speed between Birchwood and Cobb. When may you resume speed?",right:"When the leading wheels pass the end of the restriction",wrong:[["When the rear car passes the end"],["When you see a clear signal"],["When the foreman waves you by"]],why:"GCOR 6.27: restricted speed applies until the leading wheels pass the point where it is no longer required. Not over 20 MPH, able to stop within half the range of vision."})]:null),
@@ -880,8 +816,9 @@ function finish(text,failed){
   const runs=store.get("xw_runs",[]);runs.unshift({era:S.era,when:Date.now(),marks:S.marks,time,failed,verdict,daily:S.daily});store.set("xw_runs",runs.slice(0,20));
   const era=S.era,daily=S.daily;
   if(daily){
-    const key="xw_daily_"+daily+"_"+era,first=store.get(key,null);
-    const mine={verdict,marks:S.marks,time,failed};
+    const key="xw_daily_"+daily+"_"+era,stored=store.get(key,null);
+    const mine={id:S.attempt,verdict,marks:S.marks,time,failed};
+    const first=stored&&stored.id!==S.attempt?stored:null;
     if(!first)store.set(key,mine);
     const rec=first||mine;
     const line=`Extra West, daily run ${daily}, ${era==="tto"?"1949 time-table and train orders":"modern track warrants"}: ${rec.verdict}, ${rec.marks} mark${rec.marks===1?"":"s"}${rec.failed?"":", "+Math.floor(rec.time/60)+"h "+String(rec.time%60).padStart(2,"0")+"m on the road"}. ${location.origin.startsWith("http")?location.origin+location.pathname:"hartrailroad.com/exam/run.html"}`;
@@ -933,7 +870,8 @@ function renderSheet(){
 function begin(era,daily){
   if(daily){const k="extra-west|"+today()+"|"+era;R=seeded(k+"|setup");RW=seeded(k+"|orders");RE=seeded(k+"|events");RO=seeded(k+"|answers")}
   else R=RW=RE=RO=Math.random;
-  S=newState(era);S.daily=daily?today():null;queue=[];$("xwLog").innerHTML="";trainMp=100;
+  S=newState(era);S.daily=daily?today():null;queue=[];
+  if(daily){S.attempt=Date.now();const key="xw_daily_"+S.daily+"_"+era;if(!store.get(key,null))store.set(key,{id:S.attempt,verdict:"Did not finish",marks:0,time:0,failed:true})}$("xwLog").innerHTML="";trainMp=100;
   $("xwStart").hidden=true;$("xwGame").hidden=false;
   renderStatus();renderSheet();
   window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:reduced?"auto":"smooth"});
@@ -946,6 +884,74 @@ function showStart(){
   const d=today();[["tto","dTto"],["twc","dTwc"]].forEach(([e,id])=>{const r=store.get("xw_daily_"+d+"_"+e,null);$(id).textContent=r?`played: ${r.verdict}, ${r.marks} mark${r.marks===1?"":"s"}`:d});
   $("xwBest").textContent=runs.length?`Your best in this browser. 1949: ${best("tto")}. Modern: ${best("twc")}.`:"";
 }
+/* ---------- title screen (pixel art) ---------- */
+(function title(){
+  const cv=$("xwTitleCv");if(!cv)return;
+  const g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  const NAVY="#0f1838",SKY1="#1b2a5e",SKY2="#2b3f86",SKY3="#4a5fae",GOLD="#f2c94c",CREAM="#f5f0e1",RED="#b8322b",HILL1="#24346e",HILL2="#18244f",GROUND="#3a3a2a",RAIL="#8a7f6a",INK="#0b0f1f";
+  const FONT={A:"01110100011000111111100011000110001",D:"11110100011000110001100011000111110",E:"11111100001000011110100001000011111",H:"10001100011000111111100011000110001",
+    I:"11111001000010000100001000010011111",K:"10001100101010011000101001001010001",L:"10000100001000010000100001000011111",N:"10001110011010110011100011000110001",
+    O:"01110100011000110001100011000101110",P:"11110100011000111110100001000010000",R:"11110100011000111110101001001010001",S:"01111100001000001110000010000111110",
+    T:"11111001000010000100001000010000100",V:"10001100011000110001100010101000100",W:"10001100011000110101101011010101010",X:"10001100010101000100010101000110001",
+    Y:"10001100010101000100001000010000100"," ":"00000000000000000000000000000000000"};
+  function text(str,x,y,sc,col,shadow){
+    const w=str.length*6*sc-sc;if(x==="c")x=Math.round((W-w)/2);
+    for(const pass of shadow?[[shadow,1],[col,0]]:[[col,0]]){
+      g.fillStyle=pass[0];[...str].forEach((ch,i)=>{const f=FONT[ch]||FONT[" "];for(let r=0;r<7;r++)for(let c=0;c<5;c++)if(f[r*5+c]==="1")g.fillRect(x+pass[1]+(i*6+c)*sc,y+pass[1]+r*sc,sc,sc)});
+    }
+  }
+  // the still part of the picture, drawn once
+  const bg=document.createElement("canvas");bg.width=W;bg.height=H;const b=bg.getContext("2d");
+  [[0,SKY1],[30,SKY2],[52,SKY3]].forEach(([y,c],i,arr)=>{b.fillStyle=c;b.fillRect(0,y,W,(arr[i+1]?arr[i+1][0]:H)-y)});
+  b.fillStyle=SKY2;for(let x=0;x<W;x+=2)b.fillRect(x+(x/2%2),29,1,1); // dithered band edges
+  b.fillStyle=SKY3;for(let x=0;x<W;x+=2)b.fillRect(x+(x/2%2),51,1,1);
+  b.fillStyle=GOLD;for(let dy=-8;dy<=8;dy++){const w=Math.round(Math.sqrt(64-dy*dy));b.fillRect(212-w,68+dy,w*2+1,1)} // setting sun
+  function ridge(base,amp,step,col,seed){b.fillStyle=col;let h=0;for(let x=0;x<W;x++){if(x%step===0)h=Math.round(amp*(.5+.5*Math.sin(x*.045+seed)+.35*Math.sin(x*.13+seed*2)));b.fillRect(x,base-h,1,H)}}
+  ridge(84,22,4,HILL1,1.3);ridge(92,14,3,HILL2,4.1);
+  b.fillStyle=GROUND;b.fillRect(0,104,W,H-104);
+  b.fillStyle=RAIL;b.fillRect(0,103,W,1);for(let x=0;x<W;x+=4)b.fillRect(x,105,2,1);
+  b.fillStyle=INK;for(let x=10;x<W;x+=48){b.fillRect(x,82,1,21);b.fillRect(x-3,83,7,1)} // telegraph poles
+  b.fillStyle="#141c3d";for(let x=10;x<W-48;x+=48)for(let i=0;i<48;i++)b.fillRect(x+i,84+Math.round(2*Math.sin(Math.PI*i/48)),1,1);
+  // a few stars
+  b.fillStyle=CREAM;[[18,8],[44,20],[90,6],[130,16],[172,9],[236,22],[60,4],[150,26]].forEach(([x,y])=>b.fillRect(x,y,1,1));
+  // the train, 92 px long, facing west (right)
+  function train(x,f){
+    const R=(c,a,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x+a),y,w,h)};
+    // caboose
+    R(RED,0,92,14,9);R(RED,4,88,6,4);R(INK,3,87,8,1);R(CREAM,2,94,3,2);R(CREAM,9,94,3,2);
+    // boxcar
+    R("#6b4a33",16,90,20,11);R("#5a3d29",23,91,6,9);
+    // gondola with coal
+    R("#3d4652",38,95,18,6);R(INK,39,93,16,2);
+    // tender
+    R(INK,58,92,14,9);R("#2a2f36",59,90,12,2);
+    // engine 812: cab, boiler, stack, dome, headlight, pilot
+    R(INK,73,86,9,15);R(GOLD,75,88,4,4);R(INK,82,92,18,7);R(INK,95,85,3,7);R(INK,94,84,5,1);R(INK,88,90,3,2);R(GOLD,100,92,2,2);R(INK,99,99,4,2);
+    // wheels and rods, turning
+    for(const a of [3,10,18,26,32,44,52,60,69])R(INK,a,101,3,2);
+    for(const a of [84,89,94])R(INK,a,99,4,4);
+    R(RED,84,100+(f%2),14,1);
+    // smoke
+    for(let i=0;i<4;i++){const p=(f+i*3)%12;g.fillStyle=`rgba(245,240,225,${(1-p/12)*.8})`;g.fillRect(Math.round(x+96-p*2.2),82-p*2,2+(p>>2),2+(p>>2))}
+  }
+  // the HART herald, pixelated to 30 px
+  const logo=new Image();let logoReady=false;logo.onload=()=>{logoReady=true;if(still)draw(0)};logo.src="../assets/media/hart-logo.png";
+  function draw(t){
+    g.drawImage(bg,0,0);
+    if(logoReady){g.save();g.beginPath();g.arc(19,19,15,0,Math.PI*2);g.clip();g.imageSmoothingEnabled=true;g.drawImage(logo,112,112,800,800,4,4,30,30);g.restore()}
+    text("HART RAILROAD PRESENTS","c",9,1,CREAM);
+    text("EXTRA WEST","c",22,3,GOLD,RED);
+    text("KESTREL VALLEY RAILROAD","c",48,1,CREAM);
+    const span=W+110,x=still?120:((t/40)%span)-100;
+    train(x,Math.floor(t/120));
+  }
+  const still=reduced;
+  if(still){draw(0);return}
+  let raf=0;const loop=t=>{draw(t);raf=requestAnimationFrame(loop)};
+  // run only while the title is on screen
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&!raf)raf=requestAnimationFrame(loop);else if(!e.isIntersecting&&raf){cancelAnimationFrame(raf);raf=0}})});
+  io.observe(cv);draw(0);
+})();
 document.querySelectorAll("[data-era]").forEach(b=>b.onclick=()=>begin(b.dataset.era,b.hasAttribute("data-daily")));
 showStart();
 })();
