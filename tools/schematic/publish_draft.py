@@ -18,6 +18,12 @@ When the drawing itself (everything but the title block) differs from main's, pu
 from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
 whole number is left alone. If anything fails after that, the preferences file is put back.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
+
+Importing this module turns on the plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic)
+for this process and the plugin commands it runs, so publishing, build_layout_le.py, build_cats_panel.py and
+build_device_map.py solve the same inputs once between them. The key covers the plugin's source, the graphs and
+the layer files, so a SCHEMATIC_PLUGIN trial or an edited layer file solves again. SCHEMATIC_CACHE= (empty) turns
+it off.
 """
 import csv
 import datetime
@@ -35,6 +41,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
+os.environ.setdefault("SCHEMATIC_CACHE", str(Path.home() / ".cache/hart/schematic"))
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
