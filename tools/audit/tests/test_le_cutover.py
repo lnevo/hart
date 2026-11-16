@@ -550,9 +550,10 @@ class ThreeLevels(unittest.TestCase):
             number = re.sub(r"\D", "", t.get("turnoutname") or "")
             with self.subTest(crossover=t.get("turnoutname")):
                 if number in limited:
-                    self.assertGreater(angle, min(B.CROSSOVER_ANGLES.values()) - 0.1)
+                    self.assertGreater(angle, min(B.CROSSOVER_ANGLES.values()) - 0.5)
                 else:
-                    self.assertIn(round(angle, 1), set(B.CROSSOVER_ANGLES.values()))
+                    # whole pixels (JMRI rebuilds the points exactly): within half a degree of its level's angle
+                    self.assertTrue(any(abs(angle - a) <= 0.5 for a in B.CROSSOVER_ANGLES.values()), angle)
         # South Yard's names on one centre x
         jt = B.importlib.import_module("schematic.jmri_text")
         centres = {round(int(el.get("x")) + jt.width(el.get("text"), int(el.get("size")), False) / 2)
