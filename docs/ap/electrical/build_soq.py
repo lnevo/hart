@@ -447,7 +447,7 @@ def stale_sources(pdf: Path) -> list[str]:
     if not pdf.exists():
         return ["(no built PDF)"]
     built = pdf.stat().st_mtime
-    inputs = [HERE / "soq.html", HERE / "soq.css", HERE / "make_drawings.py", *HERE.glob("photos/*")]
+    inputs = [HERE / "soq.html", HERE / "soq.css", HERE / "make_drawings.py", HERE / "build_soq.py", *HERE.glob("photos/*")]
     return [str(f.relative_to(HERE)) for f in inputs if f.stat().st_mtime > built + 1]
 
 
