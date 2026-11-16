@@ -60,7 +60,7 @@
 <path d="M760,236 L840,236" fill="none" stroke="#121a22" stroke-width="1.8"/>
 <text x="846" y="236" font-size="10.5" fill="#b03a2e" text-anchor="start" font-weight="bold">RS-1 bus → sections</text>
 <rect x="610" y="260" width="150" height="36" rx="3" fill="#fbeeee" stroke="#121a22"/>
-<text x="685.0" y="275.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">PSX-AR auto-reverser</text>
+<text x="685.0" y="275.5" font-size="9" text-anchor="middle" font-weight="bold" fill="#121a22">PSXX-AR auto-reverser</text>
 <text x="685.0" y="286.5" font-size="9" text-anchor="middle" fill="#121a22">short protection</text>
 <path d="M560,105 L585,105 L585,278 L610,278" fill="none" stroke="#121a22" stroke-width="1.4"/>
 <path d="M760,274 L840,274" fill="none" stroke="#b03a2e" stroke-width="1.8"/>

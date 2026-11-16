@@ -23,15 +23,16 @@ Build (Mac, with PanelPro not needed): `/Users/lnevo/hart/.venv/bin/python docs/
 
 The document uses generic labels (RS-1, Y1–Y5, E1–E3 and so on); Appendix A maps them to the layout's names. The drawings are kept apart from the railroad's own schematics and wiring docs (owner, 2026-11-14).
 
-Owner facts (2026-11-15): each auto-reverser's output passes through a DNCT2B before the track; RS-2 is K-1 and K-2, one on each channel of one DNCT2B, and they change polarity together (D5). A crossover's two position contacts are wired in series to one N/R input pair, so the panel shows Inconsistent when the halves disagree (drawing D4, drawn from the owner's description; check against the wiring). The AR-10 is an NCE AR10; one TCS B-106 booster is installed, a second is planned if needed (the wiring deck's power district page shows the planned B2).
+Owner facts (2026-11-15): each auto-reverser's output passes through a DNCT2B before the track; RS-2 is K-1 and K-2, one on each channel of one DNCT2B, and they change polarity together (D5). A crossover's two position contacts are wired in series to one N/R input pair, so the panel shows Inconsistent when the halves disagree (drawing D4, drawn from the owner's description; check against the wiring). The AR-10 is an NCE AR10 and RS-2 is on a DCC Specialties PSXX-AR; one TCS B-106 booster is installed, a second is planned if needed (the wiring deck's power district page shows the planned B2).
 
 ## Open before submission
 
-1. Take the photographs in `PHOTO_PUNCH_LIST.md` and rebuild.
-2. On a private copy outside the repo (`~/Documents/NMRA AP/`): name, NMRA number, address, date and signature on the form. Never in the repo.
-3. Confirm the terminal strip positions in Section 3.2 (1–2 and 3–4 DCC buses, 5 +12 V, 6 +5 V, 7 +3 V, 8 ground). They come from docs/wiring/terminal_blocks.md, which is marked not verified.
-4. Check the indication half of drawing D4 against the wires on one crossover, and note how a crossover's fascia Touch Toggle lights are fed (the text only claims the computer panel waits for both halves).
-5. Confirm how the feeders pass through a DNCT2B channel (D2, D5 show both feeders of the pair through one channel).
-6. The witness visit and the evaluator's signature.
+All photographs are in (punch list complete, 2026-11-15).
+
+1. On a private copy outside the repo (`~/Documents/NMRA AP/`): name, NMRA number, address, date and signature on the form. Never in the repo.
+2. Confirm the terminal strip positions in Section 3.2 (1–2 and 3–4 DCC buses, 5 +12 V, 6 +5 V, 7 +3 V, 8 ground). They come from docs/wiring/terminal_blocks.md, which is marked not verified.
+3. Check the indication half of drawing D4 against the wires on one crossover, and note how a crossover's fascia Touch Toggle lights are fed (the text only claims the computer panel waits for both halves).
+4. Confirm how the feeders pass through a DNCT2B channel (D2, D5 show both feeders of the pair through one channel).
+5. The witness visit and the evaluator's signature.
 
 Sources: `docs/wiring/Layout Documentation.pptx` and `docs/wiring/Wiring_Schematic.pptx` (inventory v86), `docs/ops/schematic-system-draft.svg`, `jmri/layouts/hart/data/block_lengths.csv`, `www/build/track-plan.html`, `external/lcos-bridge` (bridge facts), form from nmra.org/electrical.
