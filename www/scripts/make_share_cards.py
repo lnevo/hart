@@ -545,23 +545,38 @@ def station_maps():
     return out
 
 
-def station_map_south_yard():
-    """crew-maps-south-yard: the track drawing of the generated South Yard station sheet
-    (docs/ops/stations/south-yard.svg), on white (used by the station maps index and the live map pages; the
-    archive keeps crew-maps)."""
+def _crop_drawing(im, window, src, pad=24, edge=8):
+    """The drawing inside WINDOW (left, top, right, bottom) of IM, trimmed to its ink plus PAD.
+
+    The window is set by hand against a generated sheet, so it stops (SystemExit) when the sheet has moved:
+    ink within EDGE pixels of the window's top or bottom means a heading or bracket has leaked in or the
+    drawing is cut off. Nothing is published from a crop that fails."""
     from PIL import Image, ImageChops
 
-    src = REPO / "docs/ops/stations/south-yard.svg"
-    im = shot(src.as_uri(), (1056, 816))            # the sheet's own size (its viewBox), at 2x
-    # The track drawing only: below the WEST/EAST and level headings, above the title block, inside the border
-    # (sheet units 1056 x 816, rendered at 2x).
-    inner = im.crop((60, 2 * 190, im.width - 60, 2 * 512))
-    box = ImageChops.difference(inner, Image.new("RGB", inner.size, "white")).getbbox()
+    inner = im.crop(window)
+    ink = ImageChops.difference(inner, Image.new("RGB", inner.size, "white")).convert("L").point(
+        lambda v: 255 if v > 40 else 0)
+    box = ink.getbbox()
     if box is None:
         raise SystemExit(f"{src}: rendered blank")
-    pad = 24
-    im = inner.crop((max(box[0] - pad, 0), max(box[1] - pad, 0), min(box[2] + pad, inner.width),
-                     min(box[3] + pad, inner.height)))      # clamped: PIL pads past the edge with black
+    if box[1] < edge or box[3] > inner.height - edge:
+        raise SystemExit(f"{src}: drawing touches the crop window's top or bottom edge; the sheet has moved, "
+                         f"re-measure the window")
+    return inner.crop((max(box[0] - pad, 0), max(box[1] - pad, 0), min(box[2] + pad, inner.width),
+                       min(box[3] + pad, inner.height)))      # clamped: PIL pads past the edge with black
+
+
+def station_map_east_end():
+    """crew-maps-east-end: the track drawing of the generated East End station sheet
+    (docs/ops/stations/east-end.svg), on white (used by the station maps index and the live map pages; the
+    archive keeps crew-maps)."""
+    from PIL import Image
+
+    src = REPO / "docs/ops/stations/east-end.svg"
+    im = shot(src.as_uri(), (1056, 816))            # the sheet's own size (its viewBox), at 2x
+    # The track drawing only: below the STAGING LEVEL heading, above the EAST END bracket and the title block,
+    # inside the border (sheet units 1056 x 816, rendered at 2x).
+    im = _crop_drawing(im, (60, 2 * 215, im.width - 60, 2 * 580), src)
     scale = min((W - 48) / im.width, (H - 48) / im.height)
     im = im.resize((round(im.width * scale), round(im.height * scale)), Image.LANCZOS)
     out = Image.new("RGB", (W, H), "white")
@@ -695,7 +710,7 @@ CARDS = {
     "railroads-index": railroads,
     "library-coraopolis-record-opinion": coraopolis_record,
     "crew-maps": station_maps,
-    "crew-maps-south-yard": station_map_south_yard,
+    "crew-maps-east-end": station_map_east_end,
     "crew-tt23": tt23,
     "link-build-main-level": link_build_main_level,
     "build-track-plan": build_track_plan,
