@@ -170,16 +170,15 @@ class ExamAnswers(unittest.TestCase):
         )
         self.assertNotIn("ahead1", json.loads(out))
 
-    def test_speed_run_can_show_every_aspect_but_permissive(self):
+    def test_speed_run_can_show_every_aspect(self):
         run = RUN.read_text()
         body = run[run.index("function startSIG("):run.index("/* ---------- the Ironton yard job")]
-        used = set(re.findall(r'sig\("([0-9]{3}[A-C]?)"', body)) | set(re.findall(r'GRANITE_OUT=\[([^\]]*)\]', body)[0].replace('"', "").split(","))
+        used = set(re.findall(r'"(2[89][0-9][A-C]?)"', body))  # every quoted rule number in startSIG
         signals = (WWW / "exam" / "signals.js").read_text()
         rules = set(re.findall(r'\{r:"([0-9]{3}[A-C]?)"', signals))
-        # every aspect the run names exists, and every one but 289 is named (Permissive is manual block, which this
-        # automatic block line does not have)
+        # every aspect the run names exists, and every one is named (289 Permissive on the Cobb to Dunmore manual block)
         self.assertLessEqual(used, rules, f"unknown aspects: {used - rules}")
-        self.assertEqual(rules - used, {"289"})
+        self.assertEqual(rules - used, set())
 
     def test_game_and_deck_load_the_shared_signals(self):
         for page in (RUN, INDEX):

@@ -979,14 +979,18 @@ function startSIG(sys){
      285, as ahead1 and ahead2 do, and Restricting matches the Hollis 290. */
   const CLASH={hollisA:["ahead1","ahead2"],hollisM:["ahead1","restrict"],hollisS:["ahead1","restrict"]};
   const clash=(a,b)=>a===b||(CLASH[a]||[]).includes(b)||(CLASH[b]||[]).includes(a);
-  const fixedKey=i=>ahead&&i===f?(sp?"ahead2":"clear"):ahead&&i===f+1?(sp?"ahead1":"stopnum"):i===4?"pplate":i===5?"granite":i===6&&!sp?"cp":i===7&&sp?hol.key:null;
+  /* Speed run: Cobb to Dunmore (leg 2) is manual block. The Cobb operator's block signal shows Permissive (289) when a
+     train is in the block (always so when the train ahead is there) and Clear otherwise. */
+  const MB=2,mbOccupied=sp&&((ahead&&(f===MB||f+1===MB))||RI()<.5);
+  const fixedKey=i=>sp&&i===MB?"manual":ahead&&i===f?(sp?"ahead2":"clear"):ahead&&i===f+1?(sp?"ahead1":"stopnum"):i===4?"pplate":i===5?"granite":i===6&&!sp?"cp":i===7&&sp?hol.key:null;
   const stories=pickStories([...Array(LAST)].map((_,i)=>fixedKey(i)),
     i=>Object.keys(STORY).filter(k=>k!=="meet"||(!meet&&ST[i+1].sd&&i+1<LAST)),["meet"],RS,clash);
   const legEv=[];
   for(let i=0;i<LAST;i++)legEv[i]=[];
   for(let i=0;i<LAST;i++){
     const w=ST[i].n+" to "+ST[i+1].n;
-    if(ahead&&i===f)legEv[i].push(sp?sig("282A","",w,"The next block signal shows this aspect."):sig("clear","",w,"The next block signal shows this aspect."));
+    if(sp&&i===MB)legEv[i].push(sig(mbOccupied?"289":"281","",w,`Cobb to Dunmore is manual block. At Cobb the operator's block signal${mbOccupied?", with the letter plate that marks it,":""} shows this aspect.`));
+    else if(ahead&&i===f)legEv[i].push(sp?sig("282A","",w,"The next block signal shows this aspect."):sig("clear","",w,"The next block signal shows this aspect."));
     else if(ahead&&i===f+1){
       legEv[i].push(sp?sig("285","",w,"The next signal shows this aspect."):sig("approach","",w,"The next signal shows this aspect."));
       if(sp)legEv[i].push(sig("291","",w,marked));
@@ -1027,7 +1031,7 @@ function startSIG(sys){
     legEv[6].push(ask({sec:"sig",src:"SG · Signal placement",title:"Where the CP signals stand",body:"At CP Hollis, where is the facing point signal?",right:"Just clear of the switch points",wrong:[["At the clearance point"],["Opposite the next intermediate signal"],["On a dwarf beside the siding"]],why:"Signals guide, typical signal placement in CTC: the facing point signal is just clear of the switch points; trailing point signals are at the clearance point; a dwarf is often used on the siding."}));
   }
   push(info("Ashby",sp?"Extra 812 East, Ashby, 6:00":"KV 812 East, Ashby, 6:00",
-    sp?"<p>You are the conductor of Extra 812 East. Between Ashby and Ironton the line has automatic block signals: upper-quadrant semaphores giving Standard Code speed indications. Granite has an interlocking where the line crosses another railroad, and double track starts at Hollis. Call each signal as it comes up.</p>":"<p>You are the conductor of KV 812 East on a signaled line with route signals. Granite has an interlocking where the line crosses another railroad, and CP Hollis, where double track begins, is worked by a control operator. Read each signal as it comes up.</p>","Begin"));
+    sp?"<p>You are the conductor of Extra 812 East. Between Ashby and Ironton the line has automatic block signals: upper-quadrant semaphores giving Standard Code speed indications. Cobb to Dunmore is manual block, worked by the operators. Granite has an interlocking where the line crosses another railroad, and double track starts at Hollis. Call each signal as it comes up.</p>":"<p>You are the conductor of KV 812 East on a signaled line with route signals. Granite has an interlocking where the line crosses another railroad, and CP Hollis, where double track begins, is worked by a control operator. Read each signal as it comes up.</p>","Begin"));
   for(let i=0;i<LAST;i++){
     push(legSIG(i,i+1,legEv[i]));
     if(meets.has(i+1)){const at=ST[i+1].n;
@@ -1147,7 +1151,7 @@ function renderSheet(){
   if(!S.tt){el.innerHTML="";return}
   if(S.era==="sigs"||S.era==="sigr"){
     const sp=S.era==="sigs";
-    el.innerHTML=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">${sp?"Automatic block signals · Standard Code speed signals":"Route signals · CP Hollis worked by a control operator"}</div><div class="xw-orders"><b>Signals passed</b>${S.passed.length?S.passed.slice(-8).map(t=>`<div class="ord">${esc(t)}</div>`).join(""):"<div class=\"ord\">None yet</div>"}</div><div class="xw-si"><b>Special instructions</b><ul>${sp?"<li>Block signals govern trains in the same direction (Rule 251).</li>":""}<li>Interlocking at Granite, where the line crosses another railroad.</li><li>River bridge: high water detector, P plate signal.</li><li>The grade below Granite: G plate signal.</li><li>Double track Hollis to Ironton.</li></ul></div>`;
+    el.innerHTML=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">${sp?"Automatic block signals · Standard Code speed signals":"Route signals · CP Hollis worked by a control operator"}</div><div class="xw-orders"><b>Signals passed</b>${S.passed.length?S.passed.slice(-8).map(t=>`<div class="ord">${esc(t)}</div>`).join(""):"<div class=\"ord\">None yet</div>"}</div><div class="xw-si"><b>Special instructions</b><ul>${sp?"<li>Block signals govern trains in the same direction (Rule 251).</li><li>Manual block Cobb to Dunmore: block signals worked by the operators.</li>":""}<li>Interlocking at Granite, where the line crosses another railroad.</li><li>River bridge: high water detector, P plate signal.</li><li>The grade below Granite: G plate signal.</li><li>Double track Hollis to Ironton.</li></ul></div>`;
     return;
   }
   if(S.era==="yard"){
