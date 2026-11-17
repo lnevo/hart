@@ -284,12 +284,28 @@ class New(Repo):
         n = int(os.environ.get("GIT_CONFIG_COUNT", "0"))
         env = {"GIT_CONFIG_COUNT": str(n + 1), f"GIT_CONFIG_KEY_{n}": "protocol.file.allow",
                f"GIT_CONFIG_VALUE_{n}": "always"}
+        code, err = self.run_submodules(path, env)
+        self.assertEqual(code, 0, err)
+        self.assertTrue(Path(path, "ext/sub/.git").exists(), err)
+        self.assertEqual(sh("git", "status", "--porcelain", cwd=str(path)), "")
+        with mock.patch.object(WT, "init_submodule", side_effect=AssertionError("fetched again")):
+            self.assertEqual(self.run_submodules(path, env)[0], 0)  # checked out already: left alone
+
+    def run_submodules(self, path: Path, env: dict) -> tuple[int, str]:
         err = io.StringIO()
         with mock.patch.object(WT, "CHECK_SUBMODULES", ("ext/sub",)), mock.patch.dict(os.environ, env), \
                 redirect_stderr(err):
-            self.assertEqual(WT.main(["submodules", str(path)]), 0)
-        self.assertTrue(Path(path, "ext/sub/.git").exists(), err.getvalue())
-        self.assertEqual(sh("git", "status", "--porcelain", cwd=str(path)), "")
+            code = WT.main(["submodules", str(path)])
+        return code, err.getvalue()
+
+    def test_submodules_fails_when_the_fetch_fails_or_there_is_no_checkout(self) -> None:
+        path, err = self.new_with_submodule(url_ok=False)
+        code, err = self.run_submodules(path, {})
+        self.assertEqual(code, 1)
+        self.assertIn("warning: ext/sub is not checked out", err)
+        code, err = self.run_submodules(Path(tempfile.mkdtemp()), {})
+        self.assertEqual(code, 1)
+        self.assertIn("is not a git checkout", err)
 
     def test_new_still_makes_the_worktree_when_a_submodule_cannot_be_fetched(self) -> None:
         path, err = self.new_with_submodule(url_ok=False)

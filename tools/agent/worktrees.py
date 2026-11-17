@@ -398,15 +398,19 @@ def new(topic: str, agent: str) -> Path:
     return path
 
 
-def init_check_submodules(path: Path, main: Path) -> None:
-    """Check out each CHECK_SUBMODULES entry that is not checked out at path; warn on stderr when one fails."""
+def init_check_submodules(path: Path, main: Path) -> bool:
+    """Check out each CHECK_SUBMODULES entry that is not checked out at path; warn on stderr when one fails.
+    Return False when one failed."""
+    ok = True
     for rel in CHECK_SUBMODULES:
         if not (path / rel).is_dir() or (path / rel / ".git").exists():  # not a submodule here, or checked out
             continue
         problem = init_submodule(path, rel, main)
         if problem:
+            ok = False
             print(f"warning: {rel} is not checked out ({problem}); run git submodule update --init {rel}",
                   file=sys.stderr)
+    return ok
 
 
 # One git call in init_submodule may take this long (seconds); kept under the 120 s an agent's shell call allows.
@@ -462,8 +466,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "new":
         print(new(args.topic, args.agent))
     elif args.cmd == "submodules":
-        here = Path(git("rev-parse", "--show-toplevel", cwd=args.path) or args.path)
-        init_check_submodules(here, Path(worktrees(here)[0].path))
+        top = git("rev-parse", "--show-toplevel", cwd=args.path)
+        found = worktrees(top) if top else []
+        if not found:
+            print(f"warning: {args.path} is not a git checkout; no submodules checked out", file=sys.stderr)
+            return 1
+        return 0 if init_check_submodules(Path(top), Path(found[0].path)) else 1
     else:
         for line in sweep(args.dry_run, args.keep, args.budget) or ["no merged worktrees"]:
             print(line)
