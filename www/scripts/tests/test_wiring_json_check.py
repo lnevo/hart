@@ -21,6 +21,8 @@ NAMES = ("wiring-inventory.json", "signal-splits.json")
 
 
 def run_check(out_dir: Path) -> tuple[int, str]:
+    BW.WARNINGS.clear()
+    BW.SCRUBBED.clear()
     out = io.StringIO()
     with mock.patch.object(sys, "argv", ["build_wiring_json.py", "--check", "--out-dir", str(out_dir)]), redirect_stdout(out):
         code = BW.main()
@@ -38,9 +40,9 @@ class Stale(unittest.TestCase):
         p.write_text(BW.render(data), encoding="utf-8")
         return p
 
-    def test_only_the_build_date_differs(self):
-        p = self.write({**self.data, "source": {"file": "x.xlsx", "built": "2026-01-01"}})
-        self.assertFalse(BW.stale(p, self.data))
+    def test_only_the_dates_differ(self):
+        p = self.write({**self.data, "source": {"file": "x.xlsx", "built": "2026-01-01", "modified": "2026-01-01"}})
+        self.assertFalse(BW.stale(p, {**self.data, "source": {**self.data["source"], "modified": "2026-11-17"}}))
 
     def test_changed_data_is_stale(self):
         p = self.write({**self.data, "nodes": [{"id": "C2"}]})
@@ -51,6 +53,9 @@ class Stale(unittest.TestCase):
         p = self.dir / "bad.json"
         p.write_text("{", encoding="utf-8")
         self.assertTrue(BW.stale(p, self.data))
+        for text in ("[]", '{"source": null}'):
+            p.write_text(text, encoding="utf-8")
+            self.assertTrue(BW.stale(p, self.data))
 
 
 class CheckTheRepo(unittest.TestCase):
@@ -59,10 +64,6 @@ class CheckTheRepo(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.dir)
         for name in NAMES:
             shutil.copy(ROOT / "www/data" / name, self.dir / name)
-
-    def test_published_data_is_current(self):
-        code, out = run_check(self.dir)
-        self.assertEqual(code, 0, out)
 
     def test_an_edited_file_fails_and_is_left_alone(self):
         p = self.dir / "wiring-inventory.json"

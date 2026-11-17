@@ -19,10 +19,13 @@ Re-run after a version bump:
       --splits docs/wiring/signals_split_v9.xlsx
 
 With no arguments it picks the highest-numbered workbook of each kind in docs/wiring/
-(the live git copy). --check builds without writing and exits 1 when either JSON file differs
-from what the workbooks give (the build date is ignored); tools/check.sh runs it. Data problems found along the way are printed as warnings; they do
+(the live git copy). Data problems found along the way are printed as warnings; they do
 not stop the build. Network details (IP addresses, hostnames, serial ports, machine paths,
 credentials) are scrubbed from every cell before it reaches the JSON.
+
+--check builds without writing and exits 1 when either JSON file holds other data than the
+workbooks give. The build date and the workbook's save date are ignored, so re-saving a
+workbook with no change does not fail it. tools/check.sh runs it.
 """
 
 from __future__ import annotations
@@ -698,18 +701,23 @@ def render(data: dict) -> str:
     return json.dumps(prune(data), indent=1, ensure_ascii=False) + "\n"
 
 
+DATES = ("built", "modified")  # when the JSON was built and when the workbook was last saved
+
+
 def stale(path: Path, data: dict) -> bool:
-    """True when the file at path is missing or holds other data than `data`, apart from source.built."""
+    """True when the file at path is missing or holds other data than `data`, apart from the dates in source."""
     if not path.is_file():
         return True
     try:
         old = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return True
-    built = old.get("source", {}).get("built")
     new = json.loads(render(data))
-    if built is not None and "source" in new:
-        new["source"]["built"] = built
+    if not isinstance(old, dict) or not isinstance(old.get("source"), dict) or not isinstance(new.get("source"), dict):
+        return old != new
+    for key in DATES:
+        old["source"].pop(key, None)
+        new["source"].pop(key, None)
     return old != new
 
 
@@ -755,7 +763,7 @@ def main() -> int:
         old = [name for name, data in outputs if stale(args.out_dir / name, data)]
         for name in old:
             print(f"STALE: {shown(args.out_dir / name)} differs from {args.inventory.name} / {args.splits.name}; "
-                  "run python3 www/scripts/build_wiring_json.py")
+                  "rebuild with the same arguments, without --check")
         if not old:
             print(f"wiring viewer data is current with {args.inventory.name} and {args.splits.name}")
         return 1 if old else 0
