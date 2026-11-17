@@ -472,7 +472,7 @@ def generated_panel(panel: ET.Element | None) -> bool:
 
 def without_track_word(text: str) -> str:
     """What a generated panel's station button shows for `text`: no leading "Track " (owner, 2026-11-16: "EH-1" fits
-    the loco marker). Shared by le_overlay.drop_track_word and reconcile_dispatcher_stations.station_display."""
+    the loco marker). Read by reconcile_dispatcher_stations.station_display."""
     return text.removeprefix("Track ")
 
 

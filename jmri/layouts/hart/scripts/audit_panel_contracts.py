@@ -358,9 +358,11 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 # and 98 sections of their own (163 SML, 197 sections). Joined at the helix (the helix-join release, owner 2026-11-17),
 # stock SML discovery in a sandbox stored 171: staging gains 10RA/10RB/12R/14R -> 16L and loses 36RB -> 40RB
 # (accepted), the 107 Loop and Switch 225 splits give 108LB -> 110LA and drop the false 226RA/226RB -> 224LB/224LA,
-# and the helix adds 130LA/130LB -> 38LA/40LA, 38RA -> 136RB and 40RA -> 136RA. The Dispatcher graph is parked
+# and the helix adds 130LA/130LB -> 38LA/40LA, 38RA -> 136RB and 40RA -> 136RA. Staging from its device map (the
+# device-map switch-over, owner 2026-11-17): stock discovery in a sandbox stored 180, every earlier pair kept and 9
+# gained, the head-on 10RA/10RB/12R/14R -> 22L/26L and 36RB -> 40RB. The Dispatcher graph is parked
 # (hartlib.parked): no section or transit while it is.
-EXPECTED_SML = {False: 100, True: 171}
+EXPECTED_SML = {False: 100, True: 180}
 EXPECTED_GRAPH = {False: (107, 187), True: (197, 187)}
 # A generated panel before its Stage 1 (the cut-over candidate as built) still carries the hand-drawn panel's SML and
 # Dispatcher graph: allowed, with a warning that Stage 1 is still to run.

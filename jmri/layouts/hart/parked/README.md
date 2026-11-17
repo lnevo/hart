@@ -69,8 +69,8 @@ Still used by active tools, so they must keep working while parked:
 ## Staging panel lamps
 
 `staging_panel_lamps.json` holds the occupancy lamps and Dispatcher station clusters of the staging "HART Railroad"
-panel for the device-map path (`tools/schematic/build_staging_candidate.py`). The owner decided on 2026-11-17 that
-they belong with the Dispatcher System, so that path leaves them off. There are 79 elements:
+panel. The owner decided on 2026-11-17 that they belong with the Dispatcher System, so the build
+(`build_layout_le.py`, from the staging device map and `panel_items.json`) leaves them off. There are 79 elements:
 
 - 20 track lamps
 - 21 OS lamps, plus one for each second crossover half (23b, 7b)
@@ -80,19 +80,16 @@ They are written in the `panel_items.json` form (`tools/schematic/panel_items.py
 drawn centre, at the offset the approved staging candidate gave it. The lamp layout preferences stay in the build:
 the South Yard lamp column (`LAMP_COLUMNS`) and the label layer's room for lamps.
 
-`build_staging_candidate.py` puts them back on a copy of its trial on every run and reports how many land where the
-current candidate has them. On 2026-11-17 all 79 landed within 1 px, so they do not have to be placed again.
+Put back on a copy of the device-map candidate on 2026-11-17, all 79 landed within 1 px of where the last
+overlay-built candidate had them, so they do not have to be placed again. The 24 station icons are also in
+`tables_parked.xml`, with their hand-drawn places.
 
-The current cut-over build (`build_layout_le.py --as-live`) still carries them from `staging_le/overlay.json` until
-staging switches to the device-map path. The 24 station icons are also in `tables_parked.xml`, with their hand-drawn
-places.
-
-To bring them back on the device-map path, append this file's `items` to
-`jmri/layouts/hart/data/schematic/panel_items.json` and rebuild.
-
-Also give the plugin the station clusters as `extras` again, as `build_layout_le.py` does
-(`le_overlay.station_extras`). Without them the label layer does not keep clear of the clusters, and 14 block contents
-icons sit somewhere else than they do today (the diff report lists them).
+To bring them back, append this file's `items` to `jmri/layouts/hart/data/schematic/panel_items.json` and rebuild.
+Also give the plugin the station clusters as `extras` again (as the retired `le_overlay.station_extras` did; see git
+history before the switch-over), so the label layer keeps clear of them: without them 14 block contents icons
+(OS Switch 7, OS Switch 9, Barn, EH-2, EH-3, East Lead, East Lead East, K-1, K-2, McKees Rocks, McKeesport, Scale,
+W-1, W-2) sit somewhere else than they did with the clusters. The OS lamp checks of
+`polish_hart_layout_editor.py` come back with the feature (they run only while it is not parked).
 
 ## Checks
 

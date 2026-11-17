@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import paths  # noqa: E402
 
@@ -24,8 +23,8 @@ BLOCK_SYS = "IB:C3:"
 LAYOUT_BLOCK_FIRST = 1001            # ILB1001 up; the live file stops well below
 
 
-class BuildError(le_inputs.InputsError):
-    """A build that cannot go on; main() also stops on le_inputs.InputsError (a frozen file of the wrong shape)."""
+class BuildError(RuntimeError):
+    """A build that cannot go on (main() prints it and exits 1)."""
 
 
 @functools.lru_cache(maxsize=None)
@@ -49,12 +48,6 @@ def schematic():
     return built.bands, built.opts
 
 
-def overlay_mod():
-    """tools/schematic/le_overlay.py: the live panel's icons and labels carried onto the new one."""
-    import le_overlay
-    return le_overlay
-
-
 def slots_module():
     plugin()
     return importlib.import_module("schematic.slots")
@@ -67,8 +60,6 @@ def band_key(title: str) -> str:
 def bare(label: str) -> str:
     return (label or "").rstrip("*")
 
-
-# ---------------------------------------------------------------- staging, from the frozen inputs (le_inputs.py)
 
 def read_csv(path: Path) -> list[dict]:
     with open(path, newline="", encoding="utf-8") as fh:

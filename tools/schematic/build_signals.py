@@ -1,17 +1,15 @@
 """build_signals.py [--check]
 
 Generate the schematic's layer 1 masts, jmri/layouts/hart/data/schematic/<name>.signals.json, from the staging
-masts in the staging device map's form (2026-11-17): staging_signals.csv (each mast's plan facts) and
-staging_masts.csv (its blocks and slot kind), read by staging_device_map.load_signal_masts. Those were converted from
-the frozen staging_le/masts.csv (read once from the hand-drawn panel by the schematic-maps plugin's signal reader,
-build_layout_le.py --freeze), and staging_device_map.py --check holds them equal to it until staging switches to the
-device-map path. Main and upper are dark territory (no masts) until the owner's signal plan; add a level to LEVELS
+masts in the staging device map's form: staging_signals.csv (each mast's plan facts) and staging_masts.csv (its
+blocks and slot kind), read by staging_device_map.load_signal_masts; kept by hand since the device-map switch-over
+(2026-11-17), first read from the hand-drawn panel by the schematic-maps plugin's signal reader. Main and upper are dark territory (no masts) until the owner's signal plan; add a level to LEVELS
 when it has masts.
 
 Each mast's schematic run (schematic_edge, schematic_toward_node) is checked against the plan graph in inputs/ with
 the plan overrides' edits: the edge must exist, run between the switches named in `run`, carry the track names in
-`names`, and end at the node it heads for, whose switch is `toward`. Its lengths are checked against the frozen
-tracks (the staging device map's, staging_device_map.staging_chains) and block_lengths.csv, as the signal reader measured them (a block with no length
+`names`, and end at the node it heads for, whose switch is `toward`. Its lengths are checked against the staging
+tracks (staging_device_map.staging_chains) and block_lengths.csv, as the signal reader measured them (a block with no length
 counts as zero there too): edge_cm is the length of the track holding the mast's facing block, and cm_from_toward
 is 0 at a turnout leg, the whole run at an end bumper, and at an anchor the length from one end of that track to the
 boundary between the facing and protected blocks (within TOLERANCE_CM). A mast that does not fit fails the run, with
@@ -29,9 +27,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import le_inputs  # noqa: E402  signal_rows and SIGNALS_SOURCE (they move with the rest when le_inputs retires)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pinned plugin
-import staging_device_map as sdm  # noqa: E402  the staging masts' plan facts and tracks
+import staging_device_map as sdm  # noqa: E402  the staging masts' plan facts, tracks and signal rows
 from hartlib import railroad  # noqa: E402  block_lengths.csv, read and checked once
 
 LEVELS = [("staging.json", "staging")]     # plan graph in inputs/, layer file stem
@@ -127,11 +124,11 @@ def generate(plugin, graph, name) -> str:
     """The signals file's text for one level, from staging_signals.csv and staging_masts.csv; stops on a mast whose
     run is not in the plan."""
     masts, chains = staging_facts()
-    rows = le_inputs.signal_rows(masts)
+    rows = sdm.signal_rows(masts)
     bad = check_runs(plugin, graph, name, rows) + check_lengths(masts, chains, block_cm())
     if bad:
         sys.exit(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
-    return json.dumps(dict(schema=SCHEMA, source=le_inputs.SIGNALS_SOURCE, signals=rows, unplaced=[]), indent=1)
+    return json.dumps(dict(schema=SCHEMA, source=sdm.SIGNALS_SOURCE, signals=rows, unplaced=[]), indent=1)
 
 
 def main(argv):

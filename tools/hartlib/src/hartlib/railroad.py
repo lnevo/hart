@@ -18,8 +18,7 @@ stale copy of its own output. Each file is read the first time it is asked for, 
                 schematic/control_points_main_upper.csv, local_switches_main_upper.csv, lcos_nodes_main_upper.csv,
                 main_upper.plan_overrides.json (its edits; build_device_map.py rewrites only its control_points and
                 stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
-                device map's form; tools/schematic/staging_device_map.py --check holds it to the frozen
-                staging_le/masts.csv until staging switches to the device-map path)
+                device map's form, kept by hand; tools/schematic/staging_device_map.py --check)
     hands       schematic/hands.csv                       build_hands.py
     device_map  schematic/device_map_main_upper.csv       build_device_map.py
     masts       schematic/main_upper_masts.csv            build_main_upper_masts.py (hartlib.level_masts)

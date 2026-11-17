@@ -1,5 +1,6 @@
-"""Names and bindings of the Layout Editor build: staging's live objects from the frozen inputs (le_inputs.py), the main
-and upper levels' device-map names and masts, and the bands as named for the plugin's label layer."""
+"""Names and bindings of the Layout Editor build: the main and upper levels' device-map names and masts, staging's
+measured lengths and columns (its names are the staging device map's: staging_device_map.load), and the bands as
+named for the plugin's label layer."""
 from __future__ import annotations
 
 import copy
@@ -13,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import paths, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
-from le_common import band_key, bare, BuildError, DEVICE_MAP, read_csv, STAGING, SWITCH_LEGS, SWITCHES  # noqa: E402
+from le_common import band_key, bare, BuildError, DEVICE_MAP, read_csv, STAGING, SWITCHES  # noqa: E402
 
 
 # Main and upper at staging's grid (the three-level candidate): denser than staging, so every block's contents icon
@@ -80,165 +81,6 @@ def runs(band, skip=()):
     return out
 
 
-def orient(chain: dict, start_label: str, what: str):
-    """(blocks, ends) of a live track, in order from the end at `start_label`. A track with one label at both ends
-    (a reversing track, or two end bumpers) has no order to read; it stops unless its blocks read the same both
-    ways."""
-    if chain["labels"][0] == chain["labels"][1]:
-        if chain["blocks"] != chain["blocks"][::-1]:
-            raise BuildError(f"staging track {what}: both ends at {chain['labels'][0]}, so its blocks cannot be put "
-                             "in order")
-        return list(chain["blocks"]), list(chain["ends"])
-    if start_label == chain["labels"][0]:
-        return list(chain["blocks"]), list(chain["ends"])
-    return chain["blocks"][::-1], chain["ends"][::-1]
-
-
-def share_blocks(blocks: list[str], chain, strands) -> dict:
-    """{strand id: [block, ...] from its src to its dst} for a run of tracks with the live blocks in run order.
-    A block named after a strand's track goes with it ("Track K-2 West" is track K-2, unless a track is named
-    "K-2 West"); the others with the strand of the block before (or after, at the start)."""
-    names = [strands[sid]["name"] for sid, _ in chain]
-    owner = []
-    for b in blocks:
-        name = b.removeprefix("Track ")
-        hit = [i for i, n in enumerate(names) if n and n == name] or \
-            [i for i, n in enumerate(names) if n and n == re.sub(r" (East|West)$", "", name)]
-        owner.append(hit[0] if hit else None)
-    for i in range(len(owner)):
-        if owner[i] is None and i and owner[i - 1] is not None:
-            owner[i] = owner[i - 1]
-    for i in reversed(range(len(owner))):
-        if owner[i] is None:
-            owner[i] = owner[i + 1] if i + 1 < len(owner) and owner[i + 1] is not None else 0
-    out = {}
-    for k, (sid, rev) in enumerate(chain):
-        mine = [b for b, o in zip(blocks, owner) if o == k]
-        if not mine:        # a track with no block of its own: the one it meets
-            before = [b for b, o in zip(blocks, owner) if o < k]
-            mine = [before[-1] if before else blocks[0]]
-        out[sid] = mine[::-1] if rev else mine
-    return out
-
-
-def staging_names(band, inputs, tidy) -> dict:
-    """The plugin's names for the staging band, bound to the live objects through the frozen inputs (see the module
-    text)."""
-    nodes, strands = band["nodes"], band["strands"]
-    label_of = {r["le_ident"]: r["switch"] for r in read_csv(SWITCHES)}
-    lts = {t["ident"]: t for t in inputs.turnouts}
-    chains = copy.deepcopy(inputs.chains)
-
-    def end_label(e):
-        return "END" if e[0] == "END" else label_of.get(e[0])
-
-    for c in chains:
-        c["labels"] = [end_label(e) for e in c["ends"]]
-        if None in c["labels"]:
-            raise BuildError(f"frozen track {c['ends']}: a turnout of it is not in switches.csv")
-    far = {}                    # (live ident, leg) -> label at the other end of its track
-    for c in chains:
-        for i in (0, 1):
-            if c["ends"][i][0] != "END":
-                far[c["ends"][i]] = c["labels"][1 - i]
-
-    def node_label(n):
-        d = nodes[n]
-        if d["kind"] == "end":
-            return "END"
-        return bare(d.get("label"))
-
-    names = dict(turnouts={}, os={}, normal={}, blocks={}, leg_b={})
-    idents = {}                 # switch node -> live turnout ident
-    inner = crossover_strands(band)
-    used = set()
-    run_far = {}                # (node, port) -> label at the other end of its run
-    far_block = {}              # (node, port) -> block of the live turnout leg at the other end of its run
-
-    def leg_block(e):
-        if e[0] == "END":
-            return None
-        lt = lts[e[0]]
-        return lt.get(f"block{e[1].lower()}name" if e[1] != "A" else "blockname") or lt.get("blockname")
-
-    for start, chain, end in runs(band, inner):
-        want = sorted((node_label(start[0]), node_label(end[0])))
-        cands = [i for i, c in enumerate(chains) if sorted(c["labels"]) == want and i not in used]
-        if len(cands) > 1:
-            mine = {t for sid, _ in chain if strands[sid]["name"] for t in tidy([strands[sid]["name"]])}
-            cands = [i for i in cands if mine & {t for b in tidy(chains[i]["blocks"])
-                                                 for t in (b, re.sub(r" (East|West)$", "", b))}]
-        if len(cands) != 1:
-            raise BuildError(f"staging track {' + '.join(s for s, _ in chain)} ({want[0]} to {want[1]}): "
-                             f"{len(cands)} live tracks match")
-        used.add(cands[0])
-        c = chains[cands[0]]
-        blocks, ends = orient(c, node_label(start[0]), " + ".join(s for s, _ in chain))
-        run_far[start] = node_label(end[0])
-        run_far[end] = node_label(start[0])
-        far_block[start], far_block[end] = leg_block(ends[1]), leg_block(ends[0])
-        names["blocks"].update(share_blocks(blocks, chain, strands))
-    missing = [i for i in range(len(chains)) if i not in used]
-    if missing:
-        raise BuildError("frozen staging tracks (tracks.csv) with no schematic track: " +
-                         "; ".join(f"{chains[i]['labels']} {chains[i]['blocks']}" for i in missing))
-
-    # switches: the live turnout, its OS blocks, and the normal leg
-    closed = {r["os_block"]: r["closed_leg"] for r in read_csv(SWITCH_LEGS)}
-    for n, d in sorted(nodes.items()):
-        if d["kind"] not in ("switch", "dx"):
-            continue
-        ident = next((i for i, lab in label_of.items() if lab == bare(d["label"])), None)
-        if ident not in lts:
-            raise BuildError(f"staging switch {d['label']}: switches.csv's Layout Editor turnout {ident} is not in "
-                             "the frozen turnouts.csv")
-        lt = lts[ident]
-        names["turnouts"][n] = lt.get("turnoutname")
-        idents[n] = ident
-        if "XOVER" in (lt.get("type") or ""):
-            mine = {run_far[(n, p)] for p in "AB"}
-            ab = {far.get((ident, "A")), far.get((ident, "B"))}
-            cd = {far.get((ident, "C")), far.get((ident, "D"))}
-            if mine == ab and mine != cd:
-                names["os"][n] = lt.get("blockname")
-            elif mine == cd and mine != ab:
-                names["os"][n] = lt.get("blockcname") or lt.get("blockname")
-            else:
-                raise BuildError(f"staging switch {d['label']}: cannot tell which half of crossover {ident} it is")
-            continue
-        names["os"][n] = lt.get("blockname")
-        want = closed.get(lt.get("blockname"))
-        if want is None:
-            raise BuildError(f"staging switch {d['label']}: {lt.get('blockname')} is not in switch_legs.csv")
-        legs, first = [], {}
-        for p in "BC":
-            sid = d["ins"].get(p) or d["outs"].get(p)
-            seq = names["blocks"][sid] if tuple(strands[sid]["src"]) == (n, p) else names["blocks"][sid][::-1]
-            first[p] = next((b for b in seq if b != lt.get("blockname")), None)
-            if first[p] is None:        # the track is all this switch's OS: the block past it is the next switch's
-                first[p] = far_block[(n, p)]
-            if first[p] == want or re.sub(r" (East|West)$", "", first[p] or "") == want:   # "Track S-4 West" is S-4
-                legs.append(p)
-        if len(legs) != 1:
-            raise BuildError(f"staging switch {d['label']}: closed leg {want} is on {len(legs)} of its legs")
-        names["normal"][n] = legs[0]
-        # the band leg that is the live Layout Editor leg B: the one whose first block is live leg B's
-        live_b = live_leg_first(chains, lts, ident, "B")
-        if live_b is None or None in first.values():
-            raise BuildError(f"staging switch {d['label']}: no block past live {ident} leg B ({live_b}) or past "
-                             f"drawn leg B ({first['B']}) or C ({first['C']}), so leg B cannot be matched")
-        track = lambda b: re.sub(r" (East|West)$", "", b)      # noqa: E731  "Track S-4 West" is S-4, as above
-        on_b = [p for p in "BC" if first[p] == live_b] or [p for p in "BC" if track(first[p]) == track(live_b)]
-        if len(on_b) != 1:
-            raise BuildError(f"staging switch {d['label']}: live {ident} leg B reaches {live_b}, which "
-                             f"{'both' if on_b else 'neither'} of its drawn legs B ({first['B']}) and C "
-                             f"({first['C']}) reach first")
-        names["leg_b"][n] = on_b[0] if bare(d["label"]) not in LEGS_SWAPPED else "BC".replace(on_b[0], "")
-    names["idents"] = dict(turnouts=idents, boundaries=copy.deepcopy(inputs.boundaries), ends=dict(inputs.ends),
-                           segments=dict(inputs.segments))
-    return names
-
-
 # Staging switches whose generated turnout swaps the live leg letters B and C (and so its continuing route): JMRI
 # draws a plain turnout's leg A in line with leg B, so a switch whose live leg B is the diverging track on the sheet
 # can be drawn as the sheet has it only with that track on leg C (owner, 2026-11-16). A mast on such a leg moves to
@@ -253,37 +95,6 @@ def swapped_idents() -> set:
     if missing:
         raise BuildError(f"LEGS_SWAPPED names switches switches.csv does not have: {missing}")
     return {idents[k] for k in LEGS_SWAPPED}
-
-
-def swap_legs(facts: dict) -> dict:
-    """A turnout's facts (turnout_facts) with legs B and C swapped, as LEGS_SWAPPED draws it: the other hand (the
-    straight leg is now B) and the continuing route on the other letter."""
-    legs = dict(facts["legs"])
-    legs["B"], legs["C"] = facts["legs"].get("C"), facts["legs"].get("B")
-    a, b, c, d = facts["blocks"]
-    hand = {"RH_TURNOUT": "LH_TURNOUT", "LH_TURNOUT": "RH_TURNOUT"}
-    return dict(facts, legs={k: v for k, v in legs.items() if v is not None}, blocks=(a, c, b, d),
-                type=hand.get(facts["type"], facts["type"]),
-                continuing={"2": "4", "4": "2"}.get(facts["continuing"], facts["continuing"]))
-
-
-def live_leg_first(chains: list[dict], lts: dict, ident: str, leg: str) -> str | None:
-    """The first block past a live turnout's own block along its leg (the block of the turnout leg at the far end,
-    when the whole track is in this turnout's block). `chains`: tracks.csv's tracks; `lts`: turnouts.csv's rows."""
-    own = lts[ident].get("blockname")
-    for c in chains:
-        for i in (0, 1):
-            if tuple(c["ends"][i]) == (ident, leg):
-                seq = c["blocks"] if i == 0 else c["blocks"][::-1]
-                got = next((b for b in seq if b != own), None)
-                if got is not None:
-                    return got
-                far = c["ends"][1 - i]
-                if far[0] == "END":
-                    return None
-                t = lts[far[0]]
-                return (t.get(f"block{far[1].lower()}name") if far[1] != "A" else None) or t.get("blockname")
-    raise BuildError(f"frozen tracks: turnout {ident} leg {leg} reaches no track")
 
 
 def staging_lengths(opts: dict, names: dict) -> dict:
@@ -309,20 +120,6 @@ def staging_lengths(opts: dict, names: dict) -> dict:
             for b in blocks:
                 out.pop(b, None)
     return out
-
-
-def plugin_masts(masts: list[dict]) -> list[dict]:
-    """The plugin's mast list for staging from masts.csv's rows: each mast with the facing block, protected blocks
-    and kind of slot it must resolve to, its icon size and hidden flag; an end bumper mast may stand at a helix join
-    instead (the all-levels trial runs its track on)."""
-    out = []
-    for m in masts:
-        entry = dict(mast=m["mast"], facing=m["facing"], protects=list(m["protects"]), kind=m["kind"],
-                     hidden=m["hidden"], icon=list(m["icon"]))
-        if m["kind"] == "end bumper":
-            entry["or_join"] = True
-        out.append(entry)
-    return sorted(out, key=lambda m: m["mast"])
 
 
 MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
@@ -634,17 +431,6 @@ def named_bands(bands, names: dict):
     return out
 
 
-def joined_ends(bands, staging: dict, le_mod) -> set:
-    """The blocks of the staging tracks that end at a helix or connector join to another drawn band."""
-    band = bands[0][1]
-    out = set()
-    for (bi, n), _other in le_mod.partners(bands).items():
-        if bi != 0:
-            continue
-        d = band["nodes"][n]
-        sid = next(iter(list(d["ins"].values()) + list(d["outs"].values())))
-        blocks = staging["blocks"][sid]
-        out.add(blocks[0] if band["strands"][sid]["src"][0] == n else blocks[-1])
-    return out
+
 # track names left off the panel (owner, 2026-11-16): the short track inside the three-way
 NO_NAME = {"Main": ["101-103"]}

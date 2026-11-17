@@ -179,7 +179,7 @@ class SignalsCheck(unittest.TestCase):
 
     def run_with(self, committed, masts=None):
         """main(["--check"]) against `committed` as the signals file, from the staging device map's masts (or `masts`
-        rows, in le_inputs.load_masts' shape, with the device map's tracks)."""
+        rows, in staging_device_map.load_signal_masts' shape, with the device map's tracks)."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             (tmp / "staging.signals.json").write_text(committed)
@@ -203,15 +203,15 @@ class SignalsCheck(unittest.TestCase):
     def test_stale_fails(self) -> None:
         self.assertEqual(self.run_with('{"signals": [], "unplaced": []}\n'), 1)   # layers.load reads it too
 
-    def test_written_from_the_frozen_masts(self) -> None:
-        masts = self.bs.le_inputs.load_masts()
+    def test_written_from_the_staging_masts(self) -> None:
+        masts = self.bs.sdm.load_signal_masts()
         self.assertEqual(len(masts), 49)
         got = json.loads((self.bs.pd.DATA / "staging.signals.json").read_text())
-        self.assertEqual(got["signals"], self.bs.le_inputs.signal_rows(masts))
-        self.assertEqual((got["source"], got["unplaced"]), (self.bs.le_inputs.SIGNALS_SOURCE, []))
+        self.assertEqual(got["signals"], self.bs.sdm.signal_rows(masts))
+        self.assertEqual((got["source"], got["unplaced"]), (self.bs.sdm.SIGNALS_SOURCE, []))
 
     def test_a_run_not_in_the_plan_fails(self) -> None:
-        masts = self.bs.le_inputs.load().masts
+        masts = self.bs.sdm.load_signal_masts()
         first = next(i for i, m in enumerate(masts) if m["signal"] == "2L")       # a turnout mast, switch 1 to 23
         anchor = next(i for i, m in enumerate(masts) if m["signal"] == "16L")     # an anchor 40 cm in
         self.assertEqual((masts[first]["kind"], masts[anchor]["kind"]), ("turnout", "anchor"))

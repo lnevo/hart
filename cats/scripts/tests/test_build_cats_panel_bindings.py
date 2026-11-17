@@ -54,7 +54,7 @@ def band():
     return {"nodes": nodes, "strands": strands}
 
 
-# the staging tracks (staging_device_map.staging_chains, as staging_le/tracks.csv held them): TO1 leg B to TO2 leg A holds
+# the staging tracks (staging_device_map.staging_chains): TO1 leg B to TO2 leg A holds
 # OS Switch 1 then OS Switch 2a
 CHAINS = [{"ends": [("TO1", "B"), ("TO2", "A")], "blocks": ["OS Switch 1", "OS Switch 2a"]},
           {"ends": [("TO1", "C"), ("END", "EB1")], "blocks": ["Track Yard"]},
@@ -187,7 +187,7 @@ class FrozenLayoutEditorTracks(unittest.TestCase):
 
     def test_the_35_37_track_is_os_switch_35a_on_the_staging_track(self):
         # the generated Layout Editor panel splits it evenly; the hand-drawn one gave most of it to 35a. The track is
-        # the staging device map's (staging_device_map.staging_chains), as staging_le/tracks.csv held it
+        # the staging device map's (staging_device_map.staging_chains)
         self.assertEqual(B.SHORT_TRACK_BLOCKS, {"35-37": "OS Switch 35a"})
         try:                    # the staging tracks need the plugin's solve: skipped without it, as the --check scripts
             B.pd.plugin()

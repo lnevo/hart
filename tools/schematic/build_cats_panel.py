@@ -21,7 +21,7 @@ hand:
   staging.signals.json + signal_head_plan.csv  the masts drawn on staging (field and planned) and their templates
   device_map_staging.csv  the block of a short unnamed track between two switches that has no JMRI block of its own
                          (SHORT_TRACK_BLOCKS, which must be one of the blocks that staging track holds; the staging
-                         device map's tracks, staging_device_map.staging_chains, as staging_le/tracks.csv held them)
+                         device map's tracks, staging_device_map.staging_chains)
 Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-17: CATS holds their signals and
 releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
 turns them ABS with the rest. They take their names from the block rows of
@@ -136,7 +136,7 @@ def plugin_modules(plugin):
 
 class FrozenTracks:
     """The staging tracks between switches and ends, each with its blocks in order: staging_device_map.staging_chains
-    (ends by switches.csv le_ident), as staging_le/tracks.csv held them."""
+    (ends by switches.csv le_ident)."""
 
     def __init__(self, chains):
         self.chains = chains            # [{ends: [(ident, leg), (ident, leg) or ("END", bumper)], blocks: [...]}]

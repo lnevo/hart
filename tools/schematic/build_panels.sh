@@ -2,8 +2,8 @@
 # Rebuild every output drawn from the schematic, in the order they depend on each other, or check them all with
 # --check (exit 1 if any is stale). `make panels` and `make panels CHECK=1` run this.
 #
-#   staging device map               device_map_staging.csv and its files, from the frozen staging files and tables.xml
-#                                    (staging_device_map.py; until staging switches to the device-map path)
+#   staging device map               device_map_staging.csv and its files are kept by hand: checked against tables.xml
+#                                    and the schematic (staging_device_map.py --check), in both modes
 #   hands.csv, <name>.signals.json   from the plan graph and the staging masts; the schematic reads the signals
 #   device map                       from the solved sheet; writes main_upper.plan_overrides.json, a layer file the
 #                                    schematic reads, so it runs before publishing
@@ -11,8 +11,6 @@
 #   schematic draft and stations     publish_draft.py
 #   CATS desks                       build_cats_panel.py
 #   Layout Editor trials, cut-over   build_layout_le.py (all levels, then staging alone), then --as-live
-#   device-map candidate             build_layout_le.py --as-live --staging devicemap --review, beside the cut-over
-#                                    candidate (owner review pending), and the boundary contract staged for it
 #   approved-*                       check_approved.py, straight after what it guards: the desks after they are written,
 #                                    the cut-over candidate after it is written (it is what replaces the live panel; the
 #                                    build never writes tables.xml), and the live panel. A write that drifts from the
@@ -47,7 +45,7 @@ step() {
 }
 
 step hands python3 tools/schematic/build_hands.py
-step staging-map python3 tools/schematic/staging_device_map.py
+step staging-map python3 tools/schematic/staging_device_map.py --check
 step signals python3 tools/schematic/build_signals.py
 step device-map python3 tools/schematic/build_device_map.py
 step main-upper-masts python3 tools/schematic/build_main_upper_masts.py
@@ -58,8 +56,6 @@ step le-trial python3 tools/schematic/build_layout_le.py
 step le-trial-staging python3 tools/schematic/build_layout_le.py --levels staging
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
 step approved-candidate python3 tools/schematic/check_approved.py le-candidate
-step le-cutover-devicemap python3 tools/schematic/build_layout_le.py --as-live --staging devicemap --review
-step staged-boundaries python3 tools/schematic/build_staging_candidate.py --no-images
 step approved-live python3 tools/schematic/check_approved.py le-panel
 
 if [ ${#failed[@]} -gt 0 ]; then

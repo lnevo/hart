@@ -27,7 +27,7 @@ class PanelBackground(unittest.TestCase):
         self.assertTrue((ROOT / "jmri/resources/misc/hart_panel_bg_plain.jpg").is_file())
 
     def test_tables_path_matches_install_folder(self):
-        # the generated panel's backdrop: the picture without the compass rose (le_overlay, since the cut-over)
+        # the generated panel's backdrop: the picture without the compass rose (panel_items.json)
         tables = paths.TABLES_XML.read_text(encoding="utf-8")
         self.assertIn("preference:resources/misc/hart_panel_bg_plain.jpg", tables)
 

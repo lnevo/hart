@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hartlib import paths, tables  # noqa: E402
 from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
-from le_common import BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, read_csv, slots_module, STAGING, TURNOUT_SYS  # noqa: E402
+from le_common import BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, read_csv, STAGING, TURNOUT_SYS  # noqa: E402
 from approval import canon_sorted, element_label  # noqa: E402  as the approval fingerprints read an element
 
 
@@ -94,40 +94,6 @@ def retire_yard_ladder(root: ET.Element) -> int:
     if left:
         raise BuildError(f"yard ladder: {RETIRED_TURNOUT_PREFIX}* still named by {sorted(set(left))}")
     return gone
-
-
-def bind_sensors(gen_le: ET.Element, sensors: list[dict]) -> int:
-    """Bind each Entry/Exit sensor of sensors.csv in the same slot of the new panel: the same ident and slot, since
-    staging keeps the live idents and leg letters. Stops unless that slot is there and resolves to the same facing
-    and protected blocks as frozen. Returns how many."""
-    gen_ix = slots_module().Index(gen_le)
-    bad = []
-    for row in sorted(sensors, key=lambda r: (r["ident"], r["slot"])):
-        ident, slot, sensor, kind = row["ident"], row["slot"], row["sensor"], row["kind"]
-        have = gen_ix.turnouts if kind == "turnout" else gen_ix.points
-        if ident not in have:
-            bad.append(f"{sensor}: live {kind} {ident} is not on the new panel")
-            continue
-        want_type = "END_BUMPER" if kind == "end bumper" else "ANCHOR"
-        if kind != "turnout" and have[ident].get("type") != want_type:
-            bad.append(f"{sensor}: {ident} is a {have[ident].get('type')} on the new panel, live a {want_type}")
-            continue
-        if kind == "turnout" and not have[ident].get(f"connect{slot.lower()}name"):
-            bad.append(f"{sensor}: turnout {ident} has no leg {slot} on the new panel")
-            continue
-        want, got = (row["facing"], list(row["protects"])), tuple(gen_ix.blocks(kind, ident, slot))
-        if want != (got[0], list(got[1])):
-            bad.append(f"{sensor}: {ident} {slot} faces {got[0]} and protects {got[1]} on the new panel, live "
-                       f"{want[0]} and {want[1]}")
-            continue
-        if kind == "turnout":
-            el = ET.SubElement(have[ident], f"sensor{slot}")
-            el.text = sensor
-        else:
-            have[ident].set(f"{slot}boundsensor", sensor)
-    if bad:
-        raise BuildError("Entry/Exit sensors not placed for certain: " + "; ".join(bad))
-    return len(sensors)
 
 
 def replace(parent: ET.Element, old: ET.Element, new: ET.Element, depth: int) -> None:

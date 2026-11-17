@@ -1,8 +1,8 @@
 """Fixed panel items: icons and labels a Layout Editor panel carries that the schematic does not draw.
 
-The input file is jmri/layouts/hart/data/schematic/panel_items.json, which is kept by hand. It replaces the
-hand-placed overlay (staging_le/overlay.json, le_overlay.py) on the device-map path (build_staging_candidate.py)
-with a short list of items placed by rule. It holds the status cluster panel_status.py drives (the sensor icons
+The input file is jmri/layouts/hart/data/schematic/panel_items.json, which is kept by hand. Since the device-map
+switch-over (2026-11-17) it replaces the hand-placed overlay the build used to carry, with a short list of items
+placed by rule (build_layout_le.py). It holds the status cluster panel_status.py drives (the sensor icons
 Bridge HBLOOP, SML Mode and Track Power, the signal head icon IH9990 and their captions), the frame captions, the
 helix destination labels and the backdrop image. More panel customisations go in the same file.
 
@@ -36,7 +36,7 @@ from pathlib import Path
 POINTS = {"top-left": (0, 0), "top": (0.5, 0), "top-right": (1, 0), "left": (0, 0.5), "centre": (0.5, 0.5),
           "right": (1, 0.5), "bottom-left": (0, 1), "bottom": (0.5, 1), "bottom-right": (1, 1)}
 TAGS = ("sensoricon", "positionablelabel", "signalheadicon", "turnouticon", "memoryicon", "signalmasticon")
-EDGE = 20               # px kept free beyond the furthest item at the right and the bottom (as le_overlay.EDGE)
+EDGE = 20               # px kept free beyond the furthest item at the right and the bottom
 ITEM_FIELDS = {"id", "anchor", "xml", "size", "members", "note"}
 MEMBER_FIELDS = {"dx", "dy", "xml", "size"}
 ANCHOR_FIELDS = {"to", "at", "block", "dx", "dy"}

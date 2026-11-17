@@ -4,6 +4,7 @@ from __future__ import annotations
 import contextlib
 import copy
 import functools
+import importlib
 import importlib.util
 import io
 import re
@@ -89,7 +90,7 @@ def used_blocks(le) -> set:
 
 def closed_block(facts: dict) -> dict:
     """{turnout name: block of the track on its closed route} for each plain turnout (`facts`: turnout facts, from
-    B.turnout_facts(panel) or the frozen le_inputs.Inputs.turnout_facts())."""
+    B.turnout_facts(panel): the new panel's or the last hand-drawn one's)."""
     out = {}
     for t in facts.values():
         if "XOVER" not in t["type"]:
@@ -108,13 +109,6 @@ def crossover_legs(facts: dict) -> dict:
     return out
 
 
-def frozen_blocks(inputs) -> set:
-    out = {b for c in inputs.chains for b in c["blocks"]}
-    for t in inputs.turnouts:
-        out |= {t[a] for a in ("blockname", "blockbname", "blockcname", "blockdname") if t.get(a)}
-    return out
-
-
 @functools.lru_cache(maxsize=None)
 def built():
     """(trial bytes, Panel, names, bands): built once for every test module that needs it."""
@@ -129,23 +123,23 @@ class Built(unittest.TestCase):
         cls.root = tables.loads(cls.data).root
         cls.live = tables.read(hand())
         cls.le = tables.layout_editor(cls.root, B.PANEL_NAME)
-        cls.inputs = B.le_inputs.load()          # the staging facts frozen from the hand-drawn panel
+        cls.hand_le = tables.layout_editor(cls.live, LIVE_PANEL)     # the last hand-drawn panel: the railroad
         cls.items = {el.get("ident"): el for el in tables.elements(cls.le) if el.get("ident")}
 
     # ---- staging is the live railroad
     def test_every_live_staging_turnout_and_block_is_on_the_new_panel(self) -> None:
-        live_turnouts = {t["turnoutname"] for t in self.inputs.turnouts}
+        live_turnouts = {t.get("turnoutname") for t in self.hand_le.findall("layoutturnout")}
         new_turnouts = {t.get("turnoutname") for t in self.le.findall("layoutturnout")}
         self.assertTrue(live_turnouts)
         self.assertLessEqual(live_turnouts, new_turnouts)
-        self.assertLessEqual(frozen_blocks(self.inputs), used_blocks(self.le))
+        self.assertLessEqual(used_blocks(self.hand_le), used_blocks(self.le))
 
     def test_closed_routes_and_crossovers_match_the_live_panel(self) -> None:
-        live, new = closed_block(self.inputs.turnout_facts()), closed_block(B.turnout_facts(self.le))
+        live, new = closed_block(B.turnout_facts(self.hand_le)), closed_block(B.turnout_facts(self.le))
         self.assertEqual(len(live), 17)
         for name, block in live.items():
             self.assertEqual(new[name], block, name)
-        live_x, new_x = crossover_legs(self.inputs.turnout_facts()), crossover_legs(B.turnout_facts(self.le))
+        live_x, new_x = crossover_legs(B.turnout_facts(self.hand_le)), crossover_legs(B.turnout_facts(self.le))
         self.assertEqual(sorted(live_x), ["Switch 23", "Switch 35", "Switch 7"])
         for name, legs in live_x.items():
             self.assertEqual(new_x[name], legs, name)
@@ -349,7 +343,7 @@ class Built(unittest.TestCase):
                 xs.append(float(t.get(f"x{leg}")))
                 ys.append(float(t.get(f"y{leg}")))
         B.plugin()
-        jt = B.importlib.import_module("schematic.jmri_text")
+        jt = importlib.import_module("schematic.jmri_text")
         for lb in self.le.findall("positionablelabel"):
             x, y, size, bold = float(lb.get("x")), float(lb.get("y")), int(lb.get("size")), lb.get("style") == "1"
             xs += [x, x + jt.width(lb.get("text"), size, bold)]
@@ -400,12 +394,16 @@ class Built(unittest.TestCase):
         self.assertEqual([le.get("name") for le in tables.layout_editors(self.root)],
                          [le.get("name") for le in tables.layout_editors(self.live)] + [B.PANEL_NAME])
 
-    def test_audit_passes_on_the_trial(self) -> None:
+    def test_audit_passes_on_the_cut_over_candidate(self) -> None:
+        # le_signal_boundaries.csv names the generated panel's anchors (AG...), so the audit reads the candidate,
+        # whose "HART Railroad" panel is the generated one (the trial beside it keeps the hand-drawn one)
         boundaries = AUDIT.load_boundaries(AUDIT.BOUNDARIES)
+        with contextlib.redirect_stdout(io.StringIO()):
+            data = B.build(hand(), as_live=True)[0]
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "tables_layout.xml"
-            path.write_bytes(self.data)
-            audit = AUDIT.audit_source("trial", path, boundaries, {b.mast for b in boundaries})
+            path = Path(tmp) / "tables_cutover.xml"
+            path.write_bytes(data)
+            audit = AUDIT.audit_source("candidate", path, boundaries, {b.mast for b in boundaries}, generated=True)
         self.assertEqual(audit.errors, [])
         self.assertEqual(audit.facts["panel"], LIVE_PANEL)
 
@@ -517,25 +515,6 @@ class DeviceNames(unittest.TestCase):
 
 
 class Pieces(unittest.TestCase):
-    def test_live_chains_follow_anchors_to_the_next_turnout(self) -> None:
-        xml = ('<LayoutEditor name="P">'
-               '<layoutturnout ident="TO1" type="RH_TURNOUT" connectaname="T1" connectbname="T2" connectcname="T3"/>'
-               '<positionablepoint ident="A1" type="ANCHOR" connect1name="T1" connect2name="T4"/>'
-               '<positionablepoint ident="EB1" type="END_BUMPER" connect1name="T4"/>'
-               '<positionablepoint ident="EB2" type="END_BUMPER" connect1name="T2"/>'
-               '<positionablepoint ident="EB3" type="END_BUMPER" connect1name="T3"/>'
-               '<tracksegment ident="T1" blockname="X West" connect1name="TO1" type1="TURNOUT_A" '
-               'connect2name="A1" type2="POS_POINT"/>'
-               '<tracksegment ident="T4" blockname="X" connect1name="A1" type1="POS_POINT" '
-               'connect2name="EB1" type2="POS_POINT"/>'
-               '<tracksegment ident="T2" blockname="Y" connect1name="TO1" type1="TURNOUT_B" '
-               'connect2name="EB2" type2="POS_POINT"/>'
-               '<tracksegment ident="T3" blockname="Z" connect1name="EB3" type1="POS_POINT" '
-               'connect2name="TO1" type2="TURNOUT_C"/></LayoutEditor>')
-        chains = B.le_inputs.live_chains(ET.fromstring(xml))
-        got = {c["ends"][0][1]: c["blocks"] for c in chains}
-        self.assertEqual(got, {"A": ["X West", "X"], "B": ["Y"], "C": ["Z"]})
-
     def test_runs_join_tracks_through_a_turnback(self) -> None:
         band = {"nodes": {"S": {"kind": "switch"}, "T": {"kind": "switch"}, "turn": {"kind": "turnL"}},
                 "strands": {"a": {"src": ("turn", 0), "dst": ("S", "A")},
@@ -563,22 +542,6 @@ class ReviewFixes(unittest.TestCase):
         self.assertAlmostEqual(lengths["Track e33 1"], half)
         self.assertAlmostEqual(lengths["Track e33 2"], half)
 
-    def test_east_and_west_blocks_go_with_their_track(self) -> None:
-        strands = {"a": {"name": "K-1"}, "b": {"name": "K-2"}, "c": {"name": "Main East"}}
-        got = B.share_blocks(["Track K-1", "Track K-2 West", "Track K-2"], [("a", False), ("b", True)], strands)
-        self.assertEqual(got, {"a": ["Track K-1"], "b": ["Track K-2", "Track K-2 West"]})
-        got = B.share_blocks(["Track Main East"], [("c", False)], strands)   # a track really named ... East
-        self.assertEqual(got, {"c": ["Track Main East"]})
-
-    def test_a_track_with_one_label_at_both_ends_needs_a_symmetric_block_order(self) -> None:
-        chain = dict(labels=["7", "7"], blocks=["Track X", "Track Y"], ends=[("TO1", "B"), ("TO1", "C")])
-        with self.assertRaises(B.BuildError):
-            B.orient(chain, "7", "x")
-        chain["blocks"] = ["Track X"]
-        self.assertEqual(B.orient(chain, "7", "x")[0], ["Track X"])
-        chain = dict(labels=["1", "3"], blocks=["A", "B"], ends=[("TO1", "B"), ("TO3", "A")])
-        self.assertEqual(B.orient(chain, "3", "x"), (["B", "A"], [("TO3", "A"), ("TO1", "B")]))
-
     def test_runs_stop_on_a_broken_or_closed_turnback(self) -> None:
         lone = {"nodes": {"S": {"kind": "switch"}, "turn": {"kind": "turnL"}},
                 "strands": {"a": {"src": ("turn", 0), "dst": ("S", "A")}}}
@@ -588,17 +551,6 @@ class ReviewFixes(unittest.TestCase):
                 "strands": {"a": {"src": ("t1", 0), "dst": ("t2", 0)}, "b": {"src": ("t2", 1), "dst": ("t1", 1)}}}
         with self.assertRaises(B.BuildError):
             B.runs(ring)
-
-    def test_live_chains_stop_at_what_they_cannot_follow(self) -> None:
-        for far in ('<positionablepoint ident="EC1" type="EDGE_CONNECTOR" connect1name="T1"/>',
-                    '<levelxing ident="X1" connectaname="T1"/>'):
-            typ = "POS_POINT" if "EC1" in far else "LEVEL_XING_A"
-            name = "EC1" if "EC1" in far else "X1"
-            xml = ('<LayoutEditor name="P"><layoutturnout ident="TO1" type="RH_TURNOUT" connectaname="T1"/>' + far +
-                   f'<tracksegment ident="T1" blockname="X" connect1name="TO1" type1="TURNOUT_A" '
-                   f'connect2name="{name}" type2="{typ}"/></LayoutEditor>')
-            with self.assertRaisesRegex(B.le_inputs.InputsError, "does not follow"):
-                B.le_inputs.live_chains(ET.fromstring(xml))
 
     def test_tables_with_no_names_only_block_pass_stop(self) -> None:
         doc = tables.load(hand())
@@ -640,39 +592,15 @@ class SecondReview(unittest.TestCase):
         return P, el, le_mod
 
     def test_a_mast_two_slots_would_fit_stops_the_build(self) -> None:
-        want = [{"mast": "M", "kind": "anchor", "ident": "A1", "slot": "east"}]
+        want = [{"mast": "M", "kind": "anchor"}]
         P, el, le_mod = self.fake(1)
-        B.check_slots(P, want, le_mod)                                      # one W|E boundary: certain
+        B.check_device_masts(P, want, le_mod, facts={})                     # one W|E boundary: certain
         P, el, le_mod = self.fake(2)
         with self.assertRaisesRegex(B.BuildError, "fits 2 slots"):
-            B.check_slots(P, want, le_mod)
+            B.check_device_masts(P, want, le_mod, facts={})
         P, el, le_mod = self.fake(1)
-        with self.assertRaisesRegex(B.BuildError, "M was not asked for"):
-            B.check_slots(P, [], le_mod)
-        for ident, slot in (("A2", "east"), ("A1", "west")):         # masts.csv edited by hand: it must take effect
-            with self.subTest(ident=ident, slot=slot), self.assertRaisesRegex(
-                    B.BuildError, f"M stands at A1 east, masts.csv says {ident} {slot}"):
-                B.check_slots(P, [dict(want[0], ident=ident, slot=slot)], le_mod)
-        P.moved = [("t", "M", "at a helix join")]                    # the all-levels trial's helix-join masts
-        B.check_slots(P, [dict(want[0], ident="EB9", slot="west")], le_mod)
-
-    def test_slots_naming_a_mast_by_system_name_resolve(self) -> None:
-        root = tables.read(hand())
-        live = copy.deepcopy(tables.layout_editor(root, LIVE_PANEL))
-        system = tables.mast_system_names(root)
-        point = next(p for p in live.findall("positionablepoint") if p.get("eastboundsignalmast") == "Mast 16R")
-        point.set("eastboundsignalmast", system["Mast 16R"])
-        with contextlib.redirect_stdout(io.StringIO()):
-            got = {m["mast"]: m for m in B.le_inputs.staging_masts(root, live, B.slots_module())}
-        self.assertIn(system["Mast 16R"], got)
-        self.assertEqual(got[system["Mast 16R"]]["icon"], list(tables.MAST_ICON_DWARF))     # one-low virtual
-        self.assertTrue(got[system["Mast 16R"]]["hidden"])
-
-    def test_hidden_only_when_every_live_icon_is(self) -> None:
-        live = ET.fromstring('<LayoutEditor><signalmasticon signalmast="M" hidden="yes"/>'
-                             '<signalmasticon signalmast="M" hidden="no"/>'
-                             '<signalmasticon signalmast="N" hidden="yes"/></LayoutEditor>')
-        self.assertEqual(B.le_inputs.live_icons_hidden(live, {}), {"M": False, "N": True})
+        with self.assertRaisesRegex(B.BuildError, "N is not on the panel"):
+            B.check_device_masts(P, [{"mast": "N", "kind": "anchor"}], le_mod, facts={})
 
     def test_the_trial_is_never_written_over_the_live_tables(self) -> None:
         self.assertTrue(B.live_target(paths.TABLES_XML))
@@ -826,35 +754,6 @@ class FinalReview(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, "already hold name_columns; HART sets them here"):
             B.staging_columns(clash)
 
-    def test_half_lamps_are_for_os_blocks_with_sensors(self) -> None:
-        ov = B.overlay_mod()
-        panel = ET.fromstring(
-            '<LayoutEditor><layoutturnout type="RH_XOVER" turnoutname="Switch 7" blockname="OS Switch 7" '
-            'blockcname="OS Switch 7b"/><sensoricon sensor="BS Switch 7"/></LayoutEditor>')
-        sensors = {"OS Switch 7": "BS Switch 7", "OS Switch 7b": "BS Switch 7b"}
-        with self.assertRaisesRegex(ov.OverlayError, "lamps for .* but none for \\['OS Switch 7b'\\]"):
-            ov.check_half_lamps(panel, sensors)
-        with self.assertRaisesRegex(ov.OverlayError, "OS Switch 7b has no occupancy sensor"):
-            ov.check_half_lamps(panel, {"OS Switch 7": "BS Switch 7"})
-        ov.check_half_lamps(panel, {})                          # no lamp shown: nothing to match
-        track = ET.fromstring('<LayoutEditor><layoutturnout type="RH_XOVER" turnoutname="Switch 9" '
-                              'blockname="OS Switch 9" blockcname="Track X"/><sensoricon sensor="BS 9"/>'
-                              '</LayoutEditor>')
-        ov.check_half_lamps(track, {"OS Switch 9": "BS 9", "Track X": "BS X"})      # a track block needs none
-        gen = mock.Mock(turnouts={"T": track.find("layoutturnout")})
-        lamp = mock.Mock(anchor=("turnout", "T", "OS Switch 9", (0, 0)), lamp=True, index=1)
-        with mock.patch.object(ov, "in_circle", lambda its: True):
-            self.assertEqual(ov.half_lamps([lamp], gen, {"Track X": "BS X"}), [])
-
-    def test_one_track_word_rule(self) -> None:
-        ov = B.overlay_mod()
-        stations = _load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
-        for name in ("Track EH-1", "Track Power", "EH-1", "Tracks", "Track "):
-            el = ET.fromstring(f'<sensoricon text="{name}"/>')
-            ov.drop_track_word(el)
-            self.assertEqual(el.get("text"), stations.station_display(name, generated=True), name)
-
-
 class LoopAndCrossover(unittest.TestCase):
     """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers (owner, 2026-11-16)."""
 
@@ -964,12 +863,10 @@ class LevelMasts(unittest.TestCase):
             B.check_level_slots(P, [dict(row, facing="Elsewhere")], le_mod)
         with self.assertRaisesRegex(B.BuildError, "N is not on the panel"):
             B.check_level_slots(P, [dict(row, mast="N")], le_mod)
-        P.masts = [dict(mast="M", kind="anchor", ident="A1", slot="east")]          # no band: named, both ways
+        P.masts = [dict(mast="M", kind="anchor", ident="A1", slot="east")]          # no band: named
         P.points, P.moved = {}, []
         with self.assertRaisesRegex(B.BuildError, "mast M: the plugin gave it no band"):
             B.check_level_slots(P, [row], le_mod)
-        with self.assertRaisesRegex(B.BuildError, "mast M: the plugin gave it no band"):
-            B.check_slots(P, [], le_mod)
 
     def test_audit_masts_on_a_panel_that_draws_the_levels(self) -> None:
         def run(masts, levels):

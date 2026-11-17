@@ -1,7 +1,8 @@
-"""staging_device_map.py: staging's facts in the main and upper levels' shape, and the reader the trial builds from."""
+"""staging_device_map.py: staging's facts in the device map's form (hand-kept), their rules, and what reads them."""
 from __future__ import annotations
 
 import csv
+import io
 import shutil
 import sys
 import tempfile
@@ -19,6 +20,12 @@ def band(nodes, strands):
 
 def sw(label, **legs):
     return dict(kind="switch", label=label, ins={}, outs={}, **legs)
+
+
+def row(layer, user, system, jmri, notes=""):
+    """A device map row (build_device_map.COLUMNS) of staging."""
+    return dict(level="1", cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
+                comment="", trial_name="", notes=notes)
 
 
 class Pure(unittest.TestCase):
@@ -46,91 +53,116 @@ class Pure(unittest.TestCase):
             sdm.placeholders(band({"a": sw("7x")}, {}))
 
     def test_a_block_with_no_occupancy_row_stops(self):
-        rows = [sdm.row("block", "Track S-1", "IB1", "IB1"), sdm.row("block", "Track S-1 West", "IB2", "IB2"),
-                sdm.row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1")]
+        rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
+                row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1")]
         with self.assertRaisesRegex(sdm.StagingMapError, "Track S-1 West"):
             sdm.check_rows(rows)
 
     def test_a_shared_detector_serves_both_blocks(self):
-        rows = [sdm.row("block", "Track S-1", "IB1", "IB1"), sdm.row("block", "Track S-1 West", "IB2", "IB2"),
-                sdm.row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1; Track S-1 West")]
+        rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
+                row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1; Track S-1 West")]
         sdm.check_rows(rows)
 
+    def test_signal_rows_in_the_plugins_order(self):
+        m = dict(signal="10LA", toward="9", run=["9", ""], names=["EH-2"], edge_cm=61.0, cm_from_toward=61.0,
+                 dir="west", signal_kind="virtual", heads=1, schematic_edge="n5", schematic_toward_node="NEW:9")
+        got = sdm.signal_rows([m, dict(m, signal="2L"), dict(m, signal="10L")])
+        self.assertEqual([r["mast"] for r in got], ["2L", "10L", "10LA"])
+        self.assertEqual(got[0]["_edge"], "n5")
+        self.assertEqual(got[0]["source"], "le_panel")
 
-class AgainstTheFrozenBinding(unittest.TestCase):
-    """The committed files give the staging band the same binding the build reads off the frozen panel today."""
+
+class Files(unittest.TestCase):
+    """The committed files hold their rules, and each kind of break stops naming the place."""
 
     @classmethod
     def setUpClass(cls):
         import build_layout_le as blb
         try:
-            cls.band, _opts, core = sdm.staging_band()
+            cls.band, _opts, _core = sdm.staging_band()
         except (blb.BuildError, SystemExit) as exc:
             raise unittest.SkipTest(f"schematic-maps plugin not available: {exc}")
-        import le_inputs
-        cls.frozen = blb.staging_names(cls.band, le_inputs.load(), core.tidy)
         cls.names = sdm.load(cls.band)
 
-    def test_turnouts_os_blocks_and_normal_legs_match(self):
-        for key in ("turnouts", "os", "blocks", "normal"):
-            self.assertEqual(self.names[key], self.frozen[key], key)
+    def test_the_committed_files_hold_their_rules(self):
+        self.assertEqual(sdm.check(self.band), [])
+        self.assertEqual(len(set(self.names["turnouts"].values())), 20)
+        self.assertEqual(len(self.names["masts"]), 49)
+        self.assertEqual(self.names["idents"]["turnouts"]["NEW:13"], "TO1")         # switches.csv le_ident
 
-    def test_turnout_idents_are_switches_csv_le_idents(self):
-        self.assertEqual(self.names["idents"]["turnouts"], self.frozen["idents"]["turnouts"])
-
-    def test_every_frozen_mast_is_read_with_its_blocks_and_kind(self):
-        import le_inputs
-        want = {m["mast"]: (m["facing"], m["protects"], m["kind"], m["hidden"], list(m["icon"]))
-                for m in le_inputs.load().masts}
-        got = {m["mast"]: (m["facing"], m["protects"], m["kind"], m["hidden"], m["icon"]) for m in self.names["masts"]}
-        self.assertEqual(got, want)
-
-    def _copy_without(self, ph):
+    def _copy(self, edit):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
         with sdm.DEVICE_MAP.open(newline="") as f:
             rows = list(csv.DictReader(f))
-        for r in rows:
-            r["trial_name"] = ", ".join(p for p in sdm.split_names(r["trial_name"]) if p != ph)
+        edit(rows)
         out = tmp / "device_map_staging.csv"
-        with out.open("w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=sdm.bdm.COLUMNS, lineterminator="\n")
-            w.writeheader()
-            w.writerows(rows)
-        return out
+        out.write_text(sdm.bdm.csv_text(rows), encoding="utf-8")
+        return out, rows
+
+    def _without(self, ph):
+        def edit(rows):
+            for r in rows:
+                r["trial_name"] = ", ".join(p for p in sdm.split_names(r["trial_name"]) if p != ph)
+        return self._copy(edit)[0]
 
     def test_a_missing_block_of_a_split_track_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, "track e23: blocks .* are not 1/n to n/n"):
-            sdm.load(self.band, device_map=self._copy_without("Track e23 2/3"))
+            sdm.load(self.band, device_map=self._without("Track e23 2/3"))
 
     def test_a_missing_turnout_placeholder_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, "no turnout row has trial_name Switch 1"):
-            sdm.load(self.band, device_map=self._copy_without("Switch 1"))
+            sdm.load(self.band, device_map=self._without("Switch 1"))
 
-    def test_the_tracks_are_the_frozen_tracks(self):
-        # staging_chains (build_cats_panel.py, build_signals.py) holds every frozen track's blocks, in order, between
-        # the same two turnouts (or a turnout and a bumper); the legs are the band's, not Layout Editor letters
-        import le_inputs
-        key = lambda c: (frozenset(e[0] for e in c["ends"]), tuple(c["blocks"]))       # noqa: E731
-        flip = lambda c: (frozenset(e[0] for e in c["ends"]), tuple(c["blocks"][::-1]))  # noqa: E731
-        ends = lambda c: [("END" if e[0] == "END" else e[0]) for e in c["ends"]]        # noqa: E731
-        frozen = [dict(c, ends=[(e, "") for e in ends(c)]) for c in le_inputs.load().chains]
-        mine = sdm.staging_chains(self.band, self.names)
-        self.assertEqual(len(mine), len(frozen))
-        got = {key(c) for c in mine}
-        for c in frozen:
-            self.assertTrue(key(c) in got or flip(c) in got, c)
+    def test_a_device_not_in_tables_stops(self):
+        from hartlib import railroad
 
-    def test_the_signal_plan_reads_back_as_frozen(self):
-        import le_inputs
-        self.assertEqual(le_inputs.signal_rows(sdm.load_signal_masts()), le_inputs.signal_rows(le_inputs.load().masts))
+        def edit(rows):
+            next(r for r in rows if r["user_name"] == "Switch 1")["system_name"] = "M2T999"
+        _out, rows = self._copy(edit)
+        bad = sdm.check_tables(rows, railroad.Railroad())
+        self.assertTrue(any("turnout Switch 1: tables.xml has 'M2T408', not M2T999" in b for b in bad), bad)
+
+    def test_control_points_follow_the_overrides(self):
+        self.assertEqual(sdm.check_control_points(), [])
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        bad = tmp / "cps.csv"
+        bad.write_text(sdm.CPS.read_text(encoding="utf-8").replace('"1,3"', '"1"'), encoding="utf-8")
+        self.assertTrue(sdm.check_control_points(bad))
+
+    def test_the_run_walk_counts_a_block_through_a_turnback_once(self):
+        runs = sdm.run_blocks(self.band, self.names)
+        for _start, seq, _end in runs:
+            self.assertFalse([b for a, b in zip(seq, seq[1:]) if a == b], seq)
+        self.assertIn(["Track Brick-Plane"], [seq for _s, seq, _e in runs])
+        chains = sdm.staging_chains(self.band, self.names)
+        self.assertEqual(len(chains), len(runs))
+        self.assertTrue(any({e[0] for e in c["ends"]} == {"TOR36", "TO113"} and
+                            c["blocks"] == ["OS Switch 35a", "OS Switch 37"] for c in chains))
+
+    def test_the_signal_plan_reads_back(self):
+        masts = sdm.load_signal_masts()
+        self.assertEqual(len(masts), 49)
+        import json
+        got = json.loads((sdm.pd.DATA / "staging.signals.json").read_text(encoding="utf-8"))
+        self.assertEqual(got["signals"], sdm.signal_rows(masts))
+        self.assertEqual(got["source"], sdm.SIGNALS_SOURCE)
+
+    def test_the_command_is_a_check_only(self):
+        import contextlib
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err), self.assertRaises(SystemExit):
+            sdm.main([])
+        self.assertIn("--check is the only mode", err.getvalue())
 
 
-class DeviceMapPath(unittest.TestCase):
-    """build_layout_le.py's device-map staging path (--staging devicemap)."""
+class DeviceMapBuild(unittest.TestCase):
+    """build_layout_le.py draws staging from these files."""
 
     @classmethod
     def setUpClass(cls):
+        import contextlib
         import build_layout_le as blb
         cls.B = blb
         try:
@@ -138,42 +170,11 @@ class DeviceMapPath(unittest.TestCase):
             base = blb.template_tables()
         except blb.BuildError as exc:
             raise unittest.SkipTest(f"plugin or hand-drawn tables not available: {exc}")
-        cls.data, cls.P, cls.names, _bands = blb.build(base, levels="staging", as_live=True, approved=None,
-                                                         staging_source="devicemap")
+        with contextlib.redirect_stdout(io.StringIO()):
+            cls.data, cls.P, cls.names, _bands = blb.build(base, levels="staging", as_live=True, approved=None)
         from hartlib import tables
         cls.tables = tables
-        cls.root = tables.loads(cls.data).root
-        cls.panel = tables.layout_editor(cls.root, blb.TEMPLATE_PANEL)
-
-    def test_its_trial_files_sit_beside_the_frozen_ones(self):
-        B = self.B
-        self.assertEqual(B.default_out("all", True, "devicemap").name, "tables_cutover_devicemap.xml")
-        self.assertEqual(B.default_out("staging", True, "devicemap").name, "tables_cutover_devicemap_staging.xml")
-        self.assertEqual(B.staging_out(B.default_out("all", True, "devicemap")),
-                         B.default_out("staging", True, "devicemap"))
-        self.assertEqual(B.default_out("all", True), B.CUTOVER)          # the frozen path keeps its names
-
-    def test_a_bad_source_or_frozen_inputs_stop(self):
-        with self.assertRaisesRegex(self.B.BuildError, "staging_source must be one of"):
-            self.B.build(levels="staging", staging_source="hand")
-        with self.assertRaisesRegex(self.B.BuildError, "reads no frozen inputs"):
-            self.B.build(levels="staging", staging_source="devicemap", inputs=object())
-
-    def test_approving_the_device_map_panel_waits_for_the_switch_over(self):
-        # approved_staging.sha256 guards the frozen candidate until devicemap is the default (staged/README.md)
-        import contextlib
-        import io
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            self.assertEqual(self.B.main(["--approve-staging", "--staging", "devicemap"]), 1)
-        self.assertIn("guards the frozen path until the switch-over", out.getvalue())
-
-    def test_the_run_walk_counts_a_block_through_a_turnback_once(self):
-        band, _opts, _core = sdm.staging_band()
-        names = sdm.load(band)
-        for _start, seq, _end in sdm.run_blocks(band, names):
-            self.assertFalse([b for a, b in zip(seq, seq[1:]) if a == b], seq)
-        self.assertIn(["Track Brick-Plane"], [seq for _s, seq, _e in sdm.run_blocks(band, names)])
+        cls.panel = tables.layout_editor(tables.loads(cls.data).root, blb.TEMPLATE_PANEL)
 
     def test_every_staging_mast_is_placed_once_with_no_entry_exit_sensor(self):
         placed = [m["mast"] for m in self.B.slots_module().Index(self.panel).masts()]

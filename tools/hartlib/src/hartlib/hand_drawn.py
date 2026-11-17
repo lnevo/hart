@@ -1,6 +1,6 @@
 """The last hand-drawn files, read from git, for what still needs them after the cut-overs to the generated panels:
 the Layout Editor tables.xml (Phase 5) and the CATS desks HART_CTC.xml and HART_ABS.xml (the CATS cut-over). Used by
-the frozen inputs' --freeze, the cut-over comparisons (parity of the generated panels with the hand-drawn ones) and
+the Layout Editor build (template_tables), the cut-over comparisons (parity of the generated panels with the hand-drawn ones) and
 the tests of one-off scripts and pixel tables that only ever applied to the hand-drawn panels. No copy of an old file
 is kept in the tree: each is read from the commit before its cut-over.
 

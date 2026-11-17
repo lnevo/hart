@@ -122,7 +122,7 @@ rr.check()                                # [Problem(invariant, message)]
 The files come in **layers**, in the order `tools/schematic/build_panels.sh` makes them: `inputs` (hand-kept:
 `switches.csv`, `switch_legs.csv`, `public_name_map.csv`, `control_points_main_upper.csv`,
 `local_switches_main_upper.csv`, `lcos_nodes_main_upper.csv`, `main_upper.plan_overrides.json`, `block_lengths.csv`,
-`staging_le/masts.csv`), `hands` (`hands.csv`), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
+`schematic/staging_masts.csv`), `hands` (`hands.csv`), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
 (`tables.xml`). `Railroad(upto=layer)` raises `LayerError` when asked for a later layer, so a builder never reads a
 stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `build_main_upper_masts.py`
 `upto="device_map"`, `build_cats_panel.py` everything.
@@ -155,7 +155,7 @@ physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by
 
 The last hand-drawn `tables.xml`, read from git at `COMMIT` (main just before the Layout Editor cut-over): `tables_bytes()`,
 `tables_path()` (a read-only temporary copy, one per process) and, for tests, `skip_unless_available()`. Used by
-`build_layout_le.py` (`template_tables`, `--freeze`) and the tests of the cut-over and of the one-off scripts that only
+`build_layout_le.py` (`template_tables`) and the tests of the cut-over and of the one-off scripts that only
 ever edited the hand-drawn panel. No copy of the old file is kept in the tree.
 
 ### `hartlib.parked`
