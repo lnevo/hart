@@ -250,7 +250,7 @@ class Built(unittest.TestCase):
         for tag, text in (("systemName", "IBX1"), ("userName", b), ("permissive", "no")):
             ET.SubElement(el, tag).text = text
         self.assertEqual(B.add_level_sensors(root, {x: sensors[x] for x in sorted(sensors)[:2]}), [sensors[b][0]])
-        with mock.patch.object(B.le_tables, "add_level_sensors", return_value=[]), \
+        with mock.patch.object(sys.modules["le_tables"], "add_level_sensors", return_value=[]), \
                 self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
             with contextlib.redirect_stdout(io.StringIO()):
                 B.build(hand())
@@ -478,7 +478,7 @@ class DeviceNames(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, "does not have: \\['Track e999'\\]"):
             B.level_names(bands, le_mod, dict(device, **{"Track e999": "Track 9-9"}))
         names, lengths = B.placeholder_names(bands, le_mod)         # a length with no device-map row: named, no KeyError
-        with mock.patch.object(B.le_names, "placeholder_names", return_value=(names, dict(lengths, **{"Track e777": 1.0}))):
+        with mock.patch.object(sys.modules["le_names"], "placeholder_names", return_value=(names, dict(lengths, **{"Track e777": 1.0}))):
             with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track e777'\\]"):
                 B.level_names(bands, le_mod, device)
 
@@ -508,8 +508,11 @@ class DeviceNames(unittest.TestCase):
         bad["Main"]["turnouts"][n] = "Switch 999"
         with self.assertRaisesRegex(B.BuildError, "joined as a crossover but the device map gives them two"):
             B.named_bands(bands, bad)
-        prefs = [(t, b, dict(o, le_labels={})) for t, b, o in bands]
-        with self.assertRaisesRegex(B.BuildError, "already hold le_labels"):
+        # a band's own le_labels (main_upper.preferences.json) are kept beside HART's; a key HART sets stops
+        prefs = [(t, b, dict(o, le_labels={"switch_size": 10})) for t, b, o in bands]
+        self.assertEqual(B.named_bands(prefs, names)[1][2]["le_labels"]["switch_size"], 10)
+        prefs = [(t, b, dict(o, le_labels={"names_last": False})) for t, b, o in bands]
+        with self.assertRaisesRegex(B.BuildError, "le_labels already hold names_last; HART sets them here"):
             B.named_bands(prefs, names)
 
 

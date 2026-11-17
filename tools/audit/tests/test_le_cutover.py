@@ -446,7 +446,7 @@ class ThreeLevels(unittest.TestCase):
                 doc = tables.loads(self.data)
                 edit(doc.root)
                 with self.assertRaisesRegex(B.BuildError, "staging guard"):
-                    B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE)
+                    B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE, B.JOIN_HELIX)
 
     def test_the_staging_candidate_is_the_approved_panel(self) -> None:
         # Fails after a staging change on purpose until the owner approves the new panel in PanelPro and

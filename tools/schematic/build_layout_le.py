@@ -121,13 +121,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import hand_drawn, parked, paths, tables  # noqa: E402
-# the build's parts (split out of this file, no change in what they do); their names are re-exported below, so callers
-# and tests read them here as before. Patch a name in the module that calls it (le_names.placeholder_names, say).
-import le_checks  # noqa: E402,F401
-import le_common  # noqa: E402,F401
-import approval  # noqa: E402  the staging candidate's approval fingerprint
-import le_names  # noqa: E402,F401
-import le_tables  # noqa: E402,F401
+# The build's parts (split out of this file, no change in what they do) and the staging candidate's approval
+# fingerprint (approval.py): their names are re-exported below, so callers and tests read them here as before. Patch
+# a name in the module that calls it (le_names.placeholder_names, say).
 from le_common import (  # noqa: E402,F401  re-exported: callers and tests read them here
     STAGING, SWITCHES, SWITCH_LEGS, DEVICE_MAP, TURNOUT_SYS, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
     schematic, overlay_mod, slots_module, band_key, bare, read_csv,
@@ -146,13 +142,19 @@ from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read 
     check_live_turnouts,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, COMMENT, place, bean, r1, block_sort, JOIN_HELIX,
+    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, COMMENT, place, bean, r1, block_sort,
     RETIRED_TURNOUT_PREFIX, retire_yard_ladder, bind_sensors, replace, canon, is_level_bean, level_items,
     PANEL_SIZE_ATTRS, helix_join_changes, check_staging_unchanged, insert_first_panel, numbered_blocks,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
     add_level_objects, SIGNAL_NOTE, HEAD_CLASS, MAST_CLASS, add_level_signals,
 )
 
+# Whether the three-level panel joins staging's helix tracks to the main and upper levels by hidden segments. On
+# (owner, 2026-11-17, the helix-join release): joined plainly, with no route-flow entries; staging's own pairs change
+# as stock SML discovery finds them (10RA, 10RB, 12R and 14R pair to 16L; 36RB->40RB is lost), accepted. Masts 38RA
+# and 40RA stand at the helix-entrance anchors, protecting Track 135-H2 and Track 135-H1. Off, every helix end stays
+# an end bumper (the 2026-11-16 cut-over) and the staging guard accepts no difference.
+JOIN_HELIX = True
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                    # all three levels (the candidate)
 CUTOVER_STAGING = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover_staging.xml"    # staging alone (the guard's base)
@@ -207,7 +209,7 @@ def template_tables() -> Path:
 
 
 def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", as_live: bool = False, inputs=None,
-          freeze_from: ET.Element | None = None, approved: Path | None = APPROVED):
+          freeze_from: ET.Element | None = None, approved: Path | None = APPROVED, page: dict | None = None):
     """(tables bytes, the plugin's Panel, {band key: names}, bands). `levels` "all" draws every band, main and upper
     under the device map's names (level_names) and their objects added to the tables; "staging" draws staging alone, its
     helix ends as end bumpers as live, and adds no table object. `as_live` writes a cut-over candidate: the "HART
@@ -226,10 +228,13 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     if inputs is None:
         inputs = le_inputs.load()
     _sheet, le_mod, core = plugin()
+    # the page options come from the solved sheet (schematic()), for the bands given too unless `page` is (the
+    # three-level build passes its own on to the staging candidate it draws first)
     if bands is None:
-        bands, page = schematic()
+        bands, solved_page = schematic()
     else:
-        page = bands[-1][2]
+        solved_page = schematic()[1]
+    page = solved_page if page is None else page
     # as the Layout Editor draws them (the preferences' le_shift, le_longer_straights; once): so the names below are
     # read off the bands drawn, before named_bands relabels a crossover's halves
     try:
@@ -238,7 +243,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         raise BuildError(f"schematic le: {exc}") from None
     base = None             # the three-level candidate: the staging candidate it must hold unchanged, and its grid
     if as_live and levels == "all":
-        base = build(live_path, bands, "staging", True, inputs, approved=approved)
+        base = build(live_path, bands, "staging", True, inputs, approved=approved, page=page)
     keys = [band_key(t) for t, _, _ in bands]
     if STAGING not in keys:
         raise BuildError(f"no {STAGING} band in the schematic (bands: {', '.join(keys)})")
@@ -287,8 +292,9 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         names[STAGING]["idents"]["ends"] = {b: i for b, i in names[STAGING]["idents"]["ends"].items()
                                             if b not in joined_ends(bands, names[STAGING], le_mod)}
     names[STAGING]["lengths"] = staging_lengths(bands[0][2], names[STAGING])
-    if "le_labels" in page:
-        raise BuildError("the schematic's page options already hold le_labels; HART sets them here (LE_LABELS)")
+    # the page-wide label options are HART's (LE_LABELS). The page is the last input's own options, so le_labels in
+    # main_upper.preferences.json are main's and upper's: they reach those bands through their own options
+    # (named_bands), not the page
     page = dict(page, le_labels=dict(TRIAL_LE_LABELS if levels == "all" and not as_live else LE_LABELS))  # a copy
     extras = {}
     if as_live:         # the station clusters, placed by the plugin's label layer (le_overlay.station_extras)
@@ -311,18 +317,18 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             # le_crossover_angle, however each level is stretched; the station clusters where staging's candidate
             # has them (an extra given its x keeps it)
             S = base[1]
-            stepped = {"extras": le_mod.le_prefs.with_x(extras.get("extras"), S.extra_x)}
+            stepped = {"extras": le_mod.with_x(extras.get("extras"), S.extra_x)}
             P = le_mod.panel(staging_columns(named_bands(bands, names)), names, cell=le_mod.CELL * scale[0],
                              row=STAGING_ROW * scale[1], page=dict(page, band_align={STAGING: "left"}),
                              labels_by_band=True, tight_crossovers=TIGHT_CROSSOVERS, split_crossovers=SPLIT_CROSSOVERS,
-                             mast_room=MAST_ROOM, name_room=NAME_ROOM, band_bottoms={STAGING: S.overlay["bottom"]},
+                             mast_room=MAST_ROOM, name_room=NAME_ROOM,
+                             band_bottoms={STAGING: S.overlay["bottom"] - S.band_boxes[0][3]},
                              **stepped)
             P.scale, P.fit, P.stretch = scale, None, S.stretch
         elif as_live:               # the staging candidate: the cut-over grid, no fitting (it scrolls in FIT)
             # (the grid a fit settles on does not depend on the caller's items, so none are given)
             fitted = le_mod.panel(bands, names, page=page, fit=FIT, row=STAGING_ROW).scale
-            scale = le_mod.stretched(fitted, page)
-            stretch = le_mod.le_prefs.stretch(page)[0]
+            scale, stretch = le_mod.stretched(fitted, page)
             # the station clusters that step (staging's le_labels extra_steps, extra_follow) are placed by the plugin
             P = le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1],
                              page=page, **extras)
@@ -393,7 +399,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         else:
             insert_first_panel(root, panel_el, 1)
         if base is not None:
-            P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name)
+            P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name, JOIN_HELIX)
             P.staging_data = base[0]
             try:
                 le_mod.check_stretch(P.overlay["size"], FIT, page)

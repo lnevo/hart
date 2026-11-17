@@ -622,10 +622,14 @@ def named_bands(bands, names: dict):
             name = block.removeprefix("Track ")
             if name not in NO_NAME.get(band_key(title), []):
                 band["strands"][best]["name"] = name
-        if "le_labels" in (opts or {}):
-            raise BuildError(f"{title}: its preferences already hold le_labels; HART sets them here (LEVEL_LE_LABELS)")
-        labels = dict(LEVEL_LE_LABELS, numbers_below=list(NUMBERS_BELOW.get(band_key(title), [])),
-                      optional_block_contents=list(OPTIONAL_READOUTS.get(band_key(title), [])))
+        hart = dict(LEVEL_LE_LABELS, numbers_below=list(NUMBERS_BELOW.get(band_key(title), [])),
+                    optional_block_contents=list(OPTIONAL_READOUTS.get(band_key(title), [])))
+        own = dict((opts or {}).get("le_labels") or {})       # the band's own, from its preferences
+        set_here = sorted(set(own) & set(hart))
+        if set_here:
+            raise BuildError(f"{title}: its preferences' le_labels already hold {', '.join(set_here)}; HART sets them "
+                             "here (LEVEL_LE_LABELS, NUMBERS_BELOW, OPTIONAL_READOUTS)")
+        labels = dict(own, **hart)
         out.append((title, band, dict(opts or {}, le_labels=labels)))
     return out
 
