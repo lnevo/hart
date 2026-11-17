@@ -489,7 +489,9 @@
     document.getElementById("page-title").textContent = m.title;
     // A current map is drawn from the system schematic, so it carries the schematic's revision and date.
     var sc = data.schematic;
-    document.getElementById("page-pub").textContent = pubLine(archive ? m : { pub: m.pub, revision: sc.revision, effective: sc.effective });
+    // a crew.json without the schematic's fields (a stale copy) keeps the line the page was published with
+    if (archive || (sc.revision && sc.effective))
+      document.getElementById("page-pub").textContent = pubLine(archive ? m : { pub: m.pub, revision: sc.revision, effective: sc.effective });
     document.getElementById("page-lede").textContent = archive ? m.what : m.now || m.what;
 
     var toggle = "";
@@ -584,13 +586,13 @@
       '<section class="maps-index">' +
       '<figure class="key-map"><button type="button" class="map-open" data-zoom aria-label="Open the system schematic full screen">' +
       '<img src="' + esc(u(sc.svg)) + '" alt="' + esc(sc.alt) + '" width="1056" height="816"></button>' +
-      "<figcaption>" + esc(sc.caption + " Revision " + sc.revision + " · Effective " + sc.effective + ".") + ' <a href="' + esc(u(sc.pdf)) + '">PDF to print</a>. <span class="no-print">Tap to zoom.</span></figcaption></figure>' +
+      "<figcaption>" + esc(sc.caption + (sc.revision ? " Revision " + sc.revision + (sc.effective ? " · Effective " + sc.effective : "") + "." : "")) + ' <a href="' + esc(u(sc.pdf)) + '">PDF to print</a>. <span class="no-print">Tap to zoom.</span></figcaption></figure>' +
       '<div><h2 class="sub-h">Station maps</h2><ul class="map-list">' +
       data.maps
         .map(function (m) {
           return (
             '<li><a href="' + mapHref(m.id) + '"><img src="' + esc(mapThumb(m)) + '" alt="" loading="lazy">' +
-            "<span><strong>" + esc(m.title) + "</strong><small>" + esc(m.pub + " · Rev " + sc.revision) + "</small><em>" + esc(m.now || m.what) + "</em></span></a></li>"
+            "<span><strong>" + esc(m.title) + "</strong><small>" + esc(m.pub + (sc.revision ? " · Rev " + sc.revision : "")) + "</small><em>" + esc(m.now || m.what) + "</em></span></a></li>"
           );
         })
         .join("") +

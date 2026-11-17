@@ -1,8 +1,8 @@
 """map_revision.py [--check]
 
 The station maps are drawn from the system schematic, so the site gives them the schematic's revision and date.
-The title block's `revision` and `date` in jmri/layouts/hart/data/schematic/main_upper.preferences.json are the
-only source. This writes them into:
+The title block's `revision` and `date` in the page's preferences file (page_prefs: sheet.preferences.json if
+present, else main_upper.preferences.json, as publish_draft reads them) are the only source. This writes them into:
 
 - www/data/crew.json: `schematic.revision` and `schematic.effective` (crew.js shows them on the maps index and on
   every current station map page);
@@ -24,12 +24,20 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-PREFS = REPO / "jmri/layouts/hart/data/schematic/main_upper.preferences.json"
+SCHEMATIC = REPO / "jmri/layouts/hart/data/schematic"
+
+
+def page_prefs() -> Path:
+    """The preferences file that sets the schematic's page, as publish_draft.page_prefs reads it:
+    sheet.preferences.json if present, else main_upper.preferences.json (the last input's)."""
+    sheet = SCHEMATIC / "sheet.preferences.json"
+    return sheet if sheet.exists() else SCHEMATIC / "main_upper.preferences.json"
 PUB_LINE = re.compile(r'(<p class="sheet-pub" id="page-pub">)([^<]*)(</p>)')
 
 
-def fields(prefs: Path = PREFS) -> tuple[str, str]:
+def fields(prefs: Path | None = None) -> tuple[str, str]:
     """(revision, effective) from the title block: ("10", "16 November 2026")."""
+    prefs = prefs or page_prefs()
     p = json.loads(prefs.read_text())
     rev, date = p.get("revision"), p.get("date")
     if rev is None or isinstance(rev, bool) or not str(rev).strip():
@@ -53,7 +61,7 @@ def _dump(data) -> str:
     return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
 
 
-def planned(www: Path, prefs: Path = PREFS) -> dict[Path, str]:
+def planned(www: Path, prefs: Path | None = None) -> dict[Path, str]:
     """{file: text it should have} for every file this owns, from the files as they are now."""
     rev, effective = fields(prefs)
     crew_path, pubs_path = www / "data/crew.json", www / "data/publications.json"
@@ -81,12 +89,12 @@ def planned(www: Path, prefs: Path = PREFS) -> dict[Path, str]:
     return out
 
 
-def drift(www: Path = REPO / "www", prefs: Path = PREFS) -> list[Path]:
+def drift(www: Path = REPO / "www", prefs: Path | None = None) -> list[Path]:
     """Files whose revision or date differs from the title block ([] when they all match)."""
     return [p for p, text in planned(www, prefs).items() if p.read_text(encoding="utf-8") != text]
 
 
-def apply(www: Path = REPO / "www", prefs: Path = PREFS) -> list[Path]:
+def apply(www: Path = REPO / "www", prefs: Path | None = None) -> list[Path]:
     """Write the title block's revision and date into every file that differs; returns those files."""
     plan = planned(www, prefs)
     changed = [p for p, text in plan.items() if p.read_text(encoding="utf-8") != text]
