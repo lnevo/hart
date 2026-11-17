@@ -1,5 +1,7 @@
 """approval: fingerprints of the approved panels and desks."""
+import contextlib
 import dataclasses
+import io
 import sys
 import tempfile
 import unittest
@@ -30,24 +32,67 @@ class FingerprintTest(unittest.TestCase):
         want = approval.fingerprint(ET.fromstring(DESK), "DOCUMENT")
         got = approval.fingerprint(ET.fromstring(DESK.replace("X='3'", "X='9'")), "DOCUMENT")
         self.assertIsNone(approval.compare(want, want))
-        self.assertEqual(approval.compare(want, got), "element 2 is LINE b, approved LINE b (changed)")
+        self.assertEqual(approval.compare(want, got), "child 2 is LINE b, approved LINE b (changed)")
 
     def test_compare_counts_elements_when_one_is_added(self):
         want = approval.fingerprint(ET.fromstring(DESK), "DOCUMENT")
         got = approval.fingerprint(ET.fromstring(DESK.replace("</DOCUMENT>", "<LINE NAME='c'/></DOCUMENT>")), "DOCUMENT")
-        self.assertIn("3 elements, approved 2", approval.compare(want, got))
+        self.assertIn("3 children, approved 2", approval.compare(want, got))
 
     def test_parse_refuses_a_bad_line_and_a_missing_panel_hash(self):
         with self.assertRaisesRegex(approval.ApprovalError, "line 1: not"):
-            approval.parse_fingerprint("nonsense\n", "f")
+            approval.parse_fingerprint("nonsense\n", "f", "DOCUMENT")
         h = "a" * 64
         with self.assertRaisesRegex(approval.ApprovalError, "no panel hash"):
-            approval.parse_fingerprint(f"{h} one\n{h} two\n", "f")
+            approval.parse_fingerprint(f"{h} one\n{h} two\n", "f", "DOCUMENT")
 
     def test_format_round_trips(self):
         fp = approval.fingerprint(ET.fromstring(DESK), "DOCUMENT")
         text = approval.format_fingerprint(fp, "# note\n")
-        self.assertEqual(approval.parse_fingerprint(text, "f"), fp)
+        self.assertEqual(approval.parse_fingerprint(text, "f", "DOCUMENT"), fp)
+
+
+class RobustnessTest(unittest.TestCase):
+    def fp(self, text, drop=frozenset()):
+        return approval.fingerprint(ET.fromstring(text), "D", drop)
+
+    def test_view_attributes_are_left_out_of_the_head_and_the_whole(self):
+        a = "<LayoutEditor name='P' x='0' y='0' windowwidth='1900' mainlinetrackwidth='4'><t a='1'/></LayoutEditor>"
+        b = a.replace("x='0'", "x='9'").replace("1900", "1500")
+        self.assertEqual(self.fp(a, approval.VIEW_ATTRS), self.fp(b, approval.VIEW_ATTRS))
+        self.assertNotEqual(self.fp(a), self.fp(b))
+        c = a.replace("mainlinetrackwidth='4'", "mainlinetrackwidth='6'")
+        self.assertNotEqual(self.fp(a, approval.VIEW_ATTRS), self.fp(c, approval.VIEW_ATTRS))
+
+    def test_meaningful_text_spaces_count_but_layout_whitespace_does_not(self):
+        self.assertNotEqual(self.fp("<D><t> hi </t></D>"), self.fp("<D><t>hi</t></D>"))
+        self.assertEqual(self.fp("<D>\n <t>hi</t>\n</D>"), self.fp("<D><t>hi</t></D>"))
+
+    def test_comments_and_instructions_are_skipped(self):
+        parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True, insert_pis=True))
+        root = ET.fromstring("<D><!-- c --><?pi x?><t a='1'/></D>", parser)
+        plain = self.fp("<D><t a='1'/></D>")
+        got = approval.fingerprint(root, "D")
+        self.assertEqual(got, plain)
+        self.assertNotIn("0x", " ".join(w for _, w in got))
+
+    def test_trackplan_children_are_named_by_place(self):
+        text = ("<DOCUMENT><TRACKPLAN COLUMNS='4'><SECTION X='2' Y='1'><SEC_NAME NAME='WEST'/></SECTION>"
+                "<SECTION X='5' Y='1'/></TRACKPLAN></DOCUMENT>")
+        got = approval.fingerprint(ET.fromstring(text), "DOCUMENT")
+        self.assertEqual([w for _, w in got], ["DOCUMENT DOCUMENT", "TRACKPLAN #0", "TRACKPLAN/SECTION 2,1 WEST",
+                                               "TRACKPLAN/SECTION 5,1", "panel"])
+        moved = approval.fingerprint(ET.fromstring(text.replace("X='5'", "X='6'")), "DOCUMENT")
+        self.assertIn("child 3 is TRACKPLAN/SECTION 6,1", approval.compare(got, moved))
+
+    def test_the_first_line_must_be_the_root(self):
+        h = "a" * 64
+        with self.assertRaisesRegex(approval.ApprovalError, "first line"):
+            approval.parse_fingerprint(f"{h} LINE a\n{h} panel\n", "f", "DOCUMENT")
+
+    def test_a_root_attribute_change_is_named(self):
+        want = self.fp("<D a='1'><t/></D>")
+        self.assertEqual(approval.compare(want, self.fp("<D a='2'><t/></D>")), "the root's own attributes changed")
 
 
 class OutputTest(unittest.TestCase):
@@ -100,15 +145,28 @@ class OutputTest(unittest.TestCase):
             approval.load_root(self.desk)
 
 
-class LiveOutputsTest(unittest.TestCase):
-    def test_the_recorded_outputs_are_the_approved_ones(self):
-        for out in approval.OUTPUTS:
-            with self.subTest(out.key):
-                approval.check(out)
+class SourceTest(unittest.TestCase):
+    def test_the_live_panel_reads_this_checkouts_tables_not_hart_tables(self):
+        live = next(o for o in approval.OUTPUTS if o.key == "le-panel")
+        self.assertEqual(live.source, approval.paths.REPO_TABLES_XML)
 
-    def test_cli_rejects_an_unknown_key(self):
-        with self.assertRaises(SystemExit):
-            check_approved.main(["nope"])
+    def test_the_candidate_is_not_checked_unless_named(self):
+        self.assertEqual([o.key for o in approval.OUTPUTS if not o.default], ["le-candidate"])
+
+
+class CliTest(unittest.TestCase):
+    def refused(self, *argv):
+        with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            check_approved.main(list(argv))
+
+    def test_unknown_key_is_refused(self):
+        self.refused("nope")
+
+    def test_a_bare_approve_is_refused_and_so_is_approve_with_check(self):
+        self.refused("--approve")
+        self.refused("--approve", "--all", "cats-ctc")
+        self.refused("--approve", "--check", "cats-ctc")
+        self.refused("--all")
 
 
 if __name__ == "__main__":

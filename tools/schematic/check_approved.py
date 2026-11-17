@@ -1,9 +1,10 @@
-"""check_approved.py [--check | --approve] [key ...]
+"""check_approved.py [--check] [key ...]  |  check_approved.py --approve (key ... | --all)
 
 Check the owner-approved built outputs against their fingerprints (tools/schematic/approval.py): the three-level
 "HART Railroad" Layout Editor panel in tables.xml and the CATS desks. Exit 1 naming each output that drifted.
---approve records the current outputs as approved; run it only after the owner has approved them.
-Keys: le-panel, cats-ctc, cats-abs (default: all).
+--approve records outputs as approved, only the ones named (or all of them with --all); run it only after the owner
+has approved them. Keys: le-panel (the live tables.xml), le-candidate (the cut-over candidate; checked only when
+named), cats-ctc, cats-abs. Checking with no key covers every output but le-candidate.
 """
 from __future__ import annotations
 
@@ -19,20 +20,29 @@ import approval  # noqa: E402
 def main(argv: list[str] | None = None) -> int:
     keys = {o.key: o for o in approval.OUTPUTS}
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--approve", action="store_true", help="record the current outputs as approved")
+    ap.add_argument("--approve", action="store_true", help="record the named outputs as approved")
+    ap.add_argument("--all", action="store_true", help="with --approve: every output but le-candidate")
     ap.add_argument("--check", action="store_true", help="the default; accepted so build_panels.sh can pass it")
     ap.add_argument("keys", nargs="*", metavar="key", help=", ".join(keys))
     args = ap.parse_args(argv)
     unknown = [k for k in args.keys if k not in keys]
     if unknown:
         ap.error(f"unknown output {unknown[0]!r}; choose from {', '.join(keys)}")
-    chosen = [keys[k] for k in args.keys] or list(approval.OUTPUTS)
+    if args.all and not args.approve:
+        ap.error("--all goes with --approve")
+    if args.approve and args.check:
+        ap.error("--approve and --check are different jobs")
+    if args.approve and args.all == bool(args.keys):
+        ap.error("--approve takes the outputs to approve (" + ", ".join(keys) + ") or --all, not both and not neither")
+    defaults = [o for o in approval.OUTPUTS if o.default]
+    chosen = [keys[k] for k in args.keys] or defaults
     bad = 0
     for out in chosen:
         try:
             if args.approve:
+                print(f"approving {out.key}: {out.what} from {approval.paths.rel(out.source)}")
                 approval.approve(out)
-                print(f"approved {out.key}: {approval.paths.rel(out.approved)}")
+                print(f"  wrote {approval.paths.rel(out.approved)}")
             else:
                 approval.check(out)
                 print(f"{out.key}: matches the approved fingerprint")
