@@ -53,7 +53,6 @@ is not set and the plugin submodule is not checked out or not at its pinned comm
 exits 0 (a failure with SCHEMATIC_REQUIRED=1).
 """
 import copy
-import csv
 import difflib
 import importlib
 import json
@@ -70,13 +69,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import le_inputs  # noqa: E402  the frozen staging Layout Editor facts (staging_le/)
-from hartlib import level_devices, level_masts, paths, tables  # noqa: E402
+from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402
 from hartlib.cats import mast_templates, station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
-import layout_facts as facts  # noqa: E402
 
 # The live desks (CATS cut-over, owner approved the generated desks in real CATS on 2026-11-15): the names the hosts,
 # launchers and shortcuts use. Nothing else writes them (wire_digicon.py, which built them from the hand-wired
@@ -85,7 +83,7 @@ OUT = pd.REPO / "cats/panels/HART_CTC.xml"
 OUT_ABS = OUT.with_name("HART_ABS.xml")
 BINDINGS = OUT.with_name("HART_CTC.bindings.json")
 HEADER = paths.CATS_DIR / "data/generated_desk_header.xml"   # frozen from the live desk (2026-11-15)
-DEVICE_MAP = pd.DATA / "device_map_main_upper.csv"
+DEVICE_MAP = railroad.Sources.under().device_map
 BOUND = "Staging"                                    # the band bound to JMRI (its title starts with this)
 # The ABS twin: every CTC block ABS, and the plate's words (wire_digicon.py write_desk, digicon_header.PANELS)
 ABS_PLATE = {"CTC DIGICON": "ABS DIGICON", "DS-CTC": "DS-ABS"}
@@ -162,39 +160,22 @@ class FrozenTracks:
         return blocks[0]
 
 
-@dataclass
-class DeviceMap:
-    """The main and upper device map (device_map_main_upper.csv): block rows and occupancy sensors by name."""
-    blocks: dict = field(default_factory=dict)      # user name -> {level, trial: set of "Track eNN"}
-    sensors: dict = field(default_factory=dict)     # occupancy user name -> virtual sensor (jmri_name, IS:HART:C3:B:)
-    planned: dict = field(default_factory=dict)     # occupancy user name -> planned detector (M2S...), when there is one
+# The main and upper device map: block rows (each with its level and the schematic tracks it holds, `trial`) and
+# occupancy sensors by name (virtual, and the planned detector when there is one); hartlib.railroad reads and checks it.
+DeviceMap = railroad.DeviceMap
 
 
 def load_device_map(path=DEVICE_MAP):
-    out = DeviceMap()
-    with open(path, newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            name = row["user_name"]
-            if row["layer"] == "block":
-                if name in out.blocks:
-                    raise SystemExit(f"{path.name}: block {name} is listed twice")
-                trial = {t.strip() for t in row["trial_name"].split(",") if t.strip()}
-                out.blocks[name] = {"level": int(row["level"]), "trial": trial}
-            elif row["layer"] == "occupancy":
-                if name in out.sensors or not level_devices.is_block_sensor(row["jmri_name"]) or \
-                        not (row["system_name"] == "" or row["system_name"].startswith("M2S")):
-                    raise SystemExit(f"{path.name}: occupancy {name} is listed twice, has no virtual "
-                                     f"{level_devices.SENSOR_PREFIX} jmri_name, or plans a detector that is not an M2S sensor")
-                out.sensors[name] = row["jmri_name"]
-                if row["system_name"]:
-                    out.planned[name] = row["system_name"]
-    return out
+    try:
+        return railroad.read_device_map(path)
+    except railroad.FactsError as exc:
+        raise SystemExit(f"build_cats_panel.py: {exc}") from None
 
 
 @dataclass
 class Facts:
     """What the bindings are written from (load_facts reads them from the repo)."""
-    switches: dict              # number -> layout_facts.Switch
+    switches: dict              # number -> hartlib.railroad.Switch
     turnout_io: dict            # Layout Editor turnout -> (M2T address, user name)
     occupancy: dict             # block -> (M2S address, sensor user name)
     discipline: dict            # block -> CATS discipline
@@ -209,15 +190,17 @@ class Facts:
 
 
 def load_facts():
-    """The facts from the repo: tables.xml (read once) for its turnouts, sensors, layout blocks and masts, never a
-    Layout Editor panel; the staging Layout Editor tracks from their frozen copy."""
-    root = tables.read(paths.TABLES_XML)
-    sensors = {tables.user_name(s): tables.system_name(s) for s in tables.sensors(root) if tables.user_name(s)}
-    turnouts = {tables.user_name(t): tables.system_name(t) for t in tables.turnouts(root) if tables.user_name(t)}
-    mast_system = {tables.user_name(m): tables.system_name(m) for m in tables.masts(root) if tables.user_name(m)}
-    return Facts(facts.load_switches(), tio.load_turnouts(root), le.load_occupancy(root), le.load_disciplines(),
-                 FrozenTracks(le_inputs.load().chains), mast_templates(), set(mast_system), load_device_map(),
-                 sensors, turnouts, mast_system, level_masts.read())
+    """The facts from the repo (hartlib.railroad, every layer: the desks are built after the device map and the
+    main and upper masts): tables.xml (read once) for its turnouts, sensors, layout blocks and masts, never a Layout
+    Editor panel; the staging Layout Editor tracks from their frozen copy."""
+    rr = railroad.Railroad()
+    try:
+        t = rr.tables
+        return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
+                     FrozenTracks(le_inputs.load().chains), mast_templates(), set(t.masts), rr.device_map,
+                     t.sensors, t.turnouts, t.masts, rr.level_masts)
+    except railroad.FactsError as exc:
+        raise SystemExit(f"build_cats_panel.py: {exc}") from None
 
 
 def legs_of(d):
@@ -401,13 +384,14 @@ def placeholder(strand) -> str:
     return bdm.loop_placeholder("Track " + plan_edge(strand), strand.get("loop_half"))
 
 
-def name_loop_halves(bands):
+def name_loop_halves(bands, device=None):
     """A copy of `bands` whose balloon loops are two desk blocks, as the device map has them: each half's strand
     is named by its device map block less "Track " (the plugin parts a turnback between two differently named
     tracks in the middle of its run, and labels each half) and marked with its half (`loop_half`, read by
     placeholder)."""
     import build_layout_le as bl
-    by_trial = {t: name for name, row in load_device_map().blocks.items() for t in row["trial"]}
+    device = load_device_map() if device is None else device      # the caller's Facts.device, read once
+    by_trial = {t: name for name, row in device.blocks.items() for t in row.trial}
     out = copy.deepcopy(bands)
     for title, band, _ in out:
         if not bdm.band_level(title):
@@ -452,7 +436,7 @@ def device_name(bands, cats, keys, F, log):
         edges.add(placeholder(s))
         ends |= {band["nodes"][e[0]].get("label") or "" for e in (s["src"], s["dst"])
                  if band["nodes"][e[0]]["kind"] in ("switch", "dx")}
-    rows = sorted(n for n, r in F.device.blocks.items() if r["trial"] & edges)
+    rows = sorted(n for n, r in F.device.blocks.items() if r.trial & edges)
     numbers = {bdm.base(lb) for lb in ends}
     if not rows and len(numbers) == 1 and len(ends) > 1:
         # the track between a crossover's halves (drawn on two bands, 129 and 135): the device map counts it in the
@@ -461,7 +445,7 @@ def device_name(bands, cats, keys, F, log):
         if name not in F.device.blocks:
             raise SystemExit(f"{name}: no block row in {DEVICE_MAP.name}")
         return name
-    if len(rows) != 1 or not edges <= F.device.blocks[rows[0]]["trial"]:
+    if len(rows) != 1 or not edges <= F.device.blocks[rows[0]].trial:
         raise SystemExit(f"desk block {sorted(keys)}: the schematic tracks {', '.join(sorted(edges))} is in "
                          f"{', '.join(rows) or 'no'} device map block rows; it must lie in exactly one")
     return rows[0]
@@ -503,7 +487,7 @@ def inside_os(bands, P, bound_bi, name, row):
         if bi == bound_bi or not bdm.band_level(title):
             continue
         for sid, s in band["strands"].items():
-            if placeholder(s) not in row["trial"]:
+            if placeholder(s) not in row.trial:
                 continue
             found.append((bi, sid))
             key = ("track", f"b{bi}:{sid}")
@@ -517,8 +501,8 @@ def inside_os(bands, P, bound_bi, name, row):
             cm[plan_edge(s)] = s["cm"]     # as the device map measures it
     if not found or any(t.removeprefix("Track ") not in
                         {plan_edge(bands[bi][1]["strands"][sid]) for bi, sid in found}
-                        for t in row["trial"]):
-        raise SystemExit(f"{name}: the device map's tracks {', '.join(sorted(row['trial']))} are not all drawn on "
+                        for t in row.trial):
+        raise SystemExit(f"{name}: the device map's tracks {', '.join(sorted(row.trial))} are not all drawn on "
                          "main or upper")
     length = round(sum(cm.values()), 1)
     if length < bdm.SHORT_CM:
@@ -656,7 +640,7 @@ def level_signals(bands, F, bound_bi):
     balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (loop_half_edge,
     which placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
     name_loop_halves). Stops on a mast drawn at no switch leg or at two."""
-    by_trial = {t: name for name, row in F.device.blocks.items() for t in row["trial"]}
+    by_trial = {t: name for name, row in F.device.blocks.items() for t in row.trial}
     added = defaultdict(list)
     for r in F.level_masts:
         m = re.fullmatch(r"Mast (\d+)([LR])([AB]?)", r["mast"])
@@ -868,8 +852,8 @@ def dress(cats, root, header, plate, desk):
 def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
-    bands = name_loop_halves(pd.solved_sheet(sheet).bands)
     F = load_facts()
+    bands = name_loop_halves(pd.solved_sheet(sheet).bands, F.device)
     level_signals(bands, F, bound_index(bands))
     text = json.dumps(bindings(bands, cats, F), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")

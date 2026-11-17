@@ -20,7 +20,6 @@ or without --check.
 plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0, so a checkout
 without submodules still runs check.sh; with SCHEMATIC_REQUIRED=1 (set in CI) that skip is a failure instead.
 """
-import csv
 import difflib
 import importlib
 import json
@@ -31,23 +30,22 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_inputs  # noqa: E402  the frozen staging facts
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pinned plugin
+from hartlib import railroad  # noqa: E402  block_lengths.csv, read and checked once
 
 LEVELS = [("staging.json", "staging")]     # plan graph in inputs/, layer file stem
 SCHEMA = "schematic.signals/1"
-BLOCK_LENGTHS = pd.paths.LAYOUT_DATA / "block_lengths.csv"
+BLOCK_LENGTHS = railroad.Sources.under().block_lengths
 TOLERANCE_CM = 0.2          # the reader rounds each length to 0.1 cm
 
 
 def block_cm(path=BLOCK_LENGTHS) -> dict:
-    """{block: cm} from block_lengths.csv (inches); a blank length is zero, as the signal reader reads it."""
-    out = {}
-    with open(path, newline="", encoding="utf-8") as fh:
-        for k, r in enumerate(csv.DictReader(fh), 2):
-            try:
-                out[r["user_name"]] = float(r["inches"] or 0) * 2.54
-            except (KeyError, ValueError):
-                sys.exit(f"{path.name} line {k}: no user_name or inches {r.get('inches')!r} is not a number")
-    return out
+    """{block: cm} from block_lengths.csv (inches, hartlib.railroad.read_block_lengths); a blank length is zero, as
+    the signal reader reads it."""
+    try:
+        lengths = railroad.read_block_lengths(path)
+    except railroad.FactsError as exc:
+        sys.exit(str(exc))
+    return {name: (b.inches or 0.0) * 2.54 for name, b in lengths.items()}
 
 
 def check_lengths(masts: list[dict], chains: list[dict], cm: dict) -> list[str]:
