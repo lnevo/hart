@@ -89,6 +89,7 @@ run schematic-cats python3 tools/schematic/build_cats_panel.py --check
 run schematic-hands python3 tools/schematic/build_hands.py --check
 run schematic-device-map python3 tools/schematic/build_device_map.py --check
 run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py --check
+run schematic-staging-device-map python3 tools/schematic/staging_device_map.py --check
 run wiring-v86 python3 docs/wiring/scripts/add_main_upper_levels.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 # The parked features (Entry/Exit, Dispatcher System, USS CTC): none of their elements or names in the tables

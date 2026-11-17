@@ -4,6 +4,10 @@
     python3 tools/schematic/staging_device_map.py           # one-time conversion: write the three files
     python3 tools/schematic/staging_device_map.py --check   # exit 1 if a file differs from a fresh conversion
 
+--check (tools/check.sh) prints SKIPPED and exits 0 when the plugin submodule is not checked out (1 with
+SCHEMATIC_REQUIRED=1), as build_device_map.py does. It also stops when a staging bean in tables.xml changes, which
+is the point: the files must follow the railroad.
+
 Phase 1 of one input path for the Layout Editor build (owner review pending, nothing live reads these files yet).
 Today build_layout_le.py draws staging from the frozen hand-drawn panel (staging_le/, read by le_inputs.py and
 le_overlay.py) and main and upper from device_map_main_upper.csv, control_points_main_upper.csv and
@@ -41,6 +45,10 @@ A block that several tracks or a switch share lists every placeholder, comma sep
 
 load() reads the three files back for the builder (no frozen staging_le file): the plugin's names for the staging
 band, each check failing loudly (a placeholder no row names, a row the drawing does not use, a broken k/n run).
+
+The panel's own icons and labels are not device facts and are not here: the status cluster, captions and backdrop
+are in panel_items.json (panel_items.py); the occupancy lamps and station clusters are parked with the Dispatcher
+System (jmri/layouts/hart/parked/staging_panel_lamps.json).
 """
 from __future__ import annotations
 
@@ -48,6 +56,7 @@ import argparse
 import csv
 import io
 import json
+import os
 import re
 import sys
 from collections import defaultdict
@@ -566,6 +575,14 @@ def main(argv=None) -> int:
         if message:
             print(f"ERROR: {message}")
             return 1
+    try:
+        blb.plugin()
+    except blb.BuildError as exc:
+        if not args.check:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+        print(f"SKIPPED staging device map check: {exc}")
+        return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
         with pd.cache_on():
             want = texts()

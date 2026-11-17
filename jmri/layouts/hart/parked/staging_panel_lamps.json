@@ -1,0 +1,1191 @@
+{
+ "_note": "Parked with the Dispatcher System (owner, 2026-11-17): the occupancy lamps and the station clusters (MoveTo buttons, move-in-progress lamps, station occupancy lamps) of the HART Railroad panel, where the approved staging candidate placed them (build_layout_le.py --levels staging --as-live, from staging_le/overlay.json). In panel_items.json form (tools/schematic/panel_items.py), each anchored at its block's drawn centre, so it lands where it stands today while the staging track is drawn the same. To unpark: README.md, 'Staging panel lamps'.",
+ "panel": "HART Railroad",
+ "items": [
+  {
+   "id": "lamp Track Main East: BS Main East",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Main East",
+    "dx": 96,
+    "dy": 110
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Main East\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track East Lead: BS East Lead",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track East Lead",
+    "dx": -13,
+    "dy": -7
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS East Lead\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track S-2: BS S-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track S-2",
+    "dx": 14,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS S-2\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track S-4: BS S-4",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track S-4",
+    "dx": -5,
+    "dy": 8
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS S-4\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 35a: BS Switch 35a",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 35a",
+    "dx": -20,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 35a\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 5: BS Switch 5",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 5",
+    "dx": -4,
+    "dy": 0
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 5\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 7: BS Switch 7",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 7",
+    "dx": 39,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 7\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 35b: BS Switch 35b",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 35b",
+    "dx": -8,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 35b\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 1: BS Switch 1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 1",
+    "dx": -1,
+    "dy": -10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 1\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 23a: BS Switch 23a",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 23a",
+    "dx": -5,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 23a\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 3: BS Switch 3",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 3",
+    "dx": -8,
+    "dy": -10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 3\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track S-1: BS S-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track S-1",
+    "dx": 14,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS S-1\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track Brick-Plane: BS Brick-Plane",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Brick-Plane",
+    "dx": 153,
+    "dy": -135
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Brick-Plane\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track W-1: BS W-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track W-1",
+    "dx": -57,
+    "dy": -7
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS W-1\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 9: BS Switch 9",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 9",
+    "dx": -14,
+    "dy": 10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 9\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track W-2: BS W-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track W-2",
+    "dx": -78,
+    "dy": 12
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS W-2\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track S-3: BS S-3",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track S-3",
+    "dx": 7,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS S-3\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track S-R: BS S-R",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track S-R",
+    "dx": 14,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS S-R\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track Scale: BS Scale",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Scale",
+    "dx": -14,
+    "dy": -21
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Scale\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track East Ext: BS East Ext",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track East Ext",
+    "dx": -5,
+    "dy": -3
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS East Ext\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 15: BS Switch 15",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 15",
+    "dx": -7,
+    "dy": -24
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 15\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 17: BS Switch 17",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 17",
+    "dx": -16,
+    "dy": -20
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 17\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track West Ext: BS West Ext",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track West Ext",
+    "dx": 24,
+    "dy": -7
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS West Ext\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 11: BS Switch 11",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 11",
+    "dx": -12,
+    "dy": -10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 11\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 13: BS Switch 13",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 13",
+    "dx": -5,
+    "dy": -10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 13\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track EH-3: BS EH-3",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-3",
+    "dx": -35,
+    "dy": 12
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS EH-3\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track EH-2: BS EH-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-2",
+    "dx": -27,
+    "dy": -7
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS EH-2\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track EH-1: BS EH-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-1",
+    "dx": -27,
+    "dy": -7
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS EH-1\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 19: BS Switch 19",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 19",
+    "dx": -17,
+    "dy": -20
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 19\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 21: BS Switch 21",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 21",
+    "dx": -7,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 21\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 27: BS Switch 27",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 27",
+    "dx": -14,
+    "dy": 10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 27\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 29: BS Switch 29",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 29",
+    "dx": -14,
+    "dy": 10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 29\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 25: BS Switch 25",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 25",
+    "dx": -14,
+    "dy": 10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 25\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track Barn: BS Barn",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Barn",
+    "dx": 14,
+    "dy": 32
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Barn\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track Main West: BS Main West",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Main West",
+    "dx": 255,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Main West\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track K-1 West: BS K-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track K-1 West",
+    "dx": -1,
+    "dy": -21
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS K-1\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp Track K-2: BS K-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track K-2",
+    "dx": -208,
+    "dy": 2
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS K-2\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 31: BS Switch 31",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 31",
+    "dx": -6,
+    "dy": -10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 31\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 37: BS Switch 37 / BS McKeesport",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 37",
+    "dx": 10,
+    "dy": -10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 37 / BS McKeesport\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 39: BS Switch 39 / BS McKees Rocks",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 39",
+    "dx": -2,
+    "dy": 0
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 39 / BS McKees Rocks\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 33: BS Switch 33",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 33",
+    "dx": -5,
+    "dy": -10
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 33\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 23b: BS Switch 23b",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 23b",
+    "dx": -5,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 23b\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "lamp OS Switch 7b: BS Switch 7b",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "OS Switch 7b",
+    "dx": -5,
+    "dy": -5
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 7b\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track K-1: MoveToTrack_K-1_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track K-1",
+    "dx": -5,
+    "dy": -32
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_K-1_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"K-1\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"K-1\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"K-1\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"K-1\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"K-1\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track K-1: MoveInProgressTrack_K-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track K-1",
+    "dx": -15,
+    "dy": -32
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_K-1\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track K-1: BS K-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track K-1",
+    "dx": -15,
+    "dy": -22
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS K-1\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track K-2: MoveToTrack_K-2_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track K-2",
+    "dx": -14,
+    "dy": 40
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_K-2_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"K-2\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"K-2\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"K-2\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"K-2\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"K-2\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track K-2: MoveInProgressTrack_K-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track K-2",
+    "dx": -24,
+    "dy": 40
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_K-2\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track K-2: BS K-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track K-2",
+    "dx": -24,
+    "dy": 50
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS K-2\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track East Lead: MoveToTrack_East_Lead_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track East Lead",
+    "dx": -25,
+    "dy": 4
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_East_Lead_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"East End\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"East End\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"East End\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"East End\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"East End\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track East Lead: MoveInProgressTrack_East_Lead",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track East Lead",
+    "dx": -35,
+    "dy": 4
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_East_Lead\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track East Lead: BS East Lead",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track East Lead",
+    "dx": -35,
+    "dy": 14
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS East Lead\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track EH-1: MoveToTrack_EH-1_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-1",
+    "dx": -80,
+    "dy": 4
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_EH-1_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"EH-1\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"EH-1\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"EH-1\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"EH-1\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"EH-1\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track EH-1: MoveInProgressTrack_EH-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-1",
+    "dx": -90,
+    "dy": 4
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_EH-1\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track EH-1: BS EH-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-1",
+    "dx": -100,
+    "dy": 4
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS EH-1\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track EH-2: MoveToTrack_EH-2_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-2",
+    "dx": -56,
+    "dy": 4
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_EH-2_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"EH-2\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"EH-2\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"EH-2\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"EH-2\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"EH-2\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track EH-2: MoveInProgressTrack_EH-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-2",
+    "dx": -66,
+    "dy": 4
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_EH-2\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track EH-2: BS EH-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-2",
+    "dx": -76,
+    "dy": 4
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS EH-2\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track EH-3: MoveToTrack_EH-3_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-3",
+    "dx": -54,
+    "dy": 23
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_EH-3_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"EH-3\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"EH-3\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"EH-3\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"EH-3\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"EH-3\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track EH-3: MoveInProgressTrack_EH-3",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-3",
+    "dx": -64,
+    "dy": 23
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_EH-3\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track EH-3: BS EH-3",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track EH-3",
+    "dx": -74,
+    "dy": 23
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS EH-3\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track Scale: MoveToTrack_Scale_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Scale",
+    "dx": -64,
+    "dy": -42
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_Scale_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"Scale\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"Scale\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"Scale\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"Scale\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"Scale\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track Scale: MoveInProgressTrack_Scale",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Scale",
+    "dx": -74,
+    "dy": -42
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_Scale\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track Scale: BS Scale",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Scale",
+    "dx": -74,
+    "dy": -32
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Scale\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track Barn: MoveToTrack_Barn_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Barn",
+    "dx": -53,
+    "dy": 95
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_Barn_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"Barn\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"Barn\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"Barn\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"Barn\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"Barn\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track Barn: MoveInProgressTrack_Barn",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Barn",
+    "dx": -63,
+    "dy": 95
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_Barn\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track Barn: BS Barn",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track Barn",
+    "dx": -63,
+    "dy": 105
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Barn\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track W-1: MoveToTrack_W-1_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track W-1",
+    "dx": -56,
+    "dy": 4
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_W-1_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"W-1\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"W-1\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"W-1\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"W-1\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"W-1\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track W-1: MoveInProgressTrack_W-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track W-1",
+    "dx": -66,
+    "dy": 4
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_W-1\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track W-1: BS W-1",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track W-1",
+    "dx": -66,
+    "dy": 14
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS W-1\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track W-2: MoveToTrack_W-2_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track W-2",
+    "dx": -53,
+    "dy": 23
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_W-2_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"W-2\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"W-2\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"W-2\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"W-2\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"W-2\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track W-2: MoveInProgressTrack_W-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track W-2",
+    "dx": -63,
+    "dy": 23
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_W-2\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track W-2: BS W-2",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track W-2",
+    "dx": -63,
+    "dy": 33
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS W-2\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track McKees Rocks: MoveToTrack_McKees_Rocks_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track McKees Rocks",
+    "dx": -25,
+    "dy": 4
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_McKees_Rocks_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"McK Rks\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"McK Rks\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"McK Rks\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"McK Rks\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"McK Rks\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track McKees Rocks: MoveInProgressTrack_McKees_Rocks",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track McKees Rocks",
+    "dx": -35,
+    "dy": 4
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_McKees_Rocks\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track McKees Rocks: BS Switch 39 / BS McKees Rocks",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track McKees Rocks",
+    "dx": -35,
+    "dy": 14
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 39 / BS McKees Rocks\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track McKeesport: MoveToTrack_McKeesport_stored",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track McKeesport",
+    "dx": -25,
+    "dy": 4
+   },
+   "size": [
+    60,
+    20
+   ],
+   "xml": "<sensoricon sensor=\"MoveToTrack_McKeesport_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"McKport\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"McKport\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"McKport\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"McKport\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"McKport\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+  },
+  {
+   "id": "station Track McKeesport: MoveInProgressTrack_McKeesport",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track McKeesport",
+    "dx": -35,
+    "dy": 4
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_McKeesport\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  },
+  {
+   "id": "station Track McKeesport: BS Switch 37 / BS McKeesport",
+   "anchor": {
+    "to": "block",
+    "at": "centre",
+    "block": "Track McKeesport",
+    "dx": -35,
+    "dy": 14
+   },
+   "size": [
+    10,
+    10
+   ],
+   "xml": "<sensoricon sensor=\"BS Switch 37 / BS McKeesport\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+  }
+ ]
+}

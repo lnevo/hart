@@ -3,6 +3,7 @@
 
     python3 tools/schematic/build_staging_candidate.py            # write the trial, the diff report and the images
     python3 tools/schematic/build_staging_candidate.py --no-images
+    python3 tools/schematic/build_staging_candidate.py --check    # fail if the staged boundaries file is stale
 
 For the owner to review; nothing live reads it. It is the staging half of one input path for the Layout Editor
 build: staging drawn the way main and upper are, from device_map_staging.csv, control_points_staging.csv and
@@ -16,22 +17,31 @@ Writes, under jmri/layouts/hart/output/trial/ (gitignored, never the live tables
   be laid over each other. The panel's attributes and drawing options are the replaced panel's own.
 - staging_devicemap_diff.txt: beans, panels, turnouts, masts and overlay items of the trial against the current
   staging candidate, tables_cutover_staging.xml (build it first: build_layout_le.py --levels staging --as-live).
-- staging_devicemap_trial.png and staging_devicemap_current.png: both panels drawn to scale (render_panel).
+- staging_devicemap_trial.png, staging_devicemap_current.png and staging_devicemap_trial_parked_lamps.png: the
+  panels drawn to scale (render_panel).
+And, committed, jmri/layouts/hart/data/schematic/staged/le_signal_boundaries.csv (staged_boundaries): the mast
+boundary contract with each mast at the ident and slot it has on this panel, for the cut-over (staged/README.md).
 
 What the trial leaves to rules, and so differs on purpose (the diff report lists each):
-- Turnout idents come from switches.csv (le_ident); anchors, end bumpers and track segments take generated idents.
+- Turnout idents come from switches.csv (le_ident); anchors, end bumpers and track segments take generated idents
+  (owner, 2026-11-17: accepted).
 - A turnout's normal leg is its closed leg in switch_legs.csv; Layout Editor leg B is the plugin's default (the
-  drawn straight leg), so the hand-drawn leg letters, and with them some turnout types, are not kept.
+  drawn straight leg), which gives every staging turnout its live leg letters and type.
 - Masts go in the slot the plugin finds for their facing and protected blocks and kind (staging_masts.csv);
   check_masts below stops on a mast that would fit two slots or stands on another turnout than its switch's.
-- No Entry/Exit sensors (Entry/Exit is parked), no station clusters, lamps, status cluster or captions: those were
-  the overlay's.
+- The panel's own items come from panel_items.json (panel_items.py): the status cluster panel_status.py drives, the
+  frame captions, the helix destination labels and the backdrop. The occupancy lamps and the station clusters are
+  parked with the Dispatcher System (jmri/layouts/hart/parked/staging_panel_lamps.json); the run also builds a copy
+  with them put back (staging_devicemap_trial_parked_lamps.png) and the report says how many land where they were.
+  No Entry/Exit sensors (Entry/Exit is parked).
 """
 from __future__ import annotations
 
 import argparse
 import contextlib
 import copy
+import csv
+import io
 import sys
 import xml.etree.ElementTree as ET
 from collections import Counter, defaultdict
@@ -39,6 +49,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_layout_le as blb  # noqa: E402  the staging candidate's drawing settings and helpers (read only)
+import panel_items  # noqa: E402  the panel's fixed items (panel_items.json)
 import publish_draft as pd  # noqa: E402  the plugin cache
 import staging_device_map as sdm  # noqa: E402  the staging device map and its reader
 from hartlib import paths, tables  # noqa: E402
@@ -46,9 +57,14 @@ from hartlib import paths, tables  # noqa: E402
 TRIAL_DIR = paths.LAYOUT_OUTPUT / "trial"
 OUT = TRIAL_DIR / "tables_staging_devicemap.xml"
 REPORT = TRIAL_DIR / "staging_devicemap_diff.txt"
-IMAGES = {"trial": TRIAL_DIR / "staging_devicemap_trial.png", "current": TRIAL_DIR / "staging_devicemap_current.png"}
+IMAGES = {"trial": TRIAL_DIR / "staging_devicemap_trial.png", "current": TRIAL_DIR / "staging_devicemap_current.png",
+          "lamps": TRIAL_DIR / "staging_devicemap_trial_parked_lamps.png"}
 REFERENCE = blb.CUTOVER_STAGING
 PANEL = blb.TEMPLATE_PANEL
+ITEMS = pd.DATA / "panel_items.json"
+PARKED_LAMPS = paths.LAYOUT_DATA.parent / "parked" / "staging_panel_lamps.json"
+BOUNDARIES = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
+STAGED_BOUNDARIES = pd.DATA / "staged" / "le_signal_boundaries.csv"
 ITEM_TAGS = ("sensoricon", "positionablelabel", "signalheadicon", "turnouticon", "BlockContentsIcon",
              "signalmasticon", "memoryicon")
 
@@ -100,8 +116,9 @@ def check_masts(P, names: dict, le_mod) -> None:
         raise CandidateError("staging masts not placed for certain: " + "; ".join(bad))
 
 
-def build(base: Path):
-    """(tables bytes, the plugin's Panel, names). Stops on any name the base tables do not have."""
+def build(base: Path, parked_lamps: bool = False):
+    """(tables bytes, the plugin's Panel, names). Stops on any name the base tables do not have. `parked_lamps`: also
+    put the parked lamps and station clusters on (PARKED_LAMPS), to check they come back where they were."""
     _sheet, le_mod, core = blb.plugin()
     bands, page = staging_bands()
     band, opts = bands[0][1], bands[0][2]
@@ -136,13 +153,85 @@ def build(base: Path):
         raise CandidateError(f"names the base tables do not have: {missing}")
     attrs = dict(old.attrib)
     panel_el = le_mod.to_xml(P, PANEL, attrs, copy.deepcopy(old.find("layoutTrackDrawingOptions")))
-    w, h = le_mod.extent(P)[2:]
+    try:
+        items = panel_items.load(ITEMS)
+        if items["panel"] != PANEL:
+            raise CandidateError(f"{paths.rel(ITEMS)} is for panel {items['panel']!r}, not {PANEL!r}")
+        P.items_placed = panel_items.place(panel_el, items, le_mod, blb.slots_module(), blb.FIT, le_mod.CHROME)
+        if parked_lamps:
+            P.items_placed += panel_items.place(panel_el, panel_items.load(PARKED_LAMPS), le_mod,
+                                                blb.slots_module(), blb.FIT, le_mod.CHROME)
+    except panel_items.ItemsError as exc:
+        raise CandidateError(f"panel items: {exc}") from None
+    # a panel larger than its window scrolls both ways (as build_layout_le.py's cut-over candidate)
+    w, h = float(panel_el.get("panelwidth")), float(panel_el.get("panelheight"))
     if w + le_mod.CHROME[0] > blb.FIT[0] or h + le_mod.CHROME[1] > blb.FIT[1]:
         panel_el.set("scrollable", "both")
     opts_el = panel_el.find("layoutTrackDrawingOptions")
     panel_el.insert(list(panel_el).index(opts_el) + 1 if opts_el is not None else 0, tables.generated_marker_label())
     blb.replace(root, old, panel_el, 1)
     return doc.tobytes(), P, names
+
+
+# ---------------------------------------------------------------- the boundary contract, staged for the cut-over
+
+def staged_boundaries(panel: ET.Element, path: Path = BOUNDARIES) -> str:
+    """le_signal_boundaries.csv as it must read once this panel is live: each mast row at the ident the mast has on
+    `panel` (anchor idents are generated), every other column as it is. Stops when a mast is not on the panel, is
+    in another kind of slot, or stands in another slot than its row gives (its generated_slot where it has one,
+    tables.boundary_slot), or a turnout mast on another turnout: only anchor idents may change."""
+    with path.open(newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        columns, rows = reader.fieldnames, list(reader)
+    placed = {m["mast"]: m for m in blb.slots_module().Index(panel).masts()}
+    bad = []
+    for r in rows:
+        m = placed.get(r["mast_user_name"])
+        if m is None:
+            bad.append(f"{r['mast_user_name']} is not on the panel")
+            continue
+        if m["kind"] != r["kind"]:
+            bad.append(f"{r['mast_user_name']} is in a {m['kind']} slot, its row says {r['kind']}")
+            continue
+        slot = tables.boundary_slot(r, generated=True)
+        if m["slot"] != slot or (r["kind"] == "turnout" and m["ident"] != r["ident"]):
+            bad.append(f"{r['mast_user_name']} stands at {m['ident']} {m['slot']}, its row gives {r['ident']} {slot}")
+            continue
+        r["ident"] = m["ident"]
+    if bad:
+        raise CandidateError(f"{paths.rel(path)} cannot follow this panel: " + "; ".join(bad))
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=columns, lineterminator="\n")
+    w.writeheader()
+    w.writerows(rows)
+    return buf.getvalue()
+
+
+def item_places(panel) -> dict:
+    """{(tag, what it shows): sorted [(x, y)]} of a panel's icons and labels."""
+    out = defaultdict(list)
+    for el in panel_items_of(panel):
+        out[item_key(el)].append((round(float(el.get("x"))), round(float(el.get("y")))))
+    return {k: sorted(v) for k, v in out.items()}
+
+
+def panel_items_of(panel) -> list[ET.Element]:
+    return [el for el in panel if el.tag in ITEM_TAGS and el.get("x") is not None]
+
+
+def compare_items(path: Path, trial_places: dict, ref_places: dict) -> tuple[int, int, list[str]]:
+    """(at the same place within 1 px, all, [how the others differ]) of the elements of an items file."""
+    same, total, off = 0, 0, []
+    for it in panel_items.load(path)["items"]:
+        for m in it.get("members") or [it]:
+            k = item_key(ET.fromstring(m["xml"]))
+            total += 1
+            t, r = trial_places.get(k, []), ref_places.get(k, [])
+            if any(any(abs(a[0] - b[0]) <= 1 and abs(a[1] - b[1]) <= 1 for b in r) for a in t):
+                same += 1
+            else:
+                off.append(f"{it['id']}: trial {t or 'none'}, current {r or 'none'}")
+    return same, total, off
 
 
 # ---------------------------------------------------------------- the diff report
@@ -159,10 +248,6 @@ def section_beans(root) -> dict:
     return out
 
 
-def panel_items(panel) -> list[ET.Element]:
-    return [el for el in panel if el.tag in ITEM_TAGS]
-
-
 def item_key(el) -> tuple:
     """What an icon or label shows: its tag and the bean or text it names."""
     name = (el.get("sensor") or el.get("blockcontents") or el.get("turnout") or el.get("signalhead") or
@@ -171,8 +256,9 @@ def item_key(el) -> tuple:
     return el.tag, name
 
 
-def diff(trial_root, ref_root, le_mod, overlay: dict) -> list[str]:
-    """The diff report's lines."""
+def diff(trial_root, ref_root, le_mod, overlay: dict, lamps_root=None) -> list[str]:
+    """The diff report's lines. `lamps_root`: the trial built with the parked lamps put back, whose places are
+    compared with the current candidate's."""
     lines = []
     tb, rb = section_beans(trial_root), section_beans(ref_root)
     same = sum(1 for k in tb if k in rb and tb[k] == rb[k])
@@ -262,24 +348,49 @@ def diff(trial_root, ref_root, le_mod, overlay: dict) -> list[str]:
     # icons and labels
     lines.append("")
     lines.append("-- Icons and labels (by what they show)")
-    ti, ri = Counter(item_key(e) for e in panel_items(t)), Counter(item_key(e) for e in panel_items(r))
+    ti, ri = Counter(item_key(e) for e in panel_items_of(t)), Counter(item_key(e) for e in panel_items_of(r))
     for tag in sorted({k[0] for k in ti} | {k[0] for k in ri}):
         a = sum(v for k, v in ri.items() if k[0] == tag)
         b = sum(v for k, v in ti.items() if k[0] == tag)
         lines.append(f"  {tag}: current {a}, trial {b}")
+    tg_, rg_ = item_places(t), item_places(r)
+    for tag in ("BlockContentsIcon", "signalmasticon"):
+        keys = [k for k in rg_ if k[0] == tag]
+        moved_k = sorted(k[1] for k in keys if tg_.get(k) != rg_[k])
+        lines.append(f"  {tag} places: {len(keys) - len(moved_k)} of {len(keys)} the same"
+                     + (f"; placed elsewhere by the label layer (no station clusters to keep clear of): "
+                        f"{', '.join(moved_k)}" if moved_k else ""))
     # the overlay's items
     lines.append("")
     lines.append("== overlay.json items (the hand-placed icons the current candidate carries)")
+    keys_in = lambda path: {item_key(ET.fromstring(m["xml"])) for it in panel_items.load(path)["items"]  # noqa
+                            for m in it.get("members") or [it]}
+    fixed, parked = keys_in(ITEMS), keys_in(PARKED_LAMPS)
     groups = defaultdict(list)
     for it in overlay["items"]:
         el = ET.fromstring(it["xml"])
         k = item_key(el)
         kind = it.get("group") or ((it.get("anchor") or {}).get("kind") if isinstance(it.get("anchor"), dict)
                                    else None) or "free"
-        fate = "placed by rule" if ti.get(k) else "lost"
+        station = str(kind).startswith("station")
+        fate = ("parked (staging_panel_lamps.json)" if station and k in parked else
+                "panel_items.json" if k in fixed and ti.get(k) else
+                "parked (staging_panel_lamps.json)" if k in parked else "lost")
         groups[(fate, el.tag, str(kind).split(" ")[0])].append(k[1])
     for (fate, tag, kind), items in sorted(groups.items()):
         lines.append(f"  {fate}: {len(items)} {tag} ({kind}): {', '.join(sorted(set(items), key=sdm.bdm.natural))}")
+    rp = item_places(r)
+    checks = [("panel_items.json", ITEMS, t)]
+    if lamps_root is not None:
+        checks.append(("parked lamps and stations, put back on a copy of the trial", PARKED_LAMPS,
+                       tables.layout_editor(lamps_root, PANEL)))
+    for what, path, panel in checks:
+        same_n, total, off = compare_items(path, item_places(panel), rp)
+        lines.append(f"  {what}: {same_n} of {total} elements where the current candidate has them (within 1 px)")
+        lines += [f"    differs: {o}" for o in off]
+    lines.append(f"  panel size: current {r.get('panelwidth')}x{r.get('panelheight')}, trial "
+                 f"{t.get('panelwidth')}x{t.get('panelheight')} px; window current {r.get('windowwidth')}x"
+                 f"{r.get('windowheight')}, trial {t.get('windowwidth')}x{t.get('windowheight')}")
     lines.append("  generated by the plugin in both builds (overlay.json 'dropped', given): " + "; ".join(
         f"{len(v)} {k.replace('_', ' ')}" for k, v in overlay["dropped"].items() if k in ("block_contents",
                                                                                            "switch_numbers",
@@ -301,7 +412,7 @@ def render_panel(panel, le_mod, out: Path, title: str, scale: float = 1.0) -> No
     import le_overlay        # its Track reads a panel's drawn pieces per block (read only)
     track = le_overlay.Track(panel, le_mod, blb.slots_module(), title)
     x0, y0, x1, y1 = track.box
-    items = panel_items(panel)
+    items = panel_items_of(panel)
     xs = [float(e.get("x") or 0) for e in items] + [x1]
     ys = [float(e.get("y") or 0) for e in items] + [y1]
     W, H = int((max(xs) + 60) * scale), int((max(ys) + 60) * scale) + 24
@@ -352,39 +463,57 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--no-images", action="store_true", help="skip the two PNGs")
     ap.add_argument("--tables", type=Path, help="the tables to build on (default: build_layout_le.template_tables)")
+    ap.add_argument("--check", action="store_true",
+                    help=f"build in memory and fail if {paths.rel(STAGED_BOUNDARIES)} is stale; writes nothing")
     args = ap.parse_args(argv)
-    message = paths.check_only_message(Path(__file__).name)
-    if message:
-        print(f"ERROR: {message}")
-        return 1
-    if blb.live_target(OUT):
-        print(f"ERROR: {OUT} is the live tables or in the JMRI profile")
-        return 1
-    if not REFERENCE.exists():
-        print(f"ERROR: {paths.rel(REFERENCE)} is missing: run python3 tools/schematic/build_layout_le.py --levels "
-              "staging --as-live first (the current staging candidate the trial is compared with)")
-        return 1
+    if not args.check:
+        message = paths.check_only_message(Path(__file__).name)
+        if message:
+            print(f"ERROR: {message}")
+            return 1
+        if blb.live_target(OUT):
+            print(f"ERROR: {OUT} is the live tables or in the JMRI profile")
+            return 1
+        if not REFERENCE.exists():
+            print(f"ERROR: {paths.rel(REFERENCE)} is missing: run python3 tools/schematic/build_layout_le.py "
+                  "--levels staging --as-live first (the current staging candidate the trial is compared with)")
+            return 1
     with contextlib.ExitStack() as stack:
         stack.enter_context(pd.cache_on())
+        base = args.tables or blb.template_tables()
         try:
-            data, P, _names = build(args.tables or blb.template_tables())
+            data, P, _names = build(base)
+            staged = staged_boundaries(tables.layout_editor(tables.loads(data).root, PANEL))
+            lamps_data = None if args.check else build(base, parked_lamps=True)[0]
         except (CandidateError, sdm.StagingMapError, blb.BuildError) as exc:
             print(f"ERROR: {exc}")
             return 1
+        if args.check:
+            if not STAGED_BOUNDARIES.exists() or STAGED_BOUNDARIES.read_text(encoding="utf-8") != staged:
+                print(f"STALE: {paths.rel(STAGED_BOUNDARIES)}; run {paths.rel(Path(__file__))}")
+                return 1
+            print(f"ok: {paths.rel(STAGED_BOUNDARIES)} current")
+            return 0
         _, le_mod, _ = blb.plugin()
         OUT.parent.mkdir(parents=True, exist_ok=True)
         tables.loads(data, path=OUT).save(OUT)
-        print(f"wrote {paths.rel(OUT)}: {le_mod.summary(P)}")
+        print(f"wrote {paths.rel(OUT)}: {le_mod.summary(P)}; {P.items_placed} panel items")
+        if not STAGED_BOUNDARIES.exists() or STAGED_BOUNDARIES.read_text(encoding="utf-8") != staged:
+            STAGED_BOUNDARIES.parent.mkdir(parents=True, exist_ok=True)
+            STAGED_BOUNDARIES.write_text(staged, encoding="utf-8")
+            print(f"wrote {paths.rel(STAGED_BOUNDARIES)}")
         import le_inputs
         trial_root, ref_root = tables.loads(data).root, tables.read(REFERENCE)
-        lines = diff(trial_root, ref_root, le_mod, le_inputs.load().overlay)
+        lamps_root = tables.loads(lamps_data).root
+        lines = diff(trial_root, ref_root, le_mod, le_inputs.load().overlay, lamps_root)
         REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
         print(f"wrote {paths.rel(REPORT)}")
         if not args.no_images:
-            for which, root in (("trial", trial_root), ("current", ref_root)):
+            for which, root in (("trial", trial_root), ("current", ref_root), ("lamps", lamps_root)):
                 panel = tables.layout_editor(root, PANEL)
-                title = (f"{PANEL}: trial from the staging device map, no overlay" if which == "trial" else
-                         f"{PANEL}: current staging candidate (frozen inputs and overlay)")
+                title = {"trial": f"{PANEL}: trial from the staging device map and panel_items.json",
+                         "current": f"{PANEL}: current staging candidate (frozen inputs and overlay)",
+                         "lamps": f"{PANEL}: the trial with the parked lamps and station clusters put back"}[which]
                 render_panel(panel, le_mod, IMAGES[which], title)
                 print(f"wrote {IMAGES[which]}")
     for line in P.log:

@@ -1,0 +1,177 @@
+{
+ "_note": "Fixed items of the HART Railroad Layout Editor panel that the schematic does not draw; tools/schematic/panel_items.py reads and places them. Kept by hand. First written 2026-11-17 from the approved staging candidate's placements (build_layout_le.py --levels staging --as-live), so the device-map path puts them where that candidate has them. The status cluster keeps the names panel_status.py looks for.",
+ "panel": "HART Railroad",
+ "items": [
+  {
+   "id": "status",
+   "note": "panel_status.py finds these by name: sensor icons Bridge HBLOOP, SML Mode and Track Power, signal head icon IH9990; each caption right-justified beside its lamp",
+   "anchor": {
+    "to": "drawing",
+    "at": "bottom-right",
+    "dx": -61,
+    "dy": 8
+   },
+   "members": [
+    {
+     "dx": 80,
+     "dy": 2,
+     "size": [
+      21,
+      21
+     ],
+     "xml": "<sensoricon sensor=\"Bridge HBLOOP\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><tooltip>Click: MQTT RESUBSCRIBE (not FORCE)</tooltip><active url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/USS/sensor/s-unknown.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+    },
+    {
+     "dx": 46,
+     "dy": 0,
+     "size": [
+      31.0,
+      15.0
+     ],
+     "xml": "<positionablelabel level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"LCOS\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"right\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />"
+    },
+    {
+     "dx": 80,
+     "dy": 30,
+     "size": [
+      21,
+      21
+     ],
+     "xml": "<signalheadicon signalhead=\"IH9990\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" clickmode=\"0\" litmode=\"false\" class=\"jmri.jmrit.display.configurexml.SignalHeadIconXml\"><tooltip>Click: toggle TWOSENSOR/DIRECT on 2-sensor M2T/MTT</tooltip><icons><held url=\"program:resources/icons/USS/sensor/green-off.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></held><dark url=\"program:resources/icons/USS/sensor/green-off.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></dark><red url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></red><yellow url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></yellow><green url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></green><flashred url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></flashred><flashyellow url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></flashyellow><flashgreen url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></flashgreen></icons><iconmaps /></signalheadicon>"
+    },
+    {
+     "dx": 20,
+     "dy": 28,
+     "size": [
+      57.0,
+      15.0
+     ],
+     "xml": "<positionablelabel level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Turnouts\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"right\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />"
+    },
+    {
+     "dx": 80,
+     "dy": 58,
+     "size": [
+      21,
+      21
+     ],
+     "xml": "<sensoricon sensor=\"SML Mode\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><tooltip>Click: toggle Digicon SML mode</tooltip><active url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/USS/sensor/s-unknown.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+    },
+    {
+     "dx": 32,
+     "dy": 56,
+     "size": [
+      45.0,
+      15.0
+     ],
+     "xml": "<positionablelabel level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Signals\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"right\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />"
+    },
+    {
+     "dx": 80,
+     "dy": 86,
+     "size": [
+      21,
+      21
+     ],
+     "xml": "<sensoricon sensor=\"Track Power\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><tooltip>LCC layout power: green=ON red=OFF; click toggles track power</tooltip><active url=\"program:resources/icons/USS/sensor/green-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/USS/sensor/red-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/USS/sensor/s-unknown.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"preference:resources/icons/USS/sensor/yellow-on.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+    },
+    {
+     "dx": 0,
+     "dy": 84,
+     "size": [
+      77.0,
+      15.0
+     ],
+     "xml": "<positionablelabel level=\"10\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Track Power\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"12\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"right\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />"
+    }
+   ]
+  },
+  {
+   "id": "title",
+   "anchor": {
+    "to": "drawing",
+    "at": "top",
+    "dx": -81,
+    "dy": -122
+   },
+   "size": [
+    259.0,
+    34.0
+   ],
+   "xml": "<positionablelabel level=\"3\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"HART RAILROAD\" fontFamily=\"Lucida Grande\" fontname=\"LucidaGrande-Bold\" size=\"28\" style=\"1\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"centre\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />"
+  },
+  {
+   "id": "industries",
+   "anchor": {
+    "to": "block",
+    "at": "top-left",
+    "block": "Track West Ext",
+    "dx": -52,
+    "dy": -86
+   },
+   "size": [
+    80.0,
+    20.0
+   ],
+   "xml": "<positionablelabel level=\"3\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"Industries\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"16\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"centre\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />"
+  },
+  {
+   "id": "helix-mckees-rocks",
+   "anchor": {
+    "to": "block",
+    "at": "top-right",
+    "block": "Track K-1",
+    "dx": -279,
+    "dy": -40
+   },
+   "size": [
+    187.0,
+    22.0
+   ],
+   "xml": "<positionablelabel level=\"3\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"McKees Rocks, PA →\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"18\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"left\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />"
+  },
+  {
+   "id": "neville-island-west",
+   "anchor": {
+    "to": "block",
+    "at": "left",
+    "block": "Track Brick-Plane",
+    "dx": 25,
+    "dy": 22
+   },
+   "size": [
+    197.0,
+    22.0
+   ],
+   "xml": "<positionablelabel level=\"3\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"← Neville Island West\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"18\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"left\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />"
+  },
+  {
+   "id": "helix-mckeesport",
+   "anchor": {
+    "to": "block",
+    "at": "bottom-right",
+    "block": "Track K-2",
+    "dx": -299,
+    "dy": 38
+   },
+   "size": [
+    165.0,
+    22.0
+   ],
+   "xml": "<positionablelabel level=\"3\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" text=\"McKeesport, PA →\" fontFamily=\"Dialog\" fontname=\"Dialog\" size=\"18\" style=\"0\" red=\"0\" green=\"0\" blue=\"0\" hasBackground=\"no\" justification=\"left\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\" />"
+  },
+  {
+   "id": "backdrop",
+   "anchor": {
+    "to": "origin",
+    "dx": 9,
+    "dy": 0
+   },
+   "size": [
+    0,
+    0
+   ],
+   "xml": "<positionablelabel level=\"1\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"false\" editable=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\"><icon url=\"preference:resources/misc/hart_panel_bg_plain.jpg\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></icon></positionablelabel>"
+  }
+ ]
+}
