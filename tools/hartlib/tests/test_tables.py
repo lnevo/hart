@@ -83,11 +83,15 @@ class RoundTripTest(unittest.TestCase):
             self.assertFalse(doc.save(out), "an identical file is not rewritten")
 
     def test_matches_the_existing_elementtree_writers_on_the_repo_file(self):
-        # apply_yard_throat_blocks and friends: ET.parse + write(xml_declaration=True).
+        # apply_yard_throat_blocks and friends: ET.parse + write(xml_declaration=True), on the last tables those
+        # scripts wrote (the hand-drawn ones, git): since the cut-over the repo's file is a PanelPro Store, whose
+        # header (stylesheet, quotes) test_panelpro_store_is_byte_identical covers
+        from hartlib import hand_drawn
+        source = hand_drawn.skip_unless_available()
         with tempfile.TemporaryDirectory() as d:
             out = Path(d) / "et.xml"
-            ET.parse(paths.TABLES_XML).write(out, encoding="UTF-8", xml_declaration=True)
-            self.assertEqual(tables.load().tobytes(), out.read_bytes())
+            ET.parse(source).write(out, encoding="UTF-8", xml_declaration=True)
+            self.assertEqual(tables.load(source).tobytes(), out.read_bytes())
 
     def test_panelpro_store_is_byte_identical(self):
         doc = tables.loads(STORE)
@@ -292,6 +296,107 @@ class RepoTablesTest(unittest.TestCase):
         self.assertEqual(len(tables.mast_logic_pairs(r)), sum(1 for _ in r.iter("destinationMast")))
         for lt in tables.layout_turnouts(tables.layout_editor(r)):
             self.assertIn(tables.continuing_sense(lt), (tables.CLOSED, tables.THROWN), lt.get("ident"))
+
+
+class MastIconTest(unittest.TestCase):
+    def test_appearance_and_icon_size(self):
+        self.assertEqual(tables.mast_appearance("IF$shsm:basic:one-low(IH143)"), "one-low")
+        self.assertEqual(tables.mast_appearance("IF$vsm:basic:one-low($1001)"), "one-low")
+        self.assertEqual(tables.mast_appearance("IM1"), "")
+        self.assertEqual(tables.mast_icon_size("IF$shsm:basic:one-low(IH143)"), (tables.MAST_ICON_DWARF, True))
+        self.assertEqual(tables.mast_icon_size("IF$shsm:basic:two-searchlight(IH1)(IH2)"),
+                         (tables.MAST_ICON_HIGH, True))
+        self.assertEqual(tables.mast_icon_size("IF$shsm:basic:slow-lowish(IH1)"), (tables.MAST_ICON_HIGH, False))
+        self.assertEqual(tables.mast_icon_size(""), (tables.MAST_ICON_HIGH, False))
+
+    def test_masts_found_by_user_or_system_name(self):
+        root = ET.fromstring("<layout-config><signalmasts><signalmast><systemName>IF$shsm:basic:one-low(IH1)"
+                             "</systemName><userName>Mast 1</userName></signalmast><virtualsignalmast><systemName>"
+                             "IF$vsm:basic:one-low($1)</systemName></virtualsignalmast></signalmasts></layout-config>")
+        names = tables.mast_system_names(root)
+        self.assertEqual(names["Mast 1"], "IF$shsm:basic:one-low(IH1)")
+        self.assertEqual(names["IF$shsm:basic:one-low(IH1)"], "IF$shsm:basic:one-low(IH1)")
+        self.assertEqual(names["IF$vsm:basic:one-low($1)"], "IF$vsm:basic:one-low($1)")
+
+
+class GeneratedPanelMarkerTest(unittest.TestCase):
+    """The hidden label that marks a generated Layout Editor panel (LE cut-over)."""
+
+    def panel(self, markers: int) -> ET.Element:
+        le = ET.Element("LayoutEditor", {"name": "HART Railroad"})
+        for _ in range(markers):
+            le.append(tables.generated_marker_label())
+        return le
+
+    def test_marker_is_a_hidden_label_with_the_marker_text(self):
+        label = tables.generated_marker_label()
+        self.assertEqual(("positionablelabel", "yes", tables.GENERATED_PANEL_MARKER),
+                         (label.tag, label.get("hidden"), label.get("text")))
+
+    def test_found_once_or_not_at_all(self):
+        self.assertFalse(tables.generated_panel(None))
+        self.assertFalse(tables.generated_panel(self.panel(0)))
+        self.assertTrue(tables.generated_panel(self.panel(1)))
+        with self.assertRaisesRegex(ValueError, "'HART Railroad' has 2 generated-panel markers"):
+            tables.generated_panel(self.panel(2))
+
+    def test_the_repo_panel_is_generated_and_the_last_hand_drawn_one_is_not(self):
+        # the Layout Editor cut-over (Phase 5): the repo's panel is the generated one; the last hand-drawn tables
+        # stay readable from git (hartlib.hand_drawn) for what still needs them
+        from hartlib import hand_drawn
+        self.assertTrue(tables.generated_panel(tables.layout_editor(tables.read(paths.REPO_TABLES_XML))))
+        self.assertFalse(tables.generated_panel(tables.layout_editor(tables.read(hand_drawn.skip_unless_available()))))
+
+    def test_hand_drawn_only(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = ET.Element("layout-config")
+            root.append(self.panel(0))
+            hand = Path(d) / "hand.xml"
+            hand.write_bytes(ET.tostring(root))
+            self.assertIsNone(tables.hand_drawn_only(hand, "x.py"))
+            tables.layout_editor(root).append(tables.generated_marker_label())
+            gen = Path(d) / "gen.xml"
+            gen.write_bytes(ET.tostring(root))
+            self.assertIn("is generated", tables.hand_drawn_only(gen, "x.py"))
+            self.assertIn("cannot read", tables.hand_drawn_only(Path(d) / "none.xml", "x.py"))
+            other = Path(d) / "other.xml"
+            other.write_bytes(b"<layout-config><LayoutEditor name='Dispatcher System'/></layout-config>")
+            self.assertIn("no main Layout Editor panel", tables.hand_drawn_only(other, "x.py"))
+
+
+class OverrideSaveTest(unittest.TestCase):
+    """While HART_TABLES is set, Tables.save refuses the checkout's file, the override and the profile."""
+
+    def test_saves_refused_under_hart_tables(self):
+        import subprocess
+        src = str(Path(paths.__file__).resolve().parents[1])
+        code = (
+            "import sys; sys.path.insert(0, sys.argv[1]); from pathlib import Path\n"
+            "from hartlib import paths, tables\n"
+            "doc = tables.load(paths.TABLES_XML)\n"
+            "for target in (paths.TABLES_XML, paths.REPO_TABLES_XML, paths.JMRI_USER_FILES / 'tables.xml'):\n"
+            "    try:\n"
+            "        doc.save(target); print('WROTE', target)\n"
+            "    except RuntimeError as exc:\n"
+            "        print('REFUSED', 'HART_TABLES is set' in str(exc))\n"
+            "print('OTHER', doc.save(Path(sys.argv[2])))\n"
+            "try:\n    paths.exit_if_overridden('x.py')\nexcept SystemExit as exc:\n    print('EXIT', exc.code[:5])\n")
+        with tempfile.TemporaryDirectory() as d:
+            home = Path(d) / "home"
+            (home / "JMRI_UserFiles").mkdir(parents=True)
+            copy = Path(d) / "tables.xml"
+            copy.write_bytes(b"<layout-config><LayoutEditor name='HART Railroad'/></layout-config>")
+            env = {**os.environ, "HART_TABLES": str(copy), "HOME": str(home), "HART_GUARD_JMRI_RUNNING": "0"}
+            done = subprocess.run([sys.executable, "-c", code, src, str(Path(d) / "other.xml")], env=env,
+                                  capture_output=True, text=True, timeout=60)
+            self.assertEqual(0, done.returncode, done.stderr)
+            self.assertEqual(["REFUSED True"] * 3 + ["OTHER True", "EXIT x.py:"], done.stdout.splitlines())
+            self.assertEqual([], list((home / "JMRI_UserFiles").iterdir()))
+
+    def test_no_message_without_hart_tables(self):
+        if not paths.TABLES_OVERRIDDEN:
+            self.assertIsNone(paths.check_only_message("x.py"))
+            paths.exit_if_overridden("x.py")
 
 
 if __name__ == "__main__":

@@ -642,6 +642,8 @@ def main(argv: list[str] | None = None) -> int:
         help="Write changes to disk (default is dry-run)",
     )
     args = parser.parse_args(argv)
+    if args.apply:
+        paths.exit_if_overridden(Path(__file__).name)
 
     renames = load_rename_map(args.map)
     sensor_usernames = load_sensor_username_map(args.map)

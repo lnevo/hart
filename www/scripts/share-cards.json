@@ -31,6 +31,28 @@
       "alt": "The speed-match run viewer on a CSX 2738 run: the loco, throttle step 126 at 490.3 mm/s, eight steps measured, and the track strip with the speed in each block.",
       "from": "headless screenshot of www/ai/speed-runs.html (make_share_cards.py ai-speed-runs)"
     },
+    "ai/clinic.html": {
+      "image": "assets/share/ai-clinic.jpg",
+      "alt": "Freight trains and a locomotive lined up on the staging tracks in front of the city backdrop.",
+      "from": "media/photos-layout/IMG_8904.jpg (the clinic's cover photo)"
+    },
+    "ai/mmr.html": {
+      "image": "assets/share/ai-mmr.jpg",
+      "alt": "The NMRA Achievement Program dashboard: twelve certificate cards, each with its group, a progress bar and a status mark.",
+      "from": "headless screenshot of www/ap/index.html (make_share_cards.py ai-mmr)",
+      "shared": true
+    },
+    "ap/index.html": {
+      "image": "assets/share/ai-mmr.jpg",
+      "alt": "The NMRA Achievement Program dashboard: twelve certificate cards, each with its group, a progress bar and a status mark.",
+      "from": "same picture as ai/mmr.html (make_share_cards.py ai-mmr)",
+      "shared": true
+    },
+    "ap/opsig.html": {
+      "image": "assets/share/ap-opsig.jpg",
+      "alt": "The OPSIG Achievement Program dashboard: eleven Achievement cards toward Ninja, each with a progress bar and a status mark.",
+      "from": "headless screenshot of www/ap/opsig.html (make_share_cards.py ap-opsig)"
+    },
     "ai/operations.html": {
       "image": "assets/share/ai-operations.jpg",
       "alt": "The virtual track scale after weighing Kosmos cement hopper KSMX 101: 105.00 tons gross, 78.75 tons net, marked PASS.",
@@ -144,40 +166,76 @@
       "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
       "shared": true
     },
-    "crew/maps/barn/index.html": {
+    "crew/maps/archive/index.html": {
       "image": "assets/share/crew-maps.jpg",
       "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
       "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/west-yard/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/south-yard/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/barn/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/east-end/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/shenango/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/barn/index.html": {
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/east-end/index.html": {
-      "image": "assets/share/crew-maps.jpg",
-      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
-      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/index.html": {
-      "image": "assets/share/crew-maps.jpg",
-      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
-      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/shenango/index.html": {
-      "image": "assets/share/crew-maps.jpg",
-      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
-      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/south-yard/index.html": {
-      "image": "assets/share/crew-maps.jpg",
-      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
-      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/west-yard/index.html": {
-      "image": "assets/share/crew-maps.jpg",
-      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
-      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/nvl/index.html": {
@@ -213,6 +271,16 @@
       "alt": "The printed Scale Operating Instructions booklet lying on the scale track.",
       "from": "www/assets/behind/sts/scale-instructions.jpg",
       "shared": true
+    },
+    "exam/run.html": {
+      "image": "assets/share/ap-exam-run.jpg",
+      "alt": "A Kestrel Valley Railroad Clearance Form A at Ashby: Extra 812 East has 2 orders, Nos 14 and 15, OK 6 14 am, stamped Extra East.",
+      "from": "drawn by make_share_cards.py ap-exam-run, after Standard Code Rule 211 Clearance Form A"
+    },
+    "exam/index.html": {
+      "image": "assets/share/ap-exam.jpg",
+      "alt": "A green Form 19 train order on the HART Railroad, stamped OK: Engs C and E run extra Study Guide to Exam and wait at Flashcards until learned.",
+      "from": "drawn by make_share_cards.py ap-exam, after Standard Code train order Forms G and S-C"
     },
     "guides/auto-dispatcher.html": {
       "image": "assets/share/guides-auto-dispatcher.jpg",

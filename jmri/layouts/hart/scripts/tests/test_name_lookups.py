@@ -5,7 +5,6 @@
 - infer_block_lengths.py: the lap reference is loop1's first block.
 - audit_panel_contracts.py: the Dispatcher virtual masts are the boundary masts whose
   name-map hardware is virtual.
-- validate_le_signalling.py: the CATS oracle pairs are read from data/sml_cats_oracle.csv.
 """
 from __future__ import annotations
 
@@ -120,37 +119,6 @@ class DispatcherVirtualsTest(unittest.TestCase):
             boundary = {r["mast_user_name"] for r in csv.DictReader(f)}
         self.assertEqual({"Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB", "Mast 2R",
                           "Mast 6R", "Mast 36L", "Mast 40RB"}, audit.dispatcher_virtuals(boundary))
-
-
-class OracleTest(unittest.TestCase):
-    def test_oracle_rows_parse_into_lists(self):
-        val = load("validate_le_signalling")
-        with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "o.csv"
-            p.write_text("source,dest,blocks,turnouts\n"
-                         "Mast 1A,Mast 2A,Track A | OS Switch 2,Switch 2=closed | Switch 4=thrown\n"
-                         "Mast 2A,Mast 1A,,\n", encoding="utf-8")
-            self.assertEqual(
-                [("Mast 1A", "Mast 2A", ["Track A", "OS Switch 2"], [("Switch 2", "closed"), ("Switch 4", "thrown")]),
-                 ("Mast 2A", "Mast 1A", [], [])],
-                val.load_oracle(p))
-
-    def test_a_bad_turnout_cell_stops_with_its_line(self):
-        val = load("validate_le_signalling")
-        with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "o.csv"
-            for cell in ("Switch 2", "Switch 2=reverse", "=closed"):
-                with self.subTest(cell):
-                    p.write_text("source,dest,blocks,turnouts\nMast 1A,Mast 2A,,Switch 1=closed\n"
-                                 f"Mast 2A,Mast 1A,,Switch 1=thrown | {cell}\n", encoding="utf-8")
-                    with self.assertRaises(SystemExit) as cm:
-                        val.load_oracle(p)
-                    self.assertIn(f"o.csv line 3: turnout {cell!r}", str(cm.exception))
-
-    def test_repo_oracle_has_its_33_pairs(self):
-        pairs = load("validate_le_signalling").load_oracle()
-        self.assertEqual(33, len(pairs))
-        self.assertTrue(all(state in ("closed", "thrown") for *_, ts in pairs for _, state in ts))
 
 
 if __name__ == "__main__":

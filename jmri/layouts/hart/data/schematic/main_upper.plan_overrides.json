@@ -200,5 +200,137 @@
  "_helix_side": "Fact, not a preference: the helix is at the east end of every level (ADR-022: timetable east runs toward Princess and the helix).",
  "helix_to": "Staging",
  "mast_prefix": "Mast ",
- "mast_dir_pattern": "\\d+([LR])"
+ "mast_dir_pattern": "\\d+([LR])",
+ "control_points": {
+  "CP 107": {
+   "switches": [
+    "107"
+   ]
+  },
+  "CP 109": {
+   "switches": [
+    "109",
+    "111",
+    "117",
+    "119A",
+    "119B"
+   ]
+  },
+  "CP 125": {
+   "switches": [
+    "125",
+    "127"
+   ]
+  },
+  "CP 129": {
+   "switches": [
+    "129A",
+    "135A"
+   ]
+  },
+  "CP 201": {
+   "switches": [
+    "201",
+    "203",
+    "219",
+    "221A",
+    "221B"
+   ]
+  },
+  "CP 213": {
+   "switches": [
+    "213A",
+    "213B"
+   ]
+  },
+  "CP 217": {
+   "switches": [
+    "217A",
+    "217B"
+   ]
+  },
+  "CP 223": {
+   "switches": [
+    "223*"
+   ]
+  },
+  "CP 225": {
+   "switches": [
+    "225",
+    "227",
+    "229"
+   ]
+  }
+ },
+ "_control_points": "Placeholder control points 'CP <lowest switch>' (owner, 2026-11-15), written by tools/schematic/build_device_map.py from control_points_main_upper.csv; edit that file, not this key.",
+ "stations": {
+  "CP 107": {
+   "switches": [
+    "107"
+   ],
+   "tracks": []
+  },
+  "CP 109": {
+   "switches": [
+    "109",
+    "111",
+    "117",
+    "119A",
+    "119B"
+   ],
+   "tracks": []
+  },
+  "CP 125": {
+   "switches": [
+    "125",
+    "127"
+   ],
+   "tracks": []
+  },
+  "CP 129": {
+   "switches": [
+    "129A",
+    "135A"
+   ],
+   "tracks": []
+  },
+  "CP 201": {
+   "switches": [
+    "201",
+    "203",
+    "219",
+    "221A",
+    "221B"
+   ],
+   "tracks": []
+  },
+  "CP 213": {
+   "switches": [
+    "213A",
+    "213B"
+   ],
+   "tracks": []
+  },
+  "CP 217": {
+   "switches": [
+    "217A",
+    "217B"
+   ],
+   "tracks": []
+  },
+  "CP 223": {
+   "switches": [
+    "223*"
+   ],
+   "tracks": []
+  },
+  "CP 225": {
+   "switches": [
+    "225",
+    "227",
+    "229"
+   ],
+   "tracks": []
+  }
+ }
 }

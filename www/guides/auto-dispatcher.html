@@ -16,6 +16,8 @@
     <article class="guide-body">
 <h2>HART Railroad — Auto Dispatcher Guide</h2>
 
+<p><strong>Parked.</strong> The JMRI Dispatcher System (Stage 1, sections, transits, traininfo) and Entry/Exit (NX) are parked since the helix-join release (November 2026): not in the active panel; data kept in <code>jmri/layouts/hart/parked/</code>. This guide describes how they work once unparked.</p>
+
 <p><strong>Publication:</strong> DS-AUTO · Rev A · Eff 2026-08-20<br><strong>Railroad:</strong> HART Railroad · Pittsburgh &amp; Chartiers Valley Division · Neville Island Operations<br><strong>Scope:</strong> JMRI Dispatcher System on PanelPro (panels <strong>Dispatcher System</strong> and <strong>HART Railroad</strong>)</p>
 
 <p>This is how you <strong>send a train</strong> from one station to another, or along a named list of stations. You click stations; the system picks the path, throws turnouts, and runs the locomotive.</p>
@@ -28,7 +30,7 @@
 
 <h2>1. What you click</h2>
 
-<p>Two windows:</p>
+<p>There were two windows:</p>
 
 <div class="table-wrap"><table class="data-table"><thead><tr><th>Window</th><th>What it is</th></tr></thead><tbody><tr><td><strong>Dispatcher System</strong></td><td>Command panel: start/stop, register trains, Run Dispatch vs Setup Route vs Run Route</td></tr><tr><td><strong>HART Railroad</strong></td><td>The stations. The <strong>loco + short name</strong> is the destination. The <strong>circuit to its left</strong> is progress. The <strong>circuit below-left of the loco</strong> is occupancy, except Engine House <strong>OS EH-1…OS EH-3</strong> where occupancy sits further left on the same row</td></tr></tbody></table></div>
 
@@ -36,7 +38,7 @@
 
 <div class="table-wrap"><table class="data-table"><thead><tr><th>Station</th><th>Where it is</th></tr></thead><tbody><tr><td><strong>OS Brick-Plane</strong></td><td>Hairpin between Brick and Plane</td></tr><tr><td><strong>Track East Ext</strong></td><td>Main between Plane (102) and OS Barn (117)</td></tr><tr><td><strong>OS Main East</strong></td><td>Main south of the yard, approaching East End</td></tr><tr><td><strong>OS East Lead</strong></td><td>East End lead off 112; destination label <strong>E Lead</strong></td></tr><tr><td><strong>OS Main West</strong></td><td>OS Main West at East End (around-the-room from Brick)</td></tr><tr><td><strong>Track West Ext</strong></td><td>OS Main West between East End and Princess</td></tr><tr><td><strong>OS K-1</strong></td><td>Princess, north branch; destination label <strong>Track K-1</strong></td></tr><tr><td><strong>OS K-2</strong></td><td>Princess, south branch; destination label <strong>Track K-2</strong></td></tr><tr><td><strong>OS Scale</strong></td><td>Left of the engine house, Plane–117 lead; destination label <strong>OS Scale</strong></td></tr><tr><td><strong>OS Barn</strong></td><td>Immediately to the right of OS Scale (OS Barn lead); destination label <strong>OS Barn</strong></td></tr><tr><td><strong>OS EH-1 / OS EH-2 / OS EH-3</strong></td><td>Right of the 116 ladder</td></tr><tr><td><strong>OS S-R…OS S-4</strong></td><td>South Yard body; destination labels <strong>OS S-R…OS S-4</strong>, aligned with Main W / Main E</td></tr><tr><td><strong>OS W-1 / OS W-2</strong></td><td>Brick yard body</td></tr><tr><td><strong>OS McKees Rocks / OS McKeesport</strong></td><td>Princess stubs east of 115 / 114; destination labels <strong>McK Rks</strong> / <strong>McKport</strong></td></tr></tbody></table></div>
 
-<p>You can only start and stop at those stations. Occupancy icons and MoveTo buttons are in place. <strong>Stage 1 was re-run 2026-08-22</strong> after hidden yard throats (graph is <strong>91 sections / 688 transits / 1508 traininfo</strong>). Every listed station is a valid <strong>start and destination</strong>, including <strong>OS S-R…OS S-4</strong> (enter/leave via 103 or OS East Lead). Manual Princess pairs (<code>Mast 36RA→Mast 40LA</code>, <code>Mast 36RB→Mast 38LA</code>) were re-added after Discover. After any future Stage 1: <code>python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py</code> then <code>reconcile_dispatcher_stations.py</code>. Never run Stage 1 or store tables from CATS.</p>
+<p>You can only start and stop at those stations. Occupancy icons and MoveTo buttons are in place. <strong>Stage 1 was re-run 2026-08-22</strong> after hidden yard throats (the graph then was <strong>91 sections / 688 transits / 1508 traininfo</strong>; the last parked snapshot holds 197 sections and 187 transits). Every listed station is a valid <strong>start and destination</strong>, including <strong>OS S-R…OS S-4</strong> (enter/leave via 103 or OS East Lead). All Signal Mast Logic comes from Discover. The two hand-added Princess pairs (<code>Mast 36RA→Mast 40LA</code>, <code>Mast 36RB→Mast 38LA</code>) were removed on 2026-11-15: they pointed the wrong way, and no route used them. After a Stage 1 in the parked snapshot: <code>python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py</code> then <code>reconcile_dispatcher_stations.py</code>. Never run Stage 1 or store tables from CATS.</p>
 
 <hr>
 
@@ -146,13 +148,15 @@
 
 <h2>9. NX on HART Railroad (separate desk)</h2>
 
+<p><strong>Parked.</strong> Entry/Exit (NX) is parked since the helix-join release (November 2026): not in the active panel; data kept in <code>jmri/layouts/hart/parked/</code>.</p>
+
 <p>JMRI Entry/Exit lives on <strong>HART Railroad</strong> as a <strong>white USS lamp</strong> on the approach track into each CTC switch (<code>NX Mast 2L</code>, <code>NX Mast 6LB</code>, …). It turns <strong>green</strong> when that end of a route is active. That is not the Dispatcher System pair: the <strong>loco</strong> is MoveTo, the <strong>small track-circuit square</strong> is progress.</p>
 
-<p><strong>Now (SML mode):</strong> click two white lamps to throw the path and let SML set the facing mast. Default AAR icons stay. LE turnout circles still work. NX does not Hold or reserve blocks.</p>
+<p><strong>In the parked snapshot (SML mode):</strong> you clicked two white lamps to throw the path and let SML set the facing mast. Default AAR icons stay. LE turnout circles still work. NX does not Hold or reserve blocks.</p>
 
-<p><strong>Later (lock mode):</strong> <code>python3 jmri/layouts/hart/scripts/apply_nx_layer.py --mode lock</code> then deploy. After that, NX Holds every source mast at Stop until you click a route, and reserves the path. Use that desk <strong>instead of</strong> CATS CTC and USS Logic. Switch back with <code>--mode sml</code>.</p>
+<p><strong>Lock mode, never used live:</strong> <code>python3 jmri/layouts/hart/scripts/apply_nx_layer.py --mode lock</code> then deploy. After that, NX held every source mast at Stop until you clicked a route, and reserved the path. It was meant as a desk <strong>instead of</strong> CATS CTC. Switch back with <code>--mode sml</code>.</p>
 
-<p>You can also flip it in PanelPro: <strong>Tools → Entry Exit</strong> — pair type <strong>Turnout and Signal Mast Logic</strong> vs <strong>Full Interlock</strong>, and <strong>Use ABS Signal Mode</strong>. Store from PanelPro if you change it there.</p>
+<p>The same setting was in PanelPro: <strong>Tools → Entry Exit</strong> — pair type <strong>Turnout and Signal Mast Logic</strong> vs <strong>Full Interlock</strong>, and <strong>Use ABS Signal Mode</strong>. </p>
 
 <ol>
 <li>Open <strong>PanelPro</strong>.</li>

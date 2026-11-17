@@ -11,13 +11,15 @@ Facing SoR: jmri/layouts/hart/data/le_signal_boundaries.csv
 Does not write SignalMastLogic pairs. SML dests are native (Layout Editor Discover,
 useLayoutEditor=yes). After facing changes, re-run Discover with
 `jmri/layouts/hart/scripts/run_sml_discover.sh`, which then sets the Digicon dests to
-Enabled=no, and check with `validate_le_signalling.py`. The retired CATS pairs are in `data/sml_cats_oracle.csv`.
+Enabled=no. Check the result by comparing the stored pairs with the previous tables
+(`data/baselines/sml_pairs.csv`).
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import os
 import re
 import shutil
 import sys
@@ -49,13 +51,16 @@ _DISABLED_2 = """      <unlit allowed="no" />
       </disabledAspects>"""
 
 
-def load_assignments(path: Path) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
+def load_assignments(path: Path, generated: bool = False
+                     ) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
+    """({turnout ident: {slot: mast}}, {anchor ident: {slot: mast}}) from the boundaries CSV; on a `generated` panel
+    each row in its generated_slot where it has one (a switch drawn with legs B and C swapped)."""
     turnouts: dict[str, dict[str, str]] = {}
     anchors: dict[str, dict[str, str]] = {}
     with path.open(newline="") as f:
         for row in csv.DictReader(f):
             ident = row["ident"]
-            slot = row["slot"]
+            slot = tables.boundary_slot(row, generated)
             mast = row["mast_user_name"]
             if row["kind"] == "turnout":
                 turnouts.setdefault(ident, {})[slot] = mast
@@ -217,14 +222,23 @@ def main() -> None:
     ap.add_argument("--no-pref", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
+    if not args.dry_run:
+        paths.exit_if_overridden(Path(__file__).name)
     syncing = not (args.dry_run or args.no_sync or args.no_pref) and PREF_TABLES.is_file()
+    # A generated panel reaches the profile only as the checkout's own tables.xml: a cut-over candidate or sandbox
+    # copy named by --panel is never copied there.
+    if (syncing and Path(os.path.realpath(args.panel)) != Path(os.path.realpath(paths.REPO_TABLES_XML))
+            and tables.hand_drawn_only(args.panel, Path(__file__).name)):
+        print(f"{args.panel}: a generated panel that is not the checkout's tables.xml, so it is not copied to "
+              f"{PREF_TABLES}; rerun with --no-pref (or --no-sync)", file=sys.stderr)
+        sys.exit(1)
     # The running JMRI holds the profile copy and would overwrite it on Store; refuse
     # before touching anything, so the repo panel and the profile never part ways.
     if syncing and tables.jmri_running():
         print(f"{PREF_TABLES}: not changed: PanelPro or CATS is open; quit it and rerun, "
               "or use --no-pref and deploy", file=sys.stderr)
         sys.exit(1)
-    turnouts, anchors = load_assignments(args.csv)
+    turnouts, anchors = load_assignments(args.csv, tables.path_has_generated_panel(args.panel))
     patch_file(args.panel, turnouts, anchors, dry_run=args.dry_run)
     if args.dry_run or args.no_sync:
         return

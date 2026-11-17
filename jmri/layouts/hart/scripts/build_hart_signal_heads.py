@@ -373,10 +373,8 @@ def update_lcos_inventory(rows: list[dict]) -> None:
                 ws.cell(rr, col, v)
         else:
             ws.append(vals)
-    out = DATA / "LCOS_Layout_Inventory_v85_signal_ports.xlsx"
-    wb.save(out)
     wb.save(inv)
-    print(f"updated inventory DNOU8 → {inv} and {out}")
+    print(f"updated inventory DNOU8 → {inv}")
 
 
 def _heads_xml(rows: list[dict]) -> str:
@@ -491,6 +489,8 @@ def write_publisher(rows: list[dict]) -> None:
 
 def main() -> int:
     wiring_only = "--wiring-only" in sys.argv
+    if not wiring_only:
+        paths.exit_if_overridden(Path(__file__).name)
     rows = build_rows()
     write_csvs(rows)
     if wiring_only:

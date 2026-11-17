@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help wt wt-sweep check portal-check desks panelpro-test docs-index publications waybills submodules tables-pull ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
+.PHONY: help wt wt-sweep check portal-check panels desks panelpro-test docs-index publications waybills submodules tables-pull ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -18,8 +18,11 @@ check:  ## Run every repo check
 portal-check:  ## Build the website and test its links
 	python3 www/scripts/check_portal_build.py
 
-desks:  ## Rebuild and validate the CATS desks
-	python3 cats/scripts/wire_digicon.py
+panels:  ## Rebuild every panel drawn from the schematic, in order (CHECK=1 only checks)
+	./tools/schematic/build_panels.sh $(if $(filter 1 yes true,$(CHECK)),--check)
+
+desks:  ## Rebuild and validate the CATS desks (generated from the schematic)
+	python3 tools/schematic/build_cats_panel.py
 	python3 cats/scripts/validate_cats_panel.py
 
 panelpro-test:  ## Load tables.xml in real PanelPro on this Mac

@@ -17,7 +17,10 @@ Usage: prepare_github_pages.py [DEST] [--site-url URL] [--require-mirrors]
 from __future__ import annotations
 
 import argparse
+import functools
+import hashlib
 import html
+import inspect
 import os
 import json
 import re
@@ -63,7 +66,7 @@ LEAK_PATTERNS = re.compile(r"localhost|127\.0\.0\.1|/Users/|external/sts-docker-
 # prefix when resolving logos and photos, so only data files are checked for it.
 MIRROR_PREFIXES = ("../external/", "../media/", "../ops/", "../docs/")
 DATA_LEAK = re.compile(r"\.\./(?:external|media|ops|docs)/")
-LEAK_SUFFIXES = {".html", ".json", ".css", ".md", ".txt"}
+LEAK_SUFFIXES = {".html", ".json", ".css", ".md", ".txt", ".svg"}
 # Share previews (Facebook, iMessage, …) read static tags only, so every page gets them at build time.
 # The site is served at the domain root; override with --site-url or HART_SITE_URL.
 SITE_URL = os.environ.get("HART_SITE_URL", "https://www.hartrailroad.com/")
@@ -659,14 +662,95 @@ def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600, subdir
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
-    """Write a resized JPEG; False when Pillow is missing."""
+# Resized photos are kept in a cache folder between builds: re-encoding the ~530 photos took ~27 s of every build.
+# HART_WEB_JPEG_CACHE=<folder> moves it, HART_WEB_JPEG_CACHE= (empty) turns it off. The key holds the source of
+# _render_jpeg, so a change to how photos are drawn never reuses copies drawn the old way.
+JPEG_CACHE_ENV = "HART_WEB_JPEG_CACHE"
+JPEG_CACHE_KEEP_DAYS = 60
+_CACHED_NAME = re.compile(r"^[0-9a-f]{64}(\.jpg|\.\d+\.tmp)$")   # only these are the cache's own files
+
+
+def _jpeg_cache() -> Path | None:
+    """The resized-photo cache folder, or None when it is turned off or cannot be made (said once on stderr)."""
+    return _jpeg_cache_at(os.environ.get(JPEG_CACHE_ENV))
+
+
+@functools.lru_cache(maxsize=None)
+def _jpeg_cache_at(value: str | None) -> Path | None:
+    if value is not None and not value.strip():
+        return None
+    path = Path(value).expanduser() if value else Path.home() / ".cache/hart/web-jpeg"
     try:
-        from PIL import Image
+        path.mkdir(mode=0o700, parents=True, exist_ok=True)
+        path.chmod(0o700)            # resized copies of mirror-only originals: private to this user
+    except OSError as exc:
+        print(f"{JPEG_CACHE_ENV}: cannot use {path} ({exc}); resizing every photo", file=sys.stderr)
+        return None
+    return path
+
+
+@functools.lru_cache(maxsize=None)
+def _render_key() -> bytes:
+    """What decides how a photo is drawn: _render_jpeg's own source and Pillow's version."""
+    import PIL
+
+    return f"{_RENDER_SOURCE}|{PIL.__version__}".encode()
+
+
+def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
+    """Write a resized JPEG; False when Pillow is missing. A photo resized before from the same bytes, size and
+    drawing code is copied from the cache."""
+    try:
+        import PIL  # noqa: F401
     except ImportError:
         return False
 
     out.parent.mkdir(parents=True, exist_ok=True)
+    cache = _jpeg_cache()
+    if cache is None:
+        _render_jpeg(src, out, max_px)
+        return True
+    h = hashlib.sha256(_render_key() + f"|{max_px}|".encode())
+    with open(src, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    kept = cache / f"{h.hexdigest()}.jpg"
+    try:
+        shutil.copyfile(kept, out)   # a fresh time stamp on the output, so rsync never passes over a changed photo
+        os.utime(kept)               # last use, for pruning
+        return True
+    except FileNotFoundError:        # not cached yet, or pruned by a build running at the same time
+        pass
+    tmp = kept.with_name(f"{kept.stem}.{os.getpid()}.tmp")
+    try:
+        _render_jpeg(src, tmp, max_px)
+        os.replace(tmp, kept)        # atomic: a parallel build never reads half a file
+    finally:
+        tmp.unlink(missing_ok=True)
+    shutil.copyfile(kept, out)
+    return True
+
+
+def _prune_jpeg_cache(keep_days: int = JPEG_CACHE_KEEP_DAYS) -> None:
+    """Remove the cache's own files no build has used in keep_days (photos replaced or dropped from the site).
+    Other files in the folder are left alone."""
+    cache = _jpeg_cache()
+    if cache is None:
+        return
+    cutoff = datetime.now().timestamp() - keep_days * 86400
+    for f in cache.iterdir():
+        if not _CACHED_NAME.match(f.name):
+            continue
+        try:
+            if f.stat().st_mtime < cutoff:
+                f.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def _render_jpeg(src: Path, out: Path, max_px: int) -> None:
+    from PIL import Image
+
     with Image.open(src) as im:
         im.seek(0)  # first frame of an animated GIF/WebP
         if im.mode in ("RGBA", "LA", "P"):
@@ -677,7 +761,9 @@ def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
             im = im.convert("RGB")
         im.thumbnail((max_px, max_px))
         im.save(out, "JPEG", quality=82, optimize=True, progressive=True)
-    return True
+
+
+_RENDER_SOURCE = inspect.getsource(_render_jpeg)   # read once, as written: part of every cache key
 
 
 def _gallery_thumbs(path: Path, dest_root: Path, subdir: str, thumb_px: int = 640) -> None:
@@ -787,19 +873,21 @@ def _vendor_json_logos(path: Path, dest_root: Path) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _head_tags(rel: Path, title: str) -> str:
+def _head_tags(rel: Path, title: str, desc: str | None = None) -> str:
+    """Icon and share tags; desc is the page's own meta description, which the page already carries."""
     # The 404 page is served for any missing path, so its links start at the site root.
     up = "/" if rel == Path("404.html") else "../" * (len(rel.parts) - 1)
     url = SITE_URL + ("" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html"))
     title = html.escape(title, quote=True)
-    desc = html.escape(SHARE_DESCRIPTION, quote=True)
+    # A page with its own description keeps its tag; the share tags repeat it.
+    meta_desc = "" if desc is not None else f'\n  <meta name="description" content="{html.escape(SHARE_DESCRIPTION, quote=True)}">'
+    desc = html.escape(desc or SHARE_DESCRIPTION, quote=True)
     card = share_cards.card_for(rel)  # the page's own thumbnail, or the site card
     image, alt = card["image"], html.escape(card["alt"], quote=True)
     return f"""
   <link rel="icon" href="{up}favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="{up}assets/icons/favicon-32.png" sizes="32x32">
-  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">
-  <meta name="description" content="{desc}">
+  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">{meta_desc}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HART Railroad">
   <meta property="og:title" content="{title}">
@@ -813,6 +901,32 @@ def _head_tags(rel: Path, title: str) -> str:
   <meta name="hart-search" content="{INDEX_NAME}">"""
 
 
+class _HeadDescription(HTMLParser):
+    """The <head>'s own <meta name="description">, in any attribute order or quoting; None if it has none."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.description: str | None = None
+        self._done = False
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if self._done or tag == "body":
+            self._done = True
+        elif tag == "meta" and (a.get("name") or "").lower() == "description" and self.description is None:
+            self.description = (a.get("content") or "").strip()
+
+    def handle_endtag(self, tag):
+        if tag == "head":
+            self._done = True
+
+
+def _own_description(text: str) -> str | None:
+    p = _HeadDescription()
+    p.feed(text)
+    return p.description
+
+
 def _add_head_tags(dest_root: Path) -> None:
     for page in dest_root.rglob("*.html"):
         text = page.read_text(encoding="utf-8")
@@ -820,8 +934,9 @@ def _add_head_tags(dest_root: Path) -> None:
             continue
         m = re.search(r"<title>(.*?)</title>", text, re.S)
         title = html.unescape(m.group(1).strip()) if m else "HART Railroad"
+        desc = _own_description(text)
         page.write_text(
-            text.replace("</title>", "</title>" + _head_tags(page.relative_to(dest_root), title), 1),
+            text.replace("</title>", "</title>" + _head_tags(page.relative_to(dest_root), title, desc), 1),
             encoding="utf-8",
         )
 
@@ -927,6 +1042,7 @@ def main() -> int:
         return 1
     index = build_search_index(dest)
     print(f"Search index: {len(index['records'])} records")
+    _prune_jpeg_cache()
     print(f"Prepared public portal tree → {dest}", flush=True)
     return 0
 

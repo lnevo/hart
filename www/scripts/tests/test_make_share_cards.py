@@ -25,6 +25,29 @@ class Recipes(unittest.TestCase):
 
 
 class Drawing(unittest.TestCase):
+    def _sheet(self, *rows):
+        from PIL import Image, ImageDraw
+        im = Image.new("RGB", (400, 300), "white")
+        for y in rows:
+            ImageDraw.Draw(im).rectangle((100, y, 300, y + 3), fill="black")
+        return im
+
+    def test_station_crop_keeps_a_drawing_clear_of_the_window(self):
+        out = gen._crop_drawing(self._sheet(120, 160), (0, 50, 400, 250), "sheet", pad=10)
+        self.assertEqual(out.size, (221, 64))
+
+    def test_station_crop_stops_when_a_heading_reaches_the_window_top(self):
+        with self.assertRaises(SystemExit):
+            gen._crop_drawing(self._sheet(52, 120), (0, 50, 400, 250), "sheet")
+
+    def test_station_crop_stops_when_the_drawing_runs_past_the_window_bottom(self):
+        with self.assertRaises(SystemExit):
+            gen._crop_drawing(self._sheet(120, 248), (0, 50, 400, 250), "sheet")
+
+    def test_station_crop_stops_on_a_blank_window(self):
+        with self.assertRaises(SystemExit):
+            gen._crop_drawing(self._sheet(), (0, 50, 400, 250), "sheet")
+
     def test_route_map_names_every_station_in_the_plan(self):
         svg = gen._jfn_svg()
         for name in ("West Staging", "Carrow", "Brae", "Dunmere", "Ferris Junction", "Linden", "East Staging",

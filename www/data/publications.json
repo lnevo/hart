@@ -112,72 +112,61 @@
       "id": "sm-sub",
       "group": "maps",
       "pub": "SM-01",
-      "revision": "A",
-      "title": "Station Map: Subdivision",
-      "page": "crew/maps/index.html",
-      "html": "docs/html/Neville_Island_Station_Map.html",
-      "source": "../docs/ops/Neville_Island_Station_Map.docx",
-      "blurb": "The whole railroad on one diagram."
+      "revision": "10",
+      "title": "System Schematic",
+      "page": "crew/maps/schematic/system-schematic.svg",
+      "pdf": "crew/maps/schematic/system-schematic.pdf",
+      "blurb": "Staging, main and upper level on one sheet, with switch numbers, track names and masts."
     },
     {
       "id": "sm-wy",
       "group": "maps",
       "pub": "SM-02",
-      "revision": "A",
+      "revision": "10",
       "title": "Station Map: West Yard",
       "page": "crew/maps/west-yard/index.html",
       "printable": true,
-      "html": "docs/html/Neville_Island_Station_Map_West_Yard.html",
-      "source": "../docs/ops/Neville_Island_Station_Map_West_Yard.docx",
-      "blurb": "Brick, W-1 and W-2, and the Plane junction."
+      "blurb": "Brick and Plane sheet: switches 1, 3 and 5, W-1 and W-2, and the Plane junction."
     },
     {
       "id": "sm-sy",
       "group": "maps",
       "pub": "SM-03",
-      "revision": "A",
+      "revision": "10",
       "title": "Station Map: South Yard",
       "page": "crew/maps/south-yard/index.html",
       "printable": true,
-      "html": "docs/html/Neville_Island_Station_Map_South_Yard.html",
-      "source": "../docs/ops/Neville_Island_Station_Map_South_Yard.docx",
-      "blurb": "Tracks S-R to S-4, the scale, and the engine house leads."
+      "blurb": "South Yard sheet: switches 7 to 21, tracks S-R to S-4, the scale and the engine house leads."
     },
     {
       "id": "sm-ee",
       "group": "maps",
       "pub": "SM-04",
-      "revision": "A",
+      "revision": "10",
       "title": "Station Map: East End",
       "page": "crew/maps/east-end/index.html",
       "printable": true,
-      "html": "docs/html/Neville_Island_Station_Map_East_End.html",
-      "source": "../docs/ops/Neville_Island_Station_Map_East_End.docx",
-      "blurb": "The island industries on S-1 to S-4."
+      "blurb": "East End sheet: switches 23 to 33 and the industries on S-1 to S-4."
     },
     {
       "id": "sm-sh",
       "group": "maps",
       "pub": "SM-05",
-      "revision": "A",
+      "revision": "10",
       "title": "Station Map: Shenango",
       "page": "crew/maps/shenango/index.html",
       "printable": true,
-      "html": "docs/html/Neville_Island_Station_Map_Shenango.html",
-      "source": "../docs/ops/Neville_Island_Station_Map_Shenango.docx",
-      "blurb": "Princess, Shenango Coke Works, and the interchange loops. Rotated desk view included."
+      "blurb": "Princess sheet: switches 35 to 39, Shenango Coke Works and the interchange loops."
     },
     {
       "id": "sm-barn",
       "group": "maps",
       "pub": "SM-06",
-      "revision": "",
+      "revision": "10",
       "title": "Station Map: Barn",
       "page": "crew/maps/barn/index.html",
       "printable": true,
-      "html": "docs/html/Neville_Island_Station_Map_Barn.html",
-      "source": "../docs/ops/Neville_Island_Station_Map_Barn.docx",
-      "blurb": "Engine house EH-1 to EH-3 and switches 7, 9, 11, and 13."
+      "blurb": "Barn sheet: switches 7 to 13 and engine house tracks EH-1 to EH-3."
     },
     {
       "id": "scale-ops",

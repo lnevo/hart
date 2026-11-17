@@ -872,8 +872,6 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
     if kind == "turnout":
         if user_name in TURNOUT_COMMENTS:
             return TURNOUT_COMMENTS[user_name]
-        if system_name.startswith("IT:HART:YL:"):
-            return f"Internal yard-ladder control {user_name}"
         if system_name.startswith("MTT"):
             # Device-map comments come from CSV identity rows above. Never
             # invent "leftover" text that would let cleanup treat MTT as junk.
@@ -991,8 +989,8 @@ def refresh_comments(text: str) -> tuple[str, int]:
 TARGETS = [
     paths.TABLES_XML,
     ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml",
-    ROOT / "cats/panels/HART_CTC.xml",
-    ROOT / "cats/panels/HART_ABS.xml",
+    # the CATS desks are generated since the CATS cut-over (tools/schematic/build_cats_panel.py writes them, and its
+    # --check holds them): no other script edits them
     ROOT / "cats/data",
     ROOT / "cats/scripts/validate_cats_panel.py",
     ROOT / "docs/ctc/DISPATCHER_GUIDE_CTC.md",
@@ -1010,6 +1008,7 @@ TARGETS = [
 
 
 def main() -> int:
+    paths.exit_if_overridden(Path(__file__).name)
     n_map = sync_map_head_comments()
     if n_map:
         print(f"public_name_map.csv: {n_map} head comments from signal_wiring.csv")
@@ -1036,7 +1035,7 @@ def main() -> int:
                 if updated != text:
                     path.write_text(updated, encoding="utf-8")
                     files += 1
-                    print(f"{path.relative_to(ROOT)}: names={sum(counts.values())} comments={n_comments}")
+                    print(f"{paths.rel(path)}: names={sum(counts.values())} comments={n_comments}")
     print(f"updated {files} files")
     return 0
 

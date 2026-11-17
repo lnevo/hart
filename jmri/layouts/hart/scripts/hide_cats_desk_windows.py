@@ -1,7 +1,10 @@
 # JMRI Jython: under CATS, hide HART Railroad and add Help/Quit on CTC Panel.
 #
-# LogixNG IQ:AUTO:0001 runs this at init as IQC:AUTO:0004. IQC:0001-0003 already
-# hide WiThrottle, USS CTC, and Dispatcher System on every host. PanelPro leaves
+# LogixNG IQ:AUTO:0001 runs this at init as IQC:AUTO:0004. IQC:AUTO:0001 already
+# hides WiThrottle on every host. The USS CTC and Dispatcher System panels are
+# parked out of tables.xml (hartlib.parked, 2026-11-17) with the ConditionalNGs
+# that hid them (IQC:AUTO:0002/0003), so neither window opens and nothing here
+# looks for them ("Dispatcher Panel" below is CATS's own window). PanelPro leaves
 # HART Railroad up; CATS is a separate JVM (cats.apps.Crandic) and should not
 # keep that geographic panel.
 #

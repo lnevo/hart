@@ -14,7 +14,16 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[3]
 TABLES = SCRIPTS.parent / "output" / "tables.xml"
 GUI = SCRIPTS.parent / "ctc" / "GUIObjects.xml"
-CATS = ROOT / "cats/panels/HART_CTC.xml"
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import hand_drawn, parked  # noqa: E402
+
+# the tables with the USS CTC machine put back while it is parked (hartlib.parked): its panel and code buttons stay
+# checked against the active masts and heads in the parked file
+USS_TABLES = parked.with_parked_file({"uss"}, TABLES)
+
+# the USS board's grid is the hand-wired desk's (frozen in uss_board_cells.csv): the last hand-wired desk, read from
+# git (hartlib.hand_drawn), since the live desks are generated since the CATS cut-over
+CATS = hand_drawn.skip_unless_available("HART_CTC.xml")
 WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
 REFRESH = ROOT / "docs/wiring/scripts/refresh_wiring_docs.py"
 
@@ -125,7 +134,7 @@ class CtcSignalHeadsTest(unittest.TestCase):
                 self.assertEqual(face, facing[mast])
 
     def test_gui_objects_head_icons_match_tables(self) -> None:
-        tables = head_icons(TABLES)
+        tables = head_icons(USS_TABLES)
         gui = head_icons(GUI)
         self.assertEqual(gui, {i for i in tables if i[0] != "IH9990"})
 
@@ -136,7 +145,7 @@ class CtcSignalHeadsTest(unittest.TestCase):
             x, y = gen.signal_pos(cx, cy, facing, kind)
             want.add(("mast", mast, str(x), str(y)) if kind == "h2" else ("head", head, str(x), str(y)))
         self.assertEqual(signal_icons(GUI), want)
-        self.assertEqual(signal_icons(TABLES), want)
+        self.assertEqual(signal_icons(USS_TABLES), want)
 
 
 def uss_panel(path: Path) -> str:
@@ -157,7 +166,7 @@ def track_lamps(pe: str) -> list[tuple[str, tuple[int, int, int, int], int]]:
 class SignalVisibilityTest(unittest.TestCase):
     def test_every_signal_icon_is_visible(self) -> None:
         """No lamp drawn at or above a signal's level covers it, in either panel copy."""
-        for path in (GUI, TABLES):
+        for path in (GUI, USS_TABLES):
             pe = uss_panel(path)
             levels = [int(v) for v in re.findall(r'<signal(?:mast|head)icon [^>]*level="(\d+)"', pe)]
             self.assertEqual(len(levels), len(gen.SIGNALS), path.name)
@@ -205,7 +214,7 @@ class GeneratorTest(unittest.TestCase):
 
     def test_brick_sidi_patch_keeps_tables(self) -> None:
         """Switch 1 (Mast 2L) codes from R and Switch 3 (4RA/4RB) from L, as stored."""
-        text = TABLES.read_text(encoding="utf-8")
+        text = USS_TABLES.read_text(encoding="utf-8")
         self.assertEqual(gen.patch_brick_sidi(text), text)
 
 

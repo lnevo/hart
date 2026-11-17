@@ -58,6 +58,27 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
                         f"{name} differs from the builder; fix HEADS_3PIN or the CSV",
                     )
 
+    def test_inventory_update_writes_only_the_inventory(self) -> None:
+        # The v85 signal-ports copy in docs/wiring/signals had no reader and is gone (2026-11-17).
+        try:
+            import openpyxl  # noqa: F401
+        except ImportError:
+            self.skipTest("openpyxl not installed: update_lcos_inventory skips and writes nothing")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs/wiring/signals").mkdir(parents=True)
+            inv = root / "docs/wiring/LCOS_Layout_Inventory_v85.xlsx"
+            shutil.copy(ROOT / "docs/wiring/LCOS_Layout_Inventory_v85.xlsx", inv)
+            saved = self.m.ROOT, self.m.DATA
+            self.m.ROOT, self.m.DATA = root, root / "docs/wiring/signals"
+            try:
+                with redirect_stdout(StringIO()):
+                    self.m.update_lcos_inventory(self.rows)
+            finally:
+                self.m.ROOT, self.m.DATA = saved
+            written = sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file())
+            self.assertEqual(written, ["docs/wiring/LCOS_Layout_Inventory_v85.xlsx"])
+
     def head_plan(self) -> dict[str, dict]:
         with (SIGNALS / "signal_head_plan.csv").open(newline="") as f:
             return {r["mast_user_name"]: r for r in csv.DictReader(f)}

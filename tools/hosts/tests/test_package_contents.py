@@ -24,11 +24,12 @@ OLD = (
 
 class PanelBackground(unittest.TestCase):
     def test_source_is_in_resources(self):
-        self.assertTrue((ROOT / "jmri/resources/misc/hart_panel_bg.jpg").is_file())
+        self.assertTrue((ROOT / "jmri/resources/misc/hart_panel_bg_plain.jpg").is_file())
 
     def test_tables_path_matches_install_folder(self):
+        # the generated panel's backdrop: the picture without the compass rose (le_overlay, since the cut-over)
         tables = paths.TABLES_XML.read_text(encoding="utf-8")
-        self.assertIn("preference:resources/misc/hart_panel_bg.jpg", tables)
+        self.assertIn("preference:resources/misc/hart_panel_bg_plain.jpg", tables)
 
     def test_every_host_installs_it(self):
         self.assertIn('"$stage/cats/resources/misc"', SYNC)
@@ -68,6 +69,35 @@ class RetiredScripts(unittest.TestCase):
         self.assertTrue((ROOT / "archive/jmri-scripts/sync_yard_ladder_buttons.py").is_file())
         self.assertTrue((ROOT / "archive/layouts/linear6/SetBlockPreviewValues.py").is_file())
         self.assertTrue((ROOT / "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py").is_file())
+
+
+class ParkedFeatures(unittest.TestCase):
+    """While a feature is parked (hartlib.parked) the deploy ships none of its files, and nothing removes the copies
+    already installed on a host (owner, 2026-11-17: they stay until removed by hand)."""
+
+    def test_the_deploy_reads_the_parked_setting(self):
+        self.assertIn("python3 -m hartlib.parked dirs", SYNC)
+        self.assertIn("python3 -m hartlib.parked jython", SYNC)
+        from hartlib import parked
+        self.assertEqual(parked.shipped_dirs(frozenset({"dispatcher", "uss"})),
+                         ["jmri/layouts/hart/dispatcher", "jmri/layouts/hart/ctc"])
+        self.assertEqual(parked.shipped_jython(frozenset({"dispatcher"})), ["repair_dispatcher_traininfo.py"])
+        self.assertEqual(parked.shipped_dirs(frozenset()), [])
+
+    def test_parked_folders_are_only_staged_when_unparked(self):
+        stage = SYNC[SYNC.index("stage_package() {"):SYNC.index("push_rsync() {")]
+        self.assertIn("if ! parked_dir jmri/layouts/hart/dispatcher; then", stage)
+        self.assertIn("if ! parked_dir jmri/layouts/hart/ctc &&", stage)
+        self.assertNotIn('"$stage/ctc/icons" \\', stage)          # no empty folder made up front
+
+    def test_hosts_mirror_traininfo_only_from_the_package(self):
+        # the mirror that deletes (rsync --delete, robocopy /PURGE) runs only when the package holds the traininfo
+        pi = PI[PI.index('TRAININFO="$HART'):]
+        self.assertLess(pi.index('if [[ ! -d "$HART/jmri/layouts/hart/dispatcher" ]]'), pi.index("rsync -a --delete"))
+        win = WIN[WIN.index("$trainInfoSrc = "):]
+        self.assertLess(win.index("if (Test-Path $trainInfoSrc)"), win.index("/PURGE"))
+        mac = SYNC[SYNC.index("install_jython_scripts() {"):]
+        self.assertLess(mac.index("if parked_dir jmri/layouts/hart/dispatcher; then"), mac.index("rsync -a --delete"))
 
 
 if __name__ == "__main__":

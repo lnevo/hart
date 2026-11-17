@@ -282,7 +282,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         nx = "jmri/layouts/hart/scripts/apply_nx_layer.py"
         for cmd in (f"env JMRI_LAYOUT=hart python3 {nx}", f"python3 -u {nx}", f"uv run python {nx}",
                     "zsh tools/ops/pull_tables.sh", "bash -c ./tools/ops/pull_tables.sh",
-                    "(./tools/ops/pull_tables.sh)", "cd jmri && python3 scripts/apply_blocks_to_panel.py",
+                    "(./tools/ops/pull_tables.sh)", "cd jmri && python3 scripts/polish_hart_cp_labels.py",
                     # no list entry: found by reading the script
                     "python3 jmri/scripts/polish_hart_cp_labels.py",
                     "python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py",
@@ -338,6 +338,14 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "python3 www/scripts/check_portal_build.py"):  # baseline: never touched the tables
             self.assertEqual(self.code(cmd), 0, cmd)
 
+    def test_process_pattern_is_hartlibs(self) -> None:
+        # The PanelPro wrappers use hartlib's check (tools/hosts/panelpro_profile.py jmri-running).
+        guard = load(MAIN_GUARD, "hart_main_guard_process_same")
+        done = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, sys.argv[1]); "
+                               "from hartlib import tables; print(tables._JMRI_PROCESS)",
+                               str(ROOT / "tools/hartlib/src")], capture_output=True, text=True, check=True)
+        self.assertEqual(guard.PROCESS, done.stdout.strip())
+
     def test_process_pattern_covers_jmri5_decoderpro(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_process_test")
         for line in ("java -cp x apps.gui3.dp3.DecoderPro3", "java -cp x apps.PanelPro.PanelPro",
@@ -380,7 +388,9 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_test")
         check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
         for name, argv in after.CHECKS:
-            self.assertIn(f"run {name} " + " ".join(argv), check_sh, name)
+            # unit tests run through `unit` (no HART_TABLES), the table checks through `run`
+            step = "unit" if "unittest" in argv else "run"
+            self.assertIn(f"{step} {name} " + " ".join(argv), check_sh, name)
 
     def test_real_name_check_loads_and_passes_clean_text(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_real_name_test")

@@ -20,11 +20,21 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
+import math
+import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+try:            # mast icon sizes, as build_layout_le.py places them
+    from hartlib import tables
+except ImportError:     # run as a script: find the repo's hartlib above this file
+    sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                    if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+    from hartlib import tables
 
 BG = (18, 20, 24)
 MAIN = (228, 231, 236)      # mainline track
@@ -33,6 +43,12 @@ THRU = (232, 236, 242)      # turnout continuing legs (A/B)
 DIVERGE = (95, 205, 255)    # turnout diverging legs (C/D)
 POINT = (255, 190, 60)      # turnout center / control point
 SIGNAL = (255, 105, 125)    # signal mast icon / facing marker
+# with --kinds: a field mast (hardware on the layout) red, a virtual one (JMRI only, for Dispatcher) blue, a planned
+# one (placeholder, no hardware yet) violet (amber would read as a turnout's control point); a mast the signals file
+# does not list grey
+KINDS_FILE = Path(__file__).resolve().parents[1] / "data/schematic/staging.signals.json"
+KIND_COLOUR = {"field": SIGNAL, "virtual": (110, 170, 255), "planned": (190, 130, 255)}
+UNLISTED = (150, 150, 150)
 STATION = (110, 220, 180)   # Dispatcher station control pair
 ANCHOR = (66, 72, 82)
 OSNUM = (255, 255, 255)
@@ -69,9 +85,95 @@ def _font(size: int, bold: bool = False):
     return ImageFont.load_default()
 
 
-def load_geometry(src: Path):
-    root = ET.parse(src).getroot()
-    le = next(e for e in root.iter("LayoutEditor") if e.get("name") in ("HART Railroad", "HART"))
+def bezier_points(a, controls, b, n=16):
+    """Points along a JMRI Bezier track segment (end, control points, end), for drawing."""
+    ctrl = [a, *controls, b]
+    out = []
+    for i in range(n + 1):
+        t = i / n
+        pts = list(ctrl)
+        while len(pts) > 1:      # de Casteljau, any number of control points
+            pts = [((1 - t) * p[0] + t * q[0], (1 - t) * p[1] + t * q[1]) for p, q in zip(pts, pts[1:])]
+        out.append(pts[0])
+    return out
+
+
+def arc_points(a, b, angle, flip, n=16):
+    """Points along a Layout Editor circle arc (arc="yes" circle="yes") from end 1 to end 2, as
+    TrackSegmentView.calculateTrackSegmentAngle draws it: from end 2 (end 1 when flipped), `angle` degrees
+    counterclockwise on screen."""
+    a1, a2 = (b, a) if flip else (a, b)
+    half = math.radians(angle) / 2
+    dx, dy = a2[0] - a1[0], a2[1] - a1[1]
+    r = math.hypot(dx, dy) / 2 / math.sin(half)
+    start = math.atan2(dx, dy) - half
+    cx, cy = a2[0] - math.cos(start) * r, a2[1] + math.sin(start) * r
+    pts = [(cx + r * math.cos(start + math.radians(angle) * i / n), cy - r * math.sin(start + math.radians(angle) * i / n))
+           for i in range(n + 1)]
+    return pts if flip else pts[::-1]
+
+
+def find_panel(src: Path, panel: str | None = None, root=None):
+    """The <LayoutEditor> element named `panel` (default: the live HART panel); `root` saves parsing src again."""
+    root = ET.parse(src).getroot() if root is None else root
+    names = (panel,) if panel else ("HART Railroad", "HART")
+    return next(e for e in root.iter("LayoutEditor") if e.get("name") in names)
+
+
+def icon_box(signal):
+    """(width, height) of a mast icon's box: its upright size turned to its degrees, as JMRI's rotate gives it."""
+    w, h = signal.get("size") or tables.MAST_ICON_DWARF
+    th = math.radians(signal["degrees"])
+    return w * abs(math.cos(th)) + h * abs(math.sin(th)), w * abs(math.sin(th)) + h * abs(math.cos(th))
+
+
+def shape_outline(points, kind, n=8):
+    """The outline Layout Editor draws for a layoutShape (LayoutShapeView.draw): from the middle of each side, a
+    Straight point is a corner and a Curve point a quadratic curve through the side middles; an Open shape's first
+    and last points are always Straight and it is not closed. `points` is [(x, y, type)]."""
+    cnt = len(points)
+    if cnt < 2:
+        return [(p[0], p[1]) for p in points]
+    out = []
+    for i, (x, y, typ) in enumerate(points):
+        prev, nxt = points[i - 1], points[(i + 1) % cnt]
+        mid_l = ((prev[0] + x) / 2, (prev[1] + y) / 2)
+        mid_r = ((x + nxt[0]) / 2, (y + nxt[1]) / 2)
+        if kind == "Open" and i in (0, cnt - 1):
+            typ = "Straight"
+        if typ == "Curve":
+            out += [((1 - t) ** 2 * mid_l[0] + 2 * (1 - t) * t * x + t * t * mid_r[0],
+                     (1 - t) ** 2 * mid_l[1] + 2 * (1 - t) * t * y + t * t * mid_r[1]) for t in
+                    (k / n for k in range(n + 1))]
+        elif kind == "Open":
+            out += ([] if i == 0 else [mid_l]) + [(x, y)] + ([] if i == cnt - 1 else [mid_r])
+        else:
+            out += [mid_l, (x, y), mid_r]
+    if kind != "Open":
+        out.append(out[0])
+    return out
+
+
+def load_decor(src: Path, panel: str | None = None, root=None):
+    """The panel's text labels [(text, x, y, size, bold)] and shapes [{"type", "outline"}], each outline the
+    points Layout Editor draws through."""
+    le = find_panel(src, panel, root)
+    labels = [(lb.get("text") or "", float(lb.get("x") or 0), float(lb.get("y") or 0), int(lb.get("size") or 10),
+               lb.get("style") == "1") for lb in le.findall("positionablelabel") if lb.get("text")]
+    shapes = []
+    for sh in le.findall("layoutShape"):
+        pts = [(float(p.get("x")), float(p.get("y")), p.get("type") or "Straight") for p in sh.iter("point")]
+        if pts:
+            shapes.append({"type": sh.get("type") or "Open", "outline": shape_outline(pts, sh.get("type") or "Open")})
+    return labels, shapes
+
+
+def load_geometry(src: Path, panel: str | None = None, curves: bool = False, root=None):
+    """`curves` draws Bezier and arc track as curves; off, every segment is a straight chord (the site's overview
+    image)."""
+    root = ET.parse(src).getroot() if root is None else root
+    le = find_panel(src, panel, root)
+    system = tables.mast_system_names(root)
     pp = {p.get("ident"): (float(p.get("x")), float(p.get("y")))
           for p in le.findall("positionablepoint")}
     legs = {}
@@ -107,7 +209,23 @@ def load_geometry(src: Path):
         a = resolve(s.get("connect1name"), s.get("type1"))
         b = resolve(s.get("connect2name"), s.get("type2"))
         if a and b:
-            segs.append((a, b, s.get("mainline") == "yes", s.get("blockname") or ""))
+            main = s.get("mainline") == "yes"
+            block = s.get("blockname") or ""
+            controls = [(float(c.get("x")), float(c.get("y")))
+                        for c in sorted(s.iter("controlpoint"), key=lambda c: int(c.get("index") or 0))]
+            curve = None
+            if curves and s.get("bezier") == "yes" and controls:
+                curve = bezier_points(a, controls, b)
+            elif curves and s.get("arc") == "yes" and s.get("circle") == "yes":
+                # JMRI draws a circle arc stored with no angle (or 0) as 90 degrees
+                curve = arc_points(a, b, float(s.get("angle") or 0) or 90.0, s.get("flip") == "yes")
+            if curve:
+                mid = (len(curve) - 1) // 2
+                # one piece carries the block name, so a curve weighs as much as a straight in the label's place
+                segs.extend((p, q, main, block if i == mid else "")
+                            for i, (p, q) in enumerate(zip(curve, curve[1:])))
+            else:
+                segs.append((a, b, main, block))
     drawn = {a for a, _b, _m, _blk in segs} | {b for _a, b, _m, _blk in segs}
     pp = {k: v for k, v in pp.items() if v in drawn}
     signals = []
@@ -118,6 +236,8 @@ def load_geometry(src: Path):
                 "x": float(icon.get("x") or "0"),
                 "y": float(icon.get("y") or "0"),
                 "degrees": int(float(icon.get("degrees") or "0")) % 360,
+                "hidden": icon.get("hidden") == "yes",
+                "size": tables.mast_icon_size(system.get(icon.get("signalmast") or "", ""))[0],
             })
         except ValueError:
             continue
@@ -139,11 +259,17 @@ def load_geometry(src: Path):
 
 def render_view(
     pp, legs, turnouts, segs, signals, stations, out: Path, title: str, subtitle: str,
-    xmin=None, xmax=None
+    xmin=None, xmax=None, decor=None, fixed_scale=None
 ):
+    """`decor` is load_decor's (labels, shapes): the panel drawn as Layout Editor shows it, its own labels and
+    shapes in place of the block and turnout text this view makes up, and a single crossover with its one diagonal
+    (without it, every crossover is drawn with two diagonals, as the site's overview image has it)."""
     pad = 34
     if xmin is None:
         allx = [p[0] for p in pp.values()] + [t["cen"][0] for t in turnouts]
+        if decor:       # the whole drawing, arcs too (a turnback's far point need not be an anchor of the window)
+            allx += [q[0] for a, b, _m, _blk in segs for q in (a, b)]
+            allx += [lb[1] for lb in decor[0]] + [q[0] for sh in decor[1] for q in sh["outline"]]
         xmin, xmax = min(allx), max(allx)
         target_w = 2000
     else:
@@ -164,8 +290,18 @@ def render_view(
         pts.append(t["cen"])
     for signal in vsignals:
         pts.append((signal["x"], signal["y"]))
+        if decor:       # the icon's whole box, as Layout Editor draws it from its top left corner
+            bw, bh = icon_box(signal)
+            pts.append((signal["x"] + bw, signal["y"] + bh))
     for station in vstations:
         pts.append((station["x"], station["y"]))
+    if decor:           # the panel's own labels and shapes, in the window, count toward the picture's size
+        labels, shapes = decor
+        for text, x, y, size, _bold in labels:
+            if xmin - pad <= x <= xmax + pad:
+                pts += [(x, y), (x + 0.6 * size * len(text), y + size)]
+        for shape in shapes:
+            pts += [q for q in shape["outline"] if xmin - pad <= q[0] <= xmax + pad]
     if not pts:
         return
     bx0 = min(p[0] for p in pts) - pad
@@ -174,7 +310,7 @@ def render_view(
     by1 = max(p[1] for p in pts) + pad
 
     scale = (target_w - 2 * pad) / (bx1 - bx0)
-    scale = max(scale, 1.0)
+    scale = max(scale, 1.0) if fixed_scale is None else fixed_scale
     W = int((bx1 - bx0) * scale + 2 * pad)
     top = 78
     H = int((by1 - by0) * scale + top + pad)
@@ -203,7 +339,7 @@ def render_view(
             blk_pts[bl].append(((a[0] + b[0]) / 2, (a[1] + b[1]) / 2))
     f_blk = _font(12)
     placed = []
-    for bl, mids in blk_pts.items():
+    for bl, mids in ([] if decor else blk_pts.items()):
         if bl.startswith("OS "):
             continue  # OS shown on the control point marker
         mx = sum(m[0] for m in mids) / len(mids)
@@ -268,6 +404,12 @@ def render_view(
             # Continuing routes (parallel rails)
             d.line([_pt(a), _pt(b)], fill=THRU, width=5)
             d.line([_pt(dd), _pt(c)], fill=THRU, width=5)
+            if decor and ttype in ("RH_XOVER", "LH_XOVER"):
+                # a single crossover: one diagonal, from the middle of A-B to the middle of C-D (as JMRI draws it)
+                d.line([_pt(((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)), _pt(((c[0] + dd[0]) / 2, (c[1] + dd[1]) / 2))],
+                       fill=DIVERGE, width=5)
+                d.ellipse([X(cx) - 6, Y(cy) - 6, X(cx) + 6, Y(cy) + 6], fill=POINT)
+                continue
             # Pick the diagonal pair that actually forms the diamond. JMRI RH/LH
             # naming can be mirrored in LE so type alone is not enough.
             rh_pair = (a, dd, b, c)  # A–D & B–C
@@ -296,7 +438,7 @@ def render_view(
 
     # labels with simple anti-collision (stagger above/below the point)
     placed_lbl = []  # (px, py) top-left of a 3-line label block (~52px tall)
-    for t in sorted(vturn, key=lambda tt: tt["cen"][0]):
+    for t in ([] if decor else sorted(vturn, key=lambda tt: tt["cen"][0])):
         cx, cy = t["cen"]
         block = t["block"]
         osnum, area = block, ""
@@ -318,19 +460,41 @@ def render_view(
             d.text((lx, ly + 20), area, font=f_sub, fill=OSSUB)
         d.text((lx, ly + 36), f"{t['tn']} · {t['ident']}", font=f_id, fill=SWID)
 
+    if decor:
+        labels, shapes = decor
+        for shape in shapes:
+            outline = [(X(x), Y(y)) for x, y in shape["outline"]]
+            if shape["type"] == "Filled" and len(outline) > 2:
+                d.polygon(outline, fill=SIDE)
+            if len(outline) > 1:
+                d.line(outline, fill=MAIN, width=3)
+        for text, x, y, size, bold in labels:
+            d.text((X(x), Y(y)), text, font=_font(max(8, round(size * scale)), bold=bold), fill=TITLE if bold else BLKTXT)
+
     # Display-only signal markers. The stem points in the mast's facing
-    # direction (0=north, 90=east, 180=south, 270=west).
+    # direction (0=north, 90=east, 180=south, 270=west). With decor (the panel as Layout Editor shows it) the
+    # marker sits where the icon does: x, y is its top left corner of the turned box of its upright size (a dwarf
+    # 12 x 17, a high mast 12 x 40: hartlib.tables.mast_icon_size), and a hidden icon is drawn hollow.
     f_sig = _font(10)
-    vectors = {0: (0, -1), 90: (1, 0), 180: (0, 1), 270: (-1, 0)}
     for signal in vsignals:
+        colour = (KIND_COLOUR.get(signal["kind"], UNLISTED) if "kind" in signal else SIGNAL)
+        th = math.radians(signal["degrees"])
+        dx, dy = math.sin(th), -math.cos(th)
         px, py = X(signal["x"]), Y(signal["y"])
-        dx, dy = vectors.get(signal["degrees"], (0, -1))
-        d.ellipse([px - 5, py - 5, px + 5, py + 5], fill=SIGNAL)
-        d.line([(px, py), (px + 18 * dx, py + 18 * dy)], fill=SIGNAL, width=4)
+        if decor:
+            bw, bh = icon_box(signal)
+            px, py = X(signal["x"] + bw / 2), Y(signal["y"] + bh / 2)
+            r = 3
+            d.ellipse([px - r, py - r, px + r, py + r], outline=colour, width=1,
+                      fill=None if signal.get("hidden") else colour)
+            d.line([(px, py), (px + 9 * dx * scale, py + 9 * dy * scale)], fill=colour, width=2)
+            continue
+        d.ellipse([px - 5, py - 5, px + 5, py + 5], fill=colour)
+        d.line([(px, py), (px + 18 * dx, py + 18 * dy)], fill=colour, width=4)
         tx = px + (8 if dx >= 0 else -8)
         ty = py + (9 if dy >= 0 else -20)
         anchor = "la" if dx >= 0 else "ra"
-        d.text((tx, ty), signal["name"], font=f_sig, fill=SIGNAL, anchor=anchor)
+        d.text((tx, ty), signal["name"], font=f_sig, fill=colour, anchor=anchor)
 
     f_station = _font(10, bold=True)
     for station in vstations:
@@ -355,6 +519,15 @@ def render_view(
     d.text((pad + 418, ly - 7), "control point (turnout)", font=f_id, fill=SUBTITLE)
     d.ellipse([pad + 590, ly - 5, pad + 600, ly + 5], fill=SIGNAL)
     d.text((pad + 608, ly - 7), "signal facing", font=f_id, fill=SUBTITLE)
+    if any("kind" in s for s in vsignals):              # a second legend row, so it never runs off a narrow image
+        kx, ky = pad, ly - 18
+        entries = [(f"{k} mast", KIND_COLOUR[k]) for k in ("field", "virtual", "planned")]
+        if any("kind" in s and s["kind"] not in KIND_COLOUR for s in vsignals):
+            entries.append(("not in the signals file", UNLISTED))
+        for text, colour in entries:
+            d.ellipse([kx, ky - 5, kx + 10, ky + 5], fill=colour)
+            d.text((kx + 16, ky - 7), text, font=f_id, fill=SUBTITLE)
+            kx += 16 + d.textlength(text, font=f_id) + 24
     d.rounded_rectangle(
         [pad + 720, ly - 5, pad + 744, ly + 7],
         radius=3,
@@ -371,6 +544,47 @@ def render_view(
     )
 
 
+def positive(text):
+    """A --scale above zero."""
+    try:
+        v = float(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a number") from None
+    if not v > 0 or math.isinf(v):
+        raise argparse.ArgumentTypeError(f"{text!r}: the scale must be above zero")
+    return v
+
+
+def mast_kinds(path):
+    """{mast user name: kind} from a schematic signals file (its `signals` list: mast, kind). Names take the
+    layer-1 `mast_prefix` from the plan overrides beside it (NAME.signals.json -> NAME.plan_overrides.json), or
+    "Mast " when there is none. Stops on a file it cannot use, or a mast listed twice."""
+    path = Path(path)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        rows = data["signals"]
+        if not isinstance(rows, list):
+            raise TypeError("signals is not a list")
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        raise SystemExit(f"--kinds {path}: cannot read a signals list ({e})")
+    prefix = "Mast "
+    overrides = path.with_name(path.name.replace(".signals.json", ".plan_overrides.json"))
+    if overrides != path and overrides.exists():
+        try:
+            prefix = json.loads(overrides.read_text(encoding="utf-8")).get("mast_prefix", prefix)
+        except (OSError, ValueError) as e:
+            raise SystemExit(f"--kinds: cannot read {overrides} for the mast prefix ({e})")
+    out = {}
+    for r in rows:
+        if not isinstance(r, dict) or not r.get("mast") or r.get("kind") not in KIND_COLOUR:
+            raise SystemExit(f"--kinds {path}: each signal needs a mast and a kind of {', '.join(KIND_COLOUR)}: {r!r}")
+        name = prefix + r["mast"]
+        if name in out:
+            raise SystemExit(f"--kinds {path}: {name} is listed twice")
+        out[name] = r["kind"]
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("src", type=Path)
@@ -379,9 +593,24 @@ def main():
     ap.add_argument("--title", default="HART Layout")
     ap.add_argument("--subtitle", default="")
     ap.add_argument("--xwin", type=float, nargs=2, metavar=("XMIN", "XMAX"))
+    ap.add_argument("--panel", help="Layout Editor panel name (default: HART Railroad)")
+    ap.add_argument("--curves", action="store_true", help="draw Bezier and arc track as curves, not chords")
+    ap.add_argument("--labels", action="store_true", help="draw the panel as Layout Editor shows it: its labels, shapes and single crossovers")
+    ap.add_argument("--scale", type=positive, help="image pixels per panel pixel (1 draws the panel at 100%% zoom)")
+    ap.add_argument("--kinds", type=Path, nargs="?", const=KINDS_FILE, metavar="SIGNALS_JSON",
+                    help="colour mast icons by kind (field, virtual, planned) from a schematic signals file "
+                         "(default: the staging signals file)")
     args = ap.parse_args()
 
-    pp, legs, turnouts, segs, signals, stations = load_geometry(args.src)
+    root = ET.parse(args.src).getroot()
+    pp, legs, turnouts, segs, signals, stations = load_geometry(args.src, args.panel, args.curves, root)
+    if args.kinds:
+        kinds = mast_kinds(args.kinds)
+        unlisted = sorted(s["name"] for s in signals if s["name"] not in kinds)
+        if unlisted:
+            print(f"--kinds: not in {args.kinds.name}, drawn grey: {', '.join(unlisted)}")
+        for s in signals:
+            s["kind"] = kinds.get(s["name"])
 
     if args.all_views:
         for key, (title, subtitle, xmin, xmax) in VIEWS.items():
@@ -395,7 +624,9 @@ def main():
     xmax = args.xwin[1] if args.xwin else None
     render_view(
         pp, legs, turnouts, segs, signals, stations,
-        args.out, args.title, args.subtitle, xmin, xmax
+        args.out, args.title, args.subtitle, xmin, xmax,
+        decor=load_decor(args.src, args.panel, root) if args.labels else None,
+        fixed_scale=args.scale,
     )
 
 

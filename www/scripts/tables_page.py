@@ -20,7 +20,12 @@ from __future__ import annotations
 import collections
 import html
 import re
+import sys
 from pathlib import Path
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import level_devices, parked  # noqa: E402
 
 REGION = re.compile(r"<!--tf:([a-z0-9-]+)-->(.*?)<!--/tf-->", re.S)
 
@@ -36,7 +41,7 @@ EXAMPLE_DETECTORS = ("BS S-1", "BS Switch 37 / BS McKeesport")
 GROUPS = {
     "jmriversion": ("start", "JMRI version", "The version of JMRI that stored the file."),
     "sensors": ("objects", "Sensors", "Inputs: occupancy and switch feedback from the layout, plus internal flags and helpers."),
-    "turnouts": ("objects", "Turnouts", "The switches, their DCC twins, and internal turnouts for the yard ladders."),
+    "turnouts": ("objects", "Turnouts", "The switches, their DCC twins, and internal turnouts for the main and upper levels."),
     "memories": ("objects", "Memories", "Small stored values, such as the fast-clock time and the mimic page's requests."),
     "signalheads": ("objects", "Signal heads", "Virtual heads that carry each lamp's colour."),
     "signalmasts": ("objects", "Signal masts", "The signals, real and virtual, all stock Basic."),
@@ -44,12 +49,12 @@ GROUPS = {
     "layoutblocks": ("objects", "Layout blocks", "The Layout Editor's view of each block."),
     "sections": ("objects", "Sections", "Dispatcher track pieces, mostly made from pairs of masts."),
     "transits": ("objects", "Transits", "Whole moves that the Dispatcher builds from sections."),
-    "routes": ("objects", "Routes", "Sets of switches thrown together, used by the yard ladders."),
+    "routes": ("objects", "Routes", "Sets of switches thrown together. None since the yard-ladder buttons were retired."),
     "signalmastlogics": ("objects", "Signal Mast Logic", "The rules that set a mast from the track ahead."),
     "logixs": ("objects", "Logix", None),  # filled with the count
     "conditionals": ("objects", "Conditionals", "The conditions and actions inside those Logix."),
     "timebase": ("objects", "Fast clock", "The settings of JMRI's fast clock."),
-    "LogixNGs": ("objects", "LogixNG", 'Newer logic that <a href="#logixng">hides windows at startup</a>: the LogixNG, its ConditionalNGs and their actions.'),
+    "LogixNGs": ("objects", "LogixNG", 'Newer logic that <a href="#logixng">hides windows and clears the main and upper block sensors at startup</a>: the LogixNGs, their ConditionalNGs and their actions.'),
     "LogixNGConditionalNGs": ("objects", "LogixNG", None),
     "LogixNGDigitalActions": ("objects", "LogixNG", None),
     "ctcdata": ("objects", "CTC data", "The USS CTC machine's code buttons and settings."),
@@ -65,6 +70,10 @@ PANELS = {
     "HART Railroad": "The track diagram, a Layout Editor panel.",
     "Dispatcher System": "A Layout Editor panel drawn by the Dispatcher System package.",
 }
+# The parked features (hartlib.parked.PARKED): their sections and panels are not in the file; the page lists them in
+# their place with this note, and says so under the title.
+PARKED_NOTE = ("Parked since the helix-join release (November 2026): not in the active panel; data kept in "
+               "jmri/layouts/hart/parked/.")
 BAR_X, BAR_W = 8, 344  # the drawn-to-scale bar in the page's 360-wide figure
 SETTINGS = {"2": "Closed", "4": "Thrown"}  # JMRI turnout states in a block path
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
@@ -149,8 +158,12 @@ def facts(raw: bytes, root) -> dict:
             rows[-1]["share"] += n / total
             continue
         rows.append({"group": group, "label": label, "note": note, "share": n / total})
+    for row in rows:
+        row["parked"] = False
+    _add_parked_rows(rows, parked.PARKED, {tag for tag, _n, _name in secs}, {name for _t, _n, name in secs if name})
     f["rows"], f["share"] = rows, dict(share)
-    f["panels"] = sum(1 for r in rows if r["group"] == "panels")
+    f["parked"] = sorted(parked.PARKED)
+    f["panels"] = sum(1 for r in rows if r["group"] == "panels" and not r["parked"])
     biggest = max(rows, key=lambda r: r["share"])
     f["largest"] = (biggest["label"], biggest["share"])
 
@@ -205,7 +218,10 @@ def facts(raw: bytes, root) -> dict:
     keys = ("enabled", "useLayoutEditor", "useLayoutEditorTurnouts", "useLayoutEditorBlocks", "associatedSection")
     f["sml"] = {"src": src, "dst": dst, **{k: (d.findtext(k) or "").strip() for k in keys}}
     section_names = {n for e in _direct(root, "sections", "section") for n in (e.findtext("systemName"), e.findtext("userName"))}
-    if f["sml"]["associatedSection"] not in section_names:
+    if not f["sml"]["associatedSection"] and "dispatcher" in parked.PARKED:
+        # the Dispatcher's sections are parked (hartlib.parked): the pair's section is named in the parked file
+        f["sml"]["associatedSection"], section_names = _parked_section(src, dst), None
+    if section_names is not None and f["sml"]["associatedSection"] not in section_names:
         raise PageError(f"tables.xml: section {f['sml']['associatedSection']!r} named by {src} to {dst} does not exist")
 
     t = _one([e for e in _direct(root, "turnouts", "turnout") if e.findtext("userName") == EXAMPLE_TURNOUT],
@@ -215,17 +231,31 @@ def facts(raw: bytes, root) -> dict:
     f["turnout"] = (EXAMPLE_TURNOUT, t.get("sensor1"), t.get("sensor2"))
 
     ctc = root.find("ctcdata")
+    if ctc is None and "uss" in parked.PARKED:      # the CTC data is parked with the USS CTC machine
+        ctc = next((t.find("ctcdata") for t in parked.read().iter("tables") if t.find("ctcdata") is not None), None)
     f["ctcColumns"] = len(ctc.findall("ctcCodeButtonData")) if ctc is not None else 0
     f["logix"] = len(_direct(root, "logixs", "logix"))
 
-    # The one LogixNG, its ConditionalNGs and their single actions.
-    ng = _one(_direct(root, "LogixNGs", "LogixNG"), "LogixNG")
-    ng_sys = ng.findtext("systemName")
+    # Two LogixNGs: the one in the Initialization Table, its ConditionalNGs and their single actions; and the one
+    # that sets the main and upper virtual block sensors clear (build_layout_le.add_level_clear).
     init = [x.text for m in root.findall("LogixNGs") for it in m.findall("InitializationTable") for x in it.findall("LogixNG")]
-    if ng_sys not in init:
-        raise PageError(f"tables.xml: LogixNG {ng_sys} is not in the Initialization Table, as the page says")
+    ngs = _direct(root, "LogixNGs", "LogixNG")
+    ng = _one([n for n in ngs if n.findtext("systemName") in init], "LogixNG in the Initialization Table")
+    ng_sys = ng.findtext("systemName")
     cng = {c.findtext("systemName"): c for c in _direct(root, "LogixNGConditionalNGs", "ConditionalNG")}
     acts = {a.findtext("systemName"): a for m in root.findall("LogixNGDigitalActions") for a in m}
+    clear = _one([n for n in ngs if n is not ng], "LogixNG besides the Initialization Table's")
+    cs = [cng.get(x.text) for x in clear.findall("ConditionalNGs/systemName")]
+    try:
+        sensors = level_devices.clear_sensors(root)
+    except ValueError as exc:
+        raise PageError(f"tables.xml: {exc}") from None
+    if clear.findtext("systemName") != level_devices.CLEAR_LOGIXNG or len(cs) != 1 or cs[0] is None \
+            or cs[0].findtext("Socket/systemName") != level_devices.CLEAR_MANY or not sensors \
+            or not all(level_devices.is_block_sensor(x) for x in sensors):
+        raise PageError(f"tables.xml: LogixNG {clear.findtext('systemName')} no longer only sets the main and upper "
+                        "block sensors clear, as the page says")
+    f["clear"] = {"name": clear.findtext("userName") or clear.findtext("systemName"), "count": len(sensors)}
     rows = []
     listed = ng.find("ConditionalNGs")
     for sysname in [x.text for x in listed.findall("systemName")] if listed is not None else []:
@@ -249,6 +279,45 @@ def facts(raw: bytes, root) -> dict:
         raise PageError("tables.xml: the last ConditionalNG no longer runs a script, as the page says")
     f["logixng"] = {"name": ng.findtext("userName") or ng_sys, "rows": rows}
     return f
+
+
+def _add_parked_rows(rows: list[dict], features, tags: set[str], panel_names: set[str]) -> None:
+    """Put a row for each parked section and panel the file no longer holds in its place among `rows` (GROUPS and
+    PANELS order), marked Parked, with no share of the file."""
+    order = list(GROUPS)
+    panel_order = list(PANELS)
+
+    def key(r: dict) -> tuple[int, int]:
+        if r["group"] == "panels":
+            return order.index("paneleditor"), panel_order.index(r["label"]) if r["label"] in panel_order else 99
+        tag = next((t for t, g in GROUPS.items() if g[1] == r["label"] and g[0] == r["group"]), None)
+        return (order.index(tag) if tag else 99), 0
+
+    added = set()
+    for feature in sorted(features):
+        # its whole sections, and the Logix sections it empties (both Logix are parked)
+        whole = parked.WHOLE.get(feature, ()) + (("logixs", "conditionals") if feature in parked.LOGIX else ())
+        new = [(t, GROUPS[t] if GROUPS[t][2] else (*GROUPS[t][:2], "Older-style logic items."))
+               for t in whole if t not in tags and t in GROUPS and t not in added]
+        added.update(t for t, _g in new)
+        if feature in parked.PANELS and parked.PANELS[feature][1] not in panel_names:
+            title = parked.PANELS[feature][1]
+            new.append((title, ("panels", title, PANELS.get(title, ""))))
+        for _tag, (group, label, note) in new:
+            row = {"group": group, "label": label, "note": f"{note} Parked.", "share": 0.0, "parked": True}
+            k = key(row)
+            at = next((i for i, r in enumerate(rows) if key(r) > k), len(rows))
+            rows.insert(at, row)
+
+
+def _parked_section(src: str, dst: str) -> str:
+    """The section the parked file names for the Signal Mast Logic pair src -> dst."""
+    for b in parked.read().iter("binding"):
+        if (b.get("element"), b.get("ident"), b.get("destination"), b.get("child")) == (
+                "signalmastlogic", src, dst, "associatedSection"):
+            return b.get("value") or ""
+    raise PageError(f"the parked file names no section for the Signal Mast Logic {src} to {dst}; pick another "
+                    f"EXAMPLE_SML")
 
 
 def _xml(lines: list[str]) -> str:
@@ -282,7 +351,8 @@ def regions(f: dict) -> dict[str, str]:
             group = r["group"]
             body.append(f'<tr><td colspan="3"><strong>{GROUP_HEADS[group]}</strong></td></tr>')
         note = r["note"] if r["note"] is not None else f"{count(f['logix'], 'older-style logic item', 'older-style logic items').capitalize()}."
-        body.append(f'<tr><td>{e(r["label"])}</td><td>{note}</td><td class="num">{pct(r["share"])}</td></tr>')
+        share = "parked" if r.get("parked") else pct(r["share"])
+        body.append(f'<tr><td>{e(r["label"])}</td><td>{note}</td><td class="num">{share}</td></tr>')
     sections = "\n            ".join(body)
 
     ex = [f'"{e(d)}" serves {e(and_list(u))}' for d, u in f["sharedExamples"]]
@@ -337,12 +407,29 @@ def regions(f: dict) -> dict[str, str]:
         "paths": f"{f['paths']:,}",
         "sml-xml": _xml(sx),
         "sml-section": e(s["associatedSection"]),
+        "parked": parked_note(f["parked"]),
+        "sml-parked": (" Sections, transits and Entry/Exit are parked since the helix-join release (November 2026); "
+                       "the masts and pairs stay live." if {"dispatcher", "nx"} <= set(f["parked"]) else ""),
         "turnout-xml": _xml(tx),
         "ctc-columns": str(f["ctcColumns"]),
         "logixng-name": e(f["logixng"]["name"]),
         "logixng-count": count(len(f["logixng"]["rows"]), "ConditionalNG", "ConditionalNGs"),
         "logixng-rows": ng_rows,
+        "clear-name": e(f["clear"]["name"]),
+        "clear-count": str(f["clear"]["count"]),
     }
+
+
+def parked_note(features: list[str]) -> str:
+    """The note under the page's title while features are parked (none when nothing is)."""
+    if not features:
+        return ""
+    names = {"nx": "the Entry/Exit pairs", "dispatcher": "the Dispatcher System with its sections and transits",
+             "uss": "the USS CTC machine with its CTC data"}
+    return (f"<strong>Parked.</strong> Since the helix-join release (November 2026) "
+            f"{and_list([names[x] for x in ('nx', 'dispatcher', 'uss') if x in features])} are not in the active "
+            f"file; their data is kept in <code>jmri/layouts/hart/parked/</code>. The table below lists them in their "
+            f"place.")
 
 
 def fill(page: str, f: dict) -> str:

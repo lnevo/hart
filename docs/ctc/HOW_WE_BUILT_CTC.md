@@ -5,12 +5,14 @@ machine was implemented. For day-to-day dispatching, see
 [`DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md). For the separate CATS Digicon panel,
 see [`docs/ctc/HART_DIGICON_SYSTEM.md`](HART_DIGICON_SYSTEM.md).
 
+**Parked:** the USS CTC machine described here is parked since the helix-join release (November 2026): not in the active panel; data kept in `jmri/layouts/hart/parked/`. The CATS desks are the only dispatcher desks. This document keeps the history of how the machine was built.
+
 ---
 
 ## What we run
 
-HART has **two** CTC-style interfaces over the same JMRI layout; run **one** at a
-time, not both:
+HART had **two** CTC-style interfaces over the same JMRI layout, run one at a
+time. The USS machine is now parked and CATS is the live desk:
 
 | Panel | Look & feel | How it was built |
 |-------|-------------|------------------|
@@ -31,13 +33,13 @@ Python **Jython** scripts run **inside PanelPro** (Script Console or our
 classes the **Tools → CTC** editor uses — we did **not** click through the GUI
 for fifteen plants.
 
-- Full plant (15 columns, Barn inserted): `jmri/layouts/hart/scripts/build_ctc_full_15col.py`. This is the one to run for a rebuild.
+- Full plant (15 columns, Barn inserted): `jmri/layouts/hart/scripts/build_ctc_full_15col.py`. It built the machine that is now parked; it is not safe to re-run (ADR-005), and an unpark restores the parked data instead (`jmri/layouts/hart/parked/README.md`).
 - Earlier steps it replaced, kept for history in `archive/jmri-scripts/`: the Brick + Plane pilot (`build_ctc_brick_plane.py`) and the East End + Princess extension (`build_ctc_east_end_princess.py`).
 
 Each script defines O.S. sections (sensors, turnouts, signal masts, crossover vs.
 switch), then runs **`Topology`** auto-generation so traffic-locking rules come from
 the existing **Signal Mast Logic (SML)** graph. A few ladder entrances needed
-hand-tuned TRL patches (`patch_ctc_locking.py`, `revert_barn_ladder_signals.py`).
+hand-tuned TRL patches (`patch_ctc_locking.py`, deleted in commit af6d5551 and readable from git, and `revert_barn_ladder_signals.py`, kept in `archive/jmri-scripts/`).
 
 Output lands in `tables.xml` (`<ctcdata>`) and is loaded on the layout Pi.
 

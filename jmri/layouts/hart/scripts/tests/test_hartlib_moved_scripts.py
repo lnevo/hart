@@ -43,7 +43,6 @@ class DefaultPathsTest(unittest.TestCase):
     def test_default_tables_are_this_checkouts_file(self):
         for name, attr in (
             ("add_digicon_le_signal_icons", "DEFAULT_PANEL"),
-            ("add_yard_ladder_le_icons", "DEFAULT_PANEL"),
             ("apply_le_cleanup", "DEFAULT"),
             ("apply_le_sml_facing", "DEFAULT_PANEL"),
             ("apply_public_names", "DEFAULT_TABLES"),
@@ -70,8 +69,11 @@ class WritersOnACopyTest(unittest.TestCase):
         self.home = Path(self._tmp.name)
 
     def copy(self, name: str) -> Path:
+        """A writable copy of the last hand-drawn tables (git): the one-off writers edit only that panel."""
+        from hartlib import hand_drawn
         path = self.home / name
-        shutil.copy(TABLES, path)
+        shutil.copy(hand_drawn.skip_unless_available(), path)
+        path.chmod(0o644)
         return path
 
     def test_le_cleanup_edits_then_is_idempotent(self):

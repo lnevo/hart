@@ -87,6 +87,8 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     text = render(build(tables.read(paths.TABLES_XML), *route_order()))
     current = OUT.read_text(encoding="utf-8") if OUT.is_file() else None
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
     if args.check:
         if current != text:
             print(f"{paths.rel(OUT)} is stale; run {paths.rel(Path(__file__))} "

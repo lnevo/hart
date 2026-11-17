@@ -85,6 +85,9 @@ if [[ -d "$HART/ctc/icons" ]]; then
     cp -f "$HART/ctc/GUIObjects.xml" "$UF/ctc/GUIObjects.xml"
   fi
   echo "Pi CTC icons + GUIObjects updated"
+else
+  # A parked USS CTC machine (hartlib.parked) ships no icons: the installed copies stay as they are.
+  echo "Pi CTC icons not in the package (parked): $UF/ctc left as it is"
 fi
 
 # Masts are stock Basic (ADR-011). Retired custom signal sets have to be removed here. The JMRI install's own
@@ -122,8 +125,11 @@ for d in "$UF/jython" "$HOME"/.jmri/*.jmri/jython; do
 done
 echo "preference:jython scripts -> $UF/jython"
 
+# A parked Dispatcher System (hartlib.parked) ships no traininfo or options: the installed copies stay as they are.
 TRAININFO="$HART/jmri/layouts/hart/dispatcher/traininfo"
-if [[ -d "$TRAININFO" ]]; then
+if [[ ! -d "$HART/jmri/layouts/hart/dispatcher" ]]; then
+  echo "Pi dispatcher files not in the package (parked): $UF/dispatcher left as it is"
+elif [[ -d "$TRAININFO" ]]; then
   mkdir -p "$UF/dispatcher/traininfo"
   # --delete: the profile mirrors the repo, so routes from old names do not linger in the Dispatcher picker.
   rsync -a --delete "$TRAININFO/" "$UF/dispatcher/traininfo/"
@@ -158,14 +164,6 @@ if [[ -f "$PATCH" ]]; then
     --script prepare_nx_sml_paths.py 2>/dev/null || true
   rm -f "$UF/jython/prepare_nx_sml_paths.py"
   echo "Pi Dispatcher compatibility scripts + preference:jython Start Up updated"
-  for s in apply_sml_cats_pairs.py unhold_signal_masts.py \
-           apply_maintain_mqtt.py apply_mqtt_retain_at_startup.py; do
-    python3 "$PATCH" remove \
-      --profile "$HOME/.jmri/TCS_MQTT.jmri/profile/profile.xml" \
-      --script "$HART/jmri/layouts/hart/scripts/$s" \
-      2>/dev/null || true
-    rm -f "$HART/jmri/layouts/hart/scripts/$s"
-  done
 fi
 
 if [[ -x "$HART/cats/scripts/install_jmri_web_override.sh" ]]; then

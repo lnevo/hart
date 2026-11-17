@@ -27,10 +27,20 @@ class StatusCounts(unittest.TestCase):
             for n in ("a.xml", "b.xml", ".DS_Store"):
                 (d / "ti" / n).write_text("")
             c = sc.counts(d / "t.xml", d / "ti")
+        # the fixture has no CTC data: the USS CTC machine counts as parked while it is (hartlib.parked)
+        uss = frozenset({"uss"}) & sc.parked.PARKED
         self.assertEqual(c, {"masts": 3, "real": 2, "virtual": 1, "sections": 1, "transits": 2,
-                             "nx": 2, "sml": 1, "dest": 2, "traininfo": 2})
+                             "nx": 2, "sml": 1, "dest": 2, "traininfo": 2, "parked": uss})
         self.assertEqual(sc.line(c), "- **Counts:** 3 masts (2 real, 1 virtual), 1 sections, 2 transits, "
-                         "2 NX pairs, 1 SML sources with 2 destinations, 2 traininfo files.")
+                         "2 NX pairs, 1 SML sources with 2 destinations, 2 traininfo files"
+                         + (", USS CTC machine parked." if uss else "."))
+
+    def test_line_names_what_is_parked(self):
+        c = {"masts": 3, "real": 2, "virtual": 1, "sections": 0, "transits": 0, "nx": 0, "sml": 1, "dest": 2,
+             "traininfo": 2, "parked": frozenset({"nx", "dispatcher", "uss"})}
+        self.assertEqual(sc.line(c), "- **Counts:** 3 masts (2 real, 1 virtual), sections and transits parked, "
+                         "NX pairs parked, 1 SML sources with 2 destinations, 2 traininfo files kept in the repo, "
+                         "USS CTC machine parked.")
 
     def test_rewrite_touches_only_between_markers(self):
         text = f"a\n{sc.START}\nold\n{sc.END}\nb\n"

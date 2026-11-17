@@ -1,103 +1,172 @@
 source,destination,associatedSection
-Mast 10RA,Mast 16R,Mast 10RA:Mast 16R
-Mast 10RA,Mast 18R,Mast 10RA:Mast 18R
-Mast 10RA,Mast 20R,Mast 10RA:Mast 20R
-Mast 10RA,Mast 22L,Mast 10RA:Mast 22L
-Mast 10RA,Mast 22R,Mast 10RA:Mast 22R
-Mast 10RA,Mast 26L,Mast 10RA:Mast 26L
-Mast 10RA,Mast 26R,Mast 10RA:Mast 26R
-Mast 10RB,Mast 16R,Mast 10RB:Mast 16R
-Mast 10RB,Mast 18R,Mast 10RB:Mast 18R
-Mast 10RB,Mast 20R,Mast 10RB:Mast 20R
-Mast 10RB,Mast 22L,Mast 10RB:Mast 22L
-Mast 10RB,Mast 22R,Mast 10RB:Mast 22R
-Mast 10RB,Mast 26L,Mast 10RB:Mast 26L
-Mast 10RB,Mast 26R,Mast 10RB:Mast 26R
-Mast 12R,Mast 16R,Mast 12R:Mast 16R
-Mast 12R,Mast 18R,Mast 12R:Mast 18R
-Mast 12R,Mast 20R,Mast 12R:Mast 20R
-Mast 12R,Mast 22L,Mast 12R:Mast 22L
-Mast 12R,Mast 22R,Mast 12R:Mast 22R
-Mast 12R,Mast 26L,Mast 12R:Mast 26L
-Mast 12R,Mast 26R,Mast 12R:Mast 26R
-Mast 14R,Mast 16R,Mast 14R:Mast 16R
-Mast 14R,Mast 18R,Mast 14R:Mast 18R
-Mast 14R,Mast 20R,Mast 14R:Mast 20R
-Mast 14R,Mast 22L,Mast 14R:Mast 22L
-Mast 14R,Mast 22R,Mast 14R:Mast 22R
-Mast 14R,Mast 26L,Mast 14R:Mast 26L
-Mast 14R,Mast 26R,Mast 14R:Mast 26R
-Mast 16L,Mast 10LA,Mast 16L:Mast 10LA
-Mast 16L,Mast 10LB,Mast 16L:Mast 10LB
-Mast 16L,Mast 12L,Mast 16L:Mast 12L
-Mast 16L,Mast 8LB,Mast 16L:Mast 8LB
-Mast 16R,Mast 24RB,Mast 16R:Mast 24RB
-Mast 18L,Mast 10LA,Mast 18L:Mast 10LA
-Mast 18L,Mast 10LB,Mast 18L:Mast 10LB
-Mast 18L,Mast 12L,Mast 18L:Mast 12L
-Mast 18L,Mast 8LB,Mast 18L:Mast 8LB
-Mast 18R,Mast 32R,Mast 18R:Mast 32R
-Mast 2035,Mast 40LB,Mast 2035:Mast 40LB
-Mast 2036,Mast 38LB,Mast 2036:Mast 38LB
-Mast 20L,Mast 10LA,Mast 20L:Mast 10LA
-Mast 20L,Mast 10LB,Mast 20L:Mast 10LB
-Mast 20L,Mast 12L,Mast 20L:Mast 12L
-Mast 20L,Mast 8LB,Mast 20L:Mast 8LB
-Mast 20R,Mast 32R,Mast 20R:Mast 32R
-Mast 22L,Mast 10LA,Mast 22L:Mast 10LA
-Mast 22L,Mast 10LB,Mast 22L:Mast 10LB
-Mast 22L,Mast 12L,Mast 22L:Mast 12L
-Mast 22L,Mast 8LB,Mast 22L:Mast 8LB
-Mast 22R,Mast 32R,Mast 22R:Mast 32R
-Mast 24L,Mast 2L,Mast 24L:Mast 2L
-Mast 24RA,Mast 36RA,Mast 24RA:Mast 36RA
-Mast 24RA,Mast 36RB,Mast 24RA:Mast 36RB
-Mast 24RB,Mast 36RB,Mast 24RB:Mast 36RB
-Mast 26L,Mast 10LA,Mast 26L:Mast 10LA
-Mast 26L,Mast 10LB,Mast 26L:Mast 10LB
-Mast 26L,Mast 12L,Mast 26L:Mast 12L
-Mast 26L,Mast 8LB,Mast 26L:Mast 8LB
-Mast 26R,Mast 32R,Mast 26R:Mast 32R
-Mast 2L,Mast 4LA,Mast 2L:Mast 4LA
-Mast 2L,Mast 4LB,Mast 2L:Mast 4LB
-Mast 2L,Mast 6R,Mast 2L:Mast 6R
-Mast 2R,Mast 24RA,Mast 2R:Mast 24RA
-Mast 32R,Mast 36RB,Mast 32R:Mast 36RB
-Mast 34L,Mast 16L,Mast 34L:Mast 16L
-Mast 34L,Mast 18L,Mast 34L:Mast 18L
-Mast 34L,Mast 20L,Mast 34L:Mast 20L
-Mast 34L,Mast 22L,Mast 34L:Mast 22L
-Mast 34L,Mast 26L,Mast 34L:Mast 26L
-Mast 34L,Mast 2L,Mast 34L:Mast 2L
-Mast 34L,Mast 8LA,Mast 34L:Mast 8LA
-Mast 34R,Mast 36RB,Mast 34R:Mast 36RB
-Mast 36L,Mast 34L,Mast 36L:Mast 34L
-Mast 36RA,Mast 40LA,
-Mast 36RA,Mast 40RA,Mast 36RA:Mast 40RA
-Mast 36RA,Mast 40RB,Mast 36RA:Mast 40RB
-Mast 36RB,Mast 2035,Mast 36RB:Mast 2035
-Mast 36RB,Mast 38LA,
-Mast 36RB,Mast 38RA,Mast 36RB:Mast 38RA
-Mast 36RB,Mast 40RA,Mast 36RB:Mast 40RA
-Mast 36RB,Mast 40RB,Mast 36RB:Mast 40RB
-Mast 38LA,Mast 36L,Mast 38LA:Mast 36L
-Mast 38LB,Mast 36L,Mast 38LB:Mast 36L
-Mast 40LA,Mast 24L,Mast 40LA:Mast 24L
-Mast 40LA,Mast 36L,Mast 40LA:Mast 36L
-Mast 40LB,Mast 24L,Mast 40LB:Mast 24L
-Mast 40LB,Mast 36L,Mast 40LB:Mast 36L
-Mast 40RB,Mast 2036,Mast 40RB:Mast 2036
-Mast 4RA,Mast 24RA,Mast 4RA:Mast 24RA
-Mast 4RB,Mast 24RA,Mast 4RB:Mast 24RA
-Mast 6LA,Mast 2R,Mast 6LA:Mast 2R
-Mast 6LB,Mast 2R,Mast 6LB:Mast 2R
-Mast 6R,Mast 8RA,Mast 6R:Mast 8RA
-Mast 6R,Mast 8RB,Mast 6R:Mast 8RB
-Mast 8LA,Mast 6LB,Mast 8LA:Mast 6LB
-Mast 8LB,Mast 6LB,Mast 8LB:Mast 6LB
-Mast 8LB,Mast 8LC,Mast 8LB:Mast 8LC
-Mast 8LC,Mast 6LA,Mast 8LC:Mast 6LA
-Mast 8RA,Mast 14R,Mast 8RA:Mast 14R
-Mast 8RB,Mast 14R,Mast 8RB:Mast 14R
-Mast 8RB,Mast 34R,Mast 8RB:Mast 34R
-Mast 8RB,Mast 8LC,Mast 8RB:Mast 8LC
+Mast 108LA,Mast 110LA,
+Mast 108LB,Mast 110LA,
+Mast 10RA,Mast 16L,
+Mast 10RA,Mast 16R,
+Mast 10RA,Mast 18R,
+Mast 10RA,Mast 20R,
+Mast 10RA,Mast 22R,
+Mast 10RA,Mast 26R,
+Mast 10RB,Mast 16L,
+Mast 10RB,Mast 16R,
+Mast 10RB,Mast 18R,
+Mast 10RB,Mast 20R,
+Mast 10RB,Mast 22R,
+Mast 10RB,Mast 26R,
+Mast 110LA,Mast 126LA,
+Mast 110LA,Mast 126LB,
+Mast 110LB,Mast 126LA,
+Mast 110LB,Mast 126LB,
+Mast 112L,Mast 126LA,
+Mast 112L,Mast 126LB,
+Mast 118L,Mast 126LA,
+Mast 118L,Mast 126LB,
+Mast 120RA,Mast 108R,
+Mast 120RB,Mast 108R,
+Mast 126LA,Mast 130LA,
+Mast 126LB,Mast 130LA,
+Mast 128RA,Mast 120RA,
+Mast 128RA,Mast 120RB,
+Mast 128RB,Mast 120RA,
+Mast 128RB,Mast 120RB,
+Mast 12R,Mast 16L,
+Mast 12R,Mast 16R,
+Mast 12R,Mast 18R,
+Mast 12R,Mast 20R,
+Mast 12R,Mast 22R,
+Mast 12R,Mast 26R,
+Mast 130LA,Mast 38LA,
+Mast 130LA,Mast 40LA,
+Mast 130LB,Mast 38LA,
+Mast 130LB,Mast 40LA,
+Mast 136RA,Mast 128RB,
+Mast 136RA,Mast 222R,
+Mast 136RB,Mast 128RB,
+Mast 136RB,Mast 222R,
+Mast 14R,Mast 16L,
+Mast 14R,Mast 16R,
+Mast 14R,Mast 18R,
+Mast 14R,Mast 20R,
+Mast 14R,Mast 22R,
+Mast 14R,Mast 26R,
+Mast 16L,Mast 10LA,
+Mast 16L,Mast 10LB,
+Mast 16L,Mast 12L,
+Mast 16L,Mast 8LB,
+Mast 16R,Mast 24RB,
+Mast 18L,Mast 10LA,
+Mast 18L,Mast 10LB,
+Mast 18L,Mast 12L,
+Mast 18L,Mast 8LB,
+Mast 18R,Mast 32R,
+Mast 202R,Mast 130LB,
+Mast 202R,Mast 224R,
+Mast 2035,Mast 40LB,
+Mast 2036,Mast 38LB,
+Mast 204RA,Mast 130LB,
+Mast 204RA,Mast 224R,
+Mast 204RB,Mast 130LB,
+Mast 204RB,Mast 224R,
+Mast 20L,Mast 10LA,
+Mast 20L,Mast 10LB,
+Mast 20L,Mast 12L,
+Mast 20L,Mast 8LB,
+Mast 20R,Mast 32R,
+Mast 214LA,Mast 218LA,
+Mast 214LA,Mast 218LB,
+Mast 214LB,Mast 218LA,
+Mast 214LB,Mast 218LB,
+Mast 214RA,Mast 204RA,
+Mast 214RA,Mast 204RB,
+Mast 214RB,Mast 204RA,
+Mast 214RB,Mast 204RB,
+Mast 218LA,Mast 220R,
+Mast 218LA,Mast 222LB,
+Mast 218LB,Mast 220R,
+Mast 218LB,Mast 222LB,
+Mast 218RA,Mast 214RA,
+Mast 218RA,Mast 214RB,
+Mast 218RB,Mast 214RA,
+Mast 218RB,Mast 214RB,
+Mast 220R,Mast 130LB,
+Mast 220R,Mast 224R,
+Mast 222LA,Mast 204RB,
+Mast 222LA,Mast 214LA,
+Mast 222LA,Mast 214LB,
+Mast 222LA,Mast 218RA,
+Mast 222LA,Mast 218RB,
+Mast 222LB,Mast 130LB,
+Mast 222LB,Mast 224R,
+Mast 222R,Mast 204RB,
+Mast 222R,Mast 214LA,
+Mast 222R,Mast 214LB,
+Mast 222R,Mast 218RA,
+Mast 222R,Mast 218RB,
+Mast 224LA,Mast 222LA,
+Mast 224LB,Mast 222LA,
+Mast 224R,Mast 226RA,
+Mast 224R,Mast 226RB,
+Mast 228RA,Mast 224LA,
+Mast 228RA,Mast 224LB,
+Mast 228RB,Mast 224LA,
+Mast 228RB,Mast 224LB,
+Mast 22L,Mast 10LA,
+Mast 22L,Mast 10LB,
+Mast 22L,Mast 12L,
+Mast 22L,Mast 8LB,
+Mast 22R,Mast 32R,
+Mast 230LA,Mast 224LA,
+Mast 230LA,Mast 224LB,
+Mast 230LB,Mast 224LA,
+Mast 230LB,Mast 224LB,
+Mast 24L,Mast 2L,
+Mast 24RA,Mast 36RA,
+Mast 24RA,Mast 36RB,
+Mast 24RB,Mast 36RB,
+Mast 26L,Mast 10LA,
+Mast 26L,Mast 10LB,
+Mast 26L,Mast 12L,
+Mast 26L,Mast 8LB,
+Mast 26R,Mast 32R,
+Mast 2L,Mast 4LA,
+Mast 2L,Mast 4LB,
+Mast 2L,Mast 6R,
+Mast 2R,Mast 24RA,
+Mast 32R,Mast 36RB,
+Mast 34L,Mast 16L,
+Mast 34L,Mast 18L,
+Mast 34L,Mast 20L,
+Mast 34L,Mast 22L,
+Mast 34L,Mast 26L,
+Mast 34L,Mast 2L,
+Mast 34L,Mast 8LA,
+Mast 34R,Mast 36RB,
+Mast 36L,Mast 34L,
+Mast 36RA,Mast 40RA,
+Mast 36RA,Mast 40RB,
+Mast 36RB,Mast 2035,
+Mast 36RB,Mast 38RA,
+Mast 36RB,Mast 40RA,
+Mast 38LA,Mast 36L,
+Mast 38LB,Mast 36L,
+Mast 38RA,Mast 136RB,
+Mast 40LA,Mast 24L,
+Mast 40LA,Mast 36L,
+Mast 40LB,Mast 24L,
+Mast 40LB,Mast 36L,
+Mast 40RA,Mast 136RA,
+Mast 40RB,Mast 2036,
+Mast 4RA,Mast 24RA,
+Mast 4RB,Mast 24RA,
+Mast 6LA,Mast 2R,
+Mast 6LB,Mast 2R,
+Mast 6R,Mast 8RA,
+Mast 6R,Mast 8RB,
+Mast 8LA,Mast 6LB,
+Mast 8LB,Mast 6LB,
+Mast 8LB,Mast 8LC,
+Mast 8LC,Mast 6LA,
+Mast 8RA,Mast 14R,
+Mast 8RB,Mast 14R,
+Mast 8RB,Mast 34R,
+Mast 8RB,Mast 8LC,

@@ -1,6 +1,6 @@
 # Schematic maps: specification (stream B1)
 
-- **Status:** draft for the owner's review, 2026-11-13.
+- **Status:** approved 2026-11-17 with the helix-join release (revision 10; drafted 2026-11-13).
 - **Read with:** [`wiki/projects/schematic-maps-handoff.md`](../../wiki/projects/schematic-maps-handoff.md) (the contract) and [`wiki/projects/schematic-maps.md`](../../wiki/projects/schematic-maps.md) (plan).
 - **Used by:** B2 (tested modules in `model-railroad-skills`), A1 (file split), C1 (CATS panel from the same grid).
 

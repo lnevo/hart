@@ -60,6 +60,8 @@ def main() -> int:
     ap.add_argument("paths", nargs="+", type=Path)
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
+    if args.apply:
+        paths.exit_if_overridden(Path(__file__).name)
     renames = load_rename_map(paths.PUBLIC_NAME_MAP)
     merged: Counter[tuple[str, str]] = Counter()
     files = 0

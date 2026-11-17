@@ -20,8 +20,8 @@ Visual SoR for yard body: CATS sample [cats.jpg](https://cats4ctc.wdfiles.com/lo
 
 Block / turnout names: `cats/data/occupancy_bindings.csv`, `jmri/layouts/hart/data/switches.csv`.
 
-**Sheet panels:** West Yard sheets are archived at `cats/panels/sheets/archive/west_yard/`. Live Digicon: `cats/panels/HART_CTC.xml` and `HART_ABS.xml`.
+**Sheet panels:** West Yard sheets are archived at `cats/panels/sheets/archive/west_yard/`. Live Digicon: `cats/panels/HART_CTC.xml` and `HART_ABS.xml`, generated from the schematic.
 
 ```bash
-python3 cats/scripts/wire_digicon.py
+python3 tools/schematic/build_cats_panel.py
 ```

@@ -109,6 +109,8 @@ def main() -> None:
         help="Fail if any Digicon (MQTT) SML dest is still Enabled=yes; do not write",
     )
     args = ap.parse_args()
+    if not (args.check or args.dry_run):
+        paths.exit_if_overridden(Path(__file__).name)
 
     if not args.panel.is_file():
         print("missing tables file: %s" % args.panel, file=sys.stderr)

@@ -18,7 +18,8 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
 
-DATA_FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv")
+DATA_FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv",
+              "uss_board_cells.csv", "uss_board_plants.csv")
 
 
 class LayoutFactsTest(unittest.TestCase):
@@ -62,13 +63,21 @@ class LayoutFactsTest(unittest.TestCase):
                             and "closed leg" in m for m in out), out)
 
     def test_flipped_cats_normal(self) -> None:
-        def flip(text: str) -> str:
-            cell = re.search(r'<SECTION X="24" Y="8">.*?</SECTION>', text, re.S)
-            body = cell.group(0).replace('ROUTEID="BOTTOM" NORMAL="true"', 'ROUTEID="BOTTOM"').replace(
-                'ROUTEID="LEFT"', 'ROUTEID="LEFT" NORMAL="true"')
-            return text[:cell.start()] + body + text[cell.end():]
-
-        desk = self.copy(check.DESKS[0], flip)
+        # on the live (generated) desk: Switch 9's plant cell, found by its OS block, with NORMAL on the other leg
+        import xml.etree.ElementTree as ET
+        _cells, plants = check.desk_plants(check.DESKS[0], check.Report())
+        x, y = plants["OS Switch 9"]
+        tree = ET.parse(check.DESKS[0])
+        sec = tree.getroot().find(f"TRACKPLAN/SECTION[@X='{x}'][@Y='{y}']")
+        routes = sec.findall("SEC_EDGE/SWITCHPOINTS/ROUTEINFO")
+        self.assertEqual(len(routes), 2)
+        for ri in routes:
+            if ri.get("NORMAL") == "true":
+                del ri.attrib["NORMAL"]
+            else:
+                ri.set("NORMAL", "true")
+        desk = self.tmp / check.DESKS[0].name
+        tree.write(desk, encoding="UTF-8", xml_declaration=True)
         out = self.failures(desks=(desk,))
         self.assertTrue(any(m.startswith("Switch 9: HART_CTC.xml OS Switch 9 NORMAL") for m in out), out)
 
@@ -129,14 +138,25 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertTrue(any(m.startswith("Track Main West: no control point") and "join levels ['1', '2']" in m
                             for m in out), out)
 
-    def test_a_mast_moved_on_one_desk_fails(self) -> None:
+    def test_a_mast_renamed_on_one_desk_fails(self) -> None:
+        out = self.failures(desks=(self.copy(check.DESKS[0], lambda t: t.replace(">Mast 24L<", ">Mast 24LX<", 1)),
+                                   check.DESKS[1]))
+        self.assertIn("Mast 24L: HART_CTC.xml has 0 lamps for it, not one", out)
+        self.assertIn("Mast 24LX: HART_CTC.xml has a lamp for it, mast_cells.csv has no such mast", out)
+
+    def test_a_mast_on_the_wrong_block_edge_fails(self) -> None:
+        # Mast 24L protects OS Switch 23a: its lamp on another block's edge is named
         def move(text: str) -> str:
-            cell = re.search(r'<SECTION X="45" Y="6">.*?</SECTION>', text, re.S)
-            return text[:cell.start()] + cell.group(0).replace("Mast 24L", "Mast 24LX") + text[cell.end():]
+            sig = text.index(">Mast 24L<")
+            start = text.rindex("<SEC_EDGE", 0, sig)
+            end = text.index("</SEC_EDGE>", sig)
+            edge = text[start:end]
+            name = re.search(r'<BLOCK[^>]* NAME="([^"]+)"', edge).group(1)
+            return text[:start] + edge.replace(f'NAME="{name}"', 'NAME="Track West Ext"', 1) + text[end:]
 
         out = self.failures(desks=(self.copy(check.DESKS[0], move), check.DESKS[1]))
-        self.assertIn("Mast 24L: HART_CTC.xml has Mast 24LX at (45, 6, 'RIGHT'), "
-                      "mast_cells.csv has Mast 24L there", out)
+        self.assertIn("Mast 24L: HART_CTC.xml has its lamp on the edge of Track West Ext, but it protects "
+                      "OS Switch 23a (staging_le/masts.csv)", out)
 
     def test_a_mast_drawn_with_the_wrong_head_fails(self) -> None:
         data = self.data_copy()
@@ -144,6 +164,15 @@ class LayoutFactsTest(unittest.TestCase):
         cells.write_text(cells.read_text().replace("Mast 4RA,6,10,RIGHT,E,d1,IH436", "Mast 4RA,6,10,RIGHT,E,d1,IH437"))
         self.assertIn("Mast 4RA: mast_cells.csv draws it d1 IH437, tables.xml gives it heads ['IH436']",
                       self.failures(data=data))
+
+    def test_the_board_grid_comes_from_the_data_folder(self) -> None:
+        data = self.data_copy()
+        grid = data / "uss_board_cells.csv"
+        text = grid.read_text(encoding="utf-8")
+        line = next(ln for ln in text.splitlines() if ln.startswith("6,10,"))     # Mast 4RA's cell
+        grid.write_text(text.replace(line + "\n", ""), encoding="utf-8")
+        self.assertIn("Mast 4RA: mast_cells.csv puts it at (6, 10), a cell with no track on the USS board's grid "
+                      "(uss_board_cells.csv)", self.failures(data=data))
 
     def test_stale_known_entry_fails(self) -> None:
         report = check.run()
@@ -159,6 +188,176 @@ class LayoutFactsTest(unittest.TestCase):
         known = {accepted: "accepted for this test"}
         self.assertEqual(report.failures(known),
                          ["EH-1: GUIObjects.xml labels (1,1) 'EH-1'; the CATS desk does not"])
+
+    # ---- main and upper: plants on internal turnouts, masts from main_upper_masts.csv
+
+    def test_main_and_upper_pass_on_the_release_candidate_tables(self) -> None:
+        candidate = check.HART / "output/trial/tables_cutover.xml"
+        if not candidate.exists():
+            self.skipTest("no release candidate tables (make panels writes them)")
+        self.assertEqual(self.failures(tables=candidate), [])
+
+    def level_plant(self, user: str):
+        """(tree, the SECTION of the first plant commanding `user`) on a copy of the CTC desk."""
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(check.DESKS[0])
+        for sec in tree.getroot().iter("SECTION"):
+            if any(io.get("USER_NAME") == user for io in sec.findall("SEC_EDGE/SWITCHPOINTS/ROUTEINFO/*/IOSPEC")):
+                return tree, sec
+        self.fail(f"no plant commands {user}")
+
+    def write(self, tree) -> Path:
+        desk = self.tmp / check.DESKS[0].name
+        tree.write(desk, encoding="UTF-8", xml_declaration=True)
+        return desk
+
+    def test_a_main_upper_plant_with_its_legs_swapped_fails(self) -> None:
+        tree, sec = self.level_plant("Switch 111")
+        routes = sec.findall("SEC_EDGE/SWITCHPOINTS/ROUTEINFO")
+        self.assertEqual(len(routes), 2)
+        for ri in routes:                       # close becomes throw and back, NORMAL kept on the close leg
+            for io in ri.findall("*/IOSPEC"):
+                io.text = {"close": "throw", "throw": "close"}[io.text.strip()]
+            if ri.get("NORMAL") == "true":
+                del ri.attrib["NORMAL"]
+            else:
+                ri.set("NORMAL", "true")
+        out = self.failures(desks=(self.write(tree),))
+        self.assertTrue(any(m.startswith("HART_CTC.xml: Switch 111 closes to ") and "the Layout Editor" in m
+                            for m in out), out)
+
+    def test_a_main_upper_plant_on_no_internal_turnout_fails(self) -> None:
+        tree, sec = self.level_plant("Switch 111")
+        for io in sec.findall("SEC_EDGE/SWITCHPOINTS/ROUTEINFO/*/IOSPEC"):
+            io.set("DECADDR", ":HART:C3:999")
+        out = self.failures(desks=(self.write(tree),))
+        self.assertTrue(any("commands Switch 111 (IT:HART:C3:999); tables.xml has IT:HART:C3:111" in m
+                            for m in out), out)
+        self.assertNotIn("HART_CTC.xml: no plant commands internal turnout Switch 111", out)
+
+    def test_a_staging_block_with_no_detector_is_still_held_to_the_tables(self) -> None:
+        # only the device map's main and upper blocks may be missing from the Layout Editor (review, 2026-11-17)
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(check.DESKS[0])
+        name = next(b.get("NAME") for b in tree.getroot().iter("BLOCK")
+                    if b.find("OCCUPIEDSPEC") is not None and b.get("NAME") not in check.device_map_blocks())
+        for b in tree.getroot().iter("BLOCK"):          # its detector binding dropped and its name misspelt
+            if b.get("NAME") == name:
+                b.set("NAME", name + " Typo")
+                for spec in b.findall("OCCUPIEDSPEC"):
+                    b.remove(spec)
+        out = self.failures(desks=(self.write(tree),))
+        self.assertIn(f"HART_CTC.xml: block {name} Typo is not a Layout Editor block in tables.xml", out)
+
+    def test_a_main_upper_desk_block_on_another_sensor_than_its_block_fails(self) -> None:
+        """Each main and upper desk block reports the virtual sensor its Layout Editor block has in tables.xml."""
+        tables = self.copy(check.TABLES, lambda t: t.replace("<systemName>IS:HART:C3:B:101-111</systemName>",
+                                                             "<systemName>IS:HART:C3:B:X</systemName>"))
+        out = self.failures(tables=tables)
+        want = ("block Track 101-111 reports OCCUPIEDSPEC IS:HART:C3:B:101-111 close; UNOCCUPIEDSPEC "
+                "IS:HART:C3:B:101-111 throw (user name BS 101-111); tables.xml binds it to BS 101-111 "
+                "(IS:HART:C3:B:X)")
+        self.assertEqual([m for m in out if "101-111" in m], [f"{d}: {want}" for d in ("HART_CTC.xml", "HART_ABS.xml")])
+
+    def desk_block(self, name: str, change) -> list[str]:
+        """The failures with every BLOCK named `name` on a copy of the CTC desk changed by `change(block)`."""
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(check.DESKS[0])
+        hit = [b for b in tree.getroot().iter("BLOCK") if b.get("NAME") == name]
+        self.assertTrue(hit, name)
+        for b in hit:
+            change(b)
+        return [m for m in self.failures(desks=(self.write(tree),)) if name in m]
+
+    def test_an_unbound_main_upper_desk_block_fails(self) -> None:
+        """Only the desk-only middle of 225's X may be unbound; any other main or upper block must report its sensor."""
+        def unbind(b):
+            for tag in ("OCCUPIEDSPEC", "UNOCCUPIEDSPEC"):
+                for spec in b.findall(tag):
+                    b.remove(spec)
+        self.assertEqual(self.desk_block("Track 101-111", unbind),
+                         ["HART_CTC.xml: block Track 101-111 reports OCCUPIEDSPEC none; UNOCCUPIEDSPEC none (user name "
+                          "None); tables.xml binds it to BS 101-111 (IS:HART:C3:B:101-111)"])
+        self.assertEqual(self.desk_block("OS Switch 225", lambda b: None), [])        # desk-only, dark: fine
+
+    def test_a_wrong_unoccupied_spec_fails(self) -> None:
+        def wrong(b):
+            for io in b.findall("UNOCCUPIEDSPEC/IOSPEC"):
+                io.set("DECADDR", ":HART:C3:B:OS101")
+        out = self.desk_block("Track 101-111", wrong)
+        self.assertEqual(len(out), 1, out)
+        self.assertIn("UNOCCUPIEDSPEC IS:HART:C3:B:OS101 throw", out[0])
+
+        def wrong_command(b):
+            for io in b.findall("UNOCCUPIEDSPEC/IOSPEC"):
+                io.text = "close"
+        self.assertIn("UNOCCUPIEDSPEC IS:HART:C3:B:101-111 close", self.desk_block("Track 101-111", wrong_command)[0])
+
+    def test_a_bound_desk_only_block_fails(self) -> None:
+        import xml.etree.ElementTree as ET
+
+        def bind(b):
+            spec = ET.SubElement(b, "OCCUPIEDSPEC")
+            ET.SubElement(spec, "IOSPEC", {"DECADDR": ":HART:C3:B:OS225", "JMRIPREFIX": "IS"}).text = "close"
+        self.assertEqual(self.desk_block("OS Switch 225", bind),
+                         ["HART_CTC.xml: desk-only block OS Switch 225 reports a sensor; it has none"])
+
+    def test_a_main_upper_block_missing_from_tables_that_hold_the_levels_fails(self) -> None:
+        tables = self.copy(check.TABLES, lambda t: t.replace("<userName>Track 101-111</userName>",
+                                                             "<userName>Track 101-111 Gone</userName>"))
+        out = self.failures(tables=tables)
+        self.assertIn("HART_CTC.xml: block Track 101-111 is not a Layout Editor block in tables.xml", out)
+
+    def test_main_upper_tables_with_no_internal_turnouts_fail(self) -> None:
+        tables = self.copy(check.TABLES, lambda t: t.replace("IT:HART:C3:", "IT:HART:CX:"))
+        out = self.failures(tables=tables)
+        self.assertTrue(any("holds main/upper blocks but no IT:HART:C3: turnout" in m for m in out), out)
+
+    def test_a_main_upper_turnout_with_no_plant_fails(self) -> None:
+        for user in ("Switch 117", "Switch 225"):           # 225: a double crossover, four points on one turnout
+            with self.subTest(turnout=user):
+                import xml.etree.ElementTree as ET
+                tree = ET.parse(check.DESKS[0])
+                for parent in tree.getroot().iter():
+                    for io in [i for i in parent.findall("IOSPEC") if i.get("USER_NAME") == user]:
+                        parent.remove(io)
+                self.assertIn(f"HART_CTC.xml: no plant commands internal turnout {user}",
+                              self.failures(desks=(self.write(tree),)))
+
+    def test_the_double_crossover_commands_its_turnout_from_all_four_points(self) -> None:
+        cells = check.trace.track_cells(check.parse(check.DESKS[0]).getroot().find("TRACKPLAN"))
+        points = [(os_name, xy, edge) for os_name, xy, edge in check.trace.level_plants(cells)
+                  if os_name.startswith("OS Switch 225")]
+        self.assertEqual(sorted(p[0] for p in points), [f"OS Switch 225{c}" for c in "abcd"])   # a point per corner
+        for _os, xy, edge in points:
+            ios = cells[xy].findall(f"SEC_EDGE[@EDGE='{edge}']/SWITCHPOINTS/ROUTEINFO/ROUTECOMMAND/IOSPEC")
+            self.assertEqual(sorted((i.get("USER_NAME"), i.text.strip()) for i in ios),
+                             [("Switch 225", "close"), ("Switch 225", "throw")])
+
+    def test_a_main_upper_mast_missing_or_off_its_block_fails(self) -> None:
+        out = self.failures(desks=(self.copy(check.DESKS[0], lambda t: t.replace(">Mast 108R<", ">Mast 108RX<", 1)),))
+        self.assertIn("Mast 108R: HART_CTC.xml has 0 lamps for it, not one", out)
+
+        def move(text: str) -> str:
+            sig = text.index(">Mast 226RA<")
+            start = text.rindex("<SEC_EDGE", 0, sig)
+            end = text.index("</SEC_EDGE>", sig)
+            edge = text[start:end]
+            name = re.search(r'<BLOCK[^>]* NAME="([^"]+)"', edge).group(1)
+            self.assertEqual(name, "OS Switch 225a")    # the desk's corner block, as the Layout Editor's
+            return text[:start] + edge.replace(f'NAME="{name}"', 'NAME="Track 225-229"', 1) + text[end:]
+
+        out = self.failures(desks=(self.copy(check.DESKS[0], move),))
+        self.assertIn("Mast 226RA: HART_CTC.xml has its lamp on the edge of Track 225-229, but it protects "
+                      "OS Switch 225a (main_upper_masts.csv)", out)
+
+    def test_desk_legs_name_the_layout_editor_tracks_inside_os_blocks(self) -> None:
+        self.assertTrue(check.same_place("OS Switch 107", "Track 107-109"))
+        self.assertTrue(check.same_place("OS Switch 213", "Track 213-217 1"))
+        self.assertFalse(check.same_place("OS Switch 105", "Track 107-109"))
+        self.assertFalse(check.same_place(None, "Track 107-109"))
+        self.assertEqual(check.desk_block_of("OS Switch 225c", {"OS Switch 225"}), "OS Switch 225")
+        self.assertEqual(check.desk_block_of("OS Switch 107", {"OS Switch 107"}), "OS Switch 107")
 
     def test_throat_blocks_count_as_their_track(self) -> None:
         t = check.Tables(check.TABLES)

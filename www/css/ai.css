@@ -146,30 +146,83 @@
   white-space: nowrap; /* a job's name never splits across lines */
 }
 
-/* Hub: how-we-work principles as a short grid. */
+/* Getting started habits: numbered stops along a line, read down each column.
+   Deliberately not cards, so the section does not echo the Topics grid. */
 .ai-rules {
   list-style: none;
-  margin: 0;
+  counter-reset: habit;
+  margin: 1.25rem 0 0;
   padding: 0;
   display: grid;
-  gap: 0.6rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  grid-template-rows: repeat(4, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  column-gap: 3rem;
 }
 
 .ai-rules li {
-  padding: 0.7rem 0.85rem;
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-left: 3px solid var(--accent);
-  line-height: 1.45;
+  counter-increment: habit;
+  position: relative;
+  padding: 0 0 1.4rem 3.4rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* The stop: a gold-rimmed numbered disc, like the route banner's station. */
+.ai-rules li::before {
+  content: counter(habit);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2.3rem;
+  height: 2.3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand);
+  border: 3px solid var(--accent);
+  color: var(--accent-on-dark);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  line-height: 1;
+  z-index: 1;
+}
+
+/* The line to the next stop; the last stop in each column has none. */
+.ai-rules li::after {
+  content: "";
+  position: absolute;
+  left: calc(1.15rem - 2px);
+  top: 2.3rem;
+  bottom: 0;
+  width: 4px;
+  background: var(--rule);
+}
+
+.ai-rules li:last-child::after {
+  display: none;
 }
 
 .ai-rules b {
   display: block;
+  margin: 0.25rem 0 0.2rem;
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   letter-spacing: 0.03em;
   color: var(--brand);
+}
+
+@media (min-width: 701px) {
+  .ai-rules li:nth-child(4)::after {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .ai-rules {
+    grid-template-rows: none;
+    grid-auto-flow: row;
+  }
 }
 
 /* Hub: tools over time, a plain table that scrolls on phones. */

@@ -1,6 +1,6 @@
 ---
 name: site-reviewer
-description: Read-only review of the public website through a lens named in the brief: UX, first-time reader, historian, designer or security. Use for audits of www/ and hartrailroad.com.
+description: Read-only review of the public website through a lens named in the brief: UX, first-time reader, historian, designer, writer or security. Use for audits of www/ and hartrailroad.com.
 model: sonnet
 maxTurns: 45
 disallowedTools: Edit, Write, NotebookEdit, Agent, Workflow
@@ -19,6 +19,7 @@ You review the HART public website through the lens the brief names. Read `www/R
 - Against live sites, make only ordinary GET and HEAD requests to public URLs. No POSTs, fuzzing, brute forcing or port scanning.
 - Security lens: treat anything exploitable as a finding, but do not exercise it.
 - Historian lens: cite a source for each correction, and say when you could not find one.
+- Writer lens: check prose against the Writing section of `www/README.md` and run `python3 tools/audit/check_ai_speak.py`. Give a plain rewrite for each finding, and say when a sentence holds a fact that a rewrite must keep.
 - P&CV and P&OV are both correct and deliberate. Do not flag them.
 - Whatever the lens, run `python3 www/scripts/share_cards.py check` and name any page in Operations, Behind the Scenes or The Diverging Route that still shows the site share card, with a suggested picture of that page's subject.
 

@@ -84,7 +84,7 @@ A two-track cell is a turnout: the edge shared by both tracks carries
 ## HART tooling
 
 ```bash
-python3 cats/scripts/wire_digicon.py
+python3 tools/schematic/build_cats_panel.py   # the live desks (generated)
 python3 cats/scripts/dump_cats_grid.py cats/panels/HART_CTC.xml   # inspect any panel
 ```
 

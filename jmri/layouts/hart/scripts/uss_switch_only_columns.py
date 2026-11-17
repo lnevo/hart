@@ -213,6 +213,12 @@ def ensure_columns(text: str) -> str:
 
 def main() -> int:
     write = "--apply" in sys.argv
+    if write:
+        paths.exit_if_overridden(Path(__file__).name)
+    from hartlib import parked
+    if "uss" in parked.PARKED:      # its sensors and panel are in the parked file (hartlib.parked)
+        print("SKIPPED: the USS CTC machine is parked (hartlib.parked.PARKED); tables.xml holds none of it")
+        return 0
     for path in [paths.TABLES_XML]:
         if not path.is_file():
             continue

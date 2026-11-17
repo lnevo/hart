@@ -2,7 +2,7 @@
 
 Read [`../AGENTS.md`](../AGENTS.md) and [`../wiki/home.md`](../wiki/home.md) first.
 
-- **One tables file:** `jmri/layouts/hart/output/tables.xml` holds the beans, SML, Dispatcher panel and USS CTC data. JMRI loads it and deploy ships it (ADR-008).
+- **One tables file:** `jmri/layouts/hart/output/tables.xml` holds the beans and SML. The Dispatcher panel, Entry/Exit (NX) and USS CTC data are parked since the helix-join release (November 2026), kept in `jmri/layouts/hart/parked/`. JMRI loads it and deploy ships it (ADR-008).
 - **Signals:** stock Basic. Homes are `two-searchlight`, dwarfs and virtuals `one-low` (ADR-011).
 - **CATS** owns routes; **JMRI SML** owns aspects (`HOLD_ONLY`).
 - **Only one desk:** CATS CTC or USS, never both.

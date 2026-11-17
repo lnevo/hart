@@ -6,14 +6,14 @@ NextTrain / Google Sheets is **not** on this list (abandoned for hart).
 
 | # | Pipeline | Status | Guide |
 |---|----------|--------|-------|
-| 1 | JMRI AnyRail panel | Tool; frozen for hart | [jmri-anyrail.md](jmri-anyrail.md) |
+| 1 | JMRI AnyRail panel | Retired (scripts in `archive/jmri-scripts/`) | [jmri-anyrail.md](jmri-anyrail.md) |
 | 2 | Public names + comments | Live | [public-names.md](public-names.md) |
 | 3 | Digicon signal beans | Live | [digicon-signal-beans.md](digicon-signal-beans.md) |
-| 4 | Native SML + NX | Live | [native-sml.md](native-sml.md) |
+| 4 | Native SML + NX | SML live; NX parked | [native-sml.md](native-sml.md) |
 | 5 | CATS Digicon panels | Live | [cats-panels.md](cats-panels.md) |
-| 6 | USS CTC machine | Live (not with CATS) | [uss-ctc.md](uss-ctc.md) |
+| 6 | USS CTC machine | Parked | [uss-ctc.md](uss-ctc.md) |
 | — | Switch facts (feeds 5 and 6) | Live | [switch-facts.md](switch-facts.md) |
-| 7 | Dispatcher System graph | Live | [dispatcher-system.md](dispatcher-system.md) |
+| 7 | Dispatcher System graph | Parked | [dispatcher-system.md](dispatcher-system.md) |
 | — | Car workflow | Live | [car-workflow.md](car-workflow.md) |
 | — | Intake stages (cars and locos) | Built, untested on a real batch | [intake-stages.md](intake-stages.md) |
 | 8 | Wiring documentation | Live | [wiring-docs.md](wiring-docs.md) |
@@ -26,5 +26,6 @@ NextTrain / Google Sheets is **not** on this list (abandoned for hart).
 | 16 | Industry routing | Live (hart-ops, ADR-010) | [industry-routing.md](industry-routing.md) |
 | 17 | Website | Live | [`www/README.md`](../../www/README.md) |
 | 18 | MQTT mimic | Tool | [mqtt-mimic.md](mqtt-mimic.md) |
+| 19 | Panels from the schematic | Live | [schematic-panels.md](schematic-panels.md) |
 
-**Do not** encode one-off table deletes into immortal leftover lists (`cleanup_uss_ctc_leftovers.py` and friends). That is a review of pipeline 2, not a 17th flow.
+**Do not** encode one-off table deletes into immortal leftover lists (`cleanup_uss_ctc_leftovers.py` and friends). That is a review of pipeline 2, not a pipeline of its own.

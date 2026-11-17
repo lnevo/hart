@@ -134,10 +134,14 @@ def cell_origin(x: int, y: int, minx: int, miny: int) -> tuple[float, float]:
 
 
 def match_turnout(by: dict, stations: set[str], blocks: set[str]) -> dict | None:
+    is_turnout = lambda it: it is not None and it.get("kind") == "turnout"
     for bl in blocks:
-        match = by.get(bl.replace("OS ", "").lower())
-        if match:
-            return match
+        name = bl.replace("OS ", "").lower()
+        # a double crossover's corner block (OS Switch 225b) is a block of the Layout Editor, not a turnout: its
+        # points belong to the crossover's one turnout (Switch 225)
+        for key in (name, re.sub(r"(?<=\d)[a-d]$", "", name)):
+            if is_turnout(by.get(key)):
+                return by[key]
     for st in stations:
         pref = STATION_TO_SWITCH.get(st)
         match = None

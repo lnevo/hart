@@ -1,5 +1,7 @@
 # Pipeline 7 — Dispatcher System graph
 
+**Parked.** Parked since the helix-join release (November 2026): not in the active panel; data kept in `jmri/layouts/hart/parked/`. Everything below describes the pipeline as it runs once unparked.
+
 CreateTransits (Stage 1) in PanelPro builds sections, transits, and traininfo so auto-dispatch can run station to station.
 
 Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf) (same as [JMRI help Stage 1](https://www.jmri.org/help/en/html/scripthelp/DispatcherSystem/DispatcherSystem.shtml#_Toc194074958)).
@@ -28,7 +30,7 @@ Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../j
 3. If Dispatcher asks to rebuild because traininfo names are stale, try
    `python3 jmri/layouts/hart/scripts/retarget_dispatcher_traininfo_transits.py`
    first.
-4. After Stage 1, `run_panelpro_stage1.sh` re-adds the manual Princess SML pairs and runs the other repairs itself (see `wiki/DISPATCHER_LAYOUT_HOOPS.md`).
+4. After Stage 1, `run_panelpro_stage1.sh` runs the repairs itself (see `wiki/DISPATCHER_LAYOUT_HOOPS.md`).
 5. Stage 1 Store writes BlockContentsIcons at level 0. The launcher runs
    `polish_hart_layout_editor.py --block-labels-only --sync-output` so labels
    stay on level 4 (above the rail).

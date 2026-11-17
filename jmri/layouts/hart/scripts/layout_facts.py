@@ -6,9 +6,19 @@
                      blank where nobody has recorded it)
     switch_legs.csv  one row per OS block at the points: the block each leg
                      leads to when the switch is closed and when it is thrown
-    mast_cells.csv   one row per mast on the CATS desk: its cell and edge, and
-                     how the USS CTC board draws it (read by wire_digicon.py
-                     and gen_ctc_track_plan.py)
+    mast_cells.csv   one row per mast on the USS CTC board: its cell on the
+                     board's grid (x, y) and how the board draws it (uss_*),
+                     read by gen_ctc_track_plan.py; and, for the hand-wired
+                     CATS desks only, the SEC_EDGE of its lamp in that cell and
+                     a lamp placement to set (edge, sig_location, sig_orient),
+                     read by wire_digicon.py and check_layout_facts.py. The
+                     board's grid is the hand-wired desk's, frozen on
+                     2026-11-15; the generated desks do not use this file
+    uss_board_cells.csv / uss_board_plants.csv  the USS CTC board's grid:
+                     each cell's track, label and block edges, and the cell
+                     of each switch plant, frozen from the hand-wired desk
+                     on 2026-11-15 (read by gen_ctc_track_plan.py,
+                     check_layout_facts.py and wire_digicon.py)
 
 Hardware, DCC address (its own ``dcc`` column) and control point come from the
 canonical turnout row of public_name_map.csv (current == proposed); control_points.csv lists which
@@ -59,15 +69,15 @@ class Leg:
 
 @dataclass(frozen=True)
 class MastCell:
-    """A mast's lamp on the CATS desk and its icon on the USS CTC board."""
+    """A mast's icon on the USS CTC board, and its lamp on the hand-wired CATS desks (whose grid the board keeps)."""
     mast: str
-    x: int
+    x: int             # the cell on the USS board's grid (uss_board_cells.csv)
     y: int
-    edge: str          # SEC_EDGE of the desk cell that holds the SECSIGNAL
+    edge: str          # hand-wired desks only: SEC_EDGE of the cell that holds the SECSIGNAL
     uss_facing: str    # E or W on the USS board
     uss_kind: str      # h2: mast icon (two heads); d1: head icon on the only head
     uss_head: str      # that head for d1, blank for h2
-    sig_location: str = ""  # PANELSIGNAL SIGLOCATION / SIGORIENT to set, blank to keep the Designer's
+    sig_location: str = ""  # hand-wired desks only: PANELSIGNAL SIGLOCATION / SIGORIENT to set, blank to keep
     sig_orient: str = ""
 
 
@@ -204,6 +214,77 @@ def load_mast_cells(data: Path = DATA) -> list[MastCell]:
         if bool(cell.sig_location) != bool(cell.sig_orient):
             raise ValueError(f"{where}: sig_location and sig_orient go together")
         out.append(cell)
+    return out
+
+
+USS_CELLS = "uss_board_cells.csv"
+USS_PLANTS = "uss_board_plants.csv"
+USS_TRACKS = {"HORIZONTAL", "VERTICAL", "UPPERSLASH", "LOWERSLASH", "UPPERBACKSLASH", "LOWERBACKSLASH"}
+
+
+def _noted_rows(path: Path, columns: list[str]) -> list[tuple[int, dict[str, str]]]:
+    """(line, row) of a CSV below its `# ` note line, values kept as written (a cell name may hold runs of
+    spaces)."""
+    with path.open(newline="", encoding="utf-8") as fh:
+        if not fh.readline().startswith("# "):
+            raise ValueError(f"{path.name} line 1: the note line (# ...) saying where the file came from")
+        reader = csv.DictReader(fh)
+        if reader.fieldnames != columns:
+            raise ValueError(f"{path.name}: columns {','.join(columns)}, not {','.join(reader.fieldnames or [])}")
+        out = []
+        for row in reader:
+            line = reader.line_num + 1              # + the note line, which the reader did not see
+            if None in row or any(v is None for v in row.values()):
+                have = sum(v is not None for k, v in row.items() if k is not None) + len(row.get(None) or [])
+                raise ValueError(f"{path.name} line {line}: {len(columns)} fields ({','.join(columns)}), not {have}")
+            out.append((line, row))
+        return out
+
+
+def load_uss_cells(data: Path = DATA) -> dict[tuple[int, int], dict]:
+    """The USS CTC board's grid (uss_board_cells.csv), frozen from the hand-wired CATS desk on 2026-11-15, in file
+    order: (x, y) -> {tracks: [CATS track kinds], name: the cell's label or None, blocks: [(edge, block or None,
+    occupancy sensor or None)]}, the shape gen_ctc_track_plan.parse_cats reads from a desk."""
+    out: dict[tuple[int, int], dict] = {}
+    for line, row in _noted_rows(data / USS_CELLS, ["x", "y", "tracks", "name", "blocks"]):
+        where = f"{USS_CELLS} line {line}"
+        try:
+            xy = (int(row["x"]), int(row["y"]))
+        except (TypeError, ValueError):
+            raise ValueError(f"{where}: x and y are whole numbers") from None
+        if xy in out:
+            raise ValueError(f"{where}: cell {xy} is listed twice")
+        tracks = [t for t in row["tracks"].split(";") if t]
+        if set(tracks) - USS_TRACKS:
+            raise ValueError(f"{where}: tracks are {', '.join(sorted(USS_TRACKS))}, not {row['tracks']!r}")
+        blocks = []
+        for item in [b for b in row["blocks"].split(";") if b]:
+            parts = item.split("|")
+            if len(parts) != 3 or parts[0] not in EDGES or not (parts[1] or parts[2]):
+                raise ValueError(f"{where}: a block is EDGE|block|sensor (block or sensor given), not {item!r}")
+            blocks.append((parts[0], parts[1] or None, parts[2] or None))
+        out[xy] = dict(tracks=tracks, name=row["name"] or None, blocks=blocks)
+    return out
+
+
+def load_uss_plants(data: Path = DATA) -> dict[tuple[int, int], str]:
+    """(x, y) -> OS block of each switch plant on the USS CTC board grid (uss_board_plants.csv), in its drawing
+    order. Each cell holds track in uss_board_cells.csv; the hand-wired CATS desks put their plants there too."""
+    cells = load_uss_cells(data)
+    out: dict[tuple[int, int], str] = {}
+    seen: dict[str, int] = {}
+    for line, row in _noted_rows(data / USS_PLANTS, ["os_block", "x", "y", "notes"]):
+        where = f"{USS_PLANTS} line {line} ({row['os_block']})"
+        try:
+            xy = (int(row["x"]), int(row["y"]))
+        except (TypeError, ValueError):
+            raise ValueError(f"{where}: x and y are whole numbers") from None
+        if not row["os_block"] or row["os_block"] in seen or xy in out:
+            raise ValueError(f"{where}: an OS block or cell that is empty or given twice")
+        if not cells.get(xy, {}).get("tracks"):
+            raise ValueError(f"{where}: {USS_CELLS} has no track in cell {xy}")
+        seen[row["os_block"]] = line
+        out[xy] = row["os_block"]
     return out
 
 

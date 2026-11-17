@@ -1,0 +1,102 @@
+"""The naming rule of the main and upper levels' virtual JMRI devices, in one place (owner, 2026-11-17).
+
+The main and upper physical plant is not reviewed yet, so every main and upper turnout, block sensor, signal head and
+mast in tables.xml and on the CATS desks is an internal device whose system name comes from its own user name, never
+from the device map's draft physical address or from drawing order: adding a block or a switch elsewhere changes no
+other device's name. The device map (device_map_main_upper.csv, column jmri_name) maps each to its planned physical
+device, so a physical device is later swapped in by that mapping alone.
+
+- Turnout "Switch <n>": TURNOUT_PREFIX + n (IT:HART:C3:107).
+- Block "<name>": its occupancy sensor SENSOR_PREFIX + block_key (IS:HART:C3:B:107-109, IS:HART:C3:B:107_Loop_2,
+  IS:HART:C3:B:OS225b), user name occupancy_user ("BS 107-109", "BS Switch 225b").
+- Head "Head <mast>[ Top|Bottom]": head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top).
+- The LogixNG that sets every block sensor INACTIVE when the tables load (CLEAR_*; build_layout_le.add_level_clear)
+  and its reader clear_sensors.
+
+Used by tools/schematic/build_device_map.py, build_main_upper_masts.py, build_layout_le.py, build_cats_panel.py,
+hartlib.level_masts, tools/audit/check_layout_facts.py and www/scripts/tables_page.py.
+"""
+from __future__ import annotations
+
+import re
+import xml.etree.ElementTree as ET
+
+TURNOUT_PREFIX = "IT:HART:C3:"
+SENSOR_PREFIX = "IS:HART:C3:B:"
+HEAD_PREFIX = "IH:HART:C3:"
+HEAD_USER = re.compile(r"Head (\d+[LR][A-Z]?)(?: (Top|Bottom))?")          # a device-map head's user name
+HEAD = re.compile(re.escape(HEAD_PREFIX) + r"\d+[LR][A-Z]?(?:_Top|_Bottom)?")    # its virtual system name
+_KEY = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
+
+# The sensors-clear LogixNG. LogixNG system names with "$" may hold any characters
+# (LogixNG_Manager.validSystemNameFormat, JMRI 5.16), so these are named, not numbered.
+CLEAR_LOGIXNG = "IQ$HART:C3:BlockSensorsClear"
+CLEAR_CONDITIONAL = "IQC$HART:C3:BlockSensorsClear"
+CLEAR_MANY = "IQDA$HART:C3:BlockSensorsClear"
+CLEAR_ACTION = "IQDA$HART:C3:B:"          # + the block key: one ActionSensor per sensor
+CLEAR_USER = "Main and upper block sensors clear on start"
+CLEAR_PREFIX = re.compile(r"IQ(?:C|DA)?\$HART:C3:")
+
+
+def block_key(block: str) -> str:
+    """The stable key of a main or upper block, from its user name alone: "Track " dropped, "OS Switch " shortened to
+    "OS", spaces to "_" ("Track 107 Loop 2" -> 107_Loop_2, "OS Switch 225b" -> OS225b). ValueError on a name that
+    would give a key with anything but letters, digits, "-" and "_"."""
+    key = ("OS" + block.removeprefix("OS Switch ") if block.startswith("OS Switch ") else
+           block.removeprefix("Track ")).replace(" ", "_")
+    if not _KEY.fullmatch(key) or key == block:
+        raise ValueError(f"block {block!r} gives no clean sensor key ({key!r})")
+    return key
+
+
+def block_sensor(block: str) -> str:
+    """The virtual occupancy sensor of a main or upper block: IS:HART:C3:B:<block_key>."""
+    return SENSOR_PREFIX + block_key(block)
+
+
+def occupancy_user(block: str) -> str:
+    """The occupancy sensor's user name of a block: "BS " + the name less "Track "; "BS Switch <n>" for
+    "OS Switch <n>" (ADR-005)."""
+    return "BS " + (block.removeprefix("OS ") if block.startswith("OS Switch ") else block.removeprefix("Track "))
+
+
+def is_block_sensor(system_name: str) -> bool:
+    return (system_name or "").startswith(SENSOR_PREFIX)
+
+
+def head_name(user: str) -> str:
+    """The virtual system name of a main or upper head, from its user name: "Head 108LA" -> IH:HART:C3:108LA,
+    "Head 108R Top" -> IH:HART:C3:108R_Top. ValueError on any other user name."""
+    m = HEAD_USER.fullmatch(user or "")
+    if not m:
+        raise ValueError(f"head {user!r} is not named Head <number><L|R>[letter][ Top| Bottom]")
+    return HEAD_PREFIX + m.group(1) + (f"_{m.group(2)}" if m.group(2) else "")
+
+
+def clear_action(sensor: str) -> str:
+    """The ActionSensor of the sensors-clear LogixNG that sets `sensor` (IS:HART:C3:B:<key>)."""
+    if not is_block_sensor(sensor):
+        raise ValueError(f"{sensor!r} is not a main or upper virtual block sensor")
+    return CLEAR_ACTION + sensor.removeprefix(SENSOR_PREFIX)
+
+
+def clear_sensors(root: ET.Element) -> list[str]:
+    """The sensors the sensors-clear LogixNG in tables `root` sets INACTIVE, in its order ([] when the tables have
+    none). ValueError when its DigitalMany names an action that is missing or is not an ActionSensor setting a sensor
+    Inactive."""
+    acts = root.find("LogixNGDigitalActions")
+    if acts is None:
+        return []
+    by_name = {e.findtext("systemName"): e for e in acts}
+    many = by_name.get(CLEAR_MANY)
+    if many is None:
+        return []
+    out = []
+    for sock in many.findall("Actions/Socket"):
+        name = sock.findtext("systemName") or ""
+        a = by_name.get(name)
+        if a is None or a.tag != "ActionSensor" or a.findtext("state/enum") != "Inactive":
+            raise ValueError(f"{CLEAR_MANY}: socket {sock.findtext('socketName')} names {name or 'no action'}, which "
+                             "is not an ActionSensor setting a sensor Inactive")
+        out.append(a.findtext("namedBean/name") or "")
+    return out

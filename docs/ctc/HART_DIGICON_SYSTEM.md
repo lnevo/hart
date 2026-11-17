@@ -4,6 +4,8 @@
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations  
 **Scope:** Digicon CTC / ABS panels, JMRI MQTT bridge, LCOS signal heads
 
+**Parked:** the USS CTC lever machine, its panel and sensors, the Dispatcher System and Entry/Exit are parked since the helix-join release (November 2026): not in the active tables; data kept in `jmri/layouts/hart/parked/`. The CATS desks are the only dispatcher desks.
+
 This is the end-to-end picture of what we built: Digicon panels on Mac / Pi / Windows, how they talk to JMRI and MQTT, and how field signal heads are addressed for LCOS hardware.
 
 Related detail docs (do not duplicate here):
@@ -27,7 +29,7 @@ Two Digicon desks for Neville Island ops, CATS CTC and CATS ABS, built from one 
 | **CATS CTC** | `cats/panels/HART_CTC.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
 | **CATS ABS** | `cats/panels/HART_ABS.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. |
 
-`cats/panels/HART_Digicon.xml` is the Designer save and the only panel to edit. `wire_digicon.py` builds both desks from it; never edit a desk by hand. The retired West Yard sheet scripts are in `archive/cats-scripts/west_yard/`.
+Both desks are generated from the schematic (`tools/schematic/build_cats_panel.py`, all three levels; owner approved in real CATS on 2026-11-15, live since the CATS cut-over). Never edit a desk by hand: change the schematic, the switch facts or the build, then rebuild. `HART_Digicon.xml` and `wire_digicon.py` built the earlier hand-wired desks; the last of those are in git (`hartlib.hand_drawn`). The retired West Yard sheet scripts are in `archive/cats-scripts/west_yard/`.
 
 Each desk carries a publication title row (Y=1):
 
@@ -35,10 +37,10 @@ Each desk carries a publication title row (Y=1):
 - Mode tag (`CTC DIGICON` / `ABS DIGICON`)
 - Pub id (`DS-CTC` / `DS-ABS`) · Rev · Effective date
 
-Rebuild both desks after a Designer save:
+Rebuild both desks (`make desks` also validates them):
 
 ```bash
-python3 cats/scripts/wire_digicon.py
+python3 tools/schematic/build_cats_panel.py
 ```
 
 ---
@@ -69,17 +71,17 @@ python3 cats/scripts/wire_digicon.py
 
 **Boot sequence (profile Start Up, after `tables.xml`):**
 
-1. `jmri/layouts/hart/scripts/panel_status.py` — yard-ladder lamps from live plant/FB state. It never commands plant turnouts. Panel status lamps: **LCOS** (RESUBSCRIBE), **Turnouts** (TWOSENSOR↔DIRECT), **Signals** (Digicon SML), **Track Power** (LCC PowerManager ON/OFF).
+1. `jmri/layouts/hart/scripts/panel_status.py` — panel status lamps; it never commands plant turnouts: **LCOS** (RESUBSCRIBE), **Turnouts** (TWOSENSOR↔DIRECT), **Signals** (Digicon SML), **Track Power** (LCC PowerManager ON/OFF).
 2. `jmri/scripts/signal_coordinator.py` — Digicon SML MQTT bridge: main-window **SML Enabled / SML Disabled** toggle; when Enabled, publish IH appearances on `track/signalhead/<packed>`; when Disabled (global or per-mast SML off), apply `track/signalmast/<packed>` → IH and (on per-mast disable edges / operator Disable) publish `Unheld`. Answers `track/bridge/sml_mode` **query** / **disabling** with **enabled** while globally Enabled. **Boot:** if Digicon dests loaded **Enabled** (stored tables), warning popup, publish **`enabling`** and leave dests on (that instance does not abort). Operator **Force override** (sml_mode already enabled) publishes the same **`enabling`** token. Other agents seeing that token publish **`aborting`**, uncheck immediately (no Hold/Red/Unheld), then **`aborted`**, and stay Disabled. After ~3s the originator publishes **`enabled`**. Solo has nobody to abort; if `enabled` never arrives, the LCOS bridge challenges to **disabled**. Clean boot still holds dests off and **reads** `sml_mode` only (no retain publish); missing/`disabled`/`disabling` → take Digicon (enable); `enabled` / enabling-abort tokens → stay Disabled with **no Unheld** (originator owns resume). Digicon SML dests should be stored **Enabled=no** in `tables.xml` (`jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py`).
 
 (`unhold_signal_masts.py` is retired: masts boot Unheld, so SML runs ABS by default; **Held is CATS CTC's channel** — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)
 
-SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/hart/scripts/run_sml_discover.sh` one-shot) and they are stored in `tables.xml` with `useLayoutEditor=yes`, so JMRI re-paths them on every load. Re-running Discover is safe; the discover wrapper then runs `disable_digicon_sml_in_tables.py` so Digicon source→dest pairs stay **Enabled=no** until the Digicon MQTT script enables them (do not Store tables from a live Enabled Digicon session if you want that boot default to stick). The old hand-pair injector `apply_sml_cats_pairs.py` was removed on 2026-11-14; its pairs survive only as the regression oracle `jmri/layouts/hart/data/sml_cats_oracle.csv`, read by `jmri/layouts/hart/scripts/validate_le_signalling.py` (static boundary/routing checks + mini-discovery, run it before deploying panel edits). Facing is in `jmri/layouts/hart/data/le_signal_boundaries.csv` (`python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py`). Advanced routing is `blockrouting="yes"` on `<layoutblocks>`. Two-head masts use stock **Basic** `two-searchlight` and dwarfs `one-low` (ADR-011); facing and binding are in [`SIGNAL_FACING.md`](SIGNAL_FACING.md).
+SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/hart/scripts/run_sml_discover.sh` one-shot) and they are stored in `tables.xml` with `useLayoutEditor=yes`, so JMRI re-paths them on every load. Re-running Discover is safe; the discover wrapper then runs `disable_digicon_sml_in_tables.py` so Digicon source→dest pairs stay **Enabled=no** until the Digicon MQTT script enables them (do not Store tables from a live Enabled Digicon session if you want that boot default to stick). The old hand-pair injector `apply_sml_cats_pairs.py` was removed on 2026-11-14; its pairs and the home-made prediction script were retired on 2026-11-16: JMRI's own discovery is the reference, so check signal logic by running stock Discover / Stage 1 in the sandbox rehearsal and comparing the stored pairs with the previous tables (`data/baselines/sml_pairs.csv`). Facing is in `jmri/layouts/hart/data/le_signal_boundaries.csv` (`python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py`). Advanced routing is `blockrouting="yes"` on `<layoutblocks>`. Two-head masts use stock **Basic** `two-searchlight` and dwarfs `one-low` (ADR-011); facing and binding are in [`SIGNAL_FACING.md`](SIGNAL_FACING.md).
 
 **PanelPro vs CATS (same profile, sequential — never simultaneous):**
 
 - **PanelPro** — edit/store JMRI tables, connections, Start Up. Then quit. Never Store tables while a CATS layout is open (Rodney Black, cats-users #2534).
-- **CATS** — separate JMRI app (`cats.apps.Crandic`). Profile Start Up loads `preference:tables.xml` first (HART equivalent of Designer “Include”), then the Digicon XML. Refers to JMRI beans by user name; does not redefine them. LogixNG hides **USS CTC** on every host (IQC:AUTO:0002) and, under CATS only, **HART Railroad** (IQC:AUTO:0004 / `hide_cats_desk_windows.py`) so the Digicon stays up.
+- **CATS** — separate JMRI app (`cats.apps.Crandic`). Profile Start Up loads `preference:tables.xml` first (HART equivalent of Designer “Include”), then the Digicon XML. Refers to JMRI beans by user name; does not redefine them. LogixNG hides WiThrottle (IQC:AUTO:0001) and, under CATS only, **HART Railroad** (IQC:AUTO:0004 / `hide_cats_desk_windows.py`) so the Digicon stays up.
 - Do **not** run both at once (MQTT client-id + profile lock). Only **one** Digicon should be signal authority (**CATS CTC** or **CATS ABS**).
 
 
@@ -91,8 +93,8 @@ Enable these connection prefixes in Designer. Device bindings come from the swit
 |--------|------|-----|
 | M2S | Sensor | MQTT occupancy and switch feedback (`Block 4-2`, Switch FB) |
 | M2T | Turnout | MQTT field switches (`M2T408` = Switch 1) |
-| IS | Sensor | Internal: USS CTC lever and panel sensors (`IS3:LEVER`, `IS:RELOADCTC`), Dispatcher and status sensors |
-| IT | Turnout | Internal: yard ladder lamps (`IT:HART:YL:L1`…) |
+| IS | Sensor | Internal: status sensors. The USS CTC lever and panel sensors (`IS3:LEVER`, `IS:RELOADCTC`) and the Dispatcher sensors are parked |
+| IT | Turnout | Internal: the main and upper level turnouts (`IT:HART:C3:<n>`) until the device-map import |
 | IF$shsm / IF$vsm | Signal mast | Basic signal-head masts and virtual masts; CATS refers to them by user name |
 
 Blank Digicon cells come from CATS source behaviour, not the tables: see [`CATS_SOURCE_PAINT.md`](CATS_SOURCE_PAINT.md).
@@ -116,13 +118,9 @@ Princess (ADR-017): east of Switches 39 and 37 the mainline stubs are **Track Mc
 
 CTC homes start **Held** (CATS holds them at panel load). Left-click codes the route; Digicon drops Hold and SML shows Approach/Clear. Without CATS, masts simply boot Unheld so SML runs ABS — no script needed. **Fleeting** is only for keeping a live route clear for following trains — it is disabled until a route is already ACTIVE.
 
-### Yard ladder lamps
+### Yard ladder lamps (retired)
 
-Lamps beside OS S-R…OS S-4 on the Layout Editor panel and JMRI web, not on the CATS desks (left = west ladder + 116; right = east ladder + 112 / 111 for OS S-R). Whether the desks get them back is open in [`cats-panels.md`](../../wiki/pipelines/cats-panels.md).
-
-- Triggers: internal turnouts `IT:HART:YL:L1…R5`
-- JMRI routes `IO:AUTO:0201–0210` fire on throw and line M2T peels
-- Layout Editor / JMRI web: USS lamp `turnouticon`s on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py`, run on the Mac against `jmri/layouts/hart/output/tables.xml`; it is not shipped to the hosts). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red.
+The hand-wired desk's ten yard-ladder lamp buttons (internal turnouts `IT:HART:YL:L1…R5`, routes `IO:AUTO:0201–0210`) were retired on 2026-11-17 (owner): no desk or panel used them. The builder leaves them out of `tables.xml` (`build_layout_le.py`, `retire_yard_ladder`) and `panel_status.py` no longer paints them.
 
 ### Turnout SoR (summary)
 
@@ -180,11 +178,11 @@ Appearances for SHSM:
 
 No aspects are disabled; Basic has no Advanced Approach to disable.
 
-**Counts:** 47 masts, 23 real (12 `two-searchlight`, 11 `one-low`) and 24 virtual dispatcher masts.
+**Counts:** 90 masts in `tables.xml`: 64 real (24 `two-searchlight`, 40 `one-low`) and 26 virtual.
 
 **Mast 6LB (interim):** a one-low dwarf on `IH432` (C4-OU2-1..3), the only head wired so far. `IH433` stays defined but unwired and on no mast. It returns to two-searchlight when the second head is wired (`FITTED_HEADS` in `build_hart_signal_heads.py`; the wiring docs still show that two-head plan).
 
-Mast icons use the Basic `default` image set (JMRI draws it with its stock AAR-1946 schematic GIFs): scale 1.0 on the Layout Editor panel (45 icons), 0.5 on the USS CTC panel (11).
+Mast icons use the Basic `default` image set (JMRI draws it with its stock AAR-1946 schematic GIFs): scale 1.0 on the Layout Editor panel (45 icons). The USS CTC panel (0.5, 11 icons) is parked.
 
 ### Mast index (Digicon name → JMRI)
 
@@ -229,11 +227,11 @@ LE `signalmasticon`s use the stock Basic `default` image set (no custom imagelin
 
 Default panel for `launch_cats.sh` is `~/JMRI_UserFiles/cats/panels/HART_CTC.xml`, which deploy installs.
 
-Profile tables (routes, YL internals, signal heads/masts) load from `preference:tables.xml`, which is `JMRI_UserFiles/tables.xml` (repo mirror `jmri/layouts/hart/output/tables.xml`). Yard ladders need `IO:AUTO:0201–0210` and `IT:HART:YL:*` in that file.
+Profile tables (turnouts, signal heads and masts, SML) load from `preference:tables.xml`, which is `JMRI_UserFiles/tables.xml` (repo mirror `jmri/layouts/hart/output/tables.xml`).
 
 ### JMRI package (SSH deploy to hosts)
 
-Same package carries the CATS desks, `tables.xml`, yard-ladder button icons, and the JMRI **web home** override + Start Up scripts:
+Same package carries the CATS desks, `tables.xml`, the button icons, and the JMRI **web home** override + Start Up scripts:
 
 | Piece | Repo SoR | Installs to |
 |-------|----------|-------------|
@@ -262,8 +260,9 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 
 | Script | Purpose |
 |--------|---------|
-| `cats/scripts/wire_digicon.py` | Builds `HART_CTC.xml` and `HART_ABS.xml` from the Designer save `HART_Digicon.xml` (no options) |
-| `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by `wire_digicon.py`) |
+| `tools/schematic/build_cats_panel.py` | Builds `HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json` from the schematic and the railroad's facts (`--check`) |
+| `cats/scripts/wire_digicon.py` | Retired: built the hand-wired desks from `HART_Digicon.xml`; refuses to write the live desks |
+| `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by `build_cats_panel.py`; `wire_digicon.py` used it too) |
 | `cats/scripts/aar_aspect_bridge.py` | Digicon R-codes ↔ Basic aspect names (Clear / Approach / Stop / Diverging Clear / Diverging Approach) |
 | `jmri/layouts/hart/scripts/apply_le_sml_facing.py` | Layout Editor `signalAMast` / block-boundary facing from `le_signal_boundaries.csv`; does not change mast types |
 | `jmri/layouts/hart/scripts/discover_sml.py` | PanelPro one-shot SML Discover (background; do not leave on Start Up) |
@@ -285,4 +284,4 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 2. Never publish turnout “fix” commands at launch.
 3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.
 4. All Digicon lamps are packed `IH*` SHSM — two-head homes on **Basic** (`two-searchlight`), dwarfs on **`one-low`**. No aspects are disabled. Mast 2L is `IH438`/`IH439`.
-5. After a Designer save, run `wire_digicon.py`. It rebuilds both desks, so `HOLD_ONLY` and mast bindings stay in sync.
+5. After a schematic or switch-fact change, run `build_cats_panel.py`. It rebuilds both desks, so `HOLD_ONLY` and mast bindings stay in sync.

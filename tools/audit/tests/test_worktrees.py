@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -120,19 +121,98 @@ class MergedAt(Repo):
 
 
 class Sweep(Repo):
-    def sweep(self, merged):
-        saved = (WT.ROOT, WT.merged_at)
-        WT.ROOT, WT.merged_at = Path(self.wt), lambda tree, main, prs=None: merged(tree)
+    def sweep(self, merged, budget=None, by_branch=None):
+        """Sweep with GitHub replaced: `merged(tree)` answers per worktree, or `by_branch` stands in for the batch."""
+        saved = (WT.ROOT, WT.merged_at, WT.merged_by_branch)
+        WT.ROOT, WT.merged_by_branch = Path(self.wt), lambda main, limit=1000: by_branch
+        if merged is not None:
+            WT.merged_at = lambda tree, main, prs=None: merged(tree)
         try:
-            return WT.sweep()
+            return WT.sweep(budget=budget)
         finally:
-            WT.ROOT, WT.merged_at = saved
+            WT.ROOT, WT.merged_at, WT.merged_by_branch = saved
 
     def test_sweep_removes_worktree_and_branch(self) -> None:
         lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
         self.assertTrue(lines and lines[0].startswith("removed"), lines)
         self.assertFalse(os.path.exists(self.wt))
         self.assertEqual(sh("git", "branch", "--list", "agent/claude/x", cwd=self.main), "")
+
+    def add_submodule(self) -> str:
+        """Give the worktree a checked-out submodule cloned from a local 'remote' repo; return its path."""
+        src = os.path.dirname(self.main) + "/subsrc"
+        sh("git", "init", "-q", "-b", "main", src, cwd=os.path.dirname(self.main))
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-q", "--allow-empty",
+           "-m", "s", cwd=src)
+        sh("git", "-c", "protocol.file.allow=always", "submodule", "add", "-q", src, "ext/sub", cwd=self.wt)
+        sh("git", "commit", "-q", "-m", "submodule", cwd=self.wt)
+        return self.wt + "/ext/sub"
+
+    def test_sweep_removes_a_clean_worktree_with_a_submodule(self) -> None:
+        self.add_submodule()
+        lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertTrue(lines and lines[0].startswith("removed"), lines)
+        self.assertFalse(os.path.exists(self.wt))
+
+    def subcommit(self, sub: str, msg: str) -> None:
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-q", "--allow-empty",
+           "-m", msg, cwd=sub)
+
+    def assert_kept(self, reason: str) -> None:
+        lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertEqual(len(lines), 1, lines)
+        self.assertTrue(lines[0].startswith("kept"), lines)
+        self.assertIn(reason, lines[0])
+        self.assertTrue(os.path.exists(self.wt + "/ext/sub"))
+
+    def test_sweep_keeps_a_submodule_commit_that_is_on_no_remote(self) -> None:
+        sub = self.add_submodule()
+        self.subcommit(sub, "local only")
+        sh("git", "commit", "-q", "-am", "bump", cwd=self.wt)  # the worktree itself stays clean
+        self.assert_kept("submodule ext/sub has commits on no remote branch")
+
+    def test_sweep_keeps_an_unpushed_submodule_branch_behind_a_pushed_head(self) -> None:
+        sub = self.add_submodule()
+        pushed = sh("git", "rev-parse", "HEAD", cwd=sub)
+        sh("git", "checkout", "-q", "-b", "side", cwd=sub)
+        self.subcommit(sub, "side work")
+        sh("git", "checkout", "-q", "--detach", pushed, cwd=sub)  # HEAD back on the remote's commit
+        self.assert_kept("submodule ext/sub has commits on no remote branch")
+
+    def test_sweep_keeps_a_submodule_stash(self) -> None:
+        sub = self.add_submodule()
+        Path(sub, "scratch.txt").write_text("x\n")
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "stash", "push", "-q", "-u", cwd=sub)
+        self.assert_kept("submodule ext/sub has a stash")
+
+    def test_other_refusals_are_not_forced(self) -> None:
+        self.add_submodule()
+        saved = WT.git_run
+        WT.git_run = lambda *a, cwd=None: subprocess.CompletedProcess(a, 1, "", "fatal: some other reason")
+        try:
+            self.assertEqual(WT.remove_worktree(self.wt, self.main), "git worktree remove refused: fatal: some other reason")
+        finally:
+            WT.git_run = saved
+        self.assertTrue(os.path.exists(self.wt))
+
+    def test_spent_budget_leaves_removals_for_the_next_sweep(self) -> None:
+        lines = self.sweep(lambda t: LONG_AGO, budget=-1)
+        self.assertEqual(len(lines), 1, lines)
+        self.assertTrue(lines[0].startswith("left 1 merged worktree(s) for the next sweep"), lines)
+        self.assertTrue(os.path.exists(self.wt))
+
+    def test_planning_time_does_not_count_against_the_budget(self) -> None:
+        def slow(tree):
+            time.sleep(0.3)
+            return LONG_AGO
+        lines = self.sweep(slow, budget=0.2)
+        self.assertTrue(lines and lines[0].startswith("removed"), lines)
+
+    def test_one_batched_answer_feeds_every_worktree(self) -> None:
+        self.assertEqual(self.sweep(None, by_branch={}), [])  # no merged PR for the branch: open work
+        by_branch = {"agent/claude/x": [{"headRefOid": self.head, "mergedAt": "2026-01-01T00:00:00Z"}]}
+        lines = self.sweep(None, by_branch=by_branch)
+        self.assertTrue(lines and lines[0].startswith("removed"), lines)
 
     def test_sweep_keeps_unmerged_worktree(self) -> None:
         self.assertEqual(self.sweep(lambda t: None), [])

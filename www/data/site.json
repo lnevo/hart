@@ -102,7 +102,9 @@
         "behind-ai-operations",
         "behind-ai-locomotives",
         "behind-ai-speed-runs",
-        "behind-ai-workshop"
+        "behind-ai-workshop",
+        "behind-ai-mmr",
+        "behind-ai-clinic"
       ]
     },
     {
@@ -240,6 +242,18 @@
       }
     ],
     "behind-ai-workshop": [
+      {
+        "label": "The Diverging Route",
+        "href": "ai/index.html"
+      }
+    ],
+    "behind-ai-clinic": [
+      {
+        "label": "The Diverging Route",
+        "href": "ai/index.html"
+      }
+    ],
+    "behind-ai-mmr": [
       {
         "label": "The Diverging Route",
         "href": "ai/index.html"

@@ -45,7 +45,6 @@ bs_headers = [cell.value for cell in ws_bs[1]]
 
 # Column indices
 node_id_col = nodes_headers.index('Node ID')
-legacy_col = nodes_headers.index('Legacy Node ID') if 'Legacy Node ID' in nodes_headers else None
 location_col = nodes_headers.index('Location') if 'Location' in nodes_headers else None
 address_col = nodes_headers.index('Address') if 'Address' in nodes_headers else None
 boards_12v_col = nodes_headers.index('12V Boards') if '12V Boards' in nodes_headers else None
@@ -81,13 +80,11 @@ for row_idx, row in enumerate(ws_nodes.iter_rows(min_row=2), start=2):
     boards_5v = ws_nodes.cell(row_idx, boards_5v_col + 1).value if boards_5v_col else 0
     boards_input = ws_nodes.cell(row_idx, boards_input_col + 1).value if boards_input_col else 0
     num_blocks = ws_nodes.cell(row_idx, num_blocks_col + 1).value if num_blocks_col else 0
-    legacy = ws_nodes.cell(row_idx, legacy_col + 1).value if legacy_col is not None else None
     
     # Count input boards from actual DNIN8 data (will be updated after collecting DNIN8)
     node_summaries[node_id] = {
         'location': location or 'N/A',
         'address': address or 'N/A',
-        'legacy': legacy,
         'boards_12v': int(boards_12v) if boards_12v else 0,
         'boards_5v': int(boards_5v) if boards_5v else 0,
         'boards_input': 0,  # Will be calculated from DNIN8 data
@@ -444,13 +441,13 @@ for node_id in sorted_nodes:
     summary = node_summaries[node_id]
     current_location = summary['location']
     
-    legacy = summary.get('legacy')
-    was = f" (was {legacy})" if legacy and str(legacy) != str(node_id) else ""
+    # Titles use the radio-address node ID only; the old sequential IDs stay in the
+    # inventory's Legacy Node ID column and are not printed (owner, 2026-11-14).
     # Add "(cont'd)" if same location as previous slide
     if prev_location and current_location == prev_location:
-        title_text = f"Node {node_id}{was} - {current_location} (cont'd)"
+        title_text = f"Node {node_id} - {current_location} (cont'd)"
     else:
-        title_text = f"Node {node_id}{was} - {current_location}"
+        title_text = f"Node {node_id} - {current_location}"
     
     title_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.2), Inches(9), Inches(0.6))
     title_frame = title_box.text_frame
@@ -631,6 +628,9 @@ for node_id in sorted_nodes:
                 para.line_spacing = 0.9  # Tighter line spacing
 
 # Save presentation
+# The repo is public: keep personal names out of the file's metadata.
+prs.core_properties.author = ""
+prs.core_properties.last_modified_by = ""
 prs.save(output_ppt)
 print(f"\n✓ Saved presentation to {output_ppt}")
 print(f"✓ Created {len(prs.slides)} slides total")
