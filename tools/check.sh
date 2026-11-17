@@ -15,6 +15,11 @@ fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
+# A worktree not made by make wt (a subagent's isolation worktree, an older one) lacks the schematic-maps plugin;
+# check it out the way make wt does. CI checks it out itself (.github/workflows/check.yml).
+if [[ -z "${CI:-}" && -d external/model-railroad-skills && ! -e external/model-railroad-skills/.git ]]; then
+  python3 tools/agent/worktrees.py submodules "$ROOT"
+fi
 fail=0
 run() {
   echo "--- $1"

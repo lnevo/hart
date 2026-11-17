@@ -277,6 +277,20 @@ class New(Repo):
         gitdir = sh("git", "rev-parse", "--absolute-git-dir", cwd=str(path) + "/ext/sub")
         self.assertFalse(Path(gitdir, "objects/info/alternates").exists(), "the borrowed objects were not copied in")
 
+    def test_submodules_checks_out_a_missing_one_in_an_existing_worktree(self) -> None:
+        path, _ = self.new_with_submodule(url_ok=True)
+        sh("git", "submodule", "deinit", "-q", "-f", "ext/sub", cwd=str(path))
+        self.assertFalse(Path(path, "ext/sub/.git").exists())
+        n = int(os.environ.get("GIT_CONFIG_COUNT", "0"))
+        env = {"GIT_CONFIG_COUNT": str(n + 1), f"GIT_CONFIG_KEY_{n}": "protocol.file.allow",
+               f"GIT_CONFIG_VALUE_{n}": "always"}
+        err = io.StringIO()
+        with mock.patch.object(WT, "CHECK_SUBMODULES", ("ext/sub",)), mock.patch.dict(os.environ, env), \
+                redirect_stderr(err):
+            self.assertEqual(WT.main(["submodules", str(path)]), 0)
+        self.assertTrue(Path(path, "ext/sub/.git").exists(), err.getvalue())
+        self.assertEqual(sh("git", "status", "--porcelain", cwd=str(path)), "")
+
     def test_new_still_makes_the_worktree_when_a_submodule_cannot_be_fetched(self) -> None:
         path, err = self.new_with_submodule(url_ok=False)
         self.assertEqual(sh("git", "branch", "--show-current", cwd=str(path)), "agent/claude/probe")
