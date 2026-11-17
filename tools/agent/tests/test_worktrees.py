@@ -44,6 +44,14 @@ class PlanTest(unittest.TestCase):
         self.assertEqual(remove, [])
         self.assertEqual(len(kept), 2)
 
+    def test_a_merged_worktree_outside_the_home_folder_is_kept(self):
+        inside, outside = tree("main/.claude/worktrees/a"), tree("elsewhere/b")
+        when = {t.path: NOW - timedelta(days=1) for t in (inside, outside)}
+        remove, kept = wt.plan([tree("main", "main"), inside, outside], lambda t: when.get(t.path), [],
+                               lambda p: False, now=NOW, home="/r/main/.claude/worktrees")
+        self.assertEqual(remove, [inside])
+        self.assertEqual([(t, why.split(",")[0]) for t, why in kept], [(outside, "outside")])
+
 
 def run(*args, cwd):
     subprocess.run(["git", "-c", "protocol.file.allow=always", "-c", "user.name=t", "-c", "user.email=t@example.invalid",
@@ -84,6 +92,14 @@ class SubmoduleSweepTest(unittest.TestCase):
             p.start()
             self.addCleanup(p.stop)
         return wt.sweep(**kw)
+
+    def test_a_merged_submodule_worktree_outside_its_folder_is_kept(self):
+        out = self.wts.parent.parent.parent / "elsewhere"
+        run("worktree", "remove", "--force", str(self.wts / "merged"), cwd=self.sub)
+        run("worktree", "add", "-q", str(out), "agent/merged", cwd=self.sub)
+        lines = self.sweep()
+        self.assertTrue(out.is_dir())
+        self.assertTrue(any(str(out) in l and "outside, kept" in l for l in lines), lines)
 
     def test_submodule_repos_lists_the_checked_out_submodule(self):
         self.assertEqual(wt.submodule_repos(str(self.parent)), [str(self.sub)])

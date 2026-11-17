@@ -20,7 +20,8 @@ sweep then forces it only when no submodule holds work that exists nowhere else 
 submodule_risk). A fresh worktree with no PR yet, one with work after the merge, a
 detached one, and the ones holding a --keep directory (the caller's) are kept. The grace
 period lets another session finish in a worktree it just merged. Remote branches are left
-alone. The same rules apply to the worktrees of each checked-out submodule
+alone. Only worktrees under the repository's own .claude/worktrees/ are ever removed; others are reported as
+"outside, kept". The same rules apply to the worktrees of each checked-out submodule
 (external/model-railroad-skills keeps its own under its .claude/worktrees/), judged by that submodule's own
 GitHub PRs. Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py).
 """
@@ -128,10 +129,17 @@ def inside(path: str, keep: list[str]) -> bool:
     return False
 
 
-def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | None = None) -> tuple[list, list]:
+def under(path: str, folder: str) -> bool:
+    folder = os.path.realpath(folder)
+    return os.path.realpath(path).startswith(folder + os.sep)
+
+
+def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | None = None,
+         home: str | None = None) -> tuple[list, list]:
     """(to remove, kept with reason) for every worktree but the main checkout.
 
-    `merged(tree)` returns when its work was merged, or None while it is open work.
+    `merged(tree)` returns when its work was merged, or None while it is open work. With `home` (the repository's
+    own .claude/worktrees/ folder) a worktree anywhere else is never removed: it may be another session's working copy.
     """
     now = now or datetime.now(timezone.utc)
     remove, kept = [], []
@@ -139,7 +147,9 @@ def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | 
         when = merged(tree)
         if when is None:
             continue  # open work, a fresh worktree, or detached
-        if tree.locked:
+        if home is not None and not under(tree.path, home):
+            kept.append((tree, "outside, kept (not under .claude/worktrees/ of its repository)"))
+        elif tree.locked:
             kept.append((tree, "locked"))
         elif inside(tree.path, keep):
             kept.append((tree, "in use by this session; a later sweep removes it"))
@@ -200,7 +210,7 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
         merged = lambda t: merged_at(t, main)  # noqa: E731
     else:
         merged = lambda t: merged_at(t, main, by_branch.get(t.branch or "", []))  # noqa: E731
-    remove, kept = plan(trees, merged, keep, is_dirty)
+    remove, kept = plan(trees, merged, keep, is_dirty, home=os.path.join(main, ".claude", "worktrees"))
     lines = []
     for i, tree in enumerate(remove):
         label = tree.branch or tree.head[:8]
