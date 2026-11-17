@@ -9,9 +9,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 class PanelStatusContractTest(unittest.TestCase):
     def test_boot_does_not_paint_or_command_plant_turnouts(self) -> None:
         src = (SCRIPTS / "panel_status.py").read_text(encoding="utf-8")
-        self.assertIn('("IT:HART:YL:R1", (("M2T1211", CLOSED), ("M2T1213", CLOSED)))', src)
-        self.assertIn("route.setEnabled(False)", src)
-        self.assertIn("_paint_indicators_without_commanding", src)
+        self.assertNotIn("IT:HART:YL:", src.split("\n", 6)[6])     # the yard-ladder lamps are gone (2026-11-17)
         self.assertNotIn("setCommandedState(", src)
         self.assertIn("TRACK_POWER_SENSOR", src)
         self.assertIn("toggle_track_power", src)

@@ -41,7 +41,7 @@ EXAMPLE_DETECTORS = ("BS S-1", "BS Switch 37 / BS McKeesport")
 GROUPS = {
     "jmriversion": ("start", "JMRI version", "The version of JMRI that stored the file."),
     "sensors": ("objects", "Sensors", "Inputs: occupancy and switch feedback from the layout, plus internal flags and helpers."),
-    "turnouts": ("objects", "Turnouts", "The switches, their DCC twins, and internal turnouts for the yard ladders."),
+    "turnouts": ("objects", "Turnouts", "The switches, their DCC twins, and internal turnouts for the main and upper levels."),
     "memories": ("objects", "Memories", "Small stored values, such as the fast-clock time and the mimic page's requests."),
     "signalheads": ("objects", "Signal heads", "Virtual heads that carry each lamp's colour."),
     "signalmasts": ("objects", "Signal masts", "The signals, real and virtual, all stock Basic."),
@@ -49,7 +49,7 @@ GROUPS = {
     "layoutblocks": ("objects", "Layout blocks", "The Layout Editor's view of each block."),
     "sections": ("objects", "Sections", "Dispatcher track pieces, mostly made from pairs of masts."),
     "transits": ("objects", "Transits", "Whole moves that the Dispatcher builds from sections."),
-    "routes": ("objects", "Routes", "Sets of switches thrown together, used by the yard ladders."),
+    "routes": ("objects", "Routes", "Sets of switches thrown together. None since the yard-ladder buttons were retired."),
     "signalmastlogics": ("objects", "Signal Mast Logic", "The rules that set a mast from the track ahead."),
     "logixs": ("objects", "Logix", None),  # filled with the count
     "conditionals": ("objects", "Conditionals", "The conditions and actions inside those Logix."),

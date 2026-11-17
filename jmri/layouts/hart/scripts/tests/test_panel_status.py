@@ -1,8 +1,7 @@
 """panel_status.py behaviour, run against an in-memory JMRI (jmri_fake).
 
-What matters most on the Pi: painting the yard-ladder lamps must never command a plant
-turnout, lamps follow feedback sensors only (never JMRI's default CLOSED), and boot
-publishes nothing. The MQTT adapter here only records; nothing reaches a broker.
+What matters most on the Pi: the lamps never command a plant turnout and boot publishes nothing.
+The yard-ladder lamps are gone (owner, 2026-11-17): nothing makes or paints IT:HART:YL:* turnouts. The MQTT adapter here only records; nothing reaches a broker.
 """
 from __future__ import annotations
 
@@ -16,16 +15,14 @@ import jmri_fake as jf  # noqa: E402
 
 SCRIPT = Path(__file__).resolve().parents[1] / "panel_status.py"
 T, S = jf.Turnout, jf.Sensor
-WATCH = ["M2T308", "M2T309", "M2T310", "M2T311", "M2T1213", "M2T1211", "M2T1210", "M2T1209", "M2T1208"]
+PLANTS = ["M2T308", "M2T309", "M2T310", "M2T311", "M2T1213", "M2T1211", "M2T1210", "M2T1209", "M2T1208"]
 
 
 class PanelStatus(unittest.TestCase):
     def setUp(self) -> None:
         self.layout = jf.Layout()
-        for sn in WATCH:
+        for sn in PLANTS:
             self.plant(sn)
-        self.west = self.layout.routes.add(jf.FakeRoute("IR:1", "Yard ladder west"))
-        self.east = self.layout.routes.add(jf.FakeRoute("IR:2", "Yard ladder east"))
         self.ps = jf.load_script(SCRIPT, self.layout)
         stack = contextlib.ExitStack()
         stack.enter_context(jf.running(self.layout))
@@ -42,70 +39,22 @@ class PanelStatus(unittest.TestCase):
         to.first.state = S.ACTIVE if state == T.THROWN else S.INACTIVE
         to.second.state = S.ACTIVE if state == T.CLOSED else S.INACTIVE
 
-    def lit(self):
-        return sorted(sn for sn, to in self.layout.turnouts.beans.items()
-                      if sn.startswith("IT:HART:YL:") and to.known == T.THROWN)
-
     def boot(self):
         jf.fire_timers()
 
-    # --- ladder lamps ---------------------------------------------------------------
+    # --- boot ---------------------------------------------------------------------
 
-    def test_lamps_follow_feedback(self) -> None:
-        for sn, st in (("M2T308", T.THROWN), ("M2T309", T.CLOSED), ("M2T310", T.CLOSED), ("M2T311", T.THROWN),
-                       ("M2T1211", T.CLOSED), ("M2T1213", T.CLOSED)):
-            self.fb(sn, st)
-        self.boot()
-        self.assertEqual(self.lit(), ["IT:HART:YL:L4", "IT:HART:YL:R1"])
-
-    def test_first_matching_peel_wins(self) -> None:
-        # L5's pattern is a subset of L4's; L4 is listed first and must win.
-        for sn, st in (("M2T308", T.THROWN), ("M2T309", T.CLOSED), ("M2T310", T.CLOSED), ("M2T311", T.THROWN)):
-            self.fb(sn, st)
-        self.boot()
-        self.assertIn("IT:HART:YL:L4", self.lit())
-        self.assertNotIn("IT:HART:YL:L5", self.lit())
-
-    def test_unknown_feedback_lights_nothing(self) -> None:
-        # JMRI's KnownState default is CLOSED; reading it would light S-R (L1 / R1).
-        for sn in WATCH:
-            self.layout.turnouts.getTurnout(sn).known = T.CLOSED
-        self.boot()
-        self.assertEqual(self.lit(), [])
-
-    def test_both_feedback_sensors_active_is_unknown(self) -> None:
-        self.fb("M2T308", T.CLOSED)
-        self.layout.turnouts.getTurnout("M2T308").first.state = S.ACTIVE
-        self.boot()
-        self.assertNotIn("IT:HART:YL:L1", self.lit())
-
-    def test_painting_never_commands_a_plant(self) -> None:
-        for sn in WATCH:
+    def test_boot_makes_no_yard_ladder_turnouts_and_commands_no_plant(self) -> None:
+        for sn in PLANTS:
             self.fb(sn, T.CLOSED)
         self.boot()
-        self.ps["sync_ladder_buttons"]()
-        for sn in WATCH:
+        self.ps["sync_lamps"]()
+        self.assertFalse([sn for sn in self.layout.turnouts.beans if sn.startswith("IT:HART:YL:")])
+        for sn in PLANTS:
             self.assertEqual(self.layout.turnouts.getTurnout(sn).commanded, [], sn)
-        # Ladder routes are switched off around each paint and always switched back on.
-        self.assertTrue(self.west.enabled and self.east.enabled)
-        self.assertEqual(self.west.history[:2], [False, True])
-
-    def test_no_ladder_routes_skips_painting(self) -> None:
-        self.layout.routes.beans.clear()
-        self.fb("M2T308", T.CLOSED)
-        self.boot()
-        self.assertEqual(self.lit(), [])
-
-    def test_routes_reenabled_even_if_painting_fails(self) -> None:
-        def broken(sn, state):
-            raise RuntimeError("paint failed")
-
-        self.ps["_set_indicator_known"] = broken
-        self.boot()
-        self.assertTrue(self.west.enabled and self.east.enabled)
 
     def test_boot_publishes_nothing(self) -> None:
-        for sn in WATCH:
+        for sn in PLANTS:
             self.fb(sn, T.THROWN)
         self.boot()
         self.assertEqual(self.layout.adapter.published, [])
@@ -118,7 +67,7 @@ class PanelStatus(unittest.TestCase):
     def test_turnouts_lamp_colours(self) -> None:
         self.ps["sync_turnout_fb_lamp"]()
         self.assertEqual(self.head().appearance, jf.SignalHead.GREEN)
-        for sn in WATCH:
+        for sn in PLANTS:
             self.layout.turnouts.getTurnout(sn).mode = T.DIRECT
         self.ps["sync_turnout_fb_lamp"]()
         self.assertEqual(self.head().appearance, jf.SignalHead.RED)
@@ -137,11 +86,11 @@ class PanelStatus(unittest.TestCase):
         self.ps["toggle_turnout_fb_mode"]()
         self.assertEqual(self.head().appearance, jf.SignalHead.YELLOW)  # amber while pending
         jf.fire_timers()
-        self.assertEqual({self.layout.turnouts.getTurnout(sn).mode for sn in WATCH}, {T.DIRECT})
+        self.assertEqual({self.layout.turnouts.getTurnout(sn).mode for sn in PLANTS}, {T.DIRECT})
         self.assertEqual(self.head().appearance, jf.SignalHead.RED)
         self.ps["toggle_turnout_fb_mode"]()
         jf.fire_timers()
-        self.assertEqual({self.layout.turnouts.getTurnout(sn).mode for sn in WATCH}, {T.TWOSENSOR})
+        self.assertEqual({self.layout.turnouts.getTurnout(sn).mode for sn in PLANTS}, {T.TWOSENSOR})
         self.assertEqual(self.layout.adapter.published, [])
 
     # --- LCOS, Signals and Track Power lamps ----------------------------------------

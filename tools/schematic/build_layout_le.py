@@ -1119,6 +1119,32 @@ JOIN_HELIX = True
 # 2026-11-17; hartlib.parked): Entry/Exit, the stock Dispatcher System and the USS CTC machine. Unpark one by taking
 # it out of hartlib.parked.PARKED and rebuilding.
 PARKED = parked.PARKED
+# Retired (owner, 2026-11-17): the hand-wired Digicon desk's yard-ladder buttons, internal turnouts IT:HART:YL:*
+# and the routes IO:AUTO:0201-0210 they fire. No desk or panel uses them; the cut-over candidate leaves them out.
+RETIRED_TURNOUT_PREFIX = "IT:HART:YL:"
+
+
+def retire_yard_ladder(root: ET.Element) -> int:
+    """Take the yard-ladder internal turnouts, and every route one of them controls or sets, out of tables `root`;
+    the count taken out. Stops when any other reference to one is left."""
+    gone = 0
+    for sec in root.findall("turnouts"):
+        for t in [t for t in sec.findall("turnout")
+                  if (t.findtext("systemName") or "").startswith(RETIRED_TURNOUT_PREFIX)]:
+            sec.remove(t)
+            gone += 1
+    for sec in root.findall("routes"):
+        for r in [r for r in sec.findall("route")
+                  if (r.get("controlTurnout") or "").startswith(RETIRED_TURNOUT_PREFIX) or
+                  any((o.get("systemName") or "").startswith(RETIRED_TURNOUT_PREFIX)
+                      for o in r.findall("routeOutputTurnout"))]:
+            sec.remove(r)
+            gone += 1
+    left = [el.tag for el in root.iter() if RETIRED_TURNOUT_PREFIX in (el.text or "") or
+            any(RETIRED_TURNOUT_PREFIX in v for v in el.attrib.values())]
+    if left:
+        raise BuildError(f"yard ladder: {RETIRED_TURNOUT_PREFIX}* still named by {sorted(set(left))}")
+    return gone
 
 
 def joined_ends(bands, staging: dict, le_mod) -> set:
@@ -1432,6 +1458,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                 P.parked_doc = parked.split(root, PARKED)
             except parked.ParkError as exc:
                 raise BuildError(f"parking: {exc}") from None
+            P.retired = retire_yard_ladder(root)
     else:
         attrs = dict(inputs.attrs)
         attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")

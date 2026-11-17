@@ -53,7 +53,7 @@
           <thead><tr><th>Script</th><th>How it starts</th><th>What it does</th></tr></thead>
           <tbody>
             <tr><td><code>signal_coordinator.py</code></td><td>Start Up</td><td>Decides whether JMRI or the field electronics drive the mast lamps, hands control over between them, and recovers if a JMRI session crashes. It owns the "SML Enabled" button. See <a href="#two-brains">Who drives the mast lamps</a>.</td></tr>
-            <tr><td><code>panel_status.py</code></td><td>Start Up</td><td>Makes the four status lamps clickable, lights the yard-ladder triangle lamps from switch feedback, and keeps Routes disabled while the panel is painted, so redrawing never throws a switch. See <a href="#four-lamps">Four lamps</a>.</td></tr>
+            <tr><td><code>panel_status.py</code></td><td>Start Up</td><td>Makes the four status lamps clickable and keeps them up to date. It never throws a switch. (It also lit the yard-ladder triangle lamps until they were retired on 17 November 2026.) See <a href="#four-lamps">Four lamps</a>.</td></tr>
             <tr><td><code>hide_cats_desk_windows.py</code></td><td>When the tables load (see <a href="tables-file.html#logixng">The LogixNG</a>)</td><td>Under CATS, hides the HART Railroad panel and adds Help and Quit buttons to the button strip at the bottom of the CTC Panel. In plain PanelPro it does nothing.</td></tr>
             <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up, on the main layout host only</td><td>The remote-run hook, described under this table.</td></tr>
             <tr><td><code>sts_car_sync.py</code></td><td>Start Up, on the main layout host and the development Mac</td><td>Copies car positions, loads and final destinations from the traffic simulator (STS) into Operations Pro. The stock JSON server can move a car but cannot set its load or destination, so STS writes a batch into a Memory and this script applies it. It never touches turnouts, signals or MQTT.</td></tr>
@@ -90,7 +90,7 @@
             <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the status lamps. PanelPro loads it at startup. <a href="tables-file.html">More on the tables file</a>.</td></tr>
             <tr><td><code>jython/</code></td><td>The six scripts above.</td></tr>
             <tr><td>Start Up entries</td><td>Kept in the profile, so JMRI loads the tables and runs the scripts at launch. Deploy repoints the script entries and adds the two for the traffic simulator and the mimic.</td></tr>
-            <tr><td><code>resources/buttons/</code></td><td>The two 16-pixel triangle lamps for the yard ladders.</td></tr>
+            <tr><td><code>resources/buttons/</code></td><td>Button images: the 16-pixel triangle lamps of the retired yard-ladder buttons, and lamps used by the parked lever machine.</td></tr>
             <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels: our yellow pair. The amber icon is JMRI's own.</td></tr>
             <tr><td><code>resources/misc/hart_panel_bg_plain.jpg</code></td><td>The backdrop of the HART Railroad panel, 1900 by 600 pixels. It sits behind the track as a label on the panel, at the top left.</td></tr>
             <tr><td><code>ctc/icons/</code> and <code>ctc/GUIObjects.xml</code></td><td>The USS CTC machine: 70 generated track icons and the panel layout, as custom cells for the stock CTC tool. Parked; not shipped to the hosts.</td></tr>

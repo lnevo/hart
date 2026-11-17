@@ -20,7 +20,7 @@ WRITERS = (
     (S + "reconcile_dispatcher_stations.py", ["--no-sync"]),
     (S + "disable_digicon_sml_in_tables.py", []), (S + "refresh_bean_comments.py", []),
     (S + "apply_nx_layer.py", []), (S + "apply_le_sml_facing.py", []), (S + "apply_le_cleanup.py", []),
-    (S + "apply_yard_throat_blocks.py", []), (S + "add_yard_ladder_le_icons.py", []),
+    (S + "apply_yard_throat_blocks.py", []),
     (S + "add_digicon_le_signal_icons.py", []), (S + "apply_public_names.py", ["--apply"]),
     (S + "sync_public_name_map.py", ["--apply-comments"]), (S + "cleanup_uss_ctc_leftovers.py", ["--apply"]),
     (S + "uss_switch_only_columns.py", ["--apply"]), (S + "retarget_dispatcher_traininfo_transits.py", []),
