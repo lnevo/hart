@@ -139,7 +139,8 @@ function readSources(src) {
   return s => s.replace(re, k => SRC[k]); // the same label the game shows (srcLabel)
 }
 
-/* The modern run's code sits between its warrant tables and the end-of-run scene; everything before is 1949. */
+/* The modern run's code starts at its warrant tables. Runs in FUNC_RUNS (checked first) also sit before the end-of-run
+   scene, so a question there gets its run's label; any other question before TW_SEL is 1949, after it modern. */
 function modernRange(src) {
   const from = src.indexOf("const TW_SEL="), to = src.indexOf("function finish(");
   if (from < 0 || to < from) throw new Error("run.html: modern run code (const TW_SEL … function finish) not found");
