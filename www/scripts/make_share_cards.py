@@ -576,7 +576,7 @@ def ap_exam():
     body = """<div class="desk"><div class="order">
   <div class="hd"><span class="form">19</span><div class="rr">HART RAILROAD</div><div class="kind">TRAIN ORDER No. <b class="ty">516</b></div></div>
   <div class="ln"><span>Superintendent's Office</span><span class="ty">Nov 14</span><span>20</span><span class="ty">26</span></div>
-  <div class="ln"><span>To</span><span class="ty wide">C &amp; E Extra West</span><span>At</span><span class="ty wide">Study Guide</span><span>Opr.</span><span class="ty">HT</span></div>
+  <div class="ln"><span>To</span><span class="ty wide">C &amp; E Extra East</span><span>At</span><span class="ty wide">Study Guide</span><span>Opr.</span><span class="ty">HT</span></div>
   <div class="body ty">Engs C and E run extra Study Guide to Exam<br>and wait at Flashcards until learned.</div>
   <div class="copy">CONDUCTOR AND ENGINEMAN MUST EACH HAVE A COPY OF THIS ORDER</div>
   <div class="ln foot"><span>Repeated at</span><span class="ty">8 10 pm</span><span>Made</span><span class="ty">Complete</span><span>Time</span><span class="ty">8 15 pm</span><span>Opr.</span><span class="ty">HT</span></div>
@@ -613,17 +613,17 @@ body{background:#0c2f39}
 
 
 def ap_exam_run():
-    """ap-exam-run: a Clearance Form A on the Kestrel Valley, clearing Extra 812 West at Ashby with two orders, stamped Extra West.
+    """ap-exam-run: a Clearance Form A on the Kestrel Valley, clearing Extra 812 East at Ashby with two orders, stamped Extra East.
 
     The form follows Standard Code Rule 211: the number of orders and the number of each, then OK, the time and the dispatcher's initials."""
     body = """<div class="desk"><div class="form">
   <div class="hd"><div class="rr">KESTREL VALLEY RAILROAD</div><div class="kind">CLEARANCE FORM A</div></div>
   <div class="ln"><span>Station</span><span class="ty wide">Ashby</span><span class="ty">Nov 16</span><span>19</span><span class="ty">49</span></div>
-  <div class="ln"><span>To</span><span class="ty wide">Extra 812 West</span></div>
+  <div class="ln"><span>To</span><span class="ty wide">Extra 812 East</span></div>
   <div class="body"><span>I have</span><span class="ty">2</span><span>orders for your train. Nos</span><span class="ty wide">14, 15</span></div>
   <div class="ln foot"><span>OK</span><span class="ty">6 14 am</span><span>Dispatcher</span><span class="ty">RK</span><span>Opr.</span><span class="ty">HT</span></div>
   <div class="copy">CONDUCTOR, ENGINEMAN AND FIREMAN MUST SEE THAT THIS CLEARANCE AGREES WITH THEIR ORDERS</div>
-  <div class="stamp">EXTRA<br>WEST</div>
+  <div class="stamp">EXTRA<br>EAST</div>
 </div></div>"""
     style = """@import url("https://fonts.googleapis.com/css2?family=Special+Elite&display=swap");
 body{background:#2c2418}
