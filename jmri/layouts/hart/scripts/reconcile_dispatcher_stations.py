@@ -808,17 +808,17 @@ def main(argv: list[str] | None = None) -> int:
     if not args.check:
         paths.exit_if_overridden(Path(__file__).name)
     try:
-        left_out = parked.parked_in(parse_xml(safe_panel_path(args.panel)).getroot())
-    except (OSError, ET.ParseError, ValueError):
-        left_out = frozenset()          # reported below
-    if "dispatcher" in left_out:
+        panel = safe_panel_path(args.panel)
+        tree = parse_xml(panel)         # parsed once: the parked test below and the reconcile read the same tree
+    except (OSError, ET.ParseError, ValueError) as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 2
+    if "dispatcher" in parked.parked_in(tree.getroot()):
         # parked (hartlib.parked): tables without the Dispatcher System hold no station to reconcile
         print("SKIPPED: the Dispatcher System is parked (hartlib.parked.PARKED); its stations are in "
               f"{paths.rel(parked.PARKED_XML)}")
         return 0
     try:
-        panel = safe_panel_path(args.panel)
-        tree = parse_xml(panel)
         reference = main_layout_editor(parse_xml(args.reference).getroot()) if args.reference else None
         changes = reconcile(tree, reference)
     except (OSError, ET.ParseError, ValueError) as error:
@@ -845,8 +845,14 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_sync and panel == DEFAULT_PANEL.resolve():
         try:
             sync_tree = parse_xml(SYNC_PANEL)
-            sync_changes = reconcile(sync_tree, reference)
-            if sync_changes.total:
+            if "dispatcher" in parked.parked_in(sync_tree.getroot()):
+                print(f"SKIPPED deployment {SYNC_PANEL}: the Dispatcher System is parked there")
+                sync_changes = None
+            else:
+                sync_changes = reconcile(sync_tree, reference)
+            if sync_changes is None:
+                pass
+            elif sync_changes.total:
                 write_atomic(sync_tree, SYNC_PANEL)
                 print(
                     f"Reconciled deployment independently "

@@ -377,10 +377,23 @@ def xover_corners(name, F) -> list:
     return [f"{name}{c}" for c in "abcd" if f"{name}{c}" in F.device.blocks]
 
 
+def loop_half_edge(edge, half) -> str:
+    """The edge level_signals gives one half of a balloon loop drawn from plan edge `edge` ("e33" -> "e33~1"): a
+    suffix of its own, so it never reads as a connector's or helix's x/y piece (the plugin's mast_piece and
+    mileposts read those); the strand keeps its plan edge as `plan_edge`."""
+    return f"{edge}~{half}"
+
+
+def plan_edge(strand) -> str:
+    """The plan edge a drawn strand comes from: the edge level_signals kept before naming a loop half
+    (`plan_edge`), else its own, with a connector's or helix's x/y piece suffix dropped."""
+    return re.sub(r"(?<=\d)[xy]$", "", strand.get("plan_edge", strand["edge"]))
+
+
 def placeholder(strand) -> str:
-    """The device map trial name of a drawn strand: "Track <plan edge>", a connector's or helix's x/y piece counted
-    as its edge, and a balloon loop's half numbered (name_loop_halves)."""
-    return bdm.loop_placeholder("Track " + re.sub(r"(?<=\d)[xy]$", "", strand["edge"]), strand.get("loop_half"))
+    """The device map trial name of a drawn strand: "Track <plan edge>" (plan_edge), and a balloon loop's half
+    numbered (name_loop_halves)."""
+    return bdm.loop_placeholder("Track " + plan_edge(strand), strand.get("loop_half"))
 
 
 def name_loop_halves(bands):
@@ -484,9 +497,9 @@ def inside_os(bands, P, bound_bi, name, row):
                        for d in ends) or not any(d["kind"] in ("switch", "dx") for d in ends):
                 raise SystemExit(f"{name}: its schematic track {s['edge']} has no desk block and does not run "
                                  "between switches, so it is not inside their OS blocks")
-            cm[re.sub(r"(?<=\d)[xy]$", "", s["edge"])] = s["cm"]     # as the device map measures it
+            cm[plan_edge(s)] = s["cm"]     # as the device map measures it
     if not found or any(t.removeprefix("Track ") not in
-                        {re.sub(r"(?<=\d)[xy]$", "", bands[bi][1]["strands"][sid]["edge"]) for bi, sid in found}
+                        {plan_edge(bands[bi][1]["strands"][sid]) for bi, sid in found}
                         for t in row["trial"]):
         raise SystemExit(f"{name}: the device map's tracks {', '.join(sorted(row['trial']))} are not all drawn on "
                          "main or upper")
@@ -622,8 +635,8 @@ def level_signals(bands, F, bound_bi):
     """Put each main and upper mast (main_upper_masts.csv) in its band's signals, as the plugin reads a band's drawn
     masts: on the track it faces (the device map block holding the schematic track at that leg of its switch), at
     that switch (its toward end), heading west for an L mast (ADR-005), its heads from its row. The two halves of a
-    balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (x and y, which
-    placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
+    balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (loop_half_edge,
+    which placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
     name_loop_halves). Stops on a mast drawn at no switch leg or at two."""
     by_trial = {t: name for name, row in F.device.blocks.items() for t in row["trial"]}
     added = defaultdict(list)
@@ -652,8 +665,9 @@ def level_signals(bands, F, bound_bi):
             if not s.get("loop_half") or any(not band["strands"][k].get("loop_half") for k in twins):
                 raise SystemExit(f"{r['mast']}: its track {s['edge']} is drawn more than once at Switch "
                                  f"{r['switch']} on {title}, and not as the halves of a balloon loop")
-            for k in [sid] + twins:
-                band["strands"][k]["edge"] += "xy"[band["strands"][k]["loop_half"] - 1]
+            for t in [band["strands"][k] for k in [sid] + twins]:
+                t.setdefault("plan_edge", t["edge"])
+                t["edge"] = loop_half_edge(t["plan_edge"], t["loop_half"])
         if s["edge"].endswith(("x", "y")) and not s.get("loop_half"):
             raise SystemExit(f"{r['mast']}: its track {s['edge']} is one piece of a track drawn on two levels")
         key = r["mast"].removeprefix(opts.get("mast_prefix", ""))

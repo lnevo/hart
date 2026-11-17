@@ -129,9 +129,10 @@ def parse_tables(path: Path) -> ET.Element:
 # ---------------------------------------------------------------- tables.xml
 
 class Tables:
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, root: ET.Element | None = None) -> None:
+        """The tables at `path`, or `root` when the caller holds them parsed already (the USS CTC view)."""
         self.path = path
-        self.root = parse_tables(path)
+        self.root = parse_tables(path) if root is None else root
         self.block_user: dict[str, str] = {}
         self.block_sensor: dict[str, str] = {}
         self.paths: dict[str, list[tuple[str, list[tuple[str, str]]]]] = {}
@@ -659,12 +660,20 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
         check_desk(Path(desk), switches, t, r)
         check_level_desk(Path(desk), t, r)
     # the USS CTC machine parked (hartlib.parked): its code buttons and panel are checked in the parked file, put
-    # back into a copy of the tables, against the same switches
-    uss = parked.with_parked_file({"uss"}, tables)
-    check_ctc_buttons(switches, Tables(uss) if uss != tables else t, occupancy_sensors(occupancy), r)
+    # back into a copy of the tables, against the same switches (the tables parsed once above; the copy stays in
+    # memory, with no temporary file to write and parse again)
+    uss_root = parked.with_parked({"uss"}, tables, root=t.root)
+    if uss_root is t.root:
+        uss, uss_text = t, Path(tables).read_text(encoding="utf-8")
+    else:
+        uss = Tables(tables, root=uss_root)
+        pe = next(iter(uss_root.iter("paneleditor")), None)       # only the USS panel is read from the text
+        uss_text = ET.tostring(pe, encoding="unicode") if pe is not None else ""
+    check_ctc_buttons(switches, uss, occupancy_sensors(occupancy), r)
     cells = facts.load_uss_cells(data)  # the board's grid, frozen from the hand-wired desk (uss_board_cells.csv)
-    for label, path in (("GUIObjects.xml", gui), ("tables.xml USS panel", uss)):
-        check_uss_panel(label, uss_panel(Path(path).read_text(encoding="utf-8")), switches, gen, cells, r)
+    gui_text = Path(gui).read_text(encoding="utf-8")
+    for label, text in (("GUIObjects.xml", gui_text), ("tables.xml USS panel", uss_text)):
+        check_uss_panel(label, uss_panel(text), switches, gen, cells, r)
     return r
 
 
