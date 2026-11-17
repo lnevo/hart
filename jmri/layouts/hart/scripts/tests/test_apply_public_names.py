@@ -239,6 +239,15 @@ class ApplyPublicNamesTest(unittest.TestCase):
         self.assertNotIn('systemName="Switch 13"', updated)
         self.assertNotIn('systemName="Switch 37"', updated)
 
+    def test_old_switch_numbers_are_not_resolved(self):
+        """The staging switches' old numbers (Switch 100 to 119) are DCC address aliases now (DCC n, owner
+        2026-11-17); the odd ones are main level turnout names, so a Switch 1xx reference is never rewritten
+        to a staging turnout's hardware."""
+        mapping = apply_public_names.load_turnout_hardware_map(MAP)
+        self.assertEqual({n for n in mapping if n.startswith("Switch 1") and len(n) == 10}, set())
+        xml = '<beansetting><turnout systemName="Switch 116" /></beansetting>'
+        self.assertEqual(apply_public_names.apply_turnout_systemname_lookups_to_text(xml, mapping), (xml, 0))
+
 
 if __name__ == "__main__":
     unittest.main()

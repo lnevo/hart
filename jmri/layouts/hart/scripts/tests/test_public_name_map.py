@@ -292,10 +292,10 @@ class PublicNameMapContractTest(unittest.TestCase):
                 )
             hardware = (row.get("hardware") or "").split()[0]
             xml_name = xml_turnouts.get(hardware)
-            if xml_name not in {f"Switch {number}", expected}:
+            # Switch 1xx is never right here: the odd ones are main level turnout names now.
+            if xml_name != expected:
                 violations.append(
-                    f"{switch}: tables.xml userName {xml_name!r} "
-                    f"not {switch!r} or {expected!r}"
+                    f"{switch}: tables.xml userName of {hardware} is {xml_name!r}, not {expected!r}"
                 )
         self.assertEqual(violations, [])
 

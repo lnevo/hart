@@ -101,22 +101,22 @@ block,Track Main West,Track Main West,,Block 2-1,,,
 block,Track K-1,Track K-1,Princess,Block 1-1,,Princess,
 block,Track K-2,Track K-2,Princess,Block 1-2,,Princess,
 block,Track S-1,Track S-1,South Yard,Block 2-7,,South Yard,
-block,Track S-2,Track S-2,South Yard,Block 2-6,,South Yard,
-block,Track S-3,Track S-3,South Yard,Block 2-5,,South Yard,
-block,Track S-4,Track S-4,South Yard,Block 2-4,,South Yard,
-block,Track S-R,Track S-R,South Yard,Block 2-8,,South Yard,
-block,Track Scale,Track Scale,Plane,Block 4-8,,Plane,
-block,Track Scale East,Track Scale East,Plane,Block 4-8,,,hidden Scale east throat; same occupancy as Track Scale (Block 4-8)
-block,Track S-R East,Track S-R East,South Yard,Block 2-8,,,hidden S-R east throat; same occupancy as S-R (Block 2-8)
-block,Track S-R West,Track S-R West,South Yard,Block 2-8,,,hidden S-R west throat; same occupancy as S-R (Block 2-8)
 block,Track S-1 East,Track S-1 East,South Yard,Block 2-7,,,hidden S-1 east throat; same occupancy as S-1 (Block 2-7)
 block,Track S-1 West,Track S-1 West,South Yard,Block 2-7,,,hidden S-1 west throat; same occupancy as S-1 (Block 2-7)
+block,Track S-2,Track S-2,South Yard,Block 2-6,,South Yard,
 block,Track S-2 East,Track S-2 East,South Yard,Block 2-6,,,hidden S-2 east throat; same occupancy as S-2 (Block 2-6)
 block,Track S-2 West,Track S-2 West,South Yard,Block 2-6,,,hidden S-2 west throat; same occupancy as S-2 (Block 2-6)
+block,Track S-3,Track S-3,South Yard,Block 2-5,,South Yard,
 block,Track S-3 East,Track S-3 East,South Yard,Block 2-5,,,hidden S-3 east throat; same occupancy as S-3 (Block 2-5)
 block,Track S-3 West,Track S-3 West,South Yard,Block 2-5,,,hidden S-3 west throat; same occupancy as S-3 (Block 2-5)
+block,Track S-4,Track S-4,South Yard,Block 2-4,,South Yard,
 block,Track S-4 East,Track S-4 East,South Yard,Block 2-4,,,hidden S-4 east throat; same occupancy as S-4 (Block 2-4)
 block,Track S-4 West,Track S-4 West,South Yard,Block 2-4,,,hidden S-4 west throat; same occupancy as S-4 (Block 2-4)
+block,Track S-R,Track S-R,South Yard,Block 2-8,,South Yard,
+block,Track S-R East,Track S-R East,South Yard,Block 2-8,,,hidden S-R east throat; same occupancy as S-R (Block 2-8)
+block,Track S-R West,Track S-R West,South Yard,Block 2-8,,,hidden S-R west throat; same occupancy as S-R (Block 2-8)
+block,Track Scale,Track Scale,Plane,Block 4-8,,Plane,
+block,Track Scale East,Track Scale East,Plane,Block 4-8,,,hidden Scale east throat; same occupancy as Track Scale (Block 4-8)
 block,Track W-1,Track W-1,Brick,Block 4-4,,Brick,
 block,Track W-2,Track W-2,Brick,Block 4-3,,Brick,
 block,Track West Ext,Track West Ext,East End,Block 1-8,,East End,
