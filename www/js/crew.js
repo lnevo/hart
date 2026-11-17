@@ -10,8 +10,20 @@
     return HARTOps.base() + rel;
   }
 
+  // The archive pages (crew/maps/archive/) keep the earlier hand-drawn maps and link only among themselves.
+  var archive = false;
+
   function mapHref(id) {
-    return u("crew/maps/" + id + "/index.html");
+    return u("crew/maps/" + (archive ? "archive/" : "") + id + "/index.html");
+  }
+
+  function sheetSrc(file) {
+    return u("crew/maps/generated-sheets/" + file + ".svg");
+  }
+
+  // Thumbnail for a map card: the generated sheet, or the hand-drawn picture in the archive.
+  function mapThumb(m) {
+    return archive || !m.sheets || !m.sheets.length ? u(m.img) : sheetSrc(m.sheets[0]);
   }
 
   function spotHref(id) {
@@ -284,7 +296,7 @@
     if (!m) return "";
     return (
       '<a class="map-card" href="' + mapHref(m.id) + '">' +
-      '<img src="' + esc(u(m.img)) + '" alt="" loading="lazy">' +
+      '<img src="' + esc(mapThumb(m)) + '" alt="" loading="lazy">' +
       "<span><strong>" + esc(m.title) + "</strong><small>" + esc(m.pub) + "</small></span></a>"
     );
   }
@@ -455,13 +467,28 @@
     wirePrint(root);
   }
 
+  // One generated sheet (docs/ops/stations, published under crew/maps/generated-sheets/), tap to zoom.
+  function sheetFigure(id, withTitle) {
+    var info = (data.sheets || {})[id];
+    if (!info) throw new Error("No sheet " + id);
+    var src = esc(sheetSrc(id));
+    return (
+      '<figure class="map-figure">' + (withTitle ? '<h2 class="sub-h">' + esc(info[0]) + "</h2>" : "") +
+      '<button type="button" class="map-open" data-zoom aria-label="Open ' + esc(info[0]) + ' map full screen">' +
+      '<img src="' + src + '" alt="' + esc(info[0] + " station map, " + info[1].charAt(0).toLowerCase() + info[1].slice(1)) +
+      '" width="1056" height="816"></button>' +
+      '<figcaption class="no-print">' + esc(info[0] + ": " + info[1]) + '. Tap the map to zoom. <a href="' + src +
+      '">Open the drawing full size</a>. <span class="rotate-hint">Turn your phone sideways for a bigger view.</span></figcaption></figure>'
+    );
+  }
+
   // —— Station map page ——
   function renderMap(m) {
     var root = document.getElementById("crew-root");
-    document.title = m.title + " station map — HART";
+    document.title = (archive ? "Archive: " : "") + m.title + " station map — HART";
     document.getElementById("page-title").textContent = m.title;
-    document.getElementById("page-pub").textContent = pubLine(m);
-    document.getElementById("page-lede").textContent = m.what;
+    document.getElementById("page-pub").textContent = archive ? pubLine(m) : "Publication " + m.pub;
+    document.getElementById("page-lede").textContent = archive ? m.what : m.now || m.what;
 
     var toggle = "";
     if (m.rotated) {
@@ -493,7 +520,7 @@
         .join("") +
       "</tbody></table></div></section>";
 
-    var switches =
+    var switches = !archive ? "" :
       '<section class="sheet-sec no-print"><h2>Switches</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>No.</th><th>What it does</th></tr></thead><tbody>' +
       m.switches
         .map(function (s) {
@@ -509,14 +536,18 @@
       }).join("") +
       "</div></section>";
 
+    var figures = archive
+      ? '<figure class="map-figure"><button type="button" class="map-open" data-zoom aria-label="Open ' + esc(m.title) +
+        ' map full screen"><img src="' + esc(u(m.img)) + '" alt="' + esc(m.alt) + '" width="1600" height="1000"></button>' +
+        '<figcaption class="no-print">Tap the map to zoom. <span class="rotate-hint">Turn your phone sideways for a bigger view.</span></figcaption></figure>'
+      : m.sheets.map(function (id) { return sheetFigure(id, m.sheets.length > 1); }).join("");
+
     root.innerHTML =
-      toggle +
-      '<figure class="map-figure"><button type="button" class="map-open" data-zoom aria-label="Open ' + esc(m.title) +
-      ' map full screen"><img src="' + esc(u(m.img)) + '" alt="' + esc(m.alt) + '" width="1600" height="1000"></button>' +
-      '<figcaption class="no-print">Tap the map to zoom. <span class="rotate-hint">Turn your phone sideways for a bigger view.</span></figcaption></figure>' +
+      (archive ? '<p class="muted small no-print">Earlier hand-drawn map with the old switch numbers. <a href="' + u("crew/maps/" + m.id + "/index.html") + '">Current ' + esc(m.title) + " map</a></p>" : "") +
+      toggle + figures +
       tracks + switches + connects +
-      '<div class="sheet-actions no-print">' + printButton("Print map (8×5)") + sourceButton(m.source) +
-      '<a class="btn btn-ghost" href="' + u("crew/maps/index.html") + '">All maps</a>' +
+      '<div class="sheet-actions no-print">' + (archive ? printButton("Print map (8×5)") + sourceButton(m.source) : "") +
+      '<a class="btn btn-ghost" href="' + u(archive ? "crew/maps/archive/index.html" : "crew/maps/index.html") + '">All maps</a>' +
       '<a class="btn btn-ghost" href="' + u("crew/index.html") + '">Session paperwork</a></div>';
 
     root.querySelectorAll(".seg button").forEach(function (b) {
@@ -541,6 +572,34 @@
 
   function renderMapsIndex() {
     var root = document.getElementById("crew-root");
+    if (archive) return renderMapsArchive(root);
+    var sc = data.schematic;
+    var levels = (data.levels || []).map(function (id) {
+      return '<li><a href="' + esc(sheetSrc(id)) + '"><img src="' + esc(sheetSrc(id)) + '" alt="" loading="lazy" width="1056" height="816">' +
+        "<span><strong>" + esc(data.sheets[id][0]) + "</strong><em>" + esc(data.sheets[id][1]) + "</em></span></a></li>";
+    }).join("");
+    root.innerHTML =
+      '<section class="maps-index">' +
+      '<figure class="key-map"><button type="button" class="map-open" data-zoom aria-label="Open the system schematic full screen">' +
+      '<img src="' + esc(u(sc.svg)) + '" alt="' + esc(sc.alt) + '" width="1056" height="816"></button>' +
+      "<figcaption>" + esc(sc.caption) + ' <a href="' + esc(u(sc.pdf)) + '">PDF to print</a>. <span class="no-print">Tap to zoom.</span></figcaption></figure>' +
+      '<div><h2 class="sub-h">Station maps</h2><ul class="map-list">' +
+      data.maps
+        .map(function (m) {
+          return (
+            '<li><a href="' + mapHref(m.id) + '"><img src="' + esc(mapThumb(m)) + '" alt="" loading="lazy">' +
+            "<span><strong>" + esc(m.title) + "</strong><small>" + esc(m.pub) + "</small><em>" + esc(m.now || m.what) + "</em></span></a></li>"
+          );
+        })
+        .join("") +
+      "</ul>" +
+      '<h2 class="sub-h">Levels</h2><ul class="map-list">' + levels + "</ul>" +
+      '<p class="small">The earlier hand-drawn maps, with the old switch numbers, are in the <a href="' + u("crew/maps/archive/index.html") + '">archive</a>.</p></div></section>' +
+      '<div class="sheet-actions no-print"><a class="btn btn-ghost" href="' + u("crew/index.html") + '">Session paperwork</a></div>';
+    wireZoom(root);
+  }
+
+  function renderMapsArchive(root) {
     var o = data.overview;
     root.innerHTML =
       '<section class="maps-index">' +
@@ -560,7 +619,7 @@
         .join("") +
       "</ul></div></section>" +
       '<div class="sheet-actions no-print">' + sourceButton(o.source, "SM-01 source docx") +
-      '<a class="btn btn-ghost" href="' + u("crew/index.html") + '">Session paperwork</a></div>';
+      '<a class="btn btn-ghost" href="' + u("crew/maps/index.html") + '">Current station maps</a></div>';
     wireZoom(root);
   }
 
@@ -781,6 +840,10 @@
   }
 
   async function page(kind, id) {
+    if (/-archive$/.test(kind)) {
+      archive = true;
+      kind = kind.replace(/-archive$/, "");
+    }
     var pageId = {
       sheet: "crew-sheet",
       map: "crew-map",
@@ -795,6 +858,8 @@
       site = await HARTOps.mountChrome(pageId);
       var crumbs = [PAPERWORK()];
       if (kind === "map") crumbs.push({ href: u("crew/maps/index.html"), label: "Station maps" });
+      if (kind === "map" && archive) crumbs.push({ href: u("crew/maps/archive/index.html"), label: "Archive" });
+      if (kind === "maps" && archive) crumbs.push({ href: u("crew/maps/index.html"), label: "Station maps" });
       extendCrumb(crumbs);
       data = await HARTOps.loadJson("data/crew.json");
       if (kind === "sheet") {

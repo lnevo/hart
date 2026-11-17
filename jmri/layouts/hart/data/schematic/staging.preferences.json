@@ -98,6 +98,28 @@
    "35",
    "37",
    "39"
+  ],
+  "Staging level": [
+   "1",
+   "3",
+   "5",
+   "7",
+   "9",
+   "11",
+   "13",
+   "15",
+   "17",
+   "19",
+   "21",
+   "23",
+   "25",
+   "27",
+   "29",
+   "31",
+   "33",
+   "35",
+   "37",
+   "39"
   ]
  },
  "_detail_sheets": "Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations above. South Yard covers the yard and the Barn (owner, 2026-11-14); West Yard pairs the hand map with Brick and Plane; Princess is the hand map's Shenango.",

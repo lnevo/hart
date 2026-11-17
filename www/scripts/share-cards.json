@@ -166,6 +166,42 @@
       "from": "www/assets/behind/sts/car-card-boxes-banner.jpg",
       "shared": true
     },
+    "crew/maps/archive/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/west-yard/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/south-yard/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/barn/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/east-end/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
+    "crew/maps/archive/shenango/index.html": {
+      "image": "assets/share/crew-maps.jpg",
+      "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
+      "from": "ops/hart-ops/publications/assets/station_map_full.png (whole, on white)",
+      "shared": true
+    },
     "crew/maps/barn/index.html": {
       "image": "assets/share/crew-maps.jpg",
       "alt": "The full station map, west to east: West Yard, Brick, Plane, the Barn, the South Yard industry tracks, then Princess and the Shenango Coke Works loop.",
