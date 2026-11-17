@@ -393,21 +393,50 @@ def new(topic: str, agent: str) -> Path:
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.symlink_to(src)
     for rel in CHECK_SUBMODULES:
-        problem = init_submodule(path, rel)
+        if not (path / rel).is_dir():  # not a submodule of this checkout (a test repo)
+            continue
+        problem = init_submodule(path, rel, main)
         if problem:
             print(f"warning: {rel} is not checked out ({problem}); run git submodule update --init {rel}",
                   file=sys.stderr)
     return path
 
 
-def init_submodule(path: Path, rel: str) -> str:
-    """Check out the submodule at rel in the worktree at path; return why it failed, or "" when it worked."""
+# One git call in init_submodule may take this long (seconds); kept under the 120 s an agent's shell call allows.
+SUBMODULE_TIMEOUT = 90
+
+
+def init_submodule(path: Path, rel: str, main: Path | None = None) -> str:
+    """Check out the submodule at rel in the worktree at path; return why it failed, or "" when it worked.
+
+    The clone borrows objects from the main checkout's copy of the submodule when there is one, then copies them
+    in and drops the link (what git clone --dissociate does), so only missing commits come over the network and
+    the worktree does not depend on the main checkout afterwards. Git never prompts: no terminal, ssh in batch mode.
+    """
+    env = {**os.environ, "GIT_TERMINAL_PROMPT": "0", "GIT_SSH_COMMAND": "ssh -o BatchMode=yes"}
+    cmd = ["git", "-C", str(path), "submodule", "update", "--init", "-q"]
+    if main is not None and (main / rel / ".git").exists():
+        cmd += ["--reference", str(main / rel)]
     try:
-        done = subprocess.run(["git", "-C", str(path), "submodule", "update", "--init", "-q", "--", rel],
-                              capture_output=True, text=True, timeout=300)
+        done = subprocess.run([*cmd, "--", rel], capture_output=True, text=True, timeout=SUBMODULE_TIMEOUT, env=env)
+        if done.returncode != 0:
+            lines = done.stderr.strip().splitlines()
+            causes = [ln for ln in lines if ln.lower().startswith(("fatal:", "error:"))]
+            return (causes or lines or ["git failed"])[0]
+        sub = path / rel
+        gitdir = Path(git("rev-parse", "--absolute-git-dir", cwd=sub))
+        alternates = gitdir / "objects/info/alternates"
+        if alternates.exists():
+            done = subprocess.run(["git", "-C", str(sub), "repack", "-a", "-d", "-q"], capture_output=True,
+                                  text=True, timeout=SUBMODULE_TIMEOUT)
+            if done.returncode != 0:
+                return f"checked out, but copying the borrowed objects failed: {done.stderr.strip()[:200]}"
+            alternates.unlink()
     except subprocess.TimeoutExpired:
-        return "timed out after 300 s"
-    return "" if done.returncode == 0 else (done.stderr.strip().splitlines() or ["git failed"])[-1]
+        return f"timed out after {SUBMODULE_TIMEOUT} s"
+    except OSError as e:
+        return f"could not run git: {e}"
+    return ""
 
 
 def main(argv: list[str] | None = None) -> int:
