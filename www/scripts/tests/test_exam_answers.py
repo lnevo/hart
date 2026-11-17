@@ -79,6 +79,47 @@ class ExamAnswers(unittest.TestCase):
         self.assertEqual(q[0]["src"], "GCOR · 6.13")
         self.assertEqual(q[1]["extra"], "<svg>0</svg>")
 
+    def test_questions_needing_the_sheet_have_a_reference(self):
+        out = node(
+            f"const m=require({json.dumps(str(SCRIPT))});"
+            f"const src=require('fs').readFileSync({json.dumps(str(RUN))},'utf8');"
+            "const R=m.references(src);"
+            "console.log(JSON.stringify({qs:m.extract(src).filter(q=>q.ref).map(q=>[q.title,q.ref]),"
+            "refs:Object.fromEntries(Object.entries(R).map(([k,v])=>[k,v.html]))}))"
+        )
+        data = json.loads(out)
+        refs = {t: r for t, r in data["qs"]}
+        # The four questions whose facts the game shows only on its train sheet or warrant form.
+        self.assertEqual(refs.get("Same class, opposite ways"), "tt")
+        self.assertEqual(refs.get("Box 5"), "w101")
+        self.assertEqual(refs.get("Box 7"), "w102")
+        self.assertTrue(any(r == "order" for t, r in data["qs"] if t.startswith("Order No")))
+        html = data["refs"]
+        self.assertIn("Westward trains are superior to eastward trains of the same class", html["tt"])
+        # Box 5 is set at play time; Box 6 is set after the literal on every run; 8 and 10 depend on the run.
+        self.assertIn("Not in effect until <b>[time]</b>", html["w101"])
+        self.assertIn("arrival of <b>2211 West</b> at <b>Dunmore</b>", html["w102"])
+        self.assertIn("expires at <b>9:00</b></td>", html["w102"])
+        self.assertIn('Hold main track at last named point <small class="xa-some">some runs</small>', html["w102"])
+        self.assertIn("No 1 run 20 mins late Ironton to Ashby", html["order"])
+        self.assertIn("at least 12 minutes later", html["w101"])
+        for k, v in html.items():
+            self.assertNotRegex(v, r"\{\w+\}", k)
+
+    def test_warrant_box_value_count_must_match_its_blanks(self):
+        with self.assertRaisesRegex(AssertionError, "box 5 has 2 values for 1 blanks"):
+            node(
+                f"const m=require({json.dumps(str(SCRIPT))});"
+                "m.warrantHtml({no:'1',at:'A',boxes:{5:{vals:['6:20','7:00'],some:false}}},[[5,'Not in effect until {time}']])"
+            )
+
+    def test_unknown_reference_stops_the_build(self):
+        with self.assertRaisesRegex(AssertionError, 'unknown reference "nope"'):
+            node(
+                f"const m=require({json.dumps(str(SCRIPT))});"
+                "m.render([{line:1,sec:'def',src:'',title:'t',body:'b',right:'r',wrong:[],why:'y',ref:'nope',extra:''}],{def:'D'},{})"
+            )
+
     def test_right_answer_not_always_first(self):
         html = (WWW / "exam" / "answers.html").read_text()
         lists = re.findall(r'<ul class="xa-opts">(.*?)</ul>', html)

@@ -18,6 +18,20 @@
 .xa-opts{margin:6px 0;padding-left:22px}
 .xa-opts li{margin:2px 0}
 .xa-fig{margin:4px 0}
+.xa-ref{font:inherit;font-size:14px;padding:5px 12px;border:1.5px solid #1d2733;border-radius:4px;background:#f5f0e1;color:#1d2733;cursor:pointer}
+.xa-ref:hover{background:#ece4cc}
+.xa-dlg{max-width:min(640px,calc(100vw - 32px));width:100%;border:1.5px solid #1d2733;border-radius:6px;padding:14px 18px;background:#f5f0e1;color:#1d2733}
+.xa-dlg::backdrop{background:rgba(29,39,51,.45)}
+.xa-dlg-head{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.xa-dlg h2{margin:0 0 8px;font-size:20px}
+.xa-close{font:inherit;font-size:22px;line-height:1;border:0;background:none;cursor:pointer;color:#1d2733;padding:0 4px}
+.xa-dlg table{border-collapse:collapse;width:100%;font-size:14px;margin:6px 0}
+.xa-dlg td,.xa-dlg th{border-bottom:1px solid #cdbf9c;padding:4px 6px;text-align:left;vertical-align:top}
+.xa-dlg ul{padding-left:20px;font-size:15px}
+.xa-some{font-size:12px;color:#5d5a4e;font-style:italic}
+.xa-box{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;width:2.5em}
+.xa-wh{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13px}
+.xa-order{background:#f3ecbf;border:1px solid #cdbf9c;padding:8px 12px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:14px;margin:6px 0}
 .xa-opts li.ok{font-weight:600;color:#2d6a4f;list-style:"✓  "}
 .xa-ow,.xa-why{color:#5d5a4e;font-size:14px}
 .xa-sec h2 small{font-weight:400;color:#5d5a4e}
@@ -217,7 +231,7 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
   <ul class="xa-opts"><li>5 minutes before the superior train is due at the station ahead</li><li>At the superior train&#39;s arriving time at the station ahead</li><li>When the superior train comes in sight</li><li class="ok">When the superior train is due to leave the next station in the rear where time is shown</li></ul>
   <p class="xa-why">Rule 86: unless otherwise provided, the inferior train must be clear at the time the superior train is due to leave the next station in the rear where time is shown.</p>
 </article>
-<article class="xa-q" data-s="hot box smoke from a journal on the ninth car. the engineer stops extra 812 east on the main track to cool and repack it, about 15 minutes. trains may come up behind you or against you. what protection do you give the train? flagman goes back with two torpedoes and, when necessary, lighted fusees; the front is protected the same way when necessary 1949 standard code · rule 99 rule 99: a stopped train that may be overtaken is protected by the flagman going back with two torpedoes and, when necessary, lighted fusees; when called in he leaves the torpedoes and a lighted fusee. the front is protected the same way when necessary. leave the marker lamps lit; that is protection enough no protection; the stop is short flagman drops a lighted fusee while the train stands dropping fusees at intervals protects a moving train.">
+<article class="xa-q" data-s="hot box smoke from a journal on the ninth car. the engineer stops extra 812 east on the main track to cool and repack it, about 15 minutes. trains may come up behind you or against you. what protection do you give the train? flagman goes back with two torpedoes and, when necessary, lighted fusees; the front is protected the same way when necessary 1949 standard code · rule 99 rule 99: a stopped train that may be overtaken is protected by the flagman going back with two torpedoes and, when necessary, lighted fusees; when called in he leaves the torpedoes and a lighted fusee. the front is protected the same way when necessary. leave the marker lamps lit; that is protection enough no protection; the stop is short flagman drops a lighted fusee while the train stands dropping fusees at intervals protects a moving train. ">
   <p class="xa-meta">26 · 1949 run · 1949 Standard Code · Rule 99</p>
   <h3>Hot box</h3>
   <p>Smoke from a journal on the ninth car. The engineer stops Extra 812 East on the main track to cool and repack it, about 15 minutes. Trains may come up behind you or against you. What protection do you give the train?</p>
@@ -280,10 +294,11 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
   <ul class="xa-opts"><li>By class only</li><li>By direction, then class, then right</li><li>By engine number</li><li class="ok">By right, class or direction; right, given by train order, beats class or direction</li></ul>
   <p class="xa-why">Rule S-71: right is conferred by train order, class and direction by time-table. Right is superior to class or direction, and direction counts only between trains of the same class.</p>
 </article>
-<article class="xa-q" data-s="same class, opposite ways no 1 west and an eastward passenger, both first class, are due to meet. with nothing in the orders, which is superior? no 1: the time-table makes westward trains superior between trains of the same class 1949 standard code · rule s-72 rule s-72: trains in the direction specified by the time-table are superior to trains of the same class in the opposite direction. on the kestrel valley that is westward. the eastward train, which is running late whichever left its terminal first neither; they need a meet order ">
+<article class="xa-q" data-s="same class, opposite ways no 1 west and an eastward passenger, both first class, are due to meet. with nothing in the orders, which is superior? no 1: the time-table makes westward trains superior between trains of the same class 1949 standard code · rule s-72 rule s-72: trains in the direction specified by the time-table are superior to trains of the same class in the opposite direction. on the kestrel valley that is westward. the eastward train, which is running late whichever left its terminal first neither; they need a meet order ashby to ironton: single track, with double track from hollis to ironton. the train columns change from run to run, so they are left out here. station mp siding notes ashby 100.0 yes open office (d), yard limits birchwood 106.0 yes cobb 111.5 yes open office (d) dunmore 117.5 yes open office (d) elk gap 123.0 yes fenwick 128.5 no granite 134.0 yes open office (d) hollis 140.0 yes ironton 146.0 yes open office (d), yard limits special instructions westward trains are superior to eastward trains of the same class. one time shown is the leaving time (rule 5). ashby and ironton are inside yard limits. extras clear opposing regular trains by 5 minutes (rule s-87). double track hollis to ironton: d- rules apply there. ">
   <p class="xa-meta">35 · 1949 run, at a station · 1949 Standard Code · Rule S-72</p>
   <h3>Same class, opposite ways</h3>
   <p>No 1 West and an eastward passenger, both first class, are due to meet. With nothing in the orders, which is superior?</p>
+  <p><button type="button" class="xa-ref" data-ref="tt" aria-haspopup="dialog">Show the time-table</button></p>
   <ul class="xa-opts"><li>Neither; they need a meet order</li><li class="ok">No 1: the time-table makes westward trains superior between trains of the same class</li><li>The eastward train, which is running late</li><li>Whichever left its terminal first</li></ul>
   <p class="xa-why">Rule S-72: trains in the direction specified by the time-table are superior to trains of the same class in the opposite direction. On the Kestrel Valley that is westward.</p>
 </article>
@@ -339,10 +354,11 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
   <ul class="xa-opts"><li>Only the conductor</li><li>Only the engineman</li><li class="ok">The conductor, the engineman and the fireman</li><li>The operator alone</li></ul>
   <p class="xa-why">Rule 211: conductors, enginemen and firemen, and trainmen when practicable, must see that the information on Clearance Form A matches the train orders received.</p>
 </article>
-<article class="xa-q" data-s="order no [order no] “[order text].” what does this order do for you? run with respect to [train]&#39;s schedule [n] minutes later 1949 standard code · form e form e, a time order: any train receiving it runs with respect to the later time exactly as it would to the regular schedule. the time-table on the right now shows the new times in red. ignore [train] until ironton wait at [station] for [train] you now have right over [train] ">
+<article class="xa-q" data-s="order no [order no] “[order text].” what does this order do for you? run with respect to [train]&#39;s schedule [n] minutes later 1949 standard code · form e form e, a time order: any train receiving it runs with respect to the later time exactly as it would to the regular schedule. the time-table on the right now shows the new times in red. ignore [train] until ironton wait at [station] for [train] you now have right over [train] at an open office the operator hands up a time order (form e) on a westward regular train, for example: order no 11 no 1 run 20 mins late ironton to ashby in the question, [train] is the train the order names and [n] its minutes: here no 1 and 20. ">
   <p class="xa-meta">43 · 1949 run · 1949 Standard Code · Form E</p>
   <h3>Order No [order no]</h3>
   <p>“[order text].” What does this order do for you?</p>
+  <p><button type="button" class="xa-ref" data-ref="order" aria-haspopup="dialog">Show the order</button></p>
   <ul class="xa-opts"><li>Ignore [train] until Ironton</li><li class="ok">Run with respect to [train]&#39;s schedule [n] minutes later</li><li>Wait at [station] for [train]</li><li>You now have right over [train]</li></ul>
   <p class="xa-why">Form E, a time order: any train receiving it runs with respect to the later time exactly as it would to the regular schedule. The time-table on the right now shows the new times in red.</p>
 </article>
@@ -747,10 +763,11 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
   <ul class="xa-opts"><li>Only the engineer, who runs the train</li><li>Only you, the conductor</li><li class="ok">The conductor and the engineer, each copy dated</li><li>The dispatcher keeps the only copy</li></ul>
   <p class="xa-why">GCOR 14.9: the conductor and the engineer each have a copy, every crew member must read and understand it, and the copy shows the date.</p>
 </article>
-<article class="xa-q" data-s="box 5 warrant 101 has its ok time, and box 5 reads “not in effect until [time].” it is [time]. may you leave now? no; wait until [time], when the warrant takes effect gcor · 14.0 form box 5: not in effect until the time shown. box 6 is the other timing box: this authority expires at the time shown. yes; the ok time puts it in effect yes, at restricted speed until [time] yes, if no train is in sight ">
+<article class="xa-q" data-s="box 5 warrant 101 has its ok time, and box 5 reads “not in effect until [time].” it is [time]. may you leave now? no; wait until [time], when the warrant takes effect gcor · 14.0 form box 5: not in effect until the time shown. box 6 is the other timing box: this authority expires at the time shown. yes; the ok time puts it in effect yes, at restricted speed until [time] yes, if no train is in sight track warrant no. 101 · copied at ashby · to kv 812 east 2 proceed from ashby to dunmore on main track 5 not in effect until [time] 10 clear main track at last named point 11 between birchwood and cobb make all movements at restricted speed. limits occupied by train. some runs 12 between birchwood and cobb make all movements at restricted speed. limits occupied by men or equipment. some runs 15 flag protection not required against following trains on the same track 17 other specific instructions: joint with work train 292 between birchwood and cobb some runs when you call for the warrant, the dispatcher sets box 5 to the first 5-minute mark at least 12 minutes later. the question&#39;s two [time] values are that box 5 time and the clock when you are ready to leave. rows marked some runs are on the warrant in only some runs. ">
   <p class="xa-meta">100 · Modern run · GCOR · 14.0 form</p>
   <h3>Box 5</h3>
   <p>Warrant 101 has its OK time, and Box 5 reads “Not in effect until [time].” It is [time]. May you leave now?</p>
+  <p><button type="button" class="xa-ref" data-ref="w101" aria-haspopup="dialog">Show warrant 101</button></p>
   <ul class="xa-opts"><li class="ok">No; wait until [time], when the warrant takes effect</li><li>Yes, at restricted speed until [time]</li><li>Yes, if no train is in sight</li><li>Yes; the OK time puts it in effect</li></ul>
   <p class="xa-why">Box 5: Not in effect until the time shown. Box 6 is the other timing box: This authority expires at the time shown.</p>
 </article>
@@ -789,10 +806,11 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
   <ul class="xa-opts"><li>Now; the engine is clear</li><li>When 2211 West is in sight</li><li>When the engine passes the clearance point</li><li class="ok">When the whole train is off the main and the switch is lined back to normal</li></ul>
   <p class="xa-why">Clear of the limits means the whole train, not just the engine, clear of the limits and off the main track, with switches restored to normal (except within yard limits).</p>
 </article>
-<article class="xa-q" data-s="box 7 warrant 102 has its ok time. a headlight is coming: 2211 west is a mile out of dunmore. may you pull out of the siding? no. the warrant is not in effect until 2211 west has arrived at dunmore gcor · 14.0 form box 7: not in effect until after arrival of the named train at the named point. box 7 was used in the worked example for 844 west waiting on 2211 east. yes; the ok time is on the warrant yes, at restricted speed yes, after whistling — o ">
+<article class="xa-q" data-s="box 7 warrant 102 has its ok time. a headlight is coming: 2211 west is a mile out of dunmore. may you pull out of the siding? no. the warrant is not in effect until 2211 west has arrived at dunmore gcor · 14.0 form box 7: not in effect until after arrival of the named train at the named point. box 7 was used in the worked example for 844 west waiting on 2211 east. yes; the ok time is on the warrant yes, at restricted speed yes, after whistling — o track warrant no. 102 · copied at dunmore · to kv 812 east 2 proceed from dunmore to granite on main track 6 this authority expires at 9:00 7 not in effect until after arrival of 2211 west at dunmore 8 hold main track at last named point some runs 10 clear main track at last named point some runs rows marked some runs are on the warrant in only some runs. ">
   <p class="xa-meta">106 · Modern run · GCOR · 14.0 form</p>
   <h3>Box 7</h3>
   <p>Warrant 102 has its OK time. A headlight is coming: 2211 West is a mile out of Dunmore. May you pull out of the siding?</p>
+  <p><button type="button" class="xa-ref" data-ref="w102" aria-haspopup="dialog">Show warrant 102</button></p>
   <ul class="xa-opts"><li class="ok">No. The warrant is not in effect until 2211 West has arrived at Dunmore</li><li>Yes, after whistling — o</li><li>Yes, at restricted speed</li><li>Yes; the OK time is on the warrant</li></ul>
   <p class="xa-why">Box 7: Not in effect until after arrival of the named train at the named point. Box 7 was used in the worked example for 844 West waiting on 2211 East.</p>
 </article>
@@ -974,6 +992,24 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
   <p class="xa-why">GCOR 1.44 and 1.45: dispatchers supervise train movement; control operators and operators work under the dispatcher's direction for warrants, bulletins, lineups and train movements.</p>
 </article>
 </section>
+<dialog class="xa-dlg" id="ref-tt" aria-labelledby="ref-tt-h">
+  <div class="xa-dlg-head"><h2 id="ref-tt-h">Time-table No 12, Kestrel Valley Second Subdivision</h2><button type="button" class="xa-close" aria-label="Close">×</button></div>
+  <p>Ashby to Ironton: single track, with double track from Hollis to Ironton. The train columns change from run to run, so they are left out here.</p><table class="xa-tt"><thead><tr><th>Station</th><th>MP</th><th>Siding</th><th>Notes</th></tr></thead><tbody><tr><td>Ashby</td><td>100.0</td><td>yes</td><td>open office (D), yard limits</td></tr><tr><td>Birchwood</td><td>106.0</td><td>yes</td><td></td></tr><tr><td>Cobb</td><td>111.5</td><td>yes</td><td>open office (D)</td></tr><tr><td>Dunmore</td><td>117.5</td><td>yes</td><td>open office (D)</td></tr><tr><td>Elk Gap</td><td>123.0</td><td>yes</td><td></td></tr><tr><td>Fenwick</td><td>128.5</td><td>no</td><td></td></tr><tr><td>Granite</td><td>134.0</td><td>yes</td><td>open office (D)</td></tr><tr><td>Hollis</td><td>140.0</td><td>yes</td><td></td></tr><tr><td>Ironton</td><td>146.0</td><td>yes</td><td>open office (D), yard limits</td></tr></tbody></table><p><b>Special instructions</b></p><ul><li>Westward trains are superior to eastward trains of the same class.</li><li>One time shown is the leaving time (Rule 5).</li><li>Ashby and Ironton are inside yard limits.</li><li>Extras clear opposing regular trains by 5 minutes (Rule S-87).</li><li>Double track Hollis to Ironton: D- rules apply there.</li></ul>
+</dialog>
+<dialog class="xa-dlg" id="ref-order" aria-labelledby="ref-order-h">
+  <div class="xa-dlg-head"><h2 id="ref-order-h">The time order</h2><button type="button" class="xa-close" aria-label="Close">×</button></div>
+  <p>At an open office the operator hands up a time order (Form E) on a westward regular train, for example:</p>
+<div class="xa-order"><b>Order No 11</b><br>No 1 run 20 mins late Ironton to Ashby</div>
+<p>In the question, [train] is the train the order names and [n] its minutes: here No 1 and 20.</p>
+</dialog>
+<dialog class="xa-dlg" id="ref-w101" aria-labelledby="ref-w101-h">
+  <div class="xa-dlg-head"><h2 id="ref-w101-h">Track warrant 101</h2><button type="button" class="xa-close" aria-label="Close">×</button></div>
+  <p class="xa-wh">Track warrant no. <b>101</b> · copied at Ashby · to KV 812 East</p><table class="xa-w"><tr><td class="xa-box">2</td><td>Proceed from <b>Ashby</b> to <b>Dunmore</b> on <b>Main</b> track</td></tr><tr><td class="xa-box">5</td><td>Not in effect until <b>[time]</b></td></tr><tr><td class="xa-box">10</td><td>Clear main track at last named point</td></tr><tr><td class="xa-box">11</td><td>Between <b>Birchwood</b> and <b>Cobb</b> make all movements at restricted speed. Limits occupied by train. <small class="xa-some">some runs</small></td></tr><tr><td class="xa-box">12</td><td>Between <b>Birchwood</b> and <b>Cobb</b> make all movements at restricted speed. Limits occupied by men or equipment. <small class="xa-some">some runs</small></td></tr><tr><td class="xa-box">15</td><td>Flag protection not required against following trains on the same track</td></tr><tr><td class="xa-box">17</td><td>Other specific instructions: <b>Joint with work train 292 between Birchwood and Cobb</b> <small class="xa-some">some runs</small></td></tr></table><p>When you call for the warrant, the dispatcher sets Box 5 to the first 5-minute mark at least 12 minutes later. The question's two [time] values are that Box 5 time and the clock when you are ready to leave. Rows marked <i>some runs</i> are on the warrant in only some runs.</p>
+</dialog>
+<dialog class="xa-dlg" id="ref-w102" aria-labelledby="ref-w102-h">
+  <div class="xa-dlg-head"><h2 id="ref-w102-h">Track warrant 102</h2><button type="button" class="xa-close" aria-label="Close">×</button></div>
+  <p class="xa-wh">Track warrant no. <b>102</b> · copied at Dunmore · to KV 812 East</p><table class="xa-w"><tr><td class="xa-box">2</td><td>Proceed from <b>Dunmore</b> to <b>Granite</b> on <b>Main</b> track</td></tr><tr><td class="xa-box">6</td><td>This authority expires at <b>9:00</b></td></tr><tr><td class="xa-box">7</td><td>Not in effect until after arrival of <b>2211 West</b> at <b>Dunmore</b></td></tr><tr><td class="xa-box">8</td><td>Hold main track at last named point <small class="xa-some">some runs</small></td></tr><tr><td class="xa-box">10</td><td>Clear main track at last named point <small class="xa-some">some runs</small></td></tr></table><p>Rows marked <i>some runs</i> are on the warrant in only some runs.</p>
+</dialog>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
@@ -984,6 +1020,13 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
       document.querySelectorAll(".xa-q").forEach(function(a){a.hidden=!!v&&a.dataset.s.indexOf(v)<0});
       document.querySelectorAll(".xa-sec").forEach(function(s){s.hidden=!s.querySelector(".xa-q:not([hidden])")});});
     h.addEventListener("change",function(){document.body.classList.toggle("xa-hide",h.checked)});
+    document.querySelectorAll(".xa-ref").forEach(function(b){b.addEventListener("click",function(){
+      var d=document.getElementById("ref-"+b.dataset.ref);if(!d)return;
+      if(d.showModal)d.showModal();else{d.setAttribute("open","");d.scrollIntoView();}})}); // no <dialog> support: show it in place
+    document.querySelectorAll(".xa-dlg").forEach(function(d){
+      d.querySelector(".xa-close").addEventListener("click",function(){if(d.close)d.close();else d.removeAttribute("open");});
+      d.addEventListener("click",function(e){var r=d.getBoundingClientRect(); // a click on the backdrop, outside the box, closes it
+        if(e.target===d&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))d.close();});});
   })();
   document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("ap-exam").catch(function (err) { console.error(err); }); });
   </script>
