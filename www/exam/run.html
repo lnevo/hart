@@ -809,9 +809,9 @@ function startTWC(){
     ask({sec:"twc",src:"TW · Selected rules",where:"Dunmore",title:"Reporting clear",body:"The engine is in the siding at Dunmore. When can you report clear of warrant 101's limits?",right:"When the whole train is off the main and the switch is lined back to normal",wrong:[["Now; the engine is clear"],["When the engine passes the clearance point"],["When 2211 West is in sight"]],why:"Clear of the limits means the whole train, not just the engine, clear of the limits and off the main track, with switches restored to normal (except within yard limits)."}),
     ()=>{S.inSiding=true;renderMap();next()},
     warrantCopy(w2),
-    ask({sec:"twc",src:"GC · 14.0 form",where:"Dunmore",title:"Box 7",body:"Warrant 102 has its OK time. A headlight is coming: 2211 West is a mile out of Dunmore. May you pull out of the siding?",right:"No. The warrant is not in effect until 2211 West has arrived at Dunmore",wrong:[["Yes; the OK time is on the warrant",{end:true,endText:"You took the main before 2211 West arrived at Dunmore. Box 7 kept warrant 102 out of effect."}],["Yes, at restricted speed"],["Yes, after whistling — o"]],why:"Box 7: Not in effect until after arrival of the named train at the named point. Box 7 was used in the worked example for 844 East waiting on 2211 West."}),
+    ask({sec:"twc",src:"GC · 14.0 form",where:"Dunmore",title:"Box 7",body:"Warrant 102 has its OK time. A headlight is coming: 2211 West is a mile out of Dunmore. May you pull out of the siding?",right:"No. The warrant is not in effect until 2211 West has arrived at Dunmore",wrong:[["Yes; the OK time is on the warrant",{end:true,endText:"You took the main before 2211 West arrived at Dunmore. Box 7 kept warrant 102 out of effect."}],["Yes, at restricted speed"],["Yes, after whistling — o"]],why:"Box 7: Not in effect until after arrival of the named train at the named point. Box 7 was used in the worked example for 844 West waiting on 2211 East."}),
     ()=>{addTime(wait);log("2211 West arrives Dunmore");front(info("Dunmore","2211 West arrives","<p>2211 West rolls past the siding and heads into the Dunmore house track, clear of the main. Warrant 102 is now in effect.</p>"),
-      ask({sec:"twc",src:"TW · Worked example",where:"Dunmore",title:"The other warrant",body:"2211 West has arrived at Dunmore, the end of its own warrant. What happens to that warrant now?",right:"2211 West reports clear of its limits, and the dispatcher voids its warrant",wrong:[["It stays in effect until midnight"],["It passes to your train with warrant 102"],["Nothing; the dispatcher keeps it open for the return trip"]],why:"In the guide's worked example, 844 East's warrant is not in effect until after arrival of 2211 West at Olga Yard. When 2211 West arrives, its own warrant is reported clear and voided. Unless a Box 6 time ends it sooner, a warrant stays in effect until the crew releases it."}));next()},
+      ask({sec:"twc",src:"TW · Worked example",where:"Dunmore",title:"The other warrant",body:"2211 West has arrived at Dunmore, the end of its own warrant. What happens to that warrant now?",right:"2211 West reports clear of its limits, and the dispatcher voids its warrant",wrong:[["It stays in effect until midnight"],["It passes to your train with warrant 102"],["Nothing; the dispatcher keeps it open for the return trip"]],why:"In the guide's worked example, 844 West's warrant is not in effect until after arrival of 2211 East at Olga Yard. When 2211 West arrives, its own warrant is reported clear and voided. Unless a Box 6 time ends it sooner, a warrant stays in effect until the crew releases it."}));next()},
     ()=>{S.inSiding=false;next()},
     legTWC(3,4,[ask({sec:"gcor",src:"GC · 1.43",where:"Elk Gap",title:"Stalled in the tunnel",body:"Your engine slips down to a stop in the tunnel at Elk Gap and cannot move promptly. What first?",right:"Shut down the diesel, make a full service brake application, apply hand brakes and call the dispatcher",wrong:[["Keep the engine running for heat and wait",{min:13,marks:1}],["Back out of the tunnel at once",{min:13,marks:1}],["Sound a succession of short sounds",{min:13,marks:1}]],why:"GCOR 1.43: shut down the diesel at once, make a full service brake application, apply hand brakes, and notify the dispatcher immediately.",ok:{min:8}})]),
     legTWC(4,5),
@@ -938,7 +938,7 @@ function renderSheet(){
 /* ---------- start ---------- */
 function begin(era,daily){
   if(daily===true)daily=today();
-  if(daily){const k="extra-west|"+daily+"|"+era;R=seeded(k+"|setup");RW=seeded(k+"|orders")}
+  if(daily){const k="extra-west|"+daily+"|"+era;R=seeded(k+"|setup");RW=seeded(k+"|orders")} // seed key keeps the old name on purpose: renaming it changes every daily run
   else R=RW=RO=Math.random;
   S=newState(era);S.daily=daily||null;queue=[];
   if(daily){S.attempt=Date.now();const key="xw_daily_"+S.daily+"_"+era;if(!store.get(key,null))store.set(key,{id:S.attempt,verdict:"Did not finish",marks:0,time:0,failed:true})}$("xwLog").innerHTML="";trainMp=100;
@@ -977,7 +977,7 @@ function showStart(){
   [[0,SKY1],[30,SKY2],[52,SKY3]].forEach(([y,c],i,arr)=>{b.fillStyle=c;b.fillRect(0,y,W,(arr[i+1]?arr[i+1][0]:H)-y)});
   b.fillStyle=SKY2;for(let x=0;x<W;x+=2)b.fillRect(x+(x/2%2),29,1,1); // dithered band edges
   b.fillStyle=SKY3;for(let x=0;x<W;x+=2)b.fillRect(x+(x/2%2),51,1,1);
-  b.fillStyle=SUN;for(let dy=-8;dy<=8;dy++){const w=Math.round(Math.sqrt(64-dy*dy));b.fillRect(212-w,68+dy,w*2+1,1)} // setting sun
+  b.fillStyle=SUN;for(let dy=-8;dy<=8;dy++){const w=Math.round(Math.sqrt(64-dy*dy));b.fillRect(212-w,68+dy,w*2+1,1)} // rising sun (east is on the right)
   function ridge(base,amp,step,col,seed){b.fillStyle=col;let h=0;for(let x=0;x<W;x++){if(x%step===0)h=Math.round(amp*(.5+.5*Math.sin(x*.045+seed)+.35*Math.sin(x*.13+seed*2)));b.fillRect(x,base-h,1,H)}}
   ridge(84,22,4,HILL1,1.3);ridge(92,14,3,HILL2,4.1);
   b.fillStyle=GROUND;b.fillRect(0,104,W,H-104);
