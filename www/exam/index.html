@@ -14,6 +14,7 @@
   --red-wash:#f6e3e1; --green-wash:#e2f1e7; --yellow-wash:#f5ecd6;
   --f-head:var(--font-display); --f-body:var(--font-body);
   --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --xw-sheet:#f5f0e1; /* the Extra West train-sheet tan, same as run.html's --sheet */
   display:flex;flex-direction:column;gap:18px;font-family:var(--f-body);color:var(--ink)}
 .ce button{font:inherit;color:inherit}
 .ce nav.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
@@ -99,7 +100,7 @@
 .ce .ce-line-cap{display:none;margin:8px 0 0;font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:center}
 @media (max-width:640px){.ce .ce-line .name{display:none}.ce .ce-line-cap{display:block}.ce .ce-line .dot{width:26px;height:26px;font-size:11px}.ce .ce-line ol::before,.ce .ce-line .fill{top:12px}}
 .ce .learn article[hidden]{padding:0;border:0;margin-top:-16px}
-@media print{.ce .learn article[hidden]{display:block!important;content-visibility:visible!important;padding:14px 18px;border:1px solid var(--rule);margin-top:0}.ce .ce-line,.ce .learn-step,.ce .learn-go{display:none}}
+@media print{.ce .learn article[hidden]{display:block!important;content-visibility:visible!important;padding:14px 18px;border:1px solid var(--rule);margin-top:0}.ce .ce-line,.ce .learn-step,.ce .learn-go,.ce-feature{display:none}}
 @media (prefers-reduced-motion:no-preference){.ce .learn article.in{animation:ce-in .22s ease}}
 @keyframes ce-in{from{opacity:0;transform:translateX(var(--from,16px))}to{opacity:1;transform:none}}
 .ce .learn-step{display:flex;gap:8px;justify-content:space-between;margin-top:12px}
@@ -113,6 +114,29 @@
 .ce .learn-table td:first-child{font-family:var(--f-mono);white-space:nowrap}
 .ce .ce-panel{scroll-margin-top:calc(var(--header-h) + 12px)}
 .ce .learn-go{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px dashed var(--rule);margin-top:12px;padding-top:10px}
+.ce .learn-go .ce-xw{margin-left:auto;font-size:14px}
+
+/* Extra West feature card above the tabs */
+.ce-feature{display:grid;grid-template-columns:72px 1fr auto;grid-template-areas:"icon head go" "icon body go";column-gap:16px;row-gap:6px;align-items:center;padding:18px 22px;background:var(--xw-sheet);
+  background-image:repeating-linear-gradient(to bottom,transparent 0 27px,color-mix(in srgb,var(--rule) 45%,transparent) 27px 28px);
+  border:1.5px solid var(--ink);border-left:5px solid var(--signal-red);border-radius:3px}
+.ce-feature-icon{grid-area:icon;width:64px;height:64px;display:block;align-self:start}
+.ce-feature-head{grid-area:head}
+.ce-feature-body{grid-area:body}
+.ce-feature-go{grid-area:go}
+.ce-feature-kicker{margin:0 0 2px;font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.ce-feature h2{margin:0;font-family:var(--font-display);font-size:26px;line-height:1.15;color:var(--ink)}
+.ce-feature-body p{margin:0 0 10px;font-size:15px;line-height:1.5}
+.ce-feature .ce-chip{cursor:default}
+.ce-feature-go{display:flex;flex-direction:column;gap:6px;align-items:stretch;max-width:200px}
+.ce-feature-go .ce-btn{display:block;text-align:center;text-decoration:none;min-height:44px;box-sizing:border-box;line-height:26px}
+.ce-feature-go small{color:var(--muted);font-size:12px;line-height:1.35}
+@media (max-width:640px){
+  .ce-feature{grid-template-columns:56px 1fr;grid-template-areas:"icon head" "body body" "go go";padding:16px 16px 16px 18px;row-gap:12px}
+  .ce-feature-icon{width:48px;height:48px;align-self:center}
+  .ce-feature-go{max-width:none}
+  .ce-feature-go small{text-align:center}
+}
   </style>
 </head>
 <body>
@@ -126,13 +150,27 @@
         the seven OPSIG study guides: the 1949 Standard Code, the GCOR, timetable and train orders,
         yard limits, track warrants, signals and semaphores. The Standard Code rules OPSIG prints in
         red, the ones it marks as likely exam material, get the most cards. Progress is kept in your
-        browser only. The guides themselves are linked from
+        browser only. The guides are linked from
         <a href="https://opsig-ap.org/ce/">OPSIG's C&amp;E page</a>.
       </p>
-      <p class="section-note"><a href="run.html">Extra West</a> is a game on the same rules. You take a freight extra over an invented railroad, in 1949 under train orders or today under track warrants.</p>
     </div>
 
   <div class="ce">
+<section class="ce-feature" aria-labelledby="ce-feature-title">
+  <img class="ce-feature-icon" src="extra-west.svg" alt="" width="64" height="64">
+  <div class="ce-feature-head">
+    <p class="ce-feature-kicker">Game &middot; Kestrel Valley Railroad &middot; Ashby to Ironton</p>
+    <h2 id="ce-feature-title">Extra West</h2>
+  </div>
+  <div class="ce-feature-body">
+    <p>You are the conductor of a westbound freight extra on the Kestrel Valley, an invented railroad, and you take it 46 miles from Ashby to Ironton. Each decision uses a rule from this deck, and the source is shown after every answer.</p>
+    <div class="ce-chips"><span class="ce-chip">1949 time-table and train orders</span><span class="ce-chip">Modern track warrants</span></div>
+  </div>
+  <div class="ce-feature-go">
+    <a class="ce-btn primary" href="run.html">Play Extra West</a>
+    <small>A daily run gives everyone the same time-table, orders and events for the day.</small>
+  </div>
+</section>
 <nav class="tabs" role="tablist">
   <button role="tab" id="tab-learn" aria-selected="true" data-view="learn">Study guide</button>
   <button role="tab" id="tab-cards" aria-selected="false" data-view="cards">Flashcards</button>
@@ -845,9 +883,10 @@ document.addEventListener("keydown",e=>{
 });
 
 /* study guide: practice buttons per section. They focus one section for this run only and leave the saved choices alone. */
+const LAST_SEC=([...document.querySelectorAll("#view-learn article[data-sec]")].pop()||{dataset:{}}).dataset.sec; // the section whose row carries the game link
 document.querySelectorAll("#view-learn article[data-sec]").forEach(a=>{
   const k=a.dataset.sec,go=a.querySelector(".learn-go");if(!go)return;
-  go.innerHTML=`<span class="label">Practice ${esc(SECTIONS[k])}</span><button class="ce-btn" data-go="cards">Flashcards</button><button class="ce-btn" data-go="quiz">10-question test</button>`;
+  go.innerHTML=`<span class="label">Practice ${esc(SECTIONS[k])}</span><button class="ce-btn" data-go="cards">Flashcards</button><button class="ce-btn" data-go="quiz">10-question test</button>`+(k===LAST_SEC?`<a class="ce-xw" href="run.html">Put these rules to use in Extra West</a>`:"");
   go.querySelector('[data-go="cards"]').onclick=()=>{cardSel.clear();cardSel.add(k);deal();show("cards");document.getElementById("view-cards").scrollIntoView()};
   go.querySelector('[data-go="quiz"]').onclick=()=>{
     if(test&&!document.getElementById("quizRun").hidden&&test.items.some(x=>x.pick!==null))finish(); // keep a running test's answers
