@@ -31,7 +31,7 @@ class LoaderTest(unittest.TestCase):
         self.assertEqual((switches[9].hardware, switches[9].dcc), ("M2T1310", "119"))
 
     def test_a_number_reused_on_another_level_names_both_rows(self) -> None:
-        self.append("switches.csv", "2,9,TO999,no,99,no")
+        self.append("switches.csv", "2,9,TO999,no,99,no,")
         with self.assertRaisesRegex(ValueError, r"lines 6 \(level 1\) and 22 \(level 2\) both use Switch 9"):
             facts.load_switches(self.data)
 

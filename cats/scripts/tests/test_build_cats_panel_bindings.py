@@ -236,13 +236,18 @@ class StubCats:
         return bands[int(tag[1:])][1]["nodes"][n].get("label") or ""
 
 
+def block(*trial):
+    """A main level block row of the device map holding the schematic tracks `trial`."""
+    return B.railroad.DeviceRow(level=2, layer="block", user_name="", trial_name=", ".join(trial))
+
+
 def device():
     return B.DeviceMap(
-        blocks={"OS Switch 101": {"level": 2, "trial": {"OS Switch 101"}},
-                "OS Switch 103": {"level": 2, "trial": {"OS Switch 103"}},
-                "Track 101-111": {"level": 2, "trial": {"Track e24"}},
-                "Track 101-103": {"level": 2, "trial": {"Track e28"}},
-                "Track 135-H1": {"level": 2, "trial": {"Track e34", "Track e35"}}},
+        blocks={"OS Switch 101": block("OS Switch 101"),
+                "OS Switch 103": block("OS Switch 103"),
+                "Track 101-111": block("Track e24"),
+                "Track 101-103": block("Track e28"),
+                "Track 135-H1": block("Track e34", "Track e35")},
         sensors={"BS Switch 101": "IS:HART:C3:B:OS101", "BS Switch 103": "IS:HART:C3:B:OS103",
                  "BS 101-111": "IS:HART:C3:B:101-111"},
         planned={"BS Switch 101": "M2S3300", "BS 101-111": "M2S3306"})
@@ -304,7 +309,7 @@ class MainAndUpper(unittest.TestCase):
         self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))
         # Loop 2 and 225's corners b to d wait for wiring: a virtual sensor and no planned detector (owner, 2026-11-16)
         self.assertFalse({"BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"} & set(dm.planned))
-        self.assertEqual(dm.blocks["Track 107-109"]["trial"], {"Track e19"})
+        self.assertEqual(dm.blocks["Track 107-109"].trial, {"Track e19"})
 
     def test_a_block_missing_from_the_desk_is_checked_on_the_drawing(self):
         class FakeP:
@@ -316,7 +321,7 @@ class MainAndUpper(unittest.TestCase):
         bands = dark_bands()
         bands[1][1]["strands"]["e28"] = dict(strand(("A", "C"), ("C", "A")), edge="e28", cm=3.4)
         bands[1][1]["strands"]["e24"]["cm"] = 398.1
-        row = lambda *t: {"level": 2, "trial": set(t)}
+        row = block
         self.assertEqual(B.inside_os(bands, FakeP({}), 0, "Track 101-103", row("Track e28")),
                          "a short link (3.4 cm) inside its switches' OS blocks")
         # a track key joined to an OS block counts as inside it; a long one says why it has no block
@@ -366,8 +371,7 @@ class MainAndUpper(unittest.TestCase):
         that name; only the middle of 225's X, a desk-only block, stays dark (owner, 2026-11-17)."""
         got = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
         dm = B.load_device_map()
-        T = B.tables
-        sensors = {T.user_name(s): T.system_name(s) for s in T.sensors(T.read(B.paths.TABLES_XML))}
+        sensors = B.railroad.read_tables(B.paths.TABLES_XML).sensors
         level = {e.get("name", k): e for k, e in got["blocks"].items()
                  if e.get("name", k) in dm.blocks or e.get("name", k) == "OS Switch 225"}
         self.assertGreater(len(level), 100)
@@ -405,9 +409,9 @@ def level_band():
 
 def level_facts(**kw):
     f = facts(device=B.DeviceMap(blocks={
-        "Track 107 Loop 1": {"level": 2, "trial": {"Track e33 1"}},
-        "Track 107 Loop 2": {"level": 2, "trial": {"Track e33 2"}},
-        "Track 107-109": {"level": 2, "trial": {"Track e19"}}}))
+        "Track 107 Loop 1": block("Track e33 1"),
+        "Track 107 Loop 2": block("Track e33 2"),
+        "Track 107-109": block("Track e19")}))
     f.turnouts = {f"Switch {n}": f"IT:HART:C3:{n}" for n in (107, 109, 119, 225)}
     f.templates = {"Mast 2L": "double", "Mast 4RA": "single"}
     f.mast_system = {"Mast 2L": "IF$shsm:basic:two-searchlight(IH438)(IH439)",
