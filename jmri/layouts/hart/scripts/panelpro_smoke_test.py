@@ -12,6 +12,11 @@ import jmri
 
 
 # Matches reconcile_dispatcher_stations.STATIONS (Jython 2 cannot import it).
+# The cut-over panel (2026-11-16): 49 staging masts plus the 41 main and upper control-point masts; staging's sections
+# less the 8 head-on pairs Discover drops, plus the main and upper sections (audit_panel_contracts EXPECTED_GRAPH).
+MASTS = 90
+SECTIONS = 197
+
 STATIONS = (
     u"Track K-1",
     u"Track K-2",
@@ -52,8 +57,8 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
             while time.time() < deadline:
                 transits = list(transit_manager.getNamedBeanSet())
                 if (
-                    bean_count(mast_manager) == 49
-                    and bean_count(section_manager) == 107
+                    bean_count(mast_manager) == MASTS
+                    and bean_count(section_manager) == SECTIONS
                     and len(transits) == 187
                     and all(
                         len(transit.getInternalBlocksList()) > 0
@@ -72,13 +77,13 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                     if sensor_manager.getByUserName(user_name) is None:
                         errors.append("missing sensor %s" % user_name)
 
-            if bean_count(mast_manager) != 49:
+            if bean_count(mast_manager) != MASTS:
                 errors.append(
-                    "signal masts=%s expected=49" % bean_count(mast_manager)
+                    "signal masts=%s expected=%s" % (bean_count(mast_manager), MASTS)
                 )
-            if bean_count(section_manager) != 107:
+            if bean_count(section_manager) != SECTIONS:
                 errors.append(
-                    "sections=%s expected=107" % bean_count(section_manager)
+                    "sections=%s expected=%s" % (bean_count(section_manager), SECTIONS)
                 )
             if bean_count(transit_manager) != 187:
                 errors.append(
@@ -160,8 +165,8 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
             else:
                 handle.write("ok\n")
                 handle.write(
-                    "49 masts; 24 station sensors; 107 sections; 187 transits; "
-                    "374 ordered TrainInfo routes\n"
+                    "%s masts; 24 station sensors; %s sections; 187 transits; "
+                    "374 ordered TrainInfo routes\n" % (MASTS, SECTIONS)
                 )
         finally:
             handle.close()
