@@ -545,17 +545,17 @@ def station_maps():
     return out
 
 
-def station_map_south_yard():
-    """crew-maps-south-yard: the track drawing of the generated South Yard station sheet
-    (docs/ops/stations/south-yard.svg), on white (used by the station maps index and the live map pages; the
+def station_map_east_end():
+    """crew-maps-east-end: the track drawing of the generated East End station sheet
+    (docs/ops/stations/east-end.svg), on white (used by the station maps index and the live map pages; the
     archive keeps crew-maps)."""
     from PIL import Image, ImageChops
 
-    src = REPO / "docs/ops/stations/south-yard.svg"
+    src = REPO / "docs/ops/stations/east-end.svg"
     im = shot(src.as_uri(), (1056, 816))            # the sheet's own size (its viewBox), at 2x
-    # The track drawing only: below the WEST/EAST and level headings, above the title block, inside the border
-    # (sheet units 1056 x 816, rendered at 2x).
-    inner = im.crop((60, 2 * 190, im.width - 60, 2 * 512))
+    # The track drawing only: below the STAGING LEVEL heading, above the EAST END bracket and the title block,
+    # inside the border (sheet units 1056 x 816, rendered at 2x).
+    inner = im.crop((60, 2 * 215, im.width - 60, 2 * 580))
     box = ImageChops.difference(inner, Image.new("RGB", inner.size, "white")).getbbox()
     if box is None:
         raise SystemExit(f"{src}: rendered blank")
@@ -695,7 +695,7 @@ CARDS = {
     "railroads-index": railroads,
     "library-coraopolis-record-opinion": coraopolis_record,
     "crew-maps": station_maps,
-    "crew-maps-south-yard": station_map_south_yard,
+    "crew-maps-east-end": station_map_east_end,
     "crew-tt23": tt23,
     "link-build-main-level": link_build_main_level,
     "build-track-plan": build_track_plan,

@@ -203,39 +203,39 @@
       "shared": true
     },
     "crew/maps/barn/index.html": {
-      "image": "assets/share/crew-maps-south-yard.jpg",
-      "alt": "The generated South Yard station map: the Barn, the engine house tracks EH-1 to EH-3 and the South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
-      "from": "make_share_cards.py crew-maps-south-yard (docs/ops/stations/south-yard.svg, the track drawing)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/east-end/index.html": {
-      "image": "assets/share/crew-maps-south-yard.jpg",
-      "alt": "The generated South Yard station map: the Barn, the engine house tracks EH-1 to EH-3 and the South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
-      "from": "make_share_cards.py crew-maps-south-yard (docs/ops/stations/south-yard.svg, the track drawing)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/index.html": {
-      "image": "assets/share/crew-maps-south-yard.jpg",
-      "alt": "The generated South Yard station map: the Barn, the engine house tracks EH-1 to EH-3 and the South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
-      "from": "make_share_cards.py crew-maps-south-yard (docs/ops/stations/south-yard.svg, the track drawing)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/shenango/index.html": {
-      "image": "assets/share/crew-maps-south-yard.jpg",
-      "alt": "The generated South Yard station map: the Barn, the engine house tracks EH-1 to EH-3 and the South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
-      "from": "make_share_cards.py crew-maps-south-yard (docs/ops/stations/south-yard.svg, the track drawing)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/south-yard/index.html": {
-      "image": "assets/share/crew-maps-south-yard.jpg",
-      "alt": "The generated South Yard station map: the Barn, the engine house tracks EH-1 to EH-3 and the South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
-      "from": "make_share_cards.py crew-maps-south-yard (docs/ops/stations/south-yard.svg, the track drawing)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/west-yard/index.html": {
-      "image": "assets/share/crew-maps-south-yard.jpg",
-      "alt": "The generated South Yard station map: the Barn, the engine house tracks EH-1 to EH-3 and the South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
-      "from": "make_share_cards.py crew-maps-south-yard (docs/ops/stations/south-yard.svg, the track drawing)",
+      "image": "assets/share/crew-maps-east-end.jpg",
+      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/nvl/index.html": {
