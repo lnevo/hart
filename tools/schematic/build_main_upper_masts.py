@@ -24,39 +24,42 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA and hartlib paths
-from hartlib import level_devices, level_masts  # noqa: E402  the head naming rule; the file and its fields
+from hartlib import level_devices, level_masts, railroad  # noqa: E402  the head naming rule; the file; the map
 
-DEVICE_MAP = pd.DATA / "device_map_main_upper.csv"
+DEVICE_MAP = railroad.Sources.under().device_map
 OUT = level_masts.PATH
 LEGS = {"A": "normal", "B": "diverging"}       # of two masts sharing a block pair, by letter (owner, 2026-11-16)
 
 
-def virtual(head: dict, mast: str) -> str:
+def virtual(head: railroad.DeviceRow, mast: str) -> str:
     """A device-map head row's jmri_name, checked to be hartlib.level_devices.head_name of its user name; stops naming
     the head and mast otherwise."""
     try:
-        want = level_devices.head_name(head["user_name"])
+        want = level_devices.head_name(head.user_name)
     except ValueError as exc:
         raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: {exc}") from None
-    if head.get("jmri_name") != want:
-        raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: head {head['user_name']} has jmri_name "
-                         f"{head.get('jmri_name')!r}, not {want}")
+    if head.jmri_name != want:
+        raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: head {head.user_name} has jmri_name "
+                         f"{head.jmri_name!r}, not {want}")
     return want
 
 
 def build() -> str:
     """The file's text. Stops on a mast whose comment names no switch, whose notes name no facing track, whose
     system name is not a SignalHeadSignalMast of the device map's heads, or a LEGS mast the map does not have."""
-    rows = list(csv.DictReader(DEVICE_MAP.open(newline="", encoding="utf-8")))
-    heads = {r["system_name"]: r for r in rows if r["layer"] == "head"}
+    # main_upper_masts.csv is the masts layer: it reads the device map before it (railroad.LAYERS), never itself
+    rr = railroad.Railroad(railroad.Sources.under().but(device_map=DEVICE_MAP), upto="device_map")
+    try:
+        dm = rr.device_map
+    except railroad.FactsError as exc:
+        raise SystemExit(f"build_main_upper_masts.py: {exc}") from None
+    heads = dm.heads_by_system
     out_rows = []
-    for r in rows:
-        if r["layer"] != "mast":
-            continue
-        name = r["user_name"]
-        sw = re.fullmatch(r".*\| Switch (\d+)", r["comment"].strip())
-        fac = re.fullmatch(r"home signal from (Track .+?)(?: into (OS Switch \d+[a-d]))?", r["notes"].strip())
-        sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH\d+\))+)", r["system_name"].strip())
+    for r in dm.of("mast"):
+        name = r.user_name
+        sw = re.fullmatch(r".*\| Switch (\d+)", r.comment)
+        fac = re.fullmatch(r"home signal from (Track .+?)(?: into (OS Switch \d+[a-d]))?", r.notes)
+        sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH\d+\))+)", r.system_name)
         dirm = re.fullmatch(r"Mast \d+([LR])[A-Z]?", name)
         if not (sw and fac and sysm and dirm):
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: comment, notes, system name or name not as expected")
@@ -66,13 +69,13 @@ def build() -> str:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: heads {missing} have no head row")
         sys_name = f"IF$shsm:{sysm.group(1)}:{sysm.group(2)}" + "".join(f"({virtual(heads[h], name)})"
                                                                       for h in mast_heads)
-        if r.get("jmri_name") != sys_name:
-            raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: jmri_name {r.get('jmri_name')!r} is not {sys_name}")
+        if r.jmri_name != sys_name:
+            raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: jmri_name {r.jmri_name!r} is not {sys_name}")
         out_rows.append(dict(
-            mast=name, cp=r["cp"], switch=sw.group(1), facing=fac.group(1),
+            mast=name, cp=r.cp, switch=sw.group(1), facing=fac.group(1),
             protects=fac.group(2) or f"OS Switch {sw.group(1)}", leg="", system_name=sys_name,
-            head_system_names=";".join(f"{virtual(heads[h], name)}={heads[h]['user_name']}" for h in mast_heads),
-            device_system_name=r["system_name"].strip(), _level=int(r["level"])))
+            head_system_names=";".join(f"{virtual(heads[h], name)}={heads[h].user_name}" for h in mast_heads),
+            device_system_name=r.system_name, _level=r.level))
     pairs = {}
     for r in out_rows:
         pairs.setdefault((r["facing"], r["protects"]), []).append(r)

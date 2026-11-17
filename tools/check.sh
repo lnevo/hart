@@ -87,6 +87,7 @@ run status-counts python3 tools/ops/status_counts.py --check
 run schematic-signals python3 tools/schematic/build_signals.py --check
 run schematic-cats python3 tools/schematic/build_cats_panel.py --check
 run schematic-hands python3 tools/schematic/build_hands.py --check
+run schematic-approved python3 tools/schematic/check_approved.py
 run schematic-device-map python3 tools/schematic/build_device_map.py --check
 run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py --check
 run schematic-staging-device-map python3 tools/schematic/staging_device_map.py --check
@@ -98,6 +99,9 @@ run parked env PYTHONPATH=tools/hartlib/src python3 -m hartlib.parked check
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
 run layout-facts python3 tools/audit/check_layout_facts.py
+# The fact files against each other (hartlib.railroad: switches, name map, main and upper control points, device map,
+# masts, the tables file); KNOWN in the module lists what is reported and left.
+run railroad-facts env PYTHONPATH=tools/hartlib/src python3 -m hartlib.railroad check
 run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
@@ -108,6 +112,7 @@ unit unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
 unit unit-cats python3 -m unittest discover -q -s cats/scripts/tests
 unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
 unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
+unit unit-schematic python3 -m unittest discover -q -s tools/schematic/tests
 unit unit-guards python3 -m unittest discover -q -s tools/audit/tests
 # The host tests start real processes and wait out their timers: one job per file, found as discover finds them.
 if [[ -n "$(find tools/hosts/tests -mindepth 2 -name 'test*.py' -print -quit)" ]]; then

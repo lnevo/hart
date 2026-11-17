@@ -107,6 +107,42 @@ Lookups (all take the root element unless noted):
 | `by_system_name`, `by_user_name`, `by_any_name` | dicts over any list of beans |
 | `section(root, container, tag)`, `elements(el)` | generic: all sections; children without comments |
 
+### `hartlib.railroad`
+
+The railroad's facts in one place: each fact file read once into typed objects, and the rules between the files
+checked together. `python3 -m hartlib.railroad check` (in `tools/check.sh`) runs them; `invariants` lists them.
+
+```python
+rr = railroad.Railroad()                  # this checkout's files; Railroad(Sources.under(data_dir), upto=...)
+rr.switches[9].legs[0].closed             # staging switches (switches.csv + switch_legs.csv + the name map)
+rr.device_map.sensors["BS Switch 101"]    # IS:HART:C3:B:OS101
+rr.check()                                # [Problem(invariant, message)]
+```
+
+The files come in **layers**, in the order `tools/schematic/build_panels.sh` makes them: `inputs` (hand-kept:
+`switches.csv`, `switch_legs.csv`, `public_name_map.csv`, `control_points_main_upper.csv`,
+`local_switches_main_upper.csv`, `lcos_nodes_main_upper.csv`, `main_upper.plan_overrides.json`, `block_lengths.csv`,
+`staging_le/masts.csv`), `hands` (`hands.csv`), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
+(`tables.xml`). `Railroad(upto=layer)` raises `LayerError` when asked for a later layer, so a builder never reads a
+stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `build_main_upper_masts.py`
+`upto="device_map"`, `build_cats_panel.py` everything.
+
+| Name | What |
+|------|------|
+| `Railroad.name_map` | `NameMap`: `rows` (`NameRow`), `live` ((layer, name) -> row), `aliases`, `names(layer)` |
+| `Railroad.switches` | `{number: Switch}` (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
+| `Railroad.level_control_points`, `local_switches`, `lcos_nodes`, `main_upper_switches` | `LevelControlPoint`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
+| `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
+| `Railroad.block_lengths`, `staging_masts`, `hands` | `{name: BlockLength}`, `[StagingMast]`, `{label: Hand}` |
+| `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `sensors`, `planned`, `turnouts`, `heads_by_system`, `of(layer)` |
+| `Railroad.level_masts` | `hartlib.level_masts.read()` rows |
+| `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |
+| `read_*(path)` | each file alone; `FactsError` names the file and line |
+| `check_virtual_names(rows)`, `join_main_upper(cps, local)` | the rules `build_device_map.py` builds by |
+
+`KNOWN` in the module lists problems already reported to the owner, each by its exact message: they print and pass,
+anything else fails, and a `KNOWN` entry that no longer happens fails.
+
 ### `hartlib.level_masts`
 
 The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, written by

@@ -42,17 +42,18 @@ def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
     return None
 
 
-def load_turnouts(root: ET.Element | None = None) -> dict[str, tuple[str, str]]:
+def load_turnouts(root: ET.Element | None = None, switches: dict | None = None) -> dict[str, tuple[str, str]]:
     """layout_ident → (DECADDR, USER_NAME) for M2T, one per switch in switches.csv.
 
     The address is the switch's M2T hardware (public_name_map.csv); the user name is
     its public name, Switch N. A switch whose hardware is not an M2T turnout in
-    tables.xml is skipped with a message.
+    tables.xml is skipped with a message. `switches`: the switches when the caller
+    loaded them already (hartlib.railroad), else layout_facts.load_switches().
     """
     m2t = {tables.system_name(t) for t in tables.turnouts(root if root is not None else tables.read(HART_PANEL))
            if tables.system_name(t).startswith("M2T")}
     out: dict[str, tuple[str, str]] = {}
-    for sw in facts.load_switches().values():
+    for sw in (facts.load_switches() if switches is None else switches).values():
         if sw.hardware not in m2t:
             print(f"TURNOUT SKIP: {sw.le_ident} unresolved {sw.hardware or sw.turnout}", file=sys.stderr)
             continue

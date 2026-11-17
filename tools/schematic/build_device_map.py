@@ -89,21 +89,27 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
-from hartlib import level_devices  # noqa: E402  the virtual names (block_sensor, occupancy_user, head_name)
+from hartlib import level_devices, railroad  # noqa: E402  the virtual names; the facts it reads and checks
 
-CPS = pd.DATA / "control_points_main_upper.csv"
-NODES = pd.DATA / "lcos_nodes_main_upper.csv"
-LOCAL = pd.DATA / "local_switches_main_upper.csv"
-OVERRIDES = pd.DATA / "main_upper.plan_overrides.json"
-OUT = pd.DATA / "device_map_main_upper.csv"
+SOURCES = railroad.Sources.under()
+CPS = SOURCES.level_control_points
+NODES = SOURCES.lcos_nodes
+LOCAL = SOURCES.local_switches
+OVERRIDES = SOURCES.plan_overrides
+OUT = SOURCES.device_map
+
+
+def sources() -> railroad.Sources:
+    """The files main() reads and writes: the module's paths as they are when it runs (a test may patch them)."""
+    return railroad.Sources.under().but(level_control_points=CPS, lcos_nodes=NODES, local_switches=LOCAL,
+                                        plan_overrides=OVERRIDES, device_map=OUT)
 
 LEVELS = {"Main": 2, "Upper": 3}      # band key (first word of the band title) -> level
 SHORT_CM = 30.0
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
 MAX_OU = 4                            # DNOU8 boards per node: the most any node has in LCOS_Layout_Inventory_v85
 UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}
-COLUMNS = ["level", "cp", "layer", "user_name", "system_name", "jmri_name", "node", "dcc", "comment", "trial_name",
-           "notes"]
+COLUMNS = list(railroad.DEVICE_COLUMNS)
 DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
 TAU = {"A": -1, "B": 1, "C": 1, "D": -1}      # the plugin's leg sides (schematic.core.TAU)
 LOOP_HALF = {"B": 1, "C": 2}          # a balloon loop's half by the switch leg it leaves from (owner, 2026-11-16)
@@ -118,9 +124,10 @@ class MapError(RuntimeError):
     pass
 
 
-def base(label: str) -> str:
-    """Switch number of a schematic label: "129A" -> "129", "223*" -> "223"."""
-    return re.sub(r"[AB]$", "", (label or "").rstrip("*"))
+# The switch number of a schematic label ("129A" -> "129", "223*" -> "223") and the natural sort key, defined once in
+# hartlib.railroad; the names stay here because build_layout_le.py and build_cats_panel.py import them from this module.
+base = railroad.switch_number
+natural = railroad.natural
 
 
 def block_sensor(block: str) -> str:
@@ -132,26 +139,12 @@ def block_sensor(block: str) -> str:
         raise MapError(str(exc)) from None
 
 
-def natural(name: str):
-    return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", name)]
-
-
-def read_csv(path: Path) -> list[dict]:
-    with open(path, newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
-
-
-def load_cps(path: Path = CPS) -> list[dict]:
-    """Control point rows, switches as a list; every switch in at most one control point."""
-    rows, seen = [], {}
-    for row in read_csv(path):
-        sw = [s.strip() for s in row["switches"].split(",") if s.strip()]
-        for s in sw:
-            if s in seen:
-                raise MapError(f"switch {s} is in {seen[s]} and {row['cp_name']}")
-            seen[s] = row["cp_name"]
-        rows.append(dict(row, switches=sw, level=int(row["level"])))
-    return rows
+def load_cps(path: Path = CPS) -> list[railroad.LevelControlPoint]:
+    """The control points (hartlib.railroad.read_level_control_points: every switch in at most one)."""
+    try:
+        return railroad.read_level_control_points(path)
+    except railroad.FactsError as exc:
+        raise MapError(str(exc)) from None
 
 
 # ---------------------------------------------------------------- the schematic
@@ -175,14 +168,14 @@ def overrides_keys(cps, by_level) -> dict:
     other band), as the band prints them: a moved switch keeps its star ("223*"), which station bars match on."""
     cp_out = {}
     for cp in cps:
-        have = by_level[cp["level"]]
+        have = by_level[cp.level]
         refs = []
-        for s in cp["switches"]:
+        for s in cp.switches:
             mine = sorted(lb for lb in have if base(lb) == s)
             if not mine:
-                raise MapError(f"{cp['cp_name']}: switch {s} is not on the level {cp['level']} band")
+                raise MapError(f"{cp.cp_name}: switch {s} is not on the level {cp.level} band")
             refs += mine
-        cp_out[cp["cp_name"]] = {"switches": refs}
+        cp_out[cp.cp_name] = {"switches": refs}
     return cp_out
 
 
@@ -343,7 +336,7 @@ class Nodes:
     def __init__(self, rows):
         self.pool = defaultdict(list)
         for r in rows:
-            self.pool[(int(r["level"]), r["area"])].append(int(r["node"]))
+            self.pool[(r.level, r.area)].append(r.node)
         self.used = defaultdict(lambda: defaultdict(int))
         self.boards = {}                     # node -> pins used on each of its 5V boards
 
@@ -464,11 +457,12 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     when a band has a double crossover."""
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
-    cp_of = {s: cp["cp_name"] for cp in cps for s in cp["switches"]}
-    loc = {r["switch"]: dict(r, level=int(r["level"])) for r in local}
-    both = sorted(set(cp_of) & set(loc), key=natural)
-    if both:
-        raise MapError(f"switch {', '.join(both)} is in a control point and in {LOCAL.name}")
+    try:
+        switches = railroad.join_main_upper(cps, local, LOCAL.name)
+    except railroad.FactsError as exc:
+        raise MapError(str(exc)) from None
+    cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
+    loc = {s: sw for s, sw in switches.items() if not sw.cp}          # in no control point: level, area, notes
     on_bands = {base(lb) for labels in by_level.values() for lb in labels}
     missing = sorted(on_bands - set(cp_of) - set(loc), key=natural)
     if missing:
@@ -537,18 +531,18 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
     for cp in cps:                               # turnouts first: a node's 12V boards come before its 5V boards
-        node = nodes.pick(cp["level"], cp["area"], "turnout", len(cp["switches"]))
-        for s in cp["switches"]:
-            switch_rows(cp["level"], cp["area"], cp["cp_name"], s, node)
+        node = nodes.pick(cp.level, cp.area, "turnout", len(cp.switches))
+        for s in cp.switches:
+            switch_rows(cp.level, cp.area, cp.cp_name, s, node)
     for s in sorted(loc, key=natural):           # no control point: turnout and feedback, no signals or detection
         r = loc[s]
-        node = nodes.pick(r["level"], r["area"], "turnout")
-        switch_rows(r["level"], r["area"], "", s, node, "no control point: " + r["notes"])
+        node = nodes.pick(r.level, r.area, "turnout")
+        switch_rows(r.level, r.area, "", s, node, "no control point: " + r.notes)
     for cp in cps:
-        for s in cp["switches"]:
-            os_rows(cp["level"], cp["area"], cp["cp_name"], s, cp["cp_name"])
+        for s in cp.switches:
+            os_rows(cp.level, cp.area, cp.cp_name, s, cp.cp_name)
     for s in sorted(loc, key=natural):
-        os_rows(loc[s]["level"], loc[s]["area"], "", s, loc[s]["area"], detect=False)
+        os_rows(loc[s].level, loc[s].area, "", s, loc[s].area, detect=False)
 
     for t in sorted(found, key=lambda t: natural(t["name"])):
         sws = [v for k, v in t["ends"] if k == "sw"]
@@ -583,9 +577,9 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             occupancy(t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
     for cp in cps:                               # heads last, once every node's boards are known
-        lv, area, name = cp["level"], cp["area"], cp["cp_name"]
+        lv, area, name = cp.level, cp.area, cp.cp_name
         for m in sorted((m for m in ms if m["cp"] == name), key=lambda m: natural(m["name"])):
-            hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[cp["switches"][0]]])
+            hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[cp.switches[0]]])
             parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
             heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
                      for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
@@ -608,17 +602,11 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
 
 
 def check_virtual(rows) -> None:
-    """Every block has exactly one occupancy row, and no two rows of one layer share a virtual name (but a turnout and
-    its LCC alias, which are one JMRI turnout)."""
-    blocks = [r["user_name"] for r in rows if r["layer"] == "block"]
-    occ = [r["user_name"] for r in rows if r["layer"] == "occupancy"]
-    if sorted(map(occupancy_user, blocks)) != sorted(occ):
-        raise MapError("blocks and occupancy rows differ: "
-                       f"{sorted(set(map(occupancy_user, blocks)) ^ set(occ))}")
-    for layer in ("occupancy", "head", "mast", "turnout"):
-        names = [r["jmri_name"] for r in rows if r["layer"] == layer and not r["user_name"].startswith("DCC ")]
-        if len(set(names)) != len(names) or not all(names):
-            raise MapError(f"{layer} rows: a virtual name is empty or given twice")
+    """The rows' virtual names follow hartlib.level_devices (hartlib.railroad.check_virtual_names, which
+    `python3 -m hartlib.railroad check` also holds the written file to); MapError naming each problem."""
+    bad = railroad.check_virtual_names(railroad.DeviceRow.from_dict(r) for r in rows)
+    if bad:
+        raise MapError("; ".join(bad))
 
 
 PIN_RE = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)$")
@@ -670,7 +658,14 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true", help="exit 1 if an output is stale")
     args = ap.parse_args(argv)
-    overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
+    # the device map is its own layer: it reads the inputs only (railroad.LAYERS), never a copy of itself
+    rr = railroad.Railroad(sources(), upto="inputs")
+    try:
+        overrides = rr.plan_overrides.data
+        inputs = rr.level_control_points, rr.lcos_nodes, rr.local_switches
+    except railroad.FactsError as exc:
+        print(f"build_device_map.py: {exc}", file=sys.stderr)
+        return 2
     import build_layout_le as bl
     try:
         bands, joined, runs, corners = solve()
@@ -680,7 +675,7 @@ def main(argv=None) -> int:
         print(f"SKIPPED device map check: {exc}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
-        cp_keys, rows = build(bands, joined, runs, overrides, load_cps(), read_csv(NODES), read_csv(LOCAL), corners)
+        cp_keys, rows = build(bands, joined, runs, overrides, *inputs, corners)
     except MapError as exc:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2

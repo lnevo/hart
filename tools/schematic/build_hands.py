@@ -18,10 +18,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS and hartlib paths
+from hartlib import railroad  # noqa: E402  the plan overrides, read and checked once
 
 GRAPH = pd.GRAPHS / "main.json"
-OVERRIDES = pd.DATA / "main_upper.plan_overrides.json"
-OUT = pd.DATA / "hands.csv"
+OVERRIDES = railroad.Sources.under().plan_overrides
+OUT = railroad.Sources.under().hands
 SOURCE = "plan geometry (provisional)"
 
 
@@ -38,11 +39,15 @@ def build():
     `crossover` or `remove` edit changes which switches exist), a relabel key with no plan node other than the one
     double crossover, a graph hand that is not +1 or -1, or a `move` edit that names no plan switch."""
     nodes = json.loads(GRAPH.read_text())["nodes"]
-    edits = json.loads(OVERRIDES.read_text())["edits"]
+    # hands.csv is the hands layer: it reads the inputs only (railroad.LAYERS)
+    rr = railroad.Railroad(railroad.Sources.under().but(plan_overrides=OVERRIDES), upto="inputs")
+    try:
+        edits, relabel = rr.plan_overrides.edits, rr.plan_overrides.relabel
+    except railroad.FactsError as exc:
+        raise SystemExit(f"build_hands.py: {exc}") from None
     unknown = sorted({e["op"] for e in edits} - KNOWN_EDITS)
     if unknown:
         raise SystemExit(f"build_hands.py does not read {unknown} edits yet: teach it before using hands.csv")
-    relabel = next(e["map"] for e in edits if e["op"] == "relabel")
     by_label = {n["label"]: n for n in nodes.values() if n["kind"] == "switch"}
     dx = {n["label"] for n in nodes.values() if n["kind"] == "dx"}
     owner_hand = {}

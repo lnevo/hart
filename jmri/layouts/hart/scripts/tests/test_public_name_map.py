@@ -36,7 +36,7 @@ BLOCK_ALIAS_CURRENT_SETS = frozenset(
 BARN_TURNOUT_BLOCK = frozenset(
     {
         ("turnout", "Switch 7"),
-        ("turnout", "Switch 117"),
+        ("turnout", "DCC 117"),
         ("block", "OS 7"),
         ("block", "OS 7b"),
         ("block", "OS Barn"),
@@ -81,7 +81,16 @@ SOUTH_YARD_RENAME_MAP = {
     "South Yard 5": "Track S-4",
 }
 
-EAST_END_SWITCHES = ("Switch 107", "Switch 108", "Switch 109")
+# The staging switches' old numbers 100 to 119 are their DCC addresses, and their alias rows are "DCC <n>" (owner,
+# 2026-11-17): the odd ones are now main level turnout names, so a rename pass must never use "Switch <n>" for them.
+
+
+def old_name(number: int) -> str:
+    """The alias row's current name for a staging switch's old number 100 to 119."""
+    return f"DCC {number}"
+
+
+EAST_END_SWITCHES = (old_name(107), old_name(108), old_name(109))
 
 # Prototype CTC: odd switches west→east; homes even (switch+1). 120 is lamps-only → 42.
 CTC_SWITCH_MAP = {
@@ -266,12 +275,12 @@ class PublicNameMapContractTest(unittest.TestCase):
         turnout_rows = {
             row["current"]: row
             for row in self.by_layer["turnout"]
-            if row["current"].startswith("Switch 1")
+            if row["current"].startswith(("Switch 1", "DCC 1"))
         }
         xml_turnouts = turnout_user_names_by_system()
         violations: list[str] = []
         for number in range(100, 120):
-            switch = f"Switch {number}"
+            switch = old_name(number)
             row = turnout_rows.get(switch)
             if row is None:
                 violations.append(f"CSV missing turnout row for {switch}")
@@ -283,10 +292,10 @@ class PublicNameMapContractTest(unittest.TestCase):
                 )
             hardware = (row.get("hardware") or "").split()[0]
             xml_name = xml_turnouts.get(hardware)
-            if xml_name not in {switch, expected}:
+            # Switch 1xx is never right here: the odd ones are main level turnout names now.
+            if xml_name != expected:
                 violations.append(
-                    f"{switch}: tables.xml userName {xml_name!r} "
-                    f"not {switch!r} or {expected!r}"
+                    f"{switch}: tables.xml userName of {hardware} is {xml_name!r}, not {expected!r}"
                 )
         self.assertEqual(violations, [])
 

@@ -19,26 +19,26 @@ turnout,Switch 39,Switch 39,Princess,M2T110,115,"Node: 1 Turnout: 2 | OU: 1 Port
 turnout,Switch 5,Switch 5,Plane,M2T410,102,"Node: 4 Turnout: 2 | OU: 1 Ports: 5,6",
 turnout,Switch 7,Switch 7,Barn,M2T1308,117,"Node: 13 Turnout: 0 | OU: 2 Ports: 1,2",
 turnout,Switch 9,Switch 9,Engine House,M2T1310,119,"Node: 13 Turnout: 2 | OU: 2 Ports: 5,6",
-turnout,Switch 100,Switch 1,Brick,M2T408,100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; CTC Switch 1 (was 100); keep
-turnout,Switch 118,Switch 11,Engine House,M2T1309,118,"Node: 13 Turnout: 1 | OU: 2 Ports: 3,4",historical alias; CTC Switch 11 (was 118); Engine House; C13 OU2 motors
-turnout,Switch 116,Switch 13,Engine House,M2T411,116,"Node: 4 Turnout: 3 | OU: 1 Ports: 7,8",historical alias; CTC Switch 13 (was 116); motors+FB on C4 OU1
-turnout,Switch 103,Switch 15,South Yard,M2T308,103,"Node: 3 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; CTC Switch 15 (was 103); keep; east of Barn
-turnout,Switch 104,Switch 17,South Yard,M2T309,104,"Node: 3 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; CTC Switch 17 (was 104); keep; hand-throw
-turnout,Switch 105,Switch 19,South Yard,M2T310,105,"Node: 3 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; CTC Switch 19 (was 105); keep; hand-throw
-turnout,Switch 106,Switch 21,South Yard,M2T311,106,"Node: 3 Turnout: 3 | OU: 1 Ports: 7,8",historical alias; CTC Switch 21 (was 106); keep; hand-throw
-turnout,Switch 111,Switch 23,East End,M2T1212,111,"Node: 12 Turnout: 4 | OU: 4 Ports: 1,2",historical alias; CTC Switch 23 (was 111); keep; crossover 23a/23b
-turnout,Switch 107,Switch 25,East End,M2T1208,107,"Node: 12 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; CTC Switch 25 (was 107); keep
-turnout,Switch 108,Switch 27,East End,M2T1209,108,"Node: 12 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; CTC Switch 27 (was 108); keep
-turnout,Switch 109,Switch 29,East End,M2T1210,109,"Node: 12 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; CTC Switch 29 (was 109); keep
-turnout,Switch 101,Switch 3,Brick,M2T409,101,"Node: 4 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; CTC Switch 3 (was 101); keep
-turnout,Switch 110,Switch 31,East End,M2T1211,110,"Node: 12 Turnout: 3 | OU: 1 Ports: 7,8",historical alias; CTC Switch 31 (was 110); keep
-turnout,Switch 112,Switch 33,East End,M2T1213,112,"Node: 12 Turnout: 5 | OU: 4 Ports: 3,4",historical alias; CTC Switch 33 (was 112); keep
-turnout,Switch 113,Switch 35,Princess,M2T108,113,"Node: 1 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; CTC Switch 35 (was 113); keep; crossover 35a/35b
-turnout,Switch 114,Switch 37,Princess,M2T109,114,"Node: 1 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; CTC Switch 37 (was 114); keep
-turnout,Switch 115,Switch 39,Princess,M2T110,115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; CTC Switch 39 (was 115); keep
-turnout,Switch 102,Switch 5,Plane,M2T410,102,"Node: 4 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; CTC Switch 5 (was 102); keep
-turnout,Switch 117,Switch 7,Barn,M2T1308,117,"Node: 13 Turnout: 0 | OU: 2 Ports: 1,2",historical alias; CTC Switch 7 (was 117); crossover 7/7b; motors+FB on C13 OU2
-turnout,Switch 119,Switch 9,Engine House,M2T1310,119,"Node: 13 Turnout: 2 | OU: 2 Ports: 5,6",historical alias; CTC Switch 9 (was 119); Engine House; C13 OU2 motors
+turnout,DCC 100,Switch 1,Brick,M2T408,100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; DCC address of Switch 1 (CTC Switch 1 was Switch 100); keep
+turnout,DCC 118,Switch 11,Engine House,M2T1309,118,"Node: 13 Turnout: 1 | OU: 2 Ports: 3,4",historical alias; DCC address of Switch 11 (CTC Switch 11 was Switch 118); Engine House; C13 OU2 motors
+turnout,DCC 116,Switch 13,Engine House,M2T411,116,"Node: 4 Turnout: 3 | OU: 1 Ports: 7,8",historical alias; DCC address of Switch 13 (CTC Switch 13 was Switch 116); motors+FB on C4 OU1
+turnout,DCC 103,Switch 15,South Yard,M2T308,103,"Node: 3 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; DCC address of Switch 15 (CTC Switch 15 was Switch 103; the name Switch 103 is now a main level turnout); keep; east of Barn
+turnout,DCC 104,Switch 17,South Yard,M2T309,104,"Node: 3 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; DCC address of Switch 17 (CTC Switch 17 was Switch 104); keep; hand-throw
+turnout,DCC 105,Switch 19,South Yard,M2T310,105,"Node: 3 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; DCC address of Switch 19 (CTC Switch 19 was Switch 105; the name Switch 105 is now a main level turnout); keep; hand-throw
+turnout,DCC 106,Switch 21,South Yard,M2T311,106,"Node: 3 Turnout: 3 | OU: 1 Ports: 7,8",historical alias; DCC address of Switch 21 (CTC Switch 21 was Switch 106); keep; hand-throw
+turnout,DCC 111,Switch 23,East End,M2T1212,111,"Node: 12 Turnout: 4 | OU: 4 Ports: 1,2",historical alias; DCC address of Switch 23 (CTC Switch 23 was Switch 111; the name Switch 111 is now a main level turnout); keep; crossover 23a/23b
+turnout,DCC 107,Switch 25,East End,M2T1208,107,"Node: 12 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; DCC address of Switch 25 (CTC Switch 25 was Switch 107; the name Switch 107 is now a main level turnout); keep
+turnout,DCC 108,Switch 27,East End,M2T1209,108,"Node: 12 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; DCC address of Switch 27 (CTC Switch 27 was Switch 108); keep
+turnout,DCC 109,Switch 29,East End,M2T1210,109,"Node: 12 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; DCC address of Switch 29 (CTC Switch 29 was Switch 109; the name Switch 109 is now a main level turnout); keep
+turnout,DCC 101,Switch 3,Brick,M2T409,101,"Node: 4 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; DCC address of Switch 3 (CTC Switch 3 was Switch 101; the name Switch 101 is now a main level turnout); keep
+turnout,DCC 110,Switch 31,East End,M2T1211,110,"Node: 12 Turnout: 3 | OU: 1 Ports: 7,8",historical alias; DCC address of Switch 31 (CTC Switch 31 was Switch 110); keep
+turnout,DCC 112,Switch 33,East End,M2T1213,112,"Node: 12 Turnout: 5 | OU: 4 Ports: 3,4",historical alias; DCC address of Switch 33 (CTC Switch 33 was Switch 112); keep
+turnout,DCC 113,Switch 35,Princess,M2T108,113,"Node: 1 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; DCC address of Switch 35 (CTC Switch 35 was Switch 113; the name Switch 113 is now a main level turnout); keep; crossover 35a/35b
+turnout,DCC 114,Switch 37,Princess,M2T109,114,"Node: 1 Turnout: 1 | OU: 1 Ports: 3,4",historical alias; DCC address of Switch 37 (CTC Switch 37 was Switch 114); keep
+turnout,DCC 115,Switch 39,Princess,M2T110,115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; DCC address of Switch 39 (CTC Switch 39 was Switch 115; the name Switch 115 is now a main level turnout); keep
+turnout,DCC 102,Switch 5,Plane,M2T410,102,"Node: 4 Turnout: 2 | OU: 1 Ports: 5,6",historical alias; DCC address of Switch 5 (CTC Switch 5 was Switch 102); keep
+turnout,DCC 117,Switch 7,Barn,M2T1308,117,"Node: 13 Turnout: 0 | OU: 2 Ports: 1,2",historical alias; DCC address of Switch 7 (CTC Switch 7 was Switch 117; the name Switch 117 is now a main level turnout); crossover 7/7b; motors+FB on C13 OU2
+turnout,DCC 119,Switch 9,Engine House,M2T1310,119,"Node: 13 Turnout: 2 | OU: 2 Ports: 5,6",historical alias; DCC address of Switch 9 (CTC Switch 9 was Switch 119; the name Switch 119 is now a main level turnout); Engine House; C13 OU2 motors
 turnout,DCC Switch 1,DCC Switch 1,,MTT100,,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",LCC alias of Switch 1 (M2T408)
 turnout,Switch 1 alias,DCC Switch 1,,MTT100,,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",historical alias; was Switch N alias
 turnout,DCC Switch 3,DCC Switch 3,,MTT101,,"Node: 4 Turnout: 1 | OU: 1 Ports: 3,4",LCC alias of Switch 3 (M2T409)
@@ -101,10 +101,20 @@ block,Track Main West,Track Main West,,Block 2-1,,,
 block,Track K-1,Track K-1,Princess,Block 1-1,,Princess,
 block,Track K-2,Track K-2,Princess,Block 1-2,,Princess,
 block,Track S-1,Track S-1,South Yard,Block 2-7,,South Yard,
+block,Track S-1 East,Track S-1 East,South Yard,Block 2-7,,,hidden S-1 east throat; same occupancy as S-1 (Block 2-7)
+block,Track S-1 West,Track S-1 West,South Yard,Block 2-7,,,hidden S-1 west throat; same occupancy as S-1 (Block 2-7)
 block,Track S-2,Track S-2,South Yard,Block 2-6,,South Yard,
+block,Track S-2 East,Track S-2 East,South Yard,Block 2-6,,,hidden S-2 east throat; same occupancy as S-2 (Block 2-6)
+block,Track S-2 West,Track S-2 West,South Yard,Block 2-6,,,hidden S-2 west throat; same occupancy as S-2 (Block 2-6)
 block,Track S-3,Track S-3,South Yard,Block 2-5,,South Yard,
+block,Track S-3 East,Track S-3 East,South Yard,Block 2-5,,,hidden S-3 east throat; same occupancy as S-3 (Block 2-5)
+block,Track S-3 West,Track S-3 West,South Yard,Block 2-5,,,hidden S-3 west throat; same occupancy as S-3 (Block 2-5)
 block,Track S-4,Track S-4,South Yard,Block 2-4,,South Yard,
+block,Track S-4 East,Track S-4 East,South Yard,Block 2-4,,,hidden S-4 east throat; same occupancy as S-4 (Block 2-4)
+block,Track S-4 West,Track S-4 West,South Yard,Block 2-4,,,hidden S-4 west throat; same occupancy as S-4 (Block 2-4)
 block,Track S-R,Track S-R,South Yard,Block 2-8,,South Yard,
+block,Track S-R East,Track S-R East,South Yard,Block 2-8,,,hidden S-R east throat; same occupancy as S-R (Block 2-8)
+block,Track S-R West,Track S-R West,South Yard,Block 2-8,,,hidden S-R west throat; same occupancy as S-R (Block 2-8)
 block,Track Scale,Track Scale,Plane,Block 4-8,,Plane,
 block,Track Scale East,Track Scale East,Plane,Block 4-8,,,hidden Scale east throat; same occupancy as Track Scale (Block 4-8)
 block,Track W-1,Track W-1,Brick,Block 4-4,,Brick,
@@ -376,8 +386,8 @@ occupancy,Block 4-4,BS W-1,Brick,M2S403,,Node: 4 Block: 4,historical alias; canv
 occupancy,Block 4-3,BS W-2,Brick,M2S402,,Node: 4 Block: 3,historical alias; canvas BS userName; comment stays Block 4-3
 occupancy,Block 1-8,BS West Ext,East End,M2S107,,Node: 1 Block: 8,historical alias; canvas BS userName; comment stays Block 1-8
 occupancy,BS West Main Ext,BS West Ext,East End,M2S107,,Node: 1 Block: 8,historical alias; name until 2026-11-13
-occupancy,Block 2-2,BS unused,,M2S201,,,historical alias; canvas BS userName; comment stays Block 2-2
-occupancy,Block 3-8,BS unused,,M2S307,,,historical alias; canvas BS userName; comment stays Block 3-8
+occupancy,Block 2-2,unused Block 2-2,,M2S201,,,historical alias; free detector; no block assigned
+occupancy,Block 3-8,unused Block 3-8,,M2S307,,,historical alias; free detector; no block assigned
 mast,Mast 10LA,Mast 10LA,Engine House,virtual $1006,,Engine House | Switch 9,
 mast,Mast 10LB,Mast 10LB,Engine House,virtual $1007,,Engine House | Switch 9,
 mast,Mast 12R,Mast 12R,Engine House,virtual $1020,,Engine House | Switch 11,hidden EH-1 exit; Dispatcher Stage 1
