@@ -2,7 +2,7 @@
 
 Turn an AnyRail export into a blocked JMRI panel (occupancy, NX list, Mac defaults).
 
-**Status:** Retired (2026-11-17). The panels are drawn from the schematic now (`make panels`), and hart's main and upper levels were built that way. The four scripts below moved to `archive/jmri-scripts/`. They would still run if called by hand and would write panel XML from a stale export, so do not run them. This page is history.
+**Status:** Replaced by [schematic-panels.md](schematic-panels.md) (2026-11-17); this page is history only. Retired (2026-11-17). The panels are drawn from the schematic now (`make panels`), and hart's main and upper levels were built that way. The four scripts below moved to `archive/jmri-scripts/`. They would still run if called by hand and would write panel XML from a stale export, so do not run them. This page is history.
 
 ## Inputs
 

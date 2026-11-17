@@ -20,7 +20,9 @@ sweep then forces it only when no submodule holds work that exists nowhere else 
 submodule_risk). A fresh worktree with no PR yet, one with work after the merge, a
 detached one, and the ones holding a --keep directory (the caller's) are kept. The grace
 period lets another session finish in a worktree it just merged. Remote branches are left
-alone. Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py).
+alone. The same rules apply to the worktrees of each checked-out submodule
+(external/model-railroad-skills keeps its own under its .claude/worktrees/), judged by that submodule's own
+GitHub PRs. Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py).
 """
 from __future__ import annotations
 
@@ -156,12 +158,22 @@ def is_dirty(path: str) -> bool:
     return bool(git("status", "--porcelain", cwd=path))
 
 
+def submodule_repos(main: str) -> list[str]:
+    """The checked-out submodules of the main checkout, as absolute paths. A submodule keeps its own worktrees (the
+    plugin's agents work in external/model-railroad-skills/.claude/worktrees/), which a sweep of the parent never
+    sees, so each is swept as a repository of its own."""
+    listed = git_run("submodule", "foreach", "--quiet", "--recursive", 'echo "$toplevel/$sm_path"', cwd=main)
+    if listed.returncode != 0:
+        return []
+    return [p for p in listed.stdout.splitlines() if p and os.path.isdir(p)]
+
+
 def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | None = None) -> list[str]:
-    """Remove merged worktrees; return one line per action for the caller to show.
+    """Remove merged worktrees of this repository and of its submodules; return one line per action.
 
     With `budget` (seconds), no removal starts once that much time has passed since the removals began: the hook
     runs the sweep under a hard timeout, and a pile of worktrees is better left for the next sweep than cut off
-    mid-delete.
+    mid-delete. The budget is shared by every repository.
     """
     trees = worktrees()
     if not trees:
@@ -169,15 +181,27 @@ def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | 
     main = trees[0].path  # run from the main checkout, which is never removed
     if not shutil.which("gh"):
         return ["worktree sweep skipped: gh is not installed"]
+    start = time.monotonic()
+    lines = sweep_repo(main, trees, dry_run, keep or [], budget, start)
+    for sub in submodule_repos(main):
+        sub_trees = worktrees(sub)
+        if len(sub_trees) > 1:
+            lines += [f"{line} [submodule {os.path.relpath(sub, main)}]" if line.startswith("left") else line
+                      for line in sweep_repo(sub, sub_trees, dry_run, keep or [], budget, start)]
+    return lines
+
+
+def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str], budget: float | None,
+               start: float) -> list[str]:
+    """Sweep the worktrees of one repository whose main checkout is `main`; `start` is when removing began."""
     git("fetch", "-q", "origin", "main", cwd=main)
     by_branch = merged_by_branch(main)
     if by_branch is None:  # GitHub refused the batch: ask per branch, as before
         merged = lambda t: merged_at(t, main)  # noqa: E731
     else:
         merged = lambda t: merged_at(t, main, by_branch.get(t.branch or "", []))  # noqa: E731
-    remove, kept = plan(trees, merged, keep or [], is_dirty)
+    remove, kept = plan(trees, merged, keep, is_dirty)
     lines = []
-    start = time.monotonic()
     for i, tree in enumerate(remove):
         label = tree.branch or tree.head[:8]
         if budget is not None and not dry_run and time.monotonic() - start > budget:
