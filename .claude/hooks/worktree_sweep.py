@@ -2,8 +2,9 @@
 """Remove agent worktrees whose PR is merged: at session start and after `gh pr merge`.
 
 Calls tools/agent/worktrees.py sweep, keeping the session's working and project directories. A merge done
-on GitHub is caught at the next session start. The sweep runs under TIMEOUT (keep it below the hook's own 60 s in
-.claude/settings.json); no removal starts after BUDGET, which leaves each removal TIMEOUT - BUDGET seconds, so a long
+on GitHub is caught at the next session start. The sweep also covers the worktrees of the checked-out submodules
+(agent/* branches only). The sweep runs under TIMEOUT (keep it below the hook's own 60 s in
+.claude/settings.json); no removal starts and no submodule is looked at after BUDGET, which leaves each removal TIMEOUT - BUDGET seconds, so a long
 backlog waits for the next sweep, or `make wt-sweep`, instead of being cut off mid-delete. Never blocks: any
 failure exits 0 quietly.
 """
