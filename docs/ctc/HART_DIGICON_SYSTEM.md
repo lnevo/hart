@@ -264,7 +264,7 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 |--------|---------|
 | `tools/schematic/build_cats_panel.py` | Builds `HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json` from the schematic and the railroad's facts (`--check`) |
 | `cats/scripts/wire_digicon.py` | Retired: built the hand-wired desks from `HART_Digicon.xml`; refuses to write the live desks |
-| `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by `wire_digicon.py`) |
+| `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by `build_cats_panel.py`; `wire_digicon.py` used it too) |
 | `cats/scripts/aar_aspect_bridge.py` | Digicon R-codes ↔ Basic aspect names (Clear / Approach / Stop / Diverging Clear / Diverging Approach) |
 | `jmri/layouts/hart/scripts/apply_le_sml_facing.py` | Layout Editor `signalAMast` / block-boundary facing from `le_signal_boundaries.csv`; does not change mast types |
 | `jmri/layouts/hart/scripts/discover_sml.py` | PanelPro one-shot SML Discover (background; do not leave on Start Up) |

@@ -12,15 +12,13 @@ Layout Editor (tables.xml)
   - which leg the continuing sense closes to (plain turnouts);
   - the stored block paths: the closed leg needs Closed or no setting, the thrown
     leg Thrown, and neither may be reached with the other setting.
-CATS desks (the last hand-wired HART_CTC.xml and HART_ABS.xml, read from git: hartlib.hand_drawn; since the CATS
-cut-over the live desks are generated, and build_cats_panel.py --check, which stops on a fact that disagrees with
-the drawing, and cats/scripts/tests/test_generated_desk_parity.py, which proves they bind what these bind, cover
-them; mast_cells.csv and the USS board's grid are the hand-wired desk's cells)
-  - each plant's turnout, the leg each command (close/throw) leads to, and which
-    leg is NORMAL (the closed one, unless the switch is CATS-inverted);
-  - every block name on the desk is a Layout Editor block;
-  - each mast's lamp is in the cell and on the edge mast_cells.csv gives it, and no
-    other lamp is named; the mast is in the name map and tables.xml, with one head
+CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schematic since the CATS cut-over)
+  - each bound plant's turnout, the leg each command (close/throw) leads to, and which
+    leg is NORMAL (the closed one, unless the switch is CATS-inverted); the main and upper
+    levels are dark (their plants are bound to nothing) and are not plants here;
+  - every signalled block on the desk is a Layout Editor block (the dark DTC ones may not be yet);
+  - the desk's masts are mast_cells.csv's, each once, its lamp on the edge of the block it
+    protects (staging_le/masts.csv); each is in the name map and tables.xml, with one head
     (the one named) for a d1 icon and two for h2.
 Levels (control_points.csv, switches.csv, public_name_map.csv)
   - each control point's switches are on its level, and every cp in the name map has a row;
@@ -65,16 +63,8 @@ import digicon_trace as trace  # noqa: E402
 
 TABLES = paths.TABLES_XML
 GUI = HART / "ctc/GUIObjects.xml"
-def hand_wired_desks() -> tuple[Path, ...]:
-    """The last hand-wired desks (git): what the desk and mast-cell checks read (module text)."""
-    from hartlib import hand_drawn
-    try:
-        return tuple(hand_drawn.cats_desk_path(n) for n in hand_drawn.CATS_DESKS)
-    except ValueError as exc:
-        sys.exit(f"check_layout_facts: {exc}")
-
-
-DESKS = None        # default: hand_wired_desks()
+DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
+MASTS = paths.LAYOUT_DATA / "schematic/staging_le/masts.csv"     # each staging mast's facing and protected blocks
 OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
 
 CLOSED, THROWN = "2", "4"
@@ -270,7 +260,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
 def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]]:
     cells = trace.track_cells(parse(path).getroot().find("TRACKPLAN"))
     try:
-        plants = trace.desk_plants(cells)
+        plants = trace.desk_plants(cells, bound=True)      # the dark main and upper plants bind nothing
     except trace.PlantError as err:
         r.add(f"cats:{path.name}", f"{path.name}: {err}")
         plants = {}
@@ -286,7 +276,10 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
             r.add(f"cats:{os_name}", f"{desk}: plant at {xy} is in {os_name}, which switch_legs.csv does not list")
     jmri_blocks = t.block_names()
     names = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
-    for name in sorted(names - jmri_blocks):
+    # the dark main and upper blocks (DTC, bound to nothing) are drawn from the device map, before the tables
+    # may hold them (a staging-only candidate does not): only the signalled blocks must be Layout Editor blocks
+    dark = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("DISCIPLINE") == "DTC"}
+    for name in sorted(names - dark - jmri_blocks):
         r.add(f"cats-track:{name}", f"{desk}: block {name} is not a Layout Editor block in tables.xml")
     for sw in switches.values():
         n = f"Switch {sw.number}"
@@ -443,24 +436,48 @@ def desk_signals(path: Path) -> dict[tuple[int, int, str], str]:
     return out
 
 
+def desk_mast_blocks(path: Path) -> dict[str, list[str | None]]:
+    """Mast -> the block on the edge of each lamp of that name on a CATS desk (the block the mast protects)."""
+    out: dict[str, list[str | None]] = {}
+    for se in parse(path).getroot().iter("SEC_EDGE"):
+        sig = se.find("SECSIGNAL")
+        if sig is None or not (sig.text or "").strip():
+            continue
+        blk = se.find("BLOCK")
+        out.setdefault(sig.text.strip(), []).append(blk.get("NAME") if blk is not None else None)
+    return out
+
+
+def protected_blocks(path: Path = MASTS) -> dict[str, str]:
+    """Mast -> the block it protects, from the frozen staging Layout Editor masts (staging_le/masts.csv)."""
+    with path.open(newline="", encoding="utf-8") as fh:
+        rows = csv.DictReader(line for line in fh if not line.startswith("#"))
+        return {row["mast"]: row["protects"] for row in rows if row.get("protects")}
+
+
 def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
-    """mast_cells.csv against the USS board's grid, both hand-wired desks (the lamp's cell and edge: columns only
-    those desks use), the name map and the masts' heads in tables.xml."""
+    """mast_cells.csv against the USS board's grid, the CATS desks (each of its masts once, its lamp on the edge of
+    the block it protects, and no other mast), the name map and the masts' heads in tables.xml."""
     cells = facts.load_mast_cells(data)
     grid = facts.load_uss_cells(data)
     for c in cells:
         if not grid.get((c.x, c.y), {}).get("tracks"):
             r.add(f"mast:{c.mast}", f"{c.mast}: mast_cells.csv puts it at ({c.x}, {c.y}), a cell with no track on "
                                     f"the USS board's grid ({facts.USS_CELLS})")
-    want = {(c.x, c.y, c.edge): c.mast for c in cells}
+    want = {c.mast for c in cells}
+    protects = protected_blocks()
     for desk in desks:
-        have = desk_signals(Path(desk))
+        have = desk_mast_blocks(Path(desk))
         name = Path(desk).name
-        for xy in sorted(set(want) | set(have)):
-            if want.get(xy) != have.get(xy):
-                mast = want.get(xy) or have.get(xy)
-                r.add(f"mast:{mast}", f"{mast}: {name} has {have.get(xy) or 'no signal'} at {xy}, "
-                                      f"mast_cells.csv has {want.get(xy) or 'no mast'} there")
+        for mast in sorted(want | set(have)):
+            lamps = have.get(mast, [])
+            if mast not in want:
+                r.add(f"mast:{mast}", f"{mast}: {name} has a lamp for it, mast_cells.csv has no such mast")
+            elif len(lamps) != 1:
+                r.add(f"mast:{mast}", f"{mast}: {name} has {len(lamps)} lamps for it, not one")
+            elif lamps[0] != protects.get(mast):
+                r.add(f"mast:{mast}", f"{mast}: {name} has its lamp on the edge of {lamps[0]}, "
+                                      f"but it protects {protects.get(mast)} (staging_le/masts.csv)")
     named = {row["proposed"] for row in rows if row["layer"] == "mast"}
     heads = {}
     for m in hart_tables.masts(t.root):
@@ -518,7 +535,6 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
         occupancy: Path = OCCUPANCY) -> Report:
     import gen_ctc_track_plan as gen
 
-    desks = hand_wired_desks() if desks is None else desks
     r = Report()
     switches = facts.load_switches(data)
     t = Tables(tables)

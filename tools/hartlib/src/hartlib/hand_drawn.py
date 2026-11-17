@@ -75,6 +75,8 @@ def skip_unless_available(desk: str | None = None):
     """For tests: the hand-drawn tables' path, or with `desk` the hand-wired CATS desk's; unittest.SkipTest naming
     why it is missing."""
     import unittest
+    if desk is not None and desk not in CATS_DESKS:     # a caller's mistake: raised, never a skip
+        raise ValueError(f"{desk!r} is not a hand-wired CATS desk ({', '.join(CATS_DESKS)})")
     try:
         return cats_desk_path(desk) if desk else tables_path()
     except ValueError as exc:

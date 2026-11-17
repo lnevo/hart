@@ -7,6 +7,8 @@ import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import desks  # noqa: E402  (cats/scripts/tests/desks.py: the live desks)
+
 SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import digicon_trace as trace  # noqa: E402
@@ -28,13 +30,6 @@ GRID = """<TRACKPLAN>
 </TRACKPLAN>"""
 
 
-
-def hand_wired(name: str) -> Path:
-    """The last hand-wired desk `name` (HART_CTC.xml or HART_ABS.xml) from git (hartlib.hand_drawn): the live
-    desks are generated since the CATS cut-over. Skips when git does not have it."""
-    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
-    from hartlib import hand_drawn
-    return hand_drawn.skip_unless_available(name)
 
 def grid() -> dict:
     return trace.track_cells(ET.fromstring(GRID))
@@ -95,28 +90,19 @@ class DeskPlantsTest(unittest.TestCase):
 
 
 class DeskTest(unittest.TestCase):
-    """Spot checks on the wired CTC desk, including a plant reached through another plant."""
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        root = ET.parse(hand_wired("HART_CTC.xml")).getroot()      # the wired desk: git, since the cut-over
-        cls.cells = trace.track_cells(root.find("TRACKPLAN"))
+    """Spot checks on the live CTC desk (generated), including a plant reached through another plant."""
 
     def test_switch_9(self) -> None:
-        self.assertEqual(trace.plant_os(self.cells, (24, 8)), "OS Switch 9")
-        self.assertEqual(trace.trace_leg(self.cells, (24, 8), "BOTTOM"), "Track EH-2")
-        self.assertEqual(trace.trace_leg(self.cells, (24, 8), "LEFT"), "Track EH-3")
+        self.assertEqual(desks.routes(desks.CTC, "OS Switch 9"),
+                         {"close": ("Track EH-2", True), "throw": ("Track EH-3", False)})
 
     def test_switch_11_thrown_reaches_switch_9(self) -> None:
-        self.assertEqual(trace.trace_leg(self.cells, (26, 8), "LEFT"), "OS Switch 9")
+        self.assertEqual(desks.routes(desks.CTC, "OS Switch 11")["throw"][0], "OS Switch 9")
 
-    def test_every_wired_plant_has_its_own_os(self) -> None:
-        self.assertEqual(len(trace.desk_plants(self.cells)), 23)
-
-    def test_unnamed_frog_cell(self) -> None:
-        # Switch 3's frog cell carries no BLOCK; its OS is found past the points.
-        self.assertEqual(trace.plant_os(self.cells, (5, 9)), "OS Switch 3")
-        self.assertEqual(trace.trace_leg(self.cells, (5, 9), "BOTTOM"), "Track W-1")
+    def test_every_bound_plant_has_its_own_os(self) -> None:
+        for desk in desks.LIVE:
+            with self.subTest(desk=desk.name):
+                self.assertEqual(len(desks.plants(desk)[1]), 23)        # staging's; main and upper are dark
 
 
 if __name__ == "__main__":

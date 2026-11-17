@@ -40,6 +40,8 @@ class HandDrawnTest(unittest.TestCase):
         self.assertEqual(hand_drawn.skip_unless_available("HART_ABS.xml").name, "HART_ABS.xml")
         with self.assertRaisesRegex(ValueError, "not a hand-wired CATS desk"):
             hand_drawn.cats_desk_path("HART_Digicon.xml")
+        with self.assertRaisesRegex(ValueError, "not a hand-wired CATS desk"):    # raised, not skipped
+            hand_drawn.skip_unless_available("HART_Digicon.xml")
 
 
 if __name__ == "__main__":
