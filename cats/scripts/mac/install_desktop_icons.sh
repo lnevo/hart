@@ -14,7 +14,8 @@ if [[ ! -f "$ICNS" ]]; then
 fi
 
 if [[ ! -f "$ROOT/cats/panels/HART_CTC.xml" || ! -f "$ROOT/cats/panels/HART_ABS.xml" ]]; then
-  python3 "$ROOT/cats/scripts/wire_digicon.py"
+  # The desks are generated from the schematic (ADR-023); wire_digicon.py is retired and will not write them.
+  python3 "$ROOT/tools/schematic/build_cats_panel.py"
 fi
 
 make_app() {

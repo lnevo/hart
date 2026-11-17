@@ -22,7 +22,7 @@ contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX
 | Path | Role |
 |------|------|
 | `anyrail/hart.xml` | Geometry source snapshot |
-| `output/tables.xml` | The one tables file: LE + SML + Dispatcher + CTC. JMRI loads it and deploy ships it |
+| `output/tables.xml` | The one tables file: Layout Editor + SML. JMRI loads it and deploy ships it |
 | `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `dcc` address, `comment` from Device map) |
 | `data/control_points.csv` | CP → level, switches |
 | `data/switches.csv` | Per switch: level, Layout Editor turnout, CATS inversion, USS CTC lever, hand (`scripts/layout_facts.py` reads it) |
@@ -40,20 +40,17 @@ python3 jmri/scripts/check_hart_phase02.py
 python3 jmri/layouts/hart/scripts/polish_hart_layout_editor.py --check
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py
 python3 jmri/layouts/hart/scripts/sync_public_name_map.py   # Device-map CSV identity + comments
-python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-sync
+python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-sync  # parked data, read put back (check.sh runs it)
 
 ```
 
 Visual scripts patch `output/tables.xml`.
 
-Dispatcher stations (12, since 2026-11-12): Track East Lead (button "East End"),
-K-1, K-2, McKees Rocks, McKeesport, Scale, Barn, EH-1–3, W-1 and W-2. The mains,
-Brick-Plane and South Yard are through track. The generated graph covers all 12
-as origins and destinations (107 sections / 187 transits / 374 HEAD_AND_TAIL
-traininfo); see `dispatcher/DISPATCHER_GUIDE.md`.
-
-Operator guide (click destinations or named station lists):
-[`dispatcher/DISPATCHER_GUIDE.md`](dispatcher/DISPATCHER_GUIDE.md).
+**Parked:** the Dispatcher System, NX and the USS CTC machine (see [`parked/README.md`](parked/README.md), which
+also lists the scripts that serve them). When the Dispatcher System was parked it had 12 stations (since 2026-11-12):
+Track East Lead (button "East End"), K-1, K-2, McKees Rocks, McKeesport, Scale, Barn, EH-1–3, W-1 and W-2, with
+187 transits and 374 HEAD_AND_TAIL traininfo. Its operator guide,
+[`dispatcher/DISPATCHER_GUIDE.md`](dispatcher/DISPATCHER_GUIDE.md), applies again on unpark.
 
 Layout Editor interaction layers are reserved as follows: signal icons level 9,
 yard-ladder controls level 10, future track-side NX controls level 11, and

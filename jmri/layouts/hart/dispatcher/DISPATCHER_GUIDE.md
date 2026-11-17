@@ -1,5 +1,10 @@
 # HART Railroad — Auto Dispatcher Guide
 
+> **Parked since the helix-join release (November 2026).** The Dispatcher System is out of the active
+> `tables.xml` and this guide does not apply until it is unparked; see
+> [`../parked/README.md`](../parked/README.md). The CTC desk now is CATS:
+> [`docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../../../docs/ctc/DISPATCHER_GUIDE_CTC.md).
+
 **Publication:** DS-AUTO · Rev A · Eff 2026-08-20
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations
 **Scope:** JMRI Dispatcher System on PanelPro (panels **Dispatcher System** and **HART Railroad**)
