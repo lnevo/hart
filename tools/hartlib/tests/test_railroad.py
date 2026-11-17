@@ -61,7 +61,7 @@ class RepoData(unittest.TestCase):
         self.assertEqual(len(rr.level_masts), 41)
         fails, known = R.run_check(rr)
         self.assertEqual(fails, [])
-        self.assertEqual(len(known), 3)
+        self.assertEqual(len(known), 2)
 
     def test_every_known_message_names_a_registered_invariant(self) -> None:
         names = {i.name for i in R.INVARIANTS}
@@ -300,10 +300,13 @@ class Invariants(Copy):
         self.assertTrue(any("head Head 108LA: jmri_name 'IH:HART:C3:108LX'" in p for p in got), got)
 
     def test_name_clash(self) -> None:
-        got = self.problems("name-clash", upto="device_map")
-        self.assertEqual(len(got), 10)
-        self.assertIn("public_name_map.csv: turnout Switch 107 is an alias of Switch 25 there and level 2 turnout "
-                      "Switch 107 in device_map_main_upper.csv", got)
+        """The staging switches' DCC addresses are aliases "DCC <n>" (owner, 2026-11-17), not "Switch <n>": an alias
+        named like a main level turnout would rename it in a rename pass."""
+        self.assertEqual(self.problems("name-clash", upto="device_map"), [])
+        self.edit("name_map", "turnout,DCC 107,Switch 25,", "turnout,Switch 107,Switch 25,")
+        self.assertEqual(self.problems("name-clash", upto="device_map"),
+                         ["public_name_map.csv: turnout Switch 107 is an alias of Switch 25 there and level 2 turnout "
+                          "Switch 107 in device_map_main_upper.csv"])
 
     def test_level_masts(self) -> None:
         self.edit("level_masts", "Mast 108R,CP 107,107,Track 107-109,", "Mast 108R,CP 107,109,Track Nowhere,")
@@ -331,9 +334,9 @@ class Invariants(Copy):
 class Known(unittest.TestCase):
     def test_unknown_problems_fail_and_stale_known_entries_fail(self) -> None:
         rr = R.Railroad(upto="device_map")
-        clash = next(m for m in R.KNOWN if m.startswith("name-clash:"))
-        fails, _ = R.run_check(rr, {k: v for k, v in R.KNOWN.items() if k != clash})
-        self.assertEqual(fails, [clash])
+        unused = next(m for m in R.KNOWN if "BS unused" in m)
+        fails, _ = R.run_check(rr, {k: v for k, v in R.KNOWN.items() if k != unused})
+        self.assertEqual(fails, [unused])
         fails, _ = R.run_check(rr, {**R.KNOWN, "device-map: nothing like this": "test"})
         self.assertEqual(fails, ["KNOWN entry no longer happens; remove it from KNOWN: device-map: nothing like this"])
 

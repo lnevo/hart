@@ -1082,8 +1082,6 @@ THROATS = ("The Layout Editor throat blocks Track S-R, S-1 to S-4 West and East 
            "public_name_map.csv (Track Scale East has one), though staging masts face them, block_lengths.csv "
            "measures them and old aliases point at them")
 UNUSED = "Two retired occupancy names alias the placeholder BS unused, which has no live row"
-CLASH = ("Ten historical turnout aliases (Switch 101 to 119, old staging numbers) are now main level turnout names "
-         "in the device map: a rename pass that maps aliases would rename those main level turnouts")
 KNOWN: dict[str, str] = {
     **dict.fromkeys((
         "name-map: public_name_map.csv: block 'S-2 East' is an alias of 'Track S-1 East', which has no live row (current == proposed)",
@@ -1122,18 +1120,6 @@ KNOWN: dict[str, str] = {
         "name-map: public_name_map.csv: occupancy 'Block 2-2' is an alias of 'BS unused', which has no live row (current == proposed)",
         "name-map: public_name_map.csv: occupancy 'Block 3-8' is an alias of 'BS unused', which has no live row (current == proposed)",
     ), UNUSED),
-    **dict.fromkeys((
-        'name-clash: public_name_map.csv: turnout Switch 103 is an alias of Switch 15 there and level 2 turnout Switch 103 in device_map_main_upper.csv',
-        'name-clash: public_name_map.csv: turnout Switch 105 is an alias of Switch 19 there and level 2 turnout Switch 105 in device_map_main_upper.csv',
-        'name-clash: public_name_map.csv: turnout Switch 111 is an alias of Switch 23 there and level 2 turnout Switch 111 in device_map_main_upper.csv',
-        'name-clash: public_name_map.csv: turnout Switch 107 is an alias of Switch 25 there and level 2 turnout Switch 107 in device_map_main_upper.csv',
-        'name-clash: public_name_map.csv: turnout Switch 109 is an alias of Switch 29 there and level 2 turnout Switch 109 in device_map_main_upper.csv',
-        'name-clash: public_name_map.csv: turnout Switch 101 is an alias of Switch 3 there and level 2 turnout Switch 101 in device_map_main_upper.csv',
-        'name-clash: public_name_map.csv: turnout Switch 113 is an alias of Switch 35 there and level 2 turnout Switch 113 in device_map_main_upper.csv',
-        'name-clash: public_name_map.csv: turnout Switch 115 is an alias of Switch 39 there and level 2 turnout Switch 115 in device_map_main_upper.csv',
-        'name-clash: public_name_map.csv: turnout Switch 117 is an alias of Switch 7 there and level 2 turnout Switch 117 in device_map_main_upper.csv',
-        'name-clash: public_name_map.csv: turnout Switch 119 is an alias of Switch 9 there and level 2 turnout Switch 119 in device_map_main_upper.csv',
-    ), CLASH),
 }
 
 
