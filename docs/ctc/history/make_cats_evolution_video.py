@@ -19,7 +19,8 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = Path(__file__).resolve().parent
 SRC = Path(os.environ.get("HART_SCREENSHOTS", str(Path(__file__).resolve().parents[3] / "media" / "screenshots")))
 OUT_MP4 = HERE / "CATS_Panel_Evolution.mp4"
-CANVAS = (1280, 380)
+OUT_POSTER = HERE / "cats-poster.jpg"
+CANVAS = (1280, 720)    # 16:9 so the three-level desk of November is readable
 BG = (0, 0, 0)
 CAPTION_H = 44
 SCALE = 0.88
@@ -41,6 +42,7 @@ FRAMES: list[tuple[str, tuple[int, int, int, int], str]] = [
     ("cats_dispatcher_20260825_075630.png", None, "Retitled ABS Digicon; Brick-Plane, Scale and Barn labelled"),
     ("cats_dispatcher_20260826_123325.png", None, "Routes lined in green on the CTC Digicon"),
     ("cats_dispatcher_20260826_184626.png", None, "Rev A, effective 26 August"),
+    ("cats_dispatcher_20261116_225112.png", None, "16 November: generated from the schematic, staging, main and upper level (ABS)"),
 ]
 
 
@@ -77,7 +79,10 @@ def main() -> None:
         lines = []
         for i, (name, box, cap) in enumerate(FRAMES):
             p = work / f"f{i:02d}.png"
-            compose(SRC / name, box, cap, font).save(p)
+            frame = compose(SRC / name, box, cap, font)
+            frame.save(p)
+            if i == len(FRAMES) - 1:
+                frame.save(OUT_POSTER, quality=88)
             dur = (FINAL_HOLD_MS if i == len(FRAMES) - 1 else FRAME_MS) / 1000
             lines += [f"file '{p}'", f"duration {dur:.3f}"]
         lines.append(f"file '{work / f'f{len(FRAMES) - 1:02d}.png'}'")
@@ -88,7 +93,7 @@ def main() -> None:
              "-c:v", "libx264", "-crf", "26", "-movflags", "+faststart", str(OUT_MP4)],
             check=True, capture_output=True, text=True,
         )
-    print(f"Wrote {OUT_MP4}")
+    print(f"Wrote {OUT_MP4} and {OUT_POSTER}")
 
 
 if __name__ == "__main__":
