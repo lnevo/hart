@@ -1,43 +1,26 @@
 # JMRI layouts
 
-One subdirectory per physical layout / AnyRail project.
+One subdirectory per layout. The only active layout is **hart** (`export JMRI_LAYOUT=hart`); see
+[`hart/README.md`](hart/README.md). The earlier layouts (mac, linear3 to linear6, new) are in `archive/layouts/`.
 
-## Standard layout
-
-```
-layouts/<name>/
-  anyrail/          AnyRail export XML (e.g. upper_both4.xml)
-  authoritative/    JMRI panel: defaults, turnouts table, labels
-  data/             layout_blocks.xlsx, block_merges.txt
-  output/           mac_jmri_blocked.xml, nx_pairs.txt
-  working/          scratch XML, linear alignment, experiments
-```
-
-## Layouts in this repo
-
-| Name | Use |
-|------|-----|
-| **mac** | Completed reference — block/sensor conventions; `mac_jmri2.xml` as style defaults |
-| **linear4** | Active AnyRail line (1:1 geometry); has `dispatcher/` for NextTrain export + Google Sheets |
-| **linear3** | Superseded; do not use resize/polish steps as a template |
-| **new** | Copy when starting another line |
-
-Each layout may include:
+## hart
 
 ```
-dispatcher/
-  tables.xml
-  NextTrainDispatcherApp.xlsx
-  export_options.json      # segment_scale, control_point_scale, offset_x/y
-  google_sheets.json       # spreadsheetIdEnv → .env.local
+layouts/hart/
+  anyrail/      AnyRail export of the plan (geometry snapshot)
+  ctc/          USS CTC machine files (parked)
+  data/         layout facts: switches, switch legs, public names, schematic data
+  dispatcher/   Dispatcher System traininfo and guide (parked)
+  operations/   Operations Pro files (ADR-015)
+  output/       tables.xml, the one tables file (ADR-008)
+  parked/       the parked features' data and the scripts that serve them
+  scripts/      hart's build, check and maintenance scripts
 ```
 
 See [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md).
 
-## Starting the new layout
+## Starting a new layout
 
-1. Copy `new/` to `layouts/<yourname>/` (or work directly in `new/`).
-2. Put the AnyRail export in `anyrail/` (any filename; pass the path to `apply_blocks_to_panel.py`).
-3. Build or copy an authoritative panel into `authoritative/`.
-4. Run `build_blocks_excel.py` against the geometry, then edit `data/layout_blocks.xlsx`.
-5. Set `export JMRI_LAYOUT=<yourname>` or pass explicit paths on every command.
+There is no supported path for a layout other than hart. The AnyRail scripts that turned an export into a blocked
+panel are retired in `archive/jmri-scripts/` ([`wiki/pipelines/jmri-anyrail.md`](../../wiki/pipelines/jmri-anyrail.md)),
+and hart's new levels come from the schematic (`make panels`).

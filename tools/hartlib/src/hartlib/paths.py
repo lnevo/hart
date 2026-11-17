@@ -114,7 +114,9 @@ def rel(path: Path | str, root: Path | None = None) -> str:
 
 
 def layout_paths(layout: str | None = None) -> dict[str, str]:
-    """The old jmri/layout_paths.py dict, kept for the AnyRail-era scripts in jmri/scripts.
+    """The old jmri/layout_paths.py dict. The one live caller is jmri/scripts/generate_nx_pairs.py
+    (parked with NX), which reads ``output`` and ``nx_pairs``; the AnyRail-era scripts that used the rest
+    are in archive/jmri-scripts.
 
     ``authoritative`` is tables.xml. ``anyrail``, ``style_defaults`` and ``layout_dir``
     exist; ``output``, ``excel``, ``merge``, ``nx_pairs`` and ``working`` are defaults for

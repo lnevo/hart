@@ -270,6 +270,12 @@ python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
 
 Refresh only after the JMRI XML is applied, so the workbooks match the live beans. For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`.
 
+The website's node grid (`www/assets/behind/lcos-node-grid.svg`, on `www/behind/bridge.html`) is drawn from the owner's grid workbook (`media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx`, local media, not in git). Rerun it after the grid changes:
+
+```bash
+python3 docs/wiring/scripts/node_grid_svg.py
+```
+
 ## What v85 changed vs Desktop v84
 
 - Lower-deck **BlockSensors** names follow the panel: Scale, Barn, S-1…S-5, W-1/W-2, EH-1…EH-3, OS 100… (MQTT `Block n-n` stays in Notes).

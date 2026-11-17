@@ -282,7 +282,7 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         nx = "jmri/layouts/hart/scripts/apply_nx_layer.py"
         for cmd in (f"env JMRI_LAYOUT=hart python3 {nx}", f"python3 -u {nx}", f"uv run python {nx}",
                     "zsh tools/ops/pull_tables.sh", "bash -c ./tools/ops/pull_tables.sh",
-                    "(./tools/ops/pull_tables.sh)", "cd jmri && python3 scripts/apply_blocks_to_panel.py",
+                    "(./tools/ops/pull_tables.sh)", "cd jmri && python3 scripts/polish_hart_cp_labels.py",
                     # no list entry: found by reading the script
                     "python3 jmri/scripts/polish_hart_cp_labels.py",
                     "python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py",

@@ -1792,16 +1792,6 @@ def main() -> None:
     add_v8_mast_column(split_dest)
     add_split_readme(split_dest)
     print(f"wrote {split_dest} (CTC switch names + Mast column + README)")
-    # Ports extract for cats/data
-    inv = load_workbook(WIRING / "LCOS_Layout_Inventory_v85.xlsx")
-    extract = SIGNALS / "LCOS_Layout_Inventory_v85_signal_ports.xlsx"
-    # Keep a thin copy of the full v85 next to the old v48 extract name.
-    shutil.copy2(WIRING / "LCOS_Layout_Inventory_v85.xlsx", extract)
-    old_extract = SIGNALS / "LCOS_Layout_Inventory_v48_signal_ports.xlsx"
-    if old_extract.exists():
-        old_extract.unlink()
-    print(f"wrote {extract}")
-    inv.close()
 
 
 if __name__ == "__main__":

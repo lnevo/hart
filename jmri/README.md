@@ -1,44 +1,24 @@
-# JMRI panel pipeline
+# JMRI scripts
 
-Turn an **AnyRail export** into a **blocked JMRI panel** with occupancy sensors, NX boundaries, and layout defaults from your authoritative panel.
+The panels are drawn from the schematic (`make panels`, `tools/schematic/`). The AnyRail pipeline that built the first
+blocked panel (`prepare_tables_from_anyrail.py`, `sync_linear_panel.py`, `build_blocks_excel.py`,
+`apply_blocks_to_panel.py`) is retired and kept in `archive/jmri-scripts/`; see
+[`wiki/pipelines/jmri-anyrail.md`](../wiki/pipelines/jmri-anyrail.md).
 
 ## Per-layout folders
 
-See [`layouts/README.md`](layouts/README.md). Active layout is **`hart`** unless you set:
+See [`layouts/README.md`](layouts/README.md). Active layout is **`hart`** (`export JMRI_LAYOUT=hart`).
 
-```bash
-export JMRI_LAYOUT=new
-```
-
-## Main scripts (`scripts/`)
+## Scripts (`scripts/`)
 
 | Script | Role |
 |--------|------|
-| `apply_blocks_to_panel.py` | Apply Excel block map + merges; write blocked panel |
-| `build_blocks_excel.py` | Seed/regenerate `layout_blocks.xlsx` from layout XML |
+| `signal_coordinator.py` | Jython in JMRI on the Pi: hands the Digicon heads between SML and MQTT (SML Enabled / Disabled toggle) |
+| `check_hart_phase02.py` | Acceptance checks for hart phases 0–2 (in `tools/check.sh`) |
+| `polish_hart_cp_labels.py` | CP / area label hierarchy on the panel |
 | `generate_nx_pairs.py` | List Entry/Exit pairs for manual JMRI add (parked with NX; see `layouts/hart/parked/README.md`) |
-| `sync_linear_panel.py` | Align `linear.xml` working file to authoritative panel |
-
-Other scripts in `scripts/` are one-off layout edits (stubs, trim, hex arcs, schematic build).
-
-## Typical workflow
-
-```bash
-cd /Users/lnevo/Panel
-export JMRI_LAYOUT=hart
-
-# Normal run (authoritative panel as source)
-python3 jmri/scripts/apply_blocks_to_panel.py
-
-# Refresh track geometry from AnyRail
-python3 jmri/scripts/apply_blocks_to_panel.py \
-  jmri/layouts/hart/anyrail/hart.xml \
-  jmri/layouts/hart/output/hart_blocked.xml \
-  jmri/templates/panel_style.xml \
-  use-panel-layout
-```
-
-Defaults resolve via `hartlib.paths.layout_paths()` (`tools/hartlib/`) when arguments are omitted.
+| `fit_panel_canvas.py`, `fit_panel_height.py`, `polish_layout_geometry.py` | Geometry helpers; do not run unless asked |
 
 ## Documentation
 
+Pipelines: [`wiki/pipelines/README.md`](../wiki/pipelines/README.md) · landmines: [`docs/AI_CONTEXT.md`](../docs/AI_CONTEXT.md)
