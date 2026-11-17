@@ -268,8 +268,8 @@ class LayoutFactsTest(unittest.TestCase):
     def test_the_double_crossover_commands_its_turnout_from_all_four_points(self) -> None:
         cells = check.trace.track_cells(check.parse(check.DESKS[0]).getroot().find("TRACKPLAN"))
         points = [(os_name, xy, edge) for os_name, xy, edge in check.trace.level_plants(cells)
-                  if os_name == "OS Switch 225"]
-        self.assertEqual(len(points), 4)
+                  if os_name.startswith("OS Switch 225")]
+        self.assertEqual(sorted(p[0] for p in points), [f"OS Switch 225{c}" for c in "abcd"])   # a point per corner
         for _os, xy, edge in points:
             ios = cells[xy].findall(f"SEC_EDGE[@EDGE='{edge}']/SWITCHPOINTS/ROUTEINFO/ROUTECOMMAND/IOSPEC")
             self.assertEqual(sorted((i.get("USER_NAME"), i.text.strip()) for i in ios),
@@ -285,7 +285,7 @@ class LayoutFactsTest(unittest.TestCase):
             end = text.index("</SEC_EDGE>", sig)
             edge = text[start:end]
             name = re.search(r'<BLOCK[^>]* NAME="([^"]+)"', edge).group(1)
-            self.assertEqual(name, "OS Switch 225")     # corner OS Switch 225a is the desk's one 225 block
+            self.assertEqual(name, "OS Switch 225a")    # the desk's corner block, as the Layout Editor's
             return text[:start] + edge.replace(f'NAME="{name}"', 'NAME="Track 225-229"', 1) + text[end:]
 
         out = self.failures(desks=(self.copy(check.DESKS[0], move),))

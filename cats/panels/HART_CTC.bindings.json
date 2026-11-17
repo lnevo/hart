@@ -1,21 +1,5 @@
 {
  "_main_upper_not_on_desk": {
-  "OS Switch 225a": {
-   "detector": "BS Switch 225a",
-   "why": "inside desk block OS Switch 225: CATS cannot part a block at switch points or a crossing, so the desk draws a double crossover as one block, bound to corner a's detector"
-  },
-  "OS Switch 225b": {
-   "detector": "BS Switch 225b",
-   "why": "inside desk block OS Switch 225: CATS cannot part a block at switch points or a crossing, so the desk draws a double crossover as one block, bound to corner a's detector"
-  },
-  "OS Switch 225c": {
-   "detector": "BS Switch 225c",
-   "why": "inside desk block OS Switch 225: CATS cannot part a block at switch points or a crossing, so the desk draws a double crossover as one block, bound to corner a's detector"
-  },
-  "OS Switch 225d": {
-   "detector": "BS Switch 225d",
-   "why": "inside desk block OS Switch 225: CATS cannot part a block at switch points or a crossing, so the desk draws a double crossover as one block, bound to corner a's detector"
-  },
   "Track 101-103": {
    "why": "a short link (3.4 cm) inside its switches' OS blocks"
   },
@@ -1159,22 +1143,6 @@
    "name": "OS Switch 223",
    "station": "223"
   },
-  "OS 225": {
-   "_planned_occupied": {
-    "DECADDR": "2100",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Switch 225a",
-    "command": "close"
-   },
-   "_planned_unoccupied": {
-    "DECADDR": "2100",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   },
-   "discipline": "CTC",
-   "name": "OS Switch 225",
-   "station": "225"
-  },
   "OS 227": {
    "_planned_occupied": {
     "DECADDR": "2101",
@@ -1361,6 +1329,70 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    }
+  },
+  "OS Switch 225": {
+   "discipline": "CTC",
+   "station": "225"
+  },
+  "OS Switch 225a": {
+   "_planned_occupied": {
+    "DECADDR": "2100",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 225a",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2100",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "station": "225a"
+  },
+  "OS Switch 225b": {
+   "_planned_occupied": {
+    "DECADDR": ":HART:C3:1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 225b",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": ":HART:C3:1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "station": "225b"
+  },
+  "OS Switch 225c": {
+   "_planned_occupied": {
+    "DECADDR": ":HART:C3:2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 225c",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": ":HART:C3:2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "station": "225c"
+  },
+  "OS Switch 225d": {
+   "_planned_occupied": {
+    "DECADDR": ":HART:C3:3",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 225d",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": ":HART:C3:3",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "station": "225d"
   },
   "OS Switch 23a": {
    "discipline": "CTC",
@@ -3555,6 +3587,13 @@
    }
   },
   "225": {
+   "corners": {
+    "A": "OS Switch 225c",
+    "B": "OS Switch 225d",
+    "C": "OS Switch 225a",
+    "D": "OS Switch 225b",
+    "X": "OS Switch 225"
+   },
    "normal": "B",
    "routes": {
     "B": {

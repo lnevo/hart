@@ -294,8 +294,8 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
     jmri_blocks = t.block_names()
     names = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
     # the main and upper blocks (no detector bound yet) are drawn from the device map, before the tables may hold
-    # them (a staging-only candidate does not; a double crossover's corners are one desk block, named without the
-    # corner letter): only those may be missing from the Layout Editor, and only while no detector is bound
+    # them (a staging-only candidate does not; the middle of a double crossover's X is named without the corner
+    # letter): only those may be missing from the Layout Editor, and only while no detector is bound
     root = parse(path).getroot()
     dark = ({b.get("NAME") for b in root.iter("BLOCK") if b.get("NAME")} -
             {b.get("NAME") for b in root.iter("BLOCK") if b.find("OCCUPIEDSPEC") is not None}) & device_map_blocks()

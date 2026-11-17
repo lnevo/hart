@@ -62,3 +62,11 @@ class LayoutIndexCheckTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MatchTurnoutTest(unittest.TestCase):
+    def test_a_corner_block_names_its_crossovers_turnout_not_the_block(self) -> None:
+        turnout = {"kind": "turnout", "publicName": "Switch 225"}
+        by = {"switch 225": turnout, "switch 225b": {"kind": "occupancy", "publicName": "OS Switch 225b"}}
+        self.assertIs(cats_index.match_turnout(by, set(), {"OS Switch 225b"}), turnout)
+        self.assertIs(cats_index.match_turnout(by, set(), {"OS Switch 225"}), turnout)
