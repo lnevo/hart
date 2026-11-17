@@ -2884,7 +2884,7 @@ table.data-table tbody th {
 .map-list img {
   width: 100%;
   aspect-ratio: 16 / 10;
-  object-fit: cover;
+  object-fit: contain;
   background: #fff;
   border: 1px solid var(--rule);
 }
