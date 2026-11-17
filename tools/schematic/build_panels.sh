@@ -5,6 +5,7 @@
 #   hands.csv, <name>.signals.json   from the plan graph and the frozen mast facts; the schematic reads the signals
 #   device map                       from the solved sheet; writes main_upper.plan_overrides.json, a layer file the
 #                                    schematic reads, so it runs before publishing
+#   main_upper_masts.csv             from the device map; the Layout Editor builds place these masts
 #   schematic draft and stations     publish_draft.py
 #   CATS desks                       build_cats_panel.py
 #   Layout Editor trials, cut-over   build_layout_le.py (all levels, then staging alone), then --as-live
@@ -40,6 +41,7 @@ step() {
 step hands python3 tools/schematic/build_hands.py
 step signals python3 tools/schematic/build_signals.py
 step device-map python3 tools/schematic/build_device_map.py
+step main-upper-masts python3 tools/schematic/build_main_upper_masts.py
 step schematic python3 tools/schematic/publish_draft.py
 step cats python3 tools/schematic/build_cats_panel.py
 step le-trial python3 tools/schematic/build_layout_le.py

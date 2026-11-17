@@ -168,9 +168,21 @@ def dispatcher_virtuals(expected: set[str], name_map: Path = paths.PUBLIC_NAME_M
     return expected & virtual
 
 
+# The main and upper levels' masts, on internal heads (IH9 + the device map's four digits) until the cut-over
+# (tools/schematic/build_main_upper_masts.py): counted apart from the staging field masts.
+LEVEL_MASTS = paths.LAYOUT_DATA / "schematic" / "main_upper_masts.csv"
+LEVEL_HEAD = re.compile(r"IH9\d{4}")
+
+
+def level_mast_names(path: Path = LEVEL_MASTS) -> set[str]:
+    with path.open(newline="", encoding="utf-8") as f:
+        return {row["mast"] for row in csv.DictReader(f)}
+
+
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
     masts = root.find("signalmasts")
     names: set[str] = set()
+    level: set[str] = set()
     virtual_names: set[str] = set()
     cats_virtual: list[str] = []
     if masts is not None:
@@ -186,8 +198,18 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
                 if name:
                     virtual_names.add(name)
                 continue
+            heads = re.findall(r"\((IH\d+)\)", system_name or "")
+            if heads and all(LEVEL_HEAD.fullmatch(h) for h in heads):
+                level.add(name)             # a main or upper mast on internal heads
+                continue
             if name:
                 names.add(name)
+    if level:
+        want = level_mast_names()
+        if level != want:
+            audit.error(f"main and upper masts on internal heads differ from {LEVEL_MASTS.name}: missing="
+                        f"{sorted(want - level) or 'none'}, extra={sorted(level - want) or 'none'}")
+    audit.facts["level_masts"] = len(level)
     virtuals = dispatcher_virtuals(expected)
     field_expected = expected - virtuals
     missing = sorted(field_expected - names)

@@ -721,13 +721,36 @@ class ThreeLevels(unittest.TestCase):
         self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
                             if B.is_level_bean(b)))
 
-    def test_no_masts_or_sensors_on_main_and_upper(self) -> None:
+    def test_main_and_upper_masts_and_no_sensors(self) -> None:
+        """Main and upper: their 41 control-point masts (main_upper_masts.csv), each in the slot JMRI resolves to its
+        facing track and protected OS block (108LA and 108LB on Switch 107's normal and diverging legs), on internal
+        heads and masts signal_coordinator.py never enrols; no sensors."""
         level = {t["ident"] for t in self.P.turnouts if t["band"]} | {k for k, p in self.P.points.items() if p["band"]}
-        self.assertFalse([m for m in self.P.masts if m["ident"] in level])
+        rows = {r["mast"]: r for r in B.read_level_masts()}
+        on_level = [m for m in self.P.masts if m["ident"] in level]
+        self.assertEqual({m["mast"] for m in on_level}, set(rows))
+        ix = B.slots_module().Index(self.le)
+        turnouts = {self.P.name(t["ident"]): t for t in self.P.turnouts}
+        for m in on_level:
+            ident = self.P.name(m["ident"])
+            f, pr = ix.blocks(m["kind"], ident, m["slot"])
+            self.assertEqual((f, pr), (rows[m["mast"]]["facing"], [rows[m["mast"]]["protects"]]), m["mast"])
+            if rows[m["mast"]]["leg"]:
+                normal = "B" if turnouts[ident]["continuing"] == "2" else "C"
+                self.assertEqual(m["slot"] == normal, rows[m["mast"]]["leg"] == "normal", m["mast"])
+        self.assertEqual({rows[m]["leg"] for m in ("Mast 108LA", "Mast 108LB")}, {"normal", "diverging"})
+        self.assertEqual(B.lcos_named([r["system_name"] for r in rows.values()]
+                                      + [h for r in rows.values() for h, _u in r["heads"]]), [])
+        self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH93332"]),
+                         ["IF$shsm:basic:one-low(IH3332)", "IH3332"])
+        heads = [h for h in self.root.find("signalheads") if B.is_level_bean(h)]
+        masts = [m for m in self.root.find("signalmasts") if B.is_level_bean(m)]
+        self.assertEqual((len(heads), len(masts)), (53, 41))
+        self.assertEqual({m.findtext("userName") for m in masts}, set(rows))
         written = {self.P.name(i) for i in level}
         for el in self.le:
             if el.get("ident") in written:
-                self.assertFalse([k for k in el.attrib if k.endswith(("signalmast", "boundsensor"))], el.get("ident"))
+                self.assertFalse([k for k in el.attrib if k.endswith("boundsensor")], el.get("ident"))
                 self.assertIsNone(el.find("sensorA"))
 
     def test_helix_masts_stand_at_the_join_anchors(self) -> None:
@@ -740,7 +763,10 @@ class ThreeLevels(unittest.TestCase):
 
     def test_one_block_contents_icon_per_block_on_every_level(self) -> None:
         icons = Counter(el.get("blockcontents") for el in self.le.iter("BlockContentsIcon"))
-        self.assertEqual(set(icons), T.used_blocks(self.le))
+        # every block but those B.OPTIONAL_READOUTS lets go when no clean spot is left (logged)
+        left_out = {b for v in B.OPTIONAL_READOUTS.values() for b in v} - set(icons)
+        self.assertEqual(len(left_out), len(self.P.bcis_skipped))
+        self.assertEqual(set(icons) | left_out, T.used_blocks(self.le))
         self.assertEqual(set(icons.values()), {1})
         staging = {b["block"] for b in self.base[1].bcis}
         self.assertEqual(len(staging), 57)

@@ -29,6 +29,7 @@ panel the build wrote.
 from __future__ import annotations
 
 import argparse
+import csv
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -960,6 +961,16 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
     return changes, errors
 
 
+LEVEL_MASTS = paths.LAYOUT_DATA / "schematic" / "main_upper_masts.csv"     # build_main_upper_masts.py
+
+
+def level_masts(path: Path = LEVEL_MASTS) -> set[str]:
+    """The main and upper levels' control-point masts: home signals, shown on a generated panel (none is a hidden
+    Dispatcher virtual)."""
+    with path.open(newline="", encoding="utf-8") as f:
+        return {row["mast"] for row in csv.DictReader(f)}
+
+
 def apply_overlap_cleanup(path: Path, *, check: bool = False, reference: Path | None = None) -> tuple[int, list[str]]:
     """Shrink-LE companion: keep Pi mast nudges, hide virtuals, put Stage 1 lamps on their targets.
 
@@ -972,10 +983,13 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False, reference: Path | 
     ref = reference_panel(reference)
     changes = 0
     errors: list[str] = []
+    shown = level_masts() if generated else set()
 
     for icon in le.findall("signalmasticon"):
         name = (icon.get("signalmast") or "").strip()
-        if name in SIGNAL_PLACEMENTS:
+        if name in shown:
+            expected = {"hidden": "no"}
+        elif name in SIGNAL_PLACEMENTS:
             x, y, degrees = SIGNAL_PLACEMENTS[name]
             expected = {"hidden": "no"} if generated else {
                 "x": str(x),

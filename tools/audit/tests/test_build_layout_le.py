@@ -45,6 +45,8 @@ def is_new(el) -> bool:
         return sysname.startswith(B.BLOCK_SYS)
     if el.tag == "layoutblock":
         return sysname.startswith("ILB") and sysname[3:].isdigit() and int(sysname[3:]) >= B.LAYOUT_BLOCK_FIRST
+    if el.tag in ("signalhead", "signalmast"):
+        return B.is_level_bean(el)
     return False
 
 
@@ -218,7 +220,10 @@ class Built(unittest.TestCase):
         staging = B.band_key(self.bands[0][0])
         self.assertEqual(staging, B.STAGING)
         self.assertTrue(self.P.masts)
-        self.assertEqual({m["band"] for m in self.P.masts}, {0})       # main and upper have none
+        # main and upper: their control-point masts (main_upper_masts.csv), every one placed
+        level = {m["mast"] for m in self.P.masts if m["band"] != 0}
+        self.assertEqual(level, {r["mast"] for r in B.read_level_masts()})
+        self.assertEqual(len(level), 41)
 
     # ---- size: the owner's 1900 x 1200 display at 100% zoom
     def test_panel_fits_the_display(self) -> None:
@@ -269,7 +274,7 @@ class Built(unittest.TestCase):
     def test_live_tables_unchanged_but_for_the_additions(self) -> None:
         doc = tables.loads(self.data)
         removed = strip_new(doc.root)
-        self.assertEqual(removed, 1 + 41 + 3 * 121)
+        self.assertEqual(removed, 1 + 41 + 3 * 121 + 53 + 41)      # + main and upper heads and masts
         self.assertEqual(doc.tobytes(), paths.TABLES_XML.read_bytes())
 
     def test_no_name_collisions(self) -> None:
@@ -385,8 +390,10 @@ class DeviceNames(unittest.TestCase):
         self.assertIn("101", labels)
         self.assertNotIn("101A", labels)
         self.assertIn("129A", labels)                           # its B half is on the upper level
-        self.assertEqual(drawn[1][2]["le_labels"], dict(B.LEVEL_LE_LABELS, numbers_below=B.NUMBERS_BELOW["Main"]))
-        self.assertEqual(drawn[2][2]["le_labels"], dict(B.LEVEL_LE_LABELS, numbers_below=[]))
+        self.assertEqual(drawn[1][2]["le_labels"], dict(B.LEVEL_LE_LABELS, numbers_below=B.NUMBERS_BELOW["Main"],
+                                                         optional_block_contents=[]))
+        self.assertEqual(drawn[2][2]["le_labels"], dict(B.LEVEL_LE_LABELS, numbers_below=[],
+                                                         optional_block_contents=B.OPTIONAL_READOUTS["Upper"]))
         named = [s["name"] for s in main["strands"].values() if s["name"]]
         self.assertEqual(len(named), len(set(named)))           # one track per block
         self.assertIn("McKees Rocks", named)                    # the helix track keeps its plan name
@@ -732,3 +739,50 @@ class FinalReview(unittest.TestCase):
             el = ET.fromstring(f'<sensoricon text="{name}"/>')
             ov.drop_track_word(el)
             self.assertEqual(el.get("text"), stations.station_display(name, generated=True), name)
+
+
+class LevelMasts(unittest.TestCase):
+    """main_upper_masts.csv (build_main_upper_masts.py) and how the build takes it."""
+
+    def test_the_file_is_current_and_from_the_device_map(self) -> None:
+        gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
+        self.assertEqual(gen.build(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
+        rows = B.read_level_masts()
+        self.assertEqual(len(rows), 41)
+        self.assertEqual(sum(len(r["heads"]) for r in rows), 53)
+        r = next(r for r in rows if r["mast"] == "Mast 108R")
+        self.assertEqual((r["facing"], r["protects"], r["dir"]), ("Track 107-109", "OS Switch 107", "east"))
+        self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH93334)(IH93335)")
+        self.assertEqual(r["device_system_name"], "IF$shsm:basic:two-searchlight(IH3334)(IH3335)")
+        self.assertEqual(r["heads"], [("IH93334", "Head 108R Top"), ("IH93335", "Head 108R Bottom")])
+        self.assertEqual({x["mast"]: x["leg"] for x in rows if x["leg"]},
+                         {"Mast 108LA": "normal", "Mast 108LB": "diverging"})
+
+    def test_an_lcos_name_stops_the_build(self) -> None:
+        text = B.MAIN_UPPER_MASTS.read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "m.csv"
+            path.write_text(text.replace("IH93332", "IH3332"), encoding="utf-8")
+            with self.assertRaisesRegex(B.BuildError, "would reach MQTT .*IH3332"):
+                B.read_level_masts(path)
+
+    def test_a_mast_no_band_draws_stops(self) -> None:
+        rows = [dict(r, facing="Track Nowhere") if r["mast"] == "Mast 108R" else r for r in B.read_level_masts()]
+        names = {"Staging": {}, "Main": {"blocks": {"e": ["Track 107-109"]}, "os": {"n": "OS Switch 107"}},
+                 "Upper": {"blocks": {}, "os": {}}}
+        with self.assertRaisesRegex(B.BuildError, "Mast 108R \\(Track Nowhere into OS Switch 107\\): drawn on no band"):
+            B.level_masts(names, rows)
+
+    def test_check_level_slots(self) -> None:
+        el = ET.fromstring(anchor_panel("M"))
+        P = mock.Mock(turnouts=[], masts=[dict(mast="M", kind="anchor", ident="A1", slot="east", band=1)])
+        P.name = lambda i: i
+        le_mod = mock.Mock(to_xml=lambda *_a: el)
+        ix = B.slots_module().Index(el)
+        f, pr = ix.blocks("anchor", "A1", "east")
+        row = dict(mast="M", facing=f, protects=pr[0], leg="")
+        B.check_level_slots(P, [row], le_mod)                               # where JMRI resolves it: fine
+        with self.assertRaisesRegex(B.BuildError, "M at A1 east faces"):
+            B.check_level_slots(P, [dict(row, facing="Elsewhere")], le_mod)
+        with self.assertRaisesRegex(B.BuildError, "N is not on the panel"):
+            B.check_level_slots(P, [dict(row, mast="N")], le_mod)

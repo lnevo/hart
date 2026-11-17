@@ -98,7 +98,10 @@ class MastParity(unittest.TestCase):
                     self.assertEqual(gen["turnout"], live["turnout"], name)
 
     def test_every_mast_is_placed_once(self) -> None:
-        self.assertEqual(set(self.gen), set(self.live))
+        # staging's live masts and the main and upper control-point masts (main_upper_masts.csv)
+        level = {r["mast"] for r in B.read_level_masts()}
+        self.assertEqual(set(self.gen), set(self.live) | level)
+        self.assertFalse(set(self.live) & level)
         self.assertEqual(self.P.unplaced, [])
 
     def test_helix_entrance_exceptions(self) -> None:
