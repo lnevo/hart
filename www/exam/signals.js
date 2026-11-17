@@ -57,10 +57,11 @@ const ROUTE=[
   {k:"stop2",heads:"RR",name:"Stop",ind:"Stop"}];
 
 /* What a plate on the mast means at a stop indication (Signals guide, §5 page 3), as the deck's plate cards word it. */
+/* with: the plate as written in a sentence ("carries an SA plate"); near: plates whose action is too close to count as wrong. */
 const PLATES={
-  A:{name:"A plate",act:"Do not pass until permission is granted by whoever controls the signal",note:"An absolute signal: at stop, it may not be passed until permission is granted by the individual controlling the signal, usually a CTC dispatcher."},
-  none:{name:"No plate",act:"Do not pass until permission is granted by whoever controls the signal",note:"No plate: the same rule as an A plate governs."},
-  num:{name:"Number plate",act:"Stop, then proceed at restricted speed",note:"Number plate, usually the nearest milepost: after stopping, you may proceed at restricted speed."},
-  G:{name:"G plate",act:"Pass at restricted speed without stopping",note:"Grade signal, also with a number plate: it can be passed at restricted speed without stopping, which helps prevent a train from stalling on an upgrade."},
-  SA:{name:"SA plate",act:"Get permission to proceed from the interlocking operator",note:"Semi-automatic, usually in interlockings: an absolute and an ABS part. At stop, permission to proceed must be obtained from the interlocking operator."},
-  P:{name:"P plate",act:"Inspect the protective device in the block",note:"Protective signal: there is a protective device in the block, such as a high water or slide detector, that must be inspected by the train crew."}};
+  A:{name:"A plate",with:"an A plate",near:["SA"],act:"Do not pass until permission is granted by whoever controls the signal",note:"An absolute signal: at stop, it may not be passed until permission is granted by the individual controlling the signal, usually a CTC dispatcher."},
+  none:{name:"No plate",with:"no plate",near:["SA"],act:"Do not pass until permission is granted by whoever controls the signal",note:"No plate: the same rule as an A plate governs."},
+  num:{name:"Number plate",with:"a number plate",act:"Stop, then proceed at restricted speed",note:"Number plate, usually the nearest milepost: after stopping, you may proceed at restricted speed."},
+  G:{name:"G plate",with:"a G plate",act:"Pass at restricted speed without stopping",note:"Grade signal, also with a number plate: it can be passed at restricted speed without stopping, which helps prevent a train from stalling on an upgrade."},
+  SA:{name:"SA plate",with:"an SA plate",near:["A","none"],act:"Get permission to proceed from the interlocking operator",note:"Semi-automatic, usually in interlockings: an absolute and an ABS part. At stop, permission to proceed must be obtained from the interlocking operator."},
+  P:{name:"P plate",with:"a P plate",act:"Inspect the protective device in the block",note:"Protective signal: there is a protective device in the block, such as a high water or slide detector, that must be inspected by the train crew."}};
