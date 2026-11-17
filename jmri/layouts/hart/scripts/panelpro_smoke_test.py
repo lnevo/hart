@@ -105,7 +105,11 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                         len(transit.getInternalBlocksList()) > 0
                         for transit in transits
                     )
+                    # the panels load after the masts: wait for the Layout Editor panel too, so the parked
+                    # window and NX checks below see every panel the tables open
+                    and jmri.util.JmriJFrame.getFrame("HART Railroad") is not None
                 ):
+                    self.waitMsec(2000)
                     break
                 self.waitMsec(1000)
 

@@ -407,6 +407,9 @@ def masts(bands, cps, found, cp_of, corner_blocks=None) -> list[dict]:
                 loop = kind == "sw" and far == num and t["name"].endswith(" Loop")   # comes back to this switch
                 if kind == "bumper" or (kind == "sw" and cp_of.get(far) == cp and not loop):
                     continue
+                if t["loop"] and p not in LOOP_HALF:
+                    raise MapError(f"Switch {num}: balloon loop {t['name']} leaves from leg {p}; a loop's halves "
+                                   f"leave from legs {' and '.join(LOOP_HALF)}")
                 eastward = TAU[p] * rail[n] == 1
                 sid = d["ins"].get(p) or d["outs"].get(p)
                 out.append(dict(level=lv, cp=cp, switch=num, number=int(num) + 1, letter="L" if eastward else "R",

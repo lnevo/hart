@@ -72,6 +72,7 @@ GUI = HART / "ctc/GUIObjects.xml"
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
 MASTS = paths.LAYOUT_DATA / "schematic/staging_le/masts.csv"     # each staging mast's facing and protected blocks
 OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
+DEVICE_MAP = paths.LAYOUT_DATA / "schematic/device_map_main_upper.csv"   # the main and upper block names
 
 CLOSED, THROWN = "2", "4"
 PLAIN_TURNOUTS = {"RH_TURNOUT", "LH_TURNOUT", "WYE_TURNOUT"}
@@ -273,6 +274,16 @@ def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]
     return cells, plants
 
 
+@functools.cache
+def device_map_blocks() -> frozenset[str]:
+    """The device map's main and upper block names, a double crossover's corners also without the corner letter."""
+    with DEVICE_MAP.open(newline="", encoding="utf-8") as f:
+        names = {row["user_name"] for row in csv.DictReader(f) if row["layer"] == "block"}
+    if not names:
+        raise SystemExit(f"{paths.rel(DEVICE_MAP)} has no block rows")
+    return frozenset(names | {re.sub(r"(?<=\d)[a-d]$", "", n) for n in names if n.startswith("OS Switch ")})
+
+
 def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Report) -> None:
     desk = path.name
     cells, plants = desk_plants(path, r)
@@ -283,11 +294,11 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
     jmri_blocks = t.block_names()
     names = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
     # the main and upper blocks (no detector bound yet) are drawn from the device map, before the tables may hold
-    # them (a staging-only candidate does not; a double crossover's corners are one desk block): only the blocks
-    # bound to a detector must be Layout Editor blocks
+    # them (a staging-only candidate does not; a double crossover's corners are one desk block, named without the
+    # corner letter): only those may be missing from the Layout Editor, and only while no detector is bound
     root = parse(path).getroot()
-    dark = {b.get("NAME") for b in root.iter("BLOCK") if b.get("NAME")} - \
-        {b.get("NAME") for b in root.iter("BLOCK") if b.find("OCCUPIEDSPEC") is not None}
+    dark = ({b.get("NAME") for b in root.iter("BLOCK") if b.get("NAME")} -
+            {b.get("NAME") for b in root.iter("BLOCK") if b.find("OCCUPIEDSPEC") is not None}) & device_map_blocks()
     for name in sorted(names - dark - jmri_blocks):
         r.add(f"cats-track:{name}", f"{desk}: block {name} is not a Layout Editor block in tables.xml")
     for sw in switches.values():
@@ -359,6 +370,9 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
         return
     level = {user: system for user, (system, _c) in t.turnouts.items() if system.startswith("IT:HART:C3:")}
     if not level:
+        if t.block_names() & device_map_blocks():
+            r.add(f"cats:{desk}", f"{desk}: tables.xml holds main/upper blocks but no IT:HART:C3: turnout for the "
+                                  "desk's main and upper plants to command")
         return              # a staging-only candidate (test_le_cutover): tables with no main or upper level to check
     commanded: set[str] = set()
     for os_name, xy, points in plants:

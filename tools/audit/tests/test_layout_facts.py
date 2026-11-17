@@ -235,6 +235,25 @@ class LayoutFactsTest(unittest.TestCase):
                             for m in out), out)
         self.assertNotIn("HART_CTC.xml: no plant commands internal turnout Switch 111", out)
 
+    def test_a_staging_block_with_no_detector_is_still_held_to_the_tables(self) -> None:
+        # only the device map's main and upper blocks may be missing from the Layout Editor (review, 2026-11-17)
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(check.DESKS[0])
+        name = next(b.get("NAME") for b in tree.getroot().iter("BLOCK")
+                    if b.find("OCCUPIEDSPEC") is not None and b.get("NAME") not in check.device_map_blocks())
+        for b in tree.getroot().iter("BLOCK"):          # its detector binding dropped and its name misspelt
+            if b.get("NAME") == name:
+                b.set("NAME", name + " Typo")
+                for spec in b.findall("OCCUPIEDSPEC"):
+                    b.remove(spec)
+        out = self.failures(desks=(self.write(tree),))
+        self.assertIn(f"HART_CTC.xml: block {name} Typo is not a Layout Editor block in tables.xml", out)
+
+    def test_main_upper_tables_with_no_internal_turnouts_fail(self) -> None:
+        tables = self.copy(check.TABLES, lambda t: t.replace("IT:HART:C3:", "IT:HART:CX:"))
+        out = self.failures(tables=tables)
+        self.assertTrue(any("holds main/upper blocks but no IT:HART:C3: turnout" in m for m in out), out)
+
     def test_a_main_upper_turnout_with_no_plant_fails(self) -> None:
         for user in ("Switch 117", "Switch 225"):           # 225: a double crossover, four points on one turnout
             with self.subTest(turnout=user):

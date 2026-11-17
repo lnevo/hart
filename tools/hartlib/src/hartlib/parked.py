@@ -114,6 +114,12 @@ def _container(el: ET.Element) -> ET.Element:
     return ET.Element(el.tag, el.attrib)
 
 
+def _conditional_of(name: str, logix: str) -> bool:
+    """Whether conditional `name` belongs to Logix `logix`: named <logix>C<n> (JMRI) or <logix>:C<n> (the USS CTC
+    machine's IX:CTC:REVDEF:C1), so IX:DSLX:10C1 is not IX:DSLX:1's."""
+    return re.fullmatch(re.escape(logix) + r":?C\d+", name) is not None
+
+
 def parked_in(root: ET.Element, parked=None) -> frozenset[str]:
     """The features of `parked` (default PARKED) that these tables leave out: none of the feature's whole sections
     is in them. Tables from before the parking (a trial, the staging candidate, the last hand-drawn tables) still hold
@@ -181,7 +187,7 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
         elif tag == "logixs":
             park_children(sec, lambda c: _name(c) in LOGIX.get(feature, ()))
         elif tag == "conditionals":
-            park_children(sec, lambda c: any(_name(c).startswith(x) for x in LOGIX.get(feature, ())))
+            park_children(sec, lambda c: any(_conditional_of(_name(c), x) for x in LOGIX.get(feature, ())))
         elif tag == "LogixNGConditionalNGs":
             park_children(sec, lambda c: _name(c) in CONDITIONAL_NGS.get(feature, ()))
         elif tag == "LogixNGDigitalActions":
@@ -436,7 +442,8 @@ def check(tables_root: ET.Element, doc: ET.Element, parked=PARKED) -> list[str]:
                 bad.append(f"the parked file's {name} has no <{whole}>")
         if name in PANELS:
             tag, title = PANELS[name]
-            if not any(b.tag == tag and b.get("name") == title and b.get("class") for b in tables_el):
+            if tables_el is None or not any(b.tag == tag and b.get("name") == title and b.get("class")
+                                            for b in tables_el):
                 bad.append(f"the parked file's {name} has no {tag} panel {title!r}")
         parked_sensors = feature_sensors(tables_el, name) if tables_el is not None else {}
         if len(parked_sensors) < EXPECTED_SENSORS[name]:

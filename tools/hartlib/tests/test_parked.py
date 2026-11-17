@@ -127,6 +127,14 @@ class Parked(unittest.TestCase):
         self.assertIn(b"at commit 3bd3ac64", data)
         self.assertEqual(ET.fromstring(data).get("source"), "3bd3ac64")
 
+    def test_a_conditional_belongs_to_its_own_logix_only(self):
+        self.assertTrue(parked._conditional_of("IX:DSLX:1C1", "IX:DSLX:1"))
+        self.assertTrue(parked._conditional_of("IX:DSLX:1C12", "IX:DSLX:1"))
+        self.assertFalse(parked._conditional_of("IX:DSLX:10C1", "IX:DSLX:1"))
+        self.assertFalse(parked._conditional_of("IX:DSLX:1", "IX:DSLX:1"))
+        self.assertTrue(parked._conditional_of("IX:CTC:REVDEF:C1", "IX:CTC:REVDEF"))
+        self.assertFalse(parked._conditional_of("IX:CTC:REVDEF2:C1", "IX:CTC:REVDEF"))
+
     def test_unknown_feature_stops(self):
         with self.assertRaises(parked.ParkError):
             parked.split(ET.fromstring(TABLES), {"signals"})
