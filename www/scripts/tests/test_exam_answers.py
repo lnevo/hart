@@ -162,6 +162,15 @@ class ExamAnswers(unittest.TestCase):
             self.assertLessEqual(r.count("meet"), 1, f"two meets in one run: {r}")
         self.assertLess(counts.get("clear", 0) / sum(counts.values()), 0.5, counts)
 
+    def test_speed_run_can_show_every_aspect_but_permissive(self):
+        run = RUN.read_text()
+        body = run[run.index("function startSIG("):run.index("/* ---------- the Ironton yard job")]
+        used = set(re.findall(r'sig\("([0-9]{3}[A-C]?)"', body)) | set(re.findall(r'GRANITE_OUT=\[([^\]]*)\]', body)[0].replace('"', "").split(","))
+        signals = (WWW / "exam" / "signals.js").read_text()
+        rules = set(re.findall(r'\{r:"([0-9]{3}[A-C]?)"', signals))
+        # 289 Permissive is manual block, which this automatic block line does not have
+        self.assertEqual(rules - used, {"289"})
+
     def test_game_and_deck_load_the_shared_signals(self):
         for page in (RUN, INDEX):
             self.assertIn('<script src="signals.js"></script>', page.read_text(), page.name)
