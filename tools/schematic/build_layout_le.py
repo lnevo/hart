@@ -60,6 +60,19 @@ polish_hart_layout_editor.py, reconcile_dispatcher_stations.py, the audit and th
 hand-drawn panel's pixels read it and take positions from the panel itself (wiki/projects/schematic-maps-handoff.md,
 cut-over runbook).
 
+Staging from the device map (`--staging devicemap`, owner review pending; the frozen path stays the default until
+the owner approves it). Staging is drawn as main and upper are, from device_map_staging.csv, control_points_staging.csv
+and staging_masts.csv (staging_device_map.load: turnouts, OS and track blocks by the drawing's keys, each switch's
+normal leg from switch_legs.csv, its turnout ident from switches.csv), with no frozen file: no kept anchor, end bumper
+or segment ident (generated, owner 2026-11-17; the boundary contract for them is staged in schematic/staged/), no
+Entry/Exit sensor (parked), and panel_items.json (panel_items.py) in place of the overlay: the panel's attributes,
+the status cluster panel_status.py drives, the frame captions, the helix destination labels and the backdrop, each
+tied to the staging track. The occupancy lamps and station clusters are parked with the Dispatcher System
+(jmri/layouts/hart/parked/staging_panel_lamps.json). check_device_masts stands in for check_slots and
+check_live_turnouts. The grid, the stretch check, staging_lengths, staging_columns and the three-level build on the
+staging candidate are as on the frozen path. Its trial files carry DEVICEMAP_SUFFIX (tables_cutover_devicemap.xml and
+its _staging candidate), beside the frozen path's.
+
 Writes jmri/layouts/hart/output/trial/tables_layout.xml: the live tables.xml unchanged, plus one new Layout
 Editor panel, PANEL_NAME, and the internal turnouts, blocks and layout blocks the main and upper levels need. The
 live tables.xml is only read. The panel is the schematic-maps plugin's `le` drawing of the solved schematic bands
@@ -119,7 +132,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
+import panel_items  # noqa: E402  the panel's fixed items and attributes (panel_items.json; the device-map path)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
+import staging_device_map as sdm  # noqa: E402  the staging device map (the device-map path)
 from hartlib import hand_drawn, parked, paths, tables  # noqa: E402
 # The build's parts (split out of this file, no change in what they do) and the staging candidate's approval
 # fingerprint (approval.py): their names are re-exported below, so callers and tests read them here as before. Patch
@@ -139,7 +154,7 @@ from le_names import (  # noqa: E402,F401  re-exported: callers and tests read t
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BOUNDARIES, check_swapped_slots, check_slots, mast_band, check_level_slots, check_unplaced, turnout_facts,
-    check_live_turnouts,
+    check_live_turnouts, check_device_masts,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BLOCK_NUMBERED_AS, APPENDED_BLOCKS, COMMENT, place, bean, r1, block_sort,
@@ -160,6 +175,11 @@ CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                  
 CUTOVER_STAGING = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover_staging.xml"    # staging alone (the guard's base)
 TRIAL_STAGING = paths.LAYOUT_OUTPUT / "trial" / "tables_layout_staging.xml"
 LEVELS = ("all", "staging")
+# Where staging's facts come from (module text, "Staging from the device map"): the frozen files until the owner
+# approves the device-map panel, then the device map. Each source writes its own trial files (default_out).
+STAGING_SOURCES = ("frozen", "devicemap")
+PANEL_ITEMS = pd.DATA / "panel_items.json"
+DEVICEMAP_SUFFIX = "_devicemap"     # tables_cutover.xml -> tables_cutover_devicemap.xml, and so on
 PANEL_NAME = "Layout (generated)"
 TEMPLATE_PANEL = le_inputs.PANEL     # the panel the cut-over candidate replaces (its inputs are frozen in le_inputs)
 # The window the panel opens in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside
@@ -209,7 +229,8 @@ def template_tables() -> Path:
 
 
 def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", as_live: bool = False, inputs=None,
-          freeze_from: ET.Element | None = None, approved: Path | None = APPROVED, page: dict | None = None):
+          freeze_from: ET.Element | None = None, approved: Path | None = APPROVED, page: dict | None = None,
+          staging_source: str = "frozen"):
     """(tables bytes, the plugin's Panel, {band key: names}, bands). `levels` "all" draws every band, main and upper
     under the device map's names (level_names) and their objects added to the tables; "staging" draws staging alone, its
     helix ends as end bumpers as live, and adds no table object. `as_live` writes a cut-over candidate: the "HART
@@ -220,12 +241,26 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     from `inputs` (default: the frozen files, le_inputs.load()); nothing is read from a panel in the tables.
     `freeze_from` (--freeze only, with `as_live`): the hand-drawn panel whose overlay le_overlay.freeze reads into
     inputs.overlay before it is carried. `approved`: the fingerprint the staging candidate's panel must match
-    (check_approved; None skips it, for --approve-staging and tests that change the inputs)."""
+    (check_approved; None skips it, for --approve-staging and tests that change the inputs).
+    `staging_source` (STAGING_SOURCES): "frozen", the default, draws staging from the frozen files as above;
+    "devicemap" from the staging device map (staging_device_map.load, no frozen file) with panel_items.json in place
+    of the overlay (module text, "Staging from the device map")."""
     if levels not in LEVELS:
         raise BuildError(f"levels must be one of {', '.join(LEVELS)}, not {levels!r}")
+    if staging_source not in STAGING_SOURCES:
+        raise BuildError(f"staging_source must be one of {', '.join(STAGING_SOURCES)}, not {staging_source!r}")
+    devicemap = staging_source == "devicemap"
     if freeze_from is not None and not (as_live and levels == "staging"):
         raise BuildError("the overlay is frozen from the staging cut-over build (--levels staging --as-live)")
-    if inputs is None:
+    if devicemap and (freeze_from is not None or inputs is not None):
+        raise BuildError("the device-map staging path reads no frozen inputs: it takes neither inputs nor freeze_from")
+    items = None
+    if devicemap:
+        try:
+            items = panel_items.load(PANEL_ITEMS)
+        except panel_items.ItemsError as exc:
+            raise BuildError(f"panel items: {exc}") from None
+    elif inputs is None:
         inputs = le_inputs.load()
     _sheet, le_mod, core = plugin()
     # the page options come from the solved sheet (schematic()), for the bands given too unless `page` is (the
@@ -243,7 +278,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         raise BuildError(f"schematic le: {exc}") from None
     base = None             # the three-level candidate: the staging candidate it must hold unchanged, and its grid
     if as_live and levels == "all":
-        base = build(live_path, bands, "staging", True, inputs, approved=approved, page=page)
+        base = build(live_path, bands, "staging", True, inputs, approved=approved, page=page,
+                     staging_source=staging_source)
     keys = [band_key(t) for t, _, _ in bands]
     if STAGING not in keys:
         raise BuildError(f"no {STAGING} band in the schematic (bands: {', '.join(keys)})")
@@ -260,7 +296,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         raise BuildError(f"{live_path} already holds the main and upper objects (the cut-over is done): build on "
                          f"the last hand-drawn tables (the command does so by itself: hartlib.hand_drawn, git "
                          f"{hand_drawn.COMMIT})")
-    panel_name = inputs.panel_name if as_live else PANEL_NAME
+    panel_name = (items["panel"] if devicemap else inputs.panel_name) if as_live else PANEL_NAME
     if not as_live and any(le.get("name") == PANEL_NAME for le in tables.layout_editors(root)):
         raise BuildError(f"{live_path} already has a panel named {PANEL_NAME}")
     if not tables.layout_editors(root):
@@ -272,18 +308,26 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         level_rows = read_level_masts()
         level_masts(names, level_rows)
     shared_turnouts(names)
-    names[STAGING] = staging_names(bands[0][1], inputs, core.tidy)
+    if devicemap:
+        try:
+            names[STAGING] = sdm.load(bands[0][1])
+        except sdm.StagingMapError as exc:
+            raise BuildError(f"staging device map: {exc}") from None
+    else:
+        names[STAGING] = staging_names(bands[0][1], inputs, core.tidy)
     # a live segment ident JMRI cannot find as a segment by name (F46-W-0: LayoutEditorFindItems.findObjectByName
     # reads only T... and F<n>-S-<n>; such names load, but the Check menu and connection menus miss them) is not
     # carried over: that segment takes a generated ident (noted)
     segs = names[STAGING]["idents"]["segments"]
     unfindable = sorted(i for i in segs.values() if le_mod.jmri_kind(i) != "segment")
     names[STAGING]["idents"]["segments"] = {b: i for b, i in segs.items() if i not in unfindable}
-    names[STAGING]["masts"] = plugin_masts(inputs.masts)
+    if not devicemap:               # the device map's reader gives them (staging_masts.csv)
+        names[STAGING]["masts"] = plugin_masts(inputs.masts)
     system = tables.mast_system_names(root)
-    absent = sorted(m["mast"] for m in inputs.masts if m["mast"] not in system)
+    absent = sorted(m["mast"] for m in names[STAGING]["masts"] if m["mast"] not in system)
     if absent:
-        raise BuildError(f"masts.csv names masts that are not in the signal mast table: {absent}")
+        raise BuildError(f"{'staging_masts.csv' if devicemap else 'masts.csv'} names masts that are not in the "
+                         f"signal mast table: {absent}")
     if levels == "all" and not JOIN_HELIX:
         names[STAGING]["joins"] = "none"        # the helix ends stay end bumpers on every level (JOIN_HELIX)
     elif levels == "all":
@@ -297,7 +341,9 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     # (named_bands), not the page
     page = dict(page, le_labels=dict(TRIAL_LE_LABELS if levels == "all" and not as_live else LE_LABELS))  # a copy
     extras = {}
-    if as_live:         # the station clusters, placed by the plugin's label layer (le_overlay.station_extras)
+    # the station clusters, placed by the plugin's label layer (le_overlay.station_extras); the device-map path has
+    # none (parked with the Dispatcher System, jmri/layouts/hart/parked/staging_panel_lamps.json)
+    if as_live and not devicemap:
         ov = overlay_mod()
         try:
             clusters = ov.panel_station_clusters(freeze_from) if freeze_from is not None else \
@@ -342,10 +388,13 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     P.mast_notes = check_unplaced(P)
     if unfindable:
         P.log.append(f"live segment idents JMRI does not find as segments, so not reused: {', '.join(unfindable)}")
-    check_slots(P, inputs.masts, le_mod)
+    if devicemap:           # no frozen idents or slots to hold the panel to: each mast in one slot, on its switch
+        check_device_masts(P, names[STAGING]["masts"], le_mod)
+    else:
+        check_slots(P, inputs.masts, le_mod)
+        check_live_turnouts(le_mod.to_xml(P, "check"), inputs)
     check_level_slots(P, level_rows, le_mod)
     check_swapped_slots()
-    check_live_turnouts(le_mod.to_xml(P, "check"), inputs)
 
     # staging: every name must already be live
     staging_turnouts = set(names[STAGING]["turnouts"].values())
@@ -362,7 +411,22 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         add_level_objects(root, P, names, lengths, staging_blocks)
         add_level_signals(root, level_rows)
 
-    if as_live:
+    if as_live and devicemap:
+        # the panel's own items by rule (panel_items.json), no overlay and no Entry/Exit sensors (parked)
+        try:
+            attrs, options = panel_items.panel_attributes(items)
+            panel_el = le_mod.to_xml(P, panel_name, attrs, options)
+            # tied to the staging track, so they stand where the staging candidate has them on three levels too
+            placed = panel_items.place(panel_el, items, le_mod, slots_module(), FIT, le_mod.CHROME,
+                                       frame_blocks=staging_blocks)
+        except panel_items.ItemsError as exc:
+            raise BuildError(f"panel items: {exc}") from None
+        if placed["bottom"] is None:
+            raise BuildError(f"{paths.rel(PANEL_ITEMS)} places no sized item, so the level below has no bottom to "
+                             "keep clear of")
+        P.items = placed
+        P.overlay = dict(size=placed["size"], bottom=placed["bottom"])      # what the three-level build reads
+    if as_live and not devicemap:
         panel_el = le_mod.to_xml(P, panel_name, dict(inputs.attrs), copy.deepcopy(inputs.drawing_options))
         P.sensors_bound = bind_sensors(panel_el, inputs.sensors)
         ov = overlay_mod()
@@ -380,6 +444,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             ov.check_half_lamps(panel_el, os_sensors)
         except ov.OverlayError as exc:
             raise BuildError(f"overlay: {exc}") from None
+    if as_live:
         # a panel larger than its window (the cut-over grid: staging alone is wider, three levels wider and taller)
         # scrolls both ways, so nothing on it is out of reach at 100% zoom; the frozen attribute says "none"
         w, h = P.overlay["size"]
@@ -569,7 +634,14 @@ def run(argv, cached) -> int:
     ap.add_argument("--approve-staging", action="store_true",
                     help="after the owner approves the staging panel in PanelPro: record its fingerprint in "
                          f"{paths.rel(APPROVED)}, which both cut-over builds then check")
+    ap.add_argument("--staging", choices=STAGING_SOURCES, default="frozen",
+                    help="where staging's facts come from: frozen (default; staging_le/ and its overlay) or devicemap "
+                         "(device_map_staging.csv, staging_masts.csv and panel_items.json), whose trial files are "
+                         f"named with {DEVICEMAP_SUFFIX} (tables_cutover{DEVICEMAP_SUFFIX}.xml)")
     args = ap.parse_args(argv)
+    if args.staging == "devicemap" and args.freeze:
+        print("ERROR: --freeze reads the hand-drawn panel into the frozen files; it has no device-map form")
+        return 1
     if not args.check:          # --freeze writes the committed frozen files: refused with HART_TABLES as any write
         message = paths.check_only_message(Path(__file__).name)
         if message:
@@ -582,7 +654,8 @@ def run(argv, cached) -> int:
             print("ERROR: --approve-staging takes only --tables")
             return 1
         try:
-            data = build(args.tables or template_tables(), levels="staging", as_live=True, approved=None)[0]
+            data = build(args.tables or template_tables(), levels="staging", as_live=True, approved=None,
+                         staging_source=args.staging)[0]
             write_approved(tables.layout_editor(tables.loads(data).root, TEMPLATE_PANEL))
         except (le_inputs.InputsError, ApprovalError) as exc:
             print(f"ERROR: {exc}")
@@ -609,7 +682,7 @@ def run(argv, cached) -> int:
         print("ERROR: --review goes with --as-live")
         return 1
     levels = args.levels or "all"
-    out = args.out or default_out(levels, args.as_live)
+    out = args.out or default_out(levels, args.as_live, args.staging)
     if live_target(out):
         print(f"ERROR: {out} is the live tables or in the JMRI profile; the trial is for viewing only and is "
               "written beside them, never over them")
@@ -618,7 +691,7 @@ def run(argv, cached) -> int:
         where = {"live_path": args.tables or template_tables()}
         if args.review:
             where["approved"] = None
-        data, P, _names, _bands = build(levels=levels, as_live=args.as_live, **where)
+        data, P, _names, _bands = build(levels=levels, as_live=args.as_live, staging_source=args.staging, **where)
     except le_inputs.InputsError as exc:
         print(f"ERROR: {exc}")
         return 1
@@ -663,6 +736,9 @@ def run(argv, cached) -> int:
         print(f"  mast at a helix join: {line}")
     for line in overlay_lines(getattr(P, "overlay", None)):
         print(f"  overlay: {line}")
+    if isinstance(getattr(P, "items", None), dict):         # the device-map path's panel items
+        print(f"  panel items: {P.items['count']} elements from {paths.rel(PANEL_ITEMS)}; panel "
+              f"{P.items['size'][0]}x{P.items['size'][1]} px (no overlay; lamps and stations parked)")
     if getattr(P, "gaps", None):
         print(f"  gaps between the levels: {', '.join(f'{g:g}' for g in P.gaps)} px; grid {P.scale[0]:.4f} x "
               f"{P.scale[1]:.4f} (le_stretch factor {P.stretch})")
@@ -681,16 +757,23 @@ def staging_out(out: Path) -> Path:
     return out.with_name(f"{out.stem}_staging{out.suffix}")
 
 
-def default_out(levels: str, as_live: bool) -> Path:
-    """The trial file for these options, so --check always compares like with like."""
+def default_out(levels: str, as_live: bool, staging_source: str = "frozen") -> Path:
+    """The trial file for these options, so --check always compares like with like; the device-map path's beside the
+    frozen path's, its name with DEVICEMAP_SUFFIX (tables_cutover_devicemap.xml)."""
     if as_live:
-        return CUTOVER_STAGING if levels == "staging" else CUTOVER
-    return TRIAL_STAGING if levels == "staging" else TRIAL
+        out = CUTOVER_STAGING if levels == "staging" else CUTOVER
+    else:
+        out = TRIAL_STAGING if levels == "staging" else TRIAL
+    if staging_source == "devicemap":
+        stem = out.stem.removesuffix("_staging")
+        out = out.with_name(f"{stem}{DEVICEMAP_SUFFIX}{'_staging' if stem != out.stem else ''}{out.suffix}")
+    return out
 
 
 def overlay_lines(report) -> list[str]:
-    """The overlay report (le_overlay.carry) as printed lines; none without one."""
-    if not report:
+    """The overlay report (le_overlay.carry) as printed lines; none without one (the device-map path's P.overlay
+    holds only the size and bottom its panel items give, no carry report)."""
+    if not report or "records" not in report:
         return []
     ov = overlay_mod()
     kinds = defaultdict(int)

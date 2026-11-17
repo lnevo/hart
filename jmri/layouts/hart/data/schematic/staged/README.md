@@ -15,10 +15,12 @@ take generated idents (owner, 2026-11-17), so the six anchor rows name the ancho
 (A45 becomes AG33, A56 AG21, A1 AG6, A48 AG40). Every other column is unchanged. `staged_boundaries()` stops when a
 mast is missing, in another kind of slot or on another leg, so only anchor idents can change.
 
-The readers already take the file as an argument, so no reader changes before the cut-over:
+The readers already take the file as an argument, so no reader changes before the cut-over. The candidate is
+`jmri/layouts/hart/output/trial/tables_cutover_devicemap.xml`
+(`build_layout_le.py --as-live --staging devicemap --review`, which `make panels` runs):
 
 ```bash
-python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --tables <candidate> \
+python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --tables jmri/layouts/hart/output/trial/tables_cutover_devicemap.xml \
     --boundaries jmri/layouts/hart/data/schematic/staged/le_signal_boundaries.csv --generated
 python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py --panel <candidate copy> \
     --csv jmri/layouts/hart/data/schematic/staged/le_signal_boundaries.csv --no-sync

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import contextlib
-import dataclasses
 import datetime
 import importlib.util
 import io
@@ -179,22 +178,23 @@ class SignalsCheck(unittest.TestCase):
         self.assertEqual(self.without_plugin(), 1)
 
     def run_with(self, committed, masts=None):
-        """main(["--check"]) against `committed` as the signals file, from masts.csv (or `masts` rows)."""
+        """main(["--check"]) against `committed` as the signals file, from the staging device map's masts (or `masts`
+        rows, in le_inputs.load_masts' shape, with the device map's tracks)."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             (tmp / "staging.signals.json").write_text(committed)
-            real_data, real_load = self.bs.pd.DATA, self.bs.le_inputs.load
+            real_data, real_facts = self.bs.pd.DATA, self.bs.staging_facts
             for f in ("staging.plan_overrides.json",):
                 (tmp / f).write_text((real_data / f).read_text())
-            self.bs.pd.DATA = tmp
             if masts is not None:
-                frozen = dataclasses.replace(real_load(), masts=masts)
-                self.bs.le_inputs.load = lambda: frozen
+                chains = real_facts()[1]
+                self.bs.staging_facts = lambda: (masts, chains)
+            self.bs.pd.DATA = tmp
             try:
                 with contextlib.redirect_stdout(io.StringIO()):
                     return self.bs.main(["--check"])
             finally:
-                self.bs.pd.DATA, self.bs.le_inputs.load = real_data, real_load
+                self.bs.pd.DATA, self.bs.staging_facts = real_data, real_facts
 
     def test_current_passes(self) -> None:
         committed = (self.bs.pd.DATA / "staging.signals.json").read_text()

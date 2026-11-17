@@ -385,7 +385,8 @@ class Cutover(unittest.TestCase):
                 self.assertEqual(B.main(["--levels", "staging", "--as-live", "--out", str(out)]), 0)
                 self.assertEqual(B.main(["--levels", "staging", "--as-live", "--check", "--out", str(out)]), 0)
             # on the cut-over tables the command builds on the last hand-drawn tables (template_tables)
-            built.assert_called_with(levels="staging", as_live=True, live_path=B.template_tables())
+            built.assert_called_with(levels="staging", as_live=True, staging_source="frozen",
+                                     live_path=B.template_tables())
         self.assertEqual(B.CUTOVER.parent, B.TRIAL.parent)                 # gitignored trial folder
 
 

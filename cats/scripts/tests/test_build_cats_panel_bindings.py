@@ -53,7 +53,7 @@ def band():
     return {"nodes": nodes, "strands": strands}
 
 
-# the frozen Layout Editor tracks (staging_le/tracks.csv as le_inputs loads it): TO1 leg B to TO2 leg A holds
+# the staging tracks (staging_device_map.staging_chains, as staging_le/tracks.csv held them): TO1 leg B to TO2 leg A holds
 # OS Switch 1 then OS Switch 2a
 CHAINS = [{"ends": [("TO1", "B"), ("TO2", "A")], "blocks": ["OS Switch 1", "OS Switch 2a"]},
           {"ends": [("TO1", "C"), ("END", "EB1")], "blocks": ["Track Yard"]},
@@ -167,12 +167,12 @@ class FrozenLayoutEditorTracks(unittest.TestCase):
 
     def test_no_track_two_tracks_or_a_bumper_stop(self):
         tracks = B.FrozenTracks(CHAINS)
-        with self.assertRaisesRegex(SystemExit, "no Layout Editor tracks join TO2 and TO9"):
+        with self.assertRaisesRegex(SystemExit, "no staging tracks join TO2 and TO9"):
             tracks.block_between("TO2", "TO9", "t")
-        with self.assertRaisesRegex(SystemExit, "no Layout Editor tracks join"):
+        with self.assertRaisesRegex(SystemExit, "no staging tracks join"):
             tracks.block_between("TO1", "END", "t")               # a track to a bumper joins no two switches
         twice = B.FrozenTracks(CHAINS + [{"ends": [("TO2", "C"), ("TO1", "D")], "blocks": ["X"]}])
-        with self.assertRaisesRegex(SystemExit, "2 Layout Editor tracks join"):
+        with self.assertRaisesRegex(SystemExit, "2 staging tracks join"):
             twice.block_between("TO1", "TO2", "t")
 
     def test_a_track_of_several_blocks_needs_a_fixed_one_on_it(self):
@@ -184,13 +184,12 @@ class FrozenLayoutEditorTracks(unittest.TestCase):
                                     "OS Switch 1, OS Switch 2a"):
             tracks.block_between("TO1", "TO2", "t", "OS Switch 9")
 
-    def test_the_35_37_track_is_os_switch_35a_on_the_frozen_track(self):
-        # the generated Layout Editor panel splits it evenly; the hand-drawn one gave most of it to 35a
+    def test_the_35_37_track_is_os_switch_35a_on_the_staging_track(self):
+        # the generated Layout Editor panel splits it evenly; the hand-drawn one gave most of it to 35a. The track is
+        # the staging device map's (staging_device_map.staging_chains), as staging_le/tracks.csv held it
         self.assertEqual(B.SHORT_TRACK_BLOCKS, {"35-37": "OS Switch 35a"})
-        sys.path.insert(0, str(ROOT / "tools/schematic"))
-        import le_inputs
-        frozen = B.FrozenTracks(le_inputs.load().chains)
-        self.assertEqual(frozen.block_between("TOR36", "TO113", "t", "OS Switch 35a"), "OS Switch 35a")
+        tracks = B.FrozenTracks(B.staging_tracks())
+        self.assertEqual(tracks.block_between("TOR36", "TO113", "t", "OS Switch 35a"), "OS Switch 35a")
 
 
 class Blocks(unittest.TestCase):

@@ -154,3 +154,39 @@ def check_live_turnouts(gen_le: ET.Element, inputs, swapped: set | None = None) 
                 bad.append(f"{ident} ({want['name']}) {k}: live {want[k]}, new {got[k]}")
     if bad:
         raise BuildError("staging turnouts differ from the live panel: " + "; ".join(bad))
+
+
+def check_device_masts(P, masts: list[dict], le_mod, facts: dict | None = None) -> None:
+    """The device-map path's staging mast check (no frozen ident or slot to hold the panel to): stop when a staging
+    mast (`masts`, the plugin's list) is not on the panel, fits more than one slot of its kind with its blocks (the
+    plugin would take the first, a guess), or a turnout mast stands on another turnout than its switch's (`facts`,
+    default staging_device_map.mast_facts: the turnout the device map binds the switch by)."""
+    import staging_device_map as sdm
+    facts = sdm.mast_facts() if facts is None else facts
+    ix = slots_module().Index(le_mod.to_xml(P, "check"))
+    fits = defaultdict(list)
+    for c in ix.candidates():
+        f, pr = ix.blocks(*c)
+        fits[(c[0], f, tuple(pr))].append(c)
+    placed = {}
+    for m in ix.masts():
+        if m["mast"] in placed:
+            raise BuildError(f"mast {m['mast']} is bound in two slots of the new panel")
+        placed[m["mast"]] = m
+    bad = []
+    for m in masts:
+        got = placed.get(m["mast"])
+        if got is None:
+            bad.append(f"{m['mast']} is not on the panel")
+            continue
+        same = fits[(got["kind"], got["facing"], tuple(got["protects"]))]
+        if m["kind"] == "turnout":
+            want = (facts.get(m["mast"]) or {}).get("turnout")
+            if got.get("turnout") != want:
+                bad.append(f"{m['mast']} is on turnout {got.get('turnout')}, its switch's is {want}")
+            same = [c for c in same if ix.turnouts[c[1]].get("turnoutname") == want]
+        if len(same) > 1:
+            bad.append(f"{m['mast']} fits {len(same)} slots ({', '.join(f'{c[1]} {c[2]}' for c in same)}): which "
+                       "one is a guess")
+    if bad:
+        raise BuildError("staging masts not placed for certain: " + "; ".join(bad))

@@ -107,6 +107,76 @@ class AgainstTheFrozenBinding(unittest.TestCase):
         with self.assertRaisesRegex(sdm.StagingMapError, "no turnout row has trial_name Switch 1"):
             sdm.load(self.band, device_map=self._copy_without("Switch 1"))
 
+    def test_the_tracks_are_the_frozen_tracks(self):
+        # staging_chains (build_cats_panel.py, build_signals.py) holds every frozen track's blocks, in order, between
+        # the same two turnouts (or a turnout and a bumper); the legs are the band's, not Layout Editor letters
+        import le_inputs
+        key = lambda c: (frozenset(e[0] for e in c["ends"]), tuple(c["blocks"]))       # noqa: E731
+        flip = lambda c: (frozenset(e[0] for e in c["ends"]), tuple(c["blocks"][::-1]))  # noqa: E731
+        ends = lambda c: [("END" if e[0] == "END" else e[0]) for e in c["ends"]]        # noqa: E731
+        frozen = [dict(c, ends=[(e, "") for e in ends(c)]) for c in le_inputs.load().chains]
+        mine = sdm.staging_chains(self.band, self.names)
+        self.assertEqual(len(mine), len(frozen))
+        got = {key(c) for c in mine}
+        for c in frozen:
+            self.assertTrue(key(c) in got or flip(c) in got, c)
+
+    def test_the_signal_plan_reads_back_as_frozen(self):
+        import le_inputs
+        self.assertEqual(le_inputs.signal_rows(sdm.load_signal_masts()), le_inputs.signal_rows(le_inputs.load().masts))
+
+
+class DeviceMapPath(unittest.TestCase):
+    """build_layout_le.py's device-map staging path (--staging devicemap)."""
+
+    @classmethod
+    def setUpClass(cls):
+        import build_layout_le as blb
+        cls.B = blb
+        try:
+            blb.plugin()
+            base = blb.template_tables()
+        except blb.BuildError as exc:
+            raise unittest.SkipTest(f"plugin or hand-drawn tables not available: {exc}")
+        cls.data, cls.P, cls.names, _bands = blb.build(base, levels="staging", as_live=True, approved=None,
+                                                         staging_source="devicemap")
+        from hartlib import tables
+        cls.tables = tables
+        cls.root = tables.loads(cls.data).root
+        cls.panel = tables.layout_editor(cls.root, blb.TEMPLATE_PANEL)
+
+    def test_its_trial_files_sit_beside_the_frozen_ones(self):
+        B = self.B
+        self.assertEqual(B.default_out("all", True, "devicemap").name, "tables_cutover_devicemap.xml")
+        self.assertEqual(B.default_out("staging", True, "devicemap").name, "tables_cutover_devicemap_staging.xml")
+        self.assertEqual(B.staging_out(B.default_out("all", True, "devicemap")),
+                         B.default_out("staging", True, "devicemap"))
+        self.assertEqual(B.default_out("all", True), B.CUTOVER)          # the frozen path keeps its names
+
+    def test_a_bad_source_or_frozen_inputs_stop(self):
+        with self.assertRaisesRegex(self.B.BuildError, "staging_source must be one of"):
+            self.B.build(levels="staging", staging_source="hand")
+        with self.assertRaisesRegex(self.B.BuildError, "reads no frozen inputs"):
+            self.B.build(levels="staging", staging_source="devicemap", inputs=object())
+
+    def test_every_staging_mast_is_placed_once_with_no_entry_exit_sensor(self):
+        placed = [m["mast"] for m in self.B.slots_module().Index(self.panel).masts()]
+        self.assertEqual(sorted(placed), sorted(sdm.mast_facts()))
+        self.assertFalse([el for el in self.panel.iter() if any(k.endswith("boundsensor") for k in el.attrib)])
+
+    def test_the_status_cluster_is_on_the_panel_by_name(self):
+        sensors = {el.get("sensor") for el in self.panel.findall("sensoricon")}
+        self.assertEqual(sensors, {"Bridge HBLOOP", "SML Mode", "Track Power"})
+        self.assertEqual([el.get("signalhead") for el in self.panel.findall("signalheadicon")], ["IH9990"])
+        self.assertTrue(self.tables.generated_panel(self.panel))
+
+    def test_the_panel_attributes_are_the_items_files(self):
+        import panel_items
+        attrs, _opts = panel_items.panel_attributes(panel_items.load(self.B.PANEL_ITEMS))
+        for k, v in attrs.items():
+            if k != "scrollable":                       # the build sets it when the panel outgrows its window
+                self.assertEqual(self.panel.get(k), v, k)
+
 
 if __name__ == "__main__":
     unittest.main()
