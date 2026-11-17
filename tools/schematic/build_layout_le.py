@@ -1332,7 +1332,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                                           page=dict(page, band_align={STAGING: "left"}), gap=g, labels_by_band=True,
                                           crossover_run=crossover_run(scale),
                                           tight_crossovers=TIGHT_CROSSOVERS,
-                                          split_crossovers=SPLIT_CROSSOVERS, **stepped)
+                                          split_crossovers=SPLIT_CROSSOVERS, mast_room=MAST_ROOM,
+                                          **stepped)
             P = draw(gaps)
             if len(P.band_boxes) > 2:
                 gaps[1:] = [band_gap(le_mod.extent(P, bi)[3], P.band_boxes[bi][3], le_mod)
@@ -1438,6 +1439,11 @@ CROSSOVER_ANGLES = {"Staging": 45.0, "Main": 45.0, "Upper": 45.0}
 # the block's least length apart, each diagonal at 45 degrees.
 TIGHT_CROSSOVERS = {"Main": [["101", "103"]]}
 SPLIT_CROSSOVERS = {"Main": ["101", "103"]}
+# Bands whose drawing lets in room for a mast icon (the plugin's mast_room): a mast whose straight track before its
+# boundary is shorter than its icon, or whose icon still has no clean spot there, has its band let out along its rows
+# at that track (Masts 108R and 110LA on track 107-109, 128RB and 130LA on 127-129, 228RA on 227-233 stood on 16 to
+# 19 px of straight; 2026-11-17). Main and upper only: staging is drawn as the owner approved it.
+MAST_ROOM = ["Main", "Upper"]
 # track names left off the panel (owner, 2026-11-16): the short track inside the three-way
 NO_NAME = {"Main": ["101-103"]}
 
