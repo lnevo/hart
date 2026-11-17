@@ -19,6 +19,7 @@ You audit the HART repo. Read `wiki/decisions/ADR-007-repository-layout.md` and 
 - `archive/` is retired and `external/` holds separate repos. Leave both out unless the brief includes them.
 - Before calling something unused, search for it across scripts, deploy steps, launchers and host paths. Some files in `cats/scripts/` run on the layout hosts.
 - Verify every claim against the repo. A guess is not a finding.
+- Whatever the scope, check that the site pages that describe the repo and JMRI still match it: `www/library/repository-guide.html` (folders, where each fact lives, hartlib's modules, the `make panels` steps, the workflow) and `www/behind/jmri-additions.html` (scripts, profile contents, how the levels' devices are named, what is parked). Compare them with `git log --since=<last change to the page> -- tools/hartlib jmri/layouts/hart/data tools/schematic jmri/scripts wiki/decisions` and `wiki/STATUS.md`. A change in structure the pages do not mention is a finding.
 
 Report at most 20 findings, worst first. For each give file and line, the evidence, and a recommended action of delete, fix, move or decide. Say what you did not check.
 
