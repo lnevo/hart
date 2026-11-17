@@ -3,7 +3,7 @@ tools/schematic/build_main_upper_masts.py from the device map) and the virtual n
 
 The main and upper physical plant is not reviewed yet, so their heads and masts are virtual (owner, 2026-11-17): each
 head's system name comes from its user name, never from the device map's draft physical head, so it stays the same
-when the draft changes. "Head 108LA" is IH:HART:C3:108LA and "Head 108R Top" IH:HART:C3:108R_Top (head_name), and
+when the draft changes. "Head 108LA" is IH:HART:C3:108LA and "Head 108R Top" IH:HART:C3:108R_Top (hartlib.level_devices.head_name), and
 each mast's system name names those heads, IF$shsm:basic:<type>(IH:HART:C3:...)(...). signal_coordinator.py enrols
 and publishes a head only when its name is IH and digits (_is_lcos_ih_sys), so none of these reaches MQTT or the
 field. The device map (jmri_name column) maps each to its planned physical head. One place for the file, its reader
@@ -17,22 +17,11 @@ import re
 from pathlib import Path
 
 from . import paths
+from .level_devices import HEAD, HEAD_USER, head_name  # noqa: F401  the naming rule, re-exported here
 
 PATH = paths.LAYOUT_DATA / "schematic" / "main_upper_masts.csv"
-PREFIX = "IH:HART:C3:"
-HEAD_USER = re.compile(r"Head (\d+[LR][A-Z]?)(?: (Top|Bottom))?")    # a device-map head's user name
-HEAD = re.compile(re.escape(PREFIX) + r"\d+[LR][A-Z]?(?:_Top|_Bottom)?")   # its virtual system name
 FIELDS = ["mast", "cp", "switch", "facing", "protects", "leg", "system_name", "head_system_names",
           "device_system_name"]
-
-
-def head_name(user: str) -> str:
-    """The virtual system name of a main or upper head, from its user name: "Head 108LA" -> IH:HART:C3:108LA,
-    "Head 108R Top" -> IH:HART:C3:108R_Top. Stops with ValueError on any other user name."""
-    m = HEAD_USER.fullmatch(user or "")
-    if not m:
-        raise ValueError(f"head {user!r} is not named Head <number><L|R>[letter][ Top| Bottom]")
-    return PREFIX + m.group(1) + (f"_{m.group(2)}" if m.group(2) else "")
 
 
 def mast_heads(system_name: str) -> list[str]:

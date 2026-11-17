@@ -33,7 +33,7 @@ detector: the plugin's `corners` binding, which opens a row between its tracks o
 control-point masts (main_upper_masts.csv, on virtual heads) are drawn and bound as staging's are: each on the track
 it faces at the switch it protects (level_signals), its CATS template the one staging's masts of its appearance type
 take. Every main and upper desk block is bound to its virtual occupancy sensor (the device map's jmri_name,
-IS:HART:C3:B:<block key>, which tables.xml holds: build_layout_le.py), as OCCUPIEDSPEC / UNOCCUPIEDSPEC (owner,
+IS:HART:C3:B:<block key>, hartlib.level_devices), as OCCUPIEDSPEC / UNOCCUPIEDSPEC (owner,
 2026-11-17: the physical plant is a draft, swapped in later by the device map alone); the planned detector, when the
 map has one, is kept in the bindings as _planned_occupied / _planned_unoccupied for the record and is not on the
 panel. The middle of 225's X, a desk-only block, has no sensor (owner, 2026-11-17). The helix tracks are joined on the desk (the plugin joins a helix track
@@ -70,7 +70,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import le_inputs  # noqa: E402  the frozen staging Layout Editor facts (staging_le/)
-from hartlib import level_masts, paths, tables  # noqa: E402
+from hartlib import level_devices, level_masts, paths, tables  # noqa: E402
 from hartlib.cats import mast_templates, station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -181,10 +181,10 @@ def load_device_map(path=DEVICE_MAP):
                 trial = {t.strip() for t in row["trial_name"].split(",") if t.strip()}
                 out.blocks[name] = {"level": int(row["level"]), "trial": trial}
             elif row["layer"] == "occupancy":
-                if name in out.sensors or not row["jmri_name"].startswith(bdm.VIRTUAL_SENSOR) or \
+                if name in out.sensors or not level_devices.is_block_sensor(row["jmri_name"]) or \
                         not (row["system_name"] == "" or row["system_name"].startswith("M2S")):
                     raise SystemExit(f"{path.name}: occupancy {name} is listed twice, has no virtual "
-                                     f"{bdm.VIRTUAL_SENSOR} jmri_name, or plans a detector that is not an M2S sensor")
+                                     f"{level_devices.SENSOR_PREFIX} jmri_name, or plans a detector that is not an M2S sensor")
                 out.sensors[name] = row["jmri_name"]
                 if row["system_name"]:
                     out.planned[name] = row["system_name"]
@@ -481,14 +481,14 @@ def spec(system, user):
 def virtual_sensor(name, F):
     """The IOSPECs of block `name`'s virtual occupancy sensor (the device map's jmri_name for BS + the name less
     Track; BS Switch N for OS Switch N), or None: the middle of a double crossover's X has none (its corners do)."""
-    user = bdm.occupancy_user(name)
+    user = level_devices.occupancy_user(name)
     system = F.device.sensors.get(user)
     return None if system is None else spec(system, user)
 
 
 def planned_sensor(name, F):
     """The IOSPECs of block `name`'s planned detector (the device map's system_name, a draft), or None."""
-    user = bdm.occupancy_user(name)
+    user = level_devices.occupancy_user(name)
     system = F.device.planned.get(user)
     return None if system is None else spec(system, user)
 
@@ -529,7 +529,7 @@ def inside_os(bands, P, bound_bi, name, row):
 
 def dark_bindings(bands, cats, P, F, bound_bi):
     """(bindings, log, report) for the main and upper blocks: device map names, MAIN_UPPER_DISCIPLINE, the station
-    plate, the virtual occupancy sensor bound (it must be in tables.xml under that system name) and the planned
+    plate, the virtual occupancy sensor bound (the device map's jmri_name) and the planned
     detector kept as _planned_*; the report names each device map block with no block of its own on the desk, why,
     and its sensor."""
     groups = defaultdict(list)
@@ -554,12 +554,10 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         else:
             name = device_name(bands, cats, keys, F, log)
         e = {"name": name, "station": station_plate(name), "discipline": MAIN_UPPER_DISCIPLINE}
+        # from the device map alone: build_layout_le.py, which runs after this build in make panels, adds the sensor to
+        # the tables, and check_layout_facts.py checks the desk against them
         bound = virtual_sensor(name, F)
         if bound:
-            want = bound["occupied"]["JMRIPREFIX"] + bound["occupied"]["DECADDR"]
-            if F.sensors.get(bound["occupied"]["USER_NAME"]) != want:
-                raise SystemExit(f"{name}: tables.xml has no sensor {bound['occupied']['USER_NAME']} ({want}); "
-                                 "build_layout_le.py adds it")
             e.update(bound)
         elif name in F.device.blocks:
             raise SystemExit(f"{name}: no occupancy row in {DEVICE_MAP.name}")
@@ -579,7 +577,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
     for name, why in sorted(missing.items()):
         report[name] = {"why": why}
         if planned_sensor(name, F):
-            report[name]["detector"] = bdm.occupancy_user(name)
+            report[name]["detector"] = level_devices.occupancy_user(name)
             log.append(f"{name}: not a block of its own on the desk ({why}); its detector "
                        f"{report[name]['detector']} has no block to bind")
     return out, log, report

@@ -9,7 +9,7 @@ masts with one facing and protected block, the A mast on the switch's normal leg
 none needs it since the 107 Loop became two blocks (owner, 2026-11-16).
 
 They are virtual (owner, 2026-11-17): system_name and head_system_names are the device map's jmri_name, which comes
-from the head's user name (hartlib.level_masts.head_name: "Head 108R Top" -> IH:HART:C3:108R_Top), never from the
+from the head's user name (hartlib.level_devices.head_name: "Head 108R Top" -> IH:HART:C3:108R_Top), never from the
 draft physical head; device_system_name keeps the planned physical mast (the device map's system_name).
 signal_coordinator.py enrols and publishes a head only when its name is IH and digits (_is_lcos_ih_sys), so none of
 these reaches MQTT or the field (build_layout_le.py checks it with the coordinator's own test).
@@ -24,7 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA and hartlib paths
-from hartlib import level_masts  # noqa: E402  the file, its fields and the internal head rule
+from hartlib import level_devices, level_masts  # noqa: E402  the head naming rule; the file and its fields
 
 DEVICE_MAP = pd.DATA / "device_map_main_upper.csv"
 OUT = level_masts.PATH
@@ -32,10 +32,10 @@ LEGS = {"A": "normal", "B": "diverging"}       # of two masts sharing a block pa
 
 
 def virtual(head: dict, mast: str) -> str:
-    """A device-map head row's jmri_name, checked to be hartlib.level_masts.head_name of its user name; stops naming
+    """A device-map head row's jmri_name, checked to be hartlib.level_devices.head_name of its user name; stops naming
     the head and mast otherwise."""
     try:
-        want = level_masts.head_name(head["user_name"])
+        want = level_devices.head_name(head["user_name"])
     except ValueError as exc:
         raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: {exc}") from None
     if head.get("jmri_name") != want:

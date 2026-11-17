@@ -583,6 +583,23 @@ class CommittedMainAndUpper(unittest.TestCase):
                 self.assertNotIn(name, self.bound["_main_upper_not_on_desk"])
 
 
+class LevelSensorsFromTheDeviceMap(unittest.TestCase):
+    def test_the_bindings_need_no_level_sensor_in_tables_xml(self):
+        """make panels builds the desks before build_layout_le.py adds a new block's sensor to the tables, so the
+        desk binds each main and upper block from the device map alone (check_layout_facts.py checks it against
+        tables.xml afterwards): the bindings are the same with no main or upper sensor in the tables."""
+        import contextlib
+        import io
+        cats = plugin_cats()
+        bands = B.name_loop_halves(B.pd.solved_sheet(B.plugin_modules(B.pd.plugin())[1]).bands)
+        F = B.load_facts()
+        B.level_signals(bands, F, B.bound_index(bands))
+        F.sensors = {u: sn for u, sn in F.sensors.items() if not B.level_devices.is_block_sensor(sn)}
+        with contextlib.redirect_stdout(io.StringIO()):
+            got = B.bindings(bands, cats, F)
+        self.assertEqual(json.dumps(got, indent=1, sort_keys=True) + "\n", B.BINDINGS.read_text(encoding="utf-8"))
+
+
 def plugin_cats():
     try:
         return B.plugin_modules(B.pd.plugin())[0]

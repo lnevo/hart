@@ -17,7 +17,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import hand_drawn, paths, tables  # noqa: E402
+from hartlib import hand_drawn, level_devices, paths, tables  # noqa: E402
 
 
 def hand() -> Path:
@@ -191,7 +191,7 @@ class Built(unittest.TestCase):
         sensors = {tables.user_name(s): tables.system_name(s) for s in internal.findall("sensor") if is_new(s)}
         self.assertEqual(len(sensors), 125)
         self.assertFalse([s for s in tables.sensors(self.root) if is_new(s) and s not in list(internal)])
-        bd = B.bdm
+        bd = level_devices
         for b in [b for b in tables.blocks(self.root) if is_new(b)]:
             name = tables.user_name(b)
             with self.subTest(block=name):
@@ -213,24 +213,47 @@ class Built(unittest.TestCase):
             with self.subTest(tables=label):
                 level = sorted(tables.system_name(s) for s in tables.sensors(root) if is_new(s))
                 self.assertEqual(len(level), 125)
-                self.assertEqual(sorted(B.clear_sensors(root)), level)
+                self.assertEqual(sorted(level_devices.clear_sensors(root)), level)
                 acts = {e.findtext("systemName"): e for e in root.find("LogixNGDigitalActions")}
-                for name in B.clear_sensors(root):
-                    a = acts[B.CLEAR_ACTION + name.removeprefix(B.bdm.VIRTUAL_SENSOR)]
+                for name in level_devices.clear_sensors(root):
+                    a = acts[level_devices.clear_action(name)]
                     self.assertEqual((a.tag, a.findtext("state/enum")), ("ActionSensor", "Inactive"))
-                lx = next(e for e in root.find("LogixNGs") if e.findtext("systemName") == B.CLEAR_LOGIXNG)
+                lx = next(e for e in root.find("LogixNGs") if e.findtext("systemName") == level_devices.CLEAR_LOGIXNG)
                 self.assertEqual(lx.get("enabled"), "yes")
-                self.assertEqual(lx.findtext("ConditionalNGs/systemName"), B.CLEAR_CONDITIONAL)
+                self.assertEqual(lx.findtext("ConditionalNGs/systemName"), level_devices.CLEAR_CONDITIONAL)
                 cn = next(e for e in root.find("LogixNGConditionalNGs")
-                          if e.findtext("systemName") == B.CLEAR_CONDITIONAL)
+                          if e.findtext("systemName") == level_devices.CLEAR_CONDITIONAL)
                 self.assertEqual((cn.get("enabled"), cn.get("executeAtStartup")), ("yes", None))    # runs at load
-                self.assertEqual(cn.findtext("Socket/systemName"), B.CLEAR_MANY)
+                self.assertEqual(cn.findtext("Socket/systemName"), level_devices.CLEAR_MANY)
                 internal = next(s for s in root.findall("sensors") if "InternalSensorManager" in s.get("class"))
                 self.assertEqual(internal.findtext("defaultInitialState"), "unknown")   # the other lamps unchanged
         with self.assertRaisesRegex(B.BuildError, "already hold"):
             B.add_level_clear(tables.read(paths.TABLES_XML), ["IS:HART:C3:B:X"])
         with self.assertRaisesRegex(B.BuildError, "not all main and upper virtual sensors"):
             B.add_level_clear(tables.read(hand()), ["IS:SML_MODE"])
+
+    def test_the_clear_logixng_reader_names_a_broken_action(self) -> None:
+        root = tables.read(paths.TABLES_XML)
+        acts = root.find("LogixNGDigitalActions")
+        first = level_devices.clear_action(level_devices.clear_sensors(root)[0])
+        acts.remove(next(e for e in acts if e.findtext("systemName") == first))
+        with self.assertRaisesRegex(ValueError, f"socket A1 names {re.escape(first)}, which is not an ActionSensor"):
+            level_devices.clear_sensors(root)
+
+    def test_the_clear_logixng_takes_exactly_the_sensors_added(self) -> None:
+        """add_level_sensors returns the sensors it bound (only blocks in the tables); add_level_objects stops when
+        that is not every main and upper block's, so the LogixNG never names a sensor the tables lack."""
+        root = tables.loads(hand().read_bytes()).root
+        sensors = B.level_sensors()
+        b = sorted(sensors)[0]
+        el = ET.SubElement(root.find("blocks"), "block", {"systemName": "IBX1"})
+        for tag, text in (("systemName", "IBX1"), ("userName", b), ("permissive", "no")):
+            ET.SubElement(el, tag).text = text
+        self.assertEqual(B.add_level_sensors(root, {x: sensors[x] for x in sorted(sensors)[:2]}), [sensors[b][0]])
+        with mock.patch.object(B, "add_level_sensors", return_value=[]), \
+                self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
+            with contextlib.redirect_stdout(io.StringIO()):
+                B.build(hand())
 
     def test_add_level_sensors_is_by_name_not_order(self) -> None:
         """The sensors a block gets do not depend on the order blocks come in: a block added earlier in the drawing

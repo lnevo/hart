@@ -254,9 +254,53 @@ class LayoutFactsTest(unittest.TestCase):
         tables = self.copy(check.TABLES, lambda t: t.replace("<systemName>IS:HART:C3:B:101-111</systemName>",
                                                              "<systemName>IS:HART:C3:B:X</systemName>"))
         out = self.failures(tables=tables)
-        self.assertEqual([m for m in out if "101-111" in m],
-                         [f"{d}: block Track 101-111 reports BS 101-111 (IS:HART:C3:B:101-111); tables.xml binds it "
-                          "to BS 101-111 (IS:HART:C3:B:X)" for d in ("HART_CTC.xml", "HART_ABS.xml")])
+        want = ("block Track 101-111 reports OCCUPIEDSPEC IS:HART:C3:B:101-111 close; UNOCCUPIEDSPEC "
+                "IS:HART:C3:B:101-111 throw (user name BS 101-111); tables.xml binds it to BS 101-111 "
+                "(IS:HART:C3:B:X)")
+        self.assertEqual([m for m in out if "101-111" in m], [f"{d}: {want}" for d in ("HART_CTC.xml", "HART_ABS.xml")])
+
+    def desk_block(self, name: str, change) -> list[str]:
+        """The failures with every BLOCK named `name` on a copy of the CTC desk changed by `change(block)`."""
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(check.DESKS[0])
+        hit = [b for b in tree.getroot().iter("BLOCK") if b.get("NAME") == name]
+        self.assertTrue(hit, name)
+        for b in hit:
+            change(b)
+        return [m for m in self.failures(desks=(self.write(tree),)) if name in m]
+
+    def test_an_unbound_main_upper_desk_block_fails(self) -> None:
+        """Only the desk-only middle of 225's X may be unbound; any other main or upper block must report its sensor."""
+        def unbind(b):
+            for tag in ("OCCUPIEDSPEC", "UNOCCUPIEDSPEC"):
+                for spec in b.findall(tag):
+                    b.remove(spec)
+        self.assertEqual(self.desk_block("Track 101-111", unbind),
+                         ["HART_CTC.xml: block Track 101-111 reports OCCUPIEDSPEC none; UNOCCUPIEDSPEC none (user name "
+                          "None); tables.xml binds it to BS 101-111 (IS:HART:C3:B:101-111)"])
+        self.assertEqual(self.desk_block("OS Switch 225", lambda b: None), [])        # desk-only, dark: fine
+
+    def test_a_wrong_unoccupied_spec_fails(self) -> None:
+        def wrong(b):
+            for io in b.findall("UNOCCUPIEDSPEC/IOSPEC"):
+                io.set("DECADDR", ":HART:C3:B:OS101")
+        out = self.desk_block("Track 101-111", wrong)
+        self.assertEqual(len(out), 1, out)
+        self.assertIn("UNOCCUPIEDSPEC IS:HART:C3:B:OS101 throw", out[0])
+
+        def wrong_command(b):
+            for io in b.findall("UNOCCUPIEDSPEC/IOSPEC"):
+                io.text = "close"
+        self.assertIn("UNOCCUPIEDSPEC IS:HART:C3:B:101-111 close", self.desk_block("Track 101-111", wrong_command)[0])
+
+    def test_a_bound_desk_only_block_fails(self) -> None:
+        import xml.etree.ElementTree as ET
+
+        def bind(b):
+            spec = ET.SubElement(b, "OCCUPIEDSPEC")
+            ET.SubElement(spec, "IOSPEC", {"DECADDR": ":HART:C3:B:OS225", "JMRIPREFIX": "IS"}).text = "close"
+        self.assertEqual(self.desk_block("OS Switch 225", bind),
+                         ["HART_CTC.xml: desk-only block OS Switch 225 reports a sensor; it has none"])
 
     def test_a_main_upper_block_missing_from_tables_that_hold_the_levels_fails(self) -> None:
         tables = self.copy(check.TABLES, lambda t: t.replace("<userName>Track 101-111</userName>",

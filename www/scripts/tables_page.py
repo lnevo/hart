@@ -25,7 +25,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import parked  # noqa: E402
+from hartlib import level_devices, parked  # noqa: E402
 
 REGION = re.compile(r"<!--tf:([a-z0-9-]+)-->(.*?)<!--/tf-->", re.S)
 
@@ -246,11 +246,13 @@ def facts(raw: bytes, root) -> dict:
     acts = {a.findtext("systemName"): a for m in root.findall("LogixNGDigitalActions") for a in m}
     clear = _one([n for n in ngs if n is not ng], "LogixNG besides the Initialization Table's")
     cs = [cng.get(x.text) for x in clear.findall("ConditionalNGs/systemName")]
-    many = acts.get(cs[0].findtext("Socket/systemName") or "") if len(cs) == 1 and cs[0] is not None else None
-    sensors = [acts.get(s.findtext("systemName") or "") for s in many.findall("Actions/Socket")] if many is not None \
-        and many.tag == "DigitalMany" else []
-    if not sensors or any(a is None or a.tag != "ActionSensor" or a.findtext("state/enum") != "Inactive"
-                          or not (a.findtext("namedBean/name") or "").startswith("IS:HART:C3:B:") for a in sensors):
+    try:
+        sensors = level_devices.clear_sensors(root)
+    except ValueError as exc:
+        raise PageError(f"tables.xml: {exc}") from None
+    if clear.findtext("systemName") != level_devices.CLEAR_LOGIXNG or len(cs) != 1 or cs[0] is None \
+            or cs[0].findtext("Socket/systemName") != level_devices.CLEAR_MANY or not sensors \
+            or not all(level_devices.is_block_sensor(x) for x in sensors):
         raise PageError(f"tables.xml: LogixNG {clear.findtext('systemName')} no longer only sets the main and upper "
                         "block sensors clear, as the page says")
     f["clear"] = {"name": clear.findtext("userName") or clear.findtext("systemName"), "count": len(sensors)}

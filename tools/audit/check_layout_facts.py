@@ -17,8 +17,8 @@ CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schem
     leg is NORMAL (the closed one, unless the switch is CATS-inverted); the main and upper
     plants (internal turnouts) are checked below;
   - every block bound to a detector is a Layout Editor block (main and upper ones only where the tables hold those
-    levels), and each main and upper desk block reports the virtual sensor (IS:HART:C3:B:) its block has in
-    tables.xml;
+    levels), and each main and upper desk block reports, occupied and unoccupied, the virtual sensor
+    (IS:HART:C3:B:) its block has in tables.xml; only the desk-only middle of a double crossover's X reports none;
   - the desk's staging masts are mast_cells.csv's, each once, its lamp on the edge of the block it
     protects (staging_le/masts.csv); each is in the name map and tables.xml, with one head
     (the one named) for a d1 icon and two for h2;
@@ -58,7 +58,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, parked, paths, tables as hart_tables  # noqa: E402
+from hartlib import level_devices, level_masts, parked, paths, tables as hart_tables  # noqa: E402
 from hartlib.names import split_dcc  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -278,33 +278,49 @@ def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]
 
 
 @functools.cache
-def device_map_blocks() -> frozenset[str]:
-    """The device map's main and upper block names, a double crossover's corners also without the corner letter."""
+def device_map_rows() -> frozenset[str]:
+    """The device map's main and upper block names (its block rows)."""
     with DEVICE_MAP.open(newline="", encoding="utf-8") as f:
         names = {row["user_name"] for row in csv.DictReader(f) if row["layer"] == "block"}
     if not names:
         raise SystemExit(f"{paths.rel(DEVICE_MAP)} has no block rows")
+    return frozenset(names)
+
+
+@functools.cache
+def device_map_blocks() -> frozenset[str]:
+    """The device map's main and upper block names, a double crossover's corners also without the corner letter (the
+    middle of its X, a desk-only block)."""
+    names = device_map_rows()
     return frozenset(names | {re.sub(r"(?<=\d)[a-d]$", "", n) for n in names if n.startswith("OS Switch ")})
 
 
-LEVEL_SENSOR = "IS:HART:C3:B:"      # a main or upper block's virtual occupancy sensor (build_device_map.block_sensor)
-
-
 def check_level_sensors(desk: str, root: ET.Element, t: Tables, r: Report) -> None:
-    """Each main and upper desk block reports the occupancy sensor its Layout Editor block has in tables.xml, a
-    virtual IS:HART:C3:B: sensor of that name and system name."""
+    """Each main and upper desk block (a device map block row) reports, occupied (close) and unoccupied (throw), the
+    occupancy sensor its Layout Editor block has in tables.xml: a virtual IS:HART:C3:B: sensor (hartlib.level_devices)
+    of that name and system name. A desk-only block (the middle of a double crossover's X) reports none."""
     seen = set()
     for b in root.iter("BLOCK"):               # a desk block is listed once per edge it has: checked once
-        name, occ = b.get("NAME"), b.find("OCCUPIEDSPEC/IOSPEC")
-        if not name or occ is None or name not in device_map_blocks() or name in seen:
+        name = b.get("NAME")
+        if not name or name not in device_map_blocks() or name in seen:
             continue
         seen.add(name)
-        user, system = occ.get("USER_NAME"), (occ.get("JMRIPREFIX") or "") + (occ.get("DECADDR") or "")
-        if not system.startswith(LEVEL_SENSOR) or t.block_sensor.get(name) != user or \
-                t.sensor_system.get(user or "") != system:
-            r.add(f"cats-track:{name}", f"{desk}: block {name} reports {user} ({system}); tables.xml binds it to "
-                                        f"{t.block_sensor.get(name) or 'no sensor'} "
-                                        f"({t.sensor_system.get(t.block_sensor.get(name) or '', 'none')})")
+        specs = {tag: [((i.get("JMRIPREFIX") or "") + (i.get("DECADDR") or ""), (i.text or "").strip())
+                       for i in b.findall(f"{tag}/IOSPEC")] for tag in ("OCCUPIEDSPEC", "UNOCCUPIEDSPEC")}
+        if name not in device_map_rows():
+            if any(specs.values()):
+                r.add(f"cats-track:{name}", f"{desk}: desk-only block {name} reports a sensor; it has none")
+            continue
+        user = t.block_sensor.get(name)
+        system = t.sensor_system.get(user or "")
+        occ = b.find("OCCUPIEDSPEC/IOSPEC")
+        occ_user = occ.get("USER_NAME") if occ is not None else None
+        want = {"OCCUPIEDSPEC": [(system, "close")], "UNOCCUPIEDSPEC": [(system, "throw")]}
+        if not level_devices.is_block_sensor(system or "") or specs != want or occ_user != user:
+            got = "; ".join(f"{tag} " + (" ".join(f"{sn} {cmd}" for sn, cmd in v) or "none")
+                            for tag, v in specs.items())
+            r.add(f"cats-track:{name}", f"{desk}: block {name} reports {got} (user name {occ_user}); tables.xml "
+                                        f"binds it to {user or 'no sensor'} ({system or 'none'})")
 
 
 def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Report) -> None:
@@ -318,11 +334,11 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
     names = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
     # the main and upper blocks are drawn from the device map, before the tables may hold them: a staging-only
     # candidate has none, so all of them may be missing; tables with main and upper must hold every one but the
-    # middle of a double crossover's X (named without the corner letter, a desk block with no sensor)
+    # middle of a double crossover's X (named without the corner letter, a desk-only block with no sensor), and each
+    # must report its virtual sensor (check_level_sensors)
     root = parse(path).getroot()
     level_here = bool(jmri_blocks & device_map_blocks())
-    unbound = names - {b.get("NAME") for b in root.iter("BLOCK") if b.find("OCCUPIEDSPEC") is not None}
-    dark = (unbound if level_here else names) & device_map_blocks()
+    dark = (device_map_blocks() - device_map_rows() if level_here else device_map_blocks()) & names
     for name in sorted(names - dark - jmri_blocks):
         r.add(f"cats-track:{name}", f"{desk}: block {name} is not a Layout Editor block in tables.xml")
     if level_here:

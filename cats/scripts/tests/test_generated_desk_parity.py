@@ -28,7 +28,7 @@ sys.path.insert(0, str(SCRIPTS))
 import digicon_trace as trace  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import hand_drawn, level_masts  # noqa: E402
+from hartlib import hand_drawn, level_devices, level_masts  # noqa: E402
 
 LEVEL_MASTS = level_masts.names()                   # the main and upper masts, which the hand-wired desk did not have
 
@@ -51,7 +51,8 @@ FONT_SIZES = {"FONT_TITLE": "13"}
 PROTECTS = {"Mast 24L": ("Track West Ext", "OS Switch 23a"), "Mast 2035": ("Track K-2", "Track K-1")}
 
 
-LEVEL_SENSOR = ":HART:C3:B:"      # DECADDR of a main or upper virtual occupancy sensor (IS:HART:C3:B:<block key>)
+# DECADDR of a main or upper virtual occupancy sensor (IS:HART:C3:B:<block key>): the prefix less JMRIPREFIX "IS"
+LEVEL_SENSOR = level_devices.SENSOR_PREFIX.removeprefix("IS")
 
 
 def level_io(el: ET.Element) -> bool:

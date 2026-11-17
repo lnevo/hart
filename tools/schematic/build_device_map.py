@@ -34,11 +34,12 @@ Outputs:
 
 Virtual names (owner, 2026-11-17), from each device's stable identity:
 - Turnout "Switch <n>" (and its LCC alias "DCC Switch <n>"): IT:HART:C3:<n>.
-- Every block has one occupancy row, its sensor IS:HART:C3:B:<block_key> (block_key: the block name with "Track "
+- Every block has one occupancy row, its sensor IS:HART:C3:B:<block_key> (hartlib.level_devices: the block name with
+  "Track "
   dropped, "OS Switch " shortened to "OS", spaces to "_": IS:HART:C3:B:107-109, IS:HART:C3:B:107_Loop_2,
   IS:HART:C3:B:OS225b). Its system_name is the planned detector (M2S), or empty: NOT_WIRED for a detector planned
   but not on a node yet, NO_DETECTOR for a block that has none planned (dark until decided).
-- Head "Head <mast>[ Top|Bottom]": hartlib.level_masts.head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top); mast
+- Head "Head <mast>[ Top|Bottom]": hartlib.level_devices.head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top); mast
   IF$shsm:basic:<type>(<head>)(<head>) over those heads.
 - Feedback rows have no JMRI device of their own (a turnout's feedback is DIRECT until the plant is wired), and
   block rows none here: build_layout_le.py numbers their blocks.
@@ -88,7 +89,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
-from hartlib import level_masts  # noqa: E402  the virtual head names (head_name)
+from hartlib import level_devices  # noqa: E402  the virtual names (block_sensor, occupancy_user, head_name)
 
 CPS = pd.DATA / "control_points_main_upper.csv"
 NODES = pd.DATA / "lcos_nodes_main_upper.csv"
@@ -106,8 +107,9 @@ COLUMNS = ["level", "cp", "layer", "user_name", "system_name", "jmri_name", "nod
 DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
 TAU = {"A": -1, "B": 1, "C": 1, "D": -1}      # the plugin's leg sides (schematic.core.TAU)
 LOOP_HALF = {"B": 1, "C": 2}          # a balloon loop's half by the switch leg it leaves from (owner, 2026-11-16)
-VIRTUAL_TURNOUT = "IT:HART:C3:"       # + switch number: the internal turnout the panels and desks use
-VIRTUAL_SENSOR = "IS:HART:C3:B:"      # + block_key: the internal occupancy sensor of every main and upper block
+VIRTUAL_TURNOUT = level_devices.TURNOUT_PREFIX   # + switch number: the internal turnout the panels and desks use
+VIRTUAL_SENSOR = level_devices.SENSOR_PREFIX     # + block_key: the internal occupancy sensor of every block
+occupancy_user = level_devices.occupancy_user
 NOT_WIRED = "detector planned, not wired yet: no node or input (owner, 2026-11-16)"
 NO_DETECTOR = "no detector planned: dark until decided"
 
@@ -121,26 +123,13 @@ def base(label: str) -> str:
     return re.sub(r"[AB]$", "", (label or "").rstrip("*"))
 
 
-def block_key(block: str) -> str:
-    """The stable key of a main or upper block, from its user name alone: "Track " dropped, "OS Switch " shortened to
-    "OS", spaces to "_" ("Track 107 Loop 2" -> 107_Loop_2, "OS Switch 225b" -> OS225b). Stops on a name that would
-    give a key with anything but letters, digits, "-" and "_"."""
-    key = ("OS" + block.removeprefix("OS Switch ") if block.startswith("OS Switch ") else
-           block.removeprefix("Track ")).replace(" ", "_")
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", key) or key == block:
-        raise MapError(f"block {block!r} gives no clean sensor key ({key!r})")
-    return key
-
-
 def block_sensor(block: str) -> str:
-    """The virtual occupancy sensor of a main or upper block: IS:HART:C3:B:<block_key>."""
-    return VIRTUAL_SENSOR + block_key(block)
-
-
-def occupancy_user(block: str) -> str:
-    """The occupancy sensor's user name of a block: "BS " + the name less "Track "; "BS Switch <n>" for
-    "OS Switch <n>" (ADR-005)."""
-    return "BS " + (block.removeprefix("OS ") if block.startswith("OS Switch ") else block.removeprefix("Track "))
+    """The virtual occupancy sensor of a main or upper block (hartlib.level_devices.block_sensor); MapError on a
+    name that gives no clean key."""
+    try:
+        return level_devices.block_sensor(block)
+    except ValueError as exc:
+        raise MapError(str(exc)) from None
 
 
 def natural(name: str):
@@ -602,14 +591,14 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                      for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
             kind = "two-searchlight" if m["heads"] == 2 else "one-low"
             sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
-            virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_masts.head_name(h[0]) for h in heads) + ")"
+            virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name} | Switch {m['switch']}",
                 notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
                 jmri=virtual)
             for user, sysn, k, board, pin in heads:
                 add(lv, name, "head", user, sysn, hnode,
                     f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
-                    jmri=level_masts.head_name(user))
+                    jmri=level_devices.head_name(user))
     nodes.check_boards()
     check_virtual(rows)
     order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}

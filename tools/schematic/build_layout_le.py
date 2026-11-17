@@ -121,10 +121,10 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import build_device_map as bdm  # noqa: E402  the device map's virtual sensor names (occupancy_user, block_sensor)
 import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import hand_drawn, parked, paths, tables  # noqa: E402
+from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
@@ -1622,9 +1622,9 @@ def is_level_bean(el: ET.Element) -> bool:
     if el.tag == "turnout":
         return sysname.startswith(TURNOUT_SYS)
     if el.tag == "sensor":
-        return sysname.startswith(bdm.VIRTUAL_SENSOR)
+        return level_devices.is_block_sensor(sysname)
     if el.tag in ("LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor"):
-        return bool(CLEAR_PREFIX.match(sysname))
+        return bool(level_devices.CLEAR_PREFIX.match(sysname))
     if el.tag == "block":
         return sysname.startswith(BLOCK_SYS)
     if el.tag == "layoutblock":
@@ -1799,7 +1799,7 @@ def numbered_blocks(blocks) -> list:
 
 def level_sensors(path: Path = DEVICE_MAP) -> dict:
     """{block: (sensor system name, sensor user name, comment)} for every main and upper block of the device map:
-    its occupancy row's virtual sensor (jmri_name, build_device_map.block_sensor) and, in the comment, the planned
+    its occupancy row's virtual sensor (jmri_name, hartlib.level_devices.block_sensor) and, in the comment, the planned
     detector or why there is none. Stops on a block with no occupancy row or a row whose jmri_name is not the
     block's."""
     try:
@@ -1812,14 +1812,14 @@ def level_sensors(path: Path = DEVICE_MAP) -> dict:
         if r["layer"] != "block":
             continue
         block = r["user_name"]
-        o = occ.get(bdm.occupancy_user(block))
+        o = occ.get(level_devices.occupancy_user(block))
         try:
-            want = bdm.block_sensor(block)
-        except bdm.MapError as exc:
+            want = level_devices.block_sensor(block)
+        except ValueError as exc:
             bad.append(str(exc))
             continue
         if o is None or o.get("jmri_name") != want:
-            bad.append(f"{block}: no occupancy row {bdm.occupancy_user(block)} with jmri_name {want}")
+            bad.append(f"{block}: no occupancy row {level_devices.occupancy_user(block)} with jmri_name {want}")
             continue
         planned = f"planned {o['system_name']} (draft)" if o["system_name"] else o["notes"]
         out[block] = (want, o["user_name"], f"{SENSOR_COMMENT}; {planned}")
@@ -1836,7 +1836,7 @@ def add_level_sensors(root: ET.Element, sensors: dict) -> int:
     section, as staging's internal sensors are stored, and bound to its block and layout block by user name as
     staging's are (<occupancysensor> after <permissive> in the block's full pass, the occupancysensor attribute after
     systemName on the layout block). Only blocks in `root` are bound; stops on a sensor name already taken or a block
-    already bound. The count added."""
+    already bound. The system names of the sensors added, in the order added."""
     internal = next((s for s in root.findall("sensors") if "InternalSensorManager" in (s.get("class") or "")), None)
     if internal is None:
         raise BuildError("the tables have no internal sensor section")
@@ -1876,20 +1876,14 @@ def add_level_sensors(root: ET.Element, sensors: dict) -> int:
             lb.attrib.clear()
             for k, v in attrs[:1] + [("occupancysensor", user)] + attrs[1:]:
                 lb.set(k, v)
-    return len(used)
+    return [sensors[b][0] for b in sorted(used, key=lambda b: sensors[b][0])]
 
 
 # The main and upper virtual block sensors start clear (owner, 2026-11-17): a LogixNG in the tables, stock JMRI, sets
 # every one INACTIVE once when the tables load (a ConditionalNG executes at startup unless told not to:
 # DefaultLogixNG.execute, executeAtStartup defaults to yes), so the masts are not held at Stop by UNKNOWN blocks. The
-# internal sensor manager's default state stays as it is for the other internal sensors. LogixNG system names with
-# "$" may hold any characters (LogixNG_Manager.validSystemNameFormat), so these are named, not numbered.
-CLEAR_LOGIXNG = "IQ$HART:C3:BlockSensorsClear"
-CLEAR_CONDITIONAL = "IQC$HART:C3:BlockSensorsClear"
-CLEAR_MANY = "IQDA$HART:C3:BlockSensorsClear"
-CLEAR_ACTION = "IQDA$HART:C3:B:"          # + the block key: one ActionSensor per sensor
-CLEAR_USER = "Main and upper block sensors clear on start"
-CLEAR_PREFIX = re.compile(r"IQ(?:C|DA)?\$HART:C3:")
+# internal sensor manager's default state stays as it is for the other internal sensors. Its names are
+# hartlib.level_devices' CLEAR_*.
 MALE_DEBUGGER = "jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml"
 MALE_ACTION = "jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml"
 
@@ -1905,37 +1899,37 @@ def male_socket(el: ET.Element) -> None:
 
 def add_level_clear(root: ET.Element, sensors: list[str]) -> None:
     """The LogixNG that sets each of `sensors` (system names of the main and upper virtual block sensors) INACTIVE
-    when the tables load: LogixNG CLEAR_LOGIXNG, its ConditionalNG CLEAR_CONDITIONAL, a DigitalMany CLEAR_MANY and
-    an ActionSensor per sensor (CLEAR_ACTION + block key), stored as PanelPro 5.16 stores them. Stops when the tables
-    have no LogixNG sections or hold these names already."""
+    when the tables load (hartlib.level_devices: LogixNG CLEAR_LOGIXNG, its ConditionalNG CLEAR_CONDITIONAL, a
+    DigitalMany CLEAR_MANY and an ActionSensor per sensor, clear_action), stored as PanelPro 5.16 stores them. Stops
+    when the tables have no LogixNG sections or hold these names already."""
     secs = {tag: root.find(tag) for tag in ("LogixNGs", "LogixNGConditionalNGs", "LogixNGDigitalActions")}
     if any(v is None for v in secs.values()):
         raise BuildError(f"the tables have no {', '.join(k for k, v in secs.items() if v is None)} section")
-    if any(CLEAR_PREFIX.match(e.findtext("systemName") or "") for v in secs.values() for e in v):
+    if any(level_devices.CLEAR_PREFIX.match(e.findtext("systemName") or "") for v in secs.values() for e in v):
         raise BuildError("the tables already hold the main and upper sensors-clear LogixNG")
     sensors = sorted(sensors)
-    if not sensors or not all(x.startswith(bdm.VIRTUAL_SENSOR) for x in sensors):
+    if not sensors or not all(level_devices.is_block_sensor(x) for x in sensors):
         raise BuildError(f"sensors-clear LogixNG: not all main and upper virtual sensors: {sensors[:3]}")
     lx = ET.Element("LogixNG", {"enabled": "yes", "inline": "no"})
-    ET.SubElement(lx, "systemName").text = CLEAR_LOGIXNG
-    ET.SubElement(lx, "userName").text = CLEAR_USER
-    ET.SubElement(ET.SubElement(lx, "ConditionalNGs"), "systemName").text = CLEAR_CONDITIONAL
+    ET.SubElement(lx, "systemName").text = level_devices.CLEAR_LOGIXNG
+    ET.SubElement(lx, "userName").text = level_devices.CLEAR_USER
+    ET.SubElement(ET.SubElement(lx, "ConditionalNGs"), "systemName").text = level_devices.CLEAR_CONDITIONAL
     last = [e for e in secs["LogixNGs"] if e.tag == "LogixNG"]
     place(secs["LogixNGs"], [lx], 2, last[-1] if last else None)
     cn = ET.Element("ConditionalNG", {"enabled": "yes"})
-    ET.SubElement(cn, "systemName").text = CLEAR_CONDITIONAL
-    ET.SubElement(cn, "userName").text = CLEAR_USER
+    ET.SubElement(cn, "systemName").text = level_devices.CLEAR_CONDITIONAL
+    ET.SubElement(cn, "userName").text = level_devices.CLEAR_USER
     ET.SubElement(cn, "thread").text = "0"
     sock = ET.SubElement(cn, "Socket")
     ET.SubElement(sock, "socketName").text = "A"
-    ET.SubElement(sock, "systemName").text = CLEAR_MANY
+    ET.SubElement(sock, "systemName").text = level_devices.CLEAR_MANY
     place(secs["LogixNGConditionalNGs"], [cn], 2)
     many = ET.Element("DigitalMany", {"class": "jmri.jmrit.logixng.actions.configurexml.DigitalManyXml"})
-    ET.SubElement(many, "systemName").text = CLEAR_MANY
+    ET.SubElement(many, "systemName").text = level_devices.CLEAR_MANY
     acts = ET.SubElement(many, "Actions")
     actions = []
     for i, sensor in enumerate(sensors, 1):
-        name = CLEAR_ACTION + sensor.removeprefix(bdm.VIRTUAL_SENSOR)
+        name = level_devices.clear_action(sensor)
         s = ET.SubElement(acts, "Socket")
         ET.SubElement(s, "socketName").text = f"A{i}"
         ET.SubElement(s, "systemName").text = name
@@ -1953,18 +1947,6 @@ def add_level_clear(root: ET.Element, sensors: list[str]) -> None:
         actions.append(a)
     male_socket(many)
     place(secs["LogixNGDigitalActions"], [many] + actions, 2)
-
-
-def clear_sensors(root: ET.Element) -> list[str]:
-    """The sensors the sensors-clear LogixNG sets INACTIVE, from its ActionSensors under its DigitalMany."""
-    acts = root.find("LogixNGDigitalActions")
-    if acts is None:
-        return []
-    by_name = {e.findtext("systemName"): e for e in acts}
-    many = by_name.get(CLEAR_MANY)
-    if many is None:
-        return []
-    return [by_name[s.findtext("systemName")].findtext("namedBean/name") for s in many.findall("Actions/Socket")]
 
 
 def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_blocks: set) -> None:
@@ -2008,8 +1990,11 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
     if set(new_blocks) - set(sensors):
         raise BuildError(f"main and upper blocks with no occupancy row in the device map: "
                          f"{sorted(set(new_blocks) - set(sensors))}")
-    add_level_sensors(root, {b: sensors[b] for b in new_blocks})
-    add_level_clear(root, [sensors[b][0] for b in new_blocks])
+    added = add_level_sensors(root, {b: sensors[b] for b in new_blocks})
+    if sorted(added) != sorted(sensors[b][0] for b in new_blocks):
+        raise BuildError("main and upper blocks whose sensor was not added (no such block in the tables): "
+                         f"{sorted({sensors[b][0] for b in new_blocks} - set(added))}")
+    add_level_clear(root, added)
 
 
 SIGNAL_NOTE = "virtual (device map); planned"     # + the planned physical head or mast, a draft

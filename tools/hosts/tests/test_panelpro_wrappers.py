@@ -446,5 +446,20 @@ class OneSharedLifecycle(unittest.TestCase):
         self.assertIn('python3 "$PP_PROFILE_PY" jmri-running', session)
 
 
+
+class SmokeTestNames(unittest.TestCase):
+    def test_level_prefixes_are_hartlibs(self) -> None:
+        """panelpro_smoke_test.py is Jython and cannot import hartlib: its main and upper prefixes must be
+        hartlib.level_devices' and build_layout_le's."""
+        import re
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import level_devices
+        src = (ROOT / SCRIPTS / "panelpro_smoke_test.py").read_text(encoding="utf-8")
+        got = dict(re.findall(r'^(LEVEL_\w+_PREFIX) = "([^"]+)"', src, re.M))
+        builder = (ROOT / "tools/schematic/build_layout_le.py").read_text(encoding="utf-8")
+        self.assertEqual(got, {"LEVEL_SENSOR_PREFIX": level_devices.SENSOR_PREFIX,
+                               "LEVEL_BLOCK_PREFIX": re.search(r'^BLOCK_SYS = "([^"]+)"', builder, re.M).group(1)})
+
+
 if __name__ == "__main__":
     unittest.main()
