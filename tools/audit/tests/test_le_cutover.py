@@ -915,6 +915,7 @@ class BuilderErrors(unittest.TestCase):
             built.assert_not_called()
 
     def test_freeze_failures_are_errors_not_tracebacks(self) -> None:
+        T.hand()                        # freeze reads the hand-drawn tables from git: skip without them
         B.plugin()
         layers = B.importlib.import_module("schematic.layers")
         with tempfile.TemporaryDirectory() as tmp, \

@@ -447,15 +447,17 @@ class Pieces(unittest.TestCase):
 
 class ReviewFixes(unittest.TestCase):
     def test_split_connector_track_counts_both_pieces(self) -> None:
+        hand()                          # the build starts from the hand-drawn tables in git: skip without them
+        bands = built()[3]
         _sheet, le_mod, _core = B.plugin()
-        _names, lengths = B.placeholder_names(Built.bands, le_mod)
-        cm = {k: s["cm"] for _, b, _ in Built.bands for k, s in b["strands"].items()}
+        _names, lengths = B.placeholder_names(bands, le_mod)
+        cm = {k: s["cm"] for _, b, _ in bands for k, s in b["strands"].items()}
         self.assertGreater(cm["e36x"], 0)
         # e36 (19.7 cm) is cut at connector A into a piece on each level: both count (the plugin rounds each piece)
         self.assertAlmostEqual(lengths["OS Switch 135"], (cm["e36x"] + cm["e36y"]) * 10)
         self.assertAlmostEqual(lengths["OS Switch 129"], (cm["e37x"] + cm["e37y"]) * 10)
         self.assertGreater(lengths["OS Switch 135"], 190)
-        self.assertAlmostEqual(lengths["Track e33"], next(s["cm"] for _, b, _ in Built.bands
+        self.assertAlmostEqual(lengths["Track e33"], next(s["cm"] for _, b, _ in bands
                                                           for k, s in b["strands"].items() if k == "e33.0") * 10)
 
     def test_east_and_west_blocks_go_with_their_track(self) -> None:
