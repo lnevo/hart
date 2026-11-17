@@ -30,7 +30,7 @@ python3 docs/wiring/scripts/refresh_wiring_docs.py
 python3 tools/schematic/build_device_map.py
 python3 docs/wiring/scripts/add_main_upper_levels.py
 python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
-python3 www/scripts/build_wiring_json.py   # site viewer; signal splits keep v85 pins (--splits-inventory)
+python3 www/scripts/build_wiring_json.py   # site viewer; signal splits keep v85 pins (--splits-inventory); tools/check.sh fails while it is stale
 ```
 
 Copy the three workbooks **and** the pptx back to the Desktop pack after XML apply so the bench matches live beans. Also copy `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx` if you are punching Signal Manager. Detail: [`docs/wiring/README.md`](../../docs/wiring/README.md).
