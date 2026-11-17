@@ -85,6 +85,9 @@ if [[ -d "$HART/ctc/icons" ]]; then
     cp -f "$HART/ctc/GUIObjects.xml" "$UF/ctc/GUIObjects.xml"
   fi
   echo "Pi CTC icons + GUIObjects updated"
+else
+  # A parked USS CTC machine (hartlib.parked) ships no icons: the installed copies stay as they are.
+  echo "Pi CTC icons not in the package (parked): $UF/ctc left as it is"
 fi
 
 # Masts are stock Basic (ADR-011). Retired custom signal sets have to be removed here. The JMRI install's own
@@ -122,8 +125,11 @@ for d in "$UF/jython" "$HOME"/.jmri/*.jmri/jython; do
 done
 echo "preference:jython scripts -> $UF/jython"
 
+# A parked Dispatcher System (hartlib.parked) ships no traininfo or options: the installed copies stay as they are.
 TRAININFO="$HART/jmri/layouts/hart/dispatcher/traininfo"
-if [[ -d "$TRAININFO" ]]; then
+if [[ ! -d "$HART/jmri/layouts/hart/dispatcher" ]]; then
+  echo "Pi dispatcher files not in the package (parked): $UF/dispatcher left as it is"
+elif [[ -d "$TRAININFO" ]]; then
   mkdir -p "$UF/dispatcher/traininfo"
   # --delete: the profile mirrors the repo, so routes from old names do not linger in the Dispatcher picker.
   rsync -a --delete "$TRAININFO/" "$UF/dispatcher/traininfo/"

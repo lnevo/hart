@@ -16,6 +16,17 @@ import jmri
 # less the 8 head-on pairs Discover drops, plus the main and upper sections (audit_panel_contracts EXPECTED_GRAPH).
 MASTS = 90
 SECTIONS = 197
+TRANSITS = 187
+TRAININFO = 374
+# The parked features (hartlib.parked.PARKED; run_panelpro_smoke_test.sh passes them, Jython cannot import hartlib).
+# While the Dispatcher System is parked the tables hold no section, transit or Dispatcher sensor and the traininfo
+# files are not read; while the USS CTC machine or the Dispatcher System is parked its window must not open; while
+# Entry/Exit is parked no pair is loaded.
+PARKED = set(os.environ.get("HART_PARKED", "").split())
+PARKED_WINDOWS = {"uss": u"USS CTC", "dispatcher": u"Dispatcher System"}
+if "dispatcher" in PARKED:
+    SECTIONS = 0
+    TRANSITS = 0
 
 STATIONS = (
     u"Track K-1",
@@ -41,6 +52,36 @@ def bean_count(manager):
     return int(manager.getNamedBeanSet().size())
 
 
+class _Done(Exception):
+    """The checks of a parked Dispatcher System are done (no traininfo to read)."""
+
+
+def parked_errors():
+    """What a parked feature must not leave loaded: its windows, panels and Entry/Exit pairs."""
+    errors = []
+    titles = set()
+    for frame in jmri.util.JmriJFrame.getFrameList():
+        titles.add(frame.getTitle())
+    editors = jmri.InstanceManager.getDefault(jmri.jmrit.display.EditorManager)
+    names = set(editor.getTitle() for editor in editors.getAll())
+    for feature, title in sorted(PARKED_WINDOWS.items()):
+        if feature in PARKED and (title in titles or title in names):
+            errors.append("parked %s: window or panel %s loaded" % (feature, title))
+    if "nx" in PARKED:
+        nx = jmri.InstanceManager.getDefault(
+            jmri.jmrit.entryexit.EntryExitPairs
+        )
+        pairs = nx.getNamedBeanSet().size()
+        if pairs:
+            errors.append("parked nx: %s Entry/Exit pairs loaded" % pairs)
+    if "uss" in PARKED:
+        sensor_manager = jmri.InstanceManager.getDefault(jmri.SensorManager)
+        for name in ("IS1:LEVER", "IS:FLEETING"):
+            if sensor_manager.getBySystemName(name) is not None:
+                errors.append("parked uss: CTC sensor %s loaded" % name)
+    return errors
+
+
 class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
     def handle(self):
         marker = os.environ.get(
@@ -59,7 +100,7 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                 if (
                     bean_count(mast_manager) == MASTS
                     and bean_count(section_manager) == SECTIONS
-                    and len(transits) == 187
+                    and len(transits) == TRANSITS
                     and all(
                         len(transit.getInternalBlocksList()) > 0
                         for transit in transits
@@ -74,7 +115,10 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                     "MoveTo%s_stored" % key,
                     "MoveInProgress%s" % key,
                 ):
-                    if sensor_manager.getByUserName(user_name) is None:
+                    present = sensor_manager.getByUserName(user_name) is not None
+                    if "dispatcher" in PARKED and present:
+                        errors.append("parked Dispatcher sensor %s loaded" % user_name)
+                    elif "dispatcher" not in PARKED and not present:
                         errors.append("missing sensor %s" % user_name)
 
             if bean_count(mast_manager) != MASTS:
@@ -85,10 +129,13 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                 errors.append(
                     "sections=%s expected=%s" % (bean_count(section_manager), SECTIONS)
                 )
-            if bean_count(transit_manager) != 187:
+            if bean_count(transit_manager) != TRANSITS:
                 errors.append(
-                    "transits=%s expected=187" % bean_count(transit_manager)
+                    "transits=%s expected=%s" % (bean_count(transit_manager), TRANSITS)
                 )
+            errors.extend(parked_errors())
+            if "dispatcher" in PARKED:
+                raise _Done()
 
             traininfo_dir = jmri.util.FileUtil.getExternalFilename(
                 "preference:dispatcher/traininfo/"
@@ -96,10 +143,10 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
             traininfo_files = sorted(
                 name for name in os.listdir(traininfo_dir) if name.endswith(".xml")
             )
-            if len(traininfo_files) != 374:
+            if len(traininfo_files) != TRAININFO:
                 errors.append(
-                    "runtime TrainInfo files=%s expected=374"
-                    % len(traininfo_files)
+                    "runtime TrainInfo files=%s expected=%s"
+                    % (len(traininfo_files), TRAININFO)
                 )
             for name in traininfo_files:
                 info = jmri.jmrit.dispatcher.TrainInfoFile().readTrainInfo(name)
@@ -149,6 +196,8 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                             transit.getMaxSequence(),
                         )
                     )
+        except _Done:
+            pass
         except Exception:
             errors.append(traceback.format_exc())
 
@@ -164,10 +213,17 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                 handle.write("\n".join(_line(item) for item in errors))
             else:
                 handle.write("ok\n")
-                handle.write(
-                    "%s masts; 24 station sensors; %s sections; 187 transits; "
-                    "374 ordered TrainInfo routes\n" % (MASTS, SECTIONS)
-                )
+                if "dispatcher" in PARKED:
+                    handle.write(
+                        "%s masts; parked %s: no section, transit, Dispatcher sensor "
+                        "or parked window\n" % (MASTS, " ".join(sorted(PARKED)))
+                    )
+                else:
+                    handle.write(
+                        "%s masts; 24 station sensors; %s sections; %s transits; "
+                        "%s ordered TrainInfo routes\n"
+                        % (MASTS, SECTIONS, TRANSITS, TRAININFO)
+                    )
         finally:
             handle.close()
 

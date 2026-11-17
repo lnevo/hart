@@ -56,7 +56,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, paths, tables as hart_tables  # noqa: E402
+from hartlib import level_masts, parked, paths, tables as hart_tables  # noqa: E402
 from hartlib.names import split_dcc  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -644,9 +644,12 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
     for desk in desks:
         check_desk(Path(desk), switches, t, r)
         check_level_desk(Path(desk), t, r)
-    check_ctc_buttons(switches, t, occupancy_sensors(occupancy), r)
+    # the USS CTC machine parked (hartlib.parked): its code buttons and panel are checked in the parked file, put
+    # back into a copy of the tables, against the same switches
+    uss = parked.with_parked_file({"uss"}, tables)
+    check_ctc_buttons(switches, Tables(uss) if uss != tables else t, occupancy_sensors(occupancy), r)
     cells = facts.load_uss_cells(data)  # the board's grid, frozen from the hand-wired desk (uss_board_cells.csv)
-    for label, path in (("GUIObjects.xml", gui), ("tables.xml USS panel", tables)):
+    for label, path in (("GUIObjects.xml", gui), ("tables.xml USS panel", uss)):
         check_uss_panel(label, uss_panel(Path(path).read_text(encoding="utf-8")), switches, gen, cells, r)
     return r
 

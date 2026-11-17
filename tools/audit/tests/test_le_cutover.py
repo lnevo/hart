@@ -397,12 +397,22 @@ class ThreeLevels(unittest.TestCase):
         cls.root = tables.loads(cls.data).root
         cls.le = tables.layout_editor(cls.root, LIVE)
         cls.device = B.device_names()
+        # the Dispatcher System's station buttons are parked out of the candidate (hartlib.parked): read them with it
+        # put back from the parked part the build split off
+        cls.stations = cls.le
+        if "dispatcher" in B.PARKED:
+            cls.stations = tables.layout_editor(B.parked.restore(cls.root, cls.P.parked_doc, {"dispatcher"}), LIVE)
 
-    def test_staging_is_the_staging_candidate_unjoined(self) -> None:
-        # JOIN_HELIX off (owner, 2026-11-16): staging as in its candidate, with no accepted difference at all
-        self.assertFalse(B.JOIN_HELIX)
-        self.assertEqual(self.P.staging_same, [])
-        self.assertFalse([j for (b, j) in self.P.join_ends if b == 0])          # no join reaches staging
+    def test_staging_is_the_staging_candidate_joined_at_the_helix(self) -> None:
+        # JOIN_HELIX on (owner, 2026-11-17, the helix-join release): staging as in its candidate but for the two
+        # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
+        self.assertTrue(B.JOIN_HELIX)
+        self.assertEqual(self.P.staging_same, [
+            "end bumper EB72 -> anchor AGE1 (hidden join TG224 to Track 135-H2, Mast 38RA)",
+            "end bumper EB71 -> anchor AGE2 (hidden join TG225 to Track 135-H1, Mast 40RA)",
+            "track segment TG6 connect2name EB71 -> AGE2",
+            "track segment TG32 connect2name EB72 -> AGE1"])
+        self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
         self.assertEqual(self.P.scale, self.base[1].scale)
         self.assertEqual(self.P.staging_data, self.base[0])
 
@@ -415,8 +425,8 @@ class ThreeLevels(unittest.TestCase):
             "a staging bean changed": lambda r: next(t for t in tables.turnouts(r)
                                                      if tables.user_name(t) == "Switch 1").set("inverted", "true"),
             "a helix track's segment": lambda r: el(r, "tracksegment", ident="TG6").set("blockname", "Track X"),
-            "a helix bumper moved": lambda r: el(r, "positionablepoint", ident="EB71").set("x", "1600.0"),
-            "a helix bumper's mast": lambda r: el(r, "positionablepoint", ident="EB72").set(
+            "a helix join moved": lambda r: el(r, "positionablepoint", ident="AGE2").set("x", "1600.0"),
+            "a helix join's mast": lambda r: el(r, "positionablepoint", ident="AGE1").set(
                 "westboundsignalmast", "Mast 38RA"),
             "a helix mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38RA").set("x", "1"),
             "a staging BCI moved": lambda r: el(r, "BlockContentsIcon", blockcontents="Track K-1").set("y", "1"),
@@ -568,11 +578,11 @@ class ThreeLevels(unittest.TestCase):
                    for el in self.le.iter("positionablelabel") if el.get("text") in B.NAME_COLUMNS[0]}
         self.assertLessEqual(max(centres) - min(centres), 1, centres)
         # the engine house's buttons step alike
-        xs = [int(next(el for el in self.le.iter("sensoricon") if el.get("sensor") == f"MoveToTrack_EH-{n}_stored")
-                  .get("x")) for n in (1, 2, 3)]
+        xs = [int(next(el for el in self.stations.iter("sensoricon")
+                       if el.get("sensor") == f"MoveToTrack_EH-{n}_stored").get("x")) for n in (1, 2, 3)]
         self.assertEqual(xs[2] - xs[1], xs[1] - xs[0])
         # West Yard's W-2 follows W-1 one row down at the engine house's step (STATION_FOLLOW)
-        button = lambda n: next(el for el in self.le.iter("sensoricon")      # noqa: E731
+        button = lambda n: next(el for el in self.stations.iter("sensoricon")      # noqa: E731
                                 if el.get("sensor") == f"MoveToTrack_{n}_stored")
         w1, w2 = button("W-1"), button("W-2")
         rows = (int(w2.get("y")) - int(w1.get("y"))) / (int(button("EH-2").get("y")) - int(button("EH-1").get("y")))
@@ -681,7 +691,9 @@ class ThreeLevels(unittest.TestCase):
                 B.straights_lengthened(raw)
 
     def test_station_buttons_show_no_track_word(self) -> None:
-        buttons = [el for el in self.le.iter("sensoricon") if (el.get("sensor") or "").startswith("MoveTo")]
+        if "dispatcher" in B.PARKED:        # parked: none on the candidate, all 12 in its parked part
+            self.assertFalse([el for el in self.le.iter("sensoricon") if (el.get("sensor") or "").startswith("Move")])
+        buttons = [el for el in self.stations.iter("sensoricon") if (el.get("sensor") or "").startswith("MoveTo")]
         self.assertEqual(len(buttons), 12)
         for el in buttons:
             for e in [el] + [c for c in el if c.tag.endswith("Text")]:
@@ -760,13 +772,14 @@ class ThreeLevels(unittest.TestCase):
                 self.assertFalse([k for k in el.attrib if k.endswith("boundsensor")], el.get("ident"))
                 self.assertIsNone(el.find("sensorA"))
 
-    def test_helix_masts_stand_on_their_bumpers_as_live(self) -> None:
+    def test_helix_masts_stand_at_the_helix_joins(self) -> None:
+        # joined (JOIN_HELIX): Masts 38RA and 40RA stand at the helix-entrance anchors, protecting the helix run
         ix = B.slots_module().Index(self.le)
         got = {m["mast"]: (self.P.name(m["ident"]), m["slot"], ix.blocks(m["kind"], self.P.name(m["ident"]), m["slot"]))
                for m in self.P.masts if m["mast"] in ("Mast 38RA", "Mast 40RA")}
-        self.assertEqual(got["Mast 38RA"], ("EB72", "east", ("Track McKeesport", [])))
-        self.assertEqual(got["Mast 40RA"], ("EB71", "east", ("Track McKees Rocks", [])))
-        self.assertEqual(self.P.moved, [])
+        self.assertEqual(got["Mast 38RA"], ("AGE1", "east", ("Track McKeesport", ["Track 135-H2"])))
+        self.assertEqual(got["Mast 40RA"], ("AGE2", "east", ("Track McKees Rocks", ["Track 135-H1"])))
+        self.assertEqual([m for _band, m, _why in self.P.moved], ["Mast 38RA", "Mast 40RA"])   # the plugin logs both
 
     def test_one_block_contents_icon_per_block_on_every_level(self) -> None:
         icons = Counter(el.get("blockcontents") for el in self.le.iter("BlockContentsIcon"))

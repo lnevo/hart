@@ -109,6 +109,22 @@ class StageOnly(unittest.TestCase):
                 self.assertTrue((self.out / host / "cats/scripts" / name).is_file(), name)
         self.assertTrue(os.access(self.out / "pi/cats/scripts/pi/apply_hart_package_local.sh", os.X_OK))
 
+    def test_parked_features_stay_out_of_the_package(self) -> None:
+        """A parked feature's files outside tables.xml are not shipped (hartlib.parked), so the host apply scripts
+        install none of them and leave the copies already on a host alone; an unparked one ships."""
+        import sys
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import parked
+        dispatcher = "dispatcher" in parked.PARKED
+        uss = "uss" in parked.PARKED
+        for host in ("pi", "win"):
+            pkg = self.out / host
+            self.assertEqual((pkg / "jmri/layouts/hart/dispatcher").exists(), not dispatcher, host)
+            self.assertEqual((pkg / "jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py").exists(),
+                             not dispatcher, host)
+            self.assertEqual((pkg / "ctc").exists(), not uss, host)
+            self.assertTrue((pkg / "jmri/layouts/hart/scripts/hide_cats_desk_windows.py").is_file(), host)
+
     def test_apply_scripts_are_where_deploy_calls_them(self) -> None:
         source = SYNC.read_text(encoding="utf-8")
         self.assertIn("${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh", source)

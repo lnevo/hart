@@ -33,6 +33,12 @@ turnouts on one turnout for 129 and 135, whose halves stand on two levels), on i
 names are the device map's block names without "Track ", one per block, left out where there is no room
 (names_last); one block contents icon per block at 12 px (staging keeps 13; LEVEL_LE_LABELS). No masts, sensors or icons for them.
 
+Parked features (owner, 2026-11-17; hartlib.parked, PARKED). After the staging guard the three-level candidate's
+Entry/Exit, Dispatcher System and USS CTC elements are left out (parked.split), so the candidate holds none of them;
+their live data is the snapshot in jmri/layouts/hart/parked/tables_parked.xml, split once from the deployed tables
+(hartlib.parked.freeze), not written by this build. The released tables are that
+candidate with its Signal Mast Logic from stock discovery in a sandbox (jmri/layouts/hart/parked/README.md).
+
 Staging alone (owner approved 2026-11-15). `--levels staging` draws the staging band alone: its helix
 tracks end at end bumpers as live, so every mast resolves exactly as live (no helix-entrance exception), its rows
 STAGING_ROW px apart, and no main or upper object is added to the tables. With `--as-live` it writes
@@ -114,7 +120,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import hand_drawn, paths, tables  # noqa: E402
+from hartlib import hand_drawn, parked, paths, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its internal names
 
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
@@ -1103,14 +1109,16 @@ def block_sort(name: str):
     return (kind, int(digits or 0), name)
 
 
-# Whether the three-level panel joins staging's helix tracks to the main and upper levels by hidden segments. Off
-# (owner, 2026-11-16, after the Phase 4 rehearsal): joined, Stage 1 passed but staging's own discovery changed (10RA,
-# 10RB, 12R and 14R lost ->22L/26L and gained ->16L; 36RB->40RB lost; NX lost 36RB->2035 and 36RB->2036 and gained
-# 36RA->38LA), while unjoined staging matched the live panel exactly (100 SML pairs, 107 sections, 187 transits, 36
-# NX pairs). So the cut-over is unjoined: every helix end stays an end bumper (38RA and 40RA on theirs, as live), and
-# staging is the approved panel byte for byte (check_staging_unchanged accepts no difference). The join is a later
-# step (wiki/projects/schematic-maps-handoff.md).
-JOIN_HELIX = False
+# Whether the three-level panel joins staging's helix tracks to the main and upper levels by hidden segments. On
+# (owner, 2026-11-17, the helix-join release): joined plainly, with no route-flow entries; staging's own pairs change
+# as stock SML discovery finds them (10RA, 10RB, 12R and 14R pair to 16L; 36RB->40RB is lost), accepted. Masts 38RA
+# and 40RA stand at the helix-entrance anchors, protecting Track 135-H2 and Track 135-H1. Off, every helix end stays
+# an end bumper (the 2026-11-16 cut-over) and the staging guard accepts no difference.
+JOIN_HELIX = True
+# The features parked out of the cut-over candidate into jmri/layouts/hart/parked/tables_parked.xml (owner,
+# 2026-11-17; hartlib.parked): Entry/Exit, the stock Dispatcher System and the USS CTC machine. Unpark one by taking
+# it out of hartlib.parked.PARKED and rebuilding.
+PARKED = parked.PARKED
 
 
 def joined_ends(bands, staging: dict, le_mod) -> set:
@@ -1418,6 +1426,12 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name)
             P.staging_data = base[0]
             check_aspect(P.overlay["size"], le_mod.CHROME)
+            # the parked features (PARKED, owner 2026-11-17) leave the cut-over candidate for the parked file,
+            # after the staging guard, which compares the two candidates whole
+            try:
+                P.parked_doc = parked.split(root, PARKED)
+            except parked.ParkError as exc:
+                raise BuildError(f"parking: {exc}") from None
     else:
         attrs = dict(inputs.attrs)
         attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")
@@ -2032,6 +2046,11 @@ def run(argv, cached) -> int:
               "UNAPPROVED until the owner approves it in PanelPro and --approve-staging records it")
     if len(files) > 1:
         print(f"wrote {paths.rel(files[1][0])}: the staging candidate it holds")
+    if isinstance(getattr(P, "parked_doc", None), ET.Element):
+        where = f"kept in {paths.rel(parked.PARKED_XML)} (the live snapshot)"
+        print(f"parked ({', '.join(sorted(PARKED))}), left out, {where}; the template's: " + "; ".join(
+            f"{f}: " + ", ".join(f"{v} {k}" for k, v in sorted(c.items()))
+            for f, c in parked.counts(P.parked_doc).items()))
     moved = {f"{t}: mast {m}: {why}" for t, m, why in P.moved}       # the plugin's own log line for each
     for line in P.log:
         if line not in moved:

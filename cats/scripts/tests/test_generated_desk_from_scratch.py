@@ -20,6 +20,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import parked  # noqa: E402
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 GUI = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
 DESKS = [ROOT / "cats/panels" / n for n in ("HART_CTC.xml", "HART_ABS.xml", "HART_CTC.bindings.json",
@@ -100,12 +102,23 @@ class FromScratch(unittest.TestCase):
     def test_the_uss_board_is_unchanged(self):
         gui, tables = self.tmp / "GUIObjects.xml", self.tmp / "uss_tables.xml"
         shutil.copyfile(GUI, gui)
-        shutil.copyfile(TABLES, tables)
+        # the USS CTC machine parked (hartlib.parked): its panel is rebuilt in a copy of the tables with it put back
+        shutil.copyfile(parked.with_parked_file({"uss"}, TABLES), tables)
+        before = tables.read_bytes()
         out = run("jmri/layouts/hart/scripts/gen_ctc_track_plan.py", "--xml-only", "--gui", str(gui),
                   "--tables", str(tables), tables=self.tables)
         self.assertEqual(out.returncode, 0, out.stdout[-3000:] + out.stderr[-3000:])
         self.assertEqual(gui.read_bytes(), GUI.read_bytes())
-        self.assertEqual(tables.read_bytes(), TABLES.read_bytes())
+        if "uss" in parked.PARKED:
+            self.assertEqual(uss_panel(tables.read_bytes()), uss_panel(before))
+        else:
+            self.assertEqual(tables.read_bytes(), TABLES.read_bytes())
+
+
+def uss_panel(data: bytes) -> str:
+    """The USS CTC panel of a tables file, canonical (whitespace between elements dropped)."""
+    pe = next(p for p in ET.fromstring(data).iter("paneleditor") if p.get("name") == "USS CTC")
+    return ET.canonicalize(ET.tostring(pe, encoding="unicode"), strip_text=True)
 
 
 if __name__ == "__main__":

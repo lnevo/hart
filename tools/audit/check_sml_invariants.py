@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import parked, paths, tables  # noqa: E402
 
 TABLES = paths.TABLES_XML
 
@@ -45,7 +45,14 @@ def main() -> int:
     else:
         print("OK: destination count")
 
-    print("OK: NX uses ISNX:* systemNames")
+    if "nx" in parked.PARKED:           # Entry/Exit parked (hartlib.parked): its sensors are in the parked file
+        if nx:
+            print(f"FAIL: Entry/Exit is parked, but tables.xml holds {len(nx)} ISNX sensors")
+            ok = False
+        else:
+            print("OK: Entry/Exit parked, no ISNX sensor in tables.xml")
+    else:
+        print("OK: NX uses ISNX:* systemNames")
     return 0 if ok else 1
 
 

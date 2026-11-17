@@ -120,6 +120,16 @@ The last hand-drawn `tables.xml`, read from git at `COMMIT` (main just before th
 `build_layout_le.py` (`template_tables`, `--freeze`) and the tests of the cut-over and of the one-off scripts that only
 ever edited the hand-drawn panel. No copy of the old file is kept in the tree.
 
+### `hartlib.parked`
+
+The features parked out of the active tables (`PARKED`: Entry/Exit, the Dispatcher System, the USS CTC machine;
+`jmri/layouts/hart/parked/README.md`). `split(root)` moves their elements out of a tables root (`build_layout_le.py
+--as-live` leaves them out of the candidate), `freeze(commit)` wrote the parked file `PARKED_XML` once from the live
+tables at a commit it records, `check(root, doc)` holds a tables file and the parked file to the rules, `parked_in(root)` names the parked features a tables file leaves out, and `restore`,
+`with_parked(features)` and `with_parked_file(features)` give the tables with a feature put back, for the checks of
+its data. `shipped_dirs()` and `shipped_jython()` list what the deploy leaves out; `python3 -m hartlib.parked
+features|dirs|jython|check|freeze` prints them, runs the check or writes the snapshot.
+
 ## The tables.xml traps the lookups exist for
 
 - Several `<sensors>` and `<turnouts>` sections (MQTT, internal, LCC). `root.find("turnouts")`

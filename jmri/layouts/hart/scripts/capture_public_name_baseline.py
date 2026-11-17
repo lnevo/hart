@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import parked, paths, tables  # noqa: E402
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_TABLES = paths.TABLES_XML
@@ -377,14 +377,17 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     root = tables.read(args.tables)
+    # the CTC code buttons from the parked file while the USS CTC machine is parked (hartlib.parked): their public
+    # names still follow the renames
+    uss = parked.with_parked({"uss"}, args.tables)
     counts: dict[str, int] = {}
 
     captures = (
         ("hardware_identity.csv", ["layer", "systemName", "userName"], capture_hardware_identity(root)),
         ("sml_pairs.csv", ["source", "destination", "associatedSection"], capture_sml_pairs(root)),
         ("sml_sections.csv", ["sectionUserName"], capture_sml_sections(root)),
-        ("ctc_sidi.csv", ["column", "turnout", "ltr", "rtl"], capture_ctc_sidi(root)),
-        ("ctc_trl.csv", ["column", "direction", "dest", "occupancySensors"], capture_ctc_trl(root)),
+        ("ctc_sidi.csv", ["column", "turnout", "ltr", "rtl"], capture_ctc_sidi(uss)),
+        ("ctc_trl.csv", ["column", "direction", "dest", "occupancySensors"], capture_ctc_trl(uss)),
         ("le_mast_bindings.csv", ["kind", "ident", "slot", "mast"], capture_le_mast_bindings(root)),
         ("block_sensors.csv", ["blockUserName", "occupancySensor"], capture_block_sensors(root)),
     )
