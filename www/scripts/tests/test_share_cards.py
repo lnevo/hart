@@ -45,6 +45,14 @@ class HeadTags(unittest.TestCase):
         self.assertIn('og:image:alt" content="The &quot;A&quot; board"', own)
         self.assertIn("assets/icons/share-card.jpg", other)
 
+    def test_share_tags_use_the_page_description_when_it_has_one(self):
+        own = build._head_tags(Path("guides/a.html"), "A", "A page about Alpha & co.")
+        self.assertIn('og:description" content="A page about Alpha &amp; co."', own)
+        self.assertNotIn('name="description"', own)  # the page's own tag stays the only one
+        default = build._head_tags(Path("guides/b.html"), "B")
+        self.assertIn('name="description"', default)
+        self.assertIn(build.html.escape(build.SHARE_DESCRIPTION, quote=True), default)
+
     def test_the_404_page_gets_site_root_icon_links(self):
         tags = build._head_tags(Path("404.html"), "Page not found")
         self.assertIn('href="/favicon.ico"', tags)

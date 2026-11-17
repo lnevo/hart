@@ -873,19 +873,21 @@ def _vendor_json_logos(path: Path, dest_root: Path) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _head_tags(rel: Path, title: str) -> str:
+def _head_tags(rel: Path, title: str, desc: str | None = None) -> str:
+    """Icon and share tags; desc is the page's own meta description, which the page already carries."""
     # The 404 page is served for any missing path, so its links start at the site root.
     up = "/" if rel == Path("404.html") else "../" * (len(rel.parts) - 1)
     url = SITE_URL + ("" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html"))
     title = html.escape(title, quote=True)
-    desc = html.escape(SHARE_DESCRIPTION, quote=True)
+    # A page with its own description keeps its tag; the share tags repeat it.
+    meta_desc = "" if desc else f'\n  <meta name="description" content="{html.escape(SHARE_DESCRIPTION, quote=True)}">'
+    desc = html.escape(desc or SHARE_DESCRIPTION, quote=True)
     card = share_cards.card_for(rel)  # the page's own thumbnail, or the site card
     image, alt = card["image"], html.escape(card["alt"], quote=True)
     return f"""
   <link rel="icon" href="{up}favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="{up}assets/icons/favicon-32.png" sizes="32x32">
-  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">
-  <meta name="description" content="{desc}">
+  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">{meta_desc}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HART Railroad">
   <meta property="og:title" content="{title}">
@@ -906,8 +908,10 @@ def _add_head_tags(dest_root: Path) -> None:
             continue
         m = re.search(r"<title>(.*?)</title>", text, re.S)
         title = html.unescape(m.group(1).strip()) if m else "HART Railroad"
+        d = re.search(r'<meta\s+name="description"\s+content="([^"]*)"', text)
+        desc = html.unescape(d.group(1)).strip() if d else None
         page.write_text(
-            text.replace("</title>", "</title>" + _head_tags(page.relative_to(dest_root), title), 1),
+            text.replace("</title>", "</title>" + _head_tags(page.relative_to(dest_root), title, desc), 1),
             encoding="utf-8",
         )
 
