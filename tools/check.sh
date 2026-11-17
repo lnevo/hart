@@ -87,6 +87,7 @@ run status-counts python3 tools/ops/status_counts.py --check
 run schematic-signals python3 tools/schematic/build_signals.py --check
 run schematic-cats python3 tools/schematic/build_cats_panel.py --check
 run schematic-hands python3 tools/schematic/build_hands.py --check
+run schematic-approved python3 tools/schematic/check_approved.py
 run schematic-device-map python3 tools/schematic/build_device_map.py --check
 run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py --check
 run wiring-v86 python3 docs/wiring/scripts/add_main_upper_levels.py --check
@@ -107,6 +108,7 @@ unit unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
 unit unit-cats python3 -m unittest discover -q -s cats/scripts/tests
 unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
 unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
+unit unit-schematic python3 -m unittest discover -q -s tools/schematic/tests
 unit unit-guards python3 -m unittest discover -q -s tools/audit/tests
 unit unit-agent python3 -m unittest discover -q -s tools/agent/tests
 # The host tests start real processes and wait out their timers: one job per file, found as discover finds them.
