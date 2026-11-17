@@ -40,7 +40,7 @@ python3 jmri/scripts/check_hart_phase02.py
 python3 jmri/layouts/hart/scripts/polish_hart_layout_editor.py --check
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py
 python3 jmri/layouts/hart/scripts/sync_public_name_map.py   # Device-map CSV identity + comments
-python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-sync  # parked data, read put back (check.sh runs it)
+python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check --no-sync  # checks the parked Dispatcher stations; check.sh runs it
 
 ```
 

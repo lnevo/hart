@@ -171,9 +171,12 @@ class StageOnly(unittest.TestCase):
 
 
 class FinderLitterStaysOut(unittest.TestCase):
-    """A gitignored .DS_Store or ._ file in a staged folder of the checkout must not reach the package."""
+    """A gitignored .DS_Store in a staged folder of the checkout must not reach the package.
 
-    PLANTED = ("jmri/resources/jmri-web/.DS_Store", "jmri/resources/jmri-web/._index.html",
+    Only .DS_Store is planted: it is gitignored, so a run killed before its cleanup leaves the checkout clean.
+    """
+
+    PLANTED = ("jmri/resources/jmri-web/.DS_Store", "jmri/resources/jmri-web/servlet/.DS_Store",
                "tools/hosts/pi/.DS_Store", "tools/hosts/windows/.DS_Store")
 
     def test_package_has_no_finder_files(self) -> None:

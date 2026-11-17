@@ -52,13 +52,19 @@ They stay so the features can be unparked; nothing active runs them for the park
 
 | Feature | Only for the parked feature |
 |---------|-----------------------------|
-| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py`, `ensure_dispatcher_roster_profiles.py` |
-| NX | `apply_nx_layer.py`, `discover_nx.py`, `run_nx_discover.sh`, `nx_contract.py`, `jmri/scripts/generate_nx_pairs.py` |
-| USS CTC | `build_ctc_full_15col.py` (unsafe to re-run, ADR-005), `cleanup_uss_ctc_leftovers.py`, `uss_switch_only_columns.py` |
+| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py` |
+| NX | `apply_nx_layer.py`, `discover_nx.py`, `run_nx_discover.sh`, `jmri/scripts/generate_nx_pairs.py` |
+| USS CTC | `build_ctc_full_15col.py` (unsafe to re-run, ADR-005) |
 
-Still called by active tools, so they must keep working while parked: `reconcile_dispatcher_stations.py`
-(`tools/check.sh` and the Layout Editor build read the stations through it), `gen_ctc_track_plan.py` (the layout
-facts read the USS board grid through it) and `apply_dispatcher_roster_profiles.py` (the host apply step).
+Still used by active tools, so they must keep working while parked:
+
+- `reconcile_dispatcher_stations.py`: `tools/check.sh` and the Layout Editor build read the stations through it.
+- `nx_contract.py`: `audit_panel_contracts.py` (in `tools/check.sh`) and `hartlib.parked` import it.
+- `gen_ctc_track_plan.py` and `uss_switch_only_columns.py`, which it imports: the layout facts and the CATS desk
+  tests read the USS board grid through them.
+- `apply_dispatcher_roster_profiles.py`: the host apply step.
+- `ensure_dispatcher_roster_profiles.py`: `loco_roster_import.py` tells the operator to run it.
+- `cleanup_uss_ctc_leftovers.py`: `apply_public_names_tree.py` runs it in a rename pass.
 
 ## Checks
 

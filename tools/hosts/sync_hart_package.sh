@@ -360,8 +360,6 @@ install_ctc_icons_local() {
 
 # Build the package that lands in a temporary folder on the host. The apply scripts install it from there.
 stage_package() {
-  # Finder litter (.DS_Store, AppleDouble) in a gitignored corner of the checkout must not reach the package.
-  local STAGE_EXCLUDES=(--exclude ".DS_Store" --exclude "._*")
   local stage="$1"
   local user_files="$2"
   local target="$3"
@@ -397,7 +395,7 @@ stage_package() {
 
   cp -f "$ROOT/jmri/resources/misc/"* "$stage/cats/resources/misc/"
 
-  rsync -a "${STAGE_EXCLUDES[@]}" "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
+  rsync -a "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
   python3 "$ROOT/tools/mqtt-mimic/build_mimic_web.py" --out "$stage/cats/resources/jmri-web/mimic"
   # Speed-match live view for the Pi (/web/speedmatch/): the page, and the publisher with the
   # files it reads, laid out as in the repo (scripts/speedmatch, data/block_lengths.csv).
@@ -411,8 +409,8 @@ stage_package() {
   cp -f "$ROOT/docs/jmri/speedmatching/profile-2026-11-08/speed_by_step.csv" \
     "$stage/cats/speedmatch-live/data/speed_by_step_2026-11-08.csv"
   # Host scripts live in tools/hosts/ but land where the hosts and their shortcuts expect them (ADR-007).
-  rsync -a "${STAGE_EXCLUDES[@]}" "$ROOT/tools/hosts/pi/" "$stage/cats/scripts/pi/"
-  rsync -a "${STAGE_EXCLUDES[@]}" "$ROOT/tools/hosts/windows/" "$stage/cats/scripts/windows/"
+  rsync -a "$ROOT/tools/hosts/pi/" "$stage/cats/scripts/pi/"
+  rsync -a "$ROOT/tools/hosts/windows/" "$stage/cats/scripts/windows/"
   cp -f "$ROOT/cats/scripts/install_jmri_web_override.sh" \
     "$ROOT/cats/scripts/rewrite_button_icon_paths.py" \
     "$ROOT/cats/scripts/patch_jmri_startup.py" \
@@ -430,7 +428,7 @@ stage_package() {
   if ! parked_dir jmri/layouts/hart/dispatcher; then
     mkdir -p "$stage/jmri/layouts/hart/dispatcher"
     if [[ -d "$traininfo" ]]; then
-      rsync -a "${STAGE_EXCLUDES[@]}" "$traininfo/" "$stage/jmri/layouts/hart/dispatcher/traininfo/"
+      rsync -a "$traininfo/" "$stage/jmri/layouts/hart/dispatcher/traininfo/"
     fi
     if [[ -f "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" ]]; then
       cp -f "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" \
@@ -440,7 +438,7 @@ stage_package() {
 
   if ! parked_dir jmri/layouts/hart/ctc && [[ -d "$ROOT/jmri/layouts/hart/ctc/icons" ]]; then
     mkdir -p "$stage/ctc/icons"
-    rsync -a "${STAGE_EXCLUDES[@]}" "$ROOT/jmri/layouts/hart/ctc/icons/" "$stage/ctc/icons/"
+    rsync -a "$ROOT/jmri/layouts/hart/ctc/icons/" "$stage/ctc/icons/"
     [[ -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" ]] && \
       cp -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" "$stage/ctc/"
   fi
@@ -450,6 +448,9 @@ stage_package() {
   mkdir -p "$stage/operations"
   cp -f "$ROOT/jmri/layouts/hart/operations/"*.xml "$stage/operations/"
   chmod +x "$stage/cats/scripts/pi/"*.sh "$stage/cats/scripts/"*.sh 2>/dev/null || true
+  # Finder litter (.DS_Store, AppleDouble) from a gitignored corner of the checkout must not reach the package,
+  # whichever copy step brought it.
+  find "$stage" \( -name '.DS_Store' -o -name '._*' \) -type f -delete
   # The host apply scripts install this last, so it only changes once a deploy has finished.
   write_deploy_stamp "$stage/cats/deploy_stamp.txt" "$target"
 }
