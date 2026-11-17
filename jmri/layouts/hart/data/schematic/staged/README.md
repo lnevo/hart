@@ -35,6 +35,9 @@ At the cut-over, in the same commit as the new tables.xml:
 1. Move this file over `jmri/layouts/hart/data/le_signal_boundaries.csv`.
 2. Recapture the baselines (`jmri/layouts/hart/scripts/capture_public_name_baseline.py`):
    `baselines/le_mast_bindings.csv` names the anchors by ident.
-3. Record the approved panel again (`approved_staging.sha256` holds the anchor idents).
+3. Make `devicemap` the default `STAGING_SOURCES` entry in `build_layout_le.py`, then record the owner-approved
+   panel: `build_layout_le.py --levels staging --as-live --approve-staging`. Until then `--approve-staging` refuses
+   `--staging devicemap`, because `approved_staging.sha256` guards the frozen candidate and
+   `check_approved.py le-candidate`. The file holds the anchor idents, so it changes in this commit.
 4. Update the docs that name the old anchors (`wiki/pipelines/native-sml.md`, `docs/ctc/SIGNAL_FACING.md` and the
    name map notes for Mast 36L and Track East Lead East).

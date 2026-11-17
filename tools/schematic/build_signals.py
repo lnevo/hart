@@ -119,7 +119,7 @@ def staging_facts() -> tuple[list[dict], list[dict]]:
     try:
         band, _opts, _core = sdm.staging_band()
         return sdm.load_signal_masts(), sdm.staging_chains(band, sdm.load(band))
-    except sdm.StagingMapError as exc:
+    except (sdm.StagingMapError, sdm.lc.BuildError) as exc:      # the map, or the plugin and the drawing
         sys.exit(f"ERROR: staging device map: {exc}")
 
 

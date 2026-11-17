@@ -159,6 +159,22 @@ class DeviceMapPath(unittest.TestCase):
         with self.assertRaisesRegex(self.B.BuildError, "reads no frozen inputs"):
             self.B.build(levels="staging", staging_source="devicemap", inputs=object())
 
+    def test_approving_the_device_map_panel_waits_for_the_switch_over(self):
+        # approved_staging.sha256 guards the frozen candidate until devicemap is the default (staged/README.md)
+        import contextlib
+        import io
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(self.B.main(["--approve-staging", "--staging", "devicemap"]), 1)
+        self.assertIn("guards the frozen path until the switch-over", out.getvalue())
+
+    def test_the_run_walk_counts_a_block_through_a_turnback_once(self):
+        band, _opts, _core = sdm.staging_band()
+        names = sdm.load(band)
+        for _start, seq, _end in sdm.run_blocks(band, names):
+            self.assertFalse([b for a, b in zip(seq, seq[1:]) if a == b], seq)
+        self.assertIn(["Track Brick-Plane"], [seq for _s, seq, _e in sdm.run_blocks(band, names)])
+
     def test_every_staging_mast_is_placed_once_with_no_entry_exit_sensor(self):
         placed = [m["mast"] for m in self.B.slots_module().Index(self.panel).masts()]
         self.assertEqual(sorted(placed), sorted(sdm.mast_facts()))

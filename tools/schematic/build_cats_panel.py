@@ -196,7 +196,7 @@ def staging_tracks() -> list[dict]:
     try:
         band, _opts, _core = sdm.staging_band()
         return sdm.staging_chains(band, sdm.load(band))
-    except sdm.StagingMapError as exc:
+    except (sdm.StagingMapError, sdm.lc.BuildError) as exc:      # the map, or the plugin and the drawing
         raise SystemExit(f"build_cats_panel.py: staging device map: {exc}") from None
 
 

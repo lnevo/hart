@@ -7,6 +7,7 @@ turnback to the named half Loop.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -188,6 +189,12 @@ class FrozenLayoutEditorTracks(unittest.TestCase):
         # the generated Layout Editor panel splits it evenly; the hand-drawn one gave most of it to 35a. The track is
         # the staging device map's (staging_device_map.staging_chains), as staging_le/tracks.csv held it
         self.assertEqual(B.SHORT_TRACK_BLOCKS, {"35-37": "OS Switch 35a"})
+        try:                    # the staging tracks need the plugin's solve: skipped without it, as the --check scripts
+            B.pd.plugin()
+        except SystemExit as exc:
+            if os.environ.get("SCHEMATIC_REQUIRED") == "1":
+                raise
+            self.skipTest(f"schematic-maps plugin not available: {exc.code}")
         tracks = B.FrozenTracks(B.staging_tracks())
         self.assertEqual(tracks.block_between("TOR36", "TO113", "t", "OS Switch 35a"), "OS Switch 35a")
 

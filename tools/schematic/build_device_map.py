@@ -629,9 +629,11 @@ def assign_ports(rows) -> None:
             r["comment"] += f" | IN: {k // 8 + 1} Ports: {k % 8 + 1}"
 
 
-def csv_text(rows) -> str:
+def csv_text(rows, columns=COLUMNS) -> str:
+    """The CSV text of `rows` under `columns` (default: the device map's), as the schematic data files are written;
+    a row with a column not in `columns` stops (ValueError)."""
     buf = io.StringIO()
-    w = csv.DictWriter(buf, fieldnames=COLUMNS, lineterminator="\n")
+    w = csv.DictWriter(buf, fieldnames=columns, lineterminator="\n")
     w.writeheader()
     w.writerows(rows)
     return buf.getvalue()

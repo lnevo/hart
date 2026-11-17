@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 """The device-map staging candidates, built by build_layout_le.py --staging devicemap, set against the frozen ones.
 
-    python3 tools/schematic/build_staging_candidate.py            # build both candidates, the report and images
+    python3 tools/schematic/build_staging_candidate.py            # the staged file, the report and images
     python3 tools/schematic/build_staging_candidate.py --no-images
     python3 tools/schematic/build_staging_candidate.py --check    # fail if the staged boundaries file is stale
 
 For the owner to review; nothing live reads it. build_layout_le.py draws staging from the staging device map
 (device_map_staging.csv, control_points_staging.csv, staging_masts.csv; staging_device_map.py) and panel_items.json
-when given `--staging devicemap` (its module text, "Staging from the device map"). This script runs that build
-through build_layout_le.build, as the command does, and sets each candidate beside the frozen path's:
+when given `--staging devicemap` (its module text, "Staging from the device map"). This script reads the candidates
+that build wrote (`build_layout_le.py --as-live --staging devicemap --review`; make panels runs it just before this
+step) and sets each beside the frozen path's (`build_layout_le.py --as-live`); it builds nothing itself:
 
     staging alone   output/trial/tables_cutover_devicemap_staging.xml   against tables_cutover_staging.xml
     three levels    output/trial/tables_cutover_devicemap.xml           against tables_cutover.xml
 
-The frozen candidates are read from their files (build them first: build_layout_le.py --as-live). It writes, under
-jmri/layouts/hart/output/trial/ (gitignored, never the live tables.xml):
-- the two device-map candidates above (as `build_layout_le.py --as-live --staging devicemap --review` writes them;
-  the staging panel is not the approved one, so --review);
+It writes, under jmri/layouts/hart/output/trial/ (gitignored, never the live tables.xml):
 - staging_devicemap_diff.txt: beans, panels, turnouts, masts, icons and the overlay's items, for each pair;
 - staging_devicemap_trial.png, staging_devicemap_current.png and staging_devicemap_trial_parked_lamps.png: the
   staging panels drawn to scale (render_panel); the last with the parked lamps and station clusters put back on a
@@ -30,7 +28,6 @@ from __future__ import annotations
 
 import argparse
 import contextlib
-import copy
 import csv
 import io
 import sys
@@ -57,8 +54,7 @@ ITEMS = blb.PANEL_ITEMS
 PARKED_LAMPS = paths.LAYOUT_DATA.parent / "parked" / "staging_panel_lamps.json"
 BOUNDARIES = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
 STAGED_BOUNDARIES = pd.DATA / "staged" / "le_signal_boundaries.csv"
-ITEM_TAGS = ("sensoricon", "positionablelabel", "signalheadicon", "turnouticon", "BlockContentsIcon",
-             "signalmasticon", "memoryicon")
+ITEM_TAGS = panel_items.TAGS + ("BlockContentsIcon",)    # the items a panel file may hold, and the plugin's icons
 natural = railroad.natural
 
 
@@ -179,11 +175,13 @@ def diff(trial_root, ref_root, le_mod, overlay: dict, lamps_root=None) -> list[s
     lines += [f"  only in trial: {k}" for k in sorted(set(tb) - set(rb))[:40]]
     lines += [f"  only in current: {k}" for k in sorted(set(rb) - set(tb))[:40]]
 
-    tp, rp = tables.layout_editors(trial_root), tables.layout_editors(ref_root)
-    others = [(a.get("name"), blb.canon(a) == blb.canon(b)) for a, b in zip(tp, rp) if a.get("name") != PANEL]
+    by_name = lambda root: {p.get("name"): p for p in tables.layout_editors(root) if p.get("name") != PANEL}  # noqa
+    tp, rp = by_name(trial_root), by_name(ref_root)
     lines.append("")
-    lines.append("== Other Layout Editor panels")
-    lines += [f"  {n}: {'identical' if ok else 'DIFFERS'}" for n, ok in others] or ["  none"]
+    lines.append("== Other Layout Editor panels (by name)")
+    lines += [f"  {n}: " + ("only in trial" if n not in rp else "only in current" if n not in tp else
+                            "identical" if blb.canon(tp[n]) == blb.canon(rp[n]) else "DIFFERS")
+              for n in sorted(set(tp) | set(rp))] or ["  none"]
 
     t, r = tables.layout_editor(trial_root, PANEL), tables.layout_editor(ref_root, PANEL)
     lines.append("")
@@ -373,33 +371,27 @@ def render_panel(panel, le_mod, out: Path, title: str, scale: float = 1.0) -> No
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--no-images", action="store_true", help="skip the PNGs")
-    ap.add_argument("--tables", type=Path, help="the tables to build on (default: build_layout_le.template_tables)")
     ap.add_argument("--check", action="store_true",
-                    help=f"build in memory and fail if {paths.rel(STAGED_BOUNDARIES)} is stale; writes nothing")
+                    help=f"fail if {paths.rel(STAGED_BOUNDARIES)} does not follow the device-map staging candidate; "
+                         "writes nothing")
     args = ap.parse_args(argv)
     if not args.check:
         message = paths.check_only_message(Path(__file__).name)
         if message:
             print(f"ERROR: {message}")
             return 1
-        missing = [ref for _out, ref in PAIRS.values() if not ref.exists()]
-        if missing:
-            print(f"ERROR: {', '.join(paths.rel(m) for m in missing)} missing: run python3 "
-                  "tools/schematic/build_layout_le.py --as-live first (the frozen candidates the device-map ones are "
-                  "set against)")
-            return 1
+    # the candidates build_layout_le.py wrote (make panels: le-cutover and le-cutover-devicemap, just before this
+    # step, whose --check holds them current): read, not built again
+    need = [PAIRS["staging"][0]] if args.check else [p for pair in PAIRS.values() for p in pair]
+    missing = [p for p in need if not p.exists()]
+    if missing:
+        print(f"ERROR: {', '.join(paths.rel(m) for m in missing)} missing: run python3 tools/schematic/"
+              "build_layout_le.py --as-live, and with --staging devicemap --review, first")
+        return 1
+    built = {k: out.read_bytes() for k, (out, _ref) in PAIRS.items() if out.exists()}
     with contextlib.ExitStack() as stack:
         stack.enter_context(pd.cache_on())
-        base = args.tables or blb.template_tables()
         try:
-            if args.check:
-                data, P, _n, _b = blb.build(base, levels="staging", as_live=True, approved=None,
-                                            staging_source="devicemap")
-                built = {"staging": data}
-            else:
-                data, P, _n, _b = blb.build(base, levels="all", as_live=True, approved=None,
-                                            staging_source="devicemap")
-                built = {"all": data, "staging": P.staging_data}
             staged = staged_boundaries(tables.layout_editor(tables.loads(built["staging"]).root, PANEL))
         except (CandidateError, blb.BuildError) as exc:
             print(f"ERROR: {exc}")
@@ -411,13 +403,6 @@ def main(argv=None) -> int:
             print(f"ok: {paths.rel(STAGED_BOUNDARIES)} current")
             return 0
         _, le_mod, _ = blb.plugin()
-        for key, (out, _ref) in PAIRS.items():
-            if blb.live_target(out):
-                print(f"ERROR: {out} is the live tables or in the JMRI profile")
-                return 1
-            out.parent.mkdir(parents=True, exist_ok=True)
-            tables.loads(built[key], path=out).save(out)
-            print(f"wrote {paths.rel(out)}")
         if not STAGED_BOUNDARIES.exists() or STAGED_BOUNDARIES.read_text(encoding="utf-8") != staged:
             STAGED_BOUNDARIES.parent.mkdir(parents=True, exist_ok=True)
             STAGED_BOUNDARIES.write_text(staged, encoding="utf-8")

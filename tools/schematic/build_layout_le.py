@@ -642,6 +642,13 @@ def run(argv, cached) -> int:
     if args.staging == "devicemap" and args.freeze:
         print("ERROR: --freeze reads the hand-drawn panel into the frozen files; it has no device-map form")
         return 1
+    if args.staging == "devicemap" and args.approve_staging:
+        # one approval file guards the default (frozen) candidate and check_approved.py le-candidate: recording the
+        # device-map panel in it would fail both. The switch-over commit makes devicemap the default and approves it
+        # then (schematic/staged/README.md)
+        print(f"ERROR: --approve-staging records {paths.rel(APPROVED)}, which guards the frozen path until the "
+              "switch-over; the device-map panel is approved in the switch-over commit, once it is the default")
+        return 1
     if not args.check:          # --freeze writes the committed frozen files: refused with HART_TABLES as any write
         message = paths.check_only_message(Path(__file__).name)
         if message:

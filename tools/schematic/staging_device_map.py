@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""Staging's facts in the main and upper levels' shape: a device map, control points and a masts file.
+"""Staging's facts in the main and upper levels' shape: a device map, control points, masts and their signal plan.
 
-    python3 tools/schematic/staging_device_map.py           # one-time conversion: write the four files
+    python3 tools/schematic/staging_device_map.py           # convert again: write the four files where they differ
     python3 tools/schematic/staging_device_map.py --check   # exit 1 if a file differs from a fresh conversion
 
---check (tools/check.sh) prints SKIPPED and exits 0 when the plugin submodule is not checked out (1 with
-SCHEMATIC_REQUIRED=1), as build_device_map.py does. It also stops when a staging bean in tables.xml changes, which
-is the point: the files must follow the railroad.
+`make panels` runs it as its staging-map step, before build_signals.py, and tools/check.sh runs --check. --check
+prints SKIPPED and exits 0 when the plugin submodule is not checked out (1 with SCHEMATIC_REQUIRED=1), as
+build_device_map.py does. It also stops when a staging bean in tables.xml changes, which is the point: the files
+must follow the railroad.
 
-Phase 1 of one input path for the Layout Editor build (owner review pending, nothing live reads these files yet).
-Today build_layout_le.py draws staging from the frozen hand-drawn panel (staging_le/, read by le_inputs.py and
-le_overlay.py) and main and upper from device_map_main_upper.csv, control_points_main_upper.csv and
-main_upper_masts.csv. This script writes staging in that second shape, from the frozen files, the live tables.xml
-beans and the staging control points of staging.plan_overrides.json, so a builder can one day read staging the way
-it reads main and upper (build_staging_candidate.py is that builder, as a trial).
+One input path for the Layout Editor build. build_layout_le.py draws staging from the frozen hand-drawn panel
+(staging_le/, read by le_inputs.py and le_overlay.py) by default, and from these files with `--staging devicemap`
+(owner review pending; main and upper come from device_map_main_upper.csv, control_points_main_upper.csv and
+main_upper_masts.csv). This script writes staging in that shape, converted from the frozen files, the live
+tables.xml beans and the staging control points of staging.plan_overrides.json. Until the switch-over the frozen
+files stay the source and this conversion keeps the two equal; afterwards these files are kept by hand and the
+conversion goes.
 
 Staging's objects are field devices. The conversion changes the input shape only: every system name, user name and
 binding is copied from tables.xml as it is, and the conversion stops if a frozen fact and the tables disagree.
@@ -381,14 +383,6 @@ def check_rows(rows: list[dict]) -> None:
         raise StagingMapError("staging device map: " + "; ".join(bad))
 
 
-def csv_text(columns, rows) -> str:
-    buf = io.StringIO()
-    w = csv.DictWriter(buf, fieldnames=columns, lineterminator="\n", extrasaction="raise")
-    w.writeheader()
-    w.writerows(rows)
-    return buf.getvalue()
-
-
 def texts(root=None, inputs=None) -> dict[Path, str]:
     """{path: text} of the three files from a fresh conversion (default: the live tables and the frozen files)."""
     import le_inputs
@@ -397,8 +391,8 @@ def texts(root=None, inputs=None) -> dict[Path, str]:
     band, _opts, core = staging_band()
     overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
     rows, cp_rows, mast_rows = convert(root, inputs, band, core.tidy, overrides)
-    return {DEVICE_MAP: bdm.csv_text(rows), CPS: csv_text(CP_COLUMNS, cp_rows),
-            MASTS: csv_text(level_masts.FIELDS, mast_rows), SIGNALS: signals_text(inputs.masts)}
+    return {DEVICE_MAP: bdm.csv_text(rows), CPS: bdm.csv_text(cp_rows, CP_COLUMNS),
+            MASTS: bdm.csv_text(mast_rows, level_masts.FIELDS), SIGNALS: signals_text(inputs.masts)}
 
 
 def signals_text(frozen_masts: list[dict]) -> str:
@@ -406,7 +400,7 @@ def signals_text(frozen_masts: list[dict]) -> str:
     which build_signals.py writes staging.signals.json from), one row per mast, in mast order."""
     rows = [{c: (LIST.join(m[c]) if isinstance(m[c], list) else str(m[c])) for c in SIGNAL_COLUMNS}
             for m in sorted(frozen_masts, key=lambda m: m["mast"])]
-    return csv_text(SIGNAL_COLUMNS, rows)
+    return bdm.csv_text(rows, SIGNAL_COLUMNS)
 
 
 def load_signal_masts(path: Path | None = None, masts_path: Path | None = None) -> list[dict]:
@@ -449,16 +443,26 @@ def staging_chains(band, names: dict) -> list[dict]:
     nodes = band["nodes"]
     idents = names["idents"]["turnouts"]
     out = []
+    for start, seq, end in run_blocks(band, names):
+        ends = [("END", str(e[1])) if nodes[e[0]]["kind"] != "switch" else (idents[e[0]], str(e[1]))
+                for e in (start, end)]
+        out.append(dict(ends=ends, blocks=seq))
+    return out
+
+
+def run_blocks(band, names: dict) -> list[tuple]:
+    """[(start (node, port), [block, ...], end (node, port))]: each run of the band (le_names.runs: tracks joined
+    through turnbacks, crossover insides left out) with its blocks from `names` in order from its start; a block
+    that runs on through a turnback (Brick-Plane) counted once."""
+    out = []
     for start, chain, end in ln.runs(band, ln.crossover_strands(band)):
         seq = []
         for sid, rev in chain:
             bl = names["blocks"][sid]
             for b in (bl[::-1] if rev else bl):
-                if not seq or seq[-1] != b:         # a block runs on through a turnback (Brick-Plane): once
+                if not seq or seq[-1] != b:
                     seq.append(b)
-        ends = [("END", str(e[1])) if nodes[e[0]]["kind"] != "switch" else (idents[e[0]], str(e[1]))
-                for e in (start, end)]
-        out.append(dict(ends=ends, blocks=seq))
+        out.append((start, seq, end))
     return out
 
 
@@ -504,11 +508,7 @@ def leg_first_blocks(band, names: dict) -> dict:
     that leg (through turnbacks), else the OS block of the switch at the run's far end; None at a bumper."""
     nodes = band["nodes"]
     out = {}
-    for start, chain, end in ln.runs(band, ln.crossover_strands(band)):
-        seq = []
-        for sid, rev in chain:
-            bl = names["blocks"][sid]
-            seq += bl[::-1] if rev else bl
+    for start, seq, end in run_blocks(band, names):
         for here, there, blocks_ in ((start, end, seq), (end, start, seq[::-1])):
             if nodes[here[0]]["kind"] != "switch":
                 continue
