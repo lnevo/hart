@@ -226,6 +226,34 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
                 0,
             )
 
+    def test_parked_dispatcher_skips_and_a_bad_panel_stops_after_one_parse(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            panel = Path(temporary) / "fixture.xml"
+            tree = fixture_tree()
+            root = tree.getroot()
+            for tag in ("sections", "transits"):  # the Dispatcher System parked: tables without them
+                for el in root.findall(tag):
+                    root.remove(el)
+            tree.write(panel, encoding="UTF-8", xml_declaration=True)
+            original = panel.read_bytes()
+            parses = []
+            real = reconciler.parse_xml
+
+            def counted(path):
+                parses.append(path)
+                return real(path)
+
+            reconciler.parse_xml = counted
+            try:
+                self.assertEqual(reconciler.main(["--panel", str(panel), "--no-sync"]), 0)
+                self.assertEqual(len(parses), 1)
+                self.assertEqual(panel.read_bytes(), original)
+                panel.write_text("<layout-config>", encoding="utf-8")
+                self.assertEqual(reconciler.main(["--panel", str(panel), "--check", "--no-sync"]), 2)
+                self.assertEqual(reconciler.main(["--panel", str(panel.with_name("missing.xml")), "--check"]), 2)
+            finally:
+                reconciler.parse_xml = real
+
 
 class StageOneLampsAndSensorsTest(unittest.TestCase):
     def test_stage1_track_lamp_on_same_sensor_is_left_alone(self) -> None:

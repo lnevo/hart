@@ -26,6 +26,7 @@ name, and the parked file holds each parked feature's parts.
 from __future__ import annotations
 
 import copy
+import functools
 import re
 import xml.etree.ElementTree as ET
 from collections import Counter
@@ -278,6 +279,15 @@ def freeze(commit: str, out: Path = PARKED_XML) -> ET.Element:
 
 
 def read(path: Path = PARKED_XML) -> ET.Element:
+    """The parked file's root, parsed once per process and file version (path, mtime, size): several checks read
+    it. Shared between callers, so read-only; copy it (copy.deepcopy) before changing it, as restore does."""
+    p = Path(path)
+    st = p.stat()
+    return _read_once(str(p.resolve()), st.st_mtime_ns, st.st_size)
+
+
+@functools.cache
+def _read_once(path: str, _mtime_ns: int, _size: int) -> ET.Element:
     return ET.parse(path).getroot()
 
 
@@ -333,13 +343,21 @@ def _rebind(root: ET.Element, b: ET.Element) -> None:
                     ET.SubElement(el, child).text = value
 
 
-def with_parked(features, tables_path: Path | None = None, parked_path: Path = PARKED_XML) -> ET.Element:
-    """The tables (this checkout's by default) as a root element, with `features` put back where they are parked
-    (restore); the tables unchanged when none of them is."""
+def _unparked_wanted(features, root: ET.Element) -> list[str]:
+    """The `features` that are parked and that the tables `root` leave out. A tables file that still holds a
+    feature (one from before the parking, read from history) is read as it is."""
+    return [f for f in features if f in PARKED and not any(root.find(w) is not None for w in WHOLE.get(f, ()))]
+
+
+def with_parked(features, tables_path: Path | None = None, parked_path: Path = PARKED_XML,
+                root: ET.Element | None = None) -> ET.Element:
+    """The tables (this checkout's by default, or `root` when the caller has parsed them already) as a root
+    element, with `features` put back where they are parked (restore, a copy); the tables unchanged (the same
+    root) when none of them is."""
     from . import tables
-    root = tables.read(tables_path or paths.TABLES_XML)
-    # a tables file that still holds a feature (one from before the parking, read from history) is read as it is
-    wanted = [f for f in features if f in PARKED and not any(root.find(w) is not None for w in WHOLE.get(f, ()))]
+    if root is None:
+        root = tables.read(tables_path or paths.TABLES_XML)
+    wanted = _unparked_wanted(features, root)
     if not wanted:
         return root
     return restore(root, read(parked_path), wanted)
@@ -354,12 +372,12 @@ def with_parked_file(features, tables_path: Path | None = None) -> Path:
     from . import tables
     path = Path(tables_path or paths.TABLES_XML)
     root = tables.read(path)
-    if not any(f in PARKED and not any(root.find(w) is not None for w in WHOLE.get(f, ())) for f in features):
+    if not _unparked_wanted(features, root):
         return path
     folder = Path(tempfile.mkdtemp(prefix="hart-unparked-"))
     atexit.register(shutil.rmtree, folder, True)
     out = folder / "tables.xml"
-    out.write_bytes(tables.Tables(root=with_parked(features, path)).tobytes())
+    out.write_bytes(tables.Tables(root=with_parked(features, path, root=root)).tobytes())
     return out
 
 
@@ -489,12 +507,13 @@ def main(argv=None) -> int:
         if not PARKED:
             print("ok: nothing parked")
             return 0
-        bad = check(tables.read(paths.TABLES_XML), read())
+        doc = read()
+        bad = check(tables.read(paths.TABLES_XML), doc)
         for b in bad:
             print(f"FAIL: {b}")
         if bad:
             return 1
-        c = counts(read())
+        c = counts(doc)
         print("ok: tables.xml holds no parked element or name; parked: "
               + "; ".join(f"{f} ({sum(v.values())} items)" for f, v in c.items()))
     return 0

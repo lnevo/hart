@@ -1,6 +1,7 @@
 """hartlib.parked: the build splits the parked features out of the tables, the check holds both files to it, and a
 restore puts them back."""
 import sys
+import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -134,6 +135,30 @@ class Parked(unittest.TestCase):
         self.assertFalse(parked._conditional_of("IX:DSLX:1", "IX:DSLX:1"))
         self.assertTrue(parked._conditional_of("IX:CTC:REVDEF:C1", "IX:CTC:REVDEF"))
         self.assertFalse(parked._conditional_of("IX:CTC:REVDEF2:C1", "IX:CTC:REVDEF"))
+
+    def test_read_parses_once_per_file_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tables_parked.xml"
+            path.write_bytes(parked.to_bytes(self.doc, "3bd3ac64"))
+            first = parked.read(path)
+            self.assertIs(parked.read(path), first)
+            self.assertEqual([f.get("name") for f in first], ["nx", "dispatcher", "uss"])
+            path.write_bytes(parked.to_bytes(parked.split(ET.fromstring(TABLES), {"uss"}), "3bd3ac65"))
+            again = parked.read(path)                               # a new version of the file is parsed again
+            self.assertIsNot(again, first)
+            self.assertEqual(([f.get("name") for f in again], again.get("source")), (["uss"], "3bd3ac65"))
+
+    def test_with_parked_takes_tables_already_parsed_and_leaves_them_alone(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tables_parked.xml"
+            path.write_bytes(parked.to_bytes(self.doc, "3bd3ac64"))
+            before = ET.tostring(self.root)
+            back = parked.with_parked({"uss"}, Path(tmp) / "no-such-tables.xml", path, root=self.root)
+            self.assertIsNotNone(back.find("ctcdata"))
+            self.assertIsNone(back.find("sections"))                # only the features asked for
+            self.assertEqual(ET.tostring(self.root), before)
+            whole = ET.fromstring(TABLES)                            # tables that still hold the feature: as they are
+            self.assertIs(parked.with_parked({"uss"}, Path(tmp) / "no-such-tables.xml", path, root=whole), whole)
 
     def test_unknown_feature_stops(self):
         with self.assertRaises(parked.ParkError):

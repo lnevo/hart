@@ -441,11 +441,27 @@ class LevelMasts(unittest.TestCase):
         sig = {s["mast"]: s for s in bands[1][2]["signals"]}
         self.assertEqual(sorted(sig), ["108LA", "108LB", "108R"])
         # the loop halves get their own edges, so each loop mast finds its own half (the plugin's mast_piece)
-        self.assertEqual((sig["108LA"]["_edge"], sig["108LB"]["_edge"]), ("e33x", "e33y"))
+        self.assertEqual((sig["108LA"]["_edge"], sig["108LB"]["_edge"]), ("e33~1", "e33~2"))
         self.assertEqual(B.placeholder(bands[1][1]["strands"]["e33.1"]), "Track e33 2")
         self.assertEqual((sig["108R"]["_edge"], sig["108R"]["_toward_node"], sig["108R"]["toward"]),
                          ("e19", "S107", "107"))
         self.assertEqual((sig["108LA"]["dir"], sig["108R"]["dir"], sig["108R"]["heads"]), ("west", "east", 2))
+
+    def test_a_loop_whose_edge_is_a_cut_piece_keeps_its_halves_apart(self):
+        # a loop drawn from a connector's or helix's piece (e33x): its halves are not read as x/y pieces again
+        bands = level_bands()
+        for k in ("e33.0", "e33.1"):
+            bands[1][1]["strands"][k]["edge"] = "e33x"
+        B.level_signals(bands, level_facts(), 0)
+        sig = {s["mast"]: s for s in bands[1][2]["signals"]}
+        self.assertEqual((sig["108LA"]["_edge"], sig["108LB"]["_edge"]), ("e33x~1", "e33x~2"))
+        strands = bands[1][1]["strands"]
+        self.assertEqual((B.placeholder(strands["e33.0"]), B.placeholder(strands["e33.1"])),
+                         ("Track e33 1", "Track e33 2"))
+        # the plugin's mast_piece takes the pieces whose edge is the mast's, or it plus x or y: one half each
+        for mast, half in (("108LA", "e33.0"), ("108LB", "e33.1")):
+            e = sig[mast]["_edge"]
+            self.assertEqual([k for k, t in strands.items() if t["edge"] in (e, e + "x", e + "y")], [half])
 
     def test_a_mast_at_no_leg_or_two_stops(self):
         f = level_facts()

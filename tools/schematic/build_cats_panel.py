@@ -377,10 +377,20 @@ def xover_corners(name, F) -> list:
     return [f"{name}{c}" for c in "abcd" if f"{name}{c}" in F.device.blocks]
 
 
+def loop_half_edge(edge, half) -> str:
+    """The edge level_signals gives one half of a balloon loop drawn from plan edge `edge` ("e33" -> "e33~1"): a
+    suffix of its own, so it never reads as a connector's or helix's x/y piece (the plugin's mast_piece and
+    mileposts read those), and placeholder strips it before the piece suffix."""
+    return f"{edge}~{half}"
+
+
 def placeholder(strand) -> str:
     """The device map trial name of a drawn strand: "Track <plan edge>", a connector's or helix's x/y piece counted
-    as its edge, and a balloon loop's half numbered (name_loop_halves)."""
-    return bdm.loop_placeholder("Track " + re.sub(r"(?<=\d)[xy]$", "", strand["edge"]), strand.get("loop_half"))
+    as its edge, and a balloon loop's half numbered (name_loop_halves; its loop_half_edge suffix dropped)."""
+    edge, half = strand["edge"], strand.get("loop_half")
+    if half is not None:
+        edge = edge.removesuffix(loop_half_edge("", half))
+    return bdm.loop_placeholder("Track " + re.sub(r"(?<=\d)[xy]$", "", edge), half)
 
 
 def name_loop_halves(bands):
@@ -622,8 +632,8 @@ def level_signals(bands, F, bound_bi):
     """Put each main and upper mast (main_upper_masts.csv) in its band's signals, as the plugin reads a band's drawn
     masts: on the track it faces (the device map block holding the schematic track at that leg of its switch), at
     that switch (its toward end), heading west for an L mast (ADR-005), its heads from its row. The two halves of a
-    balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (x and y, which
-    placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
+    balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (loop_half_edge,
+    which placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
     name_loop_halves). Stops on a mast drawn at no switch leg or at two."""
     by_trial = {t: name for name, row in F.device.blocks.items() for t in row["trial"]}
     added = defaultdict(list)
@@ -652,8 +662,8 @@ def level_signals(bands, F, bound_bi):
             if not s.get("loop_half") or any(not band["strands"][k].get("loop_half") for k in twins):
                 raise SystemExit(f"{r['mast']}: its track {s['edge']} is drawn more than once at Switch "
                                  f"{r['switch']} on {title}, and not as the halves of a balloon loop")
-            for k in [sid] + twins:
-                band["strands"][k]["edge"] += "xy"[band["strands"][k]["loop_half"] - 1]
+            for t in [band["strands"][k] for k in [sid] + twins]:
+                t["edge"] = loop_half_edge(t["edge"], t["loop_half"])
         if s["edge"].endswith(("x", "y")) and not s.get("loop_half"):
             raise SystemExit(f"{r['mast']}: its track {s['edge']} is one piece of a track drawn on two levels")
         key = r["mast"].removeprefix(opts.get("mast_prefix", ""))
