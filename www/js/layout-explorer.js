@@ -58,7 +58,7 @@
       base() +
       "roster/index.html#" +
       encodeURIComponent(item.id) +
-      '">Open in roster →</a></p>';
+      '">Open in device viewer →</a></p>';
   }
 
   function matches(item) {
