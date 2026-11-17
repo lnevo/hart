@@ -204,37 +204,37 @@
     },
     "crew/maps/barn/index.html": {
       "image": "assets/share/crew-maps-east-end.jpg",
-      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
       "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/east-end/index.html": {
       "image": "assets/share/crew-maps-east-end.jpg",
-      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
       "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/index.html": {
       "image": "assets/share/crew-maps-east-end.jpg",
-      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
       "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/shenango/index.html": {
       "image": "assets/share/crew-maps-east-end.jpg",
-      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
       "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/south-yard/index.html": {
       "image": "assets/share/crew-maps-east-end.jpg",
-      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
       "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
     "crew/maps/west-yard/index.html": {
       "image": "assets/share/crew-maps-east-end.jpg",
-      "alt": "The generated East End station map: the main from Brick to Princess, the East Lead, and the South Yard tracks S-R to S-4 joining at switches 25 to 33, with switch numbers, masts and car counts.",
+      "alt": "The generated East End station map, shared by all the station map pages: the main from Brick to Princess, the main east to the Barn, the East Lead, and the ladder to South Yard tracks S-R to S-4, with switch numbers, masts and car counts.",
       "from": "make_share_cards.py crew-maps-east-end (docs/ops/stations/east-end.svg, the track drawing)",
       "shared": true
     },
