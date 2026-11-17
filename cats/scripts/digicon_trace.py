@@ -84,11 +84,15 @@ def plant_os(cells: dict[tuple[int, int], ET.Element], xy: tuple[int, int]) -> s
     return behind
 
 
-def desk_plants(cells: dict[tuple[int, int], ET.Element]) -> dict[str, tuple[int, int]]:
-    """OS block -> its plant cell, for every wired plant (SWITCHPOINTS with ROUTEINFO)."""
+def desk_plants(cells: dict[tuple[int, int], ET.Element], bound: bool = False) -> dict[str, tuple[int, int]]:
+    """OS block -> its plant cell, for every wired plant (SWITCHPOINTS with ROUTEINFO); with `bound`, only the plants
+    whose routes command a turnout (an IOSPEC): on the generated desks the main and upper levels are dark, their
+    plants drawn but bound to nothing (and a crossover's halves there may share one OS block)."""
     out: dict[str, tuple[int, int]] = {}
     for xy, sec in cells.items():
         if sec.find("SEC_EDGE/SWITCHPOINTS/ROUTEINFO") is None:
+            continue
+        if bound and sec.find("SEC_EDGE/SWITCHPOINTS/ROUTEINFO/*/IOSPEC") is None:
             continue
         os_name = plant_os(cells, xy)
         if os_name in out:

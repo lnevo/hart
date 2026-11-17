@@ -21,8 +21,8 @@ portal-check:  ## Build the website and test its links
 panels:  ## Rebuild every panel drawn from the schematic, in order (CHECK=1 only checks)
 	./tools/schematic/build_panels.sh $(if $(filter 1 yes true,$(CHECK)),--check)
 
-desks:  ## Rebuild and validate the CATS desks
-	python3 cats/scripts/wire_digicon.py
+desks:  ## Rebuild and validate the CATS desks (generated from the schematic)
+	python3 tools/schematic/build_cats_panel.py
 	python3 cats/scripts/validate_cats_panel.py
 
 panelpro-test:  ## Load tables.xml in real PanelPro on this Mac

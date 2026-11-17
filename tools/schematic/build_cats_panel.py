@@ -1,15 +1,16 @@
 """build_cats_panel.py [--check]
 
-Generate the CATS Designer desks for all three levels (staging, main, upper) from the schematic grid, with the
-schematic-maps plugin's cats module (the code behind `schematic cats --bindings`), into
-cats/panels/generated/HART_Generated.xml (CTC) and its ABS twin HART_Generated_ABS.xml. They sit beside the live
-desks (ADR-023): cats/panels/HART_CTC.xml, HART_ABS.xml and HART_Digicon.xml are not read or touched, and the deploy
-installs only its LIVE_PANELS list, so these files are not deployed. tools/check.sh validates them with
-cats/scripts/validate_cats_panel.py, and cats/scripts/tests/test_generated_desk_parity.py proves their staging part
-binds every turnout, block, sensor and mast the live desks bind, the same way.
+Generate the live CATS Designer desks for all three levels (staging, main, upper) from the schematic grid, with the
+schematic-maps plugin's cats module (the code behind `schematic cats --bindings`): cats/panels/HART_CTC.xml (CTC)
+and its ABS twin HART_ABS.xml, the desks the deploy installs (sync_hart_package.sh LIVE_PANELS) and the launchers
+open (CATS cut-over; ADR-023). This script is their only writer: the hand-wired desks wire_digicon.py built from
+HART_Digicon.xml are history, readable from git (hartlib.hand_drawn.cats_desk_path), and HART_Digicon.xml is not read.
+tools/check.sh validates the desks with cats/scripts/validate_cats_panel.py, and
+cats/scripts/tests/test_generated_desk_parity.py proves their staging part binds every turnout, block, sensor and
+mast the hand-wired desks bound, the same way.
 
 Bands stack in the sheet's order (staging on top). Staging is bound to the live JMRI objects through the bindings
-file cats/panels/generated/HART_Generated.bindings.json, which this script writes from the railroad's facts, never by
+file cats/panels/HART_CTC.bindings.json, which this script writes from the railroad's facts, never by
 hand:
   switches.csv / switch_legs.csv  which OS block each switch's points are in (and a crossover half's label, 23A
                                   or 23B, from its OS block's letter), which leg is closed and which thrown,
@@ -64,9 +65,12 @@ import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
 import layout_facts as facts  # noqa: E402
 
-OUT = pd.REPO / "cats/panels/generated/HART_Generated.xml"
-OUT_ABS = OUT.with_name("HART_Generated_ABS.xml")
-BINDINGS = OUT.with_name("HART_Generated.bindings.json")
+# The live desks (CATS cut-over, owner approved the generated desks in real CATS on 2026-11-15): the names the hosts,
+# launchers and shortcuts use. Nothing else writes them (wire_digicon.py, which built them from the hand-wired
+# Designer panel HART_Digicon.xml, refuses to now); the hand-wired desks stay readable from git (hartlib.hand_drawn).
+OUT = pd.REPO / "cats/panels/HART_CTC.xml"
+OUT_ABS = OUT.with_name("HART_ABS.xml")
+BINDINGS = OUT.with_name("HART_CTC.bindings.json")
 HEADER = paths.CATS_DIR / "data/generated_desk_header.xml"   # frozen from the live desk (2026-11-15)
 DEVICE_MAP = pd.DATA / "device_map_main_upper.csv"
 BOUND = "Staging"                                    # the band bound to JMRI (its title starts with this)

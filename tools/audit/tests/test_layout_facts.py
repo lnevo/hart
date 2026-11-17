@@ -63,13 +63,21 @@ class LayoutFactsTest(unittest.TestCase):
                             and "closed leg" in m for m in out), out)
 
     def test_flipped_cats_normal(self) -> None:
-        def flip(text: str) -> str:
-            cell = re.search(r'<SECTION X="24" Y="8">.*?</SECTION>', text, re.S)
-            body = cell.group(0).replace('ROUTEID="BOTTOM" NORMAL="true"', 'ROUTEID="BOTTOM"').replace(
-                'ROUTEID="LEFT"', 'ROUTEID="LEFT" NORMAL="true"')
-            return text[:cell.start()] + body + text[cell.end():]
-
-        desk = self.copy(check.DESKS[0], flip)
+        # on the live (generated) desk: Switch 9's plant cell, found by its OS block, with NORMAL on the other leg
+        import xml.etree.ElementTree as ET
+        _cells, plants = check.desk_plants(check.DESKS[0], check.Report())
+        x, y = plants["OS Switch 9"]
+        tree = ET.parse(check.DESKS[0])
+        sec = tree.getroot().find(f"TRACKPLAN/SECTION[@X='{x}'][@Y='{y}']")
+        routes = sec.findall("SEC_EDGE/SWITCHPOINTS/ROUTEINFO")
+        self.assertEqual(len(routes), 2)
+        for ri in routes:
+            if ri.get("NORMAL") == "true":
+                del ri.attrib["NORMAL"]
+            else:
+                ri.set("NORMAL", "true")
+        desk = self.tmp / check.DESKS[0].name
+        tree.write(desk, encoding="UTF-8", xml_declaration=True)
         out = self.failures(desks=(desk,))
         self.assertTrue(any(m.startswith("Switch 9: HART_CTC.xml OS Switch 9 NORMAL") for m in out), out)
 
@@ -130,14 +138,25 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertTrue(any(m.startswith("Track Main West: no control point") and "join levels ['1', '2']" in m
                             for m in out), out)
 
-    def test_a_mast_moved_on_one_desk_fails(self) -> None:
+    def test_a_mast_renamed_on_one_desk_fails(self) -> None:
+        out = self.failures(desks=(self.copy(check.DESKS[0], lambda t: t.replace(">Mast 24L<", ">Mast 24LX<", 1)),
+                                   check.DESKS[1]))
+        self.assertIn("Mast 24L: HART_CTC.xml has 0 lamps for it, not one", out)
+        self.assertIn("Mast 24LX: HART_CTC.xml has a lamp for it, mast_cells.csv has no such mast", out)
+
+    def test_a_mast_on_the_wrong_block_edge_fails(self) -> None:
+        # Mast 24L protects OS Switch 23a: its lamp on another block's edge is named
         def move(text: str) -> str:
-            cell = re.search(r'<SECTION X="45" Y="6">.*?</SECTION>', text, re.S)
-            return text[:cell.start()] + cell.group(0).replace("Mast 24L", "Mast 24LX") + text[cell.end():]
+            sig = text.index(">Mast 24L<")
+            start = text.rindex("<SEC_EDGE", 0, sig)
+            end = text.index("</SEC_EDGE>", sig)
+            edge = text[start:end]
+            name = re.search(r'<BLOCK[^>]* NAME="([^"]+)"', edge).group(1)
+            return text[:start] + edge.replace(f'NAME="{name}"', 'NAME="Track West Ext"', 1) + text[end:]
 
         out = self.failures(desks=(self.copy(check.DESKS[0], move), check.DESKS[1]))
-        self.assertIn("Mast 24L: HART_CTC.xml has Mast 24LX at (45, 6, 'RIGHT'), "
-                      "mast_cells.csv has Mast 24L there", out)
+        self.assertIn("Mast 24L: HART_CTC.xml has its lamp on the edge of Track West Ext, but it protects "
+                      "OS Switch 23a (staging_le/masts.csv)", out)
 
     def test_a_mast_drawn_with_the_wrong_head_fails(self) -> None:
         data = self.data_copy()

@@ -7,6 +7,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "cats/scripts"))
 import wire_digicon as wire  # noqa: E402
+import desks  # noqa: E402  (cats/scripts/tests/desks.py: the live desks)
+
 
 
 def _cells(path):
@@ -44,16 +46,13 @@ class PrincessRows(unittest.TestCase):
         self.assertNotIn("TOL29", wire.INVERT_VS_JMRI)
         self.assertNotIn("TOR36", wire.INVERT_VS_JMRI)
 
-    def test_generated_desk_polarity(self):
-        cells = _cells(ROOT / "cats/panels/HART_CTC.xml")
-        for xy in ((55, 6), (55, 7)):
-            routes = {r.get("ROUTEID"): r for r in cells[xy].iter("ROUTEINFO")}
-            straight = routes["RIGHT"]
-            self.assertEqual("true", straight.get("NORMAL"))
-            self.assertEqual("close", straight.find("SELECTEDREPORT/IOSPEC").text.strip())
-            other = [r for k, r in routes.items() if k != "RIGHT"][0]
-            self.assertEqual("throw", other.find("SELECTEDREPORT/IOSPEC").text.strip())
-
+    def test_live_desk_polarity(self):
+        # the live (generated) desks: Switches 37 and 39 close to the mains, NORMAL, and throw to the K tracks
+        want = {"OS Switch 37": ("Track McKeesport", "Track K-2"), "OS Switch 39": ("Track McKees Rocks", "Track K-1")}
+        for desk in desks.LIVE:
+            for os_block, (closed, thrown) in want.items():
+                with self.subTest(desk=desk.name, plant=os_block):
+                    self.assertEqual(desks.routes(desk, os_block), {"close": (closed, True), "throw": (thrown, False)})
 
 if __name__ == "__main__":
     unittest.main()

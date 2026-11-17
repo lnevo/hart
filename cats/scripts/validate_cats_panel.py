@@ -64,8 +64,8 @@ def main() -> int:
     paths = [Path(a) for a in sys.argv[1:]]
     if not paths:
         root = hart_paths.CATS_DIR / "panels"
-        # the live desks, and the panels generated beside them (cats/panels/generated/, not deployed; ADR-023)
-        paths = sorted(root.glob("HART*.xml")) + sorted((root / "generated").glob("HART*.xml"))
+        # the live desks (generated from the schematic since the CATS cut-over) and the other HART panels
+        paths = sorted(root.glob("HART*.xml"))
     failed = 0
     for p in paths:
         errs = check(p)

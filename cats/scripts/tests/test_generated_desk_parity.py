@@ -1,14 +1,14 @@
-"""The generated three-level desks bind staging exactly as the live desks do, so they can replace them at the
+"""The generated three-level desks bind staging exactly as the hand-wired desks did, which they replaced at the CATS
 cut-over (ADR-023). Geometry is ignored: the panels are drawn differently.
 
-Compared for every binding of cats/panels/HART_CTC.xml against cats/panels/generated/HART_Generated.xml, and of
-HART_ABS.xml against its twin HART_Generated_ABS.xml:
+Compared for every binding of the last hand-wired cats/panels/HART_CTC.xml (git, hartlib.hand_drawn) against the
+live, generated cats/panels/HART_CTC.xml, and of the hand-wired HART_ABS.xml against the live HART_ABS.xml:
   blocks   name, STATION, DISCIPLINE and the occupied and unoccupied IOSPECs
   switches each OS block's points: the block each route leads to, which route is NORMAL, and its IOSPECs
   masts    SECSIGNAL name, PHYSIGNAL template and SIGPANTYPE, and the block it protects
-  header   the live desk's header elements (counters, signal templates, stores, colours, OPERATIONS, JMRI names,
+  header   the hand-wired desk's header elements (counters, signal templates, stores, colours, OPERATIONS, JMRI names,
            fonts) in its order, and its publication plate's words
-and the generated desk binds nothing the live desk does not. Main and upper blocks are DTC on both twins.
+and the generated desk binds nothing the hand-wired desk did not. Main and upper blocks are DTC on both twins.
 """
 from __future__ import annotations
 
@@ -24,17 +24,21 @@ sys.path.insert(0, str(SCRIPTS))
 
 import digicon_trace as trace  # noqa: E402
 
-LIVE = ROOT / "cats/panels/HART_CTC.xml"
-GENERATED = ROOT / "cats/panels/generated/HART_Generated.xml"
-LIVE_ABS = ROOT / "cats/panels/HART_ABS.xml"
-GENERATED_ABS = ROOT / "cats/panels/generated/HART_Generated_ABS.xml"
-BINDINGS = ROOT / "cats/panels/generated/HART_Generated.bindings.json"
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import hand_drawn  # noqa: E402
+
+# the last hand-wired desks (git), and the generated desks, which are the live files since the CATS cut-over
+HAND_WIRED = hand_drawn.skip_unless_available("HART_CTC.xml")
+GENERATED = ROOT / "cats/panels/HART_CTC.xml"
+HAND_WIRED_ABS = hand_drawn.skip_unless_available("HART_ABS.xml")
+GENERATED_ABS = ROOT / "cats/panels/HART_ABS.xml"
+BINDINGS = ROOT / "cats/panels/HART_CTC.bindings.json"
 HEADER_TAGS = ("LINE", "COUNTER", "SIGNALTEMPLATE", "TRAINSTORE", "JOBSTORE", "CREWSTORE", "COLORDEFINITION",
                "TRAINSTATLABEL", "OPERATIONS", "JMRINAME")
-# The plugin writes the panel title font at 13 points and sizes its band titles by it; the live desk has 16.
+# The plugin writes the panel title font at 13 points and sizes its band titles by it; the hand-wired desk had 16.
 FONT_SIZES = {"FONT_TITLE": "13"}
 
-# Two live masts stand inside a block, on a lamp gap with the same block on both sides (mast_cells.csv): Mast 24L
+# Two hand-wired masts stood inside a block, on a lamp gap with the same block on both sides (mast_cells.csv): Mast 24L
 # mid Track West Ext and Mast 2035 inside Track K-2, a cell east of the K-1/K-2 cut. The generated panel puts every
 # mast on the block boundary it guards: 24L governs the move toward Switch 23, so it guards OS Switch 23a; 2035
 # governs the move from K-2 toward Switch 39, so it guards Track K-1. Owner approved the boundary placement for both
@@ -136,14 +140,14 @@ def order(root: ET.Element) -> list[str]:
 
 
 class Parity(unittest.TestCase):
-    LIVE, GENERATED, DISCIPLINE = LIVE, GENERATED, "CTC"
+    HAND_WIRED, GENERATED, DISCIPLINE = HAND_WIRED, GENERATED, "CTC"
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.live, cls.gen = ET.parse(cls.LIVE).getroot(), ET.parse(cls.GENERATED).getroot()
+        cls.hand, cls.gen = ET.parse(cls.HAND_WIRED).getroot(), ET.parse(cls.GENERATED).getroot()
 
-    def test_every_live_block_is_bound_the_same(self) -> None:
-        live, gen = blocks(self.live), blocks(self.gen)
+    def test_every_hand_wired_block_is_bound_the_same(self) -> None:
+        live, gen = blocks(self.hand), blocks(self.gen)
         self.assertTrue(live)
         for name, defs in sorted(live.items()):
             with self.subTest(block=name):
@@ -151,23 +155,23 @@ class Parity(unittest.TestCase):
                 self.assertEqual(gen.get(name), defs)
         bound = {n for n, d in gen.items() if any(spec for *_, spec in d)}
         self.assertEqual(bound, {n for n, d in live.items() if any(spec for *_, spec in d)})
-        self.assertEqual(empty_specs(self.live), [])
+        self.assertEqual(empty_specs(self.hand), [])
         self.assertEqual(empty_specs(self.gen), [])
 
     def test_every_iospec_is_the_same_both_ways(self) -> None:
-        (n_live, live), (n_gen, gen) = placed_ios(self.live), placed_ios(self.gen)
-        self.assertEqual(n_live, len(list(self.live.iter("IOSPEC"))), "an IOSPEC outside a block spec or route")
+        (n_live, live), (n_gen, gen) = placed_ios(self.hand), placed_ios(self.gen)
+        self.assertEqual(n_live, len(list(self.hand.iter("IOSPEC"))), "an IOSPEC outside a block spec or route")
         self.assertEqual(n_gen, len(list(self.gen.iter("IOSPEC"))), "an IOSPEC outside a block spec or route")
         self.assertEqual(gen - live, set())
         self.assertEqual(live - gen, set())
 
-    def test_every_live_switch_is_bound_the_same(self) -> None:
-        live, gen = plants(self.live), plants(self.gen)
+    def test_every_hand_wired_switch_is_bound_the_same(self) -> None:
+        live, gen = plants(self.hand), plants(self.gen)
         self.assertTrue(live)
         self.assertEqual(gen, live)
 
-    def test_every_live_mast_is_bound_the_same(self) -> None:
-        live, gen = masts(self.live), masts(self.gen)
+    def test_every_hand_wired_mast_is_bound_the_same(self) -> None:
+        live, gen = masts(self.hand), masts(self.gen)
         self.assertTrue(live)
         self.assertEqual(set(gen), set(live))
         for name, here in sorted(live.items()):
@@ -177,28 +181,28 @@ class Parity(unittest.TestCase):
                 self.assertEqual((g_template, g_pantype), (template, pantype))
                 self.assertEqual((block, g_block), PROTECTS.get(name, (block, block)))
 
-    def test_header_matches_the_live_desk(self) -> None:
+    def test_header_matches_the_hand_wired_desk(self) -> None:
         for tag in HEADER_TAGS:
             with self.subTest(tag=tag):
-                self.assertTrue(self.live.findall(tag))
+                self.assertTrue(self.hand.findall(tag))
                 self.assertEqual([canon(e) for e in self.gen.findall(tag)],
-                                 [canon(e) for e in self.live.findall(tag)])
+                                 [canon(e) for e in self.hand.findall(tag)])
         self.assertEqual(self.gen.find("OPERATIONS").get("CONNECT"), "false")
 
-    def test_fonts_are_the_live_desks(self) -> None:
-        live = {e.get("FONTKEY"): dict(e.attrib) for e in self.live.findall("FONTDEFINITION")}
+    def test_fonts_are_the_hand_wired_desks(self) -> None:
+        live = {e.get("FONTKEY"): dict(e.attrib) for e in self.hand.findall("FONTDEFINITION")}
         gen = {e.get("FONTKEY"): dict(e.attrib) for e in self.gen.findall("FONTDEFINITION")}
         for key, size in FONT_SIZES.items():
             live[key]["FONTSIZE"] = size
         self.assertEqual(gen, live)
         self.assertEqual([e.get("FONTKEY") for e in self.gen.findall("FONTDEFINITION")], list(live))
 
-    def test_elements_are_in_the_live_desks_order(self) -> None:
-        self.assertEqual([t for t in order(self.gen) if t != "ROWWRAPTAG"], order(self.live))
+    def test_elements_are_in_the_hand_wired_desks_order(self) -> None:
+        self.assertEqual([t for t in order(self.gen) if t != "ROWWRAPTAG"], order(self.hand))
 
-    def test_the_plate_says_what_the_live_desk_says(self) -> None:
-        self.assertEqual(len(plate(self.live)), 5)
-        self.assertLessEqual(plate(self.live), plate(self.gen))
+    def test_the_plate_says_what_the_hand_wired_desk_says(self) -> None:
+        self.assertEqual(len(plate(self.hand)), 5)
+        self.assertLessEqual(plate(self.hand), plate(self.gen))
 
     def test_main_and_upper_are_dark_territory(self) -> None:
         bound = json.loads(BINDINGS.read_text(encoding="utf-8"))["blocks"]
@@ -214,7 +218,7 @@ class Parity(unittest.TestCase):
 
 
 class ParityABS(Parity):
-    LIVE, GENERATED, DISCIPLINE = LIVE_ABS, GENERATED_ABS, "ABS"
+    HAND_WIRED, GENERATED, DISCIPLINE = HAND_WIRED_ABS, GENERATED_ABS, "ABS"
 
 
 if __name__ == "__main__":
