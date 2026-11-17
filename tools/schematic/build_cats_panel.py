@@ -26,8 +26,10 @@ releases them, so a route set from staging up the helix stops at the first main 
 turns them ABS with the rest. They take their names from the block rows of
 jmri/layouts/hart/data/schematic/device_map_main_upper.csv (by the schematic tracks each holds). Their switches
 command and report their internal turnouts (LEVEL_TURNOUT: IT:HART:C3:<n>, closed on the drawn leg B, which is
-NORMAL; double crossover 225 too, its one turnout moving all four points, though the desk keeps it one block: CATS
-cannot part a block at switch points or a crossing, so its corner blocks are listed as not on the desk), and their
+NORMAL; double crossover 225 too, its one turnout moving all four points, and a desk block per corner as in the
+Layout Editor, OS Switch 225a to d on their corners' detectors, with the middle of its X a block of its own and no
+detector: the plugin's `corners` binding, which opens a row between its tracks on the upper level; owner,
+2026-11-17), and their
 control-point masts (main_upper_masts.csv, on internal heads) are drawn and bound as staging's are: each on the track
 it faces at the switch it protects (level_signals), its CATS template the one staging's masts of its appearance type
 take. Their detectors (the map's occupancy rows) are not in tables.xml yet, so each block's planned sensor is
@@ -51,6 +53,7 @@ exits 0 (a failure with SCHEMATIC_REQUIRED=1).
 import copy
 import csv
 import difflib
+import importlib
 import json
 import os
 import re
@@ -404,10 +407,36 @@ def name_loop_halves(bands):
     return out
 
 
+def corner_name(bands, cats, key):
+    """The device map name of a double crossover's corner block key (OS Switch <n> plus the Layout Editor corner its
+    leg reaches) or of the middle of its X (OS Switch <n>); None for any other key."""
+    if key[0] not in ("corner", "xmid"):
+        return None
+    num = bdm.base(cats.label_of(bands, ("os", key[1])))
+    if key[0] == "xmid":
+        return f"OS Switch {num}"
+    tag, n = key[1].split(":", 1)
+    band = bands[int(tag[1:])][1]
+    return bdm.xover_corners(num, cats_le(cats).double_corners(band, n))[key[2]]
+
+
+def cats_le(cats):
+    """The plugin's le module, beside its cats module."""
+    return importlib.import_module(cats.__name__.rpartition(".")[0] + ".le")
+
+
 def device_name(bands, cats, keys, F, log):
     """The device map's name of the main or upper block made of block keys `keys`: OS Switch N for an OS block
     (a crossover's halves are one block; switches whose OS blocks the plugin merges over a track too short to part
     them take the lowest number, logged), else the device map track that holds the block's schematic tracks."""
+    cornered = {P_name for P_name in (corner_name(bands, cats, k) for k in keys) if P_name}
+    if cornered:            # a double crossover's corner, or the middle of its X (level_switch_bindings names them)
+        if len(cornered) > 1 or any(k[0] not in ("corner", "xmid") for k in keys):
+            raise SystemExit(f"desk block {sorted(keys)}: a double crossover's corner merged with other track")
+        name = cornered.pop()
+        if name not in F.device.blocks and not xover_corners(name, F):
+            raise SystemExit(f"{name}: no block row in {DEVICE_MAP.name}")
+        return name
     labels = sorted({cats.label_of(bands, k) for k in keys if k[0] == "os"} - {""}, key=bdm.natural)
     if labels:
         numbers = sorted({bdm.base(lb) for lb in labels}, key=bdm.natural)
@@ -446,10 +475,7 @@ def planned_sensor(name, F):
     as the IOSPECs a bound block takes, or None (no detector)."""
     user = "BS " + (name.replace("OS Switch ", "Switch ", 1) if name.startswith("OS Switch ") else
                     name.removeprefix("Track "))
-    system = F.device.sensors.get(user)
-    if system is None and xover_corners(name, F):         # a double crossover's desk block: corner a's detector
-        user = user + "a"
-        system = F.device.sensors.get(user)
+    system = F.device.sensors.get(user)    # none for the middle of a double crossover's X (its corners have them)
     if system is None:
         return None
     prefix = "M2S" if system.startswith("M2S") else "IS"          # a virtual detector: IS:HART:C3:<n>
@@ -527,9 +553,9 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         seen.add(name)
         out[panel_name] = e
     for name in sorted(seen):
-        for corner in xover_corners(name, F):
-            missing[corner] = (f"inside desk block {name}: CATS cannot part a block at switch points or a crossing, "
-                               "so the desk draws a double crossover as one block, bound to corner a's detector")
+        for corner in [c for c in xover_corners(name, F) if c not in seen]:
+            missing[corner] = (f"inside desk block {name}: a double crossover drawn without corners is one desk "
+                               "block")
     for name, row in sorted(F.device.blocks.items()):
         if name not in seen and name not in missing:
             missing[name] = inside_os(bands, P, bound_bi, name, row)
@@ -550,13 +576,15 @@ def level_bands(bands, bound_bi):
             if bi != bound_bi and bdm.band_level(title)]
 
 
-def level_switch_bindings(bands, F, bound_bi):
+def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
     """({switch label: binding}, {label: why not bound}) for the main and upper switches: each switch or crossover
     half drawn commands and reports its internal turnout (LEVEL_TURNOUT + number, user name Switch <n>, which
     tables.xml must hold), closed on leg B (NORMAL) and thrown on leg C. A crossover's halves, on one band or two,
     each take the one turnout; the thrown leg of each must lead to the other half (or to the link between the
     levels). A double crossover's one turnout moves all four of its points (the plugin: B along the through tracks,
-    C into the X)."""
+    C into the X). `dx_corners` ({switch number: {leg: Layout Editor corner}}, build_device_map.dx_corners) gives a
+    double crossover a desk block per corner, named as the Layout Editor's (OS Switch <n>a to d, by the corner each
+    leg reaches), and the middle of its X OS Switch <n>."""
     out = {}
     for _bi, band, _ in level_bands(bands, bound_bi):
         nodes, strands = band["nodes"], band["strands"]
@@ -582,6 +610,10 @@ def level_switch_bindings(bands, F, bound_bi):
             out[label] = {"normal": "B",
                           "routes": {"B": {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
                                      "C": {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}}}
+            if d["kind"] == "dx" and dx_corners is not None:
+                if num not in dx_corners:
+                    raise SystemExit(f"double crossover {label}: no corners found for it")
+                out[label]["corners"] = dict(bdm.xover_corners(num, dx_corners[num]), X=f"OS Switch {num}")
     return out
 
 
@@ -708,15 +740,19 @@ def bindings(bands, cats, F):
     _, band, opts = bands[bi]
     os_of = os_blocks(band, F)
     out_sw = switch_bindings(band, F, os_of)
-    # the panel's block names once the switches name their OS blocks
+    le_mod = cats_le(cats)
+    page = json.loads((pd.DATA / "main_upper.preferences.json").read_text(encoding="utf-8"))
+    level_sw = level_switch_bindings(bands, F, bi, bdm.dx_corners(bands, le_mod, page))
+    # the panel's block names once the switches name their OS blocks (and a double crossover its corners)
+    named = {k: {"block": v["block"]} for k, v in out_sw.items()}
+    named.update({k: {"corners": v["corners"]} for k, v in level_sw.items() if "corners" in v})
     P = cats.panel(bands, scale=CELLS_PER_UNIT, helix_blocks=HELIX_BLOCKS,   # names only: no column trimming
-                   bindings={"switches": {k: {"block": v["block"]} for k, v in out_sw.items()}})
+                   bindings={"switches": named})
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:")}
     blocks = block_bindings(band, F, names)
     dark, log, missing = dark_bindings(bands, cats, P, F, bi)
     print("\n".join(log))
     check_apart(blocks, dark)
-    level_sw = level_switch_bindings(bands, F, bi)
     masts, level = mast_bindings(opts, F), level_mast_bindings(bands, F, bi)
     for what, a, b in (("switch", out_sw, level_sw), ("mast", masts, level)):
         if set(a) & set(b):

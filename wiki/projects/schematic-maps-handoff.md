@@ -241,5 +241,11 @@ The owner reviewed the release candidate in a sandbox PanelPro and in sandbox CA
 Left after release:
 - Three upper-level labels have no clean spot: Track 231-235, Track 129-135 2 and the 227-233 readout.
 - Main/upper detection comes with the into-service work (`DETECT_MAIN_UPPER`).
-- Switch 225 is one block on the CATS desk.
+- Switch 225 is one block on the CATS desk. (Done the same day, below.)
 - Unparking NX, the Dispatcher System and USS CTC means refreshing `parked/tables_parked.xml` (its README).
+
+## Done, 2026-11-17 later: Switch 225 a block per corner on the CATS desk
+
+The owner asked for 225 to match the Layout Editor's corners. The desks now show OS Switch 225a to d, one block per corner, with each corner bound to its own planned detector. The two crossing cells in the middle of the X form one more block, OS Switch 225, with no detector. CATS cannot put a block boundary where two blocks would meet on one side of a crossing (CROSSINGEDGE), or on points, so the middle has to be a block of its own.
+
+The X is two cells deep. To make room, the plugin (schematic-maps 0.1.31, `corners` binding) opens one row on the upper level below 225's top track, and other slopes across that row take a short vertical jog. The owner reviewed it in sandbox CATS and approved it. The 107 Loop was already two desk blocks.

@@ -328,16 +328,17 @@ class MainAndUpper(unittest.TestCase):
             B.check_apart({"West": {"name": "Track West"}}, {"1-2": {"name": "Track West"}})
 
     def test_the_loop_halves_and_225s_corners_on_the_desk(self):
-        """The committed bindings: the 107 Loop is two dark desk blocks, Loop 2 on its virtual detector; the desk draws
-        double crossover 225 as one block, on corner a's detector, and lists the four corner blocks as not on it."""
+        """The committed bindings: the 107 Loop is two dark desk blocks, Loop 2 on its virtual detector; double crossover
+        225 is a desk block per corner on its corner's detector, as in the Layout Editor (owner, 2026-11-17), and the
+        middle of its X, OS Switch 225, has no detector."""
         got = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
         loop = {e["name"]: e["_planned_occupied"] for e in got["blocks"].values() if "107 Loop" in e.get("name", "")}
         self.assertEqual({k: (v["JMRIPREFIX"], v["USER_NAME"]) for k, v in loop.items()},
                          {"Track 107 Loop 1": ("M2S", "BS 107 Loop 1"), "Track 107 Loop 2": ("IS", "BS 107 Loop 2")})
-        os225 = [e for e in got["blocks"].values() if e.get("name") == "OS Switch 225"]
-        self.assertEqual([e["_planned_occupied"]["USER_NAME"] for e in os225], ["BS Switch 225a"])
-        self.assertEqual(sorted(k for k in got["_main_upper_not_on_desk"] if k.startswith("OS Switch 225")),
-                         [f"OS Switch 225{c}" for c in "abcd"])
+        x225 = {e.get("name", k): e for k, e in got["blocks"].items() if e.get("name", k).startswith("OS Switch 225")}
+        self.assertEqual({k: e.get("_planned_occupied", {}).get("USER_NAME") for k, e in x225.items()},
+                         {"OS Switch 225": None, **{f"OS Switch 225{c}": f"BS Switch 225{c}" for c in "abcd"}})
+        self.assertFalse([k for k in got["_main_upper_not_on_desk"] if k.startswith("OS Switch 225")])
 
     def test_main_and_upper_are_ctc_and_not_detected_yet(self):
         # CTC: CATS holds their signals and releases them; detection comes with the into-service work (owner, 2026-11-17)
