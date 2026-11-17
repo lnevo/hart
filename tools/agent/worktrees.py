@@ -15,7 +15,9 @@ stays on main for pulls and deploys.
 `sweep` removes a worktree only when GitHub lists a merged PR for its branch whose head
 is the worktree's commit or a descendant of it (so nothing local is lost), the merge is
 at least GRACE old, and the worktree has no uncommitted or untracked changes. Its local
-branch goes with it. A fresh worktree with no PR yet, one with work after the merge, a
+branch goes with it. git refuses to remove a worktree with a submodule checked out; the
+sweep then forces it only when no submodule holds work that exists nowhere else (see
+submodule_risk). A fresh worktree with no PR yet, one with work after the merge, a
 detached one, and the ones holding a --keep directory (the caller's) are kept. The grace
 period lets another session finish in a worktree it just merged. Remote branches are left
 alone. Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py).
@@ -149,15 +151,67 @@ def sweep(dry_run: bool = False, keep: list[str] | None = None) -> list[str]:
         if dry_run:
             lines.append(f"would remove {tree.path} ({label})")
             continue
-        if os.path.isdir(tree.path) and not git_ok("worktree", "remove", tree.path, cwd=main):
-            lines.append(f"kept {tree.path}: git worktree remove refused")
-            continue
+        if os.path.isdir(tree.path):
+            why = remove_worktree(tree.path, main)
+            if why:
+                lines.append(f"kept {tree.path}: {why}")
+                continue
         git("worktree", "prune", cwd=main)
         if tree.branch and git("rev-parse", f"refs/heads/{tree.branch}", cwd=main) == tree.head:
             git("branch", "-D", tree.branch, cwd=main)
         lines.append(f"removed {tree.path} ({label}, PR merged)")
     lines += [f"kept {tree.path} ({tree.branch or tree.head[:8]}): {why}" for tree, why in kept]
     return lines
+
+
+def remove_worktree(path: str, main: str) -> str | None:
+    """Remove one planned worktree; None when it is gone, else why it was kept.
+
+    git refuses any worktree with a submodule checked out, and check.sh needs one in every
+    worktree. Only that refusal is forced, and only when the worktree is still clean and no
+    submodule holds work that exists nowhere else.
+    """
+    done = git_run("worktree", "remove", path, cwd=main)
+    if done.returncode == 0:
+        return None
+    refusal = done.stderr.strip()
+    if "submodule" not in refusal:
+        return f"git worktree remove refused: {refusal}"
+    if is_dirty(path):
+        return "git worktree remove refused: changes appeared since the plan"
+    why = submodule_risk(path)
+    if why:
+        return f"git worktree remove refused ({why})"
+    forced = git_run("worktree", "remove", "--force", path, cwd=main)
+    return None if forced.returncode == 0 else f"forced remove failed: {forced.stderr.strip()}"
+
+
+def submodule_risk(path: str) -> str | None:
+    """Why a forced remove could lose work in this worktree's checked-out submodules, or None.
+
+    A forced remove deletes each submodule's git dir (under .git/worktrees/<wt>/modules/), so
+    besides its files it checks every local branch and HEAD are on a remote-tracking branch
+    and there is no stash. The remote refs are as last fetched; the sweep does not fetch them.
+    """
+    listed = git_run("submodule", "foreach", "--quiet", "--recursive", 'echo "$displaypath"', cwd=path)
+    if listed.returncode != 0:
+        return "submodule listing failed"
+    for rel in listed.stdout.splitlines():
+        sub = os.path.join(path, rel)
+        if os.path.realpath(git("rev-parse", "--show-toplevel", cwd=sub)) != os.path.realpath(sub):
+            return f"submodule {rel} is not a readable checkout"
+        # The parent's status already shows submodule changes, unless submodule.<name>.ignore hides them.
+        if git("status", "--porcelain", cwd=sub):
+            return f"changes in submodule {rel}"
+        if git("rev-list", "-n1", "HEAD", "--branches", "--not", "--remotes", cwd=sub):
+            return f"submodule {rel} has commits on no remote branch"
+        if git_ok("rev-parse", "-q", "--verify", "refs/stash", cwd=sub):
+            return f"submodule {rel} has a stash"
+    return None
+
+
+def git_run(*args: str, cwd: str | Path | None = None) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", "-C", str(cwd or ROOT), *args], capture_output=True, text=True, timeout=120)
 
 
 def git_ok(*args: str, cwd: str | Path | None = None) -> bool:

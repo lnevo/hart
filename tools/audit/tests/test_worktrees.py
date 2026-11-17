@@ -134,6 +134,63 @@ class Sweep(Repo):
         self.assertFalse(os.path.exists(self.wt))
         self.assertEqual(sh("git", "branch", "--list", "agent/claude/x", cwd=self.main), "")
 
+    def add_submodule(self) -> str:
+        """Give the worktree a checked-out submodule cloned from a local 'remote' repo; return its path."""
+        src = os.path.dirname(self.main) + "/subsrc"
+        sh("git", "init", "-q", "-b", "main", src, cwd=os.path.dirname(self.main))
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-q", "--allow-empty",
+           "-m", "s", cwd=src)
+        sh("git", "-c", "protocol.file.allow=always", "submodule", "add", "-q", src, "ext/sub", cwd=self.wt)
+        sh("git", "commit", "-q", "-m", "submodule", cwd=self.wt)
+        return self.wt + "/ext/sub"
+
+    def test_sweep_removes_a_clean_worktree_with_a_submodule(self) -> None:
+        self.add_submodule()
+        lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertTrue(lines and lines[0].startswith("removed"), lines)
+        self.assertFalse(os.path.exists(self.wt))
+
+    def subcommit(self, sub: str, msg: str) -> None:
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-q", "--allow-empty",
+           "-m", msg, cwd=sub)
+
+    def assert_kept(self, reason: str) -> None:
+        lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertEqual(len(lines), 1, lines)
+        self.assertTrue(lines[0].startswith("kept"), lines)
+        self.assertIn(reason, lines[0])
+        self.assertTrue(os.path.exists(self.wt + "/ext/sub"))
+
+    def test_sweep_keeps_a_submodule_commit_that_is_on_no_remote(self) -> None:
+        sub = self.add_submodule()
+        self.subcommit(sub, "local only")
+        sh("git", "commit", "-q", "-am", "bump", cwd=self.wt)  # the worktree itself stays clean
+        self.assert_kept("submodule ext/sub has commits on no remote branch")
+
+    def test_sweep_keeps_an_unpushed_submodule_branch_behind_a_pushed_head(self) -> None:
+        sub = self.add_submodule()
+        pushed = sh("git", "rev-parse", "HEAD", cwd=sub)
+        sh("git", "checkout", "-q", "-b", "side", cwd=sub)
+        self.subcommit(sub, "side work")
+        sh("git", "checkout", "-q", "--detach", pushed, cwd=sub)  # HEAD back on the remote's commit
+        self.assert_kept("submodule ext/sub has commits on no remote branch")
+
+    def test_sweep_keeps_a_submodule_stash(self) -> None:
+        sub = self.add_submodule()
+        Path(sub, "scratch.txt").write_text("x\n")
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "stash", "push", "-q", "-u", cwd=sub)
+        self.assert_kept("submodule ext/sub has a stash")
+
+    def test_other_refusals_are_not_forced(self) -> None:
+        self.add_submodule()
+        saved = WT.git_run
+        WT.git_run = lambda *a, cwd=None: subprocess.CompletedProcess(a, 1, "", "fatal: some other reason")
+        try:
+            self.assertEqual(WT.remove_worktree(self.wt, self.main), "git worktree remove refused: fatal: some other reason")
+        finally:
+            WT.git_run = saved
+        self.assertTrue(os.path.exists(self.wt))
+
     def test_sweep_keeps_unmerged_worktree(self) -> None:
         self.assertEqual(self.sweep(lambda t: None), [])
         self.assertTrue(os.path.exists(self.wt))
