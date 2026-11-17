@@ -1,15 +1,16 @@
-# System schematic sheet (draft)
+# System schematic sheet
 
-This is the sheet drawn by the `schematic-maps` plugin (model-railroad-skills) from the layer files, with no hand edits. `tools/schematic/publish_draft.py` draws it, adds the DRAFT mark and prints the PDF; `--check` says whether the published copy is current. It stays a draft until the main and upper levels have names. Last drawn 2026-11-14 (Switch 13 to 15 one cell, East Lead and West Ext lengthened, owner's request).
+This is the sheet drawn by the `schematic-maps` plugin (model-railroad-skills) from the layer files, with no hand edits. `tools/schematic/publish_draft.py` draws it and prints the PDF; `--check` says whether the published copy is current. The DRAFT mark came off when the owner approved the helix-join release (2026-11-17); the files keep their `-draft` names so links stay. Last drawn 2026-11-14 (Switch 13 to 15 one cell, East Lead and West Ext lengthened, owner's request).
 
 - Drawing: [schematic-system-draft.svg](schematic-system-draft.svg)
 - Print copy, Letter landscape: [schematic-system-draft.pdf](schematic-system-draft.pdf)
 - Shows staging, main and upper level as built. Track only; no custom objects or buildings.
 - Staging masts come from the Layout Editor panel, drawn in the style of the NYAMR Physical Characteristics Book: a stem, an arm and one circle per head, on the right-hand side of the track for the direction the mast governs. Dashed masts at Princess are placeholders with no hardware yet. Dispatcher-only (virtual) masts are not drawn.
 - Every switch number, track name and mast name is placed clear of track and of each other (label check: 0 faults).
-- The copies in this folder add a red DRAFT mark in the title block. The drawing itself is unchanged.
 
 Inputs: the layer files and `staging.signals.json` in [`jmri/layouts/hart/data/schematic/`](../../jmri/layouts/hart/data/schematic/) (plan overrides, the owner's preferences, the old hand hints kept for comparison runs, and the masts generated from `tables.xml`), and the plan graphs in its `inputs/` folder. Specification: [`SCHEMATIC_SPEC.md`](SCHEMATIC_SPEC.md). `--preview DIR` draws the SVG and PDF into DIR for the owner to look at, without touching this folder or the title block's date and revision.
+
+Solved-sheet cache: solving the sheet takes 30 to 60 s, so publishing and the LE, CATS and device-map builds keep one solve in `~/.cache/hart/schematic` (the plugin's `SCHEMATIC_CACHE`, private to the user) and read it back while the plugin code the solve runs, the graphs and the layer files are unchanged. A change to the title block's date, revision or sheet alone, or to the plugin's Layout Editor or CATS code, keeps the solve. The Layout Editor build keeps its panels there too, so a run whose inputs are unchanged draws nothing again. `make panels` rebuilds everything drawn from the schematic in order (`make panels CHECK=1` checks it); about 12 s when nothing changed. `SCHEMATIC_CACHE= python3 tools/schematic/publish_draft.py` solves without it; deleting the folder clears it. A test that patches plugin code before a solve sets `SCHEMATIC_CACHE` to empty.
 
 ## Plan inputs
 
@@ -24,4 +25,4 @@ Checked 2026-11-14: both reproduce the committed graphs except for a `notes` lis
 
     python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); json.dump([{"name": p["name"], "eps": [{k: e[k] for k in "xyz"} for e in p["eps"] if e["sys"] == p["sys"]]} for p in d], open(sys.argv[2], "w"), separators=(",", ":"))' raw_parts.json $I/parts.json
 
-The staging masts, `staging.signals.json`, come from `tables.xml`, `switches.csv` and `block_lengths.csv`: `python3 tools/schematic/build_signals.py` regenerates them and `--check` (in `tools/check.sh`) fails when they are stale.
+The staging masts, `staging.signals.json`, come from `jmri/layouts/hart/data/schematic/staging_le/masts.csv`, frozen from the hand-drawn Layout Editor panel on 2026-11-15 (the generated Layout Editor panel places its masts from the same file): `python3 tools/schematic/build_signals.py` regenerates them, checking each run against the plan graph, and `--check` (in `tools/check.sh`) fails when they are stale.

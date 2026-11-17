@@ -4,29 +4,35 @@
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations  
 **Scope:** CATS Digicon panel (`HART_CTC.xml`), mouse dispatching in CTC mode
 
+**Parked:** the USS CTC machine and the Dispatcher System, named below as the other desk and the leftover PanelPro desks, are parked since the helix-join release (November 2026): not in the active panel; data kept in `jmri/layouts/hart/parked/`. The CATS desks stay live.
+
 Welcome to the desk. This guide is for **being a dispatcher on the CATS panel** — how you
 grant authority, line routes, and use fleeting, stacking, and call-on. It is **not** a
 software manual (menus, install, Designer, MQTT). For that, see the CATS PDF in
 `tools/cats/release3.2/catsManual.pdf` and [`HART_DIGICON_SYSTEM.md`](HART_DIGICON_SYSTEM.md).
 
 **Do not duplicate the USS machine guide.** HART also has a stock JMRI CTC lever panel
-(code buttons, N/L/R levers, 15 columns). That machine is documented separately:
+(code buttons, N/L/R levers, 15 columns). It is parked; its guide is kept:
 
 → [`jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md) (DS-DISP)
 
-To **run a train automatically** between stations (PanelPro, not CATS):
+The automatic Dispatcher System is parked too; its guide is kept:
 [`../../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md)
 (DS-AUTO).
 
-Run **either** CATS CTC **or** the JMRI USS panel — never both. Both drive Hold on the
-same masts. CATS ABS is a view-only mimic and is fine alongside either.
+The JMRI USS lever panel is parked since the helix-join release (November 2026), so CATS
+CTC is the CTC desk and nothing else drives Hold on the masts. CATS ABS is a view-only
+mimic and is fine alongside it.
 
-At CATS start, LogixNG hides the leftover PanelPro desks: **USS CTC** (IQC:AUTO:0002,
-same title on every host), **Dispatcher System**, and **WiThrottle**. IQC:AUTO:0004
-then hides **HART Railroad** only — CATS is detected from the running app
-(`cats.apps.Crandic` or Windows `CatsConfig.xml`), not merely from `cats.jar` on
-the classpath. PanelPro leaves **HART Railroad** visible so the geographic desk
-still works. Reopen **USS CTC** from the Panels menu when you want the lever machine.
+At CATS start, LogixNG hides **WiThrottle** (IQC:AUTO:0001). IQC:AUTO:0004 then hides
+**HART Railroad** only — CATS is detected from the running app (`cats.apps.Crandic` or
+Windows `CatsConfig.xml`), not merely from `cats.jar` on the classpath. PanelPro leaves
+**HART Railroad** visible so the geographic desk still works.
+
+The CTC desk covers all three levels. Staging, main and upper are all CTC: CATS holds
+their signals. A route set up the helix from staging stops at the first signal on the
+level (Mast 136RA on main, 136RB on upper) until the dispatcher clears it. The ABS desk
+(`HART_ABS.xml`) is all ABS.
 
 **Help** and **Quit** on **CTC Panel** sit on the bottom button strip (with Restart
 RPi / Shutdown RPi). The Digicon **Dispatcher Panel** is schematic-only — no

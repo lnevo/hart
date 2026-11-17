@@ -1,5 +1,10 @@
 # HART Railroad — Auto Dispatcher Guide
 
+> **Parked since the helix-join release (November 2026).** The Dispatcher System is out of the active
+> `tables.xml` and this guide does not apply until it is unparked; see
+> [`../parked/README.md`](../parked/README.md). The CTC desk now is CATS:
+> [`docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../../../docs/ctc/DISPATCHER_GUIDE_CTC.md).
+
 **Publication:** DS-AUTO · Rev A · Eff 2026-08-20
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations
 **Scope:** JMRI Dispatcher System on PanelPro (panels **Dispatcher System** and **HART Railroad**)
@@ -52,8 +57,7 @@ placeholder; Dispatcher System swaps in the train registered at the station
 (Setup Train in Section) when it dispatches. Adding engines adds no files.
 
 Run Stage 1 with `jmri/layouts/hart/scripts/run_panelpro_stage1.sh`. It does
-the repairs after every run (manual Princess SML pairs, HEAD_AND_TAIL
-detection, station icons, Digicon SML disabled, labels and lamps; see
+the repairs after every run (HEAD_AND_TAIL detection, station icons, Digicon SML disabled, labels and lamps; see
 `wiki/DISPATCHER_LAYOUT_HOOPS.md`). Never run Stage 1 or store tables from
 CATS.
 

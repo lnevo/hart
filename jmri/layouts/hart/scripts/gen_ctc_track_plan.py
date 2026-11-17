@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the USS CTC track diagram from the CATS Digicon (v77).
+"""Generate the USS CTC track diagram on the CATS Digicon grid (v77), frozen in uss_board_cells.csv.
 
 20 packed columns. Occupancy jewels bind to BS userNames. Brick column 1 is N/R,
 101 is L/N, 102 is L/N, 117 is LNR. Signal icons sit in the CATS desk's
@@ -25,14 +25,12 @@ import layout_facts as facts  # noqa: E402
 from uss_switch_only_columns import ensure_columns  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[4]
-sys.path.append(str(ROOT / "cats/scripts"))
-from wire_digicon import PLANT_CELLS  # noqa: E402  (also puts hartlib on sys.path)
-from hartlib import tables as hl_tables  # noqa: E402
+from hartlib import tables as hl_tables  # noqa: E402  (layout_facts put hartlib on sys.path)
 
-CATS_XML = ROOT / "cats/panels/HART_CTC.xml"
-CATS_DESIGNER = ROOT / "cats/panels/HART_Digicon.xml"
-if not CATS_XML.is_file():
-    CATS_XML = CATS_DESIGNER
+# The board's grid: the cells of the hand-wired CATS desk, frozen on 2026-11-15 into
+# jmri/layouts/hart/data/uss_board_cells.csv and uss_board_plants.csv (CATS cut-over),
+# so the board no longer reads a desk. --cats DESK reads a desk's cells instead.
+PLANT_CELLS = facts.load_uss_plants()
 GUI_XML = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 SOURCE_TABLES = ROOT / "tables/tables.xml"
@@ -105,11 +103,11 @@ def uss_plants(switches: dict, plant_cells: dict) -> dict:
     owner = {os_name: sw for sw in switches.values() for os_name in sw.os_blocks}
     missing = [f"{os_name} at {xy}" for xy, os_name in plant_cells.items() if os_name not in owner]
     if missing:
-        raise SystemExit("wire_digicon.PLANT_CELLS names OS blocks with no row in "
+        raise SystemExit("uss_board_plants.csv names OS blocks with no row in "
                          "switch_legs.csv: " + ", ".join(missing))
     undrawn = sorted(set(owner) - set(plant_cells.values()))
     if undrawn:
-        raise SystemExit("switch_legs.csv OS blocks with no cell in wire_digicon.PLANT_CELLS: "
+        raise SystemExit("switch_legs.csv OS blocks with no cell in uss_board_plants.csv: "
                          + ", ".join(undrawn))
     return {
         xy: (owner[os_name].turnout, owner[os_name].cats_inverted)
@@ -350,7 +348,8 @@ TURNOUT = """<turnouticon turnout="{name}" x="{x}" y="{y}" level="7" forcecontro
       <iconmaps />
     </turnouticon>"""
 
-LAMP = """<sensoricon sensor="{sensor}" x="{x}" y="{y}" level="10" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+# Occupancy jewels are display only (forcecontroloff): a click must never set a block occupied (owner, 2026-11-15).
+LAMP = """<sensoricon sensor="{sensor}" x="{x}" y="{y}" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>{tip}</tooltip>
       <active url="{u}sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -649,6 +648,25 @@ def parse_cats(path: Path) -> dict:
                     blocks.append((edge, bname, sensor))
         cells[(x, y)] = dict(tracks=tracks, name=name, blocks=blocks)
     return cells
+
+
+def desk_cells(path: Path) -> dict:
+    """parse_cats(path) for --cats, refused when the desk's wired plants are not the frozen plant cells
+    (uss_board_plants.csv), which the points dots and OS jewels follow."""
+    sys.path.append(str(ROOT / "cats/scripts"))
+    import digicon_trace as trace
+    tp = ET.parse(path).getroot().find("TRACKPLAN")
+    try:
+        have = trace.desk_plants(trace.track_cells(tp))
+    except trace.PlantError as e:
+        raise SystemExit(f"{path}: cannot read its plants ({e})") from None
+    want = {os_name: xy for xy, os_name in PLANT_CELLS.items()}
+    if have != want:
+        diff = sorted(f"{n}: desk {have.get(n)}, uss_board_plants.csv {want.get(n)}"
+                      for n in set(have) | set(want) if have.get(n) != want.get(n))
+        raise SystemExit(f"{path}: its plants are not the frozen plant cells; "
+                         "update uss_board_plants.csv or use the frozen grid: " + "; ".join(diff))
+    return parse_cats(path)
 
 
 _SWITCH_OS_RE = re.compile(r"^(?:OS Switch |(?:OS|Track) )\d")
@@ -1332,9 +1350,20 @@ def install_preference_icons() -> list[Path]:
     return written
 
 
+def parked_target(path: Path) -> bool:
+    """Whether `path` is the checkout's tables while the USS CTC machine is parked (hartlib.parked): its panel is in
+    the parked file, so the rebuild leaves the tables alone (unpark it to put a new panel in)."""
+    from hartlib import parked
+    if "uss" in parked.PARKED and path.resolve() == OUTPUT_TABLES.resolve():
+        print("%s: not changed, the USS CTC machine is parked (hartlib.parked.PARKED)" % path)
+        return True
+    return False
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cats", type=Path, default=CATS_XML)
+    ap.add_argument("--cats", type=Path, default=None,
+                    help="read the grid from this CATS desk instead of uss_board_cells.csv")
     ap.add_argument("--gui", type=Path, default=GUI_XML)
     ap.add_argument("--tables", type=Path, default=None,
                     help="Optional. output/tables.xml or jmri/layouts/hart/output/tables.xml — never tables/tables.xml")
@@ -1350,7 +1379,7 @@ def main() -> None:
 
     if not args.xml_only:
         write_cell_icons()
-    cells = parse_cats(args.cats)
+    cells = desk_cells(args.cats) if args.cats else facts.load_uss_cells()
     txt = args.gui.read_text()
     new = apply(txt, cells)
     args.gui.write_text(new)
@@ -1378,9 +1407,9 @@ def main() -> None:
                 else "Brick SIDI updated",
             ))
 
-    if args.tables:
+    if args.tables and not parked_target(args.tables):
         embed(args.tables, replace_panel=True)
-    elif OUTPUT_TABLES.is_file():
+    elif not args.tables and OUTPUT_TABLES.is_file() and not parked_target(OUTPUT_TABLES):
         embed(OUTPUT_TABLES, replace_panel=True)
 
     if args.preview:

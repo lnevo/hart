@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import shutil
+import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
@@ -14,6 +15,12 @@ spec = importlib.util.spec_from_file_location(
 throat = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(throat)
+
+# apply_yard_throat_blocks.py was a one-off edit of the hand-drawn panel. Since the cut-over the repo's tables.xml
+# holds the generated panel, so these checks read the last hand-drawn tables (git, hartlib.hand_drawn)
+sys.path.insert(0, str(SCRIPTS.parents[3] / "tools/hartlib/src"))
+from hartlib import hand_drawn  # noqa: E402
+HAND_DRAWN = hand_drawn.skip_unless_available()
 
 SYS = "IF$vsm:basic:one-low($1021)"
 
@@ -46,7 +53,7 @@ class EnsureVirtualMastTest(unittest.TestCase):
         self.assertEqual("Mast 10RA", masts[0].findtext("userName"))
 
     def test_eh_exit_icons_face_eastbound_in_script_and_tables(self):
-        tables = ET.parse(throat.DEFAULT).getroot()
+        tables = ET.parse(HAND_DRAWN).getroot()
         icons = {
             ic.get("signalmast"): ic.get("degrees")
             for ic in tables.iter("signalmasticon")
@@ -78,7 +85,7 @@ class EnsureVirtualMastTest(unittest.TestCase):
 
 class RearMastsTest(unittest.TestCase):
     def test_each_rear_mast_protects_its_station(self):
-        root = ET.parse(throat.DEFAULT).getroot()
+        root = ET.parse(HAND_DRAWN).getroot()
         le = throat._le(root)
         segs = {ts.get("ident"): ts for ts in le.findall("tracksegment")}
         points = {pt.get("ident"): pt for pt in le.findall("positionablepoint")}
@@ -93,7 +100,7 @@ class RearMastsTest(unittest.TestCase):
             self.assertEqual(row["throat"], segs[pt.get(other)].get("blockname"), row["anchor"])
 
     def test_switch_leg_masts_stay_on_their_turnouts(self):
-        le = throat._le(ET.parse(throat.DEFAULT).getroot())
+        le = throat._le(ET.parse(HAND_DRAWN).getroot())
         slots = {
             (to.get("ident"), c.tag): (c.text or "").strip()
             for to in le.findall("layoutturnout")
@@ -125,7 +132,7 @@ class CurrentTablesTest(unittest.TestCase):
     def run_on_copy(self, fn) -> tuple[int, bytes, bytes]:
         with tempfile.TemporaryDirectory() as temporary:
             copy = Path(temporary) / "tables.xml"
-            shutil.copyfile(throat.DEFAULT, copy)
+            shutil.copyfile(HAND_DRAWN, copy)
             before = copy.read_bytes()
             edits = fn(copy)
             return edits, before, copy.read_bytes()
@@ -138,7 +145,7 @@ class CurrentTablesTest(unittest.TestCase):
     def test_stop_on_old_name_leaves_file_untouched(self):
         with tempfile.TemporaryDirectory() as temporary:
             copy = Path(temporary) / "tables.xml"
-            text = throat.DEFAULT.read_text(encoding="utf-8")
+            text = HAND_DRAWN.read_text(encoding="utf-8")
             # Old slot name, plus a pending throat edit that runs first.
             text = text.replace(
                 "<signalCMast>Mast 10RA</signalCMast>", "<signalCMast>Mast 9LA</signalCMast>", 1
@@ -154,6 +161,50 @@ class CurrentTablesTest(unittest.TestCase):
         edits, before, after = self.run_on_copy(throat.apply_scale_east)
         self.assertEqual(0, edits)
         self.assertEqual(before, after)
+
+    def test_scale_east_moves_the_nx_sensor_with_8ra(self):
+        """A tables file from before 2026-11-15 has NX Mast 8RA left on TO117 A; it moves to A45 east."""
+        text = HAND_DRAWN.read_text(encoding="utf-8")
+        old_point = 'eastboundsignalmast="Mast 8RA" westboundsignalmast="Mast 8LC" eastboundsensor="NX Mast 8RA" class='
+        self.assertEqual(1, text.count(old_point))
+        text = text.replace(old_point, 'eastboundsignalmast="Mast 8RA" westboundsignalmast="Mast 8LC" class=', 1)
+        text = text.replace("<sensorB>NX Mast 8LB</sensorB>",
+                            "<sensorA>NX Mast 8RA</sensorA>\n      <sensorB>NX Mast 8LB</sensorB>", 1)
+        with tempfile.TemporaryDirectory() as temporary:
+            copy = Path(temporary) / "tables.xml"
+            copy.write_text(text, encoding="utf-8")
+            self.assertEqual(2, throat.apply_scale_east(copy))
+            after = copy.read_text(encoding="utf-8")
+        self.assertNotIn("<sensorA>NX Mast 8RA</sensorA>", after)
+        a45 = [pt for pt in ET.fromstring(after.encode()).iter("positionablepoint") if pt.get("ident") == "A45"]
+        self.assertEqual(["NX Mast 8RA"], [pt.get("eastboundsensor") for pt in a45])
+
+
+class NxSlotAuditTest(unittest.TestCase):
+    """audit_panel_contracts stops when an NX sensor is not in its own mast's slot."""
+
+    def problems(self, text: str) -> list[str]:
+        import sys
+        sys.path.insert(0, str(SCRIPTS))
+        import audit_panel_contracts as audit
+        found: list[str] = []
+        audit.audit_nx_slots(ET.fromstring(text), found.append)
+        return found
+
+    def test_left_behind_sensor_is_reported(self):
+        panel = ('<root><LayoutEditor name="HART Railroad">'
+                 '<layoutturnout ident="TO117"><signalBMast>Mast 8LB</signalBMast>'
+                 '<sensorA>NX Mast 8RA</sensorA><sensorB>NX Mast 8LB</sensorB></layoutturnout>'
+                 '<positionablepoint ident="A45" eastboundsignalmast="Mast 8RA" '
+                 'westboundsensor="NX Mast 8LC" westboundsignalmast="Mast 2L"/>'
+                 '</LayoutEditor></root>')
+        found = self.problems(panel)
+        self.assertEqual(2, len(found), found)
+        self.assertIn("NX Mast 8RA is on TO117 A", found[0])
+        self.assertIn("NX Mast 8LC is on A45 westbound", found[1])
+
+    def test_live_tables_pass(self):
+        self.assertEqual([], self.problems(HAND_DRAWN.read_text(encoding="utf-8")))
 
 
 if __name__ == "__main__":

@@ -352,6 +352,8 @@ def main() -> int:
     parser.add_argument("--write-canvas", action="store_true")
     parser.add_argument("--apply-comments", action="store_true")
     args = parser.parse_args()
+    if args.write_csv or args.write_canvas or args.apply_comments:
+        paths.exit_if_overridden(Path(__file__).name)
     if not args.canvas.is_file():
         print(f"missing Device map canvas: {args.canvas}", file=sys.stderr)
         return 2

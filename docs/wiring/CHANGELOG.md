@@ -2,6 +2,10 @@
 
 Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
 
+
+## 2026-11-15 — v86: main and upper levels from the device map
+
+`LCOS_Layout_Inventory_v86.xlsx` is v85 with the main and upper levels of plan 5.3b, written by `scripts/add_main_upper_levels.py` from `jmri/layouts/hart/data/schematic/device_map_main_upper.csv` (`tools/schematic/build_device_map.py`). The August 2026 upper-deck plan, drawn for an older track plan, is gone: nodes C14, C21, C22, C23, C24 and C32 with Switches 61 to 91, and C11's motor outputs OU1-1 to 6 (C11 keeps its helix blocks). In their place: 13 nodes (upper C14, C21, C22, C23, C24, C41, C44, C54; main C33, C34, C42, C43, C52; C32 is no longer used), 41 turnouts (DCC 120 to 160), their feedback, 35 main-line detectors and 39 home masts. Radio addresses come from v85 (upper) and the owner's node grid `media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx` (main). Boards follow this README: turnouts on 12V boards from OU1, heads R/Y/G on 5V boards after them, pin 8 of the first 5V board for detector calibration, at most four DNOU8 boards per node. All placeholders: nothing is wired and `tables.xml` is not patched. Staging rows and DigiconSignals are unchanged. Every main and upper row is shaded light blue (owner, 2026-11-15).
 ## 2026-11-07 (evening) — Princess signal letters follow the roles
 
 The closed leg of Switches 39 / 37 is the main, so the two-head heads (C11 OU2 `1132`/`1135`, C1 OU4 `139`/`140`) are now **Mast 40LA / 38LA** (Heads `40LA Top/Bottom`, `38LA Top/Bottom`) and the dwarfs (`1136`, `143`) are **Mast 40LB / 38LB**. Ports, nodes and packed IDs are unchanged; only the names on the rows moved. No field hardware is installed yet. See [ADR-017](../../wiki/decisions/ADR-017-princess-track-name-swap.md) item 9.
@@ -56,6 +60,10 @@ Each 2-head mast now occupies 6 consecutive pins on one DNOU8 so that board can 
 
 Two-head masts are two 3-pin LCOS objects (T + B) on the same radio. New **5V DNOU8 OU4** on **C1, C2, C3, C13**. C1 also reuses OU2-8 (was relay) so 24 pins cover 24 lamps. C11 36RB Bottom uses leftover OU3 (no new board). Dwarfs stay one 3-pin disc. Packed MQTT: bottoms use the historical adjacent UID (433, 439, 1333, …). Full disc × OU × G/Y/R table: [`README.md`](README.md#digicon-heads-and-ou-boards). `tables.xml` not patched.
 
+## 2026-11-14 — Old node labels retired
+
+Every enclosure and board is now labelled with its radio-address ID (owner). The wiring schematic deck no longer prints "(was C3)" in its titles, and the website's wiring viewer and `wiring-inventory.json` drop the old labels. The inventory keeps its **Legacy Node ID** column as history only.
+
 ## 2026-08-29 — Node ID = radio Address
 
 Enclosure labels now match the Nodes **Address**: `C2` is radio 2 (East End signals), `C12` is radio 12 (East End turnouts 107–112). Old sequential C1–C13 / D1 IDs are in **Legacy Node ID** (v84 snapshot unchanged). Helix DCC is **D5**. Packed MQTT numbers are unchanged (Plane/Brick heads stay `4xx` on C3). Princess **C1**; overflow **C11**; Barn **C13**; Plane/Brick **C3**.
@@ -78,6 +86,6 @@ C5-B3-1 (`Block 13-5` / M2S1304) is **EH-3** (track T11). C5-B4-1 (`Block 13-7` 
 - **signals_asbuilt_abs_v2.xlsx** rebuilt from the same CSVs (Digicon names, Scale/Barn, new Princess dwarfs). **Princess** / **all_logic** now include 114LA, 115LA, 114R, 115R (K-1/K-2 westbound + A48 balloon). **signals_split_v8.xlsx** kept as the frozen RGB plan (README sheet added).
 
 ## Still true from v84b
-- Physical board silk / tape may still show sequential C1–C13; inventory **Legacy Node ID** is that label. MQTT occupancy (`Block n-n`, `M2T12xx`) already used Address.
+- MQTT occupancy (`Block n-n`, `M2T12xx`) already used Address.
 - Confirm physical board IDs for C13 yard motors/FB (ASSUMED in v84 as C5).
 - Upper-deck RGB (`S4-*`…`S6-*`) is still the planned matrix, not Digicon.

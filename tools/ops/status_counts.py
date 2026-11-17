@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables as hl_tables  # noqa: E402
+from hartlib import parked, paths, tables as hl_tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
@@ -35,14 +35,20 @@ def counts(tables: Path = TABLES, traininfo: Path = TRAININFO) -> dict:
         "dest": sum(len(s.findall("destinationMast")) for s in sml),
         # Only the XML files Dispatcher writes; Finder's .DS_Store and the like stay out.
         "traininfo": sum(1 for p in traininfo.glob("*.xml") if p.is_file()),
+        "parked": parked.parked_in(root),       # the parked features these tables leave out (hartlib.parked)
     }
 
 
 def line(c: dict) -> str:
+    left_out = c.get("parked", ())
+    graph = ("sections and transits parked" if "dispatcher" in left_out
+             else f"{c['sections']:,} sections, {c['transits']:,} transits")
+    nx = "NX pairs parked" if "nx" in left_out else f"{c['nx']:,} NX pairs"
+    trains = (f"{c['traininfo']:,} traininfo files kept in the repo" if "dispatcher" in left_out
+              else f"{c['traininfo']:,} traininfo files")
+    uss = ", USS CTC machine parked" if "uss" in left_out else ""
     return (f"- **Counts:** {c['masts']:,} masts ({c['real']:,} real, {c['virtual']:,} virtual), "
-            f"{c['sections']:,} sections, {c['transits']:,} transits, {c['nx']:,} NX pairs, "
-            f"{c['sml']:,} SML sources with {c['dest']:,} destinations, "
-            f"{c['traininfo']:,} traininfo files.")
+            f"{graph}, {nx}, {c['sml']:,} SML sources with {c['dest']:,} destinations, {trains}{uss}.")
 
 
 def rewrite(text: str, new: str) -> str:
@@ -64,6 +70,8 @@ def main(argv: list[str]) -> int:
     except ValueError as exc:
         print(exc)
         return 1
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
     if args.check:
         if new != text:
             print("wiki/STATUS.md Counts line is stale; run python3 tools/ops/status_counts.py")

@@ -38,7 +38,7 @@
     <article class="feature">
       <header class="feature-head">
         <h1>Speed matching CSX 2121 and 2738</h1>
-        <p class="standfirst">Two locomotives that run at different speeds cannot work together; one drags the other. This is how AI timed both over the detection blocks and corrected 2738&rsquo;s decoder to match 2121.</p>
+        <p class="standfirst">Two locomotives running as a pair need the same speed at each throttle step. This is how AI timed both over the detection blocks and corrected 2738&rsquo;s decoder to match 2121.</p>
         <p class="byline">Locomotives · updated November 2026</p>
       </header>
 
@@ -56,9 +56,11 @@
       <div class="feature-body">
         <section id="job" aria-labelledby="h-job">
           <h2 id="h-job">The job</h2>
-          <p>Two locomotives that run at different speeds cannot work together; one drags the other. I wanted CSX 2121 and 2738 to run as a pair.</p>
+          <p>CSX 2121 and 2738 run as a pair, so 2738&rsquo;s decoder had to match 2121&rsquo;s speeds.</p>
           <h3 class="ai-sub">What AI did</h3>
           <p>A program running inside JMRI sets a locomotive to a throttle step, lets it run through the block sensors and times each block, step after step, with no hands on the throttle. Block lengths now come from the track plan and were checked against timed passes. Both locomotives were measured in both directions on 13 November 2026, 2738 was adjusted to match 2121, and the two were compared stopping.</p>
+          <h3 class="ai-sub">Try it on your layout</h3>
+          <p>Two prompts to paste into an AI coding agent such as Claude Code are on the <a href="https://github.com/lnevo/hart/blob/main/docs/jmri/speedmatching/prompts/README.md">speed matching prompts page</a>. One works out block lengths you do not know from timed runs and one known loop length, which is how the lengths here were found. The other starts a speed-matching job: what you need first, the decoder checks, the safety rules for programming on the main, and the steps.</p>
                   </section>
 
         <section id="results" aria-labelledby="h-results">
@@ -194,11 +196,11 @@
           <div class="ai-verdict">
             <b>Verdict</b>
             <ul>
-              <li><span class="k">Worked well:</span> hours of unattended, repeatable measuring, a speed table worked out from the numbers rather than by feel, and one trim setting that matched both directions.</li>
+              <li><span class="k">Worked well:</span> hours of unattended, repeatable measuring, a speed table worked out from the measured numbers, and one trim setting that matched both directions.</li>
               <li><span class="k">Be honest about:</span> step 8 stays about 20 per cent apart, and step 16 is 6 per cent apart in one pairing. Block lengths now come from the track plan and were checked against timed passes; both directions were measured. Some loop 2 lengths are still estimates, so scale miles an hour is approximate. A block lighting again behind the locomotive can be taken as the next block, which is not fixed. The coupled stop test has not run cleanly.</li>
             </ul>
           </div>
-                    <p class="ai-see"><b>See it:</b> <a href="../docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf">Speed matching and the measure table</a> (the Short Track Rail Road club&rsquo;s procedure, PDF, 37 pp, which HART is adapting for HO)</p>
+                    <p class="ai-see"><b>See it:</b> <a href="../docs/STRR_Speed_Match_Measure_Table_SOP_Rev2.pdf">Speed matching and the measure table</a> (the Short Track Rail Road club&rsquo;s procedure, PDF, 37 pp, which HART is adapting for HO) · <a href="https://github.com/lnevo/hart/blob/main/docs/jmri/speedmatching/prompts/README.md">Speed matching prompts (GitHub)</a></p>
         </section>
       </div>
     </article>

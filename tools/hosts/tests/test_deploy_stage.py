@@ -109,6 +109,22 @@ class StageOnly(unittest.TestCase):
                 self.assertTrue((self.out / host / "cats/scripts" / name).is_file(), name)
         self.assertTrue(os.access(self.out / "pi/cats/scripts/pi/apply_hart_package_local.sh", os.X_OK))
 
+    def test_parked_features_stay_out_of_the_package(self) -> None:
+        """A parked feature's files outside tables.xml are not shipped (hartlib.parked), so the host apply scripts
+        install none of them and leave the copies already on a host alone; an unparked one ships."""
+        import sys
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import parked
+        dispatcher = "dispatcher" in parked.PARKED
+        uss = "uss" in parked.PARKED
+        for host in ("pi", "win"):
+            pkg = self.out / host
+            self.assertEqual((pkg / "jmri/layouts/hart/dispatcher").exists(), not dispatcher, host)
+            self.assertEqual((pkg / "jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py").exists(),
+                             not dispatcher, host)
+            self.assertEqual((pkg / "ctc").exists(), not uss, host)
+            self.assertTrue((pkg / "jmri/layouts/hart/scripts/hide_cats_desk_windows.py").is_file(), host)
+
     def test_apply_scripts_are_where_deploy_calls_them(self) -> None:
         source = SYNC.read_text(encoding="utf-8")
         self.assertIn("${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh", source)
@@ -152,6 +168,29 @@ class StageOnly(unittest.TestCase):
 
         # Only the stamp may differ (its date is taken per run).
         self.assertLessEqual(set(differing(cmp)), {"cats/deploy_stamp.txt"})
+
+
+class FinderLitterStaysOut(unittest.TestCase):
+    """A gitignored .DS_Store in a staged folder of the checkout must not reach the package.
+
+    Only .DS_Store is planted: it is gitignored, so a run killed before its cleanup leaves the checkout clean.
+    """
+
+    PLANTED = ("jmri/resources/jmri-web/.DS_Store", "jmri/resources/jmri-web/servlet/.DS_Store",
+               "tools/hosts/pi/.DS_Store", "tools/hosts/windows/.DS_Store")
+
+    def test_package_has_no_finder_files(self) -> None:
+        for rel in self.PLANTED:
+            path = ROOT / rel
+            if not path.exists():
+                path.write_bytes(b"\0")
+                self.addCleanup(path.unlink, missing_ok=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "stage"
+            done = run(SYNC, out, stage_env(Path(tmp)))
+            self.assertEqual(done.returncode, 0, done.stderr[-2000:])
+            litter = [p for p in tree(out) if Path(p).name == ".DS_Store" or Path(p).name.startswith("._")]
+            self.assertEqual(litter, [])
 
 
 class StageOnlyRefusals(unittest.TestCase):

@@ -14,8 +14,8 @@
       <p class="sheet-pub"><span id="briefing-pub">HB-01 · Revision B</span> <span id="briefing-dl"></span></p>
       <p id="briefing-lede"></p>
     </div>
-    <figure class="hub-banner">
-      <a href="../crew/maps/index.html"><img src="../assets/maps/station_map_full.png" alt="Station map of the whole railroad, west to east: W-1 and W-2, Brick, Plane, the Barn with its engine house tracks EH-1 to EH-3, South Yard, the East End industries on Tracks S-1 to S-4, then Princess and the Shenango loop." style="display:block;width:100%;height:auto"></a>
+    <figure class="hub-banner hub-banner-photo" style="--banner-focus: 50% 45%">
+      <img src="../assets/briefing/engine-house-banner.jpg" alt="Diesel locomotives lined up outside the engine house, ready to be assigned to trains." decoding="async">
     </figure>
     <div id="briefing-body"><p class="muted">Loading…</p></div>
   </main>
@@ -184,9 +184,17 @@
       if (data.firstNight) jump.push({ id: "first-night", label: "Your first night" });
       (data.sections || []).forEach(function (sec) {
         jump.push({ id: sec.id, label: sec.heading });
+        if (data.arrive && data.arrive.after === sec.id) jump.push({ id: "arrive", label: "When you arrive" });
       });
-      if (data.arrive) jump.push({ id: "arrive", label: "When you arrive" });
       jump.push({ id: "deeper", label: "Dig deeper" });
+      var arriveBlock = "";
+      if (data.arrive) {
+        try {
+          arriveBlock = arriveHtml(data.arrive, await HARTOps.loadJson("data/gallery.json"));
+        } catch (err) {
+          console.error(err);
+        }
+      }
       var html = data.firstNight ? firstNightHtml(data.firstNight) : "";
       html += jumpHtml(jump);
       html += (data.sections || [])
@@ -233,20 +241,22 @@
                 .join("") +
               "</div>";
           }
+          if (sec.figure) {
+            var fg = sec.figure;
+            html +=
+              '<figure class="primer-figure"><a href="' + href("crew/maps/index.html") + '"><img src="' + esc(href(fg.src)) +
+              '" alt="' + esc(fg.alt) + '" width="' + fg.width + '" height="' + fg.height + '" loading="lazy"></a>' +
+              '<figcaption class="small">' + esc(fg.caption) + ' <a href="' + href(fg.pdf) + '">PDF to print</a> · <a href="' +
+              href("crew/maps/index.html") + '">All station maps</a></figcaption></figure>';
+          }
           if (sec.link) {
             html += '<p><a href="' + href(sec.link.href) + '">' + esc(sec.link.label) + "</a></p>";
           }
           html += "</section>";
+          if (data.arrive && data.arrive.after === sec.id) html += arriveBlock;
           return html;
         })
         .join("");
-      if (data.arrive) {
-        try {
-          html += arriveHtml(data.arrive, await HARTOps.loadJson("data/gallery.json"));
-        } catch (err) {
-          console.error(err);
-        }
-      }
       var deeper = data.deeper || { heading: "If you want to dig deeper", paragraphs: [] };
       html += '<section class="panel" id="deeper"><h2>' + esc(deeper.heading) + "</h2>";
       (deeper.paragraphs || []).forEach(function (p) {

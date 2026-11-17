@@ -154,6 +154,18 @@ class WiringCrosswalkTest(unittest.TestCase):
         root = ET.parse(paths.TABLES_XML).getroot()
         self.assertEqual(check.problems(rows, root), [])
 
+    def test_main_and_upper_masts_are_checked_against_their_own_file(self):
+        """A main or upper mast on virtual heads (IH:HART:C3:...) is not in the wiring plan yet: it must carry the
+        heads main_upper_masts.csv gives it, and its virtual heads are no reason to fail the read."""
+        with (paths.SIGNAL_WIRING).open(newline="") as f:
+            rows = list(csv.DictReader(f))
+        root = ET.parse(paths.TABLES_XML).getroot()
+        mast = next(m for m in root.iter("signalmast") if (m.findtext("userName") or "") == "Mast 108R")
+        mast.find("systemName").text = "IF$shsm:basic:two-searchlight(IH:HART:C3:108R_Top)(IH:HART:C3:108LA)"
+        self.assertEqual(check.problems(rows, root),
+                         ["Mast 108R: virtual heads IH:HART:C3:108R_Top IH:HART:C3:108LA, main_upper_masts.csv "
+                          "IH:HART:C3:108R_Top IH:HART:C3:108R_Bottom"])
+
 
 if __name__ == "__main__":
     unittest.main()

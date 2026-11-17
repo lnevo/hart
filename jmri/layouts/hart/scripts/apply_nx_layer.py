@@ -20,6 +20,16 @@ Modes (--mode):
         the path. CATS CTC and USS Logic off while this is on.
 
 Switch later: python3 apply_nx_layer.py --mode lock && deploy.
+
+A mast whose NX sensor is already bound somewhere on the panel (a turnout leg's
+<sensorX> or an anchor's east/westboundsensor) gets no second binding.
+
+On a generated panel (build_layout_le.py --as-live; it holds the hidden
+hartlib.tables.GENERATED_PANEL_MARKER label) the pixel tables MAST_ALIGN and
+NX_ICON_POSITIONS are the hand-drawn panel's and are not used: mast icons and NX
+icons keep where they stand, and no NX icon is added (owner, 2026-11-16: the
+generated panel shows no NX sensor icons; the sensors bound in the mast slots are
+what Entry/Exit discovery and the pairs use).
 """
 
 from __future__ import annotations
@@ -27,6 +37,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
@@ -40,7 +51,7 @@ from nx_contract import (
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables  # noqa: E402
 
 DEFAULTS = [paths.TABLES_XML]
 
@@ -64,11 +75,11 @@ CTC_MASTS = {
     "Mast 36RA": "Princess, Track Main West eastbound; lever 26 Right",
     "Mast 36RB": "Princess, Track East Lead eastbound; lever 26 Right",
     "Mast 2036": "Princess, Track K-2 dwarf eastbound; lever 28 Right",
-    "Mast 38LA": "Princess, Track McKeesport dwarf westbound; lever 28 Left",
-    "Mast 38LB": "Princess, Track K-2 westbound; lever 28 Left",
+    "Mast 38LA": "Princess, Track McKeesport westbound home, two-head; lever 28 Left",
+    "Mast 38LB": "Princess, Track K-2 dwarf westbound; lever 28 Left",
     "Mast 2035": "Princess, Track K-1 dwarf eastbound; lever 30 Right",
-    "Mast 40LA": "Princess, Track McKees Rocks dwarf westbound; lever 30 Left",
-    "Mast 40LB": "Princess, Track K-1 westbound; lever 30 Left",
+    "Mast 40LA": "Princess, Track McKees Rocks westbound home, two-head; lever 30 Left",
+    "Mast 40LB": "Princess, Track K-1 dwarf westbound; lever 30 Left",
 }
 
 INTERNAL_CLOSE = "  </sensors>\n  <turnouts class=\"jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml\">"
@@ -124,7 +135,7 @@ NX_ICON_POSITIONS: dict[str, tuple[int, int]] = {
     "Mast 4RB": (198, 293),   # Track W-2, left+up off the rail
     "Mast 6LA": (374, 305),   # Track Scale into 102
     "Mast 6LB": (378, 353),   # Track East Ext into 102
-    "Mast 8RA": (462, 305),   # Track Scale into 117
+    "Mast 8RA": (462, 305),   # just east of A45 (its slot since 2026-11-15), on OS Switch 7; lamp rework pending
     "Mast 8LB": (548, 305),   # Track Barn into 117; same X as Mast 8LA
     "Mast 8RB": (445, 353),   # Track East Ext into 117; same Y as NX Mast 6LB
     "Mast 8LA": (548, 353),   # Track Main East into 117
@@ -310,33 +321,48 @@ def refresh_sensor_comments(text: str, mode: str) -> tuple[str, int]:
     return text, changed
 
 
-def patch_turnout(xml: str) -> str:
+def bound_nx_sensors(panel: str) -> set[str]:
+    """NX sensor user names already bound in a slot on the panel (turnout legs and anchors)."""
+    legs = re.findall(r"<sensor[ABCD]>(NX [^<]+)</sensor[ABCD]>", panel)
+    points = re.findall(r'(?:east|west)boundsensor="(NX [^"]+)"', panel)
+    return set(legs) | set(points)
+
+
+def patch_turnout(xml: str, bound: set[str] | None = None) -> str:
+    """Bind each CTC mast's NX sensor on this turnout's legs; `bound` (sensors already bound anywhere on the
+    panel) gains each one bound here, so no sensor is bound twice."""
+    bound = set() if bound is None else bound
     for letter in "ABCD":
         mast_m = re.search(rf"<signal{letter}Mast>([^<]+)</signal{letter}Mast>", xml)
         if not mast_m:
             continue
         mast = mast_m.group(1)
-        if mast not in CTC_MASTS or re.search(rf"<sensor{letter}>", xml):
+        if mast not in CTC_MASTS or re.search(rf"<sensor{letter}>", xml) or user_name(mast) in bound:
             continue
         xml = xml.replace(
             f"</signal{letter}Mast>",
             f"</signal{letter}Mast>\n      <sensor{letter}>{user_name(mast)}</sensor{letter}>",
             1,
         )
+        bound.add(user_name(mast))
     return xml
 
 
-def patch_point(xml: str) -> str:
+def patch_point(xml: str, bound: set[str] | None = None) -> str:
+    """As patch_turnout, for an anchor's east and west bound slots."""
+    bound = set() if bound is None else bound
     if "eastboundsignalmast=" not in xml and "westboundsignalmast=" not in xml:
         return xml
     attrs = dict(re.findall(r'(\w+)="([^"]*)"', xml))
     east_mast = attrs.get("eastboundsignalmast")
     west_mast = attrs.get("westboundsignalmast")
     extra = []
-    if east_mast in CTC_MASTS and "eastboundsensor" not in attrs:
+    if east_mast in CTC_MASTS and "eastboundsensor" not in attrs and user_name(east_mast) not in bound:
         extra.append(f'eastboundsensor="{user_name(east_mast)}"')
-    if west_mast in CTC_MASTS and "westboundsensor" not in attrs:
+        bound.add(user_name(east_mast))
+    if west_mast in CTC_MASTS and "westboundsensor" not in attrs and user_name(west_mast) not in bound:
         extra.append(f'westboundsensor="{user_name(west_mast)}"')
+        bound.add(user_name(west_mast))
     if not extra:
         return xml
     return xml.replace(" class=", " " + " ".join(extra) + " class=", 1)
@@ -366,27 +392,34 @@ def insert_icons(panel: str) -> tuple[str, int]:
     return panel[:insert_at] + "".join(chunks) + panel[insert_at:], len(chunks)
 
 
-def apply_panel(panel: str) -> tuple[str, dict[str, int]]:
+def apply_panel(panel: str, generated: bool = False) -> tuple[str, dict[str, int]]:
+    """`generated`: the panel is a generated one (hartlib.tables.generated_panel), so its pixels are its own."""
     counts = {"turnouts": 0, "points": 0}
+    bound = bound_nx_sensors(panel)     # grows as sensors are bound: turnout legs first, then anchors
 
     def turnout_sub(match: re.Match[str]) -> str:
-        patched = patch_turnout(match.group(0))
+        patched = patch_turnout(match.group(0), bound)
         if patched != match.group(0):
             counts["turnouts"] += 1
         return patched
 
     def point_sub(match: re.Match[str]) -> str:
-        patched = patch_point(match.group(0))
+        patched = patch_point(match.group(0), bound)
         if patched != match.group(0):
             counts["points"] += 1
         return patched
 
     panel = TURNOUT_RE.sub(turnout_sub, panel)
     panel = POINT_RE.sub(point_sub, panel)
-    panel, aligned = align_masts(panel)
-    panel, icons = insert_icons(panel)
-    panel, restyled = restyle_icons(panel)
-    panel, moved = reposition_icons(panel)
+    if generated:   # the hand-drawn panel's pixels do not apply: icons keep where they stand, none is added
+        aligned = moved = icons = 0
+        panel, restyled = restyle_icons(panel)
+    else:
+        panel, aligned = align_masts(panel)
+        panel, icons = insert_icons(panel)
+        panel, restyled = restyle_icons(panel)
+        panel, moved = reposition_icons(panel)
+    counts["generated"] = int(generated)
     counts["aligned"] = aligned
     counts["icons"] = icons
     counts["restyled"] = restyled
@@ -449,7 +482,11 @@ def apply_text(text: str, mode: str = "sml") -> tuple[str, dict[str, int]]:
             break
     if start < 0 or end < 0 or end <= start:
         raise SystemExit("HART Railroad / Dispatcher System panel bounds not found")
-    panel, counts = apply_panel(text[start:end])
+    try:
+        generated = tables.generated_panel(tables.layout_editor(tables.loads(text.encode("utf-8")).root))
+    except (ValueError, ET.ParseError) as exc:
+        raise SystemExit(f"cannot read the main Layout Editor panel: {exc}") from None
+    panel, counts = apply_panel(text[start:end], generated=generated)
     text = text[:start] + panel + text[end:]
     lock = mode == "lock"
     text, abs_mode = set_abs_mode(text, enabled=not lock)
@@ -480,6 +517,7 @@ def main() -> int:
     )
     ap.add_argument("paths", nargs="*", type=Path, default=DEFAULTS)
     args = ap.parse_args()
+    paths.exit_if_overridden(Path(__file__).name)
     for path in args.paths:
         if not path.is_file():
             print(f"skip missing {path}", file=sys.stderr)

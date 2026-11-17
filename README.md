@@ -24,14 +24,12 @@ See [ADR-007](wiki/decisions/ADR-007-repository-layout.md).
 ## Quick commands
 
 ```bash
-# Pipeline 1 — build a blocked panel from AnyRail
-export JMRI_LAYOUT=hart
-python3 jmri/scripts/apply_blocks_to_panel.py \
-  jmri/layouts/hart/anyrail/hart.xml \
-  jmri/layouts/hart/output/hart_blocked.xml \
-  jmri/templates/panel_style.xml \
-  use-panel-layout
+make                 # list the shortcuts
+./tools/check.sh     # checks, before a commit that changes tables or signals
+make panels          # rebuild the panels drawn from the schematic
 ```
+
+The full command list is in [`AGENTS.md`](AGENTS.md).
 
 
 ## License

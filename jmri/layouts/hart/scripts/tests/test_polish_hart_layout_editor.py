@@ -167,7 +167,11 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
 
     def test_switch_lamps_centre_on_circles_and_track_lamps_sit_on_track(self):
         import math
-        root = ET.parse(ROOT / "jmri/layouts/hart/output/tables.xml").getroot()
+        # the hand-drawn panel's lamp rules: the last hand-drawn tables (git), since the repo's holds the generated
+        import sys
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import hand_drawn
+        root = ET.parse(hand_drawn.skip_unless_available()).getroot()
         le = polish.find_layout_editor(root)
         targets = polish.stage1_lamp_targets(root, le)
         half = polish.LAMP_SIZE / 2

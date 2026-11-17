@@ -1,0 +1,25 @@
+# Frozen from wire_digicon.PLANT_CELLS on 2026-11-15 (CATS cut-over): the cell of each switch plant on the USS CTC board grid (uss_board_cells.csv), one row per OS block at the points. Row order is the USS drawing order. Edit here.
+os_block,x,y,notes
+OS Switch 1,4,8,Brick
+OS Switch 3,5,9,
+OS Switch 5,9,8,
+OS Switch 7,15,7,
+OS Switch 7b,15,8,
+OS Switch 9,24,8,
+OS Switch 11,26,8,
+OS Switch 13,27,7,thrown BOTTOM is a stub; does not join Switch 11
+OS Switch 15,30,7,thrown BOTTOM geographic into the Switch 17 approach
+OS Switch 17,31,8,
+OS Switch 19,32,9,
+OS Switch 21,33,10,
+OS Switch 25,39,10,
+OS Switch 27,40,9,
+OS Switch 29,41,8,
+OS Switch 23a,40,6,Track Main West
+OS Switch 23b,40,7,Track S-R
+OS Switch 31,42,7,
+OS Switch 33,44,7,
+OS Switch 35b,52,6,Track West Ext
+OS Switch 35a,52,7,Track East Lead
+OS Switch 39,55,6,
+OS Switch 37,55,7,

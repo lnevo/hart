@@ -50,8 +50,8 @@ def load_disciplines() -> dict[str, str]:
     return out
 
 
-def load_occupancy() -> dict[str, tuple[str, str]]:
-    root = tables.read(HART)
+def load_occupancy(root: ET.Element | None = None) -> dict[str, tuple[str, str]]:
+    root = root if root is not None else tables.read(HART)
     sensor_addr: dict[str, str] = {}
     for s in tables.sensors(root):
         sn = s.get("systemName") or s.findtext("systemName") or ""

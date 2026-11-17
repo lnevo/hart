@@ -92,11 +92,14 @@ class OtherPages(unittest.TestCase):
     def test_control_page_counts_match_the_file(self):
         meta = btb.build(btb.load()[1])["meta"]
         text = (btb.WWW / "ai/control.html").read_text(encoding="utf-8")
-        m = re.search(r"(\d+) signal masts, (\d+) sections and ([\d,]+) transits", text)
+        m = re.search(r"(\d+) signal masts and (\d+) Signal Mast Logic pairs", text)
         self.assertIsNotNone(m, "ai/control.html no longer states the counts; drop this test")
-        self.assertEqual((int(m.group(1)), int(m.group(2)), int(m.group(3).replace(",", ""))),
-                         (meta["masts"], meta["sections"], meta["transits"]),
+        self.assertEqual((int(m.group(1)), int(m.group(2))), (meta["masts"], meta["smlDestinations"]),
                          "update the counts in www/ai/control.html")
+        # sections and transits are parked (hartlib.parked): the page keeps their last counts and says so
+        if "dispatcher" in tables_page.parked.PARKED:
+            self.assertIn("197 sections and 187 transits", text)
+            self.assertIn("parked", text)
 
 
 class Words(unittest.TestCase):
@@ -163,8 +166,8 @@ class Drift(Copy):
             btb.outputs(self.www, self.src)
 
     def test_missing_conditionalng_action_gives_a_message(self):
-        self.xml = self.xml.replace("<systemName>IQDA:AUTO:0002</systemName>\n      </Socket>",
-                                    "<systemName>IQDA:GONE</systemName>\n      </Socket>", 1)
+        self.edit("<systemName>IQDA:AUTO:0001</systemName>\n      </Socket>",
+                  "<systemName>IQDA:GONE</systemName>\n      </Socket>")
         self.src.write_text(self.xml, encoding="utf-8")
         with self.assertRaisesRegex(SystemExit, "no connected action"):
             btb.outputs(self.www, self.src)

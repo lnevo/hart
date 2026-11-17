@@ -197,7 +197,9 @@ def refresh_schematic():
     SCHEMATIC.parent.mkdir(parents=True, exist_ok=True)
     cmd = [sys.executable, str(RENDER), str(PANEL), str(SCHEMATIC)]
     print("render:", " ".join(cmd))
-    subprocess.run(cmd, check=False)
+    # a failed render must stop the run: the JSON records the render inputs, so --check would pass on an old PNG
+    if subprocess.run(cmd).returncode:
+        raise SystemExit(f"render failed: {RENDER.name} {PANEL}")
 
 
 def render_inputs_sha256(geometry) -> str:
@@ -317,9 +319,10 @@ def build():
     return {
         "source": {
             "workspace": "hart",
-            "panel": str(PANEL.relative_to(ROOT)),
+            # the checkout's file, also when HART_TABLES points PANEL at a candidate copy elsewhere
+            "panel": paths.rel(paths.REPO_TABLES_XML),
             "names": str(NAMES.relative_to(ROOT)),
-            "devices": str(PANEL.relative_to(ROOT)),
+            "devices": paths.rel(paths.REPO_TABLES_XML),
         },
         "image": {
             "path": "assets/layout/HART_le_schematic.png",
@@ -350,6 +353,9 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"missing panel: {PANEL}")
     if not NAMES.is_file():
         raise SystemExit(f"missing names: {NAMES}")
+    if not args.check:
+        # never render the public site's schematic from a HART_TABLES candidate the owner has not approved
+        paths.exit_if_overridden(Path(__file__).name)
     if args.check:
         want = json.dumps(build(), indent=2) + "\n"
         have = OUT_JSON.read_text(encoding="utf-8") if OUT_JSON.is_file() else ""

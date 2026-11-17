@@ -1,5 +1,10 @@
 # HART Railroad — CTC Machine Dispatcher Guide
 
+> **Parked since the helix-join release (November 2026).** The USS CTC machine is out of the active
+> `tables.xml` and this guide does not apply until it is unparked; see
+> [`../parked/README.md`](../parked/README.md). The CTC desk now is CATS:
+> [`docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../../../docs/ctc/DISPATCHER_GUIDE_CTC.md).
+
 **Publication:** DS-DISP · Rev A · Eff 2026-08-19
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations
 **Scope:** JMRI USS CTC machine (**USS CTC**), basic dispatching rules

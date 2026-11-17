@@ -53,7 +53,8 @@ worktree never reads the main checkout's tables.xml.
 | `JMRI_DIR` | `jmri/` |
 | `LAYOUT` | `JMRI_LAYOUT`, default `hart` (a single-layout setting; only `hart` exists) |
 | `LAYOUT_DIR`, `LAYOUT_DATA`, `LAYOUT_OUTPUT`, `LAYOUT_SCRIPTS` | `jmri/layouts/hart/` and its `data/`, `output/`, `scripts/` |
-| `TABLES_XML` | `jmri/layouts/hart/output/tables.xml` (ADR-008) |
+| `TABLES_XML` | `jmri/layouts/hart/output/tables.xml` (ADR-008), or the file `HART_TABLES` names |
+| `REPO_TABLES_XML` | always `jmri/layouts/hart/output/tables.xml` |
 | `PUBLIC_NAME_MAP` | `jmri/layouts/hart/data/public_name_map.csv` |
 | `SIGNAL_WIRING` | `docs/wiring/signals/signal_wiring.csv` |
 | `CATS_DIR` | `cats/` |
@@ -61,8 +62,11 @@ worktree never reads the main checkout's tables.xml.
 
 Functions: `lcos_bridge()` (the submodule, else a sibling clone), `car_images_final()`
 (`HART_CAR_IMAGES_FINAL`, else the repo copy), `rel(path)` (a repo-relative string for
-messages). `layout_paths()` is the dict the AnyRail-era scripts in
-`jmri/scripts` use (it replaced `jmri/layout_paths.py`).
+messages). `layout_paths()` replaced `jmri/layout_paths.py`; its one live
+caller is `jmri/scripts/generate_nx_pairs.py` (parked with NX), and the AnyRail-era scripts that used the rest
+are in `archive/jmri-scripts/`.
+
+`HART_TABLES=<file>` (checks only) points `TABLES_XML` at another tables file, such as the Layout Editor cut-over candidate: `HART_TABLES=<file> tools/check.sh` runs every table check against it, and the unit tests still read the checkout's file. The file must exist and lie outside `~/JMRI_UserFiles`. Nothing is written while it is set: `Tables.save` refuses the checkout's tables.xml, the override and anything in the profile, every other script that writes tables, the profile or an output derived from the tables calls `paths.exit_if_overridden(name)` first, and the deploy and PanelPro wrappers stop through `refuse_hart_tables` in `tools/hosts/profile_tables_guard.sh`.
 
 ### `hartlib.tables`
 
@@ -93,12 +97,40 @@ Lookups (all take the root element unless noted):
 | `layout_blocks` | `<layoutblock>` beans |
 | `layout_editor(root, name=None)` | the main Layout Editor panel, or the one named |
 | `layout_editors` | every Layout Editor panel |
+| `generated_panel(panel)` | True when the panel holds the hidden marker label a generated panel carries (`build_layout_le.py --as-live`); two markers raise ValueError |
+| `generated_marker_label()`, `GENERATED_PANEL_MARKER` | that label and its text |
+| `hand_drawn_only(path, script)` | None, or why a one-off edit of the hand-drawn panel must not run on that file's panel |
 | `layout_turnouts(panel)` | `<layoutturnout>` (turnouts and crossovers) on a panel |
 | `continuing_sense(lt)` | `CLOSED` (2), `THROWN` (4) or `UNKNOWN` (1) |
 | `mast_logics`, `mast_logic_sources`, `mast_logic_pairs` | SML elements, source -> element, (source, destination, element) |
 | `system_name(el)`, `user_name(el)`, `text(el, child)` | stripped names and child text |
 | `by_system_name`, `by_user_name`, `by_any_name` | dicts over any list of beans |
 | `section(root, container, tag)`, `elements(el)` | generic: all sections; children without comments |
+
+### `hartlib.level_masts`
+
+The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, written by
+`tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs), `names()`,
+`head_name()` (the virtual head from its user name: "Head 108R Top" -> IH:HART:C3:108R_Top, never from the draft
+physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
+`audit_panel_contracts.py` and `polish_hart_layout_editor.py`.
+
+### `hartlib.hand_drawn`
+
+The last hand-drawn `tables.xml`, read from git at `COMMIT` (main just before the Layout Editor cut-over): `tables_bytes()`,
+`tables_path()` (a read-only temporary copy, one per process) and, for tests, `skip_unless_available()`. Used by
+`build_layout_le.py` (`template_tables`, `--freeze`) and the tests of the cut-over and of the one-off scripts that only
+ever edited the hand-drawn panel. No copy of the old file is kept in the tree.
+
+### `hartlib.parked`
+
+The features parked out of the active tables (`PARKED`: Entry/Exit, the Dispatcher System, the USS CTC machine;
+`jmri/layouts/hart/parked/README.md`). `split(root)` moves their elements out of a tables root (`build_layout_le.py
+--as-live` leaves them out of the candidate), `freeze(commit)` wrote the parked file `PARKED_XML` once from the live
+tables at a commit it records, `check(root, doc)` holds a tables file and the parked file to the rules, `parked_in(root)` names the parked features a tables file leaves out, and `restore`,
+`with_parked(features)` and `with_parked_file(features)` give the tables with a feature put back, for the checks of
+its data. `shipped_dirs()` and `shipped_jython()` list what the deploy leaves out; `python3 -m hartlib.parked
+features|dirs|jython|check|freeze` prints them, runs the check or writes the snapshot.
 
 ## The tables.xml traps the lookups exist for
 
@@ -125,6 +157,12 @@ comment carries it as the second group (`Node: 4 Turnout: 0 | DCC: 100 | OU: 1 P
 `row_comment(row)` gives the JMRI comment for a map row, `jmri_comment(comment, dcc)` builds
 one, and `split_dcc(comment)` takes the group out of a JMRI or Device-map comment. Read the
 address from the column; never regex it out of `comment`.
+
+### `hartlib.cats`
+
+CATS desk conventions both desk builders use: `station_plate(block)` (`OS Switch 39` -> `39`,
+`Track West Ext` -> `West`) and `mast_templates()` (mast user name -> CATS signal template, from
+`signal_head_plan.csv`).
 
 ### `hartlib.hosts`
 

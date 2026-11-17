@@ -703,7 +703,10 @@
         "barn",
         "east-end"
       ],
-      "source": "../docs/ops/Neville_Island_Station_Map_West_Yard.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_West_Yard.docx",
+      "sheets": [
+        "brick-and-plane"
+      ]
     },
     {
       "id": "south-yard",
@@ -788,7 +791,11 @@
         "west-yard",
         "east-end"
       ],
-      "source": "../docs/ops/Neville_Island_Station_Map_South_Yard.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_South_Yard.docx",
+      "sheets": [
+        "south-yard",
+        "south-yard-and-east-end"
+      ]
     },
     {
       "id": "barn",
@@ -848,7 +855,11 @@
         "west-yard",
         "east-end"
       ],
-      "source": "../docs/ops/Neville_Island_Station_Map_Barn.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_Barn.docx",
+      "sheets": [
+        "barn"
+      ],
+      "now": "The engine terminal: engine house tracks EH-1 to EH-3 and the crossover to Main East."
     },
     {
       "id": "east-end",
@@ -946,7 +957,11 @@
         "barn",
         "shenango"
       ],
-      "source": "../docs/ops/Neville_Island_Station_Map_East_End.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_East_End.docx",
+      "sheets": [
+        "east-end",
+        "south-yard-and-east-end"
+      ]
     },
     {
       "id": "shenango",
@@ -1025,7 +1040,10 @@
       "connects": [
         "east-end"
       ],
-      "source": "../docs/ops/Neville_Island_Station_Map_Shenango.docx"
+      "source": "../docs/ops/Neville_Island_Station_Map_Shenango.docx",
+      "sheets": [
+        "princess"
+      ]
     }
   ],
   "jobs": [
@@ -1357,5 +1375,57 @@
       "ttOpen": true,
       "source": "../docs/ops/Neville_Island_Dispatcher_Train_List.docx"
     }
-  ]
+  ],
+  "sheets": {
+    "brick-and-plane": [
+      "Brick and Plane",
+      "Switches 1, 3 and 5"
+    ],
+    "south-yard": [
+      "South Yard",
+      "Switches 7 to 21"
+    ],
+    "south-yard-and-east-end": [
+      "South Yard and East End",
+      "Switches 15 to 33"
+    ],
+    "barn": [
+      "Barn",
+      "Switches 7 to 13"
+    ],
+    "east-end": [
+      "East End",
+      "Switches 23 to 33"
+    ],
+    "princess": [
+      "Princess",
+      "Switches 35 to 39"
+    ],
+    "staging-level": [
+      "Staging level",
+      "Switches 1 to 39"
+    ],
+    "main-level": [
+      "Main level",
+      "Switches 101 to 135, placeholder control points"
+    ],
+    "upper-level": [
+      "Upper level",
+      "Switches 201 to 245, placeholder control points"
+    ]
+  },
+  "levels": [
+    "staging-level",
+    "main-level",
+    "upper-level"
+  ],
+  "schematic": {
+    "title": "System schematic",
+    "caption": "System schematic: staging, main and upper level.",
+    "svg": "crew/maps/schematic/system-schematic.svg",
+    "pdf": "crew/maps/schematic/system-schematic.pdf",
+    "alt": "System schematic of the whole layout: staging, main level and upper level, with switch numbers, track names and masts.",
+    "revision": "10",
+    "effective": "16 November 2026"
+  }
 }

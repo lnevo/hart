@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Build a stop-motion video of the Layout Editor panel evolution (May-Aug 2026).
+"""Build a stop-motion video of the Layout Editor panel evolution (May-Nov 2026).
 
 Sources are the le_panel_*.png screenshots in this folder (Desktop captures of
-the "HART Railroad" Layout Editor panel). Each frame is fitted to the same
+the "HART Railroad" Layout Editor panel; the November frames are PanelPro painting the whole panel to a file). Each frame is fitted to the same
 canvas on the panel's light-blue background, with a caption under it.
 """
 
@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = Path(__file__).resolve().parent
 OUT_MP4 = HERE / "LE_Panel_Evolution.mp4"
 OUT_POSTER = HERE / "le-poster.jpg"
-CANVAS = (1280, 520)
+CANVAS = (1280, 720)    # 16:9 so the three-level panel of November is not tiny
 BG = (186, 205, 230)  # the panel's own light blue, so letterboxing is invisible
 CAPTION_H = 48
 CAPTION_BG = (32, 32, 36)
@@ -29,6 +29,8 @@ FRAMES: list[tuple[str, str]] = [
     ("le_panel_20260607_020155.png", "7 June: redrawn with named tracks, the loop, and Brick, Plane, East End, Princess"),
     ("le_panel_20260820_080629.png", "20 August: signals and occupancy on the panel; Barn and Switches 116 to 119"),
     ("le_panel_20260831_215346.png", "31 August: SW numbers, block labels and status lamps"),
+    ("le_panel_20261115_hand_drawn.png", "15 November: the last hand-drawn panel"),
+    ("le_panel_20261116_generated.png", "16 November: generated from the schematic, staging, main and upper level"),
 ]
 
 

@@ -517,6 +517,14 @@ def _scale_east_edits(root: ET.Element, le: ET.Element) -> int:
             if child.tag == "signalAMast" and (child.text or "").strip() == "Mast 8RA":
                 to.remove(child)
                 n += 1
+            # Its NX sensor moves with it: left on TO117 A (inside OS Switch 7), Discover walks past 8RA
+            # and finds false 2L->24RB / 2L->32R pairs (2026-11-15).
+            if child.tag == "sensorA" and (child.text or "").strip() == "NX Mast 8RA":
+                to.remove(child)
+                n += 1
+                if pt is not None and not pt.get("eastboundsensor"):
+                    pt.set("eastboundsensor", "NX Mast 8RA")
+                    n += 1
         break
     # Switch 13 (TO1) had no mast on the Barn leg. Discover then jumped
     # 8RA → 26L through Barn; get_last(26L, Track Barn) returned 8RA.
@@ -647,6 +655,10 @@ def main() -> int:
         help="Only the Scale/Switch 7, Mast 14R, engine-house exit, Brick-Plane and East Lead / K-1 rear masts; skip the South Yard throats.",
     )
     args = ap.parse_args()
+    paths.exit_if_overridden(Path(__file__).name)
+    refused = tables.hand_drawn_only(args.panel, Path(__file__).name)
+    if refused:
+        sys.exit(refused)
     targets = [args.panel.resolve()]
     fn = apply_scale_east if args.scale_east_only else apply
     for path in targets:

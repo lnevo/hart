@@ -1,23 +1,36 @@
 """publish_draft.py [--check | --preview DIR]
 
-Draw the system schematic with the schematic-maps plugin and publish it as the marked draft in docs/ops:
-schematic-system-draft.svg (with a red DRAFT mark in the title block) and a Letter landscape PDF printed by
-Chrome. Inputs: the layer files in jmri/layouts/hart/data/schematic/ and the plan graphs in its inputs/ folder
+Draw the system schematic with the schematic-maps plugin and publish it in docs/ops:
+schematic-system-draft.svg (the file keeps its name; the DRAFT mark came off when the owner approved the helix-join
+release, 2026-11-17) and a Letter landscape PDF printed by
+Chrome, and one SVG per station detail sheet (the `detail_sheets` preference) in docs/ops/stations/. Inputs: the layer files in jmri/layouts/hart/data/schematic/ and the plan graphs in its inputs/ folder
 (track only, regenerated from the owner's AnyRail export as its README says). The plugin is this checkout's submodule
 external/model-railroad-skills at its pinned commit (`git submodule update --init external/model-railroad-skills`
 in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plugin code.
 
---check draws and compares with the published SVG without writing anything (exit 1 if they differ). It also
+--check draws and compares with the published SVG and the station sheets without writing anything (exit 1 if
+any differ). It also
 fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for car counts) no longer match
 jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
---preview DIR draws the marked SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
+--preview DIR draws the SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
 title block's date and revision are left alone.
-When the drawing itself (everything but the title block) differs from main's, publishing sets `date` to today and
+When the drawing itself (everything but the title block), or a station sheet's, differs from main's, publishing sets `date` to today and
 `revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
 from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
 whole number is left alone. If anything fails after that, the preferences file is put back.
+The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
+them with www/scripts/map_revision.py, and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
+
+The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
+is on for the plugin commands this runs and for solved_sheet(), the one way build_layout_le.py, build_cats_panel.py
+and build_device_map.py get the solved bands, so they and publishing solve the same inputs once between them. The
+key covers the source of the plugin code the solve runs, the graphs and the layer files, so a SCHEMATIC_PLUGIN trial
+or an edited layer file solves again; a change to the title block's date, revision or sheet alone does not (the
+plugin draws the cached page again with them). build_layout_le.py also keeps its Layout Editor panels and their fit
+grids there (cache_on). SCHEMATIC_CACHE= (empty) turns it off, as must any test that patches plugin code.
 """
+import contextlib
 import csv
 import datetime
 import json
@@ -34,19 +47,21 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
+CACHE = Path.home() / ".cache/hart/schematic"
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
+STATIONS = OUT / "stations"                                              # one SVG per station detail sheet
 LENGTHS = REPO / "jmri/layouts/hart/data/block_lengths.csv"
 STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
+sys.path.insert(0, str(REPO / "www/scripts"))
+import map_revision  # noqa: E402
 
-# the plugin's title box (it grows for a long title line); the DRAFT mark sits in its bottom right corner
+# the plugin's title box (it grows for a long title line), drawn after the drawing itself
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
-DRAFT = ('<text x="{x:g}" y="784" font-size="16" text-anchor="end" font-weight="bold" '
-         'letter-spacing="3" fill="#c00">DRAFT</text>\n')
 
 
 def page_prefs():
@@ -83,13 +98,36 @@ def plugin():
     return p
 
 
-def mark(svg):
-    """The drawing with the DRAFT mark added just before the end."""
-    end = svg.rstrip().rfind("</svg>")
-    box = TITLE_BOX.search(svg)
-    if end < 0 or not box:
-        sys.exit("the plugin's title block moved; place the DRAFT mark again in publish_draft.py")
-    return svg[:end] + DRAFT.format(x=24 + float(box.group(1)) - 10) + svg[end:].rstrip() + "\n"
+def cache_env():
+    """os.environ with SCHEMATIC_CACHE set to CACHE (made private to this user) unless the caller set it, even to
+    empty (off)."""
+    env = dict(os.environ)
+    if "SCHEMATIC_CACHE" not in env:
+        CACHE.mkdir(parents=True, exist_ok=True)
+        CACHE.chmod(0o700)                       # the plugin unpickles what is in it: nobody else may write there
+        env["SCHEMATIC_CACHE"] = str(CACHE)
+    return env
+
+
+@contextlib.contextmanager
+def cache_on():
+    """The plugin's cache on (cache_env) for the code inside, in this process; the variable as it was afterwards."""
+    old = os.environ.get("SCHEMATIC_CACHE")
+    os.environ["SCHEMATIC_CACHE"] = cache_env()["SCHEMATIC_CACHE"]
+    try:
+        yield
+    finally:
+        if old is None:
+            del os.environ["SCHEMATIC_CACHE"]
+        else:
+            os.environ["SCHEMATIC_CACHE"] = old
+
+
+def solved_sheet(sheet):
+    """The solved Sheet of the schematic (INPUTS from GRAPHS, layer files in DATA), from the plugin's `sheet` module,
+    through the cache. Every builder gets its bands here, so they share one cache key with publishing."""
+    with cache_on():
+        return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
 
 
 def draw():
@@ -97,11 +135,40 @@ def draw():
         svg = Path(tmp) / "sheet.svg"
         run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(DATA),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
-                             capture_output=True, text=True)
+                             capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")
         if run.returncode:
             sys.exit(run.returncode)
-        return mark(svg.read_text())
+        return svg.read_text()
+
+
+def draw_stations():
+    """{file name: SVG} of every station detail sheet (the detail_sheets preference), drawn from both
+    inputs so the sheet-wide look (helix coils, mileposts) reaches them as it does the overall sheet."""
+    with tempfile.TemporaryDirectory() as tmp:
+        run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(DATA),
+                              *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
+                             capture_output=True, text=True, env=cache_env())
+        print(run.stdout + run.stderr, end="")
+        if run.returncode:
+            sys.exit(run.returncode)
+        return {f.name: f.read_text() for f in sorted(Path(tmp).glob("*.svg"))}
+
+
+def stations_differ(sheets):
+    """Names of station sheets that differ from (or are missing in, or no longer belong to) docs/ops/stations."""
+    have = {f.name for f in STATIONS.glob("*.svg")} if STATIONS.exists() else set()
+    return sorted(n for n in have | set(sheets)
+                  if n not in sheets or n not in have or (STATIONS / n).read_text() != sheets[n])
+
+
+def write_stations(sheets, folder):
+    folder.mkdir(parents=True, exist_ok=True)
+    for f in folder.glob("*.svg"):
+        if f.name not in sheets:
+            f.unlink()
+    for name, svg in sheets.items():
+        (folder / name).write_text(svg)
 
 
 def measured_lengths():
@@ -169,6 +236,11 @@ def pdf(svg_path, pdf_path):
 
 def main(argv):
     target = OUT / "schematic-system-draft.svg"
+    i = argv.index("--preview") + 1 if "--preview" in argv else None
+    unknown = [a for n, a in enumerate(argv) if a not in ("--check", "--preview") and n != i]
+    if unknown or ("--check" in argv and i):     # anything else would publish: say how to call it instead
+        print(__doc__.split("\n\n")[0])
+        return 2
     if "--preview" in argv:
         i = argv.index("--preview")
         if i + 1 >= len(argv) or argv[i + 1].startswith("--"):
@@ -180,6 +252,7 @@ def main(argv):
         if stale:
             print(f"note: {STAGING.name} track_lengths_in differs from {LENGTHS.name} for {', '.join(stale)}; "
                   "this preview counts cars from the old lengths, and publishing copies the new ones")
+        write_stations(draw_stations(), folder / "stations")
         return preview(draw(), folder)
     check = "--check" in argv
     stale = stale_lengths()
@@ -191,14 +264,30 @@ def main(argv):
         sheet = draw()
         same = target.exists() and target.read_text() == sheet
         print("published draft is current" if same else "published draft differs from the drawing")
-        return 0 if same else 1
+        differ = stations_differ(draw_stations())
+        print(f"station sheets differ: {', '.join(differ)}" if differ else "station sheets are current")
+        try:
+            pages = [p.relative_to(REPO).as_posix() for p in map_revision.drift(prefs=page_prefs())]
+        except ValueError as e:
+            pages = [str(e)]
+        print(f"station map pages differ from the title block: {', '.join(pages)}" if pages
+              else "station map pages carry the title block's revision and date")
+        return 0 if same and not differ and not pages else 1
     prefs = page_prefs()
+    try:
+        map_revision.planned(REPO / "www", prefs)             # the station map data holds together before any write
+    except ValueError as e:
+        sys.exit(f"station map pages: {e}; nothing written")
     kept = {p: p.read_text() for p in (prefs, STAGING)}      # put back if anything below fails
     try:
         if stale:
             copy_lengths()
             print(f"copied the lengths of {', '.join(stale)} into {STAGING.name}")
-        publish(draw(), target, prefs, kept[prefs])
+        publish(draw(), target, prefs, kept[prefs], stations_changed(draw_stations()))
+        write_stations(draw_stations(), STATIONS)
+        print(f"wrote the station sheets in {STATIONS.relative_to(REPO)}")
+        for page in map_revision.apply(prefs=prefs):
+            print(f"set {page.relative_to(REPO)} to the title block's revision and date")
     except BaseException:
         for p, text in kept.items():
             if p.read_text() != text:
@@ -222,9 +311,18 @@ def preview(sheet, folder):
     return 0
 
 
-def publish(sheet, target, prefs, original):
+def stations_changed(sheets):
+    """Names of the station sheets whose drawing (title block left out) differs from main's, a new sheet included:
+    the station maps carry the schematic's revision, so such a change moves it too."""
+    return sorted(n for n, svg in sheets.items()
+                  if drawing_only(on_main(STATIONS / n) or "") != drawing_only(svg))
+
+
+def publish(sheet, target, prefs, original, stations=()):
+    """`stations`: the station sheets whose drawing changed (stations_changed); they move the revision as the overall
+    sheet does."""
     base = on_main(target) or (target.read_text() if target.exists() else None)
-    if base and drawing_only(base) != drawing_only(sheet):
+    if base and (drawing_only(base) != drawing_only(sheet) or stations):
         fields = next_fields(on_main(prefs), datetime.date.today())
         now = json.loads(original)
         if fields is None:
@@ -233,6 +331,10 @@ def publish(sheet, target, prefs, original):
             set_fields(prefs, *fields)
             print(f"drawing changed: title block set to {fields[0]}, revision {fields[1]}")
             sheet = draw()
+    pdf_file = OUT / "schematic-system-draft.pdf"
+    if target.exists() and target.read_text() == sheet and pdf_file.exists():
+        print(f"{target.relative_to(REPO)} is current: SVG and PDF left as they are")
+        return
     with tempfile.TemporaryDirectory() as tmp:
         svg, printed = Path(tmp) / target.name, Path(tmp) / "sheet.pdf"
         svg.write_text(sheet)
@@ -242,8 +344,8 @@ def publish(sheet, target, prefs, original):
             sys.exit(f"PDF not printed, nothing written: {e}")
         if not printed.exists():
             sys.exit("Chrome wrote no PDF, nothing written")
-        shutil.copyfile(svg, target)
-        shutil.copyfile(printed, OUT / "schematic-system-draft.pdf")
+        shutil.copyfile(printed, pdf_file)          # the PDF first: a run stopped between the two leaves the SVG
+        shutil.copyfile(svg, target)                # old, so the next publish sees it differ and prints again
     print(f"wrote {target} and the PDF (--check compares the SVG only; the PDF follows it)")
 
 

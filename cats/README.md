@@ -35,10 +35,9 @@ The layout deploy and the Pi and Windows host scripts live in [`tools/hosts/`](.
 
 - JMRI: **current** host (**5.16**, the newest CATS 3.2 supports)
 - CTC throws: **CATS**
-- Digicon board: **Designer-first** (ADR-004); **start here:** [`wiki/pipelines/cats-panels.md`](../wiki/pipelines/cats-panels.md)
+- Digicon desks: **generated from the schematic** since the CATS cut-over (ADR-023); **start here:** [`wiki/pipelines/cats-panels.md`](../wiki/pipelines/cats-panels.md)
   ```bash
-  ./cats/scripts/launch_designer.sh
-  python3 cats/scripts/wire_digicon.py   # builds HART_CTC.xml and HART_ABS.xml from HART_Digicon.xml
+  python3 tools/schematic/build_cats_panel.py   # writes HART_CTC.xml and HART_ABS.xml (all three levels)
   ```
   - Plant map: [`wiki/DIGICON_SCHEMATIC.md`](../wiki/DIGICON_SCHEMATIC.md)
 - Validate: `python3 cats/scripts/validate_cats_panel.py`

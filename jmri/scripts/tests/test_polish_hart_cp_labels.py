@@ -12,7 +12,16 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
+LIVE = ROOT / "jmri/layouts/hart/output/tables.xml"
+
+
+def hand_drawn_tables() -> Path:
+    """polish_hart_cp_labels styles the hand-drawn panel's captions: since the cut-over the repo's tables hold the
+    generated panel, so this reads the last hand-drawn tables (git, hartlib.hand_drawn)."""
+    import sys
+    sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+    from hartlib import hand_drawn
+    return hand_drawn.skip_unless_available()
 
 
 def _load():
@@ -29,7 +38,8 @@ class PolishCpLabels(unittest.TestCase):
         mod = _load()
         with tempfile.TemporaryDirectory() as tmp:
             copy = Path(tmp) / "tables.xml"
-            shutil.copy(TABLES, copy)
+            shutil.copy(hand_drawn_tables(), copy)
+            copy.chmod(0o644)
             original = copy.read_text(encoding="utf-8").splitlines()
             with contextlib.redirect_stdout(io.StringIO()):
                 n = mod.apply(copy)

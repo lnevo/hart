@@ -1,7 +1,7 @@
 {
   "title": "New Operator Primer (HB-01)",
   "pub": "HB-01 · Revision B · Effective 15 October 2026",
-  "lede": "If this is your first Neville Island session, this primer is meant to give you the story behind the railroad and a feel for how a session runs. You do not need to memorize it. At the session you will get a simple job sheet for whatever you are assigned—and the Yardmaster and Dispatcher are there to help.",
+  "lede": "Welcome. If this is your first Neville Island session, this primer gives you the story behind the railroad and a feel for how a session runs. You do not need to memorize it. At the session you will get a simple job sheet for whatever you are assigned—and the Yardmaster and Dispatcher are there to help.",
   "firstNight": {
     "kicker": "New here? Start with this",
     "heading": "Your first night",
@@ -43,13 +43,27 @@
   },
   "sections": [
     {
+      "id": "expect",
+      "heading": "What to Expect",
+      "paragraphs": [
+        "Times and food plans are in the invitation. Evening sessions usually open around 6:30 p.m., with trains from about 7:00 to 10:00. Daytime sessions often start mid-morning with a short briefing before anyone moves a locomotive."
+      ],
+      "bullets": [
+        "The house address is in your invitation email",
+        "We will cover job assignments and anything unusual at the briefing",
+        "You will get a crew sheet for your job; ask if something is unclear",
+        "Please let us know early if you cannot make it so we can cover the board"
+      ]
+    },
+    {
       "id": "island",
       "heading": "Neville Island",
       "paragraphs": [
         "Nestled between Pittsburgh and the Chartiers Valley in the Ohio River lies a five-mile strip of land. Originally called Montour's Island and later Long Island, it was renamed Neville Island in honor of Revolutionary War General John Neville. It was once farmland renowned as the \"Market Basket of Pittsburgh,\" which all changed at the turn of the century.",
         "Bridges and an electric street railway opened easy access to the mainland. American Steel & Wire began the island's first mill in 1900. During World War I the government took land for a munitions plant. After Pearl Harbor, the Dravo Corporation built ships for the Navy—and that sealed the island's industrial future.",
         "Today the 1,200-acre township is a mix of heavy industry, logistics, and a small residential community. Manufacturing and chemical plants still work here, alongside cleanup and redevelopment."
-      ]
+      ],
+      "intro": "That covers the session. The rest of this primer is background on the island, the railroad and the work."
     },
     {
       "id": "railroad",
@@ -58,7 +72,15 @@
         "From 1899 until January 31, 1994, the Pittsburgh & Ohio Valley Railway switched the island's furnaces, coke ovens, and interchange. On the layout, we imagine what came after: HART Railroad's Pittsburgh & Chartiers Valley (P&CV) Division takes over the island work. In our story it handles the interchange between CSX and the Pittsburgh & Ohio Central (POHC), and it switches the industries on the island.",
         "Cars arrive from Demmler / McKeesport on one side and from Scully / McKees Rocks on the other. South Yard is where those moves meet—and where most of the sorting gets done.",
         "On the real railroad, CSX's local freight D749 works the island toward Demmler, and the POHC comes over from McKees Rocks—often waiting for D749 to clear the trestle over the Ohio. There is scrap, steel, chemicals, and fuel for the airport. Our session compresses that into a few overlapping jobs that all share South Yard."
-      ]
+      ],
+      "figure": {
+        "src": "crew/maps/schematic/system-schematic.svg",
+        "pdf": "crew/maps/schematic/system-schematic.pdf",
+        "alt": "System schematic of the whole layout: staging, main level and upper level, with switch numbers, track names and masts.",
+        "caption": "System schematic of the layout, revision 10.",
+        "width": 1056,
+        "height": 816
+      }
     },
     {
       "id": "industries",
@@ -190,19 +212,6 @@
         "label": "Scale Operating Instructions (EQ-01)",
         "href": "crew/scale/index.html"
       }
-    },
-    {
-      "id": "expect",
-      "heading": "What to Expect",
-      "paragraphs": [
-        "Times and food plans are in the invitation. Evening sessions usually open around 6:30 p.m., with trains from about 7:00 to 10:00. Daytime sessions often start mid-morning with a short briefing before anyone moves a locomotive."
-      ],
-      "bullets": [
-        "The house address is in your invitation email",
-        "We will cover job assignments and anything unusual at the briefing",
-        "You will get a crew sheet for your job; ask if something is unclear",
-        "Please let us know early if you cannot make it so we can cover the board"
-      ]
     }
   ],
   "links": [
@@ -252,7 +261,8 @@
         "match": "IMG_8950",
         "caption": "Crew sheets on clipboards at the fascia."
       }
-    ]
+    ],
+    "after": "expect"
   },
   "deeper": {
     "heading": "If You Want to Dig Deeper",

@@ -8,8 +8,14 @@
 #   HART_NX_DISCOVER_EXIT=1    System.exit after store/fail
 #   HART_NX_DISCOVER_MARKER    write ok/fail status to this file
 #   HART_NX_DISCOVER_FILE      tables path to store
-#   HART_NX_SMOKE=1            occupancy simulation of Brick pairs (default)
-#   HART_NX_THROW=1            actually set NX routes (commands MQTT turnouts)
+#   HART_NX_SMOKE=1            opt in: occupancy simulation of Brick pairs (off by default)
+#   HART_NX_THROW=1            with the smoke, actually set NX routes (commands MQTT turnouts)
+#
+# Sensor states are painted in this PanelPro only (setOwnState). setKnownState on an
+# MQTT sensor publishes it (MqttSensor.setKnownState), so this script never calls it.
+# Painting still fires JMRI's listeners (Logix, LogixNG, SML, Dispatcher, block occupancy),
+# which may act on it. The clear before Discover paints every occupancy sensor INACTIVE on
+# every run; run with the layout idle, and rehearsals with the broker unreachable.
 
 
 import os
@@ -31,7 +37,7 @@ EXIT = os.environ.get("HART_NX_DISCOVER_EXIT", "") == "1"
 MARKER = os.environ.get("HART_NX_DISCOVER_MARKER", "")
 STORE_PATH = os.environ.get("HART_NX_DISCOVER_FILE", "")
 WAIT_S = int(os.environ.get("HART_NX_DISCOVER_WAIT", "180"))
-SMOKE = os.environ.get("HART_NX_SMOKE", "1") == "1"
+SMOKE = os.environ.get("HART_NX_SMOKE", "0") == "1"
 THROW = os.environ.get("HART_NX_THROW", "") == "1"
 LOCK = os.environ.get("HART_NX_LOCK", "") == "1"
 NX_TYPE = EntryExitPairs.FULLINTERLOCK if LOCK else EntryExitPairs.SETUPSIGNALMASTLOGIC
@@ -259,14 +265,18 @@ def _sensor(name):
     return jmri.InstanceManager.sensorManagerInstance().getSensor(name)
 
 
-def _set_sensor(name, state, known=True):
+def _paint_sensor(sensor, state):
+    # Local state only: setOwnState never publishes (setKnownState/setState do on MQTT).
+    if not hasattr(sensor, "setOwnState"):
+        raise RuntimeError("sensor %s has no paint-only setOwnState" % sensor.getDisplayName())
+    sensor.setOwnState(state)
+
+
+def _set_sensor(name, state):
     sensor = _sensor(name)
     if sensor is None:
         raise RuntimeError("missing sensor %s" % name)
-    if known and hasattr(sensor, "setKnownState"):
-        sensor.setKnownState(state)
-    else:
-        sensor.setState(state)
+    _paint_sensor(sensor, state)
     return sensor
 
 
@@ -280,11 +290,11 @@ def _clear_all_occupancy():
             continue
         try:
             if sensor.getKnownState() != jmri.Sensor.INACTIVE:
-                sensor.setKnownState(jmri.Sensor.INACTIVE)
+                _paint_sensor(sensor, jmri.Sensor.INACTIVE)
                 cleared += 1
-        except Exception:
-            pass
-    _log("cleared %s occupancy sensors to INACTIVE" % cleared)
+        except Exception as e:
+            _log("sensor %s not cleared: %s" % (sysn, e))
+    _log("painted %s occupancy sensors INACTIVE (local only)" % cleared)
     return cleared
 
 
