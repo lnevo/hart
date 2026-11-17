@@ -10,7 +10,9 @@ stays on main for pulls and deploys.
   worktrees.py sweep [--dry-run] [--keep DIR] remove the worktrees whose PR is merged
 
 `new` links the gitignored mirrors the website build and the hart-ops tests need
-(media/, ops/car-cards/, ops/hart-ops/.venv) from the main checkout.
+(media/, ops/car-cards/, ops/hart-ops/.venv) from the main checkout, and checks out the
+submodules tools/check.sh needs (CHECK_SUBMODULES) at their pinned commits. A submodule that
+cannot be fetched is reported and the worktree is still made.
 
 `sweep` removes a worktree only when GitHub lists a merged PR for its branch whose head
 is the worktree's commit or a descendant of it (so nothing local is lost), the merge is
@@ -43,6 +45,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MIRRORS = ("media", "ops/car-cards", "ops/hart-ops/.venv")
+# Submodules the checks import from: the schematic-maps plugin behind make panels and the Layout Editor tests.
+CHECK_SUBMODULES = ("external/model-railroad-skills",)
 TOPIC = re.compile(r"[a-z0-9]+([-_][a-z0-9]+)*")
 GRACE = timedelta(minutes=30)
 
@@ -388,7 +392,22 @@ def new(topic: str, agent: str) -> Path:
         if src.exists() and not dst.exists():
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.symlink_to(src)
+    for rel in CHECK_SUBMODULES:
+        problem = init_submodule(path, rel)
+        if problem:
+            print(f"warning: {rel} is not checked out ({problem}); run git submodule update --init {rel}",
+                  file=sys.stderr)
     return path
+
+
+def init_submodule(path: Path, rel: str) -> str:
+    """Check out the submodule at rel in the worktree at path; return why it failed, or "" when it worked."""
+    try:
+        done = subprocess.run(["git", "-C", str(path), "submodule", "update", "--init", "-q", "--", rel],
+                              capture_output=True, text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        return "timed out after 300 s"
+    return "" if done.returncode == 0 else (done.stderr.strip().splitlines() or ["git failed"])[-1]
 
 
 def main(argv: list[str] | None = None) -> int:
