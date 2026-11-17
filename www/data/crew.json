@@ -7,7 +7,7 @@
       "hex": "#0000CD",
       "ink": "#fff",
       "dest": "Demmler Yard; McKeesport",
-      "train": "D749",
+      "train": "CSX (D749)",
       "group": "interchange",
       "spot": "demmler"
     },
@@ -17,7 +17,7 @@
       "hex": "#FFFF00",
       "ink": "#000",
       "dest": "Aristech Plastics",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "aristech"
     },
@@ -27,7 +27,7 @@
       "hex": "#008000",
       "ink": "#fff",
       "dest": "A. Stucki Co.",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "stucki"
     },
@@ -37,7 +37,7 @@
       "hex": "#800080",
       "ink": "#fff",
       "dest": "Calgon Carbon",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "calgon"
     },
@@ -47,7 +47,7 @@
       "hex": "#FF0000",
       "ink": "#fff",
       "dest": "Ferrellgas",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "ferrellgas"
     },
@@ -57,7 +57,7 @@
       "hex": "#FFC0CB",
       "ink": "#000",
       "dest": "Kosmos Cement",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "kosmos"
     },
@@ -77,7 +77,7 @@
       "hex": "#FFA500",
       "ink": "#000",
       "dest": "Scully Yard; McKees Rocks",
-      "train": "NVL return",
+      "train": "P&OV (NVL return)",
       "group": "interchange",
       "spot": "scully"
     }
