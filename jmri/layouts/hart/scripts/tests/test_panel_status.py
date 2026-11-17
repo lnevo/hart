@@ -53,6 +53,15 @@ class PanelStatus(unittest.TestCase):
         for sn in PLANTS:
             self.assertEqual(self.layout.turnouts.getTurnout(sn).commanded, [], sn)
 
+    def test_arms_once_the_plant_count_settles(self) -> None:
+        # a connection that registers its turnouts after the first look still gets its listeners
+        jf.fire_timers(limit=1)                              # first look: 9 plants, not yet settled
+        self.assertFalse(self.ps["_armed"])
+        self.plant("MTT120")                                 # a later connection's plant
+        self.boot()
+        self.assertTrue(self.ps["_armed"])
+        self.assertEqual(self.ps["_plant_count"], len(PLANTS) + 1)
+
     def test_boot_publishes_nothing(self) -> None:
         for sn in PLANTS:
             self.fb(sn, T.THROWN)

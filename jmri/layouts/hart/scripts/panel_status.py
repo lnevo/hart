@@ -1,8 +1,8 @@
 # Drive HART Railroad status lamps and wire clicks on LCOS / Turnouts /
 # Signals / Track Power panel icons. Never setCommandedState on M2T*/MTT*.
 #
-# The Digicon yard-ladder buttons (IT:HART:YL:*, routes IO:AUTO:0201-0210)
-# and their lamp painting are gone (owner, 2026-11-17): no desk uses them.
+# The Digicon yard-ladder buttons, their internal turnouts and routes
+# IO:AUTO:0201-0210, and their lamp painting are gone (owner, 2026-11-17).
 #
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
@@ -21,11 +21,8 @@ from java.beans import PropertyChangeListener
 from java.lang import Runnable
 from javax.swing import SwingUtilities, Timer
 
-CLOSED = jmri.Turnout.CLOSED
-THROWN = jmri.Turnout.THROWN
 TWOSENSOR = jmri.Turnout.TWOSENSOR
 DIRECT = jmri.Turnout.DIRECT
-ACTIVE = jmri.Sensor.ACTIVE
 
 TURNOUT_FB_HEAD = "IH9990"
 LCOS_SENSOR = "M2S1567"
@@ -46,7 +43,6 @@ _ARM_MAX_ATTEMPTS = 15
 _CLICK_RETRY_MS = 2000
 _CLICK_MAX_ATTEMPTS = 30
 
-_busy = False
 _armed = False
 _clicks_armed = False
 _icon_rebound = False
@@ -76,11 +72,6 @@ def _included_plant_turnouts():
     except Exception as e:
         print("panel_status: scan turnouts failed: %s" % e)
     return out
-
-
-def _plant_turnouts_present():
-    """True when some MQTT/LCC plant turnout with both feedback sensors is loaded."""
-    return bool(_included_plant_turnouts())
 
 
 def _ensure_turnout_fb_head():
@@ -544,16 +535,8 @@ def toggle_track_power():
 
 
 def sync_lamps(event=None):
-    global _busy
-    if _busy:
-        return
-    _busy = True
-    try:
-        sync_turnout_fb_lamp()
-    except Exception as e:
-        print("panel_status: sync error: %s" % e)
-    finally:
-        _busy = False
+    """The lamps that follow plant state: the Turnouts lamp (sync_turnout_fb_lamp catches its own errors)."""
+    sync_turnout_fb_lamp()
 
 
 _sync_timer = Timer(250, None)
@@ -768,18 +751,22 @@ def _arm_listeners():
 
 
 class _ArmAttempt(ActionListener):
-    def __init__(self, attempt):
+    """Arm once the plant turnouts have loaded: some present and their count unchanged since the last try, so a
+    connection that registers its turnouts later is not left without listeners."""
+    def __init__(self, attempt, last=-1):
         self.attempt = attempt
+        self.last = last
 
     def actionPerformed(self, event):
         event.getSource().stop()
-        if not _plant_turnouts_present():
+        n = len(_included_plant_turnouts())
+        if n == 0 or n != self.last:
             if self.attempt + 1 >= _ARM_MAX_ATTEMPTS:
-                print("panel_status: plant turnouts missing; arming anyway")
+                print("panel_status: plant turnouts not settled (%d); arming anyway" % n)
             else:
                 if self.attempt == 0:
                     print("panel_status: waiting for plant turnouts…")
-                t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
+                t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1, n))
                 t.setRepeats(False)
                 t.start()
                 return

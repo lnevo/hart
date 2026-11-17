@@ -1127,10 +1127,11 @@ RETIRED_TURNOUT_PREFIX = "IT:HART:YL:"
 def retire_yard_ladder(root: ET.Element) -> int:
     """Take the yard-ladder internal turnouts, and every route one of them controls or sets, out of tables `root`;
     the count taken out. Stops when any other reference to one is left."""
-    gone = 0
+    gone, users = 0, set()
     for sec in root.findall("turnouts"):
         for t in [t for t in sec.findall("turnout")
                   if (t.findtext("systemName") or "").startswith(RETIRED_TURNOUT_PREFIX)]:
+            users |= {t.findtext("userName")} - {None, ""}
             sec.remove(t)
             gone += 1
     for sec in root.findall("routes"):
@@ -1140,8 +1141,8 @@ def retire_yard_ladder(root: ET.Element) -> int:
                       for o in r.findall("routeOutputTurnout"))]:
             sec.remove(r)
             gone += 1
-    left = [el.tag for el in root.iter() if RETIRED_TURNOUT_PREFIX in (el.text or "") or
-            any(RETIRED_TURNOUT_PREFIX in v for v in el.attrib.values())]
+    named = lambda v: RETIRED_TURNOUT_PREFIX in v or v.strip() in users      # by system or user name
+    left = [el.tag for el in root.iter() if named(el.text or "") or any(named(v) for v in el.attrib.values())]
     if left:
         raise BuildError(f"yard ladder: {RETIRED_TURNOUT_PREFIX}* still named by {sorted(set(left))}")
     return gone
@@ -2078,6 +2079,8 @@ def run(argv, cached) -> int:
         print(f"parked ({', '.join(sorted(PARKED))}), left out, {where}; the template's: " + "; ".join(
             f"{f}: " + ", ".join(f"{v} {k}" for k, v in sorted(c.items()))
             for f, c in parked.counts(P.parked_doc).items()))
+    if getattr(P, "retired", None) is not None:
+        print(f"yard ladder retired: {P.retired} internal turnouts and routes left out ({RETIRED_TURNOUT_PREFIX}*)")
     moved = {f"{t}: mast {m}: {why}" for t, m, why in P.moved}       # the plugin's own log line for each
     for line in P.log:
         if line not in moved:
