@@ -49,6 +49,18 @@ function scan(src, open) {
 }
 const closing = (src, open) => scan(src, open).end;
 
+/* The one way this script evaluates code from run.html: the text from `from` through the bracket that closes `open`. */
+const evalSlice = (src, from, open) => Function(`return (${src.slice(from, closing(src, open) + 1)})`)();
+
+/* The value of a declaration such as "const ST=" (an object or array literal), searched for from `after`. */
+function literal(src, decl, after = 0) {
+  const at = src.indexOf(decl, after);
+  if (at < 0) throw new Error(`run.html: ${decl.trim()} not found`);
+  const open = at + decl.length;
+  if (!"{[".includes(src[open])) throw new Error(`run.html: ${decl.trim()} is not followed by a literal`);
+  return evalSlice(src, open, open);
+}
+
 /* A stand-in for any name the game defines at play time; prints as [name]. */
 function stub(name) {
   return new Proxy(function () {}, {
@@ -63,7 +75,7 @@ function figures(src) {
   for (const name of FIGURES) {
     const at = src.indexOf(`function ${name}(`);
     if (at < 0) throw new Error(`run.html: figure helper ${name} not found`);
-    out[name] = Function(`return (${src.slice(at, closing(src, src.indexOf("{", at)) + 1)})`)();
+    out[name] = evalSlice(src, at, src.indexOf("{", at));
   }
   return out;
 }
@@ -102,14 +114,10 @@ function poolRanges(src) {
   return out;
 }
 
-function readSections(src) {
-  const m = /const SEC=(\{[^}]*\})/.exec(src);
-  if (!m) throw new Error("run.html: section names (const SEC) not found");
-  return Function(`return ${m[1]}`)();
-}
+const readSections = src => literal(src, "const SEC=");
 
 /* Fields the key shows. Others (ok, okText, note, after, miss) only matter during a run. */
-const SHOWN = ["sec", "src", "title", "body", "right", "wrong", "why", "extra"];
+const SHOWN = ["sec", "src", "title", "body", "right", "wrong", "why", "extra", "ref"];
 
 /* The code of one top-level field of an object literal, from scan()'s string-free code. */
 function fieldCode(code, key) {
@@ -126,9 +134,7 @@ function fieldCode(code, key) {
 }
 
 function readSources(src) {
-  const m = /const SRC=(\{[^}]*\})/.exec(src);
-  if (!m) throw new Error("run.html: source names (const SRC) not found");
-  const SRC = Function(`return ${m[1]}`)();
+  const SRC = literal(src, "const SRC=");
   const re = new RegExp(`^(${Object.keys(SRC).join("|")})\\b`);
   return s => s.replace(re, k => SRC[k]); // the same label the game shows (srcLabel)
 }
@@ -169,14 +175,122 @@ function extract(src) {
     qs.push({
       line, sec: o.sec, src: text(srcLabel(String(o.src || ""))), extra: o.extra ? String(o.extra) : "", title: text(o.title), body: text(o.body), right: text(o.right),
       wrong: o.wrong.map(w => ({ t: text(w[0]), why: text(w[2] || "") })),
-      why: text(o.why), where: pool ? POOLS[pool.name] : m.index > modern.from && m.index < modern.to ? "Modern run" : "1949 run",
+      ref: o.ref ? String(o.ref) : "", why: text(o.why), where: pool ? POOLS[pool.name] : m.index > modern.from && m.index < modern.to ? "Modern run" : "1949 run",
     });
   }
   return qs;
 }
 
-function render(qs, SEC) {
+/* ---------- references: what the game shows on its train sheet or warrant form, for questions that need it ---------- */
+/* A question names one with ref:"<id>" in run.html; the game ignores the field. Each is drawn from run.html's own data. */
+
+
+/* The special instructions on the 1949 train sheet: renderSheet's S.era==="tto" branch, up to its }else{. */
+function specialInstructions(src) {
+  const from = src.indexOf('if(S.era==="tto"){', src.indexOf("function renderSheet("));
+  const to = src.indexOf("}else{", from);
+  if (from < 0 || to < 0) throw new Error('run.html: renderSheet\'s S.era==="tto" branch not found');
+  const m = /<div class="xw-si"><b>Special instructions<\/b><ul>(.*?)<\/ul><\/div>/.exec(src.slice(from, to));
+  if (!m) throw new Error("run.html: special instructions not found in the 1949 branch of renderSheet");
+  return m[1];
+}
+
+/* A warrant as the game fills it. Starts from the `const wN={…}` literal in startTWC, then applies every later
+   `wN.boxes[n]=[…]` there: a value set at play time (not a literal) shows as its slot, such as [time], and a box set
+   under if/else is marked as appearing in some runs only. */
+function warrant(src, name) {
+  const from = src.indexOf("function startTWC(");
+  if (from < 0) throw new Error("run.html: function startTWC not found");
+  const body = src.slice(from, closing(src, src.indexOf("{", from)) + 1);
+  const w = literal(body, `const ${name}=`);
+  if (!w.no || !w.boxes) throw new Error(`run.html: ${name} in startTWC has no no or boxes`);
+  const boxes = Object.fromEntries(Object.entries(w.boxes).map(([n, v]) => [n, { vals: v, some: false }]));
+  const re = new RegExp(`\\b${name}\\.boxes\\[(\\d+)\\]=`, "g");
+  let m;
+  while ((m = re.exec(body))) {
+    const open = m.index + m[0].length;
+    if (body[open] !== "[") throw new Error(`run.html: ${name}.boxes[${m[1]}] is not set to an array`);
+    let vals;
+    try { vals = evalSlice(body, open, open); } catch (e) { vals = null; } // built at play time, e.g. [fmt(t)]
+    const lineStart = body.lastIndexOf("\n", m.index) + 1;
+    const some = /^\s*(if\s*\(|else\b|}\s*else\b)/.test(body.slice(lineStart, m.index));
+    boxes[m[1]] = { vals, some };
+  }
+  return { no: w.no, at: w.at, boxes };
+}
+
+function warrantHtml(w, BOXES) {
+  const words = Object.fromEntries(BOXES);
+  const rows = Object.keys(w.boxes).map(Number).sort((a, b) => a - b).map(n => {
+    if (!words[n]) throw new Error(`run.html: warrant ${w.no} uses box ${n}, which BOXES does not define`);
+    const { vals, some } = w.boxes[n];
+    const slots = words[n].match(/\{\w+\}/g) || [];
+    if (vals && vals.length !== slots.length) throw new Error(`run.html: warrant ${w.no} box ${n} has ${vals.length} values for ${slots.length} blanks`);
+    let i = 0;
+    const line = words[n].replace(/\{(\w+)\}/g, (_, slot) => vals ? `<b>${esc(vals[i++])}</b>` : `<b>[${SLOT[slot] || slot}]</b>`);
+    return `<tr><td class="xa-box">${n}</td><td>${line}${some ? ' <small class="xa-some">some runs</small>' : ""}</td></tr>`;
+  });
+  return `<p class="xa-wh">Track warrant no. <b>${esc(w.no)}</b> · copied at ${esc(w.at)} · to KV 812 East</p><table class="xa-w">${rows.join("")}</table>`;
+}
+const SLOT = { s: "station", t: "track", time: "time", train: "train", w: "warrant", mph: "mph", txt: "instructions" };
+
+/* The time order the game writes at an open office, filled with the first of each choice it makes. */
+function timeOrder(src) {
+  const nums = /const n1=rnd\((\d+),(\d+),RW\)/.exec(src);
+  const mins = /L=pick\(\[([\d,\s]+)\],RW\)/.exec(src);
+  const words = /text:`\$\{tr\.name\} run \$\{L\} mins late ([^`]+)`/.exec(src);
+  const tt = src.slice(src.indexOf("function makeTT("));
+  const train = /name:"([^"]+)",dir:"W",cls:"(?:First|Second) class"/.exec(tt);
+  if (!nums || !mins || !words || !train) throw new Error("run.html: the time order's number, minutes, wording or westward train not found");
+  return { no: nums[1], train: train[1], L: mins[1].split(",")[0].trim(), rest: words[1] };
+}
+
+/* How far ahead Box 5 is set when the crew calls the dispatcher (setBox5: rounded up to 5 minutes). */
+function box5Lead(src) {
+  const m = /Math\.ceil\(\(S\.clock\+(\d+)\)\/5\)\*5/.exec(src);
+  if (!m) throw new Error("run.html: setBox5's lead time not found");
+  return +m[1];
+}
+
+function references(src) {
+  const ST = literal(src, "const ST=");
+  const BOXES = literal(src, "const BOXES=");
+  const stations = `<table class="xa-tt"><thead><tr><th>Station</th><th>MP</th><th>Siding</th><th>Notes</th></tr></thead><tbody>${ST.map(st =>
+    `<tr><td>${esc(st.n)}</td><td>${st.mp.toFixed(1)}</td><td>${st.sd ? "yes" : "no"}</td><td>${[st.off ? "open office (D)" : "", st.yl ? "yard limits" : ""].filter(Boolean).join(", ")}</td></tr>`).join("")}</tbody></table>`;
+  const ord = timeOrder(src);
+  const lead = box5Lead(src);
+  const w1 = warrant(src, "w1"), w2 = warrant(src, "w2");
+  const some = "Rows marked <i>some runs</i> are on the warrant in only some runs.";
+  return {
+    tt: {
+      label: "Show the time-table",
+      title: "Time-table No 12, Kestrel Valley Second Subdivision",
+      html: `<p>Ashby to Ironton: single track, with double track from Hollis to Ironton. The train columns change from run to run, so they are left out here.</p>${stations}<p><b>Special instructions</b></p><ul>${specialInstructions(src)}</ul>`,
+    },
+    order: {
+      label: "Show the order",
+      title: "The time order",
+      html: `<p>At an open office the operator hands up a time order (Form E) on a westward regular train, for example:</p>
+<div class="xa-order"><b>Order No ${esc(ord.no)}</b><br>${esc(ord.train)} run ${esc(ord.L)} mins late ${esc(ord.rest)}</div>
+<p>In the question, [train] is the train the order names and [n] its minutes: here ${esc(ord.train)} and ${esc(ord.L)}.</p>`,
+    },
+    w101: {
+      label: "Show warrant 101",
+      title: "Track warrant 101",
+      html: `${warrantHtml(w1, BOXES)}<p>When you call for the warrant, the dispatcher sets Box 5 to the first 5-minute mark at least ${lead} minutes later. The question's two [time] values are that Box 5 time and the clock when you are ready to leave. ${some}</p>`,
+    },
+    w102: {
+      label: "Show warrant 102",
+      title: "Track warrant 102",
+      html: `${warrantHtml(w2, BOXES)}<p>${some}</p>`,
+    },
+  };
+}
+
+function render(qs, SEC, REFS = {}) {
   const order = Object.keys(SEC);
+  const badRef = qs.find(q => q.ref && !REFS[q.ref]);
+  if (badRef) throw new Error(`run.html line ${badRef.line}: unknown reference "${badRef.ref}" (known: ${Object.keys(REFS).join(", ")})`);
   const unknown = qs.filter(q => !order.includes(q.sec));
   if (unknown.length) throw new Error(`run.html line ${unknown[0].line}: unknown section "${unknown[0].sec}"`);
   let n = 0;
@@ -185,13 +299,13 @@ function render(qs, SEC) {
     if (!list.length) return "";
     const cards = list.map(q => {
       n++;
-      const search = plain([q.title, q.body, q.right, q.src, q.why, ...q.wrong.flatMap(w => [w.t, w.why])].join(" ")).toLowerCase();
+      const search = plain([q.title, q.body, q.right, q.src, q.why, ...q.wrong.flatMap(w => [w.t, w.why]), q.ref ? REFS[q.ref].html : ""].join(" ")).toLowerCase();
       // Alphabetical, so the right answer is not always first when answers are hidden.
       const opts = [{ t: q.right, ok: true }, ...q.wrong].sort((a, b) => a.t.localeCompare(b.t));
       return `<article class="xa-q" data-s="${esc(search)}">
   <p class="xa-meta">${n} · ${esc(q.where)} · ${esc(q.src)}</p>
   <h3>${esc(q.title)}</h3>
-  <p>${q.body}</p>${q.extra ? `\n  <div class="xa-fig">${q.extra}</div>` : ""}
+  <p>${q.body}</p>${q.extra ? `\n  <div class="xa-fig">${q.extra}</div>` : ""}${q.ref ? `\n  <p><button type="button" class="xa-ref" data-ref="${q.ref}" aria-haspopup="dialog">${esc(REFS[q.ref].label)}</button></p>` : ""}
   <ul class="xa-opts">${opts.map(o => `<li${o.ok ? ' class="ok"' : ""}>${esc(o.t)}${o.why ? ` <span class="xa-ow">${o.why}</span>` : ""}</li>`).join("")}</ul>
   <p class="xa-why">${q.why}</p>
 </article>`;
@@ -219,6 +333,20 @@ function render(qs, SEC) {
 .xa-opts{margin:6px 0;padding-left:22px}
 .xa-opts li{margin:2px 0}
 .xa-fig{margin:4px 0}
+.xa-ref{font:inherit;font-size:14px;padding:5px 12px;border:1.5px solid #1d2733;border-radius:4px;background:#f5f0e1;color:#1d2733;cursor:pointer}
+.xa-ref:hover{background:#ece4cc}
+.xa-dlg{max-width:min(640px,calc(100vw - 32px));width:100%;border:1.5px solid #1d2733;border-radius:6px;padding:14px 18px;background:#f5f0e1;color:#1d2733}
+.xa-dlg::backdrop{background:rgba(29,39,51,.45)}
+.xa-dlg-head{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.xa-dlg h2{margin:0 0 8px;font-size:20px}
+.xa-close{font:inherit;font-size:22px;line-height:1;border:0;background:none;cursor:pointer;color:#1d2733;padding:0 4px}
+.xa-dlg table{border-collapse:collapse;width:100%;font-size:14px;margin:6px 0}
+.xa-dlg td,.xa-dlg th{border-bottom:1px solid #cdbf9c;padding:4px 6px;text-align:left;vertical-align:top}
+.xa-dlg ul{padding-left:20px;font-size:15px}
+.xa-some{font-size:12px;color:#5d5a4e;font-style:italic}
+.xa-box{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;width:2.5em}
+.xa-wh{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13px}
+.xa-order{background:#f3ecbf;border:1px solid #cdbf9c;padding:8px 12px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:14px;margin:6px 0}
 .xa-opts li.ok{font-weight:600;color:#2d6a4f;list-style:"✓  "}
 .xa-ow,.xa-why{color:#5d5a4e;font-size:14px}
 .xa-sec h2 small{font-weight:400;color:#5d5a4e}
@@ -241,6 +369,10 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
     </div>
     <p class="xa-toc">${toc}</p>
 ${groups}
+${Object.entries(REFS).map(([id, r]) => `<dialog class="xa-dlg" id="ref-${id}" aria-labelledby="ref-${id}-h">
+  <div class="xa-dlg-head"><h2 id="ref-${id}-h">${esc(r.title)}</h2><button type="button" class="xa-close" aria-label="Close">×</button></div>
+  ${r.html}
+</dialog>`).join("\n")}
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
@@ -251,6 +383,13 @@ ${groups}
       document.querySelectorAll(".xa-q").forEach(function(a){a.hidden=!!v&&a.dataset.s.indexOf(v)<0});
       document.querySelectorAll(".xa-sec").forEach(function(s){s.hidden=!s.querySelector(".xa-q:not([hidden])")});});
     h.addEventListener("change",function(){document.body.classList.toggle("xa-hide",h.checked)});
+    document.querySelectorAll(".xa-ref").forEach(function(b){b.addEventListener("click",function(){
+      var d=document.getElementById("ref-"+b.dataset.ref);if(!d)return;
+      if(d.showModal)d.showModal();else{d.setAttribute("open","");d.scrollIntoView();}})}); // no <dialog> support: show it in place
+    document.querySelectorAll(".xa-dlg").forEach(function(d){
+      d.querySelector(".xa-close").addEventListener("click",function(){if(d.close)d.close();else d.removeAttribute("open");});
+      d.addEventListener("click",function(e){var r=d.getBoundingClientRect(); // a click on the backdrop, outside the box, closes it
+        if(e.target===d&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))d.close();});});
   })();
   document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("ap-exam").catch(function (err) { console.error(err); }); });
   </script>
@@ -264,7 +403,7 @@ function main() {
   const qs = extract(src);
   const calls = (src.match(/\bask\(\{/g) || []).length;
   if (qs.length !== calls) throw new Error(`read ${qs.length} questions but run.html has ${calls} ask({ calls`);
-  const html = render(qs, readSections(src));
+  const html = render(qs, readSections(src), references(src));
   if (process.argv.includes("--check")) {
     const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";
     if (cur !== html) {
@@ -281,4 +420,4 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (e) { console.error(`build_exam_answers: ${e.message}`); process.exit(1); }
 }
-module.exports = { extract, render, readSections };
+module.exports = { extract, render, readSections, references, warrantHtml };
