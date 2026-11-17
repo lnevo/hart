@@ -372,8 +372,8 @@ def mast_bindings(opts, F):
 
 def xover_corners(name, F) -> list:
     """The device map's corner blocks of double crossover OS block `name` ("OS Switch <n>" -> "OS Switch <n>a" to
-    "<n>d"), or []. The desk draws a double crossover as one block, so it keeps that name there and the corners are
-    listed as not on the desk."""
+    "<n>d"), or []. The desk draws each corner as a block of its own and the middle of the X as `name`, which the
+    device map has no row for (level_switch_bindings)."""
     return [f"{name}{c}" for c in "abcd" if f"{name}{c}" in F.device.blocks]
 
 
@@ -407,19 +407,6 @@ def name_loop_halves(bands):
     return out
 
 
-def corner_name(bands, cats, key):
-    """The device map name of a double crossover's corner block key (OS Switch <n> plus the Layout Editor corner its
-    leg reaches) or of the middle of its X (OS Switch <n>); None for any other key."""
-    if key[0] not in ("corner", "xmid"):
-        return None
-    num = bdm.base(cats.label_of(bands, ("os", key[1])))
-    if key[0] == "xmid":
-        return f"OS Switch {num}"
-    tag, n = key[1].split(":", 1)
-    band = bands[int(tag[1:])][1]
-    return bdm.xover_corners(num, cats_le(cats).double_corners(band, n))[key[2]]
-
-
 def cats_le(cats):
     """The plugin's le module, beside its cats module."""
     return importlib.import_module(cats.__name__.rpartition(".")[0] + ".le")
@@ -429,14 +416,6 @@ def device_name(bands, cats, keys, F, log):
     """The device map's name of the main or upper block made of block keys `keys`: OS Switch N for an OS block
     (a crossover's halves are one block; switches whose OS blocks the plugin merges over a track too short to part
     them take the lowest number, logged), else the device map track that holds the block's schematic tracks."""
-    cornered = {P_name for P_name in (corner_name(bands, cats, k) for k in keys) if P_name}
-    if cornered:            # a double crossover's corner, or the middle of its X (level_switch_bindings names them)
-        if len(cornered) > 1 or any(k[0] not in ("corner", "xmid") for k in keys):
-            raise SystemExit(f"desk block {sorted(keys)}: a double crossover's corner merged with other track")
-        name = cornered.pop()
-        if name not in F.device.blocks and not xover_corners(name, F):
-            raise SystemExit(f"{name}: no block row in {DEVICE_MAP.name}")
-        return name
     labels = sorted({cats.label_of(bands, k) for k in keys if k[0] == "os"} - {""}, key=bdm.natural)
     if labels:
         numbers = sorted({bdm.base(lb) for lb in labels}, key=bdm.natural)
@@ -535,7 +514,14 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         if len(dark) < len(keys):
             raise SystemExit(f"desk block {panel_name} holds track of staging and of main or upper: a helix track "
                              f"must be a block on each band (HELIX_BLOCKS is {HELIX_BLOCKS!r})")
-        name = device_name(bands, cats, keys, F, log)
+        if any(k[0] in ("corner", "xmid") for k in keys):
+            # a double crossover's corner or the middle of its X: the plugin named it from the corners binding
+            # (level_switch_bindings), which is the device map's name
+            name = panel_name
+            if name not in F.device.blocks and not xover_corners(name, F):
+                raise SystemExit(f"{name}: no block row in {DEVICE_MAP.name}")
+        else:
+            name = device_name(bands, cats, keys, F, log)
         e = {"name": name, "station": station_plate(name), "discipline": MAIN_UPPER_DISCIPLINE}
         spec = planned_sensor(name, F)
         if spec and DETECT_MAIN_UPPER:
@@ -552,10 +538,6 @@ def dark_bindings(bands, cats, P, F, bound_bi):
             log.append(f"blocks named {name} on the desk are one block")
         seen.add(name)
         out[panel_name] = e
-    for name in sorted(seen):
-        for corner in [c for c in xover_corners(name, F) if c not in seen]:
-            missing[corner] = (f"inside desk block {name}: a double crossover drawn without corners is one desk "
-                               "block")
     for name, row in sorted(F.device.blocks.items()):
         if name not in seen and name not in missing:
             missing[name] = inside_os(bands, P, bound_bi, name, row)

@@ -409,6 +409,17 @@ class LevelSwitches(unittest.TestCase):
         self.assertEqual((out["225"]["normal"], out["225"]["routes"]["C"]["ROUTECOMMAND"]["USER_NAME"]),
                          ("B", "Switch 225"))
 
+    def test_a_double_crossover_takes_a_block_per_corner_named_by_its_legs(self):
+        # corners keyed by band leg, named by the Layout Editor corner each leg reaches (owner, 2026-11-17)
+        legs = {"A": "C", "B": "D", "C": "A", "D": "B"}
+        out = B.level_switch_bindings(level_bands(), level_facts(), 0, {"225": legs})
+        self.assertEqual(out["225"]["corners"], {"A": "OS Switch 225c", "B": "OS Switch 225d", "C": "OS Switch 225a",
+                                                 "D": "OS Switch 225b", "X": "OS Switch 225"})
+        self.assertNotIn("corners", out["109"])
+        self.assertNotIn("corners", B.level_switch_bindings(level_bands(), level_facts(), 0)["225"])
+        with self.assertRaisesRegex(SystemExit, "double crossover 225: no corners found"):
+            B.level_switch_bindings(level_bands(), level_facts(), 0, {})
+
     def test_a_turnout_that_is_not_internal_stops(self):
         for turnouts in ({}, {"Switch 109": "M2T1300"}):
             with self.subTest(turnouts=turnouts), self.assertRaisesRegex(SystemExit, "no internal turnout Switch"):
