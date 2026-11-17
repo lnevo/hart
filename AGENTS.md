@@ -11,7 +11,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | List commands | `make` shows the shortcuts for what follows |
 | Start a task | `make wt TOPIC=<topic>`, then work in `.claude/worktrees/<topic>/` (see close-out step 2) |
 | Checks | `./tools/check.sh` (before any commit that changes tables or signals). CI runs it on every PR, without the portal build |
-| Rebuild the panels drawn from the schematic | `make panels` (hands, signals, device map, schematic, CATS, LE trials and cut-over, in order); `make panels CHECK=1` only checks |
+| Rebuild the panels drawn from the schematic | `make panels` (hands, signals, device map, schematic, CATS, LE trials and cut-over, in order); `make panels CHECK=1` only checks; `make desks` rebuilds and validates only the CATS desks. Pipeline: `wiki/pipelines/schematic-panels.md` |
 | Real PanelPro load | `make panelpro-test` on the Mac. Disables the publishing startup scripts but still connects to MQTT |
 | Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
 | Bring a PanelPro Store into the repo | `make tables-pull` |

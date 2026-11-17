@@ -26,5 +26,6 @@ NextTrain / Google Sheets is **not** on this list (abandoned for hart).
 | 16 | Industry routing | Live (hart-ops, ADR-010) | [industry-routing.md](industry-routing.md) |
 | 17 | Website | Live | [`www/README.md`](../../www/README.md) |
 | 18 | MQTT mimic | Tool | [mqtt-mimic.md](mqtt-mimic.md) |
+| 19 | Panels from the schematic | Live | [schematic-panels.md](schematic-panels.md) |
 
-**Do not** encode one-off table deletes into immortal leftover lists (`cleanup_uss_ctc_leftovers.py` and friends). That is a review of pipeline 2, not a 17th flow.
+**Do not** encode one-off table deletes into immortal leftover lists (`cleanup_uss_ctc_leftovers.py` and friends). That is a review of pipeline 2, not a pipeline of its own.

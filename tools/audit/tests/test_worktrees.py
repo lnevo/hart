@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -120,13 +121,16 @@ class MergedAt(Repo):
 
 
 class Sweep(Repo):
-    def sweep(self, merged):
-        saved = (WT.ROOT, WT.merged_at)
-        WT.ROOT, WT.merged_at = Path(self.wt), lambda tree, main, prs=None: merged(tree)
+    def sweep(self, merged, budget=None, by_branch=None):
+        """Sweep with GitHub replaced: `merged(tree)` answers per worktree, or `by_branch` stands in for the batch."""
+        saved = (WT.ROOT, WT.merged_at, WT.merged_by_branch)
+        WT.ROOT, WT.merged_by_branch = Path(self.wt), lambda main, limit=1000: by_branch
+        if merged is not None:
+            WT.merged_at = lambda tree, main, prs=None: merged(tree)
         try:
-            return WT.sweep()
+            return WT.sweep(budget=budget)
         finally:
-            WT.ROOT, WT.merged_at = saved
+            WT.ROOT, WT.merged_at, WT.merged_by_branch = saved
 
     def test_sweep_removes_worktree_and_branch(self) -> None:
         lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
@@ -190,6 +194,25 @@ class Sweep(Repo):
         finally:
             WT.git_run = saved
         self.assertTrue(os.path.exists(self.wt))
+
+    def test_spent_budget_leaves_removals_for_the_next_sweep(self) -> None:
+        lines = self.sweep(lambda t: LONG_AGO, budget=-1)
+        self.assertEqual(len(lines), 1, lines)
+        self.assertTrue(lines[0].startswith("left 1 merged worktree(s) for the next sweep"), lines)
+        self.assertTrue(os.path.exists(self.wt))
+
+    def test_planning_time_does_not_count_against_the_budget(self) -> None:
+        def slow(tree):
+            time.sleep(0.3)
+            return LONG_AGO
+        lines = self.sweep(slow, budget=0.2)
+        self.assertTrue(lines and lines[0].startswith("removed"), lines)
+
+    def test_one_batched_answer_feeds_every_worktree(self) -> None:
+        self.assertEqual(self.sweep(None, by_branch={}), [])  # no merged PR for the branch: open work
+        by_branch = {"agent/claude/x": [{"headRefOid": self.head, "mergedAt": "2026-01-01T00:00:00Z"}]}
+        lines = self.sweep(None, by_branch=by_branch)
+        self.assertTrue(lines and lines[0].startswith("removed"), lines)
 
     def test_sweep_keeps_unmerged_worktree(self) -> None:
         self.assertEqual(self.sweep(lambda t: None), [])
