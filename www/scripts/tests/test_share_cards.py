@@ -45,6 +45,31 @@ class HeadTags(unittest.TestCase):
         self.assertIn('og:image:alt" content="The &quot;A&quot; board"', own)
         self.assertIn("assets/icons/share-card.jpg", other)
 
+    def test_share_tags_use_the_page_description_when_it_has_one(self):
+        own = build._head_tags(Path("guides/a.html"), "A", "A page about Alpha & co.")
+        self.assertIn('og:description" content="A page about Alpha &amp; co."', own)
+        self.assertNotIn('name="description"', own)  # the page's own tag stays the only one
+        default = build._head_tags(Path("guides/b.html"), "B")
+        self.assertIn('name="description"', default)
+        self.assertIn(build.html.escape(build.SHARE_DESCRIPTION, quote=True), default)
+
+    def test_build_reads_the_page_description_from_its_head(self):
+        page = (
+            '<html><head><title>A</title><meta content="Rules &amp; orders" name=\'description\'></head>'
+            '<body><template><meta name="description" content="not this"></template></body></html>'
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a.html").write_text(page, encoding="utf-8")
+            (root / "b.html").write_text("<html><head><title>B</title></head><body></body></html>", encoding="utf-8")
+            build._add_head_tags(root)
+            a = (root / "a.html").read_text(encoding="utf-8")
+            b = (root / "b.html").read_text(encoding="utf-8")
+        self.assertEqual(a.count('name="description"') + a.count("name='description'"), 2)  # own + the template copy
+        self.assertIn('og:description" content="Rules &amp; orders"', a)
+        self.assertEqual(b.count('name="description"'), 1)
+        self.assertIn("Neville Island", b)
+
     def test_the_404_page_gets_site_root_icon_links(self):
         tags = build._head_tags(Path("404.html"), "Page not found")
         self.assertIn('href="/favicon.ico"', tags)

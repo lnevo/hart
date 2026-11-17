@@ -873,19 +873,21 @@ def _vendor_json_logos(path: Path, dest_root: Path) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _head_tags(rel: Path, title: str) -> str:
+def _head_tags(rel: Path, title: str, desc: str | None = None) -> str:
+    """Icon and share tags; desc is the page's own meta description, which the page already carries."""
     # The 404 page is served for any missing path, so its links start at the site root.
     up = "/" if rel == Path("404.html") else "../" * (len(rel.parts) - 1)
     url = SITE_URL + ("" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html"))
     title = html.escape(title, quote=True)
-    desc = html.escape(SHARE_DESCRIPTION, quote=True)
+    # A page with its own description keeps its tag; the share tags repeat it.
+    meta_desc = "" if desc is not None else f'\n  <meta name="description" content="{html.escape(SHARE_DESCRIPTION, quote=True)}">'
+    desc = html.escape(desc or SHARE_DESCRIPTION, quote=True)
     card = share_cards.card_for(rel)  # the page's own thumbnail, or the site card
     image, alt = card["image"], html.escape(card["alt"], quote=True)
     return f"""
   <link rel="icon" href="{up}favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="{up}assets/icons/favicon-32.png" sizes="32x32">
-  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">
-  <meta name="description" content="{desc}">
+  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">{meta_desc}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HART Railroad">
   <meta property="og:title" content="{title}">
@@ -899,6 +901,32 @@ def _head_tags(rel: Path, title: str) -> str:
   <meta name="hart-search" content="{INDEX_NAME}">"""
 
 
+class _HeadDescription(HTMLParser):
+    """The <head>'s own <meta name="description">, in any attribute order or quoting; None if it has none."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.description: str | None = None
+        self._done = False
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if self._done or tag == "body":
+            self._done = True
+        elif tag == "meta" and (a.get("name") or "").lower() == "description" and self.description is None:
+            self.description = (a.get("content") or "").strip()
+
+    def handle_endtag(self, tag):
+        if tag == "head":
+            self._done = True
+
+
+def _own_description(text: str) -> str | None:
+    p = _HeadDescription()
+    p.feed(text)
+    return p.description
+
+
 def _add_head_tags(dest_root: Path) -> None:
     for page in dest_root.rglob("*.html"):
         text = page.read_text(encoding="utf-8")
@@ -906,8 +934,9 @@ def _add_head_tags(dest_root: Path) -> None:
             continue
         m = re.search(r"<title>(.*?)</title>", text, re.S)
         title = html.unescape(m.group(1).strip()) if m else "HART Railroad"
+        desc = _own_description(text)
         page.write_text(
-            text.replace("</title>", "</title>" + _head_tags(page.relative_to(dest_root), title), 1),
+            text.replace("</title>", "</title>" + _head_tags(page.relative_to(dest_root), title, desc), 1),
             encoding="utf-8",
         )
 
