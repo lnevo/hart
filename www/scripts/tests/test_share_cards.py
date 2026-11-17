@@ -53,6 +53,23 @@ class HeadTags(unittest.TestCase):
         self.assertIn('name="description"', default)
         self.assertIn(build.html.escape(build.SHARE_DESCRIPTION, quote=True), default)
 
+    def test_build_reads_the_page_description_from_its_head(self):
+        page = (
+            '<html><head><title>A</title><meta content="Rules &amp; orders" name=\'description\'></head>'
+            '<body><template><meta name="description" content="not this"></template></body></html>'
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a.html").write_text(page, encoding="utf-8")
+            (root / "b.html").write_text("<html><head><title>B</title></head><body></body></html>", encoding="utf-8")
+            build._add_head_tags(root)
+            a = (root / "a.html").read_text(encoding="utf-8")
+            b = (root / "b.html").read_text(encoding="utf-8")
+        self.assertEqual(a.count('name="description"') + a.count("name='description'"), 2)  # own + the template copy
+        self.assertIn('og:description" content="Rules &amp; orders"', a)
+        self.assertEqual(b.count('name="description"'), 1)
+        self.assertIn("Neville Island", b)
+
     def test_the_404_page_gets_site_root_icon_links(self):
         tags = build._head_tags(Path("404.html"), "Page not found")
         self.assertIn('href="/favicon.ico"', tags)
