@@ -30,11 +30,13 @@ class ExamAnswers(unittest.TestCase):
         out = node(
             f"const m=require({json.dumps(str(SCRIPT))});"
             f"const src=require('fs').readFileSync({json.dumps(str(RUN))},'utf8');"
-            "console.log(JSON.stringify(m.extract(src)))"
+            "const qs=m.extract(src);console.log(JSON.stringify({qs,generated:qs.generated}))"
         )
-        qs = json.loads(out)
+        data = json.loads(out)
+        qs = data["qs"]
         calls = len(re.findall(r"\bask\(\{", RUN.read_text()))
-        self.assertEqual(len(qs), calls)
+        self.assertEqual(len(qs) + data["generated"], calls)
+        self.assertGreater(data["generated"], 0, "the signals run's questions drawn at each signal")
         for q in qs:
             self.assertTrue(q["right"] and q["wrong"] and q["why"], q["title"])
             # Values filled in at play time must read as a friendly name, never a raw stub.
@@ -44,7 +46,7 @@ class ExamAnswers(unittest.TestCase):
     # A minimal run.html: the pools, the modern-run markers, the source names and a figure helper.
     FRAME = (
         'const SRC={SC:"1949 Standard Code",GC:"GCOR"};function semSvg(a){return "<svg>"+a+"</svg>"}'
-        "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function startYARD(){{YARD}}function finish(){}"
+        "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function startSIG(){}function startYARD(){{YARD}}function finish(){}"
     )
 
     def mini(self, body="", modern="", yard=""):
@@ -119,6 +121,25 @@ class ExamAnswers(unittest.TestCase):
                 f"const m=require({json.dumps(str(SCRIPT))});"
                 "m.render([{line:1,sec:'def',src:'',title:'t',body:'b',right:'r',wrong:[],why:'y',ref:'nope',extra:''}],{def:'D'},{})"
             )
+
+    def test_signal_tables_cover_the_signals_run(self):
+        out = node(
+            f"const m=require({json.dumps(str(SCRIPT))});const S=m.loadSignals();const g=m.generatedHtml(S);"
+            "console.log(JSON.stringify({n:g.n,a:S.ASPECTS.length,r:new Set(S.ROUTE.map(x=>x.heads)).size,p:Object.keys(S.PLATES).filter(k=>k!=='none').length,"
+            "badW:S.ASPECTS.filter(a=>a.w.length!==3||a.w.some(r=>!S.ASPECTS.find(x=>x.r===r))).map(a=>a.r)}))"
+        )
+        d = json.loads(out)
+        self.assertEqual(d["badW"], [])
+        # one entry per aspect, per distinct route-signal look, and per plate the game draws
+        self.assertEqual(d["n"], d["a"] + d["r"] + d["p"])
+        html = (WWW / "exam" / "answers.html").read_text()
+        self.assertIn('id="signals"', html)
+        for rule in ("Rule 281", "Rule 292", "A plate at Stop", "SA plate at Stop", "carries an SA plate"):
+            self.assertIn(rule, html)
+
+    def test_game_and_deck_load_the_shared_signals(self):
+        for page in (RUN, INDEX):
+            self.assertIn('<script src="signals.js"></script>', page.read_text(), page.name)
 
     def test_right_answer_not_always_first(self):
         html = (WWW / "exam" / "answers.html").read_text()

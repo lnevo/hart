@@ -5,6 +5,7 @@
 "use strict";
 const fs = require("fs");
 const path = require("path");
+const vm = require("vm");
 
 const EXAM = path.join(__dirname, "..", "exam");
 const RUN = path.join(EXAM, "run.html");
@@ -148,7 +149,7 @@ function modernRange(src) {
 }
 
 /* Runs whose questions all sit inside one start function: the yard job. */
-const FUNC_RUNS = { startYARD: "Yard job" };
+const FUNC_RUNS = { startYARD: "Yard job", startSIG: "Signals run" };
 function funcRanges(src) {
   return Object.entries(FUNC_RUNS).map(([fn, label]) => {
     const at = src.indexOf(`function ${fn}(`);
@@ -164,12 +165,16 @@ function extract(src) {
   const scope = scopeWith(figures(src));
   const srcLabel = readSources(src);
   const qs = [];
+  let generated = 0;
   const re = /\bask\(\{/g;
   let m;
   while ((m = re.exec(src))) {
     const open = m.index + 4;
     const line = src.slice(0, m.index).split("\n").length;
     const { end, code } = scan(src, open);
+    // A question drawn at a signal (gen:"speed", "route" or "plate") is built at play time from signals.js; the key lists
+    // those from the tables (generatedHtml) instead of reading the call.
+    if (/[{,]\s*gen\s*:/.test(code)) { generated++; continue; } // its value is a string, which scan() leaves out of code
     // Stubs are always truthy, so a shown field chosen at play time would show one branch as the only answer.
     const chosen = SHOWN.filter(k => /\?|&&|\|\|/.test(fieldCode(code, k)));
     if (chosen.length) throw new Error(`run.html line ${line}: ${chosen.join(", ")} chosen at play time (?, && or ||); write one ask per case, or put a situational sentence in note`);
@@ -190,7 +195,55 @@ function extract(src) {
       ref: o.ref ? String(o.ref) : "", why: text(o.why), where: pool ? POOLS[pool.name] : (runs.find(r => m.index > r.from && m.index < r.to) || {}).label || (m.index > modern.from && m.index < modern.to ? "Modern run" : "1949 run"),
     });
   }
+  qs.generated = generated;
   return qs;
+}
+
+/* signals.js, the tables the signals runs draw from (shared with the study deck), loaded in a sandbox. */
+function loadSignals() {
+  const file = path.join(EXAM, "signals.js");
+  const ctx = {};
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(file, "utf8") + ";this.SIG={ASPECTS,ROUTE,PLATES,sigFig,lightFig,armWords,lampWords,plateWrongs,routeWhy};", ctx);
+  const SIG = ctx.SIG;
+  if (!SIG.ASPECTS.length || !SIG.ROUTE.length || !Object.keys(SIG.PLATES).length) throw new Error("signals.js: a table is empty");
+  return SIG;
+}
+
+/* The questions the signals runs draw at each signal: every speed aspect, route indication and plate, with the
+   choices the game can offer. */
+function generatedHtml(SIG) {
+  const byR = Object.fromEntries(SIG.ASPECTS.map(a => [a.r, a]));
+  const card = (meta, title, body, fig, right, wrongs, why) => {
+    const opts = [{ t: right, ok: true }, ...wrongs.map(t => ({ t }))].sort((a, b) => a.t.localeCompare(b.t));
+    const search = plain([title, body, right, why, meta, ...wrongs].join(" ")).toLowerCase();
+    return `<article class="xa-q" data-s="${esc(search)}">
+  <p class="xa-meta">${esc(meta)}</p>
+  <h3>${esc(title)}</h3>
+  <p>${esc(body)}</p>
+  <div class="xa-fig">${fig}</div>
+  <ul class="xa-opts">${opts.map(o => `<li${o.ok ? ' class="ok"' : ""}>${esc(o.t)}</li>`).join("")}</ul>
+  <p class="xa-why">${esc(why)}</p>
+</article>`;
+  };
+  const speed = SIG.ASPECTS.map(a => card(`Speed signals · 1949 Standard Code · Rule ${a.r}`, `Rule ${a.r}`, `Arms top to bottom: ${SIG.armWords(a.arms)}. What does it indicate?`,
+    SIG.sigFig(a.arms), a.ind, a.w.map(r => byR[r].ind), `Rule ${a.r}, ${a.name}: ${a.ind}.`));
+  const inds = [...new Set(SIG.ROUTE.map(r => r.ind))];
+  const route = SIG.ROUTE.filter((r, i, all) => all.findIndex(x => x.heads === r.heads) === i).map(r => card(`Route signals · Signals guide · chart`, r.name,
+    `${SIG.lampWords(r.heads)}. What does it tell you?`, SIG.lightFig(r.heads, ""), r.ind, inds.filter(t => t !== r.ind), SIG.routeWhy(r)));
+  // the plates the game draws (it never draws a signal with no plate)
+  const plates = Object.entries(SIG.PLATES).filter(([k]) => k !== "none").map(([k, p]) => card(`Both signals runs · Signals guide · signage`, `${p.name} at Stop`,
+    `The signal shows Stop and carries ${p.with}. What do you do?`, SIG.lightFig("R", k), p.act, SIG.plateWrongs(k).map(w => w.t), p.note));
+  const n = speed.length + route.length + plates.length;
+  return { n, html: `<section class="xa-sec" id="signals"><h2>Signals run: at each signal <small>${n}</small></h2>
+<p class="xa-gen">On the signals runs each signal is drawn from these tables, which the study deck also uses. The game offers three of the wrong choices listed for a route signal or a plate.</p>
+<h3 class="xa-sub">Speed semaphores (1949)</h3>
+${speed.join("\n")}
+<h3 class="xa-sub">Route signals (modern)</h3>
+${route.join("\n")}
+<h3 class="xa-sub">At a Stop: the plates</h3>
+${plates.join("\n")}
+</section>` };
 }
 
 /* ---------- references: what the game shows on its train sheet or warrant form, for questions that need it ---------- */
@@ -299,7 +352,7 @@ function references(src) {
   };
 }
 
-function render(qs, SEC, REFS = {}) {
+function render(qs, SEC, REFS = {}, GEN = { n: 0, html: "" }) {
   const order = Object.keys(SEC);
   const badRef = qs.find(q => q.ref && !REFS[q.ref]);
   if (badRef) throw new Error(`run.html line ${badRef.line}: unknown reference "${badRef.ref}" (known: ${Object.keys(REFS).join(", ")})`);
@@ -324,7 +377,7 @@ function render(qs, SEC, REFS = {}) {
     }).join("\n");
     return `<section class="xa-sec" id="${sec}"><h2>${esc(SEC[sec])} <small>${list.length}</small></h2>\n${cards}\n</section>`;
   }).join("\n");
-  const toc = order.filter(s => qs.some(q => q.sec === s)).map(s => `<a href="#${s}">${esc(SEC[s])}</a>`).join(" · ");
+  const toc = order.filter(s => qs.some(q => q.sec === s)).map(s => `<a href="#${s}">${esc(SEC[s])}</a>`).join(" · ") + (GEN.n ? ` · <a href="#signals">Signals run: at each signal</a>` : "");
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -344,7 +397,9 @@ function render(qs, SEC, REFS = {}) {
 .xa-meta{margin:0;font-size:12px;color:#5d5a4e;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 .xa-opts{margin:6px 0;padding-left:22px}
 .xa-opts li{margin:2px 0}
-.xa-fig{margin:4px 0}
+.xa-fig{margin:4px 0;color:#1d2733}
+.xa-sub{font-size:17px;margin:14px 0 4px}
+.xa-gen{color:#5d5a4e;font-size:14px}
 .xa-ref{font:inherit;font-size:14px;padding:5px 12px;border:1.5px solid #1d2733;border-radius:4px;background:#f5f0e1;color:#1d2733;cursor:pointer}
 .xa-ref:hover{background:#ece4cc}
 .xa-dlg{max-width:min(640px,calc(100vw - 32px));width:100%;border:1.5px solid #1d2733;border-radius:6px;padding:14px 18px;background:#f5f0e1;color:#1d2733}
@@ -381,6 +436,7 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
     </div>
     <p class="xa-toc">${toc}</p>
 ${groups}
+${GEN.html}
 ${Object.entries(REFS).map(([id, r]) => `<dialog class="xa-dlg" id="ref-${id}" aria-labelledby="ref-${id}-h">
   <div class="xa-dlg-head"><h2 id="ref-${id}-h">${esc(r.title)}</h2><button type="button" class="xa-close" aria-label="Close">×</button></div>
   ${r.html}
@@ -414,8 +470,9 @@ function main() {
   const src = fs.readFileSync(RUN, "utf8");
   const qs = extract(src);
   const calls = (src.match(/\bask\(\{/g) || []).length;
-  if (qs.length !== calls) throw new Error(`read ${qs.length} questions but run.html has ${calls} ask({ calls`);
-  const html = render(qs, readSections(src), references(src));
+  if (qs.length + qs.generated !== calls) throw new Error(`read ${qs.length} questions and ${qs.generated} signal templates but run.html has ${calls} ask({ calls`);
+  const GEN = qs.generated ? generatedHtml(loadSignals()) : { n: 0, html: "" };
+  const html = render(qs, readSections(src), references(src), GEN);
   if (process.argv.includes("--check")) {
     const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";
     if (cur !== html) {
@@ -432,4 +489,4 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (e) { console.error(`build_exam_answers: ${e.message}`); process.exit(1); }
 }
-module.exports = { extract, render, readSections, references, warrantHtml };
+module.exports = { extract, render, readSections, references, warrantHtml, loadSignals, generatedHtml };
