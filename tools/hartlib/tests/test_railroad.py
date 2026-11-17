@@ -61,7 +61,7 @@ class RepoData(unittest.TestCase):
         self.assertEqual(len(rr.level_masts), 41)
         fails, known = R.run_check(rr)
         self.assertEqual(fails, [])
-        self.assertEqual(len(known), 2)
+        self.assertEqual(known, [])
 
     def test_every_known_message_names_a_registered_invariant(self) -> None:
         names = {i.name for i in R.INVARIANTS}
@@ -332,12 +332,25 @@ class Invariants(Copy):
 
 
 class Known(unittest.TestCase):
+    def broken_map(self) -> Path:
+        """A copy of the repo's name map with the Block 2-2 alias pointed at a name that has no live row."""
+        d = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, d)
+        src = R.Sources.under().name_map.read_text(encoding="utf-8")
+        old = "occupancy,Block 2-2,unused Block 2-2,"
+        self.assertIn(old, src)
+        out = d / "public_name_map.csv"
+        out.write_text(src.replace(old, "occupancy,Block 2-2,BS unused,"), encoding="utf-8")
+        return out
+
     def test_unknown_problems_fail_and_stale_known_entries_fail(self) -> None:
-        rr = R.Railroad(upto="device_map")
-        unused = next(m for m in R.KNOWN if "BS unused" in m)
-        fails, _ = R.run_check(rr, {k: v for k, v in R.KNOWN.items() if k != unused})
-        self.assertEqual(fails, [unused])
-        fails, _ = R.run_check(rr, {**R.KNOWN, "device-map: nothing like this": "test"})
+        rr = R.Railroad(sources=R.Sources.under().but(name_map=self.broken_map()), upto="device_map")
+        problem = "name-map: public_name_map.csv: occupancy 'Block 2-2' is an alias of 'BS unused', which has no live row (current == proposed)"
+        fails, _ = R.run_check(rr, {})
+        self.assertIn(problem, fails)
+        fails, _ = R.run_check(rr, {problem: "test"})
+        self.assertNotIn(problem, fails)
+        fails, _ = R.run_check(R.Railroad(upto="device_map"), {**R.KNOWN, "device-map: nothing like this": "test"})
         self.assertEqual(fails, ["KNOWN entry no longer happens; remove it from KNOWN: device-map: nothing like this"])
 
     def test_the_command(self) -> None:

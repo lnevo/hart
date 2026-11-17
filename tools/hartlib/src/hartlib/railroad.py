@@ -1076,51 +1076,10 @@ def _tables(rr: Railroad) -> list[str]:
 
 # ---------------------------------------------------------------- the check command
 
-# Problems already reported to the owner, each by its exact message (str(Problem)) -> why it is left. Reported with
-# the railroad facts loader (2026-11-17); the data is the owner's to change, so none was fixed here.
-THROATS = ("The Layout Editor throat blocks Track S-R, S-1 to S-4 West and East have no live row in "
-           "public_name_map.csv (Track Scale East has one), though staging masts face them, block_lengths.csv "
-           "measures them and old aliases point at them")
-UNUSED = "Two retired occupancy names alias the placeholder BS unused, which has no live row"
-KNOWN: dict[str, str] = {
-    **dict.fromkeys((
-        "name-map: public_name_map.csv: block 'S-2 East' is an alias of 'Track S-1 East', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: block 'S-2 West' is an alias of 'Track S-1 West', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: block 'S-3 East' is an alias of 'Track S-2 East', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: block 'S-3 West' is an alias of 'Track S-2 West', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: block 'S-4 East' is an alias of 'Track S-3 East', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: block 'S-4 West' is an alias of 'Track S-3 West', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: block 'S-5 East' is an alias of 'Track S-4 East', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: block 'S-5 West' is an alias of 'Track S-4 West', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: block 'S-1 East' is an alias of 'Track S-R East', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: block 'S-1 West' is an alias of 'Track S-R West', which has no live row (current == proposed)",
-        'staging-blocks: masts.csv: Mast 16L: block Track S-R West is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 16R: block Track S-R East is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 18L: block Track S-1 West is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 18R: block Track S-1 East is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 20L: block Track S-2 West is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 20R: block Track S-2 East is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 22L: block Track S-3 West is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 22R: block Track S-3 East is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 24RB: block Track S-R East is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 26L: block Track S-4 West is no live block of the name map',
-        'staging-blocks: masts.csv: Mast 26R: block Track S-4 East is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-1 West is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-1 East is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-2 West is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-2 East is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-3 West is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-3 East is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-4 West is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-4 East is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-R West is no live block of the name map',
-        'staging-blocks: block_lengths.csv: Track S-R East is no live block of the name map',
-    ), THROATS),
-    **dict.fromkeys((
-        "name-map: public_name_map.csv: occupancy 'Block 2-2' is an alias of 'BS unused', which has no live row (current == proposed)",
-        "name-map: public_name_map.csv: occupancy 'Block 3-8' is an alias of 'BS unused', which has no live row (current == proposed)",
-    ), UNUSED),
-}
+# Problems already reported to the owner, each by its exact message (str(Problem)) -> why it is left. Empty since
+# 2026-11-17: the owner decided the throat blocks (live rows added) and the BS unused aliases (they point at the
+# free detectors' live names). Add an entry only for a problem the owner has been told about and chose to leave.
+KNOWN: dict[str, str] = {}
 
 
 def run_check(rr: Railroad, known: dict[str, str] = KNOWN) -> tuple[list[str], list[str]]:

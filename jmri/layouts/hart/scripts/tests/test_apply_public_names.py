@@ -70,7 +70,7 @@ class ApplyPublicNamesTest(unittest.TestCase):
         currents = {entry.current for entry in renames}
         self.assertIn("OS 1", currents)
         self.assertIn("OS East Lead", currents)
-        self.assertIn("Switch 100", currents)
+        self.assertIn("DCC 100", currents)
         self.assertNotIn("Barn", currents)
         self.assertNotIn("S-1", currents)
 
@@ -226,8 +226,8 @@ class ApplyPublicNamesTest(unittest.TestCase):
     def test_block_path_turnout_lookups_use_mqtt_system_names(self):
         mapping = apply_public_names.load_turnout_hardware_map(MAP)
         xml = (
-            '<beansetting><turnout systemName="Switch 116" /></beansetting>'
-            '<routeOutputTurnout systemName="Switch 114" state="CLOSED" />'
+            '<beansetting><turnout systemName="Switch 13" /></beansetting>'
+            '<routeOutputTurnout systemName="Switch 37" state="CLOSED" />'
             '<routeOutputTurnout systemName="M2T411" state="CLOSED" />'
         )
         updated, hits = apply_public_names.apply_turnout_systemname_lookups_to_text(
@@ -236,8 +236,8 @@ class ApplyPublicNamesTest(unittest.TestCase):
         self.assertGreater(hits, 0)
         self.assertIn('systemName="M2T411"', updated)
         self.assertIn('systemName="M2T109"', updated)
-        self.assertNotIn('systemName="Switch 116"', updated)
-        self.assertNotIn('systemName="Switch 114"', updated)
+        self.assertNotIn('systemName="Switch 13"', updated)
+        self.assertNotIn('systemName="Switch 37"', updated)
 
 
 if __name__ == "__main__":
