@@ -59,6 +59,9 @@ def main() -> None:
     args = ap.parse_args()
 
     only = set(args.only.split(",")) if args.only else None
+    keys = {key for key, _text in lines_for(args.voice)}
+    if only and only - keys:
+        ap.error(f"unknown line key(s): {', '.join(sorted(only - keys))}; choose from {', '.join(sorted(keys))}")
     if args.words_only:
         write_words(sorted((args.out / args.voice).glob("*.wav")), only)
         return
@@ -67,16 +70,18 @@ def main() -> None:
             ap.error("--voice owner needs --ref and --ref-text")
         ref_path, ref_text = args.ref, args.ref_text
     else:
-        tmp = Path(tempfile.mkdtemp()) / "ref.wav"
-        tmp.write_bytes(pkgutil.get_data("f5_tts_mlx", "tests/test_en_1_ref_short.wav"))
-        ref_path, ref_text = tmp, GENERIC_TEXT
+        tmpdir = tempfile.TemporaryDirectory()
+        ref_path, ref_text = Path(tmpdir.name) / "ref.wav", GENERIC_TEXT
+        ref_path.write_bytes(pkgutil.get_data("f5_tts_mlx", "tests/test_en_1_ref_short.wav"))
     audio, sr = sf.read(ref_path)
-    if sr != SR:
-        raise SystemExit("reference must be 24 kHz mono")
+    if sr != SR or audio.ndim != 1:
+        raise SystemExit(f"reference must be 24 kHz mono (got {sr} Hz, {1 if audio.ndim == 1 else audio.shape[1]} channels)")
     audio = mx.array(audio)
     rms = mx.sqrt(mx.mean(mx.square(audio)))
-    if rms < 0.1:
-        audio = audio * 0.1 / rms
+    # A quiet reference is raised to RMS 0.1 for the model; each line is lowered by the same factor
+    # afterwards (as F5-TTS does), so a quiet clip cannot push the output past full scale.
+    gain = float(0.1 / rms) if rms < 0.1 else 1.0
+    audio = audio * gain
 
     model = F5TTS.from_pretrained("lucasnewman/f5-tts-mlx")
     out = args.out / args.voice
@@ -90,7 +95,7 @@ def main() -> None:
                                text=convert_char_to_pinyin([ref_text + " " + text]),
                                duration=frames, steps=args.steps, method="rk4",
                                cfg_strength=2.0, sway_sampling_coef=-1.0, seed=args.seed + k)
-        wave = np.array(wave[audio.shape[0]:])
+        wave = np.array(wave[audio.shape[0]:]) / gain
         path = out / f"{k:02d}-{key}.wav"
         sf.write(path, wave, SR)
         print(f"{path}  {len(wave) / SR:.2f}s")

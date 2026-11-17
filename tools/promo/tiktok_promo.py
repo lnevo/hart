@@ -527,6 +527,13 @@ class VoLine:
         raise SystemExit(f"'{word}' not heard in {self.wav.name}; regenerate that line")
 
 
+def vo_voices() -> list[str]:
+    """The voices diverging_vo.json has an intro for (owner, generic)."""
+    import json
+
+    return list(json.loads(VO_LINES.read_text())["intro"])
+
+
 def load_vo(voice: str) -> list[VoLine]:
     import json
     import wave
@@ -707,8 +714,7 @@ CUTS = {"build": build_cut, "site": site_cut, "diverging": diverging_cut}
 CUT_PAGES = {  # captures each cut reads
     "build": {"home"},
     "site": set(PAGES.values()) - {"ai-research", "ai-construction", "ai-electronics"},
-    "diverging": {"ai", "photos", "signals", "cards", "speed-runs",
-                  "ai-research", "ai-construction", "ai-electronics"},
+    "diverging": {"ai", "photos", "signals", "cards", "speed-runs", "ai-research", "ai-electronics"},
 }
 
 
@@ -816,6 +822,14 @@ def main() -> None:
     unknown = [c for c in cuts if c not in CUTS]
     if unknown:
         ap.error(f"unknown cut(s): {', '.join(unknown)}; choose from {', '.join(CUTS)}")
+    voices = [v.strip() for v in args.voice.split(",") if v.strip()]
+    if "diverging" in cuts:
+        bad = [v for v in voices if v not in vo_voices()]
+        if bad or not voices:
+            ap.error(f"unknown voice(s): {', '.join(bad) or '(none)'}; choose from {', '.join(vo_voices())}")
+        if args.format == "landscape":
+            # route_card and timed() place text for the 1080x1920 frame only.
+            ap.error("the diverging cut is drawn for the vertical format only; drop --format landscape")
     if not shutil.which("ffmpeg"):
         raise SystemExit("ffmpeg not found")
     args.out.mkdir(parents=True, exist_ok=True)
@@ -826,7 +840,7 @@ def main() -> None:
         shots = capture_pages(args.shots, set().union(*(CUT_PAGES[c] for c in cuts)))
         for cut in cuts:
             if cut == "diverging":
-                for voice in args.voice.split(","):
+                for voice in voices:
                     out = args.out / f"hart-promo-diverging-{voice}{suffix}.mp4"
                     segs = diverging_cut(fonts, shots, voice)
                     render(segs, fonts, out)
