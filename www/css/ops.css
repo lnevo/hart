@@ -2074,31 +2074,31 @@ table.roster th {
   margin-bottom: 0.9rem;
 }
 
-.card:has(.card-live) {
-  position: relative;
+.card .card-kind:has(.card-live) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
-/* "Live" pill on a hub card whose page is built from the railroad's current data files
-   (tables.xml, the CATS desk, the Layout Editor panel, the LCOS inventory) at each site update. */
+/* "Live" pill at the right end of a hub card's category line, on cards whose page is built from the
+   railroad's current data files (tables.xml, the CATS desk, the Layout Editor panel, the LCOS inventory)
+   at each site update. */
 .card .card-live {
-  position: absolute;
-  top: 0.55rem;
-  right: 0.55rem;
-  z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.15rem 0.55rem 0.15rem 0.45rem;
+  flex: none;
+  margin: -0.2rem 0;
+  padding: 0.1rem 0.5rem 0.1rem 0.4rem;
   border-radius: 999px;
-  background: var(--card);
   border: 1px solid var(--ok);
   color: var(--ok);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   line-height: 1.4;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
 .card .card-live::before {
