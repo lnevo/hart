@@ -221,7 +221,7 @@
       </ul>
       <p>The GCOR adds modern terms: control points, controlled (absolute) signals, distant signals marked D, spring and variable switches, current of traffic, clearance point. Look them up in the <a href="#glossary">glossary</a> below.</p>
       <details class="ce-gloss" id="glossary"><summary>Glossary: <span id="glossCount"></span> terms from the Standard Code, GCOR and Yard Limits guides</summary>
-        <p><button type="button" class="ce-btn ce-sm" id="glossCards">Study them as flashcards</button></p>
+        <p><button type="button" class="ce-btn ce-sm" id="glossCards">Study the Definitions flashcards</button></p>
         <dl id="glossList"></dl>
       </details>
       <div class="learn-go"></div>
@@ -296,7 +296,7 @@
       <p><b>ABS</b> divides track into automatic blocks. <b>APB</b> adds a rule for opposing moves: once a train enters between sidings, opposing signals all go red to the next siding. <b>CTC</b> lets a dispatcher set switches and signals at control points. An <b>interlocking</b> makes conflicting routes impossible, run from a tower.</p>
       <h4>Speed signals (Standard Code Rules 281 to 292)</h4>
       <p>The Standard Code's fixed signals are <b>speed signals</b>. Each aspect has a name and an indication, and most indications set a speed: <b>limited</b>, <b>medium</b>, <b>slow</b> or <b>restricted</b>. The Code draws them as upper-quadrant semaphore arms with their light colors: red horizontal, yellow at 45°, green vertical. Color light signals show the same colors as the semaphore's night aspects. The table shows the first of the Code's drawings for each rule; some rules have other arrangements too.</p>
-      <p><b>Permissive</b> (289) and <b>Stop and proceed</b> (291) are designated by a letter plate, a marker light, the shape of the arm, or a combination of these. That is what sets Stop and proceed apart from <b>Stop</b> (292).</p>
+      <p><b>Permissive</b> (289) and <b>Stop and proceed</b> (291) are designated by a letter plate, a marker light, the shape of the arm, or a combination of these. That is what sets Stop and proceed apart from <b>Stop</b> (292); the number of arms is not, since the Code draws Stop with three, two or one arms.</p>
       <div class="learn-table ce-speed" tabindex="0" id="speedTable"></div>
       <h4>Where signals stand (Signals guide)</h4>
       <p>In ABS, the signals at the ends of sidings stand just clear of the switch points, and intermediate signals are normally opposite each other. In CTC the facing point signal is just clear of the switch points, trailing point signals are at the clearance point, and a dwarf signal is often used on the siding. An interlocking plant has a signal for every track where it enters the interlocking limits; on a signal bridge, each head is to the right of its track.</p>
@@ -662,15 +662,12 @@ const ASPECTS=[
     Q("sig",`What does this signal${marked} indicate? Arms top to bottom: ${armWords(a.arms)}.`,[a.ind,...a.w.map(r=>byR[r].ind)],`Rule ${a.r}, ${a.name}.${a.mark?" "+MARK:""}`,"SC · Rule "+a.r,a.arms);
   });
 }
-{const t=document.getElementById("speedTable"),e=x=>String(x).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); // esc is declared further down
- if(t)t.innerHTML=`<table><thead><tr><th>Aspect</th><th>Rule</th><th>Name</th><th>Indication</th></tr></thead><tbody>${ASPECTS.map(a=>`<tr><td>${sigFig(a.arms)}</td><td>${a.r}</td><td>${e(a.name)}</td><td>${e(a.ind)}</td></tr>`).join("")}</tbody></table>`;}
-C("sig","Permissive (Rule 289) and Stop and proceed (Rule 291): how is the signal designated?","By a letter plate, a marker light, the shape of the arm, or a combination of these distinguishing features.","SC · Rules 289, 291");
 C("sig","GCOR 5.8.4: in a whistle quiet zone, when may signal (7) be sounded?","Within designated whistle quiet zones, signal (7) must not be sounded approaching public crossings at grade except when:\n• Necessary to provide warning in an emergency\n• Notified automatic warning devices are malfunctioning\n• Notified automatic warning devices are out of service\n• The whistle quiet zone is not in effect during specified hours","GC · 5.8.4");
 C("sig","GCOR 5.8.2: whistle prohibitions, and employees working nearby","The whistle may be used at anytime as a warning regardless of any whistle prohibitions. When other employees are working in the immediate area, sound the required whistle signal before moving.","GC · 5.8.2");
 C("sig","Typical signal placement: Automatic Block Signals","At ends of sidings, both signals are just clear of switch points.\nIntermediate block signals are normally located opposite each other.","SG · Signal placement");
 C("sig","Typical signal placement: Centralized Traffic Control","Trailing point signals are at the clearance point.\nA dwarf signal is often used on the siding.\nThe facing point signal is just clear of the switch points.\nNewer installations may use field side signals.","SG · Signal placement");
 C("sig","Typical signal placement: Interlocking Plants","Interlocking plants have a signal for every track where it enters the interlocking limits.\nIf a signal bridge is used, signal heads are to the right of each track.","SG · Signal placement");
-Q("sig","Under the Standard Code, a Stop and proceed signal (Rule 291) is told apart from a Stop signal by…",["A letter plate, marker light, shape of arm, or a combination of these","The color of its lights only","Its height above the rail","A number painted on the arm"],"Rules 289 and 291: designate by a letter plate, a marker light, the shape of the arm, or a combination of these distinguishing features.","SC · Rules 289, 291");
+Q("sig","Under the Standard Code, a Stop and proceed signal (Rule 291) is told apart from a Stop signal by…",["A letter plate, marker light, shape of arm, or a combination of these","The color of its lights only","Its height above the rail","A number painted on the arm"],"Rules 289 and 291: designate by a letter plate, a marker light, the shape of the arm, or a combination of these distinguishing features. The number of arms does not: the Code draws Stop (292) with three, two or one arms.","SC · Rules 289, 291");
 
 // Semaphores
 C("sem","Semaphore blade horizontal","Always stop (red). On a model railroad, treat it as a closed gate.","SM");
@@ -1088,30 +1085,37 @@ function goFrame(i,toTop,focus){
   if(focus)a.querySelector("h3").focus({preventScroll:true});
 }
 document.addEventListener("keydown",e=>{
-  if(view!=="learn"||e.metaKey||e.ctrlKey||e.altKey||e.shiftKey||e.target.closest("input,textarea,select,.learn-table,[role=tab],[contenteditable]"))return;
+  if(view!=="learn"||e.metaKey||e.ctrlKey||e.altKey||e.shiftKey||e.target.closest("input,textarea,select,.learn-table,.ce-gloss,[role=tab],[contenteditable]"))return;
   if(e.key==="ArrowRight"){e.preventDefault();goFrame(frame+1,true)}else if(e.key==="ArrowLeft"){e.preventDefault();goFrame(frame-1,true)}
 });
 let tx=null,ty=0;
 const learnEl=document.querySelector("#view-learn .learn");
-learnEl.addEventListener("touchstart",e=>{const x=e.touches[0].clientX;tx=e.target.closest(".learn-table")||e.touches.length>1||x<24||x>innerWidth-24?null:x;ty=e.touches[0].clientY},{passive:true});
+learnEl.addEventListener("touchstart",e=>{const x=e.touches[0].clientX;tx=e.target.closest(".learn-table,.ce-gloss")||e.touches.length>1||x<24||x>innerWidth-24?null:x;ty=e.touches[0].clientY},{passive:true});
 learnEl.addEventListener("touchend",e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;
   if(Math.abs(dx)>70&&Math.abs(dx)>2*Math.abs(dy))goFrame(frame+(dx<0?1:-1),true)},{passive:true});
 /* open on the study guide, or on the tab or guide section named in the link */
-function fromHash(){const h=location.hash.slice(1);if(views[h])show(h);else if(h.startsWith("learn-")&&document.getElementById(h)){show("learn");const i=frames.findIndex(a=>a.id===h);if(i>=0)goFrame(i)}}
+function fromHash(){const h=location.hash.slice(1);if(h==="glossary"){openGlossary();return}if(views[h])show(h);else if(h.startsWith("learn-")&&document.getElementById(h)){show("learn");const i=frames.findIndex(a=>a.id===h);if(i>=0)goFrame(i)}}
 {const h=location.hash.slice(1),at=frames.findIndex(a=>a.id===h),last=frames.findIndex(a=>a.id===store.get("ce-learn",""));goFrame(at>=0?at:last>=0?last:0)}
 window.addEventListener("hashchange",fromHash);
-/* glossary in the Definitions section: the term cards (Standard Code definitions, GCOR glossary, Yard Limits definitions) */
-{
-  const GLOSS_SRC={"SC · Definitions":"Standard Code","GC · Glossary":"GCOR","YL · Definitions":"Yard Limits"};
-  const terms=CARDS.filter(c=>c.s==="def"&&GLOSS_SRC[c.src]).map(c=>({c,t:c.f.replace(/^GCOR:\s*/,""),from:GLOSS_SRC[c.src]}))
-    .sort((a,b)=>a.t.localeCompare(b.t,"en",{sensitivity:"base"}));
-  document.getElementById("glossCount").textContent=terms.length;
-  document.getElementById("glossList").innerHTML=terms.map(x=>`<dt>${esc(x.t)} <small>${x.from}</small></dt><dd>${esc(x.c.b).replace(/\n/g,"<br>")}</dd>`).join("");
-  document.getElementById("glossCards").onclick=()=>{cardSel.clear();cardSel.add("def");deal();show("cards");document.getElementById("view-cards").scrollIntoView()};
-  const g=document.getElementById("glossary");
-  document.querySelector('#learn-def a[href="#glossary"]').onclick=e=>{e.preventDefault();g.open=true;g.scrollIntoView({behavior:"smooth"})};
-}
 show("learn");renderSetup();deal();fromHash();
+/* speed-signal table (Signals & whistles) and glossary (Definitions), drawn from ASPECTS and the term cards */
+const GLOSS_SRC={"SC · Definitions":"Standard Code","GC · Glossary":"GCOR","YL · Definitions":"Yard Limits"};
+function openGlossary(){const g=document.getElementById("glossary"),i=frames.findIndex(a=>a.id==="learn-def");
+  if(!g||i<0)return;show("learn");goFrame(i);g.open=true;g.scrollIntoView({behavior:"smooth"})}
+{
+  const t=document.getElementById("speedTable");
+  if(t)t.innerHTML=`<table><thead><tr><th>Aspect</th><th>Rule</th><th>Name</th><th>Indication</th></tr></thead><tbody>${ASPECTS.map(a=>`<tr><td>${sigFig(a.arms)}</td><td>${esc(a.r)}</td><td>${esc(a.name)}</td><td>${esc(a.ind)}</td></tr>`).join("")}</tbody></table>`;
+  const list=document.getElementById("glossList"),count=document.getElementById("glossCount"),btn=document.getElementById("glossCards"),link=document.querySelector('#learn-def a[href="#glossary"]');
+  if(list&&count){
+    const terms=CARDS.filter(c=>c.s==="def"&&GLOSS_SRC[c.src]).map(c=>({c,t:c.f.replace(/^GCOR:\s*/,"").replace(/\s*\((?:Standard Code|Yard Limits guide)\)$/,""),from:GLOSS_SRC[c.src]}))
+      .sort((a,b)=>a.t.localeCompare(b.t,"en",{sensitivity:"base"}));
+    count.textContent=terms.length;
+    list.innerHTML=terms.map(x=>`<dt>${esc(x.t)} <small>${x.from}</small></dt><dd>${esc(x.c.b).replace(/\n/g,"<br>")}</dd>`).join("");
+  }
+  if(btn)btn.onclick=()=>{cardSel.clear();cardSel.add("def");deal();show("cards");document.getElementById("view-cards").scrollIntoView()};
+  if(link)link.onclick=e=>{e.preventDefault();openGlossary()};
+}
+
 })();
 </script>
 <script>
