@@ -112,11 +112,11 @@
       "id": "sm-sub",
       "group": "maps",
       "pub": "SM-01",
-      "revision": "10 (draft)",
+      "revision": "10",
       "title": "System Schematic",
       "page": "crew/maps/schematic/system-schematic.svg",
       "pdf": "crew/maps/schematic/system-schematic.pdf",
-      "blurb": "Staging, main and upper level on one sheet, with switch numbers, track names and masts. Draft, revision 10."
+      "blurb": "Staging, main and upper level on one sheet, with switch numbers, track names and masts. Revision 10."
     },
     {
       "id": "sm-wy",

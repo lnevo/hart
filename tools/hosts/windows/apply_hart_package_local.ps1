@@ -173,7 +173,8 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
     Write-Host ("ctc icons -> {0}\ctc" -f $r)
   }
 } else {
-  Write-Host 'No ctc icons in the drop (skip CTC icons)'
+  # A parked USS CTC machine (hartlib.parked) ships no icons: the installed copies stay as they are.
+  Write-Host 'No ctc icons in the drop (parked or absent): ctc left as it is'
 }
 
 $jythonSrc = @(
@@ -210,6 +211,9 @@ foreach ($r in ($roots | Select-Object -Unique)) {
       throw ("robocopy traininfo failed ({0}) -> {1}" -f $LASTEXITCODE, $trainInfoDest)
     }
     Write-Host ("Dispatcher traininfo -> {0}\dispatcher\traininfo" -f $r)
+  } else {
+    # A parked Dispatcher System (hartlib.parked) ships no traininfo: the installed copies stay as they are.
+    Write-Host ("Dispatcher traininfo not in the package (parked): {0}\dispatcher left as it is" -f $r)
   }
 }
 

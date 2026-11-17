@@ -94,6 +94,11 @@ class OtherPages(unittest.TestCase):
         text = (btb.WWW / "ai/control.html").read_text(encoding="utf-8")
         m = re.search(r"(\d+) signal masts, (\d+) sections and ([\d,]+) transits", text)
         self.assertIsNotNone(m, "ai/control.html no longer states the counts; drop this test")
+        if "dispatcher" in tables_page.parked.PARKED:
+            # sections and transits parked (hartlib.parked): the page keeps their last counts and says so
+            self.assertEqual(int(m.group(1)), meta["masts"], "update the mast count in www/ai/control.html")
+            self.assertIn("Sections and transits are parked", text)
+            return
         self.assertEqual((int(m.group(1)), int(m.group(2)), int(m.group(3).replace(",", ""))),
                          (meta["masts"], meta["sections"], meta["transits"]),
                          "update the counts in www/ai/control.html")
@@ -163,8 +168,8 @@ class Drift(Copy):
             btb.outputs(self.www, self.src)
 
     def test_missing_conditionalng_action_gives_a_message(self):
-        self.xml = self.xml.replace("<systemName>IQDA:AUTO:0002</systemName>\n      </Socket>",
-                                    "<systemName>IQDA:GONE</systemName>\n      </Socket>", 1)
+        self.edit("<systemName>IQDA:AUTO:0001</systemName>\n      </Socket>",
+                  "<systemName>IQDA:GONE</systemName>\n      </Socket>")
         self.src.write_text(self.xml, encoding="utf-8")
         with self.assertRaisesRegex(SystemExit, "no connected action"):
             btb.outputs(self.www, self.src)

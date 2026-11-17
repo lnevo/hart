@@ -97,7 +97,8 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 2,,block,Track 103-105 1,,,,,Track e22,318.6 cm no detector: off the main line
 2,,block,Track 103-105 2,,,,,Track e21,361.3 cm no detector: off the main line
 2,CP 109,block,Track 105-109,,,,CP 109,Track e20,"21.5 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 107,block,Track 107 Loop,,,,CP 107,Track e33,777.0 cm
+2,CP 107,block,Track 107 Loop 1,,,,CP 107,Track e33 1,"388.5 cm, half of the balloon loop from leg B"
+2,CP 107,block,Track 107 Loop 2,,,,CP 107,Track e33 2,"388.5 cm, half of the balloon loop from leg C"
 2,CP 107,block,Track 107-109,,,,CP 107 / CP 109,Track e19,99.9 cm
 2,CP 109,block,Track 109-111,,,,CP 109,Track e18,"24.2 cm short link: inside the OS blocks of its switches, no detector"
 2,CP 109,block,Track 111-117,,,,CP 109,Track e23,"11.1 cm short link: inside the OS blocks of its switches, no detector"
@@ -122,7 +123,8 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 2,,block,Track 133 Spur 1,,,,,Track e4,69.3 cm no detector: off the main line
 2,,block,Track 133 Spur 2,,,,,Track e5,70.5 cm no detector: off the main line
 2,CP 129,block,Track 135-H1,,,,CP 129,Track e34,849.6 cm
-2,CP 107,occupancy,BS 107 Loop,M2S3305,33,,Node: 33 Block: 6,,
+2,CP 107,occupancy,BS 107 Loop 1,M2S3305,33,,Node: 33 Block: 6,,
+2,CP 107,occupancy,BS 107 Loop 2,IS:HART:C3:4,,,"virtual: no detector wired yet (owner, 2026-11-16)",,
 2,CP 107,occupancy,BS 107-109,M2S3306,33,,Node: 33 Block: 7,,
 2,CP 109,occupancy,BS 119-125,M2S3307,33,,Node: 33 Block: 8,,
 2,CP 125,occupancy,BS 127-129,M2S4204,42,,Node: 42 Block: 5,,
@@ -137,8 +139,8 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 2,CP 125,occupancy,BS Switch 127,M2S4201,42,,Node: 42 Block: 2,,
 2,CP 129,occupancy,BS Switch 129,M2S4202,42,,Node: 42 Block: 3,,
 2,CP 129,occupancy,BS Switch 135,M2S4203,42,,Node: 42 Block: 4,,
-2,CP 107,mast,Mast 108LA,IF$shsm:basic:one-low(IH3332),33,,CP 107 | Switch 107,,home signal from Track 107 Loop
-2,CP 107,mast,Mast 108LB,IF$shsm:basic:one-low(IH3333),33,,CP 107 | Switch 107,,home signal from Track 107 Loop
+2,CP 107,mast,Mast 108LA,IF$shsm:basic:one-low(IH3332),33,,CP 107 | Switch 107,,home signal from Track 107 Loop 1
+2,CP 107,mast,Mast 108LB,IF$shsm:basic:one-low(IH3333),33,,CP 107 | Switch 107,,home signal from Track 107 Loop 2
 2,CP 107,mast,Mast 108R,IF$shsm:basic:two-searchlight(IH3334)(IH3335),33,,CP 107 | Switch 107,,home signal from Track 107-109
 2,CP 109,mast,Mast 110LA,IF$shsm:basic:one-low(IH4332),43,,CP 109 | Switch 109,,home signal from Track 107-109
 2,CP 109,mast,Mast 110LB,IF$shsm:basic:one-low(IH4333),43,,CP 109 | Switch 109,,home signal from Track 105-109
@@ -279,7 +281,10 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 3,CP 201,block,OS Switch 219,,23,,CP 201,OS Switch 219,
 3,CP 201,block,OS Switch 221,,23,,CP 201,OS Switch 221,
 3,CP 223,block,OS Switch 223,,22,,CP 223,OS Switch 223,
-3,CP 225,block,OS Switch 225,,21,,CP 225,OS Switch 225,
+3,CP 225,block,OS Switch 225a,,21,,CP 225,OS Switch 225a,corner A of the double crossover
+3,CP 225,block,OS Switch 225b,,,,CP 225,OS Switch 225b,corner B of the double crossover
+3,CP 225,block,OS Switch 225c,,,,CP 225,OS Switch 225c,corner C of the double crossover
+3,CP 225,block,OS Switch 225d,,,,CP 225,OS Switch 225d,corner D of the double crossover
 3,CP 225,block,OS Switch 227,,21,,CP 225,OS Switch 227,
 3,CP 225,block,OS Switch 229,,21,,CP 225,OS Switch 229,
 3,,block,OS Switch 231,,,,Helix,OS Switch 231,no detector: off the main line
@@ -354,7 +359,10 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 3,CP 201,occupancy,BS Switch 219,M2S2302,23,,Node: 23 Block: 3,,
 3,CP 201,occupancy,BS Switch 221,M2S2303,23,,Node: 23 Block: 4,,
 3,CP 223,occupancy,BS Switch 223,M2S2200,22,,Node: 22 Block: 1,,
-3,CP 225,occupancy,BS Switch 225,M2S2100,21,,Node: 21 Block: 1,,
+3,CP 225,occupancy,BS Switch 225a,M2S2100,21,,Node: 21 Block: 1,,
+3,CP 225,occupancy,BS Switch 225b,IS:HART:C3:1,,,"virtual: no detector wired yet (owner, 2026-11-16)",,
+3,CP 225,occupancy,BS Switch 225c,IS:HART:C3:2,,,"virtual: no detector wired yet (owner, 2026-11-16)",,
+3,CP 225,occupancy,BS Switch 225d,IS:HART:C3:3,,,"virtual: no detector wired yet (owner, 2026-11-16)",,
 3,CP 225,occupancy,BS Switch 227,M2S2101,21,,Node: 21 Block: 2,,
 3,CP 225,occupancy,BS Switch 229,M2S2102,21,,Node: 21 Block: 3,,
 3,CP 201,mast,Mast 202R,IF$shsm:basic:one-low(IH2332),23,,CP 201 | Switch 201,,home signal from Track 201-205
@@ -375,8 +383,8 @@ level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes
 3,CP 223,mast,Mast 224LA,IF$shsm:basic:one-low(IH2232),22,,CP 223 | Switch 223,,home signal from Track 223-225 1
 3,CP 223,mast,Mast 224LB,IF$shsm:basic:one-low(IH2233),22,,CP 223 | Switch 223,,home signal from Track 223-225 2
 3,CP 223,mast,Mast 224R,IF$shsm:basic:two-searchlight(IH2234)(IH2235),22,,CP 223 | Switch 223,,home signal from Track 221-223
-3,CP 225,mast,Mast 226RA,IF$shsm:basic:two-searchlight(IH2132)(IH2133),21,,CP 225 | Switch 225,,home signal from Track 223-225 1
-3,CP 225,mast,Mast 226RB,IF$shsm:basic:two-searchlight(IH2134)(IH2135),21,,CP 225 | Switch 225,,home signal from Track 223-225 2
+3,CP 225,mast,Mast 226RA,IF$shsm:basic:two-searchlight(IH2132)(IH2133),21,,CP 225 | Switch 225,,home signal from Track 223-225 1 into OS Switch 225a
+3,CP 225,mast,Mast 226RB,IF$shsm:basic:two-searchlight(IH2134)(IH2135),21,,CP 225 | Switch 225,,home signal from Track 223-225 2 into OS Switch 225d
 3,CP 225,mast,Mast 228RA,IF$shsm:basic:one-low(IH4132),41,,CP 225 | Switch 227,,home signal from Track 227-233
 3,CP 225,mast,Mast 228RB,IF$shsm:basic:one-low(IH4133),41,,CP 225 | Switch 227,,home signal from Track 227-239
 3,CP 225,mast,Mast 230LA,IF$shsm:basic:one-low(IH4134),41,,CP 225 | Switch 229,,home signal from Track 229-239

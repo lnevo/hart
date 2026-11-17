@@ -3,9 +3,10 @@
 Write jmri/layouts/hart/data/schematic/main_upper_masts.csv: the main and upper levels' control-point masts, one row
 per mast, from device_map_main_upper.csv (its mast and head rows, owner plan 2026-11-16). Each mast is a home signal:
 it faces the track its notes name ("home signal from Track X") and protects the OS block of the switch its comment
-names ("CP n | Switch N"), so it stands at the boundary between the two. L masts are westward, R masts eastward
-(ADR-022). `leg` tells apart two masts with one facing and protected block (Switch 107's balloon loop): the A mast
-stands on the switch's normal leg, the B mast on its diverging leg (owner, 2026-11-16).
+names ("CP n | Switch N"), or at a double crossover the corner block the notes name ("... into OS Switch <n><corner>"),
+so it stands at the boundary between the two. L masts are westward, R masts eastward (ADR-022). `leg` tells apart two
+masts with one facing and protected block, the A mast on the switch's normal leg and the B mast on its diverging leg;
+none needs it since the 107 Loop became two blocks (owner, 2026-11-16).
 
 Until the cut-over they are internal: each head's system name is the device map's with a 9 after "IH" (IH3332 ->
 IH93332), and each mast's system name names those heads. signal_coordinator.py enrols and publishes a head only when
@@ -49,7 +50,7 @@ def build() -> str:
             continue
         name = r["user_name"]
         sw = re.fullmatch(r".*\| Switch (\d+)", r["comment"].strip())
-        fac = re.fullmatch(r"home signal from (Track .+)", r["notes"].strip())
+        fac = re.fullmatch(r"home signal from (Track .+?)(?: into (OS Switch \d+[a-d]))?", r["notes"].strip())
         sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH\d+\))+)", r["system_name"].strip())
         dirm = re.fullmatch(r"Mast \d+([LR])[A-Z]?", name)
         if not (sw and fac and sysm and dirm):
@@ -61,7 +62,7 @@ def build() -> str:
         sys_name = f"IF$shsm:{sysm.group(1)}:{sysm.group(2)}" + "".join(f"({internal(h, name)})" for h in mast_heads)
         out_rows.append(dict(
             mast=name, cp=r["cp"], switch=sw.group(1), facing=fac.group(1),
-            protects=f"OS Switch {sw.group(1)}", leg="", system_name=sys_name,
+            protects=fac.group(2) or f"OS Switch {sw.group(1)}", leg="", system_name=sys_name,
             head_system_names=";".join(f"{internal(h, name)}={heads[h]}" for h in mast_heads),
             device_system_name=r["system_name"].strip(), _level=int(r["level"])))
     pairs = {}

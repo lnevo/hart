@@ -291,7 +291,8 @@ class StageOneLampsAndSensorsTest(unittest.TestCase):
         self.assertEqual([(lamp, "10")], left)
 
     def test_current_tables_need_no_reconciliation(self) -> None:
-        tables = SCRIPT.parents[1] / "output" / "tables.xml"
+        # the Dispatcher System parked (hartlib.parked): its stations are checked with it put back from the parked file
+        tables = reconciler.parked.with_parked_file({"dispatcher"}, SCRIPT.parents[1] / "output" / "tables.xml")
         tree = reconciler.parse_xml(tables)
         self.assertEqual([], reconciler.reconcile(tree).details)
 

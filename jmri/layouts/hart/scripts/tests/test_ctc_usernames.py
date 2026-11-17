@@ -7,6 +7,16 @@ from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 TABLES = SCRIPTS.parent / "output" / "tables.xml"
+import sys  # noqa: E402
+
+sys.path.insert(0, str(SCRIPTS.parents[3] / "tools/hartlib/src"))
+from hartlib import parked  # noqa: E402
+
+
+def uss_view() -> ET.Element:
+    """tables.xml with the USS CTC machine put back while it is parked (hartlib.parked.with_parked): the CTC data,
+    panel and sensors stay checked against the active tables in the parked file."""
+    return parked.with_parked({"uss"}, TABLES)
 
 
 def load_module(name: str, path: Path):
@@ -32,7 +42,7 @@ class CtcInternalNamesTest(unittest.TestCase):
 
     def test_tables_have_no_old_ctc_or_olcb_leftovers(self) -> None:
 
-        root = ET.parse(TABLES).getroot()
+        root = uss_view()
         leftover: list[str] = []
         old_ctc: list[str] = []
         for sensor in root.iter("sensor"):
@@ -48,7 +58,7 @@ class CtcInternalNamesTest(unittest.TestCase):
         self.assertEqual(old_ctc, [])
 
     def test_every_switch_has_a_ctc_lever(self) -> None:
-        root = ET.parse(TABLES).getroot()
+        root = uss_view()
         columns = list(root.iter("ctcCodeButtonData"))
         self.assertEqual(len(columns), 20)
         turnouts = {
@@ -73,7 +83,7 @@ class CtcInternalNamesTest(unittest.TestCase):
 
     def test_ctc_editor_refs_use_display_names(self) -> None:
         """CTC editor combos list display names. A system-name value does not match."""
-        root = ET.parse(TABLES).getroot()
+        root = uss_view()
         display = {}
         for sensor in root.iter("sensor"):
             system_name = (sensor.findtext("systemName") or "").strip()

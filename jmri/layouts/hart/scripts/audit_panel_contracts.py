@@ -14,7 +14,7 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, paths, tables  # noqa: E402
+from hartlib import level_masts, parked, paths, tables  # noqa: E402
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
@@ -269,8 +269,27 @@ def audit_bindings(
     )
 
 
+def audit_parked_nx(root: ET.Element, problem) -> None:
+    """Entry/Exit parked (hartlib.parked.PARKED): no NX sensor, pair or slot binding in the tables (the parked file
+    holds them; parked.check)."""
+    sensors = sorted(text(s, "systemName") for s in root.iter("sensor") if text(s, "systemName").startswith("ISNX:"))
+    pairs = root.findall("./entryexitpairs")
+    slots = [f"{el.get('ident')} {tag}" for el in root.iter() for tag in parked.SLOT_TAGS
+             if text(el, tag).startswith("NX ")]
+    slots += [f"{el.get('ident')} {a}" for el in root.iter() for a in parked.SLOT_ATTRS
+              if (el.get(a) or "").startswith("NX ")]
+    if sensors or pairs or slots:
+        problem(f"Entry/Exit is parked, but the tables hold ISNX sensors {sensors[:4]}, {len(pairs)} entryexitpairs "
+                f"and NX slot bindings {slots[:4]}")
+
+
 def audit_nx(root: ET.Element, audit: Audit, *, required: bool) -> None:
     problem = audit.error if required else audit.warn
+    if "nx" in parked.parked_in(root):
+        audit_parked_nx(root, problem)
+        audit.facts["nx_pairs"] = ()
+        audit.facts["isnx"] = ()
+        return
     sensors: dict[str, str] = {}
     for sensor in root.iter("sensor"):
         system_name = text(sensor, "systemName")
@@ -334,10 +353,14 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 
 
 # What stock Discover and Dispatcher System Stage 1 store, per panel. The hand-drawn panel: staging only. The generated
-# three-level panel (build_layout_le.py --as-live, helix unjoined): rehearsed in a sandbox on 2026-11-16 (owner accepted):
-# staging keeps its NX and transits but loses the 8 head-on pairs 10RA/10RB/12R/14R -> 22L/26L, and the main and upper
-# control points add 71 SML destinations and 98 sections of their own.
-EXPECTED_SML = {False: 100, True: 163}
+# three-level panel (build_layout_le.py --as-live): unjoined (2026-11-16 cut-over) staging kept its NX and transits but
+# lost the 8 head-on pairs 10RA/10RB/12R/14R -> 22L/26L, and the main and upper control points added 71 SML destinations
+# and 98 sections of their own (163 SML, 197 sections). Joined at the helix (the helix-join release, owner 2026-11-17),
+# stock SML discovery in a sandbox stored 171: staging gains 10RA/10RB/12R/14R -> 16L and loses 36RB -> 40RB
+# (accepted), the 107 Loop and Switch 225 splits give 108LB -> 110LA and drop the false 226RA/226RB -> 224LB/224LA,
+# and the helix adds 130LA/130LB -> 38LA/40LA, 38RA -> 136RB and 40RA -> 136RA. The Dispatcher graph is parked
+# (hartlib.parked): no section or transit while it is.
+EXPECTED_SML = {False: 100, True: 171}
 EXPECTED_GRAPH = {False: (107, 187), True: (197, 187)}
 # A generated panel before its Stage 1 (the cut-over candidate as built) still carries the hand-drawn panel's SML and
 # Dispatcher graph: allowed, with a warning that Stage 1 is still to run.
@@ -538,7 +561,9 @@ def audit_stations(
     sensor_set = set(sensors)
     expected_sensors: set[str] = set()
     expected_icons: set[str] = set()
-    for name in STATION_COMMENTS:
+    # the Dispatcher System parked (hartlib.parked): the station blocks keep their comments, but no MoveTo or
+    # move-in-progress sensor or icon is left in the tables
+    for name in (() if "dispatcher" in parked.parked_in(root) else STATION_COMMENTS):
         key = sensor_key(name)
         expected_sensors.update(
             {f"MoveTo{key}_stored", f"MoveInProgress{key}"}
@@ -614,16 +639,22 @@ def audit_placeholders(panel: ET.Element | None, audit: Audit) -> None:
 
 
 def audit_dispatcher_startup(root: ET.Element, audit: Audit) -> None:
-    """Run Dispatcher System must load stock Startup.py (no HART overlay)."""
+    """Run Dispatcher System must load stock Startup.py (no HART overlay); with the Dispatcher System parked
+    (hartlib.parked) there is no Run Dispatcher Logix at all."""
     actions: list[str] = []
+    found = False
     for conditional in root.findall("./conditionals/conditional"):
         user_name = conditional.get("userName") or text(conditional, "userName")
         if user_name != "Run Dispatcher":
             continue
+        found = True
         for action in conditional.findall("conditionalAction"):
             if action.get("type") == "16":
                 actions.append((action.get("string") or "").strip())
-    if not actions:
+    if "dispatcher" in parked.parked_in(root):
+        if found:
+            audit.error("the Dispatcher System is parked, but the Run Dispatcher Logix (IX:DSLX:1C1) is in the tables")
+    elif not actions:
         audit.error("missing Logix Run Dispatcher script action (IX:DSLX:1C1)")
     elif DISPATCHER_START_SCRIPT not in actions:
         audit.error(
@@ -633,21 +664,33 @@ def audit_dispatcher_startup(root: ET.Element, audit: Audit) -> None:
     audit.facts["dispatcher_startup_script"] = tuple(actions)
 
 
+def expected_bundle(parked_features=None) -> tuple[int, int, int]:
+    """(ctcdata, Panel Editor panels, Layout Editor panels) the deployment tables hold: the USS CTC machine's data and
+    panel, the main panel and the Dispatcher System's, less those parked (hartlib.parked)."""
+    parked_features = parked.PARKED if parked_features is None else parked_features
+    uss = 0 if "uss" in parked_features else 1
+    return uss, uss, 1 if "dispatcher" in parked_features else 2
+
+
 def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: bool = False) -> None:
     ctc_bundle = (
         len(root.findall("ctcdata")),
         len(root.findall("paneleditor")),
         len(root.findall("LayoutEditor")),
     )
-    if ctc_bundle != (1, 1, 2):
+    left_out = parked.parked_in(root)      # the parked features these tables leave out (hartlib.parked)
+    want_bundle = expected_bundle(left_out)
+    if ctc_bundle != want_bundle:
         audit.error(
-            "deployment bundle expected ctcdata=1, paneleditor=1, "
-            f"LayoutEditor=2; found {ctc_bundle}"
+            "deployment bundle expected ctcdata={}, paneleditor={}, LayoutEditor={}; found {}".format(
+                *want_bundle, ctc_bundle)
         )
     sections = len(root.findall("./sections/section"))
     transits = len(root.findall("./transits/transit"))
     want_sections, want_transits = EXPECTED_GRAPH[generated]
-    if generated and (sections, transits) == EXPECTED_GRAPH[False]:
+    if "dispatcher" in left_out:
+        want_sections, want_transits = 0, 0
+    if generated and (sections, transits) == EXPECTED_GRAPH[False] and "dispatcher" not in left_out:
         audit.warn(f"Dispatcher graph is the hand-drawn panel's {sections} sections / {transits} transits: run "
                    f"Stage 1 on this generated panel (expect {want_sections} / {want_transits})")
     elif (sections, transits) != (want_sections, want_transits):

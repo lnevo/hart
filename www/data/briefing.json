@@ -76,8 +76,8 @@
       "figure": {
         "src": "crew/maps/schematic/system-schematic.svg",
         "pdf": "crew/maps/schematic/system-schematic.pdf",
-        "alt": "System schematic of the whole layout: staging, main level and upper level, with switch numbers, track names and masts. Marked draft.",
-        "caption": "System schematic of the layout, revision 10, draft.",
+        "alt": "System schematic of the whole layout: staging, main level and upper level, with switch numbers, track names and masts.",
+        "caption": "System schematic of the layout, revision 10.",
         "width": 1056,
         "height": 816
       }

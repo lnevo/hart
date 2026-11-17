@@ -88,7 +88,7 @@ class Inventory(unittest.TestCase):
 
     def test_detector_nodes_keep_the_calibration_pin(self):
         detectors = {r[1] for r in V86["BlockSensors"][1:]}
-        for n in {f"C{x['node']}" for x in MAP if x["layer"] == "occupancy"}:
+        for n in {f"C{x['node']}" for x in MAP if x["layer"] == "occupancy" and x["node"]}:   # virtual: no node
             self.assertIn(n, detectors)
             self.assertTrue(any(r[1] == n and r[3] == 8 and r[4] == "Block sensor calibration"
                                 for r in V86["DNOU8"]), n)

@@ -4,6 +4,8 @@
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations  
 **Scope:** CATS Digicon panel (`HART_CTC.xml`), mouse dispatching in CTC mode
 
+**Parked:** the USS CTC machine and the Dispatcher System, named below as the other desk and the leftover PanelPro desks, are parked since the helix-join release (November 2026): not in the active panel; data kept in `jmri/layouts/hart/parked/`. The CATS desks stay live.
+
 Welcome to the desk. This guide is for **being a dispatcher on the CATS panel** — how you
 grant authority, line routes, and use fleeting, stacking, and call-on. It is **not** a
 software manual (menus, install, Designer, MQTT). For that, see the CATS PDF in

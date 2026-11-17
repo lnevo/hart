@@ -26,6 +26,17 @@ PI_HOST="$HART_PI_SSH"
 PI_USERFILES="$HART_PI_USERFILES"
 WIN_USERFILES="$HART_WIN_USERFILES"
 REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
+# Features parked out of the active tables (hartlib.parked.PARKED: Entry/Exit, the Dispatcher System, the USS CTC
+# machine). Their files outside tables.xml stay in the repo but are not shipped: the Dispatcher traininfo and options
+# (jmri/layouts/hart/dispatcher) and the USS CTC icons and GUIObjects.xml (jmri/layouts/hart/ctc), and the jython that
+# only serves them. Nothing here or in the host apply scripts removes copies already installed on a host: they stay
+# until removed by hand (owner, 2026-11-17). Unparking a feature ships them again.
+PARKED_DIRS="$(PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.parked dirs)" \
+  || { echo "cannot read the parked features (tools/hartlib/src/hartlib/parked.py)" >&2; exit 1; }
+PARKED_JYTHON="$(PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.parked jython)" \
+  || { echo "cannot read the parked features (tools/hartlib/src/hartlib/parked.py)" >&2; exit 1; }
+# parked_dir REL: whether the repo folder REL (jmri/layouts/hart/dispatcher, jmri/layouts/hart/ctc) is parked
+parked_dir() { grep -qxF "$1" <<<"$PARKED_DIRS"; }
 DRY_RUN=0
 # The repo is the master of the Operations Pro files (ADR-015). 0 restores the guards.
 HART_OVERWRITE_OPS="${HART_OVERWRITE_OPS:-1}"
@@ -188,15 +199,18 @@ JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/scripts/signal_coordinator.py"
 )
 
-HART_JYTHON_SCRIPTS=(
-  jmri/layouts/hart/scripts/panel_status.py
-  jmri/layouts/hart/scripts/discover_sml.py
-  jmri/layouts/hart/scripts/hide_cats_desk_windows.py
-  jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py
-  jmri/layouts/hart/scripts/jmri_cmd_watcher.py
-  jmri/layouts/hart/scripts/sts_car_sync.py
-  jmri/layouts/hart/scripts/mimic_relay.py
-)
+HART_JYTHON_SCRIPTS=()
+for f in \
+  jmri/layouts/hart/scripts/panel_status.py \
+  jmri/layouts/hart/scripts/discover_sml.py \
+  jmri/layouts/hart/scripts/hide_cats_desk_windows.py \
+  jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py \
+  jmri/layouts/hart/scripts/jmri_cmd_watcher.py \
+  jmri/layouts/hart/scripts/sts_car_sync.py \
+  jmri/layouts/hart/scripts/mimic_relay.py; do
+  # a script that only serves a parked feature is not shipped (repair_dispatcher_traininfo.py)
+  grep -qxF "$(basename "$f")" <<<"$PARKED_JYTHON" || HART_JYTHON_SCRIPTS+=("$f")
+done
 
 LIVE_PANELS=(
   HART_CTC.xml
@@ -217,7 +231,9 @@ install_jython_scripts() {
     rm -f "$dest/hart_dispatcher_startup.py" "$dest/patch_dispatcher_facing.py"
     (cd "$dest" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py sync_layout_button.py mqtt_signalhead_publisher.py)
     echo "preference:jython scripts -> $dest"
-    if [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
+    if parked_dir jmri/layouts/hart/dispatcher; then
+      echo "Dispatcher traininfo parked: not installed; $profile/dispatcher left as it is"
+    elif [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
       mkdir -p "$profile/dispatcher/traininfo"
       rsync -a --delete "$traininfo/" "$profile/dispatcher/traininfo/"
       echo "Dispatcher traininfo -> $profile/dispatcher/traininfo"
@@ -331,7 +347,11 @@ install_ctc_icons_local() {
     echo "roster photos -> $dest"
   }
   mkdir -p "${HOME}/JMRI_UserFiles"
-  _install_ctc_into "${HOME}/JMRI_UserFiles"
+  if parked_dir jmri/layouts/hart/ctc; then
+    echo "USS CTC icons parked: not installed; ${HOME}/JMRI_UserFiles/ctc left as it is"
+  else
+    _install_ctc_into "${HOME}/JMRI_UserFiles"
+  fi
   _install_buttons_into "${HOME}/JMRI_UserFiles"
   _install_misc_into "${HOME}/JMRI_UserFiles"
   _install_uss_sensor_icons_into "${HOME}/JMRI_UserFiles"
@@ -351,9 +371,7 @@ stage_package() {
     "$stage/cats/resources/misc" \
     "$stage/cats/resources/roster" \
     "$stage/cats/scripts" \
-    "$stage/ctc/icons" \
     "$stage/jmri/layouts/hart/scripts" \
-    "$stage/jmri/layouts/hart/dispatcher" \
     "$stage/jmri/scripts"
 
   local p
@@ -404,16 +422,22 @@ stage_package() {
   done
   cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "$stage/jmri/scripts/"
 
+  # A parked feature's folder is left out of the package; the host apply scripts install only what the package
+  # holds, so the copies already on a host stay as they are.
   local traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
-  if [[ -d "$traininfo" ]]; then
-    rsync -a "$traininfo/" "$stage/jmri/layouts/hart/dispatcher/traininfo/"
-  fi
-  if [[ -f "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" ]]; then
-    cp -f "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" \
-      "$stage/jmri/layouts/hart/dispatcher/"
+  if ! parked_dir jmri/layouts/hart/dispatcher; then
+    mkdir -p "$stage/jmri/layouts/hart/dispatcher"
+    if [[ -d "$traininfo" ]]; then
+      rsync -a "$traininfo/" "$stage/jmri/layouts/hart/dispatcher/traininfo/"
+    fi
+    if [[ -f "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" ]]; then
+      cp -f "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" \
+        "$stage/jmri/layouts/hart/dispatcher/"
+    fi
   fi
 
-  if [[ -d "$ROOT/jmri/layouts/hart/ctc/icons" ]]; then
+  if ! parked_dir jmri/layouts/hart/ctc && [[ -d "$ROOT/jmri/layouts/hart/ctc/icons" ]]; then
+    mkdir -p "$stage/ctc/icons"
     rsync -a "$ROOT/jmri/layouts/hart/ctc/icons/" "$stage/ctc/icons/"
     [[ -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" ]] && \
       cp -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" "$stage/ctc/"

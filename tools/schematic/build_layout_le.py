@@ -33,6 +33,12 @@ turnouts on one turnout for 129 and 135, whose halves stand on two levels), on i
 names are the device map's block names without "Track ", one per block, left out where there is no room
 (names_last); one block contents icon per block at 12 px (staging keeps 13; LEVEL_LE_LABELS). No masts, sensors or icons for them.
 
+Parked features (owner, 2026-11-17; hartlib.parked, PARKED). After the staging guard the three-level candidate's
+Entry/Exit, Dispatcher System and USS CTC elements are left out (parked.split), so the candidate holds none of them;
+their live data is the snapshot in jmri/layouts/hart/parked/tables_parked.xml, split once from the deployed tables
+(hartlib.parked.freeze), not written by this build. The released tables are that
+candidate with its Signal Mast Logic from stock discovery in a sandbox (jmri/layouts/hart/parked/README.md).
+
 Staging alone (owner approved 2026-11-15). `--levels staging` draws the staging band alone: its helix
 tracks end at end bumpers as live, so every mast resolves exactly as live (no helix-entrance exception), its rows
 STAGING_ROW px apart, and no main or upper object is added to the tables. With `--as-live` it writes
@@ -114,7 +120,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import hand_drawn, paths, tables  # noqa: E402
+from hartlib import hand_drawn, parked, paths, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its internal names
 
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
@@ -140,6 +146,12 @@ STAGING = "Staging"                  # band key (first word of the band title) b
 TURNOUT_SYS = "IT:HART:C3:"          # internal turnouts: nothing reaches the field
 BLOCK_SYS = "IB:C3:"
 LAYOUT_BLOCK_FIRST = 1001            # ILB1001 up; the live file stops well below
+# Blocks added after the cut-over take the next numbers at the end (owner, 2026-11-16: append), so no main or upper
+# system name shifts: BLOCK_NUMBERED_AS gives a renamed block the sort place of the name it replaces, and
+# APPENDED_BLOCKS come last, in this order. The balloon loop's split: Loop 1 keeps the loop's numbers; double
+# crossover 225's corners: a keeps OS Switch 225's.
+BLOCK_NUMBERED_AS = {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225"}
+APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d")
 COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"
 # The window the panel opens in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside
 # it less Layout Editor's 18 x 60 px frame allowance). Width: the whole 1900, so the panel is at most 1882 (the
@@ -764,7 +776,9 @@ def level_masts(names: dict, rows: list[dict]) -> None:
     bad = []
     for r in rows:
         where = [k for k, v in names.items() if k != STAGING
-                 and r["facing"] in {b for bl in v["blocks"].values() for b in bl} and r["protects"] in v["os"].values()]
+                 and r["facing"] in {b for bl in v["blocks"].values() for b in bl}
+                 and r["protects"] in set(v["os"].values()) | {b for x in v.get("xover_blocks", {}).values()
+                                                              for b in x.values()}]
         if len(where) != 1:
             bad.append(f"{r['mast']} ({r['facing']} into {r['protects']}): drawn on {where or 'no band'}")
             continue
@@ -794,18 +808,32 @@ def check_unplaced(P) -> list[str]:
 
 # ---------------------------------------------------------------- main and upper placeholders
 
-def placeholder_names(bands, le_mod) -> tuple[dict, dict]:
-    """({band key: names}, {block: length mm}) for every band but staging."""
+def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
+    """({band key: names}, {block: length mm}) for every band but staging. A balloon loop is two blocks (the device
+    map's loop_halves) and a double crossover four, one per corner (`xover_blocks`, named by the corner each leg
+    reaches as the plugin draws it: the device map's xover_corners; `page`: the sheet's options, for rotate_bands)."""
     joined = le_mod.partners(bands)
+    import build_device_map as bdm
     out, lengths, counted = {}, defaultdict(float), set()
     for bi, (title, band, _) in enumerate(bands):
         key = band_key(title)
         if key == STAGING:
             continue
         nodes, strands = band["nodes"], band["strands"]
-        names = dict(turnouts={}, os={}, blocks={})
+        try:
+            loop_half = bdm.loop_halves(band, runs)      # a balloon loop is two blocks, parted at its turnback
+        except bdm.MapError as exc:
+            raise BuildError(f"{title}: {exc}") from None
+        names = dict(turnouts={}, os={}, blocks={}, xover_blocks={})
         for n, d in sorted(nodes.items()):
-            if d["kind"] in ("switch", "dx"):
+            if d["kind"] == "dx":
+                names["turnouts"][n] = f"Switch {bare(d['label'])}"
+                try:
+                    corners = le_mod.double_corners(band, n, key in (page or {}).get("rotate_bands", ()))
+                    names["xover_blocks"][n] = bdm.xover_corners(bdm.base(d["label"]), corners)
+                except (bdm.MapError, le_mod.SchematicError) as exc:
+                    raise BuildError(f"{title}: {exc}") from None
+            elif d["kind"] == "switch":
                 names["turnouts"][n] = f"Switch {bare(d['label'])}"
                 names["os"][n] = "OS Switch " + re.sub(r"[AB]$", "", bare(d["label"]))
         for start, chain, end in runs(band):
@@ -821,20 +849,22 @@ def placeholder_names(bands, le_mod) -> tuple[dict, dict]:
                 else:
                     labels.append(bare(nodes[n].get("label")) if nodes[n]["kind"] in ("switch", "dx") else "")
             a, b = labels
-            halves = (a and b and a[-1:] in "AB" and b[-1:] in "AB" and a[:-1] == b[:-1] and a[:-1].isdigit())
+            inside_xover = (a and b and a[-1:] in "AB" and b[-1:] in "AB" and a[:-1] == b[:-1] and a[:-1].isdigit())
             for sid, _ in chain:
                 s = strands[sid]
                 edge = s["edge"]
                 if any(nodes[x[0]].get("sub") == "link" for x in (s["src"], s["dst"])):
                     edge = re.sub(r"(?<=\d)[xy]$", "", edge)
-                block = f"OS Switch {a[:-1]}" if halves else f"Track {edge}"
+                block = f"OS Switch {a[:-1]}" if inside_xover else \
+                    bdm.loop_placeholder(f"Track {edge}", loop_half.get(sid))
                 names["blocks"][sid] = [block]
-                # a turnback's two tracks each carry their whole edge's length (count it once); a connector or
-                # helix cut leaves a piece on each band (e36x, e36y): count both
+                # a turnback's two tracks each carry their whole edge's length (count it once, or half each for a
+                # balloon loop's two blocks); a connector or helix cut leaves a piece on each band (e36x, e36y):
+                # count both
                 if (block, s["edge"]) not in counted:
                     counted.add((block, s["edge"]))
-                    lengths[block] += s["cm"] * 10
-        for n in names["os"].values():
+                    lengths[block] += s["cm"] * 10 / (2 if sid in loop_half else 1)
+        for n in list(names["os"].values()) + [b for v in names["xover_blocks"].values() for b in v.values()]:
             lengths[n] += 0.0
         out[key] = names
     return out, dict(lengths)
@@ -859,7 +889,7 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
         user = (r["user_name"] or "").strip()
         if r["layer"] == "turnout" and user.startswith("DCC "):
             continue                    # the LCC alias of a turnout: not a panel object
-        form = r"Switch \d+" if r["layer"] == "turnout" else r"(Track \S.*|OS Switch \d+)"
+        form = r"Switch \d+" if r["layer"] == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
         if not re.fullmatch(form, user):
             bad.append(f"line {i}: {r['layer']} {user!r} is not named {form}")
             continue
@@ -879,12 +909,12 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     return out
 
 
-def level_names(bands, le_mod, device: dict | None = None) -> tuple[dict, dict]:
+def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[dict, dict]:
     """placeholder_names with every placeholder replaced by its device-map name (device_names): ({band key: names},
     {block: length mm}). Stops on a placeholder the device map does not name, or a device-map name the drawing does
     not use."""
     device = device_names() if device is None else device
-    names, lengths = placeholder_names(bands, le_mod)
+    names, lengths = placeholder_names(bands, le_mod, page)
     used, missing = set(), set()
 
     def to(ph):
@@ -898,6 +928,7 @@ def level_names(bands, le_mod, device: dict | None = None) -> tuple[dict, dict]:
     for key, nm in names.items():
         out[key] = dict(turnouts={n: to(t) for n, t in nm["turnouts"].items()},
                         os={n: to(b) for n, b in nm["os"].items()},
+                        xover_blocks={n: {leg: to(b) for leg, b in v.items()} for n, v in nm["xover_blocks"].items()},
                         blocks={sid: [to(b) for b in v] for sid, v in nm["blocks"].items()})
     out_len = defaultdict(float)
     for ph, mm in lengths.items():
@@ -1078,14 +1109,16 @@ def block_sort(name: str):
     return (kind, int(digits or 0), name)
 
 
-# Whether the three-level panel joins staging's helix tracks to the main and upper levels by hidden segments. Off
-# (owner, 2026-11-16, after the Phase 4 rehearsal): joined, Stage 1 passed but staging's own discovery changed (10RA,
-# 10RB, 12R and 14R lost ->22L/26L and gained ->16L; 36RB->40RB lost; NX lost 36RB->2035 and 36RB->2036 and gained
-# 36RA->38LA), while unjoined staging matched the live panel exactly (100 SML pairs, 107 sections, 187 transits, 36
-# NX pairs). So the cut-over is unjoined: every helix end stays an end bumper (38RA and 40RA on theirs, as live), and
-# staging is the approved panel byte for byte (check_staging_unchanged accepts no difference). The join is a later
-# step (wiki/projects/schematic-maps-handoff.md).
-JOIN_HELIX = False
+# Whether the three-level panel joins staging's helix tracks to the main and upper levels by hidden segments. On
+# (owner, 2026-11-17, the helix-join release): joined plainly, with no route-flow entries; staging's own pairs change
+# as stock SML discovery finds them (10RA, 10RB, 12R and 14R pair to 16L; 36RB->40RB is lost), accepted. Masts 38RA
+# and 40RA stand at the helix-entrance anchors, protecting Track 135-H2 and Track 135-H1. Off, every helix end stays
+# an end bumper (the 2026-11-16 cut-over) and the staging guard accepts no difference.
+JOIN_HELIX = True
+# The features parked out of the cut-over candidate into jmri/layouts/hart/parked/tables_parked.xml (owner,
+# 2026-11-17; hartlib.parked): Entry/Exit, the stock Dispatcher System and the USS CTC machine. Unpark one by taking
+# it out of hartlib.parked.PARKED and rebuilding.
+PARKED = parked.PARKED
 
 
 def joined_ends(bands, staging: dict, le_mod) -> set:
@@ -1249,7 +1282,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     if not tables.layout_editors(root):
         raise BuildError(f"{live_path} has no Layout Editor panel to put the new one beside")
 
-    names, lengths = level_names(bands, le_mod) if levels == "all" else ({}, {})
+    names, lengths = level_names(bands, le_mod, page=page) if levels == "all" else ({}, {})
     level_rows = []
     if levels == "all":                 # the main and upper control-point masts (main_upper_masts.csv)
         level_rows = read_level_masts()
@@ -1307,7 +1340,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                                           page=dict(page, band_align={STAGING: "left"}), gap=g, labels_by_band=True,
                                           crossover_run=crossover_run(scale),
                                           tight_crossovers=TIGHT_CROSSOVERS,
-                                          split_crossovers=SPLIT_CROSSOVERS, **stepped)
+                                          split_crossovers=SPLIT_CROSSOVERS, mast_room=MAST_ROOM,
+                                          name_room=NAME_ROOM, **stepped)
             P = draw(gaps)
             if len(P.band_boxes) > 2:
                 gaps[1:] = [band_gap(le_mod.extent(P, bi)[3], P.band_boxes[bi][3], le_mod)
@@ -1392,6 +1426,12 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name)
             P.staging_data = base[0]
             check_aspect(P.overlay["size"], le_mod.CHROME)
+            # the parked features (PARKED, owner 2026-11-17) leave the cut-over candidate for the parked file,
+            # after the staging guard, which compares the two candidates whole
+            try:
+                P.parked_doc = parked.split(root, PARKED)
+            except parked.ParkError as exc:
+                raise BuildError(f"parking: {exc}") from None
     else:
         attrs = dict(inputs.attrs)
         attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")
@@ -1413,6 +1453,16 @@ CROSSOVER_ANGLES = {"Staging": 45.0, "Main": 45.0, "Upper": 45.0}
 # the block's least length apart, each diagonal at 45 degrees.
 TIGHT_CROSSOVERS = {"Main": [["101", "103"]]}
 SPLIT_CROSSOVERS = {"Main": ["101", "103"]}
+# Bands whose drawing lets in room for a mast icon (the plugin's mast_room): a mast whose straight track before its
+# boundary is shorter than its icon, or whose icon still has no clean spot there, has its band let out along its rows
+# at that track (Masts 108R and 110LA on track 107-109, 128RB and 130LA on 127-129, 228RA on 227-233 stood on 16 to
+# 19 px of straight; 2026-11-17). Main and upper only: staging is drawn as the owner approved it.
+MAST_ROOM = ["Main", "Upper"]
+# Bands whose drawing, in the same pass, lets a named track's straight out to its name's width (the plugin's
+# name_room), while the band stays no wider than the widest: main uses its spare width so Tracks 107-109 and 125-127
+# get their names beside 109-111 and 127-129 (owner, 2026-11-17: "Use main's spare width"); upper is the widest, so
+# its short tracks keep their length (noted).
+NAME_ROOM = ["Main", "Upper"]
 # track names left off the panel (owner, 2026-11-16): the short track inside the three-way
 NO_NAME = {"Main": ["101-103"]}
 
@@ -1703,13 +1753,21 @@ def insert_first_panel(root: ET.Element, new: ET.Element, depth: int) -> None:
     root.insert(idx, new)
 
 
+def numbered_blocks(blocks) -> list:
+    """The main and upper blocks in the order their system names are numbered: by block_sort (a block in
+    BLOCK_NUMBERED_AS in the place of the name it replaces), then APPENDED_BLOCKS."""
+    blocks = set(blocks)
+    tail = [b for b in APPENDED_BLOCKS if b in blocks]
+    return sorted(blocks - set(tail), key=lambda b: block_sort(BLOCK_NUMBERED_AS.get(b, b))) + tail
+
+
 def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_blocks: set) -> None:
     """Main and upper: their turnouts, blocks and layout blocks in the tables, under the device-map user names
     (level_names) on internal system names (TURNOUT_SYS, BLOCK_SYS, ILB from LAYOUT_BLOCK_FIRST), so nothing reaches
     MQTT or the field."""
     new_turnouts = sorted({t for k, v in names.items() if k != STAGING for t in v["turnouts"].values()},
                           key=lambda s: block_sort("OS " + s))
-    new_blocks = sorted((b for b in P.blocks if b not in staging_blocks), key=block_sort)
+    new_blocks = numbered_blocks(b for b in P.blocks if b not in staging_blocks)
     if set(new_blocks) - set(lengths):
         raise BuildError(f"blocks with no source: {sorted(set(new_blocks) - set(lengths))}")
     taken_users = {tables.user_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)
@@ -1988,6 +2046,11 @@ def run(argv, cached) -> int:
               "UNAPPROVED until the owner approves it in PanelPro and --approve-staging records it")
     if len(files) > 1:
         print(f"wrote {paths.rel(files[1][0])}: the staging candidate it holds")
+    if isinstance(getattr(P, "parked_doc", None), ET.Element):
+        where = f"kept in {paths.rel(parked.PARKED_XML)} (the live snapshot)"
+        print(f"parked ({', '.join(sorted(PARKED))}), left out, {where}; the template's: " + "; ".join(
+            f"{f}: " + ", ".join(f"{v} {k}" for k, v in sorted(c.items()))
+            for f, c in parked.counts(P.parked_doc).items()))
     moved = {f"{t}: mast {m}: {why}" for t, m, why in P.moved}       # the plugin's own log line for each
     for line in P.log:
         if line not in moved:

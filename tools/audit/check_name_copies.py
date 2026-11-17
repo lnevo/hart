@@ -73,9 +73,19 @@ TEXT_SUFFIXES = (".py", ".sh", ".js", ".mjs", ".csv", ".json", ".xml", ".html", 
 # Dated records that keep a name that is no longer current: file -> (names, reason);
 # names None allows any. Keep this short: a copy still in use belongs on the data.
 ALLOW: dict[str, tuple[frozenset[str] | None, str]] = {
+    "jmri/layouts/hart/parked/tables_parked.xml": (
+        None,
+        "frozen snapshot of the live tables at 3bd3ac64 (NX, Dispatcher, USS CTC parked 2026-11-17); it keeps the names "
+        "of that day until it is unparked and refreshed",
+    ),
     "jmri/layouts/hart/scripts/speedmatch/rename_extension_tracks.py": (
         frozenset({"Track West Main Ext"}),
         "rewrites logs recorded before the 2026-11-13 rename, so it holds the old names",
+    ),
+    "tools/schematic/build_layout_le.py": (
+        frozenset({"OS Switch 225"}),
+        "BLOCK_NUMBERED_AS gives corner block OS Switch 225a the system number of the block it replaced, so it "
+        "keeps that block's old name (the helix-join release, 2026-11-17)",
     ),
 }
 

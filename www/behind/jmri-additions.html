@@ -29,7 +29,7 @@
   <main>
     <div class="page-head">
       <h1>What We Added to JMRI</h1>
-      <p class="section-note">JMRI and CATS run here as stock installs. This page covers what we added on top: six scripts, the files deployed into the JMRI profile, and how the signal hand-over and the status lamps work.</p>
+      <p class="section-note">Parked since the helix-join release (November 2026): Entry/Exit, the Dispatcher System and the USS CTC machine are not in the active panel, and their data is kept in <code>jmri/layouts/hart/parked/</code>. Signal masts, Signal Mast Logic and the CATS desks stay live. JMRI and CATS run here as stock installs. This page covers what we added on top: six scripts, the files deployed into the JMRI profile, and how the signal hand-over and the status lamps work.</p>
     </div>
 
     <article class="explainer prose">
@@ -93,8 +93,8 @@
             <tr><td><code>resources/buttons/</code></td><td>The two 16-pixel triangle lamps for the yard ladders.</td></tr>
             <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels: our yellow pair. The amber icon is JMRI's own.</td></tr>
             <tr><td><code>resources/misc/hart_panel_bg_plain.jpg</code></td><td>The backdrop of the HART Railroad panel, 1900 by 600 pixels. It sits behind the track as a label on the panel, at the top left.</td></tr>
-            <tr><td><code>ctc/icons/</code> and <code>ctc/GUIObjects.xml</code></td><td>The USS CTC machine: 70 generated track icons and the panel layout, as custom cells for the stock CTC tool.</td></tr>
-            <tr><td><code>dispatcher/traininfo/</code> and <code>dispatcheroptions.xml</code></td><td>Dispatcher data, not code: the options and the traininfo files that stock Stage 1 writes.</td></tr>
+            <tr><td><code>ctc/icons/</code> and <code>ctc/GUIObjects.xml</code></td><td>The USS CTC machine: 70 generated track icons and the panel layout, as custom cells for the stock CTC tool. Parked; not shipped to the hosts.</td></tr>
+            <tr><td><code>dispatcher/traininfo/</code> and <code>dispatcheroptions.xml</code></td><td>Dispatcher data, not code: the options and the traininfo files that stock Stage 1 writes. Parked; not shipped to the hosts.</td></tr>
             <tr><td><code>web/servlet/home/Home.html</code></td><td>The web home page: a copy of JMRI 5.16's stock page with two links added, to the traffic simulator and the LCOS mimic. JMRI serves this copy before its own, so it is brought up to the new stock page at each JMRI upgrade.</td></tr>
             <tr><td><code>web/mimic/</code></td><td>The LCOS mimic page, on the main layout host only. It reads the layout through JMRI's stock JSON WebSocket and fakes field feedback through <code>mimic_relay.py</code>, for testing without the field electronics.</td></tr>
           </tbody>

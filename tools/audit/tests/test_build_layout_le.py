@@ -168,7 +168,7 @@ class Built(unittest.TestCase):
         self.assertIn("Switch 223", new_t)              # its trial name's mark dropped
         self.assertIn("Switch 225", new_t)              # the double crossover
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
-        self.assertEqual(len(new_lb), 121)
+        self.assertEqual(len(new_lb), 125)      # the 107 Loop's two halves and 225's four corners
         self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")})
         self.assertIn("OS Switch 135", new_lb)          # connector A joins 135A and 135B: their OS block
         self.assertIn("Track 135-H2", new_lb)           # the placeholder Track e68+e81
@@ -282,7 +282,7 @@ class Built(unittest.TestCase):
     def test_live_tables_unchanged_but_for_the_additions(self) -> None:
         doc = tables.loads(self.data)
         removed = strip_new(doc.root)
-        self.assertEqual(removed, 1 + 41 + 3 * 121 + 53 + 41)      # + main and upper heads and masts
+        self.assertEqual(removed, 1 + 41 + 3 * 125 + 53 + 41)      # + main and upper heads and masts
         self.assertEqual(doc.tobytes(), hand().read_bytes())
 
     def test_no_name_collisions(self) -> None:
@@ -352,7 +352,7 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got["Switch 101B"], "Switch 101")
         self.assertEqual(got["Switch 223"], "Switch 223")          # "Switch 223*" in the file
         self.assertEqual(got["Track e68+e81"], "Track 135-H2")
-        self.assertEqual(len(got), 51 + 121)
+        self.assertEqual(len(got), 51 + 125)
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
         got = self.read('2,,turnout,DCC Switch 101,MTT120,34,120,,,\n'
@@ -457,8 +457,10 @@ class ReviewFixes(unittest.TestCase):
         self.assertAlmostEqual(lengths["OS Switch 135"], (cm["e36x"] + cm["e36y"]) * 10)
         self.assertAlmostEqual(lengths["OS Switch 129"], (cm["e37x"] + cm["e37y"]) * 10)
         self.assertGreater(lengths["OS Switch 135"], 190)
-        self.assertAlmostEqual(lengths["Track e33"], next(s["cm"] for _, b, _ in bands
-                                                          for k, s in b["strands"].items() if k == "e33.0") * 10)
+        # the balloon loop's turnback tracks each carry the whole edge: each half block takes half of it once
+        half = next(s["cm"] for _, b, _ in bands for k, s in b["strands"].items() if k == "e33.0") * 10 / 2
+        self.assertAlmostEqual(lengths["Track e33 1"], half)
+        self.assertAlmostEqual(lengths["Track e33 2"], half)
 
     def test_east_and_west_blocks_go_with_their_track(self) -> None:
         strands = {"a": {"name": "K-1"}, "b": {"name": "K-2"}, "c": {"name": "Main East"}}
@@ -751,6 +753,38 @@ class FinalReview(unittest.TestCase):
             self.assertEqual(el.get("text"), stations.station_display(name, generated=True), name)
 
 
+class LoopAndCrossover(unittest.TestCase):
+    """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers (owner, 2026-11-16)."""
+
+    def test_appended_blocks_number_after_the_rest_and_shift_nothing(self) -> None:
+        before = ["OS Switch 107", "OS Switch 225", "Track 105-109", "Track 107 Loop", "Track 107-109", "Track 9-9"]
+        after = [b for b in before if b not in ("Track 107 Loop", "OS Switch 225")] + \
+            ["Track 107 Loop 1", "Track 107 Loop 2", "OS Switch 225a", "OS Switch 225b", "OS Switch 225c",
+             "OS Switch 225d"]
+        old = B.numbered_blocks(before)
+        new = B.numbered_blocks(after)
+        renamed = {"Track 107 Loop": "Track 107 Loop 1", "OS Switch 225": "OS Switch 225a"}
+        self.assertEqual(new[:len(old)], [renamed.get(b, b) for b in old])      # every old number kept
+        self.assertEqual(new[len(old):], list(B.APPENDED_BLOCKS))
+
+    def test_the_loop_is_two_blocks_and_225_a_block_per_corner(self) -> None:
+        _sheet, le_mod, _core = B.plugin()
+        bands, page = B.schematic()
+        names, lengths = B.level_names(bands, le_mod, page=page)
+        loop = sorted(b for bl in names["Main"]["blocks"].values() for b in bl if "107 Loop" in b)
+        self.assertEqual(loop, ["Track 107 Loop 1", "Track 107 Loop 2"])      # one strand each
+        self.assertEqual((lengths["Track 107 Loop 1"], lengths["Track 107 Loop 2"]), (3885.0, 3885.0))
+        (n, corners), = names["Upper"]["xover_blocks"].items()
+        band = next(b for t, b, _ in bands if t.startswith("Upper"))
+        to_corner = le_mod.double_corners(band, n)
+        by_corner = {to_corner[leg]: block for leg, block in corners.items()}
+        self.assertEqual(by_corner, {c: f"OS Switch 225{c.lower()}" for c in "ABCD"})
+        # JMRI 5.16: with A and D (or B and C) in one block LayoutBlock.addThroughPath records a through path from
+        # one track to the other on that side; every corner its own block stops it
+        self.assertEqual(len(set(by_corner.values())), 4)
+        self.assertNotIn(n, names["Upper"]["os"])
+
+
 class LevelMasts(unittest.TestCase):
     """main_upper_masts.csv (build_main_upper_masts.py) and how the build takes it."""
 
@@ -765,8 +799,16 @@ class LevelMasts(unittest.TestCase):
         self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH93334)(IH93335)")
         self.assertEqual(r["device_system_name"], "IF$shsm:basic:two-searchlight(IH3334)(IH3335)")
         self.assertEqual(r["heads"], [("IH93334", "Head 108R Top"), ("IH93335", "Head 108R Bottom")])
-        self.assertEqual({x["mast"]: x["leg"] for x in rows if x["leg"]},
-                         {"Mast 108LA": "normal", "Mast 108LB": "diverging"})
+        self.assertEqual({x["mast"]: x["leg"] for x in rows if x["leg"]}, {})     # the loop's halves tell them apart
+
+    def test_no_two_masts_share_a_facing_and_protected_block(self) -> None:
+        """JMRI keys a mast by its facing and protected blocks: LayoutBlockManager.getFacingBean (5.16) returns
+        one mast per pair, and LayoutBlockConnectivityTools.generateBlocksWithBeans lists one per pair, so a second
+        mast on the pair is never discovered, gets no Signal Mast Logic and so no aspect (its icon stays JMRI's red
+        X: SignalMastIcon.displayState draws nothing for a null aspect). Mast 108LB was that mast before the 107
+        Loop was split."""
+        pairs = Counter((r["facing"], r["protects"]) for r in B.read_level_masts())
+        self.assertEqual([p for p, n in pairs.items() if n > 1], [])
 
     def test_an_lcos_name_stops_the_build(self) -> None:
         text = B.MAIN_UPPER_MASTS.read_text(encoding="utf-8")

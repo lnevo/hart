@@ -35,7 +35,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import parked, paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DEFAULT_PANEL = paths.TABLES_XML
@@ -807,6 +807,15 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if not args.check:
         paths.exit_if_overridden(Path(__file__).name)
+    try:
+        left_out = parked.parked_in(parse_xml(safe_panel_path(args.panel)).getroot())
+    except (OSError, ET.ParseError, ValueError):
+        left_out = frozenset()          # reported below
+    if "dispatcher" in left_out:
+        # parked (hartlib.parked): tables without the Dispatcher System hold no station to reconcile
+        print("SKIPPED: the Dispatcher System is parked (hartlib.parked.PARKED); its stations are in "
+              f"{paths.rel(parked.PARKED_XML)}")
+        return 0
     try:
         panel = safe_panel_path(args.panel)
         tree = parse_xml(panel)

@@ -1,5 +1,7 @@
 # Layout Editor / Dispatcher System hoops
 
+**Parked.** Parked since the helix-join release (November 2026): not in the active panel; data kept in `jmri/layouts/hart/parked/`. The workarounds below apply again on unpark; "live graph" below means the graph as it stood before the release.
+
 SoR for workarounds used so Dispatcher System can start and stop at HART stations. As of **2026-11-12** the live graph is **107 sections / 187 transits / 374 HEAD_AND_TAIL traininfo** (stock Stage 1; 49 masts) for **12 stations**: East Lead, K-1, K-2, McKees Rocks, McKeesport, Scale, Barn, EH-1–3, W-1, W-2. The mains, Brick-Plane and South Yard stopped being stations that day. Revisit the marked hacks; do not silently delete them.
 
 Railroad English first, then the JMRI name. Operator desk: [`jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md). Live notes: [`STATUS.md`](STATUS.md) (Dispatcher System).

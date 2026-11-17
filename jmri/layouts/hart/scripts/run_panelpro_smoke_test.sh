@@ -18,6 +18,9 @@ pp_refuse_running "SKIPPED: quit CATS and PanelPro, then run the smoke test agai
 pp_begin "$SCRIPT"
 rm -f "$MARKER"
 export HART_PANELPRO_SMOKE_MARKER="$MARKER"
+# The parked features (hartlib.parked.PARKED): the smoke test expects them absent.
+HART_PARKED="$(PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.parked features | tr '\n' ' ')"
+export HART_PARKED
 
 pp_launch "$LOG"
 rc=0

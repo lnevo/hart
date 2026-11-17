@@ -9,7 +9,7 @@
     "width": 3780,
     "height": 2055,
     "scale": 1.0,
-    "inputs_sha256": "ec87831a080c3af37bf25f7c97384b1737e6b262cd02af9cfb5b4778edb3c785"
+    "inputs_sha256": "21e8228c42ee7fe80100a4bbc561cc328642ae3116a0e50c43261f7fdaef3e98"
   },
   "items": [
     {
@@ -611,6 +611,32 @@
       "block": ""
     },
     {
+      "id": "cats-sig-Mast-108LB",
+      "kind": "signal",
+      "x": 586.8,
+      "y": 979.2,
+      "systemName": "Mast 108LB",
+      "publicName": "Mast 108LB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (10,15) LOWRIGHT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-108LA",
+      "kind": "signal",
+      "x": 586.8,
+      "y": 1039.2,
+      "systemName": "Mast 108LA",
+      "publicName": "Mast 108LA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (10,16) LOWRIGHT",
+      "block": ""
+    },
+    {
       "id": "cats-to-11-16",
       "kind": "turnout",
       "x": 630.0,
@@ -622,6 +648,32 @@
       "mqtt": "",
       "comment": "Digicon plant @ 11,16; OS OS Switch 107",
       "block": "OS Switch 107"
+    },
+    {
+      "id": "cats-sig-Mast-108R",
+      "kind": "signal",
+      "x": 690.0,
+      "y": 1000.8,
+      "systemName": "Mast 108R",
+      "publicName": "Mast 108R",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (12,16) UPCENT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-110LA",
+      "kind": "signal",
+      "x": 730.8,
+      "y": 1039.2,
+      "systemName": "Mast 110LA",
+      "publicName": "Mast 110LA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (13,16) LEFTLOW",
+      "block": ""
     },
     {
       "id": "cats-to-13-16",
@@ -650,6 +702,19 @@
       "block": "OS Switch 111"
     },
     {
+      "id": "cats-sig-Mast-118L",
+      "kind": "signal",
+      "x": 1333.2,
+      "y": 1039.2,
+      "systemName": "Mast 118L",
+      "publicName": "Mast 118L",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (23,16) LOWLEFT",
+      "block": ""
+    },
+    {
       "id": "cats-to-23-16",
       "kind": "turnout",
       "x": 1350.0,
@@ -676,6 +741,45 @@
       "block": "OS Switch 119"
     },
     {
+      "id": "cats-sig-Mast-120RA",
+      "kind": "signal",
+      "x": 1606.8,
+      "y": 1000.8,
+      "systemName": "Mast 120RA",
+      "publicName": "Mast 120RA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (27,16) UPRIGHT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-126LA",
+      "kind": "signal",
+      "x": 2146.8,
+      "y": 1000.8,
+      "systemName": "Mast 126LA",
+      "publicName": "Mast 126LA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (36,16) UPRIGHT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-126LB",
+      "kind": "signal",
+      "x": 2113.2,
+      "y": 1039.2,
+      "systemName": "Mast 126LB",
+      "publicName": "Mast 126LB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (36,16) LOWLEFT",
+      "block": ""
+    },
+    {
       "id": "cats-to-36-16",
       "kind": "turnout",
       "x": 2130.0,
@@ -689,6 +793,19 @@
       "block": "OS Switch 125"
     },
     {
+      "id": "cats-sig-Mast-128RB",
+      "kind": "signal",
+      "x": 2329.2,
+      "y": 1039.2,
+      "systemName": "Mast 128RB",
+      "publicName": "Mast 128RB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (39,16) RIGHTLOW",
+      "block": ""
+    },
+    {
       "id": "cats-to-39-16",
       "kind": "turnout",
       "x": 2310.0,
@@ -700,6 +817,19 @@
       "mqtt": "",
       "comment": "Digicon plant @ 39,16; OS OS Switch 127",
       "block": "OS Switch 127"
+    },
+    {
+      "id": "cats-sig-Mast-130LA",
+      "kind": "signal",
+      "x": 2370.0,
+      "y": 1039.2,
+      "systemName": "Mast 130LA",
+      "publicName": "Mast 130LA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (40,16) LOWCENT",
+      "block": ""
     },
     {
       "id": "cats-to-41-16",
@@ -728,6 +858,19 @@
       "block": "OS Switch 135"
     },
     {
+      "id": "cats-sig-Mast-136RA",
+      "kind": "signal",
+      "x": 2910.0,
+      "y": 1000.8,
+      "systemName": "Mast 136RA",
+      "publicName": "Mast 136RA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (49,16) UPCENT",
+      "block": ""
+    },
+    {
       "id": "cats-to-5-17",
       "kind": "turnout",
       "x": 270.0,
@@ -752,6 +895,32 @@
       "mqtt": "",
       "comment": "Digicon plant @ 11,17; OS OS Switch 105",
       "block": "OS Switch 105"
+    },
+    {
+      "id": "cats-sig-Mast-110LB",
+      "kind": "signal",
+      "x": 730.8,
+      "y": 1099.2,
+      "systemName": "Mast 110LB",
+      "publicName": "Mast 110LB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (13,17) LEFTLOW",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-112L",
+      "kind": "signal",
+      "x": 886.8,
+      "y": 1099.2,
+      "systemName": "Mast 112L",
+      "publicName": "Mast 112L",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (15,17) LOWRIGHT",
+      "block": ""
     },
     {
       "id": "cats-to-18-17",
@@ -793,6 +962,19 @@
       "block": "OS Switch 119"
     },
     {
+      "id": "cats-sig-Mast-120RB",
+      "kind": "signal",
+      "x": 1606.8,
+      "y": 1060.8,
+      "systemName": "Mast 120RB",
+      "publicName": "Mast 120RB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (27,17) UPRIGHT",
+      "block": ""
+    },
+    {
       "id": "cats-to-35-17",
       "kind": "turnout",
       "x": 2070.0,
@@ -804,6 +986,19 @@
       "mqtt": "",
       "comment": "Digicon plant @ 35,17; OS OS Switch 123",
       "block": "OS Switch 123"
+    },
+    {
+      "id": "cats-sig-Mast-128RA",
+      "kind": "signal",
+      "x": 2329.2,
+      "y": 1099.2,
+      "systemName": "Mast 128RA",
+      "publicName": "Mast 128RA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (39,17) RIGHTLOW",
+      "block": ""
     },
     {
       "id": "cats-to-4-18",
@@ -923,6 +1118,19 @@
       "block": "OS Switch 207"
     },
     {
+      "id": "cats-sig-Mast-230LA",
+      "kind": "signal",
+      "x": 2869.2,
+      "y": 1660.8,
+      "systemName": "Mast 230LA",
+      "publicName": "Mast 230LA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (48,27) RIGHTUP",
+      "block": ""
+    },
+    {
       "id": "cats-to-55-27",
       "kind": "turnout",
       "x": 3270.0,
@@ -975,6 +1183,32 @@
       "block": "OS Switch 215"
     },
     {
+      "id": "cats-sig-Mast-224LA",
+      "kind": "signal",
+      "x": 2010.0,
+      "y": 1720.8,
+      "systemName": "Mast 224LA",
+      "publicName": "Mast 224LA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (34,28) UPCENT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-226RA",
+      "kind": "signal",
+      "x": 2370.0,
+      "y": 1759.2,
+      "systemName": "Mast 226RA",
+      "publicName": "Mast 226RA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (40,28) LOWCENT",
+      "block": ""
+    },
+    {
       "id": "cats-to-41-28",
       "kind": "turnout",
       "x": 2430.0,
@@ -985,7 +1219,20 @@
       "hardware": "Switch 225",
       "mqtt": "",
       "comment": "Digicon plant @ 41,28; OS OS Switch 225",
-      "block": "OS Switch 225"
+      "block": "OS Switch 225a"
+    },
+    {
+      "id": "cats-sig-Mast-230LB",
+      "kind": "signal",
+      "x": 2869.2,
+      "y": 1720.8,
+      "systemName": "Mast 230LB",
+      "publicName": "Mast 230LB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (48,28) RIGHTUP",
+      "block": ""
     },
     {
       "id": "cats-to-48-28",
@@ -1027,6 +1274,32 @@
       "block": "OS Switch 235"
     },
     {
+      "id": "cats-sig-Mast-202R",
+      "kind": "signal",
+      "x": 210.0,
+      "y": 1800.0,
+      "systemName": "Mast 202R",
+      "publicName": "Mast 202R",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (4,29) CENT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-204RA",
+      "kind": "signal",
+      "x": 349.2,
+      "y": 1780.8,
+      "systemName": "Mast 204RA",
+      "publicName": "Mast 204RA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (6,29) RIGHTUP",
+      "block": ""
+    },
+    {
       "id": "cats-to-8-29",
       "kind": "turnout",
       "x": 450.0,
@@ -1038,6 +1311,19 @@
       "mqtt": "",
       "comment": "Digicon plant @ 8,29; OS OS Switch 209",
       "block": "OS Switch 209"
+    },
+    {
+      "id": "cats-sig-Mast-214LA",
+      "kind": "signal",
+      "x": 553.2,
+      "y": 1819.2,
+      "systemName": "Mast 214LA",
+      "publicName": "Mast 214LA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (10,29) LOWLEFT",
+      "block": ""
     },
     {
       "id": "cats-to-11-29",
@@ -1053,6 +1339,32 @@
       "block": "OS Switch 213"
     },
     {
+      "id": "cats-sig-Mast-214RA",
+      "kind": "signal",
+      "x": 706.8,
+      "y": 1780.8,
+      "systemName": "Mast 214RA",
+      "publicName": "Mast 214RA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (12,29) UPRIGHT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-218LA",
+      "kind": "signal",
+      "x": 913.2,
+      "y": 1819.2,
+      "systemName": "Mast 218LA",
+      "publicName": "Mast 218LA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (16,29) LOWLEFT",
+      "block": ""
+    },
+    {
       "id": "cats-to-17-29",
       "kind": "turnout",
       "x": 990.0,
@@ -1064,6 +1376,32 @@
       "mqtt": "",
       "comment": "Digicon plant @ 17,29; OS OS Switch 217",
       "block": "OS Switch 217"
+    },
+    {
+      "id": "cats-sig-Mast-218RA",
+      "kind": "signal",
+      "x": 1066.8,
+      "y": 1780.8,
+      "systemName": "Mast 218RA",
+      "publicName": "Mast 218RA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (18,29) UPRIGHT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-220R",
+      "kind": "signal",
+      "x": 1186.8,
+      "y": 1819.2,
+      "systemName": "Mast 220R",
+      "publicName": "Mast 220R",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (20,29) LOWRIGHT",
+      "block": ""
     },
     {
       "id": "cats-to-21-29",
@@ -1079,6 +1417,19 @@
       "block": "OS Switch 219"
     },
     {
+      "id": "cats-sig-Mast-222LA",
+      "kind": "signal",
+      "x": 1410.0,
+      "y": 1780.8,
+      "systemName": "Mast 222LA",
+      "publicName": "Mast 222LA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (24,29) UPCENT",
+      "block": ""
+    },
+    {
       "id": "cats-to-24-29",
       "kind": "turnout",
       "x": 1410.0,
@@ -1090,6 +1441,19 @@
       "mqtt": "",
       "comment": "Digicon plant @ 24,29; OS OS Switch 221",
       "block": "OS Switch 221"
+    },
+    {
+      "id": "cats-sig-Mast-224R",
+      "kind": "signal",
+      "x": 1890.0,
+      "y": 1819.2,
+      "systemName": "Mast 224R",
+      "publicName": "Mast 224R",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (32,29) LOWCENT",
+      "block": ""
     },
     {
       "id": "cats-to-33-29",
@@ -1105,6 +1469,32 @@
       "block": "OS Switch 223"
     },
     {
+      "id": "cats-sig-Mast-224LB",
+      "kind": "signal",
+      "x": 2010.0,
+      "y": 1780.8,
+      "systemName": "Mast 224LB",
+      "publicName": "Mast 224LB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (34,29) UPCENT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-226RB",
+      "kind": "signal",
+      "x": 2370.0,
+      "y": 1819.2,
+      "systemName": "Mast 226RB",
+      "publicName": "Mast 226RB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (40,29) LOWCENT",
+      "block": ""
+    },
+    {
       "id": "cats-to-41-29",
       "kind": "turnout",
       "x": 2430.0,
@@ -1115,7 +1505,20 @@
       "hardware": "Switch 225",
       "mqtt": "",
       "comment": "Digicon plant @ 41,29; OS OS Switch 225",
-      "block": "OS Switch 225"
+      "block": "OS Switch 225a"
+    },
+    {
+      "id": "cats-sig-Mast-228RA",
+      "kind": "signal",
+      "x": 2689.2,
+      "y": 1819.2,
+      "systemName": "Mast 228RA",
+      "publicName": "Mast 228RA",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (45,29) RIGHTLOW",
+      "block": ""
     },
     {
       "id": "cats-to-45-29",
@@ -1170,6 +1573,19 @@
       "block": "OS Switch 201"
     },
     {
+      "id": "cats-sig-Mast-204RB",
+      "kind": "signal",
+      "x": 349.2,
+      "y": 1840.8,
+      "systemName": "Mast 204RB",
+      "publicName": "Mast 204RB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (6,30) RIGHTUP",
+      "block": ""
+    },
+    {
       "id": "cats-to-6-30",
       "kind": "turnout",
       "x": 330.0,
@@ -1181,6 +1597,19 @@
       "mqtt": "",
       "comment": "Digicon plant @ 6,30; OS OS Switch 203",
       "block": "OS Switch 203"
+    },
+    {
+      "id": "cats-sig-Mast-214LB",
+      "kind": "signal",
+      "x": 553.2,
+      "y": 1879.2,
+      "systemName": "Mast 214LB",
+      "publicName": "Mast 214LB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (10,30) LOWLEFT",
+      "block": ""
     },
     {
       "id": "cats-to-11-30",
@@ -1196,6 +1625,32 @@
       "block": "OS Switch 213"
     },
     {
+      "id": "cats-sig-Mast-214RB",
+      "kind": "signal",
+      "x": 706.8,
+      "y": 1840.8,
+      "systemName": "Mast 214RB",
+      "publicName": "Mast 214RB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (12,30) UPRIGHT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-218LB",
+      "kind": "signal",
+      "x": 913.2,
+      "y": 1879.2,
+      "systemName": "Mast 218LB",
+      "publicName": "Mast 218LB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (16,30) LOWLEFT",
+      "block": ""
+    },
+    {
       "id": "cats-to-17-30",
       "kind": "turnout",
       "x": 990.0,
@@ -1209,6 +1664,32 @@
       "block": "OS Switch 217"
     },
     {
+      "id": "cats-sig-Mast-218RB",
+      "kind": "signal",
+      "x": 1066.8,
+      "y": 1840.8,
+      "systemName": "Mast 218RB",
+      "publicName": "Mast 218RB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (18,30) UPRIGHT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-222LB",
+      "kind": "signal",
+      "x": 1426.8,
+      "y": 1879.2,
+      "systemName": "Mast 222LB",
+      "publicName": "Mast 222LB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (24,30) LOWRIGHT",
+      "block": ""
+    },
+    {
       "id": "cats-to-24-30",
       "kind": "turnout",
       "x": 1410.0,
@@ -1220,6 +1701,32 @@
       "mqtt": "",
       "comment": "Digicon plant @ 24,30; OS OS Switch 221",
       "block": "OS Switch 221"
+    },
+    {
+      "id": "cats-sig-Mast-222R",
+      "kind": "signal",
+      "x": 1470.0,
+      "y": 1840.8,
+      "systemName": "Mast 222R",
+      "publicName": "Mast 222R",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (25,30) UPCENT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-130LB",
+      "kind": "signal",
+      "x": 1846.8,
+      "y": 1879.2,
+      "systemName": "Mast 130LB",
+      "publicName": "Mast 130LB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (31,30) LOWRIGHT",
+      "block": ""
     },
     {
       "id": "cats-to-32-30",
@@ -1246,6 +1753,32 @@
       "mqtt": "",
       "comment": "Digicon plant @ 35,30; OS OS Switch 135",
       "block": "OS Switch 135"
+    },
+    {
+      "id": "cats-sig-Mast-136RB",
+      "kind": "signal",
+      "x": 2130.0,
+      "y": 1840.8,
+      "systemName": "Mast 136RB",
+      "publicName": "Mast 136RB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (36,30) UPCENT",
+      "block": ""
+    },
+    {
+      "id": "cats-sig-Mast-228RB",
+      "kind": "signal",
+      "x": 2689.2,
+      "y": 1879.2,
+      "systemName": "Mast 228RB",
+      "publicName": "Mast 228RB",
+      "cp": "",
+      "hardware": "",
+      "mqtt": "",
+      "comment": "Digicon SECSIGNAL @ cell (45,30) RIGHTLOW",
+      "block": ""
     },
     {
       "id": "cats-to-49-30",
@@ -1289,10 +1822,10 @@
   ],
   "counts": {
     "turnout": 75,
-    "signal": 23,
+    "signal": 64,
     "occupancy": 0,
     "sensor": 0,
-    "mapped": 98,
-    "total": 98
+    "mapped": 139,
+    "total": 139
   }
 }

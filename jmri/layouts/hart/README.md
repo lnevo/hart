@@ -17,7 +17,7 @@
 The hart layout was bootstrapped once from the AnyRail panel; that script is kept for history at `archive/jmri-scripts/bootstrap_hart_from_linear6.py` and is not re-run, because `tables.xml` now carries later JMRI work. A new level or panel goes through the AnyRail pipeline ([`wiki/pipelines/jmri-anyrail.md`](../../../wiki/pipelines/jmri-anyrail.md)).
 
 For the complete live configuration, deploy/load **`output/tables.xml`**. It
-contains the Layout Editor, native SML, Dispatcher System, and USS CTC data.
+contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX) and USS CTC data are parked since the helix-join release (November 2026) and kept in `parked/`.
 
 | Path | Role |
 |------|------|

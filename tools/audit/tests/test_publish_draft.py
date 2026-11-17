@@ -37,9 +37,12 @@ class DrawingChange(unittest.TestCase):
     def test_track_is(self) -> None:
         self.assertNotEqual(PD.drawing_only(sheet()), PD.drawing_only(sheet(track="M1,0")))
 
-    def test_draft_follows_the_box(self) -> None:
-        self.assertIn('<text x="344" y="784"', PD.mark(sheet()))
-        self.assertIn('<text x="366" y="784"', PD.mark(sheet(box_w=352)))
+    def test_no_draft_mark(self) -> None:
+        # the mark came off when the owner approved the helix-join release (2026-11-17)
+        self.assertFalse(hasattr(PD, "mark") or hasattr(PD, "DRAFT"))
+        for f in [ROOT / "docs/ops/schematic-system-draft.svg", *sorted((ROOT / "docs/ops/stations").glob("*.svg"))]:
+            with self.subTest(sheet=f.name):
+                self.assertNotIn(">DRAFT<", f.read_text())
 
 
 class Fields(unittest.TestCase):

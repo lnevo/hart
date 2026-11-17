@@ -91,6 +91,9 @@ run schematic-device-map python3 tools/schematic/build_device_map.py --check
 run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py --check
 run wiring-v86 python3 docs/wiring/scripts/add_main_upper_levels.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
+# The parked features (Entry/Exit, Dispatcher System, USS CTC): none of their elements or names in the tables
+# file, all of them in jmri/layouts/hart/parked/tables_parked.xml (the live snapshot, with its source commit).
+run parked env PYTHONPATH=tools/hartlib/src python3 -m hartlib.parked check
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
 run layout-facts python3 tools/audit/check_layout_facts.py

@@ -30,11 +30,14 @@ class MastCellsTest(unittest.TestCase):
         self.assertEqual(named, drawn)
 
     def test_each_live_desk_has_each_mast_once_on_the_block_it_protects(self) -> None:
+        # staging's masts; the main and upper masts (main_upper_masts.csv) are check_layout_facts' check_level_desk
         want = {mast for mast, *_rest in gen.SIGNALS}
         protects = facts_check.protected_blocks()
+        level = facts_check.level_masts.names()
+        self.assertFalse(want & level)
         for desk in desks.LIVE:
             with self.subTest(desk=desk.name):
-                have = facts_check.desk_mast_blocks(desk)
+                have = {m: lamps for m, lamps in facts_check.desk_mast_blocks(desk).items() if m not in level}
                 self.assertEqual(set(have), want)
                 self.assertEqual({m: lamps for m, lamps in have.items()}, {m: [protects[m]] for m in want})
 

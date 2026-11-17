@@ -86,7 +86,7 @@ block,IB:C3:0027,OS Switch 217
 block,IB:C3:0028,OS Switch 219
 block,IB:C3:0029,OS Switch 221
 block,IB:C3:0030,OS Switch 223
-block,IB:C3:0031,OS Switch 225
+block,IB:C3:0031,OS Switch 225a
 block,IB:C3:0032,OS Switch 227
 block,IB:C3:0033,OS Switch 229
 block,IB:C3:0034,OS Switch 231
@@ -98,7 +98,7 @@ block,IB:C3:0039,OS Switch 241
 block,IB:C3:0040,OS Switch 243
 block,IB:C3:0041,OS Switch 245
 block,IB:C3:0042,Track 103 Spur
-block,IB:C3:0043,Track 107 Loop
+block,IB:C3:0043,Track 107 Loop 1
 block,IB:C3:0044,Track 115 Spur
 block,IB:C3:0045,Track 119 Spur
 block,IB:C3:0046,Track 121 Spur
@@ -177,6 +177,10 @@ block,IB:C3:0118,Track 235-241
 block,IB:C3:0119,Track 237-243
 block,IB:C3:0120,Track 237-245
 block,IB:C3:0121,Track 243-245
+block,IB:C3:0122,Track 107 Loop 2
+block,IB:C3:0123,OS Switch 225b
+block,IB:C3:0124,OS Switch 225c
+block,IB:C3:0125,OS Switch 225d
 signalhead,IH1132,Head 40LA Top
 signalhead,IH1133,Head 2036
 signalhead,IH1134,Head 2035

@@ -1,5 +1,7 @@
 # Pipeline 7 — Dispatcher System graph
 
+**Parked.** Parked since the helix-join release (November 2026): not in the active panel; data kept in `jmri/layouts/hart/parked/`. Everything below describes the pipeline as it runs once unparked.
+
 CreateTransits (Stage 1) in PanelPro builds sections, transits, and traininfo so auto-dispatch can run station to station.
 
 Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf) (same as [JMRI help Stage 1](https://www.jmri.org/help/en/html/scripthelp/DispatcherSystem/DispatcherSystem.shtml#_Toc194074958)).

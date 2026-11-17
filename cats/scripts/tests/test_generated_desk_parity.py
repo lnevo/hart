@@ -8,7 +8,9 @@ live, generated cats/panels/HART_CTC.xml, and of the hand-wired HART_ABS.xml aga
   masts    SECSIGNAL name, PHYSIGNAL template and SIGPANTYPE, and the block it protects
   header   the hand-wired desk's header elements (counters, signal templates, stores, colours, OPERATIONS, JMRI names,
            fonts) in its order, and its publication plate's words
-and the generated desk binds nothing the hand-wired desk did not. Main and upper blocks are DTC on both twins.
+and the generated desk binds nothing on staging the hand-wired desk did not. Main and upper (which the hand-wired desk
+did not have) are left out of the comparison: their plants command only their internal turnouts (IT:HART:C3), their
+masts are main_upper_masts.csv's, and their blocks are ABS on both twins with no detector yet.
 """
 from __future__ import annotations
 
@@ -25,7 +27,9 @@ sys.path.insert(0, str(SCRIPTS))
 import digicon_trace as trace  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import hand_drawn  # noqa: E402
+from hartlib import hand_drawn, level_masts  # noqa: E402
+
+LEVEL_MASTS = level_masts.names()                   # the main and upper masts, which the hand-wired desk did not have
 
 # the last hand-wired desks (git), and the generated desks, which are the live files since the CATS cut-over
 HAND_WIRED = hand_drawn.skip_unless_available("HART_CTC.xml")
@@ -44,6 +48,11 @@ FONT_SIZES = {"FONT_TITLE": "13"}
 # governs the move from K-2 toward Switch 39, so it guards Track K-1. Owner approved the boundary placement for both
 # (2026-11-14): the cut-over carries it on purpose. Live block, generated block:
 PROTECTS = {"Mast 24L": ("Track West Ext", "OS Switch 23a"), "Mast 2035": ("Track K-2", "Track K-1")}
+
+
+def level_io(el: ET.Element) -> bool:
+    """An IOSPEC on a main or upper internal turnout (the generated desk's main and upper plants)."""
+    return el.get("JMRIPREFIX") == trace.LEVEL_PREFIX
 
 
 def ios(el: ET.Element) -> tuple:
@@ -74,7 +83,7 @@ def plants(root: ET.Element) -> dict[str, dict[str, tuple]]:
     for xy, sec in cells.items():
         for se in sec.findall("SEC_EDGE"):
             sp = se.find("SWITCHPOINTS")
-            if sp is None or sp.find("ROUTEINFO/*/IOSPEC") is None:
+            if sp is None or sp.find("ROUTEINFO/*/IOSPEC") is None or any(map(level_io, sp.iter("IOSPEC"))):
                 continue
             os_name = trace.plant_os(cells, xy)
             routes = {}
@@ -99,8 +108,8 @@ def placed_ios(root: ET.Element) -> tuple[int, set[tuple]]:
                 found += len(list(el.iter("IOSPEC")))
     for ri in root.iter("ROUTEINFO"):
         for c in ri:
-            placed |= {((c.tag,), ios(i)) for i in c.iter("IOSPEC")}
-            found += len(list(c.iter("IOSPEC")))
+            placed |= {((c.tag,), ios(i)) for i in c.iter("IOSPEC") if not level_io(i)}
+            found += len([i for i in c.iter("IOSPEC") if not level_io(i)])
     return found, placed
 
 
@@ -115,7 +124,7 @@ def masts(root: ET.Element) -> dict[str, list[tuple]]:
     out: dict[str, list[tuple]] = {}
     for se in root.iter("SEC_EDGE"):
         s = se.find("SECSIGNAL")
-        if s is None:
+        if s is None or (s.text or "").strip() in LEVEL_MASTS:
             continue
         pan = s.find("PANELSIGNAL")
         blk = se.find("BLOCK")
@@ -161,7 +170,9 @@ class Parity(unittest.TestCase):
     def test_every_iospec_is_the_same_both_ways(self) -> None:
         (n_live, live), (n_gen, gen) = placed_ios(self.hand), placed_ios(self.gen)
         self.assertEqual(n_live, len(list(self.hand.iter("IOSPEC"))), "an IOSPEC outside a block spec or route")
-        self.assertEqual(n_gen, len(list(self.gen.iter("IOSPEC"))), "an IOSPEC outside a block spec or route")
+        self.assertFalse(any(map(level_io, self.hand.iter("IOSPEC"))))
+        self.assertEqual(n_gen, len([i for i in self.gen.iter("IOSPEC") if not level_io(i)]),
+                         "an IOSPEC outside a block spec or route")
         self.assertEqual(gen - live, set())
         self.assertEqual(live - gen, set())
 
@@ -204,17 +215,31 @@ class Parity(unittest.TestCase):
         self.assertEqual(len(plate(self.hand)), 5)
         self.assertLessEqual(plate(self.hand), plate(self.gen))
 
-    def test_main_and_upper_are_dark_territory(self) -> None:
+    def test_main_and_upper_bind_only_their_internal_turnouts_and_masts(self) -> None:
+        level = [i for i in self.gen.iter("IOSPEC") if level_io(i)]
+        self.assertTrue(level)
+        on_routes = {id(i) for ri in self.gen.iter("ROUTEINFO") for c in ri for i in c.iter("IOSPEC")}
+        for i in level:
+            with self.subTest(turnout=i.get("USER_NAME")):
+                self.assertRegex(i.get("DECADDR"), r"^:HART:C3:[0-9]+$")
+                self.assertEqual(i.get("USER_NAME"), "Switch " + i.get("DECADDR").rpartition(":")[2])
+                self.assertIn(id(i), on_routes, "an internal turnout outside a route")
+        drawn = {(s.text or "").strip() for s in self.gen.iter("SECSIGNAL")}
+        self.assertEqual(drawn & LEVEL_MASTS, LEVEL_MASTS)
+        self.assertFalse(LEVEL_MASTS & set(masts(self.hand)))
+
+    def test_main_and_upper_take_the_desk_discipline_with_no_detector_yet(self) -> None:
+        # CTC on the CTC desk, as staging is: CATS holds their signals and releases them (owner, 2026-11-17);
+        # ABS on the ABS twin
         bound = json.loads(BINDINGS.read_text(encoding="utf-8"))["blocks"]
-        dark = {e.get("name", k) for k, e in bound.items() if e.get("discipline") == "DTC"}
-        self.assertTrue(dark)
+        dark = {e.get("name", k) for k, e in bound.items() if "discipline" in e and "occupied" not in e}
+        self.assertGreater(len(dark), 90)
         found = blocks(self.gen)
         for name in sorted(dark):
             with self.subTest(block=name):
-                self.assertEqual({d[1] for d in found[name]}, {"DTC"})
+                self.assertEqual({d[1] for d in found[name]}, {self.DISCIPLINE})
                 self.assertEqual({d[2] for d in found[name]}, {()}, "no detector bound yet")
-        others = {d[1] for name, defs in found.items() if name not in dark for d in defs}
-        self.assertEqual(others, {self.DISCIPLINE})
+        self.assertEqual({d[1] for defs in found.values() for d in defs}, {self.DISCIPLINE})
 
 
 class ParityABS(Parity):

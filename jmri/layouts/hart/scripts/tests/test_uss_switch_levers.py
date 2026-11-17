@@ -18,7 +18,24 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[3]
 TABLES = SCRIPTS.parent / "output" / "tables.xml"
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import hand_drawn  # noqa: E402
+from hartlib import hand_drawn, parked  # noqa: E402
+
+
+def uss_view() -> ET.Element:
+    """tables.xml with the USS CTC machine put back while it is parked (hartlib.parked.with_parked): the CTC data,
+    panel and sensors stay checked against the active tables in the parked file."""
+    return parked.with_parked({"uss"}, TABLES)
+
+
+def uss_panel_bytes(data: bytes) -> str:
+    """The USS CTC Panel Editor panel of a tables file, canonical (whitespace between elements dropped)."""
+    root = ET.fromstring(data)
+    pe = next(p for p in root.iter("paneleditor") if p.get("name") == "USS CTC")
+    return ET.canonicalize(ET.tostring(pe, encoding="unicode"), strip_text=True)
+
+
+def uss_panel(path: Path) -> str:
+    return uss_panel_bytes(path.read_bytes())
 
 # the USS board's grid is the hand-wired desk's (frozen in uss_board_cells.csv): the last hand-wired desk, read from
 # git (hartlib.hand_drawn), since the live desks are generated since the CATS cut-over
@@ -32,7 +49,7 @@ import gen_ctc_track_plan as gen  # noqa: E402
 
 def code_buttons() -> dict[str, dict[str, str]]:
     """Turnout user name -> code button fields, with the lever's system name."""
-    root = ET.parse(TABLES).getroot()
+    root = uss_view()
     system = {
         (s.findtext("userName") or "").strip(): (s.findtext("systemName") or "").strip()
         for s in root.iter("sensor")
@@ -168,12 +185,20 @@ class RebuildMatchesStoreTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             t, g = tmp / "tables.xml", tmp / "GUIObjects.xml"
-            shutil.copy(TABLES, t)
+            if "uss" in parked.PARKED:      # the USS panel is in the parked file: rebuild it in an unparked view
+                from hartlib import tables as hl_tables
+                hl_tables.Tables(root=uss_view()).save(t)
+            else:
+                shutil.copy(TABLES, t)
+            before = t.read_bytes()
             shutil.copy(gui, g)
             done = subprocess.run(
                 [sys.executable, str(SCRIPTS / "gen_ctc_track_plan.py"), "--xml-only",
                  "--gui", str(g), "--tables", str(t)],
                 capture_output=True, text=True, env=dict(os.environ, HOME=str(tmp)))
             self.assertEqual(done.returncode, 0, done.stderr)
-            self.assertEqual(t.read_bytes(), TABLES.read_bytes(), "tables.xml USS panel differs from a rebuild")
+            if "uss" in parked.PARKED:
+                self.assertEqual(uss_panel(t), uss_panel_bytes(before), "the parked USS panel differs from a rebuild")
+            else:
+                self.assertEqual(t.read_bytes(), TABLES.read_bytes(), "tables.xml USS panel differs from a rebuild")
             self.assertEqual(g.read_bytes(), gui.read_bytes(), "GUIObjects.xml differs from a rebuild")

@@ -6,6 +6,7 @@ turnback to the named half Loop.
 """
 from __future__ import annotations
 
+import json
 import shutil
 import sys
 import tempfile
@@ -287,8 +288,11 @@ class MainAndUpper(unittest.TestCase):
 
     def test_the_device_map_reads_blocks_and_detectors(self):
         dm = B.load_device_map()
-        self.assertEqual(len(dm.sensors), 35)
-        self.assertTrue(all(v.startswith("M2S") for v in dm.sensors.values()))
+        self.assertEqual(len(dm.sensors), 39)
+        virtual = sorted(k for k, v in dm.sensors.items() if not v.startswith("M2S"))
+        # Loop 2 and 225's corners b to d wait for wiring: internal sensors until then (owner, 2026-11-16)
+        self.assertEqual(virtual, ["BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"])
+        self.assertTrue(all(dm.sensors[k].startswith("IS:HART:C3:") for k in virtual))
         self.assertEqual(dm.blocks["Track 107-109"]["trial"], {"Track e19"})
 
     def test_a_block_missing_from_the_desk_is_checked_on_the_drawing(self):
@@ -323,9 +327,196 @@ class MainAndUpper(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "would both be Track West"):
             B.check_apart({"West": {"name": "Track West"}}, {"1-2": {"name": "Track West"}})
 
-    def test_main_and_upper_are_dtc_and_not_detected_yet(self):
-        self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "DTC")
+    def test_the_loop_halves_and_225s_corners_on_the_desk(self):
+        """The committed bindings: the 107 Loop is two dark desk blocks, Loop 2 on its virtual detector; the desk draws
+        double crossover 225 as one block, on corner a's detector, and lists the four corner blocks as not on it."""
+        got = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
+        loop = {e["name"]: e["_planned_occupied"] for e in got["blocks"].values() if "107 Loop" in e.get("name", "")}
+        self.assertEqual({k: (v["JMRIPREFIX"], v["USER_NAME"]) for k, v in loop.items()},
+                         {"Track 107 Loop 1": ("M2S", "BS 107 Loop 1"), "Track 107 Loop 2": ("IS", "BS 107 Loop 2")})
+        os225 = [e for e in got["blocks"].values() if e.get("name") == "OS Switch 225"]
+        self.assertEqual([e["_planned_occupied"]["USER_NAME"] for e in os225], ["BS Switch 225a"])
+        self.assertEqual(sorted(k for k in got["_main_upper_not_on_desk"] if k.startswith("OS Switch 225")),
+                         [f"OS Switch 225{c}" for c in "abcd"])
+
+    def test_main_and_upper_are_ctc_and_not_detected_yet(self):
+        # CTC: CATS holds their signals and releases them; detection comes with the into-service work (owner, 2026-11-17)
+        self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "CTC")
         self.assertFalse(B.DETECT_MAIN_UPPER)
+        self.assertEqual(B.HELIX_BLOCKS, "apart")
+
+
+def level_band():
+    """A main level band: a balloon loop from Switch 107 (legs B and C, one schematic track e33 drawn as two halves),
+    Switch 109 joined to 107 by e19, crossover 119 (halves 119A and 119B joined C to C by e9), double crossover 225."""
+    def s(src, dst, edge, cm=100.0, **kw):
+        return dict(strand(src, dst), edge=edge, cm=cm, **kw)
+    nodes = {
+        "S107": node("107", "T1", {"A": "e19"}, {"B": "e33.0", "C": "e33.1"}),
+        "S109": node("109", "T2", {"A": "e18"}, {"B": "e19", "C": "e20"}),
+        "X1": node("119A", "T3", {"A": "e16"}, {"B": "e17", "C": "e9"}),
+        "X2": node("119B", "T4", {"A": "e7", "C": "e9"}, {"B": "e8"}),
+        "D": node("225", "T5", {"A": "e66", "B": "e80"}, {"C": "e71", "D": "e62"}, kind="dx"),
+        "turn:e33": node("", "", {}, {0: "e33.0", 1: "e33.1"}, kind="turnR"),
+    }
+    strands = {
+        "e33.0": s(("turn:e33", 0), ("S107", "B"), "e33", loop_half=1),
+        "e33.1": s(("turn:e33", 1), ("S107", "C"), "e33", loop_half=2),
+        "e19": s(("S107", "A"), ("S109", "B"), "e19"),
+        "e9": s(("X1", "C"), ("X2", "C"), "e9"),
+    }
+    return {"nodes": nodes, "strands": strands}
+
+
+def level_facts(**kw):
+    f = facts(device=B.DeviceMap(blocks={
+        "Track 107 Loop 1": {"level": 2, "trial": {"Track e33 1"}},
+        "Track 107 Loop 2": {"level": 2, "trial": {"Track e33 2"}},
+        "Track 107-109": {"level": 2, "trial": {"Track e19"}}}))
+    f.turnouts = {f"Switch {n}": f"IT:HART:C3:{n}" for n in (107, 109, 119, 225)}
+    f.templates = {"Mast 2L": "double", "Mast 4RA": "single"}
+    f.mast_system = {"Mast 2L": "IF$shsm:basic:two-searchlight(IH438)(IH439)",
+                     "Mast 4RA": "IF$shsm:basic:one-low(IH436)",
+                     "Mast 108LA": "IF$shsm:basic:one-low(IH93332)",
+                     "Mast 108LB": "IF$shsm:basic:one-low(IH93333)",
+                     "Mast 108R": "IF$shsm:basic:two-searchlight(IH93334)(IH93335)"}
+    row = lambda mast, facing, system, heads: {"mast": mast, "switch": "107", "facing": facing,
+                                               "protects": "OS Switch 107", "system_name": system,
+                                               "heads": [(h, h) for h in heads]}
+    f.level_masts = [row("Mast 108LA", "Track 107 Loop 1", f.mast_system["Mast 108LA"], ["IH93332"]),
+                     row("Mast 108LB", "Track 107 Loop 2", f.mast_system["Mast 108LB"], ["IH93333"]),
+                     row("Mast 108R", "Track 107-109", f.mast_system["Mast 108R"], ["IH93334", "IH93335"])]
+    for k, v in kw.items():
+        setattr(f, k, v)
+    return f
+
+
+def level_bands():
+    return [("Staging level", {"nodes": {}, "strands": {}}, {}), ("Main level", level_band(), {"mast_prefix": "Mast "})]
+
+
+class LevelSwitches(unittest.TestCase):
+    def test_each_switch_and_half_commands_its_internal_turnout_closed_on_leg_b(self):
+        out = B.level_switch_bindings(level_bands(), level_facts(), 0)
+        self.assertEqual(sorted(out), ["107", "109", "119A", "119B", "225"])
+        b = out["119B"]
+        self.assertEqual(b["normal"], "B")
+        self.assertEqual(b["routes"]["B"]["ROUTECOMMAND"], {"DECADDR": ":HART:C3:119", "JMRIPREFIX": "IT",
+                                                             "USER_NAME": "Switch 119", "command": "close"})
+        self.assertEqual(b["routes"]["C"]["SELECTEDREPORT"]["command"], "throw")
+        # a double crossover: one turnout moves its four points, B along the through tracks, C into the X
+        self.assertEqual((out["225"]["normal"], out["225"]["routes"]["C"]["ROUTECOMMAND"]["USER_NAME"]),
+                         ("B", "Switch 225"))
+
+    def test_a_turnout_that_is_not_internal_stops(self):
+        for turnouts in ({}, {"Switch 109": "M2T1300"}):
+            with self.subTest(turnouts=turnouts), self.assertRaisesRegex(SystemExit, "no internal turnout Switch"):
+                f = level_facts()
+                f.turnouts = {k: v for k, v in f.turnouts.items() if k != "Switch 109"} | turnouts
+                B.level_switch_bindings(level_bands(), f, 0)
+
+    def test_a_crossover_half_whose_thrown_leg_goes_elsewhere_stops(self):
+        bands = level_bands()
+        bands[1][1]["strands"]["e9"]["dst"] = ("S109", "C")
+        with self.assertRaisesRegex(SystemExit, "switch 119A: a crossover half whose leg C"):
+            B.level_switch_bindings(bands, level_facts(), 0)
+
+
+class LevelMasts(unittest.TestCase):
+    def test_masts_stand_on_their_facing_leg_at_their_switch(self):
+        bands = level_bands()
+        B.level_signals(bands, level_facts(), 0)
+        sig = {s["mast"]: s for s in bands[1][2]["signals"]}
+        self.assertEqual(sorted(sig), ["108LA", "108LB", "108R"])
+        # the loop halves get their own edges, so each loop mast finds its own half (the plugin's mast_piece)
+        self.assertEqual((sig["108LA"]["_edge"], sig["108LB"]["_edge"]), ("e33x", "e33y"))
+        self.assertEqual(B.placeholder(bands[1][1]["strands"]["e33.1"]), "Track e33 2")
+        self.assertEqual((sig["108R"]["_edge"], sig["108R"]["_toward_node"], sig["108R"]["toward"]),
+                         ("e19", "S107", "107"))
+        self.assertEqual((sig["108LA"]["dir"], sig["108R"]["dir"], sig["108R"]["heads"]), ("west", "east", 2))
+
+    def test_a_mast_at_no_leg_or_two_stops(self):
+        f = level_facts()
+        f.level_masts[2] = dict(f.level_masts[2], facing="Track 105-109")
+        with self.assertRaisesRegex(SystemExit, "Mast 108R: Switch 107 has 0 legs on track Track 105-109"):
+            B.level_signals(level_bands(), f, 0)
+
+    def test_templates_by_appearance_type_and_the_tables_mast(self):
+        bands, f = level_bands(), level_facts()
+        B.level_signals(bands, f, 0)
+        self.assertEqual(B.level_mast_bindings(bands, f, 0),
+                         {"108LA": {"name": "Mast 108LA", "template": "single"},
+                          "108LB": {"name": "Mast 108LB", "template": "single"},
+                          "108R": {"name": "Mast 108R", "template": "double"}})
+        f.mast_system["Mast 108R"] = "IF$shsm:basic:one-low(IH1)"
+        with self.assertRaisesRegex(SystemExit, "Mast 108R: tables.xml has IF.shsm:basic:one-low.IH1."):
+            B.level_mast_bindings(bands, f, 0)
+        f = level_facts(templates={"Mast 4RA": "single", "Mast 108LA": "double"})      # both one-low
+        with self.assertRaisesRegex(SystemExit, "gives one-low masts two templates"):
+            B.template_by_type(f)
+
+    def test_a_row_not_drawn_stops(self):
+        bands, f = level_bands(), level_facts()
+        B.level_signals(bands, f, 0)
+        bands[1][2]["signals"] = [s for s in bands[1][2]["signals"] if s["mast"] != "108LB"]
+        with self.assertRaisesRegex(SystemExit, "main and upper masts not on the desk: Mast 108LB"):
+            B.level_mast_bindings(bands, f, 0)
+
+
+class CommittedMainAndUpper(unittest.TestCase):
+    """The committed bindings and desk against the release candidate tables (every name bound must be in it)."""
+
+    @classmethod
+    def setUpClass(cls):
+        if not B.TABLES_CANDIDATE.exists():
+            raise unittest.SkipTest("no release candidate tables (make panels writes them)")
+        from hartlib import tables
+        root = tables.read(B.TABLES_CANDIDATE)
+        cls.turnouts = {tables.system_name(t): tables.user_name(t) for t in tables.turnouts(root)}
+        cls.sensors = {tables.system_name(s): tables.user_name(s) for s in tables.sensors(root)}
+        cls.masts = {tables.user_name(m) for m in tables.masts(root)}
+        cls.bound = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
+
+    def test_every_bound_name_is_in_the_candidate_tables(self):
+        for key, e in self.bound["switches"].items():
+            for leg in e["routes"].values():
+                for io in leg.values():
+                    with self.subTest(switch=key):
+                        system = io["JMRIPREFIX"] + io["DECADDR"]
+                        self.assertEqual(self.turnouts.get(system), io["USER_NAME"])
+        for key, e in self.bound["blocks"].items():
+            if "occupied" in e:
+                with self.subTest(block=key):
+                    io = e["occupied"]
+                    self.assertEqual(self.sensors.get(io["JMRIPREFIX"] + io["DECADDR"]), io["USER_NAME"])
+        self.assertLessEqual({e["name"] for e in self.bound["masts"].values()}, self.masts)
+
+    def test_main_and_upper_turnouts_and_masts_are_bound(self):
+        level = {k: e for k, e in self.bound["switches"].items()
+                 if e["routes"]["B"]["ROUTECOMMAND"]["JMRIPREFIX"] == B.LEVEL_TURNOUT_PREFIX}
+        numbers = {B.bdm.base(k) for k in level}
+        internal = {u.removeprefix("Switch ") for s, u in self.turnouts.items() if s.startswith(B.LEVEL_TURNOUT)}
+        self.assertEqual(numbers, internal)                         # double crossover 225 too
+        self.assertEqual(len(numbers), 41)
+        self.assertEqual({e["normal"] for e in level.values()}, {"B"})
+        names = {e["name"] for e in self.bound["masts"].values()}
+        self.assertLessEqual(B.level_masts.names(), names)
+        self.assertEqual(len(B.level_masts.names()), 41)
+
+    def test_the_helix_is_joined_on_the_desk_with_a_block_on_each_level(self):
+        """The plugin joins each helix track drawn on staging and on main or upper logically (SHARED), so a train runs
+        from staging to the main and upper levels on the desk; the join parts the blocks (owner, 2026-11-17):
+        staging's McKees Rocks and McKeesport, and Track 135-H1 and 135-H2 with their own planned detectors."""
+        root = ET.parse(B.OUT).getroot()
+        self.assertEqual(len(list(root.iter("SHARED"))), 8)        # two helix tracks and two links, both ends
+        at_join = sorted(se.find("BLOCK").get("NAME") for se in root.iter("SEC_EDGE")
+                         if se.find("SHARED") is not None and se.find("BLOCK") is not None)
+        self.assertEqual(at_join, ["Track 135-H1", "Track 135-H2", "Track McKees Rocks", "Track McKeesport"])
+        level = {e.get("name"): e for e in self.bound["blocks"].values()}
+        for name in ("Track 135-H1", "Track 135-H2"):
+            with self.subTest(block=name):
+                self.assertEqual(level[name]["_planned_occupied"]["USER_NAME"], "BS " + name.removeprefix("Track "))
+                self.assertNotIn(name, self.bound["_main_upper_not_on_desk"])
 
 
 def plugin_cats():

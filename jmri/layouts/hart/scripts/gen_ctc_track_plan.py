@@ -1350,6 +1350,16 @@ def install_preference_icons() -> list[Path]:
     return written
 
 
+def parked_target(path: Path) -> bool:
+    """Whether `path` is the checkout's tables while the USS CTC machine is parked (hartlib.parked): its panel is in
+    the parked file, so the rebuild leaves the tables alone (unpark it to put a new panel in)."""
+    from hartlib import parked
+    if "uss" in parked.PARKED and path.resolve() == OUTPUT_TABLES.resolve():
+        print("%s: not changed, the USS CTC machine is parked (hartlib.parked.PARKED)" % path)
+        return True
+    return False
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cats", type=Path, default=None,
@@ -1397,9 +1407,9 @@ def main() -> None:
                 else "Brick SIDI updated",
             ))
 
-    if args.tables:
+    if args.tables and not parked_target(args.tables):
         embed(args.tables, replace_panel=True)
-    elif OUTPUT_TABLES.is_file():
+    elif not args.tables and OUTPUT_TABLES.is_file() and not parked_target(OUTPUT_TABLES):
         embed(OUTPUT_TABLES, replace_panel=True)
 
     if args.preview:

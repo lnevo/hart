@@ -21,12 +21,20 @@ hand:
   staging.signals.json + signal_head_plan.csv  the masts drawn on staging (field and planned) and their templates
   staging_le/tracks.csv  the block of a short unnamed track between two switches that has no JMRI block of its own
                          (SHORT_TRACK_BLOCKS, which must be one of the blocks the frozen Layout Editor track holds)
-Main and upper are dark territory: authority by track warrant, which CATS does not have, so their blocks are DTC
-(owner, 2026-11-15). They take their names from the block rows of
-jmri/layouts/hart/data/schematic/device_map_main_upper.csv (by the schematic tracks each holds) and have no masts.
-Their detectors (the map's occupancy rows) are not in tables.xml yet, so each block's planned sensor is written to
-the bindings as _planned_occupied / _planned_unoccupied and left off the panel; the main and upper wiring step sets
-DETECT_MAIN_UPPER and the blocks take them (the sensors must then be in tables.xml).
+Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-17: CATS holds their signals and
+releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
+turns them ABS with the rest. They take their names from the block rows of
+jmri/layouts/hart/data/schematic/device_map_main_upper.csv (by the schematic tracks each holds). Their switches
+command and report their internal turnouts (LEVEL_TURNOUT: IT:HART:C3:<n>, closed on the drawn leg B, which is
+NORMAL; double crossover 225 too, its one turnout moving all four points, though the desk keeps it one block: CATS
+cannot part a block at switch points or a crossing, so its corner blocks are listed as not on the desk), and their
+control-point masts (main_upper_masts.csv, on internal heads) are drawn and bound as staging's are: each on the track
+it faces at the switch it protects (level_signals), its CATS template the one staging's masts of its appearance type
+take. Their detectors (the map's occupancy rows) are not in tables.xml yet, so each block's planned sensor is
+written to the bindings as _planned_occupied / _planned_unoccupied and left off the panel; once the sensors are in
+tables.xml, DETECT_MAIN_UPPER binds them. The helix tracks are joined on the desk (the plugin joins a helix track
+drawn on two bands logically), each band's piece a block of its own (HELIX_BLOCKS "apart", owner 2026-11-17): staging's
+McKees Rocks and McKeesport, and the main level's Track 135-H1 and the upper level's 135-H2 with their own detectors.
 Anything else without a JMRI block, an ambiguous track, or a fact that disagrees with the drawing stops the run.
 The sheet is built once and tables.xml read once; bindings and panels come from the same plugin code.
 The IOSPEC, STATION and SECSIGNAL conventions are the live desk's (wire_digicon.py, cats_turnout_io.py,
@@ -57,7 +65,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import le_inputs  # noqa: E402  the frozen staging Layout Editor facts (staging_le/)
-from hartlib import paths, tables  # noqa: E402
+from hartlib import level_masts, paths, tables  # noqa: E402
 from hartlib.cats import mast_templates, station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -76,9 +84,20 @@ DEVICE_MAP = pd.DATA / "device_map_main_upper.csv"
 BOUND = "Staging"                                    # the band bound to JMRI (its title starts with this)
 # The ABS twin: every CTC block ABS, and the plate's words (wire_digicon.py write_desk, digicon_header.PANELS)
 ABS_PLATE = {"CTC DIGICON": "ABS DIGICON", "DS-CTC": "DS-ABS"}
-# Main and upper: dark territory under track warrants, which CATS does not have; DTC is the closest it reads
-MAIN_UPPER_DISCIPLINE = "DTC"
-DETECT_MAIN_UPPER = False   # the main and upper wiring step sets this once their sensors are in tables.xml
+# Main and upper: CTC on the CTC desk, CATS holds their signals and releases them (owner, 2026-11-17); ABS on the twin
+MAIN_UPPER_DISCIPLINE = "CTC"
+# A helix track drawn on staging and on main or upper: a desk block on each band, parted at the join (owner, 2026-11-17)
+HELIX_BLOCKS = "apart"
+DETECT_MAIN_UPPER = False   # set once the device map's main and upper detectors are sensors in tables.xml
+# Main and upper turnouts are internal until the device-map import (owner, 2026-11-16): IT:HART:C3:<switch number>,
+# user name Switch <n>. On the desk each is commanded and reported by that internal turnout, closed on the drawn
+# leg B: the Layout Editor builder gives these levels no normal leg, so the plugin draws leg B as the route the
+# turnout's closed state sets (continuing 2 when leg B is Layout Editor leg B, 4 when it is leg C), as the desk's
+# NORMAL is leg B.
+LEVEL_TURNOUT_PREFIX = "IT"
+LEVEL_TURNOUT = LEVEL_TURNOUT_PREFIX + ":HART:C3:"
+# The release candidate tables (build_layout_le.py --as-live): every name the desk binds must be in it
+TABLES_CANDIDATE = paths.LAYOUT_OUTPUT / "trial/tables_cutover.xml"
 # The live desk's top-level order (HART_CTC.xml); the plugin's ROWWRAPTAG follows COMPRESSIONTAG
 ORDER = ("FONTDEFINITION", "LINE", "COUNTER", "SIGNALTEMPLATE", "TRAINSTORE", "JOBSTORE", "CREWSTORE",
          "COLORDEFINITION", "TRAINSTATLABEL", "COMPRESSIONTAG", "ROWWRAPTAG", "OPERATIONS", "JMRINAME", "TRACKPLAN")
@@ -157,8 +176,9 @@ def load_device_map(path=DEVICE_MAP):
                 trial = {t.strip() for t in row["trial_name"].split(",") if t.strip()}
                 out.blocks[name] = {"level": int(row["level"]), "trial": trial}
             elif row["layer"] == "occupancy":
-                if name in out.sensors or not row["system_name"].startswith("M2S"):
-                    raise SystemExit(f"{path.name}: occupancy {name} is listed twice or is no M2S sensor")
+                if name in out.sensors or not row["system_name"].startswith(("M2S", bdm.VIRTUAL_SENSOR)):
+                    raise SystemExit(f"{path.name}: occupancy {name} is listed twice or is neither an M2S sensor "
+                                     f"nor a virtual {bdm.VIRTUAL_SENSOR} one")
                 out.sensors[name] = row["system_name"]
     return out
 
@@ -175,6 +195,9 @@ class Facts:
     masts: set                  # JMRI mast user names
     device: DeviceMap = field(default_factory=DeviceMap)   # main and upper
     sensors: dict = field(default_factory=dict)             # JMRI sensor user name -> system name
+    turnouts: dict = field(default_factory=dict)            # JMRI turnout user name -> system name
+    mast_system: dict = field(default_factory=dict)         # JMRI mast user name -> system name
+    level_masts: list = field(default_factory=list)         # main_upper_masts.csv rows (hartlib.level_masts)
 
 
 def load_facts():
@@ -182,9 +205,11 @@ def load_facts():
     Layout Editor panel; the staging Layout Editor tracks from their frozen copy."""
     root = tables.read(paths.TABLES_XML)
     sensors = {tables.user_name(s): tables.system_name(s) for s in tables.sensors(root) if tables.user_name(s)}
-    masts = {tables.user_name(m) for m in tables.masts(root)}
+    turnouts = {tables.user_name(t): tables.system_name(t) for t in tables.turnouts(root) if tables.user_name(t)}
+    mast_system = {tables.user_name(m): tables.system_name(m) for m in tables.masts(root) if tables.user_name(m)}
     return Facts(facts.load_switches(), tio.load_turnouts(root), le.load_occupancy(root), le.load_disciplines(),
-                 FrozenTracks(le_inputs.load().chains), mast_templates(), masts, load_device_map(), sensors)
+                 FrozenTracks(le_inputs.load().chains), mast_templates(), set(mast_system), load_device_map(),
+                 sensors, turnouts, mast_system, level_masts.read())
 
 
 def legs_of(d):
@@ -342,6 +367,43 @@ def mast_bindings(opts, F):
     return out
 
 
+def xover_corners(name, F) -> list:
+    """The device map's corner blocks of double crossover OS block `name` ("OS Switch <n>" -> "OS Switch <n>a" to
+    "<n>d"), or []. The desk draws a double crossover as one block, so it keeps that name there and the corners are
+    listed as not on the desk."""
+    return [f"{name}{c}" for c in "abcd" if f"{name}{c}" in F.device.blocks]
+
+
+def placeholder(strand) -> str:
+    """The device map trial name of a drawn strand: "Track <plan edge>", a connector's or helix's x/y piece counted
+    as its edge, and a balloon loop's half numbered (name_loop_halves)."""
+    return bdm.loop_placeholder("Track " + re.sub(r"(?<=\d)[xy]$", "", strand["edge"]), strand.get("loop_half"))
+
+
+def name_loop_halves(bands):
+    """A copy of `bands` whose balloon loops are two desk blocks, as the device map has them: each half's strand
+    is named by its device map block less "Track " (the plugin parts a turnback between two differently named
+    tracks in the middle of its run, and labels each half) and marked with its half (`loop_half`, read by
+    placeholder)."""
+    import build_layout_le as bl
+    by_trial = {t: name for name, row in load_device_map().blocks.items() for t in row["trial"]}
+    out = copy.deepcopy(bands)
+    for title, band, _ in out:
+        if not bdm.band_level(title):
+            continue
+        try:
+            halves = bdm.loop_halves(band, bl.runs)
+        except bdm.MapError as exc:
+            raise SystemExit(f"{title}: {exc}") from None
+        for sid, half in halves.items():
+            band["strands"][sid]["loop_half"] = half
+            trial = placeholder(band["strands"][sid])
+            if trial not in by_trial:
+                raise SystemExit(f"{title}: balloon loop half {trial} has no block row in {DEVICE_MAP.name}")
+            band["strands"][sid]["name"] = by_trial[trial].removeprefix("Track ")
+    return out
+
+
 def device_name(bands, cats, keys, F, log):
     """The device map's name of the main or upper block made of block keys `keys`: OS Switch N for an OS block
     (a crossover's halves are one block; switches whose OS blocks the plugin merges over a track too short to part
@@ -353,7 +415,7 @@ def device_name(bands, cats, keys, F, log):
         if len(numbers) > 1:
             log.append(f"switches {', '.join(numbers)} share one OS block on the desk ({name}): the track between "
                        "them is too short to part them")
-        if name not in F.device.blocks:
+        if name not in F.device.blocks and not xover_corners(name, F):
             raise SystemExit(f"{name}: no block row in {DEVICE_MAP.name}")
         return name
     edges, ends = set(), set()
@@ -361,7 +423,7 @@ def device_name(bands, cats, keys, F, log):
         bi, sid = k[1].split(":", 1)
         band = bands[int(bi[1:])][1]
         s = band["strands"][sid]
-        edges.add("Track " + re.sub(r"(?<=\d)[xy]$", "", s["edge"]))
+        edges.add(placeholder(s))
         ends |= {band["nodes"][e[0]].get("label") or "" for e in (s["src"], s["dst"])
                  if band["nodes"][e[0]]["kind"] in ("switch", "dx")}
     rows = sorted(n for n, r in F.device.blocks.items() if r["trial"] & edges)
@@ -385,11 +447,15 @@ def planned_sensor(name, F):
     user = "BS " + (name.replace("OS Switch ", "Switch ", 1) if name.startswith("OS Switch ") else
                     name.removeprefix("Track "))
     system = F.device.sensors.get(user)
+    if system is None and xover_corners(name, F):         # a double crossover's desk block: corner a's detector
+        user = user + "a"
+        system = F.device.sensors.get(user)
     if system is None:
         return None
-    addr = system[3:]
-    return {"occupied": {"DECADDR": addr, "JMRIPREFIX": "M2S", "USER_NAME": user, "command": "close"},
-            "unoccupied": {"DECADDR": addr, "JMRIPREFIX": "M2S", "command": "throw"}}
+    prefix = "M2S" if system.startswith("M2S") else "IS"          # a virtual detector: IS:HART:C3:<n>
+    addr = system[len(prefix):]
+    return {"occupied": {"DECADDR": addr, "JMRIPREFIX": prefix, "USER_NAME": user, "command": "close"},
+            "unoccupied": {"DECADDR": addr, "JMRIPREFIX": prefix, "command": "throw"}}
 
 
 def inside_os(bands, P, bound_bi, name, row):
@@ -402,7 +468,7 @@ def inside_os(bands, P, bound_bi, name, row):
         if bi == bound_bi or not bdm.band_level(title):
             continue
         for sid, s in band["strands"].items():
-            if "Track " + re.sub(r"(?<=\d)[xy]$", "", s["edge"]) not in row["trial"]:
+            if placeholder(s) not in row["trial"]:
                 continue
             found.append((bi, sid))
             key = ("track", f"b{bi}:{sid}")
@@ -427,7 +493,7 @@ def inside_os(bands, P, bound_bi, name, row):
 
 
 def dark_bindings(bands, cats, P, F, bound_bi):
-    """(bindings, log, report) for the main and upper blocks: device map names, DTC, the station plate and the
+    """(bindings, log, report) for the main and upper blocks: device map names, MAIN_UPPER_DISCIPLINE, the station plate and the
     planned detector (bound only with DETECT_MAIN_UPPER, when the sensor must be in tables.xml); the report names each
     device map block with no block of its own on the desk, why, and its detector."""
     groups = defaultdict(list)
@@ -441,19 +507,16 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         if not dark:
             continue
         if len(dark) < len(keys):
-            # a track drawn on staging and on main or upper, joined through the helix: the plugin makes it one block
-            # (one track drawn on two bands), so it keeps the staging block's binding
-            name = device_name(bands, cats, dark, F, log)
-            missing[name] = f"one block with staging's {panel_name} on the desk (joined through the helix)"
-            log.append(f"{name}: {missing[name]}, bound as staging")
-            continue
+            raise SystemExit(f"desk block {panel_name} holds track of staging and of main or upper: a helix track "
+                             f"must be a block on each band (HELIX_BLOCKS is {HELIX_BLOCKS!r})")
         name = device_name(bands, cats, keys, F, log)
         e = {"name": name, "station": station_plate(name), "discipline": MAIN_UPPER_DISCIPLINE}
         spec = planned_sensor(name, F)
         if spec and DETECT_MAIN_UPPER:
-            if F.sensors.get(spec["occupied"]["USER_NAME"]) != "M2S" + spec["occupied"]["DECADDR"]:
+            want = spec["occupied"]["JMRIPREFIX"] + spec["occupied"]["DECADDR"]
+            if F.sensors.get(spec["occupied"]["USER_NAME"]) != want:
                 raise SystemExit(f"{name}: DETECT_MAIN_UPPER is set, but tables.xml has no sensor "
-                                 f"{spec['occupied']['USER_NAME']} (M2S{spec['occupied']['DECADDR']})")
+                                 f"{spec['occupied']['USER_NAME']} ({want})")
             e.update(spec)
         elif spec:
             e.update({"_planned_" + k: v for k, v in spec.items()})
@@ -463,6 +526,10 @@ def dark_bindings(bands, cats, P, F, bound_bi):
             log.append(f"blocks named {name} on the desk are one block")
         seen.add(name)
         out[panel_name] = e
+    for name in sorted(seen):
+        for corner in xover_corners(name, F):
+            missing[corner] = (f"inside desk block {name}: CATS cannot part a block at switch points or a crossing, "
+                               "so the desk draws a double crossover as one block, bound to corner a's detector")
     for name, row in sorted(F.device.blocks.items()):
         if name not in seen and name not in missing:
             missing[name] = inside_os(bands, P, bound_bi, name, row)
@@ -477,6 +544,144 @@ def dark_bindings(bands, cats, P, F, bound_bi):
     return out, log, report
 
 
+def level_bands(bands, bound_bi):
+    """[(band index, band, options)] of the main and upper bands."""
+    return [(bi, band, opts) for bi, (title, band, opts) in enumerate(bands)
+            if bi != bound_bi and bdm.band_level(title)]
+
+
+def level_switch_bindings(bands, F, bound_bi):
+    """({switch label: binding}, {label: why not bound}) for the main and upper switches: each switch or crossover
+    half drawn commands and reports its internal turnout (LEVEL_TURNOUT + number, user name Switch <n>, which
+    tables.xml must hold), closed on leg B (NORMAL) and thrown on leg C. A crossover's halves, on one band or two,
+    each take the one turnout; the thrown leg of each must lead to the other half (or to the link between the
+    levels). A double crossover's one turnout moves all four of its points (the plugin: B along the through tracks,
+    C into the X)."""
+    out = {}
+    for _bi, band, _ in level_bands(bands, bound_bi):
+        nodes, strands = band["nodes"], band["strands"]
+        for n, d in sorted(nodes.items()):
+            label = str(d.get("label") or "")
+            if d["kind"] not in ("switch", "dx"):
+                continue
+            num = bdm.base(label)
+            user = f"Switch {num}"
+            if F.turnouts.get(user) != LEVEL_TURNOUT + num:
+                raise SystemExit(f"switch {label}: tables.xml has no internal turnout {user} ({LEVEL_TURNOUT}{num}); "
+                                 f"it has {F.turnouts.get(user) or 'none'}")
+            if label in out:
+                raise SystemExit(f"switch {label} is drawn twice on main and upper")
+            if re.search(r"\d[AB]$", label):                   # a crossover half (129A; 223* is a plain switch)
+                s = strands[legs_of(d)["C"]]
+                far = s["dst"][0] if s["src"][0] == n else s["src"][0]
+                if not (far.startswith("LINK:") or bdm.base(nodes.get(far, {}).get("label") or "") == num):
+                    raise SystemExit(f"switch {label}: a crossover half whose leg C does not lead to its other half")
+            addr = LEVEL_TURNOUT[len(LEVEL_TURNOUT_PREFIX):] + num
+            io = lambda cmd, u=user, a=addr: {"DECADDR": a, "JMRIPREFIX": LEVEL_TURNOUT_PREFIX, "USER_NAME": u,
+                                              "command": cmd}
+            out[label] = {"normal": "B",
+                          "routes": {"B": {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
+                                     "C": {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}}}
+    return out
+
+
+def mast_type(system):
+    """A signal head mast's appearance type from its system name (IF$shsm:basic:one-low(IH1) -> one-low)."""
+    m = re.match(r"IF\$(?:shsm|vsm):[^:]+:([^()]+)\(", system or "")
+    return m.group(1) if m else None
+
+
+def template_by_type(F):
+    """{appearance type: CATS template} as staging's masts have them (signal_head_plan.csv); a type given two
+    templates stops."""
+    out = {}
+    for name, template in sorted(F.templates.items()):
+        kind = mast_type(F.mast_system.get(name))
+        if kind is None:
+            continue
+        if out.setdefault(kind, template) != template:
+            raise SystemExit(f"signal_head_plan.csv gives {kind} masts two templates, {out[kind]} and {template}")
+    return out
+
+
+def level_signals(bands, F, bound_bi):
+    """Put each main and upper mast (main_upper_masts.csv) in its band's signals, as the plugin reads a band's drawn
+    masts: on the track it faces (the device map block holding the schematic track at that leg of its switch), at
+    that switch (its toward end), heading west for an L mast (ADR-005), its heads from its row. The two halves of a
+    balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (x and y, which
+    placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
+    name_loop_halves). Stops on a mast drawn at no switch leg or at two."""
+    by_trial = {t: name for name, row in F.device.blocks.items() for t in row["trial"]}
+    added = defaultdict(list)
+    for r in F.level_masts:
+        m = re.fullmatch(r"Mast (\d+)([LR])([AB]?)", r["mast"])
+        if not m:
+            raise SystemExit(f"{level_masts.PATH.name}: {r['mast']} is not a mast name in the device map's grammar")
+        hits = []
+        for bi, band, _ in level_bands(bands, bound_bi):
+            for n, d in band["nodes"].items():
+                if d["kind"] not in ("switch", "dx") or bdm.base(d.get("label") or "") != r["switch"]:
+                    continue
+                for port, sid in legs_of(d).items():
+                    if by_trial.get(placeholder(band["strands"][sid])) == r["facing"]:
+                        hits.append((bi, n, port, sid))
+        if len(hits) != 1:
+            raise SystemExit(f"{r['mast']}: Switch {r['switch']} has {len(hits)} legs on track {r['facing']} on the "
+                             "desk; it must have one")
+        bi, n, _port, sid = hits[0]
+        title, band, opts = bands[bi]
+        s = band["strands"][sid]
+        # pieces of its track that also end at this switch: the plugin would take the first (mast_piece)
+        twins = [k for k, t in band["strands"].items() if k != sid and t["edge"] == s["edge"]
+                 and n in (t["src"][0], t["dst"][0])]
+        if twins:
+            if not s.get("loop_half") or any(not band["strands"][k].get("loop_half") for k in twins):
+                raise SystemExit(f"{r['mast']}: its track {s['edge']} is drawn more than once at Switch "
+                                 f"{r['switch']} on {title}, and not as the halves of a balloon loop")
+            for k in [sid] + twins:
+                band["strands"][k]["edge"] += "xy"[band["strands"][k]["loop_half"] - 1]
+        if s["edge"].endswith(("x", "y")) and not s.get("loop_half"):
+            raise SystemExit(f"{r['mast']}: its track {s['edge']} is one piece of a track drawn on two levels")
+        key = r["mast"].removeprefix(opts.get("mast_prefix", ""))
+        added[bi].append({"mast": key, "toward": str(band["nodes"][n]["label"]), "_toward_node": n,
+                          "_edge": s["edge"], "cm_from_toward": 0.0, "edge_cm": s["cm"],
+                          "dir": "west" if m.group(2) == "L" else "east", "kind": "field",
+                          "heads": len(r["heads"]), "source": level_masts.PATH.name})
+    for bi, sigs in sorted(added.items()):
+        opts = bands[bi][2]
+        clash = sorted({sg["mast"] for sg in opts.get("signals") or ()} & {sg["mast"] for sg in sigs})
+        if clash:
+            raise SystemExit(f"{bands[bi][0]}: masts {', '.join(clash)} are drawn there already")
+        opts["signals"] = list(opts.get("signals") or ()) + sorted(sigs, key=lambda sg: sg["mast"])
+
+
+def level_mast_bindings(bands, F, bound_bi):
+    """{mast: {name, template}} for the main and upper masts level_signals drew: each a mast in tables.xml whose
+    system name is its main_upper_masts.csv row's, with the template staging's masts of its appearance type take.
+    A row not drawn stops."""
+    rows = {r["mast"]: r for r in F.level_masts}
+    templates = template_by_type(F)
+    out = {}
+    for _bi, _band, opts in level_bands(bands, bound_bi):
+        for sg in opts.get("signals") or ():
+            name = opts.get("mast_prefix", "") + sg["mast"]
+            r = rows.get(name)
+            if r is None:
+                continue
+            if F.mast_system.get(name) != r["system_name"]:
+                raise SystemExit(f"{name}: tables.xml has {F.mast_system.get(name) or 'no such mast'}, "
+                                 f"{level_masts.PATH.name} says {r['system_name']}")
+            template = templates.get(mast_type(r["system_name"]))
+            if template is None:
+                raise SystemExit(f"{name}: no staging mast of type {mast_type(r['system_name'])} gives a CATS "
+                                 "template (signal_head_plan.csv)")
+            out[sg["mast"]] = {"name": name, "template": template}
+    missing = sorted(set(rows) - {e["name"] for e in out.values()})
+    if missing:
+        raise SystemExit(f"main and upper masts not on the desk: {', '.join(missing)}")
+    return out
+
+
 def check_apart(staging, dark):
     """Stop when a staging and a main or upper block binding share a panel name or the block name they take (which
     would make them one CATS block)."""
@@ -489,27 +694,39 @@ def check_apart(staging, dark):
         raise SystemExit(f"staging and main/upper desk blocks would both be {', '.join(clash)}")
 
 
-def bindings(bands, cats, F):
-    """The bindings for every band, from the facts (see the module docstring)."""
+def bound_index(bands):
+    """The index of the staging band, the one bound to the field (its title starts with BOUND)."""
     bi = next((i for i, (t, _, _) in enumerate(bands) if t.startswith(BOUND)), None)
     if bi is None:
         raise SystemExit(f"no band title starts with {BOUND}")
+    return bi
+
+
+def bindings(bands, cats, F):
+    """The bindings for every band, from the facts (see the module docstring)."""
+    bi = bound_index(bands)
     _, band, opts = bands[bi]
     os_of = os_blocks(band, F)
     out_sw = switch_bindings(band, F, os_of)
     # the panel's block names once the switches name their OS blocks
-    P = cats.panel(bands, scale=CELLS_PER_UNIT,          # names only: no column trimming needed here
+    P = cats.panel(bands, scale=CELLS_PER_UNIT, helix_blocks=HELIX_BLOCKS,   # names only: no column trimming
                    bindings={"switches": {k: {"block": v["block"]} for k, v in out_sw.items()}})
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:")}
     blocks = block_bindings(band, F, names)
     dark, log, missing = dark_bindings(bands, cats, P, F, bi)
     print("\n".join(log))
     check_apart(blocks, dark)
+    level_sw = level_switch_bindings(bands, F, bi)
+    masts, level = mast_bindings(opts, F), level_mast_bindings(bands, F, bi)
+    for what, a, b in (("switch", out_sw, level_sw), ("mast", masts, level)):
+        if set(a) & set(b):
+            raise SystemExit(f"staging and main/upper share {what} keys {', '.join(sorted(set(a) & set(b)))}")
     return {"_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and "
-                     "upper blocks carry their planned detectors as _planned_occupied / _planned_unoccupied until "
-                     "DETECT_MAIN_UPPER is set.",
+                     "upper switches command their internal turnouts and their masts are bound; their blocks carry "
+                     "their planned detectors as _planned_occupied / _planned_unoccupied until DETECT_MAIN_UPPER "
+                     "is set.",
             "_main_upper_not_on_desk": missing,
-            "switches": out_sw, "blocks": dict(blocks, **dark), "masts": mast_bindings(opts, F)}
+            "switches": dict(out_sw, **level_sw), "blocks": dict(blocks, **dark), "masts": dict(masts, **level)}
 
 
 def frozen_header(path=HEADER):
@@ -601,14 +818,17 @@ def dress(cats, root, header, plate, desk):
 def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
-    bands = pd.solved_sheet(sheet).bands
-    text = json.dumps(bindings(bands, cats, load_facts()), indent=1, sort_keys=True) + "\n"
+    bands = name_loop_halves(pd.solved_sheet(sheet).bands)
+    F = load_facts()
+    level_signals(bands, F, bound_index(bands))
+    text = json.dumps(bindings(bands, cats, F), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")
     if cats.GRID_PX != GRID_PX:
         sys.exit(f"error: the plugin draws a {cats.GRID_PX} pixel grid; FIT here assumes {GRID_PX}")
     header, plate = frozen_header()
     try:
-        P = cats.panel(bands, scale=CELLS_PER_UNIT, bindings=json.loads(text), max_cols=MAX_COLS)
+        P = cats.panel(bands, scale=CELLS_PER_UNIT, bindings=json.loads(text), max_cols=MAX_COLS,
+                       helix_blocks=HELIX_BLOCKS)
         cats.check_fit(P, *FIT)
         for desk, path in (("CTC", out), ("ABS", out_abs)):
             if path is not None:
