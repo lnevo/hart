@@ -196,7 +196,7 @@ def load_facts():
     rr = railroad.Railroad()
     try:
         t = rr.tables
-        return Facts(rr.switches, tio.load_turnouts(t.root), le.load_occupancy(t.root), le.load_disciplines(),
+        return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
                      FrozenTracks(le_inputs.load().chains), mast_templates(), set(t.masts), rr.device_map,
                      t.sensors, t.turnouts, t.masts, rr.level_masts)
     except railroad.FactsError as exc:
@@ -384,13 +384,14 @@ def placeholder(strand) -> str:
     return bdm.loop_placeholder("Track " + plan_edge(strand), strand.get("loop_half"))
 
 
-def name_loop_halves(bands):
+def name_loop_halves(bands, device=None):
     """A copy of `bands` whose balloon loops are two desk blocks, as the device map has them: each half's strand
     is named by its device map block less "Track " (the plugin parts a turnback between two differently named
     tracks in the middle of its run, and labels each half) and marked with its half (`loop_half`, read by
     placeholder)."""
     import build_layout_le as bl
-    by_trial = {t: name for name, row in load_device_map().blocks.items() for t in row.trial}
+    device = load_device_map() if device is None else device      # the caller's Facts.device, read once
+    by_trial = {t: name for name, row in device.blocks.items() for t in row.trial}
     out = copy.deepcopy(bands)
     for title, band, _ in out:
         if not bdm.band_level(title):
@@ -851,8 +852,8 @@ def dress(cats, root, header, plate, desk):
 def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
-    bands = name_loop_halves(pd.solved_sheet(sheet).bands)
     F = load_facts()
+    bands = name_loop_halves(pd.solved_sheet(sheet).bands, F.device)
     level_signals(bands, F, bound_index(bands))
     text = json.dumps(bindings(bands, cats, F), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")

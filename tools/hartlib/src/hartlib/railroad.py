@@ -113,11 +113,13 @@ def _where(path: Path, line: int) -> str:
     return f"{path.name} line {line}"
 
 
-def read_rows(path: Path, columns: Iterable[str], *, note: bool = False,
-              exact: bool = True) -> list[tuple[int, dict[str, str]]]:
-    """(line, row) for each row of a CSV, values stripped. `columns` must be the header (exact) or among it; `note`:
-    the first line is a `# ` note saying where the file came from. A row with too many or too few fields stops."""
-    columns = list(columns)
+def read_rows(path: Path, required: Iterable[str], *, optional: Iterable[str] = (),
+              note: bool = False) -> list[tuple[int, dict[str, str]]]:
+    """(line, row) for each row of a CSV: the `required` and `optional` columns only, values stripped. The header
+    must hold every required column; other columns are allowed and left out. An optional column missing from the
+    header, or from the end of a short row, reads as "". `note`: the first line is a `# ` note saying where the file
+    came from. A row with more fields than the header, or without a required field, stops."""
+    required, optional = list(required), [c for c in optional if c not in required]
     try:
         fh = path.open(newline="", encoding="utf-8")
     except OSError as exc:
@@ -127,15 +129,17 @@ def read_rows(path: Path, columns: Iterable[str], *, note: bool = False,
             raise FactsError(f"{_where(path, 1)}: the note line (# ...) saying where the file came from")
         reader = csv.DictReader(fh)
         header = list(reader.fieldnames or [])
-        if (header != columns) if exact else (set(columns) - set(header)):
-            raise FactsError(f"{path.name}: columns {','.join(columns)}, not {','.join(header)}")
+        missing = [c for c in required if c not in header]
+        if missing:
+            raise FactsError(f"{path.name}: no column {', '.join(missing)} (the header is {','.join(header)})")
         out = []
         for row in reader:
             line = reader.line_num + (1 if note else 0)
-            if None in row or any(v is None for v in row.values()):
+            short = [c for c in required if row.get(c) is None]
+            if None in row or short:
                 raise FactsError(f"{_where(path, line)}: {len(header)} fields ({','.join(header)}), not "
                                  f"{sum(v is not None for k, v in row.items() if k is not None) + len(row.get(None) or [])}")
-            out.append((line, {k: v.strip() for k, v in row.items()}))
+            out.append((line, {c: (row.get(c) or "").strip() for c in required + optional}))
         return out
 
 
@@ -196,14 +200,20 @@ class NameMap:
         return {name for lay, name in self.live if lay == layer}
 
 
-NAME_COLUMNS = ("layer", "current", "proposed", "cp", "hardware", "dcc", "comment", "notes")
+NAME_COLUMNS = ("layer", "current", "proposed")
+NAME_OPTIONAL = ("cp", "hardware", "dcc", "comment", "notes")
 
 
-def read_name_map(path: Path) -> NameMap:
-    """public_name_map.csv. Stops on an unknown layer, an empty name, a DCC address that is not a number, or two
-    rows for one (layer, current) name or one live (layer, name)."""
-    rows, seen = [], {}
-    for line, r in read_rows(path, NAME_COLUMNS):
+def read_name_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
+    """public_name_map.csv's rows as read, unchecked beyond its columns (read_name_map checks them)."""
+    return read_rows(path, NAME_COLUMNS, optional=NAME_OPTIONAL)
+
+
+def read_name_map(path: Path, rows: list[tuple[int, dict[str, str]]] | None = None) -> NameMap:
+    """public_name_map.csv (or its `rows`, read_name_rows), every row checked. Stops on an unknown layer, an empty
+    name, a DCC address that is not a number, or two rows for one (layer, current) name or one live (layer, name)."""
+    rows_in, rows, seen = read_name_rows(path) if rows is None else rows, [], {}
+    for line, r in rows_in:
         where = _where(path, line)
         if r["layer"] not in NAME_LAYERS:
             raise FactsError(f"{where}: layer is one of {', '.join(NAME_LAYERS)}, not {r['layer']!r}")
@@ -266,9 +276,30 @@ def _yes(value: str, where: str) -> bool:
     return YES[value]
 
 
-def read_switches(switches: Path, switch_legs: Path, name_map: Path | NameMap) -> dict[int, Switch]:
-    """Switch number -> Switch, in switches.csv order. Line numbers in errors count the header as 1. Stops on a
-    number, OS block or USS lever given twice, a switch with no legs or legs with no switch, or a bad hand."""
+def switch_turnouts(name_map: Path, rows: list[tuple[int, dict[str, str]]] | None = None,
+                    numbers: Iterable[int] = ()) -> dict[int, dict[str, str]]:
+    """Switch number -> the live turnout row ("Switch <n>", current == proposed) of public_name_map.csv, for the
+    switches `numbers`. Only those rows are looked at: a bad row elsewhere in the map is the railroad-facts check's
+    to report (read_name_map), not a reason to stop loading switches. Stops on a switch with two live rows."""
+    want = {f"Switch {n}": n for n in numbers}
+    out: dict[int, dict[str, str]] = {}
+    lines: dict[int, int] = {}
+    for line, r in read_name_rows(name_map) if rows is None else rows:
+        n = want.get(r["current"])
+        if n is None or r["layer"] != "turnout" or r["current"] != r["proposed"]:
+            continue
+        if n in out:
+            raise FactsError(f"{name_map.name} lines {lines[n]} and {line}: both are the live turnout Switch {n}")
+        out[n], lines[n] = r, line
+    return out
+
+
+def read_switches(switches: Path, switch_legs: Path, name_map: Path,
+                  name_rows: list[tuple[int, dict[str, str]]] | None = None) -> dict[int, Switch]:
+    """Switch number -> Switch, in switches.csv order; hardware, DCC address and control point from each switch's
+    live turnout row of `name_map` (switch_turnouts; `name_rows` when the caller read it already). Line numbers in
+    errors count the header as 1. Stops on a number, OS block or USS lever given twice, a switch with no legs or
+    legs with no switch, or a bad hand."""
     legs: dict[int, list[Leg]] = {}
     os_line: dict[str, int] = {}
     for line, row in read_rows(switch_legs, ("switch", "os_block", "closed_leg", "thrown_leg")):
@@ -279,12 +310,14 @@ def read_switches(switches: Path, switch_legs: Path, name_map: Path | NameMap) -
         os_line[os_name] = line
         legs.setdefault(_int(row["switch"], _where(switch_legs, line), "switch"), []).append(
             Leg(os_name, row["closed_leg"], row["thrown_leg"]))
-    names = name_map if isinstance(name_map, NameMap) else read_name_map(name_map)
     out: dict[int, Switch] = {}
     seen: dict[int, tuple[int, str]] = {}
     lever: dict[int, tuple[int, int]] = {}
-    columns = ("level", "switch", "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "hand")
-    for line, row in read_rows(switches, columns):
+    columns = ("level", "switch", "le_ident", "cats_inverted", "ctc_is", "ctc_signals")
+    rows = read_rows(switches, columns, optional=("hand",))
+    names = switch_turnouts(name_map, name_rows, [_int(r["switch"], _where(switches, line), "switch")
+                                                   for line, r in rows])
+    for line, row in rows:
         n = _int(row["switch"], _where(switches, line), "switch")
         where = f"switches.csv line {line} (Switch {n})"
         if n in seen:
@@ -302,11 +335,11 @@ def read_switches(switches: Path, switch_legs: Path, name_map: Path | NameMap) -
         lever[ctc_is] = (line, n)
         if row["hand"] not in HANDS:
             raise FactsError(f"{where}: hand is L, R or blank, got {row['hand']!r}")
-        nm = names.live.get(("turnout", f"Switch {n}"))
+        nm = names.get(n, {})
         out[n] = Switch(number=n, level=row["level"], le_ident=row["le_ident"],
                         cats_inverted=_yes(row["cats_inverted"], where), ctc_is=ctc_is,
                         ctc_signals=_yes(row["ctc_signals"], where), legs=tuple(legs.pop(n)), hand=row["hand"],
-                        hardware=nm.hardware if nm else "", dcc=nm.dcc if nm else "", cp=nm.cp if nm else "")
+                        hardware=nm.get("hardware", ""), dcc=nm.get("dcc", ""), cp=nm.get("cp", ""))
     if legs:
         raise FactsError(f"switch_legs.csv: switches not in switches.csv: {sorted(legs)}")
     return out
@@ -330,7 +363,7 @@ def read_level_control_points(path: Path) -> list[LevelControlPoint]:
     """The control points in file order. Stops on a bad level, a control point with no switches, a name or id
     given twice, or a switch in two control points."""
     out, seen, names = [], {}, {}
-    for line, r in read_rows(path, ("cp_id", "cp_name", "level", "switches", "area", "notes")):
+    for line, r in read_rows(path, ("cp_id", "cp_name", "level", "switches", "area"), optional=("notes",)):
         where = _where(path, line)
         sw = tuple(s.strip() for s in r["switches"].split(",") if s.strip())
         if not sw or not all(s.isdigit() for s in sw):
@@ -362,7 +395,7 @@ class LocalSwitch:
 
 def read_local_switches(path: Path) -> list[LocalSwitch]:
     out, seen = [], {}
-    for line, r in read_rows(path, ("switch", "level", "area", "notes")):
+    for line, r in read_rows(path, ("switch", "level", "area"), optional=("notes",)):
         where = _where(path, line)
         if not r["switch"].isdigit() or not r["area"]:
             raise FactsError(f"{where}: switch is a number and area is given, not {r['switch']!r}, {r['area']!r}")
@@ -385,7 +418,7 @@ class LcosNode:
 
 def read_lcos_nodes(path: Path) -> list[LcosNode]:
     out, seen = [], {}
-    for line, r in read_rows(path, ("level", "area", "node", "source")):
+    for line, r in read_rows(path, ("level", "area", "node"), optional=("source",)):
         where = _where(path, line)
         node = _int(r["node"], where, "node")
         if node in seen:
@@ -441,7 +474,7 @@ class BlockLength:
 
 def read_block_lengths(path: Path) -> dict[str, BlockLength]:
     out: dict[str, BlockLength] = {}
-    for line, r in read_rows(path, ("user_name", "occupancy_sensor", "inches", "flag", "old_source")):
+    for line, r in read_rows(path, ("user_name", "inches"), optional=("occupancy_sensor", "flag")):
         where = _where(path, line)
         if not r["user_name"] or r["user_name"] in out:
             raise FactsError(f"{where}: user_name {r['user_name']!r} is empty or given twice")
@@ -464,7 +497,7 @@ class StagingMast:
 
 def read_staging_masts(path: Path) -> list[StagingMast]:
     out, seen = [], {}
-    for line, r in read_rows(path, ("mast", "facing", "protects"), note=True, exact=False):
+    for line, r in read_rows(path, ("mast", "facing", "protects"), note=True):
         if not r["mast"] or r["mast"] in seen or not r["facing"]:
             raise FactsError(f"{_where(path, line)}: mast {r['mast']!r} is empty or given twice, or has no facing "
                              "block")
@@ -493,7 +526,7 @@ def switch_number(label: str) -> str:
 
 def read_hands(path: Path) -> dict[str, Hand]:
     out: dict[str, Hand] = {}
-    for line, r in read_rows(path, ("switch", "hand", "source")):
+    for line, r in read_rows(path, ("switch", "hand"), optional=("source",)):
         where = _where(path, line)
         if not HAND_LABEL.fullmatch(r["switch"]) or r["switch"] in out or r["hand"] not in ("L", "R"):
             raise FactsError(f"{where}: switch {r['switch']!r} is not a label given once (107, 101A), or hand "
@@ -532,7 +565,7 @@ class DeviceRow:
         return cls(line=line, **{k: (int(v) if k == "level" else str(v)) for k, v in row.items() if k != "line"})
 
 
-DEVICE_LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
+DEVICE_LAYERS = NAME_LAYERS             # the device map's layers are the name map's
 
 
 @dataclass
@@ -568,7 +601,7 @@ def read_device_map(path: Path) -> DeviceMap:
     row), an occupancy row whose jmri_name is not a virtual block sensor or whose planned detector is not M2S."""
     out = DeviceMap(path=path)
     seen: dict[tuple[str, str], int] = {}
-    for line, r in read_rows(path, DEVICE_COLUMNS):
+    for line, r in read_rows(path, DEVICE_COLUMNS[:8], optional=DEVICE_COLUMNS[8:]):
         where = _where(path, line)
         if r["layer"] not in DEVICE_LAYERS or not r["user_name"]:
             raise FactsError(f"{where}: layer is one of {', '.join(DEVICE_LAYERS)} and user_name is given")
@@ -597,6 +630,10 @@ def check_virtual_names(rows: Iterable[DeviceRow]) -> list[str]:
     number, and no two rows of a layer share a virtual name (but a turnout and its LCC alias, one JMRI turnout)."""
     rows = list(rows)
     bad = []
+    for layer in ("block", "occupancy"):            # the dicts and sets below would fold a second row away
+        twice = sorted(n for n, k in Counter(r.user_name for r in rows if r.layer == layer).items() if k > 1)
+        if twice:
+            bad.append(f"{layer} rows given twice: {', '.join(twice)}")
     blocks = {r.user_name for r in rows if r.layer == "block"}
     occ = {r.user_name: r for r in rows if r.layer == "occupancy"}
     want = {level_devices.occupancy_user(b): b for b in blocks}
@@ -646,7 +683,11 @@ class TablesNames:
 
 
 def read_tables(path: Path) -> TablesNames:
-    root = tables.read(path)
+    """The tables file's beans by user name; FactsError naming the file when it cannot be read or parsed."""
+    try:
+        root = tables.read(path)
+    except (OSError, ET.ParseError) as exc:
+        raise FactsError(f"{path}: cannot read it as a tables file ({exc})") from None
 
     def by_user(beans):
         return {tables.user_name(b): tables.system_name(b) for b in beans if tables.user_name(b)}
@@ -664,6 +705,7 @@ class MainUpperSwitch:
     level: int
     area: str
     cp: str = ""
+    notes: str = ""
 
 
 def join_main_upper(cps: Iterable[LevelControlPoint], local: Iterable[LocalSwitch],
@@ -675,7 +717,7 @@ def join_main_upper(cps: Iterable[LevelControlPoint], local: Iterable[LocalSwitc
         if r.switch in out:
             raise FactsError(f"switch {r.switch} is in a control point and in {local_name} (line {r.line}, "
                              f"{out[r.switch].cp})")
-        out[r.switch] = MainUpperSwitch(r.switch, r.level, r.area)
+        out[r.switch] = MainUpperSwitch(r.switch, r.level, r.area, notes=r.notes)
     return out
 
 
@@ -698,12 +740,17 @@ class Railroad:
 
     # inputs
     @cached_property
+    def name_rows(self) -> list[tuple[int, dict[str, str]]]:
+        """public_name_map.csv as read, once: name_map checks every row, switches look only at theirs."""
+        return read_name_rows(self.sources.name_map)
+
+    @cached_property
     def name_map(self) -> NameMap:
-        return read_name_map(self.sources.name_map)
+        return read_name_map(self.sources.name_map, self.name_rows)
 
     @cached_property
     def switches(self) -> dict[int, Switch]:
-        return read_switches(self.sources.switches, self.sources.switch_legs, self.name_map)
+        return read_switches(self.sources.switches, self.sources.switch_legs, self.sources.name_map, self.name_rows)
 
     @cached_property
     def level_control_points(self) -> list[LevelControlPoint]:

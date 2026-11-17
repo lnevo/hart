@@ -883,6 +883,12 @@ class LoopAndCrossover(unittest.TestCase):
         self.assertNotIn(n, names["Upper"]["os"])
 
 
+def head(user: str, jmri: str):
+    """A device map head row (hartlib.railroad.DeviceRow), as build_main_upper_masts.virtual takes it."""
+    from hartlib import railroad
+    return railroad.DeviceRow(level=2, layer="head", user_name=user, jmri_name=jmri)
+
+
 class LevelMasts(unittest.TestCase):
     """main_upper_masts.csv (build_main_upper_masts.py) and how the build takes it."""
 
@@ -928,10 +934,10 @@ class LevelMasts(unittest.TestCase):
         gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
         for bad in ("Head 108", "Mast 108LA", "Head 108LA Middle"):
             with self.subTest(head=bad), self.assertRaisesRegex(SystemExit, "mast Mast 1: head"):
-                gen.virtual({"user_name": bad, "jmri_name": "IH:HART:C3:108LA"}, "Mast 1")
+                gen.virtual(head(bad, "IH:HART:C3:108LA"), "Mast 1")
         with self.assertRaisesRegex(SystemExit, "has jmri_name 'IH93332', not IH:HART:C3:108LA"):
-            gen.virtual({"user_name": "Head 108LA", "jmri_name": "IH93332"}, "Mast 1")
-        self.assertEqual(gen.virtual({"user_name": "Head 108R Top", "jmri_name": "IH:HART:C3:108R_Top"}, "Mast 1"),
+            gen.virtual(head("Head 108LA", "IH93332"), "Mast 1")
+        self.assertEqual(gen.virtual(head("Head 108R Top", "IH:HART:C3:108R_Top"), "Mast 1"),
                          "IH:HART:C3:108R_Top")
 
     def test_a_mast_no_band_draws_stops(self) -> None:

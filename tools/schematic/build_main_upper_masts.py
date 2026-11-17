@@ -17,7 +17,6 @@ these reaches MQTT or the field (build_layout_le.py checks it with the coordinat
 --check regenerates in memory and exits 1 if the file differs.
 """
 import csv
-import dataclasses
 import io
 import re
 import sys
@@ -32,16 +31,16 @@ OUT = level_masts.PATH
 LEGS = {"A": "normal", "B": "diverging"}       # of two masts sharing a block pair, by letter (owner, 2026-11-16)
 
 
-def virtual(head: dict, mast: str) -> str:
+def virtual(head: railroad.DeviceRow, mast: str) -> str:
     """A device-map head row's jmri_name, checked to be hartlib.level_devices.head_name of its user name; stops naming
     the head and mast otherwise."""
     try:
-        want = level_devices.head_name(head["user_name"])
+        want = level_devices.head_name(head.user_name)
     except ValueError as exc:
         raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: {exc}") from None
-    if head.get("jmri_name") != want:
-        raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: head {head['user_name']} has jmri_name "
-                         f"{head.get('jmri_name')!r}, not {want}")
+    if head.jmri_name != want:
+        raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: head {head.user_name} has jmri_name "
+                         f"{head.jmri_name!r}, not {want}")
     return want
 
 
@@ -54,7 +53,7 @@ def build() -> str:
         dm = rr.device_map
     except railroad.FactsError as exc:
         raise SystemExit(f"build_main_upper_masts.py: {exc}") from None
-    heads = {system: dataclasses.asdict(h) for system, h in dm.heads_by_system.items()}
+    heads = dm.heads_by_system
     out_rows = []
     for r in dm.of("mast"):
         name = r.user_name
@@ -75,7 +74,7 @@ def build() -> str:
         out_rows.append(dict(
             mast=name, cp=r.cp, switch=sw.group(1), facing=fac.group(1),
             protects=fac.group(2) or f"OS Switch {sw.group(1)}", leg="", system_name=sys_name,
-            head_system_names=";".join(f"{virtual(heads[h], name)}={heads[h]['user_name']}" for h in mast_heads),
+            head_system_names=";".join(f"{virtual(heads[h], name)}={heads[h].user_name}" for h in mast_heads),
             device_system_name=r.system_name, _level=r.level))
     pairs = {}
     for r in out_rows:

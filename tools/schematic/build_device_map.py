@@ -98,6 +98,12 @@ LOCAL = SOURCES.local_switches
 OVERRIDES = SOURCES.plan_overrides
 OUT = SOURCES.device_map
 
+
+def sources() -> railroad.Sources:
+    """The files main() reads and writes: the module's paths as they are when it runs (a test may patch them)."""
+    return railroad.Sources.under().but(level_control_points=CPS, lcos_nodes=NODES, local_switches=LOCAL,
+                                        plan_overrides=OVERRIDES, device_map=OUT)
+
 LEVELS = {"Main": 2, "Upper": 3}      # band key (first word of the band title) -> level
 SHORT_CM = 30.0
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
@@ -118,9 +124,10 @@ class MapError(RuntimeError):
     pass
 
 
-def base(label: str) -> str:
-    """Switch number of a schematic label: "129A" -> "129", "223*" -> "223"."""
-    return re.sub(r"[AB]$", "", (label or "").rstrip("*"))
+# The switch number of a schematic label ("129A" -> "129", "223*" -> "223") and the natural sort key, defined once in
+# hartlib.railroad; the names stay here because build_layout_le.py and build_cats_panel.py import them from this module.
+base = railroad.switch_number
+natural = railroad.natural
 
 
 def block_sensor(block: str) -> str:
@@ -130,10 +137,6 @@ def block_sensor(block: str) -> str:
         return level_devices.block_sensor(block)
     except ValueError as exc:
         raise MapError(str(exc)) from None
-
-
-def natural(name: str):
-    return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", name)]
 
 
 def load_cps(path: Path = CPS) -> list[railroad.LevelControlPoint]:
@@ -454,12 +457,12 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     when a band has a double crossover."""
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
-    cp_of = {s: cp.cp_name for cp in cps for s in cp.switches}
-    loc = {r.switch: r for r in local}
     try:
-        railroad.join_main_upper(cps, local, LOCAL.name)
+        switches = railroad.join_main_upper(cps, local, LOCAL.name)
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
+    cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
+    loc = {s: sw for s, sw in switches.items() if not sw.cp}          # in no control point: level, area, notes
     on_bands = {base(lb) for labels in by_level.values() for lb in labels}
     missing = sorted(on_bands - set(cp_of) - set(loc), key=natural)
     if missing:
@@ -656,7 +659,7 @@ def main(argv=None) -> int:
     ap.add_argument("--check", action="store_true", help="exit 1 if an output is stale")
     args = ap.parse_args(argv)
     # the device map is its own layer: it reads the inputs only (railroad.LAYERS), never a copy of itself
-    rr = railroad.Railroad(upto="inputs")
+    rr = railroad.Railroad(sources(), upto="inputs")
     try:
         overrides = rr.plan_overrides.data
         inputs = rr.level_control_points, rr.lcos_nodes, rr.local_switches

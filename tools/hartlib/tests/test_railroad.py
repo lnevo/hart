@@ -112,11 +112,44 @@ class Readers(Copy):
     """Each reader stops on its own file's shape, naming the file and line."""
 
     def test_columns_and_field_counts(self) -> None:
-        self.edit("local_switches", "switch,level,area,notes", "switch,level,area")
-        self.fails(lambda: R.read_local_switches(self.src.local_switches), "columns switch,level,area,notes")
+        self.edit("local_switches", "switch,level,area,notes", "switch,level,notes")
+        self.fails(lambda: R.read_local_switches(self.src.local_switches), "no column area")
         self.edit("lcos_nodes", "2,North,42,", "2,North,42,x,y,")
         self.fails(lambda: R.read_lcos_nodes(self.src.lcos_nodes), r"lcos_nodes_main_upper.csv line 2: 4 fields")
         self.fails(lambda: R.read_rows(self.tmp / "missing.csv", ["a"]), "cannot read it")
+
+    def test_extra_columns_are_allowed_and_optional_ones_optional(self) -> None:
+        """A column a reader does not use may be added, and an optional one (switches.csv `hand`, a notes column)
+        may be missing from the header or from the end of a short row."""
+        text = self.src.switches.read_text(encoding="utf-8")
+        lines = text.splitlines()
+        self.src.switches.write_text("\n".join([lines[0] + ",note"] + [l + ",x" for l in lines[1:]]) + "\n",
+                                     encoding="utf-8")
+        self.assertEqual(R.Railroad(self.src).switches[9].hand, "L")
+        self.src.switches.write_text("\n".join(l.rsplit(",", 1)[0] for l in lines) + "\n", encoding="utf-8")
+        self.assertEqual(R.Railroad(self.src).switches[9].hand, "")
+        self.src.switches.write_text(text + "1,99,TO999,no,99,no\n", encoding="utf-8")       # short: no hand
+        self.fails(lambda: R.Railroad(self.src).switches, "Switch 99.*no rows in switch_legs.csv")
+        self.src.switches.write_text(text + "1,99,TO999,no\n", encoding="utf-8")             # short: required
+        self.fails(lambda: R.Railroad(self.src).switches, "switches.csv line 22: 7 fields")
+        self.src.block_lengths.write_text("user_name,inches,extra\nTrack W-1,105,x\n", encoding="utf-8")
+        self.assertEqual(R.read_block_lengths(self.src.block_lengths)["Track W-1"].inches, 105.0)
+
+    def test_switches_read_only_their_own_name_map_rows(self) -> None:
+        """A bad row elsewhere in the name map is the facts check's to report; it does not stop switch loading
+        (wire_digicon.py, cats_turnout_io.py and engine_terminal.py load switches)."""
+        self.append("name_map", "light,Lamp 1,Lamp 1,,MTT100,MTT100,,")
+        rr = R.Railroad(self.src)
+        self.assertEqual(rr.switches[1].hardware, "M2T408")
+        self.fails(lambda: rr.name_map, "layer is one of")
+        self.append("name_map", "turnout,Switch 1,Switch 1,Brick,M2T999,999,,")
+        self.fails(lambda: R.Railroad(self.src).switches, "both are the live turnout Switch 1")
+
+    def test_a_tables_file_that_cannot_be_read(self) -> None:
+        bad = self.tmp / "tables.xml"
+        bad.write_text("<layout-config>", encoding="utf-8")
+        self.fails(lambda: R.read_tables(bad), "tables.xml: cannot read it as a tables file")
+        self.fails(lambda: R.read_tables(self.tmp / "none.xml"), "none.xml: cannot read it as a tables file")
 
     def test_a_noted_file_needs_its_note_line(self) -> None:
         text = self.src.staging_masts.read_text(encoding="utf-8")
@@ -329,6 +362,12 @@ class VirtualNames(unittest.TestCase):
         self.assertTrue(any("blocks and occupancy rows differ" in p for p in bad), bad)
         self.assertIn("turnout Switch 3: jmri_name 'IT:HART:C3:1', not IT:HART:C3:<switch number>", bad)
         self.assertIn("turnout rows: a virtual name is empty or given twice", bad)
+
+    def test_a_block_or_occupancy_row_given_twice(self) -> None:
+        """Two rows of one block (or of one occupancy sensor) are caught, not folded into one by a set."""
+        ok = [self.row("block", "Track 1-3", ""), self.row("occupancy", "BS 1-3", "IS:HART:C3:B:1-3")]
+        self.assertIn("block rows given twice: Track 1-3", R.check_virtual_names(ok + ok[:1]))
+        self.assertIn("occupancy rows given twice: BS 1-3", R.check_virtual_names(ok + ok[1:]))
 
 
 if __name__ == "__main__":
