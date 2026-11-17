@@ -40,7 +40,7 @@ Example: after a rewiring, Switch 9 normal leads to EH-2 and thrown to EH-3.
 
 1. **PanelPro:** rename it, Store, then `make tables-pull`. JMRI owns `tables.xml`; nothing renames there by script.
 2. **Name map:** apply the rename to `public_name_map.csv` (ADR-005, `wiki/pipelines/public-names.md`). The identity row takes the new name; a historical alias row keeps the old one. Do not add an identity row for a hidden throat block (Track S-R West and the others); `tables.xml` holding the block is what makes it current.
-3. **Data files** that key on the name: `mast_cells.csv` (`mast`), `switch_legs.csv` (legs), `block_lengths.csv` (`user_name`), `le_signal_boundaries.csv`, `sml_cats_oracle.csv`, `cats/data/occupancy_bindings.csv`, and the wiring CSVs under `docs/wiring/`.
+3. **Data files** that key on the name: `mast_cells.csv` (`mast`), `switch_legs.csv` (legs), `block_lengths.csv` (`user_name`), `le_signal_boundaries.csv`, `cats/data/occupancy_bindings.csv`, and the wiring CSVs under `docs/wiring/`.
 4. **CATS:** if the desk shows the name, rename it in the Designer save (`HART_Digicon.xml`) or `ANCHORS` in `wire_digicon.py` (plant cells: `uss_board_plants.csv`), then run `wire_digicon.py` and `gen_ctc_track_plan.py`.
 5. **Dispatcher:** traininfo files carry block names; regenerate them in PanelPro (Dispatcher System) if a station block was renamed.
 6. **Derived files:** run `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `build_layout_index.py` and `build_cats_layout_index.py`.

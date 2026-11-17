@@ -11,7 +11,8 @@ Facing SoR: jmri/layouts/hart/data/le_signal_boundaries.csv
 Does not write SignalMastLogic pairs. SML dests are native (Layout Editor Discover,
 useLayoutEditor=yes). After facing changes, re-run Discover with
 `jmri/layouts/hart/scripts/run_sml_discover.sh`, which then sets the Digicon dests to
-Enabled=no, and check with `validate_le_signalling.py`. The retired CATS pairs are in `data/sml_cats_oracle.csv`.
+Enabled=no. Check the result by comparing the stored pairs with the previous tables
+(`data/baselines/sml_pairs.csv`).
 """
 
 from __future__ import annotations

@@ -42,7 +42,7 @@ Live recapture is **2026-08-26**. The 2026-08-20 files locked pre-ADR-005 names;
 |----------|----------------|
 | [`data/baselines/`](../../jmri/layouts/hart/data/baselines/) | Hardware ids, SML pairs, CTC SIDI/TRL, LE mast bindings, block→sensor, CATS bindings (live names) |
 | `capture_public_name_baseline.py` | Re-snapshot from `output/tables.xml` + live CATS CTC hold |
-| `validate_le_signalling.py --xml output/tables.xml --dests --compare-stored` | native SML dests vs stored |
+| Stock Discover / Stage 1 in a sandbox, stored pairs vs `data/baselines/sml_pairs.csv` | native SML dests vs previous tables |
 | `audit_panel_contracts.py` | working / deployment / standalone drift = 0 |
 | `check_hart_phase02.py` | Phase 0–2 (public names are live `OS Switch 7b`) |
 | `validate_cats_panel.py` | Live masters PASS |
@@ -64,7 +64,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS Digicon = `wire_digicon.py`.  
 4. Update look-up scripts and data CSVs (polish, validators, occupancy/signal CSVs) so they key on the new names.  
 5. Re-discover SML (dests are mast userNames) and NX (`run_nx_discover.sh`; `ISNX:*` stays frozen).  
-6. `validate_le_signalling.py` + `check_hart_phase02.py` + `validate_cats_panel.py` + load PanelPro + Run CTC Logic.  
+6. `check_hart_phase02.py` + `validate_cats_panel.py` + load PanelPro + Run CTC Logic.  
 7. Deploy `--pi --win`. Do not change MQTT topics.
 
 ### Script / data inventory
@@ -89,7 +89,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | `jmri/scripts/check_hart_phase02.py` | Requires `OS Switch 7b` |
 | `build_ctc_full_15col.py` | SIDI mast lists (unsafe to re-run until updated) |
 | `wire_digicon.py` | CATS `BLOCK` / `SECSIGNAL` SoR |
-| `apply_sml_cats_pairs.py` | Retired, PAIRS only (oracle for `validate_le_signalling.py`); writes nothing. Removed 2026-11-14; the pairs are `data/sml_cats_oracle.csv` |
+| `apply_sml_cats_pairs.py` | Removed 2026-11-14; wrote nothing at the end |
 | `validate_cats_panel.py` | Required `OS Switch 13` / `OS Switch 9` (was Track 13 / Track 9) |
 | `build_hart_signal_heads.py` | Mast userNames |
 | `sim_hart_train_mqtt.py` | Route step block names. Removed 2026-11-14 (its names were stale) |
