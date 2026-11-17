@@ -129,5 +129,35 @@
  "level_leg": {
   "3": "B"
  },
- "_level_leg": "Switch 3 keeps W-1 (its leg B, the straight track) level, W-2 diverging below it, as the left-hand turnout stands on the layout and in the Layout Editor (owner, 2026-11-16)."
+ "_level_leg": "Switch 3 keeps W-1 (its leg B, the straight track) level, W-2 diverging below it, as the left-hand turnout stands on the layout and in the Layout Editor (owner, 2026-11-16).",
+ "le_shift": {
+  "Staging": [
+   {
+    "from": "5",
+    "to": "33",
+    "columns": -2
+   }
+  ]
+ },
+ "_le_shift": "Layout Editor only (the sheet keeps its columns; owner, 2026-11-16): staging from Plane (switch 5) to East End's switch 33 drawn two grid columns further west, into the empty space above Scale, so West Ext and East Lead are drawn longer and Main West and Brick-Plane shorter by as much, and the panel keeps its width. An even number keeps the label layer's spots as on the sheet's grid (an odd one moved a dozen labels).",
+ "le_labels": {
+  "extra_steps": [
+   [
+    "Track EH-1",
+    "Track EH-2",
+    "Track EH-3"
+   ]
+  ],
+  "extra_follow": [
+   [
+    "Track W-1",
+    "Track W-2"
+   ]
+  ]
+ },
+ "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. build_layout_le.py adds the South Yard name and lamp columns here.",
+ "le_crossover_angle": {
+  "Staging": 45
+ },
+ "_le_crossover_angle": "The angle each level's crossovers (single and double) cross at on the Layout Editor cut-over candidates (owner, 2026-11-16): staging at the schematic's own diverging angle, one grid column across per row, so 45 degrees; main and upper at 45 too, double crossover included (after a round at 30). A crossover with no room for its angle is drawn as steep as it must be (the plugin logs which). The fitted viewing trials draw them as they fall."
 }

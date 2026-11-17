@@ -250,7 +250,7 @@ class Built(unittest.TestCase):
         for tag, text in (("systemName", "IBX1"), ("userName", b), ("permissive", "no")):
             ET.SubElement(el, tag).text = text
         self.assertEqual(B.add_level_sensors(root, {x: sensors[x] for x in sorted(sensors)[:2]}), [sensors[b][0]])
-        with mock.patch.object(B, "add_level_sensors", return_value=[]), \
+        with mock.patch.object(sys.modules["le_tables"], "add_level_sensors", return_value=[]), \
                 self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
             with contextlib.redirect_stdout(io.StringIO()):
                 B.build(hand())
@@ -478,7 +478,7 @@ class DeviceNames(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, "does not have: \\['Track e999'\\]"):
             B.level_names(bands, le_mod, dict(device, **{"Track e999": "Track 9-9"}))
         names, lengths = B.placeholder_names(bands, le_mod)         # a length with no device-map row: named, no KeyError
-        with mock.patch.object(B, "placeholder_names", return_value=(names, dict(lengths, **{"Track e777": 1.0}))):
+        with mock.patch.object(sys.modules["le_names"], "placeholder_names", return_value=(names, dict(lengths, **{"Track e777": 1.0}))):
             with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track e777'\\]"):
                 B.level_names(bands, le_mod, device)
 
@@ -508,8 +508,11 @@ class DeviceNames(unittest.TestCase):
         bad["Main"]["turnouts"][n] = "Switch 999"
         with self.assertRaisesRegex(B.BuildError, "joined as a crossover but the device map gives them two"):
             B.named_bands(bands, bad)
-        prefs = [(t, b, dict(o, le_labels={})) for t, b, o in bands]
-        with self.assertRaisesRegex(B.BuildError, "already hold le_labels"):
+        # a band's own le_labels (main_upper.preferences.json) are kept beside HART's; a key HART sets stops
+        prefs = [(t, b, dict(o, le_labels={"switch_size": 10})) for t, b, o in bands]
+        self.assertEqual(B.named_bands(prefs, names)[1][2]["le_labels"]["switch_size"], 10)
+        prefs = [(t, b, dict(o, le_labels={"names_last": False})) for t, b, o in bands]
+        with self.assertRaisesRegex(B.BuildError, "le_labels already hold names_last; HART sets them here"):
             B.named_bands(prefs, names)
 
 
@@ -809,18 +812,19 @@ class FinalReview(unittest.TestCase):
             with self.assertRaisesRegex(B.BuildError, "TO99 B .*generated_slot C, LEGS_SWAPPED gives empty"):
                 B.check_swapped_slots(path)
 
-    def test_station_steps_on_one_row_stop(self) -> None:
-        boxes = mock.Mock(extras=[{"id": "A", "box": (100, 0, 10, 10)}, {"id": "B", "box": (90, 0, 10, 10)},
-                                  {"id": "W", "box": (50, 0, 10, 10)}, {"id": "V", "box": (70, 48, 10, 10)}])
-        with self.assertRaisesRegex(B.BuildError, "stand on one row"):
-            B.cluster_steps(boxes, [["A", "B"]], [("W", "V")])
-
-    def test_west_shift_stops_on_a_reversed_track(self) -> None:
+    def test_staging_le_labels_from_its_preferences_and_hart_columns(self) -> None:
         raw = B.schematic()[0]
-        B.west_shifted(raw)
-        with mock.patch.dict(B.WEST_SHIFT, {"columns": 9}), \
-                self.assertRaisesRegex(B.BuildError, "overlapped or reversed .*Brick-Plane"):
-            B.west_shifted(raw)
+        title, _band, opts = raw[0]
+        own = opts["le_labels"]          # staging.preferences.json: the station buttons that step
+        self.assertEqual(own["extra_steps"], [["Track EH-1", "Track EH-2", "Track EH-3"]])
+        self.assertEqual(own["extra_follow"], [["Track W-1", "Track W-2"]])
+        got = B.staging_columns(raw)[0][2]["le_labels"]
+        self.assertEqual(got, dict(own, name_columns=[list(g) for g in B.NAME_COLUMNS],
+                                   lamp_columns=[list(g.values()) for g in B.LAMP_COLUMNS]))
+        self.assertNotIn("name_columns", opts["le_labels"])                 # a copy
+        clash = [(title, _band, dict(opts, le_labels=dict(own, name_columns=[["S-1", "S-2"]])))]
+        with self.assertRaisesRegex(B.BuildError, "already hold name_columns; HART sets them here"):
+            B.staging_columns(clash)
 
     def test_half_lamps_are_for_os_blocks_with_sensors(self) -> None:
         ov = B.overlay_mod()
