@@ -96,11 +96,22 @@ class ExamAnswers(unittest.TestCase):
         self.assertTrue(any(r == "order" for t, r in data["qs"] if t.startswith("Order No")))
         html = data["refs"]
         self.assertIn("Westward trains are superior to eastward trains of the same class", html["tt"])
-        self.assertIn("Not in effect until <b>6:20</b>", html["w101"])
+        # Box 5 is set at play time; Box 6 is set after the literal on every run; 8 and 10 depend on the run.
+        self.assertIn("Not in effect until <b>[time]</b>", html["w101"])
         self.assertIn("arrival of <b>2211 West</b> at <b>Dunmore</b>", html["w102"])
-        self.assertIn("mins late Ironton to Ashby", html["order"])
+        self.assertIn("expires at <b>9:00</b></td>", html["w102"])
+        self.assertIn('Hold main track at last named point <small class="xa-some">some runs</small>', html["w102"])
+        self.assertIn("No 1 run 20 mins late Ironton to Ashby", html["order"])
+        self.assertIn("at least 12 minutes later", html["w101"])
         for k, v in html.items():
             self.assertNotRegex(v, r"\{\w+\}", k)
+
+    def test_warrant_box_value_count_must_match_its_blanks(self):
+        with self.assertRaisesRegex(AssertionError, "box 5 has 2 values for 1 blanks"):
+            node(
+                f"const m=require({json.dumps(str(SCRIPT))});"
+                "m.warrantHtml({no:'1',at:'A',boxes:{5:{vals:['6:20','7:00'],some:false}}},[[5,'Not in effect until {time}']])"
+            )
 
     def test_unknown_reference_stops_the_build(self):
         with self.assertRaisesRegex(AssertionError, 'unknown reference "nope"'):
