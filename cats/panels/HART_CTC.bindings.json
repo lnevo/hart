@@ -91,17 +91,17 @@
  "_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and upper switches command their internal turnouts and their masts are bound; their blocks carry their planned detectors as _planned_occupied / _planned_unoccupied until DETECT_MAIN_UPPER is set.",
  "blocks": {
   "101B-111": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 101-111",
    "station": "101-111"
   },
   "103A-105": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 103-105 2",
    "station": "103-105"
   },
   "103B-105": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 103-105 1",
    "station": "103-105"
   },
@@ -117,7 +117,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 107 Loop 1",
    "station": "107"
   },
@@ -133,17 +133,17 @@
     "JMRIPREFIX": "IS",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 107 Loop 2",
    "station": "107"
   },
   "111-117": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 111-117",
    "station": "111-117"
   },
   "113-115": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 113-115",
    "station": "113-115"
   },
@@ -159,22 +159,22 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 119-125",
    "station": "119-125"
   },
   "119B-123": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 119-123",
    "station": "119-123"
   },
   "121-131": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 121-131",
    "station": "121-131"
   },
   "127-131": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 127-131",
    "station": "127-131"
   },
@@ -190,7 +190,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 129-135 1",
    "station": "129-135"
   },
@@ -206,17 +206,17 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 129",
    "station": "129"
   },
   "133-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 133 Spur 1",
    "station": "133"
   },
   "133-end 2": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 133 Spur 2",
    "station": "133"
   },
@@ -232,52 +232,52 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 203-213",
    "station": "203-213"
   },
   "205-207": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 205-207",
    "station": "205-207"
   },
   "205-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 205 Spur",
    "station": "205"
   },
   "207-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 207 Spur 2",
    "station": "207"
   },
   "207-end 2": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 207 Spur 1",
    "station": "207"
   },
   "209-211": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 209-211",
    "station": "209-211"
   },
   "209-213A": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 209-213",
    "station": "209-213"
   },
   "211-215": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 211-215",
    "station": "211-215"
   },
   "211-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 211 Spur",
    "station": "211"
   },
   "213A-217B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 213-217 1",
    "station": "213-217"
   },
@@ -293,17 +293,17 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 213-217 2",
    "station": "213-217"
   },
   "215-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 215 Spur 2",
    "station": "215"
   },
   "215-end 2": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 215 Spur 1",
    "station": "215"
   },
@@ -319,12 +319,12 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 217-221",
    "station": "217-221"
   },
   "217B-219": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 217-219",
    "station": "217-219"
   },
@@ -340,7 +340,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 221-223",
    "station": "221-223"
   },
@@ -356,7 +356,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 129-221",
    "station": "129-221"
   },
@@ -372,7 +372,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 223-225 1",
    "station": "223-225"
   },
@@ -388,17 +388,17 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 223-225 2",
    "station": "223-225"
   },
   "225-229": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 225-229",
    "station": "225-229"
   },
   "229-231": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 229-231",
    "station": "229-231"
   },
@@ -414,27 +414,27 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 229-239",
    "station": "229-239"
   },
   "231-241B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 231-241",
    "station": "231-241"
   },
   "233-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 233 Spur",
    "station": "233"
   },
   "235-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 235 Spur",
    "station": "235"
   },
   "237-245B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 237-245",
    "station": "237-245"
   },
@@ -450,42 +450,42 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 227-239",
    "station": "227-239"
   },
   "239-end 2": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 239 Spur",
    "station": "239"
   },
   "241A-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 241 Spur 2",
    "station": "241"
   },
   "241B-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 241 Spur 1",
    "station": "241"
   },
   "243-245A": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 243-245",
    "station": "243-245"
   },
   "243-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 243 Spur",
    "station": "243"
   },
   "245A-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 245 Spur 2",
    "station": "245"
   },
   "245B-end": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 245 Spur 1",
    "station": "245"
   },
@@ -696,7 +696,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 135-H1",
    "station": "135-H1"
   },
@@ -728,27 +728,27 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 135-H2",
    "station": "135-H2"
   },
   "OS 101A-103A": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 101",
    "station": "101"
   },
   "OS 101B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 101",
    "station": "101"
   },
   "OS 103B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 103",
    "station": "103"
   },
   "OS 105": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 105",
    "station": "105"
   },
@@ -764,7 +764,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 107",
    "station": "107"
   },
@@ -780,7 +780,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 109",
    "station": "109"
   },
@@ -796,17 +796,17 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 111",
    "station": "111"
   },
   "OS 113": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 113",
    "station": "113"
   },
   "OS 115": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 115",
    "station": "115"
   },
@@ -822,7 +822,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 117",
    "station": "117"
   },
@@ -838,7 +838,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 119",
    "station": "119"
   },
@@ -854,17 +854,17 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 119",
    "station": "119"
   },
   "OS 121": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 121",
    "station": "121"
   },
   "OS 123": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 123",
    "station": "123"
   },
@@ -880,7 +880,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 125",
    "station": "125"
   },
@@ -896,7 +896,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 127",
    "station": "127"
   },
@@ -912,7 +912,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 129",
    "station": "129"
   },
@@ -928,17 +928,17 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 129",
    "station": "129"
   },
   "OS 131": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 131",
    "station": "131"
   },
   "OS 133": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 133",
    "station": "133"
   },
@@ -954,7 +954,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 135",
    "station": "135"
   },
@@ -970,7 +970,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 135",
    "station": "135"
   },
@@ -986,7 +986,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 201",
    "station": "201"
   },
@@ -1002,27 +1002,27 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 203",
    "station": "203"
   },
   "OS 205": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 205",
    "station": "205"
   },
   "OS 207": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 207",
    "station": "207"
   },
   "OS 209": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 209",
    "station": "209"
   },
   "OS 211": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 211",
    "station": "211"
   },
@@ -1038,7 +1038,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 213",
    "station": "213"
   },
@@ -1054,12 +1054,12 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 213",
    "station": "213"
   },
   "OS 215": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 215",
    "station": "215"
   },
@@ -1075,7 +1075,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 217",
    "station": "217"
   },
@@ -1091,7 +1091,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 217",
    "station": "217"
   },
@@ -1107,7 +1107,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 219",
    "station": "219"
   },
@@ -1123,7 +1123,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 221",
    "station": "221"
   },
@@ -1139,7 +1139,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 221",
    "station": "221"
   },
@@ -1155,7 +1155,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 223",
    "station": "223"
   },
@@ -1171,7 +1171,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 225",
    "station": "225"
   },
@@ -1187,7 +1187,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 227",
    "station": "227"
   },
@@ -1203,57 +1203,57 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 229",
    "station": "229"
   },
   "OS 231": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 231",
    "station": "231"
   },
   "OS 233": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 233",
    "station": "233"
   },
   "OS 235": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 235",
    "station": "235"
   },
   "OS 237": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 237",
    "station": "237"
   },
   "OS 239": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 239",
    "station": "239"
   },
   "OS 241A": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 241",
    "station": "241"
   },
   "OS 241B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 241",
    "station": "241"
   },
   "OS 243": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 243",
    "station": "243"
   },
   "OS 245A": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 245",
    "station": "245"
   },
   "OS 245B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 245",
    "station": "245"
   },
@@ -1747,42 +1747,42 @@
    }
   },
   "end-101A": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 101 Spur 1",
    "station": "101"
   },
   "end-101B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 101 Spur 2",
    "station": "101"
   },
   "end-103B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 103 Spur",
    "station": "103"
   },
   "end-113": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 113 Spur 1",
    "station": "113"
   },
   "end-113 2": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 113 Spur 2",
    "station": "113"
   },
   "end-115": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 115 Spur",
    "station": "115"
   },
   "end-119B": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 119 Spur",
    "station": "119"
   },
   "end-121": {
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "Track 121 Spur",
    "station": "121"
   },
@@ -1798,7 +1798,7 @@
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
-   "discipline": "ABS",
+   "discipline": "CTC",
    "name": "OS Switch 135",
    "station": "135"
   }

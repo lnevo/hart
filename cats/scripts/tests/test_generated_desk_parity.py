@@ -228,20 +228,18 @@ class Parity(unittest.TestCase):
         self.assertEqual(drawn & LEVEL_MASTS, LEVEL_MASTS)
         self.assertFalse(LEVEL_MASTS & set(masts(self.hand)))
 
-    def test_main_and_upper_are_abs_with_no_detector_yet(self) -> None:
-        # ABS unless CATS holds the signals and releases them, and nothing on main or upper is held yet (owner,
-        # 2026-11-17): ABS on both twins
+    def test_main_and_upper_take_the_desk_discipline_with_no_detector_yet(self) -> None:
+        # CTC on the CTC desk, as staging is: CATS holds their signals and releases them (owner, 2026-11-17);
+        # ABS on the ABS twin
         bound = json.loads(BINDINGS.read_text(encoding="utf-8"))["blocks"]
-        dark = {e.get("name", k) for k, e in bound.items() if "_planned_occupied" in e or
-                (e.get("discipline") == "ABS" and "occupied" not in e)}
+        dark = {e.get("name", k) for k, e in bound.items() if "discipline" in e and "occupied" not in e}
         self.assertGreater(len(dark), 90)
         found = blocks(self.gen)
         for name in sorted(dark):
             with self.subTest(block=name):
-                self.assertEqual({d[1] for d in found[name]}, {"ABS"})
+                self.assertEqual({d[1] for d in found[name]}, {self.DISCIPLINE})
                 self.assertEqual({d[2] for d in found[name]}, {()}, "no detector bound yet")
-        others = {d[1] for name, defs in found.items() if name not in dark for d in defs}
-        self.assertEqual(others, {self.DISCIPLINE})
+        self.assertEqual({d[1] for defs in found.values() for d in defs}, {self.DISCIPLINE})
 
 
 class ParityABS(Parity):

@@ -21,8 +21,9 @@ hand:
   staging.signals.json + signal_head_plan.csv  the masts drawn on staging (field and planned) and their templates
   staging_le/tracks.csv  the block of a short unnamed track between two switches that has no JMRI block of its own
                          (SHORT_TRACK_BLOCKS, which must be one of the blocks the frozen Layout Editor track holds)
-Main and upper blocks are ABS (owner, 2026-11-17: ABS unless CATS holds the signals and releases them, and nothing on
-main or upper is held by CATS yet; until then they were DTC). They take their names from the block rows of
+Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-17: CATS holds their signals and
+releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
+turns them ABS with the rest. They take their names from the block rows of
 jmri/layouts/hart/data/schematic/device_map_main_upper.csv (by the schematic tracks each holds). Their switches
 command and report their internal turnouts (LEVEL_TURNOUT: IT:HART:C3:<n>, closed on the drawn leg B, which is
 NORMAL; double crossover 225 too, its one turnout moving all four points, though the desk keeps it one block: CATS
@@ -83,8 +84,8 @@ DEVICE_MAP = pd.DATA / "device_map_main_upper.csv"
 BOUND = "Staging"                                    # the band bound to JMRI (its title starts with this)
 # The ABS twin: every CTC block ABS, and the plate's words (wire_digicon.py write_desk, digicon_header.PANELS)
 ABS_PLATE = {"CTC DIGICON": "ABS DIGICON", "DS-CTC": "DS-ABS"}
-# Main and upper: ABS unless CATS holds the signals and releases them (owner, 2026-11-17); none is held yet
-MAIN_UPPER_DISCIPLINE = "ABS"
+# Main and upper: CTC on the CTC desk, CATS holds their signals and releases them (owner, 2026-11-17); ABS on the twin
+MAIN_UPPER_DISCIPLINE = "CTC"
 # A helix track drawn on staging and on main or upper: a desk block on each band, parted at the join (owner, 2026-11-17)
 HELIX_BLOCKS = "apart"
 DETECT_MAIN_UPPER = False   # set once the device map's main and upper detectors are sensors in tables.xml
@@ -492,7 +493,7 @@ def inside_os(bands, P, bound_bi, name, row):
 
 
 def dark_bindings(bands, cats, P, F, bound_bi):
-    """(bindings, log, report) for the main and upper blocks: device map names, ABS, the station plate and the
+    """(bindings, log, report) for the main and upper blocks: device map names, MAIN_UPPER_DISCIPLINE, the station plate and the
     planned detector (bound only with DETECT_MAIN_UPPER, when the sensor must be in tables.xml); the report names each
     device map block with no block of its own on the desk, why, and its detector."""
     groups = defaultdict(list)

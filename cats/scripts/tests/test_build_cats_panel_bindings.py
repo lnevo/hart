@@ -339,9 +339,9 @@ class MainAndUpper(unittest.TestCase):
         self.assertEqual(sorted(k for k in got["_main_upper_not_on_desk"] if k.startswith("OS Switch 225")),
                          [f"OS Switch 225{c}" for c in "abcd"])
 
-    def test_main_and_upper_are_abs_and_not_detected_yet(self):
-        # ABS unless CATS holds the signals; detection comes with the into-service work (owner, 2026-11-17)
-        self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "ABS")
+    def test_main_and_upper_are_ctc_and_not_detected_yet(self):
+        # CTC: CATS holds their signals and releases them; detection comes with the into-service work (owner, 2026-11-17)
+        self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "CTC")
         self.assertFalse(B.DETECT_MAIN_UPPER)
         self.assertEqual(B.HELIX_BLOCKS, "apart")
 
