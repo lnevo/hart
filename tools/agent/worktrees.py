@@ -10,7 +10,9 @@ stays on main for pulls and deploys.
   worktrees.py sweep [--dry-run] [--keep DIR] remove the worktrees whose PR is merged
 
 `new` links the gitignored mirrors the website build and the hart-ops tests need
-(media/, ops/car-cards/, ops/hart-ops/.venv) from the main checkout.
+(media/, ops/car-cards/, ops/hart-ops/.venv) from the main checkout, and checks out the
+submodules tools/check.sh needs (CHECK_SUBMODULES) at their pinned commits. A submodule that
+cannot be fetched is reported and the worktree is still made.
 
 `sweep` removes a worktree only when GitHub lists a merged PR for its branch whose head
 is the worktree's commit or a descendant of it (so nothing local is lost), the merge is
@@ -43,6 +45,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MIRRORS = ("media", "ops/car-cards", "ops/hart-ops/.venv")
+# Submodules the checks import from: the schematic-maps plugin behind make panels and the Layout Editor tests.
+CHECK_SUBMODULES = ("external/model-railroad-skills",)
 TOPIC = re.compile(r"[a-z0-9]+([-_][a-z0-9]+)*")
 GRACE = timedelta(minutes=30)
 
@@ -388,7 +392,51 @@ def new(topic: str, agent: str) -> Path:
         if src.exists() and not dst.exists():
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.symlink_to(src)
+    for rel in CHECK_SUBMODULES:
+        if not (path / rel).is_dir():  # not a submodule of this checkout (a test repo)
+            continue
+        problem = init_submodule(path, rel, main)
+        if problem:
+            print(f"warning: {rel} is not checked out ({problem}); run git submodule update --init {rel}",
+                  file=sys.stderr)
     return path
+
+
+# One git call in init_submodule may take this long (seconds); kept under the 120 s an agent's shell call allows.
+SUBMODULE_TIMEOUT = 90
+
+
+def init_submodule(path: Path, rel: str, main: Path | None = None) -> str:
+    """Check out the submodule at rel in the worktree at path; return why it failed, or "" when it worked.
+
+    The clone borrows objects from the main checkout's copy of the submodule when there is one, then copies them
+    in and drops the link (what git clone --dissociate does), so only missing commits come over the network and
+    the worktree does not depend on the main checkout afterwards. Git never prompts: no terminal, ssh in batch mode.
+    """
+    env = {**os.environ, "GIT_TERMINAL_PROMPT": "0", "GIT_SSH_COMMAND": "ssh -o BatchMode=yes"}
+    cmd = ["git", "-C", str(path), "submodule", "update", "--init", "-q"]
+    if main is not None and (main / rel / ".git").exists():
+        cmd += ["--reference", str(main / rel)]
+    try:
+        done = subprocess.run([*cmd, "--", rel], capture_output=True, text=True, timeout=SUBMODULE_TIMEOUT, env=env)
+        if done.returncode != 0:
+            lines = done.stderr.strip().splitlines()
+            causes = [ln for ln in lines if ln.lower().startswith(("fatal:", "error:"))]
+            return (causes or lines or ["git failed"])[0]
+        sub = path / rel
+        gitdir = Path(git("rev-parse", "--absolute-git-dir", cwd=sub))
+        alternates = gitdir / "objects/info/alternates"
+        if alternates.exists():
+            done = subprocess.run(["git", "-C", str(sub), "repack", "-a", "-d", "-q"], capture_output=True,
+                                  text=True, timeout=SUBMODULE_TIMEOUT)
+            if done.returncode != 0:
+                return f"checked out, but copying the borrowed objects failed: {done.stderr.strip()[:200]}"
+            alternates.unlink()
+    except subprocess.TimeoutExpired:
+        return f"timed out after {SUBMODULE_TIMEOUT} s"
+    except OSError as e:
+        return f"could not run git: {e}"
+    return ""
 
 
 def main(argv: list[str] | None = None) -> int:

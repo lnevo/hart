@@ -9,12 +9,14 @@ import importlib.util
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import time
 import unittest
 from unittest import mock
+from contextlib import redirect_stderr
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -243,6 +245,44 @@ class New(Repo):
         self.assertEqual(sh("git", "branch", "--show-current", cwd=str(path)), "agent/claude/probe")
         self.assertTrue(Path(path, "ops/hart-ops/.venv").is_symlink())
         self.assertEqual(sh("git", "status", "--porcelain", cwd=str(path)), "")
+
+    def new_with_submodule(self, url_ok: bool) -> tuple[Path, str]:
+        """Commit a submodule ext/sub to main, push it to a bare origin, and run new() with it as a check
+        submodule; return the new worktree and what new() wrote to stderr."""
+        src = os.path.dirname(self.main) + "/subsrc"
+        sh("git", "init", "-q", "-b", "main", src, cwd=os.path.dirname(self.main))
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-q", "--allow-empty",
+           "-m", "s", cwd=src)
+        sh("git", "-c", "protocol.file.allow=always", "submodule", "add", "-q", src, "ext/sub", cwd=self.main)
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-q", "-m", "sub",
+           cwd=self.main)
+        origin = self.main + "-origin.git"
+        sh("git", "clone", "-q", "--bare", self.main, origin, cwd=self.main)
+        sh("git", "remote", "add", "origin", origin, cwd=self.main)
+        if not url_ok:
+            shutil.rmtree(src)
+        n = int(os.environ.get("GIT_CONFIG_COUNT", "0"))  # add to the caller's own config entries, not over them
+        env = {"GIT_CONFIG_COUNT": str(n + 1), f"GIT_CONFIG_KEY_{n}": "protocol.file.allow",
+               f"GIT_CONFIG_VALUE_{n}": "always"}
+        err = io.StringIO()
+        with mock.patch.object(WT, "ROOT", Path(self.main)), mock.patch.object(WT, "CHECK_SUBMODULES", ("ext/sub",)), \
+                mock.patch.dict(os.environ, env), redirect_stderr(err):
+            path = WT.new("probe", "claude")
+        return path, err.getvalue()
+
+    def test_new_checks_out_the_check_submodules(self) -> None:
+        path, err = self.new_with_submodule(url_ok=True)
+        self.assertTrue(Path(path, "ext/sub/.git").exists(), err)
+        self.assertEqual(err, "")
+        gitdir = sh("git", "rev-parse", "--absolute-git-dir", cwd=str(path) + "/ext/sub")
+        self.assertFalse(Path(gitdir, "objects/info/alternates").exists(), "the borrowed objects were not copied in")
+
+    def test_new_still_makes_the_worktree_when_a_submodule_cannot_be_fetched(self) -> None:
+        path, err = self.new_with_submodule(url_ok=False)
+        self.assertEqual(sh("git", "branch", "--show-current", cwd=str(path)), "agent/claude/probe")
+        self.assertIn("warning: ext/sub is not checked out (fatal:", err)
+        self.assertEqual(sh("git", "status", "--porcelain", cwd=str(path)), "")
+        self.assertIsNone(WT.submodule_risk(str(path)))
 
 
 class MainCheckoutRules(Repo):
