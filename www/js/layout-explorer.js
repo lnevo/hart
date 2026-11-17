@@ -1,17 +1,19 @@
 (function () {
   var DATA_URL = "data/layout-index-cats.json";
   var IMAGE_FALLBACK = "assets/layout/HART_cats_digicon.png";
-  var ZOOM_MIN = 0.2;
-  var ZOOM_MAX = 1.2;
-  var ZOOM_STEP = 0.05;
-  var DEFAULT_ZOOM = 0.75;
+  var ZOOM_MAX = 1.5; // past the image's own pixels it only blurs
+  var ZOOM_FACTOR = 1.25; // one press of + or -, and the most one wheel event may zoom
+  var HOTSPOT_PX = 14; // a dot's size on the map image (.hotspot in ops.css)
+  var HOTSPOT_MIN_PX = 12; // the smallest a dot may look on screen
+  var MV = window.HARTMapView;
 
   var state = {
     data: null,
     kind: { turnout: true, signal: true },
     q: "",
     activeId: null,
-    zoom: DEFAULT_ZOOM,
+    zoom: 1,
+    fit: 1, // the zoom that shows the whole map; also the lowest zoom
     naturalW: 0,
     naturalH: 0,
   };
@@ -70,49 +72,176 @@
       .indexOf(q) >= 0;
   }
 
-  function centerInView() {
-    var scroll = $(".map-scroll");
+  // The scroll box, the scaled map's box inside it, and where that box starts (centred while smaller than the view).
+  function view() {
+    var scroll = $("#map-scroll");
     var wrap = $("#map-zoom-wrap");
-    if (!scroll || !wrap) return;
-    requestAnimationFrame(function () {
-      var maxX = Math.max(0, wrap.offsetWidth - scroll.clientWidth);
-      var maxY = Math.max(0, wrap.offsetHeight - scroll.clientHeight);
-      scroll.scrollLeft = maxX / 2;
-      scroll.scrollTop = maxY / 2;
-    });
+    return {
+      scroll: scroll,
+      v: {
+        scrollLeft: scroll.scrollLeft,
+        scrollTop: scroll.scrollTop,
+        offX: wrap.offsetLeft,
+        offY: wrap.offsetTop,
+        zoom: state.zoom,
+      },
+      w: scroll.clientWidth,
+      h: scroll.clientHeight,
+    };
   }
 
-  function applyZoom() {
-    var z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, state.zoom));
-    state.zoom = z;
+  // Zoom to z keeping the map point under view position (fx, fy) where it is; the view centre when fx is null.
+  function zoomTo(z, fx, fy) {
+    if (!state.naturalW) return;
+    var before = view();
+    if (fx == null) {
+      fx = before.w / 2;
+      fy = before.h / 2;
+    }
+    var p = MV.pointAt(before.v, fx, fy);
+    state.zoom = MV.clamp(z, state.fit, ZOOM_MAX);
     var stage = $("#map-stage");
     var wrap = $("#map-zoom-wrap");
-    var label = $("#zoom-label");
+    stage.style.transform = "scale(" + state.zoom + ")";
+    stage.style.setProperty("--hotspot-scale", String(Math.max(1, HOTSPOT_MIN_PX / (HOTSPOT_PX * state.zoom))));
+    // floor: a box rounded up past the frame would show scrollbars at Fit
+    wrap.style.width = Math.floor(state.naturalW * state.zoom) + "px";
+    wrap.style.height = Math.floor(state.naturalH * state.zoom) + "px";
+    var after = view(); // the box has moved now the map is a new size
+    var s = MV.scrollFor(p, state.zoom, fx, fy, after.v.offX, after.v.offY);
+    after.scroll.scrollLeft = s.left;
+    after.scroll.scrollTop = s.top;
+    $("#zoom-label").textContent = Math.round(state.zoom * 100) + "%";
+    $("#zoom-range").value = String(Math.round(state.zoom * 100));
+    updateOverview();
+  }
+
+  // Measure the frame with nothing in it, so scrollbars from the current zoom do not shrink the fit.
+  function measureFit() {
+    var scroll = $("#map-scroll");
+    var wrap = $("#map-zoom-wrap");
+    var saved = [wrap.style.width, wrap.style.height];
+    wrap.style.width = wrap.style.height = "0px";
+    state.fit = MV.fitZoom(scroll.clientWidth, scroll.clientHeight, state.naturalW, state.naturalH);
+    wrap.style.width = saved[0];
+    wrap.style.height = saved[1];
     var range = $("#zoom-range");
-    if (stage) {
-      stage.style.transform = "scale(" + z + ")";
-      stage.style.transformOrigin = "0 0";
-    }
-    if (wrap && state.naturalW && state.naturalH) {
-      wrap.style.width = Math.ceil(state.naturalW * z) + "px";
-      wrap.style.height = Math.ceil(state.naturalH * z) + "px";
-    }
-    if (label) label.textContent = Math.round(z * 100) + "%";
-    if (range) range.value = String(Math.round(z * 100));
-    centerInView();
+    range.min = String(Math.ceil(state.fit * 100));
+    range.max = String(Math.round(ZOOM_MAX * 100));
   }
 
-  function fitWidth() {
-    var scroll = $(".map-scroll");
-    if (!scroll || !state.naturalW) return;
-    var avail = Math.max(200, scroll.clientWidth - 8);
-    state.zoom = Math.max(ZOOM_MIN, Math.min(1, avail / state.naturalW));
-    applyZoom();
+  function fitAll() {
+    measureFit();
+    zoomTo(state.fit);
   }
 
-  function resetDefaultZoom() {
-    state.zoom = DEFAULT_ZOOM;
-    applyZoom();
+  // The overview in the corner: the whole map, with a box round the part the main view shows. Hidden at Fit.
+  function updateOverview() {
+    var box = $("#overview");
+    if (!box || !state.naturalW) return;
+    var vw = view();
+    var r = MV.viewRect(vw.v, vw.w, vw.h, state.naturalW, state.naturalH);
+    box.hidden = MV.showsAll(r);
+    var frame = $("#overview-view");
+    frame.style.left = r.x * 100 + "%";
+    frame.style.top = r.y * 100 + "%";
+    frame.style.width = r.w * 100 + "%";
+    frame.style.height = r.h * 100 + "%";
+  }
+
+  // Centre the main view on the map point under the pointer in the overview.
+  function panFromOverview(ev) {
+    var img = $("#overview-img").getBoundingClientRect();
+    var p = {
+      x: MV.clamp((ev.clientX - img.left) / img.width, 0, 1) * state.naturalW,
+      y: MV.clamp((ev.clientY - img.top) / img.height, 0, 1) * state.naturalH,
+    };
+    var vw = view();
+    var s = MV.scrollFor(p, state.zoom, vw.w / 2, vw.h / 2, vw.v.offX, vw.v.offY);
+    vw.scroll.scrollLeft = s.left;
+    vw.scroll.scrollTop = s.top;
+  }
+
+  function wireView() {
+    var scroll = $("#map-scroll");
+    scroll.addEventListener("scroll", updateOverview);
+
+    // Pinch on a trackpad, or Ctrl/Cmd + wheel, zooms at the pointer; a plain wheel scrolls as usual.
+    scroll.addEventListener(
+      "wheel",
+      function (ev) {
+        if (!ev.ctrlKey && !ev.metaKey) return;
+        ev.preventDefault();
+        var b = scroll.getBoundingClientRect();
+        var dy = ev.deltaY * (ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? b.height : 1); // lines, pages → px
+        var f = MV.clamp(Math.exp(-dy * 0.01), 1 / ZOOM_FACTOR, ZOOM_FACTOR); // a mouse notch is one + press
+        zoomTo(state.zoom * f, ev.clientX - b.left, ev.clientY - b.top);
+      },
+      { passive: false }
+    );
+
+    // Double-click zooms in at the spot; Shift + double-click zooms out.
+    scroll.addEventListener("dblclick", function (ev) {
+      if (ev.target.closest(".hotspot") || Date.now() - lastDragEnd < 500) return; // two quick pans are not a zoom
+      var b = scroll.getBoundingClientRect();
+      var f = ev.shiftKey ? 1 / 2 : 2;
+      zoomTo(state.zoom * f, ev.clientX - b.left, ev.clientY - b.top);
+    });
+
+    // Drag with the mouse to pan (touch already scrolls the box).
+    var drag = null;
+    var lastDragEnd = 0;
+    scroll.addEventListener("pointerdown", function (ev) {
+      if (ev.pointerType !== "mouse" || ev.button !== 0 || ev.target.closest(".hotspot")) return;
+      var b = scroll.getBoundingClientRect();
+      if (ev.clientX - b.left >= scroll.clientWidth || ev.clientY - b.top >= scroll.clientHeight) return; // a scrollbar
+      drag = { x: ev.clientX, y: ev.clientY, left: scroll.scrollLeft, top: scroll.scrollTop, moved: false };
+      scroll.setPointerCapture(ev.pointerId);
+      ev.preventDefault(); // no image drag or text selection to take the gesture over
+    });
+    scroll.addEventListener("pointermove", function (ev) {
+      if (!drag) return;
+      var dx = ev.clientX - drag.x;
+      var dy = ev.clientY - drag.y;
+      if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+      drag.moved = true;
+      scroll.classList.add("dragging");
+      scroll.scrollLeft = drag.left - dx;
+      scroll.scrollTop = drag.top - dy;
+    });
+    function endDrag() {
+      if (drag && drag.moved) lastDragEnd = Date.now();
+      drag = null;
+      scroll.classList.remove("dragging");
+    }
+    scroll.addEventListener("pointerup", endDrag);
+    scroll.addEventListener("pointercancel", endDrag);
+
+    var ov = $("#overview");
+    var ovDrag = false;
+    ov.addEventListener("pointerdown", function (ev) {
+      ovDrag = true;
+      ov.setPointerCapture(ev.pointerId);
+      panFromOverview(ev);
+      ev.preventDefault();
+    });
+    ov.addEventListener("pointermove", function (ev) {
+      if (ovDrag) panFromOverview(ev);
+    });
+    ov.addEventListener("pointerup", function () {
+      ovDrag = false;
+    });
+    ov.addEventListener("pointercancel", function () {
+      ovDrag = false;
+    });
+
+    // Keep the same part of the map in view when the window changes size; stay at Fit if it was at Fit.
+    window.addEventListener("resize", function () {
+      if (!state.naturalW) return;
+      var atFit = state.zoom <= state.fit + 1e-6;
+      measureFit();
+      zoomTo(atFit ? state.fit : state.zoom);
+    });
   }
 
   function paint() {
@@ -166,7 +295,9 @@
     function onReady() {
       state.naturalW = img.naturalWidth || (state.data.image && state.data.image.width) || 0;
       state.naturalH = img.naturalHeight || (state.data.image && state.data.image.height) || 0;
-      resetDefaultZoom();
+      $("#overview-img").src = img.src;
+      $("#map-scroll").style.aspectRatio = state.naturalW + " / " + state.naturalH; // the board's own shape
+      fitAll();
       paint();
     }
 
@@ -197,34 +328,17 @@
       });
     }
 
-    var range = $("#zoom-range");
-    if (range) {
-      range.addEventListener("input", function () {
-        state.zoom = Number(range.value) / 100;
-        applyZoom();
-      });
-    }
-    var zin = $("#zoom-in");
-    if (zin) {
-      zin.addEventListener("click", function () {
-        state.zoom = Math.min(ZOOM_MAX, state.zoom + ZOOM_STEP);
-        applyZoom();
-      });
-    }
-    var zout = $("#zoom-out");
-    if (zout) {
-      zout.addEventListener("click", function () {
-        state.zoom = Math.max(ZOOM_MIN, state.zoom - ZOOM_STEP);
-        applyZoom();
-      });
-    }
-    var zfit = $("#zoom-fit");
-    if (zfit) {
-      zfit.addEventListener("click", fitWidth);
-    }
-    window.addEventListener("resize", function () {
-      // Keep current zoom on resize; user can hit Fit.
+    $("#zoom-range").addEventListener("input", function (ev) {
+      zoomTo(Number(ev.target.value) / 100);
     });
+    $("#zoom-in").addEventListener("click", function () {
+      zoomTo(state.zoom * ZOOM_FACTOR);
+    });
+    $("#zoom-out").addEventListener("click", function () {
+      zoomTo(state.zoom / ZOOM_FACTOR);
+    });
+    $("#zoom-fit").addEventListener("click", fitAll);
+    wireView();
 
     await load();
   }
