@@ -1,7 +1,8 @@
 """publish_draft.py [--check | --preview DIR]
 
-Draw the system schematic with the schematic-maps plugin and publish it as the marked draft in docs/ops:
-schematic-system-draft.svg (with a red DRAFT mark in the title block) and a Letter landscape PDF printed by
+Draw the system schematic with the schematic-maps plugin and publish it in docs/ops:
+schematic-system-draft.svg (the file keeps its name; the DRAFT mark came off when the owner approved the helix-join
+release, 2026-11-17) and a Letter landscape PDF printed by
 Chrome, and one SVG per station detail sheet (the `detail_sheets` preference) in docs/ops/stations/. Inputs: the layer files in jmri/layouts/hart/data/schematic/ and the plan graphs in its inputs/ folder
 (track only, regenerated from the owner's AnyRail export as its README says). The plugin is this checkout's submodule
 external/model-railroad-skills at its pinned commit (`git submodule update --init external/model-railroad-skills`
@@ -11,7 +12,7 @@ in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plu
 any differ). It also
 fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for car counts) no longer match
 jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
---preview DIR draws the marked SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
+--preview DIR draws the SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
 title block's date and revision are left alone.
 When the drawing itself (everything but the title block) differs from main's, publishing sets `date` to today and
 `revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
@@ -55,10 +56,8 @@ INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph,
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
 
-# the plugin's title box (it grows for a long title line); the DRAFT mark sits in its bottom right corner
+# the plugin's title box (it grows for a long title line), drawn after the drawing itself
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
-DRAFT = ('<text x="{x:g}" y="784" font-size="16" text-anchor="end" font-weight="bold" '
-         'letter-spacing="3" fill="#c00">DRAFT</text>\n')
 
 
 def page_prefs():
@@ -127,15 +126,6 @@ def solved_sheet(sheet):
         return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
 
 
-def mark(svg):
-    """The drawing with the DRAFT mark added just before the end."""
-    end = svg.rstrip().rfind("</svg>")
-    box = TITLE_BOX.search(svg)
-    if end < 0 or not box:
-        sys.exit("the plugin's title block moved; place the DRAFT mark again in publish_draft.py")
-    return svg[:end] + DRAFT.format(x=24 + float(box.group(1)) - 10) + svg[end:].rstrip() + "\n"
-
-
 def draw():
     with tempfile.TemporaryDirectory() as tmp:
         svg = Path(tmp) / "sheet.svg"
@@ -145,11 +135,11 @@ def draw():
         print(run.stdout + run.stderr, end="")
         if run.returncode:
             sys.exit(run.returncode)
-        return mark(svg.read_text())
+        return svg.read_text()
 
 
 def draw_stations():
-    """{file name: marked SVG} of every station detail sheet (the detail_sheets preference), drawn from both
+    """{file name: SVG} of every station detail sheet (the detail_sheets preference), drawn from both
     inputs so the sheet-wide look (helix coils, mileposts) reaches them as it does the overall sheet."""
     with tempfile.TemporaryDirectory() as tmp:
         run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(DATA),
@@ -158,7 +148,7 @@ def draw_stations():
         print(run.stdout + run.stderr, end="")
         if run.returncode:
             sys.exit(run.returncode)
-        return {f.name: mark(f.read_text()) for f in sorted(Path(tmp).glob("*.svg"))}
+        return {f.name: f.read_text() for f in sorted(Path(tmp).glob("*.svg"))}
 
 
 def stations_differ(sheets):

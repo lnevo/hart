@@ -231,3 +231,15 @@ The generated desks the owner approved in real CATS on 2026-11-15 are the live d
 
 **Sandbox.** `tools/hosts/sandbox/README.md` sets up the profile copy, local broker and runs. A new session builds its own sandbox folder.
 
+## Approved, 2026-11-17: the helix-join release
+
+The owner reviewed the release candidate in a sandbox PanelPro and in sandbox CATS, and approved it.
+- **PanelPro:** the helix joined, with staging's end bumpers at McKees Rocks and McKeesport becoming joins. The staging re-approval is recorded with `--approve-staging`; the fingerprint was unchanged, so only the date moved. Also approved: the main/upper placements and the parked NX, Dispatcher System and USS CTC.
+- **CATS:** main and upper are CTC on the CTC desk. The owner asked for this after a first look. Before, main and upper were ABS, so a route set up the helix from staging ran on past the top. Now CATS holds the main/upper signals, and the route stops at Mast 136RA (main, via McKees Rocks and 135-H1) or Mast 136RB (upper, via McKeesport and 135-H2). The owner tested it and it worked. The ABS desk stays all ABS.
+- **DRAFT mark:** it came off the system schematic and the station sheets, and the site's wording no longer says draft. The schematic stays at revision 10. The files keep their `-draft` names so links stay.
+
+Left after release:
+- Three upper-level labels have no clean spot: Track 231-235, Track 129-135 2 and the 227-233 readout.
+- Main/upper detection comes with the into-service work (`DETECT_MAIN_UPPER`).
+- Switch 225 is one block on the CATS desk.
+- Unparking NX, the Dispatcher System and USS CTC means refreshing `parked/tables_parked.xml` (its README).

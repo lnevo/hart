@@ -1,4 +1,4 @@
-# The staging cut-over candidate's "HART Railroad" panel as approved by the owner in PanelPro on 2026-11-16
+# The staging cut-over candidate's "HART Railroad" panel as approved by the owner in PanelPro on 2026-11-17
 # (build_layout_le.py --approve-staging; checked by --levels staging --as-live and --as-live). One line
 # per element, in panel order: its sha256 (attributes sorted, layout whitespace dropped) and what it
 # is; the first line is the panel's own attributes, the last the whole panel's hash.

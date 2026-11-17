@@ -33,7 +33,7 @@ class StationMapsTest(unittest.TestCase):
         sc = CREW["schematic"]
         self.assertEqual(PUBLISHED[sc["svg"]], "docs/ops/schematic-system-draft.svg")
         self.assertEqual(PUBLISHED[sc["pdf"]], "docs/ops/schematic-system-draft.pdf")
-        self.assertIn("DRAFT", (ROOT / PUBLISHED[sc["svg"]]).read_text())
+        self.assertNotIn(">DRAFT<", (ROOT / PUBLISHED[sc["svg"]]).read_text())
 
     def test_every_map_has_a_live_and_an_archive_page(self):
         for m in CREW["maps"]:
