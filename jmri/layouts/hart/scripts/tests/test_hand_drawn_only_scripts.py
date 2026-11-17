@@ -16,7 +16,11 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import paths, tables  # noqa: E402
+from hartlib import hand_drawn, paths, tables  # noqa: E402
+
+# The one-off scripts edit only the hand-drawn panel: since the cut-over the repo's tables.xml holds the generated
+# one, so they run on the last hand-drawn tables (git, hartlib.hand_drawn)
+HAND_DRAWN = hand_drawn.skip_unless_available()
 
 ONE_OFFS = ("apply_yard_throat_blocks.py", "apply_le_cleanup.py", "add_yard_ladder_le_icons.py",
             "add_digicon_le_signal_icons.py")
@@ -24,7 +28,7 @@ ONE_OFFS = ("apply_yard_throat_blocks.py", "apply_le_cleanup.py", "add_yard_ladd
 
 class HandDrawnOnly(unittest.TestCase):
     def test_each_one_off_refuses_a_generated_panel_and_writes_nothing(self) -> None:
-        doc = tables.load(paths.REPO_TABLES_XML)
+        doc = tables.load(HAND_DRAWN)
         tables.layout_editor(doc.root).insert(1, tables.generated_marker_label())
         with tempfile.TemporaryDirectory() as d:
             home = Path(d) / "home"
@@ -52,7 +56,7 @@ class ProfileSync(unittest.TestCase):
             (home / "JMRI_UserFiles").mkdir(parents=True)
             profile = home / "JMRI_UserFiles" / "tables.xml"
             profile.write_text("<layout-config/>")
-            doc = tables.load(paths.REPO_TABLES_XML)
+            doc = tables.load(HAND_DRAWN)
             tables.layout_editor(doc.root).insert(1, tables.generated_marker_label())
             panel = Path(d) / "tables.xml"
             panel.write_bytes(doc.tobytes())

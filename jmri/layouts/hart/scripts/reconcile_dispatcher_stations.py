@@ -23,6 +23,7 @@ generated graph is absent or the audit reports it stale.
 from __future__ import annotations
 
 import argparse
+import copy
 import os
 import stat
 import sys
@@ -595,7 +596,28 @@ def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | 
         }
         for name in (move_to_name, progress_name, occ_name):
             rows = existing[name]
-            if not rows:
+            if generated and len(rows) == 1:
+                # A generated panel's cluster icon is the one the build carried (and JMRI stored: its own attribute
+                # order, fonts, editable flag): kept as it is, only moved to its spot when it stands elsewhere, so
+                # a run after Stage 1 changes nothing (idempotent, owner 2026-11-16)
+                kept = copy.deepcopy(rows[0])
+                kept.tail = None
+                moved = xy(rows[0]) != expected_positions[name]
+                if moved:
+                    kept.set("x", str(expected_positions[name][0]))
+                    kept.set("y", str(expected_positions[name][1]))
+                retext = False
+                if name == move_to_name:        # its text as station_display gives it ("K-1", not "Track K-1")
+                    display = station_display(station, True)
+                    for e in [kept] + [c for c in kept if c.tag.endswith("Text")]:
+                        if e.get("text") is not None and e.get("text") != display:
+                            e.set("text", display)
+                            retext = True
+                if moved or retext:
+                    changes.icons_repositioned += 1
+                    changes.details.append(f"reconciled icon {name}")
+                expected_icons[name] = kept
+            elif not rows:
                 changes.icons_created += 1
                 changes.details.append(f"created icon {name}")
             elif (

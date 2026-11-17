@@ -24,11 +24,12 @@ OLD = (
 
 class PanelBackground(unittest.TestCase):
     def test_source_is_in_resources(self):
-        self.assertTrue((ROOT / "jmri/resources/misc/hart_panel_bg.jpg").is_file())
+        self.assertTrue((ROOT / "jmri/resources/misc/hart_panel_bg_plain.jpg").is_file())
 
     def test_tables_path_matches_install_folder(self):
+        # the generated panel's backdrop: the picture without the compass rose (le_overlay, since the cut-over)
         tables = paths.TABLES_XML.read_text(encoding="utf-8")
-        self.assertIn("preference:resources/misc/hart_panel_bg.jpg", tables)
+        self.assertIn("preference:resources/misc/hart_panel_bg_plain.jpg", tables)
 
     def test_every_host_installs_it(self):
         self.assertIn('"$stage/cats/resources/misc"', SYNC)

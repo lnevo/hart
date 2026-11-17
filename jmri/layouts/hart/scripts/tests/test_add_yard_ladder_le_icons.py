@@ -42,10 +42,16 @@ class YardLadderTriangles(unittest.TestCase):
             self.assertNotIn("preference:hart/icons", url)
 
     def test_deploy_tables_use_preference_buttons(self) -> None:
-        tables = HART_ROOT / "output" / "tables.xml"
-        text = tables.read_text(encoding="utf-8")
-        self.assertIn("preference:resources/buttons/triangle_idle.png", text)
-        self.assertNotIn("preference:hart/icons/triangle", text)
+        # the hand-drawn panel (last hand-drawn tables, git) carried the yard ladder buttons from the preference
+        # resources; the generated panel carries none (le_overlay.LEFT_OUT), and neither the old icon path
+        import sys
+        sys.path.insert(0, str(HART_ROOT.parents[2] / "tools/hartlib/src"))
+        from hartlib import hand_drawn
+        hand = hand_drawn.skip_unless_available().read_text(encoding="utf-8")
+        self.assertIn("preference:resources/buttons/triangle_idle.png", hand)
+        self.assertNotIn("preference:hart/icons/triangle", hand)
+        live = (HART_ROOT / "output" / "tables.xml").read_text(encoding="utf-8")
+        self.assertNotIn("preference:hart/icons/triangle", live)
 
 
 if __name__ == "__main__":

@@ -113,6 +113,13 @@ The main and upper levels' control-point masts until the cut-over: `PATH` (`main
 `internal_head()` (IH3332 -> IH93332), `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
 `audit_panel_contracts.py` and `polish_hart_layout_editor.py`.
 
+### `hartlib.hand_drawn`
+
+The last hand-drawn `tables.xml`, read from git at `COMMIT` (main just before the Layout Editor cut-over): `tables_bytes()`,
+`tables_path()` (a read-only temporary copy, one per process) and, for tests, `skip_unless_available()`. Used by
+`build_layout_le.py` (`template_tables`, `--freeze`) and the tests of the cut-over and of the one-off scripts that only
+ever edited the hand-drawn panel. No copy of the old file is kept in the tree.
+
 ## The tables.xml traps the lookups exist for
 
 - Several `<sensors>` and `<turnouts>` sections (MQTT, internal, LCC). `root.find("turnouts")`

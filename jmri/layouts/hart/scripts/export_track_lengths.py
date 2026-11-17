@@ -20,12 +20,17 @@ DOC = ROOT / "docs/jmri/TRACK_LENGTHS.md"
 MM = 25.4
 
 
+# The main and upper levels' blocks stand on internal system names (IB:C3:...) until they are imported, with
+# their plan lengths from the device map (build_layout_le.py): not measured yet, so not in the CSV, and not checked.
+PLAN_BLOCKS = "IB:C3:"
+
+
 def table_lengths():
-    """Block userName -> length in mm, for blocks that have both."""
+    """Block userName -> length in mm, for blocks that have both, but the main and upper plan blocks (PLAN_BLOCKS)."""
     return {
         tables.user_name(b): float(b.get("length"))
         for b in tables.blocks(tables.read(TABLES))
-        if b.get("length") and tables.user_name(b)
+        if b.get("length") and tables.user_name(b) and not tables.system_name(b).startswith(PLAN_BLOCKS)
     }
 
 
