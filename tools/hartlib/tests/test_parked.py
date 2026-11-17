@@ -3,6 +3,7 @@ restore puts them back."""
 import sys
 import tempfile
 import unittest
+from unittest import mock
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -140,8 +141,13 @@ class Parked(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables_parked.xml"
             path.write_bytes(parked.to_bytes(self.doc, "3bd3ac64"))
-            first = parked.read(path)
-            self.assertIs(parked.read(path), first)
+            with mock.patch.object(parked.ET, "fromstring", wraps=parked.ET.fromstring) as parse:
+                first = parked.read(path)
+                second = parked.read(path)
+            self.assertEqual(parse.call_count, 1)                   # parsed once
+            self.assertIsNot(second, first)                         # each caller gets its own copy
+            second.set("source", "changed")
+            self.assertNotEqual(parked.read(path).get("source"), "changed")
             self.assertEqual([f.get("name") for f in first], ["nx", "dispatcher", "uss"])
             path.write_bytes(parked.to_bytes(parked.split(ET.fromstring(TABLES), {"uss"}), "3bd3ac65"))
             again = parked.read(path)                               # a new version of the file is parsed again

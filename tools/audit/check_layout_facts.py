@@ -667,7 +667,8 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
         uss, uss_text = t, Path(tables).read_text(encoding="utf-8")
     else:
         uss = Tables(tables, root=uss_root)
-        uss_text = hart_tables.Tables(root=uss_root).tobytes().decode("utf-8")
+        pe = next(iter(uss_root.iter("paneleditor")), None)       # only the USS panel is read from the text
+        uss_text = ET.tostring(pe, encoding="unicode") if pe is not None else ""
     check_ctc_buttons(switches, uss, occupancy_sensors(occupancy), r)
     cells = facts.load_uss_cells(data)  # the board's grid, frozen from the hand-wired desk (uss_board_cells.csv)
     gui_text = Path(gui).read_text(encoding="utf-8")

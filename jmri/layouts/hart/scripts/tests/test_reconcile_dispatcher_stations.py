@@ -244,6 +244,8 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
                 return real(path)
 
             reconciler.parse_xml = counted
+            override = reconciler.paths.exit_if_overridden
+            reconciler.paths.exit_if_overridden = lambda name: None     # the test writes a temp panel, whatever HART_TABLES says
             try:
                 self.assertEqual(reconciler.main(["--panel", str(panel), "--no-sync"]), 0)
                 self.assertEqual(len(parses), 1)
@@ -253,6 +255,7 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
                 self.assertEqual(reconciler.main(["--panel", str(panel.with_name("missing.xml")), "--check"]), 2)
             finally:
                 reconciler.parse_xml = real
+                reconciler.paths.exit_if_overridden = override
 
 
 class StageOneLampsAndSensorsTest(unittest.TestCase):

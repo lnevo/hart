@@ -26,7 +26,7 @@ name, and the parked file holds each parked feature's parts.
 from __future__ import annotations
 
 import copy
-import functools
+import hashlib
 import re
 import xml.etree.ElementTree as ET
 from collections import Counter
@@ -279,16 +279,19 @@ def freeze(commit: str, out: Path = PARKED_XML) -> ET.Element:
 
 
 def read(path: Path = PARKED_XML) -> ET.Element:
-    """The parked file's root, parsed once per process and file version (path, mtime, size): several checks read
-    it. Shared between callers, so read-only; copy it (copy.deepcopy) before changing it, as restore does."""
-    p = Path(path)
-    st = p.stat()
-    return _read_once(str(p.resolve()), st.st_mtime_ns, st.st_size)
+    """The parked file's root, parsed once per process and file content (keyed by the bytes' hash, so a rewrite
+    within one timestamp tick is read again): several checks read it. Each call gets its own copy, so a caller that
+    changes it changes nothing another caller sees."""
+    data = Path(path).read_bytes()
+    digest = hashlib.sha256(data).hexdigest()
+    if digest not in _PARSED:
+        if len(_PARSED) >= 4:                           # a few versions at most: tests write many
+            _PARSED.pop(next(iter(_PARSED)))
+        _PARSED[digest] = ET.fromstring(data)
+    return copy.deepcopy(_PARSED[digest])
 
 
-@functools.cache
-def _read_once(path: str, _mtime_ns: int, _size: int) -> ET.Element:
-    return ET.parse(path).getroot()
+_PARSED: dict[str, ET.Element] = {}                    # read(): sha256 of the file -> its parsed root
 
 
 def restore(root: ET.Element, doc: ET.Element, features=None) -> ET.Element:
