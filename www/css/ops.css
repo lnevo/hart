@@ -2074,6 +2074,41 @@ table.roster th {
   margin-bottom: 0.9rem;
 }
 
+.card:has(.card-live) {
+  position: relative;
+}
+
+/* "Live" pill on a hub card whose page is built from the railroad's current data files
+   (tables.xml, the CATS desk, the Layout Editor panel, the LCOS inventory) at each site update. */
+.card .card-live {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.55rem 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+.card .card-live::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
 .card .card-kind {
   margin: 0 0 0.2rem;
   font-size: 0.74rem;
