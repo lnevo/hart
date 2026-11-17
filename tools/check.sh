@@ -73,6 +73,7 @@ run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
 run layout-index python3 www/scripts/build_layout_index.py --check
 run layout-index-cats python3 www/scripts/build_cats_layout_index.py --check
+run wiring-json python3 www/scripts/build_wiring_json.py --check
 run track-lengths python3 jmri/layouts/hart/scripts/export_track_lengths.py --check
 run speedmatch-routes python3 jmri/layouts/hart/scripts/speedmatch/build_routes.py --check
 run panel-contracts python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict

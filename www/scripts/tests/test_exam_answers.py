@@ -30,11 +30,13 @@ class ExamAnswers(unittest.TestCase):
         out = node(
             f"const m=require({json.dumps(str(SCRIPT))});"
             f"const src=require('fs').readFileSync({json.dumps(str(RUN))},'utf8');"
-            "console.log(JSON.stringify(m.extract(src)))"
+            "const qs=m.extract(src);console.log(JSON.stringify({qs,generated:qs.generated}))"
         )
-        qs = json.loads(out)
+        data = json.loads(out)
+        qs = data["qs"]
         calls = len(re.findall(r"\bask\(\{", RUN.read_text()))
-        self.assertEqual(len(qs), calls)
+        self.assertEqual(len(qs) + data["generated"], calls)
+        self.assertGreater(data["generated"], 0, "the signals run's questions drawn at each signal")
         for q in qs:
             self.assertTrue(q["right"] and q["wrong"] and q["why"], q["title"])
             # Values filled in at play time must read as a friendly name, never a raw stub.
@@ -44,11 +46,11 @@ class ExamAnswers(unittest.TestCase):
     # A minimal run.html: the pools, the modern-run markers, the source names and a figure helper.
     FRAME = (
         'const SRC={SC:"1949 Standard Code",GC:"GCOR"};function semSvg(a){return "<svg>"+a+"</svg>"}'
-        "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function finish(){}"
+        "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function startSIG(){}function startYARD(){{YARD}}function finish(){}"
     )
 
-    def mini(self, body="", modern=""):
-        src = self.FRAME.replace("{BODY}", body).replace("{MODERN}", modern)
+    def mini(self, body="", modern="", yard=""):
+        src = self.FRAME.replace("{BODY}", body).replace("{MODERN}", modern).replace("{YARD}", yard)
         return json.loads(node(
             f"const m=require({json.dumps(str(SCRIPT))});"
             f"console.log(JSON.stringify(m.extract({json.dumps(src)})))"
@@ -74,8 +76,8 @@ class ExamAnswers(unittest.TestCase):
         self.assertEqual(q[0]["body"], "a b 2 c")
 
     def test_modern_run_label_source_names_and_figures(self):
-        q = self.mini(self.Q % "", self.Q % ',extra:semSvg(0)')
-        self.assertEqual([x["where"] for x in q], ["1949 run", "Modern run"])
+        q = self.mini(self.Q % "", self.Q % ',extra:semSvg(0)', self.Q % "")
+        self.assertEqual([x["where"] for x in q], ["1949 run", "Modern run", "Yard job"])
         self.assertEqual(q[0]["src"], "GCOR · 6.13")
         self.assertEqual(q[1]["extra"], "<svg>0</svg>")
 
@@ -119,6 +121,50 @@ class ExamAnswers(unittest.TestCase):
                 f"const m=require({json.dumps(str(SCRIPT))});"
                 "m.render([{line:1,sec:'def',src:'',title:'t',body:'b',right:'r',wrong:[],why:'y',ref:'nope',extra:''}],{def:'D'},{})"
             )
+
+    def test_signal_tables_cover_the_signals_run(self):
+        out = node(
+            f"const m=require({json.dumps(str(SCRIPT))});const S=m.loadSignals();const g=m.generatedHtml(S);"
+            "console.log(JSON.stringify({n:g.n,a:S.ASPECTS.length,r:new Set(S.ROUTE.map(x=>x.heads)).size,p:Object.keys(S.PLATES).filter(k=>k!=='none').length,"
+            "badW:S.ASPECTS.filter(a=>a.w.length!==3||a.w.some(r=>!S.ASPECTS.find(x=>x.r===r))).map(a=>a.r)}))"
+        )
+        d = json.loads(out)
+        self.assertEqual(d["badW"], [])
+        # one entry per aspect, per distinct route-signal look, and per plate the game draws
+        self.assertEqual(d["n"], d["a"] + d["r"] + d["p"])
+        html = (WWW / "exam" / "answers.html").read_text()
+        self.assertIn('id="signals"', html)
+        for rule in ("Rule 281", "Rule 292", "A plate at Stop", "SA plate at Stop", "carries an SA plate"):
+            self.assertIn(rule, html)
+
+    def test_signal_stories_vary_without_repeats(self):
+        signals = WWW / "exam" / "signals.js"
+        out = node(
+            "const vm=require('vm'),fs=require('fs');const c={};vm.createContext(c);"
+            f"vm.runInContext(fs.readFileSync({json.dumps(str(signals))},'utf8')+';this.p=pickStories',c);"
+            "let seed=1;const rand=()=>(seed=(seed*16807)%2147483647)/2147483647;"
+            "const keys=['clear','approach','stopnum','meet'],fixed=[null,'clear','stopnum',null,'pplate','granite','cp',null];"
+            "const runs=[];for(let n=0;n<400;n++)runs.push(c.p(fixed,i=>i===2?keys:keys,['meet'],rand));"
+            "console.log(JSON.stringify(runs))"
+        )
+        runs = json.loads(out)
+        fixed = [None, "clear", "stopnum", None, "pplate", "granite", "cp", None]
+        counts = {}
+        for r in runs:
+            for i, k in enumerate(r):
+                if fixed[i] is not None:
+                    self.assertEqual(k, fixed[i], "a set piece keeps its story")
+                    continue
+                self.assertNotEqual(k, r[i - 1] if i else None, f"leg {i} repeats the leg before: {r}")
+                if i + 1 < len(r) and fixed[i + 1] is not None:
+                    self.assertNotEqual(k, fixed[i + 1], f"leg {i} repeats the set piece after it: {r}")
+                counts[k] = counts.get(k, 0) + 1
+            self.assertLessEqual(r.count("meet"), 1, f"two meets in one run: {r}")
+        self.assertLess(counts.get("clear", 0) / sum(counts.values()), 0.5, counts)
+
+    def test_game_and_deck_load_the_shared_signals(self):
+        for page in (RUN, INDEX):
+            self.assertIn('<script src="signals.js"></script>', page.read_text(), page.name)
 
     def test_right_answer_not_always_first(self):
         html = (WWW / "exam" / "answers.html").read_text()

@@ -22,7 +22,7 @@ def _portal(tmp: str) -> Path:
         "guides/moved.html": '<title>Moved — HART</title><script>HartNav.mountChrome("guide")</script>',
         "library/h.html": '<title>H — HART</title><script>HartNav.mountChrome("articles")</script>',
         "crew/ck1/index.html": '<title>CK1 — HART</title><script>HartNav.mountChrome("crew")</script>',
-        "roster/index.html": "<title>Roster — HART</title>",
+        "roster/index.html": "<title>Device viewer — HART</title>",
         "guides/index.html": '<title>Guides — HART</title><script>HartNav.mountChrome("guide")</script>',
     }
     for name, text in pages.items():

@@ -390,7 +390,7 @@ def jmri_additions():
 
 
 def roster():
-    """roster-index: the Brick corner of the panel beside six Brick rows of the device roster."""
+    """roster-index: the Brick corner of the panel beside six Brick rows of the device viewer."""
     from PIL import Image
 
     brick = _panel().crop((228, 165, 528, 345))

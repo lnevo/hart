@@ -82,7 +82,7 @@
       .then(init)
       .catch(function (err) {
         console.error(err);
-        window.HARTOps.renderError(document.querySelector("main .table-wrap"), { what: "the device roster", err: err });
+        window.HARTOps.renderError(document.querySelector("main .table-wrap"), { what: "the device viewer", err: err });
       });
   });
 })();

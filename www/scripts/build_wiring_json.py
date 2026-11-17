@@ -22,6 +22,10 @@ With no arguments it picks the highest-numbered workbook of each kind in docs/wi
 (the live git copy). Data problems found along the way are printed as warnings; they do
 not stop the build. Network details (IP addresses, hostnames, serial ports, machine paths,
 credentials) are scrubbed from every cell before it reaches the JSON.
+
+--check builds without writing and exits 1 when either JSON file holds other data than the
+workbooks give. The build date and the workbook's save date are ignored, so re-saving a
+workbook with no change does not fail it. tools/check.sh runs it.
 """
 
 from __future__ import annotations
@@ -685,6 +689,38 @@ def prune(x):
 
 # —— Main ——————————————————————————————————————————————————————————
 
+def shown(path: Path) -> str:
+    """path relative to the repo when it lies inside it, for messages."""
+    try:
+        return str(path.resolve().relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def render(data: dict) -> str:
+    return json.dumps(prune(data), indent=1, ensure_ascii=False) + "\n"
+
+
+DATES = ("built", "modified")  # when the JSON was built and when the workbook was last saved
+
+
+def stale(path: Path, data: dict) -> bool:
+    """True when the file at path is missing or holds other data than `data`, apart from the dates in source."""
+    if not path.is_file():
+        return True
+    try:
+        old = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return True
+    new = json.loads(render(data))
+    if not isinstance(old, dict) or not isinstance(old.get("source"), dict) or not isinstance(new.get("source"), dict):
+        return old != new
+    for key in DATES:
+        old["source"].pop(key, None)
+        new["source"].pop(key, None)
+    return old != new
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--inventory", type=Path, default=latest("LCOS_Layout_Inventory_v*.xlsx"),
@@ -696,6 +732,8 @@ def main() -> int:
                          "for the split workbook, v85 for signals_split_v8; else --inventory)")
     ap.add_argument("--out-dir", type=Path, default=PORTAL / "data", help="where the JSON goes")
     ap.add_argument("-q", "--quiet", action="store_true", help="don't list data warnings")
+    ap.add_argument("--check", action="store_true",
+                    help="write nothing; exit 1 if either JSON file is out of date with the workbooks")
     args = ap.parse_args()
     if not args.inventory or not args.inventory.exists():
         ap.error(f"inventory workbook not found: {args.inventory}")
@@ -720,10 +758,20 @@ def main() -> int:
     splits["source"]["built"] = stamp
     splits["source"]["inventory"] = split_inv["source"]["version"]
 
+    outputs = (("wiring-inventory.json", inv), ("signal-splits.json", splits))
+    if args.check:
+        old = [name for name, data in outputs if stale(args.out_dir / name, data)]
+        for name in old:
+            print(f"STALE: {shown(args.out_dir / name)} differs from {args.inventory.name} / {args.splits.name}; "
+                  "rebuild with the same arguments, without --check")
+        if not old:
+            print(f"wiring viewer data is current with {args.inventory.name} and {args.splits.name}")
+        return 1 if old else 0
+
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    for name, data in (("wiring-inventory.json", inv), ("signal-splits.json", splits)):
+    for name, data in outputs:
         p = args.out_dir / name
-        p.write_text(json.dumps(prune(data), indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        p.write_text(render(data), encoding="utf-8")
         print(f"wrote {p} ({p.stat().st_size // 1024} KB)")
 
     n_pins = sum(len(b["pins"]) for n in inv["nodes"] for b in n["outputs"] + n["inputs"])
