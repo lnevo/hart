@@ -83,11 +83,15 @@ class RoundTripTest(unittest.TestCase):
             self.assertFalse(doc.save(out), "an identical file is not rewritten")
 
     def test_matches_the_existing_elementtree_writers_on_the_repo_file(self):
-        # apply_yard_throat_blocks and friends: ET.parse + write(xml_declaration=True).
+        # apply_yard_throat_blocks and friends: ET.parse + write(xml_declaration=True), on the last tables those
+        # scripts wrote (the hand-drawn ones, git): since the cut-over the repo's file is a PanelPro Store, whose
+        # header (stylesheet, quotes) test_panelpro_store_is_byte_identical covers
+        from hartlib import hand_drawn
+        source = hand_drawn.skip_unless_available()
         with tempfile.TemporaryDirectory() as d:
             out = Path(d) / "et.xml"
-            ET.parse(paths.TABLES_XML).write(out, encoding="UTF-8", xml_declaration=True)
-            self.assertEqual(tables.load().tobytes(), out.read_bytes())
+            ET.parse(source).write(out, encoding="UTF-8", xml_declaration=True)
+            self.assertEqual(tables.load(source).tobytes(), out.read_bytes())
 
     def test_panelpro_store_is_byte_identical(self):
         doc = tables.loads(STORE)
@@ -336,8 +340,12 @@ class GeneratedPanelMarkerTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "'HART Railroad' has 2 generated-panel markers"):
             tables.generated_panel(self.panel(2))
 
-    def test_the_repo_panel_is_hand_drawn(self):
-        self.assertFalse(tables.generated_panel(tables.layout_editor(tables.read(paths.REPO_TABLES_XML))))
+    def test_the_repo_panel_is_generated_and_the_last_hand_drawn_one_is_not(self):
+        # the Layout Editor cut-over (Phase 5): the repo's panel is the generated one; the last hand-drawn tables
+        # stay readable from git (hartlib.hand_drawn) for what still needs them
+        from hartlib import hand_drawn
+        self.assertTrue(tables.generated_panel(tables.layout_editor(tables.read(paths.REPO_TABLES_XML))))
+        self.assertFalse(tables.generated_panel(tables.layout_editor(tables.read(hand_drawn.skip_unless_available()))))
 
     def test_hand_drawn_only(self):
         with tempfile.TemporaryDirectory() as d:

@@ -17,7 +17,13 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import paths, tables  # noqa: E402
+from hartlib import hand_drawn, paths, tables  # noqa: E402
+
+
+def hand() -> Path:
+    """The last hand-drawn tables (git, hartlib.hand_drawn): what the build starts from after the cut-over. Skips
+    the test when git does not have them."""
+    return hand_drawn.skip_unless_available()
 
 
 def _load(name: str, path: Path):
@@ -113,7 +119,7 @@ def frozen_blocks(inputs) -> set:
 def built():
     """(trial bytes, Panel, names, bands): built once for every test module that needs it."""
     with contextlib.redirect_stdout(io.StringIO()):
-        return B.build()
+        return B.build(hand())
 
 
 class Built(unittest.TestCase):
@@ -121,7 +127,7 @@ class Built(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.data, cls.P, cls.names, cls.bands = built()
         cls.root = tables.loads(cls.data).root
-        cls.live = tables.read(paths.TABLES_XML)
+        cls.live = tables.read(hand())
         cls.le = tables.layout_editor(cls.root, B.PANEL_NAME)
         cls.inputs = B.le_inputs.load()          # the staging facts frozen from the hand-drawn panel
         cls.items = {el.get("ident"): el for el in tables.elements(cls.le) if el.get("ident")}
@@ -277,7 +283,7 @@ class Built(unittest.TestCase):
         doc = tables.loads(self.data)
         removed = strip_new(doc.root)
         self.assertEqual(removed, 1 + 41 + 3 * 121 + 53 + 41)      # + main and upper heads and masts
-        self.assertEqual(doc.tobytes(), paths.TABLES_XML.read_bytes())
+        self.assertEqual(doc.tobytes(), hand().read_bytes())
 
     def test_no_name_collisions(self) -> None:
         live_users = {tables.user_name(b) for b in tables.turnouts(self.live) + tables.blocks(self.live)
@@ -490,7 +496,7 @@ class ReviewFixes(unittest.TestCase):
                 B.le_inputs.live_chains(ET.fromstring(xml))
 
     def test_tables_with_no_names_only_block_pass_stop(self) -> None:
-        doc = tables.load(paths.TABLES_XML)
+        doc = tables.load(hand())
         blocks_el = doc.root.find("blocks")
         for b in tables.blocks(doc.root, full=False):
             blocks_el.remove(b)
@@ -546,7 +552,7 @@ class SecondReview(unittest.TestCase):
         B.check_slots(P, [dict(want[0], ident="EB9", slot="west")], le_mod)
 
     def test_slots_naming_a_mast_by_system_name_resolve(self) -> None:
-        root = tables.read(paths.TABLES_XML)
+        root = tables.read(hand())
         live = copy.deepcopy(tables.layout_editor(root, LIVE_PANEL))
         system = tables.mast_system_names(root)
         point = next(p for p in live.findall("positionablepoint") if p.get("eastboundsignalmast") == "Mast 16R")

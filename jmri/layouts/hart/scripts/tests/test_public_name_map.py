@@ -372,7 +372,12 @@ class PublicNameMapContractTest(unittest.TestCase):
         self.assertEqual(violations, [])
 
     def test_live_tables_usernames_appear_as_current(self) -> None:
-        """Every live public userName must be a `current` or `proposed` in the map."""
+        """Every live public userName must be a `current` or `proposed` in the map. The main and upper levels'
+        objects stand on internal system names until they are imported (blocks IB:C3:, masts and heads on IH9
+        heads; build_layout_le.py, hartlib.level_masts): their names are the device map's, not yet the map's."""
+        import sys
+        sys.path.insert(0, str(HART_ROOT.parents[2] / "tools/hartlib/src"))
+        from hartlib import level_masts
         by_name = {(row["layer"], row["current"]) for row in self.rows} | {
             (row["layer"], row["proposed"]) for row in self.rows
         }
@@ -394,7 +399,7 @@ class PublicNameMapContractTest(unittest.TestCase):
         seen_blocks: set[str] = set()
         for block in root.iter("block"):
             system_name = (block.get("systemName") or child(block, "systemName")).strip()
-            if not system_name.startswith("IB") or system_name in seen_blocks:
+            if not system_name.startswith("IB") or system_name.startswith("IB:C3:") or system_name in seen_blocks:
                 continue
             seen_blocks.add(system_name)
             user_name = child(block, "userName")
@@ -404,12 +409,16 @@ class PublicNameMapContractTest(unittest.TestCase):
         for tag in ("signalmast", "virtualsignalmast"):
             for mast in root.iter(tag):
                 user_name = child(mast, "userName")
+                if level_masts.is_level_mast(child(mast, "systemName")):
+                    continue
                 if user_name and ("mast", user_name) not in by_name:
                     missing.append(f"mast {user_name!r}")
 
         for head in root.iter("signalhead"):
             system_name = child(head, "systemName")
             user_name = child(head, "userName")
+            if level_masts.is_level_head(system_name):
+                continue
             if system_name.startswith("IH") and user_name and ("head", user_name) not in by_name:
                 missing.append(f"head {user_name!r}")
 

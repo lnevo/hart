@@ -15,13 +15,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import paths, tables  # noqa: E402
+from hartlib import hand_drawn, paths, tables  # noqa: E402
+
+# The fixture is the last hand-drawn tables (git, hartlib.hand_drawn) with the marker added: the repo's tables.xml
+# holds the generated panel itself since the cut-over
+HAND_DRAWN = hand_drawn.skip_unless_available()
 
 from test_reconcile_dispatcher_stations import reconciler  # noqa: E402
 
 
 def marked() -> ET.ElementTree:
-    tree = ET.ElementTree(tables.read(paths.REPO_TABLES_XML))
+    tree = ET.ElementTree(tables.read(HAND_DRAWN))
     reconciler.main_layout_editor(tree.getroot()).insert(1, tables.generated_marker_label())
     return tree
 
@@ -41,6 +45,24 @@ def shift_clusters(root: ET.Element, dx: int = 40) -> None:
 
 
 class GeneratedStationsTest(unittest.TestCase):
+    def test_a_jmri_stored_cluster_is_kept_as_it_is(self) -> None:
+        """After Stage 1 PanelPro stores the clusters its own way (attribute order, fonts, editable="false"); on a
+        generated panel the check keeps them as they are, so the cut-over tables need no change (Phase 5)."""
+        tree = marked()
+        reconciler.reconcile(tree)                           # the build's clusters, as they stand
+        editor = reconciler.main_layout_editor(tree.getroot())
+        for icon in editor.findall("sensoricon"):
+            if (icon.get("sensor") or "").startswith(("MoveTo", "MoveInProgress")):
+                attrs = dict(reversed(list(icon.attrib.items())), editable="false")
+                if (icon.get("sensor") or "").startswith("MoveTo"):
+                    attrs.update(fontFamily="Lucida Grande", fontname="LucidaGrande-Bold")
+                icon.attrib.clear()
+                icon.attrib.update(attrs)
+        stored = ET.tostring(tree.getroot())
+        changes = reconciler.reconcile(tree)
+        self.assertEqual(0, changes.total, changes.details)
+        self.assertEqual(ET.tostring(tree.getroot()).count(b'editable="false"'), stored.count(b'editable="false"'))
+
     def test_a_generated_panel_keeps_its_clusters_where_they_stand(self) -> None:
         tree = marked()
         shift_clusters(tree.getroot())       # off the hand-drawn pixels
@@ -59,10 +81,10 @@ class GeneratedStationsTest(unittest.TestCase):
         self.assertEqual(before, clusters(tree.getroot()))
 
     def test_the_hand_drawn_panel_still_takes_its_pixels(self) -> None:
-        tree = ET.ElementTree(tables.read(paths.REPO_TABLES_XML))
+        tree = ET.ElementTree(tables.read(HAND_DRAWN))
         shift_clusters(tree.getroot())
         self.assertGreater(reconciler.reconcile(tree).total, 0)
-        self.assertEqual(clusters(tables.read(paths.REPO_TABLES_XML)), clusters(tree.getroot()))
+        self.assertEqual(clusters(tables.read(HAND_DRAWN)), clusters(tree.getroot()))
 
     def test_reference_puts_stage1_clusters_back(self) -> None:
         reference = marked()
@@ -109,12 +131,12 @@ class GeneratedStationsTest(unittest.TestCase):
 
     def test_a_hand_drawn_reference_is_refused_for_a_generated_panel(self) -> None:
         tree = marked()
-        hand = reconciler.main_layout_editor(tables.read(paths.REPO_TABLES_XML))
+        hand = reconciler.main_layout_editor(tables.read(HAND_DRAWN))
         with self.assertRaisesRegex(ValueError, "not a generated one"):
             reconciler.reconcile(tree, hand)
 
     def test_a_reference_on_the_hand_drawn_panel_is_noted(self) -> None:
-        tree = ET.ElementTree(tables.read(paths.REPO_TABLES_XML))
+        tree = ET.ElementTree(tables.read(HAND_DRAWN))
         ref = reconciler.main_layout_editor(marked().getroot())
         with contextlib.redirect_stdout(io.StringIO()) as out:
             changes = reconciler.reconcile(tree, ref)

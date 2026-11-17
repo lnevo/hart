@@ -70,8 +70,11 @@ class WritersOnACopyTest(unittest.TestCase):
         self.home = Path(self._tmp.name)
 
     def copy(self, name: str) -> Path:
+        """A writable copy of the last hand-drawn tables (git): the one-off writers edit only that panel."""
+        from hartlib import hand_drawn
         path = self.home / name
-        shutil.copy(TABLES, path)
+        shutil.copy(hand_drawn.skip_unless_available(), path)
+        path.chmod(0o644)
         return path
 
     def test_le_cleanup_edits_then_is_idempotent(self):

@@ -22,7 +22,7 @@ SUB = "/opt/local/bin/mosquitto_sub"
 OUT = Path(__file__).resolve().parent
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables as tables_mod  # noqa: E402
+from hartlib import level_masts, paths, tables as tables_mod  # noqa: E402
 from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -125,12 +125,14 @@ LIVE_MASTS = {
 
 
 def load_mast_heads(tables: Path | None = None) -> dict[str, tuple[str, ...]]:
-    """Mast userName -> head system names, from the IF$shsm mast system names in tables.xml."""
+    """Mast userName -> head system names, from the IF$shsm mast system names in tables.xml. The main and upper
+    levels' masts on internal heads (hartlib.level_masts) publish nothing until they are wired, so they are left out."""
     root = tables_mod.read(tables or TABLES)
     _comments, masts, bad = read_tables(root)
     if bad:
         raise SystemExit("tables.xml head masts the QA cannot read: " + "; ".join(bad))
-    return {mast: tuple(heads) for mast, heads in masts.items()}
+    return {mast: tuple(heads) for mast, heads in masts.items()
+            if not all(level_masts.is_level_head(h) for h in heads)}
 
 
 # Mast userName -> head system names. MQTT appearance must match JMRI JSON for

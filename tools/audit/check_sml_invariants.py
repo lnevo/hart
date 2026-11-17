@@ -10,7 +10,19 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths, tables  # noqa: E402
 
 TABLES = paths.TABLES_XML
-EXPECTED_DESTS = 100
+
+
+def expected_dests(root) -> int:
+    """The SML destination count for this tables' main panel: audit_panel_contracts.EXPECTED_SML (one place), by
+    whether the panel is the hand-drawn one or the generated three-level one (after the cut-over)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("audit_panel_contracts",
+                                                  paths.LAYOUT_SCRIPTS / "audit_panel_contracts.py")
+    audit = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault("audit_panel_contracts", audit)
+    spec.loader.exec_module(audit)
+    panel = tables.layout_editor(root)
+    return audit.EXPECTED_SML[panel is not None and tables.generated_panel(panel)]
 
 
 def main() -> int:
@@ -20,6 +32,7 @@ def main() -> int:
 
     root = tables.read(TABLES)
     dests = len(tables.mast_logic_pairs(root))
+    EXPECTED_DESTS = expected_dests(root)
     nx = [sn for sn in map(tables.system_name, tables.sensors(root)) if sn.startswith("ISNX:")]
 
     print(f"SML destinationMast entries: {dests} (expected {EXPECTED_DESTS})")

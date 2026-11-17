@@ -39,7 +39,7 @@ STATUS = {"sensoricon": {"Bridge HBLOOP", "SML Mode", "Track Power"}, "signalhea
 def cutover():
     """(candidate bytes, Panel, names, bands), built once for every test that needs it."""
     with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(levels="staging", as_live=True, approved=None)     # the fingerprint: its own test
+        return B.build(T.hand(), levels="staging", as_live=True, approved=None)     # the fingerprint: its own test
 
 
 def without_panel(root: ET.Element) -> bytes:
@@ -85,7 +85,7 @@ class Cutover(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.data, cls.P, cls.names, cls.bands = cutover()
         cls.root = tables.loads(cls.data).root
-        cls.live = tables.read(paths.TABLES_XML)
+        cls.live = tables.read(T.hand())
         cls.le = tables.layout_editor(cls.root, LIVE)
         cls.inputs = I.load()
         cls.slots = B.slots_module()
@@ -374,7 +374,8 @@ class Cutover(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(B.main(["--levels", "staging", "--as-live", "--out", str(out)]), 0)
                 self.assertEqual(B.main(["--levels", "staging", "--as-live", "--check", "--out", str(out)]), 0)
-            built.assert_called_with(levels="staging", as_live=True)
+            # on the cut-over tables the command builds on the last hand-drawn tables (template_tables)
+            built.assert_called_with(levels="staging", as_live=True, live_path=B.template_tables())
         self.assertEqual(B.CUTOVER.parent, B.TRIAL.parent)                 # gitignored trial folder
 
 
@@ -382,7 +383,7 @@ class Cutover(unittest.TestCase):
 def three_levels():
     """(candidate bytes, Panel, names, bands) of the three-level candidate (--levels all --as-live), built once."""
     with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(levels="all", as_live=True, approved=None)
+        return B.build(T.hand(), levels="all", as_live=True, approved=None)
 
 
 class ThreeLevels(unittest.TestCase):
@@ -455,7 +456,7 @@ class ThreeLevels(unittest.TestCase):
             with mock.patch.object(B, "check_approved", side_effect=B.BuildError("not approved")) as check, \
                     contextlib.redirect_stdout(io.StringIO()):
                 with self.assertRaisesRegex(B.BuildError, "not approved"):
-                    B.build(levels="staging", as_live=True, approved=path)
+                    B.build(T.hand(), levels="staging", as_live=True, approved=path)
                 self.assertEqual(B.main(["--review", "--levels", "staging"]), 1)     # --review needs --as-live
             self.assertEqual(check.call_args.args[1], path)
         with tempfile.TemporaryDirectory() as tmp:
@@ -700,7 +701,7 @@ class ThreeLevels(unittest.TestCase):
         ok = copy.deepcopy(B.le_inputs.load().overlay)                # "Track Power" is no station button
         self.assertTrue(any('text="Track Power"' in it["xml"] for it in ok["items"]))
         ov.validate(ok)
-        live = tables.layout_editor(tables.read(paths.TABLES_XML), LIVE)  # freeze reads a copy: the panel unchanged
+        live = tables.layout_editor(tables.read(T.hand()), LIVE)  # freeze reads a copy: the panel unchanged
         before = ET.tostring(live)
         shown = [it.el.get("text") for it in ov.shown_items(live) if ov.is_station_button(it.el)]
         self.assertIn("EH-1", shown)
@@ -829,13 +830,25 @@ class Rebuilt(unittest.TestCase):
 
     def test_without_the_hand_drawn_panel(self) -> None:
         data = cutover()[0]
-        bare = without_live_panel(paths.TABLES_XML.read_bytes())
+        bare = without_live_panel(T.hand().read_bytes())
         self.assertIsNone(tables.layout_editor(tables.loads(bare).root, LIVE))
         self.assertEqual(self.build_from(bare), data)
 
     def test_after_the_cut_over(self) -> None:
         data = cutover()[0]
         self.assertEqual(self.build_from(data), data)
+        # the cut-over tables hold the main and upper objects too: refused, and the command builds on the last
+        # hand-drawn tables from git instead (template_tables)
+        three = three_levels()[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tables.xml"
+            path.write_bytes(three)
+            with contextlib.redirect_stdout(io.StringIO()), \
+                    self.assertRaisesRegex(B.BuildError, "already holds the main and upper objects"):
+                B.build(path, levels="staging", as_live=True, approved=None)
+            with mock.patch.object(B.paths, "TABLES_XML", path), contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(B.template_tables(), T.hand())
+            self.assertIn("building on the last hand-drawn tables", out.getvalue())
 
 
 def two_block_panel(sensor="", turnout_type="RH_TURNOUT", ident="A1") -> ET.Element:
@@ -930,12 +943,12 @@ class BuilderErrors(unittest.TestCase):
             rebuilt = b"something else"
             with mock.patch.object(B, "build", side_effect=fake_build), \
                     self.assertRaisesRegex(B.BuildError, "do not rebuild"):
-                B.freeze(paths.TABLES_XML, folder)
+                B.freeze(T.hand(), folder)
             self.assertEqual([p.name for p in folder.iterdir()], ["kept.txt"])     # untouched
             self.assertEqual(sorted(p.name for p in Path(tmp).iterdir()), ["staging_le"])   # nothing left beside
             rebuilt = b"from the panel"
             with mock.patch.object(B, "build", side_effect=fake_build):
-                written = B.freeze(paths.TABLES_XML, folder)
+                written = B.freeze(T.hand(), folder)
             self.assertEqual(sorted(p.name for p in folder.iterdir()), sorted(p.name for p in I.FOLDER.iterdir()))
             self.assertEqual(sorted(written), sorted(folder / p.name for p in I.FOLDER.iterdir()))
             self.assertEqual(sorted(p.name for p in Path(tmp).iterdir()), ["staging_le"])
@@ -945,7 +958,7 @@ class BuilderErrors(unittest.TestCase):
                                      p.read_text().split("\n", 1)[1], p.name)
 
     def test_freezing_refuses_a_generated_panel(self) -> None:
-        doc = tables.load(paths.REPO_TABLES_XML)
+        doc = tables.load(T.hand())
         tables.layout_editor(doc.root, LIVE).insert(1, tables.generated_marker_label())
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables.xml"
@@ -1220,10 +1233,7 @@ class OverlayErrors(unittest.TestCase):
 
     def test_frozen_and_hand_drawn_clusters_are_the_same(self) -> None:
         ov = self.ov
-        panel = tables.layout_editor(tables.read(paths.REPO_TABLES_XML), LIVE)
-        if tables.generated_panel(panel):
-            self.skipTest("the live panel is the generated one (after the cut-over): no hand-drawn clusters to "
-                          "compare with the frozen ones")
+        panel = tables.layout_editor(tables.read(T.hand()), LIVE)    # the last hand-drawn panel (git)
         frozen = ov.station_clusters(I.load().overlay)
         self.assertEqual(len(frozen), 12)
         live = ov.panel_station_clusters(panel)

@@ -154,6 +154,17 @@ class WiringCrosswalkTest(unittest.TestCase):
         root = ET.parse(paths.TABLES_XML).getroot()
         self.assertEqual(check.problems(rows, root), [])
 
+    def test_main_and_upper_masts_are_checked_against_their_own_file(self):
+        """After the cut-over, a main or upper mast on internal heads (IH9...) is not in the wiring plan yet: it
+        must carry the heads main_upper_masts.csv gives it."""
+        with (paths.SIGNAL_WIRING).open(newline="") as f:
+            rows = list(csv.DictReader(f))
+        root = ET.parse(paths.TABLES_XML).getroot()
+        mast = next(m for m in root.iter("signalmast") if (m.findtext("userName") or "") == "Mast 108R")
+        mast.find("systemName").text = "IF$shsm:basic:two-searchlight(IH93334)(IH93332)"
+        self.assertEqual(check.problems(rows, root),
+                         ["Mast 108R: internal heads IH93334 IH93332, main_upper_masts.csv IH93334 IH93335"])
+
 
 if __name__ == "__main__":
     unittest.main()

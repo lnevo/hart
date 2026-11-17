@@ -18,11 +18,15 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import paths, tables  # noqa: E402
+from hartlib import hand_drawn, paths, tables  # noqa: E402
+
+# The fixture is the last hand-drawn tables (git, hartlib.hand_drawn) with the marker added: the repo's tables.xml
+# holds the generated panel itself since the cut-over
+HAND_DRAWN = hand_drawn.skip_unless_available()
 
 from test_polish_hart_layout_editor import polish  # noqa: E402
 
-LIVE = paths.REPO_TABLES_XML
+LIVE = HAND_DRAWN
 
 
 def marked(root: ET.Element) -> ET.Element:

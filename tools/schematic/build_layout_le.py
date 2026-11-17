@@ -114,7 +114,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import paths, tables  # noqa: E402
+from hartlib import hand_drawn, paths, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its internal names
 
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
@@ -1179,6 +1179,26 @@ def replace(parent: ET.Element, old: ET.Element, new: ET.Element, depth: int) ->
     parent.insert(idx, new)
 
 
+def template_tables() -> Path:
+    """The tables a build or --freeze starts from when none is named: this checkout's, while its main panel is the
+    hand-drawn one; after the cut-over (the main panel is generated) the last hand-drawn tables, read from git
+    (hartlib.hand_drawn), since the build replaces that panel and adds the main and upper objects to its tables."""
+    try:
+        live = tables.layout_editor(tables.read(paths.TABLES_XML), TEMPLATE_PANEL)
+        cut_over = live is not None and tables.generated_panel(live)
+    except (OSError, ET.ParseError, ValueError) as exc:
+        raise BuildError(f"cannot read {paths.rel(paths.TABLES_XML)}: {exc}") from None
+    if not cut_over:
+        return paths.TABLES_XML
+    try:
+        path = hand_drawn.tables_path()
+    except ValueError as exc:
+        raise BuildError(f"{paths.rel(paths.TABLES_XML)} holds the generated panel, and {exc}") from None
+    print(f"note: {paths.rel(paths.TABLES_XML)} holds the generated panel (cut over); building on the last hand-drawn "
+          f"tables, git {hand_drawn.COMMIT}")
+    return path
+
+
 def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", as_live: bool = False, inputs=None,
           freeze_from: ET.Element | None = None, approved: Path | None = APPROVED):
     """(tables bytes, the plugin's Panel, {band key: names}, bands). `levels` "all" draws every band, main and upper
@@ -1217,6 +1237,12 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         raise BuildError(f"the first band is {bands[0][0]!r}, not {STAGING}")
     doc = tables.load(live_path)
     root = doc.root
+    # The build reads no panel (a staging candidate rebuilds from itself byte for byte), but it adds the main and
+    # upper objects to the tables: tables that hold them already (the cut-over tables) are refused
+    if any(is_level_bean(el) for sec in root for el in sec):
+        raise BuildError(f"{live_path} already holds the main and upper objects (the cut-over is done): build on "
+                         f"the last hand-drawn tables (the command does so by itself: hartlib.hand_drawn, git "
+                         f"{hand_drawn.COMMIT})")
     panel_name = inputs.panel_name if as_live else PANEL_NAME
     if not as_live and any(le.get("name") == PANEL_NAME for le in tables.layout_editors(root)):
         raise BuildError(f"{live_path} already has a panel named {PANEL_NAME}")
@@ -1807,6 +1833,11 @@ def freeze(tables_path: Path = paths.TABLES_XML, folder: Path = le_inputs.FOLDER
         source = paths.rel(Path(tables_path))
     except ValueError:
         source = Path(tables_path).name
+    try:                            # the last hand-drawn tables, read from git (template_tables): named as such
+        if Path(tables_path).resolve() == hand_drawn.tables_path().resolve():
+            source = f"{hand_drawn.REL} at git {hand_drawn.COMMIT}"
+    except ValueError:
+        pass
     note = le_inputs.NOTE.format(panel=TEMPLATE_PANEL, source=source,
                                  date=date or datetime.date.today().isoformat())
     inputs = le_inputs.from_live(root, live_le, slots_module(), signals, overrides.get("mast_prefix", ""), note)
@@ -1891,8 +1922,7 @@ def run(argv, cached) -> int:
             print("ERROR: --approve-staging takes only --tables")
             return 1
         try:
-            where = {} if args.tables is None else {"live_path": args.tables}
-            data = build(levels="staging", as_live=True, approved=None, **where)[0]
+            data = build(args.tables or template_tables(), levels="staging", as_live=True, approved=None)[0]
             write_approved(tables.layout_editor(tables.loads(data).root, TEMPLATE_PANEL))
         except le_inputs.InputsError as exc:
             print(f"ERROR: {exc}")
@@ -1904,7 +1934,7 @@ def run(argv, cached) -> int:
             print("ERROR: --freeze takes only --tables and --freeze-to")
             return 1
         try:
-            written = freeze(args.tables or paths.TABLES_XML, args.freeze_to or le_inputs.FOLDER)
+            written = freeze(args.tables or template_tables(), args.freeze_to or le_inputs.FOLDER)
         except le_inputs.InputsError as exc:
             print(f"ERROR: {exc}")
             return 1
@@ -1925,7 +1955,7 @@ def run(argv, cached) -> int:
               "written beside them, never over them")
         return 1
     try:
-        where = {} if args.tables is None else {"live_path": args.tables}
+        where = {"live_path": args.tables or template_tables()}
         if args.review:
             where["approved"] = None
         data, P, _names, _bands = build(levels=levels, as_live=args.as_live, **where)
