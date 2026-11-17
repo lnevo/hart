@@ -24,12 +24,13 @@
         occupied and which way each switch is lined.
       </p>
 
-      <h2>Two CTC machines</h2>
+      <h2>The CTC panel</h2>
       <p>
-        The dispatcher controls the railroad from a CTC panel on screen. HART has two of them. One is a
-        Union Switch &amp; Signal style lever machine, drawn in JMRI with switch levers, signal levers and
-        code buttons. The other is a Digicon-style panel from CATS, open-source CTC software that runs on
-        top of JMRI and is worked with a mouse. Only one is in charge at a time.
+        The dispatcher controls the railroad from a CTC panel on screen. It is a Digicon-style panel from
+        CATS, open-source CTC software that runs on top of JMRI and is worked with a mouse. There are two
+        desks, one for CTC and one for ABS, and they cover all three levels. HART also had a Union Switch
+        &amp; Signal style lever machine, drawn in JMRI with switch levers, signal levers and code buttons.
+        It is parked since the helix-join release (November 2026), with its data kept in the repository.
       </p>
       <figure>
         <img src="../assets/panels/digicon-ctc.png" alt="The Digicon CTC panel: a dark track schematic with signals and switches for Neville Island" loading="lazy">
@@ -37,7 +38,7 @@
       </figure>
       <figure>
         <img src="../assets/panels/classic-ctc.png" alt="The USS-style CTC machine with rows of switch and signal levers under a track diagram" loading="lazy">
-        <figcaption>The lever machine: switch levers on the top row, signal levers below, and a code button under each control point.</figcaption>
+        <figcaption>The parked lever machine: switch levers on the top row, signal levers below, and a code button under each control point.</figcaption>
       </figure>
 
       <h2>Lining a route</h2>
@@ -51,8 +52,8 @@
       <h2>When nobody is dispatching</h2>
       <p>
         Without CATS running, nothing holds the signals at Stop, and JMRI runs them as automatic block
-        signals that follow occupancy on their own. JMRI can also run trains by itself with its
-        Dispatcher system. That works best once every locomotive's real speed is measured, which is what
+        signals that follow occupancy on their own. JMRI's own Dispatcher system, which could run
+        trains by itself, is parked too. Automatic running works best once every locomotive's real speed is measured, which is what
         <a href="../ai/locomotives.html#speed">speed matching</a> is for.
       </p>
       <p>

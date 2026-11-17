@@ -5,12 +5,14 @@ machine was implemented. For day-to-day dispatching, see
 [`DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md). For the separate CATS Digicon panel,
 see [`docs/ctc/HART_DIGICON_SYSTEM.md`](HART_DIGICON_SYSTEM.md).
 
+**Parked:** the USS CTC machine described here is parked since the helix-join release (November 2026): not in the active panel; data kept in `jmri/layouts/hart/parked/`. The CATS desks are the only dispatcher desks. This document keeps the history of how the machine was built.
+
 ---
 
 ## What we run
 
-HART has **two** CTC-style interfaces over the same JMRI layout; run **one** at a
-time, not both:
+HART had **two** CTC-style interfaces over the same JMRI layout, run one at a
+time. The USS machine is now parked and CATS is the live desk:
 
 | Panel | Look & feel | How it was built |
 |-------|-------------|------------------|
