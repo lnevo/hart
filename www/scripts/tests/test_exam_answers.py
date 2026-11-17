@@ -79,6 +79,36 @@ class ExamAnswers(unittest.TestCase):
         self.assertEqual(q[0]["src"], "GCOR · 6.13")
         self.assertEqual(q[1]["extra"], "<svg>0</svg>")
 
+    def test_questions_needing_the_sheet_have_a_reference(self):
+        out = node(
+            f"const m=require({json.dumps(str(SCRIPT))});"
+            f"const src=require('fs').readFileSync({json.dumps(str(RUN))},'utf8');"
+            "const R=m.references(src);"
+            "console.log(JSON.stringify({qs:m.extract(src).filter(q=>q.ref).map(q=>[q.title,q.ref]),"
+            "refs:Object.fromEntries(Object.entries(R).map(([k,v])=>[k,v.html]))}))"
+        )
+        data = json.loads(out)
+        refs = {t: r for t, r in data["qs"]}
+        # The four questions whose facts the game shows only on its train sheet or warrant form.
+        self.assertEqual(refs.get("Same class, opposite ways"), "tt")
+        self.assertEqual(refs.get("Box 5"), "w101")
+        self.assertEqual(refs.get("Box 7"), "w102")
+        self.assertTrue(any(r == "order" for t, r in data["qs"] if t.startswith("Order No")))
+        html = data["refs"]
+        self.assertIn("Westward trains are superior to eastward trains of the same class", html["tt"])
+        self.assertIn("Not in effect until <b>6:20</b>", html["w101"])
+        self.assertIn("arrival of <b>2211 West</b> at <b>Dunmore</b>", html["w102"])
+        self.assertIn("mins late Ironton to Ashby", html["order"])
+        for k, v in html.items():
+            self.assertNotRegex(v, r"\{\w+\}", k)
+
+    def test_unknown_reference_stops_the_build(self):
+        with self.assertRaisesRegex(AssertionError, 'unknown reference "nope"'):
+            node(
+                f"const m=require({json.dumps(str(SCRIPT))});"
+                "m.render([{line:1,sec:'def',src:'',title:'t',body:'b',right:'r',wrong:[],why:'y',ref:'nope',extra:''}],{def:'D'},{})"
+            )
+
     def test_right_answer_not_always_first(self):
         html = (WWW / "exam" / "answers.html").read_text()
         lists = re.findall(r'<ul class="xa-opts">(.*?)</ul>', html)
