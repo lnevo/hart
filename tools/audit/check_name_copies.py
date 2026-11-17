@@ -56,6 +56,7 @@ SKIP_PREFIXES = (
     "jmri/layouts/hart/data/schematic/staging.signals.json",          # build_signals.py --check
     "jmri/layouts/hart/data/schematic/hands.csv",                     # build_hands.py --check
     "jmri/layouts/hart/data/schematic/device_map_main_upper.csv",     # build_device_map.py --check
+    "jmri/layouts/hart/data/schematic/main_upper_masts.csv",          # build_main_upper_masts.py --check
     "jmri/layouts/hart/data/schematic/inputs/",                       # plan graphs read from the AnyRail export
     "www/data/",                                  # build_tables_browser / build_layout_index --check
     "jmri/layouts/hart/scripts/speedmatch/routes.json",  # build_routes.py --check

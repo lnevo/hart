@@ -21,11 +21,12 @@ These checks read the all-levels trial and the three-level cut-over candidate (-
 staging-only candidate (--levels staging --as-live) ends both helix tracks at end bumpers as live, so there every
 mast matches exactly, with no exception (test_le_cutover.py).
 
-Exceptions on both three-level panels (owner's choice, 2026-11-15, option 1), and only these, in HELIX_ENTRANCE: on the live panel McKees Rocks and
-McKeesport end at buffer stops, so their bumper masts protect nothing. The generated panel runs both tracks on
-through the helix to the next level, so there is no bumper: each mast stands on the anchor at the helix entrance
-(the hidden helix run carries the next level's block, so the anchor is a block boundary), facing the same block as
-live. Its protected block is necessarily the helix run, where live has none, and its slot is an anchor, not a bumper.
+With B.JOIN_HELIX off (owner, 2026-11-16, after the Phase 4 rehearsal) the three-level panels draw the helix tracks
+unjoined, so every staging mast matches the live panel exactly there too, Masts 38RA and 40RA on their bumpers.
+With it on, and only then, HELIX_ENTRANCE lists the exceptions (owner's choice, 2026-11-15, option 1): on the live
+panel McKees Rocks and McKeesport end at buffer stops, so their bumper masts protect nothing; the joined panel runs
+both tracks on through the helix, so each mast stands on the anchor at the helix entrance, facing the same block
+as live and protecting the helix run, an anchor slot, not a bumper.
 """
 from __future__ import annotations
 
@@ -45,7 +46,7 @@ tables, paths = T.tables, T.paths
 HELIX_ENTRANCE = {
     "Mast 38RA": "live buffer stop of McKeesport; generated: anchor at the helix entrance, protecting the helix run",
     "Mast 40RA": "live buffer stop of McKees Rocks; generated: anchor at the helix entrance, protecting the helix run",
-}
+} if B.JOIN_HELIX else {}
 
 
 def masts_by_name(ix) -> dict:

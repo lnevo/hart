@@ -195,3 +195,9 @@ The owner approved the three-level candidate in PanelPro on 2026-11-16 ("Approve
 
 **Next:** Phase 4 rehearsal again on this three-level candidate (sandbox worktree, runbook above): Stage 1, SML discovery and NX Discover; expect changes only for Masts 38RA/40RA (now protecting Track 135-H2/H1) and confirm 36 NX pairs with no NX icons on the panel. Then Phase 5 cut-over on the owner's go. `apply_le_sml_facing.py` and `validate_le_signalling.py` read `le_signal_boundaries.csv`'s `generated_slot` on a generated panel (Mast 14R on Switch 13's leg C).
 
+
+## Decision, 2026-11-16 night: cut over unjoined; main and upper masts
+
+Phase 4 rehearsal (sandbox). Joined at the helix, Stage 1 passed (172 SML dests, 202 sections, 209 transits, 418 traininfo), but staging's own discovery changed: 10RA, 10RB, 12R and 14R lost →22L/26L and gained →16L, 36RB→40RB was lost, and NX gave 35 pairs (36RB→2035 and 36RB→2036 lost, 36RA→38LA new). The staging-only candidate matched the live panel exactly (100 SML dests, 107 sections, 187 transits, 36 NX pairs).
+
+Owner decision: cut over **unjoined**. `build_layout_le.JOIN_HELIX = False`: the helix tracks end at bumpers on every level (schematic-maps 0.1.27 `"joins": "none"`), Masts 38RA and 40RA stand on EB72 and EB71 as live, and the staging guard accepts no difference: staging is the approved panel byte for byte. Main and upper keep their own joins (the 129 and 135 halves). Main and upper carry their 41 control-point masts (`main_upper_masts.csv` from the device map, internal heads IH9<packed>, Switch 107's loop masts by `leg`). Their SML, sections and transits among themselves come on top of staging's counts; the rehearsal gives the numbers. Joining the helix is a later step, after staging's discovery is made to hold with it.

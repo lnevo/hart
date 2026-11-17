@@ -394,12 +394,11 @@ class ThreeLevels(unittest.TestCase):
         cls.le = tables.layout_editor(cls.root, LIVE)
         cls.device = B.device_names()
 
-    def test_staging_is_the_staging_candidate_but_for_the_helix_joins(self) -> None:
-        self.assertEqual(sorted(self.P.staging_same), [
-            "end bumper EB71 -> anchor AGE2 (hidden join TG225 to Track 135-H1, Mast 40RA)",
-            "end bumper EB72 -> anchor AGE1 (hidden join TG224 to Track 135-H2, Mast 38RA)",
-            "track segment TG32 connect2name EB72 -> AGE1",
-            "track segment TG6 connect2name EB71 -> AGE2"])
+    def test_staging_is_the_staging_candidate_unjoined(self) -> None:
+        # JOIN_HELIX off (owner, 2026-11-16): staging as in its candidate, with no accepted difference at all
+        self.assertFalse(B.JOIN_HELIX)
+        self.assertEqual(self.P.staging_same, [])
+        self.assertFalse([j for (b, j) in self.P.join_ends if b == 0])          # no join reaches staging
         self.assertEqual(self.P.scale, self.base[1].scale)
         self.assertEqual(self.P.staging_data, self.base[0])
 
@@ -411,12 +410,10 @@ class ThreeLevels(unittest.TestCase):
             "a staging label moved": lambda r: el(r, "positionablelabel", text="STAGING LEVEL").set("x", "61"),
             "a staging bean changed": lambda r: next(t for t in tables.turnouts(r)
                                                      if tables.user_name(t) == "Switch 1").set("inverted", "true"),
-            "a reconnected segment's block": lambda r: el(r, "tracksegment", ident="TG6").set("blockname", "Track X"),
-            "a reconnected segment's geometry": lambda r: el(r, "tracksegment", ident="TG32").set("arc", "yes"),
-            "a join anchor moved": lambda r: el(r, "positionablepoint", ident="AGE1").set("x", "1600.0"),
-            "a join anchor's mast slot": lambda r: el(r, "positionablepoint", ident="AGE2").set(
-                "westboundsignalmast", "Mast 40RA"),
-            "a join shown": lambda r: el(r, "tracksegment", ident="TG224").set("hidden", "no"),
+            "a helix track's segment": lambda r: el(r, "tracksegment", ident="TG6").set("blockname", "Track X"),
+            "a helix bumper moved": lambda r: el(r, "positionablepoint", ident="EB71").set("x", "1600.0"),
+            "a helix bumper's mast": lambda r: el(r, "positionablepoint", ident="EB72").set(
+                "westboundsignalmast", "Mast 38RA"),
             "a helix mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38RA").set("x", "1"),
             "a staging BCI moved": lambda r: el(r, "BlockContentsIcon", blockcontents="Track K-1").set("y", "1"),
         }
@@ -753,13 +750,13 @@ class ThreeLevels(unittest.TestCase):
                 self.assertFalse([k for k in el.attrib if k.endswith("boundsensor")], el.get("ident"))
                 self.assertIsNone(el.find("sensorA"))
 
-    def test_helix_masts_stand_at_the_join_anchors(self) -> None:
+    def test_helix_masts_stand_on_their_bumpers_as_live(self) -> None:
         ix = B.slots_module().Index(self.le)
         got = {m["mast"]: (self.P.name(m["ident"]), m["slot"], ix.blocks(m["kind"], self.P.name(m["ident"]), m["slot"]))
                for m in self.P.masts if m["mast"] in ("Mast 38RA", "Mast 40RA")}
-        self.assertEqual(got["Mast 38RA"][2], ("Track McKeesport", ["Track 135-H2"]))
-        self.assertEqual(got["Mast 40RA"][2], ("Track McKees Rocks", ["Track 135-H1"]))
-        self.assertTrue(all(v[0].startswith("AGE") for v in got.values()))
+        self.assertEqual(got["Mast 38RA"], ("EB72", "east", ("Track McKeesport", [])))
+        self.assertEqual(got["Mast 40RA"], ("EB71", "east", ("Track McKees Rocks", [])))
+        self.assertEqual(self.P.moved, [])
 
     def test_one_block_contents_icon_per_block_on_every_level(self) -> None:
         icons = Counter(el.get("blockcontents") for el in self.le.iter("BlockContentsIcon"))
