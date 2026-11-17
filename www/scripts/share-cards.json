@@ -238,7 +238,7 @@
     },
     "exam/run.html": {
       "image": "assets/share/ap-exam-run.jpg",
-      "alt": "A Kestrel Valley Railroad Clearance Form A at Ashby: Extra 812 West has 2 orders, Nos 14 and 15, OK 6 14 am, stamped Extra West.",
+      "alt": "A Kestrel Valley Railroad Clearance Form A at Ashby: Extra 812 East has 2 orders, Nos 14 and 15, OK 6 14 am, stamped Extra East.",
       "from": "drawn by make_share_cards.py ap-exam-run, after Standard Code Rule 211 Clearance Form A"
     },
     "exam/index.html": {
