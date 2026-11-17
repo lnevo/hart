@@ -92,16 +92,14 @@ class OtherPages(unittest.TestCase):
     def test_control_page_counts_match_the_file(self):
         meta = btb.build(btb.load()[1])["meta"]
         text = (btb.WWW / "ai/control.html").read_text(encoding="utf-8")
-        m = re.search(r"(\d+) signal masts, (\d+) sections and ([\d,]+) transits", text)
+        m = re.search(r"(\d+) signal masts and (\d+) Signal Mast Logic pairs", text)
         self.assertIsNotNone(m, "ai/control.html no longer states the counts; drop this test")
-        if "dispatcher" in tables_page.parked.PARKED:
-            # sections and transits parked (hartlib.parked): the page keeps their last counts and says so
-            self.assertEqual(int(m.group(1)), meta["masts"], "update the mast count in www/ai/control.html")
-            self.assertIn("Sections and transits are parked", text)
-            return
-        self.assertEqual((int(m.group(1)), int(m.group(2)), int(m.group(3).replace(",", ""))),
-                         (meta["masts"], meta["sections"], meta["transits"]),
+        self.assertEqual((int(m.group(1)), int(m.group(2))), (meta["masts"], meta["smlDestinations"]),
                          "update the counts in www/ai/control.html")
+        # sections and transits are parked (hartlib.parked): the page keeps their last counts and says so
+        if "dispatcher" in tables_page.parked.PARKED:
+            self.assertIn("197 sections and 187 transits", text)
+            self.assertIn("parked", text)
 
 
 class Words(unittest.TestCase):

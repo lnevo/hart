@@ -4,6 +4,8 @@
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations  
 **Scope:** Digicon CTC / ABS panels, JMRI MQTT bridge, LCOS signal heads
 
+**Parked:** the USS CTC lever machine, its panel and sensors, the Dispatcher System and Entry/Exit are parked since the helix-join release (November 2026): not in the active tables; data kept in `jmri/layouts/hart/parked/`. The CATS desks are the only dispatcher desks.
+
 This is the end-to-end picture of what we built: Digicon panels on Mac / Pi / Windows, how they talk to JMRI and MQTT, and how field signal heads are addressed for LCOS hardware.
 
 Related detail docs (do not duplicate here):
@@ -79,7 +81,7 @@ SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/h
 **PanelPro vs CATS (same profile, sequential — never simultaneous):**
 
 - **PanelPro** — edit/store JMRI tables, connections, Start Up. Then quit. Never Store tables while a CATS layout is open (Rodney Black, cats-users #2534).
-- **CATS** — separate JMRI app (`cats.apps.Crandic`). Profile Start Up loads `preference:tables.xml` first (HART equivalent of Designer “Include”), then the Digicon XML. Refers to JMRI beans by user name; does not redefine them. LogixNG hides **USS CTC** on every host (IQC:AUTO:0002) and, under CATS only, **HART Railroad** (IQC:AUTO:0004 / `hide_cats_desk_windows.py`) so the Digicon stays up.
+- **CATS** — separate JMRI app (`cats.apps.Crandic`). Profile Start Up loads `preference:tables.xml` first (HART equivalent of Designer “Include”), then the Digicon XML. Refers to JMRI beans by user name; does not redefine them. LogixNG hides WiThrottle (IQC:AUTO:0001) and, under CATS only, **HART Railroad** (IQC:AUTO:0004 / `hide_cats_desk_windows.py`) so the Digicon stays up.
 - Do **not** run both at once (MQTT client-id + profile lock). Only **one** Digicon should be signal authority (**CATS CTC** or **CATS ABS**).
 
 
@@ -91,7 +93,7 @@ Enable these connection prefixes in Designer. Device bindings come from the swit
 |--------|------|-----|
 | M2S | Sensor | MQTT occupancy and switch feedback (`Block 4-2`, Switch FB) |
 | M2T | Turnout | MQTT field switches (`M2T408` = Switch 1) |
-| IS | Sensor | Internal: USS CTC lever and panel sensors (`IS3:LEVER`, `IS:RELOADCTC`), Dispatcher and status sensors |
+| IS | Sensor | Internal: status sensors. The USS CTC lever and panel sensors (`IS3:LEVER`, `IS:RELOADCTC`) and the Dispatcher sensors are parked |
 | IT | Turnout | Internal: yard ladder lamps (`IT:HART:YL:L1`…) |
 | IF$shsm / IF$vsm | Signal mast | Basic signal-head masts and virtual masts; CATS refers to them by user name |
 
@@ -122,7 +124,7 @@ Lamps beside OS S-R…OS S-4 on the Layout Editor panel and JMRI web, not on the
 
 - Triggers: internal turnouts `IT:HART:YL:L1…R5`
 - JMRI routes `IO:AUTO:0201–0210` fire on throw and line M2T peels
-- Layout Editor / JMRI web: USS lamp `turnouticon`s on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py`, run on the Mac against `jmri/layouts/hart/output/tables.xml`; it is not shipped to the hosts). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red.
+- Layout Editor / JMRI web: lamp `turnouticon`s (drawn like the USS lamps; the lamps stay active, only the lever machine is parked) on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py`, run on the Mac against `jmri/layouts/hart/output/tables.xml`; it is not shipped to the hosts). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red.
 
 ### Turnout SoR (summary)
 
@@ -180,11 +182,11 @@ Appearances for SHSM:
 
 No aspects are disabled; Basic has no Advanced Approach to disable.
 
-**Counts:** 47 masts, 23 real (12 `two-searchlight`, 11 `one-low`) and 24 virtual dispatcher masts.
+**Counts:** 90 masts in `tables.xml`: 64 real (24 `two-searchlight`, 40 `one-low`) and 26 virtual.
 
 **Mast 6LB (interim):** a one-low dwarf on `IH432` (C4-OU2-1..3), the only head wired so far. `IH433` stays defined but unwired and on no mast. It returns to two-searchlight when the second head is wired (`FITTED_HEADS` in `build_hart_signal_heads.py`; the wiring docs still show that two-head plan).
 
-Mast icons use the Basic `default` image set (JMRI draws it with its stock AAR-1946 schematic GIFs): scale 1.0 on the Layout Editor panel (45 icons), 0.5 on the USS CTC panel (11).
+Mast icons use the Basic `default` image set (JMRI draws it with its stock AAR-1946 schematic GIFs): scale 1.0 on the Layout Editor panel (45 icons). The USS CTC panel (0.5, 11 icons) is parked.
 
 ### Mast index (Digicon name → JMRI)
 
