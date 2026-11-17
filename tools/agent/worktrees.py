@@ -31,6 +31,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -135,8 +136,13 @@ def is_dirty(path: str) -> bool:
     return bool(git("status", "--porcelain", cwd=path))
 
 
-def sweep(dry_run: bool = False, keep: list[str] | None = None) -> list[str]:
-    """Remove merged worktrees; return one line per action for the caller to show."""
+def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | None = None) -> list[str]:
+    """Remove merged worktrees; return one line per action for the caller to show.
+
+    With `budget` (seconds), no removal starts once that much time has passed: the hook runs the sweep under a
+    hard timeout, and a pile of worktrees is better left for the next sweep than cut off mid-delete.
+    """
+    start = time.monotonic()
     trees = worktrees()
     if not trees:
         return ["worktree sweep skipped: no git worktrees found"]
@@ -146,8 +152,12 @@ def sweep(dry_run: bool = False, keep: list[str] | None = None) -> list[str]:
     git("fetch", "-q", "origin", "main", cwd=main)
     remove, kept = plan(trees, lambda t: merged_at(t, main), keep or [], is_dirty)
     lines = []
-    for tree in remove:
+    for i, tree in enumerate(remove):
         label = tree.branch or tree.head[:8]
+        if budget is not None and not dry_run and time.monotonic() - start > budget:
+            lines.append(f"left {len(remove) - i} merged worktree(s) for the next sweep (time budget {budget:g}s; "
+                         "make wt-sweep removes them now)")
+            break
         if dry_run:
             lines.append(f"would remove {tree.path} ({label})")
             continue
@@ -258,12 +268,13 @@ def main(argv: list[str] | None = None) -> int:
     p_new.add_argument("--agent", default="claude")
     p_sweep = sub.add_parser("sweep", help="remove worktrees whose PR is merged")
     p_sweep.add_argument("--dry-run", action="store_true")
+    p_sweep.add_argument("--budget", type=float, help="seconds after which no further removal starts")
     p_sweep.add_argument("--keep", action="append", default=[], help="never remove the worktree holding this directory")
     args = parser.parse_args(argv)
     if args.cmd == "new":
         print(new(args.topic, args.agent))
     else:
-        for line in sweep(args.dry_run, args.keep) or ["no merged worktrees"]:
+        for line in sweep(args.dry_run, args.keep, args.budget) or ["no merged worktrees"]:
             print(line)
     return 0
 

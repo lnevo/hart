@@ -191,6 +191,17 @@ class Sweep(Repo):
             WT.git_run = saved
         self.assertTrue(os.path.exists(self.wt))
 
+    def test_spent_budget_leaves_removals_for_the_next_sweep(self) -> None:
+        saved = (WT.ROOT, WT.merged_at)
+        WT.ROOT, WT.merged_at = Path(self.wt), lambda tree, main, prs=None: LONG_AGO
+        try:
+            lines = WT.sweep(budget=-1)
+        finally:
+            WT.ROOT, WT.merged_at = saved
+        self.assertEqual(len(lines), 1, lines)
+        self.assertTrue(lines[0].startswith("left 1 merged worktree(s) for the next sweep"), lines)
+        self.assertTrue(os.path.exists(self.wt))
+
     def test_sweep_keeps_unmerged_worktree(self) -> None:
         self.assertEqual(self.sweep(lambda t: None), [])
         self.assertTrue(os.path.exists(self.wt))

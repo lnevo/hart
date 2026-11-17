@@ -2,7 +2,8 @@
 """Remove agent worktrees whose PR is merged: at session start and after `gh pr merge`.
 
 Calls tools/agent/worktrees.py sweep, keeping the session's working and project directories. A merge done
-on GitHub is caught at the next session start. Never blocks: any failure exits 0 quietly.
+on GitHub is caught at the next session start. The 30 s budget keeps a long backlog from hitting the 45 s
+timeout mid-delete: the rest waits for the next sweep, or `make wt-sweep`. Never blocks: any failure exits 0 quietly.
 """
 import json
 import os
@@ -28,11 +29,11 @@ def main() -> int:
     if not script.exists():
         return 0
     try:
-        done = subprocess.run([sys.executable, str(script), "sweep", "--keep", cwd, "--keep", project],
+        done = subprocess.run([sys.executable, str(script), "sweep", "--keep", cwd, "--keep", project, "--budget", "30"],
                               capture_output=True, text=True, timeout=45)
     except (OSError, subprocess.SubprocessError):
         return 0
-    lines = [l for l in done.stdout.splitlines() if l.startswith(("removed", "kept"))]
+    lines = [l for l in done.stdout.splitlines() if l.startswith(("removed", "kept", "left"))]
     if lines and event in ("PostToolUse", "SessionStart"):
         print(json.dumps({"hookSpecificOutput": {
             "hookEventName": event,

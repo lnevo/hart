@@ -164,14 +164,6 @@ if [[ -f "$PATCH" ]]; then
     --script prepare_nx_sml_paths.py 2>/dev/null || true
   rm -f "$UF/jython/prepare_nx_sml_paths.py"
   echo "Pi Dispatcher compatibility scripts + preference:jython Start Up updated"
-  for s in apply_sml_cats_pairs.py unhold_signal_masts.py \
-           apply_maintain_mqtt.py apply_mqtt_retain_at_startup.py; do
-    python3 "$PATCH" remove \
-      --profile "$HOME/.jmri/TCS_MQTT.jmri/profile/profile.xml" \
-      --script "$HART/jmri/layouts/hart/scripts/$s" \
-      2>/dev/null || true
-    rm -f "$HART/jmri/layouts/hart/scripts/$s"
-  done
 fi
 
 if [[ -x "$HART/cats/scripts/install_jmri_web_override.sh" ]]; then
