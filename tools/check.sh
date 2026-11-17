@@ -110,7 +110,6 @@ unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
 unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
 unit unit-schematic python3 -m unittest discover -q -s tools/schematic/tests
 unit unit-guards python3 -m unittest discover -q -s tools/audit/tests
-unit unit-agent python3 -m unittest discover -q -s tools/agent/tests
 # The host tests start real processes and wait out their timers: one job per file, found as discover finds them.
 if [[ -n "$(find tools/hosts/tests -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
   echo "--- unit-hosts: tests in a subfolder of tools/hosts/tests; give them their own job in check.sh"

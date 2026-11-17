@@ -195,15 +195,33 @@ def default_branch(repo: str) -> str | None:
     return ref.split("/", 1)[1] if ref.startswith("origin/") else None
 
 
-def spent(budget: float | None, start: float) -> bool:
-    return budget is not None and time.monotonic() - start > budget
+class Clock:
+    """What a sweep has used so far: `removing` is the time spent removing worktrees (the budget counts only this,
+    not planning or network time), `began` when the sweep started (for the submodule cap)."""
+
+    def __init__(self) -> None:
+        self.removing = 0.0
+        self.began = time.monotonic()
+
+    def elapsed(self) -> float:
+        return time.monotonic() - self.began
+
+
+# A sweep that has run this long (seconds) over its budget starts no further submodule: each costs a fetch and a
+# GitHub call, and the hook's own timeout (TIMEOUT 45 s) must stay out of reach.
+SUBMODULE_SLACK = 10.0
+
+
+def spent(budget: float | None, clock: Clock) -> bool:
+    return budget is not None and clock.removing > budget
 
 
 def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | None = None) -> list[str]:
     """Remove merged worktrees of this repository and of its submodules; return one line per action.
 
-    With `budget` (seconds, counted from the start of the sweep), no removal starts once it is spent, and no
-    submodule is looked at (its fetch and GitHub call are network time): the hook runs the sweep under a hard
+    With `budget` (seconds of removal time only; planning and network time do not count), no removal starts once it
+    is spent, and no further submodule is looked at (its fetch and GitHub call are network time). A sweep also starts
+    no further submodule once its total time passes budget + SUBMODULE_SLACK: the hook runs the sweep under a hard
     timeout, and a pile of worktrees is better left for the next sweep than cut off mid-delete. Every submodule
     line ends with the submodule's path. A git call that times out in a submodule is reported and the sweep goes on.
     """
@@ -214,22 +232,22 @@ def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | 
     main = trees[0].path  # run from the main checkout, which is never removed
     if not shutil.which("gh"):
         return ["worktree sweep skipped: gh is not installed"]
-    start = time.monotonic()
-    lines = sweep_repo(main, trees, dry_run, keep, budget, start, "main", None, None)
+    clock = Clock()
+    lines = sweep_repo(main, trees, dry_run, keep, budget, clock, "main", None, None)
     try:
         subs = submodule_repos(main)
     except subprocess.TimeoutExpired:
         return lines + ["left the submodules for the next sweep: listing them timed out"]
     for sub in subs:
         tag = f" [submodule {os.path.relpath(sub, main)}]"
-        if not dry_run and spent(budget, start):
+        if not dry_run and budget is not None and (spent(budget, clock) or clock.elapsed() > budget + SUBMODULE_SLACK):
             lines.append(f"left the remaining submodules for the next sweep (time budget {budget:g}s; "
                          f"make wt-sweep sweeps them now){tag}")
             break
         try:
             sub_trees = worktrees(sub)
             lines += [line + tag for line in
-                      sweep_repo(sub, sub_trees, dry_run, keep, budget, start, default_branch(sub),
+                      sweep_repo(sub, sub_trees, dry_run, keep, budget, clock, default_branch(sub),
                                  os.path.join(sub, ".claude", "worktrees"), SUBMODULE_BRANCH_PREFIX)]
         except subprocess.TimeoutExpired:
             lines.append(f"left this submodule for the next sweep: a git call timed out{tag}")
@@ -237,8 +255,8 @@ def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | 
 
 
 def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str], budget: float | None,
-               start: float, branch: str | None, home: str | None, prefix: str | None) -> list[str]:
-    """Sweep the worktrees of one repository whose working folder is `main`; `start` is when the sweep began.
+               clock: Clock, branch: str | None, home: str | None, prefix: str | None) -> list[str]:
+    """Sweep the worktrees of one repository whose working folder is `main`; `clock` is the sweep's.
 
     `trees` is `git worktree list`: its first entry is the main checkout, which is never removed (for a submodule
     whose git folder sits under the parent's .git/modules it is that folder, so `main`'s own path is dropped too).
@@ -263,21 +281,25 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
     lines = []
     for i, tree in enumerate(remove):
         label = tree.branch or tree.head[:8]
-        if not dry_run and spent(budget, start):
+        if not dry_run and spent(budget, clock):
             lines.append(f"left {len(remove) - i} merged worktree(s) for the next sweep (time budget {budget:g}s; "
                          "make wt-sweep removes them now)")
             break
         if dry_run:
             lines.append(f"would remove {tree.path} ({label})")
             continue
-        if os.path.isdir(tree.path):
-            why = remove_worktree(tree.path, main)
-            if why:
-                lines.append(f"kept {tree.path}: {why}")
-                continue
-        git("worktree", "prune", cwd=main)
-        if tree.branch and git("rev-parse", f"refs/heads/{tree.branch}", cwd=main) == tree.head:
-            git("branch", "-D", tree.branch, cwd=main)
+        began = time.monotonic()
+        try:
+            if os.path.isdir(tree.path):
+                why = remove_worktree(tree.path, main)
+                if why:
+                    lines.append(f"kept {tree.path}: {why}")
+                    continue
+            git("worktree", "prune", cwd=main)
+            if tree.branch and git("rev-parse", f"refs/heads/{tree.branch}", cwd=main) == tree.head:
+                git("branch", "-D", tree.branch, cwd=main)
+        finally:
+            clock.removing += time.monotonic() - began
         lines.append(f"removed {tree.path} ({label}, PR merged)")
     lines += [f"kept {tree.path} ({tree.branch or tree.head[:8]}): {why}" for tree, why in kept]
     return lines

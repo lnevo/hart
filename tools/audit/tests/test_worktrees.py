@@ -14,6 +14,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest import mock
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -286,6 +287,189 @@ class MainCheckoutRules(Repo):
         self.assertEqual(self.edit(self.wt + "/mirror/new.png", self.wt), 0)
         with tempfile.TemporaryDirectory() as other:
             self.assertEqual(self.edit(other + "/x.md", other), 0)
+
+
+SWEEP_NOW = datetime(2026, 11, 17, 12, 0, tzinfo=timezone.utc)
+
+
+def fake_tree(name, branch="b", locked=False):
+    return WT.Worktree(f"/r/{name}", "abc", branch, locked)
+
+
+class SubmodulePlanTest(unittest.TestCase):
+    def run_plan(self, trees, when, keep=(), dirty=()):
+        return WT.plan([fake_tree("main", "main")] + trees, lambda t: when.get(t.path), list(keep),
+                       lambda p: p in dirty, now=SWEEP_NOW)
+
+    def test_only_old_clean_merged_worktrees_are_removed(self):
+        old, fresh, dirty, openw = fake_tree("old"), fake_tree("fresh"), fake_tree("dirty"), fake_tree("open")
+        when = {old.path: SWEEP_NOW - timedelta(hours=2), fresh.path: SWEEP_NOW - timedelta(minutes=29),
+                dirty.path: SWEEP_NOW - timedelta(hours=2)}
+        remove, kept = self.run_plan([old, fresh, dirty, openw], when, dirty={dirty.path})
+        self.assertEqual(remove, [old])
+        self.assertEqual({t.path for t, _ in kept}, {fresh.path, dirty.path})  # open work is not even listed
+
+    def test_the_grace_period_is_thirty_minutes(self):
+        t = fake_tree("t")
+        remove, _ = self.run_plan([t], {t.path: SWEEP_NOW - timedelta(minutes=30)})
+        self.assertEqual(remove, [t])
+
+    def test_locked_and_kept_directories_stay(self):
+        locked, mine = fake_tree("locked", locked=True), fake_tree("mine")
+        when = {t.path: SWEEP_NOW - timedelta(days=1) for t in (locked, mine)}
+        remove, kept = self.run_plan([locked, mine], when, keep=["/r/mine/sub"])
+        self.assertEqual(remove, [])
+        self.assertEqual(len(kept), 2)
+
+    def test_a_merged_worktree_outside_the_home_folder_is_kept(self):
+        inside, outside = fake_tree("main/.claude/worktrees/a"), fake_tree("elsewhere/b")
+        when = {t.path: SWEEP_NOW - timedelta(days=1) for t in (inside, outside)}
+        remove, kept = WT.plan([fake_tree("main", "main"), inside, outside], lambda t: when.get(t.path), [],
+                               lambda p: False, now=SWEEP_NOW, home="/r/main/.claude/worktrees")
+        self.assertEqual(remove, [inside])
+        self.assertEqual([(t, why.split(",")[0]) for t, why in kept], [(outside, "outside")])
+
+
+def git_in(*args, cwd):
+    subprocess.run(["git", "-c", "protocol.file.allow=always", "-c", "user.name=t", "-c", "user.email=t@example.invalid",
+                    *args], cwd=cwd, check=True, capture_output=True)
+
+
+class SubmoduleSweepTest(unittest.TestCase):
+    """A parent repository whose submodule has a merged and an unmerged worktree."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        base = Path(os.path.realpath(tmp.name))
+        sub_src = base / "sub-src"
+        sub_src.mkdir()
+        git_in("init", "-q", "-b", "master", cwd=sub_src)   # not main: the default branch is looked up
+        (sub_src / "f").write_text("1")
+        git_in("add", "f", cwd=sub_src)
+        git_in("commit", "-q", "-m", "one", cwd=sub_src)
+        self.parent = base / "parent"
+        self.parent.mkdir()
+        git_in("init", "-q", "-b", "main", cwd=self.parent)
+        git_in("submodule", "add", "-q", str(sub_src), "ext/sub", cwd=self.parent)
+        git_in("commit", "-q", "-m", "add sub", cwd=self.parent)
+        self.sub = self.parent / "ext" / "sub"
+        # the submodule's git folder was absorbed: its worktree list starts with .git/modules/ext/sub
+        self.assertTrue((self.parent / ".git" / "modules" / "ext" / "sub").is_dir())
+        self.wts = self.sub / ".claude" / "worktrees"
+        for name in ("merged", "open"):
+            git_in("worktree", "add", "-q", "-b", f"agent/{name}", str(self.wts / name), cwd=self.sub)
+        self.head = subprocess.run(["git", "-C", str(self.sub), "rev-parse", "HEAD"], capture_output=True, text=True,
+                                   check=True).stdout.strip()
+        self.old = (SWEEP_NOW - timedelta(days=1)).isoformat()
+
+    def sweep(self, **kw):
+        merged = {"agent/merged": [{"headRefOid": self.head, "mergedAt": self.old}]}
+        for p in (mock.patch.object(WT, "ROOT", self.parent),
+                  mock.patch.object(WT, "merged_by_branch", lambda main, limit=1000: merged),
+                  mock.patch.object(WT.shutil, "which", lambda name: "/usr/bin/gh")):
+            p.start()
+            self.addCleanup(p.stop)
+        return WT.sweep(**kw)
+
+    def test_a_merged_submodule_worktree_outside_its_folder_is_kept(self):
+        out = self.wts.parent.parent.parent / "elsewhere"
+        git_in("worktree", "remove", "--force", str(self.wts / "merged"), cwd=self.sub)
+        git_in("worktree", "add", "-q", str(out), "agent/merged", cwd=self.sub)
+        lines = self.sweep()
+        self.assertTrue(out.is_dir())
+        self.assertTrue(any(str(out) in l and "outside, kept" in l for l in lines), lines)
+
+    def test_the_first_worktree_entry_is_the_git_folder_and_the_real_ones_are_still_found(self):
+        self.assertIn(".git/modules", WT.worktrees(str(self.sub))[0].path)
+        self.assertTrue(any("worktrees/merged" in l for l in self.sweep(dry_run=True)))
+
+    def test_every_submodule_line_names_its_repository(self):
+        lines = self.sweep(dry_run=True)
+        self.assertTrue(lines)
+        self.assertTrue(all(l.endswith("[submodule ext/sub]") for l in lines), lines)
+
+    def test_the_default_branch_is_master(self):
+        self.assertEqual(WT.default_branch(str(self.sub)), "master")
+
+    def test_only_agent_branches_are_swept_in_a_submodule(self):
+        git_in("worktree", "add", "-q", "-b", "sts/line", str(self.wts / "line"), cwd=self.sub)
+        merged = {"sts/line": [{"headRefOid": self.head, "mergedAt": self.old}],
+                  "agent/merged": [{"headRefOid": self.head, "mergedAt": self.old}]}
+        for p in (mock.patch.object(WT, "ROOT", self.parent),
+                  mock.patch.object(WT, "merged_by_branch", lambda main, limit=1000: merged),
+                  mock.patch.object(WT.shutil, "which", lambda name: "/usr/bin/gh")):
+            p.start()
+            self.addCleanup(p.stop)
+        lines = WT.sweep(dry_run=True)
+        self.assertEqual([l for l in lines if "worktrees/line" in l], [])
+        self.assertTrue(any("worktrees/merged" in l for l in lines))
+
+    def test_a_vendor_submodule_is_never_entered(self):
+        with mock.patch.object(WT, "SKIP_SUBMODULES", ("ext/sub",)):
+            self.assertEqual(WT.submodule_repos(str(self.parent)), [])
+            self.assertEqual(self.sweep(dry_run=True), [])
+        self.assertTrue((self.wts / "merged").is_dir())
+
+    def test_a_spent_budget_skips_the_submodules_and_their_network_calls(self):
+        for p in (mock.patch.object(WT, "ROOT", self.parent),
+                  mock.patch.object(WT, "merged_by_branch", side_effect=AssertionError("network call")),
+                  mock.patch.object(WT.shutil, "which", lambda name: "/usr/bin/gh")):
+            p.start()
+            self.addCleanup(p.stop)
+        lines = WT.sweep(budget=-1)
+        self.assertEqual(len(lines), 1)
+        self.assertIn("left the remaining submodules", lines[0])
+        self.assertTrue(lines[0].endswith("[submodule ext/sub]"))
+
+    def test_a_git_timeout_in_a_submodule_is_reported_and_the_sweep_goes_on(self):
+        real = WT.worktrees
+
+        def listing(cwd=None):
+            if cwd is not None and os.path.realpath(cwd) == os.path.realpath(self.sub):
+                raise subprocess.TimeoutExpired("git", 60)
+            return real(cwd)
+        with mock.patch.object(WT, "worktrees", listing):
+            lines = self.sweep()
+        self.assertEqual(lines, ["left this submodule for the next sweep: a git call timed out [submodule ext/sub]"])
+
+    def test_a_listing_timeout_leaves_the_submodules_for_later(self):
+        with mock.patch.object(WT, "submodule_repos", side_effect=subprocess.TimeoutExpired("git", 60)):
+            lines = self.sweep()
+        self.assertEqual(lines, ["left the submodules for the next sweep: listing them timed out"])
+
+    def test_a_repository_with_only_its_main_checkout_makes_no_network_call(self):
+        with mock.patch.object(WT, "merged_by_branch", side_effect=AssertionError("network call")):
+            self.assertEqual(WT.sweep_repo(str(self.parent), WT.worktrees(str(self.parent)), False, [], None, WT.Clock(),
+                                           "main", None, None), [])
+
+    def test_submodule_repos_lists_the_checked_out_submodule(self):
+        self.assertEqual(WT.submodule_repos(str(self.parent)), [str(self.sub)])
+
+    def test_dry_run_names_only_the_merged_submodule_worktree(self):
+        lines = self.sweep(dry_run=True)
+        self.assertEqual([l for l in lines if l.startswith("would remove")],
+                         [f"would remove {self.wts}/merged (agent/merged) [submodule ext/sub]"])
+        self.assertTrue((self.wts / "merged").is_dir())
+
+    def test_sweep_removes_the_merged_one_and_keeps_the_rest(self):
+        lines = self.sweep()
+        self.assertTrue(any(l.startswith("removed") and "worktrees/merged" in l for l in lines), lines)
+        self.assertFalse((self.wts / "merged").exists())
+        self.assertTrue((self.wts / "open").is_dir())
+
+    def test_uncommitted_work_keeps_a_merged_submodule_worktree(self):
+        (self.wts / "merged" / "new.txt").write_text("x")
+        lines = self.sweep()
+        self.assertTrue(any("worktrees/merged" in l and "uncommitted" in l for l in lines), lines)
+        self.assertTrue((self.wts / "merged").is_dir())
+
+    def test_a_commit_after_the_merge_keeps_it(self):
+        (self.wts / "merged" / "g").write_text("2")
+        git_in("add", "g", cwd=self.wts / "merged")
+        git_in("commit", "-q", "-m", "later", cwd=self.wts / "merged")
+        lines = self.sweep(dry_run=True)
+        self.assertEqual([l for l in lines if l.startswith("would remove")], [])
 
 
 if __name__ == "__main__":
