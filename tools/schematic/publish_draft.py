@@ -18,6 +18,8 @@ When the drawing itself (everything but the title block) differs from main's, pu
 `revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
 from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
 whole number is left alone. If anything fails after that, the preferences file is put back.
+The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
+them with www/scripts/map_revision.py, and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
 The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
@@ -55,6 +57,8 @@ STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
+sys.path.insert(0, str(REPO / "www/scripts"))
+import map_revision  # noqa: E402
 
 # the plugin's title box (it grows for a long title line), drawn after the drawing itself
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
@@ -262,7 +266,10 @@ def main(argv):
         print("published draft is current" if same else "published draft differs from the drawing")
         differ = stations_differ(draw_stations())
         print(f"station sheets differ: {', '.join(differ)}" if differ else "station sheets are current")
-        return 0 if same and not differ else 1
+        pages = [p.relative_to(REPO).as_posix() for p in map_revision.drift(prefs=page_prefs())]
+        print(f"station map pages differ from the title block: {', '.join(pages)}" if pages
+              else "station map pages carry the title block's revision and date")
+        return 0 if same and not differ and not pages else 1
     prefs = page_prefs()
     kept = {p: p.read_text() for p in (prefs, STAGING)}      # put back if anything below fails
     try:
@@ -272,6 +279,8 @@ def main(argv):
         publish(draw(), target, prefs, kept[prefs])
         write_stations(draw_stations(), STATIONS)
         print(f"wrote the station sheets in {STATIONS.relative_to(REPO)}")
+        for page in map_revision.apply(prefs=prefs):
+            print(f"set {page.relative_to(REPO)} to the title block's revision and date")
     except BaseException:
         for p, text in kept.items():
             if p.read_text() != text:
