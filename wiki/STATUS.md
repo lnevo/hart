@@ -4,6 +4,7 @@ Updated 2026-11-15: the two hand-added Princess SML pairs are retired, so every 
 
 ## Current state
 
+- **Parked features (owner, 2026-11-17, helix-join release):** JMRI Entry/Exit (NX), the stock JMRI Dispatcher System (Stage 1, sections, transits, traininfo) and the USS CTC machine and panel are out of the active `tables.xml`, with all their data kept in `jmri/layouts/hart/parked/`; a builder setting unparks them. The CATS desks (`HART_CTC.xml` and ABS) are not the USS CTC and stay live, as do signal masts and signal mast logic. The bullets below that describe these features as live (Stage 1 occupancy lamps, Dispatcher stations, the USS CTC board, and the counts of sections, transits, NX pairs and traininfo files) are history until they are unparked.
 - **SML reference (owner, 2026-11-16):** JMRI's own SML discovery is the reference for signal logic; the home-made SML model (`validate_le_signalling.py`) and its oracle CSV are retired. Check by running stock Discover / Stage 1 in the sandbox rehearsal and comparing the stored pairs with the previous tables.
 - **Layout:** `hart`. Masts are stock Basic (ADR-011). The repo's `jmri/layouts/hart/output/tables.xml` is the master (ADR-008). Every host loads `preference:tables.xml` from `JMRI_UserFiles` (ADR-014).
 - **JMRI:** production 5.16 on the Mac, Pi and Windows, the newest CATS 3.2 supports. Do not go past 5.16 until the CATS downloads page does. On any JMRI upgrade, rebase the web home override (`wiki/projects/cats-integration.md`, "Upgrading JMRI").

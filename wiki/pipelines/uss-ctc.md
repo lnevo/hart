@@ -2,7 +2,7 @@
 
 Generate the USS track diagram and CTC table data from a Python plan (Quaker Valley–style icons).
 
-**Status:** Live alternate desk. Never with CATS CTC.
+**Status:** Parked. Parked since the helix-join release (November 2026): not in the active panel; data kept in `jmri/layouts/hart/parked/`. When unparked it is an alternate desk, never run with CATS CTC. The CATS desks stay live.
 
 ## Inputs
 
