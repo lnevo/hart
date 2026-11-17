@@ -60,6 +60,10 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
 
     def test_inventory_update_writes_only_the_inventory(self) -> None:
         # The v85 signal-ports copy in docs/wiring/signals had no reader and is gone (2026-11-17).
+        try:
+            import openpyxl  # noqa: F401
+        except ImportError:
+            self.skipTest("openpyxl not installed: update_lcos_inventory skips and writes nothing")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "docs/wiring/signals").mkdir(parents=True)

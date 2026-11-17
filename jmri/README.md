@@ -19,8 +19,6 @@ See [`layouts/README.md`](layouts/README.md). Active layout is **`hart`** (`expo
 | `generate_nx_pairs.py` | List Entry/Exit pairs for manual JMRI add (parked with NX; see `layouts/hart/parked/README.md`) |
 | `fit_panel_canvas.py`, `fit_panel_height.py`, `polish_layout_geometry.py` | Geometry helpers; do not run unless asked |
 
-Defaults resolve via `hartlib.paths.layout_paths()` (`tools/hartlib/`) when arguments are omitted.
-
 ## Documentation
 
 Pipelines: [`wiki/pipelines/README.md`](../wiki/pipelines/README.md) · landmines: [`docs/AI_CONTEXT.md`](../docs/AI_CONTEXT.md)
