@@ -44,11 +44,11 @@ class ExamAnswers(unittest.TestCase):
     # A minimal run.html: the pools, the modern-run markers, the source names and a figure helper.
     FRAME = (
         'const SRC={SC:"1949 Standard Code",GC:"GCOR"};function semSvg(a){return "<svg>"+a+"</svg>"}'
-        "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function finish(){}"
+        "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function startYARD(){{YARD}}function finish(){}"
     )
 
-    def mini(self, body="", modern=""):
-        src = self.FRAME.replace("{BODY}", body).replace("{MODERN}", modern)
+    def mini(self, body="", modern="", yard=""):
+        src = self.FRAME.replace("{BODY}", body).replace("{MODERN}", modern).replace("{YARD}", yard)
         return json.loads(node(
             f"const m=require({json.dumps(str(SCRIPT))});"
             f"console.log(JSON.stringify(m.extract({json.dumps(src)})))"
@@ -74,8 +74,8 @@ class ExamAnswers(unittest.TestCase):
         self.assertEqual(q[0]["body"], "a b 2 c")
 
     def test_modern_run_label_source_names_and_figures(self):
-        q = self.mini(self.Q % "", self.Q % ',extra:semSvg(0)')
-        self.assertEqual([x["where"] for x in q], ["1949 run", "Modern run"])
+        q = self.mini(self.Q % "", self.Q % ',extra:semSvg(0)', self.Q % "")
+        self.assertEqual([x["where"] for x in q], ["1949 run", "Modern run", "Yard job"])
         self.assertEqual(q[0]["src"], "GCOR · 6.13")
         self.assertEqual(q[1]["extra"], "<svg>0</svg>")
 
