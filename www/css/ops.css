@@ -1517,7 +1517,7 @@ main:not(.full-bleed) .btn-ghost:hover {
 /* Leave room so detail stays on-screen under the map.
    Do not use flex justify-content:center here — it clips the left/top
    overflow so you cannot scroll to the start of a wide map. */
-/* The frame takes the map's own shape (the three-level Digicon board, 3780 x 2055), as large as the
+/* The frame takes the map's own shape (layout-explorer.js sets it from the image; 3780 x 2055 until then), as large as the
    window allows while the toolbar stays in view. A grid with auto margins centres the map at Fit and
    falls back to the top-left corner once it is larger than the frame, so nothing is clipped. */
 .map-frame {
@@ -1543,10 +1543,6 @@ main:not(.full-bleed) .btn-ghost:hover {
 .map-scroll-explorer #map-zoom-wrap {
   margin: auto;
   overflow: hidden;
-}
-
-.map-scroll-explorer .hotspot {
-  cursor: pointer;
 }
 
 .map-overview {
@@ -1732,6 +1728,9 @@ main:not(.full-bleed) .btn-ghost:hover {
   cursor: pointer;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
   z-index: 2;
+  /* --hotspot-scale (set on #map-stage by layout-explorer.js) undoes the map's zoom-out, so a dot stays
+     a clickable size on screen at Fit. */
+  transform: scale(var(--hotspot-scale, 1));
 }
 
 .hotspot.turnout {
@@ -1749,7 +1748,7 @@ main:not(.full-bleed) .btn-ghost:hover {
 
 .hotspot.active,
 .hotspot:hover {
-  transform: scale(1.35);
+  transform: scale(calc(var(--hotspot-scale, 1) * 1.35));
   outline: 2px solid #ffe08a;
   z-index: 3;
 }

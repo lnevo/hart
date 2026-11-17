@@ -2,7 +2,9 @@
   var DATA_URL = "data/layout-index-cats.json";
   var IMAGE_FALLBACK = "assets/layout/HART_cats_digicon.png";
   var ZOOM_MAX = 1.5; // past the image's own pixels it only blurs
-  var ZOOM_FACTOR = 1.25; // one press of + or -
+  var ZOOM_FACTOR = 1.25; // one press of + or -, and the most one wheel event may zoom
+  var HOTSPOT_PX = 14; // a dot's size on the map image (.hotspot in ops.css)
+  var HOTSPOT_MIN_PX = 12; // the smallest a dot may look on screen
   var MV = window.HARTMapView;
 
   var state = {
@@ -101,23 +103,35 @@
     var stage = $("#map-stage");
     var wrap = $("#map-zoom-wrap");
     stage.style.transform = "scale(" + state.zoom + ")";
-    wrap.style.width = Math.ceil(state.naturalW * state.zoom) + "px";
-    wrap.style.height = Math.ceil(state.naturalH * state.zoom) + "px";
+    stage.style.setProperty("--hotspot-scale", String(Math.max(1, HOTSPOT_MIN_PX / (HOTSPOT_PX * state.zoom))));
+    // floor: a box rounded up past the frame would show scrollbars at Fit
+    wrap.style.width = Math.floor(state.naturalW * state.zoom) + "px";
+    wrap.style.height = Math.floor(state.naturalH * state.zoom) + "px";
     var after = view(); // the box has moved now the map is a new size
     var s = MV.scrollFor(p, state.zoom, fx, fy, after.v.offX, after.v.offY);
     after.scroll.scrollLeft = s.left;
     after.scroll.scrollTop = s.top;
     $("#zoom-label").textContent = Math.round(state.zoom * 100) + "%";
-    var range = $("#zoom-range");
-    range.min = String(Math.floor(state.fit * 100));
-    range.max = String(Math.round(ZOOM_MAX * 100));
-    range.value = String(Math.round(state.zoom * 100));
+    $("#zoom-range").value = String(Math.round(state.zoom * 100));
     updateOverview();
   }
 
+  // Measure the frame with nothing in it, so scrollbars from the current zoom do not shrink the fit.
+  function measureFit() {
+    var scroll = $("#map-scroll");
+    var wrap = $("#map-zoom-wrap");
+    var saved = [wrap.style.width, wrap.style.height];
+    wrap.style.width = wrap.style.height = "0px";
+    state.fit = MV.fitZoom(scroll.clientWidth, scroll.clientHeight, state.naturalW, state.naturalH);
+    wrap.style.width = saved[0];
+    wrap.style.height = saved[1];
+    var range = $("#zoom-range");
+    range.min = String(Math.ceil(state.fit * 100));
+    range.max = String(Math.round(ZOOM_MAX * 100));
+  }
+
   function fitAll() {
-    var vw = view();
-    state.fit = MV.fitZoom(vw.w, vw.h, state.naturalW, state.naturalH);
+    measureFit();
     zoomTo(state.fit);
   }
 
@@ -159,14 +173,16 @@
         if (!ev.ctrlKey && !ev.metaKey) return;
         ev.preventDefault();
         var b = scroll.getBoundingClientRect();
-        zoomTo(state.zoom * Math.exp(-ev.deltaY * 0.01), ev.clientX - b.left, ev.clientY - b.top);
+        var dy = ev.deltaY * (ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? b.height : 1); // lines, pages → px
+        var f = MV.clamp(Math.exp(-dy * 0.01), 1 / ZOOM_FACTOR, ZOOM_FACTOR); // a mouse notch is one + press
+        zoomTo(state.zoom * f, ev.clientX - b.left, ev.clientY - b.top);
       },
       { passive: false }
     );
 
     // Double-click zooms in at the spot; Shift + double-click zooms out.
     scroll.addEventListener("dblclick", function (ev) {
-      if (ev.target.closest(".hotspot")) return;
+      if (ev.target.closest(".hotspot") || Date.now() - lastDragEnd < 500) return; // two quick pans are not a zoom
       var b = scroll.getBoundingClientRect();
       var f = ev.shiftKey ? 1 / 2 : 2;
       zoomTo(state.zoom * f, ev.clientX - b.left, ev.clientY - b.top);
@@ -174,8 +190,11 @@
 
     // Drag with the mouse to pan (touch already scrolls the box).
     var drag = null;
+    var lastDragEnd = 0;
     scroll.addEventListener("pointerdown", function (ev) {
       if (ev.pointerType !== "mouse" || ev.button !== 0 || ev.target.closest(".hotspot")) return;
+      var b = scroll.getBoundingClientRect();
+      if (ev.clientX - b.left >= scroll.clientWidth || ev.clientY - b.top >= scroll.clientHeight) return; // a scrollbar
       drag = { x: ev.clientX, y: ev.clientY, left: scroll.scrollLeft, top: scroll.scrollTop, moved: false };
       scroll.setPointerCapture(ev.pointerId);
       ev.preventDefault(); // no image drag or text selection to take the gesture over
@@ -191,6 +210,7 @@
       scroll.scrollTop = drag.top - dy;
     });
     function endDrag() {
+      if (drag && drag.moved) lastDragEnd = Date.now();
       drag = null;
       scroll.classList.remove("dragging");
     }
@@ -219,8 +239,7 @@
     window.addEventListener("resize", function () {
       if (!state.naturalW) return;
       var atFit = state.zoom <= state.fit + 1e-6;
-      var vw = view();
-      state.fit = MV.fitZoom(vw.w, vw.h, state.naturalW, state.naturalH);
+      measureFit();
       zoomTo(atFit ? state.fit : state.zoom);
     });
   }
@@ -277,6 +296,7 @@
       state.naturalW = img.naturalWidth || (state.data.image && state.data.image.width) || 0;
       state.naturalH = img.naturalHeight || (state.data.image && state.data.image.height) || 0;
       $("#overview-img").src = img.src;
+      $("#map-scroll").style.aspectRatio = state.naturalW + " / " + state.naturalH; // the board's own shape
       fitAll();
       paint();
     }
