@@ -167,5 +167,27 @@
    "245A",
    "245B"
   ]
- }
+ },
+ "le_longer_straights": {
+  "Upper": [
+   {
+    "from": "235",
+    "to": "241A",
+    "columns": 0.18
+   }
+  ]
+ },
+ "_le_longer_straights": "Layout Editor only (owner, 2026-11-16): Track 235-241 (switch 235's leg B up to 241's half A) had one column (40.4 px) of straight at 241; the crossover needed about 7 px more for its 45 degrees. Only the bend moves: 235 and 241 stay, the climb from 235 is a little steeper.",
+ "le_title_clear": 8,
+ "_le_title_clear": "The cut-over candidate (owner, 2026-11-16): each level's title 8 px below the lowest thing of the level above (for staging, everything its candidate holds: the status cluster stands in the gap), so the gaps between the levels are as small as is clean.",
+ "le_stretch": {
+  "factor": 1.307,
+  "tolerance": 0.03
+ },
+ "_le_stretch": "The cut-over candidate's grid (owner, 2026-11-16): staging's own fit to the 1900 x 1140 window widened by the factor, so the three-level panel has the shape of the window's panel area (about 1.74 wide to 1 high) and fills it when zoomed to fit. The build stops when the panel's shape drifts more than the tolerance from it, naming the factor that would fit.",
+ "le_crossover_angle": {
+  "Main": 45,
+  "Upper": 45
+ },
+ "_le_crossover_angle": "The angle each level's crossovers (single and double) cross at on the Layout Editor cut-over candidates (owner, 2026-11-16): staging at the schematic's own diverging angle, one grid column across per row, so 45 degrees; main and upper at 45 too, double crossover included (after a round at 30). A crossover with no room for its angle is drawn as steep as it must be (the plugin logs which). The fitted viewing trials draw them as they fall."
 }

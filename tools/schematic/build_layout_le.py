@@ -19,11 +19,13 @@ it is not part of the normal build. "Live" below means the railroad's objects an
 
 Three levels (owner, 2026-11-16). `--as-live` (levels all) writes the cut-over candidate
 jmri/layouts/hart/output/trial/tables_cutover.xml: first the staging candidate below (--levels staging --as-live, drawn
-at staging's own fit widened by STRETCH, so the three-level panel has the window's shape; check_aspect), then
+at staging's own fit widened by the page's le_stretch factor, so the three-level panel has the window's shape; the
+plugin's check_stretch), then
 all three bands at that candidate's grid (no fitting: the panel is larger than the FIT window, which stays FIT;
 zoom to fit), each band's labels placed in rounds of their own (the plugin's labels_by_band, so staging's do not
 depend on the levels below), staging against the left edge (the plugin's band_align) and the main level below everything the
-staging candidate holds (the band gap grows by what the overlay adds under staging), the frame items and status
+staging candidate holds (the plugin's le_title_clear, with the overlay's bottom under staging as band_bottoms), the
+frame items and status
 cluster tied to the staging band's track. check_staging_unchanged then stops unless the staging candidate is in it
 unchanged: every bean, every other panel, every staging element, but the main and upper objects and the helix joins
 (the staging helix tracks run on to the main level, so their end bumpers become anchors and Masts 38RA and 40RA stand
@@ -112,7 +114,6 @@ import functools
 import hashlib
 import importlib
 import json
-import math
 import os
 import re
 import sys
@@ -166,14 +167,11 @@ FIT = (1900, 1140)
 # Staging alone fills the window's width long before its height, so its rows may be as far apart as the live
 # panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels.
 STAGING_ROW = 48
-# The cut-over candidates' grid (owner, 2026-11-16). Staging's own fit to the window (the grid's scale across and down
+# The cut-over candidates' grid (owner, 2026-11-16): staging's own fit to the window (the grid's scale across and down
 # when the staging band alone is fitted into FIT at STAGING_ROW, found by the plugin's fit in each staging cut-over
-# build and kept as P.staging_fit) widened by STRETCH, so that the three-level
-# panel has the shape of the window's panel area (FIT less Layout Editor's frame, about 1.74 wide to 1 high) and
-# fills it when zoomed to fit. Rows, their spacing and the band gap do not change. The build stops when the panel's
-# shape drifts more than ASPECT_TOLERANCE from the window's (check_aspect names the factor that would fit it).
-STRETCH = 1.307
-ASPECT_TOLERANCE = 0.03
+# build and kept as P.staging_fit) widened by main_upper.preferences.json's le_stretch (the plugin's stretched and
+# check_stretch). The geometry knobs of the Layout Editor drawing (le_shift, le_longer_straights, le_title_clear,
+# le_stretch, le_labels extra_steps and extra_follow) are layer 3 preferences the plugin reads (schematic/le_prefs.py).
 # The plugin's label layer (schematic/le_labels.py): switch numbers as the hand-drawn panel wrote them ("SW-13",
 # 13 px bold), block contents icons on with the plugin's reserve; given to every band through the page options.
 # The all-levels trial (viewing only) has no block contents icons (owner, 2026-11-16), and its switch numbers at the
@@ -215,86 +213,6 @@ def schematic():
     sheet = plugin()[0]
     built = pd.solved_sheet(sheet)
     return built.bands, built.opts
-
-
-# Layout Editor only (the sheet keeps its columns; owner, 2026-11-16): staging from Plane (switch 5) to East End's
-# switch 33 drawn this many grid columns further west, into the empty space above Scale, so West Ext and East Lead
-# are drawn longer and Main West and Brick-Plane shorter by as much, and the panel keeps its width. Whole columns,
-# and an even number keeps the label layer's spots as on the sheet's grid (an odd one moved a dozen labels).
-WEST_SHIFT = {"band": "Staging", "from": "5", "to": "33", "columns": 2}
-
-
-def west_shifted(bands):
-    """`bands` with WEST_SHIFT applied: a copy whose staging band has every node (switch, end) at or between the
-    columns of switches WEST_SHIFT from and to moved WEST_SHIFT columns west; turnbacks stay. The others as given."""
-    out = []
-    for title, band, opts in bands:
-        if band_key(title) == WEST_SHIFT["band"]:
-            cols = {d.get("label"): band["x"][n] for n, d in band["nodes"].items()
-                    if d["kind"] == "switch" and n in band["x"]}
-            lo, hi = (cols.get(WEST_SHIFT[k]) for k in ("from", "to"))
-            if lo is None or hi is None or lo > hi:
-                raise BuildError(f"WEST_SHIFT: switches {WEST_SHIFT['from']} and {WEST_SHIFT['to']} are not drawn "
-                                 f"west to east on the {WEST_SHIFT['band']} band")
-            x = {n: x - WEST_SHIFT["columns"] if lo <= x <= hi and not is_turnback(band, n) else x
-                 for n, x in band["x"].items()}
-            # a track with one end moved and one not keeps its ends in their order, as many columns apart as its
-            # climbs need (band "need"), so nothing west of the shift is overlapped or passed
-            bad = []
-            for sid, st in band["strands"].items():
-                u, v = st["src"][0], st["dst"][0]
-                if u not in x or v not in x or (x[u] == band["x"][u]) == (x[v] == band["x"][v]):
-                    continue
-                old, new = band["x"][v] - band["x"][u], x[v] - x[u]
-                need = sum(band["need"].get(sid, (0, 0))[:2])
-                if old * new <= 0 or abs(new) < need:
-                    bad.append(f"{st.get('name') or sid} ({old:g} -> {new:g} columns, needs {need:g})")
-            if bad:
-                raise BuildError(f"WEST_SHIFT of {WEST_SHIFT['columns']} columns leaves tracks overlapped or reversed "
-                                 f"on the {WEST_SHIFT['band']} band: " + ", ".join(bad))
-            band = dict(band, x=x)
-        out.append((title, band, opts))
-    return out
-
-
-# Layout Editor only (the sheet keeps its drawing): the straight of a track at one switch's end lengthened by moving
-# its bend toward the other switch, so a crossover there has room for its 45 degrees. Track 235-241 (switch 235's
-# leg B up to 241's half A): its straight at 241 was one column (40.4 px), 241 needed about 7 px more (owner,
-# 2026-11-16). Only the bend moves: 235 and 241 stay, the climb from 235 is a little steeper.
-LONGER_STRAIGHTS = [{"band": "Upper", "from": "235", "to": "241A", "columns": 0.18}]
-
-
-def straights_lengthened(bands):
-    """`bands` with LONGER_STRAIGHTS applied: the track joining the switches labelled from and to (the sheet's
-    labels) has the climb at its `from` end ending `columns` sooner, so its straight at `to` is that much longer.
-    Stops on a track not found, or one with no climb at its from end that long."""
-    out = list(bands)
-    for want in LONGER_STRAIGHTS:
-        i = next((k for k, (t, _b, _o) in enumerate(out) if band_key(t) == want["band"]), None)
-        if i is None:
-            raise BuildError(f"LONGER_STRAIGHTS: no {want['band']} band")
-        title, band, opts = out[i]
-        label = {n: d.get("label") for n, d in band["nodes"].items()}
-        found = [(sid, s) for sid, s in band["strands"].items()
-                 if {label[s["src"][0]], label[s["dst"][0]]} == {want["from"], want["to"]}]
-        if len(found) != 1:
-            raise BuildError(f"LONGER_STRAIGHTS: {len(found)} tracks join switches {want['from']} and {want['to']} "
-                             f"on the {want['band']} band, not one")
-        sid, st = found[0]
-        su, sv, *rest = band["need"][sid]
-        at_src = label[st["src"][0]] == want["from"]
-        climb = su if at_src else sv
-        if climb <= want["columns"]:
-            raise BuildError(f"LONGER_STRAIGHTS: track {sid} climbs {climb} columns at switch {want['from']}, not "
-                             f"more than {want['columns']}")
-        need = (su - want["columns"], sv, *rest) if at_src else (su, sv - want["columns"], *rest)
-        out[i] = (title, dict(band, need=dict(band["need"], **{sid: need})), opts)
-    return out
-
-
-def is_turnback(band, n) -> bool:
-    """A turnback node (its own column at the band's end)."""
-    return band["nodes"].get(n, {}).get("kind", "").startswith("turn")
 
 
 def overlay_mod():
@@ -966,57 +884,19 @@ NAME_COLUMNS = [["S-R", "S-1", "S-2", "S-3", "S-4"]]
 LAMP_COLUMNS = [{"BS S-R": "S-R", "BS S-1": "S-1", "BS S-2": "S-2", "BS S-3": "S-3", "BS S-4": "S-4"}]
 
 
-# Station clusters that step along one slope (owner, 2026-11-16): the engine house's buttons, one row apart. Each after
-# the second is placed again at the x the first two's step gives it (the plugin's extra "x"), its y the plugin's.
-STATION_STEPS = [["Track EH-1", "Track EH-2", "Track EH-3"]]
-# Station clusters that follow another's along a curve at the first STATION_STEPS group's slope (owner, 2026-11-16):
-# West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3.
-STATION_FOLLOW = [("Track W-1", "Track W-2")]
-
-
-def cluster_steps(P, groups, follow=()) -> dict:
-    """{station block: x} for the clusters after the second of each group (STATION_STEPS): the first's x plus n
-    times the first step, from the boxes the plugin placed (P.extras); then each (leader, follower) of `follow`
-    (STATION_FOLLOW): the leader's x plus the first group's step per px of y times the follower's y less the
-    leader's. Stops on a group member it placed none for."""
-    boxes = {e["id"]: e["box"] for e in getattr(P, "extras", ())}
-    out = {}
-    slope = None
-    for group in groups:
-        missing = [g for g in group if g not in boxes]
-        if missing:
-            raise BuildError(f"station steps: the plugin placed no cluster for {missing}")
-        x0, step = boxes[group[0]][0], boxes[group[1]][0] - boxes[group[0]][0]
-        out.update({g: round(x0 + k * step) for k, g in enumerate(group[2:], 2)})
-        if slope is None:
-            dy = boxes[group[1]][1] - boxes[group[0]][1]
-            if dy == 0:
-                raise BuildError(f"station steps: {group[0]} and {group[1]} stand on one row, so they give no slope")
-            slope = step / dy
-    for lead, follower in follow:
-        missing = [g for g in (lead, follower) if g not in boxes]
-        if missing:
-            raise BuildError(f"station steps: the plugin placed no cluster for {missing}")
-        if slope is None:
-            raise BuildError("station steps: a cluster follows another, but no group gives the slope")
-        out[follower] = round(boxes[lead][0] + slope * (boxes[follower][1] - boxes[lead][1]))
-    return out
-
-
-def with_x(extras: dict, xs: dict) -> dict:
-    """`extras` ({"extras": [...]}) with each station cluster in `xs` placed at that x (the plugin's extra "x")."""
-    return {"extras": [dict(e, x=xs[e["id"]]) if e["id"] in xs else e for e in extras.get("extras", [])]}
-
-
 def staging_columns(bands):
-    """`bands` with the staging band's le_labels giving NAME_COLUMNS (a copy of its options)."""
+    """`bands` with the staging band's le_labels (its preferences' own, a copy) also giving NAME_COLUMNS and
+    LAMP_COLUMNS (the lamps' tracks, bound to their sensors here)."""
     out = []
     for title, band, opts in bands:
         if band_key(title) == STAGING:
-            if "le_labels" in (opts or {}):
-                raise BuildError(f"{title}: its preferences already hold le_labels; HART sets them here")
-            opts = dict(opts or {}, le_labels={"name_columns": [list(g) for g in NAME_COLUMNS],
-                                               "lamp_columns": [list(g.values()) for g in LAMP_COLUMNS]})
+            own = dict((opts or {}).get("le_labels") or {})
+            set_here = sorted({"name_columns", "lamp_columns"} & set(own))
+            if set_here:
+                raise BuildError(f"{title}: its preferences' le_labels already hold {', '.join(set_here)}; HART sets "
+                                 "them here (NAME_COLUMNS, LAMP_COLUMNS)")
+            opts = dict(opts or {}, le_labels=dict(own, name_columns=[list(g) for g in NAME_COLUMNS],
+                                                   lamp_columns=[list(g.values()) for g in LAMP_COLUMNS]))
         out.append((title, band, opts))
     return out
 
@@ -1285,9 +1165,14 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     _sheet, le_mod, core = plugin()
     if bands is None:
         bands, page = schematic()
-        bands = straights_lengthened(west_shifted(bands))
     else:
         page = bands[-1][2]
+    # as the Layout Editor draws them (the preferences' le_shift, le_longer_straights; once): so the names below are
+    # read off the bands drawn, before named_bands relabels a crossover's halves
+    try:
+        bands = le_mod.drawn_bands(bands, page)
+    except core.SchematicError as exc:
+        raise BuildError(f"schematic le: {exc}") from None
     base = None             # the three-level candidate: the staging candidate it must hold unchanged, and its grid
     if as_live and levels == "all":
         base = build(live_path, bands, "staging", True, inputs, approved=approved)
@@ -1358,39 +1243,27 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                 raise BuildError("the schematic's page options hold band_align; HART sets it for the panel here")
             # staging against the left edge, where it stands drawn alone, however wide the other levels are; its
             # labels placed as when it is drawn alone (labels_by_band); and the gaps between the levels as small as
-            # is clean (owner, 2026-11-16; band_gap): each level's title TITLE_CLEAR px below the lowest thing of
-            # the level above, which for staging is everything its candidate holds (its status cluster stands in
-            # the gap). The main level's lowest label is known only once it is drawn: drawn twice
+            # is clean (owner, 2026-11-16; the page's le_title_clear): for staging, below everything its candidate
+            # holds (its status cluster stands in the gap: band_bottoms). Every crossover at its level's
+            # le_crossover_angle, however each level is stretched; the station clusters where staging's candidate
+            # has them (an extra given its x keeps it)
             S = base[1]
-            gaps = [band_gap(max(le_mod.extent(S)[3], S.overlay["bottom"]), S.band_boxes[0][3], le_mod),
-                    le_mod.BAND_GAP]
-            # every single crossover at CROSSOVER_ANGLE, however each level is stretched
-            stepped = with_x(extras, S.station_x)       # the station clusters where staging's candidate has them
-            draw = lambda g: le_mod.panel(staging_columns(named_bands(bands, names)), names,  # noqa: E731
-                                          cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1],
-                                          page=dict(page, band_align={STAGING: "left"}), gap=g, labels_by_band=True,
-                                          crossover_run=crossover_run(scale),
-                                          tight_crossovers=TIGHT_CROSSOVERS,
-                                          split_crossovers=SPLIT_CROSSOVERS, mast_room=MAST_ROOM,
-                                          name_room=NAME_ROOM, **stepped)
-            P = draw(gaps)
-            if len(P.band_boxes) > 2:
-                gaps[1:] = [band_gap(le_mod.extent(P, bi)[3], P.band_boxes[bi][3], le_mod)
-                            for bi in range(1, len(P.band_boxes) - 1)]
-                P = draw(gaps)
-            P.scale, P.fit, P.gaps = scale, None, gaps
+            stepped = {"extras": le_mod.le_prefs.with_x(extras.get("extras"), S.extra_x)}
+            P = le_mod.panel(staging_columns(named_bands(bands, names)), names, cell=le_mod.CELL * scale[0],
+                             row=STAGING_ROW * scale[1], page=dict(page, band_align={STAGING: "left"}),
+                             labels_by_band=True, tight_crossovers=TIGHT_CROSSOVERS, split_crossovers=SPLIT_CROSSOVERS,
+                             mast_room=MAST_ROOM, name_room=NAME_ROOM, band_bottoms={STAGING: S.overlay["bottom"]},
+                             **stepped)
+            P.scale, P.fit, P.stretch = scale, None, S.stretch
         elif as_live:               # the staging candidate: the cut-over grid, no fitting (it scrolls in FIT)
-            fitted = le_mod.panel(bands, names, page=page, fit=FIT, row=STAGING_ROW, **extras).scale
-            scale = (fitted[0] * STRETCH, fitted[1])
-            draw = lambda e: le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0],  # noqa: E731
-                                          row=STAGING_ROW * scale[1], page=page,
-                                          crossover_run={STAGING: crossover_run(scale)[STAGING]},
-                                          **e)
-            P = draw(extras)
-            xs = cluster_steps(P, STATION_STEPS, STATION_FOLLOW) if extras else {}
-            if xs:                  # again, with the stepped clusters placed at their x (STATION_STEPS)
-                P = draw(with_x(extras, xs))
-            P.scale, P.fit, P.staging_fit, P.station_x = scale, None, fitted, xs
+            # (the grid a fit settles on does not depend on the caller's items, so none are given)
+            fitted = le_mod.panel(bands, names, page=page, fit=FIT, row=STAGING_ROW).scale
+            scale = le_mod.stretched(fitted, page)
+            stretch = le_mod.le_prefs.stretch(page)[0]
+            # the station clusters that step (staging's le_labels extra_steps, extra_follow) are placed by the plugin
+            P = le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1],
+                             page=page, **extras)
+            P.scale, P.fit, P.staging_fit, P.stretch = scale, None, fitted, stretch
         else:
             rows = {"row": STAGING_ROW} if levels == "staging" else {}
             drawn = named_bands(bands, names) if levels == "all" else bands
@@ -1456,7 +1329,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         if base is not None:
             P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name)
             P.staging_data = base[0]
-            check_aspect(P.overlay["size"], le_mod.CHROME)
+            try:
+                le_mod.check_stretch(P.overlay["size"], FIT, page)
+            except core.SchematicError as exc:
+                raise BuildError(f"schematic le: {exc}") from None
             # the parked features (PARKED, owner 2026-11-17) leave the cut-over candidate for the parked file,
             # after the staging guard, which compares the two candidates whole
             try:
@@ -1472,12 +1348,6 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     return doc.tobytes(), P, names, bands
 
 
-# The angle each level's crossovers (single and double) cross at on the cut-over candidates (owner, 2026-11-16):
-# staging at the schematic's own diverging angle for turnouts and yard ladders, one grid column across per row, so
-# 45 degrees on the sheet's square grid; main and upper at 45 too, double crossover included (owner, 2026-11-16,
-# after a round at 30). A crossover with no room for its angle is drawn as steep as it must be (the plugin logs
-# which, at what angle).
-CROSSOVER_ANGLES = {"Staging": 45.0, "Main": 45.0, "Upper": 45.0}
 # Crossovers drawn as close together as JMRI's shapes allow on the track they share (the plugin's tight_crossovers):
 # 101 and 103 are one physical three-way switch (owner, 2026-11-16). JMRI's crossover shape runs its pieces a run
 # past the diagonal on each track, which kept their throats about 110 px apart, so the two are drawn as two plain
@@ -1497,34 +1367,6 @@ MAST_ROOM = ["Main", "Upper"]
 NAME_ROOM = ["Main", "Upper"]
 # track names left off the panel (owner, 2026-11-16): the short track inside the three-way
 NO_NAME = {"Main": ["101-103"]}
-
-
-def crossover_run(scale) -> dict:
-    """{band key: px across} a crossover's diagonal runs at its level's CROSSOVER_ANGLES, one row (STAGING_ROW at
-    `scale`) deep."""
-    return {k: STAGING_ROW * scale[1] / math.tan(math.radians(a)) for k, a in CROSSOVER_ANGLES.items()}
-
-
-# px between the lowest thing of one level (labels, readouts, carried items) and the next level's title
-TITLE_CLEAR = 8
-
-
-def band_gap(lowest: float, box_bottom: float, le_mod) -> float:
-    """The gap the plugin leaves below a band whose box (P.band_boxes) ends at `box_bottom` and whose lowest drawn
-    thing ends at `lowest`, so the next band's title stands TITLE_CLEAR px below it (the title is drawn TITLE_GAP
-    above the next band's box, less 4 px)."""
-    return math.ceil(max(0.0, lowest - box_bottom) + le_mod.TITLE_GAP - 4 + TITLE_CLEAR)
-
-
-def check_aspect(size, chrome, fit=FIT, stretch=STRETCH, tolerance=ASPECT_TOLERANCE) -> None:
-    """Stop unless the panel `size` (width, height) has the shape of the `fit` window's panel area (fit less
-    `chrome`) within `tolerance`, naming the STRETCH that would give it (the panel's width grows about in step)."""
-    want = (fit[0] - chrome[0]) / (fit[1] - chrome[1])
-    got = size[0] / size[1]
-    if abs(got / want - 1) > tolerance:
-        raise BuildError(f"the panel is {size[0]}x{size[1]} px, {got:.3f} wide to 1 high; the {fit[0]}x{fit[1]} "
-                         f"window's panel area is {want:.3f}: set STRETCH to about {stretch * want / got:.3f} "
-                         f"(now {stretch})")
 
 
 def canon_sorted(el: ET.Element) -> str:
@@ -2262,7 +2104,7 @@ def run(argv, cached) -> int:
         print(f"  overlay: {line}")
     if getattr(P, "gaps", None):
         print(f"  gaps between the levels: {', '.join(f'{g:g}' for g in P.gaps)} px; grid {P.scale[0]:.4f} x "
-              f"{P.scale[1]:.4f} (STRETCH {STRETCH})")
+              f"{P.scale[1]:.4f} (le_stretch factor {P.stretch})")
     same = getattr(P, "staging_same", None)
     if same is not None:
         print(f"  staging guard: the {'(unapproved) ' if args.review else 'approved '}staging candidate is held "

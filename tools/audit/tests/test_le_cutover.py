@@ -29,6 +29,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_build_layout_le as T  # noqa: E402  loads the builder and the audit once
 
 B, AUDIT = T.B, T.AUDIT
+
+
+def page_prefs() -> dict:
+    """The page's preferences (main_upper.preferences.json, the last input's), as the build reads them."""
+    return B.schematic()[1]
+
+
+def stretch() -> tuple:
+    """(factor, tolerance) of the page's le_stretch, read by the plugin."""
+    return B.plugin()[1].le_prefs.stretch(page_prefs())
 tables, paths = T.tables, T.paths
 LIVE = "HART Railroad"
 SIZE_ATTRS = {"panelwidth", "panelheight", "windowwidth", "windowheight", "x", "y"}
@@ -105,10 +115,10 @@ class Cutover(unittest.TestCase):
         self.assertEqual((self.le.get("editable"), self.le.get("scrollable")), ("no", "both"))
         self.assertEqual(self.inputs.attrs["scrollable"], "none")
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        # the window is the panel and its frame, at most FIT; the stretched panel (STRETCH) is wider than it
+        # the window is the panel and its frame, at most FIT; the stretched panel (le_stretch) is wider than it
         self.assertEqual((int(self.le.get("windowwidth")), int(self.le.get("windowheight"))),
                          (min(w + 18, B.FIT[0]), min(h + 60, B.FIT[1])))
-        self.assertEqual(self.P.scale, (self.P.staging_fit[0] * B.STRETCH, self.P.staging_fit[1]))
+        self.assertEqual(self.P.scale, (self.P.staging_fit[0] * stretch()[0], self.P.staging_fit[1]))
         self.assertTrue(0.7 < self.P.staging_fit[0] < 0.9, self.P.staging_fit)     # staging's own fit to FIT
 
     def test_no_placeholders_in_staging_mode(self) -> None:
@@ -485,10 +495,10 @@ class ThreeLevels(unittest.TestCase):
     def test_the_panel_has_the_windows_shape(self) -> None:
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
         want = (B.FIT[0] - 18) / (B.FIT[1] - 60)
-        self.assertLessEqual(abs(w / h / want - 1), B.ASPECT_TOLERANCE)
+        self.assertLessEqual(abs(w / h / want - 1), stretch()[1])
         self.assertEqual((self.le.get("windowwidth"), self.le.get("windowheight")), tuple(map(str, B.FIT)))
-        with self.assertRaisesRegex(B.BuildError, r"set STRETCH to about 1\.\d+"):
-            B.check_aspect((1984, 1505), (18, 60))
+        with self.assertRaisesRegex(B.plugin()[2].SchematicError, r"set le_stretch's factor to about 1\.\d+"):
+            B.plugin()[1].check_stretch((1984, 1505), B.FIT, page_prefs())
 
     def test_no_compass_rose_and_the_plain_backdrop(self) -> None:
         urls = [el.find("icon").get("url") for el in self.le.iter("positionablelabel") if el.find("icon") is not None]
@@ -547,10 +557,12 @@ class ThreeLevels(unittest.TestCase):
         extent = B.plugin()[1].extent
         lows = [max(extent(self.P, 0)[3], self.base[1].overlay["bottom"]), extent(self.P, 1)[3]]
         for title, low in zip(titles, lows):
-            self.assertAlmostEqual(title["box"][1] - low, B.TITLE_CLEAR, delta=1.0)
+            self.assertAlmostEqual(title["box"][1] - low, page_prefs()["le_title_clear"], delta=1.0)
 
     def test_owner_layout_rules_of_2026_11_16(self) -> None:
         import math
+        angles = [a for _t, _b, o in B.schematic()[0] for a in (o.get("le_crossover_angle") or {}).values()]
+        self.assertEqual(set(angles), {45})
         # every crossover at its level's angle, or as near as its track allows (the plugin logs those)
         limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
                    and "crossover" in line}
@@ -568,10 +580,10 @@ class ThreeLevels(unittest.TestCase):
             number = re.sub(r"\D", "", t.get("turnoutname") or "")
             with self.subTest(crossover=t.get("turnoutname")):
                 if number in limited:
-                    self.assertGreater(angle, min(B.CROSSOVER_ANGLES.values()) - 0.5)
+                    self.assertGreater(angle, min(angles) - 0.5)
                 else:
                     # whole pixels (JMRI rebuilds the points exactly): within half a degree of its level's angle
-                    self.assertTrue(any(abs(angle - a) <= 0.5 for a in B.CROSSOVER_ANGLES.values()), angle)
+                    self.assertTrue(any(abs(angle - a) <= 0.5 for a in angles), angle)
         # South Yard's names on one centre x
         jt = B.importlib.import_module("schematic.jmri_text")
         centres = {round(int(el.get("x")) + jt.width(el.get("text"), int(el.get("size")), False) / 2)
@@ -581,18 +593,13 @@ class ThreeLevels(unittest.TestCase):
         xs = [int(next(el for el in self.stations.iter("sensoricon")
                        if el.get("sensor") == f"MoveToTrack_EH-{n}_stored").get("x")) for n in (1, 2, 3)]
         self.assertEqual(xs[2] - xs[1], xs[1] - xs[0])
-        # West Yard's W-2 follows W-1 one row down at the engine house's step (STATION_FOLLOW)
+        # West Yard's W-2 follows W-1 one row down at the engine house's step (staging's le_labels extra_follow)
         button = lambda n: next(el for el in self.stations.iter("sensoricon")      # noqa: E731
                                 if el.get("sensor") == f"MoveToTrack_{n}_stored")
         w1, w2 = button("W-1"), button("W-2")
         rows = (int(w2.get("y")) - int(w1.get("y"))) / (int(button("EH-2").get("y")) - int(button("EH-1").get("y")))
         self.assertAlmostEqual(int(w2.get("x")) - int(w1.get("x")), rows * (xs[1] - xs[0]), delta=1)
         self.assertLess(int(w2.get("x")), int(w1.get("x")))
-        boxes = mock.Mock(extras=[{"id": "A", "box": (100, 0, 10, 10)}, {"id": "B", "box": (90, 48, 10, 10)},
-                                  {"id": "W", "box": (50, 0, 10, 10)}, {"id": "V", "box": (70, 48, 10, 10)}])
-        self.assertEqual(B.cluster_steps(boxes, [["A", "B"]], [("W", "V")]), {"V": 40})
-        with self.assertRaisesRegex(B.BuildError, "no group gives the slope"):
-            B.cluster_steps(boxes, [], [("W", "V")])
         # the title caption renamed at freeze, centred where the old one stood, and a frozen old one stops
         ov = B.overlay_mod()
         el = ET.fromstring('<positionablelabel x="877" y="48" text="Neville Island" size="28" style="1"/>')
@@ -616,8 +623,7 @@ class ThreeLevels(unittest.TestCase):
             t = own[seg_block[el.get("sensor")]]
             self.assertLessEqual(math.dist((int(el.get("x")) + 5, int(el.get("y")) + 5),
                                            (float(t.get("xcen")), float(t.get("ycen")))), 1.0, el.get("sensor"))
-        with self.assertRaisesRegex(B.BuildError, "placed no cluster"):
-            B.cluster_steps(mock.Mock(extras=[]), B.STATION_STEPS)
+        self.assertEqual(set(self.base[1].extra_x), {"Track EH-3", "Track W-2"})    # stepped by the plugin
 
     def test_owner_layout_rules_of_2026_11_16_second_round(self) -> None:
         import math
@@ -664,31 +670,21 @@ class ThreeLevels(unittest.TestCase):
         bare.remove(next(el for el in bare.iter("sensoricon") if el.get("sensor") == "BS Switch 7b"))
         with self.assertRaisesRegex(ov.OverlayError, r"Switch 7: lamps for \['OS Switch 7'\] but none"):
             ov.check_half_lamps(bare, {v: k for k, v in seg_block.items()})
-        # staging from Plane to East End drawn WEST_SHIFT columns west: West Ext and East Lead longer
-        bands = B.west_shifted(B.schematic()[0])
-        before = B.schematic()[0][0][1]["x"]
-        after = bands[0][1]["x"]
-        moved = {n for n in before if after[n] != before[n]}
-        self.assertTrue(moved)
-        self.assertEqual({before[n] - after[n] for n in moved}, {B.WEST_SHIFT["columns"]})
-        self.assertFalse([n for n in moved if n.startswith("turn")])
-        with mock.patch.dict(B.WEST_SHIFT, {"from": "33", "to": "5"}), \
-                self.assertRaisesRegex(B.BuildError, "not drawn west to east"):
-            B.west_shifted(B.schematic()[0])
-        # LONGER_STRAIGHTS: only the one track's climb changes, by its columns
+        # staging from Plane to East End drawn two columns west (staging's le_shift), and Track 235-241's straight
+        # at 241 longer (main_upper's le_longer_straights): on the Layout Editor bands only, applied by the plugin
         raw = B.schematic()[0]
-        got = B.straights_lengthened(raw)
-        changed = [(i, sid) for i, ((_t, b0, _o), (_u, b1, _p)) in enumerate(zip(raw, got))
+        drawn = B.plugin()[1].drawn_bands(raw, page_prefs())
+        shift = raw[0][2]["le_shift"]["Staging"]
+        self.assertEqual([(e["from"], e["to"], e["columns"]) for e in shift], [("5", "33", -2)])
+        moved = {n for n in raw[0][1]["x"] if drawn[0][1]["x"][n] != raw[0][1]["x"][n]}
+        self.assertTrue(moved)
+        self.assertEqual({drawn[0][1]["x"][n] - raw[0][1]["x"][n] for n in moved}, {-2})
+        changed = [(i, sid) for i, ((_t, b0, _o), (_u, b1, _p)) in enumerate(zip(raw, drawn))
                    for sid in b0["need"] if b0["need"][sid] != b1["need"][sid]]
         self.assertEqual(len(changed), 1)
         i, sid = changed[0]
-        self.assertAlmostEqual(raw[i][1]["need"][sid][0] - got[i][1]["need"][sid][0],
-                               B.LONGER_STRAIGHTS[0]["columns"])
-        for bad, why in (({"to": "999"}, "0 tracks join"), ({"columns": 5}, "climbs")):
-            one = [dict(B.LONGER_STRAIGHTS[0], **bad)]
-            with self.subTest(bad=bad), mock.patch.object(B, "LONGER_STRAIGHTS", one), \
-                    self.assertRaisesRegex(B.BuildError, why):
-                B.straights_lengthened(raw)
+        self.assertAlmostEqual(raw[i][1]["need"][sid][0] - drawn[i][1]["need"][sid][0],
+                               page_prefs()["le_longer_straights"]["Upper"][0]["columns"])
 
     def test_station_buttons_show_no_track_word(self) -> None:
         if "dispatcher" in B.PARKED:        # parked: none on the candidate, all 12 in its parked part

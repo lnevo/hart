@@ -809,18 +809,19 @@ class FinalReview(unittest.TestCase):
             with self.assertRaisesRegex(B.BuildError, "TO99 B .*generated_slot C, LEGS_SWAPPED gives empty"):
                 B.check_swapped_slots(path)
 
-    def test_station_steps_on_one_row_stop(self) -> None:
-        boxes = mock.Mock(extras=[{"id": "A", "box": (100, 0, 10, 10)}, {"id": "B", "box": (90, 0, 10, 10)},
-                                  {"id": "W", "box": (50, 0, 10, 10)}, {"id": "V", "box": (70, 48, 10, 10)}])
-        with self.assertRaisesRegex(B.BuildError, "stand on one row"):
-            B.cluster_steps(boxes, [["A", "B"]], [("W", "V")])
-
-    def test_west_shift_stops_on_a_reversed_track(self) -> None:
+    def test_staging_le_labels_from_its_preferences_and_hart_columns(self) -> None:
         raw = B.schematic()[0]
-        B.west_shifted(raw)
-        with mock.patch.dict(B.WEST_SHIFT, {"columns": 9}), \
-                self.assertRaisesRegex(B.BuildError, "overlapped or reversed .*Brick-Plane"):
-            B.west_shifted(raw)
+        title, _band, opts = raw[0]
+        own = opts["le_labels"]          # staging.preferences.json: the station buttons that step
+        self.assertEqual(own["extra_steps"], [["Track EH-1", "Track EH-2", "Track EH-3"]])
+        self.assertEqual(own["extra_follow"], [["Track W-1", "Track W-2"]])
+        got = B.staging_columns(raw)[0][2]["le_labels"]
+        self.assertEqual(got, dict(own, name_columns=[list(g) for g in B.NAME_COLUMNS],
+                                   lamp_columns=[list(g.values()) for g in B.LAMP_COLUMNS]))
+        self.assertNotIn("name_columns", opts["le_labels"])                 # a copy
+        clash = [(title, _band, dict(opts, le_labels=dict(own, name_columns=[["S-1", "S-2"]])))]
+        with self.assertRaisesRegex(B.BuildError, "already hold name_columns; HART sets them here"):
+            B.staging_columns(clash)
 
     def test_half_lamps_are_for_os_blocks_with_sensors(self) -> None:
         ov = B.overlay_mod()
