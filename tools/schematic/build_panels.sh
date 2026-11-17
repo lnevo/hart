@@ -9,6 +9,8 @@
 #   schematic draft and stations     publish_draft.py
 #   CATS desks                       build_cats_panel.py
 #   Layout Editor trials, cut-over   build_layout_le.py (all levels, then staging alone), then --as-live
+#   approved                         check_approved.py: the live panel and the CATS desks against the owner-approved
+#                                    fingerprints (only reads)
 #
 # Each step reads the plugin's cache (~/.cache/hart/schematic): the solve is shared, and Layout Editor panels whose
 # inputs and plugin code are unchanged are read back, so a run after a small change redoes only what that change
@@ -47,6 +49,7 @@ step cats python3 tools/schematic/build_cats_panel.py
 step le-trial python3 tools/schematic/build_layout_le.py
 step le-trial-staging python3 tools/schematic/build_layout_le.py --levels staging
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
+step approved python3 tools/schematic/check_approved.py
 
 if [ ${#failed[@]} -gt 0 ]; then
   echo "stale or failed: ${failed[*]}"
