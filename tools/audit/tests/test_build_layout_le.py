@@ -250,7 +250,7 @@ class Built(unittest.TestCase):
         for tag, text in (("systemName", "IBX1"), ("userName", b), ("permissive", "no")):
             ET.SubElement(el, tag).text = text
         self.assertEqual(B.add_level_sensors(root, {x: sensors[x] for x in sorted(sensors)[:2]}), [sensors[b][0]])
-        with mock.patch.object(B, "add_level_sensors", return_value=[]), \
+        with mock.patch.object(B.le_tables, "add_level_sensors", return_value=[]), \
                 self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
             with contextlib.redirect_stdout(io.StringIO()):
                 B.build(hand())
@@ -478,7 +478,7 @@ class DeviceNames(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, "does not have: \\['Track e999'\\]"):
             B.level_names(bands, le_mod, dict(device, **{"Track e999": "Track 9-9"}))
         names, lengths = B.placeholder_names(bands, le_mod)         # a length with no device-map row: named, no KeyError
-        with mock.patch.object(B, "placeholder_names", return_value=(names, dict(lengths, **{"Track e777": 1.0}))):
+        with mock.patch.object(B.le_names, "placeholder_names", return_value=(names, dict(lengths, **{"Track e777": 1.0}))):
             with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track e777'\\]"):
                 B.level_names(bands, le_mod, device)
 
