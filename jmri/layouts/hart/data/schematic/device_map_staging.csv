@@ -1,0 +1,265 @@
+level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
+1,Brick,turnout,DCC Switch 1,MTT100,MTT100,4,100,"Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
+1,Brick,turnout,DCC Switch 3,MTT101,MTT101,4,101,"Node: 4 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
+1,Plane,turnout,DCC Switch 5,MTT102,MTT102,4,102,"Node: 4 Turnout: 2 | OU: 1 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
+1,Barn,turnout,DCC Switch 7,MTT117,MTT117,13,117,"Node: 13 Turnout: 0 | OU: 2 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
+1,Engine House,turnout,DCC Switch 9,MTT119,MTT119,13,119,"Node: 13 Turnout: 2 | OU: 2 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
+1,Engine House,turnout,DCC Switch 11,MTT118,MTT118,13,118,"Node: 13 Turnout: 1 | OU: 2 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
+1,Engine House,turnout,DCC Switch 13,MTT116,MTT116,4,116,"Node: 4 Turnout: 3 | OU: 1 Ports: 7,8",,LCC alias of the MQTT turnout (ADR-005)
+1,South Yard,turnout,DCC Switch 15,MTT103,MTT103,3,103,"Node: 3 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
+1,South Yard,turnout,DCC Switch 17,MTT104,MTT104,3,104,"Node: 3 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
+1,South Yard,turnout,DCC Switch 19,MTT105,MTT105,3,105,"Node: 3 Turnout: 2 | OU: 1 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
+1,South Yard,turnout,DCC Switch 21,MTT106,MTT106,3,106,"Node: 3 Turnout: 3 | OU: 1 Ports: 7,8",,LCC alias of the MQTT turnout (ADR-005)
+1,East End,turnout,DCC Switch 23,MTT111,MTT111,12,111,"Node: 12 Turnout: 4 | OU: 4 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
+1,East End,turnout,DCC Switch 25,MTT107,MTT107,12,107,"Node: 12 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
+1,East End,turnout,DCC Switch 27,MTT108,MTT108,12,108,"Node: 12 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
+1,East End,turnout,DCC Switch 29,MTT109,MTT109,12,109,"Node: 12 Turnout: 2 | OU: 1 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
+1,East End,turnout,DCC Switch 31,MTT110,MTT110,12,110,"Node: 12 Turnout: 3 | OU: 1 Ports: 7,8",,LCC alias of the MQTT turnout (ADR-005)
+1,East End,turnout,DCC Switch 33,MTT112,MTT112,12,112,"Node: 12 Turnout: 5 | OU: 4 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
+1,Princess,turnout,DCC Switch 35,MTT113,MTT113,1,113,"Node: 1 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
+1,Princess,turnout,DCC Switch 37,MTT114,MTT114,1,114,"Node: 1 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
+1,Princess,turnout,DCC Switch 39,MTT115,MTT115,1,115,"Node: 1 Turnout: 2 | OU: 1 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
+1,Brick,turnout,Switch 1,M2T408,M2T408,4,100,"Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",Switch 1,
+1,Brick,turnout,Switch 3,M2T409,M2T409,4,101,"Node: 4 Turnout: 1 | DCC: 101 | OU: 1 Ports: 3,4",Switch 3,
+1,Plane,turnout,Switch 5,M2T410,M2T410,4,102,"Node: 4 Turnout: 2 | DCC: 102 | OU: 1 Ports: 5,6",Switch 5,
+1,Barn,turnout,Switch 7,M2T1308,Switch 7,13,117,"Node: 13 Turnout: 0 | DCC: 117 | OU: 2 Ports: 1,2",Switch 7,
+1,Engine House,turnout,Switch 9,M2T1310,Switch 9,13,119,"Node: 13 Turnout: 2 | DCC: 119 | OU: 2 Ports: 5,6",Switch 9,
+1,Engine House,turnout,Switch 11,M2T1309,Switch 11,13,118,"Node: 13 Turnout: 1 | DCC: 118 | OU: 2 Ports: 3,4",Switch 11,
+1,Engine House,turnout,Switch 13,M2T411,Switch 13,4,116,"Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8",Switch 13,
+1,South Yard,turnout,Switch 15,M2T308,M2T308,3,103,"Node: 3 Turnout: 0 | DCC: 103 | OU: 1 Ports: 1,2",Switch 15,
+1,South Yard,turnout,Switch 17,M2T309,M2T309,3,104,"Node: 3 Turnout: 1 | DCC: 104 | OU: 1 Ports: 3,4",Switch 17,
+1,South Yard,turnout,Switch 19,M2T310,M2T310,3,105,"Node: 3 Turnout: 2 | DCC: 105 | OU: 1 Ports: 5,6",Switch 19,
+1,South Yard,turnout,Switch 21,M2T311,M2T311,3,106,"Node: 3 Turnout: 3 | DCC: 106 | OU: 1 Ports: 7,8",Switch 21,
+1,East End,turnout,Switch 23,M2T1212,Switch 23,12,111,"Node: 12 Turnout: 4 | DCC: 111 | OU: 4 Ports: 1,2",Switch 23,
+1,East End,turnout,Switch 25,M2T1208,M2T1208,12,107,"Node: 12 Turnout: 0 | DCC: 107 | OU: 1 Ports: 1,2",Switch 25,
+1,East End,turnout,Switch 27,M2T1209,M2T1209,12,108,"Node: 12 Turnout: 1 | DCC: 108 | OU: 1 Ports: 3,4",Switch 27,
+1,East End,turnout,Switch 29,M2T1210,M2T1210,12,109,"Node: 12 Turnout: 2 | DCC: 109 | OU: 1 Ports: 5,6",Switch 29,
+1,East End,turnout,Switch 31,M2T1211,M2T1211,12,110,"Node: 12 Turnout: 3 | DCC: 110 | OU: 1 Ports: 7,8",Switch 31,
+1,East End,turnout,Switch 33,M2T1213,M2T1213,12,112,"Node: 12 Turnout: 5 | DCC: 112 | OU: 4 Ports: 3,4",Switch 33,
+1,Princess,turnout,Switch 35,M2T108,Switch 35,1,113,"Node: 1 Turnout: 0 | DCC: 113 | OU: 1 Ports: 1,2",Switch 35,
+1,Princess,turnout,Switch 37,M2T109,M2T109,1,114,"Node: 1 Turnout: 1 | DCC: 114 | OU: 1 Ports: 3,4",Switch 37,
+1,Princess,turnout,Switch 39,M2T110,M2T110,1,115,"Node: 1 Turnout: 2 | DCC: 115 | OU: 1 Ports: 5,6",Switch 39,
+1,Brick,fb,FB Switch 1 N,M2S470,M2S470,4,,Node: 4 Sensor: 3 | IN: 1 Ports: 1,,
+1,Brick,fb,FB Switch 1 R,M2S471,M2S471,4,,Node: 4 Sensor: 4 | IN: 1 Ports: 2,,
+1,Brick,fb,FB Switch 3 N,M2S472,M2S472,4,,Node: 4 Sensor: 5 | IN: 1 Ports: 3,,
+1,Brick,fb,FB Switch 3 R,M2S473,M2S473,4,,Node: 4 Sensor: 6 | IN: 1 Ports: 4,,
+1,Plane,fb,FB Switch 5 N,M2S474,M2S474,4,,Node: 4 Sensor: 7 | IN: 1 Ports: 5,,
+1,Plane,fb,FB Switch 5 R,M2S475,M2S475,4,,Node: 4 Sensor: 8 | IN: 1 Ports: 6,,
+1,Barn,fb,FB Switch 7 N,M2S1367,M2S1367,13,,Node: 13 Sensor: 0 | IN: 1 Ports: 1,,
+1,Barn,fb,FB Switch 7 R,M2S1368,M2S1368,13,,Node: 13 Sensor: 1 | IN: 1 Ports: 2,,
+1,Engine House,fb,FB Switch 9 N,M2S1371,M2S1371,13,,Node: 13 Sensor: 4 | IN: 1 Ports: 5,,
+1,Engine House,fb,FB Switch 9 R,M2S1372,M2S1372,13,,Node: 13 Sensor: 5 | IN: 1 Ports: 6,,
+1,Engine House,fb,FB Switch 11 N,M2S1369,M2S1369,13,,Node: 13 Sensor: 2 | IN: 1 Ports: 3,,
+1,Engine House,fb,FB Switch 11 R,M2S1370,M2S1370,13,,Node: 13 Sensor: 3 | IN: 1 Ports: 4,,
+1,Engine House,fb,FB Switch 13 N,M2S476,M2S476,4,,Node: 4 Sensor: 9 | IN: 1 Ports: 7,,
+1,Engine House,fb,FB Switch 13 R,M2S477,M2S477,4,,Node: 4 Sensor: 10 | IN: 1 Ports: 8,,
+1,South Yard,fb,FB Switch 15 N,M2S367,M2S367,3,,Node: 3 Sensor: 0 | IN: 1 Ports: 1,,
+1,South Yard,fb,FB Switch 15 R,M2S368,M2S368,3,,Node: 3 Sensor: 1 | IN: 1 Ports: 2,,
+1,South Yard,fb,FB Switch 17 N,M2S369,M2S369,3,,Node: 3 Sensor: 2 | IN: 1 Ports: 3,,
+1,South Yard,fb,FB Switch 17 R,M2S370,M2S370,3,,Node: 3 Sensor: 3 | IN: 1 Ports: 4,,
+1,South Yard,fb,FB Switch 19 N,M2S371,M2S371,3,,Node: 3 Sensor: 4 | IN: 1 Ports: 5,,
+1,South Yard,fb,FB Switch 19 R,M2S372,M2S372,3,,Node: 3 Sensor: 5 | IN: 1 Ports: 6,,
+1,South Yard,fb,FB Switch 21 N,M2S373,M2S373,3,,Node: 3 Sensor: 6 | IN: 1 Ports: 7,,
+1,South Yard,fb,FB Switch 21 R,M2S374,M2S374,3,,Node: 3 Sensor: 7 | IN: 1 Ports: 8,,
+1,East End,fb,FB Switch 23 N,M2S1275,M2S1275,12,,Node: 12 Sensor: 8 | IN: 3 Ports: 1,,
+1,East End,fb,FB Switch 23 R,M2S1276,M2S1276,12,,Node: 12 Sensor: 9 | IN: 3 Ports: 2,,
+1,East End,fb,FB Switch 25 N,M2S1267,M2S1267,12,,Node: 12 Sensor: 0 | IN: 1 Ports: 1,,
+1,East End,fb,FB Switch 25 R,M2S1268,M2S1268,12,,Node: 12 Sensor: 1 | IN: 1 Ports: 2,,
+1,East End,fb,FB Switch 27 N,M2S1269,M2S1269,12,,Node: 12 Sensor: 2 | IN: 1 Ports: 3,,
+1,East End,fb,FB Switch 27 R,M2S1270,M2S1270,12,,Node: 12 Sensor: 3 | IN: 1 Ports: 4,,
+1,East End,fb,FB Switch 29 N,M2S1271,M2S1271,12,,Node: 12 Sensor: 4 | IN: 1 Ports: 5,,
+1,East End,fb,FB Switch 29 R,M2S1272,M2S1272,12,,Node: 12 Sensor: 5 | IN: 1 Ports: 6,,
+1,East End,fb,FB Switch 31 N,M2S1273,M2S1273,12,,Node: 12 Sensor: 6 | IN: 1 Ports: 7,,
+1,East End,fb,FB Switch 31 R,M2S1274,M2S1274,12,,Node: 12 Sensor: 7 | IN: 1 Ports: 8,,
+1,East End,fb,FB Switch 33 N,M2S1277,M2S1277,12,,Node: 12 Sensor: 10 | IN: 3 Ports: 3,,
+1,East End,fb,FB Switch 33 R,M2S1278,M2S1278,12,,Node: 12 Sensor: 11 | IN: 3 Ports: 4,,
+1,Princess,fb,FB Switch 35 N,M2S167,M2S167,1,,Node: 1 Sensor: 0 | IN: 1 Ports: 1,,
+1,Princess,fb,FB Switch 35 R,M2S168,M2S168,1,,Node: 1 Sensor: 1 | IN: 1 Ports: 2,,
+1,Princess,fb,FB Switch 37 N,M2S169,M2S169,1,,Node: 1 Sensor: 2 | IN: 1 Ports: 3,,
+1,Princess,fb,FB Switch 37 R,M2S170,M2S170,1,,Node: 1 Sensor: 3 | IN: 1 Ports: 4,,
+1,Princess,fb,FB Switch 39 N,M2S171,M2S171,1,,Node: 1 Sensor: 4 | IN: 1 Ports: 5,,
+1,Princess,fb,FB Switch 39 R,M2S172,M2S172,1,,Node: 1 Sensor: 5 | IN: 1 Ports: 6,,
+1,Brick,block,OS Switch 1,IB:AUTO:0033,IB:AUTO:0033,4,,"Brick CP, Switch 1; occupancy Block 4-2 / M2S401","OS Switch 1, Track e3 2/2",
+1,Brick,block,OS Switch 3,IB:AUTO:0035,IB:AUTO:0035,4,,"Brick CP, Switch 3; occupancy Block 4-1 / M2S400","OS Switch 3, Track e3 1/2",
+1,Plane,block,OS Switch 5,IB:AUTO:0031,IB:AUTO:0031,4,,"Plane CP, Switch 5; occupancy Block 4-5 / M2S404",OS Switch 5,
+1,Barn,block,OS Switch 7,IB8,IB8,13,,Track Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302,"OS 7 at NEW:7a, Track e6a 2/2",
+1,Barn,block,OS Switch 7b,IB6,IB6,13,,Track Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303,OS 7 at NEW:7b,
+1,Engine House,block,OS Switch 9,IB18,IB18,13,,Hand-throw Engine House; occupancy Block 13-8 / M2S1307,"OS Switch 9, Track n3",
+1,Engine House,block,OS Switch 11,IB19,IB19,13,,Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301,"OS Switch 11, Track n1",
+1,Engine House,block,OS Switch 13,IB1,IB1,3,,Hand-throw west of South Yard Switch 15; occupancy Block 3-1 / M2S300,OS Switch 13,
+1,South Yard,block,OS Switch 15,IB:AUTO:0041,IB:AUTO:0041,3,,"South Yard, Switch 15; occupancy Block 3-2 / M2S301","OS Switch 15, Track e6bb, Track e8",
+1,South Yard,block,OS Switch 17,IB:AUTO:0044,IB:AUTO:0044,3,,"South Yard, Switch 17; occupancy Block 3-3 / M2S302","OS Switch 17, Track e22",
+1,South Yard,block,OS Switch 19,IB:AUTO:0045,IB:AUTO:0045,3,,"South Yard, Switch 19; occupancy Block 3-5 / M2S304","OS Switch 19, Track e24",
+1,South Yard,block,OS Switch 21,IB:AUTO:0038,IB:AUTO:0038,3,,"South Yard, Switch 21; occupancy Block 3-7 / M2S306",OS Switch 21,
+1,East End,block,OS Switch 23a,IB:AUTO:0034,IB:AUTO:0034,12,,East End crossover Switch 23 north/west leg; occupancy Block 12-4 / M2S1203,OS 23 at TOR29391,
+1,East End,block,OS Switch 23b,IB:AUTO:0039,IB:AUTO:0039,12,,East End crossover Switch 23 south/east leg; occupancy Block 12-6 / M2S1205,OS 23 at TOR29392,
+1,East End,block,OS Switch 25,IB:AUTO:0036,IB:AUTO:0036,12,,"East End, Switch 25; occupancy Block 12-1 / M2S1200","OS Switch 25, Track e19",
+1,East End,block,OS Switch 27,IB:AUTO:0037,IB:AUTO:0037,12,,"East End, Switch 27; occupancy Block 12-3 / M2S1202","OS Switch 27, Track e27",
+1,East End,block,OS Switch 29,IB:AUTO:0043,IB:AUTO:0043,12,,"East End, Switch 29; occupancy Block 12-5 / M2S1204","OS Switch 29, Track e2",
+1,East End,block,OS Switch 31,IB:AUTO:0042,IB:AUTO:0042,12,,"East End, Switch 31; occupancy Block 12-7 / M2S1206","OS Switch 31, Track e0, Track e1",
+1,East End,block,OS Switch 33,IB:AUTO:0030,IB:AUTO:0030,12,,"East End, Switch 33; occupancy Block 12-8 / M2S1207",OS Switch 33,
+1,Princess,block,OS Switch 35a,IB:AUTO:0046,IB:AUTO:0046,1,,Princess crossover Switch 35 south/yard leg; occupancy Block 1-6 / M2S105,"OS 35 at TOL29970, Track e25 1/2",
+1,Princess,block,OS Switch 35b,IB:AUTO:0047,IB:AUTO:0047,1,,Princess crossover Switch 35 north/main leg; occupancy Block 1-5 / M2S104,"OS 35 at TOL29967, Track e12 1/2",
+1,Princess,block,OS Switch 37,IB:AUTO:0032,IB:AUTO:0032,1,,"Princess, Switch 37 (same detector as Track McKeesport); occupancy Block 1-3 / M2S102","OS Switch 37, Track e25 2/2",
+1,Princess,block,OS Switch 39,IB:AUTO:0040,IB:AUTO:0040,1,,"Princess, Switch 39 (same detector as Track McKees Rocks); occupancy Block 1-4 / M2S103","OS Switch 39, Track e12 2/2",
+1,,block,Track Barn,IB15,IB15,13,,Lead Switch 7 to Switch 13; occupancy Block 13-1 / M2S1300; stop,Track e6ba,
+1,,block,Track Brick-Plane,IB:AUTO:0005,IB:AUTO:0005,4,,Track Main West between Brick and Plane; occupancy Block 4-6 / M2S405,"Track e31.0, Track e31.1",
+1,,block,Track EH-1,IB20,IB20,13,,Top house track; occupancy Block 13-7 / M2S1306; stop,Track n2,
+1,,block,Track EH-2,IB21,IB21,13,,Middle house track; occupancy Block 13-6 / M2S1305; stop,Track n5,
+1,,block,Track EH-3,IB22,IB22,13,,Bottom house track; occupancy Block 13-5 / M2S1304; stop,Track n4,
+1,,block,Track East Ext,IB:AUTO:0051,IB:AUTO:0051,4,,Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406,Track e30a,
+1,,block,Track East Lead,IB:AUTO:0017,IB:AUTO:0017,1,,South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106; stop,Track e28 1/2,
+1,,block,Track East Lead East,IB:AUTO:0062,IB:AUTO:0062,1,,Hidden Track East Lead throat (same detector as Track East Lead); occupancy Block 1-7 / M2S106; not a station,Track e28 2/2,
+1,,block,Track K-1,IB:AUTO:0010,IB:AUTO:0010,1,,"Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",Track e16.0 2/2,
+1,,block,Track K-1 West,IB:AUTO:0063,IB:AUTO:0063,1,,Hidden Track K-1 throat (same detector as Track K-1); occupancy Block 1-1 / M2S100; not a station,Track e16.0 1/2,
+1,,block,Track K-2,IB:AUTO:0048,IB:AUTO:0048,1,,"Princess balloon, Track K-2; occupancy Block 1-2 / M2S101; stop",Track e16.1,
+1,,block,Track Main East,IB:AUTO:0001,IB:AUTO:0001,2,,Main east of East End; occupancy Block 2-3 / M2S202,Track e30b,
+1,,block,Track Main West,IB:AUTO:0003,IB:AUTO:0003,2,,Main west of Brick toward East End; occupancy Block 2-1 / M2S200,Track e9+e10,
+1,,block,Track McKees Rocks,IB23,IB23,1,,Princess stub east of Switch 39; shares Block 1-4 with OS Switch 39; occupancy Block 1-4 / M2S103; stop,Track e15,
+1,,block,Track McKeesport,IB24,IB24,1,,Princess stub east of Switch 37; shares Block 1-3 with OS Switch 37; occupancy Block 1-3 / M2S102; stop,Track e26,
+1,,block,Track S-1,IB:AUTO:0016,IB:AUTO:0016,2,,South Yard body; occupancy Block 2-7 / M2S206,Track e23 2/3,
+1,,block,Track S-1 East,IB:AUTO:0053,IB:AUTO:0053,2,,Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station,Track e23 3/3,
+1,,block,Track S-1 West,IB:AUTO:0052,IB:AUTO:0052,2,,Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station,Track e23 1/3,
+1,,block,Track S-2,IB:AUTO:0026,IB:AUTO:0026,2,,South Yard body; occupancy Block 2-6 / M2S205,Track e29 2/3,
+1,,block,Track S-2 East,IB:AUTO:0055,IB:AUTO:0055,2,,Hidden Track S-2 throat (same detector as Track S-2); occupancy Block 2-6; not a station,Track e29 3/3,
+1,,block,Track S-2 West,IB:AUTO:0054,IB:AUTO:0054,2,,Hidden Track S-2 throat (same detector as Track S-2); occupancy Block 2-6; not a station,Track e29 1/3,
+1,,block,Track S-3,IB:AUTO:0008,IB:AUTO:0008,2,,South Yard body; occupancy Block 2-5 / M2S204,Track e21 2/3,
+1,,block,Track S-3 East,IB:AUTO:0057,IB:AUTO:0057,2,,Hidden Track S-3 throat (same detector as Track S-3); occupancy Block 2-5; not a station,Track e21 3/3,
+1,,block,Track S-3 West,IB:AUTO:0056,IB:AUTO:0056,2,,Hidden Track S-3 throat (same detector as Track S-3); occupancy Block 2-5; not a station,Track e21 1/3,
+1,,block,Track S-4,IB:AUTO:0007,IB:AUTO:0007,2,,South Yard body; occupancy Block 2-4 / M2S203,Track e20 2/3,
+1,,block,Track S-4 East,IB:AUTO:0059,IB:AUTO:0059,2,,Hidden Track S-4 throat (same detector as Track S-4); occupancy Block 2-4; not a station,Track e20 3/3,
+1,,block,Track S-4 West,IB:AUTO:0058,IB:AUTO:0058,2,,Hidden Track S-4 throat (same detector as Track S-4); occupancy Block 2-4; not a station,Track e20 1/3,
+1,,block,Track S-R,IB:AUTO:0012,IB:AUTO:0012,2,,Run-through east of Switch 15; occupancy Block 2-8 / M2S207,Track e7+e17 2/3,
+1,,block,Track S-R East,IB:AUTO:0060,IB:AUTO:0060,2,,Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8; not a station,Track e7+e17 3/3,
+1,,block,Track S-R West,IB:AUTO:0061,IB:AUTO:0061,2,,Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8; not a station,Track e7+e17 1/3,
+1,,block,Track Scale,IB3,IB3,4,,Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407; stop,Track e6a 1/2,
+1,,block,Track W-1,IB:AUTO:0020,IB:AUTO:0020,4,,Brick yard Track W-1; access Switch 3 only; occupancy Block 4-4 / M2S403; stop,Track e4,
+1,,block,Track W-2,IB:AUTO:0022,IB:AUTO:0022,4,,Brick yard Track W-2; access Switch 3 only; occupancy Block 4-3 / M2S402; stop,Track e5,
+1,,block,Track West Ext,IB:AUTO:0050,IB:AUTO:0050,1,,Track Main West stub west of Switch 23; occupancy Block 1-8 / M2S107,Track e13,
+1,,occupancy,BS Barn,M2S1300,M2S1300,13,,Node: 13 Block: 1,,blocks Track Barn
+1,,occupancy,BS Brick-Plane,M2S405,M2S405,4,,Node: 4 Block: 6,,blocks Track Brick-Plane
+1,,occupancy,BS EH-1,M2S1306,M2S1306,13,,Node: 13 Block: 7,,blocks Track EH-1
+1,,occupancy,BS EH-2,M2S1305,M2S1305,13,,Node: 13 Block: 6,,blocks Track EH-2
+1,,occupancy,BS EH-3,M2S1304,M2S1304,13,,Node: 13 Block: 5,,blocks Track EH-3
+1,,occupancy,BS East Ext,M2S406,M2S406,4,,Node: 4 Block: 7,,blocks Track East Ext
+1,,occupancy,BS East Lead,M2S106,M2S106,1,,Node: 1 Block: 7,,blocks Track East Lead; Track East Lead East
+1,,occupancy,BS K-1,M2S100,M2S100,1,,Node: 1 Block: 1,,blocks Track K-1; Track K-1 West
+1,,occupancy,BS K-2,M2S101,M2S101,1,,Node: 1 Block: 2,,blocks Track K-2
+1,,occupancy,BS Main East,M2S202,M2S202,2,,Node: 2 Block: 3,,blocks Track Main East
+1,,occupancy,BS Main West,M2S200,M2S200,2,,Node: 2 Block: 1,,blocks Track Main West
+1,,occupancy,BS S-1,M2S206,M2S206,2,,Node: 2 Block: 7,,blocks Track S-1; Track S-1 East; Track S-1 West
+1,,occupancy,BS S-2,M2S205,M2S205,2,,Node: 2 Block: 6,,blocks Track S-2; Track S-2 East; Track S-2 West
+1,,occupancy,BS S-3,M2S204,M2S204,2,,Node: 2 Block: 5,,blocks Track S-3; Track S-3 East; Track S-3 West
+1,,occupancy,BS S-4,M2S203,M2S203,2,,Node: 2 Block: 4,,blocks Track S-4; Track S-4 East; Track S-4 West
+1,,occupancy,BS S-R,M2S207,M2S207,2,,Node: 2 Block: 8,,blocks Track S-R; Track S-R East; Track S-R West
+1,,occupancy,BS Scale,M2S407,M2S407,4,,Node: 4 Block: 8,,blocks Track Scale
+1,Brick,occupancy,BS Switch 1,M2S401,M2S401,4,,Node: 4 Block: 2,,blocks OS Switch 1
+1,Brick,occupancy,BS Switch 3,M2S400,M2S400,4,,Node: 4 Block: 1,,blocks OS Switch 3
+1,Plane,occupancy,BS Switch 5,M2S404,M2S404,4,,Node: 4 Block: 5,,blocks OS Switch 5
+1,Barn,occupancy,BS Switch 7,M2S1302,M2S1302,13,,Node: 13 Block: 3,,blocks OS Switch 7
+1,Barn,occupancy,BS Switch 7b,M2S1303,M2S1303,13,,Node: 13 Block: 4,,blocks OS Switch 7b
+1,Engine House,occupancy,BS Switch 9,M2S1307,M2S1307,13,,Node: 13 Block: 8,,blocks OS Switch 9
+1,Engine House,occupancy,BS Switch 11,M2S1301,M2S1301,13,,Node: 13 Block: 2,,blocks OS Switch 11
+1,Engine House,occupancy,BS Switch 13,M2S300,M2S300,3,,Node: 3 Block: 1,,blocks OS Switch 13
+1,South Yard,occupancy,BS Switch 15,M2S301,M2S301,3,,Node: 3 Block: 2,,blocks OS Switch 15
+1,South Yard,occupancy,BS Switch 17,M2S302,M2S302,3,,Node: 3 Block: 3,,blocks OS Switch 17
+1,South Yard,occupancy,BS Switch 19,M2S304,M2S304,3,,Node: 3 Block: 5,,blocks OS Switch 19
+1,South Yard,occupancy,BS Switch 21,M2S306,M2S306,3,,Node: 3 Block: 7,,blocks OS Switch 21
+1,East End,occupancy,BS Switch 23a,M2S1203,M2S1203,12,,Node: 12 Block: 4,,blocks OS Switch 23a
+1,East End,occupancy,BS Switch 23b,M2S1205,M2S1205,12,,Node: 12 Block: 6,,blocks OS Switch 23b
+1,East End,occupancy,BS Switch 25,M2S1200,M2S1200,12,,Node: 12 Block: 1,,blocks OS Switch 25
+1,East End,occupancy,BS Switch 27,M2S1202,M2S1202,12,,Node: 12 Block: 3,,blocks OS Switch 27
+1,East End,occupancy,BS Switch 29,M2S1204,M2S1204,12,,Node: 12 Block: 5,,blocks OS Switch 29
+1,East End,occupancy,BS Switch 31,M2S1206,M2S1206,12,,Node: 12 Block: 7,,blocks OS Switch 31
+1,East End,occupancy,BS Switch 33,M2S1207,M2S1207,12,,Node: 12 Block: 8,,blocks OS Switch 33
+1,Princess,occupancy,BS Switch 35a,M2S105,M2S105,1,,Node: 1 Block: 6,,blocks OS Switch 35a
+1,Princess,occupancy,BS Switch 35b,M2S104,M2S104,1,,Node: 1 Block: 5,,blocks OS Switch 35b
+1,Princess,occupancy,BS Switch 37 / BS McKeesport,M2S102,M2S102,1,,Node: 1 Block: 3,,blocks OS Switch 37; Track McKeesport
+1,Princess,occupancy,BS Switch 39 / BS McKees Rocks,M2S103,M2S103,1,,Node: 1 Block: 4,,blocks OS Switch 39; Track McKees Rocks
+1,,occupancy,BS W-1,M2S403,M2S403,4,,Node: 4 Block: 4,,blocks Track W-1
+1,,occupancy,BS W-2,M2S402,M2S402,4,,Node: 4 Block: 3,,blocks Track W-2
+1,,occupancy,BS West Ext,M2S107,M2S107,1,,Node: 1 Block: 8,,blocks Track West Ext
+1,Brick,mast,Mast 2L,IF$shsm:basic:two-searchlight(IH438)(IH439),IF$shsm:basic:two-searchlight(IH438)(IH439),4,,Brick | Switch 1,,facing Track Main West into OS Switch 1
+1,Brick,mast,Mast 2R,IF$vsm:basic:one-low($1023),IF$vsm:basic:one-low($1023),,,Brick | Switch 1,,facing Track Brick-Plane into OS Switch 1
+1,Brick,mast,Mast 4LA,IF$vsm:basic:one-low($1001),IF$vsm:basic:one-low($1001),,,Brick | Switch 3,,"facing Track W-1, buffer stop"
+1,Brick,mast,Mast 4LB,IF$vsm:basic:one-low($1002),IF$vsm:basic:one-low($1002),,,Brick | Switch 3,,"facing Track W-2, buffer stop"
+1,Brick,mast,Mast 4RA,IF$shsm:basic:one-low(IH436),IF$shsm:basic:one-low(IH436),4,,Brick | Switch 3,,facing Track W-1 into OS Switch 3
+1,Brick,mast,Mast 4RB,IF$shsm:basic:one-low(IH437),IF$shsm:basic:one-low(IH437),4,,Brick | Switch 3,,facing Track W-2 into OS Switch 3
+1,Plane,mast,Mast 6LA,IF$shsm:basic:one-low(IH434),IF$shsm:basic:one-low(IH434),4,,Plane | Switch 5,,facing Track Scale into OS Switch 5
+1,Plane,mast,Mast 6LB,IF$shsm:basic:one-low(IH432),IF$shsm:basic:one-low(IH432),4,,Plane | Switch 5,,facing Track East Ext into OS Switch 5
+1,Plane,mast,Mast 6R,IF$vsm:basic:one-low($1024),IF$vsm:basic:one-low($1024),,,Plane | Switch 5,,facing Track Brick-Plane into OS Switch 5
+1,Barn,mast,Mast 8LA,IF$shsm:basic:two-searchlight(IH1337)(IH1338),IF$shsm:basic:two-searchlight(IH1337)(IH1338),13,,Barn | Switch 7,,facing Track Main East into OS Switch 7b
+1,Barn,mast,Mast 8LB,IF$shsm:basic:one-low(IH1334),IF$shsm:basic:one-low(IH1334),13,,Barn | Switch 7,,facing Track Barn into OS Switch 7
+1,Barn,mast,Mast 8LC,IF$vsm:basic:one-low($1018),IF$vsm:basic:one-low($1018),,,Barn | Switch 7,,facing OS Switch 7 into Track Scale
+1,Barn,mast,Mast 8RA,IF$shsm:basic:two-searchlight(IH1332)(IH1333),IF$shsm:basic:two-searchlight(IH1332)(IH1333),13,,Barn | Switch 7,,facing Track Scale into OS Switch 7
+1,Barn,mast,Mast 8RB,IF$shsm:basic:two-searchlight(IH1335)(IH1336),IF$shsm:basic:two-searchlight(IH1335)(IH1336),13,,Barn | Switch 7,,facing Track East Ext into OS Switch 7b
+1,Engine House,mast,Mast 10LA,IF$vsm:basic:one-low($1006),IF$vsm:basic:one-low($1006),,,Engine House | Switch 9,,"facing Track EH-2, buffer stop"
+1,Engine House,mast,Mast 10LB,IF$vsm:basic:one-low($1007),IF$vsm:basic:one-low($1007),,,Engine House | Switch 9,,"facing Track EH-3, buffer stop"
+1,Engine House,mast,Mast 10RA,IF$vsm:basic:one-low($1021),IF$vsm:basic:one-low($1021),,,Engine House | Switch 9,,facing Track EH-2 into OS Switch 9
+1,Engine House,mast,Mast 10RB,IF$vsm:basic:one-low($1022),IF$vsm:basic:one-low($1022),,,Engine House | Switch 9,,facing Track EH-3 into OS Switch 9
+1,Engine House,mast,Mast 12L,IF$vsm:basic:one-low($1005),IF$vsm:basic:one-low($1005),,,Engine House | Switch 11,,"facing Track EH-1, buffer stop"
+1,Engine House,mast,Mast 12R,IF$vsm:basic:one-low($1020),IF$vsm:basic:one-low($1020),,,Engine House | Switch 11,,facing Track EH-1 into OS Switch 11
+1,Barn,mast,Mast 14R,IF$vsm:basic:one-low($1019),IF$vsm:basic:one-low($1019),,,Barn | Switch 13,,facing Track Barn into OS Switch 13
+1,South Yard,mast,Mast 16L,IF$vsm:basic:one-low($1016),IF$vsm:basic:one-low($1016),,,South Yard | Switch 15,,facing Track S-R into Track S-R West
+1,South Yard,mast,Mast 16R,IF$vsm:basic:one-low($1017),IF$vsm:basic:one-low($1017),,,South Yard | Switch 15,,facing Track S-R into Track S-R East
+1,South Yard,mast,Mast 18L,IF$vsm:basic:one-low($1008),IF$vsm:basic:one-low($1008),,,South Yard | Switch 17,,facing Track S-1 into Track S-1 West
+1,South Yard,mast,Mast 18R,IF$vsm:basic:one-low($1012),IF$vsm:basic:one-low($1012),,,South Yard | Switch 17,,facing Track S-1 into Track S-1 East
+1,South Yard,mast,Mast 20L,IF$vsm:basic:one-low($1009),IF$vsm:basic:one-low($1009),,,South Yard | Switch 19,,facing Track S-2 into Track S-2 West
+1,South Yard,mast,Mast 20R,IF$vsm:basic:one-low($1013),IF$vsm:basic:one-low($1013),,,South Yard | Switch 19,,facing Track S-2 into Track S-2 East
+1,South Yard,mast,Mast 22L,IF$vsm:basic:one-low($1010),IF$vsm:basic:one-low($1010),,,South Yard | Switch 21,,facing Track S-3 into Track S-3 West
+1,South Yard,mast,Mast 22R,IF$vsm:basic:one-low($1014),IF$vsm:basic:one-low($1014),,,South Yard | Switch 21,,facing Track S-3 into Track S-3 East
+1,East End,mast,Mast 24L,IF$shsm:basic:two-searchlight(IH233)(IH239),IF$shsm:basic:two-searchlight(IH233)(IH239),2,,East End | Switch 23,,facing Track West Ext into OS Switch 23a
+1,East End,mast,Mast 24RA,IF$shsm:basic:two-searchlight(IH232)(IH238),IF$shsm:basic:two-searchlight(IH232)(IH238),2,,East End | Switch 23,,facing Track Main West into OS Switch 23a
+1,East End,mast,Mast 24RB,IF$shsm:basic:one-low(IH234),IF$shsm:basic:one-low(IH234),2,,East End | Switch 23,,facing Track S-R East into OS Switch 23b
+1,South Yard,mast,Mast 26L,IF$vsm:basic:one-low($1011),IF$vsm:basic:one-low($1011),,,South Yard | Switch 21,,facing Track S-4 into Track S-4 West
+1,South Yard,mast,Mast 26R,IF$vsm:basic:one-low($1015),IF$vsm:basic:one-low($1015),,,South Yard | Switch 21,,facing Track S-4 into Track S-4 East
+1,East End,mast,Mast 32R,IF$shsm:basic:one-low(IH1234),IF$shsm:basic:one-low(IH1234),12,,East End | Switch 31,,facing OS Switch 29 into OS Switch 31
+1,East End,mast,Mast 34L,IF$shsm:basic:two-searchlight(IH1232)(IH1233),IF$shsm:basic:two-searchlight(IH1232)(IH1233),12,,East End | Switch 33,,facing Track East Lead into OS Switch 33
+1,East End,mast,Mast 34R,IF$shsm:basic:two-searchlight(IH1235)(IH1236),IF$shsm:basic:two-searchlight(IH1235)(IH1236),12,,East End | Switch 33,,facing Track Main East into OS Switch 33
+1,Princess,mast,Mast 36L,IF$vsm:basic:one-low($1025),IF$vsm:basic:one-low($1025),,,Princess | Switch 35,,facing Track East Lead East into Track East Lead
+1,Princess,mast,Mast 36RA,IF$shsm:basic:two-searchlight(IH135)(IH136),IF$shsm:basic:two-searchlight(IH135)(IH136),1,,Princess | Switch 35,,facing Track West Ext into OS Switch 35b
+1,Princess,mast,Mast 36RB,IF$shsm:basic:two-searchlight(IH132)(IH133),IF$shsm:basic:two-searchlight(IH132)(IH133),1,,Princess | Switch 35,,facing Track East Lead East into OS Switch 35a
+1,Princess,mast,Mast 38LA,IF$shsm:basic:two-searchlight(IH139)(IH140),IF$shsm:basic:two-searchlight(IH139)(IH140),1,,Princess | Switch 37,,facing Track McKeesport into OS Switch 37
+1,Princess,mast,Mast 38LB,IF$shsm:basic:one-low(IH143),IF$shsm:basic:one-low(IH143),1,,Princess | Switch 37,,facing Track K-2 into OS Switch 37
+1,Princess,mast,Mast 38RA,IF$vsm:basic:one-low($1004),IF$vsm:basic:one-low($1004),,,Princess | Switch 37,,"facing Track McKeesport, buffer stop"
+1,Princess,mast,Mast 40LA,IF$shsm:basic:two-searchlight(IH1132)(IH1135),IF$shsm:basic:two-searchlight(IH1132)(IH1135),11,,Princess | Switch 39,,facing Track McKees Rocks into OS Switch 39
+1,Princess,mast,Mast 40LB,IF$shsm:basic:one-low(IH1136),IF$shsm:basic:one-low(IH1136),11,,Princess | Switch 39,,facing Track K-1 West into OS Switch 39
+1,Princess,mast,Mast 40RA,IF$vsm:basic:one-low($1003),IF$vsm:basic:one-low($1003),,,Princess | Switch 39,,"facing Track McKees Rocks, buffer stop"
+1,Princess,mast,Mast 40RB,IF$vsm:basic:one-low($1026),IF$vsm:basic:one-low($1026),,,Princess | Switch 39,,facing Track K-1 West into Track K-1
+1,Princess,mast,Mast 2035,IF$shsm:basic:one-low(IH1134),IF$shsm:basic:one-low(IH1134),11,,Princess,,facing Track K-2 into Track K-1
+1,Princess,mast,Mast 2036,IF$shsm:basic:one-low(IH1133),IF$shsm:basic:one-low(IH1133),11,,Princess,,facing Track K-1 into Track K-2
+1,Brick,head,Head 2L Bottom,IH439,IH439,4,,"Node: 4 Signal: 7 | OU: 3 Ports: 4,5,6",,
+1,Brick,head,Head 2L Top,IH438,IH438,4,,"Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3",,
+1,Brick,head,Head 4RA,IH436,IH436,4,,"Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3",,
+1,Brick,head,Head 4RB,IH437,IH437,4,,"Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6",,
+1,Plane,head,Head 6LA,IH434,IH434,4,,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",,
+1,Plane,head,Head 6LB,IH432,IH432,4,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",,
+1,Barn,head,Head 8LA Bottom,IH1338,IH1338,13,,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",,
+1,Barn,head,Head 8LA Top,IH1337,IH1337,13,,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",,
+1,Barn,head,Head 8LB,IH1334,IH1334,13,,"Node: 13 Signal: 2 | OU: 3 Ports: 7,8 | OU: 4 Ports: 7",,
+1,Barn,head,Head 8RA Bottom,IH1333,IH1333,13,,"Node: 13 Signal: 1 | OU: 1 Ports: 4,5,6",,
+1,Barn,head,Head 8RA Top,IH1332,IH1332,13,,"Node: 13 Signal: 0 | OU: 1 Ports: 1,2,3",,
+1,Barn,head,Head 8RB Bottom,IH1336,IH1336,13,,"Node: 13 Signal: 4 | OU: 4 Ports: 4,5,6",,
+1,Barn,head,Head 8RB Top,IH1335,IH1335,13,,"Node: 13 Signal: 3 | OU: 4 Ports: 1,2,3",,
+1,East End,head,Head 24L Bottom,IH239,IH239,2,,"Node: 2 Signal: 7 | OU: 2 Ports: 4,5,6",,
+1,East End,head,Head 24L Top,IH233,IH233,2,,"Node: 2 Signal: 1 | OU: 2 Ports: 1,2,3",,
+1,East End,head,Head 24RA Bottom,IH238,IH238,2,,"Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6",,
+1,East End,head,Head 24RA Top,IH232,IH232,2,,"Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3",,
+1,East End,head,Head 24RB,IH234,IH234,2,,"Node: 2 Signal: 2 | OU: 3 Ports: 6,7,8",,
+1,East End,head,Head 32R,IH1234,IH1234,12,,"Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",,
+1,East End,head,Head 34L Bottom,IH1233,IH1233,12,,"Node: 12 Signal: 1 | OU: 2 Ports: 4,5,6",,
+1,East End,head,Head 34L Top,IH1232,IH1232,12,,"Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3",,
+1,East End,head,Head 34R Bottom,IH1236,IH1236,12,,"Node: 12 Signal: 4 | OU: 3 Ports: 4,5,6",,
+1,East End,head,Head 34R Top,IH1235,IH1235,12,,"Node: 12 Signal: 3 | OU: 3 Ports: 1,2,3",,
+1,Princess,head,Head 36RA Bottom,IH136,IH136,1,,"Node: 1 Signal: 4 | OU: 2 Ports: 4,5,6",,
+1,Princess,head,Head 36RA Top,IH135,IH135,1,,"Node: 1 Signal: 3 | OU: 2 Ports: 1,2,3",,
+1,Princess,head,Head 36RB Bottom,IH133,IH133,1,,"Node: 1 Signal: 1 | OU: 3 Ports: 4,5,6",,
+1,Princess,head,Head 36RB Top,IH132,IH132,1,,"Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3",,
+1,Princess,head,Head 38LA Bottom,IH140,IH140,1,,"Node: 1 Signal: 8 | OU: 4 Ports: 4,5,6",,
+1,Princess,head,Head 38LA Top,IH139,IH139,1,,"Node: 1 Signal: 7 | OU: 4 Ports: 1,2,3",,
+1,Princess,head,Head 38LB,IH143,IH143,1,,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",,
+1,Princess,head,Head 40LA Bottom,IH1135,IH1135,11,,"Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6",,
+1,Princess,head,Head 40LA Top,IH1132,IH1132,11,,"Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3",,
+1,Princess,head,Head 40LB,IH1136,IH1136,11,,"Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3",,
+1,Princess,head,Head 2035,IH1134,IH1134,11,,"Node: 11 Signal: 2 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",,
+1,Princess,head,Head 2036,IH1133,IH1133,11,,"Node: 11 Signal: 1 | OU: 3 Ports: 4,5,6",,
