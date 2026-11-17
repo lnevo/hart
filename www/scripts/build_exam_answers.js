@@ -139,16 +139,28 @@ function readSources(src) {
   return s => s.replace(re, k => SRC[k]); // the same label the game shows (srcLabel)
 }
 
-/* The modern run's code sits between its warrant tables and the end-of-run scene; everything before is 1949. */
+/* The modern run's code starts at its warrant tables. Runs in FUNC_RUNS (checked first) also sit before the end-of-run
+   scene, so a question there gets its run's label; any other question before TW_SEL is 1949, after it modern. */
 function modernRange(src) {
   const from = src.indexOf("const TW_SEL="), to = src.indexOf("function finish(");
   if (from < 0 || to < from) throw new Error("run.html: modern run code (const TW_SEL … function finish) not found");
   return { from, to };
 }
 
+/* Runs whose questions all sit inside one start function: the yard job. */
+const FUNC_RUNS = { startYARD: "Yard job" };
+function funcRanges(src) {
+  return Object.entries(FUNC_RUNS).map(([fn, label]) => {
+    const at = src.indexOf(`function ${fn}(`);
+    if (at < 0) throw new Error(`run.html: function ${fn} not found`);
+    return { label, from: at, to: closing(src, src.indexOf("{", at)) };
+  });
+}
+
 function extract(src) {
   const pools = poolRanges(src);
   const modern = modernRange(src);
+  const runs = funcRanges(src);
   const scope = scopeWith(figures(src));
   const srcLabel = readSources(src);
   const qs = [];
@@ -175,7 +187,7 @@ function extract(src) {
     qs.push({
       line, sec: o.sec, src: text(srcLabel(String(o.src || ""))), extra: o.extra ? String(o.extra) : "", title: text(o.title), body: text(o.body), right: text(o.right),
       wrong: o.wrong.map(w => ({ t: text(w[0]), why: text(w[2] || "") })),
-      ref: o.ref ? String(o.ref) : "", why: text(o.why), where: pool ? POOLS[pool.name] : m.index > modern.from && m.index < modern.to ? "Modern run" : "1949 run",
+      ref: o.ref ? String(o.ref) : "", why: text(o.why), where: pool ? POOLS[pool.name] : (runs.find(r => m.index > r.from && m.index < r.to) || {}).label || (m.index > modern.from && m.index < modern.to ? "Modern run" : "1949 run"),
     });
   }
   return qs;
