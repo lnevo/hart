@@ -1333,7 +1333,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                                           crossover_run=crossover_run(scale),
                                           tight_crossovers=TIGHT_CROSSOVERS,
                                           split_crossovers=SPLIT_CROSSOVERS, mast_room=MAST_ROOM,
-                                          **stepped)
+                                          name_room=NAME_ROOM, **stepped)
             P = draw(gaps)
             if len(P.band_boxes) > 2:
                 gaps[1:] = [band_gap(le_mod.extent(P, bi)[3], P.band_boxes[bi][3], le_mod)
@@ -1444,6 +1444,11 @@ SPLIT_CROSSOVERS = {"Main": ["101", "103"]}
 # at that track (Masts 108R and 110LA on track 107-109, 128RB and 130LA on 127-129, 228RA on 227-233 stood on 16 to
 # 19 px of straight; 2026-11-17). Main and upper only: staging is drawn as the owner approved it.
 MAST_ROOM = ["Main", "Upper"]
+# Bands whose drawing, in the same pass, lets a named track's straight out to its name's width (the plugin's
+# name_room), while the band stays no wider than the widest: main uses its spare width so Tracks 107-109 and 125-127
+# get their names beside 109-111 and 127-129 (owner, 2026-11-17: "Use main's spare width"); upper is the widest, so
+# its short tracks keep their length (noted).
+NAME_ROOM = ["Main", "Upper"]
 # track names left off the panel (owner, 2026-11-16): the short track inside the three-way
 NO_NAME = {"Main": ["101-103"]}
 
