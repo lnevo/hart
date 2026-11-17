@@ -872,8 +872,6 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
     if kind == "turnout":
         if user_name in TURNOUT_COMMENTS:
             return TURNOUT_COMMENTS[user_name]
-        if system_name.startswith("IT:HART:YL:"):
-            return f"Internal yard-ladder control {user_name}"
         if system_name.startswith("MTT"):
             # Device-map comments come from CSV identity rows above. Never
             # invent "leftover" text that would let cleanup treat MTT as junk.

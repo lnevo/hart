@@ -71,7 +71,7 @@ python3 tools/schematic/build_cats_panel.py
 
 **Boot sequence (profile Start Up, after `tables.xml`):**
 
-1. `jmri/layouts/hart/scripts/panel_status.py` — yard-ladder lamps from live plant/FB state. It never commands plant turnouts. Panel status lamps: **LCOS** (RESUBSCRIBE), **Turnouts** (TWOSENSOR↔DIRECT), **Signals** (Digicon SML), **Track Power** (LCC PowerManager ON/OFF).
+1. `jmri/layouts/hart/scripts/panel_status.py` — panel status lamps; it never commands plant turnouts: **LCOS** (RESUBSCRIBE), **Turnouts** (TWOSENSOR↔DIRECT), **Signals** (Digicon SML), **Track Power** (LCC PowerManager ON/OFF).
 2. `jmri/scripts/signal_coordinator.py` — Digicon SML MQTT bridge: main-window **SML Enabled / SML Disabled** toggle; when Enabled, publish IH appearances on `track/signalhead/<packed>`; when Disabled (global or per-mast SML off), apply `track/signalmast/<packed>` → IH and (on per-mast disable edges / operator Disable) publish `Unheld`. Answers `track/bridge/sml_mode` **query** / **disabling** with **enabled** while globally Enabled. **Boot:** if Digicon dests loaded **Enabled** (stored tables), warning popup, publish **`enabling`** and leave dests on (that instance does not abort). Operator **Force override** (sml_mode already enabled) publishes the same **`enabling`** token. Other agents seeing that token publish **`aborting`**, uncheck immediately (no Hold/Red/Unheld), then **`aborted`**, and stay Disabled. After ~3s the originator publishes **`enabled`**. Solo has nobody to abort; if `enabled` never arrives, the LCOS bridge challenges to **disabled**. Clean boot still holds dests off and **reads** `sml_mode` only (no retain publish); missing/`disabled`/`disabling` → take Digicon (enable); `enabled` / enabling-abort tokens → stay Disabled with **no Unheld** (originator owns resume). Digicon SML dests should be stored **Enabled=no** in `tables.xml` (`jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py`).
 
 (`unhold_signal_masts.py` is retired: masts boot Unheld, so SML runs ABS by default; **Held is CATS CTC's channel** — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)
@@ -94,7 +94,7 @@ Enable these connection prefixes in Designer. Device bindings come from the swit
 | M2S | Sensor | MQTT occupancy and switch feedback (`Block 4-2`, Switch FB) |
 | M2T | Turnout | MQTT field switches (`M2T408` = Switch 1) |
 | IS | Sensor | Internal: status sensors. The USS CTC lever and panel sensors (`IS3:LEVER`, `IS:RELOADCTC`) and the Dispatcher sensors are parked |
-| IT | Turnout | Internal: yard ladder lamps (`IT:HART:YL:L1`…) |
+| IT | Turnout | Internal: the main and upper level turnouts (`IT:HART:C3:<n>`) until the device-map import |
 | IF$shsm / IF$vsm | Signal mast | Basic signal-head masts and virtual masts; CATS refers to them by user name |
 
 Blank Digicon cells come from CATS source behaviour, not the tables: see [`CATS_SOURCE_PAINT.md`](CATS_SOURCE_PAINT.md).
@@ -118,13 +118,9 @@ Princess (ADR-017): east of Switches 39 and 37 the mainline stubs are **Track Mc
 
 CTC homes start **Held** (CATS holds them at panel load). Left-click codes the route; Digicon drops Hold and SML shows Approach/Clear. Without CATS, masts simply boot Unheld so SML runs ABS — no script needed. **Fleeting** is only for keeping a live route clear for following trains — it is disabled until a route is already ACTIVE.
 
-### Yard ladder lamps
+### Yard ladder lamps (retired)
 
-Lamps beside OS S-R…OS S-4 on the Layout Editor panel and JMRI web, not on the CATS desks (left = west ladder + 116; right = east ladder + 112 / 111 for OS S-R). Whether the desks get them back is open in [`cats-panels.md`](../../wiki/pipelines/cats-panels.md).
-
-- Triggers: internal turnouts `IT:HART:YL:L1…R5`
-- JMRI routes `IO:AUTO:0201–0210` fire on throw and line M2T peels
-- Layout Editor / JMRI web: lamp `turnouticon`s (drawn like the USS lamps; the lamps stay active, only the lever machine is parked) on the same ITs inside **`tables.xml`** Layout Editor (script: `jmri/layouts/hart/scripts/add_yard_ladder_le_icons.py`, run on the Mac against `jmri/layouts/hart/output/tables.xml`; it is not shipped to the hosts). Lamps align with the **Track 1…5** text labels (above each rail), not the BlockContentsIcon “Yard Track N” rows. Click THROWN = line that track; CLOSED/idle = red.
+The hand-wired desk's ten yard-ladder lamp buttons (internal turnouts `IT:HART:YL:L1…R5`, routes `IO:AUTO:0201–0210`) were retired on 2026-11-17 (owner): no desk or panel used them. The builder leaves them out of `tables.xml` (`build_layout_le.py`, `retire_yard_ladder`) and `panel_status.py` no longer paints them.
 
 ### Turnout SoR (summary)
 
@@ -231,11 +227,11 @@ LE `signalmasticon`s use the stock Basic `default` image set (no custom imagelin
 
 Default panel for `launch_cats.sh` is `~/JMRI_UserFiles/cats/panels/HART_CTC.xml`, which deploy installs.
 
-Profile tables (routes, YL internals, signal heads/masts) load from `preference:tables.xml`, which is `JMRI_UserFiles/tables.xml` (repo mirror `jmri/layouts/hart/output/tables.xml`). Yard ladders need `IO:AUTO:0201–0210` and `IT:HART:YL:*` in that file.
+Profile tables (turnouts, signal heads and masts, SML) load from `preference:tables.xml`, which is `JMRI_UserFiles/tables.xml` (repo mirror `jmri/layouts/hart/output/tables.xml`).
 
 ### JMRI package (SSH deploy to hosts)
 
-Same package carries the CATS desks, `tables.xml`, yard-ladder button icons, and the JMRI **web home** override + Start Up scripts:
+Same package carries the CATS desks, `tables.xml`, the button icons, and the JMRI **web home** override + Start Up scripts:
 
 | Piece | Repo SoR | Installs to |
 |-------|----------|-------------|

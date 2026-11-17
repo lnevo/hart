@@ -1344,5 +1344,48 @@ class OverlayErrors(unittest.TestCase):
             ov.nudge([ov.Rect(0, 0, 5, 5)], obstacles, False, (-1000, -1000, 1000, 1000), "item")
 
 
+
+class RetiredYardLadder(unittest.TestCase):
+    TABLES = """<layout-config>
+  <turnouts class="t">
+    <turnout><systemName>IT:HART:YL:L1</systemName></turnout>
+    <turnout><systemName>M2T308</systemName></turnout>
+  </turnouts>
+  <routes class="r">
+    <route controlTurnout="IT:HART:YL:L1"><systemName>IO:AUTO:0201</systemName>
+      <routeOutputTurnout systemName="M2T308" state="CLOSED" /></route>
+    <route controlTurnout="IT:OTHER"><systemName>IO:AUTO:0300</systemName>
+      <routeOutputTurnout systemName="IT:HART:YL:L2" state="CLOSED" /></route>
+    <route controlTurnout="IT:KEEP"><systemName>IO:AUTO:0400</systemName></route>
+  </routes>
+</layout-config>"""
+
+    def test_the_yard_ladder_turnouts_and_their_routes_go(self) -> None:
+        root = ET.fromstring(self.TABLES)
+        self.assertEqual(B.retire_yard_ladder(root), 3)
+        self.assertEqual([t.findtext("systemName") for t in root.iter("turnout")], ["M2T308"])
+        self.assertEqual([r.findtext("systemName") for r in root.iter("route")], ["IO:AUTO:0400"])
+
+    def test_another_reference_left_stops(self) -> None:
+        root = ET.fromstring(self.TABLES.replace("IT:KEEP", "IT:KEEP\" comment=\"IT:HART:YL:L3"))
+        root.find("routes/route[3]").set("note", "IT:HART:YL:L3")
+        with self.assertRaisesRegex(B.BuildError, "yard ladder"):
+            B.retire_yard_ladder(root)
+
+    def test_the_released_tables_hold_none(self) -> None:
+        self.assertNotIn(B.RETIRED_TURNOUT_PREFIX, Path(B.paths.REPO_TABLES_XML).read_text(encoding="utf-8"))
+
+    def test_a_reference_by_user_name_stops(self) -> None:
+        root = ET.fromstring(self.TABLES.replace("<systemName>IT:HART:YL:L1</systemName>",
+                                                 "<systemName>IT:HART:YL:L1</systemName><userName>Ladder L1</userName>"))
+        root.find("routes/route[3]").set("note", "Ladder L1")
+        with self.assertRaisesRegex(B.BuildError, "yard ladder"):
+            B.retire_yard_ladder(root)
+
+    def test_the_parked_snapshot_holds_none(self) -> None:
+        # the parked features never referred to them, so unparking cannot bring them back
+        self.assertNotIn(B.RETIRED_TURNOUT_PREFIX, B.parked.PARKED_XML.read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":
     unittest.main()

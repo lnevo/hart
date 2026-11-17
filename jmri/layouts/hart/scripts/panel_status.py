@@ -1,16 +1,8 @@
-# Sync Digicon yard-ladder button indicators (IT:HART:YL:*) from live FB
-# sensors, drive HART Railroad status lamps, and wire clicks on LCOS /
-# Turnouts / Signals / Track Power panel icons.
+# Drive HART Railroad status lamps and wire clicks on LCOS / Turnouts /
+# Signals / Track Power panel icons. Never setCommandedState on M2T*/MTT*.
 #
-# CRITICAL: IT:HART:YL:* are Route controlTurnouts (fire on THROWN) whose
-# outputs are MQTT plants (M2T308… / M2T1208…). newKnownState(THROWN) still
-# notifies the Route, which setCommandedState → track/cmd/turnout. Always
-# disable the ladder routes while painting lamps. Never setCommandedState
-# on M2T*/MTT*.
-#
-# Match peels from FB N/R only. JMRI KnownState defaults CLOSED, which would
-# light S-R and command that canned alignment — not last field state.
-#
+# The Digicon yard-ladder buttons, their internal turnouts and routes
+# IO:AUTO:0201-0210, and their lamp painting are gone (owner, 2026-11-17).
 #
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
@@ -20,7 +12,7 @@
 # LCOS lamp (M2S1567): click → MQTT track/bridge/cmd RESUBSCRIBE (not FORCE).
 # Track Power lamp (IS:TRACK_POWER): mirrors LCC PowerManager; click toggles ON/OFF.
 #
-# Ladder/lamp arm as soon as watch turnouts exist. Panel click wiring retries
+# Lamps arm as soon as plant turnouts exist. Panel click wiring retries
 # quietly afterward (do not block on Layout Editor — EditorManager often lags).
 
 import jmri
@@ -29,11 +21,8 @@ from java.beans import PropertyChangeListener
 from java.lang import Runnable
 from javax.swing import SwingUtilities, Timer
 
-CLOSED = jmri.Turnout.CLOSED
-THROWN = jmri.Turnout.THROWN
 TWOSENSOR = jmri.Turnout.TWOSENSOR
 DIRECT = jmri.Turnout.DIRECT
-ACTIVE = jmri.Sensor.ACTIVE
 
 TURNOUT_FB_HEAD = "IH9990"
 LCOS_SENSOR = "M2S1567"
@@ -46,31 +35,7 @@ GREEN = jmri.SignalHead.GREEN
 YELLOW = jmri.SignalHead.YELLOW
 RED = jmri.SignalHead.RED
 
-# First match wins — specific peels before S-5 / S-1.
-LEFT_PATTERNS = [
-    ("IT:HART:YL:L4", (("M2T308", THROWN), ("M2T309", CLOSED), ("M2T310", CLOSED), ("M2T311", THROWN))),
-    ("IT:HART:YL:L3", (("M2T308", THROWN), ("M2T309", CLOSED), ("M2T310", THROWN), ("M2T311", CLOSED))),
-    ("IT:HART:YL:L2", (("M2T308", THROWN), ("M2T309", THROWN), ("M2T310", CLOSED), ("M2T311", CLOSED))),
-    ("IT:HART:YL:L5", (("M2T308", THROWN), ("M2T309", CLOSED), ("M2T310", CLOSED), ("M2T311", CLOSED))),
-    ("IT:HART:YL:L1", (("M2T308", CLOSED),)),
-]
-RIGHT_PATTERNS = [
-    ("IT:HART:YL:R4", (("M2T1211", THROWN), ("M2T1210", CLOSED), ("M2T1209", CLOSED), ("M2T1208", THROWN))),
-    ("IT:HART:YL:R3", (("M2T1211", THROWN), ("M2T1210", CLOSED), ("M2T1209", THROWN), ("M2T1208", CLOSED))),
-    ("IT:HART:YL:R2", (("M2T1211", THROWN), ("M2T1210", THROWN), ("M2T1209", CLOSED), ("M2T1208", CLOSED))),
-    ("IT:HART:YL:R5", (("M2T1211", THROWN), ("M2T1210", CLOSED), ("M2T1209", CLOSED), ("M2T1208", CLOSED))),
-    # Track S-R east: Switch 31 (110) and Switch 33 (112) both CLOSED.
-    ("IT:HART:YL:R1", (("M2T1211", CLOSED), ("M2T1213", CLOSED))),
-]
-
-LEFT_INDICATORS = [p[0] for p in LEFT_PATTERNS]
-RIGHT_INDICATORS = [p[0] for p in RIGHT_PATTERNS]
-WATCH = [
-    "M2T308", "M2T309", "M2T310", "M2T311",
-    "M2T1213", "M2T1211", "M2T1210", "M2T1209", "M2T1208",
-]
-
-# Ladder/lamp: short settle, then arm when watch turnouts exist (no LE gate).
+# Lamps: short settle, then arm when plant turnouts exist (no LE gate).
 _ARM_FIRST_MS = 1000
 _ARM_RETRY_MS = 1000
 _ARM_MAX_ATTEMPTS = 15
@@ -78,128 +43,13 @@ _ARM_MAX_ATTEMPTS = 15
 _CLICK_RETRY_MS = 2000
 _CLICK_MAX_ATTEMPTS = 30
 
-_busy = False
 _armed = False
 _clicks_armed = False
 _icon_rebound = False
-_last = (None, None)
 _last_fb_appearance = None
 _listener = None
-_sensor_listener = None
 _click_busy = False
 _plant_count = 0
-
-
-def _known_from_fb(to):
-    """TWOSENSOR: sensor1 = thrown (R), sensor2 = closed (N). Read-only."""
-    try:
-        s1 = to.getFirstSensor()
-        s2 = to.getSecondSensor()
-    except Exception:
-        return None
-    if s1 is None or s2 is None:
-        return None
-    try:
-        a1 = s1.getKnownState()
-        a2 = s2.getKnownState()
-    except Exception:
-        return None
-    if a1 == ACTIVE and a2 != ACTIVE:
-        return THROWN
-    if a2 == ACTIVE and a1 != ACTIVE:
-        return CLOSED
-    return None
-
-
-def _known(to):
-    """Plant position for YL match. FB sensors only — never commanded or default CLOSED."""
-    if to is None:
-        return None
-    return _known_from_fb(to)
-
-
-def _match(patterns):
-    for ind, need in patterns:
-        ok = True
-        for sn, want in need:
-            got = _known(turnouts.getTurnout(sn))
-            if got != want:
-                ok = False
-                break
-        if ok:
-            return ind
-    return None
-
-
-def _set_indicator_known(sn, state):
-    """Paint YL lamp KnownState. Caller must disable ladder routes first."""
-    to = turnouts.getTurnout(sn)
-    if to is None:
-        try:
-            to = turnouts.provideTurnout(sn)
-        except Exception:
-            return
-    try:
-        if to.getKnownState() == state:
-            return
-        if hasattr(to, "newKnownState"):
-            to.newKnownState(state)
-        else:
-            print(
-                "panel_status: cannot light %s (no newKnownState)"
-                % sn
-            )
-    except Exception as e:
-        print("panel_status: indicator %s → %s failed: %s" % (sn, state, e))
-
-
-def _ladder_routes():
-    out = []
-    try:
-        for route in routes.getNamedBeanSet():
-            un = route.getUserName() or ""
-            if "ladder" in un.lower():
-                out.append(route)
-    except Exception as e:
-        print("panel_status: list ladder routes failed: %s" % e)
-    return out
-
-
-def _paint_side_indicators(indicators, active):
-    """Lit = THROWN on the matching peel; all others CLOSED."""
-    for sn in indicators:
-        _set_indicator_known(sn, THROWN if sn == active else CLOSED)
-
-
-def _paint_indicators_without_commanding(left, right):
-    """Light YL lamps with ladder routes disabled so M2T outputs are not commanded."""
-    found = _ladder_routes()
-    if not found:
-        print("panel_status: skip YL paint (ladder routes not loaded)")
-        return
-    disabled = []
-    try:
-        for route in found:
-            try:
-                if route.getEnabled():
-                    route.setEnabled(False)
-                    disabled.append(route)
-            except Exception as e:
-                print(
-                    "panel_status: disable %s failed: %s"
-                    % (route.getUserName(), e)
-                )
-        _paint_side_indicators(LEFT_INDICATORS, left)
-        _paint_side_indicators(RIGHT_INDICATORS, right)
-    finally:
-        for route in disabled:
-            try:
-                route.setEnabled(True)
-            except Exception as e:
-                print(
-                    "panel_status: re-enable %s failed: %s"
-                    % (route.getUserName(), e)
-                )
 
 
 def _has_two_fb_sensors(to):
@@ -222,17 +72,6 @@ def _included_plant_turnouts():
     except Exception as e:
         print("panel_status: scan turnouts failed: %s" % e)
     return out
-
-
-def _watch_turnouts_present():
-    """True when the MQTT ladder watch turnouts exist in the manager."""
-    try:
-        for sn in WATCH:
-            if turnouts.getTurnout(sn) is None:
-                return False
-        return True
-    except Exception:
-        return False
 
 
 def _ensure_turnout_fb_head():
@@ -695,26 +534,9 @@ def toggle_track_power():
     _after_paint(_do, delay_ms=_LAMP_AMBER_MS)
 
 
-def sync_ladder_buttons(event=None):
-    global _busy, _last
-    if _busy:
-        return
-    _busy = True
-    try:
-        left = _match(LEFT_PATTERNS)
-        right = _match(RIGHT_PATTERNS)
-        if (left, right) != _last:
-            _last = (left, right)
-            print(
-                "panel_status: left=%s right=%s"
-                % (left or "none", right or "none")
-            )
-        _paint_indicators_without_commanding(left, right)
-        sync_turnout_fb_lamp()
-    except Exception as e:
-        print("panel_status: sync error: %s" % e)
-    finally:
-        _busy = False
+def sync_lamps(event=None):
+    """The lamps that follow plant state: the Turnouts lamp (sync_turnout_fb_lamp catches its own errors)."""
+    sync_turnout_fb_lamp()
 
 
 _sync_timer = Timer(250, None)
@@ -723,7 +545,7 @@ _sync_timer.setRepeats(False)
 
 class _DebouncedSync(ActionListener):
     def actionPerformed(self, event):
-        sync_ladder_buttons()
+        sync_lamps()
 
 
 _sync_timer.addActionListener(_DebouncedSync())
@@ -751,15 +573,6 @@ class _TurnoutListener(PropertyChangeListener):
                 _schedule_sync()
         except Exception as e:
             print("panel_status: listener error: %s" % e)
-
-
-class _SensorListener(PropertyChangeListener):
-    def propertyChange(self, event):
-        try:
-            if event.getPropertyName() == "KnownState":
-                _schedule_sync()
-        except Exception as e:
-            print("panel_status: sensor listener error: %s" % e)
 
 
 def _sensor_sys(icon):
@@ -920,26 +733,11 @@ def _raise_block_labels():
 
 
 def _arm_listeners():
-    """Attach ladder/plant listeners once. Independent of panel icons."""
-    global _armed, _listener, _sensor_listener, _plant_count
+    """Attach plant listeners once (the Turnouts lamp). Independent of panel icons."""
+    global _armed, _listener, _plant_count
     if _armed:
         return True
     _listener = _TurnoutListener()
-    _sensor_listener = _SensorListener()
-    for sn in WATCH:
-        to = turnouts.getTurnout(sn)
-        if to is None:
-            continue
-        to.addPropertyChangeListener(_listener)
-        for getter in ("getFirstSensor", "getSecondSensor"):
-            try:
-                s = getattr(to, getter)()
-                if s is not None:
-                    s.addPropertyChangeListener(_sensor_listener)
-            except Exception:
-                pass
-    for sn in LEFT_INDICATORS + RIGHT_INDICATORS:
-        turnouts.provideTurnout(sn)
     plants = _included_plant_turnouts()
     _plant_count = len(plants)
     for to in plants:
@@ -948,26 +746,27 @@ def _arm_listeners():
         except Exception:
             pass
     _armed = True
-    print(
-        "panel_status: armed (watch=%d plantFB=%d)"
-        % (len(WATCH), _plant_count)
-    )
+    print("panel_status: armed (plantFB=%d)" % _plant_count)
     return True
 
 
 class _ArmAttempt(ActionListener):
-    def __init__(self, attempt):
+    """Arm once the plant turnouts have loaded: some present and their count unchanged since the last try, so a
+    connection that registers its turnouts later is not left without listeners."""
+    def __init__(self, attempt, last=-1):
         self.attempt = attempt
+        self.last = last
 
     def actionPerformed(self, event):
         event.getSource().stop()
-        if not _watch_turnouts_present():
+        n = len(_included_plant_turnouts())
+        if n == 0 or n != self.last:
             if self.attempt + 1 >= _ARM_MAX_ATTEMPTS:
-                print("panel_status: watch turnouts missing; arming anyway")
+                print("panel_status: plant turnouts not settled (%d); arming anyway" % n)
             else:
                 if self.attempt == 0:
-                    print("panel_status: waiting for watch turnouts…")
-                t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1))
+                    print("panel_status: waiting for plant turnouts…")
+                t = Timer(_ARM_RETRY_MS, _ArmAttempt(self.attempt + 1, n))
                 t.setRepeats(False)
                 t.start()
                 return
@@ -976,7 +775,7 @@ class _ArmAttempt(ActionListener):
             _arm_power_listener()
             _sync_track_power_sensor()
             _raise_block_labels()
-            sync_ladder_buttons()
+            sync_lamps()
         except Exception as e:
             print("panel_status: arm failed: %s" % e)
         t = Timer(_CLICK_RETRY_MS, _RetryClicks(0))

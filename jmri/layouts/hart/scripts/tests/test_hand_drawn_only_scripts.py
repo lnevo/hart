@@ -1,6 +1,6 @@
 """The one-off edits of the hand-drawn Layout Editor panel refuse a generated panel (LE cut-over, Phase 3).
 
-apply_yard_throat_blocks.py (F46-W-0 and the throat pixels), apply_le_cleanup.py, add_yard_ladder_le_icons.py and
+apply_yard_throat_blocks.py (F46-W-0 and the throat pixels), apply_le_cleanup.py and
 add_digicon_le_signal_icons.py pin idents and pixels of the hand-drawn panel. On a panel that holds the generated-
 panel marker each stops before reading further or writing anything, the profile included (HOME is a temp folder).
 """
@@ -22,7 +22,7 @@ from hartlib import hand_drawn, paths, tables  # noqa: E402
 # one, so they run on the last hand-drawn tables (git, hartlib.hand_drawn)
 HAND_DRAWN = hand_drawn.skip_unless_available()
 
-ONE_OFFS = ("apply_yard_throat_blocks.py", "apply_le_cleanup.py", "add_yard_ladder_le_icons.py",
+ONE_OFFS = ("apply_yard_throat_blocks.py", "apply_le_cleanup.py",
             "add_digicon_le_signal_icons.py")
 
 

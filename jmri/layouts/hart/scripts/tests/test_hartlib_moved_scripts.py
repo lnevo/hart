@@ -43,7 +43,6 @@ class DefaultPathsTest(unittest.TestCase):
     def test_default_tables_are_this_checkouts_file(self):
         for name, attr in (
             ("add_digicon_le_signal_icons", "DEFAULT_PANEL"),
-            ("add_yard_ladder_le_icons", "DEFAULT_PANEL"),
             ("apply_le_cleanup", "DEFAULT"),
             ("apply_le_sml_facing", "DEFAULT_PANEL"),
             ("apply_public_names", "DEFAULT_TABLES"),
