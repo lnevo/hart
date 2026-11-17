@@ -205,7 +205,7 @@ const fmt=m=>{m=Math.round(m);const h=Math.floor(m/60),mm=m%60;return h+":"+Stri
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const reduced=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* deck sections, for the links back to the study guide */
-const SEC={def:"The words",sup:"Who goes first",to:"Train orders",sig:"Signals and whistles",sem:"Semaphores",yl:"Yard limits",twc:"Track warrants",gcor:"Crew duties and speed"};
+const SEC={def:"Definitions",sup:"Superiority & movement",to:"Train orders",sig:"Signals & whistles",sem:"Semaphores",yl:"Yard limits",twc:"Track warrants",gcor:"GCOR crew & speed"};
 const SRC={SC:"1949 Standard Code",GC:"GCOR",TT:"TT&TO primer",YL:"Yard Limits guide",TW:"Track Warrants guide",SG:"Signals guide",SM:"Semaphores guide"};
 const srcLabel=s=>s.replace(/^(SC|GC|TT|YL|TW|SG|SM)\b/,m=>SRC[m]||m);
 
