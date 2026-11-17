@@ -22,9 +22,10 @@ Examples: `agent/composer/naming-csv`, `spike/duplicate-blocks`.
 ## Rules
 
 1. One behavior per PR / branch when practical.  
-2. Agents do not push to `main`.  
+2. Agents do not push to `main`. `main` takes a change only through a pull request whose `check` has passed on its last commit, and since 2026-11-17 that holds for admins too (branch protection "Do not allow bypassing"), so `gh pr merge` from the owner's account is refused until the check passes.  
 3. Do not amend pushed commits.  
-4. Every agent works in its own worktree, `.claude/worktrees/<topic>/` (`make wt TOPIC=<topic>`, or `isolation: "worktree"` for a subagent). Never edit, commit or switch branches in the main checkout; it stays on `main` for pulls and deploys, and hooks enforce it. A second session in a shared checkout can switch the branch under the first, so its next commit lands on the wrong branch. Merged, clean worktrees are removed after `gh pr merge` and at session start (`tools/agent/worktrees.py`).  
+4. Every agent works in its own worktree, `.claude/worktrees/<topic>/` (`make wt TOPIC=<topic>`, or `isolation: "worktree"` for a subagent). Never edit, commit or switch branches in the main checkout; it stays on `main` for pulls and deploys, and hooks enforce it. A second session in a shared checkout can switch the branch under the first, so its next commit lands on the wrong branch. Merged, clean worktrees are removed after `gh pr merge` and at session start (`tools/agent/worktrees.py`). The sweep finds a worktree by its branch, so one switched to a detached `origin/main` (to deploy from it) is never swept: remove it by hand once it is clean.  
+   `make wt` checks out the `model-railroad-skills` submodule the schematic and Layout Editor checks import; in a worktree it did not make (a subagent's), `tools/check.sh` checks it out on its first run.  
 5. **Close-out:** the definition of done in [`AGENTS.md`](../AGENTS.md).  
 6. Update `wiki/` when a decision changes; chat is not SoR.
 

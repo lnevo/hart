@@ -15,6 +15,12 @@ fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
+# A worktree not made by make wt (a subagent's isolation worktree, an older one) may lack the submodules the checks
+# import (CHECK_SUBMODULES in tools/agent/worktrees.py); check them out the way make wt does. Only in a worktree
+# (.git is a file there): the main checkout is not changed, and CI checks them out itself (.github/workflows/check.yml).
+if [[ -z "${CI:-}" && -f .git ]]; then
+  python3 tools/agent/worktrees.py submodules "$ROOT" || echo "checks that need a missing submodule will skip or fail"
+fi
 fail=0
 run() {
   echo "--- $1"

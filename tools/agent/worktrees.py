@@ -8,6 +8,8 @@ stays on main for pulls and deploys.
   worktrees.py new <topic> [--agent claude]   create .claude/worktrees/<topic> on
                                               agent/<agent>/<topic> from origin/main
   worktrees.py sweep [--dry-run] [--keep DIR] remove the worktrees whose PR is merged
+  worktrees.py submodules [PATH]              check out CHECK_SUBMODULES where missing
+                                              (tools/check.sh runs it, for worktrees not made by new)
 
 `new` links the gitignored mirrors the website build and the hart-ops tests need
 (media/, ops/car-cards/, ops/hart-ops/.venv) from the main checkout, and checks out the
@@ -392,14 +394,23 @@ def new(topic: str, agent: str) -> Path:
         if src.exists() and not dst.exists():
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.symlink_to(src)
+    init_check_submodules(path, main)
+    return path
+
+
+def init_check_submodules(path: Path, main: Path) -> bool:
+    """Check out each CHECK_SUBMODULES entry that is not checked out at path; warn on stderr when one fails.
+    Return False when one failed."""
+    ok = True
     for rel in CHECK_SUBMODULES:
-        if not (path / rel).is_dir():  # not a submodule of this checkout (a test repo)
+        if not (path / rel).is_dir() or (path / rel / ".git").exists():  # not a submodule here, or checked out
             continue
         problem = init_submodule(path, rel, main)
         if problem:
+            ok = False
             print(f"warning: {rel} is not checked out ({problem}); run git submodule update --init {rel}",
                   file=sys.stderr)
-    return path
+    return ok
 
 
 # One git call in init_submodule may take this long (seconds); kept under the 120 s an agent's shell call allows.
@@ -445,6 +456,8 @@ def main(argv: list[str] | None = None) -> int:
     p_new = sub.add_parser("new", help="create a worktree for a task")
     p_new.add_argument("topic")
     p_new.add_argument("--agent", default="claude")
+    p_subs = sub.add_parser("submodules", help="check out the submodules the checks need, if missing")
+    p_subs.add_argument("path", nargs="?", default=".", help="the checkout (default: the current folder)")
     p_sweep = sub.add_parser("sweep", help="remove worktrees whose PR is merged")
     p_sweep.add_argument("--dry-run", action="store_true")
     p_sweep.add_argument("--budget", type=float, help="seconds after which no further removal starts")
@@ -452,6 +465,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.cmd == "new":
         print(new(args.topic, args.agent))
+    elif args.cmd == "submodules":
+        top = git("rev-parse", "--show-toplevel", cwd=args.path)
+        found = worktrees(top) if top else []
+        if not found:
+            print(f"warning: {args.path} is not a git checkout; no submodules checked out", file=sys.stderr)
+            return 1
+        return 0 if init_check_submodules(Path(top), Path(found[0].path)) else 1
     else:
         for line in sweep(args.dry_run, args.keep, args.budget) or ["no merged worktrees"]:
             print(line)
