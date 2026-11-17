@@ -1,5 +1,21 @@
 {
  "_main_upper_not_on_desk": {
+  "OS Switch 225a": {
+   "detector": "BS Switch 225a",
+   "why": "inside desk block OS Switch 225: the desk draws a double crossover as one block, bound to corner a's detector"
+  },
+  "OS Switch 225b": {
+   "detector": "BS Switch 225b",
+   "why": "inside desk block OS Switch 225: the desk draws a double crossover as one block, bound to corner a's detector"
+  },
+  "OS Switch 225c": {
+   "detector": "BS Switch 225c",
+   "why": "inside desk block OS Switch 225: the desk draws a double crossover as one block, bound to corner a's detector"
+  },
+  "OS Switch 225d": {
+   "detector": "BS Switch 225d",
+   "why": "inside desk block OS Switch 225: the desk draws a double crossover as one block, bound to corner a's detector"
+  },
   "Track 101-103": {
    "why": "a short link (3.4 cm) inside its switches' OS blocks"
   },
@@ -96,6 +112,38 @@
    "discipline": "DTC",
    "name": "Track 103-105 1",
    "station": "103-105"
+  },
+  "107 Loop 1": {
+   "_planned_occupied": {
+    "DECADDR": "3305",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 107 Loop 1",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "3305",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 107 Loop 1",
+   "station": "107"
+  },
+  "107 Loop 2": {
+   "_planned_occupied": {
+    "DECADDR": ":HART:C3:4",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 107 Loop 2",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": ":HART:C3:4",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   },
+   "discipline": "DTC",
+   "name": "Track 107 Loop 2",
+   "station": "107"
   },
   "111-117": {
    "discipline": "DTC",
@@ -1091,7 +1139,7 @@
    "_planned_occupied": {
     "DECADDR": "2100",
     "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Switch 225",
+    "USER_NAME": "BS Switch 225a",
     "command": "close"
    },
    "_planned_unoccupied": {
@@ -1688,22 +1736,6 @@
    "discipline": "DTC",
    "name": "Track 103 Spur",
    "station": "103"
-  },
-  "end-107": {
-   "_planned_occupied": {
-    "DECADDR": "3305",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS 107 Loop",
-    "command": "close"
-   },
-   "_planned_unoccupied": {
-    "DECADDR": "3305",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   },
-   "discipline": "DTC",
-   "name": "Track 107 Loop",
-   "station": "107"
   },
   "end-113": {
    "discipline": "DTC",

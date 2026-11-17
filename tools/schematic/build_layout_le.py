@@ -140,6 +140,12 @@ STAGING = "Staging"                  # band key (first word of the band title) b
 TURNOUT_SYS = "IT:HART:C3:"          # internal turnouts: nothing reaches the field
 BLOCK_SYS = "IB:C3:"
 LAYOUT_BLOCK_FIRST = 1001            # ILB1001 up; the live file stops well below
+# Blocks added after the cut-over take the next numbers at the end (owner, 2026-11-16: append), so no main or upper
+# system name shifts: BLOCK_NUMBERED_AS gives a renamed block the sort place of the name it replaces, and
+# APPENDED_BLOCKS come last, in this order. The balloon loop's split: Loop 1 keeps the loop's numbers; double
+# crossover 225's corners: a keeps OS Switch 225's.
+BLOCK_NUMBERED_AS = {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225"}
+APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d")
 COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"
 # The window the panel opens in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside
 # it less Layout Editor's 18 x 60 px frame allowance). Width: the whole 1900, so the panel is at most 1882 (the
@@ -764,7 +770,9 @@ def level_masts(names: dict, rows: list[dict]) -> None:
     bad = []
     for r in rows:
         where = [k for k, v in names.items() if k != STAGING
-                 and r["facing"] in {b for bl in v["blocks"].values() for b in bl} and r["protects"] in v["os"].values()]
+                 and r["facing"] in {b for bl in v["blocks"].values() for b in bl}
+                 and r["protects"] in set(v["os"].values()) | {b for x in v.get("xover_blocks", {}).values()
+                                                              for b in x.values()}]
         if len(where) != 1:
             bad.append(f"{r['mast']} ({r['facing']} into {r['protects']}): drawn on {where or 'no band'}")
             continue
@@ -794,18 +802,32 @@ def check_unplaced(P) -> list[str]:
 
 # ---------------------------------------------------------------- main and upper placeholders
 
-def placeholder_names(bands, le_mod) -> tuple[dict, dict]:
-    """({band key: names}, {block: length mm}) for every band but staging."""
+def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
+    """({band key: names}, {block: length mm}) for every band but staging. A balloon loop is two blocks (the device
+    map's loop_halves) and a double crossover four, one per corner (`xover_blocks`, named by the corner each leg
+    reaches as the plugin draws it: the device map's xover_corners; `page`: the sheet's options, for rotate_bands)."""
     joined = le_mod.partners(bands)
+    import build_device_map as bdm
     out, lengths, counted = {}, defaultdict(float), set()
     for bi, (title, band, _) in enumerate(bands):
         key = band_key(title)
         if key == STAGING:
             continue
         nodes, strands = band["nodes"], band["strands"]
-        names = dict(turnouts={}, os={}, blocks={})
+        try:
+            loop_half = bdm.loop_halves(band, runs)      # a balloon loop is two blocks, parted at its turnback
+        except bdm.MapError as exc:
+            raise BuildError(f"{title}: {exc}") from None
+        names = dict(turnouts={}, os={}, blocks={}, xover_blocks={})
         for n, d in sorted(nodes.items()):
-            if d["kind"] in ("switch", "dx"):
+            if d["kind"] == "dx":
+                names["turnouts"][n] = f"Switch {bare(d['label'])}"
+                try:
+                    corners = le_mod.double_corners(band, n, key in (page or {}).get("rotate_bands", ()))
+                    names["xover_blocks"][n] = bdm.xover_corners(bdm.base(d["label"]), corners)
+                except (bdm.MapError, le_mod.SchematicError) as exc:
+                    raise BuildError(f"{title}: {exc}") from None
+            elif d["kind"] == "switch":
                 names["turnouts"][n] = f"Switch {bare(d['label'])}"
                 names["os"][n] = "OS Switch " + re.sub(r"[AB]$", "", bare(d["label"]))
         for start, chain, end in runs(band):
@@ -821,20 +843,22 @@ def placeholder_names(bands, le_mod) -> tuple[dict, dict]:
                 else:
                     labels.append(bare(nodes[n].get("label")) if nodes[n]["kind"] in ("switch", "dx") else "")
             a, b = labels
-            halves = (a and b and a[-1:] in "AB" and b[-1:] in "AB" and a[:-1] == b[:-1] and a[:-1].isdigit())
+            inside_xover = (a and b and a[-1:] in "AB" and b[-1:] in "AB" and a[:-1] == b[:-1] and a[:-1].isdigit())
             for sid, _ in chain:
                 s = strands[sid]
                 edge = s["edge"]
                 if any(nodes[x[0]].get("sub") == "link" for x in (s["src"], s["dst"])):
                     edge = re.sub(r"(?<=\d)[xy]$", "", edge)
-                block = f"OS Switch {a[:-1]}" if halves else f"Track {edge}"
+                block = f"OS Switch {a[:-1]}" if inside_xover else \
+                    bdm.loop_placeholder(f"Track {edge}", loop_half.get(sid))
                 names["blocks"][sid] = [block]
-                # a turnback's two tracks each carry their whole edge's length (count it once); a connector or
-                # helix cut leaves a piece on each band (e36x, e36y): count both
+                # a turnback's two tracks each carry their whole edge's length (count it once, or half each for a
+                # balloon loop's two blocks); a connector or helix cut leaves a piece on each band (e36x, e36y):
+                # count both
                 if (block, s["edge"]) not in counted:
                     counted.add((block, s["edge"]))
-                    lengths[block] += s["cm"] * 10
-        for n in names["os"].values():
+                    lengths[block] += s["cm"] * 10 / (2 if sid in loop_half else 1)
+        for n in list(names["os"].values()) + [b for v in names["xover_blocks"].values() for b in v.values()]:
             lengths[n] += 0.0
         out[key] = names
     return out, dict(lengths)
@@ -859,7 +883,7 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
         user = (r["user_name"] or "").strip()
         if r["layer"] == "turnout" and user.startswith("DCC "):
             continue                    # the LCC alias of a turnout: not a panel object
-        form = r"Switch \d+" if r["layer"] == "turnout" else r"(Track \S.*|OS Switch \d+)"
+        form = r"Switch \d+" if r["layer"] == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
         if not re.fullmatch(form, user):
             bad.append(f"line {i}: {r['layer']} {user!r} is not named {form}")
             continue
@@ -879,12 +903,12 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     return out
 
 
-def level_names(bands, le_mod, device: dict | None = None) -> tuple[dict, dict]:
+def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[dict, dict]:
     """placeholder_names with every placeholder replaced by its device-map name (device_names): ({band key: names},
     {block: length mm}). Stops on a placeholder the device map does not name, or a device-map name the drawing does
     not use."""
     device = device_names() if device is None else device
-    names, lengths = placeholder_names(bands, le_mod)
+    names, lengths = placeholder_names(bands, le_mod, page)
     used, missing = set(), set()
 
     def to(ph):
@@ -898,6 +922,7 @@ def level_names(bands, le_mod, device: dict | None = None) -> tuple[dict, dict]:
     for key, nm in names.items():
         out[key] = dict(turnouts={n: to(t) for n, t in nm["turnouts"].items()},
                         os={n: to(b) for n, b in nm["os"].items()},
+                        xover_blocks={n: {leg: to(b) for leg, b in v.items()} for n, v in nm["xover_blocks"].items()},
                         blocks={sid: [to(b) for b in v] for sid, v in nm["blocks"].items()})
     out_len = defaultdict(float)
     for ph, mm in lengths.items():
@@ -1249,7 +1274,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     if not tables.layout_editors(root):
         raise BuildError(f"{live_path} has no Layout Editor panel to put the new one beside")
 
-    names, lengths = level_names(bands, le_mod) if levels == "all" else ({}, {})
+    names, lengths = level_names(bands, le_mod, page=page) if levels == "all" else ({}, {})
     level_rows = []
     if levels == "all":                 # the main and upper control-point masts (main_upper_masts.csv)
         level_rows = read_level_masts()
@@ -1703,13 +1728,21 @@ def insert_first_panel(root: ET.Element, new: ET.Element, depth: int) -> None:
     root.insert(idx, new)
 
 
+def numbered_blocks(blocks) -> list:
+    """The main and upper blocks in the order their system names are numbered: by block_sort (a block in
+    BLOCK_NUMBERED_AS in the place of the name it replaces), then APPENDED_BLOCKS."""
+    blocks = set(blocks)
+    tail = [b for b in APPENDED_BLOCKS if b in blocks]
+    return sorted(blocks - set(tail), key=lambda b: block_sort(BLOCK_NUMBERED_AS.get(b, b))) + tail
+
+
 def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_blocks: set) -> None:
     """Main and upper: their turnouts, blocks and layout blocks in the tables, under the device-map user names
     (level_names) on internal system names (TURNOUT_SYS, BLOCK_SYS, ILB from LAYOUT_BLOCK_FIRST), so nothing reaches
     MQTT or the field."""
     new_turnouts = sorted({t for k, v in names.items() if k != STAGING for t in v["turnouts"].values()},
                           key=lambda s: block_sort("OS " + s))
-    new_blocks = sorted((b for b in P.blocks if b not in staging_blocks), key=block_sort)
+    new_blocks = numbered_blocks(b for b in P.blocks if b not in staging_blocks)
     if set(new_blocks) - set(lengths):
         raise BuildError(f"blocks with no source: {sorted(set(new_blocks) - set(lengths))}")
     taken_users = {tables.user_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)

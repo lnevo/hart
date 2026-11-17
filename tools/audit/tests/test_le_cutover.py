@@ -718,14 +718,15 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual({tables.user_name(b) for b in added_lb}, {v for k, v in self.device.items()
                                                                     if not k.startswith("Switch ")})
         self.assertEqual(added_b, {tables.user_name(b) for b in added_lb})
-        self.assertEqual(len(added_lb), 121)
+        self.assertEqual(len(added_lb), 125)          # the 107 Loop's two halves and 225's four corners
         self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
                             if B.is_level_bean(b)))
 
     def test_main_and_upper_masts_and_no_sensors(self) -> None:
         """Main and upper: their 41 control-point masts (main_upper_masts.csv), each in the slot JMRI resolves to its
-        facing track and protected OS block (108LA and 108LB on Switch 107's normal and diverging legs), on internal
-        heads and masts signal_coordinator.py never enrols; no sensors."""
+        facing track and protected OS block (108LA and 108LB on Switch 107's normal and diverging legs, facing the 107
+        Loop's two halves; 226RA and 226RB each protecting its own corner of double crossover 225), on internal heads
+        and masts signal_coordinator.py never enrols; no sensors."""
         level = {t["ident"] for t in self.P.turnouts if t["band"]} | {k for k, p in self.P.points.items() if p["band"]}
         rows = {r["mast"]: r for r in B.read_level_masts()}
         on_level = [m for m in self.P.masts if m["ident"] in level]
@@ -739,7 +740,12 @@ class ThreeLevels(unittest.TestCase):
             if rows[m["mast"]]["leg"]:
                 normal = "B" if turnouts[ident]["continuing"] == "2" else "C"
                 self.assertEqual(m["slot"] == normal, rows[m["mast"]]["leg"] == "normal", m["mast"])
-        self.assertEqual({rows[m]["leg"] for m in ("Mast 108LA", "Mast 108LB")}, {"normal", "diverging"})
+        slot = {m["mast"]: (self.P.name(m["ident"]), m["slot"]) for m in on_level}
+        normal = "B" if turnouts[slot["Mast 108LA"][0]]["continuing"] == "2" else "C"
+        self.assertEqual((slot["Mast 108LA"][1], slot["Mast 108LB"][1]), (normal, "BC".replace(normal, "")))
+        self.assertEqual({m: (rows[m]["facing"], rows[m]["protects"]) for m in ("Mast 226RA", "Mast 226RB")},
+                         {"Mast 226RA": ("Track 223-225 1", "OS Switch 225a"),
+                          "Mast 226RB": ("Track 223-225 2", "OS Switch 225d")})
         self.assertEqual(B.lcos_named([r["system_name"] for r in rows.values()]
                                       + [h for r in rows.values() for h, _u in r["heads"]]), [])
         self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH93332"]),

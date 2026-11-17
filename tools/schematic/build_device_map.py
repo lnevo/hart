@@ -32,9 +32,20 @@ Outputs:
 
 Naming rules (ADR-005 grammar, LCOS conventions):
 - Turnout "Switch <n>" (a crossover is one turnout), feedback "FB Switch <n> N|R", OS block "OS Switch <n>" (one per
-  number, as the Layout Editor trial has it), occupancy "BS <block without Track>".
+  number, as the Layout Editor trial has it), occupancy "BS <block without Track>". A double crossover is four OS
+  blocks, one per corner, "OS Switch <n>a" to "<n>d" by its Layout Editor corner A to D (owner, 2026-11-16; the
+  plugin's double_corners maps the schematic's legs to the corners): with one block, or
+  two, JMRI 5.16 records a through path between the two legs on one side (LayoutBlock.addThroughPath keeps a pair
+  whose turnout lists match both ways) and Signal Mast Logic discovery pairs masts across it (226RA to 224LB). Corner
+  a keeps the switch's detector; b to d are virtual (VIRTUAL_SENSOR) until wired. A mast at a double crossover
+  protects its own leg's corner block ("home signal from Track X into OS Switch <n><corner>").
 - Track "Track <a>-<b>" from its end switches (numbers, H1 or H2 for a helix), "Track <n> Spur" to a bumper,
   "Track <n> Loop" back to the same switch; parallel tracks between the same ends take " 1", " 2" from the top row.
+  A balloon loop is two blocks, "Track <n> Loop 1" from the switch's leg B and "Track <n> Loop 2" from leg C, parted
+  at the turnback halfway round (owner, 2026-11-16): JMRI keys a mast by its facing and protected blocks
+  (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
+  one of them out of Signal Mast Logic discovery. Loop 1 keeps the loop's detector; Loop 2's is virtual (an internal
+  VIRTUAL_SENSOR, numbered from 1) until it is wired, so no node or input assignment moves.
   A track under SHORT_CM between two switches gets a block but no detector (it would sit inside their OS blocks).
 - Detection on the main line only (owner, 2026-11-15): main-route tracks and the OS blocks of control point
   switches get an occupancy sensor; yard and industry tracks and the OS blocks of switches in no control point
@@ -79,6 +90,9 @@ UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}
 COLUMNS = ["level", "cp", "layer", "user_name", "system_name", "node", "dcc", "comment", "trial_name", "notes"]
 DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
 TAU = {"A": -1, "B": 1, "C": 1, "D": -1}      # the plugin's leg sides (schematic.core.TAU)
+LOOP_HALF = {"B": 1, "C": 2}          # a balloon loop's half by the switch leg it leaves from (owner, 2026-11-16)
+VIRTUAL_SENSOR = "IS:HART:C3:"        # internal occupancy placeholders, numbered from 1: nothing reaches the field
+VIRTUAL_NOTE = "virtual: no detector wired yet (owner, 2026-11-16)"
 
 
 class MapError(RuntimeError):
@@ -193,6 +207,51 @@ def helix_tags(bands, overrides) -> dict[int, str]:
     return out
 
 
+def xover_corners(number: str, corners: dict) -> dict:
+    """{schematic leg: OS block} of a double crossover's four corner blocks, named by the Layout Editor corner each
+    leg reaches (`corners`, {leg: corner}: dx_corners); see the module text."""
+    if sorted(corners) != list("ABCD") or sorted(corners.values()) != list("ABCD"):
+        raise MapError(f"double crossover {number}: legs to corners {corners} is not one corner per leg")
+    return {leg: f"OS Switch {number}{corner.lower()}" for leg, corner in sorted(corners.items())}
+
+
+def dx_corners(bands, le_mod, page) -> dict:
+    """{switch number: {schematic leg: Layout Editor corner}} of each double crossover on the main and upper bands,
+    as the plugin draws it (le.double_corners; a band in the page's rotate_bands is turned)."""
+    out = {}
+    for title, band, _ in bands:
+        if not band_level(title):
+            continue
+        for n, d in band["nodes"].items():
+            if d["kind"] == "dx":
+                turned = title.split()[0] in page.get("rotate_bands", ())
+                out[base(d["label"])] = le_mod.double_corners(band, n, turned)
+    return out
+
+
+def loop_halves(band, runs) -> dict:
+    """{strand id: 1 or 2} for each balloon loop of `band` (a run that leaves a switch and comes back to it), by the
+    leg its strand leaves the switch from (LOOP_HALF). Stops on a loop not drawn as two tracks joined by one
+    turnback, or one not on legs B and C, since the halves would then be ambiguous."""
+    out = {}
+    for start, chain, end in runs(band):
+        if start[0] != end[0] or band["nodes"][start[0]]["kind"] not in ("switch", "dx"):
+            continue
+        if len(chain) != 2 or {start[1], end[1]} != set(LOOP_HALF):
+            raise MapError(f"the balloon loop at switch {band['nodes'][start[0]].get('label')} is drawn as "
+                           f"{len(chain)} track(s) on legs {start[1]} and {end[1]}; its halves need two tracks "
+                           "joined by one turnback, on legs B and C")
+        for (sid, _), (_, port) in zip((chain[0], chain[-1]), (start, end)):
+            out[sid] = LOOP_HALF[port]
+    return out
+
+
+def loop_placeholder(placeholder: str, half: int | None) -> str:
+    """The drawing's placeholder for one half of a balloon loop ("Track e33" -> "Track e33 1"), as
+    build_layout_le.placeholder_names and build_cats_panel name it; any other track's is unchanged."""
+    return placeholder if half is None else f"{placeholder} {half}"
+
+
 def tracks(bands, runs, joined, helix_tag) -> list[dict]:
     """One entry per track of the main and upper bands (a track cut by a connector counted once)."""
     found, seen = [], set()
@@ -217,6 +276,7 @@ def tracks(bands, runs, joined, helix_tag) -> list[dict]:
             seen.add(key)
             ends = [(start[0], start[1]), (end[0], end[1])]
             found.append(dict(level=lv, ends=(a, b), legs=ends, band=bi, cm=round(sum(edges.values()), 1),
+                              loop=start[0] == end[0] and a[0] == "sw",
                               main=any(strands[sid]["main"] for sid, _ in chain),
                               row=min(srow.get(sid, 0) for sid, _ in chain),
                               strands=[sid for sid, _ in chain],
@@ -320,7 +380,7 @@ class Nodes:
 
 # ---------------------------------------------------------------- the map
 
-def masts(bands, cps, found, cp_of) -> list[dict]:
+def masts(bands, cps, found, cp_of, corner_blocks=None) -> list[dict]:
     """Home masts where a track from outside a control point meets one of its switches."""
     by_leg = {}
     for t in found:
@@ -350,23 +410,27 @@ def masts(bands, cps, found, cp_of) -> list[dict]:
                 eastward = TAU[p] * rail[n] == 1
                 sid = d["ins"].get(p) or d["outs"].get(p)
                 out.append(dict(level=lv, cp=cp, switch=num, number=int(num) + 1, letter="L" if eastward else "R",
+                                protects=corner_blocks[num][p] if d["kind"] == "dx" else "",
                                 heads=2 if (p == "A" or d["kind"] == "dx") else 1, row=srow.get(sid, 0),
-                                track=t["name"], band=bi))
+                                track=f"{t['name']} {LOOP_HALF[p]}" if t["loop"] else t["name"], band=bi,
+                                half=LOOP_HALF[p] if t["loop"] else 0))
     groups = defaultdict(list)
     for m in out:
         groups[(m["number"], m["letter"])].append(m)
     for (num, letter), ms in groups.items():
         if len(ms) > 2:
             raise MapError(f"switch {num - 1}: {len(ms)} masts for direction {letter}; ADR-005 names two (A and B)")
-        ms.sort(key=lambda m: (m["band"], m["row"]))
+        # a balloon loop's A mast faces Loop 1 (leg B, the normal leg) and its B mast Loop 2 (owner, 2026-11-16)
+        ms.sort(key=lambda m: (m["band"], m["half"], m["row"]))
         for i, m in enumerate(ms):
             m["name"] = f"{num}{letter}" + ("AB"[i] if len(ms) == 2 else "")
     return out
 
 
-def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dict, list[dict]]:
+def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None) -> tuple[dict, list[dict]]:
     """(control_points, device map rows). `local`: the switches in no control point (local_switches_main_upper.csv
-    rows). Every switch on the main and upper bands must be in exactly one of the two."""
+    rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
+    when a band has a double crossover."""
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
     cp_of = {s: cp["cp_name"] for cp in cps for s in cp["switches"]}
@@ -380,7 +444,13 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
         raise MapError(f"switch {', '.join(missing)} is in no control point and not in {LOCAL.name}")
     found = tracks(bands, runs, joined, helix_tags(bands, overrides))
     track_names(found)
-    ms = masts(bands, cps, found, cp_of)
+    corners = corners or {}
+    dxs = {base(d["label"]) for title, band, _ in bands if band_level(title)
+           for d in band["nodes"].values() if d["kind"] == "dx"}
+    if dxs - set(corners):
+        raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
+    corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
+    ms = masts(bands, cps, found, cp_of, corner_blocks)
     nodes = Nodes(node_rows)
     rows = []
 
@@ -388,6 +458,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
         rows.append(dict(level=level, cp=cp, layer=layer, user_name=user, system_name=system,
                          node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes))
 
+    virtual = 0                             # virtual detectors, numbered in the order they are added
     dcc = {s: DCC_FIRST + i for i, s in enumerate(sorted(set(cp_of) | set(loc), key=natural))}
     home, area_of = {}, {}                  # switch -> its turnout's node, its area
 
@@ -405,6 +476,23 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
             add(lv, name, "fb", f"FB Switch {s} {nr}", f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}")
 
     def os_rows(lv, area, name, s, comment, detect=True):
+        if s in dxs:                            # a double crossover: a block per corner, corner a detected
+            nonlocal virtual
+            for block in sorted(corner_blocks[s].values()):
+                note = f"corner {block[-1].upper()} of the double crossover"
+                user = "BS " + block.removeprefix("OS ")
+                if not detect:
+                    add(lv, name, "block", block, "", "", comment, block, note + ", no detector: off the main line")
+                elif not block.endswith("a"):             # wired later: a virtual sensor, no node or input
+                    virtual += 1
+                    add(lv, name, "block", block, "", "", comment, block, note)
+                    add(lv, name, "occupancy", user, f"{VIRTUAL_SENSOR}{virtual}", "", VIRTUAL_NOTE)
+                else:                                     # corner a keeps the switch's detector
+                    bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
+                    k, packed = nodes.take(bnode, "block")
+                    add(lv, name, "block", block, "", bnode, comment, block, note)
+                    add(lv, name, "occupancy", user, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
+            return
         if not detect:
             add(lv, name, "block", f"OS Switch {s}", "", "", comment, f"OS Switch {s}",
                 "no detector: off the main line")
@@ -437,17 +525,29 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
         ends_cp = sorted({cp_of[v] for v in sws if v in cp_of}, key=natural)
         cp = ends_cp[0] if ends_cp else ""
         short = t["cm"] < SHORT_CM and all(k == "sw" for k, _ in t["ends"])
-        note = f"{t['cm']} cm" + (" short link: inside the OS blocks of its switches, no detector" if short else
-                                  "" if t["main"] else " no detector: off the main line")
-        add(t["level"], cp, "block", t["name"], "", "", " / ".join(ends_cp), ", ".join(t["trial"]), note)
-        if short or not t["main"] or not sws:
-            continue
-        sws.sort(key=lambda s: area_of[s][0] != t["level"])      # a node on the track's own level first
-        lv, area = t["level"], area_of[sws[0]][1]                 # the track's level, its switch's area
-        bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws if area_of[s][0] == lv])
-        k, packed = nodes.take(bnode, "block")
-        add(t["level"], cp, "occupancy", "BS " + t["name"].removeprefix("Track "), f"M2S{packed}", bnode,
-            f"Node: {bnode} Block: {k + 1}")
+        detect = not short and t["main"] and sws
+        halves = sorted(LOOP_HALF.values()) if t["loop"] else [None]
+        for half in halves:
+            name = loop_placeholder(t["name"], half)
+            cm = round(t["cm"] / 2, 1) if half else t["cm"]
+            note = f"{cm} cm" + (" short link: inside the OS blocks of its switches, no detector" if short else
+                                 "" if t["main"] else " no detector: off the main line")
+            if half:
+                note += f", half of the balloon loop from leg {'BC'[half - 1]}"
+            add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
+                ", ".join(loop_placeholder(x, half) for x in t["trial"]), note)
+            if not detect:
+                continue
+            user = "BS " + name.removeprefix("Track ")
+            if half and half > 1:                                 # wired later: a virtual sensor, no node or input
+                virtual += 1
+                add(t["level"], cp, "occupancy", user, f"{VIRTUAL_SENSOR}{virtual}", "", VIRTUAL_NOTE)
+                continue
+            sws.sort(key=lambda s: area_of[s][0] != t["level"])      # a node on the track's own level first
+            lv, area = t["level"], area_of[sws[0]][1]                 # the track's level, its switch's area
+            bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws if area_of[s][0] == lv])
+            k, packed = nodes.take(bnode, "block")
+            add(t["level"], cp, "occupancy", user, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
     for cp in cps:                               # heads last, once every node's boards are known
         lv, area, name = cp["level"], cp["area"], cp["cp_name"]
@@ -459,7 +559,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=()) -> tuple[dic
             kind = "two-searchlight" if m["heads"] == 2 else "one-low"
             sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name} | Switch {m['switch']}",
-                notes=f"home signal from {m['track']}")
+                notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""))
             for user, sysn, k, board, pin in heads:
                 add(lv, name, "head", user, sysn, hnode,
                     f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}")
@@ -512,7 +612,7 @@ def solve():
     import build_layout_le as bl
     sheet, le_mod, _core = bl.plugin()
     built = pd.solved_sheet(sheet)
-    return built.bands, le_mod.partners(built.bands), bl.runs
+    return built.bands, le_mod.partners(built.bands), bl.runs, dx_corners(built.bands, le_mod, built.opts)
 
 
 def main(argv=None) -> int:
@@ -522,14 +622,14 @@ def main(argv=None) -> int:
     overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
     import build_layout_le as bl
     try:
-        bands, joined, runs = solve()
+        bands, joined, runs, corners = solve()
     except bl.BuildError as exc:
         if not args.check:
             raise
         print(f"SKIPPED device map check: {exc}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
-        cp_keys, rows = build(bands, joined, runs, overrides, load_cps(), read_csv(NODES), read_csv(LOCAL))
+        cp_keys, rows = build(bands, joined, runs, overrides, load_cps(), read_csv(NODES), read_csv(LOCAL), corners)
     except MapError as exc:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2

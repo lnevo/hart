@@ -6,6 +6,7 @@ turnback to the named half Loop.
 """
 from __future__ import annotations
 
+import json
 import shutil
 import sys
 import tempfile
@@ -287,8 +288,11 @@ class MainAndUpper(unittest.TestCase):
 
     def test_the_device_map_reads_blocks_and_detectors(self):
         dm = B.load_device_map()
-        self.assertEqual(len(dm.sensors), 35)
-        self.assertTrue(all(v.startswith("M2S") for v in dm.sensors.values()))
+        self.assertEqual(len(dm.sensors), 39)
+        virtual = sorted(k for k, v in dm.sensors.items() if not v.startswith("M2S"))
+        # Loop 2 and 225's corners b to d wait for wiring: internal sensors until then (owner, 2026-11-16)
+        self.assertEqual(virtual, ["BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"])
+        self.assertTrue(all(dm.sensors[k].startswith("IS:HART:C3:") for k in virtual))
         self.assertEqual(dm.blocks["Track 107-109"]["trial"], {"Track e19"})
 
     def test_a_block_missing_from_the_desk_is_checked_on_the_drawing(self):
@@ -322,6 +326,18 @@ class MainAndUpper(unittest.TestCase):
             B.check_apart({"West": {}}, {"West": {"name": "Track 1-2"}})
         with self.assertRaisesRegex(SystemExit, "would both be Track West"):
             B.check_apart({"West": {"name": "Track West"}}, {"1-2": {"name": "Track West"}})
+
+    def test_the_loop_halves_and_225s_corners_on_the_desk(self):
+        """The committed bindings: the 107 Loop is two dark desk blocks, Loop 2 on its virtual detector; the desk draws
+        double crossover 225 as one block, on corner a's detector, and lists the four corner blocks as not on it."""
+        got = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
+        loop = {e["name"]: e["_planned_occupied"] for e in got["blocks"].values() if "107 Loop" in e.get("name", "")}
+        self.assertEqual({k: (v["JMRIPREFIX"], v["USER_NAME"]) for k, v in loop.items()},
+                         {"Track 107 Loop 1": ("M2S", "BS 107 Loop 1"), "Track 107 Loop 2": ("IS", "BS 107 Loop 2")})
+        os225 = [e for e in got["blocks"].values() if e.get("name") == "OS Switch 225"]
+        self.assertEqual([e["_planned_occupied"]["USER_NAME"] for e in os225], ["BS Switch 225a"])
+        self.assertEqual(sorted(k for k in got["_main_upper_not_on_desk"] if k.startswith("OS Switch 225")),
+                         [f"OS Switch 225{c}" for c in "abcd"])
 
     def test_main_and_upper_are_dtc_and_not_detected_yet(self):
         self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "DTC")

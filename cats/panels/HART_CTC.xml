@@ -3360,7 +3360,9 @@
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="BOTTOM">
+        <BLOCK NAME="Track 107 Loop 2" STATION="107" DISCIPLINE="DTC" VISIBLE="true" />
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="4" Y="15">
       <TRACKGROUP>
@@ -3389,6 +3391,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="107 LOOP 2" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="8" Y="15">
       <TRACKGROUP>
@@ -3410,7 +3413,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Track 107 Loop" STATION="107" DISCIPLINE="DTC" VISIBLE="true" />
+        <BLOCK NAME="Track 107 Loop 2" STATION="107" DISCIPLINE="DTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="11" Y="15">
@@ -3468,7 +3471,9 @@
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="TOP" />
+      <SEC_EDGE EDGE="TOP">
+        <BLOCK NAME="Track 107 Loop 1" STATION="107" DISCIPLINE="DTC" VISIBLE="true" />
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="4" Y="16">
       <TRACKGROUP>
@@ -3497,6 +3502,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="107 LOOP 1" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="8" Y="16">
       <TRACKGROUP>
@@ -3518,7 +3524,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Track 107 Loop" STATION="107" DISCIPLINE="DTC" VISIBLE="true" />
+        <BLOCK NAME="Track 107 Loop 1" STATION="107" DISCIPLINE="DTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
     <SECTION X="11" Y="16">

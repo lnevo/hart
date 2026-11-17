@@ -157,8 +157,9 @@ def load_device_map(path=DEVICE_MAP):
                 trial = {t.strip() for t in row["trial_name"].split(",") if t.strip()}
                 out.blocks[name] = {"level": int(row["level"]), "trial": trial}
             elif row["layer"] == "occupancy":
-                if name in out.sensors or not row["system_name"].startswith("M2S"):
-                    raise SystemExit(f"{path.name}: occupancy {name} is listed twice or is no M2S sensor")
+                if name in out.sensors or not row["system_name"].startswith(("M2S", bdm.VIRTUAL_SENSOR)):
+                    raise SystemExit(f"{path.name}: occupancy {name} is listed twice or is neither an M2S sensor "
+                                     f"nor a virtual {bdm.VIRTUAL_SENSOR} one")
                 out.sensors[name] = row["system_name"]
     return out
 
@@ -342,6 +343,43 @@ def mast_bindings(opts, F):
     return out
 
 
+def xover_corners(name, F) -> list:
+    """The device map's corner blocks of double crossover OS block `name` ("OS Switch <n>" -> "OS Switch <n>a" to
+    "<n>d"), or []. The desk draws a double crossover as one block, so it keeps that name there and the corners are
+    listed as not on the desk."""
+    return [f"{name}{c}" for c in "abcd" if f"{name}{c}" in F.device.blocks]
+
+
+def placeholder(strand) -> str:
+    """The device map trial name of a drawn strand: "Track <plan edge>", a connector's or helix's x/y piece counted
+    as its edge, and a balloon loop's half numbered (name_loop_halves)."""
+    return bdm.loop_placeholder("Track " + re.sub(r"(?<=\d)[xy]$", "", strand["edge"]), strand.get("loop_half"))
+
+
+def name_loop_halves(bands):
+    """A copy of `bands` whose balloon loops are two desk blocks, as the device map has them: each half's strand
+    is named by its device map block less "Track " (the plugin parts a turnback between two differently named
+    tracks in the middle of its run, and labels each half) and marked with its half (`loop_half`, read by
+    placeholder)."""
+    import build_layout_le as bl
+    by_trial = {t: name for name, row in load_device_map().blocks.items() for t in row["trial"]}
+    out = copy.deepcopy(bands)
+    for title, band, _ in out:
+        if not bdm.band_level(title):
+            continue
+        try:
+            halves = bdm.loop_halves(band, bl.runs)
+        except bdm.MapError as exc:
+            raise SystemExit(f"{title}: {exc}") from None
+        for sid, half in halves.items():
+            band["strands"][sid]["loop_half"] = half
+            trial = placeholder(band["strands"][sid])
+            if trial not in by_trial:
+                raise SystemExit(f"{title}: balloon loop half {trial} has no block row in {DEVICE_MAP.name}")
+            band["strands"][sid]["name"] = by_trial[trial].removeprefix("Track ")
+    return out
+
+
 def device_name(bands, cats, keys, F, log):
     """The device map's name of the main or upper block made of block keys `keys`: OS Switch N for an OS block
     (a crossover's halves are one block; switches whose OS blocks the plugin merges over a track too short to part
@@ -353,7 +391,7 @@ def device_name(bands, cats, keys, F, log):
         if len(numbers) > 1:
             log.append(f"switches {', '.join(numbers)} share one OS block on the desk ({name}): the track between "
                        "them is too short to part them")
-        if name not in F.device.blocks:
+        if name not in F.device.blocks and not xover_corners(name, F):
             raise SystemExit(f"{name}: no block row in {DEVICE_MAP.name}")
         return name
     edges, ends = set(), set()
@@ -361,7 +399,7 @@ def device_name(bands, cats, keys, F, log):
         bi, sid = k[1].split(":", 1)
         band = bands[int(bi[1:])][1]
         s = band["strands"][sid]
-        edges.add("Track " + re.sub(r"(?<=\d)[xy]$", "", s["edge"]))
+        edges.add(placeholder(s))
         ends |= {band["nodes"][e[0]].get("label") or "" for e in (s["src"], s["dst"])
                  if band["nodes"][e[0]]["kind"] in ("switch", "dx")}
     rows = sorted(n for n, r in F.device.blocks.items() if r["trial"] & edges)
@@ -385,11 +423,15 @@ def planned_sensor(name, F):
     user = "BS " + (name.replace("OS Switch ", "Switch ", 1) if name.startswith("OS Switch ") else
                     name.removeprefix("Track "))
     system = F.device.sensors.get(user)
+    if system is None and xover_corners(name, F):         # a double crossover's desk block: corner a's detector
+        user = user + "a"
+        system = F.device.sensors.get(user)
     if system is None:
         return None
-    addr = system[3:]
-    return {"occupied": {"DECADDR": addr, "JMRIPREFIX": "M2S", "USER_NAME": user, "command": "close"},
-            "unoccupied": {"DECADDR": addr, "JMRIPREFIX": "M2S", "command": "throw"}}
+    prefix = "M2S" if system.startswith("M2S") else "IS"          # a virtual detector: IS:HART:C3:<n>
+    addr = system[len(prefix):]
+    return {"occupied": {"DECADDR": addr, "JMRIPREFIX": prefix, "USER_NAME": user, "command": "close"},
+            "unoccupied": {"DECADDR": addr, "JMRIPREFIX": prefix, "command": "throw"}}
 
 
 def inside_os(bands, P, bound_bi, name, row):
@@ -402,7 +444,7 @@ def inside_os(bands, P, bound_bi, name, row):
         if bi == bound_bi or not bdm.band_level(title):
             continue
         for sid, s in band["strands"].items():
-            if "Track " + re.sub(r"(?<=\d)[xy]$", "", s["edge"]) not in row["trial"]:
+            if placeholder(s) not in row["trial"]:
                 continue
             found.append((bi, sid))
             key = ("track", f"b{bi}:{sid}")
@@ -451,9 +493,10 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         e = {"name": name, "station": station_plate(name), "discipline": MAIN_UPPER_DISCIPLINE}
         spec = planned_sensor(name, F)
         if spec and DETECT_MAIN_UPPER:
-            if F.sensors.get(spec["occupied"]["USER_NAME"]) != "M2S" + spec["occupied"]["DECADDR"]:
+            want = spec["occupied"]["JMRIPREFIX"] + spec["occupied"]["DECADDR"]
+            if F.sensors.get(spec["occupied"]["USER_NAME"]) != want:
                 raise SystemExit(f"{name}: DETECT_MAIN_UPPER is set, but tables.xml has no sensor "
-                                 f"{spec['occupied']['USER_NAME']} (M2S{spec['occupied']['DECADDR']})")
+                                 f"{spec['occupied']['USER_NAME']} ({want})")
             e.update(spec)
         elif spec:
             e.update({"_planned_" + k: v for k, v in spec.items()})
@@ -463,6 +506,10 @@ def dark_bindings(bands, cats, P, F, bound_bi):
             log.append(f"blocks named {name} on the desk are one block")
         seen.add(name)
         out[panel_name] = e
+    for name in sorted(seen):
+        for corner in xover_corners(name, F):
+            missing[corner] = (f"inside desk block {name}: the desk draws a double crossover as one block, "
+                               "bound to corner a's detector")
     for name, row in sorted(F.device.blocks.items()):
         if name not in seen and name not in missing:
             missing[name] = inside_os(bands, P, bound_bi, name, row)
@@ -601,7 +648,7 @@ def dress(cats, root, header, plate, desk):
 def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
-    bands = pd.solved_sheet(sheet).bands
+    bands = name_loop_halves(pd.solved_sheet(sheet).bands)
     text = json.dumps(bindings(bands, cats, load_facts()), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")
     if cats.GRID_PX != GRID_PX:

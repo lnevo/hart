@@ -83,11 +83,14 @@ class Output(unittest.TestCase):
         have = rows()
         cp_sw = [s for cp in BD.load_cps() for s in cp["switches"]]
         local = [row["switch"] for row in BD.read_csv(BD.LOCAL)]
+        dx = {"225"}                            # the double crossover: an OS block and a detector per corner
         for s in cp_sw + local:
+            os = [f"{s}{c}" for c in "abcd"] if s in dx else [s]
             kinds = sorted(x["layer"] for x in have if x["user_name"] in
-                           (f"Switch {s}", f"DCC Switch {s}", f"FB Switch {s} N", f"FB Switch {s} R",
-                            f"OS Switch {s}", f"BS Switch {s}"))
-            want = ["block", "fb", "fb"] + (["occupancy"] if s in cp_sw else []) + ["turnout", "turnout"]
+                           [f"Switch {s}", f"DCC Switch {s}", f"FB Switch {s} N", f"FB Switch {s} R"]
+                           + [f"OS Switch {o}" for o in os] + [f"BS Switch {o}" for o in os])
+            want = sorted(["block"] * len(os) + ["fb", "fb"] + (["occupancy"] * len(os) if s in cp_sw else [])
+                          + ["turnout", "turnout"])
             self.assertEqual(kinds, want, s)
 
     def test_dcc_continues_from_120_in_switch_order(self):
@@ -108,6 +111,11 @@ class Output(unittest.TestCase):
         seen = set()
         for x in rows():
             if not x["system_name"] or x["layer"] == "mast":
+                continue
+            if x["system_name"].startswith(BD.VIRTUAL_SENSOR):            # a virtual detector: no LCOS id
+                self.assertEqual((x["layer"], x["node"], x["comment"]), ("occupancy", "", BD.VIRTUAL_NOTE))
+                self.assertNotIn(x["system_name"], seen)
+                seen.add(x["system_name"])
                 continue
             self.assertNotIn(x["system_name"], seen)
             seen.add(x["system_name"])
@@ -158,8 +166,41 @@ class Output(unittest.TestCase):
             self.assertLessEqual(max(boards, default=0), BD.MAX_OU, node)
 
     def test_a_loop_back_into_its_control_point_has_home_signals(self):
-        loop = [x["user_name"] for x in rows() if x["layer"] == "mast" and x["notes"].endswith(" Loop")]
-        self.assertEqual(sorted(loop), ["Mast 108LA", "Mast 108LB"])        # the balloon at CP 107
+        loop = {x["user_name"]: x["notes"] for x in rows() if x["layer"] == "mast" and " Loop" in x["notes"]}
+        self.assertEqual(loop, {"Mast 108LA": "home signal from Track 107 Loop 1",      # the balloon at CP 107
+                                "Mast 108LB": "home signal from Track 107 Loop 2"})
+
+    def test_the_balloon_loop_is_two_blocks_and_loop_1_keeps_its_detector(self):
+        """Two masts facing one loop block into one OS block would be one mast to JMRI (LayoutBlockManager.
+        getFacingBean returns one per block pair), so the loop is two blocks, parted halfway (owner, 2026-11-16).
+        Loop 1 keeps the loop's detector (node 33 block 6); Loop 2's is virtual, so no node or input moved."""
+        have = {(x["layer"], x["user_name"]): x for x in rows()}
+        self.assertNotIn(("block", "Track 107 Loop"), have)
+        for half, leg in ((1, "B"), (2, "C")):
+            block = have[("block", f"Track 107 Loop {half}")]
+            self.assertEqual(block["trial_name"], f"Track e33 {half}")
+            self.assertTrue(block["notes"].startswith(f"388.5 cm, half of the balloon loop from leg {leg}"))
+        self.assertEqual(have[("occupancy", "BS 107 Loop 1")]["system_name"], "M2S3305")
+        self.assertTrue(have[("occupancy", "BS 107 Loop 2")]["system_name"].startswith(BD.VIRTUAL_SENSOR))
+
+    def test_a_double_crossover_is_a_block_per_corner(self):
+        """With one OS block, or two, JMRI 5.16 records a through path between the two legs on one side of a
+        double crossover (LayoutBlock.addThroughPath) and discovery paired 226RA with 224LB across it. Each corner
+        is its own block, corner a keeps the detector, and each mast protects its own corner (226RA at A, 226RB at
+        D: the two legs on the west side, in different blocks)."""
+        have = {(x["layer"], x["user_name"]): x for x in rows()}
+        self.assertNotIn(("block", "OS Switch 225"), have)
+        self.assertEqual(have[("occupancy", "BS Switch 225a")]["system_name"], "M2S2100")
+        for c in "bcd":
+            self.assertTrue(have[("occupancy", f"BS Switch 225{c}")]["system_name"].startswith(BD.VIRTUAL_SENSOR))
+        self.assertEqual(have[("mast", "Mast 226RA")]["notes"], "home signal from Track 223-225 1 into OS Switch 225a")
+        self.assertEqual(have[("mast", "Mast 226RB")]["notes"], "home signal from Track 223-225 2 into OS Switch 225d")
+
+    def test_corner_blocks_need_one_corner_per_leg(self):
+        self.assertEqual(BD.xover_corners("7", {"A": "C", "B": "D", "C": "A", "D": "B"}),
+                         {"A": "OS Switch 7c", "B": "OS Switch 7d", "C": "OS Switch 7a", "D": "OS Switch 7b"})
+        with self.assertRaisesRegex(BD.MapError, "not one corner per leg"):
+            BD.xover_corners("7", {"A": "A", "B": "A", "C": "C", "D": "D"})
 
     def test_helix_top_crossover_tracks_are_not_loops(self):
         names = {x["user_name"] for x in rows() if x["layer"] == "block"}

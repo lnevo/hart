@@ -77,6 +77,11 @@ ALLOW: dict[str, tuple[frozenset[str] | None, str]] = {
         frozenset({"Track West Main Ext"}),
         "rewrites logs recorded before the 2026-11-13 rename, so it holds the old names",
     ),
+    "tools/schematic/build_layout_le.py": (
+        frozenset({"OS Switch 225a", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d"}),
+        "numbers the cut-over candidate's corner blocks of double crossover 225 (owner, 2026-11-16); tables.xml "
+        "holds them once the candidate goes live, and this entry goes",
+    ),
 }
 
 
