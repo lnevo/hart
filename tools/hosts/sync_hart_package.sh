@@ -448,6 +448,9 @@ stage_package() {
   mkdir -p "$stage/operations"
   cp -f "$ROOT/jmri/layouts/hart/operations/"*.xml "$stage/operations/"
   chmod +x "$stage/cats/scripts/pi/"*.sh "$stage/cats/scripts/"*.sh 2>/dev/null || true
+  # Finder litter (.DS_Store, AppleDouble) from a gitignored corner of the checkout must not reach the package,
+  # whichever copy step brought it.
+  find "$stage" \( -name '.DS_Store' -o -name '._*' \) -type f -delete
   # The host apply scripts install this last, so it only changes once a deploy has finished.
   write_deploy_stamp "$stage/cats/deploy_stamp.txt" "$target"
 }

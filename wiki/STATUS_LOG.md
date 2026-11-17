@@ -1,5 +1,10 @@
 # Status log
 
+Updated: 2026-11-17 — Moved from `STATUS.md` after the helix-join release parked these features, as their state when parked:
+
+- **Dispatcher stations (2026-11-12):** 12 — East Lead (button "East End"), K-1, K-2, McKees Rocks, McKeesport, Scale, Barn, EH-1–3, W-1, W-2. Mains, Brick-Plane and South Yard are through track.
+- **USS CTC board (2026-11-12):** rebuilt after the Switch 9 rewiring: the EH-1 and EH-3 jewels and labels now match CATS and the Layout Editor (EH-3 on the upper row), and the Switch 37 and 39 points dots show Normal on the closed leg (the main). `tools/audit/check_layout_facts.py` keeps the Layout Editor, both CATS desks and the USS board in step from `switches.csv` and `switch_legs.csv` ([`pipelines/switch-facts.md`](pipelines/switch-facts.md)).
+
 Updated: 2026-11-15 — Retired the two hand-added Princess Signal Mast Logic pairs, `Mast 36RA→Mast 40LA` and `Mast 36RB→Mast 38LA` (owner, option B). They went in by hand in August 2026 on the belief that Discover missed them, but Discover refuses them on purpose ("Signal mast in the wrong direction"): 40LA and 38LA are the two-head westbound homes off the future helix, and 36RA/36RB govern eastbound. Nothing used them: Stage 1 rediscovers SML before it builds sections, NX never used them, and the eastbound route stops at the first active destination (40RA/38RA). `restore_manual_sml_pairs.py` and its Stage 1 step are deleted; SML is now 42 sources and 100 destinations, all from Discover. The stored USS CTC traffic-locking rules are unchanged: JMRI checks only their switch alignments and occupancy sensors at run time, and by the JMRI 5.16 source a rebuild gives the same switches and sensors through `Mast 36RB→Mast 38RA`.
 
 Updated: 2026-11-13 — Renamed the two extension tracks (owner): **Track East Main Ext → Track East Ext** and **Track West Main Ext → Track West Ext**, with their sensors (BS East Ext, BS West Ext) and the CATS, CTC, tooling and site text that name them. PanelPro test and deploy still to do. Older entries below keep the old names.

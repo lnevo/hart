@@ -170,6 +170,29 @@ class StageOnly(unittest.TestCase):
         self.assertLessEqual(set(differing(cmp)), {"cats/deploy_stamp.txt"})
 
 
+class FinderLitterStaysOut(unittest.TestCase):
+    """A gitignored .DS_Store in a staged folder of the checkout must not reach the package.
+
+    Only .DS_Store is planted: it is gitignored, so a run killed before its cleanup leaves the checkout clean.
+    """
+
+    PLANTED = ("jmri/resources/jmri-web/.DS_Store", "jmri/resources/jmri-web/servlet/.DS_Store",
+               "tools/hosts/pi/.DS_Store", "tools/hosts/windows/.DS_Store")
+
+    def test_package_has_no_finder_files(self) -> None:
+        for rel in self.PLANTED:
+            path = ROOT / rel
+            if not path.exists():
+                path.write_bytes(b"\0")
+                self.addCleanup(path.unlink, missing_ok=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "stage"
+            done = run(SYNC, out, stage_env(Path(tmp)))
+            self.assertEqual(done.returncode, 0, done.stderr[-2000:])
+            litter = [p for p in tree(out) if Path(p).name == ".DS_Store" or Path(p).name.startswith("._")]
+            self.assertEqual(litter, [])
+
+
 class StageOnlyRefusals(unittest.TestCase):
     def test_needs_a_folder(self) -> None:
         done = subprocess.run(["bash", str(SYNC), "--stage-only"], cwd=ROOT, capture_output=True, text=True)

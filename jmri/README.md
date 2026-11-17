@@ -16,7 +16,7 @@ export JMRI_LAYOUT=new
 |--------|------|
 | `apply_blocks_to_panel.py` | Apply Excel block map + merges; write blocked panel |
 | `build_blocks_excel.py` | Seed/regenerate `layout_blocks.xlsx` from layout XML |
-| `generate_nx_pairs.py` | List Entry/Exit pairs for manual JMRI add |
+| `generate_nx_pairs.py` | List Entry/Exit pairs for manual JMRI add (parked with NX; see `layouts/hart/parked/README.md`) |
 | `sync_linear_panel.py` | Align `linear.xml` working file to authoritative panel |
 
 Other scripts in `scripts/` are one-off layout edits (stubs, trim, hex arcs, schematic build).
