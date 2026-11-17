@@ -115,6 +115,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import paths, tables  # noqa: E402
+from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its internal names
 
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                    # all three levels (the candidate)
@@ -170,6 +171,9 @@ LEVEL_LE_LABELS = {"names_last": True, "block_contents_size": 12}
 # {band key: switch numbers} placed below their turnout first (the plugin's numbers_below): SW-101 on its crossover's
 # bottom track side, clear of 103 drawn tight above it (owner, 2026-11-16)
 NUMBERS_BELOW = {"Main": ["101"]}
+# {band key: blocks} whose contents icon may be left out (the plugin's optional_block_contents, logged): Track 227-233
+# is 16 px between switches 227 and 233, and with Masts 228RA and 228RB beside it no clean spot is left (2026-11-16)
+OPTIONAL_READOUTS = {"Upper": ["Track 227-233"]}
 
 
 class BuildError(le_inputs.InputsError):
@@ -625,6 +629,8 @@ def check_slots(P, masts: list[dict], le_mod) -> None:
     moved = {mast for _t, mast, _why in P.moved}       # a bumper mast at a helix join (all-levels trial): elsewhere
     bad = []
     for m in P.masts:
+        if mast_band(m) != 0:           # main and upper: check_level_slots
+            continue
         name = m["mast"]
         if name not in want:
             bad.append(f"{name} was not asked for")
@@ -650,6 +656,41 @@ def check_slots(P, masts: list[dict], le_mod) -> None:
         raise BuildError("staging masts not placed for certain: " + "; ".join(bad))
 
 
+def mast_band(m: dict) -> int:
+    """The band index the plugin placed mast `m` on (P.masts); stops naming the mast when it has none."""
+    if "band" not in m:
+        raise BuildError(f"mast {m.get('mast')}: the plugin gave it no band")
+    return m["band"]
+
+
+def check_level_slots(P, rows: list[dict], le_mod) -> None:
+    """Stop when a main or upper mast (main_upper_masts.csv) is missing from the new panel, or stands in a slot
+    that JMRI does not resolve to its facing track and protected OS block, or (with `leg`) on the other leg of its
+    turnout than its continuing route makes it."""
+    if not rows:
+        return
+    ix = slots_module().Index(le_mod.to_xml(P, "check"))
+    placed = {m["mast"]: m for m in P.masts if mast_band(m) != 0}
+    turnouts = {P.name(t["ident"]): t for t in P.turnouts}
+    bad = []
+    for r in rows:
+        m = placed.get(r["mast"])
+        if m is None:
+            bad.append(f"{r['mast']} is not on the panel")
+            continue
+        ident = P.name(m["ident"])
+        f, pr = ix.blocks(m["kind"], ident, m["slot"])
+        if (f, list(pr)) != (r["facing"], [r["protects"]]):
+            bad.append(f"{r['mast']} at {ident} {m['slot']} faces {f} and protects {pr}, not {r['facing']} into "
+                       f"{r['protects']}")
+        if r["leg"]:
+            normal = "B" if turnouts[ident]["continuing"] == "2" else "C"
+            if (m["slot"] == normal) != (r["leg"] == "normal"):
+                bad.append(f"{r['mast']} is on leg {m['slot']} of {ident}, not its {r['leg']} leg")
+    if bad:
+        raise BuildError("main and upper masts not where they belong: " + "; ".join(bad))
+
+
 def plugin_masts(masts: list[dict]) -> list[dict]:
     """The plugin's mast list for staging from masts.csv's rows: each mast with the facing block, protected blocks
     and kind of slot it must resolve to, its icon size and hidden flag; an end bumper mast may stand at a helix join
@@ -664,10 +705,89 @@ def plugin_masts(masts: list[dict]) -> list[dict]:
     return sorted(out, key=lambda m: m["mast"])
 
 
+MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
+
+
+def read_level_masts(path: Path = MAIN_UPPER_MASTS) -> list[dict]:
+    """main_upper_masts.csv's rows (hartlib.level_masts.read: each with `heads` as [(internal system name, user
+    name)], every head internal), checked again against signal_coordinator.py's own test: no mast or head on a name
+    it would enrol or publish (lcos_named)."""
+    try:
+        rows = level_masts_lib.read(path)
+    except ValueError as exc:
+        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+    bad = lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]])
+    if bad:
+        raise BuildError(f"{paths.rel(path)}: names signal_coordinator.py takes for LCOS heads, which would reach "
+                         f"MQTT and the field before the cut-over: {bad}")
+    return rows
+
+
+@functools.lru_cache(maxsize=None)
+def lcos_rule():
+    """signal_coordinator.py's own test for an LCOS head's system name (_is_lcos_ih_sys) and the pattern it finds
+    heads in a mast's system name by (_HEAD_IN_MAST), read from its source (it is Jython and imports jmri): the
+    functions and constants they use, run here in CPython."""
+    src = (pd.REPO / "jmri/scripts/signal_coordinator.py").read_text(encoding="utf-8")
+    parts = []
+    for name in ("_LCOS_SIGNAL_UID_MIN", "_LCOS_SIGNAL_UID_MAX", "_HEAD_IN_MAST"):
+        m = re.search(rf"^{name} = .*$", src, re.M)
+        parts.append(m.group(0) if m else None)
+    for name in ("_packed_is_lcos_signal", "_is_lcos_ih_sys"):    # a whole top-level def, to the next top level
+        m = re.search(rf"^def {name}\(.*?(?=^\S)", src, re.M | re.S)
+        parts.append(m.group(0) if m else None)
+    if None in parts:
+        raise BuildError("signal_coordinator.py no longer defines its LCOS head test as lcos_rule reads it")
+    ns = {"re": re}
+    # the module is Jython (it imports jmri, and Java names CPython cannot parse), so only these pieces are run
+    exec(compile("\n".join(parts), "signal_coordinator.py", "exec"), ns)  # noqa: S102
+    return ns["_is_lcos_ih_sys"], ns["_HEAD_IN_MAST"]
+
+
+def lcos_named(names: list[str]) -> list[str]:
+    """The head and mast system names among `names` that signal_coordinator.py takes for LCOS heads: a head it would
+    enrol, or a mast whose heads include one."""
+    is_lcos, in_mast = lcos_rule()
+    out = []
+    for n in names:
+        heads = [t[1:-1] for t in in_mast.findall(n)] if n.startswith("IF$") else [n]
+        if any(is_lcos(h) for h in heads):
+            out.append(n)
+    return sorted(out)
+
+
+def level_masts(names: dict, rows: list[dict]) -> None:
+    """Give each main and upper band in `names` its masts (main_upper_masts.csv rows) for the plugin: each in the
+    band whose drawing has its facing track and its protected OS block (129-221 and 135-H2 meet Switches 129 and 135
+    on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
+    masts share one facing and protected block. Stops on a mast no band, or two, draws."""
+    bad = []
+    for r in rows:
+        where = [k for k, v in names.items() if k != STAGING
+                 and r["facing"] in {b for bl in v["blocks"].values() for b in bl} and r["protects"] in v["os"].values()]
+        if len(where) != 1:
+            bad.append(f"{r['mast']} ({r['facing']} into {r['protects']}): drawn on {where or 'no band'}")
+            continue
+        size, known = tables.mast_icon_size(r["system_name"])
+        if not known:
+            bad.append(f"{r['mast']}: no icon size for {r['system_name']}")
+            continue
+        entry = dict(mast=r["mast"], facing=r["facing"], protects=[r["protects"]], kind="turnout", hidden=False,
+                     icon=list(size))
+        if r["leg"]:
+            entry["leg"] = r["leg"]
+        names[where[0]].setdefault("masts", []).append(entry)
+    if bad:
+        raise BuildError("main and upper masts not placed: " + "; ".join(bad))
+    for k, v in names.items():
+        if k != STAGING and v.get("masts"):
+            v["masts"].sort(key=lambda m: m["mast"])
+
+
 def check_unplaced(P) -> list[str]:
     """Stop on any mast the plugin could not place; a note for each buffer-stop mast moved to a helix join."""
     if P.unplaced:
-        raise BuildError("staging masts with no matching slot on the new panel: " +
+        raise BuildError("masts with no matching slot on the new panel: " +
                          "; ".join(f"{mast}: {why}" for _t, mast, why in P.unplaced))
     return [f"{mast}: {why}" for _t, mast, why in P.moved]
 
@@ -911,7 +1031,8 @@ def named_bands(bands, names: dict):
                 band["strands"][best]["name"] = name
         if "le_labels" in (opts or {}):
             raise BuildError(f"{title}: its preferences already hold le_labels; HART sets them here (LEVEL_LE_LABELS)")
-        labels = dict(LEVEL_LE_LABELS, numbers_below=list(NUMBERS_BELOW.get(band_key(title), [])))
+        labels = dict(LEVEL_LE_LABELS, numbers_below=list(NUMBERS_BELOW.get(band_key(title), [])),
+                      optional_block_contents=list(OPTIONAL_READOUTS.get(band_key(title), [])))
         out.append((title, band, dict(opts or {}, le_labels=labels)))
     return out
 
@@ -955,6 +1076,16 @@ def block_sort(name: str):
     tail = name.split(" ")[-1].split("+")[0]
     digits = "".join(c for c in tail if c.isdigit())
     return (kind, int(digits or 0), name)
+
+
+# Whether the three-level panel joins staging's helix tracks to the main and upper levels by hidden segments. Off
+# (owner, 2026-11-16, after the Phase 4 rehearsal): joined, Stage 1 passed but staging's own discovery changed (10RA,
+# 10RB, 12R and 14R lost ->22L/26L and gained ->16L; 36RB->40RB lost; NX lost 36RB->2035 and 36RB->2036 and gained
+# 36RA->38LA), while unjoined staging matched the live panel exactly (100 SML pairs, 107 sections, 187 transits, 36
+# NX pairs). So the cut-over is unjoined: every helix end stays an end bumper (38RA and 40RA on theirs, as live), and
+# staging is the approved panel byte for byte (check_staging_unchanged accepts no difference). The join is a later
+# step (wiki/projects/schematic-maps-handoff.md).
+JOIN_HELIX = False
 
 
 def joined_ends(bands, staging: dict, le_mod) -> set:
@@ -1093,6 +1224,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         raise BuildError(f"{live_path} has no Layout Editor panel to put the new one beside")
 
     names, lengths = level_names(bands, le_mod) if levels == "all" else ({}, {})
+    level_rows = []
+    if levels == "all":                 # the main and upper control-point masts (main_upper_masts.csv)
+        level_rows = read_level_masts()
+        level_masts(names, level_rows)
     shared_turnouts(names)
     names[STAGING] = staging_names(bands[0][1], inputs, core.tidy)
     # a live segment ident JMRI cannot find as a segment by name (F46-W-0: LayoutEditorFindItems.findObjectByName
@@ -1106,7 +1241,9 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     absent = sorted(m["mast"] for m in inputs.masts if m["mast"] not in system)
     if absent:
         raise BuildError(f"masts.csv names masts that are not in the signal mast table: {absent}")
-    if levels == "all":
+    if levels == "all" and not JOIN_HELIX:
+        names[STAGING]["joins"] = "none"        # the helix ends stay end bumpers on every level (JOIN_HELIX)
+    elif levels == "all":
         names[STAGING]["joins"] = "other"
         # a staging track that runs on through a helix join has no end bumper here: its live bumper's ident goes
         names[STAGING]["idents"]["ends"] = {b: i for b, i in names[STAGING]["idents"]["ends"].items()
@@ -1173,6 +1310,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     if unfindable:
         P.log.append(f"live segment idents JMRI does not find as segments, so not reused: {', '.join(unfindable)}")
     check_slots(P, inputs.masts, le_mod)
+    check_level_slots(P, level_rows, le_mod)
     check_swapped_slots()
     check_live_turnouts(le_mod.to_xml(P, "check"), inputs)
 
@@ -1189,6 +1327,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         raise BuildError(f"the staging panel draws blocks that are not live: {sorted(set(P.blocks) - staging_blocks)}")
     if levels == "all":
         add_level_objects(root, P, names, lengths, staging_blocks)
+        add_level_signals(root, level_rows)
 
     if as_live:
         panel_el = le_mod.to_xml(P, panel_name, dict(inputs.attrs), copy.deepcopy(inputs.drawing_options))
@@ -1362,9 +1501,16 @@ def canon(el: ET.Element) -> str:
     return ET.tostring(e, encoding="unicode")
 
 
+
+
 def is_level_bean(el: ET.Element) -> bool:
-    """A turnout, block or layout block add_level_objects adds (by its internal system name)."""
+    """A turnout, block, layout block, signal head or signal mast add_level_objects or add_level_signals adds (by
+    its internal system name)."""
     sysname = (el.findtext("systemName") or el.get("systemName") or "").strip()
+    if el.tag == "signalhead":
+        return level_masts_lib.is_level_head(sysname)
+    if el.tag == "signalmast":
+        return level_masts_lib.is_level_mast(sysname)
     if el.tag == "turnout":
         return sysname.startswith(TURNOUT_SYS)
     if el.tag == "block":
@@ -1394,6 +1540,8 @@ def level_items(P, panel_el: ET.Element) -> set:
         raise BuildError(f"staging guard: the panel holds {len(labels)} labels and {len(bcis)} block contents icons, "
                          f"the plugin wrote {len(P.labels)} and {len(P.bcis)}")
     out = {id(el) for el in panel_el if el.get("ident") in mine}
+    level_masts_ = {m["mast"] for m in P.masts if m["band"] != 0}
+    out |= {id(el) for el in panel_el.findall("signalmasticon") if el.get("signalmast") in level_masts_}
     for i, (el, lb) in enumerate(zip(labels, P.labels)):
         if el.get("text") != lb["text"]:
             raise BuildError(f"staging guard: label {i} on the panel reads {el.get('text')!r}, the plugin wrote "
@@ -1466,8 +1614,9 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     """Stop with BuildError unless the three-level candidate `data` holds the staging candidate (`base`: build()'s
     result for --levels staging --as-live) unchanged: every bean, every other panel and every element of the staging
     panel (track, mast icons, labels, block contents icons, carried items), but the main and upper objects added
-    (level_items), the panel size (PANEL_SIZE_ATTRS) and the helix-join changes the owner accepted
-    (helix_join_changes). Returns those helix-join changes, as notes."""
+    (level_items), the panel size (PANEL_SIZE_ATTRS: three levels are taller) and, only with JOIN_HELIX on, the
+    helix-join changes the owner accepted then (helix_join_changes). Returns those helix-join changes, as notes
+    (none while JOIN_HELIX is off: every staging element as in the staging candidate, byte for byte)."""
     S = base[1]
     old_root, new_root = tables.loads(base[0]).root, tables.loads(data).root
     bad = []
@@ -1489,6 +1638,8 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     ends = {S.name(k) for k, p in S.points.items() if p["type"] == "END_BUMPER"} - \
         {P.name(k) for k, p in P.points.items() if p["type"] == "END_BUMPER"}
     joins = {P.name(i) for (b, i) in P.join_ends if b == 0}     # the staging anchors the hidden joins start at
+    if not JOIN_HELIX and (ends or joins):      # main and upper keep their own joins (their connector letters)
+        bad.append(f"JOIN_HELIX is off, but staging end bumpers {sorted(ends)} are joined, at {sorted(joins)}")
     level = level_items(P, new_le)
     old_els = defaultdict(list)
     for el in old_le:
@@ -1503,7 +1654,8 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
         else:
             extra.append(el)
     missing = [el for v in old_els.values() for el in v]
-    notes = helix_join_changes(missing, extra, new_le, P, ends, joins)
+    # unjoined (JOIN_HELIX off), no difference is accepted: staging byte for byte
+    notes = helix_join_changes(missing, extra, new_le, P, ends, joins) if JOIN_HELIX else []
     if len(notes) != 2 * len(ends):
         bad.append(f"{len(ends)} staging end bumpers ({', '.join(sorted(ends))}) are joined to the next level, but "
                    f"only these helix-join changes are as expected: {notes}")
@@ -1561,6 +1713,44 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
     place(root.find("layoutblocks"),
           [bean("layoutblock", {"systemName": lb_sys[b], "occupiedsense": "2", "trackcolor": "gray",
                                 "occupiedcolor": "red", "extracolor": "white"}, lb_sys[b], b) for b in new_blocks], 2)
+
+
+HEAD_CLASS = "jmri.implementation.configurexml.VirtualSignalHeadXml"
+MAST_CLASS = "jmri.implementation.configurexml.SignalHeadSignalMastXml"
+
+
+def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
+    """Main and upper: each mast of main_upper_masts.csv as a SignalHeadSignalMast over VirtualSignalHeads, under
+    the device map's user names on internal system names (read_level_masts checks them), so nothing reaches MQTT or
+    the field; each comment gives its CP, switch and the device map's system name it takes at the cut-over. Stops on
+    a name already in the tables."""
+    heads_el, masts_el = root.find("signalheads"), root.find("signalmasts")
+    if heads_el is None or masts_el is None:
+        raise BuildError("the live tables have no signalheads or signalmasts section")
+    taken = {tables.system_name(e) for e in heads_el.findall("signalhead") + masts_el.findall("signalmast")} | \
+        {tables.user_name(e) for e in heads_el.findall("signalhead") + masts_el.findall("signalmast")}
+    heads, masts = [], []
+    for r in rows:
+        where = f"{r['cp']} | Switch {r['switch']}"
+        device = dict(zip([h for h, _u in r["heads"]], re.findall(r"\((IH\d+)\)", r["device_system_name"])))
+        for h, user in r["heads"]:
+            el = ET.Element("signalhead", {"class": HEAD_CLASS})
+            ET.SubElement(el, "systemName").text = h
+            ET.SubElement(el, "userName").text = user
+            ET.SubElement(el, "comment").text = f"{where} | internal until the cut-over, then {device.get(h, '?')}"
+            heads.append(el)
+        el = ET.Element("signalmast", {"class": MAST_CLASS})
+        ET.SubElement(el, "systemName").text = r["system_name"]
+        ET.SubElement(el, "userName").text = r["mast"]
+        ET.SubElement(el, "comment").text = f"{where} | internal until the cut-over, then {r['device_system_name']}"
+        ET.SubElement(el, "unlit", {"allowed": "no"})
+        masts.append(el)
+    new = [x for e in heads + masts for x in (e.findtext("systemName"), e.findtext("userName"))]
+    clash = sorted(set(new) & taken)
+    if clash or len(set(new)) != len(new):
+        raise BuildError(f"main and upper signal names collide: {clash or 'among themselves'}")
+    place(heads_el, heads, 2)
+    place(masts_el, masts, 2)
 
 
 def live_target(out: Path) -> bool:
@@ -1782,7 +1972,7 @@ def run(argv, cached) -> int:
     same = getattr(P, "staging_same", None)
     if same is not None:
         print(f"  staging guard: the {'(unapproved) ' if args.review else 'approved '}staging candidate is held "
-              "unchanged but for the helix joins:")
+              + ("unchanged but for the helix joins:" if same else "unchanged, byte for byte (JOIN_HELIX off)"))
         for line in same:
             print(f"    {line}")
     return 0

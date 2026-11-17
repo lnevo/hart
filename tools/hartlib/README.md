@@ -106,6 +106,13 @@ Lookups (all take the root element unless noted):
 | `by_system_name`, `by_user_name`, `by_any_name` | dicts over any list of beans |
 | `section(root, container, tag)`, `elements(el)` | generic: all sections; children without comments |
 
+### `hartlib.level_masts`
+
+The main and upper levels' control-point masts until the cut-over: `PATH` (`main_upper_masts.csv`, written by
+`tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs), `names()`,
+`internal_head()` (IH3332 -> IH93332), `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
+`audit_panel_contracts.py` and `polish_hart_layout_editor.py`.
+
 ## The tables.xml traps the lookups exist for
 
 - Several `<sensors>` and `<turnouts>` sections (MQTT, internal, LCC). `root.find("turnouts")`

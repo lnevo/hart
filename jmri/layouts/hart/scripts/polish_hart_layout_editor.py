@@ -36,7 +36,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import level_masts, paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DEFAULT_PANEL = paths.TABLES_XML
@@ -972,10 +972,14 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False, reference: Path | 
     ref = reference_panel(reference)
     changes = 0
     errors: list[str] = []
+    # the main and upper control-point masts are home signals: shown (none is a hidden Dispatcher virtual)
+    shown = level_masts.names() if generated else set()
 
     for icon in le.findall("signalmasticon"):
         name = (icon.get("signalmast") or "").strip()
-        if name in SIGNAL_PLACEMENTS:
+        if name in shown:
+            expected = {"hidden": "no"}
+        elif name in SIGNAL_PLACEMENTS:
             x, y, degrees = SIGNAL_PLACEMENTS[name]
             expected = {"hidden": "no"} if generated else {
                 "x": str(x),

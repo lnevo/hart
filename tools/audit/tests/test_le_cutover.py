@@ -229,10 +229,13 @@ class Cutover(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 cli = AUDIT.main(["--strict", "--tables", str(path), "--generated"])
         self.assertEqual(audit.errors, [])
-        self.assertEqual(audit.warnings, [])
+        # Before its Stage 1 the candidate still carries the hand-drawn panel's SML and Dispatcher graph: the audit
+        # warns about exactly those two, so --strict refuses it until Stage 1 has run (Phase 5 runs it first).
+        self.assertEqual(len(audit.warnings), 2, audit.warnings)
+        self.assertTrue(all("run Stage 1" in w for w in audit.warnings), audit.warnings)
         self.assertEqual(drift, [])
         self.assertEqual(audit.facts["panel"], LIVE)
-        self.assertEqual(cli, 0)
+        self.assertEqual(cli, 1)
 
     # ---- Phase 3: the scripts that run on tables.xml
     def test_the_candidate_carries_one_generated_panel_marker(self) -> None:
@@ -253,7 +256,7 @@ class Cutover(unittest.TestCase):
                     self.assertEqual(fn(path, check=True)[1], [], fn.__name__)
                     fn(path, check=False, reference=path)
                 self.assertEqual(stations.main(["--panel", str(path), "--check", "--no-sync"]), 0)
-                self.assertEqual(AUDIT.main(["--strict", "--tables", str(path)]), 0)   # found by its marker
+                self.assertEqual(AUDIT.main(["--tables", str(path)]), 0)   # found by its marker; --strict waits for Stage 1
             self.assertEqual(path.read_bytes(), self.data)
 
     def test_layout_facts_pass_on_the_candidate(self) -> None:
@@ -394,12 +397,11 @@ class ThreeLevels(unittest.TestCase):
         cls.le = tables.layout_editor(cls.root, LIVE)
         cls.device = B.device_names()
 
-    def test_staging_is_the_staging_candidate_but_for_the_helix_joins(self) -> None:
-        self.assertEqual(sorted(self.P.staging_same), [
-            "end bumper EB71 -> anchor AGE2 (hidden join TG225 to Track 135-H1, Mast 40RA)",
-            "end bumper EB72 -> anchor AGE1 (hidden join TG224 to Track 135-H2, Mast 38RA)",
-            "track segment TG32 connect2name EB72 -> AGE1",
-            "track segment TG6 connect2name EB71 -> AGE2"])
+    def test_staging_is_the_staging_candidate_unjoined(self) -> None:
+        # JOIN_HELIX off (owner, 2026-11-16): staging as in its candidate, with no accepted difference at all
+        self.assertFalse(B.JOIN_HELIX)
+        self.assertEqual(self.P.staging_same, [])
+        self.assertFalse([j for (b, j) in self.P.join_ends if b == 0])          # no join reaches staging
         self.assertEqual(self.P.scale, self.base[1].scale)
         self.assertEqual(self.P.staging_data, self.base[0])
 
@@ -411,12 +413,10 @@ class ThreeLevels(unittest.TestCase):
             "a staging label moved": lambda r: el(r, "positionablelabel", text="STAGING LEVEL").set("x", "61"),
             "a staging bean changed": lambda r: next(t for t in tables.turnouts(r)
                                                      if tables.user_name(t) == "Switch 1").set("inverted", "true"),
-            "a reconnected segment's block": lambda r: el(r, "tracksegment", ident="TG6").set("blockname", "Track X"),
-            "a reconnected segment's geometry": lambda r: el(r, "tracksegment", ident="TG32").set("arc", "yes"),
-            "a join anchor moved": lambda r: el(r, "positionablepoint", ident="AGE1").set("x", "1600.0"),
-            "a join anchor's mast slot": lambda r: el(r, "positionablepoint", ident="AGE2").set(
-                "westboundsignalmast", "Mast 40RA"),
-            "a join shown": lambda r: el(r, "tracksegment", ident="TG224").set("hidden", "no"),
+            "a helix track's segment": lambda r: el(r, "tracksegment", ident="TG6").set("blockname", "Track X"),
+            "a helix bumper moved": lambda r: el(r, "positionablepoint", ident="EB71").set("x", "1600.0"),
+            "a helix bumper's mast": lambda r: el(r, "positionablepoint", ident="EB72").set(
+                "westboundsignalmast", "Mast 38RA"),
             "a helix mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38RA").set("x", "1"),
             "a staging BCI moved": lambda r: el(r, "BlockContentsIcon", blockcontents="Track K-1").set("y", "1"),
         }
@@ -721,26 +721,54 @@ class ThreeLevels(unittest.TestCase):
         self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
                             if B.is_level_bean(b)))
 
-    def test_no_masts_or_sensors_on_main_and_upper(self) -> None:
+    def test_main_and_upper_masts_and_no_sensors(self) -> None:
+        """Main and upper: their 41 control-point masts (main_upper_masts.csv), each in the slot JMRI resolves to its
+        facing track and protected OS block (108LA and 108LB on Switch 107's normal and diverging legs), on internal
+        heads and masts signal_coordinator.py never enrols; no sensors."""
         level = {t["ident"] for t in self.P.turnouts if t["band"]} | {k for k, p in self.P.points.items() if p["band"]}
-        self.assertFalse([m for m in self.P.masts if m["ident"] in level])
+        rows = {r["mast"]: r for r in B.read_level_masts()}
+        on_level = [m for m in self.P.masts if m["ident"] in level]
+        self.assertEqual({m["mast"] for m in on_level}, set(rows))
+        ix = B.slots_module().Index(self.le)
+        turnouts = {self.P.name(t["ident"]): t for t in self.P.turnouts}
+        for m in on_level:
+            ident = self.P.name(m["ident"])
+            f, pr = ix.blocks(m["kind"], ident, m["slot"])
+            self.assertEqual((f, pr), (rows[m["mast"]]["facing"], [rows[m["mast"]]["protects"]]), m["mast"])
+            if rows[m["mast"]]["leg"]:
+                normal = "B" if turnouts[ident]["continuing"] == "2" else "C"
+                self.assertEqual(m["slot"] == normal, rows[m["mast"]]["leg"] == "normal", m["mast"])
+        self.assertEqual({rows[m]["leg"] for m in ("Mast 108LA", "Mast 108LB")}, {"normal", "diverging"})
+        self.assertEqual(B.lcos_named([r["system_name"] for r in rows.values()]
+                                      + [h for r in rows.values() for h, _u in r["heads"]]), [])
+        self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH93332"]),
+                         ["IF$shsm:basic:one-low(IH3332)", "IH3332"])
+        heads = [h for h in self.root.find("signalheads") if B.is_level_bean(h)]
+        masts = [m for m in self.root.find("signalmasts") if B.is_level_bean(m)]
+        self.assertEqual((len(heads), len(masts)), (53, 41))
+        self.assertEqual({m.findtext("userName") for m in masts}, set(rows))
         written = {self.P.name(i) for i in level}
         for el in self.le:
             if el.get("ident") in written:
-                self.assertFalse([k for k in el.attrib if k.endswith(("signalmast", "boundsensor"))], el.get("ident"))
+                self.assertFalse([k for k in el.attrib if k.endswith("boundsensor")], el.get("ident"))
                 self.assertIsNone(el.find("sensorA"))
 
-    def test_helix_masts_stand_at_the_join_anchors(self) -> None:
+    def test_helix_masts_stand_on_their_bumpers_as_live(self) -> None:
         ix = B.slots_module().Index(self.le)
         got = {m["mast"]: (self.P.name(m["ident"]), m["slot"], ix.blocks(m["kind"], self.P.name(m["ident"]), m["slot"]))
                for m in self.P.masts if m["mast"] in ("Mast 38RA", "Mast 40RA")}
-        self.assertEqual(got["Mast 38RA"][2], ("Track McKeesport", ["Track 135-H2"]))
-        self.assertEqual(got["Mast 40RA"][2], ("Track McKees Rocks", ["Track 135-H1"]))
-        self.assertTrue(all(v[0].startswith("AGE") for v in got.values()))
+        self.assertEqual(got["Mast 38RA"], ("EB72", "east", ("Track McKeesport", [])))
+        self.assertEqual(got["Mast 40RA"], ("EB71", "east", ("Track McKees Rocks", [])))
+        self.assertEqual(self.P.moved, [])
 
     def test_one_block_contents_icon_per_block_on_every_level(self) -> None:
         icons = Counter(el.get("blockcontents") for el in self.le.iter("BlockContentsIcon"))
-        self.assertEqual(set(icons), T.used_blocks(self.le))
+        # every block but those B.OPTIONAL_READOUTS lets go when no clean spot is left (logged)
+        left_out = {b for v in B.OPTIONAL_READOUTS.values() for b in v} - set(icons)
+        skipped = {re.search(r"block contents of (.+?): no clean spot", m).group(1) for m in self.P.bcis_skipped}
+        self.assertEqual(skipped, left_out)
+        self.assertEqual(len(skipped), len(self.P.bcis_skipped))
+        self.assertEqual(set(icons) | left_out, T.used_blocks(self.le))
         self.assertEqual(set(icons.values()), {1})
         staging = {b["block"] for b in self.base[1].bcis}
         self.assertEqual(len(staging), 57)
@@ -782,7 +810,7 @@ class ThreeLevels(unittest.TestCase):
                     self.assertEqual(fn(path, check=True)[1], [], fn.__name__)
                     fn(path, check=False, reference=path)
                 self.assertEqual(stations.main(["--panel", str(path), "--check", "--no-sync"]), 0)
-                self.assertEqual(AUDIT.main(["--strict", "--tables", str(path)]), 0)
+                self.assertEqual(AUDIT.main(["--tables", str(path)]), 0)   # --strict waits for Stage 1
                 self.assertEqual(facts.main(["--tables", str(path)]), 0)
             self.assertEqual(path.read_bytes(), self.data)
 
