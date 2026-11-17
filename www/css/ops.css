@@ -548,6 +548,21 @@ main.explorer-page {
   border: 1px solid var(--rule);
 }
 
+/* Schematic inside a primer section: a bordered card, capped so it reads as a figure, not a wall of track */
+.primer-figure {
+  margin: 1rem 0 0.5rem;
+  padding: 0.6rem 0.9rem 0.4rem;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  max-width: 760px;
+}
+
+.primer-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .hub-banner-photo {
   padding: 0.4rem;
 }
