@@ -10,27 +10,44 @@ const EXAM = path.join(__dirname, "..", "exam");
 const RUN = path.join(EXAM, "run.html");
 const OUT = path.join(EXAM, "answers.html");
 
-/* Index of the bracket that closes the one at `open`, skipping strings and template literals. */
-function closing(src, open) {
+/* Scans from the bracket at `open` to the one that closes it. Skips strings, comments and template text, and follows
+   ${...} inside templates, nested to any depth. Returns the closing index and the code outside strings and comments.
+   Regex literals are not followed; an ask({...}) holding one stops the build with an unbalanced-bracket error. */
+function scan(src, open) {
   const pair = { "{": "}", "[": "]", "(": ")" };
-  const stack = [];
-  let quote = null;
+  const stack = []; // closers; "T" closes a ${...} and returns to template text
+  let mode = "code";
+  let code = "";
   for (let j = open; j < src.length; j++) {
     const c = src[j];
-    if (quote) {
+    const two = src.slice(j, j + 2);
+    if (mode === '"' || mode === "'") {
       if (c === "\\") j++;
-      else if (c === quote) quote = null;
+      else if (c === mode) mode = "code";
       continue;
     }
-    if (c === '"' || c === "'" || c === "`") quote = c;
-    else if (pair[c]) stack.push(pair[c]);
+    if (mode === "`") {
+      if (c === "\\") j++;
+      else if (c === "`") mode = "code";
+      else if (two === "${") { stack.push("T"); mode = "code"; j++; }
+      continue;
+    }
+    if (mode === "//") { if (c === "\n") mode = "code"; continue; }
+    if (mode === "/*") { if (two === "*/") { mode = "code"; j++; } continue; }
+    if (two === "//" || two === "/*") { mode = two; j++; continue; }
+    if (c === '"' || c === "'" || c === "`") { mode = c; continue; }
+    code += c;
+    if (pair[c]) stack.push(pair[c]);
     else if (c === "}" || c === "]" || c === ")") {
-      if (stack.pop() !== c) throw new Error(`run.html: unbalanced ${c} at offset ${j}`);
-      if (!stack.length) return j;
+      const want = stack.pop();
+      if (want === "T" && c === "}") { mode = "`"; continue; }
+      if (want !== c) throw new Error(`run.html line ${src.slice(0, j).split("\n").length}: unbalanced ${c}`);
+      if (!stack.length) return { end: j, code };
     }
   }
-  throw new Error(`run.html: no closing bracket for offset ${open}`);
+  throw new Error(`run.html line ${src.slice(0, open).split("\n").length}: no closing bracket`);
 }
+const closing = (src, open) => scan(src, open).end;
 
 /* A stand-in for any name the game defines at play time; prints as [name]. */
 function stub(name) {
@@ -39,9 +56,20 @@ function stub(name) {
     apply: () => `[${name}(…)]`,
   });
 }
-const scope = new Proxy({}, {
+/* Helpers the key runs for real, read from run.html: the figures a question may show under its text. */
+const FIGURES = ["semSvg"];
+function figures(src) {
+  const out = {};
+  for (const name of FIGURES) {
+    const at = src.indexOf(`function ${name}(`);
+    if (at < 0) throw new Error(`run.html: figure helper ${name} not found`);
+    out[name] = Function(`return (${src.slice(at, closing(src, src.indexOf("{", at)) + 1)})`)();
+  }
+  return out;
+}
+const scopeWith = real => new Proxy({}, {
   has: (t, k) => typeof k === "string" && !(k in globalThis),
-  get: (t, k) => (k === Symbol.unscopables ? undefined : stub(String(k))),
+  get: (t, k) => (k === Symbol.unscopables ? undefined : k in real ? real[k] : stub(String(k))),
 });
 
 const FRIENDLY = [
@@ -58,6 +86,8 @@ const FRIENDLY = [
 const friendly = s => FRIENDLY.reduce((t, [re, to]) => t.replace(re, to), String(s));
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const text = v => (v == null ? "" : friendly(v));
+const ENT = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&nbsp;": " " };
+const plain = s => s.replace(/<[^>]+>/g, " ").replace(/&(?:amp|lt|gt|quot|#39|nbsp);/g, e => ENT[e]).replace(/\s+/g, " ");
 
 /* Where in the game a question is asked: inside one of the event pools, or fixed in a scene. */
 const POOLS = { ROAD_TTO: "1949 run, on the road", STN_TTO: "1949 run, at a station", ROAD_TWC: "Modern run, on the road" };
@@ -78,28 +108,68 @@ function readSections(src) {
   return Function(`return ${m[1]}`)();
 }
 
+/* Fields the key shows. Others (ok, okText, note, after, miss) only matter during a run. */
+const SHOWN = ["sec", "src", "title", "body", "right", "wrong", "why", "extra"];
+
+/* The code of one top-level field of an object literal, from scan()'s string-free code. */
+function fieldCode(code, key) {
+  let depth = 0, from = 1;
+  const parts = [];
+  for (let i = 0; i < code.length; i++) {
+    const c = code[i];
+    if ("{[(".includes(c)) depth++;
+    else if ("}])".includes(c)) depth--;
+    if ((c === "," && depth === 1) || i === code.length - 1) { parts.push(code.slice(from, i)); from = i + 1; }
+  }
+  const hit = parts.find(p => new RegExp(`^\\s*${key}\\s*:`).test(p));
+  return hit ? hit.replace(/^\s*\w+\s*:/, "") : "";
+}
+
+function readSources(src) {
+  const m = /const SRC=(\{[^}]*\})/.exec(src);
+  if (!m) throw new Error("run.html: source names (const SRC) not found");
+  const SRC = Function(`return ${m[1]}`)();
+  const re = new RegExp(`^(${Object.keys(SRC).join("|")})\\b`);
+  return s => s.replace(re, k => SRC[k]); // the same label the game shows (srcLabel)
+}
+
+/* The modern run's code sits between its warrant tables and the end-of-run scene; everything before is 1949. */
+function modernRange(src) {
+  const from = src.indexOf("const TW_SEL="), to = src.indexOf("function finish(");
+  if (from < 0 || to < from) throw new Error("run.html: modern run code (const TW_SEL … function finish) not found");
+  return { from, to };
+}
+
 function extract(src) {
   const pools = poolRanges(src);
+  const modern = modernRange(src);
+  const scope = scopeWith(figures(src));
+  const srcLabel = readSources(src);
   const qs = [];
   const re = /\bask\(\{/g;
   let m;
   while ((m = re.exec(src))) {
     const open = m.index + 4;
-    const lit = src.slice(open, closing(src, open) + 1);
+    const line = src.slice(0, m.index).split("\n").length;
+    const { end, code } = scan(src, open);
+    // Stubs are always truthy, so a shown field chosen at play time would show one branch as the only answer.
+    const chosen = SHOWN.filter(k => /\?|&&|\|\|/.test(fieldCode(code, k)));
+    if (chosen.length) throw new Error(`run.html line ${line}: ${chosen.join(", ")} chosen at play time (?, && or ||); write one ask per case, or put a situational sentence in note`);
+    const lit = src.slice(open, end + 1);
     let o;
     try {
       o = Function("P", `with(P){return (${lit})}`)(scope);
     } catch (e) {
-      throw new Error(`run.html line ${src.slice(0, m.index).split("\n").length}: cannot read question (${e.message})`);
+      throw new Error(`run.html line ${line}: cannot read question (${e.message})`);
     }
-    const line = src.slice(0, m.index).split("\n").length;
+    if (o.extra && /\[\w/.test(String(o.extra))) throw new Error(`run.html line ${line}: the figure under the question uses play-time values the key cannot draw`);
     for (const k of ["title", "body", "right", "why"]) if (!o[k]) throw new Error(`run.html line ${line}: question has no ${k}`);
     if (!Array.isArray(o.wrong) || !o.wrong.length) throw new Error(`run.html line ${line}: question has no wrong answers`);
     const pool = pools.find(p => m.index > p.from && m.index < p.to);
     qs.push({
-      line, sec: o.sec, src: text(o.src), title: text(o.title), body: text(o.body), right: text(o.right),
+      line, sec: o.sec, src: text(srcLabel(String(o.src || ""))), extra: o.extra ? String(o.extra) : "", title: text(o.title), body: text(o.body), right: text(o.right),
       wrong: o.wrong.map(w => ({ t: text(w[0]), why: text(w[2] || "") })),
-      why: text(o.why), where: pool ? POOLS[pool.name] : o.sec === "twc" || o.sec === "gcor" ? "Modern run" : "1949 run",
+      why: text(o.why), where: pool ? POOLS[pool.name] : m.index > modern.from && m.index < modern.to ? "Modern run" : "1949 run",
     });
   }
   return qs;
@@ -115,12 +185,14 @@ function render(qs, SEC) {
     if (!list.length) return "";
     const cards = list.map(q => {
       n++;
-      const search = [q.title, q.body, q.right, q.src, q.why, ...q.wrong.map(w => w.t)].join(" ").replace(/<[^>]+>/g, "").toLowerCase();
+      const search = plain([q.title, q.body, q.right, q.src, q.why, ...q.wrong.flatMap(w => [w.t, w.why])].join(" ")).toLowerCase();
+      // Alphabetical, so the right answer is not always first when answers are hidden.
+      const opts = [{ t: q.right, ok: true }, ...q.wrong].sort((a, b) => a.t.localeCompare(b.t));
       return `<article class="xa-q" data-s="${esc(search)}">
   <p class="xa-meta">${n} · ${esc(q.where)} · ${esc(q.src)}</p>
   <h3>${esc(q.title)}</h3>
-  <p>${q.body}</p>
-  <ul class="xa-opts"><li class="ok">${esc(q.right)}</li>${q.wrong.map(w => `<li>${esc(w.t)}${w.why ? ` <span class="xa-ow">${w.why}</span>` : ""}</li>`).join("")}</ul>
+  <p>${q.body}</p>${q.extra ? `\n  <div class="xa-fig">${q.extra}</div>` : ""}
+  <ul class="xa-opts">${opts.map(o => `<li${o.ok ? ' class="ok"' : ""}>${esc(o.t)}${o.why ? ` <span class="xa-ow">${o.why}</span>` : ""}</li>`).join("")}</ul>
   <p class="xa-why">${q.why}</p>
 </article>`;
     }).join("\n");
@@ -138,7 +210,7 @@ function render(qs, SEC) {
   <link rel="stylesheet" href="../css/achievements.css">
   <!-- Generated by www/scripts/build_exam_answers.js from run.html. Do not edit by hand. -->
   <style>
-.xa-tools{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;position:sticky;top:0;background:var(--paper);padding:8px 0;z-index:2}
+.xa-tools{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;position:sticky;top:var(--header-h,0px);background:var(--paper);padding:8px 0;z-index:2}
 .xa-tools input[type=search]{flex:1 1 240px;font:inherit;padding:8px 10px;border:1px solid #b9b4a6;border-radius:4px}
 .xa-toc{font-size:14px;line-height:1.8}
 .xa-q{border:1px solid #d6d0c0;border-radius:6px;padding:10px 14px;margin:10px 0}
@@ -146,6 +218,7 @@ function render(qs, SEC) {
 .xa-meta{margin:0;font-size:12px;color:#5d5a4e;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 .xa-opts{margin:6px 0;padding-left:22px}
 .xa-opts li{margin:2px 0}
+.xa-fig{margin:4px 0}
 .xa-opts li.ok{font-weight:600;color:#2d6a4f;list-style:"✓  "}
 .xa-ow,.xa-why{color:#5d5a4e;font-size:14px}
 .xa-sec h2 small{font-weight:400;color:#5d5a4e}
@@ -159,7 +232,7 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
     <div class="page-head">
       <nav class="crumb" aria-label="Breadcrumb"><ol><li><a href="../ap/opsig.html#ce">OPSIG Achievement Program</a></li><li><a href="index.html">Conductor &amp; Engineer Exam Study Deck</a></li></ol></nav>
       <h1>Extra East answer key</h1>
-      <p class="section-note">All ${n} questions in <a href="run.html">Extra East</a>, grouped by the study deck's sections, with the right answer first, the wrong choices and the rule behind it.
+      <p class="section-note">All ${n} questions in <a href="run.html">Extra East</a>, grouped by the study deck's sections. Each shows its choices in alphabetical order with the right one ticked, and the rule behind it.
         Names, numbers and times the game fills in during a run show in brackets, such as [station] or [time].</p>
     </div>
     <div class="xa-tools">

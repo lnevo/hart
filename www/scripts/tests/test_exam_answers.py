@@ -41,13 +41,49 @@ class ExamAnswers(unittest.TestCase):
             for field in (q["title"], q["body"], q["right"], *(w["t"] for w in q["wrong"])):
                 self.assertNotRegex(field, r"\[\w+\.[\w.\[\]]*\]|NaN|\[object", f"run.html line {q['line']}")
 
+    # A minimal run.html: the pools, the modern-run markers, the source names and a figure helper.
+    FRAME = (
+        'const SRC={SC:"1949 Standard Code",GC:"GCOR"};function semSvg(a){return "<svg>"+a+"</svg>"}'
+        "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function finish(){}"
+    )
+
+    def mini(self, body="", modern=""):
+        src = self.FRAME.replace("{BODY}", body).replace("{MODERN}", modern)
+        return json.loads(node(
+            f"const m=require({json.dumps(str(SCRIPT))});"
+            f"console.log(JSON.stringify(m.extract({json.dumps(src)})))"
+        ))
+
+    Q = 'ask({sec:"def",src:"GC · 6.13",title:"t",body:"b",right:"r",wrong:[["w"]],why:"y"%s});'
+
     def test_bad_question_stops_the_build(self):
         with self.assertRaisesRegex(AssertionError, "no why"):
-            node(
-                f"const m=require({json.dumps(str(SCRIPT))});"
-                "m.extract('const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];"
-                "ask({sec:\"def\",title:\"t\",body:\"b\",right:\"r\",wrong:[[\"w\"]]})')"
-            )
+            self.mini('ask({sec:"def",title:"t",body:"b",right:"r",wrong:[["w"]]});')
+
+    def test_shown_text_chosen_at_play_time_stops_the_build(self):
+        with self.assertRaisesRegex(AssertionError, "right chosen at play time"):
+            self.mini('ask({sec:"def",src:"SC",title:"t",body:"b",right:hold?"a":"b",wrong:[["w"]],why:"y"});')
+        # Fields the key does not show may still depend on the run.
+        self.assertEqual(len(self.mini(self.Q % ',ok:can?{}:{marks:1},after:o=>{if(o&&can)x()}')), 1)
+
+    def test_comments_and_nested_templates_are_skipped(self):
+        q = self.mini(
+            'ask({sec:"def",src:"SC",title:"t",// don\'t shuffle }\n'
+            "body:`a ${`b ${1+1}`} c`,/* ) */right:\"r\",wrong:[[\"w\"]],why:\"y\"});"
+        )
+        self.assertEqual(q[0]["body"], "a b 2 c")
+
+    def test_modern_run_label_source_names_and_figures(self):
+        q = self.mini(self.Q % "", self.Q % ',extra:semSvg(0)')
+        self.assertEqual([x["where"] for x in q], ["1949 run", "Modern run"])
+        self.assertEqual(q[0]["src"], "GCOR · 6.13")
+        self.assertEqual(q[1]["extra"], "<svg>0</svg>")
+
+    def test_right_answer_not_always_first(self):
+        html = (WWW / "exam" / "answers.html").read_text()
+        lists = re.findall(r'<ul class="xa-opts">(.*?)</ul>', html)
+        first_ok = sum(1 for ul in lists if ul.startswith('<li class="ok">'))
+        self.assertLess(first_ok, len(lists) * 0.6)
 
 
 class SectionNames(unittest.TestCase):
