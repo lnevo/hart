@@ -1517,9 +1517,73 @@ main:not(.full-bleed) .btn-ghost:hover {
 /* Leave room so detail stays on-screen under the map.
    Do not use flex justify-content:center here — it clips the left/top
    overflow so you cannot scroll to the start of a wide map. */
+/* The frame takes the map's own shape (the three-level Digicon board, 3780 x 2055), as large as the
+   window allows while the toolbar stays in view. A grid with auto margins centres the map at Fit and
+   falls back to the top-left corner once it is larger than the frame, so nothing is clipped. */
+.map-frame {
+  position: relative;
+}
+
 .map-scroll-explorer {
-  max-height: min(48vh, 420px);
+  position: relative;
+  display: grid;
   width: 100%;
+  aspect-ratio: 3780 / 2055;
+  max-height: calc(100vh - 20rem);
+  min-height: 16rem;
+  cursor: grab;
+}
+
+.map-scroll-explorer.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* The stage keeps its full size under the scale transform; clip it so only the scaled map scrolls. */
+.map-scroll-explorer #map-zoom-wrap {
+  margin: auto;
+  overflow: hidden;
+}
+
+.map-scroll-explorer .hotspot {
+  cursor: pointer;
+}
+
+.map-overview {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  width: clamp(8rem, 22%, 15rem);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: #111418;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+.map-overview[hidden] {
+  display: none;
+}
+
+.map-overview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.map-overview-view {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid #ffd23f;
+  background: rgba(255, 210, 63, 0.12);
+  pointer-events: none;
+}
+
+.map-hint {
+  margin: 0.4rem 0 0;
 }
 
 .zoom-controls {
@@ -1548,6 +1612,7 @@ main:not(.full-bleed) .btn-ghost:hover {
 #map-stage {
   position: relative;
   display: inline-block;
+  transform-origin: 0 0;
 }
 
 #map-stage img {

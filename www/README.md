@@ -126,5 +126,7 @@ The magnifier in the header (or `/`) searches `search-index.json`, which `prepar
 
 ## Layout Explorer data
 
+The page (`layout/index.html`, `js/layout-explorer.js`) opens at Fit, with the frame in the board's own shape. Zoom with + and −, the slider, a pinch, Ctrl/⌘ + wheel or a double-click (Shift zooms out); each keeps the point under the pointer or the view centre in place. Drag pans. Once zoomed in, an overview in the corner shows the whole board with a box round the view; click or drag in it to move. The arithmetic is in `js/map-view.js`, tested by `scripts/tests/map_view_test.js` (node).
+
 `python3 www/scripts/build_layout_index.py` writes `data/layout-index.json` from live repo data, and `python3 www/scripts/build_cats_layout_index.py` writes `data/layout-index-cats.json` and `assets/layout/HART_cats_digicon.png` from `cats/panels/HART_CTC.xml`. Rerun them after the layout or the desks change, then deploy.
 

@@ -19,26 +19,34 @@
       <label class="chip"><input type="checkbox" data-kind="signal" checked> Masts</label>
       <div class="zoom-controls" aria-label="Map zoom">
         <button type="button" id="zoom-out" class="btn btn-ghost" title="Zoom out">−</button>
-        <input id="zoom-range" type="range" min="20" max="120" step="5" value="75" aria-label="Zoom percent">
+        <input id="zoom-range" type="range" min="20" max="150" step="1" value="20" aria-label="Zoom percent">
         <button type="button" id="zoom-in" class="btn btn-ghost" title="Zoom in">+</button>
-        <button type="button" id="zoom-fit" class="btn btn-ghost">Fit</button>
-        <span class="muted" id="zoom-label">75%</span>
+        <button type="button" id="zoom-fit" class="btn btn-ghost" title="Show the whole map">Fit</button>
+        <span class="muted" id="zoom-label"></span>
       </div>
       <a class="btn btn-ghost" href="../roster/index.html">Roster</a>
     </div>
-    <div class="map-scroll map-scroll-explorer">
-      <div id="map-zoom-wrap">
-        <div id="map-stage">
-          <img id="schematic" alt="Digicon Master device map">
+    <div class="map-frame">
+      <div class="map-scroll map-scroll-explorer" id="map-scroll">
+        <div id="map-zoom-wrap">
+          <div id="map-stage">
+            <img id="schematic" alt="Digicon Master device map" draggable="false">
+          </div>
         </div>
       </div>
+      <div class="map-overview" id="overview" hidden title="Overview: click or drag to move the view">
+        <img id="overview-img" alt="" draggable="false">
+        <div class="map-overview-view" id="overview-view"></div>
+      </div>
     </div>
+    <p class="muted small map-hint">Zoom with + and −, a pinch, Ctrl or ⌘ with the scroll wheel, or a double-click (Shift + double-click zooms out). Drag the map to move it, or use the overview in the corner.</p>
     <section class="detail-below" id="detail" aria-live="polite">
       <p class="empty">Click a switch or mast on the Digicon board.</p>
     </section>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/map-view.js"></script>
   <script src="../js/layout-explorer.js"></script>
 </body>
 </html>
