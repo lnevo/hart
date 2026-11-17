@@ -14,7 +14,9 @@ stays on main for pulls and deploys.
 
 `sweep` removes a worktree only when GitHub lists a merged PR for its branch whose head
 is the worktree's commit or a descendant of it (so nothing local is lost), the merge is
-at least GRACE old, and the worktree has no uncommitted or untracked changes. Its local
+at least GRACE old, and the worktree has no uncommitted or untracked changes. git refuses to remove
+a worktree with a submodule checked out; the sweep then forces it only when every submodule is clean and its
+commit is on one of its remote branches. Its local
 branch goes with it. A fresh worktree with no PR yet, one with work after the merge, a
 detached one, and the ones holding a --keep directory (the caller's) are kept. The grace
 period lets another session finish in a worktree it just merged. Remote branches are left
@@ -150,14 +152,36 @@ def sweep(dry_run: bool = False, keep: list[str] | None = None) -> list[str]:
             lines.append(f"would remove {tree.path} ({label})")
             continue
         if os.path.isdir(tree.path) and not git_ok("worktree", "remove", tree.path, cwd=main):
-            lines.append(f"kept {tree.path}: git worktree remove refused")
-            continue
+            # git refuses any worktree with a submodule checked out (check.sh needs one in every worktree).
+            # Force only when nothing can be lost: still clean, and each submodule's commit is on its remote.
+            why = submodule_risk(tree.path)
+            if why or is_dirty(tree.path) or not git_ok("worktree", "remove", "--force", tree.path, cwd=main):
+                lines.append(f"kept {tree.path}: git worktree remove refused" + (f" ({why})" if why else ""))
+                continue
         git("worktree", "prune", cwd=main)
         if tree.branch and git("rev-parse", f"refs/heads/{tree.branch}", cwd=main) == tree.head:
             git("branch", "-D", tree.branch, cwd=main)
         lines.append(f"removed {tree.path} ({label}, PR merged)")
     lines += [f"kept {tree.path} ({tree.branch or tree.head[:8]}): {why}" for tree, why in kept]
     return lines
+
+
+def submodule_risk(path: str) -> str | None:
+    """Why removing this worktree's checked-out submodules could lose work, or None when it cannot:
+    each one is clean and its commit is on one of its remote branches."""
+    status = subprocess.run(["git", "-C", path, "submodule", "status", "--recursive"],
+                            capture_output=True, text=True, timeout=60)
+    if status.returncode != 0:
+        return "submodule status failed"
+    for line in status.stdout.splitlines():
+        if not line or line[0] == "-":
+            continue  # not checked out here
+        sub = os.path.join(path, line[1:].split()[1])
+        if git("status", "--porcelain", cwd=sub):
+            return f"changes in submodule {os.path.relpath(sub, path)}"
+        if not git("for-each-ref", "--contains", "HEAD", "--format=%(refname)", "refs/remotes", cwd=sub):
+            return f"submodule {os.path.relpath(sub, path)} has a commit on no remote branch"
+    return None
 
 
 def git_ok(*args: str, cwd: str | Path | None = None) -> bool:

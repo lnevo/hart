@@ -134,6 +134,37 @@ class Sweep(Repo):
         self.assertFalse(os.path.exists(self.wt))
         self.assertEqual(sh("git", "branch", "--list", "agent/claude/x", cwd=self.main), "")
 
+    def add_submodule(self) -> str:
+        """Give the worktree a checked-out submodule cloned from a local 'remote' repo; return its path."""
+        src = os.path.dirname(self.main) + "/subsrc"
+        sh("git", "init", "-q", "-b", "main", src, cwd=os.path.dirname(self.main))
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-q", "--allow-empty",
+           "-m", "s", cwd=src)
+        sh("git", "-c", "protocol.file.allow=always", "submodule", "add", "-q", src, "ext/sub", cwd=self.wt)
+        sh("git", "commit", "-q", "-m", "submodule", cwd=self.wt)
+        return self.wt + "/ext/sub"
+
+    def test_sweep_removes_a_clean_worktree_with_a_submodule(self) -> None:
+        self.add_submodule()
+        lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertTrue(lines and lines[0].startswith("removed"), lines)
+        self.assertFalse(os.path.exists(self.wt))
+
+    def test_sweep_keeps_a_submodule_commit_that_is_on_no_remote(self) -> None:
+        sub = self.add_submodule()
+        sh("git", "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-q", "--allow-empty",
+           "-m", "local only", cwd=sub)
+        sh("git", "commit", "-q", "-am", "bump", cwd=self.wt)  # the worktree itself stays clean
+        lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn("refused (submodule ext/sub has a commit on no remote branch)", lines[0])
+        self.assertTrue(os.path.exists(sub))
+
+    def test_sweep_keeps_changes_inside_a_submodule(self) -> None:
+        sub = self.add_submodule()
+        Path(sub, "scratch.txt").write_text("x\n")
+        self.assertEqual(WT.submodule_risk(self.wt), "changes in submodule ext/sub")
+
     def test_sweep_keeps_unmerged_worktree(self) -> None:
         self.assertEqual(self.sweep(lambda t: None), [])
         self.assertTrue(os.path.exists(self.wt))
