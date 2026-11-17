@@ -52,19 +52,11 @@ from typing import Callable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, railroad  # noqa: E402
+from hartlib.railroad import Leg, Switch  # noqa: E402,F401  one definition, in hartlib.railroad
 
 DATA = paths.LAYOUT_DATA
-YES = {"yes": True, "no": False}
-HANDS = {"", "L", "R"}
 _SWITCH_NAME = re.compile(r"(?:DCC |FB )?Switch (\d+)(?: [NR])?")
-
-
-@dataclass(frozen=True)
-class Leg:
-    os_block: str
-    closed: str
-    thrown: str
 
 
 @dataclass(frozen=True)
@@ -81,53 +73,9 @@ class MastCell:
     sig_orient: str = ""
 
 
-@dataclass(frozen=True)
-class Switch:
-    number: int
-    level: str
-    le_ident: str
-    cats_inverted: bool
-    ctc_is: int
-    ctc_signals: bool
-    legs: tuple[Leg, ...] = ()
-    hand: str = ""
-    hardware: str = ""
-    dcc: str = ""
-    cp: str = ""
-
-    @property
-    def turnout(self) -> str:
-        """JMRI turnout user name, also the public name."""
-        return f"Switch {self.number}"
-
-    @property
-    def os_blocks(self) -> tuple[str, ...]:
-        """The first is the primary OS: Layout Editor blockname and first CTC OS sensor."""
-        return tuple(leg.os_block for leg in self.legs)
-
-    @property
-    def uss_slot(self) -> int:
-        """USS CTC lever column: plate N sits in column (N - 1) / 2."""
-        return (self.number - 1) // 2
-
-
 def _rows(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as fh:
         return [{k: (v or "").strip() for k, v in row.items()} for row in csv.DictReader(fh)]
-
-
-def _yes(value: str, where: str) -> bool:
-    if value not in YES:
-        raise ValueError(f"{where}: expected yes or no, got {value!r}")
-    return YES[value]
-
-
-def _name_map_turnouts(data: Path) -> dict[str, dict[str, str]]:
-    out: dict[str, dict[str, str]] = {}
-    for row in _rows(data / "public_name_map.csv"):
-        if row["layer"] == "turnout" and row["current"] == row["proposed"]:
-            out[row["current"]] = row
-    return out
 
 
 def identity_rows(data: Path = DATA) -> list[dict[str, str]]:
@@ -136,58 +84,10 @@ def identity_rows(data: Path = DATA) -> list[dict[str, str]]:
 
 
 def load_switches(data: Path = DATA) -> dict[int, Switch]:
-    """Switch number -> Switch, in switches.csv order. Line numbers in errors count the header as 1."""
-    legs: dict[int, list[Leg]] = {}
-    os_line: dict[str, int] = {}
-    for line, row in enumerate(_rows(data / "switch_legs.csv"), start=2):
-        os_name = row["os_block"]
-        if os_name in os_line:
-            raise ValueError(f"switch_legs.csv lines {os_line[os_name]} and {line}: "
-                             f"both list {os_name}; an OS block belongs to one switch")
-        os_line[os_name] = line
-        legs.setdefault(int(row["switch"]), []).append(
-            Leg(os_name, row["closed_leg"], row["thrown_leg"])
-        )
-    names = _name_map_turnouts(data)
-    out: dict[int, Switch] = {}
-    seen: dict[int, tuple[int, str]] = {}
-    lever: dict[int, tuple[int, int]] = {}
-    for line, row in enumerate(_rows(data / "switches.csv"), start=2):
-        n = int(row["switch"])
-        where = f"switches.csv line {line} (Switch {n})"
-        if n in seen:
-            first, level = seen[n]
-            raise ValueError(f"switches.csv lines {first} (level {level}) and {line} (level {row['level']}) "
-                             f"both use Switch {n}; switch numbers are unique railroad-wide")
-        seen[n] = (line, row["level"])
-        if n not in legs:
-            raise ValueError(f"{where}: no rows in switch_legs.csv")
-        ctc_is = int(row["ctc_is"])
-        if ctc_is in lever:
-            first, other = lever[ctc_is]
-            raise ValueError(f"switches.csv lines {first} (Switch {other}) and {line} (Switch {n}) "
-                             f"both use USS lever IS{ctc_is}")
-        lever[ctc_is] = (line, n)
-        hand = row.get("hand", "")
-        if hand not in HANDS:
-            raise ValueError(f"{where}: hand is L, R or blank, got {hand!r}")
-        nm = names.get(f"Switch {n}", {})
-        out[n] = Switch(
-            number=n,
-            level=row["level"],
-            le_ident=row["le_ident"],
-            cats_inverted=_yes(row["cats_inverted"], where),
-            ctc_is=ctc_is,
-            ctc_signals=_yes(row["ctc_signals"], where),
-            legs=tuple(legs.pop(n)),
-            hand=hand,
-            hardware=nm.get("hardware", ""),
-            dcc=nm.get("dcc", ""),
-            cp=nm.get("cp", ""),
-        )
-    if legs:
-        raise ValueError(f"switch_legs.csv: switches not in switches.csv: {sorted(legs)}")
-    return out
+    """Switch number -> Switch, in switches.csv order (hartlib.railroad.read_switches). Line numbers in errors
+    count the header as 1."""
+    s = railroad.Sources.under(data)
+    return railroad.read_switches(s.switches, s.switch_legs, s.name_map)
 
 
 EDGES = {"LEFT", "RIGHT", "TOP", "BOTTOM"}

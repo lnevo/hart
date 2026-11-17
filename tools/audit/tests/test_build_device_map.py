@@ -12,6 +12,12 @@ ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("build_device_map", ROOT / "tools/schematic/build_device_map.py")
 BD = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BD)
+R = BD.railroad
+
+
+def cp(name, level, *switches):
+    """An in-memory control point (control_points_main_upper.csv row)."""
+    return R.LevelControlPoint(0, name.lower().replace(" ", "_"), name, level, switches, "West")
 
 
 def rows():
@@ -24,8 +30,7 @@ class Pure(unittest.TestCase):
         self.assertEqual([BD.base(x) for x in ("129A", "135B", "223*", "105")], ["129", "135", "223", "105"])
 
     def test_control_point_lists_only_its_own_band_halves(self):
-        cps = [dict(cp_name="CP 129", level=2, switches=["129", "135"]),
-               dict(cp_name="CP 223", level=3, switches=["223"])]
+        cps = [cp("CP 129", 2, "129", "135"), cp("CP 223", 3, "223")]
         by_level = {2: {"129A", "135A", "105"}, 3: {"129B", "135B", "223*"}}
         got = BD.overrides_keys(cps, by_level)
         self.assertEqual(got["CP 129"]["switches"], ["129A", "135A"])
@@ -33,7 +38,7 @@ class Pure(unittest.TestCase):
 
     def test_switch_missing_from_its_band_fails(self):
         with self.assertRaises(BD.MapError):
-            BD.overrides_keys([dict(cp_name="CP 9", level=2, switches=["9"])], {2: {"105"}})
+            BD.overrides_keys([cp("CP 9", 2, "9")], {2: {"105"}})
 
     def test_switch_in_two_control_points_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -45,12 +50,12 @@ class Pure(unittest.TestCase):
     def test_every_switch_needs_a_control_point_or_a_local_row(self):
         bands = [("Main level", {"nodes": {"a": dict(kind="switch", label="101A"), "b": dict(kind="switch", label="105")},
                                  "strands": {}, "R": {"srow": {}}, "rail": {}}, {})]
-        cps = [dict(cp_name="CP 105", level=2, switches=["105"], area="West")]
+        cps = [cp("CP 105", 2, "105")]
         over = {"edits": [{"op": "relabel", "map": {}}]}
         with self.assertRaisesRegex(BD.MapError, "switch 101 is in no control point"):
             BD.build(bands, {}, lambda b: [], over, cps, [])
         with self.assertRaisesRegex(BD.MapError, "switch 105 is in a control point and in"):
-            BD.build(bands, {}, lambda b: [], over, cps, [], [dict(switch="105", level="2", area="West", notes="")])
+            BD.build(bands, {}, lambda b: [], over, cps, [], [R.LocalSwitch(0, "105", 2, "West")])
 
     def test_track_names(self):
         sw, hx, bump = (lambda n: ("sw", n)), (lambda h: ("helix", h)), ("bumper", None)
@@ -64,7 +69,7 @@ class Pure(unittest.TestCase):
                          ["Track 101-105 2", "Track 101-105 1", "Track 113 Spur", "Track 107 Loop", "Track 135-H1"])
 
     def test_nodes_pack_lcos_ids_and_overflow_in_area_order(self):
-        nodes = BD.Nodes([dict(level="2", area="West", node="33"), dict(level="2", area="West", node="43")])
+        nodes = BD.Nodes([R.LcosNode(0, 2, "West", 33), R.LcosNode(0, 2, "West", 43)])
         n = nodes.pick(2, "West", "turnout", 8)
         self.assertEqual(n, 33)
         self.assertEqual([nodes.take(n, "turnout")[1] for _ in range(8)][::7], [3308, 3315])
@@ -81,8 +86,8 @@ class Output(unittest.TestCase):
 
     def test_every_switch_has_a_turnout_two_feedbacks_and_an_os_block(self):
         have = rows()
-        cp_sw = [s for cp in BD.load_cps() for s in cp["switches"]]
-        local = [row["switch"] for row in BD.read_csv(BD.LOCAL)]
+        cp_sw = [s for c in BD.load_cps() for s in c.switches]
+        local = [row.switch for row in R.read_local_switches(BD.LOCAL)]
         dx = {"225"}                            # the double crossover: an OS block and a detector per corner
         for s in cp_sw + local:
             os = [f"{s}{c}" for c in "abcd"] if s in dx else [s]
@@ -235,7 +240,7 @@ class Output(unittest.TestCase):
                 BD.block_sensor(bad)
 
     def test_check_virtual_stops_on_a_block_without_occupancy_or_a_name_twice(self):
-        row = lambda layer, user, jmri="": dict(layer=layer, user_name=user, jmri_name=jmri)
+        row = lambda layer, user, jmri="": dict(level=2, layer=layer, user_name=user, jmri_name=jmri)
         ok = [row("block", "Track 1-3"), row("occupancy", "BS 1-3", "IS:HART:C3:B:1-3")]
         BD.check_virtual(ok)
         with self.assertRaisesRegex(BD.MapError, "blocks and occupancy rows differ"):
@@ -255,7 +260,7 @@ class Output(unittest.TestCase):
 
     def test_overrides_match_the_control_point_file(self):
         over = json.loads(BD.OVERRIDES.read_text())
-        names = [cp["cp_name"] for cp in BD.load_cps()]
+        names = [c.cp_name for c in BD.load_cps()]
         self.assertEqual(list(over["control_points"]), names)
         self.assertEqual({k: v["switches"] for k, v in over["stations"].items()},
                          {k: v["switches"] for k, v in over["control_points"].items()})
