@@ -87,7 +87,7 @@
         <table class="roster jm-lamps jm-wrap">
           <thead><tr><th>In the profile</th><th>What it is</th></tr></thead>
           <tbody>
-            <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the status lamps. PanelPro loads it at startup. <a href="tables-file.html">More on the tables file</a>.</td></tr>
+            <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the status lamps. PanelPro loads it at startup. The main and upper levels have no reviewed field wiring yet, so they run on internal turnouts, block sensors and signal heads, each named after its switch, block or mast (block 101-103's sensor is <code>IS:HART:C3:B:101-103</code>). The block sensors are set clear when the tables load. A file in the repository, the device map, links each one to its planned field device, so a real device goes in by changing the map. <a href="tables-file.html">More on the tables file</a>.</td></tr>
             <tr><td><code>jython/</code></td><td>The six scripts above.</td></tr>
             <tr><td>Start Up entries</td><td>Kept in the profile, so JMRI loads the tables and runs the scripts at launch. Deploy repoints the script entries and adds the two for the traffic simulator and the mimic.</td></tr>
             <tr><td><code>resources/buttons/</code></td><td>Button images: the 16-pixel triangle lamps of the retired yard-ladder buttons, and lamps used by the parked lever machine.</td></tr>
