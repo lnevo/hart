@@ -941,26 +941,25 @@ function startSIG(sys){
   const ahead=R()<.6,f=rnd(0,2); // a train ahead from leg f: the signals step down, then clear as it moves on
   const meet=R()<.5;              // at Granite: lined into the siding for a meet, or held at the home signal
   const meets=new Set();          // stations where the train takes the siding for an opposing train
-  /* An ordinary leg in block signal territory: one of a few block-signal stories, drawn per run, never the same
-     story on two legs in a row, so the line is not all Clear. */
-  let lastStory=-1;
-  const ordinary=(i,w)=>{
-    const next="The next block signal shows this aspect.",after="The signal after it shows this aspect.";
-    const stories=sp?[
-      ()=>[sig("281","",w,next)],
-      ()=>[sig("282A","",w,next),sig("285","",w,after)],
-      ()=>[sig("285","",w,next),sig("291","",w,"The signal after it, marked as a Stop and proceed signal, shows this aspect.")],
-      ()=>[sig("286","",w,next),sig("291","",w,"The signal after it, marked as a Stop and proceed signal, shows this aspect.")],
-      ()=>[sig("290","",w,next)]
-    ]:[
-      ()=>[sig("clear","",w,next)],
-      ()=>[sig("approach","",w,next),sig("clear","",w,after)],
-      ()=>[sig("approach","",w,next),sig("stop","num",w,"The signal after it, with a number plate, shows this aspect."),plateAsk(sys,"num",w,"R")],
-      ...(ST[i+1].sd&&i+1<LAST?[()=>{meets.add(i+1);return [sig("dapproach","",w,next),sig("dclear","",w,`The signal at the ${ST[i+1].n} siding switch, lined into the siding, shows this aspect.`)]}]:[])
-    ];
-    let k=Math.floor(R()*stories.length);if(k===lastStory)k=(k+1)%stories.length;
-    lastStory=k;return stories[k]();
+  // The stories come from their own seeded stream, so the other draws of today's run stay as they were.
+  const RS=S.daily?seeded("extra-west|"+S.daily+"|"+S.era+"|stories"):Math.random;
+  /* Ordinary legs in block signal territory draw one of these stories (pickStories in signals.js); the set pieces
+     (a train ahead, the P and G plates, Granite, CP Hollis, Hollis) keep theirs, keyed the same way. */
+  const leadNext="The next block signal shows this aspect.",leadAfter="The signal after it shows this aspect.";
+  const STORY=sp?{
+    clear:(i,w)=>[sig("281","",w,leadNext)],
+    ahead2:(i,w)=>[sig("282A","",w,leadNext),sig("285","",w,leadAfter)],
+    ahead1:(i,w)=>[sig("285","",w,leadNext),sig("291","",w,"The signal after it, marked as a Stop and proceed signal, shows this aspect.")],
+    restrict:(i,w)=>[sig("290","",w,leadNext)]
+  }:{
+    clear:(i,w)=>[sig("clear","",w,leadNext)],
+    approach:(i,w)=>[sig("approach","",w,leadNext),sig("clear","",w,leadAfter)],
+    stopnum:(i,w)=>[sig("approach","",w,leadNext),sig("stop","num",w,"The signal after it, with a number plate, shows this aspect."),plateAsk(sys,"num",w,"R")],
+    meet:(i,w)=>{meets.add(i+1);return [sig("dapproach","",w,leadNext),sig("dclear","",w,`The signal at the ${ST[i+1].n} siding switch, lined into the siding, shows this aspect.`)]}
   };
+  const fixedKey=i=>ahead&&i===f?(sp?"ahead2":"clear"):ahead&&i===f+1?(sp?"ahead1":"stopnum"):i===4?"pplate":i===5?"granite":i===6&&!sp?"cp":i===7&&sp?"restrict":null;
+  const stories=pickStories([...Array(LAST)].map((_,i)=>fixedKey(i)),
+    i=>Object.keys(STORY).filter(k=>k!=="meet"||(!meet&&ST[i+1].sd&&i+1<LAST)),["meet"],RS);
   const legEv=[];
   for(let i=0;i<LAST;i++)legEv[i]=[];
   for(let i=0;i<LAST;i++){
@@ -991,7 +990,7 @@ function startSIG(sys){
       legEv[i].push(sig("dclear","",w,"The control operator lines you onto Main 1 and the signal shows this aspect."));
     }
     else if(i===7&&sp)legEv[i].push(sig("290","",w,"Entering double track at Hollis behind the Ironton local, the home signal shows this aspect."));
-    else legEv[i].push(...ordinary(i,w));
+    else legEv[i].push(...STORY[stories[i]](i,w));
   }
   // fixed questions from the deck
   if(sp){
@@ -1011,7 +1010,9 @@ function startSIG(sys){
     push(legSIG(i,i+1,legEv[i]));
     if(meets.has(i+1)){const at=ST[i+1].n;
       push(()=>{S.inSiding=true;addTime(8);S.parAdd+=8;log("In the "+at+" siding for the meet");renderMap();next()},
-        info(at,"The meet at "+at,`<p>${sp?"Extra 812 East":"KV 812 East"} waits in the ${at} siding while ${sp?"Extra 530 West":"KV 530 West"} passes on the main.${at==="Granite"?` The ${sp?"operator":"interlocking operator"} lines you back out onto the main.`:""}</p>`));}
+        info(at,"The meet at "+at,`<p>${sp?"Extra 812 East":"KV 812 East"} waits in the ${at} siding while ${sp?"Extra 530 West":"KV 530 West"} passes on the main.${at==="Granite"?` The ${sp?"operator":"interlocking operator"} lines you back out onto the main.`:""}</p>`));
+      // out of a siding other than Granite, the signal at the far switch lines the train back onto the main
+      if(at!=="Granite")push(sig("dclear","",at,`Leaving the ${at} siding, the signal at the far switch shows this aspect.`));}
   }
   push(()=>{S.par=S.start+S.tt.leg.reduce((a,b)=>a+b,0)+S.parAdd;finish((sp?"Extra 812 East":"KV 812 East")+" is in at Ironton at "+fmt(S.clock)+".",false)});
   next();
