@@ -1,5 +1,5 @@
-block_sensors.csv=57
-cats_bindings.csv=68
+block_sensors.csv=182
+cats_bindings.csv=207
 ctc_sidi.csv=20
 ctc_trl.csv=40
 hardware_identity.csv=423

@@ -28,6 +28,39 @@ if "dispatcher" in PARKED:
     SECTIONS = 0
     TRANSITS = 0
 
+# The main and upper blocks (internal IB:C3: blocks, build_layout_le.add_level_objects) and their virtual occupancy
+# sensors (add_level_sensors), which the LogixNG "Main and upper block sensors clear on start" sets INACTIVE when the
+# tables load (owner, 2026-11-17). The prefixes are hartlib.level_devices' (Jython cannot import hartlib;
+# tools/hosts/tests/test_panelpro_wrappers.py checks they agree).
+LEVEL_BLOCK_PREFIX = "IB:C3:"
+LEVEL_SENSOR_PREFIX = "IS:HART:C3:B:"
+
+
+def level_sensors(sensor_manager):
+    return [s for s in sensor_manager.getNamedBeanSet() if s.getSystemName().startswith(LEVEL_SENSOR_PREFIX)]
+
+
+def level_block_errors(block_manager, sensor_manager):
+    """What waiting cannot fix: no virtual block sensor at all, or a main or upper block with no virtual sensor."""
+    out = []
+    if not level_sensors(sensor_manager):
+        out.append("no main and upper virtual block sensor (%s*)" % LEVEL_SENSOR_PREFIX)
+    blocks = [b for b in block_manager.getNamedBeanSet() if b.getSystemName().startswith(LEVEL_BLOCK_PREFIX)]
+    if not blocks:
+        out.append("no main and upper block (%s*)" % LEVEL_BLOCK_PREFIX)
+    bad = sorted(b.getDisplayName() for b in blocks
+                 if b.getSensor() is None or not b.getSensor().getSystemName().startswith(LEVEL_SENSOR_PREFIX))
+    if bad:
+        out.append("main and upper blocks with no virtual occupancy sensor: %s" % ", ".join(bad))
+    return out
+
+
+def level_uncleared(sensor_manager):
+    """The main and upper virtual block sensors not INACTIVE (the LogixNG has not set them, or it did not run)."""
+    return sorted(s.getSystemName() for s in level_sensors(sensor_manager)
+                  if s.getKnownState() != jmri.Sensor.INACTIVE)
+
+
 STATIONS = (
     u"Track K-1",
     u"Track K-2",
@@ -84,6 +117,7 @@ def parked_errors():
 
 class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
     def handle(self):
+        self.level_line = "main and upper block sensors not checked"
         marker = os.environ.get(
             "HART_PANELPRO_SMOKE_MARKER", "/tmp/hart_panelpro_smoke.done"
         )
@@ -138,6 +172,17 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                     "transits=%s expected=%s" % (bean_count(transit_manager), TRANSITS)
                 )
             errors.extend(parked_errors())
+            block_manager = jmri.InstanceManager.getDefault(jmri.BlockManager)
+            errors.extend(level_block_errors(block_manager, sensor_manager))
+            # the LogixNG runs on its own thread after load, and each sensor it sets updates the blocks and
+            # masts: wait for it (and only for it) a while past the deadline
+            while level_uncleared(sensor_manager) and time.time() < deadline + 60:
+                self.waitMsec(1000)
+            left = level_uncleared(sensor_manager)
+            if left:
+                errors.append("main and upper block sensors not clear after load (%s of %s): %s"
+                              % (len(left), len(level_sensors(sensor_manager)), ", ".join(left)))
+            self.level_line = "%s main and upper block sensors clear" % len(level_sensors(sensor_manager))
             if "dispatcher" in PARKED:
                 raise _Done()
 
@@ -219,14 +264,14 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                 handle.write("ok\n")
                 if "dispatcher" in PARKED:
                     handle.write(
-                        "%s masts; parked %s: no section, transit, Dispatcher sensor "
-                        "or parked window\n" % (MASTS, " ".join(sorted(PARKED)))
+                        "%s masts; %s; parked %s: no section, transit, Dispatcher sensor or parked window\n"
+                        % (MASTS, self.level_line, " ".join(sorted(PARKED)))
                     )
                 else:
                     handle.write(
-                        "%s masts; 24 station sensors; %s sections; %s transits; "
+                        "%s masts; %s; 24 station sensors; %s sections; %s transits; "
                         "%s ordered TrainInfo routes\n"
-                        % (MASTS, SECTIONS, TRANSITS, TRAININFO)
+                        % (MASTS, self.level_line, SECTIONS, TRANSITS, TRAININFO)
                     )
         finally:
             handle.close()

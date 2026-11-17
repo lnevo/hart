@@ -243,7 +243,9 @@ def device():
                 "Track 101-111": {"level": 2, "trial": {"Track e24"}},
                 "Track 101-103": {"level": 2, "trial": {"Track e28"}},
                 "Track 135-H1": {"level": 2, "trial": {"Track e34", "Track e35"}}},
-        sensors={"BS Switch 101": "M2S3300", "BS 101-111": "M2S3306"})
+        sensors={"BS Switch 101": "IS:HART:C3:B:OS101", "BS Switch 103": "IS:HART:C3:B:OS103",
+                 "BS 101-111": "IS:HART:C3:B:101-111"},
+        planned={"BS Switch 101": "M2S3300", "BS 101-111": "M2S3306"})
 
 
 def dark_bands():
@@ -278,21 +280,30 @@ class MainAndUpper(unittest.TestCase):
         f = facts(device=device())          # e77 joins 101A and 101B and is in no device map row
         self.assertEqual(B.device_name(dark_bands(), StubCats, [("track", "b1:e77")], f, []), "OS Switch 101")
 
-    def test_planned_detectors(self):
+    def test_virtual_and_planned_detectors(self):
         f = facts(device=device())
+        self.assertEqual(B.virtual_sensor("OS Switch 101", f)["occupied"],
+                         {"DECADDR": ":HART:C3:B:OS101", "JMRIPREFIX": "IS", "USER_NAME": "BS Switch 101",
+                          "command": "close"})
+        self.assertEqual(B.virtual_sensor("Track 101-111", f)["unoccupied"],
+                         {"DECADDR": ":HART:C3:B:101-111", "JMRIPREFIX": "IS", "command": "throw"})
         self.assertEqual(B.planned_sensor("OS Switch 101", f)["occupied"],
                          {"DECADDR": "3300", "JMRIPREFIX": "M2S", "USER_NAME": "BS Switch 101", "command": "close"})
         self.assertEqual(B.planned_sensor("Track 101-111", f)["unoccupied"],
                          {"DECADDR": "3306", "JMRIPREFIX": "M2S", "command": "throw"})
+        self.assertIsNotNone(B.virtual_sensor("OS Switch 103", f))      # a virtual sensor, no detector planned
         self.assertIsNone(B.planned_sensor("OS Switch 103", f))
+        self.assertIsNone(B.virtual_sensor("OS Switch 225", f))         # not a device map block
 
     def test_the_device_map_reads_blocks_and_detectors(self):
         dm = B.load_device_map()
-        self.assertEqual(len(dm.sensors), 39)
-        virtual = sorted(k for k, v in dm.sensors.items() if not v.startswith("M2S"))
-        # Loop 2 and 225's corners b to d wait for wiring: internal sensors until then (owner, 2026-11-16)
-        self.assertEqual(virtual, ["BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"])
-        self.assertTrue(all(dm.sensors[k].startswith("IS:HART:C3:") for k in virtual))
+        self.assertEqual(set(dm.sensors), {B.bdm.occupancy_user(b) for b in dm.blocks})   # one per block
+        self.assertEqual(len(dm.sensors), 125)
+        self.assertTrue(all(dm.sensors[B.bdm.occupancy_user(b)] == B.bdm.block_sensor(b) for b in dm.blocks))
+        self.assertEqual(len(dm.planned), 35)
+        self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))
+        # Loop 2 and 225's corners b to d wait for wiring: a virtual sensor and no planned detector (owner, 2026-11-16)
+        self.assertFalse({"BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"} & set(dm.planned))
         self.assertEqual(dm.blocks["Track 107-109"]["trial"], {"Track e19"})
 
     def test_a_block_missing_from_the_desk_is_checked_on_the_drawing(self):
@@ -332,19 +343,42 @@ class MainAndUpper(unittest.TestCase):
         225 is a desk block per corner on its corner's detector, as in the Layout Editor (owner, 2026-11-17), and the
         middle of its X, OS Switch 225, has no detector."""
         got = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
-        loop = {e["name"]: e["_planned_occupied"] for e in got["blocks"].values() if "107 Loop" in e.get("name", "")}
-        self.assertEqual({k: (v["JMRIPREFIX"], v["USER_NAME"]) for k, v in loop.items()},
-                         {"Track 107 Loop 1": ("M2S", "BS 107 Loop 1"), "Track 107 Loop 2": ("IS", "BS 107 Loop 2")})
+        loop = {e["name"]: e for e in got["blocks"].values() if "107 Loop" in e.get("name", "")}
+        self.assertEqual({k: (v["occupied"]["JMRIPREFIX"] + v["occupied"]["DECADDR"], v["occupied"]["USER_NAME"],
+                              v.get("_planned_occupied", {}).get("JMRIPREFIX")) for k, v in loop.items()},
+                         {"Track 107 Loop 1": ("IS:HART:C3:B:107_Loop_1", "BS 107 Loop 1", "M2S"),
+                          "Track 107 Loop 2": ("IS:HART:C3:B:107_Loop_2", "BS 107 Loop 2", None)})
         x225 = {e.get("name", k): e for k, e in got["blocks"].items() if e.get("name", k).startswith("OS Switch 225")}
-        self.assertEqual({k: e.get("_planned_occupied", {}).get("USER_NAME") for k, e in x225.items()},
+        self.assertEqual({k: e.get("occupied", {}).get("USER_NAME") for k, e in x225.items()},
                          {"OS Switch 225": None, **{f"OS Switch 225{c}": f"BS Switch 225{c}" for c in "abcd"}})
+        self.assertEqual({k: "_planned_occupied" in e for k, e in x225.items()},
+                         {"OS Switch 225": False, "OS Switch 225a": True,
+                          **{f"OS Switch 225{c}": False for c in "bcd"}})
         self.assertFalse([k for k in got["_main_upper_not_on_desk"] if k.startswith("OS Switch 225")])
 
-    def test_main_and_upper_are_ctc_and_not_detected_yet(self):
-        # CTC: CATS holds their signals and releases them; detection comes with the into-service work (owner, 2026-11-17)
+    def test_main_and_upper_are_ctc(self):
+        # CTC: CATS holds their signals and releases them (owner, 2026-11-17)
         self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "CTC")
-        self.assertFalse(B.DETECT_MAIN_UPPER)
         self.assertEqual(B.HELIX_BLOCKS, "apart")
+
+    def test_every_main_and_upper_desk_block_reports_its_virtual_sensor(self):
+        """Every desk block of main and upper is bound to its block's virtual sensor, which tables.xml holds under
+        that name; only the middle of 225's X, a desk-only block, stays dark (owner, 2026-11-17)."""
+        got = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
+        dm = B.load_device_map()
+        T = B.tables
+        sensors = {T.user_name(s): T.system_name(s) for s in T.sensors(T.read(B.paths.TABLES_XML))}
+        level = {e.get("name", k): e for k, e in got["blocks"].items()
+                 if e.get("name", k) in dm.blocks or e.get("name", k) == "OS Switch 225"}
+        self.assertGreater(len(level), 100)
+        for name, e in sorted(level.items()):
+            with self.subTest(block=name):
+                if name == "OS Switch 225":
+                    self.assertNotIn("occupied", e)
+                    continue
+                occ = e["occupied"]
+                self.assertEqual(occ["JMRIPREFIX"] + occ["DECADDR"], B.bdm.block_sensor(name))
+                self.assertEqual(sensors.get(occ["USER_NAME"]), B.bdm.block_sensor(name))
 
 
 def level_band():
@@ -378,15 +412,16 @@ def level_facts(**kw):
     f.templates = {"Mast 2L": "double", "Mast 4RA": "single"}
     f.mast_system = {"Mast 2L": "IF$shsm:basic:two-searchlight(IH438)(IH439)",
                      "Mast 4RA": "IF$shsm:basic:one-low(IH436)",
-                     "Mast 108LA": "IF$shsm:basic:one-low(IH93332)",
-                     "Mast 108LB": "IF$shsm:basic:one-low(IH93333)",
-                     "Mast 108R": "IF$shsm:basic:two-searchlight(IH93334)(IH93335)"}
+                     "Mast 108LA": "IF$shsm:basic:one-low(IH:HART:C3:108LA)",
+                     "Mast 108LB": "IF$shsm:basic:one-low(IH:HART:C3:108LB)",
+                     "Mast 108R": "IF$shsm:basic:two-searchlight(IH:HART:C3:108R_Top)(IH:HART:C3:108R_Bottom)"}
     row = lambda mast, facing, system, heads: {"mast": mast, "switch": "107", "facing": facing,
                                                "protects": "OS Switch 107", "system_name": system,
                                                "heads": [(h, h) for h in heads]}
-    f.level_masts = [row("Mast 108LA", "Track 107 Loop 1", f.mast_system["Mast 108LA"], ["IH93332"]),
-                     row("Mast 108LB", "Track 107 Loop 2", f.mast_system["Mast 108LB"], ["IH93333"]),
-                     row("Mast 108R", "Track 107-109", f.mast_system["Mast 108R"], ["IH93334", "IH93335"])]
+    f.level_masts = [row("Mast 108LA", "Track 107 Loop 1", f.mast_system["Mast 108LA"], ["IH:HART:C3:108LA"]),
+                     row("Mast 108LB", "Track 107 Loop 2", f.mast_system["Mast 108LB"], ["IH:HART:C3:108LB"]),
+                     row("Mast 108R", "Track 107-109", f.mast_system["Mast 108R"], ["IH:HART:C3:108R_Top",
+                                                                                   "IH:HART:C3:108R_Bottom"])]
     for k, v in kw.items():
         setattr(f, k, v)
     return f
@@ -544,7 +579,25 @@ class CommittedMainAndUpper(unittest.TestCase):
         for name in ("Track 135-H1", "Track 135-H2"):
             with self.subTest(block=name):
                 self.assertEqual(level[name]["_planned_occupied"]["USER_NAME"], "BS " + name.removeprefix("Track "))
+                self.assertEqual(level[name]["occupied"]["USER_NAME"], "BS " + name.removeprefix("Track "))
                 self.assertNotIn(name, self.bound["_main_upper_not_on_desk"])
+
+
+class LevelSensorsFromTheDeviceMap(unittest.TestCase):
+    def test_the_bindings_need_no_level_sensor_in_tables_xml(self):
+        """make panels builds the desks before build_layout_le.py adds a new block's sensor to the tables, so the
+        desk binds each main and upper block from the device map alone (check_layout_facts.py checks it against
+        tables.xml afterwards): the bindings are the same with no main or upper sensor in the tables."""
+        import contextlib
+        import io
+        cats = plugin_cats()
+        bands = B.name_loop_halves(B.pd.solved_sheet(B.plugin_modules(B.pd.plugin())[1]).bands)
+        F = B.load_facts()
+        B.level_signals(bands, F, B.bound_index(bands))
+        F.sensors = {u: sn for u, sn in F.sensors.items() if not B.level_devices.is_block_sensor(sn)}
+        with contextlib.redirect_stdout(io.StringIO()):
+            got = B.bindings(bands, cats, F)
+        self.assertEqual(json.dumps(got, indent=1, sort_keys=True) + "\n", B.BINDINGS.read_text(encoding="utf-8"))
 
 
 def plugin_cats():

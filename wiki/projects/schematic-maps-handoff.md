@@ -240,7 +240,7 @@ The owner reviewed the release candidate in a sandbox PanelPro and in sandbox CA
 
 Left after release:
 - Three upper-level labels have no clean spot: Track 231-235, Track 129-135 2 and the 227-233 readout.
-- Main/upper detection comes with the into-service work (`DETECT_MAIN_UPPER`).
+- Main/upper detection comes with the into-service work. Since 2026-11-17 every main/upper block has a virtual sensor (`IS:HART:C3:B:<block>`) bound in the tables and on the desks, and `DETECT_MAIN_UPPER` is retired: a physical detector is swapped in through the device map's `jmri_name` column.
 - Switch 225 is one block on the CATS desk. (Done the same day, below.)
 - Unparking NX, the Dispatcher System and USS CTC means refreshing `parked/tables_parked.xml` (its README).
 

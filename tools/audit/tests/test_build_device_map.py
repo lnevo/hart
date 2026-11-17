@@ -89,8 +89,7 @@ class Output(unittest.TestCase):
             kinds = sorted(x["layer"] for x in have if x["user_name"] in
                            [f"Switch {s}", f"DCC Switch {s}", f"FB Switch {s} N", f"FB Switch {s} R"]
                            + [f"OS Switch {o}" for o in os] + [f"BS Switch {o}" for o in os])
-            want = sorted(["block"] * len(os) + ["fb", "fb"] + (["occupancy"] * len(os) if s in cp_sw else [])
-                          + ["turnout", "turnout"])
+            want = sorted(["block"] * len(os) + ["fb", "fb"] + ["occupancy"] * len(os) + ["turnout", "turnout"])
             self.assertEqual(kinds, want, s)
 
     def test_dcc_continues_from_120_in_switch_order(self):
@@ -102,21 +101,19 @@ class Output(unittest.TestCase):
         self.assertEqual(aliases["DCC Switch 101"], "MTT120")
 
     def test_detection_only_on_the_main_line(self):
+        occ = {y["user_name"]: y for y in rows() if y["layer"] == "occupancy"}
         for x in rows():
             if x["layer"] == "block" and "off the main line" in x["notes"]:
                 bs = "BS " + x["user_name"].removeprefix("Track ").removeprefix("OS ")
-                self.assertFalse(any(y["user_name"] == bs and y["layer"] == "occupancy" for y in rows()), bs)
+                # a virtual sensor, but no detector planned: dark until decided
+                self.assertEqual((occ[bs]["system_name"], occ[bs]["node"], occ[bs]["notes"]), ("", "", BD.NO_DETECTOR))
 
     def test_system_names_unique_and_in_lcos_bands(self):
         seen = set()
         for x in rows():
             if not x["system_name"] or x["layer"] == "mast":
                 continue
-            if x["system_name"].startswith(BD.VIRTUAL_SENSOR):            # a virtual detector: no LCOS id
-                self.assertEqual((x["layer"], x["node"], x["comment"]), ("occupancy", "", BD.VIRTUAL_NOTE))
-                self.assertNotIn(x["system_name"], seen)
-                seen.add(x["system_name"])
-                continue
+            self.assertFalse(x["system_name"].startswith(("IS", "IT", "IH:")), x["user_name"])  # physical only
             self.assertNotIn(x["system_name"], seen)
             seen.add(x["system_name"])
             uid = int(x["system_name"][3:] if x["layer"] != "head" else x["system_name"][2:]) % 100
@@ -173,7 +170,7 @@ class Output(unittest.TestCase):
     def test_the_balloon_loop_is_two_blocks_and_loop_1_keeps_its_detector(self):
         """Two masts facing one loop block into one OS block would be one mast to JMRI (LayoutBlockManager.
         getFacingBean returns one per block pair), so the loop is two blocks, parted halfway (owner, 2026-11-16).
-        Loop 1 keeps the loop's detector (node 33 block 6); Loop 2's is virtual, so no node or input moved."""
+        Loop 1 keeps the loop's detector (node 33 block 6); Loop 2's is not on a node yet, so no node or input moved."""
         have = {(x["layer"], x["user_name"]): x for x in rows()}
         self.assertNotIn(("block", "Track 107 Loop"), have)
         for half, leg in ((1, "B"), (2, "C")):
@@ -181,7 +178,9 @@ class Output(unittest.TestCase):
             self.assertEqual(block["trial_name"], f"Track e33 {half}")
             self.assertTrue(block["notes"].startswith(f"388.5 cm, half of the balloon loop from leg {leg}"))
         self.assertEqual(have[("occupancy", "BS 107 Loop 1")]["system_name"], "M2S3305")
-        self.assertTrue(have[("occupancy", "BS 107 Loop 2")]["system_name"].startswith(BD.VIRTUAL_SENSOR))
+        loop2 = have[("occupancy", "BS 107 Loop 2")]
+        self.assertEqual((loop2["system_name"], loop2["node"], loop2["notes"]), ("", "", BD.NOT_WIRED))
+        self.assertEqual(loop2["jmri_name"], "IS:HART:C3:B:107_Loop_2")
 
     def test_a_double_crossover_is_a_block_per_corner(self):
         """With one OS block, or two, JMRI 5.16 records a through path between the two legs on one side of a
@@ -192,9 +191,57 @@ class Output(unittest.TestCase):
         self.assertNotIn(("block", "OS Switch 225"), have)
         self.assertEqual(have[("occupancy", "BS Switch 225a")]["system_name"], "M2S2100")
         for c in "bcd":
-            self.assertTrue(have[("occupancy", f"BS Switch 225{c}")]["system_name"].startswith(BD.VIRTUAL_SENSOR))
+            corner = have[("occupancy", f"BS Switch 225{c}")]
+            self.assertEqual((corner["system_name"], corner["notes"]), ("", BD.NOT_WIRED))
+            self.assertEqual(corner["jmri_name"], f"IS:HART:C3:B:OS225{c}")
         self.assertEqual(have[("mast", "Mast 226RA")]["notes"], "home signal from Track 223-225 1 into OS Switch 225a")
         self.assertEqual(have[("mast", "Mast 226RB")]["notes"], "home signal from Track 223-225 2 into OS Switch 225d")
+
+    def test_every_device_has_a_virtual_name_from_its_own_name(self):
+        """jmri_name (the JMRI device the panels use) of every turnout, occupancy, head and mast row comes from the
+        row's user name alone, never from its draft physical name or the order rows are drawn or numbered in: moving or
+        inserting a block or switch elsewhere changes no other device's virtual name (owner, 2026-11-17)."""
+        from hartlib import level_masts
+        have = rows()
+        blocks = [x["user_name"] for x in have if x["layer"] == "block"]
+        occ = {x["user_name"]: x["jmri_name"] for x in have if x["layer"] == "occupancy"}
+        self.assertEqual(occ, {BD.occupancy_user(b): BD.block_sensor(b) for b in blocks})     # one per block
+        heads = {x["system_name"]: x["jmri_name"] for x in have if x["layer"] == "head"}
+        for x in have:
+            with self.subTest(row=x["user_name"]):
+                if x["layer"] == "turnout":
+                    self.assertEqual(x["jmri_name"], "IT:HART:C3:" + x["user_name"].rpartition(" ")[2])
+                elif x["layer"] == "head":
+                    self.assertEqual(x["jmri_name"], level_masts.head_name(x["user_name"]))
+                elif x["layer"] == "mast":
+                    self.assertTrue(level_masts.is_level_mast(x["jmri_name"]))
+                    self.assertEqual(level_masts.mast_heads(x["jmri_name"]),
+                                     [heads[h] for h in level_masts.mast_heads(x["system_name"])])
+                elif x["layer"] in ("fb", "block"):
+                    self.assertEqual(x["jmri_name"], "")
+                if x["layer"] != "fb" and x["layer"] != "block":
+                    self.assertTrue(x["jmri_name"])
+        self.assertEqual(len(set(occ.values())), len(occ))
+
+    def test_virtual_names(self):
+        self.assertEqual([BD.block_sensor(b) for b in ("Track 107-109", "Track 107 Loop 2", "OS Switch 225b",
+                                                       "Track 135-H1", "Track 101 Spur 1")],
+                         ["IS:HART:C3:B:107-109", "IS:HART:C3:B:107_Loop_2", "IS:HART:C3:B:OS225b",
+                          "IS:HART:C3:B:135-H1", "IS:HART:C3:B:101_Spur_1"])
+        self.assertEqual([BD.occupancy_user(b) for b in ("Track 107 Loop 2", "OS Switch 225b")],
+                         ["BS 107 Loop 2", "BS Switch 225b"])
+        for bad in ("Track 1/2", "Track ", "Yard"):
+            with self.assertRaises(BD.MapError):
+                BD.block_sensor(bad)
+
+    def test_check_virtual_stops_on_a_block_without_occupancy_or_a_name_twice(self):
+        row = lambda layer, user, jmri="": dict(layer=layer, user_name=user, jmri_name=jmri)
+        ok = [row("block", "Track 1-3"), row("occupancy", "BS 1-3", "IS:HART:C3:B:1-3")]
+        BD.check_virtual(ok)
+        with self.assertRaisesRegex(BD.MapError, "blocks and occupancy rows differ"):
+            BD.check_virtual(ok + [row("block", "Track 3-5")])
+        with self.assertRaisesRegex(BD.MapError, "given twice"):
+            BD.check_virtual(ok + [row("block", "Track 3-5"), row("occupancy", "BS 3-5", "IS:HART:C3:B:1-3")])
 
     def test_corner_blocks_need_one_corner_per_leg(self):
         self.assertEqual(BD.xover_corners("7", {"A": "C", "B": "D", "C": "A", "D": "B"}),

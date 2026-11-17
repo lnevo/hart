@@ -26,9 +26,23 @@ Outputs:
   band, so a crossover whose halves sit on two bands (129, 135) lists the half on the control point's level. The
   bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
   markers (draft, 2026-11-15; labels are placed before the page is scaled).
-- device_map_main_upper.csv: the names each switch, track and home signal would take under ADR-005, with LCOS
-  system names. Placeholders: nothing in tables.xml uses them yet, and the names change when the owner names
-  the levels.
+- device_map_main_upper.csv: the one mapping from each main and upper JMRI device to its planned physical part. Per
+  row: the user name under ADR-005; jmri_name, the virtual device tables.xml and the CATS desks use now; system_name,
+  the planned physical device (LCOS, a DRAFT: the main and upper plant is not reviewed yet, owner 2026-11-17). Later
+  a physical device is swapped in by this mapping alone, so no JMRI name ever comes from a draft address or from
+  drawing order. Placeholder user names change when the owner names the levels.
+
+Virtual names (owner, 2026-11-17), from each device's stable identity:
+- Turnout "Switch <n>" (and its LCC alias "DCC Switch <n>"): IT:HART:C3:<n>.
+- Every block has one occupancy row, its sensor IS:HART:C3:B:<block_key> (hartlib.level_devices: the block name with
+  "Track "
+  dropped, "OS Switch " shortened to "OS", spaces to "_": IS:HART:C3:B:107-109, IS:HART:C3:B:107_Loop_2,
+  IS:HART:C3:B:OS225b). Its system_name is the planned detector (M2S), or empty: NOT_WIRED for a detector planned
+  but not on a node yet, NO_DETECTOR for a block that has none planned (dark until decided).
+- Head "Head <mast>[ Top|Bottom]": hartlib.level_devices.head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top); mast
+  IF$shsm:basic:<type>(<head>)(<head>) over those heads.
+- Feedback rows have no JMRI device of their own (a turnout's feedback is DIRECT until the plant is wired), and
+  block rows none here: build_layout_le.py numbers their blocks.
 
 Naming rules (ADR-005 grammar, LCOS conventions):
 - Turnout "Switch <n>" (a crossover is one turnout), feedback "FB Switch <n> N|R", OS block "OS Switch <n>" (one per
@@ -37,19 +51,19 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   plugin's double_corners maps the schematic's legs to the corners): with one block, or
   two, JMRI 5.16 records a through path between the two legs on one side (LayoutBlock.addThroughPath keeps a pair
   whose turnout lists match both ways) and Signal Mast Logic discovery pairs masts across it (226RA to 224LB). Corner
-  a keeps the switch's detector; b to d are virtual (VIRTUAL_SENSOR) until wired. A mast at a double crossover
+  a keeps the switch's detector; b to d have none on a node until wired (NOT_WIRED). A mast at a double crossover
   protects its own leg's corner block ("home signal from Track X into OS Switch <n><corner>").
 - Track "Track <a>-<b>" from its end switches (numbers, H1 or H2 for a helix), "Track <n> Spur" to a bumper,
   "Track <n> Loop" back to the same switch; parallel tracks between the same ends take " 1", " 2" from the top row.
   A balloon loop is two blocks, "Track <n> Loop 1" from the switch's leg B and "Track <n> Loop 2" from leg C, parted
   at the turnback halfway round (owner, 2026-11-16): JMRI keys a mast by its facing and protected blocks
   (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
-  one of them out of Signal Mast Logic discovery. Loop 1 keeps the loop's detector; Loop 2's is virtual (an internal
-  VIRTUAL_SENSOR, numbered from 1) until it is wired, so no node or input assignment moves.
+  one of them out of Signal Mast Logic discovery. Loop 1 keeps the loop's detector; Loop 2's is not on a node until it is
+  wired (NOT_WIRED), so no node or input assignment moves.
   A track under SHORT_CM between two switches gets a block but no detector (it would sit inside their OS blocks).
 - Detection on the main line only (owner, 2026-11-15): main-route tracks and the OS blocks of control point
-  switches get an occupancy sensor; yard and industry tracks and the OS blocks of switches in no control point
-  get a block for the panels but no detector.
+  switches get a planned detector; yard and industry tracks and the OS blocks of switches in no control point
+  get none (their virtual sensor stays, NO_DETECTOR).
 - Home signals: one mast where each track from outside a control point meets one of its switches; none on spurs
   or yard tracks that end at a bumper. "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number
   and direction has two. A mast at the points has two heads (two-searchlight, Top and Bottom); one at a trailing
@@ -75,6 +89,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
+from hartlib import level_devices  # noqa: E402  the virtual names (block_sensor, occupancy_user, head_name)
 
 CPS = pd.DATA / "control_points_main_upper.csv"
 NODES = pd.DATA / "lcos_nodes_main_upper.csv"
@@ -87,12 +102,16 @@ SHORT_CM = 30.0
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
 MAX_OU = 4                            # DNOU8 boards per node: the most any node has in LCOS_Layout_Inventory_v85
 UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}
-COLUMNS = ["level", "cp", "layer", "user_name", "system_name", "node", "dcc", "comment", "trial_name", "notes"]
+COLUMNS = ["level", "cp", "layer", "user_name", "system_name", "jmri_name", "node", "dcc", "comment", "trial_name",
+           "notes"]
 DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
 TAU = {"A": -1, "B": 1, "C": 1, "D": -1}      # the plugin's leg sides (schematic.core.TAU)
 LOOP_HALF = {"B": 1, "C": 2}          # a balloon loop's half by the switch leg it leaves from (owner, 2026-11-16)
-VIRTUAL_SENSOR = "IS:HART:C3:"        # internal occupancy placeholders, numbered from 1: nothing reaches the field
-VIRTUAL_NOTE = "virtual: no detector wired yet (owner, 2026-11-16)"
+VIRTUAL_TURNOUT = level_devices.TURNOUT_PREFIX   # + switch number: the internal turnout the panels and desks use
+VIRTUAL_SENSOR = level_devices.SENSOR_PREFIX     # + block_key: the internal occupancy sensor of every block
+occupancy_user = level_devices.occupancy_user
+NOT_WIRED = "detector planned, not wired yet: no node or input (owner, 2026-11-16)"
+NO_DETECTOR = "no detector planned: dark until decided"
 
 
 class MapError(RuntimeError):
@@ -102,6 +121,15 @@ class MapError(RuntimeError):
 def base(label: str) -> str:
     """Switch number of a schematic label: "129A" -> "129", "223*" -> "223"."""
     return re.sub(r"[AB]$", "", (label or "").rstrip("*"))
+
+
+def block_sensor(block: str) -> str:
+    """The virtual occupancy sensor of a main or upper block (hartlib.level_devices.block_sensor); MapError on a
+    name that gives no clean key."""
+    try:
+        return level_devices.block_sensor(block)
+    except ValueError as exc:
+        raise MapError(str(exc)) from None
 
 
 def natural(name: str):
@@ -457,11 +485,15 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     nodes = Nodes(node_rows)
     rows = []
 
-    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc=""):
-        rows.append(dict(level=level, cp=cp, layer=layer, user_name=user, system_name=system,
+    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri=""):
+        rows.append(dict(level=level, cp=cp, layer=layer, user_name=user, system_name=system, jmri_name=jmri,
                          node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes))
 
-    virtual = 0                             # virtual detectors, numbered in the order they are added
+    def occupancy(level, cp, block, system="", node="", comment="", notes=""):
+        """The occupancy row of `block`: its virtual sensor (jmri_name) and the planned detector, if any."""
+        add(level, cp, "occupancy", occupancy_user(block), system, node, comment, notes=notes,
+            jmri=block_sensor(block))
+
     dcc = {s: DCC_FIRST + i for i, s in enumerate(sorted(set(cp_of) | set(loc), key=natural))}
     home, area_of = {}, {}                  # switch -> its turnout's node, its area
 
@@ -470,9 +502,9 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         home[s], area_of[s] = node, (lv, area)
         halves = sorted({lb for labels in by_level.values() for lb in labels if base(lb) == s}, key=natural)
         add(lv, name, "turnout", f"Switch {s}", f"M2T{packed}", node, f"Node: {node} Turnout: {k}",
-            ", ".join(f"Switch {lb}" for lb in halves), note, dcc[s])
+            ", ".join(f"Switch {lb}" for lb in halves), note, dcc[s], jmri=VIRTUAL_TURNOUT + s)
         add(lv, name, "turnout", f"DCC Switch {s}", f"MTT{dcc[s]}", node, f"Node: {node} Turnout: {k}",
-            notes="LCC alias of the MQTT turnout (ADR-005)", dcc=dcc[s])
+            notes="LCC alias of the MQTT turnout (ADR-005)", dcc=dcc[s], jmri=VIRTUAL_TURNOUT + s)
         for nr in "NR":
             fnode = nodes.pick(lv, area, "sensor", prefer=[node])
             kk, pp = nodes.take(fnode, "sensor")
@@ -480,30 +512,29 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
 
     def os_rows(lv, area, name, s, comment, detect=True):
         if s in dxs:                            # a double crossover: a block per corner, corner a detected
-            nonlocal virtual
             for block in sorted(corner_blocks[s].values()):
                 note = f"corner {block[-1].upper()} of the double crossover"
-                user = "BS " + block.removeprefix("OS ")
                 if not detect:
                     add(lv, name, "block", block, "", "", comment, block, note + ", no detector: off the main line")
-                elif not block.endswith("a"):             # wired later: a virtual sensor, no node or input
-                    virtual += 1
+                    occupancy(lv, name, block, notes=NO_DETECTOR)
+                elif not block.endswith("a"):             # wired later: no node or input yet
                     add(lv, name, "block", block, "", "", comment, block, note)
-                    add(lv, name, "occupancy", user, f"{VIRTUAL_SENSOR}{virtual}", "", VIRTUAL_NOTE)
+                    occupancy(lv, name, block, notes=NOT_WIRED)
                 else:                                     # corner a keeps the switch's detector
                     bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
                     k, packed = nodes.take(bnode, "block")
                     add(lv, name, "block", block, "", bnode, comment, block, note)
-                    add(lv, name, "occupancy", user, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
+                    occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
             return
+        block = f"OS Switch {s}"
         if not detect:
-            add(lv, name, "block", f"OS Switch {s}", "", "", comment, f"OS Switch {s}",
-                "no detector: off the main line")
+            add(lv, name, "block", block, "", "", comment, block, "no detector: off the main line")
+            occupancy(lv, name, block, notes=NO_DETECTOR)
             return
         bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
         k, packed = nodes.take(bnode, "block")
-        add(lv, name, "block", f"OS Switch {s}", "", bnode, comment, f"OS Switch {s}")
-        add(lv, name, "occupancy", f"BS Switch {s}", f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
+        add(lv, name, "block", block, "", bnode, comment, block)
+        occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
     for cp in cps:                               # turnouts first: a node's 12V boards come before its 5V boards
         node = nodes.pick(cp["level"], cp["area"], "turnout", len(cp["switches"]))
@@ -540,17 +571,16 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
                 ", ".join(loop_placeholder(x, half) for x in t["trial"]), note)
             if not detect:
+                occupancy(t["level"], cp, name, notes=NO_DETECTOR)
                 continue
-            user = "BS " + name.removeprefix("Track ")
-            if half and half > 1:                                 # wired later: a virtual sensor, no node or input
-                virtual += 1
-                add(t["level"], cp, "occupancy", user, f"{VIRTUAL_SENSOR}{virtual}", "", VIRTUAL_NOTE)
+            if half and half > 1:                                 # wired later: no node or input yet
+                occupancy(t["level"], cp, name, notes=NOT_WIRED)
                 continue
             sws.sort(key=lambda s: area_of[s][0] != t["level"])      # a node on the track's own level first
             lv, area = t["level"], area_of[sws[0]][1]                 # the track's level, its switch's area
             bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws if area_of[s][0] == lv])
             k, packed = nodes.take(bnode, "block")
-            add(t["level"], cp, "occupancy", user, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
+            occupancy(t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
     for cp in cps:                               # heads last, once every node's boards are known
         lv, area, name = cp["level"], cp["area"], cp["cp_name"]
@@ -561,16 +591,34 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                      for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
             kind = "two-searchlight" if m["heads"] == 2 else "one-low"
             sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
+            virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name} | Switch {m['switch']}",
-                notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""))
+                notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
+                jmri=virtual)
             for user, sysn, k, board, pin in heads:
                 add(lv, name, "head", user, sysn, hnode,
-                    f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}")
+                    f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
+                    jmri=level_devices.head_name(user))
     nodes.check_boards()
+    check_virtual(rows)
     order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}
     assign_ports(rows)
     rows.sort(key=lambda r: (r["level"], order[r["layer"]], natural(r["user_name"])))
     return cp_keys, rows
+
+
+def check_virtual(rows) -> None:
+    """Every block has exactly one occupancy row, and no two rows of one layer share a virtual name (but a turnout and
+    its LCC alias, which are one JMRI turnout)."""
+    blocks = [r["user_name"] for r in rows if r["layer"] == "block"]
+    occ = [r["user_name"] for r in rows if r["layer"] == "occupancy"]
+    if sorted(map(occupancy_user, blocks)) != sorted(occ):
+        raise MapError("blocks and occupancy rows differ: "
+                       f"{sorted(set(map(occupancy_user, blocks)) ^ set(occ))}")
+    for layer in ("occupancy", "head", "mast", "turnout"):
+        names = [r["jmri_name"] for r in rows if r["layer"] == layer and not r["user_name"].startswith("DCC ")]
+        if len(set(names)) != len(names) or not all(names):
+            raise MapError(f"{layer} rows: a virtual name is empty or given twice")
 
 
 PIN_RE = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)$")

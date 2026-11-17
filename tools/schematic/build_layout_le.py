@@ -29,9 +29,10 @@ unchanged: every bean, every other panel, every staging element, but the main an
 (the staging helix tracks run on to the main level, so their end bumpers become anchors and Masts 38RA and 40RA stand
 there, protecting Track 135-H2 and Track 135-H1). Main and upper take the device map's names (device_names; a
 crossover's two halves are one turnout, drawn as one single crossover on one level, or as two Layout Editor
-turnouts on one turnout for 129 and 135, whose halves stand on two levels), on internal system names; their track
+turnouts on one turnout for 129 and 135, whose halves stand on two levels), on internal system names, each block bound to its virtual occupancy sensor (the device map's jmri_name,
+IS:HART:C3:B:<block key>; level_sensors), which a LogixNG sets clear when the tables load (add_level_clear); their track
 names are the device map's block names without "Track ", one per block, left out where there is no room
-(names_last); one block contents icon per block at 12 px (staging keeps 13; LEVEL_LE_LABELS). No masts, sensors or icons for them.
+(names_last); one block contents icon per block at 12 px (staging keeps 13; LEVEL_LE_LABELS). No sensor icons for them.
 
 Parked features (owner, 2026-11-17; hartlib.parked, PARKED). After the staging guard the three-level candidate's
 Entry/Exit, Dispatcher System and USS CTC elements are left out (parked.split), so the candidate holds none of them;
@@ -83,7 +84,9 @@ Names:
 - Main and upper: the drawing's placeholders (turnouts "Switch <number>", blocks "Track <plan edge id>" and "OS
   Switch <number>", the track between the A and B halves of one number being that number's OS block) mapped to
   the device map's user names by its trial_name column, on internal IT:HART:C3: and IB:C3: system names, so nothing
-  commands field hardware. No sensors and no masts.
+  commands field hardware; each block bound to its virtual occupancy sensor IS:HART:C3:B:<block key> and each
+  control-point mast on virtual heads (the device map's jmri_name, owner 2026-11-17: the physical plant is a draft,
+  swapped in later by the device map alone).
 
 Size: the panel opens at 100% zoom in a FIT pixel window (the plugin's `fit` scales the grid; label fonts keep their
 size).
@@ -121,7 +124,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import hand_drawn, parked, paths, tables  # noqa: E402
-from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its internal names
+from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
+from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                    # all three levels (the candidate)
@@ -1608,8 +1612,8 @@ def canon(el: ET.Element) -> str:
 
 
 def is_level_bean(el: ET.Element) -> bool:
-    """A turnout, block, layout block, signal head or signal mast add_level_objects or add_level_signals adds (by
-    its internal system name)."""
+    """A turnout, sensor, block, layout block, signal head or signal mast add_level_objects or add_level_signals adds
+    (by its internal system name)."""
     sysname = (el.findtext("systemName") or el.get("systemName") or "").strip()
     if el.tag == "signalhead":
         return level_masts_lib.is_level_head(sysname)
@@ -1617,6 +1621,10 @@ def is_level_bean(el: ET.Element) -> bool:
         return level_masts_lib.is_level_mast(sysname)
     if el.tag == "turnout":
         return sysname.startswith(TURNOUT_SYS)
+    if el.tag == "sensor":
+        return level_devices.is_block_sensor(sysname)
+    if el.tag in ("LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor"):
+        return bool(level_devices.CLEAR_PREFIX.match(sysname))
     if el.tag == "block":
         return sysname.startswith(BLOCK_SYS)
     if el.tag == "layoutblock":
@@ -1789,10 +1797,163 @@ def numbered_blocks(blocks) -> list:
     return sorted(blocks - set(tail), key=lambda b: block_sort(BLOCK_NUMBERED_AS.get(b, b))) + tail
 
 
+def level_sensors(path: Path = DEVICE_MAP) -> dict:
+    """{block: (sensor system name, sensor user name, comment)} for every main and upper block of the device map:
+    its occupancy row's virtual sensor (jmri_name, hartlib.level_devices.block_sensor) and, in the comment, the planned
+    detector or why there is none. Stops on a block with no occupancy row or a row whose jmri_name is not the
+    block's."""
+    try:
+        rows = read_csv(path)
+    except OSError as exc:
+        raise BuildError(f"cannot read the device map {path}: {exc}") from None
+    occ = {r["user_name"]: r for r in rows if r["layer"] == "occupancy"}
+    out, bad = {}, []
+    for r in rows:
+        if r["layer"] != "block":
+            continue
+        block = r["user_name"]
+        o = occ.get(level_devices.occupancy_user(block))
+        try:
+            want = level_devices.block_sensor(block)
+        except ValueError as exc:
+            bad.append(str(exc))
+            continue
+        if o is None or o.get("jmri_name") != want:
+            bad.append(f"{block}: no occupancy row {level_devices.occupancy_user(block)} with jmri_name {want}")
+            continue
+        planned = f"planned {o['system_name']} (draft)" if o["system_name"] else o["notes"]
+        out[block] = (want, o["user_name"], f"{SENSOR_COMMENT}; {planned}")
+    if bad:
+        raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
+    return out
+
+
+SENSOR_COMMENT = "Main and upper level occupancy, virtual (device map; build_layout_le.py)"
+
+
+def add_level_sensors(root: ET.Element, sensors: dict) -> int:
+    """Each main and upper block's virtual occupancy sensor (`sensors`: level_sensors) in the internal sensor
+    section, as staging's internal sensors are stored, and bound to its block and layout block by user name as
+    staging's are (<occupancysensor> after <permissive> in the block's full pass, the occupancysensor attribute after
+    systemName on the layout block). Only blocks in `root` are bound; stops on a sensor name already taken or a block
+    already bound. The system names of the sensors added, in the order added."""
+    internal = next((s for s in root.findall("sensors") if "InternalSensorManager" in (s.get("class") or "")), None)
+    if internal is None:
+        raise BuildError("the tables have no internal sensor section")
+    blocks = {tables.user_name(b): b for b in tables.blocks(root)}
+    lbs = {tables.user_name(b): b for b in tables.layout_blocks(root)}
+    used = sorted(b for b in sensors if b in blocks)
+    taken = {x for s in tables.sensors(root) for x in (tables.system_name(s), tables.user_name(s))}
+    clash = sorted({x for b in used for x in sensors[b][:2]} & taken)
+    if clash:
+        raise BuildError(f"main and upper occupancy sensor names already in the tables: {clash}")
+    bound = sorted(b for b in used if blocks[b].find("occupancysensor") is not None or
+                   (b in lbs and lbs[b].get("occupancysensor")))
+    if bound:
+        raise BuildError(f"main and upper blocks already have an occupancy sensor: {bound}")
+    beans = []
+    for b in sorted(used, key=lambda b: sensors[b][0]):
+        system, user, comment = sensors[b]
+        el = ET.Element("sensor", {"inverted": "false"})
+        for tag, text in (("systemName", system), ("userName", user), ("comment", comment)):
+            ET.SubElement(el, tag).text = text
+        beans.append(el)
+    place(internal, beans, 2)
+    for b in used:
+        el, user = blocks[b], sensors[b][1]
+        kids = list(el)
+        after = next((i for i, c in enumerate(kids) if c.tag == "permissive"), None)
+        if not after:                       # also 0: a full-pass block starts with its systemName
+            raise BuildError(f"block {b} has no <permissive> after its names to put its occupancy sensor after")
+        occ = ET.Element("occupancysensor")
+        occ.text = user
+        occ.tail = kids[after].tail                 # the sensor takes permissive's place in the indentation
+        kids[after].tail = kids[after - 1].tail
+        el.insert(after + 1, occ)
+        if b in lbs:
+            lb = lbs[b]
+            attrs = list(lb.attrib.items())
+            lb.attrib.clear()
+            for k, v in attrs[:1] + [("occupancysensor", user)] + attrs[1:]:
+                lb.set(k, v)
+    return [sensors[b][0] for b in sorted(used, key=lambda b: sensors[b][0])]
+
+
+# The main and upper virtual block sensors start clear (owner, 2026-11-17): a LogixNG in the tables, stock JMRI, sets
+# every one INACTIVE once when the tables load (a ConditionalNG executes at startup unless told not to:
+# DefaultLogixNG.execute, executeAtStartup defaults to yes), so the masts are not held at Stop by UNKNOWN blocks. The
+# internal sensor manager's default state stays as it is for the other internal sensors. Its names are
+# hartlib.level_devices' CLEAR_*.
+MALE_DEBUGGER = "jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml"
+MALE_ACTION = "jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml"
+
+
+def male_socket(el: ET.Element) -> None:
+    """The <MaleSocket> PanelPro 5.16 stores under a digital action (as on IQDA:AUTO:0001 in tables.xml)."""
+    m = ET.SubElement(el, "MaleSocket")
+    ET.SubElement(m, "AbstractDebuggerMaleSocket", {"class": MALE_DEBUGGER})
+    a = ET.SubElement(m, "AbstractMaleSocket", {"enabled": "yes", "locked": "no", "system": "no",
+                                                "catchAbortExecution": "no", "class": MALE_ACTION})
+    ET.SubElement(a, "errorHandling").text = "Default"
+
+
+def add_level_clear(root: ET.Element, sensors: list[str]) -> None:
+    """The LogixNG that sets each of `sensors` (system names of the main and upper virtual block sensors) INACTIVE
+    when the tables load (hartlib.level_devices: LogixNG CLEAR_LOGIXNG, its ConditionalNG CLEAR_CONDITIONAL, a
+    DigitalMany CLEAR_MANY and an ActionSensor per sensor, clear_action), stored as PanelPro 5.16 stores them. Stops
+    when the tables have no LogixNG sections or hold these names already."""
+    secs = {tag: root.find(tag) for tag in ("LogixNGs", "LogixNGConditionalNGs", "LogixNGDigitalActions")}
+    if any(v is None for v in secs.values()):
+        raise BuildError(f"the tables have no {', '.join(k for k, v in secs.items() if v is None)} section")
+    if any(level_devices.CLEAR_PREFIX.match(e.findtext("systemName") or "") for v in secs.values() for e in v):
+        raise BuildError("the tables already hold the main and upper sensors-clear LogixNG")
+    sensors = sorted(sensors)
+    if not sensors or not all(level_devices.is_block_sensor(x) for x in sensors):
+        raise BuildError(f"sensors-clear LogixNG: not all main and upper virtual sensors: {sensors[:3]}")
+    lx = ET.Element("LogixNG", {"enabled": "yes", "inline": "no"})
+    ET.SubElement(lx, "systemName").text = level_devices.CLEAR_LOGIXNG
+    ET.SubElement(lx, "userName").text = level_devices.CLEAR_USER
+    ET.SubElement(ET.SubElement(lx, "ConditionalNGs"), "systemName").text = level_devices.CLEAR_CONDITIONAL
+    last = [e for e in secs["LogixNGs"] if e.tag == "LogixNG"]
+    place(secs["LogixNGs"], [lx], 2, last[-1] if last else None)
+    cn = ET.Element("ConditionalNG", {"enabled": "yes"})
+    ET.SubElement(cn, "systemName").text = level_devices.CLEAR_CONDITIONAL
+    ET.SubElement(cn, "userName").text = level_devices.CLEAR_USER
+    ET.SubElement(cn, "thread").text = "0"
+    sock = ET.SubElement(cn, "Socket")
+    ET.SubElement(sock, "socketName").text = "A"
+    ET.SubElement(sock, "systemName").text = level_devices.CLEAR_MANY
+    place(secs["LogixNGConditionalNGs"], [cn], 2)
+    many = ET.Element("DigitalMany", {"class": "jmri.jmrit.logixng.actions.configurexml.DigitalManyXml"})
+    ET.SubElement(many, "systemName").text = level_devices.CLEAR_MANY
+    acts = ET.SubElement(many, "Actions")
+    actions = []
+    for i, sensor in enumerate(sensors, 1):
+        name = level_devices.clear_action(sensor)
+        s = ET.SubElement(acts, "Socket")
+        ET.SubElement(s, "socketName").text = f"A{i}"
+        ET.SubElement(s, "systemName").text = name
+        a = ET.Element("ActionSensor", {"class": "jmri.jmrit.logixng.actions.configurexml.ActionSensorXml"})
+        ET.SubElement(a, "systemName").text = name
+        nb = ET.SubElement(a, "namedBean")
+        ET.SubElement(nb, "addressing").text = "Direct"
+        ET.SubElement(nb, "name").text = sensor
+        ET.SubElement(nb, "listenToMemory").text = "no"
+        st = ET.SubElement(a, "state")
+        ET.SubElement(st, "addressing").text = "Direct"
+        ET.SubElement(st, "enum").text = "Inactive"
+        ET.SubElement(st, "listenToMemory").text = "no"
+        male_socket(a)
+        actions.append(a)
+    male_socket(many)
+    place(secs["LogixNGDigitalActions"], [many] + actions, 2)
+
+
 def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_blocks: set) -> None:
     """Main and upper: their turnouts, blocks and layout blocks in the tables, under the device-map user names
     (level_names) on internal system names (TURNOUT_SYS, BLOCK_SYS, ILB from LAYOUT_BLOCK_FIRST), so nothing reaches
-    MQTT or the field."""
+    MQTT or the field, and each block's virtual occupancy sensor (add_level_sensors), set clear on load
+    (add_level_clear). Stops on a block the device map gives no sensor."""
     new_turnouts = sorted({t for k, v in names.items() if k != STAGING for t in v["turnouts"].values()},
                           key=lambda s: block_sort("OS " + s))
     new_blocks = numbered_blocks(b for b in P.blocks if b not in staging_blocks)
@@ -1825,17 +1986,27 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
     place(root.find("layoutblocks"),
           [bean("layoutblock", {"systemName": lb_sys[b], "occupiedsense": "2", "trackcolor": "gray",
                                 "occupiedcolor": "red", "extracolor": "white"}, lb_sys[b], b) for b in new_blocks], 2)
+    sensors = level_sensors()
+    if set(new_blocks) - set(sensors):
+        raise BuildError(f"main and upper blocks with no occupancy row in the device map: "
+                         f"{sorted(set(new_blocks) - set(sensors))}")
+    added = add_level_sensors(root, {b: sensors[b] for b in new_blocks})
+    if sorted(added) != sorted(sensors[b][0] for b in new_blocks):
+        raise BuildError("main and upper blocks whose sensor was not added (no such block in the tables): "
+                         f"{sorted({sensors[b][0] for b in new_blocks} - set(added))}")
+    add_level_clear(root, added)
 
 
+SIGNAL_NOTE = "virtual (device map); planned"     # + the planned physical head or mast, a draft
 HEAD_CLASS = "jmri.implementation.configurexml.VirtualSignalHeadXml"
 MAST_CLASS = "jmri.implementation.configurexml.SignalHeadSignalMastXml"
 
 
 def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
     """Main and upper: each mast of main_upper_masts.csv as a SignalHeadSignalMast over VirtualSignalHeads, under
-    the device map's user names on internal system names (read_level_masts checks them), so nothing reaches MQTT or
-    the field; each comment gives its CP, switch and the device map's system name it takes at the cut-over. Stops on
-    a name already in the tables."""
+    the device map's user names on its virtual system names (jmri_name, from the head's user name; read_level_masts
+    checks them), so nothing reaches MQTT or the field; each comment gives its CP, switch and the planned physical
+    device (the device map's system_name, a draft). Stops on a name already in the tables."""
     heads_el, masts_el = root.find("signalheads"), root.find("signalmasts")
     if heads_el is None or masts_el is None:
         raise BuildError("the live tables have no signalheads or signalmasts section")
@@ -1844,17 +2015,17 @@ def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
     heads, masts = [], []
     for r in rows:
         where = f"{r['cp']} | Switch {r['switch']}"
-        device = dict(zip([h for h, _u in r["heads"]], re.findall(r"\((IH\d+)\)", r["device_system_name"])))
+        device = dict(zip([h for h, _u in r["heads"]], level_masts_lib.mast_heads(r["device_system_name"])))
         for h, user in r["heads"]:
             el = ET.Element("signalhead", {"class": HEAD_CLASS})
             ET.SubElement(el, "systemName").text = h
             ET.SubElement(el, "userName").text = user
-            ET.SubElement(el, "comment").text = f"{where} | internal until the cut-over, then {device.get(h, '?')}"
+            ET.SubElement(el, "comment").text = f"{where} | {SIGNAL_NOTE} {device.get(h, '?')}"
             heads.append(el)
         el = ET.Element("signalmast", {"class": MAST_CLASS})
         ET.SubElement(el, "systemName").text = r["system_name"]
         ET.SubElement(el, "userName").text = r["mast"]
-        ET.SubElement(el, "comment").text = f"{where} | internal until the cut-over, then {r['device_system_name']}"
+        ET.SubElement(el, "comment").text = f"{where} | {SIGNAL_NOTE} {r['device_system_name']}"
         ET.SubElement(el, "unlit", {"allowed": "no"})
         masts.append(el)
     new = [x for e in heads + masts for x in (e.findtext("systemName"), e.findtext("userName"))]

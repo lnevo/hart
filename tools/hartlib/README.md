@@ -109,9 +109,10 @@ Lookups (all take the root element unless noted):
 
 ### `hartlib.level_masts`
 
-The main and upper levels' control-point masts until the cut-over: `PATH` (`main_upper_masts.csv`, written by
+The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, written by
 `tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs), `names()`,
-`internal_head()` (IH3332 -> IH93332), `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
+`head_name()` (the virtual head from its user name: "Head 108R Top" -> IH:HART:C3:108R_Top, never from the draft
+physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
 `audit_panel_contracts.py` and `polish_hart_layout_editor.py`.
 
 ### `hartlib.hand_drawn`

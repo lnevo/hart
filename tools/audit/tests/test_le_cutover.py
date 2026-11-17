@@ -737,7 +737,7 @@ class ThreeLevels(unittest.TestCase):
     def test_main_and_upper_masts_and_no_sensors(self) -> None:
         """Main and upper: their 41 control-point masts (main_upper_masts.csv), each in the slot JMRI resolves to its
         facing track and protected OS block (108LA and 108LB on Switch 107's normal and diverging legs, facing the 107
-        Loop's two halves; 226RA and 226RB each protecting its own corner of double crossover 225), on internal heads
+        Loop's two halves; 226RA and 226RB each protecting its own corner of double crossover 225), on virtual heads
         and masts signal_coordinator.py never enrols; no sensors."""
         level = {t["ident"] for t in self.P.turnouts if t["band"]} | {k for k, p in self.P.points.items() if p["band"]}
         rows = {r["mast"]: r for r in B.read_level_masts()}
@@ -760,7 +760,7 @@ class ThreeLevels(unittest.TestCase):
                           "Mast 226RB": ("Track 223-225 2", "OS Switch 225d")})
         self.assertEqual(B.lcos_named([r["system_name"] for r in rows.values()]
                                       + [h for r in rows.values() for h, _u in r["heads"]]), [])
-        self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH93332"]),
+        self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH:HART:C3:108LA"]),
                          ["IF$shsm:basic:one-low(IH3332)", "IH3332"])
         heads = [h for h in self.root.find("signalheads") if B.is_level_bean(h)]
         masts = [m for m in self.root.find("signalmasts") if B.is_level_bean(m)]

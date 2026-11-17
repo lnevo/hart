@@ -17,7 +17,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import hand_drawn, paths, tables  # noqa: E402
+from hartlib import hand_drawn, level_devices, paths, tables  # noqa: E402
 
 
 def hand() -> Path:
@@ -51,7 +51,7 @@ def is_new(el) -> bool:
         return sysname.startswith(B.BLOCK_SYS)
     if el.tag == "layoutblock":
         return sysname.startswith("ILB") and sysname[3:].isdigit() and int(sysname[3:]) >= B.LAYOUT_BLOCK_FIRST
-    if el.tag in ("signalhead", "signalmast"):
+    if el.tag in ("signalhead", "signalmast", "sensor", "LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor"):
         return B.is_level_bean(el)
     return False
 
@@ -183,6 +183,102 @@ class Built(unittest.TestCase):
         twice = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout"))
         self.assertEqual({n for n, c in twice.items() if c > 1}, {"Switch 129", "Switch 135"})
 
+    def test_every_main_and_upper_block_reports_its_virtual_sensor(self) -> None:
+        """Each main and upper block, and its layout block, is bound by user name to its virtual occupancy sensor
+        IS:HART:C3:B:<block key> (the device map's jmri_name), stored in the internal sensor section as staging's
+        internal sensors are (owner, 2026-11-17)."""
+        internal = next(s for s in self.root.findall("sensors") if "InternalSensorManager" in s.get("class"))
+        sensors = {tables.user_name(s): tables.system_name(s) for s in internal.findall("sensor") if is_new(s)}
+        self.assertEqual(len(sensors), 125)
+        self.assertFalse([s for s in tables.sensors(self.root) if is_new(s) and s not in list(internal)])
+        bd = level_devices
+        for b in [b for b in tables.blocks(self.root) if is_new(b)]:
+            name = tables.user_name(b)
+            with self.subTest(block=name):
+                self.assertEqual(b.findtext("occupancysensor"), bd.occupancy_user(name))
+                self.assertEqual(sensors[bd.occupancy_user(name)], bd.block_sensor(name))
+                kids = [c.tag for c in b]
+                self.assertEqual(kids[kids.index("permissive") + 1], "occupancysensor")
+        for lb in [b for b in tables.layout_blocks(self.root) if is_new(b)]:
+            self.assertEqual(lb.get("occupancysensor"), bd.occupancy_user(tables.user_name(lb)))
+            self.assertEqual(list(lb.attrib)[:2], ["systemName", "occupancysensor"])     # as staging's
+        self.assertEqual(sensors["BS Switch 225b"], "IS:HART:C3:B:OS225b")
+        self.assertEqual(sensors["BS 107 Loop 2"], "IS:HART:C3:B:107_Loop_2")
+        self.assertNotIn("BS Switch 225", sensors)          # the middle of 225's X is a CATS desk block only
+
+    def test_the_virtual_sensors_start_clear_and_only_they(self) -> None:
+        """A LogixNG in the tables sets every main and upper virtual block sensor INACTIVE when they load, and no
+        other sensor (owner, 2026-11-17): in the trial build and in the released tables."""
+        for label, root in (("trial", self.root), ("released", tables.read(paths.TABLES_XML))):
+            with self.subTest(tables=label):
+                level = sorted(tables.system_name(s) for s in tables.sensors(root) if is_new(s))
+                self.assertEqual(len(level), 125)
+                self.assertEqual(sorted(level_devices.clear_sensors(root)), level)
+                acts = {e.findtext("systemName"): e for e in root.find("LogixNGDigitalActions")}
+                for name in level_devices.clear_sensors(root):
+                    a = acts[level_devices.clear_action(name)]
+                    self.assertEqual((a.tag, a.findtext("state/enum")), ("ActionSensor", "Inactive"))
+                lx = next(e for e in root.find("LogixNGs") if e.findtext("systemName") == level_devices.CLEAR_LOGIXNG)
+                self.assertEqual(lx.get("enabled"), "yes")
+                self.assertEqual(lx.findtext("ConditionalNGs/systemName"), level_devices.CLEAR_CONDITIONAL)
+                cn = next(e for e in root.find("LogixNGConditionalNGs")
+                          if e.findtext("systemName") == level_devices.CLEAR_CONDITIONAL)
+                self.assertEqual((cn.get("enabled"), cn.get("executeAtStartup")), ("yes", None))    # runs at load
+                self.assertEqual(cn.findtext("Socket/systemName"), level_devices.CLEAR_MANY)
+                internal = next(s for s in root.findall("sensors") if "InternalSensorManager" in s.get("class"))
+                self.assertEqual(internal.findtext("defaultInitialState"), "unknown")   # the other lamps unchanged
+        with self.assertRaisesRegex(B.BuildError, "already hold"):
+            B.add_level_clear(tables.read(paths.TABLES_XML), ["IS:HART:C3:B:X"])
+        with self.assertRaisesRegex(B.BuildError, "not all main and upper virtual sensors"):
+            B.add_level_clear(tables.read(hand()), ["IS:SML_MODE"])
+
+    def test_the_clear_logixng_reader_names_a_broken_action(self) -> None:
+        root = tables.read(paths.TABLES_XML)
+        acts = root.find("LogixNGDigitalActions")
+        first = level_devices.clear_action(level_devices.clear_sensors(root)[0])
+        acts.remove(next(e for e in acts if e.findtext("systemName") == first))
+        with self.assertRaisesRegex(ValueError, f"socket A1 names {re.escape(first)}, which is not an ActionSensor"):
+            level_devices.clear_sensors(root)
+
+    def test_the_clear_logixng_takes_exactly_the_sensors_added(self) -> None:
+        """add_level_sensors returns the sensors it bound (only blocks in the tables); add_level_objects stops when
+        that is not every main and upper block's, so the LogixNG never names a sensor the tables lack."""
+        root = tables.loads(hand().read_bytes()).root
+        sensors = B.level_sensors()
+        b = sorted(sensors)[0]
+        el = ET.SubElement(root.find("blocks"), "block", {"systemName": "IBX1"})
+        for tag, text in (("systemName", "IBX1"), ("userName", b), ("permissive", "no")):
+            ET.SubElement(el, tag).text = text
+        self.assertEqual(B.add_level_sensors(root, {x: sensors[x] for x in sorted(sensors)[:2]}), [sensors[b][0]])
+        with mock.patch.object(B, "add_level_sensors", return_value=[]), \
+                self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
+            with contextlib.redirect_stdout(io.StringIO()):
+                B.build(hand())
+
+    def test_add_level_sensors_is_by_name_not_order(self) -> None:
+        """The sensors a block gets do not depend on the order blocks come in: a block added earlier in the drawing
+        changes no other block's sensor. A taken name or an already bound block stops."""
+        def run(order):
+            root = tables.loads(hand().read_bytes()).root
+            sensors = B.level_sensors()
+            first = sorted(sensors)[:3]
+            for b in first:      # three stand-in blocks, bound to the device map's sensors
+                ET.SubElement(root.find("blocks"), "block", {"systemName": "IBX" + b}).extend(
+                    [ET.Element("systemName"), ET.Element("userName"), ET.Element("permissive")])
+                el = root.find("blocks")[-1]
+                el[0].text, el[1].text, el[2].text = "IBX" + b, b, "no"
+            B.add_level_sensors(root, {b: sensors[b] for b in order(first)})
+            return {tables.user_name(b): b.findtext("occupancysensor") for b in tables.blocks(root)
+                    if b.get("systemName", "").startswith("IBX")}, \
+                {tables.user_name(s): tables.system_name(s) for s in tables.sensors(root) if B.is_level_bean(s)}
+        self.assertEqual(run(lambda xs: xs), run(lambda xs: list(reversed(xs))))
+        root = tables.loads(hand().read_bytes()).root
+        live = tables.blocks(root)[0]
+        with self.assertRaisesRegex(B.BuildError, "already in the tables"):
+            B.add_level_sensors(root, {tables.user_name(live): ("IS:SML_MODE", "BS X", "c")})
+        with self.assertRaisesRegex(B.BuildError, "already have an occupancy sensor"):
+            B.add_level_sensors(root, {tables.user_name(live): ("IS:HART:C3:B:X", "BS X", "c")})
+
     def test_blocks_match_track(self) -> None:
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
         new_b = {tables.user_name(b) for b in tables.blocks(self.root, full=False) if is_new(b)}
@@ -282,7 +378,9 @@ class Built(unittest.TestCase):
     def test_live_tables_unchanged_but_for_the_additions(self) -> None:
         doc = tables.loads(self.data)
         removed = strip_new(doc.root)
-        self.assertEqual(removed, 1 + 41 + 3 * 125 + 53 + 41)      # + main and upper heads and masts
+        # + their sensors, the LogixNG that clears them (LogixNG, ConditionalNG, DigitalMany, 125 ActionSensors),
+        # heads and masts
+        self.assertEqual(removed, 1 + 41 + 3 * 125 + 125 + 3 + 125 + 53 + 41)
         self.assertEqual(doc.tobytes(), hand().read_bytes())
 
     def test_no_name_collisions(self) -> None:
@@ -796,9 +894,10 @@ class LevelMasts(unittest.TestCase):
         self.assertEqual(sum(len(r["heads"]) for r in rows), 53)
         r = next(r for r in rows if r["mast"] == "Mast 108R")
         self.assertEqual((r["facing"], r["protects"]), ("Track 107-109", "OS Switch 107"))
-        self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH93334)(IH93335)")
+        self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH:HART:C3:108R_Top)(IH:HART:C3:108R_Bottom)")
         self.assertEqual(r["device_system_name"], "IF$shsm:basic:two-searchlight(IH3334)(IH3335)")
-        self.assertEqual(r["heads"], [("IH93334", "Head 108R Top"), ("IH93335", "Head 108R Bottom")])
+        self.assertEqual(r["heads"], [("IH:HART:C3:108R_Top", "Head 108R Top"),
+                                      ("IH:HART:C3:108R_Bottom", "Head 108R Bottom")])
         self.assertEqual({x["mast"]: x["leg"] for x in rows if x["leg"]}, {})     # the loop's halves tell them apart
 
     def test_no_two_masts_share_a_facing_and_protected_block(self) -> None:
@@ -814,17 +913,26 @@ class LevelMasts(unittest.TestCase):
         text = B.MAIN_UPPER_MASTS.read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "m.csv"
-            path.write_text(text.replace("IH93332", "IH3332"), encoding="utf-8")
-            with self.assertRaisesRegex(B.BuildError, "Mast 108LA: heads .* internal heads"):
-                B.read_level_masts(path)
-        # and the coordinator's own test, which read_level_masts runs as well
-        self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH93332"]),
+            for old, new in (("IH:HART:C3:108LA", "IH3332"),            # a field (LCOS) name
+                             ("IH:HART:C3:108LA", "IH:HART:C3:108LB")):  # a virtual name not from its user name
+                path.write_text(text.replace(old, new), encoding="utf-8")
+                with self.subTest(head=new), self.assertRaisesRegex(B.BuildError, "Mast 108LA: heads .* virtual heads"):
+                    B.read_level_masts(path)
+        # and the coordinator's own test, which read_level_masts runs as well: no virtual name is an LCOS head
+        self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH:HART:C3:108LA",
+                                       "IF$shsm:basic:one-low(IH:HART:C3:108LA)"]),
                          ["IF$shsm:basic:one-low(IH3332)", "IH3332"])
+        rows = B.read_level_masts()
+        self.assertEqual(B.lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]]),
+                         [])
         gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
-        for bad in ("IH332", "IH33320", "IHX332"):
-            with self.subTest(head=bad), self.assertRaisesRegex(SystemExit, f"mast Mast 1: head '{bad}'"):
-                gen.internal(bad, "Mast 1")
-        self.assertEqual(gen.internal("IH3332", "Mast 1"), "IH93332")
+        for bad in ("Head 108", "Mast 108LA", "Head 108LA Middle"):
+            with self.subTest(head=bad), self.assertRaisesRegex(SystemExit, "mast Mast 1: head"):
+                gen.virtual({"user_name": bad, "jmri_name": "IH:HART:C3:108LA"}, "Mast 1")
+        with self.assertRaisesRegex(SystemExit, "has jmri_name 'IH93332', not IH:HART:C3:108LA"):
+            gen.virtual({"user_name": "Head 108LA", "jmri_name": "IH93332"}, "Mast 1")
+        self.assertEqual(gen.virtual({"user_name": "Head 108R Top", "jmri_name": "IH:HART:C3:108R_Top"}, "Mast 1"),
+                         "IH:HART:C3:108R_Top")
 
     def test_a_mast_no_band_draws_stops(self) -> None:
         rows = [dict(r, facing="Track Nowhere") if r["mast"] == "Mast 108R" else r for r in B.read_level_masts()]
