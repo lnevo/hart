@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild Neville Island Yardmaster Sequence (YM-01, Revision D).
+"""Rebuild Neville Island Yardmaster Sequence (YM-01, Revision E).
 
 Page 1: sequence + color/blocking legend.
 Page 2: subdivision diagram + narrow TT-23 timetable (no map chrome).
@@ -8,7 +8,7 @@ Publication identity lives in the footer.
 Page-1 spacing (hand-tuned Jul 2026 — keep on rebuild):
   top/bottom margins 0.48 / 0.36; title rule_after=3;
   soft pad before §1; §1→§2 gap ~6pt before heading (not a large bias pad);
-  sequence rows 17/30pt; legend rows 16/20pt.
+  sequence rows 17/28pt; legend rows 16/18pt (Rev E: nine legend rows plus yard rules).
 
 Usage (from repo root):
   .venv/bin/python publications/rebuild_yardmaster_sequence.py
@@ -51,19 +51,28 @@ CANONICAL = DOCS / "Neville_Island_Yardmaster_Sequence.docx"
 PUBLICATION = {
     "title": "Yardmaster Sequence",
     "pub_id": "YM-01",
-    "revision": "D",
-    "effective": "21 July 2026",
+    "revision": "E",
+    "effective": "14 November 2026",
 }
 
+# Color, fill, text, destination, block. Rev E names the blocks the yardmaster
+# builds (Session #4 punch list): NVL local, CSX, P&OV, CK1, and uncolored storage.
 BLOCK_LEGEND: list[tuple[str, str, str, str, str]] = [
-    ("BLUE", "0000CD", "FFFFFF", "Demmler Yard; Mckeesport", "D749"),
-    ("YELLOW", "FFFF00", "000000", "Aristech Plastics", "NVL"),
-    ("GREEN", "008000", "FFFFFF", "A. Stucki Co.", "NVL"),
-    ("PURPLE", "800080", "FFFFFF", "Calgon Carbon", "NVL"),
-    ("RED", "FF0000", "FFFFFF", "Ferrellgas", "NVL"),
-    ("PINK", "FFC0CB", "000000", "Kosmos Cement", "NVL"),
+    ("YELLOW", "FFFF00", "000000", "Aristech Plastics", "NVL local"),
+    ("GREEN", "008000", "FFFFFF", "A. Stucki Co.", "NVL local"),
+    ("PURPLE", "800080", "FFFFFF", "Calgon Carbon", "NVL local"),
+    ("RED", "FF0000", "FFFFFF", "Ferrellgas", "NVL local"),
+    ("PINK", "FFC0CB", "000000", "Kosmos Cement", "NVL local"),
+    ("BLUE", "0000CD", "FFFFFF", "Demmler Yard; McKeesport", "CSX (D749)"),
+    ("ORANGE", "FFA500", "000000", "Scully Yard; McKees Rocks", "P&OV (NVL return)"),
     ("BLACK", "000000", "FFFFFF", "Shenango Coke Works", "CK1"),
-    ("ORANGE", "FFA500", "000000", "Scully Yard; McKees Rocks", "NVL return"),
+    ("NONE", "FFFFFF", "000000", "No card color", "Yard storage"),
+]
+
+# Yard rules printed under the blocking list (Session #4 punch list).
+YARD_RULES: list[str] = [
+    "The dispatcher throws the Switch 7 crossover at Barn only with your permission.",
+    "Park the work train on EH-1, the engine terminal back track, not in the yard.",
 ]
 
 SEQUENCE: list[tuple[str, str, str]] = [
@@ -192,7 +201,7 @@ def _add_sequence(doc: Document) -> None:
         _set_run_font(r2, size_pt=9.5, color=BODY, name="Calibri")
 
     for ri, row in enumerate(table.rows):
-        _set_exact_row_height(row, 17 if ri == 0 else 30)
+        _set_exact_row_height(row, 17 if ri == 0 else 28)
         for cell in row.cells:
             _set_cell_margins(cell, top=36, bottom=36)
             for p in cell.paragraphs:
@@ -204,10 +213,10 @@ def _add_sequence(doc: Document) -> None:
 
 def _add_block_legend(doc: Document) -> None:
     _soft_pad(doc, before=6, after=2)
-    _heading(doc, "2. Destination Colors", space_before=6)
+    _heading(doc, "2. Blocking List", space_before=6)
 
     legend = doc.add_table(rows=1 + len(BLOCK_LEGEND), cols=3)
-    fill_header_row(legend.rows[0], ["Color", "Destination", "Blocking"])
+    fill_header_row(legend.rows[0], ["Color", "Destination", "Block"])
     for i, (label, fill, text_hex, dests, remarks) in enumerate(BLOCK_LEGEND, start=1):
         fill_swatch_cell(legend.rows[i].cells[0], label, fill_hex=fill, text_hex=text_hex)
 
@@ -236,7 +245,7 @@ def _add_block_legend(doc: Document) -> None:
         _set_run_font(r2, size_pt=9.5, color=BODY, name="Calibri")
 
     for ri, row in enumerate(legend.rows):
-        _set_exact_row_height(row, 16 if ri == 0 else 20)
+        _set_exact_row_height(row, 16 if ri == 0 else 18)
         for cell in row.cells:
             _set_cell_margins(cell, top=28, bottom=28)
             for p in cell.paragraphs:
@@ -253,7 +262,17 @@ def _add_block_legend(doc: Document) -> None:
                 run.font.size = Pt(9)
         _set_cell_margins(legend.rows[i].cells[0], top=28, bottom=28)
 
-    _set_widths(legend, [Inches(0.9), Inches(2.15), Inches(1.25)])
+    _set_widths(legend, [Inches(0.8), Inches(2.0), Inches(1.5)])
+
+
+def _add_yard_rules(doc: Document) -> None:
+    _heading(doc, "3. Yard Rules", space_before=6)
+    for rule in YARD_RULES:
+        p = doc.add_paragraph()
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(1)
+        r = p.add_run("• " + rule)
+        _set_run_font(r, size_pt=9, color=BODY, name="Calibri")
 
 
 def rebuild(out: Path = CANONICAL) -> Path:
@@ -284,6 +303,7 @@ def rebuild(out: Path = CANONICAL) -> Path:
 
     _add_sequence(doc)
     _add_block_legend(doc)
+    _add_yard_rules(doc)
     add_diagram_and_timetable_page(doc)
 
     doc.save(out)

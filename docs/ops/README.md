@@ -17,7 +17,7 @@ cd ops/hart-ops && .venv/bin/python publications/rebuild_scale_operating_instruc
 
 ## Dispatcher Train List (DS-01)
 
-Canonical file: `Neville_Island_Dispatcher_Train_List.docx` (Revision D).
+Canonical file: `Neville_Island_Dispatcher_Train_List.docx` (Revision E).
 
 ```bash
 cd ops/hart-ops && .venv/bin/python publications/rebuild_dispatcher_train_list.py
@@ -25,7 +25,7 @@ cd ops/hart-ops && .venv/bin/python publications/rebuild_dispatcher_train_list.p
 
 ## Yardmaster Sequence (YM-01)
 
-Canonical file: `Neville_Island_Yardmaster_Sequence.docx` (Revision D).
+Canonical file: `Neville_Island_Yardmaster_Sequence.docx` (Revision E).
 
 ```bash
 cd ops/hart-ops && .venv/bin/python publications/rebuild_yardmaster_sequence.py

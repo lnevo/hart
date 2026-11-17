@@ -7,7 +7,7 @@
       "hex": "#0000CD",
       "ink": "#fff",
       "dest": "Demmler Yard; McKeesport",
-      "train": "D749",
+      "train": "CSX (D749)",
       "group": "interchange",
       "spot": "demmler"
     },
@@ -17,7 +17,7 @@
       "hex": "#FFFF00",
       "ink": "#000",
       "dest": "Aristech Plastics",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "aristech"
     },
@@ -27,7 +27,7 @@
       "hex": "#008000",
       "ink": "#fff",
       "dest": "A. Stucki Co.",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "stucki"
     },
@@ -37,7 +37,7 @@
       "hex": "#800080",
       "ink": "#fff",
       "dest": "Calgon Carbon",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "calgon"
     },
@@ -47,7 +47,7 @@
       "hex": "#FF0000",
       "ink": "#fff",
       "dest": "Ferrellgas",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "ferrellgas"
     },
@@ -57,7 +57,7 @@
       "hex": "#FFC0CB",
       "ink": "#000",
       "dest": "Kosmos Cement",
-      "train": "NVL",
+      "train": "NVL local",
       "group": "island",
       "spot": "kosmos"
     },
@@ -77,7 +77,7 @@
       "hex": "#FFA500",
       "ink": "#000",
       "dest": "Scully Yard; McKees Rocks",
-      "train": "NVL return",
+      "train": "P&OV (NVL return)",
       "group": "interchange",
       "spot": "scully"
     }
@@ -1190,10 +1190,10 @@
       "name": "Yardmaster Sequence",
       "title": "Yardmaster Sequence",
       "pub": "YM-01",
-      "revision": "D",
-      "effective": "21 July 2026",
+      "revision": "E",
+      "effective": "14 November 2026",
       "engine": null,
-      "summary": "Keep South Yard organized: build cuts by color, hand work to each train in order, and keep D749, NVL, and CK1 from stepping on each other.",
+      "summary": "Keep South Yard organized: build cuts by color, hand work to each train in order, and keep D749, NVL, and CK1 from stepping on each other. The dispatcher throws the Switch 7 crossover at Barn only with your permission. Park the work train on EH-1, the engine terminal back track, not in the yard.",
       "sequence": [
         {
           "n": "1",
@@ -1265,10 +1265,10 @@
       "name": "Dispatcher Train List",
       "title": "Dispatcher Train List",
       "pub": "DS-01",
-      "revision": "D",
-      "effective": "21 July 2026",
+      "revision": "E",
+      "effective": "14 November 2026",
       "engine": null,
-      "summary": "Authorize road moves, keep train order, and keep freight out of the streetcar's way. Work the lineup in order and the priority strip when moves conflict.",
+      "summary": "Authorize road moves, keep train order, and keep freight out of the streetcar's way. Work the lineup in order and the priority strip when moves conflict. Throw the Switch 7 crossover at Barn only with the yardmaster's permission.",
       "priority": [
         "OCS-1",
         "Route 23",
@@ -1281,12 +1281,12 @@
         {
           "n": "1",
           "train": "Route 23 AM",
-          "action": "Operate per timetable; hold conflicting work until the train clears."
+          "action": "Barn → McKees Rocks. Per timetable; lays over at McKees Rocks until PM. Hold conflicting work."
         },
         {
           "n": "2",
           "train": "D749",
-          "action": "Demmler → South Yard to open; interchange; release outbounds to McKeesport.",
+          "action": "W1 → South Yard → McKeesport. Opens South Yard; interchange; release outbounds to McKeesport.",
           "colors": [
             "blue"
           ]
@@ -1294,12 +1294,12 @@
         {
           "n": "3",
           "train": "OCS-1",
-          "action": "When scheduled — highest priority; clear the route."
+          "action": "W2 → Princess → W2. When scheduled, highest priority: highball to Princess, run around, back to W2 at Brick."
         },
         {
           "n": "4",
           "train": "NVL",
-          "action": "Scully → South Yard; interchange; service local industries; return with outbounds; return to McKees Rocks.",
+          "action": "Helix outer → South Yard → McKees Rocks. May start before Route 23 AM, clear to East End; interchange and locals.",
           "colors": [
             "yellow",
             "green",
@@ -1312,7 +1312,7 @@
         {
           "n": "5",
           "train": "CK1",
-          "action": "Shenango pickup and delivery; calibrate scale, weigh coke pull, and sort.",
+          "action": "Engine House → Shenango → S-4. Shenango pickup and delivery; calibrate scale, weigh coke pull, sort.",
           "colors": [
             "black"
           ]
@@ -1320,7 +1320,7 @@
         {
           "n": "6",
           "train": "D749 Return",
-          "action": "Authorize return; terminate in West Yard.",
+          "action": "South Yard → West Yard. Authorize return; terminate in West Yard.",
           "colors": [
             "blue"
           ]
@@ -1328,7 +1328,22 @@
         {
           "n": "7",
           "train": "Route 23 PM",
-          "action": "Operate per timetable; hold conflicting work until the train clears."
+          "action": "McKees Rocks → Barn. Per timetable; hold conflicting work until it clears."
+        },
+        {
+          "n": "8",
+          "train": "Extra CK",
+          "action": "McKeesport → South Yard. Extra coal train; terminate at South Yard."
+        },
+        {
+          "n": "9",
+          "train": "X9602",
+          "action": "Scale track. Scale tank move."
+        },
+        {
+          "n": "10",
+          "train": "X1993",
+          "action": "Loop → South Yard. Coal extra: drop a cut at the loop, pick up at the loop, terminate at South Yard."
         }
       ],
       "colors": [
