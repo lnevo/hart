@@ -465,15 +465,15 @@ class ThreeLevels(unittest.TestCase):
             B.check_approved(le, path)
             moved = copy.deepcopy(le)
             next(e for e in moved.iter("positionablelabel") if e.get("text") == "STAGING LEVEL").set("x", "61")
-            with self.assertRaisesRegex(B.BuildError, r"element \d+ is positionablelabel STAGING LEVEL, approved "
-                                                      r"positionablelabel STAGING LEVEL \(changed\)"):
+            with self.assertRaisesRegex(B.ApprovalError, r"child \d+ is positionablelabel STAGING LEVEL, approved "
+                                                         r"positionablelabel STAGING LEVEL \(changed\)"):
                 B.check_approved(moved, path)
             fewer = copy.deepcopy(le)
             fewer.remove(fewer[-1])
-            with self.assertRaisesRegex(B.BuildError, "not the one the owner approved"):
+            with self.assertRaisesRegex(B.ApprovalError, "not the one the owner approved"):
                 B.check_approved(fewer, path)
             # the build itself refuses a staging panel that is not the approved one, unless asked to (--review)
-            with mock.patch.object(B, "check_approved", side_effect=B.BuildError("not approved")) as check, \
+            with mock.patch.object(B, "check_approved", side_effect=B.ApprovalError("not approved")) as check, \
                     contextlib.redirect_stdout(io.StringIO()):
                 with self.assertRaisesRegex(B.BuildError, "not approved"):
                     B.build(T.hand(), levels="staging", as_live=True, approved=path)
@@ -484,12 +484,12 @@ class ThreeLevels(unittest.TestCase):
             B.write_approved(moved, path, date="2026-11-16")
             self.assertIn("approved by the owner in PanelPro on 2026-11-16", path.read_text())
             B.check_approved(moved, path)
-            with self.assertRaisesRegex(B.BuildError, "not the one the owner approved"):
+            with self.assertRaisesRegex(B.ApprovalError, "not the one the owner approved"):
                 B.check_approved(le, path)
             path.write_text("# note\nnot a hash\n")
-            with self.assertRaisesRegex(B.BuildError, "line 2: not"):
+            with self.assertRaisesRegex(B.ApprovalError, "line 2: not"):
                 B.check_approved(le, path)
-            with self.assertRaisesRegex(B.BuildError, "--approve-staging"):
+            with self.assertRaisesRegex(B.ApprovalError, "--approve-staging"):
                 B.check_approved(le, Path(tmp) / "none")
 
     def test_the_panel_has_the_windows_shape(self) -> None:

@@ -125,16 +125,15 @@ from hartlib import hand_drawn, parked, paths, tables  # noqa: E402
 # and tests read them here as before. Patch a name in the module that calls it (le_names.placeholder_names, say).
 import le_checks  # noqa: E402,F401
 import le_common  # noqa: E402,F401
-import le_fingerprint  # noqa: E402,F401
+import approval  # noqa: E402  the staging candidate's approval fingerprint
 import le_names  # noqa: E402,F401
 import le_tables  # noqa: E402,F401
 from le_common import (  # noqa: E402,F401  re-exported: callers and tests read them here
     STAGING, SWITCHES, SWITCH_LEGS, DEVICE_MAP, TURNOUT_SYS, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
     schematic, overlay_mod, slots_module, band_key, bare, read_csv,
 )
-from le_fingerprint import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    APPROVED, APPROVED_NOTE, canon_sorted, element_label, approved_fingerprint, write_approved, read_approved,
-    check_approved,
+from approval import (  # noqa: E402,F401  re-exported: callers and tests read them here
+    ApprovalError, STAGING_APPROVED as APPROVED, approved_fingerprint, check_approved, read_approved, write_approved,
 )
 from le_names import (  # noqa: E402,F401  re-exported: callers and tests read them here
     LEVEL_LE_LABELS, NUMBERS_BELOW, OPTIONAL_READOUTS, crossover_strands, runs, orient, share_blocks,
@@ -384,7 +383,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         opts = panel_el.find("layoutTrackDrawingOptions")
         panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
         if levels == "staging" and approved is not None:
-            check_approved(panel_el, approved)
+            try:
+                check_approved(panel_el, approved)
+            except ApprovalError as exc:
+                raise BuildError(str(exc)) from None
         old = tables.layout_editor(root, panel_name)
         if old is not None:
             replace(root, old, panel_el, 1)
@@ -576,7 +578,7 @@ def run(argv, cached) -> int:
         try:
             data = build(args.tables or template_tables(), levels="staging", as_live=True, approved=None)[0]
             write_approved(tables.layout_editor(tables.loads(data).root, TEMPLATE_PANEL))
-        except le_inputs.InputsError as exc:
+        except (le_inputs.InputsError, ApprovalError) as exc:
             print(f"ERROR: {exc}")
             return 1
         print(f"wrote {paths.rel(APPROVED)}: the staging panel as the owner approved it")

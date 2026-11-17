@@ -2,9 +2,9 @@
 
 A fingerprint is one line per element: its sha256 (attributes sorted, layout whitespace dropped) and what it is. The
 first line is the root's own attributes, the last the whole document's hash. It is the same file shape as
-jmri/layouts/hart/data/schematic/approved_staging.sha256, which build_layout_le.py still writes and reads itself
-(approved_fingerprint, write_approved, read_approved, check_approved there; they should move here later and
-build_layout_le.py import them).
+jmri/layouts/hart/data/schematic/approved_staging.sha256, the staging cut-over candidate's panel, which
+build_layout_le.py --approve-staging writes and both cut-over builds check (approved_fingerprint, write_approved,
+read_approved and check_approved below).
 
 What is guarded (OUTPUTS): the three-level "HART Railroad" Layout Editor panel in the live tables.xml (staging, main
 and upper in one panel) and the two CATS desks. The check reads the built files; it never builds. The Layout Editor
@@ -133,6 +133,48 @@ def compare(want: list[tuple[str, str]], got: list[tuple[str, str]]) -> str | No
     if len(got) != len(want):
         return f"it has {len(got) - 2} children, approved {len(want) - 2}"
     return "the whole-document hash differs"
+
+
+# The staging cut-over candidate's panel as the owner approved it: a hash per element, so a plugin bump or an overlay
+# edit that changes the approved staging panel stops both cut-over builds. Refreshed only by build_layout_le.py
+# --approve-staging, after the owner approves the new panel in PanelPro.
+STAGING_APPROVED = DATA / "approved_staging.sha256"
+STAGING_NOTE = ("# The staging cut-over candidate's \"HART Railroad\" panel as approved by the owner in PanelPro on {date}\n"
+                "# (build_layout_le.py --approve-staging; checked by --levels staging --as-live and --as-live). One line\n"
+                "# per element, in panel order: its sha256 (attributes sorted, layout whitespace dropped) and what it\n"
+                "# is; the first line is the panel's own attributes, the last the whole panel's hash.\n")
+
+
+def approved_fingerprint(panel_el: ET.Element) -> list[tuple[str, str]]:
+    """[(sha256, what)] of a Layout Editor panel: its own attributes, then each element in order, then the whole."""
+    return fingerprint(panel_el, "LayoutEditor")
+
+
+def write_approved(panel_el: ET.Element, path: Path = STAGING_APPROVED, date: str | None = None) -> None:
+    """Write the staging panel's fingerprint to `path` (build_layout_le.py --approve-staging)."""
+    note = STAGING_NOTE.format(date=date or datetime.date.today().isoformat())
+    try:
+        path.write_text(format_fingerprint(approved_fingerprint(panel_el), note), encoding="utf-8")
+    except OSError as exc:
+        raise ApprovalError(f"cannot write {path}: {exc}") from None
+
+
+def read_approved(path: Path = STAGING_APPROVED) -> list[tuple[str, str]]:
+    """The approved staging fingerprint's [(sha256, what)]; stops on a missing file or a line of the wrong shape."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ApprovalError(f"cannot read the approved staging fingerprint {paths.rel(path)}: {exc}; after the owner "
+                            "approves the staging panel, run build_layout_le.py --approve-staging") from None
+    return parse_fingerprint(text, paths.rel(path), "LayoutEditor")
+
+
+def check_approved(panel_el: ET.Element, path: Path = STAGING_APPROVED) -> None:
+    """Stop with ApprovalError unless the staging candidate's panel is the one the owner approved (`path`), naming the
+    first element that differs."""
+    diff = compare(read_approved(path), approved_fingerprint(panel_el))
+    if diff is not None:
+        raise ApprovalError(f"the staging panel is not the one the owner approved ({paths.rel(path)}): {diff}")
 
 
 @dataclass(frozen=True)

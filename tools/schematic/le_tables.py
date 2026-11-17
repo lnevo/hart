@@ -14,7 +14,7 @@ from hartlib import paths, tables  # noqa: E402
 from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, read_csv, slots_module, STAGING, TURNOUT_SYS  # noqa: E402
-from le_fingerprint import canon_sorted, element_label  # noqa: E402
+from approval import canon_sorted, element_label  # noqa: E402  as the approval fingerprints read an element
 
 
 # Blocks added after the cut-over take the next numbers at the end (owner, 2026-11-16: append), so no main or upper
