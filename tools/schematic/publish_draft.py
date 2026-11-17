@@ -14,10 +14,12 @@ fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for 
 jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
 --preview DIR draws the SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
 title block's date and revision are left alone.
-When the drawing itself (everything but the title block) differs from main's, publishing sets `date` to today and
+When the drawing itself (everything but the title block), or a station sheet's, differs from main's, publishing sets `date` to today and
 `revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
 from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
 whole number is left alone. If anything fails after that, the preferences file is put back.
+The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
+them with www/scripts/map_revision.py, and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
 The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
@@ -55,6 +57,8 @@ STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
+sys.path.insert(0, str(REPO / "www/scripts"))
+import map_revision  # noqa: E402
 
 # the plugin's title box (it grows for a long title line), drawn after the drawing itself
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
@@ -262,16 +266,28 @@ def main(argv):
         print("published draft is current" if same else "published draft differs from the drawing")
         differ = stations_differ(draw_stations())
         print(f"station sheets differ: {', '.join(differ)}" if differ else "station sheets are current")
-        return 0 if same and not differ else 1
+        try:
+            pages = [p.relative_to(REPO).as_posix() for p in map_revision.drift(prefs=page_prefs())]
+        except ValueError as e:
+            pages = [str(e)]
+        print(f"station map pages differ from the title block: {', '.join(pages)}" if pages
+              else "station map pages carry the title block's revision and date")
+        return 0 if same and not differ and not pages else 1
     prefs = page_prefs()
+    try:
+        map_revision.planned(REPO / "www", prefs)             # the station map data holds together before any write
+    except ValueError as e:
+        sys.exit(f"station map pages: {e}; nothing written")
     kept = {p: p.read_text() for p in (prefs, STAGING)}      # put back if anything below fails
     try:
         if stale:
             copy_lengths()
             print(f"copied the lengths of {', '.join(stale)} into {STAGING.name}")
-        publish(draw(), target, prefs, kept[prefs])
+        publish(draw(), target, prefs, kept[prefs], stations_changed(draw_stations()))
         write_stations(draw_stations(), STATIONS)
         print(f"wrote the station sheets in {STATIONS.relative_to(REPO)}")
+        for page in map_revision.apply(prefs=prefs):
+            print(f"set {page.relative_to(REPO)} to the title block's revision and date")
     except BaseException:
         for p, text in kept.items():
             if p.read_text() != text:
@@ -295,9 +311,18 @@ def preview(sheet, folder):
     return 0
 
 
-def publish(sheet, target, prefs, original):
+def stations_changed(sheets):
+    """Names of the station sheets whose drawing (title block left out) differs from main's, a new sheet included:
+    the station maps carry the schematic's revision, so such a change moves it too."""
+    return sorted(n for n, svg in sheets.items()
+                  if drawing_only(on_main(STATIONS / n) or "") != drawing_only(svg))
+
+
+def publish(sheet, target, prefs, original, stations=()):
+    """`stations`: the station sheets whose drawing changed (stations_changed); they move the revision as the overall
+    sheet does."""
     base = on_main(target) or (target.read_text() if target.exists() else None)
-    if base and drawing_only(base) != drawing_only(sheet):
+    if base and (drawing_only(base) != drawing_only(sheet) or stations):
         fields = next_fields(on_main(prefs), datetime.date.today())
         now = json.loads(original)
         if fields is None:

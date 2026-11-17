@@ -1,13 +1,22 @@
 """Station maps: every generated sheet is published from docs/ops/stations, the crew data names only
-published sheets, the schematic is published, and no page links the removed preview pages."""
+published sheets, the schematic is published, no page links the removed preview pages, and the current maps carry
+the schematic's revision and date."""
 from __future__ import annotations
 
+import datetime
 import json
 import re
+import shutil
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "www/scripts"))
+import map_revision  # noqa: E402
+
+PREFS = ROOT / "jmri/layouts/hart/data/schematic/main_upper.preferences.json"
 PUBLISHED = json.loads((ROOT / "www/scripts/published-files.json").read_text())
 CREW = json.loads((ROOT / "www/data/crew.json").read_text())
 MAPS = ROOT / "www/crew/maps"
@@ -44,6 +53,79 @@ class StationMapsTest(unittest.TestCase):
         self.assertEqual(list(MAPS.rglob("generated.html")), [])
         for page in MAPS.rglob("*.html"):
             self.assertNotRegex(page.read_text(), r"generated\.html|preview", str(page))
+
+
+class MapRevisionTest(unittest.TestCase):
+    def test_current_maps_carry_the_schematic_revision(self):
+        prefs = json.loads(PREFS.read_text())
+        day = datetime.date.fromisoformat(prefs["date"])
+        rev, effective = str(prefs["revision"]), f"{day.day} {day.strftime('%B')} {day.year}"
+        self.assertEqual(CREW["schematic"]["revision"], rev)
+        self.assertEqual(CREW["schematic"]["effective"], effective)
+        pubs = json.loads((ROOT / "www/data/publications.json").read_text())["items"]
+        by_page = {i.get("page"): i for i in pubs}
+        self.assertEqual(by_page[CREW["schematic"]["svg"]]["revision"], rev)
+        for m in CREW["maps"]:
+            page = f"crew/maps/{m['id']}/index.html"
+            self.assertEqual(by_page[page]["revision"], rev, m["id"])
+            self.assertIn(f">Publication {m['pub']} · Revision {rev} · Effective {effective}</p>",
+                          (ROOT / "www" / page).read_text(), m["id"])
+        self.assertEqual(map_revision.drift(), [])
+
+    def test_archive_pages_keep_their_own_revision(self):
+        planned = map_revision.planned(ROOT / "www")
+        for m in CREW["maps"]:
+            self.assertNotIn(MAPS / "archive" / m["id"] / "index.html", planned)
+        self.assertIn("Revision A", (MAPS / "archive/west-yard/index.html").read_text())
+
+    def test_fields_from_the_title_block(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            prefs = Path(tmp) / "p.json"
+            prefs.write_text(json.dumps({"revision": 12, "date": "2026-12-01"}))
+            self.assertEqual(map_revision.fields(prefs), ("12", "1 December 2026"))
+            prefs.write_text(json.dumps({"revision": 12, "date": "1 Dec"}))
+            with self.assertRaisesRegex(ValueError, "not YYYY-MM-DD"):
+                map_revision.fields(prefs)
+            prefs.write_text(json.dumps({"date": "2026-12-01"}))
+            with self.assertRaisesRegex(ValueError, "no revision"):
+                map_revision.fields(prefs)
+
+
+class MapRevisionCopy(unittest.TestCase):
+    """A temp copy of the files map_revision owns, plus one archive page, to change freely."""
+
+    def setUp(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        self.www = tmp / "www"
+        rels = ["data/crew.json", "data/publications.json", "crew/maps/archive/west-yard/index.html"]
+        rels += [f"crew/maps/{m['id']}/index.html" for m in CREW["maps"]]
+        for rel in rels:
+            (self.www / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ROOT / "www" / rel, self.www / rel)
+        self.prefs = tmp / "prefs.json"
+        self.prefs.write_text(json.dumps({"revision": 11, "date": "2026-12-01"}))
+
+    def test_new_revision_is_drift_until_applied(self):
+        archive = (self.www / "crew/maps/archive/west-yard/index.html").read_text()
+        stale = map_revision.drift(self.www, self.prefs)
+        self.assertEqual(len(stale), 2 + len(CREW["maps"]))
+        self.assertEqual(sorted(map_revision.apply(self.www, self.prefs)), sorted(stale))
+        self.assertEqual(map_revision.drift(self.www, self.prefs), [])
+        self.assertIn(">Publication SM-02 · Revision 11 · Effective 1 December 2026</p>",
+                      (self.www / "crew/maps/west-yard/index.html").read_text())
+        crew = json.loads((self.www / "data/crew.json").read_text())
+        self.assertEqual((crew["schematic"]["revision"], crew["schematic"]["effective"]), ("11", "1 December 2026"))
+        self.assertEqual(crew["maps"][0]["revision"], CREW["maps"][0]["revision"])   # archive field untouched
+        self.assertEqual((self.www / "crew/maps/archive/west-yard/index.html").read_text(), archive)
+
+    def test_missing_publication_entry_stops(self):
+        path = self.www / "data/publications.json"
+        pubs = json.loads(path.read_text())
+        pubs["items"] = [i for i in pubs["items"] if i.get("pub") != "SM-06"]
+        path.write_text(json.dumps(pubs))
+        with self.assertRaisesRegex(ValueError, "crew/maps/barn/index.html"):
+            map_revision.planned(self.www, self.prefs)
 
 
 if __name__ == "__main__":

@@ -277,5 +277,46 @@ class StationSheets(unittest.TestCase):
         self.assertEqual(sorted(f.name for f in PD.STATIONS.iterdir()), ["a.svg"])
 
 
+
+class StationMapRevision(unittest.TestCase):
+    """The station maps carry the schematic's revision: a station-only drawing change moves it, and the site pages
+    are checked and written with it (map_revision)."""
+
+    def test_a_station_sheets_drawing_change_counts_but_its_title_block_does_not(self) -> None:
+        main = {"a.svg": sheet(rev=1), "b.svg": sheet(rev=1)}
+        with mock.patch.object(PD, "on_main", side_effect=lambda p: main.get(p.name)):
+            self.assertEqual(PD.stations_changed({"a.svg": sheet(rev=2), "b.svg": sheet(track="M1,0", rev=1),
+                                                  "new.svg": sheet()}), ["b.svg", "new.svg"])
+
+    def test_a_station_change_alone_moves_the_revision(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            target, prefs = Path(tmp) / "schematic-system-draft.svg", Path(tmp) / "page.preferences.json"
+            target.write_text(sheet())
+            prefs.write_text(json.dumps({"date": "2026-11-14", "revision": 1}))
+            on_main = lambda p: sheet() if p == target else json.dumps({"revision": 1})
+            with mock.patch.object(PD, "OUT", Path(tmp)), mock.patch.object(PD, "on_main", side_effect=on_main), \
+                    mock.patch.object(PD, "draw", return_value=sheet()), \
+                    mock.patch.object(PD, "pdf", lambda svg, out: out.write_bytes(b"%PDF")), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                PD.publish(sheet(), target, prefs, prefs.read_text(), stations=["barn.svg"])
+            self.assertEqual(json.loads(prefs.read_text())["revision"], 2)
+
+    def test_check_reports_bad_map_data_as_a_difference(self) -> None:
+        with mock.patch.object(PD, "draw", return_value="<svg/>"), mock.patch.object(PD, "draw_stations", return_value={}), \
+                mock.patch.object(PD, "stations_differ", return_value=[]), \
+                mock.patch.object(PD, "stale_lengths", return_value=[]), \
+                mock.patch.object(PD.map_revision, "drift", side_effect=ValueError("no entry for x")), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(PD.main(["--check"]), 1)
+        self.assertIn("no entry for x", out.getvalue())
+
+    def test_bad_map_data_stops_publishing_before_any_write(self) -> None:
+        with mock.patch.object(PD, "draw", side_effect=AssertionError("drew")), \
+                mock.patch.object(PD, "stale_lengths", return_value=[]), \
+                mock.patch.object(PD.map_revision, "planned", side_effect=ValueError("no entry for x")), \
+                self.assertRaisesRegex(SystemExit, "nothing written"):
+            PD.main([])
+
+
 if __name__ == "__main__":
     unittest.main()

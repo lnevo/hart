@@ -1406,9 +1406,11 @@
   ],
   "schematic": {
     "title": "System schematic",
-    "caption": "System schematic: staging, main and upper level. Revision 10.",
+    "caption": "System schematic: staging, main and upper level.",
     "svg": "crew/maps/schematic/system-schematic.svg",
     "pdf": "crew/maps/schematic/system-schematic.pdf",
-    "alt": "System schematic of the whole layout: staging, main level and upper level, with switch numbers, track names and masts."
+    "alt": "System schematic of the whole layout: staging, main level and upper level, with switch numbers, track names and masts.",
+    "revision": "10",
+    "effective": "16 November 2026"
   }
 }
