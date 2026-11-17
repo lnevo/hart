@@ -2,7 +2,7 @@
 
 Turn an AnyRail export into a blocked JMRI panel (occupancy, NX list, Mac defaults).
 
-**Status:** Frozen for **hart**: `tables.xml` carries later JMRI work, so do not re-run unless asked. The tools stay live for future panels.
+**Status:** Retired (2026-11-17). The panels are drawn from the schematic now (`make panels`), and hart's main and upper levels were built that way. The four scripts below moved to `archive/jmri-scripts/`; nothing there runs. This page is history.
 
 ## Inputs
 
@@ -14,23 +14,23 @@ Turn an AnyRail export into a blocked JMRI panel (occupancy, NX list, Mac defaul
 
 - `jmri/layouts/<name>/output/*_blocked.xml`
 
-## Run (`JMRI_LAYOUT=hart` example)
+## How it ran (`JMRI_LAYOUT=hart` example)
 
 ```bash
 export JMRI_LAYOUT=hart
-python3 jmri/scripts/prepare_tables_from_anyrail.py \
+python3 archive/jmri-scripts/prepare_tables_from_anyrail.py \
   jmri/layouts/hart/anyrail/hart.xml \
   jmri/templates/panel_style.xml \
   --scale 1
-python3 jmri/scripts/build_blocks_excel.py
-python3 jmri/scripts/apply_blocks_to_panel.py \
+python3 archive/jmri-scripts/build_blocks_excel.py
+python3 archive/jmri-scripts/apply_blocks_to_panel.py \
   jmri/layouts/hart/anyrail/hart.xml \
   jmri/layouts/hart/output/hart_blocked.xml \
   jmri/templates/panel_style.xml \
   use-panel-layout no-nx
 ```
 
-hart bootstrap (one-time, already done; the script is kept for history at `archive/jmri-scripts/bootstrap_hart_from_linear6.py`). New levels start from `prepare_tables_from_anyrail.py` above.
+hart bootstrap (one-time, already done; the script is kept for history at `archive/jmri-scripts/bootstrap_hart_from_linear6.py`). New levels come from the schematic (`make panels`), not from this pipeline.
 
 ## Do not
 

@@ -373,10 +373,8 @@ def update_lcos_inventory(rows: list[dict]) -> None:
                 ws.cell(rr, col, v)
         else:
             ws.append(vals)
-    out = DATA / "LCOS_Layout_Inventory_v85_signal_ports.xlsx"
-    wb.save(out)
     wb.save(inv)
-    print(f"updated inventory DNOU8 → {inv} and {out}")
+    print(f"updated inventory DNOU8 → {inv}")
 
 
 def _heads_xml(rows: list[dict]) -> str:

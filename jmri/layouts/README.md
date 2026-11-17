@@ -37,7 +37,9 @@ See [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md).
 ## Starting the new layout
 
 1. Copy `new/` to `layouts/<yourname>/` (or work directly in `new/`).
-2. Put the AnyRail export in `anyrail/` (any filename; pass the path to `apply_blocks_to_panel.py`).
+2. Put the AnyRail export in `anyrail/`.
 3. Build or copy an authoritative panel into `authoritative/`.
-4. Run `build_blocks_excel.py` against the geometry, then edit `data/layout_blocks.xlsx`.
+4. The AnyRail scripts that turned the export into a blocked panel (`build_blocks_excel.py`,
+   `apply_blocks_to_panel.py` and friends) are retired in `archive/jmri-scripts/`; hart's new levels come from the
+   schematic (`make panels`).
 5. Set `export JMRI_LAYOUT=<yourname>` or pass explicit paths on every command.
