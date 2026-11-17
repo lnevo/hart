@@ -125,11 +125,12 @@ class ExamAnswers(unittest.TestCase):
     def test_signal_tables_cover_the_signals_run(self):
         out = node(
             f"const m=require({json.dumps(str(SCRIPT))});const S=m.loadSignals();const g=m.generatedHtml(S);"
-            "console.log(JSON.stringify({n:g.n,a:S.ASPECTS.length,r:S.ROUTE.length,p:Object.keys(S.PLATES).length,"
+            "console.log(JSON.stringify({n:g.n,a:S.ASPECTS.length,r:new Set(S.ROUTE.map(x=>x.heads)).size,p:Object.keys(S.PLATES).filter(k=>k!=='none').length,"
             "badW:S.ASPECTS.filter(a=>a.w.length!==3||a.w.some(r=>!S.ASPECTS.find(x=>x.r===r))).map(a=>a.r)}))"
         )
         d = json.loads(out)
         self.assertEqual(d["badW"], [])
+        # one entry per aspect, per distinct route-signal look, and per plate the game draws
         self.assertEqual(d["n"], d["a"] + d["r"] + d["p"])
         html = (WWW / "exam" / "answers.html").read_text()
         self.assertIn('id="signals"', html)

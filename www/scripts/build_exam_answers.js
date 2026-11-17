@@ -204,7 +204,7 @@ function loadSignals() {
   const file = path.join(EXAM, "signals.js");
   const ctx = {};
   vm.createContext(ctx);
-  vm.runInContext(fs.readFileSync(file, "utf8") + ";this.SIG={ASPECTS,ROUTE,PLATES,sigFig,lightFig,armWords,lampWords};", ctx);
+  vm.runInContext(fs.readFileSync(file, "utf8") + ";this.SIG={ASPECTS,ROUTE,PLATES,sigFig,lightFig,armWords,lampWords,plateWrongs,routeWhy};", ctx);
   const SIG = ctx.SIG;
   if (!SIG.ASPECTS.length || !SIG.ROUTE.length || !Object.keys(SIG.PLATES).length) throw new Error("signals.js: a table is empty");
   return SIG;
@@ -230,13 +230,10 @@ function generatedHtml(SIG) {
     SIG.sigFig(a.arms), a.ind, a.w.map(r => byR[r].ind), `Rule ${a.r}, ${a.name}: ${a.ind}.`));
   const inds = [...new Set(SIG.ROUTE.map(r => r.ind))];
   const route = SIG.ROUTE.filter((r, i, all) => all.findIndex(x => x.heads === r.heads) === i).map(r => card(`Route signals · Signals guide · chart`, r.name,
-    `${SIG.lampWords(r.heads)}. What does it tell you?`, SIG.lightFig(r.heads, ""), r.ind, inds.filter(t => t !== r.ind), `${r.name}: ${r.ind}.`));
-  const acts = [...new Set(Object.values(SIG.PLATES).map(p => p.act))];
-  const plates = Object.entries(SIG.PLATES).map(([k, p]) => {
-    const close = new Set([p.act, ...(p.near || []).map(n => SIG.PLATES[n].act)]); // the game leaves these out of the wrong choices
-    return card(`Both signals runs · Signals guide · signage`, `${p.name} at Stop`, `The signal shows Stop and carries ${p.with}. What do you do?`,
-      SIG.lightFig("R", k === "none" ? "" : k), p.act, acts.filter(t => !close.has(t)), p.note);
-  });
+    `${SIG.lampWords(r.heads)}. What does it tell you?`, SIG.lightFig(r.heads, ""), r.ind, inds.filter(t => t !== r.ind), SIG.routeWhy(r)));
+  // the plates the game draws (it never draws a signal with no plate)
+  const plates = Object.entries(SIG.PLATES).filter(([k]) => k !== "none").map(([k, p]) => card(`Both signals runs · Signals guide · signage`, `${p.name} at Stop`,
+    `The signal shows Stop and carries ${p.with}. What do you do?`, SIG.lightFig("R", k), p.act, SIG.plateWrongs(k).map(w => w.t), p.note));
   const n = speed.length + route.length + plates.length;
   return { n, html: `<section class="xa-sec" id="signals"><h2>Signals run: at each signal <small>${n}</small></h2>
 <p class="xa-gen">On the signals runs each signal is drawn from these tables, which the study deck also uses. The game offers three of the wrong choices listed for a route signal or a plate.</p>
@@ -474,7 +471,7 @@ function main() {
   const qs = extract(src);
   const calls = (src.match(/\bask\(\{/g) || []).length;
   if (qs.length + qs.generated !== calls) throw new Error(`read ${qs.length} questions and ${qs.generated} signal templates but run.html has ${calls} ask({ calls`);
-  const GEN = loadSignals && qs.generated ? generatedHtml(loadSignals()) : { n: 0, html: "" };
+  const GEN = qs.generated ? generatedHtml(loadSignals()) : { n: 0, html: "" };
   const html = render(qs, readSections(src), references(src), GEN);
   if (process.argv.includes("--check")) {
     const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";

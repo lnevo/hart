@@ -5,12 +5,13 @@
    R red horizontal, Y yellow 45 degrees up, G green vertical. */
 const ARM={R:{a:0,c:"#b8322b",t:"#fff",w:"red, horizontal"},Y:{a:-45,c:"#e0b52a",t:"#1d2733",w:"yellow, 45° up"},G:{a:-90,c:"#2d7a4a",t:"#fff",w:"green, vertical"}};
 const armWords=arms=>[...arms].map(k=>ARM[k].w).join("; ");
-function sigFig(arms){
+function sigFig(arms,plate){
   const n=arms.length,top=34,gap=46,h=top+(n-1)*gap+34;
   let g="";
   [...arms].forEach((k,i)=>{const y=top+i*gap,A=ARM[k];
     g+=`<g transform="rotate(${A.a} 30 ${y})"><rect x="30" y="${y-5}" width="34" height="10" fill="none" stroke="currentColor" stroke-width="2"/></g><circle cx="30" cy="${y}" r="9" fill="${A.c}" stroke="currentColor" stroke-width="1.5"/><text x="30" y="${y+4}" text-anchor="middle" font-size="11" font-weight="700" fill="${A.t}" font-family="system-ui,sans-serif">${k}</text>`});
-  return `<svg class="ce-sig" viewBox="0 0 76 ${h}" width="76" height="${h}" role="img" aria-label="Semaphore signal, arms top to bottom: ${armWords(arms)}"><line x1="21" y1="${top-14}" x2="21" y2="${h-6}" stroke="currentColor" stroke-width="3"/><line x1="10" y1="${h-6}" x2="32" y2="${h-6}" stroke="currentColor" stroke-width="4"/>${g}</svg>`;
+  const pl=plate?`<rect x="24" y="${h-30}" width="${plate.length>1?28:20}" height="15" fill="#f5f0e1" stroke="currentColor" stroke-width="1.5"/><text x="${24+(plate.length>1?14:10)}" y="${h-19}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1d2733" font-family="system-ui,sans-serif">${plate}</text>`:"";
+  return `<svg class="ce-sig" viewBox="0 0 76 ${h}" width="76" height="${h}" role="img" aria-label="Semaphore signal, arms top to bottom: ${armWords(arms)}${plate?", "+plate+" plate":""}"><line x1="21" y1="${top-14}" x2="21" y2="${h-6}" stroke="currentColor" stroke-width="3"/><line x1="10" y1="${h-6}" x2="32" y2="${h-6}" stroke="currentColor" stroke-width="4"/>${g}${pl}</svg>`;
 }
 
 /* A color-light route signal: heads top to bottom, R red, Y yellow, G green (Signals guide chart). */
@@ -59,9 +60,19 @@ const ROUTE=[
 /* What a plate on the mast means at a stop indication (Signals guide, §5 page 3), as the deck's plate cards word it. */
 /* with: the plate as written in a sentence ("carries an SA plate"); near: plates whose action is too close to count as wrong. */
 const PLATES={
-  A:{name:"A plate",with:"an A plate",near:["SA"],act:"Do not pass until permission is granted by whoever controls the signal",note:"An absolute signal: at stop, it may not be passed until permission is granted by the individual controlling the signal, usually a CTC dispatcher."},
-  none:{name:"No plate",with:"no plate",near:["SA"],act:"Do not pass until permission is granted by whoever controls the signal",note:"No plate: the same rule as an A plate governs."},
+  A:{name:"A plate",with:"an A plate",near:["SA"],abs:1,act:"Do not pass until permission is granted by whoever controls the signal",note:"An absolute signal: at stop, it may not be passed until permission is granted by the individual controlling the signal, usually a CTC dispatcher."},
+  none:{name:"No plate",with:"no plate",near:["SA"],abs:1,act:"Do not pass until permission is granted by whoever controls the signal",note:"No plate: the same rule as an A plate governs."},
   num:{name:"Number plate",with:"a number plate",act:"Stop, then proceed at restricted speed",note:"Number plate, usually the nearest milepost: after stopping, you may proceed at restricted speed."},
   G:{name:"G plate",with:"a G plate",act:"Pass at restricted speed without stopping",note:"Grade signal, also with a number plate: it can be passed at restricted speed without stopping, which helps prevent a train from stalling on an upgrade."},
-  SA:{name:"SA plate",with:"an SA plate",near:["A","none"],act:"Get permission to proceed from the interlocking operator",note:"Semi-automatic, usually in interlockings: an absolute and an ABS part. At stop, permission to proceed must be obtained from the interlocking operator."},
+  SA:{name:"SA plate",with:"an SA plate",near:["A","none"],abs:1,act:"Get permission to proceed from the interlocking operator",note:"Semi-automatic, usually in interlockings: an absolute and an ABS part. At stop, permission to proceed must be obtained from the interlocking operator."},
   P:{name:"P plate",with:"a P plate",act:"Inspect the protective device in the block",note:"Protective signal: there is a protective device in the block, such as a high water or slide detector, that must be inspected by the train crew."}};
+
+/* The wrong choices for a plate question: every other plate's action, leaving out its own and any `near` one too close
+   to call wrong. At an absolute plate (abs), a choice that passes the signal without permission ends the run. */
+function plateWrongs(key){
+  const P=PLATES[key],close=new Set([P.act,...(P.near||[]).map(k=>PLATES[k].act)]);
+  return [...new Set(Object.values(PLATES).map(x=>x.act))].filter(t=>!close.has(t))
+    .map(t=>({t,ends:!!P.abs&&/without stopping|Stop, then proceed/.test(t)}));
+}
+/* The explanation after a route signal question, the same in the game and the answer key. */
+const routeWhy=r=>`${r.name}: ${r.ind}.${r.heads.length>1&&r.k!=="stop2"?" It's not red unless it's all red.":""}`;
