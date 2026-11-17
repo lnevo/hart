@@ -4,6 +4,7 @@ Updated 2026-11-15: the two hand-added Princess SML pairs are retired, so every 
 
 ## Current state
 
+- **SML reference (owner, 2026-11-16):** JMRI's own SML discovery is the reference for signal logic; the home-made SML model (`validate_le_signalling.py`) and its oracle CSV are retired. Check by running stock Discover / Stage 1 in the sandbox rehearsal and comparing the stored pairs with the previous tables.
 - **Layout:** `hart`. Masts are stock Basic (ADR-011). The repo's `jmri/layouts/hart/output/tables.xml` is the master (ADR-008). Every host loads `preference:tables.xml` from `JMRI_UserFiles` (ADR-014).
 - **JMRI:** production 5.16 on the Mac, Pi and Windows, the newest CATS 3.2 supports. Do not go past 5.16 until the CATS downloads page does. On any JMRI upgrade, rebase the web home override (`wiki/projects/cats-integration.md`, "Upgrading JMRI").
 - **Stock distributions:** JMRI 5.16 and CATS 3.2 run unpatched on all three hosts since 2026-10-31, under monitoring. If something breaks, compensate around them rather than changing them. JMRI Simple Server (port 2048) starts with each profile so CATS finds its operations server. The Pi profile's ignored old 2-9-6 `<startup>` block was removed on 2026-11-10 (backup `profile.xml.bak_old_startup_20261110`).

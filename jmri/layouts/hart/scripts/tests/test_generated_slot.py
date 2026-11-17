@@ -43,13 +43,6 @@ class GeneratedSlot(unittest.TestCase):
         self.assertEqual(gen["TO1"].get("C"), "Mast 14R")
         self.assertNotIn("B", gen["TO1"])
 
-    def test_validate_le_signalling_checks_the_generated_leg(self) -> None:
-        mod = load("validate_le_signalling")
-        rows = mod.load_boundary_csv(CSV)
-        self.assertIn((("turnout", "TO1", "B"), "Mast 14R"), mod.csv_bindings(rows, False))
-        self.assertIn((("turnout", "TO1", "C"), "Mast 14R"), mod.csv_bindings(rows, True))
-        self.assertNotIn((("turnout", "TO1", "B"), "Mast 14R"), mod.csv_bindings(rows, True))
-
     def test_audit_panel_contracts_takes_the_generated_slot_only_on_a_generated_panel(self) -> None:
         audit_mod = load("audit_panel_contracts")
         b = audit_mod.Boundary("turnout", "TO1", "B", "Mast 14R", generated_slot="C")

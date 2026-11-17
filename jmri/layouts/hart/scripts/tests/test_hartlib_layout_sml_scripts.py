@@ -57,10 +57,6 @@ class PathsTest(unittest.TestCase):
             "sync_public_name_map": {
                 "ROOT": REPO, "TABLES": TABLES,
                 "CSV_PATH": REPO / "jmri/layouts/hart/data/public_name_map.csv"},
-            "validate_le_signalling": {
-                "DEFAULT_XML": TABLES,
-                "DEFAULT_CSV": REPO / "jmri/layouts/hart/data/le_signal_boundaries.csv",
-                "ORACLE": REPO / "jmri/layouts/hart/data/sml_cats_oracle.csv"},
             "layout_facts": {"DATA": REPO / "jmri/layouts/hart/data"},
         }.items():
             mod = load(name)
@@ -86,13 +82,6 @@ class ReadsThroughHartlibTest(unittest.TestCase):
         self.assertEqual({"Run via OS Switch 7", "Run via OS Switch 9"},
                          mod.live_transit_names(self.mini))
         self.assertEqual("Run via OS Switch 7", mod.rewrite_name("Run via Track 7"))
-
-    def test_validate_parse_reads_past_comments(self):
-        mod = load("validate_le_signalling")
-        model = mod.parse(self.mini)
-        self.assertEqual("yes", model.blockrouting)
-        self.assertEqual([], model.masts)
-        self.assertEqual([], mod.load_stored_sml(self.mini))
 
     def test_sync_public_name_map_live_names_come_from_the_beans(self):
         mod = load("sync_public_name_map")
