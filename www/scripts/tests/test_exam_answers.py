@@ -137,6 +137,31 @@ class ExamAnswers(unittest.TestCase):
         for rule in ("Rule 281", "Rule 292", "A plate at Stop", "SA plate at Stop", "carries an SA plate"):
             self.assertIn(rule, html)
 
+    def test_signal_stories_vary_without_repeats(self):
+        signals = WWW / "exam" / "signals.js"
+        out = node(
+            "const vm=require('vm'),fs=require('fs');const c={};vm.createContext(c);"
+            f"vm.runInContext(fs.readFileSync({json.dumps(str(signals))},'utf8')+';this.p=pickStories',c);"
+            "let seed=1;const rand=()=>(seed=(seed*16807)%2147483647)/2147483647;"
+            "const keys=['clear','approach','stopnum','meet'],fixed=[null,'clear','stopnum',null,'pplate','granite','cp',null];"
+            "const runs=[];for(let n=0;n<400;n++)runs.push(c.p(fixed,i=>i===2?keys:keys,['meet'],rand));"
+            "console.log(JSON.stringify(runs))"
+        )
+        runs = json.loads(out)
+        fixed = [None, "clear", "stopnum", None, "pplate", "granite", "cp", None]
+        counts = {}
+        for r in runs:
+            for i, k in enumerate(r):
+                if fixed[i] is not None:
+                    self.assertEqual(k, fixed[i], "a set piece keeps its story")
+                    continue
+                self.assertNotEqual(k, r[i - 1] if i else None, f"leg {i} repeats the leg before: {r}")
+                if i + 1 < len(r) and fixed[i + 1] is not None:
+                    self.assertNotEqual(k, fixed[i + 1], f"leg {i} repeats the set piece after it: {r}")
+                counts[k] = counts.get(k, 0) + 1
+            self.assertLessEqual(r.count("meet"), 1, f"two meets in one run: {r}")
+        self.assertLess(counts.get("clear", 0) / sum(counts.values()), 0.5, counts)
+
     def test_game_and_deck_load_the_shared_signals(self):
         for page in (RUN, INDEX):
             self.assertIn('<script src="signals.js"></script>', page.read_text(), page.name)
