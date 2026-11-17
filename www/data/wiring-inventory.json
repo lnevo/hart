@@ -2,8 +2,8 @@
  "source": {
   "file": "LCOS_Layout_Inventory_v86.xlsx",
   "version": "v86",
-  "modified": "2026-11-15",
-  "built": "2026-11-15"
+  "modified": "2026-11-17",
+  "built": "2026-11-17"
  },
  "nodes": [
   {
@@ -3429,7 +3429,7 @@
     "226RB"
    ],
    "blockNames": [
-    "OS Switch 225",
+    "OS Switch 225a",
     "OS Switch 227",
     "OS Switch 229",
     "Track 227-239",
@@ -3890,7 +3890,7 @@
       {
        "channel": "1",
        "port": "C21-B1-1",
-       "block": "OS Switch 225"
+       "block": "OS Switch 225a"
       },
       {
        "channel": "2",
@@ -5285,7 +5285,7 @@
     "OS Switch 111",
     "OS Switch 117",
     "OS Switch 119",
-    "Track 107 Loop",
+    "Track 107 Loop 1",
     "Track 107-109",
     "Track 119-125"
    ],
@@ -5779,7 +5779,7 @@
       {
        "channel": "2",
        "port": "C33-B3-2",
-       "block": "Track 107 Loop"
+       "block": "Track 107 Loop 1"
       }
      ]
     },
@@ -10593,8 +10593,8 @@
    "node": "C21",
    "detector": "C21-B1",
    "channel": "1",
-   "block": "OS Switch 225",
-   "track": "OS Switch 225",
+   "block": "OS Switch 225a",
+   "track": "OS Switch 225a",
    "area": "Helix - Upper",
    "note": "Block 21-1 / M2S2100"
   },
@@ -10843,8 +10843,8 @@
    "node": "C33",
    "detector": "C33-B3",
    "channel": "2",
-   "block": "Track 107 Loop",
-   "track": "Track e33",
+   "block": "Track 107 Loop 1",
+   "track": "Track e33 1",
    "area": "West - Main",
    "note": "Block 33-6 / M2S3305"
   },
