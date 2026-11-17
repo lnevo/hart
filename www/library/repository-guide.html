@@ -138,16 +138,17 @@
               <tbody>
                 <tr><td>JMRI setup: sensors, turnouts, blocks, masts, panels</td><td><code>jmri/layouts/hart/output/tables.xml</code></td><td>Every JMRI computer, the CATS desks, the tables browser on this site</td></tr>
                 <tr><td>Public names and hardware addresses</td><td><code>jmri/layouts/hart/data/public_name_map.csv</code></td><td>The tables, both desks, the wiring documents, the device roster</td></tr>
-                <tr><td>Switches: number, level, legs, CTC lever</td><td><code>switches.csv</code> and <code>switch_legs.csv</code> in the same folder</td><td>The desk generators, and a check against the Layout Editor, both desks and the USS board</td></tr>
+                <tr><td>Switches: number, level, legs, CTC lever</td><td><code>switches.csv</code> and <code>switch_legs.csv</code> in the same folder</td><td>The panel builders, and a check against the Layout Editor, both desks and the parked USS board</td></tr>
                 <tr><td>Signal wiring</td><td><code>docs/wiring/signals/signal_wiring.csv</code></td><td>The wiring workbook and slides, comments in the tables, the wiring viewer</td></tr>
-                <tr><td>Track plan of the CATS desks</td><td>The schematic, <code>jmri/layouts/hart/data/schematic/</code></td><td>The CTC and ABS desks, drawn from it by <code>tools/schematic/build_cats_panel.py</code></td></tr>
+                <tr><td>Track plan</td><td>The schematic, <code>jmri/layouts/hart/data/schematic/</code></td><td>Everything <code>make panels</code> builds from it, in order: the turnout hands, the signals, the device map, the main and upper masts, the schematic sheets and station pages, the CTC and ABS desks and the Layout Editor panel</td></tr>
+                <tr><td>Main and upper level devices: each one's JMRI name and the physical device it stands for</td><td>The device map, <code>device_map_main_upper.csv</code> in the schematic folder, built from the schematic and the name map</td><td>The tables, both desks and the schematic. JMRI runs these levels on internal devices named after each switch, block and mast; the map links each one to its planned field device, which is still a draft</td></tr>
                 <tr><td>The fleet</td><td><code>ops/hart-ops/data/image_metadata.csv</code></td><td>Car cards, STS, the Operations Pro roster, the photo pages</td></tr>
                 <tr><td>Operations Pro setup</td><td><code>jmri/layouts/hart/operations/</code> (six files)</td><td>Every JMRI computer</td></tr>
                 <tr><td>Where each car is and what it carries</td><td>The live STS database on the Pi</td><td>JMRI Operations Pro, refreshed one way after each step</td></tr>
               </tbody>
             </table>
           </div>
-          <p>Moving a switch's legs is a change to one row of <code>switch_legs.csv</code>, then a run of the generators. If the Layout Editor, a CATS desk and the USS board then disagree, the check fails and names the switch and both files.</p>
+          <p>Moving a switch's legs is a change to one row of <code>switch_legs.csv</code>, then a run of <code>make panels</code>. If the Layout Editor, a CATS desk and the parked USS board then disagree, the check fails and names the switch and both files.</p>
         </section>
 
         <section id="layout" aria-labelledby="h-layout">
@@ -172,11 +173,12 @@
 
         <section id="hartlib" aria-labelledby="h-hartlib">
           <h2 id="h-hartlib"><span class="num">05</span>Shared code</h2>
-          <p>The Mac-side scripts share one small library, <code>hartlib</code>, in <code>tools/hartlib/</code>. It has three parts:</p>
+          <p>The Mac-side scripts share one small library, <code>hartlib</code>, in <code>tools/hartlib/</code>. It has four parts:</p>
           <ul>
             <li><b><code>paths</code></b> names every file the tools use: the tables file, the name map, the wiring table, the layout folders. A path always points into the checkout the script sits in.</li>
             <li><b><code>tables</code></b> loads and saves <code>tables.xml</code>. A load followed by a save with no edit writes the same bytes JMRI wrote, so a script that changes one sensor changes one sensor in the diff. It also knows the file's traps: sensors and turnouts split over several sections, every block written twice, two kinds of mast. A save refuses while PanelPro or CATS is open.</li>
             <li><b><code>hosts</code></b> holds the MQTT broker and the address of each layout computer, read from the environment, then a local settings file, then the defaults. The shell scripts read the same settings in the same order.</li>
+            <li><b><code>railroad</code></b> reads the fact files above once each and checks the rules between them, such as no main or upper switch reusing a staging switch number, and every main and upper device in the device map also being in <code>tables.xml</code>. The panel builders read their facts through it, and each builder may read only the files made before its own step, so none of them reads an old copy of what it is about to write. <code>./tools/check.sh</code> runs its check.</li>
           </ul>
           <p>The library is not installed. Each script finds it with two lines that walk up from the script's own folder, so a script always uses the copy beside it, and moving a script needs no edit. That matters because every change is made in a separate working copy (see <a href="#changes">Making a change</a>); an installed library would point every copy at one of them. The scripts that run inside JMRI never import it.</p>
         </section>

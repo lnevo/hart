@@ -21,6 +21,7 @@ You review the HART public website through the lens the brief names. Read `www/R
 - Historian lens: cite a source for each correction, and say when you could not find one.
 - Writer lens: check prose against the Writing section of `www/README.md` and run `python3 tools/audit/check_ai_speak.py`. Give a plain rewrite for each finding, and say when a sentence holds a fact that a rewrite must keep.
 - P&CV and P&OV are both correct and deliberate. Do not flag them.
+- Whatever the lens, check that the pages about how the railroad is built still match the repo: `www/library/repository-guide.html` and `www/behind/jmri-additions.html` above all, then `www/behind/tables-file.html`. Read `git log -1 --format=%ad -- <page>`, then the commits since that date under `tools/hartlib`, `tools/schematic`, `jmri/layouts/hart/data`, `jmri/scripts` and `wiki/decisions`, and `wiki/STATUS.md`. Name each change the page does not reflect, with the commit.
 - Whatever the lens, run `python3 www/scripts/share_cards.py check` and name any page in Operations, Behind the Scenes or The Diverging Route that still shows the site share card, with a suggested picture of that page's subject.
 
 Report at most 15 findings, worst first. For each give severity, file and line or URL, the evidence, and a one-line fix. Say what you did not check. No praise and no summary of the site.
