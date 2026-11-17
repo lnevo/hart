@@ -28,6 +28,14 @@ GRID = """<TRACKPLAN>
 </TRACKPLAN>"""
 
 
+
+def hand_wired(name: str) -> Path:
+    """The last hand-wired desk `name` (HART_CTC.xml or HART_ABS.xml) from git (hartlib.hand_drawn): the live
+    desks are generated since the CATS cut-over. Skips when git does not have it."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
+    from hartlib import hand_drawn
+    return hand_drawn.skip_unless_available(name)
+
 def grid() -> dict:
     return trace.track_cells(ET.fromstring(GRID))
 
@@ -91,7 +99,7 @@ class DeskTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        root = ET.parse(SCRIPTS.parent / "panels/HART_CTC.xml").getroot()
+        root = ET.parse(hand_wired("HART_CTC.xml")).getroot()      # the wired desk: git, since the cut-over
         cls.cells = trace.track_cells(root.find("TRACKPLAN"))
 
     def test_switch_9(self) -> None:

@@ -23,3 +23,7 @@ The copies had also drifted. The desks held edits that the source did not, so a 
 - Launchers are one CTC and one ABS on each host, with no Master or hold names.
 - Deploy removes `HART_Master*.xml` and the old launchers from the Pi and Windows.
 - Until that deploy runs, the hosts keep the old panels and do not have the Basic aspect mapping.
+
+## Amendment, CATS cut-over (owner approved the generated desks in real CATS on 2026-11-15)
+
+Superseded for the live desks: `HART_CTC.xml` and `HART_ABS.xml` are generated from the schematic by `tools/schematic/build_cats_panel.py` (all three levels, ADR-023), its only writer, held by `--check`. `wire_digicon.py` refuses to write them; `HART_Digicon.xml` and the last hand-wired desks (in git, `hartlib.hand_drawn`) are the record. Point 3 stands: nobody edits a desk by hand.

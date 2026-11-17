@@ -21,6 +21,14 @@ TURNOUT = {(24, 8): "Switch 9", (26, 8): "Switch 11"}
 OS_BLOCK = {(24, 8): "OS Switch 9", (26, 8): "OS Switch 11"}
 
 
+
+def hand_wired(name: str) -> Path:
+    """The last hand-wired desk `name` (HART_CTC.xml or HART_ABS.xml) from git (hartlib.hand_drawn): the live
+    desks are generated since the CATS cut-over. Skips when git does not have it."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
+    from hartlib import hand_drawn
+    return hand_drawn.skip_unless_available(name)
+
 def _cells(path):
     root = ET.parse(path).getroot()
     return {(int(s.get("X")), int(s.get("Y"))): s for s in root.iter("SECTION")}
@@ -56,7 +64,7 @@ class EngineHouse(unittest.TestCase):
 
     def test_desks(self):
         for desk in ("HART_Digicon.xml", "HART_CTC.xml", "HART_ABS.xml"):
-            cells = _cells(ROOT / "cats/panels" / desk)
+            cells = _cells(ROOT / "cats/panels" / desk if desk == "HART_Digicon.xml" else hand_wired(desk))
             for xy, legs in PLANTS.items():
                 for edge, (cmd, dest, cell) in legs.items():
                     names = {b.get("NAME") for b in cells[cell].iter("BLOCK") if b.get("NAME")}

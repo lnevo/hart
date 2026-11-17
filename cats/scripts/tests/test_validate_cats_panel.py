@@ -1,4 +1,5 @@
-"""validate_cats_panel.py: the default list holds the live desks and the generated CATS panels, nothing else."""
+"""validate_cats_panel.py: the default list holds the live desks (generated since the CATS cut-over) and the other HART
+panels in cats/panels, nothing else."""
 from __future__ import annotations
 
 import sys
@@ -22,7 +23,8 @@ class DefaultPanels(unittest.TestCase):
         finally:
             V.check, sys.argv = saved, argv
         self.assertIn("cats/panels/HART_CTC.xml", seen)
-        self.assertIn("cats/panels/generated/HART_Generated.xml", seen)
+        self.assertIn("cats/panels/HART_ABS.xml", seen)
+        self.assertFalse([p for p in seen if "generated/" in p])
         self.assertTrue(all(Path(p).name.startswith("HART") for p in seen), seen)
 
     def test_a_layout_editor_file_fails(self):

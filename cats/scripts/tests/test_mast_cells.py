@@ -21,8 +21,16 @@ import wire_digicon as wire  # noqa: E402
 import gen_ctc_track_plan as gen  # noqa: E402
 from check_layout_facts import desk_signals  # noqa: E402
 
-DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
+DESKS = ("HART_CTC.xml", "HART_ABS.xml")       # the hand-wired desks, read from git (hand_wired)
 
+
+
+def hand_wired(name: str) -> Path:
+    """The last hand-wired desk `name` (HART_CTC.xml or HART_ABS.xml) from git (hartlib.hand_drawn): the live
+    desks are generated since the CATS cut-over. Skips when git does not have it."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
+    from hartlib import hand_drawn
+    return hand_drawn.skip_unless_available(name)
 
 class MastCellsTest(unittest.TestCase):
     def test_desk_builder_and_uss_board_use_the_same_cell(self) -> None:
@@ -31,15 +39,15 @@ class MastCellsTest(unittest.TestCase):
         self.assertEqual(named, drawn)
 
     def test_each_desk_names_exactly_these_signals_on_these_edges(self) -> None:
-        for desk in DESKS:
-            with self.subTest(desk=desk.name):
-                self.assertEqual(desk_signals(desk), wire.SIGNAL_NAMES)
+        for name in DESKS:
+            with self.subTest(desk=name):
+                self.assertEqual(desk_signals(hand_wired(name)), wire.SIGNAL_NAMES)
 
     def test_mast_32r_lamp_sits_below_right_of_switch_31(self) -> None:
-        for desk in DESKS:
-            sec = ET.parse(desk).getroot().find("TRACKPLAN/SECTION[@X='42'][@Y='7']")
+        for name in DESKS:
+            sec = ET.parse(hand_wired(name)).getroot().find("TRACKPLAN/SECTION[@X='42'][@Y='7']")
             pan = sec.find("SEC_EDGE[@EDGE='BOTTOM']/SECSIGNAL/PANELSIGNAL")
-            with self.subTest(desk=desk.name):
+            with self.subTest(desk=name):
                 self.assertEqual((pan.get("SIGLOCATION"), pan.get("SIGORIENT")), ("LOWRIGHT", "TOP"))
 
 

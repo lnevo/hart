@@ -27,7 +27,7 @@ Two Digicon desks for Neville Island ops, CATS CTC and CATS ABS, built from one 
 | **CATS CTC** | `cats/panels/HART_CTC.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
 | **CATS ABS** | `cats/panels/HART_ABS.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. |
 
-`cats/panels/HART_Digicon.xml` is the Designer save and the only panel to edit. `wire_digicon.py` builds both desks from it; never edit a desk by hand. The retired West Yard sheet scripts are in `archive/cats-scripts/west_yard/`.
+Both desks are generated from the schematic (`tools/schematic/build_cats_panel.py`, all three levels; owner approved in real CATS on 2026-11-15, live since the CATS cut-over). Never edit a desk by hand: change the schematic, the switch facts or the build, then rebuild. `HART_Digicon.xml` and `wire_digicon.py` built the earlier hand-wired desks; the last of those are in git (`hartlib.hand_drawn`). The retired West Yard sheet scripts are in `archive/cats-scripts/west_yard/`.
 
 Each desk carries a publication title row (Y=1):
 
@@ -35,10 +35,10 @@ Each desk carries a publication title row (Y=1):
 - Mode tag (`CTC DIGICON` / `ABS DIGICON`)
 - Pub id (`DS-CTC` / `DS-ABS`) · Rev · Effective date
 
-Rebuild both desks after a Designer save:
+Rebuild both desks (`make desks` also validates them):
 
 ```bash
-python3 cats/scripts/wire_digicon.py
+python3 tools/schematic/build_cats_panel.py
 ```
 
 ---
@@ -262,7 +262,8 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 
 | Script | Purpose |
 |--------|---------|
-| `cats/scripts/wire_digicon.py` | Builds `HART_CTC.xml` and `HART_ABS.xml` from the Designer save `HART_Digicon.xml` (no options) |
+| `tools/schematic/build_cats_panel.py` | Builds `HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json` from the schematic and the railroad's facts (`--check`) |
+| `cats/scripts/wire_digicon.py` | Retired: built the hand-wired desks from `HART_Digicon.xml`; refuses to write the live desks |
 | `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by `wire_digicon.py`) |
 | `cats/scripts/aar_aspect_bridge.py` | Digicon R-codes ↔ Basic aspect names (Clear / Approach / Stop / Diverging Clear / Diverging Approach) |
 | `jmri/layouts/hart/scripts/apply_le_sml_facing.py` | Layout Editor `signalAMast` / block-boundary facing from `le_signal_boundaries.csv`; does not change mast types |
@@ -285,4 +286,4 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 2. Never publish turnout “fix” commands at launch.
 3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.
 4. All Digicon lamps are packed `IH*` SHSM — two-head homes on **Basic** (`two-searchlight`), dwarfs on **`one-low`**. No aspects are disabled. Mast 2L is `IH438`/`IH439`.
-5. After a Designer save, run `wire_digicon.py`. It rebuilds both desks, so `HOLD_ONLY` and mast bindings stay in sync.
+5. After a schematic or switch-fact change, run `build_cats_panel.py`. It rebuilds both desks, so `HOLD_ONLY` and mast bindings stay in sync.

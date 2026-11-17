@@ -1,7 +1,9 @@
 # HART Digicon schematic — plant map
 
+**History.** Since the CATS cut-over the live desks are generated from the schematic (`tools/schematic/build_cats_panel.py`; [pipelines/cats-panels.md](pipelines/cats-panels.md)). This page describes the hand-wired desks they replaced, whose last versions are in git (`hartlib.hand_drawn`).
+
 Source: `cats/panels/HART_Digicon.xml` (Designer save, 63×16, 1920×540).  
-Build: `python3 cats/scripts/wire_digicon.py` writes `HART_CTC.xml` and `HART_ABS.xml`, the CATS CTC and CATS ABS desks.
+Build: `python3 cats/scripts/wire_digicon.py` wrote `HART_CTC.xml` and `HART_ABS.xml` (retired; it refuses to write the live desks now).
 
 The Designer save is authority for rails, labels, lamps, SWITCHPOINTS, and **occupancy-cut locations**. The wire script names those existing `BLOCK` edges, binds turnout IO, and names lamps. Track labels (`FONT_LABEL`) on Y≥5 are lifted `LOWCENT` → `UPCENT`. It does not move lamps, insert rails, or add/remove gaps.
 
@@ -66,10 +68,10 @@ Designer captions stay as saved. Wire lifts `FONT_LABEL` on operating rows (`Y�
 ```bash
 ./cats/scripts/launch_cats.sh
 # or the CATS CTC / CATS ABS desktop icons
-python3 cats/scripts/wire_digicon.py   # after a Designer save
+python3 tools/schematic/build_cats_panel.py   # rebuild the generated desks
 ```
 
-Mac icons **CATS CTC** / **CATS ABS** open the desks. Designer saves belong in `HART_Digicon.xml`.
+Mac icons **CATS CTC** / **CATS ABS** open the desks.
 
 **Load rule:** a named `BLOCK` edge must face another `BlkEdge`. Occupancy cuts use **different** names (that is the only intended rail gap). Interior cells stay plain — occupancy flows through turnouts (`PtsEdge.propagateBlock`). Same-name `BlkEdge` pairs still paint a gap; they exist only where a Designer lamp sits mid-block. A `BlkEdge` facing a plain `SecEdge` ClassCasts in `discoverAdvanceVitalLogic` and leaves the Dispatcher Panel blank. Anonymous `<BLOCK />` then NPEs (`MyBlock` is null). Do not put two names on one Track. Do not put BLOCK on the edge facing SWITCHPOINTS.
 

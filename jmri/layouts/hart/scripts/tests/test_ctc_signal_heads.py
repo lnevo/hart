@@ -14,7 +14,12 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[3]
 TABLES = SCRIPTS.parent / "output" / "tables.xml"
 GUI = SCRIPTS.parent / "ctc" / "GUIObjects.xml"
-CATS = ROOT / "cats/panels/HART_CTC.xml"
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import hand_drawn  # noqa: E402
+
+# the USS board's grid is the hand-wired desk's (frozen in uss_board_cells.csv): the last hand-wired desk, read from
+# git (hartlib.hand_drawn), since the live desks are generated since the CATS cut-over
+CATS = hand_drawn.skip_unless_available("HART_CTC.xml")
 WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
 REFRESH = ROOT / "docs/wiring/scripts/refresh_wiring_docs.py"
 

@@ -1,7 +1,7 @@
-"""The committed desks are what wire_digicon.py builds from the Designer panel.
+"""The last hand-wired desks (git, before the CATS cut-over) are what wire_digicon.py builds from the Designer panel.
 
-Anything else means someone hand-edited a generated desk or changed the build
-without rebuilding. Fix with: python3 cats/scripts/wire_digicon.py
+wire_digicon.py is retired: the live desks are generated (tools/schematic/build_cats_panel.py), and it refuses to
+write them. This keeps the record honest: a rebuild into a temporary folder still gives the hand-wired desks.
 """
 from __future__ import annotations
 
@@ -42,10 +42,21 @@ class DesksMatchSource(unittest.TestCase):
                     mock.patch.object(sys, "argv", ["wire_digicon.py"]), \
                     contextlib.redirect_stdout(io.StringIO()):
                 wire.main()
+            sys.path.insert(0, str(SCRIPTS.parents[1] / "tools/hartlib/src"))
+            from hartlib import hand_drawn
             for built in (ctc, abs_desk):
-                committed = wire.SRC.parent / built.name
+                committed = hand_drawn.skip_unless_available(built.name)
                 self.assertEqual(comparable(built), comparable(committed),
                                  f"{committed.name} differs from a rebuild")
+
+
+    def test_the_retired_builder_refuses_the_live_desks(self) -> None:
+        wire = load_wire_digicon()
+        before = [p.read_bytes() for p in wire.LIVE_DESKS]
+        with mock.patch.object(sys, "argv", ["wire_digicon.py"]), \
+                self.assertRaisesRegex(SystemExit, "generated since the CATS cut-over"):
+            wire.main()
+        self.assertEqual([p.read_bytes() for p in wire.LIVE_DESKS], before)
 
 
 if __name__ == "__main__":

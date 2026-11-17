@@ -1,7 +1,9 @@
 """The generated CATS desks and the USS CTC board build from committed data alone (CATS cut-over, 2026-11-15).
 
-Each build runs in a child process that may not open the hand-wired desks (cats/panels/HART_CTC.xml, HART_ABS.xml,
-HART_Digicon.xml) nor the checkout's tables.xml: an audit hook stops any open of them. The tables it reads are a
+Each build runs in a child process that may not open the hand-wired Designer panel HART_Digicon.xml nor the
+checkout's tables.xml; the USS board build may not open the desks either (cats/panels/HART_CTC.xml and HART_ABS.xml,
+generated since the CATS cut-over; the desk build opens them only to compare with what it writes): an audit hook
+stops any open of them. The tables it reads are a
 temporary copy with every Layout Editor panel taken out (HART_TABLES points at it). Then
   - build_cats_panel.py --check finds both desks and the bindings current (byte-identical to the committed files);
   - gen_ctc_track_plan.py --xml-only, run on copies of GUIObjects.xml and tables.xml, leaves them byte-identical.
@@ -21,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[3]
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 GUI = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
 DESKS = [ROOT / "cats/panels" / n for n in ("HART_CTC.xml", "HART_ABS.xml", "HART_Digicon.xml")]
+SOURCE = [ROOT / "cats/panels/HART_Digicon.xml"]      # what the desk build may not read (its outputs it compares)
 
 # The child: refuse to open the forbidden files, then run the script as __main__ with the given arguments.
 GUARD = """
@@ -38,10 +41,10 @@ runpy.run_path(script, run_name="__main__")
 """
 
 
-def run(script: str, *args: str, tables: Path) -> subprocess.CompletedProcess:
+def run(script: str, *args: str, tables: Path, forbid=None) -> subprocess.CompletedProcess:
     env = dict(os.environ, HART_TABLES=str(tables))
     env.pop("SCHEMATIC_REQUIRED", None)
-    forbidden = os.pathsep.join(str(p) for p in DESKS + [TABLES])
+    forbidden = os.pathsep.join(str(p) for p in (DESKS if forbid is None else forbid) + [TABLES])
     return subprocess.run([sys.executable, "-c", GUARD, forbidden, str(ROOT / script), *args],
                           capture_output=True, text=True, env=env, cwd=ROOT)
 
@@ -72,12 +75,12 @@ class FromScratch(unittest.TestCase):
         self.assertIn("from-scratch build opened", out.stderr)
 
     def test_the_generated_desks_are_current(self):
-        out = run("tools/schematic/build_cats_panel.py", "--check", tables=self.tables)
+        out = run("tools/schematic/build_cats_panel.py", "--check", tables=self.tables, forbid=SOURCE)
         if "SKIPPED" in out.stdout:
             self.skipTest(out.stdout.strip().splitlines()[-1])
         self.assertEqual(out.returncode, 0, out.stdout[-3000:] + out.stderr[-3000:])
-        for name in ("HART_Generated.xml", "HART_Generated_ABS.xml", "HART_Generated.bindings.json"):
-            self.assertIn(f"cats/panels/generated/{name} is current", out.stdout)
+        for name in ("HART_CTC.xml", "HART_ABS.xml", "HART_CTC.bindings.json"):
+            self.assertIn(f"cats/panels/{name} is current", out.stdout)
 
     def test_the_uss_board_is_unchanged(self):
         gui, tables = self.tmp / "GUIObjects.xml", self.tmp / "uss_tables.xml"

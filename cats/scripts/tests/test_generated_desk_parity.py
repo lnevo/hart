@@ -1,8 +1,8 @@
-"""The generated three-level desks bind staging exactly as the live desks do, so they can replace them at the
+"""The generated three-level desks bind staging exactly as the hand-wired desks did, which they replaced at the CATS
 cut-over (ADR-023). Geometry is ignored: the panels are drawn differently.
 
-Compared for every binding of cats/panels/HART_CTC.xml against cats/panels/generated/HART_Generated.xml, and of
-HART_ABS.xml against its twin HART_Generated_ABS.xml:
+Compared for every binding of the last hand-wired cats/panels/HART_CTC.xml (git, hartlib.hand_drawn) against the
+live, generated cats/panels/HART_CTC.xml, and of the hand-wired HART_ABS.xml against the live HART_ABS.xml:
   blocks   name, STATION, DISCIPLINE and the occupied and unoccupied IOSPECs
   switches each OS block's points: the block each route leads to, which route is NORMAL, and its IOSPECs
   masts    SECSIGNAL name, PHYSIGNAL template and SIGPANTYPE, and the block it protects
@@ -24,11 +24,15 @@ sys.path.insert(0, str(SCRIPTS))
 
 import digicon_trace as trace  # noqa: E402
 
-LIVE = ROOT / "cats/panels/HART_CTC.xml"
-GENERATED = ROOT / "cats/panels/generated/HART_Generated.xml"
-LIVE_ABS = ROOT / "cats/panels/HART_ABS.xml"
-GENERATED_ABS = ROOT / "cats/panels/generated/HART_Generated_ABS.xml"
-BINDINGS = ROOT / "cats/panels/generated/HART_Generated.bindings.json"
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import hand_drawn  # noqa: E402
+
+# "LIVE" is the last hand-wired desk (git); the generated desks are the live files since the CATS cut-over
+LIVE = hand_drawn.skip_unless_available("HART_CTC.xml")
+GENERATED = ROOT / "cats/panels/HART_CTC.xml"
+LIVE_ABS = hand_drawn.skip_unless_available("HART_ABS.xml")
+GENERATED_ABS = ROOT / "cats/panels/HART_ABS.xml"
+BINDINGS = ROOT / "cats/panels/HART_CTC.bindings.json"
 HEADER_TAGS = ("LINE", "COUNTER", "SIGNALTEMPLATE", "TRAINSTORE", "JOBSTORE", "CREWSTORE", "COLORDEFINITION",
                "TRAINSTATLABEL", "OPERATIONS", "JMRINAME")
 # The plugin writes the panel title font at 13 points and sizes its band titles by it; the live desk has 16.

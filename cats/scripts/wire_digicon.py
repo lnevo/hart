@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Build the CATS desks from the Designer panel.
+"""Build the hand-wired CATS desks from the Designer panel (retired by the CATS cut-over).
 
-    python3 cats/scripts/wire_digicon.py
-
-HART_Digicon.xml is the Designer save and the only file to edit. This writes
-HART_CTC.xml and HART_ABS.xml. Both are HOLD_ONLY, so JMRI SML owns the aspects,
-and both bind SECSIGNAL to the real JMRI masts. Never edit them by hand: the
-next build replaces them, so a desk change belongs in this script or in
-HART_Digicon.xml.
+The live desks cats/panels/HART_CTC.xml and HART_ABS.xml are generated from the schematic now
+(tools/schematic/build_cats_panel.py, owner approved in real CATS on 2026-11-15). This script built the
+hand-wired ones from the Designer save HART_Digicon.xml; it refuses to write over the live desks and is kept
+for the record and for the tests that compare a rebuild with the last hand-wired desks, read from git
+(hartlib.hand_drawn.cats_desk_path). Both desks were HOLD_ONLY, so JMRI SML owned the aspects, and both bound
+SECSIGNAL to the real JMRI masts.
 """
 from __future__ import annotations
 
@@ -1001,8 +1000,14 @@ def write_desk(wired: ET.ElementTree, dst: Path, discipline: str, key: str) -> N
     header.polish(dst, meta["pub_id"], meta["mode"], rev="A", effective=None)
 
 
+LIVE_DESKS = (paths.CATS_DIR / "panels/HART_CTC.xml", paths.CATS_DIR / "panels/HART_ABS.xml")
+
+
 def main() -> None:
     argparse.ArgumentParser(description=__doc__).parse_args()
+    if {Path(CTC).resolve(), Path(ABS).resolve()} & {p.resolve() for p in LIVE_DESKS}:
+        raise SystemExit("wire_digicon.py: the live CATS desks are generated since the CATS cut-over; build them with "
+                         "python3 tools/schematic/build_cats_panel.py (this script no longer writes them)")
     if not SRC.is_file():
         raise SystemExit(f"missing {SRC}")
     tree = ET.parse(SRC)

@@ -12,7 +12,10 @@ Layout Editor (tables.xml)
   - which leg the continuing sense closes to (plain turnouts);
   - the stored block paths: the closed leg needs Closed or no setting, the thrown
     leg Thrown, and neither may be reached with the other setting.
-CATS desks (HART_CTC.xml, HART_ABS.xml)
+CATS desks (the last hand-wired HART_CTC.xml and HART_ABS.xml, read from git: hartlib.hand_drawn; since the CATS
+cut-over the live desks are generated, and build_cats_panel.py --check, which stops on a fact that disagrees with
+the drawing, and cats/scripts/tests/test_generated_desk_parity.py, which proves they bind what these bind, cover
+them; mast_cells.csv and the USS board's grid are the hand-wired desk's cells)
   - each plant's turnout, the leg each command (close/throw) leads to, and which
     leg is NORMAL (the closed one, unless the switch is CATS-inverted);
   - every block name on the desk is a Layout Editor block;
@@ -62,7 +65,16 @@ import digicon_trace as trace  # noqa: E402
 
 TABLES = paths.TABLES_XML
 GUI = HART / "ctc/GUIObjects.xml"
-DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
+def hand_wired_desks() -> tuple[Path, ...]:
+    """The last hand-wired desks (git): what the desk and mast-cell checks read (module text)."""
+    from hartlib import hand_drawn
+    try:
+        return tuple(hand_drawn.cats_desk_path(n) for n in hand_drawn.CATS_DESKS)
+    except ValueError as exc:
+        sys.exit(f"check_layout_facts: {exc}")
+
+
+DESKS = None        # default: hand_wired_desks()
 OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
 
 CLOSED, THROWN = "2", "4"
@@ -506,6 +518,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
         occupancy: Path = OCCUPANCY) -> Report:
     import gen_ctc_track_plan as gen
 
+    desks = hand_wired_desks() if desks is None else desks
     r = Report()
     switches = facts.load_switches(data)
     t = Tables(tables)
@@ -528,7 +541,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--data", type=Path, default=facts.DATA)
     ap.add_argument("--tables", type=Path, default=TABLES)
-    ap.add_argument("--desk", type=Path, action="append", help="CATS desk (repeat); default CTC and ABS")
+    ap.add_argument("--desk", type=Path, action="append",
+                    help="CATS desk (repeat); default the last hand-wired CTC and ABS (git)")
     ap.add_argument("--gui", type=Path, default=GUI)
     args = ap.parse_args(argv)
     r = run(args.data, args.tables, tuple(args.desk) if args.desk else DESKS, args.gui)

@@ -9,6 +9,14 @@ sys.path.insert(0, str(ROOT / "cats/scripts"))
 import wire_digicon as wire  # noqa: E402
 
 
+
+def hand_wired(name: str) -> Path:
+    """The last hand-wired desk `name` (HART_CTC.xml or HART_ABS.xml) from git (hartlib.hand_drawn): the live
+    desks are generated since the CATS cut-over. Skips when git does not have it."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
+    from hartlib import hand_drawn
+    return hand_drawn.skip_unless_available(name)
+
 def _cells(path):
     root = ET.parse(path).getroot()
     return {(int(s.get("X")), int(s.get("Y"))): s for s in root.iter("SECTION")}
@@ -45,7 +53,7 @@ class PrincessRows(unittest.TestCase):
         self.assertNotIn("TOR36", wire.INVERT_VS_JMRI)
 
     def test_generated_desk_polarity(self):
-        cells = _cells(ROOT / "cats/panels/HART_CTC.xml")
+        cells = _cells(hand_wired("HART_CTC.xml"))
         for xy in ((55, 6), (55, 7)):
             routes = {r.get("ROUTEID"): r for r in cells[xy].iter("ROUTEINFO")}
             straight = routes["RIGHT"]

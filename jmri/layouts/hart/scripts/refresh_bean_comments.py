@@ -991,8 +991,8 @@ def refresh_comments(text: str) -> tuple[str, int]:
 TARGETS = [
     paths.TABLES_XML,
     ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml",
-    ROOT / "cats/panels/HART_CTC.xml",
-    ROOT / "cats/panels/HART_ABS.xml",
+    # the CATS desks are generated since the CATS cut-over (tools/schematic/build_cats_panel.py writes them, and its
+    # --check holds them): no other script edits them
     ROOT / "cats/data",
     ROOT / "cats/scripts/validate_cats_panel.py",
     ROOT / "docs/ctc/DISPATCHER_GUIDE_CTC.md",

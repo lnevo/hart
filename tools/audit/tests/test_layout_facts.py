@@ -69,7 +69,7 @@ class LayoutFactsTest(unittest.TestCase):
                 'ROUTEID="LEFT"', 'ROUTEID="LEFT" NORMAL="true"')
             return text[:cell.start()] + body + text[cell.end():]
 
-        desk = self.copy(check.DESKS[0], flip)
+        desk = self.copy(check.hand_wired_desks()[0], flip)
         out = self.failures(desks=(desk,))
         self.assertTrue(any(m.startswith("Switch 9: HART_CTC.xml OS Switch 9 NORMAL") for m in out), out)
 
@@ -135,7 +135,7 @@ class LayoutFactsTest(unittest.TestCase):
             cell = re.search(r'<SECTION X="45" Y="6">.*?</SECTION>', text, re.S)
             return text[:cell.start()] + cell.group(0).replace("Mast 24L", "Mast 24LX") + text[cell.end():]
 
-        out = self.failures(desks=(self.copy(check.DESKS[0], move), check.DESKS[1]))
+        out = self.failures(desks=(self.copy(check.hand_wired_desks()[0], move), check.hand_wired_desks()[1]))
         self.assertIn("Mast 24L: HART_CTC.xml has Mast 24LX at (45, 6, 'RIGHT'), "
                       "mast_cells.csv has Mast 24L there", out)
 

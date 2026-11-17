@@ -8,6 +8,7 @@ OS Switch 17,BS Switch 17,M2S302,
 OS Switch 19,BS Switch 19,M2S304,
 OS Switch 21,BS Switch 21,M2S306,
 OS Switch 23a,BS Switch 23a,M2S1203,
+OS Switch 23a,BS Switch 23a,M2S1203,Mast 24L
 OS Switch 23a,BS Switch 23a,M2S1203,Mast 24RA
 OS Switch 23b,BS Switch 23b,M2S1205,
 OS Switch 23b,BS Switch 23b,M2S1205,Mast 24RB
@@ -50,8 +51,8 @@ Track EH-3,BS EH-3,M2S1304,
 Track East Ext,BS East Ext,M2S406,
 Track East Lead,BS East Lead,M2S106,
 Track K-1,BS K-1,M2S100,
+Track K-1,BS K-1,M2S100,Mast 2035
 Track K-2,BS K-2,M2S101,
-Track K-2,BS K-2,M2S101,Mast 2035
 Track K-2,BS K-2,M2S101,Mast 2036
 Track Main East,BS Main East,M2S202,
 Track Main West,BS Main West,M2S200,
@@ -66,4 +67,3 @@ Track Scale,BS Scale,M2S407,
 Track W-1,BS W-1,M2S403,
 Track W-2,BS W-2,M2S402,
 Track West Ext,BS West Ext,M2S107,
-Track West Ext,BS West Ext,M2S107,Mast 24L
