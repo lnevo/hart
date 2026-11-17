@@ -81,15 +81,13 @@ SOUTH_YARD_RENAME_MAP = {
     "South Yard 5": "Track S-4",
 }
 
-# The staging switches' old numbers 100 to 119 are their DCC addresses. Where the old number is now a main level
-# turnout's name (the odd ones, 101 to 119), the alias row is "DCC <n>" (owner, 2026-11-17), so a rename pass never
-# renames the main level turnout; the rest keep "Switch <n>".
-DCC_ALIASES = frozenset(range(101, 120, 2))
+# The staging switches' old numbers 100 to 119 are their DCC addresses, and their alias rows are "DCC <n>" (owner,
+# 2026-11-17): the odd ones are now main level turnout names, so a rename pass must never use "Switch <n>" for them.
 
 
 def old_name(number: int) -> str:
     """The alias row's current name for a staging switch's old number 100 to 119."""
-    return f"DCC {number}" if number in DCC_ALIASES else f"Switch {number}"
+    return f"DCC {number}"
 
 
 EAST_END_SWITCHES = (old_name(107), old_name(108), old_name(109))
@@ -294,10 +292,10 @@ class PublicNameMapContractTest(unittest.TestCase):
                 )
             hardware = (row.get("hardware") or "").split()[0]
             xml_name = xml_turnouts.get(hardware)
-            if xml_name not in {f"Switch {number}", expected}:
+            # Switch 1xx is never right here: the odd ones are main level turnout names now.
+            if xml_name != expected:
                 violations.append(
-                    f"{switch}: tables.xml userName {xml_name!r} "
-                    f"not {switch!r} or {expected!r}"
+                    f"{switch}: tables.xml userName of {hardware} is {xml_name!r}, not {expected!r}"
                 )
         self.assertEqual(violations, [])
 

@@ -118,10 +118,15 @@ class NameCopiesTest(unittest.TestCase):
         self.assertFalse(any(f.startswith(check.SKIP_PREFIXES) for f in files), files)
 
     def test_throat_blocks_are_current_through_tables_xml(self):
-        """Track S-R West has only alias rows in the map; tables.xml holding it makes it current,
-        and a proposed name that tables.xml does not hold (renamed in the map only) fails."""
+        """A block with only alias rows in the map (Track S-R West before it got its identity row, 2026-11-17)
+        is current while tables.xml holds it, and stale when tables.xml does not."""
+        text = self.map.read_text(encoding="utf-8")
+        row = "block,Track S-R West,Track S-R West,"
+        self.assertIn(row, text)
+        self.map.write_text("".join(l for l in text.splitlines(keepends=True) if not l.startswith(row)),
+                            encoding="utf-8")
         f = self.write("tools/x.py", 'T = "Track S-R West"\n')
-        self.assertNotIn("Track S-R West", check.load_names(self.map)[0], "it now has an identity row")
+        self.assertNotIn("Track S-R West", check.load_names(self.map)[0], "its identity row is removed for this test")
         self.assertEqual([], self.stale([f]))
         # Without a block of that name in tables.xml, the alias row's proposed name is stale.
         empty = self.write("empty_tables.xml", "<layout-config><blocks/></layout-config>\n")

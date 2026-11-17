@@ -6,8 +6,8 @@
 
 A name is current when its row in jmri/layouts/hart/data/public_name_map.csv has
 current = proposed (the identity row), or, for a block, when tables.xml holds a block
-with that user name (the hidden yard throat blocks such as Track S-R West have only
-alias rows in the map; JMRI holds them). A rename adds a row with the old name as
+with that user name (a block JMRI holds that the map has no identity row for yet;
+the hidden South Yard throat blocks were such blocks until 2026-11-17). A rename adds a row with the old name as
 `current` and the new one as `proposed` (ADR-005), so after a rename the old name
 is no longer current, and every hand-kept copy of it fails here with its file and line.
 A `proposed` name that neither an identity row nor tables.xml holds is not current.
