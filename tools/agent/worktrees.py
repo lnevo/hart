@@ -85,6 +85,26 @@ def merged_prs(branch: str, main: str) -> list[dict] | None:
     return json.loads(done.stdout or "[]") if done.returncode == 0 else None
 
 
+def merged_by_branch(main: str, limit: int = 1000) -> dict[str, list[dict]] | None:
+    """Every merged PR on GitHub, grouped by head branch, in one call; None when GitHub can't be asked.
+
+    One call instead of one per worktree keeps a sweep of many worktrees inside the hook's timeout. A branch
+    whose PR is older than the newest `limit` merges is missing here, so it counts as open work and is kept.
+    """
+    try:
+        done = subprocess.run(["gh", "pr", "list", "--state", "merged", "--limit", str(limit),
+                               "--json", "headRefName,headRefOid,mergedAt"],
+                              cwd=main, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if done.returncode != 0:
+        return None
+    grouped: dict[str, list[dict]] = {}
+    for pr in json.loads(done.stdout or "[]"):
+        grouped.setdefault(pr["headRefName"], []).append(pr)
+    return grouped
+
+
 def merged_at(tree: Worktree, main: str, prs: list[dict] | None = None) -> datetime | None:
     """When the worktree's work was merged: the latest merged PR for its branch whose head
     is its commit or a descendant of it. None for open work, detached HEADs, or no answer."""
@@ -139,10 +159,10 @@ def is_dirty(path: str) -> bool:
 def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | None = None) -> list[str]:
     """Remove merged worktrees; return one line per action for the caller to show.
 
-    With `budget` (seconds), no removal starts once that much time has passed: the hook runs the sweep under a
-    hard timeout, and a pile of worktrees is better left for the next sweep than cut off mid-delete.
+    With `budget` (seconds), no removal starts once that much time has passed since the removals began: the hook
+    runs the sweep under a hard timeout, and a pile of worktrees is better left for the next sweep than cut off
+    mid-delete.
     """
-    start = time.monotonic()
     trees = worktrees()
     if not trees:
         return ["worktree sweep skipped: no git worktrees found"]
@@ -150,8 +170,14 @@ def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | 
     if not shutil.which("gh"):
         return ["worktree sweep skipped: gh is not installed"]
     git("fetch", "-q", "origin", "main", cwd=main)
-    remove, kept = plan(trees, lambda t: merged_at(t, main), keep or [], is_dirty)
+    by_branch = merged_by_branch(main)
+    if by_branch is None:  # GitHub refused the batch: ask per branch, as before
+        merged = lambda t: merged_at(t, main)  # noqa: E731
+    else:
+        merged = lambda t: merged_at(t, main, by_branch.get(t.branch or "", []))  # noqa: E731
+    remove, kept = plan(trees, merged, keep or [], is_dirty)
     lines = []
+    start = time.monotonic()
     for i, tree in enumerate(remove):
         label = tree.branch or tree.head[:8]
         if budget is not None and not dry_run and time.monotonic() - start > budget:

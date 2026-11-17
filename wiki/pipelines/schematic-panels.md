@@ -29,7 +29,7 @@ make desks            # only the CATS desks, then validate them
 | le-cutover | `build_layout_le.py --as-live` | the cut-over candidate `output/trial/tables_cutover.xml`; the live `tables.xml` took it at the cut-over |
 
 Each step reads the plugin's cache (`~/.cache/hart/schematic`), so a run after a small change redoes only what that
-change reaches. `tools/check.sh` runs `--check` on the hands, signals, device map and CATS steps; `make panels
+change reaches. `tools/check.sh` runs `--check` on the hands, signals, device map, main and upper masts and CATS steps; `make panels
 CHECK=1` checks them all.
 
 ## After a run
