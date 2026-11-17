@@ -229,10 +229,13 @@ class Cutover(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 cli = AUDIT.main(["--strict", "--tables", str(path), "--generated"])
         self.assertEqual(audit.errors, [])
-        self.assertEqual(audit.warnings, [])
+        # Before its Stage 1 the candidate still carries the hand-drawn panel's SML and Dispatcher graph: the audit
+        # warns about exactly those two, so --strict refuses it until Stage 1 has run (Phase 5 runs it first).
+        self.assertEqual(len(audit.warnings), 2, audit.warnings)
+        self.assertTrue(all("run Stage 1" in w for w in audit.warnings), audit.warnings)
         self.assertEqual(drift, [])
         self.assertEqual(audit.facts["panel"], LIVE)
-        self.assertEqual(cli, 0)
+        self.assertEqual(cli, 1)
 
     # ---- Phase 3: the scripts that run on tables.xml
     def test_the_candidate_carries_one_generated_panel_marker(self) -> None:
@@ -253,7 +256,7 @@ class Cutover(unittest.TestCase):
                     self.assertEqual(fn(path, check=True)[1], [], fn.__name__)
                     fn(path, check=False, reference=path)
                 self.assertEqual(stations.main(["--panel", str(path), "--check", "--no-sync"]), 0)
-                self.assertEqual(AUDIT.main(["--strict", "--tables", str(path)]), 0)   # found by its marker
+                self.assertEqual(AUDIT.main(["--tables", str(path)]), 0)   # found by its marker; --strict waits for Stage 1
             self.assertEqual(path.read_bytes(), self.data)
 
     def test_layout_facts_pass_on_the_candidate(self) -> None:
@@ -762,7 +765,9 @@ class ThreeLevels(unittest.TestCase):
         icons = Counter(el.get("blockcontents") for el in self.le.iter("BlockContentsIcon"))
         # every block but those B.OPTIONAL_READOUTS lets go when no clean spot is left (logged)
         left_out = {b for v in B.OPTIONAL_READOUTS.values() for b in v} - set(icons)
-        self.assertEqual(len(left_out), len(self.P.bcis_skipped))
+        skipped = {re.search(r"block contents of (.+?): no clean spot", m).group(1) for m in self.P.bcis_skipped}
+        self.assertEqual(skipped, left_out)
+        self.assertEqual(len(skipped), len(self.P.bcis_skipped))
         self.assertEqual(set(icons) | left_out, T.used_blocks(self.le))
         self.assertEqual(set(icons.values()), {1})
         staging = {b["block"] for b in self.base[1].bcis}
@@ -805,7 +810,7 @@ class ThreeLevels(unittest.TestCase):
                     self.assertEqual(fn(path, check=True)[1], [], fn.__name__)
                     fn(path, check=False, reference=path)
                 self.assertEqual(stations.main(["--panel", str(path), "--check", "--no-sync"]), 0)
-                self.assertEqual(AUDIT.main(["--strict", "--tables", str(path)]), 0)
+                self.assertEqual(AUDIT.main(["--tables", str(path)]), 0)   # --strict waits for Stage 1
                 self.assertEqual(facts.main(["--tables", str(path)]), 0)
             self.assertEqual(path.read_bytes(), self.data)
 

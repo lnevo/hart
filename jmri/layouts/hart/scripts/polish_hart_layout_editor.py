@@ -29,7 +29,6 @@ panel the build wrote.
 from __future__ import annotations
 
 import argparse
-import csv
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -37,7 +36,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import level_masts, paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DEFAULT_PANEL = paths.TABLES_XML
@@ -961,16 +960,6 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
     return changes, errors
 
 
-LEVEL_MASTS = paths.LAYOUT_DATA / "schematic" / "main_upper_masts.csv"     # build_main_upper_masts.py
-
-
-def level_masts(path: Path = LEVEL_MASTS) -> set[str]:
-    """The main and upper levels' control-point masts: home signals, shown on a generated panel (none is a hidden
-    Dispatcher virtual)."""
-    with path.open(newline="", encoding="utf-8") as f:
-        return {row["mast"] for row in csv.DictReader(f)}
-
-
 def apply_overlap_cleanup(path: Path, *, check: bool = False, reference: Path | None = None) -> tuple[int, list[str]]:
     """Shrink-LE companion: keep Pi mast nudges, hide virtuals, put Stage 1 lamps on their targets.
 
@@ -983,7 +972,8 @@ def apply_overlap_cleanup(path: Path, *, check: bool = False, reference: Path | 
     ref = reference_panel(reference)
     changes = 0
     errors: list[str] = []
-    shown = level_masts() if generated else set()
+    # the main and upper control-point masts are home signals: shown (none is a hidden Dispatcher virtual)
+    shown = level_masts.names() if generated else set()
 
     for icon in le.findall("signalmasticon"):
         name = (icon.get("signalmast") or "").strip()

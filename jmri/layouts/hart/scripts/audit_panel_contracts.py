@@ -14,7 +14,7 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import level_masts, paths, tables  # noqa: E402
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
@@ -169,17 +169,23 @@ def dispatcher_virtuals(expected: set[str], name_map: Path = paths.PUBLIC_NAME_M
 
 
 # The main and upper levels' masts, on internal heads (IH9 + the device map's four digits) until the cut-over
-# (tools/schematic/build_main_upper_masts.py): counted apart from the staging field masts.
-LEVEL_MASTS = paths.LAYOUT_DATA / "schematic" / "main_upper_masts.csv"
-LEVEL_HEAD = re.compile(r"IH9\d{4}")
+# (hartlib.level_masts; tools/schematic/build_main_upper_masts.py): counted apart from the staging field masts.
 
 
-def level_mast_names(path: Path = LEVEL_MASTS) -> set[str]:
-    with path.open(newline="", encoding="utf-8") as f:
-        return {row["mast"] for row in csv.DictReader(f)}
+def draws_levels(panel: ET.Element | None) -> bool:
+    """Whether a panel draws the main and upper levels: a turnout of it holds an OS block a main or upper mast
+    protects (main_upper_masts.csv)."""
+    if panel is None:
+        return False
+    protects = {r["protects"] for r in level_masts.read()}
+    return any(t.get(a) in protects for t in panel.iter("layoutturnout")
+               for a in ("blockname", "blockbname", "blockcname", "blockdname"))
 
 
-def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
+def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: bool = False) -> None:
+    """The signal mast table: the 23 staging field masts exactly, the Dispatcher virtuals, no CATS runtime virtuals;
+    and the main and upper masts on internal heads, every one of main_upper_masts.csv when the panel draws those
+    levels (`levels`), else none but its own."""
     masts = root.find("signalmasts")
     names: set[str] = set()
     level: set[str] = set()
@@ -198,16 +204,15 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit) -> None:
                 if name:
                     virtual_names.add(name)
                 continue
-            heads = re.findall(r"\((IH\d+)\)", system_name or "")
-            if heads and all(LEVEL_HEAD.fullmatch(h) for h in heads):
+            if level_masts.is_level_mast(system_name):
                 level.add(name)             # a main or upper mast on internal heads
                 continue
             if name:
                 names.add(name)
-    if level:
-        want = level_mast_names()
+    if level or levels:
+        want = level_masts.names()
         if level != want:
-            audit.error(f"main and upper masts on internal heads differ from {LEVEL_MASTS.name}: missing="
+            audit.error(f"main and upper masts on internal heads differ from {level_masts.PATH.name}: missing="
                         f"{sorted(want - level) or 'none'}, extra={sorted(level - want) or 'none'}")
     audit.facts["level_masts"] = len(level)
     virtuals = dispatcher_virtuals(expected)
@@ -334,6 +339,8 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 # control points add 71 SML destinations and 98 sections of their own.
 EXPECTED_SML = {False: 100, True: 163}
 EXPECTED_GRAPH = {False: (107, 187), True: (197, 187)}
+# A generated panel before its Stage 1 (the cut-over candidate as built) still carries the hand-drawn panel's SML and
+# Dispatcher graph: allowed, with a warning that Stage 1 is still to run.
 EXPECTED_TRAININFO = 374
 
 
@@ -353,7 +360,11 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool, generated: bool
     unknown = len(destinations) - auto - manual
     # Every destination comes from Discover: the two manual Princess pairs were retired on 2026-11-15.
     want = EXPECTED_SML[generated]
-    if (len(destinations), auto, manual, unknown) != (want, want, 0, 0):
+    carried = EXPECTED_SML[False]
+    if generated and (len(destinations), auto, manual, unknown) == (carried, carried, 0, 0):
+        audit.warn(f"stored SML destinations are the hand-drawn panel's {carried}: run Stage 1 on this generated "
+                   f"panel (expect {want})")
+    elif (len(destinations), auto, manual, unknown) != (want, want, 0, 0):
         message = (
             f"stored SML destinations expected total={want}, useLayoutEditor=yes={want}, "
             f"manual=0; found total={len(destinations)}, yes={auto}, "
@@ -636,7 +647,10 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
     sections = len(root.findall("./sections/section"))
     transits = len(root.findall("./transits/transit"))
     want_sections, want_transits = EXPECTED_GRAPH[generated]
-    if (sections, transits) != (want_sections, want_transits):
+    if generated and (sections, transits) == EXPECTED_GRAPH[False]:
+        audit.warn(f"Dispatcher graph is the hand-drawn panel's {sections} sections / {transits} transits: run "
+                   f"Stage 1 on this generated panel (expect {want_sections} / {want_transits})")
+    elif (sections, transits) != (want_sections, want_transits):
         audit.error(
             f"generated Dispatcher graph expected {want_sections} sections / {want_transits} transits, "
             f"found {sections} / {transits}"
@@ -684,8 +698,12 @@ def audit_source(
     panel = select_panel(root, audit)
     audit_forbidden_mqtt_sensors(root, audit)
     full_config = label != "standalone"
-    audit_masts(root, expected_masts, audit)
-    is_generated = panel is not None and tables.generated_panel(panel)
+    try:
+        is_generated = panel is not None and tables.generated_panel(panel)
+    except ValueError as exc:           # two markers: the audit's error, not a traceback
+        audit.error(str(exc))
+        is_generated = True
+    audit_masts(root, expected_masts, audit, levels=is_generated and draws_levels(panel))
     audit_bindings(panel, boundaries, audit, generated=is_generated)
     if full_config:
         audit_sml(root, audit, required=True, generated=is_generated)

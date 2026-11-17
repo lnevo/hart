@@ -22,19 +22,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA and hartlib paths
+from hartlib import level_masts  # noqa: E402  the file, its fields and the internal head rule
 
 DEVICE_MAP = pd.DATA / "device_map_main_upper.csv"
-OUT = pd.DATA / "main_upper_masts.csv"
-INTERNAL = "IH9"            # head system-name prefix until the cut-over (the device map's IH<packed> after it)
+OUT = level_masts.PATH
 LEGS = {"A": "normal", "B": "diverging"}       # of two masts sharing a block pair, by letter (owner, 2026-11-16)
-FIELDS = ["mast", "level", "cp", "switch", "facing", "protects", "leg", "dir", "system_name", "heads",
-          "head_system_names", "device_system_name"]
 
 
-def internal(head_sys: str) -> str:
-    if not re.fullmatch(r"IH\d+", head_sys):
-        raise SystemExit(f"head system name {head_sys!r} is not IH<digits>")
-    return INTERNAL + head_sys[2:]
+def internal(head_sys: str, mast: str) -> str:
+    """The internal name of a device-map head (hartlib.level_masts.internal_head); stops naming the head and mast on
+    anything but IH and four digits, which the recognisers would not take."""
+    try:
+        return level_masts.internal_head(head_sys)
+    except ValueError as exc:
+        raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: {exc}") from None
 
 
 def build() -> str:
@@ -57,13 +58,12 @@ def build() -> str:
         missing = [h for h in mast_heads if h not in heads]
         if missing:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: heads {missing} have no head row")
-        sys_name = f"IF$shsm:{sysm.group(1)}:{sysm.group(2)}" + "".join(f"({internal(h)})" for h in mast_heads)
+        sys_name = f"IF$shsm:{sysm.group(1)}:{sysm.group(2)}" + "".join(f"({internal(h, name)})" for h in mast_heads)
         out_rows.append(dict(
-            mast=name, level=r["level"], cp=r["cp"], switch=sw.group(1), facing=fac.group(1),
-            protects=f"OS Switch {sw.group(1)}", leg="",
-            dir="west" if dirm.group(1) == "L" else "east", system_name=sys_name, heads=len(mast_heads),
-            head_system_names=";".join(f"{internal(h)}={heads[h]}" for h in mast_heads),
-            device_system_name=r["system_name"].strip()))
+            mast=name, cp=r["cp"], switch=sw.group(1), facing=fac.group(1),
+            protects=f"OS Switch {sw.group(1)}", leg="", system_name=sys_name,
+            head_system_names=";".join(f"{internal(h, name)}={heads[h]}" for h in mast_heads),
+            device_system_name=r["system_name"].strip(), _level=int(r["level"])))
     pairs = {}
     for r in out_rows:
         pairs.setdefault((r["facing"], r["protects"]), []).append(r)
@@ -79,9 +79,9 @@ def build() -> str:
     if len({r["mast"] for r in out_rows}) != len(out_rows):
         raise SystemExit(f"{DEVICE_MAP.name}: a mast is named twice")
     out = io.StringIO()
-    w = csv.DictWriter(out, FIELDS, lineterminator="\n")
+    w = csv.DictWriter(out, level_masts.FIELDS, lineterminator="\n", extrasaction="ignore")
     w.writeheader()
-    for row in sorted(out_rows, key=lambda r: (int(r["level"]), int(re.search(r"\d+", r["mast"]).group()),
+    for row in sorted(out_rows, key=lambda r: (r["_level"], int(re.search(r"\d+", r["mast"]).group()),
                                                r["mast"])):
         w.writerow(row)
     return out.getvalue()

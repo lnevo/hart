@@ -107,6 +107,13 @@ class MastParity(unittest.TestCase):
 
     def test_helix_entrance_exceptions(self) -> None:
         self.assertEqual({m for _t, m, _w in self.P.moved}, set(HELIX_ENTRANCE))
+        if not B.JOIN_HELIX:            # unjoined: 38RA and 40RA on the helix tracks' bumpers, as live
+            for name, bumper in (("Mast 38RA", "EB72"), ("Mast 40RA", "EB71")):
+                with self.subTest(mast=name):
+                    gen = self.gen[name]
+                    self.assertEqual((gen["kind"], gen["ident"], gen["slot"]), ("end bumper", bumper, "east"))
+                    self.assertEqual((gen["facing"], gen["protects"]),
+                                     (self.live[name]["facing"], self.live[name]["protects"]))
         for name in HELIX_ENTRANCE:
             with self.subTest(mast=name):
                 live, gen = self.live[name], self.gen[name]

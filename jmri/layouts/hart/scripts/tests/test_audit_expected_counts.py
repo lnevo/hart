@@ -42,16 +42,20 @@ class ExpectedCounts(unittest.TestCase):
         self.assertEqual(errors(apc.audit_sml, sml_root(hand), required=True), [])
         self.assertEqual(errors(apc.audit_sml, sml_root(gen), required=True, generated=True), [])
         self.assertTrue(errors(apc.audit_sml, sml_root(gen), required=True))
-        self.assertTrue(errors(apc.audit_sml, sml_root(hand), required=True, generated=True))
+        self.assertEqual(errors(apc.audit_sml, sml_root(hand), required=True, generated=True), [])  # before Stage 1
+        self.assertTrue(errors(apc.audit_sml, sml_root(hand + 1), required=True, generated=True))
 
     def test_dispatcher_graph_follows_the_panel_kind(self):
         for generated in (False, True):
             sections, transits = apc.EXPECTED_GRAPH[generated]
             ok = errors(apc.audit_generated_dispatcher, graph_root(sections, transits), generated=generated)
             self.assertEqual(ok, [], generated)
-            other = apc.EXPECTED_GRAPH[not generated]
-            bad = errors(apc.audit_generated_dispatcher, graph_root(*other), generated=generated)
-            self.assertTrue(bad, generated)
+            if not generated:
+                other = apc.EXPECTED_GRAPH[True]
+                self.assertTrue(errors(apc.audit_generated_dispatcher, graph_root(*other)))
+        before = apc.EXPECTED_GRAPH[False]       # a generated panel before Stage 1: allowed with a warning
+        self.assertEqual(errors(apc.audit_generated_dispatcher, graph_root(*before), generated=True), [])
+        self.assertTrue(errors(apc.audit_generated_dispatcher, graph_root(before[0] + 1, before[1]), generated=True))
 
 
 if __name__ == "__main__":

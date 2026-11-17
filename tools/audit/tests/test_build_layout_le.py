@@ -522,7 +522,7 @@ class SecondReview(unittest.TestCase):
     def fake(self, n_anchors):
         el = ET.fromstring(anchor_panel(*["M"] + [""] * (n_anchors - 1)))
         P = mock.Mock(turnouts=[], points={p.get("ident"): {"band": 0} for p in el.findall("positionablepoint")},
-                      masts=[dict(mast="M", kind="anchor", ident="A1", slot="east")])
+                      masts=[dict(mast="M", kind="anchor", ident="A1", slot="east", band=0)])
         P.name = lambda i: i            # Mock's own name= argument is not an attribute: set it after
         P.moved = []
         le_mod = mock.Mock(to_xml=lambda *_a: el)
@@ -753,7 +753,7 @@ class LevelMasts(unittest.TestCase):
         self.assertEqual(len(rows), 41)
         self.assertEqual(sum(len(r["heads"]) for r in rows), 53)
         r = next(r for r in rows if r["mast"] == "Mast 108R")
-        self.assertEqual((r["facing"], r["protects"], r["dir"]), ("Track 107-109", "OS Switch 107", "east"))
+        self.assertEqual((r["facing"], r["protects"]), ("Track 107-109", "OS Switch 107"))
         self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH93334)(IH93335)")
         self.assertEqual(r["device_system_name"], "IF$shsm:basic:two-searchlight(IH3334)(IH3335)")
         self.assertEqual(r["heads"], [("IH93334", "Head 108R Top"), ("IH93335", "Head 108R Bottom")])
@@ -765,8 +765,16 @@ class LevelMasts(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "m.csv"
             path.write_text(text.replace("IH93332", "IH3332"), encoding="utf-8")
-            with self.assertRaisesRegex(B.BuildError, "would reach MQTT .*IH3332"):
+            with self.assertRaisesRegex(B.BuildError, "Mast 108LA: heads .* internal heads"):
                 B.read_level_masts(path)
+        # and the coordinator's own test, which read_level_masts runs as well
+        self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH93332"]),
+                         ["IF$shsm:basic:one-low(IH3332)", "IH3332"])
+        gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
+        for bad in ("IH332", "IH33320", "IHX332"):
+            with self.subTest(head=bad), self.assertRaisesRegex(SystemExit, f"mast Mast 1: head '{bad}'"):
+                gen.internal(bad, "Mast 1")
+        self.assertEqual(gen.internal("IH3332", "Mast 1"), "IH93332")
 
     def test_a_mast_no_band_draws_stops(self) -> None:
         rows = [dict(r, facing="Track Nowhere") if r["mast"] == "Mast 108R" else r for r in B.read_level_masts()]
@@ -788,3 +796,36 @@ class LevelMasts(unittest.TestCase):
             B.check_level_slots(P, [dict(row, facing="Elsewhere")], le_mod)
         with self.assertRaisesRegex(B.BuildError, "N is not on the panel"):
             B.check_level_slots(P, [dict(row, mast="N")], le_mod)
+        P.masts = [dict(mast="M", kind="anchor", ident="A1", slot="east")]          # no band: named, both ways
+        P.points, P.moved = {}, []
+        with self.assertRaisesRegex(B.BuildError, "mast M: the plugin gave it no band"):
+            B.check_level_slots(P, [row], le_mod)
+        with self.assertRaisesRegex(B.BuildError, "mast M: the plugin gave it no band"):
+            B.check_slots(P, [], le_mod)
+
+    def test_audit_masts_on_a_panel_that_draws_the_levels(self) -> None:
+        def run(masts, levels):
+            root = ET.fromstring(f"<layout-config><signalmasts>{masts}</signalmasts></layout-config>")
+            audit = AUDIT.Audit("t", Path("t"))
+            AUDIT.audit_masts(root, set(), audit, levels=levels)
+            return [e for e in audit.errors if "main and upper" in e]
+        self.assertEqual(run("", False), [])                                    # the hand-drawn panel: none wanted
+        missing = run("", True)                                                 # three levels, none present
+        self.assertEqual(len(missing), 1)
+        self.assertIn("Mast 108LA", missing[0])
+        rows = B.read_level_masts()
+        every = "".join(f'<signalmast><systemName>{r["system_name"]}</systemName><userName>{r["mast"]}</userName>'
+                        f'</signalmast>' for r in rows)
+        self.assertEqual(run(every, True), [])
+        self.assertIn("missing=['Mast 108LA']", run(every.replace("<userName>Mast 108LA<", "<userName>X<"), True)[0])
+
+    def test_audit_reports_two_markers(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tables.xml"
+            root = tables.read(paths.TABLES_XML)
+            le = tables.layout_editor(root)
+            le.append(copy.deepcopy(tables.generated_marker_label()))
+            le.append(copy.deepcopy(tables.generated_marker_label()))
+            path.write_bytes(ET.tostring(root))
+            audit = AUDIT.audit_source("t", path, AUDIT.load_boundaries(AUDIT.BOUNDARIES), set())
+        self.assertTrue(any("generated-panel markers" in e for e in audit.errors), audit.errors)

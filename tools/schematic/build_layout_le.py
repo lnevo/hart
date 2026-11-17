@@ -115,6 +115,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_inputs  # noqa: E402  the frozen staging facts (jmri/layouts/hart/data/schematic/staging_le/)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import paths, tables  # noqa: E402
+from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its internal names
 
 TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                    # all three levels (the candidate)
@@ -628,7 +629,7 @@ def check_slots(P, masts: list[dict], le_mod) -> None:
     moved = {mast for _t, mast, _why in P.moved}       # a bumper mast at a helix join (all-levels trial): elsewhere
     bad = []
     for m in P.masts:
-        if m.get("band", 0) != 0:       # main and upper: check_level_slots
+        if mast_band(m) != 0:           # main and upper: check_level_slots
             continue
         name = m["mast"]
         if name not in want:
@@ -655,6 +656,13 @@ def check_slots(P, masts: list[dict], le_mod) -> None:
         raise BuildError("staging masts not placed for certain: " + "; ".join(bad))
 
 
+def mast_band(m: dict) -> int:
+    """The band index the plugin placed mast `m` on (P.masts); stops naming the mast when it has none."""
+    if "band" not in m:
+        raise BuildError(f"mast {m.get('mast')}: the plugin gave it no band")
+    return m["band"]
+
+
 def check_level_slots(P, rows: list[dict], le_mod) -> None:
     """Stop when a main or upper mast (main_upper_masts.csv) is missing from the new panel, or stands in a slot
     that JMRI does not resolve to its facing track and protected OS block, or (with `leg`) on the other leg of its
@@ -662,7 +670,7 @@ def check_level_slots(P, rows: list[dict], le_mod) -> None:
     if not rows:
         return
     ix = slots_module().Index(le_mod.to_xml(P, "check"))
-    placed = {m["mast"]: m for m in P.masts if m["band"] != 0}
+    placed = {m["mast"]: m for m in P.masts if mast_band(m) != 0}
     turnouts = {P.name(t["ident"]): t for t in P.turnouts}
     bad = []
     for r in rows:
@@ -697,19 +705,17 @@ def plugin_masts(masts: list[dict]) -> list[dict]:
     return sorted(out, key=lambda m: m["mast"])
 
 
-MAIN_UPPER_MASTS = pd.DATA / "main_upper_masts.csv"     # build_main_upper_masts.py, from the device map
+MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
 
 
 def read_level_masts(path: Path = MAIN_UPPER_MASTS) -> list[dict]:
-    """main_upper_masts.csv's rows, each with `heads` as [(internal system name, user name)], checked: every mast
-    and head on an internal name that signal_coordinator.py would never enrol or publish (lcos_named)."""
-    rows = read_csv(path)
-    for r in rows:
-        count = int(r["heads"])
-        r["heads"] = [tuple(h.split("=", 1)) for h in r["head_system_names"].split(";")]
-        if any(len(h) != 2 for h in r["heads"]) or len(r["heads"]) != count:
-            raise BuildError(f"{paths.rel(path)}: mast {r['mast']}: heads {r['head_system_names']!r} are not "
-                             "system=user pairs")
+    """main_upper_masts.csv's rows (hartlib.level_masts.read: each with `heads` as [(internal system name, user
+    name)], every head internal), checked again against signal_coordinator.py's own test: no mast or head on a name
+    it would enrol or publish (lcos_named)."""
+    try:
+        rows = level_masts_lib.read(path)
+    except ValueError as exc:
+        raise BuildError(f"{paths.rel(path)}: {exc}") from None
     bad = lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]])
     if bad:
         raise BuildError(f"{paths.rel(path)}: names signal_coordinator.py takes for LCOS heads, which would reach "
@@ -1495,7 +1501,6 @@ def canon(el: ET.Element) -> str:
     return ET.tostring(e, encoding="unicode")
 
 
-LEVEL_HEAD = re.compile(r"IH9\d{4}")         # build_main_upper_masts.py's internal heads: IH9 + the device map's 4
 
 
 def is_level_bean(el: ET.Element) -> bool:
@@ -1503,10 +1508,9 @@ def is_level_bean(el: ET.Element) -> bool:
     its internal system name)."""
     sysname = (el.findtext("systemName") or el.get("systemName") or "").strip()
     if el.tag == "signalhead":
-        return bool(LEVEL_HEAD.fullmatch(sysname))
+        return level_masts_lib.is_level_head(sysname)
     if el.tag == "signalmast":
-        heads = re.findall(r"\((IH\d+)\)", sysname)
-        return bool(heads) and all(LEVEL_HEAD.fullmatch(h) for h in heads)
+        return level_masts_lib.is_level_mast(sysname)
     if el.tag == "turnout":
         return sysname.startswith(TURNOUT_SYS)
     if el.tag == "block":
