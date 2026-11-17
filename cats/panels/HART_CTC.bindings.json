@@ -72,22 +72,55 @@
    "why": "a short link (15.2 cm) inside its switches' OS blocks"
   }
  },
- "_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and upper switches command their internal turnouts and their masts are bound; their blocks carry their planned detectors as _planned_occupied / _planned_unoccupied until DETECT_MAIN_UPPER is set.",
+ "_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and upper switches command their internal turnouts, their masts are bound and their blocks report their virtual occupancy sensors (IS:HART:C3:B:); a block's planned detector, a draft, is kept as _planned_occupied / _planned_unoccupied.",
  "blocks": {
   "101B-111": {
    "discipline": "CTC",
    "name": "Track 101-111",
-   "station": "101-111"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:101-111",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 101-111",
+    "command": "close"
+   },
+   "station": "101-111",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:101-111",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "103A-105": {
    "discipline": "CTC",
    "name": "Track 103-105 2",
-   "station": "103-105"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:103-105_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 103-105 2",
+    "command": "close"
+   },
+   "station": "103-105",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:103-105_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "103B-105": {
    "discipline": "CTC",
    "name": "Track 103-105 1",
-   "station": "103-105"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:103-105_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 103-105 1",
+    "command": "close"
+   },
+   "station": "103-105",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:103-105_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "107 Loop 1": {
    "_planned_occupied": {
@@ -103,33 +136,66 @@
    },
    "discipline": "CTC",
    "name": "Track 107 Loop 1",
-   "station": "107"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:107_Loop_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 107 Loop 1",
+    "command": "close"
+   },
+   "station": "107",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:107_Loop_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "107 Loop 2": {
-   "_planned_occupied": {
-    "DECADDR": ":HART:C3:4",
+   "discipline": "CTC",
+   "name": "Track 107 Loop 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:107_Loop_2",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS 107 Loop 2",
     "command": "close"
    },
-   "_planned_unoccupied": {
-    "DECADDR": ":HART:C3:4",
+   "station": "107",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:107_Loop_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
-   },
-   "discipline": "CTC",
-   "name": "Track 107 Loop 2",
-   "station": "107"
+   }
   },
   "111-117": {
    "discipline": "CTC",
    "name": "Track 111-117",
-   "station": "111-117"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:111-117",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 111-117",
+    "command": "close"
+   },
+   "station": "111-117",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:111-117",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "113-115": {
    "discipline": "CTC",
    "name": "Track 113-115",
-   "station": "113-115"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:113-115",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 113-115",
+    "command": "close"
+   },
+   "station": "113-115",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:113-115",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "119A-125": {
    "_planned_occupied": {
@@ -145,22 +211,66 @@
    },
    "discipline": "CTC",
    "name": "Track 119-125",
-   "station": "119-125"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:119-125",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 119-125",
+    "command": "close"
+   },
+   "station": "119-125",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:119-125",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "119B-123": {
    "discipline": "CTC",
    "name": "Track 119-123",
-   "station": "119-123"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:119-123",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 119-123",
+    "command": "close"
+   },
+   "station": "119-123",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:119-123",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "121-131": {
    "discipline": "CTC",
    "name": "Track 121-131",
-   "station": "121-131"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:121-131",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 121-131",
+    "command": "close"
+   },
+   "station": "121-131",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:121-131",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "127-131": {
    "discipline": "CTC",
    "name": "Track 127-131",
-   "station": "127-131"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:127-131",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 127-131",
+    "command": "close"
+   },
+   "station": "127-131",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:127-131",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "129A-135A": {
    "_planned_occupied": {
@@ -176,7 +286,18 @@
    },
    "discipline": "CTC",
    "name": "Track 129-135 1",
-   "station": "129-135"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:129-135_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 129-135 1",
+    "command": "close"
+   },
+   "station": "129-135",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:129-135_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "129A-link B": {
    "_planned_occupied": {
@@ -192,17 +313,50 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 129",
-   "station": "129"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS129",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 129",
+    "command": "close"
+   },
+   "station": "129",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS129",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "133-end": {
    "discipline": "CTC",
    "name": "Track 133 Spur 1",
-   "station": "133"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:133_Spur_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 133 Spur 1",
+    "command": "close"
+   },
+   "station": "133",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:133_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "133-end 2": {
    "discipline": "CTC",
    "name": "Track 133 Spur 2",
-   "station": "133"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:133_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 133 Spur 2",
+    "command": "close"
+   },
+   "station": "133",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:133_Spur_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "203-213B": {
    "_planned_occupied": {
@@ -218,52 +372,162 @@
    },
    "discipline": "CTC",
    "name": "Track 203-213",
-   "station": "203-213"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:203-213",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 203-213",
+    "command": "close"
+   },
+   "station": "203-213",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:203-213",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "205-207": {
    "discipline": "CTC",
    "name": "Track 205-207",
-   "station": "205-207"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:205-207",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 205-207",
+    "command": "close"
+   },
+   "station": "205-207",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:205-207",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "205-end": {
    "discipline": "CTC",
    "name": "Track 205 Spur",
-   "station": "205"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:205_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 205 Spur",
+    "command": "close"
+   },
+   "station": "205",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:205_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "207-end": {
    "discipline": "CTC",
    "name": "Track 207 Spur 2",
-   "station": "207"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:207_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 207 Spur 2",
+    "command": "close"
+   },
+   "station": "207",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:207_Spur_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "207-end 2": {
    "discipline": "CTC",
    "name": "Track 207 Spur 1",
-   "station": "207"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:207_Spur_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 207 Spur 1",
+    "command": "close"
+   },
+   "station": "207",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:207_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "209-211": {
    "discipline": "CTC",
    "name": "Track 209-211",
-   "station": "209-211"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:209-211",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 209-211",
+    "command": "close"
+   },
+   "station": "209-211",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:209-211",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "209-213A": {
    "discipline": "CTC",
    "name": "Track 209-213",
-   "station": "209-213"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:209-213",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 209-213",
+    "command": "close"
+   },
+   "station": "209-213",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:209-213",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "211-215": {
    "discipline": "CTC",
    "name": "Track 211-215",
-   "station": "211-215"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:211-215",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 211-215",
+    "command": "close"
+   },
+   "station": "211-215",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:211-215",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "211-end": {
    "discipline": "CTC",
    "name": "Track 211 Spur",
-   "station": "211"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:211_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 211 Spur",
+    "command": "close"
+   },
+   "station": "211",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:211_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "213A-217B": {
    "discipline": "CTC",
    "name": "Track 213-217 1",
-   "station": "213-217"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:213-217_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 213-217 1",
+    "command": "close"
+   },
+   "station": "213-217",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:213-217_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "213B-217A": {
    "_planned_occupied": {
@@ -279,17 +543,50 @@
    },
    "discipline": "CTC",
    "name": "Track 213-217 2",
-   "station": "213-217"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:213-217_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 213-217 2",
+    "command": "close"
+   },
+   "station": "213-217",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:213-217_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "215-end": {
    "discipline": "CTC",
    "name": "Track 215 Spur 2",
-   "station": "215"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:215_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 215 Spur 2",
+    "command": "close"
+   },
+   "station": "215",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:215_Spur_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "215-end 2": {
    "discipline": "CTC",
    "name": "Track 215 Spur 1",
-   "station": "215"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:215_Spur_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 215 Spur 1",
+    "command": "close"
+   },
+   "station": "215",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:215_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "217A-221B": {
    "_planned_occupied": {
@@ -305,12 +602,34 @@
    },
    "discipline": "CTC",
    "name": "Track 217-221",
-   "station": "217-221"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:217-221",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 217-221",
+    "command": "close"
+   },
+   "station": "217-221",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:217-221",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "217B-219": {
    "discipline": "CTC",
    "name": "Track 217-219",
-   "station": "217-219"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:217-219",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 217-219",
+    "command": "close"
+   },
+   "station": "217-219",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:217-219",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "221A-223*": {
    "_planned_occupied": {
@@ -326,7 +645,18 @@
    },
    "discipline": "CTC",
    "name": "Track 221-223",
-   "station": "221-223"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:221-223",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 221-223",
+    "command": "close"
+   },
+   "station": "221-223",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:221-223",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "221B-129B": {
    "_planned_occupied": {
@@ -342,7 +672,18 @@
    },
    "discipline": "CTC",
    "name": "Track 129-221",
-   "station": "129-221"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:129-221",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 129-221",
+    "command": "close"
+   },
+   "station": "129-221",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:129-221",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "223*-225": {
    "_planned_occupied": {
@@ -358,7 +699,18 @@
    },
    "discipline": "CTC",
    "name": "Track 223-225 1",
-   "station": "223-225"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:223-225_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 223-225 1",
+    "command": "close"
+   },
+   "station": "223-225",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:223-225_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "223*-225 2": {
    "_planned_occupied": {
@@ -374,17 +726,50 @@
    },
    "discipline": "CTC",
    "name": "Track 223-225 2",
-   "station": "223-225"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:223-225_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 223-225 2",
+    "command": "close"
+   },
+   "station": "223-225",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:223-225_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "225-229": {
    "discipline": "CTC",
    "name": "Track 225-229",
-   "station": "225-229"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:225-229",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 225-229",
+    "command": "close"
+   },
+   "station": "225-229",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:225-229",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "229-231": {
    "discipline": "CTC",
    "name": "Track 229-231",
-   "station": "229-231"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:229-231",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 229-231",
+    "command": "close"
+   },
+   "station": "229-231",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:229-231",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "229-239": {
    "_planned_occupied": {
@@ -400,27 +785,82 @@
    },
    "discipline": "CTC",
    "name": "Track 229-239",
-   "station": "229-239"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:229-239",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 229-239",
+    "command": "close"
+   },
+   "station": "229-239",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:229-239",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "231-241B": {
    "discipline": "CTC",
    "name": "Track 231-241",
-   "station": "231-241"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:231-241",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 231-241",
+    "command": "close"
+   },
+   "station": "231-241",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:231-241",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "233-end": {
    "discipline": "CTC",
    "name": "Track 233 Spur",
-   "station": "233"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:233_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 233 Spur",
+    "command": "close"
+   },
+   "station": "233",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:233_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "235-end": {
    "discipline": "CTC",
    "name": "Track 235 Spur",
-   "station": "235"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:235_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 235 Spur",
+    "command": "close"
+   },
+   "station": "235",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:235_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "237-245B": {
    "discipline": "CTC",
    "name": "Track 237-245",
-   "station": "237-245"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:237-245",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 237-245",
+    "command": "close"
+   },
+   "station": "237-245",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:237-245",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "239-end": {
    "_planned_occupied": {
@@ -436,42 +876,130 @@
    },
    "discipline": "CTC",
    "name": "Track 227-239",
-   "station": "227-239"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:227-239",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 227-239",
+    "command": "close"
+   },
+   "station": "227-239",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:227-239",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "239-end 2": {
    "discipline": "CTC",
    "name": "Track 239 Spur",
-   "station": "239"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:239_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 239 Spur",
+    "command": "close"
+   },
+   "station": "239",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:239_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "241A-end": {
    "discipline": "CTC",
    "name": "Track 241 Spur 2",
-   "station": "241"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:241_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 241 Spur 2",
+    "command": "close"
+   },
+   "station": "241",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:241_Spur_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "241B-end": {
    "discipline": "CTC",
    "name": "Track 241 Spur 1",
-   "station": "241"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:241_Spur_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 241 Spur 1",
+    "command": "close"
+   },
+   "station": "241",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:241_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "243-245A": {
    "discipline": "CTC",
    "name": "Track 243-245",
-   "station": "243-245"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:243-245",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 243-245",
+    "command": "close"
+   },
+   "station": "243-245",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:243-245",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "243-end": {
    "discipline": "CTC",
    "name": "Track 243 Spur",
-   "station": "243"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:243_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 243 Spur",
+    "command": "close"
+   },
+   "station": "243",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:243_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "245A-end": {
    "discipline": "CTC",
    "name": "Track 245 Spur 2",
-   "station": "245"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:245_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 245 Spur 2",
+    "command": "close"
+   },
+   "station": "245",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:245_Spur_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "245B-end": {
    "discipline": "CTC",
    "name": "Track 245 Spur 1",
-   "station": "245"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:245_Spur_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 245 Spur 1",
+    "command": "close"
+   },
+   "station": "245",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:245_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "35-37": {
    "name": "OS Switch 35a"
@@ -682,7 +1210,18 @@
    },
    "discipline": "CTC",
    "name": "Track 135-H1",
-   "station": "135-H1"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:135-H1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 135-H1",
+    "command": "close"
+   },
+   "station": "135-H1",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:135-H1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "McKeesport": {
    "discipline": "CTC",
@@ -714,27 +1253,82 @@
    },
    "discipline": "CTC",
    "name": "Track 135-H2",
-   "station": "135-H2"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:135-H2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 135-H2",
+    "command": "close"
+   },
+   "station": "135-H2",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:135-H2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 101A-103A": {
    "discipline": "CTC",
    "name": "OS Switch 101",
-   "station": "101"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS101",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 101",
+    "command": "close"
+   },
+   "station": "101",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS101",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 101B": {
    "discipline": "CTC",
    "name": "OS Switch 101",
-   "station": "101"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS101",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 101",
+    "command": "close"
+   },
+   "station": "101",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS101",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 103B": {
    "discipline": "CTC",
    "name": "OS Switch 103",
-   "station": "103"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS103",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 103",
+    "command": "close"
+   },
+   "station": "103",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS103",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 105": {
    "discipline": "CTC",
    "name": "OS Switch 105",
-   "station": "105"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS105",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 105",
+    "command": "close"
+   },
+   "station": "105",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS105",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 107": {
    "_planned_occupied": {
@@ -750,7 +1344,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 107",
-   "station": "107"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS107",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 107",
+    "command": "close"
+   },
+   "station": "107",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS107",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 109": {
    "_planned_occupied": {
@@ -766,7 +1371,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 109",
-   "station": "109"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS109",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 109",
+    "command": "close"
+   },
+   "station": "109",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS109",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 111": {
    "_planned_occupied": {
@@ -782,17 +1398,50 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 111",
-   "station": "111"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS111",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 111",
+    "command": "close"
+   },
+   "station": "111",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS111",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 113": {
    "discipline": "CTC",
    "name": "OS Switch 113",
-   "station": "113"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS113",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 113",
+    "command": "close"
+   },
+   "station": "113",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS113",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 115": {
    "discipline": "CTC",
    "name": "OS Switch 115",
-   "station": "115"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS115",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 115",
+    "command": "close"
+   },
+   "station": "115",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS115",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 117": {
    "_planned_occupied": {
@@ -808,7 +1457,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 117",
-   "station": "117"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS117",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 117",
+    "command": "close"
+   },
+   "station": "117",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS117",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 119A": {
    "_planned_occupied": {
@@ -824,7 +1484,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 119",
-   "station": "119"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS119",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 119",
+    "command": "close"
+   },
+   "station": "119",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS119",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 119B": {
    "_planned_occupied": {
@@ -840,17 +1511,50 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 119",
-   "station": "119"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS119",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 119",
+    "command": "close"
+   },
+   "station": "119",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS119",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 121": {
    "discipline": "CTC",
    "name": "OS Switch 121",
-   "station": "121"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS121",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 121",
+    "command": "close"
+   },
+   "station": "121",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS121",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 123": {
    "discipline": "CTC",
    "name": "OS Switch 123",
-   "station": "123"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS123",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 123",
+    "command": "close"
+   },
+   "station": "123",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS123",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 125": {
    "_planned_occupied": {
@@ -866,7 +1570,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 125",
-   "station": "125"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS125",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 125",
+    "command": "close"
+   },
+   "station": "125",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS125",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 127": {
    "_planned_occupied": {
@@ -882,7 +1597,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 127",
-   "station": "127"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS127",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 127",
+    "command": "close"
+   },
+   "station": "127",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS127",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 129A": {
    "_planned_occupied": {
@@ -898,7 +1624,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 129",
-   "station": "129"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS129",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 129",
+    "command": "close"
+   },
+   "station": "129",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS129",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 129B": {
    "_planned_occupied": {
@@ -914,17 +1651,50 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 129",
-   "station": "129"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS129",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 129",
+    "command": "close"
+   },
+   "station": "129",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS129",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 131": {
    "discipline": "CTC",
    "name": "OS Switch 131",
-   "station": "131"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS131",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 131",
+    "command": "close"
+   },
+   "station": "131",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS131",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 133": {
    "discipline": "CTC",
    "name": "OS Switch 133",
-   "station": "133"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS133",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 133",
+    "command": "close"
+   },
+   "station": "133",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS133",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 135A": {
    "_planned_occupied": {
@@ -940,7 +1710,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 135",
-   "station": "135"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS135",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 135",
+    "command": "close"
+   },
+   "station": "135",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS135",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 135B": {
    "_planned_occupied": {
@@ -956,7 +1737,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 135",
-   "station": "135"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS135",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 135",
+    "command": "close"
+   },
+   "station": "135",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS135",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 201": {
    "_planned_occupied": {
@@ -972,7 +1764,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 201",
-   "station": "201"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS201",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 201",
+    "command": "close"
+   },
+   "station": "201",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS201",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 203": {
    "_planned_occupied": {
@@ -988,27 +1791,82 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 203",
-   "station": "203"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS203",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 203",
+    "command": "close"
+   },
+   "station": "203",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS203",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 205": {
    "discipline": "CTC",
    "name": "OS Switch 205",
-   "station": "205"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS205",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 205",
+    "command": "close"
+   },
+   "station": "205",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS205",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 207": {
    "discipline": "CTC",
    "name": "OS Switch 207",
-   "station": "207"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS207",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 207",
+    "command": "close"
+   },
+   "station": "207",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS207",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 209": {
    "discipline": "CTC",
    "name": "OS Switch 209",
-   "station": "209"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS209",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 209",
+    "command": "close"
+   },
+   "station": "209",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS209",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 211": {
    "discipline": "CTC",
    "name": "OS Switch 211",
-   "station": "211"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS211",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 211",
+    "command": "close"
+   },
+   "station": "211",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS211",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 213A": {
    "_planned_occupied": {
@@ -1024,7 +1882,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 213",
-   "station": "213"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS213",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 213",
+    "command": "close"
+   },
+   "station": "213",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS213",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 213B": {
    "_planned_occupied": {
@@ -1040,12 +1909,34 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 213",
-   "station": "213"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS213",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 213",
+    "command": "close"
+   },
+   "station": "213",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS213",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 215": {
    "discipline": "CTC",
    "name": "OS Switch 215",
-   "station": "215"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS215",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 215",
+    "command": "close"
+   },
+   "station": "215",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS215",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 217A": {
    "_planned_occupied": {
@@ -1061,7 +1952,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 217",
-   "station": "217"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS217",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 217",
+    "command": "close"
+   },
+   "station": "217",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS217",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 217B": {
    "_planned_occupied": {
@@ -1077,7 +1979,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 217",
-   "station": "217"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS217",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 217",
+    "command": "close"
+   },
+   "station": "217",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS217",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 219": {
    "_planned_occupied": {
@@ -1093,7 +2006,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 219",
-   "station": "219"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS219",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 219",
+    "command": "close"
+   },
+   "station": "219",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS219",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 221A": {
    "_planned_occupied": {
@@ -1109,7 +2033,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 221",
-   "station": "221"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS221",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 221",
+    "command": "close"
+   },
+   "station": "221",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS221",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 221B": {
    "_planned_occupied": {
@@ -1125,7 +2060,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 221",
-   "station": "221"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS221",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 221",
+    "command": "close"
+   },
+   "station": "221",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS221",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 223*": {
    "_planned_occupied": {
@@ -1141,7 +2087,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 223",
-   "station": "223"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS223",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 223",
+    "command": "close"
+   },
+   "station": "223",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS223",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 227": {
    "_planned_occupied": {
@@ -1157,7 +2114,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 227",
-   "station": "227"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS227",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 227",
+    "command": "close"
+   },
+   "station": "227",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS227",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 229": {
    "_planned_occupied": {
@@ -1173,57 +2141,178 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 229",
-   "station": "229"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS229",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 229",
+    "command": "close"
+   },
+   "station": "229",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS229",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 231": {
    "discipline": "CTC",
    "name": "OS Switch 231",
-   "station": "231"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS231",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 231",
+    "command": "close"
+   },
+   "station": "231",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS231",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 233": {
    "discipline": "CTC",
    "name": "OS Switch 233",
-   "station": "233"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS233",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 233",
+    "command": "close"
+   },
+   "station": "233",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS233",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 235": {
    "discipline": "CTC",
    "name": "OS Switch 235",
-   "station": "235"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS235",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 235",
+    "command": "close"
+   },
+   "station": "235",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS235",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 237": {
    "discipline": "CTC",
    "name": "OS Switch 237",
-   "station": "237"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS237",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 237",
+    "command": "close"
+   },
+   "station": "237",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS237",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 239": {
    "discipline": "CTC",
    "name": "OS Switch 239",
-   "station": "239"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS239",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 239",
+    "command": "close"
+   },
+   "station": "239",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS239",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 241A": {
    "discipline": "CTC",
    "name": "OS Switch 241",
-   "station": "241"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS241",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 241",
+    "command": "close"
+   },
+   "station": "241",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS241",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 241B": {
    "discipline": "CTC",
    "name": "OS Switch 241",
-   "station": "241"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS241",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 241",
+    "command": "close"
+   },
+   "station": "241",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS241",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 243": {
    "discipline": "CTC",
    "name": "OS Switch 243",
-   "station": "243"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS243",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 243",
+    "command": "close"
+   },
+   "station": "243",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS243",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 245A": {
    "discipline": "CTC",
    "name": "OS Switch 245",
-   "station": "245"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS245",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 245",
+    "command": "close"
+   },
+   "station": "245",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS245",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS 245B": {
    "discipline": "CTC",
    "name": "OS Switch 245",
-   "station": "245"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS245",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 245",
+    "command": "close"
+   },
+   "station": "245",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS245",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS Switch 1": {
    "discipline": "CTC",
@@ -1347,52 +2436,63 @@
     "command": "throw"
    },
    "discipline": "CTC",
-   "station": "225a"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS225a",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 225a",
+    "command": "close"
+   },
+   "station": "225a",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS225a",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "OS Switch 225b": {
-   "_planned_occupied": {
-    "DECADDR": ":HART:C3:1",
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS225b",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 225b",
     "command": "close"
    },
-   "_planned_unoccupied": {
-    "DECADDR": ":HART:C3:1",
+   "station": "225b",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS225b",
     "JMRIPREFIX": "IS",
     "command": "throw"
-   },
-   "discipline": "CTC",
-   "station": "225b"
+   }
   },
   "OS Switch 225c": {
-   "_planned_occupied": {
-    "DECADDR": ":HART:C3:2",
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS225c",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 225c",
     "command": "close"
    },
-   "_planned_unoccupied": {
-    "DECADDR": ":HART:C3:2",
+   "station": "225c",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS225c",
     "JMRIPREFIX": "IS",
     "command": "throw"
-   },
-   "discipline": "CTC",
-   "station": "225c"
+   }
   },
   "OS Switch 225d": {
-   "_planned_occupied": {
-    "DECADDR": ":HART:C3:3",
+   "discipline": "CTC",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS225d",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 225d",
     "command": "close"
    },
-   "_planned_unoccupied": {
-    "DECADDR": ":HART:C3:3",
+   "station": "225d",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS225d",
     "JMRIPREFIX": "IS",
     "command": "throw"
-   },
-   "discipline": "CTC",
-   "station": "225d"
+   }
   },
   "OS Switch 23a": {
    "discipline": "CTC",
@@ -1781,42 +2881,130 @@
   "end-101A": {
    "discipline": "CTC",
    "name": "Track 101 Spur 1",
-   "station": "101"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:101_Spur_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 101 Spur 1",
+    "command": "close"
+   },
+   "station": "101",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:101_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "end-101B": {
    "discipline": "CTC",
    "name": "Track 101 Spur 2",
-   "station": "101"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:101_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 101 Spur 2",
+    "command": "close"
+   },
+   "station": "101",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:101_Spur_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "end-103B": {
    "discipline": "CTC",
    "name": "Track 103 Spur",
-   "station": "103"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:103_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 103 Spur",
+    "command": "close"
+   },
+   "station": "103",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:103_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "end-113": {
    "discipline": "CTC",
    "name": "Track 113 Spur 1",
-   "station": "113"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:113_Spur_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 113 Spur 1",
+    "command": "close"
+   },
+   "station": "113",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:113_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "end-113 2": {
    "discipline": "CTC",
    "name": "Track 113 Spur 2",
-   "station": "113"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:113_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 113 Spur 2",
+    "command": "close"
+   },
+   "station": "113",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:113_Spur_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "end-115": {
    "discipline": "CTC",
    "name": "Track 115 Spur",
-   "station": "115"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:115_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 115 Spur",
+    "command": "close"
+   },
+   "station": "115",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:115_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "end-119B": {
    "discipline": "CTC",
    "name": "Track 119 Spur",
-   "station": "119"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:119_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 119 Spur",
+    "command": "close"
+   },
+   "station": "119",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:119_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "end-121": {
    "discipline": "CTC",
    "name": "Track 121 Spur",
-   "station": "121"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:121_Spur",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 121 Spur",
+    "command": "close"
+   },
+   "station": "121",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:121_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   },
   "link A-135A": {
    "_planned_occupied": {
@@ -1832,7 +3020,18 @@
    },
    "discipline": "CTC",
    "name": "OS Switch 135",
-   "station": "135"
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS135",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 135",
+    "command": "close"
+   },
+   "station": "135",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:OS135",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
   }
  },
  "masts": {

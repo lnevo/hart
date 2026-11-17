@@ -16,12 +16,14 @@ CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schem
   - each bound plant's turnout, the leg each command (close/throw) leads to, and which
     leg is NORMAL (the closed one, unless the switch is CATS-inverted); the main and upper
     plants (internal turnouts) are checked below;
-  - every block bound to a detector is a Layout Editor block (the main and upper ones have none yet);
+  - every block bound to a detector is a Layout Editor block (main and upper ones only where the tables hold those
+    levels), and each main and upper desk block reports the virtual sensor (IS:HART:C3:B:) its block has in
+    tables.xml;
   - the desk's staging masts are mast_cells.csv's, each once, its lamp on the edge of the block it
     protects (staging_le/masts.csv); each is in the name map and tables.xml, with one head
     (the one named) for a d1 icon and two for h2;
-  - main and upper (bound to their internal turnouts IT:HART:C3:<n> and their masts, no detectors
-    yet): each plant commands and reports one internal turnout of tables.xml, NORMAL on its close
+  - main and upper (bound to their internal turnouts IT:HART:C3:<n>, their masts and their blocks' virtual
+    sensors): each plant commands and reports one internal turnout of tables.xml, NORMAL on its close
     leg, and no plain turnout's close and throw legs are the Layout Editor's swapped; every internal
     turnout has a plant (a double crossover four points, one turnout); each mast of
     main_upper_masts.csv has one lamp, on the edge of the block it protects (a double crossover's
@@ -285,6 +287,26 @@ def device_map_blocks() -> frozenset[str]:
     return frozenset(names | {re.sub(r"(?<=\d)[a-d]$", "", n) for n in names if n.startswith("OS Switch ")})
 
 
+LEVEL_SENSOR = "IS:HART:C3:B:"      # a main or upper block's virtual occupancy sensor (build_device_map.block_sensor)
+
+
+def check_level_sensors(desk: str, root: ET.Element, t: Tables, r: Report) -> None:
+    """Each main and upper desk block reports the occupancy sensor its Layout Editor block has in tables.xml, a
+    virtual IS:HART:C3:B: sensor of that name and system name."""
+    seen = set()
+    for b in root.iter("BLOCK"):               # a desk block is listed once per edge it has: checked once
+        name, occ = b.get("NAME"), b.find("OCCUPIEDSPEC/IOSPEC")
+        if not name or occ is None or name not in device_map_blocks() or name in seen:
+            continue
+        seen.add(name)
+        user, system = occ.get("USER_NAME"), (occ.get("JMRIPREFIX") or "") + (occ.get("DECADDR") or "")
+        if not system.startswith(LEVEL_SENSOR) or t.block_sensor.get(name) != user or \
+                t.sensor_system.get(user or "") != system:
+            r.add(f"cats-track:{name}", f"{desk}: block {name} reports {user} ({system}); tables.xml binds it to "
+                                        f"{t.block_sensor.get(name) or 'no sensor'} "
+                                        f"({t.sensor_system.get(t.block_sensor.get(name) or '', 'none')})")
+
+
 def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Report) -> None:
     desk = path.name
     cells, plants = desk_plants(path, r)
@@ -294,14 +316,17 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
             r.add(f"cats:{os_name}", f"{desk}: plant at {xy} is in {os_name}, which switch_legs.csv does not list")
     jmri_blocks = t.block_names()
     names = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
-    # the main and upper blocks (no detector bound yet) are drawn from the device map, before the tables may hold
-    # them (a staging-only candidate does not; the middle of a double crossover's X is named without the corner
-    # letter): only those may be missing from the Layout Editor, and only while no detector is bound
+    # the main and upper blocks are drawn from the device map, before the tables may hold them: a staging-only
+    # candidate has none, so all of them may be missing; tables with main and upper must hold every one but the
+    # middle of a double crossover's X (named without the corner letter, a desk block with no sensor)
     root = parse(path).getroot()
-    dark = ({b.get("NAME") for b in root.iter("BLOCK") if b.get("NAME")} -
-            {b.get("NAME") for b in root.iter("BLOCK") if b.find("OCCUPIEDSPEC") is not None}) & device_map_blocks()
+    level_here = bool(jmri_blocks & device_map_blocks())
+    unbound = names - {b.get("NAME") for b in root.iter("BLOCK") if b.find("OCCUPIEDSPEC") is not None}
+    dark = (unbound if level_here else names) & device_map_blocks()
     for name in sorted(names - dark - jmri_blocks):
         r.add(f"cats-track:{name}", f"{desk}: block {name} is not a Layout Editor block in tables.xml")
+    if level_here:
+        check_level_sensors(desk, root, t, r)
     for sw in switches.values():
         n = f"Switch {sw.number}"
         for leg in sw.legs:

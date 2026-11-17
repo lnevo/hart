@@ -15,8 +15,9 @@ number for every head as system_name. This check fails when:
 - a wiring row's system_name, packed (node x 100 + uid) and topic disagree.
 
 Hidden virtual masts (IF$vsm) carry no wiring and are not checked. The main and upper levels' masts stand on
-internal heads (IH9 + the device map's four digits; hartlib.level_masts) until they are wired: they are not in the
-wiring plan yet, so each must carry exactly the heads main_upper_masts.csv gives it, and no wired head is theirs.
+virtual heads named from their user names (IH:HART:C3:108R_Top; hartlib.level_masts) while their plant is a draft:
+they are not in the wiring plan yet, so each must carry exactly the heads main_upper_masts.csv gives it, and no wired
+head is theirs.
 Mast 6LB is an interim one-low dwarf on its top head (IH432) until the bottom
 head is wired; its bottom head IH433 stays defined and on no mast.
 """
@@ -131,13 +132,13 @@ def read_tables(
             continue
         user = tables.user_name(el) or sn
         m = SHSM_RE.match(sn)
-        if not m:
+        if not m and not level_masts.is_level_mast(sn):
             bad.append(f"{user}: head mast {sn} does not name its heads by IH number")
             continue
         if user in masts:
             bad.append(f"{user}: two head masts share this userName")
             continue
-        masts[user] = re.findall(r"IH\d+", m.group(1))
+        masts[user] = re.findall(r"IH\d+", m.group(1)) if m else level_masts.mast_heads(sn)
     return head_comments, masts, bad
 
 
@@ -161,8 +162,8 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
     for mast in sorted(set(masts) - set(plan)):
         have = masts[mast]
         if have and all(level_masts.is_level_head(h) for h in have):
-            if level.get(mast) != have:         # main and upper, internal until wired: as main_upper_masts.csv
-                out.append(f"{mast}: internal heads {' '.join(have)}, main_upper_masts.csv "
+            if level.get(mast) != have:         # main and upper, virtual until wired: as main_upper_masts.csv
+                out.append(f"{mast}: virtual heads {' '.join(have)}, main_upper_masts.csv "
                            f"{' '.join(level.get(mast) or ['none'])}")
             continue
         out.append(f"{mast}: head mast {' '.join(have)} is not in signal_wiring.csv")

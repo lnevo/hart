@@ -126,7 +126,7 @@ LIVE_MASTS = {
 
 def load_mast_heads(tables: Path | None = None) -> dict[str, tuple[str, ...]]:
     """Mast userName -> head system names, from the IF$shsm mast system names in tables.xml. The main and upper
-    levels' masts on internal heads (hartlib.level_masts) publish nothing until they are wired, so they are left out."""
+    levels' masts on virtual heads (hartlib.level_masts) publish nothing until they are wired, so they are left out."""
     root = tables_mod.read(tables or TABLES)
     _comments, masts, bad = read_tables(root)
     if bad:

@@ -249,6 +249,21 @@ class LayoutFactsTest(unittest.TestCase):
         out = self.failures(desks=(self.write(tree),))
         self.assertIn(f"HART_CTC.xml: block {name} Typo is not a Layout Editor block in tables.xml", out)
 
+    def test_a_main_upper_desk_block_on_another_sensor_than_its_block_fails(self) -> None:
+        """Each main and upper desk block reports the virtual sensor its Layout Editor block has in tables.xml."""
+        tables = self.copy(check.TABLES, lambda t: t.replace("<systemName>IS:HART:C3:B:101-111</systemName>",
+                                                             "<systemName>IS:HART:C3:B:X</systemName>"))
+        out = self.failures(tables=tables)
+        self.assertEqual([m for m in out if "101-111" in m],
+                         [f"{d}: block Track 101-111 reports BS 101-111 (IS:HART:C3:B:101-111); tables.xml binds it "
+                          "to BS 101-111 (IS:HART:C3:B:X)" for d in ("HART_CTC.xml", "HART_ABS.xml")])
+
+    def test_a_main_upper_block_missing_from_tables_that_hold_the_levels_fails(self) -> None:
+        tables = self.copy(check.TABLES, lambda t: t.replace("<userName>Track 101-111</userName>",
+                                                             "<userName>Track 101-111 Gone</userName>"))
+        out = self.failures(tables=tables)
+        self.assertIn("HART_CTC.xml: block Track 101-111 is not a Layout Editor block in tables.xml", out)
+
     def test_main_upper_tables_with_no_internal_turnouts_fail(self) -> None:
         tables = self.copy(check.TABLES, lambda t: t.replace("IT:HART:C3:", "IT:HART:CX:"))
         out = self.failures(tables=tables)

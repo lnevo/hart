@@ -8,10 +8,11 @@ so it stands at the boundary between the two. L masts are westward, R masts east
 masts with one facing and protected block, the A mast on the switch's normal leg and the B mast on its diverging leg;
 none needs it since the 107 Loop became two blocks (owner, 2026-11-16).
 
-Until the cut-over they are internal: each head's system name is the device map's with a 9 after "IH" (IH3332 ->
-IH93332), and each mast's system name names those heads. signal_coordinator.py enrols and publishes a head only when
-its name is IH<node x 100 + signal 32..47> with an octal node (_is_lcos_ih_sys), and "933" is no octal node, so none
-of these reaches MQTT or the field (build_layout_le.py checks it with the coordinator's own test).
+They are virtual (owner, 2026-11-17): system_name and head_system_names are the device map's jmri_name, which comes
+from the head's user name (hartlib.level_masts.head_name: "Head 108R Top" -> IH:HART:C3:108R_Top), never from the
+draft physical head; device_system_name keeps the planned physical mast (the device map's system_name).
+signal_coordinator.py enrols and publishes a head only when its name is IH and digits (_is_lcos_ih_sys), so none of
+these reaches MQTT or the field (build_layout_le.py checks it with the coordinator's own test).
 
 --check regenerates in memory and exits 1 if the file differs.
 """
@@ -30,20 +31,24 @@ OUT = level_masts.PATH
 LEGS = {"A": "normal", "B": "diverging"}       # of two masts sharing a block pair, by letter (owner, 2026-11-16)
 
 
-def internal(head_sys: str, mast: str) -> str:
-    """The internal name of a device-map head (hartlib.level_masts.internal_head); stops naming the head and mast on
-    anything but IH and four digits, which the recognisers would not take."""
+def virtual(head: dict, mast: str) -> str:
+    """A device-map head row's jmri_name, checked to be hartlib.level_masts.head_name of its user name; stops naming
+    the head and mast otherwise."""
     try:
-        return level_masts.internal_head(head_sys)
+        want = level_masts.head_name(head["user_name"])
     except ValueError as exc:
         raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: {exc}") from None
+    if head.get("jmri_name") != want:
+        raise SystemExit(f"{DEVICE_MAP.name}: mast {mast}: head {head['user_name']} has jmri_name "
+                         f"{head.get('jmri_name')!r}, not {want}")
+    return want
 
 
 def build() -> str:
     """The file's text. Stops on a mast whose comment names no switch, whose notes name no facing track, whose
     system name is not a SignalHeadSignalMast of the device map's heads, or a LEGS mast the map does not have."""
     rows = list(csv.DictReader(DEVICE_MAP.open(newline="", encoding="utf-8")))
-    heads = {r["system_name"]: r["user_name"] for r in rows if r["layer"] == "head"}
+    heads = {r["system_name"]: r for r in rows if r["layer"] == "head"}
     out_rows = []
     for r in rows:
         if r["layer"] != "mast":
@@ -59,11 +64,14 @@ def build() -> str:
         missing = [h for h in mast_heads if h not in heads]
         if missing:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: heads {missing} have no head row")
-        sys_name = f"IF$shsm:{sysm.group(1)}:{sysm.group(2)}" + "".join(f"({internal(h, name)})" for h in mast_heads)
+        sys_name = f"IF$shsm:{sysm.group(1)}:{sysm.group(2)}" + "".join(f"({virtual(heads[h], name)})"
+                                                                      for h in mast_heads)
+        if r.get("jmri_name") != sys_name:
+            raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: jmri_name {r.get('jmri_name')!r} is not {sys_name}")
         out_rows.append(dict(
             mast=name, cp=r["cp"], switch=sw.group(1), facing=fac.group(1),
             protects=fac.group(2) or f"OS Switch {sw.group(1)}", leg="", system_name=sys_name,
-            head_system_names=";".join(f"{internal(h, name)}={heads[h]}" for h in mast_heads),
+            head_system_names=";".join(f"{virtual(heads[h], name)}={heads[h]['user_name']}" for h in mast_heads),
             device_system_name=r["system_name"].strip(), _level=int(r["level"])))
     pairs = {}
     for r in out_rows:

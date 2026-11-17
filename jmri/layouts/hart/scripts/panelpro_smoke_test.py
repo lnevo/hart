@@ -28,6 +28,24 @@ if "dispatcher" in PARKED:
     SECTIONS = 0
     TRANSITS = 0
 
+# The main and upper blocks' virtual occupancy sensors (build_layout_le.add_level_sensors), which the LogixNG
+# "Main and upper block sensors clear on start" sets INACTIVE when the tables load (owner, 2026-11-17).
+LEVEL_SENSOR_PREFIX = "IS:HART:C3:B:"
+LEVEL_SENSORS = 125
+
+
+def level_sensor_errors(sensor_manager):
+    """The main and upper virtual block sensors not INACTIVE after load, or a count other than LEVEL_SENSORS."""
+    level = [s for s in sensor_manager.getNamedBeanSet() if s.getSystemName().startswith(LEVEL_SENSOR_PREFIX)]
+    out = []
+    if len(level) != LEVEL_SENSORS:
+        out.append("main and upper virtual block sensors=%s expected=%s" % (len(level), LEVEL_SENSORS))
+    left = sorted(s.getSystemName() for s in level if s.getKnownState() != jmri.Sensor.INACTIVE)
+    if left:
+        out.append("main and upper block sensors not clear after load (%s of %s): %s" % (len(left), len(level), ", ".join(left)))
+    return out
+
+
 STATIONS = (
     u"Track K-1",
     u"Track K-2",
@@ -138,6 +156,11 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                     "transits=%s expected=%s" % (bean_count(transit_manager), TRANSITS)
                 )
             errors.extend(parked_errors())
+            # the LogixNG runs on its own thread after load, and each sensor it sets updates the blocks and
+            # masts: give it until the deadline
+            while level_sensor_errors(sensor_manager) and time.time() < deadline + 60:
+                self.waitMsec(1000)
+            errors.extend(level_sensor_errors(sensor_manager))
             if "dispatcher" in PARKED:
                 raise _Done()
 
@@ -219,8 +242,8 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                 handle.write("ok\n")
                 if "dispatcher" in PARKED:
                     handle.write(
-                        "%s masts; parked %s: no section, transit, Dispatcher sensor "
-                        "or parked window\n" % (MASTS, " ".join(sorted(PARKED)))
+                        "%s masts; %s main and upper block sensors clear; parked %s: no section, transit, "
+                        "Dispatcher sensor or parked window\n" % (MASTS, LEVEL_SENSORS, " ".join(sorted(PARKED)))
                     )
                 else:
                     handle.write(

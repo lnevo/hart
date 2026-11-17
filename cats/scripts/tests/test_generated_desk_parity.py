@@ -10,7 +10,8 @@ live, generated cats/panels/HART_CTC.xml, and of the hand-wired HART_ABS.xml aga
            fonts) in its order, and its publication plate's words
 and the generated desk binds nothing on staging the hand-wired desk did not. Main and upper (which the hand-wired desk
 did not have) are left out of the comparison: their plants command only their internal turnouts (IT:HART:C3), their
-masts are main_upper_masts.csv's, and their blocks are ABS on both twins with no detector yet.
+masts are main_upper_masts.csv's, and their blocks take the desk's discipline and report their virtual occupancy
+sensors (IS:HART:C3:B:<block key>, the device map's jmri_name).
 """
 from __future__ import annotations
 
@@ -50,9 +51,14 @@ FONT_SIZES = {"FONT_TITLE": "13"}
 PROTECTS = {"Mast 24L": ("Track West Ext", "OS Switch 23a"), "Mast 2035": ("Track K-2", "Track K-1")}
 
 
+LEVEL_SENSOR = ":HART:C3:B:"      # DECADDR of a main or upper virtual occupancy sensor (IS:HART:C3:B:<block key>)
+
+
 def level_io(el: ET.Element) -> bool:
-    """An IOSPEC on a main or upper internal turnout (the generated desk's main and upper plants)."""
-    return el.get("JMRIPREFIX") == trace.LEVEL_PREFIX
+    """An IOSPEC on a main or upper internal turnout (the generated desk's main and upper plants) or on a main or upper
+    block's virtual occupancy sensor."""
+    return el.get("JMRIPREFIX") == trace.LEVEL_PREFIX or \
+        (el.get("JMRIPREFIX") == "IS" and (el.get("DECADDR") or "").startswith(LEVEL_SENSOR))
 
 
 def ios(el: ET.Element) -> tuple:
@@ -104,8 +110,8 @@ def placed_ios(root: ET.Element) -> tuple[int, set[tuple]]:
     for b in root.iter("BLOCK"):
         for tag in ("OCCUPIEDSPEC", "UNOCCUPIEDSPEC"):
             for el in b.findall(tag):
-                placed |= {((b.get("NAME"), tag), ios(i)) for i in el.iter("IOSPEC")}
-                found += len(list(el.iter("IOSPEC")))
+                placed |= {((b.get("NAME"), tag), ios(i)) for i in el.iter("IOSPEC") if not level_io(i)}
+                found += len([i for i in el.iter("IOSPEC") if not level_io(i)])
     for ri in root.iter("ROUTEINFO"):
         for c in ri:
             placed |= {((c.tag,), ios(i)) for i in c.iter("IOSPEC") if not level_io(i)}
@@ -162,8 +168,10 @@ class Parity(unittest.TestCase):
             with self.subTest(block=name):
                 self.assertEqual(len(defs), 1, defs)
                 self.assertEqual(gen.get(name), defs)
-        bound = {n for n, d in gen.items() if any(spec for *_, spec in d)}
+        level = {(b.get("NAME") or "") for b in self.gen.iter("BLOCK") if any(map(level_io, b.iter("IOSPEC")))}
+        bound = {n for n, d in gen.items() if any(spec for *_, spec in d)} - level
         self.assertEqual(bound, {n for n, d in live.items() if any(spec for *_, spec in d)})
+        self.assertFalse(level & set(live), "a staging block on a main or upper virtual sensor")
         self.assertEqual(empty_specs(self.hand), [])
         self.assertEqual(empty_specs(self.gen), [])
 
@@ -216,7 +224,7 @@ class Parity(unittest.TestCase):
         self.assertLessEqual(plate(self.hand), plate(self.gen))
 
     def test_main_and_upper_bind_only_their_internal_turnouts_and_masts(self) -> None:
-        level = [i for i in self.gen.iter("IOSPEC") if level_io(i)]
+        level = [i for i in self.gen.iter("IOSPEC") if i.get("JMRIPREFIX") == trace.LEVEL_PREFIX]
         self.assertTrue(level)
         on_routes = {id(i) for ri in self.gen.iter("ROUTEINFO") for c in ri for i in c.iter("IOSPEC")}
         for i in level:
@@ -228,17 +236,27 @@ class Parity(unittest.TestCase):
         self.assertEqual(drawn & LEVEL_MASTS, LEVEL_MASTS)
         self.assertFalse(LEVEL_MASTS & set(masts(self.hand)))
 
-    def test_main_and_upper_take_the_desk_discipline_with_no_detector_yet(self) -> None:
+    def test_main_and_upper_take_the_desk_discipline_and_their_virtual_sensors(self) -> None:
         # CTC on the CTC desk, as staging is: CATS holds their signals and releases them (owner, 2026-11-17);
-        # ABS on the ABS twin
+        # ABS on the ABS twin. Each reports its virtual occupancy sensor; only the middle of 225's X has none.
         bound = json.loads(BINDINGS.read_text(encoding="utf-8"))["blocks"]
-        dark = {e.get("name", k) for k, e in bound.items() if "discipline" in e and "occupied" not in e}
-        self.assertGreater(len(dark), 90)
+        level = {e.get("name", k): e for k, e in bound.items() if "_planned_occupied" in e or
+                 e.get("occupied", {}).get("DECADDR", "").startswith(LEVEL_SENSOR) or k == "OS Switch 225"}
+        self.assertGreater(len(level), 100)
+        self.assertEqual(sorted(n for n, e in level.items() if "occupied" not in e), ["OS Switch 225"])
         found = blocks(self.gen)
-        for name in sorted(dark):
+        for name, e in sorted(level.items()):
             with self.subTest(block=name):
                 self.assertEqual({d[1] for d in found[name]}, {self.DISCIPLINE})
-                self.assertEqual({d[2] for d in found[name]}, {()}, "no detector bound yet")
+                if name == "OS Switch 225":
+                    self.assertEqual({d[2] for d in found[name]}, {()}, "the middle of 225's X stays dark")
+                    continue
+                (spec,) = {d[2] for d in found[name]}
+                self.assertEqual([t for t, _ in spec], ["OCCUPIEDSPEC", "UNOCCUPIEDSPEC"])
+                for _tag, specs in spec:
+                    self.assertEqual([dict(x[:-1])["JMRIPREFIX"] for x in specs], ["IS"])
+                    self.assertEqual([dict(x[:-1])["DECADDR"] for x in specs],
+                                     [e["occupied"]["DECADDR"]])
         self.assertEqual({d[1] for defs in found.values() for d in defs}, {self.DISCIPLINE})
 
 

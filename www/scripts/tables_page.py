@@ -54,7 +54,7 @@ GROUPS = {
     "logixs": ("objects", "Logix", None),  # filled with the count
     "conditionals": ("objects", "Conditionals", "The conditions and actions inside those Logix."),
     "timebase": ("objects", "Fast clock", "The settings of JMRI's fast clock."),
-    "LogixNGs": ("objects", "LogixNG", 'Newer logic that <a href="#logixng">hides windows at startup</a>: the LogixNG, its ConditionalNGs and their actions.'),
+    "LogixNGs": ("objects", "LogixNG", 'Newer logic that <a href="#logixng">hides windows and clears the main and upper block sensors at startup</a>: the LogixNGs, their ConditionalNGs and their actions.'),
     "LogixNGConditionalNGs": ("objects", "LogixNG", None),
     "LogixNGDigitalActions": ("objects", "LogixNG", None),
     "ctcdata": ("objects", "CTC data", "The USS CTC machine's code buttons and settings."),
@@ -236,14 +236,24 @@ def facts(raw: bytes, root) -> dict:
     f["ctcColumns"] = len(ctc.findall("ctcCodeButtonData")) if ctc is not None else 0
     f["logix"] = len(_direct(root, "logixs", "logix"))
 
-    # The one LogixNG, its ConditionalNGs and their single actions.
-    ng = _one(_direct(root, "LogixNGs", "LogixNG"), "LogixNG")
-    ng_sys = ng.findtext("systemName")
+    # Two LogixNGs: the one in the Initialization Table, its ConditionalNGs and their single actions; and the one
+    # that sets the main and upper virtual block sensors clear (build_layout_le.add_level_clear).
     init = [x.text for m in root.findall("LogixNGs") for it in m.findall("InitializationTable") for x in it.findall("LogixNG")]
-    if ng_sys not in init:
-        raise PageError(f"tables.xml: LogixNG {ng_sys} is not in the Initialization Table, as the page says")
+    ngs = _direct(root, "LogixNGs", "LogixNG")
+    ng = _one([n for n in ngs if n.findtext("systemName") in init], "LogixNG in the Initialization Table")
+    ng_sys = ng.findtext("systemName")
     cng = {c.findtext("systemName"): c for c in _direct(root, "LogixNGConditionalNGs", "ConditionalNG")}
     acts = {a.findtext("systemName"): a for m in root.findall("LogixNGDigitalActions") for a in m}
+    clear = _one([n for n in ngs if n is not ng], "LogixNG besides the Initialization Table's")
+    cs = [cng.get(x.text) for x in clear.findall("ConditionalNGs/systemName")]
+    many = acts.get(cs[0].findtext("Socket/systemName") or "") if len(cs) == 1 and cs[0] is not None else None
+    sensors = [acts.get(s.findtext("systemName") or "") for s in many.findall("Actions/Socket")] if many is not None \
+        and many.tag == "DigitalMany" else []
+    if not sensors or any(a is None or a.tag != "ActionSensor" or a.findtext("state/enum") != "Inactive"
+                          or not (a.findtext("namedBean/name") or "").startswith("IS:HART:C3:B:") for a in sensors):
+        raise PageError(f"tables.xml: LogixNG {clear.findtext('systemName')} no longer only sets the main and upper "
+                        "block sensors clear, as the page says")
+    f["clear"] = {"name": clear.findtext("userName") or clear.findtext("systemName"), "count": len(sensors)}
     rows = []
     listed = ng.find("ConditionalNGs")
     for sysname in [x.text for x in listed.findall("systemName")] if listed is not None else []:
@@ -403,6 +413,8 @@ def regions(f: dict) -> dict[str, str]:
         "logixng-name": e(f["logixng"]["name"]),
         "logixng-count": count(len(f["logixng"]["rows"]), "ConditionalNG", "ConditionalNGs"),
         "logixng-rows": ng_rows,
+        "clear-name": e(f["clear"]["name"]),
+        "clear-count": str(f["clear"]["count"]),
     }
 
 

@@ -168,7 +168,7 @@ def dispatcher_virtuals(expected: set[str], name_map: Path = paths.PUBLIC_NAME_M
     return expected & virtual
 
 
-# The main and upper levels' masts, on internal heads (IH9 + the device map's four digits) until the cut-over
+# The main and upper levels' masts, on virtual heads named from their user names (IH:HART:C3:108R_Top)
 # (hartlib.level_masts; tools/schematic/build_main_upper_masts.py): counted apart from the staging field masts.
 
 
@@ -184,7 +184,7 @@ def draws_levels(panel: ET.Element | None) -> bool:
 
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: bool = False) -> None:
     """The signal mast table: the 23 staging field masts exactly, the Dispatcher virtuals, no CATS runtime virtuals;
-    and the main and upper masts on internal heads, every one of main_upper_masts.csv when the panel draws those
+    and the main and upper masts on virtual heads, every one of main_upper_masts.csv when the panel draws those
     levels (`levels`), else none but its own."""
     masts = root.find("signalmasts")
     names: set[str] = set()
@@ -205,14 +205,14 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: b
                     virtual_names.add(name)
                 continue
             if level_masts.is_level_mast(system_name):
-                level.add(name)             # a main or upper mast on internal heads
+                level.add(name)             # a main or upper mast on virtual heads
                 continue
             if name:
                 names.add(name)
     if level or levels:
         want = level_masts.names()
         if level != want:
-            audit.error(f"main and upper masts on internal heads differ from {level_masts.PATH.name}: missing="
+            audit.error(f"main and upper masts on virtual heads differ from {level_masts.PATH.name}: missing="
                         f"{sorted(want - level) or 'none'}, extra={sorted(level - want) or 'none'}")
     audit.facts["level_masts"] = len(level)
     virtuals = dispatcher_virtuals(expected)
