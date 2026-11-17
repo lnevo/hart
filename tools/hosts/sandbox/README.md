@@ -10,7 +10,8 @@ Pick a folder outside the repo (a session scratchpad is fine) and call it `HART_
 1. Copy the live profile: `cp -R ~/Library/Preferences/JMRI/My_JMRI_Railroad.jmri "$HART_SANDBOX/HARTSandbox.jmri"`.
 2. Give it its own user files: in `HARTSandbox.jmri/profile/profile.properties` and every node folder's
    `profile.properties`, set `jmri-implementation.user-files=$HART_SANDBOX/uf/`. Copy into `uf/` the user files the
-   run needs: `jython/`, `dispatcher/traininfo/`, `resources/` (panel backdrop, buttons), `cats/panels/`.
+   run needs: `jython/`, `dispatcher/traininfo/`, `resources/` (panel backdrop, buttons), `cats/panels/`, and `ctc/icons/` from
+   `jmri/layouts/hart/ctc/icons/` (without it the USS CTC panel stops the load with an "Icon Not Found" dialog per turnout icon).
 3. Point its MQTT connection (M2) at a local broker: host 127.0.0.1, port 18830. JMRI skips Start Up when M2 cannot
    connect, so the broker must be running.
 4. Broker config `$HART_SANDBOX/broker/mosquitto.conf`: `listener 18830 127.0.0.1`, `allow_anonymous true`,
