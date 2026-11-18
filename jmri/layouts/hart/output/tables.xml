@@ -1515,7 +1515,7 @@
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
-    <memory value="2:17 PM">
+    <memory value="2:49 PM">
       <systemName>IMCURRENTTIME</systemName>
       <userName>Current time</userName>
       <comment>JMRI fast-clock time</comment>
@@ -11751,7 +11751,7 @@
       </MaleSocket>
     </ActionScript>
   </LogixNGDigitalActions>
-  <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="HART Railroad" x="881" y="123" windowheight="1140" windowwidth="1900" panelheight="1400" panelwidth="2493" sliders="yes" scrollable="both" editable="no" positionable="yes" controlling="yes" animating="yes" showhelpbar="no" drawgrid="no" snaponadd="yes" snaponmove="no" antialiasing="yes" turnoutcircles="yes" tooltipsnotedit="yes" tooltipsinedit="yes" mainlinetrackwidth="4" xscale="1.0" yscale="1.0" sidetrackwidth="2" defaulttrackcolor="gray" defaultoccupiedtrackcolor="red" defaultalternativetrackcolor="white" defaulttextcolor="black" turnoutcirclecolor="green" turnoutcirclethrowncolor="red" turnoutcirclesize="3" turnoutdrawunselectedleg="yes" turnoutbx="30.0" turnoutcx="30.0" turnoutwid="15.0" xoverlong="45.0" xoverhwid="15.0" xovershort="15.0" autoblkgenerate="yes" redBackground="186" greenBackground="210" blueBackground="235" gridSize="10" gridSize2nd="10" openDispatcher="no" useDirectTurnoutControl="no">
+  <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="HART Railroad" x="872" y="129" windowheight="1140" windowwidth="1900" panelheight="1400" panelwidth="2493" sliders="yes" scrollable="both" editable="no" positionable="yes" controlling="yes" animating="yes" showhelpbar="no" drawgrid="no" snaponadd="yes" snaponmove="no" antialiasing="yes" turnoutcircles="yes" tooltipsnotedit="yes" tooltipsinedit="yes" mainlinetrackwidth="4" xscale="1.0" yscale="1.0" sidetrackwidth="2" defaulttrackcolor="gray" defaultoccupiedtrackcolor="red" defaultalternativetrackcolor="white" defaulttextcolor="black" turnoutcirclecolor="green" turnoutcirclethrowncolor="red" turnoutcirclesize="3" turnoutdrawunselectedleg="yes" turnoutbx="30.0" turnoutcx="30.0" turnoutwid="15.0" xoverlong="45.0" xoverhwid="15.0" xovershort="15.0" autoblkgenerate="yes" redBackground="186" greenBackground="210" blueBackground="235" gridSize="10" gridSize2nd="10" openDispatcher="no" useDirectTurnoutControl="no">
     <layoutTrackDrawingOptions name="HART Railroad" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTrackDrawingOptionsXml">
       <mainBallastColor>#000000</mainBallastColor>
       <mainBallastWidth>0</mainBallastWidth>
@@ -12750,7 +12750,7 @@
     <positionablepoint ident="AG17" type="ANCHOR" x="1263.199951171875" y="378.0" connect1name="TG23" connect2name="TG24" eastboundsignalmast="Mast 22R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AG18" type="ANCHOR" x="1110.4000244140625" y="282.0" connect1name="TG26" connect2name="TG27" westboundsignalmast="Mast 18L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AG19" type="ANCHOR" x="1263.199951171875" y="282.0" connect1name="TG27" connect2name="TG28" eastboundsignalmast="Mast 18R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG20" type="ANCHOR" x="1837.800048828125" y="234.0" connect1name="TG30" connect2name="TG31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG20" type="ANCHOR" x="1839.300048828125" y="234.0" connect1name="TG30" connect2name="TG31" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AG21" type="ANCHOR" x="1665.199951171875" y="234.0" connect1name="TG34" connect2name="TG35" westboundsignalmast="Mast 36L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AG22" type="ANCHOR" x="1110.4000244140625" y="330.0" connect1name="TG36" connect2name="TG37" westboundsignalmast="Mast 20L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AG23" type="ANCHOR" x="1263.199951171875" y="330.0" connect1name="TG37" connect2name="TG38" eastboundsignalmast="Mast 20R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -12963,12 +12963,12 @@
   <filehistory>
     <operation>
       <type>app</type>
-      <date>Wed Nov 18 14:16:57 EST 2026</date>
+      <date>Wed Nov 18 14:49:28 EST 2026</date>
       <filename>PanelPro (v5.16.0)</filename>
     </operation>
     <operation>
       <type>Load OK</type>
-      <date>Wed Nov 18 14:17:04 EST 2026</date>
+      <date>Wed Nov 18 14:49:37 EST 2026</date>
       <filename>/Users/lnevo/hart/.claude/worktrees/panel-fixes/jmri/layouts/hart/output/tables.xml</filename>
       <filehistory>
         <operation>
@@ -13058,9 +13058,9 @@
     </operation>
     <operation>
       <type>Store</type>
-      <date>Wed Nov 18 14:17:15 EST 2026</date>
+      <date>Wed Nov 18 14:49:49 EST 2026</date>
       <filename>/Users/lnevo/hart/.claude/worktrees/panel-fixes/jmri/layouts/hart/output/tables.xml</filename>
     </operation>
   </filehistory>
-  <!--Written by JMRI version 5.16+R909e15189e on Wed Nov 18 14:17:15 EST 2026-->
+  <!--Written by JMRI version 5.16+R909e15189e on Wed Nov 18 14:49:49 EST 2026-->
 </layout-config>

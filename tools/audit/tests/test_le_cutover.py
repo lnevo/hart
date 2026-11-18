@@ -432,7 +432,8 @@ class ThreeLevels(unittest.TestCase):
         rose = next(el for el in self.le.iter("positionablelabel")
                     if el.find("icon") is not None and el.find("icon").get("url").endswith("hart_panel_compass.png"))
         caption = next(el for el in self.le.iter("positionablelabel") if el.get("text") == "Track Power")
-        self.assertEqual(int(rose.get("x")) + 111 + 10, int(caption.get("x")))       # 10 px left of the captions
+        compass = next(it for it in B.panel_items.load(B.PANEL_ITEMS)["items"] if it["id"] == "compass")
+        self.assertEqual(int(rose.get("x")) + compass["size"][0] + 10, int(caption.get("x")))   # 10 px left of them
         # the backdrop is panel_items.json's: the plain picture, at the panel's corner
         backdrop = next(it for it in B.panel_items.load(B.PANEL_ITEMS)["items"] if it["id"] == "backdrop")
         self.assertIn("hart_panel_bg_plain.jpg", backdrop["xml"])

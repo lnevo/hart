@@ -109,14 +109,16 @@ def staging_lengths(opts: dict, names: dict, os_inches: dict | None = None) -> d
     # A track that also holds an OS block (the Scale track ends in OS Switch 7) takes each OS block's length from
     # block_lengths.csv (owner, 2026-11-18: Mast 8RA's boundary at Switch 7's points, not half way along Scale), so
     # the OS block is drawn its real short length and the plugin keeps it long enough for a facing mast's icon.
-    # A track with an OS block that has no length there, or whose other blocks are not all measured, is drawn with
-    # equal blocks as before; its lengths are left out rather than logged on every build.
+    # A track with an OS block that has no length there, with no measured track block, or whose other blocks are not
+    # all measured (a link of OS blocks only, Switch 1 to 3, keeps its equal halves) is drawn with equal blocks as
+    # before; its lengths are left out rather than logged on every build.
     os_inches = block_inches() if os_inches is None else os_inches
     for blocks in names["blocks"].values():
         oses = [b for b in blocks if b.startswith("OS ")]
+        tracks = [b for b in blocks if b not in oses]
         if not oses:
             continue
-        if all(os_inches.get(b) for b in oses) and all(b in out for b in blocks if b not in oses):
+        if tracks and all(os_inches.get(b) for b in oses) and all(b in out for b in tracks):
             out.update({b: float(os_inches[b]) for b in oses})
         else:
             for b in blocks:
@@ -124,11 +126,16 @@ def staging_lengths(opts: dict, names: dict, os_inches: dict | None = None) -> d
     return out
 
 
+@functools.lru_cache(maxsize=1)
 def block_inches() -> dict:
-    """{block: inches} of block_lengths.csv (hartlib.railroad), the blocks with a length."""
+    """{block: inches} of block_lengths.csv (hartlib.railroad), the blocks with a length above zero; read once.
+    BuildError on a file hartlib cannot read."""
     from hartlib import railroad
-    return {name: r.inches for name, r in railroad.read_block_lengths(railroad.Sources.under().block_lengths).items()
-            if r.inches}
+    try:
+        rows = railroad.read_block_lengths(railroad.Sources.under().block_lengths)
+    except railroad.FactsError as exc:
+        raise BuildError(f"block_lengths.csv: {exc}") from None
+    return {name: r.inches for name, r in rows.items() if r.inches}
 
 
 MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
