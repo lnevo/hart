@@ -52,13 +52,29 @@ They stay so the features can be unparked; nothing active runs them for the park
 
 | Feature | Only for the parked feature |
 |---------|-----------------------------|
-| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py` |
+| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py`, `polish_hart_layout_editor.py` (puts the lamps and block contents labels back after Stage 1) |
 | NX | `apply_nx_layer.py`, `discover_nx.py`, `run_nx_discover.sh`, `jmri/scripts/generate_nx_pairs.py` |
+
+They work on the generated panel only (it holds the generated-panel marker, `hartlib.tables.GENERATED_PANEL_MARKER`)
+and refuse any other: the hand-drawn panel's pixel tables and the one-off edit scripts are gone (the one-off scripts
+are in `archive/jmri-scripts/`). Every position comes from the panel itself or from `--reference`, the tables before
+Stage 1, which `run_panelpro_stage1.sh` passes:
+
+- `reconcile_dispatcher_stations.py`: the 12 stations (block comments, MoveTo and move-in-progress sensors) and their
+  clusters. Each cluster icon stays where it stands, or goes back where it stood on `--reference`; a missing progress
+  lamp or station lamp takes its usual offset from the MoveTo button, and a station whose MoveTo button is on neither
+  panel stops the run.
+- `polish_hart_layout_editor.py`: each Stage 1 lamp where its sensor's lamp stood on `--reference` (else where the
+  panel's own one lamp stands, else at the turnout circle's centre or the middle of the track), each block contents
+  label on level 4 where it stood, every lamp display only. It refuses tables whose Dispatcher System is parked.
+- `apply_nx_layer.py`: the ISNX sensors and their bindings in the mast slots. It adds or moves no NX icon (the
+  generated panel shows none) and works with or without the Dispatcher System panel.
 | USS CTC | `build_ctc_full_15col.py` (unsafe to re-run, ADR-005) |
 
 Still used by active tools, so they must keep working while parked:
 
-- `reconcile_dispatcher_stations.py`: `tools/check.sh` and the Layout Editor build read the stations through it.
+- `reconcile_dispatcher_stations.py`: `audit_panel_contracts.py` (in `tools/check.sh`) reads the stations through it.
+- `polish_hart_layout_editor.py`: `audit_panel_contracts.py` checks the block contents labels with its rule.
 - `nx_contract.py`: `audit_panel_contracts.py` (in `tools/check.sh`) and `hartlib.parked` import it.
 - `gen_ctc_track_plan.py` and `uss_switch_only_columns.py`, which it imports: the layout facts and the CATS desk
   tests read the USS board grid through them.
@@ -89,8 +105,8 @@ To bring them back, append this file's `items` to `jmri/layouts/hart/data/schema
 Also give the plugin the station clusters as `extras` again (as the retired `le_overlay.station_extras` did; see git
 history before the switch-over), so the label layer keeps clear of them: without them 14 block contents icons
 (OS Switch 7, OS Switch 9, Barn, EH-2, EH-3, East Lead, East Lead East, K-1, K-2, McKees Rocks, McKeesport, Scale,
-W-1, W-2) sit somewhere else than they did with the clusters. The OS lamp checks of
-`polish_hart_layout_editor.py` come back with the feature (they run only while it is not parked).
+W-1, W-2) sit somewhere else than they did with the clusters. `polish_hart_layout_editor.py` adds a switch OS lamp
+that is missing once the feature is back.
 
 ## Checks
 
@@ -110,3 +126,7 @@ W-1, W-2) sit somewhere else than they did with the clusters. The OS lamp checks
    stations) or NX Discover (`run_nx_discover.sh`), in a sandbox first (`tools/hosts/sandbox/README.md`).
 4. Put the expected counts back (`audit_panel_contracts.py` EXPECTED_GRAPH, `panelpro_smoke_test.py`), and deploy:
    the folders above ship again.
+5. Dispatcher System only: put the station check back in `tools/check.sh`
+   (`reconcile_dispatcher_stations.py --check --no-sync`, which prints SKIPPED while the feature is parked) and add
+   `polish_hart_layout_editor.py --check` beside it. Both were taken out while parked, when neither checked anything
+   the approved panel fingerprint (`tools/schematic/check_approved.py le-panel`) does not.

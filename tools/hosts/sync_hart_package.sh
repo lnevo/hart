@@ -200,14 +200,6 @@ if [[ "$CHECK_PI_ONLY" -eq 1 ]]; then
 fi
 
 TABLES=""
-POLISH="$ROOT/jmri/layouts/hart/scripts/polish_hart_layout_editor.py"
-if [[ -f "$POLISH" ]]; then
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    python3 "$POLISH" --block-labels-only --sync-output --check
-  else
-    python3 "$POLISH" --block-labels-only --sync-output
-  fi
-fi
 if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
   TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
 fi

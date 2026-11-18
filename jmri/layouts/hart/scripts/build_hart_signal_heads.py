@@ -42,7 +42,7 @@ SKIP_MAST: set[str] = set()
 
 # Interim: masts whose field build has fewer heads than the wiring plan.
 # signal_wiring.csv and signal_mast_plan.csv keep the planned heads;
-# signal_head_plan.csv (read by cats/scripts/wire_digicon.py for PHYSIGNAL)
+# signal_head_plan.csv (read by hartlib.cats.mast_templates for PHYSIGNAL)
 # and the JMRI mast use only the fitted ones. Remove an entry once the
 # missing head is wired and configured in LCOS.
 FITTED_HEADS: dict[str, set[int]] = {

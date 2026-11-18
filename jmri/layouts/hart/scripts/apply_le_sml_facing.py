@@ -23,6 +23,7 @@ import os
 import re
 import shutil
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -227,12 +228,17 @@ def main() -> None:
     syncing = not (args.dry_run or args.no_sync or args.no_pref) and PREF_TABLES.is_file()
     # A generated panel reaches the profile only as the checkout's own tables.xml: a cut-over candidate or sandbox
     # copy named by --panel is never copied there.
-    if (syncing and Path(os.path.realpath(args.panel)) != Path(os.path.realpath(paths.REPO_TABLES_XML))
-            and tables.hand_drawn_only(args.panel, Path(__file__).name)):
+    try:
+        generated = tables.path_has_generated_panel(args.panel)
+    except (OSError, ET.ParseError, ValueError) as exc:
+        print(f"{args.panel}: cannot read its main Layout Editor panel: {exc}", file=sys.stderr)
+        sys.exit(1)
+    if (syncing and generated
+            and Path(os.path.realpath(args.panel)) != Path(os.path.realpath(paths.REPO_TABLES_XML))):
         print(f"{args.panel}: a generated panel that is not the checkout's tables.xml, so it is not copied to "
               f"{PREF_TABLES}; rerun with --no-pref (or --no-sync)", file=sys.stderr)
         sys.exit(1)
-    turnouts, anchors = load_assignments(args.csv, tables.path_has_generated_panel(args.panel))
+    turnouts, anchors = load_assignments(args.csv, generated)
     patch_file(args.panel, turnouts, anchors, dry_run=args.dry_run)
     if args.dry_run or args.no_sync:
         return

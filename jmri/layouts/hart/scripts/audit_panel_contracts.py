@@ -600,12 +600,12 @@ def audit_stations(
     audit.facts["station_icons"] = tuple(sorted(icon_set))
 
 
-def audit_block_contents_visible(panel: ET.Element | None, audit: Audit, *, generated: bool = False) -> None:
-    """Tracks paint at level 3; labels at 0 sit behind the panel background. The hand-drawn panel's pinned label
-    pixels too; on a generated panel (`generated`) none, and the plugin's Dialog font stays."""
+def audit_block_contents_visible(panel: ET.Element | None, audit: Audit) -> None:
+    """Tracks paint at level 3; labels at 0 sit behind the panel background. Black text, in the plugin's Dialog font
+    or JMRI's default."""
     if panel is None:
         return
-    _, errors = ensure_block_contents_visible(panel, check=True, placements=not generated, generated=generated)
+    _, errors = ensure_block_contents_visible(panel, check=True)
     for message in errors:
         audit.error(message)
 
@@ -773,7 +773,6 @@ def audit_source(
         audit_turnout_systemname_lookups(root, audit, required=True)
         audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
     audit_placeholders(panel, audit)
-    # A generated panel (it holds hartlib.tables.GENERATED_PANEL_MARKER) has no hand-drawn label pixels.
     try:
         marked = tables.generated_panel(panel)
     except ValueError as exc:
@@ -783,7 +782,7 @@ def audit_source(
         audit.error("--generated, but the panel has no generated-panel marker (build_layout_le.py --as-live "
                     "writes it)")
     audit.facts["generated_panel"] = marked
-    audit_block_contents_visible(panel, audit, generated=generated or marked)
+    audit_block_contents_visible(panel, audit)
     return audit
 
 
@@ -868,9 +867,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--generated",
         action="store_true",
-        help="the panel is generated (build_layout_le.py --as-live): skip the hand-drawn panel's "
-        "pinned label pixels, and fail if it has no generated-panel marker (a marked panel is "
-        "recognised without this flag)",
+        help="the panel is generated (build_layout_le.py --as-live): fail if it has no generated-panel "
+        "marker (a marked panel is recognised without this flag)",
     )
     return parser.parse_args(argv)
 
@@ -878,8 +876,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if args.generated and not args.tables:
-        print("ERROR: --generated is for a generated candidate named by --tables; the live tables.xml keeps its "
-              "pinned label pixels checked")
+        print("ERROR: --generated is for a generated candidate named by --tables; the live tables.xml is "
+              "recognised by its marker")
         return 2
     try:
         boundaries = load_boundaries(args.boundaries)

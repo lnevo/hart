@@ -11,14 +11,14 @@
                      read by gen_ctc_track_plan.py; and, for the hand-wired
                      CATS desks only, the SEC_EDGE of its lamp in that cell and
                      a lamp placement to set (edge, sig_location, sig_orient),
-                     read by wire_digicon.py and check_layout_facts.py. The
+                     read by check_layout_facts.py. The
                      board's grid is the hand-wired desk's, frozen on
                      2026-11-15; the generated desks do not use this file
     uss_board_cells.csv / uss_board_plants.csv  the USS CTC board's grid:
                      each cell's track, label and block edges, and the cell
                      of each switch plant, frozen from the hand-wired desk
-                     on 2026-11-15 (read by gen_ctc_track_plan.py,
-                     check_layout_facts.py and wire_digicon.py)
+                     on 2026-11-15 (read by gen_ctc_track_plan.py and
+                     check_layout_facts.py)
 
 Hardware, DCC address (its own ``dcc`` column) and control point come from the
 canonical turnout row of public_name_map.csv (current == proposed); control_points.csv lists which
@@ -144,7 +144,7 @@ def _noted_rows(path: Path, columns: list[str]) -> list[tuple[int, dict[str, str
 def load_uss_cells(data: Path = DATA) -> dict[tuple[int, int], dict]:
     """The USS CTC board's grid (uss_board_cells.csv), frozen from the hand-wired CATS desk on 2026-11-15, in file
     order: (x, y) -> {tracks: [CATS track kinds], name: the cell's label or None, blocks: [(edge, block or None,
-    occupancy sensor or None)]}, the shape gen_ctc_track_plan.parse_cats reads from a desk."""
+    occupancy sensor or None)]}, the shape gen_ctc_track_plan.build_block reads."""
     out: dict[tuple[int, int], dict] = {}
     for line, row in _noted_rows(data / USS_CELLS, ["x", "y", "tracks", "name", "blocks"]):
         where = f"{USS_CELLS} line {line}"

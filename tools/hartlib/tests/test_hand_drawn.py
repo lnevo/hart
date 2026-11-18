@@ -30,19 +30,5 @@ class HandDrawnTest(unittest.TestCase):
             hand_drawn.skip_unless_available()
 
 
-    def test_the_hand_wired_cats_desks(self):
-        try:
-            ctc = hand_drawn.cats_desk_path("HART_CTC.xml")
-        except ValueError as exc:
-            self.skipTest(str(exc))
-        self.assertEqual(ctc.name, "HART_CTC.xml")
-        self.assertIn(b"<DOCUMENT", ctc.read_bytes()[:400])
-        self.assertEqual(hand_drawn.skip_unless_available("HART_ABS.xml").name, "HART_ABS.xml")
-        with self.assertRaisesRegex(ValueError, "not a hand-wired CATS desk"):
-            hand_drawn.cats_desk_path("HART_Digicon.xml")
-        with self.assertRaisesRegex(ValueError, "not a hand-wired CATS desk"):    # raised, not skipped
-            hand_drawn.skip_unless_available("HART_Digicon.xml")
-
-
 if __name__ == "__main__":
     unittest.main()

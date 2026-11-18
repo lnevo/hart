@@ -98,7 +98,7 @@ Lookups (all take the root element unless noted):
 | `layout_editors` | every Layout Editor panel |
 | `generated_panel(panel)` | True when the panel holds the hidden marker label a generated panel carries (`build_layout_le.py --as-live`); two markers raise ValueError |
 | `generated_marker_label()`, `GENERATED_PANEL_MARKER` | that label and its text |
-| `hand_drawn_only(path, script)` | None, or why a one-off edit of the hand-drawn panel must not run on that file's panel |
+| `path_has_generated_panel(path)` | True when the main panel of the tables file at `path` is a generated one |
 | `layout_turnouts(panel)` | `<layoutturnout>` (turnouts and crossovers) on a panel |
 | `continuing_sense(lt)` | `CLOSED` (2), `THROWN` (4) or `UNKNOWN` (1) |
 | `mast_logics`, `mast_logic_sources`, `mast_logic_pairs` | SML elements, source -> element, (source, destination, element) |
@@ -148,14 +148,14 @@ The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, 
 `tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs), `names()`,
 `head_name()` (the virtual head from its user name: "Head 108R Top" -> IH:HART:C3:108R_Top, never from the draft
 physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
-`audit_panel_contracts.py` and `polish_hart_layout_editor.py`.
+and `audit_panel_contracts.py`.
 
 ### `hartlib.hand_drawn`
 
 The last hand-drawn `tables.xml`, read from git at `COMMIT` (main just before the Layout Editor cut-over): `tables_bytes()`,
 `tables_path()` (a read-only temporary copy, one per process) and, for tests, `skip_unless_available()`. Used by
-`build_layout_le.py` (`template_tables`) and the tests of the cut-over and of the one-off scripts that only
-ever edited the hand-drawn panel. No copy of the old file is kept in the tree.
+`build_layout_le.py` (`template_tables`: the build replaces that file's panel and adds the main and upper objects to
+its tables) and the tests of the build. No copy of the old file is kept in the tree.
 
 ### `hartlib.parked`
 

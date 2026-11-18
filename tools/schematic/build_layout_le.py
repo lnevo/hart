@@ -56,8 +56,8 @@ slot are its own (staging_masts.csv; the plugin's slots.py holds JMRI's rules), 
 train it governs, hidden for a virtual mast; check_device_masts stops on a mast two slots would fit or one on another
 turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), so a buffer-stop mast
 whose track runs on through the helix (Mast 38RA, 40RA) stands at the helix entrance anchor. The panel carries the
-hidden generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER): the scripts that pin the hand-drawn panel's pixels
-read it and take positions from the panel itself. The staging candidate's panel must match the owner-approved
+hidden generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER): template_tables reads it, and the Stage 1
+repairs of the parked Dispatcher System run only on a panel that holds it. The staging candidate's panel must match the owner-approved
 fingerprint (approval.py, approved_staging.sha256; --review skips it, --approve-staging records it).
 
 The candidates are for looking at only until the owner's cut-over. This script never writes the live tables.xml or
@@ -304,7 +304,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     w, h = P.items["size"]
     if w + le_mod.CHROME[0] > fit[0] or h + le_mod.CHROME[1] > fit[1]:
         panel_el.set("scrollable", "both")
-    # the marker that tells polish_hart_layout_editor.py and the other hand-pixel scripts to leave positions alone
+    # the marker that tells the build (template_tables) and the Stage 1 repairs the panel is a generated one
     opts = panel_el.find("layoutTrackDrawingOptions")
     panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
     # the boundary contract's idents and slots (generated anchor idents renumber with the drawing): stop loudly

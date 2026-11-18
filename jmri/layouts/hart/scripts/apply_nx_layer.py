@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Add JMRI Entry/Exit (NX) sensors on CTC masts for HART Railroad.
 
-Creates ISNX:* internals (frozen CTC numbers, see nx_contract.py), binds
-them to the same turnout/point legs as the mast, and places a small click
-target on the approach rail into the switch.
+Creates ISNX:* internals (frozen CTC numbers, see nx_contract.py) and binds
+them to the same turnout/point legs as the mast. Entry/Exit is parked
+(hartlib.parked); this serves its unparking.
 
 Does not generate pairs — run discover_nx.py in PanelPro for that.
 Does not touch USS paneleditor or Dispatcher System MoveTo icons.
@@ -24,12 +24,10 @@ Switch later: python3 apply_nx_layer.py --mode lock && deploy.
 A mast whose NX sensor is already bound somewhere on the panel (a turnout leg's
 <sensorX> or an anchor's east/westboundsensor) gets no second binding.
 
-On a generated panel (build_layout_le.py --as-live; it holds the hidden
-hartlib.tables.GENERATED_PANEL_MARKER label) the pixel tables MAST_ALIGN and
-NX_ICON_POSITIONS are the hand-drawn panel's and are not used: mast icons and NX
-icons keep where they stand, and no NX icon is added (owner, 2026-11-16: the
-generated panel shows no NX sensor icons; the sensors bound in the mast slots are
-what Entry/Exit discovery and the pairs use).
+The main panel must be a generated one (build_layout_le.py --as-live; it holds
+the hidden hartlib.tables.GENERATED_PANEL_MARKER label). It shows no NX sensor
+icon (owner, 2026-11-16): the sensors bound in the mast slots are what Entry/Exit
+discovery and the pairs use, so no icon is added or moved.
 """
 
 from __future__ import annotations
@@ -91,10 +89,7 @@ GEOGRAPHIC_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
 LAYOUT_EDITOR_PREFIX = (
     '<LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="'
 )
-NEXT_PANEL_START = '<LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="Dispatcher System"'
-MAST_ICON_RE = re.compile(
-    r'<signalmasticon signalmast="([^"]+)" x="([^"]+)" y="([^"]+)"[^>]*degrees="([^"]+)"'
-)
+PANEL_END = "</LayoutEditor>"
 TURNOUT_RE = re.compile(r"<layoutturnout\b[^>]*>.*?</layoutturnout>", re.S)
 POINT_RE = re.compile(r"<positionablepoint\b[^>]*/>")
 SENSOR_SYS_RE = re.compile(r"<systemName>(ISNX:[^<]+)</systemName>")
@@ -125,165 +120,6 @@ def sensor_xml(mast: str, mode: str = "sml") -> str:
         f"      <comment>{sensor_comment(mast, mode)}</comment>\n"
         "    </sensor>\n"
     )
-
-
-# 21×21 USS lamp, centered on the approach rail into the switch (not the
-# frog, not the mast heads). y = rail − 10. Paired A/B ends share x.
-NX_ICON_POSITIONS: dict[str, tuple[int, int]] = {
-    "Mast 2L": (382, 242),    # Track Main West into 100, left of the mast cluster
-    "Mast 4RA": (198, 242),   # Track W-1, even with 100 / 111 / 113
-    "Mast 4RB": (198, 293),   # Track W-2, left+up off the rail
-    "Mast 6LA": (374, 305),   # Track Scale into 102
-    "Mast 6LB": (378, 353),   # Track East Ext into 102
-    "Mast 8RA": (462, 305),   # just east of A45 (its slot since 2026-11-15), on OS Switch 7; lamp rework pending
-    "Mast 8LB": (548, 305),   # Track Barn into 117; same X as Mast 8LA
-    "Mast 8RB": (445, 353),   # Track East Ext into 117; same Y as NX Mast 6LB
-    "Mast 8LA": (548, 353),   # Track Main East into 117
-    "Mast 24RA": (1095, 242),  # Track Main West into 111
-    "Mast 24RB": (1095, 305),  # Track S-R into 111 (aligned with Mast 24RA)
-    "Mast 24L": (1248, 242),   # same X as NX Mast 32R
-    "Mast 32R": (1248, 335),   # OS Switch 29 ladder, left of the diagonal
-    "Mast 34R": (1312, 338),   # Track Main East, left of the diagonal
-    "Mast 34L": (1397, 305),   # Track East Lead into 112; left of the East Lead lamp, 4 px clear (owner, 2026-11-13)
-    "Mast 36RA": (1465, 242),  # Track West Ext into 113
-    "Mast 36RB": (1465, 305),  # Track East Lead into 113
-    "Mast 38LA": (1675, 305),  # Track McKeesport stub toward the balloon
-    "Mast 38LB": (1695, 367),  # Track K-2 bezier
-    "Mast 40LA": (1675, 242),  # Track McKees Rocks stub toward the balloon
-    "Mast 40LB": (1695, 162),  # Rocks bezier; same X as Mast 38LB
-    "Mast 2035": (1826, 245),   # Rocks arc; same X as Mast 2036
-    "Mast 2036": (1826, 291),   # Track K-2 arc; same X as Mast 2035
-}
-
-# Mast shifts so heads clear the approach lamps and share Mast 2L's height.
-MAST_ALIGN: dict[str, tuple[int, int]] = {
-    "Mast 6LA": (366, 290),
-    "Mast 6LB": (366, 338),
-    "Mast 8RA": (445, 327),
-    "Mast 8LB": (552, 290),
-    "Mast 8RB": (445, 374),
-    "Mast 8LA": (529, 341),
-    "Mast 32R": (1265, 349),
-    "Mast 2035": (1848, 245),
-    "Mast 2036": (1816, 291),
-    "Mast 40LB": (1640, 170),
-    "Mast 24L": (1248, 218),
-    "Mast 24RA": (1095, 263),
-    "Mast 24RB": (1095, 326),
-    "Mast 34L": (1392, 289),
-    "Mast 36RA": (1465, 264),
-    "Mast 36RB": (1465, 325),
-    "Mast 40LA": (1665, 222),
-    "Mast 38LA": (1665, 285),
-}
-
-# USS lamps, not the 10px circuit squares used by Dispatcher MoveInProgress.
-NX_ICON_INNER = (
-    '      <active url="program:resources/icons/USS/sensor/green-on.gif" '
-    'degrees="0" scale="1.0">\n'
-    "        <rotation>0</rotation>\n"
-    "      </active>\n"
-    '      <inactive url="program:resources/icons/USS/sensor/white-off.gif" '
-    'degrees="0" scale="1.0">\n'
-    "        <rotation>0</rotation>\n"
-    "      </inactive>\n"
-    '      <unknown url="program:resources/icons/USS/sensor/white-off.gif" '
-    'degrees="0" scale="1.0">\n'
-    "        <rotation>0</rotation>\n"
-    "      </unknown>\n"
-    '      <inconsistent url="program:resources/icons/USS/sensor/white-off.gif" '
-    'degrees="0" scale="1.0">\n'
-    "        <rotation>0</rotation>\n"
-    "      </inconsistent>\n"
-    "      <iconmaps />\n"
-)
-NX_ICON_RE = re.compile(
-    r'(<sensoricon sensor="NX [^"]+"[^>]*>).*?(</sensoricon>)',
-    re.S,
-)
-
-
-def icon_xml(mast: str, x: int, y: int) -> str:
-    return (
-        f'    <sensoricon sensor="{user_name(mast)}" x="{x}" y="{y}" level="11" '
-        'forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" '
-        'editable="false" momentary="false" icon="yes" '
-        'class="jmri.jmrit.display.configurexml.SensorIconXml">\n'
-        f"{NX_ICON_INNER}"
-        "    </sensoricon>\n"
-    )
-
-
-def restyle_icons(panel: str) -> tuple[str, int]:
-    changed = 0
-
-    def repl(match: re.Match[str]) -> str:
-        nonlocal changed
-        body = f"{match.group(1)}\n{NX_ICON_INNER}    {match.group(2)}"
-        if body != match.group(0):
-            changed += 1
-        return body
-
-    return NX_ICON_RE.sub(repl, panel), changed
-
-
-def nx_xy(mast: str, x: float, y: float, degrees: float) -> tuple[int, int]:
-    """Approach-rail lamp, or a facing-side fallback for an unknown mast."""
-    if mast in NX_ICON_POSITIONS:
-        return NX_ICON_POSITIONS[mast]
-    d = int(degrees) % 360
-    along = 28
-    if 45 <= d <= 135:
-        return int(round(x - along)), int(round(y + 2))
-    if 225 <= d <= 315:
-        return int(round(x + along)), int(round(y + 2))
-    if 135 < d < 225:
-        return int(round(x + 2)), int(round(y - along))
-    return int(round(x + 2)), int(round(y + along))
-
-
-def align_masts(panel: str) -> tuple[str, int]:
-    changed = 0
-    for mast, (x, y) in MAST_ALIGN.items():
-        pattern = rf'(<signalmasticon signalmast="{re.escape(mast)}" x=")[^"]+(" y=")[^"]+"'
-
-        def repl(match: re.Match[str], x: int = x, y: int = y) -> str:
-            nonlocal changed
-            updated = f"{match.group(1)}{x}{match.group(2)}{y}\""
-            if updated != match.group(0):
-                changed += 1
-            return updated
-
-        panel, n = re.subn(pattern, repl, panel, count=1)
-        if n == 0:
-            continue
-    return panel, changed
-
-
-def reposition_icons(panel: str) -> tuple[str, int]:
-    masts: dict[str, tuple[float, float, float]] = {}
-    for match in MAST_ICON_RE.finditer(panel):
-        masts[match.group(1)] = (
-            float(match.group(2)),
-            float(match.group(3)),
-            float(match.group(4)),
-        )
-    changed = 0
-
-    def repl(match: re.Match[str]) -> str:
-        nonlocal changed
-        name = match.group(1)
-        mast = name[3:]
-        if mast not in masts and mast not in NX_ICON_POSITIONS:
-            return match.group(0)
-        x, y, degrees = masts.get(mast, (0.0, 0.0, 0.0))
-        ix, iy = nx_xy(mast, x, y, degrees)
-        updated = f'<sensoricon sensor="{name}" x="{ix}" y="{iy}"'
-        if updated != match.group(0):
-            changed += 1
-        return updated
-
-    return re.sub(r'<sensoricon sensor="(NX [^"]+)" x="[^"]+" y="[^"]+"', repl, panel), changed
 
 
 def insert_internal_sensors(text: str, mode: str = "sml") -> tuple[str, int]:
@@ -368,32 +204,8 @@ def patch_point(xml: str, bound: set[str] | None = None) -> str:
     return xml.replace(" class=", " " + " ".join(extra) + " class=", 1)
 
 
-def insert_icons(panel: str) -> tuple[str, int]:
-    present = set(re.findall(r'<sensoricon sensor="(NX [^"]+)"', panel))
-    last = None
-    for match in MAST_ICON_RE.finditer(panel):
-        last = match
-    if last is None:
-        raise SystemExit("HART Railroad has no signalmasticon rows")
-    chunks = []
-    for match in MAST_ICON_RE.finditer(panel):
-        mast, x, y, degrees = match.group(1), float(match.group(2)), float(match.group(3)), float(match.group(4))
-        if mast not in CTC_MASTS or user_name(mast) in present:
-            continue
-        ix, iy = nx_xy(mast, x, y, degrees)
-        chunks.append(icon_xml(mast, ix, iy))
-    if not chunks:
-        return panel, 0
-    insert_at = last.end()
-    # signalmasticon may be self-closing or have a closing tag on the same line
-    if panel[insert_at:insert_at + 2] != "\n":
-        nl = panel.find("\n", insert_at)
-        insert_at = nl + 1 if nl >= 0 else insert_at
-    return panel[:insert_at] + "".join(chunks) + panel[insert_at:], len(chunks)
-
-
-def apply_panel(panel: str, generated: bool = False) -> tuple[str, dict[str, int]]:
-    """`generated`: the panel is a generated one (hartlib.tables.generated_panel), so its pixels are its own."""
+def apply_panel(panel: str) -> tuple[str, dict[str, int]]:
+    """Bind each CTC mast's NX sensor in its mast's slot on the main panel's text `panel`."""
     counts = {"turnouts": 0, "points": 0}
     bound = bound_nx_sensors(panel)     # grows as sensors are bound: turnout legs first, then anchors
 
@@ -411,19 +223,6 @@ def apply_panel(panel: str, generated: bool = False) -> tuple[str, dict[str, int
 
     panel = TURNOUT_RE.sub(turnout_sub, panel)
     panel = POINT_RE.sub(point_sub, panel)
-    if generated:   # the hand-drawn panel's pixels do not apply: icons keep where they stand, none is added
-        aligned = moved = icons = 0
-        panel, restyled = restyle_icons(panel)
-    else:
-        panel, aligned = align_masts(panel)
-        panel, icons = insert_icons(panel)
-        panel, restyled = restyle_icons(panel)
-        panel, moved = reposition_icons(panel)
-    counts["generated"] = int(generated)
-    counts["aligned"] = aligned
-    counts["icons"] = icons
-    counts["restyled"] = restyled
-    counts["moved"] = moved
     return panel, counts
 
 
@@ -473,20 +272,18 @@ def apply_text(text: str, mode: str = "sml") -> tuple[str, dict[str, int]]:
         raise SystemExit(f"CTC_MASTS / ISNX_SYSTEM mismatch missing={sorted(missing)} extra={sorted(extra)}")
     text, sensors = insert_internal_sensors(text, mode)
     text, comments = refresh_sensor_comments(text, mode)
-    end = text.find(NEXT_PANEL_START)
-    start = -1
-    for name in GEOGRAPHIC_PANEL_NAMES:
-        found = text.find(LAYOUT_EDITOR_PREFIX + name + '"')
-        if found >= 0:
-            start = found
-            break
-    if start < 0 or end < 0 or end <= start:
-        raise SystemExit("HART Railroad / Dispatcher System panel bounds not found")
     try:
         generated = tables.generated_panel(tables.layout_editor(tables.loads(text.encode("utf-8")).root))
     except (ValueError, ET.ParseError) as exc:
         raise SystemExit(f"cannot read the main Layout Editor panel: {exc}") from None
-    panel, counts = apply_panel(text[start:end], generated=generated)
+    if not generated:
+        raise SystemExit("the main Layout Editor panel is not a generated one (build_layout_le.py --as-live)")
+    start = next((found for name in GEOGRAPHIC_PANEL_NAMES
+                  if (found := text.find(LAYOUT_EDITOR_PREFIX + name + '"')) >= 0), -1)
+    end = text.find(PANEL_END, start) if start >= 0 else -1
+    if end < 0:
+        raise SystemExit("the main Layout Editor panel's bounds are not found in the text")
+    panel, counts = apply_panel(text[start:end])
     text = text[:start] + panel + text[end:]
     lock = mode == "lock"
     text, abs_mode = set_abs_mode(text, enabled=not lock)
@@ -527,9 +324,7 @@ def main() -> int:
             f"{path}: mode={counts.get('mode')} sensors+{counts['sensors']} "
             f"comments~{counts.get('comments', 0)} "
             f"turnouts+{counts['turnouts']} points+{counts['points']} "
-            f"aligned+{counts.get('aligned', 0)} "
-            f"icons+{counts['icons']} restyled+{counts.get('restyled', 0)} "
-            f"moved+{counts.get('moved', 0)} abs+{counts.get('abs_mode', 0)} "
+            f"abs+{counts.get('abs_mode', 0)} "
             f"nxtype+{counts.get('nx_type', 0)}"
         )
     return 0
