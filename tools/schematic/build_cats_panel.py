@@ -733,15 +733,14 @@ def bound_index(bands):
     return bi
 
 
-def bindings(bands, cats, F, o):
+def bindings(bands, cats, F, o, page):
     """The bindings for every band, from the facts (see the module docstring); `o` the page's CATS preferences
-    (cats.options)."""
+    (cats.options), `page` the schematic's page preferences (the solved sheet's opts)."""
     bi = bound_index(bands)
     _, band, opts = bands[bi]
     os_of = os_blocks(band, F)
     out_sw = switch_bindings(band, F, os_of)
     le_mod = cats_le(cats)
-    page = json.loads((pd.DATA / "main_upper.preferences.json").read_text(encoding="utf-8"))
     level_sw = level_switch_bindings(bands, F, bi, bdm.dx_corners(bands, le_mod, page))
     # the panel's block names once the switches name their OS blocks (and a double crossover its corners)
     named = {k: {"block": v["block"]} for k, v in out_sw.items()}
@@ -882,7 +881,7 @@ def generate(plugin, out, bindings_out, out_abs=None):
     o = desk_options(cats, s.opts, bands)
     window, fit = o["window"], o["fit"]
     level_signals(bands, F, bound_index(bands))
-    text = json.dumps(bindings(bands, cats, F, o), indent=1, sort_keys=True) + "\n"
+    text = json.dumps(bindings(bands, cats, F, o, s.opts), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")
     header, plate = frozen_header()
     try:

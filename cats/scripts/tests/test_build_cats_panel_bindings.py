@@ -626,7 +626,8 @@ class LevelSensorsFromTheDeviceMap(unittest.TestCase):
         B.level_signals(bands, F, B.bound_index(bands))
         F.sensors = {u: sn for u, sn in F.sensors.items() if not B.level_devices.is_block_sensor(sn)}
         with contextlib.redirect_stdout(io.StringIO()):
-            got = B.bindings(bands, cats, F, B.desk_options(cats, sheet.opts, bands))
+            got = B.bindings(bands, cats, F, B.desk_options(cats, sheet.opts, bands),
+                             sheet.opts)
         self.assertEqual(json.dumps(got, indent=1, sort_keys=True) + "\n", B.BINDINGS.read_text(encoding="utf-8"))
 
 

@@ -115,8 +115,13 @@ def crossover_legs(facts: dict) -> dict:
 def built():
     """(candidate bytes, Panel, names, bands) of the three-level cut-over candidate (--levels all --as-live; the
     approval fingerprint is its own test, test_le_cutover.py): built once for every test module that needs it."""
-    with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(hand(), levels="all", as_live=True, approved=None)
+    with mock.patch.object(B.sdm, "load", wraps=B.sdm.load) as load, contextlib.redirect_stdout(io.StringIO()):
+        out = B.build(hand(), levels="all", as_live=True, approved=None)
+    STAGING_MAP_LOADS.append(load.call_count)
+    return out
+
+
+STAGING_MAP_LOADS: list = []     # sdm.load calls in the one cached build above
 
 
 @functools.lru_cache(maxsize=None)
@@ -148,6 +153,10 @@ class Built(unittest.TestCase):
         cls.le = tables.layout_editor(cls.root, LIVE_PANEL)              # the generated panel, under the live name
         cls.hand_le = tables.layout_editor(cls.live, LIVE_PANEL)     # the last hand-drawn panel: the railroad
         cls.items = {el.get("ident"): el for el in tables.elements(cls.le) if el.get("ident")}
+
+    def test_the_staging_device_map_is_read_once_for_the_two_candidates(self) -> None:
+        """The three-level build draws the staging candidate first and reuses the map it read, a copy of it."""
+        self.assertEqual(STAGING_MAP_LOADS, [1])
 
     # ---- staging is the live railroad
     def test_every_live_staging_turnout_and_block_is_on_the_new_panel(self) -> None:

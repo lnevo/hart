@@ -68,6 +68,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import copy
 import os
 import sys
 import xml.etree.ElementTree as ET
@@ -225,10 +226,13 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         level_rows = read_level_masts()
         level_masts(names, level_rows)
     shared_turnouts(names)
-    try:
-        names[STAGING] = sdm.load(bands[0][1])
-    except sdm.StagingMapError as exc:
-        raise BuildError(f"staging device map: {exc}") from None
+    if base is not None:        # the staging candidate above read the staging device map from the same band: reuse it
+        names[STAGING] = copy.deepcopy(base[2][STAGING])
+    else:
+        try:
+            names[STAGING] = sdm.load(bands[0][1])
+        except sdm.StagingMapError as exc:
+            raise BuildError(f"staging device map: {exc}") from None
     system = tables.mast_system_names(root)
     absent = sorted(m["mast"] for m in names[STAGING]["masts"] if m["mast"] not in system)
     if absent:
