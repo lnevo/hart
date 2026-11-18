@@ -118,7 +118,7 @@ class Cutover(unittest.TestCase):
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
         # the window is the panel and its frame, at most FIT; the stretched panel (le_stretch) is wider than it
         self.assertEqual((int(self.le.get("windowwidth")), int(self.le.get("windowheight"))),
-                         (min(w + 18, B.FIT[0]), min(h + 60, B.FIT[1])))
+                         (min(w + 18, T.le_window()[0]), min(h + 60, T.le_window()[1])))
         self.assertEqual(self.P.scale, (self.P.staging_fit[0] * stretch()[0], self.P.staging_fit[1]))
         self.assertTrue(0.7 < self.P.staging_fit[0] < 0.9, self.P.staging_fit)     # staging's own fit to FIT
 
@@ -397,11 +397,11 @@ class ThreeLevels(unittest.TestCase):
 
     def test_the_panel_has_the_windows_shape(self) -> None:
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        want = (B.FIT[0] - 18) / (B.FIT[1] - 60)
+        want = (T.le_window()[0] - 18) / (T.le_window()[1] - 60)
         self.assertLessEqual(abs(w / h / want - 1), stretch()[1])
-        self.assertEqual((self.le.get("windowwidth"), self.le.get("windowheight")), tuple(map(str, B.FIT)))
+        self.assertEqual((self.le.get("windowwidth"), self.le.get("windowheight")), tuple(map(str, T.le_window())))
         with self.assertRaisesRegex(B.plugin()[2].SchematicError, r"set le_stretch's factor to about 1\.\d+"):
-            B.plugin()[1].check_stretch((1984, 1505), B.FIT, page_prefs())
+            B.plugin()[1].check_stretch((1984, 1505), T.le_window(), page_prefs())
 
     def test_no_compass_rose_and_the_plain_backdrop(self) -> None:
         urls = [el.find("icon").get("url") for el in self.le.iter("positionablelabel") if el.find("icon") is not None]
@@ -674,9 +674,9 @@ class ThreeLevels(unittest.TestCase):
 
     def test_window_fits_the_display_and_the_panel_scrolls(self) -> None:
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        self.assertGreater(h, B.FIT[1])
-        self.assertLessEqual(int(self.le.get("windowwidth")), B.FIT[0])
-        self.assertLessEqual(int(self.le.get("windowheight")), B.FIT[1])
+        self.assertGreater(h, T.le_window()[1])
+        self.assertLessEqual(int(self.le.get("windowwidth")), T.le_window()[0])
+        self.assertLessEqual(int(self.le.get("windowheight")), T.le_window()[1])
         self.assertEqual(self.le.get("scrollable"), "both")        # larger than its window: it scrolls both ways
         self.assertGreaterEqual(w, self.P.size[0])
 

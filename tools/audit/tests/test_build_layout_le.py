@@ -116,6 +116,13 @@ def built():
         return B.build(hand())
 
 
+@functools.lru_cache(maxsize=None)
+def le_window() -> tuple:
+    """(width, height): the window the panels open in, the page's le_window (main_upper.preferences.json), read by
+    the plugin as the build reads it."""
+    return B.plugin()[1].window(B.schematic()[1])
+
+
 class Built(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -328,11 +335,11 @@ class Built(unittest.TestCase):
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
         window = (int(self.le.get("windowwidth")), int(self.le.get("windowheight")))
         self.assertEqual(window, (w + 18, h + 60))                    # Layout Editor's frame allowance
-        self.assertLessEqual(window[0], B.FIT[0])
-        self.assertLessEqual(window[1], B.FIT[1])
+        self.assertLessEqual(window[0], le_window()[0])
+        self.assertLessEqual(window[1], le_window()[1])
         self.assertLessEqual(window[0], 1900)                         # the owner's display
         self.assertLessEqual(window[1], 1200 - 37)                    # below the macOS menu bar
-        self.assertGreater(window[0], 0.98 * B.FIT[0])                # as large as fits, not smaller
+        self.assertGreater(window[0], 0.98 * le_window()[0])                # as large as fits, not smaller
         # everything drawn lies on the panel: track, turnout legs, labels (at the width JMRI draws) and icons
         xs, ys = [], []
         for p in self.le.findall("positionablepoint"):
