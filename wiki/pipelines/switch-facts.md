@@ -19,7 +19,7 @@ Switch numbers are the plate numbers and are unique across the whole railroad, e
 
 **Level** is held twice only where it is a fact of its own: per switch and per control point. Everything else takes it from those (`layout_facts.name_map_levels`): a switch's turnout, LCC alias and feedback sensors take the switch's; an OS block or a block a switch leg leads to takes its switch's (a Layout Editor throat block such as Track S-R West through its track, by their shared occupancy sensor); any other mast, head, block or sensor takes its `cp`'s. A main between control points (Track Main West) has no `cp`; the check gives it the one level of the blocks its paths join. There is no district column: nothing groups control points yet (one desk, one Dispatcher). When the new levels need one, it goes on `control_points.csv` beside `level`.
 
-Track names are the CATS occupancy names (`Track S-R`). A Layout Editor throat block such as `Track S-R West`, on the same occupancy sensor, counts as `Track S-R`. `wire_digicon.py` takes each CATS Normal leg, inversion, turnout binding and mast name from these files, and `gen_ctc_track_plan.py` takes the USS lever columns, points dots, signal icons and station plates. CATS plant cells are in `uss_board_plants.csv` (the USS board and `wire_digicon.py` read them), block names in `wire_digicon.py` `ANCHORS`.
+Track names are the CATS occupancy names (`Track S-R`). A Layout Editor throat block such as `Track S-R West`, on the same occupancy sensor, counts as `Track S-R`. `tools/schematic/build_cats_panel.py` takes each CATS Normal leg, inversion, turnout binding and mast name from these files and `tables.xml`, and `gen_ctc_track_plan.py` takes the USS lever columns, points dots, signal icons and station plates. CATS plant cells for the USS board are in `uss_board_plants.csv`; the generated desks take block names from `tables.xml` and `cats/data/occupancy_bindings.csv`.
 
 ## Changing a switch
 
@@ -27,21 +27,21 @@ Example: after a rewiring, Switch 9 normal leads to EH-2 and thrown to EH-3.
 
 1. Edit its row in `switch_legs.csv` (and `switches.csv` if its inversion, lever or hand changes).
 2. In PanelPro, set the turnout's continuing sense and fix the OS block paths, then Store and run `make tables-pull` (ADR-008). Nothing edits `tables.xml` by script for this.
-3. If the CATS drawing needs other track names, change `ANCHORS` in `wire_digicon.py` or the Designer save, then run `python3 cats/scripts/wire_digicon.py`. It stops if a desk leg cannot reach the block the data names.
+3. Rebuild the CATS desks with `make desks`. They are generated from these files and `tables.xml`, and the build stops if a desk leg cannot reach the block the data names.
 4. Rebuild the USS panel: `python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py`. This rewrites `GUIObjects.xml` and the panel in `tables.xml`. If the rebuild clears a difference listed in `KNOWN` in the check (empty since the 2026-11-12 rebuild), that entry then fails as "no longer happens", so remove it in the same commit as the rebuild.
 5. Run `./tools/check.sh` (or just `python3 tools/audit/check_layout_facts.py`). Each failure names the switch or track and the two sources that disagree.
 
 ## Changing a mast
 
-- **Rename** (as 32L to 16R, PR #441): rename it in PanelPro and Store (`make tables-pull`), set `proposed` on its identity row in `public_name_map.csv` and apply it (ADR-005, `wiki/pipelines/public-names.md`). If it is on the CATS desk, change its `mast` in `mast_cells.csv` and run `wire_digicon.py` and `gen_ctc_track_plan.py`. Then rebuild the derived files that `check.sh` names as stale: `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `www/scripts/build_layout_index.py`, then `www/scripts/build_cats_layout_index.py`.
-- **Move on the desk:** change its `x`, `y` or `edge` in `mast_cells.csv` (the Designer save must have a SECSIGNAL there), then run both generators. The check fails if either desk has another lamp in that cell or the mast's heads in `tables.xml` do not fit its `uss_kind`.
+- **Rename** (as 32L to 16R, PR #441): rename it in PanelPro and Store (`make tables-pull`), set `proposed` on its identity row in `public_name_map.csv` and apply it (ADR-005, `wiki/pipelines/public-names.md`). If it is on the CATS desk, change its `mast` in `mast_cells.csv`, then run `make desks` and `gen_ctc_track_plan.py`. Then rebuild the derived files that `check.sh` names as stale: `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `www/scripts/build_layout_index.py`, then `www/scripts/build_cats_layout_index.py`.
+- **Move on the desk:** change its `x`, `y` or `edge` in `mast_cells.csv` (these cells fed the archived hand-wired desks and the USS board; the generated desks place masts from the schematic), then run `gen_ctc_track_plan.py`. The check fails if either desk has another lamp in that cell or the mast's heads in `tables.xml` do not fit its `uss_kind`.
 
 ## Rename checklist (a track, block or mast)
 
 1. **PanelPro:** rename it, Store, then `make tables-pull`. JMRI owns `tables.xml`; nothing renames there by script.
 2. **Name map:** apply the rename to `public_name_map.csv` (ADR-005, `wiki/pipelines/public-names.md`). The identity row takes the new name; a historical alias row keeps the old one. Do not add an identity row for a hidden throat block (Track S-R West and the others); `tables.xml` holding the block is what makes it current.
 3. **Data files** that key on the name: `mast_cells.csv` (`mast`), `switch_legs.csv` (legs), `block_lengths.csv` (`user_name`), `le_signal_boundaries.csv`, `cats/data/occupancy_bindings.csv`, and the wiring CSVs under `docs/wiring/`.
-4. **CATS:** if the desk shows the name, rename it in the Designer save (`HART_Digicon.xml`) or `ANCHORS` in `wire_digicon.py` (plant cells: `uss_board_plants.csv`), then run `wire_digicon.py` and `gen_ctc_track_plan.py`.
+4. **CATS:** the desks are generated, so nothing is renamed in them. After the data files above are changed, run `make desks` (writes and validates `HART_CTC.xml` and `HART_ABS.xml`) and `gen_ctc_track_plan.py` (USS plant cells: `uss_board_plants.csv`).
 5. **Dispatcher:** traininfo files carry block names; regenerate them in PanelPro (Dispatcher System) if a station block was renamed.
 6. **Derived files:** run `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `build_layout_index.py` and `build_cats_layout_index.py`.
 7. **Speed-match logs:** if a block on a test route, or its sensor, was renamed, run `python3 jmri/layouts/hart/scripts/speedmatch/build_routes.py` (its `--check` in `check.sh` fails until then). Then convert the speed-match logs and data recorded before the rename, as `speedmatch/rename_extension_tracks.py` does for the 2026-11-13 extension tracks. The analysis stops on a log with a sensor that is not on its route, and names that sensor.
@@ -57,7 +57,7 @@ The speed-match routes (`speedmatch/analyze.py`) hold only the running order of 
 ## Adding a level
 
 - **Data:** add `switches.csv` rows with the new `level` value and new switch numbers (numbers are never reused), and `control_points.csv` rows with that level for its control points.
-- **CATS:** draw the plants in the Designer save, put their cells in `uss_board_plants.csv`, name the blocks in `ANCHORS`, and give each mast a `mast_cells.csv` row.
+- **CATS:** the desks are generated from the schematic (`make desks`); for the USS board put the plant cells in `uss_board_plants.csv` and give each mast a `mast_cells.csv` row.
 - **USS CTC:** this is not automatic. The board is one row of lever columns, column (N - 1) / 2 for plate N. A plate number no switch uses gets a blank column. How a second level fits the machine (a wider board, a second panel, its own columns) is a design decision still to be made. Until then `gen_ctc_track_plan.py` stops when `switches.csv` holds a level outside `USS_LEVELS`.
 
 ## What the check covers

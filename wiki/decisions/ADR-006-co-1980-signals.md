@@ -18,7 +18,7 @@ Stock C&O-1980 was loaded briefly (homes `CO-33-hi`, dwarfs `CO-3-dwarf`) so the
 2. Keep mast **user names** and IH head bindings. SML pairs stay keyed by user name; do not re-Discover unless facing changes.
 3. Disable flashing aspects on the mast (not on the signal head): `Advanced Approach` on every mast, and `Diverging Advanced Approach` on two-head masts. JMRI then has no valid aspect when the next signal is Approach, and that mast shows Stop until the Approach clears.
 4. Panel icons use the `discriminated` image set (AAR-1946 searchlights, the same drawings Basic uses). Layout Editor scale is 1.0. USS two-head icons are the same set at scale 0.5 so they fit a 21 px cell. Do not point icons at `noflash` (that set has no image for the steady aspects). Do not restore the hart-aar Clear collapse.
-5. CATS `aar_aspect_bridge.py` remaps Digicon R-codes onto the enabled basic-enhanced names only. Live panels stay `HOLD_ONLY`.
+5. CATS `aar_aspect_bridge.py` remaps Digicon R-codes onto the enabled basic-enhanced names only. Live panels stay `HOLD_ONLY`. (2026-11-18: `aar_aspect_bridge.py` is archived in `archive/cats-scripts/`; the generated desks are written by `tools/schematic/build_cats_panel.py`.)
 
 ## Consequences
 
