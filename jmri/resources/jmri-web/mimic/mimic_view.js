@@ -46,6 +46,11 @@ function mountMimic() {
     history.replaceState(null, "", "#" + state.level);
     render();
   });
+  // A link or bookmark to #main or #upper while the page is open.
+  window.addEventListener("hashchange", () => {
+    state.level = location.hash.slice(1);
+    render();
+  });
 }
 
 // The levels the layout holds, in tab order.
@@ -59,6 +64,7 @@ function levels() {
 
 // The records of one kind ("turnouts", "blocks", "heads") on the shown level.
 function onLevel(kind) {
+  if (!state.layout) return [];
   return state.layout[kind].filter((it) => it.level === state.level);
 }
 
@@ -85,7 +91,7 @@ function render() {
   const shown = levels();
   if (!shown.includes(state.level)) {
     const wanted = location.hash.slice(1);
-    state.level = shown.includes(wanted) ? wanted : shown[0];
+    state.level = shown.includes(wanted) ? wanted : (shown[0] || "");
   }
   const tabs = $("tabs");
   tabs.hidden = shown.length < 2;

@@ -145,7 +145,8 @@ def _head_leaf(name: str) -> str:
     return name
 
 
-def load_layout() -> dict:
+def load_layout(levels: bool = True) -> dict:
+    """Staging from tables.xml and the repo CSVs; with `levels`, also the main and upper levels (load_levels)."""
     if not TABLES.is_file():
         raise SystemExit(f"missing {TABLES}")
     root = tables.read(TABLES)
@@ -259,6 +260,8 @@ def load_layout() -> dict:
         )
     )
 
+    if not levels:
+        return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
     level = load_levels(root)
     return {
         "blocks": blocks + level["blocks"],
@@ -267,13 +270,15 @@ def load_layout() -> dict:
     }
 
 
-def load_levels(root, device_map: railroad.DeviceMap | None = None) -> dict:
+def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
     """Main and upper turnouts, block sensors and heads: the device map's virtual devices that tables.xml holds.
 
     Each record's `addr` is its JMRI system name and `virtual` is true, so the JMRI page sets it directly
-    (no MQTT). Grouped by control point, else by the region of the lowest switch in its name ("Peninsula").
+    (no MQTT); a name without the virtual prefix stops the build. Grouped by control point, else by the area of
+    the first switch in its name that has one ("Peninsula").
     """
-    dm = device_map or railroad.Railroad().device_map
+    rr = rr or railroad.Railroad()
+    dm = rr.device_map
     in_tables = {
         _txt(el, "systemName")
         for tag in ("turnout", "sensor", "signalhead")
@@ -286,10 +291,13 @@ def load_levels(root, device_map: railroad.DeviceMap | None = None) -> dict:
         if occ and name:
             blocks_of.setdefault(occ, []).append(name)
 
-    region: dict[str, str] = {}
-    for r in dm.of("block"):
-        if r.user_name.startswith("OS Switch "):
-            region[r.user_name.removeprefix("OS Switch ")] = r.cp or r.comment
+    region = {num: sw.cp or sw.area for num, sw in rr.main_upper_switches.items()}
+
+    def virtual(r: railroad.DeviceRow, prefix: str) -> str:
+        if not r.jmri_name.startswith(prefix):
+            raise SystemExit(f"{dm.path} line {r.line}: {r.user_name} is {r.jmri_name!r}, not a virtual "
+                             f"{prefix}* device; the mimic sets only those directly")
+        return r.jmri_name
 
     def group(r: railroad.DeviceRow) -> str:
         if r.cp:
@@ -306,8 +314,9 @@ def load_levels(root, device_map: railroad.DeviceMap | None = None) -> dict:
     for r in sorted(dm.turnouts.values(), key=order):
         if r.jmri_name not in in_tables:
             continue
+        name = virtual(r, level_devices.TURNOUT_PREFIX)
         turnouts.append({
-            "addr": r.jmri_name, "name": r.jmri_name, "label": r.user_name, "num": r.user_name.split()[-1],
+            "addr": name, "name": name, "label": r.user_name,
             "plant": group(r), "feedback": "DIRECT", "n_addr": None, "r_addr": None, "tip": "",
             "level": LEVELS[r.level], "virtual": True,
         })
@@ -315,8 +324,9 @@ def load_levels(root, device_map: railroad.DeviceMap | None = None) -> dict:
         if r.jmri_name not in in_tables:
             continue
         names = blocks_of.get(r.user_name, [])
+        name = virtual(r, level_devices.SENSOR_PREFIX)
         blocks.append({
-            "addr": r.jmri_name, "name": r.jmri_name, "label": " / ".join(names) or r.user_name,
+            "addr": name, "name": name, "label": " / ".join(names) or r.user_name,
             "userName": r.user_name, "comment": "", "plant": group(r),
             "level": LEVELS[r.level], "virtual": True,
         })
@@ -404,12 +414,6 @@ def _plant_for_block(label: str, comment: str, uname: str, cps: dict[str, dict[s
     if match and match.group(0) in occ:
         return occ[match.group(0)]
     return infer_plant(f"{label} {uname}")
-
-
-def staging_only(layout: dict) -> dict:
-    """The staging records alone. This server talks only MQTT, so it cannot set the main and upper levels'
-    virtual JMRI devices; the JMRI-hosted page has their tabs."""
-    return {kind: [it for it in rows if it["level"] == STAGING] for kind, rows in layout.items()}
 
 
 class Bus:
@@ -666,7 +670,8 @@ def main() -> int:
             raise SystemExit(f"missing UI {page}")
 
     host = pick_mqtt_host(args.mqtt_host)
-    layout = staging_only(load_layout())
+    # This server talks only MQTT, so it cannot set the main and upper levels' virtual JMRI devices.
+    layout = load_layout(levels=False)
     bus = Bus(host)
     bus.start()
     html = HTML.read_bytes()

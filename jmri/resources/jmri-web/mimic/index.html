@@ -47,17 +47,24 @@
 
     // Main and upper virtual devices (hartlib.level_devices). Only these are ever set in JMRI directly:
     // an LCOS turnout set that way would command its motor.
-    const VIRTUAL = /^(IT:HART:C3:|IS:HART:C3:B:)/;
+    const VIRTUAL = { turnout: "IT:HART:C3:", sensor: "IS:HART:C3:B:" };
     const STATE_CODE = { CLOSED: 2, THROWN: 4, ACTIVE: 2, INACTIVE: 4 };
 
+    function connected() {
+      if (ws && ws.readyState === WebSocket.OPEN) return true;
+      alert("Not connected to JMRI, so nothing was set.");
+      return false;
+    }
+
+    // Callers check connected() first, once per click.
     function setVirtual(type, name, st) {
-      if (!VIRTUAL.test(name) || !(st in STATE_CODE)) {
+      const prefix = VIRTUAL[type];
+      if (!prefix || !name.startsWith(prefix) || !(st in STATE_CODE)) {
         console.error("mimic: refused to set", type, name, st);
+        alert(`The mimic refused to set ${type} ${name}: not a main or upper virtual device.`);
         return;
       }
-      if (!send({ type, method: "post", data: { name, state: STATE_CODE[st] } })) {
-        alert("Not connected to JMRI, so nothing was set.");
-      }
+      send({ type, method: "post", data: { name, state: STATE_CODE[st] } });
     }
 
     function headAspect(d) {
@@ -184,7 +191,7 @@
       if (to) {
         const t = state.layout.turnouts.find((x) => x.addr === to.dataset.to);
         if (t && t.virtual) {
-          setVirtual("turnout", t.name, to.dataset.st);
+          if (connected()) setVirtual("turnout", t.name, to.dataset.st);
           return;
         }
         const thrown = to.dataset.st === "THROWN";
@@ -200,16 +207,22 @@
       const occ = e.target.closest("[data-occ]");
       if (!occ) return;
       const b = state.layout.blocks.find((x) => x.addr === occ.dataset.occ);
-      if (b && b.virtual) setVirtual("sensor", b.name, occ.dataset.st);
+      if (b && b.virtual) {
+        if (connected()) setVirtual("sensor", b.name, occ.dataset.st);
+      }
       else relay([`track/sensor/${occ.dataset.occ} ${occ.dataset.st}`]);
     });
 
     $("clear-occ").addEventListener("click", () => {
       const blocks = onLevel("blocks");
+      if (!blocks.length) return;
       if (!confirm(`Set every ${LEVEL_TITLES[state.level]} occupancy sensor INACTIVE?`)) return;
       const lcos = blocks.filter((b) => !b.virtual);
       if (lcos.length) relay(lcos.map((b) => `track/sensor/${b.addr} INACTIVE`));
-      for (const b of blocks) if (b.virtual) setVirtual("sensor", b.name, "INACTIVE");
+      const virtual = blocks.filter((b) => b.virtual);
+      if (virtual.length && connected()) {
+        for (const b of virtual) setVirtual("sensor", b.name, "INACTIVE");
+      }
     });
 
     async function boot() {

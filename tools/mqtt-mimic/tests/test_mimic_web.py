@@ -78,7 +78,7 @@ class Levels(unittest.TestCase):
         self.assertEqual(set(re.findall(r"(\w+):", titles)), {"staging", "main", "upper"})
 
     def test_mac_mimic_keeps_staging_only(self):
-        staged = self.mimic.staging_only(self.layout)
+        staged = self.mimic.load_layout(levels=False)
         for kind, rows in staged.items():
             self.assertTrue(rows, kind)
             self.assertEqual({it["level"] for it in rows}, {"staging"})
@@ -108,13 +108,12 @@ class Page(unittest.TestCase):
         guarded = self.script[self.script.index("function setVirtual("):]
         guarded = guarded[:guarded.index("\n    }\n")]
         self.assertIn("{ type, method: \"post\"", guarded)
-        self.assertIn("if (!VIRTUAL.test(name)", guarded)
+        self.assertIn("if (!prefix || !name.startsWith(prefix)", guarded)
         self.assertNotIn('method: "put"', self.script)
 
     def test_virtual_guard_is_the_level_device_prefixes(self):
-        guard = re.search(r"const VIRTUAL = /\^\((.+)\)/;", self.script).group(1)
-        prefixes = set(guard.split("|"))
-        self.assertEqual(prefixes, {level_devices.TURNOUT_PREFIX, level_devices.SENSOR_PREFIX})
+        guard = re.search(r"const VIRTUAL = \{ turnout: \"([^\"]+)\", sensor: \"([^\"]+)\" \};", self.script)
+        self.assertEqual(guard.groups(), (level_devices.TURNOUT_PREFIX, level_devices.SENSOR_PREFIX))
 
     def test_no_mac_mimic_endpoints(self):
         self.assertNotIn("/api/", self.script)
