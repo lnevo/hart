@@ -852,13 +852,17 @@ def dress(cats, root, header, plate, desk, fit):
 
 
 def desk_options(cats, page, bands):
-    """The page's CATS preferences (cats.options), which must hold the desks' window: they fit the dispatcher's."""
+    """The page's CATS preferences (cats.options), which must hold the desks' window (they fit the dispatcher's) and
+    a helix block on each band (dark_bindings parts staging from main and upper there)."""
     try:
         o = cats.options(page, bands)
     except cats.SchematicError as e:
         sys.exit(f"error: {e}")
     if o["fit"] is None:
         sys.exit("error: the page's preferences hold no cats_window; the desks must fit the dispatcher's window")
+    if o["helix_blocks"] != "apart":
+        sys.exit(f"error: cats_helix_blocks is {o['helix_blocks']!r}; the desks need \"apart\" (a helix track a block "
+                 "on each band, as the layout parts its detection there; owner, 2026-11-17)")
     return o
 
 
