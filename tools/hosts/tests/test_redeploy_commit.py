@@ -1,7 +1,7 @@
 """redeploy_commit.sh in --stage-only mode, with fake hosts and no ssh.
 
 A redeploy of HEAD must stage the same package a normal --stage-only of HEAD does; only
-the stamp differs. The refusals (unknown, unmerged or too old a commit, JMRI open, an
+the stamp differs. The refusals (unknown, unmerged or too old a commit, an
 unpulled PanelPro Store, no host named) must stop before any worktree is made or any host
 is reached. HEAD is usually this branch's unmerged commit, hence --allow-unmerged.
 """
@@ -114,7 +114,7 @@ class Refusals(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.env = stage_env(self.tmp)
-        self.env.update(HOME=str(self.tmp / "home"), HART_GUARD_JMRI_RUNNING="0")
+        self.env.update(HOME=str(self.tmp / "home"))
 
     def assert_refused(self, done: subprocess.CompletedProcess, text: str) -> None:
         self.assertNotEqual(done.returncode, 0)

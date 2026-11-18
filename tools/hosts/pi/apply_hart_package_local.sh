@@ -53,6 +53,8 @@ fanout() {
 if [[ -f "$HART/tables.xml" ]]; then
   # JMRI_UserFiles holds the only copy.
   mv -f "$HART/tables.xml" "$UF/tables.xml"
+  # A Store after this changes the hash; the next deploy stops on it (unpulled_changes.sh).
+  sha256sum "$UF/tables.xml" | cut -d' ' -f1 >"$UF/.tables_deployed.sha256"
   echo "Pi tables.xml updated"
 fi
 

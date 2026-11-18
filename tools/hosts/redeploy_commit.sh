@@ -19,6 +19,9 @@
 #   - Operations Pro files keep their guards (HART_OVERWRITE_OPS=0): a Pi session that is
 #     not pulled stops the Pi step (run make ops-pull), and a running JMRI keeps its files.
 #     HART_OVERWRITE_OPS=1 replaces them as a normal deploy does (a backup is kept).
+#   - With --pi or --all, Operations Pro files or a tables.xml Store changed on the Pi since the
+#     last deploy or pull stop it (make ops-pull, make tables-pull-pi). HART_DISCARD_PI_CHANGES=1
+#     replaces them.
 #
 # --mac installs on the Mac only. --dry-run and --stage-only DIR are passed through;
 # --stage-only needs no network. The commit a host has now: make deploy-status. The stamp
@@ -52,7 +55,7 @@ while [[ $# -gt 0 ]]; do
     --stage-only=*)
       STAGE_ONLY="${1#*=}"
       [[ -n "$STAGE_ONLY" ]] || { echo "--stage-only needs a folder" >&2; exit 2; } ;;
-    -h|--help) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
     *)
       [[ -z "$COMMIT" ]] || { echo "One commit only (got $COMMIT and $1)" >&2; exit 2; }
@@ -146,6 +149,27 @@ done
 while IFS= read -r line; do
   [[ -n "$line" ]] && CHILD_ENV+=("$line")
 done <<<"$hosts"
+
+# The Pi check this checkout's deploy makes (older commits' deploys lack it): stop if the owner
+# changed Operations Pro files or stored tables.xml on the Pi since the last deploy or pull.
+to_pi=0
+for a in ${PASS[@]+"${PASS[@]}"}; do  # bash 3.2: an empty array is unbound under set -u
+  if [[ "$a" == --pi || "$a" == --all ]]; then to_pi=1; fi
+done
+if [[ "$REAL" -eq 1 && "$to_pi" -eq 1 && "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]]; then
+  pi_ssh="$(sed -n 's/^HART_PI_SSH=//p' <<<"$hosts")"
+  pi_uf="$(sed -n 's/^HART_PI_USERFILES=//p' <<<"$hosts")"
+  if ! unpulled="$(ssh -o BatchMode=yes -o ConnectTimeout=15 "$pi_ssh" "bash -s -- '$pi_uf'" \
+      < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
+    echo "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 redeploys without the check." >&2
+    exit 1
+  fi
+  if [[ -n "$unpulled" ]]; then
+    echo "STOP: the Pi holds changes since the last deploy or pull ($(tr '\n' ' ' <<<"$unpulled" | sed 's/ $//'))." \
+      "Run make ops-pull or make tables-pull-pi and commit first; HART_DISCARD_PI_CHANGES=1 replaces them." >&2
+    exit 1
+  fi
+fi
 
 echo "Redeploy $SHORT: temporary worktree $WT (detached)"
 git -C "$ROOT" worktree add -q --detach "$WT" "$SHA"

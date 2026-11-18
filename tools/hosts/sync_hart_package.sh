@@ -497,6 +497,22 @@ if [[ -n "$STAGE_ONLY" ]]; then
   exit 0
 fi
 
+# What the owner changed on the Pi since the last deploy or pull would be replaced: Operations
+# Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Stop before
+# anything is installed. HART_DISCARD_PI_CHANGES=1 replaces them anyway (the owner's call).
+if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 && "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]]; then
+  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES'" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
+    echo "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check." >&2
+    exit 1
+  fi
+  if [[ -n "$unpulled" ]]; then
+    grep -qx ops <<<"$unpulled" && echo "STOP: the Pi's Operations Pro files changed since the last deploy or pull. Run make ops-pull and commit first." >&2
+    grep -qx tables <<<"$unpulled" && echo "STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi and commit first." >&2
+    echo "HART_DISCARD_PI_CHANGES=1 replaces them anyway." >&2
+    exit 1
+  fi
+fi
+
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   # Mac JMRI is for development: the STS and mimic links follow the page's host to the Mac's own
   # STS and mimic server (PORT as in tools/mqtt-mimic/install_mimic_launchagent.sh). The
