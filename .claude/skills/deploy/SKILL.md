@@ -13,7 +13,7 @@ Two separate deploys. Pick by what changed (AGENTS.md, close-out step 5).
 | Website (`www/`) | `./www/scripts/deploy_hartrailroad.sh` |
 | Docs, AGENTS, wiki only | No deploy. Say so in the report. |
 
-Windows is kept matching the Pi, so both get every layout deploy (`make deploy-layout` runs the same; `make deploy-all` is `--all`, which also refreshes the Mac web home). Deploy one host alone only to test something there or while the other is down; say so in the report and bring the other host up to date next. `make deploy-site` runs the website deploy.
+Windows is kept matching the Pi, so both get every layout deploy (`make deploy-layout` runs the same; `--all` and `make deploy-all` are the same as `--pi --win`). Deploy one host alone only to test something there or while the other is down; say so in the report and bring the other host up to date next. `make deploy-site` runs the website deploy.
 
 ## Layout hosts
 

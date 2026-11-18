@@ -208,6 +208,11 @@ class SubagentGuard(unittest.TestCase):
             "timeout 10 ssh pi uptime",
             "make check && git log -1",
             "git log --oneline -3 # recent",
+            "ssh pi cat x 2>&1 | head",
+            "ssh pi tail -n 5 x 2>/dev/null",
+            "tools/hosts/deploy_status.sh --pi --win",
+            "python3 -m unittest tools.audit.tests.test_guards",
+            "timeout 30 grep -rn deploy docs",
         ):
             with self.subTest(command=command):
                 done = run(SUBAGENT_GUARD, command, str(ROOT))
@@ -265,6 +270,30 @@ class SubagentGuard(unittest.TestCase):
             "sudo make deploy-layout",
             "./tools/hosts/sync_hart_package.sh --pi --win",
             "run_serial_mqtt.cmd verbose",
+            # third review: wrapper option values, conditions, interpreters, host scripts, follow
+            "sudo -u pi git push",
+            "timeout -s KILL 10 git push",
+            "env -u X git push",
+            "sudo -u pi ssh pi rm x",
+            "if git push; then :; fi",
+            "while ssh pi rm x; do :; done",
+            "watch -n 2 'git push'",
+            "xargs -I {} git push",
+            "make redeploy COMMIT=abc HOSTS=--pi",
+            "./tools/hosts/redeploy_commit.sh abc --pi",
+            "tools/hosts/pi_quit_panelpro.sh --for-deploy",
+            "tools/hosts/pi_sts_update.sh",
+            "make ops-pull",
+            "make sts-pull",
+            "bash -x tools/hosts/sync_hart_package.sh --pi",
+            "python3 -u serial_to_mqtt.py",
+            "python3.11 serial_to_mqtt.py",
+            "uv run tools/x/serial_to_mqtt.py",
+            "dash -c 'git push'",
+            'python3 -c "import os; os.system(\'ssh pi reboot\')"',
+            "ssh pi tail -f /var/log/syslog",
+            "ssh pi docker logs --follow web",
+            "ssh pi git status",
         ):
             with self.subTest(command=command):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)

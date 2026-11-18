@@ -3,7 +3,7 @@
 
 Runs as a PreToolUse hook from .claude/agents/*.md, so the main session is not
 affected. Matches programs by name where a command starts (also behind wrappers
-such as timeout, sudo or env), so searching for these names still works.
+such as timeout, sudo, env or if), so searching for these names still works.
 This is a guardrail against mistakes, not a security boundary.
 
 `ssh` is allowed when it only reads. The remote command may hold only plain
@@ -20,17 +20,22 @@ import shlex
 import sys
 
 BLOCKED_PROGRAMS = {
-    "deploy_hartrailroad.sh", "sync_hart_package.sh", "flash_nano.py", "serial_to_mqtt.py",
-    "mosquitto_pub", "scp", "rsync",
+    "deploy_hartrailroad.sh", "sync_hart_package.sh", "redeploy_commit.sh", "flash_nano.py",
+    "serial_to_mqtt.py", "mosquitto_pub", "scp", "rsync", "pull_ops.sh",
 }
-BLOCKED_PREFIXES = ("run_serial_mqtt",)
+BLOCKED_PREFIXES = ("run_serial_mqtt", "pi_")  # pi_*.sh in tools/hosts act on the Pi
+BLOCKED_MAKE = ("deploy", "redeploy", "ops-pull", "sts-pull")
 BLOCKED_GIT = {"commit", "push", "merge", "rebase", "reset", "stash", "switch", "checkout", "restore", "clean"}
 GIT_VALUE_OPTIONS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path", "--config-env"}
-INTERPRETERS = {"sh", "bash", "zsh", "python", "python3"}
-SHELLS = {"sh", "bash", "zsh"}
-# Programs that run the rest of their words as a command.
+SHELLS = {"sh", "bash", "zsh", "dash", "ksh", "fish"}
+INTERPRETER = re.compile(r"(ba|z|da|k)?sh|fish|python[\d.]*|uv|uvx|pipx|node|perl|ruby")
+# Programs and shell keywords that run the rest of their words as a command. Their option
+# values are not parsed: every later word is tried as the start of the command.
 WRAPPERS = {"sudo", "timeout", "env", "nice", "nohup", "command", "exec", "time", "xargs", "stdbuf",
-            "caffeinate", "watch", "then", "do", "else", "!", "{", "(", "builtin"}
+            "caffeinate", "watch", "then", "do", "else", "if", "elif", "while", "until", "!", "{", "(",
+            "builtin", "eval", "nohup", "parallel"}
+# Local redirects that only send output to a descriptor or nowhere; removed before parsing.
+HARMLESS_REDIRECT = re.compile(r"\s\d?>&\d|\s\d?>\s*/dev/null")
 SEPARATORS = ";&|\n"
 ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*", re.S)
 
@@ -46,12 +51,14 @@ READ_ONLY = {
 READ_ONLY_SUB = {
     "systemctl": {"status", "is-active", "is-enabled", "list-units", "show"},
     "docker": {"ps", "logs", "inspect", "images"},
-    "git": {"status", "log", "show", "rev-parse"},
+    "git": {"log", "show", "rev-parse"},  # not status: it can rewrite the index
 }
 # Options that make an allowed program write or run something (matched as a prefix).
 WRITING_OPTIONS = {
     "find": ("-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fls"),
-    "journalctl": ("--vacuum", "--rotate", "--flush", "--setup-keys", "--update-catalog"),
+    "journalctl": ("--vacuum", "--rotate", "--flush", "--setup-keys", "--update-catalog", "-f", "--follow"),
+    "tail": ("-f", "-F", "--follow", "--retry"),
+    "docker": ("-f", "--follow"),
     "git": ("--output", "--ext-diff", "--textconv", "--exec-path"),
 }
 # ssh options: flags without a value, options with a value, and the -o keys allowed.
@@ -89,21 +96,12 @@ def base(word: str) -> str:
 
 
 def strip_to_program(words: list[str]) -> list[str]:
-    """Drop VAR=value words, grouping marks and wrappers (with their options) in front of the program."""
+    """Drop VAR=value words and grouping marks in front of the program."""
     words = list(words)
     while words:
         first = words[0].lstrip("({!")
-        if not first:
+        if not first or ASSIGNMENT.fullmatch(first):
             words.pop(0)
-            continue
-        if ASSIGNMENT.fullmatch(first):
-            words.pop(0)
-            continue
-        if base(first) in WRAPPERS:
-            words.pop(0)
-            while words and (words[0].startswith("-") or re.fullmatch(r"[\d.]+[smhd]?", words[0])
-                             or ASSIGNMENT.fullmatch(words[0])):
-                words.pop(0)
             continue
         words[0] = first
         return words
@@ -117,11 +115,17 @@ def git_subcommand(args: list[str]) -> str:
     return args[i] if i < len(args) else ""
 
 
+def blocked_name(word: str) -> bool:
+    name = base(word)
+    return name in BLOCKED_PROGRAMS or name.startswith(BLOCKED_PREFIXES)
+
+
 def blocked_local(program: str, args: list[str]) -> bool:
-    name = base(args[0]) if program in INTERPRETERS and args else program
-    if name in BLOCKED_PROGRAMS or program in BLOCKED_PROGRAMS or name.startswith(BLOCKED_PREFIXES):
+    if blocked_name(program):
         return True
-    if program == "make" and any(a.startswith("deploy") for a in args):
+    if INTERPRETER.fullmatch(program) and any(blocked_name(a) for a in args):
+        return True
+    if program == "make" and any(a.startswith(BLOCKED_MAKE) for a in args):
         return True
     return program == "git" and git_subcommand(args) in BLOCKED_GIT
 
@@ -168,34 +172,52 @@ def read_only_problem(remote: str) -> str:
     return ""
 
 
+def check_words(words: list[str], depth: int) -> str:
+    """'' when one command (a list of words) is allowed, else why not."""
+    words = strip_to_program(words)
+    if not words:
+        return ""
+    program, args = base(words[0]), words[1:]
+    if program in WRAPPERS:
+        # Try every later word as the program, so option values (sudo -u pi, timeout -s KILL)
+        # and quoted commands (watch 'git push') cannot hide it.
+        for i in range(len(args)):
+            found = check_words(args[i:], depth + 1) if depth < 6 else "nested wrappers"
+            found = found or (problem(args[i], depth + 1) if " " in args[i] else "")
+            if found:
+                return found
+        return ""
+    if INTERPRETER.fullmatch(program):
+        for i, arg in enumerate(args):
+            if arg.startswith("-") and not arg.startswith("--") and ("c" in arg[1:] or arg in ("-e", "-m")):
+                inner = next((a for a in args[i + 1:] if not a.startswith("-")), "")
+                if program in SHELLS:
+                    found = problem(inner, depth + 1)
+                else:  # inline Python or other code: refuse it if it names anything blocked
+                    found = inner if re.search(r"\bssh\b|subprocess|os\.system|"
+                                               + "|".join(map(re.escape, BLOCKED_PROGRAMS)), inner) else ""
+                if found:
+                    return found
+                break
+    if program == "ssh":
+        remote, wrong = remote_command(args)
+        wrong = wrong or read_only_problem(remote)
+        return f"ssh is for read-only commands only ({wrong}): {shlex.join(words)}" if wrong else ""
+    return shlex.join(words) if blocked_local(program, args) else ""
+
+
 def problem(command: str, depth: int = 0) -> str:
     """'' when a subagent may run `command`, else the message saying why not."""
-    if depth > 3:
+    if depth > 6:
         return "nested shells"
+    command = HARMLESS_REDIRECT.sub(" ", command)
     parsed = commands(command)
     if parsed is None:  # unbalanced quotes: fall back to a plain split
         parsed = [part.split() for part in re.split(r"[;&|\n]", command)]
     for words in parsed:
-        words = strip_to_program(words)
-        if not words:
-            continue
-        program, args = base(words[0]), words[1:]
-        if program in SHELLS:
-            for i, arg in enumerate(args):
-                if arg.startswith("-") and not arg.startswith("--") and "c" in arg[1:]:
-                    inner = next((a for a in args[i + 1:] if not a.startswith("-")), "")
-                    found = problem(inner, depth + 1)
-                    if found:
-                        return found
-                    break
-        if program == "ssh":
-            remote, wrong = remote_command(args)
-            wrong = wrong or read_only_problem(remote)
-            if wrong:
-                return f"ssh is for read-only commands only ({wrong}): {shlex.join(words)}"
-            continue
-        if blocked_local(program, args):
-            return shlex.join(words)
+        found = check_words(words, depth)
+        if found:
+            return found
     return ""
 
 

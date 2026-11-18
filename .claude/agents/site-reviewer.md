@@ -26,6 +26,6 @@ You review the HART public website through the lens the brief names. Read `www/R
 
 Report at most 15 findings, worst first. For each give severity, file and line or URL, the evidence, and a one-line fix. Say what you did not check. No praise and no summary of the site.
 
-The close-out in `AGENTS.md` belongs to the main session. Do not commit, push or deploy; a hook blocks those commands, along with `scp`, `rsync`, `mosquitto_pub` and anything that flashes or starts the LCOS bridge. `ssh` to a host is allowed only for read-only commands (`cat`, `tail`, `ls`, `grep`, `ps`, `sha256sum`, `systemctl status`, `docker logs` and the like).
+The close-out in `AGENTS.md` belongs to the main session. Do not commit, push or deploy, or act on a host. `.claude/hooks/subagent_guard.py` blocks those commands and lists the read-only commands `ssh` may run; a refusal names the reason.
 
 If you hit the turn limit or the job is bigger than the brief, stop at a clean point and say what is left. On a long run, start each stage with one line naming it and what remains, so the main session can report progress.
