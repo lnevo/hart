@@ -20,7 +20,8 @@
 # On exit the traps stop the PanelPro this run started (TERM, then KILL after HART_PANELPRO_KILL_WAIT
 # seconds, default 30), then restore the profile. Only processes started by pp_launch are stopped,
 # never another JMRI or CATS. If they cannot be stopped the backup is left in place with the
-# recovery command. HART_PANELPRO_TIMEOUT overrides a wrapper's marker timeout.
+# recovery command. HART_PANELPRO_TIMEOUT overrides a wrapper's marker timeout. HART_PANELPRO_POLL
+# (seconds, fractions allowed) overrides every poll interval here; the tests set it short.
 #
 # PanelPro still connects to MQTT during a run. With the Start Up scripts off nothing HART-written
 # publishes, but JMRI's own listeners (Logix, LogixNG, SML, Dispatcher) still react to sensor and
@@ -176,6 +177,19 @@ _pp_live_pids() {
   echo $out
 }
 
+# The poll interval: HART_PANELPRO_POLL when it is a number above 0 (fractions allowed), else the default given.
+_pp_poll() {
+  local v="${HART_PANELPRO_POLL:-}"
+  if [[ -n "$v" ]]; then
+    if [[ "$v" =~ ^[0-9]*\.?[0-9]+$ ]] && awk -v v="$v" 'BEGIN { exit !(v > 0) }'; then
+      echo "$v"
+      return
+    fi
+    echo "HART_PANELPRO_POLL=$v is not a number above 0; polling every $1 s" >&2
+  fi
+  echo "$1"
+}
+
 pp_wait_marker() {
   local marker="$1" deadline=$((SECONDS + $2)) interval="$3"
   while (( SECONDS < deadline )); do
@@ -185,7 +199,7 @@ pp_wait_marker() {
       [[ -f "$marker" ]] && return 0
       return 1
     fi
-    sleep "$interval"
+    sleep "$(_pp_poll "$interval")"
   done
   [[ -f "$marker" ]] && return 0
   return 2
@@ -196,7 +210,7 @@ pp_wait_exit() {
   _pp_track
   while [[ -n "$(_pp_live_pids)" ]]; do
     (( SECONDS < deadline )) || return 1
-    sleep 1
+    sleep "$(_pp_poll 1)"
     _pp_track
   done
   return 0
@@ -211,13 +225,16 @@ pp_stop_jmri() {
   kill -TERM $live 2>/dev/null || true
   deadline=$((SECONDS + ${HART_PANELPRO_KILL_WAIT:-30}))
   while [[ -n "$(_pp_live_pids)" ]] && (( SECONDS < deadline )); do
-    sleep 1
+    sleep "$(_pp_poll 1)"
   done
   live="$(_pp_live_pids)"
   if [[ -n "$live" ]]; then
     echo "PanelPro ignored TERM; killing pids $live" >&2
     kill -KILL $live 2>/dev/null || true
-    sleep 1
+    deadline=$((SECONDS + 5))          # KILL cannot be ignored; give the system a moment to remove them
+    while [[ -n "$(_pp_live_pids)" ]] && (( SECONDS < deadline )); do
+      sleep "$(_pp_poll 1)"
+    done
   fi
   _pp_track
   live="$(_pp_live_pids)"
