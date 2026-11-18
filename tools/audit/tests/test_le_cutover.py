@@ -237,7 +237,7 @@ class Cutover(unittest.TestCase):
 
     def test_generated_labels(self) -> None:
         texts = Counter(lb.get("text") for lb in self.le.findall("positionablelabel"))
-        prefix = B.LE_LABELS["switch_prefix"]
+        prefix = page_prefs()["le_labels"]["switch_prefix"]
         for n in B.staging_switches():
             self.assertEqual(texts[f"{prefix}{n}"], 1, f"switch {n}: one number")
         self.assertIn("S-R", texts)
@@ -666,8 +666,9 @@ class ThreeLevels(unittest.TestCase):
 
     def test_one_block_contents_icon_per_block_on_every_level(self) -> None:
         icons = Counter(el.get("blockcontents") for el in self.le.iter("BlockContentsIcon"))
-        # every block but those B.OPTIONAL_READOUTS lets go when no clean spot is left (logged)
-        left_out = {b for v in B.OPTIONAL_READOUTS.values() for b in v} - set(icons)
+        # every block but those the levels' optional_block_contents let go when no clean spot is left (logged)
+        optional = {b for v in page_prefs()["le_band_labels"].values() for b in v.get("optional_block_contents", [])}
+        left_out = optional - set(icons)
         skipped = {re.search(r"block contents of (.+?): no clean spot", m).group(1) for m in self.P.bcis_skipped}
         self.assertEqual(skipped, left_out)
         self.assertEqual(len(skipped), len(self.P.bcis_skipped))
@@ -677,7 +678,8 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(len(staging), 57)
         size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
         self.assertEqual({size[b] for b in staging}, {"13"})
-        self.assertEqual({size[b] for b in set(size) - staging}, {str(B.LEVEL_LE_LABELS["block_contents_size"])})
+        level = {str(v["block_contents_size"]) for v in page_prefs()["le_band_labels"].values()}
+        self.assertEqual({size[b] for b in set(size) - staging}, level)
 
     def test_switch_numbers_and_track_names(self) -> None:
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text")]

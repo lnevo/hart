@@ -222,5 +222,30 @@
   "Main": true,
   "Upper": true
  },
- "_le_name_room": "Levels whose drawing, in the same pass, lets a named track's straight out to its name's width, while the level stays no wider than the widest: main uses its spare width so Tracks 107-109 and 125-127 get their names beside 109-111 and 127-129 (owner, 2026-11-17: \"Use main's spare width\"); upper is the widest, so its short tracks keep their length (noted). Not staging."
+ "_le_name_room": "Levels whose drawing, in the same pass, lets a named track's straight out to its name's width, while the level stays no wider than the widest: main uses its spare width so Tracks 107-109 and 125-127 get their names beside 109-111 and 127-129 (owner, 2026-11-17: \"Use main's spare width\"); upper is the widest, so its short tracks keep their length (noted). Not staging.",
+ "le_labels": {
+  "switch_prefix": "SW-",
+  "switch_size": 13
+ },
+ "_le_labels": "The label layer's page-wide options on every Layout Editor panel, staging included (this file sets the page, so they reach every band; they are main's and upper's own too): switch numbers as the hand-drawn panel wrote them (\"SW-13\", 13 px bold), block contents icons on with the plugin's reserve. The all-levels trial's smaller set, 9 px numbers and no block contents, retired with it (owner, 2026-11-17). Keys for one level only go in le_band_labels.",
+ "le_band_labels": {
+  "Main": {
+   "names_last": true,
+   "block_contents_size": 12,
+   "numbers_below": [
+    "101"
+   ],
+   "hidden_names": [
+    "101-103"
+   ]
+  },
+  "Upper": {
+   "names_last": true,
+   "block_contents_size": 12,
+   "optional_block_contents": [
+    "Track 227-233"
+   ]
+  }
+ },
+ "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-233 is 16 px between switches 227 and 233, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16)."
 }

@@ -330,7 +330,7 @@ class Built(unittest.TestCase):
                          4 if B.JOIN_HELIX else 2)
         self.assertEqual({s.get("mainline") for s in self.le.findall("tracksegment")}, {"yes", "no"})
         texts = {lb.get("text") for lb in self.le.findall("positionablelabel")}
-        prefix = B.LE_LABELS["switch_prefix"]          # switch numbers as the plugin's label layer writes them
+        prefix = B.schematic()[1]["le_labels"]["switch_prefix"]     # the page's: as the label layer writes them
         self.assertTrue({"STAGING LEVEL", "MAIN LEVEL", "Main West", prefix + "39", prefix + "135A"} <= texts, texts)
         self.assertEqual(len(self.le.findall("layoutShape")), 8)     # four helix ends, four connector ends
 
@@ -586,24 +586,17 @@ class DeviceNames(unittest.TestCase):
         self.assertIn("101", labels)
         self.assertNotIn("101A", labels)
         self.assertIn("129A", labels)                           # its B half is on the upper level
-        self.assertEqual(drawn[1][2]["le_labels"], dict(B.LEVEL_LE_LABELS, numbers_below=B.NUMBERS_BELOW["Main"],
-                                                         optional_block_contents=[]))
-        self.assertEqual(drawn[2][2]["le_labels"], dict(B.LEVEL_LE_LABELS, numbers_below=[],
-                                                         optional_block_contents=B.OPTIONAL_READOUTS["Upper"]))
+        for (_t, _b, o), (_t2, _b2, given) in zip(drawn, bands):
+            self.assertIs(o, given)                             # the preferences reach the plugin as they are
         named = [s["name"] for s in main["strands"].values() if s["name"]]
         self.assertEqual(len(named), len(set(named)))           # one track per block
         self.assertIn("McKees Rocks", named)                    # the helix track keeps its plan name
+        self.assertIn("101-103", named)                         # named here; the plugin leaves it off (hidden_names)
         bad = copy.deepcopy(names)
         n = next(k for k, d in bands[1][1]["nodes"].items() if d.get("label") == "101B")
         bad["Main"]["turnouts"][n] = "Switch 999"
         with self.assertRaisesRegex(B.BuildError, "joined as a crossover but the device map gives them two"):
             B.named_bands(bands, bad)
-        # a band's own le_labels (main_upper.preferences.json) are kept beside HART's; a key HART sets stops
-        prefs = [(t, b, dict(o, le_labels={"switch_size": 10})) for t, b, o in bands]
-        self.assertEqual(B.named_bands(prefs, names)[1][2]["le_labels"]["switch_size"], 10)
-        prefs = [(t, b, dict(o, le_labels={"names_last": False})) for t, b, o in bands]
-        with self.assertRaisesRegex(B.BuildError, "le_labels already hold names_last; HART sets them here"):
-            B.named_bands(prefs, names)
 
 
 class Pieces(unittest.TestCase):
@@ -843,6 +836,25 @@ class FinalReview(unittest.TestCase):
         south = [["S-R", "S-1", "S-2", "S-3", "S-4"]]
         self.assertEqual(own["name_columns"], south)
         self.assertEqual(own["lamp_columns"], south)
+
+    def test_level_le_labels_from_main_upper_preferences(self) -> None:
+        # main_upper.preferences.json sets the page and both levels: its flat le_labels reach every band (staging
+        # through the page), and each level's own keys are band-keyed (le_band_labels), as the plugin combines them
+        bands, page = B.schematic()
+        _sheet, le_mod, _core = B.plugin()
+        self.assertEqual(page["le_labels"], {"switch_prefix": "SW-", "switch_size": 13})
+        # a copy of the page, as the build passes it (dict(page, band_align=...)): a band-only key in the flat
+        # le_labels would stop there
+        opts = dict(zip((B.band_key(t) for t, _b, _o in bands), le_mod.le_labels.options(bands, dict(page))))
+        for key in ("Staging", "Main", "Upper"):
+            self.assertEqual((opts[key]["switch_prefix"], opts[key]["switch_size"]), ("SW-", 13), key)
+        self.assertEqual((opts["Staging"]["names_last"], opts["Staging"]["block_contents_size"]), (False, 13))
+        for key in ("Main", "Upper"):
+            self.assertEqual((opts[key]["names_last"], opts[key]["block_contents_size"]), (True, 12), key)
+        self.assertEqual((opts["Main"]["numbers_below"], opts["Upper"]["numbers_below"]), (["101"], []))
+        self.assertEqual((opts["Main"]["hidden_names"], opts["Upper"]["hidden_names"]), (["101-103"], []))
+        self.assertEqual((opts["Main"]["optional_block_contents"], opts["Upper"]["optional_block_contents"]),
+                         ([], ["Track 227-233"]))
 
 class LoopAndCrossover(unittest.TestCase):
     """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers (owner, 2026-11-16)."""
