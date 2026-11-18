@@ -78,7 +78,7 @@ The owner may not name an agent, so match the task yourself:
 - Launch any agent that edits files with `isolation: "worktree"`; read-only agents need none.
 - Use `general-purpose` only when none fits. If the same kind of job keeps landing there, suggest a new agent.
 
-The `car-cards` and `operations-pro` plugins are enabled but used only now and then: each shows one line until its skill or agent is called, and their MCP tools load through ToolSearch. Call them when the task is theirs, not by default.
+The `car-cards` and `operations-pro` plugins are off by default (owner, 2026-11-18). When a task is theirs, turn one on for this checkout only: `claude plugin enable car-cards@model-railroad-skills --scope local` (or `operations-pro@…`), which writes the uncommitted local settings file, not the committed one, then reload plugins or start a new session; say so in the report, and `claude plugin disable … --scope local` when the task is done.
 
 Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
