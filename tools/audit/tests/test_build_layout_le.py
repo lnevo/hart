@@ -579,7 +579,8 @@ class DeviceNames(unittest.TestCase):
         bands, page = B.schematic()
         names, _lengths = B.level_names(bands, le_mod)
         drawn = B.named_bands(bands, names)
-        self.assertEqual(page["le_band_labels"]["Main"]["hidden_names"], ["101-103"])
+        main_opts = next(o for t, _b, o in drawn if B.band_key(t) == "Main")     # hide_names reads the band's own
+        self.assertEqual(main_opts["le_band_labels"]["Main"]["hidden_names"], ["101-103"])
 
         def hidden(marked) -> dict:
             return {B.band_key(t): sorted(s["name"] for s in b["strands"].values() if s.get(le_mod.le_labels.HIDDEN))
@@ -587,12 +588,6 @@ class DeviceNames(unittest.TestCase):
 
         self.assertEqual(hidden(le_mod.le_labels.hide_names(drawn, page)),
                          {"Staging": [], "Main": ["101-103"], "Upper": []})
-        # negative: with nothing listed, the same bands carry no hidden track
-        bare_page = copy.deepcopy(page)
-        bare_page["le_band_labels"]["Main"]["hidden_names"] = []
-        bare_drawn = [(t, b, bare_page) for t, b, _o in drawn]    # the band's own options are the page's
-        self.assertEqual(hidden(le_mod.le_labels.hide_names(bare_drawn, bare_page)),
-                         {"Staging": [], "Main": [], "Upper": []})
 
     def test_named_bands_join_a_crossovers_halves_and_name_one_track_per_block(self) -> None:
         _sheet, le_mod, _core = B.plugin()

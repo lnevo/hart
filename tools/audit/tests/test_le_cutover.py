@@ -687,6 +687,7 @@ class ThreeLevels(unittest.TestCase):
             self.assertTrue(per_level[key], key)
             self.assertEqual({size[b] for b in per_level[key]}, {str(entry["block_contents_size"])}, key)
         self.assertEqual(set(per_level) - set(wanted), {"Staging"})
+        self.assertEqual(per_level["Staging"], staging)        # no block's icon moved between staging and a level
         self.assertEqual(set().union(*per_level.values()) - staging, set(size) - staging)
 
     def test_switch_numbers_and_track_names(self) -> None:
