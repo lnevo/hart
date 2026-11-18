@@ -8,6 +8,7 @@ No network: it only reads files.
 from __future__ import annotations
 
 import re
+import sys
 import unittest
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -16,13 +17,13 @@ ROOT = Path(__file__).resolve().parents[3]
 DEFAULTS_ENV = ROOT / "tools/env/defaults.env"
 
 
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib.hosts import read_env_file  # noqa: E402
+
+
 def defaults() -> dict[str, str]:
-    values = {}
-    for line in DEFAULTS_ENV.read_text(encoding="utf-8").splitlines():
-        if line.strip() and not line.lstrip().startswith("#"):
-            key, _, value = line.partition("=")
-            values[key.strip()] = value.strip()
-    return values
+    """defaults.env as hartlib reads it, the same parser the Python tools use."""
+    return read_env_file(DEFAULTS_ENV)
 
 
 def one(pattern: str, rel: str) -> str:

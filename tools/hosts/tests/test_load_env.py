@@ -21,15 +21,10 @@ DEFAULTS_ENV = ROOT / "tools/env/defaults.env"
 
 
 def read_defaults() -> dict[str, str]:
-    values = {}
-    for line in DEFAULTS_ENV.read_text(encoding="utf-8").splitlines():
-        if line.strip() and not line.lstrip().startswith("#"):
-            key, _, value = line.partition("=")
-            values[key.strip()] = value.strip()
-    return values
+    """defaults.env as hartlib reads it, the same parser the Python tools use."""
+    return load_hartlib_hosts().read_env_file(DEFAULTS_ENV)
 
 
-DEFAULTS = read_defaults()
 # Every name load_env.sh or hartlib/hosts.py reads, so the caller's environment cannot leak in.
 CLEAR = NAMES + ("MQTT_HOST", "HART_MQTT_HOST", "JMRI_JSON", "PI_HOST", "HART_ENV_FILE", "HART_REPO_ROOT")
 
@@ -56,6 +51,9 @@ def resolve(env: dict[str, str], file_text: str | None) -> dict[str, str]:
                                   check=True)
             values = dict(line.split("=", 1) for line in done.stdout.splitlines())
         return values
+
+
+DEFAULTS = read_defaults()
 
 
 class Defaults(unittest.TestCase):
@@ -140,6 +138,30 @@ class DefaultsFile(unittest.TestCase):
 
     def test_names_match(self) -> None:
         self.assertEqual(set(DEFAULTS), set(NAMES))
+
+    def test_plain_values_only(self) -> None:
+        """No quotes, comments, $VAR or blanks in a value, so shell and Python read the same text."""
+        for line in DEFAULTS_ENV.read_text(encoding="utf-8").splitlines():
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            key, sep, value = line.partition("=")
+            self.assertTrue(sep and key.isidentifier(), line)
+            self.assertRegex(value, r"^[^\s'\"#$]+$", line)
+
+    def test_missing_name_stops(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            env_dir = Path(d) / "tools/env"
+            env_dir.mkdir(parents=True)
+            (env_dir / "load_env.sh").write_text(LOAD_ENV.read_text(encoding="utf-8"), encoding="utf-8")
+            text = DEFAULTS_ENV.read_text(encoding="utf-8")
+            (env_dir / "defaults.env").write_text(
+                "\n".join(l for l in text.splitlines() if not l.startswith("HART_WIN_SSH=")) + "\n",
+                encoding="utf-8")
+            env = {k: v for k, v in os.environ.items() if k not in CLEAR}
+            done = subprocess.run(["bash", "-c", f'set -e; source "{env_dir}/load_env.sh"; echo "after:${{HART_WIN_SSH-unset}}"'],
+                                  capture_output=True, text=True, timeout=30, env=env)
+        self.assertNotIn("after:", done.stdout)
+        self.assertIn("HART_WIN_SSH has no default", done.stderr)
 
     def test_no_default_literal_in_load_env(self) -> None:
         text = LOAD_ENV.read_text(encoding="utf-8")

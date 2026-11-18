@@ -50,23 +50,37 @@ _hart_pick() {
 _hart_defaults="${_env_dir}/defaults.env"
 if [[ ! -f "$_hart_defaults" ]]; then
   echo "load_env.sh: missing $_hart_defaults" >&2
+  unset _hart_env_loaded  # so a later source, once the file is back, loads everything
   return 1 2>/dev/null || exit 1
 fi
+# Plain KEY=VALUE lines only (tools/hosts/tests/test_load_env.py holds the file to that, so
+# hartlib.hosts reads the same values); a trailing CR or blank is dropped all the same.
+_hart_def_keys=""
 while IFS= read -r _line || [[ -n "$_line" ]]; do
+  _line="${_line%$'\r'}"
   case "$_line" in ''|'#'*) continue ;; esac
   _key="${_line%%=*}"
   [[ "$_key" =~ ^[A-Z_][A-Z0-9_]*$ ]] || continue
-  printf -v "_hart_def_${_key}" '%s' "${_line#*=}"
+  _val="${_line#*=}"
+  _val="${_val%"${_val##*[![:space:]]}"}"
+  printf -v "_hart_def_${_key}" '%s' "$_val"
+  _hart_def_keys="$_hart_def_keys $_key"
 done < "$_hart_defaults"
-unset _line _key
-_hart_default() {
-  local v
-  eval "v=\"\${_hart_def_$1:-}\""
-  if [[ -z "$v" ]]; then
-    echo "load_env.sh: $1 has no default in $_hart_defaults" >&2
-    return 1
+unset _line _key _val
+# Every exported host name needs a default; refuse rather than export an empty value.
+for _n in HART_MQTT_BROKER HART_MQTT_PORT HART_JMRI_JSON HART_PI_SSH HART_PI_USERFILES HART_PI_WEB_HOST \
+          HART_WIN_SSH HART_WIN_SSH_PORT HART_WIN_USERFILES; do
+  eval "_v=\"\${_hart_def_${_n}:-}\""
+  if [[ -z "$_v" ]]; then
+    echo "load_env.sh: $_n has no default in $_hart_defaults" >&2
+    for _k in $_hart_def_keys; do unset "_hart_def_${_k}"; done
+    unset _hart_env_loaded _hart_def_keys _v _k
+    return 1 2>/dev/null || exit 1
   fi
-  printf '%s' "$v"
+done
+unset _v
+_hart_default() {
+  eval "printf '%s' \"\${_hart_def_$1}\""
 }
 
 # Older names follow the new one: MQTT_HOST and HART_MQTT_HOST for the broker, JMRI_JSON.
@@ -80,10 +94,11 @@ export HART_PI_WEB_HOST="$(_hart_pick "$(_hart_default HART_PI_WEB_HOST)" HART_P
 export HART_WIN_SSH="$(_hart_pick "$(_hart_default HART_WIN_SSH)" HART_WIN_SSH)"
 export HART_WIN_SSH_PORT="$(_hart_pick "$(_hart_default HART_WIN_SSH_PORT)" HART_WIN_SSH_PORT)"
 export HART_WIN_USERFILES="$(_hart_pick "$(_hart_default HART_WIN_USERFILES)" HART_WIN_USERFILES)"
-for _n in $_hart_host_names; do
-  unset "_hart_def_${_n}"
+for _k in $_hart_def_keys; do
+  unset "_hart_def_${_k}"
 done
 unset -f _hart_default
+unset _k _hart_def_keys
 unset _hart_defaults
 for _n in $_hart_host_names; do
   unset "_hart_env_${_n}"

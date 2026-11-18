@@ -15,6 +15,7 @@ hart.env is found as load_env.sh finds it: HART_ENV_FILE, else HART_REPO_ROOT/to
 """
 from __future__ import annotations
 
+import functools
 import os
 import re
 from pathlib import Path
@@ -77,12 +78,13 @@ def read_env_file(path: Path | None = None) -> dict[str, str]:
     return values
 
 
+@functools.lru_cache(maxsize=1)
 def _defaults() -> dict[str, str]:
     """tools/env/defaults.env, the one copy of the defaults load_env.sh also reads."""
     values = read_env_file(DEFAULTS_FILE)
     if not values:
         raise SystemExit(f"hartlib.hosts: cannot read the host defaults in {DEFAULTS_FILE}")
-    return values
+    return dict(values)
 
 
 def default(name: str) -> str:
