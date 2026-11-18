@@ -129,6 +129,21 @@
    ]
   },
   {
+   "id": "compass",
+   "note": "The compass rose (hart_panel_compass.png, 111 x 115, cut from hart_panel_bg.jpg) 10 px left of the status cluster, centred on its four rows (owner, 2026-11-18)",
+   "anchor": {
+    "to": "drawing",
+    "at": "bottom-right",
+    "dx": -182,
+    "dy": 4
+   },
+   "size": [
+    111,
+    115
+   ],
+   "xml": "<positionablelabel level=\"2\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"false\" editable=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.PositionableLabelXml\"><icon url=\"preference:resources/misc/hart_panel_compass.png\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></icon></positionablelabel>"
+  },
+  {
    "id": "title",
    "anchor": {
     "to": "drawing",
