@@ -91,7 +91,8 @@
 }
 
 /* Link card: a whole-row link to the full article, placed after a verdict. */
-.feature-body a.ai-linkcard {
+.feature-body a.ai-linkcard,
+.hub-group a.ai-linkcard {
   display: block;
   margin: 1rem 0 0;
   padding: 0.75rem 1rem;
@@ -105,7 +106,8 @@
   text-decoration: none;
 }
 
-.feature-body a.ai-linkcard b {
+.feature-body a.ai-linkcard b,
+.hub-group a.ai-linkcard b {
   display: block;
   font-family: var(--font-display);
   font-size: 1.1rem;
@@ -114,7 +116,9 @@
 }
 
 .feature-body a.ai-linkcard:hover b,
-.feature-body a.ai-linkcard:focus-visible b {
+.feature-body a.ai-linkcard:focus-visible b,
+.hub-group a.ai-linkcard:hover b,
+.hub-group a.ai-linkcard:focus-visible b {
   text-decoration: underline;
 }
 
