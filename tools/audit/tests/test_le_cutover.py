@@ -90,6 +90,10 @@ def item_elements(data: dict) -> list[ET.Element]:
     return [ET.fromstring(m["xml"]) for it in data["items"] for m in (it.get("members") or [it])]
 
 
+
+# South Yard's tracks, whose names stand on one centre x (staging.preferences.json le_labels name_columns)
+SOUTH_YARD = ("S-R", "S-1", "S-2", "S-3", "S-4")
+
 class Cutover(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -493,8 +497,9 @@ class ThreeLevels(unittest.TestCase):
                     self.assertTrue(any(abs(angle - a) <= 0.5 for a in angles), angle)
         # South Yard's names on one centre x
         jt = importlib.import_module("schematic.jmri_text")
-        centres = {round(int(el.get("x")) + jt.width(el.get("text"), int(el.get("size")), False) / 2)
-                   for el in self.le.iter("positionablelabel") if el.get("text") in B.NAME_COLUMNS[0]}
+        yard = [el for el in self.le.iter("positionablelabel") if el.get("text") in SOUTH_YARD]
+        self.assertEqual(sorted(el.get("text") for el in yard), sorted(SOUTH_YARD))     # every name drawn, once
+        centres = {round(int(el.get("x")) + jt.width(el.get("text"), int(el.get("size")), False) / 2) for el in yard}
         self.assertLessEqual(max(centres) - min(centres), 1, centres)
         # the engine house's buttons step alike, and West Yard's W-2 follows W-1 one row down at that step: kept
         # so in the parked station clusters (staging's le_labels extra_steps and extra_follow place them again when

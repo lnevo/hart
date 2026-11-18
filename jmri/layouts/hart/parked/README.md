@@ -77,8 +77,9 @@ panel. The owner decided on 2026-11-17 that they belong with the Dispatcher Syst
 - 12 stations, each with its MoveTo button, move-in-progress lamp and station occupancy lamp
 
 They are written in the `panel_items.json` form (`tools/schematic/panel_items.py`). Each is anchored at its block's
-drawn centre, at the offset the approved staging candidate gave it. The lamp layout preferences stay in the build:
-the South Yard lamp column (`LAMP_COLUMNS`) and the label layer's room for lamps.
+drawn centre, at the offset the approved staging candidate gave it; each lamp's sensor is in its own entry (`BS S-R`
+and so on). The lamp layout preferences stay in place: the South Yard lamp column (`lamp_columns` in
+`staging.preferences.json`'s `le_labels`) and the label layer's room for lamps.
 
 Put back on a copy of the device-map candidate on 2026-11-17, all 79 landed within 1 px of where the last
 overlay-built candidate had them, so they do not have to be placed again. The 24 station icons are also in
