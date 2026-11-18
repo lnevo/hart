@@ -143,7 +143,6 @@ def _rebind_turnout_fb_icons(head):
             contents = list(ed.getContents())
         except Exception:
             continue
-        lamps = []
         for icon in contents:
             try:
                 if not isinstance(icon, SignalHeadIcon):
@@ -609,16 +608,6 @@ def _disable_icon_control(icon):
         pass
 
 
-class _LampClick(MouseAdapter):
-    def __init__(self, action):
-        self._action = action
-
-    def mouseClicked(self, event):
-        if event.getButton() != MouseEvent.BUTTON1:
-            return
-        _run_lamp_action(self._action)
-
-
 def _run_lamp_action(action):
     global _click_busy
     if _click_busy:
@@ -638,21 +627,24 @@ def _lamp_at(lamps, scale, x, y):
     The editor paints its contents scaled by its zoom (Editor.getPaintScale) but leaves each icon's Swing bounds
     unscaled, so a listener on the icon itself only fires where the unscaled icon would be: at zoom to fit the lamp
     is drawn in one place and clickable in another. Convert the click the way the editor does (divide by the scale)
-    and test it against the icon's unscaled bounds.
+    and test it against the icon's unscaled bounds; like the editor, the topmost hit wins and hidden icons count.
     """
     if not scale or scale <= 0:
         scale = 1.0
     px, py = x / float(scale), y / float(scale)
+    hits = []
     for icon, action in lamps:
         try:
-            if not icon.isVisible():
-                continue
             ix, iy = icon.getX(), icon.getY()
             if ix <= px < ix + icon.getWidth() and iy <= py < iy + icon.getHeight():
-                return action
+                hits.append((icon.getDisplayLevel(), action))
         except Exception:
             continue
-    return None
+    if not hits:
+        return None
+    # the editor acts on the topmost item (highest display level), so overlapping lamps resolve the same way
+    hits.sort(key=lambda h: h[0], reverse=True)
+    return hits[0][1]
 
 
 class _PanelLampClick(MouseAdapter):
@@ -661,13 +653,22 @@ class _PanelLampClick(MouseAdapter):
     def __init__(self, editor):
         self._editor = editor
         self.lamps = []
+        self._scale_warned = False
 
     def mouseClicked(self, event):
+        # the same filter as LayoutEditor.mouseClicked: a plain left click only (Ctrl-click is the Mac popup,
+        # Shift/Ctrl/Meta/Alt-click amend the edit selection)
         if event.getButton() != MouseEvent.BUTTON1:
+            return
+        if (event.isPopupTrigger() or event.isMetaDown() or event.isAltDown() or event.isShiftDown()
+                or event.isControlDown()):
             return
         try:
             scale = self._editor.getPaintScale()
-        except Exception:
+        except Exception as e:
+            if not self._scale_warned:
+                print("panel_status: getPaintScale failed, lamp clicks assume 100%% zoom: %s" % e)
+                self._scale_warned = True
             scale = 1.0
         action = _lamp_at(self.lamps, scale, event.getX(), event.getY())
         if action is not None:
