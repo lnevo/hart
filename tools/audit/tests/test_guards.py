@@ -408,20 +408,33 @@ class JmriOpenAndPrivateName(unittest.TestCase):
             finally:
                 sys.stdin = saved
 
-    def test_operating_flag_blocks_deploys_writers_and_panelpro_control(self) -> None:
-        flag = "by=owner\nsince=2026-11-18T15:00:00-0500\nreason=ops session\n"
-        blocked = ("make tables-pull", "./tools/hosts/sync_hart_package.sh --pi --win", "make deploy-layout",
-                   "make panelpro-test", "osascript -e 'tell application \"PanelPro\" to quit'",
-                   "open -a /Applications/JMRI/PanelPro.app", "tools/hosts/pi_quit_panelpro.sh --for-deploy",
-                   "tools/hosts/pi_start_panelpro.sh", "jmri/layouts/hart/scripts/run_sml_discover.sh",
-                   "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh", "pkill -f java", "killall PanelPro")
+    def test_operating_flag_blocks_only_what_reaches_the_layout_hosts(self) -> None:
+        owner = "by=owner\nsince=2026-11-18T15:00:00-0500\nreason=ops session\n"
+        blocked = ("./tools/hosts/sync_hart_package.sh --pi --win", "./tools/hosts/sync_hart_package.sh --all",
+                   "./tools/hosts/sync_hart_package.sh --win", "make deploy-layout", "make -s deploy-all",
+                   'make redeploy COMMIT=abc HOSTS="--pi --win"', "./tools/hosts/redeploy_commit.sh abc --pi",
+                   "tools/hosts/pi_quit_panelpro.sh --for-deploy", "tools/hosts/pi_start_panelpro.sh",
+                   "tools/hosts/pi_sts_update.sh", "ssh pi 'pkill -f PanelPro'", "ssh pi pkill java",
+                   "ssh -o BatchMode=yes pi 'sudo reboot'", "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM java.exe",
+                   "bash -c 'tools/hosts/pi_quit_panelpro.sh --for-deploy'", "zsh -c \"ssh pi pkill -f PanelPro\"",
+                   "jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py")
         for cmd in blocked:
-            self.assertEqual(self.op_code(cmd, flag), 2, cmd)
+            self.assertEqual(self.op_code(cmd, owner), 2, cmd)
             self.assertEqual(self.op_code(cmd, None), 0, cmd)          # JMRI closed and no flag: allowed
-        for cmd in ("make deploy-site", "./tools/check.sh", "make panels CHECK=1", "tools/hosts/operating.sh off",
-                    "tools/hosts/operating.sh status", "cat jmri/layouts/hart/scripts/run_sml_discover.sh",
-                    "git status", "jmri/layouts/hart/scripts/speedmatch/drop_job.sh job.py"):
-            self.assertEqual(self.op_code(cmd, flag), 0, cmd)
+        # the Mac's own work stays open (owner, 2026-11-18)
+        for cmd in ("make tables-pull", "./tools/hosts/sync_hart_package.sh", "make panelpro-test",
+                    "osascript -e 'tell application \"PanelPro\" to quit'", "open -a /Applications/JMRI/PanelPro.app",
+                    "jmri/layouts/hart/scripts/run_sml_discover.sh", "make deploy-site", "./tools/check.sh",
+                    'make redeploy COMMIT=abc HOSTS="--mac"', "./tools/hosts/sync_hart_package.sh --stage-only /tmp/x",
+                    "ssh pi uptime", "ssh other-host pkill java", "cat tools/hosts/pi_quit_panelpro.sh",
+                    "tools/hosts/operating.sh off --owner", "tools/hosts/operating.sh status",
+                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --fetch /tmp/x.log",
+                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill"):
+            self.assertEqual(self.op_code(cmd, owner), 0, cmd)
+        # a speed-matching run's own flag lets the next job of the run through
+        speed = "by=speedmatch\nsince=2026-11-18T15:00:00-0500\nreason=job\n"
+        self.assertEqual(self.op_code("jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py", speed), 0)
+        self.assertEqual(self.op_code("make deploy-layout", speed), 2)
 
     def test_operating_flag_can_be_forced(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_operating_force")

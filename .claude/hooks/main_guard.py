@@ -18,9 +18,11 @@ never spelled out); if that check cannot load, publishing is blocked.
 HART_GUARD_JMRI_RUNNING=1 or 0 overrides the process check, for tests.
 
 While the operating flag is set (tools/hosts/operating.sh: the owner is running trains, or a
-speed-matching run is on the layout) it also blocks those table and deploy commands, and every
-command that quits, starts or test-loads PanelPro on the Mac or the Pi (panelpro_control), whether
-JMRI is open here or not. HART_GUARD_OPERATING=1 or 0 overrides the flag file, for tests.
+speed-matching run is on the layout) it blocks what reaches the layout hosts (host_control): a deploy
+to the Pi or Windows, quitting or starting PanelPro on the Pi, an STS update there, an ssh command to
+either host that touches JMRI, PanelPro, CATS, java, STS's docker or a reboot, and, under the owner's
+flag, a new speed-matching job. Work on the Mac alone stays open (owner, 2026-11-18). Wrappers'
+`-c` text is judged too. HART_GUARD_OPERATING=1 or 0 overrides the flag file, for tests.
 
 In the main checkout of a repo that uses agent worktrees (it holds tools/agent/worktrees.py)
 it blocks any commit and any switch to a branch other than main: agents work in their own
@@ -52,8 +54,33 @@ FILE_FLAGS = ("-F", "--file", "--body-file", "--notes-file")
 # The operating flag file (tools/hosts/operating.sh), and what it rules out besides the table writers: quitting,
 # starting or test-loading PanelPro here or on the Pi, and the PanelPro runs that launch it (discovery, smoke test).
 OPERATING_FLAG = os.environ.get("HART_OPERATING_FLAG") or os.path.expanduser("~/.hart_operating")
-PANELPRO_SCRIPTS = re.compile(r"pi_(quit|start)_panelpro\.sh|run_panelpro_\w+\.sh|run_(sml|nx)_discover\.sh")
-PANELPRO_WORD = re.compile(r"PanelPro|JMRI|\bjava\b", re.I)
+HOST_SCRIPTS = {"pi_quit_panelpro.sh", "pi_start_panelpro.sh", "pi_sts_update.sh"}
+HOST_FLAGS = ("--pi", "--win", "--all")          # sync_hart_package.sh and redeploy_commit.sh: a layout host
+SSH_VALUE_OPTS = {"-b", "-c", "-D", "-E", "-e", "-F", "-I", "-i", "-J", "-L", "-l", "-m", "-O", "-o", "-p", "-Q",
+                  "-R", "-S", "-W", "-w"}     # ssh options that take the next word as their value
+HOST_TARGETS = {"deploy-layout", "deploy-all"}    # make targets that deploy to the hosts (redeploy: by HOSTS)
+REMOTE_TOUCH = re.compile(r"PanelPro|JMRI|\bcats\b|\bjava\b|\bdocker\b|\breboot\b|\bshutdown\b|\bsystemctl\b|"
+                          r"\bkill(all)?\b|\bpkill\b|jmri_cmd|speedrun", re.I)
+ENV_FILES = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "tools", "env", n)
+             for n in ("defaults.env", "hart.env")]
+
+
+def layout_hosts():
+    """The ssh names of the Pi and Windows (tools/env: environment, then hart.env, then defaults.env), host part
+    only, lower case, plus the Pi's web name and the broker address."""
+    values = {}
+    for path in ENV_FILES:
+        try:
+            with open(path, encoding="utf-8") as f:
+                for line in f:
+                    m = re.match(r"\s*(HART_\w+)=(.*)", line)
+                    if m:
+                        values[m.group(1)] = m.group(2).strip().strip("\"'")
+        except OSError:
+            continue
+    values.update({k: v for k, v in os.environ.items() if k.startswith("HART_")})
+    names = {values.get(k, "") for k in ("HART_PI_SSH", "HART_WIN_SSH", "HART_PI_WEB_HOST", "HART_MQTT_BROKER")}
+    return {n.split("@")[-1].lower() for n in names if n}
 NAME_CHECK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "..", "..", "ops", "hart-ops", "card_pipeline", "private_name.py")
 
@@ -148,24 +175,52 @@ def operating():
     return dict(line.split("=", 1) for line in text.splitlines() if "=" in line)
 
 
-def panelpro_control(part):
-    """True when this command part quits, starts or test-loads PanelPro: one of PANELPRO_SCRIPTS run as the
-    program, make panelpro-test, or osascript, open, pkill or killall aimed at PanelPro, JMRI or java."""
+def host_control(part, flag):
+    """What in this command part reaches a layout host while the operating flag `flag` is set, or None: a host
+    deploy, a Pi PanelPro or STS script, an ssh command to the Pi or Windows that touches the layout software, or
+    (under the owner's flag) a new speed-matching job. A wrapper's -c text is judged part by part."""
     try:
         words = shlex.split(part)
     except ValueError:
         words = part.split()
-    words, _inline = program(words)
+    words, inline = program(words)
+    if inline:
+        for sub in SPLIT.split(inline):
+            found = host_control(sub, flag)
+            if found:
+                return found
+        return None
     if not words:
-        return False
-    head = os.path.basename(words[0])
-    if PANELPRO_SCRIPTS.fullmatch(head):
-        return True
+        return None
+    head, args = os.path.basename(words[0]), words[1:]
+    if head in ("sync_hart_package.sh", "redeploy_commit.sh") and \
+            any(a == f or a.startswith(f + "=") for a in args for f in HOST_FLAGS):
+        return "a deploy to the Pi or Windows"
     if head == "make":
-        return "panelpro-test" in words[1:]
-    if head in ("osascript", "open", "pkill", "killall"):
-        return bool(PANELPRO_WORD.search(" ".join(words[1:])))
-    return False
+        hosts = " ".join(a for a in args if a.startswith("HOSTS="))
+        if HOST_TARGETS & set(args) or ("redeploy" in args and re.search(r"--(pi|win|all)\b", hosts)):
+            return "a deploy to the Pi or Windows"
+    if head in HOST_SCRIPTS:
+        return f"{head}, which acts on the Pi"
+    if head == "drop_job.sh" and flag.get("by") == "owner" and args and \
+            args[0] not in ("--fetch", "--kill", "-h", "--help"):
+        return "a speed-matching job during the owner's session"
+    if head == "ssh":
+        i, target = 0, ""
+        while i < len(args):
+            a = args[i]
+            if a in SSH_VALUE_OPTS:
+                i += 2
+                continue
+            if a.startswith("-"):
+                i += 1
+                continue
+            target = a
+            break
+        rest = " ".join(args[i + 1:]) if target else ""
+        if target.split("@")[-1].lower() in layout_hosts() and REMOTE_TOUCH.search(rest):
+            return f"an ssh command to {target} that touches the layout software"
+    return None
 
 
 def contains_private_name(text):
@@ -410,10 +465,10 @@ def main():
             print(f"Blocked: {found}. The repo is public; see AGENTS.md. Reword it.", file=sys.stderr)
             return 2
         writer = table_writer(part, cwd)
-        if writer or panelpro_control(part):
-            flag = operating()
-            if flag is not None:
-                what = writer or "this quits, starts or test-loads PanelPro, which"
+        flag = operating()
+        if flag is not None:
+            what = host_control(part, flag)
+            if what:
                 print(f"Blocked: {what} must wait: the operating flag is set (by {flag.get('by', '?')}"
                       f"{', since ' + flag['since'] if flag.get('since') else ''}"
                       f"{': ' + flag['reason'] if flag.get('reason') else ''}). The layout is in use; ask the "

@@ -44,11 +44,21 @@ class OperatingFlag(unittest.TestCase):
 
     def test_speedmatch_flag_cleared_by_the_agent_and_never_overwritten(self) -> None:
         self.assertEqual(self.run_it("on", "--by", "speedmatch", "job x").returncode, 0)
-        again = self.run_it("on", "other")                         # a second on keeps the first
+        again = self.run_it("on", "--by", "speedmatch", "other")   # a second run's on keeps the first
         self.assertIn("already set", again.stdout)
         self.assertEqual(self.fields()["by"], "speedmatch")
         self.assertEqual(self.run_it("off").returncode, 0)
         self.assertFalse(self.flag.exists())
+
+    def test_the_owner_takes_over_a_speedmatch_flag(self) -> None:
+        self.run_it("on", "--by", "speedmatch", "job x")
+        took = self.run_it("on", "ops session")
+        self.assertEqual(took.returncode, 0)
+        self.assertIn("taken over", took.stdout)
+        self.assertEqual(self.fields()["by"], "owner")
+        self.assertEqual(self.run_it("off").returncode, 1)          # the run's agent can no longer clear it
+        self.assertTrue(self.flag.exists())
+        self.assertEqual(list(self.flag.parent.glob("operating.*")), [])   # no temp file left behind
 
     def test_bad_arguments_stop(self) -> None:
         self.assertEqual(self.run_it("on", "--by", "someone").returncode, 2)
