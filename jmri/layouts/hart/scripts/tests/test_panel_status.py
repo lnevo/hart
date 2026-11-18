@@ -186,6 +186,54 @@ class PanelStatus(unittest.TestCase):
         click.mouseClicked(Event(1))
         self.assertEqual(calls, [1])
 
+    def test_lamp_click_finds_the_lamp_at_any_zoom(self) -> None:
+        # the editor paints scaled but keeps the icon's unscaled bounds: a lamp at (2310, 568), 20 x 20 px,
+        # is drawn at (1756, 432) when zoomed to fit at 0.76, and a click there must hit it
+        class Icon:
+            def __init__(self, x, y, visible=True):
+                self.x, self.y, self.visible = x, y, visible
+
+            def getX(self): return self.x
+            def getY(self): return self.y
+            def getWidth(self): return 20
+            def getHeight(self): return 20
+            def isVisible(self): return self.visible
+
+        lamp_at = self.ps["_lamp_at"]
+        lamps = [(Icon(2310, 540), "sml"), (Icon(2310, 568), "power")]
+        self.assertEqual(lamp_at(lamps, 1.0, 2315, 575), "power")
+        self.assertEqual(lamp_at(lamps, 0.76, 2310 * 0.76 + 4, 568 * 0.76 + 4), "power")
+        self.assertEqual(lamp_at(lamps, 0.76, 2310 * 0.76 + 4, 540 * 0.76 + 4), "sml")
+        self.assertIsNone(lamp_at(lamps, 0.76, 2315, 575))          # the unscaled spot is not the lamp at 0.76
+        self.assertEqual(lamp_at(lamps, 2.0, 4630, 1146), "power")
+        self.assertIsNone(lamp_at([(Icon(2310, 568, visible=False), "power")], 1.0, 2315, 575))
+
+    def test_panel_click_runs_the_lamp_under_the_scaled_point(self) -> None:
+        calls = []
+
+        class Editor:
+            def getPaintScale(self): return 0.5
+
+        class Icon:
+            def getX(self): return 100
+            def getY(self): return 200
+            def getWidth(self): return 20
+            def getHeight(self): return 20
+            def isVisible(self): return True
+
+        class Event:
+            def __init__(self, button, x, y): self.b, self.x, self.y = button, x, y
+            def getButton(self): return self.b
+            def getX(self): return self.x
+            def getY(self): return self.y
+
+        handler = self.ps["_PanelLampClick"](Editor())
+        handler.lamps = [(Icon(), lambda: calls.append("power"))]
+        handler.mouseClicked(Event(1, 55, 105))    # drawn at (50, 100) at half zoom
+        handler.mouseClicked(Event(1, 105, 205))   # the unscaled spot: empty at half zoom
+        handler.mouseClicked(Event(3, 55, 105))    # right click does nothing
+        self.assertEqual(calls, ["power"])
+
 
 if __name__ == "__main__":
     unittest.main()

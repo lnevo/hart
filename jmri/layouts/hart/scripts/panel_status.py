@@ -45,6 +45,7 @@ _CLICK_MAX_ATTEMPTS = 30
 
 _armed = False
 _clicks_armed = False
+_panel_clicks = {}   # id(editor) -> its _PanelLampClick
 _icon_rebound = False
 _last_fb_appearance = None
 _listener = None
@@ -142,6 +143,7 @@ def _rebind_turnout_fb_icons(head):
             contents = list(ed.getContents())
         except Exception:
             continue
+        lamps = []
         for icon in contents:
             try:
                 if not isinstance(icon, SignalHeadIcon):
@@ -612,18 +614,64 @@ class _LampClick(MouseAdapter):
         self._action = action
 
     def mouseClicked(self, event):
-        global _click_busy
         if event.getButton() != MouseEvent.BUTTON1:
             return
-        if _click_busy:
-            return
-        _click_busy = True
+        _run_lamp_action(self._action)
+
+
+def _run_lamp_action(action):
+    global _click_busy
+    if _click_busy:
+        return
+    _click_busy = True
+    try:
+        action()
+    except Exception as e:
+        print("panel_status: lamp click failed: %s" % e)
+    finally:
+        _click_busy = False
+
+
+def _lamp_at(lamps, scale, x, y):
+    """The action of the lamp drawn under panel point (x, y), or None.
+
+    The editor paints its contents scaled by its zoom (Editor.getPaintScale) but leaves each icon's Swing bounds
+    unscaled, so a listener on the icon itself only fires where the unscaled icon would be: at zoom to fit the lamp
+    is drawn in one place and clickable in another. Convert the click the way the editor does (divide by the scale)
+    and test it against the icon's unscaled bounds.
+    """
+    if not scale or scale <= 0:
+        scale = 1.0
+    px, py = x / float(scale), y / float(scale)
+    for icon, action in lamps:
         try:
-            self._action()
-        except Exception as e:
-            print("panel_status: lamp click failed: %s" % e)
-        finally:
-            _click_busy = False
+            if not icon.isVisible():
+                continue
+            ix, iy = icon.getX(), icon.getY()
+            if ix <= px < ix + icon.getWidth() and iy <= py < iy + icon.getHeight():
+                return action
+        except Exception:
+            continue
+    return None
+
+
+class _PanelLampClick(MouseAdapter):
+    """One listener on an editor's target panel that finds the clicked status lamp at any zoom."""
+
+    def __init__(self, editor):
+        self._editor = editor
+        self.lamps = []
+
+    def mouseClicked(self, event):
+        if event.getButton() != MouseEvent.BUTTON1:
+            return
+        try:
+            scale = self._editor.getPaintScale()
+        except Exception:
+            scale = 1.0
+        action = _lamp_at(self.lamps, scale, event.getX(), event.getY())
+        if action is not None:
+            _run_lamp_action(action)
 
 
 def _arm_status_lamp_clicks():
@@ -647,29 +695,41 @@ def _arm_status_lamp_clicks():
             contents = list(ed.getContents())
         except Exception:
             continue
+        lamps = []
         for icon in contents:
             try:
                 if isinstance(icon, SensorIcon):
                     sn = _sensor_sys(icon)
                     if sn == LCOS_SENSOR:
                         _disable_icon_control(icon)
-                        icon.addMouseListener(_LampClick(publish_lcos_resubscribe))
+                        lamps.append((icon, publish_lcos_resubscribe))
                         found["lcos"] += 1
                     elif sn == SML_MODE_SENSOR:
                         _disable_icon_control(icon)
-                        icon.addMouseListener(_LampClick(toggle_sml_mode))
+                        lamps.append((icon, toggle_sml_mode))
                         found["signals"] += 1
                     elif sn == TRACK_POWER_SENSOR:
                         _disable_icon_control(icon)
-                        icon.addMouseListener(_LampClick(toggle_track_power))
+                        lamps.append((icon, toggle_track_power))
                         found["power"] += 1
                 elif isinstance(icon, SignalHeadIcon):
                     if _head_sys(icon) == TURNOUT_FB_HEAD:
                         _disable_icon_control(icon)
-                        icon.addMouseListener(_LampClick(toggle_turnout_fb_mode))
+                        lamps.append((icon, toggle_turnout_fb_mode))
                         found["turnouts"] += 1
             except Exception as e:
                 print("panel_status: icon wire failed: %s" % e)
+        if lamps:
+            try:
+                # a retry (not every lamp found yet) refreshes this editor's lamps instead of adding a second listener
+                handler = _panel_clicks.get(id(ed))
+                if handler is None:
+                    handler = _PanelLampClick(ed)
+                    ed.getTargetPanel().addMouseListener(handler)
+                    _panel_clicks[id(ed)] = handler
+                handler.lamps = lamps
+            except Exception as e:
+                print("panel_status: panel click wire failed on %s: %s" % (ed, e))
 
     if found["lcos"] and found["turnouts"] and found["signals"] and found["power"]:
         _clicks_armed = True
