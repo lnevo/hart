@@ -38,7 +38,7 @@ IS:HART:C3:B:<block key>, hartlib.level_devices), as OCCUPIEDSPEC / UNOCCUPIEDSP
 2026-11-17: the physical plant is a draft, swapped in later by the device map alone); the planned detector, when the
 map has one, is kept in the bindings as _planned_occupied / _planned_unoccupied for the record and is not on the
 panel. The middle of 225's X, a desk-only block, has no sensor (owner, 2026-11-17). The helix tracks are joined on the desk (the plugin joins a helix track
-drawn on two bands logically), each band's piece a block of its own (HELIX_BLOCKS "apart", owner 2026-11-17): staging's
+drawn on two bands logically), each band's piece a block of its own (cats_helix_blocks "apart", owner 2026-11-17): staging's
 McKees Rocks and McKeesport, and the main level's Track 135-H1 and the upper level's 135-H2 with their own detectors.
 Anything else without a JMRI block, an ambiguous track, or a fact that disagrees with the drawing stops the run.
 The sheet is built once and tables.xml read once; bindings and panels come from the same plugin code.
@@ -90,8 +90,6 @@ BOUND = "Staging"                                    # the band bound to JMRI (i
 ABS_PLATE = {"CTC DIGICON": "ABS DIGICON", "DS-CTC": "DS-ABS"}
 # Main and upper: CTC on the CTC desk, CATS holds their signals and releases them (owner, 2026-11-17); ABS on the twin
 MAIN_UPPER_DISCIPLINE = "CTC"
-# A helix track drawn on staging and on main or upper: a desk block on each band, parted at the join (owner, 2026-11-17)
-HELIX_BLOCKS = "apart"
 # Main and upper turnouts are internal until the device-map import (owner, 2026-11-16): IT:HART:C3:<switch number>,
 # user name Switch <n>. On the desk each is commanded and reported by that internal turnout, closed on the drawn
 # leg B: the Layout Editor builder gives these levels no normal leg, so the plugin draws leg B as the route the
@@ -105,18 +103,9 @@ TABLES_CANDIDATE = paths.LAYOUT_OUTPUT / "trial/tables_cutover.xml"
 ORDER = ("FONTDEFINITION", "LINE", "COUNTER", "SIGNALTEMPLATE", "TRAINSTORE", "JOBSTORE", "CREWSTORE",
          "COLORDEFINITION", "TRAINSTATLABEL", "COMPRESSIONTAG", "ROWWRAPTAG", "OPERATIONS", "JMRINAME", "TRACKPLAN")
 PLATE_PX = {"FONT_SUBTITLE": (9, 15)}   # pixels per character, line height, for plate fonts the plugin does not size
-# The dispatcher's screen is 1900 x 1200 pixels. CATS opens the panel in WINDOW and draws each cell at its default
-# 30 x 30 pixel grid (the plugin's GRID_PX) with no zoom (the Grid Size is not kept in the panel). Inside the window
-# about CHROME pixels go to the frame and scrollbar (width) and to the title and menu bars and the train status line
-# (height), so the panel must show at most FIT cells: (1900 - 20) // 30 = 62 columns, (1150 - 100) // 30 = 35 rows.
-# One cell per schematic grid unit is what fits all three levels in that.
-CELLS_PER_UNIT = 1
-WINDOW = (1900, 1150)   # the dispatcher's 1900x1200 screen less a taskbar: CATS opens the panel at this size, uncropped
-CHROME = (20, 100)
-GRID_PX = 30            # checked against the plugin's cats.GRID_PX when the panel is built
-FIT = ((WINDOW[0] - CHROME[0]) // GRID_PX, (WINDOW[1] - CHROME[1]) // GRID_PX)
-MAX_COLS = FIT[0]       # the plugin drops level-only columns so the panel keeps within the window (a free column
-                        # each side: column 0 is never drawn and the track starts at column 2)
+# The desks' window, cells per grid unit and helix blocks are page preferences (main_upper.preferences.json:
+# cats_window, cats_cells_per_unit, cats_helix_blocks) the plugin reads (schematic/cats_prefs.py, cats.options),
+# which also gives the cells the desk must fit in that window.
 
 # A short unnamed track whose block is a railroad fact: the staging track (the staging device map's)
 # between the two switches holds both OS blocks, and the hand-drawn panel gave most of it to OS Switch 35a (the
@@ -540,7 +529,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
             continue
         if len(dark) < len(keys):
             raise SystemExit(f"desk block {panel_name} holds track of staging and of main or upper: a helix track "
-                             f"must be a block on each band (HELIX_BLOCKS is {HELIX_BLOCKS!r})")
+                             "must be a block on each band (cats_helix_blocks \"apart\")")
         if any(k[0] in ("corner", "xmid") for k in keys):
             # a double crossover's corner or the middle of its X: the plugin named it from the corners binding
             # (level_switch_bindings), which is the device map's name
@@ -744,8 +733,9 @@ def bound_index(bands):
     return bi
 
 
-def bindings(bands, cats, F):
-    """The bindings for every band, from the facts (see the module docstring)."""
+def bindings(bands, cats, F, o):
+    """The bindings for every band, from the facts (see the module docstring); `o` the page's CATS preferences
+    (cats.options)."""
     bi = bound_index(bands)
     _, band, opts = bands[bi]
     os_of = os_blocks(band, F)
@@ -756,7 +746,7 @@ def bindings(bands, cats, F):
     # the panel's block names once the switches name their OS blocks (and a double crossover its corners)
     named = {k: {"block": v["block"]} for k, v in out_sw.items()}
     named.update({k: {"corners": v["corners"]} for k, v in level_sw.items() if "corners" in v})
-    P = cats.panel(bands, scale=CELLS_PER_UNIT, helix_blocks=HELIX_BLOCKS,   # names only: no column trimming
+    P = cats.panel(bands, scale=o["scale"], helix_blocks=o["helix_blocks"],   # names only: no column trimming
                    bindings={"switches": named})
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:")}
     blocks = block_bindings(band, F, names)
@@ -797,11 +787,11 @@ def plate_box(cats, cell, loc, text, font):
     return cats.frill_box(cell, loc, per * len(text) + 4, h)
 
 
-def dress(cats, root, header, plate, desk):
+def dress(cats, root, header, plate, desk, fit):
     """The generated document `root` with the frozen header and the plate: the template's fonts the plugin does
     not write (its own keep their values), the template's other elements in place of the plugin's copies, every
     element in the live desk's order, and the plate's labels on free cells of their row, clear of each other and of
-    the labels there. desk "ABS": every CTC block ABS and the plate's ABS words."""
+    the labels there, within the `fit` columns. desk "ABS": every CTC block ABS and the plate's ABS words."""
     fonts = {el.get("FONTKEY"): el for el in root.findall("FONTDEFINITION")}
     taken = {el.tag for el in header}           # a tag the header supplies replaces the plugin's copies
     kids = [el for el in root if el.tag != "FONTDEFINITION"]
@@ -845,8 +835,8 @@ def dress(cats, root, header, plate, desk):
         hit = [c for c, b in boxes if b[1] < box[3] and box[1] < b[3] and b[0] < box[2] + 6 and box[0] < b[2] + 6]
         if hit:
             raise SystemExit(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs into the label at {hit[0]}")
-        if box[2] > (FIT[0] + 1) * GRID_PX:
-            raise SystemExit(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs past column {FIT[0]}")
+        if box[2] > (fit[0] + 1) * cats.GRID_PX:
+            raise SystemExit(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs past column {fit[0]}")
         boxes.append((cell, box))
         where[cell] = sec
     for sec in tp.findall("SECTION"):
@@ -861,31 +851,44 @@ def dress(cats, root, header, plate, desk):
     return "<?xml version='1.0' encoding='UTF-8'?>\n" + ET.tostring(root, encoding="unicode") + "\n"
 
 
+def desk_options(cats, page, bands):
+    """The page's CATS preferences (cats.options), which must hold the desks' window: they fit the dispatcher's."""
+    try:
+        o = cats.options(page, bands)
+    except cats.SchematicError as e:
+        sys.exit(f"error: {e}")
+    if o["fit"] is None:
+        sys.exit("error: the page's preferences hold no cats_window; the desks must fit the dispatcher's window")
+    return o
+
+
 def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
     F = load_facts()
-    bands = name_loop_halves(pd.solved_sheet(sheet).bands, F.device)
+    s = pd.solved_sheet(sheet)
+    bands = name_loop_halves(s.bands, F.device)
+    o = desk_options(cats, s.opts, bands)
+    window, fit = o["window"], o["fit"]
     level_signals(bands, F, bound_index(bands))
-    text = json.dumps(bindings(bands, cats, F), indent=1, sort_keys=True) + "\n"
+    text = json.dumps(bindings(bands, cats, F, o), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")
-    if cats.GRID_PX != GRID_PX:
-        sys.exit(f"error: the plugin draws a {cats.GRID_PX} pixel grid; FIT here assumes {GRID_PX}")
     header, plate = frozen_header()
     try:
-        P = cats.panel(bands, scale=CELLS_PER_UNIT, bindings=json.loads(text), max_cols=MAX_COLS,
-                       helix_blocks=HELIX_BLOCKS)
-        cats.check_fit(P, *FIT)
+        P = cats.panel(bands, scale=o["scale"], bindings=json.loads(text), max_cols=fit[0],
+                       helix_blocks=o["helix_blocks"])
+        cats.check_fit(P, *fit)
         for desk, path in (("CTC", out), ("ABS", out_abs)):
             if path is not None:
-                Path(path).write_text(dress(cats, cats.to_xml(P, "CTC", header, WINDOW), header, plate, desk),
+                Path(path).write_text(dress(cats, cats.to_xml(P, "CTC", header, window), header, plate, desk, fit),
                                       encoding="utf-8")
     except cats.SchematicError as e:
         sys.exit(f"error: {e}")
     cols, rows = cats.shown(P)
+    g = cats.GRID_PX
     print(", ".join(t for t, _, _ in bands) + ": " + cats.summary(P) +
-          f"; shows {cols} x {rows} cells ({cols * GRID_PX} x {rows * GRID_PX} pixels at the {GRID_PX} pixel grid), "
-          f"fit {FIT[0]} x {FIT[1]} in a {WINDOW[0]} x {WINDOW[1]} window")
+          f"; shows {cols} x {rows} cells ({cols * g} x {rows * g} pixels at the {g} pixel grid), "
+          f"fit {fit[0]} x {fit[1]} in a {window[0]} x {window[1]} window")
     print("\n".join(P.log))
 
 
