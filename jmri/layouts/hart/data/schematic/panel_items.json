@@ -1,6 +1,5 @@
 {
  "_note": "Fixed items of the HART Railroad Layout Editor panel that the schematic does not draw; tools/schematic/panel_items.py reads and places them. Kept by hand. First written 2026-11-17 from the approved staging candidate's placements (build_layout_le.py --levels staging --as-live), so the device-map path puts them where that candidate has them. The status cluster keeps the names panel_status.py looks for. The panel's attributes and drawing options were copied from staging_le/panel.json (the hand-drawn panel's); the build sets its name, place and size.",
- "panel": "HART Railroad",
  "attributes": {
   "sliders": "no",
   "scrollable": "none",

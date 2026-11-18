@@ -6,7 +6,7 @@ placed by rule (build_layout_le.py). It holds the status cluster panel_status.py
 Bridge HBLOOP, SML Mode and Track Power, the signal head icon IH9990 and their captions), the frame captions, the
 helix destination labels and the backdrop image. More panel customisations go in the same file.
 
-    {"_note": "...", "panel": "HART Railroad",
+    {"_note": "...",
      "items": [{"id": "status", "anchor": {"to": "drawing", "at": "bottom-right", "dx": -78, "dy": 10},
                 "members": [{"dx": 0, "dy": 0, "size": [21, 21], "xml": "<sensoricon sensor=... />"}, ...]},
                {"id": "backdrop", "anchor": {"to": "origin", "dx": 9, "dy": 0}, "size": [0, 0], "xml": "..."}]}
@@ -40,7 +40,7 @@ EDGE = 20               # px kept free beyond the furthest item at the right and
 ITEM_FIELDS = {"id", "anchor", "xml", "size", "members", "note"}
 MEMBER_FIELDS = {"dx", "dy", "xml", "size"}
 ANCHOR_FIELDS = {"to", "at", "block", "dx", "dy"}
-FILE_FIELDS = {"_note", "panel", "attributes", "drawing_options", "items"}
+FILE_FIELDS = {"_note", "attributes", "drawing_options", "items"}    # the panel is the build's (TEMPLATE_PANEL)
 # the panel attributes the build writes (the plugin's to_xml: name, place and size), never the file
 SET_BY_BUILD = {"class", "name", "x", "y", "panelwidth", "panelheight", "windowwidth", "windowheight"}
 
@@ -94,8 +94,6 @@ def load(path: Path) -> dict:
         raise ItemsError(f"cannot read {path.name}: {exc}") from None
     if not isinstance(data, dict) or not isinstance(data.get("items"), list) or not data["items"]:
         raise ItemsError(f"{path.name}: needs a non-empty items list")
-    if not isinstance(data.get("panel"), str):
-        raise ItemsError(f"{path.name}: needs the panel's name")
     if set(data) - FILE_FIELDS:
         raise ItemsError(f"{path.name}: unknown keys {sorted(set(data) - FILE_FIELDS)}")
     attrs = data.get("attributes")

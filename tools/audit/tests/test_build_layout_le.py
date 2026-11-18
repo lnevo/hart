@@ -601,6 +601,8 @@ class SecondReview(unittest.TestCase):
         P, el, le_mod = self.fake(1)
         with self.assertRaisesRegex(B.BuildError, "N is not on the panel"):
             B.check_device_masts(P, [{"mast": "N", "kind": "anchor"}], le_mod, facts={})
+        with self.assertRaisesRegex(B.BuildError, "M was not asked for"):      # a staging mast nobody listed
+            B.check_device_masts(P, [], le_mod, facts={})
 
     def test_the_trial_is_never_written_over_the_live_tables(self) -> None:
         self.assertTrue(B.live_target(paths.TABLES_XML))

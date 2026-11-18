@@ -120,7 +120,7 @@ MAX_COLS = FIT[0]       # the plugin drops level-only columns so the panel keeps
 
 # A short unnamed track whose block is a railroad fact: the staging track (the staging device map's)
 # between the two switches holds both OS blocks, and the hand-drawn panel gave most of it to OS Switch 35a (the
-# generated Layout Editor panel splits it evenly). The named block must be one the frozen track holds.
+# generated Layout Editor panel splits it evenly). The named block must be one that staging track holds.
 SHORT_TRACK_BLOCKS = {"35-37": "OS Switch 35a"}
 
 
@@ -134,17 +134,17 @@ def plugin_modules(plugin):
     return cats, sheet
 
 
-class FrozenTracks:
+class StagingTracks:
     """The staging tracks between switches and ends, each with its blocks in order: staging_device_map.staging_chains
     (ends by switches.csv le_ident)."""
 
     def __init__(self, chains):
-        self.chains = chains            # [{ends: [(ident, leg), (ident, leg) or ("END", bumper)], blocks: [...]}]
+        self.chains = chains            # [{ends: [(le_ident or "END", band port), ...], blocks: [...]}]
 
     def block_between(self, a, b, what, fixed=None):
-        """The block of the one frozen track from turnout `a` to `b`: its only block, or `fixed` when given (it must
+        """The block of the one staging track from turnout `a` to `b`: its only block, or `fixed` when given (it must
         be one of the track's blocks). Stops when there is no such track, several, or a track of several blocks
-        and no `fixed` (the frozen tracks have no lengths to choose by)."""
+        and no `fixed` (the tracks have no lengths to choose by)."""
         found = [c for c in self.chains if {e[0] for e in c["ends"]} == {a, b} and "END" not in
                  {e[0] for e in c["ends"]} and a != b]
         if len(found) != 1:
@@ -181,7 +181,7 @@ class Facts:
     turnout_io: dict            # Layout Editor turnout -> (M2T address, user name)
     occupancy: dict             # block -> (M2S address, sensor user name)
     discipline: dict            # block -> CATS discipline
-    layout: FrozenTracks
+    layout: StagingTracks
     templates: dict             # mast user name -> signal template
     masts: set                  # JMRI mast user names
     device: DeviceMap = field(default_factory=DeviceMap)   # main and upper
@@ -194,7 +194,8 @@ class Facts:
 def staging_tracks() -> list[dict]:
     """The staging tracks (staging_device_map.staging_chains) of the staging band as the Layout Editor draws it."""
     try:
-        band, _opts, _core = sdm.staging_band()
+        with pd.cache_on():
+            band, _opts, _core = sdm.staging_band()
         return sdm.staging_chains(band, sdm.load(band))
     except (sdm.StagingMapError, sdm.lc.BuildError) as exc:      # the map, or the plugin and the drawing
         raise SystemExit(f"build_cats_panel.py: staging device map: {exc}") from None
@@ -208,7 +209,7 @@ def load_facts():
     try:
         t = rr.tables
         return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
-                     FrozenTracks(staging_tracks()), mast_templates(), set(t.masts), rr.device_map,
+                     StagingTracks(staging_tracks()), mast_templates(), set(t.masts), rr.device_map,
                      t.sensors, t.turnouts, t.masts, rr.level_masts)
     except railroad.FactsError as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None

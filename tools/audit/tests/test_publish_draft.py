@@ -203,6 +203,14 @@ class SignalsCheck(unittest.TestCase):
     def test_stale_fails(self) -> None:
         self.assertEqual(self.run_with('{"signals": [], "unplaced": []}\n'), 1)   # layers.load reads it too
 
+    def test_a_solve_that_cannot_read_its_own_output_stops_clearly(self) -> None:
+        # the staging band is solved, and the solve reads staging.signals.json, which build_signals writes
+        with mock.patch.object(self.bs.sdm, "staging_band", side_effect=ValueError("Expecting value: line 1")):
+            with self.assertRaises(SystemExit) as e:
+                self.bs.staging_facts()
+        self.assertIn("staging.signals.json, which this script writes", str(e.exception.code))
+        self.assertIn("git checkout --", str(e.exception.code))
+
     def test_written_from_the_staging_masts(self) -> None:
         masts = self.bs.sdm.load_signal_masts()
         self.assertEqual(len(masts), 49)

@@ -71,7 +71,7 @@ def facts(**kw):
         ["OS Switch 1", "OS Switch 2a", "OS Switch 2b", "Track West", "Track Yard", "Track Main", "Track East",
          "Track Loop"])}
     f = B.Facts(switches, {"TO1": ("11", "Switch 1"), "TO2": ("12", "Switch 2")}, occupancy, {},
-                B.FrozenTracks(CHAINS), {"Mast 1L": "single"}, {"Mast 1L"})
+                B.StagingTracks(CHAINS), {"Mast 1L": "single"}, {"Mast 1L"})
     for k, v in kw.items():
         setattr(f, k, v)
     return f
@@ -162,22 +162,22 @@ class Switches(unittest.TestCase):
             B.switch_bindings(b, f, B.os_blocks(b, f))
 
 
-class FrozenLayoutEditorTracks(unittest.TestCase):
+class StagingTracks(unittest.TestCase):
     def test_a_track_of_one_block_is_that_block(self):
-        self.assertEqual(B.FrozenTracks(CHAINS).block_between("TO3", "TO2", "t"), "Track Main")
+        self.assertEqual(B.StagingTracks(CHAINS).block_between("TO3", "TO2", "t"), "Track Main")
 
     def test_no_track_two_tracks_or_a_bumper_stop(self):
-        tracks = B.FrozenTracks(CHAINS)
+        tracks = B.StagingTracks(CHAINS)
         with self.assertRaisesRegex(SystemExit, "no staging tracks join TO2 and TO9"):
             tracks.block_between("TO2", "TO9", "t")
         with self.assertRaisesRegex(SystemExit, "no staging tracks join"):
             tracks.block_between("TO1", "END", "t")               # a track to a bumper joins no two switches
-        twice = B.FrozenTracks(CHAINS + [{"ends": [("TO2", "C"), ("TO1", "D")], "blocks": ["X"]}])
+        twice = B.StagingTracks(CHAINS + [{"ends": [("TO2", "C"), ("TO1", "D")], "blocks": ["X"]}])
         with self.assertRaisesRegex(SystemExit, "2 staging tracks join"):
             twice.block_between("TO1", "TO2", "t")
 
     def test_a_track_of_several_blocks_needs_a_fixed_one_on_it(self):
-        tracks = B.FrozenTracks(CHAINS)
+        tracks = B.StagingTracks(CHAINS)
         with self.assertRaisesRegex(SystemExit, "holds blocks OS Switch 1, OS Switch 2a; name the one"):
             tracks.block_between("TO1", "TO2", "t")
         self.assertEqual(tracks.block_between("TO1", "TO2", "t", "OS Switch 2a"), "OS Switch 2a")
@@ -195,7 +195,7 @@ class FrozenLayoutEditorTracks(unittest.TestCase):
             if os.environ.get("SCHEMATIC_REQUIRED") == "1":
                 raise
             self.skipTest(f"schematic-maps plugin not available: {exc.code}")
-        tracks = B.FrozenTracks(B.staging_tracks())
+        tracks = B.StagingTracks(B.staging_tracks())
         self.assertEqual(tracks.block_between("TOR36", "TO113", "t", "OS Switch 35a"), "OS Switch 35a")
 
 
@@ -204,7 +204,7 @@ class Blocks(unittest.TestCase):
         b = band()
         names = {("os", "b0:N1"): "OS Switch 1", ("track", "b0:w"): "West", ("track", "b0:s12"): "1-2"}
         with self.assertRaisesRegex(SystemExit, "block 1-2: .* holds blocks OS Switch 1, OS Switch 2a"):
-            B.block_bindings(b, facts(), names)       # the frozen track holds two blocks and none is named
+            B.block_bindings(b, facts(), names)       # the staging track holds two blocks and none is named
         with mock.patch.dict(B.SHORT_TRACK_BLOCKS, {"1-2": "OS Switch 1"}):
             out = B.block_bindings(b, facts(), names)
         self.assertNotIn("name", out["OS Switch 1"])

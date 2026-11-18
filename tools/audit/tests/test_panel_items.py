@@ -24,7 +24,7 @@ def write(data) -> Path:
 
 
 def items(*its):
-    return {"panel": "HART Railroad", "items": list(its)}
+    return {"items": list(its)}
 
 
 class Load(unittest.TestCase):

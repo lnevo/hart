@@ -832,12 +832,12 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
     changes += bci_changes
     errors.extend(bci_errors)
 
-    # After the turnout and anchor fixes above, as the lamp spots are read off that geometry.
-    targets, notes = lamp_targets(root, le, ref)
-    _print_notes(path, notes)
     # The OS occupancy dots are the Dispatcher System's: parked with it (owner, 2026-11-17; their places are kept in
-    # jmri/layouts/hart/parked/staging_panel_lamps.json), so they are wanted only while it is not parked
+    # jmri/layouts/hart/parked/staging_panel_lamps.json), so they and their spots are wanted only while it is not
+    # parked. The spots are read after the turnout and anchor fixes above, off that geometry.
     if "dispatcher" not in parked.PARKED:
+        targets, notes = lamp_targets(root, le, ref)
+        _print_notes(path, notes)
         os_added, os_errors = ensure_os_occupancy_icons(le, check=check, targets=targets)
         changes += os_added
         errors.extend(os_errors)

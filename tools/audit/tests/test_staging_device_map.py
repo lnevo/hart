@@ -130,6 +130,18 @@ class Files(unittest.TestCase):
         bad = tmp / "cps.csv"
         bad.write_text(sdm.CPS.read_text(encoding="utf-8").replace('"1,3"', '"1"'), encoding="utf-8")
         self.assertTrue(sdm.check_control_points(bad))
+        spaced = tmp / "spaced.csv"                     # spaces and an empty entry in a switches cell are no switch
+        spaced.write_text(sdm.CPS.read_text(encoding="utf-8").replace('"1,3"', '" 1, 3,"'), encoding="utf-8")
+        self.assertEqual(sdm.check_control_points(spaced), [])
+
+    def test_a_mast_on_a_switch_with_no_turnout_row_stops(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        bad = tmp / "masts.csv"
+        bad.write_text(sdm.MASTS.read_text(encoding="utf-8").replace("Mast 2L,Brick,1,", "Mast 2L,Brick,99,"),
+                       encoding="utf-8")
+        with self.assertRaisesRegex(sdm.StagingMapError, "Mast 2L is on switch '99', which no turnout row"):
+            sdm.load(self.band, masts_path=bad)
 
     def test_the_run_walk_counts_a_block_through_a_turnback_once(self):
         runs = sdm.run_blocks(self.band, self.names)
@@ -186,6 +198,26 @@ class DeviceMapBuild(unittest.TestCase):
         self.assertEqual(sensors, {"Bridge HBLOOP", "SML Mode", "Track Power"})
         self.assertEqual([el.get("signalhead") for el in self.panel.findall("signalheadicon")], ["IH9990"])
         self.assertTrue(self.tables.generated_panel(self.panel))
+
+    def test_the_boundary_contract_follows_the_drawn_panel(self):
+        self.B.check_boundaries(self.panel)                     # the committed file: every mast where it says
+        text = self.B.BOUNDARIES.read_text(encoding="utf-8")
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        for old, new, why in (("anchor,AG33,east", "anchor,AG34,east", "Mast 8RA: recorded anchor AG34 east"),
+                              ('(owner, 2026-11-16)",C', '(owner, 2026-11-16)",B', "Mast 14R: recorded turnout TO1 B")):
+            with self.subTest(row=old):
+                path = tmp / "b.csv"
+                path.write_text(text.replace(old, new), encoding="utf-8")
+                with self.assertRaisesRegex(self.B.BuildError, why):
+                    self.B.check_boundaries(self.panel, path)
+
+    def test_a_staging_mast_on_an_unknown_switch_is_a_build_error(self):
+        import le_checks
+        from unittest import mock
+        with mock.patch.object(sdm, "mast_facts", side_effect=sdm.StagingMapError("x is on switch 99")):
+            with self.assertRaisesRegex(self.B.BuildError, "staging device map: x is on switch 99"):
+                le_checks.check_device_masts(self.P, [], self.B.plugin()[1])
 
     def test_the_panel_attributes_are_the_items_files(self):
         import panel_items

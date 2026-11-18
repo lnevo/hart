@@ -1,6 +1,5 @@
 {
  "_note": "Parked with the Dispatcher System (owner, 2026-11-17): the occupancy lamps and the station clusters (MoveTo buttons, move-in-progress lamps, station occupancy lamps) of the HART Railroad panel, where the approved staging candidate placed them (build_layout_le.py --levels staging --as-live, from staging_le/overlay.json). In panel_items.json form (tools/schematic/panel_items.py), each anchored at its block's drawn centre, so it lands where it stands today while the staging track is drawn the same. To unpark: README.md, 'Staging panel lamps'.",
- "panel": "HART Railroad",
  "items": [
   {
    "id": "lamp Track Main East: BS Main East",

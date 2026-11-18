@@ -81,10 +81,13 @@ def runs(band, skip=()):
     return out
 
 
-# Staging switches whose generated turnout swaps the live leg letters B and C (and so its continuing route): JMRI
-# draws a plain turnout's leg A in line with leg B, so a switch whose live leg B is the diverging track on the sheet
-# can be drawn as the sheet has it only with that track on leg C (owner, 2026-11-16). A mast on such a leg moves to
-# the other letter with it (le_signal_boundaries.csv's generated_slot); the blocks stay.
+# Staging switches whose generated turnout has the hand-drawn panel's leg letters B and C swapped (and so its
+# continuing route): JMRI draws a plain turnout's leg A in line with leg B, so a switch whose hand-drawn leg B is the
+# diverging track on the sheet is drawn as the sheet has it only with that track on leg C (owner, 2026-11-16). The
+# plugin draws every staging turnout so by itself (leg B the straight leg), so this list sets nothing in the drawing:
+# it records which switches differ from the hand-drawn letters. A mast on such a leg stands on the other letter
+# (le_signal_boundaries.csv's generated_slot, held to this list by check_swapped_slots), and check_boundaries stops
+# the build unless the drawn panel puts each mast there.
 LEGS_SWAPPED = {"13": "Barn on leg C, so 15-13-11 is drawn level as on the sheet (owner, 2026-11-16)"}
 
 

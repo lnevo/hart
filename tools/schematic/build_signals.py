@@ -112,11 +112,25 @@ def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str
 
 def staging_facts() -> tuple[list[dict], list[dict]]:
     """(the staging masts, the staging tracks with their blocks) from the staging device map's files
-    (staging_device_map.load_signal_masts and staging_chains)."""
+    (staging_device_map.load_signal_masts and staging_chains). The masts come from the files alone; the tracks need
+    the staging band, so the schematic is solved, and the solve reads staging.signals.json (a layer file), the file
+    this script writes. Its masts do not change the band's tracks, so a stale file is harmless; one that does not
+    load stops here, naming the file to restore (git checkout) before running this again."""
     try:
-        band, _opts, _core = sdm.staging_band()
-        return sdm.load_signal_masts(), sdm.staging_chains(band, sdm.load(band))
-    except (sdm.StagingMapError, sdm.lc.BuildError) as exc:      # the map, or the plugin and the drawing
+        masts = sdm.load_signal_masts()
+    except sdm.StagingMapError as exc:
+        sys.exit(f"ERROR: staging device map: {exc}")
+    signals = pd.DATA / "staging.signals.json"
+    try:
+        with pd.cache_on():
+            band, _opts, _core = sdm.staging_band()
+    except (sdm.StagingMapError, sdm.lc.BuildError, ValueError, KeyError, OSError) as exc:
+        sys.exit(f"ERROR: cannot solve the staging band for its tracks ({type(exc).__name__}: {exc}). The solve "
+                 f"reads {signals.name}, which this script writes: if that file is damaged, restore it "
+                 f"(git checkout -- {pd.paths.rel(signals)}) and run this again")
+    try:
+        return masts, sdm.staging_chains(band, sdm.load(band))
+    except (sdm.StagingMapError, sdm.lc.BuildError) as exc:      # the map against the drawing
         sys.exit(f"ERROR: staging device map: {exc}")
 
 

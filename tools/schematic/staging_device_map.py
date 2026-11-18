@@ -161,8 +161,9 @@ def occupancy_blocks(r: dict) -> list[str]:
 
 
 def check_rows(rows: list[dict]) -> None:
-    """Every block has exactly one occupancy row naming it; no two rows of one layer share a system name or (but the
-    turnouts' LCC aliases, their own devices) a jmri_name; every row is a whole field device."""
+    """Every block has exactly one occupancy row naming it; no two rows of one layer share a system name, a jmri_name
+    or a user name (a turnout's LCC alias "DCC Switch <n>" is a turnout of its own, MTT<dcc>, with its own names);
+    every row is a whole field device."""
     bad = []
     blocks = [r["user_name"] for r in rows if r["layer"] == "block"]
     served = [b for r in rows if r["layer"] == "occupancy" for b in occupancy_blocks(r)]
@@ -231,7 +232,7 @@ def leg_first_blocks(band, names: dict) -> dict:
 
 def normal_legs(band, names: dict) -> dict:
     """{plain switch node: "B" or "C"}: the drawn leg whose first block is the switch's closed leg in switch_legs.csv
-    ("Track S-4 West" counts as S-4, as build_layout_le.staging_names reads it)."""
+    ("Track S-4 West" counts as S-4: a throat block is part of its yard track)."""
     closed = closed_legs()
     first = leg_first_blocks(band, names)
     halves = crossover_halves(band)
@@ -336,13 +337,17 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
 def load_masts(path: Path, cp_names: set, device_rows: list[dict]) -> list[dict]:
     """The plugin's staging masts from staging_masts.csv: each with its facing and protected blocks, its kind of slot
     (mast_kind), hidden for a virtual mast and its icon size (hartlib.tables.mast_icon_size). Stops on a row whose
-    mast, heads or system name the device map does not hold as the same mast."""
+    mast, heads or system name the device map does not hold as the same mast, or whose switch no turnout row is."""
     rows = read_rows(path, level_masts.FIELDS)
     dev = {(r["layer"], r["user_name"]): r for r in device_rows}
     heads = {r["system_name"]: r["user_name"] for r in device_rows if r["layer"] == "head"}
+    switches = {r["trial_name"].removeprefix("Switch ") for r in device_rows
+                if r["layer"] == "turnout" and r["trial_name"].startswith("Switch ")}
     out, bad, seen = [], [], set()
     for i, r in enumerate(rows, 2):
         name = r["mast"]
+        if r["switch"] and r["switch"] not in switches:
+            bad.append(f"line {i}: {name} is on switch {r['switch']!r}, which no turnout row of the device map is")
         d = dev.get(("mast", name))
         if name in seen or d is None:
             bad.append(f"line {i}: mast {name!r} given twice or not in the device map")
@@ -367,7 +372,7 @@ def load_masts(path: Path, cp_names: set, device_rows: list[dict]) -> list[dict]
                      hidden=r["system_name"].startswith("IF$vsm:"), icon=list(size))
         if r["leg"]:
             entry["leg"] = r["leg"]
-        if entry["kind"] == "end bumper":       # may stand at a helix join instead (le_names.plugin_masts does too)
+        if entry["kind"] == "end bumper":       # may stand at a helix join instead (the three-level panel)
             entry["or_join"] = True
         out.append(entry)
     if bad:
@@ -377,8 +382,8 @@ def load_masts(path: Path, cp_names: set, device_rows: list[dict]) -> list[dict]
 
 def load_signal_masts(path: Path | None = None, masts_path: Path | None = None) -> list[dict]:
     """The staging masts as build_signals.py reads them: staging_signals.csv's plan facts joined with
-    staging_masts.csv's blocks and slot kind (mast_kind), with the fields signal_rows and
-    signal_rows and build_signals.check_lengths read). Stops on a mast in one file and not the other, or a value
+    staging_masts.csv's blocks and slot kind (mast_kind), with the fields signal_rows and build_signals.check_lengths
+    read). Stops on a mast in one file and not the other, or a value
     that is not as the frozen file held it."""
     path, masts_path = path or SIGNALS, masts_path or MASTS
     plan = read_rows(path, SIGNAL_COLUMNS)
@@ -463,7 +468,8 @@ def check_control_points(path: Path = CPS, overrides: Path = OVERRIDES) -> list[
     if not isinstance(want, dict) or not want:
         return [f"{overrides.name}: no control_points object"]
     rows = read_rows(path, CP_COLUMNS)
-    got = [(r["cp_name"], r["cp_id"], r["switches"].split(","), r["level"]) for r in rows]
+    got = [(r["cp_name"], r["cp_id"], [x.strip() for x in r["switches"].split(",") if x.strip()], r["level"])
+           for r in rows]
     exp = [(name, f"cp_{(cp or {}).get('code', '').lower()}", list((cp or {}).get("switches") or []), str(LEVEL))
            for name, cp in want.items()]
     return [] if got == exp else [f"{path.name} is not {overrides.name}'s control points: {got} != {exp}"]

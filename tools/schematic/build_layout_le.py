@@ -44,8 +44,8 @@ stock discovery in a sandbox (jmri/layouts/hart/parked/README.md).
 Staging alone. `--levels staging` draws the staging band alone: its helix tracks end at end bumpers, its rows
 STAGING_ROW px apart, and no main or upper object is added to the tables. With `--as-live` it writes
 jmri/layouts/hart/output/trial/tables_cutover_staging.xml: the tables with the "HART Railroad" panel replaced, in its
-place (or put before the first Layout Editor panel when there is none), by the generated one under panel_items.json's
-name and attributes, sized by FIT and opening at 0, 0; everything else unchanged. Staging's turnouts keep their
+place (or put before the first Layout Editor panel when there is none), by the generated one under that name and
+panel_items.json's attributes, sized by FIT and opening at 0, 0; everything else unchanged. Staging's turnouts keep their
 switches.csv idents; anchors, end bumpers and segments take generated idents (owner, 2026-11-17), which
 le_signal_boundaries.csv follows. Every staging mast goes in the one slot whose facing and protected blocks and kind of
 slot are its own (staging_masts.csv; the plugin's slots.py holds JMRI's rules), its icon on the right-hand side of the
@@ -95,6 +95,7 @@ from le_names import (  # noqa: E402,F401  re-exported: callers and tests read t
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BOUNDARIES, check_swapped_slots, mast_band, check_level_slots, check_unplaced, turnout_facts, check_device_masts,
+    check_boundaries,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BLOCK_NUMBERED_AS, APPENDED_BLOCKS, COMMENT, place, bean, r1, block_sort,
@@ -116,7 +117,7 @@ TRIAL_STAGING = paths.LAYOUT_OUTPUT / "trial" / "tables_layout_staging.xml"
 LEVELS = ("all", "staging")
 PANEL_ITEMS = pd.DATA / "panel_items.json"
 PANEL_NAME = "Layout (generated)"
-TEMPLATE_PANEL = "HART Railroad"     # the panel the cut-over candidate replaces (panel_items.json names it)
+TEMPLATE_PANEL = "HART Railroad"     # the panel the cut-over candidate replaces, and its name
 
 # The window the panel opens in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside
 # it less Layout Editor's 18 x 60 px frame allowance). Width: the whole 1900, so the panel is at most 1882 (the
@@ -181,8 +182,6 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         items = panel_items.load(PANEL_ITEMS)
     except panel_items.ItemsError as exc:
         raise BuildError(f"panel items: {exc}") from None
-    if items["panel"] != TEMPLATE_PANEL:
-        raise BuildError(f"{paths.rel(PANEL_ITEMS)} is for panel {items['panel']!r}, not {TEMPLATE_PANEL!r}")
     _sheet, le_mod, core = plugin()
     # the page options come from the solved sheet (schematic()), for the bands given too unless `page` is (the
     # three-level build passes its own on to the staging candidate it draws first)
@@ -216,7 +215,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         raise BuildError(f"{live_path} already holds the main and upper objects (the cut-over is done): build on "
                          f"the last hand-drawn tables (the command does so by itself: hartlib.hand_drawn, git "
                          f"{hand_drawn.COMMIT})")
-    panel_name = items["panel"] if as_live else PANEL_NAME
+    panel_name = TEMPLATE_PANEL if as_live else PANEL_NAME
     if not as_live and any(le.get("name") == PANEL_NAME for le in tables.layout_editors(root)):
         raise BuildError(f"{live_path} already has a panel named {PANEL_NAME}")
     if not tables.layout_editors(root):
@@ -316,6 +315,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         # the marker that tells polish_hart_layout_editor.py and the other hand-pixel scripts to leave positions alone
         opts = panel_el.find("layoutTrackDrawingOptions")
         panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
+        # the boundary contract's idents and slots (generated anchor idents renumber with the drawing): stop loudly
+        check_boundaries(panel_el)
         if levels == "staging" and approved is not None:
             try:
                 check_approved(panel_el, approved)
