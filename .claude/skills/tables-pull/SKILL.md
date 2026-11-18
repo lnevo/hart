@@ -9,15 +9,14 @@ description: Use when a PanelPro Store has changed ~/JMRI_UserFiles/tables.xml a
 
 ## Before you run it
 
-- Quit PanelPro and CATS. The script refuses to run while either is open.
-- Do not run table scripts while they are open either.
+- Let a Store finish before you pull. A PanelPro or CATS open on the Mac does not stop the script.
 - Do not store tables from a CATS session. PanelPro owns `tables.xml`.
 
 ## Steps
 
 1. `make tables-pull` (runs `tools/ops/pull_tables.sh`).
 2. The script:
-   - stops if PanelPro or CATS is running, or if `~/JMRI_UserFiles/tables.xml` is missing;
+   - stops if `~/JMRI_UserFiles/tables.xml` is missing;
    - exits with "already matches" if the files are identical;
    - otherwise copies the Store over the repo file and writes `~/JMRI_UserFiles/.tables_deployed.sha256`, which clears the deploy guard.
 3. Review `git diff jmri/layouts/hart/output/tables.xml`. Check that only the changes you expect are there. Expected extra: the memory `IMHART_MIMIC` gaining an "ack <n>" value after a Pi Store (see `wiki/pipelines/mqtt-mimic.md`).

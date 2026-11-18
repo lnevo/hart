@@ -31,8 +31,8 @@ def load(name: str):
     return module
 
 
-def run(script: str, *args: str, home: Path, jmri_running: str = "0") -> subprocess.CompletedProcess:
-    env = dict(os.environ, HOME=str(home), HART_GUARD_JMRI_RUNNING=jmri_running)
+def run(script: str, *args: str, home: Path) -> subprocess.CompletedProcess:
+    env = dict(os.environ, HOME=str(home))
     return subprocess.run(
         [sys.executable, str(SCRIPTS / script), *args],
         capture_output=True, text=True, env=env, cwd=home,

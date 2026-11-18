@@ -14,7 +14,6 @@
 #   - The commit must be on origin/main (git fetch first); --allow-unmerged permits others.
 #   - It must have tools/hosts/sync_hart_package.sh with the deploy stamp (ADR-007
 #     amendment 2026-11-12). Older commits are refused.
-#   - Not while PanelPro, DecoderPro or CATS runs on this machine (a real run only).
 #   - A PanelPro Store in ~/JMRI_UserFiles/tables.xml that is not pulled stops it: run
 #     make tables-pull first. HART_OVERWRITE_PROFILE_TABLES=1 overrides, as for a deploy.
 #   - Operations Pro files keep their guards (HART_OVERWRITE_OPS=0): a Pi session that is

@@ -40,7 +40,7 @@ After any task that **changed files**, do not wait to be asked:
 5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CATS resources: run `sync_hart_package.sh --pi --win` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
 6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
 
-Sheets push (`.env.local`) stays human-gated. Hooks enforce the rules above and under **Do not**: `.claude/hooks/main_guard.py` (Cursor: `.cursor/hooks.json`) covers git on `main`, force-push, admin merge, `track/cmd` publishes (it asks) and the private name in commit, PR or issue text; `edit_guard.py` covers edits in the main checkout; `check_after_edit.py` runs the quick checks after a `tables.xml` or signal edit; `worktree_sweep.py` removes merged worktrees.
+Sheets push (`.env.local`) stays human-gated. Hooks enforce some of these rules: `.claude/hooks/main_guard.py` (Cursor: `.cursor/hooks.json`) covers git on `main`, force-push, admin merge, `track/cmd` publishes (it asks) and the private name in commit, PR or issue text; `edit_guard.py` covers edits in the main checkout; `check_after_edit.py` runs the quick checks after a `tables.xml` or signal edit; `worktree_sweep.py` removes merged worktrees.
 
 ## Working on existing scripts
 
