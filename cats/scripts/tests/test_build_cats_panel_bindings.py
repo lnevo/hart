@@ -151,8 +151,12 @@ class Switches(unittest.TestCase):
             B.half_label(taken, taken.legs[0])
 
     def test_fit_comes_from_the_window(self):
-        self.assertEqual(B.FIT, ((B.WINDOW[0] - B.CHROME[0]) // B.GRID_PX, (B.WINDOW[1] - B.CHROME[1]) // B.GRID_PX))
-        self.assertLessEqual(B.MAX_COLS, B.FIT[0])
+        o = desk_options()
+        self.assertEqual((o["window"], o["fit"]), ((1900, 1150), (62, 35)))   # (1900 - 20) // 30, (1150 - 100) // 30
+        with self.assertRaisesRegex(SystemExit, "no cats_window"):
+            B.desk_options(plugin_cats(), {}, [])
+        with self.assertRaisesRegex(SystemExit, "the desks need \"apart\""):
+            B.desk_options(plugin_cats(), {"cats_window": [1900, 1150]}, [])
 
     def test_legs_disagreeing_with_switch_legs_stop(self):
         f = facts()
@@ -370,7 +374,13 @@ class MainAndUpper(unittest.TestCase):
     def test_main_and_upper_are_ctc(self):
         # CTC: CATS holds their signals and releases them (owner, 2026-11-17)
         self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "CTC")
-        self.assertEqual(B.HELIX_BLOCKS, "apart")
+
+    def test_desk_preferences(self):
+        """The desks' window, one cell per grid unit and a helix block on each band (owner, 2026-11-17) are the
+        page's CATS preferences, which the plugin reads."""
+        page = json.loads((B.pd.DATA / "main_upper.preferences.json").read_text(encoding="utf-8"))
+        self.assertEqual({k: page[k] for k in ("cats_window", "cats_cells_per_unit", "cats_helix_blocks")},
+                         {"cats_window": [1900, 1150], "cats_cells_per_unit": 1, "cats_helix_blocks": "apart"})
 
     def test_every_main_and_upper_desk_block_reports_its_virtual_sensor(self):
         """Every desk block of main and upper is bound to its block's virtual sensor, which tables.xml holds under
@@ -601,13 +611,25 @@ class LevelSensorsFromTheDeviceMap(unittest.TestCase):
         import contextlib
         import io
         cats = plugin_cats()
-        bands = B.name_loop_halves(B.pd.solved_sheet(B.plugin_modules(B.pd.plugin())[1]).bands)
+        sheet = B.pd.solved_sheet(B.plugin_modules(B.pd.plugin())[1])
+        bands = B.name_loop_halves(sheet.bands)
         F = B.load_facts()
         B.level_signals(bands, F, B.bound_index(bands))
         F.sensors = {u: sn for u, sn in F.sensors.items() if not B.level_devices.is_block_sensor(sn)}
         with contextlib.redirect_stdout(io.StringIO()):
-            got = B.bindings(bands, cats, F)
+            got = B.bindings(bands, cats, F, B.desk_options(cats, sheet.opts, bands))
         self.assertEqual(json.dumps(got, indent=1, sort_keys=True) + "\n", B.BINDINGS.read_text(encoding="utf-8"))
+
+
+def fit():
+    """The cells the desks must fit, from the page's cats_window."""
+    return desk_options()["fit"]
+
+
+def desk_options():
+    cats = plugin_cats()                                   # skips without the plugin
+    s = B.pd.solved_sheet(B.plugin_modules(B.pd.plugin())[1])
+    return B.desk_options(cats, s.opts, s.bands)
 
 
 def plugin_cats():
@@ -634,7 +656,7 @@ class Header(unittest.TestCase):
     def test_the_frozen_header_in_the_live_order_and_the_abs_plate(self):
         cats = plugin_cats()
         header, plate = B.frozen_header()
-        out = ET.fromstring(B.dress(cats, self.doc((2, "STAGING")), header, plate, "ABS").split("\n", 1)[1])
+        out = ET.fromstring(B.dress(cats, self.doc((2, "STAGING")), header, plate, "ABS", fit()).split("\n", 1)[1])
         tags = [el.tag for el in out]
         self.assertEqual(sorted(set(tags), key=tags.index), [t for t in B.ORDER if t in tags])
         fonts = {el.get("FONTKEY"): el.get("FONTSIZE") for el in out.findall("FONTDEFINITION")}
@@ -651,14 +673,14 @@ class Header(unittest.TestCase):
         doc = self.doc((2, "STAGING"))
         doc.insert(1, ET.Element("COLORDEFINITION", COLORKEY="PLUGIN"))
         no_colours = [el for el in header if el.tag != "COLORDEFINITION"]
-        out = ET.fromstring(B.dress(cats, doc, no_colours, plate, "CTC").split("\n", 1)[1])
+        out = ET.fromstring(B.dress(cats, doc, no_colours, plate, "CTC", fit()).split("\n", 1)[1])
         self.assertEqual([c.get("COLORKEY") for c in out.findall("COLORDEFINITION")], ["PLUGIN"])
-        out = ET.fromstring(B.dress(cats, self.doc((2, "S")), header, plate, "CTC").split("\n", 1)[1])
+        out = ET.fromstring(B.dress(cats, self.doc((2, "S")), header, plate, "CTC", fit()).split("\n", 1)[1])
         self.assertNotIn("PLUGIN", [c.get("COLORKEY") for c in out.findall("COLORDEFINITION")])
         odd = self.doc((2, "STAGING"))
         odd.insert(1, ET.Element("MYSTERY"))
         with self.assertRaisesRegex(SystemExit, "elements MYSTERY, which ORDER does not place"):
-            B.dress(cats, odd, header, plate, "CTC")
+            B.dress(cats, odd, header, plate, "CTC", fit())
 
     def test_a_header_without_signal_templates_or_jmri_names_stops(self):
         tmp = Path(tempfile.mkdtemp())
@@ -676,9 +698,9 @@ class Header(unittest.TestCase):
         cats = plugin_cats()
         header, plate = B.frozen_header()
         with self.assertRaisesRegex(SystemExit, "a cell the desk uses"):
-            B.dress(cats, self.doc((15, "X")), header, plate, "CTC")
+            B.dress(cats, self.doc((15, "X")), header, plate, "CTC", fit())
         with self.assertRaisesRegex(SystemExit, "runs into the label"):
-            B.dress(cats, self.doc((2, "A VERY LONG TITLE THAT RUNS FAR TO THE RIGHT")), header, plate, "CTC")
+            B.dress(cats, self.doc((2, "A VERY LONG TITLE THAT RUNS FAR TO THE RIGHT")), header, plate, "CTC", fit())
 
 
 if __name__ == "__main__":
