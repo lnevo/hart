@@ -36,7 +36,7 @@ from urllib.parse import urlparse
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables  # noqa: E402
-from hartlib.hosts import PI_HOST, mqtt_broker, mqtt_port  # noqa: E402
+from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
@@ -109,7 +109,7 @@ def _probe(host: str) -> bool:
 
 def pick_mqtt_host(explicit: str | None) -> str:
     hosts = []
-    for h in (explicit, mqtt_broker(), PI_HOST, "127.0.0.1"):
+    for h in (explicit, mqtt_broker(), host_default("HART_MQTT_BROKER"), "127.0.0.1"):
         if h and h not in hosts:
             hosts.append(h)
     for h in hosts:

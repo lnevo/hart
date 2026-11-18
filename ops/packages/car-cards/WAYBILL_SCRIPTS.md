@@ -31,7 +31,7 @@ cd ops/hart-ops
 
 ```bash
 # STS must be running
-bash tools/ops/sts_compose.sh up -d
+(cd external/sts-docker && docker compose up -d)
 
 cd ops/hart-ops
 .venv/bin/python card_pipeline/generate_cc_waybill_labels.py --refresh \

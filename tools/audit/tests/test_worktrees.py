@@ -123,13 +123,67 @@ class MergedAt(Repo):
         self.assertIsNone(WT.merged_at(self.tree(), self.main, []))
 
 
+class Detached(Repo):
+    """A detached worktree is judged by whether its commit is on the default branch and how long it sat idle."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        # origin/main stands in for the default branch: point it at main's commit.
+        sh("git", "update-ref", "refs/remotes/origin/main", "main", cwd=self.main)
+        self.det = self.wt + "-detached"
+        sh("git", "worktree", "add", "-q", "--detach", self.det, "main", cwd=self.main)
+
+    def tree(self):
+        return next(t for t in WT.worktrees(self.main) if t.path == self.det)
+
+    def test_idle_detached_on_main_counts_as_merged(self) -> None:
+        later = datetime.now(timezone.utc) + WT.DETACHED_IDLE + timedelta(minutes=1)
+        self.assertIsNotNone(WT.merged_at(self.tree(), self.main, [], base="origin/main", now=later))
+
+    def test_recent_detached_waits(self) -> None:
+        self.assertIsNone(WT.merged_at(self.tree(), self.main, [], base="origin/main"))
+
+    def test_detached_with_its_own_commit_is_never_merged(self) -> None:
+        sh("git", "commit", "-q", "--allow-empty", "-m", "local", cwd=self.det)
+        later = datetime.now(timezone.utc) + WT.DETACHED_IDLE + timedelta(days=30)
+        self.assertIsNone(WT.merged_at(self.tree(), self.main, [], base="origin/main", now=later))
+        self.assertIsNone(WT.merged_at(self.tree(), self.main, [], base=None, now=later))
+
+    def test_kept_worktrees_say_why(self) -> None:
+        trees = WT.worktrees(self.main)
+        why = lambda t: "detached reason" if t.path == self.det else None  # noqa: E731
+        remove, kept = WT.plan(trees, lambda t: None, [], WT.is_dirty, why_open=why)
+        self.assertEqual(remove, [])
+        self.assertEqual([(t.path, r) for t, r in kept], [(self.det, "detached reason")])
+
+    def test_sweep_reports_a_fresh_detached_worktree(self) -> None:
+        saved = (WT.ROOT, WT.merged_by_branch)
+        WT.ROOT, WT.merged_by_branch = Path(self.wt), lambda main, limit=1000: {}
+        try:
+            lines = WT.sweep_repo(self.main, WT.worktrees(self.main), False, [], None, WT.Clock(), None, None, None)
+        finally:
+            WT.ROOT, WT.merged_by_branch = saved
+        self.assertTrue(any(self.det in l and "detached" in l for l in lines), lines)
+
+    def test_missing_folder_is_skipped_not_fatal(self) -> None:
+        shutil.rmtree(self.det)
+        later = datetime.now(timezone.utc) + WT.DETACHED_IDLE + timedelta(minutes=1)
+        self.assertIsNone(WT.merged_at(self.tree(), self.main, [], base="origin/main", now=later))
+
+    def test_stopped_operation_keeps_it(self) -> None:
+        gitdir = sh("git", "rev-parse", "--path-format=absolute", "--git-dir", cwd=self.det)
+        Path(gitdir, "BISECT_LOG").write_text("bisect\n")
+        later = datetime.now(timezone.utc) + WT.DETACHED_IDLE + timedelta(minutes=1)
+        self.assertIsNone(WT.merged_at(self.tree(), self.main, [], base="origin/main", now=later))
+
+
 class Sweep(Repo):
     def sweep(self, merged, budget=None, by_branch=None):
         """Sweep with GitHub replaced: `merged(tree)` answers per worktree, or `by_branch` stands in for the batch."""
         saved = (WT.ROOT, WT.merged_at, WT.merged_by_branch)
         WT.ROOT, WT.merged_by_branch = Path(self.wt), lambda main, limit=1000: by_branch
         if merged is not None:
-            WT.merged_at = lambda tree, main, prs=None: merged(tree)
+            WT.merged_at = lambda tree, main, prs=None, **kw: merged(tree)
         try:
             return WT.sweep(budget=budget)
         finally:

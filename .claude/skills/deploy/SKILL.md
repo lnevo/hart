@@ -29,7 +29,7 @@ What it does:
 - With no flag it installs on the Mac only. A host flag also installs on the Mac, then sends one staged package: the Pi by rsync, Windows by tarball over ssh. Each host unpacks into a temporary folder, installs into `JMRI_UserFiles`, and removes the folder.
 - It runs `audit_panel_contracts.py --strict` first and turns off the Digicon SML MQTT destinations in the shipped tables.
 - Operations files are overwritten on every host (`HART_OVERWRITE_OPS=1` is the default; `0` restores the guards).
-- Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES`, `HART_WIN_USERFILES` and `HART_PI_WEB_HOST` (the Pi's name in the Mac web home's links), read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `load_env.sh`.
+- Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES`, `HART_WIN_USERFILES` and `HART_PI_WEB_HOST` (the Pi's name in the Mac web home's links), read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `tools/env/defaults.env`.
 - Edit host scripts in `tools/hosts/pi/` and `tools/hosts/windows/`; the package places them where the hosts expect them.
 - Each host it installs ends with `JMRI_UserFiles/cats/deploy_stamp.txt` (commit, branch, dirty, sha256 of the shipped `tables.xml` and `tables_modified_by_deploy`, date, deploying machine, target, `source` and `redeploy_from`), written last by the apply step. Both apply steps install into the configured `HART_PI_USERFILES` / `HART_WIN_USERFILES`, so the stamp and `deploy_status.sh` agree.
 

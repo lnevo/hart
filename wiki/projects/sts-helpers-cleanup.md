@@ -1,6 +1,7 @@
 # STS helpers cleanup
 
 - **Owner:** lnevo
+- **Hand-off:** [`sts-handoff-2026-11-18.md`](sts-handoff-2026-11-18.md) (Pi deploy of the HART-names change, then this plan).
 - **Status:** Planned 2026-11-18. Review done (read-only). Owner decided: remove the `--ck1-test` warm-start path. Next: run the steps below in a fresh session.
 - **Repos:** `external/sts-helpers` (lnevo/sts-docker-helpers, `main`), `external/sts-plugins` (lnevo/sts-plugins, `main`), `external/sts-docker` (lnevo/sts-docker, working line `active`). Each step is a PR in the submodule repo, then one hart PR moves the submodule pointers.
 
@@ -26,7 +27,7 @@ Line numbers are from ab8d4cc; check them again before editing.
 - Risky: `bin/sync_operational_steps.sh:42-44` overwrites the container's `sts/` tree and deletes `index.php`.
 - HART-only, stays: seed tools, 55 migrations, about 35 diagnostics, 13 `run_*` sweeps, `track_scale/`, `backups/`.
 - Unreferenced anywhere (about 30): see the step 2 list.
-- sts-docker itself still has HART names (`hart_session_pre/post` in `session_helpers.php:363-451`, `run_stg_scully`, coke stats). Out of scope here; note it in step 4's report.
+- Done 2026-11-18: sts-docker core no longer names HART (sts-docker #19, sts-plugins #6). Session dump names come from the manifest key `session_backup_prefix` (hart_layout sets `hart_session`, default `session`); railroad name and initials fall back to `Railroad`/`RR` (HART's database sets both); staging jobs come only from the scenario hook or config; `bin/check_plugin_boundary.sh` now catches `hart` and `STG-` and scans the generated catalog; the sts-plugins check is case-insensitive and catches bare HART, 10.0.0.x and /Users/ paths. Not on the Pi yet: needs the owner's UAT check, then `tools/hosts/pi_sts_update.sh`.
 
 ## Plan
 

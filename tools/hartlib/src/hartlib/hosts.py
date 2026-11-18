@@ -1,12 +1,13 @@
 """Broker and JMRI addresses for the Mac tools: one setting each, one default.
 
-The Pi runs Mosquitto and JMRI (10.0.0.150). On the Pi itself the broker is 127.0.0.1;
-set HART_MQTT_BROKER there. minipc-e5h6x.local is the Windows box, never the broker.
+The Pi runs Mosquitto and JMRI. On the Pi itself the broker is 127.0.0.1;
+set HART_MQTT_BROKER there. The Windows box is never the broker.
 
 Lookup order, first set wins:
   broker     HART_MQTT_BROKER, MQTT_HOST or HART_MQTT_HOST (older names), tools/env/hart.env
-  port       HART_MQTT_PORT, tools/env/hart.env, 1883
+  port       HART_MQTT_PORT, tools/env/hart.env
   JMRI JSON  HART_JMRI_JSON, JMRI_JSON (older name), tools/env/hart.env
+then the default in tools/env/defaults.env, which load_env.sh reads as well.
 
 Any name set in the environment beats hart.env, old names included, so a one-off
 `MQTT_HOST=... python3 ...` still works; a stale exported MQTT_HOST also wins, so unset it.
@@ -14,15 +15,13 @@ hart.env is found as load_env.sh finds it: HART_ENV_FILE, else HART_REPO_ROOT/to
 """
 from __future__ import annotations
 
+import functools
 import os
 import re
 from pathlib import Path
 from typing import Mapping
 
-PI_HOST = "10.0.0.150"
-DEFAULT_BROKER = PI_HOST
-DEFAULT_PORT = 1883
-DEFAULT_JMRI_JSON = f"http://{PI_HOST}:12080/json"
+DEFAULTS_FILE = Path(__file__).resolve().parent.parent.parent.parent / "env" / "defaults.env"
 
 BROKER_VARS = ("HART_MQTT_BROKER", "MQTT_HOST", "HART_MQTT_HOST")
 PORT_VARS = ("HART_MQTT_PORT",)
@@ -79,7 +78,24 @@ def read_env_file(path: Path | None = None) -> dict[str, str]:
     return values
 
 
-def _lookup(names: tuple[str, ...], default: str, env: Mapping[str, str] | None,
+@functools.lru_cache(maxsize=1)
+def _defaults() -> dict[str, str]:
+    """tools/env/defaults.env, the one copy of the defaults load_env.sh also reads."""
+    values = read_env_file(DEFAULTS_FILE)
+    if not values:
+        raise SystemExit(f"hartlib.hosts: cannot read the host defaults in {DEFAULTS_FILE}")
+    return dict(values)
+
+
+def default(name: str) -> str:
+    """The defaults.env value for NAME; stops with a clear message when it has none."""
+    value = _defaults().get(name, "")
+    if not value:
+        raise SystemExit(f"hartlib.hosts: {name} has no default in {DEFAULTS_FILE}")
+    return value
+
+
+def _lookup(names: tuple[str, ...], default_name: str, env: Mapping[str, str] | None,
             file_values: Mapping[str, str] | None) -> str:
     env = os.environ if env is None else env
     for name in names:
@@ -91,17 +107,17 @@ def _lookup(names: tuple[str, ...], default: str, env: Mapping[str, str] | None,
         value = (file_values.get(name) or "").strip()
         if value:
             return value
-    return default
+    return default(default_name)
 
 
 def mqtt_broker(env: Mapping[str, str] | None = None,
                 file_values: Mapping[str, str] | None = None) -> str:
-    return _lookup(BROKER_VARS, DEFAULT_BROKER, env, file_values)
+    return _lookup(BROKER_VARS, "HART_MQTT_BROKER", env, file_values)
 
 
 def mqtt_port(env: Mapping[str, str] | None = None,
               file_values: Mapping[str, str] | None = None) -> int:
-    raw = _lookup(PORT_VARS, str(DEFAULT_PORT), env, file_values)
+    raw = _lookup(PORT_VARS, "HART_MQTT_PORT", env, file_values)
     try:
         return int(raw)
     except ValueError:
@@ -110,5 +126,5 @@ def mqtt_port(env: Mapping[str, str] | None = None,
 
 def jmri_json_url(env: Mapping[str, str] | None = None,
                   file_values: Mapping[str, str] | None = None) -> str:
-    """JMRI JSON base URL without a trailing slash, e.g. http://10.0.0.150:12080/json."""
-    return _lookup(JMRI_JSON_VARS, DEFAULT_JMRI_JSON, env, file_values).rstrip("/")
+    """JMRI JSON base URL without a trailing slash, e.g. http://<pi>:12080/json."""
+    return _lookup(JMRI_JSON_VARS, "HART_JMRI_JSON", env, file_values).rstrip("/")
