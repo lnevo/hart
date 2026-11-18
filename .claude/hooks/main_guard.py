@@ -15,9 +15,10 @@ nothing: the Mac is expendable, and what matters lives on the Pi (AGENTS.md).
 While the operating flag is set (tools/hosts/operating.sh: the owner is running trains, or a
 speed-matching run is on the layout) it blocks what reaches the layout hosts (host_control): a deploy
 to the Pi or Windows, quitting or starting PanelPro on the Pi, an STS update there, an ssh command to
-either host that touches JMRI, PanelPro, CATS, java, STS's docker or a reboot, and, under the owner's
-flag, a new speed-matching job. Work on the Mac alone stays open (owner, 2026-11-18). A wrapper's
-`-c` text is judged too. HART_GUARD_OPERATING=1 or 0 overrides the flag file, for tests.
+either host that touches JMRI, PanelPro, CATS, java, STS's docker, a kill or a reboot (Windows runs
+the LCOS bridge), and, under the owner's flag, a new speed-matching job. The Mac stays open (owner,
+2026-11-18, who kept Windows guarded after the review of a Pi-only version). A wrapper's
+`-c` text is judged too, and a HOSTS given to make redeploy as an assignment or an earlier export. HART_GUARD_OPERATING=1 or 0 overrides the flag file, for tests.
 
 In the main checkout of a repo that uses agent worktrees (it holds tools/agent/worktrees.py)
 it blocks any commit and any switch to a branch other than main: agents work in their own
@@ -51,7 +52,8 @@ SSH_VALUE_OPTS = {"-b", "-c", "-D", "-E", "-e", "-F", "-I", "-i", "-J", "-L", "-
                   "-R", "-S", "-W", "-w"}     # ssh options that take the next word as their value
 HOST_TARGETS = {"deploy-layout", "deploy-all"}    # make targets that deploy to the hosts (redeploy: by HOSTS)
 REMOTE_TOUCH = re.compile(r"PanelPro|JMRI|\bcats\b|\bjava\b|\bdocker\b|\breboot\b|\bshutdown\b|\bsystemctl\b|"
-                          r"\bkill(all)?\b|\bpkill\b|jmri_cmd|speedrun", re.I)
+                          r"\bkill(all)?\b|\bpkill\b|jmri_cmd|speedrun|\btaskkill\b|Stop-Process|Restart-Computer|"
+                          r"Stop-Computer|serial_to_mqtt|\bpython", re.I)     # Windows runs the LCOS bridge
 WRAPPERS = {"env", "nohup", "time", "timeout", "sudo", "nice", "exec", "command"}   # run the next words as the program
 SHELLS = {"bash", "sh", "zsh", "dash"}
 ENV_FILES = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "tools", "env", n)
@@ -124,7 +126,10 @@ def run_words(words):
     return words, None
 
 
-def host_control(part, flag):
+HOSTS_PI = re.compile(r"(^|\s|=)(" + "|".join(re.escape(f) for f in HOST_FLAGS) + r")\b")
+
+
+def host_control(part, flag, exported=None):
     """What in this command part reaches a layout host while the operating flag `flag` is set, or None: a host
     deploy, a Pi PanelPro or STS script, an ssh command to the Pi or Windows that touches the layout software, or
     (under the owner's flag) a new speed-matching job. A shell wrapper's -c text is judged part by part."""
@@ -132,10 +137,12 @@ def host_control(part, flag):
         words = shlex.split(part)
     except ValueError:
         words = part.split()
+    assigned = dict(exported or {})
+    assigned.update(w.split("=", 1) for w in words if re.fullmatch(r"[A-Za-z_]\w*=.*", w))
     words, inline = run_words(words)
     if inline:
         for sub in SPLIT.split(inline):
-            found = host_control(sub, flag)
+            found = host_control(sub, flag, assigned)
             if found:
                 return found
         return None
@@ -146,8 +153,8 @@ def host_control(part, flag):
             any(a == f or a.startswith(f + "=") for a in args for f in HOST_FLAGS):
         return "a deploy to the Pi or Windows"
     if head == "make":
-        hosts = " ".join(a for a in args if a.startswith("HOSTS="))
-        if HOST_TARGETS & set(args) or ("redeploy" in args and re.search(r"--(pi|win|all)\b", hosts)):
+        hosts = " ".join([a for a in args if a.startswith("HOSTS=")] + [assigned.get("HOSTS", "")])
+        if HOST_TARGETS & set(args) or ("redeploy" in args and HOSTS_PI.search(hosts)):
             return "a deploy to the Pi or Windows"
     if head in HOST_SCRIPTS:
         return f"{head}, which acts on the Pi"
@@ -311,6 +318,7 @@ def main():
     project = os.environ.get("CLAUDE_PROJECT_DIR", cwd)
     ask = []
     branched = False  # an earlier step in this command left main
+    exported = {}     # VAR=value and export VAR=value parts seen so far (make redeploy's HOSTS)
     pos = 0
     for part in SPLIT.split(command):
         start = command.find(part, pos)
@@ -346,9 +354,17 @@ def main():
         if found:
             print(f"Blocked: {found}. The repo is public; see AGENTS.md. Reword it.", file=sys.stderr)
             return 2
+        try:
+            said = shlex.split(part)
+        except ValueError:
+            said = []
+        if said[:1] == ["export"]:
+            said = said[1:]
+        if said and all(re.fullmatch(r"[A-Za-z_]\w*=.*", w) for w in said):
+            exported.update(w.split("=", 1) for w in said)
         flag = operating()
         if flag is not None:
-            what = host_control(part, flag)
+            what = host_control(part, flag, exported)
             if what:
                 print(f"Blocked: {what} must wait: the operating flag is set (by {flag.get('by', '?')}"
                       f"{', since ' + flag['since'] if flag.get('since') else ''}"
