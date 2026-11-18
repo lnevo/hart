@@ -350,7 +350,8 @@ class OperatingFlag(unittest.TestCase):
             saved = sys.stdin
             sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
             try:
-                with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING=""), \
+                with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING="", HART_PI_SSH="pi",
+                              HART_PI_WEB_HOST="RPi-JMRI.local", HART_MQTT_BROKER="10.0.0.150"), \
                         contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                     return guard.main()
             finally:
@@ -361,6 +362,8 @@ class OperatingFlag(unittest.TestCase):
         blocked = ("./tools/hosts/sync_hart_package.sh --pi --win", "./tools/hosts/sync_hart_package.sh --all",
                    "make deploy-layout", "make -s deploy-all",
                    'make redeploy COMMIT=abc HOSTS="--pi --win"', "./tools/hosts/redeploy_commit.sh abc --pi",
+                   'HOSTS="--pi --win" make redeploy COMMIT=abc', 'export HOSTS="--pi"; make redeploy COMMIT=abc',
+                   "HOSTS=--all && make redeploy COMMIT=abc",
                    "tools/hosts/pi_quit_panelpro.sh --for-deploy", "tools/hosts/pi_start_panelpro.sh",
                    "tools/hosts/pi_sts_update.sh", "ssh pi 'pkill -f PanelPro'", "ssh pi pkill java",
                    "ssh -o BatchMode=yes pi 'sudo reboot'",
@@ -376,7 +379,7 @@ class OperatingFlag(unittest.TestCase):
                     "jmri/layouts/hart/scripts/run_sml_discover.sh", "make deploy-site", "./tools/check.sh",
                     'make redeploy COMMIT=abc HOSTS="--mac"', "./tools/hosts/sync_hart_package.sh --stage-only /tmp/x",
                     "ssh pi uptime", "ssh other-host pkill java", "./tools/hosts/sync_hart_package.sh --win",
-                    'make redeploy COMMIT=abc HOSTS="--win"', "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM java.exe", "cat tools/hosts/pi_quit_panelpro.sh",
+                    'make redeploy COMMIT=abc HOSTS="--win"', 'export HOSTS="--win"; make redeploy COMMIT=abc', "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM java.exe", "cat tools/hosts/pi_quit_panelpro.sh",
                     "tools/hosts/operating.sh off --owner", "tools/hosts/operating.sh status",
                     "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --fetch /tmp/x.log",
                     "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill"):

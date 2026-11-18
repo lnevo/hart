@@ -2,7 +2,7 @@
 # The "operating" flag: set while the owner runs trains, or while a speed-matching run is on the
 # layout. While it is set, the main guard hook (.claude/hooks/main_guard.py) blocks agents from what
 # reaches the Pi: deploys that include it, quitting or starting PanelPro there, STS updates, and (under
-# the owner's flag) new speed-matching jobs. Mac-only work stays open. One flag file on the Mac,
+# the owner's flag) new speed-matching jobs. The Mac and Windows stay open. One flag file on the Mac,
 # where the agents run: ~/.hart_operating (HART_OPERATING_FLAG overrides the path, for tests).
 #
 #   operating.sh on [--by owner|speedmatch] [REASON...]   set it (default --by owner)
