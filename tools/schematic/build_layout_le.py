@@ -38,7 +38,7 @@ crossover on one level, or as two Layout Editor turnouts on one turnout for 129 
 levels), on internal system names, each block bound to its virtual occupancy sensor (IS:HART:C3:B:<block key>;
 level_sensors), which a LogixNG sets clear when the tables load (add_level_clear); their track names are the device
 map's block names without "Track ", left out where there is no room (names_last); one block contents icon per block at
-12 px (staging keeps 13; LEVEL_LE_LABELS).
+12 px (staging keeps 13; main_upper.preferences.json's le_band_labels).
 
 Parked features (owner, 2026-11-17; hartlib.parked, PARKED). After the staging guard the three-level candidate's
 Entry/Exit, Dispatcher System and USS CTC elements are left out (parked.split); their live data is the snapshot in
@@ -88,9 +88,9 @@ from approval import (  # noqa: E402,F401  re-exported: callers and tests read t
     ApprovalError, STAGING_APPROVED as APPROVED, approved_fingerprint, check_approved, read_approved, write_approved,
 )
 from le_names import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    LEVEL_LE_LABELS, NUMBERS_BELOW, OPTIONAL_READOUTS, crossover_strands, runs, LEGS_SWAPPED, swapped_idents,
+    crossover_strands, runs, LEGS_SWAPPED, swapped_idents,
     staging_lengths, MAIN_UPPER_MASTS, read_level_masts, lcos_rule, lcos_named, level_masts, placeholder_names,
-    device_names, level_names, shared_turnouts, named_bands, NO_NAME
+    device_names, level_names, shared_turnouts, named_bands,
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BOUNDARIES, check_swapped_slots, mast_band, check_level_slots, check_unplaced, turnout_facts, check_device_masts,
@@ -125,13 +125,9 @@ RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.x
 # cut-over build and kept as P.staging_fit) widened by main_upper.preferences.json's le_stretch (the plugin's
 # stretched and check_stretch). The geometry knobs of the Layout Editor drawing (le_shift, le_longer_straights,
 # le_crossover_angle, le_tight_crossovers, le_split_crossovers, le_mast_room, le_name_room, le_title_clear,
-# le_stretch, le_window, le_row, and staging's le_labels extra_steps, extra_follow, name_columns and lamp_columns)
-# are layer 3 preferences the plugin reads (schematic/le_prefs.py, schematic/le_labels.py).
-# The plugin's label layer (schematic/le_labels.py): switch numbers as the hand-drawn panel wrote them ("SW-13",
-# 13 px bold), block contents icons on with the plugin's reserve; given to every band through the page options, on
-# every build (the all-levels trial's smaller set, 9 px numbers and no block contents, retired with it, owner
-# 2026-11-17).
-LE_LABELS = {"switch_prefix": "SW-", "switch_size": 13}
+# le_stretch, le_window, le_row, and the label options: staging's le_labels extra_steps, extra_follow, name_columns
+# and lamp_columns, main_upper.preferences.json's page-wide le_labels and each level's le_band_labels) are layer 3
+# preferences the plugin reads (schematic/le_prefs.py, schematic/le_labels.py).
 # The features parked out of the cut-over candidate into jmri/layouts/hart/parked/tables_parked.xml (owner,
 # 2026-11-17; hartlib.parked): Entry/Exit, the stock Dispatcher System and the USS CTC machine. Unpark one by taking
 # it out of hartlib.parked.PARKED and rebuilding.
@@ -238,10 +234,6 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     if levels == "all":
         names[STAGING]["joins"] = "other" if JOIN_HELIX else "none"    # helix ends joined, or end bumpers everywhere
     names[STAGING]["lengths"] = staging_lengths(bands[0][2], names[STAGING])
-    # the page-wide label options are HART's (LE_LABELS). The page is the last input's own options, so le_labels in
-    # main_upper.preferences.json are main's and upper's: they reach those bands through their own options
-    # (named_bands), not the page
-    page = dict(page, le_labels=dict(LE_LABELS))  # a copy
     try:
         if base is not None:        # staging's own grid, so staging is drawn as in its candidate; no fitting
             scale = base[1].scale

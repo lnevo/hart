@@ -19,18 +19,6 @@ from le_common import (  # noqa: E402
 )
 
 
-# Main and upper at staging's grid (the three-level candidate): denser than staging, so every block's contents icon
-# comes first and a track name with no room is left out (logged; the plugin's names_last), and the icons are 12 px,
-# the short reserve still tried before none (owner, 2026-11-16): at 13 px three have no clean spot at any reserve.
-LEVEL_LE_LABELS = {"names_last": True, "block_contents_size": 12}
-# {band key: switch numbers} placed below their turnout first (the plugin's numbers_below): SW-101 on its crossover's
-# bottom track side, clear of 103 drawn tight above it (owner, 2026-11-16)
-NUMBERS_BELOW = {"Main": ["101"]}
-# {band key: blocks} whose contents icon may be left out (the plugin's optional_block_contents, logged): Track 227-233
-# is 16 px between switches 227 and 233, and with Masts 228RA and 228RB beside it no clean spot is left (2026-11-16)
-OPTIONAL_READOUTS = {"Upper": ["Track 227-233"]}
-
-
 def crossover_strands(band) -> set:
     """Tracks joining two switches of one number C to C: inside a single crossover, as the plugin draws it."""
     nodes = band["nodes"]
@@ -355,7 +343,8 @@ def named_bands(bands, names: dict):
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
     other main and upper track is unnamed, but a helix track keeps its plan name (McKees Rocks, McKeesport): the
     plugin joins the helix ends of two levels by that name (le.partners), so it is the label there too. Staging is
-    left as it is."""
+    left as it is. The label options (main_upper.preferences.json's le_labels and le_band_labels, a name left off
+    the panel among them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
     out = []
     for title, band, opts in bands:
         key = band_key(title)
@@ -390,21 +379,6 @@ def named_bands(bands, names: dict):
             if helix & set(sids):
                 continue
             best = max(sids, key=lambda k: (band["strands"][k]["cm"], k))
-            name = block.removeprefix("Track ")
-            if name not in NO_NAME.get(band_key(title), []):
-                band["strands"][best]["name"] = name
-        hart = dict(LEVEL_LE_LABELS, numbers_below=list(NUMBERS_BELOW.get(band_key(title), [])),
-                    optional_block_contents=list(OPTIONAL_READOUTS.get(band_key(title), [])))
-        own = dict((opts or {}).get("le_labels") or {})       # the band's own, from its preferences
-        set_here = sorted(set(own) & set(hart))
-        if set_here:
-            raise BuildError(f"{title}: its preferences' le_labels already hold {', '.join(set_here)}; HART sets them "
-                             "here (LEVEL_LE_LABELS, NUMBERS_BELOW, OPTIONAL_READOUTS)")
-        labels = dict(own, **hart)
-        out.append((title, band, dict(opts or {}, le_labels=labels)))
+            band["strands"][best]["name"] = block.removeprefix("Track ")
+        out.append((title, band, opts))
     return out
-
-
-
-# track names left off the panel (owner, 2026-11-16): the short track inside the three-way
-NO_NAME = {"Main": ["101-103"]}
