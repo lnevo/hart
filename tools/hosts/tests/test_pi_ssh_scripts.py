@@ -37,7 +37,8 @@ def run(name: str, env: dict[str, str], file_text: str | None):
         job = tmp / "job.py"
         job.write_text("pass\n", encoding="utf-8")
         base = {k: v for k, v in os.environ.items() if k not in CLEAR}
-        base.update(env, HART_ENV_FILE=str(env_file), PATH=f"{stub}:/usr/bin:/bin")
+        base.update(env, HART_ENV_FILE=str(env_file), PATH=f"{stub}:/usr/bin:/bin",
+                    HART_OPERATING_FLAG=str(tmp / "operating"))     # drop_job.sh sets it; never the real one
         args = [str(job)] if name == "drop_job" else []
         done = subprocess.run(["bash", str(SCRIPTS[name]), *args], env=base, capture_output=True,
                               text=True, cwd=tmp)

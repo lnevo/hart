@@ -10,6 +10,10 @@
 # it ends. --force overrides that check: use it only after the log shows END (a JMRI crash
 # can leave the file behind). A kill flag (/tmp/speedrun.kill) is never removed here: the
 # operator removes it (ssh pi rm /tmp/speedrun.kill) once the runner has ended.
+#
+# Sending a job sets the operating flag (tools/hosts/operating.sh on --by speedmatch) before the
+# job starts, so no agent deploys to the Pi or Windows or quits PanelPro there while trains move. Clear it
+# once the run is over (the log shows END, or after --kill): tools/hosts/operating.sh off.
 set -euo pipefail
 # Hosts: environment, hart.env, default. Sourced first, so hart.env cannot move ROOT. If the repo or
 # load_env.sh is not found, warn and use "pi": --kill and usage must still work.
@@ -22,7 +26,7 @@ fi
 PI_HOST="${HART_PI_SSH:-pi}"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 ssh_pi() { ssh "${SSH_OPTS[@]}" "$PI_HOST" "$@"; }
-usage() { sed -n '2,13p' "$0"; }
+usage() { sed -n '2,16p' "$0"; }
 
 case "${1:-}" in
   --kill) ssh_pi 'touch /tmp/speedrun.kill'; echo "kill flag set; the runner stops its loco at speed 0 and ends. Remove the flag afterwards: ssh $PI_HOST rm /tmp/speedrun.kill"; exit 0 ;;
@@ -46,10 +50,26 @@ if grep -q speedrun.active "$JOB"; then
   fi
   [[ "$FORCE" == "--force" ]] && ssh_pi 'rm -f /tmp/speedrun.active'
 fi
+# the layout is in use from here: no host deploy or Pi PanelPro quit until the run is over. Not during
+# the owner's session; and a flag set here is cleared again if the job is never handed over.
+OPERATING="${ROOT:+$ROOT/tools/hosts/operating.sh}"
+if [[ -n "$OPERATING" && -x "$OPERATING" ]]; then
+  state="$("$OPERATING" status || true)"
+  if [[ "$state" == *"by=owner"* ]]; then
+    echo "the owner is operating ($state): no speed-matching job until they are done" >&2; exit 1
+  fi
+  if [[ "$state" != operating:* ]]; then
+    "$OPERATING" on --by speedmatch "speed matching job $(basename "$JOB")"
+    trap 'rc=$?; if (( rc != 0 )); then "$OPERATING" off >/dev/null && echo "operating flag cleared: the job did not start" >&2; fi' EXIT
+  fi
+else
+  echo "drop_job.sh: tools/hosts/operating.sh not found; the operating flag is NOT set" >&2
+fi
 ssh_pi 'rm -f /tmp/jmri_cmd.out'
 # copy to a temp name, then rename, so the watcher never runs a half-copied file
 scp -q "${SSH_OPTS[@]}" "$JOB" "$PI_HOST:/tmp/jmri_cmd.py.tmp"
 ssh_pi 'mv /tmp/jmri_cmd.py.tmp /tmp/jmri_cmd.py'
+trap - EXIT     # handed over: the job may start even if the watcher's answer is late, so the flag stays
 for ((i = 0; i < 60; i++)); do
   if ssh_pi 'test -f /tmp/jmri_cmd.out'; then ssh_pi 'cat /tmp/jmri_cmd.out'; exit 0; fi
   sleep 1

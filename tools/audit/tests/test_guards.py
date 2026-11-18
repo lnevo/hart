@@ -33,6 +33,11 @@ os.symlink(shutil.which("git"), os.path.join(_BIN.name, "git"))
 GIT_ONLY_PATH = _BIN.name
 
 
+# The guard reads the Mac's operating flag (tools/hosts/operating.sh); these tests never see the real one.
+os.environ["HART_OPERATING_FLAG"] = "/nonexistent/hart-test-operating-flag"
+os.environ.pop("HART_GUARD_OPERATING", None)
+
+
 def load(path: Path, name: str):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
@@ -327,6 +332,69 @@ class SubagentGuard(unittest.TestCase):
         ):
             with self.subTest(command=command):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+
+
+class OperatingFlag(unittest.TestCase):
+    """While the operating flag is set, what reaches the Pi and Windows waits; the Mac's own work does not."""
+
+    def op_code(self, command: str, flag: str | None) -> int:
+        """The guard's exit code with the operating flag file holding `flag` (None: no file)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "operating")
+            if flag is not None:
+                Path(path).write_text(flag, encoding="utf-8")
+            guard = load(MAIN_GUARD, "hart_main_guard_operating_test")
+            guard.OPERATING_FLAG = path
+            guard.main_checkout = lambda target: False
+            guard.on_main = lambda target, branched: False
+            saved = sys.stdin
+            sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
+            try:
+                with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING=""), \
+                        contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    return guard.main()
+            finally:
+                sys.stdin = saved
+
+    def test_only_what_reaches_the_layout_hosts_waits(self) -> None:
+        owner = "by=owner\nsince=2026-11-18T15:00:00-0500\nreason=ops session\n"
+        blocked = ("./tools/hosts/sync_hart_package.sh --pi --win", "./tools/hosts/sync_hart_package.sh --all",
+                   "./tools/hosts/sync_hart_package.sh --win", "make deploy-layout", "make -s deploy-all",
+                   'make redeploy COMMIT=abc HOSTS="--pi --win"', "./tools/hosts/redeploy_commit.sh abc --pi",
+                   "tools/hosts/pi_quit_panelpro.sh --for-deploy", "tools/hosts/pi_start_panelpro.sh",
+                   "tools/hosts/pi_sts_update.sh", "ssh pi 'pkill -f PanelPro'", "ssh pi pkill java",
+                   "ssh -o BatchMode=yes pi 'sudo reboot'",
+                   "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM java.exe",
+                   "bash -c 'tools/hosts/pi_quit_panelpro.sh --for-deploy'", "zsh -c \"ssh pi pkill -f PanelPro\"",
+                   "env HART_PI_RESTART=0 timeout 60 tools/hosts/pi_quit_panelpro.sh",
+                   "jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py")
+        for cmd in blocked:
+            self.assertEqual(self.op_code(cmd, owner), 2, cmd)
+            self.assertEqual(self.op_code(cmd, None), 0, cmd)          # no flag: allowed
+        # the Mac's own work stays open (owner, 2026-11-18)
+        for cmd in ("make tables-pull", "./tools/hosts/sync_hart_package.sh", "make panelpro-test",
+                    "osascript -e 'tell application \"PanelPro\" to quit'", "open -a /Applications/JMRI/PanelPro.app",
+                    "jmri/layouts/hart/scripts/run_sml_discover.sh", "make deploy-site", "./tools/check.sh",
+                    'make redeploy COMMIT=abc HOSTS="--mac"', "./tools/hosts/sync_hart_package.sh --stage-only /tmp/x",
+                    "ssh pi uptime", "ssh other-host pkill java", "cat tools/hosts/pi_quit_panelpro.sh",
+                    "tools/hosts/operating.sh off --owner", "tools/hosts/operating.sh status",
+                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --fetch /tmp/x.log",
+                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill"):
+            self.assertEqual(self.op_code(cmd, owner), 0, cmd)
+        # a speed-matching run's own flag lets the run's next job through, never a host deploy
+        speed = "by=speedmatch\nsince=2026-11-18T15:00:00-0500\nreason=job\n"
+        self.assertEqual(self.op_code("jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py", speed), 0)
+        self.assertEqual(self.op_code("make deploy-layout", speed), 2)
+
+    def test_the_flag_can_be_forced(self) -> None:
+        guard = load(MAIN_GUARD, "hart_main_guard_operating_force")
+        guard.OPERATING_FLAG = "/nonexistent/flag"
+        with mock_env(HART_GUARD_OPERATING="1"):
+            self.assertIsNotNone(guard.operating())
+        with mock_env(HART_GUARD_OPERATING="0"):
+            self.assertIsNone(guard.operating())
+        with mock_env(HART_GUARD_OPERATING=""):
+            self.assertIsNone(guard.operating())
 
 
 class PrivateNameAndTables(unittest.TestCase):

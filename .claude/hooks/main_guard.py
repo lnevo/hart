@@ -12,6 +12,13 @@ file holds the railroad's private name (checked by fingerprint, never spelled ou
 check cannot load, publishing is blocked. A running PanelPro or CATS on this machine blocks
 nothing: the Mac is expendable, and what matters lives on the Pi (AGENTS.md).
 
+While the operating flag is set (tools/hosts/operating.sh: the owner is running trains, or a
+speed-matching run is on the layout) it blocks what reaches the layout hosts (host_control): a deploy
+to the Pi or Windows, quitting or starting PanelPro on the Pi, an STS update there, an ssh command to
+either host that touches JMRI, PanelPro, CATS, java, STS's docker or a reboot, and, under the owner's
+flag, a new speed-matching job. Work on the Mac alone stays open (owner, 2026-11-18). A wrapper's
+`-c` text is judged too. HART_GUARD_OPERATING=1 or 0 overrides the flag file, for tests.
+
 In the main checkout of a repo that uses agent worktrees (it holds tools/agent/worktrees.py)
 it blocks any commit and any switch to a branch other than main: agents work in their own
 worktree under .claude/worktrees/, so no session switches the branch under another.
@@ -36,6 +43,19 @@ PUBLISHING = re.compile(
     r"^\s*(gh\s+(pr|issue)\s+(create|edit|comment|review)|gh\s+release\s+(create|edit)"
     r"|git\s+(-\S+\s+)*(commit|tag)|git\s+(-\S+\s+)*notes\s+(add|append|edit))\b")
 FILE_FLAGS = ("-F", "--file", "--body-file", "--notes-file")
+# The operating flag file (tools/hosts/operating.sh) and what it rules out (host_control).
+OPERATING_FLAG = os.environ.get("HART_OPERATING_FLAG") or os.path.expanduser("~/.hart_operating")
+HOST_SCRIPTS = {"pi_quit_panelpro.sh", "pi_start_panelpro.sh", "pi_sts_update.sh"}
+HOST_FLAGS = ("--pi", "--win", "--all")          # sync_hart_package.sh and redeploy_commit.sh: a layout host
+SSH_VALUE_OPTS = {"-b", "-c", "-D", "-E", "-e", "-F", "-I", "-i", "-J", "-L", "-l", "-m", "-O", "-o", "-p", "-Q",
+                  "-R", "-S", "-W", "-w"}     # ssh options that take the next word as their value
+HOST_TARGETS = {"deploy-layout", "deploy-all"}    # make targets that deploy to the hosts (redeploy: by HOSTS)
+REMOTE_TOUCH = re.compile(r"PanelPro|JMRI|\bcats\b|\bjava\b|\bdocker\b|\breboot\b|\bshutdown\b|\bsystemctl\b|"
+                          r"\bkill(all)?\b|\bpkill\b|jmri_cmd|speedrun", re.I)
+WRAPPERS = {"env", "nohup", "time", "timeout", "sudo", "nice", "exec", "command"}   # run the next words as the program
+SHELLS = {"bash", "sh", "zsh", "dash"}
+ENV_FILES = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "tools", "env", n)
+             for n in ("defaults.env", "hart.env")]
 NAME_CHECK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "..", "..", "ops", "hart-ops", "card_pipeline", "private_name.py")
 
@@ -46,6 +66,110 @@ def git(cwd, *args):
     except (OSError, subprocess.SubprocessError):
         return ""
     return done.stdout.strip() if done.returncode == 0 else ""
+
+
+def operating():
+    """The operating flag's fields ({by, since, reason}) when it is set, else None."""
+    forced = os.environ.get("HART_GUARD_OPERATING")
+    if forced in ("0", "1"):
+        return {"by": "test", "since": "", "reason": ""} if forced == "1" else None
+    try:
+        with open(OPERATING_FLAG, encoding="utf-8") as f:
+            text = f.read()
+    except FileNotFoundError:
+        return None
+    except OSError:
+        return {"by": "?", "since": "", "reason": "the flag file cannot be read"}
+    return dict(line.split("=", 1) for line in text.splitlines() if "=" in line)
+
+
+def layout_hosts():
+    """The ssh names of the Pi and Windows (tools/env: environment, then hart.env, then defaults.env), host part
+    only, lower case, plus the Pi's web name and the broker address."""
+    values = {}
+    for path in ENV_FILES:
+        try:
+            with open(path, encoding="utf-8") as f:
+                for line in f:
+                    m = re.match(r"\s*(HART_\w+)=(.*)", line)
+                    if m:
+                        values[m.group(1)] = m.group(2).strip().strip("\"'")
+        except OSError:
+            continue
+    values.update({k: v for k, v in os.environ.items() if k.startswith("HART_")})
+    names = {values.get(k, "") for k in ("HART_PI_SSH", "HART_WIN_SSH", "HART_PI_WEB_HOST", "HART_MQTT_BROKER")}
+    return {n.split("@")[-1].lower() for n in names if n}
+
+
+def run_words(words):
+    """(the words of the program a command part runs, a shell wrapper's -c text or None): env assignments and
+    wrappers (WRAPPERS, a shell with its options) stripped."""
+    words = [w for w in (w.strip("()") for w in words) if w]
+    while words:
+        head = os.path.basename(words[0])
+        if re.fullmatch(r"\w+=.*", words[0]) or head in WRAPPERS:
+            words.pop(0)
+            while head in ("timeout", "sudo", "nice") and words and (words[0].startswith("-") or
+                                                                    re.fullmatch(r"[\d.]+[smhd]?", words[0])):
+                words.pop(0)        # their options and timeout's duration
+        elif head in SHELLS:
+            words.pop(0)
+            while words and words[0].startswith("-"):
+                flag = words.pop(0)
+                if flag == "-c" and words:
+                    return [], words[0]
+            return words, None
+        else:
+            return words, None
+    return words, None
+
+
+def host_control(part, flag):
+    """What in this command part reaches a layout host while the operating flag `flag` is set, or None: a host
+    deploy, a Pi PanelPro or STS script, an ssh command to the Pi or Windows that touches the layout software, or
+    (under the owner's flag) a new speed-matching job. A shell wrapper's -c text is judged part by part."""
+    try:
+        words = shlex.split(part)
+    except ValueError:
+        words = part.split()
+    words, inline = run_words(words)
+    if inline:
+        for sub in SPLIT.split(inline):
+            found = host_control(sub, flag)
+            if found:
+                return found
+        return None
+    if not words:
+        return None
+    head, args = os.path.basename(words[0]), words[1:]
+    if head in ("sync_hart_package.sh", "redeploy_commit.sh") and \
+            any(a == f or a.startswith(f + "=") for a in args for f in HOST_FLAGS):
+        return "a deploy to the Pi or Windows"
+    if head == "make":
+        hosts = " ".join(a for a in args if a.startswith("HOSTS="))
+        if HOST_TARGETS & set(args) or ("redeploy" in args and re.search(r"--(pi|win|all)\b", hosts)):
+            return "a deploy to the Pi or Windows"
+    if head in HOST_SCRIPTS:
+        return f"{head}, which acts on the Pi"
+    if head == "drop_job.sh" and flag.get("by") == "owner" and args and \
+            args[0] not in ("--fetch", "--kill", "-h", "--help"):
+        return "a speed-matching job during the owner's session"
+    if head == "ssh":
+        i, target = 0, ""
+        while i < len(args):
+            a = args[i]
+            if a in SSH_VALUE_OPTS:
+                i += 2
+                continue
+            if a.startswith("-"):
+                i += 1
+                continue
+            target = a
+            break
+        rest = " ".join(args[i + 1:]) if target else ""
+        if target.split("@")[-1].lower() in layout_hosts() and REMOTE_TOUCH.search(rest):
+            return f"an ssh command to {target} that touches the layout software"
+    return None
 
 
 def contains_private_name(text):
@@ -222,6 +346,15 @@ def main():
         if found:
             print(f"Blocked: {found}. The repo is public; see AGENTS.md. Reword it.", file=sys.stderr)
             return 2
+        flag = operating()
+        if flag is not None:
+            what = host_control(part, flag)
+            if what:
+                print(f"Blocked: {what} must wait: the operating flag is set (by {flag.get('by', '?')}"
+                      f"{', since ' + flag['since'] if flag.get('since') else ''}"
+                      f"{': ' + flag['reason'] if flag.get('reason') else ''}). The layout is in use; ask the "
+                      "owner, or wait for the run to end (tools/hosts/operating.sh status).", file=sys.stderr)
+                return 2
         if MERGE.search(part) and re.search(r"(^|\s)--admin\b", part):
             print("Blocked: an admin merge skips the required check. That override is the owner's.", file=sys.stderr)
             return 2
