@@ -213,6 +213,17 @@ class SubagentGuard(unittest.TestCase):
             "tools/hosts/deploy_status.sh --pi --win",
             "python3 -m unittest tools.audit.tests.test_guards",
             "timeout 30 grep -rn deploy docs",
+            "timeout 30 grep -rn 'git push' .",
+            "time grep -r sync_hart_package.sh .",
+            "env FOO=1 grep -rn ssh .",
+            "if grep -q 'make deploy' f; then echo y; fi",
+            "timeout 60 grep -e if -e then -e else -e elif -e do -e while -e until src",
+            'make deploy-status HOSTS="--pi --win"',
+            "gh pr view 5",
+            "gh api repos/o/r/pulls",
+            "git branch --list",
+            "uv run pytest -q",
+            "ssh pi journalctl -u mosquitto -n 50",
         ):
             with self.subTest(command=command):
                 done = run(SUBAGENT_GUARD, command, str(ROOT))
@@ -294,6 +305,25 @@ class SubagentGuard(unittest.TestCase):
             "ssh pi tail -f /var/log/syslog",
             "ssh pi docker logs --follow web",
             "ssh pi git status",
+            # fourth review: substitution, grouping, launchers, inline code, gh, find -exec, follow flags
+            "(git push)",
+            "echo $(git push)",
+            "a=$(git push origin HEAD)",
+            "echo `git push`",
+            "uv run git push",
+            "uv run make deploy-layout",
+            'python3 -c "import os; os.popen(\'git push\')"',
+            "perl -ne 'system(\"git push\")' x",
+            "gh pr merge 5 --merge",
+            "gh api -X DELETE repos/o/r/git/refs/heads/x",
+            "git pull",
+            "git branch -D main",
+            "git worktree remove x",
+            "find . -maxdepth 0 -exec git push \\;",
+            "ssh pi journalctl -xef",
+            "ssh pi tail -n5 -qf x",
+            "ssh pi docker logs --tail 5 -tf web",
+            'ssh pi "head x >/dev/null_evil"',
         ):
             with self.subTest(command=command):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
