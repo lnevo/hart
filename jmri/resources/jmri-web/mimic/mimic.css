@@ -39,6 +39,10 @@ h1 { font-size: 16px; margin: 0; letter-spacing: .04em; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: #666; }
 .dot.ok { background: var(--green); }
 .dot.bad { background: var(--red); }
+.tabs { display: flex; gap: 4px; }
+.tabs[hidden] { display: none; }
+.tab { padding: 6px 14px; font-weight: 650; }
+.tab.on { background: var(--closed); border-color: #5aa0c8; color: #fff; }
 input[type="search"] {
   background: var(--panel);
   border: 1px solid var(--line);

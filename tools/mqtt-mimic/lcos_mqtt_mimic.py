@@ -35,7 +35,7 @@ from urllib.parse import urlparse
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import level_devices, paths, railroad, tables  # noqa: E402
 from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -82,6 +82,11 @@ PLANT_ORDER = [
     "Main",
     "Other",
 ]
+
+# Tabs on the page. Staging runs on LCOS MQTT devices (M2T/M2S), set through MQTT feedback; the main and upper
+# levels run on virtual JMRI devices (hartlib.level_devices) named in the device map, set in JMRI directly.
+STAGING = "staging"
+LEVELS = {2: "main", 3: "upper"}
 
 
 def _which(name: str) -> str:
@@ -186,6 +191,8 @@ def load_layout() -> dict:
                 "userName": un,
                 "comment": rec["comment"],
                 "plant": plant,
+                "level": STAGING,
+                "name": rec["systemName"],
             }
         )
     blocks.sort(key=lambda b: (PLANT_ORDER.index(b["plant"]) if b["plant"] in PLANT_ORDER else 99, b["userName"]))
@@ -220,6 +227,8 @@ def load_layout() -> dict:
                 "n_addr": n_addr,
                 "r_addr": r_addr,
                 "tip": SWITCH_TIPS.get(num, ""),
+                "level": STAGING,
+                "name": sn,
             }
         )
     turnouts.sort(key=lambda t: (PLANT_ORDER.index(t["plant"]) if t["plant"] in PLANT_ORDER else 99, t["num"]))
@@ -239,6 +248,7 @@ def load_layout() -> dict:
                             "systemName": h,
                             "mast": mast,
                             "plant": plant,
+                            "level": STAGING,
                         }
                     )
     heads.sort(
@@ -249,6 +259,75 @@ def load_layout() -> dict:
         )
     )
 
+    level = load_levels(root)
+    return {
+        "blocks": blocks + level["blocks"],
+        "turnouts": turnouts + level["turnouts"],
+        "heads": heads + level["heads"],
+    }
+
+
+def load_levels(root, device_map: railroad.DeviceMap | None = None) -> dict:
+    """Main and upper turnouts, block sensors and heads: the device map's virtual devices that tables.xml holds.
+
+    Each record's `addr` is its JMRI system name and `virtual` is true, so the JMRI page sets it directly
+    (no MQTT). Grouped by control point, else by the region of the lowest switch in its name ("Peninsula").
+    """
+    dm = device_map or railroad.Railroad().device_map
+    in_tables = {
+        _txt(el, "systemName")
+        for tag in ("turnout", "sensor", "signalhead")
+        for el in root.iter(tag)
+    }
+    blocks_of: dict[str, list[str]] = {}
+    for el in root.iter("block"):
+        occ = _txt(el, "occupancysensor")
+        name = _txt(el, "userName")
+        if occ and name:
+            blocks_of.setdefault(occ, []).append(name)
+
+    region: dict[str, str] = {}
+    for r in dm.of("block"):
+        if r.user_name.startswith("OS Switch "):
+            region[r.user_name.removeprefix("OS Switch ")] = r.cp or r.comment
+
+    def group(r: railroad.DeviceRow) -> str:
+        if r.cp:
+            return r.cp
+        for num in re.findall(r"\d+[a-z]?", r.user_name):
+            if region.get(num):
+                return region[num]
+        raise SystemExit(f"{dm.path} line {r.line}: {r.user_name} has no cp and names no switch with a region")
+
+    def order(r: railroad.DeviceRow) -> tuple:
+        return (r.level, railroad.natural(group(r)), railroad.natural(r.user_name))
+
+    turnouts, blocks, heads = [], [], []
+    for r in sorted(dm.turnouts.values(), key=order):
+        if r.jmri_name not in in_tables:
+            continue
+        turnouts.append({
+            "addr": r.jmri_name, "name": r.jmri_name, "label": r.user_name, "num": r.user_name.split()[-1],
+            "plant": group(r), "feedback": "DIRECT", "n_addr": None, "r_addr": None, "tip": "",
+            "level": LEVELS[r.level], "virtual": True,
+        })
+    for r in sorted(dm.of("occupancy"), key=order):
+        if r.jmri_name not in in_tables:
+            continue
+        names = blocks_of.get(r.user_name, [])
+        blocks.append({
+            "addr": r.jmri_name, "name": r.jmri_name, "label": " / ".join(names) or r.user_name,
+            "userName": r.user_name, "comment": "", "plant": group(r),
+            "level": LEVELS[r.level], "virtual": True,
+        })
+    for r in sorted(dm.of("mast"), key=order):
+        for h in level_devices.HEAD.findall(r.jmri_name):
+            if h not in in_tables:
+                continue
+            heads.append({
+                "id": _head_leaf(h), "systemName": h, "mast": r.user_name, "plant": group(r),
+                "level": LEVELS[r.level],
+            })
     return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
 
 
@@ -325,6 +404,12 @@ def _plant_for_block(label: str, comment: str, uname: str, cps: dict[str, dict[s
     if match and match.group(0) in occ:
         return occ[match.group(0)]
     return infer_plant(f"{label} {uname}")
+
+
+def staging_only(layout: dict) -> dict:
+    """The staging records alone. This server talks only MQTT, so it cannot set the main and upper levels'
+    virtual JMRI devices; the JMRI-hosted page has their tabs."""
+    return {kind: [it for it in rows if it["level"] == STAGING] for kind, rows in layout.items()}
 
 
 class Bus:
@@ -581,7 +666,7 @@ def main() -> int:
             raise SystemExit(f"missing UI {page}")
 
     host = pick_mqtt_host(args.mqtt_host)
-    layout = load_layout()
+    layout = staging_only(load_layout())
     bus = Bus(host)
     bus.start()
     html = HTML.read_bytes()
