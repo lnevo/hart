@@ -375,6 +375,12 @@ class MainAndUpper(unittest.TestCase):
         # CTC: CATS holds their signals and releases them (owner, 2026-11-17)
         self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "CTC")
 
+    def test_label_clashes_stop_the_desk(self):
+        log = ["label 'S-1' at (4, 5) UPCENT crosses 1 track lines, signals or labels", "no room for label 'K-2'",
+               "Main level: grid column -9 is not widened (a one-row slope from switch to switch crosses it), so ...",
+               "mast 130LB: its gap moved 1 cell(s) along track e75"]
+        self.assertEqual(B.label_clashes(log), log[:2])
+
     def test_desk_preferences(self):
         """The desks' window (the Windows box's screen, owner 2026-11-18), one cell per grid unit, a helix block on
         each band (owner, 2026-11-17) and the tighter rows between bands (owner, 2026-11-18) are the page's CATS
