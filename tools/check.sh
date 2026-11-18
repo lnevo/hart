@@ -127,7 +127,8 @@ run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
 run desks python3 cats/scripts/validate_cats_panel.py
 # The longest jobs start first, so none of them waits behind the quick ones: unit-jmri, then the per-file guard and
-# host jobs with the files in SLOW (each 10-20 s; the Layout Editor ones longer with an empty schematic cache) ahead.
+# host jobs with the files in SLOW of both folders (each 10-20 s; the Layout Editor ones longer with an empty
+# schematic cache) ahead of the rest.
 SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_redeploy_commit.py test_build_layout_le.py \
 test_le_cutover.py test_le_mast_parity.py "
 slow_first() {
@@ -137,31 +138,28 @@ slow_first() {
   return 0
 }
 unit unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
-# The host tests start real processes and wait out their timers: one job per file, found as discover finds them.
-if [[ -n "$(find tools/hosts/tests -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
-  echo "--- unit-hosts: tests in a subfolder of tools/hosts/tests; give them their own job in check.sh"
-  fail=1
-fi
-for t in $(slow_first tools/hosts/tests/test*.py); do
-  unit "unit-hosts $(basename "$t" .py)" python3 -m unittest discover -q -s tools/hosts/tests -p "$(basename "$t")"
+# The host tests start real processes and wait out their timers, and the guard tests are many separate modules:
+# both run one job per file, found as discover finds them, the files in SLOW of both folders first. A file in
+# BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job).
+for d in tools/hosts/tests tools/audit/tests; do
+  if [[ -n "$(find "$d" -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
+    echo "--- $d: tests in a subfolder; give them their own job in check.sh"
+    fail=1
+  fi
 done
-# The guard tests, one job per file too: run as one job they took about a minute end to end (test_worktrees alone
-# about 20 s of git calls), one after another.
-if [[ -n "$(find tools/audit/tests -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
-  echo "--- unit-guards: tests in a subfolder of tools/audit/tests; give them their own job in check.sh"
-  fail=1
-fi
-# A file in BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job).
 BY_CLASS=" test_worktrees.py "
-for t in $(slow_first tools/audit/tests/test*.py); do
+for t in $(slow_first tools/hosts/tests/test*.py tools/audit/tests/test*.py); do
+  d="$(dirname "$t")"
   f="$(basename "$t")"
+  kind=unit-guards
+  [[ "$d" == tools/hosts/tests ]] && kind=unit-hosts
   if [[ "$BY_CLASS" == *" $f "* ]]; then
-    classes="$(python3 tools/audit/test_classes.py "$t")" || { echo "--- unit-guards ${f%.py}: cannot list its test classes"; fail=1; continue; }
+    classes="$(python3 tools/audit/test_classes.py "$t")" || { echo "--- $kind ${f%.py}: cannot list its test classes"; fail=1; continue; }
     for c in $classes; do
-      unit "unit-guards ${f%.py}.$c" python3 -m unittest discover -q -s tools/audit/tests -p "$f" -k "${f%.py}.$c."
+      unit "$kind $c" python3 -m unittest discover -q -s "$d" -p "$f" -k "$c."
     done
   else
-    unit "unit-guards ${f%.py}" python3 -m unittest discover -q -s tools/audit/tests -p "$f"
+    unit "$kind ${f%.py}" python3 -m unittest discover -q -s "$d" -p "$f"
   fi
 done
 unit unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests

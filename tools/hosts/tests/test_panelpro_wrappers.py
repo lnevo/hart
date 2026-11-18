@@ -279,7 +279,7 @@ class Cleanup(WrapperCase):
         self.assert_restored()
 
     def test_timeout_stops_java_even_when_it_ignores_term(self) -> None:
-        env = self.box.env(FAKE_MODE="hang", FAKE_IGNORE_TERM="1", HART_PANELPRO_TIMEOUT="1",
+        env = self.box.env(FAKE_MODE="hang", FAKE_IGNORE_TERM="1", HART_PANELPRO_TIMEOUT="2",
                            HART_PANELPRO_KILL_WAIT="1")
         started = time.monotonic()
         done = self.box.run("run_panelpro_smoke_test.sh", env)
@@ -460,6 +460,27 @@ class SmokeTestNames(unittest.TestCase):
         builder = (ROOT / "tools/schematic/le_common.py").read_text(encoding="utf-8")
         self.assertEqual(got, {"LEVEL_SENSOR_PREFIX": level_devices.SENSOR_PREFIX,
                                "LEVEL_BLOCK_PREFIX": re.search(r'^BLOCK_SYS = "([^"]+)"', builder, re.M).group(1)})
+
+
+class PollInterval(unittest.TestCase):
+    """HART_PANELPRO_POLL: a number above 0 overrides the poll interval; anything else keeps the default."""
+
+    def poll(self, value: str | None) -> subprocess.CompletedProcess[str]:
+        env = {k: v for k, v in os.environ.items() if k != "HART_PANELPRO_POLL"}
+        if value is not None:
+            env["HART_PANELPRO_POLL"] = value
+        return subprocess.run(["bash", "-c", f'source "{ROOT}/tools/hosts/panelpro_session.sh"; _pp_poll 2'],
+                              env=env, capture_output=True, text=True, timeout=30)
+
+    def test_a_number_above_zero_overrides_and_anything_else_keeps_the_default(self) -> None:
+        self.assertEqual("2", self.poll(None).stdout.strip())
+        self.assertEqual("0.1", self.poll("0.1").stdout.strip())
+        self.assertEqual("3", self.poll("3").stdout.strip())
+        for bad in ("0", "0.0", "1s", "-1", "x"):
+            with self.subTest(value=bad):
+                done = self.poll(bad)
+                self.assertEqual("2", done.stdout.strip())
+                self.assertIn("is not a number above 0", done.stderr)
 
 
 if __name__ == "__main__":

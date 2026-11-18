@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Print the test classes of one unittest file that hold tests, one per line, as discover finds them.
+"""Print the test classes of one unittest file that hold tests, as module.Class, one per line, as discover finds them.
 
     python3 tools/audit/test_classes.py tools/audit/tests/test_worktrees.py
 
-tools/check.sh runs a file it names in BY_CLASS as one job per class this prints. Exit 1 when the file
-cannot be loaded or holds no tests, so check.sh never drops a file's tests by listing nothing.
+tools/check.sh runs a file it names in BY_CLASS as one job per class this prints, selecting it with
+unittest -k "module.Class." (the test ids' own prefix, so a class imported from another module is still
+found). Exit 1 when the file cannot be loaded or holds no tests, so check.sh never drops a file's tests
+by listing nothing.
 """
 from __future__ import annotations
 
@@ -28,7 +30,7 @@ def main(argv: list[str]) -> int:
     if failed or not tests:
         print(f"{path}: {'cannot be loaded' if failed else 'holds no tests'}", file=sys.stderr)
         return 1
-    classes = dict.fromkeys(t.split(".")[-2] for t in tests)
+    classes = dict.fromkeys(t.rsplit(".", 1)[0] for t in tests)
     print("\n".join(classes))
     return 0
 
