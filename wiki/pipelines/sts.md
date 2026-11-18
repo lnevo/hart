@@ -21,12 +21,11 @@ Shipit Transportation System: HART seed database, warm-start, operating sessions
 From the project root:
 
 ```bash
-bash tools/ops/sts_compose.sh up -d
+(cd external/sts-docker && docker compose up -d)
 cd external/sts-helpers
 ./apply_hart_seed.sh --generate --merge-fleet
 ./apply_warm_start.sh
 ./begin_session.sh --run-stg-scully --switchlists
-./generate_switchlists.sh --format=phased
 ```
 
 Canonical PHP runtime is **`external/sts-docker/sts/`**. Diagnostics live in `external/sts-helpers/diagnostics/`, not in the web tree. Read `external/sts-docker/AGENTS.md`.

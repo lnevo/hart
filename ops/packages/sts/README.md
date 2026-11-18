@@ -10,12 +10,12 @@
 cp tools/env/hart.env.example tools/env/hart.env   # once
 ```
 
-Pipeline script [`refresh_sts_docker_compose.sh`](../../../tools/ops/refresh_sts_docker_compose.sh) writes literal bind paths into `docker-compose.yml` (`backups/`, `images/`, `database/` under `sts-docker-data/`).
+The Mac (UAT) stack is `external/sts-docker/docker-compose.yml` as committed in sts-docker; its mounts are relative (`../sts-docker-data`, `../sts-plugins/plugins`), so nothing is rendered.
 
 ## Run
 
 ```bash
-bash tools/ops/sts_compose.sh up -d --build
+(cd external/sts-docker && docker compose up -d --build)
 ```
 
 ## Sessions
