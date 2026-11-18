@@ -69,6 +69,11 @@ def staging_switches() -> dict[int, railroad.Switch]:
         raise BuildError(f"staging switches: {exc}") from None
 
 
+def switch_idents() -> dict[str, str]:
+    """{switch number as text: its live Layout Editor ident} of every staging switch (staging_switches)."""
+    return {str(n): sw.le_ident for n, sw in staging_switches().items()}
+
+
 def main_upper_device_map(path: Path = DEVICE_MAP) -> railroad.DeviceMap:
     """The main and upper device map (hartlib.railroad.read_device_map, every row checked); BuildError names the
     file and row that cannot be read."""

@@ -15,7 +15,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 from hartlib import paths, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import (  # noqa: E402
-    band_key, bare, BuildError, DEVICE_MAP, main_upper_device_map, STAGING, staging_switches,
+    band_key, bare, BuildError, DEVICE_MAP, main_upper_device_map, STAGING, switch_idents,
 )
 
 
@@ -95,7 +95,7 @@ LEGS_SWAPPED = {"13": "Barn on leg C, so 15-13-11 is drawn level as on the sheet
 
 def swapped_idents() -> set:
     """The live Layout Editor idents of the LEGS_SWAPPED switches (switches.csv, through hartlib.railroad)."""
-    idents = {str(n): sw.le_ident for n, sw in staging_switches().items()}
+    idents = switch_idents()
     missing = sorted(set(LEGS_SWAPPED) - set(idents))
     if missing:
         raise BuildError(f"LEGS_SWAPPED names switches switches.csv does not have: {missing}")

@@ -172,8 +172,8 @@ def write_stations(sheets, folder):
 
 def measured_lengths():
     """{track name: inches} for every measured Track row of block_lengths.csv (measured, timed or estimated, as its
-    flag column says; hartlib.railroad.read_block_lengths). Stops on a repeated name or a length that is not a
-    number."""
+    flag column says). hartlib.railroad.read_block_lengths reads and checks every row, not only the Track rows: it
+    stops on an empty or repeated name or a length that is not a number."""
     try:
         lengths = railroad.read_block_lengths(LENGTHS)
     except railroad.FactsError as exc:

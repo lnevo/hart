@@ -454,8 +454,9 @@ class FactsReaders(unittest.TestCase):
             bad = Path(tmp) / "switches.csv"
             text = (paths.LAYOUT_DATA / "switches.csv").read_text(encoding="utf-8")
             bad.write_text(text + text.splitlines()[-1] + "\n", encoding="utf-8")      # the last switch twice
-            with mock.patch.object(rr, "Railroad",
-                                   lambda upto: real(rr.Sources.under().but(switches=bad), upto=upto)):
+            def patched(sources=None, upto=rr.LAYERS[-1]):
+                return real((sources or rr.Sources.under()).but(switches=bad), upto=upto)
+            with mock.patch.object(rr, "Railroad", patched):
                 with self.assertRaisesRegex(B.BuildError, r"^staging switches: switches.csv lines \d+ .* both use"):
                     B.swapped_idents()
 
