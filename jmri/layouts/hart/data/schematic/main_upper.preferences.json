@@ -197,9 +197,13 @@
  "_le_window": "The window the Layout Editor panels open in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside it less Layout Editor's 18 x 60 px frame allowance). Width: the whole 1900, so the panel is at most 1882 (the live panel's window is 1882 wide). Height: 1200 less the macOS menu bar (37 px on a notched display, 25 else) and 23 px spare for the Dock's edge is 1140; the 60 px allowance covers the title bar (28 px) and the thin edit toolbar, leaving the panel at most 1080. build_layout_le.py fits staging's own grid into it and sizes the cut-over candidates' window by it.",
  "cats_window": [
   1900,
-  1150
+  1020
  ],
- "_cats_window": "The window CATS opens the dispatcher's desks in: their 1900 x 1200 screen less a taskbar. CATS has no zoom and draws 30 px cells, so the plugin fits the desk to what shows inside it less CATS's own frame, title, menu and status lines: 62 columns by 35 rows (build_cats_panel.py, the CTC desk and its ABS twin).",
+ "_cats_window": "The window CATS opens the desks in on the Windows box, where the owner mainly runs CATS: its screen is 2040 x 1075, so 1020 high clears the taskbar (it was 1150, taller than that screen, and the desk's bottom rows were cut off; owner, 2026-11-18). CATS has no zoom and draws 30 px cells, so the plugin fits the desk to what shows inside it less CATS's own frame, title, menu and status lines: 62 columns by 30 rows (build_cats_panel.py, the CTC desk and its ABS twin).",
+ "cats_band_gap": 1,
+ "_cats_band_gap": "One empty row between a band's lowest track and the next band's title, not two, so the three levels fit the Windows box's screen (owner, 2026-11-18).",
+ "cats_title_gap": 0,
+ "_cats_title_gap": "Each band's track starts on the row under its title, with no empty row between (owner, 2026-11-18): with cats_band_gap the desk is 28 rows, not 33.",
  "cats_cells_per_unit": 1,
  "_cats_cells_per_unit": "One CATS cell per schematic grid unit is what fits all three levels in cats_window.",
  "cats_helix_blocks": "apart",

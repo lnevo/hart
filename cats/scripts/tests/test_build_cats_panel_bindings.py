@@ -152,11 +152,11 @@ class Switches(unittest.TestCase):
 
     def test_fit_comes_from_the_window(self):
         o = desk_options()
-        self.assertEqual((o["window"], o["fit"]), ((1900, 1150), (62, 35)))   # (1900 - 20) // 30, (1150 - 100) // 30
+        self.assertEqual((o["window"], o["fit"]), ((1900, 1020), (62, 30)))   # (1900 - 20) // 30, (1020 - 100) // 30
         with self.assertRaisesRegex(SystemExit, "no cats_window"):
             B.desk_options(plugin_cats(), {}, [])
         with self.assertRaisesRegex(SystemExit, "the desks need \"apart\""):
-            B.desk_options(plugin_cats(), {"cats_window": [1900, 1150]}, [])
+            B.desk_options(plugin_cats(), {"cats_window": [1900, 1020]}, [])
 
     def test_legs_disagreeing_with_switch_legs_stop(self):
         f = facts()
@@ -376,11 +376,14 @@ class MainAndUpper(unittest.TestCase):
         self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "CTC")
 
     def test_desk_preferences(self):
-        """The desks' window, one cell per grid unit and a helix block on each band (owner, 2026-11-17) are the
-        page's CATS preferences, which the plugin reads."""
+        """The desks' window (the Windows box's screen, owner 2026-11-18), one cell per grid unit, a helix block on
+        each band (owner, 2026-11-17) and the tighter rows between bands (owner, 2026-11-18) are the page's CATS
+        preferences, which the plugin reads."""
         page = json.loads((B.pd.DATA / "main_upper.preferences.json").read_text(encoding="utf-8"))
-        self.assertEqual({k: page[k] for k in ("cats_window", "cats_cells_per_unit", "cats_helix_blocks")},
-                         {"cats_window": [1900, 1150], "cats_cells_per_unit": 1, "cats_helix_blocks": "apart"})
+        keys = ("cats_window", "cats_cells_per_unit", "cats_helix_blocks", "cats_band_gap", "cats_title_gap")
+        self.assertEqual({k: page[k] for k in keys},
+                         {"cats_window": [1900, 1020], "cats_cells_per_unit": 1, "cats_helix_blocks": "apart",
+                          "cats_band_gap": 1, "cats_title_gap": 0})
 
     def test_every_main_and_upper_desk_block_reports_its_virtual_sensor(self):
         """Every desk block of main and upper is bound to its block's virtual sensor, which tables.xml holds under
