@@ -78,17 +78,6 @@ class RoundTripTest(unittest.TestCase):
             self.assertEqual(out.read_bytes(), original)
             self.assertFalse(doc.save(out), "an identical file is not rewritten")
 
-    def test_matches_the_existing_elementtree_writers_on_the_repo_file(self):
-        # apply_yard_throat_blocks and friends: ET.parse + write(xml_declaration=True), on the last tables those
-        # scripts wrote (the hand-drawn ones, git): since the cut-over the repo's file is a PanelPro Store, whose
-        # header (stylesheet, quotes) test_panelpro_store_is_byte_identical covers
-        from hartlib import hand_drawn
-        source = hand_drawn.skip_unless_available()
-        with tempfile.TemporaryDirectory() as d:
-            out = Path(d) / "et.xml"
-            ET.parse(source).write(out, encoding="UTF-8", xml_declaration=True)
-            self.assertEqual(tables.load(source).tobytes(), out.read_bytes())
-
     def test_panelpro_store_is_byte_identical(self):
         doc = tables.loads(STORE)
         self.assertEqual(doc.tobytes(), STORE)
@@ -314,21 +303,22 @@ class GeneratedPanelMarkerTest(unittest.TestCase):
         self.assertTrue(tables.generated_panel(tables.layout_editor(tables.read(paths.REPO_TABLES_XML))))
         self.assertFalse(tables.generated_panel(tables.layout_editor(tables.read(hand_drawn.skip_unless_available()))))
 
-    def test_hand_drawn_only(self):
+    def test_path_has_generated_panel(self):
         with tempfile.TemporaryDirectory() as d:
             root = ET.Element("layout-config")
             root.append(self.panel(0))
             hand = Path(d) / "hand.xml"
             hand.write_bytes(ET.tostring(root))
-            self.assertIsNone(tables.hand_drawn_only(hand, "x.py"))
+            self.assertFalse(tables.path_has_generated_panel(hand))
             tables.layout_editor(root).append(tables.generated_marker_label())
             gen = Path(d) / "gen.xml"
             gen.write_bytes(ET.tostring(root))
-            self.assertIn("is generated", tables.hand_drawn_only(gen, "x.py"))
-            self.assertIn("cannot read", tables.hand_drawn_only(Path(d) / "none.xml", "x.py"))
+            self.assertTrue(tables.path_has_generated_panel(gen))
+            with self.assertRaises(OSError):
+                tables.path_has_generated_panel(Path(d) / "none.xml")
             other = Path(d) / "other.xml"
             other.write_bytes(b"<layout-config><LayoutEditor name='Dispatcher System'/></layout-config>")
-            self.assertIn("no main Layout Editor panel", tables.hand_drawn_only(other, "x.py"))
+            self.assertFalse(tables.path_has_generated_panel(other))
 
 
 class OverrideSaveTest(unittest.TestCase):

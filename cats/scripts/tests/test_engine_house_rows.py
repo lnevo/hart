@@ -10,10 +10,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "cats/scripts"))
-import wire_digicon as wire  # noqa: E402
+sys.path.insert(0, str(ROOT / "jmri/layouts/hart/scripts"))
 import desks  # noqa: E402  (cats/scripts/tests/desks.py: the live desks)
+import layout_facts as facts  # noqa: E402  (switches.csv: each switch's CATS inversion)
 
-# Designer source plant cell -> {route edge: (command, block that leg leads to, cell holding that block)}
+# Plant (by its cell on the old Designer drawing) -> {route edge: (command, block that leg leads to, cell)}
 PLANTS = {
     (24, 8): {"BOTTOM": ("close", "Track EH-2", (24, 9)), "LEFT": ("throw", "Track EH-3", (21, 8))},
     (26, 8): {"BOTTOM": ("close", "Track EH-1", (26, 9)), "LEFT": ("throw", "OS Switch 9", (25, 8))},
@@ -21,11 +22,6 @@ PLANTS = {
 TURNOUT = {(24, 8): "Switch 9", (26, 8): "Switch 11"}
 OS_BLOCK = {(24, 8): "OS Switch 9", (26, 8): "OS Switch 11"}
 
-
-
-def _cells(path):
-    root = ET.parse(path).getroot()
-    return {(int(s.get("X")), int(s.get("Y"))): s for s in root.iter("SECTION")}
 
 
 def _jmri_paths():
@@ -46,8 +42,9 @@ def _jmri_paths():
 
 class EngineHouse(unittest.TestCase):
     def test_plants_not_inverted(self):
-        self.assertNotIn("TO10", wire.INVERT_VS_JMRI)
-        self.assertNotIn("TO11", wire.INVERT_VS_JMRI)
+        switches = facts.load_switches()
+        self.assertFalse(switches[9].cats_inverted)
+        self.assertFalse(switches[11].cats_inverted)
 
     def test_expectations_match_jmri(self):
         paths = _jmri_paths()
@@ -55,14 +52,6 @@ class EngineHouse(unittest.TestCase):
             for cmd, dest, _cell in legs.values():
                 setting = "2" if cmd == "close" else "4"
                 self.assertEqual(dest, paths[(OS_BLOCK[xy], TURNOUT[xy], setting)], (xy, cmd))
-
-    def test_designer_source(self):
-        cells = _cells(ROOT / "cats/panels/HART_Digicon.xml")
-        for xy, legs in PLANTS.items():
-            for edge, (_cmd, dest, cell) in legs.items():
-                names = {b.get("NAME") for b in cells[cell].iter("BLOCK") if b.get("NAME")}
-                if dest.startswith("Track "):           # the Designer source names only the track cells
-                    self.assertIn(dest, names, (xy, edge))
 
     def test_live_desks(self):
         # the live (generated) desks: each engine house plant, found by its OS block, commands its turnout to the
@@ -72,6 +61,7 @@ class EngineHouse(unittest.TestCase):
                 with self.subTest(desk=desk.name, switch=TURNOUT[xy]):
                     want = {cmd: (dest, cmd == "close") for cmd, dest, _cell in legs.values()}
                     self.assertEqual(desks.routes(desk, OS_BLOCK[xy]), want)
+
 
 if __name__ == "__main__":
     unittest.main()

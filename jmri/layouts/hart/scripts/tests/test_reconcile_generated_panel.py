@@ -1,13 +1,12 @@
-"""reconcile_dispatcher_stations.py on a generated Layout Editor panel (LE cut-over, Phase 3).
+"""reconcile_dispatcher_stations.py on the generated Layout Editor panel, once the Dispatcher System is unparked.
 
-On a generated panel (hidden marker label, hartlib.tables) the station clusters keep where they stand, or go back
-where they stood on --reference (the tables before Stage 1); STATION_ICON_POSITIONS are the hand-drawn panel's.
+The fixture is this checkout's tables with the Dispatcher System put back from the parked file
+(hartlib.parked.with_parked). The station clusters keep where they stand, or go back where they stood on --reference
+(the tables before Stage 1); a panel that is not generated is refused.
 """
 from __future__ import annotations
 
-import contextlib
 import copy
-import io
 import sys
 import unittest
 import xml.etree.ElementTree as ET
@@ -15,18 +14,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import hand_drawn, paths, tables  # noqa: E402
-
-# The fixture is the last hand-drawn tables (git, hartlib.hand_drawn) with the marker added: the repo's tables.xml
-# holds the generated panel itself since the cut-over
-HAND_DRAWN = hand_drawn.skip_unless_available()
+from hartlib import parked, paths, tables  # noqa: E402
 
 from test_reconcile_dispatcher_stations import reconciler  # noqa: E402
 
+UNPARKED = parked.with_parked({"dispatcher"}, paths.REPO_TABLES_XML)
+
 
 def marked() -> ET.ElementTree:
-    tree = ET.ElementTree(tables.read(HAND_DRAWN))
-    reconciler.main_layout_editor(tree.getroot()).insert(1, tables.generated_marker_label())
+    """The generated panel with the Dispatcher System put back (a copy each time)."""
+    return ET.ElementTree(copy.deepcopy(UNPARKED))
+
+
+def unmarked() -> ET.ElementTree:
+    tree = marked()
+    le = reconciler.main_layout_editor(tree.getroot())
+    le.remove(le.find(f"positionablelabel[@text='{tables.GENERATED_PANEL_MARKER}']"))
     return tree
 
 
@@ -46,8 +49,8 @@ def shift_clusters(root: ET.Element, dx: int = 40) -> None:
 
 class GeneratedStationsTest(unittest.TestCase):
     def test_a_jmri_stored_cluster_is_kept_as_it_is(self) -> None:
-        """After Stage 1 PanelPro stores the clusters its own way (attribute order, fonts, editable="false"); on a
-        generated panel the check keeps them as they are, so the cut-over tables need no change (Phase 5)."""
+        """After Stage 1 PanelPro stores the clusters its own way (attribute order, fonts, editable="false"); the
+        check keeps them as they are."""
         tree = marked()
         reconciler.reconcile(tree)                           # the build's clusters, as they stand
         editor = reconciler.main_layout_editor(tree.getroot())
@@ -65,13 +68,15 @@ class GeneratedStationsTest(unittest.TestCase):
 
     def test_a_generated_panel_keeps_its_clusters_where_they_stand(self) -> None:
         tree = marked()
-        shift_clusters(tree.getroot())       # off the hand-drawn pixels
+        reconciler.reconcile(tree)              # the parked file's station lamps are not in it: created once
+        shift_clusters(tree.getroot())
         before = clusters(tree.getroot())
-        # the hand-drawn panel's buttons read "Track K-1": on a generated panel they read "K-1" (owner, 2026-11-16),
-        # so the first run rewrites only those buttons' text, in place
+        # a button that reads "Track K-1" is rewritten in place to "K-1" (owner, 2026-11-16)
+        le = reconciler.main_layout_editor(tree.getroot())
+        button = next(i for i in le.findall("sensoricon") if i.get("sensor") == "MoveToTrack_K-1_stored")
+        button.set("text", "Track K-1")
         changes = reconciler.reconcile(tree)
-        self.assertTrue(changes.details)
-        self.assertTrue(all(d.startswith("reconciled icon MoveToTrack_") for d in changes.details), changes.details)
+        self.assertEqual(["reconciled icon MoveToTrack_K-1_stored"], changes.details)
         self.assertEqual(before, clusters(tree.getroot()))
         for icon in reconciler.main_layout_editor(tree.getroot()).findall("sensoricon"):
             if (icon.get("sensor") or "").startswith("MoveTo"):
@@ -80,14 +85,13 @@ class GeneratedStationsTest(unittest.TestCase):
         self.assertEqual(0, changes.total, changes.details)
         self.assertEqual(before, clusters(tree.getroot()))
 
-    def test_the_hand_drawn_panel_still_takes_its_pixels(self) -> None:
-        tree = ET.ElementTree(tables.read(HAND_DRAWN))
-        shift_clusters(tree.getroot())
-        self.assertGreater(reconciler.reconcile(tree).total, 0)
-        self.assertEqual(clusters(tables.read(HAND_DRAWN)), clusters(tree.getroot()))
+    def test_a_panel_that_is_not_generated_is_refused(self) -> None:
+        with self.assertRaisesRegex(ValueError, "'HART Railroad' panel is not a generated one"):
+            reconciler.reconcile(unmarked())
 
     def test_reference_puts_stage1_clusters_back(self) -> None:
         reference = marked()
+        reconciler.reconcile(reference)
         tree = copy.deepcopy(reference)
         shift_clusters(tree.getroot())
         ref_le = reconciler.main_layout_editor(reference.getroot())
@@ -129,19 +133,12 @@ class GeneratedStationsTest(unittest.TestCase):
         progress = clusters(tree.getroot())["MoveInProgressTrack_K-2"]
         self.assertEqual([(str(int(move_to.get("x")) - reconciler.PAIR_DX), move_to.get("y"))], progress)
 
-    def test_a_hand_drawn_reference_is_refused_for_a_generated_panel(self) -> None:
+    def test_a_reference_that_is_not_generated_is_refused(self) -> None:
         tree = marked()
-        hand = reconciler.main_layout_editor(tables.read(HAND_DRAWN))
-        with self.assertRaisesRegex(ValueError, "not a generated one"):
+        hand = reconciler.main_layout_editor(unmarked().getroot())
+        with self.assertRaisesRegex(ValueError, "--reference: its main panel is not a generated one"):
             reconciler.reconcile(tree, hand)
 
-    def test_a_reference_on_the_hand_drawn_panel_is_noted(self) -> None:
-        tree = ET.ElementTree(tables.read(HAND_DRAWN))
-        ref = reconciler.main_layout_editor(marked().getroot())
-        with contextlib.redirect_stdout(io.StringIO()) as out:
-            changes = reconciler.reconcile(tree, ref)
-        self.assertEqual(0, changes.total)
-        self.assertIn("--reference not used", out.getvalue())
 
 
 if __name__ == "__main__":

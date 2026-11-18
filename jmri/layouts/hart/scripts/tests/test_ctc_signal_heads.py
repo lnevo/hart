@@ -15,15 +15,14 @@ ROOT = SCRIPTS.parents[3]
 TABLES = SCRIPTS.parent / "output" / "tables.xml"
 GUI = SCRIPTS.parent / "ctc" / "GUIObjects.xml"
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import hand_drawn, parked  # noqa: E402
+from hartlib import parked  # noqa: E402
 
 # the tables with the USS CTC machine put back while it is parked (hartlib.parked): its panel and code buttons stay
 # checked against the active masts and heads in the parked file
 USS_TABLES = parked.with_parked_file({"uss"}, TABLES)
 
-# the USS board's grid is the hand-wired desk's (frozen in uss_board_cells.csv): the last hand-wired desk, read from
-# git (hartlib.hand_drawn), since the live desks are generated since the CATS cut-over
-CATS = hand_drawn.skip_unless_available("HART_CTC.xml")
+# the live CATS desks (generated from the schematic): each USS mast icon is drawn as its desk lamp is
+DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
 WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
 REFRESH = ROOT / "docs/wiring/scripts/refresh_wiring_docs.py"
 
@@ -76,29 +75,15 @@ def signal_icons(path: Path) -> set[tuple[str, str, str, str]]:
     return out
 
 
-# Brick masts whose USS facing has differed from the CATS SIGORIENT since before
-# this test; left as drawn until someone checks them on the layout.
-FACING_EXCEPTIONS = {"Mast 4RA", "Mast 4RB", "Mast 2L"}
-
-
-def cats_facing() -> dict[str, str]:
-    """Mast -> E (SIGORIENT RIGHT) or W (LEFT); TOP/BOTTOM lamps on diagonals are left out."""
+def desk_lamps(desk: Path) -> dict[str, tuple[str, str | None]]:
+    """Mast -> (kind, facing) of its lamp on a live desk: LAMP2 draws as h2, LAMP1 as d1; SIGORIENT RIGHT faces E,
+    LEFT W (None for the TOP/BOTTOM lamps on diagonals)."""
     out = {}
-    for sig in ET.parse(CATS).getroot().iter("SECSIGNAL"):
-        orient = sig.find("PANELSIGNAL").get("SIGORIENT")
-        if orient in ("RIGHT", "LEFT"):
-            out[(sig.text or "").strip()] = "E" if orient == "RIGHT" else "W"
-    return out
-
-
-def cats_signals() -> dict[str, tuple[int, int, str]]:
-    """Mast -> (x, y, kind) from the CATS desk; LAMP2 draws as h2, LAMP1 as d1."""
-    out = {}
-    for sec in ET.parse(CATS).getroot().find("TRACKPLAN").findall("SECTION"):
-        for sig in sec.iter("SECSIGNAL"):
-            lamp = sig.find("PANELSIGNAL").get("SIGPANTYPE")
-            kind = "h2" if lamp == "LAMP2" else "d1"
-            out[(sig.text or "").strip()] = (int(sec.get("X")), int(sec.get("Y")), kind)
+    for sig in ET.parse(desk).getroot().iter("SECSIGNAL"):
+        pan = sig.find("PANELSIGNAL")
+        orient = pan.get("SIGORIENT")
+        out[(sig.text or "").strip()] = ("h2" if pan.get("SIGPANTYPE") == "LAMP2" else "d1",
+                                         {"RIGHT": "E", "LEFT": "W"}.get(orient))
     return out
 
 
@@ -118,20 +103,23 @@ class CtcSignalHeadsTest(unittest.TestCase):
                     self.assertEqual(len(heads), 2, "h2 drawn for a one-head mast")
                     self.assertIsNone(head)
 
-    def test_icons_sit_in_the_cats_desk_cells(self) -> None:
-        cats = cats_signals()
-        self.assertEqual({s[0] for s in gen.SIGNALS}, set(cats))
-        for mast, x, y, _facing, kind, _head in gen.SIGNALS:
+    def test_icons_sit_on_board_track_cells(self) -> None:
+        cells = gen.facts.load_uss_cells()
+        for mast, x, y, _facing, _kind, _head in gen.SIGNALS:
             with self.subTest(mast=mast):
-                self.assertEqual((x, y, kind), cats[mast])
+                self.assertIn((x, y), cells)
+                self.assertTrue(cells[(x, y)]["tracks"], "the icon's cell holds no track")
 
-    def test_icons_face_as_on_the_cats_desk(self) -> None:
-        facing = cats_facing()
-        for mast, _x, _y, face, _kind, _head in gen.SIGNALS:
-            if mast in FACING_EXCEPTIONS or mast not in facing:
-                continue
-            with self.subTest(mast=mast):
-                self.assertEqual(face, facing[mast])
+    def test_icons_are_drawn_and_face_as_on_the_live_desks(self) -> None:
+        for desk in DESKS:
+            lamps = desk_lamps(desk)
+            for mast, _x, _y, face, kind, _head in gen.SIGNALS:
+                with self.subTest(desk=desk.name, mast=mast):
+                    self.assertIn(mast, lamps)
+                    desk_kind, desk_face = lamps[mast]
+                    self.assertEqual(kind, desk_kind)
+                    if desk_face is not None:
+                        self.assertEqual(face, desk_face)
 
     def test_gui_objects_head_icons_match_tables(self) -> None:
         tables = head_icons(USS_TABLES)
@@ -206,7 +194,7 @@ class SignalVisibilityTest(unittest.TestCase):
 class GeneratorTest(unittest.TestCase):
     def test_apply_is_idempotent(self) -> None:
         """A second regen strips what the first drew (occupancy jewels are BS sensors)."""
-        cells = gen.parse_cats(CATS)
+        cells = gen.facts.load_uss_cells()
         text = GUI.read_text(encoding="utf-8")
         once = gen.apply(text, cells)
         self.assertEqual(gen.apply(once, cells), once)

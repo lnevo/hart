@@ -111,9 +111,10 @@ class NameCopiesTest(unittest.TestCase):
         hits, _counts, _used = check.run(ROOT, name_map=renamed, tables_xml=tables_xml)
         files = {h.path for h in hits}
         self.assertEqual({"Mast 16R", "Track Scale"}, {h.name for h in hits})
-        # Known hand-kept copies today: the throat split spec and the desk generator.
-        self.assertIn("jmri/layouts/hart/scripts/apply_yard_throat_blocks.py", files)
-        self.assertIn("cats/scripts/wire_digicon.py", files)
+        # Known hand-kept copies today: the Dispatcher stations and the switch and mast facts.
+        self.assertIn("jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py", files)
+        self.assertIn("jmri/layouts/hart/data/switch_legs.csv", files)
+        self.assertIn("jmri/layouts/hart/data/schematic/staging_masts.csv", files)
         # Generated files under their own --check and the map itself are not read.
         self.assertFalse(any(f.startswith(check.SKIP_PREFIXES) for f in files), files)
 

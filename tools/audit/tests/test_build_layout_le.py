@@ -1,5 +1,5 @@
-"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on the last
-hand-drawn tables. The all-levels viewing trial these tests once read (tables_layout.xml) is retired (owner,
+"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on its template, the
+last hand-drawn tables (template_tables). The all-levels viewing trial these tests once read (tables_layout.xml) is retired (owner,
 2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py and test_le_mast_parity.py share."""
 from __future__ import annotations
 
@@ -92,7 +92,7 @@ def used_blocks(le) -> set:
 
 def closed_block(facts: dict) -> dict:
     """{turnout name: block of the track on its closed route} for each plain turnout (`facts`: turnout facts, from
-    B.turnout_facts(panel): the new panel's or the last hand-drawn one's)."""
+    B.turnout_facts(panel))."""
     out = {}
     for t in facts.values():
         if "XOVER" not in t["type"]:
@@ -149,9 +149,9 @@ class Built(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.data, cls.P, cls.names, cls.bands = built()
         cls.root = tables.loads(cls.data).root
-        cls.live = tables.read(hand())
+        cls.live = tables.read(hand())                                  # the build's template tables
         cls.le = tables.layout_editor(cls.root, LIVE_PANEL)              # the generated panel, under the live name
-        cls.hand_le = tables.layout_editor(cls.live, LIVE_PANEL)     # the last hand-drawn panel: the railroad
+        cls.live_le = tables.layout_editor(tables.read(paths.REPO_TABLES_XML), LIVE_PANEL)  # the live generated one
         cls.items = {el.get("ident"): el for el in tables.elements(cls.le) if el.get("ident")}
 
     def test_the_staging_device_map_is_read_once_for_the_two_candidates(self) -> None:
@@ -159,19 +159,26 @@ class Built(unittest.TestCase):
         self.assertEqual(STAGING_MAP_LOADS, [1])
 
     # ---- staging is the live railroad
-    def test_every_live_staging_turnout_and_block_is_on_the_new_panel(self) -> None:
-        live_turnouts = {t.get("turnoutname") for t in self.hand_le.findall("layoutturnout")}
-        new_turnouts = {t.get("turnoutname") for t in self.le.findall("layoutturnout")}
-        self.assertTrue(live_turnouts)
-        self.assertLessEqual(live_turnouts, new_turnouts)
-        self.assertLessEqual(used_blocks(self.hand_le), used_blocks(self.le))
+    def test_every_staging_switch_and_block_is_on_the_new_panel(self) -> None:
+        staging = B.staging_switches()
+        new_idents = {t.get("ident") for t in self.le.findall("layoutturnout")}
+        self.assertEqual(len(staging), 20)
+        self.assertLessEqual({sw.le_ident for sw in staging.values()}, new_idents)
+        blocks = set(self.names[B.STAGING]["os"].values()) | {
+            b for v in self.names[B.STAGING]["blocks"].values() for b in v}
+        self.assertLessEqual(blocks, used_blocks(self.le))
 
     def test_closed_routes_and_crossovers_match_the_live_panel(self) -> None:
-        live, new = closed_block(B.turnout_facts(self.hand_le)), closed_block(B.turnout_facts(self.le))
+        # staging's turnouts as the live generated panel in tables.xml has them (switch_legs.csv decides the closed
+        # leg when the build draws them: staging_device_map.normal_legs)
+        facts, live_facts = B.turnout_facts(self.le), B.turnout_facts(self.live_le)
+        live = {n: b for n, b in closed_block(live_facts).items() if not is_new_name(n)}
         self.assertEqual(len(live), 17)
+        new = closed_block(facts)
         for name, block in live.items():
             self.assertEqual(new[name], block, name)
-        live_x, new_x = crossover_legs(B.turnout_facts(self.hand_le)), crossover_legs(B.turnout_facts(self.le))
+        live_x = {n: v for n, v in crossover_legs(live_facts).items() if not is_new_name(n)}
+        new_x = crossover_legs(facts)
         self.assertEqual(sorted(live_x), ["Switch 23", "Switch 35", "Switch 7"])
         for name, legs in live_x.items():
             self.assertEqual(new_x[name], legs, name)

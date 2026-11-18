@@ -13,16 +13,18 @@ TABLES = paths.TABLES_XML
 
 
 def expected_dests(root) -> int:
-    """The SML destination count for this tables' main panel: audit_panel_contracts.EXPECTED_SML (one place), by
-    whether the panel is the hand-drawn one or the generated three-level one (after the cut-over)."""
+    """The SML destination count of the generated three-level panel: audit_panel_contracts.EXPECTED_SML (one place).
+    ValueError when the main panel is not a generated one."""
     import importlib.util
+    panel = tables.layout_editor(root)
+    if panel is None or not tables.generated_panel(panel):
+        raise ValueError("the main Layout Editor panel is not a generated one (build_layout_le.py --as-live)")
     spec = importlib.util.spec_from_file_location("audit_panel_contracts",
                                                   paths.LAYOUT_SCRIPTS / "audit_panel_contracts.py")
     audit = importlib.util.module_from_spec(spec)
     sys.modules.setdefault("audit_panel_contracts", audit)
     spec.loader.exec_module(audit)
-    panel = tables.layout_editor(root)
-    return audit.EXPECTED_SML[panel is not None and tables.generated_panel(panel)]
+    return audit.EXPECTED_SML[True]
 
 
 def main() -> int:
@@ -32,7 +34,11 @@ def main() -> int:
 
     root = tables.read(TABLES)
     dests = len(tables.mast_logic_pairs(root))
-    EXPECTED_DESTS = expected_dests(root)
+    try:
+        EXPECTED_DESTS = expected_dests(root)
+    except ValueError as exc:
+        print(f"FAIL: {TABLES}: {exc}", file=sys.stderr)
+        return 2
     nx = [sn for sn in map(tables.system_name, tables.sensors(root)) if sn.startswith("ISNX:")]
 
     print(f"SML destinationMast entries: {dests} (expected {EXPECTED_DESTS})")
