@@ -178,7 +178,7 @@
           <p>The Mac-side scripts share one small library, <code>hartlib</code>, in <code>tools/hartlib/</code>. These are its four main parts; the rest (names, CATS, parked features, the level devices and masts, the hand-drawn tables in git) serve narrower jobs:</p>
           <ul>
             <li><b><code>paths</code></b> names every file the tools use: the tables file, the name map, the wiring table, the layout folders. A path always points into the checkout the script sits in.</li>
-            <li><b><code>tables</code></b> loads and saves <code>tables.xml</code>. A load followed by a save with no edit writes the same bytes JMRI wrote, so a script that changes one sensor changes one sensor in the diff. It also knows the file's traps: sensors and turnouts split over several sections, every block written twice, two kinds of mast. A save refuses while PanelPro or CATS is open.</li>
+            <li><b><code>tables</code></b> loads and saves <code>tables.xml</code>. A load followed by a save with no edit writes the same bytes JMRI wrote, so a script that changes one sensor changes one sensor in the diff. It also knows the file's traps: sensors and turnouts split over several sections, every block written twice, two kinds of mast.</li>
             <li><b><code>hosts</code></b> holds the MQTT broker and the address of each layout computer, read from the environment, then a local settings file, then the defaults in <code>tools/env/defaults.env</code>. The shell scripts read the same settings in the same order.</li>
             <li><b><code>railroad</code></b> reads the fact files above once each and checks the rules between them, such as no main or upper switch reusing a staging switch number, and every main and upper device in the device map also being in <code>tables.xml</code>. The panel builders read their facts through it, and each builder may read only the files made before its own step, so none of them reads an old copy of what it is about to write. <code>./tools/check.sh</code> runs its check.</li>
           </ul>
@@ -246,13 +246,13 @@
           <h2 id="h-changes"><span class="num">09</span>Making a change</h2>
           <p>The main checkout on the Mac stays on <code>main</code>, for pulls and deploys only. Each task gets its own working copy, a git worktree, made by <code>make wt TOPIC=&lt;topic&gt;</code>. It sits in <code>.claude/worktrees/&lt;topic&gt;/</code> on its own branch, with links to the photo folders the website build needs. Several tasks can run at once without one switching the branch under another.</p>
           <ol class="step-list">
-            <li><b>Edit</b> in the worktree. Scripts change the tables file only while PanelPro and CATS are closed.</li>
+            <li><b>Edit</b> in the worktree.</li>
             <li><b>Check</b> with <code>./tools/check.sh</code>: about thirty checks and test suites, from the tables and signal logic to the car tools and the website links.</li>
             <li><b>Load it for real</b> with <code>make panelpro-test</code> when the tables or panels changed. It opens the tables in PanelPro on the Mac and reports any error.</li>
             <li><b>Open a pull request.</b> GitHub runs the same checks on a clean copy. <code>main</code> accepts a change only through a pull request whose checks pass.</li>
             <li><b>Merge and deploy.</b> The worktree is removed automatically once the merge is half an hour old.</li>
           </ol>
-          <p>Hooks in <code>.claude/hooks/</code> back these rules up for the AI tools. They stop a commit or push to <code>main</code>, an edit in the main checkout, and any command that writes the tables or deploys while PanelPro or CATS is open. Cursor runs the same checks through its own hook file.</p>
+          <p>Hooks in <code>.claude/hooks/</code> back these rules up for the AI tools. They stop a commit or push to <code>main</code>, and an edit in the main checkout. Cursor runs the same checks through its own hook file.</p>
         </section>
 
         <section id="records" aria-labelledby="h-records">

@@ -36,7 +36,6 @@ hart bootstrap (one-time, already done; the script is kept for history at `archi
 
 - `--scale` other than 1 on linear4/hart
 - `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`) unless asked
-- Remove **F30-S-0** where the layout includes it
 - New track: set **Mainline → Yes** (`mainline="yes"`)
 
 Detail: [`jmri/README.md`](../../jmri/README.md) · [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md)

@@ -86,12 +86,11 @@ class Tables:
     def changed(self) -> bool:
         return self.tobytes() != self.original
 
-    def save(self, path: Path | str | None = None, *, allow_while_jmri_runs: bool = False) -> bool:
+    def save(self, path: Path | str | None = None) -> bool:
         """Write the file when its bytes differ from what is on disk. Returns True if written.
 
-        Refuses to write a file named tables.xml outside the temp directory while PanelPro,
-        DecoderPro, DispatcherPro or CATS is open (AGENTS.md), unless told otherwise. While
-        HART_TABLES is set (checks only, hartlib.paths) it refuses every tables file: the
+        A running PanelPro or CATS does not stop it: JMRI changes tables.xml only on a
+        Store (AGENTS.md). While HART_TABLES is set (checks only, hartlib.paths) it refuses every tables file: the
         checkout's, the override itself and anything in the JMRI profile.
         """
         target = Path(path) if path is not None else self.path
@@ -105,8 +104,6 @@ class Tables:
                 return False
         except OSError:
             pass
-        if not allow_while_jmri_runs and _guarded(target) and jmri_running():
-            raise RuntimeError(f"{target}: PanelPro or CATS is open; close it before writing tables")
         _atomic_write(target, data)
         if target == self.path:
             self.original = data
@@ -176,19 +173,6 @@ def _override_protected(target: Path) -> bool:
     profile = Path(os.path.realpath(paths.JMRI_USER_FILES))
     return (real in (Path(os.path.realpath(paths.REPO_TABLES_XML)), Path(os.path.realpath(paths.TABLES_XML)))
             or real == profile or profile in real.parents)
-
-
-def _guarded(target: Path) -> bool:
-    """A tables.xml (by its own name or a symlink's target) outside the temp directory."""
-    real = Path(os.path.realpath(target))
-    if "tables.xml" not in (target.name, real.name):
-        return False
-    tmp = Path(tempfile.gettempdir()).resolve()
-    try:
-        real.relative_to(tmp)
-        return False
-    except ValueError:
-        return True
 
 
 def _atomic_write(target: Path, data: bytes) -> None:

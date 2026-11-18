@@ -110,9 +110,9 @@ class SaveFailureTest(unittest.TestCase):
             panel = Path(tmp) / "tables.xml"
             panel.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
             with mock.patch.object(polish.tables.Tables, "save",
-                                   side_effect=RuntimeError("PanelPro or CATS is open")), \
+                                   side_effect=RuntimeError("save refused")), \
                     mock.patch.object(polish, "apply_visual_standard",
-                                      side_effect=RuntimeError("PanelPro or CATS is open")), \
+                                      side_effect=RuntimeError("save refused")), \
                     mock.patch("sys.argv", ["polish", "--panel", str(panel)]):
                 self.assertEqual(1, polish.main())
 

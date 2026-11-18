@@ -135,10 +135,6 @@ class Refusals(unittest.TestCase):
             self.skipTest("HEAD is already on origin/main")
         self.assert_refused(run(self.env, "HEAD", "--stage-only", str(self.tmp / "s")), "is not on origin/main")
 
-    def test_jmri_open_stops_a_real_redeploy(self) -> None:
-        self.env["HART_GUARD_JMRI_RUNNING"] = "1"
-        self.assert_refused(run(self.env, "HEAD", "--allow-unmerged", "--pi"), "PanelPro, DecoderPro or CATS")
-
     def test_mac_dry_run_alone_is_refused(self) -> None:
         done = run(self.env, "HEAD", "--allow-unmerged", "--mac", "--dry-run")
         self.assertEqual(done.returncode, 2)

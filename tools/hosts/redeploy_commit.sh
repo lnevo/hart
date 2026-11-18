@@ -14,7 +14,6 @@
 #   - The commit must be on origin/main (git fetch first); --allow-unmerged permits others.
 #   - It must have tools/hosts/sync_hart_package.sh with the deploy stamp (ADR-007
 #     amendment 2026-11-12). Older commits are refused.
-#   - Not while PanelPro, DecoderPro or CATS runs on this machine (a real run only).
 #   - A PanelPro Store in ~/JMRI_UserFiles/tables.xml that is not pulled stops it: run
 #     make tables-pull first. HART_OVERWRITE_PROFILE_TABLES=1 overrides, as for a deploy.
 #   - Operations Pro files keep their guards (HART_OVERWRITE_OPS=0): a Pi session that is
@@ -106,14 +105,6 @@ fi
 if ! git -C "$ROOT" show "$SHA:$SYNC_REL" | grep 'write_deploy_stamp' >/dev/null; then
   echo "REFUSED: $SHORT predates the deploy stamp (cats/deploy_stamp.txt), so make deploy-status" \
     "could not tell what the hosts run. Pick a later commit." >&2
-  exit 1
-fi
-
-# The same process check the repo hook and the table tools use (hartlib.tables.jmri_running).
-if [[ "$REAL" -eq 1 ]] && PYTHONPATH="$ROOT/tools/hartlib/src" python3 -c \
-    'import sys; from hartlib.tables import jmri_running; sys.exit(0 if jmri_running() else 1)'; then
-  echo "REFUSED: PanelPro, DecoderPro or CATS is running on this machine. Close it (and make tables-pull" \
-    "if it stored), then redeploy." >&2
   exit 1
 fi
 
