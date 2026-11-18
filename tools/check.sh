@@ -19,9 +19,13 @@ export JMRI_LAYOUT=hart
 # here: the Layout Editor tests call the build directly and would otherwise solve the whole sheet about five times
 # (about 7 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
 # the folder between runs (.github/workflows/check.yml).
+# A folder that cannot be made leaves the cache off, as before.
 if [[ -z "${SCHEMATIC_CACHE+set}" ]]; then
-  export SCHEMATIC_CACHE="$HOME/.cache/hart/schematic"
-  mkdir -p "$SCHEMATIC_CACHE" && chmod 700 "$SCHEMATIC_CACHE"
+  if mkdir -p "$HOME/.cache/hart/schematic" 2>/dev/null && chmod 700 "$HOME/.cache/hart/schematic"; then
+    export SCHEMATIC_CACHE="$HOME/.cache/hart/schematic"
+  else
+    echo "schematic cache off: cannot make $HOME/.cache/hart/schematic"
+  fi
 fi
 # A worktree not made by make wt (a subagent's isolation worktree, an older one) may lack the submodules the checks
 # import (CHECK_SUBMODULES in tools/agent/worktrees.py); check them out the way make wt does. Only in a worktree

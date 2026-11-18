@@ -4,6 +4,8 @@
 name: check
 on:
   pull_request:
+  push:                   # main's run saves the schematic cache every PR can restore (a PR cannot read another's)
+    branches: [main]
 permissions:
   contents: read
 jobs:
@@ -18,12 +20,13 @@ jobs:
         with:
           python-version: "3.13"
       - run: pip install -r ops/hart-ops/requirements-test.txt
-      # The schematic plugin's cache (tools/check.sh sets SCHEMATIC_CACHE to this folder): a solved sheet is keyed on
-      # everything it reads, so an old entry is never used for changed inputs. Each run saves its own copy.
+      # The schematic plugin's cache (tools/check.sh sets SCHEMATIC_CACHE to this folder). Each entry in it is keyed
+      # on everything its solve reads, so an old one is never used for changed inputs; this key only decides when a
+      # run saves a new copy (the plugin, the builders or their data changed).
       - uses: actions/cache@v4
         with:
           path: ~/.cache/hart/schematic
-          key: schematic-${{ github.run_id }}
+          key: schematic-${{ hashFiles('external/model-railroad-skills/plugins/schematic-maps/schematic/**', 'tools/schematic/**', 'jmri/layouts/hart/data/**', 'jmri/layouts/hart/output/tables.xml') }}
           restore-keys: schematic-
       - run: ./tools/check.sh
         env:
