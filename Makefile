@@ -52,8 +52,8 @@ submodules:  ## Check out every external/ submodule at the commit hart records
 shot:  ## Screenshot a page: make shot PAGE=www/index.html
 	python3 tools/ops/screenshot.py $(PAGE)
 
-deploy-layout:  ## Deploy to the Pi
-	./tools/hosts/sync_hart_package.sh --pi
+deploy-layout:  ## Deploy to the Pi and Windows (kept on the same commit)
+	./tools/hosts/sync_hart_package.sh --pi --win
 
 deploy-all:  ## Deploy to every layout host
 	./tools/hosts/sync_hart_package.sh --all
@@ -61,8 +61,8 @@ deploy-all:  ## Deploy to every layout host
 deploy-status:  ## Show which commit each layout host last got: make deploy-status HOSTS="--pi --win"
 	./tools/hosts/deploy_status.sh $(HOSTS)
 
-redeploy:  ## Redeploy an older commit (rollback): make redeploy COMMIT=<sha> HOSTS="--pi"
-	@test -n "$(COMMIT)" || { echo 'make redeploy COMMIT=<sha> HOSTS="--pi" (or --win, --all, --mac)'; exit 2; }
+redeploy:  ## Redeploy an older commit (rollback): make redeploy COMMIT=<sha> HOSTS="--pi --win"
+	@test -n "$(COMMIT)" || { echo 'make redeploy COMMIT=<sha> HOSTS="--pi --win" (or --pi, --win, --all, --mac)'; exit 2; }
 	./tools/hosts/redeploy_commit.sh $(COMMIT) $(HOSTS)
 
 deploy-site:  ## Deploy www.hartrailroad.com

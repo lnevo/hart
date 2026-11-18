@@ -67,7 +67,7 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 
 ## JMRI command watcher
 
-`jmri/layouts/hart/scripts/jmri_cmd_watcher.py` is a standing part of the Pi Start Up. The package also copies the file to the Mac and Windows, but it is not in their Start Up lists, so it does not run there. It runs any file dropped at `/tmp/jmri_cmd.py` inside JMRI and writes the result to `/tmp/jmri_cmd.out`, which gives agents a live way to query JMRI. That code has JMRI's full access, so the rules on field turnouts and `track/cmd` apply to it, and subagents cannot reach it because `ssh` is blocked.
+`jmri/layouts/hart/scripts/jmri_cmd_watcher.py` is a standing part of the Pi Start Up. The package also copies the file to the Mac and Windows, but it is not in their Start Up lists, so it does not run there. It runs any file dropped at `/tmp/jmri_cmd.py` inside JMRI and writes the result to `/tmp/jmri_cmd.out`, which gives agents a live way to query JMRI. That code has JMRI's full access, so the rules on field turnouts and `track/cmd` apply to it, and subagents cannot reach it: their guard (`.claude/hooks/subagent_guard.py`) allows `ssh` only for plain read-only commands (no quotes, `=`, `$`, redirects or grouping; a short list of programs that cannot write). The guard is a guardrail against mistakes, not a security boundary.
 
 ## Layout env
 

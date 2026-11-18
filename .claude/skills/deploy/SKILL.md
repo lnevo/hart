@@ -9,11 +9,11 @@ Two separate deploys. Pick by what changed (AGENTS.md, close-out step 5).
 
 | Changed | Run |
 |---|---|
-| Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CTC icons, CATS resources | `./tools/hosts/sync_hart_package.sh --pi`, add `--win` (or use `--all`) when Windows needs it |
+| Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CATS resources | `./tools/hosts/sync_hart_package.sh --pi --win` |
 | Website (`www/`) | `./www/scripts/deploy_hartrailroad.sh` |
 | Docs, AGENTS, wiki only | No deploy. Say so in the report. |
 
-`make deploy-layout`, `make deploy-all` and `make deploy-site` run the same commands. `cats/scripts/sync_hart_package.sh` still works: it is a wrapper for `tools/hosts/sync_hart_package.sh` (ADR-007 amendment 2026-11-12).
+Windows is kept matching the Pi, so both get every layout deploy (`make deploy-layout` runs the same; `--all` and `make deploy-all` are the same as `--pi --win`). Deploy one host alone only to test something there or while the other is down; say so in the report and bring the other host up to date next. `make deploy-site` runs the website deploy.
 
 ## Layout hosts
 
@@ -30,24 +30,24 @@ What it does:
 - It runs `audit_panel_contracts.py --strict` first and turns off the Digicon SML MQTT destinations in the shipped tables.
 - Operations files are overwritten on every host (`HART_OVERWRITE_OPS=1` is the default; `0` restores the guards).
 - Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES`, `HART_WIN_USERFILES` and `HART_PI_WEB_HOST` (the Pi's name in the Mac web home's links), read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `load_env.sh`.
-- Inside the package the host scripts still sit at cats/scripts/pi and cats/scripts/windows, where the hosts expect them; their repo source is `tools/hosts/pi/` and `tools/hosts/windows/`.
+- Edit host scripts in `tools/hosts/pi/` and `tools/hosts/windows/`; the package places them where the hosts expect them.
 - Each host it installs ends with `JMRI_UserFiles/cats/deploy_stamp.txt` (commit, branch, dirty, sha256 of the shipped `tables.xml` and `tables_modified_by_deploy`, date, deploying machine, target, `source` and `redeploy_from`), written last by the apply step. Both apply steps install into the configured `HART_PI_USERFILES` / `HART_WIN_USERFILES`, so the stamp and `deploy_status.sh` agree.
 
 Redeploy an older commit (rollback):
 
-- `tools/hosts/redeploy_commit.sh <commit> --pi [--win]` (`--all`, or `--mac` for the Mac only), or `make redeploy COMMIT=<sha> HOSTS="--pi"`. Quit PanelPro on the Pi first, as for any deploy.
+- `make redeploy COMMIT=<sha> HOSTS="--pi --win"` (`tools/hosts/redeploy_commit.sh`; `--mac` for the Mac only). Quit PanelPro on the Pi first, as for any deploy.
 - It makes a temporary detached worktree at that commit, runs that commit's own `sync_hart_package.sh` there with a clean environment (`env -i`: PATH, HOME, ssh agent, the deploy switches, and the host settings this checkout resolves, named by `load_env.sh`'s `HART_HOST_NAMES`), then removes the worktree. `--dry-run` and `--stage-only DIR` pass through.
 - It refuses a commit that is not on `origin/main` (git fetch first; `--allow-unmerged` overrides), one without `tools/hosts/sync_hart_package.sh` or the deploy stamp (before the ADR-007 amendment 2026-11-12), and a real run while PanelPro, DecoderPro or CATS is open on the Mac. It stops before building anything if `~/JMRI_UserFiles/tables.xml` holds a Store that is not pulled (the same test as the deploy, `tools/hosts/profile_tables_guard.sh`): run `make tables-pull` first.
 - The Operations files keep their guards (`HART_OVERWRITE_OPS=0`): an unpulled Pi session stops the Pi step, so run `make ops-pull`; a running JMRI keeps its files. `HART_OVERWRITE_OPS=1` replaces them as a normal deploy does.
-- For commits from this change on the stamp says `source=redeploy` and `redeploy_from=<commit that ran it>`; older commits' stamps say `branch=HEAD`. `make deploy-status` prints a note for either. A normal deploy writes `source=deploy`.
+- The stamp says `source=redeploy` and `redeploy_from=<commit that ran it>` (a normal deploy writes `source=deploy`).
 - The stamp keeps no history. To find the commit to go back to, read the current one with `make deploy-status` and look at `git log --first-parent --oneline origin/main` for the merge before it.
 - After a rollback the Mac and the hosts hold the old commit's `tables.xml`. Go forward with a normal deploy from `main` before a PanelPro Store, or `make tables-pull` would bring the old tables back into the repo.
 
 Hosts and failures:
 
-- Since 2026-11-11 the Pi (`RPi-JMRI.local`, 10.0.0.150, ssh alias `pi`) is on the house network directly, no longer through Windows. Windows is `minipc-e5h6x.local` (ssh port 2222) and has had repeated hard power-offs.
+- The Pi is `RPi-JMRI.local` (10.0.0.150, ssh alias `pi`). Windows is `minipc-e5h6x.local` (ssh port 2222) and has had repeated hard power-offs.
 - With `--pi --win`, a Pi failure (for example "Connection refused") exits before the Windows step runs.
-- If the Pi step fails, run `--win` on its own. Run `--pi` again once the Pi accepts ssh on port 22.
+- If the Pi step fails, run `--win` on its own, then `--pi` once the Pi accepts ssh on port 22, so the two match again.
 - Quit PanelPro on the Pi with `tools/hosts/pi_quit_panelpro.sh --for-deploy` first; the Pi deploy starts it again afterwards, also if it fails. A plain quit, or PanelPro the owner closed, stays closed. `HART_PI_RESTART=0` skips the restart.
 - Check afterwards with `make deploy-status HOSTS="--pi --win"` (or `tools/hosts/deploy_status.sh`), which reads the stamp back and compares its commit with this checkout, and with a sha256 of `tables.xml` on each host.
 - Do not leave the LCOS bridge (`serial_to_mqtt`) running, and do not publish `track/cmd` from a deploy.
