@@ -161,6 +161,24 @@ class ExamAnswers(unittest.TestCase):
                 counts[k] = counts.get(k, 0) + 1
             self.assertLessEqual(r.count("meet"), 1, f"two meets in one run: {r}")
         self.assertLess(counts.get("clear", 0) / sum(counts.values()), 0.5, counts)
+        # a clash rule keeps a leg off any story that shows the same signals as the set piece after it
+        out = node(
+            "const vm=require('vm'),fs=require('fs');const c={};vm.createContext(c);"
+            f"vm.runInContext(fs.readFileSync({json.dumps(str(signals))},'utf8')+';this.p=pickStories',c);"
+            "let seed=7;const rand=()=>(seed=(seed*16807)%2147483647)/2147483647;const clash=(a,b)=>a===b||(a==='ahead1'&&b==='hollisM')||(b==='ahead1'&&a==='hollisM');"
+            "const r=[];for(let n=0;n<200;n++)r.push(c.p([null,'hollisM'],()=>['clear','ahead1','restrict'],[],rand,clash)[0]);console.log(JSON.stringify(r))"
+        )
+        self.assertNotIn("ahead1", json.loads(out))
+
+    def test_speed_run_can_show_every_aspect(self):
+        run = RUN.read_text()
+        body = run[run.index("function startSIG("):run.index("/* ---------- the Ironton yard job")]
+        used = set(re.findall(r'"(2[89][0-9][A-C]?)"', body))  # every quoted rule number in startSIG
+        signals = (WWW / "exam" / "signals.js").read_text()
+        rules = set(re.findall(r'\{r:"([0-9]{3}[A-C]?)"', signals))
+        # every aspect the run names exists, and every one is named (289 Permissive on the Cobb to Dunmore manual block)
+        self.assertLessEqual(used, rules, f"unknown aspects: {used - rules}")
+        self.assertEqual(rules - used, set())
 
     def test_game_and_deck_load_the_shared_signals(self):
         for page in (RUN, INDEX):

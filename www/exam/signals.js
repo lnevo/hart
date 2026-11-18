@@ -80,12 +80,13 @@ const routeWhy=r=>`${r.name}: ${r.ind}.${r.heads.length>1&&r.k!=="stop2"?" It's 
 /* Choose a block-signal story for each leg of a signals run. fixed[i] is the story a set piece already puts on leg i,
    or null for an ordinary leg; allowed(i) lists the stories leg i may draw. An ordinary leg never repeats the story of
    the leg before it or of a fixed leg after it, a story in `once` is used on one leg at most, and the draw is uniform
-   over what is left. rand() returns a number in [0,1). */
-function pickStories(fixed,allowed,once,rand){
+   over what is left. rand() returns a number in [0,1). clash(a,b) says whether two stories count as the same; by
+   default only equal keys do. */
+function pickStories(fixed,allowed,once,rand,clash=(a,b)=>a===b){
   const out=fixed.slice(),used=new Set();
   for(let i=0;i<out.length;i++){
     if(out[i]!==null)continue;
-    const all=allowed(i),ok=all.filter(k=>k!==out[i-1]&&k!==fixed[i+1]&&!(once.includes(k)&&used.has(k)));
+    const all=allowed(i),ok=all.filter(k=>!(i>0&&clash(k,out[i-1]))&&!(fixed[i+1]!=null&&clash(k,fixed[i+1]))&&!(once.includes(k)&&used.has(k)));
     const pool=ok.length?ok:all.filter(k=>!(once.includes(k)&&used.has(k)));
     out[i]=pool[Math.floor(rand()*pool.length)];
     if(once.includes(out[i]))used.add(out[i]);

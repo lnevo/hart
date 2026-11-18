@@ -938,7 +938,9 @@ function startSIG(sys){
   S.sys=sys;S.parAdd=0;S.passed=[];S.inSiding=false;
   const sp=sys==="speed";
   const sig=(id,plate,where,lead)=>sigAsk(sys,id,plate,where,lead);
-  const ahead=R()<.6,f=rnd(0,2); // a train ahead from leg f: the signals step down, then clear as it moves on
+  const ahead=R()<.6,f0=rnd(0,2); // a train ahead from leg f: the signals step down, then clear as it moves on
+  // Speed run: the train ahead always runs on the two legs before the Cobb manual block and then goes into it.
+  const f=sys==="speed"?0:f0;
   const meet=R()<.5;              // at Granite: lined into the siding for a meet, or held at the home signal
   const meets=new Set();          // stations where the train takes the siding for an opposing train
   // The stories come from their own seeded stream, so the other draws of today's run stay as they were.
@@ -946,10 +948,11 @@ function startSIG(sys){
   /* Ordinary legs in block signal territory draw one of these stories (pickStories in signals.js); the set pieces
      (a train ahead, the P and G plates, Granite, CP Hollis, Hollis) keep theirs, keyed the same way. */
   const leadNext="The next block signal shows this aspect.",leadAfter="The signal after it shows this aspect.";
+  const marked="The signal after it, marked as a Stop and proceed signal, shows this aspect.";
   const STORY=sp?{
     clear:(i,w)=>[sig("281","",w,leadNext)],
     ahead2:(i,w)=>[sig("282A","",w,leadNext),sig("285","",w,leadAfter)],
-    ahead1:(i,w)=>[sig("285","",w,leadNext),sig("291","",w,"The signal after it, marked as a Stop and proceed signal, shows this aspect.")],
+    ahead1:(i,w)=>[sig("285","",w,leadNext),sig("291","",w,marked)],
     restrict:(i,w)=>[sig("290","",w,leadNext)]
   }:{
     clear:(i,w)=>[sig("clear","",w,leadNext)],
@@ -957,31 +960,58 @@ function startSIG(sys){
     stopnum:(i,w)=>[sig("approach","",w,leadNext),sig("stop","num",w,"The signal after it, with a number plate, shows this aspect."),plateAsk(sys,"num",w,"R")],
     meet:(i,w)=>{meets.add(i+1);return [sig("dapproach","",w,leadNext),sig("dclear","",w,`The signal at the ${ST[i+1].n} siding switch, lined into the siding, shows this aspect.`)]}
   };
-  const fixedKey=i=>ahead&&i===f?(sp?"ahead2":"clear"):ahead&&i===f+1?(sp?"ahead1":"stopnum"):i===4?"pplate":i===5?"granite":i===6&&!sp?"cp":i===7&&sp?"restrict":null;
+  /* Speed run: the Standard Code's interlocking aspects, at Granite and the Hollis home signal, in the Code's own
+     pairings (an approach aspect, then the route aspect), one sequence drawn per run. */
+  const distant="Approaching Granite, the distant signal for the interlocking shows this aspect.",home="The Granite home signal, lined into the siding, shows this aspect.";
+  const GRANITE_IN=[
+    w=>[sig("282","",w,distant),sig("283","",w,home)],
+    w=>[sig("281A","",w,"Two signals before Granite, the block signal shows this aspect."),sig("282","",w,distant),sig("283","",w,home)],
+    w=>[sig("281B","",w,distant),sig("281C","",w,home)],
+    w=>[sig("284","",w,distant),sig("287","",w,home)],
+    w=>[sig("282","",w,distant),sig("283B","",w,"The Granite home signal, lined through the interlocking toward the siding, shows this aspect."),sig("287","",w,"At the siding switch, the next signal shows this aspect.")]];
+  const GRANITE_OUT=["287","283","281C"]; // what the operator clears the home signal to after the stop
+  const HOLLIS=[
+    {key:"restrict",ev:w=>[sig("290","",w,"Entering double track at Hollis behind the Ironton local, the home signal shows this aspect.")]},
+    {key:"hollisA",ev:w=>[sig("283A","",w,"At Hollis, lined onto Main 1 with the Ironton local two signals ahead, the home signal shows this aspect."),sig("285","",w,leadAfter),sig("291","",w,marked)]},
+    {key:"hollisM",ev:w=>[sig("286","",w,"At Hollis, lined onto Main 1 with the Ironton local one signal ahead, the home signal shows this aspect."),sig("291","",w,marked)]},
+    {key:"hollisS",ev:w=>[sig("288","",w,"At Hollis, lined through the crossover onto Main 1, the home signal shows this aspect."),sig("291","",w,marked)]}];
+  const RI=S.daily?seeded("extra-west|"+S.daily+"|"+S.era+"|interlocking"):Math.random; // own stream: the leg stories stay as drawn
+  const gIn=sp?pick(GRANITE_IN,RI):null,gOut=sp?pick(GRANITE_OUT,RI):null,hol=sp?pick(HOLLIS,RI):null; // speed run only
+  /* Stories that show the same signals count as repeats: the Hollis home sequences end in a marked 291 or open with
+     285, as ahead1 and ahead2 do, and Restricting matches the Hollis 290. */
+  const CLASH={hollisA:["ahead1","ahead2"],hollisM:["ahead1","restrict"],hollisS:["ahead1","restrict"]};
+  const clash=(a,b)=>a===b||(CLASH[a]||[]).includes(b)||(CLASH[b]||[]).includes(a);
+  /* Speed run: Cobb to Dunmore (leg 2) is manual block. The operator's block signal at Cobb shows Permissive (289) when a
+     train is in the block (always when the train ahead, two legs in front, has gone on into it) and Clear otherwise. */
+  const MB=2,mbDraw=RI()<.5;
+  let mbOccupied=false; // set once the leg stories are drawn: a train shown ahead on the leg before is in the block
+  const fixedKey=i=>sp&&i===MB?"manual":ahead&&i===f?(sp?"ahead2":"clear"):ahead&&i===f+1?(sp?"ahead1":"stopnum"):i===4?"pplate":i===5?"granite":i===6&&!sp?"cp":i===7&&sp?hol.key:null;
   const stories=pickStories([...Array(LAST)].map((_,i)=>fixedKey(i)),
-    i=>Object.keys(STORY).filter(k=>k!=="meet"||(!meet&&ST[i+1].sd&&i+1<LAST)),["meet"],RS);
+    i=>Object.keys(STORY).filter(k=>k!=="meet"||(!meet&&ST[i+1].sd&&i+1<LAST)),["meet"],RS,clash);
+  mbOccupied=sp&&(ahead||["ahead1","ahead2"].includes(stories[MB-1])||mbDraw);
   const legEv=[];
   for(let i=0;i<LAST;i++)legEv[i]=[];
   for(let i=0;i<LAST;i++){
     const w=ST[i].n+" to "+ST[i+1].n;
-    if(ahead&&i===f)legEv[i].push(sp?sig("282A","",w,"The next block signal shows this aspect."):sig("clear","",w,"The next block signal shows this aspect."));
+    if(sp&&i===MB)legEv[i].push(sig(mbOccupied?"289":"281","",w,`${ST[MB].n} to ${ST[MB+1].n} is manual block. At ${ST[MB].n} the operator's block signal${mbOccupied?", with the marking that designates it,":""} shows this aspect.`));
+    else if(ahead&&i===f)legEv[i].push(sp?sig("282A","",w,"The next block signal shows this aspect."):sig("clear","",w,"The next block signal shows this aspect."));
     else if(ahead&&i===f+1){
       legEv[i].push(sp?sig("285","",w,"The next signal shows this aspect."):sig("approach","",w,"The next signal shows this aspect."));
-      if(sp)legEv[i].push(sig("291","",w,"The signal after it, marked as a Stop and proceed signal, shows this aspect."));
+      if(sp)legEv[i].push(sig("291","",w,marked));
       else{legEv[i].push(sig("stop","num",w,"The signal after it, with a number plate, shows this aspect."));legEv[i].push(plateAsk(sys,"num",w,"R"))}
     }
     else if(i===4)legEv[i].push(plateAsk(sys,"P",w,sp?"RRR":"R")); // RRR: Stop (292); RR would read as Stop and proceed (291)
     else if(i===5){
       legEv[i].push(plateAsk(sys,"G",w,sp?"RRR":"R"));
       if(meet){
-        legEv[i].push(sp?sig("282","",w,"Approaching Granite, the distant signal for the interlocking shows this aspect."):sig("dapproach","",w,"Approaching Granite, the signal shows this aspect."));
-        legEv[i].push(sp?sig("283","",w,"The Granite home signal, lined into the siding, shows this aspect."):sig("dclear","",w,"The Granite home signal, lined into the siding, shows this aspect."));
+        if(sp)legEv[i].push(...gIn(w));
+        else legEv[i].push(sig("dapproach","",w,"Approaching Granite, the signal shows this aspect."),sig("dclear","",w,home));
         meets.add(6); // after the leg the train is in the Granite siding while the opposing train passes
       }else{
         legEv[i].push(sp?sig("285","",w,"Approaching Granite, the distant signal shows this aspect."):sig("approach","",w,"Approaching Granite, the signal shows this aspect."));
         legEv[i].push(sp?sig("292","",w,"The Granite home signal, with an SA plate, shows this aspect."):sig("stop2","SA",w,"The Granite home signal, with an SA plate, shows this aspect."));
         legEv[i].push(plateAsk(sys,"SA",w,sp?"RRR":"RR"));
-        legEv[i].push(sp?sig("287","",w,"The operator clears the home signal to this aspect."):sig("clear","",w,"The operator clears the home signal to this aspect."));
+        legEv[i].push(sp?sig(gOut,"",w,"The operator clears the home signal to this aspect."):sig("clear","",w,"The operator clears the home signal to this aspect."));
       }
     }
     else if(i===6&&!sp){
@@ -989,7 +1019,7 @@ function startSIG(sys){
       legEv[i].push(plateAsk(sys,"A",w,"RR"));
       legEv[i].push(sig("dclear","",w,"The control operator lines you onto Main 1 and the signal shows this aspect."));
     }
-    else if(i===7&&sp)legEv[i].push(sig("290","",w,"Entering double track at Hollis behind the Ironton local, the home signal shows this aspect."));
+    else if(i===7&&sp)legEv[i].push(...hol.ev(w));
     else legEv[i].push(...STORY[stories[i]](i,w));
   }
   // fixed questions from the deck
@@ -1005,7 +1035,7 @@ function startSIG(sys){
     legEv[6].push(ask({sec:"sig",src:"SG · Signal placement",title:"Where the CP signals stand",body:"At CP Hollis, where is the facing point signal?",right:"Just clear of the switch points",wrong:[["At the clearance point"],["Opposite the next intermediate signal"],["On a dwarf beside the siding"]],why:"Signals guide, typical signal placement in CTC: the facing point signal is just clear of the switch points; trailing point signals are at the clearance point; a dwarf is often used on the siding."}));
   }
   push(info("Ashby",sp?"Extra 812 East, Ashby, 6:00":"KV 812 East, Ashby, 6:00",
-    sp?"<p>You are the conductor of Extra 812 East. Between Ashby and Ironton the line has automatic block signals: upper-quadrant semaphores giving Standard Code speed indications. Granite has an interlocking where the line crosses another railroad, and double track starts at Hollis. Call each signal as it comes up.</p>":"<p>You are the conductor of KV 812 East on a signaled line with route signals. Granite has an interlocking where the line crosses another railroad, and CP Hollis, where double track begins, is worked by a control operator. Read each signal as it comes up.</p>","Begin"));
+    sp?"<p>You are the conductor of Extra 812 East. Between Ashby and Ironton the line has automatic block signals: upper-quadrant semaphores giving Standard Code speed indications. "+ST[2].n+" to "+ST[3].n+" is manual block, worked by the operators. Granite has an interlocking where the line crosses another railroad, and double track starts at Hollis. Call each signal as it comes up.</p>":"<p>You are the conductor of KV 812 East on a signaled line with route signals. Granite has an interlocking where the line crosses another railroad, and CP Hollis, where double track begins, is worked by a control operator. Read each signal as it comes up.</p>","Begin"));
   for(let i=0;i<LAST;i++){
     push(legSIG(i,i+1,legEv[i]));
     if(meets.has(i+1)){const at=ST[i+1].n;
@@ -1125,7 +1155,7 @@ function renderSheet(){
   if(!S.tt){el.innerHTML="";return}
   if(S.era==="sigs"||S.era==="sigr"){
     const sp=S.era==="sigs";
-    el.innerHTML=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">${sp?"Automatic block signals · Standard Code speed signals":"Route signals · CP Hollis worked by a control operator"}</div><div class="xw-orders"><b>Signals passed</b>${S.passed.length?S.passed.slice(-8).map(t=>`<div class="ord">${esc(t)}</div>`).join(""):"<div class=\"ord\">None yet</div>"}</div><div class="xw-si"><b>Special instructions</b><ul>${sp?"<li>Block signals govern trains in the same direction (Rule 251).</li>":""}<li>Interlocking at Granite, where the line crosses another railroad.</li><li>River bridge: high water detector, P plate signal.</li><li>The grade below Granite: G plate signal.</li><li>Double track Hollis to Ironton.</li></ul></div>`;
+    el.innerHTML=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">${sp?"Automatic block signals · Standard Code speed signals":"Route signals · CP Hollis worked by a control operator"}</div><div class="xw-orders"><b>Signals passed</b>${S.passed.length?S.passed.slice(-8).map(t=>`<div class="ord">${esc(t)}</div>`).join(""):"<div class=\"ord\">None yet</div>"}</div><div class="xw-si"><b>Special instructions</b><ul>${sp?"<li>Automatic block signals, except manual block "+ST[2].n+" to "+ST[3].n+", worked by the operators.</li><li>Block signals govern trains in the same direction (Rule 251).</li>":""}<li>Interlocking at Granite, where the line crosses another railroad.</li><li>River bridge: high water detector, P plate signal.</li><li>The grade below Granite: G plate signal.</li><li>Double track Hollis to Ironton.</li></ul></div>`;
     return;
   }
   if(S.era==="yard"){
