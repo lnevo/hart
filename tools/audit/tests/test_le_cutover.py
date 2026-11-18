@@ -678,8 +678,16 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(len(staging), 57)
         size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
         self.assertEqual({size[b] for b in staging}, {"13"})
-        level = {str(v["block_contents_size"]) for v in page_prefs()["le_band_labels"].values()}
-        self.assertEqual({size[b] for b in set(size) - staging}, level)
+        # each level's icons at that level's own size (a level with the wrong size must not hide behind another's)
+        per_level = defaultdict(set)
+        for b in self.P.bcis:
+            per_level[B.band_key(self.bands[b["band"]][0])].add(b["block"])
+        wanted = page_prefs()["le_band_labels"]
+        for key, entry in wanted.items():
+            self.assertTrue(per_level[key], key)
+            self.assertEqual({size[b] for b in per_level[key]}, {str(entry["block_contents_size"])}, key)
+        self.assertEqual(set(per_level) - set(wanted), {"Staging"})
+        self.assertEqual(set().union(*per_level.values()) - staging, set(size) - staging)
 
     def test_switch_numbers_and_track_names(self) -> None:
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text")]

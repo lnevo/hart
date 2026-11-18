@@ -66,8 +66,8 @@ def tree(root: Path) -> list[str]:
     return sorted(str(p.relative_to(root)) for p in root.rglob("*"))
 
 
-def git(*args: str) -> str:
-    return subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True,
+def git(*args: str, repo: Path = ROOT) -> str:
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True,
                           check=True).stdout.strip()
 
 
@@ -132,26 +132,6 @@ class StageOnly(unittest.TestCase):
         self.assertTrue((self.out / "pi/cats/scripts/pi/apply_hart_package_local.sh").is_file())
         self.assertTrue((self.out / "win/cats/scripts/windows/apply_hart_package_local.ps1").is_file())
 
-    def test_stamp_names_what_was_shipped(self) -> None:
-        dirty = bool(git("status", "--porcelain"))
-        for host in ("pi", "win"):
-            stamp = read_stamp(self.out / host / "cats/deploy_stamp.txt")
-            self.assertEqual(tuple(stamp), STAMP_KEYS)
-            self.assertEqual(stamp["commit"], git("rev-parse", "HEAD"))
-            self.assertEqual(stamp["branch"], git("rev-parse", "--abbrev-ref", "HEAD"))
-            self.assertEqual(stamp["dirty"], "yes" if dirty else "no")
-            self.assertEqual(stamp["target"], host)
-            self.assertEqual((stamp["source"], stamp["redeploy_from"]), ("deploy", "none"))
-            self.assertRegex(stamp["date"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4}$")
-            shipped = hashlib.sha256((self.out / host / "tables.xml").read_bytes()).hexdigest()
-            self.assertEqual(stamp["tables_sha256"], shipped)
-            committed = subprocess.run(["git", "-C", str(ROOT), "show", "HEAD:jmri/layouts/hart/output/tables.xml"],
-                                       capture_output=True, check=True).stdout
-            want = "no" if hashlib.sha256(committed).hexdigest() == shipped else "yes"
-            self.assertEqual(stamp["tables_modified_by_deploy"], want)
-        if dirty:
-            self.assertIn("WARNING: this checkout has", self.done.stderr)
-
     def test_wrapper_and_script_stage_the_same_package(self) -> None:
         out = self.tmp / "direct"
         done = run(SYNC, out, self.env, "--pi")
@@ -168,6 +148,51 @@ class StageOnly(unittest.TestCase):
 
         # Only the stamp may differ (its date is taken per run).
         self.assertLessEqual(set(differing(cmp)), {"cats/deploy_stamp.txt"})
+
+
+class StampNamesWhatWasShipped(unittest.TestCase):
+    """The stamp, staged from a private clone of HEAD: other checks write into the live tree while this runs, so
+    its dirty flag is read from a tree nothing else touches."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.tmp = Path(tempfile.mkdtemp())
+        cls.repo = cls.tmp / "repo"
+        subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(ROOT), str(cls.repo)], check=True,
+                       capture_output=True)
+        cls.env = stage_env(cls.tmp)
+        cls.out = cls.tmp / "stage"
+        cls.done = subprocess.run(["bash", str(cls.repo / "tools/hosts/sync_hart_package.sh"), "--stage-only",
+                                   str(cls.out)], cwd=cls.repo, env=cls.env, capture_output=True, text=True,
+                                  timeout=300)
+        assert cls.done.returncode == 0, cls.done.stderr[-2000:]
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        shutil.rmtree(cls.tmp, ignore_errors=True)
+
+    def cgit(self, *args: str) -> str:
+        return git(*args, repo=self.repo)
+
+    def test_stamp_names_what_was_shipped(self) -> None:
+        dirty = bool(self.cgit("status", "--porcelain"))
+        for host in ("pi", "win"):
+            stamp = read_stamp(self.out / host / "cats/deploy_stamp.txt")
+            self.assertEqual(tuple(stamp), STAMP_KEYS)
+            self.assertEqual(stamp["commit"], self.cgit("rev-parse", "HEAD"))
+            self.assertEqual(stamp["branch"], self.cgit("rev-parse", "--abbrev-ref", "HEAD"))
+            self.assertEqual(stamp["dirty"], "yes" if dirty else "no")
+            self.assertEqual(stamp["target"], host)
+            self.assertEqual((stamp["source"], stamp["redeploy_from"]), ("deploy", "none"))
+            self.assertRegex(stamp["date"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4}$")
+            shipped = hashlib.sha256((self.out / host / "tables.xml").read_bytes()).hexdigest()
+            self.assertEqual(stamp["tables_sha256"], shipped)
+            committed = subprocess.run(["git", "-C", str(self.repo), "show", "HEAD:jmri/layouts/hart/output/tables.xml"],
+                                       capture_output=True, check=True).stdout
+            want = "no" if hashlib.sha256(committed).hexdigest() == shipped else "yes"
+            self.assertEqual(stamp["tables_modified_by_deploy"], want)
+        if dirty:
+            self.assertIn("WARNING: this checkout has", self.done.stderr)
 
 
 class FinderLitterStaysOut(unittest.TestCase):
