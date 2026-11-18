@@ -581,6 +581,23 @@ class DeviceNames(unittest.TestCase):
             with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track e777'\\]"):
                 B.level_names(bands, le_mod, device)
 
+    def test_hidden_names_keeps_the_label_off_track_101_103_on_main_only(self) -> None:
+        # Main's le_band_labels hidden_names ["101-103"] (the real preferences) marks that track so the plugin draws
+        # no Layout Editor name for it; the fast form of the cut-over test's check, with no built tables needed
+        _sheet, le_mod, _core = B.plugin()
+        bands, page = B.schematic()
+        names, _lengths = B.level_names(bands, le_mod)
+        drawn = B.named_bands(bands, names)
+        main_opts = next(o for t, _b, o in drawn if B.band_key(t) == "Main")     # hide_names reads the band's own
+        self.assertEqual(main_opts["le_band_labels"]["Main"]["hidden_names"], ["101-103"])
+
+        def hidden(marked) -> dict:
+            return {B.band_key(t): sorted(s["name"] for s in b["strands"].values() if s.get(le_mod.le_labels.HIDDEN))
+                    for t, b, _o in marked}
+
+        self.assertEqual(hidden(le_mod.le_labels.hide_names(drawn, page)),
+                         {"Staging": [], "Main": ["101-103"], "Upper": []})
+
     def test_named_bands_join_a_crossovers_halves_and_name_one_track_per_block(self) -> None:
         _sheet, le_mod, _core = B.plugin()
         bands = B.schematic()[0]
