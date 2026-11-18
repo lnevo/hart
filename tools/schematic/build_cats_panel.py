@@ -103,8 +103,8 @@ TABLES_CANDIDATE = paths.LAYOUT_OUTPUT / "trial/tables_cutover.xml"
 ORDER = ("FONTDEFINITION", "LINE", "COUNTER", "SIGNALTEMPLATE", "TRAINSTORE", "JOBSTORE", "CREWSTORE",
          "COLORDEFINITION", "TRAINSTATLABEL", "COMPRESSIONTAG", "ROWWRAPTAG", "OPERATIONS", "JMRINAME", "TRACKPLAN")
 PLATE_PX = {"FONT_SUBTITLE": (9, 15)}   # pixels per character, line height, for plate fonts the plugin does not size
-# The desks' window, cells per grid unit and helix blocks are page preferences (main_upper.preferences.json:
-# cats_window, cats_cells_per_unit, cats_helix_blocks) the plugin reads (schematic/cats_prefs.py, cats.options),
+# The desks' window, cells per grid unit, helix blocks and row gaps are page preferences (main_upper.preferences.json:
+# cats_window, cats_cells_per_unit, cats_helix_blocks, cats_band_gap, cats_title_gap) the plugin reads (schematic/cats_prefs.py, cats.options),
 # which also gives the cells the desk must fit in that window.
 
 # A short unnamed track whose block is a railroad fact: the staging track (the staging device map's)
@@ -747,6 +747,7 @@ def bindings(bands, cats, F, o):
     named = {k: {"block": v["block"]} for k, v in out_sw.items()}
     named.update({k: {"corners": v["corners"]} for k, v in level_sw.items() if "corners" in v})
     P = cats.panel(bands, scale=o["scale"], helix_blocks=o["helix_blocks"],   # names only: no column trimming
+                   band_gap=o["band_gap"], title_gap=o["title_gap"],
                    bindings={"switches": named})
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:")}
     blocks = block_bindings(band, F, names)
@@ -851,6 +852,12 @@ def dress(cats, root, header, plate, desk, fit):
     return "<?xml version='1.0' encoding='UTF-8'?>\n" + ET.tostring(root, encoding="unicode") + "\n"
 
 
+def label_clashes(log):
+    """The plugin's log lines (cats_labels.place_labels' words) for a label with no room or crossing something."""
+    return [line for line in log if line.startswith("no room for label")
+            or (line.startswith("label ") and " crosses " in line)]
+
+
 def desk_options(cats, page, bands):
     """The page's CATS preferences (cats.options), which must hold the desks' window (they fit the dispatcher's) and
     a helix block on each band (dark_bindings parts staging from main and upper there)."""
@@ -880,7 +887,7 @@ def generate(plugin, out, bindings_out, out_abs=None):
     header, plate = frozen_header()
     try:
         P = cats.panel(bands, scale=o["scale"], bindings=json.loads(text), max_cols=fit[0],
-                       helix_blocks=o["helix_blocks"])
+                       helix_blocks=o["helix_blocks"], band_gap=o["band_gap"], title_gap=o["title_gap"])
         cats.check_fit(P, *fit)
         for desk, path in (("CTC", out), ("ABS", out_abs)):
             if path is not None:
@@ -894,6 +901,10 @@ def generate(plugin, out, bindings_out, out_abs=None):
           f"; shows {cols} x {rows} cells ({cols * g} x {rows * g} pixels at the {g} pixel grid), "
           f"fit {fit[0]} x {fit[1]} in a {window[0]} x {window[1]} window")
     print("\n".join(P.log))
+    clashes = label_clashes(P.log)
+    if clashes:     # the desks keep few spare rows (cats_band_gap, cats_title_gap): a lost or clashing label stops
+        sys.exit("error: the desk's labels clash; give them room (cats_band_gap, cats_title_gap) or move them:\n  "
+                 + "\n  ".join(clashes))
 
 
 def main(argv):
