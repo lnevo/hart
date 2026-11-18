@@ -22,38 +22,38 @@ retired. The build reads no panel in the tables: only the schematic, those files
 Three levels (owner, 2026-11-16). `--as-live` (levels all) writes the cut-over candidate
 jmri/layouts/hart/output/trial/tables_cutover.xml: first the staging candidate below (--levels staging --as-live, drawn
 at staging's own fit widened by the page's le_stretch factor, so the three-level panel has the window's shape; the
-plugin's check_stretch), then all three bands at that candidate's grid (no fitting: the panel is larger than the FIT
-window, which stays FIT; zoom to fit), each band's labels placed in rounds of their own (the plugin's labels_by_band),
-staging against the left edge (the plugin's band_align) and the main level below everything the staging candidate
-holds (the plugin's le_title_clear, with the panel items' bottom under staging as band_bottoms). check_staging_unchanged
-then stops unless the staging candidate is in it unchanged: every bean, every other panel, every staging element, but
-the main and upper objects and the helix joins (the staging helix tracks run on to the main level, so their end
-bumpers become anchors and Masts 38RA and 40RA stand there, protecting Track 135-H2 and Track 135-H1). Main and upper
-take the device map's names (device_names; a crossover's two halves are one turnout, drawn as one single crossover
-on one level, or as two Layout Editor turnouts on one turnout for 129 and 135, whose halves stand on two levels), on
-internal system names, each block bound to its virtual occupancy sensor (IS:HART:C3:B:<block key>; level_sensors),
-which a LogixNG sets clear when the tables load (add_level_clear); their track names are the device map's block names
-without "Track ", left out where there is no room (names_last); one block contents icon per block at 12 px (staging
-keeps 13; LEVEL_LE_LABELS).
+plugin's check_stretch), then all three bands at that candidate's grid (no fitting: the panel is larger than the window,
+the page's le_window, which stays as it is; zoom to fit), each band's labels placed in rounds of their own (the plugin's
+labels_by_band), staging against the left edge (the plugin's band_align) and the main level below everything the staging
+candidate holds (the plugin's le_title_clear, with the panel items' bottom under staging as band_bottoms).
+check_staging_unchanged then stops unless the staging candidate is in it unchanged: every bean, every other panel, every
+staging element, but the main and upper objects and the helix joins (the staging helix tracks run on to the main level,
+so their end bumpers become anchors and Masts 38RA and 40RA stand there, protecting Track 135-H2 and Track 135-H1). Main
+and upper take the device map's names (device_names; a crossover's two halves are one turnout, drawn as one single
+crossover on one level, or as two Layout Editor turnouts on one turnout for 129 and 135, whose halves stand on two
+levels), on internal system names, each block bound to its virtual occupancy sensor (IS:HART:C3:B:<block key>;
+level_sensors), which a LogixNG sets clear when the tables load (add_level_clear); their track names are the device
+map's block names without "Track ", left out where there is no room (names_last); one block contents icon per block at
+12 px (staging keeps 13; LEVEL_LE_LABELS).
 
 Parked features (owner, 2026-11-17; hartlib.parked, PARKED). After the staging guard the three-level candidate's
 Entry/Exit, Dispatcher System and USS CTC elements are left out (parked.split); their live data is the snapshot in
 jmri/layouts/hart/parked/tables_parked.xml. The released tables are that candidate with its Signal Mast Logic from
 stock discovery in a sandbox (jmri/layouts/hart/parked/README.md).
 
-Staging alone. `--levels staging` draws the staging band alone: its helix tracks end at end bumpers, its rows
-STAGING_ROW px apart, and no main or upper object is added to the tables. With `--as-live` it writes
+Staging alone. `--levels staging` draws the staging band alone: its helix tracks end at end bumpers, its rows le_row px
+apart (the page preference), and no main or upper object is added to the tables. With `--as-live` it writes
 jmri/layouts/hart/output/trial/tables_cutover_staging.xml: the tables with the "HART Railroad" panel replaced, in its
 place (or put before the first Layout Editor panel when there is none), by the generated one under that name and
-panel_items.json's attributes, sized by FIT and opening at 0, 0; everything else unchanged. Staging's turnouts keep their
-switches.csv idents; anchors, end bumpers and segments take generated idents (owner, 2026-11-17), which
+panel_items.json's attributes, sized by the le_window and opening at 0, 0; everything else unchanged. Staging's turnouts
+keep their switches.csv idents; anchors, end bumpers and segments take generated idents (owner, 2026-11-17), which
 le_signal_boundaries.csv follows. Every staging mast goes in the one slot whose facing and protected blocks and kind of
 slot are its own (staging_masts.csv; the plugin's slots.py holds JMRI's rules), its icon on the right-hand side of the
 train it governs, hidden for a virtual mast; check_device_masts stops on a mast two slots would fit or one on another
 turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), so a buffer-stop mast
 whose track runs on through the helix (Mast 38RA, 40RA) stands at the helix entrance anchor. The panel carries the
-hidden generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER): the scripts that pin the hand-drawn panel's
-pixels read it and take positions from the panel itself. The staging candidate's panel must match the owner-approved
+hidden generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER): the scripts that pin the hand-drawn panel's pixels
+read it and take positions from the panel itself. The staging candidate's panel must match the owner-approved
 fingerprint (approval.py, approved_staging.sha256; --review skips it, --approve-staging records it).
 
 Writes jmri/layouts/hart/output/trial/tables_layout.xml (no --as-live): the tables unchanged, plus one new Layout
@@ -62,8 +62,8 @@ trial is for looking at only. With that trial loaded do not run Signal Mast Logi
 panels bind the staging masts. This script never writes the live tables.xml or anything in the JMRI profile (main()
 refuses such an --out).
 
-Size: the panel opens at 100% zoom in a FIT pixel window (the plugin's `fit` scales the grid; label fonts keep their
-size). The plugin is the pinned submodule, or SCHEMATIC_PLUGIN (as publish_draft.py).
+Size: the panel opens at 100% zoom in the page's le_window (main_upper.preferences.json; the plugin's `fit` scales
+the grid; label fonts keep their size). The plugin is the pinned submodule, or SCHEMATIC_PLUGIN (as publish_draft.py).
 """
 from __future__ import annotations
 
@@ -119,20 +119,15 @@ PANEL_ITEMS = pd.DATA / "panel_items.json"
 PANEL_NAME = "Layout (generated)"
 TEMPLATE_PANEL = "HART Railroad"     # the panel the cut-over candidate replaces, and its name
 
-# The window the panel opens in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside
-# it less Layout Editor's 18 x 60 px frame allowance). Width: the whole 1900, so the panel is at most 1882 (the
-# live panel's window is 1882 wide). Height: 1200 less the macOS menu bar (37 px on a notched display, 25 else)
-# and 23 px spare for the Dock's edge is 1140; the 60 px allowance covers the title bar (28 px) and the thin edit
-# toolbar, leaving the panel at most 1080.
-FIT = (1900, 1140)
-# Staging alone fills the window's width long before its height, so its rows may be as far apart as the live
-# panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels.
-STAGING_ROW = 48
+# The window the panel opens in at 100% zoom (the page's le_window) and the rows staging is drawn at (le_row) are
+# main_upper.preferences.json's, read through the plugin (le.window, le.row); their notes there say why.
 # The cut-over candidates' grid (owner, 2026-11-16): staging's own fit to the window (the grid's scale across and down
-# when the staging band alone is fitted into FIT at STAGING_ROW, found by the plugin's fit in each staging cut-over
-# build and kept as P.staging_fit) widened by main_upper.preferences.json's le_stretch (the plugin's stretched and
-# check_stretch). The geometry knobs of the Layout Editor drawing (le_shift, le_longer_straights, le_title_clear,
-# le_stretch, le_labels extra_steps and extra_follow) are layer 3 preferences the plugin reads (schematic/le_prefs.py).
+# when the staging band alone is fitted into the le_window at le_row, found by the plugin's fit in each staging
+# cut-over build and kept as P.staging_fit) widened by main_upper.preferences.json's le_stretch (the plugin's
+# stretched and check_stretch). The geometry knobs of the Layout Editor drawing (le_shift, le_longer_straights,
+# le_crossover_angle, le_tight_crossovers, le_split_crossovers, le_mast_room, le_name_room, le_title_clear,
+# le_stretch, le_window, le_row, le_labels extra_steps and extra_follow) are layer 3 preferences the plugin reads
+# (schematic/le_prefs.py).
 # The plugin's label layer (schematic/le_labels.py): switch numbers as the hand-drawn panel wrote them ("SW-13",
 # 13 px bold), block contents icons on with the plugin's reserve; given to every band through the page options.
 # The all-levels trial (viewing only) has no block contents icons (owner, 2026-11-16), and its switch numbers at the
@@ -173,7 +168,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     panel of the tables replaced by the new one, or the new one put before the first Layout Editor panel when the
     tables have none, under panel_items.json's name and attributes; with "all", drawn at the staging candidate's grid
     and checked to hold it unchanged (check_staging_unchanged; module text). Without `as_live`, "all" is the viewing
-    trial beside the live panel, fitted into the FIT window. Staging's facts come from the staging device map
+    trial beside the live panel, fitted into the le_window. Staging's facts come from the staging device map
     (staging_device_map.load); nothing is read from a panel in the tables. `approved`: the fingerprint the staging
     candidate's panel must match (check_approved; None skips it, for --approve-staging and --review)."""
     if levels not in LEVELS:
@@ -190,6 +185,12 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     else:
         solved_page = schematic()[1]
     page = solved_page if page is None else page
+    if "le_row" not in page:        # le.row falls back to the plugin's rows: HART's staging rows are a preference
+        raise BuildError("the page's preferences (main_upper.preferences.json) hold no le_row")
+    try:
+        fit, staging_row = le_mod.window(page), le_mod.row(page)
+    except core.SchematicError as exc:
+        raise BuildError(f"schematic le: {exc}") from None
     # as the Layout Editor draws them (the preferences' le_shift, le_longer_straights; once): so the names below are
     # read off the bands drawn, before named_bands relabels a crossover's halves
     try:
@@ -254,21 +255,19 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             # le_crossover_angle, however each level is stretched
             S = base[1]
             P = le_mod.panel(staging_columns(named_bands(bands, names)), names, cell=le_mod.CELL * scale[0],
-                             row=STAGING_ROW * scale[1], page=dict(page, band_align={STAGING: "left"}),
-                             labels_by_band=True, tight_crossovers=TIGHT_CROSSOVERS, split_crossovers=SPLIT_CROSSOVERS,
-                             mast_room=MAST_ROOM, name_room=NAME_ROOM,
-                             band_bottoms={STAGING: S.items["bottom"] - S.band_boxes[0][3]})
+                             row=staging_row * scale[1], page=dict(page, band_align={STAGING: "left"}),
+                             labels_by_band=True, band_bottoms={STAGING: S.items["bottom"] - S.band_boxes[0][3]})
             P.scale, P.fit, P.stretch = scale, None, S.stretch
-        elif as_live:               # the staging candidate: the cut-over grid, no fitting (it scrolls in FIT)
-            fitted = le_mod.panel(bands, names, page=page, fit=FIT, row=STAGING_ROW).scale
+        elif as_live:               # the staging candidate: the cut-over grid, no fitting (it scrolls in the le_window)
+            fitted = le_mod.panel(bands, names, page=page, fit=fit, row=staging_row).scale
             scale, stretch = le_mod.stretched(fitted, page)
-            P = le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0], row=STAGING_ROW * scale[1],
+            P = le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0], row=staging_row * scale[1],
                              page=page)
             P.scale, P.fit, P.staging_fit, P.stretch = scale, None, fitted, stretch
         else:
-            rows = {"row": STAGING_ROW} if levels == "staging" else {}
+            rows = {"row": staging_row} if levels == "staging" else {}
             drawn = named_bands(bands, names) if levels == "all" else bands
-            P = le_mod.panel(drawn, names, page=page, fit=FIT, **rows)
+            P = le_mod.panel(drawn, names, page=page, fit=fit, **rows)
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
     P.mast_notes = check_unplaced(P)
@@ -300,7 +299,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         # candidate has them on three levels too
         panel_el = le_mod.to_xml(P, panel_name, attrs, options)
         try:
-            P.items = panel_items.place(panel_el, items, le_mod, slots_module(), FIT, le_mod.CHROME,
+            P.items = panel_items.place(panel_el, items, le_mod, slots_module(), fit, le_mod.CHROME,
                                         frame_blocks=staging_blocks)
         except panel_items.ItemsError as exc:
             raise BuildError(f"panel items: {exc}") from None
@@ -310,7 +309,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         # a panel larger than its window (the cut-over grid: staging alone is wider, three levels wider and taller)
         # scrolls both ways, so nothing on it is out of reach at 100% zoom
         w, h = P.items["size"]
-        if w + le_mod.CHROME[0] > FIT[0] or h + le_mod.CHROME[1] > FIT[1]:
+        if w + le_mod.CHROME[0] > fit[0] or h + le_mod.CHROME[1] > fit[1]:
             panel_el.set("scrollable", "both")
         # the marker that tells polish_hart_layout_editor.py and the other hand-pixel scripts to leave positions alone
         opts = panel_el.find("layoutTrackDrawingOptions")
@@ -331,7 +330,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name, JOIN_HELIX)
             P.staging_data = base[0]
             try:
-                le_mod.check_stretch(P.items["size"], FIT, page)
+                le_mod.check_stretch(P.items["size"], fit, page)
             except core.SchematicError as exc:
                 raise BuildError(f"schematic le: {exc}") from None
             # the parked features (PARKED, owner 2026-11-17) leave the cut-over candidate for the parked file,
@@ -346,25 +345,6 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         panel_el = le_mod.to_xml(P, panel_name, attrs, options)
         place(root, [panel_el], 1, tables.layout_editors(root)[-1])
     return doc.tobytes(), P, names, bands
-
-
-# Crossovers drawn as close together as JMRI's shapes allow on the track they share (the plugin's tight_crossovers):
-# 101 and 103 are one physical three-way switch (owner, 2026-11-16). JMRI's crossover shape runs its pieces a run
-# past the diagonal on each track, which kept their throats about 110 px apart, so the two are drawn as two plain
-# turnouts each on their one turnout name (split_crossovers): their throats on the shared track stand two legs and
-# the block's least length apart, each diagonal at 45 degrees.
-TIGHT_CROSSOVERS = {"Main": [["101", "103"]]}
-SPLIT_CROSSOVERS = {"Main": ["101", "103"]}
-# Bands whose drawing lets in room for a mast icon (the plugin's mast_room): a mast whose straight track before its
-# boundary is shorter than its icon, or whose icon still has no clean spot there, has its band let out along its rows
-# at that track (Masts 108R and 110LA on track 107-109, 128RB and 130LA on 127-129, 228RA on 227-233 stood on 16 to
-# 19 px of straight; 2026-11-17). Main and upper only: staging is drawn as the owner approved it.
-MAST_ROOM = ["Main", "Upper"]
-# Bands whose drawing, in the same pass, lets a named track's straight out to its name's width (the plugin's
-# name_room), while the band stays no wider than the widest: main uses its spare width so Tracks 107-109 and 125-127
-# get their names beside 109-111 and 127-129 (owner, 2026-11-17: "Use main's spare width"); upper is the widest, so
-# its short tracks keep their length (noted).
-NAME_ROOM = ["Main", "Upper"]
 
 
 def live_target(out: Path) -> bool:

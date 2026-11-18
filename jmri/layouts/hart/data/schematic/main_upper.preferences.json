@@ -189,5 +189,38 @@
   "Main": 45,
   "Upper": 45
  },
- "_le_crossover_angle": "The angle each level's crossovers (single and double) cross at on the Layout Editor cut-over candidates (owner, 2026-11-16): staging at the schematic's own diverging angle, one grid column across per row, so 45 degrees; main and upper at 45 too, double crossover included (after a round at 30). A crossover with no room for its angle is drawn as steep as it must be (the plugin logs which). The fitted viewing trials draw them as they fall."
+ "_le_crossover_angle": "The angle each level's crossovers (single and double) cross at on the Layout Editor cut-over candidates (owner, 2026-11-16): staging at the schematic's own diverging angle, one grid column across per row, so 45 degrees; main and upper at 45 too, double crossover included (after a round at 30). A crossover with no room for its angle is drawn as steep as it must be (the plugin logs which). The fitted viewing trials draw them as they fall.",
+ "le_window": [
+  1900,
+  1140
+ ],
+ "_le_window": "The window the Layout Editor panels open in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside it less Layout Editor's 18 x 60 px frame allowance). Width: the whole 1900, so the panel is at most 1882 (the live panel's window is 1882 wide). Height: 1200 less the macOS menu bar (37 px on a notched display, 25 else) and 23 px spare for the Dock's edge is 1140; the 60 px allowance covers the title bar (28 px) and the thin edit toolbar, leaving the panel at most 1080. build_layout_le.py fits the viewing trials and staging's own grid into it and sizes the cut-over candidates' window by it.",
+ "le_row": 48,
+ "_le_row": "Staging's rows on the Layout Editor panels, in px (build_layout_le.py: the staging trial, staging's fit to le_window and the cut-over candidates' grid; the all-levels viewing trial keeps the plugin's rows). Staging alone fills the window's width long before its height, so its rows may be as far apart as the live panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels. It is the page's (this file sets the page) though it is staging's rows.",
+ "le_tight_crossovers": {
+  "Main": [
+   [
+    "101",
+    "103"
+   ]
+  ]
+ },
+ "_le_tight_crossovers": "Crossovers drawn as close together as JMRI's shapes allow on the track they share: 101 and 103 are one physical three-way switch (owner, 2026-11-16). JMRI's crossover shape runs its pieces a run past the diagonal on each track, which kept their throats about 110 px apart, so the two are drawn as two plain turnouts each on their one turnout name (le_split_crossovers): their throats on the shared track stand two legs and the block's least length apart, each diagonal at 45 degrees. Cut-over candidates only (a panel at a given grid).",
+ "le_split_crossovers": {
+  "Main": [
+   "101",
+   "103"
+  ]
+ },
+ "_le_split_crossovers": "Switches 101 and 103 drawn as two plain turnouts each: see _le_tight_crossovers.",
+ "le_mast_room": {
+  "Main": true,
+  "Upper": true
+ },
+ "_le_mast_room": "Levels whose drawing lets in room for a mast icon: a mast whose straight track before its boundary is shorter than its icon, or whose icon still has no clean spot there, has its level let out along its rows at that track (Masts 108R and 110LA on track 107-109, 128RB and 130LA on 127-129, 228RA on 227-233 stood on 16 to 19 px of straight; 2026-11-17). Main and upper only: staging is drawn as the owner approved it.",
+ "le_name_room": {
+  "Main": true,
+  "Upper": true
+ },
+ "_le_name_room": "Levels whose drawing, in the same pass, lets a named track's straight out to its name's width, while the level stays no wider than the widest: main uses its spare width so Tracks 107-109 and 125-127 get their names beside 109-111 and 127-129 (owner, 2026-11-17: \"Use main's spare width\"); upper is the widest, so its short tracks keep their length (noted). Not staging."
 }

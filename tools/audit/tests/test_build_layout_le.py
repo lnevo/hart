@@ -116,6 +116,26 @@ def built():
         return B.build(hand())
 
 
+@functools.lru_cache(maxsize=None)
+def le_window() -> tuple:
+    """(width, height): the window the panels open in, the page's le_window (main_upper.preferences.json), read by
+    the plugin as the build reads it."""
+    return B.plugin()[1].window(B.schematic()[1])
+
+
+class PagePreferences(unittest.TestCase):
+    """The window and staging's rows are the page's preferences (le_window, le_row): without them, or with a bad
+    one, the build stops naming it, before drawing."""
+
+    def test_a_missing_or_bad_window_or_row_stops(self) -> None:
+        page = dict(B.schematic()[1])
+        for prefs, why in (({"le_row": None}, "hold no le_row"), ({"le_window": None}, "hold no le_window"),
+                           ({"le_window": [1900]}, "le_window must be"), ({"le_row": 0}, "le_row must be")):
+            bad = {k: v for k, v in dict(page, **prefs).items() if v is not None}
+            with self.subTest(prefs=prefs), self.assertRaisesRegex(B.BuildError, why):
+                B.build(hand(), page=bad)
+
+
 class Built(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -328,11 +348,12 @@ class Built(unittest.TestCase):
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
         window = (int(self.le.get("windowwidth")), int(self.le.get("windowheight")))
         self.assertEqual(window, (w + 18, h + 60))                    # Layout Editor's frame allowance
-        self.assertLessEqual(window[0], B.FIT[0])
-        self.assertLessEqual(window[1], B.FIT[1])
+        self.assertEqual(le_window(), (1900, 1140))                   # the preference: the owner's display
+        self.assertLessEqual(window[0], le_window()[0])
+        self.assertLessEqual(window[1], le_window()[1])
         self.assertLessEqual(window[0], 1900)                         # the owner's display
         self.assertLessEqual(window[1], 1200 - 37)                    # below the macOS menu bar
-        self.assertGreater(window[0], 0.98 * B.FIT[0])                # as large as fits, not smaller
+        self.assertGreater(window[0], 0.98 * le_window()[0])          # as large as fits, not smaller
         # everything drawn lies on the panel: track, turnout legs, labels (at the width JMRI draws) and icons
         xs, ys = [], []
         for p in self.le.findall("positionablepoint"):
