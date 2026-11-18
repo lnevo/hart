@@ -811,19 +811,13 @@ class FinalReview(unittest.TestCase):
             with self.assertRaisesRegex(B.BuildError, "TO99 B .*generated_slot C, LEGS_SWAPPED gives empty"):
                 B.check_swapped_slots(path)
 
-    def test_staging_le_labels_from_its_preferences_and_hart_columns(self) -> None:
-        raw = B.schematic()[0]
-        title, _band, opts = raw[0]
-        own = opts["le_labels"]          # staging.preferences.json: the station buttons that step
+    def test_staging_le_labels_from_its_preferences(self) -> None:
+        own = B.schematic()[0][0][2]["le_labels"]       # staging.preferences.json: buttons that step, yard columns
         self.assertEqual(own["extra_steps"], [["Track EH-1", "Track EH-2", "Track EH-3"]])
         self.assertEqual(own["extra_follow"], [["Track W-1", "Track W-2"]])
-        got = B.staging_columns(raw)[0][2]["le_labels"]
-        self.assertEqual(got, dict(own, name_columns=[list(g) for g in B.NAME_COLUMNS],
-                                   lamp_columns=[list(g.values()) for g in B.LAMP_COLUMNS]))
-        self.assertNotIn("name_columns", opts["le_labels"])                 # a copy
-        clash = [(title, _band, dict(opts, le_labels=dict(own, name_columns=[["S-1", "S-2"]])))]
-        with self.assertRaisesRegex(B.BuildError, "already hold name_columns; HART sets them here"):
-            B.staging_columns(clash)
+        south = [["S-R", "S-1", "S-2", "S-3", "S-4"]]
+        self.assertEqual(own["name_columns"], south)
+        self.assertEqual(own["lamp_columns"], south)
 
 class LoopAndCrossover(unittest.TestCase):
     """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers (owner, 2026-11-16)."""

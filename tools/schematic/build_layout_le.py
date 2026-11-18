@@ -91,7 +91,7 @@ from approval import (  # noqa: E402,F401  re-exported: callers and tests read t
 from le_names import (  # noqa: E402,F401  re-exported: callers and tests read them here
     LEVEL_LE_LABELS, NUMBERS_BELOW, OPTIONAL_READOUTS, crossover_strands, runs, LEGS_SWAPPED, swapped_idents,
     staging_lengths, MAIN_UPPER_MASTS, read_level_masts, lcos_rule, lcos_named, level_masts, placeholder_names,
-    device_names, level_names, shared_turnouts, NAME_COLUMNS, LAMP_COLUMNS, staging_columns, named_bands, NO_NAME
+    device_names, level_names, shared_turnouts, named_bands, NO_NAME
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BOUNDARIES, check_swapped_slots, mast_band, check_level_slots, check_unplaced, turnout_facts, check_device_masts,
@@ -254,14 +254,14 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             # holds (its status cluster stands in the gap: band_bottoms). Every crossover at its level's
             # le_crossover_angle, however each level is stretched
             S = base[1]
-            P = le_mod.panel(staging_columns(named_bands(bands, names)), names, cell=le_mod.CELL * scale[0],
+            P = le_mod.panel(named_bands(bands, names), names, cell=le_mod.CELL * scale[0],
                              row=staging_row * scale[1], page=dict(page, band_align={STAGING: "left"}),
                              labels_by_band=True, band_bottoms={STAGING: S.items["bottom"] - S.band_boxes[0][3]})
             P.scale, P.fit, P.stretch = scale, None, S.stretch
         elif as_live:               # the staging candidate: the cut-over grid, no fitting (it scrolls in the le_window)
             fitted = le_mod.panel(bands, names, page=page, fit=fit, row=staging_row).scale
             scale, stretch = le_mod.stretched(fitted, page)
-            P = le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0], row=staging_row * scale[1],
+            P = le_mod.panel(bands, names, cell=le_mod.CELL * scale[0], row=staging_row * scale[1],
                              page=page)
             P.scale, P.fit, P.staging_fit, P.stretch = scale, None, fitted, stretch
         else:

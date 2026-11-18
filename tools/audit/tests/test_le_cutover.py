@@ -479,7 +479,7 @@ class ThreeLevels(unittest.TestCase):
         # South Yard's names on one centre x
         jt = importlib.import_module("schematic.jmri_text")
         centres = {round(int(el.get("x")) + jt.width(el.get("text"), int(el.get("size")), False) / 2)
-                   for el in self.le.iter("positionablelabel") if el.get("text") in B.NAME_COLUMNS[0]}
+                   for el in self.le.iter("positionablelabel") if el.get("text") in B.schematic()[0][0][2]["le_labels"]["name_columns"][0]}
         self.assertLessEqual(max(centres) - min(centres), 1, centres)
         # the engine house's buttons step alike, and West Yard's W-2 follows W-1 one row down at that step: kept
         # so in the parked station clusters (staging's le_labels extra_steps and extra_follow place them again when

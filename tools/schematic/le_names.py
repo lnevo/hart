@@ -350,30 +350,6 @@ def shared_turnouts(names: dict) -> None:
             nm["shared_turnouts"] = sorted(t for t in set(nm["turnouts"].values()) if len(bands_of[t]) > 1)
 
 
-# Track names on the cut-over candidates that stand on one centre x (owner, 2026-11-16): South Yard's, in the middle
-# of the yard between its ladders (the plugin's name_columns)
-NAME_COLUMNS = [["S-R", "S-1", "S-2", "S-3", "S-4"]]
-# Occupancy lamps that share one x on the cut-over candidates (owner, 2026-11-16): South Yard's, each on its track
-LAMP_COLUMNS = [{"BS S-R": "S-R", "BS S-1": "S-1", "BS S-2": "S-2", "BS S-3": "S-3", "BS S-4": "S-4"}]
-
-
-def staging_columns(bands):
-    """`bands` with the staging band's le_labels (its preferences' own, a copy) also giving NAME_COLUMNS and
-    LAMP_COLUMNS (the lamps' tracks, bound to their sensors here)."""
-    out = []
-    for title, band, opts in bands:
-        if band_key(title) == STAGING:
-            own = dict((opts or {}).get("le_labels") or {})
-            set_here = sorted({"name_columns", "lamp_columns"} & set(own))
-            if set_here:
-                raise BuildError(f"{title}: its preferences' le_labels already hold {', '.join(set_here)}; HART sets "
-                                 "them here (NAME_COLUMNS, LAMP_COLUMNS)")
-            opts = dict(opts or {}, le_labels=dict(own, name_columns=[list(g) for g in NAME_COLUMNS],
-                                                   lamp_columns=[list(g.values()) for g in LAMP_COLUMNS]))
-        out.append((title, band, opts))
-    return out
-
-
 def named_bands(bands, names: dict):
     """A copy of `bands` in which each main and upper track block is named on one of its tracks (the longest; its
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
