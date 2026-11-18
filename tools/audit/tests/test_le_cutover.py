@@ -251,21 +251,36 @@ class Cutover(unittest.TestCase):
         self.assertIn("  panel items: 14 elements from", out.getvalue())
         self.assertIn("panel 'HART Railroad'", out.getvalue())
 
-    def test_each_option_set_has_its_own_trial_file(self) -> None:
-        self.assertEqual(B.default_out("all", False), B.TRIAL)
-        self.assertEqual(B.default_out("staging", False), B.TRIAL_STAGING)
-        self.assertEqual(B.default_out("staging", True), B.CUTOVER_STAGING)
-        self.assertEqual(B.default_out("all", True), B.CUTOVER)
-        self.assertEqual(len({B.TRIAL, B.TRIAL_STAGING, B.CUTOVER, B.CUTOVER_STAGING}), 4)
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "TRIAL_STAGING", Path(tmp) / "s.xml"), \
-                mock.patch.object(B, "TRIAL", Path(tmp) / "a.xml"), \
+    def test_each_level_set_has_its_own_candidate_file(self) -> None:
+        self.assertEqual(B.default_out("staging"), B.CUTOVER_STAGING)
+        self.assertEqual(B.default_out("all"), B.CUTOVER)
+        self.assertNotEqual(B.CUTOVER, B.CUTOVER_STAGING)
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "CUTOVER_STAGING", Path(tmp) / "s.xml"), \
+                mock.patch.object(B, "CUTOVER", Path(tmp) / "a.xml"), \
                 mock.patch.object(B, "build", return_value=(self.data, self.P, self.names, self.bands)):
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(B.main(["--levels", "staging"]), 0)
-                self.assertEqual(B.main(["--levels", "staging", "--check"]), 0)
-                self.assertEqual(B.main(["--check"]), 1)          # the all-levels trial is another file
+                self.assertEqual(B.main(["--levels", "staging", "--as-live"]), 0)
+                self.assertEqual(B.main(["--levels", "staging", "--as-live", "--check"]), 0)
+                self.assertEqual(B.main(["--as-live", "--check"]), 1)          # the three-level candidate: another file
             self.assertTrue((Path(tmp) / "s.xml").exists())
             self.assertFalse((Path(tmp) / "a.xml").exists())
+
+    def test_the_viewing_trials_are_retired(self) -> None:
+        """A run without --as-live (the retired viewing trials, owner 2026-11-17) stops naming --as-live, in the
+        command and in build(), whatever the levels; nothing is built or written."""
+        for levels in B.LEVELS:
+            with self.subTest(levels=levels), self.assertRaisesRegex(B.BuildError, "retired.*--as-live"):
+                B.build(T.hand(), levels=levels)
+        for name in ("TRIAL", "TRIAL_STAGING", "TRIAL_LE_LABELS", "PANEL_NAME"):
+            self.assertFalse(hasattr(B, name), name)
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "build") as built:
+            for argv in ([], ["--check"], ["--levels", "all"], ["--levels", "staging"],
+                         ["--levels", "staging", "--check"], ["--out", str(Path(tmp) / "a.xml")]):
+                with self.subTest(argv=argv), contextlib.redirect_stdout(io.StringIO()) as out:
+                    self.assertEqual(B.main(argv), 1)
+                    self.assertRegex(out.getvalue(), r"^ERROR: the viewing trials .* are retired .*--as-live")
+            built.assert_not_called()
+            self.assertEqual(list(Path(tmp).iterdir()), [])
 
     def test_approve_staging_options_and_the_staging_file_beside_the_candidate(self) -> None:
         with contextlib.redirect_stdout(io.StringIO()):
@@ -294,14 +309,14 @@ class Cutover(unittest.TestCase):
                 self.assertEqual(B.main(["--levels", "staging", "--as-live", "--check", "--out", str(out)]), 0)
             # on the cut-over tables the command builds on the last hand-drawn tables (template_tables)
             built.assert_called_with(levels="staging", as_live=True, live_path=B.template_tables())
-        self.assertEqual(B.CUTOVER.parent, B.TRIAL.parent)                 # gitignored trial folder
+        self.assertEqual(B.CUTOVER.parent, B.CUTOVER_STAGING.parent)       # gitignored trial folder
+        self.assertEqual(B.CUTOVER.parent.name, "trial")
 
 
-@functools.lru_cache(maxsize=None)
 def three_levels():
-    """(candidate bytes, Panel, names, bands) of the three-level candidate (--levels all --as-live), built once."""
-    with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(T.hand(), levels="all", as_live=True, approved=None)
+    """(candidate bytes, Panel, names, bands) of the three-level candidate (--levels all --as-live), built once for
+    every test module (test_build_layout_le.built)."""
+    return T.built()
 
 
 class ThreeLevels(unittest.TestCase):

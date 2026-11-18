@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Build a Layout Editor panel of all three levels that looks like the schematic (C3, ADR-023).
 
-    python3 tools/schematic/build_layout_le.py           # write the trial tables file
-    python3 tools/schematic/build_layout_le.py --check   # fail if the trial file is stale
     python3 tools/schematic/build_layout_le.py --as-live                   # the cut-over candidate, all three levels
+    python3 tools/schematic/build_layout_le.py --as-live --check           # fail if it is stale
     python3 tools/schematic/build_layout_le.py --as-live --review          # the same, staging not yet approved
     python3 tools/schematic/build_layout_le.py --levels staging --as-live   # staging alone (the candidate's base)
     python3 tools/schematic/build_layout_le.py --approve-staging           # record the owner-approved staging panel
+
+Every run is --as-live and writes a cut-over candidate. The viewing trials, a "Layout (generated)" panel beside the
+live one fitted into the le_window (tables_layout.xml of three levels with its own smaller labels, and
+tables_layout_staging.xml of staging alone), are retired (owner, 2026-11-17): the candidates show every level. A run
+without --as-live stops and says so.
 
 One input path (owner, 2026-11-17, the device-map switch-over). Every level is drawn from its device map: staging
 from device_map_staging.csv, control_points_staging.csv and staging_masts.csv (staging_device_map.load: each switch's
@@ -42,7 +46,7 @@ jmri/layouts/hart/parked/tables_parked.xml. The released tables are that candida
 stock discovery in a sandbox (jmri/layouts/hart/parked/README.md).
 
 Staging alone. `--levels staging` draws the staging band alone: its helix tracks end at end bumpers, its rows le_row px
-apart (the page preference), and no main or upper object is added to the tables. With `--as-live` it writes
+apart (the page preference), and no main or upper object is added to the tables. It writes
 jmri/layouts/hart/output/trial/tables_cutover_staging.xml: the tables with the "HART Railroad" panel replaced, in its
 place (or put before the first Layout Editor panel when there is none), by the generated one under that name and
 panel_items.json's attributes, sized by the le_window and opening at 0, 0; everything else unchanged. Staging's turnouts
@@ -56,14 +60,9 @@ hidden generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER): the script
 read it and take positions from the panel itself. The staging candidate's panel must match the owner-approved
 fingerprint (approval.py, approved_staging.sha256; --review skips it, --approve-staging records it).
 
-Writes jmri/layouts/hart/output/trial/tables_layout.xml (no --as-live): the tables unchanged, plus one new Layout
-Editor panel, PANEL_NAME, and the internal turnouts, blocks and layout blocks the main and upper levels need. The
-trial is for looking at only. With that trial loaded do not run Signal Mast Logic discovery or Stage 1 and do not Store: both
-panels bind the staging masts. This script never writes the live tables.xml or anything in the JMRI profile (main()
-refuses such an --out).
-
-Size: the panel opens at 100% zoom in the page's le_window (main_upper.preferences.json; the plugin's `fit` scales
-the grid; label fonts keep their size). The plugin is the pinned submodule, or SCHEMATIC_PLUGIN (as publish_draft.py).
+The candidates are for looking at only until the owner's cut-over. This script never writes the live tables.xml or
+anything in the JMRI profile (main() refuses such an --out). The plugin is the pinned submodule, or SCHEMATIC_PLUGIN
+(as publish_draft.py).
 """
 from __future__ import annotations
 
@@ -98,7 +97,7 @@ from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read 
     check_boundaries,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, COMMENT, place, bean, r1, block_sort,
+    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, COMMENT, bean, r1, block_sort,
     RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, canon, is_level_bean, level_items,
     PANEL_SIZE_ATTRS, helix_join_changes, check_staging_unchanged, insert_first_panel, numbered_blocks,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
@@ -110,14 +109,14 @@ from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read 
 # the helix-entrance anchors, protecting Track 135-H2 and Track 135-H1. Off, every helix end stays an end bumper and
 # the staging guard accepts no difference.
 JOIN_HELIX = True
-TRIAL = paths.LAYOUT_OUTPUT / "trial" / "tables_layout.xml"
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                    # all three levels (the candidate)
 CUTOVER_STAGING = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover_staging.xml"    # staging alone (the guard's base)
-TRIAL_STAGING = paths.LAYOUT_OUTPUT / "trial" / "tables_layout_staging.xml"
 LEVELS = ("all", "staging")
 PANEL_ITEMS = pd.DATA / "panel_items.json"
-PANEL_NAME = "Layout (generated)"
 TEMPLATE_PANEL = "HART Railroad"     # the panel the cut-over candidate replaces, and its name
+RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.xml) are retired (owner, 2026-11-17): "
+                 "add --as-live for the three-level cut-over candidate (tables_cutover.xml), or --levels staging "
+                 "--as-live for the staging candidate (tables_cutover_staging.xml)")
 
 # The window the panel opens in at 100% zoom (the page's le_window) and the rows staging is drawn at (le_row) are
 # main_upper.preferences.json's, read through the plugin (le.window, le.row); their notes there say why.
@@ -129,11 +128,10 @@ TEMPLATE_PANEL = "HART Railroad"     # the panel the cut-over candidate replaces
 # le_stretch, le_window, le_row, le_labels extra_steps and extra_follow) are layer 3 preferences the plugin reads
 # (schematic/le_prefs.py).
 # The plugin's label layer (schematic/le_labels.py): switch numbers as the hand-drawn panel wrote them ("SW-13",
-# 13 px bold), block contents icons on with the plugin's reserve; given to every band through the page options.
-# The all-levels trial (viewing only) has no block contents icons (owner, 2026-11-16), and its switch numbers at the
-# plugin's 9 px: three bands in one window leave no room for 13 px ones (SW-29 fits nowhere). Staging keeps both.
+# 13 px bold), block contents icons on with the plugin's reserve; given to every band through the page options, on
+# every build (the all-levels trial's smaller set, 9 px numbers and no block contents, retired with it, owner
+# 2026-11-17).
 LE_LABELS = {"switch_prefix": "SW-", "switch_size": 13}
-TRIAL_LE_LABELS = dict(LE_LABELS, switch_size=9, block_contents=False)
 # The features parked out of the cut-over candidate into jmri/layouts/hart/parked/tables_parked.xml (owner,
 # 2026-11-17; hartlib.parked): Entry/Exit, the stock Dispatcher System and the USS CTC machine. Unpark one by taking
 # it out of hartlib.parked.PARKED and rebuilding.
@@ -167,12 +165,14 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     its helix ends as end bumpers, and adds no table object. `as_live` writes a cut-over candidate: the "HART Railroad"
     panel of the tables replaced by the new one, or the new one put before the first Layout Editor panel when the
     tables have none, under panel_items.json's name and attributes; with "all", drawn at the staging candidate's grid
-    and checked to hold it unchanged (check_staging_unchanged; module text). Without `as_live`, "all" is the viewing
-    trial beside the live panel, fitted into the le_window. Staging's facts come from the staging device map
+    and checked to hold it unchanged (check_staging_unchanged; module text). `as_live` must be given: without it
+    (the viewing trials, retired, owner 2026-11-17) the build stops. Staging's facts come from the staging device map
     (staging_device_map.load); nothing is read from a panel in the tables. `approved`: the fingerprint the staging
     candidate's panel must match (check_approved; None skips it, for --approve-staging and --review)."""
     if levels not in LEVELS:
         raise BuildError(f"levels must be one of {', '.join(LEVELS)}, not {levels!r}")
+    if not as_live:
+        raise BuildError(RETIRED_TRIAL)
     try:
         items = panel_items.load(PANEL_ITEMS)
     except panel_items.ItemsError as exc:
@@ -198,7 +198,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
     base = None             # the three-level candidate: the staging candidate it must hold unchanged, and its grid
-    if as_live and levels == "all":
+    if levels == "all":
         base = build(live_path, bands, "staging", True, approved=approved, page=page)
     keys = [band_key(t) for t, _, _ in bands]
     if STAGING not in keys:
@@ -216,11 +216,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         raise BuildError(f"{live_path} already holds the main and upper objects (the cut-over is done): build on "
                          f"the last hand-drawn tables (the command does so by itself: hartlib.hand_drawn, git "
                          f"{hand_drawn.COMMIT})")
-    panel_name = TEMPLATE_PANEL if as_live else PANEL_NAME
-    if not as_live and any(le.get("name") == PANEL_NAME for le in tables.layout_editors(root)):
-        raise BuildError(f"{live_path} already has a panel named {PANEL_NAME}")
+    panel_name = TEMPLATE_PANEL
     if not tables.layout_editors(root):
-        raise BuildError(f"{live_path} has no Layout Editor panel to put the new one beside")
+        raise BuildError(f"{live_path} has no Layout Editor panel; the candidate keeps the others "
+                         "in place and needs at least one")
 
     names, lengths = level_names(bands, le_mod, page=page) if levels == "all" else ({}, {})
     level_rows = []
@@ -242,7 +241,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     # the page-wide label options are HART's (LE_LABELS). The page is the last input's own options, so le_labels in
     # main_upper.preferences.json are main's and upper's: they reach those bands through their own options
     # (named_bands), not the page
-    page = dict(page, le_labels=dict(TRIAL_LE_LABELS if levels == "all" and not as_live else LE_LABELS))  # a copy
+    page = dict(page, le_labels=dict(LE_LABELS))  # a copy
     try:
         if base is not None:        # staging's own grid, so staging is drawn as in its candidate; no fitting
             scale = base[1].scale
@@ -258,16 +257,13 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                              row=staging_row * scale[1], page=dict(page, band_align={STAGING: "left"}),
                              labels_by_band=True, band_bottoms={STAGING: S.items["bottom"] - S.band_boxes[0][3]})
             P.scale, P.fit, P.stretch = scale, None, S.stretch
-        elif as_live:               # the staging candidate: the cut-over grid, no fitting (it scrolls in the le_window)
+        else:                       # the staging candidate: the cut-over grid, no fitting (it scrolls in the le_window)
+            # staging's own fit to the le_window, which the cut-over grid is stretched from
             fitted = le_mod.panel(bands, names, page=page, fit=fit, row=staging_row).scale
             scale, stretch = le_mod.stretched(fitted, page)
             P = le_mod.panel(staging_columns(bands), names, cell=le_mod.CELL * scale[0], row=staging_row * scale[1],
                              page=page)
             P.scale, P.fit, P.staging_fit, P.stretch = scale, None, fitted, stretch
-        else:
-            rows = {"row": staging_row} if levels == "staging" else {}
-            drawn = named_bands(bands, names) if levels == "all" else bands
-            P = le_mod.panel(drawn, names, page=page, fit=fit, **rows)
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
     P.mast_notes = check_unplaced(P)
@@ -294,56 +290,51 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         attrs, options = panel_items.panel_attributes(items)
     except panel_items.ItemsError as exc:
         raise BuildError(f"panel items: {exc}") from None
-    if as_live:
-        # the panel's own items by rule (panel_items.json), tied to the staging track, so they stand where the staging
-        # candidate has them on three levels too
-        panel_el = le_mod.to_xml(P, panel_name, attrs, options)
+    # the panel's own items by rule (panel_items.json), tied to the staging track, so they stand where the staging
+    # candidate has them on three levels too
+    panel_el = le_mod.to_xml(P, panel_name, attrs, options)
+    try:
+        P.items = panel_items.place(panel_el, items, le_mod, slots_module(), fit, le_mod.CHROME,
+                                    frame_blocks=staging_blocks)
+    except panel_items.ItemsError as exc:
+        raise BuildError(f"panel items: {exc}") from None
+    if P.items["bottom"] is None:
+        raise BuildError(f"{paths.rel(PANEL_ITEMS)} places no sized item, so the level below has no bottom to "
+                         "keep clear of")
+    # a panel larger than its window (the cut-over grid: staging alone is wider, three levels wider and taller)
+    # scrolls both ways, so nothing on it is out of reach at 100% zoom
+    w, h = P.items["size"]
+    if w + le_mod.CHROME[0] > fit[0] or h + le_mod.CHROME[1] > fit[1]:
+        panel_el.set("scrollable", "both")
+    # the marker that tells polish_hart_layout_editor.py and the other hand-pixel scripts to leave positions alone
+    opts = panel_el.find("layoutTrackDrawingOptions")
+    panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
+    # the boundary contract's idents and slots (generated anchor idents renumber with the drawing): stop loudly
+    check_boundaries(panel_el)
+    if levels == "staging" and approved is not None:
         try:
-            P.items = panel_items.place(panel_el, items, le_mod, slots_module(), fit, le_mod.CHROME,
-                                        frame_blocks=staging_blocks)
-        except panel_items.ItemsError as exc:
-            raise BuildError(f"panel items: {exc}") from None
-        if P.items["bottom"] is None:
-            raise BuildError(f"{paths.rel(PANEL_ITEMS)} places no sized item, so the level below has no bottom to "
-                             "keep clear of")
-        # a panel larger than its window (the cut-over grid: staging alone is wider, three levels wider and taller)
-        # scrolls both ways, so nothing on it is out of reach at 100% zoom
-        w, h = P.items["size"]
-        if w + le_mod.CHROME[0] > fit[0] or h + le_mod.CHROME[1] > fit[1]:
-            panel_el.set("scrollable", "both")
-        # the marker that tells polish_hart_layout_editor.py and the other hand-pixel scripts to leave positions alone
-        opts = panel_el.find("layoutTrackDrawingOptions")
-        panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
-        # the boundary contract's idents and slots (generated anchor idents renumber with the drawing): stop loudly
-        check_boundaries(panel_el)
-        if levels == "staging" and approved is not None:
-            try:
-                check_approved(panel_el, approved)
-            except ApprovalError as exc:
-                raise BuildError(str(exc)) from None
-        old = tables.layout_editor(root, panel_name)
-        if old is not None:
-            replace(root, old, panel_el, 1)
-        else:
-            insert_first_panel(root, panel_el, 1)
-        if base is not None:
-            P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name, JOIN_HELIX)
-            P.staging_data = base[0]
-            try:
-                le_mod.check_stretch(P.items["size"], fit, page)
-            except core.SchematicError as exc:
-                raise BuildError(f"schematic le: {exc}") from None
-            # the parked features (PARKED, owner 2026-11-17) leave the cut-over candidate for the parked file,
-            # after the staging guard, which compares the two candidates whole
-            try:
-                P.parked_doc = parked.split(root, PARKED)
-            except parked.ParkError as exc:
-                raise BuildError(f"parking: {exc}") from None
-            P.retired = retire_yard_ladder(root)
+            check_approved(panel_el, approved)
+        except ApprovalError as exc:
+            raise BuildError(str(exc)) from None
+    old = tables.layout_editor(root, panel_name)
+    if old is not None:
+        replace(root, old, panel_el, 1)
     else:
-        attrs.update(scrollable="both", editable="yes", autoblkgenerate="no")
-        panel_el = le_mod.to_xml(P, panel_name, attrs, options)
-        place(root, [panel_el], 1, tables.layout_editors(root)[-1])
+        insert_first_panel(root, panel_el, 1)
+    if base is not None:
+        P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name, JOIN_HELIX)
+        P.staging_data = base[0]
+        try:
+            le_mod.check_stretch(P.items["size"], fit, page)
+        except core.SchematicError as exc:
+            raise BuildError(f"schematic le: {exc}") from None
+        # the parked features (PARKED, owner 2026-11-17) leave the cut-over candidate for the parked file,
+        # after the staging guard, which compares the two candidates whole
+        try:
+            P.parked_doc = parked.split(root, PARKED)
+        except parked.ParkError as exc:
+            raise BuildError(f"parking: {exc}") from None
+        P.retired = retire_yard_ladder(root)
     return doc.tobytes(), P, names, bands
 
 
@@ -372,12 +363,11 @@ def run(argv, cached) -> int:
                     help="all: every band, main and upper under the device map's names (default); staging: staging "
                          "alone")
     ap.add_argument("--as-live", action="store_true",
-                    help="write the cut-over candidate: the live panel replaced by the new one; with --levels all "
-                         "(the default) all three levels at staging's grid (tables_cutover.xml), with --levels "
+                    help="required (the viewing trials are retired): write the cut-over candidate, the live panel "
+                         "replaced by the new one; with --levels all (the default) all three levels at staging's grid (tables_cutover.xml), with --levels "
                          "staging staging alone (tables_cutover_staging.xml)")
-    ap.add_argument("--out", type=Path, help="where to write (default: the trial file for these options: "
-                    "tables_layout.xml, tables_layout_staging.xml, tables_cutover.xml or "
-                    "tables_cutover_staging.xml)")
+    ap.add_argument("--out", type=Path, help="where to write (default: the candidate for these levels: "
+                    "tables_cutover.xml or tables_cutover_staging.xml)")
     ap.add_argument("--tables", type=Path, help="the tables file to build on (default: this checkout's, or the last "
                     "hand-drawn tables once it holds the generated panel: template_tables)")
     ap.add_argument("--review", action="store_true",
@@ -409,10 +399,13 @@ def run(argv, cached) -> int:
         print("ERROR: --review goes with --as-live")
         return 1
     levels = args.levels or "all"
-    out = args.out or default_out(levels, args.as_live)
+    if not args.as_live:
+        print(f"ERROR: {RETIRED_TRIAL}")
+        return 1
+    out = args.out or default_out(levels)
     if live_target(out):
-        print(f"ERROR: {out} is the live tables or in the JMRI profile; the trial is for viewing only and is "
-              "written beside them, never over them")
+        print(f"ERROR: {out} is the live tables or in the JMRI profile; the candidates are written beside them, "
+              "never over them")
         return 1
     try:
         where = {"live_path": args.tables or template_tables()}
@@ -423,7 +416,7 @@ def run(argv, cached) -> int:
         print(f"ERROR: {exc}")
         return 1
     _, le_mod, _ = plugin()
-    summary = f"panel {(TEMPLATE_PANEL if args.as_live else PANEL_NAME)!r}: {le_mod.summary(P)}"
+    summary = f"panel {TEMPLATE_PANEL!r}: {le_mod.summary(P)}"
     # the three-level candidate writes the staging candidate it holds beside it (tables_cutover_staging.xml)
     files = [(out, data)]
     if getattr(P, "staging_data", None) is not None:
@@ -482,11 +475,9 @@ def staging_out(out: Path) -> Path:
     return out.with_name(f"{out.stem}_staging{out.suffix}")
 
 
-def default_out(levels: str, as_live: bool) -> Path:
-    """The trial file for these options, so --check always compares like with like."""
-    if as_live:
-        return CUTOVER_STAGING if levels == "staging" else CUTOVER
-    return TRIAL_STAGING if levels == "staging" else TRIAL
+def default_out(levels: str) -> Path:
+    """The candidate file for these levels, so --check always compares like with like."""
+    return CUTOVER_STAGING if levels == "staging" else CUTOVER
 
 
 if __name__ == "__main__":

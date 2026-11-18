@@ -1,4 +1,6 @@
-"""build_layout_le.py: the C3 trial panel of all three levels, drawn like the schematic, beside the live tables."""
+"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on the last
+hand-drawn tables. The all-levels viewing trial these tests once read (tables_layout.xml) is retired (owner,
+2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py and test_le_mast_parity.py share."""
 from __future__ import annotations
 
 import contextlib
@@ -43,8 +45,8 @@ LIVE_PANEL = "HART Railroad"
 
 
 def is_new(el) -> bool:
-    if el.tag == "LayoutEditor":
-        return el.get("name") == B.PANEL_NAME
+    if el.tag == "LayoutEditor":            # the generated panel replaces the live one: no new panel
+        return False
     sysname = tables.system_name(el) if el.find("systemName") is not None else (el.get("systemName") or "")
     if el.tag == "turnout":
         return sysname.startswith(B.TURNOUT_SYS)
@@ -111,9 +113,10 @@ def crossover_legs(facts: dict) -> dict:
 
 @functools.lru_cache(maxsize=None)
 def built():
-    """(trial bytes, Panel, names, bands): built once for every test module that needs it."""
+    """(candidate bytes, Panel, names, bands) of the three-level cut-over candidate (--levels all --as-live; the
+    approval fingerprint is its own test, test_le_cutover.py): built once for every test module that needs it."""
     with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(hand())
+        return B.build(hand(), levels="all", as_live=True, approved=None)
 
 
 @functools.lru_cache(maxsize=None)
@@ -133,7 +136,7 @@ class PagePreferences(unittest.TestCase):
                            ({"le_window": [1900]}, "le_window must be"), ({"le_row": 0}, "le_row must be")):
             bad = {k: v for k, v in dict(page, **prefs).items() if v is not None}
             with self.subTest(prefs=prefs), self.assertRaisesRegex(B.BuildError, why):
-                B.build(hand(), page=bad)
+                B.build(hand(), as_live=True, approved=None, page=bad)
 
 
 class Built(unittest.TestCase):
@@ -142,7 +145,7 @@ class Built(unittest.TestCase):
         cls.data, cls.P, cls.names, cls.bands = built()
         cls.root = tables.loads(cls.data).root
         cls.live = tables.read(hand())
-        cls.le = tables.layout_editor(cls.root, B.PANEL_NAME)
+        cls.le = tables.layout_editor(cls.root, LIVE_PANEL)              # the generated panel, under the live name
         cls.hand_le = tables.layout_editor(cls.live, LIVE_PANEL)     # the last hand-drawn panel: the railroad
         cls.items = {el.get("ident"): el for el in tables.elements(cls.le) if el.get("ident")}
 
@@ -190,12 +193,14 @@ class Built(unittest.TestCase):
         dx = [t for t in self.le.findall("layoutturnout") if t.get("type") == "DOUBLE_XOVER"]
         self.assertEqual([t.get("turnoutname") for t in dx], ["Switch 225"])
         # a crossover's halves on one level are one single crossover; the helix-top 129 and 135 stand on two
-        # levels, so each is two Layout Editor turnouts on one turnout
+        # levels, so each is two Layout Editor turnouts on one turnout, and 101 and 103 (one three-way switch, the
+        # preferences' le_split_crossovers) are each two plain turnouts on one turnout
         xo = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout")
                      if t.get("type") in ("RH_XOVER", "LH_XOVER") and is_new_name(t.get("turnoutname")))
-        self.assertEqual(set(xo), {f"Switch {n}" for n in (101, 103, 119, 213, 217, 221, 241, 245)})
+        self.assertEqual(set(xo), {f"Switch {n}" for n in (119, 213, 217, 221, 241, 245)})
         twice = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout"))
-        self.assertEqual({n for n, c in twice.items() if c > 1}, {"Switch 129", "Switch 135"})
+        self.assertEqual({n for n, c in twice.items() if c > 1},
+                         {"Switch 101", "Switch 103", "Switch 129", "Switch 135"})
 
     def test_every_main_and_upper_block_reports_its_virtual_sensor(self) -> None:
         """Each main and upper block, and its layout block, is bound by user name to its virtual occupancy sensor
@@ -222,8 +227,8 @@ class Built(unittest.TestCase):
 
     def test_the_virtual_sensors_start_clear_and_only_they(self) -> None:
         """A LogixNG in the tables sets every main and upper virtual block sensor INACTIVE when they load, and no
-        other sensor (owner, 2026-11-17): in the trial build and in the released tables."""
-        for label, root in (("trial", self.root), ("released", tables.read(paths.TABLES_XML))):
+        other sensor (owner, 2026-11-17): in the candidate and in the released tables."""
+        for label, root in (("candidate", self.root), ("released", tables.read(paths.TABLES_XML))):
             with self.subTest(tables=label):
                 level = sorted(tables.system_name(s) for s in tables.sensors(root) if is_new(s))
                 self.assertEqual(len(level), 125)
@@ -267,7 +272,7 @@ class Built(unittest.TestCase):
         with mock.patch.object(sys.modules["le_tables"], "add_level_sensors", return_value=[]), \
                 self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
             with contextlib.redirect_stdout(io.StringIO()):
-                B.build(hand())
+                B.build(hand(), as_live=True, approved=None)
 
     def test_add_level_sensors_is_by_name_not_order(self) -> None:
         """The sensors a block gets do not depend on the order blocks come in: a block added earlier in the drawing
@@ -325,16 +330,22 @@ class Built(unittest.TestCase):
                          4 if B.JOIN_HELIX else 2)
         self.assertEqual({s.get("mainline") for s in self.le.findall("tracksegment")}, {"yes", "no"})
         texts = {lb.get("text") for lb in self.le.findall("positionablelabel")}
-        prefix = B.TRIAL_LE_LABELS["switch_prefix"]          # switch numbers as the plugin's label layer writes them
+        prefix = B.LE_LABELS["switch_prefix"]          # switch numbers as the plugin's label layer writes them
         self.assertTrue({"STAGING LEVEL", "MAIN LEVEL", "Main West", prefix + "39", prefix + "135A"} <= texts, texts)
-        self.assertEqual(self.le.findall("BlockContentsIcon"), [])     # none in the all-levels trial
         self.assertEqual(len(self.le.findall("layoutShape")), 8)     # four helix ends, four connector ends
 
-    def test_no_sensors_and_masts_only_on_staging(self) -> None:
+    def test_no_track_sensors_and_every_mast_placed(self) -> None:
+        # no Entry/Exit sensor (parked) and no track sensor icon: the only sensor icons are the status cluster's
+        # (panel_items.json)
         for el in self.le.iter():
-            self.assertNotIn(el.tag, ("sensoricon", "sensorA", "sensorB", "sensorC", "sensorD"))
+            self.assertNotIn(el.tag, ("sensorA", "sensorB", "sensorC", "sensorD"))
             for a in ("eastboundsensor", "westboundsensor"):
                 self.assertIsNone(el.get(a))
+        items = B.panel_items.load(B.PANEL_ITEMS)["items"]
+        status = {ET.fromstring(m["xml"]).get("sensor") for it in items for m in (it.get("members") or [it])
+                  if ET.fromstring(m["xml"]).tag == "sensoricon"}
+        self.assertTrue(status)
+        self.assertEqual({el.get("sensor") for el in self.le.iter("sensoricon")}, status)
         staging = B.band_key(self.bands[0][0])
         self.assertEqual(staging, B.STAGING)
         self.assertTrue(self.P.masts)
@@ -343,17 +354,10 @@ class Built(unittest.TestCase):
         self.assertEqual(level, {r["mast"] for r in B.read_level_masts()})
         self.assertEqual(len(level), 41)
 
-    # ---- size: the owner's 1900 x 1200 display at 100% zoom
-    def test_panel_fits_the_display(self) -> None:
+    # ---- size: the panel holds what it draws (the window: test_le_cutover.py, the panel scrolls)
+    def test_everything_drawn_lies_on_the_panel(self) -> None:
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        window = (int(self.le.get("windowwidth")), int(self.le.get("windowheight")))
-        self.assertEqual(window, (w + 18, h + 60))                    # Layout Editor's frame allowance
         self.assertEqual(le_window(), (1900, 1140))                   # the preference: the owner's display
-        self.assertLessEqual(window[0], le_window()[0])
-        self.assertLessEqual(window[1], le_window()[1])
-        self.assertLessEqual(window[0], 1900)                         # the owner's display
-        self.assertLessEqual(window[1], 1200 - 37)                    # below the macOS menu bar
-        self.assertGreater(window[0], 0.98 * le_window()[0])          # as large as fits, not smaller
         # everything drawn lies on the panel: track, turnout legs, labels (at the width JMRI draws) and icons
         xs, ys = [], []
         for p in self.le.findall("positionablepoint"):
@@ -366,6 +370,10 @@ class Built(unittest.TestCase):
         B.plugin()
         jt = importlib.import_module("schematic.jmri_text")
         for lb in self.le.findall("positionablelabel"):
+            if lb.get("text") is None:                # an icon label (the backdrop): its corner on the panel
+                xs.append(float(lb.get("x")))
+                ys.append(float(lb.get("y")))
+                continue
             x, y, size, bold = float(lb.get("x")), float(lb.get("y")), int(lb.get("size")), lb.get("style") == "1"
             xs += [x, x + jt.width(lb.get("text"), size, bold)]
             ys += [y, y + jt.height(size, bold)]
@@ -378,25 +386,40 @@ class Built(unittest.TestCase):
         self.assertLessEqual(max(xs), w)
         self.assertLessEqual(max(ys), h)
 
-    def test_fitting_keeps_label_fonts(self) -> None:
+    def test_the_grid_scale_keeps_label_fonts(self) -> None:
         _sheet, le_mod, _core = B.plugin()
-        sizes = {int(lb.get("size")) for lb in self.le.findall("positionablelabel")}
+        # the labels the plugin draws (the panel items, panel_items.json, carry their own sizes), as the panel has them
+        sizes = {lb["size"] for lb in self.P.labels}
+        drawn = {(lb.get("text"), int(lb.get("size"))) for lb in self.le.findall("positionablelabel")
+                 if lb.get("text") is not None}
+        self.assertLessEqual({(lb["text"], lb["size"]) for lb in self.P.labels}, drawn)
         unscaled = {le_mod.LABEL_SIZE, le_mod.LABEL_SIZE - 1, le_mod.LABEL_SIZE - 2, le_mod.NUMBER_SIZE,
                     le_mod.TITLE_SIZE}
         self.assertLessEqual(sizes, unscaled)
         self.assertIn(le_mod.TITLE_SIZE, sizes)
-        kx, ky = self.P.scale
-        self.assertLess(kx, 1.0)                  # the full-size grid is too wide for the display
-        self.assertGreaterEqual(ky, kx)           # rows keep their room: only as short as the height needs
+        self.assertNotEqual(self.P.scale, (1.0, 1.0))         # the grid is scaled (staging's fit, stretched)
 
     # ---- the live file
-    def test_live_tables_unchanged_but_for_the_additions(self) -> None:
+    def test_tables_unchanged_but_for_the_additions(self) -> None:
+        """With the main and upper objects taken out again, the candidate is the staging candidate it holds, parked
+        and its yard ladder retired as the build does, but for the panel (the staging guard compares the panels:
+        test_le_cutover.py)."""
+        def no_panel(doc):
+            """The tables without the panel, layout whitespace dropped (what is taken out leaves its own)."""
+            doc.root.remove(tables.layout_editor(doc.root, LIVE_PANEL))
+            for el in doc.root.iter():
+                el.text = None if el.text is not None and not el.text.strip() else el.text
+                el.tail = None if el.tail is not None and not el.tail.strip() else el.tail
+            return ET.tostring(doc.root)
         doc = tables.loads(self.data)
         removed = strip_new(doc.root)
-        # + their sensors, the LogixNG that clears them (LogixNG, ConditionalNG, DigitalMany, 125 ActionSensors),
-        # heads and masts
-        self.assertEqual(removed, 1 + 41 + 3 * 125 + 125 + 3 + 125 + 53 + 41)
-        self.assertEqual(doc.tobytes(), hand().read_bytes())
+        # turnouts, blocks (3 each), layout blocks, their sensors, the LogixNG that clears them (LogixNG,
+        # ConditionalNG, DigitalMany, 125 ActionSensors), heads and masts
+        self.assertEqual(removed, 41 + 3 * 125 + 125 + 3 + 125 + 53 + 41)
+        base = tables.loads(self.P.staging_data)
+        B.parked.split(base.root, B.PARKED)
+        B.retire_yard_ladder(base.root)
+        self.assertEqual(no_panel(doc), no_panel(base))
 
     def test_no_name_collisions(self) -> None:
         live_users = {tables.user_name(b) for b in tables.turnouts(self.live) + tables.blocks(self.live)
@@ -412,18 +435,18 @@ class Built(unittest.TestCase):
                 self.assertTrue(tables.system_name(t).startswith("IT:"))     # never field hardware
         idents = [el.get("ident") for el in tables.elements(self.le) if el.get("ident")]
         self.assertEqual(len(idents), len(set(idents)))
-        self.assertEqual([le.get("name") for le in tables.layout_editors(self.root)],
-                         [le.get("name") for le in tables.layout_editors(self.live)] + [B.PANEL_NAME])
+        # the generated panel replaces the live one in place, under its name: no panel beside it
+        names = [le.get("name") for le in tables.layout_editors(self.root)]
+        self.assertEqual(names.count(LIVE_PANEL), 1)
+        self.assertNotIn("Layout (generated)", names)        # the retired viewing trials' panel
 
     def test_audit_passes_on_the_cut_over_candidate(self) -> None:
         # le_signal_boundaries.csv names the generated panel's anchors (AG...), so the audit reads the candidate,
-        # whose "HART Railroad" panel is the generated one (the trial beside it keeps the hand-drawn one)
+        # whose "HART Railroad" panel is the generated one
         boundaries = AUDIT.load_boundaries(AUDIT.BOUNDARIES)
-        with contextlib.redirect_stdout(io.StringIO()):
-            data = B.build(hand(), as_live=True)[0]
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables_cutover.xml"
-            path.write_bytes(data)
+            path.write_bytes(self.data)
             audit = AUDIT.audit_source("candidate", path, boundaries, {b.mast for b in boundaries}, generated=True)
         self.assertEqual(audit.errors, [])
         self.assertEqual(audit.facts["panel"], LIVE_PANEL)
@@ -433,22 +456,22 @@ class Built(unittest.TestCase):
                 B, "build", return_value=(self.data, self.P, self.names, self.bands)):
             out = Path(tmp) / "t.xml"
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(B.main(["--out", str(out)]), 0)
-                self.assertEqual(B.main(["--check", "--out", str(out)]), 0)
+                self.assertEqual(B.main(["--as-live", "--out", str(out)]), 0)
+                self.assertEqual(B.main(["--as-live", "--check", "--out", str(out)]), 0)
                 out.write_bytes(out.read_bytes() + b" ")
-                self.assertEqual(B.main(["--check", "--out", str(out)]), 1)
+                self.assertEqual(B.main(["--as-live", "--check", "--out", str(out)]), 1)
 
     def test_renderer_draws_arcs_and_labels(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "t.xml"
             path.write_bytes(self.data)
-            _pp, _legs, turnouts, segs, signals, _st = RENDER.load_geometry(path, B.PANEL_NAME, curves=True)
-            self.assertEqual(len(turnouts), 63)
+            _pp, _legs, turnouts, segs, signals, _st = RENDER.load_geometry(path, LIVE_PANEL, curves=True)
+            self.assertEqual(len(turnouts), 65)             # 101 and 103 drawn as two plain turnouts each
             self.assertEqual(len(signals), len(self.P.masts))
             self.assertEqual({s["hidden"] for s in signals}, {True, False})
             shown = [s for s in self.le.findall("tracksegment") if s.get("hidden") != "yes"]
             self.assertGreater(len(segs), len(shown))                # arcs drawn as pieces
-            labels, shapes = RENDER.load_decor(path, B.PANEL_NAME)
+            labels, shapes = RENDER.load_decor(path, LIVE_PANEL)
             self.assertEqual(len(shapes), 8)
             self.assertIn("MAIN LEVEL", {lb[0] for lb in labels})
 
@@ -630,7 +653,7 @@ class ReviewFixes(unittest.TestCase):
             path = Path(tmp) / "tables.xml"
             path.write_bytes(doc.tobytes())
             with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "names-only"):
-                B.build(path, bands=Built.bands)
+                B.build(path, bands=Built.bands, as_live=True, approved=None)
 
 
 def anchor_panel(*anchors) -> str:
@@ -673,15 +696,17 @@ class SecondReview(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, "M was not asked for"):      # a staging mast nobody listed
             B.check_device_masts(P, [], le_mod, facts={})
 
-    def test_the_trial_is_never_written_over_the_live_tables(self) -> None:
+    def test_the_build_is_never_written_over_the_live_tables(self) -> None:
         self.assertTrue(B.live_target(paths.TABLES_XML))
         self.assertTrue(B.live_target(paths.JMRI_USER_FILES / "tables.xml"))
-        self.assertFalse(B.live_target(B.TRIAL))
+        for out in (B.CUTOVER, B.CUTOVER_STAGING):
+            self.assertFalse(B.live_target(out), out)
         with mock.patch.object(B, "build") as built_, contextlib.redirect_stdout(io.StringIO()) as out:
-            self.assertEqual(B.main(["--out", str(paths.TABLES_XML)]), 1)
-            self.assertEqual(B.main(["--out", str(paths.JMRI_USER_FILES / "x.xml")]), 1)
+            self.assertEqual(B.main(["--as-live", "--out", str(paths.TABLES_XML)]), 1)
+            self.assertEqual(B.main(["--levels", "staging", "--as-live", "--out",
+                                     str(paths.JMRI_USER_FILES / "x.xml")]), 1)
         built_.assert_not_called()
-        self.assertIn("viewing only", out.getvalue())
+        self.assertIn("written beside them, never over them", out.getvalue())
         self.assertIn("for looking at only", B.__doc__)
 
     def test_renderer_sizes_icons_by_mast_type(self) -> None:
@@ -689,7 +714,7 @@ class SecondReview(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "t.xml"
             path.write_bytes(data)
-            signals = RENDER.load_geometry(path, B.PANEL_NAME, curves=True)[4]
+            signals = RENDER.load_geometry(path, LIVE_PANEL, curves=True)[4]
         sizes = {s["name"]: s["size"] for s in signals}
         self.assertEqual(sizes["Mast 2L"], tables.MAST_ICON_HIGH)        # two-searchlight
         self.assertEqual(sizes["Mast 2R"], tables.MAST_ICON_DWARF)       # one-low virtual

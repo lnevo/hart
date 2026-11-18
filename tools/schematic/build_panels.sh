@@ -10,7 +10,9 @@
 #   main_upper_masts.csv             from the device map; the Layout Editor builds place these masts
 #   schematic draft and stations     publish_draft.py
 #   CATS desks                       build_cats_panel.py
-#   Layout Editor trials, cut-over   build_layout_le.py (all levels, then staging alone), then --as-live
+#   Layout Editor cut-over           build_layout_le.py --as-live: the three-level candidate and the staging
+#                                    candidate it holds (the viewing trials are retired, owner 2026-11-17: the
+#                                    candidates show every level)
 #   approved-*                       check_approved.py, straight after what it guards: the desks after they are written,
 #                                    the cut-over candidate after it is written (it is what replaces the live panel; the
 #                                    build never writes tables.xml), and the live panel. A write that drifts from the
@@ -52,8 +54,6 @@ step main-upper-masts python3 tools/schematic/build_main_upper_masts.py
 step schematic python3 tools/schematic/publish_draft.py
 step cats python3 tools/schematic/build_cats_panel.py
 step approved-desks python3 tools/schematic/check_approved.py cats-ctc cats-abs
-step le-trial python3 tools/schematic/build_layout_le.py
-step le-trial-staging python3 tools/schematic/build_layout_le.py --levels staging
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
 step approved-candidate python3 tools/schematic/check_approved.py le-candidate
 step approved-live python3 tools/schematic/check_approved.py le-panel
