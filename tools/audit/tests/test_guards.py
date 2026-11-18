@@ -33,6 +33,11 @@ os.symlink(shutil.which("git"), os.path.join(_BIN.name, "git"))
 GIT_ONLY_PATH = _BIN.name
 
 
+# The guard reads the Mac's operating flag (tools/hosts/operating.sh); these tests never see the real one.
+os.environ["HART_OPERATING_FLAG"] = "/nonexistent/hart-test-operating-flag"
+os.environ.pop("HART_GUARD_OPERATING", None)
+
+
 def load(path: Path, name: str):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
@@ -329,76 +334,19 @@ class SubagentGuard(unittest.TestCase):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
 
 
-class JmriOpenAndPrivateName(unittest.TestCase):
-    """Table writers stop while PanelPro or CATS is open; the private name stays out of publishing text.
-
-    Checked in this process with the command as data. The running-JMRI check is replaced, so
-    the result never depends on what is open, and the name check is replaced by a stand-in
-    for a marker word, so no test file holds the real name.
-    """
-    MARK = "zz-private-marker"
-
-    def guard(self, running: bool):
-        guard = load(MAIN_GUARD, "hart_main_guard_names_test")
-        guard.jmri_running = lambda: running
-        guard.contains_private_name = lambda text: self.MARK in text
-        guard.main_checkout = lambda target: False  # CI's clone is a main checkout; tested in test_worktrees
-        guard.on_main = lambda target, branched: False  # the checkout's branch must not matter; MainGuard tests the rule
-        return guard
-
-    def code(self, command: str, running: bool = True) -> int:
-        guard = self.guard(running)
-        saved = sys.stdin
-        sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
-        try:
-            with mock_env(CLAUDE_PROJECT_DIR=str(ROOT)), contextlib.redirect_stdout(io.StringIO()), \
-                    contextlib.redirect_stderr(io.StringIO()):
-                return guard.main()
-        finally:
-            sys.stdin = saved
-
-    def test_writers_blocked_while_open(self) -> None:
-        for cmd in ("make tables-pull", "make deploy-all", "make -s deploy-layout", "make ops-pull",
-                    "./tools/ops/pull_tables.sh", "./cats/scripts/sync_hart_package.sh --pi",
-                    "cd x && ./cats/scripts/sync_hart_package.sh --all",
-                    "./tools/hosts/sync_hart_package.sh --pi",
-                    "make redeploy COMMIT=abc123 HOSTS=--pi", "./tools/hosts/redeploy_commit.sh abc123 --pi",
-                    "python3 jmri/layouts/hart/scripts/apply_nx_layer.py",
-                    "JMRI_LAYOUT=hart python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
-                    "python3 jmri/layouts/hart/scripts/apply_public_names.py --apply"):
-            self.assertEqual(self.code(cmd), 2, cmd)
-
-    def test_writers_pass_when_closed(self) -> None:
-        for cmd in ("make tables-pull", "./cats/scripts/sync_hart_package.sh --pi"):
-            self.assertEqual(self.code(cmd, running=False), 0, cmd)
-
-    def test_read_only_work_passes_while_open(self) -> None:
-        for cmd in ("make panelpro-test", "make deploy-site", "make check", "./tools/check.sh",
-                    "python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py --check",
-                    "python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py --dry-run",
-                    "python3 jmri/layouts/hart/scripts/apply_public_names.py",
-                    "./cats/scripts/sync_hart_package.sh --help", "./tools/hosts/sync_hart_package.sh --dry-run --pi",
-                    "./tools/hosts/redeploy_commit.sh abc123 --stage-only /tmp/x",
-                    "./cats/scripts/sync_hart_package.sh --stage-only /tmp/x",
-                    "./tools/hosts/sync_hart_package.sh --pi --stage-only=/tmp/x",
-                    "./cats/scripts/sync_hart_package.sh --dry-run --pi", "cat tools/ops/pull_tables.sh"):
-            self.assertEqual(self.code(cmd), 0, cmd)
-
-    def test_process_check_can_be_forced(self) -> None:
-        guard = load(MAIN_GUARD, "hart_main_guard_force_test")
-        with mock_env(HART_GUARD_JMRI_RUNNING="1"):
-            self.assertTrue(guard.jmri_running())
-        with mock_env(HART_GUARD_JMRI_RUNNING="0"):
-            self.assertFalse(guard.jmri_running())
+class OperatingFlag(unittest.TestCase):
+    """While the operating flag is set, what reaches the Pi and Windows waits; the Mac's own work does not."""
 
     def op_code(self, command: str, flag: str | None) -> int:
-        """The guard's exit code with JMRI closed and the operating flag file holding `flag` (None: no file)."""
+        """The guard's exit code with the operating flag file holding `flag` (None: no file)."""
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "operating")
             if flag is not None:
                 Path(path).write_text(flag, encoding="utf-8")
-            guard = self.guard(False)
+            guard = load(MAIN_GUARD, "hart_main_guard_operating_test")
             guard.OPERATING_FLAG = path
+            guard.main_checkout = lambda target: False
+            guard.on_main = lambda target, branched: False
             saved = sys.stdin
             sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
             try:
@@ -408,19 +356,21 @@ class JmriOpenAndPrivateName(unittest.TestCase):
             finally:
                 sys.stdin = saved
 
-    def test_operating_flag_blocks_only_what_reaches_the_layout_hosts(self) -> None:
+    def test_only_what_reaches_the_layout_hosts_waits(self) -> None:
         owner = "by=owner\nsince=2026-11-18T15:00:00-0500\nreason=ops session\n"
         blocked = ("./tools/hosts/sync_hart_package.sh --pi --win", "./tools/hosts/sync_hart_package.sh --all",
                    "./tools/hosts/sync_hart_package.sh --win", "make deploy-layout", "make -s deploy-all",
                    'make redeploy COMMIT=abc HOSTS="--pi --win"', "./tools/hosts/redeploy_commit.sh abc --pi",
                    "tools/hosts/pi_quit_panelpro.sh --for-deploy", "tools/hosts/pi_start_panelpro.sh",
                    "tools/hosts/pi_sts_update.sh", "ssh pi 'pkill -f PanelPro'", "ssh pi pkill java",
-                   "ssh -o BatchMode=yes pi 'sudo reboot'", "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM java.exe",
+                   "ssh -o BatchMode=yes pi 'sudo reboot'",
+                   "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM java.exe",
                    "bash -c 'tools/hosts/pi_quit_panelpro.sh --for-deploy'", "zsh -c \"ssh pi pkill -f PanelPro\"",
+                   "env HART_PI_RESTART=0 timeout 60 tools/hosts/pi_quit_panelpro.sh",
                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py")
         for cmd in blocked:
             self.assertEqual(self.op_code(cmd, owner), 2, cmd)
-            self.assertEqual(self.op_code(cmd, None), 0, cmd)          # JMRI closed and no flag: allowed
+            self.assertEqual(self.op_code(cmd, None), 0, cmd)          # no flag: allowed
         # the Mac's own work stays open (owner, 2026-11-18)
         for cmd in ("make tables-pull", "./tools/hosts/sync_hart_package.sh", "make panelpro-test",
                     "osascript -e 'tell application \"PanelPro\" to quit'", "open -a /Applications/JMRI/PanelPro.app",
@@ -431,12 +381,12 @@ class JmriOpenAndPrivateName(unittest.TestCase):
                     "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --fetch /tmp/x.log",
                     "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill"):
             self.assertEqual(self.op_code(cmd, owner), 0, cmd)
-        # a speed-matching run's own flag lets the next job of the run through
+        # a speed-matching run's own flag lets the run's next job through, never a host deploy
         speed = "by=speedmatch\nsince=2026-11-18T15:00:00-0500\nreason=job\n"
         self.assertEqual(self.op_code("jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py", speed), 0)
         self.assertEqual(self.op_code("make deploy-layout", speed), 2)
 
-    def test_operating_flag_can_be_forced(self) -> None:
+    def test_the_flag_can_be_forced(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_operating_force")
         guard.OPERATING_FLAG = "/nonexistent/flag"
         with mock_env(HART_GUARD_OPERATING="1"):
@@ -446,107 +396,68 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         with mock_env(HART_GUARD_OPERATING=""):
             self.assertIsNone(guard.operating())
 
+
+class PrivateNameAndTables(unittest.TestCase):
+    """The private name stays out of publishing text, and table work is no longer blocked.
+
+    Checked in this process with the command as data. The name check is replaced by a stand-in
+    for a marker word, so no test file holds the real name.
+    """
+    MARK = "zz-private-marker"
+
+    def guard(self):
+        guard = load(MAIN_GUARD, "hart_main_guard_names_test")
+        guard.contains_private_name = lambda text: self.MARK in text
+        guard.main_checkout = lambda target: False  # CI's clone is a main checkout; tested in test_worktrees
+        guard.on_main = lambda target, branched: False  # the checkout's branch must not matter; MainGuard tests the rule
+        return guard
+
+    def code(self, command: str) -> int:
+        guard = self.guard()
+        saved = sys.stdin
+        sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
+        try:
+            with mock_env(CLAUDE_PROJECT_DIR=str(ROOT)), contextlib.redirect_stdout(io.StringIO()), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                return guard.main()
+        finally:
+            sys.stdin = saved
+
+    def test_table_writers_and_deploys_pass(self) -> None:
+        # Owner's call (2026-11-18): a PanelPro or CATS open on the Mac blocks nothing; JMRI changes
+        # tables.xml only on a Store, and the Mac is expendable. What must be kept lives on the Pi.
+        for cmd in ("make tables-pull", "make ops-pull", "make deploy-all", "make redeploy COMMIT=abc123 HOSTS=--pi",
+                    "./tools/hosts/sync_hart_package.sh --pi --win", "./tools/ops/pull_tables.sh",
+                    "python3 jmri/layouts/hart/scripts/apply_public_names.py --apply"):
+            self.assertEqual(self.code(cmd), 0, cmd)
+
     def test_private_name_blocked_in_publishing_text(self) -> None:
         m = self.MARK
         for cmd in (f'git commit -m "fix {m} text"', f"git -C . commit --message='{m}'",
                     f'gh pr create --title "{m}" --body ok', f'gh pr edit 3 --body "see {m}"',
                     f'gh issue create --title t --body "{m}"',
                     f'git commit -m "$(cat <<EOF\nfirst line\nmore {m}\nEOF\n)"'):
-            self.assertEqual(self.code(cmd, running=False), 2, cmd)
+            self.assertEqual(self.code(cmd), 2, cmd)
 
     def test_clean_publishing_text_passes(self) -> None:
         for cmd in ('gh pr create --title t --body "clean"', f"echo {self.MARK}", "gh pr view 3"):
-            self.assertEqual(self.code(cmd, running=False), 0, cmd)
+            self.assertEqual(self.code(cmd), 0, cmd)
 
     def test_private_name_in_body_file_blocked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             bad, good = Path(tmp, "bad.md"), Path(tmp, "good.md")
             bad.write_text(f"body {self.MARK}\n")
             good.write_text("body\n")
-            self.assertEqual(self.code(f"gh pr create --title t --body-file {bad}", running=False), 2)
-            self.assertEqual(self.code(f"git commit -F {bad}", running=False), 2)
-            self.assertEqual(self.code(f"gh pr create --title t --body-file {good}", running=False), 0)
-
-    def test_wrapped_and_unlisted_writers_blocked_while_open(self) -> None:
-        nx = "jmri/layouts/hart/scripts/apply_nx_layer.py"
-        for cmd in (f"env JMRI_LAYOUT=hart python3 {nx}", f"python3 -u {nx}", f"uv run python {nx}",
-                    "zsh tools/ops/pull_tables.sh", "bash -c ./tools/ops/pull_tables.sh",
-                    "(./tools/ops/pull_tables.sh)", "cd jmri && python3 scripts/polish_hart_cp_labels.py",
-                    # no list entry: found by reading the script
-                    "python3 jmri/scripts/polish_hart_cp_labels.py",
-                    "python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py",
-                    # flags these scripts do not define do not make them safe
-                    "python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --dry-run"):
-            self.assertEqual(self.code(cmd), 2, cmd)
-
-    def test_website_build_passes_while_open_unless_it_targets_the_profile(self) -> None:
-        # Owner's call (2026-11-13): the website build may run with PanelPro or CATS open. It deletes its
-        # output folder first, so a folder that is, holds or sits in the JMRI profile is still blocked.
-        build = "python3 www/scripts/prepare_github_pages.py"
-        for cmd in (build, f"{build} /tmp/dist", f"{build} /tmp/dist --site-url https://example.invalid/",
-                    "cd www && python3 scripts/prepare_github_pages.py /tmp/dist", "make deploy-site"):
-            self.assertEqual(self.code(cmd), 0, cmd)
-        for cmd in (f"{build} ~/JMRI_UserFiles", f"{build} ~/JMRI_UserFiles/site", f"{build} ~",
-                    f"{build} $HART_PI_USERFILES"):
-            self.assertEqual(self.code(cmd), 2, cmd)
-        # Only the repo's own build script is exempt: a copy with the same name elsewhere is judged as usual.
-        with tempfile.TemporaryDirectory() as tmp:
-            Path(tmp, "prepare_github_pages.py").write_text("open('tables.xml', 'w').write('x')\n")
-            self.assertEqual(self.code(f"python3 {Path(tmp, 'prepare_github_pages.py')}"), 2)
-
-    def test_hartlib_writers_blocked_readers_pass_while_open(self) -> None:
-        # A script on hartlib may name neither tables.xml nor a write call.
-        writers = {
-            "w1.py": "from hartlib import tables\ndoc = tables.load()\ndoc.save()\n",
-            "w2.py": "from hartlib.tables import load\ndoc = load()\ndoc.save()\n",
-            "w3.py": "from hartlib import (\n    paths,\n    tables,\n)\ntables.load().save()\n",
-            "w4.py": "import hartlib.tables as t\nt.load().save()\n",
-        }
-        readers = {
-            "r1.py": "from hartlib import paths, tables\nroot = tables.read(paths.TABLES_XML)\n",
-            "r2.py": "from hartlib import paths\nimport openpyxl\nwb = openpyxl.Workbook()\nwb.save(paths.REPO_ROOT / 'x.xlsx')\n",
-        }
-        with tempfile.TemporaryDirectory() as tmp:
-            for name, text in {**writers, **readers}.items():
-                Path(tmp, name).write_text(text)
-            for name in writers:
-                self.assertEqual(self.code(f"python3 {Path(tmp, name)}"), 2, name)
-                self.assertEqual(self.code(f"python3 {Path(tmp, name)}", running=False), 0, name)
-            for name in readers:
-                self.assertEqual(self.code(f"python3 {Path(tmp, name)}"), 0, name)
-
-    def test_openpyxl_save_beside_a_tables_mention_passes_while_open(self) -> None:
-        # Reads tables.xml, saves a workbook: not a table writer (as before hartlib).
-        self.assertEqual(self.code("python3 docs/wiring/lcos/build_lcos_signal_manager_plan.py"), 0)
-
-    def test_readers_and_launchers_pass_while_open(self) -> None:
-        for cmd in ("python3 jmri/scripts/check_hart_phase02.py", "git grep pull_tables.sh",
-                    "python3 jmri/layouts/hart/scripts/export_track_lengths.py",
-                    "python3 www/scripts/build_layout_index.py",
-                    "./cats/scripts/launch_cats.sh", "python3 -m unittest discover -s tools/audit/tests",
-                    "python3 www/scripts/check_portal_build.py"):  # baseline: never touched the tables
-            self.assertEqual(self.code(cmd), 0, cmd)
-
-    def test_process_pattern_is_hartlibs(self) -> None:
-        # The PanelPro wrappers use hartlib's check (tools/hosts/panelpro_profile.py jmri-running).
-        guard = load(MAIN_GUARD, "hart_main_guard_process_same")
-        done = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, sys.argv[1]); "
-                               "from hartlib import tables; print(tables._JMRI_PROCESS)",
-                               str(ROOT / "tools/hartlib/src")], capture_output=True, text=True, check=True)
-        self.assertEqual(guard.PROCESS, done.stdout.strip())
-
-    def test_process_pattern_covers_jmri5_decoderpro(self) -> None:
-        guard = load(MAIN_GUARD, "hart_main_guard_process_test")
-        for line in ("java -cp x apps.gui3.dp3.DecoderPro3", "java -cp x apps.PanelPro.PanelPro",
-                     "java -jar cats.jar cats.apps.Crandic"):
-            self.assertRegex(line, guard.PROCESS)
+            self.assertEqual(self.code(f"gh pr create --title t --body-file {bad}"), 2)
+            self.assertEqual(self.code(f"git commit -F {bad}"), 2)
+            self.assertEqual(self.code(f"gh pr create --title t --body-file {good}"), 0)
 
     def test_more_publishing_text_checked(self) -> None:
         m = self.MARK
         for cmd in (f'gh pr comment 3 --body "{m}"', f'gh issue comment 3 --body "{m}"',
                     f'gh issue edit 3 --body "{m}"', f'gh pr review 3 --comment --body "{m}"',
                     f'gh release create v1 --notes "{m}"', f'git tag -a v1 -m "{m}"'):
-            self.assertEqual(self.code(cmd, running=False), 2, cmd)
+            self.assertEqual(self.code(cmd), 2, cmd)
 
     def test_attached_body_file_forms_read(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -554,15 +465,14 @@ class JmriOpenAndPrivateName(unittest.TestCase):
             bad.write_text(f"body {self.MARK}\n")
             for cmd in (f"gh pr create --title t --body-file={bad}", f"git commit -F{bad}",
                         f"git commit --file={bad}"):
-                self.assertEqual(self.code(cmd, running=False), 2, cmd)
+                self.assertEqual(self.code(cmd), 2, cmd)
 
     def test_name_in_an_earlier_part_does_not_block_a_clean_commit(self) -> None:
         cmd = f"git grep -n {self.MARK} ; git commit -m 'remove the leaked name'"
-        self.assertEqual(self.code(cmd, running=False), 0)
+        self.assertEqual(self.code(cmd), 0)
 
     def test_publishing_blocked_when_name_check_cannot_load(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_missing_check_test")
-        guard.jmri_running = lambda: False
         guard.NAME_CHECK = str(ROOT / "no" / "such" / "private_name.py")
         saved = sys.stdin
         sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": "gh pr create --title t --body ok"},

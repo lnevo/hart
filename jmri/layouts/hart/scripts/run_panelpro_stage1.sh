@@ -40,8 +40,8 @@ if (( rc != 0 )); then
   exit 1
 fi
 
-# JMRI writes the marker just before it exits. The repairs below save tables.xml
-# through hartlib, which refuses while PanelPro runs, so wait for it to be gone.
+# JMRI writes the marker just before it exits. The repairs below save tables.xml,
+# so wait for PanelPro to be gone and unable to Store over them.
 if ! pp_wait_exit "${HART_STAGE1_EXIT_WAIT:-180}"; then
   echo "PanelPro is still running ${HART_STAGE1_EXIT_WAIT:-180}s after the Stage 1 marker; stopping it and not running the repairs. Run the repairs listed in wiki/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
   exit 1

@@ -14,10 +14,10 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Rebuild the panels drawn from the schematic | `make panels` (hands, signals, device map, schematic, CATS, LE trials and cut-over, in order); `make panels CHECK=1` only checks; `make desks` rebuilds and validates only the CATS desks. Pipeline: `wiki/pipelines/schematic-panels.md` |
 | Real PanelPro load | `make panelpro-test` on the Mac. Disables the publishing startup scripts but still connects to MQTT |
 | Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
-| Bring a PanelPro Store into the repo | `make tables-pull` |
+| Bring a PanelPro Store into the repo | `make tables-pull-pi` for a Store on the Pi, `make tables-pull` for one on the Mac |
 | Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed. Repo is the master (ADR-015) |
 | Operating flag (the layout is in use) | `tools/hosts/operating.sh on [reason]` when the owner says they are operating, `off --owner` when they say they are done, `status` to read it. A speed-matching job drop sets it (`--by speedmatch`); clear it with `off` once the run's log ends. While it is set the guard hook blocks what reaches the Pi and Windows: host deploys, `pi_quit_panelpro.sh` / `pi_start_panelpro.sh`, `pi_sts_update.sh`, ssh commands there that touch JMRI, CATS, java, docker or a reboot, and new speed-matching jobs under the owner's flag. Mac-only work (tables pull, Mac install, the Mac's PanelPro, panelpro-test) stays open |
-| Quit / start PanelPro on the Mac | When the operating flag is clear and any Store is pulled (`make tables-pull`), quit and relaunch it yourself as needed: `osascript -e 'tell application "PanelPro" to quit'` (never answer a Store dialog), `open -a /Applications/JMRI/PanelPro.app`. Before asking the owner to approve a panel, install that exact `tables.xml` in `~/JMRI_UserFiles` and relaunch |
+| Quit / start PanelPro on the Mac | Once any Store is pulled (`make tables-pull`), quit and relaunch it yourself as needed; the operating flag guards only the Pi and Windows: `osascript -e 'tell application "PanelPro" to quit'` (never answer a Store dialog), `open -a /Applications/JMRI/PanelPro.app`. Before asking the owner to approve a panel, install that exact `tables.xml` in `~/JMRI_UserFiles` and relaunch |
 | Quit / start PanelPro on the Pi (around a deploy) | `tools/hosts/pi_quit_panelpro.sh --for-deploy` (its own Quit, answers No to Store) before a Pi deploy; the deploy starts it again, also if the deploy fails. `tools/hosts/pi_start_panelpro.sh` by hand |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
 | Deploy to layout hosts | `./tools/hosts/sync_hart_package.sh --pi --win`: Windows matches the Pi, so they deploy together. One host alone only to test there or while the other is down; say so in the report and bring the other up to date next. `make deploy-status` shows the commit each host last got |
@@ -42,7 +42,7 @@ After any task that **changed files**, do not wait to be asked:
 5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CATS resources: run `sync_hart_package.sh --pi --win` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
 6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
 
-Sheets push (`.env.local`) stays human-gated. Hooks enforce the rules above and under **Do not**: `.claude/hooks/main_guard.py` (Cursor: `.cursor/hooks.json`) covers git on `main`, force-push, admin merge, `track/cmd` publishes (it asks), table and deploy commands while PanelPro or CATS is open, and the private name in commit, PR or issue text; `edit_guard.py` covers edits in the main checkout; `check_after_edit.py` runs the quick checks after a `tables.xml` or signal edit; `worktree_sweep.py` removes merged worktrees.
+Sheets push (`.env.local`) stays human-gated. Hooks enforce some of these rules: `.claude/hooks/main_guard.py` (Cursor: `.cursor/hooks.json`) covers git on `main`, force-push, admin merge, `track/cmd` publishes (it asks) and the private name in commit, PR or issue text; `edit_guard.py` covers edits in the main checkout; `check_after_edit.py` runs the quick checks after a `tables.xml` or signal edit; `worktree_sweep.py` removes merged worktrees.
 
 ## Working on existing scripts
 
@@ -84,11 +84,10 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
 ## Do not
 
-- Run table scripts with PanelPro or CATS open, or commit after a PanelPro Store (it writes `~/JMRI_UserFiles/tables.xml`) without `make tables-pull`.
+- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works, and `tables.xml` changes on a Store (not the default); a deploy replaces both, so it stops until `make ops-pull` or `make tables-pull-pi` is run and committed. `HART_DISCARD_PI_CHANGES=1` is the owner's call. The deploy leaves the DecoderPro roster alone (it ships only the photos). The Mac is expendable: PanelPro or CATS open there blocks nothing.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.
-- Remove **F30-S-0** where the layout includes it.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
 - Patch or wrap JMRI or CATS. Both are stock installs; fix the data in `jmri/layouts/hart/output/tables.xml` instead.
 - Leave the LCOS bridge (`serial_to_mqtt`) running detached. It is operator-owned and runs in a visible foreground console. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).

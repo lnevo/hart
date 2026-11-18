@@ -1097,7 +1097,7 @@ def main() -> int:
             continue
         try:
             changes, errors = apply_fn(path, check=args.check, reference=args.reference)
-        except RuntimeError as exc:  # hartlib save refuses while PanelPro or CATS is open
+        except RuntimeError as exc:  # hartlib save refuses, e.g. during a HART_TABLES check run
             all_errors.append(f"{path}: not changed: {exc}")
             continue
         except ValueError as exc:  # no main panel, a bad --reference, a doubled marker

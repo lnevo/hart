@@ -14,12 +14,14 @@
 #   - The commit must be on origin/main (git fetch first); --allow-unmerged permits others.
 #   - It must have tools/hosts/sync_hart_package.sh with the deploy stamp (ADR-007
 #     amendment 2026-11-12). Older commits are refused.
-#   - Not while PanelPro, DecoderPro or CATS runs on this machine (a real run only).
 #   - A PanelPro Store in ~/JMRI_UserFiles/tables.xml that is not pulled stops it: run
 #     make tables-pull first. HART_OVERWRITE_PROFILE_TABLES=1 overrides, as for a deploy.
 #   - Operations Pro files keep their guards (HART_OVERWRITE_OPS=0): a Pi session that is
 #     not pulled stops the Pi step (run make ops-pull), and a running JMRI keeps its files.
 #     HART_OVERWRITE_OPS=1 replaces them as a normal deploy does (a backup is kept).
+#   - With --pi or --all, Operations Pro files or a tables.xml Store changed on the Pi since the
+#     last deploy or pull stop it (make ops-pull, make tables-pull-pi). HART_DISCARD_PI_CHANGES=1
+#     replaces them.
 #
 # --mac installs on the Mac only. --dry-run and --stage-only DIR are passed through;
 # --stage-only needs no network. The commit a host has now: make deploy-status. The stamp
@@ -53,7 +55,7 @@ while [[ $# -gt 0 ]]; do
     --stage-only=*)
       STAGE_ONLY="${1#*=}"
       [[ -n "$STAGE_ONLY" ]] || { echo "--stage-only needs a folder" >&2; exit 2; } ;;
-    -h|--help) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
     *)
       [[ -z "$COMMIT" ]] || { echo "One commit only (got $COMMIT and $1)" >&2; exit 2; }
@@ -109,14 +111,6 @@ if ! git -C "$ROOT" show "$SHA:$SYNC_REL" | grep 'write_deploy_stamp' >/dev/null
   exit 1
 fi
 
-# The same process check the repo hook and the table tools use (hartlib.tables.jmri_running).
-if [[ "$REAL" -eq 1 ]] && PYTHONPATH="$ROOT/tools/hartlib/src" python3 -c \
-    'import sys; from hartlib.tables import jmri_running; sys.exit(0 if jmri_running() else 1)'; then
-  echo "REFUSED: PanelPro, DecoderPro or CATS is running on this machine. Close it (and make tables-pull" \
-    "if it stored), then redeploy." >&2
-  exit 1
-fi
-
 BASE="$(mktemp -d "${TMPDIR:-/tmp}/hart-redeploy.XXXXXX")"
 WT="$BASE/hart"
 cleanup() {
@@ -149,12 +143,22 @@ if ! hosts="$(bash -c 'set -eu; source "$1/tools/env/load_env.sh"
 fi
 CHILD_ENV=(PATH="$PATH" HOME="$HOME" HART_ENV_FILE="$BASE/no-hart.env"
            HART_OVERWRITE_OPS="${HART_OVERWRITE_OPS:-0}" HART_REDEPLOY_FROM="$(git -C "$ROOT" rev-parse HEAD)")
-for n in USER LOGNAME TERM LANG LC_ALL TMPDIR SSH_AUTH_SOCK HART_OVERWRITE_PROFILE_TABLES HART_PI_RESTART MIMIC_PORT; do
+for n in USER LOGNAME TERM LANG LC_ALL TMPDIR SSH_AUTH_SOCK HART_OVERWRITE_PROFILE_TABLES HART_PI_RESTART HART_DISCARD_PI_CHANGES MIMIC_PORT; do
   [[ -z "${!n:-}" ]] || CHILD_ENV+=("$n=${!n}")
 done
 while IFS= read -r line; do
   [[ -n "$line" ]] && CHILD_ENV+=("$line")
 done <<<"$hosts"
+
+# This checkout's Pi check, run before the old commit's deploy (older commits lack it): stop if the
+# owner changed Operations Pro files or stored tables.xml on the Pi since the last deploy or pull.
+to_pi=0
+for a in ${PASS[@]+"${PASS[@]}"}; do  # bash 3.2: an empty array is unbound under set -u
+  if [[ "$a" == --pi || "$a" == --all ]]; then to_pi=1; fi
+done
+if [[ "$REAL" -eq 1 && "$to_pi" -eq 1 ]]; then
+  bash "$ROOT/$SYNC_REL" --check-pi-only || exit 1
+fi
 
 echo "Redeploy $SHORT: temporary worktree $WT (detached)"
 git -C "$ROOT" worktree add -q --detach "$WT" "$SHA"

@@ -2,7 +2,7 @@
 
 - **Owner:** lnevo
 - **Hand-off:** [`sts-handoff-2026-11-18.md`](sts-handoff-2026-11-18.md) (Pi deploy of the HART-names change, then this plan).
-- **Status:** Planned 2026-11-18. Review done (read-only). Owner decided: remove the `--ck1-test` warm-start path. Next: run the steps below in a fresh session.
+- **Status:** 2026-11-18. Done: the HART-names change is on the Pi after the owner's UAT check (sts-docker b44f2d5 with #19, sts-plugins a2884b4 with #6; #20 on top only changes a browser test). Step 1 merged as sts-helpers #9, step 2 as sts-plugins #7 and sts-helpers #10. Step 4 dropped by the owner: sts-helpers is not moved into sts-docker, nothing new is installed there, and `rewind_session.sh` and `sync_operational_steps.sh` stay as they are (the step 1 guard on `rewind_session.sh` stays; `sync_operational_steps.sh` is unguarded). Next: the owner's UAT check of sts-plugins #7, then `pi_sts_update.sh`.
 - **Repos:** `external/sts-helpers` (lnevo/sts-docker-helpers, `main`), `external/sts-plugins` (lnevo/sts-plugins, `main`), `external/sts-docker` (lnevo/sts-docker, working line `active`). Each step is a PR in the submodule repo, then one hart PR moves the submodule pointers.
 
 ## Review findings (2026-11-18)
@@ -75,7 +75,7 @@ Brief the agent with this page's findings and the exact lists below. Two PRs.
 
 The agent reports what it deleted, the sandbox results and the summarize diff, then stops before merge.
 
-### Step 4: move the generic parts into sts-docker
+### Step 4: move the generic parts into sts-docker (dropped by the owner, 2026-11-18)
 
 **4a, main session.** Read sts-docker's `AGENTS.md`/`CLAUDE.md` first. Decide:
 - Where the API client lives in sts-docker (for example `bin/lib/sts_api.{sh,py}`) and how sts-helpers sources it afterwards. sts-helpers keeps a thin shim that sources sts-docker's copy, so HART scripts do not change.
@@ -93,3 +93,10 @@ Batch the owner questions in one multiple-choice ask.
 - One hart PR moving the three submodule pointers, plus `wiki/STATUS.md` (remove the Future goals line on this) and this page's status.
 - Owner approves on the Mac UAT copy, then `tools/hosts/pi_sts_update.sh`. No hart deploy is needed; the Pi STS updates by git pull.
 - Report: PR links, sandbox results, what is left in sts-helpers, the HART names still inside sts-docker.
+
+## Results (2026-11-18)
+
+- **Job 1, UAT check before the Pi deploy:** the Mac matched the Pi row for row (session 5), so no refresh. On UAT at sts-docker 0b644ac / sts-plugins a2884b4: Lock Backups locked `hart_session_pre5` and `hart_session_post5`; Restart offers `hart_session_pre5`; fresh switch lists and waybill 001-001 print "HART Railroad, ..." and no bare "Railroad"; the workflow's Create Backup steps keep `hart_session_pre/mid/scale/post` and a new one defaults to `hart_session_post`; staging jobs are STG-SCULLY and STG-DEMMLER and the switch-list index, wheel reports and session overview match the Pi. Owner said yes; `pi_sts_update.sh` pulled sts-docker b44f2d5 (#20, a browser-test change not in the image) and sts-plugins a2884b4; live `/health` is `live`, session 5.
+- **Step 1 (sts-helpers #9):** the guard expects `uat` by default, `STS_EXPECT_STACK` must be `live`, `uat` or `sandbox`, and `live` is reached only when named. Sweeps, `run_session_simulations.sh` and the docker-exec writers (`rewind_session.sh` except `--dry-run`, `rewind_ck1_weigh.sh`, `backfill_*`, `benchmark_home_split.sh`, `apply_shipment_tune.sh`) need the sandbox container and `/health` to say `sandbox`. 25 tests; a sandbox run of `run_catalog_workflow.sh` passed with no override; sweeps refuse the Mac UAT stack.
+- **Step 2 (sts-plugins #7, sts-helpers #10):** `hart_warm_start.php` 1998 to about 1580 lines; removed configs (`run_ck1_test`, `ck1_test`, `stop_when_locals_secured`) and secure-locals with no stop mode are now refused before any write (new test). sts-helpers lost 59 files (about 12,000 lines). Sandbox: warm start default and `--tracked` give the same summary before and after.
+- **Left over:** sts-docker still mentions the deleted CLIs (`AGENTS.md`, `sts/RUNTIME.md`, the warm-start OpenAPI text, `docs/plans/warm-start-classification.md`), keeps a now-dead `weigh_failed` check in `sts/api/tasks/warm_start.php`, and has core helpers the plugin no longer calls (`warm_start_pending_pickup_ids` and two more). `simulate_ck1_weigh.php` and `setup_ck1_weigh_test.php` (used by `rewind_ck1_weigh.sh`) require `track_scale_helpers.php` at the sts root, where it no longer is, so the CK1 weigh rewind is broken (it was before this work). `apply_warm_start.sh` prints the 8980 URL even on the sandbox. The sandbox guard does not check that `STS_API_URL` and the compose container are the same stack.

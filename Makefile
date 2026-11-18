@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help wt wt-sweep check portal-check panels desks panelpro-test docs-index publications waybills submodules tables-pull ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
+.PHONY: help wt wt-sweep check portal-check panels desks panelpro-test docs-index publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -33,6 +33,9 @@ docs-index:  ## Rebuild docs/INDEX.md
 
 tables-pull:  ## Bring a PanelPro Store from JMRI_UserFiles into the repo
 	./tools/ops/pull_tables.sh
+
+tables-pull-pi:  ## Bring a PanelPro Store made on the Pi into the repo
+	./tools/ops/pull_tables_pi.sh
 
 ops-pull:  ## Bring Pi Operations Pro session state into the repo
 	./tools/ops/pull_ops.sh
