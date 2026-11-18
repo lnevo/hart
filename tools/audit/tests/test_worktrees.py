@@ -165,6 +165,18 @@ class Detached(Repo):
             WT.ROOT, WT.merged_by_branch = saved
         self.assertTrue(any(self.det in l and "detached" in l for l in lines), lines)
 
+    def test_missing_folder_is_skipped_not_fatal(self) -> None:
+        shutil.rmtree(self.det)
+        later = datetime.now(timezone.utc) + WT.DETACHED_IDLE + timedelta(minutes=1)
+        self.assertIsNone(WT.merged_at(self.tree(), self.main, [], base="origin/main", now=later))
+
+    def test_stopped_operation_keeps_it(self) -> None:
+        gitdir = sh("git", "rev-parse", "--path-format=absolute", "--git-dir", cwd=self.det)
+        Path(gitdir, "BISECT_LOG").write_text("bisect\n")
+        later = datetime.now(timezone.utc) + WT.DETACHED_IDLE + timedelta(minutes=1)
+        self.assertIsNone(WT.merged_at(self.tree(), self.main, [], base="origin/main", now=later))
+
+
 class Sweep(Repo):
     def sweep(self, merged, budget=None, by_branch=None):
         """Sweep with GitHub replaced: `merged(tree)` answers per worktree, or `by_branch` stands in for the batch."""

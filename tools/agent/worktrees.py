@@ -23,9 +23,9 @@ branch goes with it. git refuses to remove a worktree with a submodule checked o
 sweep then forces it only when no submodule holds work that exists nowhere else (see
 submodule_risk). A fresh worktree with no PR yet, one with work after the merge, and the
 ones holding a --keep directory (the caller's) are kept. A detached worktree has no PR to
-judge it by: it is removed when its commit is already on the default branch, it is clean, and
-nothing has touched it for DETACHED_IDLE (it may be another session's fresh checkout of main
-until then). Every kept worktree except plain open work gets a "kept" line saying why. The grace
+judge it by: it is removed when its commit is already on the default branch, it is clean, no
+rebase, bisect or merge is stopped in it, and its index has not changed for DETACHED_IDLE (a
+week; reading files leaves no trace, so another session may still be using it before then). Every kept worktree except plain open work gets a "kept" line saying why. The grace
 period lets another session finish in a worktree it just merged. Remote branches are left
 alone. The same rules apply to the worktrees of each checked-out submodule (external/model-railroad-skills keeps
 its own under its .claude/worktrees/), judged by that submodule's own GitHub PRs, with three limits: only branches
@@ -55,7 +55,9 @@ CHECK_SUBMODULES = ("external/model-railroad-skills",)
 TOPIC = re.compile(r"[a-z0-9]+([-_][a-z0-9]+)*")
 GRACE = timedelta(minutes=30)
 # A detached worktree has no merge time; it counts as done once untouched this long and its commit is on main.
-DETACHED_IDLE = timedelta(hours=24)
+DETACHED_IDLE = timedelta(days=7)
+# Files in a worktree's git dir that mean an operation is stopped part way; such a worktree is never removed.
+IN_PROGRESS = ("rebase-merge", "rebase-apply", "BISECT_LOG", "MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD")
 
 
 @dataclass
@@ -128,9 +130,23 @@ def last_touched(path: str) -> datetime:
     return datetime.fromtimestamp(os.path.getmtime(target), timezone.utc)
 
 
+_ON_BASE: dict[tuple[str, str, str], bool] = {}
+
+
 def on_base(tree: Worktree, main: str, base: str | None) -> bool:
     """True when the worktree's commit is already on `base` (e.g. origin/main), so removing it loses no commit."""
-    return bool(base) and git_ok("merge-base", "--is-ancestor", tree.head, base, cwd=main)
+    if not base:
+        return False
+    key = (main, tree.head, base)
+    if key not in _ON_BASE:
+        _ON_BASE[key] = git_ok("merge-base", "--is-ancestor", tree.head, base, cwd=main)
+    return _ON_BASE[key]
+
+
+def in_progress(path: str) -> bool:
+    """True when a rebase, bisect, merge, cherry-pick, revert or am is stopped part way in this worktree."""
+    gitdir = git("rev-parse", "--path-format=absolute", "--git-dir", cwd=path)
+    return bool(gitdir) and any(os.path.exists(os.path.join(gitdir, name)) for name in IN_PROGRESS)
 
 
 def merged_at(tree: Worktree, main: str, prs: list[dict] | None = None, base: str | None = None,
@@ -139,7 +155,8 @@ def merged_at(tree: Worktree, main: str, prs: list[dict] | None = None, base: st
     is its commit or a descendant of it. A detached worktree counts as merged at its last use
     once its commit is on `base` and it has been idle DETACHED_IDLE. None otherwise."""
     if not tree.branch:
-        if not on_base(tree, main, base):
+        # A missing folder is git's to prune; a stopped operation is someone's work in progress.
+        if not os.path.isdir(tree.path) or not on_base(tree, main, base) or in_progress(tree.path):
             return None
         touched = last_touched(tree.path)
         return touched if (now or datetime.now(timezone.utc)) - touched >= DETACHED_IDLE else None
@@ -312,12 +329,19 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
         merged = lambda t: merged_at(t, main, by_branch.get(t.branch or "", []), base=base)  # noqa: E731
 
     def why_open(tree: Worktree) -> str | None:
+        if not os.path.isdir(tree.path):
+            return None
         if not tree.branch:
-            if on_base(tree, main, base):
-                return (f"detached, its commit is on {base}; removed once untouched for "
-                        f"{int(DETACHED_IDLE.total_seconds() // 3600)} hours")
-            return f"detached, with commits not on {base or 'the default branch'}"
-        if by_branch and by_branch.get(tree.branch):
+            if not on_base(tree, main, base):
+                return f"detached, with commits not on {base or 'the default branch'}"
+            if in_progress(tree.path):
+                return "detached, with a rebase, bisect or merge stopped part way"
+            return (f"detached, its commit is on {base}; removed once untouched for "
+                    f"{DETACHED_IDLE.days} days")
+        prs = by_branch.get(tree.branch, []) if by_branch is not None else (merged_prs(tree.branch, main) or [])
+        # Commits after the merge: some merged head is an ancestor of this worktree's commit. A new worktree that
+        # reuses an old topic name starts from main instead, and is plain open work.
+        if any(git_ok("merge-base", "--is-ancestor", pr["headRefOid"], tree.head, cwd=main) for pr in prs):
             return "its PR is merged, but this worktree has commits after the merged head"
         return None
 
@@ -345,7 +369,8 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
                 git("branch", "-D", tree.branch, cwd=main)
         finally:
             clock.removing += time.monotonic() - began
-        lines.append(f"removed {tree.path} ({label}, PR merged)")
+        why = "PR merged" if tree.branch else f"detached, commit on {base}, untouched {DETACHED_IDLE.days} days"
+        lines.append(f"removed {tree.path} ({label}, {why})")
     lines += [f"kept {tree.path} ({tree.branch or tree.head[:8]}): {why}" for tree, why in kept]
     return lines
 
