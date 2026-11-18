@@ -11,13 +11,22 @@ from hartlib import hosts  # noqa: E402
 from hartlib.paths import REPO_ROOT as ROOT  # noqa: E402
 
 NO_FILE: dict = {}
+DEFAULTS = hosts.read_env_file(ROOT / "tools/env/defaults.env")
+PI = DEFAULTS["HART_MQTT_BROKER"]
 
 
 class LookupTest(unittest.TestCase):
     def test_defaults_to_the_pi(self):
-        self.assertEqual(hosts.mqtt_broker({}, NO_FILE), "10.0.0.150")
-        self.assertEqual(hosts.mqtt_port({}, NO_FILE), 1883)
-        self.assertEqual(hosts.jmri_json_url({}, NO_FILE), "http://10.0.0.150:12080/json")
+        self.assertEqual(hosts.mqtt_broker({}, NO_FILE), PI)
+        self.assertEqual(hosts.mqtt_port({}, NO_FILE), int(DEFAULTS["HART_MQTT_PORT"]))
+        self.assertEqual(hosts.jmri_json_url({}, NO_FILE), DEFAULTS["HART_JMRI_JSON"])
+
+    def test_defaults_file_is_the_one_read(self):
+        self.assertEqual(hosts.DEFAULTS_FILE.resolve(), (ROOT / "tools/env/defaults.env").resolve())
+        self.assertEqual(hosts.default("HART_PI_WEB_HOST"), DEFAULTS["HART_PI_WEB_HOST"])
+        with self.assertRaises(SystemExit) as ctx:
+            hosts.default("HART_NO_SUCH_SETTING")
+        self.assertIn("defaults.env", str(ctx.exception))
 
     def test_new_name_beats_old_names(self):
         env = {"HART_MQTT_BROKER": "a.example.invalid", "MQTT_HOST": "b.example.invalid",
@@ -34,7 +43,7 @@ class LookupTest(unittest.TestCase):
             "http://j.example.invalid:12080/json")
 
     def test_blank_value_is_unset(self):
-        self.assertEqual(hosts.mqtt_broker({"HART_MQTT_BROKER": "  "}, NO_FILE), "10.0.0.150")
+        self.assertEqual(hosts.mqtt_broker({"HART_MQTT_BROKER": "  "}, NO_FILE), PI)
 
     def test_environment_beats_env_file(self):
         file_values = {"HART_MQTT_BROKER": "file.example.invalid"}
@@ -52,13 +61,19 @@ class EnvFileTest(unittest.TestCase):
         example = (ROOT / "tools/env/hart.env.example").read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "hart.env"
-            path.write_text(example.replace("10.0.0.150", "file.example.invalid", 1) + "\nexport X='q'\n",
+            path.write_text(example + "\nHART_MQTT_BROKER=file.example.invalid   # override\nexport X='q'\n",
                             encoding="utf-8")
             values = hosts.read_env_file(path)
         self.assertEqual(values["HART_MQTT_BROKER"], "file.example.invalid")
-        self.assertEqual(values["HART_MQTT_PORT"], "1883")
         self.assertEqual(values["X"], "q")
         self.assertNotIn("# HART_REPO_ROOT", values)
+        # The example sets no host value itself: defaults.env is the one copy.
+        self.assertNotIn("HART_MQTT_PORT", values)
+
+    def test_reads_the_defaults_file(self):
+        self.assertEqual(set(DEFAULTS), {
+            "HART_MQTT_BROKER", "HART_MQTT_PORT", "HART_JMRI_JSON", "HART_PI_SSH", "HART_PI_USERFILES",
+            "HART_PI_WEB_HOST", "HART_WIN_SSH", "HART_WIN_SSH_PORT", "HART_WIN_USERFILES"})
 
     def test_reads_like_source(self):
         with tempfile.TemporaryDirectory() as d:
@@ -103,11 +118,15 @@ class StandaloneTest(unittest.TestCase):
             for name in ("__init__.py", "hosts.py"):
                 shutil.copy(src / name, pkg / name)
             env = {k: v for k, v in os.environ.items() if k not in ("HART_ENV_FILE", "HART_REPO_ROOT")}
-            done = subprocess.run(
-                [sys.executable, "-c", "from hartlib import hosts; print(hosts.mqtt_broker({}, {}))"],
-                cwd=d, capture_output=True, text=True, timeout=30, env=env)
-        self.assertEqual(done.returncode, 0, done.stderr)
-        self.assertEqual(done.stdout.strip(), "10.0.0.150")
+            code = ("from hartlib import hosts\n"
+                    "print(hosts.mqtt_broker({'HART_MQTT_BROKER': 'set.example.invalid'}, {}))\n"
+                    "hosts.mqtt_broker({}, {})\n")
+            done = subprocess.run([sys.executable, "-c", code],
+                                  cwd=d, capture_output=True, text=True, timeout=30, env=env)
+        # Imports and honours a set value; with nothing set it stops and names the defaults file.
+        self.assertEqual(done.stdout.strip(), "set.example.invalid")
+        self.assertNotEqual(done.returncode, 0)
+        self.assertIn("defaults.env", done.stderr)
 
 
 if __name__ == "__main__":
