@@ -843,7 +843,9 @@ class FinalReview(unittest.TestCase):
         bands, page = B.schematic()
         _sheet, le_mod, _core = B.plugin()
         self.assertEqual(page["le_labels"], {"switch_prefix": "SW-", "switch_size": 13})
-        opts = dict(zip((B.band_key(t) for t, _b, _o in bands), le_mod.le_labels.options(bands, page)))
+        # a copy of the page, as the build passes it (dict(page, band_align=...)): a band-only key in the flat
+        # le_labels would stop there
+        opts = dict(zip((B.band_key(t) for t, _b, _o in bands), le_mod.le_labels.options(bands, dict(page))))
         for key in ("Staging", "Main", "Upper"):
             self.assertEqual((opts[key]["switch_prefix"], opts[key]["switch_size"]), ("SW-", 13), key)
         self.assertEqual((opts["Staging"]["names_last"], opts["Staging"]["block_contents_size"]), (False, 13))

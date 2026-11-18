@@ -183,6 +183,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     page = solved_page if page is None else page
     if "le_row" not in page:        # le.row falls back to the plugin's rows: HART's staging rows are a preference
         raise BuildError("the page's preferences (main_upper.preferences.json) hold no le_row")
+    if "le_labels" not in page:     # the plugin's defaults would draw every switch number unprefixed, staging's too
+        raise BuildError("the page's preferences (main_upper.preferences.json) hold no le_labels")
     try:
         fit, staging_row = le_mod.window(page), le_mod.row(page)
     except core.SchematicError as exc:
