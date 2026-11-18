@@ -22,6 +22,39 @@ class CheckShTables(unittest.TestCase):
             self.assertTrue(line.startswith("unit "), line)
         self.assertIn('env -u HART_TABLES "$@"', text)
 
+    def cache_block(self, home: Path, **env: str) -> subprocess.CompletedProcess:
+        """Run check.sh's SCHEMATIC_CACHE block with HOME=home, then print the variable as the jobs see it."""
+        text = CHECK.read_text(encoding="utf-8")
+        start = text.index("# The schematic plugin's cache")
+        block = text[start:text.index("\nfi\n", text.index('if [[ -z "${SCHEMATIC_CACHE+set}" ]]', start)) + 4]
+        base = {k: v for k, v in os.environ.items() if k != "SCHEMATIC_CACHE"}
+        return subprocess.run(["bash", "-c", block + 'echo "CACHE=${SCHEMATIC_CACHE-unset}"'],
+                              env={**base, "HOME": str(home), **env}, capture_output=True, text=True, timeout=30)
+
+    def test_check_sh_turns_on_the_builds_schematic_cache(self) -> None:
+        """The folder the builds use (publish_draft.CACHE), made private; read from the source, not imported."""
+        source = (ROOT / "tools/schematic/publish_draft.py").read_text(encoding="utf-8")
+        self.assertIn('CACHE = Path.home() / ".cache/hart/schematic"', source)
+        self.assertIn("path: ~/.cache/hart/schematic", (ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as d:
+            done = self.cache_block(Path(d))
+            folder = Path(d) / ".cache/hart/schematic"
+            self.assertIn(f"CACHE={folder}", done.stdout)
+            self.assertEqual(0o700, folder.stat().st_mode & 0o777)
+
+    def test_an_empty_or_set_schematic_cache_is_the_callers(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIn("CACHE=\n", self.cache_block(Path(d), SCHEMATIC_CACHE="").stdout)
+            self.assertIn("CACHE=/elsewhere\n", self.cache_block(Path(d), SCHEMATIC_CACHE="/elsewhere").stdout)
+            self.assertFalse((Path(d) / ".cache").exists())
+
+    def test_a_cache_folder_that_cannot_be_made_leaves_it_off(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / ".cache").write_text("a file, not a folder")
+            done = self.cache_block(Path(d))
+            self.assertIn("CACHE=unset", done.stdout)
+            self.assertIn("schematic cache off", done.stdout)
+
     def test_a_missing_hart_tables_file_stops_check_sh_at_once(self) -> None:
         env = {**os.environ, "HART_TABLES": "/nowhere/tables.xml"}
         done = subprocess.run(["bash", str(CHECK)], env=env, capture_output=True, text=True, timeout=30)
