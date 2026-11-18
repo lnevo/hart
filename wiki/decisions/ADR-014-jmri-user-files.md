@@ -14,7 +14,7 @@ The hosts had grown apart. The Pi used `~/JMRI_UserFiles`, Windows and the Mac u
 2. Deploy installs only into `JMRI_UserFiles`. The profile folder holds JMRI's own settings.
 3. Every host loads `preference:tables.xml`, including the Mac.
 4. `jmri/layouts/hart/output/tables.xml` is still the master. Table scripts edit it, git tracks it, and deploy installs it.
-5. A PanelPro Store goes to `~/JMRI_UserFiles/tables.xml`. `make tables-pull` brings it back into the repo. Deploy stops if a Store has not been pulled.
+5. A PanelPro Store goes to `~/JMRI_UserFiles/tables.xml`. `make tables-pull` brings it back into the repo. Deploy stops if a Store has not been pulled. (Amended 2026-11-18: a Store on the Pi is pulled with `make tables-pull-pi`, and a Pi deploy stops while one is waiting; the Pi deploy stamp's `tables_sha256` is the reference. A PanelPro or CATS open on the Mac no longer blocks table scripts or deploys: JMRI changes `tables.xml` only on a Store, and the Mac is expendable.)
 6. PanelPro automation (`run_panelpro_*.sh`, the Discover scripts) points Start Up at the repo file for its run, then restores the profile.
 7. CATS files live in `JMRI_UserFiles/cats`, because CATS has no JMRI home. Deploy unpacks into `/tmp` or `%TEMP%` and removes it.
 
