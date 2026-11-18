@@ -125,8 +125,8 @@ RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.x
 # cut-over build and kept as P.staging_fit) widened by main_upper.preferences.json's le_stretch (the plugin's
 # stretched and check_stretch). The geometry knobs of the Layout Editor drawing (le_shift, le_longer_straights,
 # le_crossover_angle, le_tight_crossovers, le_split_crossovers, le_mast_room, le_name_room, le_title_clear,
-# le_stretch, le_window, le_row, le_labels extra_steps and extra_follow) are layer 3 preferences the plugin reads
-# (schematic/le_prefs.py).
+# le_stretch, le_window, le_row, and staging's le_labels extra_steps, extra_follow, name_columns and lamp_columns)
+# are layer 3 preferences the plugin reads (schematic/le_prefs.py, schematic/le_labels.py).
 # The plugin's label layer (schematic/le_labels.py): switch numbers as the hand-drawn panel wrote them ("SW-13",
 # 13 px bold), block contents icons on with the plugin's reserve; given to every band through the page options, on
 # every build (the all-levels trial's smaller set, 9 px numbers and no block contents, retired with it, owner
