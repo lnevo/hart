@@ -84,4 +84,4 @@ The site is deployed with `./www/scripts/deploy_hartrailroad.sh` after the merge
 | 1 and 2 | Phase 0, Phase 1 and the deletions done (PR #483). Phases 2 and 3 deferred to the level import (owner, 2026-11-14) |
 | 3 | Deferred (owner) |
 | 4 | Parked with the USS work |
-| 5 | In progress, `site-builder`, one PR |
+| 5 | Done: byline, title and track plan at phone width (62bf8841, 2026-11-14); hub link card for speed runs (PR #671) |
