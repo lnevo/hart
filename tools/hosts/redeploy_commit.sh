@@ -143,32 +143,21 @@ if ! hosts="$(bash -c 'set -eu; source "$1/tools/env/load_env.sh"
 fi
 CHILD_ENV=(PATH="$PATH" HOME="$HOME" HART_ENV_FILE="$BASE/no-hart.env"
            HART_OVERWRITE_OPS="${HART_OVERWRITE_OPS:-0}" HART_REDEPLOY_FROM="$(git -C "$ROOT" rev-parse HEAD)")
-for n in USER LOGNAME TERM LANG LC_ALL TMPDIR SSH_AUTH_SOCK HART_OVERWRITE_PROFILE_TABLES HART_PI_RESTART MIMIC_PORT; do
+for n in USER LOGNAME TERM LANG LC_ALL TMPDIR SSH_AUTH_SOCK HART_OVERWRITE_PROFILE_TABLES HART_PI_RESTART HART_DISCARD_PI_CHANGES MIMIC_PORT; do
   [[ -z "${!n:-}" ]] || CHILD_ENV+=("$n=${!n}")
 done
 while IFS= read -r line; do
   [[ -n "$line" ]] && CHILD_ENV+=("$line")
 done <<<"$hosts"
 
-# The Pi check this checkout's deploy makes (older commits' deploys lack it): stop if the owner
-# changed Operations Pro files or stored tables.xml on the Pi since the last deploy or pull.
+# This checkout's Pi check, run before the old commit's deploy (older commits lack it): stop if the
+# owner changed Operations Pro files or stored tables.xml on the Pi since the last deploy or pull.
 to_pi=0
 for a in ${PASS[@]+"${PASS[@]}"}; do  # bash 3.2: an empty array is unbound under set -u
   if [[ "$a" == --pi || "$a" == --all ]]; then to_pi=1; fi
 done
-if [[ "$REAL" -eq 1 && "$to_pi" -eq 1 && "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]]; then
-  pi_ssh="$(sed -n 's/^HART_PI_SSH=//p' <<<"$hosts")"
-  pi_uf="$(sed -n 's/^HART_PI_USERFILES=//p' <<<"$hosts")"
-  if ! unpulled="$(ssh -o BatchMode=yes -o ConnectTimeout=15 "$pi_ssh" "bash -s -- '$pi_uf'" \
-      < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
-    echo "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 redeploys without the check." >&2
-    exit 1
-  fi
-  if [[ -n "$unpulled" ]]; then
-    echo "STOP: the Pi holds changes since the last deploy or pull ($(tr '\n' ' ' <<<"$unpulled" | sed 's/ $//'))." \
-      "Run make ops-pull or make tables-pull-pi and commit first; HART_DISCARD_PI_CHANGES=1 replaces them." >&2
-    exit 1
-  fi
+if [[ "$REAL" -eq 1 && "$to_pi" -eq 1 ]]; then
+  bash "$ROOT/$SYNC_REL" --check-pi-only || exit 1
 fi
 
 echo "Redeploy $SHORT: temporary worktree $WT (detached)"

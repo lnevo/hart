@@ -2,8 +2,10 @@
 # Runs on the Pi (sync_hart_package.sh pipes it over ssh before a Pi deploy). Names the files the
 # owner changed on the Pi since the last deploy or pull, which the deploy would replace:
 #   ops     the six Operations Pro files differ from operations/.deployed.sha256 (make ops-pull)
-#   tables  tables.xml differs from .tables_deployed.sha256, a PanelPro Store (make tables-pull-pi)
-# A missing stamp counts as nothing changed: the next deploy or pull writes it.
+#   tables  tables.xml differs from what was last deployed or pulled, a PanelPro Store (make tables-pull-pi)
+# What was last deployed is tables_sha256 in cats/deploy_stamp.txt (every deploy since 2026-11-12,
+# rollbacks too); a later make tables-pull-pi writes .tables_deployed.sha256. The newer of the two counts.
+# No reference at all counts as nothing changed.
 # Prints one word per changed set, nothing when both are clean.
 # Usage: unpulled_changes.sh USERFILES
 set -euo pipefail
@@ -19,6 +21,12 @@ if [[ -f "$ops/.deployed.sha256" ]]; then
   have="$(for f in "${FILES[@]}"; do cat "$ops/$f" 2>/dev/null || true; done | sha)"
   [[ "$have" == "$(cat "$ops/.deployed.sha256")" ]] || echo ops
 fi
-if [[ -f "$uf/.tables_deployed.sha256" && -f "$uf/tables.xml" ]]; then
-  [[ "$(sha <"$uf/tables.xml")" == "$(cat "$uf/.tables_deployed.sha256")" ]] || echo tables
+stamp="$uf/cats/deploy_stamp.txt" pulled="$uf/.tables_deployed.sha256" want=""
+if [[ -f "$pulled" && ( ! -f "$stamp" || "$pulled" -nt "$stamp" ) ]]; then
+  want="$(cat "$pulled")"
+elif [[ -f "$stamp" ]]; then
+  want="$(sed -n 's/^tables_sha256=//p' "$stamp")"
+fi
+if [[ -n "$want" && "$want" != none && -f "$uf/tables.xml" ]]; then
+  [[ "$(sha <"$uf/tables.xml")" == "$want" ]] || echo tables
 fi

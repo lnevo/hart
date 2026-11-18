@@ -7,10 +7,12 @@ real while nothing reaches a host: a stop must come before any rsync, scp or Mac
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -41,7 +43,8 @@ class Fixture(unittest.TestCase):
             (ops / name).write_text(f"deployed {name}")
         (ops / ".deployed.sha256").write_text(sha(b"".join((ops / n).read_bytes() for n in FILES)) + "\n")
         (self.uf / "tables.xml").write_text("<layout-config/>")
-        (self.uf / ".tables_deployed.sha256").write_text(sha(b"<layout-config/>") + "\n")
+        (self.uf / "cats").mkdir()
+        (self.uf / "cats/deploy_stamp.txt").write_text(f"commit=abc\ntables_sha256={sha(b'<layout-config/>')}\n")
 
     def check(self) -> list[str]:
         done = subprocess.run(["bash", str(CHECK), str(self.uf)], capture_output=True, text=True, check=True)
@@ -68,13 +71,24 @@ class CheckTest(Fixture):
         self.session()
         self.store()
         (self.uf / "operations/.deployed.sha256").unlink()
-        (self.uf / ".tables_deployed.sha256").unlink()
+        (self.uf / "cats/deploy_stamp.txt").unlink()
         self.assertEqual([], self.check())
 
-    def test_pi_apply_writes_the_tables_stamp(self) -> None:
+    def test_a_pull_newer_than_the_deploy_counts(self) -> None:
+        self.store()
+        pulled = self.uf / ".tables_deployed.sha256"
+        pulled.write_text(sha((self.uf / "tables.xml").read_bytes()) + "\n")
+        stamp = self.uf / "cats/deploy_stamp.txt"
+        os.utime(stamp, (time.time() - 60, time.time() - 60))
+        self.assertEqual([], self.check())
+        # A later deploy, a rollback too, names its own tables: the older pull no longer counts.
+        os.utime(pulled, (time.time() - 120, time.time() - 120))
+        self.assertEqual(["tables"], self.check())
+
+    def test_pi_apply_drops_the_pull_stamp(self) -> None:
         src = APPLY.read_text(encoding="utf-8")
         mv = src.index('mv -f "$HART/tables.xml" "$UF/tables.xml"')
-        self.assertIn('>"$UF/.tables_deployed.sha256"', src[mv:mv + 300])
+        self.assertIn('rm -f "$UF/.tables_deployed.sha256"', src[mv:mv + 300])
 
 
 class DeployStopsTest(Fixture):
@@ -105,7 +119,10 @@ class DeployStopsTest(Fixture):
         done = self.deploy()
         self.assertEqual(1, done.returncode, done.stderr)
         self.assertIn("make ops-pull", done.stderr)
-        self.assertEqual(1, len(self.calls()), self.calls())  # only the check itself
+        # Only the check, then the PanelPro restart check (a PanelPro quit for this deploy comes back).
+        self.assertEqual(2, len(self.calls()), self.calls())
+        self.assertTrue(self.calls()[0].endswith(f"bash -s -- '{self.uf}'"), self.calls())
+        self.assertTrue(self.calls()[1].endswith(" bash -s"), self.calls())
 
     def test_store_stops_the_deploy(self) -> None:
         self.store()
@@ -124,13 +141,24 @@ class DeployStopsTest(Fixture):
         self.session()
         self.deploy("--stage-only", str(self.tmp / "s"))
         self.assertEqual([], self.calls())
+        done = self.deploy("--dry-run")
+        self.assertNotIn("STOP: the Pi", done.stderr)
+        self.assertFalse(any("bash -s -- " in c for c in self.calls()), self.calls())
+
+    def test_check_only_stops_on_changes_and_passes_clean(self) -> None:
+        done = self.deploy("--check-pi-only")
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("nothing unpulled", done.stdout)
+        self.session()
+        self.assertEqual(1, self.deploy("--check-pi-only").returncode)
 
     def test_redeploy_stops_too(self) -> None:
         self.store()
         done = subprocess.run(["bash", str(REDEPLOY), "HEAD", "--allow-unmerged", "--pi"], cwd=ROOT,
                               env=self.env, capture_output=True, text=True, timeout=600)
         self.assertEqual(1, done.returncode, done.stderr)
-        self.assertIn("STOP: the Pi holds changes since the last deploy or pull (tables)", done.stderr)
+        self.assertIn("make tables-pull-pi", done.stderr)
+        self.assertNotIn("temporary worktree", done.stdout)
 
 
 if __name__ == "__main__":

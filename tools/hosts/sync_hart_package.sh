@@ -46,6 +46,7 @@ DO_PI=0
 DO_WIN=0
 DO_MAC_WEB=1
 STAGE_ONLY=""
+CHECK_PI_ONLY=0
 if [[ $# -gt 0 ]]; then
   DO_MAC_WEB=0
   while [[ $# -gt 0 ]]; do
@@ -54,6 +55,7 @@ if [[ $# -gt 0 ]]; then
       --win) DO_WIN=1; DO_MAC_WEB=1 ;;
       --all) DO_PI=1; DO_WIN=1; DO_MAC_WEB=1 ;;
       --mac-web-only) DO_MAC_WEB=1 ;;
+      --check-pi-only) CHECK_PI_ONLY=1; DO_PI=1 ;;  # the Pi check alone (redeploy_commit.sh runs it)
       --dry-run) DRY_RUN=1 ;;
       --stage-only)
         [[ $# -ge 2 && -n "$2" ]] || { echo "--stage-only needs a folder" >&2; exit 1; }
@@ -62,7 +64,9 @@ if [[ $# -gt 0 ]]; then
         STAGE_ONLY="${1#*=}"
         [[ -n "$STAGE_ONLY" ]] || { echo "--stage-only needs a folder" >&2; exit 1; } ;;
       -h|--help)
-        echo "Usage: $0 [--pi] [--win] [--all] [--dry-run] [--stage-only DIR]"
+        echo "Usage: $0 [--pi] [--win] [--all] [--dry-run] [--stage-only DIR] [--check-pi-only]"
+        echo "  A real Pi deploy stops first if the Pi's Operations Pro files or tables.xml changed since the"
+        echo "  last deploy or pull (make ops-pull, make tables-pull-pi); HART_DISCARD_PI_CHANGES=1 replaces them."
         echo "  Windows SSH: ${WIN_HOST} -p ${WIN_PORT} → %TEMP% drop + JMRI_UserFiles"
         echo "  Pi SSH:      ${PI_HOST} → /tmp drop + JMRI_UserFiles"
         echo "  Transfer:    rsync (Pi) / tar+scp (Windows). Not git pull."
@@ -149,6 +153,51 @@ scp_win() {
   echo "scp over SFTP to Windows failed; retrying with the legacy protocol (-O). Check Subsystem sftp in sshd_config." >&2
   scp -O "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@"
 }
+
+# PanelPro quit for this deploy (pi_quit_panelpro.sh --for-deploy leaves a marker) comes
+# back up, also when the Pi step fails. panelpro_restart_due.sh drops a stale marker and
+# never starts PanelPro next to CATS. One closed by hand stays closed. HART_PI_RESTART=0
+# skips it.
+pi_restart_if_due() {
+  [[ "$DRY_RUN" -eq 0 && "${HART_PI_RESTART:-1}" != "0" ]] || return 0
+  local due
+  due="$(ssh_pi "bash -s" < "$ROOT/tools/hosts/pi/panelpro_restart_due.sh")" || due="unknown"
+  case "$due" in
+    yes)
+      echo "Starting PanelPro on the Pi again (it was quit for this deploy)..."
+      bash "$ROOT/tools/hosts/pi_start_panelpro.sh" \
+        || echo "PanelPro did not start on the Pi; run tools/hosts/pi_start_panelpro.sh" >&2 ;;
+    running) echo "Note: JMRI was running on the Pi during the deploy; restart it to load the new files." >&2 ;;
+    stale) echo "The PanelPro quit-for-deploy marker on the Pi was over 2 h old; leaving PanelPro closed." ;;
+    no) ;;
+    *) echo "Could not check whether to start PanelPro on the Pi; run tools/hosts/pi_start_panelpro.sh if it should be up." >&2 ;;
+  esac
+}
+
+# What the owner changed on the Pi since the last deploy or pull would be replaced: Operations
+# Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Stop before
+# the gates rewrite anything or a byte is sent, and bring back a PanelPro quit for this deploy.
+# HART_DISCARD_PI_CHANGES=1 replaces them anyway (the owner's call).
+pi_stop() {
+  echo "$1" >&2
+  pi_restart_if_due
+  exit 1
+}
+if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 && "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]]; then
+  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES'" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
+    pi_stop "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check."
+  fi
+  if [[ -n "$unpulled" ]]; then
+    msg=""
+    grep -qx ops <<<"$unpulled" && msg+="STOP: the Pi's Operations Pro files changed since the last deploy or pull. Run make ops-pull and commit first."$'\n'
+    grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi and commit first."$'\n'
+    pi_stop "${msg}HART_DISCARD_PI_CHANGES=1 replaces them anyway."
+  fi
+fi
+if [[ "$CHECK_PI_ONLY" -eq 1 ]]; then
+  echo "Pi check: nothing unpulled."
+  exit 0
+fi
 
 TABLES=""
 POLISH="$ROOT/jmri/layouts/hart/scripts/polish_hart_layout_editor.py"
@@ -497,22 +546,6 @@ if [[ -n "$STAGE_ONLY" ]]; then
   exit 0
 fi
 
-# What the owner changed on the Pi since the last deploy or pull would be replaced: Operations
-# Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Stop before
-# anything is installed. HART_DISCARD_PI_CHANGES=1 replaces them anyway (the owner's call).
-if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 && "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]]; then
-  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES'" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
-    echo "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check." >&2
-    exit 1
-  fi
-  if [[ -n "$unpulled" ]]; then
-    grep -qx ops <<<"$unpulled" && echo "STOP: the Pi's Operations Pro files changed since the last deploy or pull. Run make ops-pull and commit first." >&2
-    grep -qx tables <<<"$unpulled" && echo "STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi and commit first." >&2
-    echo "HART_DISCARD_PI_CHANGES=1 replaces them anyway." >&2
-    exit 1
-  fi
-fi
-
 if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   # Mac JMRI is for development: the STS and mimic links follow the page's host to the Mac's own
   # STS and mimic server (PORT as in tools/mqtt-mimic/install_mimic_launchagent.sh). The
@@ -526,26 +559,6 @@ if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   write_deploy_stamp "${HOME}/JMRI_UserFiles/cats/deploy_stamp.txt" mac
   echo "deploy stamp -> ${HOME}/JMRI_UserFiles/cats/deploy_stamp.txt"
 fi
-
-# PanelPro quit for this deploy (pi_quit_panelpro.sh --for-deploy leaves a marker) comes
-# back up, also when the Pi step fails. panelpro_restart_due.sh drops a stale marker and
-# never starts PanelPro next to CATS. One closed by hand stays closed. HART_PI_RESTART=0
-# skips it.
-pi_restart_if_due() {
-  [[ "$DRY_RUN" -eq 0 && "${HART_PI_RESTART:-1}" != "0" ]] || return 0
-  local due
-  due="$(ssh_pi "bash -s" < "$ROOT/tools/hosts/pi/panelpro_restart_due.sh")" || due="unknown"
-  case "$due" in
-    yes)
-      echo "Starting PanelPro on the Pi again (it was quit for this deploy)..."
-      bash "$ROOT/tools/hosts/pi_start_panelpro.sh" \
-        || echo "PanelPro did not start on the Pi; run tools/hosts/pi_start_panelpro.sh" >&2 ;;
-    running) echo "Note: JMRI was running on the Pi during the deploy; restart it to load the new files." >&2 ;;
-    stale) echo "The PanelPro quit-for-deploy marker on the Pi was over 2 h old; leaving PanelPro closed." ;;
-    no) ;;
-    *) echo "Could not check whether to start PanelPro on the Pi; run tools/hosts/pi_start_panelpro.sh if it should be up." >&2 ;;
-  esac
-}
 
 if [[ "$DO_PI" -eq 1 ]]; then
   echo "Deploy → Pi ($PI_HOST) via rsync..."
