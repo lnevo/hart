@@ -141,15 +141,20 @@ if [[ -n "${CI:-}" ]] || "$HOPS_PY" -c "import numpy, scipy, docx, pytesseract" 
 else
   later "unit-hart-ops skipped (no ops/hart-ops/.venv)" true
 fi
-# The portal build needs the gitignored photo mirrors (media/), which CI does not have. It runs only when
-# this checkout changes a site input (tools/audit/portal_inputs.py); PORTAL_CHECK=1 runs it anyway. The website
-# deploy always runs it, with its count comparison.
+# The portal build needs the gitignored photo mirrors (media/), which CI does not have. It is skipped only when
+# tools/audit/portal_inputs.py exits 3 (this checkout changes no site input); a crash there runs it, and
+# PORTAL_CHECK=1 runs it anyway. The website deploy always runs it, with its count comparison.
+portal_why=""
+if [[ -z "${CI:-}" && "${PORTAL_CHECK:-}" != 1 ]]; then
+  portal_why="$(python3 tools/audit/portal_inputs.py)"
+  portal_rc=$?
+fi
 if [[ -n "${CI:-}" ]]; then
   later "portal skipped in CI" true
-elif [[ "${PORTAL_CHECK:-}" == 1 ]] || python3 tools/audit/portal_inputs.py; then
-  later portal python3 www/scripts/check_portal_build.py
+elif [[ "${PORTAL_CHECK:-}" != 1 && "$portal_rc" -eq 3 ]]; then
+  later "portal skipped: $portal_why (PORTAL_CHECK=1 runs it)" true
 else
-  later "portal skipped (no site inputs changed; PORTAL_CHECK=1 runs it)" true
+  later portal python3 www/scripts/check_portal_build.py
 fi
 collect
 if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi

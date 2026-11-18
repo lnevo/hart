@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import re
 import subprocess
 import sys
 import tempfile
@@ -29,9 +30,17 @@ class SiteInputs(unittest.TestCase):
             folder = prefix.removeprefix("../")
             self.assertTrue(folder.startswith(portal_inputs.SITE_PREFIXES), folder)
 
-    def test_the_card_pipeline_import_is_a_site_input(self) -> None:
-        self.assertIn('"ops/hart-ops/card_pipeline"', PREPARE.read_text(encoding="utf-8"))
-        self.assertTrue("ops/hart-ops/card_pipeline/private_name.py".startswith(portal_inputs.SITE_PREFIXES))
+    def test_every_folder_the_site_scripts_import_from_is_a_site_input(self) -> None:
+        # The build imports www/scripts modules, and they add repo folders to sys.path by literal path.
+        found = set()
+        for script in sorted((ROOT / "www/scripts").glob("*.py")):
+            for line in script.read_text(encoding="utf-8").splitlines():
+                if "sys.path" in line:
+                    found |= set(re.findall(r'"([a-z][\w.-]*/[\w./-]+)"', line))
+        self.assertIn("ops/hart-ops/card_pipeline", found)
+        self.assertIn("tools/hartlib/src", found)
+        for folder in sorted(found):
+            self.assertTrue(f"{folder}/".startswith(portal_inputs.SITE_PREFIXES), folder)
 
     def test_manifest_sources_count_wherever_they_live(self) -> None:
         sources = portal_inputs.manifest_sources(ROOT)
@@ -49,24 +58,47 @@ class ChangedFiles(unittest.TestCase):
     def git(self, repo: Path, *args: str) -> None:
         subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
 
+    def init(self, repo: Path) -> None:
+        self.git(repo, "init", "-q", "-b", "main")
+        self.git(repo, "config", "user.email", "test@example.invalid")
+        self.git(repo, "config", "user.name", "test")
+
+    def commit(self, repo: Path, message: str) -> None:
+        self.git(repo, "add", ".")
+        self.git(repo, "commit", "-qm", message)
+
     def test_committed_unstaged_and_untracked_changes_all_count(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             repo = Path(d)
-            self.git(repo, "init", "-q", "-b", "main")
-            self.git(repo, "config", "user.email", "test@example.invalid")
-            self.git(repo, "config", "user.name", "test")
+            self.init(repo)
             (repo / "a.txt").write_text("a")
             (repo / "b.txt").write_text("b")
-            self.git(repo, "add", ".")
-            self.git(repo, "commit", "-qm", "base")
+            self.commit(repo, "base")
             self.git(repo, "branch", "base")
             (repo / "www").mkdir()
             (repo / "www/page.html").write_text("x")
-            self.git(repo, "add", ".")
-            self.git(repo, "commit", "-qm", "site")
+            self.commit(repo, "site")
             (repo / "a.txt").write_text("changed")
             (repo / "new.txt").write_text("new")
             self.assertEqual(["a.txt", "new.txt", "www/page.html"], portal_inputs.changed_files(repo, "base"))
+
+    def test_a_rename_counts_under_both_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d)
+            self.init(repo)
+            (repo / "www").mkdir()
+            (repo / "www/data.json").write_text("{\"a\": 1}\n" * 20)
+            self.commit(repo, "base")
+            self.git(repo, "branch", "base")
+            (repo / "tools").mkdir()
+            self.git(repo, "mv", "www/data.json", "tools/data.json")
+            self.commit(repo, "move")
+            self.assertEqual(["tools/data.json", "www/data.json"], portal_inputs.changed_files(repo, "base"))
+
+    def test_a_crash_runs_the_check_and_only_no_change_skips_it(self) -> None:
+        text = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
+        self.assertIn('"$portal_rc" -eq 3', text)
+        self.assertEqual(3, portal_inputs.NO_CHANGE)
 
     def test_no_merge_base_means_unknown(self) -> None:
         with tempfile.TemporaryDirectory() as d:

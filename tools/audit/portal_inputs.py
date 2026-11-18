@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
-"""Exit 0 when this checkout changes something the public site build reads, 1 when it does not.
+"""Exit 0 when this checkout changes something the public site build reads, 3 when it does not.
 
     python3 tools/audit/portal_inputs.py            # compares with origin/main
     python3 tools/audit/portal_inputs.py --list     # also prints the changed site inputs
 
-tools/check.sh runs the portal build check (www/scripts/check_portal_build.py) only when this
-exits 0, so a tables-only or CATS-only change does not rebuild the whole site. The deploy
-(www/scripts/deploy_hartrailroad.sh) always runs the portal check, with its count comparison.
+tools/check.sh skips the portal build check (www/scripts/check_portal_build.py) only when this
+exits 3; any other exit (a crash included) runs it. A tables-only or CATS-only change then does not
+rebuild the whole site. The deploy (www/scripts/deploy_hartrailroad.sh) always runs the portal
+check, with its count comparison.
 
-Changed means: committed since the merge base with origin/main, staged, unstaged or untracked.
+Changed means: committed since the merge base with origin/main, staged, unstaged or untracked,
+with renames listed under both paths. A submodule checked out at another commit than the one
+recorded is not a change; a commit that moves a submodule is.
 The site inputs are SITE_PREFIXES (www/, the folders prepare_github_pages.py copies from through
-MIRROR_PREFIXES, and ops/ for its card_pipeline import) plus every source named in
-www/scripts/published-files.json. The tables page the build writes reads tables.xml through
-build_tables_browser, which check.sh already checks on its own (tables-browser).
+MIRROR_PREFIXES, and the folders the www/scripts modules import from: ops/hart-ops/card_pipeline,
+tools/hartlib/src) plus every source named in www/scripts/published-files.json. The tables page
+the build writes reads tables.xml, which check.sh checks on its own (tables-browser), so a
+tables-only change does not rebuild the site.
 
 When no merge base can be found (no origin/main, a shallow clone) this exits 0: run the check.
 """
@@ -26,7 +30,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = Path("www/scripts/published-files.json")
-SITE_PREFIXES = ("www/", "ops/", "docs/", "external/", "media/")
+SITE_PREFIXES = ("www/", "ops/", "docs/", "external/", "media/", "tools/hartlib/src/")
+NO_CHANGE = 3
 
 
 def _git(root: Path, *args: str) -> list[str] | None:
@@ -41,8 +46,8 @@ def changed_files(root: Path, base: str = "origin/main") -> list[str] | None:
     merge_base = _git(root, "merge-base", base, "HEAD")
     if not merge_base:
         return None
-    committed = _git(root, "diff", "--name-only", merge_base[0], "HEAD")
-    working = _git(root, "diff", "--name-only", "HEAD")
+    committed = _git(root, "diff", "--name-only", "--no-renames", merge_base[0], "HEAD")
+    working = _git(root, "diff", "--name-only", "--no-renames", "--ignore-submodules=all", "HEAD")
     untracked = _git(root, "ls-files", "--others", "--exclude-standard")
     if committed is None or working is None or untracked is None:
         return None
@@ -71,8 +76,10 @@ def main() -> int:
         return 0
     hits = site_inputs(paths, manifest_sources(ROOT))
     if args.list:
-        print("\n".join(hits) if hits else "no site inputs changed")
-    return 0 if hits else 1
+        print("\n".join(hits))
+    if not hits:
+        print(f"{len(paths)} changed files against {args.base}, none a site input")
+    return 0 if hits else NO_CHANGE
 
 
 if __name__ == "__main__":
