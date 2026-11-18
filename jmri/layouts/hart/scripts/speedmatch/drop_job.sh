@@ -10,6 +10,10 @@
 # it ends. --force overrides that check: use it only after the log shows END (a JMRI crash
 # can leave the file behind). A kill flag (/tmp/speedrun.kill) is never removed here: the
 # operator removes it (ssh pi rm /tmp/speedrun.kill) once the runner has ended.
+#
+# Sending a job sets the operating flag (tools/hosts/operating.sh on --by speedmatch) before the
+# job starts, so no agent deploys, pulls the tables or quits PanelPro while trains move. Clear it
+# once the run is over (the log shows END, or after --kill): tools/hosts/operating.sh off.
 set -euo pipefail
 # Hosts: environment, hart.env, default. Sourced first, so hart.env cannot move ROOT. If the repo or
 # load_env.sh is not found, warn and use "pi": --kill and usage must still work.
@@ -22,7 +26,7 @@ fi
 PI_HOST="${HART_PI_SSH:-pi}"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 ssh_pi() { ssh "${SSH_OPTS[@]}" "$PI_HOST" "$@"; }
-usage() { sed -n '2,13p' "$0"; }
+usage() { sed -n '2,16p' "$0"; }
 
 case "${1:-}" in
   --kill) ssh_pi 'touch /tmp/speedrun.kill'; echo "kill flag set; the runner stops its loco at speed 0 and ends. Remove the flag afterwards: ssh $PI_HOST rm /tmp/speedrun.kill"; exit 0 ;;
@@ -45,6 +49,12 @@ if grep -q speedrun.active "$JOB"; then
     echo "a runner is still active on $PI_HOST ($(ssh_pi 'cat /tmp/speedrun.active')). Wait for END in its log, or --force after it shows END." >&2; exit 1
   fi
   [[ "$FORCE" == "--force" ]] && ssh_pi 'rm -f /tmp/speedrun.active'
+fi
+# the layout is in use from here: no deploy, tables pull or PanelPro quit until the run is over
+if [[ -n "$ROOT" && -x "$ROOT/tools/hosts/operating.sh" ]]; then
+  "$ROOT/tools/hosts/operating.sh" on --by speedmatch "speed matching job $(basename "$JOB")"
+else
+  echo "drop_job.sh: tools/hosts/operating.sh not found; the operating flag is NOT set" >&2
 fi
 ssh_pi 'rm -f /tmp/jmri_cmd.out'
 # copy to a temp name, then rename, so the watcher never runs a half-copied file

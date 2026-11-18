@@ -391,6 +391,48 @@ class JmriOpenAndPrivateName(unittest.TestCase):
         with mock_env(HART_GUARD_JMRI_RUNNING="0"):
             self.assertFalse(guard.jmri_running())
 
+    def op_code(self, command: str, flag: str | None) -> int:
+        """The guard's exit code with JMRI closed and the operating flag file holding `flag` (None: no file)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "operating")
+            if flag is not None:
+                Path(path).write_text(flag, encoding="utf-8")
+            guard = self.guard(False)
+            guard.OPERATING_FLAG = path
+            saved = sys.stdin
+            sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
+            try:
+                with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING=""), \
+                        contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    return guard.main()
+            finally:
+                sys.stdin = saved
+
+    def test_operating_flag_blocks_deploys_writers_and_panelpro_control(self) -> None:
+        flag = "by=owner\nsince=2026-11-18T15:00:00-0500\nreason=ops session\n"
+        blocked = ("make tables-pull", "./tools/hosts/sync_hart_package.sh --pi --win", "make deploy-layout",
+                   "make panelpro-test", "osascript -e 'tell application \"PanelPro\" to quit'",
+                   "open -a /Applications/JMRI/PanelPro.app", "tools/hosts/pi_quit_panelpro.sh --for-deploy",
+                   "tools/hosts/pi_start_panelpro.sh", "jmri/layouts/hart/scripts/run_sml_discover.sh",
+                   "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh", "pkill -f java", "killall PanelPro")
+        for cmd in blocked:
+            self.assertEqual(self.op_code(cmd, flag), 2, cmd)
+            self.assertEqual(self.op_code(cmd, None), 0, cmd)          # JMRI closed and no flag: allowed
+        for cmd in ("make deploy-site", "./tools/check.sh", "make panels CHECK=1", "tools/hosts/operating.sh off",
+                    "tools/hosts/operating.sh status", "cat jmri/layouts/hart/scripts/run_sml_discover.sh",
+                    "git status", "jmri/layouts/hart/scripts/speedmatch/drop_job.sh job.py"):
+            self.assertEqual(self.op_code(cmd, flag), 0, cmd)
+
+    def test_operating_flag_can_be_forced(self) -> None:
+        guard = load(MAIN_GUARD, "hart_main_guard_operating_force")
+        guard.OPERATING_FLAG = "/nonexistent/flag"
+        with mock_env(HART_GUARD_OPERATING="1"):
+            self.assertIsNotNone(guard.operating())
+        with mock_env(HART_GUARD_OPERATING="0"):
+            self.assertIsNone(guard.operating())
+        with mock_env(HART_GUARD_OPERATING=""):
+            self.assertIsNone(guard.operating())
+
     def test_private_name_blocked_in_publishing_text(self) -> None:
         m = self.MARK
         for cmd in (f'git commit -m "fix {m} text"', f"git -C . commit --message='{m}'",

@@ -17,6 +17,11 @@ release whose text or body file holds the railroad's private name (checked by fi
 never spelled out); if that check cannot load, publishing is blocked.
 HART_GUARD_JMRI_RUNNING=1 or 0 overrides the process check, for tests.
 
+While the operating flag is set (tools/hosts/operating.sh: the owner is running trains, or a
+speed-matching run is on the layout) it also blocks those table and deploy commands, and every
+command that quits, starts or test-loads PanelPro on the Mac or the Pi (panelpro_control), whether
+JMRI is open here or not. HART_GUARD_OPERATING=1 or 0 overrides the flag file, for tests.
+
 In the main checkout of a repo that uses agent worktrees (it holds tools/agent/worktrees.py)
 it blocks any commit and any switch to a branch other than main: agents work in their own
 worktree under .claude/worktrees/, so no session switches the branch under another.
@@ -44,6 +49,11 @@ PUBLISHING = re.compile(
     r"^\s*(gh\s+(pr|issue)\s+(create|edit|comment|review)|gh\s+release\s+(create|edit)"
     r"|git\s+(-\S+\s+)*(commit|tag)|git\s+(-\S+\s+)*notes\s+(add|append|edit))\b")
 FILE_FLAGS = ("-F", "--file", "--body-file", "--notes-file")
+# The operating flag file (tools/hosts/operating.sh), and what it rules out besides the table writers: quitting,
+# starting or test-loading PanelPro here or on the Pi, and the PanelPro runs that launch it (discovery, smoke test).
+OPERATING_FLAG = os.environ.get("HART_OPERATING_FLAG") or os.path.expanduser("~/.hart_operating")
+PANELPRO_SCRIPTS = re.compile(r"pi_(quit|start)_panelpro\.sh|run_panelpro_\w+\.sh|run_(sml|nx)_discover\.sh")
+PANELPRO_WORD = re.compile(r"PanelPro|JMRI|\bjava\b", re.I)
 NAME_CHECK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "..", "..", "ops", "hart-ops", "card_pipeline", "private_name.py")
 
@@ -121,6 +131,41 @@ def jmri_running():
     except (OSError, subprocess.SubprocessError):
         return False
     return done.returncode == 0
+
+
+def operating():
+    """The operating flag's fields ({by, since, reason}) when it is set, else None."""
+    forced = os.environ.get("HART_GUARD_OPERATING")
+    if forced in ("0", "1"):
+        return {"by": "test", "since": "", "reason": ""} if forced == "1" else None
+    try:
+        with open(OPERATING_FLAG, encoding="utf-8") as f:
+            text = f.read()
+    except FileNotFoundError:
+        return None
+    except OSError:
+        return {"by": "?", "since": "", "reason": "the flag file cannot be read"}
+    return dict(line.split("=", 1) for line in text.splitlines() if "=" in line)
+
+
+def panelpro_control(part):
+    """True when this command part quits, starts or test-loads PanelPro: one of PANELPRO_SCRIPTS run as the
+    program, make panelpro-test, or osascript, open, pkill or killall aimed at PanelPro, JMRI or java."""
+    try:
+        words = shlex.split(part)
+    except ValueError:
+        words = part.split()
+    words, _inline = program(words)
+    if not words:
+        return False
+    head = os.path.basename(words[0])
+    if PANELPRO_SCRIPTS.fullmatch(head):
+        return True
+    if head == "make":
+        return "panelpro-test" in words[1:]
+    if head in ("osascript", "open", "pkill", "killall"):
+        return bool(PANELPRO_WORD.search(" ".join(words[1:])))
+    return False
 
 
 def contains_private_name(text):
@@ -365,6 +410,15 @@ def main():
             print(f"Blocked: {found}. The repo is public; see AGENTS.md. Reword it.", file=sys.stderr)
             return 2
         writer = table_writer(part, cwd)
+        if writer or panelpro_control(part):
+            flag = operating()
+            if flag is not None:
+                what = writer or "this quits, starts or test-loads PanelPro, which"
+                print(f"Blocked: {what} must wait: the operating flag is set (by {flag.get('by', '?')}"
+                      f"{', since ' + flag['since'] if flag.get('since') else ''}"
+                      f"{': ' + flag['reason'] if flag.get('reason') else ''}). The layout is in use; ask the "
+                      "owner, or wait for the run to end (tools/hosts/operating.sh status).", file=sys.stderr)
+                return 2
         if writer and jmri_running():
             print(f"Blocked: {writer} writes the JMRI tables or deploys, and PanelPro or CATS is open. "
                   "Quit it first (AGENTS.md).", file=sys.stderr)
