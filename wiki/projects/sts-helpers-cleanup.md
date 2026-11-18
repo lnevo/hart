@@ -1,6 +1,7 @@
 # STS helpers cleanup
 
 - **Owner:** lnevo
+- **Hand-off:** [`sts-handoff-2026-11-18.md`](sts-handoff-2026-11-18.md) (Pi deploy of the HART-names change, then this plan).
 - **Status:** Planned 2026-11-18. Review done (read-only). Owner decided: remove the `--ck1-test` warm-start path. Next: run the steps below in a fresh session.
 - **Repos:** `external/sts-helpers` (lnevo/sts-docker-helpers, `main`), `external/sts-plugins` (lnevo/sts-plugins, `main`), `external/sts-docker` (lnevo/sts-docker, working line `active`). Each step is a PR in the submodule repo, then one hart PR moves the submodule pointers.
 
