@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import contextlib
-import dataclasses
 import datetime
 import importlib.util
 import io
@@ -179,22 +178,23 @@ class SignalsCheck(unittest.TestCase):
         self.assertEqual(self.without_plugin(), 1)
 
     def run_with(self, committed, masts=None):
-        """main(["--check"]) against `committed` as the signals file, from masts.csv (or `masts` rows)."""
+        """main(["--check"]) against `committed` as the signals file, from the staging device map's masts (or `masts`
+        rows, in staging_device_map.load_signal_masts' shape, with the device map's tracks)."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             (tmp / "staging.signals.json").write_text(committed)
-            real_data, real_load = self.bs.pd.DATA, self.bs.le_inputs.load
+            real_data, real_facts = self.bs.pd.DATA, self.bs.staging_facts
             for f in ("staging.plan_overrides.json",):
                 (tmp / f).write_text((real_data / f).read_text())
-            self.bs.pd.DATA = tmp
             if masts is not None:
-                frozen = dataclasses.replace(real_load(), masts=masts)
-                self.bs.le_inputs.load = lambda: frozen
+                chains = real_facts()[1]
+                self.bs.staging_facts = lambda: (masts, chains)
+            self.bs.pd.DATA = tmp
             try:
                 with contextlib.redirect_stdout(io.StringIO()):
                     return self.bs.main(["--check"])
             finally:
-                self.bs.pd.DATA, self.bs.le_inputs.load = real_data, real_load
+                self.bs.pd.DATA, self.bs.staging_facts = real_data, real_facts
 
     def test_current_passes(self) -> None:
         committed = (self.bs.pd.DATA / "staging.signals.json").read_text()
@@ -203,15 +203,23 @@ class SignalsCheck(unittest.TestCase):
     def test_stale_fails(self) -> None:
         self.assertEqual(self.run_with('{"signals": [], "unplaced": []}\n'), 1)   # layers.load reads it too
 
-    def test_written_from_the_frozen_masts(self) -> None:
-        masts = self.bs.le_inputs.load_masts()
+    def test_a_solve_that_cannot_read_its_own_output_stops_clearly(self) -> None:
+        # the staging band is solved, and the solve reads staging.signals.json, which build_signals writes
+        with mock.patch.object(self.bs.sdm, "staging_band", side_effect=ValueError("Expecting value: line 1")):
+            with self.assertRaises(SystemExit) as e:
+                self.bs.staging_facts()
+        self.assertIn("staging.signals.json, which this script writes", str(e.exception.code))
+        self.assertIn("git checkout --", str(e.exception.code))
+
+    def test_written_from_the_staging_masts(self) -> None:
+        masts = self.bs.sdm.load_signal_masts()
         self.assertEqual(len(masts), 49)
         got = json.loads((self.bs.pd.DATA / "staging.signals.json").read_text())
-        self.assertEqual(got["signals"], self.bs.le_inputs.signal_rows(masts))
-        self.assertEqual((got["source"], got["unplaced"]), (self.bs.le_inputs.SIGNALS_SOURCE, []))
+        self.assertEqual(got["signals"], self.bs.sdm.signal_rows(masts))
+        self.assertEqual((got["source"], got["unplaced"]), (self.bs.sdm.SIGNALS_SOURCE, []))
 
     def test_a_run_not_in_the_plan_fails(self) -> None:
-        masts = self.bs.le_inputs.load().masts
+        masts = self.bs.sdm.load_signal_masts()
         first = next(i for i, m in enumerate(masts) if m["signal"] == "2L")       # a turnout mast, switch 1 to 23
         anchor = next(i for i, m in enumerate(masts) if m["signal"] == "16L")     # an anchor 40 cm in
         self.assertEqual((masts[first]["kind"], masts[anchor]["kind"]), ("turnout", "anchor"))

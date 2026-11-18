@@ -20,12 +20,12 @@ Icons are `hidden="yes"` on **HART Railroad**. System names are `IF$vsm:basic:on
 |---------|---------|----------------|
 | W-1 / W-2 | `Mast 4LA` / `Mast 4LB` | West-end bumpers `EB70` / `EB73` |
 | McKees Rocks / McKeesport | `Mast 40RA` / `Mast 38RA` | East-end bumpers `EB71` / `EB72` |
-| K-1 / K-2 boundary | `Mast 2035` / `Mast 2036` | Anchor `A48` at the apex of the drawn K loop (x=1837, y=276) |
+| K-1 / K-2 boundary | `Mast 2035` / `Mast 2036` | Anchor `AG40` (was `A48` on the hand-drawn panel) at the apex of the K loop |
 | EH-1…EH-3 | `Mast 12L` / `Mast 10LA` / `Mast 10LB` | Engine House buffers `EB1` / `EB2` / `EB3` |
 | S-1…S-4 west | `Mast 18L`, `20L`, `22L`, `26L` | Body/throat boundary anchors `A53`/`A46`/`A41`/`A15` |
 | S-1…S-4 east | `Mast 18R`, `20R`, `22R`, `26R` | Body/throat boundary anchors `A61`/`A36`/`A39`/`A12` |
 | S-R west / east | `Mast 16L` / `Mast 16R` | `A81` (new split east of TOR14) / `A37` |
-| Scale / Switch 7 | `Mast 8LC` (`$1018`) | `A45` westbound; `T3` is `OS Switch 7`. `Mast 8RA` stays eastbound on `A45`, not TO117 A. |
+| Scale / Switch 7 | `Mast 8LC` (`$1018`) | `AG33` (was `A45`) westbound, on the Scale / OS Switch 7 boundary. `Mast 8RA` stays eastbound on `AG33`, not TO117 A. |
 | Barn / Switch 13 | `Mast 14R` (`$1019`) | Hidden virtual on TO1 B. Without it Discover jumps **8RA → 26L** through Barn and Stage 1 tries the reverse hop. |
 | EH-1 / Switch 11 | `Mast 12R` (`$1020`) | Hidden virtual on TO11 B. Bumper `12L` is arrival-only; without this, EH outbound `get_first` picks **16R** and EH→S-1/S-4/S-R never builds. |
 | EH-2 / Switch 9 | `Mast 10RA` (`$1021`) | Hidden virtual on TO10 C (EH-2). |

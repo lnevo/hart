@@ -17,8 +17,8 @@ stale copy of its own output. Each file is read the first time it is asked for, 
     inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), public_name_map.csv,
                 schematic/control_points_main_upper.csv, local_switches_main_upper.csv, lcos_nodes_main_upper.csv,
                 main_upper.plan_overrides.json (its edits; build_device_map.py rewrites only its control_points and
-                stations keys), block_lengths.csv and staging_le/masts.csv (the frozen staging masts, le_inputs.py
-                reads the whole folder)
+                stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
+                device map's form, kept by hand; tools/schematic/staging_device_map.py --check)
     hands       schematic/hands.csv                       build_hands.py
     device_map  schematic/device_map_main_upper.csv       build_device_map.py
     masts       schematic/main_upper_masts.csv            build_main_upper_masts.py (hartlib.level_masts)
@@ -97,7 +97,7 @@ class Sources:
                    level_control_points=s / "control_points_main_upper.csv",
                    local_switches=s / "local_switches_main_upper.csv", lcos_nodes=s / "lcos_nodes_main_upper.csv",
                    plan_overrides=s / "main_upper.plan_overrides.json", block_lengths=data / "block_lengths.csv",
-                   staging_masts=s / "staging_le" / "masts.csv", hands=s / "hands.csv",
+                   staging_masts=s / "staging_masts.csv", hands=s / "hands.csv",
                    device_map=s / "device_map_main_upper.csv",
                    level_masts=s / level_masts.PATH.name,
                    tables=paths.TABLES_XML if tables_xml is None else tables_xml)
@@ -488,7 +488,7 @@ def read_block_lengths(path: Path) -> dict[str, BlockLength]:
 
 @dataclass(frozen=True)
 class StagingMast:
-    """A staging mast's name and blocks, from the frozen staging_le/masts.csv (le_inputs.py reads all of it)."""
+    """A staging mast's name and blocks, from schematic/staging_masts.csv (protects ";" separated)."""
     line: int
     mast: str
     facing: str
@@ -497,7 +497,7 @@ class StagingMast:
 
 def read_staging_masts(path: Path) -> list[StagingMast]:
     out, seen = [], {}
-    for line, r in read_rows(path, ("mast", "facing", "protects"), note=True):
+    for line, r in read_rows(path, ("mast", "facing", "protects")):
         if not r["mast"] or r["mast"] in seen or not r["facing"]:
             raise FactsError(f"{_where(path, line)}: mast {r['mast']!r} is empty or given twice, or has no facing "
                              "block")
@@ -912,7 +912,7 @@ def _name_map(rr: Railroad) -> list[str]:
 
 @invariant("staging-blocks", "inputs")
 def _staging_blocks(rr: Railroad) -> list[str]:
-    """Every block a staging switch leg (switch_legs.csv), a staging mast (staging_le/masts.csv) or a measured
+    """Every block a staging switch leg (switch_legs.csv), a staging mast (staging_masts.csv) or a measured
     length (block_lengths.csv) names is a live block of public_name_map.csv, and every staging mast a live mast."""
     blocks, masts = rr.name_map.names("block"), rr.name_map.names("mast")
     bad = []

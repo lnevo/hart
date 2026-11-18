@@ -19,8 +19,9 @@ hand:
   occupancy_bindings.csv + tables.xml  each block's M2S sensor and discipline (digicon_lib.load_occupancy: the
                                   layout block table and the sensors, not a Layout Editor panel)
   staging.signals.json + signal_head_plan.csv  the masts drawn on staging (field and planned) and their templates
-  staging_le/tracks.csv  the block of a short unnamed track between two switches that has no JMRI block of its own
-                         (SHORT_TRACK_BLOCKS, which must be one of the blocks the frozen Layout Editor track holds)
+  device_map_staging.csv  the block of a short unnamed track between two switches that has no JMRI block of its own
+                         (SHORT_TRACK_BLOCKS, which must be one of the blocks that staging track holds; the staging
+                         device map's tracks, staging_device_map.staging_chains)
 Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-17: CATS holds their signals and
 releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
 turns them ABS with the rest. They take their names from the block rows of
@@ -68,7 +69,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
-import le_inputs  # noqa: E402  the frozen staging Layout Editor facts (staging_le/)
+import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (device_map_staging.csv)
 from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402
 from hartlib.cats import mast_templates, station_plate  # noqa: E402
 
@@ -117,9 +118,9 @@ FIT = ((WINDOW[0] - CHROME[0]) // GRID_PX, (WINDOW[1] - CHROME[1]) // GRID_PX)
 MAX_COLS = FIT[0]       # the plugin drops level-only columns so the panel keeps within the window (a free column
                         # each side: column 0 is never drawn and the track starts at column 2)
 
-# A short unnamed track whose block is a railroad fact: the frozen Layout Editor track (staging_le/tracks.csv)
+# A short unnamed track whose block is a railroad fact: the staging track (the staging device map's)
 # between the two switches holds both OS blocks, and the hand-drawn panel gave most of it to OS Switch 35a (the
-# generated Layout Editor panel splits it evenly). The named block must be one the frozen track holds.
+# generated Layout Editor panel splits it evenly). The named block must be one that staging track holds.
 SHORT_TRACK_BLOCKS = {"35-37": "OS Switch 35a"}
 
 
@@ -133,29 +134,30 @@ def plugin_modules(plugin):
     return cats, sheet
 
 
-class FrozenTracks:
-    """The staging Layout Editor tracks between turnout legs, as frozen in staging_le/tracks.csv (le_inputs)."""
+class StagingTracks:
+    """The staging tracks between switches and ends, each with its blocks in order: staging_device_map.staging_chains
+    (ends by switches.csv le_ident)."""
 
     def __init__(self, chains):
-        self.chains = chains            # [{ends: [(ident, leg), (ident, leg) or ("END", bumper)], blocks: [...]}]
+        self.chains = chains            # [{ends: [(le_ident or "END", band port), ...], blocks: [...]}]
 
     def block_between(self, a, b, what, fixed=None):
-        """The block of the one frozen track from turnout `a` to `b`: its only block, or `fixed` when given (it must
+        """The block of the one staging track from turnout `a` to `b`: its only block, or `fixed` when given (it must
         be one of the track's blocks). Stops when there is no such track, several, or a track of several blocks
-        and no `fixed` (the frozen tracks have no lengths to choose by)."""
+        and no `fixed` (the tracks have no lengths to choose by)."""
         found = [c for c in self.chains if {e[0] for e in c["ends"]} == {a, b} and "END" not in
                  {e[0] for e in c["ends"]} and a != b]
         if len(found) != 1:
-            raise SystemExit(f"{what}: {'no' if not found else len(found)} Layout Editor tracks join {a} and {b} "
-                             "in staging_le/tracks.csv; cannot tell which block it is part of")
+            raise SystemExit(f"{what}: {'no' if not found else len(found)} staging tracks join {a} and {b} "
+                             "in the staging device map; cannot tell which block it is part of")
         blocks = found[0]["blocks"]
         if fixed is not None:
             if fixed not in blocks:
-                raise SystemExit(f"{what}: SHORT_TRACK_BLOCKS names {fixed}, but the Layout Editor track from {a} "
+                raise SystemExit(f"{what}: SHORT_TRACK_BLOCKS names {fixed}, but the staging track from {a} "
                                  f"to {b} holds only {', '.join(sorted(set(blocks)))}")
             return fixed
         if len(set(blocks)) != 1:
-            raise SystemExit(f"{what}: the Layout Editor track from {a} to {b} holds blocks "
+            raise SystemExit(f"{what}: the staging track from {a} to {b} holds blocks "
                              f"{', '.join(sorted(set(blocks)))}; name the one it is part of in SHORT_TRACK_BLOCKS")
         return blocks[0]
 
@@ -179,7 +181,7 @@ class Facts:
     turnout_io: dict            # Layout Editor turnout -> (M2T address, user name)
     occupancy: dict             # block -> (M2S address, sensor user name)
     discipline: dict            # block -> CATS discipline
-    layout: FrozenTracks
+    layout: StagingTracks
     templates: dict             # mast user name -> signal template
     masts: set                  # JMRI mast user names
     device: DeviceMap = field(default_factory=DeviceMap)   # main and upper
@@ -189,15 +191,25 @@ class Facts:
     level_masts: list = field(default_factory=list)         # main_upper_masts.csv rows (hartlib.level_masts)
 
 
+def staging_tracks() -> list[dict]:
+    """The staging tracks (staging_device_map.staging_chains) of the staging band as the Layout Editor draws it."""
+    try:
+        with pd.cache_on():
+            band, _opts, _core = sdm.staging_band()
+        return sdm.staging_chains(band, sdm.load(band))
+    except (sdm.StagingMapError, sdm.lc.BuildError) as exc:      # the map, or the plugin and the drawing
+        raise SystemExit(f"build_cats_panel.py: staging device map: {exc}") from None
+
+
 def load_facts():
     """The facts from the repo (hartlib.railroad, every layer: the desks are built after the device map and the
     main and upper masts): tables.xml (read once) for its turnouts, sensors, layout blocks and masts, never a Layout
-    Editor panel; the staging Layout Editor tracks from their frozen copy."""
+    Editor panel; the staging tracks from the staging device map."""
     rr = railroad.Railroad()
     try:
         t = rr.tables
         return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
-                     FrozenTracks(le_inputs.load().chains), mast_templates(), set(t.masts), rr.device_map,
+                     StagingTracks(staging_tracks()), mast_templates(), set(t.masts), rr.device_map,
                      t.sensors, t.turnouts, t.masts, rr.level_masts)
     except railroad.FactsError as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None

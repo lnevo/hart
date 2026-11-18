@@ -1,16 +1,15 @@
 """build_signals.py [--check]
 
-Generate the schematic's layer 1 masts, jmri/layouts/hart/data/schematic/<name>.signals.json, from the frozen mast
-facts in jmri/layouts/hart/data/schematic/staging_le/masts.csv (le_inputs.py; LE cut-over Phase 3b, 2026-11-15).
-That file is the one source of the staging masts: the Layout Editor build (build_layout_le.py) places them from it
-too. It was read once from the hand-drawn panel by the schematic-maps plugin's signal reader
-(build_layout_le.py --freeze); edit it there, not in a panel. Main and upper are dark territory (no masts) until the
-owner's signal plan; add a level to LEVELS when it has masts.
+Generate the schematic's layer 1 masts, jmri/layouts/hart/data/schematic/<name>.signals.json, from the staging
+masts in the staging device map's form: staging_signals.csv (each mast's plan facts) and staging_masts.csv (its
+blocks and slot kind), read by staging_device_map.load_signal_masts; kept by hand since the device-map switch-over
+(2026-11-17), first read from the hand-drawn panel by the schematic-maps plugin's signal reader. Main and upper are dark territory (no masts) until the owner's signal plan; add a level to LEVELS
+when it has masts.
 
 Each mast's schematic run (schematic_edge, schematic_toward_node) is checked against the plan graph in inputs/ with
 the plan overrides' edits: the edge must exist, run between the switches named in `run`, carry the track names in
-`names`, and end at the node it heads for, whose switch is `toward`. Its lengths are checked against the frozen
-tracks (staging_le/tracks.csv) and block_lengths.csv, as the signal reader measured them (a block with no length
+`names`, and end at the node it heads for, whose switch is `toward`. Its lengths are checked against the staging
+tracks (staging_device_map.staging_chains) and block_lengths.csv, as the signal reader measured them (a block with no length
 counts as zero there too): edge_cm is the length of the track holding the mast's facing block, and cm_from_toward
 is 0 at a turnout leg, the whole run at an end bumper, and at an anchor the length from one end of that track to the
 boundary between the facing and protected blocks (within TOLERANCE_CM). A mast that does not fit fails the run, with
@@ -28,8 +27,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import le_inputs  # noqa: E402  the frozen staging facts
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pinned plugin
+import staging_device_map as sdm  # noqa: E402  the staging masts' plan facts, tracks and signal rows
 from hartlib import railroad  # noqa: E402  block_lengths.csv, read and checked once
 
 LEVELS = [("staging.json", "staging")]     # plan graph in inputs/, layer file stem
@@ -111,17 +110,39 @@ def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str
     return bad
 
 
-def generate(plugin, graph, name) -> str:
-    """The signals file's text for one level, from masts.csv; stops on a mast whose run is not in the plan."""
+def staging_facts() -> tuple[list[dict], list[dict]]:
+    """(the staging masts, the staging tracks with their blocks) from the staging device map's files
+    (staging_device_map.load_signal_masts and staging_chains). The masts come from the files alone; the tracks need
+    the staging band, so the schematic is solved, and the solve reads staging.signals.json (a layer file), the file
+    this script writes. Its masts do not change the band's tracks, so a stale file is harmless; one that does not
+    load stops here, naming the file to restore (git checkout) before running this again."""
     try:
-        inputs = le_inputs.load()
-    except le_inputs.InputsError as exc:
-        sys.exit(f"ERROR: {exc}")
-    rows = le_inputs.signal_rows(inputs.masts)
-    bad = check_runs(plugin, graph, name, rows) + check_lengths(inputs.masts, inputs.chains, block_cm())
+        masts = sdm.load_signal_masts()
+    except sdm.StagingMapError as exc:
+        sys.exit(f"ERROR: staging device map: {exc}")
+    signals = pd.DATA / "staging.signals.json"
+    try:
+        with pd.cache_on():
+            band, _opts, _core = sdm.staging_band()
+    except (sdm.StagingMapError, sdm.lc.BuildError, ValueError, KeyError, OSError) as exc:
+        sys.exit(f"ERROR: cannot solve the staging band for its tracks ({type(exc).__name__}: {exc}). The solve "
+                 f"reads {signals.name}, which this script writes: if that file is damaged, restore it "
+                 f"(git checkout -- {pd.paths.rel(signals)}) and run this again")
+    try:
+        return masts, sdm.staging_chains(band, sdm.load(band))
+    except (sdm.StagingMapError, sdm.lc.BuildError) as exc:      # the map against the drawing
+        sys.exit(f"ERROR: staging device map: {exc}")
+
+
+def generate(plugin, graph, name) -> str:
+    """The signals file's text for one level, from staging_signals.csv and staging_masts.csv; stops on a mast whose
+    run is not in the plan."""
+    masts, chains = staging_facts()
+    rows = sdm.signal_rows(masts)
+    bad = check_runs(plugin, graph, name, rows) + check_lengths(masts, chains, block_cm())
     if bad:
         sys.exit(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
-    return json.dumps(dict(schema=SCHEMA, source=le_inputs.SIGNALS_SOURCE, signals=rows, unplaced=[]), indent=1)
+    return json.dumps(dict(schema=SCHEMA, source=sdm.SIGNALS_SOURCE, signals=rows, unplaced=[]), indent=1)
 
 
 def main(argv):

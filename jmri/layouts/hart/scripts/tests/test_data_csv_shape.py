@@ -17,7 +17,7 @@ class DataCsvShapeTest(unittest.TestCase):
             with path.open(encoding="utf-8", newline="") as fh:
                 rows = list(csv.reader(fh))
             if rows and rows[0] and rows[0][0].startswith("# "):
-                rows = rows[1:]          # a provenance note line (the frozen schematic/staging_le files)
+                rows = rows[1:]          # a provenance note line (a file read once)
             if not rows:
                 continue
             width = len(rows[0])

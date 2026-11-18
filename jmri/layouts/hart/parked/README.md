@@ -66,6 +66,31 @@ Still used by active tools, so they must keep working while parked:
 - `ensure_dispatcher_roster_profiles.py`: `loco_roster_import.py` tells the operator to run it.
 - `cleanup_uss_ctc_leftovers.py`: `apply_public_names_tree.py` runs it in a rename pass.
 
+## Staging panel lamps
+
+`staging_panel_lamps.json` holds the occupancy lamps and Dispatcher station clusters of the staging "HART Railroad"
+panel. The owner decided on 2026-11-17 that they belong with the Dispatcher System, so the build
+(`build_layout_le.py`, from the staging device map and `panel_items.json`) leaves them off. There are 79 elements:
+
+- 20 track lamps
+- 21 OS lamps, plus one for each second crossover half (23b, 7b)
+- 12 stations, each with its MoveTo button, move-in-progress lamp and station occupancy lamp
+
+They are written in the `panel_items.json` form (`tools/schematic/panel_items.py`). Each is anchored at its block's
+drawn centre, at the offset the approved staging candidate gave it. The lamp layout preferences stay in the build:
+the South Yard lamp column (`LAMP_COLUMNS`) and the label layer's room for lamps.
+
+Put back on a copy of the device-map candidate on 2026-11-17, all 79 landed within 1 px of where the last
+overlay-built candidate had them, so they do not have to be placed again. The 24 station icons are also in
+`tables_parked.xml`, with their hand-drawn places.
+
+To bring them back, append this file's `items` to `jmri/layouts/hart/data/schematic/panel_items.json` and rebuild.
+Also give the plugin the station clusters as `extras` again (as the retired `le_overlay.station_extras` did; see git
+history before the switch-over), so the label layer keeps clear of them: without them 14 block contents icons
+(OS Switch 7, OS Switch 9, Barn, EH-2, EH-3, East Lead, East Lead East, K-1, K-2, McKees Rocks, McKeesport, Scale,
+W-1, W-2) sit somewhere else than they did with the clusters. The OS lamp checks of
+`polish_hart_layout_editor.py` come back with the feature (they run only while it is not parked).
+
 ## Checks
 
 - `python3 -m hartlib.parked check` (in `tools/check.sh`, with `PYTHONPATH=tools/hartlib/src`): tables.xml holds no

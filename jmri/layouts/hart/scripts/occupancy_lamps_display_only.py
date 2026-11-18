@@ -24,10 +24,10 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
 
-# Occupancy lamps are edited as text, so the rest of each file stays byte for byte. The frozen overlay of the
-# Layout Editor cut-over (tools/schematic/build_layout_le.py) holds the same lamps as XML strings inside JSON, with
-# escaped quotes; they must match the panel they were frozen from.
-OVERLAY = paths.LAYOUT_DATA / "schematic" / "staging_le" / "overlay.json"
+# Occupancy lamps are edited as text, so the rest of each file stays byte for byte. The staging panel's lamps parked
+# with the Dispatcher System (jmri/layouts/hart/parked/staging_panel_lamps.json, panel_items.json form) hold the same
+# lamps as XML strings inside JSON, with escaped quotes; they must stay display only to come back that way.
+OVERLAY = paths.LAYOUT_DATA.parent / "parked" / "staging_panel_lamps.json"
 
 
 def lamp_pattern(escaped: bool = False) -> re.Pattern:
@@ -66,14 +66,14 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true", help="exit 1 if any occupancy lamp can be clicked")
     ap.add_argument("--tables", type=Path, default=paths.TABLES_XML)
-    ap.add_argument("--overlay", type=Path, default=OVERLAY, help="the cut-over's frozen overlay (skipped if absent)")
+    ap.add_argument("--overlay", type=Path, default=OVERLAY, help="the parked staging lamps (skipped if absent)")
     args = ap.parse_args(argv)
     bad = 0
     if not args.tables.exists():
         print(f"no tables file at {args.tables}", file=sys.stderr)
         return 2
     for path, escaped in ((args.tables, False), (args.overlay, True)):
-        if not path.exists():                      # the overlay is optional; the tables file is not
+        if not path.exists():                      # the parked lamps are optional; the tables file is not
             continue
         text = path.read_text(encoding="utf-8")
         new, changed = fix(text, escaped)

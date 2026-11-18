@@ -1,5 +1,6 @@
 """Mast parity between the hand-drawn "HART Railroad" panel, as its masts are frozen in
-jmri/layouts/hart/data/schematic/staging_le/masts.csv, and the generated "Layout (generated)" panel (staging).
+jmri/layouts/hart/data/schematic/staging_le/masts.csv (retired) and now kept in the staging device map's form
+(schematic/staging_masts.csv, staging_device_map.mast_facts), and the generated "Layout (generated)" panel (staging).
 
 Signal Mast Logic discovery, the Dispatcher System and Entry/Exit never read a mast icon: they read the slot a mast
 is bound in and resolve its facing block (where the train stands when it reads the mast) and protected blocks (what
@@ -71,9 +72,11 @@ class MastParity(unittest.TestCase):
         cls.slots = B.slots_module()
         cls.root = tables.loads(cls.data).root
         cls.gen_le = tables.layout_editor(cls.root, cls.PANEL)
-        cls.frozen = {m["mast"]: m for m in B.le_inputs.load_masts()}
-        cls.live = {n: dict(mast=n, kind=m["kind"], ident=m["ident"], slot=m["slot"], facing=m["facing"],
-                            protects=m["protects"], **({"turnout": m["turnout"]} if m["kind"] == "turnout" else {}))
+        # the staging masts' facts in the device map's form (staging_masts.csv, kept by hand): slot kind, blocks,
+        # hidden, and a turnout mast's turnout
+        cls.frozen = B.sdm.mast_facts()
+        cls.live = {n: dict(mast=n, kind=m["kind"], facing=m["facing"], protects=m["protects"],
+                            **({"turnout": m["turnout"]} if m["kind"] == "turnout" else {}))
                     for n, m in cls.frozen.items()}
         cls.gen_ix = cls.slots.Index(cls.gen_le)
         cls.gen = masts_by_name(cls.gen_ix)
@@ -93,7 +96,7 @@ class MastParity(unittest.TestCase):
                 self.assertIsNotNone(gen, f"{name} is not on the generated panel")
                 self.assertEqual((gen["kind"], gen["facing"], gen["protects"]),
                                  (live["kind"], live["facing"], live["protects"]),
-                                 f"{name}: live {live['kind']} {live['ident']} {live['slot']}, generated "
+                                 f"{name}: live {live['kind']} {live['facing']} into {live['protects']}, generated "
                                  f"{gen['kind']} {gen['ident']} {gen['slot']}")
                 if live["kind"] == "turnout":            # the same switch, not only the same blocks
                     self.assertEqual(gen["turnout"], live["turnout"], name)
@@ -133,7 +136,7 @@ class MastParity(unittest.TestCase):
             self.assertNotIn(icon.get("signalmast"), icons, "two icons for one mast")
             icons[icon.get("signalmast")] = icon
         self.assertEqual(set(icons), set(self.gen))
-        # hidden only when every icon of the mast on the hand-drawn panel was (le_inputs.live_icons_hidden)
+        # hidden for a virtual mast (staging_device_map.mast_facts), as every icon of it was on the hand-drawn panel
         live_hidden = {n: "yes" if m["hidden"] else "no" for n, m in self.frozen.items()}
         size = {m["mast"]: m["box"][2:] for m in self.P.masts}
         for name, m in sorted(self.gen.items()):

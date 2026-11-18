@@ -156,7 +156,7 @@ class LayoutFactsTest(unittest.TestCase):
 
         out = self.failures(desks=(self.copy(check.DESKS[0], move), check.DESKS[1]))
         self.assertIn("Mast 24L: HART_CTC.xml has its lamp on the edge of Track West Ext, but it protects "
-                      "OS Switch 23a (staging_le/masts.csv)", out)
+                      "OS Switch 23a (staging_masts.csv)", out)
 
     def test_a_mast_drawn_with_the_wrong_head_fails(self) -> None:
         data = self.data_copy()

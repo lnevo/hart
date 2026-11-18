@@ -152,9 +152,13 @@ class Readers(Copy):
         self.fails(lambda: R.read_tables(self.tmp / "none.xml"), "none.xml: cannot read it as a tables file")
 
     def test_a_noted_file_needs_its_note_line(self) -> None:
-        text = self.src.staging_masts.read_text(encoding="utf-8")
-        self.src.staging_masts.write_text(text.split("\n", 1)[1], encoding="utf-8")
-        self.fails(lambda: R.read_staging_masts(self.src.staging_masts), "masts.csv line 1: the note line")
+        noted = self.tmp / "noted.csv"
+        noted.write_text("mast,facing,protects\nMast 2L,Track Main West,OS Switch 1\n", encoding="utf-8")
+        self.fails(lambda: R.read_rows(noted, ("mast",), note=True), "noted.csv line 1: the note line")
+
+    def test_a_staging_mast_needs_its_facing_block(self) -> None:
+        self.edit("staging_masts", "Mast 2L,Brick,1,Track Main West,", "Mast 2L,Brick,1,,")
+        self.fails(lambda: R.read_staging_masts(self.src.staging_masts), "has no facing block")
 
     def test_name_map(self) -> None:
         self.append("name_map", "turnout,Switch 1,Switch 1,Brick,M2T408,100,,")

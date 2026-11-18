@@ -20,16 +20,17 @@ make desks            # only the CATS desks, then validate them
 | Step | Script | Writes |
 |------|--------|--------|
 | hands | `build_hands.py` | `hands.csv` from the plan graph |
-| signals | `build_signals.py` | `<name>.signals.json` from the plan graph and the frozen mast facts |
+| staging-map | `staging_device_map.py --check` | nothing: checks the hand-kept staging device map (`device_map_staging.csv`, `control_points_staging.csv`, `staging_masts.csv`, `staging_signals.csv`) against `tables.xml` and the schematic |
+| signals | `build_signals.py` | `<name>.signals.json` from the plan graph and the staging masts (`staging_signals.csv`, `staging_masts.csv`) |
 | device-map | `build_device_map.py` | `device_map_main_upper.csv` and the layer overrides the schematic reads |
 | main-upper-masts | `build_main_upper_masts.py` | `main_upper_masts.csv` for the Layout Editor builds |
 | schematic | `publish_draft.py` | the schematic sheets and station pages |
 | cats | `build_cats_panel.py` | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json` |
 | le-trial, le-trial-staging | `build_layout_le.py` | Layout Editor trial panels (all levels, then staging alone) |
-| le-cutover | `build_layout_le.py --as-live` | the cut-over candidate `output/trial/tables_cutover.xml`; the live `tables.xml` took it at the cut-over |
+| le-cutover | `build_layout_le.py --as-live` | the cut-over candidate `output/trial/tables_cutover.xml`, every level from its device map and the panel's own items from `panel_items.json`; the live `tables.xml` is that candidate with Signal Mast Logic from stock discovery in a sandbox |
 
 Each step reads the plugin's cache (`~/.cache/hart/schematic`), so a run after a small change redoes only what that
-change reaches. `tools/check.sh` runs `--check` on the hands, signals, device map, main and upper masts and CATS steps; `make panels
+change reaches. `tools/check.sh` runs `--check` on the hands, staging map, signals, device map, main and upper masts and CATS steps; `make panels
 CHECK=1` checks them all.
 
 ## After a run

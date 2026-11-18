@@ -231,7 +231,7 @@ class GeneratedPanelTest(unittest.TestCase):
     def test_a_carried_caption_keeps_its_style_on_a_generated_panel(self) -> None:
         self.assertLessEqual({"HART RAILROAD", "Industries"}, polish.carried_captions())
         self.assertNotIn("Barn", polish.carried_captions())        # the plugin gives it now
-        self.assertNotIn("Neville Island", polish.carried_captions())   # renamed at freeze (le_overlay.CAPTIONS)
+        self.assertNotIn("Neville Island", polish.carried_captions())   # the title is HART RAILROAD (panel_items.json)
         root = copy.deepcopy(self.gen)
         label = next(l for l in tables.layout_editor(root).findall("positionablelabel")
                      if l.get("text") == "Neville Island")     # the fixture is the live panel, marked

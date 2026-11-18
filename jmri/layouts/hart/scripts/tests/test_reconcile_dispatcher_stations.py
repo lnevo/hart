@@ -325,7 +325,12 @@ class StageOneLampsAndSensorsTest(unittest.TestCase):
         # the Dispatcher System parked (hartlib.parked): its stations are checked with it put back from the parked file
         tables = reconciler.parked.with_parked_file({"dispatcher"}, SCRIPT.parents[1] / "output" / "tables.xml")
         tree = reconciler.parse_xml(tables)
-        self.assertEqual([], reconciler.reconcile(tree).details)
+        # the stations' occupancy lamps were parked with the lamps of the generated panel, not in the parked tables
+        # (jmri/layouts/hart/parked/staging_panel_lamps.json, owner 2026-11-17): put back from the tables alone, the
+        # reconciler adds exactly those, one per station, and nothing else
+        details = reconciler.reconcile(tree).details
+        self.assertEqual(len(details), 12, details)
+        self.assertTrue(all(d.startswith("created icon BS ") for d in details), details)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
-"""Mast and slot checks of the Layout Editor build: every live staging mast in the slot that resolves to its blocks,
-the main and upper masts in theirs, and the live turnouts' legs kept."""
+"""Mast and slot checks of the Layout Editor build: every staging mast in the one slot that resolves to its blocks
+(check_device_masts) and at the ident and slot le_signal_boundaries.csv records for it (check_boundaries), the main and
+upper masts in theirs, and le_signal_boundaries.csv's swapped legs (check_swapped_slots)."""
 from __future__ import annotations
 
 import sys
@@ -8,9 +9,9 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables  # noqa: E402
 from le_common import BuildError, read_csv, slots_module  # noqa: E402
-from le_names import swap_legs, swapped_idents  # noqa: E402
+from le_names import swapped_idents  # noqa: E402
 
 
 BOUNDARIES = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
@@ -31,52 +32,6 @@ def check_swapped_slots(path: Path = BOUNDARIES) -> None:
                        f"LEGS_SWAPPED gives {want or 'empty'}")
     if bad:
         raise BuildError(f"{paths.rel(path)} and LEGS_SWAPPED disagree: " + "; ".join(bad))
-
-
-def check_slots(P, masts: list[dict], le_mod) -> None:
-    """Stop when a staging mast could have gone in more than one slot of the new panel (the plugin would take the
-    first), a turnout mast is on another turnout than live, or a mast stands in another slot (ident and slot) than
-    masts.csv gives, so a hand edit of those columns takes effect or fails (`masts`: masts.csv's rows)."""
-    slots = slots_module()
-    ix = slots.Index(le_mod.to_xml(P, "check"))
-    alias = P.name          # the XML holds the idents as written; the Panel's lookups keep the generated ones
-    staging = {alias(t["ident"]) for t in P.turnouts if t["band"] == 0} | \
-        {alias(k) for k, p in P.points.items() if p["band"] == 0}
-    fits = defaultdict(list)
-    for c in ix.candidates():
-        if c[1] in staging:
-            f, pr = ix.blocks(*c)
-            fits[(c[0], f, tuple(pr))].append(c)
-    want = {m["mast"]: m for m in masts}
-    swapped = swapped_idents()
-    moved = {mast for _t, mast, _why in P.moved}       # a bumper mast at a helix join (all-levels trial): elsewhere
-    bad = []
-    for m in P.masts:
-        if mast_band(m) != 0:           # main and upper: check_level_slots
-            continue
-        name = m["mast"]
-        if name not in want:
-            bad.append(f"{name} was not asked for")
-            continue
-        placed = (alias(m["ident"]), m["slot"])
-        slot = want[name]["slot"]
-        if want[name]["kind"] == "turnout" and want[name]["ident"] in swapped and slot in "BC":
-            slot = "BC".replace(slot, "")          # LEGS_SWAPPED: the mast moves with its leg
-        frozen = (want[name]["ident"], slot)
-        if name not in moved and placed != frozen:
-            bad.append(f"{name} stands at {placed[0]} {placed[1]}, masts.csv says {frozen[0]} {frozen[1]}")
-        f, pr = ix.blocks(m["kind"], alias(m["ident"]), m["slot"])
-        same = fits[(m["kind"], f, tuple(pr))]
-        if want[name]["kind"] == "turnout":
-            here = ix.turnouts[alias(m["ident"])].get("turnoutname")
-            if here != want[name]["turnout"]:
-                bad.append(f"{name} is on turnout {here}, live on {want[name]['turnout']}")
-            same = [c for c in same if ix.turnouts[c[1]].get("turnoutname") == want[name]["turnout"]]
-        if len(same) > 1:
-            bad.append(f"{name} fits {len(same)} slots ({', '.join(f'{c[1]} {c[2]}' for c in same)}): which one is a "
-                       "guess")
-    if bad:
-        raise BuildError("staging masts not placed for certain: " + "; ".join(bad))
 
 
 def mast_band(m: dict) -> int:
@@ -123,7 +78,8 @@ def check_unplaced(P) -> list[str]:
 
 
 def turnout_facts(le: ET.Element) -> dict:
-    """{ident: facts} of a panel's turnouts as check_live_turnouts compares them (le_inputs.Inputs.turnout_facts)."""
+    """{ident: facts} of a panel's turnouts: its turnout name, type, continuing route (not a crossover's), the four
+    leg blocks and the block of the track on each leg."""
     segs = {s.get("ident"): s.get("blockname") for s in le.findall("tracksegment")}
     out = {}
     for t in le.findall("layoutturnout"):
@@ -135,22 +91,64 @@ def turnout_facts(le: ET.Element) -> dict:
     return out
 
 
-def check_live_turnouts(gen_le: ET.Element, inputs, swapped: set | None = None) -> None:
-    """Stop unless each staging turnout keeps its live ident, name, type, continuing route, leg blocks and the block
-    of the track on each leg, as turnouts.csv and tracks.csv hold them (leg letters are what the boundaries
-    contract, switch_legs.csv and CATS key on); a turnout in `swapped` (default: the LEGS_SWAPPED ones) with its
-    legs B and C swapped (swap_legs)."""
-    live, gen = inputs.turnout_facts(), turnout_facts(gen_le)
-    swapped = swapped_idents() if swapped is None else swapped
-    live = {i: swap_legs(f) if i in swapped else f for i, f in live.items()}
+def check_device_masts(P, masts: list[dict], le_mod, facts: dict | None = None) -> None:
+    """The device-map path's staging mast check (no frozen ident or slot to hold the panel to): stop when a staging
+    mast (`masts`, the plugin's list) is not on the panel, fits more than one slot of its kind with its blocks (the
+    plugin would take the first, a guess), or a turnout mast stands on another turnout than its switch's (`facts`,
+    default staging_device_map.mast_facts: the turnout the device map binds the switch by), or the plugin placed a
+    staging mast `masts` does not ask for."""
+    import staging_device_map as sdm
+    if facts is None:
+        try:
+            facts = sdm.mast_facts()
+        except sdm.StagingMapError as exc:
+            raise BuildError(f"staging device map: {exc}") from None
+    ix = slots_module().Index(le_mod.to_xml(P, "check"))
+    fits = defaultdict(list)
+    for c in ix.candidates():
+        f, pr = ix.blocks(*c)
+        fits[(c[0], f, tuple(pr))].append(c)
+    placed = {}
+    for m in ix.masts():
+        if m["mast"] in placed:
+            raise BuildError(f"mast {m['mast']} is bound in two slots of the new panel")
+        placed[m["mast"]] = m
     bad = []
-    for ident, want in sorted(live.items()):
-        got = gen.get(ident)
+    asked = {m["mast"] for m in masts}
+    bad += [f"{name} was not asked for" for name in sorted({m["mast"] for m in P.masts if mast_band(m) == 0} - asked)]
+    for m in masts:
+        got = placed.get(m["mast"])
         if got is None:
-            bad.append(f"{ident} ({want['name']}) is not on the new panel")
+            bad.append(f"{m['mast']} is not on the panel")
             continue
-        for k in want:
-            if got[k] != want[k]:
-                bad.append(f"{ident} ({want['name']}) {k}: live {want[k]}, new {got[k]}")
+        same = fits[(got["kind"], got["facing"], tuple(got["protects"]))]
+        if m["kind"] == "turnout":
+            want = (facts.get(m["mast"]) or {}).get("turnout")
+            if got.get("turnout") != want:
+                bad.append(f"{m['mast']} is on turnout {got.get('turnout')}, its switch's is {want}")
+            same = [c for c in same if ix.turnouts[c[1]].get("turnoutname") == want]
+        if len(same) > 1:
+            bad.append(f"{m['mast']} fits {len(same)} slots ({', '.join(f'{c[1]} {c[2]}' for c in same)}): which "
+                       "one is a guess")
     if bad:
-        raise BuildError("staging turnouts differ from the live panel: " + "; ".join(bad))
+        raise BuildError("staging masts not placed for certain: " + "; ".join(bad))
+
+
+def check_boundaries(panel: ET.Element, path: Path = BOUNDARIES) -> None:
+    """Stop unless every mast of le_signal_boundaries.csv stands on `panel` (a generated panel) in the kind of slot,
+    at the ident and in the slot its row records (its generated_slot where it has one: a LEGS_SWAPPED switch's leg B
+    or C, tables.boundary_slot). The anchor idents are generated, so a change to the staging drawing can renumber
+    them; this stops the build then, naming each row, rather than leave the audits, apply_le_sml_facing.py and the
+    boundary contract on the wrong anchor. Rewrite the named rows from the new panel."""
+    placed = {m["mast"]: m for m in slots_module().Index(panel).masts()}
+    bad = []
+    for row in read_csv(path):
+        name, kind = row["mast_user_name"].strip(), row["kind"].strip()
+        want = (kind, row["ident"].strip(), tables.boundary_slot(row, generated=True))
+        m = placed.get(name)
+        got = (m["kind"], m["ident"], m["slot"]) if m else None
+        if got != want:
+            bad.append(f"{name}: recorded {' '.join(want)}, drawn {' '.join(got) if got else 'nowhere'}")
+    if bad:
+        raise BuildError(f"{paths.rel(path)} does not follow the drawn panel (rewrite these rows from it): "
+                         + "; ".join(bad))

@@ -36,7 +36,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, paths, tables  # noqa: E402
+from hartlib import level_masts, parked, paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DEFAULT_PANEL = paths.TABLES_XML
@@ -153,7 +153,7 @@ REMOVED_LABELS = {
 # ADR-002 visible hierarchy.
 LABEL_STYLE: dict[str, tuple[str, str]] = {
     "Neville Island": ("28", "1"),
-    "HART RAILROAD": ("28", "1"),       # the generated panel's title (le_overlay.CAPTIONS)
+    "HART RAILROAD": ("28", "1"),       # the generated panel's title (panel_items.json)
     "Brick": ("16", "1"),
     "Plane": ("16", "1"),
     "Barn": ("16", "1"),
@@ -164,19 +164,19 @@ LABEL_STYLE: dict[str, tuple[str, str]] = {
     "Industries": ("16", "0"),
 }
 
-# The overlay the cut-over build carries onto a generated panel (tools/schematic/le_overlay.py): its labels are the
-# hand-drawn panel's captions, kept to LABEL_STYLE there too; every other label on a generated panel is the plugin's.
-FROZEN_OVERLAY = paths.LAYOUT_DATA / "schematic" / "staging_le" / "overlay.json"
+# The fixed items the build puts on a generated panel (tools/schematic/panel_items.py): its labels are the panel's
+# captions, kept to LABEL_STYLE there too; every other label on a generated panel is the plugin's.
+PANEL_ITEMS = paths.LAYOUT_DATA / "schematic" / "panel_items.json"
 
 
-def carried_captions(overlay: Path = FROZEN_OVERLAY) -> set[str]:
-    """The texts of the labels the cut-over build carries onto a generated panel (overlay.json's items)."""
+def carried_captions(items_path: Path = PANEL_ITEMS) -> set[str]:
+    """The texts of the labels the build puts on a generated panel (panel_items.json's items and group members)."""
     import json
     try:
-        items = json.loads(overlay.read_text(encoding="utf-8"))["items"]
-        els = [ET.fromstring(it["xml"]) for it in items]
+        items = json.loads(items_path.read_text(encoding="utf-8"))["items"]
+        els = [ET.fromstring(m["xml"]) for it in items for m in (it.get("members") or [it])]
     except (OSError, ValueError, KeyError, TypeError, ET.ParseError) as exc:
-        raise ValueError(f"cannot read the carried captions from {overlay}: {exc}") from None
+        raise ValueError(f"cannot read the carried captions from {items_path}: {exc}") from None
     return {(el.get("text") or "").strip() for el in els if el.tag == "positionablelabel" and el.get("text")}
 
 
@@ -608,19 +608,27 @@ def generated_bci_spots(reference: ET.Element | None) -> dict[str, tuple[int, in
             if b and len(icons) == 1}
 
 
-def lamp_targets(
-    root: ET.Element, le: ET.Element, reference: ET.Element | None
-) -> tuple[dict[str, tuple[int, int]], list[str]]:
-    """(targets, notes): the hand-drawn panel's rule, or a generated panel's (module docstring)."""
+def reference_notes(le: ET.Element, reference: ET.Element | None) -> list[str]:
+    """Notes on `--reference` for panel `le`; ValueError when a generated panel is given a reference that is not
+    generated. Checked whether or not the lamps are placed (they are not while the Dispatcher System is parked)."""
     if tables.generated_panel(le):
         if reference is not None and not tables.generated_panel(reference):
             raise ValueError("--reference: its main panel is not a generated one; a reference gives the positions "
                              "of a generated panel only")
-        return generated_lamp_targets(root, le, reference)
-    notes = []
+        return []
     if reference is not None:
-        notes.append("--reference not used: the panel is the hand-drawn one, whose lamps take the computed and "
-                     "STAGE1_LAMP_PLACEMENTS spots")
+        return ["--reference not used: the panel is the hand-drawn one, whose lamps take the computed and "
+                "STAGE1_LAMP_PLACEMENTS spots"]
+    return []
+
+
+def lamp_targets(
+    root: ET.Element, le: ET.Element, reference: ET.Element | None
+) -> tuple[dict[str, tuple[int, int]], list[str]]:
+    """(targets, notes): the hand-drawn panel's rule, or a generated panel's (module docstring)."""
+    notes = reference_notes(le, reference)
+    if tables.generated_panel(le):
+        return generated_lamp_targets(root, le, reference)
     return stage1_lamp_targets(root, le), notes
 
 
@@ -832,16 +840,21 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
     changes += bci_changes
     errors.extend(bci_errors)
 
-    # After the turnout and anchor fixes above, as the lamp spots are read off that geometry.
-    targets, notes = lamp_targets(root, le, ref)
-    _print_notes(path, notes)
-    os_added, os_errors = ensure_os_occupancy_icons(le, check=check, targets=targets)
-    changes += os_added
-    errors.extend(os_errors)
+    # The OS occupancy dots are the Dispatcher System's: parked with it (owner, 2026-11-17; their places are kept in
+    # jmri/layouts/hart/parked/staging_panel_lamps.json), so they and their spots are wanted only while it is not
+    # parked. The spots are read after the turnout and anchor fixes above, off that geometry.
+    if "dispatcher" in parked.PARKED:
+        _print_notes(path, reference_notes(le, ref))
+    else:
+        targets, notes = lamp_targets(root, le, ref)
+        _print_notes(path, notes)
+        os_added, os_errors = ensure_os_occupancy_icons(le, check=check, targets=targets)
+        changes += os_added
+        errors.extend(os_errors)
 
-    shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check, targets=targets)
-    changes += shared_n
-    errors.extend(shared_errors)
+        shared_n, shared_errors = dedupe_shared_occupancy_icons(le, check=check, targets=targets)
+        changes += shared_n
+        errors.extend(shared_errors)
 
     lamp_n, lamp_errors = lamps_display_only(le, check=check, name=path.name)
     changes += lamp_n
@@ -863,8 +876,8 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
             changes += 1
 
     # On a generated panel the plugin writes the station names and track names (a track can be named like a
-    # caption, the track Barn): those are the build's and keep their style. The captions the build carries from
-    # the hand-drawn panel (overlay.json: Neville Island, Industries ...) are kept to LABEL_STYLE as there. Two
+    # caption, the track Barn): those are the build's and keep their style. The captions the build puts on from
+    # panel_items.json (HART RAILROAD, Industries ...) are kept to LABEL_STYLE as on the hand-drawn panel. Two
     # labels of one caption's text with neither in its style would be a damaged caption beside a track name: an
     # error, not a guess.
     exempt: set[str] = set()

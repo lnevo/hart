@@ -2,7 +2,9 @@
 # Rebuild every output drawn from the schematic, in the order they depend on each other, or check them all with
 # --check (exit 1 if any is stale). `make panels` and `make panels CHECK=1` run this.
 #
-#   hands.csv, <name>.signals.json   from the plan graph and the frozen mast facts; the schematic reads the signals
+#   staging device map               device_map_staging.csv and its files are kept by hand: checked against tables.xml
+#                                    and the schematic (staging_device_map.py --check), in both modes
+#   hands.csv, <name>.signals.json   from the plan graph and the staging masts; the schematic reads the signals
 #   device map                       from the solved sheet; writes main_upper.plan_overrides.json, a layer file the
 #                                    schematic reads, so it runs before publishing
 #   main_upper_masts.csv             from the device map; the Layout Editor builds place these masts
@@ -43,6 +45,7 @@ step() {
 }
 
 step hands python3 tools/schematic/build_hands.py
+step staging-map python3 tools/schematic/staging_device_map.py --check
 step signals python3 tools/schematic/build_signals.py
 step device-map python3 tools/schematic/build_device_map.py
 step main-upper-masts python3 tools/schematic/build_main_upper_masts.py

@@ -83,7 +83,9 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
                 for icon in after_le.findall("sensoricon")
                 if (icon.get("sensor") or "").strip() in polish.OS_OCCUPANCY_ICONS
             }
-            self.assertEqual(os_present, set(polish.OS_OCCUPANCY_ICONS))
+            # the OS dots are the Dispatcher System's: wanted only while it is not parked (hartlib.parked.PARKED)
+            want = set() if "dispatcher" in polish.parked.PARKED else set(polish.OS_OCCUPANCY_ICONS)
+            self.assertEqual(os_present, want)
             after_topology = [
                 (
                     el.tag,
