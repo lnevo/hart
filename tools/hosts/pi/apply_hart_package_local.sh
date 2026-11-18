@@ -53,6 +53,8 @@ fanout() {
 if [[ -f "$HART/tables.xml" ]]; then
   # JMRI_UserFiles holds the only copy.
   mv -f "$HART/tables.xml" "$UF/tables.xml"
+  # The deploy stamp now names these tables; an older pull stamp no longer counts (unpulled_changes.sh).
+  rm -f "$UF/.tables_deployed.sha256"
   echo "Pi tables.xml updated"
 fi
 

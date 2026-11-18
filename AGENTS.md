@@ -14,7 +14,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Rebuild the panels drawn from the schematic | `make panels` (hands, signals, device map, schematic, CATS, LE trials and cut-over, in order); `make panels CHECK=1` only checks; `make desks` rebuilds and validates only the CATS desks. Pipeline: `wiki/pipelines/schematic-panels.md` |
 | Real PanelPro load | `make panelpro-test` on the Mac. Disables the publishing startup scripts but still connects to MQTT |
 | Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
-| Bring a PanelPro Store into the repo | `make tables-pull` |
+| Bring a PanelPro Store into the repo | `make tables-pull-pi` for a Store on the Pi, `make tables-pull` for one on the Mac |
 | Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed. Repo is the master (ADR-015) |
 | Quit / start PanelPro on the Pi (around a deploy) | `tools/hosts/pi_quit_panelpro.sh --for-deploy` (its own Quit, answers No to Store) before a Pi deploy; the deploy starts it again, also if the deploy fails. `tools/hosts/pi_start_panelpro.sh` by hand |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
@@ -82,7 +82,7 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
 ## Do not
 
-- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works and a deploy replaces them, so run `make ops-pull` first. The deploy leaves the DecoderPro roster alone (it ships only the photos). `tables.xml` changes only on a Store, which is not the default; after one, run `make tables-pull` before committing or deploying. The Mac is expendable: PanelPro or CATS open there blocks nothing.
+- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works, and `tables.xml` changes on a Store (not the default); a deploy replaces both, so it stops until `make ops-pull` or `make tables-pull-pi` is run and committed. `HART_DISCARD_PI_CHANGES=1` is the owner's call. The deploy leaves the DecoderPro roster alone (it ships only the photos). The Mac is expendable: PanelPro or CATS open there blocks nothing.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.

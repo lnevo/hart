@@ -19,7 +19,7 @@ Windows is kept matching the Pi, so both get every layout deploy (`make deploy-l
 
 Before you run it:
 
-- Run `make tables-pull` if a Store may be waiting (see the `tables-pull` skill), and `make ops-pull` first to keep a Pi Operations session (see the `ops-pull` skill). The repo wins on both.
+- A Pi deploy stops before sending anything when the Pi's Operations Pro files or `tables.xml` changed since the last deploy or pull: run `make ops-pull` or `make tables-pull-pi` (see the `ops-pull` and `tables-pull` skills) and commit. `HART_DISCARD_PI_CHANGES=1` replaces them anyway, only on the owner's say. A Mac Store waiting: `make tables-pull`.
 - `--dry-run` shows what would be sent (it still connects to the hosts).
 - `--stage-only DIR` builds the Pi and Windows packages into `DIR/pi` and `DIR/win` and stops: no ssh, no Mac install, `tables.xml` only checked. Use it to look at or compare a package.
 - A checkout with uncommitted or untracked files prints a WARNING and deploys anyway; the stamp records `dirty=yes`. Commit first unless the owner wants a work-in-progress deploy.
@@ -28,7 +28,7 @@ What it does:
 
 - With no flag it installs on the Mac only. A host flag also installs on the Mac, then sends one staged package: the Pi by rsync, Windows by tarball over ssh. Each host unpacks into a temporary folder, installs into `JMRI_UserFiles`, and removes the folder.
 - It runs `audit_panel_contracts.py --strict` first and turns off the Digicon SML MQTT destinations in the shipped tables.
-- Operations files are overwritten on every host (`HART_OVERWRITE_OPS=1` is the default; `0` restores the guards).
+- Operations files are overwritten on every host once the Pi check passes (`HART_OVERWRITE_OPS=1` is the default; `0` restores the per-file guards).
 - Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES`, `HART_WIN_USERFILES` and `HART_PI_WEB_HOST` (the Pi's name in the Mac web home's links), read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `tools/env/defaults.env`.
 - Edit host scripts in `tools/hosts/pi/` and `tools/hosts/windows/`; the package places them where the hosts expect them.
 - Each host it installs ends with `JMRI_UserFiles/cats/deploy_stamp.txt` (commit, branch, dirty, sha256 of the shipped `tables.xml` and `tables_modified_by_deploy`, date, deploying machine, target, `source` and `redeploy_from`), written last by the apply step. Both apply steps install into the configured `HART_PI_USERFILES` / `HART_WIN_USERFILES`, so the stamp and `deploy_status.sh` agree.
@@ -39,6 +39,7 @@ Redeploy an older commit (rollback):
 - It makes a temporary detached worktree at that commit, runs that commit's own `sync_hart_package.sh` there with a clean environment (`env -i`: PATH, HOME, ssh agent, the deploy switches, and the host settings this checkout resolves, named by `load_env.sh`'s `HART_HOST_NAMES`), then removes the worktree. `--dry-run` and `--stage-only DIR` pass through.
 - It refuses a commit that is not on `origin/main` (git fetch first; `--allow-unmerged` overrides) and one without `tools/hosts/sync_hart_package.sh` or the deploy stamp (before the ADR-007 amendment 2026-11-12). It stops before building anything if `~/JMRI_UserFiles/tables.xml` holds a Store that is not pulled (the same test as the deploy, `tools/hosts/profile_tables_guard.sh`): run `make tables-pull` first.
 - The Operations files keep their guards (`HART_OVERWRITE_OPS=0`): an unpulled Pi session stops the Pi step, so run `make ops-pull`; a running JMRI keeps its files. `HART_OVERWRITE_OPS=1` replaces them as a normal deploy does.
+- With `--pi` or `--all` it makes the same Pi check as the deploy (`make ops-pull`, `make tables-pull-pi`; `HART_DISCARD_PI_CHANGES=1`), since older commits' deploys lack it.
 - The stamp says `source=redeploy` and `redeploy_from=<commit that ran it>` (a normal deploy writes `source=deploy`).
 - The stamp keeps no history. To find the commit to go back to, read the current one with `make deploy-status` and look at `git log --first-parent --oneline origin/main` for the merge before it.
 - After a rollback the Mac and the hosts hold the old commit's `tables.xml`. Go forward with a normal deploy from `main` before a PanelPro Store, or `make tables-pull` would bring the old tables back into the repo.
