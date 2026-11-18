@@ -116,11 +116,11 @@ class Cutover(unittest.TestCase):
         self.assertEqual((self.le.get("editable"), self.le.get("scrollable")), ("no", "both"))
         self.assertEqual(self.items["attributes"]["scrollable"], "none")
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        # the window is the panel and its frame, at most FIT; the stretched panel (le_stretch) is wider than it
+        # the window is the panel and its frame, at most the le_window; the stretched panel (le_stretch) is wider than it
         self.assertEqual((int(self.le.get("windowwidth")), int(self.le.get("windowheight"))),
                          (min(w + 18, T.le_window()[0]), min(h + 60, T.le_window()[1])))
         self.assertEqual(self.P.scale, (self.P.staging_fit[0] * stretch()[0], self.P.staging_fit[1]))
-        self.assertTrue(0.7 < self.P.staging_fit[0] < 0.9, self.P.staging_fit)     # staging's own fit to FIT
+        self.assertTrue(0.7 < self.P.staging_fit[0] < 0.9, self.P.staging_fit)     # staging's own fit to le_window
 
     def test_no_placeholders_in_staging_mode(self) -> None:
         self.assertFalse([t for t in tables.turnouts(self.root) if tables.system_name(t).startswith(B.TURNOUT_SYS)])

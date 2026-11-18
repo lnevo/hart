@@ -347,8 +347,6 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     return doc.tobytes(), P, names, bands
 
 
-
-
 def live_target(out: Path) -> bool:
     """True when `out` is the live tables.xml or lies in the JMRI profile (by path or through a link)."""
     real = Path(os.path.realpath(out))
