@@ -90,7 +90,7 @@ def swapped_idents() -> set:
     return {idents[k] for k in LEGS_SWAPPED}
 
 
-def staging_lengths(opts: dict, names: dict) -> dict:
+def staging_lengths(opts: dict, names: dict, os_inches: dict | None = None) -> dict:
     """{block: inches} for each staging block the schematic draws whose track has a measured length (layer 1
     `track_lengths_in`, by track name: block "Track S-1 West" is track "S-1 West"), so a track with several blocks
     is cut at their real shares: a short throat block (S-1 West, East Lead East, K-1 West) sits at its own end."""
@@ -106,13 +106,29 @@ def staging_lengths(opts: dict, names: dict) -> dict:
             raise BuildError(f"staging track_lengths_in: no drawn staging track has the block 'Track {track}' "
                              "(renamed or misspelt?)")
         out[f"Track {track}"] = float(inches)
-    # A track that also holds an OS block (the Scale track ends in OS Switch 7) has no measured length for it, so
-    # it is drawn with equal blocks as before; its track's length is left out rather than logged on every build.
+    # A track that also holds an OS block (the Scale track ends in OS Switch 7) takes each OS block's length from
+    # block_lengths.csv (owner, 2026-11-18: Mast 8RA's boundary at Switch 7's points, not half way along Scale), so
+    # the OS block is drawn its real short length and the plugin keeps it long enough for a facing mast's icon.
+    # A track with an OS block that has no length there, or whose other blocks are not all measured, is drawn with
+    # equal blocks as before; its lengths are left out rather than logged on every build.
+    os_inches = block_inches() if os_inches is None else os_inches
     for blocks in names["blocks"].values():
-        if any(b.startswith("OS ") for b in blocks):
+        oses = [b for b in blocks if b.startswith("OS ")]
+        if not oses:
+            continue
+        if all(os_inches.get(b) for b in oses) and all(b in out for b in blocks if b not in oses):
+            out.update({b: float(os_inches[b]) for b in oses})
+        else:
             for b in blocks:
                 out.pop(b, None)
     return out
+
+
+def block_inches() -> dict:
+    """{block: inches} of block_lengths.csv (hartlib.railroad), the blocks with a length."""
+    from hartlib import railroad
+    return {name: r.inches for name, r in railroad.read_block_lengths(railroad.Sources.under().block_lengths).items()
+            if r.inches}
 
 
 MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map

@@ -226,6 +226,15 @@
   ]
  },
  "_le_split_crossovers": "Switches 101 and 103 drawn as two plain turnouts each: see _le_tight_crossovers.",
+ "le_crossover_pairs": {
+  "Main": [
+   [
+    "127",
+    "131"
+   ]
+  ]
+ },
+ "_le_crossover_pairs": "Plain turnouts of different numbers that are one crossover on the ground (owner, 2026-11-18): 127 and 131. Their diagonal crosses at the level's le_crossover_angle like every crossover: 131 and everything east of it slide along the rows to give it. 121 and 123 are a pair on the ground too, but 123 stays as drawn, its normal route in one line with 125's diverging leg (owner, 2026-11-18), so they are not listed.",
  "le_mast_room": {
   "Main": true,
   "Upper": true

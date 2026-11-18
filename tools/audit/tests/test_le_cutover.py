@@ -217,8 +217,8 @@ class Cutover(unittest.TestCase):
                 c.tail = None
                 got[B.canon(c)] += 1
         self.assertEqual(want - got, Counter())               # each item there, attributes as the file has them
-        self.assertEqual(len(item_elements(self.items)), 14)
-        self.assertEqual(self.P.items["count"], 14)
+        self.assertEqual(len(item_elements(self.items)), 15)          # the compass back (owner, 2026-11-18)
+        self.assertEqual(self.P.items["count"], 15)
 
     def test_what_panel_status_and_signal_coordinator_look_up(self) -> None:
         for tag, names in STATUS.items():
@@ -252,7 +252,7 @@ class Cutover(unittest.TestCase):
                 B, "build", return_value=(self.data, self.P, self.names, self.bands)):
             with contextlib.redirect_stdout(io.StringIO()) as out:
                 B.main(["--levels", "staging", "--as-live", "--out", str(Path(tmp) / "c.xml")])
-        self.assertIn("  panel items: 14 elements from", out.getvalue())
+        self.assertIn("  panel items: 15 elements from", out.getvalue())
         self.assertIn("panel 'HART Railroad'", out.getvalue())
 
     def test_each_level_set_has_its_own_candidate_file(self) -> None:
@@ -422,10 +422,17 @@ class ThreeLevels(unittest.TestCase):
         with self.assertRaisesRegex(B.plugin()[2].SchematicError, r"set le_stretch's factor to about 1\.\d+"):
             B.plugin()[1].check_stretch((1984, 1505), T.le_window(), page_prefs())
 
-    def test_no_compass_rose_and_the_plain_backdrop(self) -> None:
+    def test_the_compass_rose_beside_the_status_cluster_and_the_plain_backdrop(self) -> None:
         urls = [el.find("icon").get("url") for el in self.le.iter("positionablelabel") if el.find("icon") is not None]
-        self.assertEqual([u for u in urls if "hart_panel" in u], ["preference:resources/misc/hart_panel_bg_plain.jpg"])
-        self.assertTrue((T.ROOT / "jmri/resources/misc/hart_panel_bg_plain.jpg").exists())
+        self.assertEqual(sorted(u for u in urls if "hart_panel" in u),
+                         ["preference:resources/misc/hart_panel_bg_plain.jpg",
+                          "preference:resources/misc/hart_panel_compass.png"])       # owner, 2026-11-18
+        for name in ("hart_panel_bg_plain.jpg", "hart_panel_compass.png"):
+            self.assertTrue((T.ROOT / "jmri/resources/misc" / name).exists(), name)
+        rose = next(el for el in self.le.iter("positionablelabel")
+                    if el.find("icon") is not None and el.find("icon").get("url").endswith("hart_panel_compass.png"))
+        caption = next(el for el in self.le.iter("positionablelabel") if el.get("text") == "Track Power")
+        self.assertEqual(int(rose.get("x")) + 111 + 10, int(caption.get("x")))       # 10 px left of the captions
         # the backdrop is panel_items.json's: the plain picture, at the panel's corner
         backdrop = next(it for it in B.panel_items.load(B.PANEL_ITEMS)["items"] if it["id"] == "backdrop")
         self.assertIn("hart_panel_bg_plain.jpg", backdrop["xml"])
@@ -547,7 +554,9 @@ class ThreeLevels(unittest.TestCase):
                 plain[t.get("turnoutname")].append(t)
         self.assertEqual({k: sorted(t.get("type") for t in v) for k, v in plain.items()},
                          {"Switch 101": ["RH_TURNOUT", "RH_TURNOUT"], "Switch 103": ["LH_TURNOUT", "LH_TURNOUT"]})
-        middle = {k: next(t for t in v if t.get("ycen") == "800.0") for k, v in plain.items()}
+        shared = {t.get("ycen") for t in plain["Switch 101"]} & {t.get("ycen") for t in plain["Switch 103"]}
+        self.assertEqual(len(shared), 1)                    # the one track both crossovers stand on
+        middle = {k: next(t for t in v if t.get("ycen") in shared) for k, v in plain.items()}
         throats = abs(float(middle["Switch 103"].get("xcen")) - float(middle["Switch 101"].get("xcen")))
         self.assertLessEqual(throats, 37)
         for k, v in plain.items():

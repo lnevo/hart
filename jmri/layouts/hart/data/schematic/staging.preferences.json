@@ -163,6 +163,13 @@
     "S-4"
    ]
   ],
+  "name_steps": [
+   [
+    "EH-1",
+    "EH-2",
+    "EH-3"
+   ]
+  ],
   "lamp_columns": [
    [
     "S-R",
@@ -173,7 +180,7 @@
    ]
   ]
  },
- "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns), and its occupancy lamps share one x, each on its track (lamp_columns; owner, 2026-11-16; the lamps are parked with the Dispatcher System).",
+ "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns), and its occupancy lamps share one x, each on its track (lamp_columns; owner, 2026-11-16; the lamps are parked with the Dispatcher System). The engine house's track names step with their tracks' west ends as EH-1 and EH-2 do, each the same distance in from its track's end (name_steps; owner, 2026-11-18: EH-3 had drifted 30 px east of that line).",
  "le_crossover_angle": {
   "Staging": 45
  },

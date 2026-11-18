@@ -786,7 +786,9 @@ class Throats(unittest.TestCase):
 
     def test_the_throat_tracks_are_measured(self) -> None:
         tracks = {self.bands[0][1]["strands"][sid]["name"] for sid in self.measured()}
-        self.assertEqual(tracks, {"S-R", "S-1", "S-2", "S-3", "S-4", "East Lead", "K-1"})
+        # Scale and the unnamed Switch 1-3 link hold OS blocks, cut at their block_lengths.csv shares since the
+        # owner put Mast 8RA's boundary at Switch 7's points (2026-11-18)
+        self.assertEqual(tracks, {"S-R", "S-1", "S-2", "S-3", "S-4", "East Lead", "K-1", "Scale", ""})
 
     def test_throats_sit_at_their_own_ends_in_block_order(self) -> None:
         lengths = self.names[B.STAGING]["lengths"]
