@@ -6,10 +6,6 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SRC="${HOME}/JMRI_UserFiles/tables.xml"
 DEST="$ROOT/jmri/layouts/hart/output/tables.xml"
 
-if pgrep -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1; then
-  echo "Quit PanelPro and CATS first." >&2
-  exit 1
-fi
 if [[ ! -f "$SRC" ]]; then
   echo "Missing $SRC" >&2
   exit 1

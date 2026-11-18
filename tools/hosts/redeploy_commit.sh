@@ -109,14 +109,6 @@ if ! git -C "$ROOT" show "$SHA:$SYNC_REL" | grep 'write_deploy_stamp' >/dev/null
   exit 1
 fi
 
-# The same process check the repo hook and the table tools use (hartlib.tables.jmri_running).
-if [[ "$REAL" -eq 1 ]] && PYTHONPATH="$ROOT/tools/hartlib/src" python3 -c \
-    'import sys; from hartlib.tables import jmri_running; sys.exit(0 if jmri_running() else 1)'; then
-  echo "REFUSED: PanelPro, DecoderPro or CATS is running on this machine. Close it (and make tables-pull" \
-    "if it stored), then redeploy." >&2
-  exit 1
-fi
-
 BASE="$(mktemp -d "${TMPDIR:-/tmp}/hart-redeploy.XXXXXX")"
 WT="$BASE/hart"
 cleanup() {

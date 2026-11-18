@@ -84,8 +84,7 @@ are kept, and characters are escaped as JDOM (JMRI) escapes them: `&#xD;` for CR
 `&#xD;` / `&#xA;` / `&#x9;` in attributes. A file ElementTree wrote with its own forms
 (`&#13;` / `&#10;` / `&#09;`) keeps those. `save` replaces the file through a temp file and
 `os.replace`, keeping its mode; a symlink is followed and its target written, and a
-hard-linked file is rewritten in place. It refuses to write any `tables.xml` outside the temp directory while PanelPro, DecoderPro,
-DispatcherPro or CATS is open (`HART_GUARD_JMRI_RUNNING=0/1` overrides, as for the hook).
+hard-linked file is rewritten in place. A running PanelPro or CATS does not stop it: JMRI changes `tables.xml` only on a Store.
 
 Lookups (all take the root element unless noted):
 
@@ -224,8 +223,4 @@ The broker and JMRI JSON settings:
 5. Compare against step 2: identical output and exit code; a writer still writes nothing on
    current tables.xml when it should change nothing.
 6. Run its tests and `./tools/check.sh`.
-7. The repo hook (`.claude/hooks/main_guard.py`) blocks table writers while PanelPro or
-   CATS is open. It finds them by reading their source: `tables.xml` plus a write call, or
-   any import of `hartlib.tables` plus a `.save(` call. Keep a writer's `.save(` call
-   spelled that way, and give it a `--check`, `--dry-run` or `--apply` flag as before.
-   `save` itself also refuses while JMRI is open.
+7. Give a writer a `--check`, `--dry-run` or `--apply` flag as before.

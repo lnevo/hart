@@ -7,15 +7,10 @@ publish. Other merges through gh pass: the owner lets agents merge a PR once its
 required check is green, and GitHub refuses it otherwise. Submodules keep their own rules, so
 pushes from external/ pass.
 
-Two more rules. While PanelPro, DecoderPro, DispatcherPro or CATS runs on this machine it
-blocks the commands that write the JMRI tables or deploy: make tables-pull, ops-pull,
-deploy-layout, deploy-all and redeploy, and any repo script whose source writes tables.xml or
-JMRI_UserFiles (READS_TABLES and the launch_/run_ launchers excepted). The script is read
-when the command runs, and --check, --dry-run, --stage-only or a missing --apply only count when the
-script defines that flag. And it blocks a commit, tag, PR, issue, comment, review or
-release whose text or body file holds the railroad's private name (checked by fingerprint,
-never spelled out); if that check cannot load, publishing is blocked.
-HART_GUARD_JMRI_RUNNING=1 or 0 overrides the process check, for tests.
+It also blocks a commit, tag, PR, issue, comment, review or release whose text or body
+file holds the railroad's private name (checked by fingerprint, never spelled out); if that
+check cannot load, publishing is blocked. A running PanelPro or CATS on this machine blocks
+nothing: the Mac is expendable, and what matters lives on the Pi (AGENTS.md).
 
 In the main checkout of a repo that uses agent worktrees (it holds tools/agent/worktrees.py)
 it blocks any commit and any switch to a branch other than main: agents work in their own
@@ -36,9 +31,6 @@ SPLIT = re.compile(r"&&|\|\||[;|\n]")
 PUBLISH = re.compile(r"\bmosquitto_pub\b.*track/cmd|track/cmd.*\bmosquitto_pub\b", re.S)
 MERGE = re.compile(r"^\s*gh\s+pr\s+merge\b")
 BRANCHED = re.compile(r"^\s*git\s+(checkout\s+(-q\s+)?-[bB]|switch\s+(-q\s+)?-[cC])\s+\S+")
-# Matches the main classes JMRI 5 and CATS run (DecoderPro is apps.gui3.dp3.DecoderPro3).
-PROCESS = (r"java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3"
-           r"|apps\.DecoderPro|apps\.DispatcherPro)")
 # Commands that publish text: commits, tags, PRs, issues, comments, reviews and releases.
 PUBLISHING = re.compile(
     r"^\s*(gh\s+(pr|issue)\s+(create|edit|comment|review)|gh\s+release\s+(create|edit)"
@@ -46,61 +38,6 @@ PUBLISHING = re.compile(
 FILE_FLAGS = ("-F", "--file", "--body-file", "--notes-file")
 NAME_CHECK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "..", "..", "ops", "hart-ops", "card_pipeline", "private_name.py")
-
-# While JMRI or CATS is open these may not run: the make targets below, and any shell or
-# Python script in the repo whose source writes tables.xml or JMRI_UserFiles. The script is
-# read when the command runs, so new scripts are covered without a list to keep up.
-MAKE_TARGETS = {"tables-pull", "ops-pull", "deploy-layout", "deploy-all", "redeploy"}  # not deploy-site
-WRITERS = {"pull_tables.sh", "pull_ops.sh", "sync_hart_package.sh"}  # when the file can't be read
-TOUCHES = re.compile(r"tables\.xml|JMRI_UserFiles|HART_PI_USERFILES|HART_WIN_USERFILES")
-PY_WRITES = re.compile(r"\.write\(|write_text\(|write_bytes\(|shutil\.(copy|move)|os\.replace\("
-                       r"|open\([^)]*['\"][wa]b?\+?['\"]")
-# A script on hartlib (tools/hartlib) may name neither tables.xml nor a write call: it imports
-# hartlib.tables in any form and saves with .save(. That pair counts as a table writer too.
-HARTLIB_TABLES = re.compile(r"\bhartlib\.tables\b")
-HARTLIB_FROM = re.compile(r"\bfrom\s+hartlib\s+import\s+(\([^)]*\)|[^\n]*)")
-PY_SAVES = re.compile(r"\.save\(")
-
-
-def hartlib_writer(source):
-    """True when Python source imports hartlib.tables and calls .save(."""
-    imports = HARTLIB_TABLES.search(source) or any(
-        re.search(r"\btables\b", m.group(1)) for m in HARTLIB_FROM.finditer(source))
-    return bool(imports and PY_SAVES.search(source))
-SH_WRITES = re.compile(r"\b(rsync|cp|scp|mv|install|tee)\s|[^0-9&>]>\s*[^&\s]")
-# Read the tables but write somewhere else, or run inside JMRI. A new script that touches
-# the tables is blocked until it is listed here, so the list errs on the safe side.
-READS_TABLES = {
-    "capture_public_name_baseline.py", "discover_nx.py", "discover_sml.py",
-    "build_layout_index.py", "export_track_lengths.py", "lcos_mqtt_mimic.py", "run_dispatcher_stage1.py",
-}
-# The website build reads the repo's tables.xml for the tables page and writes only its build folder, so the
-# owner lets it run while PanelPro or CATS is open (2026-11-13). It deletes that folder first, so it still
-# counts as a writer when the folder is the JMRI profile, inside it, or a folder that holds it.
-WEBSITE_BUILD = os.path.join("www", "scripts", "prepare_github_pages.py")
-JMRI_PROFILE = os.path.expanduser("~/JMRI_UserFiles")
-
-
-def website_build_unsafe(args, cwd):
-    """True when a website build argument names the JMRI profile, a folder inside it or one holding it."""
-    skip = False
-    for arg in args:
-        if skip or arg.startswith("-"):
-            skip = arg in ("--site-url",)  # the next word is a URL, not a folder
-            continue
-        if re.search(r"JMRI_UserFiles|USERFILES", arg):
-            return True
-        dest = os.path.realpath(os.path.join(cwd, os.path.expanduser(arg)))
-        profile = os.path.realpath(JMRI_PROFILE)
-        if dest == profile or dest.startswith(profile + os.sep) or profile.startswith(dest.rstrip(os.sep) + os.sep):
-            return True
-    return False
-LAUNCHER_PREFIXES = ("launch_", "run_")  # start PanelPro or CATS themselves and check what is open
-SAFE_FLAGS = ("--check", "--dry-run", "--stage-only", "--help")  # honoured only when the script defines it
-# A wrapper names the script it runs, relative to itself; the guard judges that script.
-FOLLOWS = re.compile(r"^# main_guard follows: (\S+)$", re.M)
-LAUNCHERS = {"env", "time", "nohup", "exec", "sudo", "command"}
-SHELLS = {"bash", "sh", "zsh"}
 
 
 def git(cwd, *args):
@@ -111,18 +48,6 @@ def git(cwd, *args):
     return done.stdout.strip() if done.returncode == 0 else ""
 
 
-def jmri_running():
-    """True when PanelPro, DecoderPro, DispatcherPro or CATS runs for this user."""
-    forced = os.environ.get("HART_GUARD_JMRI_RUNNING")
-    if forced in ("0", "1"):
-        return forced == "1"
-    try:
-        done = subprocess.run(["pgrep", "-u", str(os.getuid()), "-f", PROCESS], capture_output=True, timeout=5)
-    except (OSError, subprocess.SubprocessError):
-        return False
-    return done.returncode == 0
-
-
 def contains_private_name(text):
     """The repo's fingerprint check. Raises when it cannot be loaded, so publishing fails closed."""
     spec = importlib.util.spec_from_file_location("hart_private_name", NAME_CHECK)
@@ -131,73 +56,6 @@ def contains_private_name(text):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module.contains_private_name(text)
-
-
-def program(words):
-    """Strip env assignments, launchers and interpreter options; return (words, inline -c text)."""
-    words = [w.strip("()") for w in words]
-    words = [w for w in words if w]
-    while words:
-        head = os.path.basename(words[0])
-        if re.fullmatch(r"\w+=.*", words[0]) or head in LAUNCHERS:
-            words.pop(0)
-        elif head == "uv" and words[1:2] == ["run"]:
-            words = words[2:]
-        elif re.fullmatch(r"python[\d.]*", head) or head in SHELLS:
-            words.pop(0)
-            while words and words[0].startswith("-"):
-                flag = words.pop(0)
-                if flag == "-c" and words:
-                    return [], words[0]
-                if flag in ("-m", "-X", "-W") and words:
-                    if flag == "-m":
-                        return [], ""  # a module run, not a script path
-                    words.pop(0)
-            return words, None
-        else:
-            return words, None
-    return words, None
-
-
-def table_writer(part, cwd="."):
-    """Name the table-writing or deploying command in `part`, or None."""
-    try:
-        words = shlex.split(part)
-    except ValueError:
-        return None
-    words, inline = program(words)
-    if inline:
-        return next((w for p in SPLIT.split(inline) if (w := table_writer(p, cwd))), None)
-    if not words:
-        return None
-    name = os.path.basename(words[0])
-    if name == "make":
-        hit = [w for w in words[1:] if w in MAKE_TARGETS]
-        return f"make {hit[0]}" if hit else None
-    if not name.endswith((".py", ".sh")) or name.startswith(("test_",) + LAUNCHER_PREFIXES) or name in READS_TABLES:
-        return None
-    path = os.path.join(cwd, os.path.expanduser(words[0]))
-    if os.path.realpath(path).endswith(os.sep + WEBSITE_BUILD):
-        return name if website_build_unsafe(words[1:], cwd) else None
-    try:
-        with open(path, encoding="utf-8", errors="ignore") as f:
-            source = f.read()
-        follow = FOLLOWS.search(source)
-        if follow:
-            with open(os.path.join(os.path.dirname(path), follow.group(1)), encoding="utf-8", errors="ignore") as f:
-                source = f.read()
-    except OSError:
-        return name if name in WRITERS else None
-    writes = (SH_WRITES if name.endswith(".sh") else PY_WRITES).search(source)
-    if not (TOUCHES.search(source) and writes) and not (name.endswith(".py") and hartlib_writer(source)):
-        return None
-    args = words[1:]
-    if '"--apply"' in source or "'--apply'" in source:
-        return name if "--apply" in args else None
-    flags = {a.split("=", 1)[0] for a in args}  # --stage-only=DIR counts as --stage-only
-    if any(a in SAFE_FLAGS and (f'"{a}"' in source or f"'{a}'" in source or f"{a})" in source) for a in flags):
-        return None
-    return name
 
 
 def file_values(words):
@@ -363,11 +221,6 @@ def main():
         found = private_name_problem(part, rest, cwd)
         if found:
             print(f"Blocked: {found}. The repo is public; see AGENTS.md. Reword it.", file=sys.stderr)
-            return 2
-        writer = table_writer(part, cwd)
-        if writer and jmri_running():
-            print(f"Blocked: {writer} writes the JMRI tables or deploys, and PanelPro or CATS is open. "
-                  "Quit it first (AGENTS.md).", file=sys.stderr)
             return 2
         if MERGE.search(part) and re.search(r"(^|\s)--admin\b", part):
             print("Blocked: an admin merge skips the required check. That override is the owner's.", file=sys.stderr)

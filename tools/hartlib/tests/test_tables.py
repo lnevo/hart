@@ -65,10 +65,6 @@ STORE = (
 ).encode("utf-8")
 
 
-def no_jmri():
-    return mock.patch.dict(os.environ, {"HART_GUARD_JMRI_RUNNING": "0"})
-
-
 class RoundTripTest(unittest.TestCase):
     def test_repo_tables_xml_is_byte_identical(self):
         original = paths.TABLES_XML.read_bytes()
@@ -76,7 +72,7 @@ class RoundTripTest(unittest.TestCase):
         self.assertEqual(doc.path, paths.TABLES_XML)
         self.assertFalse(doc.changed())
         self.assertEqual(doc.tobytes(), original)
-        with tempfile.TemporaryDirectory() as d, no_jmri():
+        with tempfile.TemporaryDirectory() as d:
             out = Path(d) / "tables.xml"
             self.assertTrue(doc.save(out))
             self.assertEqual(out.read_bytes(), original)
@@ -105,7 +101,7 @@ class RoundTripTest(unittest.TestCase):
         tables.by_user_name(tables.turnouts(doc.root))["Switch 1"].find("userName").text = "Switch 99"
         self.assertTrue(doc.changed())
         self.assertEqual(doc.tobytes(), STORE.replace(b">Switch 1<", b">Switch 99<"))
-        with tempfile.TemporaryDirectory() as d, no_jmri():
+        with tempfile.TemporaryDirectory() as d:
             out = Path(d) / "tables.xml"
             out.write_bytes(STORE)
             os.chmod(out, 0o640)
@@ -182,7 +178,7 @@ class LinkTest(unittest.TestCase):
     def test_symlink_stays_a_link_and_its_target_is_written(self):
         doc = tables.loads(STORE)
         doc.root.find("jmriversion/major").text = "6"
-        with tempfile.TemporaryDirectory() as d, no_jmri():
+        with tempfile.TemporaryDirectory() as d:
             real, link = Path(d) / "real.xml", Path(d) / "tables.xml"
             real.write_bytes(STORE)
             link.symlink_to(real)
@@ -193,42 +189,13 @@ class LinkTest(unittest.TestCase):
     def test_hard_link_is_written_in_place(self):
         doc = tables.loads(STORE)
         doc.root.find("jmriversion/major").text = "6"
-        with tempfile.TemporaryDirectory() as d, no_jmri():
+        with tempfile.TemporaryDirectory() as d:
             a, b = Path(d) / "tables.xml", Path(d) / "other.xml"
             a.write_bytes(STORE + b"\n" * 50)  # longer than the new bytes: tail must go
             os.link(a, b)
             self.assertTrue(doc.save(a))
             self.assertEqual(b.read_bytes(), doc.tobytes())
             self.assertEqual(a.stat().st_ino, b.stat().st_ino)
-
-    def test_guard_follows_a_symlink(self):
-        with tempfile.TemporaryDirectory() as d:
-            link = Path(d) / "x.xml"
-            link.symlink_to(paths.TABLES_XML)
-            self.assertTrue(tables._guarded(link))
-
-
-class JmriGuardTest(unittest.TestCase):
-    def test_live_tables_are_guarded_temp_copies_are_not(self):
-        self.assertTrue(tables._guarded(paths.TABLES_XML))
-        self.assertTrue(tables._guarded(Path.home() / "JMRI_UserFiles/tables.xml"))
-        with tempfile.TemporaryDirectory() as d:
-            self.assertFalse(tables._guarded(Path(d) / "tables.xml"))
-        self.assertFalse(tables._guarded(paths.LAYOUT_OUTPUT / "other.xml"))
-
-    def test_save_refuses_while_jmri_runs(self):
-        doc = tables.loads(STORE)
-        doc.root.find("jmriversion/major").text = "6"
-        with tempfile.TemporaryDirectory() as d:
-            out = Path(d) / "tables.xml"
-            out.write_bytes(STORE)
-            with mock.patch.object(tables, "_guarded", return_value=True), \
-                    mock.patch.dict(os.environ, {"HART_GUARD_JMRI_RUNNING": "1"}):
-                with self.assertRaises(RuntimeError):
-                    doc.save(out)
-                self.assertEqual(out.read_bytes(), STORE)
-                self.assertTrue(doc.save(out, allow_while_jmri_runs=True))
-
 
 class LookupTest(unittest.TestCase):
     def setUp(self):

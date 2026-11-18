@@ -232,12 +232,6 @@ def main() -> None:
         print(f"{args.panel}: a generated panel that is not the checkout's tables.xml, so it is not copied to "
               f"{PREF_TABLES}; rerun with --no-pref (or --no-sync)", file=sys.stderr)
         sys.exit(1)
-    # The running JMRI holds the profile copy and would overwrite it on Store; refuse
-    # before touching anything, so the repo panel and the profile never part ways.
-    if syncing and tables.jmri_running():
-        print(f"{PREF_TABLES}: not changed: PanelPro or CATS is open; quit it and rerun, "
-              "or use --no-pref and deploy", file=sys.stderr)
-        sys.exit(1)
     turnouts, anchors = load_assignments(args.csv, tables.path_has_generated_panel(args.panel))
     patch_file(args.panel, turnouts, anchors, dry_run=args.dry_run)
     if args.dry_run or args.no_sync:

@@ -40,7 +40,7 @@ After any task that **changed files**, do not wait to be asked:
 5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CATS resources: run `sync_hart_package.sh --pi --win` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
 6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
 
-Sheets push (`.env.local`) stays human-gated. Hooks enforce the rules above and under **Do not**: `.claude/hooks/main_guard.py` (Cursor: `.cursor/hooks.json`) covers git on `main`, force-push, admin merge, `track/cmd` publishes (it asks), table and deploy commands while PanelPro or CATS is open, and the private name in commit, PR or issue text; `edit_guard.py` covers edits in the main checkout; `check_after_edit.py` runs the quick checks after a `tables.xml` or signal edit; `worktree_sweep.py` removes merged worktrees.
+Sheets push (`.env.local`) stays human-gated. Hooks enforce the rules above and under **Do not**: `.claude/hooks/main_guard.py` (Cursor: `.cursor/hooks.json`) covers git on `main`, force-push, admin merge, `track/cmd` publishes (it asks) and the private name in commit, PR or issue text; `edit_guard.py` covers edits in the main checkout; `check_after_edit.py` runs the quick checks after a `tables.xml` or signal edit; `worktree_sweep.py` removes merged worktrees.
 
 ## Working on existing scripts
 
@@ -82,11 +82,10 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
 ## Do not
 
-- Run table scripts with PanelPro or CATS open, or commit after a PanelPro Store (it writes `~/JMRI_UserFiles/tables.xml`) without `make tables-pull`.
+- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works and a deploy replaces them, so run `make ops-pull` first. The deploy leaves the DecoderPro roster alone (it ships only the photos). `tables.xml` changes only on a Store, which is not the default; after one, run `make tables-pull` before committing or deploying. The Mac is expendable: PanelPro or CATS open there blocks nothing.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.
-- Remove **F30-S-0** where the layout includes it.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
 - Patch or wrap JMRI or CATS. Both are stock installs; fix the data in `jmri/layouts/hart/output/tables.xml` instead.
 - Leave the LCOS bridge (`serial_to_mqtt`) running detached. It is operator-owned and runs in a visible foreground console. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).

@@ -252,7 +252,7 @@
             <li><b>Open a pull request.</b> GitHub runs the same checks on a clean copy. <code>main</code> accepts a change only through a pull request whose checks pass.</li>
             <li><b>Merge and deploy.</b> The worktree is removed automatically once the merge is half an hour old.</li>
           </ol>
-          <p>Hooks in <code>.claude/hooks/</code> back these rules up for the AI tools. They stop a commit or push to <code>main</code>, an edit in the main checkout, and any command that writes the tables or deploys while PanelPro or CATS is open. Cursor runs the same checks through its own hook file.</p>
+          <p>Hooks in <code>.claude/hooks/</code> back these rules up for the AI tools. They stop a commit or push to <code>main</code>, and an edit in the main checkout. Cursor runs the same checks through its own hook file.</p>
         </section>
 
         <section id="records" aria-labelledby="h-records">

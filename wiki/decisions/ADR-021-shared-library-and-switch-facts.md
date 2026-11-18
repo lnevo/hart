@@ -21,7 +21,7 @@ An architecture review on 2026-11-12, before the two remaining levels are import
 ## Consequences
 
 - A rewiring is a data change plus the generators, and a disagreement fails `check.sh` with the switch and both sources named.
-- `tables.xml` knowledge (duplicate sections, doubled blocks, virtual masts, JDOM escapes) is in one module; a writer's `save()` refuses while PanelPro or CATS is open, and the repo hook spots hartlib writers by import.
+- `tables.xml` knowledge (duplicate sections, doubled blocks, virtual masts, JDOM escapes) is in one module. (Amended 2026-11-18: `save()` and the repo hook no longer refuse while PanelPro or CATS runs on the Mac; JMRI changes `tables.xml` only on a Store, and the Mac is expendable.)
 - Adding a level needs a USS board design decision; the data and checks already carry `level`.
 - Dispatcher stations for the new levels are defined in PanelPro once the upper level is done. The stale `add_yard_ladder_le_icons.py` ship entry was removed 2026-11-13 (PR #394); a copy already on the hosts is inert.
 

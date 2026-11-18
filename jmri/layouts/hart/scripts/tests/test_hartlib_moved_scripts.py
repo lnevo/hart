@@ -101,22 +101,6 @@ class WritersOnACopyTest(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(before, panel.read_bytes())
 
-    def test_sml_facing_leaves_the_profile_copy_alone_while_jmri_runs(self):
-        panel = self.copy("facing.xml")
-        pref = self.home / "JMRI_UserFiles" / "tables.xml"
-        pref.parent.mkdir(parents=True, exist_ok=True)
-        pref.write_bytes(b"profile copy held by the running JMRI")
-        before = panel.read_bytes()
-        result = run("apply_le_sml_facing.py", "--panel", str(panel), home=self.home, jmri_running="1")
-        self.assertEqual(1, result.returncode, result.stdout)
-        self.assertIn("not changed", result.stderr)
-        self.assertEqual(before, panel.read_bytes(), "panel must stay untouched when the sync is refused")
-        self.assertEqual(b"profile copy held by the running JMRI", pref.read_bytes())
-        result = run("apply_le_sml_facing.py", "--panel", str(panel), home=self.home)
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual(panel.read_bytes(), pref.read_bytes())
-
-
 class CommentNodeTest(unittest.TestCase):
     def test_mast_slot_insert_skips_a_comment_inside_a_layoutturnout(self):
         import xml.etree.ElementTree as ET

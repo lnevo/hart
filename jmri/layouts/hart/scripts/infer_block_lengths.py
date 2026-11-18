@@ -370,7 +370,7 @@ def main():
                   f"{before:.0f} mm before OS Switch 15's centre")
     if a.apply:
         fields, rows, mm = plan_rows(result, CSV, route, only)
-        apply_tables(mm)          # tables first: it refuses while PanelPro or CATS is open
+        apply_tables(mm)          # tables first: it can refuse (a HART_TABLES check run)
         write_csv(fields, rows)   # so the CSV only changes once tables.xml has
         print(f"updated {len(mm)} rows in {CSV.relative_to(REPO)} and tables.xml; now run export_track_lengths.py")
 
