@@ -14,6 +14,10 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 | `jmri/scripts/signal_coordinator.py` | JMRI jython publisher |
 | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | Host serial ↔ MQTT bridge |
 
+## Levels
+
+The JMRI page has Staging, Main and Upper tabs. Staging is the LCOS plant: clicks go through `mimic_relay.py` as MQTT feedback. Main and upper run on virtual JMRI devices (`hartlib.level_devices`), listed from `device_map_main_upper.csv` and grouped by control point or region; their clicks post the turnout or sensor state to JMRI over the JSON WebSocket, only for names with the `IT:HART:C3:` or `IS:HART:C3:B:` prefix, and nothing reaches MQTT. The Mac mimic talks only MQTT, so it shows staging alone.
+
 ## Behavior
 
 - **Live roster:** non-empty `track/signalmast/<packed>` from LCOS — not static allow-lists.

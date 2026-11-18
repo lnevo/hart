@@ -35,7 +35,7 @@ from urllib.parse import urlparse
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import level_devices, paths, railroad, tables  # noqa: E402
 from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -82,6 +82,11 @@ PLANT_ORDER = [
     "Main",
     "Other",
 ]
+
+# Tabs on the page. Staging runs on LCOS MQTT devices (M2T/M2S), set through MQTT feedback; the main and upper
+# levels run on virtual JMRI devices (hartlib.level_devices) named in the device map, set in JMRI directly.
+STAGING = "staging"
+LEVELS = {2: "main", 3: "upper"}
 
 
 def _which(name: str) -> str:
@@ -140,7 +145,8 @@ def _head_leaf(name: str) -> str:
     return name
 
 
-def load_layout() -> dict:
+def load_layout(levels: bool = True) -> dict:
+    """Staging from tables.xml and the repo CSVs; with `levels`, also the main and upper levels (load_levels)."""
     if not TABLES.is_file():
         raise SystemExit(f"missing {TABLES}")
     root = tables.read(TABLES)
@@ -186,6 +192,8 @@ def load_layout() -> dict:
                 "userName": un,
                 "comment": rec["comment"],
                 "plant": plant,
+                "level": STAGING,
+                "name": rec["systemName"],
             }
         )
     blocks.sort(key=lambda b: (PLANT_ORDER.index(b["plant"]) if b["plant"] in PLANT_ORDER else 99, b["userName"]))
@@ -220,6 +228,8 @@ def load_layout() -> dict:
                 "n_addr": n_addr,
                 "r_addr": r_addr,
                 "tip": SWITCH_TIPS.get(num, ""),
+                "level": STAGING,
+                "name": sn,
             }
         )
     turnouts.sort(key=lambda t: (PLANT_ORDER.index(t["plant"]) if t["plant"] in PLANT_ORDER else 99, t["num"]))
@@ -239,6 +249,7 @@ def load_layout() -> dict:
                             "systemName": h,
                             "mast": mast,
                             "plant": plant,
+                            "level": STAGING,
                         }
                     )
     heads.sort(
@@ -249,6 +260,84 @@ def load_layout() -> dict:
         )
     )
 
+    if not levels:
+        return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
+    level = load_levels(root)
+    return {
+        "blocks": blocks + level["blocks"],
+        "turnouts": turnouts + level["turnouts"],
+        "heads": heads + level["heads"],
+    }
+
+
+def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
+    """Main and upper turnouts, block sensors and heads: the device map's virtual devices that tables.xml holds.
+
+    Each record's `addr` is its JMRI system name and `virtual` is true, so the JMRI page sets it directly
+    (no MQTT); a name without the virtual prefix stops the build. Grouped by control point, else by the area of
+    the first switch in its name that has one ("Peninsula").
+    """
+    rr = rr or railroad.Railroad()
+    dm = rr.device_map
+    in_tables = {
+        _txt(el, "systemName")
+        for tag in ("turnout", "sensor", "signalhead")
+        for el in root.iter(tag)
+    }
+    blocks_of: dict[str, list[str]] = {}
+    for el in root.iter("block"):
+        occ = _txt(el, "occupancysensor")
+        name = _txt(el, "userName")
+        if occ and name:
+            blocks_of.setdefault(occ, []).append(name)
+
+    region = {num: sw.cp or sw.area for num, sw in rr.main_upper_switches.items()}
+
+    def virtual(r: railroad.DeviceRow, prefix: str) -> str:
+        if not r.jmri_name.startswith(prefix):
+            raise SystemExit(f"{dm.path} line {r.line}: {r.user_name} is {r.jmri_name!r}, not a virtual "
+                             f"{prefix}* device; the mimic sets only those directly")
+        return r.jmri_name
+
+    def group(r: railroad.DeviceRow) -> str:
+        if r.cp:
+            return r.cp
+        for num in re.findall(r"\d+[a-z]?", r.user_name):
+            if region.get(num):
+                return region[num]
+        raise SystemExit(f"{dm.path} line {r.line}: {r.user_name} has no cp and names no switch with a region")
+
+    def order(r: railroad.DeviceRow) -> tuple:
+        return (r.level, railroad.natural(group(r)), railroad.natural(r.user_name))
+
+    turnouts, blocks, heads = [], [], []
+    for r in sorted(dm.turnouts.values(), key=order):
+        if r.jmri_name not in in_tables:
+            continue
+        name = virtual(r, level_devices.TURNOUT_PREFIX)
+        turnouts.append({
+            "addr": name, "name": name, "label": r.user_name,
+            "plant": group(r), "feedback": "DIRECT", "n_addr": None, "r_addr": None, "tip": "",
+            "level": LEVELS[r.level], "virtual": True,
+        })
+    for r in sorted(dm.of("occupancy"), key=order):
+        if r.jmri_name not in in_tables:
+            continue
+        names = blocks_of.get(r.user_name, [])
+        name = virtual(r, level_devices.SENSOR_PREFIX)
+        blocks.append({
+            "addr": name, "name": name, "label": " / ".join(names) or r.user_name,
+            "userName": r.user_name, "comment": "", "plant": group(r),
+            "level": LEVELS[r.level], "virtual": True,
+        })
+    for r in sorted(dm.of("mast"), key=order):
+        for h in level_devices.HEAD.findall(r.jmri_name):
+            if h not in in_tables:
+                continue
+            heads.append({
+                "id": _head_leaf(h), "systemName": h, "mast": r.user_name, "plant": group(r),
+                "level": LEVELS[r.level],
+            })
     return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
 
 
@@ -581,7 +670,8 @@ def main() -> int:
             raise SystemExit(f"missing UI {page}")
 
     host = pick_mqtt_host(args.mqtt_host)
-    layout = load_layout()
+    # This server talks only MQTT, so it cannot set the main and upper levels' virtual JMRI devices.
+    layout = load_layout(levels=False)
     bus = Bus(host)
     bus.start()
     html = HTML.read_bytes()

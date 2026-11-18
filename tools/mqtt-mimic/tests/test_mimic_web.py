@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -18,6 +19,9 @@ PAGE = WEB / "index.html"
 MAC_PAGE = SCRIPTS / "lcos_mqtt_mimic.html"
 SHARED = ("mimic.css", "mimic_view.js")
 INSTALL = ROOT / "cats/scripts/install_jmri_web_override.sh"
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import level_devices  # noqa: E402
+
 RELAY = (ROOT / "jmri/layouts/hart/scripts/mimic_relay.py").read_text(encoding="utf-8")
 
 
@@ -40,6 +44,46 @@ class BuildLayout(unittest.TestCase):
         self.assertTrue(written["turnouts"] and written["blocks"] and written["heads"])
 
 
+class Levels(unittest.TestCase):
+    """Staging is LCOS over MQTT; main and upper are virtual JMRI devices, each on its own tab."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mimic = _load("lcos_mqtt_mimic")
+        cls.layout = cls.mimic.load_layout()
+
+    def test_every_level_has_turnouts_blocks_and_heads(self):
+        for kind in ("turnouts", "blocks", "heads"):
+            self.assertEqual({it["level"] for it in self.layout[kind]}, {"staging", "main", "upper"}, kind)
+
+    def test_only_main_and_upper_are_virtual(self):
+        for kind, prefix in (("turnouts", level_devices.TURNOUT_PREFIX), ("blocks", level_devices.SENSOR_PREFIX)):
+            for it in self.layout[kind]:
+                if it["level"] == "staging":
+                    self.assertFalse(it.get("virtual"), it)
+                    self.assertRegex(it["name"], r"^M2[TS]\d+$")
+                else:
+                    self.assertTrue(it["virtual"], it)
+                    self.assertTrue(it["name"].startswith(prefix), it)
+                    self.assertEqual(it["addr"], it["name"])
+
+    def test_every_record_has_a_group(self):
+        for kind in ("turnouts", "blocks", "heads"):
+            for it in self.layout[kind]:
+                self.assertTrue(it["plant"], it)
+
+    def test_tab_titles_cover_the_levels(self):
+        view = (WEB / "mimic_view.js").read_text(encoding="utf-8")
+        titles = re.search(r"LEVEL_TITLES = \{(.+?)\}", view).group(1)
+        self.assertEqual(set(re.findall(r"(\w+):", titles)), {"staging", "main", "upper"})
+
+    def test_mac_mimic_keeps_staging_only(self):
+        staged = self.mimic.load_layout(levels=False)
+        for kind, rows in staged.items():
+            self.assertTrue(rows, kind)
+            self.assertEqual({it["level"] for it in rows}, {"staging"})
+
+
 class Page(unittest.TestCase):
     text = PAGE.read_text(encoding="utf-8")
     script = text[text.index("<script>"):]
@@ -55,12 +99,21 @@ class Page(unittest.TestCase):
         self.assertEqual(topics, {"track/sensor", "track/turnout"})
         self.assertNotIn("track/cmd", self.script)
 
-    def test_never_sets_jmri_turnouts_or_sensors_directly(self):
-        # A JSON turnout post commands the motor; feedback goes only through the relay memory.
-        posts = re.findall(r'type: "(\w+)", method: "post"', self.script)
-        self.assertTrue(posts)
-        self.assertEqual(set(posts), {"memory"})
+    def test_sets_only_virtual_devices_directly(self):
+        # A JSON turnout post commands an LCOS motor, so LCOS feedback goes through the relay memory.
+        # Only the main and upper levels' virtual devices are set directly, behind the VIRTUAL guard.
+        named = re.findall(r'type: "(\w+)", method: "post"', self.script)
+        self.assertEqual(set(named), {"memory"})
+        self.assertEqual(self.script.count('method: "post"'), len(named) + 1)
+        guarded = self.script[self.script.index("function setVirtual("):]
+        guarded = guarded[:guarded.index("\n    }\n")]
+        self.assertIn("{ type, method: \"post\"", guarded)
+        self.assertIn("if (!prefix || !name.startsWith(prefix)", guarded)
         self.assertNotIn('method: "put"', self.script)
+
+    def test_virtual_guard_is_the_level_device_prefixes(self):
+        guard = re.search(r"const VIRTUAL = \{ turnout: \"([^\"]+)\", sensor: \"([^\"]+)\" \};", self.script)
+        self.assertEqual(guard.groups(), (level_devices.TURNOUT_PREFIX, level_devices.SENSOR_PREFIX))
 
     def test_no_mac_mimic_endpoints(self):
         self.assertNotIn("/api/", self.script)
