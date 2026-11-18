@@ -13,7 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hartlib import paths, tables  # noqa: E402
 from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
-from le_common import BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, read_csv, STAGING, TURNOUT_SYS  # noqa: E402
+from le_common import (  # noqa: E402
+    BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, main_upper_device_map, STAGING, TURNOUT_SYS,
+)
 from approval import canon_sorted, element_label  # noqa: E402  as the approval fingerprints read an element
 
 
@@ -307,27 +309,21 @@ def level_sensors(path: Path = DEVICE_MAP) -> dict:
     its occupancy row's virtual sensor (jmri_name, hartlib.level_devices.block_sensor) and, in the comment, the planned
     detector or why there is none. Stops on a block with no occupancy row or a row whose jmri_name is not the
     block's."""
-    try:
-        rows = read_csv(path)
-    except OSError as exc:
-        raise BuildError(f"cannot read the device map {path}: {exc}") from None
-    occ = {r["user_name"]: r for r in rows if r["layer"] == "occupancy"}
+    device = main_upper_device_map(path)               # read and checked by hartlib.railroad
+    occ = device.by_user("occupancy")
     out, bad = {}, []
-    for r in rows:
-        if r["layer"] != "block":
-            continue
-        block = r["user_name"]
+    for block in device.blocks:
         o = occ.get(level_devices.occupancy_user(block))
         try:
             want = level_devices.block_sensor(block)
         except ValueError as exc:
             bad.append(str(exc))
             continue
-        if o is None or o.get("jmri_name") != want:
+        if o is None or o.jmri_name != want:
             bad.append(f"{block}: no occupancy row {level_devices.occupancy_user(block)} with jmri_name {want}")
             continue
-        planned = f"planned {o['system_name']} (draft)" if o["system_name"] else o["notes"]
-        out[block] = (want, o["user_name"], f"{SENSOR_COMMENT}; {planned}")
+        planned = f"planned {o.system_name} (draft)" if o.system_name else o.notes
+        out[block] = (want, o.user_name, f"{SENSOR_COMMENT}; {planned}")
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
     return out

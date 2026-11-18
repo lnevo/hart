@@ -453,9 +453,57 @@ class Built(unittest.TestCase):
             self.assertIn("MAIN LEVEL", {lb[0] for lb in labels})
 
 
+class FactsReaders(unittest.TestCase):
+    """The build reads switches.csv and the main and upper device map through hartlib.railroad (le_common): the same
+    facts, and a file it cannot read stops the build with a BuildError naming the file and row, not a traceback."""
+
+    def setUp(self) -> None:
+        self.lc = sys.modules["le_common"]
+        self.lc.staging_switches.cache_clear()
+        self.addCleanup(self.lc.staging_switches.cache_clear)
+
+    def test_staging_switches_are_hartlibs(self) -> None:
+        from hartlib import railroad
+        self.assertEqual(B.staging_switches(), railroad.Railroad(upto="inputs").switches)
+        self.assertIs(B.staging_switches(), B.staging_switches())          # read once per run
+        self.assertEqual(B.swapped_idents(), {B.staging_switches()[13].le_ident})
+
+    def test_a_bad_switches_file_stops_with_a_build_error(self) -> None:
+        rr = self.lc.railroad
+        real = rr.Railroad
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "switches.csv"
+            text = (paths.LAYOUT_DATA / "switches.csv").read_text(encoding="utf-8")
+            bad.write_text(text + text.splitlines()[-1] + "\n", encoding="utf-8")      # the last switch twice
+            def patched(sources=None, upto=rr.LAYERS[-1]):
+                return real((sources or rr.Sources.under()).but(switches=bad), upto=upto)
+            with mock.patch.object(rr, "Railroad", patched):
+                with self.assertRaisesRegex(B.BuildError, r"^staging switches: switches.csv lines \d+ .* both use"):
+                    B.swapped_idents()
+
+    def test_a_bad_device_map_stops_with_a_build_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "device_map_main_upper.csv"
+            text = B.DEVICE_MAP.read_text(encoding="utf-8")
+            block = next(line for line in text.splitlines() if ",block," in line)
+            bad.write_text(text + block + "\n", encoding="utf-8")                      # a block row twice
+            for read in (B.level_sensors, B.device_names):
+                with self.subTest(read=read.__name__), \
+                        self.assertRaisesRegex(B.BuildError, r"^the device map: device_map_main_upper.csv lines"):
+                    read(bad)
+
+    def test_level_sensors_read_every_block(self) -> None:
+        from hartlib import railroad
+        device = railroad.read_device_map(B.DEVICE_MAP)
+        sensors = B.level_sensors()
+        self.assertEqual(list(sensors), list(device.blocks))
+        for block, (system, user, _comment) in sensors.items():
+            self.assertEqual(device.sensors[user], system)
+
+
 class DeviceNames(unittest.TestCase):
     """device_map_main_upper.csv's trial_name maps each drawn placeholder to a device-map name; anything else stops."""
-    HEAD = "level,cp,layer,user_name,system_name,node,dcc,comment,trial_name,notes\n"
+    HEAD = "level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes\n"
 
     def read(self, rows: str) -> dict:
         with tempfile.TemporaryDirectory() as tmp:
@@ -472,17 +520,17 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(len(got), 51 + 125)
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
-        got = self.read('2,,turnout,DCC Switch 101,MTT120,34,120,,,\n'
-                        '2,,turnout,Switch 101,M2T1,34,120,,"Switch 101A, Switch 101B",\n'
-                        '2,,fb,FB Switch 101 N,M2S1,34,,,,\n'
-                        '2,,block,Track 1-2,,,,,Track e1,\n')
+        got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
+                        '2,,turnout,Switch 101,M2T1,,34,120,,"Switch 101A, Switch 101B",\n'
+                        '2,,fb,FB Switch 101 N,M2S1,,34,,,,\n'
+                        '2,,block,Track 1-2,,,,,,Track e1,\n')
         self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track e1": "Track 1-2"})
-        for rows, why in (('2,,block,Track 1-2,,,,,,\n', "has no trial_name"),
-                          ('2,,block,Track 1-2,,,,,Track e1,\n2,,block,Track 3-4,,,,,Track e1,\n',
+        for rows, why in (('2,,block,Track 1-2,,,,,,,\n', "has no trial_name"),
+                          ('2,,block,Track 1-2,,,,,,Track e1,\n2,,block,Track 3-4,,,,,,Track e1,\n',
                            "trial_name Track e1 is given to Track 1-2 and Track 3-4"),
-                          ('2,,turnout,Turnout 5,,,,,Switch 5,\n', "is not named"),
-                          ('2,,block,Siding,,,,,Track e1,\n', "is not named"),
-                          ('2,,fb,FB 1,,,,,,\n', "no turnout or block rows")):
+                          ('2,,turnout,Turnout 5,,,,,,Switch 5,\n', "is not named"),
+                          ('2,,block,Siding,,,,,,Track e1,\n', "is not named"),
+                          ('2,,fb,FB 1,,,,,,,\n', "no turnout or block rows")):
             with self.subTest(why=why), self.assertRaisesRegex(B.BuildError, why):
                 self.read(rows)
         with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(B.BuildError, "cannot read"):
