@@ -97,7 +97,7 @@ from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read 
     check_boundaries,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, COMMENT, place, bean, r1, block_sort,
+    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, COMMENT, bean, r1, block_sort,
     RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, canon, is_level_bean, level_items,
     PANEL_SIZE_ATTRS, helix_join_changes, check_staging_unchanged, insert_first_panel, numbered_blocks,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
@@ -218,7 +218,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
                          f"{hand_drawn.COMMIT})")
     panel_name = TEMPLATE_PANEL
     if not tables.layout_editors(root):
-        raise BuildError(f"{live_path} has no Layout Editor panel to put the new one beside")
+        raise BuildError(f"{live_path} has no Layout Editor panel; the candidate keeps the others "
+                         "in place and needs at least one")
 
     names, lengths = level_names(bands, le_mod, page=page) if levels == "all" else ({}, {})
     level_rows = []
@@ -362,8 +363,8 @@ def run(argv, cached) -> int:
                     help="all: every band, main and upper under the device map's names (default); staging: staging "
                          "alone")
     ap.add_argument("--as-live", action="store_true",
-                    help="required (the viewing trials are retired): write the cut-over candidate: the live panel replaced by the new one; with --levels all "
-                         "(the default) all three levels at staging's grid (tables_cutover.xml), with --levels "
+                    help="required (the viewing trials are retired): write the cut-over candidate, the live panel "
+                         "replaced by the new one; with --levels all (the default) all three levels at staging's grid (tables_cutover.xml), with --levels "
                          "staging staging alone (tables_cutover_staging.xml)")
     ap.add_argument("--out", type=Path, help="where to write (default: the candidate for these levels: "
                     "tables_cutover.xml or tables_cutover_staging.xml)")

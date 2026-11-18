@@ -20,8 +20,8 @@ once in the schematic-maps plugin's slots.py and read here from the XML of each 
   in the turnout's own block, the blocks beyond (crossovers pair A with C and B with D by type).
 
 These checks read the three-level cut-over candidate (--as-live, owner 2026-11-16; the all-levels viewing trial they
-also read is retired, owner 2026-11-17). The staging-only candidate (--levels staging --as-live) ends both helix tracks at end bumpers as live, so there every
-mast matches exactly, with no exception (test_le_cutover.py).
+also read is retired, owner 2026-11-17). The staging-only candidate (--levels staging --as-live) ends both helix
+tracks at end bumpers as live, so there every mast matches exactly, with no exception (test_le_cutover.py).
 
 With B.JOIN_HELIX off (owner, 2026-11-16, after the Phase 4 rehearsal) the three-level panels draw the helix tracks
 unjoined, so every staging mast matches the live panel exactly there too, Masts 38RA and 40RA on their bumpers.

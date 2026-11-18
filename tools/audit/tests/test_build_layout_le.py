@@ -341,8 +341,11 @@ class Built(unittest.TestCase):
             self.assertNotIn(el.tag, ("sensorA", "sensorB", "sensorC", "sensorD"))
             for a in ("eastboundsensor", "westboundsensor"):
                 self.assertIsNone(el.get(a))
-        self.assertEqual({el.get("sensor") for el in self.le.iter("sensoricon")},
-                         {"Bridge HBLOOP", "SML Mode", "Track Power"})
+        items = B.panel_items.load(B.PANEL_ITEMS)["items"]
+        status = {ET.fromstring(m["xml"]).get("sensor") for it in items for m in (it.get("members") or [it])
+                  if ET.fromstring(m["xml"]).tag == "sensoricon"}
+        self.assertTrue(status)
+        self.assertEqual({el.get("sensor") for el in self.le.iter("sensoricon")}, status)
         staging = B.band_key(self.bands[0][0])
         self.assertEqual(staging, B.STAGING)
         self.assertTrue(self.P.masts)
@@ -367,7 +370,9 @@ class Built(unittest.TestCase):
         B.plugin()
         jt = importlib.import_module("schematic.jmri_text")
         for lb in self.le.findall("positionablelabel"):
-            if lb.get("text") is None:                # an icon label (the backdrop): no text to measure
+            if lb.get("text") is None:                # an icon label (the backdrop): its corner on the panel
+                xs.append(float(lb.get("x")))
+                ys.append(float(lb.get("y")))
                 continue
             x, y, size, bold = float(lb.get("x")), float(lb.get("y")), int(lb.get("size")), lb.get("style") == "1"
             xs += [x, x + jt.width(lb.get("text"), size, bold)]
