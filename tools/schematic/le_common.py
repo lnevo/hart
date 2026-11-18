@@ -10,12 +10,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import paths  # noqa: E402
+from hartlib import railroad  # noqa: E402  the railroad's facts, each file read and checked in one place
 
 
-SWITCHES = paths.LAYOUT_DATA / "switches.csv"
-SWITCH_LEGS = paths.LAYOUT_DATA / "switch_legs.csv"
-DEVICE_MAP = pd.DATA / "device_map_main_upper.csv"   # main and upper names (trial_name: the drawing's placeholder)
+DEVICE_MAP = railroad.Sources.under().device_map    # main and upper names (trial_name: the drawing's placeholder)
 STAGING = "Staging"                  # band key (first word of the band title) bound to the live objects
 
 TURNOUT_SYS = "IT:HART:C3:"          # internal turnouts: nothing reaches the field
@@ -59,6 +57,25 @@ def band_key(title: str) -> str:
 
 def bare(label: str) -> str:
     return (label or "").rstrip("*")
+
+
+@functools.lru_cache(maxsize=None)
+def staging_switches() -> dict[int, railroad.Switch]:
+    """The staging switches, read once per run (hartlib.railroad: switches.csv with switch_legs.csv and each switch's
+    live turnout row of public_name_map.csv). BuildError names the file and row that cannot be read."""
+    try:
+        return railroad.Railroad(upto="inputs").switches
+    except railroad.FactsError as exc:
+        raise BuildError(f"staging switches: {exc}") from None
+
+
+def main_upper_device_map(path: Path = DEVICE_MAP) -> railroad.DeviceMap:
+    """The main and upper device map (hartlib.railroad.read_device_map, every row checked); BuildError names the
+    file and row that cannot be read."""
+    try:
+        return railroad.read_device_map(path)
+    except railroad.FactsError as exc:
+        raise BuildError(f"the device map: {exc}") from None
 
 
 def read_csv(path: Path) -> list[dict]:

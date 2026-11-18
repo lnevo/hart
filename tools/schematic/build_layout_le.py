@@ -82,7 +82,7 @@ from hartlib import hand_drawn, parked, paths, tables  # noqa: E402
 # The build's parts and the staging candidate's approval fingerprint (approval.py): their names are re-exported
 # below, so callers and tests read them here. Patch a name in the module that calls it (le_names.placeholder_names).
 from le_common import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    STAGING, SWITCHES, SWITCH_LEGS, DEVICE_MAP, TURNOUT_SYS, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
+    STAGING, staging_switches, DEVICE_MAP, TURNOUT_SYS, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
     schematic, slots_module, band_key, bare, read_csv,
 )
 from approval import (  # noqa: E402,F401  re-exported: callers and tests read them here

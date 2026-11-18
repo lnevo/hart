@@ -81,9 +81,10 @@ class Lengths(unittest.TestCase):
                          {"S-1": 212.0, "EH-1": 24.0})
 
     def test_bad_rows_stop(self) -> None:
-        with self.assertRaises(SystemExit):
+        """hartlib.railroad.read_block_lengths reads the file: a bad row stops, naming the file and line."""
+        with self.assertRaisesRegex(SystemExit, r"^block_lengths.csv line 2: inches '~24' is not a number"):
             self.read("Track S-1,Block 2-7,~24,assigned,\n")
-        with self.assertRaises(SystemExit):
+        with self.assertRaisesRegex(SystemExit, r"^block_lengths.csv line 3: user_name 'Track S-1' .* twice"):
             self.read("Track S-1,Block 2-7,212,assigned,\nTrack S-1,Block 2-8,200,assigned,\n")
 
 

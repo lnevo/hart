@@ -141,7 +141,7 @@ class Cutover(unittest.TestCase):
         self.assertEqual(len(live), 20)
         self.assertEqual(B.turnout_facts(self.le), live)          # ident, name, type, continuing, leg blocks
         self.assertEqual(B.swapped_idents(), {"TO1"})
-        idents = {r["le_ident"] for r in B.read_csv(B.SWITCHES)}
+        idents = {sw.le_ident for sw in B.staging_switches().values()}
         self.assertEqual({t.get("ident") for t in self.le.findall("layoutturnout")}, idents)
 
     def test_every_mast_resolves_exactly_as_live(self) -> None:
@@ -234,8 +234,8 @@ class Cutover(unittest.TestCase):
     def test_generated_labels(self) -> None:
         texts = Counter(lb.get("text") for lb in self.le.findall("positionablelabel"))
         prefix = B.LE_LABELS["switch_prefix"]
-        for r in B.read_csv(B.SWITCHES):
-            self.assertEqual(texts[prefix + r["switch"]], 1, f"switch {r['switch']}: one number")
+        for n in B.staging_switches():
+            self.assertEqual(texts[f"{prefix}{n}"], 1, f"switch {n}: one number")
         self.assertIn("S-R", texts)
         self.assertNotIn("Track S-R", texts)
         lower = Counter(t.lower() for t in texts if t)
