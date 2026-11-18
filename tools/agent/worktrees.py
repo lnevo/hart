@@ -21,8 +21,11 @@ is the worktree's commit or a descendant of it (so nothing local is lost), the m
 at least GRACE old, and the worktree has no uncommitted or untracked changes. Its local
 branch goes with it. git refuses to remove a worktree with a submodule checked out; the
 sweep then forces it only when no submodule holds work that exists nowhere else (see
-submodule_risk). A fresh worktree with no PR yet, one with work after the merge, a
-detached one, and the ones holding a --keep directory (the caller's) are kept. The grace
+submodule_risk). A fresh worktree with no PR yet, one with work after the merge, and the
+ones holding a --keep directory (the caller's) are kept. A detached worktree has no PR to
+judge it by: it is removed when its commit is already on the default branch, it is clean, and
+nothing has touched it for DETACHED_IDLE (it may be another session's fresh checkout of main
+until then). Every kept worktree except plain open work gets a "kept" line saying why. The grace
 period lets another session finish in a worktree it just merged. Remote branches are left
 alone. The same rules apply to the worktrees of each checked-out submodule (external/model-railroad-skills keeps
 its own under its .claude/worktrees/), judged by that submodule's own GitHub PRs, with three limits: only branches
@@ -51,6 +54,8 @@ MIRRORS = ("media", "ops/car-cards", "ops/hart-ops/.venv")
 CHECK_SUBMODULES = ("external/model-railroad-skills",)
 TOPIC = re.compile(r"[a-z0-9]+([-_][a-z0-9]+)*")
 GRACE = timedelta(minutes=30)
+# A detached worktree has no merge time; it counts as done once untouched this long and its commit is on main.
+DETACHED_IDLE = timedelta(hours=24)
 
 
 @dataclass
@@ -116,11 +121,28 @@ def merged_by_branch(main: str, limit: int = 1000) -> dict[str, list[dict]] | No
     return grouped
 
 
-def merged_at(tree: Worktree, main: str, prs: list[dict] | None = None) -> datetime | None:
+def last_touched(path: str) -> datetime:
+    """When the worktree was last used: its index file's time (checkout, add, status refresh), else the folder's."""
+    index = git("rev-parse", "--path-format=absolute", "--git-path", "index", cwd=path)
+    target = index if index and os.path.exists(index) else path
+    return datetime.fromtimestamp(os.path.getmtime(target), timezone.utc)
+
+
+def on_base(tree: Worktree, main: str, base: str | None) -> bool:
+    """True when the worktree's commit is already on `base` (e.g. origin/main), so removing it loses no commit."""
+    return bool(base) and git_ok("merge-base", "--is-ancestor", tree.head, base, cwd=main)
+
+
+def merged_at(tree: Worktree, main: str, prs: list[dict] | None = None, base: str | None = None,
+              now: datetime | None = None) -> datetime | None:
     """When the worktree's work was merged: the latest merged PR for its branch whose head
-    is its commit or a descendant of it. None for open work, detached HEADs, or no answer."""
+    is its commit or a descendant of it. A detached worktree counts as merged at its last use
+    once its commit is on `base` and it has been idle DETACHED_IDLE. None otherwise."""
     if not tree.branch:
-        return None
+        if not on_base(tree, main, base):
+            return None
+        touched = last_touched(tree.path)
+        return touched if (now or datetime.now(timezone.utc)) - touched >= DETACHED_IDLE else None
     if prs is None:
         prs = merged_prs(tree.branch, main) or []
     times = [datetime.fromisoformat(pr["mergedAt"].replace("Z", "+00:00")) for pr in prs
@@ -143,10 +165,11 @@ def under(path: str, folder: str) -> bool:
 
 
 def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | None = None,
-         home: str | None = None) -> tuple[list, list]:
+         home: str | None = None, why_open=None) -> tuple[list, list]:
     """(to remove, kept with reason) for every worktree but the main checkout.
 
-    `merged(tree)` returns when its work was merged, or None while it is open work. With `home` (the repository's
+    `merged(tree)` returns when its work was merged, or None while it is open work; `why_open(tree)`, when given,
+    names why such a worktree stays (None for plain open work, which is not listed). With `home` (the repository's
     own .claude/worktrees/ folder; given for submodules only) a worktree anywhere else is never removed: it may be
     another session's working copy.
     """
@@ -155,7 +178,10 @@ def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | 
     for tree in trees[1:]:
         when = merged(tree)
         if when is None:
-            continue  # open work, a fresh worktree, or detached
+            reason = why_open(tree) if why_open else None
+            if reason:
+                kept.append((tree, reason))
+            continue  # open work or a fresh worktree
         if home is not None and not under(tree.path, home):
             kept.append((tree, "outside, kept (not under .claude/worktrees/ of its repository)"))
         elif tree.locked:
@@ -279,11 +305,24 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
     else:
         git("fetch", "-q", "origin", cwd=main)
     by_branch = merged_by_branch(main)
+    base = f"origin/{branch}" if branch else None
     if by_branch is None:  # GitHub refused the batch: ask per branch, as before
-        merged = lambda t: merged_at(t, main)  # noqa: E731
+        merged = lambda t: merged_at(t, main, base=base)  # noqa: E731
     else:
-        merged = lambda t: merged_at(t, main, by_branch.get(t.branch or "", []))  # noqa: E731
-    remove, kept = plan([Worktree(main, "", None)] + candidates, merged, keep, is_dirty, home=home)
+        merged = lambda t: merged_at(t, main, by_branch.get(t.branch or "", []), base=base)  # noqa: E731
+
+    def why_open(tree: Worktree) -> str | None:
+        if not tree.branch:
+            if on_base(tree, main, base):
+                return (f"detached, its commit is on {base}; removed once untouched for "
+                        f"{int(DETACHED_IDLE.total_seconds() // 3600)} hours")
+            return f"detached, with commits not on {base or 'the default branch'}"
+        if by_branch and by_branch.get(tree.branch):
+            return "its PR is merged, but this worktree has commits after the merged head"
+        return None
+
+    remove, kept = plan([Worktree(main, "", None)] + candidates, merged, keep, is_dirty, home=home,
+                        why_open=why_open)
     lines = []
     for i, tree in enumerate(remove):
         label = tree.branch or tree.head[:8]
