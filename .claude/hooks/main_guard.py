@@ -13,10 +13,10 @@ check cannot load, publishing is blocked. A running PanelPro or CATS on this mac
 nothing: the Mac is expendable, and what matters lives on the Pi (AGENTS.md).
 
 While the operating flag is set (tools/hosts/operating.sh: the owner is running trains, or a
-speed-matching run is on the layout) it blocks what reaches the layout hosts (host_control): a deploy
-to the Pi or Windows, quitting or starting PanelPro on the Pi, an STS update there, an ssh command to
-either host that touches JMRI, PanelPro, CATS, java, STS's docker or a reboot, and, under the owner's
-flag, a new speed-matching job. Work on the Mac alone stays open (owner, 2026-11-18). A wrapper's
+speed-matching run is on the layout) it blocks what reaches the Pi (host_control): a deploy that
+includes the Pi, quitting or starting PanelPro there, an STS update there, an ssh command to it that
+touches JMRI, PanelPro, CATS, java, STS's docker or a reboot, and, under the owner's flag, a new
+speed-matching job. Windows and the Mac stay open (owner, 2026-11-18: "only the pi"). Work on the Mac alone stays open (owner, 2026-11-18). A wrapper's
 `-c` text is judged too. HART_GUARD_OPERATING=1 or 0 overrides the flag file, for tests.
 
 In the main checkout of a repo that uses agent worktrees (it holds tools/agent/worktrees.py)
@@ -46,7 +46,7 @@ FILE_FLAGS = ("-F", "--file", "--body-file", "--notes-file")
 # The operating flag file (tools/hosts/operating.sh) and what it rules out (host_control).
 OPERATING_FLAG = os.environ.get("HART_OPERATING_FLAG") or os.path.expanduser("~/.hart_operating")
 HOST_SCRIPTS = {"pi_quit_panelpro.sh", "pi_start_panelpro.sh", "pi_sts_update.sh"}
-HOST_FLAGS = ("--pi", "--win", "--all")          # sync_hart_package.sh and redeploy_commit.sh: a layout host
+HOST_FLAGS = ("--pi", "--all")          # sync_hart_package.sh and redeploy_commit.sh flags that include the Pi
 SSH_VALUE_OPTS = {"-b", "-c", "-D", "-E", "-e", "-F", "-I", "-i", "-J", "-L", "-l", "-m", "-O", "-o", "-p", "-Q",
                   "-R", "-S", "-W", "-w"}     # ssh options that take the next word as their value
 HOST_TARGETS = {"deploy-layout", "deploy-all"}    # make targets that deploy to the hosts (redeploy: by HOSTS)
@@ -84,8 +84,8 @@ def operating():
 
 
 def layout_hosts():
-    """The ssh names of the Pi and Windows (tools/env: environment, then hart.env, then defaults.env), host part
-    only, lower case, plus the Pi's web name and the broker address."""
+    """The Pi's names (tools/env: environment, then hart.env, then defaults.env): its ssh name, host part only,
+    lower case, its web name and the broker address it serves."""
     values = {}
     for path in ENV_FILES:
         try:
@@ -97,7 +97,7 @@ def layout_hosts():
         except OSError:
             continue
     values.update({k: v for k, v in os.environ.items() if k.startswith("HART_")})
-    names = {values.get(k, "") for k in ("HART_PI_SSH", "HART_WIN_SSH", "HART_PI_WEB_HOST", "HART_MQTT_BROKER")}
+    names = {values.get(k, "") for k in ("HART_PI_SSH", "HART_PI_WEB_HOST", "HART_MQTT_BROKER")}
     return {n.split("@")[-1].lower() for n in names if n}
 
 
@@ -126,7 +126,7 @@ def run_words(words):
 
 def host_control(part, flag):
     """What in this command part reaches a layout host while the operating flag `flag` is set, or None: a host
-    deploy, a Pi PanelPro or STS script, an ssh command to the Pi or Windows that touches the layout software, or
+    deploy that includes the Pi, a Pi PanelPro or STS script, an ssh command to the Pi that touches the layout software, or
     (under the owner's flag) a new speed-matching job. A shell wrapper's -c text is judged part by part."""
     try:
         words = shlex.split(part)
@@ -144,11 +144,11 @@ def host_control(part, flag):
     head, args = os.path.basename(words[0]), words[1:]
     if head in ("sync_hart_package.sh", "redeploy_commit.sh") and \
             any(a == f or a.startswith(f + "=") for a in args for f in HOST_FLAGS):
-        return "a deploy to the Pi or Windows"
+        return "a deploy to the Pi"
     if head == "make":
         hosts = " ".join(a for a in args if a.startswith("HOSTS="))
-        if HOST_TARGETS & set(args) or ("redeploy" in args and re.search(r"--(pi|win|all)\b", hosts)):
-            return "a deploy to the Pi or Windows"
+        if HOST_TARGETS & set(args) or ("redeploy" in args and re.search(r"--(pi|all)\b", hosts)):
+            return "a deploy to the Pi"
     if head in HOST_SCRIPTS:
         return f"{head}, which acts on the Pi"
     if head == "drop_job.sh" and flag.get("by") == "owner" and args and \
