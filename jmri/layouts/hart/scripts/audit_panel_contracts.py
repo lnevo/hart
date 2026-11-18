@@ -29,7 +29,6 @@ MQTT_SENSOR_SYSNAME = re.compile(r"^M2S\d+$")
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 from lcc_turnout_contract import contract_violations
 from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
-from polish_hart_layout_editor import ensure_block_contents_visible
 from refresh_bean_comments import BLOCK_COMMENTS
 from reconcile_dispatcher_stations import STATIONS as DISPATCHER_STATIONS
 
@@ -605,7 +604,7 @@ def audit_block_contents_visible(panel: ET.Element | None, audit: Audit) -> None
     or JMRI's default."""
     if panel is None:
         return
-    _, errors = ensure_block_contents_visible(panel, check=True)
+    _, errors = tables.ensure_block_contents_visible(panel, check=True)
     for message in errors:
         audit.error(message)
 

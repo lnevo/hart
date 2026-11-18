@@ -16,9 +16,7 @@ def expected_dests(root) -> int:
     """The SML destination count of the generated three-level panel: audit_panel_contracts.EXPECTED_SML (one place).
     ValueError when the main panel is not a generated one."""
     import importlib.util
-    panel = tables.layout_editor(root)
-    if panel is None or not tables.generated_panel(panel):
-        raise ValueError("the main Layout Editor panel is not a generated one (build_layout_le.py --as-live)")
+    tables.require_generated_panel(root, paths.rel(TABLES))
     spec = importlib.util.spec_from_file_location("audit_panel_contracts",
                                                   paths.LAYOUT_SCRIPTS / "audit_panel_contracts.py")
     audit = importlib.util.module_from_spec(spec)
@@ -37,7 +35,7 @@ def main() -> int:
     try:
         EXPECTED_DESTS = expected_dests(root)
     except ValueError as exc:
-        print(f"FAIL: {TABLES}: {exc}", file=sys.stderr)
+        print(f"FAIL: {exc}", file=sys.stderr)
         return 2
     nx = [sn for sn in map(tables.system_name, tables.sensors(root)) if sn.startswith("ISNX:")]
 

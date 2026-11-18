@@ -85,7 +85,6 @@ ENTRYEXIT_OPEN = (
     '  <entryexitpairs class="jmri.jmrit.entryexit.configurexml.EntryExitPairsXml">'
 )
 ABS_YES = "    <abssignalmode>yes</abssignalmode>"
-GEOGRAPHIC_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
 LAYOUT_EDITOR_PREFIX = (
     '<LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="'
 )
@@ -263,7 +262,9 @@ def set_pair_type(text: str, nx_type: str) -> tuple[str, int]:
     return updated, n
 
 
-def apply_text(text: str, mode: str = "sml") -> tuple[str, dict[str, int]]:
+def apply_text(text: str, mode: str = "sml", what: str = "the tables") -> tuple[str, dict[str, int]]:
+    """The tables `text` with the NX sensors added and bound; SystemExit naming `what` (the file) when its main
+    panel is not a generated one."""
     if mode not in ("sml", "lock"):
         raise SystemExit(f"unknown NX mode {mode!r}")
     missing = set(CTC_MASTS) - set(ISNX_SYSTEM)
@@ -273,13 +274,12 @@ def apply_text(text: str, mode: str = "sml") -> tuple[str, dict[str, int]]:
     text, sensors = insert_internal_sensors(text, mode)
     text, comments = refresh_sensor_comments(text, mode)
     try:
-        generated = tables.generated_panel(tables.layout_editor(tables.loads(text.encode("utf-8")).root))
-    except (ValueError, ET.ParseError) as exc:
-        raise SystemExit(f"cannot read the main Layout Editor panel: {exc}") from None
-    if not generated:
-        raise SystemExit("the main Layout Editor panel is not a generated one (build_layout_le.py --as-live)")
-    start = next((found for name in GEOGRAPHIC_PANEL_NAMES
-                  if (found := text.find(LAYOUT_EDITOR_PREFIX + name + '"')) >= 0), -1)
+        main = tables.require_generated_panel(tables.loads(text.encode("utf-8")).root, what)
+    except ET.ParseError as exc:
+        raise SystemExit(f"{what}: {exc}") from None
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from None
+    start = text.find(LAYOUT_EDITOR_PREFIX + main.get("name") + '"')
     end = text.find(PANEL_END, start) if start >= 0 else -1
     if end < 0:
         raise SystemExit("the main Layout Editor panel's bounds are not found in the text")
@@ -298,7 +298,7 @@ def apply_text(text: str, mode: str = "sml") -> tuple[str, dict[str, int]]:
 
 def apply_file(path: Path, mode: str = "sml") -> dict[str, int]:
     original = path.read_text(encoding="utf-8")
-    updated, counts = apply_text(original, mode=mode)
+    updated, counts = apply_text(original, mode=mode, what=str(path))
     if updated != original:
         path.write_text(updated, encoding="utf-8")
     return counts

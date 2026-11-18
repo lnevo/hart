@@ -315,21 +315,9 @@ def reconcile_sensors(root: ET.Element, changes: Changes) -> None:
             changes.details.append(f"created sensor {system_name} / {user_name}")
 
 
-GEOGRAPHIC_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
-
-
-def main_layout_editor(root: ET.Element) -> ET.Element:
-    editors = root.findall("LayoutEditor")
-    by_name = {editor.get("name"): editor for editor in editors}
-    for name in GEOGRAPHIC_PANEL_NAMES:
-        if name in by_name:
-            return by_name[name]
-    candidates = [
-        editor for editor in editors if editor.get("name") != "Dispatcher System"
-    ]
-    if len(candidates) != 1:
-        raise ValueError(f"expected one main LayoutEditor, found {len(candidates)}")
-    return candidates[0]
+def main_panel(root: ET.Element) -> ET.Element:
+    """The generated main panel of the tables (hartlib.tables.require_generated_panel)."""
+    return tables.require_generated_panel(root, "the tables")
 
 
 def station_display(station: str) -> str:
@@ -428,7 +416,7 @@ def retire_stations(root: ET.Element, changes: Changes) -> None:
             internal.remove(sensor)
             changes.retired += 1
             changes.details.append(f"removed sensor {bean_user_name(sensor)}")
-    editor = main_layout_editor(root)
+    editor = main_panel(root)
     for icon in list(editor.findall("sensoricon")):
         name = icon.get("sensor") or ""
         if name in names or (name in lamps and icon.get("level") == CLUSTER_LEVEL):
@@ -489,11 +477,9 @@ def generated_positions(
 
 
 def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | None = None) -> None:
-    editor = main_layout_editor(root)
-    if not tables.generated_panel(editor):
-        raise ValueError(f"the {editor.get('name')!r} panel is not a generated one (build_layout_le.py --as-live)")
-    if reference is not None and not tables.generated_panel(reference):
-        raise ValueError("--reference: its main panel is not a generated one")
+    editor = main_panel(root)
+    if reference is not None:
+        tables.require_generated(reference, "--reference")
     positions = generated_positions(editor, reference)
     expected_names = {
         sensor_name
@@ -663,7 +649,7 @@ def validate(root: ET.Element) -> None:
             f"station blocks bind other occupancy sensors than STATION_OCCUPANCY: {wrong_sensor}"
         )
 
-    editor = main_layout_editor(root)
+    editor = main_panel(root)
     icon_names = [
         icon.get("sensor") or ""
         for icon in editor.findall("sensoricon")
@@ -763,7 +749,10 @@ def main(argv: list[str] | None = None) -> int:
               f"{paths.rel(parked.PARKED_XML)}")
         return 0
     try:
-        reference = main_layout_editor(parse_xml(args.reference).getroot()) if args.reference else None
+        reference = None
+        if args.reference:
+            reference = tables.require_generated_panel(parse_xml(args.reference).getroot(),
+                                                       f"--reference {args.reference}")
         changes = reconcile(tree, reference)
     except (OSError, ET.ParseError, ValueError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
