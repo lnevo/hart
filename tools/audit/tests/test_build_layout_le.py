@@ -383,7 +383,11 @@ class Built(unittest.TestCase):
 
     def test_the_grid_scale_keeps_label_fonts(self) -> None:
         _sheet, le_mod, _core = B.plugin()
-        sizes = {int(lb.get("size")) for lb in self.le.findall("positionablelabel") if lb.get("text") is not None}
+        # the labels the plugin draws (the panel items, panel_items.json, carry their own sizes), as the panel has them
+        sizes = {lb["size"] for lb in self.P.labels}
+        drawn = {(lb.get("text"), int(lb.get("size"))) for lb in self.le.findall("positionablelabel")
+                 if lb.get("text") is not None}
+        self.assertLessEqual({(lb["text"], lb["size"]) for lb in self.P.labels}, drawn)
         unscaled = {le_mod.LABEL_SIZE, le_mod.LABEL_SIZE - 1, le_mod.LABEL_SIZE - 2, le_mod.NUMBER_SIZE,
                     le_mod.TITLE_SIZE}
         self.assertLessEqual(sizes, unscaled)
@@ -697,7 +701,7 @@ class SecondReview(unittest.TestCase):
             self.assertEqual(B.main(["--levels", "staging", "--as-live", "--out",
                                      str(paths.JMRI_USER_FILES / "x.xml")]), 1)
         built_.assert_not_called()
-        self.assertIn("viewing only", out.getvalue())
+        self.assertIn("written beside them, never over them", out.getvalue())
         self.assertIn("for looking at only", B.__doc__)
 
     def test_renderer_sizes_icons_by_mast_type(self) -> None:
