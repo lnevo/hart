@@ -1,5 +1,12 @@
 # Status log
 
+Updated: 2026-11-18 — Moved from `STATUS.md` once done or overtaken:
+
+- **Layout Editor cut-over (2026-11-16):** the "HART Railroad" panel in `tables.xml` is now the generated three-level panel the owner approved (hart #579, #581; schematic-maps 0.1.27). Staging is bound to the live objects; the main and upper levels are drawn with their 41 control-point masts on internal heads (IH9…) and device-map names over internal turnouts and blocks, with no detection yet; the helix is not joined. Stage 1 and NX Discover were run on it in a sandbox profile: 163 SML destinations, 197 sections, 187 transits, 374 traininfo files, 36 NX pairs. The owner accepted that staging loses the 8 head-on SML pairs 10RA/10RB/12R/14R→22L/26L and that 10 Princess transits end at another mast of the same station. Deployed to the Pi and Windows (commit 48e2e3bb) and the website. Tests that need a hand-drawn panel read it from git (`hartlib.hand_drawn`, commit 1e79b457). The helix was joined in the helix-join release of 2026-11-17.
+- **Schematic maps tool:** the plan from the 2026-11-13 spike is built: the `schematic-maps` plugin in `model-railroad-skills` (0.1.38 on 2026-11-18) draws the schematic, the Layout Editor panel and the CATS desks (`make panels`).
+- **Hidden block labels (2026-11-12):** on the Layout Editor panel the S-R block contents label (BO 572) sits at level 4 under sensor icons at level 12 and cannot be seen; the Barn label is probably the same. The owner will have it fixed later; not started. Cleared: the sensor icons that covered the labels are parked with the occupancy lamps (2026-11-17).
+- **Windows block lengths:** the 2026-11-14 values reached Windows with the 2026-11-18 deploy of 70c5624a (same `tables.xml` hash as the Pi).
+
 Updated: 2026-11-17 — Moved from `STATUS.md` after the helix-join release parked these features, as their state when parked:
 
 - **Dispatcher stations (2026-11-12):** 12 — East Lead (button "East End"), K-1, K-2, McKees Rocks, McKeesport, Scale, Barn, EH-1–3, W-1, W-2. Mains, Brick-Plane and South Yard are through track.
