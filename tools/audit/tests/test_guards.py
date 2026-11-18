@@ -335,7 +335,7 @@ class SubagentGuard(unittest.TestCase):
 
 
 class OperatingFlag(unittest.TestCase):
-    """While the operating flag is set, what reaches the Pi waits; the Mac's and Windows' work does not."""
+    """While the operating flag is set, what reaches the Pi and Windows waits; the Mac's own work does not."""
 
     def op_code(self, command: str, flag: str | None) -> int:
         """The guard's exit code with the operating flag file holding `flag` (None: no file)."""
@@ -351,35 +351,38 @@ class OperatingFlag(unittest.TestCase):
             sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
             try:
                 with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING="", HART_PI_SSH="pi",
-                              HART_PI_WEB_HOST="RPi-JMRI.local", HART_MQTT_BROKER="10.0.0.150"), \
+                              HART_PI_WEB_HOST="RPi-JMRI.local", HART_MQTT_BROKER="10.0.0.150",
+                              HART_WIN_SSH="lnevo@minipc-e5h6x.local"), \
                         contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                     return guard.main()
             finally:
                 sys.stdin = saved
 
-    def test_only_what_reaches_the_pi_waits(self) -> None:
+    def test_only_what_reaches_the_layout_hosts_waits(self) -> None:
         owner = "by=owner\nsince=2026-11-18T15:00:00-0500\nreason=ops session\n"
         blocked = ("./tools/hosts/sync_hart_package.sh --pi --win", "./tools/hosts/sync_hart_package.sh --all",
-                   "make deploy-layout", "make -s deploy-all",
+                   "./tools/hosts/sync_hart_package.sh --win", "make deploy-layout", "make -s deploy-all",
+                   'make redeploy COMMIT=abc HOSTS="--win"', 'export HOSTS="--win"; make redeploy COMMIT=abc',
                    'make redeploy COMMIT=abc HOSTS="--pi --win"', "./tools/hosts/redeploy_commit.sh abc --pi",
                    'HOSTS="--pi --win" make redeploy COMMIT=abc', 'export HOSTS="--pi"; make redeploy COMMIT=abc',
                    "HOSTS=--all && make redeploy COMMIT=abc",
                    "tools/hosts/pi_quit_panelpro.sh --for-deploy", "tools/hosts/pi_start_panelpro.sh",
                    "tools/hosts/pi_sts_update.sh", "ssh pi 'pkill -f PanelPro'", "ssh pi pkill java",
                    "ssh -o BatchMode=yes pi 'sudo reboot'",
+                   "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM python.exe",
                    "bash -c 'tools/hosts/pi_quit_panelpro.sh --for-deploy'", "zsh -c \"ssh pi pkill -f PanelPro\"",
                    "env HART_PI_RESTART=0 timeout 60 tools/hosts/pi_quit_panelpro.sh",
                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py")
         for cmd in blocked:
             self.assertEqual(self.op_code(cmd, owner), 2, cmd)
             self.assertEqual(self.op_code(cmd, None), 0, cmd)          # no flag: allowed
-        # the Mac's own work and Windows stay open (owner, 2026-11-18: "only the pi")
+        # the Mac's own work stays open; Windows stays guarded, as it runs the LCOS bridge (owner, 2026-11-18)
         for cmd in ("make tables-pull", "./tools/hosts/sync_hart_package.sh", "make panelpro-test",
                     "osascript -e 'tell application \"PanelPro\" to quit'", "open -a /Applications/JMRI/PanelPro.app",
                     "jmri/layouts/hart/scripts/run_sml_discover.sh", "make deploy-site", "./tools/check.sh",
                     'make redeploy COMMIT=abc HOSTS="--mac"', "./tools/hosts/sync_hart_package.sh --stage-only /tmp/x",
-                    "ssh pi uptime", "ssh other-host pkill java", "./tools/hosts/sync_hart_package.sh --win",
-                    'make redeploy COMMIT=abc HOSTS="--win"', 'export HOSTS="--win"; make redeploy COMMIT=abc', "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM java.exe", "cat tools/hosts/pi_quit_panelpro.sh",
+                    "ssh pi uptime", "ssh other-host pkill java", "ssh -p 2222 lnevo@minipc-e5h6x.local hostname",
+                    "cat tools/hosts/pi_quit_panelpro.sh",
                     "tools/hosts/operating.sh off --owner", "tools/hosts/operating.sh status",
                     "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --fetch /tmp/x.log",
                     "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill"):

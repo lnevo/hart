@@ -18,7 +18,7 @@ module (`pom_guard.py`, built elsewhere).
 | File | What it does | Where it runs |
 |---|---|---|
 | `make_job.py` | builds a job file (settings, then the runner) | Mac |
-| `drop_job.sh` | copies a job to the Pi's `jmri_cmd_watcher`, fetches logs, sets the kill flag; sending a job sets the operating flag (`tools/hosts/operating.sh`), so no agent deploys to the Pi or quits PanelPro there while trains move (it refuses while the owner's flag is set). Clear it with `tools/hosts/operating.sh off` once the session's last log shows END | Mac |
+| `drop_job.sh` | copies a job to the Pi's `jmri_cmd_watcher`, fetches logs, sets the kill flag; sending a job sets the operating flag (`tools/hosts/operating.sh`), so no agent deploys to the Pi or Windows or quits PanelPro on the Pi while trains move (it refuses while the owner's flag is set). Clear it with `tools/hosts/operating.sh off` once the session's last log shows END | Mac |
 | `jython/preflight.py` | reads CVs on the programming track | Pi, inside JMRI |
 | `jython/jobkit.py` | what the three movers share (throttle, sensors, guards, the active marker, the end of a run); pasted in front of each | Pi, inside JMRI |
 | `jython/step_runner.py` | warm-up, then the step profile (laps mode, the default) | Pi, inside JMRI |

@@ -12,7 +12,7 @@
 # operator removes it (ssh pi rm /tmp/speedrun.kill) once the runner has ended.
 #
 # Sending a job sets the operating flag (tools/hosts/operating.sh on --by speedmatch) before the
-# job starts, so no agent deploys to the Pi or quits PanelPro there while trains move. Clear it
+# job starts, so no agent deploys to the Pi or Windows or quits PanelPro there while trains move. Clear it
 # once the run is over (the log shows END, or after --kill): tools/hosts/operating.sh off.
 set -euo pipefail
 # Hosts: environment, hart.env, default. Sourced first, so hart.env cannot move ROOT. If the repo or
