@@ -192,9 +192,18 @@ def read_rows(path: Path, columns) -> list[dict]:
     return rows
 
 
+def switch_facts(read):
+    """`read()` (a le_common reader of the staging switches, hartlib.railroad: switches.csv and switch_legs.csv,
+    ADR-021, read once per run), with its BuildError as a StagingMapError naming the file and row."""
+    try:
+        return read()
+    except lc.BuildError as exc:
+        raise StagingMapError(str(exc)) from None
+
+
 def closed_legs() -> dict:
     """{OS block: closed leg block} of every staging switch (switch_legs.csv, ADR-021)."""
-    return {r["os_block"]: r["closed_leg"] for r in lc.read_csv(lc.SWITCH_LEGS)}
+    return {leg.os_block: leg.closed for sw in switch_facts(lc.staging_switches).values() for leg in sw.legs}
 
 
 def run_blocks(band, names: dict) -> list[tuple]:
@@ -320,7 +329,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
         raise StagingMapError(f"{paths.rel(device_map)}: " + "; ".join(bad))
     names["normal"] = normal_legs(band, names)
     if turnout_idents:
-        ident_of = {r["switch"]: r["le_ident"] for r in lc.read_csv(lc.SWITCHES)}
+        ident_of = switch_facts(lc.switch_idents)
         idents = {}
         for n, ph in turnout_ph.items():
             ident = ident_of.get(ph.removeprefix("Switch "))

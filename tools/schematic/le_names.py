@@ -14,7 +14,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import paths, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
-from le_common import band_key, bare, BuildError, DEVICE_MAP, read_csv, STAGING, SWITCHES  # noqa: E402
+from le_common import (  # noqa: E402
+    band_key, bare, BuildError, DEVICE_MAP, main_upper_device_map, STAGING, switch_idents,
+)
 
 
 # Main and upper at staging's grid (the three-level candidate): denser than staging, so every block's contents icon
@@ -92,8 +94,8 @@ LEGS_SWAPPED = {"13": "Barn on leg C, so 15-13-11 is drawn level as on the sheet
 
 
 def swapped_idents() -> set:
-    """The live Layout Editor idents of the LEGS_SWAPPED switches (switches.csv)."""
-    idents = {r["switch"]: r["le_ident"] for r in read_csv(SWITCHES)}
+    """The live Layout Editor idents of the LEGS_SWAPPED switches (switches.csv, through hartlib.railroad)."""
+    idents = switch_idents()
     missing = sorted(set(LEGS_SWAPPED) - set(idents))
     if missing:
         raise BuildError(f"LEGS_SWAPPED names switches switches.csv does not have: {missing}")
@@ -275,32 +277,25 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     `trial_name` (comma separated: a crossover's two halves are one turnout, "Switch 101A, Switch 101B" -> "Switch
     101") is the placeholder placeholder_names gives. Stops on a row with no trial name, a trial name given twice, a
     turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>"."""
-    try:
-        rows = read_csv(path)
-    except OSError as exc:
-        raise BuildError(f"cannot read the device map {path}: {exc}") from None
-    need = {"layer", "user_name", "trial_name"}
-    if rows and not need <= set(rows[0]):
-        raise BuildError(f"{paths.rel(path)}: columns {sorted(rows[0])} lack {sorted(need - set(rows[0]))}")
     out, bad = {}, []
-    for i, r in enumerate(rows, 2):
-        if r["layer"] not in ("turnout", "block"):
+    for r in main_upper_device_map(path).rows:         # read and checked by hartlib.railroad
+        if r.layer not in ("turnout", "block"):
             continue
-        user = (r["user_name"] or "").strip()
-        if r["layer"] == "turnout" and user.startswith("DCC "):
+        user = r.user_name
+        if r.layer == "turnout" and user.startswith("DCC "):
             continue                    # the LCC alias of a turnout: not a panel object
-        form = r"Switch \d+" if r["layer"] == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
+        form = r"Switch \d+" if r.layer == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
         if not re.fullmatch(form, user):
-            bad.append(f"line {i}: {r['layer']} {user!r} is not named {form}")
+            bad.append(f"line {r.line}: {r.layer} {user!r} is not named {form}")
             continue
         # a trailing "*" marks a switch the plan's label carries one on (223, owner-confirmed hand); the drawing's
         # placeholder is the bare name, as placeholder_names writes it
-        trial = [bare(t.strip()) for t in (r["trial_name"] or "").split(",") if t.strip()]
+        trial = [bare(t.strip()) for t in r.trial_name.split(",") if t.strip()]
         if not trial:
-            bad.append(f"line {i}: {user} has no trial_name")
+            bad.append(f"line {r.line}: {user} has no trial_name")
         for t in trial:
             if t in out:
-                bad.append(f"line {i}: trial_name {t} is given to {out[t]} and {user}")
+                bad.append(f"line {r.line}: trial_name {t} is given to {out[t]} and {user}")
             out[t] = user
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))

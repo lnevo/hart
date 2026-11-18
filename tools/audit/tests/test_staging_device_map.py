@@ -7,6 +7,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -26,6 +27,23 @@ def row(layer, user, system, jmri, notes=""):
     """A device map row (build_device_map.COLUMNS) of staging."""
     return dict(level="1", cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
                 comment="", trial_name="", notes=notes)
+
+
+class SwitchFacts(unittest.TestCase):
+    """The staging switches come from hartlib.railroad (le_common.staging_switches); a file it cannot read stops with
+    StagingMapError, as every other staging map problem does."""
+
+    def test_closed_legs_are_switch_legs_csv(self):
+        with (ROOT / "jmri/layouts/hart/data/switch_legs.csv").open(newline="", encoding="utf-8") as fh:
+            want = {r["os_block"]: r["closed_leg"] for r in csv.DictReader(fh)}
+        self.assertEqual(sdm.closed_legs(), want)
+
+    def test_a_facts_error_is_a_staging_map_error(self):
+        def bad():
+            raise sdm.lc.BuildError("staging switches: switches.csv line 3: hand is L, R or blank, got 'X'")
+        with unittest.mock.patch.object(sdm.lc, "staging_switches", bad), \
+                self.assertRaisesRegex(sdm.StagingMapError, "switches.csv line 3"):
+            sdm.closed_legs()
 
 
 class Pure(unittest.TestCase):

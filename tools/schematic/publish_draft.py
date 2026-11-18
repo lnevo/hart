@@ -31,7 +31,6 @@ plugin draws the cached page again with them). build_layout_le.py also keeps its
 grids there (cache_on). SCHEMATIC_CACHE= (empty) turns it off, as must any test that patches plugin code.
 """
 import contextlib
-import csv
 import datetime
 import json
 import os
@@ -44,7 +43,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, railroad  # noqa: E402
 
 REPO = paths.REPO_ROOT
 CACHE = Path.home() / ".cache/hart/schematic"
@@ -52,7 +51,7 @@ DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
 STATIONS = OUT / "stations"                                              # one SVG per station detail sheet
-LENGTHS = REPO / "jmri/layouts/hart/data/block_lengths.csv"
+LENGTHS = railroad.Sources.under().block_lengths
 STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
@@ -172,22 +171,15 @@ def write_stations(sheets, folder):
 
 
 def measured_lengths():
-    """{track name: inches} for every Track row of block_lengths.csv (measured, timed or estimated, as its
-    flag column says). Stops on a repeated name or a length that is not a number."""
-    out = {}
-    with open(LENGTHS, newline="") as f:
-        for r in csv.DictReader(f):
-            name, raw = r["user_name"], (r["inches"] or "").strip()
-            if not name.startswith("Track ") or not raw:
-                continue
-            try:
-                inches = float(raw)
-            except ValueError:
-                sys.exit(f"{LENGTHS.name}: {name} has length {raw!r}, not a number")
-            if name[len("Track "):] in out:
-                sys.exit(f"{LENGTHS.name}: {name} is listed twice")
-            out[name[len("Track "):]] = inches
-    return out
+    """{track name: inches} for every measured Track row of block_lengths.csv (measured, timed or estimated, as its
+    flag column says). hartlib.railroad.read_block_lengths reads and checks every row, not only the Track rows: it
+    stops on an empty or repeated name or a length that is not a number."""
+    try:
+        lengths = railroad.read_block_lengths(LENGTHS)
+    except railroad.FactsError as exc:
+        sys.exit(str(exc))
+    return {name.removeprefix("Track "): b.inches for name, b in lengths.items()
+            if name.startswith("Track ") and b.inches is not None}
 
 
 def stale_lengths():
