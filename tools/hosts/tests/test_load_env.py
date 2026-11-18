@@ -17,17 +17,14 @@ LOAD_ENV = ROOT / "tools/env/load_env.sh"
 EXAMPLE = ROOT / "tools/env/hart.env.example"
 NAMES = ("HART_MQTT_BROKER", "HART_MQTT_PORT", "HART_JMRI_JSON", "HART_PI_SSH", "HART_PI_USERFILES",
          "HART_PI_WEB_HOST", "HART_WIN_SSH", "HART_WIN_SSH_PORT", "HART_WIN_USERFILES")
-DEFAULTS = {
-    "HART_MQTT_BROKER": "10.0.0.150",
-    "HART_MQTT_PORT": "1883",
-    "HART_JMRI_JSON": "http://10.0.0.150:12080/json",
-    "HART_PI_SSH": "pi",
-    "HART_PI_USERFILES": "/home/pi/JMRI_UserFiles",
-    "HART_PI_WEB_HOST": "RPi-JMRI.local",
-    "HART_WIN_SSH": "lnevo@minipc-e5h6x.local",
-    "HART_WIN_SSH_PORT": "2222",
-    "HART_WIN_USERFILES": "C:/Users/lnevo/JMRI_UserFiles",
-}
+DEFAULTS_ENV = ROOT / "tools/env/defaults.env"
+
+
+def read_defaults() -> dict[str, str]:
+    """defaults.env as hartlib reads it, the same parser the Python tools use."""
+    return load_hartlib_hosts().read_env_file(DEFAULTS_ENV)
+
+
 # Every name load_env.sh or hartlib/hosts.py reads, so the caller's environment cannot leak in.
 CLEAR = NAMES + ("MQTT_HOST", "HART_MQTT_HOST", "JMRI_JSON", "PI_HOST", "HART_ENV_FILE", "HART_REPO_ROOT")
 
@@ -54,6 +51,9 @@ def resolve(env: dict[str, str], file_text: str | None) -> dict[str, str]:
                                   check=True)
             values = dict(line.split("=", 1) for line in done.stdout.splitlines())
         return values
+
+
+DEFAULTS = read_defaults()
 
 
 class Defaults(unittest.TestCase):
@@ -131,6 +131,54 @@ class Order(unittest.TestCase):
                     }
                 got = resolve(env, text)
                 self.assertEqual({k: got[k] for k in want}, want)
+
+
+class DefaultsFile(unittest.TestCase):
+    """defaults.env holds every host setting load_env.sh exports, and nothing else."""
+
+    def test_names_match(self) -> None:
+        self.assertEqual(set(DEFAULTS), set(NAMES))
+
+    def test_plain_values_only(self) -> None:
+        """No quotes, comments, $VAR or blanks in a value, so shell and Python read the same text."""
+        for line in DEFAULTS_ENV.read_text(encoding="utf-8").splitlines():
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            key, sep, value = line.partition("=")
+            self.assertTrue(sep and key.isidentifier(), line)
+            self.assertRegex(value, r"^[^\s'\"#$]+$", line)
+
+    def test_missing_name_stops(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            env_dir = Path(d) / "tools/env"
+            env_dir.mkdir(parents=True)
+            (env_dir / "load_env.sh").write_text(LOAD_ENV.read_text(encoding="utf-8"), encoding="utf-8")
+            text = DEFAULTS_ENV.read_text(encoding="utf-8")
+            (env_dir / "defaults.env").write_text(
+                "\n".join(l for l in text.splitlines() if not l.startswith("HART_WIN_SSH=")) + "\n",
+                encoding="utf-8")
+            env = {k: v for k, v in os.environ.items() if k not in CLEAR}
+            done = subprocess.run(["bash", "-c", f'set -e; source "{env_dir}/load_env.sh"; echo "after:${{HART_WIN_SSH-unset}}"'],
+                                  capture_output=True, text=True, timeout=30, env=env)
+        self.assertNotIn("after:", done.stdout)
+        self.assertIn("HART_WIN_SSH has no default", done.stderr)
+
+    def test_no_default_literal_in_load_env(self) -> None:
+        text = LOAD_ENV.read_text(encoding="utf-8")
+        for name, value in DEFAULTS.items():
+            if len(value) > 4:  # skip short values such as pi, 1883 and 2222
+                self.assertNotIn(value, text, name)
+
+    def test_missing_defaults_file_stops(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            env_dir = Path(d) / "tools/env"
+            env_dir.mkdir(parents=True)
+            (env_dir / "load_env.sh").write_text(LOAD_ENV.read_text(encoding="utf-8"), encoding="utf-8")
+            env = {k: v for k, v in os.environ.items() if k not in CLEAR}
+            done = subprocess.run(["bash", "-c", f'source "{env_dir}/load_env.sh"'],
+                                  capture_output=True, text=True, timeout=30, env=env)
+        self.assertNotEqual(done.returncode, 0)
+        self.assertIn("defaults.env", done.stderr)
 
 
 class NoHardCodedHosts(unittest.TestCase):

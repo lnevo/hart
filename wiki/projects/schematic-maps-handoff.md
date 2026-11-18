@@ -1,5 +1,7 @@
 # Schematic maps: hand-off after the proof
 
+This page is a dated record. Files named in sections before 2026-11-17 have since been retired, among them `tools/schematic/le_overlay.py`, `tools/anyrail/build_main_upper_le.py`, `cats/panels/generated/HART_Generated.xml`, `HART_Main_Upper.xml` and the `output/trial/tables_*.xml` candidates. The current pipeline is [`../pipelines/schematic-panels.md`](../pipelines/schematic-panels.md) (`make panels`).
+
 - **Written:** 2026-11-13, at the end of the stage 0 session.
 - **Read with:** [`schematic-maps.md`](schematic-maps.md) (plan, references, as-built notes) and the spike's `README.md`.
 - **Where the work is:** branch `agent/claude/schematic-spike`, draft PR #423, folder `tools/schematic/spike/`. The owner approved the look of `system_sample.svg` there.
@@ -133,6 +135,8 @@ The three layers above are the contract between the streams. Keep the spike's ed
 - **Evolution record.** `~/Documents/Layout/schematic-evolution/` holds every committed drawing and `evolution.gif`; refresh it after each drawing commit with `tools/schematic/evolution.py` (spike samples, then every commit of `docs/ops/schematic-system-draft.svg`).
 
 ## Layout Editor cut-over runbook (Phase 5; Phase 4 rehearses it in a sandbox worktree)
+
+History: the cut-over was done on 2026-11-16 and the trial candidates are retired; do not follow these steps as written.
 
 PanelPro and CATS closed on the Mac, nothing unpulled (`make tables-pull`), owner not operating. Work in a worktree; the PanelPro wrappers load and store that worktree's `jmri/layouts/hart/output/tables.xml`, so for the Phase 4 rehearsal that file must be the candidate in a throwaway worktree.
 

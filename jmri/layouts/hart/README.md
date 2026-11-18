@@ -10,7 +10,7 @@
 - **Connectivity / positions:** from the AnyRail panel (`anyrail/hart.xml`)
 - **JMRI config:** `output/tables.xml` is the one tables file (ADR-008)
 - **Public names:** [ADR-005](../../../wiki/decisions/ADR-005-public-equipment-names.md) map `data/public_name_map.csv`
-- Do **not** run `fit_panel_height`, `fit_panel_canvas`, or `polish_layout_geometry` unless explicitly asked
+- Do **not** run `fit_panel_height`, `fit_panel_canvas`, or `polish_layout_geometry` (archived in `archive/jmri-scripts/`) unless explicitly asked
 
 ## Bootstrap
 
@@ -26,15 +26,14 @@ contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX
 | `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `dcc` address, `comment` from Device map) |
 | `data/control_points.csv` | CP → level, switches |
 | `data/switches.csv` | Per switch: level, Layout Editor turnout, CATS inversion, USS CTC lever, hand (`scripts/layout_facts.py` reads it) |
-| `data/mast_cells.csv` | Per mast: its cell on the USS CTC board's grid and its icon (`gen_ctc_track_plan.py`); `edge`, `sig_location`, `sig_orient` are for the hand-wired CATS desks only (`wire_digicon.py`) |
-| `data/uss_board_cells.csv`, `data/uss_board_plants.csv` | The USS CTC board's grid (each cell's track, label and block edges) and its switch plant cells, frozen from the hand-wired CATS desk on 2026-11-15; read by `gen_ctc_track_plan.py`, `check_layout_facts.py` and `wire_digicon.py` |
+| `data/mast_cells.csv` | Per mast: its cell on the USS CTC board's grid (the USS CTC machine is parked; the data is kept for unparking) and its icon (`gen_ctc_track_plan.py`); `edge`, `sig_location`, `sig_orient` are for the hand-wired CATS desks only (`wire_digicon.py`) |
+| `data/uss_board_cells.csv`, `data/uss_board_plants.csv` | The USS CTC board's grid (each cell's track, label and block edges) and its switch plant cells, frozen from the hand-wired CATS desk on 2026-11-15, kept while the USS CTC machine is parked; read by `gen_ctc_track_plan.py`, `check_layout_facts.py` and `wire_digicon.py` |
 | `data/switch_legs.csv` | Per OS block at the points: the block the closed and thrown legs lead to |
 | `data/sensor_purge_report.txt` | Removed unused ISIS\* |
 
 ## Maintenance scripts
 
 ```bash
-python3 jmri/scripts/cleanup_hart_duplicate_blocks.py   # drop empty duplicate <block> rows
 python3 jmri/scripts/polish_hart_cp_labels.py           # CP/area label hierarchy
 python3 jmri/scripts/check_hart_phase02.py
 python3 jmri/layouts/hart/scripts/polish_hart_layout_editor.py --check

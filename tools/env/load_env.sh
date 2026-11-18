@@ -13,7 +13,7 @@ _env_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 export HART_REPO_ROOT="${HART_REPO_ROOT:-$(cd "${_env_dir}/../.." && pwd)}"
 
 # Host settings, read in the same order as tools/hartlib/src/hartlib/hosts.py: the environment
-# first, then hart.env, then the default. Older names follow the new one in each list.
+# first, then hart.env, then defaults.env. Older names follow the new one in each list.
 _hart_host_names="HART_MQTT_BROKER MQTT_HOST HART_MQTT_HOST HART_MQTT_PORT HART_JMRI_JSON JMRI_JSON
   HART_PI_SSH HART_PI_USERFILES HART_PI_WEB_HOST HART_WIN_SSH HART_WIN_SSH_PORT HART_WIN_USERFILES"
 for _n in $_hart_host_names; do
@@ -46,20 +46,60 @@ _hart_pick() {
   printf '%s' "$default"
 }
 
-# The Pi (RPi-JMRI.local) runs Mosquitto, JMRI and the live STS. On the Pi itself the broker is 127.0.0.1.
-export HART_MQTT_BROKER="$(_hart_pick 10.0.0.150 HART_MQTT_BROKER MQTT_HOST HART_MQTT_HOST)"
-export HART_MQTT_PORT="$(_hart_pick 1883 HART_MQTT_PORT)"
-export HART_JMRI_JSON="$(_hart_pick http://10.0.0.150:12080/json HART_JMRI_JSON JMRI_JSON)"
-# ssh to the Pi: a host or ~/.ssh/config alias. PI_HOST is not read here: only the STS and
-# Docker helpers honoured it before, and they still put it first themselves.
-export HART_PI_SSH="$(_hart_pick pi HART_PI_SSH)"
-export HART_PI_USERFILES="$(_hart_pick /home/pi/JMRI_UserFiles HART_PI_USERFILES)"
-# The Pi's name in web links (the Mac JMRI web home's speed-match link), not an ssh target.
-export HART_PI_WEB_HOST="$(_hart_pick RPi-JMRI.local HART_PI_WEB_HOST)"
-# ssh to Windows (OpenSSH on port 2222). minipc-e5h6x.local is never the broker.
-export HART_WIN_SSH="$(_hart_pick lnevo@minipc-e5h6x.local HART_WIN_SSH)"
-export HART_WIN_SSH_PORT="$(_hart_pick 2222 HART_WIN_SSH_PORT)"
-export HART_WIN_USERFILES="$(_hart_pick C:/Users/lnevo/JMRI_UserFiles HART_WIN_USERFILES)"
+# Defaults: the one copy is defaults.env beside this file (hartlib/hosts.py reads it too).
+_hart_defaults="${_env_dir}/defaults.env"
+if [[ ! -f "$_hart_defaults" ]]; then
+  echo "load_env.sh: missing $_hart_defaults" >&2
+  unset _hart_env_loaded  # so a later source, once the file is back, loads everything
+  return 1 2>/dev/null || exit 1
+fi
+# Plain KEY=VALUE lines only (tools/hosts/tests/test_load_env.py holds the file to that, so
+# hartlib.hosts reads the same values); a trailing CR or blank is dropped all the same.
+_hart_def_keys=""
+while IFS= read -r _line || [[ -n "$_line" ]]; do
+  _line="${_line%$'\r'}"
+  case "$_line" in ''|'#'*) continue ;; esac
+  _key="${_line%%=*}"
+  [[ "$_key" =~ ^[A-Z_][A-Z0-9_]*$ ]] || continue
+  _val="${_line#*=}"
+  _val="${_val%"${_val##*[![:space:]]}"}"
+  printf -v "_hart_def_${_key}" '%s' "$_val"
+  _hart_def_keys="$_hart_def_keys $_key"
+done < "$_hart_defaults"
+unset _line _key _val
+# Every exported host name needs a default; refuse rather than export an empty value.
+for _n in HART_MQTT_BROKER HART_MQTT_PORT HART_JMRI_JSON HART_PI_SSH HART_PI_USERFILES HART_PI_WEB_HOST \
+          HART_WIN_SSH HART_WIN_SSH_PORT HART_WIN_USERFILES; do
+  eval "_v=\"\${_hart_def_${_n}:-}\""
+  if [[ -z "$_v" ]]; then
+    echo "load_env.sh: $_n has no default in $_hart_defaults" >&2
+    for _k in $_hart_def_keys; do unset "_hart_def_${_k}"; done
+    unset _hart_env_loaded _hart_def_keys _v _k
+    return 1 2>/dev/null || exit 1
+  fi
+done
+unset _v
+_hart_default() {
+  eval "printf '%s' \"\${_hart_def_$1}\""
+}
+
+# Older names follow the new one: MQTT_HOST and HART_MQTT_HOST for the broker, JMRI_JSON.
+# PI_HOST is not read: only the STS and Docker helpers honoured it, and they put it first themselves.
+export HART_MQTT_BROKER="$(_hart_pick "$(_hart_default HART_MQTT_BROKER)" HART_MQTT_BROKER MQTT_HOST HART_MQTT_HOST)"
+export HART_MQTT_PORT="$(_hart_pick "$(_hart_default HART_MQTT_PORT)" HART_MQTT_PORT)"
+export HART_JMRI_JSON="$(_hart_pick "$(_hart_default HART_JMRI_JSON)" HART_JMRI_JSON JMRI_JSON)"
+export HART_PI_SSH="$(_hart_pick "$(_hart_default HART_PI_SSH)" HART_PI_SSH)"
+export HART_PI_USERFILES="$(_hart_pick "$(_hart_default HART_PI_USERFILES)" HART_PI_USERFILES)"
+export HART_PI_WEB_HOST="$(_hart_pick "$(_hart_default HART_PI_WEB_HOST)" HART_PI_WEB_HOST)"
+export HART_WIN_SSH="$(_hart_pick "$(_hart_default HART_WIN_SSH)" HART_WIN_SSH)"
+export HART_WIN_SSH_PORT="$(_hart_pick "$(_hart_default HART_WIN_SSH_PORT)" HART_WIN_SSH_PORT)"
+export HART_WIN_USERFILES="$(_hart_pick "$(_hart_default HART_WIN_USERFILES)" HART_WIN_USERFILES)"
+for _k in $_hart_def_keys; do
+  unset "_hart_def_${_k}"
+done
+unset -f _hart_default
+unset _k _hart_def_keys
+unset _hart_defaults
 for _n in $_hart_host_names; do
   unset "_hart_env_${_n}"
 done

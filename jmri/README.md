@@ -17,7 +17,6 @@ See [`layouts/README.md`](layouts/README.md). Active layout is **`hart`** (`expo
 | `check_hart_phase02.py` | Acceptance checks for hart phases 0–2 (in `tools/check.sh`) |
 | `polish_hart_cp_labels.py` | CP / area label hierarchy on the panel |
 | `generate_nx_pairs.py` | List Entry/Exit pairs for manual JMRI add (parked with NX; see `layouts/hart/parked/README.md`) |
-| `fit_panel_canvas.py`, `fit_panel_height.py`, `polish_layout_geometry.py` | Geometry helpers; do not run unless asked |
 
 ## Documentation
 
