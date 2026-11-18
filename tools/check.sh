@@ -126,21 +126,49 @@ run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
 run desks python3 cats/scripts/validate_cats_panel.py
+# The longest jobs start first, so none of them waits behind the quick ones: unit-jmri, then the per-file guard and
+# host jobs with the files in SLOW (each 10-20 s; the Layout Editor ones longer with an empty schematic cache) ahead.
+SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_redeploy_commit.py test_build_layout_le.py \
+test_le_cutover.py test_le_mast_parity.py "
+slow_first() {
+  local f
+  for f in "$@"; do [[ "$SLOW" == *" ${f##*/} "* ]] && echo "$f"; done
+  for f in "$@"; do [[ "$SLOW" == *" ${f##*/} "* ]] || echo "$f"; done
+  return 0
+}
 unit unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
-unit unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
-unit unit-cats python3 -m unittest discover -q -s cats/scripts/tests
-unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
-unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
-unit unit-schematic python3 -m unittest discover -q -s tools/schematic/tests
-unit unit-guards python3 -m unittest discover -q -s tools/audit/tests
 # The host tests start real processes and wait out their timers: one job per file, found as discover finds them.
 if [[ -n "$(find tools/hosts/tests -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
   echo "--- unit-hosts: tests in a subfolder of tools/hosts/tests; give them their own job in check.sh"
   fail=1
 fi
-for t in tools/hosts/tests/test*.py; do
+for t in $(slow_first tools/hosts/tests/test*.py); do
   unit "unit-hosts $(basename "$t" .py)" python3 -m unittest discover -q -s tools/hosts/tests -p "$(basename "$t")"
 done
+# The guard tests, one job per file too: run as one job they took about a minute end to end (test_worktrees alone
+# about 20 s of git calls), one after another.
+if [[ -n "$(find tools/audit/tests -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
+  echo "--- unit-guards: tests in a subfolder of tools/audit/tests; give them their own job in check.sh"
+  fail=1
+fi
+# A file in BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job).
+BY_CLASS=" test_worktrees.py "
+for t in $(slow_first tools/audit/tests/test*.py); do
+  f="$(basename "$t")"
+  if [[ "$BY_CLASS" == *" $f "* ]]; then
+    classes="$(python3 tools/audit/test_classes.py "$t")" || { echo "--- unit-guards ${f%.py}: cannot list its test classes"; fail=1; continue; }
+    for c in $classes; do
+      unit "unit-guards ${f%.py}.$c" python3 -m unittest discover -q -s tools/audit/tests -p "$f" -k "${f%.py}.$c."
+    done
+  else
+    unit "unit-guards ${f%.py}" python3 -m unittest discover -q -s tools/audit/tests -p "$f"
+  fi
+done
+unit unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
+unit unit-cats python3 -m unittest discover -q -s cats/scripts/tests
+unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
+unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
+unit unit-schematic python3 -m unittest discover -q -s tools/schematic/tests
 unit unit-portal python3 -m unittest discover -q -s www/scripts/tests
 # Car cards, intake and publications. Uses ops/hart-ops/.venv when it exists; a checkout
 # without it (a worktree) skips, CI installs ops/hart-ops/requirements-test.txt.

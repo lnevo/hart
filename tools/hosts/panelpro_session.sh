@@ -20,7 +20,8 @@
 # On exit the traps stop the PanelPro this run started (TERM, then KILL after HART_PANELPRO_KILL_WAIT
 # seconds, default 30), then restore the profile. Only processes started by pp_launch are stopped,
 # never another JMRI or CATS. If they cannot be stopped the backup is left in place with the
-# recovery command. HART_PANELPRO_TIMEOUT overrides a wrapper's marker timeout.
+# recovery command. HART_PANELPRO_TIMEOUT overrides a wrapper's marker timeout. HART_PANELPRO_POLL
+# (seconds, fractions allowed) overrides every poll interval here; the tests set it short.
 #
 # PanelPro still connects to MQTT during a run. With the Start Up scripts off nothing HART-written
 # publishes, but JMRI's own listeners (Logix, LogixNG, SML, Dispatcher) still react to sensor and
@@ -185,7 +186,7 @@ pp_wait_marker() {
       [[ -f "$marker" ]] && return 0
       return 1
     fi
-    sleep "$interval"
+    sleep "${HART_PANELPRO_POLL:-$interval}"
   done
   [[ -f "$marker" ]] && return 0
   return 2
@@ -196,7 +197,7 @@ pp_wait_exit() {
   _pp_track
   while [[ -n "$(_pp_live_pids)" ]]; do
     (( SECONDS < deadline )) || return 1
-    sleep 1
+    sleep "${HART_PANELPRO_POLL:-1}"
     _pp_track
   done
   return 0
@@ -211,13 +212,13 @@ pp_stop_jmri() {
   kill -TERM $live 2>/dev/null || true
   deadline=$((SECONDS + ${HART_PANELPRO_KILL_WAIT:-30}))
   while [[ -n "$(_pp_live_pids)" ]] && (( SECONDS < deadline )); do
-    sleep 1
+    sleep "${HART_PANELPRO_POLL:-1}"
   done
   live="$(_pp_live_pids)"
   if [[ -n "$live" ]]; then
     echo "PanelPro ignored TERM; killing pids $live" >&2
     kill -KILL $live 2>/dev/null || true
-    sleep 1
+    sleep "${HART_PANELPRO_POLL:-1}"
   fi
   _pp_track
   live="$(_pp_live_pids)"

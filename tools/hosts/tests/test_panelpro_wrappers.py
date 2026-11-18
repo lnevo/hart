@@ -145,7 +145,7 @@ class Sandbox:
         env.update(HOME=str(self.home), PATH=str(self.bin), JMRI_HOME=str(self.tmp / "jmri"),
                    JAVA_HOME="/nonexistent-java", FAKE_STATE=str(self.state), FAKE_MODE="exit",
                    FAKE_PROFILE_XML=str(profile or self.profile), HART_PANELPRO_KILL_WAIT="3",
-                   HART_GUARD_JMRI_RUNNING="0")
+                   HART_PANELPRO_POLL="0.1", HART_GUARD_JMRI_RUNNING="0")
         for name, marker in (("SMOKE", "HART_PANELPRO_SMOKE"), ("STAGE1", "HART_STAGE1"),
                              ("TRAININFO", "HART_TRAININFO"), ("SML", "HART_SML_DISCOVER"),
                              ("NX", "HART_NX_DISCOVER"), ("CTC", "HART_CTC_LOGIC_SMOKE")):
@@ -279,7 +279,8 @@ class Cleanup(WrapperCase):
         self.assert_restored()
 
     def test_timeout_stops_java_even_when_it_ignores_term(self) -> None:
-        env = self.box.env(FAKE_MODE="hang", FAKE_IGNORE_TERM="1", HART_PANELPRO_TIMEOUT="3")
+        env = self.box.env(FAKE_MODE="hang", FAKE_IGNORE_TERM="1", HART_PANELPRO_TIMEOUT="1",
+                           HART_PANELPRO_KILL_WAIT="1")
         started = time.monotonic()
         done = self.box.run("run_panelpro_smoke_test.sh", env)
         self.assertEqual(1, done.returncode, done.stderr)
