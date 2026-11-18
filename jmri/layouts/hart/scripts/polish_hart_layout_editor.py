@@ -608,19 +608,27 @@ def generated_bci_spots(reference: ET.Element | None) -> dict[str, tuple[int, in
             if b and len(icons) == 1}
 
 
-def lamp_targets(
-    root: ET.Element, le: ET.Element, reference: ET.Element | None
-) -> tuple[dict[str, tuple[int, int]], list[str]]:
-    """(targets, notes): the hand-drawn panel's rule, or a generated panel's (module docstring)."""
+def reference_notes(le: ET.Element, reference: ET.Element | None) -> list[str]:
+    """Notes on `--reference` for panel `le`; ValueError when a generated panel is given a reference that is not
+    generated. Checked whether or not the lamps are placed (they are not while the Dispatcher System is parked)."""
     if tables.generated_panel(le):
         if reference is not None and not tables.generated_panel(reference):
             raise ValueError("--reference: its main panel is not a generated one; a reference gives the positions "
                              "of a generated panel only")
-        return generated_lamp_targets(root, le, reference)
-    notes = []
+        return []
     if reference is not None:
-        notes.append("--reference not used: the panel is the hand-drawn one, whose lamps take the computed and "
-                     "STAGE1_LAMP_PLACEMENTS spots")
+        return ["--reference not used: the panel is the hand-drawn one, whose lamps take the computed and "
+                "STAGE1_LAMP_PLACEMENTS spots"]
+    return []
+
+
+def lamp_targets(
+    root: ET.Element, le: ET.Element, reference: ET.Element | None
+) -> tuple[dict[str, tuple[int, int]], list[str]]:
+    """(targets, notes): the hand-drawn panel's rule, or a generated panel's (module docstring)."""
+    notes = reference_notes(le, reference)
+    if tables.generated_panel(le):
+        return generated_lamp_targets(root, le, reference)
     return stage1_lamp_targets(root, le), notes
 
 
@@ -835,7 +843,9 @@ def apply_visual_standard(path: Path, *, check: bool = False, reference: Path | 
     # The OS occupancy dots are the Dispatcher System's: parked with it (owner, 2026-11-17; their places are kept in
     # jmri/layouts/hart/parked/staging_panel_lamps.json), so they and their spots are wanted only while it is not
     # parked. The spots are read after the turnout and anchor fixes above, off that geometry.
-    if "dispatcher" not in parked.PARKED:
+    if "dispatcher" in parked.PARKED:
+        _print_notes(path, reference_notes(le, ref))
+    else:
         targets, notes = lamp_targets(root, le, ref)
         _print_notes(path, notes)
         os_added, os_errors = ensure_os_occupancy_icons(le, check=check, targets=targets)
