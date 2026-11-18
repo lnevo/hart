@@ -1,6 +1,8 @@
 {
   "enabledPlugins": {
-    "model-railroad-skills@model-railroad-skills": true
+    "model-railroad-skills@model-railroad-skills": true,
+    "car-cards@model-railroad-skills": true,
+    "operations-pro@model-railroad-skills": true
   },
   "extraKnownMarketplaces": {
     "model-railroad-skills": {

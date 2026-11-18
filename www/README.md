@@ -82,6 +82,14 @@ When cutting filler, keep any fact or rule inside the sentence; rewrite it plain
 
 `python3 tools/audit/check_ai_speak.py` (run by `tools/check.sh` and CI) flags the known phrasings on the article pages (AI topics, library, behind, guides, AP, exam). It cannot catch everything above, so read new prose against this table too. The "Worked well / Needed me" labels on the AI topic pages are the series format; keep them, and keep what follows them factual.
 
+## Pages that describe the repo
+
+`library/repository-guide.html` (folders, where each fact lives, hartlib's modules, the `make panels` steps, the workflow), `behind/jmri-additions.html` (scripts, profile contents, how the levels' devices are named, what is parked) and `behind/tables-file.html` describe the repo, so they go stale when it changes. Every repo audit and site review checks them:
+
+1. `git log -1 --format=%ad -- <page>` gives the page's last change.
+2. List the commits since that date: `git log --since=<date> -- tools/hartlib tools/schematic jmri/layouts/hart/data jmri/scripts wiki/decisions`, and read `wiki/STATUS.md`.
+3. Each change in structure the page does not reflect is a finding; name the commit.
+
 ## Sections
 
 The header has six links (`data/site.json` → `nav`): **Home · Prototype · Operations · Behind the Scenes · The Diverging Route · About**. Each nav entry lists the page ids (the argument to `HARTOps.mountChrome(id)`) that belong to it in `pages`; `js/nav.js` underlines the parent section and adds a small section link above the child page's title. Add a new page's id to the right section's `pages`.

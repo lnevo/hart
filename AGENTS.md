@@ -18,9 +18,9 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed. Repo is the master (ADR-015) |
 | Quit / start PanelPro on the Pi (around a deploy) | `tools/hosts/pi_quit_panelpro.sh --for-deploy` (its own Quit, answers No to Store) before a Pi deploy; the deploy starts it again, also if the deploy fails. `tools/hosts/pi_start_panelpro.sh` by hand |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
-| Deploy to layout hosts | `./tools/hosts/sync_hart_package.sh --pi` · add `--win` (or `--all`) when Windows needs it. `make deploy-status` shows the commit each host last got |
-| Redeploy an older commit (rollback) | `make redeploy COMMIT=<sha> HOSTS="--pi"` (`tools/hosts/redeploy_commit.sh`); refuses an unpulled Store and pre-2026-11-12 commits, keeps the ops guards (deploy skill) |
-| Update the live STS on the Pi (ADR-020) | `tools/hosts/pi_sts_update.sh` (git pull and rebuild there; `--status` to look). Docker there: `tools/hosts/pi_docker_static.sh`. After a session, `make sts-pull` copies its backups and a database dump to the Mac. Live API: set `STS_API_URL=http://RPi-JMRI.local:8980/sts/api/v1` for that job only, never as a default. Every STS change (code, workflow, data) is approved by the owner on the Mac copy (UAT, 8980) before it reaches the Pi (ADR-020 amendments 2026-11-12) |
+| Deploy to layout hosts | `./tools/hosts/sync_hart_package.sh --pi --win`: Windows matches the Pi, so they deploy together. One host alone only to test there or while the other is down; say so in the report and bring the other up to date next. `make deploy-status` shows the commit each host last got |
+| Redeploy an older commit (rollback) | `make redeploy COMMIT=<sha> HOSTS="--pi --win"` (`tools/hosts/redeploy_commit.sh`); refuses an unpulled Store and pre-2026-11-12 commits, keeps the ops guards (deploy skill) |
+| Update the live STS on the Pi, or pull its backups (ADR-020) | `sts-live` skill: `tools/hosts/pi_sts_update.sh`, `make sts-pull`, the live API URL, and the rule that the owner approves every STS change on the Mac copy (UAT) first |
 | Deploy operator portal (www.hartrailroad.com) | `./www/scripts/deploy_hartrailroad.sh` — after portal changes; notes in [`www/README.md`](www/README.md) |
 | CATS source (Bitbucket) | `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/` |
 | CATS binaries | `./tools/cats/fetch_cats_3.2.sh` then `./tools/cats/install_into_jmri.sh` |
@@ -37,7 +37,7 @@ After any task that **changed files**, do not wait to be asked:
 2. **Commit** in your own worktree, never in the main checkout. Start every task that changes files with `make wt TOPIC=<topic>`: it makes `.claude/worktrees/<topic>/` on `agent/claude/<topic>` from `origin/main`, links the gitignored mirrors and checks out the `model-railroad-skills` submodule the checks need. Hooks block edits, commits and branch switches in the main checkout, which stays on `main` for pulls and deploys. Cursor: `make wt TOPIC=<topic> AGENT=cursor`, then open that folder as the workspace. Conventional one- or two-sentence message (why, not a file list). Stage files by name, never `git add -A`. Never commit `.env.local`, credentials, or `tools/cats/src-repo/`.
 3. **Push** that branch (`git push -u origin HEAD`). Never push to `main`. Agents may merge their own PR once its required check passes, never with `--admin`. Before merging your own code change, run `/code-review medium` on the branch and fix what it confirms; skip it for docs-only PRs. Cursor has no `/code-review`, so a Cursor agent leaves the merge to the owner. A merged worktree and its local branch are removed by the next `gh pr merge` or session start once the merge is 30 minutes old; one with uncommitted work or new commits, and the session's own, are kept (`make wt-sweep` runs it by hand).
 4. **PanelPro test** when `tables.xml` or panels changed: `make panelpro-test`. Report the result, including `SKIPPED` when PanelPro or CATS is open. Do not start it while the owner is operating.
-5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CTC icons (not shipped while the USS CTC machine is parked), CATS resources: run `sync_hart_package.sh` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
+5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CATS resources: run `sync_hart_package.sh --pi --win` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
 6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
 
 Sheets push (`.env.local`) stays human-gated. Do not force-push. `.claude/hooks/main_guard.py` blocks commits on `main`, pushes to `main`, force-pushes and admin merges, and asks before a `track/cmd` publish; Cursor runs the same guard through `.cursor/hooks.json`. The same hook blocks table-writing and deploy commands while PanelPro or CATS is open, and any commit, PR or issue text holding the private name; `.claude/hooks/check_after_edit.py` runs the quick checks after an edit to `tables.xml` or the signal files. `.claude/hooks/edit_guard.py` and `main_guard.py` keep agents out of the main checkout; `.claude/hooks/worktree_sweep.py` removes merged worktrees.
@@ -60,11 +60,15 @@ The owner may not name an agent, so match the task yourself:
 
 | Task | Agent |
 |------|-------|
-| Why a mast, panel, Dispatcher run or MQTT value behaves as it does | `panel-tracer` |
+| Why a mast, panel, CATS desk or MQTT value behaves as it does | `panel-tracer` |
 | Dead code, stale docs, structure or duplication | `repo-auditor` |
 | Review of the website through a named lens | `site-reviewer` |
 | Railroad or local history, photos and sources | `archive-researcher` |
 | A bounded page or data job under `www/` | `site-builder` |
+| Where an STS car is, why an order is unfilled, what a session holds | `sts:sts-inspector` |
+| Running STS operating steps (UAT, or live with the owner's yes) | `sts:sts-operator` |
+| Why an Operations Pro build left or sent cars oddly | `operations-pro:ops-diagnoser` |
+| Checking a car-cards review batch | `car-cards:photo-reader` |
 
 - **Call the agent without being asked** when one fits a single bounded job that would mean reading across many files. State which one you used.
 - **Suggest it in one line and wait** for broad work: several agents at once, a rebuild split into stages, or a job the owner may want to steer.
@@ -72,11 +76,11 @@ The owner may not name an agent, so match the task yourself:
 - Launch any agent that edits files with `isolation: "worktree"`; read-only agents need none.
 - Use `general-purpose` only when none fits. If the same kind of job keeps landing there, suggest a new agent.
 
+The `car-cards` and `operations-pro` plugins are enabled but used only now and then: each shows one line until its skill or agent is called, and their MCP tools load through ToolSearch. Call them when the task is theirs, not by default.
+
 Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
 ## Do not
-
-JMRI Entry/Exit (NX), the stock Dispatcher System and the USS CTC machine are parked since the helix-join release (November 2026): out of the active `tables.xml`, data in `jmri/layouts/hart/parked/`. The rules below that name them apply again on unpark.
 
 - Run table scripts with PanelPro or CATS open. A PanelPro Store goes to `~/JMRI_UserFiles/tables.xml`; run `make tables-pull` before committing.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
@@ -84,12 +88,13 @@ JMRI Entry/Exit (NX), the stock Dispatcher System and the USS CTC machine are pa
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry`, or 2× draw scale unless asked.
 - Remove **F30-S-0** where the layout includes it.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
-- Run CATS CTC and the USS CTC machine (or Dispatcher System from inside CATS) at the same time.
-- Patch or wrap Dispatcher System / JMRI (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`). Fix `jmri/layouts/hart/output/tables.xml` so stock Discover and Stage 1 succeed. Landmines: [`wiki/DISPATCHER_LAYOUT_HOOPS.md`](wiki/DISPATCHER_LAYOUT_HOOPS.md).
+- Patch or wrap JMRI or CATS. Both are stock installs; fix the data in `jmri/layouts/hart/output/tables.xml` instead.
 - Leave the LCOS bridge (`serial_to_mqtt`) running detached. It is operator-owned and runs in a visible foreground console. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).
 - Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction and confirmation.
 - Spell out what HART stands for in any file, commit or page. The repo and website are public.
 - Normalize **P&CV** and **P&OV** to each other. They are different names on purpose.
+
+**Parked** since the helix-join release (November 2026): JMRI Entry/Exit (NX), the stock Dispatcher System and the USS CTC machine, kept in `jmri/layouts/hart/parked/`. On unpark these rules return: never run CATS CTC and the USS machine (or Dispatcher System from inside CATS) at the same time, and never patch the Dispatcher System package (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`); fix `tables.xml` so stock Discover and Stage 1 succeed. Landmines: [`wiki/DISPATCHER_LAYOUT_HOOPS.md`](wiki/DISPATCHER_LAYOUT_HOOPS.md).
 
 New JMRI track: **Mainline → Yes** (`mainline="yes"`). Geometry **1:1**. Hart has no `export_options.json`.
 

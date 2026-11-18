@@ -194,6 +194,39 @@ class SubagentGuard(unittest.TestCase):
         self.assertEqual(run(SUBAGENT_GUARD, "make deploy-site", str(ROOT)).returncode, 2)
         self.assertEqual(run(SUBAGENT_GUARD, "make check", str(ROOT)).returncode, 0)
 
+    def test_ssh_that_only_reads_is_allowed(self) -> None:
+        for command in (
+            "ssh pi 'tail -n 50 ~/JMRI_UserFiles/messages.log'",
+            "ssh -p 2222 user@example.invalid cat 'C:/x/deploy_stamp.txt'",
+            'ssh pi "pgrep -fl PanelPro; sha256sum ~/JMRI_UserFiles/tables.xml"',
+            "ssh -o ConnectTimeout=5 pi systemctl status mosquitto | head",
+            "ssh pi git -C ~/sts log -1 --oneline",
+            "grep -rn sshd docs",
+        ):
+            with self.subTest(command=command):
+                done = run(SUBAGENT_GUARD, command, str(ROOT))
+                self.assertEqual(done.returncode, 0, done.stderr)
+
+    def test_ssh_that_writes_or_opens_a_shell_is_blocked(self) -> None:
+        for command in (
+            "ssh pi",
+            "ssh pi rm -f /tmp/x",
+            "ssh pi 'cat a > /tmp/jmri_cmd.py'",
+            "ssh pi 'ls; touch x'",
+            "ssh pi find /tmp -delete",
+            "ssh pi sed -i s/a/b/ f",
+            "ssh pi systemctl restart mosquitto",
+            "ssh -L 8080:localhost:80 pi cat x",
+            "ssh pi 'echo $(reboot)'",
+            "ssh pi 'cat x | tee y'",
+            "bash -c 'ssh pi rm x'",
+            "ls && ssh pi reboot",
+            "ssh pi 'unbalanced",
+            "scp a pi:b",
+        ):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+
 
 class JmriOpenAndPrivateName(unittest.TestCase):
     """Table writers stop while PanelPro or CATS is open; the private name stays out of publishing text.
