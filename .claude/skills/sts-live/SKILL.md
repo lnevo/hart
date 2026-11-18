@@ -19,7 +19,7 @@ Sandbox (agent tests), then UAT (the owner approves), then live. This covers cod
 3. **Apply to UAT the way it will go live**: the same commit for code (rebuild the Mac image from it), the same API calls or script for data. Start the Mac STS for this (`docker start sts-docker-db-1 sts-docker-web-1`). Tell the owner what to look at and wait for an approval that names UAT.
 4. **Live**:
    - Code: `tools/hosts/pi_sts_update.sh`, only for a commit the Mac ran during the review. It does a `git pull --ff-only` of `~/sts/sts-docker` (branch `active`) and `~/sts/sts-plugins` (`main`) on the Pi, then rebuilds the release stack. `--status` shows commits and containers only. Nothing is ever copied into a running container.
-   - Data: take a Pi backup first, then write with the owner's yes for each write. Set `STS_API_URL=http://RPi-JMRI.local:8980/sts/api/v1` for that one job only, never as a session default, so no test or prep script reaches the live database.
+   - Data: take a Pi backup first, then write with the owner's yes for each write. Set `STS_API_URL=http://RPi-JMRI.local:8980/sts/api/v1` and `STS_EXPECT_STACK=live` for that one job only, never as a session default, so no test or prep script reaches the live database. The sts-helpers clients expect `uat` unless told otherwise and refuse a write to `live` without `STS_EXPECT_STACK=live`; simulations and sweeps run only on the sandbox.
 5. **Shut down** the Mac STS once the change is live.
 
 ## Before you run it
