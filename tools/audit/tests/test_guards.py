@@ -202,6 +202,9 @@ class SubagentGuard(unittest.TestCase):
             "ssh -o ConnectTimeout=5 pi systemctl status mosquitto | head",
             "ssh pi git -C ~/sts log -1 --oneline",
             "grep -rn sshd docs",
+            "ssh pi cat ~/hart/pi_quit_panelpro.sh",
+            "ssh -p 2222 -o ConnectTimeout=5 win type C:/JMRI_UserFiles/cats/deploy_stamp.txt",
+            "git log --oneline -3 # recent",
         ):
             with self.subTest(command=command):
                 done = run(SUBAGENT_GUARD, command, str(ROOT))
@@ -223,6 +226,23 @@ class SubagentGuard(unittest.TestCase):
             "ls && ssh pi reboot",
             "ssh pi 'unbalanced",
             "scp a pi:b",
+            # found in review: comments, ssh options, writing programs and shell wrappers
+            "echo a#; git push origin main",
+            "ssh pi 'cat x#; rm -rf y'",
+            "ssh -o ProxyCommand='rm x' pi cat y",
+            "ssh -o LocalForward=8080:localhost:80 pi cat x",
+            "ssh -F cfg pi cat x",
+            "ssh pi sed -n 'w /tmp/jmri_cmd.py' f",
+            "ssh pi sed s/x/y/e f",
+            "ssh pi git -C ~/sts/sts-docker branch -D active",
+            "ssh pi git log --output=/tmp/jmri_cmd.py",
+            "ssh pi uniq a /tmp/jmri_cmd.py",
+            "ssh pi sort -uo /tmp/x a",
+            "ssh -p 2222 win 'echo (Remove-Item C:/x)'",
+            "ssh -p 2222 win 'echo $env:PATH'",
+            "bash -lc 'git push'",
+            "FOO='a b' git push",
+            "python3 'tools/my dir/serial_to_mqtt.py'",
         ):
             with self.subTest(command=command):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
