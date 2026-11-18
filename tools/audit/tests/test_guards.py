@@ -196,14 +196,17 @@ class SubagentGuard(unittest.TestCase):
 
     def test_ssh_that_only_reads_is_allowed(self) -> None:
         for command in (
-            "ssh pi 'tail -n 50 ~/JMRI_UserFiles/messages.log'",
-            "ssh -p 2222 user@example.invalid cat 'C:/x/deploy_stamp.txt'",
+            "ssh pi tail -n 50 ~/JMRI_UserFiles/messages.log",
+            "ssh -p 2222 user@example.invalid cat C:/x/deploy_stamp.txt",
             'ssh pi "pgrep -fl PanelPro; sha256sum ~/JMRI_UserFiles/tables.xml"',
             "ssh -o ConnectTimeout=5 pi systemctl status mosquitto | head",
             "ssh pi git -C ~/sts log -1 --oneline",
+            "ssh pi git -C ~/sts log -p -1",
             "grep -rn sshd docs",
             "ssh pi cat ~/hart/pi_quit_panelpro.sh",
             "ssh -p 2222 -o ConnectTimeout=5 win type C:/JMRI_UserFiles/cats/deploy_stamp.txt",
+            "timeout 10 ssh pi uptime",
+            "make check && git log -1",
             "git log --oneline -3 # recent",
         ):
             with self.subTest(command=command):
@@ -243,6 +246,25 @@ class SubagentGuard(unittest.TestCase):
             "bash -lc 'git push'",
             "FOO='a b' git push",
             "python3 'tools/my dir/serial_to_mqtt.py'",
+            # second review: env, wrappers, option values, cmd quoting, crashes, paths
+            'ssh pi "GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.fsmonitor GIT_CONFIG_VALUE_0=reboot git status"',
+            "ssh pi \"GIT_PAGER='rm x' git -p log\"",
+            "timeout 10 ssh pi rm -rf x",
+            "sudo ssh pi reboot",
+            "{ ssh pi rm x; }",
+            "(ssh pi rm x)",
+            "env A=1 ssh pi rm x",
+            "ssh pi git --namespace log push",
+            "ssh pi systemctl -p status restart mosquitto",
+            "ssh pi git -C x -C log reset",
+            "ssh win \"type 'a & del y'\"",
+            "ssh -o '' pi cat x",
+            "ssh pi /tmp/x/cat y",
+            "git -C 'a b' commit",
+            "timeout 5 git push",
+            "sudo make deploy-layout",
+            "./tools/hosts/sync_hart_package.sh --pi --win",
+            "run_serial_mqtt.cmd verbose",
         ):
             with self.subTest(command=command):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)

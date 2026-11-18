@@ -2,38 +2,47 @@
 """Block subagent shell commands that publish, touch hosts, or act on the railroad.
 
 Runs as a PreToolUse hook from .claude/agents/*.md, so the main session is not
-affected. Matches where a command starts, so searching for these names still works.
+affected. Matches programs by name where a command starts (also behind wrappers
+such as timeout, sudo or env), so searching for these names still works.
 This is a guardrail against mistakes, not a security boundary.
 
-`ssh` is allowed when it only reads: a few harmless options, a host, then a remote
-command made only of programs that cannot write (READ_ONLY), with no redirect,
-substitution, grouping or script block. The same check suits a POSIX shell (the Pi)
-and PowerShell or cmd (Windows). scp and rsync stay blocked.
+`ssh` is allowed when it only reads. The remote command may hold only plain
+characters (REMOTE_TEXT: no quotes, `=`, `$`, `&`, backslash, redirect or
+grouping), so it reads the same in a POSIX shell, cmd and PowerShell. Each part
+must be a bare program name from READ_ONLY, or one from READ_ONLY_SUB with its
+subcommand first. scp and rsync stay blocked.
+
+Any error inside the guard blocks the command (exit 2).
 """
 import json
 import re
 import shlex
 import sys
 
-BLOCKED = re.compile(
-    r"^\s*(\S+=\S*\s+)*(sudo\s+)?((ba|z)?sh\s+|python3?\s+|\S*python3?\s+)?(\S*/)?("
-    r"deploy_hartrailroad\.sh|sync_hart_package\.sh|flash_nano\.py|serial_to_mqtt\.py|run_serial_mqtt"
-    r"|mosquitto_pub|scp|rsync|make\s+deploy\S*"
-    r"|git\s+(-C\s+\S+\s+)?(commit|push|merge|rebase|reset|stash|switch|checkout|restore|clean)"
-    r")\b"
-)
+BLOCKED_PROGRAMS = {
+    "deploy_hartrailroad.sh", "sync_hart_package.sh", "flash_nano.py", "serial_to_mqtt.py",
+    "mosquitto_pub", "scp", "rsync",
+}
+BLOCKED_PREFIXES = ("run_serial_mqtt",)
+BLOCKED_GIT = {"commit", "push", "merge", "rebase", "reset", "stash", "switch", "checkout", "restore", "clean"}
+GIT_VALUE_OPTIONS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path", "--config-env"}
+INTERPRETERS = {"sh", "bash", "zsh", "python", "python3"}
+SHELLS = {"sh", "bash", "zsh"}
+# Programs that run the rest of their words as a command.
+WRAPPERS = {"sudo", "timeout", "env", "nice", "nohup", "command", "exec", "time", "xargs", "stdbuf",
+            "caffeinate", "watch", "then", "do", "else", "!", "{", "(", "builtin"}
 SEPARATORS = ";&|\n"
 ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*", re.S)
-SHELLS = {"sh", "bash", "zsh"}
 
+REMOTE_TEXT = re.compile(r"[A-Za-z0-9_./~:,@+* \t;|-]+")
 # Programs a subagent may run on a layout host. None of them can write a file or run another program.
 READ_ONLY = {
-    "cat", "head", "tail", "ls", "grep", "egrep", "fgrep", "zgrep", "stat", "wc", "cut",
+    "cat", "head", "tail", "ls", "grep", "egrep", "fgrep", "stat", "wc", "cut",
     "sha256sum", "shasum", "md5sum", "cmp", "ps", "pgrep", "uptime", "df", "du", "free",
     "uname", "whoami", "id", "readlink", "realpath", "test", "true", "echo", "journalctl", "find",
     "type", "dir", "Get-Content", "Get-ChildItem", "Get-FileHash", "Get-Process",
 }
-# Programs that stay read-only only with these subcommands.
+# Programs that stay read-only only when one of these subcommands is their first argument.
 READ_ONLY_SUB = {
     "systemctl": {"status", "is-active", "is-enabled", "list-units", "show"},
     "docker": {"ps", "logs", "inspect", "images"},
@@ -43,12 +52,8 @@ READ_ONLY_SUB = {
 WRITING_OPTIONS = {
     "find": ("-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fls"),
     "journalctl": ("--vacuum", "--rotate", "--flush", "--setup-keys", "--update-catalog"),
-    "git": ("--output", "--ext-diff", "--textconv", "-c", "--exec-path", "--git-dir", "--work-tree"),
-    "docker": ("-H", "--host", "--config", "--context"),
+    "git": ("--output", "--ext-diff", "--textconv", "--exec-path"),
 }
-# Anything that redirects, substitutes, groups or opens a script block, in a POSIX shell,
-# cmd or PowerShell.
-UNSAFE_TEXT = re.compile(r"[<>`(){}$%^]")
 # ssh options: flags without a value, options with a value, and the -o keys allowed.
 SSH_FLAGS = set("46qTnCv")
 SSH_VALUE_OPTIONS = {"-p", "-l"}
@@ -79,14 +84,46 @@ def commands(text: str) -> list[list[str]] | None:
     return result
 
 
-def program_of(words: list[str]) -> tuple[str, list[str]]:
-    """Skip leading VAR=value words; return (program name without its folder, its arguments)."""
+def base(word: str) -> str:
+    return re.split(r"[/\\]", word)[-1]
+
+
+def strip_to_program(words: list[str]) -> list[str]:
+    """Drop VAR=value words, grouping marks and wrappers (with their options) in front of the program."""
+    words = list(words)
+    while words:
+        first = words[0].lstrip("({!")
+        if not first:
+            words.pop(0)
+            continue
+        if ASSIGNMENT.fullmatch(first):
+            words.pop(0)
+            continue
+        if base(first) in WRAPPERS:
+            words.pop(0)
+            while words and (words[0].startswith("-") or re.fullmatch(r"[\d.]+[smhd]?", words[0])
+                             or ASSIGNMENT.fullmatch(words[0])):
+                words.pop(0)
+            continue
+        words[0] = first
+        return words
+    return []
+
+
+def git_subcommand(args: list[str]) -> str:
     i = 0
-    while i < len(words) and ASSIGNMENT.fullmatch(words[i]):
-        i += 1
-    if i == len(words):
-        return "", []
-    return re.split(r"[/\\]", words[i])[-1], words[i + 1:]
+    while i < len(args) and args[i].startswith("-"):
+        i += 2 if args[i] in GIT_VALUE_OPTIONS else 1
+    return args[i] if i < len(args) else ""
+
+
+def blocked_local(program: str, args: list[str]) -> bool:
+    name = base(args[0]) if program in INTERPRETERS and args else program
+    if name in BLOCKED_PROGRAMS or program in BLOCKED_PROGRAMS or name.startswith(BLOCKED_PREFIXES):
+        return True
+    if program == "make" and any(a.startswith("deploy") for a in args):
+        return True
+    return program == "git" and git_subcommand(args) in BLOCKED_GIT
 
 
 def remote_command(args: list[str]) -> tuple[str, str]:
@@ -98,8 +135,9 @@ def remote_command(args: list[str]) -> tuple[str, str]:
             if not args:
                 return "", f"{opt} needs a value"
             value = args.pop(0)
-            if opt == "-o" and value.split("=", 1)[0].split()[0].lower() not in SSH_O_KEYS:
-                return "", f"-o {value.split('=', 1)[0]}"
+            key = (value.split("=", 1)[0].split() or [""])[0].lower()
+            if opt == "-o" and key not in SSH_O_KEYS:
+                return "", f"-o {value}"
         elif opt[:2] in SSH_VALUE_OPTIONS:  # -p2222
             continue
         elif not set(opt[1:]) <= SSH_FLAGS:
@@ -111,20 +149,17 @@ def remote_command(args: list[str]) -> tuple[str, str]:
 
 def read_only_problem(remote: str) -> str:
     """'' when every command in the remote line only reads, else what is wrong."""
-    if UNSAFE_TEXT.search(remote):
-        return "redirect, substitution, grouping or variable"
-    parsed = commands(remote)
-    if parsed is None:
-        return "cannot parse the remote command"
-    for words in parsed:
-        program, args = program_of(words)
-        if not program:
+    if not REMOTE_TEXT.fullmatch(remote):
+        return "only letters, digits, spaces and / . _ - ~ : , @ + * ; | are allowed"
+    for part in re.split(r"[;|]", remote):
+        words = part.split()
+        if not words:
             continue
+        program, args = words[0], words[1:]
         if program in READ_ONLY_SUB:
             rest = args[2:] if program == "git" and args[:1] == ["-C"] else args
-            sub = next((w for w in rest if not w.startswith("-")), "")
-            if sub not in READ_ONLY_SUB[program]:
-                return f"{program} {sub}".strip()
+            if not rest or rest[0] not in READ_ONLY_SUB[program]:
+                return f"{program} {' '.join(rest[:1])}".strip()
         elif program not in READ_ONLY:
             return program
         for opt in WRITING_OPTIONS.get(program, ()):
@@ -133,50 +168,43 @@ def read_only_problem(remote: str) -> str:
     return ""
 
 
-def shell_command(args: list[str]) -> str | None:
-    """The command a shell runs from -c (also in combined flags such as -lc), or None."""
-    for i, arg in enumerate(args):
-        if arg.startswith("-") and not arg.startswith("--") and "c" in arg[1:]:
-            rest = [a for a in args[i + 1:] if not a.startswith("-")]
-            return rest[0] if rest else ""
-    return None
-
-
 def problem(command: str, depth: int = 0) -> str:
     """'' when a subagent may run `command`, else the message saying why not."""
+    if depth > 3:
+        return "nested shells"
     parsed = commands(command)
-    if parsed is None:  # unbalanced quotes: fall back to a plain split and refuse any ssh
-        parsed = [part.split() for part in re.split(r"&&|\|\||[;|&\n]", command)]
+    if parsed is None:  # unbalanced quotes: fall back to a plain split
+        parsed = [part.split() for part in re.split(r"[;&|\n]", command)]
     for words in parsed:
-        program, args = program_of(words)
-        if not program:
+        words = strip_to_program(words)
+        if not words:
             continue
+        program, args = base(words[0]), words[1:]
         if program in SHELLS:
-            inner = shell_command(args)
-            if inner is not None:
-                if depth >= 3:
-                    return "nested shells"
-                found = problem(inner, depth + 1)
-                if found:
-                    return found
-                continue
+            for i, arg in enumerate(args):
+                if arg.startswith("-") and not arg.startswith("--") and "c" in arg[1:]:
+                    inner = next((a for a in args[i + 1:] if not a.startswith("-")), "")
+                    found = problem(inner, depth + 1)
+                    if found:
+                        return found
+                    break
         if program == "ssh":
             remote, wrong = remote_command(args)
             wrong = wrong or read_only_problem(remote)
             if wrong:
                 return f"ssh is for read-only commands only ({wrong}): {shlex.join(words)}"
             continue
-        # Match on the program and its arguments, without assignments and with a script's folder dropped.
-        first = re.split(r"[/\\]", args[0])[-1] if args and program in SHELLS | {"python", "python3"} else None
-        line = " ".join([program] + ([first] + args[1:] if first is not None else args))
-        if BLOCKED.search(line):
-            return line
+        if blocked_local(program, args):
+            return shlex.join(words)
     return ""
 
 
 def main() -> int:
-    command = json.load(sys.stdin).get("tool_input", {}).get("command", "")
-    found = problem(command)
+    try:
+        command = json.load(sys.stdin).get("tool_input", {}).get("command", "")
+        found = problem(command)
+    except Exception as exc:  # a broken guard must block, not wave the command through
+        found = f"the guard failed ({exc!r})"
     if found:
         print(f"Blocked for subagents: {found}. Report it to the main session instead.", file=sys.stderr)
         return 2
