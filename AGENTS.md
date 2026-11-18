@@ -85,7 +85,7 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 - Run table scripts with PanelPro or CATS open. A PanelPro Store goes to `~/JMRI_UserFiles/tables.xml`; run `make tables-pull` before committing.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
-- Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry`, or 2× draw scale unless asked.
+- Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.
 - Remove **F30-S-0** where the layout includes it.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
 - Patch or wrap JMRI or CATS. Both are stock installs; fix the data in `jmri/layouts/hart/output/tables.xml` instead.
