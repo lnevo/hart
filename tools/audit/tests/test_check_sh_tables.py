@@ -22,6 +22,16 @@ class CheckShTables(unittest.TestCase):
             self.assertTrue(line.startswith("unit "), line)
         self.assertIn('env -u HART_TABLES "$@"', text)
 
+    def test_check_sh_uses_the_builds_schematic_cache(self) -> None:
+        """check.sh turns the plugin's cache on in the folder the builds use, unless the caller set the variable."""
+        sys.path.insert(0, str(ROOT / "tools/schematic"))
+        import publish_draft
+        text = CHECK.read_text(encoding="utf-8")
+        self.assertEqual(Path.home() / ".cache/hart/schematic", publish_draft.CACHE)
+        self.assertIn('export SCHEMATIC_CACHE="$HOME/.cache/hart/schematic"', text)
+        self.assertIn('if [[ -z "${SCHEMATIC_CACHE+set}" ]]; then', text)
+        self.assertIn("path: ~/.cache/hart/schematic", (ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8"))
+
     def test_a_missing_hart_tables_file_stops_check_sh_at_once(self) -> None:
         env = {**os.environ, "HART_TABLES": "/nowhere/tables.xml"}
         done = subprocess.run(["bash", str(CHECK)], env=env, capture_output=True, text=True, timeout=30)

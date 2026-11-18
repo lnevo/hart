@@ -28,7 +28,8 @@ and build_device_map.py get the solved bands, so they and publishing solve the s
 key covers the source of the plugin code the solve runs, the graphs and the layer files, so a SCHEMATIC_PLUGIN trial
 or an edited layer file solves again; a change to the title block's date, revision or sheet alone does not (the
 plugin draws the cached page again with them). build_layout_le.py also keeps its Layout Editor panels and their fit
-grids there (cache_on). SCHEMATIC_CACHE= (empty) turns it off, as must any test that patches plugin code.
+grids there (cache_on). SCHEMATIC_CACHE= (empty) turns it off, as must any test that patches plugin code. tools/check.sh sets it
+to the same folder for every job, the unit tests included.
 """
 import contextlib
 import datetime

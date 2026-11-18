@@ -18,6 +18,13 @@ jobs:
         with:
           python-version: "3.13"
       - run: pip install -r ops/hart-ops/requirements-test.txt
+      # The schematic plugin's cache (tools/check.sh sets SCHEMATIC_CACHE to this folder): a solved sheet is keyed on
+      # everything it reads, so an old entry is never used for changed inputs. Each run saves its own copy.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/hart/schematic
+          key: schematic-${{ github.run_id }}
+          restore-keys: schematic-
       - run: ./tools/check.sh
         env:
           SCHEMATIC_REQUIRED: "1"

@@ -15,6 +15,14 @@ fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
+# The schematic plugin's cache, the folder the builds use (publish_draft.CACHE, private to this user), for every job
+# here: the Layout Editor tests call the build directly and would otherwise solve the whole sheet about five times
+# (about 7 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
+# the folder between runs (.github/workflows/check.yml).
+if [[ -z "${SCHEMATIC_CACHE+set}" ]]; then
+  export SCHEMATIC_CACHE="$HOME/.cache/hart/schematic"
+  mkdir -p "$SCHEMATIC_CACHE" && chmod 700 "$SCHEMATIC_CACHE"
+fi
 # A worktree not made by make wt (a subagent's isolation worktree, an older one) may lack the submodules the checks
 # import (CHECK_SUBMODULES in tools/agent/worktrees.py); check them out the way make wt does. Only in a worktree
 # (.git is a file there): the main checkout is not changed, and CI checks them out itself (.github/workflows/check.yml).
