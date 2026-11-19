@@ -4,7 +4,7 @@ A read-only review of architecture, performance, runtime code and documentation 
 
 ## PRs opened from the review
 
-| PR | What | State at 18:50 on 2026-11-19 |
+| PR | What | State at 18:55 on 2026-11-19 |
 |---|---|---|
 | #695 | Docs: index refresh, two broken links, Pipelines row in `wiki/home.md` | Merged (docs only) |
 | #696 | CI: concurrency group for PRs, pip cache | Open, check passed |
@@ -17,7 +17,7 @@ A read-only review of architecture, performance, runtime code and documentation 
 | #703 | `read_tables` refuses duplicate user names within a type (live file has none) | Open |
 | #704 | A foreign `enabling` during an unannounced Hold cancels the hand-off (`_enabling_announced`, `_enable_cancelled`) | Open; ownership logic for live signals, owner review first; deploy to both hosts after merge |
 | #705 | `make panels` runs the staging mast and staging sync checks (check-only in both modes) before the stages that read them | Open |
-| branch `agent/claude/level-masts-validate` | `level_masts.read` validates its header and refuses duplicate mast names | In progress when this page was written; see the branch or the PR list |
+| #706 | `hartlib.level_masts.read` validates its header through `read_rows` and refuses duplicate mast names (the 44 live rows read the same) | Draft: `tools/audit/tests/test_le_cutover.py` had not finished locally; mark ready once CI passes |
 
 Every open code PR still owes `/code-review medium` before merge (AGENTS.md); #699 is docs only. #697 and #704 both edit `jmri/scripts/signal_coordinator.py` in different places; merge one, then rebase the other. A `query` on `track/bridge/sml_mode` or a `RESUBSCRIBE` on `track/bridge/cmd` already retained on the broker stays until replaced or cleared.
 
