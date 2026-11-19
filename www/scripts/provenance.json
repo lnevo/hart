@@ -1,0 +1,92 @@
+{
+  "site": {
+    "name": "HART Railroad",
+    "summary": "An HO scale model railroad of Neville Island, near Pittsburgh, Pennsylvania. The island, its plants and the railroads that served it are real; the layout's railroad and its operation are invented.",
+    "notes": [
+      "Real, with sources on the page: Neville Island and its industries, the Pittsburgh & Ohio Valley Railway (P&OV, 1899 to 31 January 1994), the Pittsburgh Industrial Railroad (PIR), the Pittsburgh & Ohio Central (POHC), CSX, Conrail, the Chartiers Valley lines and the Kirwan Heights district.",
+      "Invented (freelanced): HART and its Pittsburgh & Chartiers Valley (P&CV) Division, which the layout imagines taking over the island's switching after the P&OV ended, in a 1996 to 2016 setting. Crew sheets, timetables, station maps, train orders and operating stories are in-world fiction even when they name real plants and real railroads.",
+      "The P&OV and the P&CV are different railroads: the P&OV is real history, the P&CV is the invented successor.",
+      "Hobby documentation (the layout's construction, control software, signals, AI use, guides and NMRA work) is factual, but it describes the model, not the prototype.",
+      "Each page's schema.org JSON-LD carries the same class as an additionalProperty named provenance, and pages that mix classes list their sections under hasPart.",
+      "Dates in article bylines are when the page was written, not when the events happened."
+    ],
+    "setting": {
+      "@type": "Place",
+      "name": "Neville Island",
+      "address": {"@type": "PostalAddress", "addressRegion": "PA", "addressCountry": "US"}
+    }
+  },
+  "classes": {
+    "prototype": "Prototype history: real places, companies and railroads, with sources",
+    "fiction": "Fiction: the invented HART railroad and its operating paperwork",
+    "hobby": "Hobby documentation: how the model railroad is built and run",
+    "mixed": "Mixed pages: real history and fiction in labelled sections"
+  },
+  "rules": {
+    "index.html": {"class": "mixed", "note": "Home page of the model railroad. The island history teaser is real; HART and its operation are invented.", "parts": [
+      {"section": "Neville Island introduction", "class": "prototype"},
+      {"section": "Operations and crew cards", "class": "fiction"},
+      {"section": "Layout and build cards", "class": "hobby"}]},
+    "about/": {"class": "mixed", "parts": [
+      {"section": "The island; East end industries", "class": "prototype"},
+      {"section": "The layout and its builder", "class": "hobby"}]},
+    "briefing/": {"class": "mixed", "note": "New operator primer. The island history and the P&OV dates are real; the railroad after 1994 is invented.", "parts": [
+      {"section": "Neville Island", "class": "prototype"},
+      {"section": "The Railroad Today", "class": "fiction"},
+      {"section": "Who We Switch; Jobs on the Board; Destination Colors; The Track Scale", "class": "fiction"},
+      {"section": "What to Expect; Your first night", "class": "hobby"}]},
+    "operators/": {"class": "mixed", "parts": [
+      {"section": "Introduction: the real place", "class": "prototype"},
+      {"section": "Paperwork links", "class": "hobby"}]},
+    "operators/glossary/": {"class": "mixed", "note": "Real railroad terms and companies beside in-world definitions of HART's jobs; a job, train or schedule named for a real railroad is part of the layout's story.", "parts": [
+      {"section": "Real terms and companies (HO scale, P&OV, CSX, POHC, PC&C)", "class": "prototype"},
+      {"section": "Jobs, trains and session roles (D749, NVL, Route 23, dispatcher)", "class": "fiction"}]},
+    "operators/cards/": {"class": "hobby"},
+    "photos/": {"class": "mixed", "parts": [
+      {"section": "Historical album (each photo credited to its source)", "class": "prototype"},
+      {"section": "Layout and Rolling stock albums", "class": "hobby"}]},
+
+    "history/": {"class": "prototype", "note": "Index of the prototype history articles, each with its sources.", "citation": [
+      "/library/neville-island-coke-cement-chemical-history.html",
+      "/library/pittsburgh-ohio-valley-railway.html",
+      "/library/chartiers-valley-railroads.html"]},
+    "plants/": {"class": "prototype", "note": "Ownership chart of the Neville Island plants; the sources are in the linked history article.", "citation": [
+      "/library/neville-island-coke-cement-chemical-history.html"]},
+    "railroads/": {"class": "prototype", "note": "Lineage chart of the real railroads; the closing note about HART's P&CV Division is the layout's story. Sources are in the linked articles.", "citation": [
+      "/library/pittsburgh-ohio-valley-railway.html",
+      "/library/chartiers-valley-railroads.html"]},
+    "articles/": {"class": "mixed", "note": "Index of articles; each card names its kind.", "parts": [
+      {"section": "Prototype history and chart cards", "class": "prototype"},
+      {"section": "Crew stories", "class": "fiction"},
+      {"section": "Build and software articles", "class": "hobby"}]},
+
+    "library/pittsburgh-ohio-valley-railway.html": {"class": "prototype", "note": "History of the real Pittsburgh & Ohio Valley Railway, 1899 to 1994, with sources. Its mentions of HART's P&CV Division as a successor are the layout's story, not history."},
+    "library/voices-of-the-pov.html": {"class": "prototype", "note": "Recollections of real people who worked on or near the P&OV, each linked to its source."},
+    "library/neville-island-coke-cement-chemical-history.html": {"class": "mixed", "note": "Sourced history of the Neville Island coke, cement and chemical plants; the last section describes the invented HART setting.", "parts": [
+      {"section": "Sections 1 to 9 and Sources", "class": "prototype"},
+      {"section": "10. On HART, and the HART name column", "class": "fiction"}]},
+    "library/chartiers-valley-railroads.html": {"class": "prototype"},
+    "library/pohc-line-industries.html": {"class": "prototype"},
+    "library/kirwan-heights-industrial-district.html": {"class": "prototype"},
+    "library/pcc-pig-iron-1951.html": {"class": "prototype", "citation": ["The New York Times, financial page, 6 July 1951, p. 26"]},
+    "library/coraopolis-record-opinion.html": {"class": "prototype"},
+    "library/coke-making-in-beehive-ovens.html": {"class": "prototype"},
+    "library/": {"class": "hobby"},
+
+    "crew/": {"class": "fiction", "note": "In-world operating paperwork for sessions on the model railroad: crew instructions, timetables, spot sheets and station maps. Real plant and railroad names appear, but the jobs, trains, schedules and stations are invented."},
+    "exam/index.html": {"class": "hobby", "note": "Study deck for an NMRA OPSIG operating rules exam; the rules quoted are real."},
+    "exam/": {"class": "fiction", "note": "A game on the Kestrel Valley, an invented railroad; the operating rules it tests are real (1949 Standard Code, GCOR) and each answer names its source."},
+
+    "docs/html/HART_Railroad_Publication_Standards_v1.0.html": {"class": "hobby"},
+    "docs/": {"class": "hobby"},
+    "ai/": {"class": "hobby"},
+    "ap/": {"class": "hobby"},
+    "behind/": {"class": "hobby"},
+    "build/": {"class": "hobby"},
+    "guides/": {"class": "hobby"},
+    "helix/": {"class": "hobby"},
+    "layout/": {"class": "hobby"},
+    "roster/": {"class": "hobby"},
+    "tools/": {"class": "hobby"}
+  }
+}
