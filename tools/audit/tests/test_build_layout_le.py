@@ -345,9 +345,9 @@ class Built(unittest.TestCase):
         arcs = [s for s in self.le.findall("tracksegment") if s.get("arc") == "yes"]
         self.assertGreater(len(arcs), 30)
         self.assertTrue(all(s.get("circle") == "yes" and float(s.get("angle")) > 0 for s in arcs))
-        # the two main-upper connector joins (Switches 129 and 135); the helix joins only with B.JOIN_HELIX
+        # the two main-upper connector joins (Switches 129 and 135); and the two helix joins
         self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"),
-                         4 if B.JOIN_HELIX else 2)
+                         4)
         self.assertEqual({s.get("mainline") for s in self.le.findall("tracksegment")}, {"yes", "no"})
         texts = {lb.get("text") for lb in self.le.findall("positionablelabel")}
         prefix = B.schematic()[1]["le_labels"]["switch_prefix"]     # the page's: as the label layer writes them

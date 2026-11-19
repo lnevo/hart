@@ -287,14 +287,12 @@ def helix_join_changes(missing: list, extra: list, new_le: ET.Element, P, ends: 
     return notes
 
 
-def check_staging_unchanged(base, data: bytes, P, panel_name: str, join_helix: bool) -> list[str]:
+def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     """Stop with BuildError unless the three-level candidate `data` holds the staging candidate (`base`: build()'s
     result for --levels staging --as-live) unchanged: every bean, every other panel and every element of the staging
     panel (track, mast icons, labels, block contents icons, carried items), but the main and upper objects added
-    (level_items), the panel size (PANEL_SIZE_ATTRS: three levels are taller) and, only with `join_helix` (the
-    build's JOIN_HELIX) on, the
-    helix-join changes the owner accepted then (helix_join_changes). Returns those helix-join changes, as notes
-    (none while JOIN_HELIX is off: every staging element as in the staging candidate, byte for byte)."""
+    (level_items), the panel size (PANEL_SIZE_ATTRS: three levels are taller) and the helix-join changes the owner
+    accepted (2026-11-17, helix_join_changes). Returns those helix-join changes, as notes."""
     S = base[1]
     old_root, new_root = tables.loads(base[0]).root, tables.loads(data).root
     bad = []
@@ -316,8 +314,6 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str, join_helix: b
     ends = {S.name(k) for k, p in S.points.items() if p["type"] == "END_BUMPER"} - \
         {P.name(k) for k, p in P.points.items() if p["type"] == "END_BUMPER"}
     joins = {P.name(i) for (b, i) in P.join_ends if b == 0}     # the staging anchors the hidden joins start at
-    if not join_helix and (ends or joins):      # main and upper keep their own joins (their connector letters)
-        bad.append(f"JOIN_HELIX is off, but staging end bumpers {sorted(ends)} are joined, at {sorted(joins)}")
     level = level_items(P, new_le)
     old_els = defaultdict(list)
     for el in old_le:
@@ -332,8 +328,7 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str, join_helix: b
         else:
             extra.append(el)
     missing = [el for v in old_els.values() for el in v]
-    # unjoined (JOIN_HELIX off), no difference is accepted: staging byte for byte
-    notes = helix_join_changes(missing, extra, new_le, P, ends, joins) if join_helix else []
+    notes = helix_join_changes(missing, extra, new_le, P, ends, joins)
     if len(notes) != 2 * len(ends):
         bad.append(f"{len(ends)} staging end bumpers ({', '.join(sorted(ends))}) are joined to the next level, but "
                    f"only these helix-join changes are as expected: {notes}")
