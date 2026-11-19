@@ -388,6 +388,220 @@ occupancy,Block 1-8,BS West Ext,East End,M2S107,,Node: 1 Block: 8,historical ali
 occupancy,BS West Main Ext,BS West Ext,East End,M2S107,,Node: 1 Block: 8,historical alias; name until 2026-11-13
 occupancy,Block 2-2,unused Block 2-2,,M2S201,,,historical alias; free detector; no block assigned
 occupancy,Block 3-8,unused Block 3-8,,M2S307,,,historical alias; free detector; no block assigned
+mast,Mast 10LA,Mast 10LA,Engine House,virtual $1006,,Engine House,
+mast,Mast 10LB,Mast 10LB,Engine House,virtual $1007,,Engine House,
+mast,Mast 10RA,Mast 10RA,Engine House,virtual $1021,,Engine House | Switch 9,hidden EH-2 exit; Dispatcher Stage 1
+mast,Mast 10RB,Mast 10RB,Engine House,virtual $1022,,Engine House | Switch 9,hidden EH-3 exit; Dispatcher Stage 1
+mast,Mast 12L,Mast 12L,Engine House,virtual $1005,,Engine House,
+mast,Mast 12R,Mast 12R,Engine House,virtual $1020,,Engine House | Switch 11,hidden EH-1 exit; Dispatcher Stage 1
+mast,Mast 14R,Mast 14R,Barn,virtual $1019,,Barn | Switch 13,hidden Barn into Switch 13; Dispatcher Stage 1
+mast,Mast 16L,Mast 16L,South Yard,virtual $1016,,South Yard,
+mast,Mast 16R,Mast 16R,South Yard,virtual $1017,,South Yard,
+mast,Mast 18L,Mast 18L,South Yard,virtual $1008,,South Yard,
+mast,Mast 18R,Mast 18R,South Yard,virtual $1012,,South Yard,
+mast,Mast 20L,Mast 20L,South Yard,virtual $1009,,South Yard,
+mast,Mast 20R,Mast 20R,South Yard,virtual $1013,,South Yard,
+mast,Mast 22L,Mast 22L,South Yard,virtual $1010,,South Yard,
+mast,Mast 22R,Mast 22R,South Yard,virtual $1014,,South Yard,
+mast,Mast 24L,Mast 24L,East End,IH:HART:C1:24L,,East End | Switch 23,
+mast,Mast 24RA,Mast 24RA,East End,IH:HART:C1:24RA_Top IH:HART:C1:24RA_Bottom,,East End | Switch 23,
+mast,Mast 24RB,Mast 24RB,East End,IH:HART:C1:24RB,,East End | Switch 23,
+mast,Mast 26L,Mast 26L,South Yard,virtual $1011,,South Yard,
+mast,Mast 26R,Mast 26R,South Yard,virtual $1015,,South Yard,
+mast,Mast 2L,Mast 2L,Brick,IH:HART:C1:2L_Top IH:HART:C1:2L_Bottom,,Brick | Switch 1,
+mast,Mast 2R,Mast 2R,Brick,IH:HART:C1:2R,,Brick | Switch 1,
+mast,Mast 32R,Mast 32R,East End,IH:HART:C1:32R,,East End | Switch 31,
+mast,Mast 34L,Mast 34L,East End,IH:HART:C1:34L_Top IH:HART:C1:34L_Bottom,,East End | Switch 33,
+mast,Mast 34R,Mast 34R,East End,IH:HART:C1:34R,,East End | Switch 33,
+mast,Mast 36L,Mast 36L,Princess,virtual $1025,,Princess,hidden East Lead rear (westbound) at AG21 (was A56); throat Track East Lead East; Dispatcher Stage 1
+mast,Mast 36RA,Mast 36RA,Princess,IH:HART:C1:36RA_Top IH:HART:C1:36RA_Bottom,,Princess | Switch 35,
+mast,Mast 36RB,Mast 36RB,Princess,IH:HART:C1:36RB_Top IH:HART:C1:36RB_Bottom,,Princess | Switch 35,
+mast,Mast 38LA,Mast 38LA,Princess,IH:HART:C1:38LA,,Princess | Switch 37,
+mast,Mast 38LB,Mast 38LB,Princess,IH:HART:C1:38LB,,Princess | Switch 37,
+mast,Mast 38RA,Mast 38RA,Princess,virtual $1004,,Princess,
+mast,Mast 40LA,Mast 40LA,Princess,IH:HART:C1:40LA_Top IH:HART:C1:40LA_Bottom,,Princess | Switch 39,
+mast,Mast 40LB,Mast 40LB,Princess,IH:HART:C1:40LB_Top IH:HART:C1:40LB_Bottom,,Princess | Switch 39,
+mast,Mast 40RA,Mast 40RA,Princess,virtual $1003,,Princess,
+mast,Mast 40RB,Mast 40RB,Princess,virtual $1026,,Princess,hidden K-1 rear (eastbound) at AG6 (was A1); throat Track K-1 West; Dispatcher Stage 1
+mast,Mast 4LA,Mast 4LA,Brick,virtual $1001,,Brick,
+mast,Mast 4LB,Mast 4LB,Brick,virtual $1002,,Brick,
+mast,Mast 4RA,Mast 4RA,Brick,IH:HART:C1:4RA,,Brick | Switch 3,
+mast,Mast 4RB,Mast 4RB,Brick,IH:HART:C1:4RB,,Brick | Switch 3,
+mast,Mast 67,Mast 67,Princess,IH:HART:C1:67,,Princess,
+mast,Mast 68,Mast 68,Princess,IH:HART:C1:68,,Princess,
+mast,Mast 6LA,Mast 6LA,Plane,IH:HART:C1:6LA,,Plane | Switch 5,
+mast,Mast 6LB,Mast 6LB,Plane,IH432,,Plane | Switch 5,
+mast,Mast 6R,Mast 6R,Plane,IH:HART:C1:6R_Top IH:HART:C1:6R_Bottom,,Plane | Switch 5,
+mast,Mast 8LA,Mast 8LA,Barn,IH:HART:C1:8LA_Top IH:HART:C1:8LA_Bottom,,Barn | Switch 7,
+mast,Mast 8LB,Mast 8LB,Barn,IH:HART:C1:8LB,,Barn | Switch 7,
+mast,Mast 8LC,Mast 8LC,Barn,virtual $1018,,Barn,hidden Scale east westbound; Dispatcher Stage 1
+mast,Mast 8RA,Mast 8RA,Barn,IH:HART:C1:8RA,,Barn,
+mast,Mast 8RB,Mast 8RB,Barn,IH:HART:C1:8RB_Top IH:HART:C1:8RB_Bottom,,Barn | Switch 7,
+mast,119LA,Mast 10LA,Engine House,virtual $1006,,Engine House | Switch 9,historical alias; hidden EH-2 bumper; Dispatcher Stage 1
+mast,Engine House 2 buffer,Mast 10LA,Engine House,virtual $1006,,Engine House | Switch 9,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,119LB,Mast 10LB,Engine House,virtual $1007,,Engine House | Switch 9,historical alias; hidden EH-3 bumper; Dispatcher Stage 1
+mast,Engine House 3 buffer,Mast 10LB,Engine House,virtual $1007,,Engine House | Switch 9,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,118L,Mast 12L,Engine House,virtual $1005,,Engine House | Switch 11,historical alias; hidden EH-1 bumper; Dispatcher Stage 1
+mast,Engine House 1 buffer,Mast 12L,Engine House,virtual $1005,,Engine House | Switch 11,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,103L,Mast 16L,South Yard,virtual $1016,,South Yard | Switch 15,historical alias; hidden S-R west / 103 ladder; Dispatcher Stage 1
+mast,104L,Mast 18L,South Yard,virtual $1008,,South Yard | Switch 17,historical alias; hidden S-1 west throat; Dispatcher Stage 1
+mast,South Yard 2 west,Mast 18L,South Yard,virtual $1008,,South Yard | Switch 17,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,104R,Mast 18R,South Yard,virtual $1012,,South Yard | Switch 17,historical alias; hidden S-1 east throat; Dispatcher Stage 1
+mast,120L,Mast 67,Princess,IH:HART:C1:67,,Princess,historical alias; Princess intermediate (was 115R / 120L); field 2035; no switch
+mast,Princess East McKees Rocks,Mast 67,Princess,IH:HART:C1:67,,Princess,historical alias; dwarf; field 2035 (was 120L); no switch; Princess intermediates
+mast,120R,Mast 68,Princess,IH:HART:C1:68,,Princess,historical alias; Princess intermediate (was 114R / 120R); field 2036; no switch
+mast,Princess East McKeesport,Mast 68,Princess,IH:HART:C1:68,,Princess,historical alias; dwarf; field 2036 (was 120R); no switch; Princess intermediates
+mast,105L,Mast 20L,South Yard,virtual $1009,,South Yard | Switch 19,historical alias; hidden S-2 west throat; Dispatcher Stage 1
+mast,South Yard 3 west,Mast 20L,South Yard,virtual $1009,,South Yard | Switch 19,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,105R,Mast 20R,South Yard,virtual $1013,,South Yard | Switch 19,historical alias; hidden S-2 east throat; Dispatcher Stage 1
+mast,106L,Mast 22L,South Yard,virtual $1010,,South Yard | Switch 21,historical alias; hidden S-3 west throat; Dispatcher Stage 1
+mast,South Yard 4 west,Mast 22L,South Yard,virtual $1010,,South Yard | Switch 21,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,106R,Mast 22R,South Yard,virtual $1014,,South Yard | Switch 21,historical alias; hidden S-3 east throat; Dispatcher Stage 1
+mast,111L,Mast 24L,East End,IH:HART:C1:24L,,East End | Switch 23,historical alias; lever 18 Left
+mast,East End East OS 111a,Mast 24L,East End,IH:HART:C1:24L,,East End | Switch 23,historical alias; lever 18 Left
+mast,111RA,Mast 24RA,East End,IH:HART:C1:24RA_Top IH:HART:C1:24RA_Bottom,,East End | Switch 23,historical alias; lever 18 Right; Main West
+mast,East End West Main West,Mast 24RA,East End,IH:HART:C1:24RA_Top IH:HART:C1:24RA_Bottom,,East End | Switch 23,historical alias; lever 18 Right; Main West
+mast,111RB,Mast 24RB,East End,IH:HART:C1:24RB,,East End | Switch 23,historical alias; lever 18 Right; S-R dwarf
+mast,East End West Yard Track 1,Mast 24RB,East End,IH:HART:C1:24RB,,East End | Switch 23,historical alias; lever 18 Right; South Yard 1 dwarf
+mast,107L,Mast 26L,South Yard,virtual $1011,,South Yard | Switch 21,historical alias; hidden S-4 west throat; Dispatcher Stage 1
+mast,South Yard 5 west,Mast 26L,South Yard,virtual $1011,,South Yard | Switch 21,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,107R,Mast 26R,South Yard,virtual $1015,,South Yard | Switch 21,historical alias; hidden S-4 east throat; Dispatcher Stage 1
+mast,100L,Mast 2L,Brick,IH:HART:C1:2L_Top IH:HART:C1:2L_Bottom,,Brick | Switch 1,historical alias; lever 4 Left
+mast,Brick East Main West,Mast 2L,Brick,IH:HART:C1:2L_Top IH:HART:C1:2L_Bottom,,Brick | Switch 1,historical alias; lever 4 Left
+mast,110L,Mast 16R,South Yard,virtual $1017,,South Yard | Switch 15,historical alias; hidden S-R east / 110 ladder; Dispatcher Stage 1
+mast,Mast 32L,Mast 16R,South Yard,virtual $1017,,South Yard | Switch 15,historical alias; name until 2026-11-13
+mast,110R,Mast 32R,East End,IH:HART:C1:32R,,East End | Switch 31,historical alias; lever 20 Right; dwarf
+mast,East End South OS 110,Mast 32R,East End,IH:HART:C1:32R,,East End | Switch 31,historical alias; lever 20 Right; dwarf
+mast,112L,Mast 34L,East End,IH:HART:C1:34L_Top IH:HART:C1:34L_Bottom,,East End | Switch 33,historical alias; lever 24 Left
+mast,East End East Lead,Mast 34L,East End,IH:HART:C1:34L_Top IH:HART:C1:34L_Bottom,,East End | Switch 33,historical alias; lever 24 Left
+mast,112R,Mast 34R,East End,IH:HART:C1:34R,,East End | Switch 33,historical alias; lever 24 Right; Main East
+mast,East End South OS 112,Mast 34R,East End,IH:HART:C1:34R,,East End | Switch 33,historical alias; lever 24 Right; Main East
+mast,113RA,Mast 36RA,Princess,IH:HART:C1:36RA_Top IH:HART:C1:36RA_Bottom,,Princess | Switch 35,historical alias; lever 26 Right; Main West
+mast,Princess West OS 113b,Mast 36RA,Princess,IH:HART:C1:36RA_Top IH:HART:C1:36RA_Bottom,,Princess | Switch 35,historical alias; lever 26 Right; Main West
+mast,113RB,Mast 36RB,Princess,IH:HART:C1:36RB_Top IH:HART:C1:36RB_Bottom,,Princess | Switch 35,historical alias; lever 26 Right; South Yard East
+mast,Princess West OS 113a,Mast 36RB,Princess,IH:HART:C1:36RB_Top IH:HART:C1:36RB_Bottom,,Princess | Switch 35,historical alias; lever 26 Right; South Yard East
+mast,114LA,Mast 38LB,Princess,IH:HART:C1:38LB,,Princess | Switch 37,historical alias; lever 28 Left; dwarf
+mast,Princess East K-2,Mast 38LB,Princess,IH:HART:C1:38LB,,Princess | Switch 37,historical alias; lever 28 Left; dwarf
+mast,114LB,Mast 38LA,Princess,IH:HART:C1:38LA,,Princess | Switch 37,historical alias; lever 28 Left
+mast,Princess South McKeesport,Mast 38LA,Princess,IH:HART:C1:38LA,,Princess | Switch 37,historical alias; lever 28 Left
+mast,114RA,Mast 38RA,Princess,virtual $1004,,Princess | Switch 37,historical alias; hidden K-2 bumper; Dispatcher Stage 1
+mast,K-2 buffer,Mast 38RA,Princess,virtual $1004,,Princess | Switch 37,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,115LA,Mast 40LB,Princess,IH:HART:C1:40LB_Top IH:HART:C1:40LB_Bottom,,Princess | Switch 39,historical alias; lever 30 Left; dwarf
+mast,Princess East K-1,Mast 40LB,Princess,IH:HART:C1:40LB_Top IH:HART:C1:40LB_Bottom,,Princess | Switch 39,historical alias; lever 30 Left; dwarf
+mast,115LB,Mast 40LA,Princess,IH:HART:C1:40LA_Top IH:HART:C1:40LA_Bottom,,Princess | Switch 39,historical alias; lever 30 Left
+mast,Princess North McKees Rocks,Mast 40LA,Princess,IH:HART:C1:40LA_Top IH:HART:C1:40LA_Bottom,,Princess | Switch 39,historical alias; lever 30 Left
+mast,115RA,Mast 40RA,Princess,virtual $1003,,Princess | Switch 39,historical alias; hidden K-1 bumper; Dispatcher Stage 1
+mast,K-1 buffer,Mast 40RA,Princess,virtual $1003,,Princess | Switch 39,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,101LA,Mast 4LA,Brick,virtual $1001,,Brick | Switch 3,historical alias; hidden W-1 bumper; Dispatcher Stage 1
+mast,West Yard 1 buffer,Mast 4LA,Brick,virtual $1001,,Brick | Switch 3,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,101LB,Mast 4LB,Brick,virtual $1002,,Brick | Switch 3,historical alias; hidden W-2 bumper; Dispatcher Stage 1
+mast,West Yard 2 buffer,Mast 4LB,Brick,virtual $1002,,Brick | Switch 3,historical alias; hidden stub-end for Dispatcher Stage 1
+mast,101RA,Mast 4RA,Brick,IH:HART:C1:4RA,,Brick | Switch 3,historical alias; lever 2 Right; W-1 dwarf
+mast,Brick West Yard 1,Mast 4RA,Brick,IH:HART:C1:4RA,,Brick | Switch 3,historical alias; lever 2 Right; W-1 dwarf
+mast,101RB,Mast 4RB,Brick,IH:HART:C1:4RB,,Brick | Switch 3,historical alias; lever 2 Right; W-2 dwarf
+mast,Brick West Yard 2,Mast 4RB,Brick,IH:HART:C1:4RB,,Brick | Switch 3,historical alias; lever 2 Right; W-2 dwarf
+mast,102LA,Mast 6LA,Plane,IH:HART:C1:6LA,,Plane | Switch 5,historical alias; lever 6 Left; Scale; 1-head dwarf (was 2-head; IH435 removed)
+mast,Plane East OS 102,Mast 6LA,Plane,IH:HART:C1:6LA,,Plane | Switch 5,historical alias; lever 6 Left; Scale; 1-head dwarf (was 2-head)
+mast,102LB,Mast 6LB,Plane,IH432,,Plane | Switch 5,historical alias; lever 6 Left; main
+mast,Plane East East Main Ext,Mast 6LB,Plane,IH432,,Plane | Switch 5,historical alias; lever 6 Left; main
+mast,117LA,Mast 8LA,Barn,IH:HART:C1:8LA_Top IH:HART:C1:8LA_Bottom,,Barn | Switch 7,historical alias; lever 8 Left; main (2-head JMRI; USS lamp uses top head)
+mast,West Yard East OS 117b,Mast 8LA,Barn,IH:HART:C1:8LA_Top IH:HART:C1:8LA_Bottom,,Barn | Switch 7,historical alias; lever 8 Left; main
+mast,117LB,Mast 8LB,Barn,IH:HART:C1:8LB,,Barn | Switch 7,historical alias; lever 8 Left; Barn dwarf
+mast,West Yard East Yard T6,Mast 8LB,Barn,IH:HART:C1:8LB,,Barn | Switch 7,historical alias; lever 8 Left; Barn dwarf
+mast,117RA,Mast 8RA,Barn,IH:HART:C1:8RA,,Barn | Switch 7,historical alias; lever 8 Right; yard (2-head JMRI; USS lamp uses top head)
+mast,West Yard West OS 117,Mast 8RA,Barn,IH:HART:C1:8RA,,Barn | Switch 7,historical alias; lever 8 Right; yard
+mast,117RB,Mast 8RB,Barn,IH:HART:C1:8RB_Top IH:HART:C1:8RB_Bottom,,Barn | Switch 7,historical alias; lever 8 Right; main
+mast,West Yard West East Main Ext,Mast 8RB,Barn,IH:HART:C1:8RB_Top IH:HART:C1:8RB_Bottom,,Barn | Switch 7,historical alias; lever 8 Right; main
+mast,Mast 9LA,Mast 10RA,Engine House,virtual $1021,,Engine House | Switch 9,historical alias; even signal number (was 9LA) 2026-11-12
+mast,Mast 9LB,Mast 10RB,Engine House,virtual $1022,,Engine House | Switch 9,historical alias; even signal number (was 9LB) 2026-11-12
+mast,Mast 11L,Mast 12R,Engine House,virtual $1020,,Engine House | Switch 11,historical alias; even signal number (was 11L) 2026-11-12
+mast,Mast 13R,Mast 14R,Barn,virtual $1019,,Barn | Switch 13,historical alias; even signal number (was 13R) 2026-11-12
+mast,Mast 2035,Mast 67,Princess,IH:HART:C1:67,,,historical alias; renamed by the staging signal rule 2026-11-19
+mast,Mast 2036,Mast 68,Princess,IH:HART:C1:68,,,historical alias; renamed by the staging signal rule 2026-11-19
+head,Head 24L,Head 24L,East End,IH:HART:C1:24L,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 24RA Bottom,Head 24RA Bottom,East End,IH:HART:C1:24RA_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 24RA Top,Head 24RA Top,East End,IH:HART:C1:24RA_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 24RB,Head 24RB,East End,IH:HART:C1:24RB,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 2L Bottom,Head 2L Bottom,Brick,IH:HART:C1:2L_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 2L Top,Head 2L Top,Brick,IH:HART:C1:2L_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 2R,Head 2R,Brick,IH:HART:C1:2R,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 32R,Head 32R,East End,IH:HART:C1:32R,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 34L Bottom,Head 34L Bottom,East End,IH:HART:C1:34L_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 34L Top,Head 34L Top,East End,IH:HART:C1:34L_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 34R,Head 34R,East End,IH:HART:C1:34R,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 36RA Bottom,Head 36RA Bottom,Princess,IH:HART:C1:36RA_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 36RA Top,Head 36RA Top,Princess,IH:HART:C1:36RA_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 36RB Bottom,Head 36RB Bottom,Princess,IH:HART:C1:36RB_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 36RB Top,Head 36RB Top,Princess,IH:HART:C1:36RB_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 38LA,Head 38LA,Princess,IH:HART:C1:38LA,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 38LB,Head 38LB,Princess,IH:HART:C1:38LB,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 40LA Bottom,Head 40LA Bottom,Princess,IH:HART:C1:40LA_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 40LA Top,Head 40LA Top,Princess,IH:HART:C1:40LA_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 40LB Bottom,Head 40LB Bottom,Princess,IH:HART:C1:40LB_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 40LB Top,Head 40LB Top,Princess,IH:HART:C1:40LB_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 4RA,Head 4RA,Brick,IH:HART:C1:4RA,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 4RB,Head 4RB,Brick,IH:HART:C1:4RB,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 67,Head 67,Princess,IH:HART:C1:67,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 68,Head 68,Princess,IH:HART:C1:68,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 6LA,Head 6LA,Plane,IH:HART:C1:6LA,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 6LB,Head 6LB,Plane,IH432,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",one high head (owner 2026-11-19); IH433 dropped
+head,Head 6R Bottom,Head 6R Bottom,Plane,IH:HART:C1:6R_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 6R Top,Head 6R Top,Plane,IH:HART:C1:6R_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 8LA Bottom,Head 8LA Bottom,Barn,IH:HART:C1:8LA_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 8LA Top,Head 8LA Top,Barn,IH:HART:C1:8LA_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 8LB,Head 8LB,Barn,IH:HART:C1:8LB,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 8RA,Head 8RA,Barn,IH:HART:C1:8RA,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 8RB Bottom,Head 8RB Bottom,Barn,IH:HART:C1:8RB_Bottom,,,"internal, not wired (owner, 2026-11-19)"
+head,Head 8RB Top,Head 8RB Top,Barn,IH:HART:C1:8RB_Top,,,"internal, not wired (owner, 2026-11-19)"
+head,111RA Bottom,Head 24RA Bottom,East End,IH:HART:C1:24RA_Bottom,,"Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6",historical alias
+head,East End West Main West Bottom,Head 24RA Bottom,East End,IH:HART:C1:24RA_Bottom,,"Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6",historical alias of 111RA Bottom
+head,111RA Top,Head 24RA Top,East End,IH:HART:C1:24RA_Top,,"Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3",historical alias
+head,East End West Main West Top,Head 24RA Top,East End,IH:HART:C1:24RA_Top,,"Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3",historical alias of 111RA Top
+head,111RB,Head 24RB,East End,IH:HART:C1:24RB,,"Node: 2 Signal: 2 | OU: 3 Ports: 6,7,8",historical alias; dwarf
+head,East End West Yard Track 1,Head 24RB,East End,IH:HART:C1:24RB,,"Node: 2 Signal: 2 | OU: 3 Ports: 6,7,8",historical alias; dwarf
+head,100L Bottom,Head 2L Bottom,Brick,IH:HART:C1:2L_Bottom,,"Node: 4 Signal: 7 | OU: 3 Ports: 4,5,6",historical alias
+head,Brick East Main West Bottom,Head 2L Bottom,Brick,IH:HART:C1:2L_Bottom,,"Node: 4 Signal: 7 | OU: 3 Ports: 4,5,6",historical alias of 100L Bottom
+head,100L Top,Head 2L Top,Brick,IH:HART:C1:2L_Top,,"Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3",historical alias
+head,Brick East Main West Top,Head 2L Top,Brick,IH:HART:C1:2L_Top,,"Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3",historical alias of 100L Top
+head,110R,Head 32R,East End,IH:HART:C1:32R,,"Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",historical alias; dwarf
+head,East End South OS 110,Head 32R,East End,IH:HART:C1:32R,,"Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",historical alias; dwarf
+head,112L Bottom,Head 34L Bottom,East End,IH:HART:C1:34L_Bottom,,"Node: 12 Signal: 1 | OU: 2 Ports: 4,5,6",historical alias
+head,East End East Lead Bottom,Head 34L Bottom,East End,IH:HART:C1:34L_Bottom,,"Node: 12 Signal: 1 | OU: 2 Ports: 4,5,6",historical alias of 112L Bottom
+head,112L Top,Head 34L Top,East End,IH:HART:C1:34L_Top,,"Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
+head,East End East Lead Top,Head 34L Top,East End,IH:HART:C1:34L_Top,,"Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 112L Top
+head,113RA Bottom,Head 36RA Bottom,Princess,IH:HART:C1:36RA_Bottom,,"Node: 1 Signal: 4 | OU: 2 Ports: 4,5,6",historical alias
+head,Princess West OS 113b Bottom,Head 36RA Bottom,Princess,IH:HART:C1:36RA_Bottom,,"Node: 1 Signal: 4 | OU: 2 Ports: 4,5,6",historical alias of 113RA Bottom
+head,113RA Top,Head 36RA Top,Princess,IH:HART:C1:36RA_Top,,"Node: 1 Signal: 3 | OU: 2 Ports: 1,2,3",historical alias
+head,Princess West OS 113b Top,Head 36RA Top,Princess,IH:HART:C1:36RA_Top,,"Node: 1 Signal: 3 | OU: 2 Ports: 1,2,3",historical alias of 113RA Top
+head,113RB Bottom,Head 36RB Bottom,Princess,IH:HART:C1:36RB_Bottom,,"Node: 1 Signal: 1 | OU: 3 Ports: 4,5,6",historical alias
+head,Princess West OS 113a Bottom,Head 36RB Bottom,Princess,IH:HART:C1:36RB_Bottom,,"Node: 1 Signal: 1 | OU: 3 Ports: 4,5,6",historical alias of 113RB Bottom
+head,113RB Top,Head 36RB Top,Princess,IH:HART:C1:36RB_Top,,"Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3",historical alias
+head,Princess West OS 113a Top,Head 36RB Top,Princess,IH:HART:C1:36RB_Top,,"Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3",historical alias of 113RB Top
+head,114LA,Head 38LB,Princess,IH:HART:C1:38LB,,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",historical alias; dwarf
+head,Princess East K-2,Head 38LB,Princess,IH:HART:C1:38LB,,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",historical alias; dwarf
+head,115LB Bottom,Head 40LA Bottom,Princess,IH:HART:C1:40LA_Bottom,,"Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6",historical alias
+head,Princess North McKees Rocks Bottom,Head 40LA Bottom,Princess,IH:HART:C1:40LA_Bottom,,"Node: 11 Signal: 3 | OU: 2 Ports: 4,5,6",historical alias of 115LB Bottom
+head,115LB Top,Head 40LA Top,Princess,IH:HART:C1:40LA_Top,,"Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
+head,Princess North McKees Rocks Top,Head 40LA Top,Princess,IH:HART:C1:40LA_Top,,"Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 115LB Top
+head,101RA,Head 4RA,Brick,IH:HART:C1:4RA,,"Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3",historical alias; dwarf
+head,Brick West Yard 1,Head 4RA,Brick,IH:HART:C1:4RA,,"Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3",historical alias; dwarf
+head,101RB,Head 4RB,Brick,IH:HART:C1:4RB,,"Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6",historical alias; dwarf
+head,Brick West Yard 2,Head 4RB,Brick,IH:HART:C1:4RB,,"Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6",historical alias; dwarf
+head,102LA,Head 6LA,Plane,IH:HART:C1:6LA,,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",historical alias; dwarf; was Top of 2-head (IH435 removed)
+head,Plane East OS 102,Head 6LA,Plane,IH:HART:C1:6LA,,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",historical alias; dwarf; was Top of 2-head
+head,102LB Top,Head 6LB,Plane,IH432,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
+head,Plane East East Main Ext Top,Head 6LB,Plane,IH432,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 102LB Top
+head,Head 6LB Top,Head 6LB,Plane,IH432,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias; top head of the two-searchlight 6LB
+head,117LA Bottom,Head 8LA Bottom,Barn,IH:HART:C1:8LA_Bottom,,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",historical alias
+head,West Yard East OS 117b Bottom,Head 8LA Bottom,Barn,IH:HART:C1:8LA_Bottom,,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",historical alias of 117LA Bottom
+head,117LA Top,Head 8LA Top,Barn,IH:HART:C1:8LA_Top,,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",historical alias
+head,West Yard East OS 117b Top,Head 8LA Top,Barn,IH:HART:C1:8LA_Top,,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",historical alias of 117LA Top
+head,117LB,Head 8LB,Barn,IH:HART:C1:8LB,,"Node: 13 Signal: 2 | OU: 3 Ports: 7,8 | OU: 4 Ports: 7",historical alias; dwarf
+head,West Yard East Yard T6,Head 8LB,Barn,IH:HART:C1:8LB,,"Node: 13 Signal: 2 | OU: 3 Ports: 7,8 | OU: 4 Ports: 7",historical alias; dwarf
+head,117RB Bottom,Head 8RB Bottom,Barn,IH:HART:C1:8RB_Bottom,,"Node: 13 Signal: 4 | OU: 4 Ports: 4,5,6",historical alias
+head,West Yard West East Main Ext Bottom,Head 8RB Bottom,Barn,IH:HART:C1:8RB_Bottom,,"Node: 13 Signal: 4 | OU: 4 Ports: 4,5,6",historical alias of 117RB Bottom
+head,117RB Top,Head 8RB Top,Barn,IH:HART:C1:8RB_Top,,"Node: 13 Signal: 3 | OU: 4 Ports: 1,2,3",historical alias
+head,West Yard West East Main Ext Top,Head 8RB Top,Barn,IH:HART:C1:8RB_Top,,"Node: 13 Signal: 3 | OU: 4 Ports: 1,2,3",historical alias of 117RB Top
 fb,FB Switch 1 N,FB Switch 1 N,,M2S470,,Node: 4 Sensor: 3 | IN: 1 Ports: 1,
 fb,FB Switch 1 R,FB Switch 1 R,,M2S471,,Node: 4 Sensor: 4 | IN: 1 Ports: 2,
 fb,FB Switch 11 N,FB Switch 11 N,,M2S1369,,Node: 13 Sensor: 2 | IN: 1 Ports: 3,
@@ -470,212 +684,3 @@ fb,Switch 13-3 FB N,FB Switch 9 N,,M2S1371,,Node: 13 Sensor: 4 | IN: 1 Ports: 5,
 fb,Switch 13-3 FB R,FB Switch 9 R,,M2S1372,,Node: 13 Sensor: 5 | IN: 1 Ports: 6,historical alias; canvas FB Switch N N/R
 block,Track East Lead East,Track East Lead East,East End,Block 1-7,,,hidden East Lead throat at AG21 (was A56); same occupancy as East Lead; Dispatcher rear mast 36L (2026-11-12)
 block,Track K-1 West,Track K-1 West,Princess,Block 1-1,,,hidden K-1 throat at AG6 (was A1); same occupancy as K-1; Dispatcher rear mast 40RB (2026-11-12)
-mast,Mast 10LA,Mast 10LA,Engine House,virtual $1006,,Engine House,
-mast,Mast 10LB,Mast 10LB,Engine House,virtual $1007,,Engine House,
-mast,Mast 10RA,Mast 10RA,Engine House,virtual $1021,,Engine House | Switch 9,hidden EH-2 exit; Dispatcher Stage 1
-mast,Mast 10RB,Mast 10RB,Engine House,virtual $1022,,Engine House | Switch 9,hidden EH-3 exit; Dispatcher Stage 1
-mast,Mast 12L,Mast 12L,Engine House,virtual $1005,,Engine House,
-mast,Mast 12R,Mast 12R,Engine House,virtual $1020,,Engine House | Switch 11,hidden EH-1 exit; Dispatcher Stage 1
-mast,Mast 14R,Mast 14R,Barn,virtual $1019,,Barn | Switch 13,hidden Barn into Switch 13; Dispatcher Stage 1
-mast,Mast 16L,Mast 16L,South Yard,virtual $1016,,South Yard,
-mast,Mast 16R,Mast 16R,South Yard,virtual $1017,,South Yard,
-mast,Mast 18L,Mast 18L,South Yard,virtual $1008,,South Yard,
-mast,Mast 18R,Mast 18R,South Yard,virtual $1012,,South Yard,
-mast,Mast 20L,Mast 20L,South Yard,virtual $1009,,South Yard,
-mast,Mast 20R,Mast 20R,South Yard,virtual $1013,,South Yard,
-mast,Mast 22L,Mast 22L,South Yard,virtual $1010,,South Yard,
-mast,Mast 22R,Mast 22R,South Yard,virtual $1014,,South Yard,
-mast,Mast 24LA,Mast 24LA,East End,IH:HART:C1:24LA,,East End | Switch 23,
-mast,Mast 24LB,Mast 24LB,East End,IH:HART:C1:24LB_Top IH:HART:C1:24LB_Bottom,,East End | Switch 23,
-mast,Mast 24RA,Mast 24RA,East End,IH:HART:C1:24RA_Top IH:HART:C1:24RA_Bottom,,East End | Switch 23,
-mast,Mast 24RB,Mast 24RB,East End,IH:HART:C1:24RB,,East End | Switch 23,
-mast,Mast 26L,Mast 26L,South Yard,virtual $1011,,South Yard,
-mast,Mast 26R,Mast 26R,South Yard,virtual $1015,,South Yard,
-mast,Mast 2L,Mast 2L,Brick,IH:HART:C1:2L_Top IH:HART:C1:2L_Bottom,,Brick | Switch 1,
-mast,Mast 2R,Mast 2R,Brick,IH:HART:C1:2R,,Brick | Switch 1,
-mast,Mast 32R,Mast 32R,East End,virtual $1029,,East End | Switch 31,hidden; Dispatcher Stage 1
-mast,Mast 34L,Mast 34L,East End,IH:HART:C1:34L_Top IH:HART:C1:34L_Bottom,,East End | Switch 33,
-mast,Mast 34RA,Mast 34RA,East End,IH:HART:C1:34RA,,East End | Switch 33,
-mast,Mast 34RB,Mast 34RB,East End,IH:HART:C1:34RB,,East End | Switch 33,
-mast,Mast 36L,Mast 36L,Princess,virtual $1025,,Princess,hidden East Lead rear (westbound) at AG21 (was A56); throat Track East Lead East; Dispatcher Stage 1
-mast,Mast 36RA,Mast 36RA,Princess,IH:HART:C1:36RA,,Princess | Switch 35,
-mast,Mast 36RB,Mast 36RB,Princess,IH:HART:C1:36RB_Top IH:HART:C1:36RB_Bottom,,Princess | Switch 35,
-mast,Mast 38LA,Mast 38LA,Princess,IH:HART:C1:38LA,,Princess | Switch 37,
-mast,Mast 38LB,Mast 38LB,Princess,IH:HART:C1:38LB,,Princess | Switch 37,
-mast,Mast 38RA,Mast 38RA,Princess,virtual $1004,,Princess,
-mast,Mast 40LA,Mast 40LA,Princess,IH:HART:C1:40LA,,Princess | Switch 39,
-mast,Mast 40LB,Mast 40LB,Princess,IH:HART:C1:40LB,,Princess | Switch 39,
-mast,Mast 40RA,Mast 40RA,Princess,virtual $1003,,Princess,
-mast,Mast 40RB,Mast 40RB,Princess,virtual $1026,,Princess,hidden K-1 rear (eastbound) at AG6 (was A1); throat Track K-1 West; Dispatcher Stage 1
-mast,Mast 4LA,Mast 4LA,Brick,virtual $1001,,Brick,
-mast,Mast 4LB,Mast 4LB,Brick,virtual $1002,,Brick,
-mast,Mast 4RA,Mast 4RA,Brick,IH:HART:C1:4RA,,Brick | Switch 3,
-mast,Mast 4RB,Mast 4RB,Brick,IH:HART:C1:4RB,,Brick | Switch 3,
-mast,Mast 67,Mast 67,Princess,IH:HART:C1:67,,Princess,
-mast,Mast 68,Mast 68,Princess,IH:HART:C1:68,,Princess,
-mast,Mast 6LA,Mast 6LA,Plane,IH:HART:C1:6LA,,Plane | Switch 5,
-mast,Mast 6LB,Mast 6LB,Plane,IH432,,Plane | Switch 5,
-mast,Mast 6R,Mast 6R,Plane,IH:HART:C1:6R_Top IH:HART:C1:6R_Bottom,,Plane | Switch 5,
-mast,Mast 8LA,Mast 8LA,Barn,IH:HART:C1:8LA_Top IH:HART:C1:8LA_Bottom,,Barn | Switch 7,
-mast,Mast 8LB,Mast 8LB,Barn,IH:HART:C1:8LB,,Barn | Switch 7,
-mast,Mast 8LC,Mast 8LC,Barn,virtual $1018,,Barn,hidden Scale east westbound; Dispatcher Stage 1
-mast,Mast 8RA,Mast 8RA,Barn,IH:HART:C1:8RA,,Barn,
-mast,Mast 8RB,Mast 8RB,Barn,IH:HART:C1:8RB_Top IH:HART:C1:8RB_Bottom,,Barn | Switch 7,
-mast,Mast 24L,Mast 24LA,East End,IH:HART:C1:24LA,,,historical alias; renamed by the staging signal rule 2026-11-19
-mast,Mast 34R,Mast 34RB,East End,IH:HART:C1:34RB,,,historical alias; renamed by the staging signal rule 2026-11-19
-mast,Mast 2035,Mast 67,Princess,IH:HART:C1:67,,,historical alias; renamed by the staging signal rule 2026-11-19
-mast,Mast 2036,Mast 68,Princess,IH:HART:C1:68,,,historical alias; renamed by the staging signal rule 2026-11-19
-mast,119LA,Mast 10LA,Engine House,virtual $1006,,Engine House | Switch 9,historical alias; hidden EH-2 bumper; Dispatcher Stage 1
-mast,Engine House 2 buffer,Mast 10LA,Engine House,virtual $1006,,Engine House | Switch 9,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,119LB,Mast 10LB,Engine House,virtual $1007,,Engine House | Switch 9,historical alias; hidden EH-3 bumper; Dispatcher Stage 1
-mast,Engine House 3 buffer,Mast 10LB,Engine House,virtual $1007,,Engine House | Switch 9,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,118L,Mast 12L,Engine House,virtual $1005,,Engine House | Switch 11,historical alias; hidden EH-1 bumper; Dispatcher Stage 1
-mast,Engine House 1 buffer,Mast 12L,Engine House,virtual $1005,,Engine House | Switch 11,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,103L,Mast 16L,South Yard,virtual $1016,,South Yard | Switch 15,historical alias; hidden S-R west / 103 ladder; Dispatcher Stage 1
-mast,104L,Mast 18L,South Yard,virtual $1008,,South Yard | Switch 17,historical alias; hidden S-1 west throat; Dispatcher Stage 1
-mast,South Yard 2 west,Mast 18L,South Yard,virtual $1008,,South Yard | Switch 17,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,104R,Mast 18R,South Yard,virtual $1012,,South Yard | Switch 17,historical alias; hidden S-1 east throat; Dispatcher Stage 1
-mast,120L,Mast 67,Princess,IH:HART:C1:67,,Princess,historical alias; Princess intermediate (was 115R / 120L); field 2035; no switch
-mast,Princess East McKees Rocks,Mast 67,Princess,IH:HART:C1:67,,Princess,historical alias; dwarf; field 2035 (was 120L); no switch; Princess intermediates
-mast,120R,Mast 68,Princess,IH:HART:C1:68,,Princess,historical alias; Princess intermediate (was 114R / 120R); field 2036; no switch
-mast,Princess East McKeesport,Mast 68,Princess,IH:HART:C1:68,,Princess,historical alias; dwarf; field 2036 (was 120R); no switch; Princess intermediates
-mast,105L,Mast 20L,South Yard,virtual $1009,,South Yard | Switch 19,historical alias; hidden S-2 west throat; Dispatcher Stage 1
-mast,South Yard 3 west,Mast 20L,South Yard,virtual $1009,,South Yard | Switch 19,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,105R,Mast 20R,South Yard,virtual $1013,,South Yard | Switch 19,historical alias; hidden S-2 east throat; Dispatcher Stage 1
-mast,106L,Mast 22L,South Yard,virtual $1010,,South Yard | Switch 21,historical alias; hidden S-3 west throat; Dispatcher Stage 1
-mast,South Yard 4 west,Mast 22L,South Yard,virtual $1010,,South Yard | Switch 21,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,106R,Mast 22R,South Yard,virtual $1014,,South Yard | Switch 21,historical alias; hidden S-3 east throat; Dispatcher Stage 1
-mast,111L,Mast 24LA,East End,IH:HART:C1:24LA,,East End | Switch 23,historical alias; lever 18 Left
-mast,East End East OS 111a,Mast 24LA,East End,IH:HART:C1:24LA,,East End | Switch 23,historical alias; lever 18 Left
-mast,111RA,Mast 24RA,East End,IH:HART:C1:24RA_Top IH:HART:C1:24RA_Bottom,,East End | Switch 23,historical alias; lever 18 Right; Main West
-mast,East End West Main West,Mast 24RA,East End,IH:HART:C1:24RA_Top IH:HART:C1:24RA_Bottom,,East End | Switch 23,historical alias; lever 18 Right; Main West
-mast,111RB,Mast 24RB,East End,IH:HART:C1:24RB,,East End | Switch 23,historical alias; lever 18 Right; S-R dwarf
-mast,East End West Yard Track 1,Mast 24RB,East End,IH:HART:C1:24RB,,East End | Switch 23,historical alias; lever 18 Right; South Yard 1 dwarf
-mast,107L,Mast 26L,South Yard,virtual $1011,,South Yard | Switch 21,historical alias; hidden S-4 west throat; Dispatcher Stage 1
-mast,South Yard 5 west,Mast 26L,South Yard,virtual $1011,,South Yard | Switch 21,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,107R,Mast 26R,South Yard,virtual $1015,,South Yard | Switch 21,historical alias; hidden S-4 east throat; Dispatcher Stage 1
-mast,100L,Mast 2L,Brick,IH:HART:C1:2L_Top IH:HART:C1:2L_Bottom,,Brick | Switch 1,historical alias; lever 4 Left
-mast,Brick East Main West,Mast 2L,Brick,IH:HART:C1:2L_Top IH:HART:C1:2L_Bottom,,Brick | Switch 1,historical alias; lever 4 Left
-mast,110L,Mast 16R,South Yard,virtual $1017,,South Yard | Switch 15,historical alias; hidden S-R east / 110 ladder; Dispatcher Stage 1
-mast,Mast 32L,Mast 16R,South Yard,virtual $1017,,South Yard | Switch 15,historical alias; name until 2026-11-13
-mast,110R,Mast 32R,East End,virtual $1029,,East End | Switch 31,historical alias; lever 20 Right; dwarf
-mast,East End South OS 110,Mast 32R,East End,virtual $1029,,East End | Switch 31,historical alias; lever 20 Right; dwarf
-mast,112L,Mast 34L,East End,IH:HART:C1:34L_Top IH:HART:C1:34L_Bottom,,East End | Switch 33,historical alias; lever 24 Left
-mast,East End East Lead,Mast 34L,East End,IH:HART:C1:34L_Top IH:HART:C1:34L_Bottom,,East End | Switch 33,historical alias; lever 24 Left
-mast,112R,Mast 34RB,East End,IH:HART:C1:34RB,,East End | Switch 33,historical alias; lever 24 Right; Main East
-mast,East End South OS 112,Mast 34RB,East End,IH:HART:C1:34RB,,East End | Switch 33,historical alias; lever 24 Right; Main East
-mast,113RA,Mast 36RA,Princess,IH:HART:C1:36RA,,Princess | Switch 35,historical alias; lever 26 Right; Main West
-mast,Princess West OS 113b,Mast 36RA,Princess,IH:HART:C1:36RA,,Princess | Switch 35,historical alias; lever 26 Right; Main West
-mast,113RB,Mast 36RB,Princess,IH:HART:C1:36RB_Top IH:HART:C1:36RB_Bottom,,Princess | Switch 35,historical alias; lever 26 Right; South Yard East
-mast,Princess West OS 113a,Mast 36RB,Princess,IH:HART:C1:36RB_Top IH:HART:C1:36RB_Bottom,,Princess | Switch 35,historical alias; lever 26 Right; South Yard East
-mast,114LA,Mast 38LB,Princess,IH:HART:C1:38LB,,Princess | Switch 37,historical alias; lever 28 Left; dwarf
-mast,Princess East K-2,Mast 38LB,Princess,IH:HART:C1:38LB,,Princess | Switch 37,historical alias; lever 28 Left; dwarf
-mast,114LB,Mast 38LA,Princess,IH:HART:C1:38LA,,Princess | Switch 37,historical alias; lever 28 Left
-mast,Princess South McKeesport,Mast 38LA,Princess,IH:HART:C1:38LA,,Princess | Switch 37,historical alias; lever 28 Left
-mast,114RA,Mast 38RA,Princess,virtual $1004,,Princess | Switch 37,historical alias; hidden K-2 bumper; Dispatcher Stage 1
-mast,K-2 buffer,Mast 38RA,Princess,virtual $1004,,Princess | Switch 37,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,115LA,Mast 40LB,Princess,IH:HART:C1:40LB,,Princess | Switch 39,historical alias; lever 30 Left; dwarf
-mast,Princess East K-1,Mast 40LB,Princess,IH:HART:C1:40LB,,Princess | Switch 39,historical alias; lever 30 Left; dwarf
-mast,115LB,Mast 40LA,Princess,IH:HART:C1:40LA,,Princess | Switch 39,historical alias; lever 30 Left
-mast,Princess North McKees Rocks,Mast 40LA,Princess,IH:HART:C1:40LA,,Princess | Switch 39,historical alias; lever 30 Left
-mast,115RA,Mast 40RA,Princess,virtual $1003,,Princess | Switch 39,historical alias; hidden K-1 bumper; Dispatcher Stage 1
-mast,K-1 buffer,Mast 40RA,Princess,virtual $1003,,Princess | Switch 39,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,101LA,Mast 4LA,Brick,virtual $1001,,Brick | Switch 3,historical alias; hidden W-1 bumper; Dispatcher Stage 1
-mast,West Yard 1 buffer,Mast 4LA,Brick,virtual $1001,,Brick | Switch 3,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,101LB,Mast 4LB,Brick,virtual $1002,,Brick | Switch 3,historical alias; hidden W-2 bumper; Dispatcher Stage 1
-mast,West Yard 2 buffer,Mast 4LB,Brick,virtual $1002,,Brick | Switch 3,historical alias; hidden stub-end for Dispatcher Stage 1
-mast,101RA,Mast 4RA,Brick,IH:HART:C1:4RA,,Brick | Switch 3,historical alias; lever 2 Right; W-1 dwarf
-mast,Brick West Yard 1,Mast 4RA,Brick,IH:HART:C1:4RA,,Brick | Switch 3,historical alias; lever 2 Right; W-1 dwarf
-mast,101RB,Mast 4RB,Brick,IH:HART:C1:4RB,,Brick | Switch 3,historical alias; lever 2 Right; W-2 dwarf
-mast,Brick West Yard 2,Mast 4RB,Brick,IH:HART:C1:4RB,,Brick | Switch 3,historical alias; lever 2 Right; W-2 dwarf
-mast,102LA,Mast 6LA,Plane,IH:HART:C1:6LA,,Plane | Switch 5,historical alias; lever 6 Left; Scale; 1-head dwarf (was 2-head; IH435 removed)
-mast,Plane East OS 102,Mast 6LA,Plane,IH:HART:C1:6LA,,Plane | Switch 5,historical alias; lever 6 Left; Scale; 1-head dwarf (was 2-head)
-mast,102LB,Mast 6LB,Plane,IH432,,Plane | Switch 5,historical alias; lever 6 Left; main
-mast,Plane East East Main Ext,Mast 6LB,Plane,IH432,,Plane | Switch 5,historical alias; lever 6 Left; main
-mast,117LA,Mast 8LA,Barn,IH:HART:C1:8LA_Top IH:HART:C1:8LA_Bottom,,Barn | Switch 7,historical alias; lever 8 Left; main (2-head JMRI; USS lamp uses top head)
-mast,West Yard East OS 117b,Mast 8LA,Barn,IH:HART:C1:8LA_Top IH:HART:C1:8LA_Bottom,,Barn | Switch 7,historical alias; lever 8 Left; main
-mast,117LB,Mast 8LB,Barn,IH:HART:C1:8LB,,Barn | Switch 7,historical alias; lever 8 Left; Barn dwarf
-mast,West Yard East Yard T6,Mast 8LB,Barn,IH:HART:C1:8LB,,Barn | Switch 7,historical alias; lever 8 Left; Barn dwarf
-mast,117RA,Mast 8RA,Barn,IH:HART:C1:8RA,,Barn | Switch 7,historical alias; lever 8 Right; yard (2-head JMRI; USS lamp uses top head)
-mast,West Yard West OS 117,Mast 8RA,Barn,IH:HART:C1:8RA,,Barn | Switch 7,historical alias; lever 8 Right; yard
-mast,117RB,Mast 8RB,Barn,IH:HART:C1:8RB_Top IH:HART:C1:8RB_Bottom,,Barn | Switch 7,historical alias; lever 8 Right; main
-mast,West Yard West East Main Ext,Mast 8RB,Barn,IH:HART:C1:8RB_Top IH:HART:C1:8RB_Bottom,,Barn | Switch 7,historical alias; lever 8 Right; main
-mast,Mast 9LA,Mast 10RA,Engine House,virtual $1021,,Engine House | Switch 9,historical alias; even signal number (was 9LA) 2026-11-12
-mast,Mast 9LB,Mast 10RB,Engine House,virtual $1022,,Engine House | Switch 9,historical alias; even signal number (was 9LB) 2026-11-12
-mast,Mast 11L,Mast 12R,Engine House,virtual $1020,,Engine House | Switch 11,historical alias; even signal number (was 11L) 2026-11-12
-mast,Mast 13R,Mast 14R,Barn,virtual $1019,,Barn | Switch 13,historical alias; even signal number (was 13R) 2026-11-12
-head,Head 24LA,Head 24LA,East End,IH:HART:C1:24LA,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 24LB Bottom,Head 24LB Bottom,East End,IH:HART:C1:24LB_Bottom,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 24LB Top,Head 24LB Top,East End,IH:HART:C1:24LB_Top,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 24RA Bottom,Head 24RA Bottom,East End,IH:HART:C1:24RA_Bottom,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 24RA Top,Head 24RA Top,East End,IH:HART:C1:24RA_Top,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 24RB,Head 24RB,East End,IH:HART:C1:24RB,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 2L Bottom,Head 2L Bottom,Brick,IH:HART:C1:2L_Bottom,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 2L Top,Head 2L Top,Brick,IH:HART:C1:2L_Top,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 2R,Head 2R,Brick,IH:HART:C1:2R,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 34L Bottom,Head 34L Bottom,East End,IH:HART:C1:34L_Bottom,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 34L Top,Head 34L Top,East End,IH:HART:C1:34L_Top,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 34RA,Head 34RA,East End,IH:HART:C1:34RA,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 34RB,Head 34RB,East End,IH:HART:C1:34RB,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 36RA,Head 36RA,Princess,IH:HART:C1:36RA,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 36RB Bottom,Head 36RB Bottom,Princess,IH:HART:C1:36RB_Bottom,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 36RB Top,Head 36RB Top,Princess,IH:HART:C1:36RB_Top,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 38LA,Head 38LA,Princess,IH:HART:C1:38LA,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 38LB,Head 38LB,Princess,IH:HART:C1:38LB,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 40LA,Head 40LA,Princess,IH:HART:C1:40LA,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 40LB,Head 40LB,Princess,IH:HART:C1:40LB,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 4RA,Head 4RA,Brick,IH:HART:C1:4RA,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 4RB,Head 4RB,Brick,IH:HART:C1:4RB,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 67,Head 67,Princess,IH:HART:C1:67,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 68,Head 68,Princess,IH:HART:C1:68,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 6LA,Head 6LA,Plane,IH:HART:C1:6LA,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 6LB,Head 6LB,Plane,IH432,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",one high head (owner 2026-11-19); IH433 dropped
-head,Head 6R Bottom,Head 6R Bottom,Plane,IH:HART:C1:6R_Bottom,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 6R Top,Head 6R Top,Plane,IH:HART:C1:6R_Top,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 8LA Bottom,Head 8LA Bottom,Barn,IH:HART:C1:8LA_Bottom,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 8LA Top,Head 8LA Top,Barn,IH:HART:C1:8LA_Top,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 8LB,Head 8LB,Barn,IH:HART:C1:8LB,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 8RA,Head 8RA,Barn,IH:HART:C1:8RA,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 8RB Bottom,Head 8RB Bottom,Barn,IH:HART:C1:8RB_Bottom,,,"internal, not wired (owner, 2026-11-19)"
-head,Head 8RB Top,Head 8RB Top,Barn,IH:HART:C1:8RB_Top,,,"internal, not wired (owner, 2026-11-19)"
-head,111RA Bottom,Head 24RA Bottom,East End,IH:HART:C1:24RA_Bottom,,"Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6",historical alias
-head,East End West Main West Bottom,Head 24RA Bottom,East End,IH:HART:C1:24RA_Bottom,,"Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6",historical alias of 111RA Bottom
-head,111RA Top,Head 24RA Top,East End,IH:HART:C1:24RA_Top,,"Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3",historical alias
-head,East End West Main West Top,Head 24RA Top,East End,IH:HART:C1:24RA_Top,,"Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3",historical alias of 111RA Top
-head,111RB,Head 24RB,East End,IH:HART:C1:24RB,,"Node: 2 Signal: 2 | OU: 3 Ports: 6,7,8",historical alias; dwarf
-head,East End West Yard Track 1,Head 24RB,East End,IH:HART:C1:24RB,,"Node: 2 Signal: 2 | OU: 3 Ports: 6,7,8",historical alias; dwarf
-head,100L Bottom,Head 2L Bottom,Brick,IH:HART:C1:2L_Bottom,,"Node: 4 Signal: 7 | OU: 3 Ports: 4,5,6",historical alias
-head,Brick East Main West Bottom,Head 2L Bottom,Brick,IH:HART:C1:2L_Bottom,,"Node: 4 Signal: 7 | OU: 3 Ports: 4,5,6",historical alias of 100L Bottom
-head,100L Top,Head 2L Top,Brick,IH:HART:C1:2L_Top,,"Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3",historical alias
-head,Brick East Main West Top,Head 2L Top,Brick,IH:HART:C1:2L_Top,,"Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3",historical alias of 100L Top
-head,112L Bottom,Head 34L Bottom,East End,IH:HART:C1:34L_Bottom,,"Node: 12 Signal: 1 | OU: 2 Ports: 4,5,6",historical alias
-head,East End East Lead Bottom,Head 34L Bottom,East End,IH:HART:C1:34L_Bottom,,"Node: 12 Signal: 1 | OU: 2 Ports: 4,5,6",historical alias of 112L Bottom
-head,112L Top,Head 34L Top,East End,IH:HART:C1:34L_Top,,"Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
-head,East End East Lead Top,Head 34L Top,East End,IH:HART:C1:34L_Top,,"Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 112L Top
-head,113RB Bottom,Head 36RB Bottom,Princess,IH:HART:C1:36RB_Bottom,,"Node: 1 Signal: 1 | OU: 3 Ports: 4,5,6",historical alias
-head,Princess West OS 113a Bottom,Head 36RB Bottom,Princess,IH:HART:C1:36RB_Bottom,,"Node: 1 Signal: 1 | OU: 3 Ports: 4,5,6",historical alias of 113RB Bottom
-head,113RB Top,Head 36RB Top,Princess,IH:HART:C1:36RB_Top,,"Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3",historical alias
-head,Princess West OS 113a Top,Head 36RB Top,Princess,IH:HART:C1:36RB_Top,,"Node: 1 Signal: 0 | OU: 3 Ports: 1,2,3",historical alias of 113RB Top
-head,114LA,Head 38LB,Princess,IH:HART:C1:38LB,,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",historical alias; dwarf
-head,Princess East K-2,Head 38LB,Princess,IH:HART:C1:38LB,,"Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7",historical alias; dwarf
-head,115LA,Head 40LB,Princess,IH:HART:C1:40LB,,"Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3",historical alias; dwarf
-head,Princess East K-1,Head 40LB,Princess,IH:HART:C1:40LB,,"Node: 11 Signal: 4 | OU: 3 Ports: 1,2,3",historical alias; dwarf
-head,101RA,Head 4RA,Brick,IH:HART:C1:4RA,,"Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3",historical alias; dwarf
-head,Brick West Yard 1,Head 4RA,Brick,IH:HART:C1:4RA,,"Node: 4 Signal: 4 | OU: 4 Ports: 1,2,3",historical alias; dwarf
-head,101RB,Head 4RB,Brick,IH:HART:C1:4RB,,"Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6",historical alias; dwarf
-head,Brick West Yard 2,Head 4RB,Brick,IH:HART:C1:4RB,,"Node: 4 Signal: 5 | OU: 4 Ports: 4,5,6",historical alias; dwarf
-head,102LA,Head 6LA,Plane,IH:HART:C1:6LA,,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",historical alias; dwarf; was Top of 2-head (IH435 removed)
-head,Plane East OS 102,Head 6LA,Plane,IH:HART:C1:6LA,,"Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",historical alias; dwarf; was Top of 2-head
-head,102LB Top,Head 6LB,Plane,IH432,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias
-head,Plane East East Main Ext Top,Head 6LB,Plane,IH432,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias of 102LB Top
-head,Head 6LB Top,Head 6LB,Plane,IH432,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",historical alias; top head of the two-searchlight 6LB
-head,117LA Bottom,Head 8LA Bottom,Barn,IH:HART:C1:8LA_Bottom,,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",historical alias
-head,West Yard East OS 117b Bottom,Head 8LA Bottom,Barn,IH:HART:C1:8LA_Bottom,,"Node: 13 Signal: 6 | OU: 3 Ports: 4,5,6",historical alias of 117LA Bottom
-head,117LA Top,Head 8LA Top,Barn,IH:HART:C1:8LA_Top,,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",historical alias
-head,West Yard East OS 117b Top,Head 8LA Top,Barn,IH:HART:C1:8LA_Top,,"Node: 13 Signal: 5 | OU: 3 Ports: 1,2,3",historical alias of 117LA Top
-head,117LB,Head 8LB,Barn,IH:HART:C1:8LB,,"Node: 13 Signal: 2 | OU: 3 Ports: 7,8 | OU: 4 Ports: 7",historical alias; dwarf
-head,West Yard East Yard T6,Head 8LB,Barn,IH:HART:C1:8LB,,"Node: 13 Signal: 2 | OU: 3 Ports: 7,8 | OU: 4 Ports: 7",historical alias; dwarf
-head,117RB Bottom,Head 8RB Bottom,Barn,IH:HART:C1:8RB_Bottom,,"Node: 13 Signal: 4 | OU: 4 Ports: 4,5,6",historical alias
-head,West Yard West East Main Ext Bottom,Head 8RB Bottom,Barn,IH:HART:C1:8RB_Bottom,,"Node: 13 Signal: 4 | OU: 4 Ports: 4,5,6",historical alias of 117RB Bottom
-head,117RB Top,Head 8RB Top,Barn,IH:HART:C1:8RB_Top,,"Node: 13 Signal: 3 | OU: 4 Ports: 1,2,3",historical alias
-head,West Yard West East Main Ext Top,Head 8RB Top,Barn,IH:HART:C1:8RB_Top,,"Node: 13 Signal: 3 | OU: 4 Ports: 1,2,3",historical alias of 117RB Top
