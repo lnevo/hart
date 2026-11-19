@@ -53,7 +53,8 @@ distances and train length checks. JMRI stores them in millimetres in the block
 `--check` fails if the two disagree (`./tools/check.sh` runs it).
 
 **Basis:** `assigned` = measured or carried over from the old layout;
-`estimate` = placeholder to refine; `cut` = remainder after OS blocks were cut
+`estimate` = placeholder to refine; `plan` = drawn length in the AnyRail plan 5.3c,
+rounded down and less 2 in for safety; `cut` = remainder after OS blocks were cut
 from it; `split` = one long block divided evenly; `stub` = hidden throat block
 sharing the detector of its track (the track's own row carries the real length);
 `inferred` = the block's timed share of the test loop, whose total length comes from

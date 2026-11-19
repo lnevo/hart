@@ -336,8 +336,11 @@
  },
  "_milepost_origin": "Switch 1 is MP 5.7 (owner, 2026-11-19): the P&OV met the P&LE at Neville interlocking, about PLE 5.7 (www/library/chartiers-valley-railroads.html). The count runs east in scale miles and carries on through the helix to the main and upper levels.",
  "scale_ratio": 87.1,
- "helix_length_in": 690,
- "_helix_length_in": "Estimate: the 15 in climb from staging to the main level at the helix's 2.27% (inner) and 2.09% (outer) grades is 661 to 718 in of track; 690 is the middle.",
+ "helix_length_in": {
+  "McKees Rocks": 588.7,
+  "McKeesport": 724.35
+ },
+ "_helix_length_in": "From the AnyRail plan 5.3c (owner, 2026-11-19): Switch 39 to 135A is 947.19 in and Switch 37 to 135B is 916.50 in. Each value is that run less what the count already takes from the stubs either side (24 in staging, from track_lengths_in; 334.49 and 168.15 in on the main level, from the 5.3b graph). Recompute when the graphs come from 5.3c.",
  "milepost_route": [
   [
    "1",
@@ -387,9 +390,9 @@
   "K-2": 113.6,
   "Scale": 144.5,
   "Barn": 33.7,
-  "EH-1": 36.0,
-  "EH-2": 24.0,
-  "EH-3": 24.0,
+  "EH-1": 49.0,
+  "EH-2": 28.0,
+  "EH-3": 28.0,
   "McKees Rocks": 24.0,
   "McKeesport": 24.0,
   "S-1 West": 15.748,

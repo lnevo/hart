@@ -190,8 +190,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 129,mast,Mast 130LB,IF$shsm:basic:two-searchlight(IH5238)(IH5239),IF$shsm:basic:two-searchlight(IH:HART:C3:130LB_Top)(IH:HART:C3:130LB_Bottom),52,,CP 129 | Switch 129,,home signal from Track 129-221
 2,CP 129,mast,Mast 136RA,,IF$shsm:basic:two-searchlight(IH:HART:C3:136RA_Top)(IH:HART:C3:136RA_Bottom),,,CP 129 | Switch 135,,home signal from Track 135-H1
 2,CP 129,mast,Mast 136RB,,IF$shsm:basic:two-searchlight(IH:HART:C3:136RB_Top)(IH:HART:C3:136RB_Bottom),,,CP 129 | Switch 135,,home signal from Track 135-H2
-2,CP 107,mast,Mast A84,,IF$shsm:basic:one-searchlight(IH:HART:C3:A84),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.49
-2,CP 107,mast,Mast A85,,IF$shsm:basic:one-searchlight(IH:HART:C3:A85),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.49
+2,CP 107,mast,Mast A83,,IF$shsm:basic:one-searchlight(IH:HART:C3:A83),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.35
+2,CP 107,mast,Mast A84,,IF$shsm:basic:one-searchlight(IH:HART:C3:A84),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.35
 2,CP 107,head,Head 108LA Bottom,IH3333,IH:HART:C3:108LA_Bottom,33,,"Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6",,
 2,CP 107,head,Head 108LA Top,IH3332,IH:HART:C3:108LA_Top,33,,"Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3",,
 2,CP 107,head,Head 108LB Bottom,IH3335,IH:HART:C3:108LB_Bottom,33,,"Node: 33 Signal: 3 | OU: 4 Ports: 4,5,6",,
@@ -222,8 +222,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 129,head,Head 136RA Top,,IH:HART:C3:136RA_Top,,,CP 129 | Switch 135,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 2,CP 129,head,Head 136RB Bottom,,IH:HART:C3:136RB_Bottom,,,CP 129 | Switch 135,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 2,CP 129,head,Head 136RB Top,,IH:HART:C3:136RB_Top,,,CP 129 | Switch 135,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 107,head,Head A83,,IH:HART:C3:A83,,,CP 107 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 2,CP 107,head,Head A84,,IH:HART:C3:A84,,,CP 107 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-2,CP 107,head,Head A85,,IH:HART:C3:A85,,,CP 107 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 3,CP 201,turnout,DCC Switch 201,MTT138,IT:HART:C3:201,23,138,"Node: 23 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
 3,CP 201,turnout,DCC Switch 203,MTT139,IT:HART:C3:203,23,139,"Node: 23 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
 3,,turnout,DCC Switch 205,MTT140,IT:HART:C3:205,23,140,"Node: 23 Turnout: 4 | OU: 2 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
@@ -489,8 +489,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,mast,Mast 230LA,IF$shsm:basic:two-searchlight(IH4136)(IH4137),IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom),41,,CP 225 | Switch 229,,home signal from Track 229-239
 3,CP 225,mast,Mast 230LB,,IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom),,,CP 225 | Switch 229,,home signal from Track 229-231
 3,,mast,Mast 240L,,IF$shsm:basic:one-low(IH:HART:C3:240L),,,Helix | Switch 239,,home signal from Track 239 Spur
-3,CP 225,mast,Mast B91,,IF$shsm:basic:one-searchlight(IH:HART:C3:B91),,,CP 225 | intermediate,,intermediate signal from Track 227-239 1 into Track 227-239 2 at MP B 9.19
-3,CP 225,mast,Mast B92,,IF$shsm:basic:one-searchlight(IH:HART:C3:B92),,,CP 225 | intermediate,,intermediate signal from Track 227-239 2 into Track 227-239 1 at MP B 9.19
+3,CP 225,mast,Mast B92,,IF$shsm:basic:one-searchlight(IH:HART:C3:B92),,,CP 225 | intermediate,,intermediate signal from Track 227-239 2 into Track 227-239 1 at MP B 9.23
+3,CP 225,mast,Mast B93,,IF$shsm:basic:one-searchlight(IH:HART:C3:B93),,,CP 225 | intermediate,,intermediate signal from Track 227-239 1 into Track 227-239 2 at MP B 9.23
 3,CP 201,head,Head 202R Bottom,IH2333,IH:HART:C3:202R_Bottom,23,,"Node: 23 Signal: 1 | OU: 3 Ports: 4,5,6",,
 3,CP 201,head,Head 202R Top,IH2332,IH:HART:C3:202R_Top,23,,"Node: 23 Signal: 0 | OU: 3 Ports: 1,2,3",,
 3,CP 201,head,Head 204RA Bottom,IH2335,IH:HART:C3:204RA_Bottom,23,,"Node: 23 Signal: 3 | OU: 4 Ports: 4,5,6",,
@@ -533,5 +533,5 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,head,Head 230LB Bottom,,IH:HART:C3:230LB_Bottom,,,CP 225 | Switch 229,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 3,CP 225,head,Head 230LB Top,,IH:HART:C3:230LB_Top,,,CP 225 | Switch 229,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 3,,head,Head 240L,,IH:HART:C3:240L,,,Helix | Switch 239,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-3,CP 225,head,Head B91,,IH:HART:C3:B91,,,CP 225 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 3,CP 225,head,Head B92,,IH:HART:C3:B92,,,CP 225 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 225,head,Head B93,,IH:HART:C3:B93,,,CP 225 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"

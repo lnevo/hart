@@ -54,7 +54,7 @@ Test of the separation: with layer 3 switched off, layers 1 and 2 alone draw all
 
 ### Layer 1: plan overrides (fed over the AnyRail plan)
 
-Source of track: AnyRail's JMRI export of plan 5.3b, read by the plugin's `plan` command into the track graphs in `jmri/layouts/hart/data/schematic/inputs/` (since 2026-11-14; recipe in `docs/ops/schematic-system-draft.md`). The `.any` file and its XML export stay in `~/Documents/Layout/`, outside the repo. Heights come from the `.any` file, matched to the export by position (export scale is 120 px per inch of plan).
+Source of track: AnyRail's JMRI export of plan 5.3b, read by the plugin's `plan` command into the track graphs in `jmri/layouts/hart/data/schematic/inputs/` (since 2026-11-14; recipe in `docs/ops/schematic-system-draft.md`). The `.any` file and its XML export stay in `~/Documents/Layout/`, outside the repo. Heights come from the `.any` file, matched to the export by position (the 5.3b export is a 2664 x 3840 px panel, about 12.35 px per inch of plan; the plugin fits the scale by least squares, so export later plans at the same size to keep coordinates comparable).
 
 | Override | Staging | Main and upper |
 |----------|---------|----------------|

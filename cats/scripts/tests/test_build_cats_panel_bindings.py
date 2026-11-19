@@ -313,7 +313,7 @@ class MainAndUpper(unittest.TestCase):
     def test_the_device_map_reads_blocks_and_detectors(self):
         dm = B.load_device_map()
         self.assertEqual(set(dm.sensors), {B.bdm.occupancy_user(b) for b in dm.blocks})   # one per block
-        self.assertEqual(len(dm.sensors), 126)                  # Track 227-239 is two blocks (APB B91/B92)
+        self.assertEqual(len(dm.sensors), 126)                  # Track 227-239 is two blocks (APB B92/B93)
         self.assertTrue(all(dm.sensors[B.bdm.occupancy_user(b)] == B.bdm.block_sensor(b) for b in dm.blocks))
         self.assertEqual(len(dm.planned), 35)
         self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))

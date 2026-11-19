@@ -278,8 +278,8 @@
    "names": [
     "EH-2"
    ],
-   "edge_cm": 61.0,
-   "cm_from_toward": 61.0,
+   "edge_cm": 71.1,
+   "cm_from_toward": 71.1,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -297,8 +297,8 @@
    "names": [
     "EH-3"
    ],
-   "edge_cm": 61.0,
-   "cm_from_toward": 61.0,
+   "edge_cm": 71.1,
+   "cm_from_toward": 71.1,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -316,7 +316,7 @@
    "names": [
     "EH-2"
    ],
-   "edge_cm": 61.0,
+   "edge_cm": 71.1,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -335,7 +335,7 @@
    "names": [
     "EH-3"
    ],
-   "edge_cm": 61.0,
+   "edge_cm": 71.1,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -354,8 +354,8 @@
    "names": [
     "EH-1"
    ],
-   "edge_cm": 91.4,
-   "cm_from_toward": 91.4,
+   "edge_cm": 124.5,
+   "cm_from_toward": 124.5,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -373,7 +373,7 @@
    "names": [
     "EH-1"
    ],
-   "edge_cm": 91.4,
+   "edge_cm": 124.5,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",

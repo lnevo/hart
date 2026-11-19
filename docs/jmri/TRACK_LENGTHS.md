@@ -9,7 +9,8 @@ distances and train length checks. JMRI stores them in millimetres in the block
 `--check` fails if the two disagree (`./tools/check.sh` runs it).
 
 **Basis:** `assigned` = measured or carried over from the old layout;
-`estimate` = placeholder to refine; `cut` = remainder after OS blocks were cut
+`estimate` = placeholder to refine; `plan` = drawn length in the AnyRail plan 5.3c,
+rounded down and less 2 in for safety; `cut` = remainder after OS blocks were cut
 from it; `split` = one long block divided evenly; `stub` = hidden throat block
 sharing the detector of its track (the track's own row carries the real length);
 `inferred` = the block's timed share of the test loop, whose total length comes from
@@ -37,9 +38,9 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | Track K-2 | Block 1-2 | 113.6 | 2885.4 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
 | Track Scale | Block 4-8 | 144.5 | 3670.3 | inferred | timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48): Switch 7 centre at 4249 mm from Switch 5, less half of OS Switch 5 and OS Switch 7 |
 | Track Barn | Block 13-1 | 33.7 | 856.0 | inferred | timed passes of 2026-11-13: Switch 7 at 4249 mm and Switch 13 at 5457 mm, less half of OS Switch 7 and OS Switch 13 |
-| Track EH-1 | Block 13-7 | 36 | 914.4 | estimate |  |
-| Track EH-2 | Block 13-6 | 24 | 609.6 | estimate |  |
-| Track EH-3 | Block 13-5 | 24 | 609.6 | estimate |  |
+| Track EH-1 | Block 13-7 | 49 | 1244.6 | plan | AnyRail 5.3c: 51.3 in from Switch 11 to the bumper, rounded down and less 2 in (owner, 2026-11-19) |
+| Track EH-2 | Block 13-6 | 28 | 711.2 | plan | AnyRail 5.3c: 30.4 in from Switch 9 to the bumper, rounded down and less 2 in (owner, 2026-11-19) |
+| Track EH-3 | Block 13-5 | 28 | 711.2 | plan | AnyRail 5.3c: 30.1 in from Switch 9 to the bumper, rounded down and less 2 in (owner, 2026-11-19) |
 | Track McKees Rocks | BS Switch 39 / BS McKees Rocks | 24 | 609.6 | estimate | Princess stub east of Switch 39 |
 | Track McKeesport | BS Switch 37 / BS McKeesport | 24 | 609.6 | estimate | stub east of Switch 37 |
 
