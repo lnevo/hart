@@ -9,11 +9,11 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from hartlib import paths  # noqa: E402
-from le_common import BuildError, read_csv, slots_module  # noqa: E402
+from hartlib import boundaries, paths  # noqa: E402
+from le_common import BuildError, slots_module  # noqa: E402
 
 
-BOUNDARIES = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
+BOUNDARIES = boundaries.PATH
 
 
 def mast_band(m: dict) -> int:
@@ -123,9 +123,12 @@ def check_boundaries(panel: ET.Element, path: Path = BOUNDARIES) -> None:
     boundary contract on the wrong anchor. Rewrite the named rows from the new panel."""
     placed = {m["mast"]: m for m in slots_module().Index(panel).masts()}
     bad = []
-    for row in read_csv(path):
-        name, kind = row["mast_user_name"].strip(), row["kind"].strip()
-        want = (kind, row["ident"].strip(), row["slot"].strip())
+    try:
+        rows = boundaries.read(path)
+    except ValueError as exc:
+        raise BuildError(str(exc)) from None
+    for b in rows:
+        name, want = b.mast, (b.kind, b.ident, b.slot)
         m = placed.get(name)
         got = (m["kind"], m["ident"], m["slot"]) if m else None
         if got != want:

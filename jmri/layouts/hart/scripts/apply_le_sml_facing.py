@@ -20,7 +20,6 @@ Enabled=no. Check the result by comparing the stored pairs with the previous tab
 from __future__ import annotations
 
 import argparse
-import csv
 import os
 import re
 import shutil
@@ -30,10 +29,10 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import boundaries, paths, tables  # noqa: E402
 
 DEFAULT_PANEL = paths.TABLES_XML
-CSV_PATH = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
+CSV_PATH = boundaries.PATH
 PREF_TABLES = paths.JMRI_USER_FILES / "tables.xml"
 
 TURNOUT_ATTR = {"A": "signalAMast", "B": "signalBMast", "C": "signalCMast", "D": "signalDMast"}
@@ -59,17 +58,12 @@ def load_assignments(path: Path) -> tuple[dict[str, dict[str, str]], dict[str, d
     the generated panel."""
     turnouts: dict[str, dict[str, str]] = {}
     anchors: dict[str, dict[str, str]] = {}
-    with path.open(newline="") as f:
-        for row in csv.DictReader(f):
-            ident = row["ident"]
-            slot = row["slot"].strip()
-            mast = row["mast_user_name"].strip()
-            if row["kind"] == "turnout":
-                turnouts.setdefault(ident, {})[slot] = mast
-            elif row["kind"] == "anchor":
-                anchors.setdefault(ident, {})[slot] = mast
-            else:
-                raise SystemExit(f"Unknown kind {row['kind']!r}")
+    try:
+        rows = boundaries.read(path)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from None
+    for b in rows:
+        (turnouts if b.kind == "turnout" else anchors).setdefault(b.ident, {})[b.slot] = b.mast
     return turnouts, anchors
 
 
