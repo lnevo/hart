@@ -3251,13 +3251,9 @@
    "name": "Mast 230LB",
    "template": "single"
   },
-  "24LA": {
-   "name": "Mast 24LA",
+  "24L": {
+   "name": "Mast 24L",
    "template": "single"
-  },
-  "24LB": {
-   "name": "Mast 24LB",
-   "template": "double"
   },
   "24RA": {
    "name": "Mast 24RA",
@@ -3275,21 +3271,21 @@
    "name": "Mast 2R",
    "template": "single"
   },
+  "32R": {
+   "name": "Mast 32R",
+   "template": "single"
+  },
   "34L": {
    "name": "Mast 34L",
    "template": "double"
   },
-  "34RA": {
-   "name": "Mast 34RA",
-   "template": "single"
-  },
-  "34RB": {
-   "name": "Mast 34RB",
+  "34R": {
+   "name": "Mast 34R",
    "template": "single"
   },
   "36RA": {
    "name": "Mast 36RA",
-   "template": "single"
+   "template": "double"
   },
   "36RB": {
    "name": "Mast 36RB",
@@ -3305,11 +3301,11 @@
   },
   "40LA": {
    "name": "Mast 40LA",
-   "template": "single"
+   "template": "double"
   },
   "40LB": {
    "name": "Mast 40LB",
-   "template": "single"
+   "template": "double"
   },
   "4RA": {
    "name": "Mast 4RA",

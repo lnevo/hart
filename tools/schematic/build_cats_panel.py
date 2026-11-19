@@ -634,6 +634,8 @@ def template_by_type(F):
         raise SystemExit(str(exc)) from None
     if "one-low" in out:
         out.setdefault("one-searchlight", out["one-low"])
+    if "two-searchlight" in out:            # a two-head dwarf shows the two-searchlight aspects too
+        out.setdefault("two-low", out["two-searchlight"])
     return out
 
 def level_signals(bands, F, bound_bi):

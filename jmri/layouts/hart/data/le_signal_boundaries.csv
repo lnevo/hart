@@ -27,9 +27,7 @@ turnout,TOL29,B,Mast 40LB,Track McKees Rocks into OS Switch 39
 anchor,AG8,east,Mast 40RB,Track K-1 West into Track K-1; hidden virtual
 turnout,TOR36,B,Mast 38LA,B=Track McKeesport stub block (detector Block 1-3 shared with Track 37)
 turnout,TOR36,C,Mast 38LB,C=Track K-2 (boundary at turnout); icon deg 270 faces west
-turnout,TO111,B,Mast 24LA,Track West Ext into OS Switch 23a
-turnout,TO111,C,Mast 24LB,OS Switch 31 into OS Switch 23b
-turnout,TOL23,B,Mast 34RA,OS Switch 31 into OS Switch 33
-turnout,TOL23,C,Mast 34RB,Track Main East into OS Switch 33
 anchor,AG43,west,Mast 67,Track K-2 into Track K-1
 anchor,AG43,east,Mast 68,Track K-1 into Track K-2
+turnout,TO111,B,Mast 24L,Track West Ext into OS Switch 23a
+turnout,TOL23,C,Mast 34R,Track Main East into OS Switch 33

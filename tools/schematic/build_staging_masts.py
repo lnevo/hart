@@ -11,8 +11,9 @@ interlockings (interlockings_staging.csv, owner 2026-11-19: Brick 1, 3, 5; Barn 
 sheets, gantries on the panels); a mast's cp column names the control point of its switch.
 - a home mast where a track from outside a control point meets one of its switches, or where a track inside one is
   long enough to hold a train (mast_rule.LONG_CM: K-1/K-2 in the Princess interlocking);
-- its appearance by mast_rule: two-searchlight facing the points, one-searchlight on a trailing leg of the main
-  route, one-low (a dwarf) on a trailing leg off it;
+- its heads: two when any route it governs meets facing points inside its interlocking before the next signal
+  (mast_rule.facing_on_route), else one; high (searchlight) facing from running track, a dwarf (low) from a yard or
+  lead track: two-searchlight, one-searchlight, two-low or one-low (stock JMRI basic appearances);
 - an intermediate (APB) pair at each block boundary of a track between home masts where both blocks can hold a train
   (over LONG_CM), named from the milepost in tenths, odd westbound and even eastbound (prototype numbering: MP 6.7
   gives Mast 67 west and Mast 68 east);
@@ -168,9 +169,14 @@ def generate(band, bands, runs, joined, names, cps: dict) -> list[dict]:
                         run=f"{m['switch']};{mast_rule.base(far_label) if far_label else ''}", names=names_,
                         edge_cm=round(track_cm, 1), cm_from_toward=round(back, 1), edge=edge, node=n,
                         signal_kind="field" if f"Mast {m['name']}" in PHYSICAL else "planned",
-                        leg=p, strand=m["strand"]))
+                        leg=p, strand=m["strand"], running=m["running"]))
     for m in out:
         m["signal_kind"] = "field" if m["mast"] in PHYSICAL else "planned"
+        # two heads when any route the mast governs can still diverge inside its interlocking (owner, 2026-11-19)
+        if m["heads"] == 1 and mast_rule.facing_on_route(band, m["node"], m["leg"], cps):
+            m["heads"] = 2
+        # high from running track, a dwarf from a yard or lead track (8LA out of Barn, 32R off the ladder)
+        m["kind"] = f"{'two' if m['heads'] == 2 else 'one'}-{'searchlight' if m['running'] else 'low'}"
     out += intermediates(band, names, cps, cm, chains)
     taken = [m["mast"] for m in out]
     if len(set(taken)) != len(taken):

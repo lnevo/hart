@@ -1613,21 +1613,6 @@
       <comment>Barn | Switch 7 | internal, not wired</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C1:24LA</systemName>
-      <userName>Head 24LA</userName>
-      <comment>East End | Switch 23 | internal, not wired</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C1:24LB_Bottom</systemName>
-      <userName>Head 24LB Bottom</userName>
-      <comment>East End | Switch 23 | internal, not wired</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C1:24LB_Top</systemName>
-      <userName>Head 24LB Top</userName>
-      <comment>East End | Switch 23 | internal, not wired</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C1:24RA_Bottom</systemName>
       <userName>Head 24RA Bottom</userName>
       <comment>East End | Switch 23 | internal, not wired</comment>
@@ -1653,21 +1638,6 @@
       <comment>East End | Switch 33 | internal, not wired</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C1:34RA</systemName>
-      <userName>Head 34RA</userName>
-      <comment>East End | Switch 33 | internal, not wired</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C1:34RB</systemName>
-      <userName>Head 34RB</userName>
-      <comment>East End | Switch 33 | internal, not wired</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C1:36RA</systemName>
-      <userName>Head 36RA</userName>
-      <comment>Princess | Switch 35 | internal, not wired</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C1:36RB_Bottom</systemName>
       <userName>Head 36RB Bottom</userName>
       <comment>Princess | Switch 35 | internal, not wired</comment>
@@ -1686,16 +1656,6 @@
       <systemName>IH:HART:C1:38LB</systemName>
       <userName>Head 38LB</userName>
       <comment>Princess | Switch 37 | internal, not wired</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C1:40LA</systemName>
-      <userName>Head 40LA</userName>
-      <comment>Princess | Switch 39 | internal, not wired</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C1:40LB</systemName>
-      <userName>Head 40LB</userName>
-      <comment>Princess | Switch 39 | internal, not wired</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C1:67</systemName>
@@ -1972,6 +1932,51 @@
       <userName>Head 230LB</userName>
       <comment>CP 225 | Switch 229 | virtual (device map); planned IH4135</comment>
     </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C1:24L</systemName>
+      <userName>Head 24L</userName>
+      <comment>East End | Switch 23 | internal, not wired</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C1:32R</systemName>
+      <userName>Head 32R</userName>
+      <comment>East End | Switch 31 | internal, not wired</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C1:34R</systemName>
+      <userName>Head 34R</userName>
+      <comment>East End | Switch 33 | internal, not wired</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C1:36RA_Top</systemName>
+      <userName>Head 36RA Top</userName>
+      <comment>Princess | Switch 35 | internal, not wired</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C1:36RA_Bottom</systemName>
+      <userName>Head 36RA Bottom</userName>
+      <comment>Princess | Switch 35 | internal, not wired</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C1:40LA_Top</systemName>
+      <userName>Head 40LA Top</userName>
+      <comment>Princess | Switch 39 | internal, not wired</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C1:40LA_Bottom</systemName>
+      <userName>Head 40LA Bottom</userName>
+      <comment>Princess | Switch 39 | internal, not wired</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C1:40LB_Top</systemName>
+      <userName>Head 40LB Top</userName>
+      <comment>Princess | Switch 39 | internal, not wired</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C1:40LB_Bottom</systemName>
+      <userName>Head 40LB Bottom</userName>
+      <comment>Princess | Switch 39 | internal, not wired</comment>
+    </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2002,12 +2007,6 @@
       <systemName>IF$shsm:basic:one-low(IH:HART:C1:24RB)</systemName>
       <userName>Mast 24RB</userName>
       <comment>East End | Switch 23</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-low(IH:HART:C1:34RA)</systemName>
-      <userName>Mast 34RA</userName>
-      <comment>East End | Switch 33</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2203,24 +2202,6 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:24LA)</systemName>
-      <userName>Mast 24LA</userName>
-      <comment>East End | Switch 23</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:34RB)</systemName>
-      <userName>Mast 34RB</userName>
-      <comment>East End | Switch 33</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:36RA)</systemName>
-      <userName>Mast 36RA</userName>
-      <comment>Princess | Switch 35</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:38LA)</systemName>
       <userName>Mast 38LA</userName>
       <comment>Princess | Switch 37</comment>
@@ -2230,18 +2211,6 @@
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:38LB)</systemName>
       <userName>Mast 38LB</userName>
       <comment>Princess | Switch 37</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:40LA)</systemName>
-      <userName>Mast 40LA</userName>
-      <comment>Princess | Switch 39</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:40LB)</systemName>
-      <userName>Mast 40LB</userName>
-      <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2281,21 +2250,9 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom)</systemName>
-      <userName>Mast 8LA</userName>
-      <comment>Barn | Switch 7</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:8RB_Top)(IH:HART:C1:8RB_Bottom)</systemName>
       <userName>Mast 8RB</userName>
       <comment>Barn | Switch 7</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:24LB_Top)(IH:HART:C1:24LB_Bottom)</systemName>
-      <userName>Mast 24LB</userName>
-      <comment>East End | Switch 23</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2568,12 +2525,48 @@
       </properties>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:basic:one-low($1029)</systemName>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:24L)</systemName>
+      <userName>Mast 24L</userName>
+      <comment>East End | Switch 23</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-low(IH:HART:C1:32R)</systemName>
       <userName>Mast 32R</userName>
-      <comment>Switch 31</comment>
-      <unlit allowed="yes" />
-    </virtualsignalmast>
+      <comment>East End | Switch 31</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:34R)</systemName>
+      <userName>Mast 34R</userName>
+      <comment>East End | Switch 33</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom)</systemName>
+      <userName>Mast 36RA</userName>
+      <comment>Princess | Switch 35</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom)</systemName>
+      <userName>Mast 40LA</userName>
+      <comment>Princess | Switch 39</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom)</systemName>
+      <userName>Mast 40LB</userName>
+      <comment>Princess | Switch 39</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom)</systemName>
+      <userName>Mast 8LA</userName>
+      <comment>Barn | Switch 7</comment>
+      <unlit allowed="no" />
+    </signalmast>
   </signalmasts>
   <blocks class="jmri.configurexml.BlockManagerXml">
     <defaultspeed>Normal</defaultspeed>
@@ -6756,32 +6749,6 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 24RB">
-      <sourceSignalMast>Mast 24RB</sourceSignalMast>
-      <destinationMast destination="Mast 34RA">
-        <destinationSignalMast>Mast 34RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 34RA">
-      <sourceSignalMast>Mast 34RA</sourceSignalMast>
-      <destinationMast destination="Mast 36RB">
-        <destinationSignalMast>Mast 36RB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
     <signalmastlogic source="Mast 108LA">
       <sourceSignalMast>Mast 108LA</sourceSignalMast>
       <destinationMast destination="Mast 110LA">
@@ -6989,16 +6956,6 @@
       <sourceSignalMast>Mast 130LB</sourceSignalMast>
       <destinationMast destination="Mast 38LA">
         <destinationSignalMast>Mast 38LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 40LB">
-        <destinationSignalMast>Mast 40LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7448,55 +7405,6 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 24LA">
-      <sourceSignalMast>Mast 24LA</sourceSignalMast>
-      <destinationMast destination="Mast 2L">
-        <destinationSignalMast>Mast 2L</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 34RB">
-      <sourceSignalMast>Mast 34RB</sourceSignalMast>
-      <destinationMast destination="Mast 36RB">
-        <destinationSignalMast>Mast 36RB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 36RA">
-      <sourceSignalMast>Mast 36RA</sourceSignalMast>
-      <destinationMast destination="Mast 40RA">
-        <destinationSignalMast>Mast 40RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 40RB">
-        <destinationSignalMast>Mast 40RB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
     <signalmastlogic source="Mast 38LA">
       <sourceSignalMast>Mast 38LA</sourceSignalMast>
       <destinationMast destination="Mast 36L">
@@ -7514,65 +7422,6 @@
       <sourceSignalMast>Mast 38LB</sourceSignalMast>
       <destinationMast destination="Mast 36L">
         <destinationSignalMast>Mast 36L</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 40LA">
-      <sourceSignalMast>Mast 40LA</sourceSignalMast>
-      <destinationMast destination="Mast 24LA">
-        <destinationSignalMast>Mast 24LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 36L">
-        <destinationSignalMast>Mast 36L</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 40LB">
-      <sourceSignalMast>Mast 40LB</sourceSignalMast>
-      <destinationMast destination="Mast 24LA">
-        <destinationSignalMast>Mast 24LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 36L">
-        <destinationSignalMast>Mast 36L</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 67">
-      <sourceSignalMast>Mast 67</sourceSignalMast>
-      <destinationMast destination="Mast 40LA">
-        <destinationSignalMast>Mast 40LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7651,41 +7500,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 8LA">
-      <sourceSignalMast>Mast 8LA</sourceSignalMast>
-      <destinationMast destination="Mast 6LB">
-        <destinationSignalMast>Mast 6LB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 8LC">
-        <destinationSignalMast>Mast 8LC</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
     <signalmastlogic source="Mast 8RB">
       <sourceSignalMast>Mast 8RB</sourceSignalMast>
-      <destinationMast destination="Mast 34RB">
-        <destinationSignalMast>Mast 34RB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 8LC">
         <destinationSignalMast>Mast 8LC</destinationSignalMast>
         <comment />
@@ -7707,66 +7523,10 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 24LB">
-      <sourceSignalMast>Mast 24LB</sourceSignalMast>
-      <destinationMast destination="Mast 2L">
-        <destinationSignalMast>Mast 2L</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 16L">
-        <destinationSignalMast>Mast 16L</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 24RA">
-      <sourceSignalMast>Mast 24RA</sourceSignalMast>
-      <destinationMast destination="Mast 34RA">
-        <destinationSignalMast>Mast 34RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 36RA">
-        <destinationSignalMast>Mast 36RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
     <signalmastlogic source="Mast 34L">
       <sourceSignalMast>Mast 34L</sourceSignalMast>
       <destinationMast destination="Mast 8LB">
         <destinationSignalMast>Mast 8LB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 24LB">
-        <destinationSignalMast>Mast 24LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7866,16 +7626,6 @@
       <sourceSignalMast>Mast 130LA</sourceSignalMast>
       <destinationMast destination="Mast 38LA">
         <destinationSignalMast>Mast 38LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 40LB">
-        <destinationSignalMast>Mast 40LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -8104,16 +7854,6 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 18L">
       <sourceSignalMast>Mast 18L</sourceSignalMast>
-      <destinationMast destination="Mast 8LA">
-        <destinationSignalMast>Mast 8LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 12L">
         <destinationSignalMast>Mast 12L</destinationSignalMast>
         <comment />
@@ -8147,16 +7887,6 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 20L">
       <sourceSignalMast>Mast 20L</sourceSignalMast>
-      <destinationMast destination="Mast 8LA">
-        <destinationSignalMast>Mast 8LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 12L">
         <destinationSignalMast>Mast 12L</destinationSignalMast>
         <comment />
@@ -8190,16 +7920,6 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 22L">
       <sourceSignalMast>Mast 22L</sourceSignalMast>
-      <destinationMast destination="Mast 8LA">
-        <destinationSignalMast>Mast 8LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 12L">
         <destinationSignalMast>Mast 12L</destinationSignalMast>
         <comment />
@@ -8233,16 +7953,6 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 26L">
       <sourceSignalMast>Mast 26L</sourceSignalMast>
-      <destinationMast destination="Mast 8LA">
-        <destinationSignalMast>Mast 8LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 12L">
         <destinationSignalMast>Mast 12L</destinationSignalMast>
         <comment />
@@ -8274,70 +7984,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 18R">
-      <sourceSignalMast>Mast 18R</sourceSignalMast>
-      <destinationMast destination="Mast 32R">
-        <destinationSignalMast>Mast 32R</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 20R">
-      <sourceSignalMast>Mast 20R</sourceSignalMast>
-      <destinationMast destination="Mast 32R">
-        <destinationSignalMast>Mast 32R</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 22R">
-      <sourceSignalMast>Mast 22R</sourceSignalMast>
-      <destinationMast destination="Mast 32R">
-        <destinationSignalMast>Mast 32R</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 26R">
-      <sourceSignalMast>Mast 26R</sourceSignalMast>
-      <destinationMast destination="Mast 32R">
-        <destinationSignalMast>Mast 32R</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
     <signalmastlogic source="Mast 16L">
       <sourceSignalMast>Mast 16L</sourceSignalMast>
-      <destinationMast destination="Mast 8LA">
-        <destinationSignalMast>Mast 8LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 12L">
         <destinationSignalMast>Mast 12L</destinationSignalMast>
         <comment />
@@ -8664,29 +8312,6 @@
       <sourceSignalMast>Mast 40RB</sourceSignalMast>
       <destinationMast destination="Mast 68">
         <destinationSignalMast>Mast 68</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 32R">
-      <sourceSignalMast>Mast 32R</sourceSignalMast>
-      <destinationMast destination="Mast 34RA">
-        <destinationSignalMast>Mast 34RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 24LB">
-        <destinationSignalMast>Mast 24LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>

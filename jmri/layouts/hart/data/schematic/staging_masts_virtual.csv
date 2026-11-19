@@ -19,7 +19,6 @@ Mast 22L,South Yard,,Track S-3,Track S-3 West,,IF$vsm:basic:one-low($1010),,IF$v
 Mast 22R,South Yard,,Track S-3,Track S-3 East,,IF$vsm:basic:one-low($1014),,IF$vsm:basic:one-low($1014)
 Mast 26L,South Yard,,Track S-4,Track S-4 West,,IF$vsm:basic:one-low($1011),,IF$vsm:basic:one-low($1011)
 Mast 26R,South Yard,,Track S-4,Track S-4 East,,IF$vsm:basic:one-low($1015),,IF$vsm:basic:one-low($1015)
-Mast 32R,East End,31,OS Switch 29,OS Switch 31,,IF$vsm:basic:one-low($1029),,IF$vsm:basic:one-low($1029)
 Mast 36L,Princess,,Track East Lead East,Track East Lead,,IF$vsm:basic:one-low($1025),,IF$vsm:basic:one-low($1025)
 Mast 38RA,Princess,,Track McKeesport,,,IF$vsm:basic:one-low($1004),,IF$vsm:basic:one-low($1004)
 Mast 40RA,Princess,,Track McKees Rocks,,,IF$vsm:basic:one-low($1003),,IF$vsm:basic:one-low($1003)

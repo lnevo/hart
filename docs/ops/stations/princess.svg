@@ -23,6 +23,7 @@
 <path d="M158.0,142 L158.0,148 L234.0,148 L234.0,142" stroke-width="1.4"/>
 <path d="M162.4,61.2 L162.4,69.2 M162.4,65.2 L166.4,65.2" stroke-width="0.9"/>
 <circle cx="170.0" cy="65.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<circle cx="177.2" cy="65.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M148.4,89.2 L148.4,97.2 M148.4,93.2 L152.4,93.2" stroke-width="0.9"/>
 <circle cx="156.0" cy="93.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="163.2" cy="93.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
@@ -32,8 +33,10 @@
 <circle cx="264.0" cy="107.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M271.6,19.7 L271.6,27.7 M271.6,23.7 L267.6,23.7" stroke-width="0.9"/>
 <circle cx="264.0" cy="23.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<circle cx="256.8" cy="23.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M257.6,46.8 L257.6,54.8 M257.6,50.8 L253.6,50.8" stroke-width="0.9"/>
 <circle cx="250.0" cy="50.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<circle cx="242.8" cy="50.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M456.4,19.7 L456.4,27.7 M456.4,23.7 L452.4,23.7" stroke-width="0.9"/>
 <circle cx="448.8" cy="23.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M456.4,103.7 L456.4,111.7 M456.4,107.7 L452.4,107.7" stroke-width="0.9"/>

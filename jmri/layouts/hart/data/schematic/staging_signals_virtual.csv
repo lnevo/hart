@@ -19,7 +19,6 @@ Mast 22L,22L,21,21;25,S-3,440.7,40.0,west,virtual,1,e21,TOL28944
 Mast 22R,22R,25,25;21,S-3,440.7,40.0,east,virtual,1,e21,TOR28908
 Mast 26L,26L,21,21;25,S-4,334.0,40.0,west,virtual,1,e20,TOL28944
 Mast 26R,26R,25,25;21,S-4,334.0,40.0,east,virtual,1,e20,TOR28908
-Mast 32R,32R,31,31;29,,25.4,0.0,east,virtual,1,e2,TOL28902
 Mast 36L,36L,33,33;35,East Lead,263.3,223.3,west,virtual,1,e28,TOL29277
 Mast 38RA,38RA,37,37;,McKeesport,61.0,61.0,east,virtual,1,e26,TOR29969
 Mast 40RA,40RA,39,39;,McKees Rocks,61.0,61.0,east,virtual,1,e15,TOL29312

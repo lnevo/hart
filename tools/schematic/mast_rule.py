@@ -183,7 +183,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None) -> list[dic
                                 protects=corner_blocks[num][p] if d["kind"] == "dx" else "",
                                 heads=heads, row=srow.get(sid, 0),
                                 track=f"{t['name']} {LOOP_HALF[p]}" if t["loop"] else t["name"], band=bi,
-                                half=LOOP_HALF[p] if t["loop"] else 0, node=n, leg=p, strand=sid,
+                                half=LOOP_HALF[p] if t["loop"] else 0, node=n, leg=p, strand=sid, running=running,
                                 kind=("two-searchlight" if heads == 2 else
                                       "one-searchlight" if running else "one-low")))
     groups = defaultdict(list)
@@ -197,3 +197,51 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None) -> list[dic
         for i, m in enumerate(ms):
             m["name"] = f"{num}{letter}" + ("AB"[i] if len(ms) == 2 else "")
     return out
+
+
+def facing_on_route(band, node: str, leg: str, cp_of: dict, long_cm: float = LONG_CM) -> list[str]:
+    """The switch numbers whose points a train meets facing, on any route from entering switch `node` at `leg`,
+    inside the control point (interlocking) that switch is in, before it leaves it or reaches the next signal: a track
+    longer than `long_cm` inside the interlocking holds signals of its own, so the walk stops there. Entering a switch
+    at A meets its points facing (a choice of B or C); entering at B or C trails through to A. Turnbacks are followed.
+    Used to give a home mast two heads when a route it governs can still diverge (owner, 2026-11-19)."""
+    nodes, strands = band["nodes"], band["strands"]
+    first = nodes[node]
+    cp = cp_of.get(base(first.get("label") or ""))
+
+    def leg_strand(n, p):
+        d = nodes[n]
+        return d["ins"].get(p) or d["outs"].get(p)
+
+    def at_other_end(sid, n):
+        s = strands[sid]
+        return tuple(s["dst"]) if s["src"][0] == n else tuple(s["src"])
+
+    out, seen = [], set()
+    todo = [(node, leg)]
+    while todo:
+        n, p = todo.pop()
+        d = nodes[n]
+        if d["kind"] not in ("switch", "dx"):
+            if not d["kind"].startswith("turn"):
+                continue                                    # a bumper, a helix end or a connector: off the route
+            for sid, s in strands.items():
+                if n in (s["src"][0], s["dst"][0]) and sid not in seen:
+                    seen.add(sid)
+                    if s["cm"] <= long_cm:
+                        todo.append(at_other_end(sid, n))
+            continue
+        if cp_of.get(base(d.get("label") or "")) != cp:
+            continue                                        # left the interlocking
+        exits = ["B", "C"] if p == "A" else ["A"]
+        if p == "A" and all(leg_strand(n, x) for x in ("B", "C")):
+            out.append(base(d["label"]))
+        for x in exits:
+            sid = leg_strand(n, x)
+            if not sid or sid in seen:
+                continue
+            seen.add(sid)
+            if strands[sid]["cm"] > long_cm:
+                continue                                    # running track inside: its own signals govern it
+            todo.append(at_other_end(sid, n))
+    return sorted(set(out), key=natural)

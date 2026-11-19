@@ -194,26 +194,24 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,South Yard,mast,Mast 20R,IF$vsm:basic:one-low($1013),IF$vsm:basic:one-low($1013),,,South Yard,,facing Track S-2 into Track S-2 East
 1,South Yard,mast,Mast 22L,IF$vsm:basic:one-low($1010),IF$vsm:basic:one-low($1010),,,South Yard,,facing Track S-3 into Track S-3 West
 1,South Yard,mast,Mast 22R,IF$vsm:basic:one-low($1014),IF$vsm:basic:one-low($1014),,,South Yard,,facing Track S-3 into Track S-3 East
-1,East End,mast,Mast 24LA,IF$shsm:basic:one-searchlight(IH:HART:C1:24LA),IF$shsm:basic:one-searchlight(IH:HART:C1:24LA),,,East End | Switch 23,,facing Track West Ext into OS Switch 23a
-1,East End,mast,Mast 24LB,IF$shsm:basic:two-searchlight(IH:HART:C1:24LB_Top)(IH:HART:C1:24LB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:24LB_Top)(IH:HART:C1:24LB_Bottom),,,East End | Switch 23,,facing OS Switch 31 into OS Switch 23b
+1,East End,mast,Mast 24L,IF$shsm:basic:one-searchlight(IH:HART:C1:24L),IF$shsm:basic:one-searchlight(IH:HART:C1:24L),,,East End | Switch 23,,facing Track West Ext into OS Switch 23a
 1,East End,mast,Mast 24RA,IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),,,East End | Switch 23,,facing Track Main West into OS Switch 23a
 1,East End,mast,Mast 24RB,IF$shsm:basic:one-low(IH:HART:C1:24RB),IF$shsm:basic:one-low(IH:HART:C1:24RB),,,East End | Switch 23,,facing Track S-R East into OS Switch 23b
 1,South Yard,mast,Mast 26L,IF$vsm:basic:one-low($1011),IF$vsm:basic:one-low($1011),,,South Yard,,facing Track S-4 into Track S-4 West
 1,South Yard,mast,Mast 26R,IF$vsm:basic:one-low($1015),IF$vsm:basic:one-low($1015),,,South Yard,,facing Track S-4 into Track S-4 East
 1,Brick,mast,Mast 2L,IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom),,,Brick | Switch 1,,facing Track Main West into OS Switch 1
 1,Brick,mast,Mast 2R,IF$shsm:basic:one-searchlight(IH:HART:C1:2R),IF$shsm:basic:one-searchlight(IH:HART:C1:2R),,,Brick | Switch 1,,facing Track Brick-Plane into OS Switch 1
-1,East End,mast,Mast 32R,IF$vsm:basic:one-low($1029),IF$vsm:basic:one-low($1029),,,East End | Switch 31,,facing OS Switch 29 into OS Switch 31
+1,East End,mast,Mast 32R,IF$shsm:basic:one-low(IH:HART:C1:32R),IF$shsm:basic:one-low(IH:HART:C1:32R),,,East End | Switch 31,,facing OS Switch 29 into OS Switch 31
 1,East End,mast,Mast 34L,IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom),,,East End | Switch 33,,facing Track East Lead into OS Switch 33
-1,East End,mast,Mast 34RA,IF$shsm:basic:one-low(IH:HART:C1:34RA),IF$shsm:basic:one-low(IH:HART:C1:34RA),,,East End | Switch 33,,facing OS Switch 31 into OS Switch 33
-1,East End,mast,Mast 34RB,IF$shsm:basic:one-searchlight(IH:HART:C1:34RB),IF$shsm:basic:one-searchlight(IH:HART:C1:34RB),,,East End | Switch 33,,facing Track Main East into OS Switch 33
+1,East End,mast,Mast 34R,IF$shsm:basic:one-searchlight(IH:HART:C1:34R),IF$shsm:basic:one-searchlight(IH:HART:C1:34R),,,East End | Switch 33,,facing Track Main East into OS Switch 33
 1,Princess,mast,Mast 36L,IF$vsm:basic:one-low($1025),IF$vsm:basic:one-low($1025),,,Princess,,facing Track East Lead East into Track East Lead
-1,Princess,mast,Mast 36RA,IF$shsm:basic:one-searchlight(IH:HART:C1:36RA),IF$shsm:basic:one-searchlight(IH:HART:C1:36RA),,,Princess | Switch 35,,facing Track West Ext into OS Switch 35b
+1,Princess,mast,Mast 36RA,IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom),,,Princess | Switch 35,,facing Track West Ext into OS Switch 35b
 1,Princess,mast,Mast 36RB,IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),,,Princess | Switch 35,,facing Track East Lead East into OS Switch 35a
 1,Princess,mast,Mast 38LA,IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),,,Princess | Switch 37,,facing Track McKeesport into OS Switch 37
 1,Princess,mast,Mast 38LB,IF$shsm:basic:one-searchlight(IH:HART:C1:38LB),IF$shsm:basic:one-searchlight(IH:HART:C1:38LB),,,Princess | Switch 37,,facing Track K-2 into OS Switch 37
 1,Princess,mast,Mast 38RA,IF$vsm:basic:one-low($1004),IF$vsm:basic:one-low($1004),,,Princess,,"facing Track McKeesport, buffer stop"
-1,Princess,mast,Mast 40LA,IF$shsm:basic:one-searchlight(IH:HART:C1:40LA),IF$shsm:basic:one-searchlight(IH:HART:C1:40LA),,,Princess | Switch 39,,facing Track K-1 West into OS Switch 39
-1,Princess,mast,Mast 40LB,IF$shsm:basic:one-searchlight(IH:HART:C1:40LB),IF$shsm:basic:one-searchlight(IH:HART:C1:40LB),,,Princess | Switch 39,,facing Track McKees Rocks into OS Switch 39
+1,Princess,mast,Mast 40LA,IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),,,Princess | Switch 39,,facing Track K-1 West into OS Switch 39
+1,Princess,mast,Mast 40LB,IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),,,Princess | Switch 39,,facing Track McKees Rocks into OS Switch 39
 1,Princess,mast,Mast 40RA,IF$vsm:basic:one-low($1003),IF$vsm:basic:one-low($1003),,,Princess,,"facing Track McKees Rocks, buffer stop"
 1,Princess,mast,Mast 40RB,IF$vsm:basic:one-low($1026),IF$vsm:basic:one-low($1026),,,Princess,,facing Track K-1 West into Track K-1
 1,Brick,mast,Mast 4LA,IF$vsm:basic:one-low($1001),IF$vsm:basic:one-low($1001),,,Brick,,"facing Track W-1, buffer stop"
@@ -225,31 +223,32 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,Plane,mast,Mast 6LA,IF$shsm:basic:one-low(IH:HART:C1:6LA),IF$shsm:basic:one-low(IH:HART:C1:6LA),,,Plane | Switch 5,,facing Track Scale into OS Switch 5
 1,Plane,mast,Mast 6LB,IF$shsm:basic:one-searchlight(IH432),IF$shsm:basic:one-searchlight(IH432),4,,Plane | Switch 5,,facing Track East Ext into OS Switch 5
 1,Plane,mast,Mast 6R,IF$shsm:basic:two-searchlight(IH:HART:C1:6R_Top)(IH:HART:C1:6R_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:6R_Top)(IH:HART:C1:6R_Bottom),,,Plane | Switch 5,,facing Track Brick-Plane into OS Switch 5
-1,Barn,mast,Mast 8LA,IF$shsm:basic:two-searchlight(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom),,,Barn | Switch 7,,facing Track Barn into OS Switch 7
+1,Barn,mast,Mast 8LA,IF$shsm:basic:two-low(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom),IF$shsm:basic:two-low(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom),,,Barn | Switch 7,,facing Track Barn into OS Switch 7
 1,Barn,mast,Mast 8LB,IF$shsm:basic:one-searchlight(IH:HART:C1:8LB),IF$shsm:basic:one-searchlight(IH:HART:C1:8LB),,,Barn | Switch 7,,facing Track Main East into OS Switch 7b
 1,Barn,mast,Mast 8LC,IF$vsm:basic:one-low($1018),IF$vsm:basic:one-low($1018),,,Barn,,facing OS Switch 7 into Track Scale
 1,Barn,mast,Mast 8RA,IF$shsm:basic:one-low(IH:HART:C1:8RA),IF$shsm:basic:one-low(IH:HART:C1:8RA),,,Barn,,facing Track Scale into OS Switch 7
 1,Barn,mast,Mast 8RB,IF$shsm:basic:two-searchlight(IH:HART:C1:8RB_Top)(IH:HART:C1:8RB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:8RB_Top)(IH:HART:C1:8RB_Bottom),,,Barn | Switch 7,,facing Track East Ext into OS Switch 7b
-1,East End,head,Head 24LA,IH:HART:C1:24LA,IH:HART:C1:24LA,,,East End | Switch 23,,"internal, not wired"
-1,East End,head,Head 24LB Bottom,IH:HART:C1:24LB_Bottom,IH:HART:C1:24LB_Bottom,,,East End | Switch 23,,"internal, not wired"
-1,East End,head,Head 24LB Top,IH:HART:C1:24LB_Top,IH:HART:C1:24LB_Top,,,East End | Switch 23,,"internal, not wired"
+1,East End,head,Head 24L,IH:HART:C1:24L,IH:HART:C1:24L,,,East End | Switch 23,,"internal, not wired"
 1,East End,head,Head 24RA Bottom,IH:HART:C1:24RA_Bottom,IH:HART:C1:24RA_Bottom,,,East End | Switch 23,,"internal, not wired"
 1,East End,head,Head 24RA Top,IH:HART:C1:24RA_Top,IH:HART:C1:24RA_Top,,,East End | Switch 23,,"internal, not wired"
 1,East End,head,Head 24RB,IH:HART:C1:24RB,IH:HART:C1:24RB,,,East End | Switch 23,,"internal, not wired"
 1,Brick,head,Head 2L Bottom,IH:HART:C1:2L_Bottom,IH:HART:C1:2L_Bottom,,,Brick | Switch 1,,"internal, not wired"
 1,Brick,head,Head 2L Top,IH:HART:C1:2L_Top,IH:HART:C1:2L_Top,,,Brick | Switch 1,,"internal, not wired"
 1,Brick,head,Head 2R,IH:HART:C1:2R,IH:HART:C1:2R,,,Brick | Switch 1,,"internal, not wired"
+1,East End,head,Head 32R,IH:HART:C1:32R,IH:HART:C1:32R,,,East End | Switch 31,,"internal, not wired"
 1,East End,head,Head 34L Bottom,IH:HART:C1:34L_Bottom,IH:HART:C1:34L_Bottom,,,East End | Switch 33,,"internal, not wired"
 1,East End,head,Head 34L Top,IH:HART:C1:34L_Top,IH:HART:C1:34L_Top,,,East End | Switch 33,,"internal, not wired"
-1,East End,head,Head 34RA,IH:HART:C1:34RA,IH:HART:C1:34RA,,,East End | Switch 33,,"internal, not wired"
-1,East End,head,Head 34RB,IH:HART:C1:34RB,IH:HART:C1:34RB,,,East End | Switch 33,,"internal, not wired"
-1,Princess,head,Head 36RA,IH:HART:C1:36RA,IH:HART:C1:36RA,,,Princess | Switch 35,,"internal, not wired"
+1,East End,head,Head 34R,IH:HART:C1:34R,IH:HART:C1:34R,,,East End | Switch 33,,"internal, not wired"
+1,Princess,head,Head 36RA Bottom,IH:HART:C1:36RA_Bottom,IH:HART:C1:36RA_Bottom,,,Princess | Switch 35,,"internal, not wired"
+1,Princess,head,Head 36RA Top,IH:HART:C1:36RA_Top,IH:HART:C1:36RA_Top,,,Princess | Switch 35,,"internal, not wired"
 1,Princess,head,Head 36RB Bottom,IH:HART:C1:36RB_Bottom,IH:HART:C1:36RB_Bottom,,,Princess | Switch 35,,"internal, not wired"
 1,Princess,head,Head 36RB Top,IH:HART:C1:36RB_Top,IH:HART:C1:36RB_Top,,,Princess | Switch 35,,"internal, not wired"
 1,Princess,head,Head 38LA,IH:HART:C1:38LA,IH:HART:C1:38LA,,,Princess | Switch 37,,"internal, not wired"
 1,Princess,head,Head 38LB,IH:HART:C1:38LB,IH:HART:C1:38LB,,,Princess | Switch 37,,"internal, not wired"
-1,Princess,head,Head 40LA,IH:HART:C1:40LA,IH:HART:C1:40LA,,,Princess | Switch 39,,"internal, not wired"
-1,Princess,head,Head 40LB,IH:HART:C1:40LB,IH:HART:C1:40LB,,,Princess | Switch 39,,"internal, not wired"
+1,Princess,head,Head 40LA Bottom,IH:HART:C1:40LA_Bottom,IH:HART:C1:40LA_Bottom,,,Princess | Switch 39,,"internal, not wired"
+1,Princess,head,Head 40LA Top,IH:HART:C1:40LA_Top,IH:HART:C1:40LA_Top,,,Princess | Switch 39,,"internal, not wired"
+1,Princess,head,Head 40LB Bottom,IH:HART:C1:40LB_Bottom,IH:HART:C1:40LB_Bottom,,,Princess | Switch 39,,"internal, not wired"
+1,Princess,head,Head 40LB Top,IH:HART:C1:40LB_Top,IH:HART:C1:40LB_Top,,,Princess | Switch 39,,"internal, not wired"
 1,Brick,head,Head 4RA,IH:HART:C1:4RA,IH:HART:C1:4RA,,,Brick | Switch 3,,"internal, not wired"
 1,Brick,head,Head 4RB,IH:HART:C1:4RB,IH:HART:C1:4RB,,,Brick | Switch 3,,"internal, not wired"
 1,Princess,head,Head 67,IH:HART:C1:67,IH:HART:C1:67,,,Princess,,"internal, not wired"
