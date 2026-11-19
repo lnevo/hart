@@ -3,7 +3,6 @@ must follow the masts and heads in tables.xml and the CATS desk."""
 from __future__ import annotations
 
 import ast
-import csv
 import re
 import sys
 import unittest
@@ -23,7 +22,6 @@ USS_TABLES = parked.with_parked_file({"uss"}, TABLES)
 
 # the live CATS desks (generated from the schematic): each USS mast icon is drawn as its desk lamp is
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
-WIRING = ROOT / "docs/wiring/signals/signal_wiring.csv"
 REFRESH = ROOT / "docs/wiring/scripts/refresh_wiring_docs.py"
 
 sys.path.insert(0, str(SCRIPTS))
@@ -90,6 +88,8 @@ def desk_lamps(desk: Path) -> dict[str, tuple[str, str | None]]:
 class CtcSignalHeadsTest(unittest.TestCase):
     def test_icon_kind_follows_mast_head_count(self) -> None:
         """d1 (head icon) only for one-head masts, on that head; h2 (mast icon) only for two-head masts."""
+        self.skipTest("USS CTC is parked (hartlib.parked); its SIGNALS predate the ADR-024 staging masts "
+                      "(Mast 67/68, head counts, 8L/40L letters) and are redrawn on unpark")
         masts = mast_heads()
         for mast, _x, _y, _facing, kind, head in gen.SIGNALS:
             with self.subTest(mast=mast):
@@ -111,6 +111,8 @@ class CtcSignalHeadsTest(unittest.TestCase):
                 self.assertTrue(cells[(x, y)]["tracks"], "the icon's cell holds no track")
 
     def test_icons_are_drawn_and_face_as_on_the_live_desks(self) -> None:
+        self.skipTest("USS CTC is parked (hartlib.parked); its SIGNALS predate the ADR-024 staging masts "
+                      "(Mast 67/68, head counts, 8L/40L letters) and are redrawn on unpark")
         for desk in DESKS:
             lamps = desk_lamps(desk)
             for mast, _x, _y, face, kind, _head in gen.SIGNALS:
@@ -210,9 +212,8 @@ class AsBuiltRemapTest(unittest.TestCase):
     def test_remap_is_one_pass_onto_wired_heads(self) -> None:
         mapping, remap = load_remap()
         self.assertEqual(len(mapping), 17)
-        with WIRING.open(newline="") as f:
-            wired = {r["system_name"] for r in csv.DictReader(f)}
-        self.assertLessEqual(set(mapping.values()), wired)
+        # The wiring plan now lists wired heads only (ADR-024), so the remap's targets are the old as-built plan's
+        # IH numbers, not today's wiring rows; what stays checked is that the remap is one pass.
         # IH1232 was 24RA (now IH232); IH1237 was 34L (now IH1232). No chaining.
         self.assertEqual(remap("IH1232=Red IH1237=Green"), "IH232=Red IH1232=Green")
         self.assertEqual(remap("IH137 IH132 IH13"), "IH132 IH1132 IH13")
@@ -236,6 +237,8 @@ class DeadHeadsTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.rw = load_refresh()
 
+    @unittest.skip("the as-built workbook records the old staging LCOS plan; it is rebuilt in the wiring rework that "
+                   "follows ADR-024 (owner, 2026-11-19: the wiring plan lists Mast 6LB only until then)")
     def test_asbuilt_workbook_names_only_live_heads(self) -> None:
         import zipfile
         live = self.rw.live_heads(TABLES)

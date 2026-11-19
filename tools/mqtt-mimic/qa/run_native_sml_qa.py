@@ -10,7 +10,9 @@ appearance (what CATS ABS paints / LCOS sees). `held` is CATS ABS Hold.
 """
 from __future__ import annotations
 
+import csv
 import json
+import re
 import subprocess
 import sys
 import time
@@ -27,7 +29,7 @@ from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(ROOT / "tools" / "audit"))
-from check_wiring_crosswalk import read_tables  # noqa: E402
+from check_wiring_crosswalk import STAGING_MASTS, read_tables  # noqa: E402
 
 HOST = mqtt_broker()
 JMRI_JSON = jmri_json_url()
@@ -116,12 +118,13 @@ def capture_baseline() -> dict:
     return base
 
 
-LIVE_MASTS = {
-    "Mast 4RA", "Mast 4RB", "Mast 2L", "Mast 6LA", "Mast 6LB",
-    "Mast 8RA", "Mast 8RB", "Mast 8LA", "Mast 8LB",
-    "Mast 24RA", "Mast 24RB", "Mast 24L", "Mast 32R", "Mast 34R", "Mast 34L",
-    "Mast 36RA", "Mast 36RB", "Mast 2036", "Mast 2035", "Mast 38LA", "Mast 38LB", "Mast 40LA", "Mast 40LB",
-}
+def load_live_masts(path: Path = STAGING_MASTS) -> set[str]:
+    """Staging's visible masts (head masts, IF$shsm) from staging_masts.csv; its hidden virtual masts are left out."""
+    with path.open(newline="", encoding="utf-8") as f:
+        return {r["mast"] for r in csv.DictReader(f) if r["system_name"].startswith("IF$shsm:")}
+
+
+LIVE_MASTS = load_live_masts()
 
 
 def load_mast_heads(tables: Path | None = None) -> dict[str, tuple[str, ...]]:
@@ -136,7 +139,7 @@ def load_mast_heads(tables: Path | None = None) -> dict[str, tuple[str, ...]]:
 
 
 # Mast userName -> head system names. MQTT appearance must match JMRI JSON for
-# CATS ABS HOLD_ONLY paint. Mast 6LB reads ("IH432",) while it is a one-low dwarf.
+# CATS ABS HOLD_ONLY paint. Mast 6LB reads ("IH432",), its one wired head (ADR-024).
 MAST_HEADS = load_mast_heads()
 
 
@@ -249,6 +252,9 @@ def check(snap: dict, tag: str, expect: dict) -> None:
 def check_mqtt_heads(snap: dict, heads_mqtt: dict, tag: str) -> None:
     """Stop-like SML must not leave a live Green/Yellow on any mast head."""
     for mast, ihs in MAST_HEADS.items():
+        ihs = [ih for ih in ihs if re.fullmatch(r"IH\d+", ih)]    # only wired heads publish (ADR-024)
+        if not ihs:
+            continue
         aspect = aspect_of(snap, mast)
         if aspect is None:
             continue
@@ -305,14 +311,14 @@ def main() -> None:
             "qa00_rest",
             "All occ clear; 113/114/115/110/111/117/100/102 CLOSED, 112 THROWN (field rest).",
             {
-                "Mast 2036": "nonstop",
-                "Mast 2035": "nonstop",
-                "Mast 40LA": "nonstop",      # dest Mast 24L: Sw115+Sw111 closed
+                "Mast 68": "nonstop",
+                "Mast 67": "nonstop",
+                "Mast 40LB": "nonstop",      # dest Mast 24L: Sw115+Sw111 closed
                 "Mast 38LA": "nonstop",      # dest Mast 34L: Sw113/114 closed
-                "Mast 40LB": "stop",         # needs Sw115 thrown
+                "Mast 40LA": "stop",         # needs Sw115 thrown
                 "Mast 38LB": "stop",         # needs Sw114 thrown
                 "Mast 32R": "stop",          # needs Sw110 thrown
-                "Mast 8LA": "nonstop",      # dest Mast 6LB: Sw117 closed
+                "Mast 8LB": "nonstop",      # dest Mast 6LB: Sw117 closed
             },
         )
 
@@ -322,11 +328,11 @@ def main() -> None:
             "qa01_115_thrown",
             "115 THROWN: main runs via K-1 balloon; McKees Rocks cut off.",
             {
-                "Mast 40LA": "stop",
+                "Mast 40LB": "stop",
                 # diverging route (115 thrown) with dest Mast 24L non-Stop: bottom head green
-                "Mast 40LB": "Diverging Clear",
-                "Mast 2035": "nonstop",  # dest Mast 40LB after Discover
-                "Mast 36RA": "nonstop",  # dest Mast 2035 via 113C+115T
+                "Mast 40LA": "Diverging Clear",
+                "Mast 67": "nonstop",  # dest Mast 40LA after Discover
+                "Mast 36RA": "nonstop",  # dest Mast 67 via 113C+115T
             },
         )
 
@@ -334,7 +340,7 @@ def main() -> None:
         step(
             "qa02_115T_wme_occ",
             "115 THROWN + West Ext occupied: Rocks-main path fouled.",
-            {"Mast 40LB": "stop"},
+            {"Mast 40LA": "stop"},
         )
         set_occ("West Ext", "INACTIVE")
         set_to("115", "CLOSED")
@@ -346,7 +352,7 @@ def main() -> None:
             "114 THROWN: main runs via K-2 balloon; McKeesport cut off.",
             {
                 "Mast 38LB": "nonstop",
-                "Mast 36RB": "nonstop",  # dest Mast 2036 via 113C+114T
+                "Mast 36RB": "nonstop",  # dest Mast 68 via 113C+114T
             },
         )
 
@@ -355,7 +361,7 @@ def main() -> None:
             "qa04_114T_mckeesport_occ",
             "114 THROWN + K-2 balloon occupied (A48 boundary test).",
             {
-                "Mast 2036": "stop",
+                "Mast 68": "stop",
                 "Mast 36RB": "stop",
             },
         )
@@ -369,7 +375,7 @@ def main() -> None:
             "East Lead occupied: McKeesport's route to East Lead mast fouled; McKees Rocks (via 111a) unaffected.",
             {
                 "Mast 38LA": "stop",
-                "Mast 40LA": "nonstop",
+                "Mast 40LB": "nonstop",
             },
         )
         set_occ("East Lead", "INACTIVE")
@@ -395,7 +401,7 @@ def main() -> None:
         step(
             "qa08_eme_occ",
             "East Ext occupied: 117b's route to Plane East Ext fouled.",
-            {"Mast 8LA": "stop"},
+            {"Mast 8LB": "stop"},
         )
         set_occ("East Ext", "INACTIVE")
 
@@ -404,8 +410,8 @@ def main() -> None:
             "qa09_117_thrown",
             "117 THROWN: T6 mast routes to Plane East Ext; 117b cut off.",
             {
-                "Mast 8LB": "nonstop",
-                "Mast 8LA": "stop",
+                "Mast 8LA": "nonstop",
+                "Mast 8LB": "stop",
             },
         )
         set_to("117", "CLOSED")
@@ -431,9 +437,9 @@ def main() -> None:
         set_to("100", "CLOSED")
 
         step("qa12_back_to_rest", "Everything back at field rest.", {
-            "Mast 40LA": "nonstop",
+            "Mast 40LB": "nonstop",
             "Mast 38LA": "nonstop",
-            "Mast 8LA": "nonstop",
+            "Mast 8LB": "nonstop",
         })
     finally:
         print("restoring retained baseline…")

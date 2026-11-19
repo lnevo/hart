@@ -112,13 +112,14 @@ class DispatcherVirtualsTest(unittest.TestCase):
             self.assertEqual({"Mast 1A"},
                              audit.dispatcher_virtuals({"Mast 1A", "Mast 1B", "Mast 1C"}, nm))
 
-    def test_repo_dispatcher_virtuals_are_these_nine(self):
+    def test_repo_dispatcher_virtuals_are_these_seven(self):
         # Pinned on purpose: a boundary or hardware change shows up here instead of moving silently.
         audit = load("audit_panel_contracts")
         with (DATA / "le_signal_boundaries.csv").open(newline="", encoding="utf-8") as f:
             boundary = {r["mast_user_name"] for r in csv.DictReader(f)}
-        self.assertEqual({"Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB", "Mast 2R",
-                          "Mast 6R", "Mast 36L", "Mast 40RB"}, audit.dispatcher_virtuals(boundary))
+        # Mast 2R and 6R are visible since ADR-024, so no longer virtual.
+        self.assertEqual({"Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB",
+                          "Mast 36L", "Mast 40RB"}, audit.dispatcher_virtuals(boundary))
 
 
 if __name__ == "__main__":

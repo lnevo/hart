@@ -164,7 +164,7 @@ def comment_from_port_ids(
     """Build `Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3` from C4-OU2-1 style port ids.
 
     Consecutive ports on the same OU stay comma-separated (G/Y/R order).
-    Leftover discs that spill (6LA, 32R, 38LA, 8LB, 2035) get extra `| OU: n` groups.
+    A disc whose pins spill onto another OU gets an extra `| OU: n` group.
     """
     groups: list[tuple[str, str, str, list[str]]] = []
     for pid in port_ids:
@@ -223,8 +223,8 @@ def load_wiring_head_comments(
 ) -> dict[str, str]:
     """JMRI head userName → LCOS port comment from signal_wiring.csv.
 
-    Match by public head name, not packed IH. Wiring packed IDs moved with
-    cabinets (40LB is IH1132 on C11); live tables still use the old IH beans.
+    Match by public head name, not packed IH. The wiring plan lists wired heads
+    only (ADR-024); staging's other heads are internal names and get no port comment.
     """
     csv_path = path or SIGNAL_WIRING
     singles = load_fitted_single_heads(head_plan)

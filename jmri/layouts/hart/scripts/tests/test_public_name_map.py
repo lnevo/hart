@@ -116,9 +116,10 @@ CTC_SWITCH_MAP = {
     115: 39,
 }
 
-MAST_PROPOSED_RE = re.compile(r"^Mast (?:\d{1,3}[LR][ABC]?|\d{4})$")
+# ADR-024 adds milepost intermediates (Mast 67, Mast A84): a bare number, lettered by level off staging.
+MAST_PROPOSED_RE = re.compile(r"^Mast (?:\d{1,3}[LR][ABC]?|\d{4}|[A-Z]?\d{2,3})$")
 HEAD_PROPOSED_RE = re.compile(
-    r"^Head (?:\d{1,3}[LR][AB]?|\d{4})(?:\s+(Top|Bottom))?$"
+    r"^Head (?:\d{1,3}[LR][AB]?|\d{4}|[A-Z]?\d{2,3})(?:\s+(Top|Bottom))?$"
 )
 
 HARDWARE_TOKEN_RE = re.compile(
@@ -461,7 +462,8 @@ class PublicNameMapContractTest(unittest.TestCase):
             if row["layer"] not in {"occupancy", "fb", "head", "turnout"}:
                 continue
             hardware = (row.get("hardware") or "").split()[0]
-            if not hardware.startswith(("M2T", "M2S", "IH", "MTT")):
+            # Staging's internal heads (IH:HART:C1:*; ADR-024) are not wired, so they carry no port comment.
+            if not re.match(r"^(?:M2T|M2S|IH|MTT)\d", hardware):
                 continue
             if not (row.get("comment") or "").strip():
                 missing.append(f"{row['layer']} {row['current']!r}")
@@ -492,7 +494,7 @@ class PublicNameMapContractTest(unittest.TestCase):
             if row["current"] == row["proposed"]
         }
         self.assertEqual(by_name["Mast 2L"]["comment"], "Brick | Switch 1")
-        self.assertEqual(by_name["Mast 2035"]["comment"], "Princess")
+        self.assertEqual(by_name["Mast 67"]["comment"], "Princess")
 
 
 if __name__ == "__main__":
