@@ -1,5 +1,6 @@
 """audit_sml and audit_generated_dispatcher expect the hand-drawn panel's counts on a hand-drawn panel and the
-rehearsed three-level counts on a generated one."""
+rehearsed three-level counts on a generated one; a generated panel before discovery may hold the staging logic the
+build carries (EXPECTED_SML_CARRIED)."""
 import sys
 import unittest
 from unittest import mock
@@ -43,8 +44,10 @@ class ExpectedCounts(unittest.TestCase):
         self.assertEqual(errors(apc.audit_sml, sml_root(hand), required=True), [])
         self.assertEqual(errors(apc.audit_sml, sml_root(gen), required=True, generated=True), [])
         self.assertTrue(errors(apc.audit_sml, sml_root(gen), required=True))
-        self.assertEqual(errors(apc.audit_sml, sml_root(hand), required=True, generated=True), [])  # before Stage 1
-        self.assertTrue(errors(apc.audit_sml, sml_root(hand + 1), required=True, generated=True))
+        carried = apc.EXPECTED_SML_CARRIED                  # a generated panel before discovery: a warning
+        self.assertEqual(errors(apc.audit_sml, sml_root(carried), required=True, generated=True), [])
+        self.assertTrue(errors(apc.audit_sml, sml_root(carried + 1), required=True, generated=True))
+        self.assertTrue(errors(apc.audit_sml, sml_root(hand), required=True, generated=True))
 
     @mock.patch.object(apc.parked, "PARKED", frozenset())
     def test_dispatcher_graph_follows_the_panel_kind(self):

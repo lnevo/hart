@@ -38,7 +38,7 @@ icons), and `<bindings>` names each slot, list entry or child the split cleared 
 value). It is not a JMRI file.
 
 The cut-over build (`tools/schematic/build_layout_le.py --as-live`) leaves the same features out of the candidate
-it builds from the last hand-drawn tables; it does not write this file.
+it builds from the live `tables.xml` (which holds none of them since the release); it does not write this file.
 
 Files outside tables.xml stay in the repo but are not shipped while their feature is parked
 (`tools/hosts/sync_hart_package.sh`): the traininfo files and `dispatcheroptions.xml` (`jmri/layouts/hart/dispatcher/`),

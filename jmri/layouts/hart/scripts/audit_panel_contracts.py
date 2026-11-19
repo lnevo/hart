@@ -362,6 +362,11 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 # gained, the head-on 10RA/10RB/12R/14R -> 22L/26L and 36RB -> 40RB. The Dispatcher graph is parked
 # (hartlib.parked): no section or transit while it is.
 EXPECTED_SML = {False: 100, True: 180}
+# A generated panel before stock discovery (the cut-over candidate as built, build_layout_le.py --as-live) carries the
+# Signal Mast Logic of the tables it was built on, less every logic and destination that names a main or upper object
+# (strip_build_owned): since the build starts from the live tables.xml (owner, 2026-11-18), the 104 destinations
+# between staging masts of the 180 (the other 76: 74 from a main or upper mast, 38RA -> 136RB and 40RA -> 136RA).
+EXPECTED_SML_CARRIED = 104
 EXPECTED_GRAPH = {False: (107, 187), True: (197, 187)}
 # A generated panel before its Stage 1 (the cut-over candidate as built) still carries the hand-drawn panel's SML and
 # Dispatcher graph: allowed, with a warning that Stage 1 is still to run.
@@ -384,10 +389,10 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool, generated: bool
     unknown = len(destinations) - auto - manual
     # Every destination comes from Discover: the two manual Princess pairs were retired on 2026-11-15.
     want = EXPECTED_SML[generated]
-    carried = EXPECTED_SML[False]
+    carried = EXPECTED_SML_CARRIED
     if generated and (len(destinations), auto, manual, unknown) == (carried, carried, 0, 0):
-        audit.warn(f"stored SML destinations are the hand-drawn panel's {carried}: run Stage 1 on this generated "
-                   f"panel (expect {want})")
+        audit.warn(f"stored SML destinations are the {carried} between staging masts the build carried: run Stage 1 "
+                   f"or stock discovery on this generated panel (expect {want})")
     elif (len(destinations), auto, manual, unknown) != (want, want, 0, 0):
         message = (
             f"stored SML destinations expected total={want}, useLayoutEditor=yes={want}, "

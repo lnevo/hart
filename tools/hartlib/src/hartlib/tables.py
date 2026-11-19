@@ -288,6 +288,18 @@ def elements(el: ET.Element) -> Iterator[ET.Element]:
     return (child for child in el if isinstance(child.tag, str))
 
 
+def remove_child(parent: ET.Element, child: ET.Element) -> None:
+    """Remove ``child`` from ``parent``, keeping the indentation of what follows (the last child's tail closes the
+    parent, so it goes to the child before it); an emptied parent loses its layout text."""
+    kids = list(parent)
+    i = kids.index(child)
+    if i == len(kids) - 1 and i > 0:
+        kids[i - 1].tail = child.tail
+    parent.remove(child)
+    if not len(parent):
+        parent.text = None
+
+
 def text(el: ET.Element | None, child: str) -> str:
     """Stripped text of ``el``'s ``child``; "" when either is missing."""
     if el is None:
@@ -422,7 +434,7 @@ def layout_editor(root: ET.Element, name: str | Iterable[str] | None = None) -> 
 
 
 # The generated Layout Editor panel (tools/schematic/build_layout_le.py --as-live) carries this hidden text label.
-# The build refuses to start from tables that hold it (template_tables reads the last hand-drawn ones then), and the
+# The build starts only from tables that hold it (it replaces that panel), and the
 # Stage 1 repairs (polish_hart_layout_editor.py, reconcile_dispatcher_stations.py) run only on a panel that holds it.
 # A label is used because a PanelPro Store keeps it (and a panel rename), where it drops XML comments and unknown
 # attributes.

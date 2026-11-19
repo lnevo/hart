@@ -2,9 +2,9 @@
 generated staging panel, built from the staging device map and panel_items.json (the device-map switch-over, owner
 2026-11-17).
 
-The candidate must be a drop-in: the build's template tables (the last hand-drawn ones, git, hartlib.hand_drawn) but
-the one panel, every staging turnout as the live panel in tables.xml has it (ident, name, type, continuing route and
-leg blocks), every mast resolving to the blocks and kind of slot staging_masts.csv gives it, the panel's own items
+The candidate must be a drop-in: the tables it is built on (this checkout's tables.xml less what an earlier build
+added, strip_build_owned) but the one panel, every staging turnout as the live panel in tables.xml has it (ident,
+name, type, continuing route and leg blocks), every mast resolving to the blocks and kind of slot staging_masts.csv gives it, the panel's own items
 (panel_items.json) each once, no Entry/Exit sensor (parked), and the audits passing on it.
 """
 from __future__ import annotations
@@ -50,7 +50,7 @@ PARKED_LAMPS = paths.LAYOUT_DATA.parent / "parked" / "staging_panel_lamps.json"
 def cutover():
     """(candidate bytes, Panel, names, bands), built once for every test that needs it."""
     with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(T.hand(), levels="staging", as_live=True, approved=None)     # the fingerprint: its own test
+        return B.build(T.TABLES, levels="staging", as_live=True, approved=None)     # the fingerprint: its own test
 
 
 def without_panel(root: ET.Element) -> bytes:
@@ -86,7 +86,7 @@ class Cutover(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.data, cls.P, cls.names, cls.bands = cutover()
         cls.root = tables.loads(cls.data).root
-        cls.live = tables.read(T.hand())                            # the build's template tables
+        cls.live = T.stripped()                                     # the tables the build draws on
         cls.le = tables.layout_editor(cls.root, LIVE)
         cls.live_le = tables.layout_editor(tables.read(paths.REPO_TABLES_XML), LIVE)     # the live generated panel
         cls.items = B.panel_items.load(B.PANEL_ITEMS)
@@ -164,9 +164,7 @@ class Cutover(unittest.TestCase):
             drift = AUDIT.report_drift([audit])
             with contextlib.redirect_stdout(io.StringIO()):
                 cli = AUDIT.main(["--strict", "--tables", str(path), "--generated"])
-        # the staging candidate is built on the last hand-drawn tables, whose Dispatcher System is not parked: its
-        # station icons are parked with the lamps (jmri/layouts/hart/parked/staging_panel_lamps.json)
-        self.assertEqual([e for e in audit.errors if "Dispatcher station sensor icons" not in e], [])
+        self.assertEqual(audit.errors, [])
         self.assertTrue(all("run Stage 1" in w for w in audit.warnings), audit.warnings)
         self.assertEqual(drift, [])
         self.assertEqual(audit.facts["panel"], LIVE)
@@ -248,7 +246,7 @@ class Cutover(unittest.TestCase):
         command and in build(), whatever the levels; nothing is built or written."""
         for levels in B.LEVELS:
             with self.subTest(levels=levels), self.assertRaisesRegex(B.BuildError, "retired.*--as-live"):
-                B.build(T.hand(), levels=levels)
+                B.build(T.TABLES, levels=levels)
         for name in ("TRIAL", "TRIAL_STAGING", "TRIAL_LE_LABELS", "PANEL_NAME"):
             self.assertFalse(hasattr(B, name), name)
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "build") as built:
@@ -266,7 +264,7 @@ class Cutover(unittest.TestCase):
                          ["--approve-staging", "--check"]):
                 self.assertEqual(B.main(argv), 1, argv)
         P = mock.Mock(staging_data=b"staging", log=[], mast_notes=[], moved=[], items=None, staging_same=["x"],
-                      gaps=[10, 20], scale=(1.0, 1.0))
+                      gaps=[10, 20], scale=(1.0, 1.0), stripped=dict.fromkeys(B.STRIPPED, 0))
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "build", return_value=(self.data, P, {}, [])), \
                 mock.patch.object(B.tables, "loads") as loads, mock.patch.object(B, "plugin") as plug:
             le_mod = mock.Mock()
@@ -285,8 +283,8 @@ class Cutover(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(B.main(["--levels", "staging", "--as-live", "--out", str(out)]), 0)
                 self.assertEqual(B.main(["--levels", "staging", "--as-live", "--check", "--out", str(out)]), 0)
-            # on the cut-over tables the command builds on the last hand-drawn tables (template_tables)
-            built.assert_called_with(levels="staging", as_live=True, live_path=B.template_tables())
+            # the command builds on this checkout's tables.xml (strip_build_owned takes out the build's own)
+            built.assert_called_with(levels="staging", as_live=True, live_path=B.paths.TABLES_XML)
         self.assertEqual(B.CUTOVER.parent, B.CUTOVER_STAGING.parent)       # gitignored trial folder
         self.assertEqual(B.CUTOVER.parent.name, "trial")
 
@@ -372,7 +370,7 @@ class ThreeLevels(unittest.TestCase):
             with mock.patch.object(B, "check_approved", side_effect=B.ApprovalError("not approved")) as check, \
                     contextlib.redirect_stdout(io.StringIO()):
                 with self.assertRaisesRegex(B.BuildError, "not approved"):
-                    B.build(T.hand(), levels="staging", as_live=True, approved=path)
+                    B.build(T.TABLES, levels="staging", as_live=True, approved=path)
                 self.assertEqual(B.main(["--review", "--levels", "staging"]), 1)     # --review needs --as-live
             self.assertEqual(check.call_args.args[1], path)
         with tempfile.TemporaryDirectory() as tmp:
@@ -708,38 +706,145 @@ class ThreeLevels(unittest.TestCase):
 
 
 class Rebuilt(unittest.TestCase):
-    """The candidate is built from the staging device map and the schematic alone. Built from tables with no
-    "HART Railroad" panel, or from the candidate itself (after the cut-over tables.xml holds the generated panel), it
-    is the same file byte for byte."""
+    """The candidates are built on this checkout's tables.xml, which the last cut-over wrote: the build takes out what
+    an earlier build added (strip_build_owned) and draws the rest of it again, so built from either candidate
+    itself, or from the tables stripped beforehand, the result is the same file byte for byte, and whatever else is
+    in the tables carries through."""
 
-    def build_from(self, data: bytes) -> bytes:
+    def build_from(self, data: bytes, levels: str = "staging") -> bytes:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables.xml"
             path.write_bytes(data)
             with contextlib.redirect_stdout(io.StringIO()):
-                return B.build(path, levels="staging", as_live=True, approved=None)[0]
+                return B.build(path, levels=levels, as_live=True, approved=None)[0]
 
-    def test_without_the_hand_drawn_panel(self) -> None:
+    def test_built_on_the_live_tables_less_the_builds_own(self) -> None:
+        """Round trip: tables.xml stripped, then built, is the candidate built straight from tables.xml, whose panel
+        is the owner-approved one (approved_le_candidate.sha256) and whose staging candidate's panel is the approved
+        staging panel (approved_staging.sha256)."""
+        data, P = three_levels()[:2]
+        doc = tables.load(T.TABLES)
+        counts = B.strip_build_owned(doc.root)
+        self.assertGreater(counts[B.STRIPPED[0]], 0)        # tables.xml is a cut-over's: it holds the build's own
+        self.assertEqual(B.strip_build_owned(doc.root), dict.fromkeys(B.STRIPPED, 0))      # nothing left to take
+        self.assertEqual(self.build_from(doc.tobytes(), "all"), data)
+        approval = sys.modules["approval"]          # the fingerprints (tools/schematic/approval.py), as B reads them
+        out = next(o for o in approval.OUTPUTS if o.key == "le-candidate")
+        want = approval.parse_fingerprint(out.approved.read_text(encoding="utf-8"), out.key, out.kind)
+        got = approval.fingerprint(tables.layout_editor(tables.loads(data).root, LIVE), out.kind, out.drop_attrs)
+        self.assertIsNone(approval.compare(want, got))
+        B.check_approved(tables.layout_editor(tables.loads(P.staging_data).root, LIVE))      # raises when not
+
+    def test_from_the_candidates_themselves(self) -> None:
+        staging, three = cutover()[0], three_levels()[0]
+        self.assertEqual(self.build_from(staging), staging)
+        self.assertEqual(self.build_from(three), staging)       # the main and upper objects taken out again
+        self.assertEqual(self.build_from(three, "all"), three)
+
+    def test_what_else_is_in_the_tables_carries_through(self) -> None:
+        """A bean added to the live tables after a cut-over (a memory, an internal sensor whose comment names a main
+        level switch) is in the next candidates unchanged; the build's own objects are drawn as before."""
+        doc = tables.load(T.TABLES)
+        memory = ET.fromstring('<memory value="kept"><systemName>IMHART:KEEP</systemName><userName>Kept memory'
+                               '</userName></memory>')
+        sensor = ET.fromstring('<sensor inverted="false"><systemName>IS:HART:KEEP</systemName><userName>Kept sensor'
+                               '</userName><comment>hand-added; names Switch 107</comment></sensor>')
+        internal = next(s for s in doc.root.findall("sensors") if "InternalSensorManager" in s.get("class"))
+        doc.root.find("memories").append(memory)
+        internal.append(sensor)
+        data = self.build_from(doc.tobytes(), "all")
+        for root in (tables.loads(data).root, tables.loads(self.build_from(doc.tobytes())).root):
+            got = {tables.system_name(el): el for el in root.iter() if el.tag in ("memory", "sensor")}
+            self.assertEqual(B.canon(got["IMHART:KEEP"]), B.canon(memory))
+            self.assertEqual(B.canon(got["IS:HART:KEEP"]), B.canon(sensor))
+        root = tables.loads(data).root
+        tables.remove_child(root.find("memories"), next(m for m in root.find("memories")
+                                                         if tables.system_name(m) == "IMHART:KEEP"))
+        internal = next(s for s in root.findall("sensors") if "InternalSensorManager" in s.get("class"))
+        tables.remove_child(internal, next(x for x in internal if tables.system_name(x) == "IS:HART:KEEP"))
+        self.assertEqual(B.canon(root), B.canon(tables.loads(three_levels()[0]).root))
+
+    def test_tables_without_the_generated_panel_are_refused(self) -> None:
         data = cutover()[0]
-        bare = without_live_panel(T.hand().read_bytes())
+        bare = without_live_panel(data)
         self.assertIsNone(tables.layout_editor(tables.loads(bare).root, LIVE))
-        self.assertEqual(self.build_from(bare), data)
+        with self.assertRaisesRegex(B.BuildError, "no main Layout Editor panel.*starts from tables that hold the "
+                                                  "generated panel"):
+            self.build_from(bare)
+        doc = tables.loads(data)
+        panel = tables.layout_editor(doc.root, LIVE)
+        panel.remove(next(lb for lb in panel.findall("positionablelabel")
+                          if lb.get("text") == tables.GENERATED_PANEL_MARKER))
+        with self.assertRaisesRegex(B.BuildError, "'HART Railroad' panel is not a generated one"):
+            self.build_from(doc.tobytes())
 
-    def test_after_the_cut_over(self) -> None:
-        data = cutover()[0]
-        self.assertEqual(self.build_from(data), data)
-        # the cut-over tables hold the main and upper objects too: refused, and the command builds on the last
-        # hand-drawn tables from git instead (template_tables)
-        three = three_levels()[0]
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "tables.xml"
-            path.write_bytes(three)
-            with contextlib.redirect_stdout(io.StringIO()), \
-                    self.assertRaisesRegex(B.BuildError, "already holds the main and upper objects"):
-                B.build(path, levels="staging", as_live=True, approved=None)
-            with mock.patch.object(B.paths, "TABLES_XML", path), contextlib.redirect_stdout(io.StringIO()) as out:
-                self.assertEqual(B.template_tables(), T.hand())
-            self.assertIn("building on the last hand-drawn tables", out.getvalue())
+
+class StripBuildOwned(unittest.TestCase):
+    """strip_build_owned on small tables: the build's own objects, and the logic and paths stock JMRI derived from
+    them, go; the rest stays, indentation and all."""
+    TABLES = """<layout-config>
+  <turnouts class="internal">
+    <turnout><systemName>IT:KEEP</systemName><userName>Kept</userName></turnout>
+    <turnout><systemName>IT:HART:C3:107</systemName><userName>Switch 107</userName></turnout>
+  </turnouts>
+  <signalheads class="h">
+    <signalhead><systemName>IH:HART:C3:136RA</systemName><userName>Head 136RA</userName></signalhead>
+  </signalheads>
+  <signalmasts class="m">
+    <signalmast><systemName>IF$shsm:basic:one-low(IH:HART:C3:136RA)</systemName><userName>Mast 136RA</userName>
+    </signalmast>
+    <virtualsignalmast><systemName>IF$vsm:basic:one-low($1)</systemName><userName>Mast 40RA</userName>
+    </virtualsignalmast>
+  </signalmasts>
+  <blocks class="b">
+    <block systemName="IB1"><systemName>IB1</systemName><userName>Track A</userName></block>
+    <block systemName="IB:C3:0001"><systemName>IB:C3:0001</systemName><userName>Track 135-H1</userName></block>
+    <block systemName="IB1"><systemName>IB1</systemName><userName>Track A</userName>
+      <path todir="16" fromdir="32" block="IB2" />
+      <path todir="96" fromdir="144" block="IB:C3:0001" />
+    </block>
+  </blocks>
+  <signalmastlogics class="l">
+    <signalmastlogic source="Mast 136RA"><sourceSignalMast>Mast 136RA</sourceSignalMast>
+      <destinationMast destination="Mast 40RB"><destinationSignalMast>Mast 40RB</destinationSignalMast>
+      </destinationMast>
+    </signalmastlogic>
+    <signalmastlogic source="Mast 40RA"><sourceSignalMast>Mast 40RA</sourceSignalMast>
+      <destinationMast destination="Mast 136RA"><destinationSignalMast>Mast 136RA</destinationSignalMast>
+      </destinationMast>
+    </signalmastlogic>
+    <signalmastlogic source="Mast 38RA"><sourceSignalMast>Mast 38RA</sourceSignalMast>
+      <destinationMast destination="Mast 36L"><destinationSignalMast>Mast 36L</destinationSignalMast>
+      </destinationMast>
+      <destinationMast destination="Mast 30L"><destinationSignalMast>Mast 30L</destinationSignalMast>
+        <turnouts><turnout turnout="Switch 107" state="2" /></turnouts>
+      </destinationMast>
+    </signalmastlogic>
+  </signalmastlogics>
+  <memories class="m"><memory><systemName>IM1</systemName><comment>Switch 107</comment></memory></memories>
+</layout-config>"""
+
+    def test_the_builds_own_and_their_derived_references_go(self) -> None:
+        root = ET.fromstring(self.TABLES)
+        counts = B.strip_build_owned(root)
+        self.assertEqual(counts, dict(zip(B.STRIPPED, (4, 1, 2, 1, 1))))
+        self.assertEqual([tables.system_name(t) for t in root.iter("turnout") if t.find("systemName") is not None],
+                         ["IT:KEEP"])
+        self.assertEqual([tables.user_name(m) for m in tables.masts(root)], ["Mast 40RA"])
+        self.assertEqual([p.get("block") for p in root.iter("path")], ["IB2"])
+        self.assertEqual({src: [d for _s, d, _e in tables.mast_logic_pairs(root) if _s == src]
+                          for src in tables.mast_logic_sources(root)}, {"Mast 38RA": ["Mast 36L"]})
+        self.assertEqual(root.find("memories/memory/comment").text, "Switch 107")    # not derived: carried
+        self.assertEqual(B.strip_build_owned(root), dict.fromkeys(B.STRIPPED, 0))
+        # what is left is indented as before: the section closes where it did
+        self.assertEqual(root.find("turnouts")[-1].tail, "\n  ")
+        self.assertEqual(root.find("signalheads").text, None)
+
+    def test_a_reference_left_behind_stops(self) -> None:
+        root = ET.fromstring(self.TABLES)
+        with mock.patch.object(B.tables, "remove_child"), \
+                self.assertRaisesRegex(B.BuildError, "left some of it in"):
+            B.strip_build_owned(root)
 
 
 class BuilderErrors(unittest.TestCase):

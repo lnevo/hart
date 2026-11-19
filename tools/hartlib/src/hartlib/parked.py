@@ -33,7 +33,7 @@ from collections import Counter
 from pathlib import Path
 
 from . import paths
-from .tables import _serialize
+from .tables import _serialize, remove_child
 
 PARKED: frozenset[str] = frozenset({"nx", "dispatcher", "uss"})
 FEATURES = {
@@ -92,15 +92,7 @@ def _user(el: ET.Element) -> str:
     return (el.findtext("userName") or el.get("userName") or "").strip()
 
 
-def _remove(parent: ET.Element, child: ET.Element) -> None:
-    """Remove `child`, keeping the indentation of what follows (the last child's tail closes the parent)."""
-    kids = list(parent)
-    i = kids.index(child)
-    if i == len(kids) - 1 and i > 0:
-        kids[i - 1].tail = child.tail
-    parent.remove(child)
-    if not len(parent):
-        parent.text = None
+_remove = remove_child       # hartlib.tables: keeps the indentation of what follows
 
 
 def _copy(el: ET.Element) -> ET.Element:
@@ -123,7 +115,7 @@ def _conditional_of(name: str, logix: str) -> bool:
 
 def parked_in(root: ET.Element, parked=None) -> frozenset[str]:
     """The features of `parked` (default PARKED) that these tables leave out: none of the feature's whole sections
-    is in them. Tables from before the parking (a trial, the staging candidate, the last hand-drawn tables) still hold
+    is in them. Tables from before the parking (a tables.xml from git before the release) still hold
     their features and are read as they are; check() holds the checkout's tables to PARKED."""
     parked = PARKED if parked is None else parked
     return frozenset(f for f in parked if not any(root.find(w) is not None for w in WHOLE.get(f, ())))

@@ -138,6 +138,63 @@ def is_level_bean(el: ET.Element) -> bool:
     return False
 
 
+def level_names(root: ET.Element) -> set[str]:
+    """The system and user names of every main and upper object a build added to tables `root` (is_level_bean)."""
+    return {n for sec in tables.elements(root) for el in tables.elements(sec) if is_level_bean(el)
+            for n in (tables.system_name(el), tables.user_name(el)) if n}
+
+
+def _names_any(el: ET.Element, names: set[str]) -> bool:
+    """Whether `el` or anything in it names one of `names`, by its text or an attribute value."""
+    return any((x.text or "").strip() in names or any(v.strip() in names for v in x.attrib.values())
+               for x in el.iter() if isinstance(x.tag, str))
+
+
+STRIPPED = ("main and upper objects", "Signal Mast Logic from a main or upper mast",
+            "Signal Mast Logic destinations naming a main or upper object",
+            "Signal Mast Logic left with no destination", "block paths naming a main or upper object")
+
+
+def strip_build_owned(root: ET.Element) -> dict[str, int]:
+    """Take out of tables `root` (edited in place) what a build added and what stock JMRI derived from it, so a build
+    can start from tables a cut-over wrote (tables.xml): every main and upper object (is_level_bean: turnouts, block
+    sensors, blocks, layout blocks, heads, masts and the sensors-clear LogixNG); the Signal Mast Logic whose source is
+    one of their masts; each destination of another mast's logic that names one of them, and a logic left with none;
+    and each path of another block that names one of them. Stock discovery and a PanelPro load derive the logic and
+    the paths again from the panel the build draws. Everything else stays as it is, the main panel too: the build
+    replaces it. Returns the counts taken out, keyed by STRIPPED; stops when any of those references is left."""
+    names = level_names(root)
+    counts = dict.fromkeys(STRIPPED, 0)
+    for sec in list(tables.elements(root)):
+        for el in [el for el in tables.elements(sec) if is_level_bean(el)]:
+            tables.remove_child(sec, el)
+            counts[STRIPPED[0]] += 1
+    for box in root.findall("signalmastlogics"):
+        for logic in list(box.findall("signalmastlogic")):
+            source = tables.text(logic, "sourceSignalMast") or (logic.get("source") or "").strip()
+            if source in names:
+                tables.remove_child(box, logic)
+                counts[STRIPPED[1]] += 1
+                continue
+            gone = [d for d in logic.findall("destinationMast") if _names_any(d, names)]
+            for d in gone:
+                tables.remove_child(logic, d)
+                counts[STRIPPED[2]] += 1
+            if gone and logic.find("destinationMast") is None:
+                tables.remove_child(box, logic)
+                counts[STRIPPED[3]] += 1
+    for block in tables.blocks(root):
+        for path in [p for p in block.findall("path") if _names_any(p, names)]:
+            tables.remove_child(block, path)
+            counts[STRIPPED[4]] += 1
+    left = sorted({sec.tag for sec in tables.elements(root) for el in tables.elements(sec) if is_level_bean(el)} |
+                  {"signalmastlogics" for logic in tables.mast_logics(root) if _names_any(logic, names)} |
+                  {"block paths" for b in tables.blocks(root) for p in b.findall("path") if _names_any(p, names)})
+    if left:
+        raise BuildError(f"taking out what an earlier build added left some of it in {', '.join(left)}")
+    return counts
+
+
 def level_items(P, panel_el: ET.Element) -> set:
     """ids of the panel elements that belong to main and upper, by the plugin's own band of each: their turnouts,
     points, track segments (and the hidden helix and connector joins, drawn with no band), circles, labels (band
@@ -284,16 +341,6 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str, join_helix: b
         raise BuildError("staging guard: the three-level candidate changes the approved staging panel: " +
                          "; ".join(bad[:20]) + (f" (and {len(bad) - 20} more)" if len(bad) > 20 else ""))
     return notes
-
-
-def insert_first_panel(root: ET.Element, new: ET.Element, depth: int) -> None:
-    """Put `new` before the first Layout Editor panel of `root` (where the hand-drawn panel stood, before the
-    Dispatcher System panel), indented as JMRI writes."""
-    first = tables.layout_editors(root)[0]
-    idx = list(root).index(first)
-    ET.indent(new, space="  ", level=depth)
-    new.tail = root[idx - 1].tail if idx else root.text
-    root.insert(idx, new)
 
 
 def numbered_blocks(blocks) -> list:
