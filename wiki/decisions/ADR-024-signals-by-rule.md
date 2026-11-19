@@ -32,7 +32,7 @@ One rule places every visible mast. It lives in `tools/schematic/mast_rule.py` a
 **Intermediate (APB) signals**
 - A pair at the block boundary of running track where both blocks can hold a train.
 - Each is named from its milepost in tenths, odd westbound and even eastbound. Main and upper names carry a line code: A for the main level, B for the upper, after Furnace A and B.
-- Mileposts start at MP 5.7 at staging Switch 1, where the P&OV met the P&LE at Neville interlocking. They count through the helix (690 in a track, an estimate) and on along each level's main route, as the sheets print them. Duplicate numbers on the two levels are deliberate.
+- Mileposts start at MP 5.7 at staging Switch 1, where the P&OV met the P&LE at Neville interlocking. They count through the helix (its length per helix track from the AnyRail plan 5.3c, in `helix_length_in`; 690 in, an estimate, until 2026-11-19) and on along each level's main route, as the sheets print them. Duplicate numbers on the two levels are deliberate.
 - A pair at a loop's turnback takes the milepost at half the whole loop's length (both legs), wherever its symbols are drawn. East is the way the count rises.
 - Today's pairs: 67/68 (staging K-1/K-2), A83/A84 (the 107 Loop turnback, MP A 8.35) and B92/B93 (Track 227-239, split at its turnback by `split_tracks_main_upper.csv`, MP B 9.23). They were A84/A85 and B91/B92 (MP A 8.49, B 9.19) until the helix length came from the AnyRail plan 5.3c (owner, 2026-11-19).
 - No signal stands in or at the top of the helix. The home signals at 129 and 135 govern it.
