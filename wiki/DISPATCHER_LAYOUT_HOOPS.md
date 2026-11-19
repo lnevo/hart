@@ -6,7 +6,7 @@ SoR for workarounds used so Dispatcher System can start and stop at HART station
 
 Railroad English first, then the JMRI name. Operator desk: [`jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md). Live notes: [`STATUS.md`](STATUS.md) (Dispatcher System).
 
-Tables: `jmri/layouts/hart/output/tables.xml`. Re-apply LE bindings with `jmri/layouts/hart/scripts/apply_le_cleanup.py`.
+Tables: `jmri/layouts/hart/output/tables.xml`. The hand-drawn panel's `apply_le_cleanup.py` is archived in `archive/jmri-scripts/` (2026-11-18); the generated panel carries these bindings, so after a Stage 1 run put lamps and labels back with `polish_hart_layout_editor.py --reference …`.
 
 ---
 
@@ -33,7 +33,7 @@ Icons are `hidden="yes"` on **HART Railroad**. System names are `IF$vsm:basic:on
 | Brick-Plane / Switch 1 | `Mast 2R` (`$1023`) | Hidden virtual on TOL3 C. Brick-Plane had no mast at either end, so it sat inside the 2L→8RA/8RB and 6LA/6LB→24RA sections: runs into it went past it and runs to East Ext / Main West reused its transits (added 2026-11-10). |
 | Brick-Plane / Switch 5 | `Mast 6R` (`$1024`) | Hidden virtual on TOL42 A. Same fix, east end. |
 
-Tables: `STUB_MASTS` and `YARD_BOUNDARY_MASTS` in `apply_le_cleanup.py`. Throat geometry: `apply_yard_throat_blocks.py`.
+History: these masts were set by `STUB_MASTS` and `YARD_BOUNDARY_MASTS` in `apply_le_cleanup.py`, and the throat geometry by `apply_yard_throat_blocks.py`. Both are archived in `archive/jmri-scripts/` (2026-11-18); the generated panel and `tables.xml` now hold them.
 
 ---
 
@@ -46,7 +46,7 @@ A connect1-only `END_BUMPER` resolves a facing block in one slot only, set by wh
 | West (W-1/W-2, EH) | `westboundsignalmast` |
 | East (McKees Rocks/McKeesport) | `eastboundsignalmast` |
 
-Bindings are on `STUB_MASTS` in `apply_le_cleanup.py`. In any other slot, Discover and CATS SML report **No facing block found for destination mast**. Do not move them.
+Bindings are the ones listed above, held in `tables.xml` (formerly set by `STUB_MASTS` in the archived `apply_le_cleanup.py`). In any other slot, Discover and CATS SML report **No facing block found for destination mast**. Do not move them.
 
 ---
 
@@ -74,14 +74,14 @@ This is the pattern the South Yard throats use. Stage 1 will ask **same sensor?*
 - `TransitCreationTool.addNamedBean` is **outside** the `try` in stock `CreateTransits.create_transit`. An unreachable pair kills Stage 1. If that happens, **fix `jmri/layouts/hart/output/tables.xml`** (mast bindings / block boundaries) so Discover builds legal hops. Do **not** wrap CreateTransits. **26L → 8RA** is opposite-facing; westbound Scale is 26L → 8LC → 6LA (or 26L → 8LB → 6LA).
 - Stage 1 deletes and re-discovers SML and resets several things. Since 2026-11-12 `run_panelpro_stage1.sh` repairs them after every run: it sets HEAD_AND_TAIL detection (`fix_traininfo_detection.py`), re-binds station cluster icons (`reconcile_dispatcher_stations.py`), restores generated bean comments (`refresh_bean_comments.py`), stores Digicon SML disabled, and puts labels and Stage 1 lamps back (`polish_hart_layout_editor.py`). `tools/check.sh` fails if any of those are out of step. A start block needs a mast at its rear for each leaving direction, or Stage 1 takes the first section holding the block by system-name sort (`CreateTransits.get_first_signal_mast`) and the choice flips when mast system names change (the 2026-11-10 Digicon renumbering flipped 84 East Lead and K-1 runs). Since 2026-11-12 East Lead and K-1 have hidden throats at A56 / A1 (`Track East Lead East`, `Track K-1 West`, same detectors) with hidden virtual rear masts 36L (westbound) and 40RB (eastbound); 36RB and 40LB stay on their switch legs. Folding the stub into the switch's OS block instead broke Discover for 36RB and 38LA/38LB, so keep the throat pattern.
 - Princess has no `Mast 36RA→Mast 40LA` or `Mast 36RB→Mast 38LA` SML (retired 2026-11-15, owner). They were added by hand in August 2026 on the belief that Discover missed them, but Discover refuses them on purpose ("Signal mast in the wrong direction", `LayoutBlockConnectivityTools.checkValidDest`): 40LA and 38LA are the two-head westbound homes off the future helix on the closed main, and 36RA/36RB govern eastbound. Nothing used them: Stage 1 rediscovers SML before it builds sections, NX never used them, and the eastbound route stops at the first active destination (40RA / 38RA). Do not add them back.
-- Stage 1 **Store** writes Layout Editor `BlockContentsIcon`s at **level 0** (behind the track). The Mac launcher and **`sync_hart_package.sh`** run `polish_hart_layout_editor.py --block-labels-only`; **`panel_status.py`** also lifts them at PanelPro boot. Audit fails if any label is not level 4.
+- Stage 1 **Store** writes Layout Editor `BlockContentsIcon`s at **level 0** (behind the track). The Stage 1 wrapper runs `polish_hart_layout_editor.py --reference …`, which puts them back on their reference spots; **`panel_status.py`** also lifts them at PanelPro boot. The `--block-labels-only` mode and the deploy's polish step were removed 2026-11-18. Audit fails if any label is not level 4.
 - **PanelPro only.** Never run Stage 1 or Store tables from CATS. CATS virtuals (`IF$vsm:CATS1/CATS2`) and `IMDECODER_*` memories pollute `tables.xml` and fail to load in plain JMRI.
 
 ---
 
 ## South Yard as platforms (throats landed)
 
-S-R and S-1…S-4 are a yard with many platforms: enter/leave via **Switch 15** or **East Lead**. Hidden throat blocks (`apply_yard_throat_blocks.py`) give each body a mast *beyond* the stop. Stock Stage 1 2026-09-01 produced **82 / 721 / 1530**. Do not put `104L`–`107L` back on turnout legs.
+S-R and S-1…S-4 are a yard with many platforms: enter/leave via **Switch 15** or **East Lead**. Hidden throat blocks (made by `apply_yard_throat_blocks.py`, archived 2026-11-18, now in `tables.xml`) give each body a mast *beyond* the stop. Stock Stage 1 2026-09-01 produced **82 / 721 / 1530**. Do not put `104L`–`107L` back on turnout legs.
 
 ---
 
