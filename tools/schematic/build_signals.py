@@ -37,7 +37,7 @@ LEVELS = [("staging.json", "staging"), ("main.json", "main_upper")]   # plan gra
 SCHEMA = "schematic.signals/1"
 BLOCK_LENGTHS = railroad.Sources.under().block_lengths
 TOLERANCE_CM = 0.2          # the reader rounds each length to 0.1 cm
-STAGGER_CM = 30.0           # a balloon loop's APB pair: the westbound mast this far back, so both are drawn
+TURNBACK_CM = 1.0           # a mast measured from a turnback stands just off it (not "at the points")
 
 
 def block_cm(path=BLOCK_LENGTHS) -> dict:
@@ -110,6 +110,8 @@ def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str
         if e is None:
             bad.append(f"{r['mast']}: schematic edge {r['_edge']} is not in the plan graph")
             continue
+        if r["_toward_node"].startswith("turn:") and r["_edge"] == r["_toward_node"].removeprefix("turn:"):
+            continue            # measured from the turnback of its own folded edge (a balloon loop's APB mast)
         if r["_toward_node"] not in (e["u"], e["v"]):
             bad.append(f"{r['mast']}: node {r['_toward_node']} is not an end of edge {r['_edge']}")
             continue
@@ -186,8 +188,9 @@ def main_upper_rows() -> list[dict]:
                              dir="west" if m["letter"] == "L" else "east", heads=heads))
         else:
             # an APB pair at a turnback: each drawn from the switch its move heads for (the protected half's end),
-            # as staging's 67 and 68 are, so the two stand apart; a balloon loop's halves both end at its switch, so
-            # its westbound mast stands STAGGER_CM back from the boundary
+            # as staging's 67 and 68 are, so the two stand apart. A balloon loop's halves both end at its switch, and
+            # the plugin points a mast by the end it is measured from, so the loop's westbound mast is measured from
+            # the turnback itself: the pair stands back to back at the boundary
             track = re.sub(r" [12]$", "", r["facing"])
             t = by_name[track]
             band = bands[t["band"]][1]
@@ -196,10 +199,15 @@ def main_upper_rows() -> list[dict]:
             half = int(r["protects"][-1])
             label = ends[0] if t["loop"] else ends[half - 1]       # half 1 is at the lower-numbered switch
             west = int(re.sub(r"\D", "", name)) % 2 == 1
-            cm = t["cm"] / 2 - (STAGGER_CM if t["loop"] and west else 0.0)
             other = [e for e in ends if e != label] or [label]
+            node, cm = node_of[label], t["cm"] / 2
+            if t["loop"] and west:
+                node = next(n for sid in t["strands"] for n in (band["strands"][sid]["src"][0],
+                                                                 band["strands"][sid]["dst"][0])
+                            if band["nodes"][n]["kind"].startswith("turn"))
+                label, cm = "", TURNBACK_CM
             rows.append(dict(mast=name, toward=label, run=[label, other[0]], edge=plan(t["strands"][0], band),
-                             node=node_of[label], edge_cm=t["cm"], cm_from_toward=round(cm, 1),
+                             node=node, edge_cm=t["cm"], cm_from_toward=round(cm, 1),
                              dir="west" if west else "east", heads=heads))
     return [dict(mast=x["mast"], toward=x["toward"], run=x["run"], names=[], edge_cm=x["edge_cm"],
                  cm_from_toward=x["cm_from_toward"], dir=x["dir"], kind="planned", heads=x["heads"],
@@ -216,8 +224,10 @@ def generate(plugin, graph, name) -> str:
         lab = lambda n: (nodes[n].get("label") or "").rstrip("*") if nodes[n]["kind"] != "end" else ""   # noqa: E731
         for r in rows:          # toward and run as the plan graph labels them (crossover halves 119A, a helix end "")
             e = edges.get(r["_edge"])
-            if e is None:
-                continue        # check_runs names it
+            if e is None or r["_toward_node"].startswith("turn:"):
+                if e is not None:
+                    r["names"] = e["names"]
+                continue        # check_runs names an unknown edge; a turnback is no plan node
             far = e["v"] if r["_toward_node"] == e["u"] else e["u"]
             r["names"], r["toward"], r["run"] = e["names"], lab(r["_toward_node"]), [lab(r["_toward_node"]), lab(far)]
         bad = check_runs(plugin, graph, name, rows)

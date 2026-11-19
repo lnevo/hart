@@ -21,20 +21,20 @@
   },
   {
    "mast": "A85",
-   "toward": "107",
+   "toward": "",
    "run": [
-    "107",
+    "",
     "107"
    ],
    "names": [],
    "edge_cm": 777.0,
-   "cm_from_toward": 358.5,
+   "cm_from_toward": 1.0,
    "dir": "west",
    "kind": "planned",
    "heads": 1,
    "source": "main_upper_masts.csv",
    "_edge": "e33",
-   "_toward_node": "TOL29248"
+   "_toward_node": "turn:e33"
   },
   {
    "mast": "108LA",
