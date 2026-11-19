@@ -1520,7 +1520,7 @@
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
-    <memory value="10:33 AM">
+    <memory value="10:50 AM">
       <systemName>IMCURRENTTIME</systemName>
       <userName>Current time</userName>
       <comment>JMRI fast-clock time</comment>
@@ -1808,44 +1808,64 @@
       <comment>CP 125 | Switch 125 | virtual (device map); planned IH4234</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:128R_Bottom</systemName>
-      <userName>Head 128R Bottom</userName>
+      <systemName>IH:HART:C3:128RA_Bottom</systemName>
+      <userName>Head 128RA Bottom</userName>
       <comment>CP 125 | Switch 127 | virtual (device map); planned IH5233</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:128R_Top</systemName>
-      <userName>Head 128R Top</userName>
+      <systemName>IH:HART:C3:128RA_Top</systemName>
+      <userName>Head 128RA Top</userName>
       <comment>CP 125 | Switch 127 | virtual (device map); planned IH5232</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:130L_Bottom</systemName>
-      <userName>Head 130L Bottom</userName>
-      <comment>CP 125 | Switch 129 | virtual (device map); planned IH5235</comment>
+      <systemName>IH:HART:C3:128RB_Bottom</systemName>
+      <userName>Head 128RB Bottom</userName>
+      <comment>CP 125 | Switch 127 | virtual (device map); planned IH5235</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:130L_Top</systemName>
-      <userName>Head 130L Top</userName>
-      <comment>CP 125 | Switch 129 | virtual (device map); planned IH5234</comment>
+      <systemName>IH:HART:C3:128RB_Top</systemName>
+      <userName>Head 128RB Top</userName>
+      <comment>CP 125 | Switch 127 | virtual (device map); planned IH5234</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:130LA_Bottom</systemName>
+      <userName>Head 130LA Bottom</userName>
+      <comment>CP 129 | Switch 129 | virtual (device map); planned IH5237</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:130LA_Top</systemName>
+      <userName>Head 130LA Top</userName>
+      <comment>CP 129 | Switch 129 | virtual (device map); planned IH5236</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:130LB_Bottom</systemName>
+      <userName>Head 130LB Bottom</userName>
+      <comment>CP 129 | Switch 129 | virtual (device map); planned IH5239</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:130LB_Top</systemName>
+      <userName>Head 130LB Top</userName>
+      <comment>CP 129 | Switch 129 | virtual (device map); planned IH5238</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:136RA_Bottom</systemName>
       <userName>Head 136RA Bottom</userName>
-      <comment>CP 125 | Switch 135 | virtual (device map); planned IH5237</comment>
+      <comment>CP 129 | Switch 135 | virtual (device map); planned ?</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:136RA_Top</systemName>
       <userName>Head 136RA Top</userName>
-      <comment>CP 125 | Switch 135 | virtual (device map); planned IH5236</comment>
+      <comment>CP 129 | Switch 135 | virtual (device map); planned ?</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:136RB_Bottom</systemName>
       <userName>Head 136RB Bottom</userName>
-      <comment>CP 125 | Switch 135 | virtual (device map); planned IH5239</comment>
+      <comment>CP 129 | Switch 135 | virtual (device map); planned ?</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:136RB_Top</systemName>
       <userName>Head 136RB Top</userName>
-      <comment>CP 125 | Switch 135 | virtual (device map); planned IH5238</comment>
+      <comment>CP 129 | Switch 135 | virtual (device map); planned ?</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:202R_Bottom</systemName>
@@ -2058,11 +2078,6 @@
       <comment>Switch 239 | virtual (device map); planned ?</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:A75</systemName>
-      <userName>Head A75</userName>
-      <comment>CP 125 | intermediate | virtual (device map); planned ?</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:A86</systemName>
       <userName>Head A86</userName>
       <comment>CP 107 | intermediate | virtual (device map); planned ?</comment>
@@ -2071,11 +2086,6 @@
       <systemName>IH:HART:C3:A87</systemName>
       <userName>Head A87</userName>
       <comment>CP 107 | intermediate | virtual (device map); planned ?</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:B75</systemName>
-      <userName>Head B75</userName>
-      <comment>CP 125 | intermediate | virtual (device map); planned ?</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:B88</systemName>
@@ -2240,18 +2250,6 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A75)</systemName>
-      <userName>Mast A75</userName>
-      <comment>CP 125 | intermediate | virtual (device map); planned </comment>
-      <properties>
-        <property>
-          <key>intermediateSignal</key>
-          <value class="java.lang.Boolean">true</value>
-        </property>
-      </properties>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A86)</systemName>
       <userName>Mast A86</userName>
       <comment>CP 107 | intermediate | virtual (device map); planned </comment>
@@ -2267,18 +2265,6 @@
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A87)</systemName>
       <userName>Mast A87</userName>
       <comment>CP 107 | intermediate | virtual (device map); planned </comment>
-      <properties>
-        <property>
-          <key>intermediateSignal</key>
-          <value class="java.lang.Boolean">true</value>
-        </property>
-      </properties>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B75)</systemName>
-      <userName>Mast B75</userName>
-      <comment>CP 125 | intermediate | virtual (device map); planned </comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2330,8 +2316,8 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:128R_Top)(IH:HART:C3:128R_Bottom)</systemName>
-      <userName>Mast 128R</userName>
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:128RA_Top)(IH:HART:C3:128RA_Bottom)</systemName>
+      <userName>Mast 128RA</userName>
       <comment>CP 125 | Switch 127 | virtual (device map); planned IF$shsm:basic:two-low(IH5232)(IH5233)</comment>
       <unlit allowed="no" />
     </signalmast>
@@ -2456,21 +2442,33 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:130L_Top)(IH:HART:C3:130L_Bottom)</systemName>
-      <userName>Mast 130L</userName>
-      <comment>CP 125 | Switch 129 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5234)(IH5235)</comment>
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:128RB_Top)(IH:HART:C3:128RB_Bottom)</systemName>
+      <userName>Mast 128RB</userName>
+      <comment>CP 125 | Switch 127 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5234)(IH5235)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:130LA_Top)(IH:HART:C3:130LA_Bottom)</systemName>
+      <userName>Mast 130LA</userName>
+      <comment>CP 129 | Switch 129 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5236)(IH5237)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:130LB_Top)(IH:HART:C3:130LB_Bottom)</systemName>
+      <userName>Mast 130LB</userName>
+      <comment>CP 129 | Switch 129 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5238)(IH5239)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:136RA_Top)(IH:HART:C3:136RA_Bottom)</systemName>
       <userName>Mast 136RA</userName>
-      <comment>CP 125 | Switch 135 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5236)(IH5237)</comment>
+      <comment>CP 129 | Switch 135 | virtual (device map); planned </comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:136RB_Top)(IH:HART:C3:136RB_Bottom)</systemName>
       <userName>Mast 136RB</userName>
-      <comment>CP 125 | Switch 135 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5238)(IH5239)</comment>
+      <comment>CP 129 | Switch 135 | virtual (device map); planned </comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -7174,8 +7172,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 222LB">
       <sourceSignalMast>Mast 222LB</sourceSignalMast>
-      <destinationMast destination="Mast 130L">
-        <destinationSignalMast>Mast 130L</destinationSignalMast>
+      <destinationMast destination="Mast 130LB">
+        <destinationSignalMast>Mast 130LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7221,19 +7219,6 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast A75">
-      <sourceSignalMast>Mast A75</sourceSignalMast>
-      <destinationMast destination="Mast 40LB">
-        <destinationSignalMast>Mast 40LB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
     <signalmastlogic source="Mast A86">
       <sourceSignalMast>Mast A86</sourceSignalMast>
       <destinationMast destination="Mast 108LB">
@@ -7251,19 +7236,6 @@
       <sourceSignalMast>Mast A87</sourceSignalMast>
       <destinationMast destination="Mast 108LA">
         <destinationSignalMast>Mast 108LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast B75">
-      <sourceSignalMast>Mast B75</sourceSignalMast>
-      <destinationMast destination="Mast 38LA">
-        <destinationSignalMast>Mast 38LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7391,8 +7363,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 128R">
-      <sourceSignalMast>Mast 128R</sourceSignalMast>
+    <signalmastlogic source="Mast 128RA">
+      <sourceSignalMast>Mast 128RA</sourceSignalMast>
       <destinationMast destination="Mast 120RA">
         <destinationSignalMast>Mast 120RA</destinationSignalMast>
         <comment />
@@ -7416,8 +7388,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 202R">
       <sourceSignalMast>Mast 202R</sourceSignalMast>
-      <destinationMast destination="Mast 130L">
-        <destinationSignalMast>Mast 130L</destinationSignalMast>
+      <destinationMast destination="Mast 130LB">
+        <destinationSignalMast>Mast 130LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7439,8 +7411,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 204RA">
       <sourceSignalMast>Mast 204RA</sourceSignalMast>
-      <destinationMast destination="Mast 130L">
-        <destinationSignalMast>Mast 130L</destinationSignalMast>
+      <destinationMast destination="Mast 130LB">
+        <destinationSignalMast>Mast 130LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7910,18 +7882,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 126LA">
       <sourceSignalMast>Mast 126LA</sourceSignalMast>
-      <destinationMast destination="Mast A75">
-        <destinationSignalMast>Mast A75</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast B75">
-        <destinationSignalMast>Mast B75</destinationSignalMast>
+      <destinationMast destination="Mast 130LA">
+        <destinationSignalMast>Mast 130LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7933,18 +7895,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 126LB">
       <sourceSignalMast>Mast 126LB</sourceSignalMast>
-      <destinationMast destination="Mast A75">
-        <destinationSignalMast>Mast A75</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast B75">
-        <destinationSignalMast>Mast B75</destinationSignalMast>
+      <destinationMast destination="Mast 130LA">
+        <destinationSignalMast>Mast 130LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7954,31 +7906,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 130L">
-      <sourceSignalMast>Mast 130L</sourceSignalMast>
-      <destinationMast destination="Mast A75">
-        <destinationSignalMast>Mast A75</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast B75">
-        <destinationSignalMast>Mast B75</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 136RA">
-      <sourceSignalMast>Mast 136RA</sourceSignalMast>
+    <signalmastlogic source="Mast 128RB">
+      <sourceSignalMast>Mast 128RB</sourceSignalMast>
       <destinationMast destination="Mast 120RA">
         <destinationSignalMast>Mast 120RA</destinationSignalMast>
         <comment />
@@ -7991,6 +7920,65 @@
       </destinationMast>
       <destinationMast destination="Mast 120RB">
         <destinationSignalMast>Mast 120RB</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+    </signalmastlogic>
+    <signalmastlogic source="Mast 130LA">
+      <sourceSignalMast>Mast 130LA</sourceSignalMast>
+      <destinationMast destination="Mast 38LA">
+        <destinationSignalMast>Mast 38LA</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+      <destinationMast destination="Mast 40LB">
+        <destinationSignalMast>Mast 40LB</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+    </signalmastlogic>
+    <signalmastlogic source="Mast 130LB">
+      <sourceSignalMast>Mast 130LB</sourceSignalMast>
+      <destinationMast destination="Mast 38LA">
+        <destinationSignalMast>Mast 38LA</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+      <destinationMast destination="Mast 40LB">
+        <destinationSignalMast>Mast 40LB</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+    </signalmastlogic>
+    <signalmastlogic source="Mast 136RA">
+      <sourceSignalMast>Mast 136RA</sourceSignalMast>
+      <destinationMast destination="Mast 128RB">
+        <destinationSignalMast>Mast 128RB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -8012,18 +8000,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 136RB">
       <sourceSignalMast>Mast 136RB</sourceSignalMast>
-      <destinationMast destination="Mast 120RA">
-        <destinationSignalMast>Mast 120RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 120RB">
-        <destinationSignalMast>Mast 120RB</destinationSignalMast>
+      <destinationMast destination="Mast 128RB">
+        <destinationSignalMast>Mast 128RB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -8045,8 +8023,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 204RB">
       <sourceSignalMast>Mast 204RB</sourceSignalMast>
-      <destinationMast destination="Mast 130L">
-        <destinationSignalMast>Mast 130L</destinationSignalMast>
+      <destinationMast destination="Mast 130LB">
+        <destinationSignalMast>Mast 130LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -8137,8 +8115,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 220R">
       <sourceSignalMast>Mast 220R</sourceSignalMast>
-      <destinationMast destination="Mast 130L">
-        <destinationSignalMast>Mast 130L</destinationSignalMast>
+      <destinationMast destination="Mast 130LB">
+        <destinationSignalMast>Mast 130LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -12032,11 +12010,11 @@
     <positionablelabel x="2" y="2" level="0" forcecontroloff="false" hidden="yes" positionable="false" showtooltip="false" editable="false" text="Generated by tools/schematic/build_layout_le.py: positions belong to the build" size="9" style="0" red="128" green="128" blue="128" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="2091" y="228" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="HELIX TO UPPER LEVEL" fontFamily="Dialog" fontname="Dialog" size="9" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="2091" y="180" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="HELIX TO MAIN LEVEL" fontFamily="Dialog" fontname="Dialog" size="9" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="2250" y="702" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="HELIX TO STAGING" fontFamily="Dialog" fontname="Dialog" size="9" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1942" y="654" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="A" fontFamily="Dialog" fontname="Dialog" size="9" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1911" y="637" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="TO UPPER LEVEL" fontFamily="Dialog" fontname="Dialog" size="8" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1847" y="654" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="B" fontFamily="Dialog" fontname="Dialog" size="9" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1816" y="637" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="TO UPPER LEVEL" fontFamily="Dialog" fontname="Dialog" size="8" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="2254" y="702" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="HELIX TO STAGING" fontFamily="Dialog" fontname="Dialog" size="9" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1937" y="654" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="A" fontFamily="Dialog" fontname="Dialog" size="9" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1906" y="637" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="TO UPPER LEVEL" fontFamily="Dialog" fontname="Dialog" size="8" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1843" y="654" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="B" fontFamily="Dialog" fontname="Dialog" size="9" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1812" y="637" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="TO UPPER LEVEL" fontFamily="Dialog" fontname="Dialog" size="8" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1693" y="1223" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="HELIX TO STAGING" fontFamily="Dialog" fontname="Dialog" size="9" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1599" y="1272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="A" fontFamily="Dialog" fontname="Dialog" size="9" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1570" y="1254" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="TO MAIN LEVEL" fontFamily="Dialog" fontname="Dialog" size="8" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -12094,54 +12072,55 @@
     <positionablelabel x="1001" y="490" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SOUTH YARD" fontFamily="Dialog" fontname="Dialog" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1367" y="490" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="EAST END" fontFamily="Dialog" fontname="Dialog" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1807" y="490" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="PRINCESS" fontFamily="Dialog" fontname="Dialog" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1130" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="117-119" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1688" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="127-129" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1168" y="759" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-119" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="540" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-105" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="674" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-107" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1677" y="670" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-129A" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1057" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-117" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="899" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-113" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1741" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-131" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1499" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-121" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1574" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-125" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="251" y="862" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-101" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1994" y="718" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-135A" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="745" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-109" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="815" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-111" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1078" y="766" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-115" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1508" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-123" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1812" y="777" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-133" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1616" y="655" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-127" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="258" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-103" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="876" y="868" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="CP 107" fontFamily="Dialog" fontname="Dialog" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1797" y="868" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="CP 125" fontFamily="Dialog" fontname="Dialog" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1413" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="121 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1571" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="121-131" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="959" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113-115" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="835" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113 Spur 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="828" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113 Spur 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="987" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="115 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1392" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="119-125" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="753" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="109-111" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="639" y="769" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="105-109" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="393" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="103-105 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="428" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="103-105 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="944" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="111-117" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="561" y="835" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="101-111" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="132" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="101 Spur 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1618" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="125-127" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1825" y="757" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="131-133" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="212" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="103 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="205" y="835" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="101 Spur 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="476" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="107 Loop 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="487" y="643" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="107 Loop 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1125" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="117-119" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1164" y="759" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-119" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="536" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-105" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="669" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-107" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1681" y="670" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-129A" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1053" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-117" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="895" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-113" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1737" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-131" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1495" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-121" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1570" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-125" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="247" y="862" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-101" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1990" y="718" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-135A" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="740" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-109" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="811" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-111" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1074" y="766" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-115" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1503" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-123" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1807" y="777" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-133" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1611" y="655" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-127" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="254" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-103" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="871" y="868" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="CP 107" fontFamily="Dialog" fontname="Dialog" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1615" y="868" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="CP 125" fontFamily="Dialog" fontname="Dialog" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1812" y="868" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="CP 129" fontFamily="Dialog" fontname="Dialog" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1409" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="121 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1567" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="121-131" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="955" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113-115" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="831" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113 Spur 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="823" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113 Spur 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="982" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="115 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1388" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="119-125" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="780" y="661" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="109-111" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="634" y="769" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="105-109" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="389" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="103-105 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="424" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="103-105 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="940" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="111-117" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="557" y="835" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="101-111" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="127" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="101 Spur 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1613" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="125-127" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1805" y="757" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="131-133" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1671" y="652" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="127-129" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="208" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="103 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="200" y="835" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="101 Spur 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="472" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="107 Loop 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="483" y="643" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="107 Loop 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="2099" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="McKees Rocks" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1861" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="129-135 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1880" y="765" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="133 Spur 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1888" y="835" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="133 Spur 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1398" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="119-123" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1148" y="782" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="119 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1876" y="765" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="133 Spur 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1884" y="835" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="133 Spur 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1393" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="119-123" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1143" y="782" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="119 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1870" y="1237" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="237-243" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1096" y="1164" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="219-221" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="978" y="1185" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="217-219" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -12270,58 +12249,58 @@
     <BlockContentsIcon blockcontents="Track W-1" x="255" y="190" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track W-2" x="277" y="238" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track West Ext" x="1556" y="190" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 107-109" x="681" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 115-117" x="1051" y="717" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 121-123" x="1553" y="780" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 123-125" x="1616" y="736" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 127-129" x="1721" y="716" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 101" x="280" y="827" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 103" x="316" y="766" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 105" x="569" y="779" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 107" x="642" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 109" x="713" y="657" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 111" x="825" y="713" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 113" x="928" y="766" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 115" x="1004" y="736" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 117" x="1083" y="657" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 119" x="1242" y="711" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 121" x="1464" y="779" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 123" x="1602" y="774" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 125" x="1539" y="657" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 127" x="1642" y="754" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 129" x="1766" y="718" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 131" x="1754" y="753" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 133" x="1869" y="818" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 135" x="2028" y="672" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 101 Spur 1" x="157" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 101 Spur 2" x="171" y="856" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 101-103" x="190" y="781" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 101-111" x="550" y="856" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 103 Spur" x="208" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 103-105 1" x="422" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 103-105 2" x="387" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 105-109" x="632" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 107 Loop 1" x="490" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 107 Loop 2" x="501" y="664" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 109-111" x="784" y="659" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 111-117" x="933" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 113 Spur 1" x="824" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 113 Spur 2" x="845" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 113-115" x="994" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 115 Spur" x="995" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 117-119" x="1130" y="674" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 119 Spur" x="1120" y="737" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 119-123" x="1387" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 119-125" x="1381" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 121 Spur" x="1425" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 121-131" x="1617" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 127-131" x="1668" y="775" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 107-109" x="677" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 109-111" x="748" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 115-117" x="1046" y="717" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 121-123" x="1548" y="780" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 123-125" x="1612" y="736" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 127-129" x="1733" y="727" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 101" x="276" y="827" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 103" x="312" y="766" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 105" x="565" y="779" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 107" x="637" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 109" x="708" y="657" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 111" x="821" y="713" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 113" x="924" y="766" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 115" x="1000" y="736" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 117" x="1079" y="657" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 119" x="1237" y="711" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 121" x="1460" y="779" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 123" x="1597" y="774" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 125" x="1535" y="657" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 127" x="1637" y="754" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 129" x="1777" y="679" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 131" x="1734" y="753" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 133" x="1864" y="818" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 135" x="2024" y="672" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 101 Spur 1" x="152" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 101 Spur 2" x="167" y="856" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 101-103" x="186" y="781" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 101-111" x="546" y="856" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 103 Spur" x="204" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 103-105 1" x="417" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 103-105 2" x="382" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 105-109" x="627" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 107 Loop 1" x="485" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 107 Loop 2" x="497" y="664" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 111-117" x="929" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 113 Spur 1" x="820" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 113 Spur 2" x="840" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 113-115" x="990" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 115 Spur" x="990" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 117-119" x="1125" y="674" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 119 Spur" x="1135" y="737" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 119-123" x="1382" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 119-125" x="1377" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 121 Spur" x="1420" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 121-131" x="1613" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 127-131" x="1663" y="775" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 129-135 1" x="1855" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 131-133" x="1746" y="838" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 133 Spur 1" x="1880" y="785" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 133 Spur 2" x="1860" y="856" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 131-133" x="1741" y="838" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 133 Spur 1" x="1876" y="785" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 133 Spur 2" x="1856" y="856" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 135-H1" x="2102" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 125-127" x="1635" y="685" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 125-127" x="1630" y="685" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 233" x="1789" y="1156" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 229" x="1749" y="1113" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 231-235" x="1848" y="1141" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -12443,22 +12422,22 @@
     <signalmasticon signalmast="Mast 8LC" x="580" y="410" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 8RA" x="555" y="430" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 8RB" x="509" y="478" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast A75" x="2074" y="185" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="343" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast B75" x="2056" y="239" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="22" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 108LA" x="618" y="712" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 108LB" x="627" y="666" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="142" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 110L" x="727" y="723" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="38" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 112L" x="798" y="723" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="38" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 118L" x="1098" y="723" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="38" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 120RA" x="1240" y="692" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 120RB" x="1288" y="740" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 126LA" x="1545" y="712" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 126LB" x="1575" y="726" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="38" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 128R" x="1691" y="711" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="315" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 136RA" x="2044" y="692" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast A86" x="325" y="688" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast A87" x="305" y="640" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 130L" x="1417" y="1233" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 108LA" x="613" y="712" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 108LB" x="622" y="666" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="142" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 110L" x="723" y="723" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="38" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 112L" x="794" y="723" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="38" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 118L" x="1094" y="723" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="38" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 120RA" x="1235" y="692" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 120RB" x="1283" y="740" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 126LA" x="1541" y="712" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 126LB" x="1571" y="726" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="38" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 128RA" x="1701" y="725" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="315" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 128RB" x="1685" y="692" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 130LA" x="1693" y="712" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 136RA" x="2040" y="692" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast A86" x="321" y="688" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" clickmode="0" litmode="false" degrees="0" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast A87" x="301" y="640" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 130LB" x="1417" y="1233" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 136RB" x="1530" y="1213" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 202R" x="217" y="1193" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="219" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 204RA" x="295" y="1193" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="219" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
@@ -12643,45 +12622,48 @@
       <signalBMast>Mast 38LA</signalBMast>
       <signalCMast>Mast 38LB</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOG21" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1211.699951171875" ycen="732.0" xa="1139.699951171875" ya="708.0" xb="1235.699927171875" yb="708.0" xc="1283.699951171875" yc="756.0" xd="1187.699975171875" yd="756.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 119" blockname="OS Switch 119" connectaname="TG92" connectbname="TG93" connectcname="TG134" connectdname="TG135">
+    <layoutturnout ident="TOG21" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1207.199951171875" ycen="732.0" xa="1135.199951171875" ya="708.0" xb="1231.199927171875" yb="708.0" xc="1279.199951171875" yc="756.0" xd="1183.199975171875" yd="756.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 119" blockname="OS Switch 119" connectaname="TG92" connectbname="TG93" connectcname="TG134" connectdname="TG135">
       <signalBMast>Mast 120RA</signalBMast>
       <signalCMast>Mast 120RB</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOG22" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="569.2000122070312" ycen="804.0" xa="581.2000122070312" ya="804.0" xb="557.2000122070312" yb="804.0" xc="561.7999877929688" yc="794.5" xd="581.2000122070312" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 105" blockname="OS Switch 105" connectaname="TG97" connectbname="TG100" connectcname="TG103" />
-    <layoutturnout ident="TOG23" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="673.9000244140625" ycen="708.0" xa="685.9000244140625" ya="708.0" xb="661.9000244140625" yb="708.0" xc="666.5" yc="698.5" xd="685.9000244140625" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 107" blockname="OS Switch 107" connectaname="TG95" connectbname="TG117" connectcname="TG120">
+    <layoutturnout ident="TOG22" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="564.7999877929688" ycen="804.0" xa="576.7999877929688" ya="804.0" xb="552.7999877929688" yb="804.0" xc="557.4000244140625" yc="794.5" xd="576.7999877929688" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 105" blockname="OS Switch 105" connectaname="TG97" connectbname="TG100" connectcname="TG103" />
+    <layoutturnout ident="TOG23" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="669.4000244140625" ycen="708.0" xa="681.4000244140625" ya="708.0" xb="657.4000244140625" yb="708.0" xc="662.0" yc="698.5" xd="681.4000244140625" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 107" blockname="OS Switch 107" connectaname="TG95" connectbname="TG117" connectcname="TG120">
       <signalBMast>Mast 108LA</signalBMast>
       <signalCMast>Mast 108LB</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOG24" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1744.699951171875" ycen="708.0" xa="1732.699951171875" ya="708.0" xb="1756.699951171875" yb="708.0" xc="1752.0999755859375" yc="698.5" xd="1732.699951171875" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 129" blockname="OS Switch 129" connectaname="TG114" connectbname="TG122" connectcname="TG126" />
-    <layoutturnout ident="TOG25" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1115.5" ycen="708.0" xa="1127.5" ya="708.0" xb="1103.5" yb="708.0" xc="1108.0999755859375" yc="717.5" xd="1127.5" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 117" blockname="OS Switch 117" connectaname="TG92" connectbname="TG104" connectcname="TG88">
+    <layoutturnout ident="TOG24" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1749.0999755859375" ycen="708.0" xa="1737.0999755859375" ya="708.0" xb="1761.0999755859375" yb="708.0" xc="1756.5" yc="698.5" xd="1737.0999755859375" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 129" blockname="OS Switch 129" connectaname="TG114" connectbname="TG122" connectcname="TG126">
+      <signalAMast>Mast 130LA</signalAMast>
+    </layoutturnout>
+    <layoutturnout ident="TOG25" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1111.0" ycen="708.0" xa="1123.0" ya="708.0" xb="1099.0" yb="708.0" xc="1103.699951171875" yc="717.5" xd="1123.0" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 117" blockname="OS Switch 117" connectaname="TG92" connectbname="TG104" connectcname="TG88">
       <signalCMast>Mast 118L</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOG26" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="927.9000244140625" ycen="756.0" xa="939.9000244140625" ya="756.0" xb="915.9000244140625" yb="756.0" xc="920.5" yc="765.5" xd="939.9000244140625" yd="756.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 113" blockname="OS Switch 113" connectaname="TG83" connectbname="TG84" connectcname="TG87" />
-    <layoutturnout ident="TOG27" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="1770.0999755859375" ycen="804.0" xa="1782.0999755859375" ya="804.0" xb="1758.0999755859375" yb="804.0" xc="1761.5999755859375" yc="795.5" xd="1782.0999755859375" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 131" blockname="OS Switch 131" connectaname="TG113" connectbname="TG81" connectcname="TG82" />
-    <layoutturnout ident="TOG28" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1528.0999755859375" ycen="804.0" xa="1516.0999755859375" ya="804.0" xb="1540.0999755859375" yb="804.0" xc="1535.5" yc="794.5" xd="1516.0999755859375" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 121" blockname="OS Switch 121" connectaname="TG80" connectbname="TG81" connectcname="TG96" />
-    <layoutturnout ident="TOG29" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1603.0999755859375" ycen="708.0" xa="1615.0999755859375" ya="708.0" xb="1591.0999755859375" yb="708.0" xc="1595.699951171875" yc="717.5" xd="1615.0999755859375" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 125" blockname="OS Switch 125" connectaname="TG112" connectbname="TG93" connectcname="TG133">
+    <layoutturnout ident="TOG26" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="923.5" ycen="756.0" xa="935.5" ya="756.0" xb="911.5" yb="756.0" xc="916.0999755859375" yc="765.5" xd="935.5" yd="756.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 113" blockname="OS Switch 113" connectaname="TG83" connectbname="TG84" connectcname="TG87" />
+    <layoutturnout ident="TOG27" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="4" xcen="1765.699951171875" ycen="804.0" xa="1777.699951171875" ya="804.0" xb="1753.699951171875" yb="804.0" xc="1757.199951171875" yc="795.5" xd="1777.699951171875" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 131" blockname="OS Switch 131" connectaname="TG113" connectbname="TG81" connectcname="TG82" />
+    <layoutturnout ident="TOG28" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1523.699951171875" ycen="804.0" xa="1511.699951171875" ya="804.0" xb="1535.699951171875" yb="804.0" xc="1531.0999755859375" yc="794.5" xd="1511.699951171875" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 121" blockname="OS Switch 121" connectaname="TG80" connectbname="TG81" connectcname="TG96" />
+    <layoutturnout ident="TOG29" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1598.699951171875" ycen="708.0" xa="1610.699951171875" ya="708.0" xb="1586.699951171875" yb="708.0" xc="1591.300048828125" yc="717.5" xd="1610.699951171875" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 125" blockname="OS Switch 125" connectaname="TG112" connectbname="TG93" connectcname="TG133">
       <signalBMast>Mast 126LA</signalBMast>
       <signalCMast>Mast 126LB</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOG30" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="280.3999938964844" ycen="852.0" xa="292.3999938964844" ya="852.0" xb="268.3999938964844" yb="852.0" xc="271.8999938964844" yc="843.5" xd="292.3999938964844" yd="852.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 101" blockname="OS Switch 101" connectaname="TG105" connectbname="TG116" connectcname="TG109" />
-    <layoutturnout ident="TOG31" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="2028.4000244140625" ycen="708.0" xa="2040.4000244140625" ya="708.0" xb="2016.4000244140625" yb="708.0" xc="2021.0" yc="698.5" xd="2040.4000244140625" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 135" blockname="OS Switch 135" connectaname="TG121" connectbname="TG122" connectcname="TG125">
+    <layoutturnout ident="TOG30" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="276.0" ycen="852.0" xa="288.0" ya="852.0" xb="264.0" yb="852.0" xc="267.5" yc="843.5" xd="288.0" yd="852.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 101" blockname="OS Switch 101" connectaname="TG105" connectbname="TG116" connectcname="TG109" />
+    <layoutturnout ident="TOG31" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="2024.0" ycen="708.0" xa="2036.0" ya="708.0" xb="2012.0" yb="708.0" xc="2016.5999755859375" yc="698.5" xd="2036.0" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 135" blockname="OS Switch 135" connectaname="TG121" connectbname="TG122" connectcname="TG125">
       <signalAMast>Mast 136RA</signalAMast>
     </layoutturnout>
-    <layoutturnout ident="TOG32" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="744.5999755859375" ycen="708.0" xa="756.5999755859375" ya="708.0" xb="732.5999755859375" yb="708.0" xc="737.2000122070312" yc="717.5" xd="756.5999755859375" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 109" blockname="OS Switch 109" connectaname="TG94" connectbname="TG95" connectcname="TG99">
+    <layoutturnout ident="TOG32" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="740.2000122070312" ycen="708.0" xa="752.2000122070312" ya="708.0" xb="728.2000122070312" yb="708.0" xc="732.7999877929688" yc="717.5" xd="752.2000122070312" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 109" blockname="OS Switch 109" connectaname="TG94" connectbname="TG95" connectcname="TG99">
       <signalCMast>Mast 110L</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOG33" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="815.4000244140625" ycen="708.0" xa="827.4000244140625" ya="708.0" xb="803.4000244140625" yb="708.0" xc="808.0" yc="717.5" xd="827.4000244140625" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 111" blockname="OS Switch 111" connectaname="TG104" connectbname="TG94" connectcname="TG107">
+    <layoutturnout ident="TOG33" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="811.0" ycen="708.0" xa="823.0" ya="708.0" xb="799.0" yb="708.0" xc="803.5999755859375" yc="717.5" xd="823.0" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 111" blockname="OS Switch 111" connectaname="TG104" connectbname="TG94" connectcname="TG107">
       <signalCMast>Mast 112L</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOG34" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1078.0" ycen="756.0" xa="1085.4000244140625" ya="746.5" xb="1070.5999755859375" yb="765.5" xc="1066.0" yc="756.0" xd="1085.4000244140625" yd="746.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 115" blockname="OS Switch 115" connectaname="TG88" connectbname="TG91" connectcname="TG83" />
-    <layoutturnout ident="TOG35" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1565.5999755859375" ycen="756.0" xa="1573.0" ya="746.5" xb="1558.199951171875" yb="765.5" xc="1553.5999755859375" yc="756.0" xd="1573.0" yd="746.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 123" blockname="OS Switch 123" connectaname="TG133" connectbname="TG96" connectcname="TG134" />
-    <layoutturnout ident="TOG36" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1840.9000244140625" ycen="804.0" xa="1828.9000244140625" ya="804.0" xb="1852.9000244140625" yb="804.0" xc="1848.300048828125" yc="813.5" xd="1828.9000244140625" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 133" blockname="OS Switch 133" connectaname="TG113" connectbname="TG129" connectcname="TG130" />
-    <layoutturnout ident="TOG37" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1673.9000244140625" ycen="708.0" xa="1661.9000244140625" ya="708.0" xb="1685.9000244140625" yb="708.0" xc="1682.4000244140625" yc="716.5" xd="1661.9000244140625" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 127" blockname="OS Switch 127" connectaname="TG112" connectbname="TG114" connectcname="TG82">
-      <signalCMast>Mast 128R</signalCMast>
+    <layoutturnout ident="TOG34" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1073.5" ycen="756.0" xa="1080.800048828125" ya="746.5" xb="1066.199951171875" yb="765.5" xc="1061.5" yc="756.0" xd="1080.800048828125" yd="746.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 115" blockname="OS Switch 115" connectaname="TG88" connectbname="TG91" connectcname="TG83" />
+    <layoutturnout ident="TOG35" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1561.199951171875" ycen="756.0" xa="1568.599853515625" ya="746.5" xb="1553.800048828125" yb="765.5" xc="1549.199951171875" yc="756.0" xd="1568.599853515625" yd="746.5" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 123" blockname="OS Switch 123" connectaname="TG133" connectbname="TG96" connectcname="TG134" />
+    <layoutturnout ident="TOG36" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1836.4000244140625" ycen="804.0" xa="1824.4000244140625" ya="804.0" xb="1848.4000244140625" yb="804.0" xc="1843.800048828125" yc="813.5" xd="1824.4000244140625" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 133" blockname="OS Switch 133" connectaname="TG113" connectbname="TG129" connectcname="TG130" />
+    <layoutturnout ident="TOG37" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1669.5" ycen="708.0" xa="1657.5" ya="708.0" xb="1681.5" yb="708.0" xc="1678.0" yc="716.5" xd="1657.5" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 127" blockname="OS Switch 127" connectaname="TG112" connectbname="TG114" connectcname="TG82">
+      <signalBMast>Mast 128RB</signalBMast>
+      <signalCMast>Mast 128RA</signalCMast>
     </layoutturnout>
-    <layoutturnout ident="TOG38" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="316.3999938964844" ycen="756.0" xa="328.3999938964844" ya="756.0" xb="304.3999938964844" yb="756.0" xc="307.8999938964844" yc="764.5" xd="328.3999938964844" yd="756.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 103" blockname="OS Switch 103" connectaname="TG101" connectbname="TG115" connectcname="TG110" />
-    <layoutturnout ident="TOG39" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="232.39999389648438" ycen="804.0" xa="220.39999389648438" ya="804.0" xb="244.39999389648438" yb="804.0" xc="240.89999389648438" yc="812.5" xd="220.39999389648438" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 101" blockname="OS Switch 101" connectaname="TG108" connectbname="TG111" connectcname="TG109" />
-    <layoutturnout ident="TOG40" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="268.3999938964844" ycen="804.0" xa="256.3999938964844" ya="804.0" xb="280.3999938964844" yb="804.0" xc="276.8999938964844" yc="795.5" xd="256.3999938964844" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 103" blockname="OS Switch 103" connectaname="TG111" connectbname="TG100" connectcname="TG110" />
+    <layoutturnout ident="TOG38" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="312.0" ycen="756.0" xa="324.0" ya="756.0" xb="300.0" yb="756.0" xc="303.5" yc="764.5" xd="324.0" yd="756.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 103" blockname="OS Switch 103" connectaname="TG101" connectbname="TG115" connectcname="TG110" />
+    <layoutturnout ident="TOG39" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="228.0" ycen="804.0" xa="216.0" ya="804.0" xb="240.0" yb="804.0" xc="236.5" yc="812.5" xd="216.0" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 101" blockname="OS Switch 101" connectaname="TG108" connectbname="TG111" connectcname="TG109" />
+    <layoutturnout ident="TOG40" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="264.0" ycen="804.0" xa="252.0" ya="804.0" xb="276.0" yb="804.0" xc="272.5" yc="795.5" xd="252.0" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 103" blockname="OS Switch 103" connectaname="TG111" connectbname="TG100" connectcname="TG110" />
     <layoutturnout ident="TOG41" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="2001.9000244140625" ycen="1061.0" xa="1978.4000244140625" ya="1037.0" xb="2072.4000244140625" yb="1037.0" xc="2025.4000244140625" yc="1085.0" xd="1931.4000244140625" yd="1085.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 241" blockname="OS Switch 241" connectaname="TG147" connectbname="TG149" connectcname="TG169" connectdname="TG163" />
     <layoutturnout ident="TOG42" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="2103.39990234375" ycen="1205.0" xa="2079.39990234375" ya="1181.0" xb="2175.39990234375" yb="1181.0" xc="2127.39990234375" yc="1229.0" xd="2031.39990234375" yd="1229.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 245" blockname="OS Switch 245" connectaname="TG156" connectbname="TG165" connectcname="TG158" connectdname="TG157" />
     <layoutturnout ident="TOG43" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1178.4000244140625" ycen="1205.0" xa="1106.4000244140625" ya="1181.0" xb="1202.4000004140626" yb="1181.0" xc="1250.4000244140625" yc="1229.0" xd="1154.4000484140624" yd="1229.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 221" blockname="OS Switch 221" connectaname="TG200" connectbname="TG204" connectcname="TG206" connectdname="TG207">
@@ -12708,7 +12690,7 @@
       <signalBMast>Mast 220R</signalBMast>
     </layoutturnout>
     <layoutturnout ident="TOG48" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1474.800048828125" ycen="1229.0" xa="1486.800048828125" ya="1229.0" xb="1462.800048828125" yb="1229.0" xc="1467.199951171875" yc="1238.300048828125" xd="1486.800048828125" yd="1229.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 129" blockname="OS Switch 129" connectaname="TG197" connectbname="TG206" connectcname="TG143">
-      <signalBMast>Mast 130L</signalBMast>
+      <signalBMast>Mast 130LB</signalBMast>
     </layoutturnout>
     <layoutturnout ident="TOG49" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="650.9000244140625" ycen="1133.0" xa="638.9000244140625" ya="1133.0" xb="662.9000244140625" yb="1133.0" xc="658.4000244140625" yc="1123.699951171875" xd="638.9000244140625" yd="1133.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 211" blockname="OS Switch 211" connectaname="TG176" connectbname="TG211" connectcname="TG223" />
     <layoutturnout ident="TOG50" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="493.8999938964844" ycen="1085.0" xa="481.8999938964844" ya="1085.0" xb="505.8999938964844" yb="1085.0" xc="501.5" yc="1075.699951171875" xd="481.8999938964844" yd="1085.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 207" blockname="OS Switch 207" connectaname="TG218" connectbname="TG219" connectcname="TG220" />
@@ -12870,7 +12852,7 @@
     <tracksegment ident="TG121" blockname="Track 135-H1" connect1name="TOG31" type1="TURNOUT_A" connect2name="AGE18" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG122" blockname="Track 129-135 1" connect1name="TOG24" type1="TURNOUT_B" connect2name="TOG31" type2="TURNOUT_B" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG123" blockname="OS Switch 135" connect1name="AGE19" type1="POS_POINT" connect2name="AG59" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG124" blockname="OS Switch 135" connect1name="AG59" type1="POS_POINT" connect2name="AG60" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="no" circle="yes" angle="51.996" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG124" blockname="OS Switch 135" connect1name="AG59" type1="POS_POINT" connect2name="AG60" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="no" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG125" blockname="OS Switch 135" connect1name="AG60" type1="POS_POINT" connect2name="TOG31" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG126" blockname="OS Switch 129" connect1name="TOG24" type1="TURNOUT_C" connect2name="AG61" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG127" blockname="OS Switch 129" connect1name="AG61" type1="POS_POINT" connect2name="AG62" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="no" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -12981,8 +12963,8 @@
     <tracksegment ident="TG232" blockname="Track 135-H1" connect1name="AGE2" type1="POS_POINT" connect2name="AGE18" type2="POS_POINT" dashed="no" mainline="yes" hidden="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG233" blockname="OS Switch 135" connect1name="AGE19" type1="POS_POINT" connect2name="AGE36" type2="POS_POINT" dashed="no" mainline="no" hidden="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG234" blockname="OS Switch 129" connect1name="AGE20" type1="POS_POINT" connect2name="AGE37" type2="POS_POINT" dashed="no" mainline="no" hidden="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <positionablepoint ident="AGE1" type="ANCHOR" x="2068.800048828125" y="234.0" connect1name="TG33" connect2name="TG231" eastboundsignalmast="Mast 38RA" westboundsignalmast="Mast B75" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AGE2" type="ANCHOR" x="2068.800048828125" y="186.0" connect1name="TG6" connect2name="TG232" eastboundsignalmast="Mast 40RA" westboundsignalmast="Mast A75" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AGE1" type="ANCHOR" x="2068.800048828125" y="234.0" connect1name="TG33" connect2name="TG231" eastboundsignalmast="Mast 38RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AGE2" type="ANCHOR" x="2068.800048828125" y="186.0" connect1name="TG6" connect2name="TG232" eastboundsignalmast="Mast 40RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG3" type="END_BUMPER" x="231.0" y="234.0" connect1name="TG51" westboundsignalmast="Mast 4LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG4" type="END_BUMPER" x="268.5" y="186.0" connect1name="TG50" westboundsignalmast="Mast 4LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG5" type="END_BUMPER" x="793.5999755859375" y="234.0" connect1name="TG68" westboundsignalmast="Mast 12L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -13032,40 +13014,40 @@
     <positionablepoint ident="AG42" type="ANCHOR" x="799.0" y="323.1000061035156" connect1name="TG74" connect2name="TG75" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AG43" type="ANCHOR" x="2290.800048828125" y="210.0" connect1name="TG76" connect2name="TG77" eastboundsignalmast="Mast 68" westboundsignalmast="Mast 67" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AG44" type="ANCHOR" x="60.0" y="378.0" connect1name="TG78" connect2name="TG79" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG8" type="END_BUMPER" x="1953.4000244140625" y="852.0" connect1name="TG132" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG9" type="END_BUMPER" x="1453.0999755859375" y="804.0" connect1name="TG80" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG10" type="END_BUMPER" x="1115.5" y="756.0" connect1name="TG135" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG11" type="END_BUMPER" x="1915.9000244140625" y="804.0" connect1name="TG129" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG12" type="END_BUMPER" x="965.4000244140625" y="804.0" connect1name="TG89" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG13" type="END_BUMPER" x="852.9000244140625" y="756.0" connect1name="TG84" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG14" type="END_BUMPER" x="815.4000244140625" y="804.0" connect1name="TG85" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG15" type="END_BUMPER" x="194.1999969482422" y="852.0" connect1name="TG116" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG16" type="END_BUMPER" x="231.6999969482422" y="756.0" connect1name="TG115" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG17" type="END_BUMPER" x="156.6999969482422" y="804.0" connect1name="TG108" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AGE18" type="ANCHOR" x="2228.0" y="708.0" connect1name="TG121" connect2name="TG232" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AGE19" type="ANCHOR" x="1953.4000244140625" y="660.0" connect1name="TG123" connect2name="TG233" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AGE20" type="ANCHOR" x="1840.9000244140625" y="660.0" connect1name="TG128" connect2name="TG234" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG45" type="ANCHOR" x="344.20001220703125" y="708.0" connect1name="TG117" connect2name="TG137" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG46" type="ANCHOR" x="344.20001220703125" y="660.0" connect1name="TG118" connect2name="TG136" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG47" type="ANCHOR" x="881.7000122070312" y="804.0" connect1name="TG85" connect2name="TG86" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG48" type="ANCHOR" x="895.7999877929688" y="797.0999755859375" connect1name="TG86" connect2name="TG87" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG49" type="ANCHOR" x="1031.699951171875" y="804.0" connect1name="TG89" connect2name="TG90" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG50" type="ANCHOR" x="1045.9000244140625" y="797.0999755859375" connect1name="TG90" connect2name="TG91" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG51" type="ANCHOR" x="660.7999877929688" y="804.0" connect1name="TG97" connect2name="TG98" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG52" type="ANCHOR" x="675.0" y="797.0999755859375" connect1name="TG98" connect2name="TG99" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG53" type="ANCHOR" x="522.9000244140625" y="756.0" connect1name="TG101" connect2name="TG102" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG54" type="ANCHOR" x="537.0999755859375" y="762.9000244140625" connect1name="TG102" connect2name="TG103" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG55" type="ANCHOR" x="694.0999755859375" y="852.0" connect1name="TG105" connect2name="TG106" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG56" type="ANCHOR" x="708.2999877929688" y="845.0999755859375" connect1name="TG106" connect2name="TG107" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG57" type="ANCHOR" x="627.5999755859375" y="660.0" connect1name="TG118" connect2name="TG119" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG58" type="ANCHOR" x="641.7000122070312" y="666.9000244140625" connect1name="TG119" connect2name="TG120" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG59" type="ANCHOR" x="1982.0999755859375" y="660.0" connect1name="TG123" connect2name="TG124" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG60" type="ANCHOR" x="1996.300048828125" y="666.9000244140625" connect1name="TG124" connect2name="TG125" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG61" type="ANCHOR" x="1776.800048828125" y="666.9000244140625" connect1name="TG126" connect2name="TG127" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG62" type="ANCHOR" x="1791.0" y="660.0" connect1name="TG127" connect2name="TG128" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG63" type="ANCHOR" x="1873.0" y="845.0999755859375" connect1name="TG130" connect2name="TG131" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG64" type="ANCHOR" x="1887.199951171875" y="852.0" connect1name="TG131" connect2name="TG132" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AG65" type="ANCHOR" x="320.20001220703125" y="684.0" connect1name="TG136" connect2name="TG137" eastboundsignalmast="Mast A87" westboundsignalmast="Mast A86" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG8" type="END_BUMPER" x="1949.0" y="852.0" connect1name="TG132" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG9" type="END_BUMPER" x="1448.699951171875" y="804.0" connect1name="TG80" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG10" type="END_BUMPER" x="1111.0" y="756.0" connect1name="TG135" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG11" type="END_BUMPER" x="1911.5" y="804.0" connect1name="TG129" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG12" type="END_BUMPER" x="961.0" y="804.0" connect1name="TG89" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG13" type="END_BUMPER" x="848.5" y="756.0" connect1name="TG84" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG14" type="END_BUMPER" x="811.0" y="804.0" connect1name="TG85" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG15" type="END_BUMPER" x="189.6999969482422" y="852.0" connect1name="TG116" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG16" type="END_BUMPER" x="227.1999969482422" y="756.0" connect1name="TG115" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG17" type="END_BUMPER" x="152.1999969482422" y="804.0" connect1name="TG108" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AGE18" type="ANCHOR" x="2232.5" y="708.0" connect1name="TG121" connect2name="TG232" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AGE19" type="ANCHOR" x="1949.0" y="660.0" connect1name="TG123" connect2name="TG233" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AGE20" type="ANCHOR" x="1836.4000244140625" y="660.0" connect1name="TG128" connect2name="TG234" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG45" type="ANCHOR" x="339.79998779296875" y="708.0" connect1name="TG117" connect2name="TG137" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG46" type="ANCHOR" x="339.79998779296875" y="660.0" connect1name="TG118" connect2name="TG136" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG47" type="ANCHOR" x="877.2000122070312" y="804.0" connect1name="TG85" connect2name="TG86" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG48" type="ANCHOR" x="891.4000244140625" y="797.0999755859375" connect1name="TG86" connect2name="TG87" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG49" type="ANCHOR" x="1027.300048828125" y="804.0" connect1name="TG89" connect2name="TG90" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG50" type="ANCHOR" x="1041.4000244140625" y="797.0999755859375" connect1name="TG90" connect2name="TG91" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG51" type="ANCHOR" x="656.4000244140625" y="804.0" connect1name="TG97" connect2name="TG98" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG52" type="ANCHOR" x="670.5999755859375" y="797.0999755859375" connect1name="TG98" connect2name="TG99" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG53" type="ANCHOR" x="518.5" y="756.0" connect1name="TG101" connect2name="TG102" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG54" type="ANCHOR" x="532.7000122070312" y="762.9000244140625" connect1name="TG102" connect2name="TG103" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG55" type="ANCHOR" x="689.7000122070312" y="852.0" connect1name="TG105" connect2name="TG106" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG56" type="ANCHOR" x="703.9000244140625" y="845.0999755859375" connect1name="TG106" connect2name="TG107" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG57" type="ANCHOR" x="623.0999755859375" y="660.0" connect1name="TG118" connect2name="TG119" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG58" type="ANCHOR" x="637.2999877929688" y="666.9000244140625" connect1name="TG119" connect2name="TG120" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG59" type="ANCHOR" x="1977.699951171875" y="660.0" connect1name="TG123" connect2name="TG124" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG60" type="ANCHOR" x="1991.9000244140625" y="666.9000244140625" connect1name="TG124" connect2name="TG125" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG61" type="ANCHOR" x="1781.199951171875" y="666.9000244140625" connect1name="TG126" connect2name="TG127" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG62" type="ANCHOR" x="1795.4000244140625" y="660.0" connect1name="TG127" connect2name="TG128" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG63" type="ANCHOR" x="1868.5999755859375" y="845.0999755859375" connect1name="TG130" connect2name="TG131" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG64" type="ANCHOR" x="1882.699951171875" y="852.0" connect1name="TG131" connect2name="TG132" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AG65" type="ANCHOR" x="315.79998779296875" y="684.0" connect1name="TG136" connect2name="TG137" eastboundsignalmast="Mast A87" westboundsignalmast="Mast A86" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG21" type="END_BUMPER" x="2084.199951171875" y="1037.0" connect1name="TG149" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG22" type="END_BUMPER" x="1888.0" y="1181.0" connect1name="TG160" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG23" type="END_BUMPER" x="2201.89990234375" y="1181.0" connect1name="TG165" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -13153,38 +13135,38 @@
     </layoutShape>
     <layoutShape ident="SHG3" type="Closed" level="3" linewidth="2" lineColor="#000000" fillColor="#FFFFFF" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutShapeXml">
       <points>
-        <point type="Curve" x="2246.0" y="711.7000122070312" />
-        <point type="Curve" x="2240.800048828125" y="717.0" />
-        <point type="Curve" x="2233.300048828125" y="717.0" />
-        <point type="Curve" x="2228.0" y="711.7000122070312" />
-        <point type="Curve" x="2228.0" y="704.2999877929688" />
-        <point type="Curve" x="2233.300048828125" y="699.0" />
-        <point type="Curve" x="2240.800048828125" y="699.0" />
-        <point type="Curve" x="2246.0" y="704.2999877929688" />
+        <point type="Curve" x="2250.5" y="711.7000122070312" />
+        <point type="Curve" x="2245.199951171875" y="717.0" />
+        <point type="Curve" x="2237.699951171875" y="717.0" />
+        <point type="Curve" x="2232.5" y="711.7000122070312" />
+        <point type="Curve" x="2232.5" y="704.2999877929688" />
+        <point type="Curve" x="2237.699951171875" y="699.0" />
+        <point type="Curve" x="2245.199951171875" y="699.0" />
+        <point type="Curve" x="2250.5" y="704.2999877929688" />
       </points>
     </layoutShape>
     <layoutShape ident="SHG4" type="Closed" level="3" linewidth="2" lineColor="#000000" fillColor="#FFFFFF" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutShapeXml">
       <points>
-        <point type="Curve" x="1953.4000244140625" y="663.7000122070312" />
-        <point type="Curve" x="1948.0999755859375" y="669.0" />
-        <point type="Curve" x="1940.699951171875" y="669.0" />
-        <point type="Curve" x="1935.4000244140625" y="663.7000122070312" />
-        <point type="Curve" x="1935.4000244140625" y="656.2999877929688" />
-        <point type="Curve" x="1940.699951171875" y="651.0" />
-        <point type="Curve" x="1948.0999755859375" y="651.0" />
-        <point type="Curve" x="1953.4000244140625" y="656.2999877929688" />
+        <point type="Curve" x="1949.0" y="663.7000122070312" />
+        <point type="Curve" x="1943.699951171875" y="669.0" />
+        <point type="Curve" x="1936.199951171875" y="669.0" />
+        <point type="Curve" x="1931.0" y="663.7000122070312" />
+        <point type="Curve" x="1931.0" y="656.2999877929688" />
+        <point type="Curve" x="1936.199951171875" y="651.0" />
+        <point type="Curve" x="1943.699951171875" y="651.0" />
+        <point type="Curve" x="1949.0" y="656.2999877929688" />
       </points>
     </layoutShape>
     <layoutShape ident="SHG5" type="Closed" level="3" linewidth="2" lineColor="#000000" fillColor="#FFFFFF" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutShapeXml">
       <points>
-        <point type="Curve" x="1858.9000244140625" y="663.7000122070312" />
-        <point type="Curve" x="1853.5999755859375" y="669.0" />
-        <point type="Curve" x="1846.199951171875" y="669.0" />
-        <point type="Curve" x="1840.9000244140625" y="663.7000122070312" />
-        <point type="Curve" x="1840.9000244140625" y="656.2999877929688" />
-        <point type="Curve" x="1846.199951171875" y="651.0" />
-        <point type="Curve" x="1853.5999755859375" y="651.0" />
-        <point type="Curve" x="1858.9000244140625" y="656.2999877929688" />
+        <point type="Curve" x="1854.4000244140625" y="663.7000122070312" />
+        <point type="Curve" x="1849.199951171875" y="669.0" />
+        <point type="Curve" x="1841.699951171875" y="669.0" />
+        <point type="Curve" x="1836.4000244140625" y="663.7000122070312" />
+        <point type="Curve" x="1836.4000244140625" y="656.2999877929688" />
+        <point type="Curve" x="1841.699951171875" y="651.0" />
+        <point type="Curve" x="1849.199951171875" y="651.0" />
+        <point type="Curve" x="1854.4000244140625" y="656.2999877929688" />
       </points>
     </layoutShape>
     <layoutShape ident="SHG6" type="Closed" level="3" linewidth="2" lineColor="#000000" fillColor="#FFFFFF" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutShapeXml">
@@ -13227,104 +13209,104 @@
   <filehistory>
     <operation>
       <type>app</type>
-      <date>Thu Nov 19 10:32:43 EST 2026</date>
+      <date>Thu Nov 19 10:49:56 EST 2026</date>
       <filename>PanelPro (v5.16.0)</filename>
     </operation>
     <operation>
       <type>Load OK</type>
-      <date>Thu Nov 19 10:32:49 EST 2026</date>
+      <date>Thu Nov 19 10:50:02 EST 2026</date>
       <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
       <filehistory>
         <operation>
           <type>app</type>
-          <date>Thu Nov 19 09:44:27 EST 2026</date>
+          <date>Thu Nov 19 10:32:43 EST 2026</date>
           <filename>PanelPro (v5.16.0)</filename>
         </operation>
         <operation>
           <type>Load OK</type>
-          <date>Thu Nov 19 09:44:32 EST 2026</date>
+          <date>Thu Nov 19 10:32:49 EST 2026</date>
           <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
           <filehistory>
             <operation>
               <type>app</type>
-              <date>Thu Nov 19 09:12:31 EST 2026</date>
+              <date>Thu Nov 19 09:44:27 EST 2026</date>
               <filename>PanelPro (v5.16.0)</filename>
             </operation>
             <operation>
               <type>Load OK</type>
-              <date>Thu Nov 19 09:12:38 EST 2026</date>
+              <date>Thu Nov 19 09:44:32 EST 2026</date>
               <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
               <filehistory>
                 <operation>
                   <type>app</type>
-                  <date>Wed Nov 18 21:11:23 EST 2026</date>
+                  <date>Thu Nov 19 09:12:31 EST 2026</date>
                   <filename>PanelPro (v5.16.0)</filename>
                 </operation>
                 <operation>
                   <type>Load OK</type>
-                  <date>Wed Nov 18 21:11:29 EST 2026</date>
-                  <filename>/Users/lnevo/hart/.claude/worktrees/switch-9-facts/jmri/layouts/hart/output/tables.xml</filename>
+                  <date>Thu Nov 19 09:12:38 EST 2026</date>
+                  <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
                   <filehistory>
                     <operation>
                       <type>app</type>
-                      <date>Thu Nov 12 23:14:50 EST 2026</date>
+                      <date>Wed Nov 18 21:11:23 EST 2026</date>
                       <filename>PanelPro (v5.16.0)</filename>
                     </operation>
                     <operation>
                       <type>Load OK</type>
-                      <date>Thu Nov 12 23:14:59 EST 2026</date>
-                      <filename>/Users/lnevo/hart/.claude/worktrees/dispatcher-stations-12/jmri/layouts/hart/output/tables.xml</filename>
+                      <date>Wed Nov 18 21:11:29 EST 2026</date>
+                      <filename>/Users/lnevo/hart/.claude/worktrees/switch-9-facts/jmri/layouts/hart/output/tables.xml</filename>
                       <filehistory>
                         <operation>
                           <type>app</type>
-                          <date>Tue Nov 10 20:18:11 EST 2026</date>
+                          <date>Thu Nov 12 23:14:50 EST 2026</date>
                           <filename>PanelPro (v5.16.0)</filename>
                         </operation>
                         <operation>
                           <type>Load OK</type>
-                          <date>Tue Nov 10 20:18:19 EST 2026</date>
-                          <filename>/Users/lnevo/hart/.claude/worktrees/brick-plane-virtual-masts/jmri/layouts/hart/output/tables.xml</filename>
+                          <date>Thu Nov 12 23:14:59 EST 2026</date>
+                          <filename>/Users/lnevo/hart/.claude/worktrees/dispatcher-stations-12/jmri/layouts/hart/output/tables.xml</filename>
                         </operation>
                         <operation>
                           <type>Store</type>
-                          <date>Tue Nov 10 20:18:36 EST 2026</date>
-                          <filename>/Users/lnevo/hart/.claude/worktrees/brick-plane-virtual-masts/jmri/layouts/hart/output/tables.xml</filename>
+                          <date>Thu Nov 12 23:15:11 EST 2026</date>
+                          <filename>/Users/lnevo/hart/.claude/worktrees/dispatcher-stations-12/jmri/layouts/hart/output/tables.xml</filename>
                         </operation>
                       </filehistory>
                     </operation>
                     <operation>
                       <type>Store</type>
-                      <date>Thu Nov 12 23:15:11 EST 2026</date>
-                      <filename>/Users/lnevo/hart/.claude/worktrees/dispatcher-stations-12/jmri/layouts/hart/output/tables.xml</filename>
+                      <date>Wed Nov 18 21:11:41 EST 2026</date>
+                      <filename>/Users/lnevo/hart/.claude/worktrees/switch-9-facts/jmri/layouts/hart/output/tables.xml</filename>
                     </operation>
                   </filehistory>
                 </operation>
                 <operation>
                   <type>Store</type>
-                  <date>Wed Nov 18 21:11:41 EST 2026</date>
-                  <filename>/Users/lnevo/hart/.claude/worktrees/switch-9-facts/jmri/layouts/hart/output/tables.xml</filename>
+                  <date>Thu Nov 19 09:12:51 EST 2026</date>
+                  <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
                 </operation>
               </filehistory>
             </operation>
             <operation>
               <type>Store</type>
-              <date>Thu Nov 19 09:12:51 EST 2026</date>
+              <date>Thu Nov 19 09:44:45 EST 2026</date>
               <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
             </operation>
           </filehistory>
         </operation>
         <operation>
           <type>Store</type>
-          <date>Thu Nov 19 09:44:45 EST 2026</date>
+          <date>Thu Nov 19 10:33:02 EST 2026</date>
           <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
         </operation>
       </filehistory>
     </operation>
     <operation>
       <type>Store</type>
-      <date>Thu Nov 19 10:33:02 EST 2026</date>
+      <date>Thu Nov 19 10:50:16 EST 2026</date>
       <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
     </operation>
   </filehistory>
-  <!--Written by JMRI version 5.16+R909e15189e on Thu Nov 19 10:33:02 EST 2026-->
+  <!--Written by JMRI version 5.16+R909e15189e on Thu Nov 19 10:50:16 EST 2026-->
 </layout-config>

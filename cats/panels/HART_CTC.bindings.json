@@ -3139,12 +3139,20 @@
    "name": "Mast 126LB",
    "template": "double"
   },
-  "128R": {
-   "name": "Mast 128R",
+  "128RA": {
+   "name": "Mast 128RA",
    "template": "double"
   },
-  "130L": {
-   "name": "Mast 130L",
+  "128RB": {
+   "name": "Mast 128RB",
+   "template": "double"
+  },
+  "130LA": {
+   "name": "Mast 130LA",
+   "template": "double"
+  },
+  "130LB": {
+   "name": "Mast 130LB",
    "template": "double"
   },
   "136RA": {
