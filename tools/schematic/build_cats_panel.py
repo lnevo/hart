@@ -716,6 +716,11 @@ def level_signals(bands, F, bound_bi):
                           "_edge": s["edge"], "cm_from_toward": 0.0, "edge_cm": s["cm"],
                           "dir": "west" if m.group(2) == "L" else "east", "kind": "field",
                           "heads": len(r["heads"]), "source": level_masts.PATH.name})
+    # the sheet's main_upper.signals.json draws these masts too; the desk places its own (balloon loop halves have
+    # edges of their own here), so it drops the file's, once: the main and upper bands share one options object
+    for bi in added:
+        opts = bands[bi][2]
+        opts["signals"] = [sg for sg in opts.get("signals") or () if sg.get("source") != level_masts.PATH.name]
     for bi, sigs in sorted(added.items()):
         opts = bands[bi][2]
         clash = sorted({sg["mast"] for sg in opts.get("signals") or ()} & {sg["mast"] for sg in sigs})

@@ -102,7 +102,6 @@ LOCAL = SOURCES.local_switches
 OVERRIDES = SOURCES.plan_overrides
 OUT = SOURCES.device_map
 SPLIT = OVERRIDES.parent / "split_tracks_main_upper.csv"          # tracks parted into two blocks at their turnback
-STAGING_OVERRIDES = OVERRIDES.parent / "staging.plan_overrides.json"   # staging's milepost count and the helix length
 RUNNING = OVERRIDES.parent / "running_tracks_main_upper.csv"     # passing sidings counted as running track
 SPURS = OVERRIDES.parent / "signalled_spurs_main_upper.csv"      # spurs that get an exit dwarf
 
@@ -235,12 +234,7 @@ def loop_halves(band, runs, split: dict | None = None) -> dict:
     return out
 
 
-CM_PER_MILE = 63360 * 2.54 / 87.1      # cm of HO track in a scale mile
 LINE_CODE = {2: "A", 3: "B"}            # milepost line codes, after Furnace A and B (owner, 2026-11-19)
-
-
-def code_of(level: int) -> str:
-    return LINE_CODE[level]
 
 
 def signal_number(mp: float, west: bool) -> int:
@@ -251,57 +245,18 @@ def signal_number(mp: float, west: bool) -> int:
     return n if n % 2 == 0 else n + 1
 
 
-def helix_top_milepost(bands, staging_overrides: dict) -> dict:
-    """{helix track name: milepost at its top}: staging's count at the helix end of that track (the staging band's
-    milepost count, staging.plan_overrides.json) plus the helix (helix_length_in, an estimate)."""
-    staging = next(b for t, b, _ in bands if (t or "").split()[0] == "Staging")
-    length_mi = float(staging_overrides["helix_length_in"]) * 2.54 / CM_PER_MILE
-    out = {}
-    for edge, (_start, mp, length, _end) in staging["mp"].items():
-        name = staging["strands"].get(edge, {}).get("name")
-        if name in staging_overrides.get("_helix_names", ()) or name in ("McKees Rocks", "McKeesport"):
-            out[name] = mp + length + length_mi
-    return out
-
-
-def distances(band, start: str) -> dict:
-    """{node: cm} along the band's tracks from `start` (shortest way)."""
-    import heapq
-    adj = defaultdict(list)
-    for s in band["strands"].values():
-        adj[s["src"][0]].append((s["dst"][0], s["cm"]))
-        adj[s["dst"][0]].append((s["src"][0], s["cm"]))
-    dist, todo = {start: 0.0}, [(0.0, start)]
-    while todo:
-        d, n = heapq.heappop(todo)
-        if d > dist.get(n, float("inf")):
-            continue
-        for m, w in adj[n]:
-            if d + w < dist.get(m, float("inf")):
-                dist[m] = d + w
-                heapq.heappush(todo, (d + w, m))
-    return dist
-
-
-def intermediates(bands, found, cp_of, running, split, overrides, staging_overrides) -> list[dict]:
+def intermediates(bands, found, cp_of, running, split) -> list[dict]:
     """APB intermediate masts on the main and upper levels (owner, 2026-11-19), named from the milepost with the
-    level's line code: a pair at the turnback of each running balloon loop or split track (half 1 to half 2 eastbound,
-    even; half 2 to half 1 westbound, odd). None into the helix: the home signals at 129 and 135 govern it (owner,
-    2026-11-19). The count runs from staging through the helix (helix_top_milepost) and on along the band (distances
-    from its helix end)."""
-    tops = helix_top_milepost(bands, staging_overrides)
-    helix_names = list(overrides.get("helix", {}).values())          # H1, H2 in the overrides' order
+    level's line code: a pair at the turnback of each running balloon loop or split track, one each way (eastbound
+    even, westbound odd). The milepost is the plugin's count along the main route (the band's `mp`, the numbers the
+    sheets print), at the middle of the folded track; east is the way it rises, so on a split track the eastbound mast
+    faces the half the count starts on. A balloon loop starts and ends at one switch, so its eastbound mast faces
+    Loop 1. None into the helix: the home signals at 129 and 135 govern it (owner, 2026-11-19)."""
     out = []
     for bi, (title, band, _) in enumerate(bands):
         lv = band_level(title)
         if not lv:
             continue
-        hend = next((n for n, d in band["nodes"].items() if d.get("sub") == "helix"), None)
-        if hend is None:
-            raise MapError(f"{title}: no helix end to count mileposts from")
-        tag = helix_tags(bands, overrides).get(lv)
-        top = tops[helix_names[int(tag[1:]) - 1]]
-        dist = distances(band, hend)
         code = LINE_CODE[lv]
         for t in found:
             if t["band"] != bi:
@@ -314,19 +269,21 @@ def intermediates(bands, found, cp_of, running, split, overrides, staging_overri
                 continue                    # no signal into the helix: 129/135 govern it (owner, 2026-11-19)
             if not (t["loop"] or t["name"] in split) or not (t["main"] or t["name"] in running):
                 continue
-            turn = {band["strands"][s]["src"][0] for s in t["strands"]} & {band["strands"][s]["dst"][0]
-                                                                           for s in t["strands"]}
-            turn = [n for n in turn if band["nodes"][n]["kind"].startswith("turn")] or \
-                [n for s in t["strands"] for n in (band["strands"][s]["src"][0], band["strands"][s]["dst"][0])
-                 if band["nodes"][n]["kind"].startswith("turn")]
-            if not turn:
-                raise MapError(f"{t['name']}: no turnback to part its halves at")
-            mp = top + dist[turn[0]] / CM_PER_MILE
+            edge = re.sub(r"(\.\d+|(?<=\d)[xy])$", "", band["strands"][t["strands"][0]]["edge"])
+            if edge not in band["mp"]:
+                raise MapError(f"{t['name']}: the milepost count (main route) does not run over plan edge {edge}")
+            west_node, mp0, length, _end = band["mp"][edge]
+            mp = mp0 + length / 2           # the turnback parts a folded track in the middle
             half = [f"{t['name']} 1", f"{t['name']} 2"]
+            if not t["loop"]:               # east is the way the count rises: from the end it starts at
+                west_label = base(band["nodes"][west_node].get("label") or "")
+                first_switch = sorted(ends, key=natural)[0]       # half 1 is at the lower-numbered switch
+                if west_label != first_switch:
+                    half.reverse()
             for west, facing, protects in ((True, half[1], half[0]), (False, half[0], half[1])):
-                out.append(dict(level=lv, cp=cp, name=f"{code}{signal_number(mp, west)}",
-                                facing=facing, protects=protects, heads=1, kind="one-searchlight", switch="",
-                                intermediate=True, node=turn[0], band=bi, milepost=round(mp, 3)))
+                out.append(dict(level=lv, cp=cp, name=f"{code}{signal_number(mp, west)}", facing=facing,
+                                protects=protects, heads=1, kind="one-searchlight", switch="", intermediate=True,
+                                band=bi, milepost=round(mp, 3)))
     return out
 
 
@@ -447,8 +404,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         if m["heads"] == 1 and facing_on_route(bands[m["band"]][1], m["node"], m["leg"], cp_of):
             m["heads"] = 2
         m["kind"] = f"{'two' if m['heads'] == 2 else 'one'}-{'searchlight' if m['running'] else 'low'}"
-    ms += intermediates(bands, found, cp_of, set(running), set(split_edges().values()), overrides,
-                        json.loads(STAGING_OVERRIDES.read_text(encoding="utf-8")))
+    ms += intermediates(bands, found, cp_of, set(running), set(split_edges().values()))
     nodes = Nodes(node_rows)
     rows = []
 
