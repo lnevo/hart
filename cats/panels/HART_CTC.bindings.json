@@ -3363,20 +3363,20 @@
    "name": "Mast 8RB",
    "template": "double"
   },
-  "A86": {
-   "name": "Mast A86",
+  "A84": {
+   "name": "Mast A84",
    "template": "single"
   },
-  "A87": {
-   "name": "Mast A87",
+  "A85": {
+   "name": "Mast A85",
    "template": "single"
   },
-  "B88": {
-   "name": "Mast B88",
+  "B91": {
+   "name": "Mast B91",
    "template": "single"
   },
-  "B89": {
-   "name": "Mast B89",
+  "B92": {
+   "name": "Mast B92",
    "template": "single"
   }
  },
