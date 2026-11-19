@@ -624,18 +624,18 @@ def mast_type(system):
 
 
 def template_by_type(F):
-    """{appearance type: CATS template} as signal_head_plan.csv gives them (hartlib.cats.appearance_templates). A
-    one-searchlight mast (a high single head) shows the stock basic aspects a one-low one does (Clear, Approach,
-    Stop), so it takes the one-low template when the plan gives none of its own (owner, 2026-11-19). `F` is unused:
-    kept so the callers stay as they were."""
+    """{appearance type: CATS template}: as signal_head_plan.csv gives them (hartlib.cats.appearance_templates), and
+    the stock basic types by head count where it gives none. `F` is unused: kept so the callers stay as they were."""
     try:
         out = appearance_templates()
     except ValueError as exc:
         raise SystemExit(str(exc)) from None
-    if "one-low" in out:
-        out.setdefault("one-searchlight", out["one-low"])
-    if "two-searchlight" in out:            # a two-head dwarf shows the two-searchlight aspects too
-        out.setdefault("two-low", out["two-searchlight"])
+    # the stock basic appearances by head count, where the plan gives none: one head shows Clear, Approach and Stop
+    # (CATS "single"), two add the Diverging aspects ("double"); a dwarf shows the aspects of its high twin. The
+    # wiring plan lists wired masts only (6LB since 2026-11-19), so most types come from here.
+    for kind, template in (("one-low", "single"), ("one-searchlight", "single"), ("two-searchlight", "double"),
+                           ("two-low", "double")):
+        out.setdefault(kind, template)
     return out
 
 def intermediate_signal(bands, F, bound_bi, r, by_trial):
