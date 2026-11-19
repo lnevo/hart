@@ -1,5 +1,5 @@
-"""Shared by the CATS tests: the live desks (generated from the schematic since the CATS cut-over), their bound plants
-by OS block, and the last hand-wired desks read from git (hartlib.hand_drawn) for the tests that compare old with new.
+"""Shared by the CATS tests: the live desks (generated from the schematic since the CATS cut-over) and their bound
+plants by OS block.
 """
 from __future__ import annotations
 
@@ -9,20 +9,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "cats/scripts"))
-sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 
 import digicon_trace as trace  # noqa: E402
-from hartlib import hand_drawn  # noqa: E402
 
 CTC = ROOT / "cats/panels/HART_CTC.xml"
 ABS = ROOT / "cats/panels/HART_ABS.xml"
 LIVE = (CTC, ABS)
-
-
-def hand_wired(name: str) -> Path:
-    """The last hand-wired desk `name` (HART_CTC.xml or HART_ABS.xml), from git. Skips the test only when git does
-    not have it (hartlib.hand_drawn.skip_unless_available); a bad name raises."""
-    return hand_drawn.skip_unless_available(name)
 
 
 def cells(path: Path) -> dict[tuple[int, int], ET.Element]:

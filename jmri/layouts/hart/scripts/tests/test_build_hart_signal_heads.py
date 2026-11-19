@@ -1,8 +1,8 @@
 """build_hart_signal_heads.py must reproduce the committed wiring CSVs.
 
 `--wiring-only` (wiki/pipelines/wiring-docs.md) rewrites signal_wiring.csv,
-signal_head_plan.csv and signal_mast_plan.csv, and cats/scripts/wire_digicon.py
-reads PHYSIGNAL from signal_head_plan.csv. A builder list that drifts from
+signal_head_plan.csv and signal_mast_plan.csv, and the CATS desk build
+(hartlib.cats.mast_templates) reads PHYSIGNAL from signal_head_plan.csv. A builder list that drifts from
 those files silently undoes field changes on the next run.
 """
 from __future__ import annotations

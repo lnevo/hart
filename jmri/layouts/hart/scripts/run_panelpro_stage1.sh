@@ -19,8 +19,8 @@ REPO_TRAININFO="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
 pp_refuse_running "Quit local CATS/PanelPro before Stage 1"
 
 pp_begin "$SCRIPT"
-# Keep the tables as they were before Stage 1: reconcile_dispatcher_stations.py and both polish passes
-# take it as --reference on every panel (a generated panel gets its icon spots back from it).
+# Keep the tables as they were before Stage 1: reconcile_dispatcher_stations.py and the polish pass
+# take it as --reference (the generated panel gets its icon spots back from it).
 BEFORE_TABLES="$(mktemp)"
 PP_TMP_FILES+=("$BEFORE_TABLES")
 cp "$REPO_TABLES" "$BEFORE_TABLES"
@@ -70,19 +70,15 @@ repair() {
 repair python3 "$SCRIPTS/disable_digicon_sml_in_tables.py" --panel "$REPO_OUTPUT"
 # Stage 1 writes Entire Train detection; HART cars detect head and tail only.
 repair python3 "$SCRIPTS/fix_traininfo_detection.py" "$REPO_TRAININFO"
-# --reference: on a generated Layout Editor panel (build_layout_le.py --as-live) Stage 1's deleted
-# and re-added cluster icons, lamps and train-name labels go back where they stood before it; the
-# hand-drawn panel keeps its pinned spots and only notes the reference.
+# --reference: Stage 1's deleted and re-added cluster icons, lamps and train-name labels go back
+# where they stood on the generated panel before it.
 repair python3 "$SCRIPTS/reconcile_dispatcher_stations.py" --panel "$REPO_OUTPUT" --no-sync \
   --reference "$BEFORE_TABLES"
 # Stage 1 drops generated bean comments (SML section notes, Dispatcher sensors).
 repair python3 "$SCRIPTS/refresh_bean_comments.py"
 # Stage 1 Store writes BlockContentsIcons at level 0 (behind the track), moves
-# train-name labels and puts its occupancy lamps back on the turnouts. Run the
-# full visual standard and the overlap pass, the same two check.sh checks.
+# train-name labels and puts its occupancy lamps back on the turnouts.
 repair python3 "$SCRIPTS/polish_hart_layout_editor.py" --panel "$REPO_OUTPUT" --reference "$BEFORE_TABLES"
-repair python3 "$SCRIPTS/polish_hart_layout_editor.py" --overlap-cleanup --panel "$REPO_OUTPUT" \
-  --reference "$BEFORE_TABLES"
 if (( repair_failed )); then
   echo "Stage 1 stored, but a repair failed (see above); fix it before committing." >&2
   exit 1

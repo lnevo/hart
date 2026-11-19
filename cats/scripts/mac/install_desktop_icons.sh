@@ -14,7 +14,7 @@ if [[ ! -f "$ICNS" ]]; then
 fi
 
 if [[ ! -f "$ROOT/cats/panels/HART_CTC.xml" || ! -f "$ROOT/cats/panels/HART_ABS.xml" ]]; then
-  # The desks are generated from the schematic (ADR-023); wire_digicon.py is retired and will not write them.
+  # The desks are generated from the schematic (ADR-023).
   if ! python3 "$ROOT/tools/schematic/build_cats_panel.py"; then
     echo "Could not build the CATS desks. Run 'make desks' from $ROOT with the root .venv active" >&2
     echo "and the model-railroad-skills submodule checked out, then run this again." >&2

@@ -7,13 +7,12 @@ same reconciliation independently to ``jmri/layouts/hart/output/tables.xml``;
 it never copies one complete configuration over the other.  Use ``--no-sync``
 to skip the deployment bundle.  ``--check`` validates without writing.
 
-Cluster positions: STATION_ICON_POSITIONS are the hand-drawn panel's pixels. On a generated
-panel (build_layout_le.py --as-live; it holds hartlib.tables.GENERATED_PANEL_MARKER) each
-cluster icon stays where it stands: where the same icon stands on the ``--reference`` panel
-(the copy taken before Stage 1, which deletes and re-adds the cluster icons;
-run_panelpro_stage1.sh passes it), else where the panel's own one copy stands, else (Progress
-and occupancy only) the usual offset from its MoveTo icon. A MoveTo icon found on neither stops
-the run: there is no spot to give it.
+The main panel must be a generated one (build_layout_le.py --as-live; it holds
+hartlib.tables.GENERATED_PANEL_MARKER). Each cluster icon stays where it stands: where the same
+icon stands on the ``--reference`` panel (the copy taken before Stage 1, which deletes and
+re-adds the cluster icons; run_panelpro_stage1.sh passes it), else where the panel's own one
+copy stands, else (Progress and occupancy only) the usual offset from its MoveTo icon. A MoveTo
+icon found on neither stops the run: there is no spot to give it.
 
 This script deliberately leaves all existing sections, transits, and traininfo
 untouched. Run Dispatcher Stage 1 and Stage 2 in PanelPro only when the
@@ -88,27 +87,6 @@ OCCUPANCY_OFFSET = (-10, 10)
 CIRCUIT_ICON_SIZE = 10
 EH_ROW_STATIONS = frozenset({"Track EH-1", "Track EH-2", "Track EH-3"})
 
-# Progress icon position; the clickable MoveTo icon sits PAIR_DX to its right.
-# The other original five pull progress right to meet the existing MoveTo.
-STATION_ICON_POSITIONS = {
-    "Track East Lead": (1416, 345),
-    "Track K-1": (1706, 185),
-    "Track K-2": (1706, 345),
-    # Engine house: east/right of the 116 ladder.
-    "Track EH-1": (668, 256),
-    "Track EH-2": (668, 270),
-    "Track EH-3": (668, 284),
-    # Track Scale (old T1) / Track Barn (old T6) left of the shortened house stubs.
-    "Track Scale": (410, 266),
-    "Track Barn": (490, 266),
-    # West Yard body: replace Track 1 / Track 2 text at the west end.
-    "Track W-1": (103, 230),
-    "Track W-2": (105, 293),
-    # Princess stubs: replace Track 1 / Track 2 east of 114 / 115.
-    "Track McKees Rocks": (1730, 230),
-    "Track McKeesport": (1730, 293),
-}
-
 # Occupancy sensor of each station block (public BS names, ADR-005). validate()
 # fails if a block in tables.xml binds a different sensor.
 STATION_OCCUPANCY = {
@@ -173,15 +151,11 @@ def sensor_names(station: str) -> tuple[str, str]:
 
 
 def cluster_positions(
-    station: str, move_to: tuple[int, int] | None = None,
+    station: str, move_to: tuple[int, int],
 ) -> tuple[tuple[int, int], tuple[int, int], tuple[int, int]]:
-    """Return progress, MoveTo, occupancy coordinates: from STATION_ICON_POSITIONS, or around `move_to`."""
-    if move_to is None:
-        progress_pos = STATION_ICON_POSITIONS[station]
-        move_to_pos = (progress_pos[0] + PAIR_DX, progress_pos[1])
-    else:
-        move_to_pos = move_to
-        progress_pos = (move_to[0] - PAIR_DX, move_to[1])
+    """Return progress, MoveTo, occupancy coordinates around the MoveTo icon at `move_to`."""
+    move_to_pos = move_to
+    progress_pos = (move_to[0] - PAIR_DX, move_to[1])
     if station in EH_ROW_STATIONS:
         occ_pos = (
             move_to_pos[0] - PAIR_DX - CIRCUIT_ICON_SIZE,
@@ -341,28 +315,15 @@ def reconcile_sensors(root: ET.Element, changes: Changes) -> None:
             changes.details.append(f"created sensor {system_name} / {user_name}")
 
 
-GEOGRAPHIC_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
+def main_panel(root: ET.Element) -> ET.Element:
+    """The generated main panel of the tables (hartlib.tables.require_generated_panel)."""
+    return tables.require_generated_panel(root, "the tables")
 
 
-def main_layout_editor(root: ET.Element) -> ET.Element:
-    editors = root.findall("LayoutEditor")
-    by_name = {editor.get("name"): editor for editor in editors}
-    for name in GEOGRAPHIC_PANEL_NAMES:
-        if name in by_name:
-            return by_name[name]
-    candidates = [
-        editor for editor in editors if editor.get("name") != "Dispatcher System"
-    ]
-    if len(candidates) != 1:
-        raise ValueError(f"expected one main LayoutEditor, found {len(candidates)}")
-    return candidates[0]
-
-
-def station_display(station: str, generated: bool = False) -> str:
-    """The MoveTo button's text: STATION_DISPLAY_NAMES, and on a generated panel without a leading "Track " (owner,
-    2026-11-16: "EH-1" fits the loco marker; the sensor and block names keep it)."""
-    display = STATION_DISPLAY_NAMES.get(station, station)
-    return tables.without_track_word(display) if generated else display
+def station_display(station: str) -> str:
+    """The MoveTo button's text: STATION_DISPLAY_NAMES without a leading "Track " (owner, 2026-11-16: "EH-1" fits
+    the loco marker; the sensor and block names keep it)."""
+    return tables.without_track_word(STATION_DISPLAY_NAMES.get(station, station))
 
 
 def icon_element(
@@ -371,7 +332,6 @@ def icon_element(
     x: int,
     y: int,
     kind: str,
-    generated: bool = False,
 ) -> ET.Element:
     attributes = {
         "sensor": sensor_name,
@@ -391,7 +351,7 @@ def icon_element(
         "class": "jmri.jmrit.display.configurexml.SensorIconXml",
     }
     if kind == "move_to":
-        display = station_display(station, generated)
+        display = station_display(station)
         attributes.update(
             {
                 "text": display,
@@ -456,7 +416,7 @@ def retire_stations(root: ET.Element, changes: Changes) -> None:
             internal.remove(sensor)
             changes.retired += 1
             changes.details.append(f"removed sensor {bean_user_name(sensor)}")
-    editor = main_layout_editor(root)
+    editor = main_panel(root)
     for icon in list(editor.findall("sensoricon")):
         name = icon.get("sensor") or ""
         if name in names or (name in lamps and icon.get("level") == CLUSTER_LEVEL):
@@ -517,17 +477,10 @@ def generated_positions(
 
 
 def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | None = None) -> None:
-    editor = main_layout_editor(root)
-    generated = tables.generated_panel(editor)
-    if generated:
-        if reference is not None and not tables.generated_panel(reference):
-            raise ValueError("--reference: its main panel is not a generated one")
-        positions = generated_positions(editor, reference)
-    else:
-        if reference is not None:
-            print("note: --reference not used: the panel is the hand-drawn one, whose clusters take "
-                  "STATION_ICON_POSITIONS")
-        positions = {station: cluster_positions(station) for station in STATIONS}
+    editor = main_panel(root)
+    if reference is not None:
+        tables.require_generated(reference, "--reference")
+    positions = generated_positions(editor, reference)
     expected_names = {
         sensor_name
         for station in STATIONS
@@ -585,21 +538,21 @@ def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | 
         }
         expected_icons = {
             move_to_name: icon_element(
-                move_to_name, station, move_to_pos[0], move_to_pos[1], "move_to", generated
+                move_to_name, station, move_to_pos[0], move_to_pos[1], "move_to"
             ),
             progress_name: icon_element(
-                progress_name, station, progress_pos[0], progress_pos[1], "progress", generated
+                progress_name, station, progress_pos[0], progress_pos[1], "progress"
             ),
             occ_name: icon_element(
-                occ_name, station, occ_pos[0], occ_pos[1], "occupancy", generated
+                occ_name, station, occ_pos[0], occ_pos[1], "occupancy"
             ),
         }
         for name in (move_to_name, progress_name, occ_name):
             rows = existing[name]
-            if generated and len(rows) == 1:
-                # A generated panel's cluster icon is the one the build carried (and JMRI stored: its own attribute
-                # order, fonts, editable flag): kept as it is, only moved to its spot when it stands elsewhere, so
-                # a run after Stage 1 changes nothing (idempotent, owner 2026-11-16)
+            if len(rows) == 1:
+                # The cluster icon the panel has (as JMRI stored it: its own attribute order, fonts, editable
+                # flag): kept as it is, only moved to its spot when it stands elsewhere, so a run after Stage 1
+                # changes nothing (idempotent, owner 2026-11-16)
                 kept = copy.deepcopy(rows[0])
                 kept.tail = None
                 moved = xy(rows[0]) != expected_positions[name]
@@ -608,7 +561,7 @@ def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | 
                     kept.set("y", str(expected_positions[name][1]))
                 retext = False
                 if name == move_to_name:        # its text as station_display gives it ("K-1", not "Track K-1")
-                    display = station_display(station, True)
+                    display = station_display(station)
                     for e in [kept] + [c for c in kept if c.tag.endswith("Text")]:
                         if e.get("text") is not None and e.get("text") != display:
                             e.set("text", display)
@@ -620,12 +573,7 @@ def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | 
             elif not rows:
                 changes.icons_created += 1
                 changes.details.append(f"created icon {name}")
-            elif (
-                len(rows) != 1
-                or xy(rows[0]) != expected_positions[name]
-                or element_signature(rows[0])
-                != element_signature(expected_icons[name])
-            ):
+            else:                               # copies: one new icon at the spot replaces them all
                 changes.icons_repositioned += 1
                 changes.details.append(f"reconciled icon {name}")
         new_icons.append(expected_icons[move_to_name])
@@ -637,24 +585,6 @@ def reconcile_icons(root: ET.Element, changes: Changes, reference: ET.Element | 
             editor.remove(element)
     for offset, element in enumerate(new_icons):
         editor.insert(insertion_index + offset, element)
-
-
-def element_signature(element: ET.Element) -> bytes:
-    """Compare icon structure while ignoring indentation-only tail whitespace."""
-    clone = copy_element_without_tails(element)
-    return ET.tostring(clone, encoding="utf-8")
-
-
-def copy_element_without_tails(element: ET.Element) -> ET.Element:
-    clone = ET.Element(element.tag, dict(element.attrib))
-    clone.text = (
-        element.text
-        if element.text is not None and element.text.strip()
-        else None
-    )
-    for child in element:
-        clone.append(copy_element_without_tails(child))
-    return clone
 
 
 def reconcile(tree: ET.ElementTree, reference: ET.Element | None = None) -> Changes:
@@ -719,7 +649,7 @@ def validate(root: ET.Element) -> None:
             f"station blocks bind other occupancy sensors than STATION_OCCUPANCY: {wrong_sensor}"
         )
 
-    editor = main_layout_editor(root)
+    editor = main_panel(root)
     icon_names = [
         icon.get("sensor") or ""
         for icon in editor.findall("sensoricon")
@@ -819,7 +749,10 @@ def main(argv: list[str] | None = None) -> int:
               f"{paths.rel(parked.PARKED_XML)}")
         return 0
     try:
-        reference = main_layout_editor(parse_xml(args.reference).getroot()) if args.reference else None
+        reference = None
+        if args.reference:
+            reference = tables.require_generated_panel(parse_xml(args.reference).getroot(),
+                                                       f"--reference {args.reference}")
         changes = reconcile(tree, reference)
     except (OSError, ET.ParseError, ValueError) as error:
         print(f"ERROR: {error}", file=sys.stderr)

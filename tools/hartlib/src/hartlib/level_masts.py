@@ -7,8 +7,8 @@ when the draft changes. "Head 108LA" is IH:HART:C3:108LA and "Head 108R Top" IH:
 each mast's system name names those heads, IF$shsm:basic:<type>(IH:HART:C3:...)(...). signal_coordinator.py enrols
 and publishes a head only when its name is IH and digits (_is_lcos_ih_sys), so none of these reaches MQTT or the
 field. The device map (jmri_name column) maps each to its planned physical head. One place for the file, its reader
-and that rule: build_device_map.py, build_main_upper_masts.py, build_layout_le.py, audit_panel_contracts.py and
-polish_hart_layout_editor.py use it.
+and that rule: build_device_map.py, build_main_upper_masts.py, build_layout_le.py and
+audit_panel_contracts.py use it.
 """
 from __future__ import annotations
 

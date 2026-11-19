@@ -3,11 +3,9 @@
 Generate the live CATS Designer desks for all three levels (staging, main, upper) from the schematic grid, with the
 schematic-maps plugin's cats module (the code behind `schematic cats --bindings`): cats/panels/HART_CTC.xml (CTC)
 and its ABS twin HART_ABS.xml, the desks the deploy installs (sync_hart_package.sh LIVE_PANELS) and the launchers
-open (CATS cut-over; ADR-023). This script is their only writer: the hand-wired desks wire_digicon.py built from
-HART_Digicon.xml are history, readable from git (hartlib.hand_drawn.cats_desk_path), and HART_Digicon.xml is not read.
-tools/check.sh validates the desks with cats/scripts/validate_cats_panel.py, and
-cats/scripts/tests/test_generated_desk_parity.py proves their staging part binds every turnout, block, sensor and
-mast the hand-wired desks bound, the same way.
+open (CATS cut-over; ADR-023). This script is their only writer; the hand-wired Designer panel HART_Digicon.xml is not
+read. tools/check.sh validates the desks with cats/scripts/validate_cats_panel.py and checks them against the layout
+facts (tools/audit/check_layout_facts.py).
 
 Bands stack in the sheet's order (staging on top). Staging is bound to the live JMRI objects through the bindings
 file cats/panels/HART_CTC.bindings.json, which this script writes from the railroad's facts, never by
@@ -42,11 +40,11 @@ drawn on two bands logically), each band's piece a block of its own (cats_helix_
 McKees Rocks and McKeesport, and the main level's Track 135-H1 and the upper level's 135-H2 with their own detectors.
 Anything else without a JMRI block, an ambiguous track, or a fact that disagrees with the drawing stops the run.
 The sheet is built once and tables.xml read once; bindings and panels come from the same plugin code.
-The IOSPEC, STATION and SECSIGNAL conventions are the live desk's (wire_digicon.py, cats_turnout_io.py,
-digicon_lib.py, hartlib.cats). The header (fonts, counters, signal templates, train, job and crew stores, colours,
+The IOSPEC, STATION and SECSIGNAL conventions are the hand-wired desks' (cats_turnout_io.py, digicon_lib.py,
+hartlib.cats). The header (fonts, counters, signal templates, train, job and crew stores, colours,
 OPERATIONS, JMRI names) and the publication plate come from cats/data/generated_desk_header.xml, frozen from the
-live desk on 2026-11-15; the ABS twin turns every CTC block ABS and says DS-ABS / ABS DIGICON on its plate, as
-wire_digicon.py does. Inputs and plugin are the same as tools/schematic/publish_draft.py (SCHEMATIC_PLUGIN for
+live desk on 2026-11-15; the ABS twin turns every CTC block ABS and says DS-ABS / ABS DIGICON on its plate, as the
+hand-wired ABS desk did. Inputs and plugin are the same as tools/schematic/publish_draft.py (SCHEMATIC_PLUGIN for
 other plugin code).
 
 --check regenerates the files into a temporary folder and compares (exit 1 if any is stale). When SCHEMATIC_PLUGIN
@@ -78,15 +76,14 @@ import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
 
 # The live desks (CATS cut-over, owner approved the generated desks in real CATS on 2026-11-15): the names the hosts,
-# launchers and shortcuts use. Nothing else writes them (wire_digicon.py, which built them from the hand-wired
-# Designer panel HART_Digicon.xml, refuses to now); the hand-wired desks stay readable from git (hartlib.hand_drawn).
+# launchers and shortcuts use. Nothing else writes them.
 OUT = pd.REPO / "cats/panels/HART_CTC.xml"
 OUT_ABS = OUT.with_name("HART_ABS.xml")
 BINDINGS = OUT.with_name("HART_CTC.bindings.json")
 HEADER = paths.CATS_DIR / "data/generated_desk_header.xml"   # frozen from the live desk (2026-11-15)
 DEVICE_MAP = railroad.Sources.under().device_map
 BOUND = "Staging"                                    # the band bound to JMRI (its title starts with this)
-# The ABS twin: every CTC block ABS, and the plate's words (wire_digicon.py write_desk, digicon_header.PANELS)
+# The ABS twin: every CTC block ABS, and the plate's words (the hand-wired ABS desk's)
 ABS_PLATE = {"CTC DIGICON": "ABS DIGICON", "DS-CTC": "DS-ABS"}
 # Main and upper: CTC on the CTC desk, CATS holds their signals and releases them (owner, 2026-11-17); ABS on the twin
 MAIN_UPPER_DISCIPLINE = "CTC"

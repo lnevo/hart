@@ -26,7 +26,6 @@ contract = load_module("lcc_turnout_contract", SCRIPTS / "lcc_turnout_contract.p
 cleanup = load_module(
     "cleanup_uss_ctc_leftovers", SCRIPTS / "cleanup_uss_ctc_leftovers.py"
 )
-le_cleanup = load_module("apply_le_cleanup", SCRIPTS / "apply_le_cleanup.py")
 
 
 class LccMqttTurnoutAliasContractTest(unittest.TestCase):
@@ -73,37 +72,6 @@ class LccMqttTurnoutAliasContractTest(unittest.TestCase):
         updated, removed = cleanup.delete_orphans(snippet)
         self.assertEqual(removed, 0)
         self.assertIn("MTT100", updated)
-
-    def test_le_cleanup_copies_fb_without_rewriting_comments(self) -> None:
-        xml = """
-        <layout-config>
-          <turnout feedback="TWOSENSOR" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N">
-            <systemName>M2T408</systemName>
-            <userName>Switch 1</userName>
-            <comment>Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2</comment>
-          </turnout>
-          <turnout feedback="DIRECT">
-            <systemName>MTT100</systemName>
-            <userName>DCC Switch 1</userName>
-            <comment>Node: 4 Turnout: 0 | OU: 1 Ports: 1,2</comment>
-          </turnout>
-        </layout-config>
-        """
-        root = ET.fromstring(xml)
-        self.assertEqual(le_cleanup.patch_mtt(root), 3)
-        alias = next(
-            el
-            for el in root.iter("turnout")
-            if (el.findtext("systemName") or "").strip() == "MTT100"
-        )
-        self.assertEqual(alias.get("feedback"), "TWOSENSOR")
-        self.assertEqual(alias.get("sensor1"), "FB Switch 1 R")
-        self.assertEqual(alias.get("sensor2"), "FB Switch 1 N")
-        self.assertEqual(
-            (alias.findtext("comment") or "").strip(),
-            "Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",
-        )
-        self.assertEqual((alias.findtext("userName") or "").strip(), "DCC Switch 1")
 
 
 if __name__ == "__main__":

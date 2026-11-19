@@ -137,7 +137,7 @@ class Readers(Copy):
 
     def test_switches_read_only_their_own_name_map_rows(self) -> None:
         """A bad row elsewhere in the name map is the facts check's to report; it does not stop switch loading
-        (wire_digicon.py, cats_turnout_io.py and engine_terminal.py load switches)."""
+        (cats_turnout_io.py and engine_terminal.py load switches)."""
         self.append("name_map", "light,Lamp 1,Lamp 1,,MTT100,MTT100,,")
         rr = R.Railroad(self.src)
         self.assertEqual(rr.switches[1].hardware, "M2T408")

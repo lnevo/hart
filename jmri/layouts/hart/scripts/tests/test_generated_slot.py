@@ -36,10 +36,7 @@ class GeneratedSlot(unittest.TestCase):
 
     def test_apply_le_sml_facing_binds_14r_on_the_generated_leg(self) -> None:
         mod = load("apply_le_sml_facing")
-        hand, _ = mod.load_assignments(CSV)
-        gen, _ = mod.load_assignments(CSV, generated=True)
-        self.assertEqual(hand["TO1"].get("B"), "Mast 14R")
-        self.assertNotIn("C", hand["TO1"])
+        gen, _ = mod.load_assignments(CSV)
         self.assertEqual(gen["TO1"].get("C"), "Mast 14R")
         self.assertNotIn("B", gen["TO1"])
 

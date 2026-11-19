@@ -2,11 +2,10 @@
 generated staging panel, built from the staging device map and panel_items.json (the device-map switch-over, owner
 2026-11-17).
 
-The candidate must be a drop-in: the same tables but the one panel, every staging turnout with the last hand-drawn
-panel's turnout, ident, type, continuing route and leg blocks, every mast resolving to the same blocks from the same
-kind of slot, the panel's own items (panel_items.json) each once, no Entry/Exit sensor (parked), and the audits passing
-on it. The comparisons read the last hand-drawn tables from git (hartlib.hand_drawn) and the staging device map, not
-the panel in tables.xml.
+The candidate must be a drop-in: the build's template tables (the last hand-drawn ones, git, hartlib.hand_drawn) but
+the one panel, every staging turnout as the live panel in tables.xml has it (ident, name, type, continuing route and
+leg blocks), every mast resolving to the blocks and kind of slot staging_masts.csv gives it, the panel's own items
+(panel_items.json) each once, no Entry/Exit sensor (parked), and the audits passing on it.
 """
 from __future__ import annotations
 
@@ -73,18 +72,6 @@ def without_live_panel(data: bytes) -> bytes:
     return doc.tobytes()
 
 
-def swap_legs(facts: dict) -> dict:
-    """A turnout's facts (B.turnout_facts) with legs B and C swapped, as B.LEGS_SWAPPED draws Switch 13: the other
-    hand and the continuing route on the other letter."""
-    legs = dict(facts["legs"])
-    legs["B"], legs["C"] = facts["legs"].get("C"), facts["legs"].get("B")
-    a, b, c, d = facts["blocks"]
-    hand = {"RH_TURNOUT": "LH_TURNOUT", "LH_TURNOUT": "RH_TURNOUT"}
-    return dict(facts, legs={k: v for k, v in legs.items() if v is not None}, blocks=(a, c, b, d),
-                type=hand.get(facts["type"], facts["type"]),
-                continuing={"2": "4", "4": "2"}.get(facts["continuing"], facts["continuing"]))
-
-
 def item_elements(data: dict) -> list[ET.Element]:
     """The elements of a panel items file (panel_items.json), in order."""
     return [ET.fromstring(m["xml"]) for it in data["items"] for m in (it.get("members") or [it])]
@@ -99,9 +86,9 @@ class Cutover(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.data, cls.P, cls.names, cls.bands = cutover()
         cls.root = tables.loads(cls.data).root
-        cls.live = tables.read(T.hand())
+        cls.live = tables.read(T.hand())                            # the build's template tables
         cls.le = tables.layout_editor(cls.root, LIVE)
-        cls.hand_le = tables.layout_editor(cls.live, LIVE)          # the last hand-drawn panel: the railroad
+        cls.live_le = tables.layout_editor(tables.read(paths.REPO_TABLES_XML), LIVE)     # the live generated panel
         cls.items = B.panel_items.load(B.PANEL_ITEMS)
         cls.slots = B.slots_module()
 
@@ -131,31 +118,30 @@ class Cutover(unittest.TestCase):
         self.assertFalse([b for b in tables.blocks(self.root) if tables.system_name(b).startswith(B.BLOCK_SYS)])
         live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live)}
         self.assertLessEqual(T.used_blocks(self.le), live_lb)
-        self.assertEqual(T.used_blocks(self.le), T.used_blocks(self.hand_le))
+        staging = set(self.names[B.STAGING]["os"].values()) | {
+            b for v in self.names[B.STAGING]["blocks"].values() for b in v}
+        self.assertEqual(T.used_blocks(self.le), staging)          # the staging device map's blocks, all drawn
         self.assertEqual({s.get("hidden") for s in self.le.findall("tracksegment")}, {"no"})     # no helix joins
 
     def test_levels_are_checked(self) -> None:
         with self.assertRaisesRegex(B.BuildError, "levels must be"):
             B.build(levels="main")
 
-    # ---- turnouts and masts as on the hand-drawn panel
+    # ---- turnouts and masts as the live panel and the staging facts have them
     def test_turnouts_keep_their_live_facts(self) -> None:
-        live = B.turnout_facts(self.hand_le)
-        live = {i: swap_legs(f) if i in B.swapped_idents() else f for i, f in live.items()}
+        idents = {sw.le_ident for sw in B.staging_switches().values()}
+        self.assertEqual({t.get("ident") for t in self.le.findall("layoutturnout")}, idents)
+        live = {i: f for i, f in B.turnout_facts(self.live_le).items() if i in idents}
         self.assertEqual(len(live), 20)
         self.assertEqual(B.turnout_facts(self.le), live)          # ident, name, type, continuing, leg blocks
         self.assertEqual(B.swapped_idents(), {"TO1"})
-        idents = {sw.le_ident for sw in B.staging_switches().values()}
-        self.assertEqual({t.get("ident") for t in self.le.findall("layoutturnout")}, idents)
 
-    def test_every_mast_resolves_exactly_as_live(self) -> None:
+    def test_every_mast_resolves_exactly_as_staging_masts_says(self) -> None:
         key = lambda m: (m["kind"], m["facing"], list(m["protects"]), m.get("turnout"))      # noqa: E731
-        live = {m["mast"]: key(m) for m in self.slots.Index(self.hand_le).masts()}
         gen = {m["mast"]: key(m) for m in self.slots.Index(self.le).masts()}
         facts = {n: key(f) for n, f in B.sdm.mast_facts().items()}
-        self.assertEqual(len(live), 49)
-        self.assertEqual(gen, live)                    # kind, blocks and turnout: what discovery reads
-        self.assertEqual(gen, facts)                   # and what staging_masts.csv says
+        self.assertEqual(len(facts), 49)
+        self.assertEqual(gen, facts)                   # kind, blocks and turnout: what discovery reads
         self.assertEqual(self.P.moved, [])             # no helix-entrance exception in staging mode
         self.assertEqual(self.P.unplaced, [])
 
@@ -192,18 +178,6 @@ class Cutover(unittest.TestCase):
         self.assertFalse([el for el in item_elements(self.items) if el.get("text") == tables.GENERATED_PANEL_MARKER])
         self.assertEqual(1, sum(lb.get("text") == tables.GENERATED_PANEL_MARKER
                                 for lb in self.root.iter("positionablelabel")))
-
-    def test_polish_and_facts_leave_the_candidate_as_built(self) -> None:
-        polish = T._load("polish_hart_layout_editor", paths.LAYOUT_SCRIPTS / "polish_hart_layout_editor.py")
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "tables.xml"
-            path.write_bytes(self.data)
-            with contextlib.redirect_stdout(io.StringIO()):
-                for fn in (polish.apply_visual_standard, polish.apply_overlap_cleanup,
-                           polish.apply_block_labels_only):
-                    self.assertEqual(fn(path, check=True)[1], [], fn.__name__)
-                    fn(path, check=False, reference=path)
-            self.assertEqual(path.read_bytes(), self.data)
 
     # ---- the panel's own items (panel_items.json)
     def test_every_panel_item_once(self) -> None:
@@ -608,9 +582,8 @@ class ThreeLevels(unittest.TestCase):
         self.assertIn("EH-1", {el.get("text") for el in buttons})
         self.assertIn("MoveToTrack_EH-1_stored", {el.get("sensor") for el in buttons})      # the names keep it
         stations = T._load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
-        self.assertEqual(stations.station_display("Track EH-1", generated=True), "EH-1")
-        self.assertEqual(stations.station_display("Track EH-1"), "Track EH-1")            # the hand-drawn panel
-        self.assertEqual(stations.station_display("Track East Lead", generated=True), "East End")
+        self.assertEqual(stations.station_display("Track EH-1"), "EH-1")
+        self.assertEqual(stations.station_display("Track East Lead"), "East End")
 
     def test_main_and_upper_objects_are_internal_with_device_map_names(self) -> None:
         added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
@@ -721,18 +694,13 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(self.le.get("scrollable"), "both")        # larger than its window: it scrolls both ways
         self.assertGreaterEqual(w, self.P.size[0])
 
-    def test_audit_polish_reconcile_and_facts_on_the_candidate(self) -> None:
-        polish = T._load("polish_hart_layout_editor", paths.LAYOUT_SCRIPTS / "polish_hart_layout_editor.py")
+    def test_audit_reconcile_and_facts_on_the_candidate(self) -> None:
         stations = T._load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
         facts = T._load("check_layout_facts", T.ROOT / "tools/audit/check_layout_facts.py")
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables.xml"
             path.write_bytes(self.data)
             with contextlib.redirect_stdout(io.StringIO()):
-                for fn in (polish.apply_visual_standard, polish.apply_overlap_cleanup,
-                           polish.apply_block_labels_only):
-                    self.assertEqual(fn(path, check=True)[1], [], fn.__name__)
-                    fn(path, check=False, reference=path)
                 self.assertEqual(stations.main(["--panel", str(path), "--check", "--no-sync"]), 0)   # parked: skips
                 self.assertEqual(AUDIT.main(["--tables", str(path)]), 0)   # --strict waits for Stage 1
                 self.assertEqual(facts.main(["--tables", str(path)]), 0)
