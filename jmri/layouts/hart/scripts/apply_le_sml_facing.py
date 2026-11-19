@@ -63,7 +63,7 @@ def load_assignments(path: Path) -> tuple[dict[str, dict[str, str]], dict[str, d
         for row in csv.DictReader(f):
             ident = row["ident"]
             slot = row["slot"].strip()
-            mast = row["mast_user_name"]
+            mast = row["mast_user_name"].strip()
             if row["kind"] == "turnout":
                 turnouts.setdefault(ident, {})[slot] = mast
             elif row["kind"] == "anchor":

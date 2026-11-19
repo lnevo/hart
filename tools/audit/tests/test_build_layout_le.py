@@ -508,7 +508,7 @@ class FactsReaders(unittest.TestCase):
                 return real((sources or rr.Sources.under()).but(switches=bad), upto=upto)
             with mock.patch.object(rr, "Railroad", patched):
                 with self.assertRaisesRegex(B.BuildError, r"^staging switches: switches.csv lines \d+ .* both use"):
-                    self.lc.staging_switches.__wrapped__()      # past the per-run cache, so the patched file is read
+                    self.lc.switch_idents()
 
     def test_a_bad_device_map_stops_with_a_build_error(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
