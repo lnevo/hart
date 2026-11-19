@@ -40,7 +40,7 @@ One rule places every visible mast. It lives in `tools/schematic/mast_rule.py` a
 **Heads in JMRI**
 - Every head is internal (`IH:HART:C1:` on staging, `IH:HART:C3:` on main and upper), so nothing unwired reaches MQTT.
 - The only exception is 6LB's IH432, now one high head; IH433 is dropped.
-- A wired staging head lives in `device_map_staging.csv`, as main and upper swap a physical device in through `jmri_name`: a head row whose `jmri_name` is an IH-digits head instead of its internal name. `build_staging_masts.py` keeps it on every rebuild and stops if the rule places no mast for it or gives that mast a different number of heads.
+- A wired staging head lives in `device_map_staging.csv`, as main and upper swap a physical device in through `jmri_name`: a head row whose `jmri_name` is an IH-digits head instead of its internal name. `build_staging_masts.py` keeps it on every rebuild and stops if the rule places no mast for it or gives that mast a different set of heads.
 - `disable_digicon_sml_in_tables.py` boots only masts on wired IH-digit heads with their logic disabled.
 
 **Virtual masts**
