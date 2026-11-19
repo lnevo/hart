@@ -791,6 +791,49 @@
     "command": "throw"
    }
   },
+  "227-239 1": {
+   "_planned_occupied": {
+    "DECADDR": "2103",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 227-239 1",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2103",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "name": "Track 227-239 1",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:227-239_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 227-239 1",
+    "command": "close"
+   },
+   "station": "227-239",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:227-239_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "227-239 2": {
+   "discipline": "CTC",
+   "name": "Track 227-239 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:227-239_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 227-239 2",
+    "command": "close"
+   },
+   "station": "227-239",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:227-239_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
   "229-239": {
    "_planned_occupied": {
     "DECADDR": "2104",
@@ -915,33 +958,6 @@
    }
   },
   "239-end": {
-   "_planned_occupied": {
-    "DECADDR": "2103",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS 227-239",
-    "command": "close"
-   },
-   "_planned_unoccupied": {
-    "DECADDR": "2103",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   },
-   "discipline": "CTC",
-   "name": "Track 227-239",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:227-239",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 227-239",
-    "command": "close"
-   },
-   "station": "227-239",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:227-239",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "239-end 2": {
    "discipline": "CTC",
    "name": "Track 239 Spur",
    "occupied": {
@@ -3089,35 +3105,27 @@
  "masts": {
   "108LA": {
    "name": "Mast 108LA",
-   "template": "single"
+   "template": "double"
   },
   "108LB": {
    "name": "Mast 108LB",
-   "template": "single"
-  },
-  "108R": {
-   "name": "Mast 108R",
    "template": "double"
   },
-  "110LA": {
-   "name": "Mast 110LA",
-   "template": "single"
-  },
-  "110LB": {
-   "name": "Mast 110LB",
-   "template": "single"
+  "110L": {
+   "name": "Mast 110L",
+   "template": "double"
   },
   "112L": {
    "name": "Mast 112L",
-   "template": "single"
+   "template": "double"
   },
   "118L": {
    "name": "Mast 118L",
-   "template": "single"
+   "template": "double"
   },
   "120RA": {
    "name": "Mast 120RA",
-   "template": "single"
+   "template": "double"
   },
   "120RB": {
    "name": "Mast 120RB",
@@ -3125,27 +3133,19 @@
   },
   "126LA": {
    "name": "Mast 126LA",
-   "template": "single"
+   "template": "double"
   },
   "126LB": {
    "name": "Mast 126LB",
-   "template": "single"
-  },
-  "128RA": {
-   "name": "Mast 128RA",
-   "template": "single"
-  },
-  "128RB": {
-   "name": "Mast 128RB",
-   "template": "single"
-  },
-  "130LA": {
-   "name": "Mast 130LA",
    "template": "double"
   },
-  "130LB": {
-   "name": "Mast 130LB",
-   "template": "single"
+  "128R": {
+   "name": "Mast 128R",
+   "template": "double"
+  },
+  "130L": {
+   "name": "Mast 130L",
+   "template": "double"
   },
   "136RA": {
    "name": "Mast 136RA",
@@ -3153,19 +3153,19 @@
   },
   "136RB": {
    "name": "Mast 136RB",
-   "template": "single"
+   "template": "double"
   },
   "202R": {
    "name": "Mast 202R",
-   "template": "single"
+   "template": "double"
   },
   "204RA": {
    "name": "Mast 204RA",
-   "template": "single"
+   "template": "double"
   },
   "204RB": {
    "name": "Mast 204RB",
-   "template": "single"
+   "template": "double"
   },
   "214LA": {
    "name": "Mast 214LA",
@@ -3201,11 +3201,11 @@
   },
   "220R": {
    "name": "Mast 220R",
-   "template": "single"
+   "template": "double"
   },
   "222LA": {
    "name": "Mast 222LA",
-   "template": "single"
+   "template": "double"
   },
   "222LB": {
    "name": "Mast 222LB",
@@ -3237,18 +3237,22 @@
   },
   "228RA": {
    "name": "Mast 228RA",
-   "template": "single"
+   "template": "double"
   },
   "228RB": {
    "name": "Mast 228RB",
-   "template": "single"
+   "template": "double"
   },
   "230LA": {
    "name": "Mast 230LA",
-   "template": "single"
+   "template": "double"
   },
   "230LB": {
    "name": "Mast 230LB",
+   "template": "double"
+  },
+  "240L": {
+   "name": "Mast 240L",
    "template": "single"
   },
   "24L": {
@@ -3350,6 +3354,22 @@
   "8RB": {
    "name": "Mast 8RB",
    "template": "double"
+  },
+  "A86": {
+   "name": "Mast A86",
+   "template": "single"
+  },
+  "A87": {
+   "name": "Mast A87",
+   "template": "single"
+  },
+  "B88": {
+   "name": "Mast B88",
+   "template": "single"
+  },
+  "B89": {
+   "name": "Mast B89",
+   "template": "single"
   }
  },
  "switches": {
