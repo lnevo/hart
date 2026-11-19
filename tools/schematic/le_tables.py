@@ -314,6 +314,9 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     ends = {S.name(k) for k, p in S.points.items() if p["type"] == "END_BUMPER"} - \
         {P.name(k) for k, p in P.points.items() if p["type"] == "END_BUMPER"}
     joins = {P.name(i) for (b, i) in P.join_ends if b == 0}     # the staging anchors the hidden joins start at
+    if not ends or len(joins) != len(ends):
+        raise BuildError(f"staging guard: the helix is not joined: {len(ends)} staging end bumpers {sorted(ends)} "
+                         f"became anchors, but {len(joins)} hidden joins start at staging anchors {sorted(joins)}")
     level = level_items(P, new_le)
     old_els = defaultdict(list)
     for el in old_le:

@@ -315,8 +315,15 @@ class ThreeLevels(unittest.TestCase):
             "track segment TG6 connect2name EBG2 -> AGE2",
             "track segment TG33 connect2name EBG1 -> AGE1"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
+        self.assertEqual(self.names[B.STAGING]["joins"], "other")               # the build joins the helix
+        self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"), 4)
         self.assertEqual(self.P.scale, self.base[1].scale)
         self.assertEqual(self.P.staging_data, self.base[0])
+
+    def test_the_guard_stops_when_the_helix_is_not_joined(self) -> None:
+        # staging's own layout as the base has no end bumper that became an anchor: nothing is joined
+        with self.assertRaisesRegex(B.BuildError, "staging guard: the helix is not joined"):
+            B.check_staging_unchanged((self.base[0], self.P), self.data, self.P, LIVE)
 
     def test_the_guard_stops_on_any_other_change(self) -> None:
         def el(root, tag, **attrs):

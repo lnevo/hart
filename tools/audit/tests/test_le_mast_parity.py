@@ -23,10 +23,10 @@ These checks read the three-level cut-over candidate (--as-live, owner 2026-11-1
 also read is retired, owner 2026-11-17). The staging-only candidate (--levels staging --as-live) ends both helix
 tracks at end bumpers as live, so there every mast matches exactly, with no exception (test_le_cutover.py).
 
-Since the helix-join release (owner, 2026-11-17) HELIX_ENTRANCE lists the exceptions (owner's choice, 2026-11-15, option 1): on the live
-panel McKees Rocks and McKeesport end at buffer stops, so their bumper masts protect nothing; the joined panel runs
-both tracks on through the helix, so each mast stands on the anchor at the helix entrance, facing the same block
-as live and protecting the helix run, an anchor slot, not a bumper.
+Since the helix-join release (owner, 2026-11-17) HELIX_ENTRANCE lists the exceptions (owner's choice, 2026-11-15,
+option 1): on the live panel McKees Rocks and McKeesport end at buffer stops, so their bumper masts protect nothing;
+the joined panel runs both tracks on through the helix, so each mast stands on the anchor at the helix entrance,
+facing the same block as live and protecting the helix run, an anchor slot, not a bumper.
 """
 from __future__ import annotations
 
