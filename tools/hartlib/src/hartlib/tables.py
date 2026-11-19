@@ -500,13 +500,6 @@ def without_track_word(text: str) -> str:
     return text.removeprefix("Track ")
 
 
-def boundary_slot(row: dict, generated: bool) -> str:
-    """The slot of an le_signal_boundaries.csv row on the panel at hand: its ``generated_slot`` on a generated panel
-    (generated_panel) where it has one (a switch whose generated turnout swaps legs B and C), else its ``slot``."""
-    gen = (row.get("generated_slot") or "").strip()
-    return gen if generated and gen else (row.get("slot") or "").strip()
-
-
 def require_generated(panel: ET.Element | None, what: str) -> ET.Element:
     """``panel`` when it is a generated Layout Editor panel (generated_panel); else ValueError naming ``what`` (the
     file or option it came from): no panel, a panel that is not generated, or a doubled marker."""

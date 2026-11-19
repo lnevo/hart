@@ -95,12 +95,12 @@ from approval import (  # noqa: E402,F401  re-exported: callers and tests read t
     ApprovalError, STAGING_APPROVED as APPROVED, approved_fingerprint, check_approved, read_approved, write_approved,
 )
 from le_names import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    crossover_strands, runs, LEGS_SWAPPED, swapped_idents,
+    crossover_strands, runs,
     staging_lengths, MAIN_UPPER_MASTS, read_level_masts, lcos_rule, lcos_named, level_masts, placeholder_names,
     device_names, level_names, shared_turnouts, named_bands,
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    BOUNDARIES, check_swapped_slots, mast_band, check_level_slots, check_unplaced, turnout_facts, check_device_masts,
+    BOUNDARIES, mast_band, check_level_slots, check_unplaced, turnout_facts, check_device_masts,
     check_boundaries,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
@@ -266,7 +266,6 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     P.mast_notes = check_unplaced(P)
     check_device_masts(P, names[STAGING]["masts"], le_mod)      # each mast in one slot, on its switch's turnout
     check_level_slots(P, level_rows, le_mod)
-    check_swapped_slots()
 
     # staging: every name must already be live
     staging_turnouts = set(names[STAGING]["turnouts"].values())

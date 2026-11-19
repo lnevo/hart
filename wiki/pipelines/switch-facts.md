@@ -34,11 +34,11 @@ Exceptions are made only on purpose, each with its reason beside it:
 | Switch | Exception | Why |
 |--------|-----------|-----|
 | 13 | Barn (diverging, leg C) is the normal, closed route | wired so (Peco #7 curved, left-hand) |
-| 1, 33 | the main runs through the diverging leg | closed is the straight leg, shown Normal |
-| 33, 37, 39 | continuous running in staging needs them thrown | they start up normal, toward the helix |
-| 115 | diverging leg drawn level (`level_leg`) | straight-level puts Track 101B-111's climb in the Track 113 siding's CATS desk cell |
+| 1, 33 | the main runs through the diverging leg | closed is the straight leg, shown Normal; both start up thrown |
+| 37, 39 | continuous running in staging needs them thrown | they start up normal, toward the helix |
+| 115 | diverging leg drawn level (`level_leg`) | straight-level puts Track 101B-111's climb in the Track 113 siding's CATS desk cell; may flip whichever way the plugin needs |
 | 231, 237 | diverging leg drawn level (`level_leg`) | earlier owner choice |
-| 235, 243 | diverging leg drawn level (`level_leg`) | straight-level widens the upper level past the desk and the Layout Editor panel |
+| 235, 243 | diverging leg drawn level (`level_leg`) | straight-level widens the upper level past the desk and the Layout Editor panel; may flip whichever way the plugin needs |
 | 127/131 | 131's straight leg is a crossover diagonal | one crossover on the ground (`le_crossover_pairs`) |
 
 ## Changing a switch
