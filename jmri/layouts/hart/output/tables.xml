@@ -6709,7 +6709,7 @@
       <destinationMast destination="Mast 24RA">
         <destinationSignalMast>Mast 24RA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -6722,7 +6722,7 @@
       <destinationMast destination="Mast 24RA">
         <destinationSignalMast>Mast 24RA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -6735,7 +6735,7 @@
       <destinationMast destination="Mast 2R">
         <destinationSignalMast>Mast 2R</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -6748,7 +6748,7 @@
       <destinationMast destination="Mast 14R">
         <destinationSignalMast>Mast 14R</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -6761,7 +6761,7 @@
       <destinationMast destination="Mast 34RA">
         <destinationSignalMast>Mast 34RA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7440,7 +7440,7 @@
       <destinationMast destination="Mast 6LB">
         <destinationSignalMast>Mast 6LB</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7479,7 +7479,7 @@
       <destinationMast destination="Mast 40RA">
         <destinationSignalMast>Mast 40RA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7489,7 +7489,7 @@
       <destinationMast destination="Mast 40RB">
         <destinationSignalMast>Mast 40RB</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7502,7 +7502,7 @@
       <destinationMast destination="Mast 36L">
         <destinationSignalMast>Mast 36L</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7515,7 +7515,7 @@
       <destinationMast destination="Mast 36L">
         <destinationSignalMast>Mast 36L</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7528,7 +7528,7 @@
       <destinationMast destination="Mast 24LA">
         <destinationSignalMast>Mast 24LA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7538,7 +7538,7 @@
       <destinationMast destination="Mast 36L">
         <destinationSignalMast>Mast 36L</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7551,7 +7551,7 @@
       <destinationMast destination="Mast 24LA">
         <destinationSignalMast>Mast 24LA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7561,7 +7561,7 @@
       <destinationMast destination="Mast 36L">
         <destinationSignalMast>Mast 36L</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7600,7 +7600,7 @@
       <destinationMast destination="Mast 6R">
         <destinationSignalMast>Mast 6R</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7610,7 +7610,7 @@
       <destinationMast destination="Mast 4LA">
         <destinationSignalMast>Mast 4LA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7620,7 +7620,7 @@
       <destinationMast destination="Mast 4LB">
         <destinationSignalMast>Mast 4LB</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7656,7 +7656,7 @@
       <destinationMast destination="Mast 6LB">
         <destinationSignalMast>Mast 6LB</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7666,7 +7666,7 @@
       <destinationMast destination="Mast 8LC">
         <destinationSignalMast>Mast 8LC</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7679,7 +7679,7 @@
       <destinationMast destination="Mast 34RB">
         <destinationSignalMast>Mast 34RB</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7689,7 +7689,7 @@
       <destinationMast destination="Mast 8LC">
         <destinationSignalMast>Mast 8LC</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7699,7 +7699,7 @@
       <destinationMast destination="Mast 14R">
         <destinationSignalMast>Mast 14R</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7735,7 +7735,7 @@
       <destinationMast destination="Mast 34RA">
         <destinationSignalMast>Mast 34RA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7745,7 +7745,7 @@
       <destinationMast destination="Mast 36RA">
         <destinationSignalMast>Mast 36RA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7758,7 +7758,7 @@
       <destinationMast destination="Mast 8LB">
         <destinationSignalMast>Mast 8LB</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7768,7 +7768,7 @@
       <destinationMast destination="Mast 24LB">
         <destinationSignalMast>Mast 24LB</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7778,7 +7778,7 @@
       <destinationMast destination="Mast 18L">
         <destinationSignalMast>Mast 18L</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7788,7 +7788,7 @@
       <destinationMast destination="Mast 20L">
         <destinationSignalMast>Mast 20L</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7798,7 +7798,7 @@
       <destinationMast destination="Mast 22L">
         <destinationSignalMast>Mast 22L</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7808,7 +7808,7 @@
       <destinationMast destination="Mast 26L">
         <destinationSignalMast>Mast 26L</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7821,7 +7821,7 @@
       <destinationMast destination="Mast 67">
         <destinationSignalMast>Mast 67</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7831,7 +7831,7 @@
       <destinationMast destination="Mast 40RA">
         <destinationSignalMast>Mast 40RA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -7841,7 +7841,7 @@
       <destinationMast destination="Mast 38RA">
         <destinationSignalMast>Mast 38RA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -8678,7 +8678,7 @@
       <destinationMast destination="Mast 34RA">
         <destinationSignalMast>Mast 34RA</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -8688,7 +8688,7 @@
       <destinationMast destination="Mast 24LB">
         <destinationSignalMast>Mast 24LB</destinationSignalMast>
         <comment />
-        <enabled>no</enabled>
+        <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
         <useLayoutEditor>yes</useLayoutEditor>
         <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
