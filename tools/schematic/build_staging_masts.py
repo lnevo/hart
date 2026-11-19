@@ -22,7 +22,14 @@ sheets, gantries on the panels); a mast's cp column names the control point of i
 
 Heads are internal, from the mast's name (IH:HART:C1:<n><L|R>[A|B][_Top|_Bottom]: hartlib.level_devices names main
 and upper the same way under C3), so nothing unwired reaches MQTT: signal_coordinator.py publishes only IH and
-digits. The one physical staging mast, 6LB at Switch 5, keeps its wired head IH432 (PHYSICAL).
+digits.
+
+A wired head is read from device_map_staging.csv itself, as main and upper swap a physical device in through the
+device map's jmri_name (build_device_map.py): a head row whose jmri_name is not the internal name of its user name is
+wired (today one: Head 6LB on IH432, Switch 5, owner 2026-11-18), and the rebuild keeps it, with its node and notes.
+The build stops on a wired head that is not an LCOS head (IH and digits), whose system_name differs from its
+jmri_name, whose mast the rule does not place, or whose mast the rule gives a different set of heads; on a mast row
+that names an IH-digits head no head row carries; and if a wired head is missing from the rows it writes.
 
 Virtual masts (IF$vsm: end bumpers, yard-track ends, the helix intermediates and Dispatcher rear masts) stay hand
 kept in staging_masts_virtual.csv and staging_signals_virtual.csv, in the same columns; this script adds them after
@@ -59,7 +66,8 @@ CPS, OVERRIDES = sdm.CPS, sdm.OVERRIDES
 INTERLOCKINGS = DATA / "interlockings_staging.csv"   # the signal rule's control points (owner, 2026-11-19)
 LEVELS = {"Staging": 1}
 HEAD_PREFIX = "IH:HART:C1:"
-PHYSICAL = {"Mast 6LB": ["IH432"]}       # the one wired staging mast (owner, 2026-11-18): its heads, in order
+HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?)(?: (Top|Bottom))?")   # a staging head's user name: key, position
+WIRED_HEAD = re.compile(r"IH\d+")      # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
 CM_PER_MILE = 63360 * 2.54
 INCH = 2.54
 
@@ -68,18 +76,61 @@ class RuleError(RuntimeError):
     pass
 
 
-def head_names(mast: str, heads: int) -> list[tuple[str, str]]:
-    """[(system name, user name)] of a mast's heads: Top and Bottom on a two-head mast."""
-    if mast in PHYSICAL:
-        sys_names = PHYSICAL[mast]
-        if len(sys_names) != heads:
-            raise RuleError(f"{mast}: the rule gives {heads} head(s), the physical mast has {len(sys_names)}")
-        return [(sys_names[0], f"Head {mast.removeprefix('Mast ')}")] if heads == 1 else \
-            [(h, f"Head {mast.removeprefix('Mast ')} {p}") for h, p in zip(sys_names, ("Top", "Bottom"))]
+def internal_head(user: str) -> str:
+    """The internal system name of a staging head from its user name: "Head 24RA Top" -> IH:HART:C1:24RA_Top.
+    RuleError on a user name that is not Head <key>[ Top| Bottom]."""
+    m = HEAD_USER.fullmatch(user)
+    if not m:
+        raise RuleError(f"head {user!r} is not named Head <key>[ Top| Bottom]")
+    return HEAD_PREFIX + m.group(1) + (f"_{m.group(2)}" if m.group(2) else "")
+
+
+def head_users(mast: str, heads: int) -> list[str]:
+    """A mast's head user names, in order: Top and Bottom on a two-head mast."""
     key = mast.removeprefix("Mast ")
-    if heads == 1:
-        return [(HEAD_PREFIX + key, f"Head {key}")]
-    return [(f"{HEAD_PREFIX}{key}_{p}", f"Head {key} {p}") for p in ("Top", "Bottom")]
+    return [f"Head {key}"] if heads == 1 else [f"Head {key} {p}" for p in ("Top", "Bottom")]
+
+
+def wired_heads(rows: list[dict]) -> dict:
+    """{mast: {head user name: head row}} of the device map's wired heads: a head row whose jmri_name is not the
+    internal name of its user name. RuleError on a head row named twice, a wired head that is not IH and digits or
+    whose system_name is not its jmri_name, or a mast row that names an IH-digits head no head row carries."""
+    out, seen, bad = {}, set(), []
+    for r in (r for r in rows if r["layer"] == "head"):
+        user = r["user_name"]
+        if user in seen:
+            bad.append(f"head {user} has two rows")
+            continue
+        seen.add(user)
+        internal = internal_head(user)
+        if r["jmri_name"] == internal:
+            continue
+        if not WIRED_HEAD.fullmatch(r["jmri_name"]):
+            bad.append(f"head {user}: jmri_name {r['jmri_name']!r} is neither {internal} nor a wired IH<digits>")
+        elif r["system_name"] != r["jmri_name"]:
+            bad.append(f"head {user}: system_name {r['system_name']!r} is not its wired jmri_name {r['jmri_name']}")
+        else:
+            out.setdefault("Mast " + HEAD_USER.fullmatch(user).group(1), {})[user] = r
+    carried = {h["jmri_name"] for heads in out.values() for h in heads.values()}
+    for r in (r for r in rows if r["layer"] == "mast" and r["system_name"].startswith("IF$shsm:")):
+        lost = sorted(set(re.findall(r"\((IH\d+)\)", r["system_name"])) - carried)
+        if lost:
+            bad.append(f"mast {r['user_name']} names wired head(s) {lost} with no head row")
+    if bad:
+        raise RuleError(f"{DEVICE_MAP.name}: " + "; ".join(bad))
+    return out
+
+
+def head_names(mast: str, heads: int, wired: dict) -> list[tuple[str, str]]:
+    """[(system name, user name)] of a mast's heads: the wired heads' names (wired_heads) on a wired mast, else the
+    internal names. RuleError when the rule gives a wired mast heads other than those the device map wires."""
+    users = head_users(mast, heads)
+    if mast not in wired:
+        return [(internal_head(u), u) for u in users]
+    if sorted(wired[mast]) != sorted(users):
+        raise RuleError(f"{mast}: the rule gives {heads} head(s) ({', '.join(users)}), {DEVICE_MAP.name} wires "
+                        f"{len(wired[mast])} ({', '.join(sorted(wired[mast]))})")
+    return [(wired[mast][u]["jmri_name"], u) for u in users]
 
 
 def block_cm() -> dict:
@@ -129,8 +180,8 @@ def run_strands(band) -> dict:
     return out
 
 
-def generate(band, bands, runs, joined, names, cps: dict) -> list[dict]:
-    """The visible staging masts by rule: [{mast, cp, switch, facing, protects, kind, heads, dir, toward, run, names,
+def generate(band, bands, runs, joined, names, cps: dict, wired: dict) -> list[dict]:
+    """The visible staging masts by rule (a mast in `wired`, from wired_heads, is a field signal): [{mast, cp, switch, facing, protects, kind, heads, dir, toward, run, names,
     edge_cm, cm_from_toward, edge, node}], in name order."""
     found = mast_rule.tracks(bands, runs, joined, {1: "H"}, levels=LEVELS)
     mast_rule.track_names(found)
@@ -171,10 +222,9 @@ def generate(band, bands, runs, joined, names, cps: dict) -> list[dict]:
                         dir="west" if m["letter"] == "L" else "east", toward=m["switch"],
                         run=f"{m['switch']};{mast_rule.base(far_label) if far_label else ''}", names=names_,
                         edge_cm=round(track_cm, 1), cm_from_toward=round(back, 1), edge=edge, node=n,
-                        signal_kind="field" if f"Mast {m['name']}" in PHYSICAL else "planned",
+                        signal_kind="field" if f"Mast {m['name']}" in wired else "planned",
                         leg=p, strand=m["strand"], running=m["running"]))
     for m in out:
-        m["signal_kind"] = "field" if m["mast"] in PHYSICAL else "planned"
         # two heads when any route the mast governs can still diverge inside its interlocking (owner, 2026-11-19)
         if m["heads"] == 1 and mast_rule.facing_on_route(band, m["node"], m["leg"], cps):
             m["heads"] = 2
@@ -251,10 +301,10 @@ def read_virtual() -> tuple[list[dict], list[dict]]:
     return sdm.read_rows(VIRTUAL_MASTS, level_masts.FIELDS), sdm.read_rows(VIRTUAL_SIGNALS, sdm.SIGNAL_COLUMNS)
 
 
-def mast_rows(gen: list[dict]) -> list[dict]:
+def mast_rows(gen: list[dict], wired: dict) -> list[dict]:
     rows = []
     for m in gen:
-        heads = head_names(m["mast"], m["heads"])
+        heads = head_names(m["mast"], m["heads"], wired)
         system = f"IF$shsm:basic:{m['kind']}(" + ")(".join(h for h, _u in heads) + ")"
         rows.append(dict(mast=m["mast"], cp=m["cp"], switch=m["switch"], facing=m["facing"], protects=m["protects"],
                          leg="", system_name=system, head_system_names=";".join(f"{h}={u}" for h, u in heads),
@@ -277,25 +327,31 @@ def csv_text(rows: list[dict], columns) -> str:
     return buf.getvalue()
 
 
-def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict]) -> list[dict]:
+def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict], wired: dict) -> list[dict]:
     """device_map_staging.csv with its mast and head rows replaced: one mast row per mast (generated and virtual) and
-    one head row per head of a visible mast, every name its JMRI name; other rows unchanged and in place."""
+    one head row per head of a visible mast, every name its JMRI name; a wired mast keeps its node, a wired head its
+    node and notes (wired_heads); other rows unchanged and in place. RuleError if a wired head would be dropped."""
     keep = [r for r in old_rows if r["layer"] not in ("mast", "head")]
     old_mast = {r["user_name"]: r for r in old_rows if r["layer"] == "mast"}
     masts, heads = [], []
     for r in gen_masts + virtual:
-        prev = old_mast.get(r["mast"], {})
+        on = wired.get(r["mast"], {})
         where = " | ".join(x for x in (r["cp"], f"Switch {r['switch']}" if r["switch"] else "") if x)
         note = (f"facing {r['facing']} into {r['protects']}" if r["protects"] else f"facing {r['facing']}, buffer stop")
         masts.append(dict(level="1", cp=r["cp"], layer="mast", user_name=r["mast"], system_name=r["system_name"],
-                          jmri_name=r["system_name"], node=prev.get("node", "") if r["mast"] in PHYSICAL else "",
+                          jmri_name=r["system_name"], node=old_mast.get(r["mast"], {}).get("node", "") if on else "",
                           dcc="", comment=where, trial_name="", notes=note))
         for pair in [x for x in r["head_system_names"].split(";") if x]:
             h, user = pair.split("=", 1)
+            prev = on.get(user)
             heads.append(dict(level="1", cp=r["cp"], layer="head", user_name=user, system_name=h, jmri_name=h,
-                              node=prev.get("node", "") if r["mast"] in PHYSICAL else "", dcc="",
-                              comment=where, trial_name="",
-                              notes="wired (owner, 2026-11-18)" if r["mast"] in PHYSICAL else "internal, not wired"))
+                              node=prev["node"] if prev else "", dcc="", comment=where, trial_name="",
+                              notes=prev["notes"] if prev else "internal, not wired"))
+    written = {(h["user_name"], h["jmri_name"]) for h in heads}
+    lost = sorted(f"{u} ({h['jmri_name']})" for m in wired.values() for u, h in m.items()
+                  if (u, h["jmri_name"]) not in written)
+    if lost:
+        raise RuleError(f"the rebuild would drop wired head(s) {lost} from {DEVICE_MAP.name}")
     return keep + sorted(masts, key=lambda r: r["user_name"]) + sorted(heads, key=lambda r: r["user_name"])
 
 
@@ -307,20 +363,25 @@ def build():
     names = sdm.load(band, with_masts=False)
     cp_of = {s.strip(): r["cp_name"] for r in sdm.read_rows(CPS, sdm.CP_COLUMNS) for s in r["switches"].split(",")}
     locks = interlockings(set(cp_of))
-    gen = generate(band, bands, runs, joined, names, locks)
+    old = sdm.read_rows(DEVICE_MAP, bdm.COLUMNS)
+    wired = wired_heads(old)
+    gen = generate(band, bands, runs, joined, names, locks, wired)
+    unplaced = sorted(set(wired) - {m["mast"] for m in gen})
+    if unplaced:
+        raise RuleError(f"{DEVICE_MAP.name} wires heads on masts the rule does not place: "
+                        + "; ".join(f"{m} ({', '.join(sorted(wired[m]))})" for m in unplaced))
     for m in gen:                    # the cp column names the control point (the drawings') of the mast's switch
         m["cp"] = cp_of[m["toward"]]
     vm, vs = read_virtual()
-    gm = mast_rows(gen)
+    gm = mast_rows(gen, wired)
     clash = sorted({r["mast"] for r in gm} & {r["mast"] for r in vm})
     if clash:
         raise RuleError(f"{VIRTUAL_MASTS.name} names masts the rule now places: {clash}")
     if {r["mast"] for r in vm} != {r["mast"] for r in vs}:
         raise RuleError(f"{VIRTUAL_MASTS.name} and {VIRTUAL_SIGNALS.name} name different masts")
-    old = sdm.read_rows(DEVICE_MAP, bdm.COLUMNS)
     want = {MASTS: csv_text(gm + vm, level_masts.FIELDS),
             SIGNALS: csv_text(signal_rows(gen) + vs, sdm.SIGNAL_COLUMNS),
-            DEVICE_MAP: csv_text(device_rows(gm, vm, old), bdm.COLUMNS)}
+            DEVICE_MAP: csv_text(device_rows(gm, vm, old, wired), bdm.COLUMNS)}
     return want, gen
 
 
