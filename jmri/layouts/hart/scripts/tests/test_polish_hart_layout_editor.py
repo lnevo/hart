@@ -1,8 +1,9 @@
 """polish_hart_layout_editor.py: the Stage 1 repair of the generated Layout Editor panel (Dispatcher System, parked).
 
 The fixture is this checkout's tables with the Dispatcher System put back from the parked file
-(hartlib.parked.with_parked) and a Stage 1 occupancy lamp on every block sensor at its computed spot: the generated
-panel as it stands once the Dispatcher System is unparked. Stage 1 then deletes and re-adds the lamps and block
+(hartlib.parked.with_parked) and a Stage 1 occupancy lamp at its computed spot on each sensor the parked staging lamps
+show (jmri/layouts/hart/parked/staging_panel_lamps.json): the generated panel as it stands once the Dispatcher System
+is unparked. Stage 1 then deletes and re-adds the lamps and block
 contents labels at its own spots; the repair puts them back.
 """
 from __future__ import annotations
@@ -11,7 +12,9 @@ import contextlib
 import copy
 import importlib.util
 import io
+import json
 import math
+import re
 import sys
 import tempfile
 import unittest
@@ -29,12 +32,22 @@ polish = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(polish)
 
 
+PARKED_LAMPS = paths.LAYOUT_DIR / "parked" / "staging_panel_lamps.json"
+
+
+def lamp_sensors() -> set[str]:
+    """The block sensors the parked staging lamps show."""
+    items = json.loads(PARKED_LAMPS.read_text(encoding="utf-8"))["items"]
+    return {s for it in items for s in re.findall(r'sensor="(BS [^"]+)"', it["xml"])}
+
+
 def unparked() -> ET.Element:
-    """This checkout's tables with the Dispatcher System put back, and a Stage 1 lamp on each block sensor."""
+    """This checkout's tables with the Dispatcher System put back, and a Stage 1 lamp on each staging lamp sensor."""
     root = copy.deepcopy(parked.with_parked({"dispatcher"}, paths.REPO_TABLES_XML))
     le = tables.layout_editor(root)
+    shown = lamp_sensors()
     for sensor, (x, y) in sorted(polish.computed_lamp_targets(root, le).items()):
-        if sensor.startswith("BS "):
+        if sensor in shown:
             le.append(polish._circuit_occupancy_icon(sensor, x, y))
     return root
 
@@ -147,6 +160,44 @@ class Repair(unittest.TestCase):
         run(path, reference=reference)
         self.assertEqual(spots(FIXTURE), spots(tables.read(path)))
 
+    def test_a_stage1_lamp_the_reference_panel_does_not_show_is_removed(self) -> None:
+        # Stage 1 adds a lamp on every block sensor, the main and upper levels' too; the reference panel has none there
+        reference = write(FIXTURE, self.dir, "before.xml")
+        root = copy.deepcopy(FIXTURE)
+        le = tables.layout_editor(root)
+        targets = polish.computed_lamp_targets(root, le)
+        level = sorted(set(targets) - lamp_sensors())
+        self.assertTrue(level)
+        for sensor in level:
+            le.append(polish._circuit_occupancy_icon(sensor, *targets[sensor]))
+        path = write(root, self.dir)
+        (_n, errors), _ = run(path, check=True, reference=reference)
+        self.assertEqual(len(level), len([e for e in errors if "none on the reference panel" in e]))
+        run(path, reference=reference)
+        self.assertEqual(spots(FIXTURE), spots(tables.read(path)))
+        # without a reference such a lamp is the panel's own, and stays
+        path = write(root, self.dir, "own.xml")
+        (_n, errors), _ = run(path, check=True)
+        self.assertEqual([], errors)
+
+    def test_masts_captions_and_panel_attributes_are_left_alone(self) -> None:
+        # Stage 1 does not touch them (CreateIcons), so the repair does not either
+        reference = write(FIXTURE, self.dir, "before.xml")
+        root = stage1_scramble(FIXTURE)
+        le = tables.layout_editor(root)
+        mast = le.find("signalmasticon")
+        mast.set("hidden", "yes" if mast.get("hidden") == "no" else "no")
+        caption = next(l for l in le.findall("positionablelabel") if l.get("text") == "HART RAILROAD")
+        caption.set("size", "20")
+        le.set("mainlinetrackwidth", "9")
+        path = write(root, self.dir)
+        run(path, reference=reference)
+        after = tables.layout_editor(tables.read(path))
+        self.assertEqual(mast.get("hidden"), after.find("signalmasticon").get("hidden"))
+        self.assertEqual("20", next(l for l in after.findall("positionablelabel")
+                                    if l.get("text") == "HART RAILROAD").get("size"))
+        self.assertEqual("9", after.get("mainlinetrackwidth"))
+
     def test_the_cluster_lamps_are_left_alone(self) -> None:
         root = copy.deepcopy(FIXTURE)
         le = tables.layout_editor(root)
@@ -211,9 +262,16 @@ class Refusals(unittest.TestCase):
             polish.repair(write(FIXTURE, self.dir), check=True,
                           reference=write(self.unmarked(), self.dir, "hand.xml"))
 
-    def test_tables_with_the_dispatcher_system_parked_are_refused(self) -> None:
+    def test_tables_with_the_dispatcher_system_parked_are_refused_by_repair_and_skipped_by_main(self) -> None:
         with self.assertRaisesRegex(ValueError, "Dispatcher System is parked"):
             polish.repair(paths.REPO_TABLES_XML, check=True)
+        for argv in (["--check"], []):
+            with self.subTest(argv=argv), mock.patch.object(polish.paths, "exit_if_overridden"), \
+                    mock.patch.object(polish.tables.Tables, "save", side_effect=AssertionError("written")), \
+                    mock.patch.object(sys, "argv", ["polish", "--panel", str(paths.REPO_TABLES_XML), *argv]), \
+                    contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(0, polish.main())
+            self.assertIn("SKIPPED: the Dispatcher System is parked", out.getvalue())
 
     def test_a_doubled_marker_stops(self) -> None:
         root = copy.deepcopy(FIXTURE)
@@ -225,7 +283,7 @@ class Refusals(unittest.TestCase):
         path = write(FIXTURE, self.dir)
         hand = write(self.unmarked(), self.dir, "hand.xml")
         for argv, said in ((["--panel", str(path), "--check", "--reference", str(hand)], "not a generated one"),
-                           (["--panel", str(paths.REPO_TABLES_XML), "--check"], "Dispatcher System is parked")):
+                           (["--panel", str(hand), "--check"], "not a generated one")):
             with self.subTest(said=said), mock.patch.object(sys, "argv", ["polish", *argv]), \
                     contextlib.redirect_stdout(io.StringIO()) as out:
                 self.assertEqual(1, polish.main())
@@ -237,26 +295,6 @@ class Refusals(unittest.TestCase):
                 contextlib.redirect_stdout(io.StringIO()) as out:
             self.assertEqual(1, polish.main())
         self.assertIn("not changed: save refused", out.getvalue())
-
-
-class BlockContents(unittest.TestCase):
-    def test_labels_go_on_the_label_layer_in_black_and_the_plugins_font_stays(self) -> None:
-        le = ET.fromstring(
-            '<LayoutEditor name="HART Railroad">'
-            '<BlockContentsIcon blockcontents="Track West Ext" x="1394" y="232" level="0" fontFamily="Lucida Grande" '
-            'fontname="LucidaGrande-Bold" size="12" red="51" green="51" blue="51" />'
-            '<BlockContentsIcon blockcontents="Track K-1" x="10" y="20" level="4" fontFamily="Dialog" '
-            'fontname="Dialog" red="0" green="0" blue="0" />'
-            "</LayoutEditor>")
-        self.assertEqual(6, len(polish.ensure_block_contents_visible(le, check=True)[1]))
-        changes, errors = polish.ensure_block_contents_visible(le, check=False, spots={"Track K-1": (30, 40)})
-        self.assertEqual((7, []), (changes, errors))
-        west, k1 = le
-        self.assertEqual(("4", "0"), (west.get("level"), west.get("red")))
-        self.assertNotIn("fontFamily", west.attrib)
-        self.assertNotIn("fontname", west.attrib)
-        self.assertEqual(("Dialog", "30", "40"), (k1.get("fontFamily"), k1.get("x"), k1.get("y")))
-        self.assertEqual((0, []), polish.ensure_block_contents_visible(le, check=True, spots={"Track K-1": (30, 40)}))
 
 
 class Lamps(unittest.TestCase):

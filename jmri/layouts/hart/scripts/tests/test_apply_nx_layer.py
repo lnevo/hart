@@ -122,8 +122,8 @@ class Slots(unittest.TestCase):
 
     def test_a_panel_that_is_not_generated_is_refused(self) -> None:
         apply_nx = _load("apply_nx_layer")
-        with self.assertRaisesRegex(SystemExit, "not a generated one"):
-            apply_nx.apply_text(self.PANEL.replace(MARKER, ""), mode="sml")
+        with self.assertRaisesRegex(SystemExit, "^x.xml: the 'HART Railroad' panel is not a generated one"):
+            apply_nx.apply_text(self.PANEL.replace(MARKER, ""), mode="sml", what="x.xml")
         # the marker text anywhere else (a comment) does not make the panel generated
         quoted = self.PANEL.replace(MARKER, f"<!-- {tables.GENERATED_PANEL_MARKER} -->")
         with self.assertRaisesRegex(SystemExit, "not a generated one"):

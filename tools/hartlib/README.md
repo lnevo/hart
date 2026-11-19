@@ -98,7 +98,8 @@ Lookups (all take the root element unless noted):
 | `layout_editors` | every Layout Editor panel |
 | `generated_panel(panel)` | True when the panel holds the hidden marker label a generated panel carries (`build_layout_le.py --as-live`); two markers raise ValueError |
 | `generated_marker_label()`, `GENERATED_PANEL_MARKER` | that label and its text |
-| `path_has_generated_panel(path)` | True when the main panel of the tables file at `path` is a generated one |
+| `require_generated(panel, what)`, `require_generated_panel(root, what)` | the (main) panel when it is a generated one; else ValueError naming `what` |
+| `ensure_block_contents_visible(le, check=, spots=)`, `BCI_*` | block contents labels on level 4 in black, the plugin's font kept, optionally at given spots |
 | `layout_turnouts(panel)` | `<layoutturnout>` (turnouts and crossovers) on a panel |
 | `continuing_sense(lt)` | `CLOSED` (2), `THROWN` (4) or `UNKNOWN` (1) |
 | `mast_logics`, `mast_logic_sources`, `mast_logic_pairs` | SML elements, source -> element, (source, destination, element) |

@@ -153,7 +153,7 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
         )
         self.assertEqual(ET.tostring(root.find("transits")), transit_before)
 
-        editor = reconciler.main_layout_editor(root)
+        editor = tables.layout_editor(root)
         managed = [
             icon
             for icon in editor.findall("sensoricon")

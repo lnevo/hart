@@ -11,10 +11,16 @@ behind the panel background. This puts them back, taking every position from the
 - each Stage 1 lamp, one per sensor, where that sensor's lamp stands on the ``--reference`` panel; without a
   reference where the panel's own one lamp stands; else at the computed spot (the turnout circle's centre, or the
   middle of the track), printed as a note. A missing switch OS lamp (OS_OCCUPANCY_ICONS) is added;
+- with ``--reference``, a Stage 1 lamp on a sensor the reference panel shows no lamp for is removed: Stage 1 adds one
+  on every block sensor, the main and upper levels' too, and the panel shows only the ones the build gave it;
 - every lamp display only (a click must never set occupancy).
 
+Nothing else on the panel changes at Stage 1 (stock CreateIcons.removeIconsAndLabels and addIcons): it leaves the
+mast icons, the captions and the panel's attributes alone, so they keep what the build gave them.
+
 The level-12 lamps of the Dispatcher station clusters belong to reconcile_dispatcher_stations.py and are left alone.
-The main panel must be a generated one (it holds hartlib.tables.GENERATED_PANEL_MARKER), and so must the reference's.
+The main panel must be a generated one (hartlib.tables.require_generated_panel), and so must the reference's. Tables
+whose Dispatcher System is parked hold no Stage 1 to repair after: the run prints SKIPPED and changes nothing.
 The writable source is ``jmri/layouts/hart/output/tables.xml``.
 """
 
@@ -57,79 +63,7 @@ OS_OCCUPANCY_ICONS = (
 # The Dispatcher station clusters' lamps (reconcile_dispatcher_stations.py) stand on this level; Stage 1's on 10.
 CLUSTER_LAMP_LEVEL = "12"
 
-# Layout Editor draws tracks at level 3. Labels at 4 sit on top. Level 0 is
-# behind the panel background, so BlockContentsIcon text never shows.
-BCI_LEVEL = "4"
-BCI_COLOR = ("0", "0", "0")
-BCI_DROP_FONT_ATTRS = ("fontFamily", "fontname")
-# The font the schematic-maps plugin names on a generated panel's block contents icons (and JMRI's default), so its
-# label layer's sizes are the ones JMRI draws: kept there, any other font dropped.
-GENERATED_BCI_FONT = "Dialog"
-
 LAMP_SIZE = 10  # circuit-*.gif is 10x10; x/y is its top-left corner
-
-
-def main_panel(root: ET.Element, what: str = "the tables") -> ET.Element:
-    """The generated "HART Railroad" panel of `root`; ValueError naming `what` when it has none or the panel is not
-    a generated one."""
-    le = tables.layout_editor(root)
-    if le is None:
-        raise ValueError(f"{what}: no main Layout Editor panel ({', '.join(tables.MAIN_PANEL_NAMES)})")
-    if not tables.generated_panel(le):
-        raise ValueError(f"{what}: the {le.get('name')!r} panel is not a generated one "
-                         "(tools/schematic/build_layout_le.py --as-live)")
-    return le
-
-
-def ensure_block_contents_visible(
-    le: ET.Element, *, check: bool, spots: dict[str, tuple[int, int]] | None = None
-) -> tuple[int, list[str]]:
-    """Put block-value labels on the label layer with black text in the plugin's font (GENERATED_BCI_FONT) or JMRI's
-    default; `spots` pins those blocks' labels to their (x, y) (the --reference panel's)."""
-    changes = 0
-    errors: list[str] = []
-    spots = spots or {}
-    for icon in le.findall("BlockContentsIcon"):
-        name = icon.get("blockcontents") or "?"
-        if icon.get("level") != BCI_LEVEL:
-            if check:
-                errors.append(f"BlockContentsIcon {name!r} level={icon.get('level')!r}, expected {BCI_LEVEL}")
-            else:
-                icon.set("level", BCI_LEVEL)
-                changes += 1
-        for attr, value in zip(("red", "green", "blue"), BCI_COLOR, strict=True):
-            if icon.get(attr) == value:
-                continue
-            if check:
-                errors.append(f"BlockContentsIcon {name!r} {attr}={icon.get(attr)!r}, expected {value!r}")
-            else:
-                icon.set(attr, value)
-                changes += 1
-        for attr in BCI_DROP_FONT_ATTRS:
-            if attr not in icon.attrib or icon.get(attr) == GENERATED_BCI_FONT:
-                continue
-            if check:
-                errors.append(f"BlockContentsIcon {name!r} still has {attr}")
-            else:
-                del icon.attrib[attr]
-                changes += 1
-        if name in spots:
-            x, y = spots[name]
-            if not (_same_number(icon.get("x"), x) and _same_number(icon.get("y"), y)):
-                if check:
-                    errors.append(f"BlockContentsIcon {name!r} at ({icon.get('x')}, {icon.get('y')}), "
-                                  f"expected ({x}, {y})")
-                else:
-                    _set_xy(icon, x, y)
-                    changes += 1
-    return changes, errors
-
-
-def _same_number(stored: str | None, wanted: int) -> bool:
-    try:
-        return float(stored or "") == float(wanted)
-    except ValueError:
-        return False
 
 
 def _set_xy(el: ET.Element, x: int, y: int) -> None:
@@ -308,7 +242,7 @@ def reference_panel(path: Path | None) -> ET.Element | None:
         root = tables.read(path)
     except (OSError, ET.ParseError) as exc:
         raise ValueError(f"--reference {path}: {exc}") from None
-    return main_panel(root, f"--reference {path}")
+    return tables.require_generated_panel(root, f"--reference {path}")
 
 
 def lamp_targets(
@@ -384,7 +318,7 @@ def place_stage1_lamps(
         if name not in targets:
             continue
         x, y = targets[name]
-        on_spot = [i for i in icons if _same_number(i.get("x"), x) and _same_number(i.get("y"), y)]
+        on_spot = [i for i in icons if tables.same_number(i.get("x"), x) and tables.same_number(i.get("y"), y)]
         keep = on_spot[0] if on_spot else icons[0]
         for extra in icons:
             if extra is keep:
@@ -404,19 +338,45 @@ def place_stage1_lamps(
     return changes, errors
 
 
+def drop_lamps_not_on(le: ET.Element, reference: ET.Element, *, check: bool) -> tuple[int, list[str]]:
+    """Remove each Stage 1 lamp whose sensor has no Stage 1 lamp on the `reference` panel (Stage 1 adds one on every
+    block sensor); a switch OS lamp (OS_OCCUPANCY_ICONS) always stays."""
+    keep = set(_stage1_lamps(reference)) | set(OS_OCCUPANCY_ICONS)
+    changes, errors = 0, []
+    for name, icons in _stage1_lamps(le).items():
+        if name in keep:
+            continue
+        if check:
+            errors.append(f"{name}: {len(icons)} Stage 1 lamp(s), none on the reference panel")
+            continue
+        for icon in icons:
+            le.remove(icon)
+            changes += 1
+    return changes, errors
+
+
+def dispatcher_parked(root: ET.Element) -> bool:
+    """True when these tables leave the Dispatcher System out (hartlib.parked): no Stage 1 to repair after."""
+    return "dispatcher" in parked.parked_in(root)
+
+
 def repair(path: Path, *, check: bool = False, reference: Path | None = None) -> tuple[int, list[str]]:
     """(changes, errors) of putting the panel in `path` back after Stage 1 (module docstring); --check writes
     nothing. ValueError when the panel or the reference's is not generated, or the tables hold no Dispatcher
     System (parked: no Stage 1 to repair after)."""
     doc = tables.load(path)
     root = doc.root
-    le = main_panel(root, path.name)
-    if "dispatcher" in parked.parked_in(root):
+    le = tables.require_generated_panel(root, path.name)
+    if dispatcher_parked(root):
         raise ValueError(f"{path.name}: the Dispatcher System is parked in these tables (hartlib.parked), so there "
                          "is no Stage 1 to repair after")
     ref = reference_panel(reference)
-    changes, errors = ensure_block_contents_visible(le, check=check, spots=bci_spots(ref))
+    changes, errors = tables.ensure_block_contents_visible(le, check=check, spots=bci_spots(ref))
     errors = [f"{path.name}: {e}" for e in errors]
+    if ref is not None:
+        n, errs = drop_lamps_not_on(le, ref, check=check)
+        changes += n
+        errors.extend(f"{path.name}: {e}" for e in errs)
     targets, notes = lamp_targets(root, le, ref)
     for note in notes:
         print(f"note: {path.name}: {note}")
@@ -445,6 +405,15 @@ def main() -> int:
     path = args.panel.resolve()
     if not path.is_file():
         print(f"FAIL\n  - missing {path}")
+        return 1
+    try:
+        if dispatcher_parked(tables.read(path)):
+            # as reconcile_dispatcher_stations.py: parked, there is no Stage 1 to repair after
+            print(f"SKIPPED: the Dispatcher System is parked (hartlib.parked.PARKED); {path.name} holds no Stage 1 "
+                  "lamps to repair")
+            return 0
+    except (OSError, ET.ParseError) as exc:
+        print(f"FAIL\n  - {path}: {exc}")
         return 1
     try:
         changes, errors = repair(path, check=args.check, reference=args.reference)

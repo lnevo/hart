@@ -28,21 +28,21 @@ def marked() -> ET.ElementTree:
 
 def unmarked() -> ET.ElementTree:
     tree = marked()
-    le = reconciler.main_layout_editor(tree.getroot())
+    le = tables.layout_editor(tree.getroot())
     le.remove(le.find(f"positionablelabel[@text='{tables.GENERATED_PANEL_MARKER}']"))
     return tree
 
 
 def clusters(root: ET.Element) -> dict[str, list[tuple]]:
     out: dict[str, list[tuple]] = {}
-    for icon in reconciler.main_layout_editor(root).findall("sensoricon"):
+    for icon in tables.layout_editor(root).findall("sensoricon"):
         if icon.get("level") == reconciler.CLUSTER_LEVEL:
             out.setdefault(icon.get("sensor"), []).append((icon.get("x"), icon.get("y")))
     return out
 
 
 def shift_clusters(root: ET.Element, dx: int = 40) -> None:
-    for icon in reconciler.main_layout_editor(root).findall("sensoricon"):
+    for icon in tables.layout_editor(root).findall("sensoricon"):
         if icon.get("level") == reconciler.CLUSTER_LEVEL:
             icon.set("x", str(int(icon.get("x")) + dx))
 
@@ -53,7 +53,7 @@ class GeneratedStationsTest(unittest.TestCase):
         check keeps them as they are."""
         tree = marked()
         reconciler.reconcile(tree)                           # the build's clusters, as they stand
-        editor = reconciler.main_layout_editor(tree.getroot())
+        editor = tables.layout_editor(tree.getroot())
         for icon in editor.findall("sensoricon"):
             if (icon.get("sensor") or "").startswith(("MoveTo", "MoveInProgress")):
                 attrs = dict(reversed(list(icon.attrib.items())), editable="false")
@@ -72,13 +72,13 @@ class GeneratedStationsTest(unittest.TestCase):
         shift_clusters(tree.getroot())
         before = clusters(tree.getroot())
         # a button that reads "Track K-1" is rewritten in place to "K-1" (owner, 2026-11-16)
-        le = reconciler.main_layout_editor(tree.getroot())
+        le = tables.layout_editor(tree.getroot())
         button = next(i for i in le.findall("sensoricon") if i.get("sensor") == "MoveToTrack_K-1_stored")
         button.set("text", "Track K-1")
         changes = reconciler.reconcile(tree)
         self.assertEqual(["reconciled icon MoveToTrack_K-1_stored"], changes.details)
         self.assertEqual(before, clusters(tree.getroot()))
-        for icon in reconciler.main_layout_editor(tree.getroot()).findall("sensoricon"):
+        for icon in tables.layout_editor(tree.getroot()).findall("sensoricon"):
             if (icon.get("sensor") or "").startswith("MoveTo"):
                 self.assertFalse((icon.get("text") or "").startswith("Track "), icon.get("sensor"))
         changes = reconciler.reconcile(tree)
@@ -94,14 +94,14 @@ class GeneratedStationsTest(unittest.TestCase):
         reconciler.reconcile(reference)
         tree = copy.deepcopy(reference)
         shift_clusters(tree.getroot())
-        ref_le = reconciler.main_layout_editor(reference.getroot())
+        ref_le = tables.layout_editor(reference.getroot())
         changes = reconciler.reconcile(tree, ref_le)
         self.assertGreater(changes.total, 0)
         self.assertEqual(clusters(reference.getroot()), clusters(tree.getroot()))
 
     def test_an_icon_missing_from_the_reference_keeps_the_panels_own_copy(self) -> None:
         reference = marked()
-        ref_le = reconciler.main_layout_editor(reference.getroot())
+        ref_le = tables.layout_editor(reference.getroot())
         for icon in list(ref_le.findall("sensoricon")):
             if icon.get("sensor") == "MoveToTrack_K-1_stored":
                 ref_le.remove(icon)
@@ -115,7 +115,7 @@ class GeneratedStationsTest(unittest.TestCase):
 
     def test_a_moveto_icon_found_nowhere_stops(self) -> None:
         tree = marked()
-        le = reconciler.main_layout_editor(tree.getroot())
+        le = tables.layout_editor(tree.getroot())
         for icon in list(le.findall("sensoricon")):
             if icon.get("sensor") == "MoveToTrack_K-1_stored":
                 le.remove(icon)
@@ -124,7 +124,7 @@ class GeneratedStationsTest(unittest.TestCase):
 
     def test_progress_and_lamp_missing_take_the_offset_from_moveto(self) -> None:
         tree = marked()
-        le = reconciler.main_layout_editor(tree.getroot())
+        le = tables.layout_editor(tree.getroot())
         move_to = next(i for i in le.findall("sensoricon") if i.get("sensor") == "MoveToTrack_K-2_stored")
         for icon in list(le.findall("sensoricon")):
             if icon.get("sensor") == "MoveInProgressTrack_K-2":
@@ -135,8 +135,8 @@ class GeneratedStationsTest(unittest.TestCase):
 
     def test_a_reference_that_is_not_generated_is_refused(self) -> None:
         tree = marked()
-        hand = reconciler.main_layout_editor(unmarked().getroot())
-        with self.assertRaisesRegex(ValueError, "--reference: its main panel is not a generated one"):
+        hand = tables.layout_editor(unmarked().getroot())
+        with self.assertRaisesRegex(ValueError, "--reference: the 'HART Railroad' panel is not a generated one"):
             reconciler.reconcile(tree, hand)
 
 

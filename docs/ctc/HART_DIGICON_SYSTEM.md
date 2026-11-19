@@ -29,7 +29,7 @@ Two Digicon desks for Neville Island ops, CATS CTC and CATS ABS, built from one 
 | **CATS CTC** | `cats/panels/HART_CTC.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
 | **CATS ABS** | `cats/panels/HART_ABS.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. |
 
-Both desks are generated from the schematic (`tools/schematic/build_cats_panel.py`, all three levels; owner approved in real CATS on 2026-11-15, live since the CATS cut-over). Never edit a desk by hand: change the schematic, the switch facts or the build, then rebuild. `HART_Digicon.xml` and `wire_digicon.py` built the earlier hand-wired desks; the last of those are in git (`hartlib.hand_drawn`). The retired West Yard sheet scripts are in `archive/cats-scripts/west_yard/`.
+Both desks are generated from the schematic (`tools/schematic/build_cats_panel.py`, all three levels; owner approved in real CATS on 2026-11-15, live since the CATS cut-over). Never edit a desk by hand: change the schematic, the switch facts or the build, then rebuild. `HART_Digicon.xml` and `wire_digicon.py` (now `archive/cats-scripts/wire_digicon.py`) built the earlier hand-wired desks; the last of those are in git history at commit `42192d9c`, before the CATS cut-over (`git show 42192d9c:cats/panels/HART_CTC.xml`). The retired West Yard sheet scripts are in `archive/cats-scripts/west_yard/`.
 
 Each desk carries a publication title row (Y=1):
 
