@@ -12,7 +12,7 @@ The copies had also drifted. The desks held edits that the source did not, so a 
 
 ## Decision
 
-1. `cats/panels/HART_Digicon.xml` is the Designer save and the only panel to edit.
+1. `HART_Digicon.xml` (now `archive/panels/`) is the Designer save and the only panel to edit.
 2. `python3 cats/scripts/wire_digicon.py` writes `HART_CTC.xml` and `HART_ABS.xml`, the CATS CTC and CATS ABS desks. Both are `HOLD_ONLY`.
 3. Nobody edits a desk by hand. A desk change goes in `wire_digicon.py` or `HART_Digicon.xml`.
 

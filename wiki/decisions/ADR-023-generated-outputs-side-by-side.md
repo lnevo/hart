@@ -12,7 +12,7 @@ The schematic-maps plugin's logical view will feed more than the system schemati
 - a regenerated Layout Editor panel, which waits until the schematic is finished.
 
 Each of these has a counterpart in use today:
-- the staging CATS desk: `cats/panels/HART_Digicon.xml`, `HART_CTC.xml` and `HART_ABS.xml`;
+- the staging CATS desk: `cats/panels/HART_CTC.xml` and `HART_ABS.xml` (the hand-drawn `HART_Digicon.xml` is archived);
 - the Layout Editor panel in `jmri/layouts/hart/output/tables.xml`;
 - the hand-drawn crew pages under `www/crew/maps/`.
 
