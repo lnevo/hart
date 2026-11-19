@@ -16,8 +16,6 @@ from xml.sax.saxutils import escape
 
 MAP = Path(__file__).resolve().parent / "provenance.json"
 CLASSES = ("prototype", "fiction", "hobby", "mixed")
-_REDIRECT = re.compile(r'<meta\s+http-equiv="refresh"', re.I)
-_NOINDEX = re.compile(r'<meta\s+name="robots"\s+content="[^"]*noindex', re.I)
 
 # schema.org type and genre per class. Fiction is a CreativeWork; the others are factual articles.
 _SCHEMA = {
@@ -58,13 +56,36 @@ def rule_for(rel: Path, data: dict) -> dict | None:
     return best[1] if best else None
 
 
+class _Meta(HTMLParser):
+    """Whether a page's meta tags redirect it or keep it out of search, in any attribute order or quoting."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.skip = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag != "meta":
+            return
+        a = {k.lower(): (v or "") for k, v in attrs}
+        if a.get("http-equiv", "").lower() == "refresh":
+            self.skip = True
+        elif a.get("name", "").lower() == "robots" and "noindex" in a.get("content", "").lower():
+            self.skip = True
+
+
 def skipped(text: str) -> bool:
     """Redirect stubs and noindex pages carry no content of their own."""
-    return bool(_REDIRECT.search(text) or _NOINDEX.search(text))
+    p = _Meta()
+    p.feed(text)
+    return p.skip
 
 
 def unclassified(pages: dict[Path, str], data: dict) -> list[str]:
+    """Pages with content of their own that no rule covers; pass only the pages to be published."""
     return sorted(rel.as_posix() for rel, text in pages.items() if not skipped(text) and rule_for(rel, data) is None)
+
+
+_BLOCKS = {"p", "div", "section", "article", "footer", "nav", "table", "figure", "aside", "header", "main"}
 
 
 class _Sources(HTMLParser):
@@ -88,6 +109,8 @@ class _Sources(HTMLParser):
                 self._heading = []
         elif tag in ("ul", "ol") and self._armed:
             self._depth += 1
+        elif self._armed and not self._depth and tag in _BLOCKS:
+            self._done = True  # the section is prose, not a list: no citations to read
         elif tag == "li" and self._depth == 1:
             self._item = []
 
@@ -121,7 +144,9 @@ def sources(text: str) -> list[str]:
     return p.items
 
 
-def json_ld(rel: Path, title: str, url: str, desc: str, data: dict, cited: list[str] = ()) -> str:
+def json_ld(rel: Path, title: str, site_url: str, desc: str, data: dict, cited: list[str] = ()) -> str:
+    """The page's JSON-LD; site_url is the public root the build is made for."""
+    url = site_url + url_path(rel)
     rule = rule_for(rel, data)
     if rule is None:
         raise KeyError(f"provenance.json does not classify {rel.as_posix()}")
@@ -147,7 +172,9 @@ def json_ld(rel: Path, title: str, url: str, desc: str, data: dict, cited: list[
             }
             for p in rule["parts"]
         ]
-    citation = list(rule.get("citation", [])) + [c for c in cited if c not in rule.get("citation", [])]
+    # A map citation starting with / is a page on this site.
+    mapped = [site_url + c[1:] if c.startswith("/") else c for c in rule.get("citation", [])]
+    citation = mapped + [c for c in cited if c not in mapped]
     if citation:
         work["citation"] = citation
     page = {
@@ -156,7 +183,7 @@ def json_ld(rel: Path, title: str, url: str, desc: str, data: dict, cited: list[
         "name": title,
         "url": url,
         "description": desc,
-        "isPartOf": {"@type": "WebSite", "name": site["name"], "url": site["url"]},
+        "isPartOf": {"@type": "WebSite", "name": site["name"], "url": site_url},
         "mainEntity": work,
     }
     body = json.dumps(page, ensure_ascii=False, indent=None).replace("</", "<\\/")
@@ -188,7 +215,7 @@ def llms_txt(pages: dict[Path, tuple[str, str]], data: dict, site_url: str) -> s
             extra = (rule.get("note") if own else None) or desc
             if rule.get("parts"):
                 extra = (extra + " " if extra else "") + "Sections: " + "; ".join(f"{p['section']} ({p['class']})" for p in rule["parts"]) + "."
-            line = f"- [{title}]({site_url}{_url_path(rel)})"
+            line = f"- [{title}]({site_url}{url_path(rel)})"
             out.append(f"{line}: {extra}" if extra else line)
         out.append("")
     return "\n".join(out).rstrip() + "\n"
@@ -207,7 +234,7 @@ def robots_txt(site_url: str) -> str:
 
 
 def sitemap_xml(paths: list[Path], site_url: str) -> str:
-    urls = "".join(f"  <url><loc>{escape(site_url + _url_path(p))}</loc></url>\n" for p in sorted(paths))
+    urls = "".join(f"  <url><loc>{escape(site_url + url_path(p))}</loc></url>\n" for p in sorted(paths))
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
@@ -215,10 +242,14 @@ def sitemap_xml(paths: list[Path], site_url: str) -> str:
     )
 
 
-def _url_path(rel: Path) -> str:
-    return "" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html")
+def url_path(rel: Path) -> str:
+    """Site-relative URL of a built page: a folder's index.html is served as the folder."""
+    if rel.name != "index.html":
+        return rel.as_posix()
+    return "" if rel.parent == Path(".") else rel.parent.as_posix() + "/"
 
 
 def page_title(text: str) -> str:
     m = re.search(r"<title>(.*?)</title>", text, re.S)
-    return html.unescape(m.group(1).strip()) if m else ""
+    # Same cleanup as the search index: the site name suffix adds nothing in a list of the site's pages.
+    return re.sub(r"\s+[—-]\s+HART$", "", html.unescape(m.group(1).strip())) if m else ""

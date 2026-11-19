@@ -878,7 +878,7 @@ def _head_tags(rel: Path, title: str, desc: str | None = None) -> str:
     """Icon and share tags; desc is the page's own meta description, which the page already carries."""
     # The 404 page is served for any missing path, so its links start at the site root.
     up = "/" if rel == Path("404.html") else "../" * (len(rel.parts) - 1)
-    url = SITE_URL + ("" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html"))
+    url = SITE_URL + provenance.url_path(rel)
     title = html.escape(title, quote=True)
     # A page with its own description keeps its tag; the share tags repeat it.
     meta_desc = "" if desc is not None else f'\n  <meta name="description" content="{html.escape(SHARE_DESCRIPTION, quote=True)}">'
@@ -947,7 +947,12 @@ def _add_provenance(dest_root: Path) -> list[str]:
     documentation, plus llms.txt, robots.txt and sitemap.xml at the root. Returns the pages
     provenance.json does not classify; the build stops on any."""
     data = provenance.load()
-    pages = {page.relative_to(dest_root): page.read_text(encoding="utf-8") for page in dest_root.rglob("*.html")}
+    # Pages the search index leaves out (the 404 page, the script redirect docs/view.html) stay out here too.
+    pages = {
+        rel: (dest_root / rel).read_text(encoding="utf-8")
+        for rel in (page.relative_to(dest_root) for page in dest_root.rglob("*.html"))
+        if rel.as_posix() not in INDEX_SKIP_PAGES
+    }
     missing = provenance.unclassified(pages, data)
     if missing:
         return missing
@@ -961,8 +966,7 @@ def _add_provenance(dest_root: Path) -> list[str]:
             raise SystemExit(f"{rel}: no </head> or </title> for the provenance JSON-LD")
         title = provenance.page_title(text) or "HART Railroad"
         desc = _own_description(text) or SHARE_DESCRIPTION
-        url = SITE_URL + ("" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html"))
-        tag = provenance.json_ld(rel, title, url, desc, data, provenance.sources(text))
+        tag = provenance.json_ld(rel, title, SITE_URL, desc, data, provenance.sources(text))
         new = text.replace("</head>", tag + "\n</head>", 1) if anchor == "</head>" else text.replace("</title>", "</title>" + tag, 1)
         (dest_root / rel).write_text(new, encoding="utf-8")
         own = _own_description(text)

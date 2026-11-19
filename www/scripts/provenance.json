@@ -1,7 +1,6 @@
 {
   "site": {
     "name": "HART Railroad",
-    "url": "https://www.hartrailroad.com/",
     "summary": "An HO scale model railroad of Neville Island, near Pittsburgh, Pennsylvania. The island, its plants and the railroads that served it are real; the layout's railroad and its operation are invented.",
     "notes": [
       "Real, with sources on the page: Neville Island and its industries, the Pittsburgh & Ohio Valley Railway (P&OV, 1899 to 31 January 1994), the Pittsburgh Industrial Railroad (PIR), the Pittsburgh & Ohio Central (POHC), CSX, Conrail, the Chartiers Valley lines and the Kirwan Heights district.",
@@ -48,14 +47,14 @@
       {"section": "Layout and Rolling stock albums", "class": "hobby"}]},
 
     "history/": {"class": "prototype", "note": "Index of the prototype history articles, each with its sources.", "citation": [
-      "https://www.hartrailroad.com/library/neville-island-coke-cement-chemical-history.html",
-      "https://www.hartrailroad.com/library/pittsburgh-ohio-valley-railway.html",
-      "https://www.hartrailroad.com/library/chartiers-valley-railroads.html"]},
+      "/library/neville-island-coke-cement-chemical-history.html",
+      "/library/pittsburgh-ohio-valley-railway.html",
+      "/library/chartiers-valley-railroads.html"]},
     "plants/": {"class": "prototype", "note": "Ownership chart of the Neville Island plants; the sources are in the linked history article.", "citation": [
-      "https://www.hartrailroad.com/library/neville-island-coke-cement-chemical-history.html"]},
+      "/library/neville-island-coke-cement-chemical-history.html"]},
     "railroads/": {"class": "prototype", "note": "Lineage chart of the real railroads; the closing note about HART's P&CV Division is the layout's story. Sources are in the linked articles.", "citation": [
-      "https://www.hartrailroad.com/library/pittsburgh-ohio-valley-railway.html",
-      "https://www.hartrailroad.com/library/chartiers-valley-railroads.html"]},
+      "/library/pittsburgh-ohio-valley-railway.html",
+      "/library/chartiers-valley-railroads.html"]},
     "articles/": {"class": "mixed", "note": "Index of articles; each card names its kind.", "parts": [
       {"section": "Prototype history and chart cards", "class": "prototype"},
       {"section": "Crew stories", "class": "fiction"},
