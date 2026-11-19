@@ -59,22 +59,28 @@ def build() -> str:
         name = r.user_name
         sw = re.fullmatch(r".*\| Switch (\d+)", r.comment)
         fac = re.fullmatch(r"home signal from (Track .+?)(?: into (OS Switch \d+[a-d]))?", r.notes)
-        sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH\d+\))+)", r.system_name)
         dirm = re.fullmatch(r"Mast \d+([LR])[A-Z]?", name)
+        if r.system_name:
+            sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH\d+\))+)", r.system_name)
+            mast_heads = re.findall(r"\((IH\d+)\)", sysm.group(3)) if sysm else []
+            by = heads
+        else:       # heads not on the draft plant yet (device map HEAD_NOT_WIRED): read them by their virtual names
+            sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH:[^()]+\))+)", r.jmri_name)
+            mast_heads = re.findall(r"\((IH:[^()]+)\)", sysm.group(3)) if sysm else []
+            by = {h.jmri_name: h for h in dm.of("head") if not h.system_name}
         if not (sw and fac and sysm and dirm):
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: comment, notes, system name or name not as expected")
-        mast_heads = re.findall(r"\((IH\d+)\)", sysm.group(3))
-        missing = [h for h in mast_heads if h not in heads]
+        missing = [h for h in mast_heads if h not in by]
         if missing:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: heads {missing} have no head row")
-        sys_name = f"IF$shsm:{sysm.group(1)}:{sysm.group(2)}" + "".join(f"({virtual(heads[h], name)})"
+        sys_name = f"IF$shsm:{sysm.group(1)}:{sysm.group(2)}" + "".join(f"({virtual(by[h], name)})"
                                                                       for h in mast_heads)
         if r.jmri_name != sys_name:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: jmri_name {r.jmri_name!r} is not {sys_name}")
         out_rows.append(dict(
             mast=name, cp=r.cp, switch=sw.group(1), facing=fac.group(1),
             protects=fac.group(2) or f"OS Switch {sw.group(1)}", leg="", system_name=sys_name,
-            head_system_names=";".join(f"{virtual(heads[h], name)}={heads[h].user_name}" for h in mast_heads),
+            head_system_names=";".join(f"{virtual(by[h], name)}={by[h].user_name}" for h in mast_heads),
             device_system_name=r.system_name, _level=r.level))
     pairs = {}
     for r in out_rows:

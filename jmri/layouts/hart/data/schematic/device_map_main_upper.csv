@@ -3,38 +3,38 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,,turnout,DCC Switch 103,MTT121,IT:HART:C3:103,34,121,"Node: 34 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
 2,,turnout,DCC Switch 105,MTT122,IT:HART:C3:105,33,122,"Node: 33 Turnout: 5 | OU: 2 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
 2,CP 107,turnout,DCC Switch 107,MTT123,IT:HART:C3:107,33,123,"Node: 33 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
-2,CP 109,turnout,DCC Switch 109,MTT124,IT:HART:C3:109,33,124,"Node: 33 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
-2,CP 109,turnout,DCC Switch 111,MTT125,IT:HART:C3:111,33,125,"Node: 33 Turnout: 2 | OU: 1 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
+2,CP 107,turnout,DCC Switch 109,MTT124,IT:HART:C3:109,33,124,"Node: 33 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
+2,CP 107,turnout,DCC Switch 111,MTT125,IT:HART:C3:111,33,125,"Node: 33 Turnout: 2 | OU: 1 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
 2,,turnout,DCC Switch 113,MTT126,IT:HART:C3:113,33,126,"Node: 33 Turnout: 6 | OU: 2 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
 2,,turnout,DCC Switch 115,MTT127,IT:HART:C3:115,33,127,"Node: 33 Turnout: 7 | OU: 2 Ports: 7,8",,LCC alias of the MQTT turnout (ADR-005)
-2,CP 109,turnout,DCC Switch 117,MTT128,IT:HART:C3:117,33,128,"Node: 33 Turnout: 3 | OU: 1 Ports: 7,8",,LCC alias of the MQTT turnout (ADR-005)
-2,CP 109,turnout,DCC Switch 119,MTT129,IT:HART:C3:119,33,129,"Node: 33 Turnout: 4 | OU: 2 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
+2,CP 107,turnout,DCC Switch 117,MTT128,IT:HART:C3:117,33,128,"Node: 33 Turnout: 3 | OU: 1 Ports: 7,8",,LCC alias of the MQTT turnout (ADR-005)
+2,CP 107,turnout,DCC Switch 119,MTT129,IT:HART:C3:119,33,129,"Node: 33 Turnout: 4 | OU: 2 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
 2,,turnout,DCC Switch 121,MTT130,IT:HART:C3:121,42,130,"Node: 42 Turnout: 4 | OU: 2 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
 2,,turnout,DCC Switch 123,MTT131,IT:HART:C3:123,42,131,"Node: 42 Turnout: 5 | OU: 2 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
 2,CP 125,turnout,DCC Switch 125,MTT132,IT:HART:C3:125,42,132,"Node: 42 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
 2,CP 125,turnout,DCC Switch 127,MTT133,IT:HART:C3:127,42,133,"Node: 42 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
-2,CP 129,turnout,DCC Switch 129,MTT134,IT:HART:C3:129,42,134,"Node: 42 Turnout: 2 | OU: 1 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
+2,CP 125,turnout,DCC Switch 129,MTT134,IT:HART:C3:129,42,134,"Node: 42 Turnout: 2 | OU: 1 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
 2,,turnout,DCC Switch 131,MTT135,IT:HART:C3:131,42,135,"Node: 42 Turnout: 6 | OU: 2 Ports: 5,6",,LCC alias of the MQTT turnout (ADR-005)
 2,,turnout,DCC Switch 133,MTT136,IT:HART:C3:133,42,136,"Node: 42 Turnout: 7 | OU: 2 Ports: 7,8",,LCC alias of the MQTT turnout (ADR-005)
-2,CP 129,turnout,DCC Switch 135,MTT137,IT:HART:C3:135,42,137,"Node: 42 Turnout: 3 | OU: 1 Ports: 7,8",,LCC alias of the MQTT turnout (ADR-005)
+2,CP 125,turnout,DCC Switch 135,MTT137,IT:HART:C3:135,42,137,"Node: 42 Turnout: 3 | OU: 1 Ports: 7,8",,LCC alias of the MQTT turnout (ADR-005)
 2,,turnout,Switch 101,M2T3408,IT:HART:C3:101,34,120,"Node: 34 Turnout: 0 | OU: 1 Ports: 1,2","Switch 101A, Switch 101B",no control point: Yard throat crossover
 2,,turnout,Switch 103,M2T3409,IT:HART:C3:103,34,121,"Node: 34 Turnout: 1 | OU: 1 Ports: 3,4","Switch 103A, Switch 103B",no control point: Yard throat crossover
 2,,turnout,Switch 105,M2T3313,IT:HART:C3:105,33,122,"Node: 33 Turnout: 5 | OU: 2 Ports: 3,4",Switch 105,no control point: Yard ladder
 2,CP 107,turnout,Switch 107,M2T3308,IT:HART:C3:107,33,123,"Node: 33 Turnout: 0 | OU: 1 Ports: 1,2",Switch 107,
-2,CP 109,turnout,Switch 109,M2T3309,IT:HART:C3:109,33,124,"Node: 33 Turnout: 1 | OU: 1 Ports: 3,4",Switch 109,
-2,CP 109,turnout,Switch 111,M2T3310,IT:HART:C3:111,33,125,"Node: 33 Turnout: 2 | OU: 1 Ports: 5,6",Switch 111,
+2,CP 107,turnout,Switch 109,M2T3309,IT:HART:C3:109,33,124,"Node: 33 Turnout: 1 | OU: 1 Ports: 3,4",Switch 109,
+2,CP 107,turnout,Switch 111,M2T3310,IT:HART:C3:111,33,125,"Node: 33 Turnout: 2 | OU: 1 Ports: 5,6",Switch 111,
 2,,turnout,Switch 113,M2T3314,IT:HART:C3:113,33,126,"Node: 33 Turnout: 6 | OU: 2 Ports: 5,6",Switch 113,no control point: Industry 1 spur
 2,,turnout,Switch 115,M2T3315,IT:HART:C3:115,33,127,"Node: 33 Turnout: 7 | OU: 2 Ports: 7,8",Switch 115,no control point: Industry 1 spur
-2,CP 109,turnout,Switch 117,M2T3311,IT:HART:C3:117,33,128,"Node: 33 Turnout: 3 | OU: 1 Ports: 7,8",Switch 117,
-2,CP 109,turnout,Switch 119,M2T3312,IT:HART:C3:119,33,129,"Node: 33 Turnout: 4 | OU: 2 Ports: 1,2","Switch 119A, Switch 119B",
+2,CP 107,turnout,Switch 117,M2T3311,IT:HART:C3:117,33,128,"Node: 33 Turnout: 3 | OU: 1 Ports: 7,8",Switch 117,
+2,CP 107,turnout,Switch 119,M2T3312,IT:HART:C3:119,33,129,"Node: 33 Turnout: 4 | OU: 2 Ports: 1,2","Switch 119A, Switch 119B",
 2,,turnout,Switch 121,M2T4212,IT:HART:C3:121,42,130,"Node: 42 Turnout: 4 | OU: 2 Ports: 1,2",Switch 121,no control point: Industry 2 spur
 2,,turnout,Switch 123,M2T4213,IT:HART:C3:123,42,131,"Node: 42 Turnout: 5 | OU: 2 Ports: 3,4",Switch 123,no control point: Industry 2 lead off the siding
 2,CP 125,turnout,Switch 125,M2T4208,IT:HART:C3:125,42,132,"Node: 42 Turnout: 0 | OU: 1 Ports: 1,2",Switch 125,
 2,CP 125,turnout,Switch 127,M2T4209,IT:HART:C3:127,42,133,"Node: 42 Turnout: 1 | OU: 1 Ports: 3,4",Switch 127,
-2,CP 129,turnout,Switch 129,M2T4210,IT:HART:C3:129,42,134,"Node: 42 Turnout: 2 | OU: 1 Ports: 5,6","Switch 129A, Switch 129B",
+2,CP 125,turnout,Switch 129,M2T4210,IT:HART:C3:129,42,134,"Node: 42 Turnout: 2 | OU: 1 Ports: 5,6","Switch 129A, Switch 129B",
 2,,turnout,Switch 131,M2T4214,IT:HART:C3:131,42,135,"Node: 42 Turnout: 6 | OU: 2 Ports: 5,6",Switch 131,no control point: Industry 2 spur
 2,,turnout,Switch 133,M2T4215,IT:HART:C3:133,42,136,"Node: 42 Turnout: 7 | OU: 2 Ports: 7,8",Switch 133,no control point: Industry 2 spurs
-2,CP 129,turnout,Switch 135,M2T4211,IT:HART:C3:135,42,137,"Node: 42 Turnout: 3 | OU: 1 Ports: 7,8","Switch 135A, Switch 135B",
+2,CP 125,turnout,Switch 135,M2T4211,IT:HART:C3:135,42,137,"Node: 42 Turnout: 3 | OU: 1 Ports: 7,8","Switch 135A, Switch 135B",
 2,,fb,FB Switch 101 N,M2S3467,,34,,Node: 34 Sensor: 0 | IN: 1 Ports: 1,,
 2,,fb,FB Switch 101 R,M2S3468,,34,,Node: 34 Sensor: 1 | IN: 1 Ports: 2,,
 2,,fb,FB Switch 103 N,M2S3469,,34,,Node: 34 Sensor: 2 | IN: 1 Ports: 3,,
@@ -43,18 +43,18 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,,fb,FB Switch 105 R,M2S3378,,33,,Node: 33 Sensor: 11 | IN: 2 Ports: 4,,
 2,CP 107,fb,FB Switch 107 N,M2S3367,,33,,Node: 33 Sensor: 0 | IN: 1 Ports: 1,,
 2,CP 107,fb,FB Switch 107 R,M2S3368,,33,,Node: 33 Sensor: 1 | IN: 1 Ports: 2,,
-2,CP 109,fb,FB Switch 109 N,M2S3369,,33,,Node: 33 Sensor: 2 | IN: 1 Ports: 3,,
-2,CP 109,fb,FB Switch 109 R,M2S3370,,33,,Node: 33 Sensor: 3 | IN: 1 Ports: 4,,
-2,CP 109,fb,FB Switch 111 N,M2S3371,,33,,Node: 33 Sensor: 4 | IN: 1 Ports: 5,,
-2,CP 109,fb,FB Switch 111 R,M2S3372,,33,,Node: 33 Sensor: 5 | IN: 1 Ports: 6,,
+2,CP 107,fb,FB Switch 109 N,M2S3369,,33,,Node: 33 Sensor: 2 | IN: 1 Ports: 3,,
+2,CP 107,fb,FB Switch 109 R,M2S3370,,33,,Node: 33 Sensor: 3 | IN: 1 Ports: 4,,
+2,CP 107,fb,FB Switch 111 N,M2S3371,,33,,Node: 33 Sensor: 4 | IN: 1 Ports: 5,,
+2,CP 107,fb,FB Switch 111 R,M2S3372,,33,,Node: 33 Sensor: 5 | IN: 1 Ports: 6,,
 2,,fb,FB Switch 113 N,M2S3379,,33,,Node: 33 Sensor: 12 | IN: 2 Ports: 5,,
 2,,fb,FB Switch 113 R,M2S3380,,33,,Node: 33 Sensor: 13 | IN: 2 Ports: 6,,
 2,,fb,FB Switch 115 N,M2S3381,,33,,Node: 33 Sensor: 14 | IN: 2 Ports: 7,,
 2,,fb,FB Switch 115 R,M2S3382,,33,,Node: 33 Sensor: 15 | IN: 2 Ports: 8,,
-2,CP 109,fb,FB Switch 117 N,M2S3373,,33,,Node: 33 Sensor: 6 | IN: 1 Ports: 7,,
-2,CP 109,fb,FB Switch 117 R,M2S3374,,33,,Node: 33 Sensor: 7 | IN: 1 Ports: 8,,
-2,CP 109,fb,FB Switch 119 N,M2S3375,,33,,Node: 33 Sensor: 8 | IN: 2 Ports: 1,,
-2,CP 109,fb,FB Switch 119 R,M2S3376,,33,,Node: 33 Sensor: 9 | IN: 2 Ports: 2,,
+2,CP 107,fb,FB Switch 117 N,M2S3373,,33,,Node: 33 Sensor: 6 | IN: 1 Ports: 7,,
+2,CP 107,fb,FB Switch 117 R,M2S3374,,33,,Node: 33 Sensor: 7 | IN: 1 Ports: 8,,
+2,CP 107,fb,FB Switch 119 N,M2S3375,,33,,Node: 33 Sensor: 8 | IN: 2 Ports: 1,,
+2,CP 107,fb,FB Switch 119 R,M2S3376,,33,,Node: 33 Sensor: 9 | IN: 2 Ports: 2,,
 2,,fb,FB Switch 121 N,M2S4275,,42,,Node: 42 Sensor: 8 | IN: 2 Ports: 1,,
 2,,fb,FB Switch 121 R,M2S4276,,42,,Node: 42 Sensor: 9 | IN: 2 Ports: 2,,
 2,,fb,FB Switch 123 N,M2S4277,,42,,Node: 42 Sensor: 10 | IN: 2 Ports: 3,,
@@ -63,88 +63,88 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 125,fb,FB Switch 125 R,M2S4268,,42,,Node: 42 Sensor: 1 | IN: 1 Ports: 2,,
 2,CP 125,fb,FB Switch 127 N,M2S4269,,42,,Node: 42 Sensor: 2 | IN: 1 Ports: 3,,
 2,CP 125,fb,FB Switch 127 R,M2S4270,,42,,Node: 42 Sensor: 3 | IN: 1 Ports: 4,,
-2,CP 129,fb,FB Switch 129 N,M2S4271,,42,,Node: 42 Sensor: 4 | IN: 1 Ports: 5,,
-2,CP 129,fb,FB Switch 129 R,M2S4272,,42,,Node: 42 Sensor: 5 | IN: 1 Ports: 6,,
+2,CP 125,fb,FB Switch 129 N,M2S4271,,42,,Node: 42 Sensor: 4 | IN: 1 Ports: 5,,
+2,CP 125,fb,FB Switch 129 R,M2S4272,,42,,Node: 42 Sensor: 5 | IN: 1 Ports: 6,,
 2,,fb,FB Switch 131 N,M2S4279,,42,,Node: 42 Sensor: 12 | IN: 2 Ports: 5,,
 2,,fb,FB Switch 131 R,M2S4280,,42,,Node: 42 Sensor: 13 | IN: 2 Ports: 6,,
 2,,fb,FB Switch 133 N,M2S4281,,42,,Node: 42 Sensor: 14 | IN: 2 Ports: 7,,
 2,,fb,FB Switch 133 R,M2S4282,,42,,Node: 42 Sensor: 15 | IN: 2 Ports: 8,,
-2,CP 129,fb,FB Switch 135 N,M2S4273,,42,,Node: 42 Sensor: 6 | IN: 1 Ports: 7,,
-2,CP 129,fb,FB Switch 135 R,M2S4274,,42,,Node: 42 Sensor: 7 | IN: 1 Ports: 8,,
+2,CP 125,fb,FB Switch 135 N,M2S4273,,42,,Node: 42 Sensor: 6 | IN: 1 Ports: 7,,
+2,CP 125,fb,FB Switch 135 R,M2S4274,,42,,Node: 42 Sensor: 7 | IN: 1 Ports: 8,,
 2,,block,OS Switch 101,,,,,Peninsula,OS Switch 101,no detector: off the main line
 2,,block,OS Switch 103,,,,,Peninsula,OS Switch 103,no detector: off the main line
 2,,block,OS Switch 105,,,,,West,OS Switch 105,no detector: off the main line
 2,CP 107,block,OS Switch 107,,,33,,CP 107,OS Switch 107,
-2,CP 109,block,OS Switch 109,,,33,,CP 109,OS Switch 109,
-2,CP 109,block,OS Switch 111,,,33,,CP 109,OS Switch 111,
+2,CP 107,block,OS Switch 109,,,33,,CP 107,OS Switch 109,
+2,CP 107,block,OS Switch 111,,,33,,CP 107,OS Switch 111,
 2,,block,OS Switch 113,,,,,West,OS Switch 113,no detector: off the main line
 2,,block,OS Switch 115,,,,,West,OS Switch 115,no detector: off the main line
-2,CP 109,block,OS Switch 117,,,33,,CP 109,OS Switch 117,
-2,CP 109,block,OS Switch 119,,,33,,CP 109,OS Switch 119,
+2,CP 107,block,OS Switch 117,,,33,,CP 107,OS Switch 117,
+2,CP 107,block,OS Switch 119,,,33,,CP 107,OS Switch 119,
 2,,block,OS Switch 121,,,,,North,OS Switch 121,no detector: off the main line
 2,,block,OS Switch 123,,,,,North,OS Switch 123,no detector: off the main line
 2,CP 125,block,OS Switch 125,,,42,,CP 125,OS Switch 125,
 2,CP 125,block,OS Switch 127,,,42,,CP 125,OS Switch 127,
-2,CP 129,block,OS Switch 129,,,42,,CP 129,OS Switch 129,
+2,CP 125,block,OS Switch 129,,,42,,CP 125,OS Switch 129,
 2,,block,OS Switch 131,,,,,North,OS Switch 131,no detector: off the main line
 2,,block,OS Switch 133,,,,,North,OS Switch 133,no detector: off the main line
-2,CP 129,block,OS Switch 135,,,42,,CP 129,OS Switch 135,
+2,CP 125,block,OS Switch 135,,,42,,CP 125,OS Switch 135,
 2,,block,Track 101 Spur 1,,,,,,Track e25,63.1 cm no detector: off the main line
 2,,block,Track 101 Spur 2,,,,,,Track e32,99.0 cm no detector: off the main line
 2,,block,Track 101-103,,,,,,Track e28,"3.4 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 109,block,Track 101-111,,,,,CP 109,Track e24,398.1 cm no detector: off the main line
+2,CP 107,block,Track 101-111,,,,,CP 107,Track e24,398.1 cm no detector: off the main line
 2,,block,Track 103 Spur,,,,,,Track e31,111.1 cm no detector: off the main line
 2,,block,Track 103-105 1,,,,,,Track e22,318.6 cm no detector: off the main line
 2,,block,Track 103-105 2,,,,,,Track e21,361.3 cm no detector: off the main line
-2,CP 109,block,Track 105-109,,,,,CP 109,Track e20,"21.5 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 107,block,Track 105-109,,,,,CP 107,Track e20,"21.5 cm short link: inside the OS blocks of its switches, no detector"
 2,CP 107,block,Track 107 Loop 1,,,,,CP 107,Track e33 1,"388.5 cm, half of the balloon loop from leg B"
 2,CP 107,block,Track 107 Loop 2,,,,,CP 107,Track e33 2,"388.5 cm, half of the balloon loop from leg C"
-2,CP 107,block,Track 107-109,,,,,CP 107 / CP 109,Track e19,99.9 cm
-2,CP 109,block,Track 109-111,,,,,CP 109,Track e18,"24.2 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 109,block,Track 111-117,,,,,CP 109,Track e23,"11.1 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 107,block,Track 107-109,,,,,CP 107,Track e19,99.9 cm
+2,CP 107,block,Track 109-111,,,,,CP 107,Track e18,"24.2 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 107,block,Track 111-117,,,,,CP 107,Track e23,"11.1 cm short link: inside the OS blocks of its switches, no detector"
 2,,block,Track 113 Spur 1,,,,,,Track e12,55.0 cm no detector: off the main line
 2,,block,Track 113 Spur 2,,,,,,Track e13,108.2 cm no detector: off the main line
 2,,block,Track 113-115,,,,,,Track e11,44.2 cm no detector: off the main line
 2,,block,Track 115 Spur,,,,,,Track e15,76.5 cm no detector: off the main line
-2,CP 109,block,Track 115-117,,,,,CP 109,Track e14,"24.2 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 109,block,Track 117-119,,,,,CP 109,Track e16,"11.1 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 109,block,Track 119 Spur,,,,,CP 109,Track e8,89.0 cm no detector: off the main line
-2,CP 109,block,Track 119-123,,,,,CP 109,Track e7,158.6 cm no detector: off the main line
-2,CP 109,block,Track 119-125,,,,,CP 109 / CP 125,Track e17,230.0 cm
+2,CP 107,block,Track 115-117,,,,,CP 107,Track e14,"24.2 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 107,block,Track 117-119,,,,,CP 107,Track e16,"11.1 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 107,block,Track 119 Spur,,,,,CP 107,Track e8,89.0 cm no detector: off the main line
+2,CP 107,block,Track 119-123,,,,,CP 107,Track e7,158.6 cm no detector: off the main line
+2,CP 107,block,Track 119-125,,,,,CP 107 / CP 125,Track e17,230.0 cm
 2,,block,Track 121 Spur,,,,,,Track e0,122.3 cm no detector: off the main line
 2,,block,Track 121-123,,,,,,Track e2,"10.7 cm short link: inside the OS blocks of its switches, no detector"
 2,,block,Track 121-131,,,,,,Track e1,87.5 cm no detector: off the main line
 2,CP 125,block,Track 123-125,,,,,CP 125,Track e6,"25.2 cm short link: inside the OS blocks of its switches, no detector"
 2,CP 125,block,Track 125-127,,,,,CP 125,Track e29,"10.5 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 125,block,Track 127-129,,,,,CP 125 / CP 129,Track e30,86.9 cm
+2,CP 125,block,Track 127-129,,,,,CP 125,Track e30,86.9 cm
 2,CP 125,block,Track 127-131,,,,,CP 125,Track e10,"10.7 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 129,block,Track 129-135 1,,,,,CP 129,Track e35,73.6 cm
+2,CP 125,block,Track 129-135 1,,,,,CP 125,Track e35,73.6 cm
 2,,block,Track 131-133,,,,,,Track e3,"10.5 cm short link: inside the OS blocks of its switches, no detector"
 2,,block,Track 133 Spur 1,,,,,,Track e4,69.3 cm no detector: off the main line
 2,,block,Track 133 Spur 2,,,,,,Track e5,70.5 cm no detector: off the main line
-2,CP 129,block,Track 135-H1,,,,,CP 129,Track e34,849.6 cm
+2,CP 125,block,Track 135-H1,,,,,CP 125,Track e34,849.6 cm
 2,,occupancy,BS 101 Spur 1,,IS:HART:C3:B:101_Spur_1,,,,,no detector planned: dark until decided
 2,,occupancy,BS 101 Spur 2,,IS:HART:C3:B:101_Spur_2,,,,,no detector planned: dark until decided
 2,,occupancy,BS 101-103,,IS:HART:C3:B:101-103,,,,,no detector planned: dark until decided
-2,CP 109,occupancy,BS 101-111,,IS:HART:C3:B:101-111,,,,,no detector planned: dark until decided
+2,CP 107,occupancy,BS 101-111,,IS:HART:C3:B:101-111,,,,,no detector planned: dark until decided
 2,,occupancy,BS 103 Spur,,IS:HART:C3:B:103_Spur,,,,,no detector planned: dark until decided
 2,,occupancy,BS 103-105 1,,IS:HART:C3:B:103-105_1,,,,,no detector planned: dark until decided
 2,,occupancy,BS 103-105 2,,IS:HART:C3:B:103-105_2,,,,,no detector planned: dark until decided
-2,CP 109,occupancy,BS 105-109,,IS:HART:C3:B:105-109,,,,,no detector planned: dark until decided
+2,CP 107,occupancy,BS 105-109,,IS:HART:C3:B:105-109,,,,,no detector planned: dark until decided
 2,CP 107,occupancy,BS 107 Loop 1,M2S3305,IS:HART:C3:B:107_Loop_1,33,,Node: 33 Block: 6,,
 2,CP 107,occupancy,BS 107 Loop 2,,IS:HART:C3:B:107_Loop_2,,,,,"detector planned, not wired yet: no node or input (owner, 2026-11-16)"
 2,CP 107,occupancy,BS 107-109,M2S3306,IS:HART:C3:B:107-109,33,,Node: 33 Block: 7,,
-2,CP 109,occupancy,BS 109-111,,IS:HART:C3:B:109-111,,,,,no detector planned: dark until decided
-2,CP 109,occupancy,BS 111-117,,IS:HART:C3:B:111-117,,,,,no detector planned: dark until decided
+2,CP 107,occupancy,BS 109-111,,IS:HART:C3:B:109-111,,,,,no detector planned: dark until decided
+2,CP 107,occupancy,BS 111-117,,IS:HART:C3:B:111-117,,,,,no detector planned: dark until decided
 2,,occupancy,BS 113 Spur 1,,IS:HART:C3:B:113_Spur_1,,,,,no detector planned: dark until decided
 2,,occupancy,BS 113 Spur 2,,IS:HART:C3:B:113_Spur_2,,,,,no detector planned: dark until decided
 2,,occupancy,BS 113-115,,IS:HART:C3:B:113-115,,,,,no detector planned: dark until decided
 2,,occupancy,BS 115 Spur,,IS:HART:C3:B:115_Spur,,,,,no detector planned: dark until decided
-2,CP 109,occupancy,BS 115-117,,IS:HART:C3:B:115-117,,,,,no detector planned: dark until decided
-2,CP 109,occupancy,BS 117-119,,IS:HART:C3:B:117-119,,,,,no detector planned: dark until decided
-2,CP 109,occupancy,BS 119 Spur,,IS:HART:C3:B:119_Spur,,,,,no detector planned: dark until decided
-2,CP 109,occupancy,BS 119-123,,IS:HART:C3:B:119-123,,,,,no detector planned: dark until decided
-2,CP 109,occupancy,BS 119-125,M2S3307,IS:HART:C3:B:119-125,33,,Node: 33 Block: 8,,
+2,CP 107,occupancy,BS 115-117,,IS:HART:C3:B:115-117,,,,,no detector planned: dark until decided
+2,CP 107,occupancy,BS 117-119,,IS:HART:C3:B:117-119,,,,,no detector planned: dark until decided
+2,CP 107,occupancy,BS 119 Spur,,IS:HART:C3:B:119_Spur,,,,,no detector planned: dark until decided
+2,CP 107,occupancy,BS 119-123,,IS:HART:C3:B:119-123,,,,,no detector planned: dark until decided
+2,CP 107,occupancy,BS 119-125,M2S3307,IS:HART:C3:B:119-125,33,,Node: 33 Block: 8,,
 2,,occupancy,BS 121 Spur,,IS:HART:C3:B:121_Spur,,,,,no detector planned: dark until decided
 2,,occupancy,BS 121-123,,IS:HART:C3:B:121-123,,,,,no detector planned: dark until decided
 2,,occupancy,BS 121-131,,IS:HART:C3:B:121-131,,,,,no detector planned: dark until decided
@@ -152,67 +152,68 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 125,occupancy,BS 125-127,,IS:HART:C3:B:125-127,,,,,no detector planned: dark until decided
 2,CP 125,occupancy,BS 127-129,M2S4204,IS:HART:C3:B:127-129,42,,Node: 42 Block: 5,,
 2,CP 125,occupancy,BS 127-131,,IS:HART:C3:B:127-131,,,,,no detector planned: dark until decided
-2,CP 129,occupancy,BS 129-135 1,M2S4205,IS:HART:C3:B:129-135_1,42,,Node: 42 Block: 6,,
+2,CP 125,occupancy,BS 129-135 1,M2S4205,IS:HART:C3:B:129-135_1,42,,Node: 42 Block: 6,,
 2,,occupancy,BS 131-133,,IS:HART:C3:B:131-133,,,,,no detector planned: dark until decided
 2,,occupancy,BS 133 Spur 1,,IS:HART:C3:B:133_Spur_1,,,,,no detector planned: dark until decided
 2,,occupancy,BS 133 Spur 2,,IS:HART:C3:B:133_Spur_2,,,,,no detector planned: dark until decided
-2,CP 129,occupancy,BS 135-H1,M2S4206,IS:HART:C3:B:135-H1,42,,Node: 42 Block: 7,,
+2,CP 125,occupancy,BS 135-H1,M2S4206,IS:HART:C3:B:135-H1,42,,Node: 42 Block: 7,,
 2,,occupancy,BS Switch 101,,IS:HART:C3:B:OS101,,,,,no detector planned: dark until decided
 2,,occupancy,BS Switch 103,,IS:HART:C3:B:OS103,,,,,no detector planned: dark until decided
 2,,occupancy,BS Switch 105,,IS:HART:C3:B:OS105,,,,,no detector planned: dark until decided
 2,CP 107,occupancy,BS Switch 107,M2S3300,IS:HART:C3:B:OS107,33,,Node: 33 Block: 1,,
-2,CP 109,occupancy,BS Switch 109,M2S3301,IS:HART:C3:B:OS109,33,,Node: 33 Block: 2,,
-2,CP 109,occupancy,BS Switch 111,M2S3302,IS:HART:C3:B:OS111,33,,Node: 33 Block: 3,,
+2,CP 107,occupancy,BS Switch 109,M2S3301,IS:HART:C3:B:OS109,33,,Node: 33 Block: 2,,
+2,CP 107,occupancy,BS Switch 111,M2S3302,IS:HART:C3:B:OS111,33,,Node: 33 Block: 3,,
 2,,occupancy,BS Switch 113,,IS:HART:C3:B:OS113,,,,,no detector planned: dark until decided
 2,,occupancy,BS Switch 115,,IS:HART:C3:B:OS115,,,,,no detector planned: dark until decided
-2,CP 109,occupancy,BS Switch 117,M2S3303,IS:HART:C3:B:OS117,33,,Node: 33 Block: 4,,
-2,CP 109,occupancy,BS Switch 119,M2S3304,IS:HART:C3:B:OS119,33,,Node: 33 Block: 5,,
+2,CP 107,occupancy,BS Switch 117,M2S3303,IS:HART:C3:B:OS117,33,,Node: 33 Block: 4,,
+2,CP 107,occupancy,BS Switch 119,M2S3304,IS:HART:C3:B:OS119,33,,Node: 33 Block: 5,,
 2,,occupancy,BS Switch 121,,IS:HART:C3:B:OS121,,,,,no detector planned: dark until decided
 2,,occupancy,BS Switch 123,,IS:HART:C3:B:OS123,,,,,no detector planned: dark until decided
 2,CP 125,occupancy,BS Switch 125,M2S4200,IS:HART:C3:B:OS125,42,,Node: 42 Block: 1,,
 2,CP 125,occupancy,BS Switch 127,M2S4201,IS:HART:C3:B:OS127,42,,Node: 42 Block: 2,,
-2,CP 129,occupancy,BS Switch 129,M2S4202,IS:HART:C3:B:OS129,42,,Node: 42 Block: 3,,
+2,CP 125,occupancy,BS Switch 129,M2S4202,IS:HART:C3:B:OS129,42,,Node: 42 Block: 3,,
 2,,occupancy,BS Switch 131,,IS:HART:C3:B:OS131,,,,,no detector planned: dark until decided
 2,,occupancy,BS Switch 133,,IS:HART:C3:B:OS133,,,,,no detector planned: dark until decided
-2,CP 129,occupancy,BS Switch 135,M2S4203,IS:HART:C3:B:OS135,42,,Node: 42 Block: 4,,
-2,CP 107,mast,Mast 108LA,IF$shsm:basic:one-low(IH3332),IF$shsm:basic:one-low(IH:HART:C3:108LA),33,,CP 107 | Switch 107,,home signal from Track 107 Loop 1
-2,CP 107,mast,Mast 108LB,IF$shsm:basic:one-low(IH3333),IF$shsm:basic:one-low(IH:HART:C3:108LB),33,,CP 107 | Switch 107,,home signal from Track 107 Loop 2
-2,CP 107,mast,Mast 108R,IF$shsm:basic:two-searchlight(IH3334)(IH3335),IF$shsm:basic:two-searchlight(IH:HART:C3:108R_Top)(IH:HART:C3:108R_Bottom),33,,CP 107 | Switch 107,,home signal from Track 107-109
-2,CP 109,mast,Mast 110LA,IF$shsm:basic:one-low(IH4332),IF$shsm:basic:one-low(IH:HART:C3:110LA),43,,CP 109 | Switch 109,,home signal from Track 107-109
-2,CP 109,mast,Mast 110LB,IF$shsm:basic:one-low(IH4333),IF$shsm:basic:one-low(IH:HART:C3:110LB),43,,CP 109 | Switch 109,,home signal from Track 105-109
-2,CP 109,mast,Mast 112L,IF$shsm:basic:one-low(IH4334),IF$shsm:basic:one-low(IH:HART:C3:112L),43,,CP 109 | Switch 111,,home signal from Track 101-111
-2,CP 109,mast,Mast 118L,IF$shsm:basic:one-low(IH4335),IF$shsm:basic:one-low(IH:HART:C3:118L),43,,CP 109 | Switch 117,,home signal from Track 115-117
-2,CP 109,mast,Mast 120RA,IF$shsm:basic:one-low(IH4336),IF$shsm:basic:one-low(IH:HART:C3:120RA),43,,CP 109 | Switch 119,,home signal from Track 119-125
-2,CP 109,mast,Mast 120RB,IF$shsm:basic:two-searchlight(IH4337)(IH4338),IF$shsm:basic:two-searchlight(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom),43,,CP 109 | Switch 119,,home signal from Track 119-123
-2,CP 125,mast,Mast 126LA,IF$shsm:basic:one-low(IH4232),IF$shsm:basic:one-low(IH:HART:C3:126LA),42,,CP 125 | Switch 125,,home signal from Track 119-125
-2,CP 125,mast,Mast 126LB,IF$shsm:basic:one-low(IH4233),IF$shsm:basic:one-low(IH:HART:C3:126LB),42,,CP 125 | Switch 125,,home signal from Track 123-125
-2,CP 125,mast,Mast 128RA,IF$shsm:basic:one-low(IH4234),IF$shsm:basic:one-low(IH:HART:C3:128RA),42,,CP 125 | Switch 127,,home signal from Track 127-131
-2,CP 125,mast,Mast 128RB,IF$shsm:basic:one-low(IH4235),IF$shsm:basic:one-low(IH:HART:C3:128RB),42,,CP 125 | Switch 127,,home signal from Track 127-129
-2,CP 129,mast,Mast 130LA,IF$shsm:basic:two-searchlight(IH5232)(IH5233),IF$shsm:basic:two-searchlight(IH:HART:C3:130LA_Top)(IH:HART:C3:130LA_Bottom),52,,CP 129 | Switch 129,,home signal from Track 127-129
-2,CP 129,mast,Mast 130LB,IF$shsm:basic:one-low(IH5234),IF$shsm:basic:one-low(IH:HART:C3:130LB),52,,CP 129 | Switch 129,,home signal from Track 129-221
-2,CP 129,mast,Mast 136RA,IF$shsm:basic:two-searchlight(IH5235)(IH5236),IF$shsm:basic:two-searchlight(IH:HART:C3:136RA_Top)(IH:HART:C3:136RA_Bottom),52,,CP 129 | Switch 135,,home signal from Track 135-H1
-2,CP 129,mast,Mast 136RB,IF$shsm:basic:one-low(IH5237),IF$shsm:basic:one-low(IH:HART:C3:136RB),52,,CP 129 | Switch 135,,home signal from Track 135-H2
-2,CP 107,head,Head 108LA,IH3332,IH:HART:C3:108LA,33,,"Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3",,
-2,CP 107,head,Head 108LB,IH3333,IH:HART:C3:108LB,33,,"Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6",,
-2,CP 107,head,Head 108R Bottom,IH3335,IH:HART:C3:108R_Bottom,33,,"Node: 33 Signal: 3 | OU: 4 Ports: 4,5,6",,
-2,CP 107,head,Head 108R Top,IH3334,IH:HART:C3:108R_Top,33,,"Node: 33 Signal: 2 | OU: 4 Ports: 1,2,3",,
-2,CP 109,head,Head 110LA,IH4332,IH:HART:C3:110LA,43,,"Node: 43 Signal: 0 | OU: 1 Ports: 1,2,3",,
-2,CP 109,head,Head 110LB,IH4333,IH:HART:C3:110LB,43,,"Node: 43 Signal: 1 | OU: 1 Ports: 4,5,6",,
-2,CP 109,head,Head 112L,IH4334,IH:HART:C3:112L,43,,"Node: 43 Signal: 2 | OU: 2 Ports: 1,2,3",,
-2,CP 109,head,Head 118L,IH4335,IH:HART:C3:118L,43,,"Node: 43 Signal: 3 | OU: 2 Ports: 4,5,6",,
-2,CP 109,head,Head 120RA,IH4336,IH:HART:C3:120RA,43,,"Node: 43 Signal: 4 | OU: 3 Ports: 1,2,3",,
-2,CP 109,head,Head 120RB Bottom,IH4338,IH:HART:C3:120RB_Bottom,43,,"Node: 43 Signal: 6 | OU: 4 Ports: 4,5,6",,
-2,CP 109,head,Head 120RB Top,IH4337,IH:HART:C3:120RB_Top,43,,"Node: 43 Signal: 5 | OU: 4 Ports: 1,2,3",,
-2,CP 125,head,Head 126LA,IH4232,IH:HART:C3:126LA,42,,"Node: 42 Signal: 0 | OU: 3 Ports: 1,2,3",,
-2,CP 125,head,Head 126LB,IH4233,IH:HART:C3:126LB,42,,"Node: 42 Signal: 1 | OU: 3 Ports: 4,5,6",,
-2,CP 125,head,Head 128RA,IH4234,IH:HART:C3:128RA,42,,"Node: 42 Signal: 2 | OU: 4 Ports: 1,2,3",,
-2,CP 125,head,Head 128RB,IH4235,IH:HART:C3:128RB,42,,"Node: 42 Signal: 3 | OU: 4 Ports: 4,5,6",,
-2,CP 129,head,Head 130LA Bottom,IH5233,IH:HART:C3:130LA_Bottom,52,,"Node: 52 Signal: 1 | OU: 1 Ports: 4,5,6",,
-2,CP 129,head,Head 130LA Top,IH5232,IH:HART:C3:130LA_Top,52,,"Node: 52 Signal: 0 | OU: 1 Ports: 1,2,3",,
-2,CP 129,head,Head 130LB,IH5234,IH:HART:C3:130LB,52,,"Node: 52 Signal: 2 | OU: 2 Ports: 1,2,3",,
-2,CP 129,head,Head 136RA Bottom,IH5236,IH:HART:C3:136RA_Bottom,52,,"Node: 52 Signal: 4 | OU: 3 Ports: 4,5,6",,
-2,CP 129,head,Head 136RA Top,IH5235,IH:HART:C3:136RA_Top,52,,"Node: 52 Signal: 3 | OU: 3 Ports: 1,2,3",,
-2,CP 129,head,Head 136RB,IH5237,IH:HART:C3:136RB,52,,"Node: 52 Signal: 5 | OU: 4 Ports: 1,2,3",,
+2,CP 125,occupancy,BS Switch 135,M2S4203,IS:HART:C3:B:OS135,42,,Node: 42 Block: 4,,
+2,CP 107,mast,Mast 108LA,IF$shsm:basic:two-searchlight(IH3332)(IH3333),IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LA_Bottom),33,,CP 107 | Switch 107,,home signal from Track 107 Loop 1
+2,CP 107,mast,Mast 108LB,IF$shsm:basic:two-searchlight(IH3334)(IH3335),IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom),33,,CP 107 | Switch 107,,home signal from Track 107 Loop 2
+2,CP 107,mast,Mast 110L,IF$shsm:basic:two-low(IH4332)(IH4333),IF$shsm:basic:two-low(IH:HART:C3:110L_Top)(IH:HART:C3:110L_Bottom),43,,CP 107 | Switch 109,,home signal from Track 105-109
+2,CP 107,mast,Mast 112L,IF$shsm:basic:two-low(IH4334)(IH4335),IF$shsm:basic:two-low(IH:HART:C3:112L_Top)(IH:HART:C3:112L_Bottom),43,,CP 107 | Switch 111,,home signal from Track 101-111
+2,CP 107,mast,Mast 118L,IF$shsm:basic:two-low(IH4336)(IH4337),IF$shsm:basic:two-low(IH:HART:C3:118L_Top)(IH:HART:C3:118L_Bottom),43,,CP 107 | Switch 117,,home signal from Track 115-117
+2,CP 107,mast,Mast 120RA,IF$shsm:basic:two-searchlight(IH4338)(IH4339),IF$shsm:basic:two-searchlight(IH:HART:C3:120RA_Top)(IH:HART:C3:120RA_Bottom),43,,CP 107 | Switch 119,,home signal from Track 119-125
+2,CP 107,mast,Mast 120RB,,IF$shsm:basic:two-low(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom),,,CP 107 | Switch 119,,home signal from Track 119-123
+2,CP 125,mast,Mast 126LA,IF$shsm:basic:two-searchlight(IH4232)(IH4233),IF$shsm:basic:two-searchlight(IH:HART:C3:126LA_Top)(IH:HART:C3:126LA_Bottom),42,,CP 125 | Switch 125,,home signal from Track 119-125
+2,CP 125,mast,Mast 126LB,IF$shsm:basic:two-low(IH4234)(IH4235),IF$shsm:basic:two-low(IH:HART:C3:126LB_Top)(IH:HART:C3:126LB_Bottom),42,,CP 125 | Switch 125,,home signal from Track 123-125
+2,CP 125,mast,Mast 128R,IF$shsm:basic:two-low(IH5232)(IH5233),IF$shsm:basic:two-low(IH:HART:C3:128R_Top)(IH:HART:C3:128R_Bottom),52,,CP 125 | Switch 127,,home signal from Track 127-131
+2,CP 125,mast,Mast 130L,IF$shsm:basic:two-searchlight(IH5234)(IH5235),IF$shsm:basic:two-searchlight(IH:HART:C3:130L_Top)(IH:HART:C3:130L_Bottom),52,,CP 125 | Switch 129,,home signal from Track 129-221
+2,CP 125,mast,Mast 136RA,IF$shsm:basic:two-searchlight(IH5236)(IH5237),IF$shsm:basic:two-searchlight(IH:HART:C3:136RA_Top)(IH:HART:C3:136RA_Bottom),52,,CP 125 | Switch 135,,home signal from Track 135-H1
+2,CP 125,mast,Mast 136RB,IF$shsm:basic:two-searchlight(IH5238)(IH5239),IF$shsm:basic:two-searchlight(IH:HART:C3:136RB_Top)(IH:HART:C3:136RB_Bottom),52,,CP 125 | Switch 135,,home signal from Track 135-H2
+2,CP 107,head,Head 108LA Bottom,IH3333,IH:HART:C3:108LA_Bottom,33,,"Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6",,
+2,CP 107,head,Head 108LA Top,IH3332,IH:HART:C3:108LA_Top,33,,"Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3",,
+2,CP 107,head,Head 108LB Bottom,IH3335,IH:HART:C3:108LB_Bottom,33,,"Node: 33 Signal: 3 | OU: 4 Ports: 4,5,6",,
+2,CP 107,head,Head 108LB Top,IH3334,IH:HART:C3:108LB_Top,33,,"Node: 33 Signal: 2 | OU: 4 Ports: 1,2,3",,
+2,CP 107,head,Head 110L Bottom,IH4333,IH:HART:C3:110L_Bottom,43,,"Node: 43 Signal: 1 | OU: 1 Ports: 4,5,6",,
+2,CP 107,head,Head 110L Top,IH4332,IH:HART:C3:110L_Top,43,,"Node: 43 Signal: 0 | OU: 1 Ports: 1,2,3",,
+2,CP 107,head,Head 112L Bottom,IH4335,IH:HART:C3:112L_Bottom,43,,"Node: 43 Signal: 3 | OU: 2 Ports: 4,5,6",,
+2,CP 107,head,Head 112L Top,IH4334,IH:HART:C3:112L_Top,43,,"Node: 43 Signal: 2 | OU: 2 Ports: 1,2,3",,
+2,CP 107,head,Head 118L Bottom,IH4337,IH:HART:C3:118L_Bottom,43,,"Node: 43 Signal: 5 | OU: 3 Ports: 4,5,6",,
+2,CP 107,head,Head 118L Top,IH4336,IH:HART:C3:118L_Top,43,,"Node: 43 Signal: 4 | OU: 3 Ports: 1,2,3",,
+2,CP 107,head,Head 120RA Bottom,IH4339,IH:HART:C3:120RA_Bottom,43,,"Node: 43 Signal: 7 | OU: 4 Ports: 4,5,6",,
+2,CP 107,head,Head 120RA Top,IH4338,IH:HART:C3:120RA_Top,43,,"Node: 43 Signal: 6 | OU: 4 Ports: 1,2,3",,
+2,CP 107,head,Head 120RB Bottom,,IH:HART:C3:120RB_Bottom,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 107,head,Head 120RB Top,,IH:HART:C3:120RB_Top,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 125,head,Head 126LA Bottom,IH4233,IH:HART:C3:126LA_Bottom,42,,"Node: 42 Signal: 1 | OU: 3 Ports: 4,5,6",,
+2,CP 125,head,Head 126LA Top,IH4232,IH:HART:C3:126LA_Top,42,,"Node: 42 Signal: 0 | OU: 3 Ports: 1,2,3",,
+2,CP 125,head,Head 126LB Bottom,IH4235,IH:HART:C3:126LB_Bottom,42,,"Node: 42 Signal: 3 | OU: 4 Ports: 4,5,6",,
+2,CP 125,head,Head 126LB Top,IH4234,IH:HART:C3:126LB_Top,42,,"Node: 42 Signal: 2 | OU: 4 Ports: 1,2,3",,
+2,CP 125,head,Head 128R Bottom,IH5233,IH:HART:C3:128R_Bottom,52,,"Node: 52 Signal: 1 | OU: 1 Ports: 4,5,6",,
+2,CP 125,head,Head 128R Top,IH5232,IH:HART:C3:128R_Top,52,,"Node: 52 Signal: 0 | OU: 1 Ports: 1,2,3",,
+2,CP 125,head,Head 130L Bottom,IH5235,IH:HART:C3:130L_Bottom,52,,"Node: 52 Signal: 3 | OU: 2 Ports: 4,5,6",,
+2,CP 125,head,Head 130L Top,IH5234,IH:HART:C3:130L_Top,52,,"Node: 52 Signal: 2 | OU: 2 Ports: 1,2,3",,
+2,CP 125,head,Head 136RA Bottom,IH5237,IH:HART:C3:136RA_Bottom,52,,"Node: 52 Signal: 5 | OU: 3 Ports: 4,5,6",,
+2,CP 125,head,Head 136RA Top,IH5236,IH:HART:C3:136RA_Top,52,,"Node: 52 Signal: 4 | OU: 3 Ports: 1,2,3",,
+2,CP 125,head,Head 136RB Bottom,IH5239,IH:HART:C3:136RB_Bottom,52,,"Node: 52 Signal: 7 | OU: 4 Ports: 4,5,6",,
+2,CP 125,head,Head 136RB Top,IH5238,IH:HART:C3:136RB_Top,52,,"Node: 52 Signal: 6 | OU: 4 Ports: 1,2,3",,
 3,CP 201,turnout,DCC Switch 201,MTT138,IT:HART:C3:201,23,138,"Node: 23 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
 3,CP 201,turnout,DCC Switch 203,MTT139,IT:HART:C3:203,23,139,"Node: 23 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
 3,,turnout,DCC Switch 205,MTT140,IT:HART:C3:205,23,140,"Node: 23 Turnout: 4 | OU: 2 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
@@ -331,9 +332,9 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,,block,OS Switch 241,,,,,Helix,OS Switch 241,no detector: off the main line
 3,,block,OS Switch 243,,,,,Helix,OS Switch 243,no detector: off the main line
 3,,block,OS Switch 245,,,,,Helix,OS Switch 245,no detector: off the main line
-3,CP 129,block,Track 129-135 2,,,,,CP 129,Track e67,"11.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 129,block,Track 129-221,,,,,CP 129 / CP 201,Track e75,521.9 cm
-3,CP 129,block,Track 135-H2,,,,,CP 129,Track e68+e81,427.1 cm
+3,CP 125,block,Track 129-135 2,,,,,CP 125,Track e67,"11.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 125,block,Track 129-221,,,,,CP 125 / CP 201,Track e75,521.9 cm
+3,CP 125,block,Track 135-H2,,,,,CP 125,Track e68+e81,427.1 cm
 3,CP 201,block,Track 201-203,,,,,CP 201,Track e60,"11.7 cm short link: inside the OS blocks of its switches, no detector"
 3,CP 201,block,Track 201-205,,,,,CP 201,Track e61,"22.7 cm short link: inside the OS blocks of its switches, no detector"
 3,CP 201,block,Track 201-219,,,,,CP 201,Track e59,"23.1 cm short link: inside the OS blocks of its switches, no detector"
@@ -378,9 +379,9 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,,block,Track 243-245,,,,,,Track e46,45.9 cm no detector: off the main line
 3,,block,Track 245 Spur 1,,,,,,Track e53,33.2 cm no detector: off the main line
 3,,block,Track 245 Spur 2,,,,,,Track e47,54.4 cm no detector: off the main line
-3,CP 129,occupancy,BS 129-135 2,,IS:HART:C3:B:129-135_2,,,,,no detector planned: dark until decided
-3,CP 129,occupancy,BS 129-221,M2S2304,IS:HART:C3:B:129-221,23,,Node: 23 Block: 5,,
-3,CP 129,occupancy,BS 135-H2,M2S2201,IS:HART:C3:B:135-H2,22,,Node: 22 Block: 2,,
+3,CP 125,occupancy,BS 129-135 2,,IS:HART:C3:B:129-135_2,,,,,no detector planned: dark until decided
+3,CP 125,occupancy,BS 129-221,M2S2304,IS:HART:C3:B:129-221,23,,Node: 23 Block: 5,,
+3,CP 125,occupancy,BS 135-H2,M2S2201,IS:HART:C3:B:135-H2,22,,Node: 22 Block: 2,,
 3,CP 201,occupancy,BS 201-203,,IS:HART:C3:B:201-203,,,,,no detector planned: dark until decided
 3,CP 201,occupancy,BS 201-205,,IS:HART:C3:B:201-205,,,,,no detector planned: dark until decided
 3,CP 201,occupancy,BS 201-219,,IS:HART:C3:B:201-219,,,,,no detector planned: dark until decided
@@ -451,33 +452,36 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,,occupancy,BS Switch 241,,IS:HART:C3:B:OS241,,,,,no detector planned: dark until decided
 3,,occupancy,BS Switch 243,,IS:HART:C3:B:OS243,,,,,no detector planned: dark until decided
 3,,occupancy,BS Switch 245,,IS:HART:C3:B:OS245,,,,,no detector planned: dark until decided
-3,CP 201,mast,Mast 202R,IF$shsm:basic:one-low(IH2332),IF$shsm:basic:one-low(IH:HART:C3:202R),23,,CP 201 | Switch 201,,home signal from Track 201-205
-3,CP 201,mast,Mast 204RA,IF$shsm:basic:one-low(IH2333),IF$shsm:basic:one-low(IH:HART:C3:204RA),23,,CP 201 | Switch 203,,home signal from Track 203-209
-3,CP 201,mast,Mast 204RB,IF$shsm:basic:one-low(IH2334),IF$shsm:basic:one-low(IH:HART:C3:204RB),23,,CP 201 | Switch 203,,home signal from Track 203-213
-3,CP 213,mast,Mast 214LA,IF$shsm:basic:two-searchlight(IH2432)(IH2433),IF$shsm:basic:two-searchlight(IH:HART:C3:214LA_Top)(IH:HART:C3:214LA_Bottom),24,,CP 213 | Switch 213,,home signal from Track 209-213
-3,CP 213,mast,Mast 214LB,IF$shsm:basic:one-low(IH2434),IF$shsm:basic:one-low(IH:HART:C3:214LB),24,,CP 213 | Switch 213,,home signal from Track 203-213
+3,CP 201,mast,Mast 202R,IF$shsm:basic:two-low(IH2332)(IH2333),IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom),23,,CP 201 | Switch 201,,home signal from Track 201-205
+3,CP 201,mast,Mast 204RA,IF$shsm:basic:two-low(IH2334)(IH2335),IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom),23,,CP 201 | Switch 203,,home signal from Track 203-209
+3,CP 201,mast,Mast 204RB,IF$shsm:basic:two-searchlight(IH1432)(IH1433),IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom),14,,CP 201 | Switch 203,,home signal from Track 203-213
+3,CP 213,mast,Mast 214LA,IF$shsm:basic:two-low(IH2432)(IH2433),IF$shsm:basic:two-low(IH:HART:C3:214LA_Top)(IH:HART:C3:214LA_Bottom),24,,CP 213 | Switch 213,,home signal from Track 209-213
+3,CP 213,mast,Mast 214LB,IF$shsm:basic:one-searchlight(IH2434),IF$shsm:basic:one-searchlight(IH:HART:C3:214LB),24,,CP 213 | Switch 213,,home signal from Track 203-213
 3,CP 213,mast,Mast 214RA,IF$shsm:basic:one-low(IH2435),IF$shsm:basic:one-low(IH:HART:C3:214RA),24,,CP 213 | Switch 213,,home signal from Track 213-217 1
 3,CP 213,mast,Mast 214RB,IF$shsm:basic:two-searchlight(IH5432)(IH5433),IF$shsm:basic:two-searchlight(IH:HART:C3:214RB_Top)(IH:HART:C3:214RB_Bottom),54,,CP 213 | Switch 213,,home signal from Track 213-217 2
 3,CP 217,mast,Mast 218LA,IF$shsm:basic:one-low(IH5434),IF$shsm:basic:one-low(IH:HART:C3:218LA),54,,CP 217 | Switch 217,,home signal from Track 213-217 1
 3,CP 217,mast,Mast 218LB,IF$shsm:basic:two-searchlight(IH5435)(IH5436),IF$shsm:basic:two-searchlight(IH:HART:C3:218LB_Top)(IH:HART:C3:218LB_Bottom),54,,CP 217 | Switch 217,,home signal from Track 213-217 2
-3,CP 217,mast,Mast 218RA,IF$shsm:basic:two-searchlight(IH5437)(IH5438),IF$shsm:basic:two-searchlight(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom),54,,CP 217 | Switch 217,,home signal from Track 217-219
-3,CP 217,mast,Mast 218RB,IF$shsm:basic:one-low(IH4432),IF$shsm:basic:one-low(IH:HART:C3:218RB),44,,CP 217 | Switch 217,,home signal from Track 217-221
-3,CP 201,mast,Mast 220R,IF$shsm:basic:one-low(IH2335),IF$shsm:basic:one-low(IH:HART:C3:220R),23,,CP 201 | Switch 219,,home signal from Track 217-219
-3,CP 201,mast,Mast 222LA,IF$shsm:basic:one-low(IH1432),IF$shsm:basic:one-low(IH:HART:C3:222LA),14,,CP 201 | Switch 221,,home signal from Track 221-223
-3,CP 201,mast,Mast 222LB,IF$shsm:basic:one-low(IH1433),IF$shsm:basic:one-low(IH:HART:C3:222LB),14,,CP 201 | Switch 221,,home signal from Track 217-221
-3,CP 201,mast,Mast 222R,IF$shsm:basic:two-searchlight(IH1434)(IH1435),IF$shsm:basic:two-searchlight(IH:HART:C3:222R_Top)(IH:HART:C3:222R_Bottom),14,,CP 201 | Switch 221,,home signal from Track 129-221
-3,CP 223,mast,Mast 224LA,IF$shsm:basic:one-low(IH2232),IF$shsm:basic:one-low(IH:HART:C3:224LA),22,,CP 223 | Switch 223,,home signal from Track 223-225 1
-3,CP 223,mast,Mast 224LB,IF$shsm:basic:one-low(IH2233),IF$shsm:basic:one-low(IH:HART:C3:224LB),22,,CP 223 | Switch 223,,home signal from Track 223-225 2
+3,CP 217,mast,Mast 218RA,IF$shsm:basic:two-low(IH5437)(IH5438),IF$shsm:basic:two-low(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom),54,,CP 217 | Switch 217,,home signal from Track 217-219
+3,CP 217,mast,Mast 218RB,IF$shsm:basic:one-searchlight(IH4432),IF$shsm:basic:one-searchlight(IH:HART:C3:218RB),44,,CP 217 | Switch 217,,home signal from Track 217-221
+3,CP 201,mast,Mast 220R,IF$shsm:basic:two-low(IH1434)(IH1435),IF$shsm:basic:two-low(IH:HART:C3:220R_Top)(IH:HART:C3:220R_Bottom),14,,CP 201 | Switch 219,,home signal from Track 217-219
+3,CP 201,mast,Mast 222LA,IF$shsm:basic:two-searchlight(IH1436)(IH1437),IF$shsm:basic:two-searchlight(IH:HART:C3:222LA_Top)(IH:HART:C3:222LA_Bottom),14,,CP 201 | Switch 221,,home signal from Track 221-223
+3,CP 201,mast,Mast 222LB,IF$shsm:basic:one-searchlight(IH1438),IF$shsm:basic:one-searchlight(IH:HART:C3:222LB),14,,CP 201 | Switch 221,,home signal from Track 217-221
+3,CP 201,mast,Mast 222R,,IF$shsm:basic:two-searchlight(IH:HART:C3:222R_Top)(IH:HART:C3:222R_Bottom),,,CP 201 | Switch 221,,home signal from Track 129-221
+3,CP 223,mast,Mast 224LA,IF$shsm:basic:one-searchlight(IH2232),IF$shsm:basic:one-searchlight(IH:HART:C3:224LA),22,,CP 223 | Switch 223,,home signal from Track 223-225 1
+3,CP 223,mast,Mast 224LB,IF$shsm:basic:one-searchlight(IH2233),IF$shsm:basic:one-searchlight(IH:HART:C3:224LB),22,,CP 223 | Switch 223,,home signal from Track 223-225 2
 3,CP 223,mast,Mast 224R,IF$shsm:basic:two-searchlight(IH2234)(IH2235),IF$shsm:basic:two-searchlight(IH:HART:C3:224R_Top)(IH:HART:C3:224R_Bottom),22,,CP 223 | Switch 223,,home signal from Track 221-223
 3,CP 225,mast,Mast 226RA,IF$shsm:basic:two-searchlight(IH2132)(IH2133),IF$shsm:basic:two-searchlight(IH:HART:C3:226RA_Top)(IH:HART:C3:226RA_Bottom),21,,CP 225 | Switch 225,,home signal from Track 223-225 1 into OS Switch 225a
 3,CP 225,mast,Mast 226RB,IF$shsm:basic:two-searchlight(IH2134)(IH2135),IF$shsm:basic:two-searchlight(IH:HART:C3:226RB_Top)(IH:HART:C3:226RB_Bottom),21,,CP 225 | Switch 225,,home signal from Track 223-225 2 into OS Switch 225d
-3,CP 225,mast,Mast 228RA,IF$shsm:basic:one-low(IH4132),IF$shsm:basic:one-low(IH:HART:C3:228RA),41,,CP 225 | Switch 227,,home signal from Track 227-233
-3,CP 225,mast,Mast 228RB,IF$shsm:basic:one-low(IH4133),IF$shsm:basic:one-low(IH:HART:C3:228RB),41,,CP 225 | Switch 227,,home signal from Track 227-239
-3,CP 225,mast,Mast 230LA,IF$shsm:basic:one-low(IH4134),IF$shsm:basic:one-low(IH:HART:C3:230LA),41,,CP 225 | Switch 229,,home signal from Track 229-239
-3,CP 225,mast,Mast 230LB,IF$shsm:basic:one-low(IH4135),IF$shsm:basic:one-low(IH:HART:C3:230LB),41,,CP 225 | Switch 229,,home signal from Track 229-231
-3,CP 201,head,Head 202R,IH2332,IH:HART:C3:202R,23,,"Node: 23 Signal: 0 | OU: 3 Ports: 1,2,3",,
-3,CP 201,head,Head 204RA,IH2333,IH:HART:C3:204RA,23,,"Node: 23 Signal: 1 | OU: 3 Ports: 4,5,6",,
-3,CP 201,head,Head 204RB,IH2334,IH:HART:C3:204RB,23,,"Node: 23 Signal: 2 | OU: 4 Ports: 1,2,3",,
+3,CP 225,mast,Mast 228RA,IF$shsm:basic:two-low(IH4132)(IH4133),IF$shsm:basic:two-low(IH:HART:C3:228RA_Top)(IH:HART:C3:228RA_Bottom),41,,CP 225 | Switch 227,,home signal from Track 227-233
+3,CP 225,mast,Mast 228RB,IF$shsm:basic:two-searchlight(IH4134)(IH4135),IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_Bottom),41,,CP 225 | Switch 227,,home signal from Track 227-239
+3,CP 225,mast,Mast 230LA,IF$shsm:basic:two-searchlight(IH4136)(IH4137),IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom),41,,CP 225 | Switch 229,,home signal from Track 229-239
+3,CP 225,mast,Mast 230LB,,IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom),,,CP 225 | Switch 229,,home signal from Track 229-231
+3,CP 201,head,Head 202R Bottom,IH2333,IH:HART:C3:202R_Bottom,23,,"Node: 23 Signal: 1 | OU: 3 Ports: 4,5,6",,
+3,CP 201,head,Head 202R Top,IH2332,IH:HART:C3:202R_Top,23,,"Node: 23 Signal: 0 | OU: 3 Ports: 1,2,3",,
+3,CP 201,head,Head 204RA Bottom,IH2335,IH:HART:C3:204RA_Bottom,23,,"Node: 23 Signal: 3 | OU: 4 Ports: 4,5,6",,
+3,CP 201,head,Head 204RA Top,IH2334,IH:HART:C3:204RA_Top,23,,"Node: 23 Signal: 2 | OU: 4 Ports: 1,2,3",,
+3,CP 201,head,Head 204RB Bottom,IH1433,IH:HART:C3:204RB_Bottom,14,,"Node: 14 Signal: 1 | OU: 1 Ports: 4,5,6",,
+3,CP 201,head,Head 204RB Top,IH1432,IH:HART:C3:204RB_Top,14,,"Node: 14 Signal: 0 | OU: 1 Ports: 1,2,3",,
 3,CP 213,head,Head 214LA Bottom,IH2433,IH:HART:C3:214LA_Bottom,24,,"Node: 24 Signal: 1 | OU: 3 Ports: 4,5,6",,
 3,CP 213,head,Head 214LA Top,IH2432,IH:HART:C3:214LA_Top,24,,"Node: 24 Signal: 0 | OU: 3 Ports: 1,2,3",,
 3,CP 213,head,Head 214LB,IH2434,IH:HART:C3:214LB,24,,"Node: 24 Signal: 2 | OU: 4 Ports: 1,2,3",,
@@ -490,11 +494,13 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 217,head,Head 218RA Bottom,IH5438,IH:HART:C3:218RA_Bottom,54,,"Node: 54 Signal: 6 | OU: 4 Ports: 4,5,6",,
 3,CP 217,head,Head 218RA Top,IH5437,IH:HART:C3:218RA_Top,54,,"Node: 54 Signal: 5 | OU: 4 Ports: 1,2,3",,
 3,CP 217,head,Head 218RB,IH4432,IH:HART:C3:218RB,44,,"Node: 44 Signal: 0 | OU: 1 Ports: 1,2,3",,
-3,CP 201,head,Head 220R,IH2335,IH:HART:C3:220R,23,,"Node: 23 Signal: 3 | OU: 4 Ports: 4,5,6",,
-3,CP 201,head,Head 222LA,IH1432,IH:HART:C3:222LA,14,,"Node: 14 Signal: 0 | OU: 1 Ports: 1,2,3",,
-3,CP 201,head,Head 222LB,IH1433,IH:HART:C3:222LB,14,,"Node: 14 Signal: 1 | OU: 1 Ports: 4,5,6",,
-3,CP 201,head,Head 222R Bottom,IH1435,IH:HART:C3:222R_Bottom,14,,"Node: 14 Signal: 3 | OU: 2 Ports: 4,5,6",,
-3,CP 201,head,Head 222R Top,IH1434,IH:HART:C3:222R_Top,14,,"Node: 14 Signal: 2 | OU: 2 Ports: 1,2,3",,
+3,CP 201,head,Head 220R Bottom,IH1435,IH:HART:C3:220R_Bottom,14,,"Node: 14 Signal: 3 | OU: 2 Ports: 4,5,6",,
+3,CP 201,head,Head 220R Top,IH1434,IH:HART:C3:220R_Top,14,,"Node: 14 Signal: 2 | OU: 2 Ports: 1,2,3",,
+3,CP 201,head,Head 222LA Bottom,IH1437,IH:HART:C3:222LA_Bottom,14,,"Node: 14 Signal: 5 | OU: 3 Ports: 4,5,6",,
+3,CP 201,head,Head 222LA Top,IH1436,IH:HART:C3:222LA_Top,14,,"Node: 14 Signal: 4 | OU: 3 Ports: 1,2,3",,
+3,CP 201,head,Head 222LB,IH1438,IH:HART:C3:222LB,14,,"Node: 14 Signal: 6 | OU: 4 Ports: 1,2,3",,
+3,CP 201,head,Head 222R Bottom,,IH:HART:C3:222R_Bottom,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 201,head,Head 222R Top,,IH:HART:C3:222R_Top,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 3,CP 223,head,Head 224LA,IH2232,IH:HART:C3:224LA,22,,"Node: 22 Signal: 0 | OU: 2 Ports: 1,2,3",,
 3,CP 223,head,Head 224LB,IH2233,IH:HART:C3:224LB,22,,"Node: 22 Signal: 1 | OU: 2 Ports: 4,5,6",,
 3,CP 223,head,Head 224R Bottom,IH2235,IH:HART:C3:224R_Bottom,22,,"Node: 22 Signal: 3 | OU: 3 Ports: 4,5,6",,
@@ -503,7 +509,11 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,head,Head 226RA Top,IH2132,IH:HART:C3:226RA_Top,21,,"Node: 21 Signal: 0 | OU: 3 Ports: 1,2,3",,
 3,CP 225,head,Head 226RB Bottom,IH2135,IH:HART:C3:226RB_Bottom,21,,"Node: 21 Signal: 3 | OU: 4 Ports: 4,5,6",,
 3,CP 225,head,Head 226RB Top,IH2134,IH:HART:C3:226RB_Top,21,,"Node: 21 Signal: 2 | OU: 4 Ports: 1,2,3",,
-3,CP 225,head,Head 228RA,IH4132,IH:HART:C3:228RA,41,,"Node: 41 Signal: 0 | OU: 2 Ports: 1,2,3",,
-3,CP 225,head,Head 228RB,IH4133,IH:HART:C3:228RB,41,,"Node: 41 Signal: 1 | OU: 2 Ports: 4,5,6",,
-3,CP 225,head,Head 230LA,IH4134,IH:HART:C3:230LA,41,,"Node: 41 Signal: 2 | OU: 3 Ports: 1,2,3",,
-3,CP 225,head,Head 230LB,IH4135,IH:HART:C3:230LB,41,,"Node: 41 Signal: 3 | OU: 3 Ports: 4,5,6",,
+3,CP 225,head,Head 228RA Bottom,IH4133,IH:HART:C3:228RA_Bottom,41,,"Node: 41 Signal: 1 | OU: 2 Ports: 4,5,6",,
+3,CP 225,head,Head 228RA Top,IH4132,IH:HART:C3:228RA_Top,41,,"Node: 41 Signal: 0 | OU: 2 Ports: 1,2,3",,
+3,CP 225,head,Head 228RB Bottom,IH4135,IH:HART:C3:228RB_Bottom,41,,"Node: 41 Signal: 3 | OU: 3 Ports: 4,5,6",,
+3,CP 225,head,Head 228RB Top,IH4134,IH:HART:C3:228RB_Top,41,,"Node: 41 Signal: 2 | OU: 3 Ports: 1,2,3",,
+3,CP 225,head,Head 230LA Bottom,IH4137,IH:HART:C3:230LA_Bottom,41,,"Node: 41 Signal: 5 | OU: 4 Ports: 4,5,6",,
+3,CP 225,head,Head 230LA Top,IH4136,IH:HART:C3:230LA_Top,41,,"Node: 41 Signal: 4 | OU: 4 Ports: 1,2,3",,
+3,CP 225,head,Head 230LB Bottom,,IH:HART:C3:230LB_Bottom,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 225,head,Head 230LB Top,,IH:HART:C3:230LB_Top,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"

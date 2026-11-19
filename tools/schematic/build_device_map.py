@@ -66,8 +66,9 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   get none (their virtual sensor stays, NO_DETECTOR).
 - Home signals: one mast where each track from outside a control point meets one of its switches; none on spurs
   or yard tracks that end at a bumper. "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number
-  and direction has two. A mast at the points has two heads (two-searchlight, Top and Bottom); one at a trailing
-  leg has one (one-low). East is the schematic's (ADR-022 amendment: away from the helix on these levels).
+  and direction has two. Two heads (Top and Bottom) when a route the mast governs meets facing points inside its
+  control point before the next signal (mast_rule.facing_on_route), else one; high (searchlight) facing from running
+  track, a dwarf (low) from a yard, lead or siding (owner, 2026-11-19). East is the schematic's (ADR-022 amendment: away from the helix on these levels).
 - LCOS packed IDs are node * 100 + UID (external/lcos-bridge): blocks UID 0-7 (BS, "Node: n Block: k+1"), turnouts
   8-15 (M2T, "Node: n Turnout: k"), signals 32-47 (IH, "Node: n Signal: k"), inputs from 67 (M2S, feedback N then R
   per turnout, "Node: n Sensor: k"). A control point's turnouts stay on one node; switches in no control point
@@ -90,7 +91,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
 from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported for the builders
-    LEVELS, LOOP_HALF, TAU, MapError, band_level, end_label, end_ref, helix_tags, masts, track_names, tracks)
+    LEVELS, LOOP_HALF, TAU, MapError, band_level, end_label, end_ref, facing_on_route, helix_tags, masts, track_names,
+    tracks)
 from hartlib import level_devices, railroad  # noqa: E402  the virtual names; the facts it reads and checks
 
 SOURCES = railroad.Sources.under()
@@ -116,6 +118,7 @@ VIRTUAL_TURNOUT = level_devices.TURNOUT_PREFIX   # + switch number: the internal
 VIRTUAL_SENSOR = level_devices.SENSOR_PREFIX     # + block_key: the internal occupancy sensor of every block
 occupancy_user = level_devices.occupancy_user
 NOT_WIRED = "detector planned, not wired yet: no node or input (owner, 2026-11-16)"
+HEAD_NOT_WIRED = "head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 NO_DETECTOR = "no detector planned: dark until decided"
 
 
@@ -315,6 +318,12 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
     corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
     ms = masts(bands, cps, found, cp_of, corner_blocks)
+    for m in ms:
+        # two heads when a route the mast governs meets facing points inside its interlocking; high from running
+        # track, a dwarf from a yard, lead or siding (owner, 2026-11-19, as staging: build_staging_masts.py)
+        if m["heads"] == 1 and facing_on_route(bands[m["band"]][1], m["node"], m["leg"], cp_of):
+            m["heads"] = 2
+        m["kind"] = f"{'two' if m['heads'] == 2 else 'one'}-{'searchlight' if m['running'] else 'low'}"
     nodes = Nodes(node_rows)
     rows = []
 
@@ -418,17 +427,26 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     for cp in cps:                               # heads last, once every node's boards are known
         lv, area, name = cp.level, cp.area, cp.cp_name
         for m in sorted((m for m in ms if m["cp"] == name), key=lambda m: natural(m["name"])):
-            hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[cp.switches[0]]])
             parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
-            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
-                     for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
-            kind = "two-searchlight" if m["heads"] == 2 else "one-low"
-            sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
+            kind = m["kind"]
+            try:
+                hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[cp.switches[0]]])
+                heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
+                         for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
+                sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
+            except MapError:
+                # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
+                # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
+                hnode, sysname = "", ""
+                heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None, None) for part in parts]
             virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name} | Switch {m['switch']}",
                 notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
                 jmri=virtual)
             for user, sysn, k, board, pin in heads:
+                if not sysn:
+                    add(lv, name, "head", user, "", "", "", notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
+                    continue
                 add(lv, name, "head", user, sysn, hnode,
                     f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
                     jmri=level_devices.head_name(user))
