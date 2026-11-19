@@ -3,6 +3,23 @@
  "source": "main_upper_masts.csv",
  "signals": [
   {
+   "mast": "A83",
+   "toward": "",
+   "run": [
+    "",
+    "107"
+   ],
+   "names": [],
+   "edge_cm": 777.0,
+   "cm_from_toward": 1.0,
+   "dir": "west",
+   "kind": "planned",
+   "heads": 1,
+   "source": "main_upper_masts.csv",
+   "_edge": "e33",
+   "_toward_node": "turn:e33"
+  },
+  {
    "mast": "A84",
    "toward": "107",
    "run": [
@@ -18,23 +35,6 @@
    "source": "main_upper_masts.csv",
    "_edge": "e33",
    "_toward_node": "TOL29248"
-  },
-  {
-   "mast": "A85",
-   "toward": "",
-   "run": [
-    "",
-    "107"
-   ],
-   "names": [],
-   "edge_cm": 777.0,
-   "cm_from_toward": 1.0,
-   "dir": "west",
-   "kind": "planned",
-   "heads": 1,
-   "source": "main_upper_masts.csv",
-   "_edge": "e33",
-   "_toward_node": "turn:e33"
   },
   {
    "mast": "108LA",
@@ -292,23 +292,6 @@
    "_toward_node": "TOR29140"
   },
   {
-   "mast": "B91",
-   "toward": "239",
-   "run": [
-    "239",
-    "227"
-   ],
-   "names": [],
-   "edge_cm": 518.6,
-   "cm_from_toward": 259.3,
-   "dir": "west",
-   "kind": "planned",
-   "heads": 1,
-   "source": "main_upper_masts.csv",
-   "_edge": "e64",
-   "_toward_node": "TOR30947"
-  },
-  {
    "mast": "B92",
    "toward": "227",
    "run": [
@@ -324,6 +307,23 @@
    "source": "main_upper_masts.csv",
    "_edge": "e64",
    "_toward_node": "TOR31151"
+  },
+  {
+   "mast": "B93",
+   "toward": "239",
+   "run": [
+    "239",
+    "227"
+   ],
+   "names": [],
+   "edge_cm": 518.6,
+   "cm_from_toward": 259.3,
+   "dir": "west",
+   "kind": "planned",
+   "heads": 1,
+   "source": "main_upper_masts.csv",
+   "_edge": "e64",
+   "_toward_node": "TOR30947"
   },
   {
    "mast": "202R",

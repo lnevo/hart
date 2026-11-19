@@ -1,6 +1,6 @@
 kind,ident,slot,mast
 point,AG109,east,Mast B92
-point,AG109,west,Mast B91
+point,AG109,west,Mast B93
 point,AG11,west,Mast 26L
 point,AG16,east,Mast 26R
 point,AG17,west,Mast 22L
@@ -16,7 +16,7 @@ point,AG37,west,Mast 16L
 point,AG38,east,Mast 16R
 point,AG43,east,Mast 68
 point,AG43,west,Mast 67
-point,AG65,east,Mast A85
+point,AG65,east,Mast A83
 point,AG65,west,Mast A84
 point,AG8,east,Mast 40RB
 point,AGE1,east,Mast 38RA

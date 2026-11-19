@@ -953,10 +953,10 @@ class LevelMasts(unittest.TestCase):
         # the APB intermediates (owner, 2026-11-19): no switch, one head each, not on a board yet
         inter = {x["mast"]: (x["facing"], x["protects"], x["device_system_name"]) for x in rows if not x["switch"]
                  and x["mast"] != "Mast 240L"}
-        self.assertEqual(inter, {"Mast A84": ("Track 107 Loop 1", "Track 107 Loop 2", ""),
-                                 "Mast A85": ("Track 107 Loop 2", "Track 107 Loop 1", ""),
-                                 "Mast B91": ("Track 227-239 1", "Track 227-239 2", ""),
-                                 "Mast B92": ("Track 227-239 2", "Track 227-239 1", "")})
+        self.assertEqual(inter, {"Mast A83": ("Track 107 Loop 2", "Track 107 Loop 1", ""),
+                                 "Mast A84": ("Track 107 Loop 1", "Track 107 Loop 2", ""),
+                                 "Mast B92": ("Track 227-239 2", "Track 227-239 1", ""),
+                                 "Mast B93": ("Track 227-239 1", "Track 227-239 2", "")})
         self.assertEqual({x["mast"]: x["leg"] for x in rows if x["leg"]}, {})     # the loop's halves tell them apart
 
     def test_no_two_masts_share_a_facing_and_protected_block(self) -> None:

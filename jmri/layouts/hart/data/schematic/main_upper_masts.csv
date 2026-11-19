@@ -1,6 +1,6 @@
 mast,cp,switch,facing,protects,leg,system_name,head_system_names,device_system_name
+Mast A83,CP 107,,Track 107 Loop 2,Track 107 Loop 1,,IF$shsm:basic:one-searchlight(IH:HART:C3:A83),IH:HART:C3:A83=Head A83,
 Mast A84,CP 107,,Track 107 Loop 1,Track 107 Loop 2,,IF$shsm:basic:one-searchlight(IH:HART:C3:A84),IH:HART:C3:A84=Head A84,
-Mast A85,CP 107,,Track 107 Loop 2,Track 107 Loop 1,,IF$shsm:basic:one-searchlight(IH:HART:C3:A85),IH:HART:C3:A85=Head A85,
 Mast 108LA,CP 107,107,Track 107 Loop 1,OS Switch 107,,IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LA_Bottom),IH:HART:C3:108LA_Top=Head 108LA Top;IH:HART:C3:108LA_Bottom=Head 108LA Bottom,IF$shsm:basic:two-searchlight(IH3332)(IH3333)
 Mast 108LB,CP 107,107,Track 107 Loop 2,OS Switch 107,,IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom),IH:HART:C3:108LB_Top=Head 108LB Top;IH:HART:C3:108LB_Bottom=Head 108LB Bottom,IF$shsm:basic:two-searchlight(IH3334)(IH3335)
 Mast 110L,CP 107,109,Track 105-109,OS Switch 109,,IF$shsm:basic:two-low(IH:HART:C3:110L_Top)(IH:HART:C3:110L_Bottom),IH:HART:C3:110L_Top=Head 110L Top;IH:HART:C3:110L_Bottom=Head 110L Bottom,IF$shsm:basic:two-low(IH4332)(IH4333)
@@ -16,8 +16,8 @@ Mast 130LA,CP 129,129,Track 127-129,OS Switch 129,,IF$shsm:basic:two-searchlight
 Mast 130LB,CP 129,129,Track 129-221,OS Switch 129,,IF$shsm:basic:two-searchlight(IH:HART:C3:130LB_Top)(IH:HART:C3:130LB_Bottom),IH:HART:C3:130LB_Top=Head 130LB Top;IH:HART:C3:130LB_Bottom=Head 130LB Bottom,IF$shsm:basic:two-searchlight(IH5238)(IH5239)
 Mast 136RA,CP 129,135,Track 135-H1,OS Switch 135,,IF$shsm:basic:two-searchlight(IH:HART:C3:136RA_Top)(IH:HART:C3:136RA_Bottom),IH:HART:C3:136RA_Top=Head 136RA Top;IH:HART:C3:136RA_Bottom=Head 136RA Bottom,
 Mast 136RB,CP 129,135,Track 135-H2,OS Switch 135,,IF$shsm:basic:two-searchlight(IH:HART:C3:136RB_Top)(IH:HART:C3:136RB_Bottom),IH:HART:C3:136RB_Top=Head 136RB Top;IH:HART:C3:136RB_Bottom=Head 136RB Bottom,
-Mast B91,CP 225,,Track 227-239 1,Track 227-239 2,,IF$shsm:basic:one-searchlight(IH:HART:C3:B91),IH:HART:C3:B91=Head B91,
 Mast B92,CP 225,,Track 227-239 2,Track 227-239 1,,IF$shsm:basic:one-searchlight(IH:HART:C3:B92),IH:HART:C3:B92=Head B92,
+Mast B93,CP 225,,Track 227-239 1,Track 227-239 2,,IF$shsm:basic:one-searchlight(IH:HART:C3:B93),IH:HART:C3:B93=Head B93,
 Mast 202R,CP 201,201,Track 201-205,OS Switch 201,,IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom),IH:HART:C3:202R_Top=Head 202R Top;IH:HART:C3:202R_Bottom=Head 202R Bottom,IF$shsm:basic:two-low(IH2332)(IH2333)
 Mast 204RA,CP 201,203,Track 203-209,OS Switch 203,,IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom),IH:HART:C3:204RA_Top=Head 204RA Top;IH:HART:C3:204RA_Bottom=Head 204RA Bottom,IF$shsm:basic:two-low(IH2334)(IH2335)
 Mast 204RB,CP 201,203,Track 203-213,OS Switch 203,,IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom),IH:HART:C3:204RB_Top=Head 204RB Top;IH:HART:C3:204RB_Bottom=Head 204RB Bottom,IF$shsm:basic:two-searchlight(IH1432)(IH1433)
