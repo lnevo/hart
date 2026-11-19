@@ -14,11 +14,11 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_devices, level_masts, parked, paths, tables  # noqa: E402
+from hartlib import boundaries as boundary_csv, level_devices, level_masts, parked, paths, tables  # noqa: E402
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
-BOUNDARIES = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
+BOUNDARIES = boundary_csv.PATH
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
@@ -61,18 +61,7 @@ def occupancy_binding_map() -> dict[str, str]:
     return out
 
 
-@dataclass(frozen=True)
-class Boundary:
-    kind: str
-    ident: str
-    slot: str
-    mast: str
-
-    @property
-    def binding_name(self) -> str:
-        if self.kind == "turnout":
-            return f"signal{self.slot.upper()}Mast"
-        return f"{self.slot.lower()}boundsignalmast"
+Boundary = boundary_csv.Boundary     # one row of le_signal_boundaries.csv (hartlib.boundaries reads the file)
 
 
 @dataclass
@@ -91,20 +80,10 @@ class Audit:
 
 
 def load_boundaries(path: Path) -> list[Boundary]:
-    with path.open(newline="", encoding="utf-8") as handle:
-        rows = list(csv.DictReader(handle))
-    boundaries = [
-        Boundary(
-            kind=row["kind"].strip(),
-            ident=row["ident"].strip(),
-            slot=row["slot"].strip(),
-            mast=row["mast_user_name"].strip(),
-        )
-        for row in rows
-    ]
-    if len(boundaries) != 32 or len({item.mast for item in boundaries}) != 32:
-        raise ValueError(f"{path}: expected 32 unique boundary mast names")
-    return boundaries
+    rows = boundary_csv.read(path)     # stops on a bad kind or slot, or a mast named twice
+    if len(rows) != 32:
+        raise ValueError(f"{path}: expected 32 boundary rows, found {len(rows)}")
+    return rows
 
 
 def select_panel(root: ET.Element, audit: Audit) -> ET.Element | None:

@@ -2,6 +2,7 @@
 facts hold the Barn on its diverging leg C since 2026-11-18, so Mast 14R's row records C."""
 from __future__ import annotations
 
+import csv
 import importlib.util
 import sys
 import unittest
@@ -42,6 +43,21 @@ class BoundarySlots(unittest.TestCase):
             audit_mod.audit_bindings(panel, [b], audit)
             with self.subTest(panel="C" if panel is on_c else "B"):
                 self.assertEqual(not audit.errors, ok, audit.errors)
+
+
+class ReadersAgree(unittest.TestCase):
+    """The audit, the facing script and the LE build's check read the committed file as the same rows."""
+
+    def test_same_rows(self) -> None:
+        with CSV.open(newline="", encoding="utf-8") as fh:   # the file as written, each value stripped
+            build = {(r["kind"].strip(), r["ident"].strip(), r["slot"].strip(), r["mast_user_name"].strip())
+                     for r in csv.DictReader(fh)}
+        audit = {(b.kind, b.ident, b.slot, b.mast) for b in load("audit_panel_contracts").load_boundaries(CSV)}
+        turnouts, anchors = load("apply_le_sml_facing").load_assignments(CSV)
+        facing = {(kind, ident, slot, mast) for kind, by in (("turnout", turnouts), ("anchor", anchors))
+                  for ident, slots in by.items() for slot, mast in slots.items()}
+        self.assertEqual(audit, build)
+        self.assertEqual(facing, build)
 
 
 if __name__ == "__main__":
