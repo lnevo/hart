@@ -38,7 +38,7 @@ icons), and `<bindings>` names each slot, list entry or child the split cleared 
 value). It is not a JMRI file.
 
 The cut-over build (`tools/schematic/build_layout_le.py --as-live`) leaves the same features out of the candidate
-it builds from the last hand-drawn tables; it does not write this file.
+it builds from the live `tables.xml` (which holds none of them since the release); it does not write this file.
 
 Files outside tables.xml stay in the repo but are not shipped while their feature is parked
 (`tools/hosts/sync_hart_package.sh`): the traininfo files and `dispatcheroptions.xml` (`jmri/layouts/hart/dispatcher/`),
@@ -52,19 +52,46 @@ They stay so the features can be unparked; nothing active runs them for the park
 
 | Feature | Only for the parked feature |
 |---------|-----------------------------|
-| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py` |
+| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py`, `polish_hart_layout_editor.py` (puts the lamps and block contents labels back after Stage 1) |
 | NX | `apply_nx_layer.py`, `discover_nx.py`, `run_nx_discover.sh`, `jmri/scripts/generate_nx_pairs.py` |
 | USS CTC | `build_ctc_full_15col.py` (unsafe to re-run, ADR-005) |
 
 Still used by active tools, so they must keep working while parked:
 
-- `reconcile_dispatcher_stations.py`: `tools/check.sh` and the Layout Editor build read the stations through it.
+- `reconcile_dispatcher_stations.py`: `audit_panel_contracts.py` (in `tools/check.sh`) reads the stations through it.
 - `nx_contract.py`: `audit_panel_contracts.py` (in `tools/check.sh`) and `hartlib.parked` import it.
 - `gen_ctc_track_plan.py` and `uss_switch_only_columns.py`, which it imports: the layout facts and the CATS desk
   tests read the USS board grid through them.
 - `apply_dispatcher_roster_profiles.py`: the host apply step.
 - `ensure_dispatcher_roster_profiles.py`: `loco_roster_import.py` tells the operator to run it.
 - `cleanup_uss_ctc_leftovers.py`: `apply_public_names_tree.py` runs it in a rename pass.
+
+The three scripts that edit the panel work on the generated panel only (`hartlib.tables.require_generated_panel`: it
+holds the generated-panel marker, `hartlib.tables.GENERATED_PANEL_MARKER`) and refuse any other: the hand-drawn
+panel's pixel tables and the one-off edit scripts are gone (the one-off scripts are in `archive/jmri-scripts/`). Every
+position comes from the panel itself or from `--reference`, the tables before Stage 1, which `run_panelpro_stage1.sh`
+passes:
+
+- `reconcile_dispatcher_stations.py`: the 12 stations (block comments, MoveTo and move-in-progress sensors) and their
+  clusters. Each cluster icon stays where it stands, or goes back where it stood on `--reference`; a missing progress
+  lamp or station lamp takes its usual offset from the MoveTo button, and a station whose MoveTo button is on neither
+  panel stops the run.
+- `polish_hart_layout_editor.py`: each Stage 1 lamp where its sensor's lamp stood on `--reference` (else where the
+  panel's own one lamp stands, else at the turnout circle's centre or the middle of the track), a lamp on a sensor
+  the reference panel shows none for removed (Stage 1 adds one on every block sensor, the main and upper levels'
+  too), each block contents label on level 4 where it stood, every lamp display only.
+- `apply_nx_layer.py`: the ISNX sensors and their bindings in the mast slots. It adds or moves no NX icon (the
+  generated panel shows none) and works with or without the Dispatcher System panel.
+
+While the Dispatcher System is parked, `reconcile_dispatcher_stations.py` and `polish_hart_layout_editor.py` print
+SKIPPED and change nothing.
+
+Stage 1 changes nothing else on the panel. Stock `CreateIcons` (`jython/DispatcherSystem/CreateIcons.py`:
+`removeIconsAndLabels`, `addIcons`) removes and re-adds only the block contents labels, the block sensors' lamps,
+the MoveTo and move-in-progress icons, and labels with its control texts ("Run Dispatcher System" and so on, which
+it puts on the "Dispatcher System" panel). It leaves the mast icons, the captions and the panel's attributes as
+the build wrote them. So the repair has no mast or caption pass: the hand-drawn panel's polish `--overlap-cleanup`
+(which re-hid the virtual masts) and its caption styles are not needed after Stage 1.
 
 ## Staging panel lamps
 
@@ -89,8 +116,8 @@ To bring them back, append this file's `items` to `jmri/layouts/hart/data/schema
 Also give the plugin the station clusters as `extras` again (as the retired `le_overlay.station_extras` did; see git
 history before the switch-over), so the label layer keeps clear of them: without them 14 block contents icons
 (OS Switch 7, OS Switch 9, Barn, EH-2, EH-3, East Lead, East Lead East, K-1, K-2, McKees Rocks, McKeesport, Scale,
-W-1, W-2) sit somewhere else than they did with the clusters. The OS lamp checks of
-`polish_hart_layout_editor.py` come back with the feature (they run only while it is not parked).
+W-1, W-2) sit somewhere else than they did with the clusters. `polish_hart_layout_editor.py` adds a switch OS lamp
+that is missing once the feature is back.
 
 ## Checks
 
@@ -102,11 +129,19 @@ W-1, W-2) sit somewhere else than they did with the clusters. The OS lamp checks
 
 ## Unpark
 
-1. Take the feature out of `PARKED` in `tools/hartlib/src/hartlib/parked.py`.
-2. Put the feature's live snapshot from this file back into the tables (`hartlib.parked.restore` gives the
-   elements and bindings in place), then `make panels` so the candidate holds the feature again.
+1. While the feature is still in `PARKED`, write a copy of the live `tables.xml` with its snapshot from this file
+   put back: `hartlib.parked.with_parked_file([feature])` (`with_parked`, through `restore`, puts the elements and
+   bindings in place; it does nothing for a feature already out of `PARKED`).
+2. Take the feature out of `PARKED` in `tools/hartlib/src/hartlib/parked.py`, then build on that copy
+   (`build_layout_le.py --as-live --tables <copy>`): the build starts from the tables it is given, and the live
+   `tables.xml` holds none of the parked data. Its items on the "HART Railroad" panel (NX slots, MoveTo buttons
+   and lamps) are not drawn by the build; Stage 1 or NX Discover in step 3 puts them back.
 3. The snapshot is the data that comes back; it matches the 3bd3ac64 geometry (helix unjoined). Refresh it against
    the current geometry with Dispatcher System Stage 1 (`run_panelpro_stage1.sh`: sections, transits, traininfo,
    stations) or NX Discover (`run_nx_discover.sh`), in a sandbox first (`tools/hosts/sandbox/README.md`).
 4. Put the expected counts back (`audit_panel_contracts.py` EXPECTED_GRAPH, `panelpro_smoke_test.py`), and deploy:
    the folders above ship again.
+5. Dispatcher System only: put its two checks back in `tools/check.sh`,
+   `reconcile_dispatcher_stations.py --check --no-sync` and `polish_hart_layout_editor.py --check`. Both print SKIPPED
+   while the feature is parked, so they were taken out; the approved panel fingerprint
+   (`tools/schematic/check_approved.py le-panel`) covers the panel meanwhile.

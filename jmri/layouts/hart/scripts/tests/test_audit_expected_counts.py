@@ -1,5 +1,6 @@
 """audit_sml and audit_generated_dispatcher expect the hand-drawn panel's counts on a hand-drawn panel and the
-rehearsed three-level counts on a generated one."""
+rehearsed three-level counts on a generated one; a generated panel before discovery may hold the staging logic the
+build carries from the live tables (carried_destinations)."""
 import sys
 import unittest
 from unittest import mock
@@ -11,11 +12,15 @@ import audit_panel_contracts as apc  # noqa: E402
 
 
 def sml_root(n):
+    return pairs_root([(f"Mast {i}", f"Mast {i}x") for i in range(n)])
+
+
+def pairs_root(pairs):
     root = ET.Element("layout-config")
     logics = ET.SubElement(root, "signalmastlogics")
-    for i in range(n):
-        logic = ET.SubElement(logics, "signalmastlogic", source=f"Mast {i}")
-        dest = ET.SubElement(logic, "destinationMast", destination=f"Mast {i}x")
+    for source, target in pairs:
+        logic = ET.SubElement(logics, "signalmastlogic", source=source)
+        dest = ET.SubElement(logic, "destinationMast", destination=target)
         ET.SubElement(dest, "useLayoutEditor").text = "yes"
     return root
 
@@ -43,8 +48,20 @@ class ExpectedCounts(unittest.TestCase):
         self.assertEqual(errors(apc.audit_sml, sml_root(hand), required=True), [])
         self.assertEqual(errors(apc.audit_sml, sml_root(gen), required=True, generated=True), [])
         self.assertTrue(errors(apc.audit_sml, sml_root(gen), required=True))
-        self.assertEqual(errors(apc.audit_sml, sml_root(hand), required=True, generated=True), [])  # before Stage 1
-        self.assertTrue(errors(apc.audit_sml, sml_root(hand + 1), required=True, generated=True))
+
+    def test_a_generated_panel_before_discovery_holds_the_live_staging_pairs(self):
+        """The cut-over candidate as built holds the live tables' destinations between staging masts and none on
+        main or upper: a warning; any other set of staging pairs is an error."""
+        staging = [("Mast 10RA", "Mast 16L"), ("Mast 38RA", "Mast 36L"), ("Mast 2", "Mast 2035")]
+        live = pairs_root(staging + [("Mast 108LA", "Mast 110LA"), ("Mast 40RA", "Mast 136RA")])
+        self.assertEqual(apc.carried_destinations(apc.sml_destinations(live)), [s + ("yes",) for s in staging])
+        audit = apc.Audit("test", Path("test.xml"))
+        apc.audit_sml(pairs_root(staging), audit, required=True, generated=True, live=live)
+        self.assertEqual(audit.errors, [])
+        self.assertTrue(any("run Stage 1 or stock discovery" in w for w in audit.warnings), audit.warnings)
+        for other in (staging[:-1], staging + [("Mast 4", "Mast 6")]):
+            self.assertTrue(errors(apc.audit_sml, pairs_root(other), required=True, generated=True, live=live))
+        self.assertTrue(errors(apc.audit_sml, pairs_root(staging), required=True, live=live))     # hand-drawn kind
 
     @mock.patch.object(apc.parked, "PARKED", frozenset())
     def test_dispatcher_graph_follows_the_panel_kind(self):

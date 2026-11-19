@@ -38,11 +38,9 @@ class GeneratedSlot(unittest.TestCase):
         # since 2026-11-18 Switch 13's facts hold the Barn on its diverging leg C, so the row's own slot is C and it
         # has no generated_slot: every panel puts Mast 14R there
         mod = load("apply_le_sml_facing")
-        for generated in (False, True):
-            got, _ = mod.load_assignments(CSV, generated=generated)
-            with self.subTest(generated=generated):
-                self.assertEqual(got["TO1"].get("C"), "Mast 14R")
-                self.assertNotIn("B", got["TO1"])
+        gen, _ = mod.load_assignments(CSV)
+        self.assertEqual(gen["TO1"].get("C"), "Mast 14R")
+        self.assertNotIn("B", gen["TO1"])
 
     def test_audit_panel_contracts_takes_the_generated_slot_only_on_a_generated_panel(self) -> None:
         audit_mod = load("audit_panel_contracts")

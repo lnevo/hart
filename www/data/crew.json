@@ -88,7 +88,7 @@
     "title": "Route 23 Timetable",
     "name": "Neville Queen",
     "subtitle": "Route 23 · “Neville Queen” · Employee Timetable No. 23",
-    "summary": "Station times for the Route 23 streetcar. Freight holds until the streetcar clears.",
+    "summary": "Station times for the layout's Route 23 streetcar, which borrows the number of the real Pittsburgh–Sewickley trolley line across Neville Island. Freight holds until the streetcar clears.",
     "columns": [
       "AM",
       "Station",
@@ -1060,7 +1060,7 @@
         "label": "CR 1993 · GE B23-7",
         "img": "assets/crew/loco-cr-1993-thumb.jpg"
       },
-      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart eastbound toward McKeesport, and terminate again in West Yard.",
+      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart eastbound toward McKeesport, and terminate again in West Yard. D749 is a real CSX train number; this job's work is invented for the layout.",
       "steps": [
         "Find the train tied down in West Yard with the inbound Demmler block.",
         "Obtain dispatcher clearance and run the inbound to South Yard.",
@@ -1103,7 +1103,7 @@
         "label": "POHC 2091 · EMD GP20",
         "img": "assets/crew/loco-pohc-2091-thumb.jpg"
       },
-      "summary": "Neville Island turn from Scully Yard. Interchange at South Yard, work Neville Island industries, then return to McKees Rocks / Scully with the outbound block.",
+      "summary": "Neville Island turn from Scully Yard. Interchange at South Yard, work Neville Island industries, then return to McKees Rocks / Scully with the outbound block. NVL is a real POHC train number; this job's work is invented for the layout.",
       "steps": [
         "Assign on the train at Scully Yard with the inbound Scully block.",
         "Obtain dispatcher clearance and run to South Yard.",

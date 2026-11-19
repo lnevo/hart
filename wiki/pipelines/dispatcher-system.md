@@ -32,8 +32,8 @@ Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../j
    first.
 4. After Stage 1, `run_panelpro_stage1.sh` runs the repairs itself (see `wiki/DISPATCHER_LAYOUT_HOOPS.md`).
 5. Stage 1 Store writes BlockContentsIcons at level 0. The launcher runs
-   `polish_hart_layout_editor.py --block-labels-only --sync-output` so labels
-   stay on level 4 (above the rail).
+   `polish_hart_layout_editor.py --reference <tables before Stage 1>` so labels
+   go back to their reference spots (above the rail).
 6. Post-scripts:
 
 ```bash

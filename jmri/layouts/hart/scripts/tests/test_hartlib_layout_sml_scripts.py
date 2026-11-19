@@ -10,7 +10,6 @@ import importlib.util
 import sys
 import tempfile
 import unittest
-from unittest import mock
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -101,20 +100,6 @@ class ReadsThroughHartlibTest(unittest.TestCase):
         self.assertEqual(1, n)
         self.assertNotIn(gone, out)
         self.assertIn("MTT1", out)
-
-
-class SaveFailureTest(unittest.TestCase):
-    def test_jmri_open_is_a_clean_failure_not_a_traceback(self):
-        polish = load("polish_hart_layout_editor")
-        with tempfile.TemporaryDirectory() as tmp:
-            panel = Path(tmp) / "tables.xml"
-            panel.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
-            with mock.patch.object(polish.tables.Tables, "save",
-                                   side_effect=RuntimeError("save refused")), \
-                    mock.patch.object(polish, "apply_visual_standard",
-                                      side_effect=RuntimeError("save refused")), \
-                    mock.patch("sys.argv", ["polish", "--panel", str(panel)]):
-                self.assertEqual(1, polish.main())
 
 
 if __name__ == "__main__":

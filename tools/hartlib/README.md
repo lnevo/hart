@@ -98,13 +98,15 @@ Lookups (all take the root element unless noted):
 | `layout_editors` | every Layout Editor panel |
 | `generated_panel(panel)` | True when the panel holds the hidden marker label a generated panel carries (`build_layout_le.py --as-live`); two markers raise ValueError |
 | `generated_marker_label()`, `GENERATED_PANEL_MARKER` | that label and its text |
-| `hand_drawn_only(path, script)` | None, or why a one-off edit of the hand-drawn panel must not run on that file's panel |
+| `require_generated(panel, what)`, `require_generated_panel(root, what)` | the (main) panel when it is a generated one; else ValueError naming `what` |
+| `ensure_block_contents_visible(le, check=, spots=)`, `BCI_*` | block contents labels on level 4 in black, the plugin's font kept, optionally at given spots |
 | `layout_turnouts(panel)` | `<layoutturnout>` (turnouts and crossovers) on a panel |
 | `continuing_sense(lt)` | `CLOSED` (2), `THROWN` (4) or `UNKNOWN` (1) |
 | `mast_logics`, `mast_logic_sources`, `mast_logic_pairs` | SML elements, source -> element, (source, destination, element) |
 | `system_name(el)`, `user_name(el)`, `text(el, child)` | stripped names and child text |
 | `by_system_name`, `by_user_name`, `by_any_name` | dicts over any list of beans |
 | `section(root, container, tag)`, `elements(el)` | generic: all sections; children without comments |
+| `remove_child(parent, child)` | take a child out, keeping the indentation of what follows (the build's strip and `hartlib.parked`) |
 
 ### `hartlib.railroad`
 
@@ -148,14 +150,7 @@ The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, 
 `tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs), `names()`,
 `head_name()` (the virtual head from its user name: "Head 108R Top" -> IH:HART:C3:108R_Top, never from the draft
 physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
-`audit_panel_contracts.py` and `polish_hart_layout_editor.py`.
-
-### `hartlib.hand_drawn`
-
-The last hand-drawn `tables.xml`, read from git at `COMMIT` (main just before the Layout Editor cut-over): `tables_bytes()`,
-`tables_path()` (a read-only temporary copy, one per process) and, for tests, `skip_unless_available()`. Used by
-`build_layout_le.py` (`template_tables`) and the tests of the cut-over and of the one-off scripts that only
-ever edited the hand-drawn panel. No copy of the old file is kept in the tree.
+and `audit_panel_contracts.py`.
 
 ### `hartlib.parked`
 

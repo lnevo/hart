@@ -11,13 +11,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import railroad  # noqa: E402  the railroad's facts, each file read and checked in one place
+from hartlib import level_devices  # noqa: E402  the main and upper naming rule
 
 
 DEVICE_MAP = railroad.Sources.under().device_map    # main and upper names (trial_name: the drawing's placeholder)
 STAGING = "Staging"                  # band key (first word of the band title) bound to the live objects
 
-TURNOUT_SYS = "IT:HART:C3:"          # internal turnouts: nothing reaches the field
-BLOCK_SYS = "IB:C3:"
+TURNOUT_SYS = level_devices.TURNOUT_PREFIX     # internal turnouts: nothing reaches the field
+BLOCK_SYS = level_devices.BLOCK_PREFIX
 LAYOUT_BLOCK_FIRST = 1001            # ILB1001 up; the live file stops well below
 
 

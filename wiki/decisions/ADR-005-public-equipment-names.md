@@ -61,7 +61,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 
 1. Walk-down node 13 (done: 1301=OS Switch 11, 1304=EH-3, 1305=EH-2, 1306=EH-1, 1307=OS Switch 9). Live map: `Block 13-7` / M2S1306 = EH-1, `Block 13-5` / M2S1304 = EH-3. Freeze the CSV.  
 2. `apply_public_names.py` for beans that have **no generator**: JMRI `userName` on blocks / masts / heads in `tables.xml`, plus CTC SIDI / TRL dest strings already stored there. Turnouts already match.  
-3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS Digicon = `wire_digicon.py`.  
+3. For generated panels: **change the script, then regenerate** — do not string-replace the output. USS diagram = `gen_ctc_track_plan.py`. CATS desks = `tools/schematic/build_cats_panel.py` (`wire_digicon.py` archived 2026-11-18).  
 4. Update look-up scripts and data CSVs (polish, validators, occupancy/signal CSVs) so they key on the new names.  
 5. Re-discover SML (dests are mast userNames) and NX (`run_nx_discover.sh`; `ISNX:*` stays frozen).  
 6. `check_hart_phase02.py` + `validate_cats_panel.py` + load PanelPro + Run CTC Logic.  
@@ -80,15 +80,15 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | Script | Hardcoded names |
 |--------|-----------------|
 | `gen_ctc_track_plan.py` | `SIGNALS` mast keys; lamp labels Track Scale / T6 / Track S-R / Track East Lead |
-| `polish_hart_layout_editor.py` | Mast xy keys; `REMOVED_LABELS` includes `Track East Lead` |
-| `jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py` | Same mast keys as polish |
-| `reconcile_dispatcher_stations.py` | Station `Track East Lead` + icon xy |
+| `polish_hart_layout_editor.py` | Reads positions from `--reference`; no hard-coded mast xy since 2026-11-18 |
+| `add_digicon_le_signal_icons.py` | Archived 2026-11-18 (`archive/jmri-scripts/`) |
+| `reconcile_dispatcher_stations.py` | Station `Track East Lead` (icon xy table removed 2026-11-18) |
 | `audit_panel_contracts.py` | `Track East Lead` stop contract |
 | `annotate_mqtt_sensors_and_dispatcher.py` | Section graph / transit comments (`Track East Lead`, `OS Switch 7b`). Removed 2026-11-14 (one-shot) |
 | `panelpro_smoke_test.py` | Station list `Track East Lead` |
 | `jmri/scripts/check_hart_phase02.py` | Requires `OS Switch 7b` |
 | `build_ctc_full_15col.py` | SIDI mast lists (unsafe to re-run until updated) |
-| `wire_digicon.py` | CATS `BLOCK` / `SECSIGNAL` SoR |
+| `wire_digicon.py` | Archived 2026-11-18 (`archive/cats-scripts/`); the desks are built by `tools/schematic/build_cats_panel.py` |
 | `apply_sml_cats_pairs.py` | Removed 2026-11-14; wrote nothing at the end |
 | `validate_cats_panel.py` | Required `OS Switch 13` / `OS Switch 9` (was Track 13 / Track 9) |
 | `build_hart_signal_heads.py` | Mast userNames |

@@ -64,6 +64,22 @@ def is_block_sensor(system_name: str) -> bool:
     return (system_name or "").startswith(SENSOR_PREFIX)
 
 
+# Every main and upper name, by rule, for references to a device that is no longer in the tables. System names: the
+# prefixes above, the build's blocks (BLOCK_PREFIX) and a mast over virtual heads (its system name holds the head's).
+# User names: the main and upper switch numbers, 101 to 245 (owner, 2026-11-14), after the device kind, as the device
+# map writes them ("Switch 107", "Track 107-109", "OS Switch 225b", "BS 107-109", "Mast <n><L|R>", "Head 108R Top").
+# Staging numbers stop at 40, and its masts 2035 and 2036 have four digits.
+BLOCK_PREFIX = "IB:C3:"
+LEVEL_USER = re.compile(r"(?:Switch|OS Switch|Track|BS|BS Switch|Mast|Head) [12]\d\d(?!\d).*")
+
+
+def is_level_name(name: str) -> bool:
+    """Whether `name` (a system or user name) is a main or upper device's by the naming rule, present or not."""
+    name = (name or "").strip()
+    return (name.startswith((TURNOUT_PREFIX, SENSOR_PREFIX, HEAD_PREFIX, BLOCK_PREFIX)) or HEAD_PREFIX in name
+            or bool(CLEAR_PREFIX.match(name)) or bool(LEVEL_USER.fullmatch(name)))
+
+
 def head_name(user: str) -> str:
     """The virtual system name of a main or upper head, from its user name: "Head 108LA" -> IH:HART:C3:108LA,
     "Head 108R Top" -> IH:HART:C3:108R_Top. ValueError on any other user name."""

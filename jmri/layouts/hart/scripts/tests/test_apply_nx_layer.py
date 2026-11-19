@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 import unittest
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(SCRIPTS.parents[3] / "tools/hartlib/src"))
+from hartlib import tables  # noqa: E402
+
+MARKER = f'<positionablelabel text="{tables.GENERATED_PANEL_MARKER}" hidden="yes" />'
 
 
 def _load(name: str):
@@ -37,15 +42,14 @@ MINIMAL = """\
     </layoutPanel>
   </entryexitpairs>
   <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="HART Railroad">
+    MARKER
     <signalmasticon signalmast="Mast 2L" x="382" y="242" degrees="0" />
     <layoutturnout ident="TOL3" type="LH_TURNOUT">
       <signalAMast>Mast 2L</signalAMast>
     </layoutturnout>
   </LayoutEditor>
-  <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" name="Dispatcher System">
-  </LayoutEditor>
 </layout-config>
-"""
+""".replace("MARKER", MARKER)
 
 
 class FrozenIsnx(unittest.TestCase):
@@ -81,7 +85,7 @@ class FrozenIsnx(unittest.TestCase):
 
 
 class Slots(unittest.TestCase):
-    """A sensor bound once stays bound once; a generated panel keeps its icon spots (LE cut-over)."""
+    """A sensor bound once stays bound once; the panel's icons are left where they stand."""
 
     PANEL = MINIMAL.replace(
         '<signalmasticon signalmast="Mast 2L" x="382" y="242" degrees="0" />',
@@ -98,33 +102,32 @@ class Slots(unittest.TestCase):
         self.assertNotIn('westboundsensor="NX Mast 2L"', out)
         self.assertEqual(counts["points"], 0)
 
-    def test_hand_drawn_panel_moves_icons_to_its_pixels(self) -> None:
+    def test_icons_stay_and_none_is_added(self) -> None:
         apply_nx = _load("apply_nx_layer")
-        out, counts = apply_nx.apply_text(self.PANEL, mode="sml")
-        self.assertIn('<sensoricon sensor="NX Mast 2L" x="382" y="242"', out)
-        self.assertEqual(counts["generated"], 0)
-
-    def test_generated_panel_keeps_icon_spots_and_adds_no_icon(self) -> None:
-        apply_nx = _load("apply_nx_layer")
-        import sys
-        sys.path.insert(0, str(SCRIPTS.parents[3] / "tools/hartlib/src"))
-        from hartlib import tables
-        marker = f'<positionablelabel text="{tables.GENERATED_PANEL_MARKER}" hidden="yes" />'
-        panel = self.PANEL.replace('<signalmasticon signalmast="Mast 2L"', marker + '\n    <signalmasticon '
-                                   'signalmast="Mast 2L"', 1)
-        out, counts = apply_nx.apply_text(panel, mode="sml")
-        self.assertEqual(counts["generated"], 1)
-        self.assertEqual((counts["aligned"], counts["moved"]), (0, 0))
+        out, _counts = apply_nx.apply_text(self.PANEL, mode="sml")
         self.assertIn('<sensoricon sensor="NX Mast 2L" x="650" y="90"', out)
         self.assertIn('<signalmasticon signalmast="Mast 2L" x="700" y="100"', out)
-        # the marker text anywhere else (a comment, another panel) does not make the panel generated
-        quoted = self.PANEL.replace('<signalmasticon signalmast="Mast 2L"',
-                                    f"<!-- {tables.GENERATED_PANEL_MARKER} -->\n    "
-                                    '<signalmasticon signalmast="Mast 2L"', 1)
-        self.assertEqual(apply_nx.apply_text(quoted, mode="sml")[1]["generated"], 0)
-        # NX Mast 6LA has no icon and gets none (owner, 2026-11-16); its sensor is still bound in its slot
+        # NX Mast 6LA has no icon and gets none (owner, 2026-11-16)
         self.assertNotIn('<sensoricon sensor="NX Mast 6LA"', out)
-        self.assertEqual(counts["icons"], 0)
+
+    def test_the_main_panel_ends_at_its_own_closing_tag(self) -> None:
+        # the Dispatcher System panel parked or not, a binding never lands in the panel after the main one
+        apply_nx = _load("apply_nx_layer")
+        after = ('  <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" '
+                 'name="Dispatcher System">\n    <layoutturnout ident="X1" type="RH_TURNOUT">\n'
+                 '      <signalAMast>Mast 6LA</signalAMast>\n    </layoutturnout>\n  </LayoutEditor>\n')
+        out, counts = apply_nx.apply_text(MINIMAL.replace("</layout-config>", after + "</layout-config>"))
+        self.assertEqual(counts["turnouts"], 1)
+        self.assertNotIn("<sensorA>NX Mast 6LA</sensorA>", out)
+
+    def test_a_panel_that_is_not_generated_is_refused(self) -> None:
+        apply_nx = _load("apply_nx_layer")
+        with self.assertRaisesRegex(SystemExit, "^x.xml: the 'HART Railroad' panel is not a generated one"):
+            apply_nx.apply_text(self.PANEL.replace(MARKER, ""), mode="sml", what="x.xml")
+        # the marker text anywhere else (a comment) does not make the panel generated
+        quoted = self.PANEL.replace(MARKER, f"<!-- {tables.GENERATED_PANEL_MARKER} -->")
+        with self.assertRaisesRegex(SystemExit, "not a generated one"):
+            apply_nx.apply_text(quoted, mode="sml")
 
 
 if __name__ == "__main__":

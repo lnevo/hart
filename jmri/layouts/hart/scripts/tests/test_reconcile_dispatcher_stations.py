@@ -9,6 +9,8 @@ from pathlib import Path
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "reconcile_dispatcher_stations.py"
+sys.path.insert(0, str(Path(__file__).resolve().parents[5] / "tools/hartlib/src"))
+from hartlib import tables  # noqa: E402
 SPEC = importlib.util.spec_from_file_location("reconcile_dispatcher_stations", SCRIPT)
 assert SPEC and SPEC.loader
 reconciler = importlib.util.module_from_spec(SPEC)
@@ -74,7 +76,8 @@ def fixture_tree() -> ET.ElementTree:
         transits, "transit", {"systemName": "IZ:KEEP", "userName": "Keep Me"}
     )
 
-    editor = ET.SubElement(root, "LayoutEditor", {"name": "My Layout"})
+    editor = ET.SubElement(root, "LayoutEditor", {"name": "HART Railroad"})
+    editor.append(tables.generated_marker_label())
     for number, station in enumerate(reconciler.STATIONS):
         x, y = 100 + number * 150, 100 + (number % 2) * 100
         for _duplicate in range(2):
@@ -87,7 +90,8 @@ def fixture_tree() -> ET.ElementTree:
     # Force East Lead away from its first candidate without affecting others.
     ET.SubElement(editor, "sensoricon", {"sensor": "Obstacle", "x": "100", "y": "120"})
 
-    for station in ("Track K-1", "Track K-2", "Track W-1"):
+    # The build places every station's MoveTo button; three stations have their progress lamp too
+    for station in reconciler.STATIONS:
         anchor = next(
             icon
             for icon in editor.findall("BlockContentsIcon")
@@ -95,8 +99,9 @@ def fixture_tree() -> ET.ElementTree:
         )
         x, y = int(anchor.get("x", "0")), int(anchor.get("y", "0"))
         move_to, progress = reconciler.sensor_names(station)
-        editor.append(reconciler.icon_element(move_to, station, x + 12, y + 20, True))
-        editor.append(reconciler.icon_element(progress, station, x, y + 20, False))
+        editor.append(reconciler.icon_element(move_to, station, x + 12, y + 20, "move_to"))
+        if station in ("Track K-1", "Track K-2", "Track W-1"):
+            editor.append(reconciler.icon_element(progress, station, x + 2, y + 20, "progress"))
 
     ET.SubElement(root, "LayoutEditor", {"name": "Dispatcher System"})
     return ET.ElementTree(root)
@@ -148,7 +153,7 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
         )
         self.assertEqual(ET.tostring(root.find("transits")), transit_before)
 
-        editor = reconciler.main_layout_editor(root)
+        editor = tables.layout_editor(root)
         managed = [
             icon
             for icon in editor.findall("sensoricon")
@@ -176,7 +181,7 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             for icon in managed
             if icon.get("sensor") == "MoveToTrack_East_Lead_stored"
         )
-        self.assertEqual(move_to.get("text"), reconciler.STATION_DISPLAY_NAMES["Track East Lead"])
+        self.assertEqual(move_to.get("text"), "East End")
         px, py = reconciler.xy(progress)
         mx, my = reconciler.xy(move_to)
         self.assertEqual((mx - px, my - py), (reconciler.PAIR_DX, 0))
@@ -191,7 +196,7 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             reconciler.OCCUPANCY_OFFSET,
         )
         eh_progress, eh_move, eh_occ = reconciler.cluster_positions(
-            "Track EH-1"
+            "Track EH-1", (100, 200)
         )
         self.assertEqual(eh_move[0] - eh_progress[0], reconciler.PAIR_DX)
         self.assertEqual(eh_progress[1], eh_occ[1])

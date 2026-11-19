@@ -18,7 +18,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[3]
 TABLES = SCRIPTS.parent / "output" / "tables.xml"
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import hand_drawn, parked  # noqa: E402
+from hartlib import parked  # noqa: E402
 
 
 def uss_view() -> ET.Element:
@@ -37,13 +37,7 @@ def uss_panel_bytes(data: bytes) -> str:
 def uss_panel(path: Path) -> str:
     return uss_panel_bytes(path.read_bytes())
 
-# the USS board's grid is the hand-wired desk's (frozen in uss_board_cells.csv): the last hand-wired desk, read from
-# git (hartlib.hand_drawn), since the live desks are generated since the CATS cut-over
-CATS = hand_drawn.skip_unless_available("HART_CTC.xml")
-
 sys.path.insert(0, str(SCRIPTS))
-sys.path.insert(0, str(ROOT / "cats/scripts"))
-import digicon_trace as trace  # noqa: E402
 import gen_ctc_track_plan as gen  # noqa: E402
 
 
@@ -64,11 +58,6 @@ def code_buttons() -> dict[str, dict[str, str]]:
             "signals": get("SIDL_Enabled") == "true",
         }
     return out
-
-
-def cats_frogs() -> dict[str, tuple[int, int]]:
-    """OS block -> the CATS cell holding its SWITCHPOINTS."""
-    return trace.desk_plants(trace.track_cells(ET.parse(CATS).getroot().find("TRACKPLAN")))
 
 
 class LeverColumnsTest(unittest.TestCase):
@@ -92,7 +81,7 @@ class LeverColumnsTest(unittest.TestCase):
 
 class PointsTest(unittest.TestCase):
     def test_points_dot_on_the_primary_os_frog(self) -> None:
-        frogs = cats_frogs()
+        frogs = gen.OS_FROG                         # the board's plant cells (uss_board_plants.csv)
         buttons = code_buttons()
         seen = set()
         for xy, (turnout, _invert) in gen.PLANTS.items():
@@ -101,9 +90,6 @@ class PointsTest(unittest.TestCase):
                 self.assertEqual(frogs[primary], xy)
                 seen.add(turnout)
         self.assertEqual(seen, set(buttons))
-
-    def test_os_frog_is_the_cats_desk(self) -> None:
-        self.assertEqual(gen.OS_FROG, cats_frogs())
 
 
 class GapsAndLevelsTest(unittest.TestCase):
@@ -116,7 +102,7 @@ class GapsAndLevelsTest(unittest.TestCase):
                  "SWITCH_ONLY_SLOTS": cols["switch_only"], "SLOT_SW_NUM": cols["sw_num"],
                  "SLOT_LOCK_UID": cols["lock_uid"], "UID_SLOT": cols["uid_slot"]}
         with mock.patch.multiple(gen, **patch):
-            block = gen.build_block(gen.parse_cats(CATS))
+            block = gen.build_block(gen.facts.load_uss_cells())
         self.assertIn('x="142" y="0"', block)  # slot 2 background
         self.assertIn("Panel-blank-7.gif", block)
         self.assertNotIn("IS5:LEVER", block)

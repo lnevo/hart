@@ -78,17 +78,6 @@ class RoundTripTest(unittest.TestCase):
             self.assertEqual(out.read_bytes(), original)
             self.assertFalse(doc.save(out), "an identical file is not rewritten")
 
-    def test_matches_the_existing_elementtree_writers_on_the_repo_file(self):
-        # apply_yard_throat_blocks and friends: ET.parse + write(xml_declaration=True), on the last tables those
-        # scripts wrote (the hand-drawn ones, git): since the cut-over the repo's file is a PanelPro Store, whose
-        # header (stylesheet, quotes) test_panelpro_store_is_byte_identical covers
-        from hartlib import hand_drawn
-        source = hand_drawn.skip_unless_available()
-        with tempfile.TemporaryDirectory() as d:
-            out = Path(d) / "et.xml"
-            ET.parse(source).write(out, encoding="UTF-8", xml_declaration=True)
-            self.assertEqual(tables.load(source).tobytes(), out.read_bytes())
-
     def test_panelpro_store_is_byte_identical(self):
         doc = tables.loads(STORE)
         self.assertEqual(doc.tobytes(), STORE)
@@ -307,28 +296,49 @@ class GeneratedPanelMarkerTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "'HART Railroad' has 2 generated-panel markers"):
             tables.generated_panel(self.panel(2))
 
-    def test_the_repo_panel_is_generated_and_the_last_hand_drawn_one_is_not(self):
-        # the Layout Editor cut-over (Phase 5): the repo's panel is the generated one; the last hand-drawn tables
-        # stay readable from git (hartlib.hand_drawn) for what still needs them
-        from hartlib import hand_drawn
+    def test_the_repo_panel_is_generated(self):
+        # since the Layout Editor cut-over (Phase 5) the repo's panel is the generated one, which the build starts from
         self.assertTrue(tables.generated_panel(tables.layout_editor(tables.read(paths.REPO_TABLES_XML))))
-        self.assertFalse(tables.generated_panel(tables.layout_editor(tables.read(hand_drawn.skip_unless_available()))))
 
-    def test_hand_drawn_only(self):
-        with tempfile.TemporaryDirectory() as d:
-            root = ET.Element("layout-config")
-            root.append(self.panel(0))
-            hand = Path(d) / "hand.xml"
-            hand.write_bytes(ET.tostring(root))
-            self.assertIsNone(tables.hand_drawn_only(hand, "x.py"))
-            tables.layout_editor(root).append(tables.generated_marker_label())
-            gen = Path(d) / "gen.xml"
-            gen.write_bytes(ET.tostring(root))
-            self.assertIn("is generated", tables.hand_drawn_only(gen, "x.py"))
-            self.assertIn("cannot read", tables.hand_drawn_only(Path(d) / "none.xml", "x.py"))
-            other = Path(d) / "other.xml"
-            other.write_bytes(b"<layout-config><LayoutEditor name='Dispatcher System'/></layout-config>")
-            self.assertIn("no main Layout Editor panel", tables.hand_drawn_only(other, "x.py"))
+    def test_require_generated_panel(self):
+        root = ET.Element("layout-config")
+        with self.assertRaisesRegex(ValueError, r"^t.xml: no main Layout Editor panel \(HART Railroad"):
+            tables.require_generated_panel(root, "t.xml")
+        root.append(self.panel(0))
+        with self.assertRaisesRegex(ValueError, "^t.xml: the 'HART Railroad' panel is not a generated one"):
+            tables.require_generated_panel(root, "t.xml")
+        tables.layout_editor(root).append(tables.generated_marker_label())
+        self.assertIs(tables.require_generated_panel(root, "t.xml"), tables.layout_editor(root))
+        tables.layout_editor(root).append(tables.generated_marker_label())
+        with self.assertRaisesRegex(ValueError, "^--reference x: Layout Editor panel 'HART Railroad' has 2"):
+            tables.require_generated(tables.layout_editor(root), "--reference x")
+        with self.assertRaisesRegex(ValueError, "^r: no main Layout Editor panel"):
+            tables.require_generated(None, "r")
+
+
+class BlockContentsTest(unittest.TestCase):
+    def test_labels_go_on_the_label_layer_in_black_and_the_plugins_font_stays(self):
+        le = ET.fromstring(
+            '<LayoutEditor name="HART Railroad">'
+            '<BlockContentsIcon blockcontents="Track West Ext" x="1394" y="232" level="0" fontFamily="Lucida Grande" '
+            'fontname="LucidaGrande-Bold" size="12" red="51" green="51" blue="51" />'
+            '<BlockContentsIcon blockcontents="Track K-1" x="10" y="20" level="4" fontFamily="Dialog" '
+            'fontname="Dialog" red="0" green="0" blue="0" />'
+            "</LayoutEditor>")
+        self.assertEqual(6, len(tables.ensure_block_contents_visible(le, check=True)[1]))
+        changes, errors = tables.ensure_block_contents_visible(le, check=False, spots={"Track K-1": (30, 40)})
+        self.assertEqual((7, []), (changes, errors))
+        west, k1 = le
+        self.assertEqual(("4", "0"), (west.get("level"), west.get("red")))
+        self.assertNotIn("fontFamily", west.attrib)
+        self.assertNotIn("fontname", west.attrib)
+        self.assertEqual(("Dialog", "30", "40"), (k1.get("fontFamily"), k1.get("x"), k1.get("y")))
+        self.assertEqual((0, []), tables.ensure_block_contents_visible(le, check=True, spots={"Track K-1": (30, 40)}))
+
+    def test_the_live_panel_labels_are_visible(self):
+        le = tables.layout_editor(tables.read(paths.REPO_TABLES_XML))
+        self.assertTrue(le.findall("BlockContentsIcon"))
+        self.assertEqual((0, []), tables.ensure_block_contents_visible(le, check=True))
 
 
 class OverrideSaveTest(unittest.TestCase):

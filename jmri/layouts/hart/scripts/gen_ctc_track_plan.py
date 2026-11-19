@@ -16,7 +16,6 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
 
@@ -29,7 +28,7 @@ from hartlib import tables as hl_tables  # noqa: E402  (layout_facts put hartlib
 
 # The board's grid: the cells of the hand-wired CATS desk, frozen on 2026-11-15 into
 # jmri/layouts/hart/data/uss_board_cells.csv and uss_board_plants.csv (CATS cut-over),
-# so the board no longer reads a desk. --cats DESK reads a desk's cells instead.
+# so the board reads no desk.
 PLANT_CELLS = facts.load_uss_plants()
 GUI_XML = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
 OUTPUT_TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
@@ -164,10 +163,10 @@ FALLBACK_LABEL_SENSORS = {"Track Main East": ("BS Main East", "Track Main East")
 # OS occupancy-cut sits at the frog; lamp goes left/right of the points.
 OS_FROG = {os_name: xy for xy, os_name in PLANT_CELLS.items()}
 
-# (mast, cats_x, cats_y, facing, kind, IH* or None), from mast_cells.csv, which
-# wire_digicon.py reads for the same cells. kind "h2" draws a mast icon (two-head
-# masts); "d1" draws a head icon on the mast's only head. Cells and kinds follow
-# the SECSIGNALs in the CATS desk (LAMP2 = h2). File order is drawing order.
+# (mast, cats_x, cats_y, facing, kind, IH* or None), from mast_cells.csv: cells on
+# the board's grid (uss_board_cells.csv). kind "h2" draws a mast icon (two-head
+# masts); "d1" draws a head icon on the mast's only head. Kinds and facings follow
+# the live CATS desks' lamps (LAMP2 = h2). File order is drawing order.
 SIGNALS = [(c.mast, c.x, c.y, c.uss_facing, c.uss_kind, c.uss_head or None) for c in facts.load_mast_cells()]
 
 STATION_NAMES = facts.station_names()  # control point plates: BRICK, EAST END, ...
@@ -625,48 +624,6 @@ def signal_pos(cx: int, cy: int, facing: str, kind: str) -> tuple[int, int]:
     """Panel x, y of the signal icon for CATS cell (cx, cy)."""
     stem_x = ux(cx, cy) + (8 if facing == "E" else 2)
     return signal_xy(stem_x, bar_y(cy) + 2, facing, kind)
-
-
-def parse_cats(path: Path) -> dict:
-    root = ET.parse(path).getroot()
-    tp = root.find("TRACKPLAN")
-    cells: dict[tuple[int, int], dict] = {}
-    for sec in tp.findall("SECTION"):
-        x, y = int(sec.get("X")), int(sec.get("Y"))
-        tracks = [(t.text or "").strip() for t in sec.findall("TRACKGROUP/TRACK")]
-        tracks = [t for t in tracks if t]
-        sn = sec.find("SEC_NAME")
-        name = sn.get("NAME") if sn is not None else None
-        blocks = []
-        for se in sec.findall("SEC_EDGE"):
-            edge = se.get("EDGE")
-            for blk in se.findall("BLOCK"):
-                bname = blk.get("NAME")
-                ios = blk.find("OCCUPIEDSPEC/IOSPEC")
-                sensor = ios.get("USER_NAME") if ios is not None else None
-                if bname or sensor:
-                    blocks.append((edge, bname, sensor))
-        cells[(x, y)] = dict(tracks=tracks, name=name, blocks=blocks)
-    return cells
-
-
-def desk_cells(path: Path) -> dict:
-    """parse_cats(path) for --cats, refused when the desk's wired plants are not the frozen plant cells
-    (uss_board_plants.csv), which the points dots and OS jewels follow."""
-    sys.path.append(str(ROOT / "cats/scripts"))
-    import digicon_trace as trace
-    tp = ET.parse(path).getroot().find("TRACKPLAN")
-    try:
-        have = trace.desk_plants(trace.track_cells(tp))
-    except trace.PlantError as e:
-        raise SystemExit(f"{path}: cannot read its plants ({e})") from None
-    want = {os_name: xy for xy, os_name in PLANT_CELLS.items()}
-    if have != want:
-        diff = sorted(f"{n}: desk {have.get(n)}, uss_board_plants.csv {want.get(n)}"
-                      for n in set(have) | set(want) if have.get(n) != want.get(n))
-        raise SystemExit(f"{path}: its plants are not the frozen plant cells; "
-                         "update uss_board_plants.csv or use the frozen grid: " + "; ".join(diff))
-    return parse_cats(path)
 
 
 _SWITCH_OS_RE = re.compile(r"^(?:OS Switch |(?:OS|Track) )\d")
@@ -1362,8 +1319,6 @@ def parked_target(path: Path) -> bool:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cats", type=Path, default=None,
-                    help="read the grid from this CATS desk instead of uss_board_cells.csv")
     ap.add_argument("--gui", type=Path, default=GUI_XML)
     ap.add_argument("--tables", type=Path, default=None,
                     help="Optional. output/tables.xml or jmri/layouts/hart/output/tables.xml — never tables/tables.xml")
@@ -1379,7 +1334,7 @@ def main() -> None:
 
     if not args.xml_only:
         write_cell_icons()
-    cells = desk_cells(args.cats) if args.cats else facts.load_uss_cells()
+    cells = facts.load_uss_cells()
     txt = args.gui.read_text()
     new = apply(txt, cells)
     args.gui.write_text(new)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Helpers shared by wire_digicon.py and cats_turnout_io.py."""
+"""Desk helpers shared by build_cats_panel.py, cats_turnout_io.py and digicon_trace.py."""
 from __future__ import annotations
 
 import csv

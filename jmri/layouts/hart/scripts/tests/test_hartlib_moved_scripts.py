@@ -42,11 +42,8 @@ def run(script: str, *args: str, home: Path) -> subprocess.CompletedProcess:
 class DefaultPathsTest(unittest.TestCase):
     def test_default_tables_are_this_checkouts_file(self):
         for name, attr in (
-            ("add_digicon_le_signal_icons", "DEFAULT_PANEL"),
-            ("apply_le_cleanup", "DEFAULT"),
             ("apply_le_sml_facing", "DEFAULT_PANEL"),
             ("apply_public_names", "DEFAULT_TABLES"),
-            ("apply_yard_throat_blocks", "DEFAULT"),
             ("capture_public_name_baseline", "DEFAULT_TABLES"),
         ):
             with self.subTest(name):
@@ -69,30 +66,11 @@ class WritersOnACopyTest(unittest.TestCase):
         self.home = Path(self._tmp.name)
 
     def copy(self, name: str) -> Path:
-        """A writable copy of the last hand-drawn tables (git): the one-off writers edit only that panel."""
-        from hartlib import hand_drawn
+        """A writable copy of this checkout's tables.xml."""
         path = self.home / name
-        shutil.copy(hand_drawn.skip_unless_available(), path)
+        shutil.copy(TABLES, path)
         path.chmod(0o644)
         return path
-
-    def test_le_cleanup_edits_then_is_idempotent(self):
-        panel = self.copy("cleanup.xml")
-        first = run("apply_le_cleanup.py", "--panel", str(panel), home=self.home)
-        self.assertEqual(0, first.returncode, first.stderr)
-        self.assertRegex(first.stdout, r"cleanup\.xml: \d+ edits")
-        after_first = panel.read_bytes()
-        second = run("apply_le_cleanup.py", "--panel", str(panel), home=self.home)
-        self.assertIn(": 0 edits", second.stdout)
-        self.assertEqual(after_first, panel.read_bytes())
-
-    def test_digicon_icons_dry_run_writes_nothing(self):
-        panel = self.copy("digicon.xml")
-        before = panel.read_bytes()
-        result = run("add_digicon_le_signal_icons.py", "--dry-run", "--panel", str(panel), home=self.home)
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn("DRY", result.stdout)
-        self.assertEqual(before, panel.read_bytes())
 
     def test_sml_facing_dry_run_writes_nothing(self):
         panel = self.copy("facing.xml")
@@ -100,17 +78,6 @@ class WritersOnACopyTest(unittest.TestCase):
         result = run("apply_le_sml_facing.py", "--dry-run", "--panel", str(panel), home=self.home)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(before, panel.read_bytes())
-
-class CommentNodeTest(unittest.TestCase):
-    def test_mast_slot_insert_skips_a_comment_inside_a_layoutturnout(self):
-        import xml.etree.ElementTree as ET
-        throat = load("apply_yard_throat_blocks")
-        to = ET.fromstring("<layoutturnout ident='T1'><!--note--><sensorA>x</sensorA></layoutturnout>")
-        # ET.fromstring drops comments; build the node by hand as hartlib's loader keeps it.
-        to.insert(0, ET.Comment("note"))
-        self.assertEqual(1, throat._ensure_turnout_mast(to, "signalAMast", "Mast 1"))
-        tags = [c.tag for c in to if isinstance(c.tag, str)]
-        self.assertEqual(["signalAMast", "sensorA"], tags)
 
 
 class AuditTest(unittest.TestCase):

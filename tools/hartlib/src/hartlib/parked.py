@@ -33,7 +33,7 @@ from collections import Counter
 from pathlib import Path
 
 from . import paths
-from .tables import _serialize
+from .tables import _serialize, remove_child
 
 PARKED: frozenset[str] = frozenset({"nx", "dispatcher", "uss"})
 FEATURES = {
@@ -92,17 +92,6 @@ def _user(el: ET.Element) -> str:
     return (el.findtext("userName") or el.get("userName") or "").strip()
 
 
-def _remove(parent: ET.Element, child: ET.Element) -> None:
-    """Remove `child`, keeping the indentation of what follows (the last child's tail closes the parent)."""
-    kids = list(parent)
-    i = kids.index(child)
-    if i == len(kids) - 1 and i > 0:
-        kids[i - 1].tail = child.tail
-    parent.remove(child)
-    if not len(parent):
-        parent.text = None
-
-
 def _copy(el: ET.Element) -> ET.Element:
     out = ET.Element(el.tag, el.attrib)
     out.text = el.text
@@ -123,7 +112,7 @@ def _conditional_of(name: str, logix: str) -> bool:
 
 def parked_in(root: ET.Element, parked=None) -> frozenset[str]:
     """The features of `parked` (default PARKED) that these tables leave out: none of the feature's whole sections
-    is in them. Tables from before the parking (a trial, the staging candidate, the last hand-drawn tables) still hold
+    is in them. Tables from before the parking (a tables.xml from git before the release) still hold
     their features and are read as they are; check() holds the checkout's tables to PARKED."""
     parked = PARKED if parked is None else parked
     return frozenset(f for f in parked if not any(root.find(w) is not None for w in WHOLE.get(f, ())))
@@ -171,16 +160,16 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
         box = _container(sec)
         for c in kids:
             box.append(_copy(c))
-            _remove(sec, c)
+            remove_child(sec, c)
         held.append(box)
         if not len(sec):
-            _remove(root, sec)
+            remove_child(root, sec)
 
     for sec in list(root):
         tag = sec.tag
         if tag in WHOLE.get(feature, ()):
             held.append(_copy(sec))
-            _remove(root, sec)
+            remove_child(root, sec)
         elif tag == "sensors":
             park_children(sec, lambda c: c.tag == "sensor" and _name(c) in sensors)
         elif tag == "memories":
@@ -195,7 +184,7 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
             park_children(sec, lambda c: _name(c) in actions)
         elif (tag, sec.get("name")) == PANELS.get(feature):
             held.append(_copy(sec))
-            _remove(root, sec)
+            remove_child(root, sec)
     for sml in root.iter("signalmastlogic"):  # a Signal Mast Logic destination's section (Dispatcher sections)
         for dest in sml.findall("destinationMast"):
             for sec in dest.findall("associatedSection"):
@@ -203,7 +192,7 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
                     ET.SubElement(bindings, "binding", {"element": "signalmastlogic", "ident": sml.get("source", ""),
                                                         "destination": dest.get("destination", ""),
                                                         "child": "associatedSection", "value": sec.text.strip()})
-                    _remove(dest, sec)
+                    remove_child(dest, sec)
     for ng in root.iter("LogixNG"):            # a LogixNG's list of its ConditionalNGs
         lst = ng.find("ConditionalNGs")
         if lst is None:
@@ -212,21 +201,21 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
             if c.text and c.text.strip() in CONDITIONAL_NGS.get(feature, ()):
                 ET.SubElement(bindings, "binding", {"element": "LogixNG", "ident": _name(ng),
                                                     "child": "ConditionalNGs/systemName", "value": c.text.strip()})
-                _remove(lst, c)
+                remove_child(lst, c)
     for panel in [p for p in root if p.tag in ("LayoutEditor", "paneleditor")]:
         icons = [el for el in panel if el.get("sensor") in names]
         if icons:
             box = ET.Element(panel.tag, {"name": panel.get("name", "")})
             for el in icons:
                 box.append(_copy(el))
-                _remove(panel, el)
+                remove_child(panel, el)
             held.append(box)
         for el in panel:
             for tag in SLOT_TAGS:
                 for slot in el.findall(tag):
                     if (slot.text or "").strip() in names:
                         ET.SubElement(bindings, "binding", _where(panel, el, child=tag, value=slot.text.strip()))
-                        _remove(el, slot)
+                        remove_child(el, slot)
             for attr in SLOT_ATTRS:
                 if el.get(attr) in names:
                     ET.SubElement(bindings, "binding", _where(panel, el, attribute=attr, value=el.get(attr)))

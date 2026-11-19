@@ -1,196 +1,233 @@
+"""polish_hart_layout_editor.py: the Stage 1 repair of the generated Layout Editor panel (Dispatcher System, parked).
+
+The fixture is this checkout's tables with the Dispatcher System put back from the parked file
+(hartlib.parked.with_parked) and a Stage 1 occupancy lamp at its computed spot on each sensor the parked staging lamps
+show (jmri/layouts/hart/parked/staging_panel_lamps.json): the generated panel as it stands once the Dispatcher System
+is unparked. Stage 1 then deletes and re-adds the lamps and block
+contents labels at its own spots; the repair puts them back.
+"""
 from __future__ import annotations
 
+import contextlib
+import copy
 import importlib.util
+import io
+import json
+import math
+import re
+import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from unittest import mock
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = Path(__file__).resolve().parents[5]
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import parked, paths, tables  # noqa: E402
+
+_spec = importlib.util.spec_from_file_location("polish_hart_layout_editor", SCRIPTS / "polish_hart_layout_editor.py")
+polish = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(polish)
 
 
-def load_module(name: str, path: Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    spec.loader.exec_module(module)
-    return module
+PARKED_LAMPS = paths.LAYOUT_DIR / "parked" / "staging_panel_lamps.json"
 
 
-polish = load_module("polish_hart_layout_editor", SCRIPTS / "polish_hart_layout_editor.py")
-icons = load_module(
-    "add_digicon_le_signal_icons",
-    ROOT / "jmri/layouts/hart/scripts/add_digicon_le_signal_icons.py",
-)
+def lamp_sensors() -> set[str]:
+    """The block sensors the parked staging lamps show."""
+    items = json.loads(PARKED_LAMPS.read_text(encoding="utf-8"))["items"]
+    return {s for it in items for s in re.findall(r'sensor="(BS [^"]+)"', it["xml"])}
 
 
-class PolishHartLayoutEditorTest(unittest.TestCase):
-    def test_signal_generators_share_exact_placements(self):
-        generated = {name: (x, y, degrees) for name, x, y, degrees in icons.PLACEMENTS}
-        self.assertEqual(polish.SIGNAL_PLACEMENTS, generated)
-        self.assertEqual(23, len(generated))
+def unparked() -> ET.Element:
+    """This checkout's tables with the Dispatcher System put back, and a Stage 1 lamp on each staging lamp sensor."""
+    root = copy.deepcopy(parked.with_parked({"dispatcher"}, paths.REPO_TABLES_XML))
+    le = tables.layout_editor(root)
+    shown = lamp_sensors()
+    for sensor, (x, y) in sorted(polish.computed_lamp_targets(root, le).items()):
+        if sensor in shown:
+            le.append(polish._circuit_occupancy_icon(sensor, x, y))
+    return root
 
-    def test_nx_layer_mast_positions_agree_with_placements(self):
-        nx = load_module("apply_nx_layer", SCRIPTS / "apply_nx_layer.py")
-        differ = {
-            name: (xy, polish.SIGNAL_PLACEMENTS[name][:2])
-            for name, xy in nx.MAST_ALIGN.items()
-            if name in polish.SIGNAL_PLACEMENTS and xy != polish.SIGNAL_PLACEMENTS[name][:2]
-        }
-        self.assertEqual({}, differ)
 
-    def test_visual_polish_is_idempotent_and_preserves_topology(self):
-        source = ROOT / "jmri/layouts/hart/output/tables.xml"
-        before_root = ET.parse(source).getroot()
-        before_le = polish.find_layout_editor(before_root)
-        before_topology = [
-            (
-                el.tag,
-                el.get("ident"),
-                el.get("connect1name"),
-                el.get("connect2name"),
-                el.get("connectaname"),
-                el.get("connectbname"),
-                el.get("connectcname"),
-                el.get("connectdname"),
-            )
-            for el in before_le
-            if el.tag in {"tracksegment", "layoutturnout", "positionablepoint"}
-        ]
+FIXTURE = unparked()
 
-        with tempfile.TemporaryDirectory() as td:
-            target = Path(td) / "tables.xml"
-            target.write_bytes(source.read_bytes())
-            polish.apply_visual_standard(target)
-            _changes, errors = polish.apply_visual_standard(target, check=True)
-            self.assertEqual([], errors)
 
-            after_root = ET.parse(target).getroot()
-            after_le = polish.find_layout_editor(after_root)
-            leftover = [
-                icon.get("sensor")
-                for icon in after_le.findall("sensoricon")
-                if polish.REDUNDANT_OCCUPANCY_SENSOR.fullmatch(
-                    (icon.get("sensor") or "").strip()
-                )
-                and (icon.get("sensor") or "").strip()
-                not in polish.OS_OCCUPANCY_ICONS
-            ]
-            self.assertFalse(leftover)
-            os_present = {
-                (icon.get("sensor") or "").strip()
-                for icon in after_le.findall("sensoricon")
-                if (icon.get("sensor") or "").strip() in polish.OS_OCCUPANCY_ICONS
-            }
-            # the OS dots are the Dispatcher System's: wanted only while it is not parked (hartlib.parked.PARKED)
-            want = set() if "dispatcher" in polish.parked.PARKED else set(polish.OS_OCCUPANCY_ICONS)
-            self.assertEqual(os_present, want)
-            after_topology = [
-                (
-                    el.tag,
-                    el.get("ident"),
-                    el.get("connect1name"),
-                    el.get("connect2name"),
-                    el.get("connectaname"),
-                    el.get("connectbname"),
-                    el.get("connectcname"),
-                    el.get("connectdname"),
-                )
-                for el in after_le
-                if el.tag in {"tracksegment", "layoutturnout", "positionablepoint"}
-            ]
-            self.assertEqual(before_topology, after_topology)
+def write(root: ET.Element, folder: Path, name: str = "tables.xml") -> Path:
+    path = folder / name
+    path.write_bytes(tables.Tables(root=root).tobytes())
+    return path
 
-    def test_block_contents_icons_move_to_label_layer(self):
-        xml = """<?xml version='1.0' encoding='UTF-8'?>
-        <layout-config>
-          <LayoutEditor name="HART Railroad">
-            <BlockContentsIcon blockcontents="Track West Ext" x="1394" y="232" level="0" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="12" red="51" green="51" blue="51" />
-            <tracksegment ident="T1" />
-          </LayoutEditor>
-        </layout-config>
-        """
-        root = ET.fromstring(xml)
-        le = root.find("LayoutEditor")
-        assert le is not None
-        changes, errors = polish.ensure_block_contents_visible(le, check=False)
+
+def spots(root: ET.Element) -> list[tuple]:
+    le = tables.layout_editor(root)
+    return sorted((el.tag, el.get("sensor") or el.get("blockcontents") or "", el.get("x") or "", el.get("y") or "",
+                   el.get("level") or "", el.get("forcecontroloff") or "")
+                  for el in le if el.tag in {"sensoricon", "BlockContentsIcon"})
+
+
+def stage1_scramble(root: ET.Element) -> ET.Element:
+    """What a Stage 1 Store does to the panel's lamps and train-name labels: deletes them and adds its own copies
+    at its own spots (here: all moved 37 px right and down, one lamp doubled, the labels on level 0 and the lamps
+    clickable)."""
+    root = copy.deepcopy(root)
+    le = tables.layout_editor(root)
+    lamps = [i for i in le.findall("sensoricon") if polish._is_circuit_lamp(i) and i.get("level") != "12"]
+    for icon in lamps + le.findall("BlockContentsIcon"):
+        icon.set("x", str(int(float(icon.get("x"))) + 37))
+        icon.set("y", str(int(float(icon.get("y"))) + 37))
+    for icon in lamps:
+        icon.set("forcecontroloff", "false")
+    le.append(copy.deepcopy(lamps[0]))
+    for icon in le.findall("BlockContentsIcon"):
+        icon.set("level", "0")
+    return root
+
+
+def run(path: Path, **kw):
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        result = polish.repair(path, **kw)
+    return result, out.getvalue()
+
+
+class Repair(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_the_fixture_is_the_generated_panel_with_its_lamps(self) -> None:
+        le = tables.layout_editor(FIXTURE)
+        self.assertTrue(tables.generated_panel(le))
+        self.assertNotIn("dispatcher", parked.parked_in(FIXTURE))
+        lamps = {i.get("sensor") for i in le.findall("sensoricon") if i.get("level") == "10"}
+        self.assertLessEqual(set(polish.OS_OCCUPANCY_ICONS), lamps)
+
+    def test_a_panel_as_built_needs_no_repair_and_is_not_written(self) -> None:
+        path = write(FIXTURE, self.dir)
+        before = path.read_bytes()
+        (_n, errors), _ = run(path, check=True)
         self.assertEqual([], errors)
-        self.assertGreater(changes, 0)
-        icon = le.find("BlockContentsIcon")
-        assert icon is not None
-        self.assertEqual("4", icon.get("level"))
-        self.assertEqual("0", icon.get("red"))
-        self.assertNotIn("fontFamily", icon.attrib)
-        self.assertNotIn("fontname", icon.attrib)
-        _, leftover = polish.ensure_block_contents_visible(le, check=True)
-        self.assertEqual([], leftover)
+        (n, errors), _ = run(path)
+        self.assertEqual((0, []), (n, errors))
+        self.assertEqual(before, path.read_bytes())
 
-    def test_engine_house_train_names_move_off_switch_9(self):
-        le = ET.fromstring(
-            '<LayoutEditor name="HART Railroad">'
-            '<BlockContentsIcon blockcontents="Track EH-3" x="603" y="269" level="4" red="0" green="0" blue="0" />'
-            '<BlockContentsIcon blockcontents="OS Switch 9" x="600" y="269" level="4" red="0" green="0" blue="0" />'
-            "</LayoutEditor>"
-        )
-        _, errors = polish.ensure_block_contents_visible(le, check=True)
-        self.assertEqual(1, len(errors))
-        self.assertEqual((1, []), polish.ensure_block_contents_visible(le, check=False))
-        spots = {i.get("blockcontents"): (i.get("x"), i.get("y")) for i in le}
-        self.assertEqual(("794", "284"), spots["Track EH-3"])
-        self.assertEqual(("600", "269"), spots["OS Switch 9"])
-        self.assertEqual((0, []), polish.ensure_block_contents_visible(le, check=True))
+    def test_reference_puts_stage1_lamps_and_labels_back(self) -> None:
+        reference = write(FIXTURE, self.dir, "before.xml")
+        path = write(stage1_scramble(FIXTURE), self.dir)
+        (_n, errors), _ = run(path, check=True, reference=reference)
+        self.assertTrue(any("more than one Stage 1 lamp" in e for e in errors))
+        self.assertTrue(any("level='0'" in e for e in errors))
+        self.assertTrue(any("can be clicked" in e for e in errors))
+        run(path, reference=reference)
+        self.assertEqual(spots(FIXTURE), spots(tables.read(path)))
+        (_n, errors), _ = run(path, check=True, reference=reference)
+        self.assertEqual([], errors)
 
-    def test_south_yard_track_names_are_labelled_once(self):
-        le = ET.fromstring('<LayoutEditor name="HART Railroad"><positionablelabel text="Track S-1" x="1" y="1" /></LayoutEditor>')
-        self.assertEqual(len(polish.TRACK_NAME_LABELS), len(polish.ensure_track_name_labels(le, check=True)[1]))
-        polish.ensure_track_name_labels(le, check=False)
-        spots = sorted((l.get("text"), l.get("x"), l.get("y")) for l in le.findall("positionablelabel"))
-        self.assertEqual(sorted((t, str(x), str(y)) for t, (x, y) in polish.TRACK_NAME_LABELS.items()), spots)
-        self.assertEqual((0, []), polish.ensure_track_name_labels(le, check=True))
+    def test_without_reference_a_lamp_is_kept_where_it_stands(self) -> None:
+        root = stage1_scramble(FIXTURE)
+        le = tables.layout_editor(root)
+        le.remove(le[-1])          # no doubled lamp: every sensor has one lamp, at Stage 1's spot
+        (_n, errors), _ = run(write(root, self.dir), check=True)
+        self.assertEqual([], [e for e in errors if "Stage 1 lamp" in e or "expected (" in e])
 
-    def test_stage1_copies_of_a_south_yard_lamp_end_up_as_one(self):
-        le = ET.fromstring(
-            '<LayoutEditor name="HART Railroad">'
-            '<sensoricon sensor="BS S-1" x="762" y="376" level="10" />'
-            '<sensoricon sensor="BS S-1" x="1010" y="376" level="10" />'
-            '<sensoricon sensor="BS S-1" x="1204" y="376" level="10" />'
-            '<sensoricon sensor="BS S-1" x="943" y="354" level="12" />'
-            "</LayoutEditor>"
-        )
-        # one lamp off its spot plus two extra copies
-        self.assertEqual(3, len(polish.place_stage1_lamps(le, check=True, targets=polish.STAGE1_LAMP_PLACEMENTS)[1]))
-        polish.place_stage1_lamps(le, check=False, targets=polish.STAGE1_LAMP_PLACEMENTS)
-        polish.dedupe_shared_occupancy_icons(le, check=False, targets=polish.STAGE1_LAMP_PLACEMENTS)
-        lamps = sorted((i.get("level"), i.get("x"), i.get("y")) for i in le.findall("sensoricon"))
-        x, y = polish.SOUTH_YARD_LAMPS["BS S-1"]
-        self.assertEqual([("10", str(x), str(y)), ("12", "943", "354")], lamps)
-        self.assertEqual((0, []), polish.place_stage1_lamps(le, check=True, targets=polish.STAGE1_LAMP_PLACEMENTS))
+    def test_a_doubled_lamp_with_no_reference_goes_to_its_computed_spot_with_a_note(self) -> None:
+        root = copy.deepcopy(FIXTURE)
+        le = tables.layout_editor(root)
+        lamp = next(i for i in le.findall("sensoricon") if i.get("sensor") == "BS Switch 21")
+        le.append(copy.deepcopy(lamp))
+        path = write(root, self.dir)
+        _result, out = run(path)
+        self.assertIn("lamp BS Switch 21: 2 on the panel", out)
+        target = polish.computed_lamp_targets(root, le)["BS Switch 21"]
+        kept = [i for i in tables.layout_editor(tables.read(path)).findall("sensoricon")
+                if i.get("sensor") == "BS Switch 21"]
+        self.assertEqual([(str(target[0]), str(target[1]))], [(i.get("x"), i.get("y")) for i in kept])
 
-    def test_switch_lamps_centre_on_circles_and_track_lamps_sit_on_track(self):
-        import math
-        # the hand-drawn panel's lamp rules: the last hand-drawn tables (git), since the repo's holds the generated
-        import sys
-        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-        from hartlib import hand_drawn
-        root = ET.parse(hand_drawn.skip_unless_available()).getroot()
-        le = polish.find_layout_editor(root)
-        targets = polish.stage1_lamp_targets(root, le)
+    def test_a_missing_switch_lamp_is_added_where_the_reference_had_it(self) -> None:
+        reference = write(FIXTURE, self.dir, "before.xml")
+        root = copy.deepcopy(FIXTURE)
+        le = tables.layout_editor(root)
+        le.remove(next(i for i in le.findall("sensoricon") if i.get("sensor") == "BS Switch 9"))
+        path = write(root, self.dir)
+        (_n, errors), _ = run(path, check=True, reference=reference)
+        self.assertEqual(["tables.xml: missing OS occupancy icon 'BS Switch 9'"], errors)
+        run(path, reference=reference)
+        self.assertEqual(spots(FIXTURE), spots(tables.read(path)))
+
+    def test_a_stage1_lamp_the_reference_panel_does_not_show_is_removed(self) -> None:
+        # Stage 1 adds a lamp on every block sensor, the main and upper levels' too; the reference panel has none there
+        reference = write(FIXTURE, self.dir, "before.xml")
+        root = copy.deepcopy(FIXTURE)
+        le = tables.layout_editor(root)
+        targets = polish.computed_lamp_targets(root, le)
+        level = sorted(set(targets) - lamp_sensors())
+        self.assertTrue(level)
+        for sensor in level:
+            le.append(polish._circuit_occupancy_icon(sensor, *targets[sensor]))
+        path = write(root, self.dir)
+        (_n, errors), _ = run(path, check=True, reference=reference)
+        self.assertEqual(len(level), len([e for e in errors if "none on the reference panel" in e]))
+        run(path, reference=reference)
+        self.assertEqual(spots(FIXTURE), spots(tables.read(path)))
+        # without a reference such a lamp is the panel's own, and stays
+        path = write(root, self.dir, "own.xml")
+        (_n, errors), _ = run(path, check=True)
+        self.assertEqual([], errors)
+
+    def test_masts_captions_and_panel_attributes_are_left_alone(self) -> None:
+        # Stage 1 does not touch them (CreateIcons), so the repair does not either
+        reference = write(FIXTURE, self.dir, "before.xml")
+        root = stage1_scramble(FIXTURE)
+        le = tables.layout_editor(root)
+        mast = le.find("signalmasticon")
+        mast.set("hidden", "yes" if mast.get("hidden") == "no" else "no")
+        caption = next(l for l in le.findall("positionablelabel") if l.get("text") == "HART RAILROAD")
+        caption.set("size", "20")
+        le.set("mainlinetrackwidth", "9")
+        path = write(root, self.dir)
+        run(path, reference=reference)
+        after = tables.layout_editor(tables.read(path))
+        self.assertEqual(mast.get("hidden"), after.find("signalmasticon").get("hidden"))
+        self.assertEqual("20", next(l for l in after.findall("positionablelabel")
+                                    if l.get("text") == "HART RAILROAD").get("size"))
+        self.assertEqual("9", after.get("mainlinetrackwidth"))
+
+    def test_the_cluster_lamps_are_left_alone(self) -> None:
+        root = copy.deepcopy(FIXTURE)
+        le = tables.layout_editor(root)
+        cluster = next(i for i in le.findall("sensoricon") if i.get("level") == polish.CLUSTER_LAMP_LEVEL)
+        cluster.set("x", "3")
+        path = write(root, self.dir)
+        run(path, reference=write(FIXTURE, self.dir, "before.xml"))
+        self.assertIn(("sensoricon", cluster.get("sensor"), "3"),
+                      [s[:3] for s in spots(tables.read(path))])
+
+    def test_switch_lamps_centre_on_circles_and_track_lamps_sit_on_track(self) -> None:
+        le = tables.layout_editor(FIXTURE)
         half = polish.LAMP_SIZE / 2
-        circles = {t.get("blockname"): t for t in le.findall("layoutturnout")}
-        blocks = {}
-        for b in root.iter("block"):
+        circles: dict[str, ET.Element] = {}
+        for t in le.findall("layoutturnout"):          # a crossover's two halves on one block: the first
+            circles.setdefault(t.get("blockname"), t)
+        blocks: dict[str, list[str]] = {}
+        for b in FIXTURE.iter("block"):
             if b.findtext("occupancysensor"):
                 blocks.setdefault(b.findtext("occupancysensor"), []).append(b.findtext("userName"))
         segments = polish._segment_ends(le)
 
         def on_segment(px, py, a, b):
-            """Distance to the segment itself, not the line through it."""
             (ax, ay), (bx, by) = a, b
             dx, dy = bx - ax, by - ay
             t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / ((dx * dx + dy * dy) or 1)))
             return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 
+        targets = polish.computed_lamp_targets(FIXTURE, le)
+        self.assertLessEqual(set(polish.OS_OCCUPANCY_ICONS), set(targets))
         for sensor, (x, y) in targets.items():
             cx, cy = x + half, y + half
             os_turnouts = [circles[n] for n in blocks.get(sensor, []) if n in circles]
@@ -201,24 +238,66 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
                 mine = [seg for seg in segments if seg[0] in blocks[sensor]]
                 self.assertLessEqual(min(on_segment(cx, cy, s[1], s[2]) for s in mine), 1, sensor)
 
-        # no NX icon (21x21) covers a Stage 1 occupancy lamp
-        lamps = [
-            (float(i.get("x")), float(i.get("y")))
-            for i in le.findall("sensoricon")
-            if (i.get("sensor") or "").startswith("BS ") and i.get("level") != polish.CLUSTER_LAMP_LEVEL
-        ]
-        for nx in le.findall("sensoricon"):
-            if not (nx.get("sensor") or "").startswith("NX "):
-                continue
-            nx_x, nx_y = float(nx.get("x")), float(nx.get("y"))
-            for lx, ly in lamps:
-                overlap = lx < nx_x + 21 and nx_x < lx + 10 and ly < nx_y + 21 and nx_y < ly + 10
-                self.assertFalse(overlap, f"{nx.get('sensor')} covers the lamp at {lx},{ly}")
 
-        # every Stage 1 lamp on the panel is at its target
-        _, errors = polish.place_stage1_lamps(le, check=True, targets=targets)
-        self.assertEqual([], errors)
+class Refusals(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
 
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def unmarked(self) -> ET.Element:
+        root = copy.deepcopy(FIXTURE)
+        le = tables.layout_editor(root)
+        le.remove(le.find(f"positionablelabel[@text='{tables.GENERATED_PANEL_MARKER}']"))
+        return root
+
+    def test_a_panel_that_is_not_generated_is_refused(self) -> None:
+        with self.assertRaisesRegex(ValueError, "'HART Railroad' panel is not a generated one"):
+            polish.repair(write(self.unmarked(), self.dir), check=True)
+
+    def test_a_reference_that_is_not_generated_is_refused(self) -> None:
+        with self.assertRaisesRegex(ValueError, "--reference .*not a generated one"):
+            polish.repair(write(FIXTURE, self.dir), check=True,
+                          reference=write(self.unmarked(), self.dir, "hand.xml"))
+
+    def test_tables_with_the_dispatcher_system_parked_are_refused_by_repair_and_skipped_by_main(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Dispatcher System is parked"):
+            polish.repair(paths.REPO_TABLES_XML, check=True)
+        for argv in (["--check"], []):
+            with self.subTest(argv=argv), mock.patch.object(polish.paths, "exit_if_overridden"), \
+                    mock.patch.object(polish.tables.Tables, "save", side_effect=AssertionError("written")), \
+                    mock.patch.object(sys, "argv", ["polish", "--panel", str(paths.REPO_TABLES_XML), *argv]), \
+                    contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(0, polish.main())
+            self.assertIn("SKIPPED: the Dispatcher System is parked", out.getvalue())
+
+    def test_a_doubled_marker_stops(self) -> None:
+        root = copy.deepcopy(FIXTURE)
+        tables.layout_editor(root).append(tables.generated_marker_label())
+        with self.assertRaisesRegex(ValueError, "2 generated-panel markers"):
+            polish.repair(write(root, self.dir), check=True)
+
+    def test_main_reports_a_refusal_and_a_failed_save_as_failures(self) -> None:
+        path = write(FIXTURE, self.dir)
+        hand = write(self.unmarked(), self.dir, "hand.xml")
+        for argv, said in ((["--panel", str(path), "--check", "--reference", str(hand)], "not a generated one"),
+                           (["--panel", str(hand), "--check"], "not a generated one")):
+            with self.subTest(said=said), mock.patch.object(sys, "argv", ["polish", *argv]), \
+                    contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(1, polish.main())
+            self.assertIn(said, out.getvalue())
+        broken = write(stage1_scramble(FIXTURE), self.dir, "scrambled.xml")
+        with mock.patch.object(polish.tables.Tables, "save", side_effect=RuntimeError("save refused")), \
+                mock.patch.object(polish.paths, "exit_if_overridden"), \
+                mock.patch.object(sys, "argv", ["polish", "--panel", str(broken)]), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(1, polish.main())
+        self.assertIn("not changed: save refused", out.getvalue())
+
+
+class Lamps(unittest.TestCase):
     def lamp_fixture(self) -> ET.Element:
         return ET.fromstring(
             "<layout-config><blocks>"
@@ -236,95 +315,39 @@ class PolishHartLayoutEditorTest(unittest.TestCase):
             "</LayoutEditor></layout-config>"
         )
 
-    def test_targets_use_turnout_block_and_skip_throats_without_comments(self):
+    def test_targets_use_turnout_block_and_skip_throats(self) -> None:
         root = self.lamp_fixture()
-        targets = polish.stage1_lamp_targets(root, root.find("LayoutEditor"))
+        targets = polish.computed_lamp_targets(root, root.find("LayoutEditor"))
         self.assertEqual((245, 247), targets["BS Switch 3"])  # circle centre minus half a lamp
         self.assertEqual((195, 195), targets["BS T-1"])  # middle of S1, not the throat
 
-    def test_curve_only_track_uses_its_straight_throat_and_fixed_spots_win(self):
+    def test_curve_only_track_uses_its_straight_throat(self) -> None:
         root = self.lamp_fixture()
         le = root.find("LayoutEditor")
-        s1 = [t for t in le.findall("tracksegment") if t.get("ident") == "S1"][0]
-        s1.set("arc", "yes")  # the station track is now only a curve
-        targets = polish.stage1_lamp_targets(root, le)
-        self.assertEqual((305, 195), targets["BS T-1"])  # middle of throat S2
-        try:
-            polish.STAGE1_LAMP_PLACEMENTS["BS T-1"] = (1, 2)
-            self.assertEqual((1, 2), polish.stage1_lamp_targets(root, le)["BS T-1"])
-        finally:
-            del polish.STAGE1_LAMP_PLACEMENTS["BS T-1"]
+        next(t for t in le.findall("tracksegment") if t.get("ident") == "S1").set("arc", "yes")
+        self.assertEqual((305, 195), polish.computed_lamp_targets(root, le)["BS T-1"])  # middle of throat S2
 
-    def test_missing_switch_lamp_is_created_on_its_circle(self):
+    def test_missing_switch_lamp_is_created_on_its_circle_before_the_turnouts(self) -> None:
         root = self.lamp_fixture()
         le = root.find("LayoutEditor")
-        targets = polish.stage1_lamp_targets(root, le)
+        targets = polish.computed_lamp_targets(root, le)
         polish.ensure_os_occupancy_icons(le, check=False, targets=targets)
         lamp = [i for i in le.findall("sensoricon") if i.get("sensor") == "BS Switch 3"]
-        self.assertEqual([("245", "247")], [(i.get("x"), i.get("y")) for i in lamp])
+        self.assertEqual([("245", "247", "true")], [(i.get("x"), i.get("y"), i.get("forcecontroloff")) for i in lamp])
+        self.assertEqual("sensoricon", le[0].tag)
+        # the switch OS lamps without a target are named
+        _n, errors = polish.ensure_os_occupancy_icons(ET.Element("LayoutEditor"), check=False, targets={})
+        self.assertIn("no target for missing OS occupancy icon 'BS Switch 3'", errors)
 
-    def test_copy_already_on_target_is_the_one_kept(self):
+    def test_copy_already_on_target_is_the_one_kept(self) -> None:
         le = ET.fromstring(
             '<LayoutEditor><sensoricon sensor="BS K-1" x="1" y="1" level="10" />'
-            '<sensoricon sensor="BS K-1" x="195" y="195" level="10" /></LayoutEditor>'
+            '<sensoricon sensor="BS K-1" x="195" y="195" level="10" />'
+            '<sensoricon sensor="BS K-1" x="943" y="354" level="12" /></LayoutEditor>'
         )
         polish.place_stage1_lamps(le, check=False, targets={"BS K-1": (195, 195)})
-        self.assertEqual([("195", "195")], [(i.get("x"), i.get("y")) for i in le.findall("sensoricon")])
-
-    def test_shared_occupancy_dedupe_keeps_body_dot(self):
-        xml = """<?xml version='1.0' encoding='UTF-8'?>
-        <layout-config>
-          <LayoutEditor name="HART Railroad">
-            <sensoricon sensor="BS S-1" x="762" y="376" />
-            <sensoricon sensor="BS S-1" x="985" y="361" />
-            <sensoricon sensor="BS S-1" x="1204" y="376" />
-            <sensoricon sensor="BS S-1" x="943" y="354" level="12" />
-            <tracksegment ident="T1" />
-          </LayoutEditor>
-        </layout-config>
-        """
-        root = ET.fromstring(xml)
-        le = root.find("LayoutEditor")
-        assert le is not None
-        changes, errors = polish.dedupe_shared_occupancy_icons(le, check=False, targets=polish.STAGE1_LAMP_PLACEMENTS)
-        self.assertEqual([], errors)
-        self.assertEqual(2, changes)
-        kept = [
-            (icon.get("x"), icon.get("y"))
-            for icon in le.findall("sensoricon")
-            if icon.get("sensor") == "BS S-1"
-        ]
-        self.assertEqual([("985", "361"), ("943", "354")], kept)
-
-    def test_stage1_lamps_move_off_switch_9_but_cluster_lamps_stay(self):
-        xml = """<layout-config><LayoutEditor name="HART Railroad">
-            <sensoricon sensor="BS EH-1" x="658" y="256" level="12" />
-            <sensoricon sensor="BS EH-1" x="612" y="276" level="10" />
-            <sensoricon sensor="BS EH-2" x="604" y="287" level="10" />
-            <sensoricon sensor="BS EH-3" x="603" y="299" level="10" />
-            <sensoricon sensor="BS Switch 9" x="600" y="299" level="10" />
-        </LayoutEditor></layout-config>"""
-        le = ET.fromstring(xml).find("LayoutEditor")
-        assert le is not None
-        _, errors = polish.place_stage1_lamps(le, check=True, targets=polish.STAGE1_LAMP_PLACEMENTS)
-        self.assertEqual(3, len(errors))
-        changes, errors = polish.place_stage1_lamps(le, check=False, targets=polish.STAGE1_LAMP_PLACEMENTS)
-        self.assertEqual((3, []), (changes, errors))
-        placed = [
-            (i.get("sensor"), i.get("x"), i.get("y"), i.get("level"))
-            for i in le.findall("sensoricon")
-        ]
-        self.assertEqual(
-            [
-                ("BS EH-1", "658", "256", "12"),
-                ("BS EH-1", "576", "261", "10"),
-                ("BS EH-2", "576", "272", "10"),
-                ("BS EH-3", "576", "284", "10"),
-                ("BS Switch 9", "600", "299", "10"),
-            ],
-            placed,
-        )
-        self.assertEqual((0, []), polish.place_stage1_lamps(le, check=True, targets=polish.STAGE1_LAMP_PLACEMENTS))
+        self.assertEqual([("195", "195", "10"), ("943", "354", "12")],
+                         [(i.get("x"), i.get("y"), i.get("level")) for i in le.findall("sensoricon")])
 
 
 if __name__ == "__main__":

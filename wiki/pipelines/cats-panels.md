@@ -2,7 +2,7 @@
 
 Schematic → `tools/schematic/build_cats_panel.py` → the CATS CTC and CATS ABS desks (all three levels; main and upper dark, DTC).
 
-**Status:** Live desks are **CATS CTC** and **CATS ABS**, generated since the CATS cut-over (owner approved in real CATS on 2026-11-15; [ADR-023](../decisions/ADR-023-generated-outputs-side-by-side.md), [ADR-004](../decisions/ADR-004-cats-ctc.md)). The hand-wired desks `wire_digicon.py` built from `HART_Digicon.xml` are history, read from git by the tests that compare against them (`hartlib.hand_drawn`).
+**Status:** Live desks are **CATS CTC** and **CATS ABS**, generated since the CATS cut-over (owner approved in real CATS on 2026-11-15; [ADR-023](../decisions/ADR-023-generated-outputs-side-by-side.md), [ADR-004](../decisions/ADR-004-cats-ctc.md)). The hand-wired desks `wire_digicon.py` built from `HART_Digicon.xml` are history, in git at commit `42192d9c`, before the CATS cut-over (`git show 42192d9c:cats/panels/HART_CTC.xml`).
 
 ## Inputs
 

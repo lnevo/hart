@@ -22,7 +22,7 @@ class LookupsMatchOldLoops(unittest.TestCase):
     """The old ElementTree loops, copied from before the move, against the hartlib versions."""
 
     def test_each_plant_binds_its_switch(self):
-        """Layout Editor turnout -> (M2T address, public name) that wire_digicon.py writes on the desk.
+        """Layout Editor turnout -> (M2T address, public name) that build_cats_panel.py writes on the desk.
 
         Frozen from load_turnouts() on origin/main (a31cd561), before the bindings came from switches.csv.
         """

@@ -1,4 +1,3 @@
 PASS cats/panels/HART_ABS.xml
 PASS cats/panels/HART_CTC.xml
-PASS cats/panels/HART_Digicon.xml
 PASS cats/panels/HART_chubb_magnet.xml

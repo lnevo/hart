@@ -72,7 +72,6 @@ The USS track plan assumes odd plate numbers on one row. This belongs to the USS
 **Owner (2026-11-14):** ok.
 - `www/ai/speed-runs.html`: the byline says "Behind the Scenes" on a page in the AI section; make it match the section.
 - The browser title ("Speed Matching 2121 and 2738") and the heading ("Speed matching CSX 2121 and 2738") should use the same words.
-- The AI hub page (`www/ai/index.html`) mentions speed matching only in a count line; give the speed-runs page a card of its own if the hub's card pattern supports one.
 - Check `www/build/track-plan.html` at phone width (`python3 tools/ops/screenshot.py`) and fix what breaks.
 
 The site is deployed with `./www/scripts/deploy_hartrailroad.sh` after the merge. Check the Build counts.
@@ -84,4 +83,4 @@ The site is deployed with `./www/scripts/deploy_hartrailroad.sh` after the merge
 | 1 and 2 | Phase 0, Phase 1 and the deletions done (PR #483). Phases 2 and 3 deferred to the level import (owner, 2026-11-14) |
 | 3 | Deferred (owner) |
 | 4 | Parked with the USS work |
-| 5 | In progress, `site-builder`, one PR |
+| 5 | Done (62bf8841, 2026-11-14) |

@@ -15,7 +15,6 @@ See [`layouts/README.md`](layouts/README.md). Active layout is **`hart`** (`expo
 |--------|------|
 | `signal_coordinator.py` | Jython in JMRI on the Pi: hands the Digicon heads between SML and MQTT (SML Enabled / Disabled toggle) |
 | `check_hart_phase02.py` | Acceptance checks for hart phases 0–2 (in `tools/check.sh`) |
-| `polish_hart_cp_labels.py` | CP / area label hierarchy on the panel |
 | `generate_nx_pairs.py` | List Entry/Exit pairs for manual JMRI add (parked with NX; see `layouts/hart/parked/README.md`) |
 
 ## Documentation

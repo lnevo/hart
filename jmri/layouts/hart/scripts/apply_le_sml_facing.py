@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Assign Layout Editor facing. Does not change mast types.
 
-Edits jmri/layouts/hart/output/tables.xml.
+Edits jmri/layouts/hart/output/tables.xml. Its main panel must be the generated one (build_layout_le.py --as-live):
+each mast goes in its row's generated_slot where it has one (a switch drawn with legs B and C swapped). Any other
+panel is refused, and only the checkout's own tables.xml is copied to the JMRI profile.
 
 
 Facing SoR: jmri/layouts/hart/data/le_signal_boundaries.csv
@@ -23,6 +25,7 @@ import os
 import re
 import shutil
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -51,16 +54,15 @@ _DISABLED_2 = """      <unlit allowed="no" />
       </disabledAspects>"""
 
 
-def load_assignments(path: Path, generated: bool = False
-                     ) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
-    """({turnout ident: {slot: mast}}, {anchor ident: {slot: mast}}) from the boundaries CSV; on a `generated` panel
-    each row in its generated_slot where it has one (a switch drawn with legs B and C swapped)."""
+def load_assignments(path: Path) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
+    """({turnout ident: {slot: mast}}, {anchor ident: {slot: mast}}) from the boundaries CSV, each row in its slot on
+    the generated panel (its generated_slot where it has one: a switch drawn with legs B and C swapped)."""
     turnouts: dict[str, dict[str, str]] = {}
     anchors: dict[str, dict[str, str]] = {}
     with path.open(newline="") as f:
         for row in csv.DictReader(f):
             ident = row["ident"]
-            slot = tables.boundary_slot(row, generated)
+            slot = tables.boundary_slot(row, True)
             mast = row["mast_user_name"]
             if row["kind"] == "turnout":
                 turnouts.setdefault(ident, {})[slot] = mast
@@ -225,14 +227,21 @@ def main() -> None:
     if not args.dry_run:
         paths.exit_if_overridden(Path(__file__).name)
     syncing = not (args.dry_run or args.no_sync or args.no_pref) and PREF_TABLES.is_file()
-    # A generated panel reaches the profile only as the checkout's own tables.xml: a cut-over candidate or sandbox
-    # copy named by --panel is never copied there.
-    if (syncing and Path(os.path.realpath(args.panel)) != Path(os.path.realpath(paths.REPO_TABLES_XML))
-            and tables.hand_drawn_only(args.panel, Path(__file__).name)):
-        print(f"{args.panel}: a generated panel that is not the checkout's tables.xml, so it is not copied to "
-              f"{PREF_TABLES}; rerun with --no-pref (or --no-sync)", file=sys.stderr)
+    try:
+        tables.require_generated_panel(tables.read(args.panel), str(args.panel))
+    except (OSError, ET.ParseError) as exc:
+        print(f"{args.panel}: cannot read it: {exc}", file=sys.stderr)
         sys.exit(1)
-    turnouts, anchors = load_assignments(args.csv, tables.path_has_generated_panel(args.panel))
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        sys.exit(1)
+    # Only the checkout's own tables.xml reaches the profile: a cut-over candidate or sandbox copy named by --panel is
+    # never copied there.
+    if syncing and Path(os.path.realpath(args.panel)) != Path(os.path.realpath(paths.REPO_TABLES_XML)):
+        print(f"{args.panel}: not the checkout's tables.xml, so it is not copied to {PREF_TABLES}; rerun with "
+              "--no-pref (or --no-sync)", file=sys.stderr)
+        sys.exit(1)
+    turnouts, anchors = load_assignments(args.csv)
     patch_file(args.panel, turnouts, anchors, dry_run=args.dry_run)
     if args.dry_run or args.no_sync:
         return

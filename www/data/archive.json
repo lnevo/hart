@@ -684,53 +684,72 @@
         "shenango"
       ],
       "credit": "U.S. Geological Survey (EarthExplorer); crop by Dennis DeBruler, Towns and Nature",
-      "source_url": "https://earthexplorer.usgs.gov/scene/metadata/full/5e83d8e4870f4473/AR1VFNT00010012/",
+      "source_url": "https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html",
       "credit_confidence": "likely",
       "rights": "USGS imagery is public domain; DeBruler's crops are CC BY 4.0.",
       "reason": "",
-      "origin": "Desktop/HART (F-root)"
+      "origin": "Dennis DeBruler, Towns and Nature (https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html), full-size 1VFNT00010012.jpg; USGS scene https://earthexplorer.usgs.gov/scene/metadata/full/5e83d8e4870f4473/AR1VFNT00010012/"
     },
     {
       "id": "foundry-aerial-1948",
       "src": "../media/hart-research/documents/usgs-AR1DQ0000040033-foundry-1948.jpg",
-      "title": "Shenango foundry site from the air, 1948",
-      "caption": "USGS aerial of the west-island site DeBruler identified as the Shenango ingot-mold foundry from Stanley Quick's directions, 17 April 1948. Frame AR1DQ0000040033.",
+      "title": "Dravo Light Metals from the air, 1948",
+      "caption": "USGS aerial of Dravo Light Metals on the west end of Neville Island, 17 April 1948. DeBruler took this site for the Shenango ingot-mold foundry from Stanley Quick's directions; the foundry was farther east. Frame AR1DQ0000040033.",
       "date": "1948-04-17",
       "tags": [
         "aerial",
-        "shenango",
-        "foundry",
+        "dravo",
         "neville-island"
       ],
-      "source_url": "https://earthexplorer.usgs.gov/scene/metadata/full/5e83d8e4870f4473/AR1DQ0000040033/",
+      "source_url": "https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html",
       "bucket": "curated",
       "kind": "photo",
       "credit": "U.S. Geological Survey (EarthExplorer); crop by Dennis DeBruler, Towns and Nature",
       "credit_confidence": "likely",
       "rights": "USGS imagery is public domain; DeBruler's crops are CC BY 4.0.",
       "reason": "",
-      "origin": "Dennis DeBruler, Towns and Nature (https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html), Oct 2026"
+      "origin": "Dennis DeBruler, Towns and Nature (https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html), full-size 1DQ0000040033.jpg; USGS scene https://earthexplorer.usgs.gov/scene/metadata/full/5e83d8e4870f4473/AR1DQ0000040033/"
     },
     {
       "id": "foundry-aerial-1991",
       "src": "../media/hart-research/documents/usgs-AR1VFNT00010013-foundry-1991.jpg",
-      "title": "Shenango foundry site from the air, 1991",
-      "caption": "The same west-island site on 1 April 1991, a little over a year after the foundry closed. Frame AR1VFNT00010013.",
+      "title": "Dravo Light Metals site from the air, 1991",
+      "caption": "The same Dravo Light Metals site on the west end of Neville Island, 1 April 1991. Frame AR1VFNT00010013.",
       "date": "1991-04-01",
       "tags": [
         "aerial",
-        "shenango",
-        "foundry",
+        "dravo",
         "neville-island"
       ],
-      "source_url": "https://earthexplorer.usgs.gov/scene/metadata/full/5e83d8e4870f4473/AR1VFNT00010013/",
+      "source_url": "https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html",
       "bucket": "curated",
       "kind": "photo",
       "credit": "U.S. Geological Survey (EarthExplorer); crop by Dennis DeBruler, Towns and Nature",
       "credit_confidence": "likely",
       "rights": "USGS imagery is public domain; DeBruler's crops are CC BY 4.0.",
       "reason": "",
-      "origin": "Dennis DeBruler, Towns and Nature (https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html), Oct 2026"
+      "origin": "Dennis DeBruler, Towns and Nature (https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html), full-size 1VFNT00010013.jpg; USGS scene https://earthexplorer.usgs.gov/scene/metadata/full/5e83d8e4870f4473/AR1VFNT00010013/"
+    },
+    {
+      "id": "shenango-penn-foundry-aerials",
+      "src": "../media/hart-research/documents/shenango-penn-foundry-1939-2022.jpg",
+      "title": "Shenango-Penn foundry from the air, 1939–2022",
+      "caption": "The Shenango-Penn ingot-mold foundry at 3100 Grand Avenue, in the middle of Neville Island, in four aerials: 17 May 1939, the year Shenango-Penn bought it; 7 May 1957; 26 May 1967; and 9 May 2022, after the foundry closed in 1990. The long riverside building in the centre of each view is the foundry; hot iron came by rail from the furnaces at the east end, about 2.8 km upstream. North is up.",
+      "date": "1939-05-17",
+      "tags": [
+        "aerial",
+        "shenango",
+        "foundry",
+        "neville-island"
+      ],
+      "source_url": "https://www.pasda.psu.edu/pennpilot/",
+      "bucket": "curated",
+      "kind": "photo",
+      "credit": "USDA aerial photography via Penn Pilot (PASDA), frames APS-71-36 (1939), APS-4R-106 (1957) and APS-1HH-221 (1967); 2022 view USDA NAIP via USGS The National Map",
+      "credit_confidence": "verified",
+      "rights": "U.S. government aerial photography, public domain.",
+      "reason": "",
+      "origin": "Penn Pilot frames allegheny_051739_aps7136, allegheny_050757_aps_4r_106, allegheny_052667_aps_1hh_221 (https://www.pasda.psu.edu/pennpilot/); NAIP m_4008032_sw_17_060_20220509. Cropped and placed by matching the building at 3100 Grand Avenue across all four."
     },
     {
       "id": "shenango-aerial-color",

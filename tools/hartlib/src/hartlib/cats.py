@@ -1,8 +1,5 @@
-"""CATS desk conventions shared by the desk builders: a block's station plate and each mast's signal template.
-
-Both the hand-wired desks (cats/scripts/wire_digicon.py) and the generated one (tools/schematic/build_cats_panel.py)
-use them, so they live here, not in either script (CATS cut-over, 2026-11-15).
-"""
+"""CATS desk conventions of the generated desks (tools/schematic/build_cats_panel.py): a block's station plate and
+each mast's signal template."""
 from __future__ import annotations
 
 import csv
