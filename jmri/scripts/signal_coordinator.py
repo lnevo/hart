@@ -213,6 +213,10 @@ class DigiconMqttSml(
         self._dest_enable_maps = {}
         self._sml_by_mast = {}
         self._enabling_originator = False
+        # True only while this instance has really published enabling (own echo).
+        self._enabling_announced = False
+        # Set when another agent's enabling arrives during our Hold.
+        self._enable_cancelled = False
         self._abort_in_progress = False
         self._enabling_wait_scheduled = False
         self._shutting_down = False
@@ -238,6 +242,7 @@ class DigiconMqttSml(
         stored_on = self._warn_if_stored_sml_enabled()
         if stored_on:
             self._enabling_originator = True
+            self._enabling_announced = True
         self._subscribe_mqtt()
         self._add_toggle_button()
         if stored_on:
@@ -377,6 +382,7 @@ class DigiconMqttSml(
                 pass
         self._global_enabled = False
         self._enabling_originator = False
+        self._enabling_announced = False
         self._sync_sml_mode_sensor()
 
     def _stored_enabled_source_names(self):
@@ -466,6 +472,7 @@ class DigiconMqttSml(
     def _announce_enabling(self, reason):
         """Publish enabling; this instance does not abort. Other agents must."""
         self._enabling_originator = True
+        self._enabling_announced = True
         self._publish_mode("enabling")
         print(
             "mqtt_signalhead: sml_mode enabling (%s; this instance does not abort)"
@@ -1032,6 +1039,7 @@ class DigiconMqttSml(
             return
         # ACK query/disabling during Hold (not yet _global_enabled).
         self._enabling_originator = True
+        self._enable_cancelled = False
         print("mqtt_signalhead: global -> SML Enabled")
         print(
             "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML on"
@@ -1051,6 +1059,18 @@ class DigiconMqttSml(
                 except Exception:
                     pass
             return
+        if self._enable_cancelled:
+            # Another agent announced enabling during our Hold: it owns Digicon.
+            print("mqtt_signalhead: enable cancelled (another agent enabling) -- leave dests off")
+            self._enable_cancelled = False
+            self._enabling_originator = False
+            self._enabling_announced = False
+            for mast in self._masts:
+                try:
+                    mast.setHeld(False)
+                except Exception:
+                    pass
+            return
         print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
         self._set_all_digicon_sml_destinations(True)
         self._snapshot_mast_sml_state()
@@ -1063,6 +1083,7 @@ class DigiconMqttSml(
         # Ownership announce for the bridge (not a boot retain republish).
         self._publish_mode("enabled")
         self._enabling_originator = False
+        self._enabling_announced = False
         self._sync_sml_mode_sensor()
         # Push current appearances once Digicon owns SET again.
         for head in self._heads:
@@ -1340,12 +1361,18 @@ class DigiconMqttSml(
             if not (self._probe_active and mode == "query"):
                 self._retained_mode = mode
         if mode == "enabling":
-            if self._enabling_originator:
+            # Own echo only if this instance really published enabling; a Hold
+            # that never announced must yield to another agent's enabling.
+            if self._enabling_announced:
                 print(
                     "mqtt_signalhead: own enabling -- leave SML, wait to announce enabled"
                 )
                 return
             print("mqtt_signalhead: saw enabling -- abort SML")
+            if self._enabling_originator:
+                # In Hold without having announced: stop the pending hand-off.
+                self._enable_cancelled = True
+                self._enabling_originator = False
             self._abort_sml_immediate()
             return
         # Live Digicon: answer query and disabling so the LCOS bridge can abort RELEASE.

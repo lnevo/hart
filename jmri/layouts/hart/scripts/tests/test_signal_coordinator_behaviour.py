@@ -281,10 +281,54 @@ class Coordinator(unittest.TestCase):
         self.assertFalse(self.c._global_enabled)
 
     def test_own_enabling_does_not_abort(self) -> None:
-        self.c._enabling_originator = True
+        self.c._announce_enabling("test")
+        self.adapter.published.clear()
         self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
         self.assertEqual(self.sent(), [])
         self.assertEqual(self.bulk, [])
+        self.assertTrue(self.c._enabling_originator)
+
+    def hand_off_with_message_during_hold(self, message):
+        """Run the enable hand-off; `message` arrives on sml_mode during the Hold wait."""
+        c = self.c
+        real_sleep = jf.Thread.sleep
+
+        def sleep(ms):
+            if message is not None:
+                c.notifyMqttMessage("track/bridge/sml_mode", message)
+
+        jf.Thread.sleep = staticmethod(sleep)
+        self.addCleanup(setattr, jf.Thread, "sleep", real_sleep)
+        c._hand_off_enabled()
+
+    def test_foreign_enabling_during_unannounced_hold_cancels_the_enable(self) -> None:
+        # This host never published enabling, so the message is another agent's.
+        self.hand_off_with_message_during_hold("enabling")
+        modes = [p[1] for p in self.sent() if p[0].endswith("sml_mode")]
+        self.assertEqual(modes, ["aborting", "aborted"])
+        self.assertNotIn(True, self.bulk)
+        self.assertFalse(self.c._global_enabled)
+        self.assertFalse(self.c._enabling_originator)
+        self.assertFalse(self.mast.held)
+        # A query after the cancel is not answered as an owner.
+        self.adapter.published.clear()
+        self.c.notifyMqttMessage("track/bridge/sml_mode", "query")
+        self.assertEqual(self.sent(), [])
+
+    def test_own_announced_enabling_echo_during_hold_still_enables(self) -> None:
+        self.c._announce_enabling("test")
+        self.hand_off_with_message_during_hold("enabling")
+        modes = [p[1] for p in self.sent() if p[0].endswith("sml_mode")]
+        self.assertEqual(modes, ["enabling", "enabled"])
+        self.assertEqual(self.bulk, [True])
+        self.assertTrue(self.c._global_enabled)
+        self.assertFalse(self.c._enabling_announced)
+
+    def test_hand_off_without_any_enabling_message_enables(self) -> None:
+        self.hand_off_with_message_during_hold(None)
+        modes = [p[1] for p in self.sent() if p[0].endswith("sml_mode")]
+        self.assertEqual(modes, ["enabled"])
+        self.assertEqual(self.bulk, [True])
 
     # --- boot -------------------------------------------------------------------------
 
