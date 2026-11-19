@@ -1,6 +1,7 @@
-"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on its template, the
-last hand-drawn tables (template_tables). The all-levels viewing trial these tests once read (tables_layout.xml) is retired (owner,
-2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py and test_le_mast_parity.py share."""
+"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on this checkout's
+tables.xml less what an earlier build added (strip_build_owned). The all-levels viewing trial these tests once read
+(tables_layout.xml) is retired (owner, 2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py
+and test_le_mast_parity.py share."""
 from __future__ import annotations
 
 import contextlib
@@ -20,13 +21,9 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import hand_drawn, level_devices, paths, tables  # noqa: E402
+from hartlib import level_devices, paths, tables  # noqa: E402
 
-
-def hand() -> Path:
-    """The last hand-drawn tables (git, hartlib.hand_drawn): what the build starts from after the cut-over. Skips
-    the test when git does not have them."""
-    return hand_drawn.skip_unless_available()
+TABLES = paths.TABLES_XML       # what the build starts from (this checkout's tables.xml, the cut-over's)
 
 
 def _load(name: str, path: Path):
@@ -44,6 +41,18 @@ RENDER = _load("render_le_layout", paths.LAYOUT_SCRIPTS / "render_le_layout.py")
 LIVE_PANEL = "HART Railroad"
 
 
+@functools.lru_cache(maxsize=None)
+def _stripped_bytes() -> bytes:
+    doc = tables.load(TABLES)
+    B.strip_build_owned(doc.root)
+    return doc.tobytes()
+
+
+def stripped() -> ET.Element:
+    """A fresh copy of the tables the build draws on: tables.xml without what an earlier build added."""
+    return tables.loads(_stripped_bytes()).root
+
+
 def is_new(el) -> bool:
     if el.tag == "LayoutEditor":            # the generated panel replaces the live one: no new panel
         return False
@@ -57,25 +66,6 @@ def is_new(el) -> bool:
     if el.tag in ("signalhead", "signalmast", "sensor", "LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor"):
         return B.is_level_bean(el)
     return False
-
-
-def strip_new(root) -> int:
-    """Take the generated elements out again, giving each run's tail back to the element before it."""
-    removed = 0
-    for parent in [root, *root.iter()]:
-        kids = list(parent)
-        for i, el in enumerate(kids):
-            if not is_new(el):
-                continue
-            prev = next((k for k in reversed(kids[:i]) if not is_new(k)), None)
-            if not (i + 1 < len(kids) and is_new(kids[i + 1])):
-                if prev is not None:
-                    prev.tail = el.tail
-                else:
-                    parent.text = el.tail
-            parent.remove(el)
-            removed += 1
-    return removed
 
 
 def is_new_name(name) -> bool:
@@ -116,7 +106,7 @@ def built():
     """(candidate bytes, Panel, names, bands) of the three-level cut-over candidate (--levels all --as-live; the
     approval fingerprint is its own test, test_le_cutover.py): built once for every test module that needs it."""
     with mock.patch.object(B.sdm, "load", wraps=B.sdm.load) as load, contextlib.redirect_stdout(io.StringIO()):
-        out = B.build(hand(), levels="all", as_live=True, approved=None)
+        out = B.build(TABLES, levels="all", as_live=True, approved=None)
     STAGING_MAP_LOADS.append(load.call_count)
     return out
 
@@ -141,7 +131,7 @@ class PagePreferences(unittest.TestCase):
                            ({"le_window": [1900]}, "le_window must be"), ({"le_row": 0}, "le_row must be")):
             bad = {k: v for k, v in dict(page, **prefs).items() if v is not None}
             with self.subTest(prefs=prefs), self.assertRaisesRegex(B.BuildError, why):
-                B.build(hand(), as_live=True, approved=None, page=bad)
+                B.build(TABLES, as_live=True, approved=None, page=bad)
 
 
 class Built(unittest.TestCase):
@@ -149,7 +139,7 @@ class Built(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.data, cls.P, cls.names, cls.bands = built()
         cls.root = tables.loads(cls.data).root
-        cls.live = tables.read(hand())                                  # the build's template tables
+        cls.live = stripped()                                           # the tables the build draws on
         cls.le = tables.layout_editor(cls.root, LIVE_PANEL)              # the generated panel, under the live name
         cls.live_le = tables.layout_editor(tables.read(paths.REPO_TABLES_XML), LIVE_PANEL)  # the live generated one
         cls.items = {el.get("ident"): el for el in tables.elements(cls.le) if el.get("ident")}
@@ -265,7 +255,7 @@ class Built(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, "already hold"):
             B.add_level_clear(tables.read(paths.TABLES_XML), ["IS:HART:C3:B:X"])
         with self.assertRaisesRegex(B.BuildError, "not all main and upper virtual sensors"):
-            B.add_level_clear(tables.read(hand()), ["IS:SML_MODE"])
+            B.add_level_clear(stripped(), ["IS:SML_MODE"])
 
     def test_the_clear_logixng_reader_names_a_broken_action(self) -> None:
         root = tables.read(paths.TABLES_XML)
@@ -278,7 +268,7 @@ class Built(unittest.TestCase):
     def test_the_clear_logixng_takes_exactly_the_sensors_added(self) -> None:
         """add_level_sensors returns the sensors it bound (only blocks in the tables); add_level_objects stops when
         that is not every main and upper block's, so the LogixNG never names a sensor the tables lack."""
-        root = tables.loads(hand().read_bytes()).root
+        root = stripped()
         sensors = B.level_sensors()
         b = sorted(sensors)[0]
         el = ET.SubElement(root.find("blocks"), "block", {"systemName": "IBX1"})
@@ -288,13 +278,13 @@ class Built(unittest.TestCase):
         with mock.patch.object(sys.modules["le_tables"], "add_level_sensors", return_value=[]), \
                 self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
             with contextlib.redirect_stdout(io.StringIO()):
-                B.build(hand(), as_live=True, approved=None)
+                B.build(TABLES, as_live=True, approved=None)
 
     def test_add_level_sensors_is_by_name_not_order(self) -> None:
         """The sensors a block gets do not depend on the order blocks come in: a block added earlier in the drawing
         changes no other block's sensor. A taken name or an already bound block stops."""
         def run(order):
-            root = tables.loads(hand().read_bytes()).root
+            root = stripped()
             sensors = B.level_sensors()
             first = sorted(sensors)[:3]
             for b in first:      # three stand-in blocks, bound to the device map's sensors
@@ -307,7 +297,7 @@ class Built(unittest.TestCase):
                     if b.get("systemName", "").startswith("IBX")}, \
                 {tables.user_name(s): tables.system_name(s) for s in tables.sensors(root) if B.is_level_bean(s)}
         self.assertEqual(run(lambda xs: xs), run(lambda xs: list(reversed(xs))))
-        root = tables.loads(hand().read_bytes()).root
+        root = stripped()
         live = tables.blocks(root)[0]
         with self.assertRaisesRegex(B.BuildError, "already in the tables"):
             B.add_level_sensors(root, {tables.user_name(live): ("IS:SML_MODE", "BS X", "c")})
@@ -428,10 +418,11 @@ class Built(unittest.TestCase):
                 el.tail = None if el.tail is not None and not el.tail.strip() else el.tail
             return ET.tostring(doc.root)
         doc = tables.loads(self.data)
-        removed = strip_new(doc.root)
-        # turnouts, blocks (3 each), layout blocks, their sensors, the LogixNG that clears them (LogixNG,
-        # ConditionalNG, DigitalMany, 125 ActionSensors), heads and masts
-        self.assertEqual(removed, 41 + 3 * 125 + 125 + 3 + 125 + 53 + 41)
+        removed = B.strip_build_owned(doc.root)
+        # turnouts, blocks (2 passes) and layout blocks, their sensors, the LogixNG that clears them (LogixNG,
+        # ConditionalNG, DigitalMany, 125 ActionSensors), heads and masts; no logic or path: discovery adds them
+        objects = 41 + 3 * 125 + 125 + 3 + 125 + 53 + 41
+        self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects})
         base = tables.loads(self.P.staging_data)
         B.parked.split(base.root, B.PARKED)
         B.retire_yard_ladder(base.root)
@@ -645,7 +636,6 @@ class Pieces(unittest.TestCase):
 
 class ReviewFixes(unittest.TestCase):
     def test_split_connector_track_counts_both_pieces(self) -> None:
-        hand()                          # the build starts from the hand-drawn tables in git: skip without them
         bands = built()[3]
         _sheet, le_mod, _core = B.plugin()
         _names, lengths = B.placeholder_names(bands, le_mod)
@@ -671,7 +661,7 @@ class ReviewFixes(unittest.TestCase):
             B.runs(ring)
 
     def test_tables_with_no_names_only_block_pass_stop(self) -> None:
-        doc = tables.load(hand())
+        doc = tables.load(TABLES)
         blocks_el = doc.root.find("blocks")
         for b in tables.blocks(doc.root, full=False):
             blocks_el.remove(b)

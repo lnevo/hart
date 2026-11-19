@@ -197,9 +197,9 @@ class DeviceMapBuild(unittest.TestCase):
         cls.B = blb
         try:
             blb.plugin()
-            base = blb.template_tables()
         except blb.BuildError as exc:
-            raise unittest.SkipTest(f"plugin or hand-drawn tables not available: {exc}")
+            raise unittest.SkipTest(f"plugin not available: {exc}")
+        base = blb.paths.TABLES_XML          # the build starts from this checkout's tables.xml
         with contextlib.redirect_stdout(io.StringIO()):
             cls.data, cls.P, cls.names, _bands = blb.build(base, levels="staging", as_live=True, approved=None)
         from hartlib import tables

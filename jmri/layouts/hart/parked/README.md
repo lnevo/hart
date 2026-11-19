@@ -38,7 +38,7 @@ icons), and `<bindings>` names each slot, list entry or child the split cleared 
 value). It is not a JMRI file.
 
 The cut-over build (`tools/schematic/build_layout_le.py --as-live`) leaves the same features out of the candidate
-it builds from the last hand-drawn tables; it does not write this file.
+it builds from the live `tables.xml` (which holds none of them since the release); it does not write this file.
 
 Files outside tables.xml stay in the repo but are not shipped while their feature is parked
 (`tools/hosts/sync_hart_package.sh`): the traininfo files and `dispatcheroptions.xml` (`jmri/layouts/hart/dispatcher/`),
@@ -129,9 +129,13 @@ that is missing once the feature is back.
 
 ## Unpark
 
-1. Take the feature out of `PARKED` in `tools/hartlib/src/hartlib/parked.py`.
-2. Put the feature's live snapshot from this file back into the tables (`hartlib.parked.restore` gives the
-   elements and bindings in place), then `make panels` so the candidate holds the feature again.
+1. While the feature is still in `PARKED`, write a copy of the live `tables.xml` with its snapshot from this file
+   put back: `hartlib.parked.with_parked_file([feature])` (`with_parked`, through `restore`, puts the elements and
+   bindings in place; it does nothing for a feature already out of `PARKED`).
+2. Take the feature out of `PARKED` in `tools/hartlib/src/hartlib/parked.py`, then build on that copy
+   (`build_layout_le.py --as-live --tables <copy>`): the build starts from the tables it is given, and the live
+   `tables.xml` holds none of the parked data. Its items on the "HART Railroad" panel (NX slots, MoveTo buttons
+   and lamps) are not drawn by the build; Stage 1 or NX Discover in step 3 puts them back.
 3. The snapshot is the data that comes back; it matches the 3bd3ac64 geometry (helix unjoined). Refresh it against
    the current geometry with Dispatcher System Stage 1 (`run_panelpro_stage1.sh`: sections, transits, traininfo,
    stations) or NX Discover (`run_nx_discover.sh`), in a sandbox first (`tools/hosts/sandbox/README.md`).

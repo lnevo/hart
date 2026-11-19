@@ -14,7 +14,7 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, parked, paths, tables  # noqa: E402
+from hartlib import level_devices, level_masts, parked, paths, tables  # noqa: E402
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
@@ -362,32 +362,53 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 # gained, the head-on 10RA/10RB/12R/14R -> 22L/26L and 36RB -> 40RB. The Dispatcher graph is parked
 # (hartlib.parked): no section or transit while it is.
 EXPECTED_SML = {False: 100, True: 180}
+# A generated panel before stock discovery (the cut-over candidate as built, build_layout_le.py --as-live) carries the
+# Signal Mast Logic of the live tables.xml it was built on (owner, 2026-11-18), less every logic and destination that
+# names a main or upper object (strip_build_owned): exactly the live tables' destinations between staging masts
+# (carried_destinations), allowed with a warning that discovery is still to run. Since the device-map switch-over
+# that is 104 of the 180, but the audit reads it from the live tables, so a later discovery moves it too. A
+# generated panel before its Stage 1 with the Dispatcher System unparked still carries the hand-drawn panel's graph
+# (EXPECTED_GRAPH[False]): allowed, with the same kind of warning.
 EXPECTED_GRAPH = {False: (107, 187), True: (197, 187)}
-# A generated panel before its Stage 1 (the cut-over candidate as built) still carries the hand-drawn panel's SML and
-# Dispatcher graph: allowed, with a warning that Stage 1 is still to run.
 EXPECTED_TRAININFO = 374
 
 
-def audit_sml(root: ET.Element, audit: Audit, *, required: bool, generated: bool = False) -> None:
-    destinations: list[tuple[str, str, str]] = []
+def sml_destinations(root: ET.Element) -> list[tuple[str, str, str, ET.Element]]:
+    """(source, destination, useLayoutEditor, <destinationMast>) for every stored SML destination of `root`."""
+    out = []
     for logic in root.findall("./signalmastlogics/signalmastlogic"):
         source = attr_or_child(logic, "sourceSignalMast") or logic.get("source", "")
         for destination in logic.findall("destinationMast"):
-            target = (
-                attr_or_child(destination, "destinationSignalMast")
-                or destination.get("destination", "")
-            )
-            use_le = text(destination, "useLayoutEditor").lower()
-            destinations.append((source, target, use_le))
+            target = attr_or_child(destination, "destinationSignalMast") or destination.get("destination", "")
+            out.append((source, target, text(destination, "useLayoutEditor").lower(), destination))
+    return out
+
+
+def carried_destinations(destinations: list) -> list[tuple[str, str, str]]:
+    """The destinations (sml_destinations) a cut-over build keeps: from a staging mast, naming no main or upper
+    object (hartlib.level_devices.is_level_name, by the fields JMRI keeps bean references in)."""
+    return [(s, t, u) for s, t, u, el in destinations
+            if not level_devices.is_level_name(s) and not tables.names_any(el, (), level_devices.is_level_name)]
+
+
+def audit_sml(root: ET.Element, audit: Audit, *, required: bool, generated: bool = False,
+              live: ET.Element | None = None) -> None:
+    """The stored SML destinations against EXPECTED_SML, or, on a generated panel that holds no main or upper one
+    yet, against the live tables' carried_destinations (`live`: their root; default this checkout's tables.xml)."""
+    found = sml_destinations(root)
+    destinations = [(s, t, u) for s, t, u, _el in found]
     auto = sum(use_le == "yes" for _, _, use_le in destinations)
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
     # Every destination comes from Discover: the two manual Princess pairs were retired on 2026-11-15.
     want = EXPECTED_SML[generated]
-    carried = EXPECTED_SML[False]
-    if generated and (len(destinations), auto, manual, unknown) == (carried, carried, 0, 0):
-        audit.warn(f"stored SML destinations are the hand-drawn panel's {carried}: run Stage 1 on this generated "
-                   f"panel (expect {want})")
+    before = generated and len(carried_destinations(found)) == len(found)       # nothing on main or upper yet
+    carried = carried_destinations(sml_destinations(live if live is not None else tables.read(paths.TABLES_XML))) \
+        if before else []
+    if before and sorted(destinations) == sorted(carried) and (auto, manual, unknown) == (len(carried), 0, 0):
+        audit.warn(f"stored SML destinations are the {len(carried)} between staging masts the build carried from "
+                   f"{paths.rel(paths.TABLES_XML)}: run Stage 1 or stock discovery on this generated panel "
+                   f"(expect {want})")
     elif (len(destinations), auto, manual, unknown) != (want, want, 0, 0):
         message = (
             f"stored SML destinations expected total={want}, useLayoutEditor=yes={want}, "

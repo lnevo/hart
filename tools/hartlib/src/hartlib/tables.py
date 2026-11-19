@@ -288,6 +288,44 @@ def elements(el: ET.Element) -> Iterator[ET.Element]:
     return (child for child in el if isinstance(child.tag, str))
 
 
+def remove_child(parent: ET.Element, child: ET.Element) -> None:
+    """Remove ``child`` from ``parent``, keeping the indentation of what follows (the last child's tail closes the
+    parent, so it goes to the child before it); an emptied parent loses its layout text."""
+    kids = list(parent)
+    i = kids.index(child)
+    if i == len(kids) - 1 and i > 0:
+        kids[i - 1].tail = child.tail
+    parent.remove(child)
+    if not len(parent):
+        parent.text = None
+
+
+# Where JMRI 5.16 stores a reference to another bean, by its name: Signal Mast Logic (DefaultSignalMastLogicManagerXml:
+# the source and destination masts, and the blocks, turnouts, sensors, masts and section a destination lists) and a
+# block's paths (BlockManagerXml: the next block, and each turnout setting).
+REFERENCE_TEXTS = frozenset({"sourceSignalMast", "destinationSignalMast", "blockName", "turnoutName", "sensorName",
+                             "mastName", "associatedSection"})
+REFERENCE_ATTRS = frozenset({"source", "destination", "block", "systemName"})
+
+
+def names_any(el: ET.Element, names: Iterable[str] = (), match=None, *, references_only: bool = True,
+              deep: bool = True) -> bool:
+    """Whether ``el`` (and, with ``deep``, anything in it) names one of ``names`` or a value ``match`` accepts.
+    ``references_only``: only where JMRI stores a bean reference (REFERENCE_TEXTS, REFERENCE_ATTRS), so a comment or
+    a setting that happens to read like a name is not one; off, every text and attribute value counts."""
+    names = frozenset(names)
+    for x in (el.iter() if deep else (el,)):
+        if not isinstance(x.tag, str):
+            continue
+        values = [x.text] if not references_only or x.tag in REFERENCE_TEXTS else []
+        values += [v for k, v in x.attrib.items() if not references_only or k in REFERENCE_ATTRS]
+        for v in values:
+            v = (v or "").strip()
+            if v and (v in names or (match is not None and match(v))):
+                return True
+    return False
+
+
 def text(el: ET.Element | None, child: str) -> str:
     """Stripped text of ``el``'s ``child``; "" when either is missing."""
     if el is None:
@@ -422,7 +460,7 @@ def layout_editor(root: ET.Element, name: str | Iterable[str] | None = None) -> 
 
 
 # The generated Layout Editor panel (tools/schematic/build_layout_le.py --as-live) carries this hidden text label.
-# The build refuses to start from tables that hold it (template_tables reads the last hand-drawn ones then), and the
+# The build starts only from tables that hold it (it replaces that panel), and the
 # Stage 1 repairs (polish_hart_layout_editor.py, reconcile_dispatcher_stations.py) run only on a panel that holds it.
 # A label is used because a PanelPro Store keeps it (and a panel rename), where it drops XML comments and unknown
 # attributes.

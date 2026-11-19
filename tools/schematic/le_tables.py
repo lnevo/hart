@@ -91,8 +91,9 @@ def retire_yard_ladder(root: ET.Element) -> int:
                       for o in r.findall("routeOutputTurnout"))]:
             sec.remove(r)
             gone += 1
-    named = lambda v: RETIRED_TURNOUT_PREFIX in v or v.strip() in users      # by system or user name
-    left = [el.tag for el in root.iter() if named(el.text or "") or any(named(v) for v in el.attrib.values())]
+    # by system or user name, anywhere: any text or attribute value of any element
+    left = [el.tag for el in root.iter() if isinstance(el.tag, str) and tables.names_any(
+        el, users, lambda v: RETIRED_TURNOUT_PREFIX in v, references_only=False, deep=False)]
     if left:
         raise BuildError(f"yard ladder: {RETIRED_TURNOUT_PREFIX}* still named by {sorted(set(left))}")
     return gone
@@ -119,7 +120,8 @@ def canon(el: ET.Element) -> str:
 
 def is_level_bean(el: ET.Element) -> bool:
     """A turnout, sensor, block, layout block, signal head or signal mast add_level_objects or add_level_signals adds
-    (by its internal system name)."""
+    (by its internal system name; a layout block, whose system name JMRI could also give a block added in PanelPro, by
+    its user name, the block's, which follows the main and upper naming rule, level_devices.is_level_name)."""
     sysname = (el.findtext("systemName") or el.get("systemName") or "").strip()
     if el.tag == "signalhead":
         return level_masts_lib.is_level_head(sysname)
@@ -134,8 +136,64 @@ def is_level_bean(el: ET.Element) -> bool:
     if el.tag == "block":
         return sysname.startswith(BLOCK_SYS)
     if el.tag == "layoutblock":
-        return sysname.startswith("ILB") and sysname[3:].isdigit() and int(sysname[3:]) >= LAYOUT_BLOCK_FIRST
+        return sysname.startswith("ILB") and level_devices.is_level_name(tables.user_name(el))
     return False
+
+
+def level_names(root: ET.Element) -> set[str]:
+    """The system and user names of every main and upper object a build added to tables `root` (is_level_bean)."""
+    return {n for sec in tables.elements(root) for el in tables.elements(sec) if is_level_bean(el)
+            for n in (tables.system_name(el), tables.user_name(el)) if n}
+
+
+STRIPPED = ("main and upper objects", "Signal Mast Logic from a main or upper mast",
+            "Signal Mast Logic destinations naming a main or upper object",
+            "Signal Mast Logic left with no destination", "block paths naming a main or upper object")
+
+
+def strip_build_owned(root: ET.Element) -> dict[str, int]:
+    """Take out of tables `root` (edited in place) what a build added and what stock JMRI derived from it, so a build
+    can start from tables a cut-over wrote (tables.xml): every main and upper object (is_level_bean: turnouts, block
+    sensors, blocks, layout blocks, heads, masts and the sensors-clear LogixNG); the Signal Mast Logic whose source is
+    one of their masts; each destination of another mast's logic that names one of them, and a logic left with none;
+    and each path of another block that names one of them. "Names" is by the fields where JMRI keeps a bean reference
+    (hartlib.tables.names_any), and a name counts when it is one of those objects' or follows the main and upper
+    naming rule (level_devices.is_level_name), so a reference to one that is no longer in the tables goes too. Stock
+    discovery and a PanelPro load derive the logic and the paths again from the panel the build draws. Everything else
+    stays as it is, the main panel too (the build replaces it), and so do the properties discovery sets on a staging
+    mast (intermediateSignal on 38RA and 40RA, which lead up the helix): discovery sets them again. Returns the counts
+    taken out, keyed by STRIPPED; stops when any of those references is left."""
+    names = level_names(root)
+    owned = lambda el: tables.names_any(el, names, level_devices.is_level_name)       # noqa: E731
+    counts = dict.fromkeys(STRIPPED, 0)
+    for sec in list(tables.elements(root)):
+        for el in [el for el in tables.elements(sec) if is_level_bean(el)]:
+            tables.remove_child(sec, el)
+            counts[STRIPPED[0]] += 1
+    for box in root.findall("signalmastlogics"):
+        for logic in list(box.findall("signalmastlogic")):
+            source = tables.text(logic, "sourceSignalMast") or (logic.get("source") or "").strip()
+            if source in names or level_devices.is_level_name(source):
+                tables.remove_child(box, logic)
+                counts[STRIPPED[1]] += 1
+                continue
+            gone = [d for d in logic.findall("destinationMast") if owned(d)]
+            for d in gone:
+                tables.remove_child(logic, d)
+                counts[STRIPPED[2]] += 1
+            if gone and logic.find("destinationMast") is None:
+                tables.remove_child(box, logic)
+                counts[STRIPPED[3]] += 1
+    for block in tables.blocks(root):
+        for path in [p for p in block.findall("path") if owned(p)]:
+            tables.remove_child(block, path)
+            counts[STRIPPED[4]] += 1
+    left = sorted({sec.tag for sec in tables.elements(root) for el in tables.elements(sec) if is_level_bean(el)} |
+                  {"signalmastlogics" for logic in tables.mast_logics(root) if owned(logic)} |
+                  {"block paths" for b in tables.blocks(root) for p in b.findall("path") if owned(p)})
+    if left:
+        raise BuildError(f"taking out what an earlier build added left some of it in {', '.join(left)}")
+    return counts
 
 
 def level_items(P, panel_el: ET.Element) -> set:
@@ -284,16 +342,6 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str, join_helix: b
         raise BuildError("staging guard: the three-level candidate changes the approved staging panel: " +
                          "; ".join(bad[:20]) + (f" (and {len(bad) - 20} more)" if len(bad) > 20 else ""))
     return notes
-
-
-def insert_first_panel(root: ET.Element, new: ET.Element, depth: int) -> None:
-    """Put `new` before the first Layout Editor panel of `root` (where the hand-drawn panel stood, before the
-    Dispatcher System panel), indented as JMRI writes."""
-    first = tables.layout_editors(root)[0]
-    idx = list(root).index(first)
-    ET.indent(new, space="  ", level=depth)
-    new.tail = root[idx - 1].tail if idx else root.text
-    root.insert(idx, new)
 
 
 def numbered_blocks(blocks) -> list:

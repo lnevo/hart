@@ -28,4 +28,4 @@ The copies had also drifted. The desks held edits that the source did not, so a 
 
 ## Amendment, CATS cut-over (owner approved the generated desks in real CATS on 2026-11-15)
 
-Superseded for the live desks: `HART_CTC.xml` and `HART_ABS.xml` are generated from the schematic by `tools/schematic/build_cats_panel.py` (all three levels, ADR-023), its only writer, held by `--check`. `wire_digicon.py` refuses to write them; `HART_Digicon.xml` and the last hand-wired desks (in git, `hartlib.hand_drawn`) are the record. Point 3 stands: nobody edits a desk by hand.
+Superseded for the live desks: `HART_CTC.xml` and `HART_ABS.xml` are generated from the schematic by `tools/schematic/build_cats_panel.py` (all three levels, ADR-023), its only writer, held by `--check`. `wire_digicon.py` refuses to write them; `HART_Digicon.xml` and the last hand-wired desks (in git at commit `42192d9c`, before the CATS cut-over (`git show 42192d9c:cats/panels/HART_CTC.xml`)) are the record. Point 3 stands: nobody edits a desk by hand.
