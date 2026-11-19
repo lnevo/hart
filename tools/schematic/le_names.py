@@ -176,11 +176,17 @@ def level_masts(names: dict, rows: list[dict]) -> None:
     on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
     masts share one facing and protected block. Stops on a mast no band, or two, draws."""
     bad = []
+    staging_blocks = {b for bl in names.get(STAGING, {}).get("blocks", {}).values() for b in bl}
     for r in rows:
-        where = [k for k, v in names.items() if k != STAGING
-                 and r["facing"] in {b for bl in v["blocks"].values() for b in bl}
-                 and r["protects"] in set(v["os"].values()) | {b for x in v.get("xover_blocks", {}).values()
-                                                              for b in x.values()}]
+        if not r["switch"]:     # an APB intermediate (owner, 2026-11-19): between two track blocks, or into staging's
+            where = [k for k, v in names.items() if k != STAGING   # helix track across the hidden join
+                     and r["facing"] in {b for bl in v["blocks"].values() for b in bl}
+                     and r["protects"] in {b for bl in v["blocks"].values() for b in bl} | staging_blocks]
+        else:
+            where = [k for k, v in names.items() if k != STAGING
+                     and r["facing"] in {b for bl in v["blocks"].values() for b in bl}
+                     and r["protects"] in set(v["os"].values()) | {b for x in v.get("xover_blocks", {}).values()
+                                                                  for b in x.values()}]
         if len(where) != 1:
             bad.append(f"{r['mast']} ({r['facing']} into {r['protects']}): drawn on {where or 'no band'}")
             continue
@@ -188,8 +194,13 @@ def level_masts(names: dict, rows: list[dict]) -> None:
         if not known:
             bad.append(f"{r['mast']}: no icon size for {r['system_name']}")
             continue
-        entry = dict(mast=r["mast"], facing=r["facing"], protects=[r["protects"]], kind="turnout", hidden=False,
-                     icon=list(size))
+        entry = dict(mast=r["mast"], facing=r["facing"], protects=[r["protects"]],
+                     kind="turnout" if r["switch"] else "anchor", hidden=False, icon=list(size))
+        if not r["switch"] and r["protects"] in staging_blocks:
+            # into the helix: the boundary is the hidden join's anchor, which stands on the staging band (where 38RA
+            # and 40RA face up the helix), so the plugin places it among staging's masts
+            names[STAGING].setdefault("masts", []).append(entry)
+            continue
         if r["leg"]:
             entry["leg"] = r["leg"]
         names[where[0]].setdefault("masts", []).append(entry)

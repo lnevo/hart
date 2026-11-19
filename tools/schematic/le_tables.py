@@ -23,8 +23,9 @@ from approval import canon_sorted, element_label  # noqa: E402  as the approval 
 # system name shifts: BLOCK_NUMBERED_AS gives a renamed block the sort place of the name it replaces, and
 # APPENDED_BLOCKS come last, in this order. The balloon loop's split: Loop 1 keeps the loop's numbers; double
 # crossover 225's corners: a keeps OS Switch 225's.
-BLOCK_NUMBERED_AS = {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225"}
-APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d")
+BLOCK_NUMBERED_AS = {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225",
+                     "Track 227-239 1": "Track 227-239"}
+APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d", "Track 227-239 2")
 COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"
 
 
@@ -258,6 +259,10 @@ def helix_join_changes(missing: list, extra: list, new_le: ET.Element, P, ends: 
         if new is None or len(old) or len(new):
             continue
         added = {k: v for k, v in new.attrib.items() if k not in old.attrib}
+        # a main or upper helix intermediate (Mast A75, B75) may stand on the join's anchor, facing into the helix
+        level_mast = {k for k, v in added.items() if k in ("eastboundsignalmast", "westboundsignalmast")
+                      and level_devices.is_level_name(v)}
+        added = {k: v for k, v in added.items() if k not in level_mast}
         want = dict(old.attrib, ident=new.get("ident"), type="ANCHOR")
         seg = segs.get(added.get("connect2name"))
         if set(added) != {"connect2name"} or old.get("type") != "END_BUMPER" or \
@@ -323,8 +328,8 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str, join_helix: b
         old_els[canon(el)].append(el)
     extra = []
     for el in new_le:
-        if id(el) in level:
-            continue
+        if id(el) in level or (el.tag == "signalmasticon" and level_devices.is_level_name(el.get("signalmast"))):
+            continue                     # a main or upper element, or a helix intermediate's icon on a join anchor
         got = old_els.get(canon(el))
         if got:
             got.pop()
@@ -563,7 +568,7 @@ def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
         {tables.user_name(e) for e in heads_el.findall("signalhead") + masts_el.findall("signalmast")}
     heads, masts = [], []
     for r in rows:
-        where = f"{r['cp']} | Switch {r['switch']}"
+        where = " | ".join(x for x in (r["cp"], f"Switch {r['switch']}" if r["switch"] else "intermediate") if x)
         device = dict(zip([h for h, _u in r["heads"]], level_masts_lib.mast_heads(r["device_system_name"])))
         for h, user in r["heads"]:
             el = ET.Element("signalhead", {"class": HEAD_CLASS})

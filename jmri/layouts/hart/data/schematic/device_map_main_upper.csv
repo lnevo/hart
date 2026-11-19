@@ -181,13 +181,17 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 107,mast,Mast 112L,IF$shsm:basic:two-low(IH4334)(IH4335),IF$shsm:basic:two-low(IH:HART:C3:112L_Top)(IH:HART:C3:112L_Bottom),43,,CP 107 | Switch 111,,home signal from Track 101-111
 2,CP 107,mast,Mast 118L,IF$shsm:basic:two-low(IH4336)(IH4337),IF$shsm:basic:two-low(IH:HART:C3:118L_Top)(IH:HART:C3:118L_Bottom),43,,CP 107 | Switch 117,,home signal from Track 115-117
 2,CP 107,mast,Mast 120RA,IF$shsm:basic:two-searchlight(IH4338)(IH4339),IF$shsm:basic:two-searchlight(IH:HART:C3:120RA_Top)(IH:HART:C3:120RA_Bottom),43,,CP 107 | Switch 119,,home signal from Track 119-125
-2,CP 107,mast,Mast 120RB,,IF$shsm:basic:two-low(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom),,,CP 107 | Switch 119,,home signal from Track 119-123
+2,CP 107,mast,Mast 120RB,,IF$shsm:basic:two-searchlight(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom),,,CP 107 | Switch 119,,home signal from Track 119-123
 2,CP 125,mast,Mast 126LA,IF$shsm:basic:two-searchlight(IH4232)(IH4233),IF$shsm:basic:two-searchlight(IH:HART:C3:126LA_Top)(IH:HART:C3:126LA_Bottom),42,,CP 125 | Switch 125,,home signal from Track 119-125
-2,CP 125,mast,Mast 126LB,IF$shsm:basic:two-low(IH4234)(IH4235),IF$shsm:basic:two-low(IH:HART:C3:126LB_Top)(IH:HART:C3:126LB_Bottom),42,,CP 125 | Switch 125,,home signal from Track 123-125
+2,CP 125,mast,Mast 126LB,IF$shsm:basic:two-searchlight(IH4234)(IH4235),IF$shsm:basic:two-searchlight(IH:HART:C3:126LB_Top)(IH:HART:C3:126LB_Bottom),42,,CP 125 | Switch 125,,home signal from Track 123-125
 2,CP 125,mast,Mast 128R,IF$shsm:basic:two-low(IH5232)(IH5233),IF$shsm:basic:two-low(IH:HART:C3:128R_Top)(IH:HART:C3:128R_Bottom),52,,CP 125 | Switch 127,,home signal from Track 127-131
 2,CP 125,mast,Mast 130L,IF$shsm:basic:two-searchlight(IH5234)(IH5235),IF$shsm:basic:two-searchlight(IH:HART:C3:130L_Top)(IH:HART:C3:130L_Bottom),52,,CP 125 | Switch 129,,home signal from Track 129-221
 2,CP 125,mast,Mast 136RA,IF$shsm:basic:two-searchlight(IH5236)(IH5237),IF$shsm:basic:two-searchlight(IH:HART:C3:136RA_Top)(IH:HART:C3:136RA_Bottom),52,,CP 125 | Switch 135,,home signal from Track 135-H1
 2,CP 125,mast,Mast 136RB,IF$shsm:basic:two-searchlight(IH5238)(IH5239),IF$shsm:basic:two-searchlight(IH:HART:C3:136RB_Top)(IH:HART:C3:136RB_Bottom),52,,CP 125 | Switch 135,,home signal from Track 135-H2
+2,CP 125,mast,Mast A75,,IF$shsm:basic:one-searchlight(IH:HART:C3:A75),,,CP 125 | intermediate,,intermediate signal from Track 135-H1 into Track McKees Rocks at MP A 7.53
+2,CP 107,mast,Mast A86,,IF$shsm:basic:one-searchlight(IH:HART:C3:A86),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.69
+2,CP 107,mast,Mast A87,,IF$shsm:basic:one-searchlight(IH:HART:C3:A87),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.69
+2,CP 125,mast,Mast B75,,IF$shsm:basic:one-searchlight(IH:HART:C3:B75),,,CP 125 | intermediate,,intermediate signal from Track 135-H2 into Track McKeesport at MP B 7.53
 2,CP 107,head,Head 108LA Bottom,IH3333,IH:HART:C3:108LA_Bottom,33,,"Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6",,
 2,CP 107,head,Head 108LA Top,IH3332,IH:HART:C3:108LA_Top,33,,"Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3",,
 2,CP 107,head,Head 108LB Bottom,IH3335,IH:HART:C3:108LB_Bottom,33,,"Node: 33 Signal: 3 | OU: 4 Ports: 4,5,6",,
@@ -214,6 +218,10 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 125,head,Head 136RA Top,IH5236,IH:HART:C3:136RA_Top,52,,"Node: 52 Signal: 4 | OU: 3 Ports: 1,2,3",,
 2,CP 125,head,Head 136RB Bottom,IH5239,IH:HART:C3:136RB_Bottom,52,,"Node: 52 Signal: 7 | OU: 4 Ports: 4,5,6",,
 2,CP 125,head,Head 136RB Top,IH5238,IH:HART:C3:136RB_Top,52,,"Node: 52 Signal: 6 | OU: 4 Ports: 1,2,3",,
+2,CP 125,head,Head A75,,IH:HART:C3:A75,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 107,head,Head A86,,IH:HART:C3:A86,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 107,head,Head A87,,IH:HART:C3:A87,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 125,head,Head B75,,IH:HART:C3:B75,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 3,CP 201,turnout,DCC Switch 201,MTT138,IT:HART:C3:201,23,138,"Node: 23 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
 3,CP 201,turnout,DCC Switch 203,MTT139,IT:HART:C3:203,23,139,"Node: 23 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
 3,,turnout,DCC Switch 205,MTT140,IT:HART:C3:205,23,140,"Node: 23 Turnout: 4 | OU: 2 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
@@ -361,7 +369,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,block,Track 225-227,,,,,CP 225,Track e66,"17.8 cm short link: inside the OS blocks of its switches, no detector"
 3,CP 225,block,Track 225-229,,,,,CP 225,Track e62,"17.8 cm short link: inside the OS blocks of its switches, no detector"
 3,CP 225,block,Track 227-233,,,,,CP 225,Track e49,"20.6 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 225,block,Track 227-239,,,,,CP 225,Track e64,518.6 cm
+3,CP 225,block,Track 227-239 1,,,,,CP 225,Track e64 1,"259.3 cm, half 1 of the split track (split_tracks_main_upper.csv)"
+3,CP 225,block,Track 227-239 2,,,,,CP 225,Track e64 2,"259.3 cm, half 2 of the split track (split_tracks_main_upper.csv)"
 3,CP 225,block,Track 229-231,,,,,CP 225,Track e38,48.3 cm no detector: off the main line
 3,CP 225,block,Track 229-239,,,,,CP 225,Track e63,77.6 cm
 3,,block,Track 231-235,,,,,,Track e40,75.9 cm no detector: off the main line
@@ -408,7 +417,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,occupancy,BS 225-227,,IS:HART:C3:B:225-227,,,,,no detector planned: dark until decided
 3,CP 225,occupancy,BS 225-229,,IS:HART:C3:B:225-229,,,,,no detector planned: dark until decided
 3,CP 225,occupancy,BS 227-233,,IS:HART:C3:B:227-233,,,,,no detector planned: dark until decided
-3,CP 225,occupancy,BS 227-239,M2S2103,IS:HART:C3:B:227-239,21,,Node: 21 Block: 4,,
+3,CP 225,occupancy,BS 227-239 1,M2S2103,IS:HART:C3:B:227-239_1,21,,Node: 21 Block: 4,,
+3,CP 225,occupancy,BS 227-239 2,,IS:HART:C3:B:227-239_2,,,,,"detector planned, not wired yet: no node or input (owner, 2026-11-16)"
 3,CP 225,occupancy,BS 229-231,,IS:HART:C3:B:229-231,,,,,no detector planned: dark until decided
 3,CP 225,occupancy,BS 229-239,M2S2104,IS:HART:C3:B:229-239,21,,Node: 21 Block: 5,,
 3,,occupancy,BS 231-235,,IS:HART:C3:B:231-235,,,,,no detector planned: dark until decided
@@ -457,13 +467,13 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 201,mast,Mast 204RB,IF$shsm:basic:two-searchlight(IH1432)(IH1433),IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom),14,,CP 201 | Switch 203,,home signal from Track 203-213
 3,CP 213,mast,Mast 214LA,IF$shsm:basic:two-low(IH2432)(IH2433),IF$shsm:basic:two-low(IH:HART:C3:214LA_Top)(IH:HART:C3:214LA_Bottom),24,,CP 213 | Switch 213,,home signal from Track 209-213
 3,CP 213,mast,Mast 214LB,IF$shsm:basic:one-searchlight(IH2434),IF$shsm:basic:one-searchlight(IH:HART:C3:214LB),24,,CP 213 | Switch 213,,home signal from Track 203-213
-3,CP 213,mast,Mast 214RA,IF$shsm:basic:one-low(IH2435),IF$shsm:basic:one-low(IH:HART:C3:214RA),24,,CP 213 | Switch 213,,home signal from Track 213-217 1
+3,CP 213,mast,Mast 214RA,IF$shsm:basic:one-searchlight(IH2435),IF$shsm:basic:one-searchlight(IH:HART:C3:214RA),24,,CP 213 | Switch 213,,home signal from Track 213-217 1
 3,CP 213,mast,Mast 214RB,IF$shsm:basic:two-searchlight(IH5432)(IH5433),IF$shsm:basic:two-searchlight(IH:HART:C3:214RB_Top)(IH:HART:C3:214RB_Bottom),54,,CP 213 | Switch 213,,home signal from Track 213-217 2
-3,CP 217,mast,Mast 218LA,IF$shsm:basic:one-low(IH5434),IF$shsm:basic:one-low(IH:HART:C3:218LA),54,,CP 217 | Switch 217,,home signal from Track 213-217 1
+3,CP 217,mast,Mast 218LA,IF$shsm:basic:one-searchlight(IH5434),IF$shsm:basic:one-searchlight(IH:HART:C3:218LA),54,,CP 217 | Switch 217,,home signal from Track 213-217 1
 3,CP 217,mast,Mast 218LB,IF$shsm:basic:two-searchlight(IH5435)(IH5436),IF$shsm:basic:two-searchlight(IH:HART:C3:218LB_Top)(IH:HART:C3:218LB_Bottom),54,,CP 217 | Switch 217,,home signal from Track 213-217 2
-3,CP 217,mast,Mast 218RA,IF$shsm:basic:two-low(IH5437)(IH5438),IF$shsm:basic:two-low(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom),54,,CP 217 | Switch 217,,home signal from Track 217-219
+3,CP 217,mast,Mast 218RA,IF$shsm:basic:two-searchlight(IH5437)(IH5438),IF$shsm:basic:two-searchlight(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom),54,,CP 217 | Switch 217,,home signal from Track 217-219
 3,CP 217,mast,Mast 218RB,IF$shsm:basic:one-searchlight(IH4432),IF$shsm:basic:one-searchlight(IH:HART:C3:218RB),44,,CP 217 | Switch 217,,home signal from Track 217-221
-3,CP 201,mast,Mast 220R,IF$shsm:basic:two-low(IH1434)(IH1435),IF$shsm:basic:two-low(IH:HART:C3:220R_Top)(IH:HART:C3:220R_Bottom),14,,CP 201 | Switch 219,,home signal from Track 217-219
+3,CP 201,mast,Mast 220R,IF$shsm:basic:two-searchlight(IH1434)(IH1435),IF$shsm:basic:two-searchlight(IH:HART:C3:220R_Top)(IH:HART:C3:220R_Bottom),14,,CP 201 | Switch 219,,home signal from Track 217-219
 3,CP 201,mast,Mast 222LA,IF$shsm:basic:two-searchlight(IH1436)(IH1437),IF$shsm:basic:two-searchlight(IH:HART:C3:222LA_Top)(IH:HART:C3:222LA_Bottom),14,,CP 201 | Switch 221,,home signal from Track 221-223
 3,CP 201,mast,Mast 222LB,IF$shsm:basic:one-searchlight(IH1438),IF$shsm:basic:one-searchlight(IH:HART:C3:222LB),14,,CP 201 | Switch 221,,home signal from Track 217-221
 3,CP 201,mast,Mast 222R,,IF$shsm:basic:two-searchlight(IH:HART:C3:222R_Top)(IH:HART:C3:222R_Bottom),,,CP 201 | Switch 221,,home signal from Track 129-221
@@ -473,9 +483,12 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,mast,Mast 226RA,IF$shsm:basic:two-searchlight(IH2132)(IH2133),IF$shsm:basic:two-searchlight(IH:HART:C3:226RA_Top)(IH:HART:C3:226RA_Bottom),21,,CP 225 | Switch 225,,home signal from Track 223-225 1 into OS Switch 225a
 3,CP 225,mast,Mast 226RB,IF$shsm:basic:two-searchlight(IH2134)(IH2135),IF$shsm:basic:two-searchlight(IH:HART:C3:226RB_Top)(IH:HART:C3:226RB_Bottom),21,,CP 225 | Switch 225,,home signal from Track 223-225 2 into OS Switch 225d
 3,CP 225,mast,Mast 228RA,IF$shsm:basic:two-low(IH4132)(IH4133),IF$shsm:basic:two-low(IH:HART:C3:228RA_Top)(IH:HART:C3:228RA_Bottom),41,,CP 225 | Switch 227,,home signal from Track 227-233
-3,CP 225,mast,Mast 228RB,IF$shsm:basic:two-searchlight(IH4134)(IH4135),IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_Bottom),41,,CP 225 | Switch 227,,home signal from Track 227-239
+3,CP 225,mast,Mast 228RB,IF$shsm:basic:two-searchlight(IH4134)(IH4135),IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_Bottom),41,,CP 225 | Switch 227,,home signal from Track 227-239 1
 3,CP 225,mast,Mast 230LA,IF$shsm:basic:two-searchlight(IH4136)(IH4137),IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom),41,,CP 225 | Switch 229,,home signal from Track 229-239
 3,CP 225,mast,Mast 230LB,,IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom),,,CP 225 | Switch 229,,home signal from Track 229-231
+3,,mast,Mast 240L,,IF$shsm:basic:one-low(IH:HART:C3:240L),,,Helix | Switch 239,,home signal from Track 239 Spur
+3,CP 225,mast,Mast B88,,IF$shsm:basic:one-searchlight(IH:HART:C3:B88),,,CP 225 | intermediate,,intermediate signal from Track 227-239 1 into Track 227-239 2 at MP B 8.86
+3,CP 225,mast,Mast B89,,IF$shsm:basic:one-searchlight(IH:HART:C3:B89),,,CP 225 | intermediate,,intermediate signal from Track 227-239 2 into Track 227-239 1 at MP B 8.86
 3,CP 201,head,Head 202R Bottom,IH2333,IH:HART:C3:202R_Bottom,23,,"Node: 23 Signal: 1 | OU: 3 Ports: 4,5,6",,
 3,CP 201,head,Head 202R Top,IH2332,IH:HART:C3:202R_Top,23,,"Node: 23 Signal: 0 | OU: 3 Ports: 1,2,3",,
 3,CP 201,head,Head 204RA Bottom,IH2335,IH:HART:C3:204RA_Bottom,23,,"Node: 23 Signal: 3 | OU: 4 Ports: 4,5,6",,
@@ -517,3 +530,6 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,head,Head 230LA Top,IH4136,IH:HART:C3:230LA_Top,41,,"Node: 41 Signal: 4 | OU: 4 Ports: 1,2,3",,
 3,CP 225,head,Head 230LB Bottom,,IH:HART:C3:230LB_Bottom,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 3,CP 225,head,Head 230LB Top,,IH:HART:C3:230LB_Top,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,,head,Head 240L,,IH:HART:C3:240L,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 225,head,Head B88,,IH:HART:C3:B88,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 225,head,Head B89,,IH:HART:C3:B89,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"

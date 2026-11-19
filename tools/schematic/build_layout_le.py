@@ -223,7 +223,6 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     level_rows = []
     if levels == "all":                 # the main and upper control-point masts (main_upper_masts.csv)
         level_rows = read_level_masts()
-        level_masts(names, level_rows)
     shared_turnouts(names)
     if base is not None:        # the staging candidate above read the staging device map from the same band: reuse it
         names[STAGING] = copy.deepcopy(base[2][STAGING])
@@ -236,6 +235,8 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     absent = sorted(m["mast"] for m in names[STAGING]["masts"] if m["mast"] not in system)
     if absent:
         raise BuildError(f"staging_masts.csv names masts that are not in the signal mast table: {absent}")
+    if levels == "all":                 # after staging's names: a helix intermediate protects a staging track
+        level_masts(names, level_rows)
     if levels == "all":
         names[STAGING]["joins"] = "other" if JOIN_HELIX else "none"    # helix ends joined, or end bumpers everywhere
     names[STAGING]["lengths"] = staging_lengths(bands[0][2], names[STAGING])

@@ -638,6 +638,36 @@ def template_by_type(F):
         out.setdefault("two-low", out["two-searchlight"])
     return out
 
+def intermediate_signal(bands, F, bound_bi, r, by_trial):
+    """(band index, signal) of an APB intermediate (a main_upper_masts.csv row with no switch): at the turnback where
+    the loop or split track's half it faces meets the half it protects, or at the helix end of the track it faces
+    when it protects staging's helix track; heading west when its number is odd. None for a helix intermediate the
+    desk does not draw: the helix is not on the desk, so its boundary is not either."""
+    num = int(re.sub(r"\D", "", r["mast"]))
+    for bi, band, opts in level_bands(bands, bound_bi):
+        strands, nodes = band["strands"], band["nodes"]
+        pieces = [k for k, t in strands.items() if by_trial.get(placeholder(t)) == r["facing"]]
+        if not pieces:
+            continue
+        sid = pieces[0]
+        t = strands[sid]
+        ends = [t["src"][0], t["dst"][0]]
+        if r["protects"] in by_trial.values() and any(by_trial.get(placeholder(x)) == r["protects"] for x in strands.values()):
+            turn = next((n for n in ends if nodes[n]["kind"].startswith("turn")), None)
+            if turn is None:
+                raise SystemExit(f"{r['mast']}: {r['facing']} meets {r['protects']} at no turnback on the desk")
+            for k in [k for k, x in strands.items() if x.get("loop_half")]:
+                x = strands[k]
+                x.setdefault("plan_edge", x["edge"])
+                x["edge"] = loop_half_edge(x["plan_edge"], x["loop_half"])
+            return bi, {"mast": r["mast"].removeprefix(opts.get("mast_prefix", "")), "toward": "", "_toward_node": turn,
+                        "_edge": t["edge"], "cm_from_toward": 0.0, "edge_cm": t["cm"],
+                        "dir": "west" if num % 2 else "east", "kind": "field", "heads": len(r["heads"]),
+                        "source": level_masts.PATH.name}
+        return None                                  # into the helix: not drawn on the desk
+    raise SystemExit(f"{r['mast']}: no desk band draws {r['facing']}")
+
+
 def level_signals(bands, F, bound_bi):
     """Put each main and upper mast (main_upper_masts.csv) in its band's signals, as the plugin reads a band's drawn
     masts: on the track it faces (the device map block holding the schematic track at that leg of its switch), at
@@ -648,6 +678,12 @@ def level_signals(bands, F, bound_bi):
     by_trial = {t: name for name, row in F.device.blocks.items() for t in row.trial}
     added = defaultdict(list)
     for r in F.level_masts:
+        if not r["switch"]:                         # an APB intermediate (owner, 2026-11-19)
+            placed = intermediate_signal(bands, F, bound_bi, r, by_trial)
+            if placed is not None:
+                bi, sg = placed
+                added[bi].append(sg)
+            continue
         m = re.fullmatch(r"Mast (\d+)([LR])([AB]?)", r["mast"])
         if not m:
             raise SystemExit(f"{level_masts.PATH.name}: {r['mast']} is not a mast name in the device map's grammar")
@@ -711,7 +747,9 @@ def level_mast_bindings(bands, F, bound_bi):
                 raise SystemExit(f"{name}: no staging mast of type {mast_type(r['system_name'])} gives a CATS "
                                  "template (signal_head_plan.csv)")
             out[sg["mast"]] = {"name": name, "template": template}
-    missing = sorted(set(rows) - {e["name"] for e in out.values()})
+    # an intermediate into the helix is not drawn: the helix, and so its boundary, is not on the desk
+    into_helix = {name for name, r in rows.items() if not r["switch"] and r["protects"] not in F.device.blocks}
+    missing = sorted(set(rows) - {e["name"] for e in out.values()} - into_helix)
     if missing:
         raise SystemExit(f"main and upper masts not on the desk: {', '.join(missing)}")
     return out

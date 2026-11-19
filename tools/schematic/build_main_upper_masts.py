@@ -59,7 +59,10 @@ def build() -> str:
         name = r.user_name
         sw = re.fullmatch(r".*\| Switch (\d+)", r.comment)
         fac = re.fullmatch(r"home signal from (Track .+?)(?: into (OS Switch \d+[a-d]))?", r.notes)
-        dirm = re.fullmatch(r"Mast \d+([LR])[A-Z]?", name)
+        inter = re.fullmatch(r"intermediate signal from (Track .+?) into (Track .+?) at MP .*", r.notes)
+        if inter and r.comment.endswith("| intermediate"):    # an APB intermediate: no switch, between two blocks
+            sw, fac = None, inter
+        dirm = re.fullmatch(r"Mast \d+([LR])[A-Z]?|Mast [AB]\d+", name)
         if r.system_name:
             sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH\d+\))+)", r.system_name)
             mast_heads = re.findall(r"\((IH\d+)\)", sysm.group(3)) if sysm else []
@@ -68,7 +71,7 @@ def build() -> str:
             sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH:[^()]+\))+)", r.jmri_name)
             mast_heads = re.findall(r"\((IH:[^()]+)\)", sysm.group(3)) if sysm else []
             by = {h.jmri_name: h for h in dm.of("head") if not h.system_name}
-        if not (sw and fac and sysm and dirm):
+        if not ((sw or inter) and fac and sysm and dirm):
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: comment, notes, system name or name not as expected")
         missing = [h for h in mast_heads if h not in by]
         if missing:
@@ -78,7 +81,7 @@ def build() -> str:
         if r.jmri_name != sys_name:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: jmri_name {r.jmri_name!r} is not {sys_name}")
         out_rows.append(dict(
-            mast=name, cp=r.cp, switch=sw.group(1), facing=fac.group(1),
+            mast=name, cp=r.cp, switch=sw.group(1) if sw else "", facing=fac.group(1),
             protects=fac.group(2) or f"OS Switch {sw.group(1)}", leg="", system_name=sys_name,
             head_system_names=";".join(f"{virtual(by[h], name)}={by[h].user_name}" for h in mast_heads),
             device_system_name=r.system_name, _level=r.level))

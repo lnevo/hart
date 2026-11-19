@@ -136,10 +136,13 @@ def track_names(found) -> None:
             t["name"] = stem if len(ts) == 1 else f"{stem} {i}"
 
 
-def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None) -> list[dict]:
+def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_extra=frozenset(),
+          spurs=frozenset(), split=frozenset()) -> list[dict]:
     """Home masts where a track from outside a control point meets one of its switches, or where a track inside one
     is long enough to hold a train (over LONG_CM: running track inside an interlocking, staging's K-1/K-2), or where a
-    track ending at a bumper that can hold a train leaves one (staging's W-1 and W-2). Each mast
+    track ending at a bumper that can hold a train leaves one (staging's W-1 and W-2). `running_extra`: track names
+    that count as running track besides the main route (passing sidings); `spurs`: spur names that get an exit dwarf
+    at their switch even when it is in no control point (cp "" then; owner, 2026-11-19). Each mast
     gives its switch `node` and `leg`, and `kind`, its JMRI basic appearance: two-searchlight facing the points (two
     heads), one-searchlight on a trailing leg of running track (the main route, or a long track inside an
     interlocking), one-low (a dwarf) on a trailing leg off it (owner,
@@ -159,30 +162,41 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None) -> list[dic
                 continue
             num = base(d["label"])
             cp = cp_of.get(num)
-            if cp is None:
-                continue
             for p in sorted(set(d["ins"]) | set(d["outs"])):
                 hit = by_leg.get((bi, n, p))
                 if hit is None:
                     continue
                 t, (kind, far) = hit
+                if cp is None or t["name"] in spurs:
+                    if t["name"] not in spurs:
+                        continue
+                    sid = d["ins"].get(p) or d["outs"].get(p)
+                    out.append(dict(level=lv, cp=cp or "", switch=num, number=int(num) + 1,
+                                    letter="L" if TAU[p] * rail[n] == 1 else "R", protects="", heads=1,
+                                    row=srow.get(sid, 0), track=t["name"], band=bi, half=0, node=n, leg=p,
+                                    strand=sid, running=False, kind="one-low"))
+                    continue
                 loop = kind == "sw" and far == num and t["name"].endswith(" Loop")   # comes back to this switch
                 inside = kind == "sw" and cp_of.get(far) == cp and not loop
                 # a track ending at a bumper gets a mast only when it can hold a train (a staging track trains leave
                 # from, W-1 and W-2; owner, 2026-11-19), and then a dwarf, unless it is main route
                 if (kind == "bumper" and t["cm"] <= LONG_CM) or (inside and t["cm"] <= LONG_CM):
                     continue
-                running = t["main"] or inside        # a long track inside an interlocking is running track
+                running = t["main"] or inside or t["name"] in running_extra   # long inside track, passing siding
                 if t["loop"] and p not in LOOP_HALF:
                     raise MapError(f"Switch {num}: balloon loop {t['name']} leaves from leg {p}; a loop's halves "
                                    f"leave from legs {' and '.join(LOOP_HALF)}")
                 eastward = TAU[p] * rail[n] == 1
                 sid = d["ins"].get(p) or d["outs"].get(p)
                 heads = 2 if (p == "A" or d["kind"] == "dx") else 1
+                # a split track's half at this end: half 1 at its lower-numbered switch (build_device_map.loop_halves)
+                ends = sorted((v for k, v in t["ends"] if k == "sw"), key=natural)
+                split_half = (1 if num == ends[0] else 2) if t["name"] in split else 0
                 out.append(dict(level=lv, cp=cp, switch=num, number=int(num) + 1, letter="L" if eastward else "R",
                                 protects=corner_blocks[num][p] if d["kind"] == "dx" else "",
                                 heads=heads, row=srow.get(sid, 0),
-                                track=f"{t['name']} {LOOP_HALF[p]}" if t["loop"] else t["name"], band=bi,
+                                track=(f"{t['name']} {LOOP_HALF[p]}" if t["loop"] else
+                                       f"{t['name']} {split_half}" if split_half else t["name"]), band=bi,
                                 half=LOOP_HALF[p] if t["loop"] else 0, node=n, leg=p, strand=sid, running=running,
                                 kind=("two-searchlight" if heads == 2 else
                                       "one-searchlight" if running else "one-low")))
