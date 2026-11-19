@@ -253,9 +253,18 @@ def facts(raw: bytes, root) -> dict:
     if clear.findtext("systemName") != level_devices.CLEAR_LOGIXNG or len(cs) != 1 or cs[0] is None \
             or cs[0].findtext("Socket/systemName") != level_devices.CLEAR_MANY or not sensors \
             or not all(level_devices.is_block_sensor(x) for x in sensors):
-        raise PageError(f"tables.xml: LogixNG {clear.findtext('systemName')} no longer only sets the main and upper "
+        raise PageError(f"tables.xml: LogixNG {clear.findtext('systemName')} no longer sets the main and upper "
                         "block sensors clear, as the page says")
-    f["clear"] = {"name": clear.findtext("userName") or clear.findtext("systemName"), "count": len(sensors)}
+    try:
+        states = level_devices.turnout_states(root)
+    except ValueError as exc:
+        raise PageError(f"tables.xml: {exc}") from None
+    thrown = sorted((t.removeprefix(level_devices.TURNOUT_PREFIX) for t, st in states.items() if st == "Thrown"),
+                    key=lambda n: (len(n), n))
+    f["clear"] = {"name": clear.findtext("userName") or clear.findtext("systemName"), "count": len(sensors),
+                  "turnouts": len(states),
+                  "thrown": ("Switches " + ", ".join(thrown[:-1]) + " and " + thrown[-1]) if len(thrown) > 1 else
+                            (f"Switch {thrown[0]}" if thrown else "none")}
     rows = []
     listed = ng.find("ConditionalNGs")
     for sysname in [x.text for x in listed.findall("systemName")] if listed is not None else []:
@@ -417,6 +426,8 @@ def regions(f: dict) -> dict[str, str]:
         "logixng-rows": ng_rows,
         "clear-name": e(f["clear"]["name"]),
         "clear-count": str(f["clear"]["count"]),
+        "clear-turnouts": str(f["clear"]["turnouts"]),
+        "clear-thrown": e(f["clear"]["thrown"]),
     }
 
 

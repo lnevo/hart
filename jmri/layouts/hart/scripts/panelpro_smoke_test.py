@@ -34,6 +34,7 @@ if "dispatcher" in PARKED:
 # tools/hosts/tests/test_panelpro_wrappers.py checks they agree).
 LEVEL_BLOCK_PREFIX = "IB:C3:"
 LEVEL_SENSOR_PREFIX = "IS:HART:C3:B:"
+LEVEL_TURNOUT_PREFIX = "IT:HART:C3:"      # the same LogixNG sets each to its startup position (owner, 2026-11-19)
 
 
 def level_sensors(sensor_manager):
@@ -59,6 +60,13 @@ def level_uncleared(sensor_manager):
     """The main and upper virtual block sensors not INACTIVE (the LogixNG has not set them, or it did not run)."""
     return sorted(s.getSystemName() for s in level_sensors(sensor_manager)
                   if s.getKnownState() != jmri.Sensor.INACTIVE)
+
+
+def level_unset_turnouts():
+    """The main and upper virtual turnouts still UNKNOWN (the LogixNG has not set them, or it did not run)."""
+    manager = jmri.InstanceManager.getDefault(jmri.TurnoutManager)
+    return sorted(t.getSystemName() for t in manager.getNamedBeanSet()
+                  if t.getSystemName().startswith(LEVEL_TURNOUT_PREFIX) and t.getKnownState() == jmri.Turnout.UNKNOWN)
 
 
 STATIONS = (
@@ -176,13 +184,21 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
             errors.extend(level_block_errors(block_manager, sensor_manager))
             # the LogixNG runs on its own thread after load, and each sensor it sets updates the blocks and
             # masts: wait for it (and only for it) a while past the deadline
-            while level_uncleared(sensor_manager) and time.time() < deadline + 60:
+            while (level_uncleared(sensor_manager) or level_unset_turnouts()) and time.time() < deadline + 60:
                 self.waitMsec(1000)
+            unset = level_unset_turnouts()
+            if unset:
+                errors.append("main and upper turnouts still Unknown after load: %s" % ", ".join(unset))
             left = level_uncleared(sensor_manager)
             if left:
                 errors.append("main and upper block sensors not clear after load (%s of %s): %s"
                               % (len(left), len(level_sensors(sensor_manager)), ", ".join(left)))
-            self.level_line = "%s main and upper block sensors clear" % len(level_sensors(sensor_manager))
+            turnouts = [t for t in jmri.InstanceManager.getDefault(jmri.TurnoutManager).getNamedBeanSet()
+                        if t.getSystemName().startswith(LEVEL_TURNOUT_PREFIX)]
+            thrown = len([t for t in turnouts if t.getKnownState() == jmri.Turnout.THROWN])
+            closed = len([t for t in turnouts if t.getKnownState() == jmri.Turnout.CLOSED])
+            self.level_line = ("%s main and upper block sensors clear; main and upper turnouts %s closed, %s thrown, "
+                               "%s unknown" % (len(level_sensors(sensor_manager)), closed, thrown, len(unset)))
             if "dispatcher" in PARKED:
                 raise _Done()
 

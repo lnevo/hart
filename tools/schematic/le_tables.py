@@ -132,7 +132,7 @@ def is_level_bean(el: ET.Element) -> bool:
         return sysname.startswith(TURNOUT_SYS)
     if el.tag == "sensor":
         return level_devices.is_block_sensor(sysname)
-    if el.tag in ("LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor"):
+    if el.tag in ("LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor", "ActionTurnout"):
         return bool(level_devices.CLEAR_PREFIX.match(sysname))
     if el.tag == "block":
         return sysname.startswith(BLOCK_SYS)
@@ -447,11 +447,12 @@ def male_socket(el: ET.Element) -> None:
     ET.SubElement(a, "errorHandling").text = "Default"
 
 
-def add_level_clear(root: ET.Element, sensors: list[str]) -> None:
+def add_level_clear(root: ET.Element, sensors: list[str], turnouts: dict[str, str] | None = None) -> None:
     """The LogixNG that sets each of `sensors` (system names of the main and upper virtual block sensors) INACTIVE
     when the tables load (hartlib.level_devices: LogixNG CLEAR_LOGIXNG, its ConditionalNG CLEAR_CONDITIONAL, a
-    DigitalMany CLEAR_MANY and an ActionSensor per sensor, clear_action), stored as PanelPro 5.16 stores them. Stops
-    when the tables have no LogixNG sections or hold these names already."""
+    DigitalMany CLEAR_MANY and an ActionSensor per sensor, clear_action), and each of `turnouts` ({virtual turnout:
+    "Closed" or "Thrown"}) to its startup position (an ActionTurnout, turnout_action), stored as PanelPro 5.16 stores
+    them. Stops when the tables have no LogixNG sections or hold these names already."""
     secs = {tag: root.find(tag) for tag in ("LogixNGs", "LogixNGConditionalNGs", "LogixNGDigitalActions")}
     if any(v is None for v in secs.values()):
         raise BuildError(f"the tables have no {', '.join(k for k, v in secs.items() if v is None)} section")
@@ -495,11 +496,31 @@ def add_level_clear(root: ET.Element, sensors: list[str]) -> None:
         ET.SubElement(st, "listenToMemory").text = "no"
         male_socket(a)
         actions.append(a)
+    for i, (turnout, state) in enumerate(sorted((turnouts or {}).items()), len(sensors) + 1):
+        if state not in ("Closed", "Thrown"):
+            raise BuildError(f"startup position of {turnout}: {state!r}, not Closed or Thrown")
+        name = level_devices.turnout_action(turnout)
+        s = ET.SubElement(acts, "Socket")
+        ET.SubElement(s, "socketName").text = f"A{i}"
+        ET.SubElement(s, "systemName").text = name
+        a = ET.Element("ActionTurnout", {"class": "jmri.jmrit.logixng.actions.configurexml.ActionTurnoutXml"})
+        ET.SubElement(a, "systemName").text = name
+        nb = ET.SubElement(a, "namedBean")
+        ET.SubElement(nb, "addressing").text = "Direct"
+        ET.SubElement(nb, "name").text = turnout
+        ET.SubElement(nb, "listenToMemory").text = "no"
+        st = ET.SubElement(a, "state")
+        ET.SubElement(st, "addressing").text = "Direct"
+        ET.SubElement(st, "enum").text = state
+        ET.SubElement(st, "listenToMemory").text = "no"
+        male_socket(a)
+        actions.append(a)
     male_socket(many)
     place(secs["LogixNGDigitalActions"], [many] + actions, 2)
 
 
-def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_blocks: set) -> None:
+def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_blocks: set,
+                      thrown: frozenset = frozenset()) -> None:
     """Main and upper: their turnouts, blocks and layout blocks in the tables, under the device-map user names
     (level_names) on internal system names (TURNOUT_SYS, BLOCK_SYS, ILB from LAYOUT_BLOCK_FIRST), so nothing reaches
     MQTT or the field, and each block's virtual occupancy sensor (add_level_sensors), set clear on load
@@ -544,7 +565,10 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
     if sorted(added) != sorted(sensors[b][0] for b in new_blocks):
         raise BuildError("main and upper blocks whose sensor was not added (no such block in the tables): "
                          f"{sorted({sensors[b][0] for b in new_blocks} - set(added))}")
-    add_level_clear(root, added)
+    # every virtual turnout starts Closed, its normal leg B, except where the main route runs through leg C
+    if set(thrown) - set(new_turnouts):
+        raise BuildError(f"turnouts to start Thrown that the panel does not have: {sorted(set(thrown) - set(new_turnouts))}")
+    add_level_clear(root, added, {turnout_sys[t]: "Thrown" if t in thrown else "Closed" for t in new_turnouts})
 
 
 SIGNAL_NOTE = "virtual (device map); planned"     # + the planned physical head or mast, a draft

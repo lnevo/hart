@@ -76,7 +76,8 @@ def is_new(el) -> bool:
         return sysname.startswith(B.BLOCK_SYS)
     if el.tag == "layoutblock":
         return sysname.startswith("ILB") and sysname[3:].isdigit() and int(sysname[3:]) >= B.LAYOUT_BLOCK_FIRST
-    if el.tag in ("signalhead", "signalmast", "sensor", "LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor"):
+    if el.tag in ("signalhead", "signalmast", "sensor", "LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor",
+                  "ActionTurnout"):
         return B.is_level_bean(el)
     return False
 
@@ -432,9 +433,10 @@ class Built(unittest.TestCase):
             return ET.tostring(doc.root)
         doc = tables.loads(self.data)
         removed = B.strip_build_owned(doc.root)
-        # turnouts, blocks (2 passes) and layout blocks, their sensors, the LogixNG that clears them (LogixNG,
-        # ConditionalNG, DigitalMany, an ActionSensor per block), heads and masts; no logic or path: discovery adds them
-        objects = 41 + 3 * LEVEL_BLOCKS + LEVEL_BLOCKS + 3 + LEVEL_BLOCKS + LEVEL_HEADS + LEVEL_MASTS
+        # turnouts, blocks (2 passes) and layout blocks, their sensors, the startup LogixNG (LogixNG, ConditionalNG,
+        # DigitalMany, an ActionSensor per block, an ActionTurnout per turnout), heads and masts; no logic or path:
+        # discovery adds them
+        objects = 41 + 3 * LEVEL_BLOCKS + LEVEL_BLOCKS + 3 + LEVEL_BLOCKS + 41 + LEVEL_HEADS + LEVEL_MASTS
         self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects})
         base = tables.loads(self.P.staging_data)
         B.parked.split(base.root, B.PARKED)
