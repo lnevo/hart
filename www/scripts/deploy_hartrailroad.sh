@@ -2,7 +2,7 @@
 # Publish the public portal build to www.hartrailroad.com (VestaCP/nginx on www.easte.net).
 # Builds with prepare_github_pages.py, smoke-tests links (check_portal_build.py), and stops
 # if archive/logo/gallery counts fell more than 10% since the last deploy (--force overrides).
-# Vesta's robots.txt is left in place.
+# robots.txt, llms.txt and sitemap.xml come from the build (they replace Vesta's robots.txt).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPO="$(git -C "$ROOT" rev-parse --show-toplevel)"
@@ -47,6 +47,6 @@ python3 "$ROOT/scripts/prepare_github_pages.py" "$DIST" --require-mirrors
 python3 "$ROOT/scripts/check_portal_build.py" --dist "$DIST" \
   --manifest "$(dirname "$DIST")/manifest.json" --previous "$MANIFEST" $FORCE
 chmod -R u+rwX,go+rX,go-w "$DIST"
-"$RSYNC" -az --delete --exclude robots.txt "$DIST/" "$DEST"
+"$RSYNC" -az --delete "$DIST/" "$DEST"
 cp "$(dirname "$DIST")/manifest.json" "$MANIFEST"
 echo "Deployed → https://www.hartrailroad.com/"

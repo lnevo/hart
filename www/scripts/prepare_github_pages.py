@@ -33,6 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_tables_browser  # noqa: E402
+import provenance  # noqa: E402
 import share_cards  # noqa: E402
 from photo_tabs import tab_subs  # noqa: E402
 
@@ -941,6 +942,37 @@ def _add_head_tags(dest_root: Path) -> None:
         )
 
 
+def _add_provenance(dest_root: Path) -> list[str]:
+    """schema.org JSON-LD on every page saying whether it is real history, fiction or layout
+    documentation, plus llms.txt, robots.txt and sitemap.xml at the root. Returns the pages
+    provenance.json does not classify; the build stops on any."""
+    data = provenance.load()
+    pages = {page.relative_to(dest_root): page.read_text(encoding="utf-8") for page in dest_root.rglob("*.html")}
+    missing = provenance.unclassified(pages, data)
+    if missing:
+        return missing
+    listed: dict[Path, tuple[str, str]] = {}
+    for rel, text in pages.items():
+        if provenance.skipped(text):
+            continue
+        # An implied <head> (no tag) still ends at the first body content, so after </title> is in it.
+        anchor = "</head>" if "</head>" in text else "</title>" if "</title>" in text else None
+        if anchor is None:
+            raise SystemExit(f"{rel}: no </head> or </title> for the provenance JSON-LD")
+        title = provenance.page_title(text) or "HART Railroad"
+        desc = _own_description(text) or SHARE_DESCRIPTION
+        url = SITE_URL + ("" if rel == Path("index.html") else rel.as_posix().removesuffix("index.html"))
+        tag = provenance.json_ld(rel, title, url, desc, data, provenance.sources(text))
+        new = text.replace("</head>", tag + "\n</head>", 1) if anchor == "</head>" else text.replace("</title>", "</title>" + tag, 1)
+        (dest_root / rel).write_text(new, encoding="utf-8")
+        own = _own_description(text)
+        listed[rel] = (title, "" if own in (None, SHARE_DESCRIPTION) else own)
+    (dest_root / "llms.txt").write_text(provenance.llms_txt(listed, data, SITE_URL), encoding="utf-8")
+    (dest_root / "robots.txt").write_text(provenance.robots_txt(SITE_URL), encoding="utf-8")
+    (dest_root / "sitemap.xml").write_text(provenance.sitemap_xml(list(listed), SITE_URL), encoding="utf-8")
+    return []
+
+
 def _card_thumbs(dest_root: Path) -> None:
     """Hub cards in a grid marked data-card-thumbs show the linked page's share picture.
 
@@ -1034,6 +1066,11 @@ def main() -> int:
     # (nginx; .htaccess is ignored).
     _strip_local_only_pages(dest)
     _add_head_tags(dest)
+    unclassified = _add_provenance(dest)
+    if unclassified:
+        print("Pages missing from scripts/provenance.json (prototype, fiction, hobby or mixed):", file=sys.stderr)
+        print("\n".join("  " + p for p in unclassified), file=sys.stderr)
+        return 1
     _card_thumbs(dest)
     leaks = _check_leaks(dest)
     if leaks:
