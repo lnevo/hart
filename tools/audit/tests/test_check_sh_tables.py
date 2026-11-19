@@ -22,6 +22,19 @@ class CheckShTables(unittest.TestCase):
             self.assertTrue(line.startswith("unit "), line)
         self.assertIn('env -u HART_TABLES "$@"', text)
 
+    def test_the_layout_editor_files_run_as_one_job(self) -> None:
+        """One process, so test_build_layout_le.built() (cached per process) builds the candidate once: every test
+        file that imports that module is in LE_TESTS, and the per-file loop leaves those files out."""
+        text = CHECK.read_text(encoding="utf-8")
+        line = next(x for x in text.splitlines() if x.startswith("LE_TESTS="))
+        names = line.split('"')[1].split()
+        tests = ROOT / "tools/audit/tests"
+        users = sorted(p.stem for p in tests.glob("test*.py") if p.stem == "test_build_layout_le" or any(
+            x.startswith("import test_build_layout_le") for x in p.read_text(encoding="utf-8").splitlines()))
+        self.assertEqual(users, sorted(names))
+        self.assertIn('env PYTHONPATH=tools/audit/tests python3 -m unittest -q $LE_TESTS', text)
+        self.assertIn('" $LE_TESTS " == *" ${f%.py} "* ]] && continue', text)
+
     def cache_block(self, home: Path, **env: str) -> subprocess.CompletedProcess:
         """Run check.sh's SCHEMATIC_CACHE block with HOME=home, then print the variable as the jobs see it."""
         text = CHECK.read_text(encoding="utf-8")
