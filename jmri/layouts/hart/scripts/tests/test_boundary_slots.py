@@ -44,5 +44,21 @@ class BoundarySlots(unittest.TestCase):
                 self.assertEqual(not audit.errors, ok, audit.errors)
 
 
+class ReadersAgree(unittest.TestCase):
+    """The audit, the facing script and the LE build's check read the committed file as the same rows."""
+
+    def test_same_rows(self) -> None:
+        sys.path.insert(0, str(REPO / "tools/schematic"))
+        from le_common import read_csv  # noqa: E402  the LE build's check_boundaries reads through this
+        build = {(r["kind"].strip(), r["ident"].strip(), r["slot"].strip(), r["mast_user_name"].strip())
+                 for r in read_csv(CSV)}
+        audit = {(b.kind, b.ident, b.slot, b.mast) for b in load("audit_panel_contracts").load_boundaries(CSV)}
+        turnouts, anchors = load("apply_le_sml_facing").load_assignments(CSV)
+        facing = {(kind, ident, slot, mast) for kind, by in (("turnout", turnouts), ("anchor", anchors))
+                  for ident, slots in by.items() for slot, mast in slots.items()}
+        self.assertEqual(audit, build)
+        self.assertEqual(facing, build)
+
+
 if __name__ == "__main__":
     unittest.main()
