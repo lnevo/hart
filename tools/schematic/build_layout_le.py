@@ -111,11 +111,6 @@ from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read 
     add_level_objects, SIGNAL_NOTE, HEAD_CLASS, MAST_CLASS, add_level_signals,
 )
 
-# Whether the three-level panel joins staging's helix tracks to the main and upper levels by hidden segments. On
-# (owner, 2026-11-17, the helix-join release): joined plainly, with no route-flow entries. Masts 38RA and 40RA stand at
-# the helix-entrance anchors, protecting Track 135-H2 and Track 135-H1. Off, every helix end stays an end bumper and
-# the staging guard accepts no difference.
-JOIN_HELIX = True
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                    # all three levels (the candidate)
 CUTOVER_STAGING = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover_staging.xml"    # staging alone (the guard's base)
 LEVELS = ("all", "staging")
@@ -237,8 +232,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         raise BuildError(f"staging_masts.csv names masts that are not in the signal mast table: {absent}")
     if levels == "all":                 # after staging's names: a helix intermediate protects a staging track
         level_masts(names, level_rows)
-    if levels == "all":
-        names[STAGING]["joins"] = "other" if JOIN_HELIX else "none"    # helix ends joined, or end bumpers everywhere
+        names[STAGING]["joins"] = "other"   # staging's helix ends join the next level (helix-join release, 2026-11-17)
     names[STAGING]["lengths"] = staging_lengths(bands[0][2], names[STAGING])
     try:
         if base is not None:        # staging's own grid, so staging is drawn as in its candidate; no fitting
@@ -316,7 +310,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     replace(root, old, panel_el, 1)
     P.stripped = stripped
     if base is not None:
-        P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name, JOIN_HELIX)
+        P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name)
         P.staging_data = base[0]
         try:
             le_mod.check_stretch(P.items["size"], fit, page)
@@ -477,10 +471,10 @@ def run(argv, cached) -> int:
     if getattr(P, "gaps", None):
         print(f"  gaps between the levels: {', '.join(f'{g:g}' for g in P.gaps)} px; grid {P.scale[0]:.4f} x "
               f"{P.scale[1]:.4f} (le_stretch factor {P.stretch})")
-    same = getattr(P, "staging_same", None)
+    same = getattr(P, "staging_same", None)     # never empty: the guard raises when no helix join is found
     if same is not None:
         print(f"  staging guard: the {'(unapproved) ' if args.review else 'approved '}staging candidate is held "
-              + ("unchanged but for the helix joins:" if same else "unchanged, byte for byte (JOIN_HELIX off)"))
+              + "unchanged but for the helix joins:")
         for line in same:
             print(f"    {line}")
     return 0
