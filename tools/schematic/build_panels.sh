@@ -4,6 +4,10 @@
 #
 #   staging device map               device_map_staging.csv and its files are kept by hand: checked against tables.xml
 #                                    and the schematic (staging_device_map.py --check), in both modes
+#   staging masts                    staging_masts.csv, staging_signals.csv and the device map's mast and head rows are
+#                                    written by build_staging_masts.py, and tables.xml follows them through
+#                                    sync_staging_signals.py; both are run by hand (the second edits tables.xml), so
+#                                    this only checks them (--check), in both modes, before anything reads the files
 #   hands.csv, <name>.signals.json   from the plan graph and the staging masts; the schematic reads the signals
 #   device map                       from the solved sheet; writes main_upper.plan_overrides.json, a layer file the
 #                                    schematic reads, so it runs before publishing
@@ -47,6 +51,8 @@ step() {
 }
 
 step hands python3 tools/schematic/build_hands.py
+step staging-masts python3 tools/schematic/build_staging_masts.py --check
+step staging-sync python3 tools/schematic/sync_staging_signals.py --check
 step staging-map python3 tools/schematic/staging_device_map.py --check
 step signals python3 tools/schematic/build_signals.py
 step device-map python3 tools/schematic/build_device_map.py
