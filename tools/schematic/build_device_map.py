@@ -295,6 +295,11 @@ def loop_placeholder(placeholder: str, half: int | None) -> str:
 
 # ---------------------------------------------------------------- LCOS nodes
 
+class NoBoardRoom(MapError):
+    """The draft plant has no 5V board room left in an area for a mast's heads: the heads wait for the wiring plan
+    (HEAD_NOT_WIRED). Any other MapError still stops the build."""
+
+
 class Nodes:
     """Hands out LCOS UIDs per node, in each level and area's node order."""
 
@@ -340,7 +345,7 @@ class Nodes:
         for node in list(prefer) + self.pool[(level, area)]:
             if self.room(node, "signal", heads) and self._fit(node, 3 * heads):
                 return node
-        raise MapError(f"level {level} {area}: no LCOS node left with board room for a {heads}-head mast; "
+        raise NoBoardRoom(f"level {level} {area}: no LCOS node left with board room for a {heads}-head mast; "
                        f"add one to {NODES.name}")
 
     def place_mast(self, node, heads):
@@ -392,8 +397,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     if dxs - set(corners):
         raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
     corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
-    ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs,
-               split=set(split_edges().values()))
+    split_names = set(split_edges().values())       # read once per build
+    ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names)
     known = {t["name"] for t in found}
     if (set(running) | set(spurs)) - known:
         raise MapError(f"{RUNNING.name} or {SPURS.name} names a track the plan does not have: "
@@ -404,7 +409,11 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         if m["heads"] == 1 and facing_on_route(bands[m["band"]][1], m["node"], m["leg"], cp_of):
             m["heads"] = 2
         m["kind"] = f"{'two' if m['heads'] == 2 else 'one'}-{'searchlight' if m['running'] else 'low'}"
-    ms += intermediates(bands, found, cp_of, set(running), set(split_edges().values()))
+    ms += intermediates(bands, found, cp_of, set(running), split_names)
+    names = [m["name"] for m in ms]
+    twice = sorted({n for n in names if names.count(n) > 1}, key=natural)
+    if twice:       # an intermediate named from a milepost can meet another's number (a home mast never can)
+        raise MapError(f"mast names given twice: {', '.join(twice)}")
     nodes = Nodes(node_rows)
     rows = []
 
@@ -483,7 +492,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         cp = ends_cp[0] if ends_cp else ""
         short = t["cm"] < SHORT_CM and all(k == "sw" for k, _ in t["ends"])
         detect = not short and t["main"] and sws
-        split = t["name"] in split_edges().values()
+        split = t["name"] in split_names
         halves = sorted(LOOP_HALF.values()) if (t["loop"] or split) else [None]
         for half in halves:
             name = loop_placeholder(t["name"], half)
@@ -509,8 +518,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             occupancy(t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
     groups = [(cp.level, cp.area, cp.cp_name, cp.switches[0]) for cp in cps]
-    groups += [(loc[m["switch"]].level, loc[m["switch"]].area, "", m["switch"]) for m in ms
-               if not m["cp"] and m["switch"]]
+    groups += [(loc[s].level, loc[s].area, "", s)
+               for s in sorted({m["switch"] for m in ms if not m["cp"] and m["switch"]}, key=natural)]
     for lv, area, name, first in groups:          # heads last, once every node's boards are known
         mine = [m for m in ms if m["cp"] == name and (name or m["switch"] == first)]
         for m in sorted(mine, key=lambda m: natural(m["name"])):
@@ -521,7 +530,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                 heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
                          for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
                 sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
-            except MapError:
+            except NoBoardRoom:
                 # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
                 # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
                 hnode, sysname = "", ""

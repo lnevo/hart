@@ -317,6 +317,22 @@ class FacingOnRoute(unittest.TestCase):
         self.assertEqual(mr.facing_on_route(self.band(), "S1", "A", {"1": "CP 1", "3": "CP 3"}), ["1"])
         self.assertEqual(mr.facing_on_route(self.band(mr.LONG_CM + 1), "S1", "A", one_cp), ["1"])  # own signals
 
+    def test_a_double_crossover_is_facing_from_any_leg(self):
+        import mast_rule as mr
+        b = self.band()
+        b["nodes"]["S3"]["kind"] = "dx"         # a route into it from its B leg still has a choice
+        self.assertEqual(mr.facing_on_route(b, "S3", "B", {"3": "CP 3"}), ["3"])
+
+
+class NoBoardRoomOnly(unittest.TestCase):
+    """Only the draft plant's lack of board room leaves a mast's heads unplaced; any other plant error stops."""
+
+    def test_no_board_room_is_its_own_error(self):
+        self.assertTrue(issubclass(BD.NoBoardRoom, BD.MapError))
+        nodes = BD.Nodes([])
+        with self.assertRaises(BD.NoBoardRoom):
+            nodes.pick_mast(2, "Nowhere", 1)
+
 
 if __name__ == "__main__":
     unittest.main()

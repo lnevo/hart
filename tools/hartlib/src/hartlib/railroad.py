@@ -1043,7 +1043,9 @@ def _level_masts(rr: Railroad) -> list[str]:
             if r["cp"] not in cps:          # an APB intermediate: between two track blocks, in its track's CP
                 bad.append(f"{name}: {r['mast']} (an intermediate) names control point {r['cp']!r}, which is none")
         elif not r["cp"]:
-            if r["switch"] in rr.main_upper_switches and rr.main_upper_switches[r["switch"]].cp:
+            if r["switch"] not in rr.main_upper_switches:
+                bad.append(f"{name}: {r['mast']} names Switch {r['switch']}, which is on neither level")
+            elif rr.main_upper_switches[r["switch"]].cp:
                 bad.append(f"{name}: {r['mast']} has no control point, but Switch {r['switch']} is in "
                            f"{rr.main_upper_switches[r['switch']].cp}")
         elif r["switch"] not in (cps[r["cp"]].switches if r["cp"] in cps else ()):

@@ -52,5 +52,5 @@ One rule places every visible mast. It lives in `tools/schematic/mast_rule.py` a
 ## Consequences
 
 - Change a control point, interlocking or list file, then run `make panels`. A changed mast set needs `sync_staging_signals.py` (staging), stock discovery in a sandbox, and the owner's approval of the panel and desks.
-- The LCOS wiring plan (`docs/wiring/signals/`) still lists the old staging heads. The owner reworks it now that the masts are approved; until then, main and upper heads with no board room on the draft plant carry a "not on a node yet" note.
+- The LCOS wiring plan (`docs/wiring/signals/`) lists only Mast 6LB's IH432 (owner, 2026-11-19); the other heads are planned when they are wired. Main and upper heads with no board room on the draft plant carry a "not on a node yet" note.
 - ADR-005's mast grammar gains milepost intermediates (`Mast 67`, `Mast A86`).

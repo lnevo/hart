@@ -247,6 +247,9 @@ def facing_on_route(band, node: str, leg: str, cp_of: dict, long_cm: float = LON
             continue
         if cp_of.get(base(d.get("label") or "")) != cp:
             continue                                        # left the interlocking
+        if d["kind"] == "dx":                               # a double crossover offers a choice from every leg
+            out.append(base(d["label"]))
+            continue
         exits = ["B", "C"] if p == "A" else ["A"]
         if p == "A" and all(leg_strand(n, x) for x in ("B", "C")):
             out.append(base(d["label"]))

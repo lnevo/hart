@@ -98,8 +98,11 @@ def node_mileposts(band) -> dict:
 
 
 def signal_number(mp: float, west: bool) -> int:
-    """An intermediate signal's number from its milepost in tenths: odd westbound, even eastbound."""
+    """An intermediate signal's number from its milepost in tenths: odd westbound, even eastbound. Stops at 100 and
+    up: a three-digit staging name would read as a main or upper home mast (hartlib.level_devices.LEVEL_USER)."""
     n = int(mp * 10 + 1e-9)
+    if n >= 99:
+        raise RuleError(f"MP {mp:.2f} gives intermediate number {n} or more; staging names stop at 98")
     if west:
         return n if n % 2 else n + 1
     return n if n % 2 == 0 else n + 1
@@ -204,15 +207,13 @@ def intermediates(band, names, cps, cm, chains) -> list[dict]:
                 continue
             from_start = sum(cm.get(x, 0.0) for x in seq[:seq.index(b)])
             total = sum(cm.get(x, 0.0) for x in seq)
-            # milepost at the boundary from whichever end the count reaches lower
-            cands = []
-            if start[0] in mp_at:
-                cands.append(mp_at[start[0]] + from_start / (CM_PER_MILE / 87.1))
-            if end[0] in mp_at:
-                cands.append(mp_at[end[0]] + (total - from_start) / (CM_PER_MILE / 87.1))
-            if not cands:
-                raise RuleError(f"the boundary {a}|{b} has no milepost: neither switch {sw} is on the count")
-            mp = min(cands)
+            # the milepost at the boundary: from the end the count reaches lower, adding the distance; both ends
+            # must be on the count, or the way it runs along this track is unknown
+            if start[0] not in mp_at or end[0] not in mp_at:
+                raise RuleError(f"the boundary {a}|{b} cannot be numbered: switch "
+                                f"{sw[0] if start[0] not in mp_at else sw[1]} is not on the milepost count")
+            mp = (mp_at[start[0]] + from_start / (CM_PER_MILE / 87.1) if mp_at[start[0]] <= mp_at[end[0]]
+                  else mp_at[end[0]] + (total - from_start) / (CM_PER_MILE / 87.1))
             low_is_start = (start[0] in mp_at) and (mp_at.get(start[0], 1e9) <= mp_at.get(end[0], 1e9))
             edge, track_names = plan_edge(band, chains[tuple(start)])
             # westbound runs toward the lower milepost (the count rises east)
