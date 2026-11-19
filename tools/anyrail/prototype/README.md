@@ -1,5 +1,10 @@
 # AnyRail plan reader (prototype)
 
+`tools/anyrail/anyplan.py` replaces `parse1.py`, `parse2.py` and `graph.py` for reading a plan: it reads every
+maker's track, the first end point in the file and per-file record tags, which these scripts do not (they misread
+5.3b's part 0, drop the Walthers double crossover and read nothing from 5.3c). The scripts stay for the outputs
+built on them (the speed-matching lengths and the level plans page).
+
 Reverse-engineered reader for AnyRail `.any` files, used once for
 [`docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`](../../../docs/jmri/speedmatching/ANYRAIL_LENGTHS.md).
 The plan files are the owner's and are never committed; copy one into a scratch folder outside
