@@ -266,10 +266,10 @@ def normal_legs(band, names: dict) -> dict:
 
 
 def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path: Path = CPS,
-         turnout_idents: bool = True) -> dict:
+         turnout_idents: bool = True, with_masts: bool = True) -> dict:
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
     switch_legs.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
-    (le_ident, ADR-021). Stops on any placeholder no row names, any row the drawing does not use, a broken k/n run,
+    (le_ident, ADR-021); with_masts False leaves the masts out. Stops on any placeholder no row names, any row the drawing does not use, a broken k/n run,
     or a mast row that is not well formed."""
     rows = read_rows(device_map, bdm.COLUMNS)
     cp_names = {r["cp_name"] for r in read_rows(cps_path, CP_COLUMNS)}
@@ -337,7 +337,8 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
                 bad.append(f"{ph} has no le_ident in switches.csv")
             idents[n] = ident
         names["idents"] = dict(turnouts=idents, boundaries=[], ends={}, segments={})
-    names["masts"] = load_masts(masts_path, cp_names, rows)
+    if with_masts:              # build_staging_masts.py reads the rest to write the masts
+        names["masts"] = load_masts(masts_path, cp_names, rows)
     if bad:
         raise StagingMapError("; ".join(bad))
     return names
@@ -364,8 +365,10 @@ def load_masts(path: Path, cp_names: set, device_rows: list[dict]) -> list[dict]
         seen.add(name)
         if r["system_name"] != d["system_name"] or r["device_system_name"] != d["system_name"]:
             bad.append(f"line {i}: {name} system name {r['system_name']!r}, the device map's {d['system_name']!r}")
-        if r["cp"] not in cp_names or not r["facing"]:
-            bad.append(f"line {i}: {name} needs a staging control point and a facing block")
+        if (r["cp"] and r["cp"] not in cp_names) or not r["facing"]:
+            bad.append(f"line {i}: {name} needs a facing block, and its cp (if any) a staging control point")
+        if not r["cp"] and not r["system_name"].startswith("IF$vsm:"):
+            bad.append(f"line {i}: {name} is a visible mast in no control point")
         pairs = [tuple(h.split("=", 1)) for h in r["head_system_names"].split(";") if h]
         if [h for h, *_ in pairs] != level_masts.mast_heads(r["system_name"]) or \
                 any(len(p) != 2 or heads.get(p[0]) != p[1] for p in pairs):

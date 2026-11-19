@@ -69,7 +69,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (device_map_staging.csv)
 from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402
-from hartlib.cats import mast_templates, station_plate  # noqa: E402
+from hartlib.cats import appearance_templates, mast_templates, station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 import cats_turnout_io as tio  # noqa: E402
@@ -195,7 +195,8 @@ def load_facts():
     try:
         t = rr.tables
         return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
-                     StagingTracks(staging_tracks()), mast_templates(), set(t.masts), rr.device_map,
+                     StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
+                     rr.device_map,
                      t.sensors, t.turnouts, t.masts, rr.level_masts)
     except railroad.FactsError as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None
@@ -342,17 +343,21 @@ def block_bindings(band, F, names):
 
 
 def mast_bindings(opts, F):
-    """Every drawn mast (field and planned) by its JMRI user name and template; a name drawn twice stops."""
+    """Every drawn mast (field and planned) by its JMRI user name and template: its own row in signal_head_plan.csv
+    (a wired mast), else the template staging's masts of its appearance type take (template_by_type), as main and
+    upper masts get theirs. A name drawn twice stops."""
     out = {}
+    by_type = template_by_type(F)
     for sg in opts.get("signals") or ():
         if sg["kind"] == "virtual":
             continue
         if sg["mast"] in out:
             raise SystemExit(f"mast {sg['mast']} is listed twice in the staging signals")
         name = opts.get("mast_prefix", "") + sg["mast"]
-        if name not in F.masts or name not in F.templates:
-            raise SystemExit(f"{name}: not a JMRI mast with a template in signal_head_plan.csv")
-        out[sg["mast"]] = {"name": name, "template": F.templates[name]}
+        template = F.templates.get(name) or by_type.get(mast_type(F.mast_system.get(name)))
+        if name not in F.masts or template is None:
+            raise SystemExit(f"{name}: not a JMRI mast, or no template for its type in signal_head_plan.csv")
+        out[sg["mast"]] = {"name": name, "template": template}
     return out
 
 
@@ -619,17 +624,17 @@ def mast_type(system):
 
 
 def template_by_type(F):
-    """{appearance type: CATS template} as staging's masts have them (signal_head_plan.csv); a type given two
-    templates stops."""
-    out = {}
-    for name, template in sorted(F.templates.items()):
-        kind = mast_type(F.mast_system.get(name))
-        if kind is None:
-            continue
-        if out.setdefault(kind, template) != template:
-            raise SystemExit(f"signal_head_plan.csv gives {kind} masts two templates, {out[kind]} and {template}")
+    """{appearance type: CATS template} as signal_head_plan.csv gives them (hartlib.cats.appearance_templates). A
+    one-searchlight mast (a high single head) shows the stock basic aspects a one-low one does (Clear, Approach,
+    Stop), so it takes the one-low template when the plan gives none of its own (owner, 2026-11-19). `F` is unused:
+    kept so the callers stay as they were."""
+    try:
+        out = appearance_templates()
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from None
+    if "one-low" in out:
+        out.setdefault("one-searchlight", out["one-low"])
     return out
-
 
 def level_signals(bands, F, bound_bi):
     """Put each main and upper mast (main_upper_masts.csv) in its band's signals, as the plugin reads a band's drawn

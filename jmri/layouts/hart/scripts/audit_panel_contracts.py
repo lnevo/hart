@@ -19,6 +19,8 @@ from hartlib import boundaries as boundary_csv, level_devices, level_masts, park
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
 BOUNDARIES = boundary_csv.PATH
+# staging's turnout and anchor masts but the hidden yard-track ones (staging masts by rule, owner 2026-11-19)
+BOUNDARY_ROWS = 34
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
@@ -81,8 +83,8 @@ class Audit:
 
 def load_boundaries(path: Path) -> list[Boundary]:
     rows = boundary_csv.read(path)     # stops on a bad kind or slot, or a mast named twice
-    if len(rows) != 32:
-        raise ValueError(f"{path}: expected 32 boundary rows, found {len(rows)}")
+    if len(rows) != BOUNDARY_ROWS:
+        raise ValueError(f"{path}: expected {BOUNDARY_ROWS} boundary rows, found {len(rows)}")
     return rows
 
 

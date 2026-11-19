@@ -18,17 +18,19 @@ natural = railroad.natural
 LEVELS = {"Main": 2, "Upper": 3}      # band key (first word of the band title) -> level
 TAU = {"A": -1, "B": 1, "C": 1, "D": -1}      # the plugin's leg sides (schematic.core.TAU)
 LOOP_HALF = {"B": 1, "C": 2}          # a balloon loop's half by the switch leg it leaves from (owner, 2026-11-16)
+LONG_CM = 150.0                       # a track inside a control point longer than this can hold a train (owner, 2026-11-19)
 
 
 class MapError(RuntimeError):
     pass
 
 
-def band_level(title: str) -> int | None:
-    return LEVELS.get((title or "").split()[0]) if title else None
+def band_level(title: str, levels: dict | None = None) -> int | None:
+    """The level of a band by the first word of its title, in `levels` (default LEVELS: main and upper)."""
+    return (LEVELS if levels is None else levels).get((title or "").split()[0]) if title else None
 
 
-def end_ref(bands, joined, bi, node_id, helix_tag):
+def end_ref(bands, joined, bi, node_id, helix_tag, levels=None):
     """What a track ends at: ("sw", number), ("helix", "H1"), ("bumper", None). A connector to the other band
     is followed to the switch beyond it."""
     band = bands[bi][1]
@@ -36,7 +38,7 @@ def end_ref(bands, joined, bi, node_id, helix_tag):
     if d["kind"] in ("switch", "dx"):
         return ("sw", base(d["label"]))
     if d.get("sub") == "helix":
-        level = band_level(bands[bi][0])
+        level = band_level(bands[bi][0], levels)
         if level not in helix_tag:
             raise MapError(f"a track reaches the helix end on band {bands[bi][0]!r}, which is not main or upper")
         return ("helix", helix_tag[level])
@@ -46,7 +48,7 @@ def end_ref(bands, joined, bi, node_id, helix_tag):
         sid = next(iter(list(other["nodes"][m]["ins"].values()) + list(other["nodes"][m]["outs"].values())))
         s = other["strands"][sid]
         far = s["dst"][0] if s["src"][0] == m else s["src"][0]
-        return end_ref(bands, joined, bj, far, helix_tag)
+        return end_ref(bands, joined, bj, far, helix_tag, levels)
     return ("bumper", None)
 
 
@@ -77,21 +79,23 @@ def helix_tags(bands, overrides) -> dict[int, str]:
     return out
 
 
-def tracks(bands, runs, joined, helix_tag) -> list[dict]:
+def tracks(bands, runs, joined, helix_tag, levels=None) -> list[dict]:
     """One entry per track of the main and upper bands (a track cut by a connector counted once)."""
     found, seen = [], set()
     for bi, (title, band, _) in enumerate(bands):
-        lv = band_level(title)
+        lv = band_level(title, levels)
         if not lv:
             continue
         nodes, strands, srow = band["nodes"], band["strands"], band["R"]["srow"]
         for start, chain, end in runs(band):
-            a = end_ref(bands, joined, bi, start[0], helix_tag)
-            b = end_ref(bands, joined, bi, end[0], helix_tag)
+            a = end_ref(bands, joined, bi, start[0], helix_tag, levels)
+            b = end_ref(bands, joined, bi, end[0], helix_tag, levels)
             la, lb = end_label(bands, joined, bi, start[0]), end_label(bands, joined, bi, end[0])
             halves = la[-1:] in ("A", "B") and lb[-1:] in ("A", "B")
-            if a[0] == b[0] == "sw" and a[1] == b[1] and la != lb and halves:
-                continue                                    # between a crossover's halves: its OS block
+            # between a crossover's halves, its OS block: halves lettered A/B (main, upper), or two nodes with one
+            # number (staging's single crossovers 7, 23 and 35); a balloon loop starts and ends on the same node
+            if a[0] == b[0] == "sw" and a[1] == b[1] and ((la != lb and halves) or start[0] != end[0]):
+                continue
             edges = {}
             for sid, _ in chain:
                 edges[re.sub(r"(?<=\d)[xy]$", "", strands[sid]["edge"])] = strands[sid]["cm"]
@@ -132,15 +136,21 @@ def track_names(found) -> None:
             t["name"] = stem if len(ts) == 1 else f"{stem} {i}"
 
 
-def masts(bands, cps, found, cp_of, corner_blocks=None) -> list[dict]:
-    """Home masts where a track from outside a control point meets one of its switches."""
+def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None) -> list[dict]:
+    """Home masts where a track from outside a control point meets one of its switches, or where a track inside one
+    is long enough to hold a train (over LONG_CM: running track inside an interlocking, staging's K-1/K-2), or where a
+    track ending at a bumper that can hold a train leaves one (staging's W-1 and W-2). Each mast
+    gives its switch `node` and `leg`, and `kind`, its JMRI basic appearance: two-searchlight facing the points (two
+    heads), one-searchlight on a trailing leg of running track (the main route, or a long track inside an
+    interlocking), one-low (a dwarf) on a trailing leg off it (owner,
+    2026-11-19: the stock basic system shows Diverging aspects only on two heads)."""
     by_leg = {}
     for t in found:
         for (n, p), far in zip(t["legs"], reversed(t["ends"])):
             by_leg[(t["band"], n, p)] = (t, far)
     out = []
     for bi, (title, band, _) in enumerate(bands):
-        lv = band_level(title)
+        lv = band_level(title, levels)
         if not lv:
             continue
         rail, srow = band["rail"], band["R"]["srow"]
@@ -157,18 +167,25 @@ def masts(bands, cps, found, cp_of, corner_blocks=None) -> list[dict]:
                     continue
                 t, (kind, far) = hit
                 loop = kind == "sw" and far == num and t["name"].endswith(" Loop")   # comes back to this switch
-                if kind == "bumper" or (kind == "sw" and cp_of.get(far) == cp and not loop):
+                inside = kind == "sw" and cp_of.get(far) == cp and not loop
+                # a track ending at a bumper gets a mast only when it can hold a train (a staging track trains leave
+                # from, W-1 and W-2; owner, 2026-11-19), and then a dwarf, unless it is main route
+                if (kind == "bumper" and t["cm"] <= LONG_CM) or (inside and t["cm"] <= LONG_CM):
                     continue
+                running = t["main"] or inside        # a long track inside an interlocking is running track
                 if t["loop"] and p not in LOOP_HALF:
                     raise MapError(f"Switch {num}: balloon loop {t['name']} leaves from leg {p}; a loop's halves "
                                    f"leave from legs {' and '.join(LOOP_HALF)}")
                 eastward = TAU[p] * rail[n] == 1
                 sid = d["ins"].get(p) or d["outs"].get(p)
+                heads = 2 if (p == "A" or d["kind"] == "dx") else 1
                 out.append(dict(level=lv, cp=cp, switch=num, number=int(num) + 1, letter="L" if eastward else "R",
                                 protects=corner_blocks[num][p] if d["kind"] == "dx" else "",
-                                heads=2 if (p == "A" or d["kind"] == "dx") else 1, row=srow.get(sid, 0),
+                                heads=heads, row=srow.get(sid, 0),
                                 track=f"{t['name']} {LOOP_HALF[p]}" if t["loop"] else t["name"], band=bi,
-                                half=LOOP_HALF[p] if t["loop"] else 0))
+                                half=LOOP_HALF[p] if t["loop"] else 0, node=n, leg=p, strand=sid,
+                                kind=("two-searchlight" if heads == 2 else
+                                      "one-searchlight" if running else "one-low")))
     groups = defaultdict(list)
     for m in out:
         groups[(m["number"], m["letter"])].append(m)

@@ -3159,14 +3159,6 @@
    "name": "Mast 202R",
    "template": "single"
   },
-  "2035": {
-   "name": "Mast 2035",
-   "template": "single"
-  },
-  "2036": {
-   "name": "Mast 2036",
-   "template": "single"
-  },
   "204RA": {
    "name": "Mast 204RA",
    "template": "single"
@@ -3259,8 +3251,12 @@
    "name": "Mast 230LB",
    "template": "single"
   },
-  "24L": {
-   "name": "Mast 24L",
+  "24LA": {
+   "name": "Mast 24LA",
+   "template": "single"
+  },
+  "24LB": {
+   "name": "Mast 24LB",
    "template": "double"
   },
   "24RA": {
@@ -3275,21 +3271,25 @@
    "name": "Mast 2L",
    "template": "double"
   },
-  "32R": {
-   "name": "Mast 32R",
+  "2R": {
+   "name": "Mast 2R",
    "template": "single"
   },
   "34L": {
    "name": "Mast 34L",
    "template": "double"
   },
-  "34R": {
-   "name": "Mast 34R",
-   "template": "double"
+  "34RA": {
+   "name": "Mast 34RA",
+   "template": "single"
+  },
+  "34RB": {
+   "name": "Mast 34RB",
+   "template": "single"
   },
   "36RA": {
    "name": "Mast 36RA",
-   "template": "double"
+   "template": "single"
   },
   "36RB": {
    "name": "Mast 36RB",
@@ -3297,7 +3297,7 @@
   },
   "38LA": {
    "name": "Mast 38LA",
-   "template": "double"
+   "template": "single"
   },
   "38LB": {
    "name": "Mast 38LB",
@@ -3305,7 +3305,7 @@
   },
   "40LA": {
    "name": "Mast 40LA",
-   "template": "double"
+   "template": "single"
   },
   "40LB": {
    "name": "Mast 40LB",
@@ -3319,6 +3319,14 @@
    "name": "Mast 4RB",
    "template": "single"
   },
+  "67": {
+   "name": "Mast 67",
+   "template": "single"
+  },
+  "68": {
+   "name": "Mast 68",
+   "template": "single"
+  },
   "6LA": {
    "name": "Mast 6LA",
    "template": "single"
@@ -3326,6 +3334,10 @@
   "6LB": {
    "name": "Mast 6LB",
    "template": "single"
+  },
+  "6R": {
+   "name": "Mast 6R",
+   "template": "double"
   },
   "8LA": {
    "name": "Mast 8LA",
@@ -3337,7 +3349,7 @@
   },
   "8RA": {
    "name": "Mast 8RA",
-   "template": "double"
+   "template": "single"
   },
   "8RB": {
    "name": "Mast 8RB",

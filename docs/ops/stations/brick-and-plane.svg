@@ -20,24 +20,26 @@
 <path d="M46.0,44 L46.0,38 L178.0,38 L178.0,44" stroke-width="1.4"/>
 <path d="M242.0,268 L242.0,274 L262.0,274 L262.0,268" stroke-width="1.4"/>
 <path d="M215.6,60.8 L215.6,68.8 M215.6,64.8 L211.6,64.8" stroke-width="0.9"/>
-<circle cx="208.0" cy="64.8" r="3.6" stroke-width="0.9" fill="#fff"/>
-<circle cx="200.8" cy="64.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="208.0" cy="64.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<circle cx="200.8" cy="64.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<g transform="translate(182.4,95.8) rotate(-45.0)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/></g>
 <path d="M134.4,74.3 L134.4,82.3 M134.4,78.3 L138.4,78.3" stroke-width="0.9"/>
-<circle cx="142.0" cy="78.3" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="142.0" cy="78.3" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M120.4,102.3 L120.4,110.3 M120.4,106.3 L124.4,106.3" stroke-width="0.9"/>
-<circle cx="128.0" cy="106.3" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="128.0" cy="106.3" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M299.6,201.7 L299.6,209.7 M299.6,205.7 L295.6,205.7" stroke-width="0.9"/>
-<circle cx="292.0" cy="205.7" r="3.6" stroke-width="0.9" fill="#fff"/>
+<circle cx="292.0" cy="205.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M285.6,228.8 L285.6,236.8 M285.6,232.8 L281.6,232.8" stroke-width="0.9"/>
 <circle cx="278.0" cy="232.8" r="3.6" stroke-width="0.9" fill="#fff"/>
+<path d="M232.4,243.2 L232.4,251.2 M232.4,247.2 L236.4,247.2" stroke-width="0.9"/>
+<circle cx="240.0" cy="247.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<circle cx="247.2" cy="247.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M81.0,91.0 L76.0,91.0 L76.0,137.0 L81.0,137.0" stroke-width="1.4"/>
 <path d="M231.0,63.0 L236.0,63.0 L236.0,81.0 L231.0,81.0" stroke-width="1.4"/>
 <path d="M247.0,231.0 L242.0,231.0 L242.0,249.0 L247.0,249.0" stroke-width="1.4"/>
 <path d="M267.0,211.0 L272.0,211.0 L272.0,249.0 L267.0,249.0" stroke-width="1.4"/>
-<path d="M369.1,240.0 L369.1,246.0" stroke-width="1"/>
-<path d="M369.1,246.0 L372.3,249.2 L369.1,252.4 L365.9,249.2 Z" stroke-width="1" fill="#fff"/>
-<path d="M132.0,128.0 L132.0,134.0" stroke-width="1"/>
-<path d="M132.0,134.0 L135.2,137.2 L132.0,140.4 L128.8,137.2 Z" stroke-width="1" fill="#fff"/>
+<path d="M63.5,240.0 L63.5,234.0" stroke-width="1"/>
+<path d="M63.5,227.6 L66.7,230.8 L63.5,234.0 L60.3,230.8 Z" stroke-width="1" fill="#fff"/>
 <text x="0.0" y="4.0" font-size="12" text-anchor="start" font-weight="bold" fill="#000" stroke="none" letter-spacing="1.5">STAGING LEVEL</text>
 <text x="400.0" y="243.0" font-size="8.5" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >TO BARN</text>
 <text x="428.0" y="215.0" font-size="8.5" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >TO BARN</text>
@@ -49,22 +51,23 @@
 <text x="252.0" y="299.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">19 CARS</text>
 <text x="131.9" y="81.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >4RA</text>
 <text x="288.1" y="235.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >6LB</text>
+<text x="259.0" y="253.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >5</text>
 <text x="119.0" y="95.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">W-2 (12)</text>
+<text x="229.9" y="250.1" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >6R</text>
 <text x="357.0" y="235.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">EAST EXT</text>
-<text x="369.1" y="259.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >0.25</text>
 <text x="218.1" y="67.7" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >2L</text>
 <text x="117.9" y="109.2" font-size="8" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >4RB</text>
 <text x="302.1" y="208.6" font-size="8" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >6LA</text>
-<text x="252.0" y="253.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >5</text>
 <text x="126.0" y="67.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">W-1 (14)</text>
 <text x="350.0" y="207.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">SCALE (19)</text>
 <text x="280.0" y="67.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MAIN WEST</text>
-<text x="132.0" y="147.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >0</text>
-<text x="116.0" y="49.5" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"BRICK" [BK]</text>
+<text x="189.0" y="65.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >1</text>
 <text x="257.0" y="208.0" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"PLANE" [PL]</text>
 <text x="126.0" y="235.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">BRICK-PLANE</text>
-<text x="189.0" y="65.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >1</text>
 <text x="175.0" y="65.0" font-size="8" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >3</text>
+<text x="116.0" y="49.5" font-size="8.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">"BRICK" [BK]</text>
+<text x="178.9" y="106.4" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >2R</text>
+<text x="63.5" y="225.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >5.75</text>
 </g>
 <text x="508.0" y="62" font-size="15" text-anchor="end" font-weight="bold" letter-spacing="2">&#8592; WEST</text>
 <text x="548.0" y="62" font-size="15" text-anchor="start" font-weight="bold" letter-spacing="2">EAST &#8594;</text>
@@ -73,7 +76,7 @@
 <text x="34" y="766" font-size="11" font-weight="normal" letter-spacing="1">STATION DETAIL SHEET</text>
 <text x="34" y="784" font-size="11" font-weight="normal" letter-spacing="1">STAGING LEVEL</text>
 <rect x="354" y="728" width="104" height="64" fill="#fff" stroke="#000" stroke-width="1.5"/>
-<text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 18, 2026</text>
+<text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 19, 2026</text>
 <path d="M354,749.3 L458,749.3" stroke="#000" stroke-width="0.8"/>
-<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 11</text>
+<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 12</text>
 </svg>
