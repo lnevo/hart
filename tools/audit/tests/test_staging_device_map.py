@@ -223,7 +223,7 @@ class DeviceMapBuild(unittest.TestCase):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
         for old, new, why in (("anchor,AG33,east", "anchor,AG34,east", "Mast 8RA: recorded anchor AG34 east"),
-                              ('(owner, 2026-11-16)",C', '(owner, 2026-11-16)",B', "Mast 14R: recorded turnout TO1 B")):
+                              ("turnout,TO1,C,Mast 14R", "turnout,TO1,B,Mast 14R", "Mast 14R: recorded turnout TO1 B")):
             with self.subTest(row=old):
                 path = tmp / "b.csv"
                 path.write_text(text.replace(old, new), encoding="utf-8")

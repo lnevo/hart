@@ -104,7 +104,7 @@ class MapRevisionCopy(unittest.TestCase):
             (self.www / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(ROOT / "www" / rel, self.www / rel)
         self.prefs = tmp / "prefs.json"
-        self.prefs.write_text(json.dumps({"revision": 11, "date": "2026-12-01"}))
+        self.prefs.write_text(json.dumps({"revision": 99, "date": "2026-12-01"}))   # a revision no sheet has yet
 
     def test_new_revision_is_drift_until_applied(self):
         archive = (self.www / "crew/maps/archive/west-yard/index.html").read_text()
@@ -112,10 +112,10 @@ class MapRevisionCopy(unittest.TestCase):
         self.assertEqual(len(stale), 2 + len(CREW["maps"]))
         self.assertEqual(sorted(map_revision.apply(self.www, self.prefs)), sorted(stale))
         self.assertEqual(map_revision.drift(self.www, self.prefs), [])
-        self.assertIn(">Publication SM-02 · Revision 11 · Effective 1 December 2026</p>",
+        self.assertIn(">Publication SM-02 · Revision 99 · Effective 1 December 2026</p>",
                       (self.www / "crew/maps/west-yard/index.html").read_text())
         crew = json.loads((self.www / "data/crew.json").read_text())
-        self.assertEqual((crew["schematic"]["revision"], crew["schematic"]["effective"]), ("11", "1 December 2026"))
+        self.assertEqual((crew["schematic"]["revision"], crew["schematic"]["effective"]), ("99", "1 December 2026"))
         self.assertEqual(crew["maps"][0]["revision"], CREW["maps"][0]["revision"])   # archive field untouched
         self.assertEqual((self.www / "crew/maps/archive/west-yard/index.html").read_text(), archive)
 

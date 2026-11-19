@@ -77,8 +77,10 @@ def runs(band, skip=()):
 # plugin draws every staging turnout so by itself (leg B the straight leg), so this list sets nothing in the drawing:
 # it records which switches differ from the hand-drawn letters. A mast on such a leg stands on the other letter
 # (le_signal_boundaries.csv's generated_slot, held to this list by check_swapped_slots), and check_boundaries stops
-# the build unless the drawn panel puts each mast there.
-LEGS_SWAPPED = {"13": "Barn on leg C, so 15-13-11 is drawn level as on the sheet (owner, 2026-11-16)"}
+# the build unless the drawn panel puts each mast there. Empty since 2026-11-18: Switch 13's facts now hold the Barn on
+# its diverging leg C (staging.plan_overrides.json, branch_leg B), so le_signal_boundaries.csv records Mast 14R on C. The list and its checks stay for a
+# future switch drawn against its hand-drawn letters.
+LEGS_SWAPPED = {}
 
 
 def swapped_idents() -> set:

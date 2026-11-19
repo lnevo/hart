@@ -11,8 +11,8 @@
   "Staging, main and upper level",
   "Stage 0 proof, as built"
  ],
- "date": "2026-11-16",
- "revision": 10,
+ "date": "2026-11-18",
+ "revision": 11,
  "sheet": "1 of 1",
  "num_px": 6.5,
  "helix_style": "coil",
@@ -102,8 +102,12 @@
  ],
  "level_leg": {
   "T210": "C",
-  "T212": "B"
+  "T212": "B",
+  "115": "C",
+  "235": "C",
+  "243": "C"
  },
+ "_level_leg": "Exceptions to the plugin's straight-level rule (R8), each drawn with its diverging leg level (owner, 2026-11-18). T210 (231) and T212 (237) as before. 115: straight-level put Track 101B-111's climb in the same CATS desk cell as the west end of Track 113's siding, and CATS would drop the points. 235 and 243: straight-level widened the upper level from 38 to 43 columns, so Track 225-227 came out shorter than its switches' legs on the Layout Editor panel and the CATS desk ran past its 62 columns.",
  "facing_letters": false,
  "direction_arrows": true,
  "capacity": {

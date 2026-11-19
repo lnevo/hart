@@ -8,7 +8,7 @@ All in `jmri/layouts/hart/data/`, read through `jmri/layouts/hart/scripts/layout
 
 | File | One row per | Holds |
 |------|-------------|-------|
-| `switches.csv` | switch | `level`, `switch` number, Layout Editor turnout (`le_ident`), `cats_inverted` (CATS Normal is the thrown leg: Switch 1 only), USS lever sensors (`ctc_is`), whether the USS column has signal levers (`ctc_signals`), `hand` (L or R, seen from the points; blank where nobody has recorded it). The single turnouts in plan 5.3b come from its part geometry, checked against the Peco catalogue number. The owner gave the rest on 2026-11-14: Switch 5 is a curved left hand, crossovers 7 and 35 are left hand and 23 right hand, and the as-built Switches 9, 11 and 13 are left hand. Switch 13's normal route is its diverging leg (closed leg Track Barn) |
+| `switches.csv` | switch | `level`, `switch` number, Layout Editor turnout (`le_ident`), `cats_inverted` (CATS Normal is the thrown leg: none since 2026-11-18, when Switch 1's was cleared), USS lever sensors (`ctc_is`), whether the USS column has signal levers (`ctc_signals`), `hand` (L or R, seen from the points; blank where nobody has recorded it). The single turnouts in plan 5.3b come from its part geometry, checked against the Peco catalogue number. The owner gave the rest on 2026-11-14: Switch 5 is a curved left hand, crossovers 7 and 35 are left hand and 23 right hand, and the as-built Switches 9, 11 and 13 are left hand. Switch 13's normal route is its diverging leg (closed leg Track Barn) |
 | `switch_legs.csv` | OS block at the points | `closed_leg` and `thrown_leg`: the block each leg leads to. A crossover has two rows; the first is its main OS block |
 | `control_points.csv` | control point | its `level` and the switches it holds. Engine House (Switches 9, 11, 13) has a row though the desk has no plate for it |
 | `mast_cells.csv` | mast on the USS CTC board | its cell (`x`, `y`) on the board's grid (`uss_board_cells.csv`, the hand-wired desk's grid frozen 2026-11-15) and how the board draws it (`uss_facing`, `uss_kind` h2 or d1, `uss_head` for d1). For the hand-wired CATS desks only: the `edge` of its lamp in that cell and a lamp placement the Designer save gets wrong (`sig_location`, `sig_orient`); the generated desks do not read this file. Row order is the USS drawing order |
@@ -21,15 +21,33 @@ Switch numbers are the plate numbers and are unique across the whole railroad, e
 
 Track names are the CATS occupancy names (`Track S-R`). A Layout Editor throat block such as `Track S-R West`, on the same occupancy sensor, counts as `Track S-R`. `tools/schematic/build_cats_panel.py` takes each CATS Normal leg, inversion, turnout binding and mast name from these files and `tables.xml`, and `gen_ctc_track_plan.py` takes the USS lever columns, points dots, signal icons and station plates. CATS plant cells for the USS board are in `uss_board_plants.csv`; the generated desks take block names from `tables.xml` and `cats/data/occupancy_bindings.csv`.
 
+## Three views of a switch
+
+Every switch is seen three ways, and they must agree (owner, 2026-11-18):
+
+- **Schematic:** the straight leg (B, the normal route) level, the diverging leg (C) angled. Whether it diverges north or south does not matter; east or west does. The plugin draws this by itself (schematic-maps rule R8), after the main (R5) and yard ladders (R6).
+- **AnyRail part:** left- or right-hand, and which way it faces (`hands.csv` from the plan, `switches.csv` `hand`).
+- **Layout Editor:** drawn from the schematic. Leg B is the leg in line with A, and `continuing="2"` when the closed leg (`switch_legs.csv`) is leg B.
+
+Exceptions are made only on purpose, each with its reason beside it:
+
+| Switch | Exception | Why |
+|--------|-----------|-----|
+| 13 | Barn (diverging, leg C) is the normal, closed route | wired so (Peco #7 curved, left-hand) |
+| 1, 33 | the main runs through the diverging leg | closed is the straight leg, shown Normal |
+| 33, 37, 39 | continuous running in staging needs them thrown | they start up normal, toward the helix |
+| 115 | diverging leg drawn level (`level_leg`) | straight-level puts Track 101B-111's climb in the Track 113 siding's CATS desk cell |
+| 231, 237 | diverging leg drawn level (`level_leg`) | earlier owner choice |
+| 235, 243 | diverging leg drawn level (`level_leg`) | straight-level widens the upper level past the desk and the Layout Editor panel |
+| 127/131 | 131's straight leg is a crossover diagonal | one crossover on the ground (`le_crossover_pairs`) |
+
 ## Changing a switch
 
-Example: after a rewiring, Switch 9 normal leads to EH-2 and thrown to EH-3.
-
-1. Edit its row in `switch_legs.csv` (and `switches.csv` if its inversion, lever or hand changes).
-2. In PanelPro, set the turnout's continuing sense and fix the OS block paths, then Store and run `make tables-pull` (ADR-008). Nothing edits `tables.xml` by script for this.
-3. Rebuild the CATS desks with `make desks`. They are generated from these files and `tables.xml`, and the build stops if a desk leg cannot reach the block the data names.
-4. Rebuild the USS panel: `python3 jmri/layouts/hart/scripts/gen_ctc_track_plan.py`. This rewrites `GUIObjects.xml` and the panel in `tables.xml`. If the rebuild clears a difference listed in `KNOWN` in the check (empty since the 2026-11-12 rebuild), that entry then fails as "no longer happens", so remove it in the same commit as the rebuild.
-5. Run `./tools/check.sh` (or just `python3 tools/audit/check_layout_facts.py`). Each failure names the switch or track and the two sources that disagree.
+1. Edit its rows in `switch_legs.csv` (closed and thrown legs) and `switches.csv` (hand, lever, inversion). A switch the AnyRail plan lacks or holds wrongly goes in `staging.plan_overrides.json` (`hand`, legs `b` and `c`; `branch_leg: "B"` when the added branch is the straight leg).
+2. When edge ids move (`n1`...), rebind `device_map_staging.csv` (`trial_name`) and `staging_signals.csv` (`schematic_edge`).
+3. Run `make panels`. A mast boundary that moves stops the build with the rows to rewrite in `le_signal_boundaries.csv`.
+4. Install the candidate in `~/JMRI_UserFiles`, relaunch PanelPro and get the owner's approval; then record it (`check_approved.py --approve`, `build_layout_le.py --approve-staging`) and take Signal Mast Logic from stock discovery in a sandbox (`tools/hosts/sandbox/README.md`).
+5. Run `./tools/check.sh`. Each failure names the switch or track and the two sources that disagree.
 
 ## Changing a mast
 

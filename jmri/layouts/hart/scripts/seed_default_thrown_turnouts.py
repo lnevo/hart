@@ -4,8 +4,8 @@
 Rules (SoR):
   - Live Digicon state follows **FB** for all turnouts except Switch 13/7/11/9
     (DCC 116–119; yard / engine-house, not FB-driven Digicon SoR).
-  - Digicon SEL+CMD share one polarity. Switch 33/37/39: inverted motors — Digicon
-    throw frog = rest tip (Barn / McKeesport / Rocks); keep MQTT THROWN.
+  - Digicon SEL+CMD share one polarity. No switch is inverted: closed is the straight
+    (normal) leg everywhere, and the turnouts start up closed.
   - Wrong Digicon direction → fix **that one switch only** in
     `jmri/layouts/hart/data/switch_legs.csv` / `switches.csv`, then rebuild
     the desks. Do not command MQTT/JMRI.
@@ -15,7 +15,7 @@ Rules (SoR):
     python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py --diagnose
 
 Read-only: the retained-write mode was removed with the boot retain fill. Use
-sync_mqtt_turnouts_from_fb.py only when Digicon must track FB for non-inverted plants.
+sync_mqtt_turnouts_from_fb.py only when Digicon must track FB.
 """
 
 from __future__ import annotations
@@ -34,15 +34,6 @@ from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
 JMRI_JSON = jmri_json_url()
 MQTT_HOST = mqtt_broker()
-
-# THROWN retain keeps Digicon throw-frog rest tips for inverted Switch 33/37/39 + Brick Switch 1.
-# Keys are CTC plant numbers (userName "Switch N"), values are MQTT packed addrs.
-DEFAULT_THROWN = {
-    1: 408,    # DCC 100
-    33: 1213,  # DCC 112
-    37: 109,   # DCC 114
-    39: 110,   # DCC 115
-}
 
 # Yard / engine-house — Digicon not driven by FB SoR (DCC 116–119).
 SKIP_FB = {13, 7, 11, 9}
@@ -143,8 +134,6 @@ def diagnose(by_name: dict) -> int:
     for _k, sw, name, mqtt, jmri, fb, mode_s, mismatch in rows:
         sw_s = f"{sw}" if sw is not None else "?"
         note = ""
-        if sw in DEFAULT_THROWN:
-            note += "default-THROWN-polarity "
         if mismatch:
             note += "mqtt≠fb "
         print(f"{sw_s:>4} {name:8} {mqtt:8} {jmri:12} {fb:8} {mode_s:12}  {note}")

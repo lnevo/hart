@@ -37,7 +37,7 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | Track K-2 | Block 1-2 | 113.6 | 2885.4 | inferred | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
 | Track Scale | Block 4-8 | 144.5 | 3670.3 | inferred | timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48): Switch 7 centre at 4249 mm from Switch 5, less half of OS Switch 5 and OS Switch 7 |
 | Track Barn | Block 13-1 | 33.7 | 856.0 | inferred | timed passes of 2026-11-13: Switch 7 at 4249 mm and Switch 13 at 5457 mm, less half of OS Switch 7 and OS Switch 13 |
-| Track EH-1 | Block 13-7 | 24 | 609.6 | estimate |  |
+| Track EH-1 | Block 13-7 | 36 | 914.4 | estimate |  |
 | Track EH-2 | Block 13-6 | 24 | 609.6 | estimate |  |
 | Track EH-3 | Block 13-5 | 24 | 609.6 | estimate |  |
 | Track McKees Rocks | BS Switch 39 / BS McKees Rocks | 24 | 609.6 | estimate | Princess stub east of Switch 39 |

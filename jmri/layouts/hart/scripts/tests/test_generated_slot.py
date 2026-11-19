@@ -1,6 +1,6 @@
 """le_signal_boundaries.csv's generated_slot: on a generated panel (build_layout_le.py --as-live) a switch drawn with
-legs B and C swapped (Switch 13, TO1) has its mast in the other slot, and every script that binds or checks masts by
-slot reads that column there (hartlib.tables.boundary_slot), never the hand-drawn panel's slot."""
+legs B and C swapped from the hand-drawn panel's letters (none since 2026-11-18) has its mast in the other slot, and
+every script that binds or checks masts by slot reads that column there (hartlib.tables.boundary_slot), never the hand-drawn panel's slot."""
 from __future__ import annotations
 
 import importlib.util
@@ -34,7 +34,9 @@ class GeneratedSlot(unittest.TestCase):
         self.assertEqual(tables.boundary_slot({"slot": "west", "generated_slot": ""}, True), "west")
         self.assertEqual(tables.boundary_slot({"slot": "A"}, True), "A")      # an older CSV with no column
 
-    def test_apply_le_sml_facing_binds_14r_on_the_generated_leg(self) -> None:
+    def test_apply_le_sml_facing_binds_14r_on_leg_c(self) -> None:
+        # since 2026-11-18 Switch 13's facts hold the Barn on its diverging leg C, so the row's own slot is C and it
+        # has no generated_slot: every panel puts Mast 14R there
         mod = load("apply_le_sml_facing")
         gen, _ = mod.load_assignments(CSV)
         self.assertEqual(gen["TO1"].get("C"), "Mast 14R")

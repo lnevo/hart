@@ -45,9 +45,9 @@ class LayoutFactsTest(unittest.TestCase):
 
     def test_flipped_continuing_sense(self) -> None:
         tables = self.copy(check.TABLES, lambda t: re.sub(
-            r'(<layoutturnout ident="TO10"[^>]*?) continuing="4"', r'\1 continuing="2"', t))
+            r'(<layoutturnout ident="TO10"[^>]*?) continuing="2"', r'\1 continuing="4"', t))
         out = self.failures(tables=tables)
-        self.assertTrue(any(m.startswith("Switch 9: Layout Editor TO10 (continuing=2) closes to Track EH-3")
+        self.assertTrue(any(m.startswith("Switch 9: Layout Editor TO10 (continuing=4) closes to Track EH-3")
                             and "switch_legs.csv says closed Track EH-2" in m for m in out), out)
 
     def test_flipped_block_path(self) -> None:

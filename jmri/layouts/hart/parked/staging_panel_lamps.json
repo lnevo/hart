@@ -217,8 +217,8 @@
     "to": "block",
     "at": "centre",
     "block": "OS Switch 9",
-    "dx": -14,
-    "dy": 10
+    "dx": -33,
+    "dy": 9
    },
    "size": [
     10,
@@ -787,7 +787,7 @@
     "to": "block",
     "at": "centre",
     "block": "Track EH-1",
-    "dx": -80,
+    "dx": -57,
     "dy": 4
    },
    "size": [
@@ -802,7 +802,7 @@
     "to": "block",
     "at": "centre",
     "block": "Track EH-1",
-    "dx": -90,
+    "dx": -67,
     "dy": 4
    },
    "size": [
@@ -817,7 +817,7 @@
     "to": "block",
     "at": "centre",
     "block": "Track EH-1",
-    "dx": -100,
+    "dx": -77,
     "dy": 4
    },
    "size": [

@@ -1,6 +1,6 @@
 {
  "_layer": 1,
- "_note": "Facts about the railroad that the AnyRail plan 5.3b does not hold or holds wrongly. Every output uses them. Hands and legs of added switches come from the Layout Editor panel in tables.xml (Switch 9: hand R, straight EH-3, diverging EH-2).",
+ "_note": "Facts about the railroad that the AnyRail plan 5.3b does not hold or holds wrongly. Every output uses them. Hands and legs of added switches come from the Layout Editor panel in tables.xml (Switch 9: hand L, straight EH-2, diverging EH-3; Switch 11: hand L, straight EH-1, diverging to Switch 9; Switch 13: hand L, its diverging leg to the Barn is the normal route, branch_leg B).",
  "left_end": "W-1",
  "stations": {
   "Brick": [
@@ -164,7 +164,8 @@
   {
    "op": "switch",
    "label": "13",
-   "hand": "R",
+   "hand": "L",
+   "branch_leg": "B",
    "on": [
     "7a",
     "T52"
@@ -183,12 +184,12 @@
     },
     "c": {
      "switch": "9",
-     "hand": "R",
+     "hand": "L",
      "b": {
-      "end": "EH-3"
+      "end": "EH-2"
      },
      "c": {
-      "end": "EH-2"
+      "end": "EH-3"
      }
     }
    },
@@ -386,7 +387,7 @@
   "K-2": 113.6,
   "Scale": 144.5,
   "Barn": 33.7,
-  "EH-1": 24.0,
+  "EH-1": 36.0,
   "EH-2": 24.0,
   "EH-3": 24.0,
   "McKees Rocks": 24.0,

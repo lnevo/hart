@@ -3,9 +3,6 @@
   "Track 101-103": {
    "why": "a short link (3.4 cm) inside its switches' OS blocks"
   },
-  "Track 105-109": {
-   "why": "a short link (21.5 cm) inside its switches' OS blocks"
-  },
   "Track 107-109": {
    "detector": "BS 107-109",
    "why": "inside its switches' OS blocks on the desk (99.9 cm, too short at one cell per grid unit for a block)"
@@ -41,14 +38,8 @@
   "Track 201-203": {
    "why": "a short link (11.7 cm) inside its switches' OS blocks"
   },
-  "Track 201-205": {
-   "why": "a short link (22.7 cm) inside its switches' OS blocks"
-  },
   "Track 201-219": {
    "why": "a short link (23.1 cm) inside its switches' OS blocks"
-  },
-  "Track 203-209": {
-   "why": "inside its switches' OS blocks on the desk (145 cm, too short at one cell per grid unit for a block)"
   },
   "Track 219-221": {
    "why": "a short link (11.7 cm) inside its switches' OS blocks"
@@ -59,14 +50,11 @@
   "Track 227-233": {
    "why": "a short link (20.6 cm) inside its switches' OS blocks"
   },
+  "Track 229-231": {
+   "why": "inside its switches' OS blocks on the desk (48.3 cm, too short at one cell per grid unit for a block)"
+  },
   "Track 231-235": {
    "why": "inside its switches' OS blocks on the desk (75.9 cm, too short at one cell per grid unit for a block)"
-  },
-  "Track 233-237": {
-   "why": "inside its switches' OS blocks on the desk (39.6 cm, too short at one cell per grid unit for a block)"
-  },
-  "Track 235-241": {
-   "why": "a short link (10.5 cm) inside its switches' OS blocks"
   },
   "Track 237-243": {
    "why": "a short link (15.2 cm) inside its switches' OS blocks"
@@ -118,6 +106,22 @@
    "station": "103-105",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:103-105_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "105-109": {
+   "discipline": "CTC",
+   "name": "Track 105-109",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:105-109",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 105-109",
+    "command": "close"
+   },
+   "station": "105-109",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:105-109",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -354,6 +358,38 @@
    "station": "133",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:133_Spur_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "201-205": {
+   "discipline": "CTC",
+   "name": "Track 201-205",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:201-205",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 201-205",
+    "command": "close"
+   },
+   "station": "201-205",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:201-205",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "203-209": {
+   "discipline": "CTC",
+   "name": "Track 203-209",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:203-209",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 203-209",
+    "command": "close"
+   },
+   "station": "203-209",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:203-209",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -755,22 +791,6 @@
     "command": "throw"
    }
   },
-  "229-231": {
-   "discipline": "CTC",
-   "name": "Track 229-231",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:229-231",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 229-231",
-    "command": "close"
-   },
-   "station": "229-231",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:229-231",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
   "229-239": {
    "_planned_occupied": {
     "DECADDR": "2104",
@@ -814,6 +834,22 @@
     "command": "throw"
    }
   },
+  "233-237": {
+   "discipline": "CTC",
+   "name": "Track 233-237",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:233-237",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 233-237",
+    "command": "close"
+   },
+   "station": "233-237",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:233-237",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
   "233-end": {
    "discipline": "CTC",
    "name": "Track 233 Spur",
@@ -826,6 +862,22 @@
    "station": "233",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:233_Spur",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "235-241A": {
+   "discipline": "CTC",
+   "name": "Track 235-241",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:235-241",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 235-241",
+    "command": "close"
+   },
+   "station": "235-241",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:235-241",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -3295,7 +3347,7 @@
  "switches": {
   "1": {
    "block": "OS Switch 1",
-   "normal": "C",
+   "normal": "B",
    "routes": {
     "B": {
      "ROUTECOMMAND": {
@@ -3990,20 +4042,20 @@
   },
   "13": {
    "block": "OS Switch 13",
-   "normal": "B",
+   "normal": "C",
    "routes": {
     "B": {
      "ROUTECOMMAND": {
       "DECADDR": "411",
       "JMRIPREFIX": "M2T",
       "USER_NAME": "Switch 13",
-      "command": "close"
+      "command": "throw"
      },
      "SELECTEDREPORT": {
       "DECADDR": "411",
       "JMRIPREFIX": "M2T",
       "USER_NAME": "Switch 13",
-      "command": "close"
+      "command": "throw"
      }
     },
     "C": {
@@ -4011,13 +4063,13 @@
       "DECADDR": "411",
       "JMRIPREFIX": "M2T",
       "USER_NAME": "Switch 13",
-      "command": "throw"
+      "command": "close"
      },
      "SELECTEDREPORT": {
       "DECADDR": "411",
       "JMRIPREFIX": "M2T",
       "USER_NAME": "Switch 13",
-      "command": "throw"
+      "command": "close"
      }
     }
    }
@@ -5739,20 +5791,20 @@
   },
   "9": {
    "block": "OS Switch 9",
-   "normal": "C",
+   "normal": "B",
    "routes": {
     "B": {
      "ROUTECOMMAND": {
       "DECADDR": "1310",
       "JMRIPREFIX": "M2T",
       "USER_NAME": "Switch 9",
-      "command": "throw"
+      "command": "close"
      },
      "SELECTEDREPORT": {
       "DECADDR": "1310",
       "JMRIPREFIX": "M2T",
       "USER_NAME": "Switch 9",
-      "command": "throw"
+      "command": "close"
      }
     },
     "C": {
@@ -5760,13 +5812,13 @@
       "DECADDR": "1310",
       "JMRIPREFIX": "M2T",
       "USER_NAME": "Switch 9",
-      "command": "close"
+      "command": "throw"
      },
      "SELECTEDREPORT": {
       "DECADDR": "1310",
       "JMRIPREFIX": "M2T",
       "USER_NAME": "Switch 9",
-      "command": "close"
+      "command": "throw"
      }
     }
    }

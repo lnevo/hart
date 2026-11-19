@@ -134,7 +134,7 @@ class Cutover(unittest.TestCase):
         live = {i: f for i, f in B.turnout_facts(self.live_le).items() if i in idents}
         self.assertEqual(len(live), 20)
         self.assertEqual(B.turnout_facts(self.le), live)          # ident, name, type, continuing, leg blocks
-        self.assertEqual(B.swapped_idents(), {"TO1"})
+        self.assertEqual(B.swapped_idents(), set())         # Switch 13's facts hold the Barn on leg C (2026-11-18)
 
     def test_every_mast_resolves_exactly_as_staging_masts_says(self) -> None:
         key = lambda m: (m["kind"], m["facing"], list(m["protects"]), m.get("turnout"))      # noqa: E731
@@ -312,8 +312,8 @@ class ThreeLevels(unittest.TestCase):
         # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
         self.assertTrue(B.JOIN_HELIX)
         self.assertEqual(self.P.staging_same, [
-            "end bumper EBG1 -> anchor AGE1 (hidden join TG224 to Track 135-H2, Mast 38RA)",
-            "end bumper EBG2 -> anchor AGE2 (hidden join TG225 to Track 135-H1, Mast 40RA)",
+            "end bumper EBG1 -> anchor AGE1 (hidden join TG230 to Track 135-H2, Mast 38RA)",
+            "end bumper EBG2 -> anchor AGE2 (hidden join TG231 to Track 135-H1, Mast 40RA)",
             "track segment TG6 connect2name EBG2 -> AGE2",
             "track segment TG32 connect2name EBG1 -> AGE1"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
@@ -494,11 +494,14 @@ class ThreeLevels(unittest.TestCase):
             if (el.get("sensor") or "").startswith("MoveToTrack_"):
                 at[el.get("sensor")] = B.panel_items.anchor_point(it["anchor"], whole, blocks, it["id"])
         button = lambda n: at[f"MoveToTrack_{n}_stored"]       # noqa: E731
+        # (EH-1 is 36 in since 2026-11-18, longer than EH-2 and EH-3, so its button stands just west of its own
+        # track's end, east of EH-2's; EH-2 and EH-3 still step one row apart as W-1 and W-2 do)
         xs = [round(button(f"EH-{n}")[0]) for n in (1, 2, 3)]
-        self.assertEqual(xs[2] - xs[1], xs[1] - xs[0])
+        self.assertGreater(xs[0], xs[1])
+        self.assertGreater(xs[1], xs[2])
         w1, w2 = button("W-1"), button("W-2")
-        rows = (w2[1] - w1[1]) / (button("EH-2")[1] - button("EH-1")[1])
-        self.assertAlmostEqual(w2[0] - w1[0], rows * (xs[1] - xs[0]), delta=1)
+        rows = (w2[1] - w1[1]) / (button("EH-3")[1] - button("EH-2")[1])
+        self.assertAlmostEqual(w2[0] - w1[0], rows * (xs[2] - xs[1]), delta=2)      # parked; within 2 px
         self.assertLess(w2[0], w1[0])
         # the title is HART RAILROAD (panel_items.json), not the hand-drawn panel's Neville Island
         texts = {el.get("text") for el in self.le.iter("positionablelabel")}
@@ -538,7 +541,12 @@ class ThreeLevels(unittest.TestCase):
         self.assertNotIn("101-103", {el.get("text") for el in self.le.iter("positionablelabel")})
         limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
                    and "crossover" in line}
-        self.assertFalse(limited & {"225", "241"})
+        self.assertFalse(limited & {"225"})
+        # 241 is 1.3 px short of room since the straight-level rules (2026-11-18): drawn at 45.8 degrees, owner accepted
+        steep = [float(m.group(1)) for line in self.P.log
+                 if (m := re.search(r"switch 241: crossover drawn [\d.]+ px across, ([\d.]+) degrees", line))]
+        self.assertTrue(steep, "no crossover log line for switch 241")
+        self.assertTrue(all(a <= 46.0 for a in steep), steep)
         # SW-101 once, below its lower turnout
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101"]
         self.assertEqual(len(labels), 1)
