@@ -21,7 +21,7 @@
     },
     {
       "name": "A. Stucki Company",
-      "blurb": "Railway springs, machined parts, and steel for the island's railroad supplier. Green destination.",
+      "blurb": "Railway springs, machined parts, and steel for the island's railroad supplier. On HART, a green destination.",
       "commodities": [
         "Machined Parts",
         "Railway Springs",
@@ -39,7 +39,7 @@
     },
     {
       "name": "Calgon Carbon",
-      "blurb": "Activated carbon, coal, and process chemicals. Purple block — a busy spot for NVL.",
+      "blurb": "Activated carbon, coal, and process chemicals. On HART, the purple block — a busy spot for NVL.",
       "commodities": [
         "Activated Carbon",
         "Caustic Soda",
@@ -56,7 +56,7 @@
     },
     {
       "name": "Ferrellgas",
-      "blurb": "LPG in and out on tank cars. Red destination on the crew sheets.",
+      "blurb": "LPG in and out on tank cars. On HART, the red destination on the crew sheets.",
       "commodities": [
         "LPG"
       ],
@@ -69,7 +69,7 @@
     },
     {
       "name": "Kosmos Cement",
-      "blurb": "Cement and aggregate. Pink block — covered hoppers and bulk moves.",
+      "blurb": "Cement and aggregate. On HART, the pink block — covered hoppers and bulk moves.",
       "commodities": [
         "Aggregate",
         "Cement"
@@ -83,7 +83,7 @@
     },
     {
       "name": "Shenango Coke Works",
-      "blurb": "Coke for steel customers. Black destination — CK1 works the pickup, the weigh, and the reload when hoppers fail the scale.",
+      "blurb": "Coke for steel customers. On HART, the black destination — CK1 works the pickup, the weigh, and the reload when hoppers fail the scale.",
       "commodities": [
         "Coke"
       ],
