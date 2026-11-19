@@ -59,7 +59,7 @@ PLANT_CELLS: dict[tuple[int, int], str] = facts.load_uss_plants()
 SWITCHES = facts.load_switches()
 LEGS_BY_OS = facts.legs_by_os(SWITCHES)
 # layout_idents whose CATS NORMAL is JMRI Thrown (Designer "differs from JMRI
-# settings"): Switch 1 only, whose through route is its thrown leg.
+# settings"): none since 2026-11-18, when the owner cleared Switch 1's (switches.csv cats_inverted).
 INVERT_VS_JMRI = {sw.le_ident for sw in SWITCHES.values() if sw.cats_inverted}
 
 # Do not add rails. Designer already drew every frog.

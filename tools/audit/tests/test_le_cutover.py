@@ -579,6 +579,7 @@ class ThreeLevels(unittest.TestCase):
         # 241 is 1.3 px short of room since the straight-level rules (2026-11-18): drawn at 45.8 degrees, owner accepted
         steep = [float(m.group(1)) for line in self.P.log
                  if (m := re.search(r"switch 241: crossover drawn [\d.]+ px across, ([\d.]+) degrees", line))]
+        self.assertTrue(steep, "no crossover log line for switch 241")
         self.assertTrue(all(a <= 46.0 for a in steep), steep)
         # SW-101 once, below its lower turnout
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101"]

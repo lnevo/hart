@@ -78,7 +78,8 @@ def runs(band, skip=()):
 # it records which switches differ from the hand-drawn letters. A mast on such a leg stands on the other letter
 # (le_signal_boundaries.csv's generated_slot, held to this list by check_swapped_slots), and check_boundaries stops
 # the build unless the drawn panel puts each mast there. Empty since 2026-11-18: Switch 13's facts now hold the Barn on
-# its diverging leg C (staging.plan_overrides.json, branch_leg B), so le_signal_boundaries.csv records Mast 14R on C.
+# its diverging leg C (staging.plan_overrides.json, branch_leg B), so le_signal_boundaries.csv records Mast 14R on C. The list and its checks stay for a
+# future switch drawn against its hand-drawn letters.
 LEGS_SWAPPED = {}
 
 
