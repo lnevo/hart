@@ -1,40 +1,55 @@
-"""The Jython scripts cannot import hartlib, so they carry their own copy of the main Layout Editor panel names.
-Fail when a copy drifts from hartlib.tables.MAIN_PANEL_NAMES."""
+"""Jython scripts cannot import hartlib, so any that name the main Layout Editor panels carry their own copy.
+Fail when a copy drifts from hartlib.tables.MAIN_PANEL_NAMES. Scans every script in the dirs that hold
+JMRI-run scripts, skipping CPython ones that import hartlib."""
 from __future__ import annotations
 
-import ast
+import re
 import sys
 import unittest
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(SCRIPTS.parents[3] / "tools/hartlib/src"))
+REPO = SCRIPTS.parents[3]
+sys.path.insert(0, str(REPO / "tools/hartlib/src"))
 from hartlib import tables  # noqa: E402
 
-ANCHOR = tables.MAIN_PANEL_NAMES[0]
+DIRS = (SCRIPTS, REPO / "jmri/scripts")
+MAIN = set(tables.MAIN_PANEL_NAMES)
+
+
+def scripts():
+    for d in DIRS:
+        for path in sorted(d.glob("*.py")):
+            if "hartlib" not in path.read_text():
+                yield path
+
+
+LITERAL = re.compile(r"[(\[{]\s*((?:(?:\"[^\"\n]*\"|'[^'\n]*')\s*,?\s*)+)[)\]}]")
+STRING = re.compile(r"\"([^\"\n]*)\"|'([^'\n]*)'")
 
 
 def copies(path: Path) -> list[tuple[str, ...]]:
-    """Every tuple, list or set literal of strings in the script that holds the first main panel name."""
+    """String-only tuple, list or set literals that share at least two names with the main panel names.
+    Read as text, not parsed: some JMRI scripts are Jython 2 and do not parse as Python 3."""
     found = []
-    for node in ast.walk(ast.parse(path.read_text())):
-        if isinstance(node, (ast.Tuple, ast.List, ast.Set)):
-            vals = tuple(e.value for e in node.elts if isinstance(e, ast.Constant) and isinstance(e.value, str))
-            if len(vals) == len(node.elts) and ANCHOR in vals:
-                found.append(vals)
+    for m in LITERAL.finditer(path.read_text()):
+        vals = tuple(a or b for a, b in STRING.findall(m.group(1)))
+        if len(MAIN & set(vals)) >= 2:
+            found.append(vals)
     return found
 
 
 class MainPanelNamesCopiesTest(unittest.TestCase):
     def test_copies_match_hartlib(self):
-        for name in ("discover_nx.py", "panel_status.py"):
-            found = copies(SCRIPTS / name)
-            self.assertTrue(found, f"{name}: no copy of the main panel names found; update this test if it moved")
-            for vals in found:
+        total = 0
+        for path in scripts():
+            for vals in copies(path):
+                total += 1
                 self.assertEqual(
                     sorted(vals), sorted(tables.MAIN_PANEL_NAMES),
-                    f"{name} has main panel names {vals} but hartlib.tables.MAIN_PANEL_NAMES is "
-                    f"{tables.MAIN_PANEL_NAMES}; change them together")
+                    f"{path.relative_to(REPO)} has main panel names {vals} but hartlib.tables.MAIN_PANEL_NAMES "
+                    f"is {tables.MAIN_PANEL_NAMES}; change them together")
+        self.assertTrue(total, "no copy of the main panel names found in any Jython script; update this test")
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ import digicon_trace as trace  # noqa: E402
 sys.path.append(str(paths.LAYOUT_SCRIPTS))
 import layout_facts as facts  # noqa: E402
 
-SRC = paths.REPO_ROOT / "archive/panels/HART_Digicon.xml"
+SRC = ROOT / "archive/panels/HART_Digicon.xml"
 CTC = paths.CATS_DIR / "panels/HART_CTC.xml"
 ABS = paths.CATS_DIR / "panels/HART_ABS.xml"
 
