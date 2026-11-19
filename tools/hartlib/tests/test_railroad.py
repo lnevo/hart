@@ -151,6 +151,37 @@ class Readers(Copy):
         self.fails(lambda: R.read_tables(bad), "tables.xml: cannot read it as a tables file")
         self.fails(lambda: R.read_tables(self.tmp / "none.xml"), "none.xml: cannot read it as a tables file")
 
+    def test_a_user_name_given_to_two_beans_of_one_type(self) -> None:
+        """Two turnouts, sensors, masts or blocks under one user name stop the read, naming the file, the type, the
+        name and both system names; the same name on beans of different types is fine."""
+        dup = self.tmp / "dup.xml"
+        for kind, tag, box, system in (("turnout", "turnout", "turnouts", "MT1"),
+                                       ("sensor", "sensor", "sensors", "MS1"),
+                                       ("mast", "virtualsignalmast", "signalmasts", "MF1"),
+                                       ("block", "block", "blocks", "IB1")):
+            with self.subTest(kind):
+                dup.write_text(
+                    f"<layout-config><{box}>"
+                    f"<{tag}><systemName>{system}</systemName><userName>Twin</userName><x/></{tag}>"
+                    f"<{tag}><systemName>{system}9</systemName><userName>Twin</userName><x/></{tag}>"
+                    f"</{box}></layout-config>", encoding="utf-8")
+                self.fails(lambda: R.read_tables(dup),
+                           f"dup.xml: two {kind}s have the user name 'Twin': {system} and {system}9$")
+        dup.write_text("<layout-config><turnouts><turnout><systemName>MT1</systemName><userName>Twin</userName>"
+                       "</turnout><turnout><systemName>MT2</systemName></turnout></turnouts>"
+                       "<sensors><sensor><systemName>MS1</systemName><userName>Twin</userName></sensor></sensors>"
+                       "</layout-config>", encoding="utf-8")
+        t = R.read_tables(dup)
+        self.assertEqual((t.turnouts, t.sensors), ({"Twin": "MT1"}, {"Twin": "MS1"}))
+        # The repo's file reads as before: every named bean, once.
+        live, root = R.read_tables(REPO.tables), R.tables.read(REPO.tables)
+        for got, beans in ((live.turnouts, R.tables.turnouts(root)), (live.sensors, R.tables.sensors(root)),
+                           (live.masts, R.tables.masts(root))):
+            self.assertEqual(got, {R.tables.user_name(b): R.tables.system_name(b) for b in beans
+                                   if R.tables.user_name(b)})
+        self.assertEqual(live.blocks, {R.tables.user_name(b) or R.tables.system_name(b)
+                                       for b in R.tables.blocks(root)})
+
     def test_a_noted_file_needs_its_note_line(self) -> None:
         noted = self.tmp / "noted.csv"
         noted.write_text("mast,facing,protects\nMast 2L,Track Main West,OS Switch 1\n", encoding="utf-8")
