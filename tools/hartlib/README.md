@@ -106,6 +106,7 @@ Lookups (all take the root element unless noted):
 | `system_name(el)`, `user_name(el)`, `text(el, child)` | stripped names and child text |
 | `by_system_name`, `by_user_name`, `by_any_name` | dicts over any list of beans |
 | `section(root, container, tag)`, `elements(el)` | generic: all sections; children without comments |
+| `remove_child(parent, child)` | take a child out, keeping the indentation of what follows (the build's strip and `hartlib.parked`) |
 
 ### `hartlib.railroad`
 
@@ -150,13 +151,6 @@ The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, 
 `head_name()` (the virtual head from its user name: "Head 108R Top" -> IH:HART:C3:108R_Top, never from the draft
 physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
 and `audit_panel_contracts.py`.
-
-### `hartlib.hand_drawn`
-
-The last hand-drawn `tables.xml`, read from git at `COMMIT` (main just before the Layout Editor cut-over): `tables_bytes()`,
-`tables_path()` (a read-only temporary copy, one per process) and, for tests, `skip_unless_available()`. Used by
-`build_layout_le.py` (`template_tables`: the build replaces that file's panel and adds the main and upper objects to
-its tables) and the tests of the build. No copy of the old file is kept in the tree.
 
 ### `hartlib.parked`
 

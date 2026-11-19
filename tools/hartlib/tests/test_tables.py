@@ -296,12 +296,9 @@ class GeneratedPanelMarkerTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "'HART Railroad' has 2 generated-panel markers"):
             tables.generated_panel(self.panel(2))
 
-    def test_the_repo_panel_is_generated_and_the_last_hand_drawn_one_is_not(self):
-        # the Layout Editor cut-over (Phase 5): the repo's panel is the generated one; the last hand-drawn tables
-        # stay readable from git (hartlib.hand_drawn) for what still needs them
-        from hartlib import hand_drawn
+    def test_the_repo_panel_is_generated(self):
+        # since the Layout Editor cut-over (Phase 5) the repo's panel is the generated one, which the build starts from
         self.assertTrue(tables.generated_panel(tables.layout_editor(tables.read(paths.REPO_TABLES_XML))))
-        self.assertFalse(tables.generated_panel(tables.layout_editor(tables.read(hand_drawn.skip_unless_available()))))
 
     def test_require_generated_panel(self):
         root = ET.Element("layout-config")

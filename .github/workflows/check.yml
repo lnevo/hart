@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0          # the Layout Editor build and its tests read the last hand-drawn tables from git (hartlib.hand_drawn)
       - run: 'git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init external/model-railroad-skills'
       - uses: actions/setup-python@v5
         with:
