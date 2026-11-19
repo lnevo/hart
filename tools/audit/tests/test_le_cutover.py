@@ -743,25 +743,30 @@ class Rebuilt(unittest.TestCase):
 
     def test_what_else_is_in_the_tables_carries_through(self) -> None:
         """A bean added to the live tables after a cut-over (a memory, an internal sensor whose comment names a main
-        level switch) is in the next candidates unchanged; the build's own objects are drawn as before."""
+        level switch, a layout block PanelPro numbered after the build's, ILB1126) is in the next candidates
+        unchanged; the build's own objects are drawn as before."""
         doc = tables.load(T.TABLES)
         memory = ET.fromstring('<memory value="kept"><systemName>IMHART:KEEP</systemName><userName>Kept memory'
                                '</userName></memory>')
         sensor = ET.fromstring('<sensor inverted="false"><systemName>IS:HART:KEEP</systemName><userName>Kept sensor'
                                '</userName><comment>hand-added; names Switch 107</comment></sensor>')
+        layout_block = ET.fromstring('<layoutblock systemName="ILB1126" occupiedsense="2" trackcolor="gray" '
+                                     'occupiedcolor="red" extracolor="white"><systemName>ILB1126</systemName>'
+                                     '<userName>Track Hand Added</userName></layoutblock>')
         internal = next(s for s in doc.root.findall("sensors") if "InternalSensorManager" in s.get("class"))
-        doc.root.find("memories").append(memory)
-        internal.append(sensor)
+        added = [(doc.root.find("memories"), memory), (internal, sensor), (doc.root.find("layoutblocks"), layout_block)]
+        for sec, el in added:
+            sec.append(el)
         data = self.build_from(doc.tobytes(), "all")
         for root in (tables.loads(data).root, tables.loads(self.build_from(doc.tobytes())).root):
-            got = {tables.system_name(el): el for el in root.iter() if el.tag in ("memory", "sensor")}
-            self.assertEqual(B.canon(got["IMHART:KEEP"]), B.canon(memory))
-            self.assertEqual(B.canon(got["IS:HART:KEEP"]), B.canon(sensor))
+            got = {tables.system_name(el): el for el in root.iter() if el.tag in ("memory", "sensor", "layoutblock")}
+            for _sec, el in added:
+                self.assertEqual(B.canon(got[tables.system_name(el)]), B.canon(el))
         root = tables.loads(data).root
-        tables.remove_child(root.find("memories"), next(m for m in root.find("memories")
-                                                         if tables.system_name(m) == "IMHART:KEEP"))
-        internal = next(s for s in root.findall("sensors") if "InternalSensorManager" in s.get("class"))
-        tables.remove_child(internal, next(x for x in internal if tables.system_name(x) == "IS:HART:KEEP"))
+        for sec_tag, el in ((sec.tag, el) for sec, el in added):
+            for sec in root.findall(sec_tag):
+                for x in [x for x in sec if tables.system_name(x) == tables.system_name(el)]:
+                    tables.remove_child(sec, x)
         self.assertEqual(B.canon(root), B.canon(tables.loads(three_levels()[0]).root))
 
     def test_tables_without_the_generated_panel_are_refused(self) -> None:
@@ -802,8 +807,14 @@ class StripBuildOwned(unittest.TestCase):
     <block systemName="IB1"><systemName>IB1</systemName><userName>Track A</userName>
       <path todir="16" fromdir="32" block="IB2" />
       <path todir="96" fromdir="144" block="IB:C3:0001" />
+      <path todir="16" fromdir="32" block="IB:C3:0099" />
     </block>
   </blocks>
+  <layoutblocks class="lb">
+    <layoutblock systemName="ILB1001"><systemName>ILB1001</systemName><userName>Track 135-H1</userName></layoutblock>
+    <layoutblock systemName="ILB1126"><systemName>ILB1126</systemName><userName>Track Hand Added</userName>
+    </layoutblock>
+  </layoutblocks>
   <signalmastlogics class="l">
     <signalmastlogic source="Mast 136RA"><sourceSignalMast>Mast 136RA</sourceSignalMast>
       <destinationMast destination="Mast 40RB"><destinationSignalMast>Mast 40RB</destinationSignalMast>
@@ -815,9 +826,17 @@ class StripBuildOwned(unittest.TestCase):
     </signalmastlogic>
     <signalmastlogic source="Mast 38RA"><sourceSignalMast>Mast 38RA</sourceSignalMast>
       <destinationMast destination="Mast 36L"><destinationSignalMast>Mast 36L</destinationSignalMast>
+        <comment>held for Switch 107 and Mast 136RA</comment>
       </destinationMast>
       <destinationMast destination="Mast 30L"><destinationSignalMast>Mast 30L</destinationSignalMast>
-        <turnouts><turnout turnout="Switch 107" state="2" /></turnouts>
+        <turnouts><turnout><turnoutName>Switch 107</turnoutName><turnoutState>closed</turnoutState></turnout>
+        </turnouts>
+      </destinationMast>
+      <destinationMast destination="Mast 140RA"><destinationSignalMast>Mast 140RA</destinationSignalMast>
+      </destinationMast>
+    </signalmastlogic>
+    <signalmastlogic source="Mast 150LA"><sourceSignalMast>Mast 150LA</sourceSignalMast>
+      <destinationMast destination="Mast 36L"><destinationSignalMast>Mast 36L</destinationSignalMast>
       </destinationMast>
     </signalmastlogic>
   </signalmastlogics>
@@ -825,9 +844,14 @@ class StripBuildOwned(unittest.TestCase):
 </layout-config>"""
 
     def test_the_builds_own_and_their_derived_references_go(self) -> None:
+        """Also a reference to a main or upper object no longer in the tables (Mast 140RA, Mast 150LA, IB:C3:0099:
+        by the naming rule), and a layout block by its user name, not its number: ILB1126, a block added in PanelPro,
+        stays. A staging destination whose comment names Switch 107 and Mast 136RA keeps: a comment is no
+        reference."""
         root = ET.fromstring(self.TABLES)
         counts = B.strip_build_owned(root)
-        self.assertEqual(counts, dict(zip(B.STRIPPED, (4, 1, 2, 1, 1))))
+        self.assertEqual(counts, dict(zip(B.STRIPPED, (5, 2, 3, 1, 2))))
+        self.assertEqual([tables.system_name(b) for b in tables.layout_blocks(root)], ["ILB1126"])
         self.assertEqual([tables.system_name(t) for t in root.iter("turnout") if t.find("systemName") is not None],
                          ["IT:KEEP"])
         self.assertEqual([tables.user_name(m) for m in tables.masts(root)], ["Mast 40RA"])
@@ -835,6 +859,8 @@ class StripBuildOwned(unittest.TestCase):
         self.assertEqual({src: [d for _s, d, _e in tables.mast_logic_pairs(root) if _s == src]
                           for src in tables.mast_logic_sources(root)}, {"Mast 38RA": ["Mast 36L"]})
         self.assertEqual(root.find("memories/memory/comment").text, "Switch 107")    # not derived: carried
+        self.assertEqual(root.find(".//destinationMast[@destination='Mast 36L']/comment").text,
+                         "held for Switch 107 and Mast 136RA")
         self.assertEqual(B.strip_build_owned(root), dict.fromkeys(B.STRIPPED, 0))
         # what is left is indented as before: the section closes where it did
         self.assertEqual(root.find("turnouts")[-1].tail, "\n  ")

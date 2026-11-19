@@ -300,6 +300,32 @@ def remove_child(parent: ET.Element, child: ET.Element) -> None:
         parent.text = None
 
 
+# Where JMRI 5.16 stores a reference to another bean, by its name: Signal Mast Logic (DefaultSignalMastLogicManagerXml:
+# the source and destination masts, and the blocks, turnouts, sensors, masts and section a destination lists) and a
+# block's paths (BlockManagerXml: the next block, and each turnout setting).
+REFERENCE_TEXTS = frozenset({"sourceSignalMast", "destinationSignalMast", "blockName", "turnoutName", "sensorName",
+                             "mastName", "associatedSection"})
+REFERENCE_ATTRS = frozenset({"source", "destination", "block", "systemName"})
+
+
+def names_any(el: ET.Element, names: Iterable[str] = (), match=None, *, references_only: bool = True,
+              deep: bool = True) -> bool:
+    """Whether ``el`` (and, with ``deep``, anything in it) names one of ``names`` or a value ``match`` accepts.
+    ``references_only``: only where JMRI stores a bean reference (REFERENCE_TEXTS, REFERENCE_ATTRS), so a comment or
+    a setting that happens to read like a name is not one; off, every text and attribute value counts."""
+    names = frozenset(names)
+    for x in (el.iter() if deep else (el,)):
+        if not isinstance(x.tag, str):
+            continue
+        values = [x.text] if not references_only or x.tag in REFERENCE_TEXTS else []
+        values += [v for k, v in x.attrib.items() if not references_only or k in REFERENCE_ATTRS]
+        for v in values:
+            v = (v or "").strip()
+            if v and (v in names or (match is not None and match(v))):
+                return True
+    return False
+
+
 def text(el: ET.Element | None, child: str) -> str:
     """Stripped text of ``el``'s ``child``; "" when either is missing."""
     if el is None:

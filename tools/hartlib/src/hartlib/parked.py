@@ -92,9 +92,6 @@ def _user(el: ET.Element) -> str:
     return (el.findtext("userName") or el.get("userName") or "").strip()
 
 
-_remove = remove_child       # hartlib.tables: keeps the indentation of what follows
-
-
 def _copy(el: ET.Element) -> ET.Element:
     out = ET.Element(el.tag, el.attrib)
     out.text = el.text
@@ -163,16 +160,16 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
         box = _container(sec)
         for c in kids:
             box.append(_copy(c))
-            _remove(sec, c)
+            remove_child(sec, c)
         held.append(box)
         if not len(sec):
-            _remove(root, sec)
+            remove_child(root, sec)
 
     for sec in list(root):
         tag = sec.tag
         if tag in WHOLE.get(feature, ()):
             held.append(_copy(sec))
-            _remove(root, sec)
+            remove_child(root, sec)
         elif tag == "sensors":
             park_children(sec, lambda c: c.tag == "sensor" and _name(c) in sensors)
         elif tag == "memories":
@@ -187,7 +184,7 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
             park_children(sec, lambda c: _name(c) in actions)
         elif (tag, sec.get("name")) == PANELS.get(feature):
             held.append(_copy(sec))
-            _remove(root, sec)
+            remove_child(root, sec)
     for sml in root.iter("signalmastlogic"):  # a Signal Mast Logic destination's section (Dispatcher sections)
         for dest in sml.findall("destinationMast"):
             for sec in dest.findall("associatedSection"):
@@ -195,7 +192,7 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
                     ET.SubElement(bindings, "binding", {"element": "signalmastlogic", "ident": sml.get("source", ""),
                                                         "destination": dest.get("destination", ""),
                                                         "child": "associatedSection", "value": sec.text.strip()})
-                    _remove(dest, sec)
+                    remove_child(dest, sec)
     for ng in root.iter("LogixNG"):            # a LogixNG's list of its ConditionalNGs
         lst = ng.find("ConditionalNGs")
         if lst is None:
@@ -204,21 +201,21 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
             if c.text and c.text.strip() in CONDITIONAL_NGS.get(feature, ()):
                 ET.SubElement(bindings, "binding", {"element": "LogixNG", "ident": _name(ng),
                                                     "child": "ConditionalNGs/systemName", "value": c.text.strip()})
-                _remove(lst, c)
+                remove_child(lst, c)
     for panel in [p for p in root if p.tag in ("LayoutEditor", "paneleditor")]:
         icons = [el for el in panel if el.get("sensor") in names]
         if icons:
             box = ET.Element(panel.tag, {"name": panel.get("name", "")})
             for el in icons:
                 box.append(_copy(el))
-                _remove(panel, el)
+                remove_child(panel, el)
             held.append(box)
         for el in panel:
             for tag in SLOT_TAGS:
                 for slot in el.findall(tag):
                     if (slot.text or "").strip() in names:
                         ET.SubElement(bindings, "binding", _where(panel, el, child=tag, value=slot.text.strip()))
-                        _remove(el, slot)
+                        remove_child(el, slot)
             for attr in SLOT_ATTRS:
                 if el.get(attr) in names:
                     ET.SubElement(bindings, "binding", _where(panel, el, attribute=attr, value=el.get(attr)))

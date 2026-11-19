@@ -459,7 +459,8 @@ class SmokeTestNames(unittest.TestCase):
         got = dict(re.findall(r'^(LEVEL_\w+_PREFIX) = "([^"]+)"', src, re.M))
         builder = (ROOT / "tools/schematic/le_common.py").read_text(encoding="utf-8")
         self.assertEqual(got, {"LEVEL_SENSOR_PREFIX": level_devices.SENSOR_PREFIX,
-                               "LEVEL_BLOCK_PREFIX": re.search(r'^BLOCK_SYS = "([^"]+)"', builder, re.M).group(1)})
+                               "LEVEL_BLOCK_PREFIX": level_devices.BLOCK_PREFIX})
+        self.assertTrue(re.search(r"^BLOCK_SYS = level_devices\.BLOCK_PREFIX\b", builder, re.M))   # the build's
 
 
 class PollInterval(unittest.TestCase):
