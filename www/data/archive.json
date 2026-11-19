@@ -693,13 +693,12 @@
     {
       "id": "foundry-aerial-1948",
       "src": "../media/hart-research/documents/usgs-AR1DQ0000040033-foundry-1948.jpg",
-      "title": "Shenango foundry site from the air, 1948",
-      "caption": "USGS aerial of the west-island site DeBruler identified as the Shenango ingot-mold foundry from Stanley Quick's directions, 17 April 1948. Frame AR1DQ0000040033.",
+      "title": "Dravo Light Metals from the air, 1948",
+      "caption": "USGS aerial of Dravo Light Metals on the west end of Neville Island, 17 April 1948. DeBruler took this site for the Shenango ingot-mold foundry from Stanley Quick's directions; the foundry was farther east. Frame AR1DQ0000040033.",
       "date": "1948-04-17",
       "tags": [
         "aerial",
-        "shenango",
-        "foundry",
+        "dravo",
         "neville-island"
       ],
       "source_url": "https://earthexplorer.usgs.gov/scene/metadata/full/5e83d8e4870f4473/AR1DQ0000040033/",
@@ -714,13 +713,12 @@
     {
       "id": "foundry-aerial-1991",
       "src": "../media/hart-research/documents/usgs-AR1VFNT00010013-foundry-1991.jpg",
-      "title": "Shenango foundry site from the air, 1991",
-      "caption": "The same west-island site on 1 April 1991, a little over a year after the foundry closed. Frame AR1VFNT00010013.",
+      "title": "Dravo Light Metals site from the air, 1991",
+      "caption": "The same Dravo Light Metals site on the west end of Neville Island, 1 April 1991. Frame AR1VFNT00010013.",
       "date": "1991-04-01",
       "tags": [
         "aerial",
-        "shenango",
-        "foundry",
+        "dravo",
         "neville-island"
       ],
       "source_url": "https://earthexplorer.usgs.gov/scene/metadata/full/5e83d8e4870f4473/AR1VFNT00010013/",
