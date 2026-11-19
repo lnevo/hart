@@ -286,9 +286,9 @@ def distances(band, start: str) -> dict:
 def intermediates(bands, found, cp_of, running, split, overrides, staging_overrides) -> list[dict]:
     """APB intermediate masts on the main and upper levels (owner, 2026-11-19), named from the milepost with the
     level's line code: a pair at the turnback of each running balloon loop or split track (half 1 to half 2 eastbound,
-    even; half 2 to half 1 westbound, odd), and one mast at the top of each helix track facing down into the helix
-    (westbound), protecting staging's helix track across the join. The count runs from staging through the helix
-    (helix_top_milepost) and on along the band (distances from its helix end)."""
+    even; half 2 to half 1 westbound, odd). None into the helix: the home signals at 129 and 135 govern it (owner,
+    2026-11-19). The count runs from staging through the helix (helix_top_milepost) and on along the band (distances
+    from its helix end)."""
     tops = helix_top_milepost(bands, staging_overrides)
     helix_names = list(overrides.get("helix", {}).values())          # H1, H2 in the overrides' order
     out = []
@@ -311,11 +311,7 @@ def intermediates(bands, found, cp_of, running, split, overrides, staging_overri
             if not cp:
                 continue                    # a track with no control point at either end gets no intermediates
             if any(k == "helix" for k, _v in t["ends"]):
-                staging_block = f"Track {helix_names[int(t['ends'][[k for k, _ in t['ends']].index('helix')][1][1:]) - 1]}"
-                out.append(dict(level=lv, cp=cp, name=f"{code}{signal_number(top, True)}",
-                                facing=t["name"], protects=staging_block, heads=1, kind="one-searchlight",
-                                switch="", intermediate=True, node=hend, band=bi, milepost=round(top, 3)))
-                continue
+                continue                    # no signal into the helix: 129/135 govern it (owner, 2026-11-19)
             if not (t["loop"] or t["name"] in split) or not (t["main"] or t["name"] in running):
                 continue
             turn = {band["strands"][s]["src"][0] for s in t["strands"]} & {band["strands"][s]["dst"][0]

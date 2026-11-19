@@ -640,9 +640,7 @@ def template_by_type(F):
 
 def intermediate_signal(bands, F, bound_bi, r, by_trial):
     """(band index, signal) of an APB intermediate (a main_upper_masts.csv row with no switch): at the turnback where
-    the loop or split track's half it faces meets the half it protects, or at the helix end of the track it faces
-    when it protects staging's helix track; heading west when its number is odd. None for a helix intermediate the
-    desk does not draw: the helix is not on the desk, so its boundary is not either."""
+    the loop or split track's half it faces meets the half it protects, heading west when its number is odd."""
     num = int(re.sub(r"\D", "", r["mast"]))
     for bi, band, opts in level_bands(bands, bound_bi):
         strands, nodes = band["strands"], band["nodes"]
@@ -664,7 +662,7 @@ def intermediate_signal(bands, F, bound_bi, r, by_trial):
                         "_edge": t["edge"], "cm_from_toward": 0.0, "edge_cm": t["cm"],
                         "dir": "west" if num % 2 else "east", "kind": "field", "heads": len(r["heads"]),
                         "source": level_masts.PATH.name}
-        return None                                  # into the helix: not drawn on the desk
+        raise SystemExit(f"{r['mast']}: {r['facing']} and {r['protects']} meet at no turnback on the desk")
     raise SystemExit(f"{r['mast']}: no desk band draws {r['facing']}")
 
 
@@ -747,9 +745,7 @@ def level_mast_bindings(bands, F, bound_bi):
                 raise SystemExit(f"{name}: no staging mast of type {mast_type(r['system_name'])} gives a CATS "
                                  "template (signal_head_plan.csv)")
             out[sg["mast"]] = {"name": name, "template": template}
-    # an intermediate into the helix is not drawn: the helix, and so its boundary, is not on the desk
-    into_helix = {name for name, r in rows.items() if not r["switch"] and r["protects"] not in F.device.blocks}
-    missing = sorted(set(rows) - {e["name"] for e in out.values()} - into_helix)
+    missing = sorted(set(rows) - {e["name"] for e in out.values()})
     if missing:
         raise SystemExit(f"main and upper masts not on the desk: {', '.join(missing)}")
     return out

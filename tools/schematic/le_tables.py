@@ -259,10 +259,6 @@ def helix_join_changes(missing: list, extra: list, new_le: ET.Element, P, ends: 
         if new is None or len(old) or len(new):
             continue
         added = {k: v for k, v in new.attrib.items() if k not in old.attrib}
-        # a main or upper helix intermediate (Mast A75, B75) may stand on the join's anchor, facing into the helix
-        level_mast = {k for k, v in added.items() if k in ("eastboundsignalmast", "westboundsignalmast")
-                      and level_devices.is_level_name(v)}
-        added = {k: v for k, v in added.items() if k not in level_mast}
         want = dict(old.attrib, ident=new.get("ident"), type="ANCHOR")
         seg = segs.get(added.get("connect2name"))
         if set(added) != {"connect2name"} or old.get("type") != "END_BUMPER" or \
@@ -328,8 +324,8 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str, join_helix: b
         old_els[canon(el)].append(el)
     extra = []
     for el in new_le:
-        if id(el) in level or (el.tag == "signalmasticon" and level_devices.is_level_name(el.get("signalmast"))):
-            continue                     # a main or upper element, or a helix intermediate's icon on a join anchor
+        if id(el) in level:
+            continue
         got = old_els.get(canon(el))
         if got:
             got.pop()

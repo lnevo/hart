@@ -30,7 +30,7 @@ def check_level_slots(P, rows: list[dict], le_mod) -> None:
     if not rows:
         return
     ix = slots_module().Index(le_mod.to_xml(P, "check"))
-    placed = {m["mast"]: m for m in P.masts}     # a helix intermediate stands on a staging join anchor
+    placed = {m["mast"]: m for m in P.masts if mast_band(m) != 0}
     turnouts = {P.name(t["ident"]): t for t in P.turnouts}
     bad = []
     for r in rows:
