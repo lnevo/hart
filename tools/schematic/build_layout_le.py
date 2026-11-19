@@ -141,8 +141,21 @@ RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.x
 PARKED = parked.PARKED
 
 
+def base_tables(live_path: Path) -> tuple[bytes, dict]:
+    """(bytes, counts) of the tables a build draws on: `live_path`, which must hold the generated panel
+    (hartlib.tables.require_generated_panel), less what an earlier build added (strip_build_owned, whose counts these
+    are)."""
+    doc = tables.load(live_path)
+    try:
+        tables.require_generated_panel(doc.root, paths.rel(live_path))
+    except ValueError as exc:
+        raise BuildError(f"{exc}: the build starts from tables that hold the generated panel") from None
+    counts = strip_build_owned(doc.root)
+    return doc.tobytes(), counts
+
+
 def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", as_live: bool = False,
-          approved: Path | None = APPROVED, page: dict | None = None):
+          approved: Path | None = APPROVED, page: dict | None = None, stripped_base: tuple | None = None):
     """(tables bytes, the plugin's Panel, {band key: names}, bands). `levels` "all" draws every band, main and upper
     under the device map's names (level_names) and their objects added to the tables; "staging" draws staging alone,
     its helix ends as end bumpers, and adds no table object. `as_live` writes a cut-over candidate: the generated
@@ -152,7 +165,9 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     unchanged (check_staging_unchanged; module text). `as_live` must be given: without it
     (the viewing trials, retired, owner 2026-11-17) the build stops. Staging's facts come from the staging device map
     (staging_device_map.load); nothing is read from a panel in the tables. `approved`: the fingerprint the staging
-    candidate's panel must match (check_approved; None skips it, for --approve-staging and --review)."""
+    candidate's panel must match (check_approved; None skips it, for --approve-staging and --review).
+    `stripped_base`: base_tables(live_path) already read (the three-level build passes it to the staging candidate
+    it draws first, so the tables are read and stripped once)."""
     if levels not in LEVELS:
         raise BuildError(f"levels must be one of {', '.join(LEVELS)}, not {levels!r}")
     if not as_live:
@@ -183,9 +198,13 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         bands = le_mod.drawn_bands(bands, page)
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
+    # The build reads no panel (a candidate rebuilds from itself byte for byte): it replaces the generated one and
+    # adds the main and upper objects again, so what an earlier build added comes out first
+    if stripped_base is None:
+        stripped_base = base_tables(live_path)
     base = None             # the three-level candidate: the staging candidate it must hold unchanged, and its grid
     if levels == "all":
-        base = build(live_path, bands, "staging", True, approved=approved, page=page)
+        base = build(live_path, bands, "staging", True, approved=approved, page=page, stripped_base=stripped_base)
     keys = [band_key(t) for t, _, _ in bands]
     if STAGING not in keys:
         raise BuildError(f"no {STAGING} band in the schematic (bands: {', '.join(keys)})")
@@ -194,16 +213,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         keys = [STAGING]
     if band_key(bands[0][0]) != STAGING:
         raise BuildError(f"the first band is {bands[0][0]!r}, not {STAGING}")
-    doc = tables.load(live_path)
+    doc = tables.loads(stripped_base[0], path=Path(live_path))
     root = doc.root
-    # The build reads no panel (a candidate rebuilds from itself byte for byte): it replaces the generated one and
-    # adds the main and upper objects again, so what an earlier build added comes out first (strip_build_owned stops
-    # when any of it is left)
-    try:
-        old = tables.require_generated_panel(root, paths.rel(live_path))
-    except ValueError as exc:
-        raise BuildError(f"{exc}: the build starts from tables that hold the generated panel") from None
-    stripped = strip_build_owned(root)
+    old = tables.require_generated_panel(root, paths.rel(live_path))      # base_tables checked it: never raises
+    stripped = dict(stripped_base[1])
     panel_name = TEMPLATE_PANEL
 
     names, lengths = level_names(bands, le_mod, page=page) if levels == "all" else ({}, {})
