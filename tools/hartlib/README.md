@@ -152,6 +152,14 @@ The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, 
 physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
 and `audit_panel_contracts.py`.
 
+### `hartlib.boundaries`
+
+The one reader of `le_signal_boundaries.csv`, where each staging mast stands on the generated Layout Editor panel:
+`PATH`, `Boundary` (`kind`, `ident`, `slot`, `mast`, `notes`, and `binding_name`, the panel attribute that binds it)
+and `read(path)`. `read` strips every value, stores a slot as A to D or east/west in either case, and raises
+`ValueError` on an unknown kind, a slot its kind lacks, a mast named twice or two masts in one slot. Used by
+`le_checks.py` (the LE build), `audit_panel_contracts.py` and `apply_le_sml_facing.py`.
+
 ### `hartlib.parked`
 
 The features parked out of the active tables (`PARKED`: Entry/Exit, the Dispatcher System, the USS CTC machine;

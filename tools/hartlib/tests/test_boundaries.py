@@ -1,4 +1,5 @@
 """hartlib.boundaries: the one reader of le_signal_boundaries.csv."""
+import shutil
 import sys
 import tempfile
 import unittest
@@ -12,10 +13,11 @@ HEADER = "kind,ident,slot,mast_user_name,notes\n"
 
 
 class Read(unittest.TestCase):
-    def write(self, body: str) -> Path:
-        tmp = Path(tempfile.mkdtemp()) / "b.csv"
-        self.addCleanup(lambda: tmp.unlink(missing_ok=True))
-        tmp.write_text(HEADER + body, encoding="utf-8")
+    def write(self, body: str, header: str = HEADER) -> Path:
+        folder = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, folder)
+        tmp = folder / "b.csv"
+        tmp.write_text(header + body, encoding="utf-8")
         return tmp
 
     def test_committed_file(self) -> None:
@@ -28,6 +30,15 @@ class Read(unittest.TestCase):
         rows = B.read(self.write(" turnout , TO1 , C , Mast 14R , n \n anchor,AG6, east ,Mast 40RB,\n"))
         self.assertEqual([(r.kind, r.ident, r.slot, r.mast, r.notes) for r in rows],
                          [("turnout", "TO1", "C", "Mast 14R", "n"), ("anchor", "AG6", "east", "Mast 40RB", "")])
+
+    def test_slot_case(self) -> None:
+        rows = B.read(self.write("turnout,TO1,c,Mast 1,\nanchor,AG6,East,Mast 2,\n"))
+        self.assertEqual([(r.slot, r.binding_name) for r in rows], [("C", "signalCMast"), ("east", "eastboundsignalmast")])
+
+    def test_blank_masts_reported_once(self) -> None:
+        with self.assertRaises(ValueError) as cm:
+            B.read(self.write("turnout,TO1,A,,\nturnout,TO1,A,,\n"))
+        self.assertNotIn("named twice", str(cm.exception))
 
     def test_binding_name(self) -> None:
         self.assertEqual(B.Boundary("turnout", "TO1", "c", "M").binding_name, "signalCMast")
@@ -47,10 +58,8 @@ class Read(unittest.TestCase):
                 B.read(self.write(body))
 
     def test_missing_column(self) -> None:
-        tmp = Path(tempfile.mkdtemp()) / "b.csv"
-        tmp.write_text("kind,ident,slot\nturnout,TO1,A\n", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "missing columns mast_user_name"):
-            B.read(tmp)
+            B.read(self.write("turnout,TO1,A\n", header="kind,ident,slot\n"))
 
 
 if __name__ == "__main__":

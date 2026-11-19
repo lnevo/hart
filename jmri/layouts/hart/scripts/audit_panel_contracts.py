@@ -14,11 +14,11 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import boundaries, level_devices, level_masts, parked, paths, tables  # noqa: E402
+from hartlib import boundaries as boundary_csv, level_devices, level_masts, parked, paths, tables  # noqa: E402
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
-BOUNDARIES = boundaries.PATH
+BOUNDARIES = boundary_csv.PATH
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
@@ -61,7 +61,7 @@ def occupancy_binding_map() -> dict[str, str]:
     return out
 
 
-Boundary = boundaries.Boundary     # one row of le_signal_boundaries.csv (hartlib.boundaries reads the file)
+Boundary = boundary_csv.Boundary     # one row of le_signal_boundaries.csv (hartlib.boundaries reads the file)
 
 
 @dataclass
@@ -80,9 +80,9 @@ class Audit:
 
 
 def load_boundaries(path: Path) -> list[Boundary]:
-    rows = boundaries.read(path)       # stops on a bad kind or slot, or a mast named twice
+    rows = boundary_csv.read(path)     # stops on a bad kind or slot, or a mast named twice
     if len(rows) != 32:
-        raise ValueError(f"{path}: expected 32 unique boundary mast names")
+        raise ValueError(f"{path}: expected 32 boundary rows, found {len(rows)}")
     return rows
 
 

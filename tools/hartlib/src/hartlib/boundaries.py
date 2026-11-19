@@ -5,7 +5,7 @@ tools/schematic/le_checks.py (check_boundaries, the LE build), jmri/layouts/hart
 (load_assignments, which writes the masts into tables.xml). A column or slot rule changes here only.
 
 Columns: kind (turnout or anchor), ident, slot (A to D on a turnout, east or west on an anchor), mast_user_name and
-notes. Every value is read stripped. read() stops on an unknown kind, a slot its kind has no such slot for, a mast
+notes. Every value is read stripped, and a slot in either case is stored as A to D or east/west. read() stops on an unknown kind, a slot its kind has no such slot for, a mast
 named twice, or two masts in one slot.
 """
 from __future__ import annotations
@@ -49,9 +49,10 @@ def read(path: Path = PATH) -> list[Boundary]:
         rows = list(reader)
     out, masts, slots, bad = [], set(), set(), []
     for row in rows:
-        b = Boundary(kind=(row["kind"] or "").strip(), ident=(row["ident"] or "").strip(),
-                     slot=(row["slot"] or "").strip(), mast=(row["mast_user_name"] or "").strip(),
-                     notes=(row.get("notes") or "").strip())
+        kind, slot = (row["kind"] or "").strip(), (row["slot"] or "").strip()
+        slot = slot.upper() if kind == "turnout" else slot.lower()
+        b = Boundary(kind=kind, ident=(row["ident"] or "").strip(), slot=slot,
+                     mast=(row["mast_user_name"] or "").strip(), notes=(row.get("notes") or "").strip())
         if b.kind not in SLOTS:
             bad.append(f"{b.mast or '<no mast>'}: unknown kind {b.kind!r} (turnout or anchor)")
         elif b.slot not in SLOTS[b.kind]:
@@ -59,6 +60,7 @@ def read(path: Path = PATH) -> list[Boundary]:
                        f"({', '.join(SLOTS[b.kind])})")
         if not b.mast or not b.ident:
             bad.append(f"{b.mast or '<no mast>'}: no mast name or no ident")
+            continue
         if b.mast in masts:
             bad.append(f"{b.mast}: named twice")
         if (b.kind, b.ident, b.slot) in slots:

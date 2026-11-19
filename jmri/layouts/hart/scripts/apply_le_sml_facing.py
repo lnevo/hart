@@ -60,7 +60,7 @@ def load_assignments(path: Path) -> tuple[dict[str, dict[str, str]], dict[str, d
     anchors: dict[str, dict[str, str]] = {}
     try:
         rows = boundaries.read(path)
-    except ValueError as exc:
+    except (OSError, ValueError) as exc:
         raise SystemExit(str(exc)) from None
     for b in rows:
         (turnouts if b.kind == "turnout" else anchors).setdefault(b.ident, {})[b.slot] = b.mast
