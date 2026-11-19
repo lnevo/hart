@@ -280,7 +280,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     if levels == "staging" and set(P.blocks) - staging_blocks:
         raise BuildError(f"the staging panel draws blocks that are not live: {sorted(set(P.blocks) - staging_blocks)}")
     if levels == "all":
-        add_level_objects(root, P, names, lengths, staging_blocks)
+        add_level_objects(root, P, names, lengths, staging_blocks, startup_thrown(bands))
         add_level_signals(root, level_rows)
 
     try:
@@ -340,6 +340,25 @@ def live_target(out: Path) -> bool:
         return True
     profile = Path(os.path.realpath(paths.JMRI_USER_FILES))
     return real == profile or profile in real.parents
+
+
+def startup_thrown(bands) -> frozenset:
+    """The main and upper turnouts ("Switch <n>") that start Thrown: those whose main route runs through leg C and
+    not leg B, so every virtual turnout lines the main line when the tables load (owner, 2026-11-19: 227 and 229
+    at the peninsula loop). A double crossover or a crossover half stays Closed (straight through)."""
+    import build_device_map as bdm      # imports this module's plugin path: here, not at load
+    out = set()
+    for title, band, _opts in bands:
+        if not bdm.band_level(title):
+            continue
+        for d in band["nodes"].values():
+            if d["kind"] != "switch":
+                continue
+            main = {p: bool(sid and band["strands"][sid]["main"])
+                    for p in "BC" for sid in [d["ins"].get(p) or d["outs"].get(p)]}
+            if main["C"] and not main["B"]:
+                out.add(f"Switch {bdm.base(d['label'])}")
+    return frozenset(out)
 
 
 def main(argv=None) -> int:

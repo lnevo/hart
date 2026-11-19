@@ -11,7 +11,8 @@ device, so a physical device is later swapped in by that mapping alone.
   IS:HART:C3:B:OS225b), user name occupancy_user ("BS 107-109", "BS Switch 225b").
 - Head "Head <mast>[ Top|Bottom]": head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top).
 - The LogixNG that sets every block sensor INACTIVE when the tables load (CLEAR_*; build_layout_le.add_level_clear)
-  and its reader clear_sensors.
+  and its reader clear_sensors; the same LogixNG sets every virtual turnout to its startup position, Closed except
+  where the main route runs through the diverging leg (owner, 2026-11-19), read by turnout_states.
 
 Used by tools/schematic/build_device_map.py, build_main_upper_masts.py, build_layout_le.py, build_cats_panel.py,
 hartlib.level_masts, tools/audit/check_layout_facts.py and www/scripts/tables_page.py.
@@ -37,6 +38,7 @@ CLEAR_CONDITIONAL = "IQC$HART:C3:BlockSensorsClear"
 CLEAR_MANY = "IQDA$HART:C3:BlockSensorsClear"
 CLEAR_ACTION = "IQDA$HART:C3:B:"          # + the block key: one ActionSensor per sensor
 CLEAR_USER = "Main and upper block sensors clear on start"
+TURNOUT_ACTION = "IQDA$HART:C3:T:"          # + the switch number: one ActionTurnout per virtual turnout, same LogixNG
 CLEAR_PREFIX = re.compile(r"IQ(?:C|DA)?\$HART:C3:")
 
 
@@ -99,6 +101,22 @@ def clear_action(sensor: str) -> str:
     return CLEAR_ACTION + sensor.removeprefix(SENSOR_PREFIX)
 
 
+def turnout_action(turnout: str) -> str:
+    """The ActionTurnout of the startup LogixNG that sets `turnout` (IT:HART:C3:<n>)."""
+    if not turnout.startswith(TURNOUT_PREFIX):
+        raise ValueError(f"{turnout!r} is not a main or upper virtual turnout")
+    return TURNOUT_ACTION + turnout.removeprefix(TURNOUT_PREFIX)
+
+
+def turnout_states(root: ET.Element) -> dict[str, str]:
+    """{virtual turnout: "Closed" or "Thrown"} the startup LogixNG in tables `root` sets ({} when none)."""
+    acts = root.find("LogixNGDigitalActions")
+    if acts is None:
+        return {}
+    return {a.findtext("namedBean/name") or "": a.findtext("state/enum") or "" for a in acts
+            if a.tag == "ActionTurnout" and (a.findtext("systemName") or "").startswith(TURNOUT_ACTION)}
+
+
 def clear_sensors(root: ET.Element) -> list[str]:
     """The sensors the sensors-clear LogixNG in tables `root` sets INACTIVE, in its order ([] when the tables have
     none). ValueError when its DigitalMany names an action that is missing or is not an ActionSensor setting a sensor
@@ -114,6 +132,8 @@ def clear_sensors(root: ET.Element) -> list[str]:
     for sock in many.findall("Actions/Socket"):
         name = sock.findtext("systemName") or ""
         a = by_name.get(name)
+        if name.startswith(TURNOUT_ACTION) and a is not None and a.tag == "ActionTurnout":
+            continue                # a virtual turnout's startup position (turnout_states)
         if a is None or a.tag != "ActionSensor" or a.findtext("state/enum") != "Inactive":
             raise ValueError(f"{CLEAR_MANY}: socket {sock.findtext('socketName')} names {name or 'no action'}, which "
                              "is not an ActionSensor setting a sensor Inactive")
