@@ -4,9 +4,12 @@ from AnyRail's own export, and the checks the owner asked of 5.3c."""
 import collections
 import json
 import math
+import io
 import struct
 import sys
+import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -64,8 +67,9 @@ def plan_bytes():
 class Records(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path = Path(cls.__module__.replace(".", "_") + "_plan.any")
-        cls.tmp = Path(__import__("tempfile").mkdtemp()) / "plan.any"
+        folder = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(folder.cleanup)
+        cls.tmp = Path(folder.name) / "plan.any"
         cls.tmp.write_bytes(plan_bytes())
         cls.parts = A.read(cls.tmp)
 
@@ -94,11 +98,35 @@ class Records(unittest.TestCase):
         self.assertEqual(sorted((r[1], r[2], round(r[4], 3)) for r in A.runs(self.parts, links)),
                          [(0, None, 30.0), (1, None, 0.0), (2, None, 0.0)])
 
-    def test_a_part_with_one_end_in_a_track_library_stops_the_read(self):
+    def test_a_one_ended_part_is_a_track_end_that_ends_a_run(self):
+        stop = self.tmp.with_name("stop.any")
+        stop.write_bytes(plan_bytes() + name("STOP-1", "ABC87") + end(63.4, 20.0, -38.1, 180.0, "ABC87"))
+        parts = A.read(stop)
+        self.assertEqual(parts[2]["kind"], "end")
+        links, free = A.joins(parts)
+        self.assertIn((1, 1, 2, 0), links)
+        self.assertIn((1, 1, None, None, 0.0), A.runs(parts, links))
+
+    def test_a_part_with_five_ends_stops_the_read(self):
         bad = self.tmp.with_name("bad.any")
-        bad.write_bytes(plan_bytes() + name("FLEX-2", "ABC87") + end(90.0, 90.0, 0.0, 0.0, "ABC87"))
-        with self.assertRaisesRegex(A.PlanError, "unsupported number of ends"):
+        bad.write_bytes(plan_bytes() + name("ODD-1", "ABC87") +
+                        b"".join(end(90.0 + i, 90.0, 0.0, 0.0, "ABC87") for i in range(5)))
+        with self.assertRaisesRegex(A.PlanError, "more than four ends"):
             A.read(bad)
+
+    def test_a_string_followed_by_a_printable_byte_is_still_read(self):
+        """The string's length prefix decides where it ends, whatever comes after it."""
+        self.assertEqual(A._names(b"\x01" + text("SL-E83") + text("PSL83") + b"A\x00\x00"), [(1, "SL-E83", "PSL83")])
+        rec = struct.pack("<4d", 5.0, 6.0, 0.0, 0.0) + text("PSL83") + b"Z"
+        self.assertEqual(A._end_records(rec), [(0, 5.0, 6.0, 0.0, 0.0, "PSL83")])
+
+    def test_the_command_line_says_what_is_wrong(self):
+        empty = self.tmp.with_name("empty2.any")
+        empty.write_bytes(b"\x00" * 64)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            self.assertEqual(A.main([str(empty), "--report"]), 2)
+        self.assertIn("no track end points", err.getvalue())
 
     def test_a_file_with_no_track_says_so(self):
         empty = self.tmp.with_name("empty.any")
@@ -131,11 +159,24 @@ class Kinds(unittest.TestCase):
                          "double_crossover")
         self.assertEqual(A.classify(ends((0, 0, 0, 180), (0, 5, 0, 166), (48, 0, 0, 0), (48, 5, 0, -14)))["kind"],
                          "crossing")
+        self.assertEqual(A.classify(ends((0, 0, 0, 180), (10, 0, 0, 0), (5, -5, 0, -90), (5, 5, 0, 90)))["kind"],
+                         "crossing")                                         # a square diamond is no three-way
+
+    def test_a_part_with_no_curve_is_measured_from_its_ends(self):
+        self.assertAlmostEqual(A.fixed_length(ends((0, 0, 0, 180), (20, 0, 0, 0))), 20.0)
+        r = 50.0                                                              # a quarter circle of radius 50
+        self.assertAlmostEqual(A.fixed_length(ends((0, 0, 0, 180), (r, r, 0, 90))), math.pi * r / 2, places=6)
 
 
 class Joins(unittest.TestCase):
     def part(self, i, *spec):
-        return dict(index=i, ends=ends(*spec), cm=None)
+        return dict(index=i, ends=ends(*spec), cm=None, curve=None, kind="track")
+
+    def test_a_gap_between_facing_ends_is_reported_once_and_side_by_side_ends_not_at_all(self):
+        gap = [self.part(0, (0, 0, 0, 180), (10, 0, 0, 0)), self.part(1, (11, 0, 0, 180), (20, 0, 0, 0))]
+        self.assertEqual(A.report(gap)[-1].split(": ", 1)[1], "[(0, 1, 1.0, 0)]")
+        side = [self.part(0, (0, 0, 0, 180), (10, 0, 0, 0)), self.part(1, (0, 4, 0, 180), (10, 4, 0, 0))]
+        self.assertTrue(A.report(side)[-1].endswith("none"))
 
     def test_ends_at_different_heights_do_not_join(self):
         links, free = A.joins([self.part(0, (0, 0, 0, 0), (10, 0, 0, 0)), self.part(1, (10, 0, 10.8, 0), (20, 0, 10.8, 0))])

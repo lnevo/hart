@@ -47,8 +47,9 @@ MAX_XY_CM = 5000.0      # a plan coordinate beyond this is not a coordinate
 PARALLEL_DEG = 2.0      # two ends this close in heading run the same way
 LEVEL_CM = 0.05         # a part's ends within this much height are level
 
-NAME_RE = re.compile(rb"([\x03-\x30])\x00{7}([\x20-\x7e]{3,48})([\x03-\x10])\x00{7}([A-Za-z0-9_-]{2,16})")
-END_RE = re.compile(rb"(.{32})([\x01-\x20])\x00{7}([A-Za-z0-9_-]{1,32})(?![\x20-\x7e])", re.S)
+LENGTH_RE = re.compile(rb"(?=[\x01-\x30]\x00{7})")      # where a length-prefixed string may start
+PRINTABLE = re.compile(rb"[\x20-\x7e]+")
+CODE = re.compile(rb"[A-Za-z0-9_-]+")
 POINT_BYTES = 22        # tag (2), id (4), x (8), y (8)
 
 
@@ -60,27 +61,44 @@ def _finite(*v):
     return all(math.isfinite(x) for x in v)
 
 
+def _string(d: bytes, at: int, shape, lo: int, hi: int):
+    """The length-prefixed string at `at` (an 8-byte length, then exactly that many bytes) if it has `shape` and a
+    length in lo..hi, else None. The length decides where it ends, whatever byte follows."""
+    n = d[at]
+    if not lo <= n <= hi or d[at + 1:at + 8] != b"\x00" * 7 or at + 8 + n > len(d):
+        return None
+    s = d[at + 8:at + 8 + n]
+    return s.decode() if shape.fullmatch(s) else None
+
+
 def _names(d: bytes):
-    """[(offset, name, library)] of every name record."""
+    """[(offset, name, library)] of every name record: two strings, the second a library code."""
     out = []
-    for m in NAME_RE.finditer(d):
-        if len(m.group(2)) == m.group(1)[0] and len(m.group(4)) == m.group(3)[0]:
-            out.append((m.start(), m.group(2).decode(), m.group(4).decode()))
+    for m in LENGTH_RE.finditer(d):
+        o = m.start()
+        name = _string(d, o, PRINTABLE, 3, 48)
+        if name is None:
+            continue
+        lib = _string(d, o + 8 + len(name), CODE, 2, 16)
+        if lib is not None:
+            out.append((o, name, lib))
     return out
 
 
 def _end_records(d: bytes):
-    """[(offset, x, y, z, a, system)] of every record shaped like an end point."""
+    """[(offset, x, y, z, a, system)] of every record shaped like an end point: four doubles, then a system code."""
     out = []
-    for m in END_RE.finditer(d):
-        if len(m.group(3)) != m.group(2)[0]:
+    for m in LENGTH_RE.finditer(d):
+        o = m.start()
+        system = _string(d, o, CODE, 3, 32) if o >= 32 else None
+        if system is None:
             continue
-        x, y, z, a = struct.unpack("<4d", m.group(1))
+        x, y, z, a = struct.unpack("<4d", d[o - 32:o])
         # (0, 0) is not a place on a plan, and a subnormal double (8e-320) is not a measure: headers have that shape
         real = not any(0.0 < abs(v) < sys.float_info.min for v in (x, y, z, a))
         if (real and _finite(x, y, z, a) and abs(x) < MAX_XY_CM and abs(y) < MAX_XY_CM and abs(z) < 1000
                 and abs(a) < 10 and max(abs(x), abs(y)) > 1e-6):
-            out.append((m.start(), x, y, z, a, m.group(3).decode()))
+            out.append((o - 32, x, y, z, a, system))
     return out
 
 
@@ -132,7 +150,7 @@ def read(path) -> list[dict]:
     names = _names(d)
     records = _end_records(d)
     libraries = {lib for _, _, lib in names}
-    systems = {s for *_, s in records if any(lib.startswith(s) for lib in libraries)}
+    systems = {s for *_, s in records if any(lib.startswith(s) for lib in libraries)}     # codes of 3 or more
     if not systems:
         raise PlanError(f"{path}: no track end points found; is it an AnyRail plan?")
     kept = [n for n in names if any(n[2].startswith(s) for s in systems)]
@@ -150,15 +168,26 @@ def read(path) -> list[dict]:
     parts = [p for p in parts if p["library"] in track_libs]
     for i, p in enumerate(parts):
         p["index"] = i
-    bad = [(p["index"], p["name"], len(p["ends"])) for p in parts if not 2 <= len(p["ends"]) <= 4]
+    bad = [(p["index"], p["name"], len(p["ends"])) for p in parts if len(p["ends"]) > 4]
     if bad:
-        raise PlanError(f"{path}: parts with an unsupported number of ends (index, name, ends): {bad}")
-    for p in parts:
+        raise PlanError(f"{path}: parts with more than four ends, which no track part has (index, name, ends): {bad}")
+    parts = [p for p in parts if p["ends"]]          # catalogue items with no ends (a label, a sign) are not track
+    for i, p in enumerate(parts):
+        p["index"] = i
         p["system"] = p["ends"][0]["system"]
         p["curve"] = _curve(d, p["ends"][-1]["offset"] + 32, p["ends"]) if len(p["ends"]) == 2 else None
-        p["cm"] = bezier_length(p["curve"]) if p["curve"] else None
+        p["cm"] = bezier_length(p["curve"]) if p["curve"] else (fixed_length(p["ends"]) if len(p["ends"]) == 2 else None)
         p.update(classify(p["ends"]))
     return parts
+
+
+def fixed_length(ends):
+    """A two-ended part with no curve in the file (sectional track, or flex stored another way): its length from its
+    ends, straight or a circular arc through the change of heading between them."""
+    a, b = ends
+    chord = math.hypot(a["x"] - b["x"], a["y"] - b["y"])
+    turn = math.radians(abs(_wrap(math.degrees(a["a"] - b["a"]) - 180)))
+    return chord if turn < 1e-6 else chord * (turn / 2) / math.sin(turn / 2)
 
 
 def _wrap(deg):
@@ -170,7 +199,7 @@ def _heading(e):
 
 
 def classify(ends) -> dict:
-    """{kind, ...} from a part's ends. kind: track; turnout (points, straight, diverging end indices, hand L/R,
+    """{kind, ...} from a part's ends. kind: end (a buffer stop); track; turnout (points, straight, diverging end indices, hand L/R,
     curved); threeway (points); double_crossover; crossing (diamond or slip)."""
     xy = [(e["x"], e["y"]) for e in ends]
     if len(ends) == 2:
@@ -185,18 +214,17 @@ def classify(ends) -> dict:
         hand = "R" if sx * dy - sy * dx > 0 else "L"       # y grows down: clockwise on screen is to the right
         curved = abs(_wrap(_heading(ends[s]) - back)) > PARALLEL_DEG
         return dict(kind="turnout", points=p, straight=s, diverging=dv, hand=hand, curved=curved)
-    groups = collections.defaultdict(list)
-    first = _heading(ends[0])
-    for i, e in enumerate(ends):
-        groups[abs(_wrap(_heading(e) - first)) < 90].append(i)
-    sizes = sorted(len(g) for g in groups.values())
-    if sizes == [1, 3]:
-        p = next(g[0] for g in groups.values() if len(g) == 1)
-        return dict(kind="threeway", points=p)
-    if sizes == [2, 2]:
-        same = all(abs(_wrap(_heading(ends[a]) - _heading(ends[b]))) < PARALLEL_DEG for a, b in groups.values())
-        return dict(kind="double_crossover" if same else "crossing")
-    raise PlanError(f"a four-ended part whose ends face {sizes} ways is neither a three-way nor a crossover")
+    if len(ends) == 1:
+        return dict(kind="end")
+    h = [_heading(e) for e in ends]
+    near = lambda u, v, tol: abs(_wrap(u - v)) < tol                                   # noqa: E731
+    for p in range(4):                  # a three-way: the other three leave the way the points end faces away
+        if all(near(h[i], h[p] + 180, 45) for i in range(4) if i != p):
+            return dict(kind="threeway", points=p)
+    for a, b, c, e in ((0, 1, 2, 3), (0, 2, 1, 3), (0, 3, 1, 2)):
+        if near(h[a], h[b], PARALLEL_DEG) and near(h[c], h[e], PARALLEL_DEG) and near(h[a], h[c] + 180, PARALLEL_DEG):
+            return dict(kind="double_crossover")
+    return dict(kind="crossing")
 
 
 def joins(parts):
@@ -257,6 +285,9 @@ def runs(parts, links):
             while here in nbr:
                 j, m = nbr[here]
                 q = parts[j]
+                if len(q["ends"]) == 1:                     # a buffer stop ends the run as a track end does
+                    out.append((p["index"], k, None, None, cm))
+                    break
                 if len(q["ends"]) != 2:
                     out.append((p["index"], k, j, m, cm))
                     break
@@ -279,7 +310,10 @@ def report(parts) -> list[str]:
     comp = components(parts, links)
     lines = [f"{len(parts)} track parts, {sum(len(p['ends']) for p in parts)} ends, {len(links)} joins, "
              f"{len(free)} free ends, {len(comp)} connected piece(s): {[len(c) for c in comp[:6]]}"]
-    kinds = collections.Counter((p["kind"], p.get("hand"), p.get("curved")) for p in parts if p["kind"] != "track")
+    kinds = collections.Counter((p["kind"], p.get("hand"), p.get("curved")) for p in parts
+                                if p["kind"] not in ("track", "end"))
+    guessed = sum(1 for p in parts if len(p["ends"]) == 2 and not p["curve"])
+    lines.append(f"two-ended parts measured from their ends (no curve in the file): {guessed}")
     lines.append("switches: " + ", ".join(f"{k[0]}{' ' + k[1] if k[1] else ''}{' curved' if k[2] else ''} x{n}"
                                           for k, n in sorted(kinds.items(), key=str)))
     z = collections.Counter(round(e["z"], 2) for p in parts for e in p["ends"])
@@ -293,18 +327,20 @@ def report(parts) -> list[str]:
                      if p["cm"] and abs(p["ends"][0]["z"] - p["ends"][1]["z"]) > LEVEL_CM), reverse=True)
     lines.append(f"sloped flex pieces: {len(grades)}, steepest " +
                  ", ".join(f"T{i} {g:.2f}%" for g, i in grades[:5]) if grades else "sloped flex pieces: none")
-    flat_in_free = set(free)
-    near = []
-    for i, k in free:
+    near, seen = [], set()
+    for i, k in free:                   # a free end close to another end that faces it, once per pair
         e = parts[i]["ends"][k]
         for q in parts:
-            if q["index"] == i:
-                continue
             for m, f in enumerate(q["ends"]):
+                pair = frozenset(((i, k), (q["index"], m)))
+                if q["index"] == i or pair in seen:
+                    continue
                 dist = math.hypot(e["x"] - f["x"], e["y"] - f["y"])
-                if dist < NEAR_MISS_CM and ((q["index"], m) in flat_in_free or abs(e["z"] - f["z"]) < JOIN_DZ_CM):
+                facing = abs(_wrap(math.degrees(e["a"] - f["a"]))) > 135
+                if dist < NEAR_MISS_CM and facing and abs(e["z"] - f["z"]) < JOIN_DZ_CM:
+                    seen.add(pair)
                     near.append((i, q["index"], round(dist, 2), round(f["z"] - e["z"], 2)))
-    lines.append(f"free ends within {NEAR_MISS_CM} cm of another end at the same height or free: {near or 'none'}")
+    lines.append(f"free ends within {NEAR_MISS_CM} cm of another end facing them at the same height: {near or 'none'}")
     return lines
 
 
@@ -314,7 +350,11 @@ def main(argv=None):
     ap.add_argument("--parts", help="write the plugin's parts list (JSON) here")
     ap.add_argument("--report", action="store_true", help="print levels, track ends, grades and likely faults")
     a = ap.parse_args(argv)
-    parts = read(a.plan)
+    try:
+        parts = read(a.plan)
+    except PlanError as e:
+        print(f"anyplan: {e}", file=sys.stderr)
+        return 2
     if a.parts:
         Path(a.parts).write_text(json.dumps(parts_list(parts), separators=(",", ":")))
         print(f"wrote {a.parts}: {len(parts)} parts")
