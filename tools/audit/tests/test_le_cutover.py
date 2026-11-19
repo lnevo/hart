@@ -307,17 +307,23 @@ class ThreeLevels(unittest.TestCase):
         cls.device = B.device_names()
 
     def test_staging_is_the_staging_candidate_joined_at_the_helix(self) -> None:
-        # JOIN_HELIX on (owner, 2026-11-17, the helix-join release): staging as in its candidate but for the two
+        # The helix-join release (owner, 2026-11-17): staging as in its candidate but for the two
         # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
-        self.assertTrue(B.JOIN_HELIX)
         self.assertEqual(self.P.staging_same, [
             "end bumper EBG1 -> anchor AGE1 (hidden join TG231 to Track 135-H2, Mast 38RA)",
             "end bumper EBG2 -> anchor AGE2 (hidden join TG232 to Track 135-H1, Mast 40RA)",
             "track segment TG6 connect2name EBG2 -> AGE2",
             "track segment TG33 connect2name EBG1 -> AGE1"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
+        self.assertEqual(self.names[B.STAGING]["joins"], "other")               # the build joins the helix
+        self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"), 4)
         self.assertEqual(self.P.scale, self.base[1].scale)
         self.assertEqual(self.P.staging_data, self.base[0])
+
+    def test_the_guard_stops_when_the_helix_is_not_joined(self) -> None:
+        # staging's own layout as the base has no end bumper that became an anchor: nothing is joined
+        with self.assertRaisesRegex(B.BuildError, "staging guard: the helix is not joined"):
+            B.check_staging_unchanged((self.base[0], self.P), self.data, self.P, LIVE)
 
     def test_the_guard_stops_on_any_other_change(self) -> None:
         def el(root, tag, **attrs):
@@ -339,7 +345,7 @@ class ThreeLevels(unittest.TestCase):
                 doc = tables.loads(self.data)
                 edit(doc.root)
                 with self.assertRaisesRegex(B.BuildError, "staging guard"):
-                    B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE, B.JOIN_HELIX)
+                    B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE)
 
     def test_the_staging_candidate_is_the_approved_panel(self) -> None:
         # Fails after a staging change on purpose until the owner approves the new panel in PanelPro and
@@ -644,7 +650,7 @@ class ThreeLevels(unittest.TestCase):
                 self.assertIsNone(el.find("sensorA"))
 
     def test_helix_masts_stand_at_the_helix_joins(self) -> None:
-        # joined (JOIN_HELIX): Masts 38RA and 40RA stand at the helix-entrance anchors, protecting the helix run
+        # joined: Masts 38RA and 40RA stand at the helix-entrance anchors, protecting the helix run
         ix = B.slots_module().Index(self.le)
         got = {m["mast"]: (self.P.name(m["ident"]), m["slot"], ix.blocks(m["kind"], self.P.name(m["ident"]), m["slot"]))
                for m in self.P.masts if m["mast"] in ("Mast 38RA", "Mast 40RA")}

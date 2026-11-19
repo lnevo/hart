@@ -23,12 +23,10 @@ These checks read the three-level cut-over candidate (--as-live, owner 2026-11-1
 also read is retired, owner 2026-11-17). The staging-only candidate (--levels staging --as-live) ends both helix
 tracks at end bumpers as live, so there every mast matches exactly, with no exception (test_le_cutover.py).
 
-With B.JOIN_HELIX off (owner, 2026-11-16, after the Phase 4 rehearsal) the three-level panels draw the helix tracks
-unjoined, so every staging mast matches the live panel exactly there too, Masts 38RA and 40RA on their bumpers.
-With it on, and only then, HELIX_ENTRANCE lists the exceptions (owner's choice, 2026-11-15, option 1): on the live
-panel McKees Rocks and McKeesport end at buffer stops, so their bumper masts protect nothing; the joined panel runs
-both tracks on through the helix, so each mast stands on the anchor at the helix entrance, facing the same block
-as live and protecting the helix run, an anchor slot, not a bumper.
+Since the helix-join release (owner, 2026-11-17) HELIX_ENTRANCE lists the exceptions (owner's choice, 2026-11-15,
+option 1): on the live panel McKees Rocks and McKeesport end at buffer stops, so their bumper masts protect nothing;
+the joined panel runs both tracks on through the helix, so each mast stands on the anchor at the helix entrance,
+facing the same block as live and protecting the helix run, an anchor slot, not a bumper.
 """
 from __future__ import annotations
 
@@ -48,7 +46,7 @@ tables, paths = T.tables, T.paths
 HELIX_ENTRANCE = {
     "Mast 38RA": "live buffer stop of McKeesport; generated: anchor at the helix entrance, protecting the helix run",
     "Mast 40RA": "live buffer stop of McKees Rocks; generated: anchor at the helix entrance, protecting the helix run",
-} if B.JOIN_HELIX else {}
+}
 
 
 def masts_by_name(ix) -> dict:
@@ -108,13 +106,6 @@ class MastParity(unittest.TestCase):
 
     def test_helix_entrance_exceptions(self) -> None:
         self.assertEqual({m for _t, m, _w in self.P.moved}, set(HELIX_ENTRANCE))
-        if not B.JOIN_HELIX:            # unjoined: 38RA and 40RA on the helix tracks' bumpers, as live
-            for name, bumper in (("Mast 38RA", "EB72"), ("Mast 40RA", "EB71")):
-                with self.subTest(mast=name):
-                    gen = self.gen[name]
-                    self.assertEqual((gen["kind"], gen["ident"], gen["slot"]), ("end bumper", bumper, "east"))
-                    self.assertEqual((gen["facing"], gen["protects"]),
-                                     (self.live[name]["facing"], self.live[name]["protects"]))
         for name in HELIX_ENTRANCE:
             with self.subTest(mast=name):
                 live, gen = self.live[name], self.gen[name]
