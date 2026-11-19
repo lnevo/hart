@@ -20,6 +20,18 @@ LAST = "/tmp/jmri_cmd.last"
 READY = "/tmp/jmri_watcher.ready"
 
 
+def _write_out(text):
+    # Same as the command drops: write a temp name, then rename, so a reader that
+    # finds OUT never sees a half-written result.
+    tmp = OUT + ".tmp"
+    out = open(tmp, "w")
+    try:
+        out.write(text)
+    finally:
+        out.close()
+    os.rename(tmp, OUT)
+
+
 def _run_one():
     src = open(CMD).read()
     if os.path.exists(LAST):
@@ -28,13 +40,11 @@ def _run_one():
     env = {"jmri": jmri, "java": java, "RESULT": None}
     try:
         exec(src, env)
-        out = open(OUT, "w")
-        out.write("ok\n%s" % (env.get("RESULT"),))
-        out.close()
-    except Exception:
-        out = open(OUT, "w")
-        out.write("error\n%s" % traceback.format_exc())
-        out.close()
+        text = "ok\n%s" % (env.get("RESULT"),)
+    except (Exception, java.lang.Exception):
+        # A Java exception is not a Python Exception in Jython; uncaught, it ends the thread.
+        text = "error\n%s" % traceback.format_exc()
+    _write_out(text)
 
 
 def _loop():
@@ -47,12 +57,13 @@ def _loop():
                 if os.path.exists(OUT):
                     os.remove(OUT)
                 _run_one()
-        except Exception:
-            pass
+        except (Exception, java.lang.Exception) as e:
+            # Stay alive for the next command, but leave the failure in the JMRI log.
+            print("jmri_cmd_watcher: command handling failed: %s" % e)
         time.sleep(0.5)
 
 
 _t = threading.Thread(target=_loop, name="jmri_cmd_watcher")
 _t.setDaemon(True)
 _t.start()
-print "jmri_cmd_watcher started"
+print("jmri_cmd_watcher started")
