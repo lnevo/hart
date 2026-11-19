@@ -328,5 +328,74 @@ class StationMapRevision(unittest.TestCase):
             PD.main([])
 
 
+class MainBase(unittest.TestCase):
+    """Publishing counts the revision from where the branch left main; when git cannot find that commit it stops,
+    not compares with HEAD (where a committed drawing change equals itself and gets no new revision)."""
+
+    @staticmethod
+    def git(merge_base, calls):
+        def run(cmd, **kwargs):
+            calls.append(cmd[3:])                                  # past git -C <repo>
+            if cmd[3] == "merge-base":
+                return mock.Mock(returncode=merge_base[0], stdout=merge_base[1], stderr=merge_base[2])
+            return mock.Mock(returncode=0, stdout="text on main", stderr="")
+        return run
+
+    def test_the_file_is_read_at_the_merge_base(self) -> None:
+        calls = []
+        with mock.patch.object(PD.subprocess, "run", self.git((0, "abc123\n", ""), calls)):
+            self.assertEqual(PD.on_main(PD.REPO / "docs/ops/x.svg"), "text on main")
+        self.assertEqual(calls, [["merge-base", "HEAD", "origin/main"], ["show", "abc123:docs/ops/x.svg"]])
+
+    def test_a_failed_merge_base_stops_and_names_the_fix(self) -> None:
+        failures = {"no origin/main": (128, "", "fatal: Not a valid object name origin/main"),
+                    "shallow clone, no common commit": (1, "", ""), "empty answer": (0, "\n", "")}
+        for name, result in failures.items():
+            calls = []
+            with self.subTest(name), mock.patch.object(PD.subprocess, "run", self.git(result, calls)), \
+                    self.assertRaises(SystemExit) as stop:
+                PD.on_main(PD.REPO / "docs/ops/x.svg")
+            message = str(stop.exception.code)
+            self.assertIn("`git merge-base HEAD origin/main` failed", message)
+            self.assertIn("`git fetch origin`", message)
+            self.assertIn("nothing written", message)
+            self.assertEqual(calls, [["merge-base", "HEAD", "origin/main"]])       # never falls back to HEAD
+            self.assertIn(result[2] or f"exit {result[0]}", message)               # git's own reason, when it gave one
+
+    def test_publishing_stops_before_any_write(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            prefs, staging = Path(tmp) / "page.preferences.json", Path(tmp) / "staging.plan_overrides.json"
+            prefs.write_text(json.dumps({"date": "2026-11-14", "revision": 1}))
+            staging.write_text(json.dumps({"track_lengths_in": {"S-1": 1}}))
+            before = {p: p.read_text() for p in (prefs, staging)}
+            wrote = AssertionError("wrote")
+            with mock.patch.object(PD.subprocess, "run", self.git((128, "", "fatal: no origin/main"), [])), \
+                    mock.patch.object(PD, "page_prefs", return_value=prefs), mock.patch.object(PD, "STAGING", staging), \
+                    mock.patch.object(PD, "stale_lengths", return_value=["S-1"]), \
+                    mock.patch.object(PD.map_revision, "planned"), \
+                    mock.patch.object(PD.map_revision, "apply", side_effect=wrote), \
+                    mock.patch.object(PD, "copy_lengths", side_effect=wrote), \
+                    mock.patch.object(PD, "draw", side_effect=AssertionError("drew")), \
+                    mock.patch.object(PD, "draw_stations", side_effect=AssertionError("drew")), \
+                    mock.patch.object(PD, "write_stations", side_effect=wrote), \
+                    mock.patch.object(PD, "set_fields", side_effect=wrote), \
+                    mock.patch.object(PD, "pdf", side_effect=wrote), \
+                    self.assertRaisesRegex(SystemExit, "git fetch origin"):
+                PD.main([])
+            self.assertEqual({p: p.read_text() for p in (prefs, staging)}, before)
+
+    def test_check_never_asks_for_the_merge_base(self) -> None:
+        # CI checks out one commit with no origin/main (actions/checkout's default depth), and runs --check
+        with mock.patch.object(PD, "main_base", side_effect=AssertionError("asked")), \
+                mock.patch.object(PD, "_git", side_effect=AssertionError("ran git")), \
+                mock.patch.object(PD, "draw", return_value="<svg/>"), \
+                mock.patch.object(PD, "draw_stations", return_value={}), \
+                mock.patch.object(PD, "stations_differ", return_value=[]), \
+                mock.patch.object(PD, "stale_lengths", return_value=[]), \
+                mock.patch.object(PD.map_revision, "drift", return_value=[]), \
+                contextlib.redirect_stdout(io.StringIO()):
+            self.assertIn(PD.main(["--check"]), (0, 1))
+
+
 if __name__ == "__main__":
     unittest.main()

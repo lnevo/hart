@@ -18,6 +18,9 @@ When the drawing itself (everything but the title block), or a station sheet's, 
 `revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
 from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
 whole number is left alone. If anything fails after that, the preferences file is put back.
+Main is where this branch left origin/main (`git merge-base HEAD origin/main`). If git cannot find that commit
+(no origin/main, a shallow clone), publishing stops before it writes anything and says to run `git fetch origin`;
+--check and --preview never need it.
 The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
 them with www/scripts/map_revision.py, and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
@@ -70,11 +73,27 @@ def page_prefs():
     return sheet if sheet.exists() else DATA / f"{INPUTS[-1][1]}.preferences.json"
 
 
+def _git(*args):
+    return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True)
+
+
+def main_base():
+    """The commit where this branch left main. Publishing stops if git cannot tell (no origin/main, a shallow
+    clone): compared with HEAD instead, a committed drawing change would equal itself and keep its old revision.
+    --check never asks, so it runs in a clone without origin/main (CI's is one)."""
+    r = _git("merge-base", "HEAD", "origin/main")
+    base = r.stdout.strip()
+    if r.returncode != 0 or not base:
+        why = r.stderr.strip() or f"exit {r.returncode}, no commit named"
+        sys.exit(f"`git merge-base HEAD origin/main` failed ({why}), so the revision cannot be counted from main; "
+                 "nothing written. Run `git fetch origin` (`git fetch --unshallow origin` in a shallow clone) "
+                 "and publish again")
+    return base
+
+
 def on_main(path):
     """The file's text where this branch left main (None if it was not there)."""
-    git = lambda *a: subprocess.run(["git", "-C", str(REPO), *a], capture_output=True, text=True)
-    base = git("merge-base", "HEAD", "origin/main").stdout.strip() or "HEAD"
-    r = git("show", f"{base}:{path.relative_to(REPO).as_posix()}")
+    r = _git("show", f"{main_base()}:{path.relative_to(REPO).as_posix()}")
     return r.stdout if r.returncode == 0 else None
 
 
@@ -271,6 +290,7 @@ def main(argv):
         map_revision.planned(REPO / "www", prefs)             # the station map data holds together before any write
     except ValueError as e:
         sys.exit(f"station map pages: {e}; nothing written")
+    main_base()                                               # stops here, before any write, if git cannot find it
     kept = {p: p.read_text() for p in (prefs, STAGING)}      # put back if anything below fails
     try:
         if stale:
