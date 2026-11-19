@@ -547,10 +547,11 @@ class ThreeLevels(unittest.TestCase):
         limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
                    and "crossover" in line}
         self.assertFalse(limited & {"225"})
-        # 241 is 1.3 px short of room since the straight-level rules (2026-11-18): drawn at 45.8 degrees, owner accepted
+        # 243 (241 before the upper renumber, 2026-11-19) is 1.3 px short of room since the straight-level rules
+        # (2026-11-18): drawn at 45.8 degrees, owner accepted
         steep = [float(m.group(1)) for line in self.P.log
-                 if (m := re.search(r"switch 241: crossover drawn [\d.]+ px across, ([\d.]+) degrees", line))]
-        self.assertTrue(steep, "no crossover log line for switch 241")
+                 if (m := re.search(r"switch 243: crossover drawn [\d.]+ px across, ([\d.]+) degrees", line))]
+        self.assertTrue(steep, "no crossover log line for switch 243")
         self.assertTrue(all(a <= 46.0 for a in steep), steep)
         # SW-101 once, below its lower turnout
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101"]
@@ -607,7 +608,7 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual({tables.user_name(b) for b in added_lb}, {v for k, v in self.device.items()
                                                                     if not k.startswith("Switch ")})
         self.assertEqual(added_b, {tables.user_name(b) for b in added_lb})
-        self.assertEqual(len(added_lb), T.LEVEL_BLOCKS)   # the 107 Loop's and 227-239's halves, 225's four corners
+        self.assertEqual(len(added_lb), T.LEVEL_BLOCKS)   # the 107 Loop's and 227-241's halves, 225's four corners
         self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
                             if B.is_level_bean(b)))
 

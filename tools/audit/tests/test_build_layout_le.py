@@ -43,7 +43,7 @@ LIVE_PANEL = "HART Railroad"
 
 def _level_counts() -> tuple[int, int, int]:
     """(blocks, masts, heads) of the main and upper levels in the committed data: the device map's block rows
-    (the 107 Loop's halves, 225's corners and Track 227-239's halves among them) and main_upper_masts.csv."""
+    (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) and main_upper_masts.csv."""
     import csv
     with B.DEVICE_MAP.open(newline="", encoding="utf-8") as f:
         blocks = sum(r["layer"] == "block" for r in csv.DictReader(f))
@@ -218,7 +218,7 @@ class Built(unittest.TestCase):
         # whose halves the plan joins leg C to leg B (2026-11-19)
         xo = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout")
                      if t.get("type") in ("RH_XOVER", "LH_XOVER") and is_new_name(t.get("turnoutname")))
-        self.assertEqual(set(xo), {f"Switch {n}" for n in (119, 213, 217, 221, 241, 245)})
+        self.assertEqual(set(xo), {f"Switch {n}" for n in (119, 211, 217, 221, 243, 245)})
         twice = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout"))
         self.assertEqual({n for n, c in twice.items() if c > 1},
                          {"Switch 101", "Switch 103", "Switch 121", "Switch 125", "Switch 127", "Switch 131"})
@@ -912,21 +912,21 @@ class FinalReview(unittest.TestCase):
         self.assertEqual((opts["Main"]["numbers_below"], opts["Upper"]["numbers_below"]), (["101"], []))
         self.assertEqual((opts["Main"]["hidden_names"], opts["Upper"]["hidden_names"]), (["101-103"], []))
         self.assertEqual((opts["Main"]["optional_block_contents"], opts["Upper"]["optional_block_contents"]),
-                         ([], ["Track 227-233", "Track 229-231"]))
+                         ([], ["Track 227-231", "Track 229-233"]))
 
 class LoopAndCrossover(unittest.TestCase):
     """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers (owner, 2026-11-16)."""
 
     def test_appended_blocks_number_after_the_rest_and_shift_nothing(self) -> None:
         before = ["OS Switch 107", "OS Switch 225", "Track 105-109", "Track 107 Loop", "Track 107-109",
-                  "Track 227-239", "Track 9-9"]
-        after = [b for b in before if b not in ("Track 107 Loop", "OS Switch 225", "Track 227-239")] + \
+                  "Track 227-241", "Track 9-9"]
+        after = [b for b in before if b not in ("Track 107 Loop", "OS Switch 225", "Track 227-241")] + \
             ["Track 107 Loop 1", "Track 107 Loop 2", "OS Switch 225a", "OS Switch 225b", "OS Switch 225c",
-             "OS Switch 225d", "Track 227-239 1", "Track 227-239 2"]                 # split 2026-11-19
+             "OS Switch 225d", "Track 227-241 1", "Track 227-241 2"]                 # split 2026-11-19
         old = B.numbered_blocks(before)
         new = B.numbered_blocks(after)
         renamed = {"Track 107 Loop": "Track 107 Loop 1", "OS Switch 225": "OS Switch 225a",
-                   "Track 227-239": "Track 227-239 1"}
+                   "Track 227-241": "Track 227-241 1"}
         self.assertEqual(new[:len(old)], [renamed.get(b, b) for b in old])      # every old number kept
         self.assertEqual(new[len(old):], list(B.APPENDED_BLOCKS))
 
@@ -973,8 +973,8 @@ class LevelMasts(unittest.TestCase):
                  and x["mast"] != "Mast 240L"}
         self.assertEqual(inter, {"Mast A83": ("Track 107 Loop 2", "Track 107 Loop 1", ""),
                                  "Mast A84": ("Track 107 Loop 1", "Track 107 Loop 2", ""),
-                                 "Mast B92": ("Track 227-239 2", "Track 227-239 1", ""),
-                                 "Mast B93": ("Track 227-239 1", "Track 227-239 2", "")})
+                                 "Mast B92": ("Track 227-241 2", "Track 227-241 1", ""),
+                                 "Mast B93": ("Track 227-241 1", "Track 227-241 2", "")})
         self.assertEqual({x["mast"]: x["leg"] for x in rows if x["leg"]}, {})     # the loop's halves tell them apart
 
     def test_no_two_masts_share_a_facing_and_protected_block(self) -> None:

@@ -105,9 +105,9 @@
   "T212": "B",
   "115": "C",
   "235": "C",
-  "243": "C"
+  "239": "C"
  },
- "_level_leg": "Exceptions to the plugin's straight-level rule (R8), each drawn with its diverging leg level (owner, 2026-11-18). T210 (231) and T212 (237) as before. 115: straight-level put Track 101B-111's climb in the same CATS desk cell as the west end of Track 113's siding, and CATS would drop the points. 235 and 243: straight-level widened the upper level from 38 to 43 columns, so Track 225-227 came out shorter than its switches' legs on the Layout Editor panel and the CATS desk ran past its 62 columns.",
+ "_level_leg": "Exceptions to the plugin's straight-level rule (R8), each drawn with its diverging leg level (owner, 2026-11-18). T210 (233) and T212 (237) as before. 115: straight-level put Track 101B-111's climb in the same CATS desk cell as the west end of Track 113's siding, and CATS would drop the points. 235 and 239 (243 before the upper renumber, 2026-11-19): straight-level widened the upper level from 38 to 43 columns, so Track 225-227 came out shorter than its switches' legs on the Layout Editor panel and the CATS desk ran past its 62 columns.",
  "facing_letters": false,
  "direction_arrows": true,
  "capacity": {
@@ -147,9 +147,9 @@
    "205",
    "207",
    "209",
-   "211",
-   "213A",
-   "213B",
+   "211A",
+   "211B",
+   "213",
    "215",
    "217A",
    "217B",
@@ -165,9 +165,9 @@
    "235",
    "237",
    "239",
-   "241A",
-   "241B",
-   "243",
+   "241",
+   "243A",
+   "243B",
    "245A",
    "245B"
   ]
@@ -176,12 +176,12 @@
   "Upper": [
    {
     "from": "235",
-    "to": "241A",
+    "to": "243A",
     "columns": 0.18
    }
   ]
  },
- "_le_longer_straights": "Layout Editor only (owner, 2026-11-16): Track 235-241 (switch 235's leg B up to 241's half A) had one column (40.4 px) of straight at 241; the crossover needed about 7 px more for its 45 degrees. Only the bend moves: 235 and 241 stay, the climb from 235 is a little steeper.",
+ "_le_longer_straights": "Layout Editor only (owner, 2026-11-16): Track 235-243 (switch 235's leg B up to 243's half A; 241 before the upper renumber) had one column (40.4 px) of straight at 243; the crossover needed about 7 px more for its 45 degrees. Only the bend moves: 235 and 243 stay, the climb from 235 is a little steeper.",
  "le_title_clear": 8,
  "_le_title_clear": "The cut-over candidate (owner, 2026-11-16): each level's title 8 px below the lowest thing of the level above (for staging, everything its candidate holds: the status cluster stands in the gap), so the gaps between the levels are as small as is clean.",
  "le_stretch": {
@@ -243,7 +243,7 @@
   "Main": true,
   "Upper": true
  },
- "_le_mast_room": "Levels whose drawing lets in room for a mast icon: a mast whose straight track before its boundary is shorter than its icon, or whose icon still has no clean spot there, has its level let out along its rows at that track (Masts 108R and 110LA on track 107-109, 128RB and 130LA on 127-129 (now 126RA and 128LA on 125-127), 228RA on 227-233 stood on 16 to 19 px of straight; 2026-11-17). Main and upper only: staging is drawn as the owner approved it.",
+ "_le_mast_room": "Levels whose drawing lets in room for a mast icon: a mast whose straight track before its boundary is shorter than its icon, or whose icon still has no clean spot there, has its level let out along its rows at that track (Masts 108R and 110LA on track 107-109, 128RB and 130LA on 127-129 (now 126RA and 128LA on 125-127), 228RA on 227-233 (now 227-231) stood on 16 to 19 px of straight; 2026-11-17). Main and upper only: staging is drawn as the owner approved it.",
  "le_name_room": {
   "Main": true,
   "Upper": true
@@ -269,10 +269,10 @@
    "names_last": true,
    "block_contents_size": 12,
    "optional_block_contents": [
-    "Track 227-233",
-    "Track 229-231"
+    "Track 227-231",
+    "Track 229-233"
    ]
   }
  },
- "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-233 is 16 px between switches 227 and 233, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16)."
+ "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16)."
 }

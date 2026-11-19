@@ -55,10 +55,10 @@ turnout,TOG37,B,Mast 126RA
 turnout,TOG43,B,Mast 222LA
 turnout,TOG43,C,Mast 222R
 turnout,TOG43,D,Mast 222LB
-turnout,TOG44,A,Mast 214LA
-turnout,TOG44,B,Mast 214RA
-turnout,TOG44,C,Mast 214RB
-turnout,TOG44,D,Mast 214LB
+turnout,TOG44,A,Mast 212LA
+turnout,TOG44,B,Mast 212RA
+turnout,TOG44,C,Mast 212RB
+turnout,TOG44,D,Mast 212LB
 turnout,TOG45,A,Mast 218LA
 turnout,TOG45,B,Mast 218RA
 turnout,TOG45,C,Mast 218RB
@@ -71,7 +71,7 @@ turnout,TOG51,C,Mast 204RA
 turnout,TOG54,B,Mast 230LB
 turnout,TOG54,C,Mast 230LA
 turnout,TOG58,B,Mast 132RB
-turnout,TOG59,B,Mast 240L
+turnout,TOG59,B,Mast 242L
 turnout,TOG60,B,Mast 228RA
 turnout,TOG60,C,Mast 228RB
 turnout,TOG64,A,Mast 224R

@@ -236,15 +236,15 @@ class Output(unittest.TestCase):
         self.assertEqual(len(set(occ.values())), len(occ))
 
     def test_apb_intermediates_are_named_from_the_milepost(self):
-        """A pair at the turnback of the 107 balloon loop (line A) and of the split Track 227-239 (line B), named from
+        """A pair at the turnback of the 107 balloon loop (line A) and of the split Track 227-241 (line B), named from
         the sheets' milepost count: odd westbound, even eastbound, one head each (owner, 2026-11-19)."""
         got = {x["user_name"]: (x["cp"], x["notes"]) for x in rows()
                if x["layer"] == "mast" and x["comment"].endswith(" | intermediate")}
         self.assertEqual(got, {
             "Mast A83": ("CP 107", "intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.35"),
             "Mast A84": ("CP 107", "intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.35"),
-            "Mast B92": ("CP 225", "intermediate signal from Track 227-239 2 into Track 227-239 1 at MP B 9.23"),
-            "Mast B93": ("CP 225", "intermediate signal from Track 227-239 1 into Track 227-239 2 at MP B 9.23")})
+            "Mast B92": ("CP 225", "intermediate signal from Track 227-241 2 into Track 227-241 1 at MP B 9.23"),
+            "Mast B93": ("CP 225", "intermediate signal from Track 227-241 1 into Track 227-241 2 at MP B 9.23")})
         for name in got:
             self.assertTrue(next(x for x in rows() if x["user_name"] == name)["jmri_name"]
                             .startswith("IF$shsm:basic:one-searchlight("), name)
@@ -332,6 +332,29 @@ class NoBoardRoomOnly(unittest.TestCase):
         nodes = BD.Nodes([])
         with self.assertRaises(BD.NoBoardRoom):
             nodes.pick_mast(2, "Nowhere", 1)
+
+    def test_a_one_head_mast_takes_free_pins_on_any_board(self):
+        # first fit over every 5V board, not only the last (owner, 2026-11-19: no head left out while room exists)
+        nodes = BD.Nodes([R.LcosNode(0, 2, "North", 52)])
+        place = lambda heads: [(board, pin) for _k, _p, board, pin in nodes.place_mast(  # noqa: E731
+            nodes.pick_mast(2, "North", heads), heads)]
+        self.assertEqual(place(1), [(1, 1)])
+        self.assertEqual(place(2), [(2, 1), (2, 4)])            # six pins: not after the one head on board 1
+        self.assertEqual(place(1), [(1, 4)])                    # back on board 1, not a third board
+        self.assertEqual(place(2), [(3, 1), (3, 4)])
+        self.assertEqual(place(2), [(4, 1), (4, 4)])
+        with self.assertRaises(BD.NoBoardRoom):                 # four boards, two heads each: really full
+            nodes.pick_mast(2, "North", 1)
+
+    def test_the_committed_map_places_two_head_masts_before_one_head_ones(self):
+        # North holds 12 heads (node 42: two 5V boards, node 52: four) for 17: every board takes a two-head mast,
+        # so the one-head 126L waits and two-head 128LB has outputs
+        with open(BD.OUT, newline="", encoding="utf-8") as fh:
+            heads = {r["user_name"]: r for r in csv.DictReader(fh) if r["layer"] == "head"}
+        self.assertEqual(heads["Head 126L"]["notes"], BD.HEAD_NOT_WIRED)
+        self.assertTrue(heads["Head 128LB Top"]["system_name"] and heads["Head 128LB Bottom"]["system_name"])
+        north = [r for r in heads.values() if r["node"] in ("42", "52")]
+        self.assertEqual(len(north), 12)
 
 
 if __name__ == "__main__":

@@ -581,12 +581,13 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
     """({switch label: binding}, {label: why not bound}) for the main and upper switches: each switch or crossover
     half drawn commands and reports its internal turnout (LEVEL_TURNOUT + number, user name Switch <n>, which
     tables.xml must hold), closed on leg B (NORMAL) and thrown on leg C. A crossover's halves, on one band or two,
-    each take the one turnout; the thrown leg of each is the one that leads to the other half or to the link between
-    the levels (le_common.crossover_half_legs, which stops when neither or both do): leg B for a half the plan joins
-    by its leg B (121B, 125B), which is then closed on leg C. A double crossover's one turnout moves all four of its points (the plugin: B along the through tracks,
-    C into the X). `dx_corners` ({switch number: {leg: Layout Editor corner}}, build_device_map.dx_corners) gives a
-    double crossover a desk block per corner, named as the Layout Editor's (OS Switch <n>a to d, by the corner each
-    leg reaches), and the middle of its X OS Switch <n>."""
+    each take the one turnout, and each half is closed on the leg away from its other half (or from the link between
+    the levels) and thrown on the leg toward it (le_common.crossover_half_legs, which stops when neither leg or both
+    lead there): leg C for most halves, leg B for 121B and 125B, which the plan joins by their leg B. A double
+    crossover's one turnout moves all four of its points (the plugin: B along the through tracks, C into the X).
+    `dx_corners` ({switch number: {leg: Layout Editor corner}}, build_device_map.dx_corners) gives a double crossover
+    a desk block per corner, named as the Layout Editor's (OS Switch <n>a to d, by the corner each leg reaches), and
+    the middle of its X OS Switch <n>."""
     out = {}
     for _bi, band, _ in level_bands(bands, bound_bi):
         nodes = band["nodes"]

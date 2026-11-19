@@ -24,8 +24,8 @@ from approval import canon_sorted, element_label  # noqa: E402  as the approval 
 # APPENDED_BLOCKS come last, in this order. The balloon loop's split: Loop 1 keeps the loop's numbers; double
 # crossover 225's corners: a keeps OS Switch 225's.
 BLOCK_NUMBERED_AS = {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225",
-                     "Track 227-239 1": "Track 227-239"}
-APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d", "Track 227-239 2")
+                     "Track 227-241 1": "Track 227-241"}
+APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d", "Track 227-241 2")
 COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"
 
 

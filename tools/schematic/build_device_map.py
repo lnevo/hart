@@ -333,10 +333,12 @@ class Nodes:
         return 7 if i == 0 and self.used[node]["block"] else 8     # pin 8 of the first 5V board: calibration
 
     def _fit(self, node, pins):
-        """(board index among the node's 5V boards, first pin) where `pins` consecutive pins fit, or None."""
+        """(board index among the node's 5V boards, first pin) where `pins` consecutive pins fit, or None: the first
+        board with room (any of them, not only the last), else a new board while the node has OU room."""
         boards = self.boards.setdefault(node, [])
-        if boards and boards[-1] + pins <= self._cap(node, len(boards) - 1):
-            return len(boards) - 1, boards[-1] + 1
+        for i, used in enumerate(boards):
+            if used + pins <= self._cap(node, i):
+                return i, used + 1
         if self.n12(node) + len(boards) + 1 <= MAX_OU and pins <= self._cap(node, len(boards)):
             return len(boards), 1
         return None
@@ -520,38 +522,43 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     groups = [(cp.level, cp.area, cp.cp_name, cp.switches[0]) for cp in cps]
     groups += [(loc[s].level, loc[s].area, "", s)
                for s in sorted({m["switch"] for m in ms if not m["cp"] and m["switch"]}, key=natural)]
-    for lv, area, name, first in groups:          # heads last, once every node's boards are known
-        mine = [m for m in ms if m["cp"] == name and (name or m["switch"] == first)]
-        for m in sorted(mine, key=lambda m: natural(m["name"])):
-            parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
-            kind = m["kind"]
-            try:
-                hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
-                heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
-                         for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
-                sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
-            except NoBoardRoom:
-                # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
-                # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
-                hnode, sysname = "", ""
-                heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None, None) for part in parts]
-            virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
-            if m.get("intermediate"):
-                add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
-                    notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
-                          f"{m['milepost']:.2f}", jmri=virtual)
-            else:
-                add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
-                    notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
-                    jmri=virtual)
-            for user, sysn, k, board, pin in heads:
-                if not sysn:                    # no node yet: the mast's comment says where it stands
-                    where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
-                    add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
-                    continue
-                add(lv, name, "head", user, sysn, hnode,
-                    f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
-                    jmri=level_devices.head_name(user))
+    # heads last, once every node's boards are known: each group's masts in name order, but every two-head mast of
+    # every group before any one-head mast (a stable sort), since a two-head mast takes six of a board's eight pins and
+    # a one-head mast placed first would take a board of its own that a two-head mast of the area needs (owner,
+    # 2026-11-19: as many heads placed as the boards hold; the rest wait as HEAD_NOT_WIRED)
+    placing = [(lv, area, name, first, m) for lv, area, name, first in groups
+               for m in sorted((m for m in ms if m["cp"] == name and (name or m["switch"] == first)),
+                               key=lambda m: natural(m["name"]))]
+    for lv, area, name, first, m in sorted(placing, key=lambda g: -g[4]["heads"]):
+        parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
+        kind = m["kind"]
+        try:
+            hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
+            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
+                     for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
+            sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
+        except NoBoardRoom:
+            # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
+            # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
+            hnode, sysname = "", ""
+            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None, None) for part in parts]
+        virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
+        if m.get("intermediate"):
+            add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
+                notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
+                      f"{m['milepost']:.2f}", jmri=virtual)
+        else:
+            add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
+                notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
+                jmri=virtual)
+        for user, sysn, k, board, pin in heads:
+            if not sysn:                    # no node yet: the mast's comment says where it stands
+                where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
+                add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
+                continue
+            add(lv, name, "head", user, sysn, hnode,
+                f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
+                jmri=level_devices.head_name(user))
     nodes.check_boards()
     check_virtual(rows)
     order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}
