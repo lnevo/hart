@@ -36,9 +36,8 @@ WIRING = [
     row("C12-OU2-7", "12", "2", "IH1234", "Mast 32R", "S"),
     row("C12-OU3-8", "12", "2", "IH1234", "Mast 32R", "S"),
     row("C12-OU3-7", "12", "2", "IH1234", "Mast 32R", "S"),
-    # Interim mast: only the top head is on the mast.
+    # One-head high mast (ADR-024).
     *[row(f"C4-OU2-{p}", "4", "0", "IH432", "Mast 6LB", "T") for p in (1, 2, 3)],
-    *[row(f"C4-OU2-{p}", "4", "1", "IH433", "Mast 6LB", "B") for p in (4, 5, 6)],
 ]
 
 COMMENTS = {
@@ -46,13 +45,13 @@ COMMENTS = {
     "IH238": "Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6",
     "IH1234": "Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",
     "IH432": "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",
-    "IH433": "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6",
+    "IH433": "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6",   # defined but not wired
 }
 
 MASTS = {
     "Mast 24RA": "IF$shsm:basic:two-searchlight(IH232)(IH238)",
     "Mast 32R": "IF$shsm:basic:one-low(IH1234)",
-    "Mast 6LB": "IF$shsm:basic:one-low(IH432)",
+    "Mast 6LB": "IF$shsm:basic:one-searchlight(IH432)",
     "Mast 1001": "IF$vsm:basic:one-low($1001)",
 }
 
@@ -107,11 +106,11 @@ class WiringCrosswalkTest(unittest.TestCase):
         found = check.problems(WIRING, tables(comments=comments))
         self.assertTrue(any(f.startswith("IH232: comment") for f in found), found)
 
-    def test_interim_mast_may_show_only_its_top_head(self):
-        self.assertEqual(check.problems(WIRING, tables()), [])
-        masts = dict(MASTS, **{"Mast 6LB": "IF$shsm:basic:one-low(IH433)"})
+    def test_wired_mast_on_an_unwired_head_fails(self):
+        masts = dict(MASTS, **{"Mast 6LB": "IF$shsm:basic:one-searchlight(IH433)"})
         found = check.problems(WIRING, tables(masts=masts))
-        self.assertTrue(any(f.startswith("Mast 6LB: heads") for f in found), found)
+        self.assertIn("Mast 6LB: heads IH433, wiring plan IH432", found)
+        self.assertIn("IH432 (Mast 6LB T): wired head is on no mast", found)
 
     def test_head_mast_named_by_user_name_fails(self):
         masts = dict(MASTS, **{"Mast 99X": "IF$shsm:basic:one-low(Head 99X)"})
@@ -160,11 +159,24 @@ class WiringCrosswalkTest(unittest.TestCase):
         with (paths.SIGNAL_WIRING).open(newline="") as f:
             rows = list(csv.DictReader(f))
         root = ET.parse(paths.TABLES_XML).getroot()
-        mast = next(m for m in root.iter("signalmast") if (m.findtext("userName") or "") == "Mast 108R")
-        mast.find("systemName").text = "IF$shsm:basic:two-searchlight(IH:HART:C3:108R_Top)(IH:HART:C3:108LA)"
+        mast = next(m for m in root.iter("signalmast") if (m.findtext("userName") or "") == "Mast 108LA")
+        mast.find("systemName").text = "IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LB_Top)"
         self.assertEqual(check.problems(rows, root),
-                         ["Mast 108R: virtual heads IH:HART:C3:108R_Top IH:HART:C3:108LA, main_upper_masts.csv "
-                          "IH:HART:C3:108R_Top IH:HART:C3:108R_Bottom"])
+                         ["Mast 108LA: virtual heads IH:HART:C3:108LA_Top IH:HART:C3:108LB_Top, main_upper_masts.csv "
+                          "IH:HART:C3:108LA_Top IH:HART:C3:108LA_Bottom"])
+
+    def test_staging_masts_are_checked_against_staging_masts_csv(self):
+        """A staging mast on internal heads (IH:HART:C1:...; ADR-024) must carry the heads staging_masts.csv
+        gives it, in order."""
+        with (paths.SIGNAL_WIRING).open(newline="") as f:
+            rows = list(csv.DictReader(f))
+        want = check.staging_heads()
+        mast, heads = next((m, h) for m, h in sorted(want.items()) if len(h) == 2)
+        root = ET.parse(paths.TABLES_XML).getroot()
+        el = next(m for m in root.iter("signalmast") if (m.findtext("userName") or "") == mast)
+        el.find("systemName").text = f"IF$shsm:basic:two-searchlight({heads[1]})({heads[0]})"
+        self.assertEqual(check.problems(rows, root),
+                         [f"{mast}: internal heads {heads[1]} {heads[0]}, staging_masts.csv {heads[0]} {heads[1]}"])
 
 
 if __name__ == "__main__":

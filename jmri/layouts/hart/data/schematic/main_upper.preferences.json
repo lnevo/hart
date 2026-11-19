@@ -11,8 +11,8 @@
   "Staging, main and upper level",
   "Stage 0 proof, as built"
  ],
- "date": "2026-11-18",
- "revision": 11,
+ "date": "2026-11-19",
+ "revision": 12,
  "sheet": "1 of 1",
  "num_px": 6.5,
  "helix_style": "coil",
@@ -269,7 +269,8 @@
    "names_last": true,
    "block_contents_size": 12,
    "optional_block_contents": [
-    "Track 227-233"
+    "Track 227-233",
+    "Track 229-231"
    ]
   }
  },

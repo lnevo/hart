@@ -32,7 +32,7 @@ REGION = re.compile(r"<!--tf:([a-z0-9-]+)-->(.*?)<!--/tf-->", re.S)
 # Hand-picked examples. Each must still exist in the file in the form the page describes.
 EXAMPLE_SENSOR = "BS K-1"
 EXAMPLE_BLOCK, EXAMPLE_BLOCK_TURNOUT = "OS Switch 13", "Switch 13"
-EXAMPLE_SML = ("Mast 2036", "Mast 38LB")
+EXAMPLE_SML = ("Mast 38LB", "Mast 36L")
 EXAMPLE_TURNOUT = "Switch 35"
 EXAMPLE_DETECTORS = ("BS S-1", "BS Switch 37 / BS McKeesport")
 

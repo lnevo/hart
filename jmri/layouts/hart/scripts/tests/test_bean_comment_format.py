@@ -104,23 +104,29 @@ class BeanCommentFormatTest(unittest.TestCase):
         )
 
     def test_wiring_head_comments_match_live_user_names(self) -> None:
+        # The wiring plan lists wired heads only (ADR-024): Mast 6LB's one head IH432 is `Head 6LB`.
         comments = self.m.load_wiring_head_comments()
-        # 6LB is an interim dwarf (signal_head_plan heads=1): IH432 is `Head 6LB`.
-        self.assertEqual(comments["Head 6LB"], "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3")
-        self.assertNotIn("Head 6LB Top", comments)
-        self.assertEqual(comments["Head 6LB Bottom"], "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6")
-        self.assertEqual(
-            comments["Head 6LA"], "Node: 4 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7"
-        )
-        self.assertEqual(comments["Head 40LA Top"], "Node: 11 Signal: 0 | OU: 2 Ports: 1,2,3")
+        self.assertEqual(comments, {"Head 6LB": "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3"})
+
+    def test_wiring_head_comments_group_spilled_ports(self) -> None:
+        import tempfile
+        rows = [
+            "port_id,mqtt_node,signal_index,packed,mast_user_name,disc_role",
+            "C2-OU1-1,2,0,232,Mast 24RA,T", "C2-OU1-2,2,0,232,Mast 24RA,T", "C2-OU1-3,2,0,232,Mast 24RA,T",
+            "C2-OU1-4,2,6,238,Mast 24RA,B", "C2-OU1-5,2,6,238,Mast 24RA,B", "C2-OU1-6,2,6,238,Mast 24RA,B",
+            "C12-OU2-7,12,2,1234,Mast 32R,S", "C12-OU3-8,12,2,1234,Mast 32R,S", "C12-OU3-7,12,2,1234,Mast 32R,S",
+        ]
+        plan = "mast_user_name,heads,packed_ids\nMast 24RA,2,232 238\nMast 32R,1,1234\n"
+        with tempfile.TemporaryDirectory() as d:
+            wiring, head_plan = Path(d) / "signal_wiring.csv", Path(d) / "signal_head_plan.csv"
+            wiring.write_text("\n".join(rows) + "\n", encoding="utf-8")
+            head_plan.write_text(plan, encoding="utf-8")
+            comments = self.m.load_wiring_head_comments(wiring, head_plan)
         self.assertEqual(comments["Head 24RA Top"], "Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3")
-        self.assertEqual(comments["Head 34L Top"], "Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3")
-        self.assertEqual(
-            comments["Head 38LB"], "Node: 1 Signal: 11 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
-        )
-        self.assertEqual(
-            comments["Head 2035"], "Node: 11 Signal: 2 | OU: 3 Ports: 7,8 | OU: 2 Ports: 7"
-        )
+        self.assertEqual(comments["Head 24RA Bottom"], "Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6")
+        self.assertEqual(comments["Head 32R"], "Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7")
+
+    def test_head_comment_from_wiring(self) -> None:
         self.assertEqual(
             self.m.comment_for(
                 "signalhead", "IH432", "Head 6LB", "Node: 4 | OU-2: Port: 1,2"

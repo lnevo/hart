@@ -19,6 +19,8 @@ from hartlib import boundaries as boundary_csv, level_devices, level_masts, park
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
 BOUNDARIES = boundary_csv.PATH
+# staging's turnout and anchor masts but the hidden yard-track ones (staging masts by rule, owner 2026-11-19)
+BOUNDARY_ROWS = 32
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
@@ -81,8 +83,8 @@ class Audit:
 
 def load_boundaries(path: Path) -> list[Boundary]:
     rows = boundary_csv.read(path)     # stops on a bad kind or slot, or a mast named twice
-    if len(rows) != 32:
-        raise ValueError(f"{path}: expected 32 boundary rows, found {len(rows)}")
+    if len(rows) != BOUNDARY_ROWS:
+        raise ValueError(f"{path}: expected {BOUNDARY_ROWS} boundary rows, found {len(rows)}")
     return rows
 
 
@@ -195,9 +197,9 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: b
     field_expected = expected - virtuals
     missing = sorted(field_expected - names)
     extra = sorted(names - field_expected)
-    if missing or extra or len(names) != 23:
+    if missing or extra or len(names) != len(field_expected):
         audit.error(
-            f"signal mast names are not the exact expected 23; "
+            f"signal mast names are not the exact expected {len(field_expected)}; "
             f"missing={missing or 'none'}, extra={extra or 'none'}, count={len(names)}"
         )
     missing_virtuals = sorted(virtuals - virtual_names)
@@ -334,12 +336,12 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 # device-map switch-over, owner 2026-11-17): stock discovery in a sandbox stored 180, every earlier pair kept and 9
 # gained, the head-on 10RA/10RB/12R/14R -> 22L/26L and 36RB -> 40RB. The Dispatcher graph is parked
 # (hartlib.parked): no section or transit while it is.
-EXPECTED_SML = {False: 100, True: 180}
+EXPECTED_SML = {False: 100, True: 182}    # True: stock discovery from scratch, staging masts by rule (2026-11-19)
 # A generated panel before stock discovery (the cut-over candidate as built, build_layout_le.py --as-live) carries the
 # Signal Mast Logic of the live tables.xml it was built on (owner, 2026-11-18), less every logic and destination that
 # names a main or upper object (strip_build_owned): exactly the live tables' destinations between staging masts
 # (carried_destinations), allowed with a warning that discovery is still to run. Since the device-map switch-over
-# that is 104 of the 180, but the audit reads it from the live tables, so a later discovery moves it too. A
+# that is 104 of the 180 then, but the audit reads it from the live tables, so a later discovery moves it too. A
 # generated panel before its Stage 1 with the Dispatcher System unparked still carries the hand-drawn panel's graph
 # (EXPECTED_GRAPH[False]): allowed, with the same kind of warning.
 EXPECTED_GRAPH = {False: (107, 187), True: (197, 187)}

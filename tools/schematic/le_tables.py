@@ -23,8 +23,9 @@ from approval import canon_sorted, element_label  # noqa: E402  as the approval 
 # system name shifts: BLOCK_NUMBERED_AS gives a renamed block the sort place of the name it replaces, and
 # APPENDED_BLOCKS come last, in this order. The balloon loop's split: Loop 1 keeps the loop's numbers; double
 # crossover 225's corners: a keeps OS Switch 225's.
-BLOCK_NUMBERED_AS = {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225"}
-APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d")
+BLOCK_NUMBERED_AS = {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225",
+                     "Track 227-239 1": "Track 227-239"}
+APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d", "Track 227-239 2")
 COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"
 
 
@@ -563,7 +564,7 @@ def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
         {tables.user_name(e) for e in heads_el.findall("signalhead") + masts_el.findall("signalmast")}
     heads, masts = [], []
     for r in rows:
-        where = f"{r['cp']} | Switch {r['switch']}"
+        where = " | ".join(x for x in (r["cp"], f"Switch {r['switch']}" if r["switch"] else "intermediate") if x)
         device = dict(zip([h for h, _u in r["heads"]], level_masts_lib.mast_heads(r["device_system_name"])))
         for h, user in r["heads"]:
             el = ET.Element("signalhead", {"class": HEAD_CLASS})

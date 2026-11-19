@@ -332,9 +332,9 @@
  "helix_side": "east",
  "milepost_origin": {
   "switch": "1",
-  "milepost": 0.0
+  "milepost": 5.7
  },
- "_milepost_origin": "Made up (owner, 2026-11-14): no real milepost data, so the count starts at Switch 1 as MP 0.0 and runs east in scale miles.",
+ "_milepost_origin": "Switch 1 is MP 5.7 (owner, 2026-11-19): the P&OV met the P&LE at Neville interlocking, about PLE 5.7 (www/library/chartiers-valley-railroads.html). The count runs east in scale miles and carries on through the helix to the main and upper levels.",
  "scale_ratio": 87.1,
  "helix_length_in": 690,
  "_helix_length_in": "Estimate: the 15 in climb from staging to the main level at the helix's 2.27% (inner) and 2.09% (outer) grades is 661 to 718 in of track; 690 is the middle.",

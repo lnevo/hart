@@ -25,7 +25,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 WIRING = paths.SIGNAL_WIRING
@@ -41,14 +41,25 @@ _DEST_ENABLED_RE = re.compile(
 )
 
 
-def digicon_mast_names(path: Path = WIRING) -> set[str]:
+_LCOS_HEAD = re.compile(r"\(IH\d+\)")
+
+
+def digicon_mast_names(path: Path = WIRING, tables_text: str | None = None) -> set[str]:
+    """The wiring plan's masts, and with `tables_text` only those whose heads there are wired LCOS heads (IH and
+    digits, the heads signal_coordinator.py enrols): a mast the plan still names but the tables now put on internal
+    heads (staging's rule-built masts, 2026-11-19) is never taken over by the coordinator, so its logic must not
+    boot disabled."""
     names: set[str] = set()
     with path.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             m = (row.get("mast_user_name") or "").strip()
             if m:
                 names.add(m)
-    return names
+    if tables_text is None:
+        return names
+    root = tables.loads(tables_text.encode("utf-8")).root
+    wired = {tables.user_name(m) for m in tables.masts(root) if _LCOS_HEAD.search(tables.system_name(m) or "")}
+    return names & wired
 
 
 def disable_digicon_destinations(text: str, digicon: set[str]) -> tuple[str, int, int]:
@@ -116,8 +127,8 @@ def main() -> None:
         print("missing tables file: %s" % args.panel, file=sys.stderr)
         raise SystemExit(1)
 
-    digicon = digicon_mast_names()
     text = args.panel.read_text(encoding="utf-8")
+    digicon = digicon_mast_names(tables_text=text)
     if args.check:
         pairs = enabled_digicon_pairs(text, digicon)
         rel = args.panel

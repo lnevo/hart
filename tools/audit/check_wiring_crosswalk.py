@@ -18,8 +18,9 @@ Hidden virtual masts (IF$vsm) carry no wiring and are not checked. The main and 
 virtual heads named from their user names (IH:HART:C3:108R_Top; hartlib.level_masts) while their plant is a draft:
 they are not in the wiring plan yet, so each must carry exactly the heads main_upper_masts.csv gives it, and no wired
 head is theirs.
-Mast 6LB is an interim one-low dwarf on its top head (IH432) until the bottom
-head is wired; its bottom head IH433 stays defined and on no mast.
+Staging's masts stand on internal heads too (IH:HART:C1:24RA_Top; ADR-024), all but Mast 6LB, the one wired mast
+(IH432, one high head): each must carry the heads staging_masts.csv gives it. The wiring plan lists wired heads only;
+the rest is planned when the owner wires them.
 """
 from __future__ import annotations
 
@@ -32,9 +33,6 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import level_masts, paths, tables  # noqa: E402
-
-# Masts that may show only their first planned heads for now.
-INTERIM_PREFIX_MASTS = {"Mast 6LB"}
 
 ROLE_ORDER = {"T": 0, "S": 0, "B": 1}
 SHSM_RE = re.compile(r"^IF\$shsm:[^:]+:[^(]+((?:\(IH\d+\))+)$")
@@ -115,6 +113,22 @@ def planned_masts(heads: dict[str, dict]) -> dict[str, list[str]]:
     return {m: [n for _o, n in sorted(v)] for m, v in masts.items()}
 
 
+STAGING_HEAD = "IH:HART:C1:"        # staging's internal heads (ADR-024): not wired, so not in the wiring plan
+STAGING_MASTS = paths.LAYOUT_DATA / "schematic" / "staging_masts.csv"
+
+
+def is_staging_mast(system_name: str) -> bool:
+    heads = level_masts.mast_heads(system_name)
+    return bool(heads) and all(h.startswith(STAGING_HEAD) for h in heads)
+
+
+def staging_heads(path: Path = STAGING_MASTS) -> dict[str, list[str]]:
+    """{mast: [head system names]} of staging_masts.csv's rows on internal heads."""
+    with path.open(newline="", encoding="utf-8") as f:
+        return {r["mast"]: level_masts.mast_heads(r["system_name"]) for r in csv.DictReader(f)
+                if is_staging_mast(r["system_name"])}
+
+
 def read_tables(
     root: ET.Element,
 ) -> tuple[dict[str, str], dict[str, list[str]], list[str]]:
@@ -132,13 +146,13 @@ def read_tables(
             continue
         user = tables.user_name(el) or sn
         m = SHSM_RE.match(sn)
-        if not m and not level_masts.is_level_mast(sn):
+        if not m and not level_masts.is_level_mast(sn) and not is_staging_mast(sn):
             bad.append(f"{user}: head mast {sn} does not name its heads by IH number")
             continue
         if user in masts:
             bad.append(f"{user}: two head masts share this userName")
             continue
-        masts[user] = re.findall(r"IH\d+", m.group(1)) if m else level_masts.mast_heads(sn)
+        masts[user] = re.findall(r"IH\d+", m.group(1)) if m and "IH:" not in sn else level_masts.mast_heads(sn)
     return head_comments, masts, bad
 
 
@@ -152,15 +166,18 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
         if have is None:
             out.append(f"{mast}: wired mast missing from tables.xml")
             continue
-        ok = have == want or (
-            mast in INTERIM_PREFIX_MASTS and have and have == want[: len(have)]
-        )
-        if not ok:
+        if have != want:
             out.append(f"{mast}: heads {' '.join(have)}, wiring plan {' '.join(want)}")
 
     level = {r["mast"]: [h for h, _u in r["heads"]] for r in level_masts.read()}
+    staging = staging_heads()
     for mast in sorted(set(masts) - set(plan)):
         have = masts[mast]
+        if have and all(h.startswith(STAGING_HEAD) for h in have):
+            if staging.get(mast) != have:       # staging, internal until wired: as staging_masts.csv
+                out.append(f"{mast}: internal heads {' '.join(have)}, staging_masts.csv "
+                           f"{' '.join(staging.get(mast) or ['none'])}")
+            continue
         if have and all(level_masts.is_level_head(h) for h in have):
             if level.get(mast) != have:         # main and upper, virtual until wired: as main_upper_masts.csv
                 out.append(f"{mast}: virtual heads {' '.join(have)}, main_upper_masts.csv "
@@ -173,8 +190,7 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
         if name not in head_comments:
             out.append(f"{name} ({h['mast']} {h['role']}): wired head not defined in tables.xml")
             continue
-        interim_off = h["mast"] in INTERIM_PREFIX_MASTS and h["role"] == "B"
-        if name not in on_mast and not interim_off:
+        if name not in on_mast:
             out.append(f"{name} ({h['mast']} {h['role']}): wired head is on no mast")
         want = expected_comment(h)
         if head_comments[name] != want:

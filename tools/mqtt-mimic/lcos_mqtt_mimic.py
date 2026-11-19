@@ -305,6 +305,9 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
         for num in re.findall(r"\d+[a-z]?", r.user_name):
             if region.get(num):
                 return region[num]
+        sw = re.search(r"\| Switch (\d+)", r.comment or "")     # a spur exit dwarf at a local switch (ADR-024)
+        if sw and region.get(sw.group(1)):
+            return region[sw.group(1)]
         raise SystemExit(f"{dm.path} line {r.line}: {r.user_name} has no cp and names no switch with a region")
 
     def order(r: railroad.DeviceRow) -> tuple:

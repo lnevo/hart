@@ -83,14 +83,15 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
         with (SIGNALS / "signal_head_plan.csv").open(newline="") as f:
             return {r["mast_user_name"]: r for r in csv.DictReader(f)}
 
-    def test_6lb_interim_dwarf_in_head_plan(self) -> None:
+    def test_6lb_one_high_head_in_head_plan(self) -> None:
         row = self.head_plan()["Mast 6LB"]
         self.assertEqual(row["physignal"], "single")
-        self.assertEqual(row["mast_system_name"], "IF$shsm:basic:one-low(IH432)")
+        self.assertEqual(row["mast_system_name"], "IF$shsm:basic:one-searchlight(IH432)")
 
-    def test_6lb_wiring_keeps_planned_bottom_head(self) -> None:
-        packed = {r["packed"] for r in self.rows if r["mast_user_name"] == "Mast 6LB"}
-        self.assertEqual(packed, {432, 433})
+    def test_wiring_lists_wired_heads_only(self) -> None:
+        # ADR-024: Mast 6LB on IH432 is the one wired head; IH433 was dropped.
+        packed = {(r["mast_user_name"], r["packed"]) for r in self.rows}
+        self.assertEqual(packed, {("Mast 6LB", 432)})
 
     def test_head_plan_mast_names_match_tables(self) -> None:
         text = TABLES.read_text(encoding="utf-8")
@@ -113,10 +114,10 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
 
     def test_full_mode_refuses_plan_ids_that_are_not_live(self) -> None:
         text = TABLES.read_text(encoding="utf-8").replace(
-            "<systemName>IH232</systemName>", "<systemName>IH1232x</systemName>"
+            "<systemName>IH432</systemName>", "<systemName>IH432x</systemName>"
         )
         missing = self.m.check_live_heads(self.m.fitted_rows(self.rows), text)
-        self.assertEqual(missing, ["IH232"])
+        self.assertEqual(missing, ["IH432"])
 
     def test_full_mode_refuses_to_drop_live_beans(self) -> None:
         rows = self.m.fitted_rows(self.rows)

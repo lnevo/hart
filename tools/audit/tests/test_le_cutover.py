@@ -311,10 +311,10 @@ class ThreeLevels(unittest.TestCase):
         # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
         self.assertTrue(B.JOIN_HELIX)
         self.assertEqual(self.P.staging_same, [
-            "end bumper EBG1 -> anchor AGE1 (hidden join TG230 to Track 135-H2, Mast 38RA)",
-            "end bumper EBG2 -> anchor AGE2 (hidden join TG231 to Track 135-H1, Mast 40RA)",
+            "end bumper EBG1 -> anchor AGE1 (hidden join TG231 to Track 135-H2, Mast 38RA)",
+            "end bumper EBG2 -> anchor AGE2 (hidden join TG232 to Track 135-H1, Mast 40RA)",
             "track segment TG6 connect2name EBG2 -> AGE2",
-            "track segment TG32 connect2name EBG1 -> AGE1"])
+            "track segment TG33 connect2name EBG1 -> AGE1"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
         self.assertEqual(self.P.scale, self.base[1].scale)
         self.assertEqual(self.P.staging_data, self.base[0])
@@ -601,12 +601,12 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual({tables.user_name(b) for b in added_lb}, {v for k, v in self.device.items()
                                                                     if not k.startswith("Switch ")})
         self.assertEqual(added_b, {tables.user_name(b) for b in added_lb})
-        self.assertEqual(len(added_lb), 125)          # the 107 Loop's two halves and 225's four corners
+        self.assertEqual(len(added_lb), T.LEVEL_BLOCKS)   # the 107 Loop's and 227-239's halves, 225's four corners
         self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
                             if B.is_level_bean(b)))
 
     def test_main_and_upper_masts_and_no_sensors(self) -> None:
-        """Main and upper: their 41 control-point masts (main_upper_masts.csv), each in the slot JMRI resolves to its
+        """Main and upper: their masts (main_upper_masts.csv: control-point masts and APB intermediates), each in the slot JMRI resolves to its
         facing track and protected OS block (108LA and 108LB on Switch 107's normal and diverging legs, facing the 107
         Loop's two halves; 226RA and 226RB each protecting its own corner of double crossover 225), on virtual heads
         and masts signal_coordinator.py never enrols; no sensors."""
@@ -635,7 +635,7 @@ class ThreeLevels(unittest.TestCase):
                          ["IF$shsm:basic:one-low(IH3332)", "IH3332"])
         heads = [h for h in self.root.find("signalheads") if B.is_level_bean(h)]
         masts = [m for m in self.root.find("signalmasts") if B.is_level_bean(m)]
-        self.assertEqual((len(heads), len(masts)), (53, 41))
+        self.assertEqual((len(heads), len(masts)), (T.LEVEL_HEADS, T.LEVEL_MASTS))
         self.assertEqual({m.findtext("userName") for m in masts}, set(rows))
         written = {self.P.name(i) for i in level}
         for el in self.le:
@@ -750,15 +750,16 @@ class Rebuilt(unittest.TestCase):
 
     def test_what_else_is_in_the_tables_carries_through(self) -> None:
         """A bean added to the live tables after a cut-over (a memory, an internal sensor whose comment names a main
-        level switch, a layout block PanelPro numbered after the build's, ILB1126) is in the next candidates
+        level switch, a layout block PanelPro numbered after the build's last, ILB1127 today) is in the next candidates
         unchanged; the build's own objects are drawn as before."""
         doc = tables.load(T.TABLES)
         memory = ET.fromstring('<memory value="kept"><systemName>IMHART:KEEP</systemName><userName>Kept memory'
                                '</userName></memory>')
         sensor = ET.fromstring('<sensor inverted="false"><systemName>IS:HART:KEEP</systemName><userName>Kept sensor'
                                '</userName><comment>hand-added; names Switch 107</comment></sensor>')
-        layout_block = ET.fromstring('<layoutblock systemName="ILB1126" occupiedsense="2" trackcolor="gray" '
-                                     'occupiedcolor="red" extracolor="white"><systemName>ILB1126</systemName>'
+        hand = f"ILB{B.LAYOUT_BLOCK_FIRST + T.LEVEL_BLOCKS}"        # the first number after the build's own
+        layout_block = ET.fromstring(f'<layoutblock systemName="{hand}" occupiedsense="2" trackcolor="gray" '
+                                     f'occupiedcolor="red" extracolor="white"><systemName>{hand}</systemName>'
                                      '<userName>Track Hand Added</userName></layoutblock>')
         internal = next(s for s in doc.root.findall("sensors") if "InternalSensorManager" in s.get("class"))
         added = [(doc.root.find("memories"), memory), (internal, sensor), (doc.root.find("layoutblocks"), layout_block)]

@@ -69,7 +69,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (device_map_staging.csv)
 from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402
-from hartlib.cats import mast_templates, station_plate  # noqa: E402
+from hartlib.cats import appearance_templates, mast_templates, station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 import cats_turnout_io as tio  # noqa: E402
@@ -195,7 +195,8 @@ def load_facts():
     try:
         t = rr.tables
         return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
-                     StagingTracks(staging_tracks()), mast_templates(), set(t.masts), rr.device_map,
+                     StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
+                     rr.device_map,
                      t.sensors, t.turnouts, t.masts, rr.level_masts)
     except railroad.FactsError as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None
@@ -342,17 +343,21 @@ def block_bindings(band, F, names):
 
 
 def mast_bindings(opts, F):
-    """Every drawn mast (field and planned) by its JMRI user name and template; a name drawn twice stops."""
+    """Every drawn mast (field and planned) by its JMRI user name and template: its own row in signal_head_plan.csv
+    (a wired mast), else the template staging's masts of its appearance type take (template_by_type), as main and
+    upper masts get theirs. A name drawn twice stops."""
     out = {}
+    by_type = template_by_type(F)
     for sg in opts.get("signals") or ():
         if sg["kind"] == "virtual":
             continue
         if sg["mast"] in out:
             raise SystemExit(f"mast {sg['mast']} is listed twice in the staging signals")
         name = opts.get("mast_prefix", "") + sg["mast"]
-        if name not in F.masts or name not in F.templates:
-            raise SystemExit(f"{name}: not a JMRI mast with a template in signal_head_plan.csv")
-        out[sg["mast"]] = {"name": name, "template": F.templates[name]}
+        template = F.templates.get(name) or by_type.get(mast_type(F.mast_system.get(name)))
+        if name not in F.masts or template is None:
+            raise SystemExit(f"{name}: not a JMRI mast, or no template for its type in signal_head_plan.csv")
+        out[sg["mast"]] = {"name": name, "template": template}
     return out
 
 
@@ -619,16 +624,46 @@ def mast_type(system):
 
 
 def template_by_type(F):
-    """{appearance type: CATS template} as staging's masts have them (signal_head_plan.csv); a type given two
-    templates stops."""
-    out = {}
-    for name, template in sorted(F.templates.items()):
-        kind = mast_type(F.mast_system.get(name))
-        if kind is None:
-            continue
-        if out.setdefault(kind, template) != template:
-            raise SystemExit(f"signal_head_plan.csv gives {kind} masts two templates, {out[kind]} and {template}")
+    """{appearance type: CATS template}: as signal_head_plan.csv gives them (hartlib.cats.appearance_templates), and
+    the stock basic types by head count where it gives none. `F` is unused: kept so the callers stay as they were."""
+    try:
+        out = appearance_templates()
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from None
+    # the stock basic appearances by head count, where the plan gives none: one head shows Clear, Approach and Stop
+    # (CATS "single"), two add the Diverging aspects ("double"); a dwarf shows the aspects of its high twin. The
+    # wiring plan lists wired masts only (6LB since 2026-11-19), so most types come from here.
+    for kind, template in (("one-low", "single"), ("one-searchlight", "single"), ("two-searchlight", "double"),
+                           ("two-low", "double")):
+        out.setdefault(kind, template)
     return out
+
+def intermediate_signal(bands, F, bound_bi, r, by_trial):
+    """(band index, signal) of an APB intermediate (a main_upper_masts.csv row with no switch): at the turnback where
+    the loop or split track's half it faces meets the half it protects, heading west when its number is odd."""
+    num = int(re.sub(r"\D", "", r["mast"]))
+    for bi, band, opts in level_bands(bands, bound_bi):
+        strands, nodes = band["strands"], band["nodes"]
+        pieces = [k for k, t in strands.items() if by_trial.get(placeholder(t)) == r["facing"]]
+        if not pieces:
+            continue
+        sid = pieces[0]
+        t = strands[sid]
+        ends = [t["src"][0], t["dst"][0]]
+        if r["protects"] in by_trial.values() and any(by_trial.get(placeholder(x)) == r["protects"] for x in strands.values()):
+            turn = next((n for n in ends if nodes[n]["kind"].startswith("turn")), None)
+            if turn is None:
+                raise SystemExit(f"{r['mast']}: {r['facing']} meets {r['protects']} at no turnback on the desk")
+            for k in [k for k, x in strands.items() if x.get("loop_half")]:
+                x = strands[k]
+                x.setdefault("plan_edge", x["edge"])
+                x["edge"] = loop_half_edge(x["plan_edge"], x["loop_half"])
+            return bi, {"mast": r["mast"].removeprefix(opts.get("mast_prefix", "")), "toward": "", "_toward_node": turn,
+                        "_edge": t["edge"], "cm_from_toward": 0.0, "edge_cm": t["cm"],
+                        "dir": "west" if num % 2 else "east", "kind": "field", "heads": len(r["heads"]),
+                        "source": level_masts.PATH.name}
+        raise SystemExit(f"{r['mast']}: {r['facing']} and {r['protects']} meet at no turnback on the desk")
+    raise SystemExit(f"{r['mast']}: no desk band draws {r['facing']}")
 
 
 def level_signals(bands, F, bound_bi):
@@ -641,6 +676,12 @@ def level_signals(bands, F, bound_bi):
     by_trial = {t: name for name, row in F.device.blocks.items() for t in row.trial}
     added = defaultdict(list)
     for r in F.level_masts:
+        if not r["switch"]:                         # an APB intermediate (owner, 2026-11-19)
+            placed = intermediate_signal(bands, F, bound_bi, r, by_trial)
+            if placed is not None:
+                bi, sg = placed
+                added[bi].append(sg)
+            continue
         m = re.fullmatch(r"Mast (\d+)([LR])([AB]?)", r["mast"])
         if not m:
             raise SystemExit(f"{level_masts.PATH.name}: {r['mast']} is not a mast name in the device map's grammar")
@@ -675,6 +716,11 @@ def level_signals(bands, F, bound_bi):
                           "_edge": s["edge"], "cm_from_toward": 0.0, "edge_cm": s["cm"],
                           "dir": "west" if m.group(2) == "L" else "east", "kind": "field",
                           "heads": len(r["heads"]), "source": level_masts.PATH.name})
+    # the sheet's main_upper.signals.json draws these masts too; the desk places its own (balloon loop halves have
+    # edges of their own here), so it drops the file's, once: the main and upper bands share one options object
+    for bi in added:
+        opts = bands[bi][2]
+        opts["signals"] = [sg for sg in opts.get("signals") or () if sg.get("source") != level_masts.PATH.name]
     for bi, sigs in sorted(added.items()):
         opts = bands[bi][2]
         clash = sorted({sg["mast"] for sg in opts.get("signals") or ()} & {sg["mast"] for sg in sigs})

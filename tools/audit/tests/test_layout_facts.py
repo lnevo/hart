@@ -142,7 +142,7 @@ class LayoutFactsTest(unittest.TestCase):
         out = self.failures(desks=(self.copy(check.DESKS[0], lambda t: t.replace(">Mast 24L<", ">Mast 24LX<", 1)),
                                    check.DESKS[1]))
         self.assertIn("Mast 24L: HART_CTC.xml has 0 lamps for it, not one", out)
-        self.assertIn("Mast 24LX: HART_CTC.xml has a lamp for it, mast_cells.csv has no such mast", out)
+        self.assertIn("Mast 24LX: HART_CTC.xml has a lamp for it, staging_masts.csv has no such visible mast", out)
 
     def test_a_mast_on_the_wrong_block_edge_fails(self) -> None:
         # Mast 24L protects OS Switch 23a: its lamp on another block's edge is named
@@ -158,21 +158,17 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertIn("Mast 24L: HART_CTC.xml has its lamp on the edge of Track West Ext, but it protects "
                       "OS Switch 23a (staging_masts.csv)", out)
 
-    def test_a_mast_drawn_with_the_wrong_head_fails(self) -> None:
+    def test_mast_cells_are_not_checked_while_the_uss_board_is_parked(self) -> None:
+        # mast_cells.csv and the board's grid are the parked USS machine's (owner, 2026-11-19): a wrong head or a
+        # missing grid cell is not reported until the board is back in the tables
         data = self.data_copy()
         cells = data / "mast_cells.csv"
         cells.write_text(cells.read_text().replace("Mast 4RA,6,10,RIGHT,E,d1,IH436", "Mast 4RA,6,10,RIGHT,E,d1,IH437"))
-        self.assertIn("Mast 4RA: mast_cells.csv draws it d1 IH437, tables.xml gives it heads ['IH436']",
-                      self.failures(data=data))
-
-    def test_the_board_grid_comes_from_the_data_folder(self) -> None:
-        data = self.data_copy()
         grid = data / "uss_board_cells.csv"
         text = grid.read_text(encoding="utf-8")
         line = next(ln for ln in text.splitlines() if ln.startswith("6,10,"))     # Mast 4RA's cell
         grid.write_text(text.replace(line + "\n", ""), encoding="utf-8")
-        self.assertIn("Mast 4RA: mast_cells.csv puts it at (6, 10), a cell with no track on the USS board's grid "
-                      "(uss_board_cells.csv)", self.failures(data=data))
+        self.assertFalse([f for f in self.failures(data=data) if "mast_cells.csv" in f])
 
     def test_stale_known_entry_fails(self) -> None:
         report = check.run()
@@ -335,8 +331,8 @@ class LayoutFactsTest(unittest.TestCase):
                              [("Switch 225", "close"), ("Switch 225", "throw")])
 
     def test_a_main_upper_mast_missing_or_off_its_block_fails(self) -> None:
-        out = self.failures(desks=(self.copy(check.DESKS[0], lambda t: t.replace(">Mast 108R<", ">Mast 108RX<", 1)),))
-        self.assertIn("Mast 108R: HART_CTC.xml has 0 lamps for it, not one", out)
+        out = self.failures(desks=(self.copy(check.DESKS[0], lambda t: t.replace(">Mast 108LB<", ">Mast 108LX<", 1)),))
+        self.assertIn("Mast 108LB: HART_CTC.xml has 0 lamps for it, not one", out)
 
         def move(text: str) -> str:
             sig = text.index(">Mast 226RA<")

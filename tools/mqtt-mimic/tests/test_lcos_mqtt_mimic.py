@@ -41,19 +41,20 @@ class LcosMimicNamingTest(unittest.TestCase):
         self.assertNotIn("West Yard", {b["plant"] for b in self.layout["blocks"]})
 
     def test_heads_use_mast_prefix_and_cps(self) -> None:
+        # Staging heads come from the wiring plan, which lists wired heads only (ADR-024: Mast 6LB on IH432);
+        # staging's internal heads (IH:HART:C1:*) publish nothing, so the mimic shows none of them.
         masts = {h["mast"] for h in self.layout["heads"]}
-        self.assertIn("Mast 2L", masts)
-        self.assertIn("Mast 2035", masts)
+        self.assertIn("Mast 6LB", masts)
+        self.assertNotIn("Mast 2L", masts)
         self.assertNotIn("100L", masts)
         by_mast = {h["mast"]: h["plant"] for h in self.layout["heads"]}
-        self.assertEqual(by_mast["Mast 2L"], "Brick")
-        self.assertEqual(by_mast["Mast 8LA"], "Barn")
-        self.assertEqual(by_mast["Mast 2035"], "Princess")
+        self.assertEqual(by_mast["Mast 6LB"], "Plane")
+        self.assertFalse(any(h["id"].startswith("IH:HART:C1:") for h in self.layout["heads"]))
 
     def test_head_ids_are_packed_mqtt_leaves(self) -> None:
         ids = {h["id"] for h in self.layout["heads"]}
         self.assertIn("432", ids)
-        self.assertIn("438", ids)
+        self.assertNotIn("433", ids)      # dropped with Mast 6LB's second head (ADR-024)
         self.assertNotIn("IH432", ids)
         by_id = {h["id"]: h for h in self.layout["heads"]}
         self.assertEqual(by_id["432"]["systemName"], "IH432")

@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import level_masts, paths  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 SCRIPT = ROOT / "tools/mqtt-mimic/qa/run_native_sml_qa.py"
@@ -28,7 +28,7 @@ def table_masts() -> dict[str, tuple[str, ...]]:
     for mast in ET.parse(TABLES).getroot().iter("signalmast"):
         name = mast.findtext("userName")
         if name:
-            masts[name] = tuple(re.findall(r"IH\d+", mast.findtext("systemName") or ""))
+            masts[name] = tuple(level_masts.mast_heads(mast.findtext("systemName") or ""))
     return masts
 
 
@@ -46,7 +46,12 @@ class NativeSmlQaTest(unittest.TestCase):
     def test_heads_come_from_tables(self) -> None:
         self.assertEqual(self.qa.load_mast_heads(TABLES), self.qa.MAST_HEADS)
         self.assertEqual(self.qa.MAST_HEADS["Mast 6LB"], ("IH432",))
-        self.assertEqual(self.qa.MAST_HEADS["Mast 40LA"], ("IH1132", "IH1135"))
+        self.assertEqual(self.qa.MAST_HEADS["Mast 40LA"], ("IH:HART:C1:40LA_Top", "IH:HART:C1:40LA_Bottom"))
+
+    def test_live_masts_are_staging_visible_masts(self) -> None:
+        self.assertIn("Mast 67", self.qa.LIVE_MASTS)
+        self.assertNotIn("Mast 4LA", self.qa.LIVE_MASTS)     # hidden virtual mast
+        self.assertNotIn("Mast 108LA", self.qa.LIVE_MASTS)   # main level
 
     def test_unreadable_head_mast_fails_loudly(self) -> None:
         import tempfile

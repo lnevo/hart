@@ -66,8 +66,9 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   get none (their virtual sensor stays, NO_DETECTOR).
 - Home signals: one mast where each track from outside a control point meets one of its switches; none on spurs
   or yard tracks that end at a bumper. "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number
-  and direction has two. A mast at the points has two heads (two-searchlight, Top and Bottom); one at a trailing
-  leg has one (one-low). East is the schematic's (ADR-022 amendment: away from the helix on these levels).
+  and direction has two. Two heads (Top and Bottom) when a route the mast governs meets facing points inside its
+  control point before the next signal (mast_rule.facing_on_route), else one; high (searchlight) facing from running
+  track, a dwarf (low) from a yard, lead or siding (owner, 2026-11-19). East is the schematic's (ADR-022 amendment: away from the helix on these levels).
 - LCOS packed IDs are node * 100 + UID (external/lcos-bridge): blocks UID 0-7 (BS, "Node: n Block: k+1"), turnouts
   8-15 (M2T, "Node: n Turnout: k"), signals 32-47 (IH, "Node: n Signal: k"), inputs from 67 (M2S, feedback N then R
   per turnout, "Node: n Sensor: k"). A control point's turnouts stay on one node; switches in no control point
@@ -89,6 +90,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
+from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported for the builders
+    LEVELS, LOOP_HALF, TAU, MapError, band_level, end_label, end_ref, facing_on_route, helix_tags, masts, track_names,
+    tracks)
 from hartlib import level_devices, railroad  # noqa: E402  the virtual names; the facts it reads and checks
 
 SOURCES = railroad.Sources.under()
@@ -97,6 +101,9 @@ NODES = SOURCES.lcos_nodes
 LOCAL = SOURCES.local_switches
 OVERRIDES = SOURCES.plan_overrides
 OUT = SOURCES.device_map
+SPLIT = OVERRIDES.parent / "split_tracks_main_upper.csv"          # tracks parted into two blocks at their turnback
+RUNNING = OVERRIDES.parent / "running_tracks_main_upper.csv"     # passing sidings counted as running track
+SPURS = OVERRIDES.parent / "signalled_spurs_main_upper.csv"      # spurs that get an exit dwarf
 
 
 def sources() -> railroad.Sources:
@@ -104,24 +111,18 @@ def sources() -> railroad.Sources:
     return railroad.Sources.under().but(level_control_points=CPS, lcos_nodes=NODES, local_switches=LOCAL,
                                         plan_overrides=OVERRIDES, device_map=OUT)
 
-LEVELS = {"Main": 2, "Upper": 3}      # band key (first word of the band title) -> level
 SHORT_CM = 30.0
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
 MAX_OU = 4                            # DNOU8 boards per node: the most any node has in LCOS_Layout_Inventory_v85
 UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}
 COLUMNS = list(railroad.DEVICE_COLUMNS)
 DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
-TAU = {"A": -1, "B": 1, "C": 1, "D": -1}      # the plugin's leg sides (schematic.core.TAU)
-LOOP_HALF = {"B": 1, "C": 2}          # a balloon loop's half by the switch leg it leaves from (owner, 2026-11-16)
 VIRTUAL_TURNOUT = level_devices.TURNOUT_PREFIX   # + switch number: the internal turnout the panels and desks use
 VIRTUAL_SENSOR = level_devices.SENSOR_PREFIX     # + block_key: the internal occupancy sensor of every block
 occupancy_user = level_devices.occupancy_user
 NOT_WIRED = "detector planned, not wired yet: no node or input (owner, 2026-11-16)"
+HEAD_NOT_WIRED = "head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 NO_DETECTOR = "no detector planned: dark until decided"
-
-
-class MapError(RuntimeError):
-    pass
 
 
 # The switch number of a schematic label ("129A" -> "129", "223*" -> "223") and the natural sort key, defined once in
@@ -148,9 +149,6 @@ def load_cps(path: Path = CPS) -> list[railroad.LevelControlPoint]:
 
 
 # ---------------------------------------------------------------- the schematic
-
-def band_level(title: str) -> int | None:
-    return LEVELS.get((title or "").split()[0]) if title else None
 
 
 def labels_by_level(bands) -> dict[int, set[str]]:
@@ -179,55 +177,6 @@ def overrides_keys(cps, by_level) -> dict:
     return cp_out
 
 
-def end_ref(bands, joined, bi, node_id, helix_tag):
-    """What a track ends at: ("sw", number), ("helix", "H1"), ("bumper", None). A connector to the other band
-    is followed to the switch beyond it."""
-    band = bands[bi][1]
-    d = band["nodes"][node_id]
-    if d["kind"] in ("switch", "dx"):
-        return ("sw", base(d["label"]))
-    if d.get("sub") == "helix":
-        level = band_level(bands[bi][0])
-        if level not in helix_tag:
-            raise MapError(f"a track reaches the helix end on band {bands[bi][0]!r}, which is not main or upper")
-        return ("helix", helix_tag[level])
-    if d.get("sub") == "link" and (bi, node_id) in joined:
-        bj, m = joined[(bi, node_id)]
-        other = bands[bj][1]
-        sid = next(iter(list(other["nodes"][m]["ins"].values()) + list(other["nodes"][m]["outs"].values())))
-        s = other["strands"][sid]
-        far = s["dst"][0] if s["src"][0] == m else s["src"][0]
-        return end_ref(bands, joined, bj, far, helix_tag)
-    return ("bumper", None)
-
-
-def end_label(bands, joined, bi, node_id) -> str:
-    """The switch label a track ends at, followed through a connector to the other band ("" at a bumper or
-    helix): the halves of the helix-top crossovers 129 and 135 sit on two bands, joined by connectors."""
-    d = bands[bi][1]["nodes"][node_id]
-    if d["kind"] in ("switch", "dx"):
-        return d.get("label") or ""
-    if d.get("sub") == "link" and (bi, node_id) in joined:
-        bj, m = joined[(bi, node_id)]
-        other = bands[bj][1]
-        sid = next(iter(list(other["nodes"][m]["ins"].values()) + list(other["nodes"][m]["outs"].values())))
-        s = other["strands"][sid]
-        return end_label(bands, joined, bj, s["dst"][0] if s["src"][0] == m else s["src"][0])
-    return ""
-
-
-def helix_tags(bands, overrides) -> dict[int, str]:
-    """{level: "H1"|"H2"}: the helix tracks in the overrides' order, each on the band holding its switch."""
-    relabel = next(e["map"] for e in overrides["edits"] if e["op"] == "relabel")
-    out = {}
-    for i, sw in enumerate(overrides.get("helix", {})):
-        label = relabel.get(sw, sw)
-        for title, band, _ in bands:
-            if any(d.get("label", "").rstrip("*") == label for d in band["nodes"].values()):
-                out[band_level(title)] = f"H{i + 1}"
-    return out
-
-
 def xover_corners(number: str, corners: dict) -> dict:
     """{schematic leg: OS block} of a double crossover's four corner blocks, named by the Layout Editor corner each
     leg reaches (`corners`, {leg: corner}: dx_corners); see the module text."""
@@ -250,12 +199,30 @@ def dx_corners(bands, le_mod, page) -> dict:
     return out
 
 
-def loop_halves(band, runs) -> dict:
+def split_edges(path: Path | None = None) -> dict:
+    """{plan edge: track name} of the tracks split_tracks_main_upper.csv parts into two blocks at their turnback."""
+    with open(path or SPLIT, newline="", encoding="utf-8") as fh:
+        return {r["edge"]: r["track"] for r in csv.DictReader(fh)}
+
+
+def loop_halves(band, runs, split: dict | None = None) -> dict:
     """{strand id: 1 or 2} for each balloon loop of `band` (a run that leaves a switch and comes back to it), by the
-    leg its strand leaves the switch from (LOOP_HALF). Stops on a loop not drawn as two tracks joined by one
-    turnback, or one not on legs B and C, since the halves would then be ambiguous."""
+    leg its strand leaves the switch from (LOOP_HALF), and for each track `split` names (split_edges: a run between
+    two switches folded at one turnback, owner 2026-11-19): half 1 the strand at its lower-numbered switch. Stops on a
+    loop not drawn as two tracks joined by one turnback, or one not on legs B and C, since the halves would then be
+    ambiguous."""
+    split = split_edges() if split is None else split
     out = {}
     for start, chain, end in runs(band):
+        edges = {re.sub(r"\.\d+$", "", band["strands"][sid]["edge"]) for sid, _ in chain}
+        if start[0] != end[0] and len(edges) == 1 and next(iter(edges)) in split:
+            if len(chain) != 2:
+                raise MapError(f"{split[next(iter(edges))]} is drawn as {len(chain)} track(s); a split track needs "
+                               "two joined by one turnback")
+            labels = [natural(base(band["nodes"][x[0]].get("label") or "")) for x in (start, end)]
+            first = 0 if labels[0] <= labels[1] else 1
+            out[chain[0][0]], out[chain[-1][0]] = (1, 2) if first == 0 else (2, 1)
+            continue
         if start[0] != end[0] or band["nodes"][start[0]]["kind"] not in ("switch", "dx"):
             continue
         if len(chain) != 2 or {start[1], end[1]} != set(LOOP_HALF):
@@ -267,68 +234,71 @@ def loop_halves(band, runs) -> dict:
     return out
 
 
+LINE_CODE = {2: "A", 3: "B"}            # milepost line codes, after Furnace A and B (owner, 2026-11-19)
+
+
+def signal_number(mp: float, west: bool) -> int:
+    """An intermediate signal's number from its milepost in tenths: odd westbound, even eastbound (prototype)."""
+    n = int(mp * 10 + 1e-9)
+    if west:
+        return n if n % 2 else n + 1
+    return n if n % 2 == 0 else n + 1
+
+
+def intermediates(bands, found, cp_of, running, split) -> list[dict]:
+    """APB intermediate masts on the main and upper levels (owner, 2026-11-19), named from the milepost with the
+    level's line code: a pair at the turnback of each running balloon loop or split track, one each way (eastbound
+    even, westbound odd). The milepost is the plugin's count along the main route (the band's `mp`, the numbers the
+    sheets print), at the middle of the folded track; east is the way it rises, so on a split track the eastbound mast
+    faces the half the count starts on. A balloon loop starts and ends at one switch, so its eastbound mast faces
+    Loop 1. None into the helix: the home signals at 129 and 135 govern it (owner, 2026-11-19)."""
+    out = []
+    for bi, (title, band, _) in enumerate(bands):
+        lv = band_level(title)
+        if not lv:
+            continue
+        code = LINE_CODE[lv]
+        for t in found:
+            if t["band"] != bi:
+                continue
+            ends = [v for k, v in t["ends"] if k == "sw"]
+            cp = next((cp_of[e] for e in ends if e in cp_of), "")
+            if not cp:
+                continue                    # a track with no control point at either end gets no intermediates
+            if any(k == "helix" for k, _v in t["ends"]):
+                continue                    # no signal into the helix: 129/135 govern it (owner, 2026-11-19)
+            if not (t["loop"] or t["name"] in split) or not (t["main"] or t["name"] in running):
+                continue
+            edge = re.sub(r"(\.\d+|(?<=\d)[xy])$", "", band["strands"][t["strands"][0]]["edge"])
+            if edge not in band["mp"]:
+                raise MapError(f"{t['name']}: the milepost count (main route) does not run over plan edge {edge}")
+            west_node, mp0, length, _end = band["mp"][edge]
+            mp = mp0 + length / 2           # the turnback parts a folded track in the middle
+            half = [f"{t['name']} 1", f"{t['name']} 2"]
+            if not t["loop"]:               # east is the way the count rises: from the end it starts at
+                west_label = base(band["nodes"][west_node].get("label") or "")
+                first_switch = sorted(ends, key=natural)[0]       # half 1 is at the lower-numbered switch
+                if west_label != first_switch:
+                    half.reverse()
+            for west, facing, protects in ((True, half[1], half[0]), (False, half[0], half[1])):
+                out.append(dict(level=lv, cp=cp, name=f"{code}{signal_number(mp, west)}", facing=facing,
+                                protects=protects, heads=1, kind="one-searchlight", switch="", intermediate=True,
+                                band=bi, milepost=round(mp, 3)))
+    return out
+
+
 def loop_placeholder(placeholder: str, half: int | None) -> str:
     """The drawing's placeholder for one half of a balloon loop ("Track e33" -> "Track e33 1"), as
     build_layout_le.placeholder_names and build_cats_panel name it; any other track's is unchanged."""
     return placeholder if half is None else f"{placeholder} {half}"
 
 
-def tracks(bands, runs, joined, helix_tag) -> list[dict]:
-    """One entry per track of the main and upper bands (a track cut by a connector counted once)."""
-    found, seen = [], set()
-    for bi, (title, band, _) in enumerate(bands):
-        lv = band_level(title)
-        if not lv:
-            continue
-        nodes, strands, srow = band["nodes"], band["strands"], band["R"]["srow"]
-        for start, chain, end in runs(band):
-            a = end_ref(bands, joined, bi, start[0], helix_tag)
-            b = end_ref(bands, joined, bi, end[0], helix_tag)
-            la, lb = end_label(bands, joined, bi, start[0]), end_label(bands, joined, bi, end[0])
-            halves = la[-1:] in ("A", "B") and lb[-1:] in ("A", "B")
-            if a[0] == b[0] == "sw" and a[1] == b[1] and la != lb and halves:
-                continue                                    # between a crossover's halves: its OS block
-            edges = {}
-            for sid, _ in chain:
-                edges[re.sub(r"(?<=\d)[xy]$", "", strands[sid]["edge"])] = strands[sid]["cm"]
-            key = tuple(sorted(edges))
-            if key in seen:
-                continue
-            seen.add(key)
-            ends = [(start[0], start[1]), (end[0], end[1])]
-            found.append(dict(level=lv, ends=(a, b), legs=ends, band=bi, cm=round(sum(edges.values()), 1),
-                              loop=start[0] == end[0] and a[0] == "sw",
-                              main=any(strands[sid]["main"] for sid, _ in chain),
-                              row=min(srow.get(sid, 0) for sid, _ in chain),
-                              strands=[sid for sid, _ in chain],
-                              trial=sorted({"Track " + re.sub(r"(?<=\d)[xy]$", "", strands[sid]["edge"])
-                                            for sid, _ in chain})))
-    return found
-
-
-def track_names(found) -> None:
-    """Fill `name` in each track entry (see the module text)."""
-    groups = defaultdict(list)
-    for t in found:
-        (ka, va), (kb, vb) = t["ends"]
-        sw = sorted([v for k, v in t["ends"] if k == "sw"], key=natural)
-        hx = [v for k, v in t["ends"] if k == "helix"]
-        if not sw:
-            raise MapError(f"a track ({', '.join(t['trial'])}) has no switch at either end, so it has no name")
-        if len(sw) == 2 and sw[0] == sw[1]:
-            stem = f"Track {sw[0]} Loop"
-        elif sw and not hx and len(sw) == 1:
-            stem = f"Track {sw[0]} Spur"
-        else:
-            stem = "Track " + "-".join(sw + hx)
-        groups[stem].append(t)
-    for stem, ts in groups.items():
-        ts.sort(key=lambda t: (t["row"], t["trial"]))
-        for i, t in enumerate(ts, 1):
-            t["name"] = stem if len(ts) == 1 else f"{stem} {i}"
-
-
 # ---------------------------------------------------------------- LCOS nodes
+
+class NoBoardRoom(MapError):
+    """The draft plant has no 5V board room left in an area for a mast's heads: the heads wait for the wiring plan
+    (HEAD_NOT_WIRED). Any other MapError still stops the build."""
+
 
 class Nodes:
     """Hands out LCOS UIDs per node, in each level and area's node order."""
@@ -375,7 +345,7 @@ class Nodes:
         for node in list(prefer) + self.pool[(level, area)]:
             if self.room(node, "signal", heads) and self._fit(node, 3 * heads):
                 return node
-        raise MapError(f"level {level} {area}: no LCOS node left with board room for a {heads}-head mast; "
+        raise NoBoardRoom(f"level {level} {area}: no LCOS node left with board room for a {heads}-head mast; "
                        f"add one to {NODES.name}")
 
     def place_mast(self, node, heads):
@@ -401,57 +371,9 @@ class Nodes:
 
 # ---------------------------------------------------------------- the map
 
-def masts(bands, cps, found, cp_of, corner_blocks=None) -> list[dict]:
-    """Home masts where a track from outside a control point meets one of its switches."""
-    by_leg = {}
-    for t in found:
-        for (n, p), far in zip(t["legs"], reversed(t["ends"])):
-            by_leg[(t["band"], n, p)] = (t, far)
-    out = []
-    for bi, (title, band, _) in enumerate(bands):
-        lv = band_level(title)
-        if not lv:
-            continue
-        rail, srow = band["rail"], band["R"]["srow"]
-        for n, d in band["nodes"].items():
-            if d["kind"] not in ("switch", "dx") or n not in rail:
-                continue
-            num = base(d["label"])
-            cp = cp_of.get(num)
-            if cp is None:
-                continue
-            for p in sorted(set(d["ins"]) | set(d["outs"])):
-                hit = by_leg.get((bi, n, p))
-                if hit is None:
-                    continue
-                t, (kind, far) = hit
-                loop = kind == "sw" and far == num and t["name"].endswith(" Loop")   # comes back to this switch
-                if kind == "bumper" or (kind == "sw" and cp_of.get(far) == cp and not loop):
-                    continue
-                if t["loop"] and p not in LOOP_HALF:
-                    raise MapError(f"Switch {num}: balloon loop {t['name']} leaves from leg {p}; a loop's halves "
-                                   f"leave from legs {' and '.join(LOOP_HALF)}")
-                eastward = TAU[p] * rail[n] == 1
-                sid = d["ins"].get(p) or d["outs"].get(p)
-                out.append(dict(level=lv, cp=cp, switch=num, number=int(num) + 1, letter="L" if eastward else "R",
-                                protects=corner_blocks[num][p] if d["kind"] == "dx" else "",
-                                heads=2 if (p == "A" or d["kind"] == "dx") else 1, row=srow.get(sid, 0),
-                                track=f"{t['name']} {LOOP_HALF[p]}" if t["loop"] else t["name"], band=bi,
-                                half=LOOP_HALF[p] if t["loop"] else 0))
-    groups = defaultdict(list)
-    for m in out:
-        groups[(m["number"], m["letter"])].append(m)
-    for (num, letter), ms in groups.items():
-        if len(ms) > 2:
-            raise MapError(f"switch {num - 1}: {len(ms)} masts for direction {letter}; ADR-005 names two (A and B)")
-        # a balloon loop's A mast faces Loop 1 (leg B, the normal leg) and its B mast Loop 2 (owner, 2026-11-16)
-        ms.sort(key=lambda m: (m["band"], m["half"], m["row"]))
-        for i, m in enumerate(ms):
-            m["name"] = f"{num}{letter}" + ("AB"[i] if len(ms) == 2 else "")
-    return out
 
-
-def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None) -> tuple[dict, list[dict]]:
+def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, running=frozenset(),
+          spurs=frozenset()) -> tuple[dict, list[dict]]:
     """(control_points, device map rows). `local`: the switches in no control point (local_switches_main_upper.csv
     rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
     when a band has a double crossover."""
@@ -475,7 +397,23 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     if dxs - set(corners):
         raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
     corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
-    ms = masts(bands, cps, found, cp_of, corner_blocks)
+    split_names = set(split_edges().values())       # read once per build
+    ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names)
+    known = {t["name"] for t in found}
+    if (set(running) | set(spurs)) - known:
+        raise MapError(f"{RUNNING.name} or {SPURS.name} names a track the plan does not have: "
+                       f"{sorted((set(running) | set(spurs)) - known)}")
+    for m in ms:
+        # two heads when a route the mast governs meets facing points inside its interlocking; high from running
+        # track, a dwarf from a yard, lead or siding (owner, 2026-11-19, as staging: build_staging_masts.py)
+        if m["heads"] == 1 and facing_on_route(bands[m["band"]][1], m["node"], m["leg"], cp_of):
+            m["heads"] = 2
+        m["kind"] = f"{'two' if m['heads'] == 2 else 'one'}-{'searchlight' if m['running'] else 'low'}"
+    ms += intermediates(bands, found, cp_of, set(running), split_names)
+    names = [m["name"] for m in ms]
+    twice = sorted({n for n in names if names.count(n) > 1}, key=natural)
+    if twice:       # an intermediate named from a milepost can meet another's number (a home mast never can)
+        raise MapError(f"mast names given twice: {', '.join(twice)}")
     nodes = Nodes(node_rows)
     rows = []
 
@@ -554,13 +492,16 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         cp = ends_cp[0] if ends_cp else ""
         short = t["cm"] < SHORT_CM and all(k == "sw" for k, _ in t["ends"])
         detect = not short and t["main"] and sws
-        halves = sorted(LOOP_HALF.values()) if t["loop"] else [None]
+        split = t["name"] in split_names
+        halves = sorted(LOOP_HALF.values()) if (t["loop"] or split) else [None]
         for half in halves:
             name = loop_placeholder(t["name"], half)
             cm = round(t["cm"] / 2, 1) if half else t["cm"]
             note = f"{cm} cm" + (" short link: inside the OS blocks of its switches, no detector" if short else
                                  "" if t["main"] else " no detector: off the main line")
-            if half:
+            if half and split:
+                note += f", half {half} of the split track (split_tracks_main_upper.csv)"
+            elif half:
                 note += f", half of the balloon loop from leg {'BC'[half - 1]}"
             add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
                 ", ".join(loop_placeholder(x, half) for x in t["trial"]), note)
@@ -576,20 +517,38 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             k, packed = nodes.take(bnode, "block")
             occupancy(t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
-    for cp in cps:                               # heads last, once every node's boards are known
-        lv, area, name = cp.level, cp.area, cp.cp_name
-        for m in sorted((m for m in ms if m["cp"] == name), key=lambda m: natural(m["name"])):
-            hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[cp.switches[0]]])
+    groups = [(cp.level, cp.area, cp.cp_name, cp.switches[0]) for cp in cps]
+    groups += [(loc[s].level, loc[s].area, "", s)
+               for s in sorted({m["switch"] for m in ms if not m["cp"] and m["switch"]}, key=natural)]
+    for lv, area, name, first in groups:          # heads last, once every node's boards are known
+        mine = [m for m in ms if m["cp"] == name and (name or m["switch"] == first)]
+        for m in sorted(mine, key=lambda m: natural(m["name"])):
             parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
-            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
-                     for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
-            kind = "two-searchlight" if m["heads"] == 2 else "one-low"
-            sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
+            kind = m["kind"]
+            try:
+                hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
+                heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
+                         for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
+                sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
+            except NoBoardRoom:
+                # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
+                # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
+                hnode, sysname = "", ""
+                heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None, None) for part in parts]
             virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
-            add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name} | Switch {m['switch']}",
-                notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
-                jmri=virtual)
+            if m.get("intermediate"):
+                add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
+                    notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
+                          f"{m['milepost']:.2f}", jmri=virtual)
+            else:
+                add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
+                    notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
+                    jmri=virtual)
             for user, sysn, k, board, pin in heads:
+                if not sysn:                    # no node yet: the mast's comment says where it stands
+                    where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
+                    add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
+                    continue
                 add(lv, name, "head", user, sysn, hnode,
                     f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
                     jmri=level_devices.head_name(user))
@@ -677,7 +636,8 @@ def main(argv=None) -> int:
         print(f"SKIPPED device map check: {exc}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
-        cp_keys, rows = build(bands, joined, runs, overrides, *inputs, corners)
+        lists = [{r["track"] for r in csv.DictReader(io.StringIO(p.read_text(encoding="utf-8")))} for p in (RUNNING, SPURS)]
+        cp_keys, rows = build(bands, joined, runs, overrides, *inputs, corners, *lists)
     except MapError as exc:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2

@@ -1,5 +1,5 @@
-"""Each staging mast of the USS board (gen_ctc_track_plan.py, mast_cells.csv) is on the live CATS desks once, its
-lamp on the edge of the block it protects."""
+"""Each visible staging mast (schematic/staging_masts.csv, placed by rule per ADR-024) is on the live CATS desks once,
+its lamp on the edge of the block it protects."""
 from __future__ import annotations
 
 import sys
@@ -12,15 +12,15 @@ sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(ROOT / "jmri/layouts/hart/scripts"))
 sys.path.insert(0, str(ROOT / "tools/audit"))
 
-import gen_ctc_track_plan as gen  # noqa: E402
 import check_layout_facts as facts_check  # noqa: E402
 import desks  # noqa: E402  (cats/scripts/tests/desks.py: the live desks)
 
 
 class MastCellsTest(unittest.TestCase):
     def test_each_live_desk_has_each_mast_once_on_the_block_it_protects(self) -> None:
-        # staging's masts; the main and upper masts (main_upper_masts.csv) are check_layout_facts' check_level_desk
-        want = {mast for mast, *_rest in gen.SIGNALS}
+        # staging's visible masts (virtual ones have no lamp); the main and upper masts (main_upper_masts.csv) are
+        # check_layout_facts' check_level_desk
+        want = {m["mast"] for m in facts_check.staging_mast_rows() if not m["system_name"].startswith("IF$vsm:")}
         protects = facts_check.protected_blocks()
         level = facts_check.level_masts.names()
         self.assertFalse(want & level)

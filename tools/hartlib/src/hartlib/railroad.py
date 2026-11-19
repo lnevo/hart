@@ -1023,8 +1023,9 @@ def _name_clash(rr: Railroad) -> list[str]:
 @invariant("level-masts", "masts")
 def _level_masts(rr: Railroad) -> list[str]:
     """Each main_upper_masts.csv mast is a device map mast of the same control point, on its virtual and planned
-    names; its switch is in that control point; its facing and protected blocks are device map blocks; and every
-    device map mast has a row."""
+    names; its switch is in that control point (an APB intermediate has no switch; a spur's exit dwarf at a local
+    switch has no control point, ADR-024); its facing and protected blocks are device map blocks; and every device
+    map mast has a row."""
     dm, name = rr.device_map, rr.sources.level_masts.name
     masts = dm.by_user("mast")
     cps = {cp.cp_name: cp for cp in rr.level_control_points}
@@ -1038,7 +1039,16 @@ def _level_masts(rr: Railroad) -> list[str]:
         if (r["cp"], r["system_name"], r["device_system_name"]) != (m.cp, m.jmri_name, m.system_name):
             bad.append(f"{name}: {r['mast']} is {r['cp']} {r['system_name']} on {r['device_system_name']}; the "
                        f"device map says {m.cp} {m.jmri_name} on {m.system_name}")
-        if r["switch"] not in (cps[r["cp"]].switches if r["cp"] in cps else ()):
+        if not r["switch"]:
+            if r["cp"] not in cps:          # an APB intermediate: between two track blocks, in its track's CP
+                bad.append(f"{name}: {r['mast']} (an intermediate) names control point {r['cp']!r}, which is none")
+        elif not r["cp"]:
+            if r["switch"] not in rr.main_upper_switches:
+                bad.append(f"{name}: {r['mast']} names Switch {r['switch']}, which is on neither level")
+            elif rr.main_upper_switches[r["switch"]].cp:
+                bad.append(f"{name}: {r['mast']} has no control point, but Switch {r['switch']} is in "
+                           f"{rr.main_upper_switches[r['switch']].cp}")
+        elif r["switch"] not in (cps[r["cp"]].switches if r["cp"] in cps else ()):
             bad.append(f"{name}: {r['mast']} protects Switch {r['switch']}, which is not in {r['cp']}")
         bad += [f"{name}: {r['mast']} {what} {b}, which is no device map block"
                 for what, b in (("faces", r["facing"]), ("protects", r["protects"])) if b not in dm.blocks]

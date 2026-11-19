@@ -24,8 +24,10 @@ import xml.etree.ElementTree as ET
 TURNOUT_PREFIX = "IT:HART:C3:"
 SENSOR_PREFIX = "IS:HART:C3:B:"
 HEAD_PREFIX = "IH:HART:C3:"
-HEAD_USER = re.compile(r"Head (\d+[LR][A-Z]?)(?: (Top|Bottom))?")          # a device-map head's user name
-HEAD = re.compile(re.escape(HEAD_PREFIX) + r"\d+[LR][A-Z]?(?:_Top|_Bottom)?")    # its virtual system name
+# a device-map head's user name: a home signal's (Head 108LA, Head 108R Top) or an intermediate's, named from its
+# milepost with the line code, A main and B upper (Head A87; owner, 2026-11-19)
+HEAD_USER = re.compile(r"Head (\d+[LR][A-Z]?|[AB]\d+)(?: (Top|Bottom))?")
+HEAD = re.compile(re.escape(HEAD_PREFIX) + r"(?:\d+[LR][A-Z]?|[AB]\d+)(?:_Top|_Bottom)?")    # its virtual system name
 _KEY = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 
 # The sensors-clear LogixNG. LogixNG system names with "$" may hold any characters
@@ -67,10 +69,11 @@ def is_block_sensor(system_name: str) -> bool:
 # Every main and upper name, by rule, for references to a device that is no longer in the tables. System names: the
 # prefixes above, the build's blocks (BLOCK_PREFIX) and a mast over virtual heads (its system name holds the head's).
 # User names: the main and upper switch numbers, 101 to 245 (owner, 2026-11-14), after the device kind, as the device
-# map writes them ("Switch 107", "Track 107-109", "OS Switch 225b", "BS 107-109", "Mast <n><L|R>", "Head 108R Top").
+# map writes them ("Switch 107", "Track 107-109", "OS Switch 225b", "BS 107-109", "Mast <n><L|R>", "Head 108R Top"),
+# and intermediates by line code and milepost ("Mast A87", "Head B88").
 # Staging numbers stop at 40, and its masts 2035 and 2036 have four digits.
 BLOCK_PREFIX = "IB:C3:"
-LEVEL_USER = re.compile(r"(?:Switch|OS Switch|Track|BS|BS Switch|Mast|Head) [12]\d\d(?!\d).*")
+LEVEL_USER = re.compile(r"(?:Switch|OS Switch|Track|BS|BS Switch|Mast|Head) [12]\d\d(?!\d).*|(?:Mast|Head) [AB]\d+(?: .*)?")
 
 
 def is_level_name(name: str) -> bool:
@@ -85,7 +88,7 @@ def head_name(user: str) -> str:
     "Head 108R Top" -> IH:HART:C3:108R_Top. ValueError on any other user name."""
     m = HEAD_USER.fullmatch(user or "")
     if not m:
-        raise ValueError(f"head {user!r} is not named Head <number><L|R>[letter][ Top| Bottom]")
+        raise ValueError(f"head {user!r} is not named Head <number><L|R>[letter] or Head <A|B><number>, [ Top| Bottom]")
     return HEAD_PREFIX + m.group(1) + (f"_{m.group(2)}" if m.group(2) else "")
 
 

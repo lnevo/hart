@@ -183,10 +183,11 @@ class SignalsCheck(unittest.TestCase):
         rows, in staging_device_map.load_signal_masts' shape, with the device map's tracks)."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            (tmp / "staging.signals.json").write_text(committed)
             real_data, real_facts = self.bs.pd.DATA, self.bs.staging_facts
-            for f in ("staging.plan_overrides.json",):
-                (tmp / f).write_text((real_data / f).read_text())
+            for f in real_data.iterdir():       # both levels (staging, main_upper) solve from these
+                if f.is_file():
+                    (tmp / f.name).write_bytes(f.read_bytes())
+            (tmp / "staging.signals.json").write_text(committed)
             if masts is not None:
                 chains = real_facts()[1]
                 self.bs.staging_facts = lambda: (masts, chains)

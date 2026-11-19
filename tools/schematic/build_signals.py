@@ -19,10 +19,13 @@ or without --check.
 plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0, so a checkout
 without submodules still runs check.sh; with SCHEMATIC_REQUIRED=1 (set in CI) that skip is a failure instead.
 """
+import csv
+import io
 import difflib
 import importlib
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -31,10 +34,11 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pi
 import staging_device_map as sdm  # noqa: E402  the staging masts' plan facts, tracks and signal rows
 from hartlib import railroad  # noqa: E402  block_lengths.csv, read and checked once
 
-LEVELS = [("staging.json", "staging")]     # plan graph in inputs/, layer file stem
+LEVELS = [("staging.json", "staging"), ("main.json", "main_upper")]   # plan graph in inputs/, layer file stem
 SCHEMA = "schematic.signals/1"
 BLOCK_LENGTHS = railroad.Sources.under().block_lengths
 TOLERANCE_CM = 0.2          # the reader rounds each length to 0.1 cm
+TURNBACK_CM = 1.0           # a mast measured from a turnback stands just off it (not "at the points")
 
 
 def block_cm(path=BLOCK_LENGTHS) -> dict:
@@ -76,6 +80,18 @@ def check_lengths(masts: list[dict], chains: list[dict], cm: dict) -> list[str]:
     return bad
 
 
+def plan_graph(plugin, graph_name: str, name: str) -> dict:
+    """The plan graph of a level after the overrides' edits."""
+    if str(plugin) not in sys.path:
+        sys.path.insert(0, str(plugin))
+    layers = importlib.import_module("schematic.layers")
+    edits = importlib.import_module("schematic.edits")
+    overrides = layers.load(name, str(pd.DATA), preferences=False)
+    g = json.loads((pd.GRAPHS / graph_name).read_text(encoding="utf-8"))
+    edits.apply_edits(g, overrides.get("edits", []))
+    return g
+
+
 def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str]:
     """Problems with the masts' schematic runs against the plan graph (with the overrides' edits)."""
     if str(plugin) not in sys.path:
@@ -95,6 +111,8 @@ def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str
         if e is None:
             bad.append(f"{r['mast']}: schematic edge {r['_edge']} is not in the plan graph")
             continue
+        if r["_toward_node"].startswith("turn:") and r["_edge"] == r["_toward_node"].removeprefix("turn:"):
+            continue            # measured from the turnback of its own folded edge (a balloon loop's APB mast)
         if r["_toward_node"] not in (e["u"], e["v"]):
             bad.append(f"{r['mast']}: node {r['_toward_node']} is not an end of edge {r['_edge']}")
             continue
@@ -134,9 +152,89 @@ def staging_facts() -> tuple[list[dict], list[dict]]:
         sys.exit(f"ERROR: staging device map: {exc}")
 
 
+def main_upper_rows() -> list[dict]:
+    """The main and upper masts (main_upper_masts.csv, the owner's approved plan of 2026-11-19) as signal rows: each
+    home mast at its switch's leg on the track it faces, each APB intermediate on its loop or split track at the
+    turnback, measured from the switch the track starts at (half of the track's length)."""
+    import build_device_map as bdm
+    import mast_rule as mr
+    from hartlib import level_masts as lm
+    bands, joined, runs, corners = bdm.solve()
+    ov = json.loads(bdm.OVERRIDES.read_text(encoding="utf-8"))
+    found = mr.tracks(bands, runs, joined, mr.helix_tags(bands, ov))
+    mr.track_names(found)
+    rr = railroad.Railroad(bdm.sources(), upto="inputs")
+    sw = railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.LOCAL.name)
+    cp_of = {s: v.cp for s, v in sw.items() if v.cp}
+    dxs = {bdm.base(d["label"]) for t, b, _ in bands if bdm.band_level(t) for d in b["nodes"].values()
+           if d["kind"] == "dx"}
+    cb = {s: bdm.xover_corners(s, corners[s]) for s in dxs}
+    lists = [{r["track"] for r in csv.DictReader(io.StringIO(p.read_text(encoding="utf-8")))}
+             for p in (bdm.RUNNING, bdm.SPURS)]
+    placed = {m["name"]: m for m in mr.masts(bands, None, found, cp_of, cb, running_extra=lists[0], spurs=lists[1],
+                                             split=set(bdm.split_edges().values()))}
+    by_name = {t["name"]: t for t in found}
+    plan = lambda sid, band: re.sub(r"(\.\d+|(?<=\d)[xy])$", "", band["strands"][sid]["edge"])   # noqa: E731
+    rows = []
+    for r in lm.read():
+        name = r["mast"].removeprefix("Mast ")
+        heads = len(r["heads"])
+        if r["switch"]:
+            m = placed[name]
+            band = bands[m["band"]][1]
+            t = by_name[m["track"].rsplit(" ", 1)[0]] if m["track"] not in by_name else by_name[m["track"]]
+            far = [v for (n, p), (k, v) in zip(t["legs"], reversed(t["ends"])) if (n, p) == (m["node"], m["leg"])]
+            rows.append(dict(mast=name, toward=r["switch"], run=[r["switch"], far[0] if far and far[0] else ""],
+                             edge=plan(m["strand"], band), node=m["node"], edge_cm=t["cm"], cm_from_toward=0.0,
+                             dir="west" if m["letter"] == "L" else "east", heads=heads))
+        else:
+            # an APB pair at a turnback: each drawn from the switch its move heads for (the protected half's end),
+            # as staging's 67 and 68 are, so the two stand apart. A balloon loop's halves both end at its switch, and
+            # the plugin points a mast by the end it is measured from, so the loop's westbound mast is measured from
+            # the turnback itself: the pair stands back to back at the boundary
+            track = re.sub(r" [12]$", "", r["facing"])
+            t = by_name[track]
+            band = bands[t["band"]][1]
+            node_of = {v: n for (n, _p), (k, v) in zip(t["legs"], t["ends"]) if k == "sw"}
+            ends = sorted(node_of, key=bdm.natural)
+            half = int(r["protects"][-1])
+            label = ends[0] if t["loop"] else ends[half - 1]       # half 1 is at the lower-numbered switch
+            west = int(re.sub(r"\D", "", name)) % 2 == 1
+            other = [e for e in ends if e != label] or [label]
+            node, cm = node_of[label], t["cm"] / 2
+            if t["loop"] and west:
+                node = next(n for sid in t["strands"] for n in (band["strands"][sid]["src"][0],
+                                                                 band["strands"][sid]["dst"][0])
+                            if band["nodes"][n]["kind"].startswith("turn"))
+                label, cm = "", TURNBACK_CM
+            rows.append(dict(mast=name, toward=label, run=[label, other[0]], edge=plan(t["strands"][0], band),
+                             node=node, edge_cm=t["cm"], cm_from_toward=round(cm, 1),
+                             dir="west" if west else "east", heads=heads))
+    return [dict(mast=x["mast"], toward=x["toward"], run=x["run"], names=[], edge_cm=x["edge_cm"],
+                 cm_from_toward=x["cm_from_toward"], dir=x["dir"], kind="planned", heads=x["heads"],
+                 source="main_upper_masts.csv", _edge=x["edge"], _toward_node=x["node"]) for x in rows]
+
+
 def generate(plugin, graph, name) -> str:
-    """The signals file's text for one level, from staging_signals.csv and staging_masts.csv; stops on a mast whose
-    run is not in the plan."""
+    """The signals file's text for one level: staging from staging_signals.csv and staging_masts.csv, main and upper
+    from main_upper_masts.csv (main_upper_rows); stops on a mast whose run is not in the plan."""
+    if name == "main_upper":
+        rows = main_upper_rows()
+        g = plan_graph(plugin, graph, name)
+        nodes, edges = g["nodes"], {e["id"]: e for e in g["edges"]}
+        lab = lambda n: (nodes[n].get("label") or "").rstrip("*") if nodes[n]["kind"] != "end" else ""   # noqa: E731
+        for r in rows:          # toward and run as the plan graph labels them (crossover halves 119A, a helix end "")
+            e = edges.get(r["_edge"])
+            if e is None or r["_toward_node"].startswith("turn:"):
+                if e is not None:
+                    r["names"] = e["names"]
+                continue        # check_runs names an unknown edge; a turnback is no plan node
+            far = e["v"] if r["_toward_node"] == e["u"] else e["u"]
+            r["names"], r["toward"], r["run"] = e["names"], lab(r["_toward_node"]), [lab(r["_toward_node"]), lab(far)]
+        bad = check_runs(plugin, graph, name, rows)
+        if bad:
+            sys.exit(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
+        return json.dumps(dict(schema=SCHEMA, source="main_upper_masts.csv", signals=rows, unplaced=[]), indent=1)
     masts, chains = staging_facts()
     rows = sdm.signal_rows(masts)
     bad = check_runs(plugin, graph, name, rows) + check_lengths(masts, chains, block_cm())

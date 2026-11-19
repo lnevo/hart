@@ -222,7 +222,8 @@ class DeviceMapBuild(unittest.TestCase):
         text = self.B.BOUNDARIES.read_text(encoding="utf-8")
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        for old, new, why in (("anchor,AG33,east", "anchor,AG34,east", "Mast 8RA: recorded anchor AG34 east"),
+        self.assertIn("anchor,AG34,east,Mast 8RA", text)          # the committed row the first case moves
+        for old, new, why in (("anchor,AG34,east,Mast 8RA", "anchor,AG35,east,Mast 8RA", "Mast 8RA: recorded anchor AG35 east"),
                               ("turnout,TO1,C,Mast 14R", "turnout,TO1,B,Mast 14R", "Mast 14R: recorded turnout TO1 B")):
             with self.subTest(row=old):
                 path = tmp / "b.csv"
