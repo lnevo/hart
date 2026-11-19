@@ -24,7 +24,7 @@ The P&OV switched Neville Island for 94 years, from 1899 to 1994. It began as Am
 | 1950s | George B. Moser is P&OV president and also PC&Y trainmaster at McKees Rocks | [p.101](https://www.tumblr.com/pittsburghohiovalleyrailroad/45774618786) |
 | Undated | Stanley Quick remembers Tom Connley as P&OV president and, for a time, mayor of McKees Rocks. Date not given; spelling unconfirmed | [DeBruler](https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html) |
 | 1940s | Photo of a P&OV crew | [p.113](https://www.tumblr.com/pittsburghohiovalleyrailroad/45277464492) |
-| Jul 1939 | Hunter Steel sells its Neville plant to Shenango | [p.83](https://www.tumblr.com/pittsburghohiovalleyrailroad/46527784674), [p.107](https://www.tumblr.com/pittsburghohiovalleyrailroad/45353898770) |
+| Jul 1939 | Hunter Steel sells its Neville plant to Shenango | [p.83](https://www.tumblr.com/pittsburghohiovalleyrailroad/46524504852), [p.107](https://www.tumblr.com/pittsburghohiovalleyrailroad/45353898770) |
 | 1928–29 | Davison Coke & Iron is formed (1928) and buys the upstream-end blast furnace from U.S. Steel (1929) | [p.116](https://www.tumblr.com/pittsburghohiovalleyrailroad/45275639824) |
 | 1923 | Owned by U.S. Steel: 2.04 mi, general freight, connects with P&LE and PC&Y, and through the PC&Y with the Pennsylvania System; no merchandise freight facilities | [p.120](https://www.tumblr.com/pittsburghohiovalleyrailroad/44862162553), [p.142](https://www.tumblr.com/pittsburghohiovalleyrailroad/44862162553) |
 | 1920 | Pennsylvania PUC decision on P&OV rates | [p.113](https://www.tumblr.com/pittsburghohiovalleyrailroad/45277464492) |
@@ -232,7 +232,7 @@ By the late 1970s the P&OV ran green diesel switchers numbered 3 to 6, with SW9s
 - What were the models of #3 and #5, and were there units before #3? An archive photo captioned “P&OV SW8, Neville Island PA, 1978” (Joe DeFranco) suggests one unit was an SW8, but the caption gives no number, so it is not known which engine it shows.
 - Where exactly was S1 compared with S9, and how many S and E tracks were there?
 - What does the "C" in the C9 switch stand for?
-- [p.83](https://www.tumblr.com/pittsburghohiovalleyrailroad/46527784674) says Shenango sold the Neville plant to Dravo two years after buying it in 1939. Which plant was that?
+- [p.83](https://www.tumblr.com/pittsburghohiovalleyrailroad/46524504852) says Shenango sold the Neville plant to Dravo two years after buying it in 1939. Which plant was that? Shenango-Penn Mold bought its Neville Island foundry in 1939, so Hunter Steel was probably the foundry's earlier owner. Shenango-Penn ran that foundry until 1990, so any sale to Dravo was something else, perhaps land next to it. The blog itself doubted the sale, and the newspaper page it cites no longer opens.
 - Is Calgon Carbon descended from Pittsburgh Coke & Chemical's 1942 activated-carbon plant? The blog does not say.
 - Did Kosmos Cement take over the Marquette Cement plant on the East Runner?
 - The *Post-Gazette* says the furnace still running in 1990 was built in 1952, which points to B. Which stack was adapted for ferromanganese in 1958? No hearth diameter or surveyed furnace-track map has turned up.
