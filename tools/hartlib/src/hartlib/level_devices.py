@@ -108,14 +108,33 @@ def turnout_action(turnout: str) -> str:
     return TURNOUT_ACTION + turnout.removeprefix(TURNOUT_PREFIX)
 
 
+def _check_turnout_action(a: ET.Element) -> tuple[str, str]:
+    """(turnout, "Closed" or "Thrown") of a startup ActionTurnout; ValueError on any other state or a turnout that is
+    not a main or upper virtual one (the LogixNG must never command a field turnout)."""
+    turnout, state = a.findtext("namedBean/name") or "", a.findtext("state/enum") or ""
+    if not turnout.startswith(TURNOUT_PREFIX) or state not in ("Closed", "Thrown"):
+        raise ValueError(f"{a.findtext('systemName')}: sets {turnout or 'no turnout'} {state or 'to nothing'}; a startup "
+                         f"action sets a {TURNOUT_PREFIX}* turnout Closed or Thrown")
+    return turnout, state
+
+
 def turnout_states(root: ET.Element) -> dict[str, str]:
-    """{virtual turnout: "Closed" or "Thrown"} the startup LogixNG in tables `root` sets ({} when none)."""
+    """{virtual turnout: "Closed" or "Thrown"} the startup LogixNG in tables `root` sets: the ActionTurnouts its
+    DigitalMany's sockets name ({} when none). ValueError on an action _check_turnout_action refuses."""
     acts = root.find("LogixNGDigitalActions")
     if acts is None:
         return {}
-    return {a.findtext("namedBean/name") or "": a.findtext("state/enum") or "" for a in acts
-            if a.tag == "ActionTurnout" and (a.findtext("systemName") or "").startswith(TURNOUT_ACTION)}
-
+    by_name = {e.findtext("systemName"): e for e in acts}
+    many = by_name.get(CLEAR_MANY)
+    if many is None:
+        return {}
+    out = {}
+    for sock in many.findall("Actions/Socket"):
+        a = by_name.get(sock.findtext("systemName") or "")
+        if a is not None and a.tag == "ActionTurnout":
+            turnout, state = _check_turnout_action(a)
+            out[turnout] = state
+    return out
 
 def clear_sensors(root: ET.Element) -> list[str]:
     """The sensors the sensors-clear LogixNG in tables `root` sets INACTIVE, in its order ([] when the tables have
@@ -133,7 +152,8 @@ def clear_sensors(root: ET.Element) -> list[str]:
         name = sock.findtext("systemName") or ""
         a = by_name.get(name)
         if name.startswith(TURNOUT_ACTION) and a is not None and a.tag == "ActionTurnout":
-            continue                # a virtual turnout's startup position (turnout_states)
+            _check_turnout_action(a)    # a virtual turnout's startup position (turnout_states)
+            continue
         if a is None or a.tag != "ActionSensor" or a.findtext("state/enum") != "Inactive":
             raise ValueError(f"{CLEAR_MANY}: socket {sock.findtext('socketName')} names {name or 'no action'}, which "
                              "is not an ActionSensor setting a sensor Inactive")

@@ -566,6 +566,8 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
         raise BuildError("main and upper blocks whose sensor was not added (no such block in the tables): "
                          f"{sorted({sensors[b][0] for b in new_blocks} - set(added))}")
     # every virtual turnout starts Closed, its normal leg B, except where the main route runs through leg C
+    if set(thrown) - set(new_turnouts):
+        raise BuildError(f"turnouts to start Thrown that the panel does not have: {sorted(set(thrown) - set(new_turnouts))}")
     add_level_clear(root, added, {turnout_sys[t]: "Thrown" if t in thrown else "Closed" for t in new_turnouts})
 
 
