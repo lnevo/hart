@@ -170,7 +170,7 @@
             </table>
           </div>
           <p>Two kinds of Python script live side by side here. Most run on the Mac in ordinary Python and read or write the files. About twenty run inside JMRI itself, from the Start Up list on each computer, such as the panel status and the STS car refresh. Those use JMRI's built-in Jython, which is Python 2, so they import nothing from the repository's shared code and run on any computer with JMRI installed.</p>
-          <p><code>cats/</code> works the same way on a smaller scale. One panel is drawn in the CATS Designer, <code>HART_Digicon.xml</code>. A script writes the two desks the dispatchers use from it, CTC and ABS, and another validates them. <code>make desks</code> runs both.</p>
+          <p><code>cats/</code> works the same way on a smaller scale. A script writes the two desks the dispatchers use, CTC and ABS, from the schematic, and another validates them. <code>make desks</code> runs both.</p>
         </section>
 
         <section id="hartlib" aria-labelledby="h-hartlib">
