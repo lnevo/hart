@@ -22,7 +22,7 @@ What counts as a name:
 Data files that key on a name (mast_cells.csv, switch_legs.csv, block_lengths.csv ...)
 are read: a rename has to change them too. Left out: the name map and tables.xml (the
 sources), files a generator writes and a `--check` holds (SKIP_PREFIXES), tests, and the
-dated records in ALLOW, each with its reason.
+dated records in ALLOW, each with its reason (a key ending in "/" covers every file under that folder).
 Markdown is prose (the wiki and docs may keep a name; a record is not a copy) and is
 not read. The rename checklist is in wiki/pipelines/switch-facts.md.
 """
@@ -82,6 +82,25 @@ ALLOW: dict[str, tuple[frozenset[str] | None, str]] = {
         frozenset({"Track West Main Ext"}),
         "rewrites logs recorded before the 2026-11-13 rename, so it holds the old names",
     ),
+    "jmri/layouts/hart/dispatcher/traininfo/": (
+        None,
+        "the Dispatcher System's train files, parked with it (2026-11-17); their mast names are refreshed when it is "
+        "unparked and Stage 1 runs on the rule-built masts (ADR-024)",
+    ),
+    "jmri/layouts/hart/ctc/GUIObjects.xml": (
+        None,
+        "the USS CTC machine, parked (2026-11-17); its signal levers name the masts of that day until it is unparked",
+    ),
+    "jmri/layouts/hart/data/mast_cells.csv": (
+        None,
+        "the USS board's mast cells, parked with the machine (owner, 2026-11-19); updated on unpark",
+    ),
+    "jmri/layouts/hart/scripts/discover_nx.py": (None, "Entry/Exit, parked (2026-11-17); updated on unpark"),
+    "jmri/layouts/hart/scripts/nx_contract.py": (None, "Entry/Exit, parked (2026-11-17); updated on unpark"),
+    "jmri/layouts/hart/scripts/apply_nx_layer.py": (None, "Entry/Exit, parked (2026-11-17); updated on unpark"),
+    "jmri/layouts/hart/scripts/ctc_logic_smoke.py": (None, "the USS CTC machine, parked (2026-11-17); updated on unpark"),
+    "jmri/layouts/hart/scripts/build_ctc_full_15col.py": (
+        None, "the USS CTC machine, parked (2026-11-17); updated on unpark"),
     "tools/schematic/le_tables.py": (
         frozenset({"OS Switch 225"}),
         "BLOCK_NUMBERED_AS gives corner block OS Switch 225a the system number of the block it replaced, so it "
@@ -196,10 +215,11 @@ def run(root: Path, files: list[str] | None = None, allow=None, name_map: Path |
         n = len(_SHAPED.findall(text)) + (len(track_re.findall(text)) if track_re else 0)
         if n:
             counts[rel] = n
-        names, _reason = allow.get(rel, (frozenset(), ""))
+        key = rel if rel in allow else next((k for k in allow if k.endswith("/") and rel.startswith(k)), rel)
+        names, _reason = allow.get(key, (frozenset(), ""))
         for h in scan_text(rel, text, current, track_re):
             if names is None or h.name in names:
-                used.add((rel, h.name))
+                used.add((key, h.name))
             else:
                 hits.append(h)
     return hits, counts, used

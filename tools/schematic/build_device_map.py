@@ -536,8 +536,9 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                     notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
                     jmri=virtual)
             for user, sysn, k, board, pin in heads:
-                if not sysn:
-                    add(lv, name, "head", user, "", "", "", notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
+                if not sysn:                    # no node yet: the mast's comment says where it stands
+                    where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
+                    add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
                     continue
                 add(lv, name, "head", user, sysn, hnode,
                     f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
@@ -626,7 +627,7 @@ def main(argv=None) -> int:
         print(f"SKIPPED device map check: {exc}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
-        lists = [{r["track"] for r in csv.DictReader(open(p, newline="", encoding="utf-8"))} for p in (RUNNING, SPURS)]
+        lists = [{r["track"] for r in csv.DictReader(io.StringIO(p.read_text(encoding="utf-8")))} for p in (RUNNING, SPURS)]
         cp_keys, rows = build(bands, joined, runs, overrides, *inputs, corners, *lists)
     except MapError as exc:
         print(f"build_device_map.py: {exc}", file=sys.stderr)

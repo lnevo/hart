@@ -4,8 +4,8 @@
     python3 tools/schematic/sync_staging_signals.py           # edit jmri/layouts/hart/output/tables.xml
     python3 tools/schematic/sync_staging_signals.py --check   # exit 1 if tables.xml differs from the file
 
-Staging masts are the masts whose user name is "Mast " and a number under 100 or one of OLD_INTERMEDIATES (main and
-upper masts are 101 and up: hartlib.level_devices.LEVEL_USER), and their heads. For each staging mast in the file:
+Staging masts are the masts whose user name is "Mast " and a number under 100 (main and upper masts are 101 and up,
+or a line code and a milepost: hartlib.level_devices.LEVEL_USER), and their heads. For each staging mast in the file:
 a SignalHeadSignalMast over VirtualSignalHeads (the heads' user names from head_system_names), or a VirtualSignalMast
 for IF$vsm; an element whose system name, user name and class already match is left as it is (its comment, aspects
 and the rest carry over). Every other staging mast and every staging head no mast of the file uses goes, with the
@@ -29,11 +29,10 @@ from hartlib import level_masts, paths, tables  # noqa: E402
 
 VSM_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
 STAGING_MAST = re.compile(r"Mast \d{1,2}(?:[LR][A-C]?)?")
-OLD_INTERMEDIATES = {"Mast 2035", "Mast 2036"}      # the hand-named K-1/K-2 pair, now Mast 67/68
 
 
 def is_staging_mast(user: str) -> bool:
-    return bool(STAGING_MAST.fullmatch(user or "")) or user in OLD_INTERMEDIATES
+    return bool(STAGING_MAST.fullmatch(user or ""))
 
 
 def want_masts(path: Path = sdm.MASTS) -> list[dict]:
@@ -57,7 +56,7 @@ def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
     used_heads = {h for r in rows for h in level_masts.mast_heads(r["system_name"])}
     old_heads = {h for m in have.values() for h in level_masts.mast_heads(tables.system_name(m))}
     old_heads |= {tables.system_name(h) for h in tables.signal_heads(root)
-                  if re.fullmatch(r"Head \d{1,2}[LR]?[A-C]?(?: (?:Top|Bottom))?|Head 203[56]", tables.user_name(h) or "")}
+                  if re.fullmatch(r"Head \d{1,2}[LR]?[A-C]?(?: (?:Top|Bottom))?", tables.user_name(h) or "")}
     gone = set()
     for user, el in have.items():
         r = want.get(user)

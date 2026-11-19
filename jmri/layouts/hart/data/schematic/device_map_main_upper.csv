@@ -204,8 +204,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 107,head,Head 118L Top,IH4336,IH:HART:C3:118L_Top,43,,"Node: 43 Signal: 4 | OU: 3 Ports: 1,2,3",,
 2,CP 107,head,Head 120RA Bottom,IH4339,IH:HART:C3:120RA_Bottom,43,,"Node: 43 Signal: 7 | OU: 4 Ports: 4,5,6",,
 2,CP 107,head,Head 120RA Top,IH4338,IH:HART:C3:120RA_Top,43,,"Node: 43 Signal: 6 | OU: 4 Ports: 1,2,3",,
-2,CP 107,head,Head 120RB Bottom,,IH:HART:C3:120RB_Bottom,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-2,CP 107,head,Head 120RB Top,,IH:HART:C3:120RB_Top,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 107,head,Head 120RB Bottom,,IH:HART:C3:120RB_Bottom,,,CP 107 | Switch 119,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 107,head,Head 120RB Top,,IH:HART:C3:120RB_Top,,,CP 107 | Switch 119,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 2,CP 125,head,Head 126LA Bottom,IH4233,IH:HART:C3:126LA_Bottom,42,,"Node: 42 Signal: 1 | OU: 3 Ports: 4,5,6",,
 2,CP 125,head,Head 126LA Top,IH4232,IH:HART:C3:126LA_Top,42,,"Node: 42 Signal: 0 | OU: 3 Ports: 1,2,3",,
 2,CP 125,head,Head 126LB Bottom,IH4235,IH:HART:C3:126LB_Bottom,42,,"Node: 42 Signal: 3 | OU: 4 Ports: 4,5,6",,
@@ -218,12 +218,12 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 129,head,Head 130LA Top,IH5236,IH:HART:C3:130LA_Top,52,,"Node: 52 Signal: 4 | OU: 3 Ports: 1,2,3",,
 2,CP 129,head,Head 130LB Bottom,IH5239,IH:HART:C3:130LB_Bottom,52,,"Node: 52 Signal: 7 | OU: 4 Ports: 4,5,6",,
 2,CP 129,head,Head 130LB Top,IH5238,IH:HART:C3:130LB_Top,52,,"Node: 52 Signal: 6 | OU: 4 Ports: 1,2,3",,
-2,CP 129,head,Head 136RA Bottom,,IH:HART:C3:136RA_Bottom,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-2,CP 129,head,Head 136RA Top,,IH:HART:C3:136RA_Top,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-2,CP 129,head,Head 136RB Bottom,,IH:HART:C3:136RB_Bottom,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-2,CP 129,head,Head 136RB Top,,IH:HART:C3:136RB_Top,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-2,CP 107,head,Head A84,,IH:HART:C3:A84,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-2,CP 107,head,Head A85,,IH:HART:C3:A85,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 129,head,Head 136RA Bottom,,IH:HART:C3:136RA_Bottom,,,CP 129 | Switch 135,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 129,head,Head 136RA Top,,IH:HART:C3:136RA_Top,,,CP 129 | Switch 135,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 129,head,Head 136RB Bottom,,IH:HART:C3:136RB_Bottom,,,CP 129 | Switch 135,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 129,head,Head 136RB Top,,IH:HART:C3:136RB_Top,,,CP 129 | Switch 135,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 107,head,Head A84,,IH:HART:C3:A84,,,CP 107 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+2,CP 107,head,Head A85,,IH:HART:C3:A85,,,CP 107 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 3,CP 201,turnout,DCC Switch 201,MTT138,IT:HART:C3:201,23,138,"Node: 23 Turnout: 0 | OU: 1 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
 3,CP 201,turnout,DCC Switch 203,MTT139,IT:HART:C3:203,23,139,"Node: 23 Turnout: 1 | OU: 1 Ports: 3,4",,LCC alias of the MQTT turnout (ADR-005)
 3,,turnout,DCC Switch 205,MTT140,IT:HART:C3:205,23,140,"Node: 23 Turnout: 4 | OU: 2 Ports: 1,2",,LCC alias of the MQTT turnout (ADR-005)
@@ -514,8 +514,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 201,head,Head 222LA Bottom,IH1437,IH:HART:C3:222LA_Bottom,14,,"Node: 14 Signal: 5 | OU: 3 Ports: 4,5,6",,
 3,CP 201,head,Head 222LA Top,IH1436,IH:HART:C3:222LA_Top,14,,"Node: 14 Signal: 4 | OU: 3 Ports: 1,2,3",,
 3,CP 201,head,Head 222LB,IH1438,IH:HART:C3:222LB,14,,"Node: 14 Signal: 6 | OU: 4 Ports: 1,2,3",,
-3,CP 201,head,Head 222R Bottom,,IH:HART:C3:222R_Bottom,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-3,CP 201,head,Head 222R Top,,IH:HART:C3:222R_Top,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 201,head,Head 222R Bottom,,IH:HART:C3:222R_Bottom,,,CP 201 | Switch 221,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 201,head,Head 222R Top,,IH:HART:C3:222R_Top,,,CP 201 | Switch 221,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 3,CP 223,head,Head 224LA,IH2232,IH:HART:C3:224LA,22,,"Node: 22 Signal: 0 | OU: 2 Ports: 1,2,3",,
 3,CP 223,head,Head 224LB,IH2233,IH:HART:C3:224LB,22,,"Node: 22 Signal: 1 | OU: 2 Ports: 4,5,6",,
 3,CP 223,head,Head 224R Bottom,IH2235,IH:HART:C3:224R_Bottom,22,,"Node: 22 Signal: 3 | OU: 3 Ports: 4,5,6",,
@@ -530,8 +530,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,head,Head 228RB Top,IH4134,IH:HART:C3:228RB_Top,41,,"Node: 41 Signal: 2 | OU: 3 Ports: 1,2,3",,
 3,CP 225,head,Head 230LA Bottom,IH4137,IH:HART:C3:230LA_Bottom,41,,"Node: 41 Signal: 5 | OU: 4 Ports: 4,5,6",,
 3,CP 225,head,Head 230LA Top,IH4136,IH:HART:C3:230LA_Top,41,,"Node: 41 Signal: 4 | OU: 4 Ports: 1,2,3",,
-3,CP 225,head,Head 230LB Bottom,,IH:HART:C3:230LB_Bottom,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-3,CP 225,head,Head 230LB Top,,IH:HART:C3:230LB_Top,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-3,,head,Head 240L,,IH:HART:C3:240L,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-3,CP 225,head,Head B91,,IH:HART:C3:B91,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
-3,CP 225,head,Head B92,,IH:HART:C3:B92,,,,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 225,head,Head 230LB Bottom,,IH:HART:C3:230LB_Bottom,,,CP 225 | Switch 229,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 225,head,Head 230LB Top,,IH:HART:C3:230LB_Top,,,CP 225 | Switch 229,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,,head,Head 240L,,IH:HART:C3:240L,,,Helix | Switch 239,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 225,head,Head B91,,IH:HART:C3:B91,,,CP 225 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+3,CP 225,head,Head B92,,IH:HART:C3:B92,,,CP 225 | intermediate,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"

@@ -606,16 +606,24 @@ def protected_blocks(path: Path = MASTS) -> dict[str, str]:
     return {m.mast: ";".join(m.protects) for m in railroad.read_staging_masts(path) if m.protects}
 
 
+def staging_mast_rows(path: Path = MASTS) -> list[dict[str, str]]:
+    with path.open(newline="", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
 def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
     """mast_cells.csv against the USS board's grid, the CATS desks (each of its masts once, its lamp on the edge of
     the block it protects, and no other mast), the name map and the masts' heads in tables.xml."""
-    cells = facts.load_mast_cells(data)
-    grid = facts.load_uss_cells(data)
+    # the desks draw staging's visible masts, as the rule places them (staging_masts.csv, ADR-024); mast_cells.csv
+    # is the USS board's, checked only while the board is in the tables (it is parked with it, owner 2026-11-19)
+    want = {m["mast"] for m in staging_mast_rows() if not m["system_name"].startswith("IF$vsm:")}
+    uss_parked = "uss" in parked.parked_in(t.root)
+    cells = [] if uss_parked else facts.load_mast_cells(data)
+    grid = {} if uss_parked else facts.load_uss_cells(data)
     for c in cells:
         if not grid.get((c.x, c.y), {}).get("tracks"):
             r.add(f"mast:{c.mast}", f"{c.mast}: mast_cells.csv puts it at ({c.x}, {c.y}), a cell with no track on "
                                     f"the USS board's grid ({facts.USS_CELLS})")
-    want = {c.mast for c in cells}
     protects = protected_blocks()
     level = level_masts.names()               # main and upper: check_level_desk
     for desk in desks:
@@ -624,7 +632,7 @@ def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r
         for mast in sorted(want | (set(have) - level)):
             lamps = have.get(mast, [])
             if mast not in want:
-                r.add(f"mast:{mast}", f"{mast}: {name} has a lamp for it, mast_cells.csv has no such mast")
+                r.add(f"mast:{mast}", f"{mast}: {name} has a lamp for it, {MASTS.name} has no such visible mast")
             elif len(lamps) != 1:
                 r.add(f"mast:{mast}", f"{mast}: {name} has {len(lamps)} lamps for it, not one")
             elif lamps[0] != protects.get(mast):

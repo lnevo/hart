@@ -20,6 +20,7 @@ plugin submodule is not checked out or not at its pinned commit, --check prints 
 without submodules still runs check.sh; with SCHEMATIC_REQUIRED=1 (set in CI) that skip is a failure instead.
 """
 import csv
+import io
 import difflib
 import importlib
 import json
@@ -168,7 +169,7 @@ def main_upper_rows() -> list[dict]:
     dxs = {bdm.base(d["label"]) for t, b, _ in bands if bdm.band_level(t) for d in b["nodes"].values()
            if d["kind"] == "dx"}
     cb = {s: bdm.xover_corners(s, corners[s]) for s in dxs}
-    lists = [{r["track"] for r in csv.DictReader(open(p, newline="", encoding="utf-8"))}
+    lists = [{r["track"] for r in csv.DictReader(io.StringIO(p.read_text(encoding="utf-8")))}
              for p in (bdm.RUNNING, bdm.SPURS)]
     placed = {m["name"]: m for m in mr.masts(bands, None, found, cp_of, cb, running_extra=lists[0], spurs=lists[1],
                                              split=set(bdm.split_edges().values()))}

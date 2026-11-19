@@ -313,7 +313,7 @@ class MainAndUpper(unittest.TestCase):
     def test_the_device_map_reads_blocks_and_detectors(self):
         dm = B.load_device_map()
         self.assertEqual(set(dm.sensors), {B.bdm.occupancy_user(b) for b in dm.blocks})   # one per block
-        self.assertEqual(len(dm.sensors), 125)
+        self.assertEqual(len(dm.sensors), 126)                  # Track 227-239 is two blocks (APB B91/B92)
         self.assertTrue(all(dm.sensors[B.bdm.occupancy_user(b)] == B.bdm.block_sensor(b) for b in dm.blocks))
         self.assertEqual(len(dm.planned), 35)
         self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))
@@ -543,9 +543,14 @@ class LevelMasts(unittest.TestCase):
         f.mast_system["Mast 108R"] = "IF$shsm:basic:one-low(IH1)"
         with self.assertRaisesRegex(SystemExit, "Mast 108R: tables.xml has IF.shsm:basic:one-low.IH1."):
             B.level_mast_bindings(bands, f, 0)
-        f = level_facts(templates={"Mast 4RA": "single", "Mast 108LA": "double"})      # both one-low
-        with self.assertRaisesRegex(SystemExit, "gives one-low masts two templates"):
-            B.template_by_type(f)
+        # signal_head_plan.csv's templates win; the stock basic types fall back by head count (one single, two double)
+        with mock.patch.object(B, "appearance_templates", return_value={"one-low": "double"}):
+            self.assertEqual(B.template_by_type(f), {"one-low": "double", "one-searchlight": "single",
+                                                     "two-searchlight": "double", "two-low": "double"})
+        clash = ValueError("signal_head_plan.csv gives one-low masts two templates, single and double")
+        with mock.patch.object(B, "appearance_templates", side_effect=clash):
+            with self.assertRaisesRegex(SystemExit, "gives one-low masts two templates"):
+                B.template_by_type(f)
 
     def test_a_row_not_drawn_stops(self):
         bands, f = level_bands(), level_facts()
@@ -593,7 +598,7 @@ class CommittedMainAndUpper(unittest.TestCase):
         self.assertEqual({e["normal"] for e in level.values()}, {"B"})
         names = {e["name"] for e in self.bound["masts"].values()}
         self.assertLessEqual(B.level_masts.names(), names)
-        self.assertEqual(len(B.level_masts.names()), 41)
+        self.assertEqual(len(B.level_masts.names()), 44)       # main_upper_masts.csv, APB intermediates too
 
     def test_the_helix_is_joined_on_the_desk_with_a_block_on_each_level(self):
         """The plugin joins each helix track drawn on staging and on main or upper logically (SHARED), so a train runs

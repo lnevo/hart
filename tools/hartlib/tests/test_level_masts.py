@@ -42,9 +42,14 @@ class HeadNameTest(unittest.TestCase):
                             L.read(path)
 
     def test_the_committed_file(self):
+        """One row per main or upper mast in the released tables (44 since the 2026-11-19 plan), by system name."""
+        from hartlib import tables
         rows = L.read()
-        self.assertEqual(len(rows), 41)
         self.assertTrue(all(L.is_level_mast(r["system_name"]) for r in rows))
+        released = {tables.system_name(m) for m in tables.read().iter("signalmast")}
+        self.assertEqual(sorted(r["system_name"] for r in rows),
+                         sorted(m for m in released if L.is_level_mast(m)))
+        self.assertGreater(len(rows), 40)
 
 
 if __name__ == "__main__":

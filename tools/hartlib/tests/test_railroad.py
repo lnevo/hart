@@ -58,7 +58,7 @@ class RepoData(unittest.TestCase):
         self.assertEqual(rr.device_map.sensors["BS Switch 101"], "IS:HART:C3:B:OS101")
         self.assertEqual(rr.device_map.turnouts["107"].jmri_name, "IT:HART:C3:107")
         self.assertEqual(rr.hands["223"].hand, "R")
-        self.assertEqual(len(rr.level_masts), 41)
+        self.assertEqual(len(rr.level_masts), 44)   # the 2026-11-19 plan, APB intermediates and Mast 240L included
         fails, known = R.run_check(rr)
         self.assertEqual(fails, [])
         self.assertEqual(known, [])
@@ -215,7 +215,7 @@ class Readers(Copy):
     def test_device_map(self) -> None:
         dm = R.read_device_map(self.src.device_map)
         self.assertEqual(dm.blocks["Track 107-109"].trial, {"Track e19"})
-        self.assertEqual(dm.heads_by_system["IH3332"].user_name, "Head 108LA")
+        self.assertEqual(dm.heads_by_system["IH3332"].user_name, "Head 108LA Top")
         self.edit("device_map", "IS:HART:C3:B:OS101", "IS:OS101")
         self.fails(lambda: R.read_device_map(self.src.device_map), "BS Switch 101 has no virtual IS:HART:C3:B:")
         self.edit("device_map", "IS:OS101", "IS:HART:C3:B:OS101")
@@ -295,13 +295,14 @@ class Invariants(Copy):
     def test_device_map_nodes_dcc_and_names(self) -> None:
         self.edit("device_map", "2,,turnout,Switch 101,M2T3408,IT:HART:C3:101,34,120,",
                   "2,,turnout,Switch 101,M2T408,IT:HART:C3:101,99,100,")
-        self.edit("device_map", "head,Head 108LA,IH3332,IH:HART:C3:108LA,", "head,Head 108LA,IH3332,IH:HART:C3:108LX,")
+        self.edit("device_map", "head,Head 108LA Top,IH3332,IH:HART:C3:108LA_Top,",
+                  "head,Head 108LA Top,IH3332,IH:HART:C3:108LX_Top,")
         got = self.problems("device-map")
         self.assertTrue(any("turnout Switch 101 is on node 99, no level 2 node" in p for p in got), got)
         self.assertTrue(any("Switch 101 has DCC 100, staging's Switch 1" in p for p in got), got)
         self.assertTrue(any("Switch 101 plans M2T408, staging's Switch 1" in p for p in got), got)
         self.assertTrue(any("Switch 101 has no LCC alias" in p for p in got), got)
-        self.assertTrue(any("head Head 108LA: jmri_name 'IH:HART:C3:108LX'" in p for p in got), got)
+        self.assertTrue(any("head Head 108LA Top: jmri_name 'IH:HART:C3:108LX_Top'" in p for p in got), got)
 
     def test_name_clash(self) -> None:
         """The staging switches' DCC addresses are aliases "DCC <n>" (owner, 2026-11-17), not "Switch <n>": an alias
@@ -313,10 +314,10 @@ class Invariants(Copy):
                           "Switch 107 in device_map_main_upper.csv"])
 
     def test_level_masts(self) -> None:
-        self.edit("level_masts", "Mast 108R,CP 107,107,Track 107-109,", "Mast 108R,CP 107,109,Track Nowhere,")
+        self.edit("level_masts", "Mast 110L,CP 107,109,Track 105-109,", "Mast 110L,CP 107,125,Track Nowhere,")
         got = self.problems("level-masts")
-        self.assertIn("main_upper_masts.csv: Mast 108R faces Track Nowhere, which is no device map block", got)
-        self.assertIn("main_upper_masts.csv: Mast 108R protects Switch 109, which is not in CP 107", got)
+        self.assertIn("main_upper_masts.csv: Mast 110L faces Track Nowhere, which is no device map block", got)
+        self.assertIn("main_upper_masts.csv: Mast 110L protects Switch 125, which is not in CP 107", got)
         lines = self.src.level_masts.read_text(encoding="utf-8").splitlines(keepends=True)
         self.src.level_masts.write_text("".join(l for l in lines if not l.startswith("Mast 108LA,")),
                                         encoding="utf-8")
