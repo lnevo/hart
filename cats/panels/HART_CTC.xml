@@ -340,7 +340,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT">
         <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
+          <ROUTEINFO ROUTEID="BOTTOM">
             <ROUTECOMMAND>
               <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 1">throw</IOSPEC>
             </ROUTECOMMAND>
@@ -348,7 +348,7 @@
               <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 1">throw</IOSPEC>
             </SELECTEDREPORT>
           </ROUTEINFO>
-          <ROUTEINFO ROUTEID="LEFT">
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
             <ROUTECOMMAND>
               <IOSPEC DECADDR="408" JMRIPREFIX="M2T" USER_NAME="Switch 1">close</IOSPEC>
             </ROUTECOMMAND>
@@ -479,6 +479,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="MAIN WEST" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="25" Y="3">
       <TRACKGROUP>
@@ -507,7 +508,6 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="MAIN WEST" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="29" Y="3">
       <TRACKGROUP>
@@ -915,7 +915,7 @@
             <IOSPEC DECADDR="103" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
-        <SHARED X="53" Y="13">RIGHT</SHARED>
+        <SHARED X="56" Y="13">RIGHT</SHARED>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="62" Y="3">
@@ -1078,16 +1078,7 @@
           </ROUTEINFO>
         </SWITCHPOINTS>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="BOTTOM">
-        <BLOCK NAME="OS Switch 11" STATION="11" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S" USER_NAME="BS Switch 11">close</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S">throw</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
-      </SEC_EDGE>
+      <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
     <SECTION X="26" Y="4">
       <TRACKGROUP>
@@ -1717,7 +1708,7 @@
             <IOSPEC DECADDR="102" JMRIPREFIX="M2S">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
-        <SHARED X="38" Y="26">RIGHT</SHARED>
+        <SHARED X="42" Y="26">RIGHT</SHARED>
       </SEC_EDGE>
     </SECTION>
     <SECTION X="62" Y="4">
@@ -1795,14 +1786,14 @@
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="22" Y="5">
+    <SECTION X="21" Y="5">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="23" Y="5">
+    <SECTION X="22" Y="5">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -1819,7 +1810,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="EH-2" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="24" Y="5">
+    <SECTION X="23" Y="5">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -1855,14 +1846,13 @@
         </SWITCHPOINTS>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="9" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="25" Y="5">
+    <SECTION X="24" Y="5">
       <TRACKGROUP>
-        <TRACK>UPPERSLASH</TRACK>
+        <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="TOP">
+      <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="OS Switch 9" STATION="9" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR="1307" JMRIPREFIX="M2S" USER_NAME="BS Switch 9">close</IOSPEC>
@@ -1872,6 +1862,23 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
+      <SEC_NAME LOC_NAME="UPCENT" NAME="9" FONT_NAME="FONT_LABEL" />
+    </SECTION>
+    <SECTION X="25" Y="5">
+      <TRACKGROUP>
+        <TRACK>UPPERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS Switch 11" STATION="11" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S" USER_NAME="BS Switch 11">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR="1301" JMRIPREFIX="M2S">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="TOP" />
     </SECTION>
     <SECTION X="26" Y="5">
       <TRACKGROUP>
@@ -2233,6 +2240,13 @@
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
+    <SECTION X="20" Y="6">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
     <SECTION X="21" Y="6">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
@@ -2241,14 +2255,6 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="22" Y="6">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="EH-3" FONT_NAME="FONT_LABEL" />
-    </SECTION>
-    <SECTION X="23" Y="6">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -2263,8 +2269,9 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
+      <SEC_NAME LOC_NAME="UPCENT" NAME="EH-3" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="24" Y="6">
+    <SECTION X="23" Y="6">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -2849,7 +2856,6 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="BARN" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="22" Y="8">
       <TRACKGROUP>
@@ -2857,6 +2863,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="BARN" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="23" Y="8">
       <TRACKGROUP>
@@ -3261,6 +3268,7 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="MAIN EAST" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="25" Y="9">
       <TRACKGROUP>
@@ -3289,7 +3297,6 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="MAIN EAST" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="29" Y="9">
       <TRACKGROUP>
@@ -3371,7 +3378,7 @@
     <SECTION X="2" Y="11">
       <SEC_NAME LOC_NAME="LOWLEFT" NAME="MAIN LEVEL   WEST &lt;-   -&gt; EAST" FONT_NAME="FONT_TITLE" />
     </SECTION>
-    <SECTION X="3" Y="12">
+    <SECTION X="6" Y="12">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -3387,34 +3394,12 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="4" Y="12">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="5" Y="12">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="6" Y="12">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
     <SECTION X="7" Y="12">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="107 LOOP 2" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="8" Y="12">
       <TRACKGROUP>
@@ -3424,6 +3409,28 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="9" Y="12">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="10" Y="12">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="107 LOOP 2" FONT_NAME="FONT_LABEL" />
+    </SECTION>
+    <SECTION X="11" Y="12">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="12" Y="12">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3439,7 +3446,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="10" Y="12">
+    <SECTION X="13" Y="12">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3458,21 +3465,21 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="11" Y="12">
+    <SECTION X="14" Y="12">
       <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="41" Y="12">
+    <SECTION X="44" Y="12">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="42" Y="12">
+    <SECTION X="45" Y="12">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3480,33 +3487,33 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="UPLEFT" NAME="B: TO UPPER LEVEL" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="43" Y="12">
+    <SECTION X="46" Y="12">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <SHARED X="31" Y="27">LEFT</SHARED>
+        <SHARED X="35" Y="27">LEFT</SHARED>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="47" Y="12">
+    <SECTION X="50" Y="12">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <SHARED X="36" Y="27">RIGHT</SHARED>
+        <SHARED X="40" Y="27">RIGHT</SHARED>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="UPLEFT" NAME="A: TO UPPER LEVEL" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="48" Y="12">
+    <SECTION X="51" Y="12">
       <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="3" Y="13">
+    <SECTION X="6" Y="13">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -3522,34 +3529,12 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="4" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="5" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="6" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
     <SECTION X="7" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="UPCENT" NAME="107 LOOP 1" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="8" Y="13">
       <TRACKGROUP>
@@ -3559,6 +3544,28 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="9" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="10" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_NAME LOC_NAME="UPCENT" NAME="107 LOOP 1" FONT_NAME="FONT_LABEL" />
+    </SECTION>
+    <SECTION X="11" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="12" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3574,7 +3581,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="10" Y="13">
+    <SECTION X="13" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3593,7 +3600,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="11" Y="13">
+    <SECTION X="14" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -3621,7 +3628,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="12" Y="13">
+    <SECTION X="15" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3641,7 +3648,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="107" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="13" Y="13">
+    <SECTION X="16" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -3681,7 +3688,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="14" Y="13">
+    <SECTION X="17" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3698,7 +3705,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="109" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="15" Y="13">
+    <SECTION X="18" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -3735,7 +3742,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="16" Y="13">
+    <SECTION X="19" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3752,7 +3759,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="111" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="17" Y="13">
+    <SECTION X="20" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3768,27 +3775,6 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="18" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="19" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="20" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
     <SECTION X="21" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
@@ -3797,6 +3783,27 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="22" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="23" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="24" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="25" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3812,7 +3819,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="23" Y="13">
+    <SECTION X="26" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -3861,7 +3868,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="24" Y="13">
+    <SECTION X="27" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3878,7 +3885,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="117" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="25" Y="13">
+    <SECTION X="28" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3894,7 +3901,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="26" Y="13">
+    <SECTION X="29" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -3923,7 +3930,7 @@
       <SEC_EDGE EDGE="BOTTOM" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="119A" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="27" Y="13">
+    <SECTION X="30" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3942,7 +3949,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="28" Y="13">
+    <SECTION X="31" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -3956,27 +3963,6 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="29" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="30" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="31" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="32" Y="13">
@@ -4005,6 +3991,27 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="36" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="37" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="38" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Track 119-125" STATION="119-125" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
@@ -4016,7 +4023,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="36" Y="13">
+    <SECTION X="39" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -4068,7 +4075,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="37" Y="13">
+    <SECTION X="40" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4085,7 +4092,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="125" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="38" Y="13">
+    <SECTION X="41" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4102,7 +4109,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="127" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="39" Y="13">
+    <SECTION X="42" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -4142,7 +4149,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="40" Y="13">
+    <SECTION X="43" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4161,7 +4168,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="41" Y="13">
+    <SECTION X="44" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -4199,7 +4206,7 @@
       <SEC_EDGE EDGE="TOP" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="129A" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="42" Y="13">
+    <SECTION X="45" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4215,27 +4222,6 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="43" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="44" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="45" Y="13">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
     <SECTION X="46" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
@@ -4244,6 +4230,27 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="47" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="48" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="49" Y="13">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="50" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4259,7 +4266,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="48" Y="13">
+    <SECTION X="51" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -4296,7 +4303,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="49" Y="13">
+    <SECTION X="52" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4316,7 +4323,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="135A" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="50" Y="13">
+    <SECTION X="53" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4332,21 +4339,21 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="51" Y="13">
+    <SECTION X="54" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="52" Y="13">
+    <SECTION X="55" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="53" Y="13">
+    <SECTION X="56" Y="13">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4363,7 +4370,7 @@
         <SHARED X="58" Y="3">RIGHT</SHARED>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="54" Y="13">
+    <SECTION X="57" Y="13">
       <SEC_NAME LOC_NAME="LEFTCENT" NAME="HELIX TO STAGING" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="4" Y="14">
@@ -4480,6 +4487,13 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="11" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Track 103-105 1" STATION="103-105" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
@@ -4491,10 +4505,9 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="11" Y="14">
+    <SECTION X="12" Y="14">
       <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-        <TRACK>LOWERSLASH</TRACK>
+        <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
         <BLOCK NAME="OS Switch 105" STATION="105" DISCIPLINE="CTC" VISIBLE="true">
@@ -4506,46 +4519,25 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT">
-        <SWITCHPOINTS>
-          <ROUTEINFO ROUTEID="BOTTOM" NORMAL="true">
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR=":HART:C3:105" JMRIPREFIX="IT" USER_NAME="Switch 105">close</IOSPEC>
-            </ROUTECOMMAND>
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR=":HART:C3:105" JMRIPREFIX="IT" USER_NAME="Switch 105">close</IOSPEC>
-            </SELECTEDREPORT>
-          </ROUTEINFO>
-          <ROUTEINFO ROUTEID="LEFT">
-            <ROUTECOMMAND>
-              <IOSPEC DECADDR=":HART:C3:105" JMRIPREFIX="IT" USER_NAME="Switch 105">throw</IOSPEC>
-            </ROUTECOMMAND>
-            <SELECTEDREPORT>
-              <IOSPEC DECADDR=":HART:C3:105" JMRIPREFIX="IT" USER_NAME="Switch 105">throw</IOSPEC>
-            </SELECTEDREPORT>
-          </ROUTEINFO>
-        </SWITCHPOINTS>
-      </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="12" Y="14">
+    <SECTION X="15" Y="14">
       <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="OS Switch 105" STATION="105" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track 105-109" STATION="105-109" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:OS105" JMRIPREFIX="IS" USER_NAME="BS Switch 105">close</IOSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:105-109" JMRIPREFIX="IS" USER_NAME="BS 105-109">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:OS105" JMRIPREFIX="IS">throw</IOSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:105-109" JMRIPREFIX="IS">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_NAME LOC_NAME="UPCENT" NAME="105" FONT_NAME="FONT_LABEL" />
+      <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="13" Y="14">
+    <SECTION X="16" Y="14">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -4564,7 +4556,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="14" Y="14">
+    <SECTION X="17" Y="14">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -4580,7 +4572,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="15" Y="14">
+    <SECTION X="18" Y="14">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -4599,7 +4591,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="17" Y="14">
+    <SECTION X="20" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4615,7 +4607,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="18" Y="14">
+    <SECTION X="21" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -4652,7 +4644,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="19" Y="14">
+    <SECTION X="22" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4669,7 +4661,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="113" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="20" Y="14">
+    <SECTION X="23" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4685,7 +4677,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="21" Y="14">
+    <SECTION X="24" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4701,7 +4693,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="22" Y="14">
+    <SECTION X="25" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -4739,7 +4731,7 @@
       <SEC_EDGE EDGE="BOTTOM" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="115" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="23" Y="14">
+    <SECTION X="26" Y="14">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -4755,14 +4747,14 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="24" Y="14">
+    <SECTION X="27" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="25" Y="14">
+    <SECTION X="28" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4778,7 +4770,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="26" Y="14">
+    <SECTION X="29" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -4815,7 +4807,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="27" Y="14">
+    <SECTION X="30" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4835,7 +4827,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="119B" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="28" Y="14">
+    <SECTION X="31" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -4849,27 +4841,6 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="29" Y="14">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="30" Y="14">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="31" Y="14">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="32" Y="14">
@@ -4891,6 +4862,27 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="35" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="36" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="37" Y="14">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Track 119-123" STATION="119-123" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
@@ -4902,7 +4894,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="35" Y="14">
+    <SECTION X="38" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -4949,7 +4941,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="123" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="36" Y="14">
+    <SECTION X="39" Y="14">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -4965,7 +4957,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="39" Y="14">
+    <SECTION X="42" Y="14">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -4984,7 +4976,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="40" Y="14">
+    <SECTION X="43" Y="14">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5009,7 +5001,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="41" Y="14">
+    <SECTION X="44" Y="14">
       <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -5025,7 +5017,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="51" Y="14">
+    <SECTION X="54" Y="14">
       <SEC_NAME LOC_NAME="UPCENT" NAME="MCKEES ROCKS" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="2" Y="15">
@@ -5178,6 +5170,13 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="11" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Track 103-105 2" STATION="103-105" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
@@ -5189,9 +5188,10 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="11" Y="15">
+    <SECTION X="12" Y="15">
       <TRACKGROUP>
-        <TRACK>UPPERSLASH</TRACK>
+        <TRACK>HORIZONTAL</TRACK>
+        <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
         <BLOCK NAME="OS Switch 105" STATION="105" DISCIPLINE="CTC" VISIBLE="true">
@@ -5203,16 +5203,62 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
+      <SEC_EDGE EDGE="RIGHT">
+        <SWITCHPOINTS>
+          <ROUTEINFO ROUTEID="LEFT" NORMAL="true">
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR=":HART:C3:105" JMRIPREFIX="IT" USER_NAME="Switch 105">close</IOSPEC>
+            </ROUTECOMMAND>
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR=":HART:C3:105" JMRIPREFIX="IT" USER_NAME="Switch 105">close</IOSPEC>
+            </SELECTEDREPORT>
+          </ROUTEINFO>
+          <ROUTEINFO ROUTEID="TOP">
+            <ROUTECOMMAND>
+              <IOSPEC DECADDR=":HART:C3:105" JMRIPREFIX="IT" USER_NAME="Switch 105">throw</IOSPEC>
+            </ROUTECOMMAND>
+            <SELECTEDREPORT>
+              <IOSPEC DECADDR=":HART:C3:105" JMRIPREFIX="IT" USER_NAME="Switch 105">throw</IOSPEC>
+            </SELECTEDREPORT>
+          </ROUTEINFO>
+        </SWITCHPOINTS>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
     <SECTION X="13" Y="15">
       <TRACKGROUP>
-        <TRACK>LOWERSLASH</TRACK>
+        <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
-      <SEC_EDGE EDGE="BOTTOM" />
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="OS Switch 105" STATION="105" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:OS105" JMRIPREFIX="IS" USER_NAME="BS Switch 105">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:OS105" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="105" FONT_NAME="FONT_LABEL" />
     </SECTION>
     <SECTION X="14" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="Track 105-109" STATION="105-109" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:105-109" JMRIPREFIX="IS" USER_NAME="BS 105-109">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:105-109" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="15" Y="15">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -5221,12 +5267,26 @@
     </SECTION>
     <SECTION X="16" Y="15">
       <TRACKGROUP>
+        <TRACK>LOWERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="BOTTOM" />
+    </SECTION>
+    <SECTION X="17" Y="15">
+      <TRACKGROUP>
+        <TRACK>UPPERSLASH</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="TOP" />
+    </SECTION>
+    <SECTION X="19" Y="15">
+      <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="17" Y="15">
+    <SECTION X="20" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5242,7 +5302,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="18" Y="15">
+    <SECTION X="21" Y="15">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -5258,14 +5318,14 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="20" Y="15">
+    <SECTION X="23" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="21" Y="15">
+    <SECTION X="24" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5281,7 +5341,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="22" Y="15">
+    <SECTION X="25" Y="15">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -5297,7 +5357,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="33" Y="15">
+    <SECTION X="36" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5313,7 +5373,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="34" Y="15">
+    <SECTION X="37" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5330,7 +5390,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="121" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="35" Y="15">
+    <SECTION X="38" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -5376,7 +5436,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="36" Y="15">
+    <SECTION X="39" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5392,28 +5452,28 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="37" Y="15">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="38" Y="15">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="39" Y="15">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
     <SECTION X="40" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="41" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="42" Y="15">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="43" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5429,7 +5489,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="41" Y="15">
+    <SECTION X="44" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -5466,7 +5526,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="42" Y="15">
+    <SECTION X="45" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5483,7 +5543,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="131" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="43" Y="15">
+    <SECTION X="46" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5500,7 +5560,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="133" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="44" Y="15">
+    <SECTION X="47" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -5537,7 +5597,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="45" Y="15">
+    <SECTION X="48" Y="15">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5683,12 +5743,33 @@
     </SECTION>
     <SECTION X="13" Y="16">
       <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="14" Y="16">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="15" Y="16">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="16" Y="16">
+      <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="44" Y="16">
+    <SECTION X="47" Y="16">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -5704,7 +5785,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="45" Y="16">
+    <SECTION X="48" Y="16">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5720,7 +5801,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="46" Y="16">
+    <SECTION X="49" Y="16">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5730,7 +5811,7 @@
     <SECTION X="2" Y="18">
       <SEC_NAME LOC_NAME="LOWLEFT" NAME="UPPER LEVEL   WEST &lt;-   -&gt; EAST" FONT_NAME="FONT_TITLE" />
     </SECTION>
-    <SECTION X="54" Y="19">
+    <SECTION X="55" Y="19">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -5746,7 +5827,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="55" Y="19">
+    <SECTION X="56" Y="19">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5760,13 +5841,6 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="56" Y="19">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="57" Y="19">
@@ -5791,6 +5865,13 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="60" Y="19">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="61" Y="19">
       <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -5911,6 +5992,34 @@
     </SECTION>
     <SECTION X="18" Y="20">
       <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="19" Y="20">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="20" Y="20">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="21" Y="20">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="22" Y="20">
+      <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
@@ -5935,6 +6044,13 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="53" Y="20">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Track 229-239" STATION="229-239" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
@@ -5946,7 +6062,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="53" Y="20">
+    <SECTION X="54" Y="20">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -5963,7 +6079,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="239" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="54" Y="20">
+    <SECTION X="55" Y="20">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -6000,7 +6116,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="55" Y="20">
+    <SECTION X="56" Y="20">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6016,7 +6132,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="60" Y="20">
+    <SECTION X="61" Y="20">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
@@ -6030,7 +6146,7 @@
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="10" Y="21">
+    <SECTION X="11" Y="21">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -6046,7 +6162,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="11" Y="21">
+    <SECTION X="12" Y="21">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6062,21 +6178,21 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="12" Y="21">
+    <SECTION X="13" Y="21">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="18" Y="21">
+    <SECTION X="22" Y="21">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="19" Y="21">
+    <SECTION X="23" Y="21">
       <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -6097,12 +6213,19 @@
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="52" Y="21">
+    <SECTION X="51" Y="21">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="BOTTOM" />
+    </SECTION>
+    <SECTION X="52" Y="21">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="53" Y="21">
       <TRACKGROUP>
@@ -6197,7 +6320,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="60" Y="21">
+    <SECTION X="61" Y="21">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
@@ -6211,7 +6334,7 @@
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="6" Y="22">
+    <SECTION X="7" Y="22">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -6227,7 +6350,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="7" Y="22">
+    <SECTION X="8" Y="22">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6243,7 +6366,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="8" Y="22">
+    <SECTION X="9" Y="22">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6259,7 +6382,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="9" Y="22">
+    <SECTION X="10" Y="22">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6276,7 +6399,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="207" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="10" Y="22">
+    <SECTION X="11" Y="22">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -6313,7 +6436,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="11" Y="22">
+    <SECTION X="12" Y="22">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6329,7 +6452,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="12" Y="22">
+    <SECTION X="15" Y="22">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -6345,7 +6468,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="13" Y="22">
+    <SECTION X="16" Y="22">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6361,14 +6484,14 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="14" Y="22">
+    <SECTION X="17" Y="22">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="15" Y="22">
+    <SECTION X="19" Y="22">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -6384,7 +6507,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="16" Y="22">
+    <SECTION X="20" Y="22">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6400,21 +6523,21 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="17" Y="22">
+    <SECTION X="21" Y="22">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="19" Y="22">
+    <SECTION X="23" Y="22">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="20" Y="22">
+    <SECTION X="24" Y="22">
       <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -6456,7 +6579,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="51" Y="22">
+    <SECTION X="50" Y="22">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -6472,7 +6595,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="52" Y="22">
+    <SECTION X="51" Y="22">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -6488,7 +6611,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="53" Y="22">
+    <SECTION X="52" Y="22">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -6503,6 +6626,31 @@
         </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
+    </SECTION>
+    <SECTION X="53" Y="22">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="Track 235-241" STATION="235-241" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:235-241" JMRIPREFIX="IS" USER_NAME="BS 235-241">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:235-241" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="Track 235-241" STATION="235-241" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:235-241" JMRIPREFIX="IS" USER_NAME="BS 235-241">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:235-241" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
     </SECTION>
     <SECTION X="54" Y="22">
       <TRACKGROUP>
@@ -6574,7 +6722,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="60" Y="22">
+    <SECTION X="61" Y="22">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
@@ -6592,10 +6740,36 @@
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
-      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="Track 201-205" STATION="201-205" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:201-205" JMRIPREFIX="IS" USER_NAME="BS 201-205">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:201-205" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
     <SECTION X="6" Y="23">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="OS Switch 205" STATION="205" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:OS205" JMRIPREFIX="IS" USER_NAME="BS Switch 205">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:OS205" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="RIGHT" />
+      <SEC_NAME LOC_NAME="LOWCENT" NAME="205" FONT_NAME="FONT_LABEL" />
+    </SECTION>
+    <SECTION X="7" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -6631,9 +6805,8 @@
         </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="205" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="7" Y="23">
+    <SECTION X="8" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6649,7 +6822,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="8" Y="23">
+    <SECTION X="9" Y="23">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -6665,7 +6838,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="9" Y="23">
+    <SECTION X="10" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6681,7 +6854,21 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="10" Y="23">
+    <SECTION X="11" Y="23">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="12" Y="23">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="13" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6697,7 +6884,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="11" Y="23">
+    <SECTION X="14" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6714,7 +6901,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="211" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="12" Y="23">
+    <SECTION X="15" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -6751,7 +6938,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="13" Y="23">
+    <SECTION X="16" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6765,6 +6952,13 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="17" Y="23">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Track 211-215" STATION="211-215" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
@@ -6776,7 +6970,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="14" Y="23">
+    <SECTION X="18" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6793,7 +6987,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="215" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="15" Y="23">
+    <SECTION X="19" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -6830,7 +7024,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="16" Y="23">
+    <SECTION X="20" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6846,7 +7040,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="20" Y="23">
+    <SECTION X="24" Y="23">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -6862,7 +7056,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="21" Y="23">
+    <SECTION X="25" Y="23">
       <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -6878,7 +7072,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="34" Y="23">
+    <SECTION X="38" Y="23">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -6894,35 +7088,14 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="35" Y="23">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="36" Y="23">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="37" Y="23">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="38" Y="23">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
     <SECTION X="39" Y="23">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="40" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6938,7 +7111,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="40" Y="23">
+    <SECTION X="41" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -6957,7 +7130,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="41" Y="23">
+    <SECTION X="42" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -7004,7 +7177,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="225" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="42" Y="23">
+    <SECTION X="43" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -7050,7 +7223,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="43" Y="23">
+    <SECTION X="44" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7066,7 +7239,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="44" Y="23">
+    <SECTION X="45" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7080,13 +7253,6 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="45" Y="23">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="46" Y="23">
@@ -7167,31 +7333,6 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track 229-231" STATION="229-231" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:229-231" JMRIPREFIX="IS" USER_NAME="BS 229-231">close</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:229-231" JMRIPREFIX="IS">throw</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
-      </SEC_EDGE>
-      <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Track 229-231" STATION="229-231" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:229-231" JMRIPREFIX="IS" USER_NAME="BS 229-231">close</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:229-231" JMRIPREFIX="IS">throw</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
-      </SEC_EDGE>
-    </SECTION>
-    <SECTION X="50" Y="23">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT">
         <BLOCK NAME="OS Switch 231" STATION="231" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR=":HART:C3:B:OS231" JMRIPREFIX="IS" USER_NAME="BS Switch 231">close</IOSPEC>
@@ -7204,7 +7345,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="231" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="51" Y="23">
+    <SECTION X="50" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -7241,7 +7382,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="52" Y="23">
+    <SECTION X="51" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7258,7 +7399,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="235" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="53" Y="23">
+    <SECTION X="52" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -7295,7 +7436,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="54" Y="23">
+    <SECTION X="53" Y="23">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7311,7 +7452,14 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="60" Y="23">
+    <SECTION X="54" Y="23">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="61" Y="23">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
@@ -7332,28 +7480,28 @@
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="8" Y="24">
+    <SECTION X="9" Y="24">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="21" Y="24">
+    <SECTION X="25" Y="24">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="33" Y="24">
+    <SECTION X="37" Y="24">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="34" Y="24">
+    <SECTION X="38" Y="24">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
@@ -7372,7 +7520,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="41" Y="24">
+    <SECTION X="42" Y="24">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -7387,7 +7535,7 @@
         <BLOCK NAME="OS Switch 225" STATION="225" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="42" Y="24">
+    <SECTION X="43" Y="24">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -7402,7 +7550,7 @@
         <BLOCK NAME="OS Switch 225" STATION="225" DISCIPLINE="CTC" VISIBLE="true" />
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="60" Y="24">
+    <SECTION X="61" Y="24">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
@@ -7440,12 +7588,12 @@
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="OS Switch 205" STATION="205" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track 201-205" STATION="201-205" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:OS205" JMRIPREFIX="IS" USER_NAME="BS Switch 205">close</IOSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:201-205" JMRIPREFIX="IS" USER_NAME="BS 201-205">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:OS205" JMRIPREFIX="IS">throw</IOSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:201-205" JMRIPREFIX="IS">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -7475,6 +7623,31 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="Track 203-209" STATION="203-209" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:203-209" JMRIPREFIX="IS" USER_NAME="BS 203-209">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:203-209" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="Track 203-209" STATION="203-209" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:203-209" JMRIPREFIX="IS" USER_NAME="BS 203-209">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:203-209" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="8" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT">
         <BLOCK NAME="OS Switch 209" STATION="209" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
             <IOSPEC DECADDR=":HART:C3:B:OS209" JMRIPREFIX="IS" USER_NAME="BS Switch 209">close</IOSPEC>
@@ -7487,7 +7660,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="209" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="8" Y="25">
+    <SECTION X="9" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -7524,7 +7697,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="9" Y="25">
+    <SECTION X="10" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7538,6 +7711,13 @@
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="11" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Track 209-213" STATION="209-213" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
@@ -7549,7 +7729,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="10" Y="25">
+    <SECTION X="12" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7569,7 +7749,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="213A" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="11" Y="25">
+    <SECTION X="13" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -7597,7 +7777,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="12" Y="25">
+    <SECTION X="14" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7616,7 +7796,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="13" Y="25">
+    <SECTION X="15" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7632,14 +7812,28 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="14" Y="25">
+    <SECTION X="16" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="15" Y="25">
+    <SECTION X="17" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="18" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="19" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7655,7 +7849,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="16" Y="25">
+    <SECTION X="20" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7674,7 +7868,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="17" Y="25">
+    <SECTION X="21" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -7702,7 +7896,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="18" Y="25">
+    <SECTION X="22" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7721,7 +7915,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="19" Y="25">
+    <SECTION X="23" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7747,7 +7941,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="217B" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="20" Y="25">
+    <SECTION X="24" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7766,7 +7960,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="21" Y="25">
+    <SECTION X="25" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -7794,7 +7988,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="22" Y="25">
+    <SECTION X="26" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7811,7 +8005,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="219" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="23" Y="25">
+    <SECTION X="27" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7828,7 +8022,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="221A" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="24" Y="25">
+    <SECTION X="28" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -7868,7 +8062,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="25" Y="25">
+    <SECTION X="29" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7884,34 +8078,6 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="26" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="27" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="28" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="29" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
     <SECTION X="30" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
@@ -7920,6 +8086,34 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="31" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="32" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="33" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="34" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="35" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7935,7 +8129,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="32" Y="25">
+    <SECTION X="36" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -7954,7 +8148,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="33" Y="25">
+    <SECTION X="37" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -7983,7 +8177,7 @@
       <SEC_EDGE EDGE="TOP" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="223*" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="34" Y="25">
+    <SECTION X="38" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8002,7 +8196,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="35" Y="25">
+    <SECTION X="39" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8018,28 +8212,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="36" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="37" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="38" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="39" Y="25">
+    <SECTION X="40" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8055,7 +8228,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="40" Y="25">
+    <SECTION X="41" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8074,7 +8247,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="41" Y="25">
+    <SECTION X="42" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -8120,7 +8293,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="42" Y="25">
+    <SECTION X="43" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -8166,7 +8339,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="43" Y="25">
+    <SECTION X="44" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8182,7 +8355,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="44" Y="25">
+    <SECTION X="45" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8199,7 +8372,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="227" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="45" Y="25">
+    <SECTION X="46" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -8239,7 +8412,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="46" Y="25">
+    <SECTION X="47" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8256,7 +8429,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="233" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="47" Y="25">
+    <SECTION X="48" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -8293,7 +8466,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="48" Y="25">
+    <SECTION X="49" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8309,7 +8482,21 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="49" Y="25">
+    <SECTION X="50" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="51" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="52" Y="25">
       <TRACKGROUP>
         <TRACK>LOWERSLASH</TRACK>
       </TRACKGROUP>
@@ -8325,7 +8512,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="50" Y="25">
+    <SECTION X="53" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8341,27 +8528,6 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="51" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="52" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="53" Y="25">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
     <SECTION X="54" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
@@ -8370,6 +8536,20 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="55" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="56" Y="25">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="57" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8385,7 +8565,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="56" Y="25">
+    <SECTION X="58" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -8422,7 +8602,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="57" Y="25">
+    <SECTION X="59" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8439,7 +8619,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="245B" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="58" Y="25">
+    <SECTION X="60" Y="25">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8455,7 +8635,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="60" Y="25">
+    <SECTION X="61" Y="25">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
@@ -8599,6 +8779,20 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="10" Y="26">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="11" Y="26">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
         <BLOCK NAME="Track 203-213" STATION="203-213" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
@@ -8610,7 +8804,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="10" Y="26">
+    <SECTION X="12" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8629,7 +8823,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="11" Y="26">
+    <SECTION X="13" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -8657,7 +8851,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="12" Y="26">
+    <SECTION X="14" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8677,7 +8871,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="213B" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="13" Y="26">
+    <SECTION X="15" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8693,14 +8887,28 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="14" Y="26">
+    <SECTION X="16" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="15" Y="26">
+    <SECTION X="17" Y="26">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="18" Y="26">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="19" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8717,7 +8925,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="217A" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="16" Y="26">
+    <SECTION X="20" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8736,7 +8944,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="17" Y="26">
+    <SECTION X="21" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -8764,7 +8972,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="18" Y="26">
+    <SECTION X="22" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8783,7 +8991,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="19" Y="26">
+    <SECTION X="23" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8799,28 +9007,28 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="20" Y="26">
+    <SECTION X="24" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="21" Y="26">
+    <SECTION X="25" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="22" Y="26">
+    <SECTION X="26" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="23" Y="26">
+    <SECTION X="27" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8836,7 +9044,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="24" Y="26">
+    <SECTION X="28" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERBACKSLASH</TRACK>
@@ -8876,7 +9084,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="25" Y="26">
+    <SECTION X="29" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8896,7 +9104,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="LOWCENT" NAME="221B" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="26" Y="26">
+    <SECTION X="30" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8912,28 +9120,28 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="27" Y="26">
+    <SECTION X="31" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="28" Y="26">
+    <SECTION X="32" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="29" Y="26">
+    <SECTION X="33" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="30" Y="26">
+    <SECTION X="34" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8949,7 +9157,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="31" Y="26">
+    <SECTION X="35" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -8968,7 +9176,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="32" Y="26">
+    <SECTION X="36" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERSLASH</TRACK>
@@ -8996,7 +9204,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="33" Y="26">
+    <SECTION X="37" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9013,7 +9221,7 @@
       </SEC_EDGE>
       <SEC_NAME LOC_NAME="UPCENT" NAME="129B" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="34" Y="26">
+    <SECTION X="38" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9029,7 +9237,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="35" Y="26">
+    <SECTION X="39" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -9058,7 +9266,7 @@
       <SEC_EDGE EDGE="BOTTOM" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="135B" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="36" Y="26">
+    <SECTION X="40" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9077,7 +9285,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="37" Y="26">
+    <SECTION X="41" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9092,9 +9300,9 @@
         </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
-      <SEC_NAME LOC_NAME="LOWCENT" NAME="MCKEESPORT" FONT_NAME="FONT_LABEL" />
+      <SEC_NAME LOC_NAME="LOWLEFT" NAME="HELIX TO STAGING" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="38" Y="26">
+    <SECTION X="42" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9110,11 +9318,9 @@
         </BLOCK>
         <SHARED X="58" Y="4">RIGHT</SHARED>
       </SEC_EDGE>
+      <SEC_NAME LOC_NAME="UPCENT" NAME="MCKEESPORT" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="39" Y="26">
-      <SEC_NAME LOC_NAME="LEFTCENT" NAME="HELIX TO STAGING" FONT_NAME="FONT_LABEL" />
-    </SECTION>
-    <SECTION X="45" Y="26">
+    <SECTION X="46" Y="26">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -9133,7 +9339,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="46" Y="26">
+    <SECTION X="47" Y="26">
       <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -9149,7 +9355,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="47" Y="26">
+    <SECTION X="48" Y="26">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -9165,7 +9371,39 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="48" Y="26">
+    <SECTION X="49" Y="26">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT">
+        <BLOCK NAME="Track 233-237" STATION="233-237" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:233-237" JMRIPREFIX="IS" USER_NAME="BS 233-237">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:233-237" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="50" Y="26">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT">
+        <BLOCK NAME="Track 233-237" STATION="233-237" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:233-237" JMRIPREFIX="IS" USER_NAME="BS 233-237">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:233-237" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
+      </SEC_EDGE>
+    </SECTION>
+    <SECTION X="51" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9182,7 +9420,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="237" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="49" Y="26">
+    <SECTION X="52" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -9219,7 +9457,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="50" Y="26">
+    <SECTION X="53" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9236,7 +9474,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="UPCENT" NAME="243" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="51" Y="26">
+    <SECTION X="54" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>LOWERBACKSLASH</TRACK>
@@ -9273,7 +9511,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="52" Y="26">
+    <SECTION X="55" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9289,14 +9527,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="53" Y="26">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="54" Y="26">
+    <SECTION X="56" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9312,7 +9543,7 @@
         </BLOCK>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="55" Y="26">
+    <SECTION X="57" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9329,7 +9560,7 @@
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWCENT" NAME="245A" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="56" Y="26">
+    <SECTION X="58" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
         <TRACK>UPPERSLASH</TRACK>
@@ -9366,7 +9597,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="57" Y="26">
+    <SECTION X="59" Y="26">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9382,66 +9613,66 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="60" Y="26">
+    <SECTION X="61" Y="26">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="30" Y="27">
+    <SECTION X="34" Y="27">
       <SEC_NAME LOC_NAME="RIGHTCENT" NAME="B: TO MAIN LEVEL" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="31" Y="27">
+    <SECTION X="35" Y="27">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <SHARED X="43" Y="12">RIGHT</SHARED>
+        <SHARED X="46" Y="12">RIGHT</SHARED>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="32" Y="27">
+    <SECTION X="36" Y="27">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="35" Y="27">
+    <SECTION X="39" Y="27">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="36" Y="27">
+    <SECTION X="40" Y="27">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <SHARED X="47" Y="12">LEFT</SHARED>
+        <SHARED X="50" Y="12">LEFT</SHARED>
       </SEC_EDGE>
     </SECTION>
-    <SECTION X="37" Y="27">
+    <SECTION X="41" Y="27">
       <SEC_NAME LOC_NAME="LEFTCENT" NAME="A: TO MAIN LEVEL" FONT_NAME="FONT_LABEL" />
     </SECTION>
-    <SECTION X="46" Y="27">
+    <SECTION X="47" Y="27">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="47" Y="27">
+    <SECTION X="48" Y="27">
       <TRACKGROUP>
         <TRACK>LOWERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="51" Y="27">
+    <SECTION X="54" Y="27">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
@@ -9457,7 +9688,7 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="TOP" />
     </SECTION>
-    <SECTION X="52" Y="27">
+    <SECTION X="55" Y="27">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
@@ -9473,40 +9704,26 @@
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="53" Y="27">
+    <SECTION X="56" Y="27">
       <TRACKGROUP>
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
-    <SECTION X="54" Y="27">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
-    </SECTION>
-    <SECTION X="60" Y="27">
+    <SECTION X="61" Y="27">
       <TRACKGROUP>
         <TRACK>VERTICAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="TOP" />
       <SEC_EDGE EDGE="BOTTOM" />
     </SECTION>
-    <SECTION X="47" Y="28">
+    <SECTION X="48" Y="28">
       <TRACKGROUP>
         <TRACK>UPPERBACKSLASH</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_EDGE EDGE="TOP" />
-    </SECTION>
-    <SECTION X="48" Y="28">
-      <TRACKGROUP>
-        <TRACK>HORIZONTAL</TRACK>
-      </TRACKGROUP>
-      <SEC_EDGE EDGE="LEFT" />
-      <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="49" Y="28">
       <TRACKGROUP>
@@ -9586,6 +9803,13 @@
       <SEC_EDGE EDGE="RIGHT" />
     </SECTION>
     <SECTION X="60" Y="28">
+      <TRACKGROUP>
+        <TRACK>HORIZONTAL</TRACK>
+      </TRACKGROUP>
+      <SEC_EDGE EDGE="LEFT" />
+      <SEC_EDGE EDGE="RIGHT" />
+    </SECTION>
+    <SECTION X="61" Y="28">
       <TRACKGROUP>
         <TRACK>UPPERSLASH</TRACK>
       </TRACKGROUP>

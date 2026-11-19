@@ -498,7 +498,7 @@ class FactsReaders(unittest.TestCase):
         from hartlib import railroad
         self.assertEqual(B.staging_switches(), railroad.Railroad(upto="inputs").switches)
         self.assertIs(B.staging_switches(), B.staging_switches())          # read once per run
-        self.assertEqual(B.swapped_idents(), {B.staging_switches()[13].le_ident})
+        self.assertEqual(B.swapped_idents(), set())         # Switch 13's facts hold the Barn on leg C (2026-11-18)
 
     def test_a_bad_switches_file_stops_with_a_build_error(self) -> None:
         rr = self.lc.railroad
@@ -862,9 +862,10 @@ class FinalReview(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "b.csv"
             text = B.BOUNDARIES.read_text(encoding="utf-8")
-            path.write_text(text.replace("(owner, 2026-11-16)\",C", "(owner, 2026-11-16)\","), encoding="utf-8")
-            with self.assertRaisesRegex(B.BuildError, "TO1 B .*generated_slot empty, LEGS_SWAPPED gives C"):
-                B.check_swapped_slots(path)
+            path.write_text(text, encoding="utf-8")
+            with mock.patch.dict(B.LEGS_SWAPPED, {"13": "test"}):              # Mast 14R on leg C needs generated_slot B
+                with self.assertRaisesRegex(B.BuildError, "TO1 C .*generated_slot empty, LEGS_SWAPPED gives B"):
+                    B.check_swapped_slots(path)
             path.write_text(text + "turnout,TO99,B,Mast X,,C\n", encoding="utf-8")
             with self.assertRaisesRegex(B.BuildError, "TO99 B .*generated_slot C, LEGS_SWAPPED gives empty"):
                 B.check_swapped_slots(path)

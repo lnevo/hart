@@ -1,5 +1,5 @@
 level,switch,le_ident,cats_inverted,ctc_is,ctc_signals,hand
-1,1,TOL3,yes,3,yes,L
+1,1,TOL3,no,3,yes,L
 1,3,TOL38,no,1,yes,L
 1,5,TOL42,no,5,yes,L
 1,7,TO117,no,7,yes,L

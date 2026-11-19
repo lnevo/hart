@@ -1,10 +1,10 @@
 mast,signal,toward,run,names,edge_cm,cm_from_toward,dir,signal_kind,heads,schematic_edge,schematic_toward_node
-Mast 10LA,10LA,9,9;,EH-2,61.0,61.0,west,virtual,1,n5,NEW:9
-Mast 10LB,10LB,9,9;,EH-3,61.0,61.0,west,virtual,1,n4,NEW:9
-Mast 10RA,10RA,9,9;,EH-2,61.0,0.0,east,virtual,1,n5,NEW:9
-Mast 10RB,10RB,9,9;,EH-3,61.0,0.0,east,virtual,1,n4,NEW:9
-Mast 12L,12L,11,11;,EH-1,61.0,61.0,west,virtual,1,n2,NEW:11
-Mast 12R,12R,11,11;,EH-1,61.0,0.0,east,virtual,1,n2,NEW:11
+Mast 10LA,10LA,9,9;,EH-2,61.0,61.0,west,virtual,1,n4,NEW:9
+Mast 10LB,10LB,9,9;,EH-3,61.0,61.0,west,virtual,1,n5,NEW:9
+Mast 10RA,10RA,9,9;,EH-2,61.0,0.0,east,virtual,1,n4,NEW:9
+Mast 10RB,10RB,9,9;,EH-3,61.0,0.0,east,virtual,1,n5,NEW:9
+Mast 12L,12L,11,11;,EH-1,91.4,91.4,west,virtual,1,n2,NEW:11
+Mast 12R,12R,11,11;,EH-1,91.4,0.0,east,virtual,1,n2,NEW:11
 Mast 14R,14R,13,13;7,Barn,85.6,0.0,east,virtual,1,e6ba,NEW:13
 Mast 16L,16L,15,15;23,S-R,633.7,40.0,west,virtual,1,e7+e17,TOR28939
 Mast 16R,16R,23,23;15,S-R,633.7,40.0,east,virtual,1,e7+e17,TOR29392

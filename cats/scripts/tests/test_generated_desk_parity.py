@@ -49,6 +49,9 @@ FONT_SIZES = {"FONT_TITLE": "13"}
 # governs the move from K-2 toward Switch 39, so it guards Track K-1. Owner approved the boundary placement for both
 # (2026-11-14): the cut-over carries it on purpose. Live block, generated block:
 PROTECTS = {"Mast 24L": ("Track West Ext", "OS Switch 23a"), "Mast 2035": ("Track K-2", "Track K-1")}
+# owner-approved differences in which route CATS calls Normal: Switch 1's inversion is cleared (2026-11-18), so its
+# Normal is the closed, straight leg (to OS Switch 3) while the hand-wired desk had the main (thrown) as Normal
+NORMAL_FLIPPED = {"OS Switch 1"}
 
 
 # DECADDR of a main or upper virtual occupancy sensor (IS:HART:C3:B:<block key>): the prefix less JMRIPREFIX "IS"
@@ -188,6 +191,8 @@ class Parity(unittest.TestCase):
     def test_every_hand_wired_switch_is_bound_the_same(self) -> None:
         live, gen = plants(self.hand), plants(self.gen)
         self.assertTrue(live)
+        for os_name in NORMAL_FLIPPED:
+            live[os_name] = {dest: (not normal, io) for dest, (normal, io) in live[os_name].items()}
         self.assertEqual(gen, live)
 
     def test_every_hand_wired_mast_is_bound_the_same(self) -> None:
