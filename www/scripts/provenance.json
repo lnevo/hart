@@ -4,7 +4,8 @@
     "summary": "An HO scale model railroad of Neville Island, near Pittsburgh, Pennsylvania. The island, its plants and the railroads that served it are real; the layout's railroad and its operation are invented.",
     "notes": [
       "Real, with sources on the page: Neville Island and its industries, the Pittsburgh & Ohio Valley Railway (P&OV, 1899 to 31 January 1994), the Pittsburgh Industrial Railroad (PIR), the Pittsburgh & Ohio Central (POHC), CSX, Conrail, the Chartiers Valley lines and the Kirwan Heights district.",
-      "Invented (freelanced): HART and its Pittsburgh & Chartiers Valley (P&CV) Division, which the layout imagines taking over the island's switching after the P&OV ended, in a 1996 to 2016 setting. Crew sheets, timetables, station maps, train orders and operating stories are in-world fiction even when they name real plants and real railroads.",
+      "Invented (proto-freelanced): HART and its Pittsburgh & Chartiers Valley (P&CV) Division, a proto-freelanced successor that the layout imagines taking over the island's switching after the P&OV ended, in a 1996 to 2016 setting. Crew sheets, timetables, station maps, train orders and operating stories are in-world fiction even when they name real plants and real railroads. The premise itself is fictional.",
+      "D749 (CSX) and NVL (POHC) are real train numbers; the work those jobs do on the layout is invented. Route 23 borrows the number of the real Pittsburgh–Sewickley trolley line across Neville Island, retired in the early 1950s; the route it runs on the layout is invented.",
       "The P&OV and the P&CV are different railroads: the P&OV is real history, the P&CV is the invented successor.",
       "Hobby documentation (the layout's construction, control software, signals, AI use, guides and NMRA work) is factual, but it describes the model, not the prototype.",
       "Each page's schema.org JSON-LD carries the same class as an additionalProperty named provenance, and pages that mix classes list their sections under hasPart.",
@@ -52,7 +53,7 @@
       "/library/chartiers-valley-railroads.html"]},
     "plants/": {"class": "prototype", "note": "Ownership chart of the Neville Island plants; the sources are in the linked history article.", "citation": [
       "/library/neville-island-coke-cement-chemical-history.html"]},
-    "railroads/": {"class": "prototype", "note": "Lineage chart of the real railroads; the closing note about HART's P&CV Division is the layout's story. Sources are in the linked articles.", "citation": [
+    "railroads/": {"class": "prototype", "note": "Lineage chart of the real railroads; the sources are in the linked articles.", "citation": [
       "/library/pittsburgh-ohio-valley-railway.html",
       "/library/chartiers-valley-railroads.html"]},
     "articles/": {"class": "mixed", "note": "Index of articles; each card names its kind.", "parts": [
