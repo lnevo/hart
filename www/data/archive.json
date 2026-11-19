@@ -731,6 +731,27 @@
       "origin": "Dennis DeBruler, Towns and Nature (https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html), full-size 1VFNT00010013.jpg; USGS scene https://earthexplorer.usgs.gov/scene/metadata/full/5e83d8e4870f4473/AR1VFNT00010013/"
     },
     {
+      "id": "shenango-penn-foundry-aerials",
+      "src": "../media/hart-research/documents/shenango-penn-foundry-1939-2022.jpg",
+      "title": "Shenango-Penn foundry from the air, 1939–2022",
+      "caption": "The Shenango-Penn ingot-mold foundry at 3100 Grand Avenue, in the middle of Neville Island, in four aerials: 17 May 1939, the year Shenango-Penn bought it; 7 May 1957; 26 May 1967; and 9 May 2022, after the foundry closed in 1990. The long riverside building in the centre of each view is the foundry; hot iron came by rail from the furnaces at the east end, about 2.8 km upstream. North is up.",
+      "date": "1939-05-17",
+      "tags": [
+        "aerial",
+        "shenango",
+        "foundry",
+        "neville-island"
+      ],
+      "source_url": "https://www.pasda.psu.edu/pennpilot/",
+      "bucket": "curated",
+      "kind": "photo",
+      "credit": "USDA aerial photography via Penn Pilot (PASDA), frames APS-71-36 (1939), APS-4R-106 (1957) and APS-1HH-221 (1967); 2022 view USDA NAIP via USGS The National Map",
+      "credit_confidence": "verified",
+      "rights": "U.S. government aerial photography, public domain.",
+      "reason": "",
+      "origin": "Penn Pilot frames allegheny_051739_aps7136, allegheny_050757_aps_4r_106, allegheny_052667_aps_1hh_221 (https://www.pasda.psu.edu/pennpilot/); NAIP m_4008032_sw_17_060_20220509. Cropped and placed by matching the building at 3100 Grand Avenue across all four."
+    },
+    {
       "id": "shenango-aerial-color",
       "src": "../media/hart-research/photos/305998346_10219295245405407_8127293654381891772_n.jpg",
       "bucket": "curated",
