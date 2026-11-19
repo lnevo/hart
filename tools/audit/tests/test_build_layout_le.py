@@ -496,7 +496,6 @@ class FactsReaders(unittest.TestCase):
         from hartlib import railroad
         self.assertEqual(B.staging_switches(), railroad.Railroad(upto="inputs").switches)
         self.assertIs(B.staging_switches(), B.staging_switches())          # read once per run
-        self.assertEqual(B.swapped_idents(), set())         # Switch 13's facts hold the Barn on leg C (2026-11-18)
 
     def test_a_bad_switches_file_stops_with_a_build_error(self) -> None:
         rr = self.lc.railroad
@@ -509,7 +508,7 @@ class FactsReaders(unittest.TestCase):
                 return real((sources or rr.Sources.under()).but(switches=bad), upto=upto)
             with mock.patch.object(rr, "Railroad", patched):
                 with self.assertRaisesRegex(B.BuildError, r"^staging switches: switches.csv lines \d+ .* both use"):
-                    B.swapped_idents()
+                    self.lc.switch_idents()
 
     def test_a_bad_device_map_stops_with_a_build_error(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -853,19 +852,6 @@ if __name__ == "__main__":
 
 class FinalReview(unittest.TestCase):
     """The 2026-11-16 code review's findings on the cut-over build."""
-
-    def test_legs_swapped_and_generated_slot_agree(self) -> None:
-        B.check_swapped_slots()
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "b.csv"
-            text = B.BOUNDARIES.read_text(encoding="utf-8")
-            path.write_text(text, encoding="utf-8")
-            with mock.patch.dict(B.LEGS_SWAPPED, {"13": "test"}):              # Mast 14R on leg C needs generated_slot B
-                with self.assertRaisesRegex(B.BuildError, "TO1 C .*generated_slot empty, LEGS_SWAPPED gives B"):
-                    B.check_swapped_slots(path)
-            path.write_text(text + "turnout,TO99,B,Mast X,,C\n", encoding="utf-8")
-            with self.assertRaisesRegex(B.BuildError, "TO99 B .*generated_slot C, LEGS_SWAPPED gives empty"):
-                B.check_swapped_slots(path)
 
     def test_staging_le_labels_from_its_preferences(self) -> None:
         own = B.schematic()[0][0][2]["le_labels"]       # staging.preferences.json: buttons that step, yard columns

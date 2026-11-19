@@ -1,6 +1,6 @@
 """Mast and slot checks of the Layout Editor build: every staging mast in the one slot that resolves to its blocks
 (check_device_masts) and at the ident and slot le_signal_boundaries.csv records for it (check_boundaries), the main and
-upper masts in theirs, and le_signal_boundaries.csv's swapped legs (check_swapped_slots)."""
+upper masts in theirs."""
 from __future__ import annotations
 
 import sys
@@ -9,29 +9,11 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from hartlib import paths, tables  # noqa: E402
+from hartlib import paths  # noqa: E402
 from le_common import BuildError, read_csv, slots_module  # noqa: E402
-from le_names import swapped_idents  # noqa: E402
 
 
 BOUNDARIES = paths.LAYOUT_DATA / "le_signal_boundaries.csv"
-
-
-def check_swapped_slots(path: Path = BOUNDARIES) -> None:
-    """Stop when le_signal_boundaries.csv's generated_slot column and LEGS_SWAPPED disagree: every turnout row on a
-    swapped switch's leg B or C gives the other letter as its generated_slot, and no other row gives one (the
-    audits and apply_le_sml_facing.py read the column; this build reads LEGS_SWAPPED)."""
-    swapped = swapped_idents()
-    bad = []
-    for row in read_csv(path):
-        slot, gen = row["slot"].strip(), (row.get("generated_slot") or "").strip()
-        swaps = row["kind"].strip() == "turnout" and row["ident"].strip() in swapped and slot in ("B", "C")
-        want = "BC".replace(slot, "") if swaps else ""
-        if gen != want:
-            bad.append(f"{row['ident']} {slot} ({row['mast_user_name']}): generated_slot {gen or 'empty'}, "
-                       f"LEGS_SWAPPED gives {want or 'empty'}")
-    if bad:
-        raise BuildError(f"{paths.rel(path)} and LEGS_SWAPPED disagree: " + "; ".join(bad))
 
 
 def mast_band(m: dict) -> int:
@@ -136,15 +118,14 @@ def check_device_masts(P, masts: list[dict], le_mod, facts: dict | None = None) 
 
 def check_boundaries(panel: ET.Element, path: Path = BOUNDARIES) -> None:
     """Stop unless every mast of le_signal_boundaries.csv stands on `panel` (a generated panel) in the kind of slot,
-    at the ident and in the slot its row records (its generated_slot where it has one: a LEGS_SWAPPED switch's leg B
-    or C, tables.boundary_slot). The anchor idents are generated, so a change to the staging drawing can renumber
+    at the ident and in the slot its row records. The anchor idents are generated, so a change to the staging drawing can renumber
     them; this stops the build then, naming each row, rather than leave the audits, apply_le_sml_facing.py and the
     boundary contract on the wrong anchor. Rewrite the named rows from the new panel."""
     placed = {m["mast"]: m for m in slots_module().Index(panel).masts()}
     bad = []
     for row in read_csv(path):
         name, kind = row["mast_user_name"].strip(), row["kind"].strip()
-        want = (kind, row["ident"].strip(), tables.boundary_slot(row, generated=True))
+        want = (kind, row["ident"].strip(), row["slot"].strip())
         m = placed.get(name)
         got = (m["kind"], m["ident"], m["slot"]) if m else None
         if got != want:

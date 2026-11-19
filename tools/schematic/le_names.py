@@ -15,7 +15,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 from hartlib import paths, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import (  # noqa: E402
-    band_key, bare, BuildError, DEVICE_MAP, main_upper_device_map, STAGING, switch_idents,
+    band_key, bare, BuildError, DEVICE_MAP, main_upper_device_map, STAGING,
 )
 
 
@@ -69,27 +69,6 @@ def runs(band, skip=()):
             rev = strands[cur]["dst"][0] == tail[0]
         out.append((tuple(start), chain, tuple(tail)))
     return out
-
-
-# Staging switches whose generated turnout has the hand-drawn panel's leg letters B and C swapped (and so its
-# continuing route): JMRI draws a plain turnout's leg A in line with leg B, so a switch whose hand-drawn leg B is the
-# diverging track on the sheet is drawn as the sheet has it only with that track on leg C (owner, 2026-11-16). The
-# plugin draws every staging turnout so by itself (leg B the straight leg), so this list sets nothing in the drawing:
-# it records which switches differ from the hand-drawn letters. A mast on such a leg stands on the other letter
-# (le_signal_boundaries.csv's generated_slot, held to this list by check_swapped_slots), and check_boundaries stops
-# the build unless the drawn panel puts each mast there. Empty since 2026-11-18: Switch 13's facts now hold the Barn on
-# its diverging leg C (staging.plan_overrides.json, branch_leg B), so le_signal_boundaries.csv records Mast 14R on C. The list and its checks stay for a
-# future switch drawn against its hand-drawn letters.
-LEGS_SWAPPED = {}
-
-
-def swapped_idents() -> set:
-    """The live Layout Editor idents of the LEGS_SWAPPED switches (switches.csv, through hartlib.railroad)."""
-    idents = switch_idents()
-    missing = sorted(set(LEGS_SWAPPED) - set(idents))
-    if missing:
-        raise BuildError(f"LEGS_SWAPPED names switches switches.csv does not have: {missing}")
-    return {idents[k] for k in LEGS_SWAPPED}
 
 
 def staging_lengths(opts: dict, names: dict, os_inches: dict | None = None) -> dict:

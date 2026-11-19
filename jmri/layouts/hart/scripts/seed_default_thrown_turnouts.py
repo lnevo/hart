@@ -5,7 +5,9 @@ Rules (SoR):
   - Live Digicon state follows **FB** for all turnouts except Switch 13/7/11/9
     (DCC 116–119; yard / engine-house, not FB-driven Digicon SoR).
   - Digicon SEL+CMD share one polarity. No switch is inverted: closed is the straight
-    (normal) leg everywhere, and the turnouts start up closed.
+    (normal) leg everywhere. Switches 1 and 33 start up thrown in the field (the main
+    runs through their diverging legs, STARTS_THROWN); the rest start up closed (owner,
+    2026-11-18). Nothing here sets a state: --diagnose flags 1 or 33 when not thrown.
   - Wrong Digicon direction → fix **that one switch only** in
     `jmri/layouts/hart/data/switch_legs.csv` / `switches.csv`, then rebuild
     the desks. Do not command MQTT/JMRI.
@@ -34,6 +36,9 @@ from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
 JMRI_JSON = jmri_json_url()
 MQTT_HOST = mqtt_broker()
+
+# Start up thrown: the main runs through their diverging legs (owner, 2026-11-18). Plate numbers.
+STARTS_THROWN = {1, 33}
 
 # Yard / engine-house — Digicon not driven by FB SoR (DCC 116–119).
 SKIP_FB = {13, 7, 11, 9}
@@ -134,6 +139,8 @@ def diagnose(by_name: dict) -> int:
     for _k, sw, name, mqtt, jmri, fb, mode_s, mismatch in rows:
         sw_s = f"{sw}" if sw is not None else "?"
         note = ""
+        if sw in STARTS_THROWN and "THROWN" not in (jmri, fb):
+            note += "not-thrown(starts-thrown) "
         if mismatch:
             note += "mqtt≠fb "
         print(f"{sw_s:>4} {name:8} {mqtt:8} {jmri:12} {fb:8} {mode_s:12}  {note}")

@@ -8,7 +8,7 @@ import csv
 import re
 import sys
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, field, replace as dc_replace
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
@@ -67,7 +67,6 @@ class Boundary:
     ident: str
     slot: str
     mast: str
-    generated_slot: str = ""        # the slot on a generated panel, where it swaps a turnout's legs; "" = slot
 
     @property
     def binding_name(self) -> str:
@@ -100,7 +99,6 @@ def load_boundaries(path: Path) -> list[Boundary]:
             ident=row["ident"].strip(),
             slot=row["slot"].strip(),
             mast=row["mast_user_name"].strip(),
-            generated_slot=(row.get("generated_slot") or "").strip(),
         )
         for row in rows
     ]
@@ -232,10 +230,8 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: b
     audit.facts["cats_virtual"] = tuple(sorted(cats_virtual))
 
 
-def audit_bindings(
-    panel: ET.Element | None, boundaries: list[Boundary], audit: Audit, *, generated: bool = False
-) -> None:
-    """Each boundary mast in its slot; on a generated panel (`generated`) in its generated_slot where it has one."""
+def audit_bindings(panel: ET.Element | None, boundaries: list[Boundary], audit: Audit) -> None:
+    """Each boundary mast in its slot."""
     actual: dict[tuple[str, str, str], str] = {}
     if panel is None:
         audit.facts["bindings"] = ()
@@ -247,8 +243,6 @@ def audit_bindings(
             kind = "turnout" if element.tag == "layoutturnout" else "anchor"
             by_key.setdefault((kind, ident), []).append(element)
     for boundary in boundaries:
-        if generated and boundary.generated_slot:
-            boundary = dc_replace(boundary, slot=boundary.generated_slot)
         elements = by_key.get((boundary.kind, boundary.ident), [])
         if len(elements) != 1:
             audit.error(
@@ -769,7 +763,7 @@ def audit_source(
         audit.error(str(exc))
         is_generated = True
     audit_masts(root, expected_masts, audit, levels=is_generated and draws_levels(panel))
-    audit_bindings(panel, boundaries, audit, generated=is_generated)
+    audit_bindings(panel, boundaries, audit)
     if full_config:
         audit_sml(root, audit, required=True, generated=is_generated)
         audit_nx(root, audit, required=True)

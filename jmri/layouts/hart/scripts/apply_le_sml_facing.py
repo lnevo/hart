@@ -2,8 +2,8 @@
 """Assign Layout Editor facing. Does not change mast types.
 
 Edits jmri/layouts/hart/output/tables.xml. Its main panel must be the generated one (build_layout_le.py --as-live):
-each mast goes in its row's generated_slot where it has one (a switch drawn with legs B and C swapped). Any other
-panel is refused, and only the checkout's own tables.xml is copied to the JMRI profile.
+each mast goes in its row's slot. Any other panel is refused, and only the checkout's own tables.xml is copied to
+the JMRI profile.
 
 
 Facing SoR: jmri/layouts/hart/data/le_signal_boundaries.csv
@@ -56,14 +56,14 @@ _DISABLED_2 = """      <unlit allowed="no" />
 
 def load_assignments(path: Path) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
     """({turnout ident: {slot: mast}}, {anchor ident: {slot: mast}}) from the boundaries CSV, each row in its slot on
-    the generated panel (its generated_slot where it has one: a switch drawn with legs B and C swapped)."""
+    the generated panel."""
     turnouts: dict[str, dict[str, str]] = {}
     anchors: dict[str, dict[str, str]] = {}
     with path.open(newline="") as f:
         for row in csv.DictReader(f):
             ident = row["ident"]
-            slot = tables.boundary_slot(row, True)
-            mast = row["mast_user_name"]
+            slot = row["slot"].strip()
+            mast = row["mast_user_name"].strip()
             if row["kind"] == "turnout":
                 turnouts.setdefault(ident, {})[slot] = mast
             elif row["kind"] == "anchor":

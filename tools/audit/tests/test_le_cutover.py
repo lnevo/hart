@@ -134,7 +134,6 @@ class Cutover(unittest.TestCase):
         live = {i: f for i, f in B.turnout_facts(self.live_le).items() if i in idents}
         self.assertEqual(len(live), 20)
         self.assertEqual(B.turnout_facts(self.le), live)          # ident, name, type, continuing, leg blocks
-        self.assertEqual(B.swapped_idents(), set())         # Switch 13's facts hold the Barn on leg C (2026-11-18)
 
     def test_every_mast_resolves_exactly_as_staging_masts_says(self) -> None:
         key = lambda m: (m["kind"], m["facing"], list(m["protects"]), m.get("turnout"))      # noqa: E731
