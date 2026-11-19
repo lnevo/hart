@@ -41,6 +41,19 @@ RENDER = _load("render_le_layout", paths.LAYOUT_SCRIPTS / "render_le_layout.py")
 LIVE_PANEL = "HART Railroad"
 
 
+def _level_counts() -> tuple[int, int, int]:
+    """(blocks, masts, heads) of the main and upper levels in the committed data: the device map's block rows
+    (the 107 Loop's halves, 225's corners and Track 227-239's halves among them) and main_upper_masts.csv."""
+    import csv
+    with B.DEVICE_MAP.open(newline="", encoding="utf-8") as f:
+        blocks = sum(r["layer"] == "block" for r in csv.DictReader(f))
+    masts = B.read_level_masts()
+    return blocks, len(masts), sum(len(r["heads"]) for r in masts)
+
+
+LEVEL_BLOCKS, LEVEL_MASTS, LEVEL_HEADS = _level_counts()
+
+
 @functools.lru_cache(maxsize=None)
 def _stripped_bytes() -> bytes:
     doc = tables.load(TABLES)
@@ -191,7 +204,7 @@ class Built(unittest.TestCase):
         self.assertIn("Switch 223", new_t)              # its trial name's mark dropped
         self.assertIn("Switch 225", new_t)              # the double crossover
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
-        self.assertEqual(len(new_lb), 125)      # the 107 Loop's two halves and 225's four corners
+        self.assertEqual(len(new_lb), LEVEL_BLOCKS)      # the 107 Loop's two halves and 225's four corners
         self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")})
         self.assertIn("OS Switch 135", new_lb)          # connector A joins 135A and 135B: their OS block
         self.assertIn("Track 135-H2", new_lb)           # the placeholder Track e68+e81
@@ -214,7 +227,7 @@ class Built(unittest.TestCase):
         internal sensors are (owner, 2026-11-17)."""
         internal = next(s for s in self.root.findall("sensors") if "InternalSensorManager" in s.get("class"))
         sensors = {tables.user_name(s): tables.system_name(s) for s in internal.findall("sensor") if is_new(s)}
-        self.assertEqual(len(sensors), 125)
+        self.assertEqual(len(sensors), LEVEL_BLOCKS)
         self.assertFalse([s for s in tables.sensors(self.root) if is_new(s) and s not in list(internal)])
         bd = level_devices
         for b in [b for b in tables.blocks(self.root) if is_new(b)]:
@@ -237,7 +250,7 @@ class Built(unittest.TestCase):
         for label, root in (("candidate", self.root), ("released", tables.read(paths.TABLES_XML))):
             with self.subTest(tables=label):
                 level = sorted(tables.system_name(s) for s in tables.sensors(root) if is_new(s))
-                self.assertEqual(len(level), 125)
+                self.assertEqual(len(level), LEVEL_BLOCKS)
                 self.assertEqual(sorted(level_devices.clear_sensors(root)), level)
                 acts = {e.findtext("systemName"): e for e in root.find("LogixNGDigitalActions")}
                 for name in level_devices.clear_sensors(root):
@@ -358,7 +371,7 @@ class Built(unittest.TestCase):
         # main and upper: their control-point masts (main_upper_masts.csv), every one placed
         level = {m["mast"] for m in self.P.masts if m["band"] != 0}
         self.assertEqual(level, {r["mast"] for r in B.read_level_masts()})
-        self.assertEqual(len(level), 41)
+        self.assertEqual(len(level), LEVEL_MASTS)
 
     # ---- size: the panel holds what it draws (the window: test_le_cutover.py, the panel scrolls)
     def test_everything_drawn_lies_on_the_panel(self) -> None:
@@ -420,8 +433,8 @@ class Built(unittest.TestCase):
         doc = tables.loads(self.data)
         removed = B.strip_build_owned(doc.root)
         # turnouts, blocks (2 passes) and layout blocks, their sensors, the LogixNG that clears them (LogixNG,
-        # ConditionalNG, DigitalMany, 125 ActionSensors), heads and masts; no logic or path: discovery adds them
-        objects = 41 + 3 * 125 + 125 + 3 + 125 + 53 + 41
+        # ConditionalNG, DigitalMany, an ActionSensor per block), heads and masts; no logic or path: discovery adds them
+        objects = 41 + 3 * LEVEL_BLOCKS + LEVEL_BLOCKS + 3 + LEVEL_BLOCKS + LEVEL_HEADS + LEVEL_MASTS
         self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects})
         base = tables.loads(self.P.staging_data)
         B.parked.split(base.root, B.PARKED)
@@ -546,7 +559,7 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got["Switch 101B"], "Switch 101")
         self.assertEqual(got["Switch 223"], "Switch 223")          # "Switch 223*" in the file
         self.assertEqual(got["Track e68+e81"], "Track 135-H2")
-        self.assertEqual(len(got), 51 + 125)
+        self.assertEqual(len(got), 51 + LEVEL_BLOCKS)
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
@@ -732,7 +745,8 @@ class SecondReview(unittest.TestCase):
             signals = RENDER.load_geometry(path, LIVE_PANEL, curves=True)[4]
         sizes = {s["name"]: s["size"] for s in signals}
         self.assertEqual(sizes["Mast 2L"], tables.MAST_ICON_HIGH)        # two-searchlight
-        self.assertEqual(sizes["Mast 2R"], tables.MAST_ICON_DWARF)       # one-low virtual
+        self.assertEqual(sizes["Mast 2R"], tables.MAST_ICON_HIGH)        # one-searchlight (visible, 2026-11-19)
+        self.assertEqual(sizes["Mast 32R"], tables.MAST_ICON_DWARF)      # one-low
         bw, bh = RENDER.icon_box({"size": tables.MAST_ICON_HIGH, "degrees": 90})
         self.assertAlmostEqual(bw, 40)
         self.assertAlmostEqual(bh, 12)
@@ -878,19 +892,21 @@ class FinalReview(unittest.TestCase):
         self.assertEqual((opts["Main"]["numbers_below"], opts["Upper"]["numbers_below"]), (["101"], []))
         self.assertEqual((opts["Main"]["hidden_names"], opts["Upper"]["hidden_names"]), (["101-103"], []))
         self.assertEqual((opts["Main"]["optional_block_contents"], opts["Upper"]["optional_block_contents"]),
-                         ([], ["Track 227-233"]))
+                         ([], ["Track 227-233", "Track 229-231"]))
 
 class LoopAndCrossover(unittest.TestCase):
     """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers (owner, 2026-11-16)."""
 
     def test_appended_blocks_number_after_the_rest_and_shift_nothing(self) -> None:
-        before = ["OS Switch 107", "OS Switch 225", "Track 105-109", "Track 107 Loop", "Track 107-109", "Track 9-9"]
-        after = [b for b in before if b not in ("Track 107 Loop", "OS Switch 225")] + \
+        before = ["OS Switch 107", "OS Switch 225", "Track 105-109", "Track 107 Loop", "Track 107-109",
+                  "Track 227-239", "Track 9-9"]
+        after = [b for b in before if b not in ("Track 107 Loop", "OS Switch 225", "Track 227-239")] + \
             ["Track 107 Loop 1", "Track 107 Loop 2", "OS Switch 225a", "OS Switch 225b", "OS Switch 225c",
-             "OS Switch 225d"]
+             "OS Switch 225d", "Track 227-239 1", "Track 227-239 2"]                 # split 2026-11-19
         old = B.numbered_blocks(before)
         new = B.numbered_blocks(after)
-        renamed = {"Track 107 Loop": "Track 107 Loop 1", "OS Switch 225": "OS Switch 225a"}
+        renamed = {"Track 107 Loop": "Track 107 Loop 1", "OS Switch 225": "OS Switch 225a",
+                   "Track 227-239": "Track 227-239 1"}
         self.assertEqual(new[:len(old)], [renamed.get(b, b) for b in old])      # every old number kept
         self.assertEqual(new[len(old):], list(B.APPENDED_BLOCKS))
 
@@ -925,14 +941,20 @@ class LevelMasts(unittest.TestCase):
         gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
         self.assertEqual(gen.build(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
         rows = B.read_level_masts()
-        self.assertEqual(len(rows), 41)
-        self.assertEqual(sum(len(r["heads"]) for r in rows), 53)
-        r = next(r for r in rows if r["mast"] == "Mast 108R")
-        self.assertEqual((r["facing"], r["protects"]), ("Track 107-109", "OS Switch 107"))
-        self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH:HART:C3:108R_Top)(IH:HART:C3:108R_Bottom)")
+        self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (126, 44, 76))
+        r = next(r for r in rows if r["mast"] == "Mast 108LB")
+        self.assertEqual((r["facing"], r["protects"]), ("Track 107 Loop 2", "OS Switch 107"))
+        self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom)")
         self.assertEqual(r["device_system_name"], "IF$shsm:basic:two-searchlight(IH3334)(IH3335)")
-        self.assertEqual(r["heads"], [("IH:HART:C3:108R_Top", "Head 108R Top"),
-                                      ("IH:HART:C3:108R_Bottom", "Head 108R Bottom")])
+        self.assertEqual(r["heads"], [("IH:HART:C3:108LB_Top", "Head 108LB Top"),
+                                      ("IH:HART:C3:108LB_Bottom", "Head 108LB Bottom")])
+        # the APB intermediates (owner, 2026-11-19): no switch, one head each, not on a board yet
+        inter = {x["mast"]: (x["facing"], x["protects"], x["device_system_name"]) for x in rows if not x["switch"]
+                 and x["mast"] != "Mast 240L"}
+        self.assertEqual(inter, {"Mast A84": ("Track 107 Loop 1", "Track 107 Loop 2", ""),
+                                 "Mast A85": ("Track 107 Loop 2", "Track 107 Loop 1", ""),
+                                 "Mast B91": ("Track 227-239 1", "Track 227-239 2", ""),
+                                 "Mast B92": ("Track 227-239 2", "Track 227-239 1", "")})
         self.assertEqual({x["mast"]: x["leg"] for x in rows if x["leg"]}, {})     # the loop's halves tell them apart
 
     def test_no_two_masts_share_a_facing_and_protected_block(self) -> None:
@@ -970,10 +992,10 @@ class LevelMasts(unittest.TestCase):
                          "IH:HART:C3:108R_Top")
 
     def test_a_mast_no_band_draws_stops(self) -> None:
-        rows = [dict(r, facing="Track Nowhere") if r["mast"] == "Mast 108R" else r for r in B.read_level_masts()]
-        names = {"Staging": {}, "Main": {"blocks": {"e": ["Track 107-109"]}, "os": {"n": "OS Switch 107"}},
+        rows = [dict(r, facing="Track Nowhere") if r["mast"] == "Mast 110L" else r for r in B.read_level_masts()]
+        names = {"Staging": {}, "Main": {"blocks": {"e": ["Track 105-109"]}, "os": {"n": "OS Switch 109"}},
                  "Upper": {"blocks": {}, "os": {}}}
-        with self.assertRaisesRegex(B.BuildError, "Mast 108R \\(Track Nowhere into OS Switch 107\\): drawn on no band"):
+        with self.assertRaisesRegex(B.BuildError, "Mast 110L \\(Track Nowhere into OS Switch 109\\): drawn on no band"):
             B.level_masts(names, rows)
 
     def test_check_level_slots(self) -> None:

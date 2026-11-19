@@ -134,7 +134,7 @@ class Output(unittest.TestCase):
     def test_mast_names_follow_adr005(self):
         import re
         for x in rows():
-            if x["layer"] == "mast":
+            if x["layer"] == "mast" and not x["comment"].endswith(" | intermediate"):
                 m = re.fullmatch(r"Mast (\d+)([LR])([AB]?)", x["user_name"])
                 self.assertIsNotNone(m, x["user_name"])
                 self.assertEqual(int(m.group(1)) % 2, 0)
@@ -168,7 +168,8 @@ class Output(unittest.TestCase):
             self.assertLessEqual(max(boards, default=0), BD.MAX_OU, node)
 
     def test_a_loop_back_into_its_control_point_has_home_signals(self):
-        loop = {x["user_name"]: x["notes"] for x in rows() if x["layer"] == "mast" and " Loop" in x["notes"]}
+        loop = {x["user_name"]: x["notes"] for x in rows() if x["layer"] == "mast" and " Loop" in x["notes"]
+                and x["notes"].startswith("home signal")}
         self.assertEqual(loop, {"Mast 108LA": "home signal from Track 107 Loop 1",      # the balloon at CP 107
                                 "Mast 108LB": "home signal from Track 107 Loop 2"})
 
@@ -211,7 +212,8 @@ class Output(unittest.TestCase):
         blocks = [x["user_name"] for x in have if x["layer"] == "block"]
         occ = {x["user_name"]: x["jmri_name"] for x in have if x["layer"] == "occupancy"}
         self.assertEqual(occ, {BD.occupancy_user(b): BD.block_sensor(b) for b in blocks})     # one per block
-        heads = {x["system_name"]: x["jmri_name"] for x in have if x["layer"] == "head"}
+        heads = {x["system_name"]: x["jmri_name"] for x in have if x["layer"] == "head" and x["system_name"]}
+        unwired = {x["jmri_name"]: x["notes"] for x in have if x["layer"] == "head" and not x["system_name"]}
         for x in have:
             with self.subTest(row=x["user_name"]):
                 if x["layer"] == "turnout":
@@ -220,13 +222,35 @@ class Output(unittest.TestCase):
                     self.assertEqual(x["jmri_name"], level_masts.head_name(x["user_name"]))
                 elif x["layer"] == "mast":
                     self.assertTrue(level_masts.is_level_mast(x["jmri_name"]))
-                    self.assertEqual(level_masts.mast_heads(x["jmri_name"]),
-                                     [heads[h] for h in level_masts.mast_heads(x["system_name"])])
+                    if x["system_name"]:
+                        self.assertEqual(level_masts.mast_heads(x["jmri_name"]),
+                                         [heads[h] for h in level_masts.mast_heads(x["system_name"])])
+                    else:                       # heads not placed on a board yet: virtual heads only
+                        self.assertTrue(level_masts.mast_heads(x["jmri_name"]))
+                        for h in level_masts.mast_heads(x["jmri_name"]):
+                            self.assertEqual(unwired.get(h), BD.HEAD_NOT_WIRED, h)
                 elif x["layer"] in ("fb", "block"):
                     self.assertEqual(x["jmri_name"], "")
                 if x["layer"] != "fb" and x["layer"] != "block":
                     self.assertTrue(x["jmri_name"])
         self.assertEqual(len(set(occ.values())), len(occ))
+
+    def test_apb_intermediates_are_named_from_the_milepost(self):
+        """A pair at the turnback of the 107 balloon loop (line A) and of the split Track 227-239 (line B), named from
+        the sheets' milepost count: odd westbound, even eastbound, one head each (owner, 2026-11-19)."""
+        got = {x["user_name"]: (x["cp"], x["notes"]) for x in rows()
+               if x["layer"] == "mast" and x["comment"].endswith(" | intermediate")}
+        self.assertEqual(got, {
+            "Mast A84": ("CP 107", "intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.49"),
+            "Mast A85": ("CP 107", "intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.49"),
+            "Mast B91": ("CP 225", "intermediate signal from Track 227-239 1 into Track 227-239 2 at MP B 9.19"),
+            "Mast B92": ("CP 225", "intermediate signal from Track 227-239 2 into Track 227-239 1 at MP B 9.19")})
+        for name in got:
+            self.assertTrue(next(x for x in rows() if x["user_name"] == name)["jmri_name"]
+                            .startswith("IF$shsm:basic:one-searchlight("), name)
+        self.assertEqual([BD.signal_number(8.49, w) for w in (True, False)], [85, 84])
+        self.assertEqual([BD.signal_number(9.19, w) for w in (True, False)], [91, 92])
+        self.assertEqual([BD.signal_number(9.2, w) for w in (True, False)], [93, 92])
 
     def test_virtual_names(self):
         self.assertEqual([BD.block_sensor(b) for b in ("Track 107-109", "Track 107 Loop 2", "OS Switch 225b",
@@ -265,6 +289,33 @@ class Output(unittest.TestCase):
         self.assertEqual({k: v["switches"] for k, v in over["stations"].items()},
                          {k: v["switches"] for k, v in over["control_points"].items()})
         self.assertTrue(all(v["tracks"] == [] for v in over["stations"].values()))
+
+
+class FacingOnRoute(unittest.TestCase):
+    """mast_rule.facing_on_route: the facing points a home mast's routes meet inside its control point."""
+
+    @staticmethod
+    def band(inner_cm=20.0):
+        """Bumper X - (A) switch 1 (B) - (A) switch 3, with switch 1's C leg and switch 3's B and C legs to bumpers."""
+        nodes = {k: dict(kind="bumper", ins={}, outs={}) for k in "XWYZ"}
+        nodes["S1"] = dict(kind="switch", label="1", ins={}, outs={})
+        nodes["S3"] = dict(kind="switch", label="3", ins={}, outs={})
+        strands = {}
+        for sid, (a, pa), (b, pb), cm in (("e0", ("X", "A"), ("S1", "A"), 200.0), ("e1", ("S1", "B"), ("S3", "A"), inner_cm),
+                                          ("e2", ("S1", "C"), ("W", "A"), 200.0), ("e3", ("S3", "B"), ("Y", "A"), 200.0),
+                                          ("e4", ("S3", "C"), ("Z", "A"), 200.0)):
+            strands[sid] = dict(src=(a, pa), dst=(b, pb), cm=cm)
+            nodes[a]["outs"][pa] = sid
+            nodes[b]["ins"][pb] = sid
+        return dict(nodes=nodes, strands=strands)
+
+    def test_routes_through_the_interlocking(self):
+        import mast_rule as mr                  # on sys.path once build_device_map is loaded
+        one_cp = {"1": "CP 1", "3": "CP 1"}
+        self.assertEqual(mr.facing_on_route(self.band(), "S1", "A", one_cp), ["1", "3"])
+        self.assertEqual(mr.facing_on_route(self.band(), "S3", "B", one_cp), [])           # trailing all the way
+        self.assertEqual(mr.facing_on_route(self.band(), "S1", "A", {"1": "CP 1", "3": "CP 3"}), ["1"])
+        self.assertEqual(mr.facing_on_route(self.band(mr.LONG_CM + 1), "S1", "A", one_cp), ["1"])  # own signals
 
 
 if __name__ == "__main__":
