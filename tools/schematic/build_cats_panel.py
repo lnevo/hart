@@ -37,7 +37,7 @@ IS:HART:C3:B:<block key>, hartlib.level_devices), as OCCUPIEDSPEC / UNOCCUPIEDSP
 map has one, is kept in the bindings as _planned_occupied / _planned_unoccupied for the record and is not on the
 panel. The middle of 225's X, a desk-only block, has no sensor (owner, 2026-11-17). The helix tracks are joined on the desk (the plugin joins a helix track
 drawn on two bands logically), each band's piece a block of its own (cats_helix_blocks "apart", owner 2026-11-17): staging's
-McKees Rocks and McKeesport, and the main level's Track 135-H1 and the upper level's 135-H2 with their own detectors.
+McKees Rocks and McKeesport, and the main level's Track 131-H1 and the upper level's 131-H2 with their own detectors.
 Anything else without a JMRI block, an ambiguous track, or a fact that disagrees with the drawing stops the run.
 The sheet is built once and tables.xml read once; bindings and panels come from the same plugin code.
 The IOSPEC, STATION and SECSIGNAL conventions are the hand-wired desks' (cats_turnout_io.py, digicon_lib.py,
@@ -74,6 +74,7 @@ from hartlib.cats import appearance_templates, mast_templates, station_plate  # 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
+from le_common import BuildError, crossover_half_legs  # noqa: E402  a crossover half's legs, shared with the LE build
 
 # The live desks (CATS cut-over, owner approved the generated desks in real CATS on 2026-11-15): the names the hosts,
 # launchers and shortcuts use. Nothing else writes them.
@@ -580,14 +581,19 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
     """({switch label: binding}, {label: why not bound}) for the main and upper switches: each switch or crossover
     half drawn commands and reports its internal turnout (LEVEL_TURNOUT + number, user name Switch <n>, which
     tables.xml must hold), closed on leg B (NORMAL) and thrown on leg C. A crossover's halves, on one band or two,
-    each take the one turnout; the thrown leg of each must lead to the other half (or to the link between the
-    levels). A double crossover's one turnout moves all four of its points (the plugin: B along the through tracks,
+    each take the one turnout; the thrown leg of each is the one that leads to the other half or to the link between
+    the levels (le_common.crossover_half_legs, which stops when neither or both do): leg B for a half the plan joins
+    by its leg B (121B, 125B), which is then closed on leg C. A double crossover's one turnout moves all four of its points (the plugin: B along the through tracks,
     C into the X). `dx_corners` ({switch number: {leg: Layout Editor corner}}, build_device_map.dx_corners) gives a
     double crossover a desk block per corner, named as the Layout Editor's (OS Switch <n>a to d, by the corner each
     leg reaches), and the middle of its X OS Switch <n>."""
     out = {}
     for _bi, band, _ in level_bands(bands, bound_bi):
-        nodes, strands = band["nodes"], band["strands"]
+        nodes = band["nodes"]
+        try:
+            half_legs = crossover_half_legs(band)       # each crossover half's leg toward its other half: thrown
+        except BuildError as exc:
+            raise SystemExit(str(exc)) from None
         for n, d in sorted(nodes.items()):
             label = str(d.get("label") or "")
             if d["kind"] not in ("switch", "dx"):
@@ -599,17 +605,14 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
                                  f"it has {F.turnouts.get(user) or 'none'}")
             if label in out:
                 raise SystemExit(f"switch {label} is drawn twice on main and upper")
-            if re.search(r"\d[AB]$", label):                   # a crossover half (129A; 223* is a plain switch)
-                s = strands[legs_of(d)["C"]]
-                far = s["dst"][0] if s["src"][0] == n else s["src"][0]
-                if not (far.startswith("LINK:") or bdm.base(nodes.get(far, {}).get("label") or "") == num):
-                    raise SystemExit(f"switch {label}: a crossover half whose leg C does not lead to its other half")
+            thrown = half_legs.get(n, "C")      # a crossover half: its leg toward the other half; else leg C
+            closed = "C" if thrown == "B" else "B"
             addr = LEVEL_TURNOUT[len(LEVEL_TURNOUT_PREFIX):] + num
             io = lambda cmd, u=user, a=addr: {"DECADDR": a, "JMRIPREFIX": LEVEL_TURNOUT_PREFIX, "USER_NAME": u,
                                               "command": cmd}
-            out[label] = {"normal": "B",
-                          "routes": {"B": {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
-                                     "C": {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}}}
+            out[label] = {"normal": closed,
+                          "routes": {closed: {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
+                                     thrown: {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}}}
             if d["kind"] == "dx" and dx_corners is not None:
                 if num not in dx_corners:
                     raise SystemExit(f"double crossover {label}: no corners found for it")

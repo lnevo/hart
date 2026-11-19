@@ -58,7 +58,7 @@ class RepoData(unittest.TestCase):
         self.assertEqual(rr.device_map.sensors["BS Switch 101"], "IS:HART:C3:B:OS101")
         self.assertEqual(rr.device_map.turnouts["107"].jmri_name, "IT:HART:C3:107")
         self.assertEqual(rr.hands["223"].hand, "R")
-        self.assertEqual(len(rr.level_masts), 44)   # the 2026-11-19 plan, APB intermediates and Mast 240L included
+        self.assertEqual(len(rr.level_masts), 45)   # the 2026-11-19 plan, APB intermediates, Mast 240L and 126L included
         fails, known = R.run_check(rr)
         self.assertEqual(fails, [])
         self.assertEqual(known, [])

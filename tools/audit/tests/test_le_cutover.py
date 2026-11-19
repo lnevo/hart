@@ -310,8 +310,8 @@ class ThreeLevels(unittest.TestCase):
         # The helix-join release (owner, 2026-11-17): staging as in its candidate but for the two
         # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
         self.assertEqual(self.P.staging_same, [
-            "end bumper EBG1 -> anchor AGE1 (hidden join TG231 to Track 135-H2, Mast 38RA)",
-            "end bumper EBG2 -> anchor AGE2 (hidden join TG232 to Track 135-H1, Mast 40RA)",
+            "end bumper EBG1 -> anchor AGE1 (hidden join TG231 to Track 131-H2, Mast 38RA)",
+            "end bumper EBG2 -> anchor AGE2 (hidden join TG232 to Track 131-H1, Mast 40RA)",
             "track segment TG6 connect2name EBG2 -> AGE2",
             "track segment TG33 connect2name EBG1 -> AGE1"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
@@ -600,7 +600,7 @@ class ThreeLevels(unittest.TestCase):
         added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
         added_lb = [b for b in tables.layout_blocks(self.root) if B.is_level_bean(b)]
         added_b = {tables.user_name(b) for b in tables.blocks(self.root) if B.is_level_bean(b)}
-        self.assertEqual(len(added_t), 41)
+        self.assertEqual(len(added_t), 39)
         self.assertTrue(all(tables.system_name(t).startswith("IT:HART:C3:") for t in added_t))
         self.assertEqual({tables.user_name(t) for t in added_t}, {v for k, v in self.device.items()
                                                                    if k.startswith("Switch ")})
@@ -654,8 +654,8 @@ class ThreeLevels(unittest.TestCase):
         ix = B.slots_module().Index(self.le)
         got = {m["mast"]: (self.P.name(m["ident"]), m["slot"], ix.blocks(m["kind"], self.P.name(m["ident"]), m["slot"]))
                for m in self.P.masts if m["mast"] in ("Mast 38RA", "Mast 40RA")}
-        self.assertEqual(got["Mast 38RA"], ("AGE1", "east", ("Track McKeesport", ["Track 135-H2"])))
-        self.assertEqual(got["Mast 40RA"], ("AGE2", "east", ("Track McKees Rocks", ["Track 135-H1"])))
+        self.assertEqual(got["Mast 38RA"], ("AGE1", "east", ("Track McKeesport", ["Track 131-H2"])))
+        self.assertEqual(got["Mast 40RA"], ("AGE2", "east", ("Track McKees Rocks", ["Track 131-H1"])))
         self.assertEqual([m for _band, m, _why in self.P.moved], ["Mast 38RA", "Mast 40RA"])   # the plugin logs both
 
     def test_one_block_contents_icon_per_block_on_every_level(self) -> None:
@@ -687,8 +687,10 @@ class ThreeLevels(unittest.TestCase):
     def test_switch_numbers_and_track_names(self) -> None:
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text")]
         numbers = {el.get("text"): el.get("size") for el in labels if el.get("text").startswith("SW-")}
-        # a single crossover reads by its number; the helix-top 129 and 135 keep a half on each level
-        self.assertLessEqual({"SW-101", "SW-225", "SW-245", "SW-129A", "SW-129B", "SW-135A", "SW-135B"}, set(numbers))
+        # a single crossover reads by its number; the helix-top 127 and 131 keep a half on each level, and 121 and
+        # 125, drawn as two turnouts, a half each
+        self.assertLessEqual({"SW-101", "SW-225", "SW-245", "SW-127A", "SW-127B", "SW-131A", "SW-131B", "SW-121A",
+                              "SW-121B", "SW-125A", "SW-125B"}, set(numbers))
         self.assertNotIn("SW-101A", numbers)
         self.assertEqual(set(numbers.values()), {"13"})
         names = {lb["text"] for lb in self.P.labels if lb.get("kind") == "name" and lb["band"]}

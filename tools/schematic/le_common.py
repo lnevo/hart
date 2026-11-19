@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import functools
 import importlib
+import re
 import sys
 from pathlib import Path
 
@@ -82,6 +83,39 @@ def main_upper_device_map(path: Path = DEVICE_MAP) -> railroad.DeviceMap:
         return railroad.read_device_map(path)
     except railroad.FactsError as exc:
         raise BuildError(f"the device map: {exc}") from None
+
+
+HALF = re.compile(r"(\d+)[AB]")
+
+
+def crossover_half_legs(band) -> dict[str, str]:
+    """{switch node: "B" or "C"} for every crossover half of a main or upper band (label <n>A or <n>B): the leg that
+    leads to its other half, so its other leg is its closed (normal) route. That is leg C for halves joined C to C
+    and for a half whose other half is on another band (its leg C leads to the connector); leg B for a half the plan
+    joins by its leg B (AnyRail's leg B of T1 and T14 is the diagonal of crossovers 121 and 125, owner 2026-11-19).
+    BuildError when a half has no leg, or both legs, leading to its other half."""
+    nodes, strands = band["nodes"], band["strands"]
+    out, bad = {}, []
+    for n, d in sorted(nodes.items()):
+        m = HALF.fullmatch(bare(d.get("label")))
+        if d["kind"] != "switch" or not m:
+            continue
+        toward = []
+        for leg in "BC":
+            s = strands.get((d["ins"] | d["outs"]).get(leg))
+            if s is None:       # no track on that leg: it leads to no other half
+                continue
+            far = s["dst"][0] if s["src"][0] == n else s["src"][0]
+            other = HALF.fullmatch(bare(nodes.get(far, {}).get("label")))
+            if (leg == "C" and far.startswith("LINK:")) or (far != n and other and other.group(1) == m.group(1)):
+                toward.append(leg)
+        if len(toward) != 1:
+            bad.append(f"switch {d['label']}: {len(toward)} of its legs B and C lead to its other half, not one")
+        else:
+            out[n] = toward[0]
+    if bad:
+        raise BuildError("crossover halves: " + "; ".join(bad))
+    return out
 
 
 def read_csv(path: Path) -> list[dict]:

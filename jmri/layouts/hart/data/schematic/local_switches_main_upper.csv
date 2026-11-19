@@ -4,10 +4,8 @@ switch,level,area,notes
 105,2,West,Yard ladder
 113,2,West,Industry 1 spur
 115,2,West,Industry 1 spur
-121,2,North,Industry 2 spur
-123,2,North,Industry 2 lead off the siding
-131,2,North,Industry 2 spur
-133,2,North,Industry 2 spurs
+121,2,North,Industry 2 crossover off the siding (was 121 and 123)
+129,2,North,Industry 2 spurs (was 133)
 205,3,West,Industry 3 spur
 207,3,West,Industry 3 spurs
 209,3,Peninsula,Industry 3 lead

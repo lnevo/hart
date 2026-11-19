@@ -200,27 +200,40 @@ class Built(unittest.TestCase):
     def test_main_and_upper_device_map_names(self) -> None:
         device = B.device_names()
         new_t = [tables.user_name(t) for t in tables.turnouts(self.root) if is_new(t)]
-        self.assertEqual(len(new_t), 41)                # one turnout per crossover (101A and 101B are Switch 101)
+        self.assertEqual(len(new_t), 39)                # one turnout per crossover (101A and 101B are Switch 101)
         self.assertEqual(set(new_t), {v for k, v in device.items() if k.startswith("Switch ")})
         self.assertIn("Switch 223", new_t)              # its trial name's mark dropped
         self.assertIn("Switch 225", new_t)              # the double crossover
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
         self.assertEqual(len(new_lb), LEVEL_BLOCKS)      # the 107 Loop's two halves and 225's four corners
         self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")})
-        self.assertIn("OS Switch 135", new_lb)          # connector A joins 135A and 135B: their OS block
-        self.assertIn("Track 135-H2", new_lb)           # the placeholder Track e68+e81
+        self.assertIn("OS Switch 131", new_lb)          # connector A joins 131A and 131B: their OS block
+        self.assertIn("Track 131-H2", new_lb)           # the placeholder Track e68+e81
         self.assertFalse({b for b in new_lb if re.search(r"\be\d+", b)})
         dx = [t for t in self.le.findall("layoutturnout") if t.get("type") == "DOUBLE_XOVER"]
         self.assertEqual([t.get("turnoutname") for t in dx], ["Switch 225"])
-        # a crossover's halves on one level are one single crossover; the helix-top 129 and 135 stand on two
-        # levels, so each is two Layout Editor turnouts on one turnout, and 101 and 103 (one three-way switch, the
-        # preferences' le_split_crossovers) are each two plain turnouts on one turnout
+        # a crossover's halves on one level are one single crossover; the helix-top 127 and 131 stand on two
+        # levels, so each is two Layout Editor turnouts on one turnout, 101 and 103 (one three-way switch, the
+        # preferences' le_split_crossovers) are each two plain turnouts on one turnout, and so are 121 and 125,
+        # whose halves the plan joins leg C to leg B (2026-11-19)
         xo = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout")
                      if t.get("type") in ("RH_XOVER", "LH_XOVER") and is_new_name(t.get("turnoutname")))
         self.assertEqual(set(xo), {f"Switch {n}" for n in (119, 213, 217, 221, 241, 245)})
         twice = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout"))
         self.assertEqual({n for n, c in twice.items() if c > 1},
-                         {"Switch 101", "Switch 103", "Switch 129", "Switch 135"})
+                         {"Switch 101", "Switch 103", "Switch 121", "Switch 125", "Switch 127", "Switch 131"})
+        # 121 and 125: the half the plan joins by its leg B is closed on its leg C, so the one turnout closed puts
+        # both halves on their through tracks and thrown on the diagonal between them
+        for name in ("Switch 121", "Switch 125"):
+            with self.subTest(turnout=name):
+                halves = [t for t in self.le.findall("layoutturnout") if t.get("turnoutname") == name]
+                self.assertEqual(len(halves), 2)
+                legs = [{t.get(f"connect{p}name"): p for p in "bc"} for t in halves]
+                diagonal = set(legs[0]) & set(legs[1])
+                self.assertEqual(len(diagonal), 1)
+                for t, by_track in zip(halves, legs):
+                    thrown = "c" if t.get("continuing") == "2" else "b"
+                    self.assertEqual(by_track[next(iter(diagonal))], thrown, t.get("ident"))
 
     def test_every_main_and_upper_block_reports_its_virtual_sensor(self) -> None:
         """Each main and upper block, and its layout block, is bound by user name to its virtual occupancy sensor
@@ -345,13 +358,13 @@ class Built(unittest.TestCase):
         arcs = [s for s in self.le.findall("tracksegment") if s.get("arc") == "yes"]
         self.assertGreater(len(arcs), 30)
         self.assertTrue(all(s.get("circle") == "yes" and float(s.get("angle")) > 0 for s in arcs))
-        # the two main-upper connector joins (Switches 129 and 135); and the two helix joins
+        # the two main-upper connector joins (Switches 127 and 131); and the two helix joins
         self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"),
                          4)
         self.assertEqual({s.get("mainline") for s in self.le.findall("tracksegment")}, {"yes", "no"})
         texts = {lb.get("text") for lb in self.le.findall("positionablelabel")}
         prefix = B.schematic()[1]["le_labels"]["switch_prefix"]     # the page's: as the label layer writes them
-        self.assertTrue({"STAGING LEVEL", "MAIN LEVEL", "Main West", prefix + "39", prefix + "135A"} <= texts, texts)
+        self.assertTrue({"STAGING LEVEL", "MAIN LEVEL", "Main West", prefix + "39", prefix + "131A"} <= texts, texts)
         self.assertEqual(len(self.le.findall("layoutShape")), 8)     # four helix ends, four connector ends
 
     def test_no_track_sensors_and_every_mast_placed(self) -> None:
@@ -436,7 +449,7 @@ class Built(unittest.TestCase):
         # turnouts, blocks (2 passes) and layout blocks, their sensors, the startup LogixNG (LogixNG, ConditionalNG,
         # DigitalMany, an ActionSensor per block, an ActionTurnout per turnout), heads and masts; no logic or path:
         # discovery adds them
-        objects = 41 + 3 * LEVEL_BLOCKS + LEVEL_BLOCKS + 3 + LEVEL_BLOCKS + 41 + LEVEL_HEADS + LEVEL_MASTS
+        objects = 39 + 3 * LEVEL_BLOCKS + LEVEL_BLOCKS + 3 + LEVEL_BLOCKS + 39 + LEVEL_HEADS + LEVEL_MASTS
         self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects})
         base = tables.loads(self.P.staging_data)
         B.parked.split(base.root, B.PARKED)
@@ -560,7 +573,7 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got["Switch 101A"], "Switch 101")
         self.assertEqual(got["Switch 101B"], "Switch 101")
         self.assertEqual(got["Switch 223"], "Switch 223")          # "Switch 223*" in the file
-        self.assertEqual(got["Track e68+e81"], "Track 135-H2")
+        self.assertEqual(got["Track e68+e81"], "Track 131-H2")
         self.assertEqual(len(got), 51 + LEVEL_BLOCKS)
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
@@ -615,15 +628,20 @@ class DeviceNames(unittest.TestCase):
         bands = B.schematic()[0]
         names, _lengths = B.level_names(bands, le_mod)
         B.shared_turnouts(names)
-        self.assertEqual(names["Main"]["shared_turnouts"], ["Switch 129", "Switch 135"])
-        self.assertEqual(names["Upper"]["shared_turnouts"], ["Switch 129", "Switch 135"])
+        # the helix-top crossovers on two levels, and on main 121 and 125, whose halves the plan joins C to B
+        self.assertEqual(names["Main"]["shared_turnouts"], ["Switch 121", "Switch 125", "Switch 127", "Switch 131"])
+        self.assertEqual(names["Upper"]["shared_turnouts"], ["Switch 127", "Switch 131"])
+        normal = {bands[1][1]["nodes"][n]["label"]: leg for n, leg in names["Main"]["normal"].items()}
+        self.assertEqual(normal, {"121B": "C", "125B": "C"})            # closed on leg C
+        self.assertNotIn("normal", names["Upper"])
         drawn = B.named_bands(bands, names)
         self.assertIs(drawn[0][1], bands[0][1])                 # staging as it is
         main = drawn[1][1]
         labels = {d.get("label") for d in main["nodes"].values()}
         self.assertIn("101", labels)
         self.assertNotIn("101A", labels)
-        self.assertIn("129A", labels)                           # its B half is on the upper level
+        self.assertIn("127A", labels)                           # its B half is on the upper level
+        self.assertLessEqual({"121A", "121B", "125A", "125B"}, labels)  # joined C to B: two turnouts, not one
         for (_t, _b, o), (_t2, _b2, given) in zip(drawn, bands):
             self.assertIs(o, given)                             # the preferences reach the plugin as they are
         named = [s["name"] for s in main["strands"].values() if s["name"]]
@@ -656,9 +674,9 @@ class ReviewFixes(unittest.TestCase):
         cm = {k: s["cm"] for _, b, _ in bands for k, s in b["strands"].items()}
         self.assertGreater(cm["e36x"], 0)
         # e36 (19.7 cm) is cut at connector A into a piece on each level: both count (the plugin rounds each piece)
-        self.assertAlmostEqual(lengths["OS Switch 135"], (cm["e36x"] + cm["e36y"]) * 10)
-        self.assertAlmostEqual(lengths["OS Switch 129"], (cm["e37x"] + cm["e37y"]) * 10)
-        self.assertGreater(lengths["OS Switch 135"], 190)
+        self.assertAlmostEqual(lengths["OS Switch 131"], (cm["e36x"] + cm["e36y"]) * 10)
+        self.assertAlmostEqual(lengths["OS Switch 127"], (cm["e37x"] + cm["e37y"]) * 10)
+        self.assertGreater(lengths["OS Switch 131"], 190)
         # the balloon loop's turnback tracks each carry the whole edge: each half block takes half of it once
         half = next(s["cm"] for _, b, _ in bands for k, s in b["strands"].items() if k == "e33.0") * 10 / 2
         self.assertAlmostEqual(lengths["Track e33 1"], half)
@@ -943,7 +961,7 @@ class LevelMasts(unittest.TestCase):
         gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
         self.assertEqual(gen.build(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
         rows = B.read_level_masts()
-        self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (126, 44, 76))
+        self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (122, 45, 77))
         r = next(r for r in rows if r["mast"] == "Mast 108LB")
         self.assertEqual((r["facing"], r["protects"]), ("Track 107 Loop 2", "OS Switch 107"))
         self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom)")

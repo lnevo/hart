@@ -18,16 +18,16 @@
     "T165": "117",
     "T153": "119A",
     "12": "119B",
-    "T15": "121",
-    "T1": "123",
-    "T187": "125",
-    "T184": "127",
-    "T199": "129A",
-    "T285": "129B",
-    "T14": "131",
-    "T6": "133",
-    "T175": "135A",
-    "T251": "135B",
+    "T15": "121A",
+    "T1": "121B",
+    "T187": "123",
+    "T184": "125A",
+    "T14": "125B",
+    "T199": "127A",
+    "T285": "127B",
+    "T6": "129",
+    "T175": "131A",
+    "T251": "131B",
     "T233": "201",
     "T256": "203",
     "T343": "205",
@@ -58,7 +58,7 @@
     "T224": "245B"
    },
    "source": "owner",
-   "_note": "Owner's switch numbers (2026-11-14): main level 101+, upper level 201+, odd only, left to right as drawn on the approved sheet, main line first at the same position, then top to bottom. A crossover takes one number with A and B (A the left half); the three-way's halves pair with T183 and T194 as crossovers 101 and 103; the helix-top crossovers are main level (129, 135). The double crossover is one part (225)."
+   "_note": "Owner's switch numbers (2026-11-14, renumbered 2026-11-19): main level 101+, upper level 201+, odd only, left to right as drawn on the approved sheet, main line first at the same position, then top to bottom. A crossover takes one number with A and B (A the left half), numbered where its A half stands; the three-way's halves pair with T183 and T194 as crossovers 101 and 103; the helix-top crossovers are main level (127, 131). T15 and T1 (121) and T184 and T14 (125) are one crossover each on the ground (owner, 2026-11-19), so the main level from 121 east was renumbered: 121 and 123 became 121A and 121B, 125 became 123, 127 and 131 became 125A and 125B, 129 became 127, 133 became 129, 135 became 131. The double crossover is one part (225)."
   },
   {
    "op": "move",
@@ -212,16 +212,17 @@
     "119B"
    ]
   },
-  "CP 125": {
+  "CP 123": {
    "switches": [
-    "125",
-    "127"
+    "123",
+    "125A",
+    "125B"
    ]
   },
-  "CP 129": {
+  "CP 127": {
    "switches": [
-    "129A",
-    "135A"
+    "127A",
+    "131A"
    ]
   },
   "CP 201": {
@@ -271,17 +272,18 @@
    ],
    "tracks": []
   },
-  "CP 125": {
+  "CP 123": {
    "switches": [
-    "125",
-    "127"
+    "123",
+    "125A",
+    "125B"
    ],
    "tracks": []
   },
-  "CP 129": {
+  "CP 127": {
    "switches": [
-    "129A",
-    "135A"
+    "127A",
+    "131A"
    ],
    "tracks": []
   },

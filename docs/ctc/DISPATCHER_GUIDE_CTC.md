@@ -31,7 +31,7 @@ Windows `CatsConfig.xml`), not merely from `cats.jar` on the classpath. PanelPro
 
 The CTC desk covers all three levels. Staging, main and upper are all CTC: CATS holds
 their signals. A route set up the helix from staging stops at the first signal on the
-level (Mast 136RA on main, 136RB on upper) until the dispatcher clears it. The ABS desk
+level (Mast 132RA on main, 132RB on upper) until the dispatcher clears it. The ABS desk
 (`HART_ABS.xml`) is all ABS.
 
 **Help** and **Quit** on **CTC Panel** sit on the bottom button strip (with Restart

@@ -42,7 +42,7 @@ class NamesTest(unittest.TestCase):
                 "(IH:HART:C3:" in tables.system_name(el)]
         users = {tables.user_name(el) for el in mine} - {""}
         lbs = [lb for lb in tables.layout_blocks(root) if tables.user_name(lb) in users]
-        self.assertEqual(len(lbs), 126)   # Track 227-239 is two blocks since the APB split (2026-11-19)
+        self.assertEqual(len(lbs), 122)   # Track 227-239 two blocks (APB split); 121 and 125 one crossover each (2026-11-19)
         names = {tables.system_name(el) for el in mine} | (users - {D.CLEAR_USER}) | {tables.user_name(lb) for lb in lbs}
         self.assertEqual(sorted(n for n in names if not D.is_level_name(n)), [])
         others = [el for el in beans if el not in mine and el not in lbs]

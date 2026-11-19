@@ -72,116 +72,112 @@ block,IB:C3:0013,OS Switch 125|BS Switch 125
 block,IB:C3:0014,OS Switch 127|BS Switch 127
 block,IB:C3:0015,OS Switch 129|BS Switch 129
 block,IB:C3:0016,OS Switch 131|BS Switch 131
-block,IB:C3:0017,OS Switch 133|BS Switch 133
-block,IB:C3:0018,OS Switch 135|BS Switch 135
-block,IB:C3:0019,OS Switch 201|BS Switch 201
-block,IB:C3:0020,OS Switch 203|BS Switch 203
-block,IB:C3:0021,OS Switch 205|BS Switch 205
-block,IB:C3:0022,OS Switch 207|BS Switch 207
-block,IB:C3:0023,OS Switch 209|BS Switch 209
-block,IB:C3:0024,OS Switch 211|BS Switch 211
-block,IB:C3:0025,OS Switch 213|BS Switch 213
-block,IB:C3:0026,OS Switch 215|BS Switch 215
-block,IB:C3:0027,OS Switch 217|BS Switch 217
-block,IB:C3:0028,OS Switch 219|BS Switch 219
-block,IB:C3:0029,OS Switch 221|BS Switch 221
-block,IB:C3:0030,OS Switch 223|BS Switch 223
-block,IB:C3:0031,OS Switch 225a|BS Switch 225a
-block,IB:C3:0032,OS Switch 227|BS Switch 227
-block,IB:C3:0033,OS Switch 229|BS Switch 229
-block,IB:C3:0034,OS Switch 231|BS Switch 231
-block,IB:C3:0035,OS Switch 233|BS Switch 233
-block,IB:C3:0036,OS Switch 235|BS Switch 235
-block,IB:C3:0037,OS Switch 237|BS Switch 237
-block,IB:C3:0038,OS Switch 239|BS Switch 239
-block,IB:C3:0039,OS Switch 241|BS Switch 241
-block,IB:C3:0040,OS Switch 243|BS Switch 243
-block,IB:C3:0041,OS Switch 245|BS Switch 245
-block,IB:C3:0042,Track 103 Spur|BS 103 Spur
-block,IB:C3:0043,Track 107 Loop 1|BS 107 Loop 1
-block,IB:C3:0044,Track 115 Spur|BS 115 Spur
-block,IB:C3:0045,Track 119 Spur|BS 119 Spur
-block,IB:C3:0046,Track 121 Spur|BS 121 Spur
-block,IB:C3:0047,Track 205 Spur|BS 205 Spur
-block,IB:C3:0048,Track 211 Spur|BS 211 Spur
-block,IB:C3:0049,Track 233 Spur|BS 233 Spur
-block,IB:C3:0050,Track 235 Spur|BS 235 Spur
-block,IB:C3:0051,Track 239 Spur|BS 239 Spur
-block,IB:C3:0052,Track 243 Spur|BS 243 Spur
-block,IB:C3:0053,Track 101 Spur 1|BS 101 Spur 1
-block,IB:C3:0054,Track 103-105 1|BS 103-105 1
-block,IB:C3:0055,Track 113 Spur 1|BS 113 Spur 1
-block,IB:C3:0056,Track 129-135 1|BS 129-135 1
-block,IB:C3:0057,Track 133 Spur 1|BS 133 Spur 1
-block,IB:C3:0058,Track 207 Spur 1|BS 207 Spur 1
-block,IB:C3:0059,Track 213-217 1|BS 213-217 1
-block,IB:C3:0060,Track 215 Spur 1|BS 215 Spur 1
-block,IB:C3:0061,Track 223-225 1|BS 223-225 1
-block,IB:C3:0062,Track 241 Spur 1|BS 241 Spur 1
-block,IB:C3:0063,Track 245 Spur 1|BS 245 Spur 1
-block,IB:C3:0064,Track 101 Spur 2|BS 101 Spur 2
-block,IB:C3:0065,Track 103-105 2|BS 103-105 2
-block,IB:C3:0066,Track 113 Spur 2|BS 113 Spur 2
-block,IB:C3:0067,Track 129-135 2|BS 129-135 2
-block,IB:C3:0068,Track 133 Spur 2|BS 133 Spur 2
-block,IB:C3:0069,Track 207 Spur 2|BS 207 Spur 2
-block,IB:C3:0070,Track 213-217 2|BS 213-217 2
-block,IB:C3:0071,Track 215 Spur 2|BS 215 Spur 2
-block,IB:C3:0072,Track 223-225 2|BS 223-225 2
-block,IB:C3:0073,Track 241 Spur 2|BS 241 Spur 2
-block,IB:C3:0074,Track 245 Spur 2|BS 245 Spur 2
-block,IB:C3:0075,Track 135-H1|BS 135-H1
-block,IB:C3:0076,Track 135-H2|BS 135-H2
-block,IB:C3:0077,Track 101-103|BS 101-103
-block,IB:C3:0078,Track 101-111|BS 101-111
-block,IB:C3:0079,Track 105-109|BS 105-109
-block,IB:C3:0080,Track 107-109|BS 107-109
-block,IB:C3:0081,Track 109-111|BS 109-111
-block,IB:C3:0082,Track 111-117|BS 111-117
-block,IB:C3:0083,Track 113-115|BS 113-115
-block,IB:C3:0084,Track 115-117|BS 115-117
-block,IB:C3:0085,Track 117-119|BS 117-119
-block,IB:C3:0086,Track 119-123|BS 119-123
-block,IB:C3:0087,Track 119-125|BS 119-125
-block,IB:C3:0088,Track 121-123|BS 121-123
-block,IB:C3:0089,Track 121-131|BS 121-131
-block,IB:C3:0090,Track 123-125|BS 123-125
-block,IB:C3:0091,Track 125-127|BS 125-127
-block,IB:C3:0092,Track 127-129|BS 127-129
-block,IB:C3:0093,Track 127-131|BS 127-131
-block,IB:C3:0094,Track 129-221|BS 129-221
-block,IB:C3:0095,Track 131-133|BS 131-133
-block,IB:C3:0096,Track 201-203|BS 201-203
-block,IB:C3:0097,Track 201-205|BS 201-205
-block,IB:C3:0098,Track 201-219|BS 201-219
-block,IB:C3:0099,Track 203-209|BS 203-209
-block,IB:C3:0100,Track 203-213|BS 203-213
-block,IB:C3:0101,Track 205-207|BS 205-207
-block,IB:C3:0102,Track 209-211|BS 209-211
-block,IB:C3:0103,Track 209-213|BS 209-213
-block,IB:C3:0104,Track 211-215|BS 211-215
-block,IB:C3:0105,Track 217-219|BS 217-219
-block,IB:C3:0106,Track 217-221|BS 217-221
-block,IB:C3:0107,Track 219-221|BS 219-221
-block,IB:C3:0108,Track 221-223|BS 221-223
-block,IB:C3:0109,Track 225-227|BS 225-227
-block,IB:C3:0110,Track 225-229|BS 225-229
-block,IB:C3:0111,Track 227-233|BS 227-233
-block,IB:C3:0112,Track 227-239 1|BS 227-239 1
-block,IB:C3:0113,Track 229-231|BS 229-231
-block,IB:C3:0114,Track 229-239|BS 229-239
-block,IB:C3:0115,Track 231-235|BS 231-235
-block,IB:C3:0116,Track 231-241|BS 231-241
-block,IB:C3:0117,Track 233-237|BS 233-237
-block,IB:C3:0118,Track 235-241|BS 235-241
-block,IB:C3:0119,Track 237-243|BS 237-243
-block,IB:C3:0120,Track 237-245|BS 237-245
-block,IB:C3:0121,Track 243-245|BS 243-245
-block,IB:C3:0122,Track 107 Loop 2|BS 107 Loop 2
-block,IB:C3:0123,OS Switch 225b|BS Switch 225b
-block,IB:C3:0124,OS Switch 225c|BS Switch 225c
-block,IB:C3:0125,OS Switch 225d|BS Switch 225d
-block,IB:C3:0126,Track 227-239 2|BS 227-239 2
+block,IB:C3:0017,OS Switch 201|BS Switch 201
+block,IB:C3:0018,OS Switch 203|BS Switch 203
+block,IB:C3:0019,OS Switch 205|BS Switch 205
+block,IB:C3:0020,OS Switch 207|BS Switch 207
+block,IB:C3:0021,OS Switch 209|BS Switch 209
+block,IB:C3:0022,OS Switch 211|BS Switch 211
+block,IB:C3:0023,OS Switch 213|BS Switch 213
+block,IB:C3:0024,OS Switch 215|BS Switch 215
+block,IB:C3:0025,OS Switch 217|BS Switch 217
+block,IB:C3:0026,OS Switch 219|BS Switch 219
+block,IB:C3:0027,OS Switch 221|BS Switch 221
+block,IB:C3:0028,OS Switch 223|BS Switch 223
+block,IB:C3:0029,OS Switch 225a|BS Switch 225a
+block,IB:C3:0030,OS Switch 227|BS Switch 227
+block,IB:C3:0031,OS Switch 229|BS Switch 229
+block,IB:C3:0032,OS Switch 231|BS Switch 231
+block,IB:C3:0033,OS Switch 233|BS Switch 233
+block,IB:C3:0034,OS Switch 235|BS Switch 235
+block,IB:C3:0035,OS Switch 237|BS Switch 237
+block,IB:C3:0036,OS Switch 239|BS Switch 239
+block,IB:C3:0037,OS Switch 241|BS Switch 241
+block,IB:C3:0038,OS Switch 243|BS Switch 243
+block,IB:C3:0039,OS Switch 245|BS Switch 245
+block,IB:C3:0040,Track 103 Spur|BS 103 Spur
+block,IB:C3:0041,Track 107 Loop 1|BS 107 Loop 1
+block,IB:C3:0042,Track 115 Spur|BS 115 Spur
+block,IB:C3:0043,Track 119 Spur|BS 119 Spur
+block,IB:C3:0044,Track 121 Spur|BS 121 Spur
+block,IB:C3:0045,Track 205 Spur|BS 205 Spur
+block,IB:C3:0046,Track 211 Spur|BS 211 Spur
+block,IB:C3:0047,Track 233 Spur|BS 233 Spur
+block,IB:C3:0048,Track 235 Spur|BS 235 Spur
+block,IB:C3:0049,Track 239 Spur|BS 239 Spur
+block,IB:C3:0050,Track 243 Spur|BS 243 Spur
+block,IB:C3:0051,Track 101 Spur 1|BS 101 Spur 1
+block,IB:C3:0052,Track 103-105 1|BS 103-105 1
+block,IB:C3:0053,Track 113 Spur 1|BS 113 Spur 1
+block,IB:C3:0054,Track 127-131 1|BS 127-131 1
+block,IB:C3:0055,Track 129 Spur 1|BS 129 Spur 1
+block,IB:C3:0056,Track 207 Spur 1|BS 207 Spur 1
+block,IB:C3:0057,Track 213-217 1|BS 213-217 1
+block,IB:C3:0058,Track 215 Spur 1|BS 215 Spur 1
+block,IB:C3:0059,Track 223-225 1|BS 223-225 1
+block,IB:C3:0060,Track 241 Spur 1|BS 241 Spur 1
+block,IB:C3:0061,Track 245 Spur 1|BS 245 Spur 1
+block,IB:C3:0062,Track 101 Spur 2|BS 101 Spur 2
+block,IB:C3:0063,Track 103-105 2|BS 103-105 2
+block,IB:C3:0064,Track 113 Spur 2|BS 113 Spur 2
+block,IB:C3:0065,Track 127-131 2|BS 127-131 2
+block,IB:C3:0066,Track 129 Spur 2|BS 129 Spur 2
+block,IB:C3:0067,Track 207 Spur 2|BS 207 Spur 2
+block,IB:C3:0068,Track 213-217 2|BS 213-217 2
+block,IB:C3:0069,Track 215 Spur 2|BS 215 Spur 2
+block,IB:C3:0070,Track 223-225 2|BS 223-225 2
+block,IB:C3:0071,Track 241 Spur 2|BS 241 Spur 2
+block,IB:C3:0072,Track 245 Spur 2|BS 245 Spur 2
+block,IB:C3:0073,Track 131-H1|BS 131-H1
+block,IB:C3:0074,Track 131-H2|BS 131-H2
+block,IB:C3:0075,Track 101-103|BS 101-103
+block,IB:C3:0076,Track 101-111|BS 101-111
+block,IB:C3:0077,Track 105-109|BS 105-109
+block,IB:C3:0078,Track 107-109|BS 107-109
+block,IB:C3:0079,Track 109-111|BS 109-111
+block,IB:C3:0080,Track 111-117|BS 111-117
+block,IB:C3:0081,Track 113-115|BS 113-115
+block,IB:C3:0082,Track 115-117|BS 115-117
+block,IB:C3:0083,Track 117-119|BS 117-119
+block,IB:C3:0084,Track 119-121|BS 119-121
+block,IB:C3:0085,Track 119-123|BS 119-123
+block,IB:C3:0086,Track 121-123|BS 121-123
+block,IB:C3:0087,Track 121-125|BS 121-125
+block,IB:C3:0088,Track 123-125|BS 123-125
+block,IB:C3:0089,Track 125-127|BS 125-127
+block,IB:C3:0090,Track 125-129|BS 125-129
+block,IB:C3:0091,Track 127-221|BS 127-221
+block,IB:C3:0092,Track 201-203|BS 201-203
+block,IB:C3:0093,Track 201-205|BS 201-205
+block,IB:C3:0094,Track 201-219|BS 201-219
+block,IB:C3:0095,Track 203-209|BS 203-209
+block,IB:C3:0096,Track 203-213|BS 203-213
+block,IB:C3:0097,Track 205-207|BS 205-207
+block,IB:C3:0098,Track 209-211|BS 209-211
+block,IB:C3:0099,Track 209-213|BS 209-213
+block,IB:C3:0100,Track 211-215|BS 211-215
+block,IB:C3:0101,Track 217-219|BS 217-219
+block,IB:C3:0102,Track 217-221|BS 217-221
+block,IB:C3:0103,Track 219-221|BS 219-221
+block,IB:C3:0104,Track 221-223|BS 221-223
+block,IB:C3:0105,Track 225-227|BS 225-227
+block,IB:C3:0106,Track 225-229|BS 225-229
+block,IB:C3:0107,Track 227-233|BS 227-233
+block,IB:C3:0108,Track 227-239 1|BS 227-239 1
+block,IB:C3:0109,Track 229-231|BS 229-231
+block,IB:C3:0110,Track 229-239|BS 229-239
+block,IB:C3:0111,Track 231-235|BS 231-235
+block,IB:C3:0112,Track 231-241|BS 231-241
+block,IB:C3:0113,Track 233-237|BS 233-237
+block,IB:C3:0114,Track 235-241|BS 235-241
+block,IB:C3:0115,Track 237-243|BS 237-243
+block,IB:C3:0116,Track 237-245|BS 237-245
+block,IB:C3:0117,Track 243-245|BS 243-245
+block,IB:C3:0118,Track 107 Loop 2|BS 107 Loop 2
+block,IB:C3:0119,OS Switch 225b|BS Switch 225b
+block,IB:C3:0120,OS Switch 225c|BS Switch 225c
+block,IB:C3:0121,OS Switch 225d|BS Switch 225d
+block,IB:C3:0122,Track 227-239 2|BS 227-239 2
 signalhead,IH432,Head 6LB
 signalhead,IH9990,Turnout FB status
 signalhead,IH:HART:C1:24L,Head 24L
@@ -232,22 +228,23 @@ signalhead,IH:HART:C3:120RA_Bottom,Head 120RA Bottom
 signalhead,IH:HART:C3:120RA_Top,Head 120RA Top
 signalhead,IH:HART:C3:120RB_Bottom,Head 120RB Bottom
 signalhead,IH:HART:C3:120RB_Top,Head 120RB Top
-signalhead,IH:HART:C3:126LA_Bottom,Head 126LA Bottom
-signalhead,IH:HART:C3:126LA_Top,Head 126LA Top
-signalhead,IH:HART:C3:126LB_Bottom,Head 126LB Bottom
-signalhead,IH:HART:C3:126LB_Top,Head 126LB Top
-signalhead,IH:HART:C3:128RA_Bottom,Head 128RA Bottom
-signalhead,IH:HART:C3:128RA_Top,Head 128RA Top
-signalhead,IH:HART:C3:128RB_Bottom,Head 128RB Bottom
-signalhead,IH:HART:C3:128RB_Top,Head 128RB Top
-signalhead,IH:HART:C3:130LA_Bottom,Head 130LA Bottom
-signalhead,IH:HART:C3:130LA_Top,Head 130LA Top
-signalhead,IH:HART:C3:130LB_Bottom,Head 130LB Bottom
-signalhead,IH:HART:C3:130LB_Top,Head 130LB Top
-signalhead,IH:HART:C3:136RA_Bottom,Head 136RA Bottom
-signalhead,IH:HART:C3:136RA_Top,Head 136RA Top
-signalhead,IH:HART:C3:136RB_Bottom,Head 136RB Bottom
-signalhead,IH:HART:C3:136RB_Top,Head 136RB Top
+signalhead,IH:HART:C3:124LA_Bottom,Head 124LA Bottom
+signalhead,IH:HART:C3:124LA_Top,Head 124LA Top
+signalhead,IH:HART:C3:124LB_Bottom,Head 124LB Bottom
+signalhead,IH:HART:C3:124LB_Top,Head 124LB Top
+signalhead,IH:HART:C3:126L,Head 126L
+signalhead,IH:HART:C3:126RA_Bottom,Head 126RA Bottom
+signalhead,IH:HART:C3:126RA_Top,Head 126RA Top
+signalhead,IH:HART:C3:126RB_Bottom,Head 126RB Bottom
+signalhead,IH:HART:C3:126RB_Top,Head 126RB Top
+signalhead,IH:HART:C3:128LA_Bottom,Head 128LA Bottom
+signalhead,IH:HART:C3:128LA_Top,Head 128LA Top
+signalhead,IH:HART:C3:128LB_Bottom,Head 128LB Bottom
+signalhead,IH:HART:C3:128LB_Top,Head 128LB Top
+signalhead,IH:HART:C3:132RA_Bottom,Head 132RA Bottom
+signalhead,IH:HART:C3:132RA_Top,Head 132RA Top
+signalhead,IH:HART:C3:132RB_Bottom,Head 132RB Bottom
+signalhead,IH:HART:C3:132RB_Top,Head 132RB Top
 signalhead,IH:HART:C3:202R_Bottom,Head 202R Bottom
 signalhead,IH:HART:C3:202R_Top,Head 202R Top
 signalhead,IH:HART:C3:204RA_Bottom,Head 204RA Bottom
@@ -300,6 +297,7 @@ signalmast,IF$shsm:basic:one-low(IH:HART:C1:4RA),Mast 4RA
 signalmast,IF$shsm:basic:one-low(IH:HART:C1:4RB),Mast 4RB
 signalmast,IF$shsm:basic:one-low(IH:HART:C1:6LA),Mast 6LA
 signalmast,IF$shsm:basic:one-low(IH:HART:C1:8RA),Mast 8RA
+signalmast,IF$shsm:basic:one-low(IH:HART:C3:126L),Mast 126L
 signalmast,IF$shsm:basic:one-low(IH:HART:C3:240L),Mast 240L
 signalmast,IF$shsm:basic:one-searchlight(IH432),Mast 6LB
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C1:24L),Mast 24L
@@ -325,7 +323,7 @@ signalmast,IF$shsm:basic:two-low(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom),Mast
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:110L_Top)(IH:HART:C3:110L_Bottom),Mast 110L
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:112L_Top)(IH:HART:C3:112L_Bottom),Mast 112L
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:118L_Top)(IH:HART:C3:118L_Bottom),Mast 118L
-signalmast,IF$shsm:basic:two-low(IH:HART:C3:128RA_Top)(IH:HART:C3:128RA_Bottom),Mast 128RA
+signalmast,IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom),Mast 126RB
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom),Mast 202R
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom),Mast 204RA
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:214LA_Top)(IH:HART:C3:214LA_Bottom),Mast 214LA
@@ -344,13 +342,13 @@ signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LA_
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom),Mast 108LB
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:120RA_Top)(IH:HART:C3:120RA_Bottom),Mast 120RA
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom),Mast 120RB
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:126LA_Top)(IH:HART:C3:126LA_Bottom),Mast 126LA
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:126LB_Top)(IH:HART:C3:126LB_Bottom),Mast 126LB
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:128RB_Top)(IH:HART:C3:128RB_Bottom),Mast 128RB
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:130LA_Top)(IH:HART:C3:130LA_Bottom),Mast 130LA
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:130LB_Top)(IH:HART:C3:130LB_Bottom),Mast 130LB
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:136RA_Top)(IH:HART:C3:136RA_Bottom),Mast 136RA
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:136RB_Top)(IH:HART:C3:136RB_Bottom),Mast 136RB
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:124LA_Top)(IH:HART:C3:124LA_Bottom),Mast 124LA
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:124LB_Top)(IH:HART:C3:124LB_Bottom),Mast 124LB
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:126RA_Top)(IH:HART:C3:126RA_Bottom),Mast 126RA
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_Bottom),Mast 128LA
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom),Mast 128LB
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom),Mast 132RA
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom),Mast 132RB
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom),Mast 204RB
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:214RB_Top)(IH:HART:C3:214RB_Bottom),Mast 214RB
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:218LB_Top)(IH:HART:C3:218LB_Bottom),Mast 218LB
@@ -403,8 +401,6 @@ turnout,IT:HART:C3:125,Switch 125
 turnout,IT:HART:C3:127,Switch 127
 turnout,IT:HART:C3:129,Switch 129
 turnout,IT:HART:C3:131,Switch 131
-turnout,IT:HART:C3:133,Switch 133
-turnout,IT:HART:C3:135,Switch 135
 turnout,IT:HART:C3:201,Switch 201
 turnout,IT:HART:C3:203,Switch 203
 turnout,IT:HART:C3:205,Switch 205
