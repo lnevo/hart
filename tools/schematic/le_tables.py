@@ -132,7 +132,7 @@ def is_level_bean(el: ET.Element) -> bool:
         return sysname.startswith(TURNOUT_SYS)
     if el.tag == "sensor":
         return level_devices.is_block_sensor(sysname)
-    if el.tag in ("LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor"):
+    if el.tag in ("LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor", "ActionTurnout"):
         return bool(level_devices.CLEAR_PREFIX.match(sysname))
     if el.tag == "block":
         return sysname.startswith(BLOCK_SYS)
