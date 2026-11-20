@@ -54,6 +54,6 @@ Layout Editor `continuing` is JMRI `Turnout` state, not 1/2 Closed/Thrown:
 | `4` | THROWN | Thrown = B / through |
 | `1` | UNKNOWN | both legs drawn; LE ignores table state |
 
-114/115/111/113/117 stay at **2** in the generated panel (`build_layout_le.py`). Do not write `1`.
+114/115/111/113/117 (idents TOL29, TOR36, TO111, TO113, TO117) stay at **2** in the generated panel (`build_layout_le.py`). Do not write `1`. `audit_panel_contracts.py` (`audit_generated_settings`, run by `check.sh` and the deploy audit) fails on any other value; it also pins `blockrouting="yes"` and the disabled aspects of AAR 2-head masts.
 
 OS McKees Rocks/OS McKeesport stubs are plain (no BLK↔BLK gaps).

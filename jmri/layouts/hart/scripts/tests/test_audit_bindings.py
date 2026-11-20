@@ -3,9 +3,17 @@ facing and protected blocks, by the plugin's slot index, the rule the LE build p
 recorded idents and slots of le_signal_boundaries.csv (retired)."""
 from __future__ import annotations
 
+import contextlib
+import copy
+import dataclasses
 import importlib.util
+import io
+import os
 import sys
+import tempfile
 import unittest
+import xml.etree.ElementTree as ET
+from unittest import mock
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -36,7 +44,8 @@ class AuditBindings(unittest.TestCase):
 
     def run_audit(self, panel, staging=None):
         audit = self.apc.Audit("t", Path("t"))
-        self.apc.audit_bindings(panel, self.staging if staging is None else staging, audit)
+        self.apc.audit_bindings(panel, self.staging if staging is None else staging, audit,
+                                levels=self.apc.draws_levels(panel))
         return audit
 
     def test_the_repo_panel_binds_every_staging_mast_where_it_belongs(self) -> None:
@@ -46,15 +55,59 @@ class AuditBindings(unittest.TestCase):
 
     def test_a_mast_moved_to_a_slot_facing_another_block_is_an_error(self) -> None:
         panel = self.panel()
-        turnout = next(t for t in panel.iter("layoutturnout") if t.find("signalCMast") is not None)
-        mast = turnout.find("signalCMast")
-        text = mast.text
-        turnout.remove(mast)
-        other = next(L for L in "ABD" if turnout.get(f"connect{L.lower()}name") and turnout.find(f"signal{L}Mast") is None)
-        import xml.etree.ElementTree as ET
-        ET.SubElement(turnout, f"signal{other}Mast").text = text
+        ix = self.apc.slots_index(panel)
+        pick = None
+        for t in panel.iter("layoutturnout"):
+            for src in "ABCD":
+                el = t.find(f"signal{src}Mast")
+                if el is None or not (el.text or "").strip():
+                    continue
+                for dst in "ABCD":
+                    if dst != src and t.get(f"connect{dst.lower()}name") and t.find(f"signal{dst}Mast") is None \
+                            and ix.blocks("turnout", t.get("ident"), dst) != ix.blocks("turnout", t.get("ident"), src):
+                        pick = (t, el, dst)
+                        break
+                if pick:
+                    break
+            if pick:
+                break
+        self.assertIsNotNone(pick, "no turnout mast has a free leg that faces another block: the test cannot move one")
+        turnout, el, dst = pick
+        text = el.text
+        turnout.remove(el)
+        ET.SubElement(turnout, f"signal{dst}Mast").text = text
         errors = self.run_audit(panel).errors
-        self.assertTrue(any(text in e for e in errors), errors)
+        self.assertTrue(any(text in e and "faces" in e for e in errors), errors)
+
+    def test_a_repeated_ident_is_an_error(self) -> None:
+        panel = self.panel()
+        first = next(iter(panel.iter("positionablepoint")))
+        panel.append(ET.fromstring(f'<positionablepoint ident="{first.get("ident")}" x="0" y="0"/>'))
+        errors = self.run_audit(panel).errors
+        self.assertTrue(any("is used 2 times" in e for e in errors), errors)
+
+    def test_main_upper_protects_split_on_semicolons(self) -> None:
+        self.assertEqual(["OS A", "OS B"], self.apc.split_protects("OS A;OS B"))
+        self.assertEqual([], self.apc.split_protects(""))
+
+    def test_a_missing_plugin_is_a_setup_error_main_reports_in_one_line(self) -> None:
+        with mock.patch.dict(os.environ, {"SCHEMATIC_PLUGIN": "/nonexistent"}):
+            with self.assertRaises(self.apc.SetupError):
+                self.apc.slots_index(self.panel())
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                code = self.apc.main(["--strict"])
+        self.assertEqual(1, code)
+        self.assertEqual(1, len(out.getvalue().strip().splitlines()), out.getvalue())
+
+    def test_load_staging_masts_follows_a_patch_of_its_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "m.csv"
+            path.write_text("mast,facing,protects,system_name\nMast X,Track A,OS 1;OS 2,IF$vsm:x\n", encoding="utf-8")
+            with mock.patch.object(self.apc, "STAGING_MASTS", path):
+                rows = self.apc.load_staging_masts()
+        self.assertEqual([("Mast X", ("OS 1", "OS 2"), "IF$vsm:x")], [(m.mast, m.protects, m.system_name) for m in rows])
+
 
     def test_a_staging_mast_missing_from_the_panel_is_an_error(self) -> None:
         panel = self.panel()
@@ -68,6 +121,47 @@ class AuditBindings(unittest.TestCase):
     def test_a_bound_mast_no_file_names_is_an_error(self) -> None:
         errors = self.run_audit(self.panel(), self.staging[1:]).errors
         self.assertTrue(any("no mast file names" in e and self.staging[0].mast in e for e in errors), errors)
+
+
+class AuditSettings(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.apc = load("audit_panel_contracts")
+        cls.root = tables.read(paths.TABLES_XML)
+
+    def errors(self, root):
+        audit = self.apc.Audit("t", Path("t"))
+        self.apc.audit_generated_settings(root, audit)
+        return audit.errors
+
+    def test_the_repo_tables_hold_the_settings(self) -> None:
+        self.assertEqual([], self.errors(self.root))
+
+    def test_continuing_one_on_a_princess_turnout_is_an_error(self) -> None:
+        root = copy.deepcopy(self.root)
+        t = next(t for t in root.iter("layoutturnout") if t.get("ident") == "TOL29")
+        t.set("continuing", "1")
+        self.assertTrue(any("TOL29" in e for e in self.errors(root)))
+
+    def test_blockrouting_off_is_an_error(self) -> None:
+        root = copy.deepcopy(self.root)
+        next(root.iter("layoutblocks")).set("blockrouting", "no")
+        self.assertTrue(any("blockrouting" in e for e in self.errors(root)))
+
+    def test_an_aar_two_head_mast_must_disable_restricting(self) -> None:
+        root = ET.fromstring('<r><signalmast><systemName>IF$shsm:AAR-1946:SL-2-high-abs(x)</systemName>'
+                             '<disabledAspects><disabledAspect>Clear Alt</disabledAspect></disabledAspects>'
+                             '</signalmast><layoutblocks blockrouting="yes"/></r>')
+        self.assertTrue(any("Restricting" in e for e in self.errors(root)))
+
+    def test_virtual_masts_must_agree_with_devices_csv(self) -> None:
+        root = tables.read(paths.TABLES_XML)
+        staging = self.apc.load_staging_masts()
+        flipped = [dataclasses.replace(m, system_name="") if m.system_name.startswith("IF$vsm:") else m
+                   for m in staging]
+        audit = self.apc.Audit("t", Path("t"))
+        self.apc.audit_masts(root, flipped, audit)
+        self.assertTrue(any("differ between staging_masts.csv and devices.csv" in e for e in audit.errors))
 
 
 if __name__ == "__main__":

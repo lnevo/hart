@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import xml.etree.ElementTree as ET
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
@@ -78,18 +79,24 @@ class Audit:
         self.warnings.append(message)
 
 
-def load_staging_masts(path: Path = STAGING_MASTS) -> list[railroad_facts.StagingMast]:
+class SetupError(Exception):
+    """The audit cannot run (a tool it needs is missing): main() reports it as one line and exits 1."""
+
+
+def load_staging_masts(path: Path | None = None) -> list[railroad_facts.StagingMast]:
     """The staging masts the mast rule writes (staging_masts.csv): the audit's expected set."""
-    return railroad_facts.read_staging_masts(path)     # stops on a mast named twice or with no facing block
+    # stops on a mast named twice or with no facing block
+    return railroad_facts.read_staging_masts(STAGING_MASTS if path is None else path)
 
 
 def slots_index(panel: ET.Element):
-    """The plugin's slot index of a Layout Editor panel (the rule the LE build places masts by)."""
+    """The plugin's slot index of a Layout Editor panel (the rule the LE build places masts by). SetupError when the
+    plugin is missing: the deploy audit needs it, so it fails and does not skip."""
     folder = Path(os.environ.get("SCHEMATIC_PLUGIN")
                   or REPO_ROOT / "external/model-railroad-skills/plugins/schematic-maps")
     if not (folder / "schematic" / "slots.py").is_file():
-        sys.exit(f"schematic-maps plugin not found at {folder}: run git submodule update --init "
-                 "external/model-railroad-skills")
+        raise SetupError(f"schematic-maps plugin not found at {folder}: run git submodule update --init "
+                         "external/model-railroad-skills")
     if str(folder) not in sys.path:
         sys.path.insert(0, str(folder))
     return importlib.import_module("schematic.slots").Index(panel)
@@ -156,17 +163,23 @@ def dispatcher_virtuals(expected: set[str], devices_csv: Path = paths.DEVICES) -
 # (hartlib.level_masts; tools/schematic/build_main_upper_masts.py): counted apart from the staging field masts.
 
 
+def split_protects(value: str) -> list[str]:
+    """The protected blocks of a mast file's `protects` column (";" separated, as read_staging_masts reads it)."""
+    return [b for b in (value or "").split(";") if b]
+
+
 def draws_levels(panel: ET.Element | None) -> bool:
     """Whether a panel draws the main and upper levels: a turnout of it holds an OS block a main or upper mast
     protects (main_upper_masts.csv)."""
     if panel is None:
         return False
-    protects = {r["protects"] for r in level_masts.read() if r["protects"]}   # a hidden mast protects none
+    protects = {b for r in level_masts.read() for b in split_protects(r["protects"])}   # a hidden mast protects none
     return any(t.get(a) in protects for t in panel.iter("layoutturnout")
                for a in ("blockname", "blockbname", "blockcname", "blockdname"))
 
 
-def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: bool = False) -> None:
+def audit_masts(root: ET.Element, staging: list[railroad_facts.StagingMast], audit: Audit, *,
+                levels: bool = False, devices_csv: Path = paths.DEVICES) -> None:
     """The signal mast table: the staging field masts exactly (staging_masts.csv, those not virtual), the Dispatcher virtuals, no CATS runtime virtuals;
     and the main and upper masts on virtual heads, every one of main_upper_masts.csv when the panel draws those
     levels (`levels`), else none but its own."""
@@ -202,7 +215,13 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: b
             audit.error(f"main and upper masts on virtual heads differ from {level_masts.PATH.name}: missing="
                         f"{sorted(want - level) or 'none'}, extra={sorted(level - want) or 'none'}")
     audit.facts["level_masts"] = len(level)
-    virtuals = dispatcher_virtuals(expected)
+    expected = {m.mast for m in staging}
+    virtuals = {m.mast for m in staging if m.system_name.startswith("IF$vsm:")}     # staging_masts.csv's own word
+    in_devices = dispatcher_virtuals(expected, devices_csv)
+    if in_devices != virtuals:
+        audit.error(f"virtual staging masts differ between staging_masts.csv and devices.csv: only in "
+                    f"staging_masts.csv={sorted(virtuals - in_devices) or 'none'}, only in "
+                    f"devices.csv={sorted(in_devices - virtuals) or 'none'}")
     field_expected = expected - virtuals
     missing = sorted(field_expected - names)
     extra = sorted(names - field_expected)
@@ -220,17 +239,25 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: b
     audit.facts["cats_virtual"] = tuple(sorted(cats_virtual))
 
 
-def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.StagingMast], audit: Audit) -> None:
+def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.StagingMast], audit: Audit, *,
+                   levels: bool = False) -> None:
     """Every staging mast (staging_masts.csv), and every main and upper mast (main_upper_masts.csv) when the panel
     draws those levels, is bound in exactly one slot, and that slot resolves (the plugin's slot index, the rule the LE
     build places masts by) to the mast's facing block and protected blocks. A mast bound twice, or in a slot facing
-    another block, is an error; so is a bound mast no file names."""
+    another block, is an error; so is a bound mast no file names, or a turnout or anchor ident used twice (the
+    index would keep only one of them). `levels`: the panel draws the main and upper levels."""
     if panel is None:
         audit.facts["bindings"] = ()
         return
     want = {m.mast: (m.facing, sorted(m.protects)) for m in staging}
-    if draws_levels(panel):
-        want |= {r["mast"]: (r["facing"], [r["protects"]] if r["protects"] else []) for r in level_masts.read()}
+    if levels:
+        want |= {r["mast"]: (r["facing"], split_protects(r["protects"])) for r in level_masts.read()}
+    idents = Counter((el.tag, el.get("ident")) for tag in ("layoutturnout", "positionablepoint")
+                     for el in panel.iter(tag))
+    for (tag, ident), n in sorted(idents.items(), key=str):
+        if n > 1:
+            audit.error(f"{tag} ident {ident} is used {n} times in the selected panel: its masts cannot be "
+                        "told apart")
     placed: dict[str, list[dict]] = {}
     for m in slots_index(panel).masts():
         placed.setdefault(m["mast"], []).append(m)
@@ -248,6 +275,37 @@ def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.Stagin
         audit.error(f"masts bound in the selected panel that no mast file names: {unnamed}")
     audit.facts["bindings"] = tuple(sorted((m["kind"], m["ident"], m["slot"], m["mast"])
                                            for ms in placed.values() for m in ms))
+
+
+# What apply_le_sml_facing.py (retired 2026-11-20, a no-op on the generated panel) used to ensure: Layout Editor
+# continuingSense is the JMRI constant (CLOSED=2, THROWN=4, UNKNOWN=1), and "1" draws both legs and ignores the
+# table's Closed/Thrown. Closed is the continuing (through) leg for the Princess turnouts 114/115 and for the
+# crossovers 111/113/117 (MQTT CLOSED = through mains).
+CONTINUING_CLOSED = ("TOL29", "TOR36", "TO111", "TO113", "TO117")      # 115, 114, 111, 113, 117
+AAR_2_HEAD = "IF$shsm:AAR-1946:SL-2-high-abs"
+AAR_2_HEAD_DISABLED = ("Clear Alt", "Advance Approach Medium", "Approach Medium", "Advance Approach", "Medium Clear",
+                       "Medium Approach", "Restricting")
+
+
+def audit_generated_settings(root: ET.Element, audit: Audit) -> None:
+    """The settings the facing script used to write and nothing now guards: continuing="2" on the Princess turnouts,
+    Layout Block advanced routing on (SML Discover needs it), and the disabled aspects of AAR 2-head masts."""
+    for turnout in root.iter("layoutturnout"):
+        if turnout.get("ident") in CONTINUING_CLOSED and turnout.get("continuing") != "2":
+            audit.error(f"layoutturnout {turnout.get('ident')} has continuing={turnout.get('continuing')!r}, not "
+                        "'2' (CLOSED = through; '1' is UNKNOWN and draws both legs)")
+    blocks = next(root.iter("layoutblocks"), None)
+    if blocks is None:
+        audit.error("no layoutblocks element (SML Discover needs advanced routing on)")
+    elif blocks.get("blockrouting") != "yes":
+        audit.error(f'layoutblocks blockrouting is {blocks.get("blockrouting")!r}, not "yes" (SML Discover needs '
+                    "advanced routing)")
+    for mast in root.iter("signalmast"):
+        name = text(mast, "systemName")
+        if name.startswith(AAR_2_HEAD):
+            off = {a.text for a in mast.iter("disabledAspect")}
+            if missing := [a for a in AAR_2_HEAD_DISABLED if a not in off]:
+                audit.error(f"AAR 2-head mast {name} does not disable aspects {missing}")
 
 
 def audit_parked_nx(root: ET.Element, problem) -> None:
@@ -750,8 +808,10 @@ def audit_source(
     except ValueError as exc:           # two markers: the audit's error, not a traceback
         audit.error(str(exc))
         is_generated = True
-    audit_masts(root, {m.mast for m in staging}, audit, levels=is_generated and draws_levels(panel))
-    audit_bindings(panel, staging, audit)
+    levels = is_generated and draws_levels(panel)
+    audit_masts(root, staging, audit, levels=levels)
+    audit_bindings(panel, staging, audit, levels=levels)
+    audit_generated_settings(root, audit)
     if full_config:
         audit_sml(root, audit, required=True, generated=is_generated)
         audit_nx(root, audit, required=True)
@@ -881,10 +941,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: cannot load the staging masts: {exc}")
         return 1
     sources = (("deployment", args.tables),) if args.tables else DEFAULT_SOURCES
-    audits = [
-        audit_source(label, path, staging, generated=args.generated)
-        for label, path in sources
-    ]
+    try:
+        audits = [
+            audit_source(label, path, staging, generated=args.generated)
+            for label, path in sources
+        ]
+    except SetupError as exc:
+        print(f"ERROR: {exc}")
+        return 1
     for audit in audits:
         panel = audit.facts.get("panel", "<not selected>")
         print(
