@@ -89,6 +89,12 @@ if [[ $# -gt 0 ]]; then
     shift
   done
 fi
+# The shipped paths are listed in tools/hosts/live_paths.txt (deploy_status.sh counts commits that touch them).
+# A run that stages or deploys stops if the list names a path that is gone, so the list cannot drift from the
+# checkout; --help, --check-only and --dry-run only read and are not blocked.
+if [[ "$CHECK_ONLY" -eq 0 && "$DRY_RUN" -eq 0 || -n "$STAGE_ONLY" ]]; then
+  python3 "$ROOT/tools/hosts/live_paths.py" check || exit 1
+fi
 if [[ -n "$STAGE_ONLY" ]]; then
   if [[ -e "$STAGE_ONLY" && -n "$(ls -A "$STAGE_ONLY" 2>/dev/null)" ]]; then
     echo "--stage-only: $STAGE_ONLY is not empty" >&2

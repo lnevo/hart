@@ -36,6 +36,41 @@ read_stamp() {
   esac
 }
 
+# live_changes COMMIT: how many commits since COMMIT touch a path the deploy ships (tools/hosts/live_paths.txt),
+# and which paths; and the live changes the host has that this checkout lacks. Ahead alone says nothing:
+# most commits change docs or tools.
+live_changes() {
+  local out line section count=0 behind=0 ahead_paths=() behind_paths=()
+  if ! out="$(python3 "$ROOT/tools/hosts/live_paths.py" changed "$1" HEAD)"; then
+    echo "  Cannot tell which commits touch live paths (see the message above)."
+    rc=1
+    return
+  fi
+  while IFS= read -r line; do
+    case "$line" in
+      "ahead "*) section=ahead; count="${line#ahead }" ;;
+      "behind "*) section=behind; behind="${line#behind }" ;;
+      "  "*) if [[ "$section" == ahead ]]; then ahead_paths+=("${line#  }"); else behind_paths+=("${line#  }"); fi ;;
+    esac
+  done <<<"$out"
+  if [[ "$count" == 0 ]]; then
+    echo "  None of the commits ahead changes a live artifact: nothing to deploy."
+  elif [[ ${#ahead_paths[@]} -eq 0 ]]; then
+    echo "  Of them, $count touch live artifacts, but the changes cancel out: a deploy would ship nothing new."
+  else
+    echo "  Of them, $count touch live artifacts; a deploy would ship:"
+    printf '    %s\n' "${ahead_paths[@]}"
+  fi
+  if [[ "$behind" != 0 ]]; then
+    if [[ ${#behind_paths[@]} -eq 0 ]]; then
+      echo "  WARNING: $behind live-touching commit(s) on the host are not in this checkout (their changes cancel out)."
+    else
+      echo "  WARNING: the host has $behind live-touching commit(s) this checkout lacks; a deploy from here would roll back:"
+      printf '    %s\n' "${behind_paths[@]}"
+    fi
+  fi
+}
+
 compare() {
   local commit="$1" head
   head="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
@@ -46,6 +81,7 @@ compare() {
   elif git -C "$ROOT" cat-file -e "${commit}^{commit}" 2>/dev/null; then
     echo "  This checkout is $(git -C "$ROOT" rev-list --count "$commit..HEAD") commit(s) ahead and" \
       "$(git -C "$ROOT" rev-list --count "HEAD..$commit") behind the deployed one."
+    live_changes "$commit"
   else
     echo "  The deployed commit is not in this checkout (fetch, or it was never pushed)."
   fi
