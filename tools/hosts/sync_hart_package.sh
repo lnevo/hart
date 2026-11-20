@@ -149,7 +149,35 @@ STAMP
 }
 
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
-ssh_pi() { ssh "${SSH_OPTS[@]}" "$PI_HOST" "$@"; }
+# The Pi calls (preflight, unpulled check, drop folder, rsync, apply, restart check) share one ssh
+# connection: the first opens a master on a socket in a folder made for this run, the rest reuse it,
+# and on_exit closes it and removes the folder. ControlPersist bounds a master left by a killed run.
+# Windows keeps one connection per call: its OpenSSH server has not been tried with multiplexed
+# sessions, and a failure there would come after the Pi was deployed. HART_SSH_MUX=0 turns reuse off.
+PI_SSH_OPTS=("${SSH_OPTS[@]}")
+SSH_MUX_DIR=""
+ssh_mux_open() {
+  [[ "${HART_SSH_MUX:-1}" != "0" ]] || return 0
+  # A unix socket path is limited to about 104 bytes, and ssh adds a suffix while it binds.
+  local parent="${TMPDIR:-/tmp}"
+  [[ "${#parent}" -le 60 ]] || parent=/tmp
+  if ! SSH_MUX_DIR="$(mktemp -d "${parent%/}/hart-ssh.XXXXXX")"; then
+    echo "Note: could not make an ssh socket folder; each Pi call opens its own connection." >&2
+    SSH_MUX_DIR=""
+    return 0
+  fi
+  PI_SSH_OPTS+=(-o ControlMaster=auto -o "ControlPath=$SSH_MUX_DIR/pi" -o ControlPersist=120)
+}
+ssh_mux_close() {
+  [[ -n "$SSH_MUX_DIR" ]] || return 0
+  # Only a master that was opened is asked to exit (an unreachable Pi leaves no socket).
+  if [[ -S "$SSH_MUX_DIR/pi" ]]; then
+    ssh -o "ControlPath=$SSH_MUX_DIR/pi" -O exit "$PI_HOST" >/dev/null 2>&1 || true
+  fi
+  rm -rf "$SSH_MUX_DIR"
+  SSH_MUX_DIR=""
+}
+ssh_pi() { ssh "${PI_SSH_OPTS[@]}" "$PI_HOST" "$@"; }
 ssh_win() { ssh "${SSH_OPTS[@]}" -p "$WIN_PORT" "$WIN_HOST" "$@"; }
 # SFTP needs "Subsystem sftp" in the Windows sshd_config (OpenSSH 10.4); fall back to
 # the legacy scp protocol if a reinstall or reset has removed it.
@@ -178,6 +206,29 @@ pi_restart_if_due() {
     *) echo "Could not check whether to start PanelPro on the Pi; run tools/hosts/pi_start_panelpro.sh if it should be up." >&2 ;;
   esac
 }
+
+# One EXIT trap for the whole run. The host steps set these flags instead of their own traps.
+STAGE_DIR=""   # the staged packages (pi/, win/), built once per run
+WIN_TGZ=""     # the Windows tarball
+PI_STEP=0      # 1 while the Pi step runs: PanelPro quit for this deploy comes back on any way out
+PI_DONE=0      # the Pi got this package
+WIN_STEP=0     # 1 while the Windows step runs
+on_exit() {
+  [[ -z "$STAGE_DIR" ]] || rm -rf "$STAGE_DIR"
+  [[ -z "$WIN_TGZ" ]] || rm -f "$WIN_TGZ"
+  if [[ "$PI_STEP" -eq 1 ]]; then
+    PI_STEP=0
+    pi_restart_if_due
+  fi
+  if [[ "$WIN_STEP" -eq 1 && "$PI_DONE" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
+    echo "The Pi has this deploy but Windows does not: run ./tools/hosts/sync_hart_package.sh --win once Windows answers, so the two match again." >&2
+  fi
+  ssh_mux_close
+}
+trap on_exit EXIT
+if [[ -z "$STAGE_ONLY" && "$DO_PI" -eq 1 ]]; then
+  ssh_mux_open
+fi
 
 # Windows is kept matching the Pi, and the Pi step runs first. A host that does not answer would
 # stop the run after the other host, the Mac or the repo's tables.xml had already changed, so ask
@@ -436,10 +487,10 @@ install_ctc_icons_local() {
 }
 
 # Build the package that lands in a temporary folder on the host. The apply scripts install it from there.
+# The Pi and Windows packages differ only in the panels (their icon paths name the host's user files) and
+# the stamp's target, so stage_package builds the rest once and stage_host_finish adds those two per host.
 stage_package() {
   local stage="$1"
-  local user_files="$2"
-  local target="$3"
   rm -rf "$stage"
   mkdir -p \
     "$stage/cats/panels" \
@@ -450,12 +501,6 @@ stage_package() {
     "$stage/cats/scripts" \
     "$stage/jmri/layouts/hart/scripts" \
     "$stage/jmri/scripts"
-
-  local p
-  for p in "${LIVE_PANELS[@]}"; do
-    python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" \
-      --user-files "$user_files" --out "$stage/cats/panels/$p"
-  done
 
   local f
   for f in "$ROOT/jmri/resources/buttons/"lamp_*.png \
@@ -528,8 +573,29 @@ stage_package() {
   # Finder litter (.DS_Store, AppleDouble) from a gitignored corner of the checkout must not reach the package,
   # whichever copy step brought it.
   find "$stage" \( -name '.DS_Store' -o -name '._*' \) -type f -delete
+}
+
+# stage_host_finish STAGE USER_FILES TARGET: the panels rewritten for the host, then its stamp.
+stage_host_finish() {
+  local stage="$1" user_files="$2" target="$3" p
+  for p in "${LIVE_PANELS[@]}"; do
+    python3 "$REWRITE" --panel "$ROOT/cats/panels/$p" \
+      --user-files "$user_files" --out "$stage/cats/panels/$p"
+  done
   # The host apply scripts install this last, so it only changes once a deploy has finished.
   write_deploy_stamp "$stage/cats/deploy_stamp.txt" "$target"
+}
+
+# stage_hosts DIR: DIR/pi and DIR/win for the hosts named, from one staged build.
+stage_hosts() {
+  local dir="$1" first=pi
+  [[ "$DO_PI" -eq 1 ]] || first=win
+  stage_package "$dir/$first"
+  if [[ "$DO_PI" -eq 1 && "$DO_WIN" -eq 1 ]]; then
+    rsync -a "$dir/pi/" "$dir/win/"
+  fi
+  [[ "$DO_PI" -eq 0 ]] || stage_host_finish "$dir/pi" "$PI_USERFILES" pi
+  [[ "$DO_WIN" -eq 0 ]] || stage_host_finish "$dir/win" "$WIN_USERFILES" win
 }
 
 push_rsync() {
@@ -539,13 +605,12 @@ push_rsync() {
   if [[ "$DRY_RUN" -eq 1 ]]; then
     flags+=(-n --stats)
   fi
-  rsync "${flags[@]}" -e "ssh ${SSH_OPTS[*]}" "$stage/" "$dest"
+  rsync "${flags[@]}" -e "ssh ${PI_SSH_OPTS[*]}" "$stage/" "$dest"
 }
 
 # The Windows tarball. The name ends in the X's: BSD mktemp (macOS) only fills trailing ones, so a
-# template ending in .tgz made the literal name and failed on the next run. The Windows step's EXIT
-# trap removes it on every way out.
-WIN_TGZ=""
+# template ending in .tgz made the literal name and failed on the next run. on_exit
+# removes it on every way out.
 push_tar_scp() {
   local stage="$1"
   local tgz
@@ -567,14 +632,9 @@ push_tar_scp() {
 
 if [[ -n "$STAGE_ONLY" ]]; then
   mkdir -p "$STAGE_ONLY"
-  if [[ "$DO_PI" -eq 1 ]]; then
-    stage_package "$STAGE_ONLY/pi" "$PI_USERFILES" pi
-    echo "Pi package -> $STAGE_ONLY/pi"
-  fi
-  if [[ "$DO_WIN" -eq 1 ]]; then
-    stage_package "$STAGE_ONLY/win" "$WIN_USERFILES" win
-    echo "Windows package -> $STAGE_ONLY/win"
-  fi
+  stage_hosts "$STAGE_ONLY"
+  [[ "$DO_PI" -eq 0 ]] || echo "Pi package -> $STAGE_ONLY/pi"
+  [[ "$DO_WIN" -eq 0 ]] || echo "Windows package -> $STAGE_ONLY/win"
   echo "DONE (stage only)"
   exit 0
 fi
@@ -593,41 +653,42 @@ if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   echo "deploy stamp -> ${HOME}/JMRI_UserFiles/cats/deploy_stamp.txt"
 fi
 
+if [[ "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ]]; then
+  # The Pi step starts here: a staging failure also brings back PanelPro quit for this deploy.
+  PI_STEP="$DO_PI"
+  STAGE_DIR="$(mktemp -d)"
+  stage_hosts "$STAGE_DIR"
+fi
+
 if [[ "$DO_PI" -eq 1 ]]; then
   echo "Deploy → Pi ($PI_HOST) via rsync..."
-  STAGE=$(mktemp -d)
-  trap 'rm -rf "$STAGE"; pi_restart_if_due' EXIT
-  stage_package "$STAGE" "$PI_USERFILES" pi
+  PI_STEP=1
   PI_DROP="/tmp/hart-deploy.dry-run"
   if [[ "$DRY_RUN" -eq 0 ]]; then
     PI_DROP="$(ssh_pi "mktemp -d /tmp/hart-deploy.XXXXXX")"
   fi
-  push_rsync "$STAGE" "${PI_HOST}:${PI_DROP}/"
-  rm -rf "$STAGE"
-  trap pi_restart_if_due EXIT
+  push_rsync "$STAGE_DIR/pi" "${PI_HOST}:${PI_DROP}/"
   if [[ "$DRY_RUN" -eq 0 ]]; then
     # JMRI_USERFILES: the apply installs where the panel paths and the stamp say (HART_PI_USERFILES).
     ssh_pi "HART=${PI_DROP} JMRI_USERFILES='${PI_USERFILES}' HART_OVERWRITE_OPS=${HART_OVERWRITE_OPS} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
   fi
   echo "Pi deploy done."
-  trap - EXIT
+  PI_DONE=1
+  PI_STEP=0
   pi_restart_if_due
 fi
 
 if [[ "$DO_WIN" -eq 1 ]]; then
   echo "Deploy → Windows ($WIN_HOST:$WIN_PORT) via tar..."
-  STAGE=$(mktemp -d)
-  trap 'rm -rf "$STAGE"; [[ -z "$WIN_TGZ" ]] || rm -f "$WIN_TGZ"' EXIT
-  stage_package "$STAGE" "$WIN_USERFILES" win
-  push_tar_scp "$STAGE"
-  rm -rf "$STAGE"
-  trap - EXIT
+  WIN_STEP=1
+  push_tar_scp "$STAGE_DIR/win"
   if [[ "$DRY_RUN" -eq 0 ]]; then
     rc=0
     ssh_win "powershell -NoProfile -ExecutionPolicy Bypass -File \"${WIN_DROP}\\cats\\scripts\\windows\\apply_hart_package_local.ps1\" -Hart \"${WIN_DROP}\" -OverwriteOps ${HART_OVERWRITE_OPS} -UserFiles \"${WIN_USERFILES}\"" || rc=$?
     ssh_win "powershell -NoProfile -Command \"Remove-Item -LiteralPath '${WIN_DROP}' -Recurse -Force\""
     [[ "$rc" -eq 0 ]] || exit "$rc"
   fi
+  WIN_STEP=0
   echo "Windows deploy done."
 fi
 

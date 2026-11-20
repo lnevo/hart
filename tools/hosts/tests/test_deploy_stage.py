@@ -168,6 +168,37 @@ class StageOnly(unittest.TestCase):
         # Only the stamp may differ (its date is taken per run).
         self.assertLessEqual(set(differing(cmp)), {"cats/deploy_stamp.txt"})
 
+    def test_pi_and_windows_differ_only_in_panels_and_stamp(self) -> None:
+        """What makes building the package once safe: the host's user files reach only the panels."""
+        pi, win = self.out / "pi", self.out / "win"
+        self.assertEqual(tree(pi), tree(win))
+        differ = [n for n in tree(pi) if (pi / n).is_file() and not filecmp.cmp(pi / n, win / n, shallow=False)]
+        self.assertLessEqual(set(differ), {"cats/deploy_stamp.txt", "cats/panels/HART_CTC.xml",
+                                           "cats/panels/HART_ABS.xml"})
+        self.assertIn("cats/deploy_stamp.txt", differ)
+
+
+class StagedOnce(unittest.TestCase):
+    """--pi --win builds the shared package once (one mimic page build), then finishes each host."""
+
+    def test_one_build_for_both_hosts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            env = stage_env(tmp)
+            real = shutil.which("python3")
+            tool = tmp / "bin/python3"
+            tool.write_text(f'#!/bin/bash\necho "$*" >>"{tmp}/python.log"\nexec "{real}" "$@"\n', encoding="utf-8")
+            tool.chmod(0o755)
+            done = run(SYNC, tmp / "stage", env, "--pi", "--win")
+            self.assertEqual(done.returncode, 0, done.stderr[-2000:])
+            calls = (tmp / "python.log").read_text(encoding="utf-8").splitlines()
+            self.assertEqual(1, sum("build_mimic_web.py" in c for c in calls), calls)
+            self.assertEqual(1, sum("publish_live.py --build-page" in c for c in calls), calls)
+            # the panels are rewritten per host: two panels each
+            self.assertEqual(4, sum("rewrite_button_icon_paths.py" in c for c in calls), calls)
+            for host in ("pi", "win"):
+                self.assertEqual(read_stamp(tmp / "stage" / host / "cats/deploy_stamp.txt")["target"], host)
+
 
 class StampNamesWhatWasShipped(unittest.TestCase):
     """The stamp, staged from a private clone of HEAD: other checks write into the live tree while this runs, so

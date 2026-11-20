@@ -76,11 +76,17 @@ class ScriptsAgreeTest(unittest.TestCase):
 
     def test_restart_check_runs_on_exit_through_the_pi_apply_and_after_it(self) -> None:
         src = (HOSTS / "sync_hart_package.sh").read_text(encoding="utf-8")
-        trap_at = src.index("trap 'rm -rf \"$STAGE\"; pi_restart_if_due' EXIT")
+        # one EXIT trap; it restarts while PI_STEP is set, which covers the staging and the apply
+        on_exit = src[src.index("on_exit() {"):src.index("trap on_exit EXIT")]
+        self.assertIn('if [[ "$PI_STEP" -eq 1 ]]; then', on_exit)
+        self.assertIn("pi_restart_if_due", on_exit)
+        step_at = src.index('PI_STEP="$DO_PI"')
+        stage_at = src.index('stage_hosts "$STAGE_DIR"')
         apply_at = src.index("bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh")
         done_at = src.index('echo "Pi deploy done."')
-        self.assertLess(trap_at, apply_at)
-        self.assertIn("pi_restart_if_due", src[done_at: done_at + 80])
+        self.assertLess(step_at, stage_at)
+        self.assertLess(stage_at, apply_at)
+        self.assertIn("PI_STEP=0\n  pi_restart_if_due", src[done_at: done_at + 80])
 
     def test_only_a_for_deploy_quit_leaves_the_marker(self) -> None:
         src = (HOSTS / "pi_quit_panelpro.sh").read_text(encoding="utf-8")

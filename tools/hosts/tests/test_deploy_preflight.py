@@ -37,6 +37,19 @@ while read -r host; do
   [[ -n "$host" && " $* " == *"$host "* ]] && { echo "ssh: connect to host $host: refused" >&2; exit 255; }
 done <"@TMP@/down.txt"
 cmd="${@: -1}"
+# mksock: the preflight no-op opens a master, as real ssh does with ControlMaster=auto.
+if [[ -f "@TMP@/mksock" && "$cmd" == true ]]; then
+  for a in "$@"; do
+    [[ "$a" == ControlPath=* ]] && python3 -c 'import socket, sys; socket.socket(socket.AF_UNIX).bind(sys.argv[1])' "${a#ControlPath=}"
+  done
+fi
+# pi_ok: the Pi's file steps answer, so a run gets as far as the Windows step.
+if [[ -f "@TMP@/pi_ok" ]]; then
+  case "$cmd" in
+    "mktemp -d /tmp/hart-deploy.XXXXXX") echo /tmp/hart-deploy.fake; exit 0 ;;
+    *apply_hart_package_local.sh) exit 0 ;;
+  esac
+fi
 case "$cmd" in
   true|"exit 0") exit 0 ;;                       # the preflight no-op
   "bash -s -- '"*) cat >/dev/null; exit 0 ;;     # unpulled_changes.sh: nothing unpulled
@@ -44,9 +57,17 @@ case "$cmd" in
 esac
 exit 99
 """
+# rsync to a host only logs; a local copy (the staging) runs the real rsync.
+FAKE_RSYNC = r"""#!/bin/bash
+if [[ "${@: -1}" == *.example.invalid:* ]]; then
+  echo "rsync $*" >>"@TMP@/network.log"
+  exit 0
+fi
+exec "@RSYNC@" "$@"
+"""
 
 
-class PreflightTest(unittest.TestCase):
+class DeployHarness(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, True)
@@ -77,6 +98,8 @@ class PreflightTest(unittest.TestCase):
         return subprocess.run(["bash", str(SYNC), *flags], cwd=ROOT, env=self.env,
                               capture_output=True, text=True, timeout=600)
 
+
+class PreflightTest(DeployHarness):
     def test_windows_down_stops_pi_and_win_before_any_pi_step(self) -> None:
         self.down(WIN)
         done = self.deploy("--pi", "--win")
@@ -206,6 +229,79 @@ class PreflightTest(unittest.TestCase):
             self.assertIn(WIN_DOWN, done.stderr)
             self.assertNotIn("temporary worktree", done.stdout)
         self.assertFalse(any("mktemp" in c or "powershell" in c for c in self.calls()), self.calls())
+
+
+class SshReuseTest(DeployHarness):
+    """The Pi calls share one ssh connection through a socket folder made for the run; Windows keeps one
+    connection per call. The folder is gone after every run, and a master that was opened is told to exit."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        rsync = shutil.which("rsync")
+        assert rsync, "rsync is needed for the staging"
+        tool = self.tmp / "bin/rsync"
+        tool.write_text(FAKE_RSYNC.replace("@TMP@", str(self.tmp)).replace("@RSYNC@", rsync), encoding="utf-8")
+        tool.chmod(0o755)
+        (self.tmp / "pi_ok").touch()
+
+    def control_paths(self) -> set[str]:
+        return {a.split("=", 1)[1] for c in self.calls() for a in c.split() if a.startswith("ControlPath=")}
+
+    def test_pi_calls_share_one_socket_and_windows_calls_do_not(self) -> None:
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(99, done.returncode, done.stderr[-2000:])
+        self.assertIn("Pi deploy done.", done.stdout)
+        pi = [c for c in self.calls() if PI in c]
+        win = [c for c in self.calls() if WIN in c]
+        # the no-op, the unpulled check, the drop folder, the rsync, the apply and the restart check
+        self.assertEqual(6, len(pi), pi)
+        paths = self.control_paths()
+        self.assertEqual(1, len(paths), self.calls())
+        path = Path(paths.pop())
+        self.assertEqual("pi", path.name)
+        self.assertTrue(all(f"ControlPath={path}" in c for c in pi), pi)
+        self.assertTrue(any(c.startswith("rsync ") and f"ControlPath={path}" in c for c in pi), pi)
+        self.assertTrue(win and not any("ControlPath" in c for c in win), win)
+        self.assertFalse(path.parent.exists(), "the socket folder was left behind")
+        # no master was opened, so none is told to exit
+        self.assertFalse(any("-O exit" in c for c in self.calls()), self.calls())
+
+    def test_an_opened_master_is_closed_and_its_folder_removed(self) -> None:
+        (self.tmp / "mksock").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertIn("Pi deploy done.", done.stdout)
+        exits = [c for c in self.calls() if "-O exit" in c]
+        self.assertEqual(1, len(exits), self.calls())
+        self.assertTrue(exits[0].endswith(f"-O exit {PI}"), exits)
+        self.assertFalse(Path(self.control_paths().pop()).parent.exists())
+
+    def test_a_stopped_run_removes_the_folder_too(self) -> None:
+        self.down(WIN)
+        done = self.deploy("--pi", "--win")
+        self.assertIn(WIN_DOWN, done.stderr)
+        paths = self.control_paths()
+        self.assertEqual(1, len(paths), self.calls())
+        self.assertFalse(Path(paths.pop()).parent.exists())
+
+    def test_hart_ssh_mux_0_turns_reuse_off(self) -> None:
+        self.env["HART_SSH_MUX"] = "0"
+        done = self.deploy("--pi", "--win")
+        self.assertIn("Pi deploy done.", done.stdout)
+        self.assertEqual(set(), self.control_paths())
+
+    def test_windows_failing_after_the_pi_was_deployed_says_so(self) -> None:
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(99, done.returncode, done.stderr[-2000:])
+        self.assertIn("Pi deploy done.", done.stdout)
+        self.assertNotIn("Windows deploy done.", done.stdout)
+        self.assertIn("The Pi has this deploy but Windows does not", done.stderr)
+        self.assertEqual([], sorted(p.name for p in self.scratch.iterdir()), "staging or tarball left behind")
+
+    def test_windows_alone_failing_does_not_mention_the_pi(self) -> None:
+        done = self.deploy("--win")
+        self.assertEqual(99, done.returncode, done.stderr[-2000:])
+        self.assertNotIn("The Pi has this deploy", done.stderr)
+        self.assertEqual(set(), self.control_paths())
 
 
 if __name__ == "__main__":
