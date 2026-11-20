@@ -33,8 +33,3 @@ Every level of the "HART Railroad" panel is built from its device map (owner, 20
 - A changed mast set also needs `sync_staging_signals.py`, stock discovery in a sandbox and the owner's approval (ADR-024).
 - A wired staging head goes in as a head row whose `jmri_name` is the wired head, as main and upper swap a device in (ADR-028).
 
-## Open
-
-- `make panels` does not run `build_staging_masts.py --check` or `sync_staging_signals.py --check`; only `tools/check.sh` does. PR #705 adds the steps and is not merged.
-- Another session is still working on the staging signal rule. ADR-024 holds what is merged on `main`; later changes are not recorded here.
-- `staging_device_map.py` and the pipeline page still call all four staging files hand-kept, although `build_staging_masts.py` now writes the masts.

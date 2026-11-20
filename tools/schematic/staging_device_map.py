@@ -3,8 +3,10 @@
 
     python3 tools/schematic/staging_device_map.py --check   # exit 1 unless the four files hold their rules
 
-Hand-kept since the device-map switch-over (owner, 2026-11-17), when the frozen hand-drawn files (staging_le/) and the
-conversion from them retired. Edit these files, not a panel. `make panels` (its staging-map step) and tools/check.sh
+The source since the device-map switch-over (owner, 2026-11-17), when the frozen hand-drawn files (staging_le/) and the
+conversion from them retired. control_points_staging.csv and the non-signal rows of device_map_staging.csv are kept by
+hand; build_staging_masts.py writes staging_masts.csv, staging_signals.csv and the mast and head rows. Edit these files,
+not a panel. `make panels` (its staging-map step) and tools/check.sh
 run --check: every file in its shape (load, load_signal_masts, mast_facts, check_rows), every device the same bean in
 tables.xml (check_tables: system and user names, a turnout's feedback sensors, a block's detector, a mast's heads),
 and the control points the schematic's (staging.plan_overrides.json). It prints SKIPPED and exits 0 when the plugin
