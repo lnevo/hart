@@ -20,7 +20,7 @@ Every code PR below had `/code-review medium` and a fix commit for what the revi
 | #709 | Deploy preflight for every named host, also for `redeploy_commit.sh` | Merged |
 | #710, #711 | Tests for `sts_car_sync.py`, `hide_cats_desk_windows.py`, `build_staging_masts.py`, `sync_staging_signals.py` | Merged |
 | #712 | Width and height on 26 pages' images, `defer` on scripts | Merged |
-| #713 | ADRs 025 to 028 (operating flag, plan 5.3c as master, staging from its device map, virtual main/upper devices) | Merged; the owner's reading of the wording is still to come |
+| #713 | ADRs 025 to 028 (operating flag, plan 5.3c as master, staging from its device map, virtual main/upper devices) | Merged; wording read by the owner (closed 2026-11-20) |
 | #714 | Three legacy scripts moved to `jmri/layouts/hart/parked/` | Merged, deployed |
 | #716 | `check_after_edit.py` runs only the test files that name the edited script | Merged, code-reviewed; website deployed at `3018c9c2` |
 | #719 | `panel_status.py`: a re-run detaches the earlier run's listeners; only the changed turnout is updated. The editor-walk finding was mostly wrong and was skipped | Merged, deployed |
@@ -29,16 +29,16 @@ Every code PR below had `/code-review medium` and a fix commit for what the revi
 | #723 | Site speed: WebP companions, 1200 px hero, exam CSS and JS in files | Merged |
 | #724 | CI cache handed from the PR run to `main` through an artifact; `publish_draft --check` stamp; `map_revision` moved into `hartlib`; `unit-jmri` split for local runs | Merged |
 | #725 | Check that `docs/INDEX.md` is current | Merged |
-| #727 | Five `AGENTS.md` rows shortened, detail into skills | Merged; the owner's reading of the wording is still to come |
+| #727 | Five `AGENTS.md` rows shortened, detail into skills | Merged; wording read by the owner (closed 2026-11-20) |
 
 Deployed to the Pi and Windows together at `b52742ce` on the night of 2026-11-19. It carries #697, #701, #714, #716, #719 and #721. Afterwards `track/bridge/cmd` held nothing retained and `track/bridge/sml_mode` held `disabled` (the real mode), so the one-off clear step from #697 was not needed.
 
-Open: the SML boot race PR (being written; it does not merge before a live test with both hosts) and AnyRail 5.3c Phase 2 (agent running, see `anyrail-5-3c-handoff.md`).
+Closed since (owner, 2026-11-20): the SML boot race merged as #731 and is on the Pi and Windows; AnyRail 5.3c Phase 2 merged as #732, and the clean-up after it as #739.
 
 ## Next steps, in order
 
-1. **SML boot race.** Owner decision 2026-11-19: the first timestamp wins, a tie goes by host name. Both hosts must get the new payload in the same deploy since each compares the payload text. Tests in the fake first, then a live test with the owner and both hosts; no merge before that. Built in PR #731 (`agent/claude/sml-boot-race`): claims ride on a coordinator-only topic `track/bridge/sml_claim`, so `sml_mode` and the LCOS bridge are unchanged; the PR has the design and the live-test list.
-2. **AnyRail 5.3c Phase 2** finishes first, because the next two items edit files it touches.
+1. **Done: SML boot race** (#731, merged and deployed 2026-11-20). Owner decision 2026-11-19: the first timestamp wins, a tie goes by host name. Both hosts must get the new payload in the same deploy since each compares the payload text. Tests in the fake first, then a live test with the owner and both hosts; no merge before that. Built in PR #731 (`agent/claude/sml-boot-race`): claims ride on a coordinator-only topic `track/bridge/sml_claim`, so `sml_mode` and the LCOS bridge are unchanged; the PR has the design and the live-test list.
+2. **Done: AnyRail 5.3c Phase 2** (#732) and its clean-up (#739).
 3. **After Phase 2:** move dated history from `wiki/STATUS.md` to `STATUS_LOG.md`; split `railroad.py` and `build_cats_panel.py` (tests first).
 4. **Smaller items** in the "Not started" tables below.
 
