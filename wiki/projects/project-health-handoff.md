@@ -249,7 +249,9 @@ None of this runs while the operating flag is set.
 
 ## Progress and owner decisions (2026-11-20)
 
-**Merged:** W3 #765, W5b #766, W4a #767, W4b #768, W1b #770, W4c #771, W4s wiring split #772. Auto-merge is on.
+**Merged:** W3 #765, W5b #766, W4a #767, W4b #768, W1b #770, W4c #771, W2 #781; W4s splits #772 (wiring), #776 (waybills), #777 (card template), #779 (station maps); the CK1 deletion lnevo/sts-docker-helpers#12 with #778; the decisions #780; R9b #782. Auto-merge is on.
+
+**Order from here (agreed with the level-unification session):** its step 2, the one mast process, merges first, after the owner's panel approval. Then R9b-2 (the readers move to `devices.csv`), the W6b `mast_rule.py` items (band `level`, read from `interlockings.csv`; crossover halves from the plan; the loop flag), R9c, R9d and R9e. The W6b plugin rules (101/103 three-way, `level_leg` faults) do not touch masts and run now.
 
 **W5, file moves (owner):** `docs/ops/opspro-build/` to `archive/`; `DISPATCHER_LAYOUT_HOOPS.md` beside the parked data; `DIGICON_SCHEMATIC.md` to `docs/ctc/`; the speed-matching profiles stay where they are. Done in #766.
 
@@ -280,7 +282,7 @@ W6b builds wait for R9b and the level-unification mast step, since both touch `m
 - a PanelPro rename on a hand-kept row updates the master;
 - a strict cut-over, with the deploy rewrite folded into the generator.
 
-R9b is in progress. Its first PR switches the master and its writers; the readers follow in R9b-2.
+R9b merged as #782: the master and its writers. The readers follow in R9b-2.
 
 ## Carried from the archived hand-offs (2026-11-20)
 
@@ -290,7 +292,18 @@ These were still open when the older hand-offs went to `archive/wiki/projects/` 
 - **`signal_number` at MP 6.6 and 6.7:** it gives 67/66 at MP 6.6 and 67/68 at MP 6.7, so two pairs a tenth apart share a westward name, and MP 9.8 westward returns 99 although the message says names stop at 98. Pinned by the `test_open_question_...` tests in `tools/schematic/tests/test_build_staging_masts.py`. The staging signal rule decides it.
 - **`sts_car_sync.py` line 239:** stock `ThreadingUtil.runOnGUI` logs and drops an exception raised off the GUI thread, so a failed batch answers `ok: true, saved: true`. Pinned as a known fault in `jmri/layouts/hart/scripts/tests/test_sts_car_sync_worker.py`; not fixed.
 - **Redeploy runs the preflight twice** when the commit already has it (`tools/hosts/sync_hart_package.sh`, `redeploy_commit.sh`).
-- **Main West turnback:** the owner's call, kept in `wiki/STATUS.md` under Owed.
+
+## Loose ends from the 2026-11-20 run
+
+Found while running this hand-off. Each is small. None blocks the R9 or W6b work.
+
+- **Wiring workbooks still show old names:** after #782, `refresh_wiring_docs.py` no longer translates pre-ADR-005 names, and its golden test already holds the new output. The committed workbooks under `docs/wiring/` (`LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`) were not regenerated. Fix: rerun the script, check the changed names, and commit the workbooks.
+- **Head comments can't be refreshed:** `refresh_bean_comments.py` writes head comments through `hartlib.devices.set_pnm_comments`, which changes hand-kept rows only. Every head row belongs to `build_staging_masts.py` or `panel_items.json`, so a real comment change is refused, naming that script. Fix: let the owning builders write the comment, or let the comment column through for builder rows. Decide in R9b-2.
+- **`test_redeploy_commit` is flaky:** it fails while another session's temporary worktrees (`hart-redeploy`, scratchpad sandboxes) are in the shared worktree list, and passes alone. Fix: make the test count only the worktrees it creates.
+- **Two switch-number tables:** `ops/hart-ops/publications/rebuild_station_map_full.py` keeps its own `SWNUM` beside `local_station_maps/kit.py`'s, so the full map and the local maps can label switches differently. Fix: import it from `kit`.
+- **sts-docker docs name deleted scripts:** `external/sts-docker/AGENTS.md` (about line 53) still describes the CK1 weigh scripts in `sts-docker-helpers/sts/`, deleted in lnevo/sts-docker-helpers#12. This is an sts-docker docs PR on the `active` line. The unused `track_scale/` folder at the sts-helpers root can go in the same pass, once nothing outside that repo is found to read it.
+- **Traps left by the splits (#772, #776, #777, #779):** constants re-exported on an entry module do not change the moved functions when a test patches them on the entry. Each entry has a comment naming the module to patch. The wiring entry also imports its sibling modules by bare name.
+- **`gen_ctc_track_plan.py` leftovers (parked):** bare `assert`s in `main()` and unclosed PIL images. Fix these if USS is unparked and the script is split.
 
 ## Done when
 
