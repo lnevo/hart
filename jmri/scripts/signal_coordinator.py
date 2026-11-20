@@ -17,6 +17,14 @@
 #   is seen.
 #   missing / disabled / query / disabling -> take Digicon (enable SML; announce enabled).
 #   enabled / enabling / aborting / aborted -> stay Disabled (originator owns resume).
+#   Later, the bridge's release (disabling then disabled) while this instance is
+#   idle runs the take again, so a stale retained enabled cannot leave every host
+#   Disabled. A bare disabled (operator Disable elsewhere) is left alone.
+# Abort runs on a worker thread (it waits on the layout thread; the MQTT callback
+#   thread must not). A Disable/Enable worker that an abort overtakes publishes no
+#   Unheld, no disabled and no enabled.
+# Re-running the script detaches the earlier controller (listeners, MQTT
+#   subscriptions, quit task, window hook, button) before the new one starts.
 # Operator Enable when sml_mode is already enabled: force-override popup;
 #   Yes publishes enabling (same abort for other agents) then enabled.
 # Query or disabling ACK while this instance owns or is taking Digicon
@@ -33,6 +41,7 @@
 import java
 import jmri
 import re
+import threading
 from java.beans import PropertyChangeListener
 from java.lang import Runnable, Thread
 from javax.swing import JButton, JOptionPane, SwingUtilities
@@ -217,7 +226,17 @@ class DigiconMqttSml(
         self._enabling_wait_scheduled = False
         self._shutting_down = False
         self._shutdown_released = False
+        # Quit work runs once: the window-close worker and the ShutDownTask may overlap.
+        self._shutdown_lock = threading.Lock()
         self._last_mqtt_appearance = {}
+        # Bumped by every abort; a Disable/Enable worker that sees it change stands down.
+        self._abort_gen = 0
+        # Last sml_mode heard on the broker: tells a bridge release (disabling then
+        # disabled) from an operator Disable (disabled alone).
+        self._last_heard_mode = None
+        self._shutdown_task = None
+        self._close_frame = None
+        self._close_listener = None
 
     def start(self):
         DigiconMqttSml.INSTANCE = self
@@ -279,7 +298,10 @@ class DigiconMqttSml(
         """Register before windows/MQTT close. Work runs in call(), not run()."""
         try:
             task = DigiconSmlQuitTask("Digicon SML quit")
+            # The task keeps its own controller: a re-run rebinds the global `controller`.
+            task._controller = self
             jmri.InstanceManager.getDefault(jmri.ShutDownManager).register(task)
+            self._shutdown_task = task
             print("mqtt_signalhead: registered ShutDownTask")
         except Exception as exc:
             print("mqtt_signalhead: ShutDownTask register failed: " + _ascii(exc))
@@ -298,12 +320,20 @@ class DigiconMqttSml(
                 return
             hook = self
 
-            class _Close(WindowAdapter):
-                def windowClosing(_self, event):
-                    print("mqtt_signalhead: main window closing")
+            class _Quit(Runnable):
+                def run(_self):
                     hook._on_jmri_shutdown()
 
-            frame.addWindowListener(_Close())
+            class _Close(WindowAdapter):
+                def windowClosing(_self, event):
+                    # The release Holds for HOLD_WAIT_MS; never sleep on the Swing thread.
+                    print("mqtt_signalhead: main window closing")
+                    Thread(_Quit(), "digicon-sml-quit").start()
+
+            listener = _Close()
+            frame.addWindowListener(listener)
+            self._close_frame = frame
+            self._close_listener = listener
             print(
                 "mqtt_signalhead: window close hook on %s"
                 % _ascii(frame.getTitle())
@@ -323,7 +353,15 @@ class DigiconMqttSml(
         return False
 
     def _on_jmri_shutdown(self):
-        """Quit: Hold/wait/Unheld then sml_mode disabled. Idempotent."""
+        """Quit: Hold/wait/Unheld then sml_mode disabled. Idempotent.
+
+        The window-close worker and the ShutDownTask can both call this; the lock makes
+        the later caller wait for the release instead of running it a second time.
+        """
+        with self._shutdown_lock:
+            self._on_jmri_shutdown_locked()
+
+    def _on_jmri_shutdown_locked(self):
         if self._shutdown_released:
             return
         self._shutting_down = True
@@ -440,15 +478,33 @@ class DigiconMqttSml(
         SwingUtilities.invokeLater(_Warn())
         return True
 
+    def _is_busy(self):
+        """A Disable/Enable worker or an abort is running."""
+        return self._busy or self._abort_in_progress
+
     def _abort_sml_immediate(self):
-        """Uncheck Digicon SML now: aborting -> dests off (no Hold/Red/Unheld) -> aborted."""
+        """Uncheck Digicon SML now: aborting -> dests off (no Hold/Red/Unheld) -> aborted.
+
+        Called on JMRI's one MQTT callback thread. The bulk uncheck waits on the layout
+        thread, so it runs on a worker; SET stops and the ACK is refused here at once.
+        Leaves `_busy` alone: a Disable/Enable worker still running owns that flag.
+        """
         if self._abort_in_progress:
             return
         self._abort_in_progress = True
+        self._abort_gen += 1
         self._boot_pending = False
-        self._busy = True
         self._global_enabled = False
         self._sync_sml_mode_sensor()
+        controller = self
+
+        class _Abort(Runnable):
+            def run(_self):
+                controller._run_abort()
+
+        Thread(_Abort(), "digicon-sml-abort").start()
+
+    def _run_abort(self):
         self._suppress_sml = True
         try:
             print("mqtt_signalhead: sml_mode aborting (immediate uncheck, no RELEASE)")
@@ -460,7 +516,6 @@ class DigiconMqttSml(
         finally:
             self._suppress_sml = False
             self._abort_in_progress = False
-            self._busy = False
             self._set_button_label()
 
     def _announce_enabling(self, reason):
@@ -725,21 +780,18 @@ class DigiconMqttSml(
                 space = Apps.buttonSpace()
                 if space is None:
                     raise RuntimeError("Apps.buttonSpace() is None")
-                # Already on the strip (re-run / retry).
-                for i in range(space.getComponentCount()):
+                # Already on the strip (retry). A button left by an earlier run drives
+                # that run's controller, so take it off rather than reuse it.
+                for i in range(space.getComponentCount() - 1, -1, -1):
                     c = space.getComponent(i)
                     try:
                         if c is self._button:
                             space.revalidate()
                             space.repaint()
                             return True
-                        text = c.getText()
-                        if text in ("SML Enabled", "SML Disabled"):
-                            if self._button is None:
-                                self._button = c
-                            space.revalidate()
-                            space.repaint()
-                            return True
+                        if c.getText() in ("SML Enabled", "SML Disabled"):
+                            space.remove(c)
+                            print("mqtt_signalhead: removed SML button left by an earlier run")
                     except Exception:
                         pass
                 if self._button is None:
@@ -784,6 +836,18 @@ class DigiconMqttSml(
                     SwingUtilities.invokeLater(_Attach())
 
             Thread(_Retry(), "mqtt-sml-button").start()
+
+    def _set_button_busy(self):
+        """Grey the button while a worker runs (on the Swing thread)."""
+        button = self._button
+        if button is None:
+            return
+
+        class _Grey(Runnable):
+            def run(_self):
+                button.setEnabled(False)
+
+        SwingUtilities.invokeLater(_Grey())
 
     def _set_button_label(self):
         if self._button is None:
@@ -859,7 +923,7 @@ class DigiconMqttSml(
         Thread(_Boot(), "digicon-sml-boot").start()
 
     def _on_toggle(self):
-        if self._busy:
+        if self._is_busy():
             return
         if self._global_enabled:
             self._enter_disabled(release=True)
@@ -937,12 +1001,12 @@ class DigiconMqttSml(
         return "ok"
 
     def _enter_enabled(self, force, from_boot):
-        if self._busy or self._shutting_down:
+        if self._is_busy() or self._shutting_down:
             return
         self._busy = True
-        if self._button is not None:
-            self._button.setEnabled(False)
+        self._set_button_busy()
         controller = self
+        abort_gen = self._abort_gen
 
         class _Run(Runnable):
             def run(_self):
@@ -960,7 +1024,7 @@ class DigiconMqttSml(
                     if controller._shutting_down:
                         print("mqtt_signalhead: enable skipped (shutting down)")
                         return
-                    controller._hand_off_enabled()
+                    controller._hand_off_enabled(abort_gen)
                 finally:
                     controller._busy = False
                     controller._set_button_label()
@@ -969,17 +1033,17 @@ class DigiconMqttSml(
         Thread(_Run(), "digicon-sml-enable").start()
 
     def _enter_disabled(self, release):
-        if self._busy:
+        if self._is_busy():
             return
         self._busy = True
-        if self._button is not None:
-            self._button.setEnabled(False)
+        self._set_button_busy()
         controller = self
+        abort_gen = self._abort_gen
 
         class _Run(Runnable):
             def run(_self):
                 try:
-                    controller._hand_off_disabled(release=release)
+                    controller._hand_off_disabled(release=release, abort_gen=abort_gen)
                 finally:
                     controller._busy = False
                     controller._set_button_label()
@@ -987,8 +1051,14 @@ class DigiconMqttSml(
 
         Thread(_Run(), "digicon-sml-disable").start()
 
-    def _apply_global_disabled(self, release, publish_mode):
-        """Disable Digicon SML in JMRI. RELEASE only when release=True."""
+    def _apply_global_disabled(self, release, publish_mode, abort_gen=None):
+        """Disable Digicon SML in JMRI. RELEASE only when release=True.
+
+        If an abort ran since `abort_gen` was read, another agent owns Digicon: no
+        Unheld of its heads and no `disabled` over its enabling.
+        """
+        if abort_gen is None:
+            abort_gen = self._abort_gen
         print(
             "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML off / Unheld"
             % HOLD_WAIT_MS
@@ -1002,7 +1072,13 @@ class DigiconMqttSml(
         print("mqtt_signalhead: Hold wait done -- disabling SML pairs")
         self._set_all_digicon_sml_destinations(False)
         self._snapshot_mast_sml_state()
-        if release:
+        aborted = self._abort_gen != abort_gen
+        if aborted:
+            print(
+                "mqtt_signalhead: aborted during Disable -- no Unheld, no disabled "
+                "(another agent owns Digicon)"
+            )
+        if release and not aborted:
             print(
                 "mqtt_signalhead: publishing Unheld for %d MQTT head(s)"
                 % len(self._heads)
@@ -1015,17 +1091,24 @@ class DigiconMqttSml(
             except Exception:
                 pass
         self._global_enabled = False
-        if publish_mode:
+        if publish_mode and not aborted:
             self._publish_mode("disabled")
         self._sync_sml_mode_sensor()
 
-    def _hand_off_disabled(self, release):
+    def _hand_off_disabled(self, release, abort_gen=None):
         print("mqtt_signalhead: global -> SML Disabled (release=%s)" % release)
-        self._apply_global_disabled(release=release, publish_mode=True)
+        self._apply_global_disabled(
+            release=release, publish_mode=True, abort_gen=abort_gen
+        )
 
-    def _hand_off_enabled(self):
+    def _hand_off_enabled(self, abort_gen=None):
         if self._shutting_down:
             print("mqtt_signalhead: enable skipped (shutting down)")
+            return
+        if abort_gen is None:
+            abort_gen = self._abort_gen
+        if self._abort_gen != abort_gen:
+            print("mqtt_signalhead: enable skipped (aborted; another agent is taking Digicon)")
             return
         # ACK query/disabling during Hold (not yet _global_enabled).
         self._enabling_originator = True
@@ -1040,8 +1123,12 @@ class DigiconMqttSml(
             except Exception:
                 pass
         Thread.sleep(HOLD_WAIT_MS)
-        if self._shutting_down:
-            print("mqtt_signalhead: enable Hold done but shutting down -- leave dests")
+        if self._shutting_down or self._abort_gen != abort_gen:
+            print(
+                "mqtt_signalhead: enable Hold done but shutting down or aborted -- leave dests"
+            )
+            if self._abort_gen != abort_gen:
+                self._enabling_originator = False
             for mast in self._masts:
                 try:
                     mast.setHeld(False)
@@ -1322,6 +1409,8 @@ class DigiconMqttSml(
 
     def _on_sml_mode(self, message):
         mode = message.strip().lower()
+        heard_before = self._last_heard_mode
+        self._last_heard_mode = mode
         if mode == "enabled" and self._probe_active:
             self._probe_saw_enabled = True
         if mode in (
@@ -1351,6 +1440,29 @@ class DigiconMqttSml(
         if mode in ("query", "disabling") and self._should_ack_sml_alive():
             self._publish_mode("enabled")
             print("mqtt_signalhead: ACK %s -> enabled" % mode)
+            return
+        # The bridge found nobody owning a retained enabled (query, disabling, then
+        # disabled): e.g. a stale retain after a power cut made this host stay Disabled
+        # at boot. Take the boot decision again. An operator Disable on another host
+        # publishes disabled alone, and stays as the operator set it.
+        if (
+            mode == "disabled"
+            and heard_before == "disabling"
+            and self._idle_for_take()
+        ):
+            print("mqtt_signalhead: bridge released sml_mode -- take Digicon (enable)")
+            self._enter_enabled(force=True, from_boot=True)
+
+    def _idle_for_take(self):
+        """Not owning, taking, aborting, booting or quitting Digicon."""
+        return not (
+            self._is_busy()
+            or self._boot_pending
+            or self._shutting_down
+            or self._global_enabled
+            or self._enabling_originator
+            or self._owns_digicon_now()
+        )
 
     def _should_ack_sml_alive(self):
         """True while this instance owns or is taking Digicon (including Hold)."""
@@ -1386,7 +1498,7 @@ class DigiconMqttSml(
 
     def _on_sml_property(self, sml):
         # Global button / boot bulk setDisabled owns Unheld.
-        if self._busy or self._boot_pending:
+        if self._is_busy() or self._boot_pending:
             return
         if not self._global_enabled:
             return
@@ -1432,11 +1544,14 @@ class DigiconMqttSml(
 class DigiconSmlQuitTask(jmri.implementation.AbstractShutDownTask):
     """JMRI calls call() before closing windows; run() is after MQTT may be gone."""
 
+    def _owner(self):
+        return getattr(self, "_controller", None) or controller
+
     def call(self):
         self.setDoRun(True)
         print("mqtt_signalhead: ShutDownTask call()")
         try:
-            controller._on_jmri_shutdown()
+            self._owner()._on_jmri_shutdown()
         except Exception as exc:
             print("mqtt_signalhead: ShutDownTask call failed: " + _ascii(exc))
         return True
@@ -1444,10 +1559,80 @@ class DigiconSmlQuitTask(jmri.implementation.AbstractShutDownTask):
     def run(self):
         print("mqtt_signalhead: ShutDownTask run()")
         try:
-            controller._on_jmri_shutdown()
+            self._owner()._on_jmri_shutdown()
         except Exception as exc:
             print("mqtt_signalhead: ShutDownTask run failed: " + _ascii(exc))
 
+
+def _detach_controller(old):
+    """Unhook a controller left by an earlier run of this script.
+
+    Without this a re-run leaves the old listeners, MQTT subscriptions, quit task and
+    window hook live beside the new ones, and the visible button drives the old
+    instance. Reads attributes with defaults so a controller from an older copy of the
+    script is detached as far as it allows. Sends nothing on MQTT.
+    """
+    if old is None:
+        return
+    print("mqtt_signalhead: detaching the controller from an earlier run")
+    try:
+        old._shutting_down = True
+        old._shutdown_released = True
+    except Exception:
+        pass
+    beans = (
+        list(getattr(old, "_masts", []))
+        + list(getattr(old, "_heads", []))
+        + list(getattr(old, "_smls", []))
+    )
+    for bean in beans:
+        try:
+            bean.removePropertyChangeListener(old)
+        except Exception:
+            pass
+    mqtt = getattr(old, "mqtt", None)
+    if mqtt is not None:
+        for topic in (SML_MODE_TOPIC, MAST_TOPIC_PREFIX + "#", TOPIC_PREFIX + "#"):
+            try:
+                mqtt.unsubscribe(topic, old)
+            except Exception as exc:
+                print("mqtt_signalhead: unsubscribe %s: %s" % (topic, _ascii(exc)))
+    task = getattr(old, "_shutdown_task", None)
+    if task is not None:
+        try:
+            jmri.InstanceManager.getDefault(jmri.ShutDownManager).deregister(task)
+        except Exception as exc:
+            print("mqtt_signalhead: ShutDownTask deregister: " + _ascii(exc))
+    frame = getattr(old, "_close_frame", None)
+    listener = getattr(old, "_close_listener", None)
+    if frame is not None and listener is not None:
+        try:
+            frame.removeWindowListener(listener)
+        except Exception:
+            pass
+    button = getattr(old, "_button", None)
+    if button is not None:
+
+        class _Remove(Runnable):
+            def run(_self):
+                try:
+                    parent = button.getParent()
+                    if parent is not None:
+                        parent.remove(button)
+                        parent.revalidate()
+                        parent.repaint()
+                except Exception as exc:
+                    print("mqtt_signalhead: old button remove: " + _ascii(exc))
+
+        SwingUtilities.invokeLater(_Remove())
+
+
+try:
+    import __main__
+
+    _detach_controller(getattr(__main__, "digicon_sml_controller", None))
+except Exception as exc:
+    print("mqtt_signalhead: detach earlier run failed: " + _ascii(exc))
 
 controller = DigiconMqttSml()
 DigiconMqttSml.INSTANCE = controller
