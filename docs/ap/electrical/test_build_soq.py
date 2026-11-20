@@ -28,10 +28,10 @@ class GenericLabels(unittest.TestCase):
         self.assertEqual(build_soq.generic("EH-3"), "Engine storage E3")
         self.assertEqual(build_soq.generic("OS Switch 23b"), "Turnout 23 (crossover half b)")
 
-    def test_stub_named_as_subtracted_is_added_back(self):
+    def test_a_section_is_its_blocks_measured_length(self):
         lengths = {s["name"]: s["inches"] for s in make_drawings.detected_sections()}
-        self.assertAlmostEqual(lengths["K-1"], 108.0 + 15.748, places=2)    # "detector length minus Track K-1 West"
-        self.assertAlmostEqual(lengths["K-2"], 113.6, places=2)             # no stub named
+        self.assertAlmostEqual(lengths["K-1"], 123.7, places=2)             # the whole detector, timed
+        self.assertAlmostEqual(lengths["K-2"], 113.6, places=2)
 
     def test_footer_has_no_glyph_base14_helvetica_lacks(self):
         self.assertNotIn("–", build_soq.FOOTER)

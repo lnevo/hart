@@ -18,8 +18,7 @@ Ext is the lap reference block and is missing from some laps; for those laps the
 other blocks' shares are scaled by (1 - the median East Ext share).
 
 The result is the block's measured length (block_lengths.csv measured_in, source
-`timed`). Where a detector also covers a hidden throat stub (a separate row in
-block_lengths.csv sharing the sensor), the stub's length is taken off the track row.
+`timed`): each detector is one block (the hidden yard throats are gone, 2026-11-20).
 
 Usage:
     python3 jmri/layouts/hart/scripts/infer_block_lengths.py            # report
@@ -242,12 +241,6 @@ def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Sw
     return out
 
 
-def stubs_of(rows, sensor):
-    """Hidden throat stub rows that share this sensor's detector."""
-    return [r["user_name"] for r in rows
-            if r["source"] == "stub" and r["occupancy_sensor"] == "BS " + sensor]
-
-
 def plan_rows(result, csv_path=CSV, route=DEFAULT_ROUTE, only=None):
     """The CSV rows with the new lengths, not yet written. Returns (fields, rows, mm by row).
     only: the sensors to write (default all of the route's)."""
@@ -256,16 +249,12 @@ def plan_rows(result, csv_path=CSV, route=DEFAULT_ROUTE, only=None):
     by_name = {r["user_name"]: r for r in rows}
     sensor_rows = {s: n for s, n in route_rows(route).items() if only is None or s in only}
     for sensor, name in sensor_rows.items():
-        stubs = stubs_of(rows, sensor)
         mm, spread, n = result[sensor]
-        stub_mm = sum(float(by_name[s]["plan_in"]) * MM_PER_IN for s in stubs)
         r = by_name[name]
-        r["measured_in"] = f"{(mm - stub_mm) / MM_PER_IN:.1f}"
+        r["measured_in"] = f"{mm / MM_PER_IN:.1f}"
         r["source"] = "timed"
         note = (f"timed share of the AnyRail 5.3b {route} loop, pinned to the plan turnouts either side; "
                 f"+-{spread / MM_PER_IN:.1f} in over {n} laps")
-        if stubs:
-            note += "; detector length minus " + ", ".join(stubs)
         r["note"] = note
     return fields, rows, {n: float(by_name[n]["measured_in"]) * MM_PER_IN for n in sensor_rows.values()}
 

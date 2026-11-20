@@ -485,7 +485,7 @@
    "names": [
     "East Lead"
    ],
-   "edge_cm": 274.2,
+   "edge_cm": 274.1,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -542,7 +542,7 @@
    "names": [
     "East Lead"
    ],
-   "edge_cm": 274.2,
+   "edge_cm": 274.1,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -581,7 +581,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 624.2,
+   "edge_cm": 624.3,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -620,7 +620,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 624.2,
+   "edge_cm": 624.3,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -678,8 +678,8 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 624.2,
-   "cm_from_toward": 312.0,
+   "edge_cm": 624.3,
+   "cm_from_toward": 312.2,
    "dir": "west",
    "kind": "planned",
    "heads": 1,
@@ -698,7 +698,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 624.2,
+   "edge_cm": 624.3,
    "cm_from_toward": 312.2,
    "dir": "east",
    "kind": "planned",

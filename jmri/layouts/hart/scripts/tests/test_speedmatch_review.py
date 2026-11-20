@@ -280,16 +280,6 @@ class SecondReview(unittest.TestCase):
         only = analyze.load_lengths(p, trusted=("plan",))
         self.assertIsNone(only["BS East Lead"])
 
-    def test_stubs_match_by_source_and_shared_detector(self):
-        p = self.write_csv(["user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note"],
-                           [["Track East Lead", "Block 1-7", "180", "172", "timed", ""],
-                            ["Track East Lead East", "BS East Lead", "10", "", "stub", "unrelated text"],
-                            ["Track K-1 West", "BS K-1", "10", "", "stub", ""],
-                            ["Track Main West", "Block 2-1", "230", "220", "timed", ""]])
-        got = analyze.load_lengths(p)
-        self.assertAlmostEqual(got["BS East Lead"], 182 * 25.4)
-        self.assertAlmostEqual(got["BS Main West"], 220 * 25.4)
-        self.assertIsNone(got["BS K-1"])  # a stub does not make an untrusted track trusted
 
 def steady_log(run_header, cfg="", n=8, dt=10.0, t0=3.0, complete=True, sensors=None):
     """A runner log with one step of steady one-block readings (1000 mm each)."""

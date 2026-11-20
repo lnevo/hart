@@ -20,7 +20,7 @@ Files (jmri/layouts/hart/data/schematic/):
   jmri_name is the name tables.xml and the panels bind it by: a turnout's is the Layout Editor's turnoutname (some
   bind "M2T408", some "Switch 23"), every other row's its system name. trial_name is the link to the drawing, as for
   main and upper (placeholders(), below). One occupancy row per detector; its notes list the blocks it serves
-  ("blocks Track S-1; Track S-1 West": a throat block and its yard track, or a stub and its switch, share one).
+  ("blocks Track S-1"; a detector that serves several blocks lists each).
 - control_points_staging.csv, the columns of control_points_main_upper.csv: the staging stations of
   staging.plan_overrides.json's control_points (the schematic's source), held equal by --check.
 - staging_masts.csv, hartlib.level_masts.FIELDS. A mast's kind of slot follows from its row (mast_kind): a switch
@@ -40,7 +40,7 @@ Trial names (placeholders()): the drawing's own keys for staging, as placeholder
   and 35 have an OS block per half: OS Switch 7 and 7b, 23a and 23b, 35a and 35b; the half's key is not written as
   a block name, so check_name_copies.py does not take it for one).
 - track block: "Track <strand>" for a track of one block, "Track <strand> <k>/<n>" for the k-th of its n blocks from
-  the strand's first end (S-1 is "Track e23 1/3" West, "2/3" the body, "3/3" East). Strand and node ids are the
+  the strand's first end (Scale is "Track e29 1/2", OS Switch 7 "2/2"). Strand and node ids are the
   plan's (as main and upper's "Track <edge>"); --check stops when the plan renames one.
 A block that several tracks or a switch share lists every placeholder, comma separated.
 
@@ -253,12 +253,10 @@ def leg_first_blocks(band, names: dict) -> dict:
 
 
 def normal_legs(band, names: dict) -> dict:
-    """{plain switch node: "B" or "C"}: the drawn leg whose first block is the switch's closed leg in switch_legs.csv
-    ("Track S-4 West" counts as S-4: a throat block is part of its yard track)."""
+    """{plain switch node: "B" or "C"}: the drawn leg whose first block is the switch's closed leg in switch_legs.csv."""
     closed = closed_legs()
     first = leg_first_blocks(band, names)
     halves = crossover_halves(band)
-    track = lambda b: re.sub(r" (East|West)$", "", b or "")      # noqa: E731
     out, bad = {}, []
     for n, d in sorted(band["nodes"].items()):
         if d["kind"] != "switch" or n in halves:
@@ -267,7 +265,7 @@ def normal_legs(band, names: dict) -> dict:
         if want is None:
             bad.append(f"switch {d['label']}: {names['os'][n]} is not in switch_legs.csv")
             continue
-        legs = [p for p in "BC" if first.get((n, p)) == want or track(first.get((n, p))) == want]
+        legs = [p for p in "BC" if first.get((n, p)) == want]
         if len(legs) != 1:
             bad.append(f"switch {d['label']}: closed leg {want} is first past {len(legs)} of its legs "
                        f"(B: {first.get((n, 'B'))}, C: {first.get((n, 'C'))})")

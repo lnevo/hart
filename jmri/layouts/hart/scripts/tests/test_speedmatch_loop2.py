@@ -51,11 +51,11 @@ class Routes(unittest.TestCase):
         with self.assertRaises(ValueError):
             analyze.route_loop("loop9")
 
-    def test_sr_stubs_share_the_detector_and_are_counted(self):
-        stubs = [r for r in CSV_ROWS.values() if r["source"] == "stub" and r["occupancy_sensor"] == "BS S-R"]
-        self.assertEqual(sorted(r["user_name"] for r in stubs), ["Track S-R East", "Track S-R West"])
+    def test_sr_is_one_block_on_its_detector(self):
+        self.assertEqual([r["user_name"] for r in CSV_ROWS.values() if r["occupancy_sensor"] in ("BS S-R", "Block 2-8")],
+                         ["Track S-R"])
         got = analyze.load_lengths(DATA / "block_lengths.csv", ("plan",), analyze.route_loop("loop2"))
-        want = (float(CSV_ROWS["Track S-R"]["plan_in"]) + 2 * 15.748) * 25.4
+        want = float(CSV_ROWS["Track S-R"]["plan_in"]) * 25.4
         self.assertAlmostEqual(got["BS S-R"], want, places=3)
 
     def test_trusted_default_leaves_untrusted_rows_none(self):

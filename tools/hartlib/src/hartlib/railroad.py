@@ -466,10 +466,9 @@ def read_plan_overrides(path: Path) -> PlanOverrides:
 # block_lengths.csv: each staging block's 5.3c plan length (plan_in, written by tools/schematic/plan_lengths.py) and,
 # for a timed block, its measured length (measured_in). `source` says which one JMRI's block length is: `timed`
 # (measured_in) or `plan` (plan_in). The drawings and the signal rules use plan_in alone; the measured lengths serve
-# speed profiling and JMRI's block lengths only (owner, 2026-11-20). `stub`: a hidden yard throat block, which has no
-# plan length of its own; plan_in holds its fixed length.
+# speed profiling and JMRI's block lengths only (owner, 2026-11-20).
 BLOCK_LENGTH_COLUMNS = ("user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note")
-LENGTH_SOURCES = ("timed", "plan", "stub")
+LENGTH_SOURCES = ("timed", "plan")
 
 
 @dataclass(frozen=True)

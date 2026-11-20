@@ -46,8 +46,7 @@ def render(rows):
     notes = {r["user_name"]: r["note"] for r in csv.DictReader(CSV.open(encoding="utf-8"))}
     head = ("| Block | Occupancy sensor | Plan in | Measured in | JMRI length from | JMRI mm | Note |\n"
             "|---|---|---|---|---|---|---|")
-    tracks = [b for b in rows.values() if b.user_name.startswith("Track ") and b.source != "stub"]
-    stubs = [b for b in rows.values() if b.source == "stub"]
+    tracks = [b for b in rows.values() if b.user_name.startswith("Track ")]
     osb = [b for b in rows.values() if b.user_name.startswith("OS ")]
     return f"""# Track and spur lengths
 
@@ -67,17 +66,11 @@ schematic, the Layout Editor panel and the signal rules use it alone.
 the test loop, or timed passes; `infer_block_lengths.py`, method in
 `docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`), kept for speed profiling and JMRI.
 JMRI's length is the measured one where there is one, else the plan length.
-`stub` = hidden throat block sharing the detector of its track; its length is fixed.
 
 ## Tracks and spurs
 
 {head}
 {chr(10).join(fmt(b) for b in tracks)}
-
-## Hidden throat stubs
-
-{head}
-{chr(10).join(fmt(b) for b in stubs)}
 
 ## Switch (OS) blocks
 

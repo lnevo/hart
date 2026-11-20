@@ -304,13 +304,11 @@ def p5() -> str:
 def detected_sections() -> list[dict]:
     """Every detected section on an LCOS node ("Block n-c"), sorted by node and channel.
 
-    Length is the whole detected section: where the table's note says a row's length is
-    the "detector length minus" a hidden stub on the same detector, the stub is added back.
-    Stub rows themselves are panel sub-blocks, not separate electrical sections.
+    Length is the whole detected section: each detector is one block (the hidden yard throat
+    blocks are gone, 2026-11-20), at the length JMRI holds (measured, else the plan's).
     """
     with BLOCKS.open() as f:
         rows = list(csv.DictReader(f))
-    by_name = {r["user_name"]: r for r in rows}
     out = []
     for r in rows:
         m = re.fullmatch(r"Block (\d+)-(\d+)", r["occupancy_sensor"])
@@ -318,10 +316,6 @@ def detected_sections() -> list[dict]:
             continue
         timed = r["source"] == "timed"          # JMRI's length: the measured one, else the plan's
         inches = float(r["measured_in"] if timed else r["plan_in"])
-        for stub in re.findall(r"detector length minus (Track [^;\"]+?)(?:;|$)", r["note"]):
-            if stub.strip() not in by_name:
-                raise SystemExit(f"{BLOCKS}: {r['user_name']} names a missing stub {stub!r}")
-            inches += float(by_name[stub.strip()]["plan_in"])
         out.append({"name": r["user_name"].replace("Track ", ""), "node": int(m.group(1)), "ch": int(m.group(2)),
                     "inches": inches, "estimate": not timed})
     out.sort(key=lambda s: (s["node"], s["ch"]))

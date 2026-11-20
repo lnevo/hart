@@ -149,12 +149,12 @@ class StateMachineTests(unittest.TestCase):
 class LengthBasisTests(unittest.TestCase):
     def test_every_length_basis_but_stub_is_trusted(self):
         """A block length on a basis the dashboard does not list drops out of the loop distance, as the engine house
-        blocks would have when they moved from estimate to plan (2026-11-19). Stubs share their track's detector."""
+        blocks would have when they moved from estimate to plan (2026-11-19)."""
         import csv
         path = Path(__file__).resolve().parents[1].parent / "data" / "block_lengths.csv"
         with path.open(newline="") as fh:
             bases = {r["source"] for r in csv.DictReader(fh)}
-        self.assertEqual(bases - {"stub"} - set(st.LENGTH_FLAGS), set())
+        self.assertEqual(bases - set(st.LENGTH_FLAGS), set())
 
 
 class ScaleTests(unittest.TestCase):

@@ -2786,54 +2786,6 @@
       <systemName>IB:AUTO:0051</systemName>
       <userName>Track East Ext</userName>
     </block>
-    <block systemName="IB:AUTO:0052">
-      <systemName>IB:AUTO:0052</systemName>
-      <userName>Track S-1 West</userName>
-    </block>
-    <block systemName="IB:AUTO:0053">
-      <systemName>IB:AUTO:0053</systemName>
-      <userName>Track S-1 East</userName>
-    </block>
-    <block systemName="IB:AUTO:0054">
-      <systemName>IB:AUTO:0054</systemName>
-      <userName>Track S-2 West</userName>
-    </block>
-    <block systemName="IB:AUTO:0055">
-      <systemName>IB:AUTO:0055</systemName>
-      <userName>Track S-2 East</userName>
-    </block>
-    <block systemName="IB:AUTO:0056">
-      <systemName>IB:AUTO:0056</systemName>
-      <userName>Track S-3 West</userName>
-    </block>
-    <block systemName="IB:AUTO:0057">
-      <systemName>IB:AUTO:0057</systemName>
-      <userName>Track S-3 East</userName>
-    </block>
-    <block systemName="IB:AUTO:0058">
-      <systemName>IB:AUTO:0058</systemName>
-      <userName>Track S-4 West</userName>
-    </block>
-    <block systemName="IB:AUTO:0059">
-      <systemName>IB:AUTO:0059</systemName>
-      <userName>Track S-4 East</userName>
-    </block>
-    <block systemName="IB:AUTO:0060">
-      <systemName>IB:AUTO:0060</systemName>
-      <userName>Track S-R East</userName>
-    </block>
-    <block systemName="IB:AUTO:0061">
-      <systemName>IB:AUTO:0061</systemName>
-      <userName>Track S-R West</userName>
-    </block>
-    <block systemName="IB:AUTO:0062">
-      <systemName>IB:AUTO:0062</systemName>
-      <userName>Track East Lead East</userName>
-    </block>
-    <block systemName="IB:AUTO:0063">
-      <systemName>IB:AUTO:0063</systemName>
-      <userName>Track K-1 West</userName>
-    </block>
     <block systemName="IB:C3:0001">
       <systemName>IB:C3:0001</systemName>
       <userName>OS Switch 101</userName>
@@ -3541,59 +3493,95 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0007" length="2786.4" curve="0">
+    <block systemName="IB:AUTO:0007" length="3586.5" curve="0">
       <systemName>IB:AUTO:0007</systemName>
       <userName>Track S-4</userName>
       <comment>South Yard body; occupancy Block 2-4 / M2S203</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-4</occupancysensor>
-      <path todir="144" fromdir="96" block="IB:AUTO:0058" />
-      <path todir="80" fromdir="160" block="IB:AUTO:0059" />
+      <path todir="144" fromdir="96" block="IB:AUTO:0038">
+        <beansetting setting="2">
+          <turnout systemName="M2T311" />
+        </beansetting>
+      </path>
+    <path todir="80" fromdir="160" block="IB:AUTO:0036">
+        <beansetting setting="2">
+          <turnout systemName="M2T1208" />
+        </beansetting>
+      </path>
     </block>
-    <block systemName="IB:AUTO:0008" length="2872.7" curve="0">
+    <block systemName="IB:AUTO:0008" length="3672.8" curve="0">
       <systemName>IB:AUTO:0008</systemName>
       <userName>Track S-3</userName>
       <comment>South Yard body; occupancy Block 2-5 / M2S204</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-3</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0056" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0057" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0038">
+        <beansetting setting="4">
+          <turnout systemName="M2T311" />
+        </beansetting>
+      </path>
+    <path todir="64" fromdir="128" block="IB:AUTO:0036">
+        <beansetting setting="4">
+          <turnout systemName="M2T1208" />
+        </beansetting>
+      </path>
     </block>
-    <block systemName="IB:AUTO:0010" length="2743.2" curve="0">
+    <block systemName="IB:AUTO:0010" length="3142.0" curve="0">
       <systemName>IB:AUTO:0010</systemName>
       <userName>Track K-1</userName>
       <comment>Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS K-1</occupancysensor>
       <path todir="32" fromdir="16" block="IB:AUTO:0048" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0063" />
+      <path todir="160" fromdir="80" block="IB:AUTO:0040">
+        <beansetting setting="4">
+          <turnout systemName="M2T110" />
+        </beansetting>
+      </path>
     </block>
-    <block systemName="IB:AUTO:0012" length="5057.1" curve="0">
+    <block systemName="IB:AUTO:0012" length="5857.2" curve="0">
       <systemName>IB:AUTO:0012</systemName>
       <userName>Track S-R</userName>
       <comment>Run-through east of Switch 15; occupancy Block 2-8 / M2S207</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-R</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0060" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0061" />
+      <path todir="64" fromdir="128" block="IB:AUTO:0039">
+        <beansetting setting="2">
+          <turnout systemName="Switch 23" />
+        </beansetting>
+      </path>
+    <path todir="128" fromdir="64" block="IB:AUTO:0041">
+        <beansetting setting="2">
+          <turnout systemName="M2T308" />
+        </beansetting>
+      </path>
     </block>
-    <block systemName="IB:AUTO:0016" length="4579.6" curve="0">
+    <block systemName="IB:AUTO:0016" length="5377.2" curve="0">
       <systemName>IB:AUTO:0016</systemName>
       <userName>Track S-1</userName>
       <comment>South Yard body; occupancy Block 2-7 / M2S206</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-1</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0052" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0053" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0044">
+        <beansetting setting="4">
+          <turnout systemName="M2T309" />
+        </beansetting>
+      </path>
+    <path todir="64" fromdir="128" block="IB:AUTO:0043">
+        <beansetting setting="4">
+          <turnout systemName="M2T1210" />
+        </beansetting>
+      </path>
     </block>
-    <block systemName="IB:AUTO:0017" length="2232.7" curve="0">
+    <block systemName="IB:AUTO:0017" length="2631.4" curve="0">
       <systemName>IB:AUTO:0017</systemName>
       <userName>Track East Lead</userName>
       <comment>South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS East Lead</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0030" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0062" />
+      <path todir="64" fromdir="128" block="IB:AUTO:0046" />
     </block>
     <block systemName="IB:AUTO:0020" length="2672.1" curve="0">
       <systemName>IB:AUTO:0020</systemName>
@@ -3619,14 +3607,22 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0026" length="3726.2" curve="0">
+    <block systemName="IB:AUTO:0026" length="4526.3" curve="0">
       <systemName>IB:AUTO:0026</systemName>
       <userName>Track S-2</userName>
       <comment>South Yard body; occupancy Block 2-6 / M2S205</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-2</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0054" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0055" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0045">
+        <beansetting setting="4">
+          <turnout systemName="M2T310" />
+        </beansetting>
+      </path>
+    <path todir="64" fromdir="128" block="IB:AUTO:0037">
+        <beansetting setting="4">
+          <turnout systemName="M2T1209" />
+        </beansetting>
+      </path>
     </block>
     <block systemName="IB:AUTO:0030" length="315.0" curve="0">
       <systemName>IB:AUTO:0030</systemName>
@@ -3743,12 +3739,12 @@
           <turnout systemName="M2T1209" />
         </beansetting>
       </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0057">
+      <path todir="128" fromdir="64" block="IB:AUTO:0008">
         <beansetting setting="4">
           <turnout systemName="M2T1208" />
         </beansetting>
       </path>
-      <path todir="160" fromdir="80" block="IB:AUTO:0059">
+      <path todir="160" fromdir="80" block="IB:AUTO:0007">
         <beansetting setting="2">
           <turnout systemName="M2T1208" />
         </beansetting>
@@ -3770,7 +3766,7 @@
           <turnout systemName="M2T1210" />
         </beansetting>
       </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0055">
+      <path todir="128" fromdir="64" block="IB:AUTO:0026">
         <beansetting setting="4">
           <turnout systemName="M2T1209" />
         </beansetting>
@@ -3783,12 +3779,12 @@
       <permissive>no</permissive>
       <occupancysensor>BS Switch 21</occupancysensor>
       <path todir="144" fromdir="96" block="IB:AUTO:0045" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0056">
+      <path todir="64" fromdir="128" block="IB:AUTO:0008">
         <beansetting setting="4">
           <turnout systemName="M2T311" />
         </beansetting>
       </path>
-      <path todir="96" fromdir="144" block="IB:AUTO:0058">
+      <path todir="96" fromdir="144" block="IB:AUTO:0007">
         <beansetting setting="2">
           <turnout systemName="M2T311" />
         </beansetting>
@@ -3806,7 +3802,7 @@
         </beansetting>
       </path>
       <path todir="64" fromdir="128" block="IB:AUTO:0042" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0060">
+      <path todir="128" fromdir="64" block="IB:AUTO:0012">
         <beansetting setting="2">
           <turnout systemName="Switch 23" />
         </beansetting>
@@ -3824,7 +3820,7 @@
         </beansetting>
       </path>
       <path todir="128" fromdir="64" block="IB:AUTO:0047" />
-      <path todir="80" fromdir="160" block="IB:AUTO:0063">
+      <path todir="80" fromdir="160" block="IB:AUTO:0010">
         <beansetting setting="4">
           <turnout systemName="M2T110" />
         </beansetting>
@@ -3842,7 +3838,7 @@
           <turnout systemName="M2T308" />
         </beansetting>
       </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0061">
+      <path todir="64" fromdir="128" block="IB:AUTO:0012">
         <beansetting setting="2">
           <turnout systemName="M2T308" />
         </beansetting>
@@ -3886,7 +3882,7 @@
           <turnout systemName="M2T1211" />
         </beansetting>
       </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0053">
+      <path todir="128" fromdir="64" block="IB:AUTO:0016">
         <beansetting setting="4">
           <turnout systemName="M2T1210" />
         </beansetting>
@@ -3904,7 +3900,7 @@
           <turnout systemName="M2T309" />
         </beansetting>
       </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0052">
+      <path todir="64" fromdir="128" block="IB:AUTO:0016">
         <beansetting setting="4">
           <turnout systemName="M2T309" />
         </beansetting>
@@ -3922,7 +3918,7 @@
         </beansetting>
       </path>
       <path todir="144" fromdir="96" block="IB:AUTO:0044" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0054">
+      <path todir="64" fromdir="128" block="IB:AUTO:0026">
         <beansetting setting="4">
           <turnout systemName="M2T310" />
         </beansetting>
@@ -3944,7 +3940,7 @@
           <turnout systemName="Switch 35" />
         </beansetting>
       </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0062" />
+      <path todir="128" fromdir="64" block="IB:AUTO:0017" />
     </block>
     <block systemName="IB:AUTO:0047" length="520.7" curve="0">
       <systemName>IB:AUTO:0047</systemName>
@@ -4004,158 +4000,6 @@
       <path todir="128" fromdir="64" block="IB:AUTO:0031">
         <beansetting setting="2">
           <turnout systemName="M2T410" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0052" length="400.0" curve="0">
-      <systemName>IB:AUTO:0052</systemName>
-      <userName>Track S-1 West</userName>
-      <comment>Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-1</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0016" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0044">
-        <beansetting setting="4">
-          <turnout systemName="M2T309" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0053" length="400.0" curve="0">
-      <systemName>IB:AUTO:0053</systemName>
-      <userName>Track S-1 East</userName>
-      <comment>Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-1</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0016" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0043">
-        <beansetting setting="4">
-          <turnout systemName="M2T1210" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0054" length="400.0" curve="0">
-      <systemName>IB:AUTO:0054</systemName>
-      <userName>Track S-2 West</userName>
-      <comment>Hidden Track S-2 throat (same detector as Track S-2); occupancy Block 2-6; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-2</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0026" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0045">
-        <beansetting setting="4">
-          <turnout systemName="M2T310" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0055" length="400.0" curve="0">
-      <systemName>IB:AUTO:0055</systemName>
-      <userName>Track S-2 East</userName>
-      <comment>Hidden Track S-2 throat (same detector as Track S-2); occupancy Block 2-6; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-2</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0026" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0037">
-        <beansetting setting="4">
-          <turnout systemName="M2T1209" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0056" length="400.0" curve="0">
-      <systemName>IB:AUTO:0056</systemName>
-      <userName>Track S-3 West</userName>
-      <comment>Hidden Track S-3 throat (same detector as Track S-3); occupancy Block 2-5; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-3</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0008" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0038">
-        <beansetting setting="4">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0057" length="400.0" curve="0">
-      <systemName>IB:AUTO:0057</systemName>
-      <userName>Track S-3 East</userName>
-      <comment>Hidden Track S-3 throat (same detector as Track S-3); occupancy Block 2-5; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-3</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0008" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0036">
-        <beansetting setting="4">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0058" length="400.0" curve="0">
-      <systemName>IB:AUTO:0058</systemName>
-      <userName>Track S-4 West</userName>
-      <comment>Hidden Track S-4 throat (same detector as Track S-4); occupancy Block 2-4; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-4</occupancysensor>
-      <path todir="96" fromdir="144" block="IB:AUTO:0007" />
-      <path todir="144" fromdir="96" block="IB:AUTO:0038">
-        <beansetting setting="2">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0059" length="400.0" curve="0">
-      <systemName>IB:AUTO:0059</systemName>
-      <userName>Track S-4 East</userName>
-      <comment>Hidden Track S-4 throat (same detector as Track S-4); occupancy Block 2-4; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-4</occupancysensor>
-      <path todir="160" fromdir="80" block="IB:AUTO:0007" />
-      <path todir="80" fromdir="160" block="IB:AUTO:0036">
-        <beansetting setting="2">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0060" length="400.0" curve="0">
-      <systemName>IB:AUTO:0060</systemName>
-      <userName>Track S-R East</userName>
-      <comment>Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-R</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0012" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0039">
-        <beansetting setting="2">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0061" length="400.0" curve="0">
-      <systemName>IB:AUTO:0061</systemName>
-      <userName>Track S-R West</userName>
-      <comment>Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS S-R</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0012" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0041">
-        <beansetting setting="2">
-          <turnout systemName="M2T308" />
-        </beansetting>
-      </path>
-    </block>
-    <block systemName="IB:AUTO:0062" length="400.0" curve="0">
-      <systemName>IB:AUTO:0062</systemName>
-      <userName>Track East Lead East</userName>
-      <comment>Hidden Track East Lead throat (same detector as Track East Lead); occupancy Block 1-7 / M2S106; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS East Lead</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0017" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0046" />
-    </block>
-    <block systemName="IB:AUTO:0063" length="400.0" curve="0">
-      <systemName>IB:AUTO:0063</systemName>
-      <userName>Track K-1 West</userName>
-      <comment>Hidden Track K-1 throat (same detector as Track K-1); occupancy Block 1-1 / M2S100; not a station</comment>
-      <permissive>no</permissive>
-      <occupancysensor>BS K-1</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0010" />
-      <path todir="160" fromdir="80" block="IB:AUTO:0040">
-        <beansetting setting="4">
-          <turnout systemName="M2T110" />
         </beansetting>
       </path>
     </block>
@@ -6108,54 +5952,6 @@
     <layoutblock systemName="ILB77" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB77</systemName>
       <userName>Track McKeesport</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB78" occupancysensor="BS S-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB78</systemName>
-      <userName>Track S-1 West</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB79" occupancysensor="BS S-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB79</systemName>
-      <userName>Track S-1 East</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB80" occupancysensor="BS S-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB80</systemName>
-      <userName>Track S-2 West</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB81" occupancysensor="BS S-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB81</systemName>
-      <userName>Track S-2 East</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB82" occupancysensor="BS S-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB82</systemName>
-      <userName>Track S-3 West</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB83" occupancysensor="BS S-3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB83</systemName>
-      <userName>Track S-3 East</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB84" occupancysensor="BS S-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB84</systemName>
-      <userName>Track S-4 West</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB85" occupancysensor="BS S-4" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB85</systemName>
-      <userName>Track S-4 East</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB86" occupancysensor="BS S-R" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB86</systemName>
-      <userName>Track S-R East</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB87" occupancysensor="BS S-R" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB87</systemName>
-      <userName>Track S-R West</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB88" occupancysensor="BS East Lead" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB88</systemName>
-      <userName>Track East Lead East</userName>
-    </layoutblock>
-    <layoutblock systemName="ILB89" occupancysensor="BS K-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
-      <systemName>ILB89</systemName>
-      <userName>Track K-1 West</userName>
     </layoutblock>
     <layoutblock systemName="ILB1001" occupancysensor="BS Switch 101" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB1001</systemName>

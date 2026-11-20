@@ -310,10 +310,10 @@ class ThreeLevels(unittest.TestCase):
         # The helix-join release (owner, 2026-11-17): staging as in its candidate but for the two
         # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
         self.assertEqual(self.P.staging_same, [
-            "end bumper EBG1 -> anchor AGE1 (hidden join TG229 to Track 131-H1, Mast 40RA)",
-            "end bumper EBG2 -> anchor AGE2 (hidden join TG230 to Track 131-H2, Mast 38RA)",
-            "track segment TG63 connect2name EBG1 -> AGE1",
-            "track segment TG64 connect2name EBG2 -> AGE2"])
+            "end bumper EBG1 -> anchor AGE1 (hidden join TG218 to Track 131-H1, Mast 40RA)",
+            "end bumper EBG2 -> anchor AGE2 (hidden join TG219 to Track 131-H2, Mast 38RA)",
+            "track segment TG52 connect2name EBG1 -> AGE1",
+            "track segment TG53 connect2name EBG2 -> AGE2"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
         self.assertEqual(self.names[B.STAGING]["joins"], "other")               # the build joins the helix
         self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"), 4)
@@ -333,7 +333,7 @@ class ThreeLevels(unittest.TestCase):
             "a staging label moved": lambda r: el(r, "positionablelabel", text="STAGING LEVEL").set("x", "61"),
             "a staging bean changed": lambda r: next(t for t in tables.turnouts(r)
                                                      if tables.user_name(t) == "Switch 1").set("inverted", "true"),
-            "a helix track's segment": lambda r: el(r, "tracksegment", ident="TG64").set("blockname", "Track X"),
+            "a helix track's segment": lambda r: el(r, "tracksegment", ident="TG53").set("blockname", "Track X"),
             "a helix join moved": lambda r: el(r, "positionablepoint", ident="AGE2").set("x", "1600.0"),
             "a helix join's mast": lambda r: el(r, "positionablepoint", ident="AGE1").set(
                 "westboundsignalmast", "Mast 38RA"),
@@ -676,7 +676,7 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(set(icons) | left_out, T.used_blocks(self.le))
         self.assertEqual(set(icons.values()), {1})
         staging = {b["block"] for b in self.base[1].bcis}
-        self.assertEqual(len(staging), 57)
+        self.assertEqual(len(staging), 45)
         size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
         self.assertEqual({size[b] for b in staging}, {"13"})
         # each level's icons at that level's own size (a level with the wrong size must not hide behind another's)

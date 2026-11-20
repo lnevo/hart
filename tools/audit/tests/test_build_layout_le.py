@@ -784,9 +784,8 @@ class SecondReview(unittest.TestCase):
 
 
 class Throats(unittest.TestCase):
-    """The short throat blocks of a staging track (S-1 West / S-1 East, East Lead East, K-1 West) are drawn at their
-    own ends of the track, in block order, at their real share (wiki/DISPATCHER_LAYOUT_HOOPS.md: mid-block anchors
-    vs throat blocks), not cut into equal thirds."""
+    """A staging track of several blocks is drawn in block order at their plan shares, a short block (OS Switch 7 on
+    Scale) at its own end, not cut into equal parts. The hidden yard throats are gone (owner, 2026-11-20)."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -821,12 +820,12 @@ class Throats(unittest.TestCase):
         return {sid: bl for sid, bl in self.names[B.STAGING]["blocks"].items()
                 if len(bl) > 1 and all(b in lengths for b in bl)}
 
-    def test_the_throat_tracks_are_measured(self) -> None:
+    def test_the_tracks_of_several_blocks_are_measured(self) -> None:
         tracks = {self.bands[0][1]["strands"][sid]["name"] for sid in self.measured()}
         # every drawn block has its plan length (owner, 2026-11-20); a track of several blocks is cut at their plan
-        # shares: the yard throats, Scale with OS Switch 7 (Mast 8RA's boundary at Switch 7's points, 2026-11-18),
-        # and the Switch 1-3 and 35-39 links of OS blocks only
-        self.assertEqual(tracks, {"S-R", "S-1", "S-2", "S-3", "S-4", "East Lead", "K-1", "Scale", ""})
+        # shares: Scale with OS Switch 7 (Mast 8RA's boundary at Switch 7's points, 2026-11-18), and the Switch 1-3
+        # and 35-39 links of OS blocks only. Each yard track is one block since its throats went.
+        self.assertEqual(tracks, {"Scale", ""})
 
     def test_staging_lengths_are_the_plan_lengths_of_every_drawn_block(self) -> None:
         from le_names import staging_lengths

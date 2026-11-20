@@ -16,7 +16,6 @@ schematic, the Layout Editor panel and the signal rules use it alone.
 the test loop, or timed passes; `infer_block_lengths.py`, method in
 `docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`), kept for speed profiling and JMRI.
 JMRI's length is the measured one where there is one, else the plan length.
-`stub` = hidden throat block sharing the detector of its track; its length is fixed.
 
 ## Tracks and spurs
 
@@ -25,17 +24,17 @@ JMRI's length is the measured one where there is one, else the plan length.
 | Track W-1 | Block 4-4 | 105.2 |  | plan | 2672.1 |  |
 | Track W-2 | Block 4-3 | 105.4 |  | plan | 2677.2 |  |
 | Track Brick-Plane | Block 4-6 | 71.6 | 58.1 | timed | 1475.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
-| Track East Lead | Block 1-7 | 92.2 | 87.9 | timed | 2232.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.4 in over 33 laps; detector length minus Track East Lead East |
+| Track East Lead | Block 1-7 | 107.9 | 103.6 | timed | 2631.4 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.4 in over 33 laps; the whole detector |
 | Track Main West | Block 2-1 | 231 | 217.3 | timed | 5519.4 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
 | Track West Ext | Block 1-8 | 169.2 | 156.1 | timed | 3964.9 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
 | Track Main East | Block 2-3 | 309.7 | 315.1 | timed | 8003.5 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
 | Track East Ext | Block 4-7 | 154.6 | 140.8 | timed | 3576.3 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 16 laps |
-| Track S-R | Block 2-8 | 199.1 |  | plan | 5057.1 |  |
-| Track S-1 | Block 2-7 | 180.3 |  | plan | 4579.6 |  |
-| Track S-2 | Block 2-6 | 146.7 |  | plan | 3726.2 |  |
-| Track S-3 | Block 2-5 | 113.1 |  | plan | 2872.7 |  |
-| Track S-4 | Block 2-4 | 109.7 |  | plan | 2786.4 |  |
-| Track K-1 | Block 1-1 | 107.1 | 108 | timed | 2743.2 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps; detector length minus Track K-1 West |
+| Track S-R | Block 2-8 | 230.6 |  | plan | 5857.2 |  |
+| Track S-1 | Block 2-7 | 211.7 |  | plan | 5377.2 |  |
+| Track S-2 | Block 2-6 | 178.2 |  | plan | 4526.3 |  |
+| Track S-3 | Block 2-5 | 144.6 |  | plan | 3672.8 |  |
+| Track S-4 | Block 2-4 | 141.2 |  | plan | 3586.5 |  |
+| Track K-1 | Block 1-1 | 122.9 | 123.7 | timed | 3142.0 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps; the whole detector |
 | Track K-2 | Block 1-2 | 122.9 | 113.6 | timed | 2885.4 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
 | Track Scale | Block 4-8 | 158 | 144.5 | timed | 3670.3 | timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48): Switch 7 centre at 4249 mm from Switch 5, less half of OS Switch 5 and OS Switch 7 |
 | Track Barn | Block 13-1 | 31.3 | 33.7 | timed | 856.0 | timed passes of 2026-11-13: Switch 7 at 4249 mm and Switch 13 at 5457 mm, less half of OS Switch 7 and OS Switch 13 |
@@ -44,23 +43,6 @@ JMRI's length is the measured one where there is one, else the plan length.
 | Track EH-3 | Block 13-5 | 30.1 |  | plan | 764.5 |  |
 | Track McKees Rocks |  | 947.2 |  | plan | 24058.9 | AnyRail 5.3c: the whole helix run, Switch 39 to Switch 131A; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 689.0 in up to the -5 cm cut; no detector yet |
 | Track McKeesport |  | 916.5 |  | plan | 23279.1 | AnyRail 5.3c: the whole helix run, Switch 37 to Switch 131B; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 644.6 in up to the -5 cm cut; no detector yet |
-
-## Hidden throat stubs
-
-| Block | Occupancy sensor | Plan in | Measured in | JMRI length from | JMRI mm | Note |
-|---|---|---|---|---|---|---|
-| Track S-1 West | BS S-1 | 15.748 |  | stub | 400.0 | hidden throat of Track S-1; same detector; not a station |
-| Track S-1 East | BS S-1 | 15.748 |  | stub | 400.0 | hidden throat of Track S-1; same detector; not a station |
-| Track S-2 West | BS S-2 | 15.748 |  | stub | 400.0 | hidden throat of Track S-2; same detector; not a station |
-| Track S-2 East | BS S-2 | 15.748 |  | stub | 400.0 | hidden throat of Track S-2; same detector; not a station |
-| Track S-3 West | BS S-3 | 15.748 |  | stub | 400.0 | hidden throat of Track S-3; same detector; not a station |
-| Track S-3 East | BS S-3 | 15.748 |  | stub | 400.0 | hidden throat of Track S-3; same detector; not a station |
-| Track S-4 West | BS S-4 | 15.748 |  | stub | 400.0 | hidden throat of Track S-4; same detector; not a station |
-| Track S-4 East | BS S-4 | 15.748 |  | stub | 400.0 | hidden throat of Track S-4; same detector; not a station |
-| Track S-R West | BS S-R | 15.748 |  | stub | 400.0 | hidden throat of Track S-R; same detector; not a station |
-| Track S-R East | BS S-R | 15.748 |  | stub | 400.0 | hidden throat of Track S-R; same detector; not a station |
-| Track East Lead East | BS East Lead | 15.748 |  | stub | 400.0 | hidden throat of Track East Lead; same detector; not a station; Dispatcher rear mast 36L |
-| Track K-1 West | BS K-1 | 15.748 |  | stub | 400.0 | hidden throat of Track K-1; same detector; not a station; Dispatcher rear mast 40RB |
 
 ## Switch (OS) blocks
 

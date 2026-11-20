@@ -156,13 +156,11 @@ def edge_runs(graph: dict, runs: dict) -> dict:
     return out
 
 
-def track_lengths(band, names: dict, runs: dict, os_blocks: set, fixed: dict | None = None) -> dict:
+def track_lengths(band, names: dict, runs: dict, os_blocks: set) -> dict:
     """{track block: inches} from `runs` ({plan edge id: inches}, edge_runs): each strand of the band takes its
     edge's run, split evenly over the strands the schematic draws it as (a balloon loop folded at its turnback). On a
-    strand, OS blocks take nothing (the run leaves the turnouts out) and the one track block takes the rest less any
-    `fixed` blocks' lengths ({block: inches}); a block on several strands adds them up. LengthError on a strand with
-    two track blocks of no fixed length, or one whose fixed blocks leave nothing."""
-    fixed = fixed or {}
+    strand, OS blocks take nothing (the run leaves the turnouts out) and the one track block takes the rest; a block
+    on several strands adds them up. LengthError on a strand with two track blocks."""
     strands = band["strands"]
     by_edge = defaultdict(list)
     for sid, s in strands.items():
@@ -175,17 +173,12 @@ def track_lengths(band, names: dict, runs: dict, os_blocks: set, fixed: dict | N
             continue
         share = runs[edge] / len(sids)
         for sid in sids:
-            tracks = [b for b in names["blocks"][sid] if b not in os_blocks and b not in fixed]
+            tracks = [b for b in names["blocks"][sid] if b not in os_blocks]
             if len(tracks) > 1:
                 bad.append(f"track {sid}: blocks {tracks} share it and only one may take its length")
                 continue
-            if not tracks:
-                continue
-            rest = share - sum(fixed.get(b, 0.0) for b in names["blocks"][sid])
-            if rest <= 0:
-                bad.append(f"track {sid}: its fixed blocks are longer than its run ({share:.1f} in)")
-                continue
-            out[tracks[0]] += rest
+            if tracks:
+                out[tracks[0]] += share
     if bad:
         raise LengthError("; ".join(bad))
     return dict(out)
@@ -201,9 +194,7 @@ def compute(plan: Path | None) -> tuple[dict, bool]:
     out = os_lengths(band, names, graph, parts)
     if plan is None:
         return out, False
-    fixed = {n: b.plan_in for n, b in railroad.read_block_lengths(LENGTHS).items() if b.source == "stub"}
-    out.update(fixed)
-    out.update(track_lengths(band, names, edge_runs(graph, plan_runs(plan)), set(out), fixed))
+    out.update(track_lengths(band, names, edge_runs(graph, plan_runs(plan)), set(out)))
     drawn = {b for v in names["blocks"].values() for b in v} | set(names["os"].values())
     missing = sorted(drawn - set(out))
     if missing:
@@ -223,8 +214,7 @@ def csv_with(lengths: dict, path: Path = LENGTHS) -> str:
         raise LengthError(f"{paths.rel(path)} and the staging drawing hold different blocks: only in the file "
                           f"{sorted(have - set(lengths))}, only drawn {sorted(set(lengths) - have)}")
     for r in rows:
-        if r["source"] != "stub":       # a hidden throat keeps its fixed length as written
-            r["plan_in"] = f"{lengths[r['user_name']]:.1f}"
+        r["plan_in"] = f"{lengths[r['user_name']]:.1f}"
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(railroad.BLOCK_LENGTH_COLUMNS), lineterminator="\n")
     w.writeheader()

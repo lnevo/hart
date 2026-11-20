@@ -125,8 +125,8 @@ class Files(unittest.TestCase):
         return self._copy(edit)[0]
 
     def test_a_missing_block_of_a_split_track_stops(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, "track e22: blocks .* are not 1/n to n/n"):
-            sdm.load(self.band, device_map=self._without("Track e22 2/3"))
+        with self.assertRaisesRegex(sdm.StagingMapError, "track e29: blocks .* are not 1/n to n/n"):
+            sdm.load(self.band, device_map=self._without("Track e29 1/2"))
 
     def test_a_missing_turnout_placeholder_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, "no turnout row has trial_name Switch 1"):
@@ -223,8 +223,8 @@ class DeviceMapBuild(unittest.TestCase):
         text = self.B.BOUNDARIES.read_text(encoding="utf-8")
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        self.assertIn("anchor,AG31,east,Mast 8RA", text)          # the committed row the first case moves
-        for old, new, why in (("anchor,AG31,east,Mast 8RA", "anchor,AG34,east,Mast 8RA", "Mast 8RA: recorded anchor AG34 east"),
+        self.assertIn("anchor,AG20,east,Mast 8RA", text)          # the committed row the first case moves
+        for old, new, why in (("anchor,AG20,east,Mast 8RA", "anchor,AG34,east,Mast 8RA", "Mast 8RA: recorded anchor AG34 east"),
                               ("turnout,TO1,C,Mast 14R", "turnout,TO1,B,Mast 14R", "Mast 14R: recorded turnout TO1 B")):
             with self.subTest(row=old):
                 path = tmp / "b.csv"

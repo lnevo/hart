@@ -115,8 +115,7 @@ def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
     """dict sensor -> length in mm, None where the CSV row is missing or its source is not trusted.
 
     block_lengths.csv (hartlib.railroad.BLOCK_LENGTH_COLUMNS): a `timed` row's length is its measured_in, a `plan`
-    row's its plan_in. A hidden throat stub (source `stub`) shares its track's detector, so its plan_in is added to
-    a trusted row whose sensor it names. Stops on a file without those columns."""
+    row's its plan_in. Stops on a file without those columns."""
     with open(path, newline="") as fh:
         reader = csv.DictReader(fh)
         missing = {"user_name", "occupancy_sensor", "plan_in", "measured_in", "source"} - set(reader.fieldnames or [])
@@ -130,11 +129,7 @@ def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
         if row is None or source not in trusted:
             out[sensor] = None
             continue
-        mm = float(row["measured_in" if source == "timed" else "plan_in"]) * MM_PER_INCH
-        for r in rows.values():
-            if r["source"].strip() == "stub" and r["occupancy_sensor"].strip() == sensor:
-                mm += float(r["plan_in"]) * MM_PER_INCH
-        out[sensor] = mm
+        out[sensor] = float(row["measured_in" if source == "timed" else "plan_in"]) * MM_PER_INCH
     return out
 
 

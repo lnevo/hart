@@ -68,13 +68,7 @@ class TrackLengths(unittest.TestCase):
                                {"OS Switch 7", "OS Switch 3", "OS Switch 1"})
         self.assertEqual(got, {"Track K-1": 122.9, "Track K-2": 122.9, "Track BP": 71.6, "Track Scale": 158.0})
 
-    def test_fixed_blocks_come_off_their_track(self):
-        b = band({"e22": ("e22", "S-1")})
-        names = {"blocks": {"e22": ["Track S-1 West", "Track S-1", "Track S-1 East"]}}
-        fixed = {"Track S-1 West": 15.0, "Track S-1 East": 15.0}
-        self.assertEqual(PL.track_lengths(b, names, {"e22": 210.0}, set(), fixed), {"Track S-1": 180.0})
-
-    def test_two_free_track_blocks_on_one_track_or_a_missing_run_stop(self):
+    def test_two_track_blocks_on_one_track_or_a_missing_run_stop(self):
         b = band({"e22": ("e22", "S-1")})
         names = {"blocks": {"e22": ["Track A", "Track B"]}}
         with self.assertRaisesRegex(PL.LengthError, r"blocks \['Track A', 'Track B'\] share it"):
@@ -112,13 +106,11 @@ class CsvWith(unittest.TestCase):
         p.write_text(buf.getvalue(), encoding="utf-8")
         return p
 
-    def test_plan_in_is_written_and_a_stub_keeps_its_length(self):
-        p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["Track A West", "x", "15.748", "", "stub", ""],
-                        ["OS Switch 1", "x", "1.0", "22.6", "timed", "laps"]])
-        got = list(csv.DictReader(io.StringIO(PL.csv_with({"Track A": 104.04, "Track A West": 15.748,
-                                                           "OS Switch 1": 9.2}, p))))
-        self.assertEqual([(r["user_name"], r["plan_in"], r["measured_in"]) for r in got],
-                         [("Track A", "104.0", ""), ("Track A West", "15.748", ""), ("OS Switch 1", "9.2", "22.6")])
+    def test_plan_in_is_written_and_the_rest_kept(self):
+        p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["OS Switch 1", "x", "1.0", "22.6", "timed", "laps"]])
+        got = list(csv.DictReader(io.StringIO(PL.csv_with({"Track A": 104.04, "OS Switch 1": 9.2}, p))))
+        self.assertEqual([(r["user_name"], r["plan_in"], r["measured_in"], r["note"]) for r in got],
+                         [("Track A", "104.0", "", ""), ("OS Switch 1", "9.2", "22.6", "laps")])
 
     def test_the_file_and_the_drawing_must_hold_the_same_blocks(self):
         p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["Track Gone", "x", "1.0", "", "plan", ""]])

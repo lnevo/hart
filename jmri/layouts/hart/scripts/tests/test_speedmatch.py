@@ -154,13 +154,6 @@ class Lengths(unittest.TestCase):
         both = analyze.load_lengths(p, trusted=("timed", "plan"))
         self.assertAlmostEqual(both["BS East Lead"], 172 * 25.4)
 
-    def test_stubs_on_the_detector_are_added(self):
-        p = self.write(["user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note"],
-                       [["Track East Lead", "x", "92.2", "92", "timed", "timed share"],
-                        ["Track East Lead East", "BS East Lead", "15.748", "", "stub", "hidden throat"]])
-        got = analyze.load_lengths(p)
-        self.assertAlmostEqual(got["BS East Lead"], 92 * 25.4 + 400.0, places=1)
-
     def test_a_file_without_the_columns_stops(self):
         p = self.write(["user_name", "occupancy_sensor", "inches", "flag"], [["Track K-2", "x", "114.5", "inferred"]])
         with self.assertRaisesRegex(ValueError, "no column measured_in, plan_in, source"):
