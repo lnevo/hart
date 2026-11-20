@@ -19,8 +19,6 @@
 #                         reads, so it runs before publishing
 #   main-upper-masts      main_upper_masts.csv, from the device map; the Layout Editor builds place these masts
 #   schematic             the schematic draft and stations (publish_draft.py)
-#   cats                  the CATS desks (build_cats_panel.py)
-#   approved-desks        check_approved.py on the desks, straight after they are written
 #   le-cutover            build_layout_le.py --as-live: the three-level candidate and the staging candidate it holds
 #                         (the viewing trials are retired, owner 2026-11-17: the candidates show every level)
 #   approved-candidate    check_approved.py on the cut-over candidate, straight after it is written
@@ -31,6 +29,9 @@
 #   staging-map           the level 1 rows of devices.csv (its mast and head rows aside) are kept by hand: the staging
 #                         files are checked against tables.xml and the schematic (staging_device_map.py --check), in
 #                         both modes; after tables, which it checks
+#   cats                  the CATS desks (build_cats_panel.py); after tables, whose turnouts, sensors, layout blocks
+#                         and masts they read, so one make panels leaves the desks current with the tables
+#   approved-desks        check_approved.py on the desks, straight after they are written
 #   approved-live         check_approved.py on the live panel
 #
 # The approved-* steps stop a write that drifts from the owner-approved fingerprints, before anything else reads it.
@@ -76,13 +77,13 @@ step signals python3 tools/schematic/build_signals.py
 step device-map python3 tools/schematic/build_device_map.py
 step main-upper-masts python3 tools/schematic/build_main_upper_masts.py
 step schematic python3 tools/schematic/publish_draft.py
-step cats python3 tools/schematic/build_cats_panel.py
-guard approved-desks python3 tools/schematic/check_approved.py cats-ctc cats-abs
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
 guard approved-candidate python3 tools/schematic/check_approved.py le-candidate
 step tables python3 tools/schematic/build_tables.py
 guard staging-sync python3 tools/schematic/sync_staging_signals.py --check
 guard staging-map python3 tools/schematic/staging_device_map.py --check
+step cats python3 tools/schematic/build_cats_panel.py
+guard approved-desks python3 tools/schematic/check_approved.py cats-ctc cats-abs
 guard approved-live python3 tools/schematic/check_approved.py le-panel
 
 if [ ${#failed[@]} -gt 0 ]; then

@@ -86,6 +86,12 @@ class LayoutFactsTest(unittest.TestCase):
         out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
         self.assertTrue(any("throws OS Switch 7b to Track Scale" in m for m in out), out)
 
+    def test_a_crossover_whose_halves_share_a_block_is_named(self) -> None:
+        tables = self.copy(check.TABLES, lambda t: t.replace('blockcname="OS Switch 7b" blockdname="OS Switch 7b"',
+                                                             'blockcname="OS Switch 7" blockdname="OS Switch 7"', 1))
+        out = [m for m in self.failures(tables=tables) if m.startswith("Switch 7:")]
+        self.assertTrue(any("halves are blocks ['OS Switch 7', 'OS Switch 7']" in m for m in out), out)
+
     def test_a_slip_or_level_crossing_on_a_joined_block_is_named(self) -> None:
         tables = self.copy(check.TABLES, lambda t: re.sub(
             r'(<tracksegment ident="[^"]*" blockname="Track Main West"[^>]*?type1=")[A-Z_]+(")',

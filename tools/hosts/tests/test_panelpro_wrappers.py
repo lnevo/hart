@@ -114,8 +114,9 @@ class Sandbox:
         # build_tables.py stands in for the generator (run_sml_discover.sh): it logs its arguments
         stub = self.root / "tools/schematic/build_tables.py"
         stub.parent.mkdir(parents=True)
-        stub.write_text("import sys\nopen(sys.argv[0] + '.log', 'a').write(' '.join(sys.argv[1:]) + '\\n')\n",
-                        encoding="utf-8")
+        stub.write_text("import os, sys\nopen(sys.argv[0] + '.log', 'a').write(' '.join(sys.argv[1:]) + '\\n')\n"
+                        "sys.exit(2 if os.environ.get('FAKE_TABLES_FAIL') and sys.argv[1] == '--discovered-from' "
+                        "else 0)\n", encoding="utf-8")
         self.home = tmp / "home"
         self.profile = self.make_profile(self.home / "Library/Preferences/JMRI", "My_JMRI_Railroad", LIVE_ID,
                                          r"home\:JMRI_UserFiles/")
@@ -268,6 +269,17 @@ class StartupScriptsOff(WrapperCase):
         self.assertIn(f"HART_SML_DISCOVER_FILE={stored}\n", launched)
         self.assertNotIn("output/tables.xml", stored)
         self.assertIn("DONE", done.stdout)
+        self.assert_restored()
+
+    def test_a_failed_take_keeps_the_discovery_store(self) -> None:
+        env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_TABLES_FAIL="1")
+        done = self.box.run("run_sml_discover.sh", env)
+        self.assertEqual(1, done.returncode, done.stderr)
+        kept = sorted((self.box.root / "jmri/layouts/hart/output/pulled").glob("discovery-*.xml"))
+        self.assertEqual(1, len(kept), done.stderr)
+        self.assertIn(f"kept as jmri/layouts/hart/output/pulled/{kept[0].name}", done.stderr)
+        self.assertIn("--discovered-from jmri/layouts/hart/output/pulled/", done.stderr)
+        self.assertNotIn("DONE", done.stdout)
         self.assert_restored()
 
     def test_nx_defaults_paint_only(self) -> None:

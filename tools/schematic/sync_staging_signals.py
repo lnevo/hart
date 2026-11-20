@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Bring the staging signal heads and masts in tables.xml in line with staging_masts.csv (build_staging_masts.py).
 
-    python3 tools/schematic/sync_staging_signals.py           # edit jmri/layouts/hart/output/tables.xml
-    python3 tools/schematic/sync_staging_signals.py --check   # exit 1 if tables.xml differs from the file
+    python3 tools/schematic/sync_staging_signals.py --check                 # exit 1 if tables.xml differs
+    python3 tools/schematic/sync_staging_signals.py --tables OTHER.xml      # edit another tables file
+
+tables.xml is generated since R9c (ADR-029): tools/schematic/build_tables.py writes its staging heads and masts from
+devices.csv, so this script only checks it and refuses to write it (hartlib.tables_build.refuse_generated).
 
 Staging masts are the masts whose user name is "Mast " and a number under 100 (main and upper masts are 101 and up,
 or a line code and a milepost: hartlib.level_devices.LEVEL_USER), and their heads. For each staging mast in the file:
@@ -11,7 +14,7 @@ for IF$vsm; an element whose system name, user name and class already match is l
 and the rest carry over). Every other staging mast and every staging head no mast of the file uses goes, with the
 Signal Mast Logic that names any mast that went or changed (the logic whose source it is, each destination naming
 it, and a logic left with none): stock discovery in a sandbox derives it again from the panel the LE build draws.
-Run with JMRI closed (a Store would undo it), then make panels.
+Run with JMRI closed (a Store would undo it).
 """
 from __future__ import annotations
 
@@ -25,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft  # noqa: E402,F401  puts hartlib on the path
 import le_tables  # noqa: E402  HEAD_CLASS, MAST_CLASS, place
 import staging_device_map as sdm  # noqa: E402
-from hartlib import level_masts, paths, tables  # noqa: E402
+from hartlib import level_masts, paths, tables, tables_build  # noqa: E402
 
 VSM_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
 STAGING_MAST = re.compile(r"Mast \d{1,2}(?:[LR][A-C]?)?")
@@ -142,6 +145,7 @@ def main(argv=None) -> int:
             return 1
         print(f"ok: staging signals in {paths.rel(args.tables)} follow {sdm.MASTS.name}")
         return 0
+    tables_build.refuse_generated(args.tables, Path(__file__).name)
     if tables.jmri_running():
         print("JMRI is running: quit PanelPro and CATS first (a Store would undo this)", file=sys.stderr)
         return 2

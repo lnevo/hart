@@ -28,8 +28,10 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
    rewrite, disable_digicon_sml_in_tables.py, until R9c), so the hosts get exactly the committed bytes.
 
 A PanelPro Store of tables.xml is never copied over it: make tables-pull and tables-pull-pi keep the Store in the
-gitignored output/pulled/ and stop, until R9d splits a Store into these sources. Prints SKIPPED (exit 0) with
---check when the schematic-maps plugin is not checked out, unless SCHEMATIC_REQUIRED=1.
+gitignored output/pulled/ and record it as taken; its edits go into these sources by hand until R9d's pull splits a
+Store. Exit codes: 0 written or current, 1 stale (--check), 2 a source cannot make the tables, 3 the schematic-maps
+plugin is missing or not at its pin (EXIT_NO_PLUGIN; --check prints SKIPPED and exits 0 instead unless
+SCHEMATIC_REQUIRED=1, which the deploy sets).
 """
 from __future__ import annotations
 
@@ -46,6 +48,7 @@ from hartlib import devices, paths, tables  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 OUT = paths.REPO_TABLES_XML
+EXIT_NO_PLUGIN = 3      # the plugin is missing or off its pin: the deploy names the fix (sync_hart_package.sh)
 
 
 def generate(discovered: tuple | None = None, with_logic: bool = True) -> tuple[bytes, dict]:
@@ -65,9 +68,8 @@ def generate(discovered: tuple | None = None, with_logic: bool = True) -> tuple[
     if with_logic:
         gaps = tb.missing_logic(root)
         if gaps:
-            raise tb.TablesBuildError(f"masts with no discovered logic they need ({', '.join(gaps[:10])}"
-                                      f"{' ...' if len(gaps) > 10 else ''}): run "
-                                      "jmri/layouts/hart/scripts/run_sml_discover.sh")
+            raise tb.TablesBuildError(f"{len(gaps)} mast(s) with no discovered logic they need ({', '.join(gaps)}): "
+                                      "run jmri/layouts/hart/scripts/run_sml_discover.sh")
     digicon = tb.digicon_masts(root)
     flipped, already = tb.disable_digicon(root, digicon)
     tb.jmri_sort(root)          # the order a Store writes (ADR-029 gate 2)
@@ -117,11 +119,11 @@ def main(argv=None) -> int:
     try:
         ble.plugin()
     except ble.BuildError as exc:
-        if args.check:
+        if args.check and os.environ.get("SCHEMATIC_REQUIRED") != "1":
             print(f"SKIPPED tables check: {exc}")
-            return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
-        print(f"build_tables.py: {exc}", file=sys.stderr)
-        return 2
+            return 0
+        print(f"build_tables.py: the schematic-maps plugin: {exc}", file=sys.stderr)
+        return EXIT_NO_PLUGIN
     with contextlib.ExitStack() as stack:
         stack.enter_context(pd.cache_on())
         try:

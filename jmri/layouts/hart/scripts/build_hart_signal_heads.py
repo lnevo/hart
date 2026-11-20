@@ -20,7 +20,7 @@ needs 9 pins. New 5V **OU4** on C1 / C4 / C13 (C12 and C11 use existing 5V OUs).
   radio 3  C3  Motors 103–106 only — no Digicon heads.
   radio 5  D5  DCC only — no signal ports
 
-`--wiring-only` writes CSVs only (no tables.xml / publisher).
+`--wiring-only` writes CSVs only (no publisher). It never writes tables.xml, which is generated (ADR-029).
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables_build  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DATA = ROOT / "docs/wiring/signals"
@@ -399,10 +399,9 @@ def lost_beans(block: str, tables_text: str) -> list[str]:
 
 
 def patch_tables(rows: list[dict]) -> None:
-    """Refuse: heads and masts are changed in tables.xml directly.
-
-    The generated block cannot replace the live one, because it has no virtual
-    masts or IH9990. The reason is reported so --wiring-only is used instead.
+    """Refuse: tables.xml is generated (ADR-029, R9c), its heads and masts from devices.csv
+    (build_staging_masts.py, tools/schematic/build_tables.py), so this script never writes it.
+    The reason found is reported so --wiring-only is used instead.
     """
     rows = fitted_rows(rows)
     tables = paths.TABLES_XML
@@ -418,8 +417,8 @@ def patch_tables(rows: list[dict]) -> None:
     dropped = f" ({len(lost)}: {', '.join(lost[:8])})" if lost else ""
     raise SystemExit(
         "refusing to rewrite tables.xml: the generated block would drop "
-        f"live beans{dropped}, such as virtual masts and IH9990. Change heads "
-        "and masts in tables.xml directly. Use --wiring-only."
+        f"live beans{dropped}, such as virtual masts and IH9990. "
+        f"{tables_build.GENERATED_NOTE}. Use --wiring-only."
     )
 
 

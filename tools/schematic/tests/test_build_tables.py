@@ -149,7 +149,7 @@ class Generated(unittest.TestCase):
         with mock.patch.object(tb, "DISCOVERED", disc):
             code, _stdout, err = run("--check")
         self.assertEqual(2, code)
-        self.assertIn("masts with no discovered logic they need (Mast 4RA", err)
+        self.assertIn("1 mast(s) with no discovered logic they need (Mast 4RA)", err)
         self.assertIn("run_sml_discover.sh", err)
 
     def test_a_missing_store_stops_naming_it(self) -> None:
@@ -175,8 +175,8 @@ class Skipped(unittest.TestCase):
             code, out, _err = run("--check")
             self.assertEqual((0, True), (code, "SKIPPED" in out))
             with mock.patch.dict(os.environ, {"SCHEMATIC_REQUIRED": "1"}):
-                self.assertEqual(1, run("--check")[0])
-            self.assertEqual(2, run()[0])                 # a write needs the plugin
+                self.assertEqual(bt.EXIT_NO_PLUGIN, run("--check")[0])
+            self.assertEqual(bt.EXIT_NO_PLUGIN, run()[0])         # a write needs the plugin
 
 
 if __name__ == "__main__":

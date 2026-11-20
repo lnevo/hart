@@ -284,6 +284,15 @@ class PreflightTest(DeployHarness):
         self.assertNotIn("Deploy → Pi", done.stdout)
         self.assertFalse(any("mktemp -d /tmp/hart-deploy" in c for c in self.calls()), self.calls())
 
+    def test_a_missing_plugin_gets_its_own_stop(self) -> None:
+        (self.tmp / "tables_no_plugin").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: the tables check needs the schematic-maps plugin at its pin: run git submodule update",
+                      done.stderr)
+        self.assertNotIn("is not what tools/schematic/build_tables.py writes", done.stderr)
+        self.assertNotIn("Deploy → Pi", done.stdout)
+
     def test_an_enabled_digicon_destination_stops_the_deploy(self) -> None:
         (self.tmp / "digicon_enabled").touch()
         done = self.deploy("--pi", "--win")

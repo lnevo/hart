@@ -4,7 +4,8 @@
 # PanelPro menu "Store Configuration and Panels" does, PanelPro quits, and the Store and the generated file
 # must be the same bytes once both are normalised (hartlib.tables_build.normalise_store: the envelope and the
 # derived block paths out, the panel past what a Store rewrites). Every staging block must have a derived path.
-# It prints PASS or FAIL last.
+# It prints PASS or FAIL, then runs tools/audit/check_layout_facts.py --tables on the Store, the one place the
+# stored-path leg check runs since tables.xml stores no paths; the run fails if either fails.
 #
 #   tools/hosts/run_panelpro_roundtrip.sh            # exit 0 when it passes, 1 when it fails or cannot run
 #
@@ -64,3 +65,8 @@ fi
 echo "Store kept as ${STORE#"$ROOT"/}"
 PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.tables_build roundtrip \
   --store "$STORE" --paths "$COUNTS" --generated "$TABLES"
+# The Store holds the block paths JMRI derived, so the stored-path leg check of check_layout_facts.py, which the
+# generated file (no stored paths) cannot run, runs here.
+echo "Switch legs against the Store's derived block paths:"
+python3 "$ROOT/tools/audit/check_layout_facts.py" --tables "$STORE" \
+  || { echo "FAIL: check_layout_facts.py --tables ${STORE#"$ROOT"/}" >&2; exit 1; }

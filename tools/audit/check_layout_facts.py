@@ -13,7 +13,7 @@ Layout Editor (tables.xml)
   - the stored block paths: the closed leg needs Closed or no setting, the thrown
     leg Thrown, and neither may be reached with the other setting. The generated tables.xml stores none (ADR-029:
     JMRI derives them from the panel on load), so this part runs only on a tables file that stores them (--tables,
-    a PanelPro Store);
+    a PanelPro Store: tools/hosts/run_panelpro_roundtrip.sh runs it on its Store);
   - a crossover's legs against the panel's track: its OS block one half, its thrown leg the other half, its closed
     leg a block the track reaches from that half (check_crossover_legs; plain turnouts by continuing sense above).
 CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schematic since the CATS cut-over)
@@ -256,7 +256,13 @@ def check_crossover_legs(sw: facts.Switch, lt: ET.Element, t: Tables, r: Report)
     block is one half of the layout turnout, its thrown leg the other half, and its closed leg the block the track
     reaches from that half's straight-through end (XOVER_DIVERGING)."""
     n = f"Switch {sw.number}"
-    halves = {t._turnout_block(lt, a): (a, b) for a, b in XOVER_HALVES}
+    pairs = [(t._turnout_block(lt, a), (a, b)) for a, b in XOVER_HALVES]
+    blocks = [h for h, _c in pairs]
+    if not all(blocks) or len(set(blocks)) != 2:
+        r.add(f"le:{n}", f"{n}: Layout Editor {sw.le_ident}'s halves are blocks {blocks}: a crossover needs two "
+                         "halves, each its own block (blockname for A-B, blockcname for C-D)")
+        return
+    halves = dict(pairs)
     for leg in sw.legs:
         conns = halves.get(leg.os_block)
         if conns is None:

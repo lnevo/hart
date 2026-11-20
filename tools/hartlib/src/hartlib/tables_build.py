@@ -38,6 +38,7 @@ import copy
 import csv
 import difflib
 import functools
+import os
 import re
 import struct
 import sys
@@ -99,6 +100,17 @@ _LCOS_HEAD = re.compile(r"\(IH\d+\)")
 
 class TablesBuildError(ValueError):
     """The template, the master rows, the discovered logic or the result cannot make a tables file."""
+
+
+GENERATED_NOTE = ("tables.xml is generated (ADR-029): change devices.csv, the template (data/tables_template.xml) "
+                  "or the other sources, then run python3 tools/schematic/build_tables.py")
+
+
+def refuse_generated(target: Path | str, script: str) -> None:
+    """Stop `script` (SystemExit) before it writes the repo's generated tables.xml, by path or through a link; a
+    script that edited tables.xml by hand may still write another tables file it is pointed at."""
+    if os.path.realpath(target) == os.path.realpath(paths.REPO_TABLES_XML):
+        raise SystemExit(f"{script}: not writing {paths.rel(Path(target))}: {GENERATED_NOTE}")
 
 
 # ---------------------------------------------------------------- order
@@ -718,7 +730,8 @@ def roundtrip_report(store: Path, counts: Path, generated: Path) -> tuple[bool, 
         paths_of = read_path_counts(counts)
     except OSError as exc:
         return False, [f"cannot read {exc.filename}: {exc.strerror}"]
-    staging = [r["jmri_name"] for r in devices.load() if r["level"] in GENERATED_LEVELS and r["layer"] == "block"]
+    staging = [r["jmri_name"] for r in devices.load()
+               if r["level"] in GENERATED_LEVELS and r["layer"] == "block" and r["assignment"] != "none"]
     none = [b for b in staging if paths_of.get(b, ("", 0))[1] == 0]
     total = sum(n for _u, n in paths_of.values())
     lines.append(f"block paths JMRI derived: {total} on {len(paths_of)} blocks "
