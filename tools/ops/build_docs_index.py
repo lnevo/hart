@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Write docs/INDEX.md: every document under docs/, newest change first."""
+"""build_docs_index.py
+
+Write docs/INDEX.md: every document under docs/, newest change first. Takes no arguments."""
 from __future__ import annotations
 
 import subprocess
+import sys
 from collections import defaultdict
 from pathlib import Path
 from urllib.parse import quote
@@ -39,7 +42,13 @@ def doc_link(path: str) -> str:
     return quote(path.removeprefix("docs/"))
 
 
-def main() -> int:
+def main(argv: list[str]) -> int:
+    if {"-h", "--help"} & set(argv):     # help wins over any other argument: it only prints
+        print(__doc__ or "build_docs_index.py (takes no arguments)")      # python -OO strips the docstring
+        return 0
+    if argv:            # it has no options: a typo must not fall through to a rewrite
+        print(f"build_docs_index.py: unknown argument {argv[0]!r}; it takes none (--help for more)", file=sys.stderr)
+        return 2
     dates = last_changed()
     groups: dict[str, list[tuple[str, str]]] = defaultdict(list)
     for path in tracked():
@@ -59,4 +68,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))

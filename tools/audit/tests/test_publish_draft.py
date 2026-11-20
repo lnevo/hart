@@ -163,6 +163,39 @@ class SignalsCheck(unittest.TestCase):
     def test_skips_without_the_plugin(self) -> None:
         self.assertEqual(self.without_plugin(), 0)
 
+    def refused(self, argv):
+        """main(argv) for arguments that must stop before the plugin is loaded and write no signals file."""
+        with tempfile.TemporaryDirectory() as tmp:
+            out, err = io.StringIO(), io.StringIO()
+            with mock.patch.object(self.bs.pd, "DATA", Path(tmp)), mock.patch.object(self.bs, "generate") as generate, \
+                    mock.patch.object(self.bs.pd, "plugin") as plugin, \
+                    contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                status = self.bs.main(argv)
+            generate.assert_not_called()
+            plugin.assert_not_called()
+            self.assertEqual(os.listdir(tmp), [])
+        return status, out.getvalue(), err.getvalue()
+
+    def test_unknown_argument_is_refused(self) -> None:
+        for argv in (["--chek"], ["--check", "--verbose"], ["staging"]):
+            status, out, err = self.refused(argv)
+            self.assertEqual(status, 2, argv)
+            self.assertIn(repr(argv[-1]), err)
+            self.assertEqual(out, "")
+
+    def test_help_prints_the_usage(self) -> None:
+        for argv in (["--help"], ["-h"], ["--check", "--help"], ["--help", "--check"], ["--chek", "-h"]):
+            status, out, err = self.refused(argv)
+            self.assertEqual(status, 0, argv)
+            self.assertIn("build_signals.py [--check]", out)
+            self.assertEqual(err, "")
+
+    def test_help_without_a_docstring(self) -> None:
+        """python -OO strips the docstring; --help still prints the usage line, not 'None'."""
+        with mock.patch.object(self.bs, "__doc__", None):
+            status, out, err = self.refused(["--check", "--help"])
+        self.assertEqual((status, out, err), (0, "build_signals.py [--check]\n", ""))
+
     def test_skips_off_the_pin(self) -> None:
         def off_pin():
             raise SystemExit("submodule is at aaaaaaaa, pinned bbbbbbbb")
@@ -326,6 +359,141 @@ class StationMapRevision(unittest.TestCase):
                 mock.patch.object(PD.map_revision, "planned", side_effect=ValueError("no entry for x")), \
                 self.assertRaisesRegex(SystemExit, "nothing written"):
             PD.main([])
+
+
+class MainBase(unittest.TestCase):
+    """Publishing counts the revision from where the branch left main; when git cannot find that commit it stops,
+    not compares with HEAD (where a committed drawing change equals itself and gets no new revision)."""
+
+    def setUp(self) -> None:
+        PD.main_base.cache_clear()                 # main_base answers once per run; each test is its own run
+        self.addCleanup(PD.main_base.cache_clear)
+
+    @staticmethod
+    def git(merge_base, calls, has_main=True, shallow=False, listed=(0, "docs/ops/x.svg\n", ""),
+            show=(0, "text on main", "")):
+        """A git that answers merge-base, the two rev-parse questions asked after a failure, ls-tree and show."""
+        def run(cmd, **kwargs):
+            calls.append(cmd[3:])                                  # past git -C <repo>
+            answer = {"merge-base": merge_base, "ls-tree": listed, "show": show,
+                      "rev-parse": (0, "true\n" if shallow else "false\n", "") if "--is-shallow-repository" in cmd
+                      else (0 if has_main else 1, "", "")}[cmd[3]]
+            return mock.Mock(returncode=answer[0], stdout=answer[1], stderr=answer[2])
+        return run
+
+    def test_the_file_is_read_at_the_merge_base(self) -> None:
+        calls = []
+        with mock.patch.object(PD.subprocess, "run", self.git((0, "abc123\n", ""), calls)):
+            self.assertEqual(PD.on_main(PD.REPO / "docs/ops/x.svg"), "text on main")
+        self.assertEqual(calls, [["merge-base", "HEAD", "origin/main"],
+                                 ["ls-tree", "--name-only", "abc123", "--", "docs/ops/x.svg"],
+                                 ["show", "abc123:docs/ops/x.svg"]])
+
+    def test_the_merge_base_is_asked_once(self) -> None:
+        calls = []
+        with mock.patch.object(PD.subprocess, "run", self.git((0, "abc123\n", ""), calls)):
+            PD.main_base()
+            for name in ("x.svg", "y.svg", "z.json"):
+                PD.on_main(PD.REPO / "docs/ops" / name)
+        self.assertEqual([c[0] for c in calls].count("merge-base"), 1)
+        self.assertEqual([c[1] for c in calls if c[0] == "show"],
+                         ["abc123:docs/ops/x.svg", "abc123:docs/ops/y.svg", "abc123:docs/ops/z.json"])
+
+    def test_a_file_not_on_main_is_none(self) -> None:
+        calls = []
+        with mock.patch.object(PD.subprocess, "run", self.git((0, "abc123\n", ""), calls, listed=(0, "", ""))):
+            self.assertIsNone(PD.on_main(PD.REPO / "docs/ops/new.svg"))
+        self.assertNotIn("show", [c[0] for c in calls])
+
+    def test_a_git_failure_reading_the_file_stops(self) -> None:
+        # read as "not on main", a failed read would count the revision from nothing (or skip the change)
+        failures = {"ls-tree fails": {"listed": (128, "", "fatal: bad object abc123")},
+                    "show fails": {"show": (128, "", "fatal: unable to read 0123abcd")},
+                    "show fails silently": {"show": (1, "", "")}}
+        for name, answers in failures.items():
+            PD.main_base.cache_clear()
+            with self.subTest(name), mock.patch.object(PD.subprocess, "run",
+                                                       self.git((0, "abc123\n", ""), [], **answers)), \
+                    self.assertRaises(SystemExit) as stop:
+                PD.on_main(PD.REPO / "docs/ops/x.svg")
+            message = str(stop.exception.code)
+            self.assertIn("git could not read docs/ops/x.svg at abc123", message)
+            self.assertIn(next(iter(answers.values()))[2] or "exit 1", message)
+            self.assertIn("`python3 tools/schematic/publish_draft.py` again", message)
+
+    def test_a_failed_merge_base_stops_and_names_the_fix(self) -> None:
+        failures = {
+            "no origin/main": ((128, "", "fatal: Not a valid object name origin/main"), {"has_main": False},
+                               "`git fetch origin main:refs/remotes/origin/main`"),
+            "shallow clone, no common commit": ((1, "", ""), {"shallow": True}, "`git fetch --unshallow origin`"),
+            "unrelated history": ((1, "", ""), {}, "`make wt TOPIC=<topic>`"),
+            "empty answer": ((0, "\n", ""), {}, "`make wt TOPIC=<topic>`")}
+        for name, (result, state, fix) in failures.items():
+            calls = []
+            PD.main_base.cache_clear()
+            with self.subTest(name), mock.patch.object(PD.subprocess, "run", self.git(result, calls, **state)), \
+                    self.assertRaises(SystemExit) as stop:
+                PD.on_main(PD.REPO / "docs/ops/x.svg")
+            message = str(stop.exception.code)
+            self.assertIn("`git merge-base HEAD origin/main` failed", message)
+            self.assertIn(fix, message)                                            # the step that fits this failure
+            self.assertEqual(message.count("run `git fetch"), 1 if "fetch" in fix else 0)
+            self.assertIn("then run `python3 tools/schematic/publish_draft.py` again", message)
+            self.assertIn("nothing written", message)
+            self.assertEqual({c[0] for c in calls}, {"merge-base", "rev-parse"})   # never falls back to HEAD
+            self.assertIn(result[2] or f"exit {result[0]}", message)               # git's own reason, when it gave one
+
+    def test_publishing_stops_before_any_write(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            prefs, staging = Path(tmp) / "page.preferences.json", Path(tmp) / "staging.plan_overrides.json"
+            prefs.write_text(json.dumps({"date": "2026-11-14", "revision": 1}))
+            staging.write_text(json.dumps({"track_lengths_in": {"S-1": 1}}))
+            before = {p: p.read_text() for p in (prefs, staging)}
+            wrote = AssertionError("wrote")
+            with mock.patch.object(PD.subprocess, "run", self.git((1, "", ""), [], shallow=True)), \
+                    mock.patch.object(PD, "page_prefs", return_value=prefs), mock.patch.object(PD, "STAGING", staging), \
+                    mock.patch.object(PD, "stale_lengths", return_value=["S-1"]), \
+                    mock.patch.object(PD.map_revision, "planned"), \
+                    mock.patch.object(PD.map_revision, "apply", side_effect=wrote), \
+                    mock.patch.object(PD, "copy_lengths", side_effect=wrote), \
+                    mock.patch.object(PD, "draw", side_effect=AssertionError("drew")), \
+                    mock.patch.object(PD, "draw_stations", side_effect=AssertionError("drew")), \
+                    mock.patch.object(PD, "write_stations", side_effect=wrote), \
+                    mock.patch.object(PD, "set_fields", side_effect=wrote), \
+                    mock.patch.object(PD, "pdf", side_effect=wrote), \
+                    self.assertRaisesRegex(SystemExit, "git fetch --unshallow origin"):
+                PD.main([])
+            self.assertEqual({p: p.read_text() for p in (prefs, staging)}, before)
+
+    def test_check_never_asks_for_the_merge_base(self) -> None:
+        # CI checks out one commit with no origin/main (actions/checkout's default depth), and runs --check
+        with mock.patch.object(PD, "main_base", side_effect=AssertionError("asked")), \
+                mock.patch.object(PD, "_git", side_effect=AssertionError("ran git")), \
+                mock.patch.object(PD, "draw", return_value="<svg/>"), \
+                mock.patch.object(PD, "draw_stations", return_value={}), \
+                mock.patch.object(PD, "stations_differ", return_value=[]), \
+                mock.patch.object(PD, "stale_lengths", return_value=[]), \
+                mock.patch.object(PD.map_revision, "drift", return_value=[]), \
+                contextlib.redirect_stdout(io.StringIO()):
+            self.assertIn(PD.main(["--check"]), (0, 1))
+
+    def test_preview_never_asks_for_the_merge_base(self) -> None:
+        # a preview shows the drawing as it stands: it compares nothing with main, so it runs without origin/main
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(PD, "main_base", side_effect=AssertionError("asked")), \
+                mock.patch.object(PD, "_git", side_effect=AssertionError("ran git")), \
+                mock.patch.object(PD, "on_main", side_effect=AssertionError("read main")), \
+                mock.patch.object(PD, "draw", return_value="<svg/>"), \
+                mock.patch.object(PD, "draw_stations", return_value={"a.svg": "<svg>a</svg>"}), \
+                mock.patch.object(PD, "stale_lengths", return_value=[]), \
+                mock.patch.object(PD, "pdf"), \
+                mock.patch.object(PD, "set_fields", side_effect=AssertionError("wrote")), \
+                mock.patch.object(PD, "copy_lengths", side_effect=AssertionError("wrote")), \
+                contextlib.redirect_stdout(io.StringIO()):
+            folder = Path(tmp).resolve() / "out"
+            self.assertEqual(PD.main(["--preview", str(folder)]), 0)
+            self.assertEqual((folder / "schematic-system-draft.svg").read_text(), "<svg/>")
+            self.assertEqual(sorted(p.name for p in (folder / "stations").iterdir()), ["a.svg"])
 
 
 if __name__ == "__main__":

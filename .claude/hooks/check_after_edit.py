@@ -2,9 +2,13 @@
 """After an edit to the tables or the signal files, run the quick checks from tools/check.sh.
 
 PostToolUse hook for Edit, Write and MultiEdit. A failing check exits 2 with its output on
-stderr, which Claude sees. The slow parts of check.sh (portal build, the other unit suites)
-stay in ./tools/check.sh; these eight take about a second together. Edits made by Bash
-scripts (sed, a table generator) do not pass through this hook and are not caught.
+stderr, which Claude sees. The table checks take about a second together. The unit-jmri job
+(about 14 s) runs after an edit to a data file (tables.xml, the signal CSVs). After an edit
+to a script it is replaced by the test files that name that script (matching_tests), each
+well under a second; a script no test file names gets the whole unit-jmri job, and the hook
+says so. The slow parts of check.sh (portal build, the other unit suites) stay in
+./tools/check.sh and CI. Edits made by Bash scripts (sed, a table generator) do not pass
+through this hook and are not caught.
 """
 import json
 import os
@@ -29,8 +33,63 @@ CHECKS = [  # (name, argv) as in tools/check.sh; test_guards checks each one is 
     ("wiring-crosswalk", ["python3", "tools/audit/check_wiring_crosswalk.py"]),
     ("unit-jmri", ["python3", "-m", "unittest", "discover", "-q", "-s", "jmri/layouts/hart/scripts/tests"]),
 ]
+UNIT_JMRI = "unit-jmri"
+# Folders whose test files are searched for the edited script's name; each is a unit job in tools/check.sh.
+TEST_DIRS = ["jmri/layouts/hart/scripts/tests", "jmri/scripts/tests", "cats/scripts/tests"]
 BUDGET = 20.0
 MIN_LEFT = 5.0
+
+
+class MatchError(Exception):
+    """The test files could not be searched, so the hook cannot tell which ones match."""
+
+
+def matching_tests(root, script):
+    """The test files under TEST_DIRS that name the script's module, as paths relative to root.
+
+    A test file matches when its text holds the module name (the file name without .py) as a
+    whole word: an import, a path it loads, or a list of scripts it checks. No table to keep.
+    """
+    stem = os.path.splitext(os.path.basename(script))[0]
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", stem):
+        raise MatchError(f"{os.path.basename(script)} is not a module name; cannot search the tests for it")
+    word = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(stem) + r"(?![A-Za-z0-9_])")
+    found, searched = [], 0
+    for folder in TEST_DIRS:
+        full = os.path.join(root, folder)
+        if not os.path.isdir(full):
+            continue
+        for name in sorted(os.listdir(full)):
+            if not (name.startswith("test") and name.endswith(".py")):
+                continue
+            searched += 1
+            try:
+                with open(os.path.join(full, name), encoding="utf-8") as handle:
+                    text = handle.read()
+            except (OSError, UnicodeDecodeError) as err:
+                raise MatchError(f"cannot read {folder}/{name}: {err}") from err
+            if word.search(text):
+                found.append(f"{folder}/{name}")
+    if not searched:
+        raise MatchError(f"no test files under {', '.join(TEST_DIRS)} in {root}")
+    return found
+
+
+def checks_for(root, path):
+    """(checks, note) for an edit to path: CHECKS, with unit-jmri narrowed when path is a script."""
+    if not path.endswith(".py"):
+        return CHECKS, ""
+    tests = matching_tests(root, path)
+    name = os.path.basename(path)
+    if not tests:
+        return CHECKS, f"no test file names {name}; ran the whole {UNIT_JMRI} job instead"
+    # The edited script's own tests go first so the time budget never skips them.
+    narrowed = []
+    for test in tests:
+        folder, file = os.path.split(test)
+        narrowed.append((f"unit {test}", ["python3", "-m", "unittest", "discover", "-q", "-s", folder, "-p", file]))
+    narrowed += [check for check in CHECKS if check[0] != UNIT_JMRI]
+    return narrowed, f"ran the {len(tests)} test file(s) that name {name}, not the whole {UNIT_JMRI} job: " + ", ".join(tests)
 
 
 def toplevel(directory):
@@ -51,8 +110,16 @@ def main():
     # and CLAUDE_PROJECT_DIR would test the main checkout instead.
     root = toplevel(os.path.dirname(os.path.abspath(path))) or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
     env = dict(os.environ, JMRI_LAYOUT="hart")
+    try:
+        checks, note = checks_for(root, path)
+    except MatchError as err:
+        print(f"Quick checks not run after editing {os.path.basename(path)}: {err}. Run ./tools/check.sh.",
+              file=sys.stderr)
+        return 2
+    if note:
+        print(f"check_after_edit: {note}.", file=sys.stderr)
     started, failed = time.monotonic(), []
-    for name, argv in CHECKS:
+    for name, argv in checks:
         left = BUDGET - (time.monotonic() - started)
         if left < MIN_LEFT:  # too little time to finish; a timeout here would look like a failure
             print(f"check budget of {BUDGET:.0f}s used; skipped {name} and later. Run ./tools/check.sh.", file=sys.stderr)

@@ -256,7 +256,9 @@ class RecordingAdapter:
         self.published = []
         self.subscribed = []
 
-    def publish(self, topic, payload, retain=False):
+    # Stock MqttAdapter.publish(topic, payload) retains (its `retained` field is true), so the
+    # two-argument form records True here, as the broker would see it.
+    def publish(self, topic, payload, retain=True):
         self.published.append((topic, payload, retain))
 
     def subscribe(self, topic, listener):
@@ -456,18 +458,28 @@ def no_network():
 
 
 @contextlib.contextmanager
-def jmri_modules(layout):
-    saved = {k: sys.modules.get(k) for k in _modules(layout)}
-    sys.modules.update(_modules(layout))
+def fake_modules(modules):
+    """Put `modules` (name -> module) in sys.modules, then put back only those names.
+
+    Not `mock.patch.dict(sys.modules, ...)`: on exit that resets all of sys.modules to its
+    earlier copy, so a real module first imported while the fakes were in place is dropped,
+    and the next import makes a second copy of it beside the one other modules still hold."""
+    saved = {k: sys.modules.get(k) for k in modules}
+    sys.modules.update(modules)
     try:
-        with no_network():
-            yield
+        yield
     finally:
         for k, v in saved.items():
             if v is None:
                 sys.modules.pop(k, None)
             else:
                 sys.modules[k] = v
+
+
+@contextlib.contextmanager
+def jmri_modules(layout):
+    with fake_modules(_modules(layout)), no_network():
+        yield
 
 
 def load_script(path: Path, layout: Layout) -> dict:

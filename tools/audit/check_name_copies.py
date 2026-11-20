@@ -97,7 +97,7 @@ ALLOW: dict[str, tuple[frozenset[str] | None, str]] = {
     ),
     "jmri/layouts/hart/scripts/discover_nx.py": (None, "Entry/Exit, parked (2026-11-17); updated on unpark"),
     "jmri/layouts/hart/scripts/nx_contract.py": (None, "Entry/Exit, parked (2026-11-17); updated on unpark"),
-    "jmri/layouts/hart/scripts/apply_nx_layer.py": (None, "Entry/Exit, parked (2026-11-17); updated on unpark"),
+    "jmri/layouts/hart/parked/apply_nx_layer.py": (None, "Entry/Exit, parked (2026-11-17); updated on unpark"),
     "jmri/layouts/hart/scripts/ctc_logic_smoke.py": (None, "the USS CTC machine, parked (2026-11-17); updated on unpark"),
     "jmri/layouts/hart/scripts/build_ctc_full_15col.py": (
         None, "the USS CTC machine, parked (2026-11-17); updated on unpark"),

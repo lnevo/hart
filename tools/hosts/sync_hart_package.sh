@@ -46,7 +46,7 @@ DO_PI=0
 DO_WIN=0
 DO_MAC_WEB=1
 STAGE_ONLY=""
-CHECK_PI_ONLY=0
+CHECK_ONLY=0
 if [[ $# -gt 0 ]]; then
   DO_MAC_WEB=0
   while [[ $# -gt 0 ]]; do
@@ -55,7 +55,9 @@ if [[ $# -gt 0 ]]; then
       --win) DO_WIN=1; DO_MAC_WEB=1 ;;
       --all) DO_PI=1; DO_WIN=1; DO_MAC_WEB=1 ;;
       --mac-web-only) DO_MAC_WEB=1 ;;
-      --check-pi-only) CHECK_PI_ONLY=1; DO_PI=1 ;;  # the Pi check alone (redeploy_commit.sh runs it)
+      # The checks alone, for the hosts named (redeploy_commit.sh runs them before an older commit's deploy).
+      --check-only) CHECK_ONLY=1 ;;
+      --check-pi-only) CHECK_ONLY=1; DO_PI=1 ;;  # --check-only --pi
       --dry-run) DRY_RUN=1 ;;
       --stage-only)
         [[ $# -ge 2 && -n "$2" ]] || { echo "--stage-only needs a folder" >&2; exit 1; }
@@ -64,7 +66,7 @@ if [[ $# -gt 0 ]]; then
         STAGE_ONLY="${1#*=}"
         [[ -n "$STAGE_ONLY" ]] || { echo "--stage-only needs a folder" >&2; exit 1; } ;;
       -h|--help)
-        echo "Usage: $0 [--pi] [--win] [--all] [--dry-run] [--stage-only DIR] [--check-pi-only]"
+        echo "Usage: $0 [--pi] [--win] [--all] [--dry-run] [--stage-only DIR] [--check-only]"
         echo "  A real Pi deploy stops first if the Pi's Operations Pro files or tables.xml changed since the"
         echo "  last deploy or pull (make ops-pull, make tables-pull-pi); HART_DISCARD_PI_CHANGES=1 replaces them."
         echo "  Windows SSH: ${WIN_HOST} -p ${WIN_PORT} → %TEMP% drop + JMRI_UserFiles"
@@ -74,6 +76,9 @@ if [[ $# -gt 0 ]]; then
         echo "                    No ssh, no Mac install, and the repo's tables.xml is only checked."
         echo "  What a host last got: tools/hosts/deploy_status.sh [--pi] [--win] [--mac]"
         echo "  Redeploy an older commit (rollback): tools/hosts/redeploy_commit.sh <commit> --pi"
+        echo "  A real deploy first asks each host named for an ssh answer and stops, before any file is sent"
+        echo "  or installed, if one does not reply (with --pi --win an unreachable Windows stops it before the"
+        echo "  Pi step). --check-only with the host flags runs this and the Pi check and stops there."
         echo "  Pi PanelPro: quit it first with tools/hosts/pi_quit_panelpro.sh --for-deploy;"
         echo "               the Pi deploy starts it again (also if the deploy fails). A plain"
         echo "               quit or one closed by hand stays closed. HART_PI_RESTART=0 skips."
@@ -174,6 +179,36 @@ pi_restart_if_due() {
   esac
 }
 
+# Windows is kept matching the Pi, and the Pi step runs first. A host that does not answer would
+# stop the run after the other host, the Mac or the repo's tables.xml had already changed, so ask
+# every host named on the command line for one ssh no-op before the gates below rewrite anything
+# or a byte is sent. It runs before the Pi's unpulled check, which needs ssh too and would name
+# the wrong cause for a Pi that is down. A dry run and --stage-only change nothing on a host and skip it.
+preflight_hosts() {
+  local down=() pi_up=0 h
+  if [[ "$DO_PI" -eq 1 ]]; then
+    if ssh_pi true </dev/null >/dev/null; then pi_up=1; else down+=("the Pi ($PI_HOST)"); fi
+  fi
+  # "exit 0" also runs under cmd.exe, the Windows OpenSSH shell.
+  if [[ "$DO_WIN" -eq 1 ]] && ! ssh_win "exit 0" </dev/null >/dev/null; then
+    down+=("Windows ($WIN_HOST port $WIN_PORT)")
+  fi
+  [[ "${#down[@]}" -gt 0 ]] || return 0
+  for h in "${down[@]}"; do
+    echo "STOP: cannot reach $h over ssh." >&2
+  done
+  echo "No file was sent to or installed on any host, and the Mac install did not run. Deploy again once every host answers." >&2
+  # A PanelPro quit for this deploy comes back, as after any stopped Pi deploy: the one thing done on a host.
+  if [[ "$pi_up" -eq 1 ]]; then
+    echo "The Pi answered: PanelPro there is started again if it was quit for this deploy (a line below says so)." >&2
+    pi_restart_if_due
+  fi
+  exit 1
+}
+if [[ "$DRY_RUN" -eq 0 ]]; then
+  preflight_hosts
+fi
+
 # What the owner changed on the Pi since the last deploy or pull would be replaced: Operations
 # Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Stop before
 # the gates rewrite anything or a byte is sent, and bring back a PanelPro quit for this deploy.
@@ -194,8 +229,9 @@ if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 && "${HART_DISCARD_PI_CHANGES:-0}" != "
     pi_stop "${msg}HART_DISCARD_PI_CHANGES=1 replaces them anyway."
   fi
 fi
-if [[ "$CHECK_PI_ONLY" -eq 1 ]]; then
-  echo "Pi check: nothing unpulled."
+if [[ "$CHECK_ONLY" -eq 1 ]]; then
+  [[ "$DO_PI" -eq 0 ]] || echo "Pi check: nothing unpulled."
+  echo "Host check: every host named answered over ssh."
   exit 0
 fi
 
@@ -506,10 +542,15 @@ push_rsync() {
   rsync "${flags[@]}" -e "ssh ${SSH_OPTS[*]}" "$stage/" "$dest"
 }
 
+# The Windows tarball. The name ends in the X's: BSD mktemp (macOS) only fills trailing ones, so a
+# template ending in .tgz made the literal name and failed on the next run. The Windows step's EXIT
+# trap removes it on every way out.
+WIN_TGZ=""
 push_tar_scp() {
   local stage="$1"
   local tgz
-  tgz="$(mktemp /tmp/hart-pkg.XXXXXX.tgz)"
+  tgz="$(mktemp "${TMPDIR:-/tmp}/hart-pkg.XXXXXX")"
+  WIN_TGZ="$tgz"
   COPYFILE_DISABLE=1 tar -C "$stage" -czf "$tgz" .
   if [[ "$DRY_RUN" -eq 1 ]]; then
     echo "dry-run: would scp $(du -h "$tgz" | awk '{print $1}') package → ${WIN_HOST}:%TEMP%"
@@ -576,7 +617,7 @@ fi
 if [[ "$DO_WIN" -eq 1 ]]; then
   echo "Deploy → Windows ($WIN_HOST:$WIN_PORT) via tar..."
   STAGE=$(mktemp -d)
-  trap 'rm -rf "$STAGE"' EXIT
+  trap 'rm -rf "$STAGE"; [[ -z "$WIN_TGZ" ]] || rm -f "$WIN_TGZ"' EXIT
   stage_package "$STAGE" "$WIN_USERFILES" win
   push_tar_scp "$STAGE"
   rm -rf "$STAGE"

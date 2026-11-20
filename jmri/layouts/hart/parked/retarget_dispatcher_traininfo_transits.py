@@ -6,8 +6,8 @@ Stage 1 wrote transit via-hints as ``via Track 7``. Tables now use
 to rebuild the graph. Do not re-run Stage 1 for this — rewrite the
 bindings, then ``fix_traininfo_detection.py`` if needed.
 
-    python3 jmri/layouts/hart/scripts/retarget_dispatcher_traininfo_transits.py
-    python3 jmri/layouts/hart/scripts/retarget_dispatcher_traininfo_transits.py --check
+    python3 jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py
+    python3 jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py --check
 
 Default dir: repo ``dispatcher/traininfo``, or the Pi UserFiles copy.
 """

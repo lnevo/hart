@@ -5,6 +5,9 @@
     python3 tools/schematic/build_staging_masts.py --check   # exit 1 if a file is stale
     python3 tools/schematic/build_staging_masts.py --show    # print the masts, write nothing
 
+When the plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0 (1 with
+SCHEMATIC_REQUIRED=1, set in CI), as the other schematic checks do; a write or --show names the fault and exits 2.
+
 Visible masts come from the main and upper levels' rule (mast_rule.masts) over the staging band, with staging's
 interlockings (interlockings_staging.csv, owner 2026-11-19: Brick 1, 3, 5; Barn 7; East End 23, 33; Princess 35, 37,
 39) as its control points. Staging's control_points stay the stations the drawings group by (brackets on the station
@@ -411,8 +414,16 @@ def main(argv=None) -> int:
     g.add_argument("--show", action="store_true", help="print the masts and write nothing")
     args = ap.parse_args(argv)
     try:
+        sdm.lc.plugin()
+    except sdm.lc.BuildError as exc:
+        if args.check:
+            print(f"SKIPPED staging masts check: {exc}")
+            return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
+        print(f"build_staging_masts.py: {exc}", file=sys.stderr)
+        return 2
+    try:
         want, gen = build()
-    except (RuleError, sdm.StagingMapError, mast_rule.MapError, railroad.FactsError) as exc:
+    except (RuleError, sdm.StagingMapError, sdm.lc.BuildError, mast_rule.MapError, railroad.FactsError) as exc:
         print(f"build_staging_masts.py: {exc}", file=sys.stderr)
         return 2
     if args.show:

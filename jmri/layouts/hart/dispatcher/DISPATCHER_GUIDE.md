@@ -212,7 +212,7 @@ progress.
 set the facing mast. Default AAR icons stay. LE turnout circles still
 work. NX does not Hold or reserve blocks.
 
-**Later (lock mode):** `python3 jmri/layouts/hart/scripts/apply_nx_layer.py --mode lock`
+**Later (lock mode):** `python3 jmri/layouts/hart/parked/apply_nx_layer.py --mode lock`
 then deploy. After that, NX Holds every source mast at Stop until you
 click a route, and reserves the path. Use that desk **instead of** CATS
 CTC and USS Logic. Switch back with `--mode sml`.

@@ -18,6 +18,9 @@ When the drawing itself (everything but the title block), or a station sheet's, 
 `revision` to main's revision plus one in the page's preferences file, then draws again. Counting from main, not
 from the last publish, keeps a branch that publishes several times at one revision. A revision that is not a
 whole number is left alone. If anything fails after that, the preferences file is put back.
+Main is where this branch left origin/main (`git merge-base HEAD origin/main`). If git cannot find that commit
+(no origin/main, a shallow clone), publishing stops before it writes anything and names the git command that
+brings it in; it also stops if git fails to read a file there. --check and --preview never need it.
 The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
 them with www/scripts/map_revision.py, and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
@@ -33,6 +36,7 @@ to the same folder for every job, the unit tests included.
 """
 import contextlib
 import datetime
+import functools
 import json
 import os
 import re
@@ -70,12 +74,45 @@ def page_prefs():
     return sheet if sheet.exists() else DATA / f"{INPUTS[-1][1]}.preferences.json"
 
 
+def _git(*args):
+    return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True)
+
+
+@functools.lru_cache(maxsize=None)
+def main_base():
+    """The commit where this branch left main, asked of git once per run. Publishing stops if git cannot tell (no
+    origin/main, a shallow clone): compared with HEAD instead, a committed drawing change would equal itself and
+    keep its old revision. --check and --preview never ask, so they run in a clone without origin/main (CI's is one)."""
+    r = _git("merge-base", "HEAD", "origin/main")
+    base = r.stdout.strip()
+    if r.returncode != 0 or not base:
+        why = r.stderr.strip() or f"exit {r.returncode}, no commit named"
+        if _git("rev-parse", "--verify", "--quiet", "origin/main").returncode != 0:
+            fix = "This checkout has no origin/main: run `git fetch origin main:refs/remotes/origin/main`"
+        elif _git("rev-parse", "--is-shallow-repository").stdout.strip() == "true":
+            fix = "This clone is shallow, so the shared commit is not in it: run `git fetch --unshallow origin`"
+        else:
+            fix = ("HEAD and origin/main share no commit: check out a branch made from main "
+                   "(`make wt TOPIC=<topic>`) and bring the drawing change there")
+        sys.exit(f"`git merge-base HEAD origin/main` failed ({why}), so the revision cannot be counted from main; "
+                 f"nothing written. {fix}, then run `python3 tools/schematic/publish_draft.py` again")
+    return base
+
+
 def on_main(path):
-    """The file's text where this branch left main (None if it was not there)."""
-    git = lambda *a: subprocess.run(["git", "-C", str(REPO), *a], capture_output=True, text=True)
-    base = git("merge-base", "HEAD", "origin/main").stdout.strip() or "HEAD"
-    r = git("show", f"{base}:{path.relative_to(REPO).as_posix()}")
-    return r.stdout if r.returncode == 0 else None
+    """The file's text where this branch left main (None if it was not there). A git failure stops the run: read
+    as "not there", it would count the revision from nothing."""
+    base, rel = main_base(), path.relative_to(REPO).as_posix()
+    r = _git("ls-tree", "--name-only", base, "--", rel)
+    if r.returncode == 0 and not r.stdout.strip():
+        return None                                            # git read the commit; the path is not in it
+    if r.returncode == 0:
+        r = _git("show", f"{base}:{rel}")
+    if r.returncode != 0:
+        sys.exit(f"git could not read {rel} at {base} ({r.stderr.strip() or f'exit {r.returncode}'}), so the "
+                 "drawing cannot be compared with main; the files this run changed are put back. Run `git fsck` if git "
+                 "names a missing or corrupt object, then `python3 tools/schematic/publish_draft.py` again")
+    return r.stdout
 
 
 def plugin():
@@ -271,6 +308,7 @@ def main(argv):
         map_revision.planned(REPO / "www", prefs)             # the station map data holds together before any write
     except ValueError as e:
         sys.exit(f"station map pages: {e}; nothing written")
+    main_base()                                               # stops here, before any write, if git cannot find it
     kept = {p: p.read_text() for p in (prefs, STAGING)}      # put back if anything below fails
     try:
         if stale:

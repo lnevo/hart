@@ -15,13 +15,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 S = "jmri/layouts/hart/scripts/"
+P = "jmri/layouts/hart/parked/"  # scripts that only serve a parked feature
 WRITERS = (
-    (S + "polish_hart_layout_editor.py", []),
+    (P + "polish_hart_layout_editor.py", []),
     (S + "reconcile_dispatcher_stations.py", ["--no-sync"]),
     (S + "disable_digicon_sml_in_tables.py", []), (S + "refresh_bean_comments.py", []),
-    (S + "apply_nx_layer.py", []), (S + "apply_le_sml_facing.py", []), (S + "apply_public_names.py", ["--apply"]),
+    (P + "apply_nx_layer.py", []), (S + "apply_le_sml_facing.py", []), (S + "apply_public_names.py", ["--apply"]),
     (S + "sync_public_name_map.py", ["--apply-comments"]), (S + "cleanup_uss_ctc_leftovers.py", ["--apply"]),
-    (S + "uss_switch_only_columns.py", ["--apply"]), (S + "retarget_dispatcher_traininfo_transits.py", []),
+    (S + "uss_switch_only_columns.py", ["--apply"]), (P + "retarget_dispatcher_traininfo_transits.py", []),
     (S + "build_hart_signal_heads.py", []), (S + "export_track_lengths.py", []),
     (S + "capture_public_name_baseline.py", []), (S + "speedmatch/build_routes.py", []),
     ("www/scripts/build_layout_index.py", []), ("www/scripts/build_tables_browser.py", []),
