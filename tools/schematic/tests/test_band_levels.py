@@ -4,6 +4,7 @@ import sys
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -30,7 +31,7 @@ class BandLevels(unittest.TestCase):
             mr.band_levels({"level_title": "Staging level"})
 
     def test_an_unknown_level_stops(self):
-        for bad in (0, 4, "2", True):
+        for bad in (0, 4, "2", True, 2.0):
             with self.subTest(level=bad), self.assertRaisesRegex(mr.MapError, "not 1, 2 or 3"):
                 mr.band_levels({"levels": {"bands": [{"name": "Main level", "level": bad}]}})
 
@@ -47,6 +48,8 @@ class BandLevels(unittest.TestCase):
         import build_staging_masts as bsm
         self.assertEqual(bsm.LEVELS, {"Staging level": 1})
         self.assertEqual(sorted(bdm.LEVELS.values()), [2, 3])
+        self.assertFalse(set(bdm.LEVELS) & set(bsm.LEVELS), "a band title is in both overrides files")
+        self.assertEqual([lv for lv in (*bdm.LEVELS.values(), *bsm.LEVELS.values()) if lv == 1], [1])
 
 
 def band(nodes, strands):

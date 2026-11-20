@@ -238,6 +238,7 @@ def dx_corners(bands, le_mod, page) -> dict:
             continue
         for n, d in band["nodes"].items():
             if d["kind"] == "dx":
+                # rotate_bands lists the plugin's band keys (its draw.band_key: a title's first word), not levels
                 turned = title.split()[0] in page.get("rotate_bands", ())
                 out[base(d["label"])] = le_mod.double_corners(band, n, turned)
     return out

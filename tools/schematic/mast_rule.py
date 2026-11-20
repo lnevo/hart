@@ -43,7 +43,7 @@ def band_levels(overrides: dict) -> dict[str, int]:
     for name, level, what in entries:
         if not name:
             raise MapError(f"{what}: no name")
-        if level not in (1, 2, 3) or isinstance(level, bool):
+        if type(level) is not int or level not in (1, 2, 3):
             raise MapError(f"{what} has level {level!r}, which is not 1, 2 or 3")
         if name in out:
             raise MapError(f"two bands are titled {name!r}")

@@ -1,6 +1,6 @@
 {
  "_layer": 1,
- "_note": "Facts about the railroad that the AnyRail plan 5.3c does not hold or holds wrongly. Since 5.3c (owner, 2026-11-19) the plan has the peninsula at 4.25 in (10.8 cm) and the closet junction (223, T331; T300 in 5.3b) on the upper level where it is built, so no height or move edit is needed. Band names, their level numbers and the 5 cm cut stay here as railroad facts (B2 is done: docs/ops/SCHEMATIC_SPEC.md).",
+ "_note": "Facts about the railroad that the AnyRail plan 5.3c does not hold or holds wrongly. Since 5.3c (owner, 2026-11-19) the plan has the peninsula at 4.25 in (10.8 cm) and the closet junction (223, T331; T300 in 5.3b) on the upper level where it is built, so no height or move edit is needed. Band names, their level numbers and the 5 cm cut are railroad facts kept here (docs/ops/SCHEMATIC_SPEC.md, layer 1).",
  "edits": [
   {
    "op": "relabel",
