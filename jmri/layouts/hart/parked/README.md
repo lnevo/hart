@@ -77,14 +77,14 @@ passes:
   clusters. Each cluster icon stays where it stands, or goes back where it stood on `--reference`; a missing progress
   lamp or station lamp takes its usual offset from the MoveTo button, and a station whose MoveTo button is on neither
   panel stops the run.
-- `polish_hart_layout_editor.py`: each Stage 1 lamp where its sensor's lamp stood on `--reference` (else where the
+- `parked/polish_hart_layout_editor.py`: each Stage 1 lamp where its sensor's lamp stood on `--reference` (else where the
   panel's own one lamp stands, else at the turnout circle's centre or the middle of the track), a lamp on a sensor
   the reference panel shows none for removed (Stage 1 adds one on every block sensor, the main and upper levels'
   too), each block contents label on level 4 where it stood, every lamp display only.
-- `apply_nx_layer.py`: the ISNX sensors and their bindings in the mast slots. It adds or moves no NX icon (the
+- `parked/apply_nx_layer.py`: the ISNX sensors and their bindings in the mast slots. It adds or moves no NX icon (the
   generated panel shows none) and works with or without the Dispatcher System panel.
 
-While the Dispatcher System is parked, `reconcile_dispatcher_stations.py` and `polish_hart_layout_editor.py` print
+While the Dispatcher System is parked, `reconcile_dispatcher_stations.py` and `parked/polish_hart_layout_editor.py` print
 SKIPPED and change nothing.
 
 Stage 1 changes nothing else on the panel. Stock `CreateIcons` (`jython/DispatcherSystem/CreateIcons.py`:
@@ -117,7 +117,7 @@ To bring them back, append this file's `items` to `jmri/layouts/hart/data/schema
 Also give the plugin the station clusters as `extras` again (as the retired `le_overlay.station_extras` did; see git
 history before the switch-over), so the label layer keeps clear of them: without them 14 block contents icons
 (OS Switch 7, OS Switch 9, Barn, EH-2, EH-3, East Lead, East Lead East, K-1, K-2, McKees Rocks, McKeesport, Scale,
-W-1, W-2) sit somewhere else than they did with the clusters. `polish_hart_layout_editor.py` adds a switch OS lamp
+W-1, W-2) sit somewhere else than they did with the clusters. `parked/polish_hart_layout_editor.py` adds a switch OS lamp
 that is missing once the feature is back.
 
 ## Checks
@@ -143,6 +143,6 @@ that is missing once the feature is back.
 4. Put the expected counts back (`audit_panel_contracts.py` EXPECTED_GRAPH, `panelpro_smoke_test.py`), and deploy:
    the folders above ship again.
 5. Dispatcher System only: put its two checks back in `tools/check.sh`,
-   `reconcile_dispatcher_stations.py --check --no-sync` and `polish_hart_layout_editor.py --check`. Both print SKIPPED
+   `reconcile_dispatcher_stations.py --check --no-sync` and `parked/polish_hart_layout_editor.py --check`. Both print SKIPPED
    while the feature is parked, so they were taken out; the approved panel fingerprint
    (`tools/schematic/check_approved.py le-panel`) covers the panel meanwhile.
