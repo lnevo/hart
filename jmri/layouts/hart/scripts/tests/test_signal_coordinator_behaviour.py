@@ -1257,6 +1257,13 @@ class Sequences(unittest.TestCase):
                          (False, False, False))
         # Unheld and disabled go out before the pairs are touched, so a hang cannot skip them.
         self.assertEqual(self.sent()[-1], ("track/bridge/sml_mode", "disabled", True))
+        before = list(self.sent())
+        self.c._set_all_digicon_sml_destinations = lambda on: self.bulk.append((on, self.mast.held))
+        self.c._on_jmri_shutdown()
+        self.assertFalse(self.mast.held)
+        self.assertTrue(self.c._shutdown_released)
+        # The head's Unheld is not sent again; only the mode word repeats.
+        self.assertEqual(self.sent()[len(before):], [("track/bridge/sml_mode", "disabled", True)])
 
     def test_quit_release_goes_on_when_a_mast_cannot_hold(self) -> None:
         self.own()
@@ -1302,6 +1309,18 @@ class Sequences(unittest.TestCase):
         self.assertEqual(len(self.layout.button_space.frame.listeners), 1)
         self.assertIs(self.c._close_frame, self.layout.button_space.frame)
 
+    def test_window_closing_starts_the_quit_worker_without_sleeping_inline(self) -> None:
+        self.own()
+        self.layout.button_space = _Space()
+        self.c._add_quit_window_hook()
+        jf.Thread.started.clear()
+        self.layout.button_space.frame.listeners[0].windowClosing(None)
+        self.assertEqual(len(jf.Thread.started), 1)
+        self.assertEqual((_Sleeps.log, self.sent()), ([], []))
+        jf.run_threads()
+        self.assertEqual(len(_Sleeps.log), 1)
+        self.assertEqual(self.sent()[-1], ("track/bridge/sml_mode", "disabled", True))
+
     def test_no_main_window_means_no_close_hook(self) -> None:
         self.layout.button_space = None
         self.c._add_quit_window_hook()
@@ -1318,7 +1337,7 @@ class Sequences(unittest.TestCase):
     def test_disable_holds_waits_pairs_off_unhelds_then_publishes_disabled(self) -> None:
         self.own()
         self.run_disable(True)
-        self.assertEqual(_Sleeps.log, [(3000, (True, [], []))])
+        self.assertEqual(_Sleeps.log, [(self.sc["HOLD_WAIT_MS"], (True, [], []))])
         self.assertEqual(self.bulk, [(False, True)])
         self.assertEqual(self.sent(), [("track/signalhead/432", "Unheld", True),
                                        ("track/bridge/sml_mode", "disabled", True)])
@@ -1337,6 +1356,7 @@ class Sequences(unittest.TestCase):
         self.hold_probe(lambda: setattr(c, "_abort_gen", c._abort_gen + 1))
         self.run_disable(True)
         self.assertEqual(self.sent(), [])
+        self.assertEqual(self.bulk, [(False, True)])  # pairs still go off, then the abort is seen
         self.assertFalse(self.mast.held)
         self.assertIn("aborted during Disable", self.out.getvalue())
 
@@ -1355,7 +1375,7 @@ class Sequences(unittest.TestCase):
 
     def test_enable_holds_waits_pairs_on_then_publishes_enabled(self) -> None:
         self.run_enable()
-        self.assertEqual(_Sleeps.log[0][0], 3000)
+        self.assertEqual(_Sleeps.log[0][0], self.sc["HOLD_WAIT_MS"])
         self.assertTrue(_Sleeps.log[0][1][0])  # held during the wait
         self.assertEqual(self.bulk, [(True, True)])  # pairs go on while still held
         self.assertFalse(self.mast.held)
@@ -1546,6 +1566,50 @@ class Sequences(unittest.TestCase):
         self.assertEqual(self.out.getvalue().count("SML pairs disabled"), 1)
         self.assertIn("SML bulk set fallback: late", self.out.getvalue())
         self.assertEqual(logic.enabled["Mast 8RA"], False)
+
+
+    # --- known script bugs (owner decides; the script is not changed here) --------------------
+
+    @unittest.expectedFailure
+    def test_bug_quit_release_leaves_masts_held_when_the_bulk_set_raises(self) -> None:
+        # _release_on_quit_steps: setHeld(False) is not in a finally.
+        self.own()
+
+        def boom(on):
+            raise RuntimeError("layout hung")
+
+        self.c._set_all_digicon_sml_destinations = boom
+        self.c._on_jmri_shutdown()
+        self.assertFalse(self.mast.held)
+
+    @unittest.expectedFailure
+    def test_bug_disable_leaves_masts_held_and_no_disabled_when_the_bulk_set_raises(self) -> None:
+        # _apply_global_disabled: the bulk set is not guarded, so the worker dies mid-way.
+        self.own()
+
+        def boom(on):
+            raise RuntimeError("attach failed")
+
+        self.c._set_all_digicon_sml_destinations = boom
+        try:
+            self.run_disable(True)
+        except RuntimeError:
+            pass
+        self.assertFalse(self.mast.held)
+        self.assertIn(("track/bridge/sml_mode", "disabled", True), self.sent())
+
+    @unittest.expectedFailure
+    def test_bug_timed_out_bulk_set_still_runs_later_on_the_layout_thread(self) -> None:
+        # After the 30 s wait gives up, the queued _do stays queued and can re-check pairs
+        # after another host took Digicon.
+        queued = []
+        self.fake_layout_thread(on_layout=False, times_out=True, run_on_layout=queued.append)
+        logic = self.two_dests()
+        self.real_bulk(False)
+        logic.enabled["Mast 8RA"] = True  # another host took Digicon since
+        for action in queued:
+            action.run()  # the layout thread gets to it late
+        self.assertTrue(logic.enabled["Mast 8RA"])
 
 
 if __name__ == "__main__":
