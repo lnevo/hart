@@ -58,8 +58,8 @@ Merged as #754. Then, on branch `agent/claude/source-data-rows-4-5`, also with n
 - **Row 4:** staging's control points (`control_points_staging.csv`), stations (`stations_staging.csv`), detail
   sheets (`sheets_staging.csv`) and main lines (`main_lines_staging.csv`) each have one master file (on 2026-11-20
   these became `stations.csv`, `sheets.csv` and `main_lines.csv`, one file for every level, #769 and #775);
-  `build_staging_sets.py` and `build_main_route.py` write every other copy, the older `data/control_points.csv`
-  included (the website build and the JMRI scripts still read it), and `make panels CHECK=1` fails on drift.
+  `build_staging_sets.py` and `build_main_route.py` write every other copy (the older `data/control_points.csv`
+  went on 2026-11-20, its readers now build its rows from the master), and `make panels CHECK=1` fails on drift.
 - **Row 5:** the main/upper hand lists (running, signalled spurs, split tracks, detector pins) are keyed by
   `switch_a,switch_b` (and `parallel` or `half` where needed), so a renumber no longer strands them. The
   `le_band_labels` names in `main_upper.preferences.json` stay track and block names (owner, 2026-11-20): a main or

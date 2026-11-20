@@ -21,17 +21,17 @@
                      check_layout_facts.py)
 
 Hardware, DCC address (its own ``dcc`` column) and control point come from the
-canonical turnout row of public_name_map.csv (current == proposed); control_points.csv lists which
+canonical turnout row of public_name_map.csv (current == proposed); control_points_staging.csv lists which
 switches each control point holds and its level. Nothing here is copied from
 those files.
 
 Level is held once per switch (switches.csv) and once per control point
-(control_points.csv). A mast, head, block or occupancy sensor has no level of
+(control_points_staging.csv). A mast, head, block or occupancy sensor has no level of
 its own: it takes the level of its control point (the ``cp`` column of
 public_name_map.csv), and an OS block or a switch leg takes its switch's.
 name_map_levels() resolves them. No grouping above the control point exists
-yet, so there is no district column; when the new levels need one, it goes on
-control_points.csv beside ``level``.
+yet, so there is no district column; when the new levels need one, it goes beside ``level`` on the control-point
+files (control_points_staging.csv, interlockings.csv).
 
 Switch numbers are the plate numbers and are unique across the whole railroad,
 every level included: a number is never reused on another level. The loader
@@ -52,7 +52,7 @@ from typing import Callable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, railroad  # noqa: E402
+from hartlib import paths, railroad, railroad_facts  # noqa: E402
 from hartlib.railroad import Leg, Switch  # noqa: E402,F401  one definition, in hartlib.railroad
 
 DATA = paths.LAYOUT_DATA
@@ -193,8 +193,11 @@ def legs_by_os(switches: dict[int, Switch]) -> dict[str, tuple[Switch, Leg]]:
 
 
 def load_control_points(data: Path = DATA) -> list[dict[str, str]]:
-    """control_points.csv rows; ``switches`` stays the quoted list, e.g. "23a,23b,33"."""
-    return _rows(data / "control_points.csv")
+    """Staging's control points (station groups) from schematic/control_points_staging.csv and switch_legs.csv, in the
+    older control_points.csv shape (hartlib.railroad_facts.station_group_rows); ``switches`` is the OS-block list,
+    e.g. "23a,23b,33"."""
+    return railroad_facts.station_group_rows(data / "schematic" / "control_points_staging.csv",
+                                             data / "switch_legs.csv")
 
 
 def station_names(data: Path = DATA) -> set[str]:
@@ -203,11 +206,10 @@ def station_names(data: Path = DATA) -> set[str]:
 
 
 def cp_levels(data: Path = DATA) -> dict[str, str]:
-    """Control point name -> level, from control_points.csv. Every row needs a level."""
+    """Control point name -> level, from control_points_staging.csv. Every row needs a level (station_group_rows
+    stops on one without)."""
     out: dict[str, str] = {}
-    for line, row in enumerate(load_control_points(data), start=2):
-        if not row.get("level"):
-            raise ValueError(f"control_points.csv line {line} ({row['cp_name']}): no level")
+    for row in load_control_points(data):
         out[row["cp_name"]] = row["level"]
     return out
 

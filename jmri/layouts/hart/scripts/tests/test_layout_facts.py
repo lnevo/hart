@@ -11,7 +11,10 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import layout_facts as facts  # noqa: E402
 
-FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv")
+FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "schematic/control_points_staging.csv",
+         "mast_cells.csv")
+
+CPS = "schematic/control_points_staging.csv"
 
 
 class LoaderTest(unittest.TestCase):
@@ -19,6 +22,7 @@ class LoaderTest(unittest.TestCase):
         self.data = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.data)
         for name in FILES:
+            (self.data / name).parent.mkdir(exist_ok=True)
             shutil.copy(facts.DATA / name, self.data / name)
 
     def append(self, name: str, line: str) -> None:
@@ -55,14 +59,14 @@ class LoaderTest(unittest.TestCase):
         self.assertNotIn(("block", "Track Main West"), levels)       # main between control points
 
     def test_a_control_point_without_a_level_is_refused(self) -> None:
-        text = (self.data / "control_points.csv").read_text().replace("plane,Plane,1,", "plane,Plane,,")
-        (self.data / "control_points.csv").write_text(text)
-        with self.assertRaisesRegex(ValueError, r"control_points.csv line 3 \(Plane\): no level"):
+        text = (self.data / CPS).read_text().replace("cp_pl,Plane,1,", "cp_pl,Plane,,")
+        (self.data / CPS).write_text(text)
+        with self.assertRaisesRegex(ValueError, r"control_points_staging.csv line 3 \(Plane\): no level"):
             facts.cp_levels(self.data)
 
     def test_a_mast_follows_its_control_point_to_a_new_level(self) -> None:
-        text = (self.data / "control_points.csv").read_text().replace("plane,Plane,1,", "plane,Plane,2,")
-        (self.data / "control_points.csv").write_text(text)
+        text = (self.data / CPS).read_text().replace("cp_pl,Plane,1,", "cp_pl,Plane,2,")
+        (self.data / CPS).write_text(text)
         levels = facts.name_map_levels(self.data)
         self.assertEqual(levels[("mast", "Mast 6LA")], "2")
         self.assertEqual(levels[("turnout", "Switch 5")], "1")       # switches.csv still says 1

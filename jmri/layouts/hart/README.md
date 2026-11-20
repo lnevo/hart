@@ -25,7 +25,6 @@ contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX
 | `output/tables.xml` | The one tables file: Layout Editor + SML. JMRI loads it and deploy ships it |
 | `data/devices.csv`, `data/devices.columns.csv` | The device master for all three levels: one row per device with its public name (`user_name`), JMRI names, wiring and DCC address; the column dictionary describes every column (`hartlib.devices`, ADR-029) |
 | `data/public_name_map.csv` | Generated from `devices.csv` (identity rows only; no alias rows). Do not edit it |
-| `data/control_points.csv` | CP → level, switches (generated from `data/schematic/control_points_staging.csv`) |
 | `data/switches.csv` | Per switch: level, Layout Editor turnout, CATS inversion, USS CTC lever, hand (`scripts/layout_facts.py` reads it) |
 | `data/mast_cells.csv` | Per mast: its cell on the USS CTC board's grid (the USS CTC machine is parked; the data is kept for unparking) and its icon (`gen_ctc_track_plan.py`); `edge`, `sig_location`, `sig_orient` are the hand-wired CATS desks' lamp placement (`check_layout_facts.py` reads them) |
 | `data/uss_board_cells.csv`, `data/uss_board_plants.csv` | The USS CTC board's grid (each cell's track, label and block edges) and its switch plant cells, frozen from the hand-wired CATS desk on 2026-11-15, kept while the USS CTC machine is parked; read by `gen_ctc_track_plan.py` and `check_layout_facts.py` |

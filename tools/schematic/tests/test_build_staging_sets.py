@@ -34,12 +34,6 @@ class RealFiles(unittest.TestCase):
         for path, text in want.items():
             self.assertEqual(path.read_text(encoding="utf-8"), text, path.name)
 
-    def test_the_legacy_file_lists_a_crossovers_halves_from_the_os_blocks(self):
-        rows = {r.split(",")[0]: r for r in S.LEGACY.read_text(encoding="utf-8").splitlines()}
-        self.assertIn('barn,Barn,1,"7,7b"', rows["barn"])
-        self.assertIn('"25,27,29,31,23a,23b,33"', rows["east_end"])
-        self.assertIn('"35a,35b,37,39"', rows["princess"])
-
     def test_a_sheet_is_the_sorted_union_of_its_stations(self):
         cps = S.read_control_points()
         stations = S.read_stations(cps)

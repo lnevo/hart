@@ -380,6 +380,36 @@ def read_interlockings(path: Path, levels: Iterable[int] = ALL_LEVELS) -> list[I
     return out
 
 
+STATION_GROUP_COLUMNS = ("cp_id", "cp_name", "level", "switches", "notes", "code")
+
+
+def station_group_rows(cps: Path, switch_legs: Path) -> list[dict[str, str]]:
+    """Staging's control points (the station groups of control_points_staging.csv: the drawings' brackets and the
+    CATS desk names) in the shape the older data/control_points.csv had, which this replaces (level-unification step
+    8): cp_id the name in lower case with underscores, level, code and notes as given, and switches the OS block of
+    each switch (a crossover by its halves, 7 as 7,7b and 23 as 23a,23b, from switch_legs.csv), "," between. Stops
+    with FactsError, naming the file and line, on a row with no level or a switch with no OS block."""
+    halves: dict[str, list[str]] = {}
+    for line, r in read_rows(switch_legs, ("switch", "os_block")):
+        m = re.fullmatch(r"OS Switch (\d+[a-z]?)", r["os_block"])
+        if not m:
+            raise FactsError(f"{_where(switch_legs, line)}: {r['os_block']!r} is not an OS Switch block")
+        halves.setdefault(r["switch"], []).append(m.group(1))
+    out = []
+    for line, r in read_rows(cps, ("cp_name", "level", "switches", "code"), optional=("notes",)):
+        where = _where(cps, line)
+        if not r["level"]:
+            raise FactsError(f"{where} ({r['cp_name']}): no level")
+        sw = []
+        for s in (x.strip() for x in re.split(r"[;,]", r["switches"]) if x.strip()):
+            if s not in halves:
+                raise FactsError(f"{where} ({r['cp_name']}): switch {s} has no OS block in {switch_legs.name}")
+            sw += sorted(halves[s])
+        out.append(dict(cp_id=re.sub(r"\W+", "_", r["cp_name"].lower()), cp_name=r["cp_name"], level=r["level"],
+                        switches=",".join(sw), notes=r["notes"], code=r["code"]))
+    return out
+
+
 @dataclass(frozen=True)
 class LocalSwitch:
     """A main or upper switch in no control point (local_switches_main_upper.csv): yards and spurs."""
