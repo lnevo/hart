@@ -64,7 +64,7 @@ What differs is what each level adds around it.
 
 ### 2. Masts: one rule for every level
 
-See [Masts](#masts). Any change to where masts stand needs stock discovery in a sandbox, `make panels CHECK=1`, the
+**Done** (#786, 2026-11-20, approved by the owner and deployed). See [Masts](#masts). Any change to where masts stand needs stock discovery in a sandbox, `make panels CHECK=1`, the
 approval fingerprints rule and the owner's approval of the new panel and desks, with the candidate installed in the
 Mac's `~/JMRI_UserFiles` first.
 
@@ -82,10 +82,44 @@ a section per sheet, or the two files kept; owner's choice, layer 3 either way.
 and `railroad_invariants.py` lose their level branches; approval fingerprints are kept per panel and desk. Tests come
 first (AGENTS.md "Working on existing scripts").
 
+### 5. One block layer (with step 4)
+
+Staging's block rows are kept by hand in its device rows, with lengths in `block_lengths.csv`; main and upper generate
+theirs from the drawing (`build_device_map.py`). One block builder for every level, with hand data only for real
+exceptions: owner block decisions (the 35 to 37 short track, `block_splits.csv`) and measured lengths. This takes in
+step 1's short-tracks item (the `SHORT_CM` rule for every level, `short_tracks_staging.csv` kept only for
+exceptions, level column).
+
+### 6. One wiring file per kind (with the device master's owners)
+
+`lcos_nodes_main_upper.csv` and `detector_pins_main_upper.csv` exist only for main and upper; staging's wiring is in
+`switches.csv`, `switch_legs.csv` and its device rows. One node file and one detector-pin file with a level column.
+Overlaps the device master (R9), so agree it with the project-health session first.
+
+### 7. Main and upper stations and sheets (waits on the owner)
+
+`stations.csv` and `sheets.csv` take level 1 rows only; the main and upper whole-level sheets stay in
+`main_upper.preferences.json`. Once the owner defines main and upper stations in PanelPro, the builder takes every
+level and the hand-kept sheet lists go. Decide then whether station names are unique across levels.
+
+### 8. Retire the older `control_points.csv`
+
+Still generated in the old shape for the website build, `check_layout_facts.py` and the scripts that run in JMRI.
+Move those readers to `interlockings.csv` and `stations.csv` (or the device master), then stop generating it.
+
+### 9. Internal name prefixes: left as they are (recommended)
+
+Staging heads are `IH:HART:C1:`, main and upper `C3`; virtual masts are numbered from `$1001`, `$2001` and `$3001`.
+They are JMRI system names: changing them renames beans and needs discovery again, for labels that are not a separate
+process. Listed so it is a decision, not an omission.
+
+Kept by the owner's choice: two drawings (staging; main and upper), preferences per sheet.
+
 ## Order
 
-Step 1's main lines are done. The groupings and hand lists wait for the mast result and the owner. Steps 3 and 4 wait
-for R9b (the device master), which changes the same readers (hartlib `names.py`, `railroad.py`, `le_tables.py`).
+Steps 1 and 2 are done (step 1's short tracks move to step 5). Step 3 next, then 4 with 5. Step 6 is agreed with the
+project-health session (R9). Step 7 waits on the owner's main and upper stations. Step 8 any time. Step 9 is not
+planned.
 
 ## Masts
 
