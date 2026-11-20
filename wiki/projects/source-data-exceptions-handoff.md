@@ -80,7 +80,7 @@ Rows 1 to 7 are done (#749, #754, #757 and the label-refs branch, above); the ta
 |---|---|---|---|---|
 | 8 | Kind and level read from name prefixes ("Track ", "OS Switch ", "BS ", "Mast "), the crossover half from A or B, a balloon loop from a name ending " Loop", the level from a band title's first word | hartlib (`level_devices`, `railroad`), `le_names`, `staging_device_map`, `build_device_map`, `build_cats_panel`, `mast_rule` | `kind`, `level` and `role` columns on the device-map rows | several small steps |
 | 9 | Device facts kept three times (addresses, DCC, node comments in `public_name_map.csv`, `device_map_staging.csv` and `tables.xml`); the DCC group parsed from `tables.xml` comments; build-owned items found by comment and name | hartlib `names.py`, `le_tables.py` | One master with the others generated; an explicit owner column | 1–2 days |
-| 10 | Drawing workarounds in preferences | `level_leg`, `le_tight_crossovers`/`le_split_crossovers` (101/103), `le_shift`, `le_labels` groupings | Plugin rules (for example: choose the level leg when the straight-level rule would collide) | 1–2 days |
+| 10 | Drawing workarounds in preferences | `level_leg` (now with plugin desk faults for its causes), `le_shift`, `le_labels` groupings. Done: `le_tight_crossovers`/`le_split_crossovers` (101/103) replaced by the schematic-maps 0.1.48 three-way rule (#785) | Plugin rules (for example: choose the level leg when the straight-level rule would collide) | 1–2 days |
 
 Also open, smaller:
 - whether `le_signal_boundaries.csv` is still needed now that staging masts come from the rule;

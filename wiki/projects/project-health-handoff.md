@@ -264,7 +264,7 @@ None of this runs while the operating flag is set.
 - Each band entry in `main_upper.plan_overrides.json` gets a `level` field. The band names stay as drawn text, and the stale "until B2" note is fixed. No rename.
 - A crossover's two halves come from the plan's structure; A and B stay as labels only.
 - `level_leg` stays as preferences. The plugin reports its causes: two blocks in one CATS cell, or a desk that is too wide.
-- 101 and 103 are drawn tight and split by a plugin rule from the three-way part, and the HART entries go.
+- 101 and 103 are drawn tight and split by a plugin rule from the three-way part, and the HART entries go. **Done in #785** (schematic-maps 0.1.48), along with the plugin's desk faults for the `level_leg` causes.
 - `le_shift` stays until staging is next redrawn.
 - Staging `le_labels`: `name_columns` and `name_steps` become plugin rules, HART derives its button groups, and `lamp_columns` goes if it does nothing. The fingerprints must not change.
 - `le_signal_boundaries.csv` is retired, along with `apply_le_sml_facing.py` once it is shown to change nothing, before R9c.

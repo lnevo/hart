@@ -175,6 +175,16 @@ def desk_options(cats, page, bands):
     return o
 
 
+def check_desk_faults(cats, P, fit):
+    """Print the plugin's desk faults for panel P (cats.faults: two blocks landing in one cell, a desk wider than its
+    `fit` window), the count first, and stop when there is one. They are what main_upper.preferences.json's
+    level_leg pins on 115, 235 and 239 keep away (its _level_leg note)."""
+    found = cats.faults(P, fit)
+    print(f"CATS desk faults: {len(found)}" + "".join(f"\n  {x}" for x in found))
+    if found:
+        sys.exit(f"error: the desk has {len(found)} fault(s), listed above")
+
+
 def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
@@ -190,7 +200,8 @@ def generate(plugin, out, bindings_out, out_abs=None):
     try:
         P = cats.panel(bands, scale=o["scale"], bindings=json.loads(text), max_cols=fit[0],
                        helix_blocks=o["helix_blocks"], band_gap=o["band_gap"], title_gap=o["title_gap"])
-        cats.check_fit(P, *fit)
+        check_desk_faults(cats, P, fit)
+        cats.check_fit(P, *fit)  # backstop only: check_desk_faults already stops on a desk too big for its window
         for desk, path in (("CTC", out), ("ABS", out_abs)):
             if path is not None:
                 Path(path).write_text(dress(cats, cats.to_xml(P, "CTC", header, window), header, plate, desk, fit),
