@@ -86,7 +86,7 @@ When cutting filler, keep any fact or rule inside the sentence; rewrite it plain
 
 ## Pages that describe the repo
 
-`library/repository-guide.html` (folders, where each fact lives, hartlib's modules, the `make panels` steps, the workflow), `behind/jmri-additions.html` (scripts, profile contents, how the levels' devices are named, what is parked) and `behind/tables-file.html` describe the repo, so they go stale when it changes. Every repo audit and site review checks them:
+`library/repository-guide.html` (folders, where each fact lives, hartlib's modules, the `make panels` steps, the workflow; its lists and counts are `<!--rg:key-->` regions that `python3 www/scripts/repo_guide_page.py` fills from the checkout, with the descriptions kept in that script, so a new top-level folder, submodule or hartlib module stops `--check` (in `tools/check.sh`) until it is described; `prepare_github_pages.py` refills it on every site build; the Behind the Scenes card carries the Live badge for that reason, and the prose around the regions is still hand-kept), `behind/jmri-additions.html` (scripts, profile contents, how the levels' devices are named, what is parked) and `behind/tables-file.html` describe the repo, so they go stale when it changes. Every repo audit and site review checks them:
 
 1. `git log -1 --format=%ad -- <page>` gives the page's last change.
 2. List the commits since that date: `git log --since=<date> -- tools/hartlib tools/schematic jmri/layouts/hart/data jmri/scripts wiki/decisions`, and read `wiki/STATUS.md`.
