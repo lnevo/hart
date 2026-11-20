@@ -1,4 +1,5 @@
 """hartlib.railroad: the fact files load once into typed objects, by layer, and every invariant between them holds."""
+import csv
 import json
 import shutil
 import sys
@@ -530,14 +531,23 @@ class SmallHelpers(Copy):
     def test_switches_and_helix_tracks_load_from_the_checkout(self) -> None:
         rr = R.Railroad(self.src, upto="inputs")
         self.assertTrue(rr.switches)
+        self.assertTrue(rr.helix_tracks)
         self.assertTrue(all(h.block.startswith("Track ") for h in rr.helix_tracks.values()))
         self.assertEqual(R.read_helix_tracks(self.src.helix_tracks), rr.helix_tracks)
 
     def test_a_helix_block_given_twice_stops(self) -> None:
         tracks = list(R.read_helix_tracks(self.src.helix_tracks).values())
-        self.edit("helix_tracks", tracks[1].block, tracks[0].block)
+        path = self.src.helix_tracks
+        with path.open(newline="", encoding="utf-8") as fh:
+            rows = list(csv.DictReader(fh))
+            fields = rows[0].keys()
+        rows[1]["block"] = tracks[0].block
+        with path.open("w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=list(fields))
+            w.writeheader()
+            w.writerows(rows)
         with self.assertRaises(R.FactsError):
-            R.read_helix_tracks(self.src.helix_tracks)
+            R.read_helix_tracks(path)
 
     def test_sources_but_swaps_one_file(self) -> None:
         other = self.src.but(hands=Path("x.csv"))
@@ -553,9 +563,17 @@ class SmallHelpers(Copy):
             R.Railroad(self.src, upto="nope")
 
     def test_the_name_rows_are_read_once(self) -> None:
+        """name_map and switches both start from one read of public_name_map.csv."""
+        reads = []
+        real = R.read_name_rows
+        self.addCleanup(setattr, R, "read_name_rows", real)
+        R.read_name_rows = lambda path: reads.append(path) or real(path)
         rr = R.Railroad(self.src, upto="inputs")
-        self.assertIs(rr.name_rows, rr.name_rows)
+        self.assertTrue(rr.name_map)
+        self.assertTrue(rr.switches)
+        self.assertEqual(reads, [self.src.name_map])
         self.assertTrue(R.switch_turnouts(self.src.name_map, rr.name_rows, [next(iter(rr.switches))]))
+        self.assertEqual(len(reads), 1)
 
 
 if __name__ == "__main__":
