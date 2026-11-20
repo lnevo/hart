@@ -127,97 +127,98 @@
   },
   {
    "op": "name",
+   "_note": "Switch numbers, not part numbers. Switches 23, 35 and 7 are crossover or three-way halves that share one number, so a half is named as number@track once a track leaving it has a name. The first track named at each half (Main West, West Ext, S-R, East Lead, East Ext, Scale) can only reach it by its plan part number T57, T54, T126, T95, T33 or T139, so those six stay; the relabel edit above is their link to the plan.",
    "tracks": [
     [
-     "T124",
+     "1",
      "T57",
      "Main West",
      "main"
     ],
     [
-     "T57",
+     "23@Main West",
      "T54",
      "West Ext",
      "main"
     ],
     [
-     "T49",
+     "15",
      "T126",
      "S-R"
     ],
     [
-     "T71",
-     "T84",
+     "17",
+     "29",
      "S-1"
     ],
     [
-     "T96",
-     "T109",
+     "19",
+     "27",
      "S-2"
     ],
     [
-     "T73",
-     "T65",
+     "21",
+     "25",
      "S-4",
      "B"
     ],
     [
-     "T73",
-     "T65",
+     "21",
+     "25",
      "S-3",
      "C"
     ],
     [
-     "T106",
+     "33",
      "T95",
      "East Lead",
      "main"
     ],
     [
-     "T124",
-     "T114",
+     "1",
+     "5",
      "Brick-Plane",
      "main"
     ],
     [
-     "T55",
-     "T78",
+     "39",
+     "37",
      [
       "K-1",
       "K-2"
      ]
     ],
     [
-     "T114",
+     "5",
      "T33",
      "East Ext",
      "main"
     ],
     [
-     "T33",
-     "T106",
+     "7@East Ext",
+     "33",
      "Main East",
      "main"
     ],
     [
-     "T114",
+     "5",
      "T139",
      "Scale"
     ],
     [
-     "T139",
-     "T135",
+     "7@Scale",
+     "13",
      "Barn"
     ],
     [
-     "T54",
-     "T55",
+     "35@West Ext",
+     "39",
      "",
      "main"
     ],
     [
-     "T95",
-     "T78",
+     "35@East Lead",
+     "37",
      "",
      "main"
     ]
@@ -227,49 +228,49 @@
    "op": "end",
    "ends": [
     [
-     "T45",
+     "3",
      "B",
      "W-1",
      "bumper",
      ""
     ],
     [
-     "T45",
+     "3",
      "C",
      "W-2",
      "bumper",
      ""
     ],
     [
-     "T137",
+     "11",
      "B",
      "EH-1",
      "bumper",
      ""
     ],
     [
-     "T136",
+     "9",
      "B",
      "EH-2",
      "bumper",
      ""
     ],
     [
-     "T136",
+     "9",
      "C",
      "EH-3",
      "bumper",
      ""
     ],
     [
-     "T55",
+     "39",
      "B",
      "McKees Rocks",
      "helix",
      "Main level"
     ],
     [
-     "T78",
+     "37",
      "B",
      "McKeesport",
      "helix",

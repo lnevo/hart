@@ -15,6 +15,29 @@ STAGING = json.loads((pd.DATA / "staging.plan_overrides.json").read_text(encodin
 MAIN_UPPER = json.loads((pd.DATA / "main_upper.plan_overrides.json").read_text(encoding="utf-8"))
 PREFS = (pd.DATA / "main_upper.preferences.json").read_text(encoding="utf-8")
 PART = re.compile(r"T\d+")
+PART_REF = re.compile(r"T\d+|TO_\w+-\d")      # a plan part number or a three-way's part id
+# The name edit's first track at each half of the shared numbers 23, 35 and 7 can only reach its half by part number:
+# a half is "number@track" once a track leaving it is named.
+BOOTSTRAP = {"T57", "T54", "T126", "T95", "T33", "T139"}
+
+
+def strings(node):
+    """Every string in a parsed JSON value, keys and values alike, comment entries (keys starting with _) left out."""
+    if isinstance(node, str):
+        yield node
+    elif isinstance(node, list):
+        for item in node:
+            yield from strings(item)
+    elif isinstance(node, dict):
+        for key, value in node.items():
+            if not key.startswith("_"):
+                yield key
+                yield from strings(value)
+
+
+def outside_relabel(overrides):
+    """The overrides without the relabel edit, the one place that keys by plan part number."""
+    return [e for e in overrides["edits"] if e["op"] != "relabel"] + [v for k, v in overrides.items() if k != "edits"]
 
 
 def relabel(overrides):
@@ -37,6 +60,36 @@ class Refs(unittest.TestCase):
 
     def test_the_preferences_use_the_same_names_for_the_three_way(self):
         self.assertNotRegex(PREFS, r'^\s*"5[01]",?$')
+
+    def test_only_the_relabel_edit_keys_by_part_number_besides_the_bootstrap_refs(self):
+        found = {s for doc in (outside_relabel(STAGING), outside_relabel(MAIN_UPPER)) for s in strings(doc)
+                 if PART_REF.fullmatch(s)}
+        self.assertEqual(found, BOOTSTRAP)
+        for name in ("staging.preferences", "main_upper.preferences"):
+            prefs = json.loads((pd.DATA / f"{name}.json").read_text(encoding="utf-8"))
+            self.assertEqual([s for s in strings(prefs) if PART_REF.fullmatch(s)], [], name)
+
+    def test_the_bootstrap_refs_stand_in_the_name_edit(self):
+        name = next(e for e in STAGING["edits"] if e["op"] == "name")
+        refs = {r for t in name["tracks"] for r in t[:2] if PART_REF.fullmatch(r)}
+        self.assertEqual(refs, BOOTSTRAP)
+
+    def test_the_main_upper_refs_resolve_by_label(self):
+        import build_layout_le as bl
+        try:
+            sheet, _le, _core = bl.plugin()
+        except bl.BuildError as exc:
+            self.skipTest(str(exc))
+        from schematic import edits
+        graph = json.loads((pd.GRAPHS / "main.json").read_text())
+        opts = dict(sheet.options("main_upper", pd.DATA))
+        g = sheet.prepare(graph, opts, set())
+        refs = list(opts["level_leg"]) + list(opts["levels"]["assign"]) + list(opts["helix"])
+        refs += [r for e in opts["edits"] if e["op"] == "flip" for r in e["switches"]]
+        refs += [r for h in opts["min_cells"] + opts["shorten"] for r in h[:2]]
+        self.assertTrue(refs)
+        for ref in refs:
+            self.assertEqual(g["nodes"][edits.by_label(g, ref)]["label"], ref)
 
     def test_hands_are_written_for_the_three_way_halves(self):
         with open(pd.DATA / "hands.csv", newline="") as fh:

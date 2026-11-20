@@ -8,39 +8,41 @@
  ],
  "min_cells": [
   [
-   "T114",
-   "T139",
-   5
+   "5",
+   "7",
+   5,
+   "Scale"
   ],
   [
-   "T114",
-   "T33",
-   5
+   "5",
+   "7",
+   5,
+   "East Ext"
   ],
   [
-   "T139",
+   "7",
    "13",
    4
   ],
   [
-   "T124",
-   "T114",
+   "1",
+   "5",
    9
   ],
   [
-   "T73",
-   "T65",
+   "21",
+   "25",
    4,
    "S-3",
    "S-4"
   ],
   [
-   "T106",
-   "T95",
+   "33",
+   "35",
    7
   ]
  ],
- "_min_cells_east_lead": "Owner, 2026-11-13: East Lead (33-35) longer so its name and Mast 34L fit; South Yard tracks shorter (6 to 4 cells) to give the length back. Owner, 2026-11-14: Switch 13 to 15 drawn short (one cell, as T274 to T237 on the upper level); the cells go to East Lead (7 cells), which lengthens West Ext beside it.",
+ "_min_cells_east_lead": "Owner, 2026-11-13: East Lead (33-35) longer so its name and Mast 34L fit; South Yard tracks shorter (6 to 4 cells) to give the length back. Owner, 2026-11-14: Switch 13 to 15 drawn short (one cell, as on the upper level); the cells go to East Lead (7 cells), which lengthens West Ext beside it.",
  "turnbacks": [
   "Brick-Plane"
  ],
@@ -48,7 +50,7 @@
  "shorten": [
   [
    "13",
-   "T49"
+   "15"
   ]
  ],
  "facing_letters": false,
