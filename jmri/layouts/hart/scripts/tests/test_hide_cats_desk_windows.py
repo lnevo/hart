@@ -26,8 +26,12 @@ PANELPRO = "apps.PanelPro.PanelPro"
 CATS = "cats.apps.Crandic"
 
 
-class JavaException(BaseException):
-    """A Java exception: not a Python Exception in Jython."""
+class JavaThrowable(BaseException):
+    """java.lang.Throwable: not a Python Exception in Jython."""
+
+
+class JavaException(JavaThrowable):
+    """java.lang.Exception."""
 
 
 # --- a fake desktop -------------------------------------------------------------------
@@ -242,7 +246,8 @@ class Desk:
         event = mod("java.awt.event", ActionListener=type("ActionListener", (object,), {}))
         awt = mod("java.awt", BorderLayout=BorderLayout, FlowLayout=FlowLayout, Frame=Frame,
                   Window=window_cls, event=event)
-        lang = mod("java.lang", System=types.SimpleNamespace(getProperty=self.props.get))
+        lang = mod("java.lang", System=types.SimpleNamespace(getProperty=self.props.get),
+                   Throwable=JavaThrowable, Exception=JavaException)
         swing = mod("javax.swing", JButton=JButton, JPanel=JPanel)
         util = mod("jmri.util", JmriJFrame=types.SimpleNamespace(getFrame=self.jmri_frames.get),
                    ThreadingUtil=types.SimpleNamespace(
@@ -258,7 +263,7 @@ class Desk:
         """Run the script as JMRI does. The fake modules stay in place until the test ends."""
         stack = contextlib.ExitStack()
         case.addCleanup(stack.close)
-        stack.enter_context(mock.patch.dict(sys.modules, self.modules()))
+        stack.enter_context(jf.fake_modules(self.modules()))
         stack.enter_context(jf.no_network())
         stack.enter_context(contextlib.redirect_stdout(self.out))
         self.script = {"__name__": "hart_script_under_test"}

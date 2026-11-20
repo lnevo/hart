@@ -12,6 +12,10 @@ Java exceptions are modelled on Jython 2.7.4 (checked against JMRI's jython-stan
 2026-11-19): `except Exception` does not catch a Java exception, `except java.lang.Exception`
 does not catch a Python exception or a `java.lang.Error`, and an uncaught Python exception
 ends a `java.lang.Thread`. So the fakes derive from BaseException, outside Exception.
+
+`runOnGUI` is modelled on stock JMRI 5.16 (java/src/jmri/util/ThreadingUtil.java): called off
+the GUI thread, as the worker calls it, it runs the function with `invokeAndWait`, logs
+whatever the function throws and returns normally. The worker never sees that failure.
 """
 from __future__ import annotations
 
@@ -22,7 +26,6 @@ import sys
 import types
 import unittest
 from pathlib import Path
-from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import jmri_fake as jf  # noqa: E402
@@ -89,6 +92,7 @@ class Jmri:
         self.events = []          # "gui" and "save", in the order the worker made them
         self.fetches = []         # the manager class names asked of InstanceManager
         self.fetch_error = None   # raised by the Operations manager lookups when set
+        self.gui_errors = []      # what runOnGUI logged instead of throwing
         self.replies = []
 
     def get_default(self, cls):
@@ -102,8 +106,13 @@ class Jmri:
                 "CarLoads": self.rr.loads, "CarTypes": self.rr.types}[name]
 
     def run_on_gui(self, function):
+        """Stock ThreadingUtil.runOnGUI off the GUI thread: a failure in `function` is logged
+        ("Error while on GUI thread"), not thrown to the caller."""
         self.events.append("gui")
-        function()
+        try:
+            function()
+        except (Exception, JavaThrowable) as exc:
+            self.gui_errors.append(exc)
 
     def save(self):
         self.events.append("save")
@@ -117,7 +126,8 @@ class Jmri:
         def cls(name):
             return type(name, (object,), {})
 
-        lang = mod("java.lang", Thread=Thread, Exception=JavaException, Error=JavaError)
+        lang = mod("java.lang", Thread=Thread, Throwable=JavaThrowable, Exception=JavaException,
+                   Error=JavaError)
         beans = mod("java.beans", PropertyChangeListener=cls("PropertyChangeListener"))
         concurrent = mod("java.util.concurrent", LinkedBlockingQueue=Queue)
         util = mod("java.util", concurrent=concurrent)
@@ -159,7 +169,7 @@ class Worker(unittest.TestCase):
         self.jmri = Jmri()
         stack = contextlib.ExitStack()
         self.addCleanup(stack.close)
-        stack.enter_context(mock.patch.dict(sys.modules, self.jmri.modules()))
+        stack.enter_context(jf.fake_modules(self.jmri.modules()))
         stack.enter_context(jf.no_network())
         self.out = stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
         sync._start()
@@ -304,18 +314,6 @@ class Worker(unittest.TestCase):
         self.assertEqual(self.car().load, "Steel")
         self.assertEqual(self.jmri.events, ["gui", "save"])
 
-    def test_a_python_error_while_applying_fails_the_batch_and_skips_the_save(self):
-        def refuse(load):
-            raise ValueError("cannot set load")
-        self.car().setLoadName = refuse
-        self.request.setValue(batch("a1", load="Steel"))
-        self.request.setValue(batch("after"))
-        self.run_worker()
-        first, after = self.jmri.replies
-        self.assertEqual((first["id"], first["ok"], first["error"]), ("a1", False, "cannot set load"))
-        self.assertEqual(self.jmri.events, ["gui"])
-        self.assertEqual((after["id"], after["ok"]), ("after", True))
-
     # --- Java exceptions: answered without the request's id ---------------------------
 
     def test_a_failed_fetch_is_answered_without_an_id_and_the_next_request_still_runs(self):
@@ -345,18 +343,52 @@ class Worker(unittest.TestCase):
         self.assertEqual(self.jmri.events, [])
         self.assertEqual(self.jmri.replies[1]["id"], "after")
 
-    def test_a_java_exception_while_applying_leaves_earlier_changes_unsaved(self):
-        """Fault, not fixed here: the cars changed before the failure stay changed in memory,
-        Operations is not saved, and the reply says only that the batch failed."""
+    # --- a failure while applying, on the GUI thread: logged by JMRI, never seen here ----
+
+    def test_a_python_error_while_applying_is_swallowed_and_the_reply_says_saved(self):
+        """Known fault, not fixed here: stock runOnGUI logs the failure and returns, so the
+        worker saves and answers ok/saved/changed for a car that did not change."""
+        def refuse(load):
+            raise ValueError("cannot set load")
+        self.car().setLoadName = refuse
+        self.request.setValue(batch("a1", load="Steel"))
+        self.request.setValue(batch("after"))
+        self.run_worker()
+        first, after = self.jmri.replies
+        self.assertEqual((first["id"], first["ok"], first["saved"], first["summary"]),
+                         ("a1", True, True, {"changed": 1}))
+        self.assertNotIn("error", first)
+        self.assertEqual(self.car().load, "E")                      # the reply is wrong
+        self.assertEqual(self.jmri.events, ["gui", "save"])
+        self.assertEqual([str(e) for e in self.jmri.gui_errors], ["cannot set load"])
+        self.assertEqual((after["id"], after["ok"]), ("after", True))
+
+    def test_a_java_exception_while_applying_is_swallowed_and_the_reply_says_saved(self):
+        """Known fault, not fixed here: the cars before the failure change, the failing car and
+        every car after it do not, and the reply still says ok, saved and all of them changed."""
         def refuse(location, track, force):
             raise JavaException("setLocation failed")
         self.car("UTLX1").setLocation = refuse
         self.request.setValue(json.dumps({"id": "j3", "cars": [
-            {"car": "BO8476", "load": "Steel"}, {"car": "UTLX1", "location": "Ferrellgas"}]}))
+            {"car": "BO8476", "load": "Steel"}, {"car": "UTLX1", "location": "Ferrellgas"},
+            {"car": "BO8476", "load": "E"}]}))
         self.run_worker()
-        self.assertEqual(self.jmri.replies, [{"ok": False, "error": "setLocation failed"}])
-        self.assertEqual(self.car().load, "Steel")
-        self.assertEqual(self.jmri.events, ["gui"])
+        out = self.jmri.replies[0]
+        self.assertEqual((out["id"], out["ok"], out["saved"]), ("j3", True, True))
+        self.assertEqual([c["status"] for c in out["cars"]], ["changed", "changed", "unchanged"])
+        self.assertEqual(self.car().load, "Steel")                  # applied before the failure
+        self.assertEqual(self.jmri.events, ["gui", "save"])         # saved half applied
+        self.assertEqual([str(e) for e in self.jmri.gui_errors], ["setLocation failed"])
+
+    @unittest.expectedFailure
+    def test_wanted_a_failure_while_applying_is_not_answered_as_ok(self):
+        """What the reply should say; fails today (see the two tests above)."""
+        def refuse(load):
+            raise ValueError("cannot set load")
+        self.car().setLoadName = refuse
+        self.request.setValue(batch("w0", load="Steel"))
+        self.run_worker()
+        self.assertFalse(self.jmri.replies[0]["ok"])
 
     # --- what ends the thread ---------------------------------------------------------
 
@@ -448,6 +480,28 @@ class Worker(unittest.TestCase):
         self.request.setValue(batch("r2"))
         self.run_worker(Thread.made[0])
         self.assertEqual(self.jmri.replies, [])
+
+
+class FakeModules(unittest.TestCase):
+    """jf.fake_modules, which both start-up script tests use to stand in for Java and JMRI."""
+
+    def test_only_the_fakes_are_taken_out_again(self):
+        real_json, fake_json = sys.modules["json"], types.ModuleType("json")
+        late = types.ModuleType("hart_imported_during_a_test")
+        self.addCleanup(sys.modules.pop, late.__name__, None)
+        self.assertNotIn("java", sys.modules)
+        with jf.fake_modules({"java": types.ModuleType("java"), "json": fake_json}):
+            self.assertIs(sys.modules["json"], fake_json)
+            sys.modules[late.__name__] = late     # as a first `import` inside a test does
+        self.assertNotIn("java", sys.modules)                 # a fake that hid nothing is removed
+        self.assertIs(sys.modules["json"], real_json)         # a hidden real module is back
+        self.assertIs(sys.modules[late.__name__], late)       # and a module imported meanwhile stays
+
+    def test_the_fakes_are_taken_out_when_the_body_fails(self):
+        with self.assertRaises(ValueError):
+            with jf.fake_modules({"java": types.ModuleType("java")}):
+                raise ValueError("test body failed")
+        self.assertNotIn("java", sys.modules)
 
 
 if __name__ == "__main__":
