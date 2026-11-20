@@ -65,6 +65,7 @@ class WaybillSmoke(unittest.TestCase):
             out.parent.mkdir()
             with mock.patch.object(gct, "STICKER_SHEET", sheet), \
                     mock.patch.object(gct, "require_sticker_sheet", lambda: sheet), \
+                    mock.patch.object(gwc, "BASE", tmp), \
                     mock.patch.object(gwc, "OUTPUT_DIR", out.parent), \
                     mock.patch.object(gwc, "OUTPUT", out), \
                     mock.patch.object(gwc, "WAYBILL_CSV", csv_out):
@@ -93,6 +94,7 @@ class StationMapsSmoke(unittest.TestCase):
             self.assertTrue(drawn)
             for m in drawn:
                 self.assertTrue(m["png"].is_file(), m["png"])
+                self.assertGreater(m["png"].stat().st_size, 1000, m["png"])
                 self.assertTrue(m["docx"].is_file(), m["docx"])
 
 
@@ -105,7 +107,7 @@ class VisualReviewSmoke(unittest.TestCase):
             roster = tmp / "roster.xml"
             root = ET.Element("operations-config")
             cars = ET.SubElement(root, "cars")
-            ET.SubElement(cars, "car", id=review.get("roster_id", "X1"), roadName="NW",
+            ET.SubElement(cars, "car", id=review["roster_id"], roadName="NW",
                           roadNumber="1", type="Flatcar", length="40", weight="1",
                           weightTons="2")
             ET.ElementTree(root).write(roster)
@@ -124,6 +126,8 @@ class VisualReviewSmoke(unittest.TestCase):
                 rows = list(csv.DictReader(f))
             self.assertEqual(len(rows), 2)
             self.assertEqual(rows[0]["match_confidence"], "visual_review")
+            self.assertEqual(rows[0]["roster_id"], review["roster_id"])
+            self.assertEqual(rows[0]["roster_road"], "NW")
             self.assertEqual(rows[1]["source_image"], "unreviewed.png")
 
 
