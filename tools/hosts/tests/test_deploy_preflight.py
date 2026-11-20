@@ -5,10 +5,11 @@ Windows is kept matching the Pi and the Pi step runs first, so an unreachable Wi
 down.txt refuses, the no-op and the Pi's read-only checks answer, and anything else (the first
 real host step) fails with 99. Nothing reaches a host. HOME and TMPDIR are temporary folders, the
 gate that rewrites tables.xml runs as a dry run (keep_repo_tables), and every test checks that the
-checkout is as it was.
+checkout is as it was where a deploy could change it (checkout_state).
 """
 from __future__ import annotations
 
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -37,8 +38,9 @@ while read -r host; do
   [[ -n "$host" && " $* " == *"$host "* ]] && { echo "ssh: connect to host $host: refused" >&2; exit 255; }
 done <"@TMP@/down.txt"
 cmd="${@: -1}"
-# mksock: the preflight no-op opens a master, as real ssh does with ControlMaster=auto.
-if [[ -f "@TMP@/mksock" && "$cmd" == true ]]; then
+# mksock: the preflight no-op (Pi "true", Windows "exit 0") opens a master, as real ssh does with
+# ControlMaster=auto.
+if [[ -f "@TMP@/mksock" && ( "$cmd" == true || "$cmd" == "exit 0" ) ]]; then
   for a in "$@"; do
     [[ "$a" == ControlPath=* ]] && python3 -c 'import socket, sys; socket.socket(socket.AF_UNIX).bind(sys.argv[1])' "${a#ControlPath=}"
   done
@@ -74,6 +76,28 @@ fi
 exec "@RSYNC@" "$@"
 """
 
+# Where a deploy could leave a new untracked file: the trees it reads from or writes beside, and the
+# top level (it runs with the checkout as its working folder). check.sh runs other test jobs at the
+# same time, and a temporary file one of them makes elsewhere (www/, tools/hartlib/) is not the deploy's.
+DEPLOY_TREES = ("jmri/", "cats/", "tools/hosts/", "tools/env/", "tools/mqtt-mimic/", "docs/jmri/")
+
+
+def deploy_could_write(line: str) -> bool:
+    """A `git status --porcelain` line the deploy could have caused: any tracked change, and an untracked
+    path at the top level or under DEPLOY_TREES."""
+    if not line.startswith("?? "):
+        return True
+    path = line[3:].strip('"')
+    return "/" not in path.rstrip("/") or path.startswith(DEPLOY_TREES)
+
+
+def checkout_state(status: str | None = None) -> tuple[str, list[str]]:
+    """The tables.xml hash and the status lines a deploy could have changed."""
+    if status is None:
+        status = git("status", "--porcelain", raw=True).decode()
+    return (hashlib.sha256(TABLES.read_bytes()).hexdigest(),
+            [ln for ln in status.splitlines() if deploy_could_write(ln)])
+
 
 class DeployHarness(unittest.TestCase):
     def setUp(self) -> None:
@@ -88,9 +112,8 @@ class DeployHarness(unittest.TestCase):
         (self.tmp / "restart.txt").write_text("no\n", encoding="utf-8")
         self.down()
         # No test may change the checkout: the tables bytes and git's view of it stay as they were.
-        before = (TABLES.read_bytes(), git("status", "--porcelain"))
-        self.addCleanup(lambda: self.assertEqual(
-            before, (TABLES.read_bytes(), git("status", "--porcelain")), "the deploy changed the checkout"))
+        before = checkout_state()
+        self.addCleanup(lambda: self.assertEqual(before, checkout_state(), "the deploy changed the checkout"))
 
     def down(self, *hosts: str) -> None:
         (self.tmp / "down.txt").write_text("".join(f"{h}\n" for h in hosts), encoding="utf-8")
@@ -105,6 +128,22 @@ class DeployHarness(unittest.TestCase):
     def deploy(self, *flags: str) -> subprocess.CompletedProcess:
         return subprocess.run(["bash", str(SYNC), *flags], cwd=ROOT, env=self.env,
                               capture_output=True, text=True, timeout=600)
+
+
+class CheckoutGuardTest(unittest.TestCase):
+    """The guard ignores another job's temporary file and still sees what a deploy could change."""
+
+    def test_other_jobs_temporary_files_are_ignored(self) -> None:
+        clean = checkout_state("")
+        for stray in ("?? www/data/tmpab12cd/", "?? tools/hartlib/tests/probe.py"):
+            self.assertEqual(clean, checkout_state(stray), stray)
+
+    def test_a_deploy_change_is_seen(self) -> None:
+        clean = checkout_state("")
+        for dirt in (" M jmri/layouts/hart/output/tables.xml", "M  cats/panels/HART_CTC.xml",
+                     " M www/index.html", "?? jmri/layouts/hart/output/stage/", "?? cats/deploy_stamp.txt",
+                     "?? stage/", "?? deploy_stamp.txt", '?? "tools/hosts/a b.sh"'):
+            self.assertNotEqual(clean, checkout_state(dirt), dirt)
 
 
 class PreflightTest(DeployHarness):
@@ -240,8 +279,8 @@ class PreflightTest(DeployHarness):
 
 
 class SshReuseTest(DeployHarness):
-    """The Pi calls share one ssh connection through a socket folder made for the run; Windows keeps one
-    connection per call. The folder is gone after every run, and a master that was opened is told to exit."""
+    """Each host's calls share one ssh connection, on its own socket ("pi", "win") in a folder made for the
+    run. The folder is gone after every run, and a master that was opened is told to exit."""
 
     def setUp(self) -> None:
         super().setUp()
@@ -255,7 +294,14 @@ class SshReuseTest(DeployHarness):
     def control_paths(self) -> set[str]:
         return {a.split("=", 1)[1] for c in self.calls() for a in c.split() if a.startswith("ControlPath=")}
 
-    def test_pi_calls_share_one_socket_and_windows_calls_do_not(self) -> None:
+    def sockets(self) -> dict[str, Path]:
+        """The socket each host used, by name ("pi", "win"); every one sits in the same run folder."""
+        found = {Path(p).name: Path(p) for p in self.control_paths()}
+        self.assertEqual(len(found), len(self.control_paths()), self.calls())
+        self.assertLessEqual(len({p.parent for p in found.values()}), 1, found)
+        return found
+
+    def test_each_host_shares_its_own_socket(self) -> None:
         done = self.deploy("--pi", "--win")
         self.assertEqual(99, done.returncode, done.stderr[-2000:])
         self.assertIn("Pi deploy done.", done.stdout)
@@ -263,14 +309,14 @@ class SshReuseTest(DeployHarness):
         win = [c for c in self.calls() if WIN in c]
         # the no-op, the unpulled check, the drop folder, the rsync, the apply and the restart check
         self.assertEqual(6, len(pi), pi)
-        paths = self.control_paths()
-        self.assertEqual(1, len(paths), self.calls())
-        path = Path(paths.pop())
-        self.assertEqual("pi", path.name)
-        self.assertTrue(all(f"ControlPath={path}" in c for c in pi), pi)
-        self.assertTrue(any(c.startswith("rsync ") and f"ControlPath={path}" in c for c in pi), pi)
-        self.assertTrue(win and not any("ControlPath" in c for c in win), win)
-        self.assertFalse(path.parent.exists(), "the socket folder was left behind")
+        # the no-op and the drop folder (which the stand-in fails)
+        self.assertEqual(2, len(win), win)
+        sockets = self.sockets()
+        self.assertEqual({"pi", "win"}, set(sockets), self.calls())
+        self.assertTrue(all(f"ControlPath={sockets['pi']}" in c for c in pi), pi)
+        self.assertTrue(any(c.startswith("rsync ") and f"ControlPath={sockets['pi']}" in c for c in pi), pi)
+        self.assertTrue(all(f"ControlPath={sockets['win']}" in c and "ControlMaster=auto" in c for c in win), win)
+        self.assertFalse(sockets["pi"].parent.exists(), "the socket folder was left behind")
         # no master was opened, so none is told to exit
         self.assertFalse(any("-O exit" in c for c in self.calls()), self.calls())
 
@@ -279,22 +325,40 @@ class SshReuseTest(DeployHarness):
         done = self.deploy("--pi", "--win")
         self.assertIn("Pi deploy done.", done.stdout)
         exits = [c for c in self.calls() if "-O exit" in c]
-        self.assertEqual(1, len(exits), self.calls())
-        self.assertTrue(exits[0].endswith(f"-O exit {PI}"), exits)
-        self.assertFalse(Path(self.control_paths().pop()).parent.exists())
+        self.assertEqual(2, len(exits), self.calls())
+        sockets = self.sockets()
+        self.assertTrue(exits[0].endswith(f"-O exit {PI}") and f"ControlPath={sockets['pi']}" in exits[0], exits)
+        self.assertTrue(exits[1].endswith(f"-p 1 -O exit nobody@{WIN}")
+                        and f"ControlPath={sockets['win']}" in exits[1], exits)
+        self.assertFalse(sockets["pi"].parent.exists())
 
     def test_a_stopped_run_removes_the_folder_too(self) -> None:
         self.down(WIN)
         done = self.deploy("--pi", "--win")
         self.assertIn(WIN_DOWN, done.stderr)
-        paths = self.control_paths()
-        self.assertEqual(1, len(paths), self.calls())
-        self.assertFalse(Path(paths.pop()).parent.exists())
+        sockets = self.sockets()
+        self.assertEqual({"pi", "win"}, set(sockets), self.calls())
+        self.assertFalse(sockets["pi"].parent.exists())
 
     def test_hart_ssh_mux_0_turns_reuse_off(self) -> None:
         self.env["HART_SSH_MUX"] = "0"
+        self.env["HART_WIN_SSH_MUX"] = "1"
         done = self.deploy("--pi", "--win")
         self.assertIn("Pi deploy done.", done.stdout)
+        self.assertEqual(set(), self.control_paths())
+
+    def test_hart_win_ssh_mux_0_turns_reuse_off_for_windows_only(self) -> None:
+        self.env["HART_WIN_SSH_MUX"] = "0"
+        (self.tmp / "mksock").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertIn("Pi deploy done.", done.stdout)
+        self.assertEqual({"pi"}, set(self.sockets()), self.calls())
+        win = [c for c in self.calls() if WIN in c]
+        self.assertTrue(win and not any("Control" in c for c in win), win)
+        # Windows alone: no socket folder at all.
+        (self.tmp / "network.log").unlink()
+        done = self.deploy("--win")
+        self.assertIn("Deploy → Windows", done.stdout)
         self.assertEqual(set(), self.control_paths())
 
     def test_windows_failing_after_the_pi_was_deployed_says_so(self) -> None:
@@ -319,6 +383,11 @@ class SshReuseTest(DeployHarness):
         self.win_reaches_apply(7)
         done = self.deploy("--pi", "--win")
         self.assertEqual(7, done.returncode, done.stderr[-2000:])
+        # Every Windows call, the scp too, went over the Windows socket.
+        win = [c for c in self.calls() if WIN in c]
+        sock = self.sockets()["win"]
+        self.assertTrue(any(c.startswith("scp ") for c in win), win)
+        self.assertTrue(all(f"ControlPath={sock}" in c for c in win), win)
         self.assertIn("Windows may be partly installed", done.stderr)
         self.assertIn("make redeploy COMMIT=", done.stderr)
 
@@ -338,15 +407,17 @@ class SshReuseTest(DeployHarness):
         self.env["TMPDIR"] = str(spaced)
         done = self.deploy("--pi", "--win")
         self.assertIn("Pi deploy done.", done.stdout)
-        paths = self.control_paths()
-        self.assertEqual(1, len(paths), self.calls())
-        self.assertTrue(paths.pop().startswith("/tmp/hart-ssh."), self.calls())
+        sockets = self.sockets()
+        self.assertEqual({"pi", "win"}, set(sockets), self.calls())
+        self.assertTrue(str(sockets["pi"]).startswith("/tmp/hart-ssh."), self.calls())
 
     def test_windows_alone_failing_does_not_mention_the_pi(self) -> None:
         done = self.deploy("--win")
         self.assertEqual(99, done.returncode, done.stderr[-2000:])
         self.assertNotIn("The Pi has this deploy", done.stderr)
-        self.assertEqual(set(), self.control_paths())
+        sockets = self.sockets()
+        self.assertEqual({"win"}, set(sockets), self.calls())
+        self.assertFalse(sockets["win"].parent.exists())
 
 
 if __name__ == "__main__":

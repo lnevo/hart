@@ -91,12 +91,12 @@ class BootstrapTest(unittest.TestCase):
 
     def run_script(self, where):
         import subprocess
-        script = Path(where) / "probe.py"
-        script.write_text(self.SNIPPET, encoding="utf-8")
-        try:
+        import tempfile
+        # A folder of its own, so two runs at once do not share one probe.py.
+        with tempfile.TemporaryDirectory(dir=where) as d:
+            script = Path(d) / "probe.py"
+            script.write_text(self.SNIPPET, encoding="utf-8")
             return subprocess.run([sys.executable, "-I", str(script)], capture_output=True, text=True, timeout=30)
-        finally:
-            script.unlink()
 
     def test_readme_holds_the_snippet(self):
         readme = (CHECKOUT / "tools/hartlib/README.md").read_text(encoding="utf-8")
@@ -104,7 +104,11 @@ class BootstrapTest(unittest.TestCase):
             self.assertIn(line, readme)
 
     def test_finds_this_checkout(self):
-        done = self.run_script(CHECKOUT / "tools/hartlib/tests")
+        # Inside the checkout, but in a folder git ignores (__pycache__/), so check.sh's other jobs
+        # (the deploy test compares git status) never see an untracked probe.py.
+        where = CHECKOUT / "tools/hartlib/tests/__pycache__"
+        where.mkdir(exist_ok=True)
+        done = self.run_script(where)
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertEqual(done.stdout.strip(), str(CHECKOUT))
 

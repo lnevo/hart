@@ -27,7 +27,7 @@ Before you run it:
 What it does:
 
 - With no flag it installs on the Mac only. A host flag also installs on the Mac, then sends one staged package: the Pi by rsync, Windows by tarball over ssh. Each host unpacks into a temporary folder, installs into `JMRI_UserFiles`, and removes the folder. The package is built once per run; the Pi and Windows copies differ only in the CATS panels (rewritten for each host's user files) and the stamp.
-- The Pi's ssh, rsync and restart-check calls share one ssh connection (a master on a socket in a folder made for the run, closed and removed on every way out). Windows opens one connection per call: its OpenSSH server has not been tried with shared connections. `HART_SSH_MUX=0` turns sharing off.
+- Each host's calls share one ssh connection: the Pi's ssh, rsync and restart-check calls on one socket, the Windows ssh and scp calls on another (masters in a folder made for the run, closed and removed on every way out). `HART_SSH_MUX=0` turns sharing off for both; `HART_WIN_SSH_MUX=0` turns it off for Windows only, if its OpenSSH server misbehaves with a shared connection.
 - It runs `audit_panel_contracts.py --strict` first and turns off the Digicon SML MQTT destinations in the shipped tables.
 - Operations files are overwritten on every host once the Pi check passes (`HART_OVERWRITE_OPS=1` is the default; `0` restores the per-file guards).
 - Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES`, `HART_WIN_USERFILES` and `HART_PI_WEB_HOST` (the Pi's name in the Mac web home's links), read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `tools/env/defaults.env`.

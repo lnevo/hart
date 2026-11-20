@@ -149,43 +149,52 @@ STAMP
 }
 
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
-# The Pi calls (preflight, unpulled check, drop folder, rsync, apply, restart check) share one ssh
-# connection: the first opens a master on a socket in a folder made for this run, the rest reuse it,
-# and on_exit closes it and removes the folder. ControlPersist bounds a master left by a killed run.
-# Windows keeps one connection per call: its OpenSSH server has not been tried with multiplexed
-# sessions, and a failure there would come after the Pi was deployed. HART_SSH_MUX=0 turns reuse off.
+# Each host's calls share one ssh connection: the Pi's (preflight, unpulled check, drop folder, rsync,
+# apply, restart check) on the socket "pi", Windows' (preflight, drop folder, scp, unpack, apply,
+# cleanup) on "win". The first call to a host opens a master on its socket in a folder made for this
+# run, the rest reuse it, and on_exit closes each master and removes the folder. ControlPersist bounds
+# a master left by a killed run. HART_SSH_MUX=0 turns reuse off for both hosts; HART_WIN_SSH_MUX=0
+# turns it off for Windows only (OpenSSH for Windows, shared connections approved 2026-11-20).
 PI_SSH_OPTS=("${SSH_OPTS[@]}")
+WIN_SSH_OPTS=("${SSH_OPTS[@]}")
 SSH_MUX_DIR=""
 ssh_mux_open() {
   [[ "${HART_SSH_MUX:-1}" != "0" ]] || return 0
+  local pi="$DO_PI" win="$DO_WIN"
+  [[ "${HART_WIN_SSH_MUX:-1}" != "0" ]] || win=0
+  [[ "$pi" -eq 1 || "$win" -eq 1 ]] || return 0
   # A unix socket path is limited to about 104 bytes, and ssh adds a suffix while it binds.
   local parent="${TMPDIR:-/tmp}"
   # rsync -e splits its ssh command on whitespace, so the socket path must have none.
   [[ "${#parent}" -le 60 && "$parent" != *[[:space:]]* ]] || parent=/tmp
   if ! SSH_MUX_DIR="$(mktemp -d "${parent%/}/hart-ssh.XXXXXX")"; then
-    echo "Note: could not make an ssh socket folder; each Pi call opens its own connection." >&2
+    echo "Note: could not make an ssh socket folder; each host call opens its own connection." >&2
     SSH_MUX_DIR=""
     return 0
   fi
-  PI_SSH_OPTS+=(-o ControlMaster=auto -o "ControlPath=$SSH_MUX_DIR/pi" -o ControlPersist=120)
+  [[ "$pi" -eq 0 ]] || PI_SSH_OPTS+=(-o ControlMaster=auto -o "ControlPath=$SSH_MUX_DIR/pi" -o ControlPersist=120)
+  [[ "$win" -eq 0 ]] || WIN_SSH_OPTS+=(-o ControlMaster=auto -o "ControlPath=$SSH_MUX_DIR/win" -o ControlPersist=120)
 }
 ssh_mux_close() {
   [[ -n "$SSH_MUX_DIR" ]] || return 0
-  # Only a master that was opened is asked to exit (an unreachable Pi leaves no socket).
+  # Only a master that was opened is asked to exit (an unreachable host leaves no socket).
   if [[ -S "$SSH_MUX_DIR/pi" ]]; then
     ssh -o "ControlPath=$SSH_MUX_DIR/pi" -O exit "$PI_HOST" >/dev/null 2>&1 || true
+  fi
+  if [[ -S "$SSH_MUX_DIR/win" ]]; then
+    ssh -o "ControlPath=$SSH_MUX_DIR/win" -p "$WIN_PORT" -O exit "$WIN_HOST" >/dev/null 2>&1 || true
   fi
   rm -rf "$SSH_MUX_DIR"
   SSH_MUX_DIR=""
 }
 ssh_pi() { ssh "${PI_SSH_OPTS[@]}" "$PI_HOST" "$@"; }
-ssh_win() { ssh "${SSH_OPTS[@]}" -p "$WIN_PORT" "$WIN_HOST" "$@"; }
+ssh_win() { ssh "${WIN_SSH_OPTS[@]}" -p "$WIN_PORT" "$WIN_HOST" "$@"; }
 # SFTP needs "Subsystem sftp" in the Windows sshd_config (OpenSSH 10.4); fall back to
 # the legacy scp protocol if a reinstall or reset has removed it.
 scp_win() {
-  scp "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@" 2>/dev/null && return 0
+  scp "${WIN_SSH_OPTS[@]}" -P "$WIN_PORT" "$@" 2>/dev/null && return 0
   echo "scp over SFTP to Windows failed; retrying with the legacy protocol (-O). Check Subsystem sftp in sshd_config." >&2
-  scp -O "${SSH_OPTS[@]}" -P "$WIN_PORT" "$@"
+  scp -O "${WIN_SSH_OPTS[@]}" -P "$WIN_PORT" "$@"
 }
 
 # PanelPro quit for this deploy (pi_quit_panelpro.sh --for-deploy leaves a marker) comes
@@ -234,7 +243,7 @@ on_exit() {
   ssh_mux_close
 }
 trap on_exit EXIT
-if [[ -z "$STAGE_ONLY" && "$DO_PI" -eq 1 ]]; then
+if [[ -z "$STAGE_ONLY" ]]; then
   ssh_mux_open
 fi
 

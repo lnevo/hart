@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import shutil
 import sys
 import tempfile
@@ -27,12 +28,6 @@ class LayoutIndexCheckTest(unittest.TestCase):
         with patch, contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
             return mod.main(["--check"]), err.getvalue()
 
-    def stale_copy(self, src: Path) -> Path:
-        tmp = Path(tempfile.mkdtemp(dir=src.parent))
-        self.addCleanup(shutil.rmtree, tmp)
-        dst = tmp / src.name
-        dst.write_text(src.read_text(encoding="utf-8").replace("Mast 2L", "Mast 2LX", 1), encoding="utf-8")
-        return dst
 
     def test_committed_indexes_are_current(self) -> None:
         for mod in (le_index, cats_index):
@@ -42,7 +37,14 @@ class LayoutIndexCheckTest(unittest.TestCase):
     def test_a_stale_index_fails(self) -> None:
         for mod in (le_index, cats_index):
             with self.subTest(index=mod.OUT_JSON.name):
-                rc, err = self.check(mod, self.stale_copy(mod.OUT_JSON))
+                # The committed JSON is behind a mast rename: what --check builds now says "Mast 2LX".
+                # Changing the built side keeps the stale file out of www/data, where a parallel job
+                # (the deploy test's checkout guard) would see it.
+                build = mod.build
+                renamed = lambda: json.loads(json.dumps(build()).replace("Mast 2L", "Mast 2LX", 1))  # noqa: E731
+                self.assertNotEqual(json.dumps(build()), json.dumps(renamed()))
+                with mock.patch.object(mod, "build", renamed):
+                    rc, err = self.check(mod)
                 self.assertEqual(rc, 1)
                 self.assertIn("is stale", err)
 
