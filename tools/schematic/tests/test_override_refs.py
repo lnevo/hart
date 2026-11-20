@@ -16,9 +16,9 @@ MAIN_UPPER = json.loads((pd.DATA / "main_upper.plan_overrides.json").read_text(e
 PREFS = (pd.DATA / "main_upper.preferences.json").read_text(encoding="utf-8")
 PART = re.compile(r"T\d+")
 PART_REF = re.compile(r"T\d+|TO_\w+-\d")      # a plan part number or a three-way's part id
-# The name edit's first track at each half of the shared numbers 23, 35 and 7 can only reach its half by part number:
-# a half is "number@track" once a track leaving it is named.
-BOOTSTRAP = {"T57", "T54", "T126", "T95", "T33", "T139"}
+# The name edit's first track at each half of the shared numbers 23, 35 and 7 reaches its half as number@neighbour (no
+# track leaving it has a name yet); these are the halves the plan part numbers named before.
+NEIGHBOUR_REFS = {"23@1": "T57", "35@23": "T54", "23@15": "T126", "35@33": "T95", "7@33": "T33", "7@13": "T139"}
 
 
 def strings(node):
@@ -61,18 +61,32 @@ class Refs(unittest.TestCase):
     def test_the_preferences_use_the_same_names_for_the_three_way(self):
         self.assertNotRegex(PREFS, r'^\s*"5[01]",?$')
 
-    def test_only_the_relabel_edit_keys_by_part_number_besides_the_bootstrap_refs(self):
+    def test_only_the_relabel_edit_keys_by_part_number(self):
         found = {s for doc in (outside_relabel(STAGING), outside_relabel(MAIN_UPPER)) for s in strings(doc)
                  if PART_REF.fullmatch(s)}
-        self.assertEqual(found, BOOTSTRAP)
+        self.assertEqual(found, set())
         for name in ("staging.preferences", "main_upper.preferences"):
             prefs = json.loads((pd.DATA / f"{name}.json").read_text(encoding="utf-8"))
             self.assertEqual([s for s in strings(prefs) if PART_REF.fullmatch(s)], [], name)
 
-    def test_the_bootstrap_refs_stand_in_the_name_edit(self):
+    def test_the_neighbour_refs_stand_in_the_name_edit(self):
         name = next(e for e in STAGING["edits"] if e["op"] == "name")
-        refs = {r for t in name["tracks"] for r in t[:2] if PART_REF.fullmatch(r)}
-        self.assertEqual(refs, BOOTSTRAP)
+        refs = {r for t in name["tracks"] for r in t[:2]}
+        self.assertLessEqual(set(NEIGHBOUR_REFS), refs)
+
+    def test_each_neighbour_ref_finds_the_half_its_part_number_did(self):
+        import build_layout_le as bl
+        try:
+            sheet, _le, _core = bl.plugin()
+        except bl.BuildError as exc:
+            self.skipTest(str(exc))
+        from schematic import edits
+        # The final graph: the plugin stops on a ref whose track-name and neighbour readings disagree, so a ref
+        # that resolves here to its old half resolved to it when the name edit ran too.
+        sg = sheet.prepare(json.loads((pd.GRAPHS / "staging.json").read_text()),
+                           dict(sheet.options("staging", pd.DATA)), set())
+        for ref, part in NEIGHBOUR_REFS.items():
+            self.assertEqual(sg["nodes"][edits.by_label(sg, ref)]["alias"], part, ref)
 
     def test_the_main_upper_refs_resolve_by_label(self):
         import build_layout_le as bl
