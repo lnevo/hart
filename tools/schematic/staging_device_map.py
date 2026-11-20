@@ -164,6 +164,11 @@ def undetected(r: dict) -> bool:
     return r["layer"] == "block" and r["notes"].startswith("no detector")
 
 
+def undetected_blocks(device_map: Path = DEVICE_MAP) -> set[str]:
+    """The user names of the staging blocks the device map says have no detector."""
+    return {r["user_name"] for r in read_rows(device_map, bdm.COLUMNS) if undetected(r)}
+
+
 # ---------------------------------------------------------------- reading the files
 
 

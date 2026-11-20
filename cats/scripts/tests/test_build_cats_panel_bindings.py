@@ -213,6 +213,14 @@ class Blocks(unittest.TestCase):
         self.assertEqual(out["West"]["name"], "Track West")
         self.assertEqual(out["1-2"], {"name": "OS Switch 1"})
 
+    def test_only_blocks_the_device_map_marks_are_undetected(self):
+        root = ET.fromstring('<layout-config><layoutblocks>'
+                             '<layoutblock systemName="ILB1"><userName>Track McKeesport</userName></layoutblock>'
+                             '<layoutblock systemName="ILB2"><userName>OS Switch 33</userName></layoutblock>'
+                             '<layoutblock systemName="ILB3" occupancysensor="BS K-1"><userName>Track K-1</userName>'
+                             '</layoutblock></layoutblocks></layout-config>')
+        self.assertEqual(B.undetected_blocks(root, {"Track McKeesport", "Track K-1"}), {"Track McKeesport"})
+
     def test_a_jmri_block_with_no_detector_is_bound_by_name_alone(self):
         F = facts()
         F.occupancy.pop("Track West")

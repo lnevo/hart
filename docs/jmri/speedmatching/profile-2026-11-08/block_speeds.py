@@ -37,9 +37,15 @@ DROP = [("steprun_2121_b.log", 1794132892.3, 1794132972.8)]
 EXTRA_LAPS = [("steprun_2121_b.log", 8), ("steprun_2121_c.log", 8)]  # step 8 first lap
 
 
+# The 2026-11-08 logs name the Switch 37 and 39 OS detectors by their names then; read them as today's.
+OLD_NAMES = {"BS Switch 37 / BS McKeesport": "BS Switch 37", "BS Switch 39 / BS McKees Rocks": "BS Switch 39"}
+
+
 def read(path):
     seen, ev = set(), []
     for line in open(path):
+        for old, new in OLD_NAMES.items():
+            line = line.replace(old, new)
         p = line.rstrip("\n").split(" ", 1)
         if len(p) < 2 or line in seen and p[1].startswith("SENS"):
             continue

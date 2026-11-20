@@ -100,6 +100,9 @@ STATION_OCCUPANCY = {
     "Track Barn": "BS Barn",
     "Track W-1": "BS W-1",
     "Track W-2": "BS W-2",
+    # The helix tracks have no detector of their own yet: these are the OS Switch 39 / 37 detectors, as the old
+    # combined sensors were since 2026-11-13. The helix PR points them (and their parked lamps and USS board cells)
+    # at the helix tracks' own detectors.
     "Track McKees Rocks": "BS Switch 39",
     "Track McKeesport": "BS Switch 37",
 }

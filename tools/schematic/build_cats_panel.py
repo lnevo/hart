@@ -195,9 +195,13 @@ def load_facts():
         raise SystemExit(f"build_cats_panel.py: {exc}") from None
 
 
-def undetected_blocks(root):
-    """The user names of the tables' layout blocks with no occupancy sensor."""
-    return {tables.user_name(lb) for lb in tables.layout_blocks(root) if not (lb.get("occupancysensor") or "").strip()}
+def undetected_blocks(root, marked=None):
+    """The user names of the tables' layout blocks with no occupancy sensor that the staging device map says have no
+    detector ("no detector yet"). Any other block with no sensor stays out, so the desk build stops on it rather than
+    draw a block that never shows occupied."""
+    marked = sdm.undetected_blocks() if marked is None else marked
+    return {tables.user_name(lb) for lb in tables.layout_blocks(root)
+            if not (lb.get("occupancysensor") or "").strip() and tables.user_name(lb) in marked}
 
 
 def legs_of(d):

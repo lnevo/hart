@@ -33,10 +33,10 @@ Switch 31                                 241      0     9.5     1
 Switch 33                                 389      0    15.3     1
 East Lead                                2602      0   102.4     1
 Switch 35a                                364      0    14.3     1
-Switch 37                 441      0    17.4     1
+Switch 37                                 441      0    17.4     1
 K-2                                      2904      0   114.3     1
 K-1                                      3036      0   119.5     1
-Switch 39               353      0    13.9     1
+Switch 39                                 353      0    13.9     1
 Switch 35b                                451      0    17.7     1
 West Ext                                 3958      0   155.8     1
 Switch 23a                                676      0    26.6     1
