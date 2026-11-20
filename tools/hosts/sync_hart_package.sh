@@ -74,6 +74,8 @@ if [[ $# -gt 0 ]]; then
         echo "                    No ssh, no Mac install, and the repo's tables.xml is only checked."
         echo "  What a host last got: tools/hosts/deploy_status.sh [--pi] [--win] [--mac]"
         echo "  Redeploy an older commit (rollback): tools/hosts/redeploy_commit.sh <commit> --pi"
+        echo "  A real deploy first asks each host named for an ssh answer and stops, with nothing changed,"
+        echo "  if one does not reply (with --pi --win an unreachable Windows stops it before the Pi step)."
         echo "  Pi PanelPro: quit it first with tools/hosts/pi_quit_panelpro.sh --for-deploy;"
         echo "               the Pi deploy starts it again (also if the deploy fails). A plain"
         echo "               quit or one closed by hand stays closed. HART_PI_RESTART=0 skips."
@@ -197,6 +199,32 @@ fi
 if [[ "$CHECK_PI_ONLY" -eq 1 ]]; then
   echo "Pi check: nothing unpulled."
   exit 0
+fi
+
+# Windows is kept matching the Pi, and the Pi step runs first. A host that does not answer would
+# stop the run after the other host, the Mac or the repo's tables.xml had already changed, so ask
+# every host named on the command line for one ssh no-op before the gates below rewrite anything
+# or a byte is sent. A dry run and --stage-only change nothing on a host and skip it.
+preflight_hosts() {
+  local down=() pi_up=0 h
+  if [[ "$DO_PI" -eq 1 ]]; then
+    if ssh_pi true </dev/null >/dev/null; then pi_up=1; else down+=("the Pi ($PI_HOST)"); fi
+  fi
+  # "exit 0" also runs under cmd.exe, the Windows OpenSSH shell.
+  if [[ "$DO_WIN" -eq 1 ]] && ! ssh_win "exit 0" </dev/null >/dev/null; then
+    down+=("Windows ($WIN_HOST port $WIN_PORT)")
+  fi
+  [[ "${#down[@]}" -gt 0 ]] || return 0
+  for h in "${down[@]}"; do
+    echo "STOP: cannot reach $h over ssh." >&2
+  done
+  echo "Nothing was sent to or installed on any host, and the Mac install did not run. Deploy again once every host answers." >&2
+  # A PanelPro quit for this deploy comes back, as after any stopped Pi deploy.
+  [[ "$pi_up" -eq 0 ]] || pi_restart_if_due
+  exit 1
+}
+if [[ "$DRY_RUN" -eq 0 ]]; then
+  preflight_hosts
 fi
 
 TABLES=""

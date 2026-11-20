@@ -47,7 +47,8 @@ Redeploy an older commit (rollback):
 Hosts and failures:
 
 - The Pi is `RPi-JMRI.local` (10.0.0.150, ssh alias `pi`). Windows is `minipc-e5h6x.local` (ssh port 2222) and has had repeated hard power-offs.
-- With `--pi --win`, a Pi failure (for example "Connection refused") exits before the Windows step runs.
+- A real deploy first asks every host named on the command line for an ssh answer and stops (`STOP: cannot reach ... over ssh`) before the Mac install, the `tables.xml` gates or any host step if one does not reply, so `--pi --win` with Windows down leaves the Pi as it was. A dry run skips this check.
+- With `--pi --win`, a Pi failure after that check (for example "Connection refused") exits before the Windows step runs.
 - If the Pi step fails, run `--win` on its own, then `--pi` once the Pi accepts ssh on port 22, so the two match again.
 - Quit PanelPro on the Pi with `tools/hosts/pi_quit_panelpro.sh --for-deploy` first; the Pi deploy starts it again afterwards, also if it fails. A plain quit, or PanelPro the owner closed, stays closed. `HART_PI_RESTART=0` skips the restart.
 - Check afterwards with `make deploy-status HOSTS="--pi --win"` (or `tools/hosts/deploy_status.sh`), which reads the stamp back and compares its commit with this checkout, and with a sha256 of `tables.xml` on each host.
