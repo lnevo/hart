@@ -519,6 +519,24 @@ class Invariants(Copy):
         self.assertIn("Switch 107: tables.xml has IT107, the device map says IT:HART:C3:107", got)
         self.assertIn("BS Switch 101: tables.xml has no such sensor, the device map says IS:HART:C3:B:OS101", got)
 
+    def test_tables_masts_of_both_mast_files(self) -> None:
+        rr = R.Railroad(self.src)
+        t = rr.tables
+        t.masts.pop("Mast 2L")
+        t.masts["Mast 110L"] = "IF$x"
+        got = R.INVARIANTS[-1].run(rr)
+        self.assertIn("staging_masts.csv: no mast Mast 2L in tables.xml", got)
+        self.assertTrue(any(p.startswith("Mast 110L: tables.xml has IF$x, main_upper_masts.csv says IF$") for p in got),
+                        got)
+
+    def test_tables_staging_switch_legs(self) -> None:
+        rr = R.Railroad(self.src)
+        rr.tables.turnouts.pop("Switch 3")
+        rr.tables.blocks.discard("Track Brick-Plane")
+        got = R.INVARIANTS[-1].run(rr)
+        self.assertIn("Switch 3 (switches.csv): no turnout Switch 3 in tables.xml", got)
+        self.assertIn("Switch 1 (switch_legs.csv): no block Track Brick-Plane in tables.xml", got)
+
 
 class Known(unittest.TestCase):
     def broken_map(self) -> R.NameMap:
