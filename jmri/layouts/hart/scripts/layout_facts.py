@@ -30,8 +30,8 @@ Level is held once per switch (switches.csv) and once per control point
 its own: it takes the level of its control point (the ``cp`` column of
 public_name_map.csv), and an OS block or a switch leg takes its switch's.
 name_map_levels() resolves them. No grouping above the control point exists
-yet, so there is no district column; when the new levels need one, it goes on
-control_points_staging.csv beside ``level``.
+yet, so there is no district column; when the new levels need one, it goes beside ``level`` on the control-point
+files (control_points_staging.csv, interlockings.csv).
 
 Switch numbers are the plate numbers and are unique across the whole railroad,
 every level included: a number is never reused on another level. The loader

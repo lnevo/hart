@@ -221,7 +221,8 @@ def wanted() -> dict[Path, str]:
     cps = read_control_points()
     stations = read_stations(cps)
     sheets = read_sheets(stations)
-    try:                    # every switch's OS block, as the readers of station_group_rows need (step 8)
+    try:      # stop here, at the source, if a switch has no OS block: the website build and the layout checks read
+              # these rows through station_group_rows and would stop later (step 8)
         station_group_rows(CPS, LEGS)
     except FactsError as exc:
         raise SetsError(str(exc)) from None

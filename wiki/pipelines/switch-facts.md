@@ -17,7 +17,7 @@ All in `jmri/layouts/hart/data/`, read through `jmri/layouts/hart/scripts/layout
 
 Switch numbers are the plate numbers and are unique across the whole railroad, every level included. `layout_facts.py` refuses a second row for a number, an OS block, a USS lever, a mast or a desk cell, and names both rows.
 
-**Level** is held twice only where it is a fact of its own: per switch and per control point. Everything else takes it from those (`layout_facts.name_map_levels`): a switch's turnout, LCC alias and feedback sensors take the switch's; an OS block or a block a switch leg leads to takes its switch's (a Layout Editor throat block such as Track S-R West through its track, by their shared occupancy sensor); any other mast, head, block or sensor takes its `cp`'s. A main between control points (Track Main West) has no `cp`; the check gives it the one level of the blocks its paths join. There is no district column: nothing groups control points yet (one desk, one Dispatcher). When the new levels need one, it goes on `control_points_staging.csv` beside `level`.
+**Level** is held twice only where it is a fact of its own: per switch and per control point. Everything else takes it from those (`layout_facts.name_map_levels`): a switch's turnout, LCC alias and feedback sensors take the switch's; an OS block or a block a switch leg leads to takes its switch's (a Layout Editor throat block such as Track S-R West through its track, by their shared occupancy sensor); any other mast, head, block or sensor takes its `cp`'s. A main between control points (Track Main West) has no `cp`; the check gives it the one level of the blocks its paths join. There is no district column: nothing groups control points yet (one desk, one Dispatcher). When the new levels need one, it goes beside `level` on the control-point files (`control_points_staging.csv`, `interlockings.csv`).
 
 Track names are the CATS occupancy names (`Track S-R`). A Layout Editor throat block such as `Track S-R West`, on the same occupancy sensor, counts as `Track S-R`. `tools/schematic/build_cats_panel.py` takes each CATS Normal leg, inversion, turnout binding and mast name from these files and `tables.xml`, and `gen_ctc_track_plan.py` takes the USS lever columns, points dots, signal icons and station plates. CATS plant cells for the USS board are in `uss_board_plants.csv`; the generated desks take block names from `tables.xml` and `cats/data/occupancy_bindings.csv`.
 
@@ -69,12 +69,12 @@ The speed-match routes (`speedmatch/analyze.py`) hold only the running order of 
 
 ## Changing a level or a control point
 
-- Move a control point to another level: change `level` in its row of `schematic/control_points_staging.csv` and the `level` of its switches in `switches.csv` together; the check fails if they differ.
+- Move a control point to another level: staging's control points stay on level 1 (`build_staging_sets.py` refuses another); a main or upper interlocking's level is its row in `interlockings.csv`. Change it and the `level` of its switches in `switches.csv` together; the check fails if they differ.
 - A new `cp` value in the name map needs a `schematic/control_points_staging.csv` row first, or the check fails.
 
 ## Adding a level
 
-- **Data:** add `switches.csv` rows with the new `level` value and new switch numbers (numbers are never reused), and `interlockings.csv` rows with that level for its control points.
+- **Data:** add `switches.csv` rows with the new `level` value and new switch numbers (numbers are never reused), and `interlockings.csv` rows with that level for its interlockings (the level checks in `layout_facts.py` and `check_layout_facts.py` read staging's control points only so far: level-unification step 4).
 - **CATS:** the desks are generated from the schematic (`make desks`); for the USS board put the plant cells in `uss_board_plants.csv` and give each mast a `mast_cells.csv` row.
 - **USS CTC:** this is not automatic. The board is one row of lever columns, column (N - 1) / 2 for plate N. A plate number no switch uses gets a blank column. How a second level fits the machine (a wider board, a second panel, its own columns) is a design decision still to be made. Until then `gen_ctc_track_plan.py` stops when `switches.csv` holds a level outside `USS_LEVELS`.
 
