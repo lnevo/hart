@@ -1,0 +1,875 @@
+-- text --
+CALGON CARBON
+Coal
+From: R&P Coal (Brady Twp, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+1-2
+☰
+CAR TYPE:
+Hopper
+☰
+LOAD:
+Coal
+Form HART-WB-001    Rev A
+CALGON CARBON
+Coal
+From: Hillman Coal (Canton Twp, PA)
+Via POHC Interchange
+☰
+SPOT(S):
+1-2
+☰
+CAR TYPE:
+Hopper
+☰
+LOAD:
+Coal
+Form HART-WB-001    Rev A
+CALGON CARBON
+Coal
+From: Consol Energy (Pittsburgh, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+1-2
+☰
+CAR TYPE:
+Hopper
+☰
+LOAD:
+Coal
+Form HART-WB-001    Rev A
+CALGON CARBON
+Activated Carbon
+To: Houghton Chemical (Allston, MA)
+Via CSX Interchange
+☰
+SPOT(S):
+3
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Activated Carbon
+Form HART-WB-001    Rev A
+CALGON CARBON
+Activated Carbon
+To: Calgon Corp (Columbus, OH)
+Via CSX Interchange
+☰
+SPOT(S):
+3
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Activated Carbon
+Form HART-WB-001    Rev A
+CALGON CARBON
+Activated Carbon
+To: Univar (Salem, MA)
+Via POHC Interchange
+☰
+SPOT(S):
+3
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Activated Carbon
+Form HART-WB-001    Rev A
+CALGON CARBON
+Caustic Soda
+From: Houghton Chemical (Allston, MA)
+Via POHC Interchange
+☰
+SPOT(S):
+4
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+Process Chemicals
+Form HART-WB-001    Rev A
+CALGON CARBON
+Hydrochloric Acid
+From: General Chemical (Parsippany, NJ)
+Via POHC Interchange
+☰
+SPOT(S):
+4
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+Process Chemicals
+Form HART-WB-001    Rev A
+CALGON CARBON
+Phosphoric Acid
+From: Dow Chemical (Midland, MI)
+Via CSX Interchange
+☰
+SPOT(S):
+4
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+Process Chemicals
+Form HART-WB-001    Rev A
+CALGON CARBON
+EMPTY
+Via CSX Interchange
+☰
+SPOT(S):
+3
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+CALGON CARBON
+EMPTY
+Via POHC Interchange
+☰
+SPOT(S):
+3
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+CALGON CARBON
+EMPTY
+Via CSX Interchange
+☰
+SPOT(S):
+3
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+FERREL GAS
+LPG
+From: Ferrellgas pipeline terminal
+Via CSX Interchange
+☰
+SPOT(S):
+1
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+LPG
+Form HART-WB-001    Rev A
+FERREL GAS
+LPG
+From: Ferrellgas Co (Taneytown, MD)
+Via POHC Interchange
+☰
+SPOT(S):
+1
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+LPG
+Form HART-WB-001    Rev A
+TEST WORKS
+Widget Unload
+From: Various suppliers
+Via CSX Interchange
+☰
+SPOT(S):
+7
+☰
+CAR TYPE:
+Boxcar
+☰
+LOAD:
+Widget Unload
+Form HART-WB-001    Rev A
+TEST WORKS
+Plastic Resins
+To: Various customers
+Via CSX Interchange
+☰
+SPOT(S):
+8
+☰
+CAR TYPE:
+Boxcar
+☰
+LOAD:
+Plastic Resins
+Form HART-WB-001    Rev A
+TEST WORKS
+Plastic Resins
+To: Various customers
+Via CSX Interchange
+☰
+SPOT(S):
+8
+☰
+CAR TYPE:
+Flatcar
+☰
+LOAD:
+Plastic Resins
+Form HART-WB-001    Rev A
+TEST WORKS
+General Freight
+From: Various local shippers
+Via CSX Interchange
+☰
+SPOT(S):
+9
+☰
+CAR TYPE:
+Gondola
+☰
+LOAD:
+General Freight
+Form HART-WB-001    Rev A
+TEST WORKS
+General Freight
+To: Various local receivers
+Via CSX Interchange
+☰
+SPOT(S):
+9
+☰
+CAR TYPE:
+Gondola
+☰
+LOAD:
+General Freight
+Form HART-WB-001    Rev A
+TEST WORKS
+EMPTY
+Via CSX Interchange
+☰
+SPOT(S):
+8
+☰
+CAR TYPE:
+Boxcar
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+TEST WORKS
+EMPTY
+Via CSX Interchange
+☰
+SPOT(S):
+8
+☰
+CAR TYPE:
+Boxcar
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+TEST WORKS
+EMPTY
+Via CSX Interchange
+☰
+SPOT(S):
+8
+☰
+CAR TYPE:
+Flatcar
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+INTERCHANGE
+Fluorescent Lamps
+From: GE (Bridgeville, PA)
+To: Penelec (Erie, PA)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Boxcar
+☰
+LOAD:
+Fluorescent Lamps
+Form HART-WB-001    Rev A
+INTERCHANGE
+Fluorescent Tubes
+From: GE (Bridgeville, PA)
+To: Graybar Electric (St. Louis, MO)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Boxcar
+☰
+LOAD:
+Fluorescent Tubes
+Form HART-WB-001    Rev A
+INTERCHANGE
+Plastic Resins
+From: Dow Chemical (Midland, MI)
+To: Owens-Illinois (Ottawa, IL)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Boxcar
+☰
+LOAD:
+Plastic Resins
+Form HART-WB-001    Rev A
+INTERCHANGE
+Steel Coils
+From: Republic Steel (Cleveland, OH)
+To: John Deere (Moline, IL)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Coil Car
+☰
+LOAD:
+Steel Coils
+Form HART-WB-001    Rev A
+INTERCHANGE
+Steel Coils
+From: Weirton Steel (Weirton, WV)
+To: Ryerson Steel Service (Pittsburgh, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Coil Car
+☰
+LOAD:
+General Freight
+Form HART-WB-001    Rev A
+INTERCHANGE
+Tin Plate
+From: Wheeling-Pittsburgh Steel (Wheeling, WV)
+To: Heinz (Pittsburgh, PA)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Coil Car
+☰
+LOAD:
+General Freight
+Form HART-WB-001    Rev A
+INTERCHANGE
+Activated Carbon
+From: Calgon Corp (Columbus, OH)
+To: Houghton Chemical (Allston, MA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Activated Carbon
+Form HART-WB-001    Rev A
+INTERCHANGE
+Cement
+From: Lehigh Cement (Mitchell, IN)
+To: Holcim (Buffalo, NY)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Cement
+Form HART-WB-001    Rev A
+INTERCHANGE
+Cement
+From: Medusa Cement (Charlevoix, MI)
+To: Knouse Foods (Orrtanna, PA)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Cement
+Form HART-WB-001    Rev A
+INTERCHANGE
+Phosphor Compounds
+From: General Chemical (Parsippany, NJ)
+To: GE (Bridgeville, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Process Chemicals
+Form HART-WB-001    Rev A
+INTERCHANGE
+Phosphor Compounds
+From: General Chemical (Parsippany, NJ)
+To: Heinz (Pittsburgh, PA)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Process Chemicals
+Form HART-WB-001    Rev A
+INTERCHANGE
+Plastic Pellets
+From: BASF (Wyandotte, MI)
+To: Owens-Illinois (Toledo, OH)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Plastic Pellets
+Form HART-WB-001    Rev A
+INTERCHANGE
+Plastic Pellets
+From: BASF (Wyandotte, MI)
+To: Owens-Illinois (Toledo, OH)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Plastic Pellets
+Form HART-WB-001    Rev A
+INTERCHANGE
+Forged Components
+From: Standard Forged Products (McKees Rocks, PA)
+To: Caterpillar (Peoria, IL)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Forged Components
+Form HART-WB-001    Rev A
+INTERCHANGE
+Forged Components
+From: Standard Forged Products (McKees Rocks, PA)
+To: Sharon Steel (Farrell, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Forged Components
+Form HART-WB-001    Rev A
+INTERCHANGE
+Stainless Bar
+From: Universal Stainless & Alloy (Bridgeville, PA)
+To: Ryerson Steel (Chicago, IL)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Stainless Bar
+Form HART-WB-001    Rev A
+INTERCHANGE
+Stainless Bar
+From: Universal Stainless & Alloy (Bridgeville, PA)
+To: Carpenter Steel (Reading, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Stainless Bar
+Form HART-WB-001    Rev A
+INTERCHANGE
+Stainless Slab
+From: Allegheny Ludlum (Brackenridge, PA)
+To: Universal Stainless & Alloy (Bridgeville, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Stainless Slab
+Form HART-WB-001    Rev A
+INTERCHANGE
+Stainless Slab
+From: Weirton Steel (Weirton, WV)
+To: Armco Steel (Middletown, OH)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Stainless Slab
+Form HART-WB-001    Rev A
+INTERCHANGE
+Steel Billets
+From: Republic Steel (Cleveland, OH)
+To: Standard Forged Products (McKees Rocks, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Steel Billets
+Form HART-WB-001    Rev A
+INTERCHANGE
+Steel Billets
+From: Republic Steel (Cleveland, OH)
+To: McConway & Torley (Pittsburgh, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Steel Billets
+Form HART-WB-001    Rev A
+INTERCHANGE
+Steel Plate
+From: Bethlehem Steel (Bethlehem, PA)
+To: Ryerson Steel Service (Pittsburgh, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Steel Plate
+Form HART-WB-001    Rev A
+INTERCHANGE
+Scrap Steel
+From: Allegheny Ludlum (Brackenridge, PA)
+To: McConway & Torley (Pittsburgh, PA)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Gondola
+☰
+LOAD:
+Scrap Steel
+Form HART-WB-001    Rev A
+INTERCHANGE
+Coal
+From: Consol Energy (Pittsburgh, PA)
+To: American Electric Power (Columbus, OH)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Hopper
+☰
+LOAD:
+Coal
+Form HART-WB-001    Rev A
+INTERCHANGE
+Frozen Foods
+From: Heinz (Pittsburgh, PA)
+To: Sysco Foods (Harrisburg, PA)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Reefer
+☰
+LOAD:
+Frozen Foods
+Form HART-WB-001    Rev A
+INTERCHANGE
+Packaged Meats
+From: Dubuque Packing Co (Dubuque, IA)
+To: Giant Eagle (Pittsburgh, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Reefer
+☰
+LOAD:
+Packaged Meats
+Form HART-WB-001    Rev A
+INTERCHANGE
+Argon
+From: Air Products (Allentown, PA)
+To: GE (Bridgeville, PA)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+Process Chemicals
+Form HART-WB-001    Rev A
+INTERCHANGE
+Industrial Gases
+From: Dow Chemical (Midland, MI)
+To: Knouse Foods (Orrtanna, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+Process Chemicals
+Form HART-WB-001    Rev A
+INTERCHANGE
+LPG
+From: Mapco LP (Memphis, TN)
+To: Suburban Propane (Buffalo, NY)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+LPG
+Form HART-WB-001    Rev A
+INTERCHANGE
+Methyl Methacrylate
+From: Exxon Chemical (Bayonne, NJ)
+To: DuPont (Wilmington, DE)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+Process Chemicals
+Form HART-WB-001    Rev A
+EMPTY
+Return to Scully Yard
+Via POHC Interchange
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+EMPTY
+Return to Scully Yard
+Via POHC Interchange
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+EMPTY
+Return to Scully Yard
+Via POHC Interchange
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+EMPTY
+Return to Demmler Yard
+Via CSX Interchange
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+EMPTY
+Return to Interchange
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+EMPTY
+Return to Interchange
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+TEST WORKS
+General Freight
+To: Various local receivers
+Via CSX Interchange
+☰
+SPOT(S):
+9
+☰
+CAR TYPE:
+Gondola
+☰
+LOAD:
+General Freight
+Form HART-WB-001    Rev A
+INTERCHANGE
+Steel Billets
+From: Republic Steel (Cleveland, OH)
+To: Standard Forged Products (McKees Rocks, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Steel Billets
+Form HART-WB-001    Rev A
+INTERCHANGE
+Forged Components
+From: Standard Forged Products (McKees Rocks, PA)
+To: Caterpillar (Peoria, IL)
+Via POHC Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flat Car
+☰
+LOAD:
+Forged Components
+Form HART-WB-001    Rev A
+INTERCHANGE
+Plastic Pellets
+From: BASF (Wyandotte, MI)
+To: Owens-Illinois (Toledo, OH)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Plastic Pellets
+Form HART-WB-001    Rev A
+INTERCHANGE
+Industrial Gases
+From: Dow Chemical (Midland, MI)
+To: Knouse Foods (Orrtanna, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+Process Chemicals
+Form HART-WB-001    Rev A
+-- layout --
+tables=322
+rows=897
+pictures=0
+frames=63
+shd_fills=[]
+row_heights=['860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110']
+xml_sha256=7d60b853b64da0c53b9fd77c78e2f84840d23e2f1cb22ea23a33607bfee5d197

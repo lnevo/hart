@@ -1,0 +1,134 @@
+-- text --
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+{NEXT}
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+{NEXT}
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+{NEXT}
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+{NEXT}
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+{NEXT}
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+{NEXT}
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+{NEXT}
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+{NEXT}
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+-- layout --
+tables=46
+rows=93
+pictures=0
+frames=9
+shd_fills=[]
+row_heights=['860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110', '860', '2004', '1450', '110']
+xml_sha256=66de04155d3a33585f2ea206ef6aa862f14132c6b960a90f23954c35a851c579

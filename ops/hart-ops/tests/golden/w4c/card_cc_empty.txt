@@ -1,0 +1,24 @@
+-- text --
+HART
+EMPTY
+TO: Test Yard
+STATION: —
+TRACK / SPOT: STAGING  ·  IN
+ASSIGNMENT
+Empty car to load
+CAR TYPE
+XM
+LOADS
+Boxcar loads
+SHIPMENT
+Load at Test Works
+—
+Form HART-CCWB-001
+-- layout --
+tables=5
+rows=15
+pictures=0
+frames=1
+shd_fills=['BFBFBF']
+row_heights=['820', '90', '1180', '1530', '255', '160', '280', '120']
+xml_sha256=6fea1f810547bb21d62a1cd696f196d5246d04a4420edefe394d4b7c94214326

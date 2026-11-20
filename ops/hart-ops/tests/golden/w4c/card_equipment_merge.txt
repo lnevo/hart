@@ -1,0 +1,23 @@
+-- text --
+{NEXT}
+LOGO
+{MERGEFIELD Type}«Type»
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+{MERGEFIELD RoadName}«RoadName»
+☰
+ROAD NUMBER:
+{MERGEFIELD RoadNumber}«RoadNumber»
+☰
+DESCRIPTION:
+{MERGEFIELD Description}«Description»
+Form HART-CC-001    Rev A
+-- layout --
+tables=5
+rows=10
+pictures=0
+frames=1
+shd_fills=[]
+row_heights=['860', '2004', '1450', '110']
+xml_sha256=76326453751ebff04e94b62c5c7e9065a862801c1df60ad2a8c5cd69661499e4
