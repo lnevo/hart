@@ -27,6 +27,8 @@ Coordinates are AnyRail's: centimetres, y growing down the screen. A part's inde
 
     python3 tools/anyrail/anyplan.py PLAN.any --report            # levels, track ends, grades, faults
     python3 tools/anyrail/anyplan.py PLAN.any --parts parts.json  # the parts list the schematic-maps plugin reads
+    python3 tools/anyrail/anyplan.py PLAN.any --cut -5 --stubs staging.json main.json
+        # each level's graph gets its share of the helix, up to the height that parts the levels
 """
 from __future__ import annotations
 
@@ -46,6 +48,7 @@ NEAR_MISS_CM = 5.0      # a free end this close to another end is reported: it p
 MAX_XY_CM = 5000.0      # a plan coordinate beyond this is not a coordinate
 PARALLEL_DEG = 2.0      # two ends this close in heading run the same way
 LEVEL_CM = 0.05         # a part's ends within this much height are level
+STUB_PX = 60.0          # how far out along its leg a cut stub's track end is placed in a plugin graph (export px)
 
 LENGTH_RE = re.compile(rb"(?=[\x01-\x30]\x00{7})")      # where a length-prefixed string may start
 PRINTABLE = re.compile(rb"[\x20-\x7e]+")
@@ -300,6 +303,70 @@ def runs(parts, links):
     return out
 
 
+def level_cuts(parts, links, cut_z) -> list[dict]:
+    """The switch-to-switch runs that climb through height `cut_z` (a helix between two levels), once each:
+    {low: (part, end), high: (part, end), low_cm, high_cm}, the run's length on each side of the cut, low the side
+    below it. A run crosses the cut inside one of its flex pieces; the share of that piece on each side is taken in
+    proportion to its height, as a piece's grade is even along it."""
+    nbr = {}
+    for a, ka, b, kb in links:
+        nbr[(a, ka)], nbr[(b, kb)] = (b, kb), (a, ka)
+    out = []
+    for p, k, q, m, cm in runs(parts, links):
+        if q is None or not parts[p]["ends"][k]["z"] < cut_z < parts[q]["ends"][m]["z"]:
+            continue
+        here, low_cm, at = (p, k), 0.0, None
+        while True:
+            j, mm = nbr[here]
+            part = parts[j]
+            if len(part["ends"]) != 2:
+                break
+            za, zb, length = part["ends"][mm]["z"], part["ends"][1 - mm]["z"], part["cm"] or 0.0
+            if at is None and za <= cut_z < zb:
+                at = low_cm + length * (cut_z - za) / (zb - za)
+            low_cm += length
+            here = (j, 1 - mm)
+        if at is None:
+            raise PlanError(f"the run from part {p} to part {q} crosses {cut_z} cm between two pieces, not in one")
+        out.append(dict(low=(p, k), high=(q, m), low_cm=at, high_cm=cm - at))
+    return out
+
+
+def add_cut_stubs(graph, cuts, cut_z):
+    """Give each switch in a plugin graph (`schematic plan` output) whose run leaves its level through the cut the
+    track up to the cut: a track end `CUT:T<n>` (marked `cut` with the height) at the end of a new edge as long as
+    the run's share on that side. The graph's switch is found by its T label; the run must be the one leg it lacks.
+    Returns the T labels given a stub."""
+    N, edges = graph["nodes"], graph["edges"]
+    by_t = {d["label"]: n for n, d in N.items() if d["kind"] == "switch" and d.get("label", "").startswith("T")}
+    used = collections.defaultdict(set)
+    for e in edges:
+        used[e["u"]].add(e["up"])
+        used[e["v"]].add(e["vp"])
+    done = []
+    for c in cuts:
+        for side, cm in (("low", c["low_cm"]), ("high", c["high_cm"])):
+            t = f"T{c[side][0]}"
+            n = by_t.get(t)
+            if n is None:
+                continue
+            missing = sorted({"A", "B", "C"} - used[n])
+            if len(missing) != 1:
+                raise PlanError(f"{t} should lack one leg (its run through the {cut_z} cm cut) but lacks "
+                                f"{missing or 'none'}")
+            end, eid = f"CUT:{t}", f"e{len(edges)}"
+            if end in N or any(e["id"] == eid for e in edges):
+                raise PlanError(f"{t} already has a cut stub, or the graph's edge ids are not e0 to e{len(edges) - 1}")
+            way = N[n].get("dirs", {}).get(missing[0], (0.0, 0.0))      # set the end a little way out along that leg
+            xy = [round(N[n]["xy"][i] + STUB_PX * way[i], 2) for i in (0, 1)]
+            N[end] = dict(kind="end", label="", xy=xy, district=N[n].get("district", ""), cut=cut_z)
+            edges.append(dict(u=n, up=missing[0], v=end, vp="E", names=[], cm=round(cm, 1), link=False, main=False,
+                              district=N[n].get("district", ""), hidden=False, id=eid))
+            used[n].add(missing[0])
+            done.append(t)
+    return done
+
+
 def parts_list(parts) -> list[dict]:
     """The parts list the schematic-maps plugin reads (`plan --parts`): name and end points' x, y, z, in file order."""
     return [{"name": p["name"], "eps": [{k: e[k] for k in "xyz"} for e in p["ends"]]} for p in parts]
@@ -349,6 +416,10 @@ def main(argv=None):
     ap.add_argument("plan", help="the AnyRail .any file")
     ap.add_argument("--parts", help="write the plugin's parts list (JSON) here")
     ap.add_argument("--report", action="store_true", help="print levels, track ends, grades and likely faults")
+    ap.add_argument("--cut", type=float, metavar="Z",
+                    help="the height (cm) that parts two levels' graphs; with --stubs, give each the track up to it")
+    ap.add_argument("--stubs", nargs="+", metavar="GRAPH",
+                    help="plugin graphs (schematic plan output) to give a stub up to the --cut height, in place")
     a = ap.parse_args(argv)
     try:
         parts = read(a.plan)
@@ -358,7 +429,22 @@ def main(argv=None):
     if a.parts:
         Path(a.parts).write_text(json.dumps(parts_list(parts), separators=(",", ":")))
         print(f"wrote {a.parts}: {len(parts)} parts")
-    if a.report or not a.parts:
+    if a.stubs:
+        if a.cut is None:
+            print("anyplan: --stubs needs --cut", file=sys.stderr)
+            return 2
+        links, _ = joins(parts)
+        cuts = level_cuts(parts, links, a.cut)
+        try:
+            for g in a.stubs:
+                graph = json.loads(Path(g).read_text())
+                done = add_cut_stubs(graph, cuts, a.cut)
+                Path(g).write_text(json.dumps(graph, indent=1))
+                print(f"wrote {g}: stubs up to {a.cut} cm at {', '.join(done) or 'no switch'}")
+        except PlanError as e:
+            print(f"anyplan: {e}", file=sys.stderr)
+            return 2
+    if a.report or not (a.parts or a.stubs):
         print("\n".join(report(parts)))
 
 

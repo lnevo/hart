@@ -1,5 +1,5 @@
 """tools/anyrail/anyplan.py: the record shapes on made-up bytes, the part types on made-up ends, and, where the
-owner's plans are on this machine (never in CI: the .any files stay private), plan 5.3b against the graphs built
+owner's plans are on this machine (never in CI: the .any files stay private), plan 5.3c against the graphs built
 from AnyRail's own export, and the checks the owner asked of 5.3c."""
 import collections
 import json
@@ -18,7 +18,6 @@ import anyplan as A  # noqa: E402
 
 REPO = HERE.parents[2]
 PLANS = Path.home() / "Documents/Layout"
-PLAN_B = PLANS / "Lee Nevo Design Version 5.3b.any"
 PLAN_C = PLANS / "Lee Nevo Design Version 5.3c.any"
 INPUTS = REPO / "jmri/layouts/hart/data/schematic/inputs"
 
@@ -187,48 +186,78 @@ class Joins(unittest.TestCase):
             A.joins([self.part(i, (0, 0, 0, 0), (10 + i, 5, 0, 0)) for i in range(3)])
 
 
-@unittest.skipUnless(PLAN_B.exists(), "the owner's plan 5.3b is not on this machine")
-class Plan53b(unittest.TestCase):
-    """Read from the .any file, 5.3b has the same switch-to-switch runs as the graphs in inputs/, which the plugin
-    built from AnyRail's JMRI export with the old reader's parts list (no double crossover, part 0 misread)."""
+class Cuts(unittest.TestCase):
+    """A run that climbs between two levels is parted at the cut height, each side's share from its pieces' grades."""
+
+    @staticmethod
+    def rise():
+        """Turnout 0 at -38 cm, two 100 cm flex pieces climbing to 0, turnout 3 at 0 cm; turnout 0's other legs free."""
+        def part(i, *spec, cm=None):
+            return dict(index=i, ends=ends(*spec), cm=cm, curve=None)
+        return [part(0, (0, 0, -38, 180), (-10, 0, -38, 0), (-10, 2, -38, 0)),
+                part(1, (0, 0, -38, 0), (100, 0, -19, 0), cm=100.0),
+                part(2, (100, 0, -19, 0), (200, 0, 0, 0), cm=100.0),
+                part(3, (200, 0, 0, 180), (210, 0, 0, 0), (210, 2, 0, 0))]
+
+    def test_the_cut_parts_the_run_by_height(self):
+        parts = self.rise()
+        links, _ = A.joins(parts)
+        (c,) = A.level_cuts(parts, links, -5.0)
+        self.assertEqual((c["low"], c["high"]), ((0, 0), (3, 0)))
+        self.assertAlmostEqual(c["low_cm"], 100 + 100 * 14 / 19)            # -19 to -5 of the second piece's 19 cm
+        self.assertAlmostEqual(c["low_cm"] + c["high_cm"], 200.0)
+        self.assertEqual(A.level_cuts(parts, links, 5.0), [])                # nothing climbs through 5 cm
+
+    def test_each_graph_gets_a_stub_on_the_leg_it_lacks(self):
+        cut = dict(low=(0, 0), high=(3, 0), low_cm=173.7, high_cm=26.3)
+        g = dict(nodes={"S": dict(kind="switch", label="T0", xy=[0.0, 0.0], dirs={"B": [1.0, 0.0]}),
+                        "E": dict(kind="end", label="", xy=[-50.0, 0.0])},
+                 edges=[dict(id="e0", u="S", up="A", v="E", vp="E", cm=10.0),
+                        dict(id="e1", u="S", up="C", v="E", vp="E", cm=10.0)])
+        self.assertEqual(A.add_cut_stubs(g, [cut], -5.0), ["T0"])
+        stub = g["edges"][-1]
+        self.assertEqual((stub["id"], stub["u"], stub["up"], stub["v"], stub["cm"]), ("e2", "S", "B", "CUT:T0", 173.7))
+        self.assertEqual((g["nodes"]["CUT:T0"]["cut"], g["nodes"]["CUT:T0"]["xy"]), (-5.0, [A.STUB_PX, 0.0]))
+        with self.assertRaisesRegex(A.PlanError, "lacks none"):               # read twice: no leg left to give
+            A.add_cut_stubs(g, [cut], -5.0)
+
+
+@unittest.skipUnless(PLAN_C.exists(), "the owner's plan 5.3c is not on this machine")
+class Plan53cGraphs(unittest.TestCase):
+    """Read from the .any file, 5.3c has the same switch-to-switch runs as the graphs in inputs/, which the plugin
+    built from AnyRail's JMRI export with this reader's parts list; each run through the helix is the two stubs
+    up to the -5 cm cut (--cut -5 --stubs), and the export draws the three-way as two turnouts the parts cannot name."""
 
     def test_same_runs_as_the_export(self):
-        parts = A.read(PLAN_B)
-        old = json.loads((INPUTS / "parts.json").read_text())
-        key = lambda eps: {(round(e["x"], 1), round(e["y"], 1)) for e in eps}      # noqa: E731
-        new_by_key = [(p, key(p["ends"])) for p in parts]
-
-        def new_index(o):           # the old reader dropped part 0's misread third end: match on the ends it kept
-            hits = [p["index"] for p, k in new_by_key if p["name"] == o["name"] and key(o["eps"]) <= k]
-            self.assertEqual(len(hits), 1, o["name"])
-            return hits[0]
-        old_to_new = {f"T{i}": f"T{new_index(o)}" for i, o in enumerate(old) if len(o["eps"]) >= 3}
-        by_kind = {p["kind"]: f"T{p['index']}" for p in parts if p["kind"] in ("threeway", "double_crossover")}
-        unmatched = {"12": f"T{new_index(old[0])}", "50": by_kind["threeway"], "51": by_kind["threeway"]}
+        parts = A.read(PLAN_C)
+        links, _ = A.joins(parts)
+        threeway = next(f"T{p['index']}" for p in parts if p["kind"] == "threeway")
+        cuts = {frozenset((f"T{c['low'][0]}", f"T{c['high'][0]}")) for c in A.level_cuts(parts, links, -5.0)}
 
         def label(graph, n):
             d = graph["nodes"][n]
             if d["kind"] == "end":
-                return "END"
-            if d["kind"] == "dx":
-                return by_kind["double_crossover"]
-            return old_to_new.get(d["label"]) or unmatched[d["label"]]
+                return "CUT" if "cut" in d else "END"
+            return d["label"] if d["label"].startswith("T") else threeway
 
-        want = collections.Counter()
+        want, stubs = collections.Counter(), collections.Counter()
         for f in ("staging.json", "main.json"):
             g = json.loads((INPUTS / f).read_text())
             for e in g["edges"]:
                 u, v = label(g, e["u"]), label(g, e["v"])
-                if u != v or u != by_kind["threeway"]:          # the export draws the three-way as two turnouts
+                if "CUT" in (u, v):
+                    stubs[u if v == "CUT" else v] += 1
+                elif u != v or u != threeway:
                     want[tuple(sorted((u, v)))] += 1
-        links, _ = A.joins(parts)
         got = collections.Counter()
         for a, _, b, _, _ in A.runs(parts, links):
             u, v = f"T{a}", (f"T{b}" if b is not None else "END")
-            got[tuple(sorted((u, v)))] += 1
+            if frozenset((u, v)) not in cuts:
+                got[tuple(sorted((u, v)))] += 1
         got = collections.Counter({k: (n if "END" in k else n // 2) for k, n in got.items()})
         self.assertEqual(+(want - got), collections.Counter(), "runs in the export graphs the .any file lacks")
         self.assertEqual(+(got - want), collections.Counter(), "runs in the .any file the export graphs lack")
+        self.assertEqual(stubs, collections.Counter({t: 1 for c in cuts for t in c}))      # one stub each side
 
 
 @unittest.skipUnless(PLAN_C.exists(), "the owner's plan 5.3c is not on this machine")
