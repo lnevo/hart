@@ -482,7 +482,9 @@ class Cli(unittest.TestCase):
     def test_a_rule_error_is_exit_2(self):
         def stop():
             raise bsm.RuleError("the rule names a mast twice: ['Mast 2L']")
-        with unittest.mock.patch.object(bsm, "build", stop):
+        # main() looks for the plugin first and that prints where it was found; this test is about the rule error
+        with unittest.mock.patch.object(bsm, "build", stop), \
+                unittest.mock.patch.object(bsm.sdm.lc, "plugin", lambda: None):
             code, out, err = self.run_main("--check")
         self.assertEqual((code, out), (2, ""))
         self.assertEqual(err.strip(), "build_staging_masts.py: the rule names a mast twice: ['Mast 2L']")

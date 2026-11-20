@@ -2,7 +2,7 @@
 
 A read-only review of architecture, performance, runtime code and documentation ran on 2026-11-19, followed by a round of small PRs and a code review of each. This page lists what was found, what was started, and what is left. Findings marked *verified* were traced in code by a second pass; the rest come from one reviewer's reading.
 
-## State at 22:25 on 2026-11-19
+## State at 22:00 on 2026-11-19
 
 Every code PR below had `/code-review medium` and a fix commit for what the review confirmed, except #712.
 
