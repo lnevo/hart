@@ -124,6 +124,7 @@ run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
+run docs-index python3 tools/ops/build_docs_index.py --check
 run desks python3 cats/scripts/validate_cats_panel.py
 # The longest jobs start first, so none of them waits behind the quick ones: unit-jmri, the Layout Editor job, then
 # the per-file guard and host jobs with the files in SLOW of both folders (each 10-20 s) ahead of the rest.
