@@ -16,8 +16,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
 # The schematic plugin's cache, the folder the builds use (publish_draft.CACHE, private to this user), for every job
-# here: the Layout Editor tests call the build directly and would otherwise solve the whole sheet about five times
-# (about 7 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
+# here: the Layout Editor job calls the build directly and would otherwise solve the whole sheet in its one process
+# (about 3 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
 # the folder between runs (.github/workflows/check.yml).
 # A folder that cannot be made leaves the cache off, as before.
 if [[ -z "${SCHEMATIC_CACHE+set}" ]]; then
@@ -125,11 +125,13 @@ run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
 run desks python3 cats/scripts/validate_cats_panel.py
-# The longest jobs start first, so none of them waits behind the quick ones: unit-jmri, then the per-file guard and
-# host jobs with the files in SLOW of both folders (each 10-20 s; the Layout Editor ones longer with an empty
-# schematic cache) ahead of the rest.
-SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_redeploy_commit.py test_build_layout_le.py \
-test_le_cutover.py test_le_mast_parity.py "
+# The longest jobs start first, so none of them waits behind the quick ones: unit-jmri, the Layout Editor job, then
+# the per-file guard and host jobs with the files in SLOW of both folders (each 10-20 s) ahead of the rest.
+SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_redeploy_commit.py "
+# The Layout Editor test files run as one job in one process: each builds the three-level candidate through
+# test_build_layout_le.built(), cached per process, so three jobs solved the sheet three times side by side with an
+# empty schematic cache (about 5 minutes each).
+LE_TESTS="test_build_layout_le test_le_cutover test_le_mast_parity"
 slow_first() {
   local f
   for f in "$@"; do [[ "$SLOW" == *" ${f##*/} "* ]] && echo "$f"; done
@@ -137,6 +139,8 @@ slow_first() {
   return 0
 }
 unit unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
+# shellcheck disable=SC2086  # LE_TESTS is a list of module names
+unit "unit-guards layout-editor ($LE_TESTS)" env PYTHONPATH=tools/audit/tests python3 -m unittest -q $LE_TESTS
 # The host tests start real processes and wait out their timers, and the guard tests are many separate modules:
 # both run one job per file, found as discover finds them, the files in SLOW of both folders first. A file in
 # BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job).
@@ -150,6 +154,7 @@ BY_CLASS=" test_worktrees.py "
 for t in $(slow_first tools/hosts/tests/test*.py tools/audit/tests/test*.py); do
   d="$(dirname "$t")"
   f="$(basename "$t")"
+  [[ "$d" == tools/audit/tests && " $LE_TESTS " == *" ${f%.py} "* ]] && continue    # in the Layout Editor job above
   kind=unit-guards
   [[ "$d" == tools/hosts/tests ]] && kind=unit-hosts
   if [[ "$BY_CLASS" == *" $f "* ]]; then
