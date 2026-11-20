@@ -6,6 +6,10 @@
 # before it stages, and `make deploy-status` counts the commits since the deployed one that
 # touch these paths) and tools/hosts/tests/test_live_paths.py (every repo path the deploy
 # script names must be covered here, so a new shipped file cannot be left out).
+# The list holds what is copied and also what the deploy's builders read to make shipped files
+# (build_mimic_web.py reads the CSVs and hartlib below; publish_live.py --build-page reads its
+# own folder and the roster photos). The tests run both builders and fail if one opens or
+# imports a repo file this list does not cover.
 # Paths of a parked feature (hartlib.parked.shipped_dirs / shipped_jython) are listed too;
 # the reader leaves them out while the feature is parked, as the deploy does.
 
@@ -26,6 +30,13 @@ jmri/resources/misc
 jmri/resources/jmri-web
 tools/mqtt-mimic/build_mimic_web.py
 tools/mqtt-mimic/lcos_mqtt_mimic.py
+tools/hartlib/src
+cats/data/occupancy_bindings.csv
+docs/wiring/signals/signal_head_plan.csv
+jmri/layouts/hart/data/public_name_map.csv
+jmri/layouts/hart/data/schematic/control_points_main_upper.csv
+jmri/layouts/hart/data/schematic/device_map_main_upper.csv
+jmri/layouts/hart/data/schematic/local_switches_main_upper.csv
 jmri/scripts/signal_coordinator.py
 jmri/layouts/hart/scripts/panel_status.py
 jmri/layouts/hart/scripts/discover_sml.py

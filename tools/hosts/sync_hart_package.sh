@@ -35,9 +35,6 @@ PARKED_DIRS="$(PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.parked di
   || { echo "cannot read the parked features (tools/hartlib/src/hartlib/parked.py)" >&2; exit 1; }
 PARKED_JYTHON="$(PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.parked jython)" \
   || { echo "cannot read the parked features (tools/hartlib/src/hartlib/parked.py)" >&2; exit 1; }
-# The shipped paths are listed in tools/hosts/live_paths.txt (deploy_status.sh counts commits that touch them);
-# stop here if the list names a path that is gone, so the list cannot drift from the checkout.
-python3 "$ROOT/tools/hosts/live_paths.py" check || exit 1
 # parked_dir REL: whether the repo folder REL (jmri/layouts/hart/dispatcher, jmri/layouts/hart/ctc) is parked
 parked_dir() { grep -qxF "$1" <<<"$PARKED_DIRS"; }
 DRY_RUN=0
@@ -91,6 +88,12 @@ if [[ $# -gt 0 ]]; then
     esac
     shift
   done
+fi
+# The shipped paths are listed in tools/hosts/live_paths.txt (deploy_status.sh counts commits that touch them).
+# A run that stages or deploys stops if the list names a path that is gone, so the list cannot drift from the
+# checkout; --help, --check-only and --dry-run only read and are not blocked.
+if [[ "$CHECK_ONLY" -eq 0 && "$DRY_RUN" -eq 0 || -n "$STAGE_ONLY" ]]; then
+  python3 "$ROOT/tools/hosts/live_paths.py" check || exit 1
 fi
 if [[ -n "$STAGE_ONLY" ]]; then
   if [[ -e "$STAGE_ONLY" && -n "$(ls -A "$STAGE_ONLY" 2>/dev/null)" ]]; then

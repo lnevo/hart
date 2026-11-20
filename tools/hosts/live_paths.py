@@ -2,8 +2,9 @@
 """The repo paths the layout deploy ships (live_paths.txt), and which commits touch them.
 
     live_paths.py check                  every listed path exists in this checkout (the deploy runs this)
-    live_paths.py changed COMMIT [REV]   prints the number of commits from COMMIT to REV (default HEAD) that
-                                         touch a shipped path, then those paths, one per line
+    live_paths.py changed COMMIT [REV]   prints "ahead N" (commits from COMMIT to REV, default HEAD, that touch a
+                                         shipped path) and "behind N" (the same for REV to COMMIT), each followed
+                                         by the shipped paths changed, indented, one per line
 
 Errors are one line on stderr and exit 2. Reads git only.
 """
@@ -76,8 +77,21 @@ def _git(root: Path, *args: str) -> str:
     return done.stdout
 
 
-def changed(commit: str, rev: str = "HEAD", root: Path = ROOT, list_file: Path = LIST) -> tuple[int, list[str]]:
-    """(commits in commit..rev that touch a shipped path, the shipped paths they changed, sorted)."""
+def _live_range(root: Path, base: str, tip: str, pathspec: list[str]) -> tuple[int, list[str]]:
+    """(commits in base..tip touching the pathspec, shipped paths changed between their merge base and tip)."""
+    count = int(_git(root, "rev-list", "--count", f"{base}..{tip}", *pathspec).strip())
+    names = sorted(set(_git(root, "diff", "--name-only", f"{base}...{tip}", *pathspec).splitlines()))
+    if names and count == 0:
+        raise LivePathsError("the diff names shipped paths but no commit touches them")
+    return count, names
+
+
+def changed(commit: str, rev: str = "HEAD", root: Path = ROOT, list_file: Path = LIST) -> dict:
+    """What a deploy of rev would change on a host that has commit.
+
+    ahead: (commits in commit..rev that touch a shipped path, those paths). behind: the same for rev..commit, the
+    live changes the host has that rev lacks and a deploy of rev would roll back. A count above zero with no paths
+    means the changes cancel out."""
     for ref in (commit, rev):
         if not ref or ref.startswith("-"):
             raise LivePathsError(f"not a commit name: {ref!r}")
@@ -85,11 +99,7 @@ def changed(commit: str, rev: str = "HEAD", root: Path = ROOT, list_file: Path =
                           capture_output=True).returncode != 0:
             raise LivePathsError(f"{ref} is not a commit in this checkout (fetch, or it was never pushed)")
     pathspec = ["--", *shipped(list_file)]
-    count = int(_git(root, "rev-list", "--count", f"{commit}..{rev}", *pathspec).strip())
-    names = sorted(set(_git(root, "diff", "--name-only", f"{commit}..{rev}", *pathspec).splitlines()))
-    if names and count == 0:
-        raise LivePathsError("the diff names shipped paths but no commit touches them")
-    return count, names
+    return {"ahead": _live_range(root, commit, rev, pathspec), "behind": _live_range(root, rev, commit, pathspec)}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -104,10 +114,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "check":
             check()
         else:
-            count, names = changed(args.commit, args.rev)
-            print(count)
-            for name in names:
-                print(name)
+            result = changed(args.commit, args.rev)
+            for key in ("ahead", "behind"):
+                count, names = result[key]
+                print(f"{key} {count}")
+                for name in names:
+                    print(f"  {name}")
     except LivePathsError as exc:
         print(f"live_paths: {exc}", file=sys.stderr)
         return 2
