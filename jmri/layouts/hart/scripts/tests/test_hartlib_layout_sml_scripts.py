@@ -59,9 +59,6 @@ class PathsTest(unittest.TestCase):
             "refresh_bean_comments": {
                 "ROOT": REPO, "TABLES": TABLES,
                 "PUBLIC_NAME_MAP": REPO / "jmri/layouts/hart/data/public_name_map.csv"},
-            "sync_public_name_map": {
-                "ROOT": REPO, "TABLES": TABLES,
-                "CSV_PATH": REPO / "jmri/layouts/hart/data/public_name_map.csv"},
             "layout_facts": {"DATA": REPO / "jmri/layouts/hart/data"},
         }.items():
             mod = load(name)
@@ -87,15 +84,6 @@ class ReadsThroughHartlibTest(unittest.TestCase):
         self.assertEqual({"Run via OS Switch 7", "Run via OS Switch 9"},
                          mod.live_transit_names(self.mini))
         self.assertEqual("Run via OS Switch 7", mod.rewrite_name("Run via Track 7"))
-
-    def test_sync_public_name_map_live_names_come_from_the_beans(self):
-        mod = load("sync_public_name_map")
-        path = Path(self.tmp.name) / "beans.xml"
-        path.write_text(
-            "<layout-config><!-- c --><turnouts><turnout><systemName>MT1</systemName>"
-            "<userName>Switch 1</userName></turnout></turnouts></layout-config>",
-            encoding="utf-8")
-        self.assertEqual({"MT1": "Switch 1"}, mod.live_usernames_by_system(path))
 
     def test_cleanup_drops_only_the_listed_leftovers(self):
         mod = load("cleanup_uss_ctc_leftovers")

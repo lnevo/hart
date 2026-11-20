@@ -1,6 +1,6 @@
 # ADR-005 — Public equipment names (switch / signal / track)
 
-- **Status:** Accepted (CTC-number convert + SML Discover + NX Discover 2026-08-27)
+- **Status:** Accepted (CTC-number convert + SML Discover + NX Discover 2026-08-27). Amended 2026-11-20 by ADR-029: see the note below the context
 - **Date:** 2026-08-20
 - **Deciders:** lnevo
 - **Amends:** [ADR-002](ADR-002-naming-contract.md) — **Barn** is Switch 7 / 7b; **West Yard** is the yard at Brick; signal names are numbers with `Mast`/`Head` prefixes; plates **W-1 / W-2**, **S-R** (run-through) and **S-1…S-4**, **EH-1 / EH-2 / EH-3**
@@ -8,6 +8,8 @@
 ## Context
 
 Public names grew as geographic sentences (`West Yard West East Main Ext`) because West Yard was the first CATS plant drawn well. Switch numbers 100–119 are already the railroad. MQTT system names (`M2T408`, `IH438`) are hardware and must stay.
+
+> **Amended 2026-11-20 by ADR-029.** The mapping source of record is `jmri/layouts/hart/data/devices.csv`. A rename is made in a row's `user_name`; `public_name_map.csv` is generated from `devices.csv` and holds identity rows only. The alias history (the `current` != `proposed` rows) is dropped, and `apply_public_names.py`, `apply_public_names_tree.py` and `sync_public_name_map.py` are retired with it. The sections below record how the names were first applied.
 
 ## Decision — one grammar
 

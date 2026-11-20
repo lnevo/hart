@@ -90,6 +90,7 @@ HARTLIB_MAIN = ("paths", "tables", "hosts", "railroad")
 HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad"}
 HARTLIB_OTHER = {
     "names": "the name map's columns",
+    "devices": "the device master (devices.csv) and the files generated from it",
     "cats": "the CATS desk conventions",
     "parked": "the parked features",
     "level_devices": "the main and upper levels' device names",

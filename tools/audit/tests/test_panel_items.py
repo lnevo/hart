@@ -89,5 +89,30 @@ class Committed(unittest.TestCase):
         self.assertEqual(len(data["items"]), 79)
 
 
+class StatusRows(unittest.TestCase):
+    """The status beans' devices.csv rows (written_by panel_items.json) follow the items file."""
+
+    def committed(self):
+        return pi.load(pi.ITEMS)
+
+    def test_the_committed_file_gives_one_row_per_status_bean_held_by_it(self):
+        rows = pi.status_rows(self.committed())
+        self.assertEqual([r["user_name"] for r in rows], ["Bridge HBLOOP", "SML Mode", "Track Power", "Turnout FB status"])
+        self.assertEqual({r["written_by"] for r in rows}, {"panel_items.json"})
+        self.assertEqual({r["role"] for r in rows}, {"panel_status"})
+        self.assertTrue(all(r["description"] for r in rows))
+
+    def test_a_status_bean_the_items_file_does_not_show_stops(self):
+        data = self.committed()
+        for it in data["items"]:
+            for m in it.get("members", []):
+                m["xml"] = m["xml"].replace('sensor="SML Mode"', 'sensor="Other"')
+        with self.assertRaisesRegex(pi.ItemsError, "status bean 'SML Mode' .* has no sensoricon"):
+            pi.status_rows(data)
+
+    def test_the_committed_master_holds_them(self):
+        self.assertEqual(pi.main(["--check"]), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

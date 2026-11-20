@@ -162,7 +162,7 @@
                 <tr><td><code>output/</code></td><td><code>tables.xml</code>, the one tables file, with all three panels in it</td></tr>
                 <tr><td><code>data/</code></td><td>The name map, switch files, block lengths, control points, the schematic's inputs and device maps, and HART's settings for the STS-to-JMRI refresh</td></tr>
                 <tr><td><code>operations/</code></td><td>The six Operations Pro files</td></tr>
-                <tr><td><code>scripts/</code></td><td>48 scripts: most build, repair and check the tables on the Mac, and some run inside JMRI</td></tr>
+                <tr><td><code>scripts/</code></td><td>45 scripts: most build, repair and check the tables on the Mac, and some run inside JMRI</td></tr>
                 <tr><td><code>ctc/</code>, <code>dispatcher/</code></td><td>The USS CTC machine's icons and guide; the Dispatcher System's options and train files. Parked since the helix-join release (November 2026)</td></tr>
                 <tr><td><code>parked/</code></td><td>The Entry/Exit, Dispatcher System and USS CTC data kept out of the active tables while those features are parked</td></tr>
                 <tr><td><code>anyrail/</code></td><td>The AnyRail export the first panels were built from, kept for reference. The schematic now reads the plan itself (see <a href="#owners">Where each fact lives</a>)</td></tr>
@@ -175,7 +175,7 @@
 
         <section id="hartlib" aria-labelledby="h-hartlib">
           <h2 id="h-hartlib"><span class="num">05</span>Shared code</h2>
-          <p>The Mac-side scripts share one small library, <code>hartlib</code>, in <code>tools/hartlib/</code>. These are its <!--rg:hartlib-main-count-->four<!--/rg--> main parts; the rest (<!--rg:hartlib-other-->the name map's columns, the CATS desk conventions, the parked features, the main and upper levels' device names, their control-point masts, where each staging mast stands on the panel and the station maps' revision<!--/rg-->) serve narrower jobs:</p>
+          <p>The Mac-side scripts share one small library, <code>hartlib</code>, in <code>tools/hartlib/</code>. These are its <!--rg:hartlib-main-count-->four<!--/rg--> main parts; the rest (<!--rg:hartlib-other-->the name map's columns, the device master (devices.csv) and the files generated from it, the CATS desk conventions, the parked features, the main and upper levels' device names, their control-point masts, where each staging mast stands on the panel and the station maps' revision<!--/rg-->) serve narrower jobs:</p>
           <ul>
             <li><b><code>paths</code></b> names every file the tools use: the tables file, the name map, the wiring table, the layout folders. A path always points into the checkout the script sits in.</li>
             <li><b><code>tables</code></b> loads and saves <code>tables.xml</code>. A load followed by a save with no edit writes the same bytes JMRI wrote, so a script that changes one sensor changes one sensor in the diff. It also knows the file's traps: sensors and turnouts split over several sections, every block written twice, two kinds of mast.</li>

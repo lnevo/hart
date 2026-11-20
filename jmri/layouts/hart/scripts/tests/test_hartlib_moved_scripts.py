@@ -49,7 +49,6 @@ class DefaultPathsTest(unittest.TestCase):
     def test_default_tables_are_this_checkouts_file(self):
         for name, attr in (
             ("apply_le_sml_facing", "DEFAULT_PANEL"),
-            ("apply_public_names", "DEFAULT_TABLES"),
             ("capture_public_name_baseline", "DEFAULT_TABLES"),
         ):
             with self.subTest(name):
@@ -61,7 +60,6 @@ class DefaultPathsTest(unittest.TestCase):
         audit = load("audit_panel_contracts")
         self.assertEqual(paths.LAYOUT_DATA / "le_signal_boundaries.csv", audit.BOUNDARIES)
         self.assertEqual(paths.LAYOUT_DIR / "dispatcher" / "traininfo", audit.TRAININFO)
-        self.assertEqual(paths.PUBLIC_NAME_MAP, load("apply_public_names").DEFAULT_MAP)
         self.assertEqual(paths.JMRI_USER_FILES / "tables.xml", load("apply_le_sml_facing").PREF_TABLES)
 
 

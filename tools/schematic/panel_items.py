@@ -226,3 +226,85 @@ def place(panel: ET.Element, data: dict, le_mod, slots_mod, fit: tuple[int, int]
     panel.set("windowwidth", str(min(w + chrome[0], fit[0])))
     panel.set("windowheight", str(min(h + chrome[1], fit[1])))
     return dict(count=n, size=(w, h), bottom=lowest)
+
+
+# ---------------------------------------------------------------- the status beans (devices.csv rows)
+
+WRITER = "panel_items.json"      # the devices.csv written_by of the status beans, one of hartlib.devices.WRITERS
+ITEMS = Path(__file__).resolve().parents[2] / "jmri/layouts/hart/data/schematic/panel_items.json"
+# The beans the status cluster's icons show (panel_status.py finds them by name): (layer, user name, system name,
+# assignment, JMRI comment, the icon attribute that names it, what the row says).
+STATUS_BEANS = (
+    ("sensor", "Bridge HBLOOP", "M2S1567", "field", "LCOS lamp; ACTIVE=link up", "sensor",
+     "Panel lamp sensor Bridge HBLOOP: lit when the link is up."),
+    ("sensor", "SML Mode", "IS:SML_MODE", "virtual", "Signals lamp; ACTIVE=SML on", "sensor",
+     "Panel lamp sensor SML Mode: lit when signal mast logic is on."),
+    ("sensor", "Track Power", "IS:TRACK_POWER", "virtual", "Track Power lamp; ACTIVE=on", "sensor",
+     "Panel lamp sensor Track Power: lit when track power is on."),
+    ("head", "Turnout FB status", "IH9990", "field", "Turnouts lamp: green feedback; red direct", "signalhead",
+     "Panel lamp head: green shows turnout feedback, red shows a direct turnout."),
+)
+
+
+def _devices():
+    """hartlib.devices, found the way the repo's scripts find hartlib (tools/hartlib/src above this file)."""
+    import sys
+    src = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents if (p / "tools/hartlib/src").is_dir()]
+    if not src:
+        raise ItemsError(f"no tools/hartlib/src above {__file__}")
+    if src[0] not in sys.path:
+        sys.path.insert(0, src[0])
+    from hartlib import devices
+    return devices
+
+
+def status_rows(data: dict) -> list[dict]:
+    """The devices.csv rows (hartlib.devices.COLUMNS) of the status beans STATUS_BEANS, each held by this file
+    (written_by panel_items.json). ItemsError when no item of `data` (load()) has an icon naming one of them: the
+    file and the rows would disagree about what the panel shows."""
+    devices = _devices()
+    named = set()
+    for it in data["items"]:
+        for m in it.get("members") or [it]:
+            el = _element(m["xml"], f"item {it['id']}")
+            named.update((el.tag, el.get(a)) for a in ("sensor", "signalhead") if el.get(a))
+    rows = []
+    for layer, user, system, assignment, comment, attr, text in STATUS_BEANS:
+        tag, name = ("sensoricon", user) if attr == "sensor" else ("signalheadicon", system)
+        if (tag, name) not in named:
+            raise ItemsError(f"status bean {user!r} ({system}) has no {tag} naming {name!r} in the items file")
+        row = {c: "" for c in devices.COLUMNS}
+        row.update(level="1", layer=layer, role="panel_status", user_name=user, assignment=assignment,
+                   system_name=system, jmri_name=system, jmri_comment=comment, written_by=WRITER, description=text)
+        rows.append(row)
+    return rows
+
+
+def main(argv=None) -> int:
+    """python3 tools/schematic/panel_items.py [--check]: write the status beans' rows of devices.csv (and the files it
+    generates), or, with --check, exit 1 when they are not as the items file gives them."""
+    import argparse
+    import sys
+    ap = argparse.ArgumentParser(description=main.__doc__.split("\n")[0])
+    ap.add_argument("--check", action="store_true", help="exit 1 if devices.csv is out of date")
+    args = ap.parse_args(argv)
+    try:
+        devices = _devices()
+        files = devices.Files.here()
+        want = devices.outputs_after_rows(WRITER, status_rows(load(ITEMS)), files)
+    except (ItemsError, ValueError) as exc:          # devices.DevicesError is a ValueError
+        print(f"panel_items.py: {exc}", file=sys.stderr)
+        return 2
+    stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
+    if args.check:
+        for p in stale:
+            print(devices.stale_message(p, files, "tools/schematic/panel_items.py"), file=sys.stderr)
+        return 1 if stale else 0
+    for p in devices.write_all(files, want):
+        print(f"wrote {p.name}")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())

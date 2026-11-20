@@ -42,9 +42,10 @@ device-map row had (virtual_rows). None is hand-kept: the last two, the helix-fo
 each helix track became one block (2026-11-20), and with them staging_masts_virtual.csv and
 staging_signals_virtual.csv.
 
-Writes (jmri/layouts/hart/data/schematic/): staging_masts.csv, staging_signals.csv, and the mast and head rows of
-device_map_staging.csv (each mast and head row's system_name and jmri_name are its JMRI name; there is no planned
-physical head for the internal ones).
+Writes (jmri/layouts/hart/data/schematic/): staging_masts.csv, staging_signals.csv, and the staging mast and head
+rows of ../devices.csv (written_by build_staging_masts.py; hartlib.devices holds it to those rows), then the three
+files devices.csv generates, device_map_staging.csv among them (each mast and head row's system_name and jmri_name
+are its JMRI name; there is no planned physical head for the internal ones).
 """
 from __future__ import annotations
 
@@ -63,10 +64,16 @@ import mast_rule  # noqa: E402
 import publish_draft as pd  # noqa: E402
 import le_names as ln  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
-from hartlib import level_masts, railroad  # noqa: E402
+from hartlib import devices, level_masts, railroad  # noqa: E402
 
 DATA = pd.DATA
 MASTS, SIGNALS, DEVICE_MAP = sdm.MASTS, sdm.SIGNALS, sdm.DEVICE_MAP
+WRITES = ("mast", "head")              # the layers of the devices.csv rows this script holds (written_by below)
+
+
+def device_files() -> devices.Files:
+    """The master and its generated files as build() uses them: DEVICE_MAP, as it is when it runs (a test may patch it)."""
+    return devices.Files.under(DEVICE_MAP.parent.parent)
 CPS, OVERRIDES = sdm.CPS, sdm.OVERRIDES
 INTERLOCKINGS = DATA / "interlockings_staging.csv"   # the signal rule's control points (owner, 2026-11-19)
 LEVELS = {"Staging": 1}
@@ -536,7 +543,11 @@ def build():
     names = sdm.load(band, device_map=DEVICE_MAP, with_masts=False)
     cp_of = {s.strip(): r["cp_name"] for r in sdm.read_rows(CPS, sdm.CP_COLUMNS) for s in r["switches"].split(",")}
     locks = interlockings(set(cp_of))
-    old = sdm.read_rows(DEVICE_MAP, bdm.COLUMNS)
+    files = device_files()
+    problems = devices.stale(files)       # the master is read below: stop if it or the files generated from it are off
+    if problems:
+        raise RuleError("; ".join(problems))
+    old = devices.device_map_rows(devices.load(files), ("1",))    # the master's staging rows, as the old file reads
     wired = wired_heads(old)
     gen = generate(band, bands, runs, joined, names, locks, wired)
     unplaced = sorted(set(wired) - {m["mast"] for m in gen})
@@ -551,9 +562,10 @@ def build():
     taken = [r["system_name"] for r in gm + vr]
     if len(set(taken)) != len(taken):
         raise RuleError(f"two masts share a system name: {sorted({x for x in taken if taken.count(x) > 1})}")
+    mine = [r for r in device_rows(gm, vr, old, wired) if r["layer"] in WRITES]   # the mast and head rows only
     want = {MASTS: csv_text(gm + vr, level_masts.FIELDS),
             SIGNALS: csv_text(signal_rows(gen + vgen), sdm.SIGNAL_COLUMNS),
-            DEVICE_MAP: csv_text(device_rows(gm, vr, old, wired), bdm.COLUMNS)}
+            **devices.outputs_after("build_staging_masts.py", mine, files)}
     return want, gen, vgen
 
 
@@ -573,7 +585,7 @@ def main(argv=None) -> int:
         return 2
     try:
         want, gen, vgen = build()
-    except (RuleError, sdm.StagingMapError, sdm.lc.BuildError, mast_rule.MapError, railroad.FactsError) as exc:
+    except (RuleError, sdm.StagingMapError, sdm.lc.BuildError, mast_rule.MapError, railroad.FactsError) as exc:   # DevicesError is a FactsError
         print(f"build_staging_masts.py: {exc}", file=sys.stderr)
         return 2
     if args.show:
@@ -585,7 +597,7 @@ def main(argv=None) -> int:
     stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
     if args.check:
         for p in stale:
-            print(f"{p.name} is stale: run python3 tools/schematic/build_staging_masts.py", file=sys.stderr)
+            print(devices.stale_message(p, device_files(), "tools/schematic/build_staging_masts.py"), file=sys.stderr)
         return 1 if stale else 0
     for p in stale:
         p.write_text(want[p], encoding="utf-8")

@@ -32,15 +32,10 @@ from hartlib.railroad import FactsError  # noqa: E402
 GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
 GOLDEN = GOLDEN_DIR / "refresh_wiring_docs.json"
 PINNED = GOLDEN_DIR / "inputs"
-# The script builds NAME_REPLACEMENTS and its name map when it is imported, so the pinned map is in place first.
-with mock.patch.object(paths, "PUBLIC_NAME_MAP", PINNED / "public_name_map.csv"):
-    import refresh_wiring_docs as rw  # noqa: E402
-if rw.PUBLIC_MAP != PINNED / "public_name_map.csv":
-    raise ImportError("refresh_wiring_docs was imported before this test pinned its name map; run this file on its own")
+import refresh_wiring_docs as rw  # noqa: E402
 REFRESH = ("UPDATE_GOLDEN=1 python3 -m unittest discover -s tools/audit/tests -p test_refresh_wiring_docs.py "
            "(the snapshot depends on the script, golden/inputs/*, and docs/wiring/imported/*.xlsx)")
 SNAPSHOT_BOOKS = ("LCOS_Layout_Inventory_v85.xlsx", "signals_asbuilt_abs_v2.xlsx")
-NAME_MAP_HEADER = "layer,current,proposed,cp,hardware,dcc,comment,notes\n"
 
 
 def row_hash(values) -> str:
@@ -160,45 +155,12 @@ class Parsing(unittest.TestCase):
         p = self.write("a.csv", "x,y,extra\n1,2,3\n")
         self.assertEqual(rw.load_csv(p), [{"x": "1", "y": "2", "extra": "3"}])
 
-    def test_load_proposed_keeps_only_real_renames(self):
-        p = self.write("map.csv", NAME_MAP_HEADER
-                       + "turnout,Old,New,,,,,\nturnout,Same,Same,,,,,\nturnout, Pad ,Padded,,,,,\n")
-        self.assertEqual(rw.load_proposed(p), {"Old": "New", "Pad": "Padded"})
-
-    def test_load_proposed_missing_file_is_a_facts_error(self):
-        with self.assertRaises(FactsError) as cm:
-            rw.load_proposed(self.dir / "absent.csv")
-        self.assertIn("absent.csv", str(cm.exception))
-
-    def test_load_proposed_missing_column_is_a_facts_error(self):
-        p = self.write("bad.csv", "layer,current\nturnout,Old\n")
-        with self.assertRaises(FactsError) as cm:
-            rw.load_proposed(p)
-        self.assertIn("proposed", str(cm.exception))
-
-    def test_proposed_maps_whole_names_and_slash_parts(self):
-        with mock.patch.object(rw, "_PROPOSED", {"A": "Alpha", "B": "Beta"}):
-            self.assertEqual(rw.proposed("A"), "Alpha")
-            self.assertEqual(rw.proposed("A / B"), "Alpha / Beta")
-            self.assertEqual(rw.proposed("A / Z"), "Alpha / Z")
-            self.assertEqual(rw.proposed("Z"), "Z")
-            self.assertIsNone(rw.proposed(None))
-            self.assertEqual(rw.proposed(""), "")
-
-    def test_apply_proposed_to_wiring_renames_user_and_mast_names_only(self):
-        rows = [{"user_name": "A", "mast_user_name": "B", "other": "A"}, {"user_name": "", "mast_user_name": "Q"}]
-        with mock.patch.object(rw, "_PROPOSED", {"A": "Alpha", "B": "Beta"}):
-            rw.apply_proposed_to_wiring(rows)
-        self.assertEqual(rows[0], {"user_name": "Alpha", "mast_user_name": "Beta", "other": "A"})
-        self.assertEqual(rows[1], {"user_name": "", "mast_user_name": "Q"})
-
     def test_occupancy_by_hw_prefers_os_then_other_and_joins(self):
         p = self.write("occ.csv", "block_user_name,occupancy_sensor_user_name,cats_discipline\n"
                                   "OS 1,Block 1-1,\nMain 1,Block 1-1,\nOS 1,Block 1-1,\nOnly,Block 2-2,\n"
                                   "OS Solo,Block 3-3,\n,Block 4-4,\nNoSensor,,\n")
-        with mock.patch.object(rw, "_PROPOSED", {"Main 1": "Main One"}):
-            got = rw.occupancy_by_hw(p)
-        self.assertEqual(got, {"Block 1-1": "OS 1 / Main One", "Block 2-2": "Only", "Block 3-3": "OS Solo"})
+        got = rw.occupancy_by_hw(p)
+        self.assertEqual(got, {"Block 1-1": "OS 1 / Main 1", "Block 2-2": "Only", "Block 3-3": "OS Solo"})
 
     def test_occupancy_by_hw_missing_column_is_a_facts_error(self):
         p = self.write("occ.csv", "block_user_name\nX\n")

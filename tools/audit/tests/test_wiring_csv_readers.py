@@ -27,7 +27,6 @@ def load(name: str, rel: str):
 
 AM = load("add_main_upper_levels", "tools/wiring/add_main_upper_levels.py")
 RW = load("refresh_wiring_docs", "tools/wiring/refresh_wiring_docs.py")
-SP = load("sync_public_name_map", "jmri/layouts/hart/scripts/sync_public_name_map.py")
 
 
 def plain(path: Path) -> list[dict[str, str]]:
@@ -72,12 +71,6 @@ class CommittedFiles(Case):
         self.assertTrue(rows)
         self.assertEqual(rows, plain(AM.NODES))
 
-    def test_the_name_map_for_the_wiring_docs(self) -> None:
-        want = {r["current"]: r["proposed"] for r in plain(RW.PUBLIC_MAP)
-                if r["current"] and r["proposed"] and r["current"] != r["proposed"]}
-        self.assertEqual(RW.load_proposed(), want)
-        self.assertEqual(RW._PROPOSED, want)
-
     def test_the_occupancy_bindings(self) -> None:
         got = RW.occupancy_by_hw()
         rows = [r for r in plain(RW.CATS / "occupancy_bindings.csv")
@@ -85,11 +78,6 @@ class CommittedFiles(Case):
         self.assertTrue(got)
         self.assertEqual(set(got), {r["occupancy_sensor_user_name"] for r in rows})
         self.assertTrue(all(got.values()))
-
-    def test_the_name_map_for_the_sync(self) -> None:
-        rows = SP.read_old_rows()
-        self.assertTrue(rows)
-        self.assertEqual(rows, plain(SP.CSV_PATH))
 
 
 class BadHeader(Case):
@@ -109,12 +97,6 @@ class BadHeader(Case):
             with self.subTest(column):
                 self.stops(AM.read_node_rows, AM.NODES, column)
         self.assertEqual(len(AM.read_node_rows(self.without(AM.NODES, "source"))), len(plain(AM.NODES)))
-
-    def test_the_name_map(self) -> None:
-        for column in ("layer", "current", "proposed"):
-            for read in (RW.load_proposed, SP.read_old_rows):
-                with self.subTest(column=column, read=read.__name__):
-                    self.stops(read, RW.PUBLIC_MAP, column)
 
     def test_the_occupancy_bindings(self) -> None:
         for column in ("block_user_name", "occupancy_sensor_user_name"):
@@ -147,17 +129,6 @@ class Callers(Case):
             RW.main()
         self.assertEqual(stop.exception.code, f"refresh_wiring_docs.py: {self.FAULT}")
         asbuilt.assert_not_called()
-
-    def test_sync_public_name_map(self) -> None:
-        canvas = self.tmp / "canvas.tsx"
-        canvas.write_text("", encoding="utf-8")
-        out, err = io.StringIO(), io.StringIO()
-        with mock.patch.object(SP, "read_old_rows", side_effect=self.FAULT), \
-                mock.patch.object(SP, "parse_canvas", return_value=[]), \
-                mock.patch.object(sys, "argv", ["sync_public_name_map.py", "--canvas", str(canvas)]), \
-                contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            self.assertEqual(SP.main(), 2)
-        self.assertEqual(err.getvalue(), f"sync_public_name_map.py: {self.FAULT}\n")
 
 
 if __name__ == "__main__":

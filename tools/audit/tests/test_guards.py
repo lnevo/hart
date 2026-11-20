@@ -434,8 +434,7 @@ class PrivateNameAndTables(unittest.TestCase):
         # Owner's call (2026-11-18): a PanelPro or CATS open on the Mac blocks nothing; JMRI changes
         # tables.xml only on a Store, and the Mac is expendable. What must be kept lives on the Pi.
         for cmd in ("make tables-pull", "make ops-pull", "make deploy-all", "make redeploy COMMIT=abc123 HOSTS=--pi",
-                    "./tools/hosts/sync_hart_package.sh --pi --win", "./tools/ops/pull_tables.sh",
-                    "python3 jmri/layouts/hart/scripts/apply_public_names.py --apply"):
+                    "./tools/hosts/sync_hart_package.sh --pi --win", "./tools/ops/pull_tables.sh"):
             self.assertEqual(self.code(cmd), 0, cmd)
 
     def test_private_name_blocked_in_publishing_text(self) -> None:

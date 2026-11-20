@@ -12,8 +12,9 @@
 #                         plan graph; staging's main flags and milepost_route, from its staging rows
 #   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
 #                         run by hand (it reads the private plan file): this only checks it (--check), in both modes
-#   staging-masts         staging_masts.csv, staging_signals.csv and the device map's mast and head rows are written by
-#                         build_staging_masts.py, run by hand: this only checks them (--check), in both modes
+#   staging-masts         staging_masts.csv, staging_signals.csv and the devices.csv rows of the staging masts and
+#                         heads (device_map_staging.csv is generated from them) are written by build_staging_masts.py,
+#                         run by hand: this only checks them (--check), in both modes
 #   staging-sync          tables.xml follows staging_masts.csv through sync_staging_signals.py, run by hand with JMRI
 #                         closed (it edits tables.xml): this only checks it (--check), in both modes
 #   staging-map           device_map_staging.csv (its mast and head rows aside) is kept by hand: the staging files

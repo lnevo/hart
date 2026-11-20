@@ -82,19 +82,19 @@ class NameCopiesTest(unittest.TestCase):
         self.assertGreater(len(counts), 50, "the scan read almost nothing; is the file list right?")
 
     def test_current_names_pass(self):
-        f = self.write("tools/x.py", 'M = "Mast 16R"\nT = ("Track Scale", "Track S-R West", "OS Switch 23a")\n')
+        f = self.write("tools/x.py", 'M = "Mast 14R"\nT = ("Track Scale", "Track S-R", "OS Switch 23a")\n')
         self.assertEqual([], self.stale([f]))
 
     def test_renamed_mast_and_track_fail_where_copied(self):
-        f = self.write("tools/x.py", 'M = "Mast 16R"\n# runs on Track Scale\nE = "Track Scale East"\n')
-        self.rename(mast=("Mast 16R", "Mast 16RX"), track=("Track Scale", "Track Weigh"))
+        f = self.write("tools/x.py", 'M = "Mast 14R"\n# runs on Track Scale\n')
+        self.rename(mast=("Mast 14R", "Mast 14RX"), track=("Track Scale", "Track Weigh"))
         self.assertEqual(
-            ["tools/x.py:1: 'Mast 16R' is not a current name",
+            ["tools/x.py:1: 'Mast 14R' is not a current name",
              "tools/x.py:2: 'Track Scale' is not a current name"],
             self.stale([f]),
         )
-        # The new names are current, and Track Scale East (its own block) still is.
-        g = self.write("tools/y.py", 'M = "Mast 16RX"\nT = "Track Weigh"\nE = "Track Scale East"\n')
+        # The new names are current.
+        g = self.write("tools/y.py", 'M = "Mast 14RX"\nT = "Track Weigh"\n')
         self.assertEqual([], self.stale([g]))
 
     def test_rename_in_a_copy_of_the_repo_names_the_hand_kept_copies(self):
@@ -120,7 +120,7 @@ class NameCopiesTest(unittest.TestCase):
 
     def test_a_block_with_no_identity_row_is_current_through_tables_xml(self):
         """A block with no identity row in the map (as the hidden yard throats had until 2026-11-17) is current while
-        tables.xml holds it, and stale when tables.xml does not."""
+        tables.xml holds it."""
         text = self.map.read_text(encoding="utf-8")
         row = "block,Track Barn,Track Barn,"
         self.assertIn(row, text)
@@ -129,10 +129,6 @@ class NameCopiesTest(unittest.TestCase):
         f = self.write("tools/x.py", 'T = "Track Barn"\n')
         self.assertNotIn("Track Barn", check.load_names(self.map)[0], "its identity row is removed for this test")
         self.assertEqual([], self.stale([f]))
-        # Without a block of that name in tables.xml, the alias row's proposed name is stale.
-        empty = self.write("empty_tables.xml", "<layout-config><blocks/></layout-config>\n")
-        self.assertEqual(["tools/x.py:1: 'Track Barn' is not a current name"],
-                         [str(h) for h in check.run(self.tmp, [f], allow={}, tables_xml=self.tmp / empty)[0]])
 
     def test_unknown_mast_or_os_fails_outside_tests(self):
         f = self.write("tools/x.py", 'M = "Mast 99X"\nO = "OS Switch 98"\n')

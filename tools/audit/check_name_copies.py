@@ -11,6 +11,9 @@ the hidden South Yard throat blocks were such blocks until 2026-11-17). A rename
 `current` and the new one as `proposed` (ADR-005), so after a rename the old name
 is no longer current, and every hand-kept copy of it fails here with its file and line.
 A `proposed` name that neither an identity row nor tables.xml holds is not current.
+Since 2026-11-20 public_name_map.csv is generated from devices.csv and holds no alias rows (ADR-029), so a track
+name that is no longer anything's is not matched at all: only a Mast, an OS Switch or a name the map or tables.xml
+still holds is checked. The rename checklist therefore greps for the old name itself.
 
 What counts as a name:
   - `Mast <digits><letters>` (Mast 16R, Mast 2035) and `OS Switch <digits><a|b>`:
@@ -55,6 +58,7 @@ SKIP_PREFIXES = (
     # the generated files of the schematic data; its hand-kept files (the staging device map, the overrides) are read
     "jmri/layouts/hart/data/schematic/staging.signals.json",          # build_signals.py --check
     "jmri/layouts/hart/data/schematic/hands.csv",                     # build_hands.py --check
+    "jmri/layouts/hart/data/devices.csv",                             # the device master: it holds the names
     "jmri/layouts/hart/data/schematic/device_map_main_upper.csv",     # build_device_map.py --check
     "jmri/layouts/hart/data/schematic/main_upper_masts.csv",          # build_main_upper_masts.py --check
     "jmri/layouts/hart/data/schematic/inputs/",                       # plan graphs read from the AnyRail export
@@ -66,7 +70,7 @@ SKIP_PREFIXES = (
 )
 # Tests are not read. A test that asserts the real data fails by itself after a rename;
 # the rest hold fixture names (Mast 99X) or old names on purpose, to test the rename
-# and alias handling (apply_public_names, rename_extension_tracks).
+# and old-name handling (rename_extension_tracks).
 SKIP_PARTS = ("/tests/",)
 TEXT_SUFFIXES = (".py", ".sh", ".js", ".mjs", ".csv", ".json", ".xml", ".html", ".svg", ".txt", ".cmd", ".yml", ".yaml")
 
@@ -77,10 +81,6 @@ ALLOW: dict[str, tuple[frozenset[str] | None, str]] = {
         None,
         "frozen snapshot of the live tables at 3bd3ac64 (NX, Dispatcher, USS CTC parked 2026-11-17); it keeps the names "
         "of that day until it is unparked and refreshed",
-    ),
-    "jmri/layouts/hart/scripts/speedmatch/rename_extension_tracks.py": (
-        frozenset({"Track West Main Ext"}),
-        "rewrites logs recorded before the 2026-11-13 rename, so it holds the old names",
     ),
     "jmri/layouts/hart/dispatcher/traininfo/": (
         None,
@@ -126,7 +126,7 @@ class Hit:
 
 
 def load_names(name_map: Path) -> tuple[set[str], set[str]]:
-    """(identity-row names, every name the map has ever held) for blocks and masts."""
+    """(identity-row names, every name the map holds: the same set now that it has no alias rows) for blocks and masts."""
     current: set[str] = set()
     known: set[str] = set()
     with name_map.open(encoding="utf-8", newline="") as f:

@@ -6,7 +6,7 @@ Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT 
 
 ## Inputs
 
-- [`jmri/layouts/hart/data/public_name_map.csv`](../../jmri/layouts/hart/data/public_name_map.csv)
+- [`jmri/layouts/hart/data/devices.csv`](../../jmri/layouts/hart/data/devices.csv): the device master. A public name is a row's `user_name`. `public_name_map.csv` and the two device maps are generated from it
 - Device-map comments (node / OU / ports / `DCC: NNN`)
 
 ## Outputs
@@ -19,10 +19,8 @@ Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT 
 
 ```bash
 export JMRI_LAYOUT=hart
-python3 jmri/layouts/hart/scripts/apply_public_names.py          # dry-run first
-python3 jmri/layouts/hart/scripts/apply_public_names.py --apply
-python3 jmri/layouts/hart/scripts/refresh_bean_comments.py --apply
-python3 jmri/layouts/hart/scripts/sync_public_name_map.py
+PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices regenerate   # after an edit to devices.csv
+python3 jmri/layouts/hart/scripts/refresh_bean_comments.py
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
 ```
 
@@ -30,9 +28,9 @@ Beans **with a generator** (USS diagram, CATS Masters, signal heads): change the
 
 Writable tables: `jmri/layouts/hart/output/tables.xml`.
 
-## Other text files
+## Renaming
 
-`python3 jmri/layouts/hart/scripts/apply_public_names_tree.py <paths...>` applies the same map as string replaces to files you name, for documents outside the tables. It is a dry run until you pass `--apply`.
+A rename is an edit of the row's `user_name` in `devices.csv` (and of the bean in `tables.xml` while PanelPro owns that file), then `python3 -m hartlib.devices regenerate` and the builds that bind the name. No old-name history is kept (ADR-029); `tools/audit/check_name_copies.py` finds hand-kept copies of Mast and OS names that are no longer current.
 
 ## Do not
 
