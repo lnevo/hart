@@ -1,0 +1,24 @@
+-- text --
+HART
+FREIGHT
+TO: Test Dock
+STATION: Test Station<br>Chemical Unload
+TRACK / SPOT: Track 4  ·  2
+CONTENTS
+Chemicals
+CAR TYPE
+T
+FROM
+Test Works
+FROM STA.
+Test Origin (City, PA)
+TST-001
+Form HART-CCWB-001
+-- layout --
+tables=5
+rows=15
+pictures=0
+frames=1
+shd_fills=['FF0000']
+row_heights=['820', '90', '1320', '1530', '115', '160', '280', '120']
+xml_sha256=e930eab0356a0626bf6d63f81f17e3da81a79cf18000ee860e56e096620e91c0

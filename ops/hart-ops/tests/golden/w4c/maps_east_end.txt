@@ -1,0 +1,67 @@
+size=(1600, 1000)
+calls=65
+text ((925.00,16),'EAST END') {anchor='mt',fill=(22,22,22),font=Font(Arial Bold.ttf,56)}
+polygon (((923.54,236.35),(783.54,819.79),(786.46,820.49),(926.46,237.05))) {fill=(22,22,22)}
+rounded_rectangle ((872.00,195.70,906.00,221.70)) {fill=(15,71,97),radius=8}
+text ((889.00,208.70),'31') {anchor='mm',fill=(255,255,255),font=Font(Arial Bold.ttf,20)}
+rounded_rectangle ((837.00,341.56,871.00,367.56)) {fill=(15,71,97),radius=8}
+text ((854.00,354.56),'29') {anchor='mm',fill=(255,255,255),font=Font(Arial Bold.ttf,20)}
+rounded_rectangle ((802.00,487.42,836.00,513.42)) {fill=(15,71,97),radius=8}
+text ((819.00,500.42),'27') {anchor='mm',fill=(255,255,255),font=Font(Arial Bold.ttf,20)}
+rounded_rectangle ((767.00,633.28,801.00,659.28)) {fill=(15,71,97),radius=8}
+text ((784.00,646.28),'25') {anchor='mm',fill=(255,255,255),font=Font(Arial Bold.ttf,20)}
+ellipse ((906.25,217.95,943.75,255.45)) {fill=(22,22,22),outline=(22,22,22)}
+polygon (((703.54,91.19),(738.54,237.05),(741.46,236.35),(706.46,90.49))) {fill=(22,22,22)}
+ellipse ((703.75,145.02,741.25,182.52)) {fill=(22,22,22),outline=(22,22,22)}
+rounded_rectangle ((627.50,146.77,661.50,172.77)) {fill=(15,71,97),radius=8}
+text ((644.50,159.77),'23') {anchor='mm',fill=(255,255,255),font=Font(Arial Bold.ttf,20)}
+polygon (((166.00,92.34),(1544.00,92.34),(1544.00,89.34),(166.00,89.34))) {fill=(22,22,22)}
+ellipse ((686.25,72.09,723.75,109.59)) {fill=(22,22,22),outline=(22,22,22)}
+polygon (((166,90.84),(180,83.14),(180,98.54))) {fill=(22,22,22)}
+text ((168,64.84),'to Brick') {anchor='lt',fill=(22,22,22),font=Font(Georgia.ttf,18)}
+polygon (((1544,90.84),(1530,83.14),(1530,98.54))) {fill=(22,22,22)}
+polygon (((166.00,238.20),(925.00,238.20),(925.00,235.20),(166.00,235.20))) {fill=(22,22,22)}
+ellipse ((721.25,217.95,758.75,255.45)) {fill=(22,22,22),outline=(22,22,22)}
+text ((158,236.70),'Track S-R') {anchor='rm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+polygon (((166.00,384.06),(890.00,384.06),(890.00,381.06),(166.00,381.06))) {fill=(22,22,22)}
+ellipse ((871.25,363.81,908.75,401.31)) {fill=(22,22,22),outline=(22,22,22)}
+text ((158,382.56),'Track S-1') {anchor='rm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+rectangle ((389.00,348.56,417.00,376.56)) {fill=(255,255,0),outline=(22,22,22),width=1}
+text ((429.00,362.56),'Aristech Plastics') {anchor='lm',fill=(22,22,22),font=Font(Georgia Bold.ttf,28)}
+text ((528.00,396.56),'Pellets  ·  Chemicals  ·  Shipping') {anchor='mm',fill=(22,22,22),font=Font(Georgia.ttf,16)}
+polygon (((166.00,529.92),(855.00,529.92),(855.00,526.92),(166.00,526.92))) {fill=(22,22,22)}
+ellipse ((836.25,509.67,873.75,547.17)) {fill=(22,22,22),outline=(22,22,22)}
+text ((158,528.42),'Track S-2') {anchor='rm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+rectangle ((271.50,494.42,299.50,522.42)) {fill=(255,0,0),outline=(22,22,22),width=1}
+text ((307.50,508.42),'Ferrellgas ') {anchor='lm',fill=(22,22,22),font=Font(Georgia Bold.ttf,28)}
+text ((461.50,508.42),' · ') {anchor='lm',fill=(22,22,22),font=Font(Georgia Bold.ttf,28)}
+rectangle ((517.50,494.42,545.50,522.42)) {fill=(0,128,0),outline=(22,22,22),width=1}
+text ((553.50,508.42),' A. Stucki Co.') {anchor='lm',fill=(22,22,22),font=Font(Georgia Bold.ttf,28)}
+text ((510.50,542.42),'LPG  ·  Crane  ·  Team') {anchor='mm',fill=(22,22,22),font=Font(Georgia.ttf,16)}
+polygon (((166.00,675.78),(820.00,675.78),(820.00,672.78),(166.00,672.78))) {fill=(22,22,22)}
+ellipse ((801.25,655.53,838.75,693.03)) {fill=(22,22,22),outline=(22,22,22)}
+text ((158,674.28),'Track S-3') {anchor='rm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+rectangle ((382.00,640.28,410.00,668.28)) {fill=(255,192,203),outline=(22,22,22),width=1}
+text ((422.00,654.28),'Kosmos Cement') {anchor='lm',fill=(22,22,22),font=Font(Georgia Bold.ttf,28)}
+text ((493.00,688.28),'Cement  ·  Aggregate') {anchor='mm',fill=(22,22,22),font=Font(Georgia.ttf,16)}
+polygon (((166.00,821.64),(785.00,821.64),(785.00,818.64),(166.00,818.64))) {fill=(22,22,22)}
+text ((158,820.14),'Track S-4') {anchor='rm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+rectangle ((364.50,786.14,392.50,814.14)) {fill=(128,0,128),outline=(22,22,22),width=1}
+text ((404.50,800.14),'Calgon Carbon') {anchor='lm',fill=(22,22,22),font=Font(Georgia Bold.ttf,28)}
+text ((475.50,834.14),'Coal  ·  Carbon  ·  Chemical') {anchor='mm',fill=(22,22,22),font=Font(Georgia.ttf,16)}
+polygon (((166.00,926.66),(909.80,926.66),(909.80,923.66),(166.00,923.66))) {fill=(22,22,22)}
+polygon (((911.26,925.51),(1076.46,237.05),(1073.54,236.35),(908.34,924.81))) {fill=(22,22,22)}
+polygon (((166,925.16),(180,917.46),(180,932.86))) {fill=(22,22,22)}
+text ((168,903.16),'to Barn') {anchor='lb',fill=(22,22,22),font=Font(Georgia.ttf,18)}
+text ((528.00,907.16),'Main East') {anchor='mm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+text ((528.00,72.84),'Main West') {anchor='mm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+polygon (((925.00,238.20),(1075.00,238.20),(1075.00,235.20),(925.00,235.20))) {fill=(22,22,22)}
+rounded_rectangle ((1022.00,195.70,1056.00,221.70)) {fill=(15,71,97),radius=8}
+text ((1039.00,208.70),'33') {anchor='mm',fill=(255,255,255),font=Font(Arial Bold.ttf,20)}
+ellipse ((1056.25,217.95,1093.75,255.45)) {fill=(22,22,22),outline=(22,22,22)}
+polygon (((1075.00,238.20),(1544.00,238.20),(1544.00,235.20),(1075.00,235.20))) {fill=(22,22,22)}
+text ((1309.50,218.70),'Main East') {anchor='mm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+text ((1309.50,72.84),'Main West') {anchor='mm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+polygon (((1544,236.70),(1530,229.00),(1530,244.40))) {fill=(22,22,22)}
+text ((1542,163.77),'to Princess') {anchor='rm',fill=(22,22,22),font=Font(Georgia.ttf,18)}
+compass {cx=1429,cy=815,north='up',size=230}

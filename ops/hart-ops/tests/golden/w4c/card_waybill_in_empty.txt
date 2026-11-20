@@ -1,0 +1,22 @@
+-- text --
+TEST INDUSTRY B
+EMPTY
+Via POHC Interchange
+☰
+SPOT(S):
+3
+☰
+CAR TYPE:
+Tank Car
+☰
+LOAD:
+EMPTY
+Form HART-WB-001    Rev A
+-- layout --
+tables=5
+rows=12
+pictures=0
+frames=1
+shd_fills=[]
+row_heights=['860', '2004', '1450', '110']
+xml_sha256=ddf741561e96237711351c7a4044ebb94b45df670b955277332316feeff1854b

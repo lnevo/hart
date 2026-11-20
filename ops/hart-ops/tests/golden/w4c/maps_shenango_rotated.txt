@@ -1,0 +1,36 @@
+size=(1600, 1000)
+text ((800,16),'SHENANGO') {anchor='mt',fill=(22,22,22),font=Font(Arial Bold.ttf,56)}
+polygon (((1382.00,510.53),(458.00,510.53),(458.00,513.53),(1382.00,513.53))) {fill=(22,22,22)}
+polygon (((1382.00,404.47),(458.00,404.47),(458.00,407.47),(1382.00,407.47))) {fill=(22,22,22)}
+polygon (((1382.00,512.03),(1368.00,504.33),(1368.00,519.73))) {fill=(22,22,22)}
+polygon (((1382.00,405.97),(1368.00,398.27),(1368.00,413.67))) {fill=(22,22,22)}
+text ((1272.00,530.03),'Main West') {anchor='mm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+text ((1272.00,387.97),'Main East') {anchor='mm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+text ((1326.00,459.00),'to East End') {anchor='rm',fill=(22,22,22),font=Font(Georgia.ttf,18)}
+text ((665.00,530.03),'Track K-1') {anchor='mm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+text ((665.00,387.97),'Track K-2') {anchor='mm',fill=(22,22,22),font=Font(Arial Bold.ttf,22)}
+rectangle ((577.50,445.00,605.50,473.00)) {fill=(0,0,0),outline=(22,22,22),width=1}
+text ((615.50,459.00),'Shenango Coke Works') {anchor='lm',fill=(22,22,22),font=Font(Georgia Bold.ttf,28)}
+text ((535.00,634.03),"McKee's Rocks / Scully Yard") {anchor='mm',fill=(22,22,22),font=Font(Georgia.ttf,18)}
+text ((535.00,283.97),'McKeesport / Demmler Yard') {anchor='mm',fill=(22,22,22),font=Font(Georgia.ttf,18)}
+ellipse ((1003.25,493.28,1040.75,530.78)) {fill=(22,22,22),outline=(22,22,22)}
+polygon (((1023.06,513.09),(1129.13,407.03),(1127.01,404.91),(1020.94,510.97))) {fill=(22,22,22)}
+ellipse ((1056.28,440.25,1093.78,477.75)) {fill=(22,22,22),outline=(22,22,22)}
+ellipse ((1109.32,387.22,1146.82,424.72)) {fill=(22,22,22),outline=(22,22,22)}
+text ((1075.03,560.03),'Princess') {anchor='mm',fill=(22,22,22),font=Font(Arial Bold.ttf,36)}
+rounded_rectangle ((1014.03,442.00,1048.03,468.00)) {fill=(15,71,97),radius=8}
+text ((1031.03,455.00),'35') {anchor='mm',fill=(255,255,255),font=Font(Arial Bold.ttf,20)}
+polygon (((870.99,510.92),(760.99,610.92),(763.01,613.14),(873.01,513.14))) {fill=(22,22,22)}
+polygon (((762.00,610.53),(308.00,610.53),(308.00,613.53),(762.00,613.53))) {fill=(22,22,22)}
+polygon (((309.06,610.97),(219.06,520.97),(216.94,523.09),(306.94,613.09))) {fill=(22,22,22)}
+ellipse ((853.25,493.28,890.75,530.78)) {fill=(22,22,22),outline=(22,22,22)}
+polygon (((873.01,404.86),(763.01,304.86),(760.99,307.08),(870.99,407.08))) {fill=(22,22,22)}
+polygon (((762.00,304.47),(308.00,304.47),(308.00,307.47),(762.00,307.47))) {fill=(22,22,22)}
+polygon (((306.94,304.91),(216.94,394.91),(219.06,397.03),(309.06,307.03))) {fill=(22,22,22)}
+ellipse ((853.25,387.22,890.75,424.72)) {fill=(22,22,22),outline=(22,22,22)}
+polygon (((219.50,522.03),(219.50,395.97),(216.50,395.97),(216.50,522.03))) {fill=(22,22,22)}
+rounded_rectangle ((903.00,527.03,937.00,553.03)) {fill=(15,71,97),radius=8}
+text ((920.00,540.03),'39') {anchor='mm',fill=(255,255,255),font=Font(Arial Bold.ttf,20)}
+rounded_rectangle ((903.00,364.97,937.00,390.97)) {fill=(15,71,97),radius=8}
+text ((920.00,377.97),'37') {anchor='mm',fill=(255,255,255),font=Font(Arial Bold.ttf,20)}
+compass {cx=1429,cy=815,north='down',size=230}
