@@ -87,24 +87,31 @@ class Levels(unittest.TestCase):
         self.assertEqual([where[i] for i in (2, 3, 4)], ["main"] * 3)
         self.assertEqual(where[0], "staging")
         self.assertEqual(set(partial), {1})
-        upper, lower = partial[1]["main"], partial[1]["staging"]
+        (upper, up_cm), (lower, low_cm) = partial[1]["main"], partial[1]["staging"]
         self.assertEqual(upper[-1], lower[0])                          # split at one point, drawn on both levels
+        self.assertAlmostEqual(up_cm + low_cm, 100.0)                  # the piece's plan length, shared
         angle = math.degrees(math.atan2(upper[-1][1], upper[-1][0]))
         self.assertAlmostEqual(angle, 140, delta=8)
         self.assertEqual(ramp, set(range(6)))
 
-    def test_a_helix_of_less_than_one_turn_stops(self) -> None:
-        with self.assertRaisesRegex(L.LevelsError, "less than one turn"):
-            L.assign(self.plan(step=60), HEIGHTS)
+    def test_a_staging_climb_of_less_than_one_turn_is_split_at_the_cut(self) -> None:
+        where, _, _, partial = L.assign(self.plan(step=60), HEIGHTS)     # 300 degrees in all
+        # the pieces' mid heights are -34.3, -26.7, -19.1, -11.4 and -3.8 against the cut at -5
+        self.assertEqual([where[i] for i in range(5)], ["staging"] * 4 + ["main"])
+        self.assertEqual(partial, {})
+
+    def test_a_one_piece_climb_from_staging_is_drawn(self) -> None:
+        where, _, _, _ = L.assign([flex(0, 0, -38.1, 0.0), flex(1, 2000, -38.1), flex(2, 3000, 0.0),
+                                   flex(3, 4000, 10.79)], HEIGHTS)
+        self.assertEqual(where[0], "staging")                          # its middle, at -19 cm, is below the cut
 
     def test_a_track_crossing_under_a_higher_one_is_cut_there_and_not_under_a_lower_one(self) -> None:
         walk = [(0, [(0.0, 0.0, 0.0), (10.0, 0.0, -1.0), (20.0, 0.0, -2.0)])]
         higher = [((5.0, -5.0, 5.0), (5.0, 5.0, 5.0))]
         lower = [((5.0, -5.0, -9.0), (5.0, 5.0, -9.0))]
         whole, cut = L.top_layer(walk, higher)
-        self.assertEqual((whole, cut[0], cut[1]), (set(), 0, [(0.0, 0.0)]))
-        with self.assertRaisesRegex(L.LevelsError, "less than one turn"):
-            L.top_layer(walk, lower)
+        self.assertEqual((whole, cut[0], cut[1], cut[3]), (set(), 0, [(0.0, 0.0)], 0.0))
+        self.assertIsNone(L.top_layer(walk, lower))
 
     def test_a_climb_that_starts_above_staging_is_drawn_on_the_level_it_climbs_from(self) -> None:
         where, _, _, _ = L.assign(self.plan(), HEIGHTS)
@@ -140,6 +147,14 @@ class Symbols(unittest.TestCase):
         self.assertEqual(len(lines), 4)
         rails = [l for l in lines if l[1] == l[3]]
         self.assertEqual(sorted((l[1], l[0], l[2]) for l in rails), [(0, 0, 50), (5, 0, 50)])
+
+    def test_a_double_crossover_finds_its_sides_with_any_end_headings(self) -> None:
+        dx = part(0, [(0, 0, 0, 180), (0, 5, 0, 180), (50, 0, 0, 0), (50, 5, 0, 0)])
+        for heading in (0.0, math.pi / 2):          # every end the same way, then every end across the track
+            for e in dx["ends"]:
+                e["a"] = heading
+            rails = [l for l in L.turnout_lines(dx) if l[1] == l[3]]
+            self.assertEqual(sorted((l[1], l[0], l[2]) for l in rails), [(0, 0, 50), (5, 0, 50)])
 
     def test_a_double_crossover_pairs_its_rails_by_position_not_by_the_end_headings(self) -> None:
         # plan 5.3c's T322: its end headings point across the track, and its far ends come in the other order
