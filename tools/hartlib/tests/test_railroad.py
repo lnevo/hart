@@ -1,9 +1,11 @@
 """hartlib.railroad: the fact files load once into typed objects, by layer, and every invariant between them holds."""
+import csv
 import json
 import shutil
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -495,6 +497,83 @@ class VirtualNames(unittest.TestCase):
         ok = [self.row("block", "Track 1-3", ""), self.row("occupancy", "BS 1-3", "IS:HART:C3:B:1-3")]
         self.assertIn("block rows given twice: Track 1-3", R.check_virtual_names(ok + ok[:1]))
         self.assertIn("occupancy rows given twice: BS 1-3", R.check_virtual_names(ok + ok[1:]))
+
+
+class SmallHelpers(Copy):
+    """Public helpers and loaders the module split moves, held to their behaviour."""
+
+    def test_natural_orders_numbers_as_numbers(self) -> None:
+        self.assertEqual(sorted(["Switch 101", "Switch 9"], key=R.natural), ["Switch 9", "Switch 101"])
+
+    def test_switch_number_of_a_label(self) -> None:
+        self.assertEqual([R.switch_number(x) for x in ("129A", "223*", "7", "", None)], ["129", "223", "7", "", ""])
+
+    def test_device_list_splits_and_trims(self) -> None:
+        self.assertEqual(R.device_list(" Track 1; Track 2 ;;"), ["Track 1", "Track 2"])
+        self.assertEqual(R.device_list(""), [])
+
+    def test_device_facts_flags_a_stray_and_a_missing_fact(self) -> None:
+        base = {c: "" for c in R.DEVICE_COLUMNS}
+        self.assertEqual(R.device_facts({**base, "layer": "turnout"}), [])
+        self.assertIn("a turnout row has stop", R.device_facts({**base, "layer": "turnout", "stop": "yes"}))
+        self.assertIn("a mast row names no facing block", R.device_facts({**base, "layer": "mast"}))
+        self.assertIn("an occupancy row names no blocks",
+                      R.device_facts({**base, "layer": "occupancy", "detector": "none"}))
+
+    def test_join_main_upper_stops_on_a_switch_in_both(self) -> None:
+        rr = R.Railroad(self.src, upto="inputs")
+        cps, local = rr.level_control_points, rr.local_switches
+        joined = R.join_main_upper(cps, local)
+        self.assertEqual(len(joined), sum(len(c.switches) for c in cps) + len(local))
+        with self.assertRaises(R.FactsError):
+            R.join_main_upper(cps, [replace(local[0], switch=cps[0].switches[0])])
+
+    def test_switches_and_helix_tracks_load_from_the_checkout(self) -> None:
+        rr = R.Railroad(self.src, upto="inputs")
+        self.assertTrue(rr.switches)
+        self.assertTrue(rr.helix_tracks)
+        self.assertTrue(all(h.block.startswith("Track ") for h in rr.helix_tracks.values()))
+        self.assertEqual(R.read_helix_tracks(self.src.helix_tracks), rr.helix_tracks)
+
+    def test_a_helix_block_given_twice_stops(self) -> None:
+        tracks = list(R.read_helix_tracks(self.src.helix_tracks).values())
+        path = self.src.helix_tracks
+        with path.open(newline="", encoding="utf-8") as fh:
+            rows = list(csv.DictReader(fh))
+            fields = rows[0].keys()
+        rows[1]["block"] = tracks[0].block
+        with path.open("w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=list(fields))
+            w.writeheader()
+            w.writerows(rows)
+        with self.assertRaises(R.FactsError):
+            R.read_helix_tracks(path)
+
+    def test_sources_but_swaps_one_file(self) -> None:
+        other = self.src.but(hands=Path("x.csv"))
+        self.assertEqual(other.hands, Path("x.csv"))
+        self.assertEqual(other.switches, self.src.switches)
+
+    def test_a_layer_beyond_upto_is_refused(self) -> None:
+        rr = R.Railroad(self.src, upto="inputs")
+        self.assertTrue(rr.has("inputs") and not rr.has("hands"))
+        with self.assertRaises(R.LayerError):
+            rr.hands
+        with self.assertRaises(ValueError):
+            R.Railroad(self.src, upto="nope")
+
+    def test_the_name_rows_are_read_once(self) -> None:
+        """name_map and switches both start from one read of public_name_map.csv."""
+        reads = []
+        real = R.read_name_rows
+        self.addCleanup(setattr, R, "read_name_rows", real)
+        R.read_name_rows = lambda path: reads.append(path) or real(path)
+        rr = R.Railroad(self.src, upto="inputs")
+        self.assertTrue(rr.name_map)
+        self.assertTrue(rr.switches)
+        self.assertEqual(reads, [self.src.name_map])
+        self.assertTrue(R.switch_turnouts(self.src.name_map, rr.name_rows, [next(iter(rr.switches))]))
+        self.assertEqual(len(reads), 1)
 
 
 if __name__ == "__main__":
