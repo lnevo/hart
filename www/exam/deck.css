@@ -1,0 +1,138 @@
+/* C&E study deck: a train-order "flimsy" on the desk; site palette, own classes (ce-*) to stay clear of ops.css. */
+.ce{
+  --paper:var(--card); --ink:#121a22;
+  --signal-red:var(--signal); --signal-yellow:var(--accent-text); --signal-green:var(--ok);
+  --red-wash:#f6e3e1; --green-wash:#e2f1e7; --yellow-wash:#f5ecd6;
+  --f-head:var(--font-display); --f-body:var(--font-body);
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --xw-sheet:#f5f0e1; /* the Extra East train-sheet tan, same as run.css's --sheet */
+  display:flex;flex-direction:column;gap:18px;font-family:var(--f-body);color:var(--ink)}
+.ce button{font:inherit;color:inherit}
+.ce nav.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
+.ce nav.tabs button{font-family:var(--f-head);font-size:19px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
+  background:transparent;color:var(--muted);border:2px solid transparent;border-bottom:none;padding:6px 14px 4px;cursor:pointer;border-radius:4px 4px 0 0;margin-bottom:-2px}
+.ce nav.tabs button[aria-selected="true"]{background:var(--paper);color:var(--ink);border-color:var(--ink)}
+.ce-panel{display:flex;flex-direction:column;gap:14px}
+.ce-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ce-chip{border:1.5px solid var(--rule);background:var(--paper);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.ce-chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.ce-chip .n{font-family:var(--f-mono);font-size:11px;opacity:.75}
+.ce .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ce .label{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ce-btn{border:1.5px solid var(--ink);background:var(--paper);border-radius:6px;padding:8px 14px;cursor:pointer;font-weight:600}
+.ce-btn.primary{background:var(--ink);color:var(--paper)}
+.ce-btn.again{border-color:var(--signal-red);color:var(--signal-red)}
+.ce-btn.got{border-color:var(--signal-green);color:var(--signal-green)}
+.ce-btn:disabled{opacity:.4;cursor:default}
+.ce-btn.ce-sm{padding:5px 10px;font-size:13px;font-weight:500}
+.ce .kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--rule);border-radius:3px;padding:0 4px;color:var(--muted);margin-left:4px}
+
+/* the flimsy */
+.ce .flimsy{background:var(--paper);border:1.5px solid var(--ink);border-radius:3px;position:relative;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--rule) 31px 32px);background-position:0 54px;
+  padding:16px 20px 20px;min-height:260px;display:flex;flex-direction:column;gap:12px}
+.ce .flimsy .top{display:flex;justify-content:space-between;gap:10px;font-family:var(--f-mono);font-size:12px;color:var(--muted);border-bottom:1.5px solid var(--ink);padding-bottom:8px;background:var(--paper)}
+.ce .flimsy .top .sec{color:var(--signal-red);text-transform:uppercase;letter-spacing:.06em}
+.ce .front{font-family:var(--f-head);font-weight:600;font-size:clamp(22px,4.4vw,28px);line-height:1.2;text-wrap:balance;background:var(--paper);align-self:flex-start}
+.ce .back{font-size:16px;line-height:1.6;background:var(--paper);white-space:pre-line}
+.ce .src{font-family:var(--f-mono);font-size:12px;color:var(--muted);background:var(--paper);align-self:flex-start}
+.ce .ce-speed svg{display:block;height:auto;width:58px}
+.ce .ce-gloss{margin:10px 0;border:1px solid var(--rule);border-radius:4px;padding:8px 12px;background:var(--paper)}
+.ce .ce-gloss summary{cursor:pointer;font-weight:600}
+.ce .ce-gloss dl{margin:8px 0 0;max-height:60vh;overflow:auto}
+.ce .ce-gloss dt{font-weight:600;margin-top:8px}
+.ce .ce-gloss dt small{font-weight:400;color:var(--muted);font-family:var(--f-mono);font-size:11px;margin-left:6px}
+.ce .ce-gloss dd{margin:2px 0 0;font-size:14px}
+.ce .ce-fig{display:flex;justify-content:center;margin:6px 0 2px;color:var(--ink)}
+.ce .note{border-left:3px solid var(--signal-yellow);background:var(--yellow-wash);padding:8px 12px;font-size:14px;border-radius:0 4px 4px 0}
+.ce .flipzone{cursor:pointer;display:flex;flex-direction:column;gap:12px;flex:1}
+.ce .hint{font-size:13px;color:var(--muted);background:var(--paper);align-self:flex-start}
+.ce .meter{display:flex;gap:10px;align-items:center;font-family:var(--f-mono);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.ce .bar{flex:1;min-width:140px;height:8px;border-radius:4px;background:var(--rule);overflow:hidden;display:flex}
+.ce .bar i{display:block;height:100%}
+.ce .bar .m{background:var(--signal-green)}.ce .bar .l{background:var(--signal-yellow)}
+
+/* quiz */
+.ce .opts{display:flex;flex-direction:column;gap:8px;background:var(--paper)}
+.ce .opt{text-align:left;border:1.5px solid var(--rule);background:var(--paper);border-radius:6px;padding:10px 12px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;line-height:1.45}
+.ce .opt .k{font-family:var(--f-mono);font-size:12px;color:var(--muted);padding-top:2px;min-width:14px}
+.ce .opt:hover:not(:disabled){border-color:var(--ink)}
+.ce .opt.right{border-color:var(--signal-green);background:var(--green-wash)}
+.ce .opt.wrong{border-color:var(--signal-red);background:var(--red-wash)}
+.ce .opt:disabled{cursor:default}
+.ce .why{background:var(--paper);border-top:1.5px dashed var(--rule);padding-top:10px;font-size:15px}
+.ce .why b.ok{color:var(--signal-green)}.ce .why b.no{color:var(--signal-red)}
+.ce .score{font-family:var(--f-head);font-size:56px;font-weight:700;line-height:1}
+.ce .secrow{display:grid;grid-template-columns:minmax(0,1fr) 70px;gap:4px 12px;align-items:center;font-size:14px}
+.ce .secrow .bar{min-width:0;grid-column:1/-1}
+.ce .missed{display:flex;flex-direction:column;gap:10px}
+.ce .missed details{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:8px 12px}
+.ce .missed summary{cursor:pointer;font-weight:500}
+.ce .history{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.ce .guides{display:flex;flex-direction:column;gap:12px}
+.ce .guides article{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:12px 16px}
+.ce .guides h3{font-family:var(--f-head);font-size:21px;margin:0 0 4px;font-weight:600}
+.ce .guides p,.ce .guides ul{margin:6px 0}
+.ce .guides ul{padding-left:20px}
+@media (prefers-reduced-motion:no-preference){.ce .flimsy{transition:transform .15s ease}.ce .flimsy.pulse{transform:translateY(-2px)}}
+.ce .learn{display:flex;flex-direction:column;gap:16px}
+.ce .learn article{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:14px 18px;scroll-margin-top:calc(var(--header-h) + 12px)}
+.ce .learn h3{font-family:var(--f-head);font-size:26px;font-weight:700;margin:0 0 6px;text-wrap:balance}
+.ce .learn h4{font-family:var(--f-head);font-size:19px;font-weight:600;margin:14px 0 2px;letter-spacing:.02em}
+.ce .learn p,.ce .learn li{font-size:16px;line-height:1.6;max-width:70ch}
+.ce .learn p{margin:6px 0}
+.ce .learn ul,.ce .learn ol{margin:6px 0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+/* study guide frames: one section at a time, picked from a line of stops */
+.ce .ce-line{scroll-margin-top:calc(var(--header-h) + 12px);position:relative;--n:9}
+.ce .ce-line ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--n,9),minmax(0,1fr));position:relative}
+.ce .ce-line ol::before,.ce .ce-line .fill{content:"";position:absolute;top:14px;left:calc(50% / var(--n,9));height:3px;border-radius:2px;background:var(--rule);right:calc(50% / var(--n,9))}
+.ce .ce-line .fill{background:var(--ink);right:auto;width:0;z-index:1}
+@media (prefers-reduced-motion:no-preference){.ce .ce-line .fill{transition:width .25s ease}}
+.ce .ce-line button{background:none;border:0;padding:0 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;position:relative;z-index:2}
+.ce .ce-line .dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);background:var(--paper);display:grid;place-items:center;font-family:var(--f-mono);font-size:12px;transition:transform .15s ease}
+.ce .ce-line .past .dot{background:var(--rule)}
+.ce .ce-line [aria-current="step"] .dot{background:var(--ink);color:var(--paper);box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--signal-red)}
+.ce .ce-line button:hover .dot{transform:scale(1.1)}
+.ce .ce-line button:focus-visible{outline:none}.ce .ce-line button:focus-visible .dot{outline:2px solid var(--signal-red);outline-offset:3px}
+.ce .ce-line .name{font-size:12px;line-height:1.25;color:var(--muted);text-align:center;text-wrap:balance}
+.ce .ce-line [aria-current="step"] .name{color:var(--ink);font-weight:600}
+.ce .ce-line-cap{display:none;margin:8px 0 0;font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:center}
+@media (max-width:640px){.ce .ce-line .name{display:none}.ce .ce-line-cap{display:block}.ce .ce-line .dot{width:26px;height:26px;font-size:11px}.ce .ce-line ol::before,.ce .ce-line .fill{top:12px}}
+.ce .learn article[hidden]{padding:0;border:0;margin-top:-16px}
+@media print{.ce .learn article[hidden]{display:block!important;content-visibility:visible!important;padding:14px 18px;border:1px solid var(--rule);margin-top:0}.ce .ce-line,.ce .learn-step,.ce .learn-go,.ce-feature{display:none}}
+@media (prefers-reduced-motion:no-preference){.ce .learn article.in{animation:ce-in .22s ease}}
+@keyframes ce-in{from{opacity:0;transform:translateX(var(--from,16px))}to{opacity:1;transform:none}}
+.ce .learn-step{display:flex;gap:8px;justify-content:space-between;margin-top:12px}
+.ce .learn-step .ce-btn{max-width:48%;text-align:left}
+.ce .learn-step .nx{margin-left:auto;text-align:right}
+.ce .learn-step small{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.ce .learn-table{overflow-x:auto;margin:8px 0}
+.ce .learn-table table{border-collapse:collapse;font-size:14px;min-width:420px}
+.ce .learn-table th,.ce .learn-table td{border-bottom:1px solid var(--rule);padding:6px 10px 6px 0;text-align:left;vertical-align:top}
+.ce .learn-table th{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.ce .learn-table td:first-child{font-family:var(--f-mono);white-space:nowrap}
+.ce .ce-panel{scroll-margin-top:calc(var(--header-h) + 12px)}
+.ce .learn-go{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px dashed var(--rule);margin-top:12px;padding-top:10px}
+.ce .learn-go .ce-xw{margin-left:auto;font-size:14px}
+
+/* Extra East feature card above the tabs */
+.ce-feature{display:grid;grid-template-columns:72px 1fr auto;grid-template-areas:"icon head go" "icon body go";column-gap:16px;row-gap:6px;align-items:center;padding:18px 22px;background:var(--xw-sheet);
+  background-image:repeating-linear-gradient(to bottom,transparent 0 27px,color-mix(in srgb,var(--rule) 45%,transparent) 27px 28px);
+  border:1.5px solid var(--ink);border-left:5px solid var(--signal-red);border-radius:3px}
+.ce-feature-icon{grid-area:icon;width:64px;height:64px;display:block;align-self:start}
+.ce-feature-head{grid-area:head}
+.ce-feature-body{grid-area:body}
+.ce-feature-go{grid-area:go}
+.ce-feature-kicker{margin:0 0 2px;font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.ce-feature h2{margin:0;font-family:var(--font-display);font-size:26px;line-height:1.15;color:var(--ink)}
+.ce-feature-body p{margin:0 0 10px;font-size:15px;line-height:1.5}
+.ce-feature .ce-chip{cursor:default}
+.ce-feature-go{display:flex;flex-direction:column;gap:6px;align-items:stretch;max-width:200px}
+.ce-feature-go .ce-btn{display:block;text-align:center;text-decoration:none;min-height:44px;box-sizing:border-box;line-height:26px}
+.ce-feature-go small{color:var(--muted);font-size:12px;line-height:1.35}
+@media (max-width:640px){
+  .ce-feature{grid-template-columns:56px 1fr;grid-template-areas:"icon head" "body body" "go go";padding:16px 16px 16px 18px;row-gap:12px}
+  .ce-feature-icon{width:48px;height:48px;align-self:center}
+  .ce-feature-go{max-width:none}
+  .ce-feature-go small{text-align:center}
+}

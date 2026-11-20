@@ -9,7 +9,8 @@ from pathlib import Path
 
 WWW = Path(__file__).resolve().parents[2]
 SCRIPT = WWW / "scripts" / "build_exam_answers.js"
-RUN = WWW / "exam" / "run.html"
+RUN = WWW / "exam" / "run.js"          # the game's script, moved out of run.html
+RUN_PAGE = WWW / "exam" / "run.html"
 INDEX = WWW / "exam" / "index.html"
 
 
@@ -41,9 +42,9 @@ class ExamAnswers(unittest.TestCase):
             self.assertTrue(q["right"] and q["wrong"] and q["why"], q["title"])
             # Values filled in at play time must read as a friendly name, never a raw stub.
             for field in (q["title"], q["body"], q["right"], *(w["t"] for w in q["wrong"])):
-                self.assertNotRegex(field, r"\[\w+\.[\w.\[\]]*\]|NaN|\[object", f"run.html line {q['line']}")
+                self.assertNotRegex(field, r"\[\w+\.[\w.\[\]]*\]|NaN|\[object", f"run.js line {q['line']}")
 
-    # A minimal run.html: the pools, the modern-run markers, the source names and a figure helper.
+    # A minimal run.js: the pools, the modern-run markers, the source names and a figure helper.
     FRAME = (
         'const SRC={SC:"1949 Standard Code",GC:"GCOR"};function semSvg(a){return "<svg>"+a+"</svg>"}'
         "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function startSIG(){}function startYARD(){{YARD}}function finish(){}"
@@ -181,8 +182,8 @@ class ExamAnswers(unittest.TestCase):
         self.assertEqual(rules - used, set())
 
     def test_game_and_deck_load_the_shared_signals(self):
-        for page in (RUN, INDEX):
-            self.assertIn('<script src="signals.js"></script>', page.read_text(), page.name)
+        for page in (RUN_PAGE, INDEX):
+            self.assertIn('<script src="signals.js" defer></script>', page.read_text(), page.name)
 
     def test_right_answer_not_always_first(self):
         html = (WWW / "exam" / "answers.html").read_text()
@@ -194,9 +195,9 @@ class ExamAnswers(unittest.TestCase):
 class SectionNames(unittest.TestCase):
     def test_guide_game_and_cards_share_sections(self):
         index = INDEX.read_text()
-        cards = re.search(r"const SECTIONS=(\{[^}]*\})", index).group(1)
+        cards = re.search(r"const SECTIONS=(\{[^}]*\})", (WWW / "exam" / "deck-data.js").read_text()).group(1)
         game = re.search(r"const SEC=(\{[^}]*\})", RUN.read_text()).group(1)
-        self.assertEqual(cards, game, "run.html SEC must match the deck's SECTIONS")
+        self.assertEqual(cards, game, "run.js SEC must match the deck's SECTIONS")
         names = dict(re.findall(r'(\w+):"([^"]+)"', cards))
         guide = re.findall(r'<article id="learn-(\w+)" data-sec="\1" data-short="([^"]+)">\s*<h3>\d+\. ([^<]+)</h3>', index)
         self.assertEqual([k for k, _, _ in guide], list(names), "study guide sections follow the card order")
