@@ -8,6 +8,8 @@ on:
     branches: [main]
 permissions:
   contents: read
+  actions: read           # the push run downloads the merged pull request's schematic cache artifact
+  pull-requests: read     # and finds that pull request from the merge commit
 # A new push to a pull request cancels that pull request's older run: the group is the PR number, which two PRs
 # never share (a branch name could repeat across forks). A push to main has no PR number, so each of its runs gets
 # a group of its own and is never cancelled (it saves the schematic cache). A cancelled run saves no cache, pip or
@@ -35,6 +37,56 @@ jobs:
           path: ~/.cache/hart/schematic
           key: schematic-${{ hashFiles('external/model-railroad-skills/plugins/schematic-maps/schematic/**', 'tools/schematic/**', 'jmri/layouts/hart/data/**', 'jmri/layouts/hart/output/tables.xml') }}
           restore-keys: schematic-
+      # A push run cannot restore a pull request run's cache (GitHub keeps each cache to its own ref), so the push
+      # of a merge solved again what the pull request's run had just solved (408 s, then 406 s). The pull request
+      # run hands its cache folder on as an artifact (the last step), and the push run adds the entries of the run
+      # for the merged pull request's last commit to the ones restored above. Each entry is keyed on its inputs, so
+      # one solved from other inputs is never read. The entries are pickles, read back as code: only a pull request
+      # from this repository counts, never a fork's. Without one (a direct push, an expired artifact) the run solves
+      # as before.
+      - name: Schematic cache from the merged pull request
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          # A failed lookup is a warning on the run, not a failure: it only costs the solve the artifact would save.
+          skip() { echo "::warning::schematic cache from the pull request not used: $1; solving from the restored cache"; exit 0; }
+          pr="$(gh api "repos/$repo/commits/$GITHUB_SHA/pulls" --jq "[.[] | select(.merge_commit_sha == \"$GITHUB_SHA\"
+            and .head.repo.full_name == \"$repo\")][0] | if . then \"\(.number) \(.head.sha)\" else empty end")" ||
+            skip "the pull request lookup for $GITHUB_SHA failed"
+          if [ -z "$pr" ]; then
+            echo "no pull request from $repo was merged as $GITHUB_SHA: only the cache restored above"
+            exit 0
+          fi
+          read -r number head <<<"$pr"
+          run="$(gh run list -R "$repo" --workflow check.yml --event pull_request --commit "$head" --status success \
+            -L 1 --json databaseId --jq '.[0].databaseId // empty')" || skip "the run lookup for pull request #$number failed"
+          if [ -z "$run" ]; then
+            echo "pull request #$number: no passing check run for its last commit $head: only the cache restored above"
+            exit 0
+          fi
+          got="$(mktemp -d)"
+          if ! gh run download "$run" -R "$repo" -n schematic-cache -D "$got"; then
+            echo "pull request #$number, run $run: no schematic-cache artifact to download: only the cache restored above"
+            exit 0
+          fi
+          dir="$HOME/.cache/hart/schematic"
+          mkdir -p "$dir"
+          chmod 700 "$dir"
+          find "$got" -maxdepth 1 -type f -name '*.pickle' -exec cp -f {} "$dir"/ \;
+          echo "added $(find "$got" -maxdepth 1 -type f -name '*.pickle' | wc -l) entries from pull request #$number, run $run"
       - run: ./tools/check.sh
         env:
           SCHEMATIC_REQUIRED: "1"
+      - name: Hand the schematic cache to the push run of the merge
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-artifact@v4
+        with:
+          name: schematic-cache
+          path: ~/.cache/hart/schematic/*.pickle
+          include-hidden-files: true
+          retention-days: 7
+          overwrite: true       # a re-run of the job uploads it again
+          if-no-files-found: warn

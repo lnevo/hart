@@ -18,6 +18,15 @@ PD = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PD)
 
 TODAY = datetime.date(2026, 12, 1)
+REAL_STAMP_FILE = PD.stamp_file
+
+
+def setUpModule() -> None:
+    # The --check stamp lives in the real cache folder: a test that mocks the drawing must never read or write it
+    # (CheckStamp points it at a temp file).
+    patcher = mock.patch.object(PD, "stamp_file", lambda: None)
+    patcher.start()
+    unittest.addModuleCleanup(patcher.stop)
 
 
 def sheet(track="M0,0", box_w=330, rev=1, col_w=104):
@@ -359,6 +368,146 @@ class StationMapRevision(unittest.TestCase):
                 mock.patch.object(PD.map_revision, "planned", side_effect=ValueError("no entry for x")), \
                 self.assertRaisesRegex(SystemExit, "nothing written"):
             PD.main([])
+
+
+class CheckStamp(unittest.TestCase):
+    """--check skips the drawing when its inputs match the last pass (the stamp), and draws on any change to the
+    plugin, a layer file, a graph, the published SVG or a station sheet, and when the stamp is missing or unreadable."""
+
+    def setUp(self) -> None:
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(tmp))
+        self.plugin, data, out = tmp / "plugin", tmp / "data", tmp / "ops"
+        for d in (self.plugin / "schematic", data / "inputs", out / "stations"):
+            d.mkdir(parents=True)
+        (self.plugin / "schematic/sheet.py").write_text("SOLVE = 1\n")
+        (self.plugin / "schematic/__pycache__").mkdir()
+        (data / "staging.preferences.json").write_text("{}\n")
+        (data / "inputs/staging.json").write_text("{}\n")
+        (out / "schematic-system-draft.svg").write_text("<svg/>")
+        (out / "stations/barn.svg").write_text("<svg>barn</svg>")
+        self.data, self.out, self.stamp = data, out, tmp / "cache/publish_draft.check"
+        self.drawn = 0
+
+        def draw():
+            self.drawn += 1
+            return "<svg/>"
+        for name, value in (("plugin", lambda: self.plugin), ("DATA", data), ("OUT", out),
+                            ("STATIONS", out / "stations"), ("stamp_file", lambda: self.stamp), ("draw", draw),
+                            ("draw_stations", lambda: {"barn.svg": "<svg>barn</svg>"})):
+            patcher = mock.patch.object(PD, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def check(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            return PD.compare_drawing()
+
+    def test_a_pass_records_and_the_same_inputs_draw_nothing(self) -> None:
+        self.assertEqual(self.check(), (True, []))
+        self.assertEqual(self.drawn, 1)
+        self.assertTrue(self.stamp.exists())
+        self.assertEqual(self.check(), (True, []))
+        self.assertEqual(self.drawn, 1)
+
+    def test_python_caches_are_not_inputs(self) -> None:
+        self.check()
+        (self.plugin / "schematic/__pycache__/sheet.cpython-313.pyc").write_bytes(b"\0")
+        self.check()
+        self.assertEqual(self.drawn, 1)
+
+    def test_any_input_change_draws_again(self) -> None:
+        for change in (lambda: (self.plugin / "schematic/sheet.py").write_text("SOLVE = 2\n"),
+                       lambda: (self.plugin / "schematic/new.py").write_text(""),
+                       lambda: (self.data / "staging.preferences.json").write_text('{"x": 1}\n'),
+                       lambda: (self.data / "inputs/staging.json").write_text('{"x": 1}\n'),
+                       lambda: (self.out / "stations/barn.svg").write_text("<svg>barn</svg>\n"),
+                       lambda: (self.out / "schematic-system-draft.svg").write_text("<svg/>\n")):
+            self.check()
+            drawn = self.drawn
+            change()
+            self.check()
+            self.assertEqual(self.drawn, drawn + 1)
+
+    def test_a_failed_check_records_nothing(self) -> None:
+        (self.out / "schematic-system-draft.svg").write_text("<svg>old</svg>")
+        self.assertEqual(self.check(), (False, []))
+        self.assertFalse(self.stamp.exists())
+        self.assertEqual(self.check(), (False, []))
+        self.assertEqual(self.drawn, 2)
+
+    def test_a_station_difference_records_nothing(self) -> None:
+        (self.out / "stations/barn.svg").write_text("<svg>old</svg>")
+        self.assertEqual(self.check(), (True, ["barn.svg"]))
+        self.assertFalse(self.stamp.exists())
+
+    def test_a_missing_or_unreadable_stamp_draws(self) -> None:
+        self.check()
+        self.stamp.unlink()
+        self.check()
+        self.assertEqual(self.drawn, 2)
+        self.stamp.write_text("not a digest\n")
+        self.check()
+        self.assertEqual(self.drawn, 3)
+        self.stamp.unlink()
+        self.stamp.mkdir()                       # an OSError other than a missing file
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            self.check()
+        self.assertEqual(self.drawn, 4)
+        self.assertIn("drawing to compare", err.getvalue())
+
+    def test_checkouts_taking_turns_keep_their_digests(self) -> None:
+        layer = self.data / "staging.preferences.json"
+        for text in ("{}\n", '{"b": 1}\n', "{}\n", '{"b": 1}\n'):     # two checkouts' inputs, in turn
+            layer.write_text(text)
+            self.check()
+        self.assertEqual(self.drawn, 2)
+        for n in range(PD.STAMP_KEEP + 2):
+            layer.write_text(f'{{"n": {n}}}\n')
+            self.check()
+        self.assertEqual(len(PD.read_stamp(self.stamp)), PD.STAMP_KEEP)
+
+    def test_a_file_that_cannot_be_read_draws_and_records_nothing(self) -> None:
+        with mock.patch.object(PD, "check_digest", side_effect=FileNotFoundError("gone")), \
+                contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(self.check(), (True, []))
+        self.assertEqual(self.drawn, 1)
+        self.assertFalse(self.stamp.exists())
+        self.assertIn("drawing to compare", err.getvalue())
+
+    def test_another_python_on_path_draws_again(self) -> None:
+        self.check()
+        with mock.patch.object(PD.shutil, "which", return_value="/no/such/python3"):
+            self.check()
+        self.assertEqual(self.drawn, 2)
+        with mock.patch.dict(os.environ, {"PYTHONPATH": "/elsewhere"}):
+            self.check()
+        self.assertEqual(self.drawn, 3)
+
+    def test_an_edit_during_the_drawing_records_nothing(self) -> None:
+        def edit_then_draw():
+            self.drawn += 1
+            (self.data / "staging.preferences.json").write_text('{"edited": 1}\n')
+            return "<svg/>"
+        with mock.patch.object(PD, "draw", edit_then_draw):
+            self.assertEqual(self.check(), (True, []))
+        self.assertFalse(self.stamp.exists())
+
+    def test_the_cache_off_turns_the_stamp_off(self) -> None:
+        with mock.patch.dict(os.environ, {"SCHEMATIC_CACHE": ""}):
+            self.assertIsNone(REAL_STAMP_FILE())
+        with mock.patch.dict(os.environ, {"SCHEMATIC_CACHE": str(self.stamp.parent)}):
+            self.assertEqual(REAL_STAMP_FILE(), self.stamp)
+
+    def test_check_reports_a_hit_as_current(self) -> None:
+        self.check()
+        with mock.patch.object(PD, "stale_lengths", return_value=[]), \
+                mock.patch.object(PD.map_revision, "drift", return_value=[]), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(PD.main(["--check"]), 0)
+        self.assertEqual(self.drawn, 1)
+        self.assertIn("not drawn again", out.getvalue())
+        self.assertIn("published draft is current", out.getvalue())
 
 
 class MainBase(unittest.TestCase):

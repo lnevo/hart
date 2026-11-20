@@ -12,6 +12,11 @@ in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plu
 any differ). It also
 fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for car counts) no longer match
 jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
+A pass records a digest of what the comparison read (check_digest: the plugin's code, every file in the layer
+folder and its graphs, the published SVG and station sheets, this script, the Python) in publish_draft.check in the
+plugin's cache folder, which keeps the last STAMP_KEEP so worktrees that take turns do not push each other out; a
+later --check with a digest in it skips the drawing (24 s measured), and any change to one of them draws again. The station map pages and the staging lengths are checked every time. SCHEMATIC_CACHE= (empty)
+turns the stamp off with the cache.
 --preview DIR draws the SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
 title block's date and revision are left alone.
 When the drawing itself (everything but the title block), or a station sheet's, differs from main's, publishing sets `date` to today and
@@ -22,7 +27,7 @@ Main is where this branch left origin/main (`git merge-base HEAD origin/main`). 
 (no origin/main, a shallow clone), publishing stops before it writes anything and names the git command that
 brings it in; it also stops if git fails to read a file there. --check and --preview never need it.
 The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
-them with www/scripts/map_revision.py, and --check fails while any of them differs.
+them with hartlib.map_revision (also the command www/scripts/map_revision.py), and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
 The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
@@ -37,6 +42,7 @@ to the same folder for every job, the unit tests included.
 import contextlib
 import datetime
 import functools
+import hashlib
 import json
 import os
 import re
@@ -48,7 +54,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, railroad  # noqa: E402
+from hartlib import map_revision, paths, railroad  # noqa: E402
 
 REPO = paths.REPO_ROOT
 CACHE = Path.home() / ".cache/hart/schematic"
@@ -61,8 +67,6 @@ STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
-sys.path.insert(0, str(REPO / "www/scripts"))
-import map_revision  # noqa: E402
 
 # the plugin's title box (it grows for a long title line), drawn after the drawing itself
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
@@ -165,6 +169,108 @@ def solved_sheet(sheet):
     through the cache. Every builder gets its bands here, so they share one cache key with publishing."""
     with cache_on():
         return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
+
+
+STAMP_VERSION = b"publish_draft check 2"
+STAMP_KEEP = 8                 # digests kept, newest first: one per worktree that runs --check in turn
+
+
+def stamp_file():
+    """Where --check keeps the digests of the inputs of its last passes (check_digest): publish_draft.check in the
+    plugin's cache folder (cache_env), whose pruning removes only its own entries. None with the cache off."""
+    where = cache_env()["SCHEMATIC_CACHE"].strip()
+    return Path(where).expanduser() / "publish_draft.check" if where else None
+
+
+def _tree(h, root, label):
+    """Hash every file under root (Python's own caches aside), by its path below root and its bytes."""
+    h.update(f"{label}\0".encode())
+    files = sorted(f for f in root.rglob("*") if f.is_file() and "__pycache__" not in f.relative_to(root).parts)
+    for f in files:
+        h.update(f.relative_to(root).as_posix().encode() + b"\0" + f.read_bytes() + b"\0")
+
+
+def check_digest(plugin_dir):
+    """A hex digest of everything the --check drawing comparison reads: the plugin's code (the folder bin/schematic
+    runs from), every file in DATA (the layer files and the graphs in GRAPHS below it), the published SVG and the
+    station sheets it is compared with, this script, and the Python the plugin runs under (bin/schematic runs the
+    python3 on PATH, the real file it names, with the caller's PYTHONPATH). The station map pages and the staging
+    lengths are not in it: --check reads those each time. Raises OSError when a file cannot be read."""
+    h = hashlib.sha256(STAMP_VERSION + b"\0" + sys.version.encode() + b"\0")
+    python = shutil.which("python3")
+    h.update(f"{python and os.path.realpath(python)}\0{os.environ.get('PYTHONPATH')}\0".encode())
+    h.update(Path(__file__).read_bytes() + b"\0")
+    _tree(h, Path(plugin_dir), "plugin")
+    _tree(h, DATA, "data")
+    target = OUT / "schematic-system-draft.svg"
+    h.update(b"target\0" + (b"+" + target.read_bytes() if target.exists() else b"-") + b"\0")
+    if STATIONS.exists():
+        _tree(h, STATIONS, "stations")
+    return h.hexdigest()
+
+
+def read_stamp(stamp):
+    """The digests in the stamp, newest first ([] when there is none). One that cannot be read counts as empty
+    (said on stderr)."""
+    if stamp is None:
+        return []
+    try:
+        return stamp.read_text().split()
+    except FileNotFoundError:
+        return []
+    except OSError as e:
+        print(f"cannot read {stamp} ({e}); drawing to compare", file=sys.stderr)
+        return []
+
+
+def write_stamp(stamp, digest):
+    """Record a passing check's digest ahead of the STAMP_KEEP - 1 newest others, through a temp file so a parallel
+    reader never sees half of it. Two writers at once may lose one digest, which costs only a drawing. A write that
+    fails is said on stderr: the stamp only saves time."""
+    if stamp is None:
+        return
+    kept = [digest] + [d for d in read_stamp(stamp) if d != digest][:STAMP_KEEP - 1]
+    tmp = None
+    try:
+        stamp.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=stamp.parent, suffix=".tmp")
+        with os.fdopen(fd, "w") as f:
+            f.write("\n".join(kept) + "\n")
+        os.replace(tmp, stamp)
+        tmp = None
+    except OSError as e:
+        print(f"cannot write {stamp} ({e}); the next --check draws again", file=sys.stderr)
+    finally:
+        if tmp is not None and os.path.exists(tmp):
+            os.unlink(tmp)
+
+
+def _digest_or_none(where):
+    """check_digest, or None (said on stderr) when a file went away or could not be read while it was taken."""
+    try:
+        return check_digest(where)
+    except OSError as e:
+        print(f"cannot take the --check digest ({e}); drawing to compare", file=sys.stderr)
+        return None
+
+
+def compare_drawing():
+    """(sheet current, [station sheets that differ]) for --check. When the stamp holds the digest of these inputs
+    (check_digest), an earlier --check found them current and nothing is drawn; otherwise both are drawn and
+    compared, and a pass records the digest, taken before and after the drawing so an edit made meanwhile records
+    nothing."""
+    target, stamp = OUT / "schematic-system-draft.svg", stamp_file()
+    where = plugin() if stamp else None
+    before = _digest_or_none(where) if stamp else None
+    if before and before in read_stamp(stamp):
+        print("drawing inputs unchanged since a passing --check: not drawn again")
+        return True, []
+    sheet = draw()
+    same = target.exists() and target.read_text() == sheet
+    differ = stations_differ(draw_stations())
+    if before and same and not differ and _digest_or_none(where) == before:
+        write_stamp(stamp, before)
+    return same, differ
 
 
 def draw():
@@ -291,10 +397,8 @@ def main(argv):
               "run publish_draft.py to copy them")
         return 1
     if check:
-        sheet = draw()
-        same = target.exists() and target.read_text() == sheet
+        same, differ = compare_drawing()
         print("published draft is current" if same else "published draft differs from the drawing")
-        differ = stations_differ(draw_stations())
         print(f"station sheets differ: {', '.join(differ)}" if differ else "station sheets are current")
         try:
             pages = [p.relative_to(REPO).as_posix() for p in map_revision.drift(prefs=page_prefs())]
