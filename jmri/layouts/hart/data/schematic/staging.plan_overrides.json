@@ -280,6 +280,7 @@
   }
  ],
  "level_title": "Staging level",
+ "level": 1,
  "mast_prefix": "Mast ",
  "helix_side": "east",
  "milepost_origin": {

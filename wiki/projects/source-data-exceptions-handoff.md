@@ -58,8 +58,8 @@ Merged as #754. Then, on branch `agent/claude/source-data-rows-4-5`, also with n
 - **Row 4:** staging's control points (`control_points_staging.csv`), stations (`stations_staging.csv`), detail
   sheets (`sheets_staging.csv`) and main lines (`main_lines_staging.csv`) each have one master file (on 2026-11-20
   these became `stations.csv`, `sheets.csv` and `main_lines.csv`, one file for every level, #769 and #775);
-  `build_staging_sets.py` and `build_main_route.py` write every other copy, the older `data/control_points.csv`
-  included (the website build and the JMRI scripts still read it), and `make panels CHECK=1` fails on drift.
+  `build_staging_sets.py` and `build_main_route.py` write every other copy (the older `data/control_points.csv`
+  went on 2026-11-20, its readers now build its rows from the master), and `make panels CHECK=1` fails on drift.
 - **Row 5:** the main/upper hand lists (running, signalled spurs, split tracks, detector pins) are keyed by
   `switch_a,switch_b` (and `parallel` or `half` where needed), so a renumber no longer strands them. The
   `le_band_labels` names in `main_upper.preferences.json` stay track and block names (owner, 2026-11-20): a main or
@@ -78,7 +78,7 @@ Rows 1 to 7 are done (#749, #754, #757 and the label-refs branch, above); the ta
 
 | # | Item | Where | Replace with | Effort |
 |---|---|---|---|---|
-| 8 | Kind and level read from name prefixes ("Track ", "OS Switch ", "BS ", "Mast "), the crossover half from A or B, a balloon loop from a name ending " Loop", the level from a band title's first word | hartlib (`level_devices`, `railroad`), `le_names`, `staging_device_map`, `build_device_map`, `build_cats_panel`, `mast_rule` | `kind`, `level` and `role` columns on the device-map rows | several small steps |
+| 8 | Kind and level read from name prefixes ("Track ", "OS Switch ", "BS ", "Mast "), the crossover half from A or B, a balloon loop from a name ending " Loop", the level from a band title's first word | hartlib (`level_devices`, `railroad`), `le_names`, `staging_device_map`, `build_device_map`, `build_cats_panel`, `mast_rule` | `kind`, `level` and `role` columns on the device-map rows | several small steps. Done in #787 for the mast rule and CATS: band level (explicit `level` in the plan overrides), crossover half (no suffix test) and loop (the track's flag). Left: `le_common`/`le_names` title words (`STAGING`, `band_key`; `build_layout_le` still finds staging by title), the name prefixes |
 | 9 | Device facts kept three times (addresses, DCC, node comments in `public_name_map.csv`, `device_map_staging.csv` and `tables.xml`); the DCC group parsed from `tables.xml` comments; build-owned items found by comment and name | hartlib `names.py`, `le_tables.py` | One master with the others generated; an explicit owner column | 1–2 days |
 | 10 | Drawing workarounds in preferences | `level_leg` (now with plugin desk faults for its causes), `le_shift`, `le_labels` groupings. Done: `le_tight_crossovers`/`le_split_crossovers` (101/103) replaced by the schematic-maps 0.1.48 three-way rule (#785) | Plugin rules (for example: choose the level leg when the straight-level rule would collide) | 1–2 days |
 

@@ -441,7 +441,7 @@ class MastsLeaveOutDarkMasts(unittest.TestCase):
     def masts(self, tracks, cp_of, ends=None):
         import mast_rule as mr
         bands, found = self.build(tracks, ends)
-        return sorted((m["node"], m["leg"]) for m in mr.masts(bands, None, found, cp_of, joined={}))
+        return sorted((m["node"], m["leg"]) for m in mr.masts(bands, None, found, cp_of, joined={}, levels={"Main level": 2}))
 
     def test_two_masts_in_a_row_into_dark_track_both_go(self):
         # X (200 cm) - 1 - (200 cm) - 3, 1's C and 3's B and C short spurs to bumpers: 1's mast at A sees 3's mast

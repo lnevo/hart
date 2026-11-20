@@ -5,7 +5,7 @@
 
 The facts are jmri/layouts/hart/data/switches.csv and switch_legs.csv (read by
 layout_facts.py), with hardware, DCC address and control point from
-the name map of devices.csv and control_points.csv. For every switch this checks:
+the name map of devices.csv and control_points_staging.csv. For every switch this checks:
 
 Layout Editor (tables.xml)
   - the turnout's hardware and DCC address, and the layout turnout's name and OS block;
@@ -28,7 +28,7 @@ CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schem
     turnout has a plant (a double crossover four points, one turnout); each mast of
     main_upper_masts.csv has one lamp, on the edge of the block it protects (a double crossover's
     corner is its one desk block), and is that mast in tables.xml.
-Levels (control_points.csv, switches.csv, the name map of devices.csv)
+Levels (control_points_staging.csv, switches.csv, the name map of devices.csv)
   - each control point's switches are on its level, and every cp in the name map has a row;
   - every mast and block has one level: its switch's, its control point's, or, for a
     main between control points, the one level of the blocks its tables.xml paths join.
@@ -573,10 +573,10 @@ def check_data(switches: dict[int, facts.Switch], data: Path, r: Report) -> None
         if not sw.hardware:
             r.add(f"data:{n}", f"{n}: no canonical turnout row (current == proposed) in the name map of devices.csv")
         if sw.number in listed and sw.cp != listed[sw.number]:
-            r.add(f"data:{n}", f"{n}: control_points.csv puts it at {listed[sw.number]}, "
+            r.add(f"data:{n}", f"{n}: control_points_staging.csv puts it at {listed[sw.number]}, "
                                f"the name map of devices.csv at {sw.cp or '-'}")
     for num in sorted(set(listed) - set(switches)):
-        r.add(f"data:Switch {num}", f"Switch {num}: in control_points.csv, not in switches.csv")
+        r.add(f"data:Switch {num}", f"Switch {num}: in control_points_staging.csv, not in switches.csv")
 
 
 def desk_signals(path: Path) -> dict[tuple[int, int, str], str]:
@@ -666,9 +666,9 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
             sw = switches.get(int(num.group(0))) if num else None
             if sw and sw.level != cp["level"]:
                 r.add(f"level:Switch {sw.number}", f"Switch {sw.number}: switches.csv level {sw.level}, "
-                                                   f"control_points.csv puts {cp['cp_name']} on level {cp['level']}")
+                                                   f"control_points_staging.csv puts {cp['cp_name']} on level {cp['level']}")
     for cp in sorted({row["cp"] for row in rows if row["cp"]} - set(by_cp)):
-        r.add(f"level:{cp}", f"{cp}: a cp in the name map of devices.csv with no row (and no level) in control_points.csv")
+        r.add(f"level:{cp}", f"{cp}: a cp in the name map of devices.csv with no row (and no level) in control_points_staging.csv")
     # A block's level from its switches (throat blocks through their track) against its control point's.
     by_block = facts.switch_block_levels(switches)
     block_cp = {row["proposed"]: row["cp"] for row in rows if row["layer"] == "block"}

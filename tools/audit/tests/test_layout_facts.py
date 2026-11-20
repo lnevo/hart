@@ -18,7 +18,8 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
 
-DATA_FILES = ("switches.csv", "switch_legs.csv", "devices.csv", "control_points.csv", "mast_cells.csv",
+DATA_FILES = ("switches.csv", "switch_legs.csv", "devices.csv", "schematic/control_points_staging.csv",
+              "mast_cells.csv",
               "uss_board_cells.csv", "uss_board_plants.csv")
 
 
@@ -85,6 +86,7 @@ class LayoutFactsTest(unittest.TestCase):
         data = self.tmp / "data"
         data.mkdir()
         for name in DATA_FILES:
+            (data / name).parent.mkdir(exist_ok=True)
             shutil.copy(check.facts.DATA / name, data / name)
         legs = data / "switch_legs.csv"
         legs.write_text(legs.read_text().replace(
@@ -99,25 +101,26 @@ class LayoutFactsTest(unittest.TestCase):
         data = self.tmp / "data"
         data.mkdir(exist_ok=True)
         for name in DATA_FILES:
+            (data / name).parent.mkdir(exist_ok=True)
             shutil.copy(check.facts.DATA / name, data / name)
         return data
 
     def test_a_control_point_on_another_level_than_its_switches_fails(self) -> None:
         data = self.data_copy()
-        cps = data / "control_points.csv"
-        cps.write_text(cps.read_text().replace("plane,Plane,1,", "plane,Plane,2,"))
+        cps = data / "schematic" / "control_points_staging.csv"
+        cps.write_text(cps.read_text().replace("cp_pl,Plane,1,", "cp_pl,Plane,2,"))
         out = self.failures(data=data)
-        self.assertIn("Switch 5: switches.csv level 1, control_points.csv puts Plane on level 2", out)
+        self.assertIn("Switch 5: switches.csv level 1, control_points_staging.csv puts Plane on level 2", out)
         self.assertIn("OS Switch 5: is in Plane (level 2), its switches in switch_legs.csv say level 1", out)
 
     def test_a_cp_with_no_control_point_row_fails(self) -> None:
         data = self.data_copy()
-        cps = data / "control_points.csv"
+        cps = data / "schematic" / "control_points_staging.csv"
         cps.write_text("".join(line for line in cps.read_text().splitlines(True)
-                               if not line.startswith("engine_house,")))
+                               if not line.startswith("cp_eh,")))
         out = self.failures(data=data)
         self.assertIn("Engine House: a cp in the name map of devices.csv with no row (and no level) in "
-                      "control_points.csv", out)
+                      "control_points_staging.csv", out)
 
     def test_a_main_takes_the_level_of_the_blocks_it_joins(self) -> None:
         data = self.data_copy()

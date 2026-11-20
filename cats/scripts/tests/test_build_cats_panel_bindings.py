@@ -714,7 +714,7 @@ class IntermediateMasts(unittest.TestCase):
         main = {"nodes": {"S1": node("1", "T1", {}, {}), "END:z": node("", "", {}, {}, kind="end")},
                 "strands": {"e50": dict(strand(("S1", "B"), ("END:z", "E")), edge="e50", cm=40.0)}}
         bands = [bands[0], ("Main level", main, {"mast_prefix": "Mast "}),
-                 ("Upper level", bands[1][1], {"mast_prefix": "Mast "})]
+                 ("Upper level, 4.25 in", bands[1][1], {"mast_prefix": "Mast "})]
         blocks = {"Track 107 Loop 1": block("Track e33 1"), "Track 107 Loop 2": block("Track e50", "Track e33 2"),
                   "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2")}
         B.level_signals(bands, intermediate_facts(blocks), 0)

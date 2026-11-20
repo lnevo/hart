@@ -71,7 +71,7 @@ def device_files() -> devices.Files:
 CPS, OVERRIDES = sdm.CPS, sdm.OVERRIDES
 INTERLOCKINGS = DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)
 SPLIT = DATA / "block_splits.csv"            # the owner's block splits, every level (none on staging)
-LEVELS = {"Staging": 1}
+LEVELS = mast_rule.band_levels(json.loads(OVERRIDES.read_text(encoding="utf-8")))     # {band title: level}: staging's
 HEAD_PREFIX = "IH:HART:C1:"
 FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects, dir
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?)(?: (Top|Bottom))?")   # a staging head's user name: key, position

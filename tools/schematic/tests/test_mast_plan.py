@@ -167,7 +167,7 @@ class BlockSplits(unittest.TestCase):
         self.assertEqual(self.read("level,switch_a,switch_b,parallel,notes\n3,227,241,,x\n"), {"Track 227-241"})
 
     def test_a_row_of_another_level_is_left_out(self):
-        self.assertEqual(self.read("level,switch_a,switch_b,parallel,notes\n3,227,241,,x\n", {"Staging": 1}), set())
+        self.assertEqual(self.read("level,switch_a,switch_b,parallel,notes\n3,227,241,,x\n", {"Staging level": 1}), set())
 
     def test_errors(self):
         for text, msg in (("switch_a,switch_b,parallel,notes\n227,241,,\n", "columns"),
@@ -191,7 +191,7 @@ class HomeMasts(unittest.TestCase):
         with patch(mr, "masts", lambda *a, **k: [dict(m) for m in homes]), \
                 patch(mr, "signalled_spurs", lambda found, cp_of: set()), \
                 patch(mr, "facing_on_route", lambda band, n, p, cps: ["9"] if (n, p) in facing else []):
-            got = mp.home_masts([("Staging level", {}, {})], {}, [], {}, set(), levels={"Staging": 1})
+            got = mp.home_masts([("Staging level", {}, {})], {}, [], {}, set(), levels={"Staging level": 1})
         return [(m["name"], m["kind"], m["heads"]) for m in got]
 
     def test_kind_from_heads_and_running_track(self):
@@ -229,7 +229,7 @@ class Intermediates(unittest.TestCase):
         found = [track("Track K", [run[0], run[2]], (("sw", "39"), ("sw", "37")), main=main)]
         return mp.intermediates(bands or self.bands(), found, {0: [run]}, {0: {"os": self.OS}},
                                 self.CM if cm is None else cm, self.CPS if cps is None else cps, set(running),
-                                levels or {"Staging": 1})
+                                levels or {"Staging level": 1})
 
     def test_a_pair_at_the_boundary_named_from_its_milepost(self):
         west, east = self.pairs()
@@ -276,7 +276,7 @@ class Intermediates(unittest.TestCase):
             self.pairs(self.bands(on_count=("N39",)))
 
     def test_the_line_code_comes_first(self):
-        west, east = self.pairs(self.bands(title="Main level"), levels={"Main": 2})
+        west, east = self.pairs(self.bands(title="Main level"), levels={"Main level": 2})
         self.assertEqual((west["name"], east["name"], west["level"]), ("A67", "A66", 2))
 
     def test_a_balloon_loop_is_read_from_its_half_1(self):
@@ -287,7 +287,7 @@ class Intermediates(unittest.TestCase):
         found = [track("Track 107 Loop", [("N1", "C"), ("N1", "B")], (("sw", "107"), ("sw", "107")), main=True,
                        loop=True, level=2)]
         got = mp.intermediates([("Main level", band, {})], found, {0: [run]}, {0: {"os": {"N1": "OS Switch 107"}}}, cm,
-                               {"107": "CP 107"}, set(), {"Main": 2})
+                               {"107": "CP 107"}, set(), {"Main level": 2})
         self.assertEqual({(m["name"], m["dir"], m["facing"], m["protects"]) for m in got},
                          {("A83", "west", "Track 107 Loop 2", "Track 107 Loop 1"),
                           ("A84", "east", "Track 107 Loop 1", "Track 107 Loop 2")})
@@ -316,7 +316,7 @@ class Virtual(unittest.TestCase):
 
     def virtual(self, taken=("120RA",), runs=None, home=None):
         return mp.virtual_masts(self.bands(), {}, self.HOME if home is None else home, runs or self.RUNS, self.CM,
-                                set(taken), {"Main": 2})
+                                set(taken), {"Main level": 2})
 
     def test_a_bumper_mast_where_a_route_reaches_a_buffer_stop_first(self):
         got = {m["name"]: (m["facing"], m["switch"], m["dir"], m["total"], m["needed_by"]) for m in self.virtual()}
@@ -409,7 +409,7 @@ class Plan(unittest.TestCase):
 
     def test_a_band_with_no_block_layer_stops(self):
         with self.assertRaisesRegex(mr.MapError, r"no block layer for band\(s\) \['Staging level'\]"):
-            mp.plan(self.BANDS, {}, [], levels={"Staging": 1}, cp_of={}, layer={}, cm={})
+            mp.plan(self.BANDS, {}, [], levels={"Staging level": 1}, cp_of={}, layer={}, cm={})
 
     def test_a_name_given_twice_stops(self):
         patch = unittest.mock.patch.object
@@ -418,7 +418,7 @@ class Plan(unittest.TestCase):
                 patch(mp, "intermediates", lambda *a: [dict(name="67")]), \
                 patch(mp, "virtual_masts", lambda *a: []), \
                 self.assertRaisesRegex(mr.MapError, "mast names given twice: 67"):
-            mp.plan(self.BANDS, {}, [], levels={"Staging": 1}, cp_of={}, layer={0: {}}, cm={})
+            mp.plan(self.BANDS, {}, [], levels={"Staging level": 1}, cp_of={}, layer={0: {}}, cm={})
 
 
 # ---------------------------------------------------------------- the committed plan
@@ -440,6 +440,7 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
         import build_device_map as bdm
         import build_layout_le as bl
         from hartlib import railroad
+        cls.levels = bdm.LEVELS
         try:
             bands, joined, runs, _corners = bdm.solve()
         except bl.BuildError as exc:
@@ -448,7 +449,7 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
         cls.bands = bands
         cls.found = bdm.named_tracks(bands, joined, runs, rr.plan_overrides.data)
         cls.cp_of = {s: i.name for i in rr.level_control_points for s in i.switches}
-        cls.staging = mr.tracks(bands, runs, joined, {1: "H"}, levels={"Staging": 1})
+        cls.staging = mr.tracks(bands, runs, joined, {1: "H"}, levels={"Staging level": 1})
         mr.track_names(cls.staging)
         cls.staging_cp = {s: i.name for i in rr.interlockings if i.level == 1 for s in i.switches}
         cls.splits = bdm.SPLIT
@@ -465,8 +466,8 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
         self.assertEqual(mr.signalled_spurs(self.staging, self.staging_cp), set())
 
     def test_the_owners_block_splits(self):
-        self.assertEqual(mr.read_block_splits(self.splits, self.found, mr.LEVELS), {"Track 227-241"})
-        self.assertEqual(mr.read_block_splits(self.splits, self.staging, {"Staging": 1}), set())
+        self.assertEqual(mr.read_block_splits(self.splits, self.found, self.levels), {"Track 227-241"})
+        self.assertEqual(mr.read_block_splits(self.splits, self.staging, {"Staging level": 1}), set())
 
 
 if __name__ == "__main__":
