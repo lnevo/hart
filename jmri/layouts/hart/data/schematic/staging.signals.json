@@ -770,7 +770,7 @@
    "names": [
     "McKeesport"
    ],
-   "edge_cm": 1637.3,
+   "edge_cm": 2327.9,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -809,8 +809,8 @@
    "names": [
     "McKeesport"
    ],
-   "edge_cm": 1637.3,
-   "cm_from_toward": 1637.3,
+   "edge_cm": 2327.9,
+   "cm_from_toward": 2327.9,
    "dir": "east",
    "kind": "virtual",
    "heads": 1,
@@ -848,7 +848,7 @@
    "names": [
     "McKees Rocks"
    ],
-   "edge_cm": 1750.1,
+   "edge_cm": 2405.9,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -867,8 +867,8 @@
    "names": [
     "McKees Rocks"
    ],
-   "edge_cm": 1750.1,
-   "cm_from_toward": 1750.1,
+   "edge_cm": 2405.9,
+   "cm_from_toward": 2405.9,
    "dir": "east",
    "kind": "virtual",
    "heads": 1,
