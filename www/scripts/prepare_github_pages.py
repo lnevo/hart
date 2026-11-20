@@ -33,6 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_tables_browser  # noqa: E402
+import repo_guide_page  # noqa: E402
 import provenance  # noqa: E402
 import share_cards  # noqa: E402
 from photo_tabs import tab_subs  # noqa: E402
@@ -1075,10 +1076,18 @@ def _webp_companions(dest_root: Path) -> int:
 
 
 def _refresh_tables_page(dest_root: Path) -> None:
-    """Rebuild the tables browser data and fill the tables file page from tables.xml, so the
-    published copy always describes the current file even when the committed one is stale."""
+    """Rebuild the tables browser data and fill the tables file page from tables.xml, and fill the
+    repository guide's lists and counts from the checkout, so the published copies always describe
+    the current files even when the committed ones are stale."""
     if (dest_root / build_tables_browser.PAGE_REL).is_file():
         build_tables_browser.write(dest_root)
+    if (dest_root / repo_guide_page.PAGE_REL).is_file():
+        # A repo change the guide does not describe yet must not stop a website deploy: keep the committed page and
+        # say why. tools/check.sh (repo-guide) fails on the same thing, so it is fixed before the next merge.
+        try:
+            repo_guide_page.write(dest_root)
+        except (repo_guide_page.PageError, subprocess.CalledProcessError, OSError) as e:
+            print("WARNING: repository guide not refilled, the committed copy is published: %s" % e)
 
 
 def _unsafe_dest(dest: Path) -> bool:
