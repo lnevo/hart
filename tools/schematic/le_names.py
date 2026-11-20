@@ -129,7 +129,7 @@ def read_level_masts(path: Path = MAIN_UPPER_MASTS) -> list[dict]:
     try:
         rows = level_masts_lib.read(path)
     except ValueError as exc:
-        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+        raise BuildError(str(exc)) from None      # hartlib names the file and the line itself
     bad = lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]])
     if bad:
         raise BuildError(f"{paths.rel(path)}: names signal_coordinator.py takes for LCOS heads, which would reach "
