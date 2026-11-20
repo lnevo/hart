@@ -335,5 +335,6 @@ def main(argv):
             print(f"wrote {target.relative_to(pd.REPO)}")
     return stale
 
+
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

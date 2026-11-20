@@ -370,5 +370,6 @@ def main(argv=None) -> int:
         print("main route and staging main lines are current")
     return 0
 
+
 if __name__ == "__main__":
     sys.exit(main())

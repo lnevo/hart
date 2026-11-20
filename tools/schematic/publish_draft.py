@@ -332,13 +332,16 @@ def next_fields(main_prefs, today):
 
 
 def prefs_on_main(prefs):
-    """The page's preferences section where this branch left main. Stops if main has no such file: counted from
-    nothing, the revision would restart at 1."""
+    """The page's preferences section where this branch left main. Stops with one line if main has no such file or
+    section: counted from nothing, the revision would restart at 1."""
     text = on_main(prefs.path)
     if text is None:
         sys.exit(f"{prefs.path.relative_to(REPO)} is not on main, so the revision cannot be counted from main; "
                  "nothing written. Publish from a branch made from a main that has it")
-    return prefs.of(text, f"{prefs.path.name} on main")
+    try:
+        return prefs.of(text, f"{prefs.path.name} on main")
+    except layer_files.LayerFileError as exc:
+        sys.exit(f"{exc}; nothing written")
 
 
 def set_fields(prefs, date, rev):

@@ -133,6 +133,11 @@ class MastKinds(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "no section 'upper'"):
             render_le_layout.mast_kinds(render_le_layout.KINDS_FILE, "upper")
 
+    def test_a_sheet_for_a_plain_file_stops(self):
+        path = self.write('{"signals": [{"mast": "2L", "kind": "field"}]}')
+        with self.assertRaisesRegex(SystemExit, "--kinds-sheet main_upper: .* has no sections"):
+            render_le_layout.mast_kinds(path, "main_upper")
+
     def test_a_sectioned_file_without_plan_overrides_beside_it_takes_mast(self):
         path = self.write('{"_sections": true, "staging": {"signals": [{"mast": "2L", "kind": "field"}]}}')
         self.assertEqual(render_le_layout.mast_kinds(path), {"Mast 2L": "field"})
