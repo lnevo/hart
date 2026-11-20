@@ -606,6 +606,85 @@ class LevelMasts(unittest.TestCase):
             B.level_mast_bindings(bands, f, 0)
 
 
+def intermediate_bands(order=None):
+    """level_bands with a second balloon loop (e44 at Switch 111) on the same band, its strands in `order`."""
+    bands = level_bands()
+    band = bands[1][1]
+    band["nodes"]["S111"] = node("111", "T6", {"A": "e21"}, {"B": "e44.0", "C": "e44.1"})
+    band["nodes"]["turn:e44"] = node("", "", {}, {0: "e44.0", 1: "e44.1"}, kind="turnR")
+    band["strands"]["e44.0"] = dict(strand(("turn:e44", 0), ("S111", "B")), edge="e44", cm=90.0, loop_half=1)
+    band["strands"]["e44.1"] = dict(strand(("turn:e44", 1), ("S111", "C")), edge="e44", cm=90.0, loop_half=2)
+    if order is not None:
+        band["strands"] = {k: band["strands"][k] for k in order}
+    return bands
+
+
+def intermediate_facts(blocks=None):
+    """Facts whose only level masts are APB intermediates A83 and A84 at the e33 loop's turnback (main_upper_masts.csv
+    rows with no switch), as CP 107's are."""
+    f = level_facts(device=B.DeviceMap(blocks=blocks or {
+        "Track 107 Loop 1": block("Track e33 1"), "Track 107 Loop 2": block("Track e33 2"),
+        "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2"),
+        "Track 107-109": block("Track e19")}))
+    row = lambda mast, facing, protects: {"mast": mast, "switch": "", "facing": facing, "protects": protects,
+                                          "system_name": f"IF$shsm:basic:one-searchlight(IH:HART:C3:{mast[5:]})",
+                                          "heads": [("h", "h")]}
+    f.level_masts = [row("Mast A83", "Track 107 Loop 2", "Track 107 Loop 1"),
+                     row("Mast A84", "Track 107 Loop 1", "Track 107 Loop 2")]
+    return f
+
+
+class IntermediateMasts(unittest.TestCase):
+    """APB intermediates (a main_upper_masts.csv row with no switch) stand at the turnback where the half they face
+    meets the half they protect."""
+
+    def test_they_stand_at_their_turnback_on_their_own_half(self):
+        bands = intermediate_bands()
+        B.level_signals(bands, intermediate_facts(), 0)
+        sig = {s["mast"]: s for s in bands[1][2]["signals"]}
+        self.assertEqual({m: (s["_edge"], s["_toward_node"], s["dir"]) for m, s in sig.items()},
+                         {"A83": ("e33~2", "turn:e33", "west"), "A84": ("e33~1", "turn:e33", "east")})
+
+    def test_only_the_loop_they_stand_on_gets_half_edges(self):
+        # the e44 loop at Switch 111 has no mast of its own: its halves keep the plan edge
+        bands = intermediate_bands()
+        B.level_signals(bands, intermediate_facts(), 0)
+        strands = bands[1][1]["strands"]
+        self.assertEqual({k: t["edge"] for k, t in strands.items() if t.get("loop_half")},
+                         {"e33.0": "e33~1", "e33.1": "e33~2", "e44.0": "e44", "e44.1": "e44"})
+        self.assertNotIn("plan_edge", strands["e44.0"])
+
+    def test_the_strand_order_does_not_matter(self):
+        # the facing block also holds a track away from the turnback (e19): whichever comes first, the mast stands on
+        # the piece that meets the half it protects
+        blocks = {"Track 107 Loop 1": block("Track e33 1"), "Track 107 Loop 2": block("Track e19", "Track e33 2"),
+                  "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2")}
+        keys = list(intermediate_bands()[1][1]["strands"])
+        results = []
+        for order in (keys, keys[::-1], sorted(keys, key=lambda k: k != "e19")):
+            with self.subTest(order=order):
+                bands = intermediate_bands(order)
+                B.level_signals(bands, intermediate_facts(blocks), 0)
+                results.append((sorted((s["mast"], s["_edge"], s["_toward_node"], s["edge_cm"])
+                                       for s in bands[1][2]["signals"]),
+                                {k: t["edge"] for k, t in bands[1][1]["strands"].items()}))
+        self.assertEqual(results[0][0], [("A83", "e33~2", "turn:e33", 100.0), ("A84", "e33~1", "turn:e33", 100.0)])
+        for got in results[1:]:
+            self.assertEqual(got, results[0])
+
+    def test_a_half_that_meets_the_protected_half_at_no_turnback_stops(self):
+        f = intermediate_facts()
+        f.level_masts = [dict(f.level_masts[0], protects="Track 111 Loop 1")]
+        with self.assertRaisesRegex(SystemExit, "Mast A83: Track 107 Loop 2 meets Track 111 Loop 1 at no turnback"):
+            B.level_signals(intermediate_bands(), f, 0)
+
+    def test_a_track_no_band_draws_stops(self):
+        f = intermediate_facts()
+        f.level_masts = [dict(f.level_masts[0], facing="Track 999")]
+        with self.assertRaisesRegex(SystemExit, "Mast A83: no desk band draws Track 999"):
+            B.level_signals(intermediate_bands(), f, 0)
+
+
 class CommittedMainAndUpper(unittest.TestCase):
     """The committed bindings and desk against the release candidate tables (every name bound must be in it)."""
 
