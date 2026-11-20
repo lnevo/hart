@@ -674,7 +674,8 @@ def device_list(cell: str) -> list[str]:
 def device_facts(r: dict) -> list[str]:
     """Problems with a device map row's fact columns (DEVICE_FACTS): each only on its own layer; an occupancy row's
     blocks given and its detector one of DETECTORS, with a system name (the field or planned detector) exactly when it
-    is wired or planned; stop "yes" or empty; a mast's facing block given and its switch a number or empty, its dir east or west."""
+    is wired or planned; stop "yes" or empty; a mast's facing block given, its switch a number or empty and its dir
+    east or west."""
     bad, layer = [], r["layer"]
     own = {"occupancy": ("blocks", "detector"), "block": ("stop",), "mast": ("switch", "facing", "protects", "dir")}
     stray = [c for c in DEVICE_FACTS if r.get(c) and c not in own.get(layer, ())]

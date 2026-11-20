@@ -77,6 +77,9 @@ def build() -> str:
             by = {h.jmri_name: h for h in dm.of("head") if not h.system_name}
         if not sysm:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: system name not as expected")
+        if not level_devices.MAST_USER.fullmatch(name):     # the name is a label only (dir is its own column)
+            raise SystemExit(f"{DEVICE_MAP.name}: mast {name!r} is not a mast name in the device map's grammar "
+                             "(Mast <number><L|R>[letter] or Mast <A|B><milepost number>)")
         missing = [h for h in mast_heads if h not in by]
         if missing:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: heads {missing} have no head row")

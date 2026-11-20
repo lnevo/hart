@@ -71,7 +71,10 @@ def _points_end(xy: list) -> int:
 def turnout_class(part: dict) -> str:
     """"#6" or "#8", from the part's end points alone: the angle at the points end between the two leg ends gives the
     chord number cot(angle), matched to TURNOUT_NUMBERS. LengthError on a part that is not a three-ended turnout or
-    whose number is in no class's range (the part's name is a label in the message only)."""
+    whose number is in no class's range (the part's name is a label in the message only). parts.json holds end
+    points but no headings, so this cannot tell a straight turnout from a curved one or a wye whose leg ends happen
+    to fall in a class's range; TURNOUT_INCHES then checks the length, and every part the plan holds today reads as
+    the straight #6 or #8 it is."""
     eps = part.get("eps") or []
     if len(eps) != 3:
         raise LengthError(f"part {part.get('name')!r} has {len(eps)} ends, not a turnout's three")

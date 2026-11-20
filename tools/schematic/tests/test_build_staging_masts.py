@@ -170,7 +170,7 @@ class Interlockings(unittest.TestCase):
 def home(name, node, leg, **more):
     """A home mast as mast_rule.masts gives it."""
     m = dict(name=name, node=node, leg=leg, cp="Brick", switch="1", kind="one-low", heads=1, letter=name[-1],
-             strand="s", running=False)
+             dir="west" if "L" in name.lstrip("0123456789")[:1] else "east", strand="s", running=False)
     m.update(more)
     return m
 
@@ -249,7 +249,7 @@ class Generate(unittest.TestCase):
         got = self.one(home("2R", "N1", "B", heads=2, kind="two-searchlight", running=False))
         self.assertEqual((got["kind"], got["heads"]), ("two-low", 2))
 
-    def test_direction_follows_the_letter(self):
+    def test_direction_comes_from_the_rule(self):
         self.assertEqual(self.one(home("2L", "N1", "A"))["dir"], "west")
         self.assertEqual(self.one(home("2R", "N1", "A"))["dir"], "east")
 
@@ -345,7 +345,7 @@ GEN = [dict(mast="Mast 2L", cp="Brick", switch="1", facing="Track Main West", pr
             kind="one-searchlight", heads=1, dir="west", toward="39", run="39;37", names=["K-1", "K-2"], edge_cm=602.94,
             cm_from_toward=314.25, edge="e16", node="N39", signal_kind="field")]
 SHSM_2L = "IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom)"
-VIRTUAL = dict(mast="Mast 4LA", cp="Brick", switch="", facing="Track W-1", protects="", dir="east", leg="",
+VIRTUAL = dict(mast="Mast 4LA", cp="Brick", switch="", facing="Track W-1", protects="", dir="west", leg="",
                system_name="IF$vsm:basic:one-low($1001)", head_system_names="",
                device_system_name="IF$vsm:basic:one-low($1001)")
 
@@ -412,7 +412,7 @@ class Rows(unittest.TestCase):
         self.assertEqual(by["Mast 67"]["comment"], "Princess")              # an anchor mast names no switch
         self.assertEqual(by["Mast 4LA"], device("mast", "Mast 4LA", "IF$vsm:basic:one-low($1001)", comment="Brick",
                                                 notes="facing Track W-1, buffer stop", facing="Track W-1",
-                                                dir="east"))
+                                                dir="west"))
         self.assertEqual(by["Head 2L Top"], device("head", "Head 2L Top", "IH:HART:C1:2L_Top",
                                                    comment="Brick | Switch 1", notes="internal, not wired"))
 

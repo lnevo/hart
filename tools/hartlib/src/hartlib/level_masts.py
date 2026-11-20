@@ -43,8 +43,8 @@ def read(path: Path = PATH) -> list[dict]:
     railroad.read_rows, so the header must hold every FIELDS column and every row must have exactly the header's
     fields: a short row stops the read as a long one does, since the file is written whole by its build and a cut
     row is a damaged file. Stops with railroad.FactsError (a ValueError), naming the file and the line, on those, on
-    a row with no mast name, a dir that is not east or west, on a mast name a second time, and on a row whose heads are not system=user pairs of
-    virtual heads named by their user names and matching its mast's system name."""
+    a row with no mast name or a dir that is not east or west, on a mast name a second time, and on a row whose heads
+    are not system=user pairs of virtual heads named by their user names and matching its mast's system name."""
     from . import railroad                  # railroad imports this module, so not at the top
     rows, first = [], {}
     for line, r in railroad.read_rows(path, FIELDS):

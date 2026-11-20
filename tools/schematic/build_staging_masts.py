@@ -237,7 +237,7 @@ def generate(band, bands, runs, joined, names, cps: dict, wired: dict) -> list[d
         far_label = nodes[far[0]].get("label") if nodes[far[0]]["kind"] == "switch" else ""
         out.append(dict(mast=f"Mast {m['name']}", cp=m["cp"], switch=m["switch"] if at_turnout else "",
                         facing=facing, protects=own, kind=m["kind"], heads=m["heads"],
-                        dir="west" if m["letter"] == "L" else "east", toward=m["switch"],
+                        dir=m["dir"], toward=m["switch"],
                         run=f"{m['switch']};{mast_rule.base(far_label) if far_label else ''}", names=names_,
                         edge_cm=round(track_cm, 1), cm_from_toward=round(back, 1), edge=edge, node=n,
                         leg=p, strand=m["strand"], running=m["running"]))
