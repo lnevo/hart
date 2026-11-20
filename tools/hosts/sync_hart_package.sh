@@ -160,7 +160,8 @@ ssh_mux_open() {
   [[ "${HART_SSH_MUX:-1}" != "0" ]] || return 0
   # A unix socket path is limited to about 104 bytes, and ssh adds a suffix while it binds.
   local parent="${TMPDIR:-/tmp}"
-  [[ "${#parent}" -le 60 ]] || parent=/tmp
+  # rsync -e splits its ssh command on whitespace, so the socket path must have none.
+  [[ "${#parent}" -le 60 && "$parent" != *[[:space:]]* ]] || parent=/tmp
   if ! SSH_MUX_DIR="$(mktemp -d "${parent%/}/hart-ssh.XXXXXX")"; then
     echo "Note: could not make an ssh socket folder; each Pi call opens its own connection." >&2
     SSH_MUX_DIR=""
@@ -212,7 +213,8 @@ STAGE_DIR=""   # the staged packages (pi/, win/), built once per run
 WIN_TGZ=""     # the Windows tarball
 PI_STEP=0      # 1 while the Pi step runs: PanelPro quit for this deploy comes back on any way out
 PI_DONE=0      # the Pi got this package
-WIN_STEP=0     # 1 while the Windows step runs
+WIN_STEP=0     # 1 while the Windows step runs, until its apply succeeds
+WIN_APPLY=0    # 1 once the Windows apply was started
 on_exit() {
   [[ -z "$STAGE_DIR" ]] || rm -rf "$STAGE_DIR"
   [[ -z "$WIN_TGZ" ]] || rm -f "$WIN_TGZ"
@@ -221,7 +223,13 @@ on_exit() {
     pi_restart_if_due
   fi
   if [[ "$WIN_STEP" -eq 1 && "$PI_DONE" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
-    echo "The Pi has this deploy but Windows does not: run ./tools/hosts/sync_hart_package.sh --win once Windows answers, so the two match again." >&2
+    if [[ "$WIN_APPLY" -eq 1 ]]; then
+      echo "The Pi has this deploy (commit ${DEPLOY_COMMIT:0:12}); the Windows apply failed, so Windows may be partly installed." >&2
+    else
+      echo "The Pi has this deploy (commit ${DEPLOY_COMMIT:0:12}) but Windows does not." >&2
+    fi
+    echo "Once Windows answers, give it the same commit: make redeploy COMMIT=$DEPLOY_COMMIT HOSTS=--win" >&2
+    [[ "$DEPLOY_DIRTY" == no ]] || echo "  (this checkout was dirty: the Pi also got uncommitted files that a redeploy of the commit does not carry)" >&2
   fi
   ssh_mux_close
 }
@@ -684,8 +692,13 @@ if [[ "$DO_WIN" -eq 1 ]]; then
   push_tar_scp "$STAGE_DIR/win"
   if [[ "$DRY_RUN" -eq 0 ]]; then
     rc=0
+    WIN_APPLY=1
     ssh_win "powershell -NoProfile -ExecutionPolicy Bypass -File \"${WIN_DROP}\\cats\\scripts\\windows\\apply_hart_package_local.ps1\" -Hart \"${WIN_DROP}\" -OverwriteOps ${HART_OVERWRITE_OPS} -UserFiles \"${WIN_USERFILES}\"" || rc=$?
-    ssh_win "powershell -NoProfile -Command \"Remove-Item -LiteralPath '${WIN_DROP}' -Recurse -Force\""
+    # Windows has the deploy once the apply succeeded; a failed folder cleanup below does not change that.
+    [[ "$rc" -ne 0 ]] || WIN_STEP=0
+    # A leftover temp folder is not a failed deploy: warn, and let the apply's result decide the exit.
+    ssh_win "powershell -NoProfile -Command \"Remove-Item -LiteralPath '${WIN_DROP}' -Recurse -Force\"" \
+      || echo "WARNING: could not remove ${WIN_DROP} on Windows; delete it by hand." >&2
     [[ "$rc" -eq 0 ]] || exit "$rc"
   fi
   WIN_STEP=0

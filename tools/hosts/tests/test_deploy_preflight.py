@@ -50,6 +50,14 @@ if [[ -f "@TMP@/pi_ok" ]]; then
     *apply_hart_package_local.sh) exit 0 ;;
   esac
 fi
+# win_ok: Windows gives a drop folder and the apply exits with win_apply_rc; the folder cleanup fails.
+if [[ -f "@TMP@/win_ok" ]]; then
+  case "$cmd" in
+    *"New-Item -ItemType Directory"*) echo 'C:\Temp\hart-deploy-fake'; exit 0 ;;
+    *"tar -xzf _pkg.tgz"*) exit 0 ;;
+    *apply_hart_package_local.ps1*) exit "$(cat "@TMP@/win_apply_rc")" ;;
+  esac
+fi
 case "$cmd" in
   true|"exit 0") exit 0 ;;                       # the preflight no-op
   "bash -s -- '"*) cat >/dev/null; exit 0 ;;     # unpulled_changes.sh: nothing unpulled
@@ -294,8 +302,45 @@ class SshReuseTest(DeployHarness):
         self.assertEqual(99, done.returncode, done.stderr[-2000:])
         self.assertIn("Pi deploy done.", done.stdout)
         self.assertNotIn("Windows deploy done.", done.stdout)
-        self.assertIn("The Pi has this deploy but Windows does not", done.stderr)
+        commit = git("rev-parse", "HEAD")
+        self.assertIn(f"The Pi has this deploy (commit {commit[:12]}) but Windows does not.", done.stderr)
+        self.assertIn(f"make redeploy COMMIT={commit} HOSTS=--win", done.stderr)
+        self.assertNotIn("partly installed", done.stderr)
         self.assertEqual([], sorted(p.name for p in self.scratch.iterdir()), "staging or tarball left behind")
+
+    def win_reaches_apply(self, rc: int) -> None:
+        (self.tmp / "win_ok").touch()
+        (self.tmp / "win_apply_rc").write_text(f"{rc}\n", encoding="utf-8")
+        scp = self.tmp / "bin/scp"
+        scp.write_text(f'#!/bin/sh\necho "scp $*" >>"{self.tmp}/network.log"\nexit 0\n', encoding="utf-8")
+        scp.chmod(0o755)
+
+    def test_windows_apply_failing_says_it_may_be_partly_installed(self) -> None:
+        self.win_reaches_apply(7)
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(7, done.returncode, done.stderr[-2000:])
+        self.assertIn("Windows may be partly installed", done.stderr)
+        self.assertIn("make redeploy COMMIT=", done.stderr)
+
+    def test_windows_cleanup_failing_after_a_good_apply_says_nothing(self) -> None:
+        # The apply succeeded; only the drop-folder removal fails (the stand-in refuses it).
+        self.win_reaches_apply(0)
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertTrue(any("Remove-Item" in c for c in self.calls()), self.calls())
+        self.assertIn("WARNING: could not remove C:\\Temp\\hart-deploy-fake on Windows", done.stderr)
+        self.assertIn("Windows deploy done.", done.stdout)
+        self.assertNotIn("The Pi has this deploy", done.stderr)
+
+    def test_a_tmpdir_with_whitespace_puts_the_socket_folder_in_tmp(self) -> None:
+        spaced = self.tmp / "a b"
+        spaced.mkdir()
+        self.env["TMPDIR"] = str(spaced)
+        done = self.deploy("--pi", "--win")
+        self.assertIn("Pi deploy done.", done.stdout)
+        paths = self.control_paths()
+        self.assertEqual(1, len(paths), self.calls())
+        self.assertTrue(paths.pop().startswith("/tmp/hart-ssh."), self.calls())
 
     def test_windows_alone_failing_does_not_mention_the_pi(self) -> None:
         done = self.deploy("--win")
