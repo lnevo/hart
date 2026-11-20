@@ -387,8 +387,8 @@ def main(argv):
         print(f"station map pages differ from the title block: {', '.join(pages)}" if pages
               else "station map pages carry the title block's revision and date")
         return 0 if same and not differ and not pages else 1
-    prefs = page_prefs()
     try:
+        prefs = page_prefs()
         map_revision.planned(REPO / "www", prefs)             # the station map data holds together before any write
     except ValueError as e:
         sys.exit(f"station map pages: {e}; nothing written")

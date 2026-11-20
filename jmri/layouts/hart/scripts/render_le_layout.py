@@ -560,26 +560,36 @@ def mast_kinds(path, sheet=KINDS_SHEET):
     """{mast user name: kind} from a schematic signals file's `signals` list (mast, kind): hart's signals.json, a
     section per sheet (hartlib.layer_files), read at `sheet`'s section, or a plain signals file (the plugin's signals
     command's output). Names take the layer-1 `mast_prefix` of `sheet`'s section of the plan_overrides.json beside a
-    sectioned file, or "Mast " when it sets none (and for a plain file). Stops on a file it cannot use, a sheet it
+    sectioned file, or of the NAME.plan_overrides.json beside a plain NAME.signals.json, or "Mast " when it sets none. Stops on a file it cannot use, a sheet it
     has no section for, or a mast listed twice."""
     # hartlib only for --kinds: the drawing itself runs from a copy of this file (build_layout_index.py's tests)
-    sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                    if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+    src = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+           if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+    if src[0] not in sys.path:
+        sys.path.insert(0, src[0])
     from hartlib import layer_files      # the schematic's signals and plan overrides, a section per sheet
     path = Path(path)
     prefix = "Mast "
     try:
         text = path.read_text(encoding="utf-8")
         data = json.loads(text)
-        if isinstance(data, dict) and data.get(layer_files.SECTIONS) is True:
+        sectioned = isinstance(data, dict) and data.get(layer_files.SECTIONS) is True
+        if sectioned:
             data = layer_files.section_of(layer_files.parse(text, "signals", str(path)), sheet, str(path))
-            if layer_files.path("plan_overrides", path.parent).exists():
-                prefix = layer_files.read("plan_overrides", sheet, path.parent).get("mast_prefix", prefix)
         rows = data["signals"]
         if not isinstance(rows, list):
             raise TypeError("signals is not a list")
     except (OSError, ValueError, KeyError, TypeError) as e:          # a LayerFileError is a ValueError
         raise SystemExit(f"--kinds {path}: cannot read a signals list ({e})")
+    over = (layer_files.path("plan_overrides", path.parent) if sectioned
+            else path.with_name(path.name.replace(".signals.json", ".plan_overrides.json")))
+    if over.exists() and over != path:
+        try:
+            layer = (layer_files.read("plan_overrides", sheet, path.parent) if sectioned
+                     else json.loads(over.read_text(encoding="utf-8")))
+            prefix = layer.get("mast_prefix", prefix)
+        except (OSError, ValueError, AttributeError) as e:
+            raise SystemExit(f"--kinds: cannot read {over} for the mast prefix ({e})")
     out = {}
     for r in rows:
         if not isinstance(r, dict) or not r.get("mast") or r.get("kind") not in KIND_COLOUR:

@@ -62,7 +62,10 @@ def parse(text: str, kind: str, where: str) -> dict:
 def read_file(kind: str, data: Path = SCHEMATIC) -> dict:
     """The whole file of `kind`, notes included, checked; the old per-sheet files must be gone."""
     p = path(kind, data)
-    stale = sorted(f.name for f in Path(data).glob(f"*.{kind}.json"))
+    stale = sorted(f.name for f in Path(data).glob(f"*.{kind}.json") if f.name != "sheet.preferences.json")
+    if (Path(data) / "sheet.preferences.json").exists() and kind == "preferences":
+        raise LayerFileError(f"sheet.preferences.json beside {p.name}: the page's preferences are the main_upper "
+                             f"section of {p.name}; move its keys there and delete it")
     if stale:
         raise LayerFileError(f"{', '.join(stale)} beside {p.name}: move each into its section of {p.name} and "
                              "delete it (the plugin stops on an input with both)")

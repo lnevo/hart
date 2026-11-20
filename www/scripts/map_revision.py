@@ -22,7 +22,11 @@ def main(argv: list[str]) -> int:
     if argv not in ([], ["--check"]):
         print(__doc__.split("\n\n")[0])
         return 2
-    rev, effective = fields()
+    try:
+        rev, effective = fields()
+    except ValueError as e:                      # the page's preferences cannot be read (hartlib.layer_files)
+        print(f"map_revision.py: {e}", file=sys.stderr)
+        return 2
     rel = lambda p: p.relative_to(REPO).as_posix()
     if argv:
         stale = drift()
