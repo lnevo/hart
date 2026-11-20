@@ -267,7 +267,7 @@ None of this runs while the operating flag is set.
 - 101 and 103 are drawn tight and split by a plugin rule from the three-way part, and the HART entries go. **Done in #785** (schematic-maps 0.1.48), along with the plugin's desk faults for the `level_leg` causes.
 - `le_shift` stays until staging is next redrawn.
 - Staging `le_labels`: `name_columns` and `name_steps` become plugin rules, HART derives its button groups, and `lamp_columns` goes if it does nothing. The fingerprints must not change.
-- `le_signal_boundaries.csv` is retired, along with `apply_le_sml_facing.py` once it is shown to change nothing, before R9c.
+- `le_signal_boundaries.csv` is retired, along with `apply_le_sml_facing.py` once it is shown to change nothing, before R9c. Done 2026-11-20: the script was a no-op on `tables.xml` (byte-identical); the deploy audit now checks every staging mast against `staging_masts.csv` through the plugin's slot index.
 - The screen sizes stay in the preferences.
 
 W6b builds wait for R9b and the level-unification mast step, since both touch `mast_rule.py` and the device maps.

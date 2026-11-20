@@ -60,7 +60,7 @@ jmri/layouts/hart/output/trial/tables_cutover_staging.xml: the tables with the "
 place, by the generated one under that name and panel_items.json's attributes, sized by the le_window and opening at
 0, 0; everything else unchanged. Staging's turnouts
 keep their switches.csv idents; anchors, end bumpers and segments take generated idents (owner, 2026-11-17), which
-le_signal_boundaries.csv follows. Every staging mast goes in the one slot whose facing and protected blocks and kind of
+staging_masts.csv names them by block, not by ident. Every staging mast goes in the one slot whose facing and protected blocks and kind of
 slot are its own (staging_masts.csv; the plugin's slots.py holds JMRI's rules), its icon on the right-hand side of the
 train it governs, hidden for a virtual mast; check_device_masts stops on a mast two slots would fit or one on another
 turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), the same helix block,
@@ -103,8 +103,7 @@ from le_names import (  # noqa: E402,F401  re-exported: callers and tests read t
     device_names, level_names, shared_turnouts, named_bands,
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    BOUNDARIES, mast_band, check_level_slots, check_unplaced, turnout_facts, check_device_masts,
-    check_boundaries,
+    mast_band, check_level_slots, check_unplaced, turnout_facts, check_device_masts,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS, NUMBERING, load_numbering, COMMENT, bean, r1, block_sort,
@@ -306,8 +305,6 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     # the marker that tells the build and the Stage 1 repairs the panel is a generated one
     opts = panel_el.find("layoutTrackDrawingOptions")
     panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
-    # the boundary contract's idents and slots (generated anchor idents renumber with the drawing): stop loudly
-    check_boundaries(panel_el)
     if levels == "staging" and approved is not None:
         try:
             check_approved(panel_el, approved)

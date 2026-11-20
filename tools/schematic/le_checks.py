@@ -1,6 +1,5 @@
 """Mast and slot checks of the Layout Editor build: every staging mast in the one slot that resolves to its blocks
-(check_device_masts) and at the ident and slot le_signal_boundaries.csv records for it (check_boundaries), the main and
-upper masts in theirs."""
+(check_device_masts), the main and upper masts in theirs (check_level_slots)."""
 from __future__ import annotations
 
 import sys
@@ -9,11 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from hartlib import boundaries, paths  # noqa: E402
 from le_common import BuildError, slots_module  # noqa: E402
-
-
-BOUNDARIES = boundaries.PATH
 
 
 def mast_band(m: dict) -> int:
@@ -114,25 +109,3 @@ def check_device_masts(P, masts: list[dict], le_mod, facts: dict | None = None) 
                        "one is a guess")
     if bad:
         raise BuildError("staging masts not placed for certain: " + "; ".join(bad))
-
-
-def check_boundaries(panel: ET.Element, path: Path = BOUNDARIES) -> None:
-    """Stop unless every mast of le_signal_boundaries.csv stands on `panel` (a generated panel) in the kind of slot,
-    at the ident and in the slot its row records. The anchor idents are generated, so a change to the staging drawing can renumber
-    them; this stops the build then, naming each row, rather than leave the audits, apply_le_sml_facing.py and the
-    boundary contract on the wrong anchor. Rewrite the named rows from the new panel."""
-    placed = {m["mast"]: m for m in slots_module().Index(panel).masts()}
-    bad = []
-    try:
-        rows = boundaries.read(path)
-    except ValueError as exc:
-        raise BuildError(str(exc)) from None
-    for b in rows:
-        name, want = b.mast, (b.kind, b.ident, b.slot)
-        m = placed.get(name)
-        got = (m["kind"], m["ident"], m["slot"]) if m else None
-        if got != want:
-            bad.append(f"{name}: recorded {' '.join(want)}, drawn {' '.join(got) if got else 'nowhere'}")
-    if bad:
-        raise BuildError(f"{paths.rel(path)} does not follow the drawn panel (rewrite these rows from it): "
-                         + "; ".join(bad))

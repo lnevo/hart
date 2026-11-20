@@ -230,7 +230,10 @@ class StampNamesWhatWasShipped(unittest.TestCase):
         (cls.repo / cls.MARKER).write_text("untracked\n", encoding="utf-8")
         cls.changes = git("status", "--porcelain", repo=cls.repo).splitlines()
         cls.out = cls.tmp / "stage"
-        cls.done = run(cls.repo / "tools/hosts/sync_hart_package.sh", cls.out, stage_env(cls.tmp), cwd=cls.repo)
+        env = stage_env(cls.tmp)
+        # the clone has no submodule checkout; the deploy audit needs the plugin, so it uses this checkout's
+        env["SCHEMATIC_PLUGIN"] = str(ROOT / "external/model-railroad-skills/plugins/schematic-maps")
+        cls.done = run(cls.repo / "tools/hosts/sync_hart_package.sh", cls.out, env, cwd=cls.repo)
         if cls.done.returncode != 0:
             raise RuntimeError("staging from the clone failed:\n" + cls.done.stderr[-2000:])
 

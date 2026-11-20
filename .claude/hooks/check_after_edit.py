@@ -19,7 +19,7 @@ import time
 
 WATCHED = re.compile(
     r"(^|/)(jmri/layouts/hart/output/tables\.xml"
-    r"|jmri/layouts/hart/data/le_signal_boundaries\.csv"
+    r"|jmri/layouts/hart/data/schematic/(staging|main_upper)_masts\.csv"
     r"|docs/wiring/signals/signal_[a-z_]+\.csv"
     r"|jmri/scripts/signal_coordinator\.py)$"
 )

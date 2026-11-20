@@ -151,6 +151,14 @@ done
 while IFS= read -r line; do
   [[ -n "$line" ]] && CHILD_ENV+=("$line")
 done <<<"$hosts"
+# The deploy audit places masts by the schematic-maps plugin. The temporary worktree has no submodule checked out and a
+# rollback must run offline, so hand the old commit's deploy this checkout's plugin (the slot rule it audits by).
+PLUGIN="${SCHEMATIC_PLUGIN:-$ROOT/external/model-railroad-skills/plugins/schematic-maps}"
+if [[ ! -f "$PLUGIN/schematic/slots.py" ]]; then
+  echo "REFUSED: the schematic-maps plugin is not at $PLUGIN; run git submodule update --init external/model-railroad-skills" >&2
+  exit 1
+fi
+CHILD_ENV+=("SCHEMATIC_PLUGIN=$PLUGIN")
 
 # This checkout's checks, run before the old commit's deploy (older commits lack them): stop if a
 # host named does not answer over ssh, or if the owner changed Operations Pro files or stored

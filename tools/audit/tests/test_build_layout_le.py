@@ -481,13 +481,12 @@ class Built(unittest.TestCase):
         self.assertNotIn("Layout (generated)", names)        # the retired viewing trials' panel
 
     def test_audit_passes_on_the_cut_over_candidate(self) -> None:
-        # le_signal_boundaries.csv names the generated panel's anchors (AG...), so the audit reads the candidate,
-        # whose "HART Railroad" panel is the generated one
-        boundaries = AUDIT.load_boundaries(AUDIT.BOUNDARIES)
+        # the audit reads the candidate, whose "HART Railroad" panel is the generated one
+        staging = AUDIT.load_staging_masts()
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables_cutover.xml"
             path.write_bytes(self.data)
-            audit = AUDIT.audit_source("candidate", path, boundaries, {b.mast for b in boundaries}, generated=True)
+            audit = AUDIT.audit_source("candidate", path, staging, generated=True)
         self.assertEqual(audit.errors, [])
         self.assertEqual(audit.facts["panel"], LIVE_PANEL)
 
@@ -1096,5 +1095,5 @@ class LevelMasts(unittest.TestCase):
             le.append(copy.deepcopy(tables.generated_marker_label()))
             le.append(copy.deepcopy(tables.generated_marker_label()))
             path.write_bytes(ET.tostring(root))
-            audit = AUDIT.audit_source("t", path, AUDIT.load_boundaries(AUDIT.BOUNDARIES), set())
+            audit = AUDIT.audit_source("t", path, AUDIT.load_staging_masts())
         self.assertTrue(any("generated-panel markers" in e for e in audit.errors), audit.errors)
