@@ -97,6 +97,7 @@ HARTLIB_OTHER = {
     "level_masts": "their control-point masts",
     "boundaries": "where each staging mast stands on the panel",
     "map_revision": "the station maps' revision",
+    "layer_files": "the schematic's layer files, a section per sheet",
 }
 
 
