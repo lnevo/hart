@@ -80,14 +80,6 @@ class LoaderTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, r"Switch 9\): hand is L, R or blank, got 'left'"):
             facts.load_switches(self.data)
 
-    def test_the_engine_terminal_draws_switch_9_from_its_hand(self) -> None:
-        sys.path.insert(0, str(facts.paths.REPO_ROOT / "tools/anyrail"))
-        import engine_terminal
-
-        self.assertEqual(engine_terminal.switch_hand(9), "L")
-        staging = (facts.paths.REPO_ROOT / "tools/anyrail/staging_plan.svg").read_text()
-        self.assertIn("Switch 9 is left hand: its normal route goes to EH-2", engine_terminal.svg(staging)[0])
-
     def test_a_mast_or_a_cell_listed_twice_names_both_rows(self) -> None:
         self.append("mast_cells.csv", "Mast 2L,1,1,LEFT,W,h2,,,,")
         with self.assertRaisesRegex(ValueError, r"lines 4 and 25: same mast Mast 2L"):

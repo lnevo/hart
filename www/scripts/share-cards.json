@@ -122,7 +122,7 @@
     },
     "build/track-plan.html": {
       "image": "assets/share/build-track-plan.jpg",
-      "alt": "The staging, main and upper level track plans side by side, drawn to scale, with the staging test loop and engine terminal marked in orange.",
+      "alt": "The staging, main and upper level track plans side by side, drawn to scale, with the helix ramps dotted in orange.",
       "from": "make_share_cards.py build-track-plan (the three drawings of build/track-plan.html)"
     },
     "build/index.html": {

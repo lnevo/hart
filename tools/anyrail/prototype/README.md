@@ -3,7 +3,7 @@
 `tools/anyrail/anyplan.py` replaces `parse1.py`, `parse2.py` and `graph.py` for reading a plan: it reads every
 maker's track, the first end point in the file and per-file record tags, which these scripts do not (they misread
 5.3b's part 0, drop the Walthers double crossover and read nothing from 5.3c). The scripts stay for the outputs
-built on them (the speed-matching lengths and the level plans page).
+built on them (the speed-matching lengths).
 
 Reverse-engineered reader for AnyRail `.any` files, used once for
 [`docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`](../../../docs/jmri/speedmatching/ANYRAIL_LENGTHS.md).
@@ -21,7 +21,6 @@ the repo as `plan.any` and run the scripts there, in order:
 They write their JSON into the current folder. A generic, tested version is planned for the
 public model-railroad-skills plugin after the speed-matching run.
 
-Level plans page (`www/build/track-plan.html`, also published as an artifact): `../levels_svg.py parts.json graph.json OUT`
-draws the main and upper level to scale (track only), and `../levels_page.py OUT ../staging_plan.svg PANEL|- site.html artifact.html 5.3b`
-builds the page. `staging_plan.svg` is the staging level's track drawing, with the test loop and the Switch 5 to Switch 15 run
-marked; the last argument is the plan version printed on the page. The run is read off that drawing (`../staging_run.py`) and the Switch 7 and 13 markers come from the loop 2 passes in `jmri/layouts/hart/data/loop2_locate.csv` (`infer_block_lengths.py --route loop2 --locate` prints them); the block table reads `block_lengths.csv` and `block_lengths_before.csv`.
+Level plans page (`www/build/track-plan.html`): `../levels_svg.py` draws the three levels to scale from the plan with
+`../anyplan.py` (track only; it needs no prototype script) and `../levels_page.py` builds the page from those drawings,
+`block_lengths.csv` and `helix_tracks.csv`. See the docstrings of both.

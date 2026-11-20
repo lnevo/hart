@@ -461,7 +461,7 @@ def link_build_main_level():
 
 
 def build_track_plan():
-    """build-track-plan: the three level drawings of the track plan article side by side, staging with its loop and engine terminal."""
+    """build-track-plan: the three level drawings of the track plan article side by side, the helix ramps dotted in orange."""
     text = (PORTAL / "build/track-plan.html").read_text(encoding="utf-8")
     figs = re.findall(r'<div class="plan"><svg viewBox="([^"]+)" role="img" aria-label="([^"]+)">(.*?)</svg></div>', text, re.S)
     css = re.search(r"</style>", text) and _page_style("build/track-plan.html")

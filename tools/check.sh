@@ -111,6 +111,10 @@ run schematic-staging-device-map python3 tools/schematic/staging_device_map.py -
 run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check
 run schematic-staging-masts python3 tools/schematic/build_staging_masts.py --check
 run schematic-staging-sync python3 tools/schematic/sync_staging_signals.py --check
+# The track plan article: its drawings against the owner's plan (SKIPPED where the plan is not), and the article
+# against its drawings and the block lengths.
+run levels-svg python3 tools/anyrail/levels_svg.py --check
+run levels-page python3 tools/anyrail/levels_page.py --check
 run wiring-v86 python3 tools/wiring/add_main_upper_levels.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 # The parked features (Entry/Exit, Dispatcher System, USS CTC): none of their elements or names in the tables
